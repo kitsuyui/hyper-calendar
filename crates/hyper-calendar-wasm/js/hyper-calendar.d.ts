@@ -121,6 +121,11 @@ export const COLUMNS: {
   readonly epoch: ReadonlyArray<string>;
   readonly ttFromEpoch: ReadonlyArray<string>;
   readonly circadDate: ReadonlyArray<string>;
+  readonly horizons: ReadonlyArray<string>;
+  readonly solarCrossing: ReadonlyArray<string>;
+  readonly hinduLunarDate: ReadonlyArray<string>;
+  readonly suryaSiddhanta: ReadonlyArray<string>;
+  readonly crescent: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -932,6 +937,74 @@ export interface SolarEvent {
   missing: MissingSolarEvent | null;
 }
 
+/** A horizon `hc_horizons` lists. */
+export type HorizonId = "geometric-dip" | "usno" | "calendrical-calculations";
+
+/** One line of `hc_horizons`. */
+export interface Horizon {
+  id: HorizonId;
+  englishName: string;
+  /** What the convention takes the visible horizon to be. */
+  description: string;
+  source: string;
+}
+
+/** The one line of `hc_sunrise` or `hc_sunset`. */
+export interface SolarCrossing {
+  /** POSIX seconds of Universal Time, rounded down, or `null` when the Sun does not cross that day. */
+  instant: number | null;
+  missing: MissingSolarEvent | null;
+  /** The geometric altitude of the Sun's centre at the crossing, which the horizon and the height fix. */
+  altitudeDegrees: number;
+}
+
+/** The one line of `hc_hindu_lunar_date`. */
+export interface HinduLunarDate {
+  sakaYear: number;
+  vikramaYear: number;
+  /** 1 for Chaitra through 12 for Phālguna. */
+  month: number;
+  /** The intercalary (adhika) month, which precedes the ordinary one. */
+  leapMonth: boolean;
+  /** 1 through 30. */
+  tithi: number;
+  /** The second day to carry the tithi. */
+  leapDay: boolean;
+  /** The sunrise the day was read at, POSIX seconds, rounded down. */
+  sunrise: number;
+}
+
+/** The one line of `hc_surya_siddhanta_at`. */
+export interface SuryaSiddhantaSky {
+  /** Degrees, sidereal. */
+  sunLongitude: number;
+  moonLongitude: number;
+  /** The Moon's elongation from the Sun, 0 to 360 degrees. */
+  elongation: number;
+  /** 1 through 30. */
+  tithi: number;
+  /** 1 for Meṣa through 12 for Mīna. */
+  sign: number;
+}
+
+/** A crescent-visibility criterion `hc_crescent_visible` names. */
+export type CrescentCriterion = "shaukat" | "yallop" | "saudi-rule";
+
+/** The one line of `hc_crescent_visible`. */
+export interface CrescentVisibility {
+  visible: boolean;
+  /** The moment the evening is judged at, POSIX seconds, or `null` when no observation is possible. */
+  evaluatedAt: number | null;
+  /** At that moment, in degrees. */
+  elongation: number | null;
+  arcOfLight: number | null;
+  /** The Moon's geocentric altitude. */
+  altitude: number | null;
+  arcOfVision: number | null;
+  /** The crescent's topocentric width in arcminutes. */
+  widthArcminutes: number | null;
+}
+
 /**
  * An instantiated module, one method per export. Every `i64` result is a
  * number; an `i64` argument may be a number or a `BigInt`. A method whose
@@ -1063,6 +1136,17 @@ export class HyperCalendar {
   panchangaAt(unixSeconds: number | bigint, ayanamsa: string): PanchangaLimb[];
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
   panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: string): PanchangaLimb[];
+  /**
+   * `hc_hindu_lunar_date`: `sky` an ayanamsa name or `surya-siddhanta`; on
+   * the true sky a day without a sunrise at the place is `no-data`.
+   */
+  hinduLunarDate(sky: string, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): HinduLunarDate;
+  /** `hc_surya_siddhanta_at`; an instant outside Kali Yuga 1 to 10 000 is `out-of-range`. */
+  suryaSiddhantaAt(unixSeconds: number | bigint): SuryaSiddhantaSky;
+  /** `hc_surya_siddhanta_sunrise`: POSIX seconds; a place beyond 65° of latitude is `out-of-range`. */
+  suryaSiddhantaSunrise(fixed: number | bigint, latitude: number, longitude: number): number;
+  /** `hc_crescent_visible`: on the evening that begins the day. */
+  crescentVisible(criterion: CrescentCriterion, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): CrescentVisibility;
   /** `hc_ioc_olympiad`; a year before 1896 is `out-of-range`. */
   iocOlympiad(gregorianYear: number | bigint): number;
   /** `hc_hebrew_yahrzeit`: the date of death as the fixed day that carries it. */
@@ -1133,6 +1217,12 @@ export class HyperCalendar {
   solarTime(clock: SolarClock, unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): SolarTime;
   /** `hc_solar_event`. */
   solarEvent(event: SolarEventName, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarEvent;
+  /** `hc_horizons`. */
+  horizons(): Horizon[];
+  /** `hc_sunrise`; a missing sunrise is an answer, not an error. */
+  sunrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
+  /** `hc_sunset`. */
+  sunset(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
 
   /** `hc_orbit_at`; an epoch beyond a million years either side of 1950 is `out-of-range`. */
   orbitAt(yearsBefore1950: number): Orbit;

@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-191 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+192 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 157 of 191 have months and 157 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 158 of 192 have months and 158 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -82,6 +82,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hindu-old-solar` | Old Hindu solar (mean) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3101-01-23 | 6900-07-03 | no | no | sunrise | start | month ×12, weekday ×7 | yes |
 | `hindu-solar-bengali` | Bengali solar (Bangabda) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-10 | 2300-04-18 | yes | no | sunrise | start | month ×12, weekday ×7 | yes |
 | `hindu-solar-malayalam` | Malayalam (Kollam era) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-08-13 | 2300-08-20 | yes | no | sunrise | start | month ×12, weekday ×7 | yes |
+| `hindu-solar-surya-siddhanta` | Hindu solar (Surya Siddhanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-20 | 6900-07-01 | yes | no | sunrise | start | month ×12, weekday ×7 | yes |
 | `hindu-solar-tamil` | Tamil solar | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-10 | 2300-04-17 | yes | no | sunrise | start | month ×12, weekday ×7, samvatsara ×60 | yes |
 | `hindu-solar-vikrami` | Vikrami solar | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-04-09 | 2300-04-17 | yes | no | sunrise | start | month ×12, weekday ×7 | yes |
 | `holocene` | Holocene (Human Era) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |

@@ -23,6 +23,11 @@
 //!   `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
 //!   `hindu-solar-vikrami`; and the Bengali months under the Magi San of
 //!   Chittagong, `magi-san`.
+//! * [`hindu_solar_siddhanta`] — the solar months on the *Sūrya
+//!   Siddhānta*'s Sun, a month beginning on the day whose closing sunrise
+//!   at Ujjain, by the Siddhānta, is the first in the new sign: the modern
+//!   Hindu solar calendar of Reingold and Dershowitz.
+//!   `hindu-solar-surya-siddhanta`.
 //! * [`tithi`] — the lunar day itself: which tithi is in progress at a
 //!   moment, and which a civil day carries.
 //! * [`nakshatra`] — the Moon's station among the twenty-seven: which is
@@ -160,6 +165,7 @@ pub mod hindu_lunar_siddhanta;
 pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
+pub mod hindu_solar_siddhanta;
 mod kartikadi;
 pub mod lunar_era;
 pub mod nakshatra;
@@ -181,6 +187,7 @@ pub use hindu_old::{
 };
 pub use hindu_purnimanta::HinduPurnimantaCalendar;
 pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
+pub use hindu_solar_siddhanta::SiddhantaSolarCalendar;
 pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate};
 pub use odia_anka::{OdiaAnkaCalendar, OdiaAnkaDate};
 pub use tithi::{Paksha, Prevalence};
@@ -210,6 +217,9 @@ mod registration {
         for calendar in crate::hindu_solar::ALL {
             registry.insert(Box::new(DynAdapter::new(*calendar)));
         }
+        registry.insert(Box::new(DynAdapter::new(
+            crate::SiddhantaSolarCalendar::UJJAIN,
+        )));
         registry.insert(Box::new(DynAdapter::new(crate::OldHinduSolarCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::OldHinduLunarCalendar)));
         registry.insert(Box::new(DynAdapter::new(
@@ -239,7 +249,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 20;
+    const CALENDAR_COUNT: usize = 21;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -249,6 +259,7 @@ mod tests {
             HinduLunarCalendar::RASHTRIYA.meta(),
             SiddhantaLunarCalendar::UJJAIN.meta(),
             HinduPurnimantaCalendar::RASHTRIYA.meta(),
+            SiddhantaSolarCalendar::UJJAIN.meta(),
             OldHinduSolarCalendar.meta(),
             OldHinduLunarCalendar.meta(),
             NepalSambatCalendar::KATHMANDU.meta(),
@@ -305,6 +316,11 @@ mod tests {
         assert!(registry.get_by_name("hindu-solar-malayalam").is_some());
         assert!(registry.get_by_name("hindu-solar-bengali").is_some());
         assert!(registry.get_by_name("hindu-solar-vikrami").is_some());
+        assert!(
+            registry
+                .get_by_name("hindu-solar-surya-siddhanta")
+                .is_some()
+        );
         assert!(registry.get_by_name("hindu-old-solar").is_some());
         assert!(registry.get_by_name("hindu-old-lunar").is_some());
         assert!(registry.get_by_name("nepal-sambat").is_some());

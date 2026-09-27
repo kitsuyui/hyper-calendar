@@ -28,6 +28,7 @@ module.
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
 | | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — the months of Punjab and Haryana, which Odisha keeps under the years of `odia-anka` | |
+| `hindu_solar_siddhanta` | `hindu-solar-surya-siddhanta` | the months on the *Sūrya Siddhānta*'s Sun, named by their signs; the month begins on the day whose closing sunrise at Ujjain, by the Siddhānta, is the first in the new sign; the Siddhānta's Śaka years: Reingold and Dershowitz's modern Hindu solar calendar | Kali Yuga 1–10000 (3101 BCE to 6899 CE) |
 | | `magi-san` | the Bengali months and days under the Magi San of Chittagong, the Bengali San less 45 | |
 | `tithi` | — | the lunar day: which tithi is in progress at a moment, and which a civil day carries | |
 | `nakshatra` | — | the Moon's station among the twenty-seven: which is in progress at a moment, and when the Moon enters and leaves one; and the Sun's, the almanacs' Sūrya nakṣatra transits, by which Kerala's ñāṭṭuvēla are counted | |
@@ -65,7 +66,9 @@ days, and the Tamil rule read there moves 5 of 372 month starts.
 `hindu-lunar-surya-siddhanta` is a registered calendar, because its Sun,
 Moon and sunrise are another convention: it gives Reingold and
 Dershowitz's value for all 33 of their sample dates, 586 BCE to 2094, and
-parts from `HinduLunarCalendar::UJJAIN` on 1 389 days of 2000–2030.
+parts from `HinduLunarCalendar::UJJAIN` on 1 389 days of 2000–2030. So is
+`hindu-solar-surya-siddhanta`, the solar months on the same Sun and
+sunrise, which gives the book's value for all 33 dates too.
 
 ## What the tests are
 

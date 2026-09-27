@@ -47,7 +47,11 @@
 //! second with a fifth rule, [`CivilDay`](SankrantiRule::CivilDay), and is
 //! [`crate::bikram_sambat`].
 //!
-//! The traditional almanacs of the four Indian regions that keep the
+//! Reingold and Dershowitz's own solar calendar on the Siddhānta, the
+//! Orissa rule with the day closed by the Siddhānta's sunrise at Ujjain, is
+//! registered as `hindu-solar-surya-siddhanta`
+//! ([`crate::hindu_solar_siddhanta`]), held to their sample dates. The
+//! traditional almanacs of the four Indian regions that keep the
 //! Siddhānta's saṅkrāntis would be four more calendars under policy §5,
 //! and they are not registered: no such almanac's month table was read,
 //! so there is nothing to anchor a Siddhānta Tamil, Malayalam, Bengali or

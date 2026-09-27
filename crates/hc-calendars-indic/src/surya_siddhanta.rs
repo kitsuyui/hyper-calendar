@@ -140,9 +140,17 @@ fn sine(theta: f64) -> f64 {
 
 /// The angle in degrees whose table sine is `amplitude`, the inverse of
 /// [`sine`] (`hindu-arcsin`).
+///
+/// An amplitude above the radius has no angle; the book's search would
+/// step past the table's last entry for ever, and this one answers 90°
+/// instead, the table's limit. [`sunrise`] meets it only where the Sun
+/// does not rise.
 fn arcsin(amplitude: f64) -> f64 {
     if amplitude < 0.0 {
         return -arcsin(-amplitude);
+    }
+    if amplitude >= 1.0 {
+        return 90.0;
     }
     let mut position = 0.0;
     while amplitude > sine_table(position) {
@@ -316,7 +324,9 @@ fn ascensional_difference(date: f64, latitude_degrees: f64) -> f64 {
 /// The book computes it at Ujjain; its formula carries the place's
 /// latitude and its longitude from Ujjain's, and so does this. The day is
 /// the civil day of Ujjain's clock, which for any place of the
-/// subcontinent is the local one.
+/// subcontinent is the local one. The ascensional difference is defined
+/// only where the Sun rises every day, below [`MAX_SUNRISE_LATITUDE`];
+/// beyond it the answer is the table's limit of 90° and names no sunrise.
 #[must_use]
 pub fn sunrise(day: Rd, location: Location) -> Moment {
     let date = day.0 as f64;
@@ -328,6 +338,15 @@ pub fn sunrise(day: Rd, location: Location) -> Moment {
                 + 0.25 * solar_sidereal_difference(date));
     Moment(local - UJJAIN_LONGITUDE_DEGREES / 360.0)
 }
+
+/// The greatest latitude, north or south, at which the Siddhānta's Sun
+/// rises every day: its greatest declination is arcsin(1397⁄3438),
+/// 23.97°, so the ascensional difference is defined while tan φ is at most
+/// cot 23.97°, 2.249, below 66.03° in exact trigonometry. The bound is
+/// taken a degree inside that, since the model reads its sines off the
+/// table; `tests::a_polar_place_does_not_hang_the_sunrise` holds a year of
+/// sunrises at it.
+pub const MAX_SUNRISE_LATITUDE: f64 = 65.0;
 
 /// The sign the Sun stands in at a moment.
 #[must_use]
@@ -373,6 +392,21 @@ mod tests {
 
     fn ymd(year: i64, month: u8, day: u8) -> f64 {
         gregorian::to_fixed(year, month, day).unwrap().0 as f64
+    }
+
+    /// Beyond the latitude where the Sun rises every day the book's arcsin
+    /// would search for ever; here it stops at the table's limit, and a
+    /// sunrise at 80° N at midwinter comes back at once.
+    #[test]
+    fn a_polar_place_does_not_hang_the_sunrise() {
+        let north = Location::new(80.0, 20.0, 0.0);
+        let midwinter = Rd(739_241);
+        assert!(sunrise(midwinter, north).0.is_finite());
+        let edge = Location::new(MAX_SUNRISE_LATITUDE, 20.0, 0.0);
+        for day in 739_000..739_366 {
+            let rise = sunrise(Rd(day), edge).0 - day as f64;
+            assert!((-0.5..1.0).contains(&rise), "R.D. {day}: {rise}");
+        }
     }
 
     #[test]

@@ -133,7 +133,7 @@ of the same measurement.
 | Earth Rotation Angle, IAU 2006 GMST | **10⁻⁹ degree** of the published expressions | ERFA's `eraEra00` and `eraGmst06` test values |
 | IAU 1982 GMST (Meeus 12.4) | **0.7 µs** of time of ERFA's `eraGmst82` | ERFA's test value at 2006-01-01 |
 | UT2, UT1R, UT1S corrections to the caller's UT1 | exact as conventions; the tidal sum to **10⁻¹² s** of the IERS model | the USNO formula by hand; the test case of the IERS routine `RG_ZONT2.F` |
-| Local apparent (sundial) time | the equation of time's, **under a second** | Meeus example 28.a, within 0.5 s |
+| Equation of time, local apparent (sundial) time | **0.02 s** today, **0.6 s** in 587 BCE | JPL Horizons' apparent hour angle of the Sun at Greenwich on four days, 587 BCE to 2024; Meeus example 28.a, within 0.5 s |
 | Temporal hours | the sunrise and sunset's, **under a minute** over twelve | NAOJ 暦計算室, Tokyo, 2024-01-01 |
 | Heliocentric light-time correction | **0.1 s** of the correction on the J2000 frame, 1940–2100; the HJD itself is good only to 8 s as an inertial time | the IDL Astronomy Library's `helio_jd` comparison table, six objects |
 
@@ -197,11 +197,12 @@ by the sky, and the calendars built on top of this say so where it matters.
   that is `hc-tz`'s job. *Calendrical Calculations* looks for a moonrise
   between two midnights of standard time instead, so a moonrise within the
   minutes between the two midnights falls on a different day.
-* `solar_time::local_apparent_time` is mean time plus the equation of
-  time, whose mean Sun is taken at dynamical time; before about 1500 CE,
-  where ΔT is large, it runs ahead of the Sun's hour angle, by 38 s in
-  586 BCE. The rise, set and transit functions solve for the hour angle and
-  do not share the error. *Calendrical Calculations*' solar events do.
+* `solar::equation_of_time` takes the true Sun at Terrestrial Time and
+  the mean Sun at Universal Time, since Universal Time is the mean Sun's
+  hour angle. Meeus's (28.1) and *Calendrical Calculations* take both at
+  dynamical time, which makes their equation larger by ΔT times the mean
+  Sun's rate: 0.2 s today, 38 s in 586 BCE. *Calendrical Calculations*'
+  solar events carry that lead; this crate's do not.
 * `solar_longitude_after` and `moon_phase_at_or_after` are "at or after" up to
   floating-point noise. If the argument is the answer to within a rounding
   error, the search may step a whole cycle forward. Search from slightly

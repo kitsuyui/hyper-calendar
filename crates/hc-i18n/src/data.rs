@@ -3020,7 +3020,10 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["Kali Yuga"],
     ),
     dated(
-        &[CalendarId("hindu-solar-tamil")],
+        &[
+            CalendarId("hindu-solar-tamil"),
+            CalendarId("hindu-solar-surya-siddhanta"),
+        ],
         &[],
         &["saka"],
         &["Saka"],

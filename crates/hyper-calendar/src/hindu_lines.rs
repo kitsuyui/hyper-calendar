@@ -1,0 +1,310 @@
+//! The tab-separated lines the WebAssembly module and the C library write
+//! about the Hindu lunisolar date and the *Sūrya Siddhānta*'s sky, written
+//! once.
+//!
+//! * The amānta lunisolar date of a day at a place the caller gives, on
+//!   one of two skies: the true Sun and Moon in the zodiac of a named
+//!   ayanamsa, as `hindu-lunar` reads them at the Central Station, or the
+//!   *Sūrya Siddhānta*'s, as `hindu-lunar-surya-siddhanta` reads them at
+//!   Ujjain. The place is a parameter and not a calendar of its own
+//!   (`docs/policy.md` §5); `docs/systems/hindu-calendars.md` says how
+//!   often it moves a date.
+//! * The *Sūrya Siddhānta*'s Sun and Moon at an instant, with the tithi and
+//!   the sign, and its sunrise on a day at a place
+//!   ([`hc_calendars_indic::surya_siddhanta`]).
+//!
+//! The true sky answers for the years the true calendars convert,
+//! Gregorian 1700 to 2299; the Siddhānta's, which is arithmetic, for the
+//! days of `hindu-lunar-surya-siddhanta`, Kali Yuga 1 to 10 000, which
+//! [`SIDDHANTA_FIRST_DAY`] and [`SIDDHANTA_LAST_DAY`] name.
+
+use alloc::string::String;
+use core::fmt::Write;
+
+use hc_astro::riseset::{Location, sunrise};
+use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
+use hc_calendar::{CalendarError, Rd};
+use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
+use hc_calendars_indic::{HinduLunarCalendar, HinduLunarDate, SiddhantaLunarCalendar};
+use hc_core::math::floor;
+
+use crate::astro_lines::unix_from_moment;
+use crate::boundary::{Answer, Refusal, names};
+use crate::panchanga_lines::ayanamsa;
+
+/// The name of the *Sūrya Siddhānta*'s sky, beside the ayanamsa names of
+/// the true one.
+pub const SURYA_SIDDHANTA: &str = "surya-siddhanta";
+
+/// The first fixed day the Siddhānta's exports answer for: Chaitra śukla 1
+/// of Kali Yuga 1 on `hindu-lunar-surya-siddhanta`, 13 January 3101 BCE.
+pub const SIDDHANTA_FIRST_DAY: i64 = -1_132_604;
+
+/// The last fixed day the Siddhānta's exports answer for, the last of Kali
+/// Yuga 10 000 on the same calendar, 15 June 6900.
+pub const SIDDHANTA_LAST_DAY: i64 = 2_519_974;
+
+/// Seconds in a day.
+const SECONDS_PER_DAY: i64 = 86_400;
+
+/// A fixed day the Siddhānta's exports answer for.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] outside [`SIDDHANTA_FIRST_DAY`] to
+/// [`SIDDHANTA_LAST_DAY`].
+fn siddhanta_day(fixed: i64) -> Answer<Rd> {
+    if (SIDDHANTA_FIRST_DAY..=SIDDHANTA_LAST_DAY).contains(&fixed) {
+        Ok(Rd(fixed))
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
+/// A place where the Sun rises every day, on either sky: within
+/// [`MAX_SUNRISE_LATITUDE`] of the equator. A lunisolar month begins at the
+/// first sunrise after a conjunction, so a place with even one day of the
+/// year without a sunrise has months that cannot be read there.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] beyond it.
+fn sunrise_place(place: Location) -> Answer<Location> {
+    if place.latitude_degrees.abs() <= MAX_SUNRISE_LATITUDE {
+        Ok(place)
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
+/// A calendar's refusal of a day as a boundary's: the ends of its range are
+/// [`Refusal::OutOfRange`], and a search that does not converge, which a
+/// place without sunrises can cause, [`Refusal::NoData`].
+fn refusal(error: CalendarError) -> Refusal {
+    match error {
+        CalendarError::AstronomicalModelFailure => Refusal::NoData,
+        _ => Refusal::OutOfRange,
+    }
+}
+
+/// The line of a date and the sunrise it was read at.
+fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        date.year,
+        date.vikrama_year(),
+        date.month,
+        u8::from(date.leap_month),
+        date.day,
+        u8::from(date.leap_day),
+        unix_from_moment(sunrise),
+    );
+    out
+}
+
+/// The line of `hc_hindu_lunar_date`: the amānta lunisolar date of a fixed
+/// day read at the sunrise of a place, as the Śaka year, the Vikrama year,
+/// the month (1 for Chaitra through 12 for Phālguna), whether it is the
+/// intercalary month, 1 or 0, the tithi (1 through 30), whether the day is
+/// the second to carry it, 1 or 0, and the sunrise the day was read at, as
+/// whole POSIX seconds of Universal Time, rounded down.
+///
+/// `sky` is an ayanamsa [`ayanamsa`] names, for the true Sun and Moon in
+/// its zodiac read at the place's sunrise, as `hindu-lunar` is with Lahiri's
+/// at the Central Station; or [`SURYA_SIDDHANTA`], for the Siddhānta's Sun
+/// and Moon read at its own sunrise there, as
+/// `hindu-lunar-surya-siddhanta` is at Ujjain.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a sky not named. [`Refusal::OutOfRange`] on
+/// either sky for a place beyond [`MAX_SUNRISE_LATITUDE`], where some day
+/// of the year has no sunrise; on the true sky for a day outside Gregorian
+/// 1700 to 2299, and on the Siddhānta's for a day outside
+/// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
+pub fn hindu_lunar_date_line(sky: &str, fixed: i64, place: Location) -> Answer<String> {
+    if names(sky, SURYA_SIDDHANTA) {
+        let day = siddhanta_day(fixed)?;
+        let place = sunrise_place(place)?;
+        let date = SiddhantaLunarCalendar::new(place)
+            .from_fixed(day)
+            .map_err(refusal)?;
+        return Ok(date_line(date, surya_siddhanta::sunrise(day, place)));
+    }
+    let place = sunrise_place(place)?;
+    let calendar = HinduLunarCalendar::new(place, ayanamsa(sky)?);
+    let day = Rd(fixed);
+    let date = calendar.from_fixed(day).map_err(refusal)?;
+    let rise = sunrise(day, place).ok_or(Refusal::NoData)?;
+    Ok(date_line(date, rise))
+}
+
+/// The line of `hc_surya_siddhanta_at`: the Siddhānta's Sun and Moon at a
+/// Universal Time instant, as the Sun's and the Moon's sidereal longitudes
+/// in degrees, the Moon's elongation from the Sun in degrees, 0 to 360, the
+/// tithi in progress (1 through 30) and the sign the Sun is in (1 for Meṣa
+/// through 12 for Mīna).
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an instant outside the days
+/// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
+pub fn surya_siddhanta_line(universal_unix: i64) -> Answer<String> {
+    let day = universal_unix
+        .div_euclid(SECONDS_PER_DAY)
+        .checked_add(RD_OF_UNIX_EPOCH)
+        .ok_or(Refusal::OutOfRange)?;
+    siddhanta_day(day)?;
+    let seconds = universal_unix.rem_euclid(SECONDS_PER_DAY);
+    let moment = Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64);
+    let sun = surya_siddhanta::solar_longitude(moment);
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "{sun}\t{}\t{}\t{}\t{}",
+        surya_siddhanta::lunar_longitude(moment),
+        surya_siddhanta::lunar_phase(moment),
+        surya_siddhanta::tithi_at(moment),
+        floor(sun / 30.0) as u8 % 12 + 1,
+    );
+    Ok(out)
+}
+
+/// The line of `hc_surya_siddhanta_sunrise`: the Siddhānta's sunrise on a
+/// day at a place, as whole POSIX seconds of Universal Time, rounded down.
+/// The Siddhānta reads the place's latitude and its longitude and nothing
+/// else.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside [`SIDDHANTA_FIRST_DAY`] to
+/// [`SIDDHANTA_LAST_DAY`] or a place beyond [`MAX_SUNRISE_LATITUDE`].
+pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<String> {
+    let day = siddhanta_day(fixed)?;
+    let place = sunrise_place(place)?;
+    let mut out = String::new();
+    let _ = writeln!(
+        out,
+        "{}",
+        unix_from_moment(surya_siddhanta::sunrise(day, place))
+    );
+    Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloc::vec::Vec;
+
+    use hc_calendars_indic::places::{CENTRAL_STATION, UJJAIN};
+
+    fn cells(line: &str) -> Vec<&str> {
+        line.strip_suffix('\n')
+            .expect("a line")
+            .split('\t')
+            .collect()
+    }
+
+    fn ymd(year: i64, month: u8, day: u8) -> i64 {
+        hc_calendars_solar::gregorian::to_fixed(year, month, day)
+            .expect("a date")
+            .0
+    }
+
+    /// Chaitra śukla 1 of Śaka 1947, Vikrama 2082, 30 March 2025: the
+    /// *Rashtriya Panchang*'s new year at the Central Station on the true
+    /// sky, and the Siddhānta's at Ujjain, as
+    /// `docs/systems/hindu-calendars.md` works it, its sunrise there at
+    /// 01:01 UT.
+    #[test]
+    fn the_new_year_of_saka_1947_on_both_skies() {
+        let day = ymd(2025, 3, 30);
+        let line = hindu_lunar_date_line("Lahiri", day, CENTRAL_STATION).expect("a date");
+        assert_eq!(cells(&line)[..6], ["1947", "2082", "1", "0", "1", "0"]);
+        let line = hindu_lunar_date_line("SURYA-SIDDHANTA", day, UJJAIN).expect("a date");
+        let cells = cells(&line);
+        assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"]);
+        let sunrise: i64 = cells[6].parse().expect("an instant");
+        // 2025-03-30 01:01 UTC is POSIX 1 743 296 460.
+        assert!((sunrise - 1_743_296_460).abs() < 60, "{sunrise}");
+    }
+
+    /// At Ujjain the true sky's line is `HinduLunarCalendar::UJJAIN`'s date,
+    /// which the book's astronomical calendar is.
+    #[test]
+    fn a_place_given_is_the_calendar_rebuilt_there() {
+        for day in ymd(2024, 1, 1)..ymd(2024, 1, 20) {
+            let line = hindu_lunar_date_line("lahiri", day, UJJAIN).expect("a date");
+            let date = HinduLunarCalendar::UJJAIN
+                .from_fixed(Rd(day))
+                .expect("in range");
+            let expected = date_line(date, sunrise(Rd(day), UJJAIN).expect("a sunrise"));
+            assert_eq!(line, expected);
+        }
+    }
+
+    #[test]
+    fn the_refusals_are_named() {
+        let day = ymd(2025, 3, 30);
+        assert_eq!(
+            hindu_lunar_date_line("", day, UJJAIN),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            hindu_lunar_date_line("lahiri", ymd(1699, 12, 31), UJJAIN),
+            Err(Refusal::OutOfRange)
+        );
+        let north = Location::new(80.0, 20.0, 0.0);
+        assert_eq!(
+            hindu_lunar_date_line("lahiri", ymd(2024, 12, 21), north),
+            Err(Refusal::OutOfRange)
+        );
+        // Midsummer at 70° N has a sunrise, but the months there cannot be
+        // read: December has days without one.
+        assert_eq!(
+            hindu_lunar_date_line("lahiri", ymd(2024, 6, 21), Location::new(70.0, 20.0, 0.0)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            hindu_lunar_date_line(SURYA_SIDDHANTA, day, north),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY - 1, UJJAIN),
+            Err(Refusal::OutOfRange)
+        );
+        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY, UJJAIN).is_ok());
+        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_LAST_DAY, UJJAIN).is_ok());
+        assert_eq!(
+            surya_siddhanta_sunrise_line(day, north),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(surya_siddhanta_line(i64::MAX), Err(Refusal::OutOfRange));
+    }
+
+    /// The range the constants name is the registered calendar's.
+    #[test]
+    fn the_siddhantas_days_are_the_registered_calendars() {
+        let calendar = SiddhantaLunarCalendar::UJJAIN;
+        assert_eq!(calendar.earliest(), Ok(Rd(SIDDHANTA_FIRST_DAY)));
+        assert_eq!(calendar.latest(), Ok(Rd(SIDDHANTA_LAST_DAY)));
+    }
+
+    /// At the Siddhānta's sunrise at Ujjain on 30 March 2025 its Moon stands
+    /// at 352.87° and its Sun at 345.28°, in Mīna, an elongation of 7.58°:
+    /// the first tithi (`docs/systems/hindu-calendars.md`).
+    #[test]
+    fn the_siddhantas_sky_at_its_sunrise_of_30_march_2025() {
+        let line = surya_siddhanta_sunrise_line(ymd(2025, 3, 30), UJJAIN).expect("a sunrise");
+        let sunrise: i64 = cells(&line)[0].parse().expect("an instant");
+        let line = surya_siddhanta_line(sunrise).expect("in range");
+        let cells = cells(&line);
+        let number = |index: usize| -> f64 { cells[index].parse().expect("a number") };
+        assert!((number(0) - 345.28).abs() < 0.01, "{}", cells[0]);
+        assert!((number(1) - 352.87).abs() < 0.01, "{}", cells[1]);
+        assert!((number(2) - 7.58).abs() < 0.01, "{}", cells[2]);
+        assert_eq!(cells[3..], ["1", "12"]);
+    }
+}

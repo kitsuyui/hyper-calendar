@@ -15,7 +15,7 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, atan2, cos_deg, normalize_degrees, sin_deg};
+use hc_core::math::{RAD_TO_DEG, cos_deg, normalize_degrees, sin_deg};
 
 use crate::earth::{Equatorial, equatorial_from_ecliptic, true_obliquity_at_centuries};
 use crate::search::invert_angular;
@@ -132,25 +132,48 @@ pub fn solar_position(moment: Moment) -> Equatorial {
     )
 }
 
-/// The equation of time as a fraction of a day: apparent solar time minus
-/// mean solar time.
+/// The equation of time at a Universal Time moment, as a fraction of a
+/// day: apparent solar time minus mean solar time at Greenwich.
 ///
 /// Positive means the sundial is ahead of the clock, as it is in early
-/// November. Meeus (28.1).
+/// November.
+///
+/// `moment` is Universal Time, UT1, and the two times compared are the
+/// ones a sundial and a clock at Greenwich keep at that instant. Mean
+/// solar time is `moment` itself: Universal Time is defined as the hour
+/// angle of a mean Sun, through the sidereal time of the UT1 moment
+/// ([`crate::earth::apparent_sidereal_time`]). Apparent solar time is the
+/// hour angle of the true Sun plus twelve hours: that sidereal time less
+/// the Sun's apparent right ascension, which the ephemeris gives in
+/// Terrestrial Time and so is taken at `moment` + ΔT. Each is on its own
+/// scale, the mean Sun on UT1 and the true Sun on TT.
+///
+/// Meeus's (28.1), E = L₀ − 0.005 718 3° − α + Δψ cos ε, writes the same
+/// difference with the mean Sun's right ascension as the Sun's mean
+/// longitude L₀, and evaluates every term at one instant of TT. Read
+/// against a Universal Time clock, that takes the mean Sun ΔT late, and E
+/// comes out larger by ΔT times the mean Sun's rate, 0.985 6° a day: 0.19 s
+/// in 2024, 3 s in 1000 CE and 38 s in 586 BCE, when ΔT was five hours.
+/// *Calendrical Calculations*' `equation-of-time` does the same
+/// (`reingold2018code`). Taken from the hour angle, this is the equation
+/// [`crate::riseset::solar_noon`] and the rise and set functions solve,
+/// so a sundial reads noon at their transit at every date.
+///
+/// Against JPL Horizons' apparent hour angle of the Sun at Greenwich
+/// (DE441, `jpl-horizons`) it is within 0.02 s on 2000-01-01 12:00 UT and
+/// 2024-11-03 0:00 UT, once Horizons' UTC is made UT1 with the IERS's
+/// UT1 − UTC (`iers-eopc04`), within 0.2 s on 1000-01-01 (Julian), and
+/// within 0.6 s on 30 July 587 BCE (Julian), where the two ΔT models stand
+/// 185 s apart; Meeus's form misses the four by 0.19 s, 0.18 s, 3.0 s and
+/// 38 s. The test `the_equation_of_time_is_horizons_hour_angle` holds them.
 #[must_use]
 pub fn equation_of_time(moment: Moment) -> f64 {
-    let centuries = julian_centuries(moment);
-    let obliquity = true_obliquity_at_centuries(centuries);
-    let apparent = solar_longitude_at_centuries(centuries);
-    let right_ascension = normalize_degrees(
-        atan2(cos_deg(obliquity) * sin_deg(apparent), cos_deg(apparent)) * RAD_TO_DEG,
-    );
-    let mean_longitude = solar_mean_longitude_at_centuries(centuries);
-    let nutation = crate::earth::nutation_at_centuries(centuries).longitude_degrees;
-    let degrees = mean_longitude - 0.005_718_3 - right_ascension + nutation * cos_deg(obliquity);
-    // The difference is always small; folding it into (−180, 180] removes the
-    // 360° that appears whenever the two longitudes straddle the equinox.
-    crate::util::signed_degrees(degrees) / 360.0
+    let hour_angle = crate::earth::local_hour_angle(solar_position(moment), moment, 0.0);
+    let mean_solar_time = modulo(moment.0, 1.0);
+    // Apparent time less mean time, as angles from midnight; the fold into
+    // (−180°, 180°] removes the whole day that appears when one of the two
+    // has passed midnight and the other has not.
+    crate::util::signed_degrees(hour_angle + 180.0 - 360.0 * mean_solar_time) / 360.0
 }
 
 /// The first moment at or after `moment` when the Sun's apparent longitude
@@ -597,6 +620,45 @@ mod tests {
             (least_minutes + 14.2).abs() < 0.4,
             "minimum was {least_minutes} minutes"
         );
+    }
+
+    /// JPL Horizons (DE441, `jpl-horizons`, queried 2026-09-27), the Sun's
+    /// "L_Ap_Hour_Ang" at Greenwich (site 000), airless: the apparent hour
+    /// angle in hours at four instants, with Horizons' TDB − UT. Before 1962
+    /// Horizons' UT is UT1; after it, UTC, which the IERS's UT1 − UTC at
+    /// 0h UTC that day makes UT1 (`iers-eopc04`: +0.355 5 s on 2000-01-01,
+    /// +0.053 6 s on 2024-11-03). The equation of time is the hour angle
+    /// plus twelve hours less the UT1 of the instant, both from midnight.
+    ///
+    /// Meeus's (28.1) with the mean Sun at TT gives +37.8 s, +3.0 s,
+    /// +0.19 s and +0.18 s against the same four: the mean Sun's motion in
+    /// ΔT, which Horizons puts at 18 310 s, 1 660 s, 64 s and 69 s. Here
+    /// the two differ by what the ΔT models do to the true Sun's right
+    /// ascension, 0.003 s for each second they disagree: 0.6 s in 587 BCE,
+    /// where this crate's ΔT is 185 s above Horizons', 0.2 s in 1000.
+    #[test]
+    fn the_equation_of_time_is_horizons_hour_angle() {
+        // (JD of the instant in Horizons' UT, UT1 − that UT in seconds,
+        // Horizons' hour angle in hours, the bound in seconds.)
+        let cases = [
+            (1_507_231.5, 0.0, 11.960_955_530, 0.7), // 587 BCE July 30 (Julian)
+            (2_086_307.5, 0.0, 11.864_467_382, 0.25), // 1000 January 1 (Julian)
+            (2_451_545.0, 0.355, -0.054_652_505, 0.02), // 2000 January 1, 12:00
+            (2_460_617.5, 0.054, -11.725_752_512, 0.02), // 2024 November 3
+        ];
+        for (julian_date, ut1_minus_ut, hour_angle_hours, bound) in cases {
+            let ut1 = Moment::from_julian_date(julian_date + ut1_minus_ut / 86_400.0);
+            let day_fraction = modulo(julian_date + 0.5, 1.0);
+            let horizons =
+                crate::util::signed_degrees(hour_angle_hours * 15.0 + 180.0 - 360.0 * day_fraction)
+                    * 240.0
+                    - ut1_minus_ut;
+            let ours = equation_of_time(ut1) * 86_400.0;
+            assert!(
+                (ours - horizons).abs() < bound,
+                "JD {julian_date}: {ours:.3} s against Horizons' {horizons:.3} s"
+            );
+        }
     }
 
     #[test]

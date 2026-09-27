@@ -359,6 +359,70 @@ impl VisibilityCriterion {
     pub const SAUDI_RULE: Self = Self::ConjunctionAndMoonset;
 }
 
+/// A crescent-visibility criterion under a name: what an [`ObservationSite`]
+/// can be built with when the criterion arrives as text, as it does at the
+/// WebAssembly and C boundaries.
+///
+/// The list is data, not an enum (ADR 0007): another published criterion
+/// of a shape [`VisibilityCriterion`] has is a new entry. The Babylonian
+/// moonlag of [`crate::babylonian`] is not one, because it is judged at
+/// Babylon alone.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct NamedCriterion {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The English name.
+    pub english_name: &'static str,
+    /// The test.
+    pub criterion: VisibilityCriterion,
+    /// Where the criterion comes from.
+    pub source: &'static str,
+}
+
+hc_core::catalogue! {
+    type: NamedCriterion,
+    id: |named| named.id,
+    provenance: |named| named.source,
+    tests: named_criterion_catalogue,
+    associated;
+
+    /// Every named criterion.
+    pub const ALL;
+
+    /// The criterion with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// [`VisibilityCriterion::SHAUKAT`].
+        pub const SHAUKAT = Self {
+            id: "shaukat",
+            english_name: "Shaukat: arc of light 10.6° and altitude 4.1° at a solar depression of 4.5°",
+            criterion: VisibilityCriterion::SHAUKAT,
+            source: "E. M. Reingold and N. Dershowitz, calendar-code2, calendar.l, \
+                     shaukat-criterion",
+        };
+
+        /// [`VisibilityCriterion::YALLOP`].
+        pub const YALLOP = Self {
+            id: "yallop",
+            english_name: "Yallop's q-test at Bruin's best time, visible above type B's lower limit",
+            criterion: VisibilityCriterion::YALLOP,
+            source: "B. D. Yallop, A Method for Predicting the First Sighting of the New \
+                     Crescent Moon, NAO Technical Note 69 (1997), equation 6.1 and Table 5",
+        };
+
+        /// [`VisibilityCriterion::SAUDI_RULE`].
+        pub const SAUDI_RULE = Self {
+            id: "saudi-rule",
+            english_name: "The Saudi rule: past conjunction at sunset, and the Moon setting after the Sun",
+            criterion: VisibilityCriterion::SAUDI_RULE,
+            source: "E. M. Reingold and N. Dershowitz, calendar-code2, calendar.l, \
+                     saudi-criterion; R. H. van Gent, The Umm al-Qura Calendar of Saudi \
+                     Arabia",
+        };
+    }
+}
+
 /// The arc of light: the true angular separation of the Moon from the Sun,
 /// `arccos(cos β · cos φ)` for lunar latitude β and elongation φ, in degrees
 /// (`arc-of-light` in the published code of *Calendrical Calculations*).

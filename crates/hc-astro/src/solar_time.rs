@@ -6,10 +6,11 @@
 //! time plus the equation of time. Reingold and Dershowitz's
 //! `local-from-universal`, `apparent-from-local` and their inverses in
 //! `calendar-code2` state the two relations (`reingold2018code`); the
-//! equation of time is this crate's own, [`equation_of_time`], Meeus's
-//! (28.1) on the VSOP87 Sun, rather than the book's shorter series from
-//! Meeus's page 185. `docs/systems/hours-of-the-day.md` describes the
-//! system and its tests.
+//! equation of time is this crate's own, [`equation_of_time`], the hour
+//! angle of the VSOP87 Sun against Universal Time, rather than the book's
+//! shorter series from Meeus's page 185, whose mean Sun is taken at
+//! dynamical time. `docs/systems/hours-of-the-day.md` describes the system
+//! and its tests.
 //!
 //! A reading of either clock is returned as a [`Moment`], because that is
 //! the shape of a day count with a fraction, but it is **not** Universal
@@ -92,11 +93,10 @@ pub fn universal_from_local_mean_time(local_mean: Moment, location: Location) ->
 /// (`apparent-from-universal`, through `apparent-from-local`).
 ///
 /// It reads 12:00 when the true Sun crosses the local meridian, to the
-/// second or so the equation of time and the transit search here share,
-/// since about 1500 CE. Earlier it runs ahead of the transit, by 38 s in
-/// 586 BCE: the equation of time takes the mean Sun at dynamical time and
-/// mean time runs in Universal Time, and ΔT was hours then
-/// ([`docs/systems/rise-and-set.md`](../../../docs/systems/rise-and-set.md)).
+/// tolerance of the transit search, at every date: the equation of time is
+/// the Sun's hour angle against Universal Time, the quantity the transit
+/// search solves for. `universal` is Universal Time; the reading returned
+/// is not, as the module documentation says.
 #[must_use]
 pub fn local_apparent_time(universal: Moment, location: Location) -> Moment {
     Moment(local_mean_time(universal, location).0 + equation_of_time(universal))
@@ -486,7 +486,8 @@ mod tests {
 
     /// Meeus, example 28.a: on 1992 October 13.0 TD the equation of time
     /// is +13 min 42.6 s, so a sundial at Greenwich reads that far ahead
-    /// of the clock.
+    /// of the clock. Meeus takes his mean Sun at TD, which puts it 59 s of
+    /// its motion, 0.16 s of time, ahead of the one Universal Time counts.
     #[test]
     fn a_greenwich_sundial_runs_ahead_by_meeus_example_28a() {
         let universal = universal_from_dynamical_julian_date(2_448_908.5);

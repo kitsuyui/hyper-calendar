@@ -1542,6 +1542,78 @@ describe("the Earth's rotation and the Sun's hours", () => {
     assert.ok(shafii < hanafi && hanafi < dusk && dusk < ends, `${[shafii, hanafi, dusk, ends]}`);
     refused(() => hc.solarEvent(/** @type {any} */ ("maghrib"), day, ...padua), "unknown");
   });
+
+  test("the horizons are named and each rises and sets on its own", () => {
+    const horizons = hc.horizons();
+    assert.deepEqual(horizons.map((horizon) => horizon.id), ["geometric-dip", "usno", "calendrical-calculations"]);
+    assert.ok(horizons.every((horizon) => horizon.description.length > 0 && horizon.source.length > 0));
+    // The USNO for Jerusalem on 2024-01-01: sunrise 06:39 and sunset 16:46
+    // at UT+2, 04:39 and 14:46 UTC, under its sea-level horizon.
+    const day = hc.gregorianToFixed(2024, 1, 1);
+    const jerusalem = [31.78, 35.24, 740];
+    const rise = hc.sunrise("usno", day, ...jerusalem);
+    assert.ok(rise.instant !== null && Math.abs(rise.instant - Date.UTC(2024, 0, 1, 4, 39) / 1000) <= 31, JSON.stringify(rise));
+    assert.equal(rise.missing, null);
+    assert.ok(Math.abs(rise.altitudeDegrees + 50 / 60) < 1e-9);
+    const set = hc.sunset("USNO", day, ...jerusalem);
+    assert.ok(set.instant !== null && Math.abs(set.instant - Date.UTC(2024, 0, 1, 14, 46) / 1000) <= 31, JSON.stringify(set));
+    // The book lowers its horizon for the height, so its Sun rises sooner.
+    const book = hc.sunrise("calendrical-calculations", day, ...jerusalem);
+    assert.ok(book.instant !== null && book.instant < rise.instant);
+    const midwinter = hc.gregorianToFixed(2024, 12, 21);
+    const polar = hc.sunrise("geometric-dip", midwinter, 69.6496, 18.956);
+    assert.equal(polar.instant, null);
+    assert.deepEqual(polar.missing, { event: "sunrise", day: midwinter, depressionArcminutes: null });
+    assert.ok(Math.abs(polar.altitudeDegrees + 50 / 60) < 1e-12, `${polar.altitudeDegrees}`);
+    refused(() => hc.sunrise(/** @type {any} */ ("naoj"), day, ...jerusalem), "unknown");
+  });
+});
+
+describe("the Hindu date and the crescent", () => {
+  test("Chaitra śukla 1 of Śaka 1947 on both skies", () => {
+    // 30 March 2025, the new year's day of Śaka 1947, Vikrama 2082, by the
+    // true sky at the Central Station and by the Siddhānta's at Ujjain.
+    const day = hc.gregorianToFixed(2025, 3, 30);
+    for (const [sky, latitude, longitude] of [["Lahiri", 23.183_333, 82.5], ["surya-siddhanta", 23.15, 75.768_333]]) {
+      const date = hc.hinduLunarDate(sky, day, latitude, longitude);
+      assert.deepEqual(
+        [date.sakaYear, date.vikramaYear, date.month, date.leapMonth, date.tithi, date.leapDay],
+        [1947, 2082, 1, false, 1, false],
+        sky,
+      );
+    }
+    // At the Siddhānta's sunrise its Sun is in Mīna and its Moon 7.58°
+    // ahead, in the first tithi.
+    const sunrise = hc.suryaSiddhantaSunrise(day, 23.15, 75.768_333);
+    assert.ok(Math.abs(sunrise - Date.UTC(2025, 2, 30, 1, 1) / 1000) < 60, `${sunrise}`);
+    const sky = hc.suryaSiddhantaAt(sunrise);
+    assert.equal(sky.tithi, 1);
+    assert.equal(sky.sign, 12);
+    assert.ok(Math.abs(sky.elongation - 7.58) < 0.01, JSON.stringify(sky));
+    refused(() => hc.hinduLunarDate("", day, 23.15, 75.768_333), "unknown");
+    refused(() => hc.hinduLunarDate("lahiri", hc.gregorianToFixed(2024, 12, 21), 80, 20), "out-of-range");
+    refused(() => hc.suryaSiddhantaSunrise(day, 80, 20), "out-of-range");
+  });
+
+  test("a crescent is judged on the evening before the day", () => {
+    const mecca = [21.423_333, 39.823_333, 298];
+    const day = hc.gregorianToFixed(2024, 3, 12);
+    for (const criterion of /** @type {const} */ (["shaukat", "yallop", "saudi-rule"])) {
+      const verdict = hc.crescentVisible(criterion, day, ...mecca);
+      assert.equal(typeof verdict.visible, "boolean", criterion);
+      if (verdict.evaluatedAt === null) {
+        assert.equal(verdict.visible, false, criterion);
+      } else {
+        assert.ok(verdict.evaluatedAt < hc.unixFromFixed(day), criterion);
+      }
+    }
+    // Under the midnight sun no evening can be judged.
+    const tromso = hc.crescentVisible("shaukat", hc.gregorianToFixed(2024, 6, 21), 69.6496, 18.956);
+    assert.deepEqual(tromso, {
+      visible: false, evaluatedAt: null, elongation: null, arcOfLight: null, altitude: null, arcOfVision: null, widthArcminutes: null,
+    });
+    refused(() => hc.crescentVisible(/** @type {any} */ ("danjon"), day, ...mecca), "unknown");
+  });
 });
 
 describe("time on other bodies", () => {

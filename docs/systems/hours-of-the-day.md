@@ -118,9 +118,17 @@ its `day_fraction()` the local time of day. The functions take a
 functions do, and read only its longitude.
 
 **What differs from `calendar-code2`.** The equation of time is this
-crate's `solar::equation_of_time`, Meeus's (28.1) on the VSOP87 Sun
-[meeus1998], rather than the book's shorter series from Meeus's page 185,
-which it states as an approximation. And the inverse from sundial time is
+crate's `solar::equation_of_time`, the Greenwich hour angle of the VSOP87
+Sun plus twelve hours, less Universal Time, rather than the book's
+shorter series from Meeus's page 185, which it states as an
+approximation. The two also differ in time scale. Meeus's (28.1)
+[meeus1998] and the book's series both take the mean Sun's longitude at
+dynamical time, and the book reads the result against a Universal Time
+clock; Universal Time is itself the hour angle of a mean Sun, through
+sidereal time, so this library takes the mean Sun there, at Universal
+Time, and the true Sun at Terrestrial Time, where its ephemeris is. The
+book's choice puts its mean Sun ΔT late, which makes its equation of time
+larger by ΔT times the mean Sun's rate: 0.2 s today, 38 s in 586 BCE. And the inverse from sundial time is
 solved exactly, by iterating, where `local-from-apparent` evaluates the
 equation of time at the sundial reading as if it were mean time; that
 shortcut is off by the equation's change over its own size, up to about
@@ -176,15 +184,19 @@ The relations are exact definitions; the accuracy is the equation of
 time's. Against Meeus's example 28.a, +13 min 42.6 s on 1992 October 13.0
 TD, the sundial at Greenwich is within 0.5 s. At Padua on seven days of
 2024, the sundial reads 12:00 at the Sun's transit as `riseset::solar_noon`
-finds it to within 2 s, which is the agreement between the equation of time
-and the transit search, not an error of either against the sky. That
-agreement holds from about 1500 CE. Before it the sundial runs ahead of
-the transit, by 38 s at Jerusalem in 586 BCE: the equation of time takes
-the mean Sun's longitude at dynamical time, mean time runs in Universal
-Time, and ΔT was then five hours. The book's `equation-of-time` is built
-the same way and its solar events carry the same drift; how it was
-measured is in [rise-and-set.md](rise-and-set.md). The
-inverses return the reading they were given to 0.1 ms.
+finds it to within 2 s, which is the tolerance of the transit search: the
+equation of time is the hour angle the search solves for, so the
+agreement holds at every date. Against JPL Horizons' apparent hour angle
+of the Sun at Greenwich [jpl-horizons] the equation of time is within
+0.02 s on 1 January 2000 and 3 November 2024, with Horizons' UTC made UT1
+by the IERS's UT1 − UTC [iers-eopc04], and within 0.6 s on 30 July
+587 BCE, where the two ΔT models are 185 s apart; the mean Sun at
+dynamical time misses the same days by 0.19 s, 0.18 s and 38 s. The
+book's `equation-of-time` takes its mean Sun at dynamical time, so its
+sundial runs 38 s ahead of the transit at Jerusalem in 586 BCE, when ΔT
+was five hours, and its solar events carry that lead; how it was
+measured is in [rise-and-set.md](rise-and-set.md). The inverses return
+the reading they were given to 0.1 ms.
 
 The temporal hours are as good as the sunrise and sunset under them, which
 are within a minute of NAOJ's; Tokyo's daytime hour on 1 January 2024 is
@@ -205,6 +217,11 @@ are checked against their own definitions, not against a published value.
   read here.
 - [meeus1998] — the equation of time, (28.1), and example 28.a. Not read
   for this document; the values are as `hc-astro::solar` cites them.
+- [jpl-horizons] — the Sun's apparent hour angle at Greenwich on
+  30 July 587 BCE, 1 January 1000, 1 January 2000 and 3 November 2024,
+  and Horizons' TDB − UT for each. Read 2026-09-27.
+- [iers-eopc04] — UT1 − UTC on 1 January 2000 and 3 November 2024, in
+  the copy of the series retrieved 2026-09-25.
 - [reingold2018code], again — `daytime-temporal-hour`,
   `nighttime-temporal-hour`, `standard-from-sundial`, `local-zero-hour`,
   `italian-from-local`, `local-from-italian`, `padua`, `asr`, `alt-asr`,

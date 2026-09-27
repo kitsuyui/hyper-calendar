@@ -1456,13 +1456,15 @@ pub use calendars::{
 };
 
 /// Days in the calendars, behind the `calendars` feature: the pañcāṅga's
-/// yoga and karaṇa, the modern Olympiad of a year, and the Hebrew
-/// anniversaries. The lines and numbers are `hyper_calendar`'s
-/// `panchanga_lines` and `calendar_values`, shared with the C library.
+/// yoga and karaṇa, the Hindu lunisolar date at a place, the *Sūrya
+/// Siddhānta*'s sky and sunrise, the young crescent by a named criterion,
+/// the modern Olympiad of a year, and the Hebrew anniversaries. The lines
+/// and numbers are `hyper_calendar`'s `panchanga_lines`, `hindu_lines`,
+/// `crescent_lines` and `calendar_values`, shared with the C library.
 #[cfg(feature = "calendars")]
 mod calendar_days {
     use super::{emit_answer, sentinel, text, value};
-    use hc::{astro_lines, calendar_values, panchanga_lines};
+    use hc::{astro_lines, calendar_values, crescent_lines, hindu_lines, panchanga_lines};
 
     /// The yoga and the karaṇa in progress at a POSIX timestamp, as two
     /// UTF-8 lines, returning the byte length written.
@@ -1539,6 +1541,158 @@ mod calendar_days {
             Err(refusal) => return sentinel(refusal),
         };
         let answer = panchanga_lines::panchanga_of_day_lines(fixed, place, ayanamsa);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The Hindu lunisolar date of a fixed day at a place, as one UTF-8
+    /// line, returning the byte length written.
+    ///
+    /// The amānta date read at the place's sunrise, tab-separated: the Śaka
+    /// year, the Vikrama year, the month (1 for Chaitra through 12 for
+    /// Phālguna), 1 if it is the intercalary month and 0 if not, the tithi
+    /// (1 through 30), 1 if the day is the second to carry it and 0 if not,
+    /// and the sunrise it was read at as whole POSIX seconds of Universal
+    /// Time, rounded down. `sky` is an ayanamsa `hc_panchanga_at` names, for
+    /// the true Sun and Moon in its zodiac, as `hindu-lunar` reads them with
+    /// Lahiri's at the Central Station; or `surya-siddhanta`, for the
+    /// *Sūrya Siddhānta*'s Sun and Moon at its own sunrise, as
+    /// `hindu-lunar-surya-siddhanta` reads them at Ujjain; in any case, and
+    /// anything else, the empty string included, is `HC_ERR_UNKNOWN`. The
+    /// place is the latitude and longitude in degrees, north and east
+    /// positive, and the elevation in metres. A place beyond 65° of
+    /// latitude, where some day of the year has no sunrise, is
+    /// `HC_ERR_OUT_OF_RANGE` on either sky, as is a day outside Gregorian
+    /// 1700 to 2299 on the true sky and outside Kali Yuga 1 to 10 000 on
+    /// the Siddhānta's. A place off the globe is
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `sky` must be readable for `sky_len` bytes unless null with a zero
+    /// length; `buffer` must be writable for `capacity` bytes unless it is
+    /// null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_hindu_lunar_date(
+        sky: *const u8,
+        sky_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let sky = match unsafe { text(sky, sky_len) } {
+            Ok(sky) => sky,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = hindu_lines::hindu_lunar_date_line(sky, fixed, place);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// Tab-separated: the Sun's and the Moon's sidereal longitudes in
+    /// degrees, the Moon's elongation from the Sun in degrees, 0 to 360,
+    /// the tithi in progress (1 through 30) and the sign the Sun is in (1
+    /// for Meṣa through 12 for Mīna). The instant is read as Universal
+    /// Time. An instant outside the days of Kali Yuga 1 to 10 000, 3101 BCE
+    /// to 6900 CE, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_surya_siddhanta_at(
+        unix_seconds: i64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = hindu_lines::surya_siddhanta_line(unix_seconds);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// The one cell is the instant as whole POSIX seconds of Universal
+    /// Time, rounded down. The Siddhānta reads the latitude and the
+    /// longitude, in degrees, north and east positive, and no height. A
+    /// day outside Kali Yuga 1 to 10 000, a place beyond 65° of latitude,
+    /// or one off the globe, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_surya_siddhanta_sunrise(
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        let answer = astro_lines::location(latitude, longitude, 0.0)
+            .and_then(|place| hindu_lines::surya_siddhanta_sunrise_line(fixed, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// Whether the young crescent should have been visible on the evening
+    /// that begins a fixed day, from a place, by a named criterion, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `criterion` is `shaukat`, `yallop` or `saudi-rule`, in any case;
+    /// anything else is `HC_ERR_UNKNOWN`. The evening is the one before
+    /// `fixed`, since the day begins at sunset. Tab-separated: 1 if the
+    /// crescent passes and 0 if not; the moment the criterion judges the
+    /// evening at, as whole POSIX seconds of Universal Time, rounded down;
+    /// and at that moment the Moon's elongation, its arc of light, its
+    /// geocentric altitude and the arc of vision, in degrees, and the
+    /// crescent's topocentric width in arcminutes. Where there is no such
+    /// moment the first cell is 0 and the rest are empty. The place is as
+    /// for `hc_hindu_lunar_date`. A place off the globe, or a day outside
+    /// the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+    /// returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `criterion` must be readable for `criterion_len` bytes unless null
+    /// with a zero length; `buffer` must be writable for `capacity` bytes
+    /// unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_crescent_visible(
+        criterion: *const u8,
+        criterion_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let criterion = match unsafe { text(criterion, criterion_len) } {
+            Ok(criterion) => criterion,
+            Err(sentinel) => return sentinel,
+        };
+        let place = match astro_lines::location(latitude, longitude, elevation) {
+            Ok(place) => place,
+            Err(refusal) => return sentinel(refusal),
+        };
+        let answer = crescent_lines::crescent_line(criterion, fixed, place);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
@@ -1622,8 +1776,9 @@ mod calendar_days {
 
 #[cfg(feature = "calendars")]
 pub use calendar_days::{
-    hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_hebrew_birthday, hc_hebrew_yahrzeit,
-    hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day,
+    hc_chinese_marriage_augury, hc_chinese_reckoned_age, hc_crescent_visible, hc_hebrew_birthday,
+    hc_hebrew_yahrzeit, hc_hindu_lunar_date, hc_ioc_olympiad, hc_panchanga_at, hc_panchanga_of_day,
+    hc_surya_siddhanta_at, hc_surya_siddhanta_sunrise,
 };
 
 /// The holiday tables, behind the `holiday` feature: every country,
@@ -2620,13 +2775,147 @@ pub use sky::{hc_moon_phases_between, hc_sky_at, hc_solar_terms_between};
 
 /// The Earth's rotation and the Sun's hours, behind the `sky` feature: the
 /// Earth Rotation Angle, the Greenwich mean sidereal time by two
-/// conventions, UT2 − UT1, and the clocks and named times of day of
-/// `hc_astro::solar_time`. The lines are `hyper_calendar::astro_lines`',
-/// shared with the C library, and answer for the years −1000 to 3000.
+/// conventions, UT2 − UT1, the clocks and named times of day of
+/// `hc_astro::solar_time`, and the named horizons with sunrise and sunset
+/// against each. The lines are `hyper_calendar::astro_lines`', shared with
+/// the C library, and answer for the years −1000 to 3000.
 #[cfg(feature = "sky")]
 mod earth_and_sun {
     use super::{emit_answer, sentinel, text};
     use hc::astro_lines;
+
+    /// Every named horizon a rising or a setting can be measured against,
+    /// as UTF-8 lines, returning the byte length written.
+    ///
+    /// One line per horizon of `hc_astro::horizon::HORIZONS`,
+    /// tab-separated: its identifier (`geometric-dip`, the default of the
+    /// other exports; `usno`; `calendrical-calculations`), its English
+    /// name, what it takes the visible horizon to be, and its source. A
+    /// null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_horizons(buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(Ok(astro_lines::horizons_lines()), buffer, capacity) }
+    }
+
+    /// A crossing's export: the horizon's name read, the place checked,
+    /// and the line written.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_sunrise`.
+    #[allow(clippy::too_many_arguments)]
+    unsafe fn crossing(
+        line: fn(&str, i64, hc::hc_astro::Location) -> hc::boundary::Answer<String>,
+        horizon: *const u8,
+        horizon_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let horizon = match unsafe { text(horizon, horizon_len) } {
+            Ok(horizon) => horizon,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| line(horizon, fixed, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
+
+    /// Sunrise on a fixed day at a place against a named horizon, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// `horizon` is an identifier `hc_horizons` lists, in any case; anything
+    /// else, the empty string included, is `HC_ERR_UNKNOWN`. The day is the
+    /// local one, from local mean midnight at the longitude. The place is
+    /// the latitude and longitude in degrees, north and east positive, and
+    /// the elevation in metres, which the horizon may or may not take into
+    /// account. Tab-separated: the instant the Sun's upper limb rises over
+    /// the horizon as whole POSIX seconds of Universal Time, rounded down;
+    /// the three cells of `hc_solar_event` naming a missing solar event,
+    /// `sunrise` and the day, which are empty when the Sun rises, the first
+    /// cell being empty instead when it does not; and the altitude of the
+    /// Sun's centre at the crossing in degrees, which the horizon and the
+    /// elevation fix. A place off the globe, or a day outside the years
+    /// −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+    /// length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `horizon` must be readable for `horizon_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_sunrise(
+        horizon: *const u8,
+        horizon_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            crossing(
+                astro_lines::sunrise_line,
+                horizon,
+                horizon_len,
+                fixed,
+                latitude,
+                longitude,
+                elevation,
+                buffer,
+                capacity,
+            )
+        }
+    }
+
+    /// Sunset on a fixed day at a place against a named horizon, as one
+    /// UTF-8 line, returning the byte length written.
+    ///
+    /// As `hc_sunrise`, for the upper limb's setting, with `sunset` as the
+    /// missing event.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_sunrise`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_sunset(
+        horizon: *const u8,
+        horizon_len: usize,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            crossing(
+                astro_lines::sunset_line,
+                horizon,
+                horizon_len,
+                fixed,
+                latitude,
+                longitude,
+                elevation,
+                buffer,
+                capacity,
+            )
+        }
+    }
 
     /// The Earth Rotation Angle at a UT1 instant, as one UTF-8 line,
     /// returning the byte length written.
@@ -2834,8 +3123,8 @@ mod earth_and_sun {
 
 #[cfg(feature = "sky")]
 pub use earth_and_sun::{
-    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_solar_event, hc_solar_time,
-    hc_ut2_minus_ut1,
+    hc_earth_rotation_angle, hc_gmst_iau1982, hc_gmst_iau2006, hc_horizons, hc_solar_event,
+    hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
 };
 
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
@@ -5823,6 +6112,97 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
+        /// Chaitra śukla 1 of Śaka 1947, Vikrama 2082, on 30 March 2025, by
+        /// the true sky at the Central Station and by the Siddhānta's at
+        /// Ujjain (`docs/systems/hindu-calendars.md`), with the Siddhānta's
+        /// Sun in Mīna and its first tithi at its sunrise.
+        #[test]
+        fn the_hindu_new_year_of_saka_1947_on_both_skies() {
+            let day = hc_gregorian_to_fixed(2025, 3, 30);
+            for (sky, latitude, longitude) in [
+                ("lahiri", 23.183_333, 82.5),
+                ("surya-siddhanta", 23.15, 75.768_333),
+            ] {
+                let text = read_lines(|buffer, capacity| unsafe {
+                    hc_hindu_lunar_date(
+                        sky.as_ptr(),
+                        sky.len(),
+                        day,
+                        latitude,
+                        longitude,
+                        0.0,
+                        buffer,
+                        capacity,
+                    )
+                });
+                let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
+                assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"], "{sky}");
+            }
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_surya_siddhanta_sunrise(day, 23.15, 75.768_333, buffer, capacity)
+            });
+            let sunrise: i64 = text.trim_end().parse().expect("an instant");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_surya_siddhanta_at(sunrise, buffer, capacity)
+            });
+            let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
+            assert_eq!(cells[3..], ["1", "12"]);
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_hindu_lunar_date("".as_ptr(), 0, day, 0.0, 0.0, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_surya_siddhanta_sunrise(day, 80.0, 0.0, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_surya_siddhanta_at(i64::MIN, null, 0) },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+
+        /// The first of Ramadan 1445 at Mecca by `islamic-rgsa`, the
+        /// calendar the criterion begins months for: its eve carries a
+        /// crescent by Shaukat's criterion, and the eve before none.
+        #[test]
+        fn the_crescent_that_began_ramadan_1445_at_mecca() {
+            let criterion = "shaukat";
+            let visible = |day: i64| {
+                let text = read_lines(|buffer, capacity| unsafe {
+                    hc_crescent_visible(
+                        criterion.as_ptr(),
+                        criterion.len(),
+                        day,
+                        21.423_333,
+                        39.823_333,
+                        298.0,
+                        buffer,
+                        capacity,
+                    )
+                });
+                let cells: Vec<String> = text
+                    .trim_end_matches('\n')
+                    .split('\t')
+                    .map(str::to_owned)
+                    .collect();
+                assert_eq!(cells.len(), 7, "{text}");
+                cells[0] == "1"
+            };
+            let first =
+                hc::hc_calendars_lunar::islamic_observational::IslamicObservationalCalendar::MECCA
+                    .compose(1_445, 9, 1)
+                    .expect("in range")
+                    .0;
+            assert!(visible(first));
+            assert!(!visible(first - 1));
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_crescent_visible("danjon".as_ptr(), 6, first, 0.0, 0.0, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+        }
+
         /// Drik Panchang for 1 January 2025, read at sunrise: Vyaghata and
         /// Balava.
         #[test]
@@ -6112,6 +6492,88 @@ mod tests {
                         sunrise,
                         0.0,
                         181.0,
+                        0.0,
+                        null,
+                        0,
+                    )
+                },
+                HC_ERR_OUT_OF_RANGE
+            );
+        }
+        /// The USNO's minutes for Jerusalem on 2024-01-01, sunrise 06:39 and
+        /// sunset 16:46 at UT+2 (`usno-api-rstt`), under its own horizon;
+        /// the horizons listed; and a missing sunrise named.
+        #[test]
+        fn the_horizons_are_listed_and_each_rises_and_sets() {
+            let text = read_lines(|buffer, capacity| unsafe { hc_horizons(buffer, capacity) });
+            let ids: Vec<&str> = text
+                .lines()
+                .map(|line| line.split('\t').next().expect("an id"))
+                .collect();
+            assert_eq!(ids, ["geometric-dip", "usno", "calendrical-calculations"]);
+            assert!(text.lines().all(|line| line.split('\t').count() == 4));
+            let day = hc_gregorian_to_fixed(2024, 1, 1);
+            let midnight = hc_unix_from_fixed(day);
+            let horizon = "USNO";
+            for (export, published) in [
+                (
+                    hc_sunrise as unsafe extern "C" fn(_, _, _, _, _, _, _, _) -> i64,
+                    4 * 3_600 + 39 * 60,
+                ),
+                (hc_sunset, 14 * 3_600 + 46 * 60),
+            ] {
+                let text = read_lines(|buffer, capacity| unsafe {
+                    export(
+                        horizon.as_ptr(),
+                        horizon.len(),
+                        day,
+                        31.78,
+                        35.24,
+                        740.0,
+                        buffer,
+                        capacity,
+                    )
+                });
+                let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
+                assert_eq!(cells.len(), 5);
+                let instant: i64 = cells[0].parse().expect("an instant");
+                assert!((instant - midnight - published).abs() <= 31, "{text}");
+            }
+            let midwinter = hc_gregorian_to_fixed(2024, 12, 21);
+            let horizon = "geometric-dip";
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_sunrise(
+                    horizon.as_ptr(),
+                    horizon.len(),
+                    midwinter,
+                    69.6496,
+                    18.956,
+                    0.0,
+                    buffer,
+                    capacity,
+                )
+            });
+            assert!(
+                text.starts_with(&format!("\tsunrise\t{midwinter}\t\t")),
+                "{text}"
+            );
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_sunset("naoj".as_ptr(), 4, day, 0.0, 0.0, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_sunset(core::ptr::null(), 0, day, 0.0, 0.0, 0.0, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_sunrise(
+                        horizon.as_ptr(),
+                        horizon.len(),
+                        day,
+                        91.0,
+                        0.0,
                         0.0,
                         null,
                         0,

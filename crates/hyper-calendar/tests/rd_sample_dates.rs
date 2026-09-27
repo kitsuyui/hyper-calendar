@@ -27,8 +27,8 @@
 //!   crescent on the criterion's edge, or the reference code's own time
 //!   scale, which its errata correct (`reingold2018errata`, correction 15).
 //!
-//! Over the 53 mappings that is 1 232 agreements, 471 refusals and 13 known
-//! differences, and 1 087 round trips; [`SAME`], [`REFUSED`] and
+//! Over the 53 mappings that is 1 252 agreements, 451 refusals and 13 known
+//! differences, and 1 107 round trips; [`SAME`], [`REFUSED`] and
 //! [`ROUND_TRIPS`] hold the counts so that they move only deliberately. The
 //! astronomical columns are compared to a bound instead, in
 //! [`the_astronomy_is_within_seconds_of_the_books`], and the rising and
@@ -374,20 +374,9 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
         registered("old-hindu-lunar", "hindu-old-lunar", |f, _, _| {
             vec![n(f.year), n(month(f)), b(leap_month(f)), n(day(f))]
         }),
-        built(
-            "hindu-solar",
-            "the Vikrami rule at Ujjain with the Sūrya Siddhānta's Sun, built",
-            Box::new(DynAdapter::new(hindu_solar::VIKRAMI.new(
-                CalendarId("x-hindu-solar-siddhanta-ujjain"),
-                UJJAIN,
-                SolarModel::SuryaSiddhanta,
-            ))),
-            |f, _, _| {
-                // The book counts this calendar's years in the Śaka era,
-                // 135 behind the Vikrama the Vikrami reckoning counts.
-                vec![n(f.year - 135), n(month(f)), n(day(f))]
-            },
-        ),
+        // The book's modern solar calendar, on the Sūrya Siddhānta's Sun and
+        // read at its sunrise at Ujjain, in Śaka years.
+        registered("hindu-solar", "hindu-solar-surya-siddhanta", ymd),
         // The book's two astronomical calendars are read at Ujjain, and are
         // built here rather than registered: they are hindu-solar-tamil and
         // hindu-lunar at another place, which is a parameter and not a
@@ -630,6 +619,13 @@ const NOT_CARRIED: &[(&str, &str)] = &[];
 /// compares, each with its bound, in seconds of time or of arc.
 const ASTRONOMY: &[(&str, f64)] = &[
     ("ephem-corr", 11.0),
+    // The book's equation of time takes the mean Sun at dynamical time
+    // against a Universal Time clock, and this library's takes it at
+    // Universal Time, from sidereal time: the two part by the book's
+    // sundial lead, [`sundial_lead`], 38.4 s in 586 BCE, 2.7 s in 1013 and
+    // 0.2 s in 2038. The comparison adds that lead to this library's value,
+    // and what is left is the book's shorter series against this library's
+    // VSOP87 Sun, at most 2.87 s, on R.D. 434 355 (1189).
     ("eqn-of-time", 3.0),
     ("solar-long", 1.6),
     ("solstice", 45.0),
@@ -786,9 +782,9 @@ fn every_sample_date_agrees_or_is_refused_or_is_a_known_difference() {
 }
 
 /// Values that agree, dates refused as outside a range, and round trips.
-const SAME: usize = 1_232;
-const REFUSED: usize = 471;
-const ROUND_TRIPS: usize = 1_087;
+const SAME: usize = 1_252;
+const REFUSED: usize = 451;
+const ROUND_TRIPS: usize = 1_107;
 
 /// The rising and setting columns
 /// [`the_rising_and_setting_are_within_seconds_of_the_books`] compares,
@@ -822,28 +818,29 @@ const RISE_AND_SET: &[(&str, f64)] = &[
 /// (`reingold2018code`, `jerusalem`).
 const JERUSALEM: Location = Location::new(31.78, 35.24, 740.0);
 
-/// How far `solar_time::local_apparent_time`, mean time plus the equation
-/// of time, runs ahead of the Sun's hour angle at a moment, in days.
+/// How far the book's sundial time runs ahead of the Sun's hour angle at a
+/// moment, in days.
 ///
 /// The book finds its solar events in sundial time and puts them on the
-/// clock through the same equation of time (`approx-moment-of-depression`,
-/// `local-from-apparent`, `equation-of-time`), whose mean Sun is taken at
-/// dynamical time while mean time runs in Universal Time; this library
-/// solves for the hour angle. The two part by ΔT's worth of the Sun's mean
-/// motion and the difference of two polynomials' squared terms: 38 s in
-/// 586 BCE, under a second after 1500 CE.
-fn sundial_lead(moment: Moment, place: Location) -> f64 {
-    use hyper_calendar::hc_astro::{earth, solar, solar_time};
-    let hour_angle = earth::local_hour_angle(
-        solar::solar_position(moment),
-        moment,
-        place.longitude_degrees,
-    );
-    let by_hour_angle = (hour_angle / 360.0 + 0.5).rem_euclid(1.0);
-    let by_equation = solar_time::local_apparent_time(moment, place)
-        .0
-        .rem_euclid(1.0);
-    (by_equation - by_hour_angle + 0.5).rem_euclid(1.0) - 0.5
+/// clock through its equation of time (`approx-moment-of-depression`,
+/// `local-from-apparent`, `equation-of-time`), which takes the mean Sun's
+/// longitude at dynamical time while mean time runs in Universal Time;
+/// this library solves for the hour angle, whose mean Sun is the sidereal
+/// time of the Universal Time moment. The lead is the first mean Sun less
+/// the second: the Sun's mean longitude of Meeus (25.2) at TT, less
+/// 0.005 718 3° to make it a right ascension as Meeus's (28.1) does, less
+/// the right ascension of the mean Sun whose hour angle is the Universal
+/// Time, the IAU 1982 mean sidereal time less that hour angle. The two
+/// part by ΔT's worth of the Sun's mean motion and the difference of the
+/// two polynomials' squared terms: 38 s in 586 BCE, under a second after
+/// 1500 CE. The place does not enter.
+fn sundial_lead(moment: Moment) -> f64 {
+    use hyper_calendar::hc_astro::{earth, solar, time};
+    let at_dynamical_time =
+        solar::solar_mean_longitude_at_centuries(time::julian_centuries(moment)) - 0.005_718_3;
+    let hour_angle = 360.0 * moment.0.rem_euclid(1.0) - 180.0;
+    let of_universal_time = earth::mean_sidereal_time(moment) - hour_angle;
+    ((at_dynamical_time - of_universal_time) / 360.0 + 0.5).rem_euclid(1.0) - 0.5
 }
 
 /// This library's value for a rising and setting column, as the book
@@ -854,9 +851,8 @@ fn rising_and_setting(column: &str, rd: Rd) -> Option<f64> {
     use hyper_calendar::hc_astro::{Twilight, riseset};
     use hyper_calendar::hc_calendars_equinox::places::{PARIS_OBSERVATORY, TEHRAN_PERSIAN};
     use hyper_calendar::hc_calendars_lunar::islamic_observational::MECCA;
-    let solar = |moment: Option<Moment>, place: Location, zone_hours: f64| {
-        moment
-            .map(|moment| moment.0 + zone_hours / 24.0 - sundial_lead(moment, place) - rd.0 as f64)
+    let solar = |moment: Option<Moment>, zone_hours: f64| {
+        moment.map(|moment| moment.0 + zone_hours / 24.0 - sundial_lead(moment) - rd.0 as f64)
     };
     // The book looks for the Moon between two standard-time midnights at
     // Mecca, this library between two local mean ones, 20.7 minutes
@@ -871,19 +867,13 @@ fn rising_and_setting(column: &str, rd: Rd) -> Option<f64> {
     match column {
         "dawn" => solar(
             riseset::dawn(rd, PARIS_OBSERVATORY, Twilight::Astronomical),
-            PARIS_OBSERVATORY,
             1.0,
         ),
         "set" => solar(
             riseset::sunset_with(rd, JERUSALEM, &CALENDRICAL_CALCULATIONS),
-            JERUSALEM,
             2.0,
         ),
-        "mid-day" => solar(
-            Some(riseset::solar_noon(rd, TEHRAN_PERSIAN)),
-            TEHRAN_PERSIAN,
-            3.5,
-        ),
+        "mid-day" => solar(Some(riseset::solar_noon(rd, TEHRAN_PERSIAN)), 3.5),
         "moonrise" => lunar(riseset::moonrise_with),
         "moonset" => lunar(riseset::moonset_with),
         other => panic!("no rising or setting for {other}"),
@@ -944,7 +934,7 @@ fn astronomy(column: &str, rd: Rd) -> f64 {
     let next = |step: f64| (step * (longitude / step).ceil()).rem_euclid(360.0);
     match column {
         "ephem-corr" => delta_t(midnight) / 86_400.0,
-        "eqn-of-time" => solar::equation_of_time(midnight),
+        "eqn-of-time" => solar::equation_of_time(midnight) + sundial_lead(midnight),
         "solar-long" => solar::solar_longitude(Moment(midnight.0 + 0.5)),
         "solstice" => solar::solar_longitude_after(next(90.0), midnight).0,
         "lunar-long" => lunar::lunar_longitude(midnight),
