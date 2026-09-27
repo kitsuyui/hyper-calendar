@@ -6,6 +6,9 @@
 //!   each figure came from.
 //! * The solar terms within a span, [`term_lines`], and the principal moon
 //!   phases within one, [`phase_lines`], each as an instant.
+//! * The decan the Sun is in at an instant, [`decan_line`]: the tropical
+//!   sign, which of its three 10° faces, and the face's ruler, from
+//!   [`hc_seasons::zodiac::decans`].
 //!
 //! Every instant is a POSIX timestamp read as Universal Time, and every one
 //! written is a whole POSIX second, rounded down
@@ -28,6 +31,7 @@ use hc_astro::time::{DeltaTRegime, decimal_year, delta_t, delta_t_regime};
 use hc_calendar::fixed::Moment;
 use hc_core::math::floor;
 use hc_seasons::solar_terms::{DEGREES_PER_TERM, SolarTerm, TermOrder};
+use hc_seasons::zodiac::decans::{decan_at_moment, degrees_into_decan};
 
 #[cfg(doc)]
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR};
@@ -39,6 +43,9 @@ pub const SKY_COLUMNS: usize = 12;
 
 /// How many columns [`term_lines`] and [`phase_lines`] write.
 pub const EVENT_COLUMNS: usize = 4;
+
+/// How many columns [`decan_line`] writes.
+pub const DECAN_COLUMNS: usize = 6;
 
 /// The longest span [`term_lines`] and [`phase_lines`] accept, in seconds:
 /// 400 Julian years, about 4 950 lunations and 9 600 solar terms.
@@ -245,6 +252,32 @@ pub fn phase_lines(from: i64, to: i64) -> Answer<String> {
     Ok(out)
 }
 
+/// The line of `hc_decan_at`: the tropical sign the Sun is in at an
+/// instant, 1 for Aries through 12 for Pisces, and its English name; which
+/// of the sign's three decans it is in, 1 to 3; the decan's ruler by
+/// al-Bīrūnī's table, as its identifier and its English name; and how far
+/// into the decan the Sun is, in degrees from 0 up to 10. The sign and the
+/// decan are read from the Sun's apparent longitude, so their boundaries
+/// are those of the solar terms.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] outside [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
+pub fn decan_line(unix: i64) -> Answer<String> {
+    let moment = moment_in_era(unix)?;
+    let decan = decan_at_moment(moment);
+    let sign = decan.sign();
+    let ruler = decan.ruler();
+    let mut out = format!("{}\t", sign.index() + 1);
+    push_cell(&mut out, sign.english_name());
+    let _ = write!(out, "\t{}\t", decan.part());
+    push_cell(&mut out, ruler.id);
+    out.push('\t');
+    push_cell(&mut out, ruler.english_name());
+    let _ = writeln!(out, "\t{}", degrees_into_decan(moment));
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -296,6 +329,25 @@ mod tests {
             (new_moon - at(2026, 9, 11, 3, 27)).abs() <= 90,
             "{new_moon}"
         );
+    }
+
+    /// At the NAOJ's 秋分 of 2026, 23 September 00:05 UTC, the Sun enters
+    /// Libra, whose first face al-Bīrūnī gives to the Moon; an hour before,
+    /// it is in the last face of Virgo, Mercury's.
+    #[test]
+    fn the_sun_enters_the_moons_face_of_libra_at_the_equinox() {
+        let after = decan_line(at(2026, 9, 23, 1, 5)).expect("in the era");
+        let after: Vec<&str> = after.trim_end_matches('\n').split('\t').collect();
+        assert_eq!(after.len(), DECAN_COLUMNS);
+        assert_eq!(after[..5], ["7", "Libra", "1", "moon", "Moon"]);
+        let into: f64 = after[5].parse().expect("degrees");
+        assert!((0.0..0.1).contains(&into), "{into}");
+        let before = decan_line(at(2026, 9, 22, 23, 5)).expect("in the era");
+        assert!(
+            before.starts_with("6\tVirgo\t3\tmercury\tMercury\t9.9"),
+            "{before}"
+        );
+        assert_eq!(decan_line(i64::MAX), Err(Refusal::OutOfRange));
     }
 
     #[test]

@@ -1,7 +1,9 @@
 //! The single numbers the WebAssembly module and the C library answer
 //! about the lunar and regional calendars, written once: the modern
-//! Olympiad of a year, the Hebrew anniversaries of a day, and the Chinese
-//! reckoned age and marriage augury.
+//! Olympiad of a year, the Hebrew anniversaries of a day and a Hebrew
+//! year's place in the sabbatical cycle, the Chinese reckoned age and
+//! marriage augury, and how the calendar of the province of Asia writes a
+//! day, unnumbered days included.
 //!
 //! A Hebrew date crosses the boundary as the fixed day it names — the day
 //! whose daylight carries it; an event after sunset belongs to the next
@@ -17,6 +19,7 @@ use hc_calendar::{Calendar, Rd};
 use hc_calendars_lunar::chinese::{self, ChineseCalendar, MarriageAugury};
 use hc_calendars_lunar::hebrew::{self, HebrewDate};
 use hc_calendars_regional::olympiad;
+use hc_calendars_solar::asian::{AsianCalendar, WrittenDay};
 
 use crate::boundary::{Answer, Refusal};
 
@@ -59,6 +62,51 @@ pub fn hebrew_birthday(birth_fixed: i64, year: i64) -> Answer<i64> {
     hebrew::birthday(hebrew_date(birth_fixed)?, year)
         .map(|day| day.0)
         .map_err(|_| Refusal::OutOfRange)
+}
+
+/// The place of a Hebrew year in the seven-year sabbatical cycle, 1 to 7,
+/// the seventh being the sabbatical year, *shemittah*, by
+/// [`hebrew::sabbatical_cycle_year`]: 5782 and 5789 are sabbatical years.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] outside the Hebrew years [`hebrew::MIN_YEAR`]
+/// to [`hebrew::MAX_YEAR`].
+pub fn hebrew_sabbatical_cycle_year(year: i64) -> Answer<i64> {
+    hebrew::sabbatical_cycle_year(year)
+        .map(i64::from)
+        .map_err(|_| Refusal::OutOfRange)
+}
+
+/// How many columns [`asian_day_line`] writes.
+pub const ASIAN_DAY_COLUMNS: usize = 5;
+
+/// The line of `hc_asian_day`: a fixed day in the calendar of the Roman
+/// province of Asia as the calendar writes it — the Julian year, AD, in
+/// which the Asian year began; the month, 1 for Kaisar through 12 for
+/// Hyperberetaios; the month's name; `unnumbered` for a day before day 1,
+/// Sebaste in a 31-day month and in a leap Xandikos Sebaste and the
+/// intercalary day, or `numbered`; and the day's number, 1 to 30, or for
+/// an unnumbered day its place among them, 1 or 2.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] outside the days the calendar carries, from
+/// 23 September AD 4 to the end of the Asian year 9999.
+pub fn asian_day_line(fixed: i64) -> Answer<String> {
+    let date = AsianCalendar
+        .from_fixed(Rd(fixed))
+        .map_err(|_| Refusal::OutOfRange)?;
+    let (written, number) = match date.written_day() {
+        WrittenDay::Unnumbered(place) => ("unnumbered", place),
+        WrittenDay::Numbered(number) => ("numbered", number),
+    };
+    Ok(alloc::format!(
+        "{}\t{}\t{}\t{written}\t{number}\n",
+        date.year,
+        date.month,
+        date.month_name()
+    ))
 }
 
 /// A person's age as the Chinese count reckons it on a fixed day, one at
@@ -174,6 +222,58 @@ mod tests {
             chinese_marriage_augury_line(i64::MAX),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// Wikipedia's and Chabad.org's sabbatical years, 5782 (2021–22) and
+    /// 5789 (2028–29).
+    #[test]
+    fn the_published_sabbatical_years_are_the_seventh() {
+        assert_eq!(hebrew_sabbatical_cycle_year(5_782), Ok(7));
+        assert_eq!(hebrew_sabbatical_cycle_year(5_789), Ok(7));
+        assert_eq!(hebrew_sabbatical_cycle_year(5_787), Ok(5));
+        assert_eq!(hebrew_sabbatical_cycle_year(1), Ok(1));
+        assert_eq!(hebrew_sabbatical_cycle_year(0), Err(Refusal::OutOfRange));
+        assert_eq!(
+            hebrew_sabbatical_cycle_year(10_000),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    fn julian(year: i64, month: u8, day: u8) -> i64 {
+        hc_calendars_solar::julian::to_fixed(year, month, day)
+            .expect("a date")
+            .0
+    }
+
+    /// The decree's New Year, 23 September, is Sebaste of Kaisar; the
+    /// Metropolis *hemerologion* puts 7 October on day 14 of Kaisar; and a
+    /// leap Xandikos, year 99's, opens on 21 and 22 February AD 100 with
+    /// two unnumbered days.
+    #[test]
+    fn sebaste_and_the_numbered_days_are_written_apart() {
+        assert_eq!(
+            asian_day_line(julian(50, 9, 23)).as_deref(),
+            Ok("50\t1\tKaisar\tunnumbered\t1\n")
+        );
+        assert_eq!(
+            asian_day_line(julian(50, 10, 7)).as_deref(),
+            Ok("50\t1\tKaisar\tnumbered\t14\n")
+        );
+        assert_eq!(
+            asian_day_line(julian(100, 2, 22)).as_deref(),
+            Ok("99\t6\tXandikos\tunnumbered\t2\n")
+        );
+        assert_eq!(
+            asian_day_line(julian(100, 2, 23)).as_deref(),
+            Ok("99\t6\tXandikos\tnumbered\t1\n")
+        );
+        assert_eq!(asian_day_line(julian(4, 9, 22)), Err(Refusal::OutOfRange));
+        assert_eq!(asian_day_line(i64::MAX), Err(Refusal::OutOfRange));
+        // The range the boundary crates' READMEs state.
+        assert_eq!(julian(4, 9, 23), 1_360);
+        assert_eq!(julian(10_000, 9, 22), 3_652_398);
+        assert!(asian_day_line(3_652_398).is_ok());
+        assert_eq!(asian_day_line(3_652_399), Err(Refusal::OutOfRange));
     }
 
     #[test]

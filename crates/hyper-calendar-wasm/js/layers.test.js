@@ -121,6 +121,15 @@ test("a method of another layer throws not-exported when called, not at load", (
     swatchBeat: () => hc.swatchBeat(0),
     epochFromTt: () => hc.epochFromTt("J", 946_728_000),
     ttFromEpoch: () => hc.ttFromEpoch("J", 2000),
+    ttBipm: () => hc.ttBipm("58479\t27.674\n", 1_545_868_837),
+    namingPeriodOn: () => hc.namingPeriodOn("gregory", 732_026, "tk"),
+    hebrewSabbaticalCycleYear: () => hc.hebrewSabbaticalCycleYear(5782),
+    asianDay: () => hc.asianDay(1_360),
+    holyYearOn: () => hc.holyYearOn(739_403),
+    commonWorshipOn: () => hc.commonWorshipOn(739_369),
+    decanAt: () => hc.decanAt(1_790_125_500),
+    hjdTt: () => hc.hjdTt(2_451_545, 0, 0),
+    hjdUtc: () => hc.hjdUtc(2_451_545, 0, 0),
     circadDate: () => hc.circadDate("darian-titan", 1_040_208_120),
   };
   const gated = METHODS.filter((entry) => entry.feature !== null && entry.feature !== "civil");

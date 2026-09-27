@@ -144,4 +144,7 @@ on the rules and one press report.
 `crates/hc-holiday/tests/traditions.rs`:
 `the_common_worship_transfers_are_the_ones_the_church_printed`,
 `the_years_the_common_worship_rules_leave_open_are_gaps`,
-`no_festival_is_kept_where_the_common_worship_rules_forbid_it`.
+`no_festival_is_kept_where_the_common_worship_rules_forbid_it`. The
+WebAssembly and C export `hc_common_worship_on` writes the rank of each
+celebration kept on a day, from `hyper_calendar::holiday_lines`; the
+celebrations and the gaps are lines of `hc_holidays_on`.

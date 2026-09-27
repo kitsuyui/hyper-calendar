@@ -21,11 +21,16 @@
 //!   refusal, never with a number.
 //! * The named horizons of [`hc_astro::horizon`], and sunrise and sunset
 //!   on a local day against one of them, by its identifier.
+//! * The Heliocentric Julian Date of [`hc_astro::hjd`] in its two time
+//!   scales, HJD_TT and HJD_UTC — two scales, so two functions — for a
+//!   target's J2000 right ascension and declination. The date crosses as a
+//!   Julian Date, a double, and answers for the same years.
 
 use alloc::string::String;
 use core::fmt::Write;
 
 use hc_astro::earth::{earth_rotation_angle, mean_sidereal_time, mean_sidereal_time_iau2006};
+use hc_astro::hjd::{self, Target, heliocentric_correction_seconds};
 use hc_astro::horizon::{HORIZONS, Horizon};
 use hc_astro::riseset::{self, Location};
 use hc_astro::solar_time::{self, MissingSolarEvent};
@@ -34,6 +39,8 @@ use hc_calendar::Rd;
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::gregorian::new_year;
 use hc_core::math::floor;
+use hc_core::scale::TT_MINUS_TAI;
+use hc_core::unix::{LeapPolicy, tai_minus_utc_at};
 
 use crate::boundary::{Answer, Refusal, names, push_cell};
 
@@ -413,6 +420,109 @@ pub fn sunset_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<Stri
     crossing_line(riseset::sunset_with, "sunset", horizon_id, fixed, place)
 }
 
+/// The Julian Date at which fixed day 0 begins.
+const JULIAN_DATE_OF_RD_ZERO: f64 = 1_721_424.5;
+
+/// The Julian Date at which the POSIX epoch, 1970-01-01 00:00, falls.
+const JULIAN_DATE_OF_UNIX_EPOCH: f64 = 2_440_587.5;
+
+/// How many columns [`hjd_tt_line`] writes.
+pub const HJD_TT_COLUMNS: usize = 2;
+
+/// How many columns [`hjd_utc_line`] writes.
+pub const HJD_UTC_COLUMNS: usize = 3;
+
+/// A Julian Date, if it is finite and its day lies in the era.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a date that is not finite or lies outside
+/// [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
+fn julian_date_in_era(julian_date: f64) -> Answer<f64> {
+    let days = julian_date - JULIAN_DATE_OF_RD_ZERO;
+    if julian_date.is_finite() && (FIRST_DAY as f64..END_DAY as f64).contains(&days) {
+        Ok(julian_date)
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
+/// A target's direction: its right ascension, 0° to 360°, and its
+/// declination, −90° to 90°, on the mean equator and equinox of J2000.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for either outside its range.
+pub fn hjd_target(right_ascension_degrees: f64, declination_degrees: f64) -> Answer<Target> {
+    if (0.0..=360.0).contains(&right_ascension_degrees)
+        && (-90.0..=90.0).contains(&declination_degrees)
+    {
+        Ok(Target {
+            right_ascension_degrees,
+            declination_degrees,
+        })
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
+/// The line of `hc_hjd_tt`: the HJD_TT of a Julian Date of TT for a
+/// target, and the heliocentric light-time correction added to it, in
+/// seconds, negative when the light reaches the Sun first.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a date outside the era or a direction
+/// [`hjd_target`] refuses.
+pub fn hjd_tt_line(
+    tt_julian_date: f64,
+    right_ascension_degrees: f64,
+    declination_degrees: f64,
+) -> Answer<String> {
+    let date = julian_date_in_era(tt_julian_date)?;
+    let target = hjd_target(right_ascension_degrees, declination_degrees)?;
+    Ok(alloc::format!(
+        "{}\t{}\n",
+        hjd::hjd_tt(date, target),
+        heliocentric_correction_seconds(date, target)
+    ))
+}
+
+/// The line of `hc_hjd_utc`: the HJD_UTC of a Julian Date of UTC for a
+/// target, the correction added to it in seconds, and the TT − UTC in
+/// seconds at which the Earth's position was taken: 32.184 s plus TAI −
+/// UTC from the leap-second table. `strict` refuses a date outside the
+/// table; otherwise the table's ends are held, and before 1961 TAI − UTC
+/// is taken as 0.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a date outside the era or a direction
+/// [`hjd_target`] refuses, and [`Refusal::NoData`] under `strict` for a
+/// date outside the leap-second table.
+pub fn hjd_utc_line(
+    utc_julian_date: f64,
+    right_ascension_degrees: f64,
+    declination_degrees: f64,
+    strict: bool,
+) -> Answer<String> {
+    let date = julian_date_in_era(utc_julian_date)?;
+    let target = hjd_target(right_ascension_degrees, declination_degrees)?;
+    let policy = if strict {
+        LeapPolicy::Strict
+    } else {
+        LeapPolicy::Extrapolate
+    };
+    let unix = floor((date - JULIAN_DATE_OF_UNIX_EPOCH) * SECONDS_PER_DAY as f64) as i64;
+    let tt_minus_utc = TT_MINUS_TAI.as_secs_f64() + tai_minus_utc_at(unix, policy)?.as_secs_f64();
+    let tt = date + tt_minus_utc / SECONDS_PER_DAY as f64;
+    Ok(alloc::format!(
+        "{}\t{}\t{tt_minus_utc}\n",
+        hjd::hjd_utc(date, tt_minus_utc, target),
+        heliocentric_correction_seconds(tt, target)
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -518,5 +628,60 @@ mod tests {
             sunset_line("usno", 2_000_000, tromso),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// The Julian Date of a proleptic Gregorian date and a time of day.
+    fn julian_date(year: i64, month: u8, day: u8, seconds: f64) -> f64 {
+        let fixed = hc_calendar::gregorian::to_fixed(year, month, day).expect("a date");
+        fixed.0 as f64 + JULIAN_DATE_OF_RD_ZERO + seconds / 86_400.0
+    }
+
+    /// Warren's row for 29 February 1992, 03:15:56.2, and the J2000
+    /// position 12h 56m 27.4s, +42° 10′ 17″, in the IDL Astronomy
+    /// Library's `helio_jd`: HJD − JD is 350.9 s.
+    #[test]
+    fn hjd_tt_is_the_idl_tables_correction_in_days() {
+        let date = julian_date(1992, 2, 29, 3.0 * 3_600.0 + 15.0 * 60.0 + 56.2);
+        let (alpha, delta) = (
+            15.0 * (12.0 + 56.0 / 60.0 + 27.4 / 3_600.0),
+            42.0 + 10.0 / 60.0 + 17.0 / 3_600.0,
+        );
+        let line = hjd_tt_line(date, alpha, delta).expect("in the era");
+        let row = cells(&line);
+        assert_eq!(row.len(), HJD_TT_COLUMNS);
+        let hjd: f64 = row[0].parse().expect("a date");
+        let correction: f64 = row[1].parse().expect("seconds");
+        assert!((correction - 350.9).abs() < 0.1, "{correction}");
+        assert!(((hjd - date) * 86_400.0 - correction).abs() < 1e-3);
+        assert_eq!(hjd_tt_line(f64::NAN, 0.0, 0.0), Err(Refusal::OutOfRange));
+        assert_eq!(hjd_tt_line(date, 361.0, 0.0), Err(Refusal::OutOfRange));
+        assert_eq!(hjd_tt_line(date, 0.0, -90.5), Err(Refusal::OutOfRange));
+        assert_eq!(
+            hjd_tt_line(julian_date(3001, 1, 1, 0.0), 0.0, 0.0),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// On 1 January 2017, TAI − UTC was 37 s, so TT − UTC is 69.184 s, and
+    /// HJD_TT and HJD_UTC of one event differ by it.
+    #[test]
+    fn hjd_utc_takes_tt_minus_utc_from_the_leap_second_table() {
+        let utc = julian_date(2017, 1, 1, 0.0);
+        let line = hjd_utc_line(utc, 90.0, 23.4, true).expect("in the table");
+        let row = cells(&line);
+        assert_eq!(row.len(), HJD_UTC_COLUMNS);
+        let tt_minus_utc: f64 = row[2].parse().expect("seconds");
+        assert!((tt_minus_utc - 69.184).abs() < 1e-9, "{tt_minus_utc}");
+        let hjd_utc: f64 = row[0].parse().expect("a date");
+        let tt = hjd_tt_line(utc + tt_minus_utc / 86_400.0, 90.0, 23.4).expect("in the era");
+        let hjd_tt: f64 = cells(&tt)[0].parse().expect("a date");
+        assert!(((hjd_tt - hjd_utc) * 86_400.0 - 69.184).abs() < 1e-3);
+        let before_utc = julian_date(1950, 1, 1, 0.0);
+        assert_eq!(
+            hjd_utc_line(before_utc, 90.0, 23.4, true),
+            Err(Refusal::NoData)
+        );
+        let held = hjd_utc_line(before_utc, 90.0, 23.4, false).expect("held");
+        assert_eq!(cells(&held)[2], "32.184");
     }
 }

@@ -31,6 +31,9 @@
 //! * Swatch Internet Time, from [`hc_core::internet_time`], and the Julian
 //!   and Besselian epochs of a TT instant both ways, from
 //!   [`hc_core::epoch_notation`].
+//! * TT(BIPM) at a TAI instant, from a realisation the caller supplies as
+//!   text, by [`hc_core::tt_bipm`]: the library carries none of the BIPM's
+//!   tables, which are revised every year.
 //!
 //! A POSIX instant crosses as a TAI one does, as whole seconds and the
 //! attoseconds into the second, and a TT instant as whole seconds from
@@ -38,6 +41,7 @@
 //! attoseconds: TT runs 32.184 s ahead of TAI.
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use core::fmt::Write;
 
 use hc_calendar::{CalendarError, Rd};
@@ -47,6 +51,7 @@ use hc_core::gnss::{self, GlonassDate, GlonassTime, WeekNumbering, WeekTime};
 use hc_core::internet_time::Beat;
 use hc_core::ntp::{NtpDate, NtpTimestamp};
 use hc_core::tai64;
+use hc_core::tt_bipm::TtBipmSeries;
 use hc_core::unix::{self, LeapPolicy, UtcInstant};
 use hc_core::uuid::{self, TimeVersion};
 use hc_core::{Duration, Instant, Tai, Tt, UnixTime};
@@ -990,9 +995,213 @@ pub fn tt_from_epoch_line(notation: &str, year: f64) -> Answer<String> {
     ))
 }
 
+/// The Modified Julian Date of 1970-01-01, the POSIX epoch.
+const MJD_OF_UNIX_EPOCH: i64 = 40_587;
+
+/// How many columns [`tt_bipm_line`] writes.
+pub const TT_BIPM_COLUMNS: usize = 5;
+
+/// The samples of a TT(BIPM) realisation written as text: one line per
+/// sample, the Modified Julian Date at 0 h UTC and TT(BIPMxx) − TAI −
+/// 32.184 s there in microseconds, separated by a tab, as the first and
+/// third columns of the BIPM's `TTBIPM` files give them. Blank lines are
+/// skipped; the dates must ascend.
+///
+/// # Errors
+///
+/// [`Refusal::Malformed`] for a line that is not two such cells, a value
+/// that is not finite, or a date that does not follow the one before, and
+/// [`Refusal::OutOfRange`] for a date whose midnight is not a POSIX second
+/// an `i64` holds.
+pub fn tt_bipm_samples(text: &str) -> Answer<Vec<(i64, f64)>> {
+    let mut samples: Vec<(i64, f64)> = Vec::new();
+    for line in text.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        let mut cells = line.split('\t');
+        let (Some(mjd), Some(microseconds), None) = (cells.next(), cells.next(), cells.next())
+        else {
+            return Err(Refusal::Malformed);
+        };
+        let mjd: i64 = mjd.trim().parse().map_err(|_| Refusal::Malformed)?;
+        let microseconds = plain_decimal(microseconds.trim()).ok_or(Refusal::Malformed)?;
+        if samples.last().is_some_and(|&(last, _)| last >= mjd) {
+            return Err(Refusal::Malformed);
+        }
+        mjd.checked_sub(MJD_OF_UNIX_EPOCH)
+            .and_then(|days| days.checked_mul(86_400))
+            .ok_or(Refusal::OutOfRange)?;
+        samples.push((mjd, microseconds));
+    }
+    Ok(samples)
+}
+
+/// The powers of ten a [`plain_decimal`] divides by, each exact in an
+/// `f64`.
+const POWERS_OF_TEN: [f64; 19] = [
+    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13, 1e14, 1e15, 1e16,
+    1e17, 1e18,
+];
+
+/// A number written in plain decimal notation — an optional sign, digits,
+/// and an optional point with more digits — of at most 18 digits, as the
+/// BIPM's tables write it. The value is the digits as an integer divided
+/// by an exact power of ten, so it is the nearest `f64` wherever the
+/// digits fit 53 bits. It reads what the tables hold without the general
+/// float parser, whose size the `timestamps` layer would carry.
+fn plain_decimal(text: &str) -> Option<f64> {
+    let (negative, unsigned) = match text.as_bytes().first() {
+        Some(b'-') => (true, &text[1..]),
+        Some(b'+') => (false, &text[1..]),
+        _ => (false, text),
+    };
+    let (whole, fraction) = unsigned.split_once('.').unwrap_or((unsigned, ""));
+    let digits = whole.len() + fraction.len();
+    if digits == 0 || digits > 18 {
+        return None;
+    }
+    let mut mantissa: u64 = 0;
+    for byte in whole.bytes().chain(fraction.bytes()) {
+        if !byte.is_ascii_digit() {
+            return None;
+        }
+        mantissa = mantissa * 10 + u64::from(byte - b'0');
+    }
+    let value = mantissa as f64 / POWERS_OF_TEN[fraction.len()];
+    Some(if negative { -value } else { value })
+}
+
+/// A duration as whole seconds and attoseconds, the seconds floored.
+///
+/// # Errors
+///
+/// [`Refusal::Overflow`] for seconds outside an `i64`.
+fn duration_parts(duration: Duration) -> Answer<(i64, u64)> {
+    let seconds = i64::try_from(duration.whole_seconds()).map_err(|_| Refusal::Overflow)?;
+    Ok((seconds, duration.subsec_attos()))
+}
+
+/// The line of `hc_tt_bipm`: at a TAI instant, from a realisation of
+/// TT(BIPM) given as [`tt_bipm_samples`] reads it, TT(BIPMxx) − TT(TAI) in
+/// seconds, interpolated linearly in TAI between the samples; TT(BIPMxx) −
+/// TAI, 32.184 s more, as whole seconds and attoseconds; and the
+/// TT(BIPMxx) reading of the instant from that scale's 1970 epoch, as
+/// whole seconds and attoseconds. `strict` places the samples by the
+/// leap-second table and refuses one outside it; otherwise the table's
+/// ends are held.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for attoseconds from 10¹⁸, the errors of
+/// [`tt_bipm_samples`], [`Refusal::NoData`] for an instant before the first
+/// sample or after the last, an empty series, or under `strict` a sample
+/// outside the leap-second table, and [`Refusal::Overflow`] for a reading
+/// outside an `i64` of seconds.
+pub fn tt_bipm_line(
+    series: &str,
+    tai_seconds: i64,
+    attoseconds: u64,
+    strict: bool,
+) -> Answer<String> {
+    let instant = tai_instant(tai_seconds, attoseconds)?;
+    let samples = tt_bipm_samples(series)?;
+    // The name of the realisation stays with the caller, who chose it.
+    let series = TtBipmSeries {
+        realisation: "",
+        samples: &samples,
+    };
+    let policy = policy(strict);
+    let offset = series.offset_from_tt_tai(instant, policy)?;
+    let (minus_seconds, minus_attoseconds) = duration_parts(series.minus_tai(instant, policy)?)?;
+    let (seconds, attos) = duration_parts(series.reading(instant, policy)?)?;
+    Ok(alloc::format!(
+        "{offset}\t{minus_seconds}\t{minus_attoseconds}\t{seconds}\t{attos}\n"
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Rows of the BIPM's `TTBIPM.2025`, the first and third columns, as
+    /// `hc-core`'s test reads them: 27.6740 µs on MJD 58 479 and
+    /// 27.6745 µs on MJD 58 489.
+    const TT_BIPM25: &str = "42589\t46.258\n42599\t45.439\n58479\t27.6740\n58489\t27.6745\n";
+
+    /// 0 h UTC on MJD 58 479, 2018-12-22, when TAI − UTC was 37 s.
+    const MJD_58479_TAI: i64 = (58_479 - 40_587) * 86_400 + 37;
+
+    #[test]
+    fn a_sample_of_ttbipm25_reads_as_the_table_gives_it() {
+        let line = tt_bipm_line(TT_BIPM25, MJD_58479_TAI, 0, true).expect("in the series");
+        let cells: Vec<&str> = line.trim_end_matches('\n').split('\t').collect();
+        assert_eq!(cells.len(), TT_BIPM_COLUMNS);
+        let offset: f64 = cells[0].parse().expect("seconds");
+        assert!((offset - 27.674e-6).abs() < 1e-15, "{offset}");
+        assert_eq!(cells[1], "32");
+        let attoseconds: u64 = cells[2].parse().expect("attoseconds");
+        assert!(
+            attoseconds.abs_diff(184_027_674_000_000_000) < 1_000,
+            "{attoseconds}"
+        );
+        assert_eq!(cells[3], (MJD_58479_TAI + 32).to_string());
+        assert_eq!(cells[4], cells[2]);
+        // Five days on, halfway to 27.6745 µs.
+        let midway = tt_bipm_line(TT_BIPM25, MJD_58479_TAI + 5 * 86_400, 0, true).expect("inside");
+        let offset: f64 = midway
+            .split('\t')
+            .next()
+            .expect("a cell")
+            .parse()
+            .expect("seconds");
+        assert!((offset - 27.674_25e-6).abs() < 1e-15, "{offset}");
+    }
+
+    #[test]
+    fn a_series_is_read_strictly_and_never_extrapolated() {
+        let last = MJD_58479_TAI + 10 * 86_400;
+        assert_eq!(
+            tt_bipm_line(TT_BIPM25, last + 1, 0, true),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            tt_bipm_line("", MJD_58479_TAI, 0, true),
+            Err(Refusal::NoData)
+        );
+        for malformed in [
+            "58479",
+            "58479\t1e3",
+            "58479\t.",
+            "58479\t-",
+            "58479\t1234567890.123456789",
+            "58479\t27.6\t1",
+            "x\t1",
+            "58479\tNaN",
+            "2\t1\n1\t1",
+        ] {
+            assert_eq!(
+                tt_bipm_samples(malformed),
+                Err(Refusal::Malformed),
+                "{malformed:?}"
+            );
+        }
+        assert_eq!(
+            tt_bipm_samples(&alloc::format!("{}\t1", i64::MAX)),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            tt_bipm_samples("\r\n58479\t27.6740\r\n"),
+            Ok(alloc::vec![(58_479, 27.674)])
+        );
+        assert_eq!(plain_decimal("-.5"), Some(-0.5));
+        assert_eq!(plain_decimal("+46.258"), Some(46.258));
+        assert_eq!(plain_decimal("27."), Some(27.0));
+        assert_eq!(
+            tt_bipm_line(TT_BIPM25, 0, 1_000_000_000_000_000_000, true),
+            Err(Refusal::OutOfRange)
+        );
+    }
 
     /// Bernstein's page: 2⁶² is the label of the second that began 1970
     /// TAI, so the origin is `4000000000000000`.

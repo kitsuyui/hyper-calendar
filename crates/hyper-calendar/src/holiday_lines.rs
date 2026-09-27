@@ -9,13 +9,24 @@
 //! * The lectionary cycles of a day, and the astronomical Easter of a year
 //!   and the paschal full moon it is the Sunday after,
 //!   from [`hc_holiday::lectionary`] and [`hc_holiday::computus`].
+//! * The Holy Year a day falls in, from [`hc_holiday::holy_years`], and the
+//!   rank of each *Common Worship* celebration kept on a day, from
+//!   [`hc_holiday::common_worship`]. The celebrations themselves, and the
+//!   years the Rules leave a Festival without a day, are already lines of
+//!   `hc_holidays_on`, in the `common-worship` table; the rank is what
+//!   these lines add.
 
 use alloc::string::String;
 use core::fmt::Write;
 
 use hc_calendar::Rd;
+use hc_calendars_solar::gregorian;
+use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
+use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::rule::RuleSet;
-use hc_holiday::{computus, countries, exchanges, international, lectionary, traditions};
+use hc_holiday::{
+    HolidayCalendar, computus, countries, exchanges, international, lectionary, traditions,
+};
 use hc_i18n::Locale;
 use hc_i18n::territories::{self, TerritoryName};
 
@@ -256,6 +267,118 @@ pub fn astronomical_paschal_full_moon(year: i64) -> Answer<i64> {
         .ok_or(Refusal::OutOfRange)
 }
 
+/// How many columns [`holy_year_line`] writes.
+pub const HOLY_YEAR_COLUMNS: usize = 10;
+
+/// How many columns [`common_worship_lines`] write.
+pub const COMMON_WORSHIP_COLUMNS: usize = 3;
+
+/// The fixed day of a table date, as a cell.
+fn push_table_date(out: &mut String, date: TableDate) {
+    let (year, month, day) = date;
+    if let Ok(day) = gregorian::to_fixed(year, month, day) {
+        let _ = write!(out, "{}", day.0);
+    }
+}
+
+/// A jubilee's cells of [`holy_year_line`], after the first.
+fn push_jubilee(out: &mut String, jubilee: &Jubilee) {
+    push_cell(out, jubilee.title);
+    out.push('\t');
+    out.push_str(match jubilee.kind {
+        JubileeKind::Ordinary => "ordinary",
+        JubileeKind::Extraordinary => "extraordinary",
+    });
+    for text in [jubilee.pope, jubilee.bull] {
+        out.push('\t');
+        push_cell(out, text);
+    }
+    for date in [jubilee.given, jubilee.opens, jubilee.closes] {
+        out.push('\t');
+        push_table_date(out, date);
+    }
+    for date in [
+        jubilee.particular_churches.map(|(opens, _)| opens),
+        jubilee.particular_churches.map(|(_, closes)| closes),
+    ] {
+        out.push('\t');
+        if let Some(date) = date {
+            push_table_date(out, date);
+        }
+    }
+}
+
+/// The line of `hc_holy_year_on`: `within` when a day falls in a Holy Year
+/// of the Catholic Church in Rome, from the opening of the Holy Door of
+/// St Peter's to its closing, or `outside`; then, within one, the
+/// jubilee's title, `ordinary` or `extraordinary`, the Pope who proclaimed
+/// it, the bull of indiction by its opening words, the day the bull was
+/// given and the jubilee's first and last days in Rome, as fixed days, and
+/// its first and last days in the dioceses where the bull dates them, else
+/// empty. Outside one the nine cells after the first are empty.
+///
+/// # Errors
+///
+/// [`Refusal::NoData`] before the first jubilee the table carries, 1975's
+/// opening on 24 December 1974, and after the day its sources were checked,
+/// [`holy_years::SOURCES_CHECKED`].
+pub fn holy_year_line(fixed: i64) -> Answer<String> {
+    let mut out = String::new();
+    match holy_years::holy_year_on(Rd(fixed)) {
+        HolyYearOn::Within(jubilee) => {
+            out.push_str("within\t");
+            push_jubilee(&mut out, jubilee);
+            out.push('\n');
+        }
+        HolyYearOn::Outside => out.push_str("outside\t\t\t\t\t\t\t\t\t\n"),
+        HolyYearOn::NotCarried => return Err(Refusal::NoData),
+    }
+    Ok(out)
+}
+
+/// The identifier a [`Rank`] is written as.
+const fn rank_id(rank: Rank) -> &'static str {
+    match rank {
+        Rank::PrincipalFeast => "principal-feast",
+        Rank::PrincipalHolyDay => "principal-holy-day",
+        Rank::Festival => "festival",
+    }
+}
+
+/// The lines of `hc_common_worship_on`: every Principal Feast, Principal
+/// Holy Day and Festival of the Church of England's *Common Worship*
+/// calendar kept on a day, after the transfers its Rules require, one line
+/// each: the title as the Rules print it, which is the name
+/// `hc_holidays_on` gives it in the `common-worship` table; the rank's
+/// identifier, `principal-feast`, `principal-holy-day` or `festival`; and
+/// the rank's English name. A day that keeps none writes nothing.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day with no Gregorian year.
+pub fn common_worship_lines(fixed: i64) -> Answer<String> {
+    let day = Rd(fixed);
+    gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
+    let calendar = HolidayCalendar::for_day(&COMMON_WORSHIP, None, day);
+    let mut out = String::new();
+    for holiday in calendar.on(day) {
+        let Some(celebration) = CELEBRATIONS
+            .iter()
+            .find(|celebration| celebration.title == holiday.name)
+        else {
+            continue;
+        };
+        push_cell(&mut out, celebration.title);
+        let _ = writeln!(
+            out,
+            "\t{}\t{}",
+            rank_id(celebration.rank),
+            celebration.rank.english_name()
+        );
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -473,5 +596,67 @@ mod tests {
             astronomical_paschal_full_moon(1582),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// *Spes non confundit*, 6: the Holy Door of St Peter's opened on
+    /// 24 December 2024 and closed on 6 January 2026, and the jubilee ran in
+    /// the dioceses from 29 December 2024 to 28 December 2025.
+    #[test]
+    fn the_jubilee_of_2025_is_the_bulls() {
+        let line = holy_year_line(day(2025, 6, 1)).expect("carried");
+        let row: Vec<&str> = line.trim_end_matches('\n').split('\t').collect();
+        assert_eq!(row.len(), HOLY_YEAR_COLUMNS);
+        assert_eq!(
+            row[..5],
+            [
+                "within",
+                "Ordinary Jubilee of the Year 2025",
+                "ordinary",
+                "Francis",
+                "Spes non confundit"
+            ]
+        );
+        let days = [
+            day(2024, 5, 9),
+            day(2024, 12, 24),
+            day(2026, 1, 6),
+            day(2024, 12, 29),
+            day(2025, 12, 28),
+        ]
+        .map(|day| day.to_string());
+        assert_eq!(row[5..], days);
+        let mercy = holy_year_line(day(2016, 1, 1)).expect("carried");
+        assert!(
+            mercy.contains("\textraordinary\tFrancis\tMisericordiae vultus\t"),
+            "{mercy}"
+        );
+        assert!(mercy.ends_with("\t\t\n"), "{mercy}");
+        assert_eq!(
+            holy_year_line(day(2026, 1, 7)).as_deref(),
+            Ok("outside\t\t\t\t\t\t\t\t\t\n")
+        );
+        assert_eq!(holy_year_line(day(1974, 12, 23)), Err(Refusal::NoData));
+        assert_eq!(holy_year_line(day(2026, 9, 28)), Err(Refusal::NoData));
+    }
+
+    /// Full Fact: St George's Day was kept on Monday 28 April 2025, Easter
+    /// being 20 April; Christmas Day is a Principal Feast and Good Friday a
+    /// Principal Holy Day.
+    #[test]
+    fn each_celebration_carries_its_rank() {
+        assert_eq!(
+            common_worship_lines(day(2025, 4, 28)).as_deref(),
+            Ok("George, Martyr, Patron of England\tfestival\tFestival\n")
+        );
+        assert_eq!(common_worship_lines(day(2025, 4, 23)).as_deref(), Ok(""));
+        assert_eq!(
+            common_worship_lines(day(2025, 12, 25)).as_deref(),
+            Ok("Christmas Day\tprincipal-feast\tPrincipal Feast\n")
+        );
+        assert_eq!(
+            common_worship_lines(day(2025, 4, 18)).as_deref(),
+            Ok("Good Friday\tprincipal-holy-day\tPrincipal Holy Day\n")
+        );
+        assert_eq!(common_worship_lines(i64::MAX), Err(Refusal::OutOfRange));
     }
 }
