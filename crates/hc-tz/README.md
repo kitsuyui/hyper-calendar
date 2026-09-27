@@ -64,7 +64,11 @@ name under each — everything a caller needs to explain the problem to a user.
   `hc_calendar::CivilDateTime`.
 * **`zone`** — the `TimeZone` trait, `LocalResolution`, `Disambiguation`, and a
   reusable resolver that derives the three-way answer from nothing but a
-  zone's instant-to-offset function.
+  zone's instant-to-offset function. `TimeZone::next_transition` is the
+  first instant after another at which a zone's offset, daylight flag or
+  abbreviation changes, by its own rules: never for a fixed offset, the
+  next start or end for a POSIX string, the next recorded change and then
+  the footer's for a TZif file.
 * **`fixed`** — `FixedTimeZone` and `Utc`.
 * **`posix`** — the full POSIX.1-2017 §8.3 grammar as extended by RFC 8536
   §3.3: `<>`-quoted abbreviations, the `Jn`, `n` and `Mm.w.d` rule forms, the

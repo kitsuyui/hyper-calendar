@@ -67,6 +67,10 @@ impl TimeZone for FixedTimeZone<'_> {
         false
     }
 
+    fn next_transition(&self, _utc: UnixTime) -> Option<UnixTime> {
+        None
+    }
+
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {
         LocalResolution::Unambiguous(unix_from_local_saturating(local, self.offset))
     }
@@ -102,6 +106,10 @@ impl TimeZone for Utc {
 
     fn is_dst_at(&self, _utc: UnixTime) -> bool {
         false
+    }
+
+    fn next_transition(&self, _utc: UnixTime) -> Option<UnixTime> {
+        None
     }
 
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {

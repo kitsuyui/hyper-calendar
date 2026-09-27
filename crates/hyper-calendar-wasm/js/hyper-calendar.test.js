@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { before, describe, test } from "node:test";
 
 import { COLUMNS, GEOLOGIC_RANKS, HcError, HyperCalendar, METHODS, NATIVE, SENTINELS, UNITS, load } from "./hyper-calendar.js";
-import { FULL_WASM, TZIF_V2_EASTERN, moduleBytes, rawRows } from "./support.js";
+import { FULL_WASM, TZIF_V2_DENVER, TZIF_V2_EASTERN, moduleBytes, rawRows } from "./support.js";
 
 const HOW = "cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --features full";
 
@@ -1084,6 +1084,68 @@ describe("time zones", () => {
     refused(() => fresh.fixedFromUnixInZone(0, "Test/Junk"), "unknown");
     refused(() => fresh.loadZone("", TZIF_V2_EASTERN), "unknown");
     assert.throws(() => fresh.loadZone(name, /** @type {any} */ ("bytes")), TypeError);
+  });
+});
+
+describe("a zone's offset", () => {
+  test("the 2026 changes of Berlin, built in, and of Denver, loaded", async () => {
+    const fresh = await load(bytes);
+    fresh.loadZone("America/Denver", TZIF_V2_DENVER);
+    const line = (/** @type {string} */ zone, /** @type {number} */ unix) => fresh.zoneOffset(zone, unix);
+    // Europe/Berlin: 29 March and 25 October 2026 at 01:00 UTC.
+    assert.deepEqual(line("Europe/Berlin", 1_774_745_999), {
+      offsetSeconds: 3_600, dst: false, abbreviation: "CET",
+      nextTransition: 1_774_746_000, nextOffsetSeconds: 7_200, rules: "builtin",
+    });
+    assert.deepEqual(line("Europe/Berlin", 1_774_746_000), {
+      offsetSeconds: 7_200, dst: true, abbreviation: "CEST",
+      nextTransition: 1_792_890_000, nextOffsetSeconds: 3_600, rules: "builtin",
+    });
+    assert.equal(line("Europe/Berlin", 1_792_889_999).abbreviation, "CEST");
+    assert.equal(line("Europe/Berlin", 1_792_890_000).nextTransition, 1_806_195_600);
+    // America/Denver: 8 March 09:00 UTC and 1 November 08:00 UTC.
+    assert.deepEqual(line("America/Denver", 1_772_960_399), {
+      offsetSeconds: -25_200, dst: false, abbreviation: "MST",
+      nextTransition: 1_772_960_400, nextOffsetSeconds: -21_600, rules: "loaded",
+    });
+    assert.deepEqual(line("America/Denver", 1_772_960_400), {
+      offsetSeconds: -21_600, dst: true, abbreviation: "MDT",
+      nextTransition: 1_793_520_000, nextOffsetSeconds: -25_200, rules: "loaded",
+    });
+    assert.equal(line("America/Denver", 1_793_519_999).abbreviation, "MDT");
+    assert.equal(line("America/Denver", 1_793_520_000).nextTransition, 1_805_014_800);
+    // The day in the zone is the instant moved by the offset.
+    for (const unix of [1_772_960_399, 1_772_960_400, 1_793_519_999, 1_793_520_000]) {
+      const { offsetSeconds } = line("America/Denver", unix);
+      assert.equal(fresh.fixedFromUnixInZone(unix, "America/Denver"), fresh.fixedFromUnix(unix + offsetSeconds));
+    }
+    refused(() => hc.zoneOffset("America/Denver", 0), "unknown");
+  });
+
+  test("a zone without summer time has no next transition", () => {
+    assert.deepEqual(hc.zoneOffset("Asia/Kathmandu", 0n), {
+      offsetSeconds: 20_700, dst: false, abbreviation: null,
+      nextTransition: null, nextOffsetSeconds: null, rules: "builtin",
+    });
+    assert.equal(hc.zoneOffset("Asia/Tokyo", 0).abbreviation, "JST");
+    assert.equal(hc.zoneOffset("Asia/Tokyo", 0).nextTransition, null);
+    refused(() => hc.zoneOffset("Mars/Olympus", 0), "unknown");
+  });
+
+  test("a radio frame reads its summer time from the zone", async () => {
+    const fresh = await load(bytes);
+    fresh.loadZone("America/Denver", TZIF_V2_DENVER);
+    // The frame announcing 03:00 CEST on 29 March 2026 carries A1.
+    assert.equal(
+      fresh.radioEncode("dcf77", 1_774_746_000, { summer: "zone:Europe/Berlin" }),
+      fresh.radioEncode("dcf77", 1_774_746_000, { summer: "cest", zoneChange: true }),
+    );
+    // Bit 57 from 00:00 UTC on 8 March 2026, the day of the change.
+    assert.equal(
+      fresh.radioEncode("wwvb-am", 1_772_928_000, { summer: "zone:America/Denver" }),
+      fresh.radioEncode("wwvb-am", 1_772_928_000, { summer: "begins-today" }),
+    );
+    refused(() => fresh.radioEncode("dcf77", 1_774_746_000, { summer: "zone:Europe/London" }), "out-of-range");
   });
 });
 

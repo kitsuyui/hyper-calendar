@@ -210,7 +210,11 @@ of November at 2 AM, `011011` with the state's first bit 1.
   - *Correction of a WWVB phase frame by its Hamming code*: a frame whose
     parity does not match is refused, not repaired.
   - *The station's own schedule for an announcement*: each `encode` writes
-    the notices it is given, as a transmitter's operator sets them.
+    the notices it is given, as a transmitter's operator sets them. The
+    one exception is summer time, which follows from a zone's rules:
+    `dcf77::summer_time` gives Z1 Z2 and A1, and `wwvb::DstState::of_day`
+    bits 57 and 58, from a `hc_tz::TimeZone`, below. WWVB's leap second
+    and the phase code's `dst_next` are still the caller's.
   - *The analogue side*: pulse widths, carrier phase and the detection of
     a second's start are the receiver's.
   - *DCF77's omitted leap second.* PTB calls one "negligible" and adds
@@ -218,6 +222,40 @@ of November at 2 AM, `011011` with the state's first bit 1.
     not say how the minute's marks would be sent, so a frame of 58 marks
     is refused as a length.
   - *MSF*, the British station, whose specification was not read.
+
+### Summer time from a zone's rules
+
+Both stations' summer-time bits are fixed by the change of a civil zone,
+so they can be read from that zone's rules rather than given:
+
+- **DCF77.** Z1 Z2 name the zone of the minute the frame announces: CET
+  where the rules give UTC+1 and standard time, CEST where UTC+2 and
+  summer time. A1: "Before the transition from CET to CEST or back takes
+  place, A1 is emitted for one hour in state one: before change-over from
+  CET to CEST (CEST to CET) from 01:00:16 h CET (02:00:16 h CEST) until
+  01:59:16 h CET (02:59:16 h CEST)" [ptb-dcf77-timecode]. The frames sent
+  in those sixty minutes announce the minute after the hour before the
+  change through the change itself, so A1 is set in the frame for a minute
+  *m* when the rules change between CET and CEST at an instant from *m* to
+  an hour after it, exclusive. For 29 March 2026, when Europe/Berlin
+  changes at 01:00 UTC, the frames for 00:01 to 01:00 UTC carry A1, the
+  last of them naming 03:00 CEST.
+- **WWVB.** "At 0000 UTC on the day ST changes to DST, bit 57 is set to a
+  one, and bit 58 is set to a one at 0000 UTC the following day. When DST
+  ends, bit 57 is set to zero at 0000 UTC the day of the change, and bit
+  58 goes low 24 hours later" [nist-sp250-67, chapter 2 §2]. Read against
+  a zone's rules, bit 57 during a UTC day is whether the zone keeps
+  summer time at 24:00 UTC ending the day, and bit 58 whether it does at
+  00:00 UTC beginning it. That is the station's reading for any zone whose
+  change falls within the UTC day of its date, as the United States'
+  02:00 local change does in every zone of the contiguous states; the
+  station is near Fort Collins, America/Denver. On 8 March 2026 Denver
+  changes at 09:00 UTC: the day is `begins-today` from 00:00 UTC, and
+  `in-effect` from 00:00 UTC on the 9th.
+
+The WebAssembly module and the C library read the zone by name through the
+same selection as their day in a zone — a loaded TZif file, then the
+built-in table — so a frame and a page's day come from one set of rules.
 
 ## Accuracy
 
@@ -236,6 +274,7 @@ round trip of every field.
 | The minute count of 21:30 UTC on 28 July 2016, 8 717 610 | `the_minute_count_of_28_july_2016` | exact |
 | Tables 4 and 8 read in both directions; their words distinct | `table_4_round_trips`, `table_8_round_trips` | all 12 and 56 |
 | Every code round-trips at three or five minutes of every day, 2000–2099 | `every_code_round_trips` | exact; every day in a release build, in a debug one every 83rd to 97th and every month's first and last |
+| DCF77's A1 and zone around Europe/Berlin's two changes of 2026, and WWVB's bits 57 and 58 around Denver's; the stations' examples from Berlin's and New York's rules | `a1_is_set_for_the_hour_before_a_change`, `the_summer_time_bits_follow_the_day_of_a_change`, `a_zones_rules_give_the_frames_the_caller_would` | exact |
 | Parity, BCD, marker and length errors are refused | `broken_frames_are_refused` | each refused |
 | Field errors: a reading off the minute, a UT1 − UTC past ±0.9 s, a stop notice, call sign, minute count or `dst_next` the code cannot carry, a DCF77 weekday of 0, 60 marks without A2, and a 1 at WWVB's phase bits 59 and 60 | `field_refusals` in `jjy`, `dcf77` and `wwvb` | each refused |
 
@@ -247,7 +286,7 @@ round trip of every field.
 | [ptb-dcf77-timecode] | DCF77's layout, parity, A1, A2, Z1 Z2, the leap second, and the omitted one left out | Yes, ptb.de, the page "DCF77 time code" and its figure, 2026-09-27 |
 | [ptb-dcf77-carrier] | DCF77's carrier, 77.5 kHz | Yes, ptb.de, the page "DCF77 carrier frequency", 2026-09-27 |
 | [nist-sp432-2002] | WWVB's amplitude code: the bits, UT1, the leap year and leap second bits, summer time, the 2001 example | Yes, the PDF, 2026-09-27 |
-| [nist-sp250-67] | The same, with the leap year bit's timing | Yes, the PDF, chapter 2 §2, 2026-09-27 |
+| [nist-sp250-67] | The same, with the leap year bit's timing, and bits 57 and 58 at 00:00 UTC on the day of a change and the day after | Yes, the PDF, chapter 2 §2, 2026-09-27 |
 | [nist-wwvb-enhanced-2013] | The phase code: layout, minute count, parity, Tables 3, 4, 8 and 10, leap seconds in both codes | Yes, revision 1.01, the PDF, 2026-09-27 |
 
 NIST's page "WWVB Time Code Format" holds only SP 432's figure. The

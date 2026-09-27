@@ -38,12 +38,21 @@
 //! Bits 1–14 are passed through as they came: PTB publishes no layout for
 //! them, and says it does not answer for their content.
 //!
+//! [`summer_time`] reads the zone and A1 from a zone's rules instead of
+//! the caller: Z1 Z2 from the offset and flag at the minute announced,
+//! and A1 from the zone's transitions, PTB's "Before the transition from
+//! CET to CEST or back takes place, A1 is emitted for one hour in state
+//! one", from 01:00:16 CET (02:00:16 CEST) until 01:59:16 CET (02:59:16
+//! CEST) — the frames sent during the hour before the change, which
+//! announce the minutes after its first through the change itself.
+//!
 //! An omitted leap second is not carried. PTB calls one negligible and
 //! says "the technical facilities on the transmitter allow it", but gives
 //! no frame for it, so 58 marks are refused as a length.
 
 use hc_calendar::{CivilDateTime, Weekday, gregorian};
 use hc_core::UnixTime;
+use hc_tz::TimeZone;
 
 use super::{
     Frame, FrameError, FrameResult, minute_reading, odd_ones, read_bcd, split_year, unix_of,
@@ -78,6 +87,45 @@ impl Zone {
             Self::Cest => 2,
         }
     }
+
+    /// The zone a time zone's rules keep at an instant: CET where they
+    /// give UTC+1 and standard time, CEST where they give UTC+2 and summer
+    /// time, and `None` for anything else, which Z1 Z2 cannot say.
+    #[must_use]
+    pub fn of(zone: &dyn TimeZone, instant: UnixTime) -> Option<Self> {
+        match (zone.offset_at(instant).seconds(), zone.is_dst_at(instant)) {
+            (3_600, false) => Some(Self::Cet),
+            (7_200, true) => Some(Self::Cest),
+            _ => None,
+        }
+    }
+}
+
+/// Z1 Z2 and A1 of the frame that announces the minute beginning at
+/// `minute`, from a zone's rules: the zone [`Zone::of`] gives at that
+/// minute, and A1 set when the rules change between CET and CEST at an
+/// instant from that minute to an hour after it, exclusive — the frames
+/// PTB sends during the hour before a change.
+///
+/// Europe/Berlin is the zone of German legal time, which the station
+/// sends. `None` when the zone keeps, at the minute or either side of a
+/// change within the hour, a time Z1 Z2 cannot say.
+#[must_use]
+pub fn summer_time(zone: &dyn TimeZone, minute: UnixTime) -> Option<(Zone, bool)> {
+    let current = Zone::of(zone, minute)?;
+    let end = minute.seconds().saturating_add(3_600);
+    let mut at = UnixTime::from_seconds(minute.seconds().saturating_sub(1));
+    while let Some(next) = zone.next_transition(at) {
+        if next.seconds() >= end {
+            break;
+        }
+        let before = Zone::of(zone, UnixTime::from_seconds(next.seconds() - 1))?;
+        if Zone::of(zone, next)? != before {
+            return Some((current, true));
+        }
+        at = next;
+    }
+    Some((current, false))
 }
 
 /// A decoded DCF77 frame.
@@ -314,6 +362,33 @@ mod tests {
             gregorian::to_fixed(year, month, day).expect("exists"),
             CivilTime::hms(hour, minute, 0).expect("valid"),
         )
+    }
+
+    /// 2026's changes of Europe/Berlin, on 29 March and 25 October at
+    /// 01:00 UTC. The frame announcing 00:01 UTC, sent from 01:00:00 CET
+    /// (02:00:00 CEST in October), is the first with A1; the one announcing
+    /// the change itself, sent from 01:59:00 CET (02:59:00 CEST), the last.
+    #[test]
+    fn a1_is_set_for_the_hour_before_a_change() {
+        let berlin = hc_tz::builtin::zone("Europe/Berlin").expect("built in");
+        let at = |seconds: i64| summer_time(&berlin, UnixTime::from_seconds(seconds));
+        for (change, before, after) in [
+            (1_774_746_000, Zone::Cet, Zone::Cest),
+            (1_792_890_000, Zone::Cest, Zone::Cet),
+        ] {
+            assert_eq!(at(change - 3_600), Some((before, false)));
+            assert_eq!(at(change - 3_540), Some((before, true)));
+            assert_eq!(at(change - 60), Some((before, true)));
+            assert_eq!(at(change), Some((after, true)));
+            assert_eq!(at(change + 60), Some((after, false)));
+        }
+        // A zone Z1 Z2 cannot say.
+        let london = hc_tz::builtin::zone("Europe/London").expect("built in");
+        assert_eq!(
+            summer_time(&london, UnixTime::from_seconds(1_774_746_000)),
+            None
+        );
+        assert_eq!(Zone::of(&london, UnixTime::from_seconds(0)), None);
     }
 
     fn marks(text: &str) -> [bool; 59] {

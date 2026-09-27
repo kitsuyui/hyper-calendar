@@ -228,6 +228,7 @@ test("the pañcāṅga, the tables and the lectionary read the README's columns 
   assert.deepEqual([...COLUMNS.holidayTables], columnsAfter("### The tables"));
   assert.deepEqual([...COLUMNS.lectionary], columnsAfter("### The liturgical year"));
   assert.deepEqual([...COLUMNS.zones], columnsAfter("### Where each zone is"));
+  assert.deepEqual([...COLUMNS.zoneOffset], columnsAfter("### A zone's offset"));
 });
 
 test("the Earth's rotation and the Sun's hours read the README's columns in order", () => {

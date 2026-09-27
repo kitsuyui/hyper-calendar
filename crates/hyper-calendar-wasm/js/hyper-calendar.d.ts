@@ -135,9 +135,15 @@ export interface RadioMinute {
 export interface RadioEncodeOptions {
   /** 1 for a second inserted, −1 for one omitted (`jjy` and `wwvb-pm` only), 0 for none. */
   leap?: -1 | 0 | 1;
-  /** DCF77's zone, required for `dcf77`; WWVB's summer-time state, required for both WWVB codes; absent for `jjy`. */
-  summer?: RadioSummer;
-  /** DCF77's A1. */
+  /**
+   * DCF77's zone, required for `dcf77`; WWVB's summer-time state, required for
+   * both WWVB codes; absent for `jjy`. Or `zone:` and a zone's name,
+   * `zone:Europe/Berlin` or `zone:America/Denver`, in a module built with `tz`
+   * too, to read the state, and DCF77's A1, from the rules `fixedFromUnixInZone`
+   * reads for that name.
+   */
+  summer?: RadioSummer | `zone:${string}`;
+  /** DCF77's A1; ignored when `summer` names a zone. */
   zoneChange?: boolean;
   /** WWVB's amplitude UT1 − UTC in tenths, −9 to 9. */
   dut1Tenths?: number;
@@ -348,6 +354,7 @@ export const COLUMNS: {
   readonly holidayTables: ReadonlyArray<string>;
   readonly lectionary: ReadonlyArray<string>;
   readonly zones: ReadonlyArray<string>;
+  readonly zoneOffset: ReadonlyArray<string>;
   readonly value: ReadonlyArray<string>;
   readonly solarTime: ReadonlyArray<string>;
   readonly solarEvent: ReadonlyArray<string>;
@@ -1192,6 +1199,25 @@ export interface HolidayTable {
   shortName: string | null;
 }
 
+/** Which rules answered for a zone's name. */
+export type ZoneRules = "builtin" | "loaded";
+
+/** The one line of `hc_zone_offset`. */
+export interface ZoneOffset {
+  /** Seconds east of UTC: 3600 for CET, −21600 for MDT. */
+  offsetSeconds: number;
+  /** Whether the rules call the time daylight saving or summer time. */
+  dst: boolean;
+  /** The rules' abbreviation, `CET` or `MDT`; `null` where they give a numeric one such as `+0545`. */
+  abbreviation: string | null;
+  /** The POSIX second of the next change of offset, flag or abbreviation; `null` where the rules have none. */
+  nextTransition: number | null;
+  /** The offset after it; `null` with it. */
+  nextOffsetSeconds: number | null;
+  /** The built-in POSIX footers, or a TZif file given to `loadZone`. */
+  rules: ZoneRules;
+}
+
 /** One line of `hc_zones` and `hc_zone_location`. */
 export interface ZoneLocation {
   /** The name of the row that answered: `Asia/Kolkata` for `Asia/Calcutta`. */
@@ -1751,6 +1777,8 @@ export class HyperCalendar {
   zones(locale?: string): ZoneLocation[];
   /** `hc_zone_location`: a zone or a link; a name that places nothing, such as `UTC`, is `unknown`. */
   zoneLocation(zone: string, locale?: string): ZoneLocation;
+  /** `hc_zone_offset`: from the rules `fixedFromUnixInZone` reads; a zone nobody knows is `unknown`. */
+  zoneOffset(zone: string, unixSeconds: number | bigint): ZoneOffset;
 
   /** `hc_sky_at`; an instant outside −1000 through 3000 is `out-of-range`. */
   skyAt(unixSeconds: number | bigint): Sky;

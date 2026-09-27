@@ -35,7 +35,7 @@ use hc_core::UnixTime;
 use crate::error::{TzError, TzResult};
 use crate::offset::{MAX_OFFSET_SECONDS, UtcOffset};
 use crate::posix::PosixTz;
-use crate::zone::{LocalResolution, TimeZone, resolve_local_by_probing};
+use crate::zone::{LocalResolution, TimeZone, changes_at, resolve_local_by_probing};
 
 /// The four bytes every TZif file starts with.
 const MAGIC: [u8; 4] = *b"TZif";
@@ -648,6 +648,32 @@ impl TimeZone for TzifTimeZone<'_> {
         }
     }
 
+    fn next_transition(&self, utc: UnixTime) -> Option<UnixTime> {
+        let seconds = utc.seconds();
+        let count = self.data.transition_count();
+        // The recorded transitions after the instant, in order, passing
+        // over any that changes nothing; the last of them hands over to the
+        // footer, whose own change it can be.
+        let first = self
+            .data
+            .transition_index_at(seconds)
+            .map_or(0, |index| index + 1);
+        for index in first..count {
+            let time = self.data.transition_time(index)?;
+            if time > seconds && changes_at(self, time) {
+                return Some(UnixTime::from_seconds(time));
+            }
+        }
+        // RFC 8536 §3.3: the footer governs from the last transition on,
+        // so its changes after that instant are the zone's.
+        let footer = self.footer.as_ref()?;
+        let from = match count {
+            0 => seconds,
+            _ => seconds.max(self.data.transition_time(count - 1)?),
+        };
+        footer.next_transition(UnixTime::from_seconds(from))
+    }
+
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {
         resolve_local_by_probing(local, |instant| self.offset_at(instant))
     }
@@ -720,6 +746,35 @@ mod tests {
             Rd(rd_from_ymd(year, month, day)),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
+    }
+
+    #[test]
+    fn the_next_transition_walks_the_record_and_then_the_footer() {
+        let zone = TzifTimeZone::parse("Test/Eastern", TZIF_V2_EASTERN).unwrap();
+        let recorded = [1_710_054_000, 1_730_613_600, 1_741_503_600, 1_762_063_200];
+        let next = |seconds: i64| {
+            zone.next_transition(UnixTime::from_seconds(seconds))
+                .map(UnixTime::seconds)
+        };
+        // Before the first record the zone keeps its first standard type.
+        assert_eq!(next(0), Some(recorded[0]));
+        for pair in recorded.windows(2) {
+            assert_eq!(next(pair[0] - 1), Some(pair[0]));
+            assert_eq!(next(pair[0]), Some(pair[1]));
+        }
+        // After the last record the footer answers: 2026-03-08 07:00 UTC.
+        assert_eq!(next(recorded[3]), Some(1_772_953_200));
+        assert_eq!(next(1_772_953_200 - 1), Some(1_772_953_200));
+        // Without a footer, the last type persists and nothing follows it.
+        let v1 = TzifTimeZone::parse("Test/Eastern", TZIF_V1_EASTERN).unwrap();
+        assert_eq!(
+            v1.next_transition(UnixTime::from_seconds(recorded[2])),
+            Some(UnixTime::from_seconds(recorded[3]))
+        );
+        assert_eq!(
+            v1.next_transition(UnixTime::from_seconds(recorded[3])),
+            None
+        );
     }
 
     #[test]

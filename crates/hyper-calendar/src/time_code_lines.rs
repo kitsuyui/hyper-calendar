@@ -24,6 +24,8 @@ use alloc::string::String;
 use core::fmt::Write;
 
 use hc_calendar::{CivilDateTime, CivilTime, Rd, gregorian};
+#[cfg(feature = "tz")]
+use hc_core::UnixTime;
 use hc_core::ccsds::{CdsTime, CucTime, EpochLevel, Octets, Preamble};
 use hc_core::dotnet::{DateTimeKind, DotnetDateTime};
 use hc_core::unix::{self, LeapPolicy, UtcInstant};
@@ -31,6 +33,10 @@ use hc_core::{Instant, Tai, TimeError};
 use hc_format::ValueError;
 use hc_format::ccsds::{self, AsciiPrecision, AsciiTime, AsciiVariation, CcsTime, CcsdsCode};
 use hc_format::east_african_hours::{self, Half, HourReading, Reckoning};
+#[cfg(feature = "tz")]
+use hc_format::hc_tz::TimeZone;
+#[cfg(feature = "tz")]
+use hc_format::radio::dcf77::summer_time;
 use hc_format::radio::dcf77::{Dcf77Frame, Zone};
 use hc_format::radio::jjy::{JjyContent, JjyFrame};
 use hc_format::radio::wwvb::{AmFrame, DstNext, DstState, PmFrame};
@@ -626,6 +632,128 @@ pub fn radio_encode_line(
     dut1_tenths: i32,
     dst_next: u32,
 ) -> Answer<String> {
+    encode_radio(
+        code,
+        unix_seconds,
+        leap,
+        Summer::Named {
+            summer,
+            zone_change,
+        },
+        dut1_tenths,
+        dst_next,
+    )
+}
+
+/// The line of `hc_radio_encode` with the summer-time state read from a
+/// zone's rules instead of the caller, in a build with the `tz` feature: for `dcf77` the zone and A1 from
+/// [`dcf77::summer_time`](hc_format::radio::dcf77::summer_time), for both
+/// WWVB codes the state of the minute's UTC day from
+/// [`DstState::of_day`]. The other arguments are
+/// [`radio_encode_line`]'s; the phase code's `dst_next` stays the caller's
+/// and must be one Table 8 lists for the direction the rules give.
+///
+/// # Errors
+///
+/// As [`radio_encode_line`]'s, and [`Refusal::Unknown`] for `jjy`, which
+/// has no summer time, and [`Refusal::OutOfRange`] for a `dcf77` minute at
+/// which the zone keeps neither CET nor CEST, or changes to another within
+/// the hour.
+#[cfg(feature = "tz")]
+pub fn radio_encode_line_by_zone(
+    code: &str,
+    unix_seconds: i64,
+    leap: i32,
+    zone: &dyn TimeZone,
+    dut1_tenths: i32,
+    dst_next: u32,
+) -> Answer<String> {
+    encode_radio(
+        code,
+        unix_seconds,
+        leap,
+        Summer::Rules(zone),
+        dut1_tenths,
+        dst_next,
+    )
+}
+
+/// What `hc_radio_encode`'s `summer` begins with to have the state read
+/// from a zone's rules: `zone:Europe/Berlin`.
+pub const RADIO_SUMMER_ZONE: &str = "zone:";
+
+/// The zone a `summer` argument names after [`RADIO_SUMMER_ZONE`], in any
+/// case, trimmed; `None` for a state named outright.
+#[must_use]
+pub fn radio_summer_zone(summer: &str) -> Option<&str> {
+    let summer = summer.trim();
+    // `get` rather than indexing: no slice can panic here.
+    let prefix = summer.get(..RADIO_SUMMER_ZONE.len())?;
+    let zone = summer.get(RADIO_SUMMER_ZONE.len()..)?;
+    prefix
+        .eq_ignore_ascii_case(RADIO_SUMMER_ZONE)
+        .then(|| zone.trim())
+}
+
+/// Where a radio frame's summer-time state comes from.
+#[derive(Clone, Copy)]
+enum Summer<'a> {
+    /// The caller's: `summer` named, and DCF77's A1.
+    Named { summer: &'a str, zone_change: bool },
+    /// A zone's rules.
+    #[cfg(feature = "tz")]
+    Rules(&'a dyn TimeZone),
+}
+
+impl Summer<'_> {
+    /// DCF77's zone and A1 for the minute beginning at `unix_seconds`.
+    fn dcf77(self, unix_seconds: i64) -> Answer<(Zone, bool)> {
+        // Only a zone's rules read the minute.
+        #[cfg(not(feature = "tz"))]
+        let _ = unix_seconds;
+        match self {
+            Self::Named {
+                summer,
+                zone_change,
+            } => {
+                if names(summer, "cet") {
+                    Ok((Zone::Cet, zone_change))
+                } else if names(summer, "cest") {
+                    Ok((Zone::Cest, zone_change))
+                } else {
+                    Err(Refusal::Unknown)
+                }
+            }
+            #[cfg(feature = "tz")]
+            Self::Rules(zone) => {
+                summer_time(zone, UnixTime::from_seconds(unix_seconds)).ok_or(Refusal::OutOfRange)
+            }
+        }
+    }
+
+    /// WWVB's state for the minute beginning at `unix_seconds`.
+    fn wwvb(self, unix_seconds: i64) -> Answer<DstState> {
+        // Only a zone's rules read the minute.
+        #[cfg(not(feature = "tz"))]
+        let _ = unix_seconds;
+        match self {
+            Self::Named { summer, .. } => dst_state(summer),
+            #[cfg(feature = "tz")]
+            Self::Rules(zone) => Ok(DstState::of_day(zone, UnixTime::from_seconds(unix_seconds))),
+        }
+    }
+}
+
+/// [`radio_encode_line`] and [`radio_encode_line_by_zone`], from either
+/// source of the summer-time state.
+fn encode_radio(
+    code: &str,
+    unix_seconds: i64,
+    leap: i32,
+    summer: Summer<'_>,
+    dut1_tenths: i32,
+    dst_next: u32,
+) -> Answer<String> {
     let code = radio_code(code)?;
     if !RADIO_UNIX_RANGE.contains(&unix_seconds) || unix_seconds.rem_euclid(60) != 0 {
         return Err(Refusal::OutOfRange);
@@ -671,20 +799,14 @@ pub fn radio_encode_line(
     };
     match code {
         RadioCode::Jjy => {
-            if !summer.trim().is_empty() {
+            if !matches!(summer, Summer::Named { summer, .. } if summer.trim().is_empty()) {
                 return Err(Refusal::Unknown);
             }
             let frame = JjyFrame::for_minute(minute_at(9)?, leap).map_err(range)?;
             push_symbols(frame.encode().map_err(range)?.as_slice());
         }
         RadioCode::Dcf77 => {
-            let zone = if names(summer, "cet") {
-                Zone::Cet
-            } else if names(summer, "cest") {
-                Zone::Cest
-            } else {
-                return Err(Refusal::Unknown);
-            };
+            let (zone, zone_change) = summer.dcf77(unix_seconds)?;
             let frame = Dcf77Frame::for_minute(
                 minute_at(zone.offset_hours())?,
                 zone,
@@ -695,14 +817,14 @@ pub fn radio_encode_line(
             push_symbols(&bits(frame.encode().map_err(range)?.as_slice()));
         }
         RadioCode::WwvbAm => {
-            let dst = dst_state(summer)?;
+            let dst = summer.wwvb(unix_seconds)?;
             let tenths = i8::try_from(dut1_tenths).map_err(|_| Refusal::OutOfRange)?;
             let frame =
                 AmFrame::for_minute(minute_at(0)?, tenths, dst, signless(leap)?).map_err(range)?;
             push_symbols(frame.encode().map_err(range)?.as_slice());
         }
         RadioCode::WwvbPm => {
-            let dst = dst_state(summer)?;
+            let dst = summer.wwvb(unix_seconds)?;
             let word = u8::try_from(dst_next)
                 .ok()
                 .filter(|word| *word < 64)
@@ -1158,6 +1280,79 @@ mod tests {
     /// `DateTime.MaxValue`, 23:59:59.9999999 on 9999-12-31, is 3 155 378 975
     /// 999 999 999 ticks (`ms-datetime-maxvalue`), and 1970-01-01 is
     /// 621 355 968 000 000 000.
+    /// The stations' examples again with the summer-time state read from
+    /// the zones' rules — Europe/Berlin's for DCF77, America/New_York's,
+    /// on the United States' rule as Denver, for WWVB — and the frames
+    /// announcing 2026's European changes, which carry A1.
+    #[cfg(feature = "tz")]
+    #[test]
+    fn a_zones_rules_give_the_frames_the_caller_would() {
+        let berlin = hc_format::hc_tz::builtin::zone("Europe/Berlin").expect("built in");
+        let new_york = hc_format::hc_tz::builtin::zone("America/New_York").expect("built in");
+        let named = |code, unix, summer, change, dut1, next| {
+            radio_encode_line(code, unix, 0, summer, change, dut1, next).expect("a minute")
+        };
+        let ruled = |code, unix, zone: &dyn TimeZone, dut1, next| {
+            radio_encode_line_by_zone(code, unix, 0, zone, dut1, next).expect("a minute")
+        };
+        assert_eq!(
+            ruled("dcf77", 1_790_512_200, &berlin, 0, 0).trim_end(),
+            DCF77
+        );
+        assert_eq!(
+            ruled("wwvb-am", 1_341_423_000, &new_york, 4, 0).trim_end(),
+            WWVB_AM
+        );
+        // Table 10's frame but for its notice and reserved bits, which
+        // `encode` leaves 0.
+        assert_eq!(
+            ruled("wwvb-pm", 1_341_423_000, &new_york, 0, 27),
+            named("wwvb-pm", 1_341_423_000, "in-effect", false, 0, 27)
+        );
+        for (change, before, after) in [
+            (1_774_746_000, "cet", "cest"),
+            (1_792_890_000, "cest", "cet"),
+        ] {
+            for (minute, summer, a1) in [
+                (change - 3_600, before, false),
+                (change - 3_540, before, true),
+                (change, after, true),
+                (change + 60, after, false),
+            ] {
+                assert_eq!(
+                    ruled("dcf77", minute, &berlin, 0, 0),
+                    named("dcf77", minute, summer, a1, 0, 0),
+                    "{minute}"
+                );
+            }
+        }
+        // 2026-03-08, the United States' change: bit 57 from 00:00 UTC.
+        assert_eq!(
+            ruled("wwvb-am", 1_772_928_000, &new_york, 0, 0),
+            named("wwvb-am", 1_772_928_000, "begins-today", false, 0, 0)
+        );
+        assert_eq!(
+            radio_summer_zone(" Zone: Europe/Berlin"),
+            Some("Europe/Berlin")
+        );
+        assert_eq!(radio_summer_zone("cest"), None);
+        assert_eq!(radio_summer_zone("zon"), None);
+        let london = hc_format::hc_tz::builtin::zone("Europe/London").expect("built in");
+        assert_eq!(
+            radio_encode_line_by_zone("dcf77", 1_790_512_200, 0, &london, 0, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            radio_encode_line_by_zone("jjy", 1_080_807_900, 0, &berlin, 0, 0),
+            Err(Refusal::Unknown)
+        );
+        // Summer time in effect in July; 27 is a word for leaving it.
+        assert_eq!(
+            radio_encode_line_by_zone("wwvb-pm", 1_341_423_000, 0, &new_york, 0, 0),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
     #[test]
     fn dotnet_ticks_are_microsofts() {
         assert_eq!(dotnet_ticks_from_unix(0, 0), Ok(621_355_968_000_000_000));

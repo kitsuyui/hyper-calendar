@@ -28,8 +28,10 @@ renders into its own buffer. `String`-returning conveniences sit behind the
   `docs/systems/ccsds-time-codes.md`.
 * **`radio`** — a minute's frame of the JJY, DCF77 and WWVB time codes,
   WWVB's phase code included, decoded with its parity checked and encoded,
-  and read as the JST, CET or CEST, or UTC minute it names. See
-  `docs/systems/radio-time-codes.md`.
+  and read as the JST, CET or CEST, or UTC minute it names; DCF77's zone
+  and A1 (`dcf77::summer_time`) and WWVB's summer-time bits
+  (`wwvb::DstState::of_day`) can be read from a `hc_tz::TimeZone`'s rules
+  instead of the caller. See `docs/systems/radio-time-codes.md`.
 * **`east_african_hours`** — the Ethiopian and Swahili hours, the civil
   clock read six hours on over a day half and a night half, as two named
   reckonings. See `docs/systems/hours-of-the-day.md`.
