@@ -770,7 +770,8 @@ weeks.
   [crc1955]), sunrise, midday, afternoon (seven tenths of the daylight),
   evening (an hour after sunset), midnight —
   the part of the day a festival's tithi must hold, which `hc-holiday`
-  uses and this document does not cover.
+  uses and this document does not cover; the festivals are listed in the
+  [index](README.md) as a system that needs a document of its own.
 - **`nakshatra`**: the twenty-seven as constants `ASHVINI` to `REVATI`,
   `nakshatra_at` and `nakshatra_span` for the Moon, `solar_nakshatra_at`,
   `solar_nakshatra_ingress_after` and `solar_nakshatra_span` for the Sun,

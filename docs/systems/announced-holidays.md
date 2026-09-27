@@ -121,16 +121,16 @@ and the KCNA wording of 2026 was not re-read to confirm it.
 **The weekends.** Six are from a labour law read: Liberia's Decent Work
 Act, Togo's and Gabon's Codes du travail ("en principe le dimanche",
 article 198 of 2021 in Togo and 220 in Gabon [gabon-code-travail-2021]),
-North Korea's Socialist Labour Law, and Niger's décret 2017-682, whose
+North Korea's Socialist Labour Law, Niger's décret 2017-682, whose
 article 135 requires the Saturday and Sunday off from May to September and
 leaves the rest of the year to the arrangement an employer chooses
-[niger-decret-2017-682]. Guinea-Bissau's Sunday is article 123 of the Lei
+[niger-decret-2017-682], and South Sudan's Labour Act, below. Guinea-Bissau's Sunday is article 123 of the Lei
 Geral do Trabalho, read in a summary [guinea-bissau-lgt-dcjri].
 Eswatini's is the Ministry of Home Affairs' statement, as the press reports
 it, that Saturday is "a normal working day". Fiji's and The Gambia's are
 the days their instruments move a holiday off. Sudan's is from the press.
 Sierra Leone's is inferred from notices that moved Saturday holidays.
-South Sudan's is its Labour Act's, though no section of it names the days
+South Sudan's Labour Act names no days in any section
 [south-sudan-labour-act-2017]: section 59 gives "a weekend holiday" "on
 such day as is customary", section 2 defines calendar days as "regular
 days including Saturdays and Sundays", and the model contract printed as

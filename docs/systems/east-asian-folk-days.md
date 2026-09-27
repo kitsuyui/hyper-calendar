@@ -142,8 +142,10 @@ sets out three resolutions that put the tenth month of 2033 on 23 October
 or on 22 November, and agree on the seventh [nao-rekiwiki-2033]; so 亥の子
 and 十日夜 of 2033 are gaps, not guesses, and 旧盆 is answered. The
 Observatory lists 2147–48 as the next year the rule leaves open, without
-the months, which is why nothing after 2146 is answered. The Gregorian
-tables start in 1873, the first Gregorian year in Japan; when each custom
+the months, which is why nothing after 2146 is answered: a lunar table
+reports a year before 1844 or after 2146 as a gap, as it does 2033. The
+Gregorian tables start in 1873, the first Gregorian year in Japan, and
+have no day before it, since the reckoning did not exist; when each custom
 moved to its Gregorian date is in no source read.
 
 In `hc-almanac`:
@@ -254,8 +256,9 @@ almanacs, and no printed almanac was read.
 `tori_no_ichi_is_on_the_rooster_days_of_november`,
 `hatsuuma_is_the_first_horse_day_of_february_or_of_the_second_lunar_month`,
 `inoko_is_the_first_boar_day_of_the_tenth_lunar_month_or_of_november`,
-`tokanya_is_the_tenth_of_the_tenth_lunar_month_or_ten_november` and
-`the_2033_problem_leaves_the_lunar_autumn_days_open`.
+`tokanya_is_the_tenth_of_the_tenth_lunar_month_or_ten_november`,
+`the_2033_problem_leaves_the_lunar_autumn_days_open` and
+`the_folk_day_tables_answer_their_first_and_last_years`.
 
 `crates/hc-almanac/src/lucky_direction.rs`
 (`the_direction_follows_the_last_digit_of_the_year`,

@@ -37,7 +37,7 @@
 //! | Jain | the amānta Hindu lunisolar calendar at the national almanac's sunrise; Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last days | **approximate** — Jain almanacs differ from the national one by a day in some years, as the source says |
 //! | Shinto | fixed Gregorian dates, and 節分 as the day before 立春 at the Japanese meridian | exact; a shrine's own festival dates are not carried |
 //! | 五節句 | fixed Gregorian dates, from 1873 | exact |
-//! | お盆, 酉の市, 初午, 亥の子, 十日夜 | fixed Gregorian dates and the 酉, 午 and 亥 days of a Gregorian month from 1873, or days of the Japanese 旧暦 1844–2146, one table per reckoning | exact to the astronomical model; the 旧暦's tenth month of 2033 is a reported gap |
+//! | お盆, 酉の市, 初午, 亥の子, 十日夜 | fixed Gregorian dates and the 酉, 午 and 亥 days of a Gregorian month from 1873, or days of the Japanese 旧暦 1844–2146, one table per reckoning | exact to the astronomical model; the 旧暦's tenth month of 2033, and every year outside 1844–2146, is a reported gap |
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
@@ -72,8 +72,8 @@ use crate::computus::offsets::{
 use crate::hindu::{
     AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI,
     GURU_NANAK_JAYANTI, GURU_PURNIMA, HOLI, HOLIKA_DAHAN, JANMASHTAMI, MAHA_SHIVARATRI,
-    MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI,
-    SAMVATSARI, UGADI, VIJAYA_DASHAMI,
+    MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI, NARAKA_CHATURDASHI, NAVARATRI,
+    RAKSHA_BANDHAN, RAMA_NAVAMI, SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -857,6 +857,7 @@ static HINDU_RULES: &[HolidayRule] = &[
     feast("Navaratri", "शारदीय नवरात्रि", NAVARATRI),
     feast("Durga Ashtami", "दुर्गा अष्टमी", DURGA_ASHTAMI),
     feast("Vijaya Dashami", "विजयादशमी", VIJAYA_DASHAMI),
+    feast("Naraka Chaturdashi", "नरक चतुर्दशी", NARAKA_CHATURDASHI),
     feast("Diwali", "दीपावली", DIWALI),
     feast("Guru Nanak Jayanti", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
 ];
@@ -887,8 +888,14 @@ pub static HINDU: RuleSet = RuleSet {
     sources: "The Rashtriya Panchang, Positional Astronomy Centre, India \
               Meteorological Department, Śaka 1945 and 1946 (2023–2025), \
               English editions: the \"Principal Festivals and Anniversaries\" \
-              list, which every rule here reproduces, and the prevalence \
-              conventions as `hindu` states them",
+              list, which every rule here but Naraka Chaturdashi reproduces, and \
+              the prevalence conventions as `hindu` states them; Naraka \
+              Chaturdashi, the Tamil Deepavali, by the Calendar Reform \
+              Committee's rule (`crc1955`), which gives the Naraka Chaturdasi \
+              of the Department of Personnel and Training's restricted holidays \
+              for 2026 and 2027, 8 November 2026 and 28 October 2027 \
+              (`dopt-holidays-2025-2027`), and the Deepavali of the governments \
+              `hindu::NARAKA_CHATURDASHI` names",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1684,16 +1691,21 @@ fn kyureki_month(year: i64, month: u8) -> Option<(Rd, Rd)> {
     Some((first, Rd(first.0 + i64::from(length) - 1)))
 }
 
-/// Whether the 天保暦 rule leaves the numbering of a 旧暦 month open: the
-/// eighth to the twelfth month of 2033, which the Observatory's three
-/// resolutions number differently (`nao-rekiwiki-2033`).
+/// Whether a 旧暦 month is not answered: in a year outside
+/// [`KYUREKI_FIRST_YEAR`] to [`KYUREKI_LAST_YEAR`], or one whose numbering
+/// the 天保暦 rule leaves open, the eighth to the twelfth month of 2033,
+/// which the Observatory's three resolutions number differently
+/// (`nao-rekiwiki-2033`). The rules report either as a gap.
 const fn kyureki_month_unsettled(year: i64, month: u8) -> bool {
-    year == 2033 && month >= 8
+    year < KYUREKI_FIRST_YEAR as i64
+        || year > KYUREKI_LAST_YEAR as i64
+        || (year == 2033 && month >= 8)
 }
 
 /// Rules over the days of a month whose earthly branch is given: the `n`th
-/// such day of a Gregorian month, or of an ordinary 旧暦 month, where the
-/// 2033 problem leaves that month's numbering open a gap.
+/// such day of a Gregorian month, or of an ordinary 旧暦 month, a gap in a
+/// year the 旧暦 does not answer and where the 2033 problem leaves that
+/// month's numbering open.
 macro_rules! branch_day_rules {
     ($(gregorian $name:ident = $month:literal, $branch:ident, $n:literal;)*) => {$(
         fn $name(year: i64) -> Days {
@@ -1729,8 +1741,8 @@ branch_day_rules! {
     kyureki inoko_kyureki = 10, INOSHISHI, 1;
 }
 
-/// Rules for a numbered day of an ordinary 旧暦 month, a gap where the
-/// 2033 problem leaves the month open.
+/// Rules for a numbered day of an ordinary 旧暦 month, a gap in a year the
+/// 旧暦 does not answer and where the 2033 problem leaves the month open.
 macro_rules! kyureki_day_rules {
     ($($name:ident = $month:literal, $day:literal;)*) => {$(
         fn $name(year: i64) -> Option<Days> {
@@ -1831,22 +1843,18 @@ pub static OBON_AUGUST: RuleSet = RuleSet {
 };
 
 static OBON_LUNAR_RULES: &[HolidayRule] = &[
-    feast("Kyūbon", "旧盆", Rule::span(&KYUREKI_7_13, &KYUREKI_7_15))
-        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    feast("Kyūbon", "旧盆", Rule::span(&KYUREKI_7_13, &KYUREKI_7_15)),
     feast(
         "Unkē (welcoming the ancestors)",
         "ウンケー",
         Rule::Unsettled(kyureki_7_13),
-    )
-    .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
-    feast("Nakabi", "ナカビ", Rule::Unsettled(kyureki_7_14))
-        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    ),
+    feast("Nakabi", "ナカビ", Rule::Unsettled(kyureki_7_14)),
     feast(
         "Ukui (sending off the ancestors)",
         "ウークイ",
         Rule::Unsettled(kyureki_7_15),
-    )
-    .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    ),
 ];
 
 /// 旧盆, お盆 on the 旧暦: 7/13 to 7/15, as Okinawa keeps it, with its
@@ -1942,8 +1950,7 @@ pub static HATSUUMA: RuleSet = RuleSet {
 };
 
 static HATSUUMA_LUNAR_RULES: &[HolidayRule] =
-    &[feast("Hatsuuma", "初午", Rule::Unsettled(hatsuuma_kyureki))
-        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR))];
+    &[feast("Hatsuuma", "初午", Rule::Unsettled(hatsuuma_kyureki))];
 
 /// 初午 on the 旧暦: the first 午 day of the second month, the day before
 /// the reform and in some places now, on the 旧暦 Japanese almanacs print,
@@ -1970,11 +1977,11 @@ const INOKO_SOURCES: &str = "Wikipedia (ja), \"亥の子\", retrieved 2026-09-27
     `allabout-inoko-2025`), for 「現在は一般的に新暦11月の最初の亥の日で考える」 and 2 November \
     2025; all retrieved 2026-09-27";
 
-static INOKO_RULES: &[HolidayRule] =
-    &[
-        HolidayRule::observance("Inoko", "亥の子", Rule::Unsettled(inoko_kyureki))
-            .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
-    ];
+static INOKO_RULES: &[HolidayRule] = &[HolidayRule::observance(
+    "Inoko",
+    "亥の子",
+    Rule::Unsettled(inoko_kyureki),
+)];
 
 /// 亥の子 on the 旧暦: the first 亥 day of the tenth month, 亥の月, kept
 /// mainly in western Japan with 亥の子餅 and the 亥の子石, 1844 to 2146.
@@ -2021,11 +2028,11 @@ const TOKANYA_SOURCES: &str = "Wikipedia (ja), \"十日夜\", retrieved 2026-09-
     for 22 November 2023; 日本文化研究ブログ, 「「十日夜」2026年はいつ？」 (`jpnculture-tokanya`), \
     for 11月10日 in many places and 18 November 2026 on the 旧暦; all retrieved 2026-09-27";
 
-static TOKANYA_RULES: &[HolidayRule] =
-    &[
-        HolidayRule::observance("Tōkanya", "十日夜", Rule::Unsettled(kyureki_10_10))
-            .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
-    ];
+static TOKANYA_RULES: &[HolidayRule] = &[HolidayRule::observance(
+    "Tōkanya",
+    "十日夜",
+    Rule::Unsettled(kyureki_10_10),
+)];
 
 /// 十日夜 on the 旧暦: the tenth day of the tenth month, the harvest
 /// festival of eastern Japan that answers the west's 亥の子, 1844 to 2146.

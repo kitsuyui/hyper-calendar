@@ -18,7 +18,15 @@
 //! rule here reproduces that list for Śaka 1945 and 1946 (2023–2025) —
 //! `tests/traditions.rs` is the check. The Smārta reckoning of Janmāṣṭamī
 //! is the one listed; the Vaiṣṇava one, a day later when the two differ,
-//! is not carried.
+//! is not carried as a rule. The central government's holiday lists keep
+//! it — "Janmashtami (Vaishnav)", on 16 August 2025 and 25 August 2027,
+//! a day after [`JANMASHTAMI`] — and the India table carries those lists'
+//! days for the years read, 2025 to 2027 (`dopt-holidays-2025-2027`). No
+//! source read states the Vaiṣṇava rule, and two parting years of one
+//! list are no anchor to fit one to, so it is not registered as a
+//! convention of its own (`docs/policy.md` §5). The same lists keep Holī
+//! a day after [`HOLI`] in 2026 and 2027 and Guru Nānak's birthday a day
+//! after [`GURU_NANAK_JAYANTI`] in 2027, by a rule not read either.
 //!
 //! # Two Deepavalis
 //!

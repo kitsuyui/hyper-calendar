@@ -172,7 +172,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
               retrieved 2026-09-26; New Year's Day and the Early May bank holiday in \
               England, Wales and Northern Ireland, the Battle of the Boyne and the one-off \
               days by royal proclamation under section 1(2) and (3), the proclamations \
-              not read; Christmas Day and Good Friday in England, Wales and Northern \
+              up to 2023 not read; Christmas Day and Good Friday in England, Wales and Northern \
               Ireland as common-law holidays; GOV.UK, \"UK bank holidays\" \
               (gov.uk/bank-holidays), retrieved 2026-09-26, and its feed \
               (gov.uk/bank-holidays.json), retrieved 2026-09-27; the proclamation of \

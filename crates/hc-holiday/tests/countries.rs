@@ -1009,8 +1009,9 @@ fn india_central_government_holidays() {
             (2024, 12, 25, "Christmas Day"),
             (2025, 1, 26, "Republic Day"),
             (2025, 4, 18, "Good Friday"),
-            // The Hindu, Jain, Buddhist and Sikh gazetted days, as the
-            // Rashtriya Panchang lists them.
+            // Before the Department of Personnel and Training's lists read,
+            // the Hindu, Jain, Buddhist and Sikh gazetted days by the rules,
+            // which reproduce the Rashtriya Panchang's festival list.
             (2024, 3, 25, "Holi"),
             (2024, 4, 17, "Ram Navami"),
             (2024, 4, 21, "Mahavir Jayanti"),
@@ -1020,7 +1021,6 @@ fn india_central_government_holidays() {
             (2024, 10, 31, "Diwali"),
             (2024, 11, 15, "Guru Nanak's Birthday"),
             (2025, 3, 14, "Holi"),
-            (2025, 4, 6, "Ram Navami"),
         ],
     );
     // India has no observed-day rule: 26 January 2025 was a Sunday.
@@ -1037,6 +1037,74 @@ fn india_central_government_holidays() {
         ],
     );
     expect_working("IN", None, &[(1946, 8, 15)]);
+}
+
+/// The Department of Personnel and Training's lists for Delhi and New
+/// Delhi, Annexure I of the O.M.s F.No.12/2/2023-JCA of 9 July 2024,
+/// 3 July 2025 and 16 July 2026 (`dopt-holidays-2025-2027`, as StaffNews
+/// reproduces them).
+#[test]
+fn india_keeps_the_days_of_the_central_government_lists() {
+    expect(
+        "IN",
+        None,
+        &[
+            // 2025: Maha Shivaratri, not Ram Navami, among Delhi's three.
+            (2025, 2, 26, "Maha Shivaratri"),
+            (2025, 3, 14, "Holi"),
+            (2025, 4, 10, "Mahavir Jayanti"),
+            (2025, 5, 12, "Buddha Purnima"),
+            (2025, 8, 16, "Janmashtami"),
+            (2025, 10, 2, "Dussehra"),
+            (2025, 10, 20, "Diwali"),
+            (2025, 11, 5, "Guru Nanak's Birthday"),
+            (2025, 7, 6, "Muharram"),
+            // 2026: "Holi … March 04 … Wednesday".
+            (2026, 3, 4, "Holi"),
+            (2026, 3, 21, "Id-ul-Fitr"),
+            (2026, 3, 26, "Ram Navami"),
+            (2026, 9, 4, "Janmashtami"),
+            (2026, 11, 8, "Diwali"),
+            (2026, 11, 24, "Guru Nanak's Birthday"),
+            // 2027: "Holi … March 23", "Janmashtami (Vaishnav) … August 25",
+            // "Guru Nanak's Birthday … November 14".
+            (2027, 3, 23, "Holi"),
+            (2027, 4, 15, "Ram Navami"),
+            (2027, 6, 16, "Muharram"),
+            (2027, 8, 25, "Janmashtami"),
+            (2027, 10, 9, "Dussehra"),
+            (2027, 11, 14, "Guru Nanak's Birthday"),
+        ],
+    );
+    // The rules' days where the lists keep another.
+    expect_working(
+        "IN",
+        None,
+        &[
+            (2025, 4, 6),
+            (2026, 3, 3),
+            (2027, 3, 22),
+            (2027, 8, 24),
+            (2027, 11, 13),
+        ],
+    );
+    assert_eq!(
+        confidence_on("IN", 2027, 8, 25, "Janmashtami"),
+        Confidence::Exact
+    );
+    assert_eq!(
+        confidence_on("IN", 2026, 3, 21, "Id-ul-Fitr"),
+        Confidence::Approximate
+    );
+    // Outside the lists read, the rules, approximate.
+    assert_eq!(
+        confidence_on("IN", 2024, 8, 26, "Janmashtami"),
+        Confidence::Approximate
+    );
+    assert_eq!(
+        confidence_on("IN", 2028, 10, 17, "Diwali"),
+        Confidence::Approximate
+    );
 }
 
 #[test]
@@ -1301,6 +1369,20 @@ fn indonesia_holidays() {
     // Chinese New Year became a national holiday in 2003 and Pancasila Day
     // in 2017; Indonesia has no observed-day rule.
     expect_working("ID", None, &[(2002, 2, 12), (2016, 6, 1), (2025, 8, 18)]);
+    // Easter Sunday, from the SKB for 2024: "31 Maret (Minggu) Hari Paskah";
+    // 2025, 2026 and 2027 as "Kebangkitan Yesus Kristus (Paskah)". The
+    // lists for 2022 and 2023 do not have it.
+    expect(
+        "ID",
+        None,
+        &[
+            (2024, 3, 31, "Easter Sunday"),
+            (2025, 4, 20, "Easter Sunday"),
+            (2026, 4, 5, "Easter Sunday"),
+            (2027, 3, 28, "Easter Sunday"),
+        ],
+    );
+    expect_working("ID", None, &[(2022, 4, 17), (2023, 4, 9)]);
 }
 
 /// The confidence of the entry named `name` on a date.
@@ -1532,12 +1614,89 @@ fn the_philippines_distinguishes_regular_from_special_days() {
     );
     let calendar = HolidayCalendar::for_year(table("PH"), None, 2025);
     let all_souls = calendar.on(ymd(2025, 11, 1));
+    assert!(all_souls.iter().all(|holiday| holiday.kind == Kind::Bank));
     assert!(
         all_souls
             .iter()
             .any(|holiday| holiday.name == "All Saints' Day"),
         "All Saints' Day should be listed as a special non-working day"
     );
+}
+
+/// The President's proclamations for 2020 to 2027, as LawPhil reproduces
+/// them (`lawphil-proclamations-2020-2027`).
+#[test]
+fn the_philippines_keeps_the_proclaimed_special_days() {
+    expect(
+        "PH",
+        None,
+        &[
+            // Proclamation 1427: "Additional Special (Non-Working) Days …
+            // Chinese New Year - 06 February (Saturday), Black Saturday -
+            // 27 March, All Souls' Day - 02 November (Tuesday), Christmas
+            // Eve - 24 December (Friday)".
+            (2027, 2, 6, "Chinese New Year"),
+            (2027, 3, 27, "Black Saturday"),
+            (2027, 11, 2, "All Souls' Day"),
+            (2027, 12, 24, "Christmas Eve"),
+            // 727: All Saints' Day Eve and Christmas Eve; 729 and 878.
+            (2025, 10, 31, "All Saints' Day Eve"),
+            (2025, 12, 24, "Christmas Eve"),
+            (2025, 7, 27, "Iglesia ni Cristo Founding Anniversary"),
+            (2025, 5, 12, "National and Local Elections"),
+            // 42 as amended by 90, and 167: the EDSA anniversary moved to
+            // Friday 24 February, Araw ng Kagitingan to Monday 10 April and
+            // Bonifacio Day to Monday 27 November.
+            (2023, 1, 2, "Additional special day"),
+            (2023, 2, 24, "EDSA People Power Revolution Anniversary"),
+            (2023, 4, 10, "Day of Valour"),
+            (2023, 11, 27, "Bonifacio Day"),
+            (2023, 10, 30, "Barangay and Sangguniang Kabataan Elections"),
+            // 665: Ninoy Aquino Day moved to Friday 23 August 2024.
+            (2024, 8, 23, "Ninoy Aquino Day"),
+            (2024, 2, 9, "Additional special day"),
+            (2020, 2, 25, "EDSA People Power Revolution Anniversary"),
+            (2020, 12, 31, "Last Day of the Year"),
+        ],
+    );
+    expect_working(
+        "PH",
+        None,
+        &[
+            // No Chinese New Year in the 2023 list.
+            (2023, 1, 22),
+            (2023, 2, 25),
+            (2023, 4, 9),
+            (2023, 11, 30),
+            (2024, 8, 21),
+            // 1107 and 1236: special working days.
+            (2021, 11, 2),
+            (2021, 12, 24),
+            (2021, 12, 31),
+            (2022, 12, 31),
+            // The EDSA anniversary, a special working day from 2025.
+            (2025, 2, 25),
+            (2027, 2, 25),
+        ],
+    );
+    assert_eq!(
+        confidence_on("PH", 2027, 2, 6, "Chinese New Year"),
+        Confidence::Exact
+    );
+    // After the last proclamation read: Chinese New Year and Black Saturday
+    // predicted, the other proclaimed days a gap.
+    let later = HolidayCalendar::for_year(table("PH"), None, 2028);
+    assert_eq!(
+        confidence_on("PH", 2028, 4, 15, "Black Saturday"),
+        Confidence::Approximate
+    );
+    assert!(
+        later
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Proclaimed special days")
+    );
+    assert!(HolidayCalendar::for_year(table("PH"), None, 2027).is_complete());
 }
 
 #[test]
@@ -8188,6 +8347,32 @@ fn australia_national_and_state_holidays() {
     expect_substitute("AU", None, 2025, (1, 26), (1, 27));
     // Easter Saturday and Sunday are never moved.
     expect_working("AU", Some("AU-VIC"), &[(2025, 4, 22), (2025, 4, 23)]);
+    // nsw.gov.au: "Anzac Day | Saturday 25 April 2026", "Additional Day |
+    // Monday 27 April 2026"; "Sunday 25 April 2027", "Monday 26 April
+    // 2027". The trial covers those two years; Anzac Day 2020, a Saturday,
+    // had no Monday.
+    expect(
+        "AU",
+        Some("AU-NSW"),
+        &[
+            (2026, 4, 25, "Anzac Day"),
+            (2026, 4, 27, "Anzac Day additional holiday"),
+            (2027, 4, 26, "Anzac Day additional holiday"),
+        ],
+    );
+    expect_working("AU", Some("AU-NSW"), &[(2020, 4, 27), (2032, 4, 26)]);
+    expect_working("AU", Some("AU-VIC"), &[(2026, 4, 27)]);
+    expect_working("AU", None, &[(2026, 4, 27)]);
+    // The NSW Bank Holiday, the first Monday of August: banks close, and it
+    // is not a public holiday.
+    let nsw = HolidayCalendar::for_year(table("AU"), Some("AU-NSW"), 2026);
+    let bank: Vec<Kind> = nsw
+        .on(ymd(2026, 8, 3))
+        .iter()
+        .map(|holiday| holiday.kind)
+        .collect();
+    assert_eq!(bank, [Kind::Bank]);
+    expect_working("AU", Some("AU-VIC"), &[(2026, 8, 3)]);
 }
 
 #[test]

@@ -123,8 +123,10 @@ Not carried:
   Sunday when it must be moved until after Easter, is not applied either.
 - **The Ember Days.** The text read names them but does not state how the
   September week is dated, as the `rogation-roman-1960` table says. The
-  II class ferias of 17 to 23 December and the II class Sundays after
-  Epiphany and after Pentecost are also not listed.
+  II class ferias of 17 to 23 December are also not listed, and nor are
+  the other II class Sundays, the Table's "All other Sundays not
+  mentioned above": those after Epiphany, the second to the fifth after
+  Easter, the Sunday after the Ascension and those after Pentecost.
 - **The Litanies.** They are the `rogation-roman-1960` table.
 - **Particular calendars** of nations, dioceses, orders and churches, and
   the options that *Cum sanctissima* (2020) allows for saints canonised

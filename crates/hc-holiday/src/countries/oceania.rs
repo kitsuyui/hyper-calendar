@@ -8,7 +8,7 @@ use crate::computus::offsets::{
     WHIT_MONDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
     SubstitutionPolicy,
 };
 
@@ -23,6 +23,7 @@ const AU_WA: &[&str] = &["AU-WA"];
 const AU_TAS: &[&str] = &["AU-TAS"];
 const AU_NT: &[&str] = &["AU-NT"];
 const AU_ACT: &[&str] = &["AU-ACT"];
+const AU_NSW: &[&str] = &["AU-NSW"];
 const AU_EASTER_SATURDAY: &[&str] = &["AU-ACT", "AU-NSW", "AU-NT", "AU-QLD", "AU-SA", "AU-VIC"];
 const AU_EASTER_SUNDAY: &[&str] = &["AU-ACT", "AU-NSW", "AU-QLD", "AU-VIC"];
 const AU_JUNE_SOVEREIGN: &[&str] = &["AU-ACT", "AU-NSW", "AU-NT", "AU-SA", "AU-TAS", "AU-VIC"];
@@ -45,11 +46,23 @@ static AU_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY))
         .in_regions(AU_EASTER_SUNDAY),
     HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    // Anzac Day is not mondayised in New South Wales, Victoria, Tasmania or
-    // the Northern Territory, and is in Western Australia, Queensland, South
-    // Australia and the ACT. Nationally the crate takes the stricter of the
-    // two and leaves it where it falls.
+    // Anzac Day stays on 25 April when it falls on a weekend. New South
+    // Wales adds a day on the Monday after in 2026 and 2027, a trial, by
+    // orders under s 5 of its Public Holidays Act 2010; the other states'
+    // and territories' rules for a weekend Anzac Day were not read and are
+    // not modelled.
     HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), None),
+    HolidayRule::fixed_public(
+        "Anzac Day additional holiday",
+        "",
+        Rule::WeekdayOnOrAfter {
+            month: 4,
+            day: 26,
+            weekday: Weekday::Monday,
+        },
+    )
+    .in_regions(AU_NSW)
+    .years(Some(2026), Some(2027)),
     HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
         .in_regions(AU_MAY_LABOUR),
     // The first Monday on or after 27 May, as the secondary sources state it;
@@ -74,6 +87,11 @@ static AU_RULES: &[HolidayRule] = &[
     HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
         .in_regions(AU_JUNE_SOVEREIGN),
     HolidayRule::public("Picnic Day", "", Rule::nth(8, 1, Weekday::Monday)).in_regions(AU_NT),
+    // New South Wales's Bank Holiday: retail bank branches close, and it is
+    // not a public holiday.
+    HolidayRule::fixed_public("Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday))
+        .of_kind(Kind::Bank)
+        .in_regions(AU_NSW),
     HolidayRule::public(
         "Sovereign's Birthday",
         "",
@@ -109,14 +127,22 @@ pub static AUSTRALIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Fair Work Act 2009 (Cth), s 115, compilation C2026C00355 of 7 July 2026, its \
               text not read; the Holidays Act 1983 (Qld) and the Statutory Holidays Act 2000 \
               (Tas), read on legislation.qld.gov.au and legislation.tas.gov.au, retrieved \
               2026-09-26; the Public Holidays Act 2010 (NSW), Public Holidays Act 1993 (Vic), \
               Public Holidays Act 2023 (SA), Public and Bank Holidays Act 1972 (WA), Holidays \
               Act 1958 (ACT) and Public Holidays Act 1981 (NT), and the annual gazettals, not \
-              read. Western Australia's Sovereign's Birthday is proclaimed each year and is \
+              read; for New South Wales, the NSW Government's \"NSW public holidays\" \
+              (nsw.gov.au/about-nsw/public-holidays), its \"Additional Day\" of Monday \
+              27 April 2026 and Monday 26 April 2027 after Anzac Day and its note that the \
+              Bank Holiday of the first Monday in August closes retail bank branches under \
+              Part 3A of the Retail Trading Act 2008 and \"is not a declared public \
+              holiday\", and the Premier's release \"Minns Labor Government announces extra \
+              public holiday this year\", which makes the two Anzac Mondays a trial to be \
+              reviewed from 2027, both retrieved 2026-09-27 (`nsw-public-holidays`); the \
+              orders under s 5 of the NSW Act and the Retail Trading Act not read. Western Australia's Sovereign's Birthday is proclaimed each year and is \
               not modelled; nor are the show days, the Royal Queensland Show's among them, \
               which s 4(5)(a) of the Queensland Act lets the Minister appoint for the City of \
               Brisbane only; nor the part-day holidays of Christmas Eve",
