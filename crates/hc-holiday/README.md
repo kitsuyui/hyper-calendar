@@ -401,7 +401,7 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in seventy-one countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2020–2026 |
+| Every Hijri-dated holiday, in seventy-one countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2012–2026 |
 | Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |

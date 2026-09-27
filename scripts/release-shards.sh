@@ -3,16 +3,17 @@
 # --all-features`, in shards that CI runs side by side.
 #
 # A release build walks every day of the longest sweeps (docs/policy.md §7),
-# and two unit-test binaries hold most of that time. Measured on a
+# and three unit-test binaries hold most of that time. Measured on a
 # four-core runner on 27 September 2026 (the main run of 8a709a6), a named
 # shard builds in 99 to 138 s and `rest` in 264 s. hc-calendars-indic's
 # unit tests take 541 s and 2 151 CPU-s; hc-calendars-lunar's take 1 401 s
-# and 5 587 CPU-s, which, with the build, made that shard's job 25.7
-# minutes. hc-calendars-regional's binary takes about two minutes, since its
-# Arsacid era rests on `babylonian`'s sweep rather than walking the same days
-# again, and hc-astro's, with its every-day sweep of the Edo hours over
-# 4 000 years, 509 s and 2 032 CPU-s, in `rest` with every other binary and
-# the doctests, which took about 18 minutes together.
+# and 5 587 CPU-s, a job of 25.7 minutes with the build when it ran as one
+# shard in that run, which is why it is split below. hc-calendars-regional's
+# binary takes about two minutes, since its Arsacid era rests on
+# `babylonian`'s sweep rather than walking the same days again, and
+# hc-astro's, with its every-day sweep of the Edo hours over 4 000 years,
+# 509 s and 2 032 CPU-s, which in that run was in `rest` with every other
+# binary and the doctests, about 18 minutes together.
 #
 # So indic, lunar and hc-astro each have a shard, `rest` runs every other
 # test binary cargo builds, and the doctests, and lunar's binary is split in two by

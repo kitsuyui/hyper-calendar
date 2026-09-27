@@ -80,7 +80,7 @@ export const TZIF_V2_EASTERN = Uint8Array.from(
 
 /**
  * A TZif version 2 file for America/Denver: MST and MDT, the transitions of
- * 8 March and 1 November 2026, and tzdata 2026c's footer
+ * 8 March and 1 November 2026, and tzdata 2026d's footer, unchanged since 2026c,
  * `MST7MDT,M3.2.0,M11.1.0`, the one the crate's own tests load.
  */
 export const TZIF_V2_DENVER = Uint8Array.from(

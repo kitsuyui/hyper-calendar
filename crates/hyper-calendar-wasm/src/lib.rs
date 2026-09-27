@@ -1447,9 +1447,11 @@ mod time_codes {
     /// `summer` is DCF77's zone, `cet` or `cest`, or WWVB's summer-time
     /// state, `standard`, `begins-today`, `in-effect` or `ends-today`, and
     /// empty for `jjy`; another is `HC_ERR_UNKNOWN`. Or it is `zone:` and a
-    /// zone's name, `zone:Europe/Berlin` for DCF77 or `zone:America/Denver`
-    /// for WWVB, in a module built with `tz` too: the state is then read
-    /// from the rules `hc_fixed_from_unix_in_zone` reads for the name —
+    /// zone's name, `zone:Europe/Berlin` for DCF77 or `zone:America/New_York`
+    /// for WWVB (a zone the built-in table lacks, such as `America/Denver`,
+    /// once `hc_zone_load` has its file), in a module built with `tz` too:
+    /// the state is then read from the rules `hc_fixed_from_unix_in_zone`
+    /// reads for the name —
     /// for `dcf77` Z1 Z2 from the offset and flag at the minute and A1 from
     /// a change between CET and CEST within the hour from it, in place of
     /// `zone_change`, and a minute at which the zone keeps neither is
@@ -3543,11 +3545,9 @@ mod tz {
     use std::sync::{Mutex, PoisonError};
 
     use super::{
-        HC_ERR_MALFORMED, HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, above_floor, emit_or_measure, text,
+        HC_ERR_MALFORMED, HC_ERR_OUT_OF_RANGE, HC_ERR_UNKNOWN, emit_or_measure, sentinel, text,
     };
-    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
-    use hc::hc_calendar::{CivilDateTime, Rd};
-    use hc::hc_core::UnixTime;
+    use hc::hc_calendar::CivilDateTime;
     use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
     use hc::zone_lines::{self, ZoneRules};
 
@@ -3590,9 +3590,16 @@ mod tz {
     }
 
     /// The fixed day an instant falls on by a zone's wall clock.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERR_UNKNOWN`] for a name neither table knows, and
+    /// [`HC_ERR_OUT_OF_RANGE`] for an instant outside the years the rules
+    /// answer for, [`zone_lines::instant_in_zone_range`]'s.
     pub(super) fn day_in_zone(unix: i64, name: &str) -> Result<i64, i64> {
         with_zone(name, |zone, _| {
-            zone.local_at(UnixTime::from_seconds(unix))
+            let instant = zone_lines::instant_in_zone_range(unix).map_err(sentinel)?;
+            zone.local_at(instant)
                 .map(|local| local.day.0)
                 .map_err(|_| HC_ERR_OUT_OF_RANGE)
         })?
@@ -3605,35 +3612,18 @@ mod tz {
     /// # Errors
     ///
     /// [`HC_ERR_UNKNOWN`] for a name neither table knows, and
-    /// [`HC_ERR_OUT_OF_RANGE`] for a day whose start would overflow an
-    /// `i64` or would be at or below [`HC_ERR_FLOOR`].
-    ///
-    /// [`HC_ERR_FLOOR`]: super::HC_ERR_FLOOR
+    /// [`HC_ERR_OUT_OF_RANGE`] for a day outside the years the rules answer
+    /// for, [`zone_lines::day_in_zone_range`]'s.
     pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, i64> {
         with_zone(name, |zone, _| {
-            let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
+            let day = zone_lines::day_in_zone_range(fixed).map_err(sentinel)?;
+            let instant = match zone.resolve_local(CivilDateTime::midnight(day)) {
                 LocalResolution::Unambiguous(instant) => instant,
                 LocalResolution::Ambiguous { earlier, .. } => earlier,
                 LocalResolution::Nonexistent { after_gap, .. } => after_gap,
             };
-            above_floor(unsaturated(fixed, instant.seconds(), zone))
+            Ok(instant.seconds())
         })?
-    }
-
-    /// The start of a day as `resolve_local` gave it, or `None` when that
-    /// was an `i64` bound standing in for an instant beyond it.
-    ///
-    /// `resolve_local` saturates rather than fails, so `i64::MIN` and
-    /// `i64::MAX` are its answer for every day whose start is out of reach.
-    /// Either is kept only when the day's midnight less the zone's offset
-    /// there really is that instant.
-    fn unsaturated(fixed: i64, seconds: i64, zone: &dyn TimeZone) -> Option<i64> {
-        if seconds != i64::MIN && seconds != i64::MAX {
-            return Some(seconds);
-        }
-        let midnight = (i128::from(fixed) - i128::from(RD_OF_UNIX_EPOCH)) * 86_400;
-        let offset = zone.offset_at(UnixTime::from_seconds(seconds)).seconds();
-        (midnight - i128::from(offset) == i128::from(seconds)).then_some(seconds)
     }
 
     /// Keep TZif bytes under a name, replacing any already there.
@@ -3661,9 +3651,10 @@ mod tz {
     /// `zone` is an IANA name, `Asia/Tokyo`, in any case: one a page has
     /// loaded through `hc_zone_load`, or else one of the seventeen the
     /// module carries with their current rules. A name neither knows is
-    /// `HC_ERR_UNKNOWN`, an instant whose local day leaves the range of a
-    /// day number `HC_ERR_OUT_OF_RANGE`, and the name's pointer and bytes
-    /// fail as for `hc_parse_iso_date`.
+    /// `HC_ERR_UNKNOWN`, an instant outside the years −9 999 994 to
+    /// 9 999 994 by UTC, the ones a zone's rules answer for,
+    /// `HC_ERR_OUT_OF_RANGE`, and the name's pointer and bytes fail as for
+    /// `hc_parse_iso_date`.
     ///
     /// # Safety
     ///
@@ -3696,10 +3687,8 @@ mod tz {
     /// the two midnights. `zone` is as for `hc_fixed_from_unix_in_zone`,
     /// and fails the same way.
     ///
-    /// A day whose start would be at or below `HC_ERR_FLOOR` seconds or
-    /// would overflow an `i64` is `HC_ERR_OUT_OF_RANGE`: by UTC, a day
-    /// before fixed day −104 165 947 503 or after 106 751 991 886 463, and
-    /// a zone's offset moves each end by at most a day.
+    /// A day outside the years −9 999 994 to 9 999 994, before fixed day
+    /// −3 652 423 173 or after 3 652 422 808, is `HC_ERR_OUT_OF_RANGE`.
     ///
     /// # Safety
     ///
@@ -3735,8 +3724,9 @@ mod tz {
     /// abbreviation changes, and the offset after it, both empty where the
     /// rules have none — a built-in zone without summer time, or a loaded
     /// file whose record ends with no footer; and which rules answered,
-    /// `builtin` or `loaded`. A null `buffer` returns the length the text
-    /// needs.
+    /// `builtin` or `loaded`. An instant outside the years of
+    /// `hc_fixed_from_unix_in_zone` is `HC_ERR_OUT_OF_RANGE`. A null
+    /// `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -3760,8 +3750,9 @@ mod tz {
             zone_lines::zone_offset(zone, rules, unix_seconds)
         }) {
             // SAFETY: forwarded to the caller's contract above.
-            Ok(line) => unsafe { emit_or_measure(&line, buffer, capacity) },
-            Err(sentinel) => sentinel,
+            Ok(Ok(line)) => unsafe { emit_or_measure(&line, buffer, capacity) },
+            Ok(Err(refusal)) => sentinel(refusal),
+            Err(unknown) => unknown,
         }
     }
 
@@ -4548,7 +4539,7 @@ mod hours {
     /// dawns and nightfalls, as nine UTF-8 lines, returning the byte length
     /// written.
     ///
-    /// `reckoning` is `gra`, the day from sunrise to sunset, or
+    /// `reckoning` is `zmanim-gra`, the day from sunrise to sunset, or
     /// `mga-72-minutes` or `mga-16-1-degrees`, the Magen Avraham's from
     /// dawn to nightfall at 72 minutes or at 16.1°, in any case; anything
     /// else is `HC_ERR_UNKNOWN`. The day and the place are as for
@@ -6506,7 +6497,8 @@ mod tests {
 
         /// America/Denver as a TZif file: MST and MDT, the two transitions
         /// of 2026, 8 March 09:00 UTC and 1 November 08:00 UTC, and the
-        /// footer `MST7MDT,M3.2.0,M11.1.0`, which is tzdata 2026c's.
+        /// footer `MST7MDT,M3.2.0,M11.1.0`, which is tzdata 2026d's
+        /// (unchanged since 2026c).
         const TZIF_V2_DENVER: &[u8] = &[
             0x54, 0x5a, 0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -6544,58 +6536,77 @@ mod tests {
             unsafe { hc_unix_from_fixed_in_zone(fixed, zone.as_ptr(), zone.len()) }
         }
 
-        #[test]
-        fn a_days_start_never_reads_as_a_sentinel() {
-            // By UTC the range is hc_unix_from_fixed's.
-            let first = -104_165_947_503;
-            let midnight = -8_999_999_999_942_400;
-            assert_eq!(starts(first, "UTC"), midnight);
-            assert_eq!(starts(first - 1, "UTC"), HC_ERR_OUT_OF_RANGE);
-            // An offset moves the start, not far enough here to move the
-            // first day.
-            assert_eq!(starts(first, "Asia/Tokyo"), midnight - 9 * 3_600);
-            assert_eq!(starts(first - 1, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
-            assert_eq!(starts(first, "America/Sao_Paulo"), midnight + 3 * 3_600);
-            assert_eq!(starts(first - 1, "America/Sao_Paulo"), HC_ERR_OUT_OF_RANGE);
-            // Some 54 billion years back.
-            assert_eq!(
-                starts(-19_723_095_000_000, "Asia/Tokyo"),
-                HC_ERR_OUT_OF_RANGE
-            );
-            // Overflow downwards.
-            assert_eq!(starts(i64::MIN, "UTC"), HC_ERR_OUT_OF_RANGE);
-            assert_eq!(starts(i64::MIN, "America/New_York"), HC_ERR_OUT_OF_RANGE);
+        /// The first and the last day of the years the rules answer for,
+        /// −9 999 994 to 9 999 994, and the first and last second.
+        fn rule_range() -> (i64, i64, i64, i64) {
+            use hc::hc_calendar::gregorian::new_year;
+            use hc::hc_tz::posix::{
+                FIRST_RULE_SECOND, FIRST_RULE_YEAR, LAST_RULE_SECOND, LAST_RULE_YEAR,
+            };
+            (
+                new_year(FIRST_RULE_YEAR).0,
+                new_year(LAST_RULE_YEAR + 1).0 - 1,
+                FIRST_RULE_SECOND,
+                LAST_RULE_SECOND,
+            )
         }
 
+        /// The day, its start and the offset answer from the rules at both
+        /// ends of their years, Sydney's summer time included, and refuse
+        /// a second or a day beyond, where the rules would give standard
+        /// time.
         #[test]
-        fn a_days_start_refuses_rather_than_saturates() {
-            let last = 106_751_991_886_463;
-            let midnight = 9_223_372_036_854_720_000;
-            assert_eq!(starts(last, "UTC"), midnight);
-            assert_eq!(starts(last + 1, "UTC"), HC_ERR_OUT_OF_RANGE);
-            // West of Greenwich the day begins later, and UTC's last day
-            // is the last; Tokyo's day after it begins nine hours before
-            // UTC's, which still fits.
-            assert_eq!(starts(last, "America/Sao_Paulo"), midnight + 3 * 3_600);
-            assert_eq!(starts(last + 1, "America/Sao_Paulo"), HC_ERR_OUT_OF_RANGE);
-            assert_eq!(
-                starts(last + 1, "Asia/Tokyo"),
-                midnight - 9 * 3_600 + 86_400
-            );
-            assert_eq!(starts(last + 2, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
-            // 2^53 days, whose start a saturating product would clamp to
-            // i64::MAX.
-            assert_eq!(starts(1 << 53, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
-            assert_eq!(starts(i64::MAX, "UTC"), HC_ERR_OUT_OF_RANGE);
-            assert_eq!(starts(i64::MAX, "America/New_York"), HC_ERR_OUT_OF_RANGE);
-        }
-
-        #[test]
-        fn every_timestamp_has_a_zoned_day_above_the_floor() {
-            for zone in ["UTC", "Asia/Tokyo", "America/New_York"] {
-                assert!(in_zone(i64::MIN, zone) > HC_ERR_FLOOR, "{zone}");
-                assert!(in_zone(i64::MAX, zone) > HC_ERR_FLOOR, "{zone}");
+        fn a_zone_answers_for_the_years_its_rules_do_and_refuses_beyond() {
+            let (first, last, first_second, last_second) = rule_range();
+            assert_eq!(first, -3_652_423_173);
+            assert_eq!(last, 3_652_422_808);
+            assert_eq!(first_second, (first - 719_163) * 86_400);
+            assert_eq!(last_second, (last - 719_163) * 86_400 + 86_399);
+            for zone in ["UTC", "Asia/Tokyo", "Australia/Sydney", "America/New_York"] {
+                assert_eq!(starts(first - 1, zone), HC_ERR_OUT_OF_RANGE, "{zone}");
+                assert_eq!(starts(last + 1, zone), HC_ERR_OUT_OF_RANGE, "{zone}");
+                assert_eq!(
+                    in_zone(first_second - 1, zone),
+                    HC_ERR_OUT_OF_RANGE,
+                    "{zone}"
+                );
+                assert_eq!(
+                    in_zone(last_second + 1, zone),
+                    HC_ERR_OUT_OF_RANGE,
+                    "{zone}"
+                );
+                for unix in [first_second - 1, last_second + 1, i64::MIN, i64::MAX] {
+                    let measured = unsafe {
+                        hc_zone_offset(zone.as_ptr(), zone.len(), unix, core::ptr::null_mut(), 0)
+                    };
+                    assert_eq!(measured, HC_ERR_OUT_OF_RANGE, "{zone} {unix}");
+                }
+                for fixed in [i64::MIN, i64::MAX] {
+                    assert_eq!(starts(fixed, zone), HC_ERR_OUT_OF_RANGE, "{zone}");
+                }
+                for unix in [i64::MIN, i64::MAX] {
+                    assert_eq!(in_zone(unix, zone), HC_ERR_OUT_OF_RANGE, "{zone}");
+                }
             }
+            assert_eq!(starts(first, "UTC"), first_second);
+            assert_eq!(starts(last, "UTC"), last_second - 86_399);
+            assert_eq!(in_zone(first_second, "UTC"), first);
+            assert_eq!(in_zone(last_second, "UTC"), last);
+            // Sydney is on AEDT, eleven hours east, at both ends: its first
+            // day begins eleven hours before UTC's, and the last second of
+            // the last UTC day is 10:59:59 on its next.
+            assert_eq!(starts(first, "Australia/Sydney"), first_second - 11 * 3_600);
+            assert_eq!(
+                starts(last, "Australia/Sydney"),
+                last_second - 86_399 - 11 * 3_600
+            );
+            assert_eq!(in_zone(last_second, "Australia/Sydney"), last + 1);
+            assert!(offset("Australia/Sydney", first_second).starts_with("39600\t1\tAEDT\t"));
+            assert!(offset("Australia/Sydney", last_second).starts_with("39600\t1\tAEDT\t"));
+            // New York on EST, five hours west: the first second is 19:00
+            // on the day before.
+            assert_eq!(in_zone(first_second, "America/New_York"), first - 1);
+            assert!(offset("America/New_York", last_second).starts_with("-18000\t0\tEST\t"));
         }
 
         #[test]
@@ -9461,7 +9472,7 @@ mod tests {
         /// (`hebcal-zmanim-api`): the latest Shema by the GRA at 9:40 EST.
         #[test]
         fn new_york_zmanim_cross_the_boundary() {
-            let reckoning = "gra";
+            let reckoning = "zmanim-gra";
             let day = hc_gregorian_to_fixed(2025, 1, 1);
             let text = read_lines(|buffer, capacity| unsafe {
                 hc_zmanim(

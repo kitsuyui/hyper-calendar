@@ -23,9 +23,8 @@ use core::fmt::Write;
 use hc_astro::riseset::{Location, solar_noon, sunrise};
 use hc_astro::solar_time::{
     self, EdoHour, EdoTime, IshaRule, MaghribRule, MidnightRule, MissingSolarEvent, PRAYER_METHODS,
-    PrayerMethod, Zman,
+    PrayerMethod, ZMANIM_RECKONINGS, Zman,
 };
-use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 
 use crate::astro_lines::{
@@ -149,11 +148,6 @@ pub fn prayer_methods_lines() -> String {
     out
 }
 
-/// The reckonings of the Jewish day `hc_zmanim` reads, by name: the GRA's,
-/// sunrise to sunset, and the Magen Avraham's from dawn to nightfall at 72
-/// minutes and at 16.1°.
-pub const ZMANIM_RECKONINGS: [&str; 3] = ["gra", "mga-72-minutes", "mga-16-1-degrees"];
-
 /// The dawns and nightfalls `hc_zmanim` writes after the times in temporal
 /// hours, in this order.
 pub const JEWISH_TWILIGHTS: [&str; 4] = [
@@ -166,11 +160,9 @@ pub const JEWISH_TWILIGHTS: [&str; 4] = [
 /// How many columns each line of [`zmanim_lines`] writes.
 pub const ZMAN_COLUMNS: usize = 4 + MISSING_COLUMNS;
 
-/// A time in temporal hours by a reckoning.
-type ZmanReckoning = fn(&Zman, Rd, Location) -> Result<Moment, MissingSolarEvent>;
-
 /// The lines of `hc_zmanim`: the Jewish times of a local day at a place by
-/// a reckoning of [`ZMANIM_RECKONINGS`] — one line for each of
+/// a reckoning of [`ZMANIM_RECKONINGS`], selected by its identifier in any
+/// case — one line for each of
 /// [`Zman::ALL`], its identifier, its English name as Hebcal prints it,
 /// its temporal hours from the start of the day, the instant and the four
 /// cells of a missing solar event — then one line for each of
@@ -182,15 +174,11 @@ type ZmanReckoning = fn(&Zman, Rd, Location) -> Result<Moment, MissingSolarEvent
 /// [`Refusal::Unknown`] for a reckoning not named, and
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
 pub fn zmanim_lines(reckoning: &str, fixed: i64, place: Location) -> Answer<String> {
-    let zman: ZmanReckoning = if names(reckoning, "gra") {
-        solar_time::zman_gra
-    } else if names(reckoning, "mga-72-minutes") {
-        solar_time::zman_mga_72_minutes
-    } else if names(reckoning, "mga-16-1-degrees") {
-        solar_time::zman_mga_16_1_degrees
-    } else {
-        return Err(Refusal::Unknown);
-    };
+    let zman = ZMANIM_RECKONINGS
+        .iter()
+        .find(|known| names(reckoning, known.id))
+        .ok_or(Refusal::Unknown)?
+        .zman;
     let day = day_in_era(fixed)?;
     let mut out = String::new();
     for time in Zman::ALL {
@@ -303,8 +291,9 @@ pub fn unix_from_edo_time_line(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::astro_lines::location;
+    use crate::astro_lines::{location, unix_from_moment};
     use alloc::vec::Vec;
+    use hc_calendar::Rd;
     use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
     use hc_calendars_solar::gregorian;
 
@@ -423,7 +412,7 @@ mod tests {
     fn the_new_york_zmanim_of_new_years_day_2025_are_hebcals() {
         let new_york = location(40.71427, -74.00597, 0.0).expect("a place");
         let day = gregorian::to_fixed(2025, 1, 1).expect("a date");
-        let gra = zmanim_lines("GRA", day.0, new_york).expect("in range");
+        let gra = zmanim_lines("ZMANIM-GRA", day.0, new_york).expect("in range");
         let mga = zmanim_lines("mga-72-minutes", day.0, new_york).expect("in range");
         let (gra, mga) = (rows(&gra), rows(&mga));
         assert_eq!(gra.len(), Zman::ALL.len() + JEWISH_TWILIGHTS.len());
@@ -446,6 +435,20 @@ mod tests {
             zmanim_lines("baal-hatanya", day.0, new_york),
             Err(Refusal::Unknown)
         );
+        // The names are `hc-astro`'s table's, and each answers with its
+        // own reckoning's times; the bare authority is not one of them.
+        for reckoning in ZMANIM_RECKONINGS {
+            let text = zmanim_lines(reckoning.id, day.0, new_york).expect("in range");
+            let expected = (reckoning.zman)(&Zman::SOF_ZMAN_SHMA, day, new_york).expect("a time");
+            let cells = &rows(&text)[0];
+            assert_eq!(
+                cells[3],
+                unix_from_moment(expected).to_string(),
+                "{}",
+                reckoning.id
+            );
+        }
+        assert_eq!(zmanim_lines("gra", day.0, new_york), Err(Refusal::Unknown));
     }
 
     /// Hebcal prints no 16.1° dawn for London on 21 June 2025

@@ -69,7 +69,8 @@ other dairy products (as well as fish) may be eaten on all days, including
 Wednesday and Friday" [oca-fasting-seasons]; the book itself was not read.
 The Holy Trinity calendar marks Wednesday 26 February 2025 "Cheesefare
 week (Maslenitsa) - fast-free. Tone two. Maslenitsa. Meat is excluded",
-and every other day of the week the same way [holy-trinity-calendar]. So
+and every other day of the week the same way, all seven read
+[holy-trinity-calendar]. So
 the week is not a fast in the sense the weekly fasts are, which neither
 source keeps in it, and it is not free of abstinence either: meat is
 excluded on all seven days. The library carries it as that third kind.
@@ -159,16 +160,16 @@ The scheme is arithmetic, so it is exact to the sources. It is checked
 against:
 
 - the Holy Trinity Russian Orthodox Church's calendar (Moscow Patriarchate,
-  Julian calendar) [holy-trinity-calendar], on 31 days of 2025 and 2026: the
+  Julian calendar) [holy-trinity-calendar], on 34 days of 2025 and 2026: the
   beginning of Great Lent and Holy Saturday, Bright Wednesday, the
   fast-free Wednesday and Friday of Trinity Week, the first and last days of
   the Apostles' and Dormition Fasts and the days after each, the Beheading
   and the Exaltation, the eve and first day of the Nativity Fast and its
   last day, Christmastide, the eve of Theophany, the fast-free Wednesday of
   the week after the Publican and the Pharisee, the fasting Wednesday of the
-  week after it, and six days of Cheesefare week, not fast days and
-  excluding meat, among them its Wednesdays and Fridays and Cheesefare
-  Sunday. Every day agrees.
+  week after it, and nine days of Cheesefare week, not fast days and
+  excluding meat: all seven of 2025, Monday to Cheesefare Sunday, and the
+  Wednesday and Friday of 2026. Every day agrees.
 - the OCA's daily pages (Revised Julian calendar) [oca-daily-readings]: the
   "Beginning of the Great Fast" on 3 March 2025 and the "Beginning of the
   Apostles Fast" on 16 June 2025 and 28 June 2027.

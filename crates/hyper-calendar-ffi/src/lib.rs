@@ -3868,15 +3868,13 @@ mod tz {
     use core::ffi::c_char;
     use std::sync::{Mutex, PoisonError};
 
-    use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
-    use hc::hc_calendar::{CivilDateTime, Rd};
-    use hc::hc_core::UnixTime;
+    use hc::hc_calendar::CivilDateTime;
     use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
     use hc::zone_lines::{self, ZoneRules};
 
     use super::{
         HC_ERROR_MALFORMED, HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK,
-        HcStatus, text, write_text,
+        HcStatus, status, text, write_text,
     };
 
     /// The zones a caller has handed the library as TZif bytes, by name.
@@ -3909,9 +3907,16 @@ mod tz {
     }
 
     /// The fixed day an instant falls on by a zone's wall clock.
+    ///
+    /// # Errors
+    ///
+    /// [`HC_ERROR_UNKNOWN`] for a name neither table knows, and
+    /// [`HC_ERROR_OUT_OF_RANGE`] for an instant outside the years the rules
+    /// answer for, [`zone_lines::instant_in_zone_range`]'s.
     pub(super) fn day_in_zone(unix: i64, name: &str) -> Result<i64, HcStatus> {
         with_zone(name, |zone, _| {
-            zone.local_at(UnixTime::from_seconds(unix))
+            let instant = zone_lines::instant_in_zone_range(unix).map_err(status)?;
+            zone.local_at(instant)
                 .map(|local| local.day.0)
                 .map_err(|_| HC_ERROR_OUT_OF_RANGE)
         })?
@@ -3924,33 +3929,18 @@ mod tz {
     /// # Errors
     ///
     /// [`HC_ERROR_UNKNOWN`] for a name neither table knows, and
-    /// [`HC_ERROR_OUT_OF_RANGE`] for a day whose start would overflow an
-    /// `i64`.
+    /// [`HC_ERROR_OUT_OF_RANGE`] for a day outside the years the rules
+    /// answer for, [`zone_lines::day_in_zone_range`]'s.
     pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, HcStatus> {
         with_zone(name, |zone, _| {
-            let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
+            let day = zone_lines::day_in_zone_range(fixed).map_err(status)?;
+            let instant = match zone.resolve_local(CivilDateTime::midnight(day)) {
                 LocalResolution::Unambiguous(instant) => instant,
                 LocalResolution::Ambiguous { earlier, .. } => earlier,
                 LocalResolution::Nonexistent { after_gap, .. } => after_gap,
             };
-            unsaturated(fixed, instant.seconds(), zone).ok_or(HC_ERROR_OUT_OF_RANGE)
+            Ok(instant.seconds())
         })?
-    }
-
-    /// The start of a day as `resolve_local` gave it, or `None` when that
-    /// was an `i64` bound standing in for an instant beyond it.
-    ///
-    /// `resolve_local` saturates rather than fails, so `i64::MIN` and
-    /// `i64::MAX` are its answer for every day whose start is out of reach.
-    /// Either is kept only when the day's midnight less the zone's offset
-    /// there really is that instant.
-    fn unsaturated(fixed: i64, seconds: i64, zone: &dyn TimeZone) -> Option<i64> {
-        if seconds != i64::MIN && seconds != i64::MAX {
-            return Some(seconds);
-        }
-        let midnight = (i128::from(fixed) - i128::from(RD_OF_UNIX_EPOCH)) * 86_400;
-        let offset = zone.offset_at(UnixTime::from_seconds(seconds)).seconds();
-        (midnight - i128::from(offset) == i128::from(seconds)).then_some(seconds)
     }
 
     /// The zone name a NUL-terminated argument carries.
@@ -3969,8 +3959,9 @@ mod tz {
     /// a caller has loaded through `hc_zone_load`, or else one of the
     /// seventeen the library carries with their current rules. A null
     /// `zone` or `out_fixed` is `HC_ERROR_NULL_POINTER`, a name neither
-    /// knows `HC_ERROR_UNKNOWN`, an instant whose local day leaves the range
-    /// of a day number `HC_ERROR_OUT_OF_RANGE`, and a name that is not UTF-8
+    /// knows `HC_ERROR_UNKNOWN`, an instant outside the years −9 999 994 to
+    /// 9 999 994 by UTC, the ones a zone's rules answer for,
+    /// `HC_ERROR_OUT_OF_RANGE`, and a name that is not UTF-8
     /// `HC_ERROR_NOT_UTF8`.
     ///
     /// # Safety
@@ -4010,11 +4001,8 @@ mod tz {
     /// earlier of the two midnights. `zone` is as for
     /// `hc_fixed_from_unix_in_zone`, and fails the same way.
     ///
-    /// A day whose start would overflow an `int64_t` is
-    /// `HC_ERROR_OUT_OF_RANGE`, never a clamped or wrapped number: by UTC, a
-    /// day before fixed day −106 751 990 448 137 or after
-    /// 106 751 991 886 463, and a zone's offset moves each end by at most a
-    /// day.
+    /// A day outside the years −9 999 994 to 9 999 994, before fixed day
+    /// −3 652 423 173 or after 3 652 422 808, is `HC_ERROR_OUT_OF_RANGE`.
     ///
     /// # Safety
     ///
@@ -4053,8 +4041,10 @@ mod tz {
     /// summer time, the abbreviation the rules give or empty where they give
     /// a numeric one, the POSIX second of the next transition and the
     /// offset after it or both empty where the rules have none, and
-    /// `builtin` or `loaded` for the rules that answered. Writes the
-    /// required length, including the terminator, into `written`.
+    /// `builtin` or `loaded` for the rules that answered. An instant
+    /// outside the years of `hc_fixed_from_unix_in_zone` is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
     ///
     /// # Safety
     ///
@@ -4077,8 +4067,9 @@ mod tz {
             zone_lines::zone_offset(zone, rules, unix_seconds)
         }) {
             // SAFETY: forwarded to the caller's contract above.
-            Ok(line) => unsafe { write_text(&line, buffer, capacity, written) },
-            Err(status) => status,
+            Ok(Ok(line)) => unsafe { write_text(&line, buffer, capacity, written) },
+            Ok(Err(refusal)) => status(refusal),
+            Err(unknown) => unknown,
         }
     }
 
@@ -4837,7 +4828,7 @@ mod hours {
     /// dawns and nightfalls, as nine NUL-terminated UTF-8 lines in a
     /// caller-owned buffer.
     ///
-    /// `reckoning` is `gra`, `mga-72-minutes` or `mga-16-1-degrees`, in any
+    /// `reckoning` is `zmanim-gra`, `mga-72-minutes` or `mga-16-1-degrees`, in any
     /// case; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. The lines are the WebAssembly module's. A
     /// place off the globe, or a day outside the years −1000 to 3000, is
@@ -6573,7 +6564,8 @@ mod tests {
 
         /// America/Denver as a TZif file: MST and MDT, the two transitions
         /// of 2026, 8 March 09:00 UTC and 1 November 08:00 UTC, and the
-        /// footer `MST7MDT,M3.2.0,M11.1.0`, which is tzdata 2026c's.
+        /// footer `MST7MDT,M3.2.0,M11.1.0`, which is tzdata 2026d's
+        /// (unchanged since 2026c).
         const TZIF_V2_DENVER: &[u8] = &[
             0x54, 0x5a, 0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -6687,6 +6679,12 @@ mod tests {
                 encode(c"wwvb-am", 1_772_928_000, c"zone:America/Denver", 0),
                 encode(c"wwvb-am", 1_772_928_000, c"begins-today", 0)
             );
+            // New York keeps the same rule and is built in, the README's
+            // example of a zone that needs no file.
+            assert_eq!(
+                encode(c"wwvb-am", 1_772_928_000, c"zone:America/New_York", 0),
+                encode(c"wwvb-am", 1_772_928_000, c"begins-today", 0)
+            );
             assert_eq!(
                 encode(c"dcf77", 1_774_746_000, c"ZONE:Europe/Berlin", 0),
                 encode(c"dcf77", 1_774_746_000, c"cest", 1)
@@ -6750,49 +6748,73 @@ mod tests {
             }
         }
 
-        #[test]
-        fn a_days_start_refuses_rather_than_saturates_downwards() {
-            // The last day whose UTC midnight fits an int64_t, and the
-            // first that would not.
-            let first = -106_751_990_448_137;
-            let midnight = -9_223_372_036_854_720_000;
-            assert_eq!(starts(first, c"UTC"), Ok(midnight));
-            assert_eq!(starts(first - 1, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
-            assert_eq!(starts(first, c"Asia/Tokyo"), Ok(midnight - 9 * 3_600));
-            assert_eq!(starts(first - 1, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
-            assert_eq!(starts(i64::MIN, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
-            assert_eq!(
-                starts(i64::MIN, c"America/New_York"),
-                Err(HC_ERROR_OUT_OF_RANGE)
-            );
-            // There are no sentinels here, so a day 54 billion years back
-            // is an answer, as it cannot be in the WebAssembly module.
-            let far = -19_723_095_000_000;
-            assert_eq!(starts(far, c"UTC"), Ok((far - 719_163) * 86_400));
+        /// `hc_fixed_from_unix_in_zone` as a `Result`.
+        fn day(unix: i64, zone: &core::ffi::CStr) -> Result<i64, HcStatus> {
+            let mut day = 0i64;
+            match unsafe { hc_fixed_from_unix_in_zone(unix, zone.as_ptr(), &mut day) } {
+                HC_OK => Ok(day),
+                status => Err(status),
+            }
         }
 
+        /// The day, its start and the offset answer from the rules at both
+        /// ends of their years, −9 999 994 to 9 999 994, Sydney's summer
+        /// time included, and refuse a second or a day beyond, where the
+        /// rules would give standard time.
         #[test]
-        fn a_days_start_refuses_rather_than_saturates_upwards() {
-            let last = 106_751_991_886_463;
-            let midnight = 9_223_372_036_854_720_000;
-            assert_eq!(starts(last, c"UTC"), Ok(midnight));
-            assert_eq!(starts(last + 1, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
-            assert_eq!(starts(last, c"America/Sao_Paulo"), Ok(midnight + 3 * 3_600));
-            assert_eq!(
-                starts(last + 1, c"America/Sao_Paulo"),
-                Err(HC_ERROR_OUT_OF_RANGE)
+        fn a_zone_answers_for_the_years_its_rules_do_and_refuses_beyond() {
+            use hc::hc_calendar::gregorian::new_year;
+            use hc::hc_tz::posix::{
+                FIRST_RULE_SECOND, FIRST_RULE_YEAR, LAST_RULE_SECOND, LAST_RULE_YEAR,
+            };
+            let (first, last) = (
+                new_year(FIRST_RULE_YEAR).0,
+                new_year(LAST_RULE_YEAR + 1).0 - 1,
             );
-            // Tokyo's day after UTC's last begins nine hours before it,
-            // which still fits.
+            assert_eq!((first, last), (-3_652_423_173, 3_652_422_808));
+            let (first_second, last_second) = (FIRST_RULE_SECOND, LAST_RULE_SECOND);
+            assert_eq!(first_second, -315_631_497_830_400);
+            assert_eq!(last_second, 315_507_195_014_399);
+            for zone in [
+                c"UTC",
+                c"Asia/Tokyo",
+                c"Australia/Sydney",
+                c"America/New_York",
+            ] {
+                for fixed in [first - 1, last + 1, i64::MIN, i64::MAX] {
+                    assert_eq!(starts(fixed, zone), Err(HC_ERROR_OUT_OF_RANGE), "{zone:?}");
+                }
+                for unix in [first_second - 1, last_second + 1, i64::MIN, i64::MAX] {
+                    assert_eq!(day(unix, zone), Err(HC_ERROR_OUT_OF_RANGE), "{zone:?}");
+                    let mut written = 0usize;
+                    assert_eq!(
+                        unsafe {
+                            hc_zone_offset(
+                                zone.as_ptr(),
+                                unix,
+                                core::ptr::null_mut(),
+                                0,
+                                &mut written,
+                            )
+                        },
+                        HC_ERROR_OUT_OF_RANGE,
+                        "{zone:?} {unix}"
+                    );
+                }
+            }
+            assert_eq!(starts(first, c"UTC"), Ok(first_second));
+            assert_eq!(starts(last, c"UTC"), Ok(last_second - 86_399));
+            assert_eq!(day(first_second, c"UTC"), Ok(first));
+            assert_eq!(day(last_second, c"UTC"), Ok(last));
+            // Sydney is on AEDT, eleven hours east, at both ends.
             assert_eq!(
-                starts(last + 1, c"Asia/Tokyo"),
-                Ok(midnight - 9 * 3_600 + 86_400)
+                starts(first, c"Australia/Sydney"),
+                Ok(first_second - 11 * 3_600)
             );
-            assert_eq!(starts(last + 2, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
-            // 2^53 days, whose start a saturating product would clamp to
-            // INT64_MAX.
-            assert_eq!(starts(1 << 53, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
-            assert_eq!(starts(i64::MAX, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
+            assert_eq!(day(last_second, c"Australia/Sydney"), Ok(last + 1));
+            assert!(offset(c"Australia/Sydney", first_second).starts_with("39600\t1\tAEDT\t"));
+            assert!(offset(c"Australia/Sydney", last_second).starts_with("39600\t1\tAEDT\t"));
+            assert_eq!(day(first_second, c"America/New_York"), Ok(first - 1));
         }
 
         #[test]

@@ -1345,11 +1345,12 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
 /// for 2025, 2026 and 2027: the days they date by the Hindu calendar and
 /// by the Hijri one.
 ///
-/// Four of the Hindu days are a day later than the rules of
+/// Five of the Hindu days are a day later than the rules of
 /// [`crate::hindu`], which reproduce the *Rashtriya Panchang*'s festival
-/// list: Janmashtami on 16 August 2025 and 25 August 2027, which the 2026
-/// and 2027 lists name "Janmashtami (Vaishnav)"; Holi on 4 March 2026 and
-/// 23 March 2027; and Guru Nanak's Birthday on 14 November 2027. The
+/// list: Janmashtami on 16 August 2025 and 25 August 2027; Holi on 4 March
+/// 2026 and 23 March 2027; and Guru Nanak's Birthday on 14 November 2027.
+/// The 2025 list names the day "Janmashtami", the 2026 O.M. "Janmashtami
+/// (Vaishnva)" and the 2027 list "Janmashtami (Vaishnav)". The
 /// three optional days Delhi keeps are Holi, Maha Shivaratri and
 /// Janmashtami in 2025 and Holi, Ram Navami and Janmashtami in 2026 and
 /// 2027.
@@ -2544,13 +2545,24 @@ pub static MALAYSIA: RuleSet = RuleSet {
 
 /// The President's proclamations of Eid'l Fitr and Eid'l Adha as regular
 /// holidays, on the National Commission on Muslim Filipinos'
-/// recommendation, for 2020 to 2026: Proclamations 944 and 985 (2020),
+/// recommendation, for 2012 to 2026: Proclamations 455 and 488 (2012),
+/// 629 and 658 (2013), 826 and 875 (2014), 1070 and 1128 (2015), 6 and 56
+/// (2016), 235 and 297 (2017), 514 and 556 (2018), 729 and 789 (2019), as
+/// LawPhil reproduces them, 944 and 985 (2020),
 /// 1142 and 1189 (2021), 1356 and 2 (2022), 201 and 258 (2023), 514 and
 /// 579 (2024), 839 and 911 (2025), and for 2026 the proclamation of 12
 /// March (No. 1189 by the titles of its reports) and No. 1264. The 2027
 /// proclamations had not been issued.
 #[rustfmt::skip]
 static PH_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2012, 8, 20, "fitr"), (2012, 10, 26, "adha"),
+    (2013, 8, 9, "fitr"), (2013, 10, 15, "adha"),
+    (2014, 7, 29, "fitr"), (2014, 10, 6, "adha"),
+    (2015, 7, 17, "fitr"), (2015, 9, 25, "adha"),
+    (2016, 7, 6, "fitr"), (2016, 9, 12, "adha"),
+    (2017, 6, 26, "fitr"), (2017, 9, 1, "adha"),
+    (2018, 6, 15, "fitr"), (2018, 8, 21, "adha"),
+    (2019, 6, 5, "fitr"), (2019, 8, 12, "adha"),
     (2020, 5, 25, "fitr"), (2020, 7, 31, "adha"),
     (2021, 5, 13, "fitr"), (2021, 7, 20, "adha"),
     (2022, 5, 3, "fitr"), (2022, 7, 9, "adha"),
@@ -2568,24 +2580,38 @@ listed_days! { PH_LISTED:
 const PH_FITR: [HolidayRule; 4] = listed(
     HolidayRule::fixed_public("Eid'l Fitr", "", EID_AL_FITR),
     ph_fitr,
-    SEA_LISTED_FIRST,
+    PH_PROCLAIMED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_SETTLED,
 );
 const PH_ADHA: [HolidayRule; 4] = listed(
     HolidayRule::fixed_public("Eid'l Adha", "", EID_AL_ADHA),
     ph_adha,
-    SEA_LISTED_FIRST,
+    PH_PROCLAIMED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_SETTLED,
 );
 
 /// The President's annual proclamations of the regular holidays and
-/// special (non-working) days for 2020 to 2027, as amended, and the
+/// special (non-working) days for 2012 to 2027, as amended, and the
 /// proclamations of a nationwide special day in those years: the days
 /// that they alone make days off, and the statutory days they move.
 ///
-/// The annual ones are Proclamations 845 (2020), 986 as amended by 1107
+/// For 2012 to 2019 the annual ones are Proclamations 295 (2012), 459
+/// (2013), 655 (2014), 831 (2015), 1105 (2016), 50 (2017), 269 (2018) and
+/// 555 (2019), and the others 360 and 361, Black Saturday and Christmas
+/// Eve of 2012, which 295 does not list; 571 and 656, the elections of
+/// 13 May and 28 October 2013; 1071, the EDSA anniversary of 2016; 1254,
+/// the elections of 9 May 2016; 117, 26 December 2016 and 2 January 2017;
+/// 479, the barangay elections of 14 May 2018; and 719, the elections of
+/// 13 May 2019, found in LawPhil's yearly indexes of 2011 to 2019 by
+/// their titles. Those lists give the additional days by date alone, and
+/// the table names 2 November, 31 October and 24 December as the later
+/// lists do. 459 lists no Chinese New Year for 2013, when it fell on a
+/// Sunday, and 295 to 831 make the EDSA anniversary a "Special Holiday
+/// (for all schools)", not a day off, from 2012 to 2015.
+///
+/// For 2020 to 2027 the annual ones are Proclamations 845 (2020), 986 as amended by 1107
 /// (2021), 1236 (2022), 42 as amended by 90 (2023), 368 (2024), 727
 /// (2025), 1006 (2026) and 1427 (2027). 1107 made All Souls' Day,
 /// Christmas Eve and the Last Day of the Year 2021 special working days,
@@ -2601,6 +2627,25 @@ const PH_ADHA: [HolidayRule; 4] = listed(
 /// a special (working) day from 2025 and in none of the lists for 2024.
 #[rustfmt::skip]
 static PH_PROCLAIMED: &[(i64, u8, u8, &str)] = &[
+    (2012, 1, 23, "cny"), (2012, 2, 25, "edsa-schools"), (2012, 4, 7, "black-saturday"),
+    (2012, 11, 2, "all-souls"), (2012, 12, 24, "christmas-eve"),
+    (2013, 2, 25, "edsa-schools"), (2013, 3, 30, "black-saturday"), (2013, 5, 13, "elections"),
+    (2013, 10, 28, "barangay-elections"), (2013, 11, 2, "all-souls"),
+    (2013, 12, 24, "christmas-eve"),
+    (2014, 1, 31, "cny"), (2014, 2, 25, "edsa-schools"), (2014, 4, 19, "black-saturday"),
+    (2014, 12, 24, "christmas-eve"), (2014, 12, 26, "additional"),
+    (2015, 1, 2, "additional"), (2015, 2, 19, "cny"), (2015, 2, 25, "edsa-schools"),
+    (2015, 4, 4, "black-saturday"), (2015, 12, 24, "christmas-eve"),
+    (2016, 1, 2, "additional"), (2016, 2, 8, "cny"), (2016, 2, 25, "edsa"),
+    (2016, 3, 26, "black-saturday"), (2016, 5, 9, "elections"), (2016, 10, 31, "all-saints-eve"),
+    (2016, 12, 24, "christmas-eve"), (2016, 12, 26, "additional"),
+    (2017, 1, 2, "additional"), (2017, 1, 28, "cny"), (2017, 2, 25, "edsa"),
+    (2017, 4, 15, "black-saturday"), (2017, 10, 31, "all-saints-eve"),
+    (2018, 2, 16, "cny"), (2018, 2, 25, "edsa"), (2018, 3, 31, "black-saturday"),
+    (2018, 5, 14, "barangay-elections"), (2018, 11, 2, "all-souls"),
+    (2018, 12, 24, "christmas-eve"),
+    (2019, 2, 5, "cny"), (2019, 2, 25, "edsa"), (2019, 4, 20, "black-saturday"),
+    (2019, 5, 13, "elections"), (2019, 11, 2, "all-souls"), (2019, 12, 24, "christmas-eve"),
     (2020, 1, 25, "cny"), (2020, 2, 25, "edsa"), (2020, 4, 11, "black-saturday"),
     (2020, 11, 2, "all-souls"), (2020, 12, 24, "christmas-eve"),
     (2021, 2, 12, "cny"), (2021, 2, 25, "edsa"), (2021, 4, 3, "black-saturday"),
@@ -2620,12 +2665,13 @@ static PH_PROCLAIMED: &[(i64, u8, u8, &str)] = &[
 ];
 
 /// The first and the last year of the proclamations read.
-const PH_PROCLAIMED_FIRST: i32 = 2020;
+const PH_PROCLAIMED_FIRST: i32 = 2012;
 const PH_PROCLAIMED_LAST: i32 = 2027;
 
 listed_days! { PH_PROCLAIMED:
     ph_cny => "cny",
     ph_edsa => "edsa",
+    ph_edsa_schools => "edsa-schools",
     ph_black_saturday => "black-saturday",
     ph_all_souls => "all-souls",
     ph_christmas_eve => "christmas-eve",
@@ -2639,7 +2685,7 @@ listed_days! { PH_PROCLAIMED:
     ph_ninoy => "ninoy",
 }
 
-/// Nothing: the rule of the gap after the proclamations read.
+/// Nothing: the rule of the gaps before and after the proclamations read.
 const fn ph_unproclaimed(_year: i64) -> Days {
     Days::new()
 }
@@ -2719,16 +2765,10 @@ const PH_NINOY: [HolidayRule; 3] = {
 
 static PH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
-    // Chinese New Year and Black Saturday: by rule before the
-    // proclamations read, as each year's proclamation declared them, and
-    // predicted after them, approximate.
-    HolidayRule::public(
-        "Chinese New Year",
-        "",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    )
-    .of_kind(Kind::Bank)
-    .years(Some(2012), Some(PH_PROCLAIMED_FIRST - 1)),
+    // Chinese New Year and Black Saturday: the proclamations' in the
+    // years read, and predicted after them, approximate. Before them
+    // Black Saturday is predicted too, and Chinese New Year, first
+    // proclaimed for 2012, is not a day off.
     ph_proclaimed("Chinese New Year", "", ph_cny),
     HolidayRule::public(
         "Chinese New Year",
@@ -2739,6 +2779,12 @@ static PH_RULES: &[HolidayRule] = &[
     .approximate()
     .years(Some(PH_PROCLAIMED_LAST + 1), None),
     ph_proclaimed("EDSA People Power Revolution Anniversary", "", ph_edsa),
+    ph_proclaimed(
+        "EDSA People Power Revolution Anniversary",
+        "",
+        ph_edsa_schools,
+    )
+    .of_kind(Kind::School),
     HolidayRule::fixed_public(
         "Maundy Thursday",
         "Huwebes Santo",
@@ -2747,6 +2793,7 @@ static PH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Good Friday", "Biyernes Santo", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
         .of_kind(Kind::Bank)
+        .approximate()
         .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
     ph_proclaimed("Black Saturday", "Sabado de Gloria", ph_black_saturday),
     HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
@@ -2788,9 +2835,11 @@ static PH_RULES: &[HolidayRule] = &[
     PH_BONIFACIO[0],
     PH_BONIFACIO[1],
     PH_BONIFACIO[2],
+    // Republic Act 10966, approved 28 December 2017: "December 8 of every
+    // year".
     HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8))
         .of_kind(Kind::Bank)
-        .years(Some(2019), None),
+        .years(Some(2018), None),
     HolidayRule::fixed_public("Christmas Day", "Pasko", Rule::gregorian(12, 25)),
     HolidayRule::fixed_public("Rizal Day", "Araw ni Rizal", Rule::gregorian(12, 30)),
     // A special working day in 2021 and 2022.
@@ -2800,8 +2849,8 @@ static PH_RULES: &[HolidayRule] = &[
     HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
         .of_kind(Kind::Bank)
         .years(Some(2023), None),
-    // The days the proclamations read add, and after them a gap: the
-    // next year's are not known until its proclamation.
+    // The days the proclamations read add, and before and after them a
+    // gap: a year's are not known without its proclamation.
     ph_proclaimed("All Souls' Day", "", ph_all_souls),
     ph_proclaimed("Christmas Eve", "", ph_christmas_eve),
     ph_proclaimed("All Saints' Day Eve", "", ph_all_saints_eve),
@@ -2824,6 +2873,17 @@ static PH_RULES: &[HolidayRule] = &[
     )
     .of_kind(Kind::Bank)
     .years(Some(PH_PROCLAIMED_LAST + 1), None),
+    HolidayRule::public(
+        "Proclaimed special days",
+        "",
+        Rule::Tabulated {
+            function: ph_unproclaimed,
+            first_year: PH_PROCLAIMED_FIRST as i64,
+            last_year: PH_PROCLAIMED_LAST as i64,
+        },
+    )
+    .of_kind(Kind::Bank)
+    .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
 ];
 
 /// The Philippines.
@@ -2838,11 +2898,18 @@ pub static PHILIPPINES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 27),
+    sources_checked: SourceDate::new(2026, 9, 28),
     sources: "Administrative Code of 1987 as amended by Republic Act 9492 \
-              and Republic Act 9849; Republic Act 9256 for Ninoy Aquino Day and \
-              Republic Act 10966 for the Immaculate Conception, as the proclamations \
-              cite them; the annual Malacañang proclamations for 2020 to 2027, \
+              and Republic Act 9849; Republic Act 9256 for Ninoy Aquino Day, as the \
+              proclamations cite them; Republic Act 10966 of 28 December 2017 for the \
+              Immaculate Conception from 2018, as LawPhil reproduces it \
+              (lawphil.net/statutes/repacts/ra2017/ra_10966_2017.html), retrieved \
+              2026-09-28; the annual Malacañang proclamations for 2012 to 2019, \
+              Proclamations 295, 459, 655, 831, 1105, 50, 269 and 555, and the \
+              proclamations of a nationwide special day in those years, 360, 361, \
+              571, 656, 1071, 1254, 117, 479 and 719, found in LawPhil's yearly \
+              indexes of 2011 to 2019 (`lawphil-proclamations-2012-2019`), retrieved \
+              2026-09-28; the annual proclamations for 2020 to 2027, \
               Proclamations 845, 986 and its amendment 1107, 1236, 42 and its \
               amendment 90, 368, 727, 1006 and 1427, and the proclamations of a \
               nationwide special day or a moved day in those years, 1357, 79, 167, \
@@ -2850,17 +2917,20 @@ pub static PHILIPPINES: RuleSet = RuleSet {
               (lawphil.net/executive/proc/, `lawphil-proclamations-2020-2027`), \
               retrieved 2026-09-27; the Official Gazette and the Presidential \
               Communications Office answered with a bot check. Special (non-working) \
-              days are recorded as bank holidays. The days only a proclamation makes \
-              — Chinese New Year, the EDSA anniversary, Black Saturday, All Souls' \
-              Day, Christmas Eve and the rest — are the proclamations' for 2020 to \
-              2027; before 2020 Chinese New Year from 2012 and Black Saturday are \
-              carried by rule and the others not, the proclamations not read; after \
-              2027 Chinese New Year and Black Saturday are predicted, approximate, and \
-              the rest are a gap. The two Islamic days are the proclaimed dates for \
-              2020 to 2026, from the Official Gazette (officialgazette.gov.ph, \
-              through web.archive.org), the Presidential Communications Office and \
-              the Philippine News Agency (pna.gov.ph), retrieved 2026-09-26, and the \
-              tabular computation, approximate, outside them",
+              days are recorded as bank holidays, and the EDSA anniversary's \
+              \"Special Holiday (for all schools)\" of 2012 to 2015 as a school \
+              holiday. The days only a proclamation makes — Chinese New Year, the \
+              EDSA anniversary, Black Saturday, All Souls' Day, Christmas Eve and the \
+              rest — are the proclamations' for 2012 to 2027; before 2012 and after \
+              2027 Black Saturday is predicted, approximate, Chinese New Year after \
+              2027 too, and the rest are a gap. The two Islamic days are the \
+              proclaimed dates for 2012 to 2026: for 2012 to 2019 Proclamations 455, \
+              488, 629, 658, 826, 875, 1070, 1128, 6, 56, 235, 297, 514, 556, 729 \
+              and 789 as LawPhil reproduces them, retrieved 2026-09-28, and for 2020 \
+              to 2026 from the Official Gazette (officialgazette.gov.ph, through \
+              web.archive.org), the Presidential Communications Office and the \
+              Philippine News Agency (pna.gov.ph), retrieved 2026-09-26; outside \
+              them the tabular computation, approximate",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

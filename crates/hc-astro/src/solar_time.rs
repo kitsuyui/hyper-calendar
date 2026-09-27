@@ -73,6 +73,9 @@
 //! the Magen Avraham's, from a dawn 72 minutes before sunrise with a
 //! twelfth of that dawn to a nightfall 72 minutes after sunset; and
 //! [`zman_mga_16_1_degrees`], the same with dawn and nightfall at 16.1°.
+//! The three are the table [`ZMANIM_RECKONINGS`], under the identifiers
+//! `zmanim-gra`, `mga-72-minutes` and `mga-16-1-degrees`, by which a
+//! caller at the boundary selects one.
 //! Dawn and nightfall have their own functions: [`jewish_dawn_16_1_degrees`],
 //! [`jewish_dawn_72_minutes`], [`jewish_nightfall_8_5_degrees`] and
 //! [`jewish_nightfall_72_minutes`]. The rules are as KosherJava's
@@ -1090,6 +1093,71 @@ pub fn zman_mga_16_1_degrees(
     Ok(Moment(
         jewish_dawn_16_1_degrees(day, location)?.0 + zman.hours * hour,
     ))
+}
+
+/// A reckoning of the hours of the Jewish day that a [`Zman`] is counted
+/// in, under the identifier a caller selects it by: when the day starts
+/// and how long its temporal hour is.
+///
+/// Each reckoning is a convention of its own (`docs/policy.md` §5), and
+/// its functions are the ones named for it, [`zman_gra`] and its
+/// companions; the table is how a name at the boundary finds them.
+#[derive(Debug, Clone, Copy)]
+pub struct ZmanimReckoning {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The temporal hour on a local day, as a fraction of a day.
+    pub temporal_hour: fn(Rd, Location) -> Result<f64, MissingSolarEvent>,
+    /// A [`Zman`] on a local day, in Universal Time.
+    pub zman: fn(&Zman, Rd, Location) -> Result<Moment, MissingSolarEvent>,
+    /// Where the reckoning's day comes from.
+    pub source: &'static str,
+}
+
+hc_core::catalogue! {
+    type: ZmanimReckoning,
+    id: |reckoning| reckoning.id,
+    provenance: |reckoning| reckoning.source,
+    tests: zmanim_reckoning_catalogue_tests,
+
+    /// The three reckonings carried: the GRA's, and the Magen Avraham's at
+    /// 72 minutes and at 16.1°.
+    pub const ZMANIM_RECKONINGS;
+
+    /// The reckoning with this identifier.
+    pub fn zmanim_reckoning;
+
+    entries: {
+        /// The GRA's (the Vilna Gaon's): sunrise to sunset,
+        /// [`temporal_hour_gra`] and [`zman_gra`]. The identifier names the
+        /// table as well as the authority, since the GRA has rules outside
+        /// it, [`jewish_dusk_vilna_gaon`] among them.
+        pub const ZMANIM_GRA = ZmanimReckoning {
+            id: "zmanim-gra",
+            temporal_hour: temporal_hour_gra,
+            zman: zman_gra,
+            source: "KosherJava, ZmanimCalendar, getSofZmanShmaGRA and getSofZmanTfilaGRA \
+                     (kosherjava-zmanim); Hebcal, Zmanim, sofZmanShma (hebcal-zmanim-api)",
+        };
+        /// The Magen Avraham's with dawn and nightfall 72 minutes from
+        /// sunrise and sunset, [`temporal_hour_mga_72_minutes`] and
+        /// [`zman_mga_72_minutes`].
+        pub const MGA_72_MINUTES = ZmanimReckoning {
+            id: "mga-72-minutes",
+            temporal_hour: temporal_hour_mga_72_minutes,
+            zman: zman_mga_72_minutes,
+            source: "KosherJava, ZmanimCalendar, getShaahZmanisMGA and getSofZmanShmaMGA \
+                     (kosherjava-zmanim)",
+        };
+        /// The Magen Avraham's with dawn and nightfall at 16.1°,
+        /// [`temporal_hour_mga_16_1_degrees`] and [`zman_mga_16_1_degrees`].
+        pub const MGA_16_1_DEGREES = ZmanimReckoning {
+            id: "mga-16-1-degrees",
+            temporal_hour: temporal_hour_mga_16_1_degrees,
+            zman: zman_mga_16_1_degrees,
+            source: "Hebcal, Zmanim, sofZmanShmaMGA16Point1 (hebcal-zmanim-api)",
+        };
+    }
 }
 
 /// How a prayer-time method fixes *ʿishāʾ*, the night prayer.

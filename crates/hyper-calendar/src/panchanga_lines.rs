@@ -27,7 +27,7 @@ use hc_calendars_indic::panchanga::{
 };
 use hc_seasons::zodiac::Ayanamsa;
 
-use hc_calendars_indic::kalam::{self, Kalam};
+use hc_calendars_indic::kalam::{Kalam, KalamConvention, SpanClock};
 
 use crate::astro_lines::{
     MISSING_COLUMNS, day_in_era, moment_in_era, push_missing_cells, unix_from_moment,
@@ -118,19 +118,16 @@ pub fn panchanga_of_day_lines(fixed: i64, place: Location, ayanamsa_name: &str) 
     Ok(lines_at(rise, unix_from_moment(rise), ayanamsa))
 }
 
-/// The conventions of the day `hc_kalam` divides, by name: the daylight
-/// from sunrise to sunset, and the fixed day of 06:00 to 18:00.
-pub const KALAM_CONVENTIONS: [&str; 2] = ["rahu-kalam-sunrise", "rahu-kalam-fixed"];
-
 /// How many columns each line of [`kalam_lines`] writes.
 pub const KALAM_COLUMNS: usize = 6 + MISSING_COLUMNS;
 
 /// The lines of `hc_kalam`: Rāhu kālam, Yamaganda and Gulika kālam on a
-/// day by a convention of [`KALAM_CONVENTIONS`], one line each in the
-/// order a pañcāṅga prints them, as the period's identifier, its English
-/// name as Drik Panchang prints it, the eighth of the day it takes (1 to
-/// 8), the clock its start and end are read on, and the start and the
-/// end, then the four cells of a missing solar event.
+/// day by a convention of [`KalamConvention::ALL`], selected by its
+/// identifier in any case, one line each in the order a pañcāṅga prints
+/// them, as the period's identifier, its English name as Drik Panchang
+/// prints it, the eighth of the day it takes (1 to 8), the clock its start
+/// and end are read on, and the start and the end, then the four cells of
+/// a missing solar event.
 ///
 /// On `rahu-kalam-sunrise` the clock is `universal` and the start and end
 /// are whole POSIX seconds, rounded down, of the eighth of the daylight at
@@ -145,48 +142,33 @@ pub const KALAM_COLUMNS: usize = 6 + MISSING_COLUMNS;
 /// [`Refusal::Unknown`] for a convention not named, and
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
 pub fn kalam_lines(convention: &str, fixed: i64, place: Location) -> Answer<String> {
-    let by_sunrise = if names(convention, "rahu-kalam-sunrise") {
-        true
-    } else if names(convention, "rahu-kalam-fixed") {
-        false
-    } else {
-        return Err(Refusal::Unknown);
-    };
+    let convention = KalamConvention::ALL
+        .iter()
+        .find(|known| names(convention, known.id))
+        .ok_or(Refusal::Unknown)?;
     let day = day_in_era(fixed)?;
+    let (clock, seconds): (&str, &dyn Fn(Moment) -> i64) = match convention.clock {
+        SpanClock::Universal => ("universal", &unix_from_moment),
+        SpanClock::Local => ("local", &|moment: Moment| {
+            hc_core::math::round((moment.0 - day.0 as f64) * 86_400.0) as i64
+        }),
+    };
     let mut out = String::new();
     for period in Kalam::ALL {
         push_cell(&mut out, period.id);
         out.push('\t');
         push_cell(&mut out, period.english_name);
         let part = period.part(hc_calendar::Weekday::from_rd(day));
-        if by_sunrise {
-            let _ = write!(out, "\t{part}\tuniversal\t");
-            match kalam::by_sunrise(period, day, place) {
-                Ok(span) => {
-                    let _ = write!(
-                        out,
-                        "{}\t{}\t",
-                        unix_from_moment(span.start),
-                        unix_from_moment(span.end)
-                    );
-                    push_missing_cells(&mut out, None);
-                }
-                Err(missing) => {
-                    out.push_str("\t\t");
-                    push_missing_cells(&mut out, Some(missing));
-                }
+        let _ = write!(out, "\t{part}\t{clock}\t");
+        match (convention.span)(period, day, place) {
+            Ok(span) => {
+                let _ = write!(out, "{}\t{}\t", seconds(span.start), seconds(span.end));
+                push_missing_cells(&mut out, None);
             }
-        } else {
-            let span = kalam::by_fixed_day(period, day);
-            let seconds =
-                |moment: Moment| hc_core::math::round((moment.0 - day.0 as f64) * 86_400.0) as i64;
-            let _ = write!(
-                out,
-                "\t{part}\tlocal\t{}\t{}\t",
-                seconds(span.start),
-                seconds(span.end)
-            );
-            push_missing_cells(&mut out, None);
+            Err(missing) => {
+                out.push_str("\t\t");
+                push_missing_cells(&mut out, Some(missing));
+            }
         }
         out.push('\n');
     }
@@ -245,6 +227,20 @@ mod tests {
             polar.lines().next().expect("a line").split('\t').collect();
         assert_eq!(cells[4..8], ["", "", "sunrise", &midwinter.to_string()]);
         assert_eq!(kalam_lines("yamardha", day, delhi), Err(Refusal::Unknown));
+        // The names are `hc-calendars-indic`'s table's, each with its clock.
+        for convention in KalamConvention::ALL {
+            let text = kalam_lines(convention.id, day, delhi).expect("in range");
+            let clock = match convention.clock {
+                SpanClock::Universal => "universal",
+                SpanClock::Local => "local",
+            };
+            assert!(
+                text.lines()
+                    .all(|line| line.split('\t').nth(3) == Some(clock)),
+                "{}",
+                convention.id
+            );
+        }
     }
 
     /// Drik Panchang's page for 1 January 2025, as

@@ -1,14 +1,18 @@
-//! Guards the shape of the roadmap and system documents.
+//! Guards the shape of the Markdown documents.
 //!
-//! Several agents edit `docs/calendars.md`, `docs/observances.md` and
-//! `docs/systems/` side by side, and a merge of two branches that each add
-//! the same roadmap row keeps both copies without a conflict. Duplicated rows
-//! have been merged by hand before. This test fails on these faults instead:
+//! Several agents edit the roadmap, the system documents and the crates'
+//! READMEs side by side, and a merge of two branches that each add the same
+//! row to a table keeps both copies without a conflict. Duplicated rows have
+//! been merged by hand before. This test fails on these faults instead:
 //!
+//! - a table in any Markdown file of the repository — `docs/`, every
+//!   crate's README, the top-level README and CONTRIBUTING — that repeats a
+//!   whole row within that table;
 //! - a table in `docs/calendars.md`, `docs/observances.md` or
-//!   `docs/systems/README.md` that repeats a row, or repeats the first cell
-//!   of a row, within that table (the same first cell in two different tables,
-//!   such as a country listed in two regions, is not a fault);
+//!   `docs/systems/README.md` that repeats the first cell of a row within
+//!   that table (the same first cell in two different tables, such as a
+//!   country listed in two regions, is not a fault, and elsewhere a first
+//!   cell may repeat: a Ranges table has a row per range, not per kind);
 //! - a `docs/systems/*.md` file that repeats a heading at the same level;
 //! - a `docs/systems/*.md` file without exactly one H1.
 //!
@@ -22,8 +26,10 @@ use std::collections::btree_map::Entry;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-/// The files whose tables are checked, relative to the repository root.
-const TABLE_FILES: [&str; 3] = [
+/// The files whose tables may not repeat a first cell either, relative to
+/// the repository root: the roadmap and the index, keyed by their first
+/// column.
+const KEYED_FILES: [&str; 3] = [
     "docs/calendars.md",
     "docs/observances.md",
     "docs/systems/README.md",
@@ -119,7 +125,53 @@ fn first_seen<K: Ord>(seen: &mut BTreeMap<K, usize>, key: K, line_no: usize) -> 
     }
 }
 
-/// The faults in one file's tables, as `path:line: message`.
+/// Every Markdown file of the repository, relative to its root, in order:
+/// all but those under a directory whose name starts with `.` or is
+/// `target` or `node_modules`.
+fn markdown_files() -> Vec<String> {
+    fn walk(root: &Path, dir: &Path, out: &mut Vec<String>) {
+        let entries =
+            fs::read_dir(dir).unwrap_or_else(|error| panic!("{}: {error}", dir.display()));
+        for entry in entries {
+            let path = entry
+                .unwrap_or_else(|error| panic!("{}: {error}", dir.display()))
+                .path();
+            let name = path.file_name().unwrap_or_default().to_string_lossy();
+            if path.is_dir() {
+                if !(name.starts_with('.') || name == "target" || name == "node_modules") {
+                    walk(root, &path, out);
+                }
+            } else if path.extension().is_some_and(|ext| ext == "md") {
+                let relative = path.strip_prefix(root).unwrap_or(&path);
+                out.push(relative.to_string_lossy().replace('\\', "/"));
+            }
+        }
+    }
+    let root = repository_root();
+    let mut files = Vec::new();
+    walk(&root, &root, &mut files);
+    files.sort();
+    files
+}
+
+/// The whole rows one file's tables repeat, as `path:line: message`.
+fn row_faults(path: &str, source: &str) -> Vec<String> {
+    let mut faults = Vec::new();
+    for table in tables(source) {
+        let mut rows: BTreeMap<&[String], usize> = BTreeMap::new();
+        for (line_no, cells) in &table {
+            if let Some(first) = first_seen(&mut rows, cells, *line_no) {
+                faults.push(format!(
+                    "{path}:{line_no}: repeats the row at line {first} of the same table"
+                ));
+            }
+        }
+    }
+    faults
+}
+
+/// The faults in one keyed file's tables, a repeated row or a repeated
+/// first cell, as `path:line: message`.
 fn table_faults(path: &str, source: &str) -> Vec<String> {
     let mut faults = Vec::new();
     for table in tables(source) {
@@ -210,11 +262,43 @@ fn system_documents() -> Vec<PathBuf> {
 }
 
 #[test]
-fn no_table_repeats_a_row_or_a_first_cell() {
+fn no_table_in_any_markdown_file_repeats_a_row() {
+    let root = repository_root();
+    let files = markdown_files();
+    for expected in [
+        "README.md",
+        "CONTRIBUTING.md",
+        "docs/policy.md",
+        "docs/systems/spreadsheet-dates.md",
+        "crates/hyper-calendar-wasm/README.md",
+        "crates/hyper-calendar-ffi/README.md",
+        "crates/hc-tz/README.md",
+    ] {
+        assert!(
+            files.iter().any(|file| file == expected),
+            "{expected} not walked"
+        );
+    }
+    let mut faults = Vec::new();
+    let mut checked = 0;
+    for path in &files {
+        let source = read(&root.join(path));
+        checked += tables(&source).len();
+        faults.extend(row_faults(path, &source));
+    }
+    assert!(
+        checked >= 100,
+        "found only {checked} tables; is the parser broken?"
+    );
+    assert!(faults.is_empty(), "\n{}", faults.join("\n"));
+}
+
+#[test]
+fn no_keyed_table_repeats_a_row_or_a_first_cell() {
     let root = repository_root();
     let mut faults = Vec::new();
     let mut checked = 0;
-    for path in TABLE_FILES {
+    for path in KEYED_FILES {
         let source = read(&root.join(path));
         checked += tables(&source).len();
         faults.extend(table_faults(path, &source));
@@ -253,6 +337,15 @@ fn a_repeated_row_is_found() {
             "t.md:5: repeats the row at line 3 of the same table",
             "t.md:6: repeats the row at line 3 of the same table",
         ]
+    );
+}
+
+#[test]
+fn a_repeated_row_is_found_and_a_repeated_first_cell_passes_outside_the_keyed_files() {
+    let source = "| A | B |\n| --- | --- |\n| x | 1 |\n| x | 2 |\n| x | 1 |\n";
+    assert_eq!(
+        row_faults("t.md", source),
+        ["t.md:5: repeats the row at line 3 of the same table"]
     );
 }
 

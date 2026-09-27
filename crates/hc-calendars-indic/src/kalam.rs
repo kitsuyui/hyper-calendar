@@ -17,7 +17,9 @@
 //! | Saturday | 3 | 6 | 1 |
 //!
 //! What "the day" is differs, and the two conventions are two functions
-//! (`docs/policy.md` §5):
+//! (`docs/policy.md` §5), listed in [`KalamConvention::ALL`] under the
+//! identifiers `rahu-kalam-sunrise` and `rahu-kalam-fixed`, by which a
+//! caller at the boundary selects one:
 //!
 //! * [`by_sunrise`]: the day runs from local sunrise
 //!   to local sunset, as Drik Panchang computes it (its "Yamardha" method,
@@ -163,6 +165,74 @@ pub fn by_fixed_day(kalam: &Kalam, day: Rd) -> Span {
         midnight + FIXED_DAY_END,
         kalam.part(Weekday::from_rd(day)),
     )
+}
+
+/// The clock a convention's [`Span`] is read on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum SpanClock {
+    /// Universal Time, as [`by_sunrise`] returns it.
+    Universal,
+    /// The local clock of the day, in whatever zone the caller keeps, as
+    /// [`by_fixed_day`] returns it.
+    Local,
+}
+
+/// A convention for the day the periods divide, under the identifier a
+/// caller selects it by.
+///
+/// Each convention is its own (`docs/policy.md` §5), and its function is
+/// the one named for it, [`by_sunrise`] or [`by_fixed_day`]; the table is
+/// how a name at the boundary finds it.
+#[derive(Debug, Clone, Copy)]
+pub struct KalamConvention {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The clock the span is read on.
+    pub clock: SpanClock,
+    /// A period on a local day at a place. A convention that does not
+    /// read the place ignores it.
+    pub span: fn(&Kalam, Rd, Location) -> Result<Span, MissingSolarEvent>,
+    /// Where the convention's day comes from.
+    pub source: &'static str,
+}
+
+/// [`by_fixed_day`] in the shape of [`KalamConvention::span`].
+#[allow(clippy::unnecessary_wraps)]
+fn by_fixed_day_at(kalam: &Kalam, day: Rd, _location: Location) -> Result<Span, MissingSolarEvent> {
+    Ok(by_fixed_day(kalam, day))
+}
+
+hc_core::catalogue! {
+    type: KalamConvention,
+    id: |convention| convention.id,
+    provenance: |convention| convention.source,
+    tests: kalam_convention_catalogue_tests,
+    associated;
+
+    /// The two conventions carried: the daylight, and the fixed day.
+    pub const ALL;
+    /// The convention with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The daylight, sunrise to sunset at the place: [`by_sunrise`].
+        pub const SUNRISE = Self {
+            id: "rahu-kalam-sunrise",
+            clock: SpanClock::Universal,
+            span: by_sunrise,
+            source: "Drik Panchang, \"Rahu Kalam\", the Yamardha method, retrieved 2026-09-27 \
+                     (drik-rahu-kalam)",
+        };
+        /// The fixed day, 06:00 to 18:00 of the clock: [`by_fixed_day`].
+        pub const FIXED_DAY = Self {
+            id: "rahu-kalam-fixed",
+            clock: SpanClock::Local,
+            span: by_fixed_day_at,
+            source: "Wikipedia, \"Rahukaalam\", retrieved 2026-09-27 (wikipedia-rahukaalam), \
+                     and the fixed-day table of tirupatitirumalainfo.com \
+                     (tirumala-kalam-table)",
+        };
+    }
 }
 
 #[cfg(test)]

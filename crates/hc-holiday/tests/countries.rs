@@ -1699,6 +1699,87 @@ fn the_philippines_keeps_the_proclaimed_special_days() {
     assert!(HolidayCalendar::for_year(table("PH"), None, 2027).is_complete());
 }
 
+/// The proclamations for 2012 to 2019, as LawPhil reproduces them
+/// (`lawphil-proclamations-2012-2019`), and before them a gap.
+#[test]
+fn the_philippines_keeps_the_proclaimed_days_of_2012_to_2019() {
+    expect(
+        "PH",
+        None,
+        &[
+            // 295: "Chinese New Year — January 23 (Monday)"; 360 and 361:
+            // "Saturday, 7 April 2012" and "Monday, 24 December 2012".
+            (2012, 1, 23, "Chinese New Year"),
+            (2012, 4, 7, "Black Saturday"),
+            (2012, 11, 2, "All Souls' Day"),
+            (2012, 12, 24, "Christmas Eve"),
+            // 571 and 656: "Monday, 13 May 2013" and "Monday, 28 October 2013".
+            (2013, 5, 13, "National and Local Elections"),
+            (2013, 10, 28, "Barangay and Sangguniang Kabataan Elections"),
+            // 655: "24 December (Wednesday)", "26 December (Friday)".
+            (2014, 12, 26, "Additional special day"),
+            // 1071: "Thursday, 25 February 2016"; 117: "Monday, 26 December
+            // 2016" and "Monday, 2 January 2017".
+            (2016, 2, 25, "EDSA People Power Revolution Anniversary"),
+            (2016, 12, 26, "Additional special day"),
+            (2017, 1, 2, "Additional special day"),
+            (2017, 10, 31, "All Saints' Day Eve"),
+            // 479: "Monday, 14 May 2018"; RA 10966, 8 December.
+            (2018, 5, 14, "Barangay and Sangguniang Kabataan Elections"),
+            (2018, 12, 8, "Immaculate Conception"),
+            // 555: "Chinese New Year - 05 February (Tuesday)", "2 November
+            // (Saturday)"; 719: "Monday, 13 May 2019".
+            (2019, 2, 5, "Chinese New Year"),
+            (2019, 5, 13, "National and Local Elections"),
+            (2019, 11, 2, "All Souls' Day"),
+            // 1070 and 789.
+            (2015, 7, 17, "Eid'l Fitr"),
+            (2019, 8, 12, "Eid'l Adha"),
+        ],
+    );
+    expect_working(
+        "PH",
+        None,
+        &[
+            // 459 lists no Chinese New Year for 2013, Sunday 10 February,
+            // and the EDSA anniversary was for schools alone to 2015.
+            (2013, 2, 25),
+            (2015, 2, 25),
+            // 1070's Eid'l Fitr of 2015 is the 17th, not the tabular day.
+            (2015, 7, 16),
+        ],
+    );
+    let edsa = HolidayCalendar::for_year(table("PH"), None, 2013);
+    assert!(
+        edsa.on(ymd(2013, 2, 25))
+            .iter()
+            .all(|holiday| holiday.kind == Kind::School)
+    );
+    assert_eq!(
+        confidence_on("PH", 2016, 7, 6, "Eid'l Fitr"),
+        Confidence::Exact
+    );
+    for year in 2012..=2019 {
+        assert!(
+            HolidayCalendar::for_year(table("PH"), None, year).is_complete(),
+            "{year}"
+        );
+    }
+    // Before the first proclamation read: Black Saturday predicted, the
+    // other proclaimed days a gap.
+    let earlier = HolidayCalendar::for_year(table("PH"), None, 2011);
+    assert_eq!(
+        confidence_on("PH", 2011, 4, 23, "Black Saturday"),
+        Confidence::Approximate
+    );
+    assert!(
+        earlier
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Proclaimed special days")
+    );
+}
+
 #[test]
 fn nepal_keeps_a_one_day_weekend_until_2026() {
     let country = table("NP");

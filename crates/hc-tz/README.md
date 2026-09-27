@@ -123,9 +123,16 @@ name under each — everything a caller needs to explain the problem to a user.
   clocks in 2019, or that Russia abolished daylight saving in 2011. **For
   historical accuracy, read TZif data.** The README of the IANA database makes
   the same point about its own POSIX footers.
+* **A POSIX rule answers for the years −9 999 994 to 9 999 994.** It is
+  evaluated on the proleptic Gregorian years `hc_calendar::gregorian`
+  converts, ±9 999 999, and an instant's answer reads the rules of the
+  years around its own, so the range is five years inside each end. Beyond
+  it `PosixTimeZone::offset_at` gives standard time whatever the rule
+  says; `posix::rules_answer_at` tells a caller which instants are inside.
 * Reference data: the POSIX strings in `builtin` are the footers of the
-  corresponding files in the IANA time zone database, release 2026c, as
-  shipped in `/usr/share/zoneinfo`. Transition instants asserted in the tests
+  corresponding files in the IANA time zone database, release 2026d
+  (unchanged since 2026c, as shipped in `/usr/share/zoneinfo`: 2026d's
+  `NEWS` changes the future of `America/Inuvik` alone). Transition instants asserted in the tests
   come from the published rules — the United States Energy Policy Act of 2005,
   EU Directive 2000/84/EC, the Australian and New Zealand state rules — and
   are cross-checked against the system database wherever one is present.

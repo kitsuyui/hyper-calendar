@@ -346,7 +346,10 @@ Temporal and Italian hours, and the religious times:
 - The Jewish times in temporal hours as a table, `Zman`, with the
   identifiers `sof-zman-shma`, `sof-zman-tfila`, `mincha-gedola`,
   `mincha-ketana` and `plag-hamincha`, and one function per reckoning:
-  `zman_gra`, `zman_mga_72_minutes` and `zman_mga_16_1_degrees`. The
+  `zman_gra`, `zman_mga_72_minutes` and `zman_mga_16_1_degrees`, listed
+  in the table `ZMANIM_RECKONINGS` under the identifiers `zmanim-gra`,
+  `mga-72-minutes` and `mga-16-1-degrees`, by which the boundary's
+  `hc_zmanim` selects one. The
   book's `jewish-morning-end`, the end of the fourth temporal hour, for
   which the book names no authority, is `zman_gra` of `sof-zman-tfila`:
   the end of the fourth hour from sunrise by the GRA. The rule is the

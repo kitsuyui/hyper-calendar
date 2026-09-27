@@ -13,11 +13,16 @@
 # workspace, and a new crate's vocabulary belongs here rather than beside it.
 
 [files]
-# line_digests.txt is hexadecimal FNV-1a digests, whose runs of letters are
-# not words and change whenever a calendar is added.
+# line_digests.txt and line_digests_holidays.txt are hexadecimal FNV-1a
+# digests, whose runs of letters are not words and change whenever a
+# calendar or a holiday table does.
 # The line digests are generated hexadecimal hashes, and a hash can spell a
 # "misspelling" such as `caf`.
-extend-exclude = ["Cargo.lock", "crates/hyper-calendar/tests/line_digests.txt"]
+extend-exclude = [
+    "Cargo.lock",
+    "crates/hyper-calendar/tests/line_digests.txt",
+    "crates/hyper-calendar/tests/line_digests_holidays.txt",
+]
 
 [default]
 # *Shaʿot zmaniyot*, temporal hours, in hc-astro's zmanim: typos splits the

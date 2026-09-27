@@ -709,9 +709,43 @@ fn every_horizon_a_locale_names_is_one_hc_astro_carries() {
     }
 }
 
+/// Whether a rendered text holds `code` as a word.
+fn holds_code(text: &str, code: &str) -> bool {
+    text.split(|c: char| !(c.is_alphanumeric() || c == '-'))
+        .any(|word| word == code)
+}
+
+/// The days the bare-era-code tests render in a calendar: the probe days,
+/// and the first day of every era in their range, so that each era a
+/// calendar writes there is rendered once, the hundreds of the regnal
+/// calendars included.
+fn era_render_days(calendar: &dyn hyper_calendar::hc_calendar::DynCalendar) -> Vec<Rd> {
+    use hyper_calendar::hc_calendar::units::{Unit, units};
+
+    let mut days = era_probe_days(&calendar.meta());
+    let (first, last) = (days[0], days[days.len() - 1]);
+    let eras = |day: &Rd| {
+        calendar
+            .fixed_to_fields(*day)
+            .is_ok_and(|fields| fields.era.is_some())
+    };
+    if days.iter().any(eras) {
+        days.extend(
+            units(calendar, Unit::Era, first, Rd(last.0 + 1))
+                .iter()
+                .filter(|span| span.date().is_some())
+                .map(|span| span.start),
+        );
+    }
+    days.sort();
+    days.dedup();
+    days
+}
+
 /// An era code is an identifier and never reader-facing text: no date,
-/// era label or year label any calendar is written as, in any carried
-/// locale or under `native`, holds a bare era code as a word.
+/// era, year, month or day label any calendar is written as, in any
+/// carried locale or under `native`, holds a bare era code as a word, on
+/// the first day of every era in the probed range and on the probe days.
 ///
 /// The era's name follows one rule, `hc_i18n::names::era_label` — the
 /// locale's, the shared era's, the calendar's own, English's — which ends
@@ -730,40 +764,101 @@ fn no_rendered_label_holds_a_bare_era_code() {
         .map(|data| data.tag.parse().expect("a locale's own tag parses"))
         .collect();
     let mut leaks: BTreeSet<String> = BTreeSet::new();
+    let mut codes: BTreeSet<(&str, &str)> = BTreeSet::new();
     let mut checked = 0;
     for id in registered() {
         let calendar = registry.get(id).expect("registered");
-        let mut days = era_probe_days(&calendar.meta());
-        days.dedup();
-        for day in days {
-            let Ok(fields) = calendar.fixed_to_fields(day) else {
-                continue;
-            };
-            for requested in locales.iter().map(Some).chain([None]) {
-                let locale = label::locale_for(calendar, requested);
-                let texts = [
-                    label::date(calendar, &fields, &locale),
-                    label::label(calendar, &fields, Unit::Era, &locale),
-                    label::label(calendar, &fields, Unit::Year, &locale),
-                ];
-                checked += 1;
-                for text in &texts {
-                    let words = text
-                        .split(|c: char| !(c.is_alphanumeric() || c == '-'))
-                        .filter(|word| !word.is_empty());
-                    let code_leaks = fields
-                        .era
-                        .is_some_and(|code| words.clone().any(|word| word == code));
-                    if code_leaks {
-                        leaks.insert(format!("{} {locale}: {text:?}", id.0));
+        // One memo for the calendar's days, as the boundary opens one for
+        // a call, so that a label does not recompute the months its date
+        // was converted with.
+        hyper_calendar::hc_core::memo::scope(|| {
+            for day in era_render_days(calendar) {
+                let Ok(fields) = calendar.fixed_to_fields(day) else {
+                    continue;
+                };
+                let Some(code) = fields.era else { continue };
+                codes.insert((id.0, code));
+                for requested in locales.iter().map(Some).chain([None]) {
+                    let locale = label::locale_for(calendar, requested);
+                    let texts = [
+                        label::date(calendar, &fields, &locale),
+                        label::label(calendar, &fields, Unit::Era, &locale),
+                        label::label(calendar, &fields, Unit::Year, &locale),
+                        label::label(calendar, &fields, Unit::Month, &locale),
+                        label::label(calendar, &fields, Unit::Day, &locale),
+                    ];
+                    checked += 1;
+                    for text in &texts {
+                        if holds_code(text, code) {
+                            leaks.insert(format!("{} {locale}: {text:?}", id.0));
+                        }
+                    }
+                }
+            }
+        });
+    }
+    assert!(checked > 1_000, "{checked}");
+    // Every era of the regnal calendars is rendered, not only those the
+    // sixty-five probe days fall in.
+    assert!(codes.len() > 500, "{} era codes rendered", codes.len());
+    assert!(
+        leaks.is_empty(),
+        "labels with an era code in them: {leaks:#?}"
+    );
+}
+
+/// The boundary's era cells are names too: `describe_day`'s era label for
+/// every calendar, in every carried locale and under `native`, on days
+/// either side of the common era and today; and the Śaka and Vikrama
+/// cells of `hc_hindu_lunar_date`'s line, the Vikrama one with a fallback
+/// of its own rather than `era_label`, which are never empty and never a
+/// code. `calendar_units`' labels are `label::label` of each unit's first
+/// day, which the test above renders on the first day of every era.
+#[cfg(feature = "format")]
+#[test]
+fn no_boundary_line_holds_a_bare_era_code() {
+    let tags: Vec<&str> = LOCALES
+        .iter()
+        .map(|data| data.tag)
+        .chain(["native"])
+        .collect();
+    let mut leaks: BTreeSet<String> = BTreeSet::new();
+    let mut named = 0;
+    for day in [Rd(-365_000), Rd(1), Rd(739_887)] {
+        for tag in &tags {
+            let text = hyper_calendar::lines::describe_day(&registry(), day, tag);
+            for line in text.lines() {
+                let cells: Vec<&str> = line.split('\t').collect();
+                let (id, code, label) = (cells[0], cells[2], cells[3]);
+                if code.is_empty() {
+                    continue;
+                }
+                named += 1;
+                if holds_code(label, code) {
+                    leaks.insert(format!("describe_day {id} {tag} {}: {label:?}", day.0));
+                }
+            }
+        }
+    }
+    assert!(named > 1_000, "{named} era cells");
+    #[cfg(feature = "indic")]
+    {
+        use hyper_calendar::hc_calendars_indic::places::UJJAIN;
+        use hyper_calendar::hindu_lines::{SURYA_SIDDHANTA, hindu_lunar_date_line};
+        for sky in ["lahiri", SURYA_SIDDHANTA] {
+            for tag in &tags {
+                let line = hindu_lunar_date_line(sky, 739_887, UJJAIN, tag).expect("a date");
+                let cells: Vec<&str> = line.trim_end().split('\t').collect();
+                for (cell, code) in [(cells[9], "saka"), (cells[10], "vs")] {
+                    if cell.is_empty() || holds_code(cell, code) {
+                        leaks.insert(format!("hindu_lunar_date {sky} {tag}: {cell:?}"));
                     }
                 }
             }
         }
     }
-    assert!(checked > 1_000, "{checked}");
     assert!(
         leaks.is_empty(),
-        "labels with an era code in them: {leaks:#?}"
+        "era cells with an era code in them: {leaks:#?}"
     );
 }

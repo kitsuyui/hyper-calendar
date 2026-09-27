@@ -137,19 +137,28 @@ names to enumerate.
 
 ### Where a function is the name
 
-Some conventions are not calendars or table entries but ways of computing
-one time of day: the Jewish temporal hours by the GRA or the MGA, the Edo
-dawn by the 寛政暦's angle or the Observatory's, Rāhu kālam over the
-daylight or over a fixed day. Where nothing looks such a convention up by
-a string, the name is a function's — `zman_gra` and `zman_mga_72_minutes`,
-`japanese_dawn_kansei` and `japanese_dawn_naoj`, `kalam::by_sunrise` and
-`kalam::by_fixed_day` — one function per convention, each with its own
+Some conventions are not calendars but ways of computing one time of day:
+the Jewish temporal hours by the GRA or the MGA, the Edo dawn by the
+寛政暦's angle or the Observatory's, Rāhu kālam over the daylight or over
+a fixed day. Each is a function of its own — `zman_gra` and
+`zman_mga_72_minutes`, `japanese_dawn_kansei` and `japanese_dawn_naoj`,
+`kalam::by_sunrise` and `kalam::by_fixed_day` — with its own
 documentation and test anchor. A function cannot be chosen by accident
-either, and it is as discoverable in the documentation as an entry is in a
-registry. No string identifier is registered for these, and the roadmap
-writes "—" and names the functions. A convention a caller selects by
-string, such as a prayer method or a six-hour reckoning, is a table entry
-with an identifier.
+either, and it is as discoverable in the documentation as an entry is in
+a registry.
+
+Where nothing looks such a convention up by a string, as nothing looks up
+an Edo dawn, the function's name is its only name, and the roadmap writes
+"—" and names the functions. Where a caller selects it by a string at the
+boundary, that string is its name, and it is registered as one: an entry
+of a table in the crate that owns the convention, with the string as its
+identifier and the function as its value. `hc-astro`'s
+`ZMANIM_RECKONINGS` holds `zmanim-gra`, `mga-72-minutes` and
+`mga-16-1-degrees`, and `hc-calendars-indic`'s `KalamConvention::ALL`
+holds `rahu-kalam-sunrise` and `rahu-kalam-fixed`. The boundary looks the
+string up in that table and keeps no list of its own, and the roadmap
+row gives the identifiers. A prayer method and a six-hour reckoning are
+table entries in the same way.
 
 ### Where the list itself is open
 
@@ -356,9 +365,12 @@ systems that have a document, and the ones that should and do not yet.
 
 `hyper-calendar` computes and formats. It has no UI, no I/O beyond optionally
 reading a TZif file, no clock (the caller supplies the current time), no
-network access and no state that outlives a call. The one piece of state,
-`hc_core::memo`, caches the results of pure functions within one call, in
-thread-local storage that is emptied when the call's scope ends, so it
-changes how long a call takes and never what it returns. A web front end
+network access and one piece of state that outlives a call: the table of
+zones a caller hands the WebAssembly module or the C library through
+`hc_zone_load`, kept by name for the life of the process, from which the
+zone exports then read that name's rules. It holds only what the caller
+loaded. Within a call, `hc_core::memo` caches the results of pure
+functions, in thread-local storage that is emptied when the call's scope
+ends, so it changes how long a call takes and never what it returns. A web front end
 will eventually consume the library through the WebAssembly or C surface;
 that front end is not part of this repository.
