@@ -13,6 +13,12 @@
 //!   the sign, and its sunrise on a day at a place
 //!   ([`hc_calendars_indic::surya_siddhanta`]).
 //!
+//! The date's line ends with its labels in a locale, from the vocabulary
+//! `describe_day` uses for `hindu-lunar` and `hindu-lunar-surya-siddhanta`
+//! ([`crate::lines`]): the month, the word the locale writes before an
+//! intercalary month, the Śaka and Vikrama eras, and the tag of the data
+//! that answered.
+//!
 //! The true sky answers for the years the true calendars convert, Śaka
 //! 1622 through 2221, from Chaitra śukla 1 in March 1700 to the eve of
 //! the one in March 2300; the Siddhānta's, which is arithmetic, for the
@@ -24,13 +30,15 @@ use core::fmt::Write;
 
 use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
-use hc_calendar::{CalendarError, Rd};
+use hc_calendar::{Calendar, CalendarError, CalendarId, DynAdapter, DynCalendar, Rd};
 use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
 use hc_calendars_indic::{HinduLunarCalendar, HinduLunarDate, SiddhantaLunarCalendar};
 use hc_core::math::floor;
+use hc_i18n::names::{self as vocabulary, NameWidth};
 
 use crate::astro_lines::unix_from_moment;
 use crate::boundary::{Answer, Refusal, names};
+use crate::lines::{era_label_or_empty, locale_for, locale_used, month_label_or_empty, push_cell};
 use crate::panchanga_lines::ayanamsa;
 
 /// The name of the *Sūrya Siddhānta*'s sky, beside the ayanamsa names of
@@ -47,6 +55,27 @@ pub const SIDDHANTA_LAST_DAY: i64 = 2_519_974;
 
 /// Seconds in a day.
 const SECONDS_PER_DAY: i64 = 86_400;
+
+/// How many columns [`hindu_lunar_date_line`] writes.
+pub const HINDU_LUNAR_DATE_COLUMNS: usize = 12;
+
+/// The era code of the Vikrama Saṃvat in `hc-i18n`'s vocabulary.
+const VIKRAMA: &str = "vs";
+
+/// The calendars whose vocabulary names the Vikrama Saṃvat, `vs`, in the
+/// order they are asked: the Kārttikādi lunisolar year's, then the Vikrami
+/// solar year's. The amānta calendars count the same era from Chaitra and
+/// have no entry for it of their own.
+const VIKRAMA_VOCABULARY: [CalendarId; 2] = [
+    CalendarId("vikram-samvat-kartikadi"),
+    CalendarId("hindu-solar-vikrami"),
+];
+
+/// The calendar whose vocabulary names the Śaka era where the amānta
+/// calendar's has no name for it: the Indian national calendar, which
+/// counts the same Śaka years from 22 March, and whose Hindi name for the
+/// era is CLDR's शक.
+const SAKA_VOCABULARY: CalendarId = CalendarId("indian");
 
 /// A fixed day the Siddhānta's exports answer for.
 ///
@@ -88,12 +117,20 @@ fn refusal(error: CalendarError) -> Refusal {
     }
 }
 
-/// The line of a date and the sunrise it was read at.
-fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
+/// The line of a date and the sunrise it was read at, with its labels in
+/// the locale a tag asks for, from the vocabulary of `calendar`, the
+/// registered calendar of the sky that read it.
+fn date_line(
+    date: HinduLunarDate,
+    sunrise: Moment,
+    calendar: &dyn DynCalendar,
+    fields: &hc_calendar::DateFields,
+    tag: &str,
+) -> String {
     let mut out = String::new();
-    let _ = writeln!(
+    let _ = write!(
         out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}",
+        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
         date.year,
         date.vikrama_year(),
         date.month,
@@ -102,6 +139,36 @@ fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
         u8::from(date.leap_day),
         unix_from_moment(sunrise),
     );
+    let locale = locale_for(calendar, tag);
+    let id = calendar.meta().id;
+    push_cell(&mut out, &month_label_or_empty(&locale, calendar, fields));
+    out.push('\t');
+    if date.leap_month {
+        push_cell(
+            &mut out,
+            vocabulary::leap_month_prefix(&locale, id).trim_end(),
+        );
+    }
+    out.push('\t');
+    let saka = match era_label_or_empty(&locale, calendar, hc_calendars_indic::hindu_lunar::ERA) {
+        "" => vocabulary::era_name_by_code(
+            &locale,
+            SAKA_VOCABULARY,
+            hc_calendars_indic::hindu_lunar::ERA,
+            NameWidth::Wide,
+        )
+        .unwrap_or(""),
+        label => label,
+    };
+    push_cell(&mut out, saka);
+    out.push('\t');
+    let vikrama = VIKRAMA_VOCABULARY.iter().find_map(|&vocabulary_of| {
+        vocabulary::era_name_by_code(&locale, vocabulary_of, VIKRAMA, NameWidth::Wide)
+    });
+    push_cell(&mut out, vikrama.unwrap_or(""));
+    out.push('\t');
+    out.push_str(locale_used(&locale));
+    out.push('\n');
     out
 }
 
@@ -110,7 +177,25 @@ fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
 /// the month (1 for Chaitra through 12 for Phālguna), whether it is the
 /// intercalary month, 1 or 0, the tithi (1 through 30), whether the day is
 /// the second to carry it, 1 or 0, and the sunrise the day was read at, as
-/// whole POSIX seconds of Universal Time, rounded down.
+/// whole POSIX seconds of Universal Time, rounded down; then, in the
+/// locale `locale` names, the month's name, with the locale's word for an
+/// intercalary month before it where the month is one (`Bhadra`,
+/// `Adhika Sravana`; भाद्रपद under `hi`); that word alone for an
+/// intercalary month (`Adhika`, अधिक), else empty; the Śaka era's name
+/// (`Saka`); the Vikrama Saṃvat's (`Vikrama Samvat`); and the tag of the
+/// data that answered.
+///
+/// The names are the vocabulary `describe_day` uses for `hindu-lunar`, or
+/// for `hindu-lunar-surya-siddhanta` on the Siddhānta's sky, resolved as
+/// [`crate::lines`] resolves every locale: the one asked for where it
+/// names the calendar, else English; `native` asks for the calendar's own
+/// languages first, Sanskrit then Hindi. The amānta calendars have no
+/// name for the Vikrama Saṃvat of their own, so it is the one the
+/// Kārttikādi and Vikrami calendars' vocabulary gives the same era, `vs`;
+/// and where a locale has no name for the Śaka era for them, it is the
+/// national calendar's, whose years are Śaka years too. A cell with no name
+/// in the locale is empty: Hindi and Sanskrit name the months and the
+/// intercalary month but neither era.
 ///
 /// `sky` is an ayanamsa [`ayanamsa`] names, for the true Sun and Moon in
 /// its zodiac read at the place's sunrise, as `hindu-lunar` is with Lahiri's
@@ -132,21 +217,42 @@ fn date_line(date: HinduLunarDate, sunrise: Moment) -> String {
 /// through 2221, Chaitra śukla 1 in March 1700 to the eve of the one in
 /// March 2300, and on the Siddhānta's for a day outside
 /// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
-pub fn hindu_lunar_date_line(sky: &str, fixed: i64, place: Location) -> Answer<String> {
+pub fn hindu_lunar_date_line(
+    sky: &str,
+    fixed: i64,
+    place: Location,
+    locale: &str,
+) -> Answer<String> {
     if names(sky, SURYA_SIDDHANTA) {
         let day = siddhanta_day(fixed)?;
         let place = sunrise_place(place)?;
         let date = SiddhantaLunarCalendar::new(place)
             .from_fixed(day)
             .map_err(refusal)?;
-        return Ok(date_line(date, surya_siddhanta::sunrise(day, place)));
+        let registered = SiddhantaLunarCalendar::UJJAIN;
+        let fields = registered.to_fields(date).map_err(refusal)?;
+        return Ok(date_line(
+            date,
+            surya_siddhanta::sunrise(day, place),
+            &DynAdapter::new(registered),
+            &fields,
+            locale,
+        ));
     }
     let place = sunrise_place(place)?;
     let calendar = HinduLunarCalendar::new(place, ayanamsa(sky)?);
     let day = Rd(fixed);
     let date = calendar.from_fixed(day).map_err(refusal)?;
     let rise = sunrise(day, place).ok_or(Refusal::NoData)?;
-    Ok(date_line(date, rise))
+    let registered = HinduLunarCalendar::RASHTRIYA;
+    let fields = registered.to_fields(date).map_err(refusal)?;
+    Ok(date_line(
+        date,
+        rise,
+        &DynAdapter::new(registered),
+        &fields,
+        locale,
+    ))
 }
 
 /// The line of `hc_surya_siddhanta_at`: the Siddhānta's Sun and Moon at a
@@ -229,9 +335,9 @@ mod tests {
     #[test]
     fn the_new_year_of_saka_1947_on_both_skies() {
         let day = ymd(2025, 3, 30);
-        let line = hindu_lunar_date_line("Lahiri", day, CENTRAL_STATION).expect("a date");
+        let line = hindu_lunar_date_line("Lahiri", day, CENTRAL_STATION, "en").expect("a date");
         assert_eq!(cells(&line)[..6], ["1947", "2082", "1", "0", "1", "0"]);
-        let line = hindu_lunar_date_line("SURYA-SIDDHANTA", day, UJJAIN).expect("a date");
+        let line = hindu_lunar_date_line("SURYA-SIDDHANTA", day, UJJAIN, "en").expect("a date");
         let cells = cells(&line);
         assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"]);
         let sunrise: i64 = cells[6].parse().expect("an instant");
@@ -239,16 +345,86 @@ mod tests {
         assert!((sunrise - 1_743_296_460).abs() < 60, "{sunrise}");
     }
 
+    /// 27 September 2026 at Tokyo, `zone1970.tab`'s principal location of
+    /// `Asia/Tokyo`, on every ayanamsa and on the Siddhānta's sky: Śaka
+    /// 1948, Vikrama 2083, the sixth month, Bhādrapada, and the sixteenth
+    /// tithi, labelled as `describe_day` labels `hindu-lunar`: Bhadra in
+    /// English, भाद्रपद in Hindi and Sanskrit, whose data name no era for
+    /// the calendar but for the Śaka era Hindi's शक. `native` asks for
+    /// Sanskrit, and Japanese, which does not name the calendar, is
+    /// English.
+    #[test]
+    fn the_labels_of_27_september_2026_at_tokyo() {
+        let day = ymd(2026, 9, 27);
+        let tokyo = Location::new(35.654_444, 139.744_722, 0.0);
+        for sky in [
+            "Lahiri",
+            "Raman",
+            "Krishnamurti",
+            "Fagan-Bradley",
+            SURYA_SIDDHANTA,
+        ] {
+            let labels = |tag: &str| {
+                let line = hindu_lunar_date_line(sky, day, tokyo, tag).expect("a date");
+                let cells: Vec<String> = cells(&line).iter().map(|cell| (*cell).into()).collect();
+                assert_eq!(cells.len(), HINDU_LUNAR_DATE_COLUMNS, "{line}");
+                assert_eq!(cells[..6], ["1948", "2083", "6", "0", "16", "0"], "{sky}");
+                cells[7..].to_vec()
+            };
+            assert_eq!(
+                labels("en"),
+                ["Bhadra", "", "Saka", "Vikrama Samvat", "en"],
+                "{sky}"
+            );
+            assert_eq!(labels("ja"), labels("en"), "{sky}");
+            assert_eq!(labels("hi-IN"), ["भाद्रपद", "", "शक", "", "hi"], "{sky}");
+            assert_eq!(labels("sa"), ["भाद्रपद", "", "", "", "sa"], "{sky}");
+            assert_eq!(labels("native"), labels("sa"), "{sky}");
+        }
+        // The month label is `describe_day`'s for the registered calendar.
+        let described = crate::lines::describe_day(&crate::registry(), Rd(day), "hi");
+        let row = described
+            .lines()
+            .find(|line| line.starts_with("hindu-lunar\t"))
+            .expect("hindu-lunar");
+        assert_eq!(row.split('\t').nth(7), Some("भाद्रपद"));
+    }
+
+    /// The adhika Śrāvaṇa of Śaka 1945, 18 July to 16 August 2023, as the
+    /// *Rashtriya Panchang* has it at the Central Station
+    /// (`docs/systems/hindu-calendars.md`): the month label carries the
+    /// locale's word for it, and the word has a cell of its own.
+    #[test]
+    fn an_intercalary_month_is_written_with_the_locales_word() {
+        let day = ymd(2023, 8, 1);
+        let labels = |tag: &str| {
+            let line = hindu_lunar_date_line("Lahiri", day, CENTRAL_STATION, tag).expect("a date");
+            let cells: Vec<String> = cells(&line).iter().map(|cell| (*cell).into()).collect();
+            assert_eq!(cells[..4], ["1945", "2080", "5", "1"], "{line}");
+            cells[7..9].to_vec()
+        };
+        assert_eq!(labels("en"), ["Adhika Sravana", "Adhika"]);
+        assert_eq!(labels("hi"), ["अधिक श्रावण", "अधिक"]);
+    }
+
     /// At Ujjain the true sky's line is `HinduLunarCalendar::UJJAIN`'s date,
     /// which the book's astronomical calendar is.
     #[test]
     fn a_place_given_is_the_calendar_rebuilt_there() {
         for day in ymd(2024, 1, 1)..ymd(2024, 1, 20) {
-            let line = hindu_lunar_date_line("lahiri", day, UJJAIN).expect("a date");
+            let line = hindu_lunar_date_line("lahiri", day, UJJAIN, "en").expect("a date");
             let date = HinduLunarCalendar::UJJAIN
                 .from_fixed(Rd(day))
                 .expect("in range");
-            let expected = date_line(date, sunrise(Rd(day), UJJAIN).expect("a sunrise"));
+            let registered = HinduLunarCalendar::RASHTRIYA;
+            let fields = registered.to_fields(date).expect("fields");
+            let expected = date_line(
+                date,
+                sunrise(Rd(day), UJJAIN).expect("a sunrise"),
+                &DynAdapter::new(registered),
+                &fields,
+                "en",
+            );
             assert_eq!(line, expected);
         }
     }
@@ -257,34 +433,39 @@ mod tests {
     fn the_refusals_are_named() {
         let day = ymd(2025, 3, 30);
         assert_eq!(
-            hindu_lunar_date_line("", day, UJJAIN),
+            hindu_lunar_date_line("", day, UJJAIN, "en"),
             Err(Refusal::Unknown)
         );
         assert_eq!(
-            hindu_lunar_date_line("lahiri", ymd(1699, 12, 31), UJJAIN),
+            hindu_lunar_date_line("lahiri", ymd(1699, 12, 31), UJJAIN, "en"),
             Err(Refusal::OutOfRange)
         );
         let north = Location::new(80.0, 20.0, 0.0);
         assert_eq!(
-            hindu_lunar_date_line("lahiri", ymd(2024, 12, 21), north),
+            hindu_lunar_date_line("lahiri", ymd(2024, 12, 21), north, "en"),
             Err(Refusal::OutOfRange)
         );
         // Midsummer at 70° N has a sunrise, but the months there cannot be
         // read: December has days without one.
         assert_eq!(
-            hindu_lunar_date_line("lahiri", ymd(2024, 6, 21), Location::new(70.0, 20.0, 0.0)),
+            hindu_lunar_date_line(
+                "lahiri",
+                ymd(2024, 6, 21),
+                Location::new(70.0, 20.0, 0.0),
+                "en"
+            ),
             Err(Refusal::OutOfRange)
         );
         assert_eq!(
-            hindu_lunar_date_line(SURYA_SIDDHANTA, day, north),
+            hindu_lunar_date_line(SURYA_SIDDHANTA, day, north, "en"),
             Err(Refusal::OutOfRange)
         );
         assert_eq!(
-            hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY - 1, UJJAIN),
+            hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY - 1, UJJAIN, "en"),
             Err(Refusal::OutOfRange)
         );
-        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY, UJJAIN).is_ok());
-        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_LAST_DAY, UJJAIN).is_ok());
+        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_FIRST_DAY, UJJAIN, "en").is_ok());
+        assert!(hindu_lunar_date_line(SURYA_SIDDHANTA, SIDDHANTA_LAST_DAY, UJJAIN, "en").is_ok());
         assert_eq!(
             surya_siddhanta_sunrise_line(day, north),
             Err(Refusal::OutOfRange)

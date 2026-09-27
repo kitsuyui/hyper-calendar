@@ -92,7 +92,13 @@ pub mod civil;
 pub mod crescent_lines;
 #[cfg(all(feature = "alloc", feature = "deep-time"))]
 pub mod deep_time_lines;
-#[cfg(all(feature = "alloc", feature = "indic"))]
+#[cfg(all(
+    feature = "alloc",
+    feature = "indic",
+    feature = "civil",
+    feature = "i18n",
+    feature = "format"
+))]
 pub mod hindu_lines;
 #[cfg(all(feature = "alloc", feature = "holiday"))]
 pub mod holiday_lines;

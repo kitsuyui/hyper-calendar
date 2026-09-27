@@ -8719,6 +8719,14 @@ fn south_sudan_keeps_the_ministrys_days_and_reports_the_unread_spans() {
     // Section 61(1)'s calendar days: 1 May 2022 was a Sunday and the
     // Monday a working day.
     expect_working("SS", None, &[(2022, 5, 2), (2025, 4, 2), (2026, 4, 7)]);
+    // The Labour Act's Appendix B, clause 5.1: the working week "Monday
+    // through to Friday". Friday 25 September 2026 is a working day, the
+    // Saturday and Sunday after it the weekend.
+    let week = HolidayCalendar::for_year(table("SS"), None, 2026);
+    assert!(week.is_business_day(ymd(2026, 9, 25)));
+    assert!(week.is_weekend(ymd(2026, 9, 26)));
+    assert!(week.is_weekend(ymd(2026, 9, 27)));
+    assert!(week.is_business_day(ymd(2026, 9, 28)));
     assert!(HolidayCalendar::for_year(table("SS"), None, 2022).is_complete());
     assert_eq!(
         gap_names("SS", 2024),

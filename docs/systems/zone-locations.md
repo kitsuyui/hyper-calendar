@@ -21,7 +21,9 @@ The older `zone.tab` has one row for each pair of a country and a zone,
 with one country code a row, and "unlike zone1970.tab, a row's third
 column can be a Link from 'backward' instead of a Zone". It is kept "as a
 backward-compatibility aid for older programs" [iana-tzdb-2026c,
-`zone.tab`]. Its rows for links matter: since the database merged zones
+`zone.tab`]. Because "the first data column contains exactly one country
+code", each of its rows gives a zone one country, where `zone1970.tab`
+may give several. Its rows for links matter: since the database merged zones
 whose clocks have agreed since 1970, `Europe/Oslo` is a link to
 `Europe/Berlin`, but `zone.tab` still places `Europe/Oslo` at Oslo.
 
@@ -71,6 +73,27 @@ A row without seconds, `+4230+00131` for Andorra, is 42° 30′ = 42.5° and
 1° 31′ = 1.51666…°. The digits are never decimal degrees: reading `+4230`
 as 42.30° would put Andorra 22 km south of itself.
 
+### A country
+
+`zone1970.tab` gives `Asia/Tokyo` the countries `JP,AU`, Japan for Tokyo
+and Australia for the Eyre Bird Observatory, which keeps Tokyo's clock.
+A label wants one country, and `zone.tab` gives it:
+
+    JP	+353916+1394441	Asia/Tokyo
+
+so the line's `zone.tab` country is `JP`. No choice is made here: each
+name has at most one row in `zone.tab`, and its country is read off. For
+every zone but one it is the first country of `zone1970.tab`, the
+country of the most populous city. The exception is `Europe/Simferopol`:
+`zone1970.tab` lists `RU,UA`, a comment saying to "mention RU and UA
+alphabetically", and `zone.tab` lists it as `UA` in its `RU` section, because its
+"obsolescent" format "cannot represent Europe/Simferopol well"
+[iana-tzdb-2026c, `zone.tab`]. A row of `zone.tab` itself, such as
+`Europe/Oslo`, has its own country, `NO`. A name `zone.tab` had no row for
+would have an empty cell; in release 2026c every one of the 418 names
+with a row has one, which a test checks, but `zone.tab` is deprecated and
+a later release may drop rows.
+
 ### A name
 
 `hc_zone_location` answers a name in this order:
@@ -119,7 +142,8 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   of release 2026c, unmodified, in `crates/hc-tz/data/`. From them,
   `crates/hc-tz/src/location/tables.rs` is generated: the 312 rows of
   `zone1970.tab`; the 106 rows of `zone.tab` for names `zone1970.tab`
-  does not list, all links; and 135 of `backward`'s 256 links, each with
+  does not list, all links; for each of those 418 rows, the country
+  `zone.tab` lists its name under; and 135 of `backward`'s 256 links, each with
   the name with a row it leads to. The other 121 are the 106 with rows of
   their own and 15 that lead only to `Etc/UTC` or `Etc/GMT`. `zone.tab`'s
   rows for the zones `zone1970.tab` lists are left out: their coordinates
@@ -197,7 +221,8 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   `location`, `link_target`, `zones`, `rows`; the tests
   `coordinates_are_read_as_degrees_minutes_and_seconds`,
   `a_link_with_a_row_of_its_own_answers_with_that_row`,
-  `a_link_is_answered_by_the_row_it_leads_to` and
+  `a_link_is_answered_by_the_row_it_leads_to`,
+  `the_zone_tab_country_is_the_one_zone_tab_lists_the_name_under` and
   `the_generated_tables_are_the_vendored_files`.
 - `crates/hc-tz/src/location/tables.rs`: the generated rows and links.
 - `crates/hc-i18n/src/exemplar_cities.rs`: the tables and the lookup;

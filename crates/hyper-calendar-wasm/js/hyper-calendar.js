@@ -231,7 +231,8 @@ export const COLUMNS = Object.freeze({
   ]),
   lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
   zones: Object.freeze([
-    "zone", "latitude", "longitude", "countries", "comment", "exemplar city", "locale used",
+    "zone", "latitude", "longitude", "countries", "country", "comment", "exemplar city",
+    "locale used",
   ]),
   value: Object.freeze(["value"]),
   solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
@@ -274,10 +275,11 @@ export const COLUMNS = Object.freeze({
     "calendar", "year", "month", "day", "month name", "week name", "count", "fraction", "leap",
     "source",
   ]),
-  horizons: Object.freeze(["id", "english name", "description", "source"]),
+  horizons: Object.freeze(["id", "english name", "description", "source", "short name"]),
   solarCrossing: Object.freeze(["instant", "missing", "missing day", "depression", "altitude"]),
   hinduLunarDate: Object.freeze([
     "saka year", "vikrama year", "month", "leap month", "tithi", "leap day", "sunrise",
+    "month name", "leap month word", "saka era", "vikrama era", "locale used",
   ]),
   suryaSiddhanta: Object.freeze(["sun", "moon", "elongation", "tithi", "sign"]),
   crescent: Object.freeze([
@@ -1260,12 +1262,13 @@ function holidayTable(cells) {
  * @returns {import("./hyper-calendar.d.ts").ZoneLocation}
  */
 function zoneLocation(cells) {
-  const [zone, latitude, longitude, countries, comment, exemplarCity, localeUsed] = cells;
+  const [zone, latitude, longitude, countries, country, comment, exemplarCity, localeUsed] = cells;
   return {
     zone,
     latitude: decimal(latitude, "latitude"),
     longitude: decimal(longitude, "longitude"),
     countries: countries.split(";"),
+    country: optional(country),
     comment: optional(comment),
     exemplarCity,
     localeUsed,
@@ -1343,8 +1346,8 @@ function solarEvent(cells) {
  * @returns {import("./hyper-calendar.d.ts").Horizon}
  */
 function horizonLine(cells) {
-  const [id, englishName, description, source] = cells;
-  return { id, englishName, description, source };
+  const [id, englishName, description, source, shortName] = cells;
+  return { id, englishName, description, source, shortName };
 }
 
 /**
@@ -1369,7 +1372,10 @@ function solarCrossing(cells) {
  * @returns {import("./hyper-calendar.d.ts").HinduLunarDate}
  */
 function hinduLunarDateLine(cells) {
-  const [sakaYear, vikramaYear, month, leapMonth, tithi, leapDay, sunrise] = cells;
+  const [
+    sakaYear, vikramaYear, month, leapMonth, tithi, leapDay, sunrise,
+    monthName, leapMonthWord, sakaEra, vikramaEra, localeUsed,
+  ] = cells;
   return {
     sakaYear: integer(sakaYear, "saka year"),
     vikramaYear: integer(vikramaYear, "vikrama year"),
@@ -1378,6 +1384,11 @@ function hinduLunarDateLine(cells) {
     tithi: integer(tithi, "tithi"),
     leapDay: flag(leapDay, "leap day"),
     sunrise: integer(sunrise, "sunrise"),
+    monthName: optional(monthName),
+    leapMonthWord: optional(leapMonthWord),
+    sakaEra: optional(sakaEra),
+    vikramaEra: optional(vikramaEra),
+    localeUsed,
   };
 }
 
@@ -3099,22 +3110,25 @@ export class HyperCalendar {
   /**
    * The Hindu lunisolar date of a fixed day at a place, read at its
    * sunrise: on the true sky in the zodiac of a named ayanamsa, or on the
-   * *Sūrya Siddhānta*'s, `surya-siddhanta`.
+   * *Sūrya Siddhānta*'s, `surya-siddhanta`; with the month and the eras
+   * named in `locale`, as {@link describeDay} names them for `hindu-lunar`.
    *
    * @param {string} sky
    * @param {number | bigint} fixed
    * @param {number} latitude
    * @param {number} longitude
    * @param {number} [elevation]
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").HinduLunarDate}
    */
-  hinduLunarDate(sky, fixed, latitude, longitude, elevation = 0) {
+  hinduLunarDate(sky, fixed, latitude, longitude, elevation = 0, locale = "und") {
     const fn = this.#export("hc_hindu_lunar_date");
     const day = toI64(fixed, "fixed");
     const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
-    const text = this.#withText(sky, "sky", (pointer, len) =>
-      this.#text("hc_hindu_lunar_date", (buffer, capacity) =>
-        fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+    const text = this.#withText(sky, "sky", (skyPointer, skyLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_hindu_lunar_date", (buffer, capacity) =>
+          fn(skyPointer, skyLen, day, lat, lon, elev, localePointer, localeLen, buffer, capacity), true)));
     return hinduLunarDateLine(this.#oneLine("hc_hindu_lunar_date", text, COLUMNS.hinduLunarDate));
   }
 

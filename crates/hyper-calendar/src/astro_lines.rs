@@ -327,7 +327,9 @@ pub fn solar_event_line(event: &str, fixed: i64, place: Location) -> Answer<Stri
 
 /// The lines of `hc_horizons`: every horizon [`HORIZONS`] carries, one a
 /// line, as its identifier, its English name, what it takes the visible
-/// horizon to be, and its source.
+/// horizon to be, its source, and its short English name for a label
+/// (`geometric dip`, `USNO`, `Calendrical Calculations`). `hc-i18n` has no
+/// vocabulary for the horizons, so the names are English only.
 #[must_use]
 pub fn horizons_lines() -> String {
     let mut out = String::new();
@@ -337,6 +339,7 @@ pub fn horizons_lines() -> String {
             horizon.english_name,
             horizon.description,
             horizon.source,
+            horizon.short_name,
         ]
         .into_iter()
         .enumerate()
@@ -571,7 +574,7 @@ mod tests {
     }
 
     #[test]
-    fn every_horizon_is_a_line_of_four_cells() {
+    fn every_horizon_is_a_line_of_five_cells() {
         let text = horizons_lines();
         let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
             .lines()
@@ -579,8 +582,9 @@ mod tests {
             .collect();
         assert_eq!(rows.len(), HORIZONS.len());
         for (row, horizon) in rows.iter().zip(HORIZONS) {
-            assert_eq!(row.len(), 4);
+            assert_eq!(row.len(), 5);
             assert_eq!(row[0], horizon.id);
+            assert_eq!(row[4], horizon.short_name);
         }
         assert_eq!(rows[0][0], "geometric-dip");
         assert_eq!(horizon("USNO").map(|horizon| horizon.id), Ok("usno"));

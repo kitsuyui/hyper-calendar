@@ -42,6 +42,7 @@ pub mod memo;
 pub mod ntp;
 pub mod sas_stata;
 pub mod scale;
+pub mod sweep;
 pub mod tai64;
 pub mod tt_bipm;
 pub mod unix;

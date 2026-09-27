@@ -946,6 +946,13 @@ export interface ZoneLocation {
   longitude: number;
   /** The ISO 3166-1 codes of the countries the zone overlaps, the location's first. */
   countries: string[];
+  /**
+   * The one ISO 3166-1 code `zone.tab` lists the name under, for a label: `JP`
+   * for `Asia/Tokyo`, whose `countries` are `JP` and `AU`; `UA` for
+   * `Europe/Simferopol`, whose `countries` are `RU` and `UA`. `null` for a name
+   * `zone.tab` has no row for, which no name of release 2026c is.
+   */
+  country: string | null;
   /** The table's comment, which tells a country's zones apart; `null` where the country has one. */
   comment: string | null;
   /** The zone's CLDR 48 exemplar city in the locale, else in English: 東京 under `ja`, `Tokyo` under `en`. */
@@ -1012,6 +1019,8 @@ export interface Horizon {
   /** What the convention takes the visible horizon to be. */
   description: string;
   source: string;
+  /** A short English name for a label: `geometric dip`, `USNO`, `Calendrical Calculations`. */
+  shortName: string;
 }
 
 /** The one line of `hc_sunrise` or `hc_sunset`. */
@@ -1037,6 +1046,20 @@ export interface HinduLunarDate {
   leapDay: boolean;
   /** The sunrise the day was read at, POSIX seconds, rounded down. */
   sunrise: number;
+  /**
+   * The month's name in the locale, as `describeDay` names it for `hindu-lunar`:
+   * `Bhadra`, भाद्रपद under `hi`; an intercalary month with the locale's word
+   * before it, `Adhika Sravana`. `null` where the locale's data has no name.
+   */
+  monthName: string | null;
+  /** The locale's word for an intercalary month, `Adhika` or अधिक, where this month is one; else `null`. */
+  leapMonthWord: string | null;
+  /** The Śaka era's name in the locale, `Saka` or शक; `null` where the locale has none, as in Sanskrit. */
+  sakaEra: string | null;
+  /** The Vikrama Saṃvat's name in the locale, `Vikrama Samvat`; `null` where the locale has none. */
+  vikramaEra: string | null;
+  /** The tag of the data that named the month: `en`, `hi`, `sa`. */
+  localeUsed: string;
 }
 
 /** The one line of `hc_surya_siddhanta_at`. */
@@ -1311,9 +1334,17 @@ export class HyperCalendar {
   panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: string): PanchangaLimb[];
   /**
    * `hc_hindu_lunar_date`: `sky` an ayanamsa name or `surya-siddhanta`; on
-   * the true sky a day without a sunrise at the place is `no-data`.
+   * the true sky a day without a sunrise at the place is `no-data`. The month
+   * and the eras are named in `locale`, `und` unless given, which is English.
    */
-  hinduLunarDate(sky: string, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): HinduLunarDate;
+  hinduLunarDate(
+    sky: string,
+    fixed: number | bigint,
+    latitude: number,
+    longitude: number,
+    elevation?: number,
+    locale?: string,
+  ): HinduLunarDate;
   /** `hc_surya_siddhanta_at`; an instant outside Kali Yuga 1 to 10 000 is `out-of-range`. */
   suryaSiddhantaAt(unixSeconds: number | bigint): SuryaSiddhantaSky;
   /** `hc_surya_siddhanta_sunrise`: POSIX seconds; a place beyond 65° of latitude is `out-of-range`. */

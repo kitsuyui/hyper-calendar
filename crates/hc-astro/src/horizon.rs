@@ -84,6 +84,10 @@ pub struct Horizon {
     pub id: &'static str,
     /// The English name.
     pub english_name: &'static str,
+    /// A short English name for a label, which still tells the
+    /// conventions apart: the word each source itself uses for what sets
+    /// the convention apart — the dip, the observatory, the book.
+    pub short_name: &'static str,
     /// What the convention takes the visible horizon to be, in a sentence.
     pub description: &'static str,
     /// The refraction at the horizon for an observer at sea level, in
@@ -194,6 +198,9 @@ hc_core::catalogue! {
         pub const GEOMETRIC_DIP = Horizon {
             id: "geometric-dip",
             english_name: "sea-level horizon lowered by the geometric dip",
+            // `calendar-code2`'s `dip`, "depression of visible horizon",
+            // arccos(R/(R+h)), with no refraction along the grazing ray.
+            short_name: "geometric dip",
             description: "34′ of refraction and a Sun of 16′; the horizon lowered by the \
                           geometric dip arccos(R/(R+h)) for the observer's height; the Moon's \
                           semidiameter 0.2725 of its horizontal parallax",
@@ -213,6 +220,9 @@ hc_core::catalogue! {
         pub const USNO = Horizon {
             id: "usno",
             english_name: "US Naval Observatory, sea level",
+            // The Observatory's own abbreviation, as its domain,
+            // usno.navy.mil, spells it.
+            short_name: "USNO",
             description: "34′ of refraction and a Sun of 16′, for an observer at sea level \
                           whatever their height; the Moon's semidiameter 0.2725 of its \
                           horizontal parallax",
@@ -230,6 +240,8 @@ hc_core::catalogue! {
         pub const CALENDRICAL_CALCULATIONS = Horizon {
             id: "calendrical-calculations",
             english_name: "Reingold and Dershowitz, Calendrical Calculations",
+            // The book's title; `calendar-code2` is its code.
+            short_name: "Calendrical Calculations",
             description: "34′ of refraction and a Sun of 16′; the geometric dip and 19″·√h \
                           more for a height of h metres; a Moon of 16′ with the parallax at \
                           its altitude",
@@ -273,6 +285,24 @@ mod tests {
                 "{}",
                 horizon.id
             );
+        }
+    }
+
+    /// The short names are distinct, shorter than the English names, and
+    /// fit a label: each still names what sets its convention apart.
+    #[test]
+    fn the_short_names_tell_the_three_apart() {
+        assert!(HORIZONS.iter().map(|horizon| horizon.short_name).eq([
+            "geometric dip",
+            "USNO",
+            "Calendrical Calculations"
+        ]));
+        for (index, horizon) in HORIZONS.iter().enumerate() {
+            assert!(horizon.short_name.len() < horizon.english_name.len());
+            assert!(!horizon.short_name.contains(['\t', '\n']));
+            for other in &HORIZONS[index + 1..] {
+                assert!(!horizon.short_name.eq_ignore_ascii_case(other.short_name));
+            }
         }
     }
 

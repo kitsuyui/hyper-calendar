@@ -3,7 +3,7 @@
 //!
 //! A line is one row of [`hc_tz::location`]: the zone, the latitude and
 //! longitude of its principal location in decimal degrees, its countries,
-//! the table's comment, and the zone's exemplar city in a locale with the
+//! the one country `zone.tab` lists it under, the table's comment, and the zone's exemplar city in a locale with the
 //! tag of the data that answered, from [`hc_i18n::exemplar_cities`]. The
 //! cities are English unless the build has the `localized-exemplar-cities`
 //! feature; `docs/systems/zone-locations.md` explains both halves.
@@ -17,7 +17,7 @@ use hc_tz::location::{self, ZoneLocation};
 use crate::boundary::{Answer, Refusal, push_cell};
 
 /// How many columns [`zones`] and [`zone_location`] write.
-pub const ZONE_COLUMNS: usize = 7;
+pub const ZONE_COLUMNS: usize = 8;
 
 /// The exemplar city of a row in the locale a tag asks for: CLDR's in
 /// that locale where the build carries it and the locale's fallback chain
@@ -44,7 +44,9 @@ fn city(row: &ZoneLocation, _locale: &str) -> ExemplarCity<'static> {
 /// degrees east, each the table's whole arcseconds written in decimal
 /// degrees to six places (see [`hc_tz::DecimalDegrees`]); the ISO 3166-1 codes of the
 /// countries, `;`-separated, the country of the principal location first;
-/// the table's comment; the exemplar city; and the tag that named it.
+/// the one country `zone.tab` lists the name under, empty where it has no
+/// row for it; the table's comment; the exemplar city; and the tag that
+/// named it.
 fn push_line(out: &mut String, row: &ZoneLocation, locale: &str) {
     push_cell(out, row.zone);
     let _ = write!(
@@ -60,6 +62,8 @@ fn push_line(out: &mut String, row: &ZoneLocation, locale: &str) {
         push_cell(out, country);
     }
     out.push('\t');
+    push_cell(out, row.zone_tab_country);
+    out.push('\t');
     push_cell(out, row.comment);
     out.push('\t');
     let city = city(row, locale);
@@ -74,17 +78,24 @@ fn push_line(out: &mut String, row: &ZoneLocation, locale: &str) {
 /// east, of its principal location, each the table's whole arcseconds
 /// written in decimal degrees to six places; the
 /// ISO 3166-1 codes of its countries, `;`-separated, the location's
-/// first; the table's comment; the exemplar city; and the tag that named
-/// the city.
+/// first; the one country `zone.tab` lists the zone under; the table's
+/// comment; the exemplar city; and the tag that named the city.
 ///
-/// Column 6 is the zone's CLDR 48 exemplar city in the locale — 東京 for
-/// `Asia/Tokyo` under `ja` — and column 7 the tag of the data that
+/// Column 5 is the country a label can name: `JP` for `Asia/Tokyo`,
+/// whose column 4 is `JP;AU`. It is `zone.tab`'s, which gives each name
+/// one country: the first of column 4 for every zone but
+/// `Europe/Simferopol`, `RU;UA` there and `UA` in `zone.tab`. It is empty
+/// for a name `zone.tab` has no row for, which no name of release 2026c
+/// is (see [`hc_tz::location::ZoneLocation::zone_tab_country`]).
+///
+/// Column 7 is the zone's CLDR 48 exemplar city in the locale — 東京 for
+/// `Asia/Tokyo` under `ja` — and column 8 the tag of the data that
 /// answered, `ja`, so that a request for `ja-JP` says `ja`. A zone the
 /// locale has no city for, every zone under `native` or a tag whose chain
 /// reaches no table, and every zone in a build without the
 /// `localized-exemplar-cities` feature, is given its English city with
 /// `en`: `en.xml`'s, else `root.xml`'s, else the name UTS #35 derives from
-/// the zone's identifier. So column 6 is never empty.
+/// the zone's identifier. So column 7 is never empty.
 #[must_use]
 pub fn zones(locale: &str) -> String {
     let mut out = String::new();
@@ -150,14 +161,16 @@ mod tests {
     }
 
     #[test]
-    fn every_zone_has_a_line_of_seven_cells_with_a_city() {
+    fn every_zone_has_a_line_of_eight_cells_with_a_country_and_a_city() {
         let text = zones("en");
         assert_eq!(text.lines().count(), location::zones().count());
         for line in text.lines() {
             let cells = cells(line);
             assert_eq!(cells.len(), ZONE_COLUMNS, "{line}");
-            assert!(!cells[5].is_empty(), "{line}");
-            assert_eq!(cells[6], "en", "{line}");
+            assert_eq!(cells[4].len(), 2, "{line}");
+            assert!(cells[3].split(';').any(|code| code == cells[4]), "{line}");
+            assert!(!cells[6].is_empty(), "{line}");
+            assert_eq!(cells[7], "en", "{line}");
             let latitude: f64 = cells[1].parse().expect("a latitude");
             let longitude: f64 = cells[2].parse().expect("a longitude");
             assert!(latitude.abs() <= 90.0 && longitude.abs() <= 180.0, "{line}");
@@ -166,14 +179,24 @@ mod tests {
 
     /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre Bird
     /// Observatory`; 35° 39′ 16″ is 128 356″, 35.654444…°, and 139° 44′ 41″
-    /// is 503 081″, 139.744722…°, each written to six places.
+    /// is 503 081″, 139.744722…°, each written to six places; `zone.tab`
+    /// 2026c: `JP +353916+1394441 Asia/Tokyo`, one country.
     #[test]
     fn tokyo_is_its_row_in_decimal_degrees() {
         let line = zone_location("Asia/Tokyo", "en").expect("Tokyo");
         assert_eq!(
             line,
-            "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tEyre Bird Observatory\tTokyo\ten\n"
+            "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tJP\tEyre Bird Observatory\tTokyo\ten\n"
         );
+    }
+
+    /// `zone1970.tab`: `RU,UA +4457+03406 Europe/Simferopol Crimea`;
+    /// `zone.tab`: `UA +4457+03406 Europe/Simferopol Crimea`, in its `RU`
+    /// section. Column 5 is `zone.tab`'s, not column 4's first.
+    #[test]
+    fn simferopol_is_zone_tabs_ua() {
+        let line = zone_location("Europe/Simferopol", "en").expect("Simferopol");
+        assert_eq!(cells(&line)[3..5], ["RU;UA", "UA"]);
     }
 
     /// `zone.tab`: `NO +5955+01045 Europe/Oslo`; `backward`: `Link
@@ -182,11 +205,12 @@ mod tests {
     fn a_link_is_answered_by_its_row_and_utc_by_no_place() {
         assert_eq!(
             zone_location("europe/oslo", "en"),
-            Ok("Europe/Oslo\t59.916667\t10.750000\tNO\t\tOslo\ten\n".into())
+            Ok("Europe/Oslo\t59.916667\t10.750000\tNO\tNO\t\tOslo\ten\n".into())
         );
         let calcutta = zone_location("Asia/Calcutta", "en").expect("Calcutta");
         assert_eq!(cells(&calcutta)[0], "Asia/Kolkata");
-        assert_eq!(cells(&calcutta)[5], "Kolkata");
+        assert_eq!(cells(&calcutta)[4], "IN");
+        assert_eq!(cells(&calcutta)[6], "Kolkata");
         assert_eq!(zone_location("UTC", "en"), Err(Refusal::Unknown));
         assert_eq!(
             zone_location("Mars/Olympus_Mons", "en"),
@@ -200,7 +224,7 @@ mod tests {
         let city = |zone: &str, locale: &str| {
             let line = zone_location(zone, locale).expect(zone);
             let cells = cells(&line);
-            (String::from(cells[5]), String::from(cells[6]))
+            (String::from(cells[6]), String::from(cells[7]))
         };
         assert_eq!(city("Asia/Tokyo", "ja-JP"), ("東京".into(), "ja".into()));
         assert_eq!(city("Europe/Berlin", "de"), ("Berlin".into(), "de".into()));
@@ -210,14 +234,14 @@ mod tests {
             city("Asia/Tokyo", "not a tag"),
             ("Tokyo".into(), "en".into())
         );
-        assert!(zones("ja").lines().all(|line| cells(line)[6] == "ja"));
+        assert!(zones("ja").lines().all(|line| cells(line)[7] == "ja"));
     }
 
     #[cfg(not(feature = "localized-exemplar-cities"))]
     #[test]
     fn without_the_localized_cities_every_city_is_english() {
         assert_eq!(
-            cells(&zone_location("Asia/Tokyo", "ja").expect("Tokyo"))[5..],
+            cells(&zone_location("Asia/Tokyo", "ja").expect("Tokyo"))[6..],
             ["Tokyo", "en"]
         );
     }

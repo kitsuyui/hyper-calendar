@@ -6075,12 +6075,21 @@ static SS_RULES: &[HolidayRule] = &[
 /// leaves its Saturday and Sunday holidays where they fall. The calendar's
 /// Annex II "observed holidays", the Prophet's Birthday among them, do not
 /// say whether work stops and are not carried; the Public Holiday Bill,
-/// 2026, is not law. Section 59 gives a weekly rest "on such day as is
-/// customary" without naming it, and the Civil Service Act, 2011, speaks of
-/// "the standard 40 hour working week" (section 54) without naming its
-/// days either. No source read names the weekend: the Saturday–Sunday
-/// weekend here is an assumption, which no source read states or
-/// contradicts.
+/// 2026, is not law.
+///
+/// The weekend is Saturday and Sunday from the Act's own words, not from a
+/// rule that names them. Section 59, "Weekly Holiday", gives "a weekend
+/// holiday" of at least 24 hours "on such day as is customary" without
+/// naming the day; section 2 defines calendar days as "regular days
+/// including Saturdays and Sundays", setting those two apart from the
+/// working days; and the model contract the Act prints as its Appendix B
+/// writes, at clause 5.1, "Your normal working weeks are 52 beginning
+/// Monday through to Friday, and 40 hours per a week", "or as agreed". The
+/// Civil Service Act, 2011, speaks of "the standard 40 hour working week"
+/// (section 54) without naming its days. No circular on the working week
+/// was found: the Ministry of Labour's list of its circulars, read on
+/// 2026-09-27, holds none, and none of the Ministry of Public Service was
+/// found.
 ///
 /// This table is written up with the other twelve whose days are
 /// announced year by year in `docs/systems/announced-holidays.md`.
@@ -6092,8 +6101,9 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Labour Act, 2017 (Act No. 64, 24 October 2017), sections 59 and 61, the \
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Labour Act, 2017 (Act No. 64, 24 October 2017), sections 2 (\"calendar days\"), \
+              59 and 61 and Appendix B, clause 5.1 (Monday to Friday), the \
               Ministry of Justice's printing as the South Sudan NGO Forum holds it \
               (docs.southsudanngoforum.org/sites/default/files/2018-01/Labour%20Act%202017.pdf); \
               Ministry of Labour, \"Public Holidays Calendar 2022\", Annexes I and II, stamped \
@@ -6103,7 +6113,8 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
               at mol.gov.ss/page/documents/circulars; all retrieved 2026-09-26. The notices for \
               Eid al-Fitr and Easter 2024 were not read, and no calendar after 2022 was found; the \
               Civil Service Act, 2011, section 54 (docs.southsudanngoforum.org), retrieved \
-              2026-09-26, which names no weekend",
+              2026-09-26, which names no weekend; the Labour Act's section 2 and Appendix B and \
+              the list of circulars re-read 2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

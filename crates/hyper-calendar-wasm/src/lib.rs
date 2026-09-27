@@ -1653,7 +1653,16 @@ mod calendar_days {
     /// Phālguna), 1 if it is the intercalary month and 0 if not, the tithi
     /// (1 through 30), 1 if the day is the second to carry it and 0 if not,
     /// and the sunrise it was read at as whole POSIX seconds of Universal
-    /// Time, rounded down. `sky` is an ayanamsa `hc_panchanga_at` names, for
+    /// Time, rounded down; then, in the locale, the month's name (`Bhadra`,
+    /// भाद्रपद under `hi`), with the locale's word for an intercalary month
+    /// before it where it is one (`Adhika Sravana`); that word alone for an
+    /// intercalary month, else empty; the Śaka era's name; the Vikrama
+    /// Saṃvat's; and the tag of the data that answered. The names are
+    /// `hc_describe_day`'s for `hindu-lunar` and resolve the locale as it
+    /// does, `native` asking for Sanskrit; a name the locale's data does
+    /// not have, such as either era in Sanskrit, is an empty cell. The
+    /// locale argument fails as `hc_parse_iso_date` does. `sky` is an
+    /// ayanamsa `hc_panchanga_at` names, for
     /// the true Sun and Moon in its zodiac, as `hindu-lunar` reads them with
     /// Lahiri's at the Central Station; or `surya-siddhanta`, for the
     /// *Sūrya Siddhānta*'s Sun and Moon at its own sunrise, as
@@ -1671,9 +1680,9 @@ mod calendar_days {
     ///
     /// # Safety
     ///
-    /// `sky` must be readable for `sky_len` bytes unless null with a zero
-    /// length; `buffer` must be writable for `capacity` bytes unless it is
-    /// null.
+    /// `sky` must be readable for `sky_len` bytes and `locale` for
+    /// `locale_len`, unless null with a zero length; `buffer` must be
+    /// writable for `capacity` bytes unless it is null.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_hindu_lunar_date(
         sky: *const u8,
@@ -1682,19 +1691,21 @@ mod calendar_days {
         latitude: f64,
         longitude: f64,
         elevation: f64,
+        locale: *const u8,
+        locale_len: usize,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
         // SAFETY: forwarded to the caller's contract above.
-        let sky = match unsafe { text(sky, sky_len) } {
-            Ok(sky) => sky,
-            Err(sentinel) => return sentinel,
+        let (sky, tag) = match unsafe { (text(sky, sky_len), text(locale, locale_len)) } {
+            (Ok(sky), Ok(tag)) => (sky, tag),
+            (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
         };
         let place = match astro_lines::location(latitude, longitude, elevation) {
             Ok(place) => place,
             Err(refusal) => return sentinel(refusal),
         };
-        let answer = hindu_lines::hindu_lunar_date_line(sky, fixed, place);
+        let answer = hindu_lines::hindu_lunar_date_line(sky, fixed, place, tag);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
@@ -2994,15 +3005,18 @@ mod zones {
     /// the latitude of its principal location, decimal degrees north; the
     /// longitude, decimal degrees east; the ISO 3166-1 codes of the
     /// countries it overlaps, `;`-separated, the country of the location
-    /// first; the table's comment, which tells apart a country's zones and
-    /// is empty where the country has one; the zone's CLDR 48 exemplar city
-    /// in the locale; and the tag of the data that named the city. Each
+    /// first; the one country `zone.tab` lists the zone under, `JP` for
+    /// `Asia/Tokyo` where column 4 is `JP;AU`, empty for a zone it has no
+    /// row for, which no zone of release 2026c is; the table's comment,
+    /// which tells apart a country's zones and is empty where the country
+    /// has one; the zone's CLDR 48 exemplar city in the locale; and the tag
+    /// of the data that named the city. Each
     /// coordinate is the table's whole arcseconds written in decimal degrees
     /// to six places, `arcseconds × 10⁶ / 3600` millionths rounded half away
     /// from zero, so that multiplying by 3600 and rounding gives the
     /// arcseconds back. A build
     /// without the `calendars` feature, and a locale with no city for the
-    /// zone, names the city in English, with `en` in column 7. The locale
+    /// zone, names the city in English, with `en` in column 8. The locale
     /// argument fails as `hc_parse_iso_date` does. A null `buffer` returns
     /// the length the text needs.
     ///
@@ -3207,8 +3221,10 @@ mod earth_and_sun {
     /// One line per horizon of `hc_astro::horizon::HORIZONS`,
     /// tab-separated: its identifier (`geometric-dip`, the default of the
     /// other exports; `usno`; `calendrical-calculations`), its English
-    /// name, what it takes the visible horizon to be, and its source. A
-    /// null `buffer` returns the length the text needs.
+    /// name, what it takes the visible horizon to be, its source, and a
+    /// short English name for a label (`geometric dip`, `USNO`,
+    /// `Calendrical Calculations`). A null `buffer` returns the length the
+    /// text needs.
     ///
     /// # Safety
     ///
@@ -5632,14 +5648,14 @@ mod tests {
                 hc_zones("en".as_ptr(), 2, buffer, capacity)
             });
             assert_eq!(text.lines().count(), 312);
-            assert!(text.lines().all(|line| line.split('\t').count() == 7));
+            assert!(text.lines().all(|line| line.split('\t').count() == 8));
             let tokyo = text
                 .lines()
                 .find(|line| line.starts_with("Asia/Tokyo\t"))
                 .expect("Tokyo");
             assert_eq!(
                 tokyo,
-                "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tEyre Bird Observatory\tTokyo\ten"
+                "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tJP\tEyre Bird Observatory\tTokyo\ten"
             );
             assert_eq!(line("asia/tokyo", "en"), format!("{tokyo}\n"));
         }
@@ -5649,7 +5665,8 @@ mod tests {
         #[test]
         fn links_answer_with_their_rows_and_utc_is_unknown() {
             assert!(
-                line("Europe/Oslo", "en").starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\t")
+                line("Europe/Oslo", "en")
+                    .starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\tNO\t\t")
             );
             assert!(line("Asia/Calcutta", "en").starts_with("Asia/Kolkata\t"));
             assert_eq!(location("UTC", "en"), HC_ERR_UNKNOWN);
@@ -5680,9 +5697,9 @@ mod tests {
             let tokyo = line("Asia/Tokyo", "ja-JP");
             let cells: Vec<&str> = tokyo.trim_end().split('\t').collect();
             if cfg!(feature = "calendars") {
-                assert_eq!(cells[5..], ["東京", "ja"]);
+                assert_eq!(cells[6..], ["東京", "ja"]);
             } else {
-                assert_eq!(cells[5..], ["Tokyo", "en"]);
+                assert_eq!(cells[6..], ["Tokyo", "en"]);
             }
         }
     }
@@ -6874,12 +6891,16 @@ mod tests {
                         latitude,
                         longitude,
                         0.0,
+                        "hi".as_ptr(),
+                        2,
                         buffer,
                         capacity,
                     )
                 });
                 let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
                 assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"], "{sky}");
+                // Chaitra, in Hindi, with CLDR's शक for the era.
+                assert_eq!(cells[7..], ["चैत्र", "", "शक", "", "hi"], "{sky}");
             }
             let text = read_lines(|buffer, capacity| unsafe {
                 hc_surya_siddhanta_sunrise(day, 23.15, 75.768_333, buffer, capacity)
@@ -6892,8 +6913,38 @@ mod tests {
             assert_eq!(cells[3..], ["1", "12"]);
             let null = core::ptr::null_mut();
             assert_eq!(
-                unsafe { hc_hindu_lunar_date("".as_ptr(), 0, day, 0.0, 0.0, 0.0, null, 0) },
+                unsafe {
+                    hc_hindu_lunar_date(
+                        "".as_ptr(),
+                        0,
+                        day,
+                        0.0,
+                        0.0,
+                        0.0,
+                        "en".as_ptr(),
+                        2,
+                        null,
+                        0,
+                    )
+                },
                 HC_ERR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_hindu_lunar_date(
+                        "lahiri".as_ptr(),
+                        6,
+                        day,
+                        23.18,
+                        82.5,
+                        0.0,
+                        [0xffu8].as_ptr(),
+                        1,
+                        null,
+                        0,
+                    )
+                },
+                HC_ERR_NOT_UTF8
             );
             assert_eq!(
                 unsafe { hc_surya_siddhanta_sunrise(day, 80.0, 0.0, null, 0) },
@@ -7343,7 +7394,8 @@ mod tests {
                 .map(|line| line.split('\t').next().expect("an id"))
                 .collect();
             assert_eq!(ids, ["geometric-dip", "usno", "calendrical-calculations"]);
-            assert!(text.lines().all(|line| line.split('\t').count() == 4));
+            assert!(text.lines().all(|line| line.split('\t').count() == 5));
+            assert!(text.lines().any(|line| line.ends_with("\tUSNO")));
             let day = hc_gregorian_to_fixed(2024, 1, 1);
             let midnight = hc_unix_from_fixed(day);
             let horizon = "USNO";

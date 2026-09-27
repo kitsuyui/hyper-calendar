@@ -257,7 +257,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
 | `namingPeriodOn(calendar, fixed, locale)` | `hc_naming_period_on` | a `NamingPeriodOn` |
 | `panchangaAt(unixSeconds, ayanamsa)`, `panchangaOfDay(fixed, latitude, longitude, elevation, ayanamsa)` | `hc_panchanga_at`, `hc_panchanga_of_day` | `PanchangaLimb[]`, the yoga's and the karaṇa's |
-| `hinduLunarDate(sky, fixed, latitude, longitude, elevation)`, `suryaSiddhantaAt(unixSeconds)`, `suryaSiddhantaSunrise(fixed, latitude, longitude)` | `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise` | a `HinduLunarDate`; a `SuryaSiddhantaSky`; a number |
+| `hinduLunarDate(sky, fixed, latitude, longitude, elevation, locale)`, `suryaSiddhantaAt(unixSeconds)`, `suryaSiddhantaSunrise(fixed, latitude, longitude)` | `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise` | a `HinduLunarDate`; a `SuryaSiddhantaSky`; a number |
 | `crescentVisible(criterion, fixed, latitude, longitude, elevation)` | `hc_crescent_visible` | a `CrescentVisibility` |
 | `iocOlympiad(gregorianYear)`, `hebrewYahrzeit(deathFixed, hebrewYear)`, `hebrewBirthday(birthFixed, hebrewYear)`, `chineseReckonedAge(birthFixed, onFixed)` | `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age` | a number |
 | `chineseMarriageAugury(chineseYear)` | `hc_chinese_marriage_augury` | a `MarriageAugury` |
@@ -500,7 +500,7 @@ not pass CI.
 | `hc_naming_period_on(calendar: *const u8, calendar_len: usize, fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one UTF-8 line, returning the byte length written. |
 | `hc_panchanga_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two UTF-8 lines, returning the byte length written. |
 | `hc_panchanga_of_day(fixed: i64, latitude: f64, longitude: f64, elevation: f64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The yoga and the karaṇa a fixed day carries at a place, the ones in progress at its sunrise, as two UTF-8 lines, returning the byte length written. |
-| `hc_hindu_lunar_date(sky: *const u8, sky_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one UTF-8 line, returning the byte length written. |
+| `hc_hindu_lunar_date(sky: *const u8, sky_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The Hindu lunisolar date of a fixed day at a place, as one UTF-8 line, returning the byte length written. |
 | `hc_surya_siddhanta_at(unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The *Sūrya Siddhānta*'s Sun and Moon at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
 | `hc_surya_siddhanta_sunrise(fixed: i64, latitude: f64, longitude: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one UTF-8 line, returning the byte length written. |
 | `hc_crescent_visible(criterion: *const u8, criterion_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Whether the young crescent should have been visible on the evening that begins a fixed day, from a place, by a named criterion, as one UTF-8 line, returning the byte length written. |
@@ -1282,7 +1282,8 @@ prints, and the karaṇa Balava, ending within two minutes after its 14:55.
 ## The Hindu lunisolar date
 
 `hc_hindu_lunar_date(sky_ptr, sky_len, fixed, latitude, longitude,
-elevation, buffer, capacity)` needs the `calendars` feature and writes the
+elevation, locale_ptr, locale_len, buffer, capacity)` needs the
+`calendars` feature and writes the
 amānta lunisolar date of a day read at the sunrise of a place the caller
 gives. The registered `hindu-lunar` reads the day at the Central Station
 and `hindu-lunar-surya-siddhanta` at Ujjain; a place is a parameter and
@@ -1292,7 +1293,10 @@ not a calendar of its own, and this is where it is given.
 names them, `Lahiri` for the *Rashtriya Panchang*'s, for the true Sun and
 Moon in its zodiac; or `surya-siddhanta`, for the *Sūrya Siddhānta*'s Sun,
 Moon and sunrise; in any case, and anything else, the empty string
-included, is `HC_ERR_UNKNOWN`. It writes one line:
+included, is `HC_ERR_UNKNOWN`. The locale names the month and the eras,
+as `hc_describe_day` names them for `hindu-lunar`, and fails as
+`hc_parse_iso_date` does; it comes after the day, since it only
+qualifies the answer. It writes one line:
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -1303,6 +1307,16 @@ included, is `HC_ERR_UNKNOWN`. It writes one line:
 | 5 | tithi | the tithi in progress at the sunrise, 1 through 30: śukla 1 to 15, then kṛṣṇa 1 to 15 |
 | 6 | leap day | `1` for the second day to carry a tithi; else `0` |
 | 7 | sunrise | the sunrise the day was read at, as POSIX seconds of Universal Time, rounded down |
+| 8 | month name | the month in the locale, as column 8 of `hc_describe_day` names it: `Bhadra`, भाद्रपद under `hi` and `sa`; an intercalary month with the locale's word before it, `Adhika Sravana`; empty where the locale's data has no name |
+| 9 | leap month word | the locale's word for an intercalary month, `Adhika` or अधिक, where the month is one; else empty |
+| 10 | saka era | the Śaka era's name in the locale: `Saka`; शक under `hi`, CLDR's name for the national calendar's Śaka era; empty under `sa` |
+| 11 | vikrama era | the Vikrama Saṃvat's name, `Vikrama Samvat`, from the vocabulary of the Kārttikādi and Vikrami calendars, which count the same era; empty where the locale has none, as under `hi` and `sa` |
+| 12 | locale used | the tag of the data that named column 8: `en`, `hi`, `sa` |
+
+The locale resolves as it does for `hc_describe_day`: the locale asked for
+where its data names the calendar, else English; `native` asks for the
+calendar's own languages, Sanskrit then Hindi. The names are the ones
+`hc-i18n` already carries; none is added here.
 
 A month begins at the first sunrise after a conjunction, so a place
 must see the Sun rise on every day of the year: one beyond 65° of
@@ -1311,7 +1325,9 @@ outside the Śaka years 1622 through 2221 is `HC_ERR_OUT_OF_RANGE` too.
 The Siddhānta's reckoning is arithmetic and answers for Kali Yuga 1 to
 10 000. 30 March
 2025 is Chaitra śukla 1 of Śaka 1947 on the true sky at the Central
-Station and on the Siddhānta's at Ujjain.
+Station and on the Siddhānta's at Ujjain. 27 September 2026 at Tokyo is
+Śaka 1948, Bhādrapada (`Bhadra`), the sixteenth tithi, on every ayanamsa
+and on the Siddhānta's sky.
 
 ### The Sūrya Siddhānta's sky
 
@@ -1864,17 +1880,28 @@ rounds.
 A name that places nothing — `UTC`, `Etc/GMT+5`, a name nobody knows — is
 `HC_ERR_UNKNOWN`. Names match in any ASCII case.
 
-Column 6 is the zone's exemplar city from CLDR 48, the city by which CLDR
+Column 5 is one country for a label: the country `zone.tab` lists the
+name under, which gives each name one. Column 4 is `zone1970.tab`'s list
+of the countries the zone overlaps, `JP;AU` for `Asia/Tokyo` (Australia's
+Eyre Bird Observatory keeps Tokyo's clock); `zone.tab` lists
+`Asia/Tokyo` under `JP` alone. Column 5 is the first of column 4 for
+every zone but `Europe/Simferopol`, which `zone1970.tab` gives as `RU;UA`
+and `zone.tab` as `UA`. A link `zone.tab` places has its own country,
+`NO` for `Europe/Oslo`. The cell is empty for a name `zone.tab` has no row
+for; release 2026c has a row for every name that answers, but `zone.tab`
+is deprecated, and a later release may drop rows.
+
+Column 7 is the zone's exemplar city from CLDR 48, the city by which CLDR
 names a zone for a reader. English is always carried: `en.xml`'s value,
 else `root.xml`'s, else the city UTS #35 derives from the zone's name, its
 last field with underscores as spaces. In a build with the `calendars`
 feature too, the city is the locale's where `hc-i18n` carries one — 東京
 under `ja`, Wien under `de-AT` — with the tag of the data that answered in
-column 7; a locale whose file marks the city as inherited answers with the
+column 8; a locale whose file marks the city as inherited answers with the
 root name under its own tag (`Berlin` under `de`). A zone the locale has no
 city for, every zone under `native` or a tag whose chain reaches no table,
 and every zone in a build without `calendars`, is named in English with
-`en`. So column 6 is never empty.
+`en`. So column 7 is never empty.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -1882,9 +1909,10 @@ and every zone in a build without `calendars`, is named in English with
 | 2 | latitude | decimal degrees north of the principal location, negative south, to six places |
 | 3 | longitude | decimal degrees east, negative west, to six places |
 | 4 | countries | the ISO 3166-1 codes of the countries the zone overlaps, `;`-separated, the location's first |
-| 5 | comment | the table's comment, which tells a country's zones apart; empty where the country has one zone |
-| 6 | exemplar city | CLDR 48's exemplar city in the locale, else in English |
-| 7 | locale used | the tag of the data that named column 6: `ja`, `de`, `zh-Hant`, or `en` |
+| 5 | country | the one ISO 3166-1 code `zone.tab` lists the name under: `JP` for `Asia/Tokyo`; empty where `zone.tab` has no row for it |
+| 6 | comment | the table's comment, which tells a country's zones apart; empty where the country has one zone |
+| 7 | exemplar city | CLDR 48's exemplar city in the locale, else in English |
+| 8 | locale used | the tag of the data that named column 7: `ja`, `de`, `zh-Hant`, or `en` |
 
 ```js
 const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -2075,7 +2103,9 @@ answer is a named convention of `hc-astro`'s `horizon` module, and
 | 2 | english name | its English name |
 | 3 | description | what it takes the visible horizon to be: the refraction, the size of the Sun and the Moon, and what a height does |
 | 4 | source | where the convention comes from |
+| 5 | short name | a short English name for a label, which still tells the three apart: `geometric dip`, `USNO`, `Calendrical Calculations` |
 
+The names are English only: `hc-i18n` has no vocabulary for horizons.
 `docs/systems/rise-and-set.md` works each one and says how it was
 measured.
 

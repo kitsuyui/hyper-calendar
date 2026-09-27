@@ -741,7 +741,12 @@ weeks.
 - **At the WebAssembly and C boundaries**, `hc_hindu_lunar_date` gives the
   amānta date at a place the caller names, on the true sky in the zodiac
   of a named ayanāṃśa or on the Siddhānta's, which is where a place other
-  than the Central Station or Ujjain is given; `hc_surya_siddhanta_at` and
+  than the Central Station or Ujjain is given, with the month and the
+  Śaka and Vikrama eras named in a locale from the vocabulary
+  `describe_day` uses (`hyper_calendar::hindu_lines`, the tests
+  `the_labels_of_27_september_2026_at_tokyo` and
+  `an_intercalary_month_is_written_with_the_locales_word`);
+  `hc_surya_siddhanta_at` and
   `hc_surya_siddhanta_sunrise` give the Siddhānta's Sun, Moon, tithi and
   sign at an instant and its sunrise at a place.
 - **`samvatsara`**: `NAMES`, `southern_of_saka` and `name`, the southern
