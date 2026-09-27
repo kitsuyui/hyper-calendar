@@ -210,10 +210,22 @@ Dubberstein ([babylonian.md](babylonian.md)).
 | Kissufim: Loos 636 is August 576 | `the_kissufim_mosaic_is_in_gaza_636` | Holds (year level: the Gaza day of the month is not carried) |
 | Every day of every era, years 1 to 9 999, round-trips in a release build (a debug build takes every 97th day and each year's first and last), and each refuses the day before its year 1 | `every_era_round_trips_and_starts_at_year_one` | Holds |
 | AE = SE − 64; SE 208 is AE 144 | `the_arsacid_year_is_the_seleucid_less_sixty_four` | Holds |
-| Every day of the Arsacid era is `babylonian`'s day under AE = SE − 64, round-trips directly and through its fields, and has `babylonian`'s leap years | `the_calendar_is_babylonian_day_for_day_and_round_trips` | Holds for every day in a release build, several minutes of one core spread over the machine's threads; a debug build takes every 521st day and every 1 Nisannu with the day before it |
+| Every 1 Nisannu of AE 1 to 322 is `babylonian`'s under AE = SE − 64, as is the day before it, where the year changes; both convert back directly and through fields with the era `arsacid`, and have `babylonian`'s leap years. The day before AE 1 is refused, and the range ends on `babylonian`'s last day | `every_new_year_and_its_eve_is_babylonians_renamed` | Holds, in debug and release builds alike |
+| The wrapper relation: the Arsacid fields are `babylonian`'s with the year less 64 and the era renamed, and both calendars convert the date back to the same day | `the_calendar_is_babylonian_renamed_on_a_sample_of_days` | Holds on every 97th day of the range in a release build, every 776th in a debug one, and on the first and last days |
 | 1 Nisannu AE 1 | `the_arsacid_era_begins_with_nisannu_of_se_65` | 15 April 247 BCE here, a day after the 14 April the source gives |
 
-The last row is a day's disagreement of the size and direction of
+The Arsacid era is not walked day by day on its own. Its conversions are
+`babylonian`'s with the year shifted by a constant, behind range checks
+that act only at the ends. So on every day of its range it is correct
+exactly when `babylonian` is, and `babylonian`'s own test walks every day
+of that calendar's range in a release build
+([babylonian.md](babylonian.md)). Walking the same days again here would
+repeat about 500 CPU-seconds of crescent searches and prove nothing new. The
+two tests above check what the renaming can get wrong. The second one fails
+if the calendar stops being `babylonian` renamed, and such a change would
+need a day-by-day sweep of its own.
+
+The last row of the table is a day's disagreement of the size and direction of
 `babylonian`'s own with Parker and Dubberstein, 941 of whose 5 664 months
 the moonlag criterion begins a day later than their table; the article does
 not say where its "14 April" comes from, and their row for SE 65 was not
