@@ -28,7 +28,8 @@
 //! entry of its own; the movable feasts the calendar and the Table of
 //! Liturgical Days name; and the Sundays, ferias, vigils and days within an
 //! octave of the Proper of Time that the Table ranks in the first class,
-//! with the three Sundays of Septuagesima, which are of the second.
+//! with the Vigil of the Ascension and the three Sundays of Septuagesima,
+//! which are of the second.
 //!
 //! # What this is not
 //!
@@ -41,9 +42,10 @@
 //! when 2 November is a Sunday (no. 96). The transfer of an impeded feast
 //! of the I class, the Annunciation's among them (no. 96), is not
 //! applied. The Ember Days, the ferias of Advent from 17 to
-//! 23 December, the Sundays of the second class after Epiphany and
-//! Pentecost, and the particular calendars of nations, dioceses and orders
-//! are not carried; the Greater and Lesser Litanies are the
+//! 23 December, the other Sundays of the second class — after Epiphany,
+//! the second to the fifth after Easter, after the Ascension and after
+//! Pentecost — and the particular calendars of nations, dioceses and
+//! orders are not carried; the Greater and Lesser Litanies are the
 //! `rogation-roman-1960` table's.
 //!
 //! Sources: the Code of Rubrics and its calendar in the English

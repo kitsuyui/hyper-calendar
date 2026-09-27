@@ -20,8 +20,8 @@ use crate::computus::offsets::{
     MAUNDY_THURSDAY,
 };
 use crate::hindu::{
-    BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHAVIR_JAYANTI,
-    NARAKA_CHATURDASHI, RAMA_NAVAMI, VIJAYA_DASHAMI,
+    BUDDHA_PURNIMA, DIWALI, GURU_NANAK_JAYANTI, HOLI, JANMASHTAMI, MAHA_SHIVARATRI,
+    MAHAVIR_JAYANTI, NARAKA_CHATURDASHI, RAMA_NAVAMI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
@@ -1339,6 +1339,180 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
 // India
 // ─────────────────────────────────────────────────────────────────────────
 
+/// The Department of Personnel and Training's lists of holidays for the
+/// central government's offices in Delhi and New Delhi, Annexure I of its
+/// O.M.s F.No.12/2/2023-JCA of 9 July 2024, 3 July 2025 and 16 July 2026,
+/// for 2025, 2026 and 2027: the days they date by the Hindu calendar and
+/// by the Hijri one.
+///
+/// Four of the Hindu days are a day later than the rules of
+/// [`crate::hindu`], which reproduce the *Rashtriya Panchang*'s festival
+/// list: Janmashtami on 16 August 2025 and 25 August 2027, which the 2026
+/// and 2027 lists name "Janmashtami (Vaishnav)"; Holi on 4 March 2026 and
+/// 23 March 2027; and Guru Nanak's Birthday on 14 November 2027. The
+/// three optional days Delhi keeps are Holi, Maha Shivaratri and
+/// Janmashtami in 2025 and Holi, Ram Navami and Janmashtami in 2026 and
+/// 2027.
+#[rustfmt::skip]
+static IN_LISTED: &[(i64, u8, u8, &str)] = &[
+    (2025, 2, 26, "shivaratri"), (2025, 3, 14, "holi"), (2025, 4, 10, "mahavir"),
+    (2025, 5, 12, "buddha"), (2025, 8, 16, "janmashtami"), (2025, 10, 2, "dussehra"),
+    (2025, 10, 20, "diwali"), (2025, 11, 5, "nanak"),
+    (2025, 3, 31, "fitr"), (2025, 6, 7, "zuha"), (2025, 7, 6, "muharram"), (2025, 9, 5, "milad"),
+    (2026, 3, 4, "holi"), (2026, 3, 26, "rama"), (2026, 3, 31, "mahavir"), (2026, 5, 1, "buddha"),
+    (2026, 9, 4, "janmashtami"), (2026, 10, 20, "dussehra"), (2026, 11, 8, "diwali"),
+    (2026, 11, 24, "nanak"),
+    (2026, 3, 21, "fitr"), (2026, 5, 27, "zuha"), (2026, 6, 26, "muharram"), (2026, 8, 26, "milad"),
+    (2027, 3, 23, "holi"), (2027, 4, 15, "rama"), (2027, 4, 19, "mahavir"), (2027, 5, 20, "buddha"),
+    (2027, 8, 25, "janmashtami"), (2027, 10, 9, "dussehra"), (2027, 10, 29, "diwali"),
+    (2027, 11, 14, "nanak"),
+    (2027, 3, 10, "fitr"), (2027, 5, 17, "zuha"), (2027, 6, 16, "muharram"), (2027, 8, 15, "milad"),
+];
+
+/// The first and the last year of the DoPT lists read.
+const IN_LISTED_FIRST: i32 = 2025;
+const IN_LISTED_LAST: i32 = 2027;
+
+/// A day of the DoPT lists: the lists' day for the years read, exactly
+/// for a Hindu day and approximately for a Hijri one, whose date the
+/// Ministry may change on the sighting of the Moon; and `base`,
+/// approximate, before and after them. `base` is `None` for a day Delhi
+/// kept in a year read and is not carried outside them.
+const fn in_listed(base: HolidayRule, function: fn(i64) -> Days, hijri: bool) -> [HolidayRule; 3] {
+    let read = HolidayRule {
+        rule: Rule::Tabulated {
+            function,
+            first_year: IN_LISTED_FIRST as i64,
+            last_year: IN_LISTED_LAST as i64,
+        },
+        confidence: if hijri {
+            Confidence::Approximate
+        } else {
+            Confidence::Exact
+        },
+        ..base
+    }
+    .years(Some(IN_LISTED_FIRST), Some(IN_LISTED_LAST));
+    [
+        read,
+        base.approximate().years(None, Some(IN_LISTED_FIRST - 1)),
+        base.approximate().years(Some(IN_LISTED_LAST + 1), None),
+    ]
+}
+
+fn in_shivaratri(year: i64) -> Days {
+    announced(IN_LISTED, year, "shivaratri")
+}
+fn in_holi(year: i64) -> Days {
+    announced(IN_LISTED, year, "holi")
+}
+fn in_rama(year: i64) -> Days {
+    announced(IN_LISTED, year, "rama")
+}
+fn in_mahavir(year: i64) -> Days {
+    announced(IN_LISTED, year, "mahavir")
+}
+fn in_buddha(year: i64) -> Days {
+    announced(IN_LISTED, year, "buddha")
+}
+fn in_janmashtami(year: i64) -> Days {
+    announced(IN_LISTED, year, "janmashtami")
+}
+fn in_dussehra(year: i64) -> Days {
+    announced(IN_LISTED, year, "dussehra")
+}
+fn in_diwali(year: i64) -> Days {
+    announced(IN_LISTED, year, "diwali")
+}
+fn in_nanak(year: i64) -> Days {
+    announced(IN_LISTED, year, "nanak")
+}
+fn in_fitr(year: i64) -> Days {
+    announced(IN_LISTED, year, "fitr")
+}
+fn in_zuha(year: i64) -> Days {
+    announced(IN_LISTED, year, "zuha")
+}
+fn in_muharram(year: i64) -> Days {
+    announced(IN_LISTED, year, "muharram")
+}
+fn in_milad(year: i64) -> Days {
+    announced(IN_LISTED, year, "milad")
+}
+
+const IN_FITR: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Id-ul-Fitr", "ईद उल-फ़ित्र", EID_AL_FITR),
+    in_fitr,
+    true,
+);
+const IN_ZUHA: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Id-ul-Zuha", "ईद उल-अज़हा", EID_AL_ADHA),
+    in_zuha,
+    true,
+);
+const IN_MUHARRAM: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public(
+        "Muharram",
+        "मुहर्रम",
+        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 10),
+    ),
+    in_muharram,
+    true,
+);
+const IN_MILAD: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Milad-un-Nabi", "ईद मिलाद उन-नबी", MAWLID),
+    in_milad,
+    true,
+);
+const IN_HOLI: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Holi", "होली", HOLI),
+    in_holi,
+    false,
+);
+const IN_RAMA: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Ram Navami", "राम नवमी", RAMA_NAVAMI),
+    in_rama,
+    false,
+);
+const IN_MAHAVIR: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
+    in_mahavir,
+    false,
+);
+const IN_BUDDHA: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Buddha Purnima", "बुद्ध पूर्णिमा", BUDDHA_PURNIMA),
+    in_buddha,
+    false,
+);
+const IN_JANMASHTAMI: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Janmashtami", "जन्माष्टमी", JANMASHTAMI),
+    in_janmashtami,
+    false,
+);
+const IN_DUSSEHRA: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Dussehra", "दशहरा", VIJAYA_DASHAMI),
+    in_dussehra,
+    false,
+);
+const IN_DIWALI: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Diwali", "दीपावली", DIWALI),
+    in_diwali,
+    false,
+);
+const IN_NANAK: [HolidayRule; 3] = in_listed(
+    HolidayRule::fixed_public("Guru Nanak's Birthday", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
+    in_nanak,
+    false,
+);
+/// Maha Shivaratri, one of Delhi's three optional days in 2025 alone of
+/// the years read; outside them the three are taken to be those of 2026
+/// and 2027.
+const IN_SHIVARATRI: HolidayRule = in_listed(
+    HolidayRule::fixed_public("Maha Shivaratri", "महाशिवरात्रि", MAHA_SHIVARATRI),
+    in_shivaratri,
+    false,
+)[0];
+
 static IN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Republic Day", "गणतंत्र दिवस", Rule::gregorian(1, 26))
         .years(Some(1950), None),
@@ -1347,25 +1521,45 @@ static IN_RULES: &[HolidayRule] = &[
         .years(Some(1947), None),
     HolidayRule::fixed_public("Gandhi Jayanti", "गांधी जयंती", Rule::gregorian(10, 2)),
     HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Id-ul-Fitr", "ईद उल-फ़ित्र", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public("Id-ul-Zuha", "ईद उल-अज़हा", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public(
-        "Muharram",
-        "मुहर्रम",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 10),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Milad-un-Nabi", "ईद मिलाद उन-नबी", MAWLID).approximate(),
-    // The gazetted Hindu, Jain, Buddhist and Sikh days, on the Hindu
-    // lunisolar calendar as the Rashtriya Panchang keeps it.
-    HolidayRule::fixed_public("Holi", "होली", HOLI),
-    HolidayRule::fixed_public("Ram Navami", "राम नवमी", RAMA_NAVAMI),
-    HolidayRule::fixed_public("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
-    HolidayRule::fixed_public("Buddha Purnima", "बुद्ध पूर्णिमा", BUDDHA_PURNIMA),
-    HolidayRule::fixed_public("Janmashtami", "जन्माष्टमी", JANMASHTAMI),
-    HolidayRule::fixed_public("Dussehra", "दशहरा", VIJAYA_DASHAMI),
-    HolidayRule::fixed_public("Diwali", "दीपावली", DIWALI),
-    HolidayRule::fixed_public("Guru Nanak's Birthday", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
+    IN_FITR[0],
+    IN_FITR[1],
+    IN_FITR[2],
+    IN_ZUHA[0],
+    IN_ZUHA[1],
+    IN_ZUHA[2],
+    IN_MUHARRAM[0],
+    IN_MUHARRAM[1],
+    IN_MUHARRAM[2],
+    IN_MILAD[0],
+    IN_MILAD[1],
+    IN_MILAD[2],
+    // The gazetted Hindu, Jain, Buddhist and Sikh days: the lists' days,
+    // and outside them the rules, approximate.
+    IN_SHIVARATRI,
+    IN_HOLI[0],
+    IN_HOLI[1],
+    IN_HOLI[2],
+    IN_RAMA[0],
+    IN_RAMA[1],
+    IN_RAMA[2],
+    IN_MAHAVIR[0],
+    IN_MAHAVIR[1],
+    IN_MAHAVIR[2],
+    IN_BUDDHA[0],
+    IN_BUDDHA[1],
+    IN_BUDDHA[2],
+    IN_JANMASHTAMI[0],
+    IN_JANMASHTAMI[1],
+    IN_JANMASHTAMI[2],
+    IN_DUSSEHRA[0],
+    IN_DUSSEHRA[1],
+    IN_DUSSEHRA[2],
+    IN_DIWALI[0],
+    IN_DIWALI[1],
+    IN_DIWALI[2],
+    IN_NANAK[0],
+    IN_NANAK[1],
+    IN_NANAK[2],
 ];
 
 /// India: the three national holidays and the gazetted days of the central
@@ -1379,19 +1573,24 @@ pub static INDIA: RuleSet = RuleSet {
     includes: &[],
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
-    sources: "Department of Personnel and Training, O.M. F.No.12/2/2023-JCA of 3 July 2025, \
-              \"Holidays to be observed in Central Government Offices during the year 2026\", \
-              Annexure-I, and the O.M. of the same file number of 9 July 2024 for 2025; the \
-              dopt.gov.in PDFs could not be reached on 2026-09-26 and were read as reproduced \
-              by govtstaff.com and staffnews.in (secondary), retrieved 2026-09-26. The table \
-              is the Delhi and New Delhi list: the fourteen compulsory holidays and three of \
-              the twelve optional ones, Holi, Ram Navami and Janmashtami; offices elsewhere \
-              choose their own three. The Hindu, Jain, Buddhist and Sikh dates are computed on \
-              the `hindu-lunar` calendar as the Rashtriya Panchang keeps it. The Hijri-dated \
-              days are approximate, as everywhere. Diwali is Lakṣmī Pūjā, as the O.M.s \
-              for 2017, 2018 and 2027 (F.No.12/2/2023-JCA of 16 July 2026) date it — 19 \
-              October 2017, 7 November 2018 and 29 October 2027 — read as GConnect and \
-              StaffNews reproduce them (secondary), retrieved 2026-09-27",
+    sources: "Department of Personnel and Training, O.M.s F.No.12/2/2023-JCA of 9 July 2024, \
+              3 July 2025 and 16 July 2026, \"Holidays to be observed in Central Government \
+              Offices during the year\" 2025, 2026 and 2027, Annexure-I (`dopt-holidays-2025-2027`); \
+              the dopt.gov.in PDFs could not be reached and were read as staffnews.in \
+              reproduces them (secondary): the 2025 list as its web page, the 2026 and 2027 \
+              O.M.s as the PDFs it hosts, retrieved 2026-09-27. The table is the Delhi and \
+              New Delhi list: the fourteen compulsory holidays and three of the twelve \
+              optional ones, Holi, Maha Shivaratri and Janmashtami in 2025 and Holi, Ram \
+              Navami and Janmashtami in 2026 and 2027; offices elsewhere choose their own \
+              three. For 2025 to 2027 the Hindu, Jain, Buddhist and Sikh days are the lists' \
+              days, among them the Vaiṣṇava Janmashtami, and the Hijri-dated days the lists' \
+              days, approximate, as the Ministry may move them on the sighting of the Moon. \
+              Outside those years every one of those days is a rule, approximate: the Hindu \
+              days computed on the `hindu-lunar` calendar as the Rashtriya Panchang keeps \
+              them, with the three optional days of 2026 and 2027, and the Hijri days the \
+              tabular prediction. Diwali is Lakṣmī Pūjā, as the O.M.s for 2017, 2018 and \
+              2027 date it — 19 October 2017, 7 November 2018 and 29 October 2027 — the \
+              first two read as GConnect reproduces them (secondary), retrieved 2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1948,6 +2147,11 @@ static ID_RULES: &[HolidayRule] = &[
         "Wafat Isa Almasih",
         Rule::easter(GOOD_FRIDAY),
     ),
+    // Easter Sunday, first listed by the SKB for 2024 as "Hari Paskah" and
+    // from 2025 as "Kebangkitan Yesus Kristus (Paskah)"; the lists for
+    // 2022 and 2023 do not have it.
+    HolidayRule::fixed_public("Easter Sunday", "Hari Paskah", Rule::easter(EASTER_SUNDAY))
+        .years(Some(2024), None),
     HolidayRule::fixed_public("Labour Day", "Hari Buruh", Rule::gregorian(5, 1))
         .years(Some(2014), None),
     HolidayRule::fixed_public("Ascension", "Kenaikan Isa Almasih", Rule::easter(ASCENSION)),
@@ -2009,7 +2213,7 @@ pub static INDONESIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "The SKBs on libur nasional dan cuti bersama: for 2020, 391/02/02 of \
               9 April 2020 (setda.kalteng.go.id); for 2021, 712/1/3 of 18 June 2021 \
               (setda.kalteng.go.id); for 2022, 963/3/4 of 22 September 2021 and its \
@@ -2020,7 +2224,14 @@ pub static INDONESIA: RuleSet = RuleSet {
               for Human Development and Culture (kemenkopmk.go.id/sites/default/files/\
               pengumuman/); the Ministry of Religious Affairs' Central Java office on \
               the sighting of Eid al-Adha 2022 and of Eid al-Fitr 2026 \
-              (jateng.kemenag.go.id); all retrieved 2026-09-26. The later amendments \
+              (jateng.kemenag.go.id); all retrieved 2026-09-26. Easter Sunday from \
+              2024, which the lists of 2022 and 2023 do not have and those of 2024 to \
+              2027 do, as the Ministry's announcements of the SKBs for 2022 to 2026 \
+              (kemenkopmk.go.id), the Cabinet Secretariat's for 2024 (setkab.go.id) and \
+              the State Secretariat's for 2026 and 2027 (setneg.go.id) list them, \
+              retrieved 2026-09-27 (`skb-libur-nasional-2022-2027`); the Ministry's \
+              announcements for 2025 and 2026 refer the lists to Keputusan Presiden \
+              8/2024 on the holidays, not read. The later amendments \
               for 2020 and 2023, reported to change only the cuti bersama, were not \
               read",
 };
@@ -2369,23 +2580,182 @@ const PH_ADHA: [HolidayRule; 4] = listed(
     SEA_LISTED_SETTLED,
 );
 
+/// The President's annual proclamations of the regular holidays and
+/// special (non-working) days for 2020 to 2027, as amended, and the
+/// proclamations of a nationwide special day in those years: the days
+/// that they alone make days off, and the statutory days they move.
+///
+/// The annual ones are Proclamations 845 (2020), 986 as amended by 1107
+/// (2021), 1236 (2022), 42 as amended by 90 (2023), 368 (2024), 727
+/// (2025), 1006 (2026) and 1427 (2027). 1107 made All Souls' Day,
+/// Christmas Eve and the Last Day of the Year 2021 special working days,
+/// and 1236 did the same for 2022; 90 added 2 January 2023 and moved Araw
+/// ng Kagitingan to Monday 10 April and Bonifacio Day to Monday
+/// 27 November. The others are 1357 and 878, the elections of 9 May 2022
+/// and 12 May 2025; 79, 31 October 2022; 167, which moved the EDSA
+/// anniversary of 2023 from Saturday 25 February to Friday 24 February;
+/// 359, the barangay elections of 30 October 2023; 425, 26 December 2023;
+/// 453, 9 February 2024, the eve of Chinese New Year; 665, which moved
+/// Ninoy Aquino Day 2024 to Friday 23 August; and 729, the Iglesia ni
+/// Cristo's anniversary on Sunday 27 July 2025. The EDSA anniversary was
+/// a special (working) day from 2025 and in none of the lists for 2024.
+#[rustfmt::skip]
+static PH_PROCLAIMED: &[(i64, u8, u8, &str)] = &[
+    (2020, 1, 25, "cny"), (2020, 2, 25, "edsa"), (2020, 4, 11, "black-saturday"),
+    (2020, 11, 2, "all-souls"), (2020, 12, 24, "christmas-eve"),
+    (2021, 2, 12, "cny"), (2021, 2, 25, "edsa"), (2021, 4, 3, "black-saturday"),
+    (2022, 2, 1, "cny"), (2022, 2, 25, "edsa"), (2022, 4, 16, "black-saturday"),
+    (2022, 5, 9, "elections"), (2022, 10, 31, "additional"),
+    (2023, 1, 2, "additional"), (2023, 2, 24, "edsa"), (2023, 4, 8, "black-saturday"),
+    (2023, 4, 10, "kagitingan"), (2023, 10, 30, "barangay-elections"),
+    (2023, 11, 2, "all-souls"), (2023, 11, 27, "bonifacio"), (2023, 12, 26, "additional"),
+    (2024, 2, 9, "additional"), (2024, 2, 10, "cny"), (2024, 3, 30, "black-saturday"),
+    (2024, 8, 23, "ninoy"), (2024, 11, 2, "all-souls"), (2024, 12, 24, "christmas-eve"),
+    (2025, 1, 29, "cny"), (2025, 4, 19, "black-saturday"), (2025, 5, 12, "elections"),
+    (2025, 7, 27, "inc"), (2025, 10, 31, "all-saints-eve"), (2025, 12, 24, "christmas-eve"),
+    (2026, 2, 17, "cny"), (2026, 4, 4, "black-saturday"), (2026, 11, 2, "all-souls"),
+    (2026, 12, 24, "christmas-eve"),
+    (2027, 2, 6, "cny"), (2027, 3, 27, "black-saturday"), (2027, 11, 2, "all-souls"),
+    (2027, 12, 24, "christmas-eve"),
+];
+
+/// The first and the last year of the proclamations read.
+const PH_PROCLAIMED_FIRST: i32 = 2020;
+const PH_PROCLAIMED_LAST: i32 = 2027;
+
+listed_days! { PH_PROCLAIMED:
+    ph_cny => "cny",
+    ph_edsa => "edsa",
+    ph_black_saturday => "black-saturday",
+    ph_all_souls => "all-souls",
+    ph_christmas_eve => "christmas-eve",
+    ph_all_saints_eve => "all-saints-eve",
+    ph_additional => "additional",
+    ph_elections => "elections",
+    ph_barangay_elections => "barangay-elections",
+    ph_inc => "inc",
+    ph_kagitingan => "kagitingan",
+    ph_bonifacio => "bonifacio",
+    ph_ninoy => "ninoy",
+}
+
+/// Nothing: the rule of the gap after the proclamations read.
+const fn ph_unproclaimed(_year: i64) -> Days {
+    Days::new()
+}
+
+/// A day of the proclamations read, in the years they cover.
+const fn ph_proclaimed(
+    name: &'static str,
+    local_name: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::public(
+        name,
+        local_name,
+        Rule::Tabulated {
+            function,
+            first_year: PH_PROCLAIMED_FIRST as i64,
+            last_year: PH_PROCLAIMED_LAST as i64,
+        },
+    )
+    .of_kind(Kind::Bank)
+    .years(Some(PH_PROCLAIMED_FIRST), Some(PH_PROCLAIMED_LAST))
+}
+
+/// A regular holiday by statute, and in the years the proclamations moved
+/// it, the day they moved it to.
+const fn ph_regular_moved(
+    name: &'static str,
+    local_name: &'static str,
+    rule: Rule,
+    moved: i32,
+    function: fn(i64) -> Days,
+) -> [HolidayRule; 3] {
+    let statute = HolidayRule::fixed_public(name, local_name, rule);
+    [
+        statute.years(None, Some(moved - 1)),
+        HolidayRule {
+            rule: Rule::Tabulated {
+                function,
+                first_year: moved as i64,
+                last_year: moved as i64,
+            },
+            ..statute
+        }
+        .years(Some(moved), Some(moved)),
+        statute.years(Some(moved + 1), None),
+    ]
+}
+
+const PH_KAGITINGAN: [HolidayRule; 3] = ph_regular_moved(
+    "Day of Valour",
+    "Araw ng Kagitingan",
+    Rule::gregorian(4, 9),
+    2023,
+    ph_kagitingan,
+);
+const PH_BONIFACIO: [HolidayRule; 3] = ph_regular_moved(
+    "Bonifacio Day",
+    "Araw ni Bonifacio",
+    Rule::gregorian(11, 30),
+    2023,
+    ph_bonifacio,
+);
+const PH_NINOY: [HolidayRule; 3] = {
+    let [before, moved, after] = ph_regular_moved(
+        "Ninoy Aquino Day",
+        "",
+        Rule::gregorian(8, 21),
+        2024,
+        ph_ninoy,
+    );
+    [
+        before.of_kind(Kind::Bank),
+        moved.of_kind(Kind::Bank),
+        after.of_kind(Kind::Bank),
+    ]
+};
+
 static PH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Bagong Taon", Rule::gregorian(1, 1)),
+    // Chinese New Year and Black Saturday: by rule before the
+    // proclamations read, as each year's proclamation declared them, and
+    // predicted after them, approximate.
     HolidayRule::public(
         "Chinese New Year",
         "",
         Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
     )
     .of_kind(Kind::Bank)
-    .years(Some(2012), None),
+    .years(Some(2012), Some(PH_PROCLAIMED_FIRST - 1)),
+    ph_proclaimed("Chinese New Year", "", ph_cny),
+    HolidayRule::public(
+        "Chinese New Year",
+        "",
+        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+    )
+    .of_kind(Kind::Bank)
+    .approximate()
+    .years(Some(PH_PROCLAIMED_LAST + 1), None),
+    ph_proclaimed("EDSA People Power Revolution Anniversary", "", ph_edsa),
     HolidayRule::fixed_public(
         "Maundy Thursday",
         "Huwebes Santo",
         Rule::easter(MAUNDY_THURSDAY),
     ),
     HolidayRule::fixed_public("Good Friday", "Biyernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1)).of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Day of Valour", "Araw ng Kagitingan", Rule::gregorian(4, 9)),
+    HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
+        .of_kind(Kind::Bank)
+        .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
+    ph_proclaimed("Black Saturday", "Sabado de Gloria", ph_black_saturday),
+    HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
+        .of_kind(Kind::Bank)
+        .approximate()
+        .years(Some(PH_PROCLAIMED_LAST + 1), None),
+    PH_KAGITINGAN[0],
+    PH_KAGITINGAN[1],
+    PH_KAGITINGAN[2],
     HolidayRule::fixed_public("Labor Day", "Araw ng mga Manggagawa", Rule::gregorian(5, 1)),
     HolidayRule::fixed_public(
         "Independence Day",
@@ -2400,7 +2770,9 @@ static PH_RULES: &[HolidayRule] = &[
     PH_ADHA[1],
     PH_ADHA[2],
     PH_ADHA[3],
-    HolidayRule::public("Ninoy Aquino Day", "", Rule::gregorian(8, 21)).of_kind(Kind::Bank),
+    PH_NINOY[0],
+    PH_NINOY[1],
+    PH_NINOY[2],
     HolidayRule::fixed_public(
         "National Heroes Day",
         "Araw ng mga Bayani",
@@ -2413,17 +2785,45 @@ static PH_RULES: &[HolidayRule] = &[
         Rule::gregorian(11, 1),
     )
     .of_kind(Kind::Bank),
-    HolidayRule::fixed_public(
-        "Bonifacio Day",
-        "Araw ni Bonifacio",
-        Rule::gregorian(11, 30),
-    ),
+    PH_BONIFACIO[0],
+    PH_BONIFACIO[1],
+    PH_BONIFACIO[2],
     HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8))
         .of_kind(Kind::Bank)
         .years(Some(2019), None),
     HolidayRule::fixed_public("Christmas Day", "Pasko", Rule::gregorian(12, 25)),
     HolidayRule::fixed_public("Rizal Day", "Araw ni Rizal", Rule::gregorian(12, 30)),
-    HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31)).of_kind(Kind::Bank),
+    // A special working day in 2021 and 2022.
+    HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
+        .of_kind(Kind::Bank)
+        .years(None, Some(2020)),
+    HolidayRule::public("Last Day of the Year", "", Rule::gregorian(12, 31))
+        .of_kind(Kind::Bank)
+        .years(Some(2023), None),
+    // The days the proclamations read add, and after them a gap: the
+    // next year's are not known until its proclamation.
+    ph_proclaimed("All Souls' Day", "", ph_all_souls),
+    ph_proclaimed("Christmas Eve", "", ph_christmas_eve),
+    ph_proclaimed("All Saints' Day Eve", "", ph_all_saints_eve),
+    ph_proclaimed("Additional special day", "", ph_additional),
+    ph_proclaimed("National and Local Elections", "", ph_elections),
+    ph_proclaimed(
+        "Barangay and Sangguniang Kabataan Elections",
+        "",
+        ph_barangay_elections,
+    ),
+    ph_proclaimed("Iglesia ni Cristo Founding Anniversary", "", ph_inc),
+    HolidayRule::public(
+        "Proclaimed special days",
+        "",
+        Rule::Tabulated {
+            function: ph_unproclaimed,
+            first_year: PH_PROCLAIMED_FIRST as i64,
+            last_year: PH_PROCLAIMED_LAST as i64,
+        },
+    )
+    .of_kind(Kind::Bank)
+    .years(Some(PH_PROCLAIMED_LAST + 1), None),
 ];
 
 /// The Philippines.
@@ -2438,15 +2838,29 @@ pub static PHILIPPINES: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Administrative Code of 1987 as amended by Republic Act 9492 \
-              and Republic Act 9849; the annual Malacañang proclamation. \
-              Special (non-working) days are recorded as bank holidays. The two \
-              Islamic days are the proclaimed dates for 2020 to 2026, from the \
-              Official Gazette (officialgazette.gov.ph, through web.archive.org), \
-              the Presidential Communications Office and the Philippine News Agency \
-              (pna.gov.ph), retrieved 2026-09-26, and the tabular computation, \
-              approximate, outside them",
+              and Republic Act 9849; Republic Act 9256 for Ninoy Aquino Day and \
+              Republic Act 10966 for the Immaculate Conception, as the proclamations \
+              cite them; the annual Malacañang proclamations for 2020 to 2027, \
+              Proclamations 845, 986 and its amendment 1107, 1236, 42 and its \
+              amendment 90, 368, 727, 1006 and 1427, and the proclamations of a \
+              nationwide special day or a moved day in those years, 1357, 79, 167, \
+              359, 425, 453, 665, 878 and 729, as The LawPhil Project reproduces them \
+              (lawphil.net/executive/proc/, `lawphil-proclamations-2020-2027`), \
+              retrieved 2026-09-27; the Official Gazette and the Presidential \
+              Communications Office answered with a bot check. Special (non-working) \
+              days are recorded as bank holidays. The days only a proclamation makes \
+              — Chinese New Year, the EDSA anniversary, Black Saturday, All Souls' \
+              Day, Christmas Eve and the rest — are the proclamations' for 2020 to \
+              2027; before 2020 Chinese New Year from 2012 and Black Saturday are \
+              carried by rule and the others not, the proclamations not read; after \
+              2027 Chinese New Year and Black Saturday are predicted, approximate, and \
+              the rest are a gap. The two Islamic days are the proclaimed dates for \
+              2020 to 2026, from the Official Gazette (officialgazette.gov.ph, \
+              through web.archive.org), the Presidential Communications Office and \
+              the Philippine News Agency (pna.gov.ph), retrieved 2026-09-26, and the \
+              tabular computation, approximate, outside them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

@@ -236,7 +236,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AO` | Angola | 22 | yes | stated | 2026-09-23 |
 | `AR` | Argentina | 30 | none | stated | 2026-09-22 |
 | `AT` | Austria | 14 | none | stated | 2026-09-26 |
-| `AU` | Australia | 23 | yes | stated | 2026-09-26 |
+| `AU` | Australia | 25 | yes | stated | 2026-09-27 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
 | `BA` | Bosnia and Herzegovina | 40 | yes | stated | 2026-09-23 |
 | `BB` | Barbados | 12 | yes | stated | 2026-09-22 |
@@ -301,10 +301,10 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `HR` | Croatia | 17 | none | stated | 2026-09-26 |
 | `HT` | Haiti | 18 | none | stated | 2026-09-22 |
 | `HU` | Hungary | 11 | none | stated | 2026-09-22 |
-| `ID` | Indonesia | 38 | none | stated | 2026-09-26 |
+| `ID` | Indonesia | 39 | none | stated | 2026-09-27 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 13 | none | stated | 2026-09-23 |
-| `IN` | India | 17 | none | stated | 2026-09-27 |
+| `IN` | India | 42 | none | stated | 2026-09-27 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
@@ -365,7 +365,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `PA` | Panama | 15 | yes | stated | 2026-09-22 |
 | `PE` | Peru | 16 | none | stated | 2026-09-26 |
 | `PG` | Papua New Guinea | 9 | yes | stated | 2026-09-23 |
-| `PH` | Philippines | 24 | none | stated | 2026-09-26 |
+| `PH` | Philippines | 44 | none | stated | 2026-09-27 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-26 |
 | `PL` | Poland | 15 | none | stated | 2026-09-26 |
 | `PS` | Palestine | 39 | none | stated | 2026-09-23 |
@@ -455,7 +455,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `gosekku` | The five seasonal festivals of Japan (五節句) | 5 |
 | `hatsuuma` | Hatsuuma, the first Horse day of February (初午) | 3 |
 | `hatsuuma-lunar` | Hatsuuma on the Japanese lunar calendar (旧暦の初午) | 1 |
-| `hindu` | Hinduism | 19 |
+| `hindu` | Hinduism | 20 |
 | `inoko` | Inoko, the first Boar day of the tenth lunar month (亥の子) | 1 |
 | `inoko-november` | Inoko, the first Boar day of November (亥の子) | 1 |
 | `islamic` | Islam | 13 |

@@ -118,10 +118,19 @@ None of the three repeats another.
 
 ## Systems that need a document
 
-Every implemented system that needs a document has one. The next is
-written up from its sources before it is coded, with the sections above and
-a row in the table above; one found to need a document after it is coded is
-listed here until it has one ([policy.md §12](../policy.md)).
+A system is written up from its sources before it is coded, with the
+sections above and a row in the table above; one found to need a document
+after it is coded is listed here until it has one
+([policy.md §12](../policy.md)). One is:
+
+- **The Hindu festival days**, `hc-holiday`'s `hindu` rules and the
+  `hindu` table: the part of the day each festival's tithi must hold, the
+  Calendar Reform Committee's rules for it, the two Deepavalis, Lakṣmī
+  Pūjā and Naraka Caturdaśī, and which of the governments' tables keeps
+  which, and the central government of India's lists, with their Vaiṣṇava
+  Janmāṣṭamī. The module documentation of `hc_holiday::hindu` states it
+  until the document is written; [hindu-calendars.md](hindu-calendars.md)
+  covers the calendar and not the festivals.
 
 ## Systems judged not to need one
 

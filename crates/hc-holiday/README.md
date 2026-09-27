@@ -27,7 +27,7 @@ assert_eq!(holidays[13].local_name, "国民の休日");
 | `hindu` | the Hindu festival rules the traditions and the national tables share |
 | `traditions` | the cross-cutting religious cycles |
 | `lectionary` | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
-| `orthodox_fasts` | the Eastern Orthodox fasts: whether a day is a fast day, and the span of each season, on the Julian (`orthodox-fasts`) and the Revised Julian (`orthodox-fasts-revised-julian`) fixed dates |
+| `orthodox_fasts` | the Eastern Orthodox fasts: whether a day is a fast day, a day of the Meatfast that excludes only meat, or neither, and the span of each season, on the Julian (`orthodox-fasts`) and the Revised Julian (`orthodox-fasts-revised-julian`) fixed dates |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the first-class days of the Proper of Time, with its class |
 | `international` | the United Nations international days, each citing its resolution |

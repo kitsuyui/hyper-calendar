@@ -13,9 +13,11 @@ a parish follows. The days themselves are set by one scheme:
 - four **fasting seasons**: Great Lent with Holy Week before Pascha, the
   Apostles' Fast before the feast of Peter and Paul, the Dormition Fast
   before 15 August, and the Nativity Fast before Christmas;
-- the week before Great Lent, when meat is not eaten (the OCA calls it the
-  *Meatfast*; the Moscow Patriarchate's calendar read here calls it
-  "Cheesefare week (Maslenitsa)");
+- the week before Great Lent, when meat is not eaten but the Wednesday and
+  Friday fasts are lifted (the OCA calls it the *Meatfast* and lists it
+  among its fasting seasons; the Moscow Patriarchate's calendar read here
+  calls it "Cheesefare week (Maslenitsa) - fast-free" and adds "Meat is
+  excluded");
 - **Wednesdays and Fridays** all year round;
 - three **one-day fasts**: the eve of Theophany (5 January), the Beheading
   of John the Baptist (29 August) and the Exaltation of the Cross
@@ -46,7 +48,7 @@ whole scheme [oca-fasting-seasons]. With *P* for Pascha:
 | Week after the Publican and the Pharisee | fast-free | *P* − 69 | *P* − 64 |
 | Bright Week | fast-free | *P* + 1 | *P* + 6 |
 | Trinity Week | fast-free | *P* + 50 | *P* + 55 |
-| Meatfast (Cheesefare week) | fast | *P* − 55 | *P* − 49 |
+| Meatfast (Cheesefare week) | meat excluded | *P* − 55 | *P* − 49 |
 | Great Lent and Holy Week | fast | *P* − 48 | *P* − 1 |
 | Apostles' Fast | fast | *P* + 57 | 28 June |
 | Dormition Fast | fast | 1 August | 14 August |
@@ -54,6 +56,23 @@ whole scheme [oca-fasting-seasons]. With *P* for Pascha:
 | Eve of Theophany | fast | 5 January | 5 January |
 | Beheading of John the Baptist | fast | 29 August | 29 August |
 | Exaltation of the Cross | fast | 14 September | 14 September |
+
+The Meatfast is the one period of its kind. The two sources name it
+differently and state one rule. The OCA's outline lists "Meatfast - Monday
+after the Sunday of Last Judgment through Cheesefare Sunday" under
+"Fasting Seasons", and says of its own calendar that where no fast is
+marked "all foods may be eaten (except during Cheesefare Week, when meat is
+forbidden for every day)". The passage of *The Lenten Triodion* (Mother
+Mary and Kallistos Ware, 1978, pp. 35–37) that the outline quotes adds
+that "in the week before Lent, meat is forbidden, but eggs, cheese and
+other dairy products (as well as fish) may be eaten on all days, including
+Wednesday and Friday" [oca-fasting-seasons]; the book itself was not read.
+The Holy Trinity calendar marks Wednesday 26 February 2025 "Cheesefare
+week (Maslenitsa) - fast-free. Tone two. Maslenitsa. Meat is excluded",
+and every other day of the week the same way [holy-trinity-calendar]. So
+the week is not a fast in the sense the weekly fasts are, which neither
+source keeps in it, and it is not free of abstinence either: meat is
+excluded on all seven days. The library carries it as that third kind.
 
 The outline states the periods in the Church's own terms, and the offsets
 are what those terms count to. The Sunday of the Publican and the Pharisee
@@ -83,7 +102,8 @@ happened in 2002 [orthochristian-apostles-fast].
 
 A day is in the first period of the table it falls in, with the fast-free
 periods first. A Wednesday or a Friday in no period is a fast day. Any
-other day is not.
+other day is not. A fast day abstains from meat and more; a day of the
+Meatfast from meat alone; any other day from nothing.
 
 **Worked example.** Pascha in 2025 was on 20 April (Gregorian). Great Lent
 began 48 days earlier, on Monday 3 March, and Bright Week ran from
@@ -104,9 +124,13 @@ In `hc_holiday::orthodox_fasts`:
   (`orthodox-fasts-revised-julian`). They differ only in the calendar their
   fixed dates are read in.
 - `Period`, the twelve periods of the table above, with their identifiers,
-  kinds and bounds, in the order a day is tested against them.
+  kinds and bounds, in the order a day is tested against them. A kind is
+  `PeriodKind::Fast`, `PeriodKind::FastFree` or, for the Meatfast alone,
+  `PeriodKind::MeatExcluded`.
 - `status`: whether a day is in a period, is a weekly fast, or is neither.
-  `is_fast_day` answers whether it is a fast day.
+  `abstinence` answers what it abstains from, `Abstinence::Nothing`,
+  `Abstinence::Meat` or `Abstinence::Fast`, and `is_fast_day` whether it is
+  a fast day, which a day of the Meatfast is not.
 - `span`: the first and last day of a period in a year of the reckoning, or
   nothing when the period does not happen that year, which only the
   Apostles' Fast does.
@@ -116,10 +140,10 @@ as `computus` computes it. Outside them there is no answer.
 
 Not carried:
 
-- **The food rules.** Which foods are allowed on which day (the OCA's "wine
-  and oil", "fish allowed", the monastic "strict fast") differs between
-  churches and parishes and changes when a feast falls within a fast. Only
-  whether a day is a fast day is carried.
+- **The food rules of a fast day.** Which foods are allowed on which fast
+  day (the OCA's "wine and oil", "fish allowed", the monastic "strict
+  fast") differs between churches and parishes and changes when a feast
+  falls within a fast. Only the three degrees above are carried.
 - **Feasts that lift a weekly fast.** Some churches do not fast on a
   Wednesday or Friday that is a great feast, such as the Transfiguration or
   the Meeting of the Lord. The OCA outline does not say so, and no rule
@@ -135,14 +159,16 @@ The scheme is arithmetic, so it is exact to the sources. It is checked
 against:
 
 - the Holy Trinity Russian Orthodox Church's calendar (Moscow Patriarchate,
-  Julian calendar) [holy-trinity-calendar], on 27 days of 2025 and 2026: the
+  Julian calendar) [holy-trinity-calendar], on 31 days of 2025 and 2026: the
   beginning of Great Lent and Holy Saturday, Bright Wednesday, the
   fast-free Wednesday and Friday of Trinity Week, the first and last days of
   the Apostles' and Dormition Fasts and the days after each, the Beheading
   and the Exaltation, the eve and first day of the Nativity Fast and its
   last day, Christmastide, the eve of Theophany, the fast-free Wednesday of
   the week after the Publican and the Pharisee, the fasting Wednesday of the
-  week after it, and a Wednesday of Cheesefare week. Every day agrees.
+  week after it, and six days of Cheesefare week, not fast days and
+  excluding meat, among them its Wednesdays and Fridays and Cheesefare
+  Sunday. Every day agrees.
 - the OCA's daily pages (Revised Julian calendar) [oca-daily-readings]: the
   "Beginning of the Great Fast" on 3 March 2025 and the "Beginning of the
   Apostles Fast" on 16 June 2025 and 28 June 2027.
@@ -152,8 +178,9 @@ against:
 ## Sources
 
 - [oca-fasting-seasons]: the whole scheme, with the dates of each season,
-  fast-free week and one-day fast. Read 2026-09-27. It gives no author or
-  date.
+  fast-free week and one-day fast, and the rule of Cheesefare week, in its
+  own words and in those of *The Lenten Triodion* it quotes. Read
+  2026-09-27. It gives no author or date.
 - [wikipedia-apostles-fast]: the start of the Apostles' Fast, its end,
   its length of 8 to 42 days on the Julian reckoning, and that it may
   not happen on the Revised Julian one. Read 2026-09-27. It cites no source
@@ -176,6 +203,7 @@ against:
 
 `crates/hc-holiday/src/orthodox_fasts.rs`. The tests that anchor it:
 `the_julian_reckoning_agrees_with_a_moscow_patriarchate_calendar`,
+`cheesefare_week_excludes_meat_and_lifts_the_weekly_fasts`,
 `the_revised_julian_fasts_begin_when_the_oca_says`,
 `the_revised_julian_apostles_fast_vanished_in_2024`,
 `the_apostles_fast_is_eight_to_forty_two_days_on_the_julian_reckoning`,

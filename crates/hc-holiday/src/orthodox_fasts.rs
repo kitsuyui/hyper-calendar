@@ -24,8 +24,17 @@
 //! | `orthodox-fasts` | the Julian calendar |
 //! | `orthodox-fasts-revised-julian` | the Revised Julian calendar |
 //!
-//! Only whether a day is a fast day is carried, not what may be eaten on
-//! it, which differs from church to church and from feast to feast.
+//! What a day abstains from is carried to one degree, [`Abstinence`]:
+//! nothing, meat, or the fast. The week before Great Lent is the one
+//! period of the middle degree. The OCA's outline lists it among its
+//! "Fasting Seasons" as the Meatfast, and the Moscow Patriarchate's
+//! calendar read calls the week "fast-free" with "Meat is excluded"; both
+//! describe one rule, meat forbidden and dairy products, eggs and fish
+//! allowed on every day, Wednesday and Friday included, which is
+//! [`PeriodKind::MeatExcluded`]. [`is_fast_day`] is `false` on those days
+//! and [`Status::abstinence`] is [`Abstinence::Meat`]. What else may be
+//! eaten on a fast day differs from church to church and from feast to
+//! feast, and is not carried.
 
 use hc_calendar::{Month, Rd, Weekday};
 
@@ -85,13 +94,30 @@ hc_core::catalogue! {
     }
 }
 
-/// Whether a period is a fast or lifts the weekly fasts.
+/// Whether a period is a fast, lifts the weekly fasts, or does both and
+/// forbids meat.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum PeriodKind {
     /// Every day of the period is a fast day.
     Fast,
     /// No day of the period is a fast day, Wednesday and Friday included.
     FastFree,
+    /// No day of the period is a fast day, Wednesday and Friday included,
+    /// and no day allows meat: dairy products, eggs and fish may be eaten
+    /// on all of them. Cheesefare week, the Meatfast.
+    MeatExcluded,
+}
+
+/// What a day abstains from, to the one degree the scheme carries.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum Abstinence {
+    /// Nothing: all foods may be eaten.
+    Nothing,
+    /// Meat only: dairy products, eggs and fish may be eaten.
+    Meat,
+    /// A fast day: meat and more, the rest depending on the day and the
+    /// church, which is not carried.
+    Fast,
 }
 
 /// Where a period starts or ends.
@@ -116,7 +142,8 @@ pub struct Period {
     pub id: &'static str,
     /// Its name in English, as the OCA's outline gives it.
     pub english_name: &'static str,
-    /// Whether it is a fast or lifts the fasts.
+    /// Whether it is a fast, lifts the fasts, or lifts them and forbids
+    /// meat.
     pub kind: PeriodKind,
     /// The first day.
     pub first: Bound,
@@ -187,11 +214,11 @@ hc_core::catalogue! {
         };
         /// The week before Great Lent, from the Monday after the Sunday of
         /// the Last Judgment through Cheesefare Sunday, when meat is not
-        /// eaten.
+        /// eaten and the Wednesday and Friday fasts are lifted.
         pub const MEATFAST = Self {
             id: "meatfast",
             english_name: "Meatfast",
-            kind: PeriodKind::Fast,
+            kind: PeriodKind::MeatExcluded,
             first: Bound::FromPascha(-55),
             last: Bound::FromPascha(-49),
             source: OUTLINE,
@@ -269,7 +296,7 @@ hc_core::catalogue! {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Status {
     /// The day is in a period: a fast day if the period is a
-    /// [`PeriodKind::Fast`], not one if it is [`PeriodKind::FastFree`].
+    /// [`PeriodKind::Fast`], not one otherwise.
     InPeriod(&'static Period),
     /// A Wednesday or Friday in no period: a fast day.
     WeeklyFast(Weekday),
@@ -278,14 +305,25 @@ pub enum Status {
 }
 
 impl Status {
-    /// Whether the day is a fast day.
+    /// What the day abstains from.
+    #[must_use]
+    pub const fn abstinence(self) -> Abstinence {
+        match self {
+            Self::InPeriod(period) => match period.kind {
+                PeriodKind::Fast => Abstinence::Fast,
+                PeriodKind::MeatExcluded => Abstinence::Meat,
+                PeriodKind::FastFree => Abstinence::Nothing,
+            },
+            Self::WeeklyFast(_) => Abstinence::Fast,
+            Self::NotFasting => Abstinence::Nothing,
+        }
+    }
+
+    /// Whether the day is a fast day: [`Abstinence::Fast`], so not a day
+    /// of the Meatfast.
     #[must_use]
     pub const fn is_fast_day(self) -> bool {
-        match self {
-            Self::InPeriod(period) => matches!(period.kind, PeriodKind::Fast),
-            Self::WeeklyFast(_) => true,
-            Self::NotFasting => false,
-        }
+        matches!(self.abstinence(), Abstinence::Fast)
     }
 }
 
@@ -355,10 +393,16 @@ pub fn status(reckoning: &Reckoning, day: Rd) -> Option<Status> {
 }
 
 /// Whether a day is a fast day on a reckoning, or `None` outside its
-/// years.
+/// years. A day of the Meatfast is not one: see [`abstinence`].
 #[must_use]
 pub fn is_fast_day(reckoning: &Reckoning, day: Rd) -> Option<bool> {
     status(reckoning, day).map(Status::is_fast_day)
+}
+
+/// What a day abstains from on a reckoning, or `None` outside its years.
+#[must_use]
+pub fn abstinence(reckoning: &Reckoning, day: Rd) -> Option<Abstinence> {
+    status(reckoning, day).map(Status::abstinence)
 }
 
 #[cfg(test)]
@@ -381,6 +425,7 @@ mod tests {
     /// the Moscow Patriarchate on the Julian calendar
     /// (`holy-trinity-calendar`, retrieved 2026-09-27): each Gregorian day,
     /// the period the page names, if any, and whether it marks a fast.
+    /// A day of Cheesefare week is not a fast day and excludes meat.
     #[test]
     fn the_julian_reckoning_agrees_with_a_moscow_patriarchate_calendar() {
         let julian = &Reckoning::JULIAN;
@@ -389,9 +434,14 @@ mod tests {
             (2025, 2, 12, Some("publican-and-pharisee-week"), false),
             // "Meatfare week. ... Fast. Fish Allowed"
             (2025, 2, 19, None, true),
-            // "Cheesefare week (Maslenitsa) ... Meat is excluded"
-            (2025, 2, 26, Some("meatfast"), true),
-            (2025, 3, 2, Some("meatfast"), true),
+            // "Cheesefare week (Maslenitsa) - fast-free. Tone two.
+            // Maslenitsa. Meat is excluded", a Monday, a Wednesday and a
+            // Friday; Cheesefare Sunday, "The Sunday of Forgiveness. Tone
+            // three. Cheesefare Sunday. Meat is excluded"
+            (2025, 2, 24, Some("meatfast"), false),
+            (2025, 2, 26, Some("meatfast"), false),
+            (2025, 2, 28, Some("meatfast"), false),
+            (2025, 3, 2, Some("meatfast"), false),
             // "Beginning of the Great Lent"
             (2025, 3, 3, Some("great-lent"), true),
             (2025, 4, 19, Some("great-lent"), true),
@@ -428,11 +478,57 @@ mod tests {
             (2026, 1, 18, Some("theophany-eve"), true),
             // "Fast. Fish Allowed"
             (2026, 1, 21, None, true),
+            // "Cheesefare week (Maslenitsa) - fast-free. Tone three.
+            // Maslenitsa. Meat is excluded", a Wednesday and a Friday
+            (2026, 2, 18, Some("meatfast"), false),
+            (2026, 2, 20, Some("meatfast"), false),
         ] {
             let rd = ymd(year, month, day);
             assert_eq!(period_on(julian, rd), period, "{year}-{month}-{day}");
             assert_eq!(is_fast_day(julian, rd), Some(fast), "{year}-{month}-{day}");
+            let meat = if period == Some("meatfast") {
+                Abstinence::Meat
+            } else if fast {
+                Abstinence::Fast
+            } else {
+                Abstinence::Nothing
+            };
+            assert_eq!(abstinence(julian, rd), Some(meat), "{year}-{month}-{day}");
         }
+    }
+
+    /// The OCA's outline lists the Meatfast under "Fasting Seasons", and
+    /// says of its calendar that where no fast is marked "all foods may be
+    /// eaten (except during Cheesefare Week, when meat is forbidden for
+    /// every day)"; the passage of *The Lenten Triodion* it quotes adds
+    /// that in the week before Lent "eggs, cheese and other dairy products
+    /// (as well as fish) may be eaten on all days, including Wednesday and
+    /// Friday" (`oca-fasting-seasons`). On both reckonings the week's
+    /// Wednesday and Friday are not weekly fasts.
+    #[test]
+    fn cheesefare_week_excludes_meat_and_lifts_the_weekly_fasts() {
+        for reckoning in Reckoning::ALL {
+            // Pascha on 20 April 2025: the week of 24 February to 2 March.
+            let (first, last) = span(reckoning, &Period::MEATFAST, 2025).unwrap();
+            assert_eq!((first, last), (ymd(2025, 2, 24), ymd(2025, 3, 2)));
+            for day in first.0..=last.0 {
+                let status = status(reckoning, Rd(day)).unwrap();
+                assert_eq!(status, Status::InPeriod(&Period::MEATFAST));
+                assert_eq!(status.abstinence(), Abstinence::Meat);
+                assert!(!status.is_fast_day());
+            }
+            // The Wednesday before is a weekly fast, the Monday after Great
+            // Lent.
+            assert_eq!(
+                abstinence(reckoning, ymd(2025, 2, 19)),
+                Some(Abstinence::Fast)
+            );
+            assert_eq!(
+                abstinence(reckoning, ymd(2025, 3, 3)),
+                Some(Abstinence::Fast)
+            );
+        }
+        assert!(Abstinence::Nothing < Abstinence::Meat && Abstinence::Meat < Abstinence::Fast);
     }
 
     /// The OCA's daily pages, on the Revised Julian calendar

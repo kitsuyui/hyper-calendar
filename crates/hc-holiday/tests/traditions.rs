@@ -551,6 +551,24 @@ fn the_hindu_festivals_fall_where_the_rashtriya_panchang_lists_them() {
     assert!(mismatches.is_empty(), "{mismatches:#?}");
 }
 
+/// Naraka Caturdaśī by the Calendar Reform Committee's rule: the Naraka
+/// Chaturdasi of the Department of Personnel and Training's restricted
+/// holidays, "November 08 … Sunday" in 2026, the day of Diwali, and
+/// "October 28 … Thursday" in 2027, the day before it
+/// (`dopt-holidays-2025-2027`).
+#[test]
+fn naraka_chaturdashi_is_the_central_governments_day() {
+    expect(
+        &HINDU,
+        &[
+            (2026, 11, 8, "Naraka Chaturdashi"),
+            (2026, 11, 8, "Diwali"),
+            (2027, 10, 28, "Naraka Chaturdashi"),
+            (2027, 10, 29, "Diwali"),
+        ],
+    );
+}
+
 #[test]
 fn a_first_tithi_that_no_sunrise_carries_still_opens_the_year() {
     // Chaitra śukla pratipadā of Śaka 1948 begins at 06:52 IST on 19 March
@@ -2581,11 +2599,9 @@ fn kyubon_is_the_fifteenth_of_the_seventh_lunar_month_and_not_its_leap_month() {
         }),
         Some(&ymd(2025, 9, 6))
     );
-    assert!(
-        HolidayCalendar::for_year(lunar, None, 1843)
-            .all()
-            .is_empty()
-    );
+    let before = HolidayCalendar::for_year(lunar, None, 1843);
+    assert!(before.all().is_empty());
+    assert!(!before.gaps().is_empty());
 }
 
 /// 鷲神社 (Asakusa), 「今年の酉の市」: 令和8年, 一の酉 on 7 November and
@@ -2706,10 +2722,58 @@ fn the_2033_problem_leaves_the_lunar_autumn_days_open() {
     let obon = HolidayCalendar::for_year(&traditions::OBON_LUNAR, None, 2033);
     assert!(obon.gaps().is_empty());
     assert_eq!(obon.all().len(), 6);
-    // Past 2146, the next year the 天保暦 rule leaves open, nothing.
-    assert!(
-        HolidayCalendar::for_year(&traditions::TOKANYA, None, 2147)
-            .all()
-            .is_empty()
+}
+
+/// The first and last years each folk-day table answers: 1873 for the
+/// Gregorian ones, when Japan took up the Gregorian calendar, and 1844 to
+/// 2146 for the 旧暦 ones, from the 天保暦 to the last year before the
+/// next the Observatory leaves open. Outside those the Gregorian tables
+/// have no day, since the reckoning did not exist, and the 旧暦 tables
+/// report a gap, since the calendar does not answer.
+#[test]
+fn the_folk_day_tables_answer_their_first_and_last_years() {
+    use hc_holiday::rule::RuleSet;
+    let gregorian: [&RuleSet; 6] = [
+        &traditions::OBON_JULY,
+        &traditions::OBON_AUGUST,
+        &traditions::TORI_NO_ICHI,
+        &traditions::HATSUUMA,
+        &traditions::INOKO_NOVEMBER,
+        &traditions::TOKANYA_NOVEMBER,
+    ];
+    for set in gregorian {
+        let first = HolidayCalendar::for_year(set, None, 1873);
+        assert!(!first.all().is_empty(), "{}", set.code);
+        assert!(first.is_complete(), "{}", set.code);
+        let before = HolidayCalendar::for_year(set, None, 1872);
+        assert!(before.all().is_empty(), "{}", set.code);
+        assert!(before.is_complete(), "{}", set.code);
+    }
+    expect(
+        &traditions::OBON_JULY,
+        &[(1873, 7, 13, "Mukaebi (welcoming fire)")],
     );
+    let lunar: [&RuleSet; 4] = [
+        &traditions::OBON_LUNAR,
+        &traditions::HATSUUMA_LUNAR,
+        &traditions::INOKO,
+        &traditions::TOKANYA,
+    ];
+    for set in lunar {
+        for year in [1844, 2146] {
+            let calendar = HolidayCalendar::for_year(set, None, year);
+            assert!(!calendar.all().is_empty(), "{} {year}", set.code);
+            assert!(calendar.is_complete(), "{} {year}", set.code);
+        }
+        for year in [1843, 2147] {
+            let calendar = HolidayCalendar::for_year(set, None, year);
+            assert!(calendar.all().is_empty(), "{} {year}", set.code);
+            assert!(!calendar.gaps().is_empty(), "{} {year}", set.code);
+        }
+    }
+    expect(
+        &traditions::OBON_LUNAR,
+        &[(1844, 8, 26, "Unkē (welcoming the ancestors)")],
+    );
+    expect(&traditions::TOKANYA, &[(2146, 11, 13, "Tōkanya")]);
 }
