@@ -131,8 +131,9 @@ parts, the nineteen-year cycle, the four dehiyyot and why each exists, the
 six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
 drift from the sky, what is carried and what is not, and the sources,
 Maimonides first. The module keeps the month-numbering convention, Tishrei
-first with Adar I as `Month::leap(5)`, and the Omer and *birkat hachama*
-functions beside the calendar.
+first with Adar I as `Month::leap(5)`, and the Omer, *birkat hachama*,
+anniversary and sabbatical-year (*shemittah*) functions beside the
+calendar.
 
 `hebrew-observational` is Reingold and Dershowitz's prediction of the
 calendar the fixed one replaced, written up in

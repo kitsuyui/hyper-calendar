@@ -263,6 +263,19 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   death and a birth on 15 Adar 5783, of a common year, are kept on
   15 Adar I (22 February 2027) and 15 Adar II (24 March 2027) in the leap
   year 5787.
+- **The sabbatical year**, in the same module: `sabbatical_cycle_year`,
+  a Hebrew year's place, 1 to 7, in the seven-year cycle, and
+  `is_sabbatical_year`, whether it is the seventh, *shemittah*. The count
+  in use makes the years divisible by seven sabbatical years: Wikipedia
+  lists 5712 (1951–52) to 5782 (2021–22) [wikipedia-shmita], and
+  Chabad.org names 5789, "which runs from September 20, 2028 to
+  September 9, 2029", as the next [chabad-shemitah]. Both count the year
+  from Rosh Hashanah: the evenings of 20 September 2028 and 9 September
+  2029 begin 1 Tishrei 5789 and 5790, which this calendar dates
+  21 September 2028 and 10 September 2029. The same page
+  says the cycle's first year was 3829, 68–69 CE; counting sevens from
+  there would make 5788 the sabbatical year and not the 5789 it names, so
+  the named years are the ones carried.
 - **Not carried, and why.**
   - The observational calendar of the Second Temple period and of the
     Sanhedrin, in which each month was declared on the testimony of
@@ -282,8 +295,12 @@ constants named; only the 216 years and the 97 minutes are also quoted.
     calendar of its own, `samaritan`, written up in
     [samaritan.md](samaritan.md).
   - The Karaite calendar, which keeps the observational rule.
-  - The sabbatical (*shemittah*) year count and the Jubilee, which are
-    year classifications and not dates.
+  - The Jubilee. Whether it is the forty-ninth year of the cycle or the
+    fiftieth is disputed — Judah the Prince and three modern studies for
+    the forty-ninth, the majority of the classical rabbis and Maimonides
+    for the fiftieth [wikipedia-jubilee-biblical] — so the two readings would
+    be two named counts, and no source read dates a Jubilee year of the
+    present count for either.
   - The *tekufot* other than as `birkat_hachama` uses them, and any true
     astronomy: the module calls nothing in `hc-astro`.
 
@@ -312,6 +329,7 @@ what the anchors check.
 | Birkat hachama on 30 Paremhat of every Coptic year 17 modulo 28, and on no other 30 Paremhat, Coptic years 1–2 999 [reingold2018code] | 2 999 of 2 999 | `birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat` |
 | Birkat hachama from 7 April 1897 to 9 April 2149 [wikipedia-birkat-hachamah] | 10 of 10 | `the_recent_and_next_birkat_hachama_are_the_published_ones` |
 | A yahrzeit and a birthday of 15 Adar 5783 in 5786, 5787 and 5788 against Hebcal's calculator [hebcal-yahrzeit] | 6 of 6 | `the_adar_anniversaries_agree_with_hebcals_calculator` |
+| The sabbatical years 5712 to 5782 [wikipedia-shmita] and 5789 with its Gregorian span [chabad-shemitah] | 12 of 12 | `the_sabbatical_years_are_the_published_ones` |
 
 Two published dates anchor the calendar, both from Hebcal for 5784: Rosh
 Hashanah from sunset on Friday 15 September 2023, so its first day is
@@ -337,6 +355,9 @@ bound, which is a choice rather than a finding.
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
 | [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants; `yahrzeit` and `hebrew-birthday` for the anniversaries; `observational-hebrew-first-of-nisan`, cited for the calendar not carried here | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26; `yahrzeit`, `hebrew-birthday` and `observational-hebrew-first-of-nisan` 2026-09-26 |
 | [hebcal-yahrzeit] | One yahrzeit and one birthday of 15 Adar 5783, as a check | Yes, 2026-09-27 |
+| [wikipedia-shmita] | The sabbatical years 5712 to 5782, and the year counted from Rosh Hashanah | Yes, 2026-09-27 |
+| [chabad-shemitah] | The sabbatical year 5789 and its span; the first year of the cycle given as 3829 | Yes, 2026-09-27 |
+| [wikipedia-jubilee-biblical] | The dispute over a Jubilee of 49 or 50 years | Yes, 2026-09-27 |
 | [hebcal-5784] | Rosh Hashanah and Pesach of 5784, each from the sunset before its day; that 5784 has Adar I and Adar II | Yes, 2026-09-25 |
 | [wikipedia-hebrew-calendar] | The epoch's Julian date; the six year lengths and their names; the mean year of 365.2468 days and the day per 216 years; the 97 minutes of molad drift | Yes, 2026-09-25 |
 | [wikipedia-birkat-hachamah] | The birkat hachama dates of 1897 to 2149 and their weekday | Yes, 2026-09-26 |
@@ -358,7 +379,9 @@ the Nisan-first internal one. Anchors:
 `passover_5784_was_the_twenty_third_of_april_2024`,
 `rosh_hashanah_never_falls_on_sunday_wednesday_or_friday`,
 `every_year_takes_one_of_the_six_permitted_lengths`. The Omer, birkat
-hachama, `yahrzeit` and `birthday` functions are in the same module, the
+hachama, `yahrzeit`, `birthday`, `sabbatical_cycle_year` and
+`is_sabbatical_year` functions are in the same module, the sabbatical
+year tested by `the_sabbatical_years_are_the_published_ones`, the
 anniversaries tested by `the_adar_anniversaries_agree_with_hebcals_calculator`, `a_yahrzeit_in_adar_follows_the_books_rules`,
 `a_birthday_in_adar_follows_the_books_rules` and
 `the_thirtieth_of_heshvan_and_kislev_depend_on_the_first_anniversary`; the holidays that sit on the

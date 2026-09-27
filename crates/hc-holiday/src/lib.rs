@@ -20,6 +20,8 @@
 //! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
 //! | [`traditions`] | the cross-cutting religious cycles |
 //! | [`roman_calendar`] | the General Roman Calendar, every celebration with its rank |
+//! | [`common_worship`] | the Church of England's *Common Worship* calendar, its ranks and its required transfers |
+//! | [`holy_years`] | the Catholic Holy Years, each from its bull of indiction |
 //! | [`lectionary`] | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
 //! | [`international`] | the United Nations international days, each citing its resolution |
 //! | [`countries`] | the national tables |
@@ -80,8 +82,10 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub mod common_worship;
 pub mod computus;
 pub mod hindu;
+pub mod holy_years;
 pub mod international;
 pub mod lectionary;
 pub mod rule;

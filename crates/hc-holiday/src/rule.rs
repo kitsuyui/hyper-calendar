@@ -5,10 +5,10 @@
 //! *y*?" — and the modifiers around it are values too. No country and no
 //! tradition contributes code; they contribute tables of these values.
 //!
-//! The vocabulary is the one `docs/observances.md` specifies, plus four
-//! shapes that fell out of writing the national tables and that are still
-//! pure data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`],
-//! [`Rule::Offset`] and [`Rule::Tabulated`].
+//! The vocabulary is the one `docs/observances.md` specifies, plus five
+//! shapes that fell out of writing the tables and that are still pure
+//! data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`],
+//! [`Rule::Offset`], [`Rule::Tabulated`] and [`Rule::Unsettled`].
 
 #[cfg(feature = "alloc")]
 use hc_astro::riseset::Location;
@@ -908,6 +908,14 @@ pub enum Rule {
     /// The function takes a Gregorian year and returns the days it falls on
     /// in that year.
     Computed(fn(i64) -> Days),
+    /// A computed rule whose source leaves some years unanswered.
+    ///
+    /// The function returns `None` for a year the stated rule does not
+    /// settle, which is reported as a gap rather than passing for a year
+    /// without the day. *Common Worship*'s St George's Day is the case: when
+    /// Easter is 17 April its Rules move the day onto St Mark's Day and do
+    /// not say which of the two is kept there.
+    Unsettled(fn(i64) -> Option<Days>),
     /// A computed rule backed by a published table, which therefore has a
     /// last year.
     ///
@@ -1028,6 +1036,7 @@ impl Rule {
                 last_year,
                 ..
             } => (*first_year..=*last_year).contains(&year),
+            Self::Unsettled(function) => function(year).is_some(),
             // A shifted rule needs its base in the same year. It also
             // *probes* the neighbouring years, because a shift can cross a
             // New Year, but requiring those too would report a gap in every
@@ -1284,6 +1293,7 @@ impl Rule {
                 day,
             } => tibetan_days(calendar, *month, *day, year).unwrap_or_default(),
             Self::Computed(function) => function(year).clamped(first, last),
+            Self::Unsettled(function) => function(year).unwrap_or_default().clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
         }
     }

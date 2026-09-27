@@ -419,7 +419,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-43 tables, feature `holiday`.
+48 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -440,13 +440,15 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `christian-orthodox` | Christianity (Julian computus) | 18 |
 | `christian-orthodox-revised-julian` | Christianity (Julian computus, Revised Julian fixed feasts) | 18 |
 | `christian-western` | Christianity (Western computus) | 30 |
+| `church-of-the-east` | Assyrian Church of the East | 16 |
+| `common-worship` | Church of England (Common Worship calendar) | 40 |
 | `coptic-orthodox` | Coptic Orthodox | 23 |
 | `ember-bcp1662` | Ember and Rogation Days (Book of Common Prayer, 1662) | 15 |
 | `ember-common-worship` | Ember and Rogation Days (Common Worship, traditional weeks) | 15 |
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
 | `gosekku` | The five seasonal festivals of Japan (五節句) | 5 |
 | `hindu` | Hinduism | 19 |
-| `islamic` | Islam | 10 |
+| `islamic` | Islam | 13 |
 | `jain` | Jainism | 23 |
 | `jewish` | Judaism | 21 |
 | `korean-folk` | Korean folk days | 11 |
@@ -455,10 +457,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
+| `sacred-wednesdays` | Wednesdays on the eighth lunar day | 1 |
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |
 | `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
 | `taoist` | Taoism | 5 |
+| `tenrikyo` | Tenrikyo | 16 |
+| `unlucky-fridays` | Friday the 13th | 1 |
 | `vietnamese-folk` | Vietnamese folk days | 10 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
