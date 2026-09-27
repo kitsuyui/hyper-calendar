@@ -523,14 +523,54 @@ const ZH_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-/// The Hindu calendars that name their year among sixty, in English: the
-/// name after the day, as Sewell and Dikshit date a Tamil day, "Monday,
-/// 19th Vaiyasi of the year Rudhirodgarin", and say of the north that the
-/// year's name is "in practice coupled with all the days of that year"
-/// (sewell1896, Art. 55), then the Śaka year.
+/// The Hindu calendars that name their year in the southern sixty-year
+/// cycle, in English: the name after the day, as Sewell and Dikshit date a
+/// Tamil day, "Monday, 19th Vaiyasi of the year Rudhirodgarin", with the
+/// reckoning as they name it beside the northern one, "Angiras samvatsara
+/// in luni-solar or southern reckoning" (sewell1896, the example of 1752),
+/// then the Śaka year.
 const EN_SAMVATSARA_TEMPLATES: DateTemplates = DateTemplates {
-    date: "{month} {day} of the year {extra:samvatsara}, {year}",
+    date: "{month} {day} of the year {extra:samvatsara} in southern reckoning, {year}",
     ..DateTemplates::NONE
+};
+
+/// The pūrṇimānta calendar, which names its year in the northern cycle, in
+/// English: as the southern ones, the year named for Jupiter as Sewell and
+/// Dikshit name it, a "Barhaspatya samvatsara" (sewell1896, Art. 54), and
+/// its name "in practice coupled with all the days of that year" (Art. 55).
+const EN_BARHASPATYA_TEMPLATES: DateTemplates = DateTemplates {
+    date: "{month} {day} of the Barhaspatya year {extra:barhaspatya-samvatsara}, {year}",
+    ..DateTemplates::NONE
+};
+
+/// The Hindu lunisolar calendars' English names: the months, Chaitra
+/// first, the intercalary month's prefix and the Śaka era, which the
+/// entries for the amānta and the pūrṇimānta calendars share.
+const EN_HINDU_LUNISOLAR: CalendarNames = CalendarNames {
+    calendars: &[],
+    cycles: &[months(&[
+        "Chaitra",
+        "Vaisakha",
+        "Jyaishtha",
+        "Ashadha",
+        "Sravana",
+        "Bhadra",
+        "Asvina",
+        "Kartika",
+        "Agrahayana",
+        "Pausha",
+        "Magha",
+        "Phalguna",
+    ])],
+    leap_month_prefix: "Adhika ",
+    eras: EraNames {
+        codes: &["saka"],
+        names: widths(&["Saka"], &[], &[]),
+        calendars: &[],
+    },
+    quarters: ContextualNames::EMPTY,
+    templates: EN_SAMVATSARA_TEMPLATES,
+    leap_names: LeapMonthNames::NONE,
 };
 
 /// `ko.xml`: `Gy` is "G y년", `d` is "d일", `yMMMd` is "y년 M월 d일".
@@ -2694,36 +2734,20 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // transliteration the Rashtriya Panchang's English edition uses; the
     // calendar's own names are Devanagari, declared in `hc-calendars-indic`.
     // An intercalary month is "Adhika Śrāvaṇa", so the prefix is "Adhika ".
+    // The amānta calendars name the year in the southern cycle and the
+    // pūrṇimānta one in the northern, so their dates are written apart.
     CalendarNames {
         calendars: &[
             CalendarId("hindu-lunar"),
             CalendarId("hindu-lunar-surya-siddhanta"),
-            CalendarId("hindu-lunar-purnimanta"),
         ],
-        cycles: &[months(&[
-            "Chaitra",
-            "Vaisakha",
-            "Jyaishtha",
-            "Ashadha",
-            "Sravana",
-            "Bhadra",
-            "Asvina",
-            "Kartika",
-            "Agrahayana",
-            "Pausha",
-            "Magha",
-            "Phalguna",
-        ])],
-        leap_month_prefix: "Adhika ",
-        eras: EraNames {
-            codes: &["saka"],
-            names: widths(&["Saka"], &[], &[]),
-            calendars: &[],
-        },
-        quarters: ContextualNames::EMPTY,
-        templates: EN_SAMVATSARA_TEMPLATES,
-        leap_names: LeapMonthNames::NONE,
+        ..EN_HINDU_LUNISOLAR
     },
+    CalendarNames {
+        calendars: &[CalendarId("hindu-lunar-purnimanta")],
+        ..EN_HINDU_LUNISOLAR
+    }
+    .with_templates(EN_BARHASPATYA_TEMPLATES),
     // The Old Hindu lunisolar calendar's months are those same twelve, and
     // its intercalary month is likewise "Adhika X"; it declares none of its
     // own, because the mean-motion calendar is arithmetic and its months are

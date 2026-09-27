@@ -526,3 +526,6 @@ Mata = "Mata"
 # Indonesian "Analisis Astronomis Kalender 1447 H", the title of T.
 # Djamaluddin's analysis cited for the Neo-MABIMS readings.
 Analisis = "Analisis"
+# "Aaj Tak", the Hindi news channel whose report names Vikrama 2083 Raudra
+# (docs/systems/hindu-calendars.md and its references.bib entry).
+Tak = "Tak"

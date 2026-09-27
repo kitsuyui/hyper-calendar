@@ -1992,7 +1992,7 @@ mod calendars {
     /// calendar identifier, the field's identifier (`samvatsara`,
     /// `julian-day-number`: a key, never reader-facing text), its value as
     /// an integer, the field's label in the locale or else in English
-    /// (`Samvatsara`, `Julian Day Number`), the value as a reader reads it
+    /// (`Samvatsara (southern reckoning)`, `Julian Day Number`), the value as a reader reads it
     /// — the name of the position it holds where its values are named,
     /// *Parabhava*, else the number in the locale's digits — `1` when the
     /// formatted date of `hc_describe_day` already writes the field, else

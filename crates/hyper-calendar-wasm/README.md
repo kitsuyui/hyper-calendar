@@ -1275,8 +1275,8 @@ calendar's sources write its dates with them, and then as those sources
 do, in the calendar's own notation (`hc_i18n::notation`) or in a
 locale's template for the calendar, each naming its source: the Long
 Count's `13.0.13.17.8`, the ISO week date `2026-W39-7`, the Tzolkʼin's
-`1 Lamat`, a Tamil year's name, `Purattasi 11 of the year Parabhava,
-1948 Saka`. The rest — a day count's Julian Day Number, the Gregorian
+`1 Lamat`, a Tamil year's name, `Purattasi 11 of the year Parabhava in
+southern reckoning, 1948 Saka`. The rest — a day count's Julian Day Number, the Gregorian
 year a Masonic year counts on, the Vikrama year of an amānta date — are
 metadata and stay out of the text; a calendar whose sources say nothing
 of how its dates are written is written by its year, month and day.
@@ -1302,19 +1302,25 @@ the date: the identifiers and integers of column 11 of
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | id | the calendar's identifier |
-| 2 | field | the field's identifier, `samvatsara`, `julian-day-number`, `tzolkin_name`: a key, as column 11 of `hc_describe_day` has it, and never text for a reader |
+| 2 | field | the field's identifier, `samvatsara`, `barhaspatya-samvatsara`, `julian-day-number`, `tzolkin_name`: a key, as column 11 of `hc_describe_day` has it, and never text for a reader |
 | 3 | value | its value, an integer |
-| 4 | label | what the locale calls the field, else its English label, `Samvatsara`, `Julian Day Number`, `Tzolkʼin day sign`, from `hc_i18n::fields`; English's are the words the calendars' system documents use, and no other language's is carried yet |
+| 4 | label | what the locale calls the field, else its English label, `Samvatsara (southern reckoning)`, `Julian Day Number`, `Tzolkʼin day sign`, from `hc_i18n::fields`; English's are the words the calendars' system documents use, and no other language's is carried yet |
 | 5 | value label | the value as a reader reads it: the name of the position it holds where the field's values are named — `Parabhava`, பராபவ under `ta`, `Lamat`, 丙午, `Sunday` — else the number in the locale's numbering system; what a template's `{extra:FIELD}` writes |
 | 6 | in date | `1` when column 16 of `hc_describe_day`, the formatted date, already writes the field, else `0`, so that a page shows the others beside it |
 | 7 | locale used | the tag of the locale data that answered, as column 17 of `hc_describe_day` names it |
 
 On 27 September 2026 under `en`, the Tamil solar calendar's two lines
-are `hindu-solar-tamil`, `samvatsara`, `40`, `Samvatsara`, `Parabhava`,
-`1`, `en` and `hindu-solar-tamil`, `tiruvalluvar-year`, `2057`,
+are `hindu-solar-tamil`, `samvatsara`, `40`,
+`Samvatsara (southern reckoning)`, `Parabhava`, `1`, `en` and `hindu-solar-tamil`, `tiruvalluvar-year`, `2057`,
 `Tiruvalluvar year`, `2057`, `0`, `en`; the Modified Julian Day's one is
 `modified-julian-day`, `julian-day-number`, `2461311`,
-`Julian Day Number`, `2461311`, `0`, `en`.
+`Julian Day Number`, `2461311`, `0`, `en`. The pūrṇimānta calendar names
+the same year in the northern cycle, under a key of its own:
+`hindu-lunar-purnimanta`, `barhaspatya-samvatsara`, `53`,
+`Barhaspatya samvatsara (northern cycle)`, `Siddharthin`, `1`, `en`, and
+its date is `Asvina 16 of the Barhaspatya year Siddharthin, 1948 Saka`
+where the Tamil one is `Purattasi 11 of the year Parabhava in southern
+reckoning, 1948 Saka`.
 
 ## Units of a calendar
 
