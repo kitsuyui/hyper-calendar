@@ -349,9 +349,17 @@ fn the_gregorian_years_a_bounded_calendar_and_the_long_count_walk() {
     assert_eq!(spans.len(), 2);
     let baktun_end = spans[0].date().expect("a day");
     assert_eq!(baktun_end.fields.extra.get("baktun"), Some(13));
-    // Nobody names the Long Count, so its label is its fields in order.
-    let text = label::date(long_count, &baktun_end.fields, &locale("en"));
-    assert!(text.contains("baktun=13"), "{text}");
+    // Nobody names the Long Count; its label is its own notation, the
+    // five places joined by dots, in every locale.
+    for tag in ["en", "ja", "ar"] {
+        let text = label::date(long_count, &baktun_end.fields, &locale(tag));
+        let expected = if tag == "ar" {
+            "١٣.٠.٠.٠.٠"
+        } else {
+            "13.0.0.0.0"
+        };
+        assert_eq!(text, expected, "{tag}");
+    }
 }
 
 #[test]

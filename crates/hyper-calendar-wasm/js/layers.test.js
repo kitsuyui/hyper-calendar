@@ -43,6 +43,7 @@ test("a method of another layer throws not-exported when called, not at load", (
   /** @type {Record<string, () => unknown>} */
   const calls = {
     describeDay: () => hc.describeDay(739_880, "en"),
+    dayExtras: () => hc.dayExtras(739_880, "en"),
     calendarUnits: () => hc.calendarUnits("gregory", "year", 739_000, 739_880, "en"),
     calendars: () => hc.calendars(739_880, "en"),
     calendarList: () => hc.calendarList("en"),

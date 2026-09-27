@@ -1982,6 +1982,54 @@ mod calendars {
         unsafe { write_text(&text, buffer, capacity, written) }
     }
 
+    /// The extra fields of one fixed day, as NUL-terminated UTF-8 lines in
+    /// a caller-owned buffer.
+    ///
+    /// `id` is a NUL-terminated registry identifier, or null or empty for
+    /// every registered calendar; an identifier the library does not know
+    /// is `HC_ERROR_UNKNOWN`. One line per extra field, in registry order
+    /// and in the order the calendar sets them, tab-separated: the
+    /// calendar identifier, the field's identifier (`samvatsara`,
+    /// `julian-day-number`: a key, never reader-facing text), its value as
+    /// an integer, the field's label in the locale or else in English
+    /// (`Samvatsara`, `Julian Day Number`), the value as a reader reads it
+    /// — the name of the position it holds where its values are named,
+    /// *Parabhava*, else the number in the locale's digits — `1` when the
+    /// formatted date of `hc_describe_day` already writes the field, else
+    /// `0`, and the locale used. A calendar that refuses the day, or whose
+    /// date has no extra fields, writes no line. `locale` is as for
+    /// `hc_describe_day`, `native` included. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `id` and `locale` must be null or point to NUL-terminated strings;
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_day_extras(
+        fixed: i64,
+        id: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let id = match unsafe { text(id) } {
+            Ok(id) => id.filter(|id| !id.is_empty()),
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let answer = lines::day_extras(&hc::registry(), Rd(fixed), id, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
     /// The days from `from_fixed` up to but not including `to_fixed` as one
     /// calendar's eras, years, months or days, as NUL-terminated UTF-8 lines
     /// in a caller-owned buffer.
@@ -2272,8 +2320,8 @@ mod calendars {
 
 #[cfg(feature = "calendars")]
 pub use calendars::{
-    hc_calendar_list, hc_calendar_units, hc_calendars, hc_describe_day, hc_first_day_of_week,
-    hc_gregorian_adoption, hc_locales, hc_naming_period_on,
+    hc_calendar_list, hc_calendar_units, hc_calendars, hc_day_extras, hc_describe_day,
+    hc_first_day_of_week, hc_gregorian_adoption, hc_locales, hc_naming_period_on,
 };
 
 /// Days in the calendars, behind the `calendars` feature: the pañcāṅga's

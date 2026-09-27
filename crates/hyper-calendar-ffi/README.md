@@ -110,6 +110,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | ticks | `hc_dotnet_ticks_from_unix` | `unix_seconds` −62 135 596 800 through 253 402 300 799, 0001-01-01 to the end of 9999-12-31, and attoseconds below 10¹⁸, which write the ticks 0 through 3 155 378 975 999 999 999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_unix_from_dotnet_ticks` | `ticks` 0 through 3 155 378 975 999 999 999, the range of `DateTime`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
+| lines | `hc_day_extras` | every `fixed`; a calendar that refuses the day writes no line, and an `id` the registry does not carry is `HC_ERROR_UNKNOWN` |
 | lines | `hc_calendar_units` | every `from_fixed` and `to_fixed` whose range is at most 100 000 units; a span a calendar refuses says so in its own line and counts as one, a `to_fixed` at or before `from_fixed` writes no lines, and a range of more units is `HC_ERROR_OUT_OF_RANGE`, as the WebAssembly module's [line caps](../hyper-calendar-wasm/README.md#line-caps) say |
 | lines | `hc_calendars` | every `today` |
 | a line | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERROR_UNKNOWN` |
@@ -255,7 +256,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-127 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+128 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -305,6 +306,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_six_hour_clock(const char *reckoning, uint32_t seconds_of_day, char *buffer, size_t capacity, size_t *written);` | `timestamps` | A time of the civil day on a six-hour clock, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_civil_from_six_hour_clock(const char *reckoning, uint32_t hour, uint32_t minute, uint32_t second, int night, uint32_t *out_seconds);` | `timestamps` | The civil time of day of a six-hour reading, as seconds after midnight, 0 through 86 399. |
 | `HcStatus hc_describe_day(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | One fixed day in every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_day_extras(int64_t fixed, const char *id, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The extra fields of one fixed day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_list(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar by name alone, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -514,6 +516,16 @@ language is used only when `native` asks for it:
 4. Otherwise — a tag that does not parse, or that no data answers for —
    the root locale `und`, whose month names are CLDR's `M01`..`M12`; ask
    for `en` for English.
+
+The date as the locale writes it holds an extra field only where the
+calendar's sources write the date with it, and never a `name=value`
+pair. `hc_day_extras(fixed, id, locale, buffer, capacity, written)`
+writes the day's extra fields one line each, in the seven columns the
+WebAssembly module's README lists under "The extra fields of a day":
+calendar identifier, field identifier, value, the field's label, the
+value as a reader reads it, `1` when the formatted date already writes
+it, and the locale used. A null or empty `id` asks for every registered
+calendar, and one the library does not know is `HC_ERROR_UNKNOWN`.
 
 `hc_calendar_units(id, unit, from_fixed, to_fixed, locale, buffer, capacity, written)`
 writes the days from `from_fixed` up to but not including `to_fixed` as

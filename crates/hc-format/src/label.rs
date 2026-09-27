@@ -15,10 +15,24 @@
 //! month and a whole date ([`hc_i18n::names::DateTemplates`]), and an
 //! entry that serves a calendar family states what differs for that
 //! family: the Chinese calendar's year by its stem and branch, its days by
-//! their Han names. A template is tried level by level — the family's, the
-//! locale's, then [`DateTemplates::DEFAULT`] — and a level whose every
-//! placeholder comes out empty is passed over, so that `{sexagenary}年`
-//! yields to `{era}{year}年` for a calendar with no sexagenary count.
+//! their Han names. A calendar written in a notation of its own whatever
+//! the language, the Long Count's `13.0.13.17.8`, states it in
+//! [`hc_i18n::notation`]. A template is tried level by level — the
+//! family's, the calendar's notation, the locale's, then
+//! [`DateTemplates::DEFAULT`] — and a level whose every placeholder comes
+//! out empty is passed over, so that `{sexagenary}年` yields to
+//! `{era}{year}年` for a calendar with no sexagenary count.
+//!
+//! # The extra fields
+//!
+//! A date's extra fields ([`hc_calendar::fields::ExtraFields`]) are written only
+//! where a template names one, `{extra:samvatsara}`, which a template does
+//! only where the calendar's sources write the date with it. There is no
+//! way to write them all: their identifiers are keys, and a raw
+//! `name=value` pair is not something a reader can read. The rest are
+//! metadata, which [`extra`] writes one at a time, as the value a
+//! template would write, for the lines that list them beside the date;
+//! [`date_marking`] says which of them the date itself wrote.
 //!
 //! The pieces come from the same fallbacks the rest of the workspace uses:
 //! an era's name is the locale's, else the calendar's own
@@ -47,6 +61,7 @@ use hc_calendar::shape::MONTH;
 use hc_calendar::units::Unit;
 use hc_calendar::{CalendarId, DateFields, DynCalendar, Month};
 use hc_i18n::Locale;
+use hc_i18n::fields;
 use hc_i18n::names::{self, DateTemplates, NameContext, NameWidth, TemplateChain};
 use hc_i18n::numbering::{self, NumberingSystem};
 
@@ -89,11 +104,65 @@ pub fn write_date<W: Write>(
     locale: &Locale,
     out: &mut W,
 ) -> fmt::Result {
+    write_date_marking(calendar, fields, locale, out).map(|_| ())
+}
+
+/// Write the whole date as the locale writes one, and say which of the
+/// date's extra fields it wrote.
+///
+/// # Errors
+///
+/// Only what the sink returns.
+pub fn write_date_marking<W: Write>(
+    calendar: &dyn DynCalendar,
+    fields: &DateFields,
+    locale: &Locale,
+    out: &mut W,
+) -> Result<ExtrasWritten, fmt::Error> {
     let renderer = Renderer::new(calendar, fields, locale);
     let mut collapse = Collapse::new(out);
-    renderer
-        .write_levels(|templates| templates.date, Mode::Date, &mut collapse)
-        .map(|_| ())
+    renderer.write_levels(|templates| templates.date, Mode::Date, &mut collapse)?;
+    Ok(ExtrasWritten(renderer.written.get()))
+}
+
+/// Write one extra field's value as a template's `{extra:FIELD}` writes
+/// it: the name of the position it holds in the cycle it counts, where
+/// that is named ([`hc_i18n::fields::write_value_name`]), else the number in
+/// the locale's numbering system. Nothing for a field the date does not
+/// carry.
+///
+/// # Errors
+///
+/// Only what the sink returns.
+pub fn write_extra<W: Write>(
+    calendar: &dyn DynCalendar,
+    fields: &DateFields,
+    field: &str,
+    locale: &Locale,
+    out: &mut W,
+) -> fmt::Result {
+    let renderer = Renderer::new(calendar, fields, locale);
+    renderer.write_extra(field, NameWidth::Wide, NameContext::Standalone, out)
+}
+
+/// Which of a date's extra fields its formatted text writes, by their
+/// place in [`hc_calendar::fields::ExtraFields::iter`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub struct ExtrasWritten(u32);
+
+impl ExtrasWritten {
+    /// Whether the extra field at `index` of [`hc_calendar::fields::ExtraFields::iter`]
+    /// is written in the date.
+    #[must_use]
+    pub const fn contains(self, index: usize) -> bool {
+        index < 32 && self.0 & (1 << index) != 0
+    }
+
+    /// Whether the date writes no extra field.
+    #[must_use]
+    pub const fn is_empty(self) -> bool {
+        self.0 == 0
+    }
 }
 
 /// The label of one unit of a date, as a string.
@@ -119,9 +188,35 @@ pub fn date(
     fields: &DateFields,
     locale: &Locale,
 ) -> alloc::string::String {
+    date_marking(calendar, fields, locale).0
+}
+
+/// The whole date, as a string, and which of its extra fields it wrote.
+#[cfg(feature = "alloc")]
+#[must_use]
+pub fn date_marking(
+    calendar: &dyn DynCalendar,
+    fields: &DateFields,
+    locale: &Locale,
+) -> (alloc::string::String, ExtrasWritten) {
     let mut out = alloc::string::String::new();
     // A `String` never refuses a write.
-    let _ = write_date(calendar, fields, locale, &mut out);
+    let written = write_date_marking(calendar, fields, locale, &mut out).unwrap_or_default();
+    (out, written)
+}
+
+/// One extra field's value, as a string: see [`write_extra`].
+#[cfg(feature = "alloc")]
+#[must_use]
+pub fn extra(
+    calendar: &dyn DynCalendar,
+    fields: &DateFields,
+    field: &str,
+    locale: &Locale,
+) -> alloc::string::String {
+    let mut out = alloc::string::String::new();
+    // A `String` never refuses a write.
+    let _ = write_extra(calendar, fields, field, locale, &mut out);
     out
 }
 
@@ -152,6 +247,10 @@ struct Renderer<'a> {
     /// calendar costs as much as a conversion and most months never need
     /// to know.
     in_leap_year: core::cell::OnceCell<bool>,
+    /// The extra fields a placeholder has written, by their place in
+    /// [`hc_calendar::fields::ExtraFields::iter`]. A level passed over wrote no
+    /// placeholder at all, so whatever is marked is in the text.
+    written: core::cell::Cell<u32>,
 }
 
 impl<'a> Renderer<'a> {
@@ -167,6 +266,7 @@ impl<'a> Renderer<'a> {
             merged: chain.merged(),
             numbering: NumberingSystem::for_locale(locale),
             in_leap_year: core::cell::OnceCell::new(),
+            written: core::cell::Cell::new(0),
         }
     }
 
@@ -241,12 +341,36 @@ impl<'a> Renderer<'a> {
                 return Ok(filled_count);
             };
             let inside = &after[..end];
-            let (name, width) = match inside.split_once(':') {
-                Some((name, width)) => (name, width_named(width)),
-                None => (inside, None),
-            };
+            let (name, field, spec) = parse_placeholder(inside);
             let mut fill = Fill { out, filled: false };
-            self.write_placeholder(name, width, mode, &mut fill)?;
+            match (name, spec) {
+                ("extra", Spec::Digits(digits)) => {
+                    if let Some(value) = self.fields.extra.get(field) {
+                        self.mark(field);
+                        self.write_padded(value, digits, &mut fill)?;
+                    }
+                }
+                ("extra", spec) => {
+                    let context = match mode {
+                        Mode::Date => NameContext::Format,
+                        Mode::Unit | Mode::Era => NameContext::Standalone,
+                    };
+                    self.write_extra(field, spec.width(), context, &mut fill)?;
+                }
+                (_, Spec::Digits(digits)) => self.write_digits(name, digits, &mut fill)?,
+                ("day", Spec::ZeroBased) => {
+                    if let Some(day) = self.fields.day {
+                        self.write_number(i64::from(day) - 1, &mut fill)?;
+                    }
+                }
+                (_, spec) => {
+                    let width = match spec {
+                        Spec::Width(width) => Some(width),
+                        _ => None,
+                    };
+                    self.write_placeholder(name, width, mode, &mut fill)?;
+                }
+            }
             if fill.filled {
                 filled_count += 1;
             }
@@ -332,28 +456,125 @@ impl<'a> Renderer<'a> {
                     let named = usize::from(day)
                         .checked_sub(1)
                         .and_then(|index| self.merged.day_names.get(index));
-                    match named {
-                        Some(name) => out.write_str(name),
-                        None => self.write_number(i64::from(day), out),
+                    if let Some(name) = named {
+                        return out.write_str(name);
                     }
+                    // A day that is a position in a named cycle, the
+                    // Pawukon's seven-day week, is written by its name.
+                    let context = match mode {
+                        Mode::Date => NameContext::Format,
+                        Mode::Unit | Mode::Era => NameContext::Standalone,
+                    };
+                    if fields::write_value_name(
+                        self.locale,
+                        self.id,
+                        self.calendar.cycles(),
+                        "day",
+                        i64::from(day),
+                        width.unwrap_or(NameWidth::Wide),
+                        context,
+                        out,
+                    )? {
+                        return Ok(());
+                    }
+                    self.write_number(i64::from(day), out)
                 }
                 None => Ok(()),
             },
-            ("extras", _) => {
-                let mut first = true;
-                for extra in self.fields.extra.iter() {
-                    if !first {
-                        out.write_char(';')?;
-                    }
-                    first = false;
-                    out.write_str(extra.name)?;
-                    out.write_char('=')?;
-                    write!(out, "{}", extra.value)?;
-                }
-                Ok(())
-            }
             _ => Ok(()),
         }
+    }
+
+    /// An extra field, where the date carries it: the name of the position
+    /// it holds where its cycle is named, else its number; and marked as
+    /// written.
+    fn write_extra(
+        &self,
+        field: &str,
+        width: NameWidth,
+        context: NameContext,
+        out: &mut dyn Write,
+    ) -> fmt::Result {
+        let Some(value) = self.fields.extra.get(field) else {
+            return Ok(());
+        };
+        self.mark(field);
+        if fields::write_value_name(
+            self.locale,
+            self.id,
+            self.calendar.cycles(),
+            field,
+            value,
+            width,
+            context,
+            out,
+        )? {
+            return Ok(());
+        }
+        self.write_number(value, out)
+    }
+
+    /// Note that the date's text holds an extra field.
+    fn mark(&self, field: &str) {
+        if let Some(index) = self
+            .fields
+            .extra
+            .iter()
+            .position(|extra| extra.name == field)
+            .filter(|index| *index < 32)
+        {
+            self.written.set(self.written.get() | 1 << index);
+        }
+    }
+
+    /// A field as a number of at least `digits` digits, never a name: the
+    /// year without its era, the month's ordinal, the day of the month.
+    fn write_digits(&self, name: &str, digits: u8, out: &mut dyn Write) -> fmt::Result {
+        let value = match name {
+            "year" => Some(self.fields.year),
+            "month" => self.fields.month.map(|month| i64::from(month.ordinal)),
+            "day" => self.fields.day.map(i64::from),
+            _ => None,
+        };
+        match value {
+            Some(value) => self.write_padded(value, digits, out),
+            None => Ok(()),
+        }
+    }
+
+    /// A number of at least `digits` digits, padded with the zero of the
+    /// locale's numbering system, or of Latin digits where that system
+    /// has no digits of its own to pad with.
+    fn write_padded(&self, value: i64, digits: u8, out: &mut dyn Write) -> fmt::Result {
+        let zeros: &[char; 10] = match self.numbering.digits() {
+            Some(zeros) => zeros,
+            None => match numbering::LATN.digits() {
+                Some(zeros) => zeros,
+                None => return self.write_number(value, out),
+            },
+        };
+        // Least significant first; a u64 has at most twenty digits.
+        let mut decimal = [0_u8; 20];
+        let mut count = 0;
+        let mut rest = value.unsigned_abs();
+        loop {
+            decimal[count] = (rest % 10) as u8;
+            count += 1;
+            rest /= 10;
+            if rest == 0 {
+                break;
+            }
+        }
+        if value < 0 {
+            out.write_char('-')?;
+        }
+        for _ in count..usize::from(digits) {
+            out.write_char(zeros[0])?;
+        }
+        for digit in decimal[..count].iter().rev() {
+            out.write_char(zeros[usize::from(*digit)])?;
+        }
+        Ok(())
     }
 
     /// The month's name in the locale, else the calendar's own, else its
@@ -419,6 +640,56 @@ impl<'a> Renderer<'a> {
                 .write_integer(value, &mut out)
                 .map_err(|_| fmt::Error)
         }
+    }
+}
+
+/// What follows a placeholder's colon.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Spec {
+    /// Nothing, or nothing this renderer knows.
+    None,
+    /// A width: `{month:abbreviated}`.
+    Width(NameWidth),
+    /// A number of at least this many digits: `{month:2}`.
+    Digits(u8),
+    /// The day counted from zero: `{day:0-based}`.
+    ZeroBased,
+}
+
+impl Spec {
+    fn parse(text: &str) -> Self {
+        if text == "0-based" {
+            return Self::ZeroBased;
+        }
+        if let Ok(digits) = text.parse::<u8>() {
+            return Self::Digits(digits.min(20));
+        }
+        width_named(text).map_or(Self::None, Self::Width)
+    }
+
+    fn width(self) -> NameWidth {
+        match self {
+            Self::Width(width) => width,
+            _ => NameWidth::Wide,
+        }
+    }
+}
+
+/// A placeholder's name, the extra field it names, and what follows its
+/// colon: `month:abbreviated` is the month at that width, `month:2` its
+/// number in two digits, `extra:samvatsara` the extra field
+/// `samvatsara`, and `extra:samvatsara:abbreviated` its name at that
+/// width.
+fn parse_placeholder(inside: &str) -> (&str, &str, Spec) {
+    if let Some(rest) = inside.strip_prefix("extra:") {
+        return match rest.split_once(':') {
+            Some((field, spec)) => ("extra", field, Spec::parse(spec)),
+            None => ("extra", rest, Spec::None),
+        };
+    }
+    match inside.split_once(':') {
+        Some((name, spec)) => (name, "", Spec::parse(spec)),
+        None => (inside, "", Spec::None),
     }
 }
 

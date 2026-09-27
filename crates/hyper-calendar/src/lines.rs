@@ -50,6 +50,8 @@ pub const NATIVE: &str = "native";
 
 /// How many columns [`describe_day`] writes.
 pub const DESCRIBE_DAY_COLUMNS: usize = 18;
+/// How many columns [`day_extras`] writes.
+pub const DAY_EXTRAS_COLUMNS: usize = 7;
 /// How many columns [`calendar_units`] writes.
 pub const CALENDAR_UNITS_COLUMNS: usize = 8;
 /// How many columns [`calendars`] writes.
@@ -250,7 +252,8 @@ fn push_fields(out: &mut String, locale: &Locale, calendar: &dyn DynCalendar, fi
     push_extras(out, fields);
 }
 
-/// The extra fields as `name=value` pairs joined by `;`.
+/// The extra fields as `name=value` pairs joined by `;`: identifiers and
+/// integers for a program, which [`day_extras`] labels for a reader.
 fn push_extras(out: &mut String, fields: &DateFields) {
     let mut first = true;
     for extra in fields.extra.iter() {
@@ -270,9 +273,12 @@ fn push_extras(out: &mut String, fields: &DateFields) {
 /// the era's name in the locale (or the calendar's own, or empty), the
 /// year, the month ordinal, `1` for a leap month, the month's name in the
 /// locale (or the calendar's own, or empty), the day, `1` for a leap day,
-/// the extra fields as `name=value` pairs joined by `;`, the error code,
-/// the error name, the standing, where the calendar's day begins, the date
-/// as the locale writes it, the locale used, and which civil day names a
+/// the extra fields as `name=value` pairs joined by `;` — identifiers and
+/// integers for a program, labelled for a reader by [`day_extras`] — the
+/// error code, the error name, the standing, where the calendar's day
+/// begins, the date as the locale writes it, which holds an extra field
+/// only where the calendar's sources write the date with it and never a
+/// `name=value` pair, the locale used, and which civil day names a
 /// day that does not begin at midnight — `start` for the one it begins on,
 /// `end` for the one it ends on, empty for midnight. A calendar that
 /// refuses the day is still a line: its date columns, standing and
@@ -323,6 +329,82 @@ fn describe_day_in_scope(registry: &CalendarRegistry, day: Rd, locale: &str) -> 
         out.push('\n');
     }
     out
+}
+
+/// The extra fields of one day, one line per field, in registry order and,
+/// within a calendar, in the order the calendar sets them: every
+/// registered calendar's, or with `calendar` only that one's.
+///
+/// The columns: the calendar identifier; the field's identifier, a key
+/// such as `samvatsara` or `julian-day-number`, never reader-facing text;
+/// its value, an integer; what the locale calls the field
+/// ([`hc_i18n::fields::label`]), else its English label; the value as a
+/// reader reads it — the name of the position it holds in the cycle it
+/// counts where that is named, *Parābhava*, else the number in the
+/// locale's numbering system — as a template's `{extra:FIELD}` writes it;
+/// `1` when the date as the locale writes it, [`describe_day`]'s formatted
+/// cell, already holds the field, else `0`, so that a page can show the
+/// others beside the date; and the locale used, as [`describe_day`] names
+/// it. The locale follows the module's rule. A calendar that refuses the
+/// day, or whose date has no extra fields, writes no line.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a `calendar` the registry does not carry.
+pub fn day_extras(
+    registry: &CalendarRegistry,
+    day: Rd,
+    calendar: Option<&str>,
+    locale: &str,
+) -> Answer<String> {
+    let only = match calendar {
+        Some(id) => Some(registry.get_by_name(id).ok_or(Refusal::Unknown)?),
+        None => None,
+    };
+    Ok(hc_core::memo::scope(|| {
+        let mut out = String::new();
+        match only {
+            Some(calendar) => push_day_extras(&mut out, calendar, day, locale),
+            None => {
+                for meta in registry.metas() {
+                    if let Some(calendar) = registry.get(meta.id) {
+                        push_day_extras(&mut out, calendar, day, locale);
+                    }
+                }
+            }
+        }
+        out
+    }))
+}
+
+/// [`day_extras`]' lines for one calendar.
+fn push_day_extras(out: &mut String, calendar: &dyn DynCalendar, day: Rd, tag: &str) {
+    let Ok(fields) = calendar.fixed_to_fields(day) else {
+        return;
+    };
+    if fields.extra.is_empty() {
+        return;
+    }
+    let locale = locale_for(calendar, tag);
+    let used = locale_used(&locale);
+    let (_, written) = label::date_marking(calendar, &fields, &locale);
+    let id = calendar.meta().id;
+    for (index, extra) in fields.extra.iter().enumerate() {
+        push_cell(out, id.as_str());
+        out.push('\t');
+        push_cell(out, extra.name);
+        let _ = write!(out, "\t{}\t", extra.value);
+        if let Some(name) = hc_i18n::fields::label(&locale, extra.name) {
+            push_cell(out, name.name);
+        }
+        out.push('\t');
+        push_cell(out, &label::extra(calendar, &fields, extra.name, &locale));
+        out.push('\t');
+        push_flag(out, written.contains(index));
+        out.push('\t');
+        out.push_str(used);
+        out.push('\n');
+    }
 }
 
 /// The days from `from` up to but not including `to` as one calendar's

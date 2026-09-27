@@ -92,6 +92,7 @@ export const METHODS = Object.freeze([
   { method: "sixHourClock", export: "hc_six_hour_clock", feature: "timestamps" },
   { method: "civilFromSixHourClock", export: "hc_civil_from_six_hour_clock", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
+  { method: "dayExtras", export: "hc_day_extras", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
   { method: "calendarList", export: "hc_calendar_list", feature: "calendars" },
@@ -195,6 +196,9 @@ export const COLUMNS = Object.freeze({
     "id", "name", "era", "era label", "year", "month", "leap month", "month label",
     "day", "leap day", "extras", "error code", "error name", "standing",
     "day boundary", "formatted", "locale used", "day named by",
+  ]),
+  dayExtras: Object.freeze([
+    "id", "field", "value", "label", "value label", "in date", "locale used",
   ]),
   calendarUnits: Object.freeze([
     "start", "end", "label", "leap", "standing", "error code", "error name", "locale used",
@@ -653,6 +657,25 @@ function flag(cell, what) {
  */
 function optionalFlag(cell, what) {
   return cell === "" ? false : flag(cell, what);
+}
+
+/**
+ * One row of `hc_day_extras`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").DayExtra}
+ */
+function dayExtra(cells) {
+  const [id, field, value, label, valueLabel, inDate, localeUsed] = cells;
+  return {
+    id,
+    field,
+    value: integer(value, "value"),
+    label,
+    valueLabel,
+    inDate: flag(inDate, "in date"),
+    localeUsed,
+  };
 }
 
 /**
@@ -2501,6 +2524,29 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_describe_day", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.describeDay, "hc_describe_day").map(describedDay);
+  }
+
+  /**
+   * The extra fields of one fixed day, one row a field: its identifier and
+   * value for a program, and for a reader its label and the value as the
+   * locale names it, with `inDate` saying whether {@link describeDay}'s
+   * `formatted` already writes it. Every registered calendar's, or with
+   * `id` only that calendar's; a calendar that refuses the day has none.
+   * `locale` is as for {@link describeDay}.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [locale]
+   * @param {string} [id]
+   * @returns {import("./hyper-calendar.d.ts").DayExtra[]}
+   */
+  dayExtras(fixed, locale = "und", id = "") {
+    const fn = this.#export("hc_day_extras");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(id, "id", (idPointer, idLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_day_extras", (buffer, capacity) =>
+          fn(day, idPointer, idLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.dayExtras, "hc_day_extras").map(dayExtra);
   }
 
   /**

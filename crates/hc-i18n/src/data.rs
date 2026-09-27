@@ -523,6 +523,16 @@ const ZH_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The Hindu calendars that name their year among sixty, in English: the
+/// name after the day, as Sewell and Dikshit date a Tamil day, "Monday,
+/// 19th Vaiyasi of the year Rudhirodgarin", and say of the north that the
+/// year's name is "in practice coupled with all the days of that year"
+/// (sewell1896, Art. 55), then the Śaka year.
+const EN_SAMVATSARA_TEMPLATES: DateTemplates = DateTemplates {
+    date: "{month} {day} of the year {extra:samvatsara}, {year}",
+    ..DateTemplates::NONE
+};
+
 /// `ko.xml`: `Gy` is "G y년", `d` is "d일", `yMMMd` is "y년 M월 d일".
 const KO_TEMPLATES: DateTemplates = DateTemplates {
     year: "{era} {year}년",
@@ -2711,7 +2721,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
-        templates: DateTemplates::NONE,
+        templates: EN_SAMVATSARA_TEMPLATES,
         leap_names: LeapMonthNames::NONE,
     },
     // The Old Hindu lunisolar calendar's months are those same twelve, and
@@ -2842,7 +2852,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
-        templates: DateTemplates::NONE,
+        // The Anka, then the Amli year it falls in, as the Suniā
+        // declarations write the year: "52 anka 1419" (puriwaves-sunia-52).
+        templates: DateTemplates {
+            year: "{year} {era} {extra:amli-year}",
+            ..DateTemplates::NONE
+        },
         leap_names: LeapMonthNames::NONE,
     },
     // The Gujarati Vikrama year runs the amānta months from Kārttika, as the
@@ -3023,14 +3038,18 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["Kali Yuga"],
     ),
     dated(
-        &[
-            CalendarId("hindu-solar-tamil"),
-            CalendarId("hindu-solar-surya-siddhanta"),
-        ],
+        &[CalendarId("hindu-solar-surya-siddhanta")],
         &[],
         &["saka"],
         &["Saka"],
     ),
+    dated(
+        &[CalendarId("hindu-solar-tamil")],
+        &[],
+        &["saka"],
+        &["Saka"],
+    )
+    .with_templates(EN_SAMVATSARA_TEMPLATES),
     dated(
         &[CalendarId("hindu-solar-malayalam")],
         &[],
@@ -3075,7 +3094,25 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["koki"],
         &["Kōki"],
     ),
-    dated(&[CalendarId("juche")], &[], &["juche"], &["Juche"]),
+    // The Juche year with the Gregorian year beside it, as the calendar is
+    // written, 주체113(2024) (Wikipedia, "Juche calendar", retrieved
+    // 2026-09-26, as `hc_calendars_solar::juche` cites it).
+    dated(&[CalendarId("juche")], &[], &["juche"], &["Juche"]).with_templates(DateTemplates {
+        year: "{year} {era} ({extra:common-era-year})",
+        ..DateTemplates::NONE
+    }),
+    // The Olympiad and its year beside the Julian date, as historians
+    // wrote the year: "year 3 of Olympiad 194" (wikipedia-olympiad).
+    CalendarNames::empty(&[CalendarId("olympiad")]).with_templates(DateTemplates {
+        date: "{month} {day}, {year}, year {extra:year-of-olympiad} of Olympiad {extra:olympiad}",
+        ..DateTemplates::NONE
+    }),
+    // The Yazidi year and its day, as Kreyenbroek dates a day of it:
+    // "6774, day 173" (kreyenbroek1995).
+    CalendarNames::empty(&[CalendarId("yazidi")]).with_templates(DateTemplates {
+        date: "{year}, day {extra:day-of-year}",
+        ..DateTemplates::NONE
+    }),
     dated(&[CalendarId("ada")], &[], &["ada"], &["ADA"]),
     dated(
         &[CalendarId("bostran-era")],
@@ -4229,6 +4266,12 @@ const KO: LocaleData = LocaleData {
             "윤",
         )
         .with_templates(KO_CHINESE_TEMPLATES),
+        // The Juche year with the Gregorian year beside it, 주체113(2024)
+        // (Wikipedia, "Juche calendar", retrieved 2026-09-26).
+        CalendarNames::empty(&[CalendarId("juche")]).with_templates(DateTemplates {
+            year: "{era} {year}({extra:common-era-year})년",
+            ..DateTemplates::NONE
+        }),
     ],
 };
 
@@ -6785,11 +6828,12 @@ mod tests {
         );
     }
 
-    /// Every placeholder a template writes is one the renderer fills, and
-    /// the day names and implied eras are well formed.
+    /// Every placeholder a template writes is one the renderer fills, every
+    /// extra field one names has a label, and the day names and implied
+    /// eras are well formed.
     #[test]
     fn every_template_uses_known_placeholders() {
-        const PLACEHOLDERS: &[&str] = &["era", "year", "month", "day", "sexagenary", "extras"];
+        const PLACEHOLDERS: &[&str] = &["era", "year", "month", "day", "sexagenary"];
         const WIDTHS: &[&str] = &["wide", "abbreviated", "narrow", "short"];
         fn check(tag: &str, templates: &DateTemplates) {
             for (field, template) in [
@@ -6807,13 +6851,25 @@ mod tests {
                         .find('}')
                         .unwrap_or_else(|| panic!("{tag} {field}: unclosed placeholder"));
                     let inside = &after[..end];
-                    let (name, width) = inside.split_once(':').unwrap_or((inside, "wide"));
+                    let (name, width) = match inside.strip_prefix("extra:") {
+                        Some(rest) => {
+                            let (extra, width) = rest.split_once(':').unwrap_or((rest, "wide"));
+                            assert!(
+                                crate::fields::label(&Locale::ROOT, extra).is_some(),
+                                "{tag} {field}: the extra field {extra} has no label"
+                            );
+                            ("extra", width)
+                        }
+                        None => inside.split_once(':').unwrap_or((inside, "wide")),
+                    };
                     assert!(
-                        PLACEHOLDERS.contains(&name),
+                        name == "extra" || PLACEHOLDERS.contains(&name),
                         "{tag} {field}: unknown placeholder {name}"
                     );
                     assert!(
-                        WIDTHS.contains(&width),
+                        WIDTHS.contains(&width)
+                            || width.parse::<u8>().is_ok()
+                            || (name == "day" && width == "0-based"),
                         "{tag} {field}: unknown width {width}"
                     );
                     rest = &after[end + 1..];
@@ -6832,6 +6888,9 @@ mod tests {
                 templates.implied_era.to_ascii_lowercase(),
                 "{tag}: era codes are written in lower case in the data"
             );
+        }
+        for notation in crate::notation::NOTATIONS {
+            check(notation.calendars[0].0, &notation.templates);
         }
         for data in every_entry() {
             check(data.tag, &data.templates);
