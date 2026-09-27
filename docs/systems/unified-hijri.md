@@ -11,30 +11,31 @@ the Umm al-Qura table and the single-place prediction are in
 ## What it is
 
 Three bodies publish Hijri calendars computed in advance by a rule that
-treats the whole Earth, or a region, as one place of sighting, so that a
-month begins on the same civil day for everyone who follows them.
+treats the whole Earth as one place of sighting, so that a month begins
+on the same civil day for everyone who follows them. Two of them apply
+one calendar, the **Unified Hijri Calendar** of the congress Diyanet
+convened in Istanbul on 28–30 May 2016, which adopted a single calendar
+for the whole world based on the possibility of sighting the crescent
+anywhere on Earth [diyanet-kongre-2016]:
 
-- **The Unified Hijri Calendar** of the congress Diyanet convened in
-  Istanbul on 28–30 May 2016, which adopted a single calendar for the whole
-  world based on the possibility of sighting the crescent anywhere on Earth
-  [diyanet-kongre-2016]. Two bodies apply it and publish its dates:
-  - **Türkiye's Presidency of Religious Affairs (Diyanet)**, whose lists of
-    religious days give the first day of each month [diyanet-dini-gunler];
-  - **Muhammadiyah**, the Indonesian organisation, as its *Kalender
-    Hijriah Global Tunggal* (KHGT), in force from 1 Muḥarram 1447, 26 June
-    2025 [muhammadiyah-ughc-2025], published year by year to 1492 AH
-    [khgt-kalendar-hijriah].
+- **Türkiye's Presidency of Religious Affairs (Diyanet)**, whose lists of
+  religious days give the first day of each month [diyanet-dini-gunler];
+- **Muhammadiyah**, the Indonesian organisation, as its *Kalender Hijriah
+  Global Tunggal* (KHGT), in force from 1 Muḥarram 1447, 26 June 2025
+  [muhammadiyah-ughc-2025], published year by year to 1492 AH
+  [khgt-kalendar-hijriah];
 - **The Fiqh Council of North America (FCNA)**, which publishes the first
   day of every month from Muḥarram 1440 to Dhū al-Ḥijja 1467, 2018–2045,
   computed by the criterion of the European Council for Fatwa and Research
   [fcna-calendar].
-- **The Neo-MABIMS criterion** of the religious-affairs ministers of Brunei,
-  Indonesia, Malaysia and Singapore, ratified on 8 December 2021 and applied
-  in Malaysia from Muḥarram 1443 and in Indonesia from 2022
-  [djamaluddin-mabims-2022, mufid-djamaluddin-2023]. It is a regional
-  criterion of possible sighting, and the member states still fix the
-  month at a sighting session; it is carried as a criterion and not as a
-  calendar.
+
+A regional criterion stands beside them. **Neo-MABIMS**, the criterion of
+the religious-affairs ministers of Brunei, Indonesia, Malaysia and
+Singapore, was ratified on 8 December 2021 and applied in Malaysia from
+Muḥarram 1443 and in Indonesia from 2022 [djamaluddin-mabims-2022,
+mufid-djamaluddin-2023]. It treats the region as one place of possible
+sighting, and the member states still fix the month at a sighting
+session; it is carried as a criterion and not as a calendar.
 
 In Ramaḍān 1447 the two Unified Hijri Calendars began the month a day
 apart: Muhammadiyah on Wednesday 18 February 2026 [muhammadiyah-ramadan-1447]

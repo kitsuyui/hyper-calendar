@@ -30,6 +30,9 @@ extend-exclude = [
 extend-ignore-re = ["[Ss]haʿot"]
 
 [default.extend-words]
+# Lilly's *Christian Astrology* (1647) spells "untill", quoted as printed by
+# hc-seasons::planetary_hours and docs/calendars.md.
+untill = "untill"
 # RFC 9562's title capitalises the D of "IDentifiers", which typos reads as
 # the misspelling "Dentifiers"; hc-core::uuid cites the title as printed.
 Dentifiers = "Dentifiers"

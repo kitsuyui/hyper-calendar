@@ -2,13 +2,13 @@
 //! in progress at a moment, and when the Moon enters and leaves it — and
 //! the Sun's, which the almanacs print as its own table.
 //!
-//! The division, the ayanamsa it hangs on, the festivals fixed by it and
+//! The division, the ayanāṃśa it hangs on, the festivals fixed by it and
 //! the comparison with Drik Panchang's transit times are written up with
 //! their sources in `docs/systems/hindu-calendars.md` in the repository.
 //! This page summarises it and states the code's own facts.
 //!
 //! The sidereal ecliptic is cut into twenty-seven equal arcs of 13°20′
-//! from the ayanamsa's zero point, Aśvinī first and Revatī last. The Moon
+//! from the ayanāṃśa's zero point, Aśvinī first and Revatī last. The Moon
 //! crosses one in about a day, so a nakṣatra, like a tithi, is held at one
 //! or two sunrises or, now and then, at none. A few festivals are fixed by
 //! it rather than by a tithi — Thaipusam on Puṣya in the month of Thai —
@@ -83,7 +83,7 @@ pub const UTTARA_BHADRAPADA: u8 = 26;
 pub const REVATI: u8 = 27;
 
 /// The Moon's sidereal longitude at a moment, in degrees from the
-/// ayanamsa's zero point: its apparent longitude less the ayanamsa.
+/// ayanāṃśa's zero point: its apparent longitude less the ayanāṃśa.
 #[must_use]
 pub fn sidereal_lunar_longitude(moment: Moment, ayanamsa: Ayanamsa) -> f64 {
     normalize_degrees(lunar_longitude(moment) - ayanamsa.degrees_at(moment))
@@ -169,7 +169,7 @@ pub fn nakshatra_span(nakshatra: u8, moment: Moment, ayanamsa: Ayanamsa) -> (Mom
 /// Sun's stay in Ārdrā at the monsoon's height, is the one the farmers hold
 /// the best (`wikipedia-ml-njattuvela`); other regions' reckonings by the
 /// Sun's nakṣatra are not sourced here.
-/// Which ayanamsa an almanac measures from is its own convention and a
+/// Which ayanāṃśa an almanac measures from is its own convention and a
 /// parameter here; the Lahiri value is the one the Indian national almanac
 /// and Drik Panchang use. Drik Panchang's Lahiri stands about 20″ from the
 /// one here, so its transit times are eight to ten minutes later than these
@@ -182,7 +182,7 @@ pub fn solar_nakshatra_at(moment: Moment, ayanamsa: Ayanamsa) -> u8 {
 
 /// How many refinement passes the solar ingress search makes, for the same
 /// reason as the saṅkrānti search in `hc-seasons`: the target depends on
-/// the ayanamsa at the ingress, which is not known until it is found.
+/// the ayanāṃśa at the ingress, which is not known until it is found.
 const SOLAR_INGRESS_REFINEMENTS: usize = 2;
 
 /// The first moment at or after `moment` when the Sun enters `nakshatra`,
@@ -286,7 +286,7 @@ mod tests {
         // Every entry comes eight to ten minutes before the almanac's, and
         // the spread across the year is under two minutes: the Lahiri value
         // here and Drik Panchang's stand about 20″ apart, the disagreement
-        // between published values of a named ayanamsa that `hc-seasons`
+        // between published values of a named ayanāṃśa that `hc-seasons`
         // describes, and not an error that grows through the year.
         let (low, high) = offsets
             .iter()

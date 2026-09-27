@@ -6,7 +6,9 @@
 //! same year to start counting from for unrelated reasons.
 //!
 //! The era was introduced by decree in 1997 and, in practice, is written
-//! alongside the Gregorian year — "주체113(2024)". There is no era for years
+//! alongside the Gregorian year — 주체99(2010)년 in Korean, "Juche 99
+//! (2010)" in English (the Korean and English Wikipedia pages, retrieved
+//! 2026-09-28). There is no era for years
 //! before 1912: the decree does not define one, so this module refuses dates
 //! before [`EARLIEST`] rather than inventing a "before Juche" convention.
 //!

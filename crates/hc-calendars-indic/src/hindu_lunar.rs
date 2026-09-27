@@ -3,7 +3,7 @@
 //! The system is written up in `docs/systems/hindu-calendars.md` in the
 //! repository: the tithi, the naming of months by their saṅkrānti, adhika
 //! and kṣaya months, the Śaka and Vikrama years, the Central Station and
-//! the ayanamsa, with the adhika Śrāvaṇa of Śaka 1945 worked through by
+//! the ayanāṃśa, with the adhika Śrāvaṇa of Śaka 1945 worked through by
 //! hand, what is carried and what is not, how the calendar was checked
 //! against the *Rashtriya Panchang*'s tables, and the sources, keyed in
 //! `docs/references.bib`. This page summarises it and states the code's
@@ -12,7 +12,7 @@
 //! The calendar most of India dates its festivals in, computed the way the
 //! *Rashtriya Panchang* of the Government of India computes it: from the
 //! true positions of the Sun and Moon, with the sidereal zodiac fixed by the
-//! Lahiri ayanamsa, and the day read at sunrise.
+//! Lahiri ayanāṃśa, and the day read at sunrise.
 //!
 //! # The rules
 //!
@@ -59,7 +59,7 @@
 //! # What is exact and what is not
 //!
 //! The astronomy is `hc-astro`'s — the Sun to about 1″, the Moon to about
-//! 10″, sunrise to a minute or two — and the ayanamsa is `hc-seasons`'s
+//! 10″, sunrise to a minute or two — and the ayanāṃśa is `hc-seasons`'s
 //! Lahiri anchor. A tithi that ends within a minute or two of sunrise, or a
 //! saṅkrānti that falls within seconds of a conjunction, is therefore a
 //! decision this calendar makes by a model where a panchang makes it by
@@ -165,7 +165,7 @@ impl HinduLunarDate {
     }
 }
 
-/// The amānta Hindu lunisolar calendar, judged at a place with an ayanamsa.
+/// The amānta Hindu lunisolar calendar, judged at a place with an ayanāṃśa.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HinduLunarCalendar {
     /// Whose sunrise reads the day.
@@ -182,14 +182,14 @@ impl Default for HinduLunarCalendar {
 
 impl HinduLunarCalendar {
     /// The calendar as the *Rashtriya Panchang* computes it: sunrise at the
-    /// Central Station, Lahiri ayanamsa. The registered `hindu-lunar`.
+    /// Central Station, Lahiri ayanāṃśa. The registered `hindu-lunar`.
     pub const RASHTRIYA: Self = Self::new(CENTRAL_STATION, Ayanamsa::LAHIRI);
 
     /// The calendar read at Ujjain, as the classical almanacs and Reingold
-    /// and Dershowitz do, with the Lahiri ayanamsa.
+    /// and Dershowitz do, with the Lahiri ayanāṃśa.
     pub const UJJAIN: Self = Self::new(UJJAIN, Ayanamsa::LAHIRI);
 
-    /// A calendar judged at any place with any ayanamsa.
+    /// A calendar judged at any place with any ayanāṃśa.
     #[must_use]
     pub const fn new(location: Location, ayanamsa: Ayanamsa) -> Self {
         Self { location, ayanamsa }
@@ -228,7 +228,7 @@ fn conjunction_at_or_after(moment: Moment) -> Moment {
 }
 
 /// The true Sun and Moon of modern astronomy, in the zodiac of the
-/// calendar's ayanamsa, with the day read at its place's sunrise.
+/// calendar's ayanāṃśa, with the day read at its place's sunrise.
 impl Sky for HinduLunarCalendar {
     fn conjunction_at_or_after(&self, moment: Moment) -> Moment {
         conjunction_at_or_after(moment)

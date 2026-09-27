@@ -916,9 +916,15 @@ fn the_three_lunar_sikh_days_match_the_sgpc_list() {
             (2020, 11, 30, "Parkash of Guru Nanak"),
         ],
     );
+    // Every day is exact but Hola Mohalla's, whose sunrise is fitted.
     for rule in SIKH_NANAKSHAHI_2003.rules {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
-        assert_eq!(rule.confidence, Confidence::Exact, "{}", rule.name);
+        let expected = if rule.name == "Hola Mohalla" {
+            Confidence::Approximate
+        } else {
+            Confidence::Exact
+        };
+        assert_eq!(rule.confidence, expected, "{}", rule.name);
     }
 }
 
@@ -950,7 +956,8 @@ fn the_sgpc_keeps_guru_gobind_singhs_parkash_on_poh_sudi_seven() {
 fn the_sgpc_keeps_the_three_movable_days_of_both_versions() {
     // Wikipedia's table of the movable dates of the 2003 and 2010
     // versions, 2010 to 2017, which the 2003 table's test reads for 2018
-    // to 2020.
+    // to 2020. Hola Mohalla is Chet vadi 1 at sunrise, a day after Holi
+    // in 2012, 2013 and 2016.
     let mut days = Vec::new();
     for (year, hola, bandi, nanak) in [
         (2010, (3, 1), (11, 5), (11, 21)),
@@ -962,18 +969,139 @@ fn the_sgpc_keeps_the_three_movable_days_of_both_versions() {
         (2016, (3, 24), (10, 30), (11, 14)),
         (2017, (3, 13), (10, 19), (11, 4)),
     ] {
+        days.push((year, hola.0, hola.1, "Hola Mohalla"));
         days.push((year, bandi.0, bandi.1, "Bandi Chhor Divas"));
         days.push((year, nanak.0, nanak.1, "Parkash of Guru Nanak"));
-        // Hola Mohalla is kept here on the day of Holi, the day after
-        // Holika Dahan, and the table has it a day later in 2012, 2013 and
-        // 2016, as it has in no year from 2018 to 2020.
-        if [2012, 2013, 2016].contains(&year) {
-            days.push((year, hola.0, hola.1 - 1, "Hola Mohalla"));
-        } else {
-            days.push((year, hola.0, hola.1, "Hola Mohalla"));
-        }
     }
     expect(&SIKH_SGPC, &days);
+    expect(&SIKH_NANAKSHAHI_2003, &days);
+    expect_not(
+        &SIKH_SGPC,
+        &[
+            (2012, 3, 8, "Hola Mohalla"),
+            (2013, 3, 27, "Hola Mohalla"),
+            (2016, 3, 23, "Hola Mohalla"),
+        ],
+    );
+}
+
+#[test]
+fn the_sgpc_days_of_2021_to_2026_are_reproduced() {
+    // Hola Mohalla: SikhNet's SGPC lists for 2021 and 2026; dekho-ji for
+    // 2022 and 2023; The Tribune, 26 March 2024; AIR, 15 March 2025.
+    // Vaisakhi: The Tribune's reports of 2010 to 2025 from Amritsar and
+    // Talwandi Sabo, The Week of 17 March 2025 and SikhNet's 2021 and 2026
+    // lists; 13 April in 2017, 2021 and 2025, when the saṅkrānti fell
+    // between midnight and sunrise. Bandi Chhor Divas: the published days,
+    // a day after Diwali in 2024 and 2025.
+    expect(
+        &SIKH_SGPC,
+        &[
+            (2021, 3, 29, "Hola Mohalla"),
+            (2022, 3, 19, "Hola Mohalla"),
+            (2023, 3, 8, "Hola Mohalla"),
+            (2024, 3, 26, "Hola Mohalla"),
+            (2025, 3, 15, "Hola Mohalla"),
+            (2026, 3, 4, "Hola Mohalla"),
+            (2010, 4, 14, "Vaisakhi"),
+            (2011, 4, 14, "Vaisakhi"),
+            (2012, 4, 13, "Vaisakhi"),
+            (2013, 4, 13, "Vaisakhi"),
+            (2014, 4, 14, "Vaisakhi"),
+            (2017, 4, 13, "Vaisakhi"),
+            (2019, 4, 14, "Vaisakhi"),
+            (2021, 4, 13, "Vaisakhi"),
+            (2022, 4, 14, "Vaisakhi"),
+            (2023, 4, 14, "Vaisakhi"),
+            (2024, 4, 13, "Vaisakhi"),
+            (2025, 4, 13, "Vaisakhi"),
+            (2026, 4, 14, "Vaisakhi"),
+            (2021, 11, 4, "Bandi Chhor Divas"),
+            (2022, 10, 24, "Bandi Chhor Divas"),
+            (2023, 11, 12, "Bandi Chhor Divas"),
+            (2024, 11, 1, "Bandi Chhor Divas"),
+            (2025, 10, 21, "Bandi Chhor Divas"),
+            (2026, 11, 8, "Bandi Chhor Divas"),
+        ],
+    );
+    expect_not(
+        &SIKH_SGPC,
+        &[
+            (2024, 3, 25, "Hola Mohalla"),
+            (2025, 3, 14, "Hola Mohalla"),
+            (2026, 3, 3, "Hola Mohalla"),
+            (2025, 4, 14, "Vaisakhi"),
+            (2024, 10, 31, "Bandi Chhor Divas"),
+            (2025, 10, 20, "Bandi Chhor Divas"),
+        ],
+    );
+    // Outside the published days Bandi Chhor Divas is a gap, not a year
+    // without it.
+    for year in [2009, 2027] {
+        let calendar = HolidayCalendar::for_year(&SIKH_SGPC, None, year);
+        assert!(
+            calendar
+                .gaps()
+                .iter()
+                .any(|gap| gap.name == "Bandi Chhor Divas"),
+            "{year}"
+        );
+    }
+    let calendar = HolidayCalendar::for_year(&SIKH_SGPC, None, 2026);
+    assert!(calendar.gaps().is_empty(), "{:?}", calendar.gaps());
+    // The fitted Hola Mohalla is approximate; the others are exact.
+    for rule in SIKH_SGPC.rules {
+        let fitted = rule.name == "Hola Mohalla";
+        assert_eq!(
+            rule.confidence == Confidence::Approximate,
+            fitted,
+            "{}",
+            rule.name
+        );
+    }
+}
+
+#[test]
+fn the_vikrami_months_begin_on_the_sgpcs_sangrands() {
+    use hc_calendars_indic::hindu_solar::{HinduSolarDate, VIKRAMI};
+    // SikhNet's lists "as per SGPC Calendar": every sangrand of 2021–22,
+    // and of 2026 but Maagh, which the list gives as 13 January and the
+    // Vikrami calendar, with dekho-ji and punjabdata, as 14 January.
+    let sangrands: [(i64, u8, (i64, u8, u8)); 23] = [
+        (2078, 1, (2021, 4, 13)),
+        (2078, 2, (2021, 5, 14)),
+        (2078, 3, (2021, 6, 15)),
+        (2078, 4, (2021, 7, 16)),
+        (2078, 5, (2021, 8, 16)),
+        (2078, 6, (2021, 9, 16)),
+        (2078, 7, (2021, 10, 17)),
+        (2078, 8, (2021, 11, 16)),
+        (2078, 9, (2021, 12, 15)),
+        (2078, 10, (2022, 1, 14)),
+        (2078, 11, (2022, 2, 12)),
+        (2082, 11, (2026, 2, 12)),
+        (2082, 12, (2026, 3, 14)),
+        (2083, 1, (2026, 4, 14)),
+        (2083, 2, (2026, 5, 15)),
+        (2083, 3, (2026, 6, 15)),
+        (2083, 4, (2026, 7, 16)),
+        (2083, 5, (2026, 8, 17)),
+        (2083, 6, (2026, 9, 17)),
+        (2083, 7, (2026, 10, 17)),
+        (2083, 8, (2026, 11, 16)),
+        (2083, 9, (2026, 12, 16)),
+        (2082, 10, (2026, 1, 14)),
+    ];
+    for (year, month, (gy, gm, gd)) in sangrands {
+        let first = VIKRAMI
+            .to_fixed(HinduSolarDate {
+                year,
+                month,
+                day: 1,
+            })
+            .expect("in range");
+        assert_eq!(first, ymd(gy, gm, gd), "{year} month {month}");
+    }
 }
 
 #[test]

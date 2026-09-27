@@ -6,11 +6,14 @@ registered: these are periods of a day and a night, not calendars.
 ## What it is
 
 A choghadiya is one of the eight equal parts of the daylight, or of the
-night. Almanacs of western India print them for choosing a time to begin
-something [wikipedia-choghadiya]. Each part is named for one of seven
-kinds. Amrita, Shubha and Labha are auspicious, Chara is neutral, and
-Udvega, Kala and Roga are inauspicious [wikipedia-choghadiya,
-astromedha-choghadiya]. Drik Panchang prints the sixteen parts of every
+night, read for choosing a time to begin something [wikipedia-choghadiya].
+Each part is named for one of seven kinds. Amrita, Shubha and Labha are
+auspicious, and Udvega, Kala and Roga inauspicious [wikipedia-choghadiya,
+astromedha-choghadiya]. Chara is neutral in AstroMedha's account and in
+Drik Panchang's gloss [astromedha-choghadiya, drik-choghadiya-2025];
+Wikipedia calls it good, "Chal is considered as good Choghadiya"
+[wikipedia-choghadiya], and the library follows the two that call it
+neutral. Drik Panchang prints the sixteen parts of every
 day and place [drik-choghadiya-2025].
 
 ## How it works
@@ -92,7 +95,8 @@ minutes of the printed minute [drik-choghadiya-2025].
 ## Sources
 
 - [wikipedia-choghadiya]: the division of the day and the night into
-  eight, and the three qualities. Read 2026-09-28. It cites Chitkara,
+  eight, and the auspicious and inauspicious kinds; it calls Chara good.
+  Read 2026-09-28. It cites Chitkara,
   *Encyclopaedia of Buddhism* (2005), not read.
 - [astromedha-choghadiya]: the ruler of each kind and the qualities. Read
   2026-09-28. It does not give the sequences.

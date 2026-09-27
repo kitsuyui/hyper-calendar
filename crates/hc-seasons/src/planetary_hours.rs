@@ -17,9 +17,10 @@
 //! "the thirteenth planet counting downwards from the lord of the preceding
 //! day" (*The Book of Instruction in the Elements of the Art of Astrology*,
 //! tr. R. Ramsay Wright, 1934, §§390–391, `biruni-wright1934`, read
-//! 2026-09-28). William Lilly's table for London divides the daylight and
-//! the night into twelve equal hours each and works three hours of Monday
-//! 15 March 1646, Old Style, through it (*Christian Astrology*, 1647, "A
+//! 2026-09-28). William Lilly's table divides the daylight and the night
+//! into twelve equal hours each, counts the day's hours on "untill the next
+//! Sun-rise", and works three hours of Monday 15 March 1646, Old Style,
+//! through it; the table names no place (*Christian Astrology*, 1647, "A
 //! Table whereby to find the Planetary hour" and its use,
 //! `lilly-christian-astrology-1647`, read 2026-09-28). The hours here are
 //! `hc-astro`'s temporal hours, [`hc_astro::solar_time::temporal_time`],
@@ -203,7 +204,8 @@ mod tests {
 
     /// Lilly's three hours of Monday 15 March 1646, Old Style — 15 March
     /// 1647 in the Julian calendar with the year from 1 January, 25 March
-    /// 1647 Gregorian — at London, in local apparent time: at 9:30 the
+    /// 1647 Gregorian — put at London, whose sunrise his table's 5:47 fits,
+    /// though the table names no place, in local apparent time: at 9:30 the
     /// fourth hour, Mars's, from 8:54 to 9:56; at 5:20 in the afternoon the
     /// twelfth, the Sun's, from 5:11 to 6:13; at 11:10 at night the
     /// eighteenth, Mars's again, from 11:02 to 12:00. His table has the Sun

@@ -532,7 +532,7 @@ mod tests {
         assert_eq!(day_rows(day, "native"), rows);
         assert_eq!(day_rows(day, "ja-JP"), rows);
         let english = day_rows(day, "en");
-        assert_eq!(english[0][2..4], ["jia zi", "en"]);
+        assert_eq!(english[0][2..4], ["jia-zi", "en"]);
         assert_eq!(english[7][2..4], ["shakkō", "en"]);
         assert_eq!(english[12][2..4], ["天赦日＋一粒万倍日", "ja"]);
         assert_eq!(day_rows(day, "de"), english);

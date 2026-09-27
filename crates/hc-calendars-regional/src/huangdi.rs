@@ -84,7 +84,10 @@ pub const SONG_JIAOREN: HuangdiCount = HuangdiCount {
 
 /// The 同盟會's count, in its address at the tomb of the Yellow Emperor:
 /// the year beginning in 1908 is 4605. Its epoch is 2697 BC, the 甲子
-/// year, and it is one less than [`SONG_JIAOREN`] throughout.
+/// year, and it is one less than [`SONG_JIAOREN`] throughout. The count of
+/// 《民報》, the 同盟會's own paper, which Wikipedia (zh)'s table heads
+/// with the paper's name, is the 2698 BC one, [`SONG_JIAOREN`]'s
+/// `huangdi-era`: the identifier names the address, not the paper.
 pub const TONGMENGHUI: HuangdiCount = HuangdiCount {
     id: "huangdi-era-tongmenghui",
     english_name: "Huangdi era (Tongmenghui)",

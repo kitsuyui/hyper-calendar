@@ -232,7 +232,9 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   Migasir to 15 keit Pisakh the printed year is one less.
   `KhmerDate::printed_year` gives the printed year and the extra field
   `printed-year` carries it, and the date's display writes it, as
-  «១៥កើត ខែពិសាខ ព.ស.២៥៦៨» for 11 May 2025. The animal year, the *sak*
+  «១៥កើត ខែពិសាខ ព.ស.២៥៦៨» for 11 May 2025. No `km` locale is shipped, so
+  `hc-i18n` writes the date in English, in the same order with Tum's
+  *keit* and *roaj* and the printed year: "15 keit Pĭsakh 2568 BE". The animal year, the *sak*
   and the Jolak Sakaraj, which change at the solar New Year, are not
   carried.
 - **The range** is the years 2444 to 2744, 3 December 1899 to 6 December

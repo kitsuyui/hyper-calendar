@@ -209,6 +209,25 @@ mod tests {
                 (12, 1),
                 "kurnool-tungabhadra-2020",
             ),
+            // Kanyā at 22:24 on 11 August 2016, after sunset: the festival
+            // began the next day.
+            (
+                PushkaramRiver::KRISHNA,
+                2016,
+                (8, 12),
+                (8, 23),
+                "vijayawadapolice-krishna-2016",
+            ),
+            // Dhanus at 06:41 on 5 November 2019, the second entry of the
+            // year: the first was on 30 March, and Jupiter went back into
+            // Vṛścika on 22 April.
+            (
+                PushkaramRiver::BRAHMAPUTRA,
+                2019,
+                (11, 5),
+                (11, 16),
+                "sentinel-brahmaputra-2019",
+            ),
             // Mīna at 16:57 on 13 April 2022.
             (
                 PushkaramRiver::PRANAHITA,
@@ -225,6 +244,15 @@ mod tests {
                 (5, 15),
                 (5, 26),
                 "wikipedia-sarasvati-pushkaram",
+            ),
+            // Siṃha at 05:43 on 26 June 2027, the festival the East
+            // Godavari district announces for 26 June to 7 July 2027.
+            (
+                PushkaramRiver::GODAVARI,
+                2027,
+                (6, 26),
+                (7, 7),
+                "eastgodavari-pushkaralu-2027",
             ),
         ] {
             let span = adi_pushkaram(entry(year, first.0, river.sign), NEW_DELHI, Meridian::INDIA)

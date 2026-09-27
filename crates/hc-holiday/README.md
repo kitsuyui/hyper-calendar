@@ -170,7 +170,7 @@ Samaritan festivals on `samaritan`, the Mandaean feasts and *mbattal* days
 on `mandaean`, the Yazidi feasts on the Eastern calendar, the Bahá'í Faith,
 Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last
 days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`)
-and the SGPC's Bikrami days whose rule was read (`sikh-sgpc`),
+and the SGPC's Bikrami days whose rule or days were read (`sikh-sgpc`),
 Buddhism as Thailand dates its four holy days on `thai-lunar`
 (`buddhist-thai`) and its uposatha days, แรม 14 or 15 ค่ำ by the month's
 length (`buddhist-uposatha-thai`), as Japan and the Chinese calendar date the

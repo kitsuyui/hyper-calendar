@@ -33,7 +33,8 @@ district held the Tungabhadra festival from 20 November to 1 December
 
 The Mela Adhikari of the 2013 Kumbh at Allahabad gives each site's
 condition in English with its Sanskrit verse, and alternative conditions
-for three sites [kumbh-allahabad-astrology]:
+for three sites [kumbh-allahabad-astrology]. The identifier of a site with
+two conditions names Jupiter's sign in each:
 
 | Identifier | Site | Jupiter in | The Sun in | At the new moon |
 | --- | --- | --- | --- | --- |
@@ -42,7 +43,7 @@ for three sites [kumbh-allahabad-astrology]:
 | `kumbh-prayag-mesha` | Prayag | Meṣa | Makara, with the Moon | yes |
 | `kumbh-nashik-simha` | Nashik | Siṃha | Siṃha | no |
 | `kumbh-nashik-karka` | Nashik | Karka | Karka, with the Moon | yes |
-| `kumbh-ujjain-mesha` | Ujjain | Siṃha | Meṣa | no |
+| `kumbh-ujjain-simha` | Ujjain | Siṃha | Meṣa | no |
 | `kumbh-ujjain-tula` | Ujjain | Tulā | the new moon of Kārttika | yes |
 
 The page says the Ujjain alternative holds "when Jupiter enters in Libra
@@ -75,6 +76,14 @@ hold a change of Jupiter's sign.
   entered Kumbha on 1 May 2009, during the Sun's stay in Meṣa that began on
   14 April. It was in Kumbha when the Sun entered Meṣa on 14 April 2010.
   The festival was held in 2010.
+- **Haridwar, 2021**, came eleven years later, not twelve. Jupiter entered
+  Kumbha at 01:50 IST on 6 April 2021, eight days before the Sun entered
+  Meṣa on 14 April, so the condition held. Jupiter went back into Makara
+  on 14 September and entered Kumbha again on 21 November; by the Sun's
+  entry into Meṣa in April 2022 it was in Mīna, which it had entered on
+  13 April [drik-guru-gochar]. The code reads Jupiter's sign at each
+  year's saṅkrānti rather than counting twelve years, and the sky gives
+  eleven here.
 
 ### Pushkaram
 
@@ -109,11 +118,14 @@ from Drik Panchang's entry times [drik-guru-gochar]:
 | River | Jupiter's entry (IST) | The festival | Source |
 | --- | --- | --- | --- |
 | Godavari | 14 July 2015, 07:07 | 14–25 July 2015 | [wikipedia-godavari-pushkaram] |
+| Krishna | 11 August 2016, 22:24, after sunset | 12–23 August 2016 | [vijayawadapolice-krishna-2016] |
 | Kaveri | 12 September 2017, 08:00 | 12–23 September 2017 | [wikipedia-kaveri-pushkaram] |
+| Brahmaputra | 5 November 2019, 06:41, the second entry | 5–16 November 2019 | [sentinel-brahmaputra-2019] |
 | Tungabhadra | 20 November 2020, 14:55, the second entry | 20 November – 1 December 2020 | [kurnool-tungabhadra-2020] |
 | Pranahita | 13 April 2022, 16:57 | 13–24 April 2022 | [hansindia-pranahita-2022] |
 | Ganga | 22 April 2023, 06:12 | from 22 April 2023 | [wikipedia-pushkaram] |
 | Sarasvati | 14 May 2025, 23:20, after sunset | 15–26 May 2025 | [wikipedia-sarasvati-pushkaram] |
+| Godavari | 26 June 2027, 05:43 | 26 June – 7 July 2027, announced | [eastgodavari-pushkaralu-2027] |
 
 **Worked example.** Jupiter entered Makara on 30 March 2020, went back
 into Dhanus on 30 June and entered Makara again at 14:55 IST on
@@ -142,10 +154,13 @@ Not carried:
 - The Ardh Kumbh, held between two Kumbh festivals at Haridwar and Prayag,
   whose condition the sources read do not give.
 - The *Antya Pushkaram*, the last twelve days: no dated example was found.
-- The dates Wikipedia's Pushkaram table gives for years to come, which do
-  not agree with Drik Panchang's entries: Godavari "July 27 – August 03,
-  2027" against Jupiter's entry into Siṃha on 26 June 2027, Krishna 12–23
-  August 2028 against its entry into Kanyā on 24 July 2028.
+- The dates Wikipedia's Pushkaram table gives for years to come, where they
+  do not agree with Drik Panchang's entries: Godavari "July 27 – August 03,
+  2027" against Jupiter's entry into Siṃha on 26 June 2027 and the East
+  Godavari district's 26 June to 7 July, Krishna 12–23 August 2028 against
+  its entry into Kanyā on 24 July 2028, and Kaveri "September 12–23, 2029"
+  against its entry into Tulā at 01:13 on 25 August 2029, from which the
+  rule gives 25 August to 5 September.
 
 ## Accuracy
 
@@ -164,7 +179,8 @@ alone. The three alternative conditions hold in other years, and in no
 year a festival was held: Prayag's in 2012 and 2024, Nashik's in 2002,
 2003, 2014 and 2026, Ujjain's in 2005, 2006, 2017 and 2029.
 
-The Pushkaram rule gives all six festivals in the table above. Wikipedia's
+The Pushkaram rule gives all nine festivals in the table above, the
+Godavari's of 2027 as the district announces it. Wikipedia's
 table gives two other festivals that the rule does not give. Its Dhanus
 festival of 2019, of the Tapti and the Brahmaputra, opens on 29 March, where Jupiter entered
 Dhanus at 03:09 on 30 March. Its Sindhu festival of 2021 opens on
@@ -199,6 +215,14 @@ VSOP87's series for Jupiter, is the missing piece.
 - [wikipedia-godavari-pushkaram], [wikipedia-kaveri-pushkaram] and
   [wikipedia-sarasvati-pushkaram]: the festivals of 2015, 2017 and 2025.
   Read 2026-09-28.
+- [vijayawadapolice-krishna-2016]: the Krishna festival of 12 to
+  23 August 2016. The Vijayawada police page, read in the Internet
+  Archive's copy of 26 January 2025, 2026-09-28.
+- [sentinel-brahmaputra-2019]: the Brahmaputra festival of 5 to
+  16 November 2019. *The Sentinel*, Guwahati, 8 September 2019, read
+  2026-09-28.
+- [eastgodavari-pushkaralu-2027]: the Godavari festival of 26 June to
+  7 July 2027, as the district announces it. Read 2026-09-28.
 - [jpl-approximate-positions]: the Keplerian elements of Standish and
   Williams, tried and not used. Read 2026-09-28.
 

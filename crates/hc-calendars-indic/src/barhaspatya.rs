@@ -36,9 +36,9 @@
 //!
 //! # Two conventions in print
 //!
-//! Northern almanacs of 2024–26 name the year by one of two of these
-//! rules, and the names differ by one; each is carried under its rule's
-//! name, per policy §5, through [`MeanSignRule::of_saka`]:
+//! Northern almanacs and announcements name the year by one of two of
+//! these rules, and the names differ by one in some years; each is carried
+//! under its rule's name, per policy §5, through [`MeanSignRule::of_saka`]:
 //!
 //! - [`SURYA_SIDDHANTA_BIJA`], the name current at the apparent Meṣa
 //!   saṅkrānti with the *bīja*, as Table I gives it from 1501 to 1900. Drik
@@ -46,23 +46,38 @@
 //!   Siddharthi, and ends each name a fortnight after the saṅkrānti, some
 //!   two hours before the rule does (`drikpanchang-day-2024-2026`); the
 //!   Hrishikesh Panchang of Varanasi titles 2081 Pingala
-//!   (`hrishikesh-panchang-2081`). The registered pūrṇimānta calendar
+//!   (`hrishikesh-panchang-2081`). Drik Panchang also heads 1942 Jaya and
+//!   1943 Durmukha, 2027 Raudra and 2028 Dundubhi, the two expunctions of
+//!   Manmatha and Durmati, and heads 25 March 2031, the day after Chaitra
+//!   śukla 1, "2088 Krodhana" while it has Raktaksha run to 31 March: the
+//!   name current at the saṅkrānti, not at the pratipadā
+//!   (`drikpanchang-samvatsara-days`). The registered pūrṇimānta calendar
 //!   names its years by this rule ([`crate::hindu_purnimanta`]), as
 //!   [`northern_of_saka`] does.
-//! - [`SURYA_SIDDHANTA`], the same without the *bīja*, which Table I uses to
-//!   A.D. 1500. New Year announcements in the Hindi press name the same
-//!   three years Kalayukta — "by the difference of the almanacs", one says
-//!   — Siddharthi and Raudra (`webdunia-samvat-2081`,
-//!   `dainiktribune-samvat-2082`, `aajtak-samvat-2083`), and an
-//!   astrologer's account of 2082 takes the year's name to be the one
-//!   current at Chaitra śukla pratipadā and dates its Siddharthi from about
-//!   15 March 2025 to about 10 March 2026 (`shivshakti-samvat-2082`), the
-//!   span this rule gives Siddharthi, to a day. The practice is Sewell and
-//!   Dikshit's — the name current at the year's beginning — and the
-//!   Jupiter is another, a month ahead of the *bīja*'s. No almanac house's
-//!   own print of this naming was read: the press reports name
-//!   astrologers, not almanacs, and the press is not of one mind, for
-//!   Bansal News named 2081 Pingala (`bansalnews-samvat-2081`).
+//! - [`SURYA_SIDDHANTA`], the name current at the apparent Meṣa saṅkrānti
+//!   by the *Sūrya Siddhānta* without the *bīja*, which Table I uses to
+//!   A.D. 1500. The Hindi press's New Year announcements of Vikrama 2068 to
+//!   2083 (2011–26) were read, one or more a year. From 2068 to 2074 the
+//!   two rules give the same names and the press prints them. From 2075 to
+//!   2077 (2018–20) every announcement read prints the *bīja* rule's
+//!   names, Virodhakrit, Paridhavi and Pramadi, and not this rule's
+//!   Paridhavin, Pramadin and Ananda. From 2078 to 2083 (2021–26) the
+//!   announcements read print this rule's names in 2022 and 2025, Nala and
+//!   Siddharthi, and are split in the other four years, some printing this
+//!   rule's Rakshasa, Pingala, Kalayukta and Raudra and some the *bīja*
+//!   rule's names. So this rule is one of the press's two conventions from
+//!   2021, not the press's convention. The announcements and their names
+//!   are listed in `docs/systems/hindu-calendars.md`.
+//!
+//!   The conventions differ in when they take the name as well as in which
+//!   Jupiter they count by, this rule's some forty days ahead of the
+//!   *bīja*'s. This rule takes the name current at the Meṣa saṅkrānti.
+//!   The press's own accounts take the one current at Chaitra śukla
+//!   pratipadā, and for this rule the two part in 2018, 2019, 2020 and 2023.
+//!   Neither reading gives every name the press printed: at the pratipadā
+//!   the rule gives Virodhakrit, Paridhavi and Pramadi for 2018–20 but Nala
+//!   for 2023, where the press printed Pingala. No almanac house's own print
+//!   of this naming was read.
 //!
 //! # The moment
 //!
@@ -538,7 +553,45 @@ mod tests {
     }
 
     #[test]
-    fn the_press_names_are_the_rule_without_the_bija() {
+    fn the_press_names_of_2018_to_2020_are_the_bija_rules() {
+        // Punjab Kesari, 19 March 2018: Vikrama 2075 "विरोधकृत"; Amar
+        // Ujala, 1 April 2019: 2076 "परिधावी"; Future Point, 16 March
+        // 2020: 2077 "प्रमादी" (`punjabkesari-samvat-2075`,
+        // `amarujala-samvat-2076`, `futurepoint-samvat-2077`). The rule
+        // without the bīja gives the next names at the saṅkrānti, and the
+        // press's names at Chaitra śukla 1, 18 March 2018, 6 April 2019 and
+        // 25 March 2020.
+        for (saka, printed, without) in [
+            (1_940, "Virodhakrit", "Paridhavin"),
+            (1_941, "Paridhavin", "Pramadin"),
+            (1_942, "Pramadin", "Ananda"),
+        ] {
+            assert_eq!(name(SURYA_SIDDHANTA_BIJA.of_saka(saka)), Some(printed));
+            assert_eq!(name(SURYA_SIDDHANTA.of_saka(saka)), Some(without));
+        }
+        assert_eq!(in_progress_at(SURYA_SIDDHANTA, ist(2018, 3, 18, 6.0)), 45);
+        assert_eq!(in_progress_at(SURYA_SIDDHANTA, ist(2019, 4, 6, 6.0)), 46);
+        assert_eq!(in_progress_at(SURYA_SIDDHANTA, ist(2020, 3, 25, 6.0)), 47);
+        // In 2023 the press's Pingala, ETV Bharat, 24 February 2023, is the
+        // name at the saṅkrānti; at Chaitra śukla 1, 22 March 2023, the rule
+        // has Nala in progress, which Zee News named, as the bīja rule does
+        // (`etvbharat-samvat-2080`, `zeenews-samvat-2080`).
+        assert_eq!(name(SURYA_SIDDHANTA.of_saka(1_945)), Some("Pingala"));
+        assert_eq!(in_progress_at(SURYA_SIDDHANTA, ist(2023, 3, 22, 6.0)), 50);
+        assert_eq!(name(SURYA_SIDDHANTA_BIJA.of_saka(1_945)), Some("Anala"));
+    }
+
+    #[test]
+    fn some_press_names_of_2021_to_2026_are_the_rule_without_the_bija() {
+        // Patrika, 12 April 2021: 2078 "राक्षस", Ananda expunged; Webdunia,
+        // 1 April 2022: 2079 "नल"; ETV Bharat, 24 February 2023: 2080
+        // "पिंगल" (`patrika-samvat-2078`, `webdunia-samvat-2079`,
+        // `etvbharat-samvat-2080`). Webdunia, 4 January 2021, named 2078
+        // Ananda, as the bīja rule does (`webdunia-samvat-2078`).
+        let rule = SURYA_SIDDHANTA;
+        assert_eq!(name(rule.of_saka(1_943)), Some("Rakshasa"));
+        assert_eq!(name(rule.of_saka(1_944)), Some("Anala"));
+        assert_eq!(name(SURYA_SIDDHANTA_BIJA.of_saka(1_943)), Some("Ananda"));
         // The Hindi press named Vikrama 2081, 2082 and 2083 Kalayukta
         // ("पंचांग भेद से इसका नाम कालयुक्त है", by the difference of the
         // almanacs, Webdunia, 8 December 2023), Siddharthi ("संवत का नाम
@@ -546,9 +599,9 @@ mod tests {
         // संवत्सर", Aaj Tak, 7 March 2026): one name after the bīja rule's,
         // and the Sūrya Siddhānta's without it (`webdunia-samvat-2081`,
         // `dainiktribune-samvat-2082`, `aajtak-samvat-2083`). Bansal News
-        // named 2081 Pingala, as the bīja rule does
-        // (`bansalnews-samvat-2081`).
-        let rule = SURYA_SIDDHANTA;
+        // and Aaj Tak named 2081 Pingala, and Asianet 2083 Siddharthi, as
+        // the bīja rule does (`bansalnews-samvat-2081`,
+        // `aajtak-samvat-2081`, `asianet-samvat-2083`).
         assert_eq!(name(rule.of_saka(1_946)), Some("Kalayukta"));
         assert_eq!(name(rule.of_saka(1_947)), Some("Siddharthin"));
         assert_eq!(name(rule.of_saka(1_948)), Some("Raudra"));

@@ -318,43 +318,69 @@ names Anala. So the year is Pingala from its Chaitra śukla 1, 9 April
 2024, although Kalayukta is in progress from 29 April: the name of the
 year and the name of the day part company for most of every year.
 
-**Two conventions in print.** Northern almanacs and announcements of
-2024–26 name the same years in two ways, one name apart, and both keep
-Sewell and Dikshit's practice of coupling the year with the name current
-at its beginning; they differ in the Jupiter they count by. Drik Panchang
-heads every day of Vikrama 2081 "2081 Pingala", of 2082 "2082 Kalayukta"
-and of 2083 "2083 Siddharthi", and gives each name's end, "Pingala upto
-02:14 PM, Apr 29, 2024", "Kalayukta upto 03:07 PM, Apr 25, 2025",
-"Siddharthi upto 03:53 PM, Apr 21, 2026", New Delhi time
+**Two conventions in print.** Northern almanacs and announcements name
+the same years in two ways, one name apart in some years. They differ in
+the Jupiter they count by, and also in when they take the name. Drik
+Panchang heads every day of Vikrama 2081 "2081 Pingala", of 2082 "2082
+Kalayukta" and of 2083 "2083 Siddharthi", and gives each name's end,
+"Pingala upto 02:14 PM, Apr 29, 2024", "Kalayukta upto 03:07 PM, Apr 25,
+2025", "Siddharthi upto 03:53 PM, Apr 21, 2026", New Delhi time
 [drikpanchang-day-2024-2026]: the *bīja* rule's names, and the rule
 ends each of them 128 to 132 minutes later, from the Siddhānta's
 saṅkrānti. The Hrishikesh Panchang titles 2081
 Pingala [hrishikesh-panchang-2081], and Prokerala's list of names has
 Kalayukta and Siddharthi for 2082 and 2083 [prokerala-hindu-calendar].
-The New Year announcements of the Hindi press name the same years
-Kalayukta, Siddharthi and Raudra: Webdunia, in December 2023, that 2081
-is Krodhi, "पंचांग भेद से इसका नाम कालयुक्त है", by the difference of the
-almanacs Kalayukta [webdunia-samvat-2081]; Dainik Tribune, on 29 March
-2025, "संवत का नाम सिद्धार्थी" [dainiktribune-samvat-2082]; Aaj Tak, on
-7 March 2026, that the new year "का नाम 'रौद्र' संवत्सर रखा गया है"
-[aajtak-samvat-2083]. These are the *Sūrya Siddhānta*'s rule without the
-*bīja*, Art. 59 a: for Śaka 1947, *K* = 5126, 211 × 5126 − 108 =
-1 081 478, which divided by 18 000 leaves 60 remainder 1 478; 60 + 5126 +
-27 leaves 53 on division by sixty, Siddharthi, current at the saṅkrānti
-of 14 April 2025 for 331.36 days more. By that rule Siddharthi begins on
-15 March 2025 and ends on 11 March 2026, and an astrologer's account of
-2082 dates it "लगभग 15 मार्च, 2025" to "लगभग 10 मार्च, 2026", gives it
-0 months 29 days 32 ghaṭikās 55 palas elapsed at the Meṣa saṅkrānti —
-the rule's 361-day year less its 331.36 days is 29 days 38 ghaṭikās,
-five ghaṭikās more — and takes the
-year's name to be the one current at Chaitra śukla pratipadā
-[shivshakti-samvat-2082]. So a year's name is one later in this reckoning
-than in Table I's whenever the *bīja*'s Jupiter, a month behind, has not
-yet brought the next name in by the year's beginning, as in every year
-from 2024 to 2026. The press is not of one mind — Bansal News named 2081
-Pingala [bansalnews-samvat-2081] — and none of the reports names the
-almanac it follows; no almanac house's own print of the second reckoning
-was read.
+Drik Panchang takes the name at the Meṣa saṅkrānti, as Sewell and Dikshit
+do: it heads 25 March 2031, the day after Chaitra śukla 1, "2088
+Krodhana", the name the rule has current at the saṅkrānti of 2031, while
+it has Raktaksha run until 31 March [drikpanchang-samvatsara-days].
+
+The second convention is the *Sūrya Siddhānta*'s rule without the
+*bīja*, Art. 59 a, taken at the Meṣa saṅkrānti: for Śaka 1947, *K* =
+5126, 211 × 5126 − 108 = 1 081 478, which divided by 18 000 leaves 60
+remainder 1 478; 60 + 5126 + 27 leaves 53 on division by sixty,
+Siddharthi, current at the saṅkrānti of 14 April 2025 for 331.36 days
+more. Its Jupiter is some forty days ahead of the *bīja*'s: by it
+Siddharthi begins on 15 March 2025 and ends on 11 March 2026, where the
+*bīja* rule begins it on 25 April 2025. So a year's name is one later by
+this rule than by Table I's whenever the *bīja*'s Jupiter has not yet
+brought the next name in by the saṅkrānti, as in 2021–26.
+
+The Hindi press's New Year announcements of Vikrama 2068 to 2083
+(2011–26) were read, one or more a year, to see which convention they
+print:
+
+| Vikrama | Year | *Bīja* rule | Without the *bīja* | What the press printed |
+| --- | --- | --- | --- | --- |
+| 2068–2074 | 2011–17 | Krodhin to Sadharana | the same | the same names every year: Webdunia and Oneindia [webdunia-samvat-2068-2074] |
+| 2075 | 2018 | Virodhakrit | Paridhavin | Virodhakrit: Punjab Kesari [punjabkesari-samvat-2075] |
+| 2076 | 2019 | Paridhavin | Pramadin | Paridhavi: Amar Ujala [amarujala-samvat-2076] |
+| 2077 | 2020 | Pramadin | Ananda | Pramadi: Future Point, and Amar Ujala with Ananda "from 6 April" [futurepoint-samvat-2077, amarujala-samvat-2077] |
+| 2078 | 2021 | Ananda | Rakshasa | Rakshasa, Ananda "expunged": Patrika, Amar Ujala [patrika-samvat-2078]; Ananda: Webdunia, Oneindia, Kashi Vidvat Parishad [webdunia-samvat-2078] |
+| 2079 | 2022 | Rakshasa | Nala | Nala: Webdunia, Amar Ujala [webdunia-samvat-2079] |
+| 2080 | 2023 | Nala | Pingala | Pingala: ETV Bharat, Patrika, Webdunia [etvbharat-samvat-2080]; Nala: Zee News, Oneindia [zeenews-samvat-2080] |
+| 2081 | 2024 | Pingala | Kalayukta | Kalayukta: Zee News, and Webdunia "by the difference of the almanacs" [zeenews-samvat-2081, webdunia-samvat-2081]; Pingala: Aaj Tak, Bansal News [aajtak-samvat-2081, bansalnews-samvat-2081] |
+| 2082 | 2025 | Kalayukta | Siddharthi | Siddharthi: Dainik Tribune, Amar Ujala, Webdunia, ETV Bharat [dainiktribune-samvat-2082] |
+| 2083 | 2026 | Siddharthi | Raudra | Raudra: Aaj Tak, ETV Bharat [aajtak-samvat-2083]; Siddharthi: Asianet [asianet-samvat-2083] |
+
+So the rule without the *bīja* is the press's in 2022 and 2025, one of
+two it prints in 2021, 2023, 2024 and 2026, and not the press's in 2018,
+2019 and 2020, when every announcement read prints the *bīja* rule's
+name. It is one convention in print from 2021 and not the press's
+convention. The press's own accounts take the year's name at Chaitra
+śukla pratipadā: Patrika in 2021, "जिस नाम का संवत्सर नवसंवत्सर के पहले दिन
+यानी चैत्र शुक्ल प्रतिपदा पर रहता है, वह पूरे साल मान्य होता है"
+[patrika-samvat-2078], and an astrologer's account of 2082, which dates
+Siddharthi "लगभग 15 मार्च, 2025" to "लगभग 10 मार्च, 2026" and gives it
+0 months 29 days 32 ghaṭikās 55 palas elapsed at the Meṣa saṅkrānti — the
+rule's 361-day year less its 331.36 days is 29 days 38 ghaṭikās, five
+ghaṭikās more [shivshakti-samvat-2082]. For the rule without the *bīja*
+the name at the pratipadā and the name at the saṅkrānti part in 2018,
+2019, 2020 and 2023, and neither gives every name printed: at the
+pratipadā the rule gives the press's Virodhakrit, Paridhavi and Pramadi
+for 2018–20 but Nala for 2023, where most of the press printed Pingala.
+None of the reports names the almanac it follows, and no almanac house's
+own print of the second reckoning was read.
 
 **The Tiruvaḷḷuvar year.** Tamil Nadu's official count is the
 Tiruvaḷḷuvar year, the Gregorian year plus 31, gazetted in 1971 and in
@@ -784,7 +810,8 @@ weeks.
   samvatsara in luni-solar or southern reckoning", and "Asvina 16 of the
   Barhaspatya year Siddharthin, 1948 Saka", after their "Barhaspatya
   samvatsara". The Tamil date is written as the southern lunisolar one.
-  The reckoning without the *bīja*, the press's, is on no calendar:
+  The reckoning without the *bīja*, one of two the Hindi press prints
+  from 2021, is on no calendar:
   `barhaspatya::SURYA_SIDDHANTA.of_saka` gives it for a year and
   `in_progress_at` for a moment.
 
@@ -794,7 +821,7 @@ weeks.
   | `hindu-lunar` | `samvatsara` | the same, on the lunisolar year from Chaitra śukla 1 | Parabhava, 40th |
   | `hindu-lunar-surya-siddhanta` | `samvatsara` | the same | Parabhava, 40th |
   | `hindu-lunar-purnimanta` | `barhaspatya-samvatsara` | northern: the name current at the apparent Meṣa saṅkrānti by the *Sūrya Siddhānta* with the *bīja* (Arts. 55, 59 c, 120), as Drik Panchang | Siddharthin, 53rd |
-  | none | — | northern, the same without the *bīja* (Art. 59 a), as the Hindi press's announcements | Raudra, 54th |
+  | none | — | northern, the same without the *bīja* (Art. 59 a), as some of the Hindi press's announcements of 2021–26 | Raudra, 54th |
 - **At the WebAssembly and C boundaries**, `hc_hindu_lunar_date` gives the
   amānta date at a place the caller names, on the true sky in the zodiac
   of a named ayanāṃśa or on the Siddhānta's, which is where a place other
@@ -954,7 +981,9 @@ assert:
 | Vijaya in the north and Chitrabhānu in the south in 1822; the gap of 11, 12 from Śaka 1779 current, 13 from 1865 expired, 14 from 1950 | `the_northern_and_southern_names_stand_eleven_then_twelve_then_thirteen_apart`, `hindu_purnimanta::the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
 | Pingala for Śaka 1946, as the Hrishikesh Panchang prints it, from 9 April 2024 to 29 March 2025 on `hindu-lunar-purnimanta`; Anala the day before | `printed_northern_years_carry_the_rules_names`, `the_northern_years_carry_the_names_sewell_and_dikshit_and_the_almanacs_print` | all |
 | Drik Panchang's Pingala, Kalayukta and Siddharthi for Vikrama 2081, 2082 and 2083 on `hindu-lunar-purnimanta`, Kalayukta to 18 March 2026 and Siddharthin on 28 September 2026, Parabhava on `hindu-lunar` the same day; the ends of the three names | the same two, and `drik_panchangs_names_end_where_the_bija_rule_ends_them` | the names all; the first day of 2083 not: see below; each end 128 to 132 minutes after Drik Panchang's |
-| The press's Kalayukta, Siddharthi and Raudra for 2081–83, in progress at each Chaitra śukla 1, by the rule without the *bīja*; Siddharthi from 15 March 2025 to 11 March 2026, against the account's about 15 March and about 10 March, and 29 days 32 ghaṭikās 55 palas elapsed at the saṅkrānti | `the_press_names_are_the_rule_without_the_bija` | the names all; the end a day after the account's; the elapsed time 0.09 days more |
+| Some of the press's names of 2021–26 by the rule without the *bīja*, Rakshasa, Nala, Pingala, Kalayukta, Siddharthi and Raudra, and others' Ananda, Pingala and Siddharthi by the *bīja* rule; Siddharthi from 15 March 2025 to 11 March 2026, against the account's about 15 March and about 10 March, and 29 days 32 ghaṭikās 55 palas elapsed at the saṅkrānti | `some_press_names_of_2021_to_2026_are_the_rule_without_the_bija` | the names all; the end a day after the account's; the elapsed time 0.09 days more |
+| The press's Virodhakrit, Paridhavi and Pramadi for 2018–20, the *bīja* rule's, where the rule without it gives the next names at the saṅkrānti and the press's at Chaitra śukla 1; its Nala in progress at Chaitra śukla 1 of 2023, where most of the press printed Pingala | `the_press_names_of_2018_to_2020_are_the_bija_rules` | all |
+| Drik Panchang's Jaya and Durmukha for 1942 and 1943 and Raudra and Dundubhi for 2027 and 2028, over the expunged Manmatha and Durmati, and Krodhana on 25 March 2031 with Raktaksha in progress | `hindu_purnimanta::the_expunctions_and_the_coupling_are_drik_panchangs` | all |
 | The moment: the Siddhānta's Meṣa saṅkrānti of 1514 against Table I's, Vṛṣa's end on 31 March 1514, the expunged Chitrabhānu and Subhānu at the next saṅkrānti; Vibhava 3.3 days and Śukla 364.3 days after the saṅkrānti of Śaka 1779 current; the worked example of 2024 | `the_moment_follows_the_rule_through_an_expunged_year`, `vibhava_begins_three_days_after_the_sankranti_of_1779`, `pingala_gives_way_to_kalayukta_a_fortnight_into_saka_1946` | the saṅkrānti of 1514 1½ minutes from the printed one, Vṛṣa's end within three minutes, the rest to the tenth of a day |
 | The Sun's twenty-seven nakṣatra entries of 2025 | `nakshatra::the_suns_nakshatra_transits_of_2025_are_the_almanacs` | every entry 7 to 10½ minutes before Drik Panchang's, the spread under two minutes |
 | The thirty-two yoga ends and fifty-nine karaṇa ends Drik Panchang prints for New Delhi, 1 to 30 January 2025 | `panchanga::the_yogas_of_january_2025_end_when_drik_panchang_says`, `the_karanas_of_january_2025_end_when_drik_panchang_says` | every yoga end from 56 seconds before the printed minute to 14 seconds after; every karaṇa end 0.6 to 1.6 minutes after it — the pages appear to truncate to the minute, and the yoga carries the two ayanāṃśas' 20″ twice |
@@ -1015,8 +1044,8 @@ assert:
   has them, but Manmatha for 1999, where the rule, which expunged Manmatha
   that year, has Jaya, and Durmati for 2085 (2028–29), where it has
   Dundubhi [prokerala-hindu-calendar]. The two agree from Vikrama 2000 to
-  2084 only; no almanac of 2028 exists yet to say which the north will
-  print.
+  2084 only. Drik Panchang heads both years as the rule does, 1999 Jaya
+  and 2085 Dundubhi [drikpanchang-samvatsara-days].
 - *The Old Hindu calendars* have no published table for a modern year,
   because the almanac tabulates the true calendars and not the mean ones
   they replaced; they are held to what an arithmetic calendar must do and
@@ -1082,6 +1111,20 @@ for 2024 and 2025 give the times the tests hold.
 | [bansalnews-samvat-2081] | Vikrama 2081 Pingala | Yes, 2026-09-28 |
 | [dainiktribune-samvat-2082] | Vikrama 2082 Siddharthi, from 30 March 2025 | Yes, 2026-09-28 |
 | [aajtak-samvat-2083] | Vikrama 2083 Raudra, from 19 March 2026 | Yes, 2026-09-28 |
+| [drikpanchang-samvatsara-days] | The Vikrama year's name and the samvatsaras running for New Delhi on 1 June 1942, 1 January and 1 June 1943, 1 June 2019 to 2027, 1 January and 1 June 2028, and 23 to 25 March and 1 April 2031 | Yes, 2026-09-28 |
+| [webdunia-samvat-2068-2074] | Vikrama 2068 Krodhi, 2070 Parabhava, 2071 Plavanga, 2072 Kilaka, 2073 Saumya and 2074 Sadharana; Oneindia's 2069 Vishvavasu | Yes, 2026-09-28 |
+| [punjabkesari-samvat-2075] | Vikrama 2075 Virodhakrit | Yes, 2026-09-28 |
+| [amarujala-samvat-2076] | Vikrama 2076 Paridhavi | Yes, 2026-09-28 |
+| [futurepoint-samvat-2077] | Vikrama 2077 Pramadi | Yes, 2026-09-28 |
+| [amarujala-samvat-2077] | Vikrama 2077 Pramadi, and Ananda from 6 April 2020 | Yes, 2026-09-28 |
+| [patrika-samvat-2078] | Vikrama 2078 Rakshasa, Ananda expunged, and the name taken at Chaitra śukla pratipadā | Yes, 2026-09-28 |
+| [webdunia-samvat-2078] | Vikrama 2078 Ananda | Yes, 2026-09-28 |
+| [webdunia-samvat-2079] | Vikrama 2079 Nala | Yes, 2026-09-28 |
+| [etvbharat-samvat-2080] | Vikrama 2080 Pingala | Yes, 2026-09-28 |
+| [zeenews-samvat-2080] | Vikrama 2080 Nala | Yes, 2026-09-28 |
+| [zeenews-samvat-2081] | Vikrama 2081 Kalayukta | Yes, 2026-09-28 |
+| [aajtak-samvat-2081] | Vikrama 2081 Pingala | Yes, 2026-09-28 |
+| [asianet-samvat-2083] | Vikrama 2083 Siddharthi | Yes, 2026-09-28 |
 | [shivshakti-samvat-2082] | Siddharthi from about 15 March 2025 to about 10 March 2026, its time elapsed at the Meṣa saṅkrānti, and the year's name taken at Chaitra śukla pratipadā | Yes, 2026-09-28 |
 | [tamil-lexicon] | The sixty year names in Tamil script, entry வருஷம், sense 2, and each as a headword | Yes, 2026-09-26, in the Digital Dictionaries of South Asia edition |
 | [prokerala-tamil-2024] | Chithirai 2024 headed "Krodhi", Tamil New Year's Day 14 April | Yes, 2026-09-26 |

@@ -176,9 +176,13 @@ examples of UT2 and the Earth Rotation Angle, is written up in
 
 ### GMAT, the astronomical day
 
-Almanacs before 1925 counted Greenwich mean time from noon. The
-reading is the same mean time, twelve hours behind, and the astronomical
-date is the civil date of the noon the day begins at.
+The *Nautical Almanac* counted Greenwich mean time from noon up to its
+volume for 1924 [nautical-almanac-1924]. The reading is the same mean
+time, twelve hours behind, and the astronomical date is the civil date of
+the noon the day begins at. The almanac calls both reckonings "G.M.T.";
+the name GMAT was introduced later to tell the noon-based one apart
+[wikipedia-greenwich-mean-time, citing the *Astronomical Supplement to the
+Astronomical Almanac*, 1992, p. 76, not read].
 `hc-astro::gmat` converts a reading either way, exactly, and the
 WebAssembly and C exports `hc_gmat_from_gmt` and `hc_gmt_from_gmat` write
 it as a fixed day, seconds of the day and attoseconds.
@@ -339,8 +343,9 @@ Counts that software writes from one of those epochs, each a label of
   H, the day of the year and the time of day in BCD, the year's last two
   digits and the seconds of the day in binary where the code carries
   them. The code names no time scale, so a frame is read as a date and a
-  time of day; on a leap-second day the seconds of the day reach 86 400
-  [rcc-200-16].
+  time of day. The standard leaves the leap second's frame open
+  [rcc-200-16]; at 23:59:60 the module lets the seconds of the day reach
+  86 400.
 
 [systems/binary-timestamps.md](systems/binary-timestamps.md),
 [systems/statistical-software-dates.md](systems/statistical-software-dates.md),

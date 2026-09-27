@@ -19,7 +19,7 @@ Calendar and astronomical terms that belong to one system, such as
 | **Proleptic** | A calendar's rules applied to days before the calendar was adopted, such as the Gregorian rules before 1582 | [architecture.md](architecture.md#the-day-pivot-rata-die) |
 | **Uniform time scale** | A time scale whose seconds all have the same length: TAI, TT, TCG, TDB, TCB, and the GPS, Galileo, BeiDou and NavIC system times. Each is a function of TAI, and `Instant<S>` carries it as the marker `S` | [architecture.md](architecture.md#the-instant-pivot-tai), [time-scales.md](time-scales.md) |
 | **TAI** | International Atomic Time, the instant pivot | [time-scales.md](time-scales.md) |
-| **UTC** | Coordinated Universal Time. Its seconds are SI seconds, but its labels repeat a second at each leap second, so it is not a uniform time scale here. It has its own type, `UtcInstant` | [architecture.md](architecture.md#the-instant-pivot-tai), [time-scales.md](time-scales.md) |
+| **UTC** | Coordinated Universal Time. Its seconds are SI seconds, but a leap second is inserted now and then, labelled `23:59:60`, so it is not a constant offset from TAI and not one of the `Instant<S>` scales. It has its own type, `UtcInstant` | [architecture.md](architecture.md#the-instant-pivot-tai), [time-scales.md](time-scales.md) |
 | **Leap second** | A second inserted into UTC, labelled `23:59:60`. The library reads them from a table and does not predict them | [time-scales.md](time-scales.md), [policy.md §4](policy.md#4-the-library-refuses-to-guess) |
 | **UT1** | The Earth's rotation read as a time. It is not uniform | [time-scales.md](time-scales.md) |
 | **ΔT** | TT − UT1. `hc-astro` models it, with a stated error | [time-scales.md](time-scales.md) |

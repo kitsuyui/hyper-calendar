@@ -36,7 +36,7 @@
 //! * [`BOMBAY`]: the year opens "when the sun enters the nakshatra
 //!   Mrigasirsha", and 1302 began "on June 5th, 1892, in Bombay" (p. 44);
 //!   the ingress is [`crate::nakshatra::solar_nakshatra_ingress_after`]'s
-//!   with the Lahiri ayanamsa, and the day it opens is the sunrise-to-sunrise
+//!   with the Lahiri ayanāṃśa, and the day it opens is the sunrise-to-sunrise
 //!   day at Ujjain in which it falls, [`SankrantiRule::SunriseDay`] — the
 //!   rule that gives Sewell and Dikshit's 5 June 1892 for an ingress at
 //!   04:41 local mean time on the 6th. Sewell and Dikshit reckoned with the
@@ -50,11 +50,11 @@
 //! # The ingress is in June
 //!
 //! The Mṛgaśira ingress is sought from 15 May, and with the Lahiri
-//! ayanamsa it falls between 3 and 12 June in every year converted, 1700
+//! ayanāṃśa it falls between 3 and 12 June in every year converted, 1700
 //! to 2299. A day from 1 July on is therefore after its Gregorian year's
 //! opening and a day before 15 May before it, and [`FasliCalendar::from_fixed`]
 //! computes the ingress only for a day of 15 May to 30 June. An
-//! [`Opening::Mrigashira`] with another ayanamsa must put the ingress in
+//! [`Opening::Mrigashira`] with another ayanāṃśa must put the ingress in
 //! the same window.
 
 use hc_astro::riseset::Location;
@@ -87,7 +87,7 @@ pub enum Opening {
     /// longitude: the sunrise-to-sunrise day at `location` in which the
     /// ingress falls.
     Mrigashira {
-        /// The ayanamsa the ingress is measured from.
+        /// The ayanāṃśa the ingress is measured from.
         ayanamsa: Ayanamsa,
         /// The place whose sunrise divides the days.
         location: Location,

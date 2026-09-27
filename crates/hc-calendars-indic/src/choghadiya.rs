@@ -56,12 +56,14 @@ pub enum Quality {
 }
 
 /// The names and glosses from Drik Panchang, the qualities from Wikipedia
-/// and AstroMedha, the rulers from AstroMedha.
+/// and AstroMedha, Chara's from AstroMedha and Drik Panchang alone, the
+/// rulers from AstroMedha.
 const SOURCE: &str = "Drik Panchang, \"Choghadiya\", New Delhi, 1-7 January 2025 \
                       (drik-choghadiya-2025), for the names and glosses; Wikipedia, \
                       \"Choghadiya\" (wikipedia-choghadiya), and AstroMedha, \
-                      \"Choghadiya Explained\" (astromedha-choghadiya), for the qualities; \
-                      AstroMedha for the rulers; retrieved 2026-09-28";
+                      \"Choghadiya Explained\" (astromedha-choghadiya), for the qualities, \
+                      Chara's neutral from AstroMedha and Drik Panchang, where Wikipedia \
+                      calls it good; AstroMedha for the rulers; retrieved 2026-09-28";
 
 hc_core::catalogue! {
     type: Choghadiya,

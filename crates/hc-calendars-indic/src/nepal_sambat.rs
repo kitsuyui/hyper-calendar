@@ -37,9 +37,9 @@
 //! year 0. Against the Śaka years of `hindu-lunar`, Kachhalā to Chilā of
 //! year *N* are in Śaka *N* + 801 and Chaulā to Kaulā in Śaka *N* + 802.
 //! [`NepalSambatCalendar::KATHMANDU`], the registered calendar, reads the
-//! day at Kathmandu's sunrise with the Lahiri ayanamsa; the almanac of
+//! day at Kathmandu's sunrise with the Lahiri ayanāṃśa; the almanac of
 //! Nepal's calendar committee was not read, and [`NepalSambatCalendar::new`]
-//! takes another place and ayanamsa.
+//! takes another place and ayanāṃśa.
 //!
 //! # What is not here
 //!
@@ -164,7 +164,7 @@ impl NepalSambatDate {
     }
 }
 
-/// The lunar Nepal Sambat, judged at a place with an ayanamsa.
+/// The lunar Nepal Sambat, judged at a place with an ayanāṃśa.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct NepalSambatCalendar {
     lunar: HinduLunarCalendar,
@@ -176,7 +176,7 @@ impl NepalSambatCalendar {
     pub const KATHMANDU: Self = Self::new(HinduLunarCalendar::new(KATHMANDU, Ayanamsa::LAHIRI));
 
     /// Nepal Sambat over any amānta calendar — another place's sunrise,
-    /// another ayanamsa.
+    /// another ayanāṃśa.
     #[must_use]
     pub const fn new(lunar: HinduLunarCalendar) -> Self {
         Self { lunar }

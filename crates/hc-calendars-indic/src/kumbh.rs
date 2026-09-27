@@ -17,11 +17,13 @@
 //! condition is a [`KumbhYoga`] with its own identifier, since two
 //! conditions for one site can fall in different years (`docs/policy.md`
 //! §5): the Meṣa condition for Prayag holds in 2024, the Vṛṣabha one in
-//! 2025, and the festival was held in 2025.
+//! 2025, and the festival was held in 2025. A site with two conditions
+//! names each for Jupiter's sign, as `kumbh-ujjain-simha` and
+//! `kumbh-ujjain-tula`; Haridwar, with one, is `kumbh-haridwar`.
 //!
 //! This crate has no ephemeris of Jupiter, so Jupiter's sign is the
 //! caller's: [`in_year`] takes it as a function of the moment. The Sun's
-//! ingress and the new moon are computed here, with the ayanamsa as a
+//! ingress and the new moon are computed here, with the ayanāṃśa as a
 //! parameter.
 //!
 //! The dates of each festival are fixed and announced by the government of
@@ -127,8 +129,8 @@ hc_core::catalogue! {
             source: SOURCE,
         };
         /// Ujjain, on the Shipra: Jupiter in Siṃha and the Sun in Meṣa.
-        pub const UJJAIN_MESHA = Self {
-            id: "kumbh-ujjain-mesha",
+        pub const UJJAIN_SIMHA = Self {
+            id: "kumbh-ujjain-simha",
             site: "Ujjain",
             river: "Shipra",
             jupiter: SiderealSign::SIMHA,
@@ -197,7 +199,7 @@ impl KumbhYoga {
 /// 2010, when Jupiter was in Kumbha at the Sun's entry.
 ///
 /// `jupiter` is the caller's ephemeris, reduced to the sidereal sign with
-/// the same ayanamsa.
+/// the same ayanāṃśa.
 #[must_use]
 pub fn in_year(
     yoga: &KumbhYoga,
@@ -304,7 +306,7 @@ pub(crate) mod tests {
         for (yoga, years) in [
             (&KumbhYoga::PRAYAG_VRISHABHA, &[2001, 2013, 2025][..]),
             (&KumbhYoga::NASHIK_SIMHA, &[2003, 2004, 2015, 2027]),
-            (&KumbhYoga::UJJAIN_MESHA, &[2004, 2016, 2028]),
+            (&KumbhYoga::UJJAIN_SIMHA, &[2004, 2016, 2028]),
             (&KumbhYoga::HARIDWAR, &[2010, 2021]),
         ] {
             for year in 2001..=2029 {

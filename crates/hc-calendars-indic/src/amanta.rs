@@ -7,7 +7,7 @@
 //! are [`crate::hindu_lunar`]'s, written up in
 //! `docs/systems/hindu-calendars.md`, and they do not depend on whose Sun
 //! and Moon are read: [`crate::hindu_lunar::HinduLunarCalendar`] reads the
-//! true Sun and Moon of modern astronomy in an ayanamsa's zodiac, and
+//! true Sun and Moon of modern astronomy in an ayanāṃśa's zodiac, and
 //! [`crate::hindu_lunar_siddhanta::SiddhantaLunarCalendar`] the *Sūrya
 //! Siddhānta*'s. Each supplies a [`Sky`], and [`Amanta`] is the one
 //! implementation of the months over either.

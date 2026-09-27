@@ -18,8 +18,9 @@
 //! the same year, 十二月三十日, which the calendar called 辛好 and a
 //! Thursday, on the day the Qing calendar called 庚子 and the Western
 //! calendar a Wednesday, 2 February 1853; and the last dated use, 己巳十九年
-//! 四月十一日, 28 May 1869, at 老岩窑 in Shaanxi. Eighteen years of 366
-//! days reach that day exactly, so [`MAX_YEAR`] is the nineteenth year.
+//! 四月十一日, 28 May 1869, at 老岩窑 in Shaanxi. That day is 17 × 366 +
+//! 31 + 30 + 31 + 10 = 6 324 days after the first, in the nineteenth year,
+//! so [`MAX_YEAR`] is the nineteenth year.
 //!
 //! # The calendar's own day names
 //!

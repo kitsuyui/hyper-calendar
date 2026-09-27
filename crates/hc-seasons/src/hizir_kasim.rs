@@ -22,9 +22,14 @@
 //! the next paragraph; the day is 20 February.
 //!
 //! The days are the Gregorian ones the sources give. The Rumi dates they
-//! stand for, 23 April and 26 October, fall on 6 May and 8 November only
-//! from 1900 to 2099; a count kept on the Rumi calendar is not carried,
-//! since no source read gives the Rumi day of Kasım. The Alevi Hızır fast
+//! stand for are 23 April and 26 October: the *TDV İslâm Ansiklopedisi*
+//! has the Hızır days run "23 Nisan'dan (6 Mayıs) 26 Ekim'e (8 Kasım)",
+//! 186 days, and the Kasım days the other 179 (Ahmet Yaşar Ocak,
+//! "Hıdrellez", vol. 17, 1998, `tdv-hidrellez`, retrieved 2026-09-28). The
+//! 186 days are 6 May to 7 November and the Kasım days begin on
+//! 8 November, as here. The Rumi dates fall on 6 May and 8 November only
+//! from 1900 to 2099, and a count kept on the Rumi calendar is not
+//! carried. The Alevi Hızır fast
 //! is not carried: its conventions disagree.
 
 use hc_calendar::Rd;

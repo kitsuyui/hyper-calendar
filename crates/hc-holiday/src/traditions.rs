@@ -39,8 +39,8 @@
 //! | 五節句 | fixed Gregorian dates, from 1873 | exact |
 //! | お盆, 酉の市, 初午, 亥の子, 十日夜 | fixed Gregorian dates and the 酉, 午 and 亥 days of a Gregorian month from 1873, or days of the Japanese 旧暦 1844–2146, one table per reckoning | exact to the astronomical model; the 旧暦's tenth month of 2033, and every year outside 1844–2146, is a reported gap |
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
-//! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table |
-//! | Sikh, SGPC | the Meṣa saṅkrānti and the amānta Hindu lunisolar calendar, for the five observances whose Bikrami rule was read | exact to the astronomical model; the SGPC's other gurpurabs are not carried |
+//! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact for the Nanakshahi dates, which are fixed Gregorian dates, and for two of the lunar three; Hola Mohalla's sunrise is fitted |
+//! | Sikh, SGPC | the Vikrami solar calendar and the amānta Hindu lunisolar calendar, for the observances whose Bikrami rule was read, and the SGPC's published days of Bandi Chhor Divas, 2010–2026 | exact to the astronomical model, but Hola Mohalla, whose sunrise is fitted; Bandi Chhor Divas outside 2010–2026 is a reported gap, and the SGPC's other gurpurabs are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
 //! | Armenian Apostolic | Gregorian calendar and computus (Etchmiadzin), or Julian (the Patriarchate of Jerusalem), as two tables; the feasts on the Sunday nearest a date as a moved date | exact; the saints' days are not carried |
 //! | Ember and Rogation Days | the Gregorian computus and fixed Gregorian dates, one table per church: the 1662 Prayer Book, *Common Worship*'s traditional weeks, the Roman rubrics of 1960 | exact as stated; *Common Worship*'s week before an ordination is the bishop's and not computed |
@@ -72,9 +72,9 @@ use crate::computus::offsets::{
 };
 use crate::hindu::{
     AKSHAYA_TRITIYA, ANANT_CHATURDASHI, BUDDHA_PURNIMA, DIWALI, DURGA_ASHTAMI, GANESH_CHATURTHI,
-    GURU_GOBIND_SINGH_PARKASH, GURU_NANAK_JAYANTI, GURU_PURNIMA, HOLI, HOLIKA_DAHAN, JANMASHTAMI,
-    MAHA_SHIVARATRI, MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI, NARAKA_CHATURDASHI,
-    NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, SAMVATSARI, UGADI, VIJAYA_DASHAMI,
+    GURU_GOBIND_SINGH_PARKASH, GURU_NANAK_JAYANTI, GURU_PURNIMA, HOLA_MOHALLA, HOLI, HOLIKA_DAHAN,
+    JANMASHTAMI, MAHA_SHIVARATRI, MAHAVIR_JAYANTI, MAKAR_SANKRANTI, MESHA_SANKRANTI,
+    NARAKA_CHATURDASHI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
@@ -3021,8 +3021,8 @@ static SIKH_RULES: &[HolidayRule] = &[
     nanakshahi("Gurgaddi of Guru Har Rai", 1, 1),
     nanakshahi("Joti Jot of Guru Hargobind", 1, 6),
     // The Khalsa's ordination, 1 Vaisakh; the calendar's fixed 14 April,
-    // where the SGPC has kept the Bikrami saṅkrānti of 13 or 14 April
-    // since 2010.
+    // where the SGPC has kept 1 Vaisakh of the Bikrami solar calendar, 13
+    // or 14 April, since 2010 ([`SIKH_SGPC`]).
     nanakshahi("Vaisakhi", 2, 1),
     nanakshahi("Joti Jot of Guru Angad", 2, 3),
     nanakshahi("Gurgaddi of Guru Amar Das", 2, 3),
@@ -3057,9 +3057,10 @@ static SIKH_RULES: &[HolidayRule] = &[
     nanakshahi("Parkash of Guru Gobind Singh", 10, 23),
     nanakshahi("Parkash of Guru Har Rai", 11, 19),
     // The three the 2003 calendar left on the Bikrami lunar calendar, "as
-    // a compromise": Hola Mohalla on the day of Holi, Bandi Chhor Divas on
-    // Diwali, and Guru Nanak's Parkash on the full moon of Kārttika.
-    feast("Hola Mohalla", "", HOLI),
+    // a compromise": Hola Mohalla on Chet vadi 1, the day after Holi,
+    // Bandi Chhor Divas on Diwali, and Guru Nanak's Parkash on the full
+    // moon of Kārttika.
+    feast("Hola Mohalla", "", HOLA_MOHALLA).approximate(),
     feast("Bandi Chhor Divas", "", DIWALI),
     feast("Parkash of Guru Nanak", "", GURU_NANAK_JAYANTI),
 ];
@@ -3070,10 +3071,12 @@ static SIKH_RULES: &[HolidayRule] = &[
 /// The gurpurabs on the fixed dates that calendar gave them — Guru Gobind
 /// Singh's Parkash on 23 Poh, 5 January; Guru Arjan's Shaheedi on 2 Harh,
 /// 16 June; Guru Tegh Bahadur's on 11 Maghar, 24 November — and the three
-/// observances it kept lunar: Hola Mohalla, Bandi Chhor Divas and the
-/// Parkash of Guru Nanak, on the same rules as Holi, Diwali and Kartik
-/// Purnima in the Hindu table, whose dates the SGPC's own 2003–2020 list
-/// matches.
+/// observances it kept lunar: Hola Mohalla on Chet vadi 1 at sunrise
+/// ([`crate::hindu::HOLA_MOHALLA`], fitted and so approximate), and Bandi
+/// Chhor Divas and the Parkash of Guru Nanak on the same rules as Diwali
+/// and Kartik Purnima in the Hindu table. The SGPC's own list of the
+/// movable dates of 2010 to 2020 has all three on those rules' days, and
+/// has Hola Mohalla a day after Holi in 2012, 2013 and 2016.
 ///
 /// **This is the 2003 calendar.** Pal Singh Purewal's calendar was adopted
 /// by the SGPC's general house and the Akal Takht in 2003. The SGPC's 2010
@@ -3106,42 +3109,101 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
               2010 amendments and who keeps the 2003 version, retrieved 2026-09-26",
 };
 
-/// The observances the SGPC keeps on the Bikrami calendar whose rule a
-/// source read states.
+/// Bandi Chhor Divas as the SGPC kept it, the days read, 2010 to 2026.
+///
+/// 2010 to 2020 are the table of movable dates on Wikipedia, "Nanakshahi
+/// calendar" (secondary, from Purewal's list, not read); 2021 and 2026
+/// SikhNet's lists "as per SGPC Calendar" (`sikhnet-gurpurab-2021`,
+/// `sikhnet-gurpurab-2026`); 2022 and 2023 dekho-ji's "Nanakshahi Calendar
+/// SGPC" (`dekhoji-nanakshahi-sgpc`, secondary); 2024 PTC News,
+/// 1 November 2024 (`ptcnews-bandi-chhor-2024`); 2025 Babushahi, "as
+/// confirmed by" the SGPC (`babushahi-bandi-chhor-2025`).
+fn sgpc_bandi_chhor(year: i64) -> Days {
+    let (month, day) = match year {
+        2010 => (11, 5),
+        2011 => (10, 26),
+        2012 => (11, 13),
+        2013 => (11, 3),
+        2014 => (10, 23),
+        2015 => (11, 11),
+        2016 => (10, 30),
+        2017 => (10, 19),
+        2018 => (11, 7),
+        2019 => (10, 27),
+        2020 => (11, 14),
+        2021 => (11, 4),
+        2022 => (10, 24),
+        2023 => (11, 12),
+        2024 => (11, 1),
+        2025 => (10, 21),
+        2026 => (11, 8),
+        _ => return Days::new(),
+    };
+    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
+}
+
+/// The observances the SGPC keeps on the Bikrami calendar, by a rule a
+/// source read states or fits, or as the days it published.
 static SIKH_SGPC_RULES: &[HolidayRule] = &[
-    // Khalsa Sajna Divas, 1 Vaisakh: the day of the Meṣa saṅkrānti.
-    feast("Vaisakhi", "", MESHA_SANKRANTI),
+    // Khalsa Sajna Divas, 1 Vaisakh of the Vikrami solar calendar, whose
+    // month begins on the sunrise-to-sunrise day of its saṅkrānti.
+    feast(
+        "Vaisakhi",
+        "",
+        Rule::in_calendar(CalendarSystem::VIKRAMI, 1, 1),
+    ),
     feast(
         "Parkash of Guru Gobind Singh",
         "",
         GURU_GOBIND_SINGH_PARKASH,
     ),
-    // The three the 2003 calendar also left lunar, on the same rules.
-    feast("Hola Mohalla", "", HOLI),
-    feast("Bandi Chhor Divas", "", DIWALI),
+    feast("Hola Mohalla", "", HOLA_MOHALLA).approximate(),
+    feast(
+        "Bandi Chhor Divas",
+        "",
+        Rule::Tabulated {
+            function: sgpc_bandi_chhor,
+            first_year: 2010,
+            last_year: 2026,
+        },
+    ),
     feast("Parkash of Guru Nanak", "", GURU_NANAK_JAYANTI),
 ];
 
 /// Sikhism as the Shiromani Gurdwara Parbandhak Committee keeps it since
-/// 2010, on the Bikrami calendar: the observances whose Bikrami rule a
-/// source read states, and no others.
+/// 2010, on the Bikrami calendar: the observances whose day a source read
+/// states or reproduces, and no others.
 ///
-/// Vaisakhi, Khalsa Sajna Divas, on 1 Vaisakh, the day of the Meṣa
-/// saṅkrānti; the Parkash of Guru Gobind Singh on Poh sudi 7
-/// ([`crate::hindu::GURU_GOBIND_SINGH_PARKASH`]); and Hola Mohalla, Bandi
-/// Chhor Divas and the Parkash of Guru Nanak on the days of Holi, Diwali
-/// and Kartik Puranmashi, as in the 2003 table ([`SIKH_NANAKSHAHI_2003`]),
-/// whose movable dates the 2010 version shares. That table of movable
-/// dates has Hola Mohalla a day after Holi in 2012, 2013 and 2016, and on
-/// it in the other years of 2010 to 2020; the rule behind the three is not
-/// stated there.
+/// - **Vaisakhi**, Khalsa Sajna Divas, is 1 Vaisakh of the Vikrami solar
+///   calendar of Punjab ([`hc_calendars_indic::hindu_solar::VIKRAMI`]),
+///   whose month begins on the sunrise-to-sunrise day its saṅkrānti falls
+///   in, as the *Rashtriya Panchang*'s Punjab column has it. A Meṣa
+///   saṅkrānti between midnight and sunrise therefore makes Vaisakhi the
+///   day before the saṅkrānti's civil day: 13 April in 2017, 2021 and
+///   2025, the days the SGPC kept. The same calendar gives every sangrand
+///   of SikhNet's SGPC lists of 2021–22 and 2026 but one, Maagh 2026,
+///   which that list gives as 13 January and the rule as 14 January.
+/// - **The Parkash of Guru Gobind Singh** is Poh sudi 7
+///   ([`crate::hindu::GURU_GOBIND_SINGH_PARKASH`]).
+/// - **Hola Mohalla** is Chet vadi 1 at sunrise
+///   ([`crate::hindu::HOLA_MOHALLA`]). The day is the Encyclopaedia of
+///   Sikhism's and the sunrise is fitted, to every day the SGPC kept from
+///   2010 to 2026, so the rule is carried approximate.
+/// - **Bandi Chhor Divas** is the days the SGPC kept, 2010 to 2026
+///   ([`Rule::Tabulated`]), and a gap outside them. They are the days of
+///   Diwali ([`crate::hindu::DIWALI`]) but in 2024 and 2025, when the SGPC
+///   kept 1 November and 21 October, a day after it. No source read states
+///   the SGPC's rule. The day whose sunset the new moon of Kārttika holds,
+///   the later of two, gives all seventeen, but that reading is fitted
+///   only, and is not carried as a rule.
+/// - **The Parkash of Guru Nanak** is Kartik Puranmashi, as in the 2003
+///   table ([`SIKH_NANAKSHAHI_2003`]).
 ///
 /// **Partial.** The SGPC prints its dates each year in a *jantri*, and the
 /// jantri of Nanakshahi 557 and 558 on sgpc.net is scanned pages, which
 /// could not be read. The other gurpurabs are on Bikrami dates whose tithi
-/// no source read gives, so they are not carried; SikhNet's list of the
-/// SGPC's days of 2026–27 (`sikhnet-gurpurab-2026`) gives Gregorian dates
-/// only.
+/// no source read gives, so they are not carried; SikhNet's lists of the
+/// SGPC's days give Gregorian dates only.
 pub static SIKH_SGPC: RuleSet = RuleSet {
     code: "sikh-sgpc",
     english_name: "Sikhism (SGPC, Bikrami calendar)",
@@ -3157,8 +3219,15 @@ pub static SIKH_SGPC: RuleSet = RuleSet {
               on 9 January and 29 December 2022 and 17 January 2024; Wikipedia, \
               \"Nanakshahi calendar\", for the movable dates of the 2003 and 2010 versions \
               (secondary, from Purewal's list, not read); SikhNet, \"Sikh Gurpurab \
-              Calendar 2026-27\" (sikhnet-gurpurab-2026), \"as per SGPC Calendar\", for \
-              Vaisakhi on 14 April 2026; all retrieved 2026-09-28",
+              Calendar\" of 2021-22 and 2026-27 (sikhnet-gurpurab-2021, \
+              sikhnet-gurpurab-2026), \"as per SGPC Calendar\", for the sangrands and the \
+              days of those years; the Encyclopaedia of Sikhism, \"Hola Mahalla\", as Asia \
+              Samachar reprints it (asiasamachar-hola-mahalla-2015), for Chet wadi 1; The \
+              Tribune, AIR and The Week for Hola Mohalla and Vaisakhi of 2010 to 2025 \
+              (tribune-sgpc-days, air-hola-mohalla-2025, theweek-khalsa-sajna-2025); \
+              dekho-ji (dekhoji-nanakshahi-sgpc, secondary), PTC News \
+              (ptcnews-bandi-chhor-2024) and Babushahi (babushahi-bandi-chhor-2025) for \
+              Bandi Chhor Divas of 2022 to 2025; all retrieved 2026-09-28",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

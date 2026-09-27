@@ -64,8 +64,14 @@ Not carried:
   and 雨水 on the seventeenth, which the Wikipedia article states without a
   source.
 - **The other view of the slip**, that the day names fell a day ahead only
-  from 癸好三年二月十三日, the day Nanjing was taken; Luo records it and
-  says the evidence refutes it [luo-ergang-taiping-tianli].
+  from 癸好三年二月十三日; Luo records it and says the evidence refutes it
+  [luo-ergang-taiping-tianli]. By this calendar that day is 18 March 1853.
+  Wikipedia (zh) gives 蕭一山's form of the view, that the calendar agreed
+  with the lunar and the Western ones "在癸好三年二月初十以前"
+  [wikipedia-zh-taiping-tianli], and 咸豐三年二月初十, 19 March 1853, is
+  the day Nanjing fell (Wikipedia (zh), 「太平天国」, retrieved 2026-09-28).
+  The source's day of the view and its tie to Nanjing are not settled
+  here: Luo's text could not be read again.
 - **The first year**, 辛開元年, which was dated on the Qing calendar. The
   calendar printed for it in the third year was worked backwards. Luo warns
   that converting its dates by the new calendar gives nonsense

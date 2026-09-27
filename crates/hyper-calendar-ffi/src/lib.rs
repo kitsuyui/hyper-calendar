@@ -2442,7 +2442,7 @@ mod calendar_days {
     ///
     /// The lines are the WebAssembly module's: the limb, its number, its
     /// English and Devanagari names, the instants it began and ends and the
-    /// instant it was read at, and the ayanamsa of the yoga. `ayanamsa` is
+    /// instant it was read at, and the ayanāṃśa of the yoga. `ayanamsa` is
     /// `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or `Fagan-Bradley`,
     /// or the first word of one, in any case; anything else is
     /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. An instant
@@ -2518,7 +2518,7 @@ mod calendar_days {
     /// eras' names, and the tag of the data that answered. `locale` is a
     /// NUL-terminated BCP 47 tag, `native` for the calendar's own
     /// languages, or null, as for `hc_describe_day`; one that is not UTF-8
-    /// is `HC_ERROR_NOT_UTF8`. `sky` is an ayanamsa `hc_panchanga_at` names, for the true
+    /// is `HC_ERROR_NOT_UTF8`. `sky` is an ayanāṃśa `hc_panchanga_at` names, for the true
     /// Sun and Moon, or `surya-siddhanta`, for the *Sūrya Siddhānta*'s, in
     /// any case; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. A place beyond 65° of latitude, where
@@ -8584,7 +8584,7 @@ mod tests {
             assert_eq!(at(-159_992_668_801), HC_ERROR_OUT_OF_RANGE);
             assert_eq!(at(155_590_156_800), HC_ERROR_OUT_OF_RANGE);
 
-            // The true sky at the Central Station with Lahiri's ayanamsa.
+            // The true sky at the Central Station with Lahiri's ayanāṃśa.
             let hindu = |sky: *const c_char, fixed: i64, latitude: f64| {
                 measured(|buffer, capacity, written| unsafe {
                     hc_hindu_lunar_date(

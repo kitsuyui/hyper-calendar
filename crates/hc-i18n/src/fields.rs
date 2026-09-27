@@ -103,6 +103,18 @@ pub enum ValueNames {
     /// the first value's at index 0: what no cycle declares, such as the
     /// Thai ขึ้น and แรม of the two halves of a month.
     Own(&'static [&'static str]),
+    /// Names of the calendar's own, as [`ValueNames::Own`], and the words
+    /// a language's sources use for them: the first entry of `locales`
+    /// whose tag is in the locale's fallback chain, else `own`. The
+    /// Burmese halves are လဆန်း and လဆုတ် in Burmese and *waxing* and
+    /// *waning* in English.
+    Localized {
+        /// The names in the calendar's own orthography.
+        own: &'static [&'static str],
+        /// Each language's names, by the tag of its table in
+        /// [`crate::data::LOCALES`].
+        locales: &'static [(&'static str, &'static [&'static str])],
+    },
 }
 
 /// A field whose values are named, and what names them.
@@ -159,6 +171,18 @@ pub fn write_value_name(
     };
     let name = match named.names {
         ValueNames::Own(own) => own.get(index).copied(),
+        ValueNames::Localized { own, locales } => locale
+            .fallback()
+            .find_map(|candidate| {
+                let tag = candidate.rendered()?;
+                locales
+                    .iter()
+                    .find(|(name, _)| *name == tag.as_str())
+                    .map(|(_, names)| *names)
+            })
+            .unwrap_or(own)
+            .get(index)
+            .copied(),
         ValueNames::Cycle(kind) => {
             cycles
                 .iter()
@@ -376,8 +400,11 @@ pub static VALUES: &[FieldValues] = &[
     // The two halves of the month, `waning` 0 for the waxing half: ขึ้น
     // and แรม as `docs/systems/thai-lunar.md` writes them from
     // wikipedia-th-thai-lunar, ຂຶ້ນ and ແຮມ as `hc_calendars_regional::lao`
-    // writes them from dupertuis1981, and កើត and រោច as
-    // `hc_calendars_regional::khmer` writes them from tum-chhankitek.
+    // writes them from dupertuis1981, កើត and រោច as
+    // `hc_calendars_regional::khmer` writes them from tum-chhankitek, and
+    // in English Tum's *keit* and *roaj*, "1 keit Bos"; the Burmese လဆန်း
+    // and လဆုတ်, *waxing* and *waning* in English, from
+    // wikipedia-burmese-calendar, "waxing (လဆန်း) and waning (လဆုတ်)".
     FieldValues {
         calendars: &[CalendarId("thai-lunar")],
         field: "waning",
@@ -394,15 +421,33 @@ pub static VALUES: &[FieldValues] = &[
         calendars: &[CalendarId("khmer")],
         field: "waning",
         first: 0,
-        names: ValueNames::Own(&["កើត", "រោច"]),
+        names: ValueNames::Localized {
+            own: &["កើត", "រោច"],
+            locales: &[("en", &["keit", "roaj"])],
+        },
     },
-    // The Burmese phases as `hc_calendars_regional::burmese` writes a date,
-    // "Nayon waxing 3, 1374 ME", from yannaingaye2013.
+    FieldValues {
+        calendars: &[CalendarId("burmese")],
+        field: "waning",
+        first: 0,
+        names: ValueNames::Localized {
+            own: &["လဆန်း", "လဆုတ်"],
+            locales: &[("en", &["waxing", "waning"])],
+        },
+    },
+    // The Burmese phases: in English as `hc_calendars_regional::burmese`
+    // writes a date, "Nayon waxing 3, 1374 ME", from yannaingaye2013, and
+    // in Burmese as wikipedia-burmese-calendar names the halves and the
+    // days that end them, လဆန်း, လပြည့် for the full moon, လဆုတ် and
+    // လကွယ် for the new moon.
     FieldValues {
         calendars: &[CalendarId("burmese")],
         field: "phase",
         first: 0,
-        names: ValueNames::Own(&["waxing", "full moon", "waning", "new moon"]),
+        names: ValueNames::Localized {
+            own: &["လဆန်း", "လပြည့်", "လဆုတ်", "လကွယ်"],
+            locales: &[("en", &["waxing", "full moon", "waning", "new moon"])],
+        },
     },
 ];
 
@@ -413,11 +458,11 @@ pub static VALUES: &[FieldValues] = &[
 /// the Long Count's place as `docs/systems/mesoamerican-counts.md` names
 /// it, `samvatsara` and `barhaspatya-samvatsara` the Hindu year's name in
 /// the southern and the northern cycle, in Sewell and Dikshit's words for
-/// them, a samvatsara "in luni-solar or southern reckoning" and a
-/// "Barhaspatya samvatsara" of "the northern cycle" (`sewell1896`, Art. 54
-/// and the examples of 1752 and 1822), as
-/// `docs/systems/hindu-calendars.md` names them, `indiction` the Byzantine cycle as `hc_calendars_solar::byzantine`
-/// does. No other language's table is carried yet: no source in another
+/// them, a samvatsara "in luni-solar or southern reckoning" (`sewell1896`,
+/// the example of 1752) and a "Barhaspatya samvatsara" (Art. 54) of "the
+/// northern cycle" (the example of 1822), as
+/// `docs/systems/hindu-calendars.md` names them, `indiction` the
+/// Byzantine cycle as `hc_calendars_solar::byzantine` does. No other language's table is carried yet: no source in another
 /// language naming these fields was read.
 pub static TABLES: &[FieldNames] = &[FieldNames {
     tag: "en",
@@ -477,6 +522,7 @@ pub static TABLES: &[FieldNames] = &[FieldNames {
         ("proleptic", "Proleptic"),
         ("quarter", "Quarter"),
         ("regnal-year", "Year of the reign"),
+        ("related-gregorian-year", "Related Gregorian year"),
         ("rest-day", "Common rest day"),
         ("sadwara", "Sadwara"),
         ("samvatsara", "Samvatsara (southern reckoning)"),

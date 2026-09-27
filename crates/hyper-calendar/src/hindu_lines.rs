@@ -4,7 +4,7 @@
 //!
 //! * The amānta lunisolar date of a day at a place the caller gives, on
 //!   one of two skies: the true Sun and Moon in the zodiac of a named
-//!   ayanamsa, as `hindu-lunar` reads them at the Central Station, or the
+//!   ayanāṃśa, as `hindu-lunar` reads them at the Central Station, or the
 //!   *Sūrya Siddhānta*'s, as `hindu-lunar-surya-siddhanta` reads them at
 //!   Ujjain. The place is a parameter and not a calendar of its own
 //!   (`docs/policy.md` §5); `docs/systems/hindu-calendars.md` says how
@@ -45,7 +45,7 @@ use crate::boundary::{Answer, Refusal, names};
 use crate::lines::{era_label_or_empty, locale_for, locale_used, month_label_or_empty, push_cell};
 use crate::panchanga_lines::ayanamsa;
 
-/// The name of the *Sūrya Siddhānta*'s sky, beside the ayanamsa names of
+/// The name of the *Sūrya Siddhānta*'s sky, beside the ayanāṃśa names of
 /// the true one.
 pub const SURYA_SIDDHANTA: &str = "surya-siddhanta";
 
@@ -214,7 +214,7 @@ fn date_line(
 /// Sanskrit names neither era and writes `Saka` and `Vikrama Samvat`, and
 /// Hindi, which names no Vikrama Saṃvat, `Vikrama Samvat`.
 ///
-/// `sky` is an ayanamsa [`ayanamsa`] names, for the true Sun and Moon in
+/// `sky` is an ayanāṃśa [`ayanamsa`] names, for the true Sun and Moon in
 /// its zodiac read at the place's sunrise, as `hindu-lunar` is with Lahiri's
 /// at the Central Station; or [`SURYA_SIDDHANTA`], for the Siddhānta's Sun
 /// and Moon read at its own sunrise there, as
@@ -224,7 +224,7 @@ fn date_line(
 /// the true calendar or the Siddhānta's, as a calendar's name comes first
 /// in [`crate::planetary_lines::circad_date_line`].
 /// [`crate::panchanga_lines::panchanga_of_day_lines`] has one reckoning,
-/// and its ayanamsa, last, sets only the zodiac it reads the day in.
+/// and its ayanāṃśa, last, sets only the zodiac it reads the day in.
 ///
 /// # Errors
 ///
@@ -383,8 +383,9 @@ pub const BARHASPATYA_YEAR_COLUMNS: usize = 5;
 /// `barhaspatya-samvatsara` field `hc_day_extras` writes, resolved as
 /// [`crate::lines`] resolves every locale. `rule` is
 /// [`barhaspatya_rule`]'s: the pūrṇimānta calendar's own is
-/// `surya-siddhanta-bija`, and the Hindi press of 2024–26 named the years
-/// by `surya-siddhanta`, one name on.
+/// `surya-siddhanta-bija`, and some of the Hindi press's announcements of
+/// 2021–26 name the years by `surya-siddhanta`, one name on, and others by
+/// the pūrṇimānta calendar's rule.
 ///
 /// # Errors
 ///
@@ -487,7 +488,7 @@ mod tests {
     }
 
     /// 27 September 2026 at Tokyo, `zone1970.tab`'s principal location of
-    /// `Asia/Tokyo`, on every ayanamsa and on the Siddhānta's sky: Śaka
+    /// `Asia/Tokyo`, on every ayanāṃśa and on the Siddhānta's sky: Śaka
     /// 1948, Vikrama 2083, the sixth month, Bhādrapada, and the sixteenth
     /// tithi, labelled as `describe_day` labels `hindu-lunar`: Bhadra in
     /// English, भाद्रपद in Hindi and Sanskrit, whose data name no era for
@@ -680,9 +681,9 @@ mod tests {
     }
 
     /// Drik Panchang heads Vikrama 2081, 2082 and 2083, Śaka 1946 to 1948,
-    /// Pingala, Kalayukta and Siddharthi, by the rule with the *bīja*; the
-    /// Hindi press names them Kalayukta, Siddharthi and Raudra, by the rule
-    /// without it (`drikpanchang-day-2024-2026`, `webdunia-samvat-2081`,
+    /// Pingala, Kalayukta and Siddharthi, by the rule with the *bīja*; some
+    /// of the Hindi press names them Kalayukta, Siddharthi and Raudra, by
+    /// the rule without it (`drikpanchang-day-2024-2026`, `webdunia-samvat-2081`,
     /// `dainiktribune-samvat-2082`, `aajtak-samvat-2083`, as
     /// `hc-calendars-indic`'s tests read them). The rule with the *bīja*
     /// expunges Manmatha in Śaka 1864 and Durmati in 1949.

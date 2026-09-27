@@ -197,11 +197,18 @@ pub static NOTATIONS: &[Notation] = &[
         source: "tanaya1971, kompas-suro-1959",
     },
     // The half, the day of the half, ค่ำ and the month, แรม 1 ค่ำ
-    // เดือนแปด, then the year.
+    // เดือนแปด, as wikipedia-th-thai-lunar writes them, then the Buddhist
+    // year. The year is the library's own addition, as
+    // `hc_calendars_regional::thai_lunar`'s display writes it: the page
+    // writes no year after the month, and a full date elsewhere writes the
+    // year by its animal, its decade and the Chula Sakarat, "ขึ้น 12 ค่ำ
+    // เดือนอ้าย ปีเถาะ นพศก จ.ศ. 1289" (Wikipedia (th), the article on King
+    // Bhumibol Adulyadej, retrieved 2026-09-28), which the calendar does
+    // not carry.
     Notation {
         calendars: &[CalendarId("thai-lunar")],
         templates: date("{extra:waning} {extra:fortnight-day} ค่ำ {month} {year:1}"),
-        source: "wikipedia-th-thai-lunar",
+        source: "wikipedia-th-thai-lunar for the half, the day and the month; the year after them is the library's own, which no source read writes there",
     },
     // The month, the half, the day and ຄ່ຳ, then ປີ and the year, in the
     // order of Dupertuis's glossary: ເດືອນຫ້າ ຂຶ້ນ ໑໑ ຄ່ຳ ປີ ໑໓໔໓.

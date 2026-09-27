@@ -189,9 +189,28 @@ pub const HOLI: Rule = Rule::Offset {
     days: 1,
 };
 
+/// Hola Mohalla as the SGPC keeps it: Chet vadi 1, the first day of the
+/// dark half of Chaitra in the pūrṇimānta reckoning — Phālguna kṛṣṇa 1 in
+/// the amānta one — on the day that carries it at sunrise.
+///
+/// The *Encyclopaedia of Sikhism* dates the first Hola Mahalla "Chet wadi
+/// 1, 1757 Bk / 22 February 1701" (`asiasamachar-hola-mahalla-2015`).
+/// Which part of the day the tithi must hold is not stated, and sunrise
+/// is fitted: it gives every day the SGPC kept that was read, 2010 to 2026,
+/// among them the three a day after [`HOLI`], 9 March 2012, 28 March 2013
+/// and 24 March 2016, and 26 March 2024, 15 March 2025 and 4 March 2026.
+/// A table carries the rule approximate, because it is fitted to those
+/// days and not quoted.
+///
+/// The same reading gives 4 March 2026 and 23 March 2027, the days the
+/// central government's lists keep Holī a day after [`HOLI`] (see the
+/// module documentation). That is noted and not made a rule: those lists
+/// name no rule, and the national almanac's list keeps [`HOLI`].
+pub const HOLA_MOHALLA: Rule = tithi(12, 16, Prevalence::Sunrise, WhenTwice::Earlier);
+
 /// Makara Saṅkrānti, the Sun's entry into Makara: Pongal, Māgh Bihu,
 /// Uttarāyaṇa. The day of the saṅkrānti at the Indian meridian, with the
-/// Lahiri ayanamsa the national calendar uses.
+/// Lahiri ayanāṃśa the national calendar uses.
 pub const MAKAR_SANKRANTI: Rule = Rule::Sankranti {
     sign: SiderealSign::MAKARA,
     ayanamsa: &Ayanamsa::LAHIRI,

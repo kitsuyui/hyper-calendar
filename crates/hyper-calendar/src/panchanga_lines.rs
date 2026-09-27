@@ -8,7 +8,7 @@
 //! half of amāvāsyā), its name as Drik Panchang spells it in English and
 //! in Devanagari, the moments it began and ends and the moment it was read
 //! at, each as whole POSIX seconds of Universal Time, rounded down, and
-//! the ayanamsa the yoga was reckoned with, empty for the karaṇa, which
+//! the ayanāṃśa the yoga was reckoned with, empty for the karaṇa, which
 //! needs none. The arithmetic and the names are
 //! [`hc_calendars_indic::panchanga`]'s; the instants are held to the sky
 //! layer's era, [`crate::astro_lines`].
@@ -34,14 +34,14 @@ use crate::astro_lines::{
 };
 use crate::boundary::{Answer, Refusal, names, push_cell};
 
-/// The ayanamsa a name names: one of [`Ayanamsa::ALL`] by its full name,
+/// The ayanāṃśa a name names: one of [`Ayanamsa::ALL`] by its full name,
 /// `Lahiri (Chitrapaksha)`, or by the part before the parenthesis,
 /// `Lahiri`, in any case.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other name, the empty one included: the
-/// yoga moves with the ayanamsa, so none is assumed.
+/// yoga moves with the ayanāṃśa, so none is assumed.
 pub fn ayanamsa(name: &str) -> Answer<Ayanamsa> {
     Ayanamsa::ALL
         .into_iter()
@@ -90,7 +90,7 @@ fn lines_at(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for an ayanamsa [`ayanamsa`] does not name, and
+/// [`Refusal::Unknown`] for an ayanāṃśa [`ayanamsa`] does not name, and
 /// [`Refusal::OutOfRange`] for an instant outside the sky layer's era.
 pub fn panchanga_at_lines(universal_unix: i64, ayanamsa_name: &str) -> Answer<String> {
     let ayanamsa = ayanamsa(ayanamsa_name)?;
@@ -106,7 +106,7 @@ pub fn panchanga_at_lines(universal_unix: i64, ayanamsa_name: &str) -> Answer<St
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for an ayanamsa [`ayanamsa`] does not name,
+/// [`Refusal::Unknown`] for an ayanāṃśa [`ayanamsa`] does not name,
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era, and
 /// [`Refusal::NoData`] for a day on which the Sun does not rise at the
 /// place: a pañcāṅga reads its day at sunrise, and no other moment is put
