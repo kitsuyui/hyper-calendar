@@ -1522,7 +1522,8 @@ year would, through one `EvaluationContext` shared by every table, so the
 astronomy the tables have in common — the sunrises the Hindu festivals are
 read at, the new moons and solar terms of the Chinese-dated ones — is done
 once, and only for the months around the day. Measured on 2026-09-27 in
-the `release-compact` profile, one 2026 day across all 286 tables takes
+the `release-compact` profile, when there were 286 tables, one 2026 day
+across all 287 tables takes
 about 44 ms natively on 1 January, the costliest, and 30 ms on
 25 September, against 0.19 s for every table's whole year; in WebAssembly
 under Node 22, 107 ms and 78 ms.

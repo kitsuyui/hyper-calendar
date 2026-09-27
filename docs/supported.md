@@ -420,7 +420,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-48 tables, feature `holiday`.
+49 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -458,6 +458,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
+| `roman-general-1960` | General Roman Calendar of 1960 | 381 |
 | `sacred-wednesdays` | Wednesdays on the eighth lunar day | 1 |
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |

@@ -3559,6 +3559,7 @@ pub static CHRISTIAN_ARMENIAN_JERUSALEM: RuleSet = RuleSet {
 pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_WESTERN,
     &crate::roman_calendar::GENERAL_ROMAN_CALENDAR,
+    &crate::roman_calendar_1960::GENERAL_ROMAN_CALENDAR_1960,
     &CHRISTIAN_ORTHODOX,
     &CHRISTIAN_ORTHODOX_REVISED_JULIAN,
     &ETHIOPIAN_ORTHODOX,

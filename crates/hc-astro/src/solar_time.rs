@@ -32,8 +32,8 @@
 //!   `daytime-temporal-hour`, `nighttime-temporal-hour` and
 //!   `standard-from-sundial` in `calendar-code2`). Of Jewish law's two
 //!   reckonings this is the Vilna Gaon's; the Magen Avraham's, daybreak
-//!   to nightfall, is not carried, for the reason the system document
-//!   gives.
+//!   to nightfall, is below, under each pair of daybreak and nightfall it
+//!   is reckoned with.
 //! * **Italian hours** (*ore italiane*) count 24 hours from the "zero
 //!   hour", half an hour after sunset taken at a depression of 16′
 //!   ([`italian_zero_hour`], [`italian_time`] and
@@ -56,6 +56,23 @@
 //! [`jewish_dusk_vilna_gaon`] at 4°40′ and [`jewish_sabbath_ends_cohn`] at
 //! 7°5′ (`jewish-dusk` and `jewish-sabbath-ends`). The angles are
 //! Reingold and Dershowitz's; the authorities' own texts were not read.
+//!
+//! The Jewish times counted in temporal hours (*zmanim*) are a table,
+//! [`Zman`]: the latest Shema at three hours, the latest morning prayer at
+//! four, *minḥah gedolah* at six and a half, *minḥah ketanah* at nine and
+//! a half and *plag ha-minḥah* at ten and three quarters. Each reckoning of
+//! the hour is its own function: [`zman_gra`], the Vilna Gaon's, from
+//! sunrise with a twelfth of sunrise to sunset; [`zman_mga_72_minutes`],
+//! the Magen Avraham's, from a dawn 72 minutes before sunrise with a
+//! twelfth of that dawn to a nightfall 72 minutes after sunset; and
+//! [`zman_mga_16_1_degrees`], the same with dawn and nightfall at 16.1°.
+//! Dawn and nightfall have their own functions: [`jewish_dawn_16_1_degrees`],
+//! [`jewish_dawn_72_minutes`], [`jewish_nightfall_8_5_degrees`] and
+//! [`jewish_nightfall_72_minutes`]. The rules are as KosherJava's
+//! `ZmanimCalendar` documentation and Hebcal's `Zmanim` state them
+//! (`kosherjava-zmanim`, `hebcal-zmanim-api`), and the times are checked
+//! against Hebcal's published zmanim; the Vilna Gaon's, the Magen
+//! Avraham's and Rabbi Meir Posen's own texts were not read.
 
 use core::fmt;
 
@@ -157,6 +174,14 @@ pub enum MissingSolarEvent {
         /// The depression sought, in arcminutes.
         arcminutes: u16,
     },
+    /// The Sun does not reach the stated depression below the horizon, in
+    /// arcminutes, in the morning of this local day.
+    DawnDepression {
+        /// The local day.
+        day: Rd,
+        /// The depression sought, in arcminutes.
+        arcminutes: u16,
+    },
     /// The Sun is not above the horizon at noon on this local day, so
     /// nothing casts a shadow and the shadow rules for ʿaṣr have no
     /// answer.
@@ -171,6 +196,11 @@ impl fmt::Display for MissingSolarEvent {
             Self::Depression { day, arcminutes } => write!(
                 f,
                 "the Sun does not reach {arcminutes}′ below the horizon on the evening of RD {}",
+                day.0
+            ),
+            Self::DawnDepression { day, arcminutes } => write!(
+                f,
+                "the Sun does not reach {arcminutes}′ below the horizon in the morning of RD {}",
                 day.0
             ),
             Self::NoNoonShadow(day) => {
@@ -449,6 +479,260 @@ pub fn jewish_sabbath_ends_cohn(day: Rd, location: Location) -> Result<Moment, M
     evening_depression(day, location, JEWISH_SABBATH_ENDS_COHN_ARCMINUTES)
 }
 
+/// The moment in the morning of a local day when the Sun's centre is a
+/// number of arcminutes below the geometric horizon, with no refraction.
+fn morning_depression(
+    day: Rd,
+    location: Location,
+    arcminutes: u16,
+) -> Result<Moment, MissingSolarEvent> {
+    sun_crossing(day, location, -f64::from(arcminutes) / 60.0, true)
+        .ok_or(MissingSolarEvent::DawnDepression { day, arcminutes })
+}
+
+/// The depression of dawn (*alos ha-shachar*) at 16.1°, in arcminutes:
+/// "based on the calculation that the time between dawn and sunrise is 72
+/// minutes, the time it takes to walk 4 mil at 18 minutes a mil", as
+/// KosherJava's `getAlosHashachar` states it (`kosherjava-zmanim`).
+pub const JEWISH_DAWN_16_1_DEGREES_ARCMINUTES: u16 = 16 * 60 + 6;
+
+/// The depression of nightfall (*tzais*) at 8.5°, in arcminutes: when three
+/// small stars are visible, as Rabbi Meir Posen computed it in *Ohr Meir*
+/// (not read), by KosherJava's `getTzais` (`kosherjava-zmanim`).
+pub const JEWISH_NIGHTFALL_8_5_DEGREES_ARCMINUTES: u16 = 8 * 60 + 30;
+
+/// The 72 minutes between dawn and sunrise, and between sunset and
+/// nightfall, in the fixed-minute reckoning, as a fraction of a day.
+pub const JEWISH_TWILIGHT_72_MINUTES: f64 = 72.0 / 1_440.0;
+
+/// Dawn (*alos ha-shachar*) on a local day at 16.1° below the geometric
+/// horizon, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::DawnDepression`] where the Sun does not get that
+/// low, as in London in June.
+pub fn jewish_dawn_16_1_degrees(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    morning_depression(day, location, JEWISH_DAWN_16_1_DEGREES_ARCMINUTES)
+}
+
+/// Dawn (*alos ha-shachar*) on a local day as 72 minutes before sunrise,
+/// in Universal Time (KosherJava's `getAlos72`).
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] where the Sun does not rise.
+pub fn jewish_dawn_72_minutes(day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    Ok(Moment(
+        sunrise_or_error(day, location)?.0 - JEWISH_TWILIGHT_72_MINUTES,
+    ))
+}
+
+/// Nightfall (*tzais*) on the evening of a local day at 8.5° below the
+/// geometric horizon, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Depression`] where the Sun does not get that low.
+pub fn jewish_nightfall_8_5_degrees(
+    day: Rd,
+    location: Location,
+) -> Result<Moment, MissingSolarEvent> {
+    evening_depression(day, location, JEWISH_NIGHTFALL_8_5_DEGREES_ARCMINUTES)
+}
+
+/// Nightfall (*tzais*) on the evening of a local day as 72 minutes after
+/// sunset, Rabbeinu Tam's reckoning as KosherJava's `getTzais72` states
+/// it, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunset`] where the Sun does not set.
+pub fn jewish_nightfall_72_minutes(
+    day: Rd,
+    location: Location,
+) -> Result<Moment, MissingSolarEvent> {
+    Ok(Moment(
+        sunset_or_error(day, location)?.0 + JEWISH_TWILIGHT_72_MINUTES,
+    ))
+}
+
+/// A time of the Jewish day counted in temporal hours (*shaʿot
+/// zmaniyot*) from the start of the day: the latest time for the morning
+/// Shema, the earliest for the afternoon prayer, and so on.
+///
+/// Where the day starts and how long its hour is depends on the
+/// reckoning, and each reckoning is its own function: [`zman_gra`],
+/// [`zman_mga_72_minutes`] and [`zman_mga_16_1_degrees`].
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Zman {
+    /// The identifier.
+    pub id: &'static str,
+    /// The name, as Hebcal prints it in English.
+    pub english_name: &'static str,
+    /// Temporal hours from the start of the day.
+    pub hours: f64,
+    /// Where the count of hours comes from.
+    pub source: &'static str,
+}
+
+hc_core::catalogue! {
+    type: Zman,
+    id: |zman| zman.id,
+    provenance: |zman| zman.source,
+    tests: zman_catalogue_tests,
+    associated;
+
+    /// The five, in the order of the day.
+    pub const ALL;
+    /// The time with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// *Sof zman kriʾat shemaʿ*, the latest time for the morning Shema:
+        /// three hours.
+        pub const SOF_ZMAN_SHMA = Self {
+            id: "sof-zman-shma",
+            english_name: "Latest Shema",
+            hours: 3.0,
+            source: "KosherJava, ZmanimCalendar, getSofZmanShmaGRA and getSofZmanShmaMGA \
+                     (kosherjava-zmanim); Hebcal, Zmanim, sofZmanShma (hebcal-zmanim-api)",
+        };
+        /// *Sof zman tefillah*, the latest time for the morning prayer:
+        /// four hours.
+        pub const SOF_ZMAN_TFILA = Self {
+            id: "sof-zman-tfila",
+            english_name: "Latest Shacharit",
+            hours: 4.0,
+            source: "KosherJava, ZmanimCalendar, getSofZmanTfilaGRA (kosherjava-zmanim); \
+                     Hebcal, Zmanim, sofZmanTfilla (hebcal-zmanim-api)",
+        };
+        /// *Minḥah gedolah*, the earliest time for the afternoon prayer:
+        /// six and a half hours.
+        pub const MINCHA_GEDOLA = Self {
+            id: "mincha-gedola",
+            english_name: "Earliest Mincha",
+            hours: 6.5,
+            source: "KosherJava, ZmanimCalendar, getMinchaGedola (kosherjava-zmanim); Hebcal, \
+                     Zmanim, minchaGedola (hebcal-zmanim-api)",
+        };
+        /// *Minḥah ketanah*, the preferred time for the afternoon prayer:
+        /// nine and a half hours.
+        pub const MINCHA_KETANA = Self {
+            id: "mincha-ketana",
+            english_name: "Preferable earliest time to recite Minchah",
+            hours: 9.5,
+            source: "KosherJava, ZmanimCalendar, getMinchaKetana (kosherjava-zmanim); Hebcal, \
+                     Zmanim, minchaKetana (hebcal-zmanim-api)",
+        };
+        /// *Plag ha-minḥah*, the earliest time the Sabbath may be begun:
+        /// ten and three quarter hours.
+        pub const PLAG_HAMINCHA = Self {
+            id: "plag-hamincha",
+            english_name: "Plag haMincha",
+            hours: 10.75,
+            source: "KosherJava, ZmanimCalendar, getPlagHamincha (kosherjava-zmanim); Hebcal, \
+                     Zmanim, plagHaMincha (hebcal-zmanim-api)",
+        };
+    }
+}
+
+/// The GRA's (the Vilna Gaon's) temporal hour on a local day, as a
+/// fraction of a day: a twelfth of sunrise to sunset. It is
+/// [`daytime_temporal_hour`], under the name of its reckoning.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] or [`MissingSolarEvent::Sunset`] where
+/// the Sun does not rise or set.
+pub fn temporal_hour_gra(day: Rd, location: Location) -> Result<f64, MissingSolarEvent> {
+    daytime_temporal_hour(day, location)
+}
+
+/// The Magen Avraham's temporal hour on a local day with dawn and
+/// nightfall 72 minutes from sunrise and sunset, as a fraction of a day: a
+/// twelfth of the 72-minute dawn to the 72-minute nightfall (KosherJava's
+/// `getShaahZmanisMGA`).
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] or [`MissingSolarEvent::Sunset`] where
+/// the Sun does not rise or set.
+pub fn temporal_hour_mga_72_minutes(day: Rd, location: Location) -> Result<f64, MissingSolarEvent> {
+    let dawn = jewish_dawn_72_minutes(day, location)?;
+    let nightfall = jewish_nightfall_72_minutes(day, location)?;
+    Ok((nightfall.0 - dawn.0) / 12.0)
+}
+
+/// The Magen Avraham's temporal hour on a local day with dawn and
+/// nightfall both at 16.1° below the horizon, as a fraction of a day, as
+/// Hebcal's `sofZmanShmaMGA16Point1` reckons the day.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::DawnDepression`] or
+/// [`MissingSolarEvent::Depression`] where the Sun does not get 16.1° low.
+pub fn temporal_hour_mga_16_1_degrees(
+    day: Rd,
+    location: Location,
+) -> Result<f64, MissingSolarEvent> {
+    let dawn = jewish_dawn_16_1_degrees(day, location)?;
+    let nightfall = evening_depression(day, location, JEWISH_DAWN_16_1_DEGREES_ARCMINUTES)?;
+    Ok((nightfall.0 - dawn.0) / 12.0)
+}
+
+/// A [`Zman`] on a local day by the GRA: its hours of [`temporal_hour_gra`]
+/// after sunrise, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] or [`MissingSolarEvent::Sunset`] where
+/// the Sun does not rise or set.
+pub fn zman_gra(zman: &Zman, day: Rd, location: Location) -> Result<Moment, MissingSolarEvent> {
+    let hour = temporal_hour_gra(day, location)?;
+    Ok(Moment(
+        sunrise_or_error(day, location)?.0 + zman.hours * hour,
+    ))
+}
+
+/// A [`Zman`] on a local day by the Magen Avraham with the 72-minute dawn
+/// and nightfall: its hours of [`temporal_hour_mga_72_minutes`] after the
+/// 72-minute dawn, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] or [`MissingSolarEvent::Sunset`] where
+/// the Sun does not rise or set.
+pub fn zman_mga_72_minutes(
+    zman: &Zman,
+    day: Rd,
+    location: Location,
+) -> Result<Moment, MissingSolarEvent> {
+    let hour = temporal_hour_mga_72_minutes(day, location)?;
+    Ok(Moment(
+        jewish_dawn_72_minutes(day, location)?.0 + zman.hours * hour,
+    ))
+}
+
+/// A [`Zman`] on a local day by the Magen Avraham with dawn and nightfall
+/// at 16.1°: its hours of [`temporal_hour_mga_16_1_degrees`] after the
+/// 16.1° dawn, in Universal Time.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::DawnDepression`] or
+/// [`MissingSolarEvent::Depression`] where the Sun does not get 16.1° low.
+pub fn zman_mga_16_1_degrees(
+    zman: &Zman,
+    day: Rd,
+    location: Location,
+) -> Result<Moment, MissingSolarEvent> {
+    let hour = temporal_hour_mga_16_1_degrees(day, location)?;
+    Ok(Moment(
+        jewish_dawn_16_1_degrees(day, location)?.0 + zman.hours * hour,
+    ))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -685,5 +969,190 @@ mod tests {
         assert!((solar_altitude(ends, PADUA) + (7.0 + 5.0 / 60.0)).abs() < 1e-4);
         let set = sunset(day, PADUA).expect("sunset");
         assert!(set.0 < dusk.0 && dusk.0 < ends.0);
+    }
+
+    /// Hebcal's zmanim (`hebcal-zmanim-api`, retrieved 2026-09-27) for a
+    /// place and day: the place, the zone offset in hours, the date, and the
+    /// printed minutes of the day, in the order of [`ZMANIM_ORDER`].
+    /// A place, its zone offset in hours, a date, and sixteen printed
+    /// times of day as hour and minute.
+    type Printed = (Location, f64, (i64, u8, u8), [(u8, u8); 16]);
+
+    const HEBCAL: [Printed; 3] = [
+        (
+            // New York City, 2025-01-01, UTC−5.
+            Location::new(40.71427, -74.00597, 0.0),
+            -5.0,
+            (2025, 1, 1),
+            [
+                (5, 52),
+                (7, 20),
+                (8, 56),
+                (9, 4),
+                (9, 40),
+                (9, 57),
+                (10, 3),
+                (10, 27),
+                (12, 23),
+                (12, 29),
+                (14, 43),
+                (15, 25),
+                (15, 41),
+                (16, 40),
+                (17, 25),
+                (17, 52),
+            ],
+        ),
+        (
+            // Jerusalem, 2025-06-21, UTC+3.
+            Location::new(31.76904, 35.21633, 0.0),
+            3.0,
+            (2025, 6, 21),
+            [
+                (4, 6),
+                (5, 34),
+                (8, 24),
+                (8, 32),
+                (9, 8),
+                (9, 49),
+                (9, 55),
+                (10, 19),
+                (13, 17),
+                (13, 23),
+                (16, 50),
+                (17, 32),
+                (18, 19),
+                (19, 48),
+                (20, 30),
+                (21, 0),
+            ],
+        ),
+        (
+            // London, 2025-03-20, UTC.
+            Location::new(51.50853, -0.12574, 0.0),
+            0.0,
+            (2025, 3, 20),
+            [
+                (4, 23),
+                (6, 3),
+                (8, 16),
+                (8, 30),
+                (9, 6),
+                (9, 33),
+                (9, 43),
+                (10, 7),
+                (12, 39),
+                (12, 45),
+                (15, 42),
+                (16, 24),
+                (16, 58),
+                (18, 14),
+                (19, 4),
+                (19, 26),
+            ],
+        ),
+    ];
+
+    /// Hebcal's names for the sixteen columns of [`HEBCAL`].
+    const ZMANIM_ORDER: [&str; 16] = [
+        "alotHaShachar",
+        "sunrise",
+        "sofZmanShmaMGA16Point1",
+        "sofZmanShmaMGA",
+        "sofZmanShma",
+        "sofZmanTfillaMGA16Point1",
+        "sofZmanTfillaMGA",
+        "sofZmanTfilla",
+        "minchaGedola",
+        "minchaGedolaMGA",
+        "minchaKetana",
+        "minchaKetanaMGA",
+        "plagHaMincha",
+        "sunset",
+        "tzeit85deg",
+        "tzeit72min",
+    ];
+
+    #[test]
+    fn the_zmanim_fall_where_hebcal_prints_them() {
+        let mut worst: f64 = 0.0;
+        for (place, zone, (year, month, date), printed) in HEBCAL {
+            let day = hc_calendar::gregorian::to_fixed(year, month, date).expect("a date");
+            let computed = [
+                jewish_dawn_16_1_degrees(day, place),
+                sunrise(day, place).ok_or(MissingSolarEvent::Sunrise(day)),
+                zman_mga_16_1_degrees(&Zman::SOF_ZMAN_SHMA, day, place),
+                zman_mga_72_minutes(&Zman::SOF_ZMAN_SHMA, day, place),
+                zman_gra(&Zman::SOF_ZMAN_SHMA, day, place),
+                zman_mga_16_1_degrees(&Zman::SOF_ZMAN_TFILA, day, place),
+                zman_mga_72_minutes(&Zman::SOF_ZMAN_TFILA, day, place),
+                zman_gra(&Zman::SOF_ZMAN_TFILA, day, place),
+                zman_gra(&Zman::MINCHA_GEDOLA, day, place),
+                zman_mga_72_minutes(&Zman::MINCHA_GEDOLA, day, place),
+                zman_gra(&Zman::MINCHA_KETANA, day, place),
+                zman_mga_72_minutes(&Zman::MINCHA_KETANA, day, place),
+                zman_gra(&Zman::PLAG_HAMINCHA, day, place),
+                sunset(day, place).ok_or(MissingSolarEvent::Sunset(day)),
+                jewish_nightfall_8_5_degrees(day, place),
+                jewish_nightfall_72_minutes(day, place),
+            ];
+            for ((name, moment), (hour, minute)) in ZMANIM_ORDER.iter().zip(computed).zip(printed) {
+                let moment = moment.expect("every one of these happens");
+                let local = (moment.0 - day.0 as f64) * 1_440.0 + zone * 60.0;
+                let offset = local - (f64::from(hour) * 60.0 + f64::from(minute));
+                worst = worst.max(offset.abs());
+                assert!(
+                    offset.abs() < 1.0,
+                    "{year}-{month}-{date} {name}: {offset} min"
+                );
+            }
+        }
+        // Hebcal prints whole minutes, rounded, and its sunrise and this
+        // one differ by seconds: every one of the 48 is within half a
+        // minute.
+        assert!(worst < 0.5, "worst {worst} min");
+    }
+
+    #[test]
+    fn the_mga_day_is_the_gra_day_and_two_twilights() {
+        let day = gregorian_new_year(2025) + 100;
+        let gra = temporal_hour_gra(day, PADUA).expect("defined");
+        let mga = temporal_hour_mga_72_minutes(day, PADUA).expect("defined");
+        assert!((12.0 * (mga - gra) - 2.0 * JEWISH_TWILIGHT_72_MINUTES).abs() < 1e-9);
+        assert_eq!(Some(gra), daytime_temporal_hour(day, PADUA).ok());
+        // The Magen Avraham's latest Shema is before the Gra's, and the
+        // 16.1° day sits between the two in length at Padua in April.
+        let mga_shma = zman_mga_72_minutes(&Zman::SOF_ZMAN_SHMA, day, PADUA).expect("defined");
+        let gra_shma = zman_gra(&Zman::SOF_ZMAN_SHMA, day, PADUA).expect("defined");
+        assert!(mga_shma.0 < gra_shma.0);
+        let dawn = jewish_dawn_16_1_degrees(day, PADUA).expect("defined");
+        assert!((solar_altitude(dawn, PADUA) + 16.1).abs() < 1e-4);
+        let nightfall = jewish_nightfall_8_5_degrees(day, PADUA).expect("defined");
+        assert!((solar_altitude(nightfall, PADUA) + 8.5).abs() < 1e-4);
+        assert_eq!(Zman::by_id("plag-hamincha"), Some(Zman::PLAG_HAMINCHA));
+    }
+
+    /// Hebcal prints no dawn at 16.1° for London on 21 June 2025, nor the
+    /// Magen Avraham's times that need it (`hebcal-zmanim-api`): the Sun
+    /// gets only about 15° below the horizon there that night.
+    #[test]
+    fn there_is_no_sixteen_degree_dawn_in_a_london_june() {
+        let london = Location::new(51.50853, -0.12574, 0.0);
+        let day = gregorian_new_year(2025) + 171;
+        assert_eq!(
+            jewish_dawn_16_1_degrees(day, london),
+            Err(MissingSolarEvent::DawnDepression {
+                day,
+                arcminutes: JEWISH_DAWN_16_1_DEGREES_ARCMINUTES
+            })
+        );
+        assert!(zman_mga_16_1_degrees(&Zman::SOF_ZMAN_SHMA, day, london).is_err());
+        // The fixed-minute reckonings still answer.
+        assert!(zman_mga_72_minutes(&Zman::SOF_ZMAN_SHMA, day, london).is_ok());
+        assert!(jewish_nightfall_8_5_degrees(day, london).is_ok());
+        let message = jewish_dawn_16_1_degrees(day, london)
+            .expect_err("no dawn")
+            .to_string();
+        assert!(message.contains("morning"), "{message}");
     }
 }
