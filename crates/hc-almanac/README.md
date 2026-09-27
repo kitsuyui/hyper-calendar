@@ -1,13 +1,21 @@
 # hc-almanac
 
-暦注 and 選日 — the divinatory annotations of the Japanese and Chinese almanac.
+The divinatory annotations of the Japanese and Chinese almanac: 暦注
+(almanac notes) and 選日 (selected days).
 
-`hc-seasons` owns the astronomical subdivisions of the year: the 24 solar terms,
-the 72 pentads, the 雑節. This crate owns what a printed almanac lays *on top of*
-them. A page of the 神宮館 or 高島 almanac gives the date, then the 干支, then
-十二直, then 二十八宿, then the three 九星, then a paragraph of 暦注下段 and 選日.
-Every one of those is a **rule over a cycle**, not an astronomical event — so the
-crate is data plus one evaluator, not a function per annotation.
+`hc-seasons` owns the astronomical subdivisions of the year: the 24 solar
+terms, the 72 pentads, the 雑節. This crate owns what a printed almanac lays
+*on top of* them. A page of the 神宮館 or 高島 almanac gives, in order:
+
+1. the date;
+2. the 干支;
+3. the 十二直;
+4. the 二十八宿;
+5. the three 九星;
+6. a paragraph of 暦注下段 and 選日.
+
+Every one of those is a **rule over a cycle**, not an astronomical event.
+So the crate is data plus one evaluator, not a function per annotation.
 
 ```rust
 use hc_almanac::{LowerRegister, Meridian, Rd, day_notes::day_notes};

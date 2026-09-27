@@ -1,14 +1,20 @@
 # `hc-calendars-lunar`
 
-Lunar and lunisolar calendars for [`hyper-calendar`]: the Hijri family, the
-Hebrew calendar, the Babylonian calendar of the Seleucid era, the Tibetan
-calendar in its Phugpa, Tsurphu and Bhutanese versions and the Mongolian
-calendar on the same engine, the Javanese calendar of Sultan Agung in its three
-reckonings, the East Asian lunisolar calendars of China, Korea and
-Vietnam, the five successive lunisolar calendars Japan used between 862
-and 1872, and four arithmetic proposals, the Meyer–Palmen Solilunar,
-Meyer's Archetypes, Palmen's Yerm lunar calendar and the lunar half of
-Meyer's Liberalia Triday calendar.
+Lunar and lunisolar calendars for [`hyper-calendar`]. A lunar calendar's
+months follow the Moon; a lunisolar calendar also keeps its years in step
+with the Sun by adding leap months. This crate holds:
+
+- the Hijri family;
+- the Hebrew calendar;
+- the Babylonian calendar of the Seleucid era;
+- the Tibetan calendar in its Phugpa, Tsurphu and Bhutanese versions, and
+  the Mongolian calendar on the same engine;
+- the Javanese calendar of Sultan Agung, in its three reckonings;
+- the East Asian lunisolar calendars of China, Korea and Vietnam;
+- the five successive lunisolar calendars Japan used between 862 and 1872;
+- four arithmetic proposals: the Meyer–Palmen Solilunar, Meyer's
+  Archetypes, Palmen's Yerm lunar calendar and the lunar half of Meyer's
+  Liberalia Triday calendar.
 
 Every calendar implements `hc_calendar::Calendar`, so every one of them
 converts through `Rd`, the Rata Die fixed day, and none of them knows the

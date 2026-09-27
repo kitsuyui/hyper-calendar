@@ -50,23 +50,31 @@ and Sun & Moon remain together on Kartik Amavasya". The new moon that
 ends Āśvina and begins Kārttika in the amānta reckoning, the new moon of
 Diwali, falls with the Sun in Tulā, and that is the reading here.
 
-A condition holds in a year when Jupiter is in its sign at the moment the
-Sun enters the condition's sign, or, for a new-moon condition, at the new
-moon that falls in the Sun's stay there. The first moment is the one that
-counts, because a stay of the Sun can hold a change of Jupiter's sign.
+A condition holds in a year when Jupiter is in its sign at one moment:
+
+- the moment the Sun enters the condition's sign; or,
+- for a new-moon condition, the new moon that falls in the Sun's stay
+  there.
+
+The first moment is the one that counts, because a stay of the Sun can
+hold a change of Jupiter's sign.
 
 **Worked example.** Drik Panchang puts Jupiter's entry into Vṛṣabha at
-13:50 IST on 1 May 2024 and its entry into Mithuna at 23:20 on 14 May 2025
-[drik-guru-gochar]. The Sun entered Makara on 14 January 2025, with
-Jupiter in Vṛṣabha: Prayag's first condition held, and the Maha Kumbh
-opened on 13 January, its first great bath on Makara Saṅkrānti
-[wikipedia-kumbh-mela]. A year earlier Jupiter was in Meṣa, which it had
-entered on 22 April 2023, and the new moon of the night of 9 to 10
-February 2024 fell in the Sun's stay in Makara: Prayag's second condition held in
-2024, when no festival was held. Haridwar shows why the first moment is
-read. Jupiter entered Kumbha on 1 May 2009, during the Sun's stay in Meṣa
-that began on 14 April, and was in Kumbha when the Sun entered Meṣa on
-14 April 2010. The festival was held in 2010.
+13:50 IST on 1 May 2024, and its entry into Mithuna at 23:20 on 14 May 2025
+[drik-guru-gochar].
+
+- **Prayag, 2025.** The Sun entered Makara on 14 January 2025, with
+  Jupiter in Vṛṣabha. Prayag's first condition held. The Maha Kumbh opened
+  on 13 January, and its first great bath was on Makara Saṅkrānti
+  [wikipedia-kumbh-mela].
+- **Prayag, 2024.** A year earlier Jupiter was in Meṣa, which it had
+  entered on 22 April 2023. The new moon of the night of 9 to 10 February
+  2024 fell in the Sun's stay in Makara. So Prayag's second condition held
+  in 2024, when no festival was held.
+- **Haridwar, 2009 and 2010**, show why the first moment is read. Jupiter
+  entered Kumbha on 1 May 2009, during the Sun's stay in Meṣa that began on
+  14 April. It was in Kumbha when the Sun entered Meṣa on 14 April 2010.
+  The festival was held in 2010.
 
 ### Pushkaram
 
@@ -143,7 +151,7 @@ Not carried:
 
 The Sun's entries and the new moons are this library's, from `hc-seasons`
 and `hc-astro`. They stand about 8 minutes before Drik Panchang's for the
-saṅkrāntis, from the difference in the Lahiri ayanamsa (see
+saṅkrāntis, from the difference in the Lahiri ayanāṃśa (see
 [hindu-calendars.md](hindu-calendars.md)). No condition tested falls near
 enough to Jupiter's change of sign for that to matter.
 

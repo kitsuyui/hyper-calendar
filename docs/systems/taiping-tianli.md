@@ -4,13 +4,13 @@ Backs the identifier `taiping-tianli` in `hc-calendars-solar`.
 
 ## What it is
 
-The calendar of the Taiping Heavenly Kingdom, drawn up in the kingdom's
-first year, 辛開, and in force from its second, 壬子. It was a deliberate
-break with the Qing calendar: a solar year with no leap day and no leap
-month, and none of the almanac's lucky and unlucky days
-[wikipedia-zh-taiping-tianli]. It was kept at the capital 天京 until its
-fall in 1864, and by the kingdom's remaining armies until 1869
-[luo-ergang-taiping-tianli].
+The Taiping Heavenly Calendar is the calendar of the Taiping Heavenly
+Kingdom. It was drawn up in the kingdom's first year, 辛開, and was in force
+from its second, 壬子. It was a deliberate break with the Qing calendar: a
+solar year with no leap day and no leap month, and none of the almanac's
+lucky and unlucky days [wikipedia-zh-taiping-tianli]. It was kept at the
+capital 天京 until the capital fell in 1864, and by the kingdom's remaining
+armies until 1869 [luo-ergang-taiping-tianli].
 
 ## How it works
 
@@ -22,21 +22,26 @@ fall in 1864, and by the kingdom's remaining armies until 1869
   which were thought ill-sounding: 癸好三年, 癸開十三年
   [wikipedia-zh-taiping-tianli, luo-ergang-taiping-tianli].
 - **The days** carry a stem and branch and one of the twenty-eight lunar
-  mansions, which mark the week, both taken from the Qing almanac of
-  咸豐元年; the mansions 房, 虛, 昴 and 星 fall on the Western Sunday.
-  From the calendar's first day its stems, branches and weekdays were one
-  day ahead of the Qing almanac's and the Western week's
+  mansions, which mark the week. Both are taken from the Qing almanac of
+  咸豐元年. The mansions 房, 虛, 昴 and 星 fall on the Western Sunday
+  [luo-ergang-taiping-tianli].
+- **The slip.** From the calendar's first day, its stems, branches and
+  weekdays were one day ahead of the Qing almanac's and the Western week's
   [luo-ergang-taiping-tianli].
 
-**Worked example.** Luo sets 壬子二年正月初一, which the calendar called 丙申
-and a Wednesday, against 咸豐元年十二月十四日 乙未 and 3 February 1852, a
-Tuesday. The second year then runs 366 days, to 十二月三十日, the 31 + 30 +
-… + 30 = 366th day: 3 February 1852 + 365 days is 2 February 1853. Luo
-gives that day as the one the calendar called 辛好 and a Thursday, and the
-Qing calendar 庚子 and the Western calendar a Wednesday, one day behind as
-on the first day. The nineteenth year's 四月十一日 is 17 × 366 + 31 + 30 +
-31 + 10 = 6 324 days after the first day, 28 May 1869, the date Luo gives
-for it, 清同治八年四月十七日.
+**Worked example.** Three days that Luo dates:
+
+1. **The first day.** Luo sets 壬子二年正月初一 against 咸豐元年十二月十四日
+   and 3 February 1852. That day was 乙未 and a Tuesday. The calendar
+   called it 丙申 and a Wednesday.
+2. **The last day of the second year.** The year runs 366 days, to
+   十二月三十日, the 31 + 30 + … + 30 = 366th day. 3 February 1852 + 365
+   days is 2 February 1853. Luo gives that day as 庚子 on the Qing calendar
+   and a Wednesday on the Western one. The calendar called it 辛好 and a
+   Thursday: the true names are one day behind, as on the first day.
+3. **The last dated use.** The nineteenth year's 四月十一日 is 17 × 366 +
+   31 + 30 + 31 + 10 = 6 324 days after the first day. That is 28 May
+   1869, the date Luo gives for it, 清同治八年四月十七日.
 
 ## What is carried
 
@@ -51,7 +56,7 @@ for it, 清同治八年四月十七日.
 Not carried:
 
 - **The 斡年.** Hong Rengan's reform of the ninth year put a 斡年 of 28-day
-  months every forty years, replacing an earlier plan of a year of 33-day
+  months every forty years. It replaced an earlier plan of a year of 33-day
   months every forty [wikipedia-zh-taiping-tianli]. Neither fell within the
   calendar's use, and no source read says which year of the forty would
   have been the first.
@@ -61,9 +66,9 @@ Not carried:
 - **The other view of the slip**, that the day names fell a day ahead only
   from 癸好三年二月十三日, the day Nanjing was taken; Luo records it and
   says the evidence refutes it [luo-ergang-taiping-tianli].
-- **The first year**, 辛開元年, which was dated on the Qing calendar; the
-  calendar printed for it in the third year was worked backwards, and Luo
-  warns that converting its dates by the new calendar gives nonsense
+- **The first year**, 辛開元年, which was dated on the Qing calendar. The
+  calendar printed for it in the third year was worked backwards. Luo warns
+  that converting its dates by the new calendar gives nonsense
   [luo-ergang-taiping-tianli].
 
 ## Accuracy

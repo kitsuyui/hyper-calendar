@@ -1,12 +1,18 @@
 # Architecture
 
+This document explains how `hyper-calendar` is put together, and why. It
+covers the two representations every conversion passes through, the crates
+and their dependencies, the facade and the boundary crates, and where the
+hard parts live. Read it before adding a crate or changing a crate's public
+types. [policy.md](policy.md) gives the rules the design serves.
+
 ## The problem
 
 A library that converts between `n` calendars pairwise needs `n²`
 conversions. Time scales, uncertain dates, clocks on other bodies and
 relativistic corrections multiply that count again. The design avoids the
 multiplication by routing everything through two canonical
-representations.
+representations, called *pivots*.
 
 ## Two pivots
 
@@ -26,11 +32,13 @@ Persian fields ────┤                     ├── ISO week date
 Holocene fields ───┘                     └── Julian Day Number
 ```
 
-A calendar author writes `to_fixed` and `from_fixed`. Conversion between
-any two calendars, the registry, the formatter and the holiday engine follow
-from those two functions. No calendar knows another exists. This is the
-design of Reingold and Dershowitz's *Calendrical Calculations*. It makes the
-work linear in the number of calendars.
+A calendar author writes two functions: `to_fixed`, from the calendar's
+date to `Rd`, and `from_fixed`, back. ("Fixed date" is *Calendrical
+Calculations*' name for a Rata Die day.) Conversion between any two
+calendars, the registry, the formatter and the holiday engine follow from
+those two functions. No calendar knows another exists. This is the design
+of Reingold and Dershowitz's *Calendrical Calculations*. It makes the work
+linear in the number of calendars.
 
 `Rd` says nothing about time of day, time zone or time scale. A *day* is the
 largest unit every calendar agrees on. Time of day is carried beside it, as
@@ -128,14 +136,14 @@ boundary crates do.
   fixed column order. `boundary::Refusal` is the one list of reasons a
   line-maker refuses, which each boundary spells as its own error code.
 
-The two boundary crates, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
+The two *boundary crates*, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the
-same layers as Cargo features: `civil` (the default), `timestamps`,
-`time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`, `orbital`,
-`planetary`, `relativity` and `full`. A page or a host program builds only
-the layer it loads. Each crate's README lists every export with the feature
-it needs; `crates/hyper-calendar/tests/abi.rs` renders those tables from
-the source and fails when they drift.
+same *layers*, each a Cargo feature: `civil` (the default), `timestamps`,
+`time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`,
+`orbital`, `planetary`, `relativity` and `full`. A page or a host program
+builds only the layers it loads. Each crate's README lists every export
+with the feature it needs. `crates/hyper-calendar/tests/abi.rs` renders
+those tables from the source and fails when they drift.
 
 A calendar that cannot name a day answers with a line that says so. The
 line carries the stable code and name that `CalendarError` gives every
@@ -216,6 +224,7 @@ Each row names a concern that is easy to get wrong and the crate that owns it.
 ## Further reading
 
 - [policy.md](policy.md) — the standing rules this design serves
+- [glossary.md](glossary.md) — the terms these documents use
 - [calendars.md](calendars.md) — the calendar coverage roadmap
 - [observances.md](observances.md) — the holiday and religious-day roadmap
 - [time-scales.md](time-scales.md) — what each scale is and how they relate

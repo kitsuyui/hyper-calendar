@@ -5,8 +5,8 @@ registered: these are periods of a day and a night, not calendars.
 
 ## What it is
 
-A choghadiya is one of the eight equal parts of the daylight or of the
-night that almanacs of western India print for choosing a time to begin
+A choghadiya is one of the eight equal parts of the daylight, or of the
+night. Almanacs of western India print them for choosing a time to begin
 something [wikipedia-choghadiya]. Each part is named for one of seven
 kinds. Amrita, Shubha and Labha are auspicious, Chara is neutral, and
 Udvega, Kala and Roga are inauspicious [wikipedia-choghadiya,
@@ -53,15 +53,19 @@ Both columns are Drik Panchang's pages for New Delhi of 1 to 7 January
 2025, one page for each weekday [drik-choghadiya-2025]. Wikipedia gives
 the division but not the sequences.
 
-**Worked example.** At New Delhi on Wednesday 1 January 2025, Drik
-Panchang gives sunrise at 07:14 IST and sunset at 17:36: 622 minutes of
-daylight, so a part is 77.75 minutes. The day begins with Labha, ruled by
-Mercury, Wednesday's planet: 07:14 to 08:31.75, printed as 07:14 to 08:32.
-The fifth part is four places on, Roga, from 07:14 + 4 × 77.75 min =
-12:25. The next sunrise is at 07:14 again, so the night runs 818 minutes
-and a part is 102.25 minutes. The night begins with Udvega, 17:36 to
-19:18.25, and its second part is five places on, Shubha, printed from
-19:18 [drik-choghadiya-2025].
+**Worked example.** New Delhi on Wednesday 1 January 2025
+[drik-choghadiya-2025]:
+
+- Drik Panchang gives sunrise at 07:14 IST and sunset at 17:36. That is 622
+  minutes of daylight, so a part is 77.75 minutes.
+- The day begins with Labha, ruled by Mercury, Wednesday's planet. It runs
+  07:14 to 08:31.75, printed as 07:14 to 08:32.
+- The fifth part is four places on, Roga. It begins at 07:14 + 4 × 77.75
+  min = 12:25.
+- The next sunrise is at 07:14 again, so the night runs 818 minutes and a
+  part is 102.25 minutes.
+- The night begins with Udvega, 17:36 to 19:18.25. Its second part is five
+  places on, Shubha, printed from 19:18.
 
 ## What is carried
 
