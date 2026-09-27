@@ -293,7 +293,12 @@ Temporal and Italian hours, and the religious times:
   `zman_gra`, `zman_mga_72_minutes` and `zman_mga_16_1_degrees`. The
   book's `jewish-morning-end`, the end of the fourth temporal hour, for
   which the book names no authority, is `zman_gra` of `sof-zman-tfila`:
-  the end of the fourth hour from sunrise by the GRA.
+  the end of the fourth hour from sunrise by the GRA. The rule is the
+  *Shulchan Arukh*'s last time for the morning prayer, "until the end of
+  four hours, which is a third of the day" (*Orach Chayim* 89:1)
+  [shulchan-arukh-oc-89], and counting those hours from sunrise is the
+  Vilna Gaon's reckoning as the *Mishnah Berurah* gives it (58:4)
+  [mishnah-berurah-58].
 - Dawn and nightfall: `jewish_dawn_16_1_degrees`, `jewish_dawn_72_minutes`,
   `jewish_nightfall_8_5_degrees` and `jewish_nightfall_72_minutes`.
   Candle lighting, the other angles and minute counts Hebcal prints
@@ -412,6 +417,11 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 - [koyomi8-yoake-higure] — こよみのページ, 「理科年表の「夜明」と「日暮」の
   角度」 (2020-02-12) and its 補稿 (2020-02-16): the 理科年表's wording, and
   the Kyoto equinox times. Read 2026-09-27.
+- [shulchan-arukh-oc-89] — *Orach Chayim* 89:1, the time of the morning
+  prayer, in Hebrew and in the Sefaria Community Translation. Read
+  2026-09-27.
+- [mishnah-berurah-58] — 58:4, the Magen Avraham's and the Vilna Gaon's
+  starting points for the hours. Read in Hebrew 2026-09-27.
 
 ## Code
 
@@ -421,6 +431,8 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 `the_sundial_reads_noon_at_the_suns_transit`,
 `apparent_and_mean_time_invert_each_other`,
 `a_tokyo_new_years_temporal_hour_matches_the_national_ephemeris`,
+`the_end_of_the_morning_in_jerusalem_matches_hebcal`,
+`the_end_of_the_morning_is_four_temporal_hours_after_sunrise`,
 `temporal_hours_six_and_eighteen_are_sunrise_and_sunset`,
 `temporal_time_inverts_its_universal_time`,
 `temporal_hours_are_refused_under_the_midnight_sun_and_the_polar_night`,

@@ -1,10 +1,11 @@
 # The Khmer *Chhankitek*, and the *suryayatra* arithmetic of Thailand, Laos and Cambodia
 
-Backs the identifier `khmer` in `hc-calendars-regional` and the shared
-module `southeast_asian`, which holds the month layout that `khmer` and
-`thai-lunar` both use and the *suryayatra* quantities `khmer` computes its
-years from. It also records why `lao`, `sinhalese-lunar` and `shan`, the
-other members of the family on the roadmap, are not carried.
+Backs the identifiers `khmer` and `lao` in `hc-calendars-regional` and the
+shared module `southeast_asian`, which holds the month layout that `khmer`,
+`lao` and `thai-lunar` all use and the *suryayatra* quantities and rule
+`khmer` and `lao` compute their years from. It also records why
+`sinhalese-lunar` and `shan`, the other members of the family on the
+roadmap, are not carried.
 
 ## What it is
 
@@ -77,6 +78,19 @@ between 4 keit of Chaet and 4 keit of Pisakh [tum-chhankitek], and each
 year's announcement gives the lunar date of each of its days
 [freshnews-songkran-2025].
 
+**The Lao calendar.** Laos keeps the same lunisolar year. Sylvain
+Dupertuis's "Le calcul du calendrier laotien" (1981) sets out its
+computation from Prince Phetsarath's *Horasat Lao* (1973), which it follows,
+and from Phetsarath's shorter article in *Présence du Royaume Lao*
+[dupertuis1981, p. 17; phetsarath1956, not read]. The months are
+numbered, ເດືອນອ້າຍ or ເດືອນຈຽງ, the first, ເດືອນຍີ່, the second, and so on to
+ເດືອນສິບສອງ, the twelfth [wikipedia-lo-songkan; dupertuis1981, p. 66]; the
+odd months have 29 days and the even 30; a leap-month year, ອະທິກະມາດ,
+repeats month 8, and a leap-day year, ອະທິກະວານ, gives month 7 a 30th day
+[dupertuis1981, pp. 20, 23]. Dupertuis numbers the years in the
+Chulasakarat era, the "petite ère", whose number changes at the solar New
+Year: 1343 began on Wednesday 15 April 1981 [dupertuis1981, pp. 44–45].
+
 ## How it works
 
 **Whose arithmetic.** Tum's "Khmer Chhankitek Calendar" gives the rules that
@@ -140,6 +154,27 @@ and suspect that in practice the day was sometimes moved always forward or
 always back [gisleneade2019, pp. 423, 426, 428–429]. This library carries
 Tum's rule, which has no whole-year shift, and Cambodia's published dates
 bear it out (see Accuracy).
+
+**Laos.** Dupertuis states the same rule for Laos: the year is common when
+the *dithy*, the New Year's lunar day, is from 6 to 24 and embolismic
+otherwise, with the 24-then-6 exception, which makes the first year
+embolismic; the avoman marks a leap-day year when it is under 137, or under
+126 in a 366-day solar year; and "la règle veut qu'on évite d'ajouter le
+jour supplémentaire les années embolismiques", so when both fall in one
+year "on effectue la correction en reportant d'une année le 7e mois plein"
+[dupertuis1981, pp. 23, 32–33, 41–42, annex 7]. That is Tum's rule, and the
+two thresholds agree with Tum's in every year where the difference could
+show but one: a 366-day solar year with avoman exactly 126, which Tum
+counts as a leap-day year and Dupertuis does not, and which no year from
+1900 to 2200 has. Two cases Dupertuis leaves open. For a *dithy* of 25
+followed by 5 he finds nothing in his sources and gives both readings
+[dupertuis1981, annex 7]; no year from 1900 to 2200 has it. For a *dithy*
+of 5, which puts the New Year in month 6, he discusses a correction that
+"pose un problème" when the year is also a leap-day year, without a rule
+[dupertuis1981, pp. 39–40]; his table puts the New Year of 1300, the year
+after such a year, on 15 ຂຶ້ນ of month 5, 15 April 1938, where the rule as
+he states it gives 1 ແຮມ [dupertuis1981, pp. 46–47]. The years with that
+case in 1900–2200 are 1299, 1402, 1459 and 1562 (1937, 2040, 2097 and 2200).
 
 So, for the Buddhist year *b*: a leap-month year if the month rule calls for
 it; otherwise a leap-day year if the day rule does, or if the year before was
@@ -209,10 +244,23 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   moved day on through a run of leap-month years, a run that no year of the
   range has. Outside it they part — in 1818 and in 2272 — and nothing here
   was checked against a date so far from the present.
+- **Identifier** `lao`, in `hc-calendars-regional`, with the same month
+  and day fields as `khmer` and the Lao month names in Lao script. Both
+  months 8 of a leap-month year are ເດືອນແປດ, the extra one
+  `Month::leap(8)`: no Lao name for it was found. A year is one run of
+  months, month 1 to month 12, numbered by the Chulasakarat year of the
+  solar New Year in it, as Dupertuis's table numbers them; the number
+  printed from month 1 to the New Year, the animal year and the Buddhist
+  Era are not carried. The display writes the day in Lao digits in the
+  order of Dupertuis's glossary, «ເດືອນຫ້າ ຂຶ້ນ ໑໑ ຄ່ຳ ປີ ໑໓໔໓» for 15 April
+  1981. The range is 1301 to 1401, 23 November 1938 to 15 November 2039:
+  the run between the two open *dithy*-5 cases of 1299 and 1402, so that
+  no year in it depends on how they are settled.
 - **The shared engine.** `southeast_asian` holds the year types, the month
   layout that both Cambodia and Thailand use, the walk from a first day
-  over a run of typed years, and the *suryayatra* quantities. `thai-lunar`
-  gives it a table of published year types, `khmer` the rule.
+  over a run of typed years, the *suryayatra* quantities and the rule.
+  `thai-lunar` gives it a table of published year types, `khmer` and `lao`
+  the rule.
 - **Not carried:**
   - *Faraut's weekday rule*, which Gislén and Eade set out for Thailand
     [gisleneade2019, pp. 428–429]. Faraut's *Astronomie Cambodgienne*
@@ -224,25 +272,23 @@ leap day: Jesth 2025 has 30 days, and the year 355.
     Sak* days — which the announcements date and which needs the true Sun
     of the *suryayatra*, not the mean quantities above.
   - *The years before 1900 and after 2200*, as above.
-  - *Lao* (`lao`). Gislén and Eade treat Laos with Thailand and Cambodia,
-    and name Phetsarath's "Le calendrier lao" (1956) and Dupertuis' "Le
-    calcul du calendrier laotien" (1981) as its detailed treatments
-    [gisleneade2019, p. 421]; neither was read. What is missing is the rule
-    Laos uses when the month and the day fall in one year — Tum's, Faraut's,
-    or another — and a published Lao date in a year where the choice shows;
-    until then a Lao date would be a Khmer or a Thai date given another
-    name. Gislén and Eade's Lao month names, in Latin letters, are the only
-    Lao vocabulary read.
   - *Sinhalese lunar* (`sinhalese-lunar`). Sri Lanka's Poya days are fixed
-    each year by the Holidays Act orders, and no source read gives a rule
-    that reproduces them; `hc-holiday`'s Sri Lanka table already carries the
-    orders for 2023–2027, Poya days and *adhi* Poya days included.
+    each year by orders under the Holidays Act, which states no rule
+    [lk-holidays-act-1971]; `hc-holiday`'s Sri Lanka table already carries
+    the orders for 2023–2027, Poya days and *adhi* Poya days included. The
+    choice is a committee's and turns on the *nakṣatra*: in 2026 Vesak was
+    confirmed for 30 May so that "the 'Visa Nakatha' should fall on the
+    Vesak Full Moon Poya Day" [adaderana-vesak-2026]. No statement of the
+    committee's method was found.
   - *Tai, Shan and Dai* (`shan`). Gislén and Eade's table of month numbers
     gives Caitra as month 5 in the central (Sukhothai) numbering, 6 at Keng
     Tung and 7 at Chiang Mai [gisleneade2019, Table 5], so the northern
-    numberings run one and two ahead of the Thai one, not of the Burmese; it
-    gives no Shan or Dai numbering, and no source read says which year rule
-    — Burmese or Thai — the Tai calendars follow.
+    numberings run one and two ahead of the Thai one, not of the Burmese.
+    The Chinese Wikipedia gives the Xishuangbanna Dai year from month 6
+    with its leap month always after month 9 by a fixed 19-year cycle, a
+    different rule from the *suryayatra* one, and a moved 30th day of
+    month 8 [wikipedia-zh-dai, citing sources not read]; it does not state
+    when month 8 has 30 days. No Shan source for the year rule was found.
 
 ## Accuracy
 
@@ -260,6 +306,20 @@ reproduced:
 | Tum's table of *ahakun*, avoman and *bodithey* for 2000–2020, and the year types of 2001–2020 | `tums_table_of_2000_to_2020_is_reproduced` | 21 rows and 20 types |
 | Gislén and Eade's worked example, Chulasakarat 1238: *ahargana* 452 191, kammacabala 161, avoman 655, tithi 19 | `the_worked_example_of_chulasakarat_1238_is_reproduced` | yes |
 | Every day of the range round-trips, the days are consecutive, and every year's months sum to its type | `every_day_of_the_range_round_trips`, `month_lengths_follow_the_year_type` | 109 942 days |
+
+**The Lao calendar.** No Lao almanac was read; the reference is
+Dupertuis's computation.
+
+| Check | Test | Result |
+| --- | --- | --- |
+| The lunar date and weekday of every solar New Year of Dupertuis's table from 1301 to 1350 (1939–1988), among them the four years after a year of both a leap month and a leap day by the rule, 1305, 1310, 1316 and 1321, where keeping the day in the leap-month year would put the New Year a day earlier | `dupertuis_s_new_years_of_1301_to_1350_are_reproduced` | 50 of 50 lunar dates; for 1320 the table prints Tuesday for 16 April 1958, a Wednesday |
+| The worked example of 1343: horakhoune 490 543, avamane 407, dithy 11, Wednesday 15 April 1981 | `the_worked_example_of_1343_is_reproduced` | yes |
+| The last days of the 24 months from January 1979 to December 1980, from Dupertuis's table beside the new moons | `the_month_ends_of_1979_and_1980_are_reproduced` | 24 of 24 dates; his labels after month 7 of 1980 count the two months 8 of 1342, a leap-month year in his own year table, as one |
+| The range holds no case the source leaves open | `the_range_holds_none_of_the_cases_the_source_leaves_open` | yes |
+| Every day of the range round-trips | `every_day_of_the_range_round_trips` | 36 883 days |
+
+The table's year 1300 is outside the range: its New Year is a day off the
+rule, after the open case of 1299, as above.
 
 **What the published dates test.** Every date after 1900 tests the count of
 leap days and months since the epoch, since one missing day shifts
@@ -299,7 +359,12 @@ table.
 | [soeun-pratitin] | The rules above, through Tum | Not read |
 | [gisleneade2019] | The *suryayatra* formulas in the Chulasakarat era and the worked example of 1238; the leap-month and leap-day rules; Faraut's weekday rule; the family as one system; Table 5's month numbers; the Lao sources | Yes, 2026-09-26, the Internet Archive's copy of the NARIT PDF, by text extraction |
 | [eade2000] | The Thai statement of the leap-month bound | This repository, [thai-lunar.md](thai-lunar.md) |
-| [eade1995], [faraut1910], [phetsarath1956], [dupertuis1981] | The family, Faraut's rules and Laos, through [gisleneade2019] | Not read |
+| [dupertuis1981] | The Lao rules, the two open cases, the year table of 1300–1350, the worked example of 1343, the month ends of 1979–1980, the glossary | Yes, 2026-09-27, the PDF on revue-peninsule.fr, by text extraction, and pp. 46–47 and 70–71 in the page images |
+| [wikipedia-lo-songkan] | The twelve month names in Lao script, after Maha Sila Viravong's *Hit Sip Song* (not read) | Yes, revision 54397, 2026-09-27 |
+| [lk-holidays-act-1971] | Poya days fixed by order, no rule stated | Yes, lankalaw.net, 2026-09-27 |
+| [adaderana-vesak-2026] | Vesak 2026 on 30 May for the *visa nakatha* | Yes, 2026-09-27 |
+| [wikipedia-zh-dai] | The Xishuangbanna Dai year, leap month and moved day | Yes, revision 87431644, 2026-09-27 |
+| [eade1995], [faraut1910], [phetsarath1956] | The family, Faraut's rules and Laos, through [gisleneade2019] and [dupertuis1981] | Not read |
 | [momentkh] | The third reading of the rule compared over the range | Yes, 2026-09-26, `momentkh.ts` at commit ff2bfd5, MIT licence |
 | [wikipedia-km-chankitek] | The month names in Khmer script, the three year types by their Khmer names, the example of 3 December 2017 | Yes, 2026-09-26 |
 | [wikipedia-month] | The UNGEGN romanisations of the month names | Yes, 2026-09-26 |
@@ -317,7 +382,16 @@ table.
 `kammacabala`, `is_solar_leap_year`, `avoman` and `new_year_tithi`.
 `crates/hc-calendars-regional/src/khmer.rs`: `FIRST_YEAR`, `LAST_YEAR`,
 `has_leap_month`, `has_leap_day_by_rule`, `year_type_by_rule`, `year_type`,
-`KhmerDate` with `printed_year`, and `KhmerCalendar`. Anchors:
+`KhmerDate` with `printed_year`, and `KhmerCalendar`.
+`crates/hc-calendars-regional/src/lao.rs`: `FIRST_YEAR`, `LAST_YEAR`,
+`year_type`, `LaoDate` and `LaoCalendar`, anchored by
+`dupertuis_s_new_years_of_1301_to_1350_are_reproduced`,
+`the_worked_example_of_1343_is_reproduced`,
+`the_month_ends_of_1979_and_1980_are_reproduced` and
+`the_range_holds_none_of_the_cases_the_source_leaves_open`. The rule is
+`suryayatra_has_leap_month`, `suryayatra_has_leap_day` and
+`suryayatra_year_type` in `southeast_asian`, which `khmer` reads in the
+Buddhist Era. Khmer anchors:
 `the_new_years_of_2022_to_2026_fall_on_the_announced_lunar_days`,
 `the_buddhist_era_changes_at_the_full_moon_of_pisakh`,
 `the_sub_decreed_days_of_2024_to_2027_are_reproduced`,

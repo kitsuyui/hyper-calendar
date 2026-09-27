@@ -152,7 +152,11 @@ The article's "68 'Anka' … 1432 'Sal'" is the answer. The day before,
   and Divyasimhadeva (8 September 1859), but not the day any reign ended —
   and of the zamindars; the Ganjam series that restarts after 59; the Amli
   and Vilayati calendars with their solar months, which
-  [calendars.md](../calendars.md) lists.
+  [calendars.md](../calendars.md) lists. Girish Chandra and Pran Nath's
+  tables give their days from 1764 to 1900 after the Orissa Court tables,
+  and say the High Court tables put the same months a day later in 1891
+  and 1892 [girishchandra1894, preface]; the rule that places a month's
+  first day is in neither.
 
 ## Accuracy
 

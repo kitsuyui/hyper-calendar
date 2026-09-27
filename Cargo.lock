@@ -196,6 +196,7 @@ dependencies = [
  "hc-astro",
  "hc-calendar",
  "hc-calendars-lunar",
+ "hc-calendars-solar",
  "hc-core",
 ]
 

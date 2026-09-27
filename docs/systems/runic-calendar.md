@@ -114,9 +114,14 @@ León sighted Florida.
 - **The old series only.** Table 14.4 is the *aureus numerus antiquus*,
   the series of the staffs before 1690 [cucina2019, wikipedia-sv-runstav].
 - **Not carried:**
-  - *The corrected golden numbers* of the staffs after 1690. The one
-    statement read about them is that they begin with 19 on 1 January;
-    no source read tabulates them.
+  - *The corrected golden numbers* of the staffs after 1690. They are
+    Samuel Krook's series, which Lindhagen prints as his Table 8
+    [lindhagen1912, not read, as lithberg1920 cites it, p. 22]. Lithberg
+    tabulates two older corrected series in full, the Dalstorp staff of
+    1583 and a Fullerö staff dated 1520, and each differs from Krook's
+    [lithberg1920, Tables B and C, pp. 15, 23], so neither is the series
+    after 1690. Brate gives the corrected staffs 19 on 1 January and 8 on
+    2 January [brate1908, p. 13]; that is two entries, not a table.
   - *The feast marks.* They vary with the staff and the diocese, and no
     source read tabulates one staff's.
   - *The Norwegian primstav*, whose content is those marks.
@@ -160,11 +165,14 @@ were corrected after 1690, and is the table's, not this module's.
 | [bcp1559] | January's golden numbers in an English kalendar of the old series, as a check on the table | Yes, the transcription, 2026-09-26 |
 | [worm1643] | Ole Worm's *Fasti Danici*, the classic printed account of the Danish runic calendar | Not read |
 | [berg1998] | The corrected golden numbers after 1690, as cited by the Swedish Wikipedia | Not read |
+| [lithberg1920] | Two corrected series before 1600 in full, Tables B and C; Krook's series in [lindhagen1912], Table 8, and how the Fullerö staff differs from it | Yes, the scans and text on runeberg.org, 2026-09-27 |
+| [lindhagen1912] | Krook's corrected series, Table 8 | Not read: not on the Internet Archive, and HathiTrust and the Biodiversity Heritage Library could not be read, 2026-09-27 |
+| [brate1908] | The corrected staffs' 19 on 1 January and 8 on 2 January | Yes, runeberg.org, 2026-09-27 |
 
 Worm's *Fasti Danici* or a museum's transcription of a single staff would
 let the golden-number row be checked against a staff rather than against
-the computus the staffs follow; Berg and Berg, or a table of a
-post-1690 staff, would let the corrected series be carried.
+the computus the staffs follow; Lindhagen's Table 8, Berg and Berg, or a
+table of a post-1690 staff would let the corrected series be carried.
 
 ## Code
 

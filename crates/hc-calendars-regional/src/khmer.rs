@@ -73,7 +73,8 @@ use hc_calendar::{
 };
 
 use crate::southeast_asian::{
-    Fortnight, YearType, Years, avoman, is_solar_leap_year, new_year_tithi,
+    Fortnight, YearType, Years, suryayatra_has_leap_day, suryayatra_has_leap_month,
+    suryayatra_year_type,
 };
 
 /// The Buddhist Era year minus the Gregorian year its Visak Bochea falls in.
@@ -136,15 +137,7 @@ const fn chulasakarat(year: i64) -> i64 {
 /// one of 5 does not.
 #[must_use]
 pub const fn has_leap_month(year: i64) -> bool {
-    let this = new_year_tithi(chulasakarat(year));
-    let next = new_year_tithi(chulasakarat(year) + 1);
-    if this == 25 && next == 5 {
-        return false;
-    }
-    if this == 24 && next == 6 {
-        return true;
-    }
-    this >= 25 || this <= 5
+    suryayatra_has_leap_month(chulasakarat(year))
 }
 
 /// Whether the rule calls for a 30th day of Jesth in `year`, before a
@@ -153,15 +146,7 @@ pub const fn has_leap_month(year: i64) -> bool {
 /// 365-day one, except that a year of 137 followed by one of 0 does not.
 #[must_use]
 pub const fn has_leap_day_by_rule(year: i64) -> bool {
-    let solar = chulasakarat(year);
-    let excess = avoman(solar);
-    if is_solar_leap_year(solar) {
-        excess <= 126
-    } else if excess == 137 && avoman(solar + 1) == 0 {
-        false
-    } else {
-        excess <= 137
-    }
+    suryayatra_has_leap_day(chulasakarat(year))
 }
 
 /// The type the rule gives `year`, in or out of the range carried: the
@@ -169,15 +154,7 @@ pub const fn has_leap_day_by_rule(year: i64) -> bool {
 /// for, or if the year before was called for both; otherwise normal.
 #[must_use]
 pub const fn year_type_by_rule(year: i64) -> YearType {
-    if has_leap_month(year) {
-        YearType::ExtraMonth
-    } else if has_leap_day_by_rule(year)
-        || (has_leap_month(year - 1) && has_leap_day_by_rule(year - 1))
-    {
-        YearType::ExtraDay
-    } else {
-        YearType::Normal
-    }
+    suryayatra_year_type(chulasakarat(year))
 }
 
 /// The type of `year`, or `None` outside [`FIRST_YEAR`] to [`LAST_YEAR`].
@@ -439,7 +416,9 @@ mod tests {
     use hc_calendar::CalendarError;
 
     use super::*;
-    use crate::southeast_asian::{ahargana, kammacabala, months_of};
+    use crate::southeast_asian::{
+        ahargana, avoman, is_solar_leap_year, kammacabala, months_of, new_year_tithi,
+    };
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).expect("valid Gregorian date")

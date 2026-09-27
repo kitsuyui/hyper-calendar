@@ -2,8 +2,8 @@
 
 Regional, cyclic and era calendars for `hyper-calendar`: Japanese imperial
 eras, the Chinese and Korean regnal eras, the Maya calendars, the two Aztec
-ones, the Zapotec *yza*, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
-Burmese, Thai and Khmer lunar calendars, the sexagenary cycle and the
+ones, the Zapotec *yza*, the Mixtec year, the Balinese Pawukon, the Javanese *pasaran*, the Akan *Adaduanan*, the
+Burmese, Thai, Khmer and Lao lunar calendars, the sexagenary cycle and the
 Olympiads.
 
 What most of them have in common is that **the day has a name before it has a
@@ -12,8 +12,8 @@ Dungulan*, a position in two of ten concurrent week cycles and one of thirty
 *wuku*; a Japanese day
 belongs to an era a government proclaimed. Those are not counts of years
 from an epoch with months cut out of them, which is why they do not belong in
-`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese, Thai and Khmer
-lunar calendars are such counts, and are here as regional calendars.
+`hc-calendars-solar` or `hc-calendars-lunar`. The Burmese, Thai, Khmer and
+Lao lunar calendars are such counts, and are here as regional calendars.
 
 | Identifier | What it is |
 | --- | --- |
@@ -33,6 +33,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
 | `zapotec-yza` | 365 days: eighteen months of twenty and a *quicholla* of five, the years named by the day they begin on |
+| `mixtec-year` | 365 days: the Aztec months from Atemoztli, the five nemontemi after Panquetzaliztli, the years named by their 360th day, as Caso reconstructs them |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
@@ -41,6 +42,7 @@ lunar calendars are such counts, and are here as regional calendars.
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
+| `lao` | The Lao lunar calendar: the same rule as Dupertuis states it for Laos, Chulasakarat 1301–1401 (1938–2039) |
 | `sexagenary` | 干支 over years, months and days |
 | `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
 | `arsacid` | The Arsacid era on the Babylonian months, `babylonian`'s Seleucid year less 64, AE 1 to 322 ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) |
@@ -147,9 +149,19 @@ span on which the three readings of the rule compared agree.
 A year is a run of months from Migasir to Kadeuk, numbered by the Buddhist
 Era Cambodia prints from 1 roaj Pisakh; before that day the printed year is
 one less, which `KhmerDate::printed_year` gives and the display writes, as
-«១៥កើត ខែពិសាខ ព.ស.២៥៦៨». The system, 2568 worked by hand, and why the Lao,
+«១៥កើត ខែពិសាខ ព.ស.២៥៦៨». The system, 2568 worked by hand, and why the
 Sinhalese and Tai calendars stay planned are in
 [`docs/systems/khmer-chhankitek.md`](../../docs/systems/khmer-chhankitek.md).
+
+`lao` computes its years by the same rule, which Sylvain Dupertuis states
+for Laos from Prince Phetsarath's *Horasat Lao*, and reproduces the solar
+New Years of his table of 1301–1350, including the four that follow a year
+of both a leap month and a leap day, and the month ends of 1979–1980. Two
+cases his text leaves open — a New Year's lunar day of 25 followed by 5,
+and one of 5 in a leap-day year — bound the range: 1299 and 1402 are of
+the second kind, and the table's New Year of 1300 is a day away from the
+rule's. A year is numbered by the Chulasakarat year of the solar New
+Year in it, and dates are written in Lao digits, «ເດືອນຫ້າ ຂຶ້ນ ໑໑ ຄ່ຳ ປີ ໑໓໔໓».
 
 ## Correlations, stated
 
@@ -173,8 +185,13 @@ The history of the constants, the worked readings and the sources are in
   calendars, whose 260-day count is Caso's Mexica one; the months'
   regular lengths are this library's reading of the one month list known,
   and Cline's different reading of the same manuscript is recorded, not
-  registered. The sources and the three Mesoamerican years still planned
-  are in
+  registered.
+* **Mixtec**: the year named *10 Tecpatl* ended on 2 December 1568
+  (Julian), five days after its naming day, 20 Panquetzaliztli, which is
+  the same day in the Aztec year, as Caso reads Jiménez Moreno; the 260-day
+  count is Caso's Mexica one. The Mixtec month names are not known, so the
+  months carry the Aztec names. The sources, and the two Mesoamerican
+  years still planned, are in
   [`docs/systems/mesoamerican-years.md`](../../docs/systems/mesoamerican-years.md).
 * **Balinese Pawukon**: Julian Day Number 146.
 * **Javanese pasaran**: anchored through the Pawukon, because they are the
@@ -239,6 +256,12 @@ inherits the `chinese` calendar's model, as that README describes.
   for the correlation and the year bearers; Urcid, *Zapotec Hieroglyphic
   Writing* (2001), Table 3.5, for the month names; in full in
   [`docs/systems/mesoamerican-years.md`](../../docs/systems/mesoamerican-years.md).
+* Mixtec year: Caso, *Los calendarios prehispánicos* (1967), p. 78, for the
+  year begun at Atemoztli and named by the last day of Panquetzaliztli,
+  with 1568 as *10 Tecpatl*; Caso, "El calendario mixteco", *Historia
+  Mexicana* 5 (1956), pp. 493–495, for the unknown month names, the
+  bearers and the Cuilapan dates; in full in
+  [`docs/systems/mesoamerican-years.md`](../../docs/systems/mesoamerican-years.md).
 * Thai lunar year types: the Bank of Thailand's lists of financial-institution
   holidays for 1992–2022 as the Internet Archive keeps them, its
   notifications FPG 3/2565, FPG 8/2566, FPG 5/2567 and 31/2568 for
@@ -253,6 +276,9 @@ inherits the `chinese` calendar's model, as that README describes.
   names; the New Year announcements and the holiday sub-decrees named in
   [`docs/systems/khmer-chhankitek.md`](../../docs/systems/khmer-chhankitek.md),
   keyed in `docs/references.bib`.
+* Lao calendar: Sylvain Dupertuis, "Le calcul du calendrier laotien"
+  (*Péninsule*, 1981), for the rules and the tables; Lao Wikipedia,
+  ບຸນສົງການ, for the month names; keyed in `docs/references.bib`.
 * Burmese calendar: Yan Naing Aye, "Algorithm, Program and Calculation of
   Myanmar Calendar" (2013) and his `mmcal` code; Wikipedia, "Burmese
   calendar"; the 2024–2026 holiday lists named in
@@ -272,7 +298,8 @@ inherits the `chinese` calendar's model, as that README describes.
   added when Thailand publishes it.
 * No Khmer year before 1900 or after 2200, no solar New Year (the Songkran
   moment and its days), and no animal year, *sak* or Jolak Sakaraj, which
-  change at that New Year. No Lao, Sinhalese or Tai lunisolar calendar: what
+  change at that New Year. No Lao year before 1301 or after 1401, and no
+  Lao solar New Year either. No Sinhalese or Tai lunisolar calendar: what
   each still needs is in `docs/calendars.md`.
 * No Javanese calendar proper here: the Sultan Agung lunar year, its
   *windu* and its *kurup* are `hc-calendars-lunar`'s `javanese`, beside
