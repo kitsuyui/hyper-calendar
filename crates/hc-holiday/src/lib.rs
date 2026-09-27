@@ -20,9 +20,11 @@
 //! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
 //! | [`traditions`] | the cross-cutting religious cycles |
 //! | [`roman_calendar`] | the General Roman Calendar, every celebration with its rank |
+//! | [`roman_calendar_1960`] | the General Roman Calendar of 1960, the 1962 Missal's, every day with its class |
 //! | [`common_worship`] | the Church of England's *Common Worship* calendar, its ranks and its required transfers |
 //! | [`holy_years`] | the Catholic Holy Years, each from its bull of indiction |
 //! | [`lectionary`] | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
+//! | [`orthodox_fasts`] | the Eastern Orthodox fasting seasons, weekly fasts and fast-free weeks, on the Julian and the Revised Julian reckoning |
 //! | [`international`] | the United Nations international days, each citing its resolution |
 //! | [`countries`] | the national tables |
 //! | [`exchanges`] | the trading calendars of stock exchanges |
@@ -88,6 +90,7 @@ pub mod hindu;
 pub mod holy_years;
 pub mod international;
 pub mod lectionary;
+pub mod orthodox_fasts;
 pub mod rule;
 
 #[cfg(feature = "alloc")]
@@ -98,6 +101,8 @@ pub mod engine;
 pub mod exchanges;
 #[cfg(feature = "alloc")]
 pub mod roman_calendar;
+#[cfg(feature = "alloc")]
+pub mod roman_calendar_1960;
 #[cfg(feature = "alloc")]
 pub mod traditions;
 

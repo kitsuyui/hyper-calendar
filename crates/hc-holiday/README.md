@@ -27,7 +27,9 @@ assert_eq!(holidays[13].local_name, "国民の休日");
 | `hindu` | the Hindu festival rules the traditions and the national tables share |
 | `traditions` | the cross-cutting religious cycles |
 | `lectionary` | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
+| `orthodox_fasts` | the Eastern Orthodox fasts: whether a day is a fast day, and the span of each season, on the Julian (`orthodox-fasts`) and the Revised Julian (`orthodox-fasts-revised-julian`) fixed dates |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
+| `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the first-class days of the Proper of Time, with its class |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
 | `countries` | 195 national tables |
@@ -147,9 +149,10 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Forty-eight traditions.** Western Christianity on the Gregorian computus,
+**Forty-nine traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
-(`roman_calendar`), the Church of England's *Common Worship* calendar with
+(`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
+with the class of every day (`roman_calendar_1960`), the Church of England's *Common Worship* calendar with
 the ranks of its Principal Feasts, Principal Holy Days and Festivals and
 the transfers its Rules require (`common_worship`), the liturgical year of
 the Assyrian Church of the East, its seasons of seven weeks anchored to

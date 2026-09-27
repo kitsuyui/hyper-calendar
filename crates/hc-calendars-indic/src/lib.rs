@@ -36,6 +36,9 @@
 //! * [`panchanga`] — the two other limbs of the almanac: the yoga, from
 //!   the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa,
 //!   the half-tithi.
+//! * [`kalam`] — Rāhu kālam, Yamaganda and Gulika kālam, the eighths of the
+//!   day a pañcāṅga marks by the weekday: from sunrise to sunset
+//!   (`rahu-kalam-sunrise`) or from 06:00 to 18:00 (`rahu-kalam-fixed`).
 //! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
 //!   *Ārya Siddhānta*, counted in the Kali Yuga: the arithmetic the true
 //!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.
@@ -170,6 +173,7 @@ pub mod hindu_old;
 pub mod hindu_purnimanta;
 pub mod hindu_solar;
 pub mod hindu_solar_siddhanta;
+pub mod kalam;
 mod kartikadi;
 pub mod lunar_era;
 pub mod nakshatra;

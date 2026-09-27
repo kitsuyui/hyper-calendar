@@ -101,6 +101,47 @@ Each angle is an authority's convention, and other communities use other
 ones; the book is the source of all four, and the authorities' own texts
 were not read.
 
+### Jewish times in temporal hours
+
+Jewish law fixes several times of the day as a number of temporal hours
+(*shaʿot zmaniyot*) from the start of the day [kosherjava-zmanim]
+[hebcal-zmanim-api]:
+
+| Time | Hours |
+| --- | --- |
+| Latest morning Shema (*sof zman kriʾat shemaʿ*) | 3 |
+| Latest morning prayer (*sof zman tefillah*) | 4 |
+| Earliest afternoon prayer (*minḥah gedolah*) | 6.5 |
+| Preferred afternoon prayer (*minḥah ketanah*) | 9.5 |
+| *Plag ha-minḥah*, the earliest start of the Sabbath | 10.75 |
+
+Authorities disagree on what "the day" is, and each reckoning is a
+convention under its authority's name:
+
+- The **GRA** (the Vilna Gaon): sunrise to sunset, so an hour is a
+  twelfth of the daylight and the count starts at sunrise.
+- The **MGA** (the Magen Avraham): dawn to nightfall. KosherJava's
+  `getShaahZmanisMGA` and Hebcal's `sofZmanShmaMGA` take dawn as 72
+  minutes before sunrise and nightfall as 72 minutes after sunset, "the
+  time it takes to walk 4 mil at 18 minutes a mil" [kosherjava-zmanim].
+  Hebcal also gives the MGA day with dawn and nightfall both at 16.1°
+  below the horizon (`sofZmanShmaMGA16Point1`) [hebcal-zmanim-api].
+
+Dawn and nightfall are themselves conventions. KosherJava gives dawn
+(*alos ha-shachar*) at 16.1°, the angle that corresponds to the 72
+minutes, and nightfall (*tzais*) at 8.5°, "a time that Rabbi Meir Posen in
+his *Ohr Meir* calculated that 3 small stars are visible", and also 72
+minutes after sunset, Rabbeinu Tam's reckoning [kosherjava-zmanim].
+
+**Worked example.** Hebcal gives sunrise in New York City on 1 January 2025
+as 07:20 EST and sunset as 16:40 [hebcal-zmanim-api]: 560 minutes, so a
+GRA hour is 46.67 minutes. The latest Shema by the GRA is three hours
+after sunrise, 07:20 + 140 min = 09:40, and *minḥah gedolah* is
+07:20 + 303.3 min = 12:23. Both are what Hebcal prints. With the 72-minute
+dawn at 06:08 and nightfall at 17:52, the MGA day is 704 minutes, its hour
+58.67 minutes, and the latest Shema by the MGA is 06:08 + 176 min = 09:04,
+also Hebcal's time.
+
 ## What is carried
 
 In `hc-astro::solar_time`:
@@ -149,12 +190,13 @@ Temporal and Italian hours, and the religious times:
   inverse, which the book does not have. These are the Vilna Gaon's
   reckoning, sunrise to sunset, the one the book's
   `daytime-temporal-hour` computes.
-- **Not carried: the Magen Avraham's reckoning**, daybreak to nightfall.
-  Daybreak and nightfall are each set by a depression of the Sun that
-  authorities give differently (the 4°40′ and 7°5′ above are two of the
-  nightfall angles), no source read fixes the pair the Magen Avraham's
-  hours use, and under [policy.md](../policy.md) §5 each pair would be a
-  convention of its own name, not a parameter.
+- The Magen Avraham's reckoning, daybreak to nightfall, under each of the
+  two pairs of daybreak and nightfall that the sources read give it:
+  `temporal_hour_mga_72_minutes` and `temporal_hour_mga_16_1_degrees`, with
+  `temporal_hour_gra`, the Vilna Gaon's, beside them. Each pair is a
+  convention of its own name, not a parameter ([policy.md](../policy.md)
+  §5). Other pairs, such as the 19.8° or 90-minute ones Hebcal and
+  KosherJava also list, are not carried.
 - `italian_zero_hour`, `italian_time` and `universal_from_italian_time`,
   with the 16′ and the half hour as named constants. The place is the
   caller's, where the book fixes it at Padua: a location is continuous,
@@ -164,13 +206,24 @@ Temporal and Italian hours, and the religious times:
   and a moment would roll into the next date a minute early or late.
 - `asr_shafii`, `asr_hanafi`, `jewish_dusk_vilna_gaon` and
   `jewish_sabbath_ends_cohn`, one function per convention, with the angles
-  as named constants. `jewish-morning-end`, the end of the fourth temporal
-  hour of the day in the book, is not carried: the book names no authority for it.
+  as named constants.
+- The Jewish times in temporal hours as a table, `Zman`, with the
+  identifiers `sof-zman-shma`, `sof-zman-tfila`, `mincha-gedola`,
+  `mincha-ketana` and `plag-hamincha`, and one function per reckoning:
+  `zman_gra`, `zman_mga_72_minutes` and `zman_mga_16_1_degrees`. The
+  book's `jewish-morning-end`, the end of the fourth temporal hour, for
+  which the book names no authority, is `zman_gra` of `sof-zman-tfila`:
+  the end of the fourth hour from sunrise by the GRA.
+- Dawn and nightfall: `jewish_dawn_16_1_degrees`, `jewish_dawn_72_minutes`,
+  `jewish_nightfall_8_5_degrees` and `jewish_nightfall_72_minutes`.
+  Candle lighting, the other angles and minute counts Hebcal prints
+  (*misheyakir*, 7.083°, 42 and 50 minutes) and the Baal HaTanya's
+  reckoning are not carried.
 
 Where the event a reckoning needs does not happen — no sunrise or sunset
 under the midnight sun or the polar night, no 16′ or 4°40′ depression on a
-white night, no Sun at noon for a shadow — the function returns a
-`MissingSolarEvent` naming the event and the day. The book returns
+white night, no 16.1° dawn in London in June, no Sun at noon for a shadow —
+the function returns a `MissingSolarEvent` naming the event and the day. The book returns
 `bogus` there; a length of daylight that is not there is not zero, and no
 number is returned for it.
 
@@ -208,8 +261,16 @@ within 0.17 min of the 49.0 min that NAOJ's published minutes give. The
 Italian zero hour and the religious times put the Sun's centre at the
 stated altitude to 10⁻⁴ degree, and ʿaṣr's shadow at its stated length to
 10⁻³ of the object's height. No published table of Italian hours or of
-these religious times was read, so beyond NAOJ's sunrise and sunset they
-are checked against their own definitions, not against a published value.
+the ʿaṣr and the book's two Jewish evening times was read, so beyond
+NAOJ's sunrise and sunset they are checked against their own definitions,
+not against a published value.
+
+The Jewish times in temporal hours, dawn at 16.1° and 72 minutes and
+nightfall at 8.5° and 72 minutes are checked against Hebcal's published
+zmanim [hebcal-zmanim-api] for New York City on 1 January 2025, Jerusalem
+on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
+48 in all, are within 0.48 minutes of the printed minute. Hebcal prints no
+16.1° dawn for London on 21 June 2025, and neither does this library.
 
 ## Sources
 
@@ -234,6 +295,14 @@ are checked against their own definitions, not against a published value.
   1 January 2024, the anchor of the temporal hour. Read 2026-09-26.
 - [wikipedia-zmanim] — the two reckonings of the temporal hour, the Vilna
   Gaon's and the Magen Avraham's. Read 2026-09-27.
+- [kosherjava-zmanim] — the hours of each time, the GRA's and the MGA's
+  72-minute hours, dawn at 16.1° and 72 minutes, nightfall at 8.5° and 72
+  minutes, with the authorities they attribute them to. Read 2026-09-27.
+  The authorities' own texts (the Vilna Gaon, the Magen Avraham, Rabbi
+  Meir Posen's *Ohr Meir*, Rabbeinu Tam) were not read.
+- [hebcal-zmanim-api] — the same definitions in Hebcal's `Zmanim`, the
+  MGA day at 16.1°, and the published times of the three places and days
+  above. Read 2026-09-27.
 
 ## Code
 
@@ -248,5 +317,8 @@ are checked against their own definitions, not against a published value.
 `temporal_hours_are_refused_under_the_midnight_sun_and_the_polar_night`,
 `the_italian_zero_hour_is_half_an_hour_after_the_suns_limb_meets_the_horizon`,
 `italian_hours_count_a_day_from_one_zero_hour_to_the_next`,
-`asr_is_where_the_shadow_rule_puts_it` and
-`the_jewish_evening_times_sit_at_their_angles_in_order`.
+`asr_is_where_the_shadow_rule_puts_it`,
+`the_jewish_evening_times_sit_at_their_angles_in_order`,
+`the_zmanim_fall_where_hebcal_prints_them`,
+`the_mga_day_is_the_gra_day_and_two_twilights` and
+`there_is_no_sixteen_degree_dawn_in_a_london_june`.

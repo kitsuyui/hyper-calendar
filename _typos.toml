@@ -19,6 +19,11 @@
 # "misspelling" such as `caf`.
 extend-exclude = ["Cargo.lock", "crates/hyper-calendar/tests/line_digests.txt"]
 
+[default]
+# *Shaʿot zmaniyot*, temporal hours, in hc-astro's zmanim: typos splits the
+# word at the ʿ, and its second half is not a word worth allowing everywhere.
+extend-ignore-re = ["[Ss]haʿot"]
+
 [default.extend-words]
 # RFC 9562's title capitalises the D of "IDentifiers", which typos reads as
 # the misspelling "Dentifiers"; hc-core::uuid cites the title as printed.
@@ -497,3 +502,9 @@ Istambul = "Istambul"
 # "Nat. Commun.", the ISO 4 abbreviation of Nature Communications, cited by
 # hc-deep-time's evidence module for the Dresser Formation.
 Commun = "Commun"
+# Transliterated Hebrew in hc-astro's zmanim: the Shema (*kriʾat shemaʿ*)
+# and *alos ha-shachar*, dawn. *Shaʿot zmaniyot*, which typos would split at
+# the ʿ, is matched whole in [default] above instead.
+Shema = "Shema"
+shema = "shema"
+alos = "alos"

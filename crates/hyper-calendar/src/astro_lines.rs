@@ -230,7 +230,10 @@ fn push_missing(out: &mut String, missing: MissingSolarEvent) {
     let (name, day, arcminutes) = match missing {
         MissingSolarEvent::Sunrise(day) => ("sunrise", day, None),
         MissingSolarEvent::Sunset(day) => ("sunset", day, None),
-        MissingSolarEvent::Depression { day, arcminutes } => ("depression", day, Some(arcminutes)),
+        MissingSolarEvent::Depression { day, arcminutes }
+        | MissingSolarEvent::DawnDepression { day, arcminutes } => {
+            ("depression", day, Some(arcminutes))
+        }
         MissingSolarEvent::NoNoonShadow(day) => ("no-noon-shadow", day, None),
     };
     let _ = write!(out, "{name}\t{}\t", day.0);
