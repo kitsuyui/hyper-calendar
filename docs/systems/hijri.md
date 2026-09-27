@@ -7,7 +7,9 @@ conventions of *Calendrical Calculations* registered beside them,
 Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes that `tabular` can build but
 does not register, and Yallop's crescent-visibility test, which
 `islamic_observational` carries beside Shaukat's without registering a
-calendar under it.
+calendar under it. The calendars judged over the whole Earth, the
+Unified Hijri Calendar and the FCNA calendar, and Odeh's and the
+Neo-MABIMS criteria, are in [unified-hijri.md](unified-hijri.md).
 
 ## What it is
 
@@ -434,7 +436,9 @@ a test (`yallops_q_follows_from_his_own_arcs_and_widths`).
   and `QTest`, because a new shape needs new code to evaluate; a new
   criterion of an existing shape is a value.
 - **The criteria by name.** `NamedCriterion::ALL` lists `shaukat`,
-  `yallop` and `saudi-rule`, each with its source, so that a criterion can
+  `yallop` and `saudi-rule`, and the criteria of
+  [unified-hijri.md](unified-hijri.md) — `odeh`, `istanbul-2016`, `khgt`
+  and the two readings of Neo-MABIMS — each with its source, so that a criterion can
   arrive as text: the WebAssembly and C exports' `hc_crescent_visible`
   judges an evening at any place by one of them, with the quantities the
   criteria read. The list is data (ADR 0007).

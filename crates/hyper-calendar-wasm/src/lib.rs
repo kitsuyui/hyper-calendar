@@ -1766,7 +1766,9 @@ mod calendar_days {
     /// that begins a fixed day, from a place, by a named criterion, as one
     /// UTF-8 line, returning the byte length written.
     ///
-    /// `criterion` is `shaukat`, `yallop` or `saudi-rule`, in any case;
+    /// `criterion` is `shaukat`, `yallop`, `saudi-rule`, `odeh`,
+    /// `istanbul-2016`, `khgt`, `mabims-2021-topocentric` or
+    /// `mabims-2021-geocentric-elongation`, in any case;
     /// anything else is `HC_ERR_UNKNOWN`. The evening is the one before
     /// `fixed`, since the day begins at sunset. Tab-separated: 1 if the
     /// crescent passes and 0 if not; the moment the criterion judges the

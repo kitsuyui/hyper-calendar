@@ -179,7 +179,7 @@ const fn cycle(kind: &'static str, names: &'static [&'static str]) -> CycleNames
     CycleNames::new(kind, ContextualNames::same(widths(names, &[], &[])))
 }
 
-/// The seven Hijri calendars, which share one set of Arabic month names.
+/// The ten Hijri calendars, which share one set of Arabic month names.
 const ISLAMIC_CALENDARS: &[CalendarId] = &[
     CalendarId("islamic-civil"),
     CalendarId("islamic-tbla"),
@@ -188,6 +188,9 @@ const ISLAMIC_CALENDARS: &[CalendarId] = &[
     CalendarId("islamic-fatimid"),
     CalendarId("islamic-observational-cairo-rd"),
     CalendarId("islamic-saudi-rule-rd"),
+    CalendarId("islamic-khgt"),
+    CalendarId("islamic-istanbul-2016"),
+    CalendarId("islamic-fcna"),
 ];
 
 /// The Hebrew calendar, and the prediction of its observational

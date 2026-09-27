@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-194 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+197 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 160 of 194 have months and 160 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 163 of 197 have months and 163 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -92,6 +92,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `international-fixed` | International Fixed | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `islamic-civil` | Hijri (tabular, civil epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-19 | +10323-10-21 | no | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-fatimid` | Hijri (Fatimid, Ṭayyibī Bohra "Misri") | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset | end | month ×12, weekday ×7 | yes |
+| `islamic-fcna` | Hijri (Fiqh Council of North America) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 2018-09-11 | 2043-06-07 | no | no | sunset | end | month ×12, weekday ×7 | yes |
+| `islamic-istanbul-2016` | Hijri (Unified Hijri Calendar, Diyanet) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
+| `islamic-khgt` | Hijri (Unified Global Hijri Calendar, Muhammadiyah) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-observational-cairo-rd` | Hijri (observational at Cairo, Calendrical Calculations) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-rgsa` | Hijri (observational, predicted) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-saudi-rule-rd` | Hijri (Saudi rule computed, Calendrical Calculations) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |

@@ -32,7 +32,7 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, acos};
+use hc_core::math::{RAD_TO_DEG, acos, asin, cos_deg, sin_deg};
 
 use crate::earth::{altitude_degrees, apparent_sidereal_time_iau1982, local_hour_angle};
 use crate::horizon::{GEOMETRIC_DIP, Horizon, MOON_CENTRE_PARALLAX_FRACTION};
@@ -169,6 +169,22 @@ pub fn lunar_altitude(moment: Moment, location: Location) -> f64 {
         local_hour_angle(position, moment, location.longitude_degrees),
         location.latitude_degrees,
     )
+}
+
+/// The altitude of the Moon's centre above the horizon as an observer on the
+/// surface sees it without an atmosphere, in degrees: [`lunar_altitude`]
+/// less the parallax in altitude, `arcsin(sin π · cos h)` for the Moon's
+/// horizontal parallax π and geocentric altitude h, on a spherical Earth.
+///
+/// This is the "airless topocentric" altitude of the crescent-visibility
+/// literature (Odeh, *Experimental Astronomy* 18, 2004, §5), about 0.9°
+/// below the geocentric altitude near the horizon. No refraction is added
+/// and the Earth's flattening, which moves it by under 0.01°, is ignored.
+#[must_use]
+pub fn topocentric_lunar_altitude(moment: Moment, location: Location) -> f64 {
+    let geocentric = lunar_altitude(moment, location);
+    let parallax = lunar_parallax(moment);
+    geocentric - asin(clamp(sin_deg(parallax) * cos_deg(geocentric), -1.0, 1.0)) * RAD_TO_DEG
 }
 
 /// The moment of apparent solar noon — the Sun's upper transit of the local
@@ -882,5 +898,26 @@ mod tests {
         assert!((Twilight::Civil.depression_degrees() - 6.0).abs() < 1e-12);
         assert!((Twilight::Nautical.depression_degrees() - 12.0).abs() < 1e-12);
         assert!((Twilight::Astronomical.depression_degrees() - 18.0).abs() < 1e-12);
+    }
+
+    /// The topocentric Moon is lower by the parallax in altitude:
+    /// arcsin(sin π cos h), nearly the whole parallax at the horizon and
+    /// none at the zenith.
+    #[test]
+    fn the_topocentric_moon_is_lower_by_its_parallax_in_altitude() {
+        let place = Location::new(35.0, 139.0, 0.0);
+        let start = 738_886.0;
+        for step in 0..48 {
+            let moment = Moment(start + f64::from(step) / 48.0);
+            let geocentric = lunar_altitude(moment, place);
+            let drop = geocentric - topocentric_lunar_altitude(moment, place);
+            let parallax = lunar_parallax(moment);
+            let expected = asin(sin_deg(parallax) * cos_deg(geocentric)) * RAD_TO_DEG;
+            assert!((drop - expected).abs() < 1e-12);
+            assert!(drop > 0.0 && drop <= parallax + 1e-12);
+            if geocentric.abs() < 1.0 {
+                assert!(parallax - drop < 1e-3);
+            }
+        }
     }
 }

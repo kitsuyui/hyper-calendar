@@ -80,6 +80,23 @@
 //! (`kosherjava-zmanim`, `hebcal-zmanim-api`), and the times are checked
 //! against Hebcal's published zmanim; the Vilna Gaon's, the Magen
 //! Avraham's and Rabbi Meir Posen's own texts were not read.
+//!
+//! # Islamic prayer times by named method
+//!
+//! The five daily prayers are fixed by the Sun, and the authorities that
+//! publish timetables differ on the depression that marks dawn and the end
+//! of twilight. Each method is a [`PrayerMethod`] in [`PRAYER_METHODS`] —
+//! the Muslim World League, ISNA, Egypt, Umm al-Qura (and its method before
+//! Muḥarram 1430), Karachi, Tehran, Jafari, France, Russia and Singapore —
+//! with its parameters from the Pray Times compilation
+//! (`praytimes-methods`); the authorities' own documents were not read.
+//! [`fajr`], [`maghrib`], [`isha`] and [`islamic_midnight`] compute the
+//! times that depend on the method; *ẓuhr* is [`solar_noon`], sunrise is
+//! [`sunrise`], and *ʿaṣr* is [`asr_shafii`] or [`asr_hanafi`]. No method
+//! carried defines a rule for latitudes where the Sun does not reach its
+//! angle, so none is applied there and the time is refused.
+//! `docs/systems/prayer-times.md` describes the system and its anchor, the
+//! Islamic Religious Council of Singapore's timetable for 2026.
 
 use core::fmt;
 
@@ -1071,6 +1088,313 @@ pub fn zman_mga_16_1_degrees(
     ))
 }
 
+/// How a prayer-time method fixes *ʿishāʾ*, the night prayer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum IshaRule {
+    /// When the Sun's centre is this many arcminutes below the geometric
+    /// horizon.
+    Depression(u16),
+    /// A fixed interval after *maghrib*: `minutes` for most of the year and
+    /// `ramadan_minutes` during Ramaḍān.
+    AfterMaghrib {
+        /// The interval outside Ramaḍān, in minutes.
+        minutes: u16,
+        /// The interval during Ramaḍān, in minutes.
+        ramadan_minutes: u16,
+    },
+}
+
+/// How a prayer-time method fixes *maghrib*, the sunset prayer.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MaghribRule {
+    /// At sunset, as [`sunset`] has it.
+    Sunset,
+    /// When the Sun's centre is this many arcminutes below the geometric
+    /// horizon.
+    Depression(u16),
+}
+
+/// Where a prayer-time method puts the middle of the night, the end of the
+/// time for *ʿishāʾ*.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum MidnightRule {
+    /// Half-way from sunset to the next sunrise.
+    SunsetToSunrise,
+    /// Half-way from sunset to the next *fajr*.
+    SunsetToFajr,
+}
+
+/// A named method for computing the Islamic prayer times: the depression
+/// of the Sun at *fajr*, the dawn prayer, and the rules for *maghrib*,
+/// *ʿishāʾ* and the middle of the night.
+///
+/// The methods are data, not an `enum` (ADR 0007): another authority's
+/// method is another entry. *Ẓuhr* is solar noon, [`solar_noon`], and
+/// *ʿaṣr* is a juristic choice separate from the method, [`asr_shafii`] or
+/// [`asr_hanafi`]. None of the methods carried states a rule for the
+/// latitudes where the Sun does not reach its angle, so none is applied:
+/// there the functions return [`MissingSolarEvent::DawnDepression`] or
+/// [`MissingSolarEvent::Depression`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PrayerMethod {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The English name, which is the authority's.
+    pub english_name: &'static str,
+    /// The depression of the Sun's centre at *fajr*, in arcminutes.
+    pub fajr_depression_arcminutes: u16,
+    /// The rule for *maghrib*.
+    pub maghrib: MaghribRule,
+    /// The rule for *ʿishāʾ*.
+    pub isha: IshaRule,
+    /// The rule for the middle of the night.
+    pub midnight: MidnightRule,
+    /// Where the rules come from.
+    pub source: &'static str,
+}
+
+/// The source of every method's parameters: the compilation this module
+/// read them from. None of the authorities' own documents was read.
+const PRAY_TIMES_METHODS: &str = "Pray Times, Calculation Methods, \
+    https://praytimes.org/docs/methods, retrieved 2026-09-27 [praytimes-methods]; the \
+    authority's own document not read";
+
+hc_core::catalogue! {
+    type: PrayerMethod,
+    id: |method| method.id,
+    provenance: |method| method.source,
+    tests: prayer_method_catalogue,
+
+    /// Every prayer-time method this crate carries.
+    pub const PRAYER_METHODS;
+
+    /// The prayer-time method with this identifier.
+    pub fn prayer_method;
+
+    entries: {
+        /// The Muslim World League: *fajr* at 18°, *ʿishāʾ* at 17°.
+        pub const MWL = PrayerMethod {
+            id: "mwl",
+            english_name: "Muslim World League",
+            fajr_depression_arcminutes: 18 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(17 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Islamic Society of North America: 15° and 15°.
+        pub const ISNA = PrayerMethod {
+            id: "isna",
+            english_name: "Islamic Society of North America",
+            fajr_depression_arcminutes: 15 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(15 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Egyptian General Authority of Survey: 19.5° and 17.5°.
+        pub const EGYPT = PrayerMethod {
+            id: "egypt",
+            english_name: "Egyptian General Authority of Survey",
+            fajr_depression_arcminutes: 19 * 60 + 30,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(17 * 60 + 30),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// Umm al-Qura University, Makkah, from Muḥarram 1430 (December
+        /// 2008): *fajr* at 18.5°, *ʿishāʾ* 90 minutes after *maghrib* and
+        /// 120 in Ramaḍān.
+        pub const UMM_AL_QURA = PrayerMethod {
+            id: "umm-al-qura",
+            english_name: "Umm al-Qura University, Makkah",
+            fajr_depression_arcminutes: 18 * 60 + 30,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::AfterMaghrib {
+                minutes: 90,
+                ramadan_minutes: 120,
+            },
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// Umm al-Qura's method before Muḥarram 1430: *fajr* at 19°, the
+        /// rest as [`UMM_AL_QURA`]. The revision is the authority's, so the
+        /// earlier method keeps its own name (`docs/policy.md` §10).
+        pub const UMM_AL_QURA_BEFORE_1430 = PrayerMethod {
+            id: "umm-al-qura-before-1430",
+            english_name: "Umm al-Qura University, Makkah, before Muharram 1430",
+            fajr_depression_arcminutes: 19 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::AfterMaghrib {
+                minutes: 90,
+                ramadan_minutes: 120,
+            },
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The University of Islamic Sciences, Karachi: 18° and 18°.
+        pub const KARACHI = PrayerMethod {
+            id: "karachi",
+            english_name: "University of Islamic Sciences, Karachi",
+            fajr_depression_arcminutes: 18 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(18 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Institute of Geophysics, University of Tehran: *fajr* at
+        /// 17.7°, *maghrib* at 4.5°, *ʿishāʾ* at 14°, the night's middle
+        /// from sunset to *fajr*. The compilation notes that the method does
+        /// not state its *ʿishāʾ* angle explicitly.
+        pub const TEHRAN = PrayerMethod {
+            id: "tehran",
+            english_name: "Institute of Geophysics, University of Tehran",
+            fajr_depression_arcminutes: 17 * 60 + 42,
+            maghrib: MaghribRule::Depression(4 * 60 + 30),
+            isha: IshaRule::Depression(14 * 60),
+            midnight: MidnightRule::SunsetToFajr,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Leva Research Institute, Qom (Shia Ithna Ashari, Jafari):
+        /// *fajr* at 16°, *maghrib* at 4°, *ʿishāʾ* at 14°, the night's
+        /// middle from sunset to *fajr*.
+        pub const JAFARI = PrayerMethod {
+            id: "jafari",
+            english_name: "Leva Research Institute, Qom",
+            fajr_depression_arcminutes: 16 * 60,
+            maghrib: MaghribRule::Depression(4 * 60),
+            isha: IshaRule::Depression(14 * 60),
+            midnight: MidnightRule::SunsetToFajr,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Muslims of France: 12° and 12°.
+        pub const FRANCE = PrayerMethod {
+            id: "france",
+            english_name: "Muslims of France",
+            fajr_depression_arcminutes: 12 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(12 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Spiritual Administration of Muslims of Russia: 16° and 15°.
+        pub const RUSSIA = PrayerMethod {
+            id: "russia",
+            english_name: "Spiritual Administration of Muslims of Russia",
+            fajr_depression_arcminutes: 16 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(15 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+
+        /// The Islamic Religious Council of Singapore (MUIS): 20° and 18°.
+        pub const SINGAPORE = PrayerMethod {
+            id: "singapore",
+            english_name: "Islamic Religious Council of Singapore",
+            fajr_depression_arcminutes: 20 * 60,
+            maghrib: MaghribRule::Sunset,
+            isha: IshaRule::Depression(18 * 60),
+            midnight: MidnightRule::SunsetToSunrise,
+            source: PRAY_TIMES_METHODS,
+        };
+    }
+}
+
+/// *Fajr*, the dawn prayer, on a local day by a method, in Universal Time:
+/// when the Sun's centre rises through the method's depression.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::DawnDepression`] where the Sun does not get that
+/// far below the horizon, as in summer at high latitudes. No method
+/// carried defines a substitute.
+pub fn fajr(
+    day: Rd,
+    location: Location,
+    method: &PrayerMethod,
+) -> Result<Moment, MissingSolarEvent> {
+    morning_depression(day, location, method.fajr_depression_arcminutes)
+}
+
+/// *Maghrib*, the sunset prayer, on a local day by a method, in Universal
+/// Time: sunset, or the Sun at the method's depression.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunset`] or [`MissingSolarEvent::Depression`]
+/// where the Sun does not set or does not get that low.
+pub fn maghrib(
+    day: Rd,
+    location: Location,
+    method: &PrayerMethod,
+) -> Result<Moment, MissingSolarEvent> {
+    match method.maghrib {
+        MaghribRule::Sunset => sunset_or_error(day, location),
+        MaghribRule::Depression(arcminutes) => evening_depression(day, location, arcminutes),
+    }
+}
+
+/// *ʿIshāʾ*, the night prayer, on a local day by a method, in Universal
+/// Time: the Sun at the method's depression, or the method's interval
+/// after [`maghrib`]. `ramadan` chooses the Ramaḍān interval of a method
+/// that has one; a method of angles ignores it. This crate has no calendar,
+/// so the caller says whether the day is in Ramaḍān.
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Depression`] where the Sun does not get that low,
+/// or the error of [`maghrib`].
+pub fn isha(
+    day: Rd,
+    location: Location,
+    method: &PrayerMethod,
+    ramadan: bool,
+) -> Result<Moment, MissingSolarEvent> {
+    match method.isha {
+        IshaRule::Depression(arcminutes) => evening_depression(day, location, arcminutes),
+        IshaRule::AfterMaghrib {
+            minutes,
+            ramadan_minutes,
+        } => {
+            let interval = if ramadan { ramadan_minutes } else { minutes };
+            Ok(Moment(
+                maghrib(day, location, method)?.0 + f64::from(interval) / 1_440.0,
+            ))
+        }
+    }
+}
+
+/// The middle of the night that begins on the evening of a local day, by
+/// a method, in Universal Time: half-way from that sunset to the next
+/// day's sunrise or *fajr*.
+///
+/// # Errors
+///
+/// A [`MissingSolarEvent`] naming the sunset, sunrise or *fajr* that does
+/// not happen.
+pub fn islamic_midnight(
+    day: Rd,
+    location: Location,
+    method: &PrayerMethod,
+) -> Result<Moment, MissingSolarEvent> {
+    let set = sunset_or_error(day, location)?;
+    let end = match method.midnight {
+        MidnightRule::SunsetToSunrise => sunrise_or_error(day + 1, location)?,
+        MidnightRule::SunsetToFajr => fajr(day + 1, location, method)?,
+    };
+    Ok(Moment((set.0 + end.0) / 2.0))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1695,5 +2019,271 @@ mod tests {
         );
         // The same day in winter has both.
         assert!(japanese_dawn_kansei(midsummer + 180, HELSINKI).is_ok());
+    }
+
+    /// Singapore as Wikipedia places it, 1°17′ N, 103°50′ E; MUIS does not
+    /// say which point its timetable is computed for.
+    const SINGAPORE_CITY: Location = Location::new(1.0 + 17.0 / 60.0, 103.0 + 50.0 / 60.0, 0.0);
+
+    /// Rows of MUIS's *Prayer Times for Singapore, Year 2026*
+    /// (`muis-prayer-timetable-2026`): the day of 2026 as month and day,
+    /// then Subuh, Syuruk, Zohor, Maghrib and Isyak as minutes after local
+    /// midnight, UTC+8.
+    const MUIS_2026: [((u8, u8), [u16; 5]); 12] = [
+        (
+            (1, 1),
+            [
+                5 * 60 + 44,
+                7 * 60 + 8,
+                13 * 60 + 10,
+                19 * 60 + 11,
+                20 * 60 + 25,
+            ],
+        ),
+        (
+            (2, 15),
+            [
+                5 * 60 + 58,
+                7 * 60 + 17,
+                13 * 60 + 20,
+                19 * 60 + 22,
+                20 * 60 + 32,
+            ],
+        ),
+        (
+            (3, 21),
+            [
+                5 * 60 + 52,
+                7 * 60 + 9,
+                13 * 60 + 13,
+                19 * 60 + 16,
+                20 * 60 + 24,
+            ],
+        ),
+        (
+            (4, 15),
+            [
+                5 * 60 + 43,
+                7 * 60 + 1,
+                13 * 60 + 6,
+                19 * 60 + 9,
+                20 * 60 + 19,
+            ],
+        ),
+        (
+            (5, 15),
+            [
+                5 * 60 + 35,
+                6 * 60 + 56,
+                13 * 60 + 3,
+                19 * 60 + 7,
+                20 * 60 + 20,
+            ],
+        ),
+        (
+            (6, 21),
+            [
+                5 * 60 + 37,
+                7 * 60 + 1,
+                13 * 60 + 8,
+                19 * 60 + 13,
+                20 * 60 + 28,
+            ],
+        ),
+        (
+            (7, 15),
+            [
+                5 * 60 + 43,
+                7 * 60 + 6,
+                13 * 60 + 12,
+                19 * 60 + 17,
+                20 * 60 + 31,
+            ],
+        ),
+        (
+            (8, 15),
+            [
+                5 * 60 + 46,
+                7 * 60 + 5,
+                13 * 60 + 11,
+                19 * 60 + 14,
+                20 * 60 + 25,
+            ],
+        ),
+        (
+            (9, 23),
+            [
+                5 * 60 + 37,
+                6 * 60 + 54,
+                12 * 60 + 58,
+                19 * 60 + 1,
+                20 * 60 + 9,
+            ],
+        ),
+        (
+            (10, 15),
+            [
+                5 * 60 + 31,
+                6 * 60 + 48,
+                12 * 60 + 52,
+                18 * 60 + 53,
+                20 * 60 + 3,
+            ],
+        ),
+        (
+            (11, 15),
+            [
+                5 * 60 + 27,
+                6 * 60 + 48,
+                12 * 60 + 51,
+                18 * 60 + 52,
+                20 * 60 + 4,
+            ],
+        ),
+        (
+            (12, 22),
+            [
+                5 * 60 + 39,
+                7 * 60 + 3,
+                13 * 60 + 5,
+                19 * 60 + 6,
+                20 * 60 + 21,
+            ],
+        ),
+    ];
+
+    /// The minutes by which MUIS's time is later than this module's, for
+    /// each row and each of the five times.
+    fn muis_lateness(method: &PrayerMethod) -> impl Iterator<Item = [f64; 5]> + '_ {
+        MUIS_2026.into_iter().map(move |((month, day), row)| {
+            let rd = crate::hc_calendar::gregorian::to_fixed(2026, month, day).expect("a date");
+            let local = |moment: Moment| (moment.0 + 8.0 / 24.0 - rd.0 as f64) * 1_440.0;
+            let ours = [
+                local(fajr(rd, SINGAPORE_CITY, method).expect("Singapore has a dawn")),
+                local(sunrise(rd, SINGAPORE_CITY).expect("a sunrise")),
+                local(solar_noon(rd, SINGAPORE_CITY)),
+                local(maghrib(rd, SINGAPORE_CITY, method).expect("a sunset")),
+                local(isha(rd, SINGAPORE_CITY, method, false).expect("a dusk")),
+            ];
+            core::array::from_fn(|index| f64::from(row[index]) - ours[index])
+        })
+    }
+
+    /// MUIS's timetable for 2026 against the Singapore method at 20° and
+    /// 18°: every Subuh, Syuruk, Maghrib and Isyak of twelve days through
+    /// the year is the computed time or up to a minute and a half later,
+    /// the rounding up to the minute and the margin a published timetable
+    /// adds, and every Zohor half a minute to two and a half minutes after
+    /// the Sun's transit. At 19° or 21° every Subuh falls two minutes or
+    /// more outside that.
+    #[test]
+    fn the_singapore_method_reproduces_muis_timetable_for_2026() {
+        for late in muis_lateness(&SINGAPORE) {
+            for (index, minutes) in late.iter().enumerate() {
+                let range = if index == 2 { 0.5..2.5 } else { -0.5..1.5 };
+                assert!(range.contains(minutes), "{late:?}");
+            }
+        }
+        for degrees in [19, 21] {
+            let method = PrayerMethod {
+                fajr_depression_arcminutes: degrees * 60,
+                ..SINGAPORE
+            };
+            assert!(
+                muis_lateness(&method).all(|late| !(-2.0..2.5).contains(&late[0])),
+                "{degrees}°"
+            );
+        }
+    }
+
+    /// Each method's times sit at its angles, in the order of the day, and
+    /// Umm al-Qura's *ʿishāʾ* is its interval after sunset.
+    #[test]
+    fn every_method_puts_its_times_at_its_angles() {
+        let day = gregorian_new_year(2026) + 100;
+        for method in PRAYER_METHODS {
+            let dawn = fajr(day, PADUA, method).expect("Padua has a dawn in April");
+            let degrees = f64::from(method.fajr_depression_arcminutes) / 60.0;
+            assert!(
+                (solar_altitude(dawn, PADUA) + degrees).abs() < 1e-4,
+                "{}",
+                method.id
+            );
+            let evening = maghrib(day, PADUA, method).expect("a maghrib");
+            let night = isha(day, PADUA, method, false).expect("an isha");
+            match method.isha {
+                IshaRule::Depression(arcminutes) => {
+                    let degrees = f64::from(arcminutes) / 60.0;
+                    assert!((solar_altitude(night, PADUA) + degrees).abs() < 1e-4);
+                }
+                IshaRule::AfterMaghrib {
+                    minutes,
+                    ramadan_minutes,
+                } => {
+                    assert!(((night.0 - evening.0) * 1_440.0 - f64::from(minutes)).abs() < 1e-6);
+                    let fasting = isha(day, PADUA, method, true).expect("an isha");
+                    assert!(
+                        ((fasting.0 - evening.0) * 1_440.0 - f64::from(ramadan_minutes)).abs()
+                            < 1e-6
+                    );
+                }
+            }
+            let rise = sunrise(day, PADUA).expect("a sunrise");
+            let noon = solar_noon(day, PADUA);
+            let middle = islamic_midnight(day, PADUA, method).expect("a night");
+            assert!(dawn.0 < rise.0 && rise.0 < noon.0 && noon.0 < evening.0);
+            assert!(evening.0 < night.0 && night.0 < middle.0, "{}", method.id);
+        }
+        assert_eq!(prayer_method("tehran"), Some(TEHRAN));
+        assert_eq!(prayer_method("hanafi"), None);
+    }
+
+    /// The middle of the night is half-way from sunset to the next sunrise,
+    /// or to the next *fajr* for Tehran and Jafari.
+    #[test]
+    fn the_middle_of_the_night_follows_the_methods_rule() {
+        let day = gregorian_new_year(2026) + 30;
+        let set = sunset(day, PADUA).expect("sunset");
+        let rise = sunrise(day + 1, PADUA).expect("sunrise");
+        let mwl = islamic_midnight(day, PADUA, &MWL).expect("a night");
+        assert!((mwl.0 - (set.0 + rise.0) / 2.0).abs() < 1e-12);
+        let dawn = fajr(day + 1, PADUA, &TEHRAN).expect("a dawn");
+        let tehran = islamic_midnight(day, PADUA, &TEHRAN).expect("a night");
+        assert!((tehran.0 - (set.0 + dawn.0) / 2.0).abs() < 1e-12);
+        assert!(tehran.0 < mwl.0);
+    }
+
+    /// Where the Sun does not reach a method's angle, the time is refused:
+    /// no method carried defines a rule for high latitudes. At Padua on the
+    /// June solstice the Sun sinks about 21° below the horizon, so every
+    /// dawn angle is reached; at Tromsø it does not set, and neither dawn
+    /// nor dusk exists; at London, 51.5° N, 18° is out of reach but 12° is
+    /// not.
+    #[test]
+    fn a_method_refuses_the_times_the_sun_does_not_reach() {
+        let midsummer = gregorian_new_year(2026) + 171;
+        assert!(fajr(midsummer, PADUA, &SINGAPORE).is_ok());
+        assert_eq!(
+            fajr(midsummer, TROMSO, &FRANCE),
+            Err(MissingSolarEvent::DawnDepression {
+                day: midsummer,
+                arcminutes: 12 * 60,
+            })
+        );
+        assert_eq!(
+            maghrib(midsummer, TROMSO, &MWL),
+            Err(MissingSolarEvent::Sunset(midsummer))
+        );
+        assert!(isha(midsummer, TROMSO, &UMM_AL_QURA, false).is_err());
+        let london = Location::new(51.5, -0.13, 0.0);
+        assert_eq!(
+            isha(midsummer, london, &MWL, false),
+            Err(MissingSolarEvent::Depression {
+                day: midsummer,
+                arcminutes: 17 * 60,
+            })
+        );
+        assert!(fajr(midsummer, london, &MWL).is_err());
+        assert!(fajr(midsummer, london, &FRANCE).is_ok());
     }
 }

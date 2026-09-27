@@ -98,6 +98,7 @@ const UNRECORDED: &[&str] = &[
     "islamic-rgsa",
     "islamic-observational-cairo-rd",
     "islamic-saudi-rule-rd",
+    "islamic-istanbul-2016",
     "hindu-lunar-surya-siddhanta",
     "hindu-solar-surya-siddhanta",
     "maya-819",
