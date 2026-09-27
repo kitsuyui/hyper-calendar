@@ -28,7 +28,12 @@
 //! * [`numbering`] — digit shapes and Han numerals, rendered and parsed.
 //! * [`plural`] — CLDR cardinal plural categories for 30 languages.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
-//!   vocabulary, keyed by locale, calendar, width and context.
+//!   vocabulary, keyed by locale, calendar, width and context, and the
+//!   templates a locale writes a date with.
+//! * [`notation`] — the notations a calendar writes its dates in whatever
+//!   the language: the Long Count's dotted places, the ISO week date.
+//! * [`fields`] — what a calendar's extra fields are called, and which of
+//!   its cycles names each one's value.
 //! * [`almanac`] — what a locale calls the Japanese almanac's annotations,
 //!   六曜 to the 選日.
 //! * [`dated`] — month and weekday names a government gave for a period,
@@ -68,9 +73,11 @@ pub mod direction;
 pub mod error;
 #[cfg(feature = "exemplar-cities")]
 pub mod exemplar_cities;
+pub mod fields;
 pub mod horizons;
 pub mod locale;
 pub mod names;
+pub mod notation;
 pub mod numbering;
 pub mod plural;
 #[cfg(feature = "territories")]

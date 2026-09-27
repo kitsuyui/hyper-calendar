@@ -301,12 +301,30 @@ impl EraNames {
 /// | `{month}` | the month's label: name and leap prefix, or its number |
 /// | `{day}` | the day's name from [`DateTemplates::day_names`], or its number |
 /// | `{sexagenary}` | the year's stem and branch in the locale's reading, where the date carries a `sexagenary_year` |
-/// | `{extras}` | the calendar's extra fields as `name=value` pairs joined by `;` |
+/// | `{extra:FIELD}` | the extra field `FIELD` where the date carries it, the name of its value where its values are named ([`crate::fields::write_value_name`]), else its value as a number |
+///
+/// An extra field is written only where a template names it, and a
+/// template names one only where the calendar's sources write the date
+/// with it — the Long Count's `13.0.13.17.8`, a Tamil year's name. The
+/// rest are metadata, which [`crate::fields`] labels for the lines that
+/// list them, and which no date carries as text: there is no placeholder
+/// for the extra fields as a whole.
 ///
 /// In [`DateTemplates::date`], `{year}`, `{month}` and `{day}` stand for
 /// the *rendered* year, month and day — the year with its era, the day
 /// with its 日 — so that a field the date does not carry vanishes with
 /// the affixes its own template gave it.
+///
+/// A placeholder may carry a specification after a colon:
+///
+/// * a width, `{month:abbreviated}`, asks for the name at that width, and
+///   `{extra:FIELD:abbreviated}` for the name of an extra field's value;
+/// * a number of digits, `{month:2}`, `{extra:week:2}`, asks for the
+///   field as a number and never a name, with at least that many digits,
+///   as a notation writes `2026-W09-1`; `{year:4}` is the year's number
+///   alone, without its era;
+/// * `{day:0-based}` is the day of the month counted from zero, as the
+///   Haabʼ writes its first day, 0 Pop, the month's seating.
 ///
 /// A placeholder whose field the date does not carry is filled with
 /// nothing, and the renderer then trims the pattern and collapses the
@@ -314,7 +332,8 @@ impl EraNames {
 /// calendar without eras. A template that is empty says *no
 /// preference*, and so does one whose every placeholder came out empty:
 /// the renderer takes the next level of the [`TemplateChain`] — the
-/// entries', the locale's, then [`DateTemplates::DEFAULT`].
+/// entries', the calendar's own, the locale's, then
+/// [`DateTemplates::DEFAULT`].
 ///
 /// # Where they live
 ///
@@ -322,8 +341,11 @@ impl EraNames {
 /// [`LocaleData::templates`], and an entry that serves a family of
 /// calendars states what differs for that family in
 /// [`CalendarNames::templates`]: the sexagenary year of the Chinese
-/// calendar, the named days of its months. Both are data, and every
-/// convention in them is sourced in a comment beside it.
+/// calendar, the named days of its months. A calendar whose sources write
+/// its dates in one notation whatever the language — the Long Count's
+/// dotted places, the ISO week date — states it once, in
+/// [`crate::notation`]. All of it is data, and every convention in it is
+/// sourced in a comment beside it.
 #[derive(Debug, Clone, Copy)]
 pub struct DateTemplates {
     /// The era on its own.
@@ -363,18 +385,19 @@ impl DateTemplates {
         implied_era: "",
     };
 
-    /// What a renderer writes when no locale has said otherwise: each
-    /// field by itself, and a date as its fields in the order
-    /// [`hc_calendar::DateFields`] lists them — era, year, month, day, then
-    /// the extra fields — separated by spaces. It states the numbers and
-    /// names the library already has and invents no orthography.
+    /// What a renderer writes when no locale and no calendar has said
+    /// otherwise: each field by itself, and a date as its year, month and
+    /// day in the order [`hc_calendar::DateFields`] lists them, separated
+    /// by spaces. It states the numbers and names the library already has
+    /// and invents no orthography; an extra field is left out, since no
+    /// source says it belongs in the date.
     pub const DEFAULT: Self = Self {
         era: "{era}",
         year: "{year} {era}",
         first_year: "",
         month: "{month}",
         day: "{day}",
-        date: "{year} {month} {day} {extras}",
+        date: "{year} {month} {day}",
         day_names: &[],
         implied_era: "",
     };
@@ -422,8 +445,9 @@ impl DateTemplates {
 }
 
 /// The templates that apply to one calendar in one locale, level by level:
-/// what the entries serving the calendar state, what the locale states in
-/// general, and [`DateTemplates::DEFAULT`].
+/// what the entries serving the calendar state, what the calendar's own
+/// notation states whatever the locale ([`crate::notation`]), what the
+/// locale states in general, and [`DateTemplates::DEFAULT`].
 ///
 /// A renderer tries each level's template for a field in turn and moves
 /// to the next when the template says nothing — its field is empty, or
@@ -435,6 +459,8 @@ pub struct TemplateChain {
     /// The serving entries' own templates, merged field by field in entry
     /// order.
     pub entry: DateTemplates,
+    /// The calendar's own notation, the same in every locale.
+    pub calendar: DateTemplates,
     /// The locale's general templates.
     pub locale: DateTemplates,
 }
@@ -443,20 +469,29 @@ impl TemplateChain {
     /// Nothing but the default.
     pub const NONE: Self = Self {
         entry: DateTemplates::NONE,
+        calendar: DateTemplates::NONE,
         locale: DateTemplates::NONE,
     };
 
     /// The levels, most specific first, ending in the default.
     #[must_use]
-    pub const fn levels(&self) -> [DateTemplates; 3] {
-        [self.entry, self.locale, DateTemplates::DEFAULT]
+    pub const fn levels(&self) -> [DateTemplates; 4] {
+        [
+            self.entry,
+            self.calendar,
+            self.locale,
+            DateTemplates::DEFAULT,
+        ]
     }
 
     /// Every level merged into one, for the fields that do not need the
     /// levels told apart: the day names and the implied era.
     #[must_use]
     pub const fn merged(&self) -> DateTemplates {
-        self.entry.or(self.locale).or(DateTemplates::DEFAULT)
+        self.entry
+            .or(self.calendar)
+            .or(self.locale)
+            .or(DateTemplates::DEFAULT)
     }
 }
 
@@ -768,6 +803,7 @@ impl LocaleData {
         });
         Some(TemplateChain {
             entry,
+            calendar: DateTemplates::NONE,
             locale: self.templates,
         })
     }
@@ -1086,12 +1122,16 @@ pub fn era_codes(locale: &Locale, calendar: CalendarId) -> Option<&'static [&'st
 /// How a locale writes a calendar's units and dates.
 ///
 /// The first entry in the fallback chain that names the calendar decides:
-/// its serving entries' templates, its general ones, and
-/// [`DateTemplates::DEFAULT`] behind both. A calendar no locale in the
-/// chain names gets the default outright.
+/// its serving entries' templates, then the calendar's own notation
+/// ([`crate::notation::templates_for`]), then the entry's general ones,
+/// and [`DateTemplates::DEFAULT`] behind them all. A calendar no locale in
+/// the chain names gets its own notation and the default.
 #[must_use]
 pub fn templates(locale: &Locale, calendar: CalendarId) -> TemplateChain {
-    resolve(locale, |data| data.templates_for(calendar)).unwrap_or(TemplateChain::NONE)
+    let mut chain =
+        resolve(locale, |data| data.templates_for(calendar)).unwrap_or(TemplateChain::NONE);
+    chain.calendar = crate::notation::templates_for(calendar);
+    chain
 }
 
 /// Whether a locale is written in Latin letters, judged from the data
@@ -1788,11 +1828,16 @@ mod tests {
         let chinese = templates(&locale("zh-Hans"), CalendarId("chinese"));
         assert_eq!(chinese.entry.year, "{sexagenary}年");
         assert_eq!(chinese.entry.day_names.len(), 30);
-        assert_eq!(chinese.levels()[1].day, "{day}日");
-        // A calendar nobody names gets the default outright.
+        assert!(chinese.calendar.is_none());
+        assert_eq!(chinese.levels()[2].day, "{day}日");
+        // A calendar nobody names gets its own notation and the default.
         let haab = templates(&locale("ja"), CalendarId("maya-haab"));
         assert!(haab.entry.is_none() && haab.locale.is_none());
-        assert_eq!(haab.levels()[2].year, DateTemplates::DEFAULT.year);
+        assert_eq!(haab.levels()[1].date, "{day:0-based} {month}");
+        assert_eq!(haab.levels()[3].year, DateTemplates::DEFAULT.year);
+        let long_count = templates(&locale("ja"), CalendarId("maya-longcount"));
+        assert!(long_count.entry.is_none() && long_count.locale.is_none());
+        assert_eq!(long_count.merged().year, DateTemplates::DEFAULT.year);
         assert_eq!(
             calendar_display_name(&locale("ja-JP"), CalendarId("japanese")),
             Some("和暦")

@@ -201,6 +201,30 @@ describe("civil", () => {
   });
 });
 
+describe("dayExtras", () => {
+  test("labels each extra field and says which the date writes", () => {
+    const raw = rawRows(hc, (buffer, capacity) =>
+      hc.exports.hc_day_extras(739_886n, 0, 0, 0, 0, buffer, capacity));
+    for (const cells of raw) {
+      assert.equal(cells.length, COLUMNS.dayExtras.length, JSON.stringify(cells));
+    }
+    const rows = hc.dayExtras(739_886, "en");
+    assert.equal(rows.length, raw.length);
+    assert.ok(rows.every((row) => row.label !== "" && row.valueLabel !== ""));
+    const tamil = hc.dayExtras(739_886, "en", "hindu-solar-tamil");
+    assert.deepEqual(tamil, [
+      { id: "hindu-solar-tamil", field: "samvatsara", value: 40, label: "Samvatsara", valueLabel: "Parabhava", inDate: true, localeUsed: "en" },
+      { id: "hindu-solar-tamil", field: "tiruvalluvar-year", value: 2057, label: "Tiruvalluvar year", valueLabel: "2057", inDate: false, localeUsed: "en" },
+    ]);
+    // The formatted date writes the extras a source writes, and no pair.
+    const described = hc.describeDay(739_886, "en");
+    assert.equal(described.find((row) => row.id === "maya-longcount")?.formatted, "13.0.13.17.8");
+    assert.ok(described.every((row) => !(row.formatted ?? "").includes("=")));
+    assert.deepEqual(hc.dayExtras(739_886, "en", "rumi"), []);
+    assert.throws(() => hc.dayExtras(739_886, "en", "no-such-calendar"), HcError);
+  });
+});
+
 describe("describeDay", () => {
   test("writes every calendar as a line of the README's columns", () => {
     const rd = hc.gregorianToFixed(2026, 9, 21);

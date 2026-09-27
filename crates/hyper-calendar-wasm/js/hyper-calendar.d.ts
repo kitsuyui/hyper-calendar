@@ -363,6 +363,7 @@ export const SENTINELS: ReadonlyArray<Sentinel>;
 export const METHODS: ReadonlyArray<MethodEntry>;
 export const COLUMNS: {
   readonly describeDay: ReadonlyArray<string>;
+  readonly dayExtras: ReadonlyArray<string>;
   readonly calendarUnits: ReadonlyArray<string>;
   readonly calendars: ReadonlyArray<string>;
   readonly calendarList: ReadonlyArray<string>;
@@ -469,6 +470,24 @@ export type Standing = "in-use" | "proleptic" | "extended" | "unrecorded";
  */
 export type DayNamedBy = "start" | "end";
 
+/** One line of `hc_day_extras`: one extra field of a day in one calendar. */
+export interface DayExtra {
+  /** The calendar's identifier. */
+  id: string;
+  /** The field's identifier, `samvatsara`, `julian-day-number`: a key, never text for a reader. */
+  field: string;
+  /** Its value. */
+  value: number;
+  /** What the locale calls the field, else its English label: `Samvatsara`, `Julian Day Number`. */
+  label: string;
+  /** The value as a reader reads it: the name its value holds where it is named, `Parabhava`, else the number in the locale's digits. */
+  valueLabel: string;
+  /** Whether `describeDay`'s `formatted` already writes the field. */
+  inDate: boolean;
+  /** The tag of the locale data that answered. */
+  localeUsed: string;
+}
+
 /** One line of `hc_describe_day`: a fixed day in one calendar. */
 export interface DescribedDay {
   /** The calendar's identifier: `gregory`, `chinese`, `japanese`, ... */
@@ -491,7 +510,7 @@ export interface DescribedDay {
   day: number | null;
   /** Whether the day is a repeated one. */
   leapDay: boolean;
-  /** The calendar's extra fields, `{ baktun: "13", katun: "0", ... }`, as the module writes them. */
+  /** The calendar's extra fields, `{ baktun: "13", katun: "0", ... }`, as the module writes them: keys for a program; `dayExtras` labels them for a reader. */
   extras: Record<string, string>;
   /** `null` when the day converted; otherwise the refusal's code and name. */
   error: { code: number; name: string } | null;
@@ -1693,6 +1712,11 @@ export class HyperCalendar {
    * order. `locale` is a BCP 47 tag, `und` unless given, as the module.
    */
   describeDay(fixed: number | bigint, locale?: string): DescribedDay[];
+  /**
+   * `hc_day_extras`: the day's extra fields, labelled, in every registered
+   * calendar or with `id` in one; `locale` as for `describeDay`.
+   */
+  dayExtras(fixed: number | bigint, locale?: string, id?: string): DayExtra[];
   /** The days from `from` up to but not including `to` as one calendar's eras, years, months or days. */
   calendarUnits(id: string, unit: Unit | number, from: number | bigint, to: number | bigint, locale?: string): CalendarUnit[];
   /** Every registered calendar, with what the locale calls it and its standing on `today`. */

@@ -106,6 +106,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_unix_from_dotnet_ticks` | `ticks` 0 through 3 155 378 975 999 999 999, the range of `DateTime`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a second of the day, 0 through 86 399 | `hc_civil_from_six_hour_clock` | no `i64` input: every reading of an hour 1 to 12, a minute and a second 0 to 59, and a half; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
+| a byte length | `hc_day_extras` | every `fixed`; a calendar that refuses the day writes no line, and an `id` the registry does not carry is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_calendar_units` | every `from_fixed` and `to_fixed` whose range is at most 100 000 units; a span a calendar refuses says so in its own line and counts as one, a `to_fixed` at or before `from_fixed` writes nothing, and a range of more units is `HC_ERR_OUT_OF_RANGE` (see [line caps](#line-caps)) |
 | a byte length | `hc_calendars` | every `today` |
 | a byte length | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERR_UNKNOWN` |
@@ -164,7 +165,8 @@ table — the calendars, the locales, the holiday tables, the missions, the
 bodies — or of one year or one day, and has no range to cap:
 `hc_holidays_in_year` writes a year's entries of one table, some tens of
 lines, whatever the year; `hc_holidays_on` one day's entries across the
-tables; `hc_describe_day` one line per calendar.
+tables; `hc_describe_day` one line per calendar, and `hc_day_extras` one
+per extra field of the day, a few hundred across the calendars.
 
 ## Lines and cells
 
@@ -179,8 +181,9 @@ wrapper does. Where a line names an entry that has a stable identifier, the
 identifier is in column 1 — a calendar's `id`, a locale's `tag`, a holiday
 table's `code` or `table`, a `zone`, a horizon's, a mission's, a body's, a
 gravitating body's `id`, an off-Earth `calendar` — or in column 2 after a
-column that says what kind of line it is: a deep-time line's `kind` and
-`id`, a renamed-month line's `state` and `period`. A cell with nothing to
+column that says what kind of line it is, or whose entry it belongs to:
+a deep-time line's `kind` and `id`, a renamed-month line's `state` and
+`period`, a day's extra field's calendar `id` and `field`. A cell with nothing to
 say is empty, never a placeholder, and no cell contains a tab or a line
 break: the few source strings that carry one have it replaced by a space.
 Numbers are written in plain decimal notation, however large or small.
@@ -271,6 +274,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `ccsdsAsciiParse(code, strict)`, `ccsdsAsciiFormat(taiSeconds, attoseconds, variation, precision, terminator, strict)` | `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format` | a `CcsdsAsciiCode`; a string |
 | `radioDecode(code, frame, century)`, `radioEncode(code, unixSeconds, options)` | `hc_radio_decode`, `hc_radio_encode` | a `RadioMinute`; a frame string |
 | `describeDay(fixed, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
+| `dayExtras(fixed, locale, id)` | `hc_day_extras` | `DayExtra[]`, one per extra field |
 | `calendarUnits(id, unit, from, to, locale)` | `hc_calendar_units` | `CalendarUnit[]`, one per span |
 | `calendars(today, locale)` | `hc_calendars` | `CalendarEntry[]`, one per calendar |
 | `calendarList(locale)` | `hc_calendar_list` | `CalendarListEntry[]`, one per calendar |
@@ -429,7 +433,7 @@ one job a layer.
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,740 | 35 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 117,996 | 115 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`: the CCSDS time codes, binary and ASCII, and the long-wave radio time codes of JJY, DCF77 and WWVB, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds` and `radio` | 94,035 | 92 KiB |
-| `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 955,083 | 933 KiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 955,083 | 933 KiB |
 | `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,269,809 | 1.21 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 90,098 | 88 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 184,137 | 180 KiB |
@@ -480,7 +484,7 @@ not pass CI.
 
 ### Exports
 
-131 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+132 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -534,6 +538,7 @@ not pass CI.
 | `hc_six_hour_clock(reckoning: *const u8, reckoning_len: usize, seconds_of_day: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A time of the civil day on a six-hour clock, as one UTF-8 line, returning the byte length written. |
 | `hc_civil_from_six_hour_clock(reckoning: *const u8, reckoning_len: usize, hour: u32, minute: u32, second: u32, night: i32) -> i64` | `timestamps` | The civil time of day of a six-hour reading, as seconds after midnight, 0 through 86 399, or an error sentinel. |
 | `hc_describe_day(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | One fixed day in every registered calendar, as UTF-8 lines, returning the byte length written. |
+| `hc_day_extras(fixed: i64, id: *const u8, id_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The extra fields of one fixed day, as UTF-8 lines, returning the byte length written. |
 | `hc_calendar_units(id: *const u8, id_len: usize, unit: u32, from_fixed: i64, to_fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as UTF-8 lines, returning the byte length written. |
 | `hc_calendars(today: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_calendar_list(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar by name alone, as UTF-8 lines, returning the byte length written. |
@@ -1207,12 +1212,12 @@ zero length is `und` too.
 | 8 | month label | the month's name in the locale, 閏二月, or the calendar's own name for it, or empty |
 | 9 | day | the day of the month, or empty |
 | 10 | leap day | `1` for a repeated day, else `0` |
-| 11 | extras | the calendar's extra fields, `baktun=13;katun=0;...`, or empty |
+| 11 | extras | the calendar's extra fields as identifiers and integers for a program, `baktun=13;katun=0;...`, or empty; [`hc_day_extras`](#the-extra-fields-of-a-day) labels them for a reader |
 | 12 | error code | empty when the day converted; otherwise the refusal's code |
 | 13 | error name | empty when the day converted; otherwise its name |
 | 14 | standing | `in-use`, `proleptic`, `extended` or `unrecorded`; empty on a refusal |
 | 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS` |
-| 16 | formatted | the date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一, `September 21, 2026` — from `hc_format::label`; empty on a refusal |
+| 16 | formatted | the date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一, `September 21, 2026`, `13.0.13.17.8` — from `hc_format::label`: text for a reader, which holds an extra field only where the calendar's sources write the date with it and never a `name=value` pair, a field's identifier or an era's code; empty on a refusal |
 | 17 | locale used | the tag of the locale data that answered: `ja`, `he`, `und` |
 | 18 | day named by | which civil day names a day that does not begin at midnight: `start` for the one it begins on (the Julian Day, the Tibetan and Hindu days), `end` for the one it ends on (the Hebrew and Islamic days, whose evening is already the next date); empty for a midnight start |
 
@@ -1263,6 +1268,52 @@ locale), else English's — `Minguo` under `ja`, `Old Style` under `de`,
 the calendar's own shape name, else its number; the Gregorian family's
 `AD` and the Hebrew calendar's `AM` are left unwritten, as those calendars
 are printed.
+
+**The extra fields** (column 11) are written in the date only where the
+calendar's sources write its dates with them, and then as those sources
+do, in the calendar's own notation (`hc_i18n::notation`) or in a
+locale's template for the calendar, each naming its source: the Long
+Count's `13.0.13.17.8`, the ISO week date `2026-W39-7`, the Tzolkʼin's
+`1 Lamat`, a Tamil year's name, `Purattasi 11 of the year Parabhava,
+1948 Saka`. The rest — a day count's Julian Day Number, the Gregorian
+year a Masonic year counts on, the Vikrama year of an amānta date — are
+metadata and stay out of the text; a calendar whose sources say nothing
+of how its dates are written is written by its year, month and day.
+`crates/hyper-calendar/tests/readable_dates.rs` holds every registered
+calendar, on a spread of days, in every carried locale and `native`, to
+a formatted date and unit labels with no `=`, no field identifier and
+no era code.
+
+## The extra fields of a day
+
+`hc_day_extras(fixed, id_ptr, id_len, locale_ptr, locale_len, buffer, capacity)`
+needs the `calendars` feature and writes one line per extra field of the
+day, in registry order and within a calendar in the order it sets them:
+every registered calendar's with an empty `id`, only that calendar's
+with a registry identifier, and `HC_ERR_UNKNOWN` for an identifier the
+module does not know. A calendar that refuses the day, or whose date has
+no extra fields, writes no line. `locale` is as for `hc_describe_day`,
+`native` included, and the calendar's locale is chosen by the same rule.
+This is where the extra fields live for a page that shows them beside
+the date: the identifiers and integers of column 11 of
+`hc_describe_day`, labelled.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the calendar's identifier |
+| 2 | field | the field's identifier, `samvatsara`, `julian-day-number`, `tzolkin_name`: a key, as column 11 of `hc_describe_day` has it, and never text for a reader |
+| 3 | value | its value, an integer |
+| 4 | label | what the locale calls the field, else its English label, `Samvatsara`, `Julian Day Number`, `Tzolkʼin day sign`, from `hc_i18n::fields`; English's are the words the calendars' system documents use, and no other language's is carried yet |
+| 5 | value label | the value as a reader reads it: the name of the position it holds where the field's values are named — `Parabhava`, பராபவ under `ta`, `Lamat`, 丙午, `Sunday` — else the number in the locale's numbering system; what a template's `{extra:FIELD}` writes |
+| 6 | in date | `1` when column 16 of `hc_describe_day`, the formatted date, already writes the field, else `0`, so that a page shows the others beside it |
+| 7 | locale used | the tag of the locale data that answered, as column 17 of `hc_describe_day` names it |
+
+On 27 September 2026 under `en`, the Tamil solar calendar's two lines
+are `hindu-solar-tamil`, `samvatsara`, `40`, `Samvatsara`, `Parabhava`,
+`1`, `en` and `hindu-solar-tamil`, `tiruvalluvar-year`, `2057`,
+`Tiruvalluvar year`, `2057`, `0`, `en`; the Modified Julian Day's one is
+`modified-julian-day`, `julian-day-number`, `2461311`,
+`Julian Day Number`, `2461311`, `0`, `en`.
 
 ## Units of a calendar
 
