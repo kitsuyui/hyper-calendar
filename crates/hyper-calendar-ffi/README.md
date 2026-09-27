@@ -243,7 +243,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-103 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+106 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -318,6 +318,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_cosmic_events(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every cosmic epoch and every dated cosmic event, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_earliest_evidence(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every claim to the earliest evidence of life, of *Homo sapiens* and of writing, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_archaeological_periods(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every conventional archaeological period, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_future_events(const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every dated event of the far future, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_geologic_intervals(uint32_t rank, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
@@ -647,14 +650,28 @@ WebAssembly module's README describes them, in any case; another is
 
 ## Deep time
 
-`hc_place_years_ago`, `hc_cosmic_events` and `hc_geologic_intervals` need
-the `deep-time` feature, take a NUL-terminated BCP 47 `locale` (or null)
-after their other arguments, and write lines of the same fifteen columns:
-kind, name, scope, the older bound's value, uncertainty, significant figures
-and approximate flag, the same four for the younger bound, the unit, the
-description, the source, and the geological chart's own name for an
-interval in the locale's language, from the ICS's translations, empty for
-every other row and every language the chart has no names in.
+`hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`,
+`hc_archaeological_periods`, `hc_future_events` and `hc_geologic_intervals`
+need the `deep-time` feature, take a NUL-terminated BCP 47 `locale` (or null)
+after their other arguments, and write lines of the same sixteen columns:
+kind, the entry's stable lower-case kebab identifier (match on it rather
+than on the name), the English name, scope (the identifier one rank up for
+a geologic interval, the region for an archaeological period, the landmark
+for an earliest-evidence claim, the kind of prediction for a future event),
+the older bound's value, standard
+uncertainty, significant figures and approximate flag, the same four for
+the younger bound, the unit, the description, the source, and the name in
+the locale's language: the geological chart's own for an interval, from the
+ICS's translations, and for a cosmic, archaeological or earliest-evidence
+row the established term `hc_deep_time::names` carries, empty where there is
+neither. `hc_earliest_evidence` lists the published claims to the earliest
+evidence of life, of *Homo sapiens* and of writing, one line per claim in
+`years-before-1950`, each keeping the shape of its source's date: a minimum
+age has no start, a range two different bounds, and a σ the source does not
+state is empty — the only lines on which a σ can be.
+`hc_archaeological_periods` lists the conventional archaeological periods,
+youngest first, and `hc_future_events` the dated events of the far future,
+soonest first, in `years-from-now`, an experimental bound with no end. The WebAssembly module's README tabulates the columns.
 `hc_place_years_ago(years_ago, std_dev_years, locale, ...)` counts back from the present as `hc-deep-time` defines it — the
 Planck 2018 age of the universe, not the BP datum of 1950 and not the
 caller's clock; the crate ignores the difference, which lies below the

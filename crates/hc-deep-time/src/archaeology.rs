@@ -288,6 +288,9 @@ pub fn bp_to_b2k(years_bp: f64) -> f64 {
 /// conventional dates different handbooks use.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ArchaeologicalPeriod {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The period's conventional name.
     pub name: &'static str,
     /// What defines it, and what the boundary dates are really worth.
@@ -351,6 +354,7 @@ impl ArchaeologicalPeriod {
 /// its `source` names it.
 pub const PERIODS: &[ArchaeologicalPeriod] = &[
     ArchaeologicalPeriod {
+        id: "modern-period",
         name: "Modern period",
         description: "From about 1500 CE. A historian's division rather than an archaeological \
                       one; included so that the sequence reaches the present and a query for a \
@@ -363,6 +367,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 0.0,
     },
     ArchaeologicalPeriod {
+        id: "middle-ages",
         name: "Middle Ages",
         description: "Roughly 550 to 1500 CE in Europe. Both boundaries are arguments rather \
                       than dates, and the fifty-year error bars understate how much they are \
@@ -375,6 +380,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 50.0,
     },
     ArchaeologicalPeriod {
+        id: "classical-antiquity",
         name: "Classical antiquity",
         description: "Roughly 550 BCE to 550 CE: the Greek and Roman Mediterranean. Dated by \
                       documents rather than by radiocarbon, which is why it is the only stretch \
@@ -387,6 +393,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 100.0,
     },
     ArchaeologicalPeriod {
+        id: "iron-age",
         name: "Iron Age",
         description: "From the Late Bronze Age collapse around 1200 BCE. Iron working spread \
                       over centuries and the transition is a gradient, not a line.",
@@ -398,6 +405,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 100.0,
     },
     ArchaeologicalPeriod {
+        id: "bronze-age",
         name: "Bronze Age",
         description: "From about 3300 BCE in the Near East, where tin bronze and the first \
                       writing appear together. In Britain the same period begins eleven \
@@ -411,6 +419,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 100.0,
     },
     ArchaeologicalPeriod {
+        id: "chalcolithic",
         name: "Chalcolithic",
         description: "The Copper Age, about 4500 to 3300 BCE: copper worked but not yet alloyed. \
                       Not recognised as a separate period by every tradition, which is part of \
@@ -424,6 +433,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 100.0,
     },
     ArchaeologicalPeriod {
+        id: "neolithic",
         name: "Neolithic",
         description: "From the Pre-Pottery Neolithic A, which begins with the Younger Dryas \
                       termination: cultivation, then herding, then pottery. Its opening is tied \
@@ -437,6 +447,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 200.0,
     },
     ArchaeologicalPeriod {
+        id: "epipalaeolithic",
         name: "Epipalaeolithic",
         description: "The Last Glacial Maximum and the Late Glacial, including the Natufian. \
                       The European literature calls the later part of this span the Mesolithic \
@@ -450,6 +461,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 100.0,
     },
     ArchaeologicalPeriod {
+        id: "upper-palaeolithic",
         name: "Upper Palaeolithic",
         description: "Blade technology, worked bone and figurative art, from about 45 000 BP. \
                       This is also the outer limit of radiocarbon dating: beyond roughly 50 000 \
@@ -463,6 +475,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 1000.0,
     },
     ArchaeologicalPeriod {
+        id: "middle-palaeolithic",
         name: "Middle Palaeolithic",
         description: "Prepared-core (Levallois) technology, about 300 000 to 45 000 BP. Every \
                       date in this period comes from luminescence, uranium series or \
@@ -476,6 +489,7 @@ pub const PERIODS: &[ArchaeologicalPeriod] = &[
         ends_std_dev_bp: 3000.0,
     },
     ArchaeologicalPeriod {
+        id: "lower-palaeolithic",
         name: "Lower Palaeolithic",
         description: "From the oldest known stone tools, the Lomekwi 3 assemblage in Kenya at \
                       3.3 Ma — which predates the genus Homo. On this scale a fifty-year \

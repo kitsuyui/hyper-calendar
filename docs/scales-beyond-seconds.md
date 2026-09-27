@@ -85,6 +85,10 @@ representation is a magnitude with an exponent, not a count.
   and the present — each with its stated uncertainty and its source.
 - **The geological time scale** as data: eons, eras, periods, epochs and ages
   with ICS boundary ages and their published uncertainties.
+- **The earliest evidence** of life, of *Homo sapiens* and of writing: the
+  published claims, each dated as an age, a minimum age or a range as its
+  source gives it, and the disputed ones named with their rebuttals
+  ([`systems/earliest-evidence.md`](systems/earliest-evidence.md)).
 - **Long astronomical periods**: the precession of the equinoxes and the
   galactic year, each with its spread and whether it drifts.
 - **Future chronology**: the Sun's remaining stages, the end of star
@@ -92,7 +96,9 @@ representation is a magnitude with an exponent, not a count.
   and the four cosmological eras out to the Dark Era — the values that make
   the logarithmic scale necessary.
 
-Every entry in those tables carries its uncertainty and its source.
+Every entry in those tables carries its uncertainty and its source, and a
+stable lower-case identifier that the WebAssembly and C lines write beside
+its English name.
 
 ## `hc-orbital`
 

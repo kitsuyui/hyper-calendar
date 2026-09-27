@@ -494,3 +494,6 @@ Marshalls = "Marshalls"
 Copenhague = "Copenhague"
 Copenaghen = "Copenaghen"
 Istambul = "Istambul"
+# "Nat. Commun.", the ISO 4 abbreviation of Nature Communications, cited by
+# hc-deep-time's evidence module for the Dresser Formation.
+Commun = "Commun"

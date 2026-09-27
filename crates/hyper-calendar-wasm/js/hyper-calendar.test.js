@@ -852,15 +852,18 @@ describe("deep time", () => {
       rows.map((row) => row.kind),
       ["moment", "moment", "cosmic-epoch", "cosmic-event", "eon", "era", "period", "epoch", "age"],
     );
+    assert.equal(rows[0].id, "since-big-bang");
     assert.equal(rows[0].name, "since-big-bang");
     assert.equal(rows[0].unit, "seconds-since-big-bang");
     assert.deepEqual(rows[0].start, rows[0].end, "a point in time");
     assert.equal(rows[1].name, "before-present");
     assert.equal(rows[1].unit, "seconds-before-present");
+    assert.equal(rows[2].id, "era-of-galaxies");
     assert.equal(rows[2].name, "Era of galaxies");
     const age = rows[8];
+    assert.equal(age.id, "maastrichtian");
     assert.equal(age.name, "Maastrichtian");
-    assert.equal(age.scope, "Upper Cretaceous");
+    assert.equal(age.scope, "upper-cretaceous", "the identifier one rank up");
     assert.deepEqual(age.start, { value: 72.2, stdDev: 0.2, figures: 3, approximate: false });
     assert.deepEqual(age.end, { value: 66, stdDev: 0, figures: 4, approximate: false });
     assert.equal(age.unit, "megayears-before-present");
@@ -870,7 +873,8 @@ describe("deep time", () => {
     const inJapanese = hc.placeYearsAgo(66.0e6, 0, "ja");
     assert.equal(inJapanese[8].localisedName, "マーストリヒチアン");
     assert.equal(inJapanese[8].name, "Maastrichtian", "the English column stays");
-    assert.equal(inJapanese[2].localisedName, null, "no cosmic translation");
+    assert.equal(inJapanese[2].localisedName, null, "no established term for the era of galaxies");
+    assert.equal(inJapanese[3].localisedName, "太陽系の形成");
     assert.deepEqual(hc.placeYearsAgo(66.0e6, 1.0e6).map((row) => row.kind), rows.map((row) => row.kind));
   });
 
@@ -878,6 +882,7 @@ describe("deep time", () => {
     const now = hc.placeYearsAgo(0);
     const archaeological = now.find((row) => row.kind === "archaeological");
     assert.ok(archaeological);
+    assert.equal(archaeological.id, "modern-period");
     assert.equal(archaeological.name, "Modern period");
     assert.equal(archaeological.unit, "years-before-1950");
     assert.ok(archaeological.source.length > 0);
@@ -926,8 +931,75 @@ describe("deep time", () => {
     assert.equal(rows[0].start?.value, 0);
     // Values are written in plain decimal notation, however small.
     assert.ok(rows[0].end && rows[0].end.value > 0 && rows[0].end.value < 1e-40);
-    assert.doesNotMatch(raw[0][7], /e/);
-    assert.ok(hc.cosmicEvents("ja").every((row) => row.localisedName === null));
+    assert.doesNotMatch(raw[0][8], /e/);
+    assert.equal(new Set(rows.map((row) => row.id)).size, rows.length, "identifiers are unique");
+    assert.ok(rows.every((row) => row.localisedName === null), "no locale, no localised name");
+    const inJapanese = hc.cosmicEvents("ja");
+    assert.equal(inJapanese.find((row) => row.id === "recombination")?.localisedName, "宇宙の晴れ上がり");
+    assert.equal(inJapanese.find((row) => row.id === "neutrino-decoupling")?.localisedName, null);
+    assert.ok(rows.every((row) => row.kind === "cosmic-epoch" || row.kind === "cosmic-event"));
+  });
+
+  test("the earliest evidence keeps the shape of each source's date", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_earliest_evidence(0, 0, buffer, capacity));
+    const rows = hc.earliestEvidence("ja");
+    sameShape(rows, raw);
+    assert.ok(rows.every((row) => row.kind === "earliest-evidence"));
+    assert.deepEqual(
+      [...new Set(rows.map((row) => row.scope))],
+      ["earliest-life", "earliest-homo-sapiens", "earliest-writing"],
+    );
+    assert.ok(rows.every((row) => row.unit === "years-before-1950"));
+    const byId = (/** @type {string} */ id) => rows.find((row) => row.id === id);
+    // Vidal et al. 2022: a minimum age, 233 ± 22 kyr at 2σ.
+    const omo = byId("earliest-homo-sapiens-omo-kibish");
+    assert.equal(omo?.start, null, "a minimum age has no older bound");
+    assert.deepEqual(omo?.end, { value: 233000, stdDev: 11000, figures: 3, approximate: false });
+    assert.equal(omo?.localisedName, "オモの化石");
+    // Richter et al. 2017: 315 ± 34 ka, the ± not a stated σ.
+    const irhoud = byId("earliest-homo-sapiens-jebel-irhoud");
+    assert.deepEqual(irhoud?.start, { value: 315000, stdDev: null, figures: 3, approximate: false });
+    assert.deepEqual(irhoud?.start, irhoud?.end);
+    // Dodd et al. 2017: at least 3,770 and possibly 4,280 Myr.
+    const nuvvuagittuq = byId("earliest-life-nuvvuagittuq");
+    assert.equal(nuvvuagittuq?.start?.value, 4.28e9);
+    assert.equal(nuvvuagittuq?.end?.value, 3.77e9);
+    // Englund 2004: proto-cuneiform emerges ca. 3300 BC, 5249 years before 1950.
+    const uruk = byId("earliest-writing-uruk-iv");
+    assert.deepEqual(uruk?.end, { value: 5249, stdDev: null, figures: 2, approximate: true });
+    assert.equal(uruk?.localisedName, "原楔形文字");
+    assert.ok(byId("earliest-life-isua-stromatolites")?.description?.includes("Disputed"));
+  });
+
+  test("the cosmic list holds only cosmic rows, every bound with its σ", () => {
+    for (const rows of [hc.cosmicEvents(), hc.archaeologicalPeriods(), hc.futureEvents(), hc.placeYearsAgo(0)]) {
+      for (const row of rows) {
+        assert.notEqual(row.kind, "earliest-evidence");
+        for (const bound of [row.start, row.end]) {
+          assert.ok(bound === null || typeof bound.stdDev === "number", row.id);
+        }
+      }
+    }
+  });
+
+  test("the archaeological periods and the future events are listed", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_archaeological_periods(0, 0, buffer, capacity));
+    const periods = hc.archaeologicalPeriods("ja");
+    sameShape(periods, raw);
+    assert.ok(periods.every((row) => row.kind === "archaeological" && row.unit === "years-before-1950"));
+    assert.equal(periods[0].id, "modern-period");
+    assert.equal(periods[0].localisedName, "近代");
+    assert.equal(periods.at(-1)?.id, "lower-palaeolithic");
+    const future = hc.futureEvents();
+    assert.ok(future.every((row) => row.kind === "future-event" && row.unit === "years-from-now"));
+    const tip = future.find((row) => row.id === "sun-red-giant-tip");
+    assert.equal(tip?.scope, "modelled");
+    assert.deepEqual(tip?.start, { value: 7.59e9, stdDev: 5e7, figures: 3, approximate: false });
+    assert.deepEqual(tip?.start, tip?.end);
+    const proton = future.find((row) => row.id === "proton-decay-lower-bound");
+    assert.equal(proton?.scope, "experimental-bound");
+    assert.equal(proton?.start?.value, 2.4e34);
+    assert.equal(proton?.end, null, "a bound has no end");
   });
 
   test("the geologic ranks are numbered coarsest first", () => {
@@ -941,6 +1013,7 @@ describe("deep time", () => {
     const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_geologic_intervals(0, 0, 0, buffer, capacity));
     const eons = hc.geologicIntervals("eon");
     sameShape(eons, raw);
+    assert.equal(eons[0].id, "phanerozoic");
     assert.equal(eons[0].name, "Phanerozoic");
     assert.equal(eons[0].scope, null);
     assert.deepEqual(eons[0].start, { value: 538.8, stdDev: 0.6, figures: 4, approximate: false });
@@ -1988,6 +2061,7 @@ describe("the buffer protocol", () => {
     assert.deepEqual(small.holidaysOn(739_880), hc.holidaysOn(739_880));
     assert.deepEqual(small.termInEffect(739_880, "japan"), hc.termInEffect(739_880, "japan"));
     assert.deepEqual(small.cosmicEvents(), hc.cosmicEvents());
+    assert.deepEqual(small.earliestEvidence(), hc.earliestEvidence());
     assert.deepEqual(small.geologicIntervals("age"), hc.geologicIntervals("age"));
     assert.deepEqual(small.holidaysInYear("JP", "", -5000), []);
     assert.deepEqual(small.skyAt(1_789_948_800), hc.skyAt(1_789_948_800));

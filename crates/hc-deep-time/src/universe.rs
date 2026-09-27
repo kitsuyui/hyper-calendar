@@ -62,6 +62,9 @@ pub const PARAMETER_SET: &str =
 /// or overlaps, so that [`epoch_at`] always has exactly one answer.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CosmicEpoch {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The epoch's conventional name.
     pub name: &'static str,
     /// What physically distinguishes it.
@@ -137,6 +140,9 @@ impl CosmicEpoch {
 /// and unlike [`CosmicEpoch`] they are allowed to fall inside an epoch.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct CosmicEvent {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The event's conventional name.
     pub name: &'static str,
     /// What happened, and what is actually measured about it.
@@ -181,6 +187,7 @@ impl CosmicEvent {
 /// The epochs of cosmic history, oldest first, tiling the whole span.
 pub const EPOCHS: &[CosmicEpoch] = &[
     CosmicEpoch {
+        id: "planck-epoch",
         name: "Planck epoch",
         description: "Before about 10^-43 s the four interactions are expected to be unified and \
                       no tested theory applies: general relativity and quantum field theory give \
@@ -195,6 +202,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "grand-unification-epoch",
         name: "Grand unification epoch",
         description: "Gravity has separated; the strong, weak and electromagnetic interactions \
                       are still described by a single grand unified group. No accelerator has \
@@ -207,6 +215,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "inflationary-epoch",
         name: "Inflationary epoch",
         description: "An interval of accelerated expansion that flattens the geometry, dilutes \
                       relics and seeds the density perturbations later seen in the CMB. Planck \
@@ -221,6 +230,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "electroweak-epoch",
         name: "Electroweak epoch",
         description: "After reheating, the strong interaction has separated but the electroweak \
                       one has not. It ends at the electroweak phase transition near 100 GeV, the \
@@ -233,6 +243,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "quark-epoch",
         name: "Quark epoch",
         description: "Quarks, leptons and gauge bosons are free; the universe is a quark-gluon \
                       plasma of the kind heavy-ion colliders now recreate for about 10^-23 s at a \
@@ -245,6 +256,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "hadron-epoch",
         name: "Hadron epoch",
         description: "Quarks are confined into hadrons. Most baryons and antibaryons annihilate; \
                       the roughly one-in-a-billion baryon excess that survives is everything \
@@ -257,6 +269,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "lepton-epoch",
         name: "Lepton epoch",
         description: "Hadron-antihadron annihilation is complete and leptons dominate the mass \
                       of the universe. Neutrinos decouple at its opening and electron-positron \
@@ -270,6 +283,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 1,
     },
     CosmicEpoch {
+        id: "photon-epoch",
         name: "Photon epoch",
         description: "Radiation dominates the energy density, then matter does. Primordial \
                       nucleosynthesis happens in its first twenty minutes and nothing much else \
@@ -283,6 +297,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 5,
     },
     CosmicEpoch {
+        id: "dark-ages",
         name: "Dark ages",
         description: "The CMB has redshifted out of the visible, no star has yet formed, and the \
                       universe contains no source of visible light at all. Only the 21 cm line of \
@@ -295,6 +310,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 2,
     },
     CosmicEpoch {
+        id: "reionisation",
         name: "Reionisation",
         description: "Radiation from the first stars and quasars reionises the intergalactic \
                       medium. Planck measures its midpoint through the optical depth to \
@@ -309,6 +325,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
         figures: 2,
     },
     CosmicEpoch {
+        id: "era-of-galaxies",
         name: "Era of galaxies",
         description: "The present epoch: galaxies assemble, stars form and die, and after about \
                       9.8 Gyr the expansion begins to accelerate as the cosmological constant \
@@ -326,6 +343,7 @@ pub const EPOCHS: &[CosmicEpoch] = &[
 
 /// Neutrino decoupling, about one second after the Big Bang.
 pub const NEUTRINO_DECOUPLING: CosmicEvent = CosmicEvent {
+    id: "neutrino-decoupling",
     name: "Neutrino decoupling",
     description: "The weak interaction rate drops below the expansion rate and neutrinos stop \
          scattering, leaving a relic neutrino background at about 1.95 K today. It has never \
@@ -338,6 +356,7 @@ pub const NEUTRINO_DECOUPLING: CosmicEvent = CosmicEvent {
 
 /// Big Bang nucleosynthesis, beginning about ten seconds in.
 pub const BIG_BANG_NUCLEOSYNTHESIS: CosmicEvent = CosmicEvent {
+    id: "big-bang-nucleosynthesis",
     name: "Big Bang nucleosynthesis",
     description: "Protons and neutrons fuse into deuterium, helium-4, helium-3 and lithium-7 \
                   over roughly twenty minutes, freezing out at a helium mass fraction near 0.247. \
@@ -351,6 +370,7 @@ pub const BIG_BANG_NUCLEOSYNTHESIS: CosmicEvent = CosmicEvent {
 
 /// Matter–radiation equality, about 51 000 years in.
 pub const MATTER_RADIATION_EQUALITY: CosmicEvent = CosmicEvent {
+    id: "matter-radiation-equality",
     name: "Matter-radiation equality",
     description: "The matter and radiation energy densities cross at z_eq = 3387 +/- 21. Before \
                   it, perturbations inside the horizon cannot grow; after it, they can, so this \
@@ -363,6 +383,7 @@ pub const MATTER_RADIATION_EQUALITY: CosmicEvent = CosmicEvent {
 
 /// Recombination and photon decoupling — the cosmic microwave background.
 pub const RECOMBINATION: CosmicEvent = CosmicEvent {
+    id: "recombination",
     name: "Recombination and photon decoupling",
     description: "Free electrons combine with protons into neutral hydrogen, the Thomson \
                   scattering rate collapses, and the photons stream freely from a last-scattering \
@@ -376,6 +397,7 @@ pub const RECOMBINATION: CosmicEvent = CosmicEvent {
 
 /// The first stars, around 180 million years in.
 pub const FIRST_STARS: CosmicEvent = CosmicEvent {
+    id: "first-stars",
     name: "First stars",
     description: "Population III stars form in minihaloes from metal-free gas. No individual \
                   Population III star has been observed; the epoch is bracketed by simulations \
@@ -389,6 +411,7 @@ pub const FIRST_STARS: CosmicEvent = CosmicEvent {
 
 /// The earliest spectroscopically confirmed galaxy, about 286 million years in.
 pub const FIRST_GALAXIES: CosmicEvent = CosmicEvent {
+    id: "first-galaxies",
     name: "First galaxies",
     description: "JADES-GS-z14-0, confirmed by JWST at z = 14.32, is the earliest galaxy with a \
                   spectroscopic redshift. It is an observational record rather than a physical \
@@ -402,6 +425,7 @@ pub const FIRST_GALAXIES: CosmicEvent = CosmicEvent {
 
 /// The Milky Way's oldest disc, about 800 million years in.
 pub const MILKY_WAY_FORMATION: CosmicEvent = CosmicEvent {
+    id: "milky-way-formation",
     name: "Formation of the Milky Way",
     description: "Asteroseismic and Gaia ages for a quarter of a million subgiants place the \
                   start of the Galaxy's old (thick) disc about 13 Gyr ago, roughly 0.8 Gyr after \
@@ -415,6 +439,7 @@ pub const MILKY_WAY_FORMATION: CosmicEvent = CosmicEvent {
 
 /// The Sun and Solar System, about 9.22 billion years in.
 pub const SOLAR_SYSTEM_FORMATION: CosmicEvent = CosmicEvent {
+    id: "solar-system-formation",
     name: "Formation of the Sun and Solar System",
     description: "Calcium-aluminium-rich inclusions in primitive meteorites, the oldest dated \
                   solids in the Solar System, give a U-corrected Pb-Pb age of 4567.30 +/- 0.16 \
@@ -428,6 +453,7 @@ pub const SOLAR_SYSTEM_FORMATION: CosmicEvent = CosmicEvent {
 
 /// The present day, 13.787 ± 0.020 Gyr after the Big Bang.
 pub const PRESENT_DAY: CosmicEvent = CosmicEvent {
+    id: "present-day",
     name: "The present",
     description: "13.787 +/- 0.020 Gyr after the Big Bang. The 0.14 % uncertainty is why this \
                   crate exists: it is five significant figures, not eleven, and every derived \

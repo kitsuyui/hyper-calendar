@@ -2514,19 +2514,22 @@ mod deep_time {
     /// at once, as UTF-8 lines, returning the byte length written.
     ///
     /// One line per entry, tab-separated, every deep-time export alike: the
-    /// kind (`moment`, `cosmic-epoch`, `cosmic-event`, `future-era`, a
-    /// geologic rank `eon`, `era`, `period`, `epoch` or `age`, or
-    /// `archaeological`), the name, the scope (the interval one rank up for
-    /// a geologic interval, the region for an archaeological period), the
-    /// older bound's value, standard uncertainty, significant figures and
-    /// `1` where the chart marks it approximate, the same four for the
+    /// kind (`moment`, `cosmic-epoch`, `cosmic-event`,
+    /// `earliest-evidence`, `future-era`, a geologic rank `eon`, `era`,
+    /// `period`, `epoch` or `age`, or `archaeological`), the entry's stable
+    /// lower-case kebab identifier, the name, the scope (the identifier of
+    /// the interval one rank up for a geologic interval, the region for an
+    /// archaeological period, the landmark for an earliest-evidence claim),
+    /// the older bound's value, standard uncertainty, significant figures
+    /// and `1` where the table marks it approximate, the same four for the
     /// younger bound, the unit the values are in, the description, the
     /// source, and the name in the locale. A point in time has the same
-    /// start and end. The units are what each table counts in:
-    /// `seconds-since-big-bang` for the cosmic rows,
+    /// start and end; a minimum age has no start, and a standard
+    /// uncertainty the source does not state is empty. The units are what
+    /// each table counts in: `seconds-since-big-bang` for the cosmic rows,
     /// `megayears-before-present` for the geologic chart's, the
-    /// `years-before-1950` of the BP convention for the archaeological
-    /// rows, `log10-years-from-now` for a future era. The lines are the
+    /// `years-before-1950` of the BP convention for the archaeological and
+    /// earliest-evidence rows, `log10-years-from-now` for a future era. The lines are the
     /// moment itself as `since-big-bang` and `before-present`, its cosmic
     /// epoch and the last dated cosmic event before it, its future era if
     /// it lies ahead, its geologic chain from eon down to age, and its
@@ -2541,8 +2544,9 @@ mod deep_time {
     /// as in its future era, and beyond a century it is in its future era
     /// alone. `locale` is a BCP 47 tag; the last column is the geologic
     /// chart's own name for an interval in that language, from the ICS's
-    /// translations, and empty for every other row and for a language the
-    /// chart has no names in. A value the crate refuses — not finite,
+    /// translations, or for a cosmic, archaeological or earliest-evidence
+    /// row the established term `hc_deep_time::names` carries for it, and
+    /// empty where neither has one. A value the crate refuses — not finite,
     /// beyond its range — is `HC_ERR_OUT_OF_RANGE`; the locale argument
     /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
     /// length the text needs.
@@ -2578,9 +2582,9 @@ mod deep_time {
     ///
     /// The epochs first, Big Bang to the present, then the events, oldest
     /// first, each a line of the columns `hc_place_years_ago` writes, in
-    /// `seconds-since-big-bang`. `locale` is as for `hc_place_years_ago`;
-    /// no cosmic name has a translation this module carries, so the last
-    /// column is empty. A null `buffer` returns the length the text needs.
+    /// `seconds-since-big-bang`. `locale` is as for `hc_place_years_ago`,
+    /// and names an entry where an established term is carried. A null
+    /// `buffer` returns the length the text needs.
     ///
     /// # Safety
     ///
@@ -2600,6 +2604,108 @@ mod deep_time {
             Err(sentinel) => return sentinel,
         };
         let text = deep_time_lines::cosmic(tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
+    /// Every claim to the earliest evidence of life, of *Homo sapiens* and of
+    /// writing, as UTF-8 lines, returning the byte length written.
+    ///
+    /// The claims to the earliest evidence of life, of *Homo sapiens* and of
+    /// writing, grouped by landmark and oldest first, each a line of the
+    /// columns `hc_place_years_ago` writes, in `years-before-1950`, with the
+    /// landmark as the scope. Each keeps the shape of its source's date: an
+    /// age has the same start and end, a minimum age no start, a range two
+    /// different bounds; a standard uncertainty the source does not state
+    /// is an empty cell, and a disputed claim names the rebuttal in its
+    /// description. `locale` is as for `hc_place_years_ago`, and names a
+    /// claim where an established term is carried.
+    /// A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_earliest_evidence(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = deep_time_lines::earliest_evidence(tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
+    /// Every conventional archaeological period, as UTF-8 lines, returning
+    /// the byte length written.
+    ///
+    /// The conventional Southwest Asian and European sequence, youngest
+    /// first, each a line of the columns `hc_place_years_ago` writes, in
+    /// `years-before-1950`, with the region as the scope. `locale` is as for
+    /// `hc_place_years_ago`, and names a period where an established term is
+    /// carried.
+    /// A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_archaeological_periods(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = deep_time_lines::archaeological_periods(tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_or_measure(&text, buffer, capacity) }
+    }
+
+    /// Every dated event of the far future, as UTF-8 lines, returning the
+    /// byte length written.
+    ///
+    /// The dated events of the far future, soonest first, each a line of
+    /// the columns `hc_place_years_ago` writes, in `years-from-now`, with
+    /// the kind of prediction as the scope: `modelled`,
+    /// `experimental-bound` or `order-of-magnitude`. An experimental bound
+    /// has a start and no end, because the event, if it happens, is no
+    /// sooner. `locale` is as for `hc_place_years_ago`; no future event has
+    /// a name in another language, so the last column is empty.
+    /// A null `buffer` returns the length the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless it
+    /// is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_future_events(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let text = deep_time_lines::future_events(tag);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_or_measure(&text, buffer, capacity) }
     }
@@ -2643,7 +2749,10 @@ mod deep_time {
 }
 
 #[cfg(feature = "deep-time")]
-pub use deep_time::{hc_cosmic_events, hc_geologic_intervals, hc_place_years_ago};
+pub use deep_time::{
+    hc_archaeological_periods, hc_cosmic_events, hc_earliest_evidence, hc_future_events,
+    hc_geologic_intervals, hc_place_years_ago,
+};
 
 /// Time zones, behind the `tz` feature: the day an instant falls on, and
 /// the instant a day begins, by the wall clock of an IANA zone.
@@ -5587,7 +5696,7 @@ mod tests {
                 .lines()
                 .map(|line| line.split('\t').collect())
                 .collect();
-            assert!(rows.iter().all(|row| row.len() == 15), "{rows:?}");
+            assert!(rows.iter().all(|row| row.len() == 16), "{rows:?}");
             rows
         }
 
@@ -5613,23 +5722,26 @@ mod tests {
                     "age"
                 ]
             );
-            assert_eq!(rows[0][1], "since-big-bang");
-            assert_eq!(rows[0][11], "seconds-since-big-bang");
-            assert_eq!(rows[1][1], "before-present");
-            assert_eq!(rows[1][11], "seconds-before-present");
-            assert_eq!(rows[2][1], "Era of galaxies");
+            assert_eq!(rows[0][2], "since-big-bang");
+            assert_eq!(rows[0][12], "seconds-since-big-bang");
+            assert_eq!(rows[1][2], "before-present");
+            assert_eq!(rows[1][12], "seconds-before-present");
+            assert_eq!(rows[2][1..3], ["era-of-galaxies", "Era of galaxies"]);
             let age = &rows[8];
-            assert_eq!(age[..3], ["age", "Maastrichtian", "Upper Cretaceous"]);
+            assert_eq!(
+                age[..4],
+                ["age", "maastrichtian", "Maastrichtian", "upper-cretaceous"]
+            );
             // The older bound, then the younger, each with its own figures.
-            assert_eq!(age[3..7], ["72.2", "0.2", "3", "0"]);
-            assert_eq!(age[7..11], ["66", "0", "4", "0"]);
-            assert_eq!(age[11], "megayears-before-present");
-            assert!(age[13].contains("v2026/06"), "{age:?}");
+            assert_eq!(age[4..8], ["72.2", "0.2", "3", "0"]);
+            assert_eq!(age[8..12], ["66", "0", "4", "0"]);
+            assert_eq!(age[12], "megayears-before-present");
+            assert!(age[14].contains("v2026/06"), "{age:?}");
             // The chart's Japanese name, from the Geological Society of
             // Japan's translation; the cosmic rows have none.
-            assert_eq!(age[14], "マーストリヒチアン");
-            assert_eq!(rows[6][14], "白亜系／紀");
-            assert_eq!(rows[2][14], "");
+            assert_eq!(age[15], "マーストリヒチアン");
+            assert_eq!(rows[6][15], "白亜系／紀");
+            assert_eq!(rows[2][15], "");
         }
 
         #[test]
@@ -5642,9 +5754,9 @@ mod tests {
                 .iter()
                 .find(|row| row[0] == "archaeological")
                 .expect("now");
-            assert_eq!(archaeological[1], "Modern period");
-            assert_eq!(archaeological[11], "years-before-1950");
-            assert!(!archaeological[13].is_empty());
+            assert_eq!(archaeological[2], "Modern period");
+            assert_eq!(archaeological[12], "years-before-1950");
+            assert!(!archaeological[14].is_empty());
             // Eight billion years ahead the Sun is a red giant and the
             // cosmic history tables have ended.
             let text = read_lines(|buffer, capacity| unsafe {
@@ -5655,9 +5767,9 @@ mod tests {
             // The present day is the last dated event before any future
             // moment, so it is still listed.
             assert_eq!(kinds, ["moment", "moment", "cosmic-event", "future-era"]);
-            assert_eq!(rows[2][1], "The present");
-            assert_eq!(rows[3][1], "Stelliferous Era");
-            assert_eq!(rows[3][11], "log10-years-from-now");
+            assert_eq!(rows[2][2], "The present");
+            assert_eq!(rows[3][2], "Stelliferous Era");
+            assert_eq!(rows[3][12], "log10-years-from-now");
         }
 
         #[test]
@@ -5687,9 +5799,9 @@ mod tests {
                     ],
                     "{years_ago}"
                 );
-                assert_eq!(rows[2][1], "Era of galaxies");
-                assert_eq!(rows[9][1], "Meghalayan");
-                assert_eq!(rows[10][1], "Modern period");
+                assert_eq!(rows[2][2], "Era of galaxies");
+                assert_eq!(rows[9][2], "Meghalayan");
+                assert_eq!(rows[10][2], "Modern period");
             }
             // Beyond a century ahead the future begins.
             let text = read_lines(|buffer, capacity| unsafe {
@@ -5741,17 +5853,74 @@ mod tests {
             assert_eq!(epochs, hc::hc_deep_time::universe::EPOCHS.len());
             assert_eq!(events, hc::hc_deep_time::universe::EVENTS.len());
             assert!(
-                rows.iter().all(|row| !row[13].is_empty()),
+                rows.iter().all(|row| !row[14].is_empty()),
                 "every row cites"
             );
-            assert!(rows.iter().all(|row| row[14].is_empty()), "no translations");
+            assert_eq!(rows.len(), epochs + events);
+            // Named in Japanese where an established term was read.
+            let named = |id: &str| rows.iter().find(|row| row[1] == id).map(|row| row[15]);
+            assert_eq!(named("planck-epoch"), Some("プランク時代"));
+            assert_eq!(named("era-of-galaxies"), Some(""));
+            // A minimum age has no older bound and a stated sigma.
             let planck = &rows[0];
-            assert_eq!(planck[1], "Planck epoch");
-            assert_eq!(planck[3], "0");
+            assert_eq!(planck[2], "Planck epoch");
+            assert_eq!(planck[4], "0");
             // Values are written in plain decimal notation, however small.
-            let end: f64 = planck[7].parse().expect("a number");
+            let end: f64 = planck[8].parse().expect("a number");
             assert!(end > 0.0 && end < 1e-40, "{planck:?}");
-            assert!(!planck[7].contains('e'), "{planck:?}");
+            assert!(!planck[8].contains('e'), "{planck:?}");
+        }
+
+        #[test]
+        fn the_earliest_evidence_the_periods_and_the_future_have_lists_of_their_own() {
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_earliest_evidence("ja".as_ptr(), 2, buffer, capacity)
+            });
+            let rows = cells(&text);
+            assert_eq!(rows.len(), hc::hc_deep_time::evidence::EVIDENCE.len());
+            assert!(rows.iter().all(|row| row[0] == "earliest-evidence"));
+            let named = |id: &str| rows.iter().find(|row| row[1] == id).map(|row| row[15]);
+            assert_eq!(named("earliest-writing-uruk-iv"), Some("原楔形文字"));
+            // A minimum age has no older bound and a stated sigma.
+            let omo = rows
+                .iter()
+                .find(|row| row[1] == "earliest-homo-sapiens-omo-kibish")
+                .expect("listed");
+            assert_eq!(omo[3], "earliest-homo-sapiens");
+            assert_eq!(omo[4..9], ["", "", "", "", "233000"]);
+            assert_eq!(omo[9], "11000");
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_archaeological_periods(core::ptr::null(), 0, buffer, capacity)
+            });
+            let rows = cells(&text);
+            assert_eq!(rows.len(), hc::hc_deep_time::archaeology::PERIODS.len());
+            assert_eq!(
+                rows[0][..3],
+                ["archaeological", "modern-period", "Modern period"]
+            );
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_future_events(core::ptr::null(), 0, buffer, capacity)
+            });
+            let rows = cells(&text);
+            assert_eq!(rows.len(), hc::hc_deep_time::future::EVENTS.len());
+            let proton = rows
+                .iter()
+                .find(|row| row[1] == "proton-decay-lower-bound")
+                .expect("listed");
+            assert_eq!(proton[3], "experimental-bound");
+            assert_eq!(proton[8], "", "a bound has no end");
+            assert_eq!(proton[12], "years-from-now");
+            let not_utf8 = [0xff_u8];
+            for export in [
+                hc_earliest_evidence,
+                hc_archaeological_periods,
+                hc_future_events,
+            ] {
+                assert_eq!(
+                    unsafe { export(not_utf8.as_ptr(), 1, core::ptr::null_mut(), 0) },
+                    HC_ERR_NOT_UTF8
+                );
+            }
         }
 
         #[test]
@@ -5776,14 +5945,14 @@ mod tests {
                 hc_geologic_intervals(0, core::ptr::null(), 0, buffer, capacity)
             });
             assert!(
-                eons.starts_with("eon\tPhanerozoic\t\t538.8\t0.6\t4\t0\t0\t0\t1\t0\t"),
+                eons.starts_with("eon\tphanerozoic\tPhanerozoic\t\t538.8\t0.6\t4\t0\t0\t0\t1\t0\t"),
                 "{eons}"
             );
-            assert!(cells(&eons).iter().all(|row| row[14].is_empty()));
+            assert!(cells(&eons).iter().all(|row| row[15].is_empty()));
             let eons = read_lines(|buffer, capacity| unsafe {
                 hc_geologic_intervals(0, "zh-Hans".as_ptr(), 7, buffer, capacity)
             });
-            assert_eq!(cells(&eons)[0][14], "显生宇");
+            assert_eq!(cells(&eons)[0][15], "显生宇");
             assert_eq!(
                 unsafe { hc_geologic_intervals(5, core::ptr::null(), 0, core::ptr::null_mut(), 0) },
                 HC_ERR_UNKNOWN
