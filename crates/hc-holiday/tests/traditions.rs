@@ -13,10 +13,11 @@ use hc_holiday::traditions::{
     CHAHARSHANBE_SURI, CHINESE_FOLK, CHINESE_XIAONIAN_JIANGNAN, CHINESE_XIAONIAN_NANJING,
     CHINESE_XIAONIAN_NORTH, CHINESE_XIAONIAN_SOUTH, CHINESE_XIAONIAN_SOUTHWEST, CHRISTIAN_ARMENIAN,
     CHRISTIAN_ARMENIAN_JERUSALEM, CHRISTIAN_ORTHODOX, CHRISTIAN_ORTHODOX_REVISED_JULIAN,
-    CHRISTIAN_WESTERN, COPTIC_ORTHODOX, EMBER_BCP1662, EMBER_COMMON_WORSHIP, ETHIOPIAN_ORTHODOX,
-    GOSEKKU, HINDU, ISLAMIC, JAIN, JEWISH, KOREAN_FOLK, KYUCHU_SAISHI, MANDAEAN, PLOUGH_DAYS,
-    ROGATION_ROMAN_1960, SAMARITAN, SHINTO, SIKH_NANAKSHAHI_2003, TAOIST, VIETNAMESE_FOLK,
-    WHEEL_OF_THE_YEAR, WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
+    CHRISTIAN_WESTERN, CHURCH_OF_THE_EAST, COPTIC_ORTHODOX, EMBER_BCP1662, EMBER_COMMON_WORSHIP,
+    ETHIOPIAN_ORTHODOX, GOSEKKU, HINDU, ISLAMIC, JAIN, JEWISH, KOREAN_FOLK, KYUCHU_SAISHI,
+    MANDAEAN, PLOUGH_DAYS, ROGATION_ROMAN_1960, SACRED_WEDNESDAYS, SAMARITAN, SHINTO,
+    SIKH_NANAKSHAHI_2003, TAOIST, TENRIKYO, UNLUCKY_FRIDAYS, VIETNAMESE_FOLK, WHEEL_OF_THE_YEAR,
+    WHEEL_OF_THE_YEAR_SOUTH, YAZIDI, ZOROASTRIAN_FASLI, ZOROASTRIAN_QADIMI,
     ZOROASTRIAN_SHAHANSHAHI,
 };
 use hc_seasons::ColdFoodConvention;
@@ -1870,5 +1871,507 @@ fn chaharshanbe_suri_is_the_eve_of_the_last_wednesday_of_the_year() {
         let (_, month, date) = gregorian::from_fixed(day).expect("in range");
         assert_eq!(month, 3, "{year}");
         assert!((12..=20).contains(&date), "{year}: {date}");
+    }
+}
+
+#[test]
+fn the_shia_days_fall_on_their_tabular_dates() {
+    expect(
+        &ISLAMIC,
+        &[
+            // 1446: Ghadir on 18 Dhu al-Hijjah 1445, 25 June 2024.
+            (2024, 6, 25, "Eid al-Ghadir"),
+            (2024, 7, 16, "Tasu'a"),
+            (2024, 7, 17, "Ashura"),
+            (2024, 8, 26, "Arba'een"),
+        ],
+    );
+    // Wikipedia's "Arba'in" dates it 14 August 2025, 3 August 2026 and
+    // 24 July 2027. The tabular calendar is a day later in 2025 and 2027
+    // and two days later in 2026: a prediction, flagged as one.
+    for (year, month, day, published) in [
+        (2025, 8, 15, (2025, 8, 14)),
+        (2026, 8, 5, (2026, 8, 3)),
+        (2027, 7, 25, (2027, 7, 24)),
+    ] {
+        let found = only_date(&ISLAMIC, year, "Arba'een").expect("once a year");
+        assert_eq!(found, ymd(year, month, day));
+        let (y, m, d) = published;
+        assert!((1..=2).contains(&(found.0 - ymd(y, m, d).0)), "{year}");
+    }
+    for year in 2000..=2050 {
+        let calendar = HolidayCalendar::for_year(&ISLAMIC, None, year);
+        for holiday in calendar.all() {
+            if holiday.name == "Tasu'a" {
+                assert!(
+                    calendar
+                        .on(Rd(holiday.date.0 + 1))
+                        .iter()
+                        .any(|next| next.name == "Ashura")
+                        || !calendar.covers(Rd(holiday.date.0 + 1)),
+                    "{year}: Tasu'a is the eve of Ashura"
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn the_tenrikyo_services_are_the_headquarters_schedule() {
+    expect(
+        &TENRIKYO,
+        &[
+            // Tenrikyo Online: the Spring Grand Service of 26 January 2025,
+            // the Autumn Grand Service of 26 October 2020 and the Oyasama
+            // Birth Celebration Service of 18 April 2017, the 219th birthday.
+            (2025, 1, 26, "Spring Grand Service"),
+            (2020, 10, 26, "Autumn Grand Service"),
+            (2017, 4, 18, "Oyasama Birth Celebration Service"),
+            (2026, 1, 1, "New Year's Day Service"),
+            (2026, 3, 27, "Spring Memorial Service"),
+            (2026, 9, 27, "Autumn Memorial Service"),
+        ],
+    );
+    for year in [2017, 2025, 2026] {
+        let calendar = HolidayCalendar::for_year(&TENRIKYO, None, year);
+        let monthly: Vec<u8> = calendar
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Monthly Service")
+            .map(|holiday| {
+                let (_, month, day) = gregorian::from_fixed(holiday.date).expect("in range");
+                assert_eq!(day, 26);
+                month
+            })
+            .collect();
+        // "1月と10月を除く毎月26日".
+        assert_eq!(monthly, [2, 3, 4, 5, 6, 7, 8, 9, 11, 12], "{year}");
+    }
+}
+
+#[test]
+fn friday_the_thirteenth_is_the_books_unlucky_fridays() {
+    // Reingold and Dershowitz's `unlucky-fridays`, run from `calendar.l`.
+    for (year, days) in [
+        (2024, &[(9, 13), (12, 13)][..]),
+        (2025, &[(6, 13)]),
+        (2026, &[(2, 13), (3, 13), (11, 13)]),
+        (2027, &[(8, 13)]),
+    ] {
+        let found: Vec<Rd> = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
+            .all()
+            .iter()
+            .map(|holiday| holiday.date)
+            .collect();
+        let expected: Vec<Rd> = days.iter().map(|&(m, d)| ymd(year, m, d)).collect();
+        assert_eq!(found, expected, "{year}");
+    }
+    for year in 1900..=2100 {
+        let count = HolidayCalendar::for_year(&UNLUCKY_FRIDAYS, None, year)
+            .all()
+            .len();
+        assert!((1..=3).contains(&count), "{year}: {count}");
+    }
+}
+
+/// The book's `sacred-wednesdays` for 2000–2030, as `calendar.l` computes
+/// them on its own Hindu lunar calendar.
+const BOOK_SACRED_WEDNESDAYS: &[(i64, u8, u8)] = &[
+    (2000, 4, 12),
+    (2000, 9, 6),
+    (2001, 1, 3),
+    (2001, 5, 30),
+    (2001, 10, 24),
+    (2002, 2, 20),
+    (2002, 7, 17),
+    (2003, 12, 31),
+    (2004, 4, 28),
+    (2004, 9, 22),
+    (2005, 2, 16),
+    (2005, 6, 15),
+    (2005, 11, 9),
+    (2006, 8, 2),
+    (2007, 9, 19),
+    (2008, 1, 16),
+    (2008, 6, 11),
+    (2009, 3, 4),
+    (2009, 7, 29),
+    (2009, 11, 25),
+    (2010, 9, 15),
+    (2011, 1, 12),
+    (2011, 5, 11),
+    (2012, 6, 27),
+    (2012, 11, 21),
+    (2013, 3, 20),
+    (2013, 8, 14),
+    (2014, 1, 8),
+    (2014, 5, 7),
+    (2015, 6, 24),
+    (2015, 10, 21),
+    (2016, 3, 16),
+    (2016, 12, 7),
+    (2017, 5, 3),
+    (2018, 10, 17),
+    (2019, 2, 13),
+    (2019, 7, 10),
+    (2019, 12, 4),
+    (2020, 4, 1),
+    (2020, 8, 26),
+    (2021, 10, 13),
+    (2022, 2, 9),
+    (2023, 3, 29),
+    (2023, 7, 26),
+    (2023, 12, 20),
+    (2024, 9, 11),
+    (2025, 2, 5),
+    (2025, 10, 29),
+    (2026, 7, 22),
+    (2027, 4, 14),
+    (2027, 9, 8),
+    (2028, 1, 5),
+    (2028, 5, 31),
+    (2028, 10, 25),
+    (2029, 2, 21),
+    (2030, 8, 7),
+];
+
+#[test]
+fn the_sacred_wednesdays_are_the_books_but_where_the_calendars_differ() {
+    // Days the book's Sūrya Siddhānta calendar numbers 8 and `hindu-lunar`
+    // does not, and the reverse.
+    let book_only = [
+        ymd(2003, 12, 31),
+        ymd(2007, 9, 19),
+        ymd(2019, 7, 10),
+        ymd(2025, 10, 29),
+        ymd(2026, 7, 22),
+        ymd(2029, 2, 21),
+    ];
+    let ours_only = [
+        ymd(2006, 4, 5),
+        ymd(2018, 6, 20),
+        ymd(2022, 6, 8),
+        ymd(2024, 5, 15),
+    ];
+    let book: Vec<Rd> = BOOK_SACRED_WEDNESDAYS
+        .iter()
+        .map(|&(y, m, d)| ymd(y, m, d))
+        .collect();
+    assert_eq!(book.len(), 56);
+    let mut ours = Vec::new();
+    for year in (2000..=2030).step_by(SAMPLED) {
+        let calendar = HolidayCalendar::for_year(&SACRED_WEDNESDAYS, None, year);
+        assert!(calendar.gaps().is_empty(), "{year}");
+        for holiday in calendar.all() {
+            assert_eq!(
+                hc_calendar::Weekday::from_rd(holiday.date),
+                hc_calendar::Weekday::Wednesday
+            );
+            ours.push(holiday.date);
+        }
+    }
+    let in_sample = |day: &Rd| {
+        let (year, _, _) = gregorian::from_fixed(*day).expect("in range");
+        (year - 2000) % SAMPLED as i64 == 0
+    };
+    for day in book.iter().filter(|day| in_sample(day)) {
+        assert_eq!(ours.contains(day), !book_only.contains(day), "{day:?}");
+    }
+    for day in &ours {
+        assert_eq!(book.contains(day), !ours_only.contains(day), "{day:?}");
+    }
+    // A year outside `hindu-lunar` is a gap, not a year without the day.
+    assert!(
+        !HolidayCalendar::for_year(&SACRED_WEDNESDAYS, None, 1650)
+            .gaps()
+            .is_empty()
+    );
+}
+
+#[test]
+fn the_church_of_the_east_year_is_its_own_calendar_of_2026_to_2029() {
+    // The Assyrian Church of the East's liturgical calendar feed, every
+    // season start it carries for 2026-2029.
+    for (year, days) in [
+        (
+            2026,
+            [
+                (1, 26),
+                (2, 15),
+                (4, 5),
+                (5, 24),
+                (7, 12),
+                (8, 30),
+                (11, 1),
+                (11, 29),
+            ],
+        ),
+        (
+            2027,
+            [
+                (1, 18),
+                (2, 7),
+                (3, 28),
+                (5, 16),
+                (7, 4),
+                (8, 22),
+                (10, 31),
+                (11, 28),
+            ],
+        ),
+        (
+            2028,
+            [
+                (2, 7),
+                (2, 27),
+                (4, 16),
+                (6, 4),
+                (7, 23),
+                (9, 10),
+                (11, 5),
+                (12, 3),
+            ],
+        ),
+        (
+            2029,
+            [
+                (1, 22),
+                (2, 11),
+                (4, 1),
+                (5, 20),
+                (7, 8),
+                (8, 26),
+                (11, 4),
+                (12, 2),
+            ],
+        ),
+    ] {
+        let names = [
+            "Rogation of the Ninevites",
+            "First Sunday of the Great Fast",
+            "Easter (the season of the Resurrection begins)",
+            "Pentecost (the season of the Apostles begins)",
+            "First Sunday of Summer (Nusardel)",
+            "First Sunday of Elijah",
+            "First Sunday of the Dedication of the Church",
+            "First Sunday of the Annunciation (Subara)",
+        ];
+        for ((month, day), name) in days.into_iter().zip(names) {
+            expect(&CHURCH_OF_THE_EAST, &[(year, month, day, name)]);
+        }
+        expect(
+            &CHURCH_OF_THE_EAST,
+            &[
+                (year, 9, 13, "Feast of the Cross"),
+                (year, 8, 6, "Transfiguration"),
+                (year, 1, 6, "Epiphany (the season of Denha begins)"),
+            ],
+        );
+    }
+}
+
+#[test]
+fn elijah_begins_before_the_cross_in_every_year() {
+    for year in 1965..=2100 {
+        let elijah =
+            only_date(&CHURCH_OF_THE_EAST, year, "First Sunday of Elijah").expect("every year");
+        let cross = ymd(year, 9, 13);
+        assert!(elijah < cross, "{year}");
+        assert!(cross.0 - elijah.0 <= 42, "{year}");
+        let summer = only_date(
+            &CHURCH_OF_THE_EAST,
+            year,
+            "First Sunday of Summer (Nusardel)",
+        )
+        .expect("every year");
+        // Seven weeks of Summer, or six when Summer loses a Sunday.
+        assert!([42, 49].contains(&(elijah.0 - summer.0)), "{year}");
+        let dedication = only_date(
+            &CHURCH_OF_THE_EAST,
+            year,
+            "First Sunday of the Dedication of the Church",
+        )
+        .expect("every year");
+        let annunciation = only_date(
+            &CHURCH_OF_THE_EAST,
+            year,
+            "First Sunday of the Annunciation (Subara)",
+        )
+        .expect("every year");
+        assert_eq!(annunciation.0 - dedication.0, 28, "{year}");
+    }
+    // Easter on 24 April 2011 would have put the first Sunday of Elijah on
+    // 18 September, after the Cross: the sixth and seventh Sundays of
+    // Summer merge and Elijah begins on 11 September.
+    assert_eq!(
+        only_date(&CHURCH_OF_THE_EAST, 2011, "First Sunday of Elijah"),
+        Some(ymd(2011, 9, 11))
+    );
+    // Before the Gregorian calendar the table says nothing.
+    assert_eq!(
+        only_date(&CHURCH_OF_THE_EAST, 1960, "First Sunday of Elijah"),
+        None
+    );
+}
+
+#[test]
+fn the_common_worship_transfers_are_the_ones_the_church_printed() {
+    use hc_holiday::common_worship::COMMON_WORSHIP;
+    expect(
+        &COMMON_WORSHIP,
+        &[
+            // Daily Prayer, June and September 2026: the Visit of the
+            // Blessed Virgin Mary on Monday 1 June, Trinity Sunday having
+            // been 31 May; Barnabas kept on Thursday 11 June; Holy Cross Day,
+            // Matthew and Michael and All Angels on their own days.
+            (2026, 5, 31, "Trinity Sunday"),
+            (
+                2026,
+                6,
+                1,
+                "The Visit of the Blessed Virgin Mary to Elizabeth",
+            ),
+            (2026, 6, 11, "Barnabas the Apostle"),
+            (2026, 9, 14, "Holy Cross Day"),
+            (2026, 9, 21, "Matthew, Apostle and Evangelist"),
+            (2026, 9, 29, "Michael and All Angels"),
+            // Full Fact, 23 April 2025: St George's Day on Monday 28 April
+            // 2025, Easter being 20 April; St Mark follows on the Tuesday.
+            (2025, 4, 28, "George, Martyr, Patron of England"),
+            (2025, 4, 29, "Mark the Evangelist"),
+            // The Rules applied: 25 March 2024 was the Monday of Holy Week.
+            (
+                2024,
+                4,
+                8,
+                "The Annunciation of Our Lord to the Blessed Virgin Mary",
+            ),
+            // Easter on 23 March 2008: the Annunciation to Monday 31 March,
+            // St Joseph to the Tuesday, Philip and James off Ascension Day.
+            (
+                2008,
+                3,
+                31,
+                "The Annunciation of Our Lord to the Blessed Virgin Mary",
+            ),
+            (2008, 4, 1, "Joseph of Nazareth"),
+            (2008, 5, 2, "Philip and James, Apostles"),
+            // 30 November 2025 was the First Sunday of Advent.
+            (2025, 12, 1, "Andrew the Apostle"),
+            (2026, 1, 11, "The Baptism of Christ"),
+            (2026, 11, 22, "Christ the King"),
+        ],
+    );
+    expect_not(
+        &COMMON_WORSHIP,
+        &[
+            (
+                2026,
+                5,
+                31,
+                "The Visit of the Blessed Virgin Mary to Elizabeth",
+            ),
+            (2025, 4, 23, "George, Martyr, Patron of England"),
+            (2025, 11, 30, "Andrew the Apostle"),
+        ],
+    );
+}
+
+#[test]
+fn the_years_the_common_worship_rules_leave_open_are_gaps() {
+    use hc_holiday::common_worship::COMMON_WORSHIP;
+    let gapped = |year: i64| -> Vec<&'static str> {
+        HolidayCalendar::for_year(&COMMON_WORSHIP, None, year)
+            .gaps()
+            .iter()
+            .map(|gap| gap.name)
+            .collect()
+    };
+    // Easter on 17 April 2022: St George's Monday is St Mark's Day.
+    assert_eq!(
+        gapped(2022),
+        ["George, Martyr, Patron of England", "Mark the Evangelist"]
+    );
+    // Easter on 24 April 2011: Philip and James's Monday is St George's.
+    assert_eq!(gapped(2011), ["Philip and James, Apostles"]);
+    expect(
+        &COMMON_WORSHIP,
+        &[
+            (2011, 5, 2, "George, Martyr, Patron of England"),
+            (2011, 5, 3, "Mark the Evangelist"),
+        ],
+    );
+    // Easter on 25 April 2038: 1 May is in Easter Week.
+    assert_eq!(gapped(2038), ["Philip and James, Apostles"]);
+    // Easter on 23 April 2000: St George's Monday is 1 May.
+    assert_eq!(
+        gapped(2000),
+        [
+            "George, Martyr, Patron of England",
+            "Philip and James, Apostles"
+        ]
+    );
+    expect(&COMMON_WORSHIP, &[(2000, 5, 2, "Mark the Evangelist")]);
+    // Easter on 22 April 1962: St Mark's Tuesday is 1 May.
+    assert_eq!(
+        gapped(1962),
+        ["Mark the Evangelist", "Philip and James, Apostles"]
+    );
+    expect(
+        &COMMON_WORSHIP,
+        &[(1962, 4, 30, "George, Martyr, Patron of England")],
+    );
+    assert!(gapped(2026).is_empty());
+}
+
+#[test]
+fn no_festival_is_kept_where_the_common_worship_rules_forbid_it() {
+    use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
+    let rank = |name: &str| {
+        CELEBRATIONS
+            .iter()
+            .find(|celebration| celebration.title == name)
+            .map(|celebration| celebration.rank)
+            .expect("every name is a celebration")
+    };
+    for year in 1900..=2100 {
+        let calendar = HolidayCalendar::for_year(&COMMON_WORSHIP, None, year);
+        let easter = hc_holiday::gregorian_easter(year).expect("in range");
+        let advent = only_date(&CHRISTIAN_WESTERN, year, "First Sunday of Advent");
+        let mut kept = 0;
+        for holiday in calendar.all() {
+            kept += 1;
+            if rank(holiday.name) != Rank::Festival {
+                continue;
+            }
+            let day = holiday.date;
+            let offset = day.0 - easter.0;
+            let others: Vec<&str> = calendar
+                .on(day)
+                .iter()
+                .map(|other| other.name)
+                .filter(|other| *other != holiday.name)
+                .collect();
+            assert!(
+                others.is_empty(),
+                "{year}: {} with {others:?}",
+                holiday.name
+            );
+            let sunday = hc_calendar::Weekday::from_rd(day) == hc_calendar::Weekday::Sunday;
+            let in_lent = (-46..0).contains(&offset);
+            let in_eastertide = (0..=49).contains(&offset);
+            let in_advent = advent.is_some_and(|first| day >= first && day.0 < first.0 + 28);
+            assert!(
+                !(sunday && (in_lent || in_eastertide || in_advent)),
+                "{year}: {} on a Sunday it may not be kept on",
+                holiday.name
+            );
+            assert!(
+                !(1..=6).contains(&offset),
+                "{year}: {} in Easter Week",
+                holiday.name
+            );
+        }
+        assert_eq!(kept + calendar.gaps().len(), CELEBRATIONS.len(), "{year}");
     }
 }

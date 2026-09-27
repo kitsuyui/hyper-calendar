@@ -20,7 +20,7 @@
 //! | Christian, Orthodox, Revised Julian | Julian computus, fixed feasts in the Revised Julian calendar | exact |
 //! | Ethiopian Orthodox | Ethiopic calendar; the Bahire Hasab cycle as offsets from the Julian-computus Pascha | exact as stated; a feast kept on a fixed Gregorian date by practice is not modelled |
 //! | Coptic Orthodox | Coptic calendar; the paschal cycle as offsets from the Julian-computus Pascha | exact |
-//! | Islamic | tabular civil Hijri | **approximate** — the observed date is a sighting decision |
+//! | Islamic, with the Shia days of Tasu'a, Arba'een and Eid al-Ghadir | tabular civil Hijri | **approximate** — the observed date is a sighting decision |
 //! | Jewish | arithmetic Hebrew calendar | exact; the day begins at the preceding sunset, which this crate does not model |
 //! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
 //! | Buddhist, Thai | the Thai lunar calendar, `thai-lunar`, as Thailand publishes its year types | exact for 1992–2027, and reported gaps outside |
@@ -47,6 +47,11 @@
 //! | Yazidi | the Eastern calendar, which is the Julian, and Serêsal by its weekday rule | exact |
 //! | Plough Monday, Plough Sunday, Distaff Day | fixed Gregorian dates and the weekday after one | exact as stated; the regional variants are not carried |
 //! | Chaharshanbe Suri | the Solar Hijri calendar, `persian`: the Tuesday before the year's last Wednesday | exact to the calendar |
+//! | Tenrikyo | fixed Gregorian dates | exact for the present schedule; when the services left the lunar dates was not read |
+//! | Friday the 13th | the Gregorian calendar | exact |
+//! | Wednesdays on the eighth lunar day | the amānta Hindu lunisolar calendar at the national almanac's sunrise | exact to the astronomical model; a reported gap outside the calendar's years |
+//! | Assyrian Church of the East | the Gregorian computus and fixed Gregorian dates, from 1965 | exact as stated; the Sundays of Moses and the order of the Elijah and Cross Sundays are not carried |
+//! | *Common Worship* | the Gregorian computus and fixed Gregorian dates, with the transfers the Rules require | exact as stated; the years the Rules leave open are reported gaps |
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_lunar::tibetan;
@@ -501,7 +506,9 @@ const fn hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> H
 
 static ISLAMIC_RULES: &[HolidayRule] = &[
     hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+    hijri("Tasu'a", "تاسوعاء", 1, 9),
     hijri("Ashura", "عاشوراء", 1, 10),
+    hijri("Arba'een", "الأربعين", 2, 20),
     hijri("Mawlid an-Nabi", "المولد النبوي", 3, 12),
     hijri("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
     hijri("Mid-Sha'ban", "ليلة البراءة", 8, 15),
@@ -510,6 +517,7 @@ static ISLAMIC_RULES: &[HolidayRule] = &[
     hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
     hijri("Day of Arafah", "يوم عرفة", 12, 9),
     hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    hijri("Eid al-Ghadir", "عيد الغدير", 12, 18),
 ];
 
 /// Islam.
@@ -520,6 +528,11 @@ static ISLAMIC_RULES: &[HolidayRule] = &[
 /// arithmetic approximation of that and nothing more. Countries that publish
 /// their own table — Saudi Arabia's Umm al-Qurā, Türkiye's Diyanet — are
 /// modelled in [`crate::countries`], and are still flagged approximate.
+///
+/// Three of the days are Shia: Tasu'a on 9 Muharram, the eve of Ashura;
+/// Arba'een on 20 Safar, forty days after it; and Eid al-Ghadir on
+/// 18 Dhu al-Hijjah, the day of Ghadir Khumm, a public holiday in Iran and,
+/// from 2024, in Iraq, whose tables date it too.
 pub static ISLAMIC: RuleSet = RuleSet {
     code: "islamic",
     english_name: "Islam",
@@ -528,9 +541,14 @@ pub static ISLAMIC: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "The tabular civil Hijri calendar, CLDR `islamic-civil`. These \
-              are computations, not announcements",
+              are computations, not announcements. The Shia days from \
+              Wikipedia, \"Tasu'a\", \"Arba'in\" and \"Eid al-Ghadir\" \
+              (`wikipedia-tasua`, `wikipedia-arbaeen`, `wikipedia-eid-al-ghadir`, \
+              secondary), retrieved 2026-09-27: 9 Muharram, 20 Safar with \
+              Arba'in on 14 August 2025, 3 August 2026 and 24 July 2027 as \
+              checks, and 18 Dhu al-Hijjah",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1857,6 +1875,361 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
               Nowruz was a Wednesday, \
               https://www.eventbrite.com/e/chahar-shanbe-suri-tickets-853218709127, \
               retrieved 2026-09-27, as a weak check",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tenrikyo
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A monthly service on the 26th of a month that has no Grand Service.
+const fn monthly_service(month: u8) -> HolidayRule {
+    feast("Monthly Service", "月次祭", Rule::gregorian(month, 26))
+}
+
+static TENRIKYO_RULES: &[HolidayRule] = &[
+    feast("New Year's Day Service", "元旦祭", Rule::gregorian(1, 1)),
+    feast("Spring Grand Service", "春季大祭", Rule::gregorian(1, 26)),
+    monthly_service(2),
+    monthly_service(3),
+    feast(
+        "Spring Memorial Service",
+        "春季霊祭",
+        Rule::gregorian(3, 27),
+    ),
+    feast(
+        "Oyasama Birth Celebration Service",
+        "教祖誕生祭",
+        Rule::gregorian(4, 18),
+    ),
+    monthly_service(4),
+    monthly_service(5),
+    monthly_service(6),
+    monthly_service(7),
+    monthly_service(8),
+    monthly_service(9),
+    feast(
+        "Autumn Memorial Service",
+        "秋季霊祭",
+        Rule::gregorian(9, 27),
+    ),
+    feast("Autumn Grand Service", "秋季大祭", Rule::gregorian(10, 26)),
+    monthly_service(11),
+    monthly_service(12),
+];
+
+/// The services of Tenrikyo at its Church Headquarters in Tenri, as the
+/// headquarters' own page lists them: the New Year's Day Service on
+/// 1 January; the Spring Grand Service on 26 January, for the day in 1887
+/// on which Oyasama, the foundress, withdrew from physical life; the
+/// Oyasama Birth Celebration Service on 18 April; the Autumn Grand Service
+/// on 26 October, for the founding of 1838; the Monthly Service on the 26th
+/// of each of the other ten months; and the Spring and Autumn Memorial
+/// Services on 27 March and 27 September.
+///
+/// The anniversaries were lunar dates — the 26th of the first month of
+/// 1887, the 18th of the fourth month of 1798, the 26th of the tenth month
+/// of 1838 — and the services are now kept on the same numbers of the
+/// Gregorian months. When that began was not read, so the table applies the
+/// present schedule to every year, and an early year's dates are the
+/// schedule's and not a record. The
+/// Service for Germination, performed in April on a night the weather
+/// decides, the *obiya-zutome*, performed as needed, and a church's own
+/// monthly service, on a day each church sets, are not carried.
+pub static TENRIKYO: RuleSet = RuleSet {
+    code: "tenrikyo",
+    english_name: "Tenrikyo",
+    rules: TENRIKYO_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Tenrikyo Church Headquarters, \"祭典\" (tenrikyo.or.jp/jpn/service/, \
+              `tenrikyo-saiten`), for 元旦祭 on 1 January, 春季大祭 on 26 January, \
+              教祖誕生祭 on 18 April, 秋季大祭 on 26 October, 月次祭 \"1月と10月を除く毎月26日\" \
+              and 春季霊祭 on 3月27日 and 秋季霊祭 on 9月27日; Yoshikazu Fukaya, \"Tenrikyo \
+              Services\" (Tenrikyo Overseas Department, tenrikyo.or.jp, \
+              `tenrikyo-services`), for the English names and the lunar anniversaries; \
+              Tenrikyo Online, \"Spring Grand Service 2025\", \"Autumn Grand Service \
+              2020\" and \"Oyasama's 219th Birthday Joyfully Celebrated\" (2017) \
+              (`tenrikyo-online-services`), for the services of 26 January 2025, \
+              26 October 2020 and 18 April 2017 as checks; all retrieved 2026-09-27",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Reingold and Dershowitz's weekday coincidences
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The days of `year` that fall on `weekday` and satisfy `keep`.
+fn weekdays_where(year: i64, weekday: Weekday, keep: impl Fn(Rd) -> bool) -> Days {
+    let (Ok(first), Ok(last)) = (
+        gregorian::to_fixed(year, 1, 1),
+        gregorian::to_fixed(year, 12, 31),
+    ) else {
+        return Days::new();
+    };
+    let mut day = first;
+    while Weekday::from_rd(day) != weekday {
+        day = Rd(day.0 + 1);
+    }
+    let mut days = Days::new();
+    while day <= last {
+        if keep(day) {
+            days.push(day);
+        }
+        day = Rd(day.0 + 7);
+    }
+    days
+}
+
+/// Friday the 13th: Reingold and Dershowitz's `unlucky-fridays`, the
+/// Fridays of a Gregorian year that are the 13th of their month.
+fn unlucky_fridays(year: i64) -> Days {
+    weekdays_where(year, Weekday::Friday, |day| {
+        gregorian::from_fixed(day).is_ok_and(|(_, _, date)| date == 13)
+    })
+}
+
+/// Reingold and Dershowitz's `sacred-wednesdays`: the Wednesdays of a
+/// Gregorian year that are day 8 of a month of `hindu-lunar`, the day whose
+/// sunrise carries the eighth tithi.
+fn sacred_wednesdays(year: i64) -> Days {
+    let location = crate::hindu::CALENDAR.location;
+    weekdays_where(year, Weekday::Wednesday, |day| {
+        hc_calendars_indic::tithi::tithi_of_day(day, location) == 8
+    })
+}
+
+static UNLUCKY_FRIDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
+    "Friday the 13th",
+    "",
+    Rule::Computed(unlucky_fridays),
+)];
+
+/// Friday the 13th, as Reingold and Dershowitz compute it in their
+/// `unlucky-fridays`: every Friday of a Gregorian year that is the 13th of
+/// its month, one to three a year. A folk day that no body defines, carried
+/// as the book's rule and nothing more; how the day came to be thought
+/// unlucky is not this table's.
+pub static UNLUCKY_FRIDAYS: RuleSet = RuleSet {
+    code: "unlucky-fridays",
+    english_name: "Friday the 13th",
+    rules: UNLUCKY_FRIDAYS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
+              (`reingold2018code`), `unlucky-fridays` and `unlucky-fridays-in-range`, \
+              read 2026-09-27 at commit 9afc1f3277b839db1a70c2350d6c708ac83df78f, and \
+              run for 2000–2030 as the check",
+};
+
+static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
+    "Wednesday on the eighth lunar day",
+    "",
+    Rule::Tabulated {
+        function: sacred_wednesdays,
+        first_year: hc_calendars_indic::hindu_lunar::MIN_YEAR
+            + hc_calendars_indic::hindu_lunar::GREGORIAN_YEAR_OFFSET
+            + 1,
+        last_year: hc_calendars_indic::hindu_lunar::MAX_YEAR
+            + hc_calendars_indic::hindu_lunar::GREGORIAN_YEAR_OFFSET
+            - 1,
+    },
+)];
+
+/// Reingold and Dershowitz's `sacred-wednesdays`: the Wednesdays that are
+/// day 8 of a Hindu lunar month, which is the eighth tithi of the bright
+/// fortnight, śukla aṣṭamī, on the day whose sunrise carries it.
+///
+/// The book computes the days on its own Hindu lunar calendar, which runs
+/// on the *Sūrya Siddhānta*'s Sun and Moon at Ujjain; this table reads them
+/// on `hindu-lunar`, the *Rashtriya Panchang*'s calendar on the true Sun
+/// and Moon at its Central Station, the calendar every Hindu rule in the
+/// crate uses. Over 2000–2030 the two share 50 days; the book's code has 6
+/// more and this table 4 more, each a day the two calendars number
+/// differently, and the tests name all ten. No traditional name was found for the
+/// set: the almanacs' Budh Ashtami, seen only in search summaries, falls on
+/// an eighth tithi of either fortnight and is not this rule. The years are
+/// those `hindu-lunar` converts, and a year outside them is a reported gap.
+pub static SACRED_WEDNESDAYS: RuleSet = RuleSet {
+    code: "sacred-wednesdays",
+    english_name: "Wednesdays on the eighth lunar day",
+    rules: SACRED_WEDNESDAYS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
+              (`reingold2018code`), `sacred-wednesdays` and \
+              `sacred-wednesdays-in-range`, read 2026-09-27 at commit \
+              9afc1f3277b839db1a70c2350d6c708ac83df78f, and run for 2000–2030 as the \
+              check; the day of the month read on `hindu-lunar` \
+              (docs/systems/hindu-calendars.md)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Assyrian Church of the East
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The Feast of the Cross, which the Church of the East keeps on
+/// 13 September.
+const HOLY_CROSS_DAY: u8 = 13;
+
+/// The first Sunday of Elijah: seven weeks after the first Sunday of
+/// Summer, unless that is on or after the Feast of the Cross, when the
+/// sixth and seventh Sundays of Summer merge and Elijah begins a week
+/// earlier, so that its first Sunday comes before the Cross.
+fn first_sunday_of_elijah(year: i64) -> Days {
+    let (Some(easter), Ok(cross)) = (
+        crate::computus::gregorian_easter(year),
+        gregorian::to_fixed(year, 9, HOLY_CROSS_DAY),
+    ) else {
+        return Days::new();
+    };
+    let ideal = Rd(easter.0 + 147);
+    Days::one(if ideal < cross {
+        ideal
+    } else {
+        Rd(ideal.0 - 7)
+    })
+}
+
+/// The Monday, Tuesday and Wednesday of the Rogation of the Ninevites,
+/// in the third week before the Great Fast.
+const fn rogation_of_the_ninevites(offset: i16) -> HolidayRule {
+    east(
+        "Rogation of the Ninevites",
+        "ܒܵܥܘܼܬ̣ܵܐ ܕܢܝ݂ܢܘܵܝܹ̈ܐ",
+        Rule::easter(offset),
+    )
+}
+
+/// A day of the Church of the East, from the year after the one in which
+/// it took up the Gregorian calendar.
+const fn east(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
+    feast(name, local, rule).years(Some(1965), None)
+}
+
+static CHURCH_OF_THE_EAST_RULES: &[HolidayRule] = &[
+    east(
+        "Epiphany (the season of Denha begins)",
+        "ܥܹܐܕܵܐ ܕܕܸܢܚܵܐ",
+        Rule::gregorian(1, 6),
+    ),
+    rogation_of_the_ninevites(-69),
+    rogation_of_the_ninevites(-68),
+    rogation_of_the_ninevites(-67),
+    east(
+        "First Sunday of the Great Fast",
+        "ܐ ܕܨܘܡܐ",
+        Rule::easter(-49),
+    ),
+    east("Palm Sunday", "ܥܹܐܕܵܐ ܕܐܘܿܫܲܥܢܹ̈ܐ", Rule::easter(PALM_SUNDAY)),
+    east(
+        "Easter (the season of the Resurrection begins)",
+        "ܥܹܐܕܵܐ ܕܲܩܝܵܡܬܹܗ ܕܡܵܪܲܢ ܝܑܼܫܘܿܥ ܡܫܝܼܚܵܐ",
+        Rule::easter(EASTER_SUNDAY),
+    ),
+    east("Ascension", "ܥܹܐܕܵܐ ܕܣܘܼܠܵܩܵܐ", Rule::easter(ASCENSION)),
+    east(
+        "Pentecost (the season of the Apostles begins)",
+        "ܥܹܐܕܵܐ ܕܦܲܢܛܹܩܘܼܣܛܹ̈ܐ",
+        Rule::easter(PENTECOST),
+    ),
+    east(
+        "First Sunday of Summer (Nusardel)",
+        "ܐ ܩܝܛܐ، ܥܹܐܕܵܐ ܕܢܘܼܣܲܪܕܹܐܝܠ",
+        Rule::easter(98),
+    ),
+    east("Transfiguration", "ܥܹܐܕܵܐ ܕܓܸܠܝܵܢܵܐ", Rule::gregorian(8, 6)),
+    east(
+        "First Sunday of Elijah",
+        "ܐ ܕܐܠܝܐ",
+        Rule::Computed(first_sunday_of_elijah),
+    ),
+    east(
+        "Feast of the Cross",
+        "ܥܹܐܕܵܐ ܕܨܠܝ݂ܒ݂ܵܐ",
+        Rule::gregorian(9, HOLY_CROSS_DAY),
+    ),
+    east(
+        "First Sunday of the Dedication of the Church",
+        "ܐ ܕܩܘܕܫ ܥܕܬܐ",
+        Rule::WeekdayOnOrAfter {
+            month: 10,
+            day: 30,
+            weekday: Weekday::Sunday,
+        },
+    ),
+    east(
+        "First Sunday of the Annunciation (Subara)",
+        "ܐ ܕܣܘܒܪܐ",
+        Rule::WeekdayOnOrAfter {
+            month: 11,
+            day: 27,
+            weekday: Weekday::Sunday,
+        },
+    ),
+    east(
+        "Nativity of Our Lord",
+        "ܥܹܐܕܵܐ ܕܝܲܠܕܹܗ ܕܡܵܪܲܢ ܝܑܼܫܘܿܥ ܡܫܝܼܚܵܐ",
+        Rule::gregorian(12, 25),
+    ),
+];
+
+/// The liturgical year of the Assyrian Church of the East, divided into
+/// seasons of seven weeks, *shawu'e*, anchored to Easter on the Gregorian
+/// computus and to three fixed feasts: the first Sunday of each season
+/// whose start the Church's own statement fixes, with the feasts that open
+/// or divide them.
+///
+/// The Annunciation (Subara) has the four Sundays before Christmas; the
+/// Nativity follows, then Epiphany (Denha) from 6 January to the Great
+/// Fast, the Great Fast the seven weeks before Easter, the Resurrection the
+/// seven weeks to Pentecost, the Apostles the seven weeks after it, and
+/// Summer seven more. Elijah follows, and its first Sunday must come
+/// before the Feast of the Cross on 13 September, so in a year of a late
+/// Easter Summer loses a Sunday. The Dedication of the Church has the four
+/// Sundays before the Annunciation. The Rogation of the Ninevites is kept
+/// on the Monday, Tuesday and Wednesday of the third week before the Great
+/// Fast. See `docs/systems/church-of-the-east-year.md`.
+///
+/// Not carried: the Sundays of Moses, between Elijah and the Dedication,
+/// whose first Sunday the statement read does not fix; the order in which
+/// the Sundays of Elijah and of the Cross are kept when the Cross falls
+/// early in Elijah, which the Church's calendar of 2026–2029 shows varying
+/// in a way the statement does not describe; the numbering of the Sundays
+/// of Epiphany, of which the calendar keeps two on one day to fit the
+/// weeks; the saints' days and Fridays of commemoration; and the Chaldean
+/// Catholic Church, the Syro-Malabar Church and the Ancient Church of the
+/// East, whose calendars are their own. The table begins in 1965, the year
+/// after the Church's decision of 1964 to take up the Gregorian calendar,
+/// the day that decision took effect not having been read.
+pub static CHURCH_OF_THE_EAST: RuleSet = RuleSet {
+    code: "church-of-the-east",
+    english_name: "Assyrian Church of the East",
+    rules: CHURCH_OF_THE_EAST_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Rev. Tower Andrious, \"The Ecclesiastical Liturgical Year for the Church \
+              of the East\" (Assyrian Church of the East, Beth Kokheh, \
+              bethkokheh.assyrianchurch.org, uploaded 2020-08; `andrious-liturgical-year`), \
+              read in the Internet Archive's copy of 13 February 2026, the live file \
+              returning an error, for the nine seasons and their lengths, the Rogation \
+              of the Ninevites, the Feast of the Cross \"precisely on the 13th of \
+              September\" and Elijah's first Sunday before it; the Assyrian Church of the \
+              East Liturgical Calendar (calendar.assyrianchurch.org, its English and \
+              Assyrian feeds, `ace-liturgical-calendar`), for every Sunday and feast of \
+              2026–2029 as checks and the Syriac names; Wikipedia, \"Ancient Church of the \
+              East\" (secondary), for the Gregorian calendar from 1964; all retrieved \
+              2026-09-27",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3187,6 +3560,11 @@ pub static ALL: &[&RuleSet] = &[
     &CHRISTIAN_ARMENIAN_JERUSALEM,
     &PLOUGH_DAYS,
     &CHAHARSHANBE_SURI,
+    &TENRIKYO,
+    &UNLUCKY_FRIDAYS,
+    &SACRED_WEDNESDAYS,
+    &CHURCH_OF_THE_EAST,
+    &crate::common_worship::COMMON_WORSHIP,
 ];
 
 /// The table for a tradition's identifier.

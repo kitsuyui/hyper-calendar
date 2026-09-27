@@ -545,6 +545,51 @@ pub const BIRKAT_HACHAMA_CYCLE_DAYS: i64 = 10_227;
 /// Reingold and Dershowitz gives it.
 pub const BIRKAT_HACHAMA_ANCHOR: Rd = Rd(733_505);
 
+/// Years in the sabbatical cycle.
+pub const SABBATICAL_CYCLE_YEARS: u8 = 7;
+
+/// The place of a Hebrew year in the seven-year sabbatical cycle, 1 to 7,
+/// the seventh being the sabbatical year, *shemittah*.
+///
+/// The count in use makes the years divisible by seven sabbatical years.
+/// Wikipedia's "Shmita" (retrieved 2026-09-27) lists 5712 (1951–52) to
+/// 5782 (2021–22), seven years apart, and Chabad.org's "What Is
+/// Shemitah?" (retrieved 2026-09-27) names 5789, "which runs from
+/// September 20, 2028 to September 9, 2029", as the next. Both count the
+/// sabbatical year from Rosh Hashanah, so the year is the Hebrew year of
+/// this calendar. The same Chabad.org page says the cycle's first year
+/// was 3829; counting sevens from there would make 5788 the sabbatical
+/// year and not the 5789 it names, so the named years are the ones
+/// carried. The Jubilee is not carried: whether it is the forty-ninth year
+/// or the fiftieth is disputed, and no source read dates a Jubilee year
+/// of the present count.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::YearOutOfRange`] outside
+/// [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub const fn sabbatical_cycle_year(year: i64) -> CalendarResult<u8> {
+    if year < MIN_YEAR || year > MAX_YEAR {
+        return Err(CalendarError::YearOutOfRange);
+    }
+    let cycle = SABBATICAL_CYCLE_YEARS as i64;
+    Ok(((year - 1).rem_euclid(cycle) + 1) as u8)
+}
+
+/// Whether a Hebrew year is a sabbatical year, *shemittah*: the seventh
+/// of [`sabbatical_cycle_year`]'s count.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::YearOutOfRange`] outside
+/// [`MIN_YEAR`]..=[`MAX_YEAR`].
+pub const fn is_sabbatical_year(year: i64) -> CalendarResult<bool> {
+    match sabbatical_cycle_year(year) {
+        Ok(place) => Ok(place == SABBATICAL_CYCLE_YEARS),
+        Err(error) => Err(error),
+    }
+}
+
 /// The anniversary in `year` of a death on `death`: the *yahrzeit*, by
 /// Reingold and Dershowitz's `yahrzeit` (`calendar.l`, read 2026-09-26).
 ///
@@ -1125,6 +1170,32 @@ mod tests {
         assert_eq!(
             birkat_hachama_on_or_after(civil::to_rd(1870, 1, 1)),
             civil::to_rd(1897, 4, 7)
+        );
+    }
+
+    #[test]
+    fn the_sabbatical_years_are_the_published_ones() {
+        // Wikipedia, "Shmita", retrieved 2026-09-27: 5712 (1951–52) to
+        // 5782 (2021–22).
+        for year in (5_712..=5_782).step_by(7) {
+            assert_eq!(is_sabbatical_year(year), Ok(true), "{year}");
+            assert_eq!(sabbatical_cycle_year(year), Ok(7), "{year}");
+        }
+        // Chabad.org, "What Is Shemitah?", retrieved 2026-09-27: 5789, "from
+        // September 20, 2028 to September 9, 2029", each the evening before
+        // the day this calendar starts the year on.
+        assert_eq!(is_sabbatical_year(5_789), Ok(true));
+        assert_eq!(new_year(5_789), civil::to_rd(2028, 9, 21));
+        assert_eq!(new_year(5_790), civil::to_rd(2029, 9, 10));
+        for year in 5_783..=5_788 {
+            assert_eq!(is_sabbatical_year(year), Ok(false), "{year}");
+            assert_eq!(sabbatical_cycle_year(year), Ok((year - 5_782) as u8));
+        }
+        assert_eq!(sabbatical_cycle_year(1), Ok(1));
+        assert_eq!(sabbatical_cycle_year(0), Err(CalendarError::YearOutOfRange));
+        assert_eq!(
+            is_sabbatical_year(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
         );
     }
 

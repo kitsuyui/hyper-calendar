@@ -53,6 +53,7 @@ Span { from, to }                     Dashain, Phūlpātī to Āśvina śukla 12
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
 Tabulated { function, first, last }   Matariki, gazetted through a stated last year
 Computed(fn)                          the handful that really are bespoke
+Unsettled(fn)                         a computed rule with the years its source leaves open
 ```
 
 Modifiers are data too: `SubstitutionPolicy` (which weekdays move a holiday,
@@ -74,7 +75,10 @@ that depends on the weekday or on another holiday — Chile's September days,
 Costa Rica's tourism Mondays of 2020–2024, Hong Kong's make-up days of
 1983–2011, Myanmar's Thingyan. New Zealand's Matariki is `Tabulated`, a
 published schedule with its last year stated, so that running past it is a
-reported gap. Japan needs none.
+reported gap. `Unsettled` is a computed rule that names the years its source
+does not settle, which are reported as gaps too: *Common Worship*'s St
+George, St Mark and Philip and James in the years its Rules move one onto
+another's day or into Easter Week. Japan needs none.
 
 ## Japan is complete and exact
 
@@ -143,9 +147,14 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Forty-three traditions.** Western Christianity on the Gregorian computus,
+**Forty-eight traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
-(`roman_calendar`), Orthodox Christianity with its fixed feasts on the
+(`roman_calendar`), the Church of England's *Common Worship* calendar with
+the ranks of its Principal Feasts, Principal Holy Days and Festivals and
+the transfers its Rules require (`common_worship`), the liturgical year of
+the Assyrian Church of the East, its seasons of seven weeks anchored to
+Easter and to the Feast of the Cross on 13 September
+(`church-of-the-east`), Orthodox Christianity with its fixed feasts on the
 Julian calendar and, as a second table, on the Revised Julian, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, the Armenian
 Apostolic Church on the Gregorian calendar of Etchmiadzin
@@ -171,10 +180,17 @@ the Korean folk days on `dangi` with 한식 105 days after 동지
 五節句 on their Gregorian dates from 1873 (`gosekku`), Shinto with the
 imperial court rites beside it, the Wheel of the Year in both hemispheres,
 the Zoroastrian schedule of feasts on each of its three reckonings, Plough
-Monday, Plough Sunday and Distaff Day (`plough-days`), and Chaharshanbe Suri
-on `persian`, the eve of the year's last Wednesday (`chaharshanbe-suri`).
+Monday, Plough Sunday and Distaff Day (`plough-days`), Chaharshanbe Suri
+on `persian`, the eve of the year's last Wednesday (`chaharshanbe-suri`),
+the services of Tenrikyo's Church Headquarters (`tenrikyo`), and two of
+Reingold and Dershowitz's coincidences of a weekday and a date: Friday the
+13th (`unlucky-fridays`) and the Wednesdays on the eighth day of a
+`hindu-lunar` month (`sacred-wednesdays`). The Islamic table carries three
+Shia days, Tasu'a, Arba'een and Eid al-Ghadir, beside the others.
 
-Beside the tables, `computus` carries a third reckoning of Easter, the
+Beside the tables, `holy_years` lists the Catholic Holy Years from 1975
+to 2025, each with the days its bull of indiction fixes, and answers
+whether a day is within one; `computus` carries a third reckoning of Easter, the
 astronomical one at the meridian of Jerusalem that the World Council of
 Churches proposed at Aleppo in 1997 (`astronomical-jerusalem`), which no
 church keeps; and `lectionary` gives the year of the Sunday cycle, A, B or
