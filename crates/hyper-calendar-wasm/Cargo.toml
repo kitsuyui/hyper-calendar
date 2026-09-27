@@ -19,7 +19,7 @@ crate-type = ["cdylib", "rlib"]
 # these, and the README's table says which.
 [features]
 default = ["civil"]
-# Proleptic Gregorian dates, ISO 8601 text, POSIX time and the TAI-UTC bridge.
+# Proleptic Gregorian dates, ISO 8601 text, POSIX time, TAI - UTC and leap seconds.
 civil = ["hc/civil", "hc/format"]
 # Time-scale labels and day counts outside the civil calendar: TAI64
 # labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation

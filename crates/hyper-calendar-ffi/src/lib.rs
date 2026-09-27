@@ -514,18 +514,18 @@ mod civil {
     pub unsafe extern "C" fn hc_tai_from_unix(
         unix_seconds: i64,
         strict: c_int,
-        out_seconds: *mut i64,
-        out_attos: *mut u64,
+        out_tai_seconds: *mut i64,
+        out_attoseconds: *mut u64,
     ) -> HcStatus {
-        if out_seconds.is_null() || out_attos.is_null() {
+        if out_tai_seconds.is_null() || out_attoseconds.is_null() {
             return HC_ERROR_NULL_POINTER;
         }
         match hc::time_lines::tai_from_unix(unix_seconds, strict != 0) {
             Ok((seconds, attoseconds)) => {
                 // SAFETY: both were checked non-null immediately above.
                 unsafe {
-                    *out_seconds = seconds;
-                    *out_attos = attoseconds;
+                    *out_tai_seconds = seconds;
+                    *out_attoseconds = attoseconds;
                 }
                 HC_OK
             }
@@ -1950,8 +1950,9 @@ mod calendar_days {
     /// any case; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. A place beyond 65° of latitude, where
     /// some day of the year has no sunrise, is `HC_ERROR_OUT_OF_RANGE` on
-    /// either sky, as is a place off the globe, a day outside Gregorian
-    /// 1700 to 2299 on the true sky, and a day outside Kali Yuga 1 to
+    /// either sky, as is a place off the globe, a day outside Śaka 1622
+    /// through 2221 on the true sky, Chaitra śukla 1 in March 1700 to the
+    /// eve of the one in March 2300, and a day outside Kali Yuga 1 to
     /// 10 000 on the Siddhānta's. Writes the
     /// required length, including the terminator, into `written`.
     ///
@@ -2037,8 +2038,8 @@ mod calendar_days {
     /// NUL-terminated UTF-8 line in a caller-owned buffer.
     ///
     /// The line is the WebAssembly module's: 1 or 0, the moment the evening
-    /// is judged at as POSIX seconds, and the Moon's elongation, arc of
-    /// light, altitude and arc of vision and the crescent's width there,
+    /// is judged at as POSIX seconds, and the Moon's longitude less the
+    /// Sun's (0 to 360), arc of light, altitude and arc of vision and the crescent's width there,
     /// empty where there is no such moment. `criterion` is `shaukat`,
     /// `yallop` or `saudi-rule`, in any case; anything else is
     /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. A place off the
@@ -3958,8 +3959,8 @@ pub use orbital::{hc_orbit_at, hc_orbit_series};
 /// surface missions' sol counts, and the solar day and local mean solar
 /// time of every body in `hc-planetary`'s table.
 ///
-/// A calendar `hc-planetary` gains later is one more entry point here
-/// beside [`hc_mars_time`], with its own line, not a new column of an
+/// The calendars of other bodies' days are [`hc_circad_date`], one entry
+/// point beside [`hc_mars_time`] with its own line, not new columns of an
 /// existing one.
 #[cfg(feature = "planetary")]
 mod planetary {
@@ -3981,7 +3982,7 @@ mod planetary {
     /// sol of the month, month name and sol-of-week name at Airy-0; and the
     /// source. `unix_seconds` is POSIX time with a fraction, read through
     /// the leap-second table with the last offset held;
-    /// `east_longitude_deg` is planetocentric, east-positive, and wraps. An
+    /// `east_longitude_degrees` is planetocentric, east-positive, and wraps. An
     /// instant more than 100 Julian years from J2000.0, where Allison and
     /// McEwen's series is an extrapolation, or a value that is not finite,
     /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
@@ -3994,12 +3995,12 @@ mod planetary {
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_mars_time(
         unix_seconds: f64,
-        east_longitude_deg: f64,
+        east_longitude_degrees: f64,
         buffer: *mut c_char,
         capacity: usize,
         written: *mut usize,
     ) -> HcStatus {
-        let answer = planetary_lines::mars_time_line(unix_seconds, east_longitude_deg);
+        let answer = planetary_lines::mars_time_line(unix_seconds, east_longitude_degrees);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
@@ -4126,7 +4127,7 @@ mod planetary {
     pub unsafe extern "C" fn hc_body_time(
         body: *const c_char,
         unix_seconds: f64,
-        east_longitude_deg: f64,
+        east_longitude_degrees: f64,
         buffer: *mut c_char,
         capacity: usize,
         written: *mut usize,
@@ -4136,7 +4137,7 @@ mod planetary {
             Ok(body) => body,
             Err(status) => return status,
         };
-        let answer = planetary_lines::body_time_line(body, unix_seconds, east_longitude_deg);
+        let answer = planetary_lines::body_time_line(body, unix_seconds, east_longitude_degrees);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
@@ -4348,6 +4349,21 @@ mod tests {
         assert_eq!(text.len() + 1, written);
         assert!(text.ends_with('\n'), "{text:?}");
         text
+    }
+
+    /// The status of a line-writing entry point's measuring call: a null
+    /// buffer, which is `HC_ERROR_BUFFER_TOO_SMALL` when the entry point
+    /// answers, and the refusal when it does not.
+    #[cfg(any(
+        feature = "timestamps",
+        feature = "calendars",
+        feature = "sky",
+        feature = "planetary",
+        feature = "relativity"
+    ))]
+    fn measured(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> HcStatus {
+        let mut written = 0usize;
+        call(core::ptr::null_mut(), 0, &mut written)
     }
 
     #[cfg(feature = "civil")]
@@ -4748,6 +4764,19 @@ mod tests {
                     )
                 },
                 HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe {
+                    hc_naming_period_on(
+                        c"no-such-calendar".as_ptr(),
+                        day,
+                        c"tk".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
             );
         }
 
@@ -5438,7 +5467,8 @@ mod tests {
                 Ok(midnight - 9 * 3_600 + 86_400)
             );
             assert_eq!(starts(last + 2, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
-            // 2^53 days, which used to saturate to INT64_MAX.
+            // 2^53 days, whose start a saturating product would clamp to
+            // INT64_MAX.
             assert_eq!(starts(1 << 53, c"Asia/Tokyo"), Err(HC_ERROR_OUT_OF_RANGE));
             assert_eq!(starts(i64::MAX, c"UTC"), Err(HC_ERROR_OUT_OF_RANGE));
         }
@@ -5577,7 +5607,7 @@ mod tests {
     #[cfg(feature = "sky")]
     mod sky {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         /// The Sun in the Moon's face of Libra an hour after the NAOJ's 秋分
         /// of 2026, 23 September 00:05 UTC, as the module writes it.
@@ -5592,6 +5622,15 @@ mod tests {
                 hc::sky_lines::decan_line(instant).expect("in the era")
             );
             assert!(text.starts_with("7\tLibra\t1\tmoon\tMoon\t"), "{text}");
+            let decan = |unix_seconds: i64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_decan_at(unix_seconds, buffer, capacity, written)
+                })
+            };
+            assert_eq!(decan(-93_724_128_000), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(decan(32_535_215_999), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(decan(-93_724_128_001), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(decan(32_535_216_000), HC_ERROR_OUT_OF_RANGE);
         }
 
         /// The POSIX timestamp of a UTC date and time.
@@ -5778,7 +5817,7 @@ mod tests {
     #[cfg(feature = "timestamps")]
     mod time_scales {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         /// `TTBIPM.2025`'s 27.6740 µs on MJD 58 479, as the module reads it.
         #[test]
@@ -6207,12 +6246,158 @@ mod tests {
                 HC_ERROR_OUT_OF_RANGE
             );
         }
+
+        /// Every refusal of the time-scale entry points that their
+        /// documentation names and the tests above do not reach.
+        #[test]
+        fn the_time_scale_entry_points_refuse_as_documented() {
+            const TOO_MANY_ATTOSECONDS: u64 = 1_000_000_000_000_000_000;
+            let series = c"58479\t27.6740\n58489\t27.6745\n";
+            let tai = (58_479 - 40_587) * 86_400 + 37;
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_tt_bipm(
+                        series.as_ptr(),
+                        tai,
+                        TOO_MANY_ATTOSECONDS,
+                        1,
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                }),
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_tt_bipm(c"".as_ptr(), tai, 0, 1, buffer, capacity, written)
+                }),
+                HC_ERROR_NO_DATA
+            );
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_tt_bipm(c"58479 27.6".as_ptr(), tai, 0, 1, buffer, capacity, written)
+                }),
+                HC_ERROR_MALFORMED
+            );
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_tt_bipm(core::ptr::null(), tai, 0, 1, buffer, capacity, written)
+                }),
+                HC_ERROR_NULL_POINTER
+            );
+
+            let (mut seconds, mut attos) = (7i64, 7u64);
+            for (label, expected) in [
+                (c"xyz", HC_ERROR_MALFORMED),
+                (c"8000000000000000", HC_ERROR_OUT_OF_RANGE),
+                (c"400000000000000a3b9aca00", HC_ERROR_OUT_OF_RANGE),
+            ] {
+                assert_eq!(
+                    unsafe {
+                        hc_tai64_posix_plus_10_decode(label.as_ptr(), &mut seconds, &mut attos)
+                    },
+                    expected,
+                    "{label:?}"
+                );
+            }
+
+            let (mut era, mut offset, mut fraction, mut unix) = (7, 7u32, 7u64, 7i64);
+            assert_eq!(
+                unsafe {
+                    hc_ntp_resolve(
+                        1,
+                        0,
+                        i64::MAX,
+                        &mut era,
+                        &mut offset,
+                        &mut fraction,
+                        &mut unix,
+                        &mut attos,
+                    )
+                },
+                HC_ERROR_OVERFLOW
+            );
+            assert_eq!(
+                unsafe {
+                    hc_ntp_resolve(
+                        1,
+                        0,
+                        0,
+                        &mut era,
+                        &mut offset,
+                        core::ptr::null_mut(),
+                        &mut unix,
+                        &mut attos,
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
+
+            let (mut fixed, mut seconds_of_day) = (0i64, 0u32);
+            assert_eq!(
+                unsafe {
+                    hc_fat_decode(23_866, 49_021, core::ptr::null_mut(), &mut seconds_of_day)
+                },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_fat_decode(23_866, 49_021, &mut fixed, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+            let (mut date, mut time) = (0u16, 0u16);
+            assert_eq!(
+                unsafe { hc_fat_encode(739_885, 0, core::ptr::null_mut(), &mut time) },
+                HC_ERROR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_fat_encode(739_885, 0, &mut date, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+
+            let mut beat = 0u16;
+            assert_eq!(
+                unsafe { hc_swatch_beat(0, TOO_MANY_ATTOSECONDS, &mut beat) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_swatch_beat(0, 0, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+
+            let mut year = 0.0f64;
+            assert_eq!(
+                unsafe { hc_epoch_from_tt(c"X".as_ptr(), 0, 0, &mut year) },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe { hc_epoch_from_tt(c"J".as_ptr(), 0, TOO_MANY_ATTOSECONDS, &mut year) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_tt_from_epoch(c"X".as_ptr(), 2000.0, &mut seconds, &mut attos) },
+                HC_ERROR_UNKNOWN
+            );
+            for year in [f64::NAN, f64::INFINITY] {
+                assert_eq!(
+                    unsafe { hc_tt_from_epoch(c"J".as_ptr(), year, &mut seconds, &mut attos) },
+                    HC_ERROR_OUT_OF_RANGE,
+                    "{year}"
+                );
+            }
+            assert_eq!(
+                unsafe {
+                    hc_tt_from_epoch(c"J".as_ptr(), 2000.0, core::ptr::null_mut(), &mut attos)
+                },
+                HC_ERROR_NULL_POINTER
+            );
+        }
     }
 
     #[cfg(feature = "calendars")]
     mod calendar_days {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         /// 5782 is a sabbatical year; 23 September AD 4 is Sebaste of Kaisar.
         #[test]
@@ -6316,6 +6501,98 @@ mod tests {
                 },
                 HC_ERROR_OUT_OF_RANGE
             );
+        }
+
+        /// Every refusal of the Hindu, crescent, Sūrya Siddhānta and Asian
+        /// entry points that their documentation names, at the ends of the
+        /// ranges the README gives.
+        #[test]
+        fn the_calendar_day_entry_points_refuse_as_documented() {
+            let (ujjain_lat, ujjain_lon) = (23.15, 75.768_333);
+            let sunrise = |fixed: i64, latitude: f64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_surya_siddhanta_sunrise(
+                        fixed, latitude, ujjain_lon, buffer, capacity, written,
+                    )
+                })
+            };
+            assert_eq!(sunrise(-1_132_604, ujjain_lat), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(sunrise(2_519_974, ujjain_lat), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(sunrise(-1_132_605, ujjain_lat), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(sunrise(2_519_975, ujjain_lat), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(sunrise(739_340, 66.0), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(sunrise(739_340, 91.0), HC_ERROR_OUT_OF_RANGE);
+
+            let at = |unix_seconds: i64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_surya_siddhanta_at(unix_seconds, buffer, capacity, written)
+                })
+            };
+            assert_eq!(at(-159_992_668_800), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(at(155_590_156_799), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(at(-159_992_668_801), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(at(155_590_156_800), HC_ERROR_OUT_OF_RANGE);
+
+            // The true sky at the Central Station with Lahiri's ayanamsa.
+            let hindu = |sky: *const c_char, fixed: i64, latitude: f64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_hindu_lunar_date(sky, fixed, latitude, 82.5, 0.0, buffer, capacity, written)
+                })
+            };
+            let lahiri = c"lahiri".as_ptr();
+            assert_eq!(
+                hindu(lahiri, 620_627, 23.183_333),
+                HC_ERROR_BUFFER_TOO_SMALL
+            );
+            assert_eq!(
+                hindu(lahiri, 839_773, 23.183_333),
+                HC_ERROR_BUFFER_TOO_SMALL
+            );
+            assert_eq!(hindu(lahiri, 620_626, 23.183_333), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(hindu(lahiri, 839_774, 23.183_333), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(
+                hindu(c"surya-siddhanta".as_ptr(), 739_340, 66.0),
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                hindu(c"sidereal".as_ptr(), 739_340, 23.183_333),
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(hindu(c"".as_ptr(), 739_340, 23.183_333), HC_ERROR_UNKNOWN);
+            assert_eq!(
+                hindu(core::ptr::null(), 739_340, 23.183_333),
+                HC_ERROR_NULL_POINTER
+            );
+
+            let crescent = |criterion: *const c_char, fixed: i64, latitude: f64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_crescent_visible(
+                        criterion, fixed, latitude, 39.8, 0.0, buffer, capacity, written,
+                    )
+                })
+            };
+            let shaukat = c"shaukat".as_ptr();
+            assert_eq!(crescent(shaukat, -365_607, 21.4), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(
+                crescent(shaukat, 1_095_727, 21.4),
+                HC_ERROR_BUFFER_TOO_SMALL
+            );
+            assert_eq!(crescent(shaukat, -365_608, 21.4), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(crescent(shaukat, 1_095_728, 21.4), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(crescent(shaukat, 739_340, 91.0), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(
+                crescent(c"danjon".as_ptr(), 739_340, 21.4),
+                HC_ERROR_UNKNOWN
+            );
+
+            let asian = |fixed: i64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_asian_day(fixed, buffer, capacity, written)
+                })
+            };
+            assert_eq!(asian(3_652_398), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(asian(1_359), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(asian(3_652_399), HC_ERROR_OUT_OF_RANGE);
         }
 
         fn fixed(year: i64, month: u8, day: u8) -> i64 {
@@ -6453,6 +6730,12 @@ mod tests {
                 unsafe { hc_holy_year_on(0, core::ptr::null_mut(), 0, &mut written) },
                 HC_ERROR_NO_DATA
             );
+            assert_eq!(
+                unsafe {
+                    hc_common_worship_on(-3_652_425_000, core::ptr::null_mut(), 0, &mut written)
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
             // A day that keeps nothing writes the empty string.
             let mut buffer = [7 as c_char; 1];
             assert_eq!(
@@ -6544,7 +6827,7 @@ mod tests {
     #[cfg(feature = "sky")]
     mod earth_and_sun {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         /// Warren's row for 29 February 1992 in the IDL Astronomy Library's
         /// `helio_jd`, as the module writes both scales.
@@ -6572,6 +6855,33 @@ mod tests {
             assert_eq!(
                 unsafe { hc_hjd_tt(date, 400.0, delta, core::ptr::null_mut(), 0, &mut written) },
                 HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe {
+                    hc_hjd_tt(
+                        f64::NAN,
+                        alpha,
+                        delta,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            // 1858, before the leap-second table: refused only under `strict`.
+            let before_1961 = 2_400_000.5;
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_hjd_utc(before_1961, alpha, delta, 1, buffer, capacity, written)
+                }),
+                HC_ERROR_NO_DATA
+            );
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_hjd_utc(before_1961, alpha, delta, 0, buffer, capacity, written)
+                }),
+                HC_ERROR_BUFFER_TOO_SMALL
             );
         }
 
@@ -6751,7 +7061,7 @@ mod tests {
     #[cfg(feature = "planetary")]
     mod planetary {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         fn row(text: &str) -> Vec<String> {
             text.trim_end().split('\t').map(str::to_owned).collect()
@@ -6801,6 +7111,22 @@ mod tests {
                 },
                 HC_ERROR_UNKNOWN
             );
+            // 2103, past 100 Julian years from J2000.0, and an instant not finite.
+            for unix_seconds in [4_200_000_000.0, f64::NAN] {
+                assert_eq!(
+                    measured(|buffer, capacity, written| unsafe {
+                        hc_circad_date(
+                            c"darian-titan".as_ptr(),
+                            unix_seconds,
+                            buffer,
+                            capacity,
+                            written,
+                        )
+                    }),
+                    HC_ERROR_OUT_OF_RANGE,
+                    "{unix_seconds}"
+                );
+            }
         }
 
         #[test]
@@ -6883,13 +7209,32 @@ mod tests {
                 },
                 HC_ERROR_NO_DATA
             );
+            let body = |name: *const c_char, unix_seconds: f64, east_longitude: f64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_body_time(
+                        name,
+                        unix_seconds,
+                        east_longitude,
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                })
+            };
+            let titan = c"titan".as_ptr();
+            assert_eq!(body(c"vulcan".as_ptr(), 0.0, 0.0), HC_ERROR_UNKNOWN);
+            assert_eq!(body(core::ptr::null(), 0.0, 0.0), HC_ERROR_NULL_POINTER);
+            assert_eq!(body(titan, f64::NAN, 0.0), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(body(titan, 0.0, f64::INFINITY), HC_ERROR_OUT_OF_RANGE);
+            // 2103, past 100 Julian years from J2000.0.
+            assert_eq!(body(titan, 4_200_000_000.0, 0.0), HC_ERROR_OUT_OF_RANGE);
         }
     }
 
     #[cfg(feature = "relativity")]
     mod relativity {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         fn row(text: &str) -> Vec<String> {
             text.trim_end().split('\t').map(str::to_owned).collect()
@@ -6927,6 +7272,19 @@ mod tests {
                     )
                 },
                 HC_ERROR_UNKNOWN
+            );
+            // The Earth's Schwarzschild radius is about 8.87 mm.
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_gravitational_dilation(c"earth".as_ptr(), 0.001, buffer, capacity, written)
+                }),
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                measured(|buffer, capacity, written| unsafe {
+                    hc_gravitational_dilation(core::ptr::null(), 1e7, buffer, capacity, written)
+                }),
+                HC_ERROR_NULL_POINTER
             );
         }
     }

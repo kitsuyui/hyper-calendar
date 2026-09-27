@@ -40,8 +40,8 @@ pub fn criterion(given: &str) -> Answer<NamedCriterion> {
 /// visible on the evening that begins a fixed day — the evening of the day
 /// before — from a place by a named criterion, 1 or 0; then the moment the
 /// criterion judges the evening at, as whole POSIX seconds of Universal
-/// Time, rounded down; and at that moment the Moon's elongation from the
-/// Sun, its arc of light, its geocentric altitude, the arc of vision, all
+/// Time, rounded down; and at that moment the Moon's longitude less the
+/// Sun's, 0 to 360, its arc of light, its geocentric altitude, the arc of vision, all
 /// in degrees, and the crescent's topocentric width in minutes of arc.
 ///
 /// The moment is the Sun at 4.5° below the horizon for Shaukat's

@@ -1003,7 +1003,7 @@ export interface CrescentVisibility {
   visible: boolean;
   /** The moment the evening is judged at, POSIX seconds, or `null` when no observation is possible. */
   evaluatedAt: number | null;
-  /** At that moment, in degrees. */
+  /** At that moment, the Moon's longitude less the Sun's, 0 to 360 degrees, as `Sky.elongation`. */
   elongation: number | null;
   arcOfLight: number | null;
   /** The Moon's geocentric altitude. */

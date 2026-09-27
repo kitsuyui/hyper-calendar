@@ -286,7 +286,7 @@ pub unsafe extern "C" fn hc_version(buffer: *mut u8, capacity: usize) -> i64 {
 }
 
 /// The civil calendar, behind the `civil` feature: proleptic Gregorian
-/// dates, ISO 8601 text, POSIX time and the TAI–UTC bridge.
+/// dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds.
 #[cfg(feature = "civil")]
 mod civil {
     use super::{
@@ -1662,8 +1662,9 @@ mod calendar_days {
     /// place is the latitude and longitude in degrees, north and east
     /// positive, and the elevation in metres. A place beyond 65° of
     /// latitude, where some day of the year has no sunrise, is
-    /// `HC_ERR_OUT_OF_RANGE` on either sky, as is a day outside Gregorian
-    /// 1700 to 2299 on the true sky and outside Kali Yuga 1 to 10 000 on
+    /// `HC_ERR_OUT_OF_RANGE` on either sky, as is a day outside Śaka 1622
+    /// through 2221 on the true sky, Chaitra śukla 1 in March 1700 to the
+    /// eve of the one in March 2300, and outside Kali Yuga 1 to 10 000 on
     /// the Siddhānta's. A place off the globe is
     /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
     /// needs.
@@ -1759,8 +1760,9 @@ mod calendar_days {
     /// `fixed`, since the day begins at sunset. Tab-separated: 1 if the
     /// crescent passes and 0 if not; the moment the criterion judges the
     /// evening at, as whole POSIX seconds of Universal Time, rounded down;
-    /// and at that moment the Moon's elongation, its arc of light, its
-    /// geocentric altitude and the arc of vision, in degrees, and the
+    /// and at that moment the Moon's longitude less the Sun's, 0 to 360,
+    /// its arc of light, its geocentric altitude and the arc of vision, in
+    /// degrees, and the
     /// crescent's topocentric width in arcminutes. Where there is no such
     /// moment the first cell is 0 and the rest are empty. The place is as
     /// for `hc_hindu_lunar_date`. A place off the globe, or a day outside
@@ -3625,7 +3627,7 @@ mod planetary {
     /// Clancy convention; the Darian year, month, sol of the month, month
     /// name and sol-of-week name at Airy-0; and the source. `unix_seconds`
     /// is POSIX time with a fraction, read through the leap-second table
-    /// with the last offset held; `east_longitude_deg` is planetocentric,
+    /// with the last offset held; `east_longitude_degrees` is planetocentric,
     /// east-positive, and wraps. An instant more than 100 Julian years from
     /// J2000.0, where Allison and McEwen's series is an extrapolation, or a
     /// value that is not finite, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
@@ -3637,11 +3639,11 @@ mod planetary {
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_mars_time(
         unix_seconds: f64,
-        east_longitude_deg: f64,
+        east_longitude_degrees: f64,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
-        let answer = planetary_lines::mars_time_line(unix_seconds, east_longitude_deg);
+        let answer = planetary_lines::mars_time_line(unix_seconds, east_longitude_degrees);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
@@ -3746,7 +3748,7 @@ mod planetary {
         body: *const u8,
         body_len: usize,
         unix_seconds: f64,
-        east_longitude_deg: f64,
+        east_longitude_degrees: f64,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
@@ -3755,7 +3757,7 @@ mod planetary {
             Ok(name) => name,
             Err(sentinel) => return sentinel,
         };
-        let answer = planetary_lines::body_time_line(name, unix_seconds, east_longitude_deg);
+        let answer = planetary_lines::body_time_line(name, unix_seconds, east_longitude_degrees);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
@@ -4126,7 +4128,8 @@ mod tests {
                 hc_unix_from_fixed(UNIX_FROM_FIXED_LAST + 1),
                 HC_ERR_OUT_OF_RANGE
             );
-            // 2^53 days, which used to wrap to 3458764451684857728.
+            // 2^53 days, whose midnight a wrapping product would put at
+            // 3458764451684857728.
             assert_eq!(hc_unix_from_fixed(1 << 53), HC_ERR_OUT_OF_RANGE);
             assert_eq!(hc_unix_from_fixed(i64::MAX), HC_ERR_OUT_OF_RANGE);
             // Overflow downwards too: the subtraction, then the product.
@@ -5262,7 +5265,8 @@ mod tests {
                 midnight - 9 * 3_600 + 86_400
             );
             assert_eq!(starts(last + 2, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
-            // 2^53 days, which used to saturate to i64::MAX.
+            // 2^53 days, whose start a saturating product would clamp to
+            // i64::MAX.
             assert_eq!(starts(1 << 53, "Asia/Tokyo"), HC_ERR_OUT_OF_RANGE);
             assert_eq!(starts(i64::MAX, "UTC"), HC_ERR_OUT_OF_RANGE);
             assert_eq!(starts(i64::MAX, "America/New_York"), HC_ERR_OUT_OF_RANGE);
@@ -6079,6 +6083,20 @@ mod tests {
             assert_eq!(
                 unsafe { hc_tt_bipm("58479 27.6".as_ptr(), 10, tai, 0, 1, null, 0) },
                 HC_ERR_MALFORMED
+            );
+            assert_eq!(
+                unsafe {
+                    hc_tt_bipm(
+                        series.as_ptr(),
+                        series.len(),
+                        tai,
+                        1_000_000_000_000_000_000,
+                        1,
+                        null,
+                        0,
+                    )
+                },
+                HC_ERR_OUT_OF_RANGE
             );
         }
 
