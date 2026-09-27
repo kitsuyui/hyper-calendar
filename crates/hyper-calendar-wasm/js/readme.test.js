@@ -84,14 +84,21 @@ test("the JavaScript method table has a row for every method, each with its expo
   const rows = README.slice(start).split("\n\n")[0].split("\n").slice(2);
   /** @type {Map<string, string[]>} */
   const listed = new Map();
+  /** @type {string[]} */
+  const repeated = [];
   for (const row of rows) {
     const [methods, exports] = row.slice(1, -1).split(" | ");
     const names = [...methods.matchAll(/`(\w+)\(/g)].map((match) => match[1]);
     const exported = [...exports.matchAll(/`(hc_\w+)`/g)].map((match) => match[1]);
     for (const name of names) {
+      if (listed.has(name)) {
+        repeated.push(name);
+      }
       listed.set(name, exported);
     }
   }
+  // A method is listed once: a merge that adds its row twice fails here.
+  assert.deepEqual(repeated, [], "methods the table lists twice");
   const missing = METHODS.filter((entry) => !listed.has(entry.method)).map((entry) => entry.method);
   assert.deepEqual(missing, [], "methods the table lacks");
   for (const entry of METHODS) {

@@ -20,6 +20,15 @@
 //! April to March in 2007, that Brazil stopped changing its clocks, or that
 //! Japan observed daylight saving from 1948 to 1951. For history, read TZif
 //! data with [`crate::tzif`]; this module answers "what are the rules now".
+//!
+//! # Range
+//!
+//! The rules are evaluated on the proleptic Gregorian calendar of
+//! `hc_calendar::gregorian`, which converts the years ±9 999 999. They
+//! answer for the instants of the years [`FIRST_RULE_YEAR`] to
+//! [`LAST_RULE_YEAR`], five inside each end, because a year's answer reads
+//! its neighbours' rules too; [`rules_answer_at`] says whether an instant
+//! is one of them.
 
 use core::fmt;
 
@@ -41,6 +50,49 @@ pub const DEFAULT_TRANSITION_TIME: i32 = 2 * 3_600;
 /// RFC 8536 §3.3.2 widened POSIX's `0..=24` to `-167..=167` so that a rule can
 /// name a transition a week either side of the day it is anchored to.
 const MAX_RULE_TIME_HOURS: i32 = 167;
+
+/// How many years inside each end of `hc_calendar::gregorian`'s range the
+/// rules are read in. An instant's answer reads the rules of the years
+/// around its own — one either side for the offset, two after for the next
+/// transition, and the offsets at those candidates in turn — and every one
+/// of those years must be one the Gregorian conversion takes, or its
+/// transitions fall on its first day and the answer is standard time.
+/// Five covers them, with an offset and a `/time` of up to a week moving
+/// the local year from the UTC one.
+const RULE_YEAR_MARGIN: i64 = 5;
+
+/// The first Gregorian year, by UTC, whose instants [`PosixTimeZone`]'s
+/// rules answer for: −9 999 994, five inside
+/// [`hc_calendar::gregorian::MIN_YEAR`].
+pub const FIRST_RULE_YEAR: i64 = hc_calendar::gregorian::MIN_YEAR + RULE_YEAR_MARGIN;
+
+/// The last Gregorian year, by UTC, whose instants [`PosixTimeZone`]'s
+/// rules answer for: 9 999 994, five inside
+/// [`hc_calendar::gregorian::MAX_YEAR`].
+pub const LAST_RULE_YEAR: i64 = hc_calendar::gregorian::MAX_YEAR - RULE_YEAR_MARGIN;
+
+/// The first POSIX second the rules answer for: 00:00:00 UTC on 1 January
+/// of [`FIRST_RULE_YEAR`].
+pub const FIRST_RULE_SECOND: i64 =
+    (hc_calendar::gregorian::new_year(FIRST_RULE_YEAR).0 - RD_OF_UNIX_EPOCH) * 86_400;
+
+/// The last POSIX second the rules answer for: 23:59:59 UTC on 31 December
+/// of [`LAST_RULE_YEAR`].
+pub const LAST_RULE_SECOND: i64 =
+    (hc_calendar::gregorian::new_year(LAST_RULE_YEAR + 1).0 - RD_OF_UNIX_EPOCH) * 86_400 - 1;
+
+/// Whether an instant is one [`PosixTimeZone`]'s rules answer for, from
+/// [`FIRST_RULE_SECOND`] to [`LAST_RULE_SECOND`].
+///
+/// Outside it [`PosixTimeZone::offset_at`], [`PosixTimeZone::is_dst_at`]
+/// and [`PosixTimeZone::next_transition`] still return, and what they
+/// return is standard time and no transition, whatever the rules say: a
+/// caller that cannot rule such instants out checks here first.
+#[must_use]
+pub const fn rules_answer_at(utc: UnixTime) -> bool {
+    let seconds = utc.seconds();
+    seconds >= FIRST_RULE_SECOND && seconds <= LAST_RULE_SECOND
+}
 
 /// The longest zone abbreviation this crate stores.
 ///
@@ -779,6 +831,68 @@ mod tests {
     fn instant(year: i64, month: u8, day: u8, hour: u8, minute: u8) -> UnixTime {
         let days = rd_from_ymd(year, month, day) - RD_OF_UNIX_EPOCH;
         UnixTime::from_seconds(days * 86_400 + i64::from(hour) * 3_600 + i64::from(minute) * 60)
+    }
+
+    /// At both ends of the range the rules answer as they do in a year of
+    /// the same place in the Gregorian cycle: 400 years are 146 097 days,
+    /// 20 871 weeks, so every rule falls on the same day of it. Beyond the
+    /// ends [`rules_answer_at`] is false.
+    #[test]
+    fn the_rules_answer_at_both_ends_of_their_range_as_in_their_cycle() {
+        const CYCLE: i64 = 146_097 * 86_400;
+        let rules = [
+            "AEST-10AEDT,M10.1.0,M4.1.0/3",
+            "EST5EDT,M3.2.0,M11.1.0",
+            "<-03>3<-02>,M10.3.0/0,M2.3.0/0",
+            "NZST-12NZDT,M9.5.0,M4.1.0/3",
+            "EST5EDT,0/0,J365/25",
+            "<+14>-14<+15>,J1/-167,J365/167",
+            "IST-1GMT0,M10.5.0,M3.5.0/1",
+        ];
+        // Cycles between each end and a year of 1994 to 2393.
+        let ends = [
+            (FIRST_RULE_SECOND, (2_006 - FIRST_RULE_YEAR) / 400),
+            (LAST_RULE_SECOND, -((LAST_RULE_YEAR - 2_394) / 400)),
+        ];
+        for text in rules {
+            let tz = PosixTz::parse(text).unwrap();
+            for (end, cycles) in ends {
+                // Every six hours over the fortnight inside the end, and the
+                // end itself.
+                for step in 0..=56 {
+                    let seconds = if end == FIRST_RULE_SECOND {
+                        end + step * 21_600
+                    } else {
+                        end - step * 21_600
+                    };
+                    let at = UnixTime::from_seconds(seconds);
+                    let there = UnixTime::from_seconds(seconds + cycles * CYCLE);
+                    assert!(rules_answer_at(at));
+                    assert_eq!(tz.offset_at(at), tz.offset_at(there), "{text} at {seconds}");
+                    assert_eq!(tz.abbreviation_at(at), tz.abbreviation_at(there));
+                    assert_eq!(
+                        tz.next_transition(at).map(UnixTime::seconds),
+                        tz.next_transition(there)
+                            .map(|next| next.seconds() - cycles * CYCLE),
+                        "{text} after {seconds}"
+                    );
+                }
+            }
+        }
+        assert!(!rules_answer_at(UnixTime::from_seconds(
+            FIRST_RULE_SECOND - 1
+        )));
+        assert!(!rules_answer_at(UnixTime::from_seconds(
+            LAST_RULE_SECOND + 1
+        )));
+        assert_eq!(
+            FIRST_RULE_SECOND,
+            (rd_from_ymd(-9_999_994, 1, 1) - RD_OF_UNIX_EPOCH) * 86_400
+        );
+        assert_eq!(
+            LAST_RULE_SECOND + 1,
+            (rd_from_ymd(9_999_995, 1, 1) - RD_OF_UNIX_EPOCH) * 86_400
+        );
     }
 
     /// The 2026 changes of the European Union's rule, on the last Sundays

@@ -1,10 +1,11 @@
 # Rāhu kālam, Yamaganda and Gulika kālam
 
 Backs `hc-calendars-indic::kalam`. No calendar identifier is registered:
-these are periods of a day, not calendars. The two conventions are named
-by their functions, `kalam::by_sunrise` and `kalam::by_fixed_day`
-([policy.md](../policy.md) §5); no string identifier is registered for
-either.
+these are periods of a day, not calendars. The two conventions are two
+functions, `kalam::by_sunrise` and `kalam::by_fixed_day`, and two entries
+of the table `KalamConvention::ALL` under the identifiers
+`rahu-kalam-sunrise` and `rahu-kalam-fixed`, by which the boundary's
+`hc_kalam` selects one ([policy.md](../policy.md) §5).
 
 ## What it is
 
@@ -68,6 +69,9 @@ the same Wednesday's Rāhu kālam is 06:00 + 4 × 1.5 h = 12:00 to 13:30.
 - `by_fixed_day`: the period on a day as two readings
   of the local clock. The zone is the caller's, since the rule is stated in
   clock time.
+- `KalamConvention`, the table of the two conventions, `SUNRISE` and
+  `FIXED_DAY`, with the identifiers `rahu-kalam-sunrise` and
+  `rahu-kalam-fixed`, the clock each span is read on, and the function.
 
 Not carried: the other methods Drik Panchang names (*Month Rahu*, *Khanda
 Rahu*, *Vaar Rahu*, *Muhurta Rahu*), whose rules were not read, and the

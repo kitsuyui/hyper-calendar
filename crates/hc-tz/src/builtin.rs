@@ -19,8 +19,10 @@
 //! has actually made.
 //!
 //! The strings are the POSIX footers of the corresponding files in the IANA
-//! time zone database, release 2026c, which is where the tzdata maintainers
-//! put their own answer to "what are this zone's current rules". The test
+//! time zone database, release 2026d (unchanged since 2026c: 2026d changes
+//! the future of `America/Inuvik` alone, by its `NEWS` entry), which is
+//! where the tzdata maintainers put their own answer to "what are this
+//! zone's current rules". The test
 //! `the_system_database_agrees_with_the_builtin_table_on_current_rules` in
 //! [`crate::system`] re-checks them against the local database whenever one
 //! is present, so a stale entry shows up as a failing test rather than as a

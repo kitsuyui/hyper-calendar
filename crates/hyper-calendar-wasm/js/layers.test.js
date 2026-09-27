@@ -155,7 +155,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     orthodoxFastSeasons: () => hc.orthodoxFastSeasons("orthodox-fasts", 2025),
     prayerTimes: () => hc.prayerTimes("mwl", 739_617, 21.4, 39.8),
     prayerMethods: () => hc.prayerMethods(),
-    zmanim: () => hc.zmanim("gra", 739_252, 40.7, -74.0),
+    zmanim: () => hc.zmanim("zmanim-gra", 739_252, 40.7, -74.0),
     edoTime: () => hc.edoTime(1_584_649_727, 35.0, 135.7),
     unixFromEdoTime: () => hc.unixFromEdoTime(737_504, 0, 0, 35.0, 135.7),
   };

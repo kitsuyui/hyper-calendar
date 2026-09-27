@@ -340,8 +340,10 @@ under [`docs/systems/`](docs/systems/README.md) first.
 
 **Scope** (§13). The library computes and formats. It has no user
 interface, no I/O beyond reading a TZif file, no clock, no network access
-and no state that outlives a call: `hc_core::memo` caches pure results
-within one, in thread-local storage emptied when the call's scope ends.
+and one piece of state that outlives a call: the zones a caller hands the
+WebAssembly module or the C library through `hc_zone_load`, kept by name
+until the process ends. `hc_core::memo` caches pure results within one
+call, in thread-local storage emptied when the call's scope ends.
 
 ## Documents
 

@@ -69,9 +69,9 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_format_iso_date` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
 | a weekday, 1 through 7 | `hc_weekday` | every `fixed` |
 | a fixed day | `hc_fixed_from_unix` | every `unix_seconds`; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
-| a fixed day | `hc_fixed_from_unix_in_zone` | every `unix_seconds`; the day is at most one from the day `hc_fixed_from_unix` gives |
+| a fixed day | `hc_fixed_from_unix_in_zone` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of the years −9 999 994 to 9 999 994 by UTC, which a zone's rules answer for: they are read on the Gregorian years ±9 999 999, and an instant's answer reads the years around its own, which beyond these would give standard time whatever the rules say; the day is at most one from the day `hc_fixed_from_unix` gives; any other is `HC_ERR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN` |
 | seconds | `hc_unix_from_fixed` | `fixed` −104 165 947 503 through 106 751 991 886 463: an earlier day's midnight would be at or below `HC_ERR_FLOOR` seconds, and a later one's would overflow an `i64`; either is `HC_ERR_OUT_OF_RANGE` |
-| seconds | `hc_unix_from_fixed_in_zone` | the `fixed` days whose start by the zone's clock is above `HC_ERR_FLOOR` and fits an `i64`: by UTC, `hc_unix_from_fixed`'s days, and a zone's offset moves each end by at most a day (Tokyo's last day is 106 751 991 886 464); any other is `HC_ERR_OUT_OF_RANGE` |
+| seconds | `hc_unix_from_fixed_in_zone` | `fixed` −3 652 423 173 through 3 652 422 808, the days of the same years as `hc_fixed_from_unix_in_zone`'s; any other is `HC_ERR_OUT_OF_RANGE` |
 | seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, 1961 through the end of the announced leap-second table, and `HC_ERR_NO_DATA` outside it |
 | a byte length | `hc_tai_from_unix` | every `unix_seconds` up to 9 223 372 036 854 775 770, `i64::MAX − 37`: TAI runs ahead of UTC, so a later one has no TAI second an `i64` holds and is `HC_ERR_OUT_OF_RANGE`; under `strict`, 1961 through the end of the announced table, else `HC_ERR_NO_DATA` |
 | a byte length | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
@@ -132,7 +132,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other year is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
-| a byte length | `hc_zone_offset` | every `unix_seconds`; a name neither the loaded zones nor the built-in table knows is `HC_ERR_UNKNOWN` |
+| a byte length | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN` |
 | a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
@@ -306,7 +306,6 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `fixedFromUnixInZone(unixSeconds, zone)`, `unixFromFixedInZone(fixed, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `zones(locale)`, `zoneLocation(zone, locale)` | `hc_zones`, `hc_zone_location` | `ZoneLocation[]`; a `ZoneLocation` |
-| `zoneOffset(zone, unixSeconds)` | `hc_zone_offset` | a `ZoneOffset` |
 | `zoneOffset(zone, unixSeconds)` | `hc_zone_offset` | a `ZoneOffset` |
 | `skyAt(unixSeconds)` | `hc_sky_at` | a `Sky` |
 | `solarTermsBetween(fromUnix, toUnix)`, `moonPhasesBetween(fromUnix, toUnix)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
@@ -1125,8 +1124,10 @@ cannot disagree:
   set in the frames announcing the minutes after the hour before a change
   through the change itself — for 29 March 2026, the frames for 00:01 to
   01:00 UTC.
-- For WWVB, `zone:America/Denver`, the station's, or any zone that keeps
-  the United States' rule: SP 250-67 sets bit 57 "At 0000 UTC on the day
+- For WWVB, any zone that keeps the United States' rule:
+  `zone:America/New_York`, which the built-in table carries, or
+  `zone:America/Denver`, the station's, once its TZif file is given to
+  `hc_zone_load`, since the built-in table does not carry it. SP 250-67 sets bit 57 "At 0000 UTC on the day
   ST changes to DST" and bit 58 "at 0000 UTC the following day", and
   clears them the same way when DST ends (`nist-sp250-67`), so bit 57 is
   whether the rules keep summer time at 24:00 UTC ending the minute's UTC
@@ -1577,7 +1578,8 @@ prints, and the karaṇa Balava, ending within two minutes after its 14:55.
 elevation, buffer, capacity)`, in the same feature, writes the three
 inauspicious periods a pañcāṅga marks on a day, each an eighth of the day
 that the weekday picks, from `hc-calendars-indic`'s `kalam`. What the day
-is differs, and each is its own name: `rahu-kalam-sunrise`, the daylight
+is differs, and each is its own name, an identifier of
+`KalamConvention::ALL`: `rahu-kalam-sunrise`, the daylight
 from sunrise to sunset at the place, as Drik Panchang computes it, and
 `rahu-kalam-fixed`, 06:00 to 18:00 of the local clock, as South Indian
 temple tables print it; in any case, and anything else is
@@ -2248,7 +2250,8 @@ the same two conversions by a zone's wall clock:
 
 `zone` is an IANA name in any case. **The module carries seventeen zones
 and only their current rules**: `hc-tz`'s built-in table, which is the
-POSIX `TZ` footer of each zone's file in the IANA database, release 2026c.
+POSIX `TZ` footer of each zone's file in the IANA database, release 2026d
+(unchanged since 2026c).
 A POSIX string states one pair of rules for every year, so the table is
 right about today and wrong about the past — it does not know the United
 States moved its transitions in 2007 or that Brazil stopped changing its
@@ -2267,8 +2270,12 @@ tzif_ptr, tzif_len)` once; the two conversions, `hc_zone_offset` and
 with every transition the file records, and a loaded zone outranks a
 built-in one of the same name. The bytes are copied into the module and
 parsed on each call. Bytes that are not TZif are `HC_ERR_MALFORMED` and
-nothing is kept; a name nobody knows is `HC_ERR_UNKNOWN`; an instant whose
-local day leaves the range of a day number is `HC_ERR_OUT_OF_RANGE`.
+nothing is kept; a name nobody knows is `HC_ERR_UNKNOWN`. Every zone
+answers for the instants and the days of the years −9 999 994 to
+9 999 994 by UTC, five inside the Gregorian years ±9 999 999 its rules are
+read on, since an answer reads the rules of the years around its own;
+beyond them a rule would give standard time whatever it says, and the
+three exports refuse with `HC_ERR_OUT_OF_RANGE` ("Ranges" above).
 
 ```js
 const tzif = await (await fetch("tzdata/Europe/Rome")).arrayBuffer();
@@ -2681,11 +2688,12 @@ method:
 
 `hc_zmanim(reckoning_ptr, reckoning_len, fixed, latitude, longitude,
 elevation, buffer, capacity)` writes the Jewish times of a local day in
-temporal hours by one of three reckonings of the day, each its own name:
-`gra`, the Vilna Gaon's, sunrise to sunset; `mga-72-minutes`, the Magen
-Avraham's from a dawn 72 minutes before sunrise to a nightfall 72 minutes
-after sunset; and `mga-16-1-degrees`, his with both at 16.1°; in any case,
-and anything else is `HC_ERR_UNKNOWN`. It writes nine lines: the five
+temporal hours by one of three reckonings of the day, each its own name,
+the identifier of `hc-astro`'s `ZMANIM_RECKONINGS`: `zmanim-gra`, the
+Vilna Gaon's, sunrise to sunset; `mga-72-minutes`, the Magen Avraham's
+from a dawn 72 minutes before sunrise to a nightfall 72 minutes after
+sunset; and `mga-16-1-degrees`, his with both at 16.1°; in any case, and
+anything else is `HC_ERR_UNKNOWN`. It writes nine lines: the five
 times in temporal hours, `sof-zman-shma`, `sof-zman-tfila`,
 `mincha-gedola`, `mincha-ketana` and `plag-hamincha`, then the dawns and
 nightfalls no reckoning changes, `dawn-16-1-degrees`, `dawn-72-minutes`,

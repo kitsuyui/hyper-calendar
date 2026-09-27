@@ -19,7 +19,9 @@ A C boundary has three ways to go wrong, and each is closed deliberately.
 - **Nothing is allocated that the caller cannot free.** There are no returned
   pointers and no opaque handles. Every function writes into storage the
   caller owns: integers through out-parameters, text into a caller-supplied
-  buffer. There is no global state to tear down.
+  buffer. The one piece of global state is the table of zones
+  `hc_zone_load` fills, which the library owns and keeps for the life of
+  the process; there is nothing to tear down.
 - **Truncation is reported, not silent.** A text function that does not fit
   returns `HC_ERROR_BUFFER_TOO_SMALL` and writes the required length,
   including the terminating NUL, so the
@@ -80,9 +82,9 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | seconds | `hc_tai_minus_utc` | every `unix_seconds`; under `strict`, as for `hc_tai_from_unix` |
 | 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE` |
 | a POSIX timestamp | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
-| a fixed day | `hc_fixed_from_unix_in_zone` | every `unix_seconds` |
-| a line | `hc_zone_offset` | every `unix_seconds`; a name neither the loaded zones nor the built-in table knows is `HC_ERROR_UNKNOWN` |
-| a POSIX timestamp | `hc_unix_from_fixed_in_zone` | the `fixed` days whose start by the zone's clock fits an `int64_t`: by UTC, the fixed days −106 751 990 448 137 through 106 751 991 886 463, and a zone's offset moves each end by at most a day; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a fixed day | `hc_fixed_from_unix_in_zone` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of the years −9 999 994 to 9 999 994 by UTC, which a zone's rules answer for: they are read on the Gregorian years ±9 999 999, and an instant's answer reads the years around its own, which beyond these would give standard time whatever the rules say; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERROR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERROR_UNKNOWN` |
+| a POSIX timestamp | `hc_unix_from_fixed_in_zone` | `fixed` −3 652 423 173 through 3 652 422 808, the days of the same years as `hc_fixed_from_unix_in_zone`'s; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a TAI64 label | `hc_tai64_encode` | `tai_seconds` −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903, the seconds of the labels below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
 | TAI seconds | `hc_tai64_decode` | every label below 2⁶³, the seconds −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903; a reserved label is `HC_ERROR_OUT_OF_RANGE` |
 | a week, a broadcast week and a time of week | `hc_gnss_week` | `tai_seconds` from the field's week zero to the end of week 4 294 967 295 (for GPS, 315 964 819 through 2 597 596 536 585 618), the attoseconds 0 through 999 999 999 999 999 999; an earlier instant is `HC_ERROR_NO_DATA` and a later one `HC_ERROR_OVERFLOW` |
@@ -159,18 +161,19 @@ because a WebAssembly function has one return value and a trap would tear
 down the instance. So every sentinel sits at or below `HC_ERR_FLOOR`,
 −9 × 10¹⁵, and an export that answers in seconds must refuse a result that
 would reach it, or a binding would read the answer as an error. Its
-`hc_unix_from_fixed` and `hc_unix_from_fixed_in_zone` therefore refuse every
-day before fixed day −104 165 947 503, about 285 million years back, with
-`HC_ERR_OUT_OF_RANGE` ([its README](../hyper-calendar-wasm/README.md#ranges)).
+`hc_unix_from_fixed` therefore refuses every day before fixed day
+−104 165 947 503, about 285 million years back, with `HC_ERR_OUT_OF_RANGE`
+([its README](../hyper-calendar-wasm/README.md#ranges)).
 
 This library returns the error as an `HcStatus` and the answer through an
 out-parameter, so no value of the answer is reserved, and a floor would
-refuse days for no reason a C caller has. `hc_unix_from_fixed` and
-`hc_unix_from_fixed_in_zone` here answer down to where an `int64_t` runs
-out: fixed day −106 751 990 448 137, about 292 billion years back, by UTC
-for the zone variant. For the days from there to fixed day
-−104 165 947 504, this library writes a timestamp and the WebAssembly
-module refuses.
+refuse days for no reason a C caller has. `hc_unix_from_fixed` here
+answers down to where an `int64_t` runs out: fixed day
+−106 751 990 448 137, about 292 billion years back. For the days from
+there to fixed day −104 165 947 504, this library writes a timestamp and
+the WebAssembly module refuses. `hc_unix_from_fixed_in_zone` answers in
+both for the years a zone's rules answer for, −9 999 994 to 9 999 994,
+far inside either bound, and the two agree.
 
 The price of each choice is the other's benefit. Here, every call costs a
 status check and a pointer, and the whole `int64_t` range is usable; there,
@@ -201,8 +204,7 @@ a 32-bit GNSS week, cannot hold do not all say so with the same code:
     32-bit week does not hold.
 - `HC_ERROR_OUT_OF_RANGE` comes from the entry point's own bound on the
   day, the timestamp or the week:
-  - `hc_unix_from_fixed` and `hc_unix_from_fixed_in_zone` for a day whose
-    start overflows;
+  - `hc_unix_from_fixed` for a day whose start overflows;
   - `hc_day_has_leap_second` for the part-days at the ends of the range;
   - `hc_gnss_resolve_week` for an answer past week 4 294 967 295.
 
@@ -477,7 +479,9 @@ string of `0`, `1` and `M`, and `hc_radio_encode(code, unix_seconds, leap,
 summer, zone_change, dut1_tenths, dst_next, buffer, capacity, written)`
 writes one; a null `summer` is the empty string `jjy` takes. In a library
 built with `tz` too, a `summer` of `zone:` and a zone's name,
-`zone:Europe/Berlin` or `zone:America/Denver`, reads the state — and
+`zone:Europe/Berlin` or `zone:America/New_York` (or another zone once
+`hc_zone_load` has its TZif file, as `America/Denver` needs), reads the
+state — and
 DCF77's A1, in place of `zone_change` — from the rules
 `hc_fixed_from_unix_in_zone` reads for that name, as the WebAssembly
 module's README explains under "Radio time codes"; without `tz` it is
@@ -804,7 +808,10 @@ rules only, listed in the WebAssembly module's README; for any other zone,
 or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
 TZif file once and the conversions answer for that name from then on, a
 loaded zone outranking a built-in one. Bytes that are not TZif are
-`HC_ERROR_MALFORMED`.
+`HC_ERROR_MALFORMED`. Every zone answers for the instants and the days of
+the years −9 999 994 to 9 999 994 by UTC, and beyond them the three
+entry points refuse with `HC_ERROR_OUT_OF_RANGE` ("Errors and ranges"
+above).
 
 `hc_zone_offset(zone, unix_seconds, buffer, capacity, written)` writes the
 offset the zone keeps at the instant from those same rules, in the six
@@ -877,7 +884,7 @@ buffer, capacity, written)` writes the module's eight lines of the Islamic
 prayer times of a day by a method `hc_prayer_methods(buffer, capacity,
 written)` lists with its parameters; `hc_zmanim(reckoning, fixed,
 latitude, longitude, elevation, buffer, capacity, written)` its nine lines
-of the Jewish times in temporal hours by `gra`, `mga-72-minutes` or
+of the Jewish times in temporal hours by `zmanim-gra`, `mga-72-minutes` or
 `mga-16-1-degrees`, with the dawns and nightfalls; and
 `hc_edo_time(unix_seconds, latitude, longitude, elevation, buffer,
 capacity, written)` and `hc_unix_from_edo_time(fixed, hour, fraction,

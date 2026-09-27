@@ -365,7 +365,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `PA` | Panama | 15 | yes | stated | 2026-09-22 |
 | `PE` | Peru | 16 | none | stated | 2026-09-26 |
 | `PG` | Papua New Guinea | 9 | yes | stated | 2026-09-23 |
-| `PH` | Philippines | 44 | none | stated | 2026-09-27 |
+| `PH` | Philippines | 45 | none | stated | 2026-09-28 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-26 |
 | `PL` | Poland | 15 | none | stated | 2026-09-26 |
 | `PS` | Palestine | 39 | none | stated | 2026-09-23 |

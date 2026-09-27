@@ -435,12 +435,16 @@ mod tests {
             // "Meatfare week. ... Fast. Fish Allowed"
             (2025, 2, 19, None, true),
             // "Cheesefare week (Maslenitsa) - fast-free. Tone two.
-            // Maslenitsa. Meat is excluded", a Monday, a Wednesday and a
-            // Friday; Cheesefare Sunday, "The Sunday of Forgiveness. Tone
-            // three. Cheesefare Sunday. Meat is excluded"
+            // Maslenitsa. Meat is excluded", Monday to Saturday (the
+            // Tuesday, Thursday and Saturday retrieved 2026-09-28);
+            // Cheesefare Sunday, "The Sunday of Forgiveness. Tone three.
+            // Cheesefare Sunday. Meat is excluded"
             (2025, 2, 24, Some("meatfast"), false),
+            (2025, 2, 25, Some("meatfast"), false),
             (2025, 2, 26, Some("meatfast"), false),
+            (2025, 2, 27, Some("meatfast"), false),
             (2025, 2, 28, Some("meatfast"), false),
+            (2025, 3, 1, Some("meatfast"), false),
             (2025, 3, 2, Some("meatfast"), false),
             // "Beginning of the Great Lent"
             (2025, 3, 3, Some("great-lent"), true),

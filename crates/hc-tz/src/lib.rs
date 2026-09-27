@@ -5,7 +5,7 @@
 //!
 //! * [`FixedTimeZone`] and [`Utc`] — one offset, for all time.
 //! * [`PosixTimeZone`] — a POSIX `TZ` string such as `EST5EDT,M3.2.0,M11.1.0`,
-//!   evaluated for any year.
+//!   evaluated for the years −9 999 994 to 9 999 994 (`posix::rules_answer_at`).
 //! * [`TzifTimeZone`] — the binary IANA format, RFC 8536, which records every
 //!   transition a zone has actually made.
 //!

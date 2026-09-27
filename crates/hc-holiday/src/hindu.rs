@@ -19,8 +19,9 @@
 //! `tests/traditions.rs` is the check. The Smārta reckoning of Janmāṣṭamī
 //! is the one listed; the Vaiṣṇava one, a day later when the two differ,
 //! is not carried as a rule. The central government's holiday lists keep
-//! it — "Janmashtami (Vaishnav)", on 16 August 2025 and 25 August 2027,
-//! a day after [`JANMASHTAMI`] — and the India table carries those lists'
+//! it — on 16 August 2025 and 25 August 2027, a day after [`JANMASHTAMI`],
+//! which the 2027 list names "Janmashtami (Vaishnav)" and the 2025 list
+//! "Janmashtami" — and the India table carries those lists'
 //! days for the years read, 2025 to 2027 (`dopt-holidays-2025-2027`). No
 //! source read states the Vaiṣṇava rule, and two parting years of one
 //! list are no anchor to fit one to, so it is not registered as a

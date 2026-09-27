@@ -2461,7 +2461,7 @@ describe("the hours of prayer and the Edo hours", () => {
   test("New York's zmanim are Hebcal's", () => {
     // Hebcal, 1 January 2025: the latest Shema by the GRA at 9:40 EST.
     const day = hc.gregorianToFixed(2025, 1, 1);
-    const zmanim = hc.zmanim("gra", day, 40.71427, -74.00597);
+    const zmanim = hc.zmanim("zmanim-gra", day, 40.71427, -74.00597);
     assert.equal(zmanim.length, 9);
     assert.deepEqual([zmanim[0].id, zmanim[0].englishName, zmanim[0].hours], ["sof-zman-shma", "Latest Shema", 3]);
     const minutes = (/** @type {number} */ (zmanim[0].instant) - hc.unixFromFixed(day)) / 60 - 300;

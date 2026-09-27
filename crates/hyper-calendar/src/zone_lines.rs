@@ -15,6 +15,7 @@
 use alloc::string::String;
 use core::fmt::Write;
 
+use hc_calendar::{Rd, gregorian};
 use hc_core::UnixTime;
 use hc_i18n::exemplar_cities::{self, ExemplarCity};
 use hc_tz::TimeZone;
@@ -154,6 +155,44 @@ impl ZoneRules {
 /// How many columns [`zone_offset`] writes.
 pub const ZONE_OFFSET_COLUMNS: usize = 6;
 
+/// An instant a zone's rules answer for: the seconds of the years
+/// [`hc_tz::posix::FIRST_RULE_YEAR`] to [`hc_tz::posix::LAST_RULE_YEAR`],
+/// −9 999 994 to 9 999 994 by UTC, whichever rules answer for the name.
+///
+/// A POSIX rule outside them answers standard time with no transition,
+/// whatever it says, and a loaded file reads its footer's rule after its
+/// last transition, so every zone is held to the same years and the range
+/// does not depend on the name.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an instant outside them.
+pub const fn instant_in_zone_range(unix_seconds: i64) -> Answer<UnixTime> {
+    let instant = UnixTime::from_seconds(unix_seconds);
+    if hc_tz::posix::rules_answer_at(instant) {
+        Ok(instant)
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
+/// A fixed day whose start a zone's rules answer for: a day of the years
+/// [`hc_tz::posix::FIRST_RULE_YEAR`] to [`hc_tz::posix::LAST_RULE_YEAR`],
+/// as for [`instant_in_zone_range`].
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside them.
+pub const fn day_in_zone_range(fixed: i64) -> Answer<Rd> {
+    let first = gregorian::new_year(hc_tz::posix::FIRST_RULE_YEAR).0;
+    let after = gregorian::new_year(hc_tz::posix::LAST_RULE_YEAR + 1).0;
+    if fixed >= first && fixed < after {
+        Ok(Rd(fixed))
+    } else {
+        Err(Refusal::OutOfRange)
+    }
+}
+
 /// An abbreviation as the zone's rules give it, or empty where they give
 /// a number: tzdata writes `-03` or `+0545` "if there is no common English
 /// abbreviation" (Theory and pragmatics of the tz code and data, "Time
@@ -179,9 +218,13 @@ fn named_abbreviation(abbreviation: Option<&str>) -> &str {
 /// so `unix_seconds` plus column 1, floored to the day, is the day
 /// `hc_fixed_from_unix_in_zone` gives. The next transition is
 /// [`TimeZone::next_transition`]'s.
-#[must_use]
-pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> String {
-    let instant = UnixTime::from_seconds(unix_seconds);
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an instant outside
+/// [`instant_in_zone_range`]'s years.
+pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> Answer<String> {
+    let instant = instant_in_zone_range(unix_seconds)?;
     let mut out = String::new();
     let _ = write!(
         out,
@@ -204,7 +247,7 @@ pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> 
     out.push('\t');
     out.push_str(rules.name());
     out.push('\n');
-    out
+    Ok(out)
 }
 
 #[cfg(test)]
@@ -218,27 +261,58 @@ mod tests {
         let berlin = builtin::zone("Europe/Berlin").expect("Berlin");
         // 2026-03-29 01:00 UTC, when CET becomes CEST.
         assert_eq!(
-            zone_offset(&berlin, ZoneRules::Builtin, 1_774_745_999),
+            zone_offset(&berlin, ZoneRules::Builtin, 1_774_745_999).expect("in range"),
             "3600\t0\tCET\t1774746000\t7200\tbuiltin\n"
         );
         assert_eq!(
-            zone_offset(&berlin, ZoneRules::Builtin, 1_774_746_000),
+            zone_offset(&berlin, ZoneRules::Builtin, 1_774_746_000).expect("in range"),
             "7200\t1\tCEST\t1792890000\t3600\tbuiltin\n"
         );
         let denver =
             PosixTimeZone::parse("America/Denver", "MST7MDT,M3.2.0,M11.1.0").expect("Denver");
         assert_eq!(
-            zone_offset(&denver, ZoneRules::Loaded, 1_772_960_400),
+            zone_offset(&denver, ZoneRules::Loaded, 1_772_960_400).expect("in range"),
             "-21600\t1\tMDT\t1793520000\t-25200\tloaded\n"
         );
         let kathmandu = builtin::zone("Asia/Kathmandu").expect("Kathmandu");
         assert_eq!(
-            zone_offset(&kathmandu, ZoneRules::Builtin, 0),
+            zone_offset(&kathmandu, ZoneRules::Builtin, 0).expect("in range"),
             "20700\t0\t\t\t\tbuiltin\n"
         );
-        let line = zone_offset(&builtin::zone("UTC").expect("UTC"), ZoneRules::Builtin, 0);
+        let line = zone_offset(&builtin::zone("UTC").expect("UTC"), ZoneRules::Builtin, 0)
+            .expect("in range");
         assert_eq!(cells(&line).len(), ZONE_OFFSET_COLUMNS);
         assert_eq!(line, "0\t0\tUTC\t\t\tbuiltin\n");
+    }
+
+    /// The first and the last second the rules answer for, and a second
+    /// beyond each, which is refused rather than answered in standard time.
+    #[test]
+    fn a_zones_offset_is_refused_beyond_the_years_its_rules_answer_for() {
+        use hc_tz::posix::{FIRST_RULE_SECOND, LAST_RULE_SECOND};
+        let sydney = builtin::zone("Australia/Sydney").expect("Sydney");
+        for unix in [FIRST_RULE_SECOND, LAST_RULE_SECOND] {
+            let line = zone_offset(&sydney, ZoneRules::Builtin, unix).expect("in range");
+            assert!(line.starts_with("39600\t1\tAEDT\t"), "{line}");
+        }
+        for unix in [
+            FIRST_RULE_SECOND - 1,
+            LAST_RULE_SECOND + 1,
+            i64::MIN,
+            i64::MAX,
+        ] {
+            assert_eq!(
+                zone_offset(&sydney, ZoneRules::Builtin, unix),
+                Err(Refusal::OutOfRange)
+            );
+            assert_eq!(instant_in_zone_range(unix), Err(Refusal::OutOfRange));
+        }
+        let first = gregorian::new_year(hc_tz::posix::FIRST_RULE_YEAR).0;
+        let last = gregorian::new_year(hc_tz::posix::LAST_RULE_YEAR + 1).0 - 1;
+        assert_eq!(day_in_zone_range(first), Ok(Rd(first)));
+        assert_eq!(day_in_zone_range(last), Ok(Rd(last)));
+        assert_eq!(day_in_zone_range(first - 1), Err(Refusal::OutOfRange));
+        assert_eq!(day_in_zone_range(last + 1), Err(Refusal::OutOfRange));
     }
 
     fn cells(line: &str) -> Vec<&str> {

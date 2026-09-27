@@ -138,9 +138,10 @@ export interface RadioEncodeOptions {
   /**
    * DCF77's zone, required for `dcf77`; WWVB's summer-time state, required for
    * both WWVB codes; absent for `jjy`. Or `zone:` and a zone's name,
-   * `zone:Europe/Berlin` or `zone:America/Denver`, in a module built with `tz`
-   * too, to read the state, and DCF77's A1, from the rules `fixedFromUnixInZone`
-   * reads for that name.
+   * `zone:Europe/Berlin` or `zone:America/New_York`, in a module built with
+   * `tz` too, to read the state, and DCF77's A1, from the rules
+   * `fixedFromUnixInZone` reads for that name; a zone the built-in table lacks,
+   * such as `America/Denver`, once `loadZone` has its TZif file.
    */
   summer?: RadioSummer | `zone:${string}`;
   /** DCF77's A1; ignored when `summer` names a zone. */
@@ -309,7 +310,7 @@ export interface PrayerMethod {
 }
 
 /** A reckoning of the Jewish day `hc_zmanim` reads. */
-export type ZmanimReckoning = "gra" | "mga-72-minutes" | "mga-16-1-degrees";
+export type ZmanimReckoning = "zmanim-gra" | "mga-72-minutes" | "mga-16-1-degrees";
 
 /** A time `hc_zmanim` writes. */
 export type ZmanId =
@@ -1828,11 +1829,16 @@ export class HyperCalendar {
   /** `hc_geologic_intervals`; the rank by name or by number from 0. */
   geologicIntervals(rank: GeologicRank | number, locale?: string): DeepTimeRow[];
 
-  /** `hc_fixed_from_unix_in_zone`; a zone nobody knows is `unknown`. */
+  /**
+   * `hc_fixed_from_unix_in_zone`: the instants of the years −9 999 994 to
+   * 9 999 994 by UTC, the ones a zone's rules answer for; outside them,
+   * `out-of-range`, and a zone nobody knows is `unknown`.
+   */
   fixedFromUnixInZone(unixSeconds: number | bigint, zone: string): number;
   /**
-   * `hc_unix_from_fixed_in_zone`: `unixFromFixed`'s range, each end moved
-   * by at most a day by the zone's offset; outside it, `out-of-range`.
+   * `hc_unix_from_fixed_in_zone`: the days of the years −9 999 994 to
+   * 9 999 994, fixed days −3 652 423 173 to 3 652 422 808; outside them,
+   * `out-of-range`.
    */
   unixFromFixedInZone(fixed: number | bigint, zone: string): number;
   /** `hc_zone_load`; bytes that are not TZif are `malformed`. */
@@ -1841,7 +1847,10 @@ export class HyperCalendar {
   zones(locale?: string): ZoneLocation[];
   /** `hc_zone_location`: a zone or a link; a name that places nothing, such as `UTC`, is `unknown`. */
   zoneLocation(zone: string, locale?: string): ZoneLocation;
-  /** `hc_zone_offset`: from the rules `fixedFromUnixInZone` reads; a zone nobody knows is `unknown`. */
+  /**
+   * `hc_zone_offset`: from the rules `fixedFromUnixInZone` reads, for its
+   * instants; outside them, `out-of-range`, and a zone nobody knows is `unknown`.
+   */
   zoneOffset(zone: string, unixSeconds: number | bigint): ZoneOffset;
 
   /** `hc_sky_at`; an instant outside −1000 through 3000 is `out-of-range`. */
