@@ -34,6 +34,8 @@ assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 | `lucky_direction` | 恵方, the year's direction by its stem: 甲, 庚, 丙 or 壬, with the branches and the azimuth |
 | `nine_periods` | 三元九運, the twenty-year periods from 上元一運 in 1864, turning at 立春 |
 | `days_without_son` | 손 없는 날, the Korean lunar days ending in 9 and 0, on `dangi` |
+| `vietnamese_days` | Ngày Tam Nương (3, 7, 13, 18, 22, 27) and ngày Nguyệt Kỵ (5, 14, 23) of the lunar month, on `vietnamese` |
+| `first_month_counts` | 几龙治水, 几牛耕田, 几日得辛 and 几人分饼: the day of 正月 of the first 辰, 丑, 辛 and 丙 day, on `chinese` |
 
 **暦注下段:** 大明日, 天恩日, 母倉日, 月徳日, 神吉日, 鬼宿日, 天赦日, 大禍日,
 狼藉日, 滅門日, 帰忌日, 血忌日, 重日, 復日, 往亡日, 凶会日, 十死日, 受死日 (黒日),

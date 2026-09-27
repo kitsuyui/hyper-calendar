@@ -49,7 +49,7 @@ file does not:
 | `minguo` | Minguo, with 民國前 | `roc` |
 | `juche` | Juche | `juche` |
 | `holocene` | Human Era | `holocene` |
-| `year_counts` | Year counts over the Julian or Gregorian year, as one table: the Spanish era with the years each kingdom dropped it, the Masonic *Anno Lucis*, *Inventionis*, *Depositionis* and *Ordinis*, After the Development of Agriculture, and the Capitoline count *ab urbe condita*, one year behind Varro's ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada`, `roman-auc-capitoline` |
+| `year_counts` | Year counts over the Julian, Gregorian or Solar Hijri year, as one table: the Spanish era with the years each kingdom dropped it, the Masonic *Anno Lucis*, *Inventionis*, *Depositionis* and *Ordinis*, After the Development of Agriculture, the Capitoline count *ab urbe condita*, one year behind Varro's, the Cheondogyo 포덕 year, and the Iranian imperial year of 1976–1978 on the 33-year rule ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`, `cheondogyo-podeok`, `persian-imperial` |
 | `era_fascista` | The Era Fascista: the Anno from 29 October, Anno I in 1922 to XXIII in 1945 | `era-fascista` |
 | `byzantine` | Byzantine *Anno Mundi*, September new year | `byzantine` |
 | `roman` | *Ab urbe condita*, Varro's count; the Capitoline count is in `year_counts` | `roman-auc` |
@@ -80,6 +80,7 @@ file does not:
 | `week_and_month` | Palmen's Week and Month: the ISO weeks in months of four or five, weeks Alpha to Epsilon | `week-and-month` |
 | `liberalia` | Meyer's Liberalia Triday, solar: quarters of 30 or 31 three-day tridays from 17 March 1904 ([docs/systems/liberalia-triday.md](../../docs/systems/liberalia-triday.md)); the lunar form is in `hc-calendars-lunar` | `liberalia-triday-solar` |
 | `tabot` | Tabot (Moore, rules by Meyer): from 2 November 1930, twelve months on fixed Gregorian dates, Ras of 31 days in the Gregorian leap February | `tabot` |
+| `taiping` | The Taiping Heavenly Calendar, 1852–1869: every year 366 days, odd months of 31 and even of 30, and the day names the calendar printed a day ahead ([docs/systems/taiping-tianli.md](../../docs/systems/taiping-tianli.md)) | `taiping-tianli` |
 | `terran` | The Terran Computational Calendar: elapsed time since 0TC over TAI, the minimonth of leap days and IERS leap seconds, year bases — two functions over `hc_core::Instant<Tai>`, not a calendar of days ([docs/systems/terran-computational.md](../../docs/systems/terran-computational.md)) | *(not registered)* |
 
 `register_all(&mut CalendarRegistry)`, behind the `alloc` feature, inserts every

@@ -32,11 +32,12 @@
 //! | Family | Calendars |
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
-//! | Year counts over the Julian or Gregorian year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*), [`era_fascista`], [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
+//! | Year counts over the Julian, Gregorian or Solar Hijri year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*, the Cheondogyo 포덕 year, the Iranian imperial year), [`era_fascista`], [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
 //! | Other namings of a Gregorian day | [`iso8601`], [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`philip_era`], [`bostran`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`french_republican_richards`], [`zoroastrian`], [`mandaean`], [`jalali_tusi`] |
 //! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
 //! | Cycle-based | [`persian`], [`persian_33`], [`bahai`], [`bahai_kept`] |
+//! | Fixed-length years | [`taiping`] (the Taiping Heavenly Calendar, 366 days every year) |
 //! | Proposed reforms | [`symmetry454`], [`symmetry010`] (both on [`symmetry`]), [`hermetic_leap_week`] (on the same leap-week engine), [`world_calendar`], [`international_fixed`], [`positivist`], [`hanke_henry`], [`week_and_month`], [`dee`] (the Dee–Cecil and Dee calendars), [`liberalia`], [`tabot`] |
 //! | An instant system over TAI | [`terran`] (the Terran Computational Calendar, not a day calendar and not registered) |
 //! | A pure week cycle | [`qumran`] |
@@ -162,6 +163,7 @@ pub mod symmetry010;
 pub mod symmetry454;
 pub mod syro_macedonian;
 pub mod tabot;
+pub mod taiping;
 pub mod terran;
 pub mod week_and_month;
 pub mod world_calendar;
@@ -225,6 +227,7 @@ pub use symmetry010::{Symmetry010Calendar, Symmetry010Date};
 pub use symmetry454::{Symmetry454Calendar, Symmetry454Date};
 pub use syro_macedonian::{JulianEra, JulianEraCalendar, JulianEraDate};
 pub use tabot::{TabotCalendar, TabotDate};
+pub use taiping::{TaipingCalendar, TaipingDate};
 pub use week_and_month::{WeekAndMonthCalendar, WeekAndMonthDate};
 pub use world_calendar::{WorldCalendar, WorldCalendarDate};
 pub use yazidi::{YazidiCalendar, YazidiDate};
@@ -336,6 +339,7 @@ mod registration {
         registry.insert(Box::new(DynAdapter::new(crate::WeekAndMonthCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::LiberaliaSolarCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::TabotCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::TaipingCalendar)));
 
         for adoption in ADOPTIONS {
             if let Ok(reform) = ReformCalendar::new(adoption) {
@@ -351,7 +355,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 87;
+const CALENDAR_COUNT: usize = 90;
 
 #[cfg(test)]
 mod tests {
@@ -457,6 +461,8 @@ mod tests {
                 YearCountCalendar(year_counts::ANNO_ORDINIS),
                 YearCountCalendar(year_counts::ADA),
                 YearCountCalendar(year_counts::CAPITOLINE_AUC),
+                YearCountCalendar(year_counts::PODEOK),
+                YearCountCalendar(year_counts::IMPERIAL_IRANIAN),
                 PhilipEraCalendar,
                 BostranCalendar,
                 AsianCalendar,
@@ -473,6 +479,7 @@ mod tests {
                 WeekAndMonthCalendar,
                 LiberaliaSolarCalendar,
                 TabotCalendar,
+                TaipingCalendar,
                 ReformCalendar::default(),
             );
             assert!(checked > 0, "no calendar covered rd {rd}");
@@ -512,6 +519,7 @@ mod tests {
             IsoCalendar.meta(),
             YearCountCalendar(year_counts::SPANISH_ERA).meta(),
             YearCountCalendar(year_counts::ANNO_ORDINIS).meta(),
+            YearCountCalendar(year_counts::IMPERIAL_IRANIAN).meta(),
             PhilipEraCalendar.meta(),
             BostranCalendar.meta(),
             AsianCalendar.meta(),
@@ -526,6 +534,7 @@ mod tests {
             WeekAndMonthCalendar.meta(),
             LiberaliaSolarCalendar.meta(),
             TabotCalendar.meta(),
+            TaipingCalendar.meta(),
         ] {
             let first = meta.earliest.expect("bounded below");
             let last = meta.latest.expect("bounded above");
@@ -594,7 +603,8 @@ mod tests {
         // Every calendar answers; the ones that refuse the day are the Rumi
         // calendar, kept only from 1840 to 1925, the Swedish calendar of 1700
         // to 1712, the Soviet weeks of 1929 to 1940, the Era Fascista's
-        // Anni of 1922 to 1945 and the 295 years of Ṭūsī's Jalālī table.
+        // Anni of 1922 to 1945, the 295 years of Ṭūsī's Jalālī table and the
+        // Taiping calendar of 1852 to 1870.
         assert_eq!(rendered.len(), registry.len());
         let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
         let supporting = registry.metas().filter(|meta| meta.supports(rd)).count();
@@ -611,7 +621,8 @@ mod tests {
                 "swedish-1700",
                 "soviet-week",
                 "era-fascista",
-                "jalali-tusi"
+                "jalali-tusi",
+                "taiping-tianli"
             ]
         );
 

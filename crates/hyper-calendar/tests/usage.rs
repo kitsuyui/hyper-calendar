@@ -41,8 +41,9 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// never the day — the Bostran era, the Era Fascista, the Olympiads and
 /// the Spanish era, whose modules carry the years — since a period of use
 /// is a pair of days and a year is not one; and the Julian eras of Syria
-/// and Palestine, the Arsacid era and the calendar of the province of Asia,
-/// which the sources date by the century or by single documents.
+/// and Palestine, the Arsacid era, the calendar of the province of Asia and
+/// the four counts of the years of the Yellow Emperor, which the sources
+/// date by the century or by single documents.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -119,6 +120,10 @@ const UNRECORDED: &[&str] = &[
     "bostran-era",
     "era-fascista",
     "gaza-era",
+    "huangdi-era",
+    "huangdi-era-jiangsu",
+    "huangdi-era-liu-shipei",
+    "huangdi-era-tongmenghui",
     "olympiad",
     "seleucid-syrian",
     "spanish-era",
@@ -215,6 +220,7 @@ fn the_calendars_in_use_today_say_so() {
         "lao",
         "maya-tzolkin",
         "icelandic",
+        "cheondogyo-podeok",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         assert_eq!(calendar.standing(today), Standing::InUse, "{id}");
@@ -240,6 +246,8 @@ fn the_historical_calendars_are_bounded() {
         "japanese-imperial",
         "juche",
         "soviet-week",
+        "persian-imperial",
+        "taiping-tianli",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         let usage = calendar.usage();

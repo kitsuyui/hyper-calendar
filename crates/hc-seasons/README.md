@@ -48,6 +48,8 @@ assert_eq!(
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
 | `rokuyo` | 六曜: 先勝 友引 先負 仏滅 大安 赤口 |
 | `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
+| `meiyu` | 入梅 and 出梅 of the Chinese almanac: the first 丙 day (South China) or 壬 day (Central China) from 芒种, and the first 未 day from 小暑 |
+| `hizir_kasim` | Rûz-ı Hızır and Rûz-ı Kasım, the Turkish folk year's summer and winter halves from 6 May and 8 November, and *erbain*, *hamsin* and the three *cemre* on the Kasım count |
 | `cold_food` | 寒食, the Cold Food Day, one convention per reckoning: 105 days after the winter solstice, the eve of 清明 after 1645, and Korea's 한식 |
 | `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |

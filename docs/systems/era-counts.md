@@ -2,8 +2,11 @@
 
 Backs the identifiers `spanish-era`, `masonic-anno-lucis`,
 `masonic-anno-inventionis`, `masonic-anno-depositionis`,
-`masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`, `philip-era`,
-`bostran-era` and `era-fascista` in `hc-calendars-solar`.
+`masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`,
+`cheondogyo-podeok`, `persian-imperial`, `philip-era`, `bostran-era` and
+`era-fascista` in `hc-calendars-solar`, and `huangdi-era`,
+`huangdi-era-tongmenghui`, `huangdi-era-liu-shipei` and
+`huangdi-era-jiangsu` in `hc-calendars-regional`.
 
 ## What it is
 
@@ -40,6 +43,25 @@ the question of who wrote it when.
   anno octingentesimo primo", in Olympiad 207, and Rome was founded in the
   first year of Olympiad 7 [solinus-mommsen1895]. Varro's count is
   `roman-auc`.
+* **The Cheondogyo year, 포덕 (布德)**, counts from 1860, the year Choe
+  Je-u received his revelation at Yongdamjeong, and is still used within
+  the religion [wikipedia-ko-cheondogyo]. The church's newspaper dates its
+  articles by it: "포덕 167년(2026) 7월 19일" [chondogyo-sinmun-2026].
+* **The Iranian imperial year**: "On March 10, 1976 (20 Esfand 1354), Shah
+  Mohammad Reza Pahlavi introduced the 'Imperial calendar' that measured
+  the first year from 559 BC", the beginning of Cyrus's reign; it was
+  "reversed … on September 2, 1978 (11 Shahrivar 2537, which became
+  11 Shahrivar 1357)" [wikipedia-iranian-calendars].
+* **The years of the Yellow Emperor, 黃帝紀元**, were the count of the
+  reformers and revolutionaries of the last Qing decade, against the reign
+  and against 康有為's 孔子紀年. They did not agree on the epoch: 嚴復's
+  1898 is 4386, 劉師培's 1903 is 4614, 《江蘇》's 1903 is 4394, the
+  同盟會's 1908 is 4605, and 宋教仁's 1905 is 4603, which the
+  revolutionaries adopted and Sun Yat-sen's telegram used
+  [zhang-xinbin-huangdi]. The Hubei Military Government dated its gazette
+  by 宋教仁's count after the Wuchang rising [wikipedia-zh-huangdi-era],
+  and Sun ended the count: "以黄帝纪年四千六百九年十一月十三日为中华民国元旦"
+  [zhang-xinbin-huangdi].
 * **The Era of Philip**: "in the *Handy Tables* Ptolemy uses as epoch the
   era of Philip (noon, −323 November 12) and not the era of Nabonassar
   (noon, −746 February 26), as he did in the *Almagest*" [chabas2013].
@@ -65,6 +87,32 @@ Gregorian year plus 4000, 530, 1000, −1118 and 8000: 2010 is "6010 A.L.",
 of the sources for the Masonic years or ADA names a new year other than
 the common one, so the count changes on 1 January; a rite that keeps
 another would be its own identifier.
+
+**The 포덕 year.** The Gregorian year less 1859, from 1 January. The
+newspaper's Sunday sermons of "포덕 166년 12월 28일" and "포덕 167년 1월
+11일" are Sundays on the Gregorian calendar, 28 December 2025 and
+11 January 2026, so the months are the Gregorian ones and the year turns
+between them [chondogyo-sinmun-2026]. *Worked example*: 19 July 2026 is
+2026 − 1859 = 포덕 167.
+
+**The imperial year.** The Solar Hijri year plus 1180 on the Solar Hijri
+days: the source's table pairs 1355 with 2535, 21 March 1976 to 20 March
+1977 [wikipedia-iranian-calendars]. Its sentence "the year changed from
+1355 to 2535" cannot be taken literally, since on 10 March 1976 the year
+was 1354: that day, 20 Esfand 1354, became 20 Esfand 2534. *Worked
+example*: 2 September 1978 is 11 Shahrivar 1357, so 11 Shahrivar
+1357 + 1180 = 2537, the date the source gives for the reversal.
+
+**The years of the Yellow Emperor.** Each count is the Chinese lunisolar
+year renamed, turning at 正月初一: the Wikipedia table gives each count's
+year for 1903–1911 "農曆新年前" and "農曆新年後" [wikipedia-zh-huangdi-era],
+and the dated documents are dated in lunar months. *Worked example*: the
+Chinese year that began on 30 January 1911 is 4548 in the continuous count
+from 2637 BC, and 4609 by 宋教仁's, 61 more; its eleventh month began on
+20 December 1911, so 4609年11月13日 is 1 January 1912, the Republic's first
+day. 劉師培 signed his essay "黄帝降生四千六百一十四年闰五月十七日"
+[zhang-xinbin-huangdi]; 1903 is 4614 by his count, and the Chinese year of
+1903 has a leap fifth month, so his date exists.
 
 **The Capitoline count.** The Julian year plus 752, from 1 January. *Worked
 example*: Gallus and Veranius were consuls in AD 49 [wikipedia-fasti],
@@ -113,12 +161,24 @@ an Anno and its 1st to 28th close the one before.
 | `masonic-anno-ordinis` | Gregorian | − 1118 | A.O. 1, 1119, on | Attested, undated |
 | `ada` | Gregorian | + 8000 | ADA 1 on | Unrecorded: a proposal |
 | `roman-auc-capitoline` | Julian | + 752, from 1 January | AUC 1 (752 BC) on | Unrecorded, as `roman-auc` is |
+| `cheondogyo-podeok` | Gregorian | − 1859, from 1 January | 포덕 1 (1860) on | Attested, undated |
+| `persian-imperial` | Solar Hijri, 33-year rule | + 1180, from 1 Farvardin | 1181 (A.P. 1) to the base's end | 10 March 1976 to 1 September 1978 |
+| `huangdi-era` | Chinese lunisolar | + 61 on the continuous count, from 正月初一 | 1645 to 2150, `chinese`'s | Unrecorded: dated by documents |
+| `huangdi-era-tongmenghui` | Chinese lunisolar | + 60 | 1645 to 2150 | Unrecorded |
+| `huangdi-era-liu-shipei` | Chinese lunisolar | + 74 | 1645 to 2150 | Unrecorded |
+| `huangdi-era-jiangsu` | Chinese lunisolar | − 146 | 1645 to 2150 | Unrecorded |
 | `philip-era` | Egyptian wandering year | − 424 from Nabonassar | Philip 1 (324 BC) to `egyptian`'s end | Unrecorded: no span in the sources |
 | `bostran-era` | Julian days, Macedonian months | from 22 March 106 | Years 1–9 999 | Unrecorded as days; attested 107–735 |
 | `era-fascista` | Gregorian | from 29 October 1922 | Anno I–XXIII, to 28 October 1945 | Unrecorded as days; written Anno IV–XXI, XXIII in Salò |
 
-The seven pure offsets are one table, `year_counts::ALL`, read by one
-calendar type; the Holocene, Minguo and Juche years share their arithmetic
+The nine pure offsets on a solar year are one table, `year_counts::ALL`,
+read by one calendar type, whose `Base` is the Julian, the Gregorian or
+the 33-year Solar Hijri calendar, the last being the equinox calendar in
+force from A.P. 1178 to 1634 [heydari-malayeri2004] and so over the whole
+period of the imperial year. The imperial year begins where its base
+does, at 1181, since the 33-year calendar has no year before A.P. 1. The
+four counts of the Yellow Emperor are one table, `huangdi::ALL`, over
+`chinese`, and convert what it converts; the Holocene, Minguo and Juche years share their arithmetic
 through `common::offset_to_fixed` and keep their own modules for their own
 date types. Every count starts at its year 1 and refuses the years before
 it rather than write a number nobody wrote.
@@ -132,7 +192,13 @@ with `Abandonment::abandoned_by`, which answers `None` for a year the
 source leaves open; `era_fascista::FIRST_WRITTEN_ANNO`,
 `LAST_ANNO_IN_ITALY` and `LAST_ANNO`.
 
-**Not carried.** The Spanish era's year beginning at 25 December once the
+**Not carried.** 嚴復's "开国自黄帝至今四千三百八十六年", a count of years
+elapsed in one article and not a dating [zhang-xinbin-huangdi]; the
+Wikipedia table's rows from 2997 BC and 2999 BC, which cite nothing, and
+its epochs in years BC for 劉師培's and 《江蘇》's counts, which contradict
+its own year numbers and 張新斌's, which are followed
+[wikipedia-zh-huangdi-era]; 孔子紀年, year 1 in 551 BC, whose year boundary
+no source read gives [wikipedia-zh-kongzi-era]. The Spanish era's year beginning at 25 December once the
 Anno Domini came in [wikipedia-spanish-era], which would be its own
 identifier and has no dated source; Ptolemy's day from noon, which the
 Egyptian calendars here do not model either; the other provincial eras of
@@ -149,6 +215,12 @@ Every conversion is exact integer arithmetic over its base calendar.
 | The Lodge's examples for 2010, and AL 6026 for 2026 | `the_masonic_years_are_the_lodges_worked_examples` | 5 of 5 |
 | 1978 is 9978 ADA and 2026 is 10026 | `ada_is_the_common_year_plus_eight_thousand` | Holds |
 | Solinus's consuls of AD 49 in AUC 801; one year less than `roman-auc` everywhere | `solinus_puts_the_consuls_of_ad_49_in_auc_801` | Holds |
+| 포덕 166 on 28 December 2025, 167 on 11 January and 19 July 2026, all Sundays | `the_podeok_year_turns_on_the_first_of_january` | 3 of 3 |
+| 2535 from 21 March 1976; 20 Esfand 2534 on 10 March 1976; 11 Shahrivar 2537 on 2 September 1978 | `the_imperial_year_is_the_solar_hijri_year_plus_1180` | Holds |
+| 4609年11月13日 is 1 January 1912, 4609年9月10日 31 October 1911, 1905 is 4603 | `sun_yat_sen_made_4609_11_13_the_first_day_of_the_republic` | Holds |
+| 劉師培's 4614年閏五月十七日 exists and is in 1903 | `liu_shipei_signed_in_the_leap_fifth_month_of_4614` | Holds |
+| 《江蘇》's 1903 as 4394, the 同盟會's 1908 as 4605, the table's 1903 as 4600 and 4601 | `the_other_counts_are_the_sources_years` | Holds |
+| Each count is `chinese` renamed on a sample of days and on every new year and its eve, 1645–2150 | `every_count_is_the_chinese_calendar_renamed` | Holds |
 | The Era of Philip begins on 12 November 324 BC, Nabonassar 425 | `the_epoch_is_the_twelfth_of_november_324_bc` | Holds |
 | … keeps every Egyptian month and day; Censorinus's day is 1 Thoth 463 | `a_day_keeps_its_egyptian_month_and_day_and_loses_424_years` | Holds |
 | 1 Xanthikos is 22 March in every Bostran year | `every_new_year_is_the_twenty_second_of_march` | 9 999 of 9 999 |
@@ -186,10 +258,18 @@ those changes; none was read.
 | [wikipedia-fasti] | The Capitoline count, AD 49 as the consulship of Gallus and Veranius, AUC 802 by Varro | Yes, 2026-09-27; Greswell 1854, which it cites, was not read |
 | [solinus-mommsen1895] | Solinus 1.29–30: AUC 801, Olympiad 207, the foundation in Olympiad 7.1 | Yes, 2026-09-27 |
 | [wikipedia-era-fascista] | The epoch, the years of use, the coin and the sundial | Yes, 2026-09-26; the decrees were not read |
+| [wikipedia-ko-cheondogyo] | 1860 as 포덕 원년, its use within the religion | Yes, 2026-09-28 |
+| [chondogyo-sinmun-2026] | Articles dated 포덕 166년 12월 28일, 포덕 167년 1월 11일 and 포덕 167년(2026) 7월 19일 | Yes, 2026-09-28; the site's header reads "포덕166년 2026.09.28", against its own articles, and is not followed |
+| [wikipedia-iranian-calendars] | The imperial year: its epoch, introduction and reversal, and the table of 1355–1357 | Yes, 2026-09-28; Gheissari 2010 and Molavi 2002, which it cites, were not read |
+| [heydari-malayeri2004] | The 33-year rule's agreement with the equinox from A.P. 1178 to 1634 | Yes, as `persian_33` cites it |
+| [zhang-xinbin-huangdi] | The five epochs, 劉師培's dated signature, Sun Yat-sen's telegram | Yes, 2026-09-28, in the Internet Archive's copy of 20 January 2023 |
+| [wikipedia-zh-huangdi-era] | The Hubei gazette of 4609年9月10日, the table of 1903–1911 and its lunar-new-year boundary | Yes, 2026-09-28 |
+| [wikipedia-zh-kongzi-era] | 孔子紀年's epoch, 551 BC | Yes, 2026-09-28 |
 
 ## Code
 
 `crates/hc-calendars-solar/src/year_counts.rs`,
+`crates/hc-calendars-regional/src/huangdi.rs`,
 `crates/hc-calendars-solar/src/philip_era.rs`,
 `crates/hc-calendars-solar/src/bostran.rs` and
 `crates/hc-calendars-solar/src/era_fascista.rs`; the anchors are the tests

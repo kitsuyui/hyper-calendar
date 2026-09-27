@@ -164,7 +164,7 @@ pub struct ThirtyThreeYearPersianCalendar;
 
 /// Twelve named months and the seven-day week, as [`crate::persian`]
 /// declares them.
-const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+pub const SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
     hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
 ];

@@ -16,13 +16,13 @@ as supported is tested and anchored to a published reference.
 ## What it covers
 
 The counts below were read from [`docs/supported.md`](docs/supported.md)
-and from `hc_i18n::data::LOCALES` on 2026-09-27. `supported.md` is
+and from `hc_i18n::data::LOCALES` on 2026-09-28. `supported.md` is
 generated from the code, and a test fails when it drifts, so it is the
 authority when a count here is out of date.
 
 | What | Count | Where it is listed |
 | --- | ---: | --- |
-| Calendars in the registry, each with its own identifier | 197 | [supported.md § Calendars](docs/supported.md#calendars) |
+| Calendars in the registry, each with its own identifier | 204 | [supported.md § Calendars](docs/supported.md#calendars) |
 | National holiday tables: 190 of the 193 UN member states, plus Hong Kong, Macau, Palestine, Taiwan and the Holy See | 195 | [supported.md § Holidays by country](docs/supported.md#holidays-by-country) |
 | Religious and cultural tradition tables | 60 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
 | International observance tables (the 236 UN international days) | 1 | [supported.md § International observances](docs/supported.md#international-observances) |
@@ -160,7 +160,7 @@ assert_eq!((fields.era, fields.year), (Some("reiwa"), 8));
 // Every registered calendar at once. A calendar that was not in use on the
 // day returns an error for it rather than being left out.
 let described = calendars.describe_day(day);
-assert_eq!(described.len(), 197);
+assert_eq!(described.len(), 204);
 # Ok::<(), hyper_calendar::CalendarError>(())
 ```
 

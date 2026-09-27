@@ -25,6 +25,8 @@
 //! | [`lucky_direction`] | 恵方 | the year's heavenly stem |
 //! | [`nine_periods`] | 三元九運 | twenty-year periods from 1864, turning at 立春 |
 //! | [`days_without_son`] | 손 없는 날 | the Korean lunar day, `dangi` |
+//! | [`vietnamese_days`] | Tam Nương, Nguyệt Kỵ | the Vietnamese lunar day, `vietnamese` |
+//! | [`mod@first_month_counts`] | 几龙治水, 几牛耕田, 几日得辛, 几人分饼 | the day signs of the Chinese 正月 |
 //! | [`rokuyo`] | 六曜 | the lunisolar date — re-exported from `hc-seasons` |
 //! | [`mod@day_notes`] | the whole page | all of the above at once |
 //!
@@ -98,6 +100,7 @@
 pub mod context;
 pub mod day_notes;
 pub mod days_without_son;
+pub mod first_month_counts;
 pub mod lower_register;
 pub mod lucky_direction;
 pub mod mansions;
@@ -108,10 +111,12 @@ pub mod rules;
 pub mod selected_days;
 pub mod seven_luminaries;
 pub mod twelve_directs;
+pub mod vietnamese_days;
 
 pub use context::{DayContext, SolarMonth, solar_month_of};
 pub use day_notes::{Combination, CombinationSet, DayNotes, day_notes};
 pub use days_without_son::is_day_without_son;
+pub use first_month_counts::{FirstMonthCounts, first_month_counts};
 pub use lower_register::{LowerRegister, LowerRegisterSet, lower_register};
 pub use lucky_direction::{LuckyDirection, lucky_direction_of_year};
 pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of};
@@ -129,3 +134,4 @@ pub use hc_calendar::Rd;
 pub use hc_calendars_lunar;
 pub use hc_seasons;
 pub use hc_seasons::Meridian;
+pub use vietnamese_days::{is_nguyet_ky, is_tam_nuong};
