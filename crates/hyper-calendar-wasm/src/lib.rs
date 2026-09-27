@@ -1675,7 +1675,9 @@ mod calendar_days {
     /// through 2221 on the true sky, Chaitra śukla 1 in March 1700 to the
     /// eve of the one in March 2300, and outside Kali Yuga 1 to 10 000 on
     /// the Siddhānta's. A place off the globe is
-    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// `HC_ERR_OUT_OF_RANGE`. On the true sky, a day whose sunrise at the
+    /// place, or a search that reads it, the model does not find is
+    /// `HC_ERR_NO_DATA`. A null `buffer` returns the length the text
     /// needs.
     ///
     /// # Safety
@@ -3009,7 +3011,7 @@ mod zones {
     /// countries it overlaps, `;`-separated, the country of the location
     /// first; the one country `zone.tab` lists the zone under, `JP` for
     /// `Asia/Tokyo` where column 4 is `JP;AU`, empty for a zone it has no
-    /// row for, which no zone of release 2026c is; the table's comment,
+    /// row for, which no zone of release 2026d is; the table's comment,
     /// which tells apart a country's zones and is empty where the country
     /// has one; the zone's CLDR 48 exemplar city in the locale; and the tag
     /// of the data that named the city. Each
@@ -4433,6 +4435,28 @@ mod tests {
                 unsafe { hc_naming_period_on("maya".as_ptr(), 4, day, "tk".as_ptr(), 2, null, 0) },
                 HC_ERR_UNKNOWN
             );
+            let nothing = core::ptr::null();
+            assert_eq!(
+                unsafe { hc_naming_period_on(nothing, 7, day, "tk".as_ptr(), 2, null, 0) },
+                HC_ERR_NULL_POINTER
+            );
+            assert_eq!(
+                unsafe { hc_naming_period_on("gregory".as_ptr(), 7, day, nothing, 2, null, 0) },
+                HC_ERR_NULL_POINTER
+            );
+            let not_utf8 = [0xff_u8];
+            assert_eq!(
+                unsafe {
+                    hc_naming_period_on(not_utf8.as_ptr(), 1, day, "tk".as_ptr(), 2, null, 0)
+                },
+                HC_ERR_NOT_UTF8
+            );
+            assert_eq!(
+                unsafe {
+                    hc_naming_period_on("gregory".as_ptr(), 7, day, not_utf8.as_ptr(), 1, null, 0)
+                },
+                HC_ERR_NOT_UTF8
+            );
         }
 
         /// 2026-09-21, described for a locale.
@@ -5642,7 +5666,7 @@ mod tests {
             })
         }
 
-        /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre
+        /// `zone1970.tab` 2026d: `JP,AU +353916+1394441 Asia/Tokyo Eyre
         /// Bird Observatory`, 128 356″ and 503 081″.
         #[test]
         fn every_zone_has_a_line_and_tokyo_is_its_row() {
@@ -5992,10 +6016,14 @@ mod tests {
             let text =
                 read_lines(|buffer, capacity| unsafe { hc_decan_at(instant, buffer, capacity) });
             assert!(text.starts_with("7\tLibra\t1\tmoon\tMoon\t0.0"), "{text}");
-            assert_eq!(
-                unsafe { hc_decan_at(i64::MIN, core::ptr::null_mut(), 0) },
-                HC_ERR_OUT_OF_RANGE
-            );
+            let decan =
+                |unix_seconds: i64| unsafe { hc_decan_at(unix_seconds, core::ptr::null_mut(), 0) };
+            assert_eq!(decan(i64::MIN), HC_ERR_OUT_OF_RANGE);
+            // The years −1000 to 3000, and a second either side.
+            assert!(decan(-93_724_128_000) > 0);
+            assert!(decan(32_535_215_999) > 0);
+            assert_eq!(decan(-93_724_128_001), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(decan(32_535_216_000), HC_ERR_OUT_OF_RANGE);
         }
 
         /// The POSIX timestamp of a UTC date and time.
@@ -6431,7 +6459,7 @@ mod tests {
         use super::super::*;
         use super::read_lines;
 
-        /// `TTBIPM.2025`'s 27.6740 µs on MJD 58 479, 2018-12-22, when TAI −
+        /// `TTBIPM.2025`'s 27.6740 µs on MJD 58 479, 2018-12-27, when TAI −
         /// UTC was 37 s, and 27.6745 µs ten days later.
         #[test]
         fn tt_bipm_reads_the_callers_series() {
@@ -6857,6 +6885,9 @@ mod tests {
             assert_eq!(hc_hebrew_sabbatical_cycle_year(5_789), 7);
             assert_eq!(hc_hebrew_sabbatical_cycle_year(5_786), 4);
             assert_eq!(hc_hebrew_sabbatical_cycle_year(0), HC_ERR_OUT_OF_RANGE);
+            assert_eq!(hc_hebrew_sabbatical_cycle_year(10_000), HC_ERR_OUT_OF_RANGE);
+            assert!((1..=7).contains(&hc_hebrew_sabbatical_cycle_year(1)));
+            assert!((1..=7).contains(&hc_hebrew_sabbatical_cycle_year(9_999)));
         }
 
         /// The first day carried, 23 September AD 4, is Sebaste of Kaisar,
@@ -7115,6 +7146,12 @@ mod tests {
             assert_eq!(text, "outside\t\t\t\t\t\t\t\t\t\n");
             let null = core::ptr::null_mut();
             assert_eq!(unsafe { hc_holy_year_on(0, null, 0) }, HC_ERR_NO_DATA);
+            // The documented edges: from the opening of 1975's jubilee to the
+            // day the table's sources were checked.
+            assert!(unsafe { hc_holy_year_on(720_981, null, 0) } > 0);
+            assert!(unsafe { hc_holy_year_on(739_886, null, 0) } > 0);
+            assert_eq!(unsafe { hc_holy_year_on(720_980, null, 0) }, HC_ERR_NO_DATA);
+            assert_eq!(unsafe { hc_holy_year_on(739_887, null, 0) }, HC_ERR_NO_DATA);
         }
 
         /// St George's Day on Monday 28 April 2025 (Full Fact), a Festival;
@@ -7137,6 +7174,15 @@ mod tests {
                 unsafe { hc_common_worship_on(i64::MAX, null, 0) },
                 HC_ERR_OUT_OF_RANGE
             );
+            // The documented edges, −3 652 424 999 through 3 652 424 634.
+            assert!(unsafe { hc_common_worship_on(-3_652_424_999, null, 0) } >= 0);
+            assert!(unsafe { hc_common_worship_on(3_652_424_634, null, 0) } >= 0);
+            for day in [-3_652_425_000, 3_652_424_635] {
+                assert_eq!(
+                    unsafe { hc_common_worship_on(day, null, 0) },
+                    HC_ERR_OUT_OF_RANGE
+                );
+            }
             let in_2011 = hc_gregorian_to_fixed(2011, 5, 1);
             let text =
                 read_lines(|buffer, capacity| unsafe { hc_holidays_on(in_2011, buffer, capacity) });
@@ -7278,6 +7324,26 @@ mod tests {
                 unsafe { hc_hjd_utc(2_433_282.5, alpha, delta, 1, null, 0) },
                 HC_ERR_NO_DATA
             );
+            // A date outside the years −1000 to 3000 (JD 1 000 000 is in
+            // −1975, JD 2 900 000 in 3227) and a declination past either
+            // pole, on both scales.
+            for (date, delta) in [
+                (1_000_000.0, delta),
+                (2_900_000.0, delta),
+                (date, 90.000_1),
+                (date, -90.000_1),
+            ] {
+                assert_eq!(
+                    unsafe { hc_hjd_tt(date, alpha, delta, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{date} {delta}"
+                );
+                assert_eq!(
+                    unsafe { hc_hjd_utc(date, alpha, delta, 0, null, 0) },
+                    HC_ERR_OUT_OF_RANGE,
+                    "{date} {delta}"
+                );
+            }
         }
 
         fn number(call: impl Fn(*mut u8, usize) -> i64) -> f64 {

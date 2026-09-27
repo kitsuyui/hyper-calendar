@@ -950,7 +950,7 @@ export interface ZoneLocation {
    * The one ISO 3166-1 code `zone.tab` lists the name under, for a label: `JP`
    * for `Asia/Tokyo`, whose `countries` are `JP` and `AU`; `UA` for
    * `Europe/Simferopol`, whose `countries` are `RU` and `UA`. `null` for a name
-   * `zone.tab` has no row for, which no name of release 2026c is.
+   * `zone.tab` has no row for, which no name of release 2026d is.
    */
   country: string | null;
   /** The table's comment, which tells a country's zones apart; `null` where the country has one. */
@@ -1341,9 +1341,13 @@ export class HyperCalendar {
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
   panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: string): PanchangaLimb[];
   /**
-   * `hc_hindu_lunar_date`: `sky` an ayanamsa name or `surya-siddhanta`; on
-   * the true sky a day without a sunrise at the place is `no-data`. The month
-   * and the eras are named in `locale`, `und` unless given, which is English.
+   * `hc_hindu_lunar_date`: `sky` an ayanamsa name or `surya-siddhanta`. A
+   * place beyond 65° of latitude, or off the globe, is `out-of-range` on
+   * either sky, as is a day outside Śaka 1622 through 2221 on the true sky
+   * and outside Kali Yuga 1 to 10 000 on the Siddhānta's; on the true sky a
+   * day whose sunrise at the place the model does not find is `no-data`. The
+   * month and the eras are named in `locale`, `und` unless given, which is
+   * English.
    */
   hinduLunarDate(
     sky: string,

@@ -25,8 +25,9 @@
 //! answers for it and returns `None` for the other two, whose reading
 //! [`DotnetDateTime::wall_clock`] gives in the POSIX shape for a caller that
 //! knows the zone. The Kind is carried beside the ticks, not inside them:
-//! `ToBinary` packs both into one `Int64`, and Microsoft's page for it does
-//! not state the layout, so that form is not read or written here.
+//! `ToBinary` packs both into one `Int64`, and Microsoft's page for it says
+//! the `Kind` is "concatenated to" the ticks but gives no bit positions, so
+//! that form is not read or written here.
 //!
 //! Like POSIX time, the count cannot name 23:59:60: a leap second is
 //! refused rather than folded into the next second.

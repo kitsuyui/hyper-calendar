@@ -109,7 +109,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERR_NO_DATA` |
 | a byte length | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
 | a byte length | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_surya_siddhanta_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_sky_at`, `hc_decan_at`, `hc_solar_time`, `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -123,9 +123,9 @@ out of range is `out-of-range`, never an unrecognised number.
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other year is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
-| a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
+| a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
-| a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
+| a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
 | a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
@@ -354,7 +354,7 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 3.14 MiB (3,292,635 bytes) for the `full` layer of 2026-09-27,
+and it is 3.30 MiB (3,457,287 bytes) for the `full` layer of 2026-09-27,
 base64 being four thirds of the module.
 
 ### tzdata beside the module
@@ -428,12 +428,13 @@ layer on purpose comes with a refreshed table.
 `hc_alloc`, `hc_free` and `hc_version` are in every build.
 
 The profile's `opt-level = "z"` is a measured choice, not a default. On
-2026-09-27, with the same rustc, the `full` layer built at `z` was
-1,927,503 bytes and answered `hc_holidays_on` for
-2026-01-01 in 125 ms under Node 22; at `s`, 1,942,023 bytes and 121 ms; at
-`3`, 2,093,074 bytes and 119 ms. The 5 % of time `z` costs against `3`
-buys 8 % of the size, and a page loads the module far more often than it
-asks the costliest question, so `z` stays.
+2026-09-27, with rustc 1.98.1, the `full` layer built at `z` was
+2,482,812 bytes and answered `hc_holidays_on` for 2026-01-01 in 131.5 ms
+under Node 22, the shortest of seven calls after a first; at `s`,
+2,501,667 bytes and 128.8 ms; at `3`, 2,686,515 bytes and 116.9 ms. The
+12 % of time `z` costs against `3` buys 8 % of the size, and a page loads
+the module far more often than it asks the costliest question, so `z`
+stays.
 
 ## What is exported
 
@@ -910,8 +911,9 @@ Julian from it, and the first cell says which it was.
 
 TT(BIPM) is the BIPM's better realisation of Terrestrial Time, recomputed
 each year from the primary and secondary frequency standards and published
-as a table of TT(BIPMxx) − TAI − 32.184 s every ten days; today the
-difference is about 27.67 µs. The realisations are revised, so the module
+as a table of TT(BIPMxx) − TAI − 32.184 s every ten days; in TT(BIPM25)
+the difference is 27.67 µs at MJD 60 669, 25 December 2024. The
+realisations are revised, so the module
 carries none of them: the caller supplies the one it trusts, and the
 library interpolates it linearly in TAI and never extrapolates past its
 ends. `hc_tt_bipm(series_ptr, series_len, tai_seconds, attoseconds,
@@ -933,7 +935,7 @@ line:
 | 4 | reading seconds | the TT(BIPMxx) reading of the instant, whole seconds from 1970-01-01 00:00:00 of that scale |
 | 5 | reading attoseconds | and the attoseconds |
 
-`TTBIPM.2025` gives 27.6740 µs for MJD 58 479, 22 December 2018; at 0 h
+`TTBIPM.2025` gives 27.6740 µs for MJD 58 479, 27 December 2018; at 0 h
 UTC that day, TAI second 1 545 868 837, the offset is 0.000027674 s and
 TT(BIPM25) − TAI is 32.184 027 674 s.
 
@@ -1136,13 +1138,13 @@ shortest of seven calls; a dash is a figure not taken:
 
 | Asked for | Export | Natively | Under Node 22 |
 | --- | --- | ---: | ---: |
-| 2026-09-27, `ja` | `hc_describe_day` | 6.0 ms | 13.9 ms |
-| 2026-01-01, `ja` | `hc_describe_day` | — | 13.2 ms |
-| 1900-06-15, `ja` | `hc_describe_day` | — | 14.3 ms |
-| 2026-09-27, `ja` | `hc_calendars` | 8.9 ms | 22.9 ms |
-| 2026-09-27, `native` | `hc_calendars` | — | 23.0 ms |
-| `ja` | `hc_calendar_list` | 0.31 ms | 0.62 ms |
-| `native` | `hc_calendar_list` | — | 0.83 ms |
+| 2026-09-27, `ja` | `hc_describe_day` | 8.8 ms | 19.9 ms |
+| 2026-01-01, `ja` | `hc_describe_day` | — | 18.3 ms |
+| 1900-06-15, `ja` | `hc_describe_day` | — | 19.6 ms |
+| 2026-09-27, `ja` | `hc_calendars` | 18.8 ms | 42.5 ms |
+| 2026-09-27, `native` | `hc_calendars` | — | 42.8 ms |
+| `ja` | `hc_calendar_list` | 0.35 ms | 0.71 ms |
+| `native` | `hc_calendar_list` | — | 0.92 ms |
 
 `hc_calendars` costs more than `hc_describe_day` because it converts a
 day inside each calendar's range and asks whether its year is leap, a
@@ -1321,8 +1323,9 @@ calendar's own languages, Sanskrit then Hindi. The names are the ones
 A month begins at the first sunrise after a conjunction, so a place
 must see the Sun rise on every day of the year: one beyond 65° of
 latitude is `HC_ERR_OUT_OF_RANGE` on either sky. On the true sky a day
-outside the Śaka years 1622 through 2221 is `HC_ERR_OUT_OF_RANGE` too.
-The Siddhānta's reckoning is arithmetic and answers for Kali Yuga 1 to
+outside the Śaka years 1622 through 2221 is `HC_ERR_OUT_OF_RANGE` too,
+and a day whose sunrise at the place, or a search that reads it, the
+model does not find is `HC_ERR_NO_DATA`. The Siddhānta's reckoning is arithmetic and answers for Kali Yuga 1 to
 10 000. 30 March
 2025 is Chaitra śukla 1 of Śaka 1947 on the true sky at the Central
 Station and on the Siddhānta's at Ujjain. 27 September 2026 at Tokyo is
@@ -1858,7 +1861,7 @@ York for `America/New_York` — and not the reader's; it is a default, for a
 page to use until the reader names a place.
 
 The tables are `hc-tz`'s copy of `zone1970.tab`, `zone.tab`, `backward`
-and `backzone` from release 2026c, unmodified; `docs/systems/zone-locations.md` explains
+and `backzone` from release 2026d, unmodified; `docs/systems/zone-locations.md` explains
 the lookup with examples. The table writes each coordinate in degrees,
 minutes and seconds, `+353916+1394441`; columns 2 and 3 are the table's
 whole arcseconds written in decimal degrees to six places, by integer
@@ -1894,7 +1897,7 @@ Eyre Bird Observatory keeps Tokyo's clock); `zone.tab` lists
 every zone but `Europe/Simferopol`, which `zone1970.tab` gives as `RU;UA`
 and `zone.tab` as `UA`. A link `zone.tab` places has its own country,
 `NO` for `Europe/Oslo`. The cell is empty for a name `zone.tab` has no row
-for; release 2026c has a row for every name that answers, but `zone.tab`
+for; release 2026d has a row for every name that answers, but `zone.tab`
 is deprecated, and a later release may drop rows.
 
 Column 7 is the zone's exemplar city from CLDR 48, the city by which CLDR
@@ -2259,11 +2262,11 @@ TAI through the leap-second table with the last published offset held
 into the future, and UTC taken as TAI before 1961, as `hc-planetary` reads
 a landing. Every longitude is planetocentric and east-positive, in
 degrees, and wraps. The layer answers for the instants within 100 Julian
-years of J2000.0, 1900-01-01T12:00 to 2100-01-01T12:00 TT, the span over
-which Allison and McEwen state their series good to about 0.008° of `Ls`,
-three seconds of true solar time; outside it the series extrapolates with
-no secular change of Mars's orbit, and an instant there is
-`HC_ERR_OUT_OF_RANGE`, never a number. The body table states no span of
+years of J2000.0, 1899-12-31T12:00 TT (J1900.0) to 2100-01-01T12:00 TT,
+the span over which Allison and McEwen state their series good to about
+0.008° of `Ls`, three seconds of true solar time; outside it the series
+extrapolates with no secular change of Mars's orbit, and an instant there
+is `HC_ERR_OUT_OF_RANGE`, never a number. The body table states no span of
 its own, and its README calls a century of propagation already more than
 its fact-sheet figures bear, so the same span holds for it.
 

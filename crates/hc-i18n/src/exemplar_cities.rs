@@ -14,7 +14,7 @@
 //! # Which zones
 //!
 //! The [`ZONES`], 418 names: the 312 zones of the IANA database's
-//! `zone1970.tab` 2026c and the 106 links its `zone.tab` gives a place of
+//! `zone1970.tab` 2026d and the 106 links its `zone.tab` gives a place of
 //! their own, in the order `hc_tz::location::rows` gives them. CLDR keys
 //! its data by its own zone identifiers, which for 19 of these are older
 //! IANA names — `Asia/Calcutta` for `Asia/Kolkata`, `Europe/Kiev` for
@@ -418,7 +418,7 @@ pub static TABLES: &[ExemplarCities] = &[
 // --- the zones and the tables -------------------------------------------
 
 /// The zones the tables name, in the order of `hc_tz::location::rows`: the
-/// rows of `zone1970.tab` 2026c, then the rows of `zone.tab` for the names
+/// rows of `zone1970.tab` 2026d, then the rows of `zone.tab` for the names
 /// `zone1970.tab` does not list. The facade's tests hold the two lists
 /// together.
 pub const ZONES: &[&str] = &[

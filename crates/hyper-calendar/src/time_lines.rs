@@ -1129,7 +1129,7 @@ mod tests {
     /// 27.6745 µs on MJD 58 489.
     const TT_BIPM25: &str = "42589\t46.258\n42599\t45.439\n58479\t27.6740\n58489\t27.6745\n";
 
-    /// 0 h UTC on MJD 58 479, 2018-12-22, when TAI − UTC was 37 s.
+    /// 0 h UTC on MJD 58 479, 2018-12-27, when TAI − UTC was 37 s.
     const MJD_58479_TAI: i64 = (58_479 - 40_587) * 86_400 + 37;
 
     #[test]

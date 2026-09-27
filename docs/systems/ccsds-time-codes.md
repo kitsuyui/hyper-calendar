@@ -206,6 +206,7 @@ finer than the attosecond and neighbouring counts read as one span.
 | The leap second of 2016-12-31 in CDS, CCS and ASCII; the same second refused on 2016-12-30 | `the_2016_leap_second_in_every_utc_code` | exact |
 | Every P-field octet decodes or is refused, and re-encodes to itself | `every_first_octet` | all 256 |
 | CUC, CDS and CCS round-trip over a sample of instants and every format | `round_trips` | exact |
+| A Level 2 format where the Level 1 epoch is needed, a leap flag off midnight, more than six CCS subsecond octets, an ASCII fraction of 0 or over 18 digits, and a T-field of the wrong length are refused | `the_documented_refusals`, `out_of_range_precisions_are_refused` | each refused |
 
 Annex B3.2 gives 1958 January 1 as "Julian date 2436203.5", and the
 glossary repeats it. That Julian date is the start of 1957 December 31; the
@@ -216,7 +217,7 @@ follows the date the text names.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [ccsds-301-0-b-4] | Every rule above: §§1.3, 1.5, 3.1–3.6, annexes A, B and D | Yes, the PDF, 2026-09-27 |
+| [ccsds-301-0-b-4] | Every rule above: §§1.3, 1.5, 3.1–3.6, annexes A to E | Yes, the PDF of Issue 4 with Editorial Change 1 (February 2014), `301x0b4e1.pdf`, 2026-09-27 |
 
 Annex D's table of TAI − UTC ends in 2009; the table used is the IANA
 `leap-seconds.list` of `hc-core::leap` [iana-leap-seconds-list]. ISO 8601,

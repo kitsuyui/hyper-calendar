@@ -91,7 +91,7 @@ name under each — everything a caller needs to explain the problem to a user.
   other links of `backward`, followed to the name that places them
   (`Asia/Calcutta` to `Asia/Kolkata`), with `backzone`'s links keeping
   five old names in their countries. The four files are carried
-  unmodified in `data/`, from release 2026c, and the rows the module reads
+  unmodified in `data/`, from release 2026d, and the rows the module reads
   are generated from them and checked against them by a test. Coordinates
   are exact whole arcseconds, read from ISO 6709's `±DDMM±DDDMM` or
   `±DDMMSS±DDDMMSS`; `docs/systems/zone-locations.md` explains the lookup.

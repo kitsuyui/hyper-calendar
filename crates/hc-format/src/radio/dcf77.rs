@@ -37,6 +37,10 @@
 //!
 //! Bits 1–14 are passed through as they came: PTB publishes no layout for
 //! them, and says it does not answer for their content.
+//!
+//! An omitted leap second is not carried. PTB calls one negligible and
+//! says "the technical facilities on the transmitter allow it", but gives
+//! no frame for it, so 58 marks are refused as a length.
 
 use hc_calendar::{CivilDateTime, Weekday, gregorian};
 use hc_core::UnixTime;
@@ -417,6 +421,66 @@ mod tests {
             ..frame
         };
         assert_eq!(wrong.reading(2000), Err(FrameError::Field("weekday")));
+    }
+
+    /// The field refusals: a reading that is not the start of a minute, an
+    /// hour or month out of range, a weekday of 0, and 60 marks without A2.
+    #[test]
+    fn field_refusals() {
+        let mut reading = minute(2026, 9, 27, 14, 30);
+        reading.time = CivilTime::hms(14, 30, 30).expect("valid");
+        assert_eq!(
+            Dcf77Frame::for_minute(reading, Zone::Cest, false, false),
+            Err(FrameError::Field("the start of a minute"))
+        );
+        let good =
+            marks("0 00000000000000 0 0 1 0 0 1 0000110 0 001010 0 111001 111 10010 01100100 0");
+        // Hour 14 as 24: 20 for 10, P2 still even.
+        let mut bad = good;
+        bad[33] = false;
+        bad[34] = true;
+        assert_eq!(
+            Dcf77Frame::decode(&bad),
+            Err(FrameError::Field("date and time"))
+        );
+        // Weekday 0, with P3 kept even.
+        let mut bad = good;
+        bad[42..=44].fill(false);
+        bad[P3] = !bad[P3];
+        assert_eq!(Dcf77Frame::decode(&bad), Err(FrameError::Field("weekday")));
+        let frame = Dcf77Frame::decode(&good).expect("valid");
+        for wrong in [
+            Dcf77Frame {
+                minute: 60,
+                ..frame
+            },
+            Dcf77Frame { hour: 24, ..frame },
+            Dcf77Frame { day: 0, ..frame },
+            Dcf77Frame { day: 32, ..frame },
+            Dcf77Frame { month: 0, ..frame },
+            Dcf77Frame { month: 13, ..frame },
+            Dcf77Frame { year: 100, ..frame },
+        ] {
+            assert_eq!(
+                wrong.encode(),
+                Err(FrameError::Field("date and time")),
+                "{wrong:?}"
+            );
+        }
+        let without_a2 = Dcf77Frame { marks: 60, ..frame };
+        assert_eq!(without_a2.encode(), Err(FrameError::Field("leap second")));
+        // No length but 59 or 60 is written or read: the 58 marks an omitted
+        // second would leave are not carried.
+        for marks in [58, 61] {
+            assert_eq!(
+                Dcf77Frame { marks, ..frame }.encode(),
+                Err(FrameError::Length(usize::from(marks)))
+            );
+        }
+        assert_eq!(
+            Dcf77Frame::decode(&[false; 58]),
+            Err(FrameError::Length(58))
+        );
     }
 
     /// A sample of minutes from 2000 to 2099, both zones, both ways.

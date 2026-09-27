@@ -1091,7 +1091,7 @@ describe("where each zone is", () => {
   test("every zone has a location, and Tokyo's is its row in decimal degrees", () => {
     const zones = hc.zones("en");
     assert.equal(zones.length, 312);
-    // zone1970.tab 2026c: JP,AU +353916+1394441 Asia/Tokyo; 35° 39′ 16″ is
+    // zone1970.tab 2026d: JP,AU +353916+1394441 Asia/Tokyo; 35° 39′ 16″ is
     // 128 356″ and 139° 44′ 41″ is 503 081″, written to six places.
     const tokyo = zones.find((zone) => zone.zone === "Asia/Tokyo");
     assert.deepEqual(tokyo, {
@@ -1118,7 +1118,7 @@ describe("where each zone is", () => {
         assert.ok(Math.abs(arcseconds - Math.round(arcseconds)) < 0.002, `${zone.zone} ${degrees}`);
       }
       assert.ok(zone.exemplarCity.length > 0, zone.zone);
-      // zone.tab 2026c lists every zone, under one of its countries.
+      // zone.tab 2026d lists every zone, under one of its countries.
       assert.ok(zone.country !== null && zone.countries.includes(zone.country), zone.zone);
     }
     // zone.tab: UA +4457+03406 Europe/Simferopol, in its RU section, where
@@ -1937,7 +1937,7 @@ describe("relativity", () => {
 
 describe("TT(BIPM) from a caller's series", () => {
   // TTBIPM.2025: 27.6740 µs on MJD 58 479 and 27.6745 µs on MJD 58 489;
-  // 0 h UTC on MJD 58 479, 2018-12-22, is TAI second 1 545 868 837.
+  // 0 h UTC on MJD 58 479, 2018-12-27, is TAI second 1 545 868 837.
   const series = "58479\t27.6740\n58489\t27.6745\n";
   const tai = 1_545_868_837;
 

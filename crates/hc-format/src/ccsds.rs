@@ -19,7 +19,8 @@
 //!
 //! The binary counts, CUC and CDS, and the preamble field are
 //! `hc_core::ccsds`. `docs/systems/ccsds-time-codes.md` works the
-//! standard's example through every code.
+//! standard's ASCII example through CCS and CDS, and an example of its own,
+//! 2000-01-01T00:00:00 UTC, through CUC.
 
 use core::fmt;
 
@@ -824,6 +825,35 @@ mod tests {
         assert!(CcsTime::decode_with_preamble(&[0x50, 0x20, 0x00, 0x02, 0x29, 0, 0, 0]).is_ok());
         // Year 0000.
         assert!(CcsTime::decode_with_preamble(&[0x50, 0x00, 0x00, 0x01, 0x01, 0, 0, 0]).is_err());
+    }
+
+    /// A fraction of no digits or of more than 18, and a CCS format with
+    /// more than six subsecond octets, are refused on every path.
+    #[test]
+    fn out_of_range_precisions_are_refused() {
+        let refused = ValueError::Time(TimeError::OutOfRange);
+        let utc = UtcInstant::from_unix(UnixTime::from_seconds(569_524_843));
+        for digits in [0, 19, u8::MAX] {
+            assert_eq!(
+                AsciiTime::from_utc_instant(
+                    utc,
+                    AsciiVariation::A,
+                    AsciiPrecision::Fraction(digits),
+                    true
+                ),
+                Err(refused),
+                "{digits} digits"
+            );
+        }
+        for subsecond_octets in [7, u8::MAX] {
+            let format = CcsFormat {
+                variation: CcsVariation::MonthOfYear,
+                subsecond_octets,
+            };
+            assert_eq!(CcsTime::new(format, example()), Err(refused));
+            assert_eq!(CcsTime::from_utc_instant(format, utc), Err(refused));
+            assert_eq!(CcsTime::decode(format, &[0; 14]), Err(refused));
+        }
     }
 
     /// Every resolution and both variations, both ways, over a sample of

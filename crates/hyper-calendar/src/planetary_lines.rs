@@ -19,9 +19,9 @@
 //! **The range rule** is Allison and McEwen's own: their series is stated
 //! good over ±100 years of J2000 and is an extrapolation outside it, so
 //! every function here answers only for an instant within
-//! [`SPAN_DAYS`] TT days of J2000.0 — 1900-01-01T12:00 to 2100-01-01T12:00
-//! TT — and refuses any other with [`Refusal::OutOfRange`] rather than
-//! write numbers that would be fiction. The body table has no stated span
+//! [`SPAN_DAYS`] TT days of J2000.0 — 1899-12-31T12:00 TT (J1900.0) to
+//! 2100-01-01T12:00 TT — and refuses any other with
+//! [`Refusal::OutOfRange`] rather than write numbers that would be fiction. The body table has no stated span
 //! of its own, and its README calls a century of propagation already more
 //! than the fact-sheet figures bear, so the same span holds for it.
 //!
