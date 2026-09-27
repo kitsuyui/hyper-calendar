@@ -33,6 +33,7 @@ file does not:
 | `egyptian` | Ancient Egyptian wandering year, in the era of Nabonassar | `egyptian` |
 | `philip_era` | The same wandering year in the Era of Philip of Ptolemy's *Handy Tables*, 424 years less | `philip-era` |
 | `bostran` | The Bostran era of the province of Arabia: Macedonian months from 1 Xanthikos, 22 March, a sixth epagomenal day in years 2, 6, 10 | `bostran-era` |
+| `asian` | The calendar of the Roman province of Asia: the Macedonian months from Kaisar, 23 September, each from the ninth day before the Kalends, Sebaste and the leap Xandikos, from AD 4 ([docs/systems/asian-calendar.md](../../docs/systems/asian-calendar.md)) | `asian` |
 | `syro_macedonian` | The Julian year of Roman Syria and Palestine under its eras: the Seleucid era from 1 October 312 BC and Antioch's Caesarean era from 1 October and from 1 September 49 BC, on the Antiochene months, and the era of Gaza from 28 October 61 BC on the Julian months ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) | `seleucid-syrian`, `antioch-caesarean-era`, `antioch-caesarean-era-september`, `gaza-era` |
 | `armenian` | Ancient Armenian | `armenian` |
 | `armenian_fixed` | Armenian (fixed, Sarkawag 1084) | `armenian-fixed` |
@@ -48,10 +49,10 @@ file does not:
 | `minguo` | Minguo, with 民國前 | `roc` |
 | `juche` | Juche | `juche` |
 | `holocene` | Human Era | `holocene` |
-| `year_counts` | Year counts over the Julian or Gregorian year, as one table: the Spanish era with the years each kingdom dropped it, the Masonic *Anno Lucis*, *Inventionis*, *Depositionis* and *Ordinis*, and After the Development of Agriculture ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada` |
+| `year_counts` | Year counts over the Julian or Gregorian year, as one table: the Spanish era with the years each kingdom dropped it, the Masonic *Anno Lucis*, *Inventionis*, *Depositionis* and *Ordinis*, After the Development of Agriculture, and the Capitoline count *ab urbe condita*, one year behind Varro's ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) | `spanish-era`, `masonic-anno-lucis`, `masonic-anno-inventionis`, `masonic-anno-depositionis`, `masonic-anno-ordinis`, `ada`, `roman-auc-capitoline` |
 | `era_fascista` | The Era Fascista: the Anno from 29 October, Anno I in 1922 to XXIII in 1945 | `era-fascista` |
 | `byzantine` | Byzantine *Anno Mundi*, September new year | `byzantine` |
-| `roman` | *Ab urbe condita* | `roman-auc` |
+| `roman` | *Ab urbe condita*, Varro's count; the Capitoline count is in `year_counts` | `roman-auc` |
 | `rumi` | Rumi, the Ottoman civil calendar of 1840–1925: Julian days to 1917, Gregorian after, the year less 584 | `rumi` |
 | `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
 | `french_republican_richards` | French Republican, **arithmetic (Richards)** variant: the sextile years III, VII, XI as kept, from the *Explanatory Supplement*'s parameters | `french-republican-arithmetic-richards` |

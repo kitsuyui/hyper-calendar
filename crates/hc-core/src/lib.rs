@@ -10,6 +10,8 @@
 //!   value can never be silently used where a TT value is expected.
 //! * [`leap`] — the UTC leap-second table, which is *data*, not algorithm.
 //! * [`epoch`] — well-known epochs expressed in the one canonical scale.
+//! * [`tt_bipm`] — TT(BIPM), the BIPM's realisations of Terrestrial Time,
+//!   from a series the caller supplies.
 //!
 //! # Design rules
 //!
@@ -41,6 +43,7 @@ pub mod ntp;
 pub mod sas_stata;
 pub mod scale;
 pub mod tai64;
+pub mod tt_bipm;
 pub mod unix;
 pub mod uuid;
 

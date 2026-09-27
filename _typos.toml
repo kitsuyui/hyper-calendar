@@ -15,12 +15,17 @@
 [files]
 # line_digests.txt is hexadecimal FNV-1a digests, whose runs of letters are
 # not words and change whenever a calendar is added.
+# The line digests are generated hexadecimal hashes, and a hash can spell a
+# "misspelling" such as `caf`.
 extend-exclude = ["Cargo.lock", "crates/hyper-calendar/tests/line_digests.txt"]
 
 [default.extend-words]
 # RFC 9562's title capitalises the D of "IDentifiers", which typos reads as
 # the misspelling "Dentifiers"; hc-core::uuid cites the title as printed.
 Dentifiers = "Dentifiers"
+# French "Mesures", in the Bureau International des Poids et Mesures, the
+# BIPM, cited for TT(BIPM).
+Mesures = "Mesures"
 # AKS, the Academy of Korean Studies, whose encyclopaedia (encykorea.aks.ac.kr)
 # is cited for the Korean folk days, and the key `aks-hansik`.
 aks = "aks"

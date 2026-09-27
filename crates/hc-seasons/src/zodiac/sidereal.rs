@@ -47,6 +47,7 @@
 //! is the same: a boundary near midnight may move. The document states
 //! both.
 
+use hc_astro::earth::general_precession_arcseconds;
 use hc_astro::julian_centuries;
 use hc_astro::solar::{solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;
@@ -63,34 +64,6 @@ const J2000_JULIAN_DATE: f64 = 2_451_545.0;
 
 /// Days in a Julian century.
 const DAYS_PER_JULIAN_CENTURY: f64 = 36_525.0;
-
-/// Coefficients of the general precession in longitude, p_A, in arcseconds,
-/// as a polynomial in Julian centuries of TT from J2000.
-///
-/// Capitaine, Wallace and Chapront, "Expressions for IAU 2000 precession
-/// quantities", *Astronomy & Astrophysics* 412 (2003), equation (39); adopted
-/// as the IAU 2006 precession. The leading term, 5028.796195″ per century, is
-/// the familiar "about 50 arcseconds a year" that moves the equinox.
-const GENERAL_PRECESSION_ARCSECONDS: [f64; 6] = [
-    0.0,
-    5_028.796_195,
-    1.105_434_8,
-    0.000_079_64,
-    -0.000_023_857,
-    -0.000_000_038_3,
-];
-
-/// The general precession in longitude accumulated since J2000, in
-/// arcseconds, evaluated by Horner's method.
-fn general_precession_arcseconds(centuries: f64) -> f64 {
-    let mut total = 0.0;
-    let mut index = GENERAL_PRECESSION_ARCSECONDS.len();
-    while index > 0 {
-        index -= 1;
-        total = total * centuries + GENERAL_PRECESSION_ARCSECONDS[index];
-    }
-    total
-}
 
 /// The angle between the tropical and the sidereal zero point.
 ///

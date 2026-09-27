@@ -2,8 +2,8 @@
 
 Backs the identifiers `spanish-era`, `masonic-anno-lucis`,
 `masonic-anno-inventionis`, `masonic-anno-depositionis`,
-`masonic-anno-ordinis`, `ada`, `philip-era`, `bostran-era` and
-`era-fascista` in `hc-calendars-solar`.
+`masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`, `philip-era`,
+`bostran-era` and `era-fascista` in `hc-calendars-solar`.
 
 ## What it is
 
@@ -32,6 +32,14 @@ the question of who wrote it when.
 * **After the Development of Agriculture**: "in 1978, artist and
   intellectual Merlin Stone advocated that feminists adopt a new dating
   system, according to which 1978 was 9978 ADA" [wikipedia-ada].
+* **The Capitoline count *ab urbe condita*** is the count of the *fasti
+  Capitolini*, one year behind Varro's: "AUC 1 in Augustus' fasti is
+  753/752 BC", and the fasti "give to the start of the republic a date of
+  244 AUC" where Varro has 245 [wikipedia-fasti]. Solinus used it: the
+  consuls C. Pompeius Gallus and Q. Veranius held office "urbis conditae
+  anno octingentesimo primo", in Olympiad 207, and Rome was founded in the
+  first year of Olympiad 7 [solinus-mommsen1895]. Varro's count is
+  `roman-auc`.
 * **The Era of Philip**: "in the *Handy Tables* Ptolemy uses as epoch the
   era of Philip (noon, −323 November 12) and not the era of Nabonassar
   (noon, −746 February 26), as he did in the *Almagest*" [chabas2013].
@@ -57,6 +65,14 @@ Gregorian year plus 4000, 530, 1000, −1118 and 8000: 2010 is "6010 A.L.",
 of the sources for the Masonic years or ADA names a new year other than
 the common one, so the count changes on 1 January; a rite that keeps
 another would be its own identifier.
+
+**The Capitoline count.** The Julian year plus 752, from 1 January. *Worked
+example*: Gallus and Veranius were consuls in AD 49 [wikipedia-fasti],
+which Solinus calls AUC 801 [solinus-mommsen1895]; 49 + 752 = 801. Varro's
+count makes the same year 802. Solinus checks his figure by the
+Olympiads: 206 Olympiads of four years, plus one, less the 24 years of the
+first six Olympiads, leaves 801. The Olympiad years begin in summer and
+the AUC years in January, so the check is by the year, not the day.
 
 **The Era of Philip.** The same Egyptian wandering year as `egyptian`,
 counted from another 1 Thoth. From 26 February 747 BC to 12 November 324 BC
@@ -96,11 +112,12 @@ an Anno and its 1st to 28th close the one before.
 | `masonic-anno-depositionis` | Gregorian | + 1000 | A.Dep. 1 on | Attested, undated |
 | `masonic-anno-ordinis` | Gregorian | − 1118 | A.O. 1, 1119, on | Attested, undated |
 | `ada` | Gregorian | + 8000 | ADA 1 on | Unrecorded: a proposal |
+| `roman-auc-capitoline` | Julian | + 752, from 1 January | AUC 1 (752 BC) on | Unrecorded, as `roman-auc` is |
 | `philip-era` | Egyptian wandering year | − 424 from Nabonassar | Philip 1 (324 BC) to `egyptian`'s end | Unrecorded: no span in the sources |
 | `bostran-era` | Julian days, Macedonian months | from 22 March 106 | Years 1–9 999 | Unrecorded as days; attested 107–735 |
 | `era-fascista` | Gregorian | from 29 October 1922 | Anno I–XXIII, to 28 October 1945 | Unrecorded as days; written Anno IV–XXI, XXIII in Salò |
 
-The six pure offsets are one table, `year_counts::ALL`, read by one
+The seven pure offsets are one table, `year_counts::ALL`, read by one
 calendar type; the Holocene, Minguo and Juche years share their arithmetic
 through `common::offset_to_fixed` and keep their own modules for their own
 date types. Every count starts at its year 1 and refuses the years before
@@ -131,6 +148,7 @@ Every conversion is exact integer arithmetic over its base calendar.
 | The kingdoms' years, and the order the source gives them in | `the_kingdoms_dropped_the_spanish_era_in_the_years_the_source_gives` | Holds |
 | The Lodge's examples for 2010, and AL 6026 for 2026 | `the_masonic_years_are_the_lodges_worked_examples` | 5 of 5 |
 | 1978 is 9978 ADA and 2026 is 10026 | `ada_is_the_common_year_plus_eight_thousand` | Holds |
+| Solinus's consuls of AD 49 in AUC 801; one year less than `roman-auc` everywhere | `solinus_puts_the_consuls_of_ad_49_in_auc_801` | Holds |
 | The Era of Philip begins on 12 November 324 BC, Nabonassar 425 | `the_epoch_is_the_twelfth_of_november_324_bc` | Holds |
 | … keeps every Egyptian month and day; Censorinus's day is 1 Thoth 463 | `a_day_keeps_its_egyptian_month_and_day_and_loses_424_years` | Holds |
 | 1 Xanthikos is 22 March in every Bostran year | `every_new_year_is_the_twenty_second_of_march` | 9 999 of 9 999 |
@@ -165,6 +183,8 @@ those changes; none was read.
 | [richards2013] | Censorinus's 1 Thoth 887 Nabonassar, 20 July 139, JDN 1 772 028 | Yes, 2026-09-26 |
 | [wikipedia-bostran-era] | The months, the epagomenal days and the leap years; the attestations | Yes, 2026-09-26; Mercier 2001 was not read |
 | [wikipedia-ancient-macedonian-calendar] | The Macedonian months, their order and spelling | Yes, 2026-09-26 |
+| [wikipedia-fasti] | The Capitoline count, AD 49 as the consulship of Gallus and Veranius, AUC 802 by Varro | Yes, 2026-09-27; Greswell 1854, which it cites, was not read |
+| [solinus-mommsen1895] | Solinus 1.29–30: AUC 801, Olympiad 207, the foundation in Olympiad 7.1 | Yes, 2026-09-27 |
 | [wikipedia-era-fascista] | The epoch, the years of use, the coin and the sundial | Yes, 2026-09-26; the decrees were not read |
 
 ## Code

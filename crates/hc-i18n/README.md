@@ -19,6 +19,7 @@ nothing else in the workspace hard-codes a localised string.
 | `numbering` | 9 positional digit systems (`latn`, `arab`, `arabext`, `deva`, `beng`, `thai`, `mymr`, `hanidec`, `fullwide`) and 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`), rendered and parsed back |
 | `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 43 languages and `pt-PT` |
 | `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
+| `dated` | Month and weekday names a government gave for a period, with the days they were in force and the days no source decides: Turkmenistan's of 2002–2008 |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
 | `territories` | With the `territories` feature: CLDR's names for the 195 countries the workspace keeps holiday tables for, in every carried locale CLDR names them in, and CLDR's `alt="short"` names for the few it shortens |

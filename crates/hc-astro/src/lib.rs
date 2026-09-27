@@ -25,6 +25,7 @@
 //! * [`horizon`] — the named horizons a rising or a setting is measured
 //!   against: the default, the USNO's and *Calendrical Calculations*'.
 //! * [`solar_time`] — local mean and local apparent (sundial) time.
+//! * [`hjd`] — the Heliocentric Julian Date, HJD_TT and HJD_UTC.
 //!
 //! # What it is not
 //!
@@ -60,6 +61,7 @@
 pub mod delta_t_model;
 pub mod delta_t_table;
 pub mod earth;
+pub mod hjd;
 pub mod horizon;
 pub mod lunar;
 pub mod riseset;
