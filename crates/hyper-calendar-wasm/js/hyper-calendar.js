@@ -140,6 +140,7 @@ export const METHODS = Object.freeze([
   { method: "loadZone", export: "hc_zone_load", feature: "tz" },
   { method: "zones", export: "hc_zones", feature: "tz" },
   { method: "zoneLocation", export: "hc_zone_location", feature: "tz" },
+  { method: "zoneOffset", export: "hc_zone_offset", feature: "tz" },
   { method: "skyAt", export: "hc_sky_at", feature: "sky" },
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
@@ -252,6 +253,9 @@ export const COLUMNS = Object.freeze({
   zones: Object.freeze([
     "zone", "latitude", "longitude", "countries", "country", "comment", "exemplar city",
     "locale used",
+  ]),
+  zoneOffset: Object.freeze([
+    "offset", "dst", "abbreviation", "next transition", "next offset", "rules",
   ]),
   value: Object.freeze(["value"]),
   solarTime: Object.freeze(["day", "hours", "missing", "missing day", "depression"]),
@@ -1329,6 +1333,24 @@ function zoneLocation(cells) {
     comment: optional(comment),
     exemplarCity,
     localeUsed,
+  };
+}
+
+/**
+ * The one line of `hc_zone_offset`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ZoneOffset}
+ */
+function zoneOffset(cells) {
+  const [offset, dst, abbreviation, nextTransition, nextOffset, rules] = cells;
+  return {
+    offsetSeconds: integer(offset, "offset"),
+    dst: flag(dst, "dst"),
+    abbreviation: optional(abbreviation),
+    nextTransition: optionalInteger(nextTransition, "next transition"),
+    nextOffsetSeconds: optionalInteger(nextOffset, "next offset"),
+    rules: /** @type {import("./hyper-calendar.d.ts").ZoneRules} */ (rules),
   };
 }
 
@@ -2820,8 +2842,30 @@ export class HyperCalendar {
   }
 
   /**
+   * The offset a zone keeps at a POSIX timestamp, from the rules
+   * {@link fixedFromUnixInZone} reads for the name: seconds east of UTC,
+   * whether the rules call it daylight saving or summer time, their
+   * abbreviation (`null` where they give a numeric one such as `+0545`),
+   * the next transition and the offset after it (`null` where the rules
+   * have none), and whether the `builtin` rules or a `loaded` file
+   * answered. A zone nobody knows is `unknown`.
+   *
+   * @param {string} zone
+   * @param {number | bigint} unixSeconds
+   * @returns {import("./hyper-calendar.d.ts").ZoneOffset}
+   */
+  zoneOffset(zone, unixSeconds) {
+    const fn = this.#export("hc_zone_offset");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(zone, "zone", (pointer, len) =>
+      this.#text("hc_zone_offset", (buffer, capacity) => fn(pointer, len, instant, buffer, capacity), true));
+    return zoneOffset(this.#oneLine("hc_zone_offset", text, COLUMNS.zoneOffset));
+  }
+
+  /**
    * Give the module a zone's TZif file under an IANA name; the two
-   * `InZone` methods then answer for that name with the file's history,
+   * `InZone` methods, {@link zoneOffset} and {@link radioEncode}'s
+   * `zone:` then answer for that name with the file's history,
    * outranking a built-in zone of the same name. The bytes are copied.
    *
    * @param {string} name

@@ -51,6 +51,19 @@ pub trait TimeZone {
     /// permanent "DST" offset for decades.
     fn is_dst_at(&self, utc: UnixTime) -> bool;
 
+    /// The first instant strictly after `utc` at which these rules change
+    /// the offset, the daylight flag or the abbreviation, or `None` when
+    /// they change none of them again.
+    ///
+    /// The answer is the rules' own: a fixed offset never changes, a POSIX
+    /// string's next change is its next start or end instant that really
+    /// changes something, and a TZif file's is its next recorded transition
+    /// that does, then its footer's. A recorded transition that changes
+    /// nothing — tzdata writes a few — is passed over, so that the offset,
+    /// flag and abbreviation just before the answer always differ from
+    /// those at it. Whole seconds: sub-second parts of `utc` are ignored.
+    fn next_transition(&self, utc: UnixTime) -> Option<UnixTime>;
+
     /// Map a local wall-clock reading back to the instant or instants it names.
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution;
 
@@ -92,6 +105,10 @@ impl<T: TimeZone + ?Sized> TimeZone for &T {
 
     fn is_dst_at(&self, utc: UnixTime) -> bool {
         (**self).is_dst_at(utc)
+    }
+
+    fn next_transition(&self, utc: UnixTime) -> Option<UnixTime> {
+        (**self).next_transition(utc)
     }
 
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {
@@ -230,6 +247,22 @@ pub enum Disambiguation {
     /// the gap. This is what most calendar applications do to a recurring
     /// 02:30 appointment on the morning the clocks go forward.
     PushForward,
+}
+
+/// Whether a zone's offset, daylight flag or abbreviation differs between
+/// the second before `seconds` and `seconds` itself: whether `seconds` is a
+/// transition in the sense of [`TimeZone::next_transition`].
+pub(crate) fn changes_at<Z: TimeZone + ?Sized>(zone: &Z, seconds: i64) -> bool {
+    let Some(before) = seconds.checked_sub(1) else {
+        return false;
+    };
+    let (before, at) = (
+        UnixTime::from_seconds(before),
+        UnixTime::from_seconds(seconds),
+    );
+    zone.offset_at(before) != zone.offset_at(at)
+        || zone.is_dst_at(before) != zone.is_dst_at(at)
+        || zone.abbreviation_at(before) != zone.abbreviation_at(at)
 }
 
 /// The local civil date-time an instant shows under a fixed offset.

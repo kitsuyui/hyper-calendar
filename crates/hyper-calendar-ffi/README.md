@@ -81,6 +81,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `int64_t` range; the part-days at its two ends begin or end where no `int64_t` reaches, and are `HC_ERROR_OUT_OF_RANGE` |
 | a POSIX timestamp | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
 | a fixed day | `hc_fixed_from_unix_in_zone` | every `unix_seconds` |
+| a line | `hc_zone_offset` | every `unix_seconds`; a name neither the loaded zones nor the built-in table knows is `HC_ERROR_UNKNOWN` |
 | a POSIX timestamp | `hc_unix_from_fixed_in_zone` | the `fixed` days whose start by the zone's clock fits an `int64_t`: by UTC, the fixed days −106 751 990 448 137 through 106 751 991 886 463, and a zone's offset moves each end by at most a day; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a TAI64 label | `hc_tai64_encode` | `tai_seconds` −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903, the seconds of the labels below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE` |
 | TAI seconds | `hc_tai64_decode` | every label below 2⁶³, the seconds −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903; a reserved label is `HC_ERROR_OUT_OF_RANGE` |
@@ -254,7 +255,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-125 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+126 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -349,6 +350,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_geologic_intervals(uint32_t rank, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_fixed_from_unix_in_zone(int64_t unix_seconds, const char *zone, int64_t *out_fixed);` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone. |
 | `HcStatus hc_unix_from_fixed_in_zone(int64_t fixed, const char *zone, int64_t *out_unix_seconds);` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone. |
+| `HcStatus hc_zone_offset(const char *zone, int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `tz` | The offset a zone keeps at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_zone_load(const char *name, const uint8_t *tzif, size_t tzif_len);` | `tz` | Give the library a zone's TZif data under an IANA name. |
 | `HcStatus hc_zones(const char *locale, char *buffer, size_t capacity, size_t *written);` | `tz` | Every zone of the IANA database's `zone1970.tab` with its principal location, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_zone_location(const char *zone, const char *locale, char *buffer, size_t capacity, size_t *written);` | `tz` | Where one zone is, as the NUL-terminated UTF-8 line `hc_zones` writes for it, in a caller-owned buffer. |
@@ -470,7 +472,13 @@ content only its agency knows, is `HC_ERROR_NO_DATA`.
 one minute's frame of `jjy`, `dcf77`, `wwvb-am` or `wwvb-pm` from a
 string of `0`, `1` and `M`, and `hc_radio_encode(code, unix_seconds, leap,
 summer, zone_change, dut1_tenths, dst_next, buffer, capacity, written)`
-writes one; a null `summer` is the empty string `jjy` takes.
+writes one; a null `summer` is the empty string `jjy` takes. In a library
+built with `tz` too, a `summer` of `zone:` and a zone's name,
+`zone:Europe/Berlin` or `zone:America/Denver`, reads the state — and
+DCF77's A1, in place of `zone_change` — from the rules
+`hc_fixed_from_unix_in_zone` reads for that name, as the WebAssembly
+module's README explains under "Radio time codes"; without `tz` it is
+`HC_ERROR_UNKNOWN`.
 `hc_dotnet_ticks_from_unix(unix_seconds, attoseconds, out_ticks)` writes
 .NET's `DateTime.Ticks` of a POSIX instant as an `int64_t`, and
 `hc_unix_from_dotnet_ticks(ticks, buffer, capacity, written)` the reading
@@ -779,6 +787,16 @@ or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
 TZif file once and the conversions answer for that name from then on, a
 loaded zone outranking a built-in one. Bytes that are not TZif are
 `HC_ERROR_MALFORMED`.
+
+`hc_zone_offset(zone, unix_seconds, buffer, capacity, written)` writes the
+offset the zone keeps at the instant from those same rules, in the six
+columns of the WebAssembly module's README under "A zone's offset": the
+offset in seconds east of UTC, `1` or `0` for daylight saving or summer
+time, the rules' abbreviation or empty where they give a numeric one, the
+next transition's POSIX second and the offset after it or both empty where
+the rules have none, and `builtin` or `loaded`. Europe/Berlin at
+1 774 746 000, its change of 29 March 2026, is
+`7200 1 CEST 1792890000 3600 builtin`.
 
 `hc_zones(locale, buffer, capacity, written)` writes where each of the 312
 zones of the IANA database's `zone1970.tab` is, in the eight columns of

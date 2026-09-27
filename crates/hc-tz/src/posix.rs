@@ -441,6 +441,38 @@ impl PosixTz {
         }
     }
 
+    /// The first instant strictly after `utc` at which saving time starts
+    /// or ends, or `None` for rules without saving time or whose saving
+    /// period never begins or never ends.
+    ///
+    /// The candidates are the start and end instants of the years around
+    /// `utc`, the same instants [`Self::is_dst_at`] compares against, and
+    /// one is kept only where the flag really differs a second before it,
+    /// so that a rule spelling permanent saving time as a period from 1
+    /// January to 31 December at 25:00 has no transition at all.
+    #[must_use]
+    pub fn next_transition(&self, utc: UnixTime) -> Option<UnixTime> {
+        let dst = self.dst.as_ref()?;
+        let seconds = utc.seconds();
+        let year = self.approximate_local_year(seconds);
+        let mut next: Option<i64> = None;
+        for candidate in year.saturating_sub(1)..=year.saturating_add(2) {
+            for instant in [
+                self.transition_instant(&dst.start, candidate, self.standard_offset),
+                self.transition_instant(&dst.end, candidate, dst.offset),
+            ] {
+                if instant > seconds
+                    && next.is_none_or(|earliest| instant < earliest)
+                    && self.is_dst_at(UnixTime::from_seconds(instant - 1))
+                        != self.is_dst_at(UnixTime::from_seconds(instant))
+                {
+                    next = Some(instant);
+                }
+            }
+        }
+        next.map(UnixTime::from_seconds)
+    }
+
     /// Resolve a local reading against these rules.
     #[must_use]
     pub fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {
@@ -512,6 +544,10 @@ impl TimeZone for PosixTimeZone<'_> {
 
     fn is_dst_at(&self, utc: UnixTime) -> bool {
         self.rules.is_dst_at(utc)
+    }
+
+    fn next_transition(&self, utc: UnixTime) -> Option<UnixTime> {
+        self.rules.next_transition(utc)
     }
 
     fn resolve_local(&self, local: CivilDateTime) -> LocalResolution {
@@ -743,6 +779,81 @@ mod tests {
     fn instant(year: i64, month: u8, day: u8, hour: u8, minute: u8) -> UnixTime {
         let days = rd_from_ymd(year, month, day) - RD_OF_UNIX_EPOCH;
         UnixTime::from_seconds(days * 86_400 + i64::from(hour) * 3_600 + i64::from(minute) * 60)
+    }
+
+    /// The 2026 changes of the European Union's rule, on the last Sundays
+    /// of March and October at 01:00 UTC, and of the United States' rule
+    /// in Denver, on the second Sunday of March at 02:00 MST and the first
+    /// of November at 02:00 MDT: each is the next transition from any
+    /// second before it, and not from itself.
+    #[test]
+    fn the_next_transition_is_the_rules_next_change() {
+        let berlin = PosixTz::parse("CET-1CEST,M3.5.0,M10.5.0/3").unwrap();
+        let denver = PosixTz::parse("MST7MDT,M3.2.0,M11.1.0").unwrap();
+        let cases = [
+            (
+                &berlin,
+                instant(2026, 3, 29, 1, 0),
+                instant(2026, 10, 25, 1, 0),
+            ),
+            (
+                &berlin,
+                instant(2026, 10, 25, 1, 0),
+                instant(2027, 3, 28, 1, 0),
+            ),
+            (
+                &denver,
+                instant(2026, 3, 8, 9, 0),
+                instant(2026, 11, 1, 8, 0),
+            ),
+            (
+                &denver,
+                instant(2026, 11, 1, 8, 0),
+                instant(2027, 3, 14, 9, 0),
+            ),
+        ];
+        for (rules, change, after) in cases {
+            let before = UnixTime::from_seconds(change.seconds() - 1);
+            assert_eq!(rules.next_transition(before), Some(change));
+            assert_ne!(rules.is_dst_at(before), rules.is_dst_at(change));
+            assert_eq!(rules.next_transition(change), Some(after));
+        }
+        assert_eq!(
+            berlin.next_transition(instant(2026, 1, 1, 0, 0)),
+            Some(cases[0].1)
+        );
+        // Southern hemisphere: Sydney's saving time begins on the first
+        // Sunday of October, 2026-10-04 02:00 AEST, and ends on the first
+        // of April, 2027-04-04 03:00 AEDT.
+        let sydney = PosixTz::parse("AEST-10AEDT,M10.1.0,M4.1.0/3").unwrap();
+        let october = instant(2026, 10, 3, 16, 0);
+        assert_eq!(
+            sydney.next_transition(instant(2026, 6, 1, 0, 0)),
+            Some(october)
+        );
+        assert_eq!(
+            sydney.next_transition(october),
+            Some(instant(2027, 4, 3, 16, 0))
+        );
+    }
+
+    #[test]
+    fn rules_that_never_change_have_no_next_transition() {
+        for text in ["JST-9", "<+0545>-5:45", "UTC0"] {
+            let rules = PosixTz::parse(text).unwrap();
+            assert_eq!(
+                rules.next_transition(instant(2026, 3, 29, 0, 0)),
+                None,
+                "{text}"
+            );
+        }
+        // RFC 8536 §3.3.1's spelling of permanent saving time: a period
+        // from 1 January 00:00 to 31 December 25:00, which ends where the
+        // next begins.
+        let permanent = PosixTz::parse("EST5EDT,0/0,J365/25").unwrap();
+        assert!(permanent.is_dst_at(instant(2026, 12, 31, 23, 0)));
+        assert!(permanent.is_dst_at(instant(2027, 1, 1, 5, 0)));
+        assert_eq!(permanent.next_transition(instant(2026, 6, 1, 0, 0)), None);
     }
 
     #[test]

@@ -77,3 +77,19 @@ export const TZIF_V2_EASTERN = Uint8Array.from(
   ).match(/../g) ?? [],
   (byte) => Number.parseInt(byte, 16),
 );
+
+/**
+ * A TZif version 2 file for America/Denver: MST and MDT, the transitions of
+ * 8 March and 1 November 2026, and tzdata 2026c's footer
+ * `MST7MDT,M3.2.0,M11.1.0`, the one the crate's own tests load.
+ */
+export const TZIF_V2_DENVER = Uint8Array.from(
+  (
+    "545a6966320000000000000000000000000000000000000000000000000000000000000200000002" +
+    "0000000869ad3a906ae6f1800100ffff9d900000ffffaba001044d5354004d445400545a69663200" +
+    "00000000000000000000000000000000000000000000000000000000000200000002000000080000" +
+    "000069ad3a90000000006ae6f1800100ffff9d900000ffffaba001044d5354004d4454000a4d5354" +
+    "374d44542c4d332e322e302c4d31312e312e300a"
+  ).match(/../g) ?? [],
+  (byte) => Number.parseInt(byte, 16),
+);

@@ -44,6 +44,7 @@
 
 use hc_calendar::{CalendarResult, CivilDateTime, Rd, Weekday, gregorian};
 use hc_core::UnixTime;
+use hc_tz::TimeZone;
 
 use super::{
     Frame, FrameError, FrameResult, LeapNotice, Symbol, check_length, day_of_year,
@@ -75,6 +76,27 @@ impl DstState {
             Self::InEffect => (true, true),
             Self::EndsToday => (false, true),
         }
+    }
+
+    /// The state of the UTC day a minute falls in, from a zone's rules.
+    ///
+    /// SP 250-67, chapter 2 §2 (`nist-sp250-67`): "At 0000 UTC on the day
+    /// ST changes to DST, bit 57 is set to a one, and bit 58 is set to a
+    /// one at 0000 UTC the following day. When DST ends, bit 57 is set to
+    /// zero at 0000 UTC the day of the change, and bit 58 goes low 24
+    /// hours later." So bit 57 is whether the zone keeps saving time at
+    /// 24:00 UTC ending the day and bit 58 whether at 00:00 UTC beginning
+    /// it — which reads the rules for the day of a change as the station
+    /// does wherever the change falls within that UTC day, as the United
+    /// States' 02:00 local change does in every zone of the contiguous
+    /// states. America/Denver is the station's, near Fort Collins.
+    #[must_use]
+    pub fn of_day(zone: &dyn TimeZone, minute: UnixTime) -> Self {
+        let start = minute.seconds().div_euclid(86_400).saturating_mul(86_400);
+        Self::from_bits(
+            zone.is_dst_at(UnixTime::from_seconds(start.saturating_add(86_400))),
+            zone.is_dst_at(UnixTime::from_seconds(start)),
+        )
     }
 
     /// The state of two bits, bit 57 first.
@@ -752,6 +774,34 @@ mod tests {
             gregorian::to_fixed(year, month, day).expect("exists"),
             CivilTime::hms(hour, minute, 0).expect("valid"),
         )
+    }
+
+    /// 2026's changes of the United States' rule in Denver: 8 March at
+    /// 09:00 UTC and 1 November at 08:00 UTC. Bit 57 turns at 00:00 UTC on
+    /// each day and bit 58 a day later; NIST's frame of 4 July 2012 is `11`.
+    #[test]
+    fn the_summer_time_bits_follow_the_day_of_a_change() {
+        let denver =
+            hc_tz::PosixTimeZone::parse("America/Denver", "MST7MDT,M3.2.0,M11.1.0").expect("rules");
+        let at = |seconds: i64| DstState::of_day(&denver, UnixTime::from_seconds(seconds));
+        let march_8 = 1_772_928_000;
+        let november_1 = 1_793_491_200;
+        assert_eq!(at(march_8 - 60), DstState::Standard);
+        assert_eq!(at(march_8), DstState::BeginsToday);
+        assert_eq!(at(march_8 + 9 * 3_600 - 1), DstState::BeginsToday);
+        assert_eq!(at(march_8 + 9 * 3_600), DstState::BeginsToday);
+        assert_eq!(at(march_8 + 86_340), DstState::BeginsToday);
+        assert_eq!(at(march_8 + 86_400), DstState::InEffect);
+        assert_eq!(at(november_1 - 60), DstState::InEffect);
+        assert_eq!(at(november_1), DstState::EndsToday);
+        assert_eq!(at(november_1 + 8 * 3_600), DstState::EndsToday);
+        assert_eq!(at(november_1 + 86_400), DstState::Standard);
+        assert_eq!(at(1_341_423_000), DstState::InEffect);
+        let phoenix = hc_tz::PosixTimeZone::parse("America/Phoenix", "MST7").expect("rules");
+        assert_eq!(
+            DstState::of_day(&phoenix, UnixTime::from_seconds(march_8)),
+            DstState::Standard
+        );
     }
 
     fn bits(text: &str) -> Vec<bool> {

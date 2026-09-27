@@ -1,5 +1,9 @@
 //! The tab-separated lines the WebAssembly module and the C library write
-//! about where time zones are, written once.
+//! about where time zones are, and what offset they keep, written once.
+//!
+//! [`zone_offset`] is the offset, daylight flag, abbreviation and next
+//! transition of one zone at an instant, from whichever rules the boundary
+//! crate chose for the name — the rules its day in the zone comes from.
 //!
 //! A line is one row of [`hc_tz::location`]: the zone, the latitude and
 //! longitude of its principal location in decimal degrees, its countries,
@@ -11,7 +15,9 @@
 use alloc::string::String;
 use core::fmt::Write;
 
+use hc_core::UnixTime;
 use hc_i18n::exemplar_cities::{self, ExemplarCity};
+use hc_tz::TimeZone;
 use hc_tz::location::{self, ZoneLocation};
 
 use crate::boundary::{Answer, Refusal, push_cell};
@@ -122,10 +128,118 @@ pub fn zone_location(zone: &str, locale: &str) -> Answer<String> {
     Ok(out)
 }
 
+/// Which rules answered for a zone's name: the boundary crate's built-in
+/// POSIX footers, [`hc_tz::builtin`], or TZif bytes the caller gave it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum ZoneRules {
+    /// The built-in table's POSIX `TZ` string, the zone's current rules
+    /// applied to every year.
+    Builtin,
+    /// A TZif file the caller loaded under the name, which takes
+    /// precedence over a built-in zone of the same name.
+    Loaded,
+}
+
+impl ZoneRules {
+    /// The name [`zone_offset`] writes: `builtin` or `loaded`.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Builtin => "builtin",
+            Self::Loaded => "loaded",
+        }
+    }
+}
+
+/// How many columns [`zone_offset`] writes.
+pub const ZONE_OFFSET_COLUMNS: usize = 6;
+
+/// An abbreviation as the zone's rules give it, or empty where they give
+/// a number: tzdata writes `-03` or `+0545` "if there is no common English
+/// abbreviation" (Theory and pragmatics of the tz code and data, "Time
+/// zone abbreviations", `iana-tz-theory`), and such a cell would only
+/// repeat column 1.
+fn named_abbreviation(abbreviation: Option<&str>) -> &str {
+    abbreviation
+        .filter(|text| !text.starts_with(['+', '-']))
+        .unwrap_or("")
+}
+
+/// The line of `hc_zone_offset`: a zone's offset at an instant, from the
+/// rules the caller's name selected. Tab-separated: the offset, seconds
+/// east of UTC; `1` when the rules call it daylight saving or summer time,
+/// else `0`; the abbreviation the rules give, `CET` or `MDT`, empty where
+/// they give a numeric one such as `+0545`; the POSIX second of the next
+/// transition, the first after `unix_seconds` at which the offset, the flag
+/// or the abbreviation changes, and the offset after it, both empty where
+/// the rules have none; and which rules answered, `builtin` or `loaded`.
+///
+/// The offset, flag and abbreviation are the zone's `offset_at`,
+/// `is_dst_at` and `abbreviation_at`, the functions its day is read from,
+/// so `unix_seconds` plus column 1, floored to the day, is the day
+/// `hc_fixed_from_unix_in_zone` gives. The next transition is
+/// [`TimeZone::next_transition`]'s.
+#[must_use]
+pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> String {
+    let instant = UnixTime::from_seconds(unix_seconds);
+    let mut out = String::new();
+    let _ = write!(
+        out,
+        "{}\t{}\t",
+        zone.offset_at(instant).seconds(),
+        u8::from(zone.is_dst_at(instant))
+    );
+    push_cell(&mut out, named_abbreviation(zone.abbreviation_at(instant)));
+    out.push('\t');
+    if let Some(next) = zone.next_transition(instant) {
+        let _ = write!(
+            out,
+            "{}\t{}",
+            next.seconds(),
+            zone.offset_at(next).seconds()
+        );
+    } else {
+        out.push('\t');
+    }
+    out.push('\t');
+    out.push_str(rules.name());
+    out.push('\n');
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use alloc::vec::Vec;
+    use hc_tz::{PosixTimeZone, builtin};
+
+    #[test]
+    fn a_zones_offset_line_is_its_rules() {
+        let berlin = builtin::zone("Europe/Berlin").expect("Berlin");
+        // 2026-03-29 01:00 UTC, when CET becomes CEST.
+        assert_eq!(
+            zone_offset(&berlin, ZoneRules::Builtin, 1_774_745_999),
+            "3600\t0\tCET\t1774746000\t7200\tbuiltin\n"
+        );
+        assert_eq!(
+            zone_offset(&berlin, ZoneRules::Builtin, 1_774_746_000),
+            "7200\t1\tCEST\t1792890000\t3600\tbuiltin\n"
+        );
+        let denver =
+            PosixTimeZone::parse("America/Denver", "MST7MDT,M3.2.0,M11.1.0").expect("Denver");
+        assert_eq!(
+            zone_offset(&denver, ZoneRules::Loaded, 1_772_960_400),
+            "-21600\t1\tMDT\t1793520000\t-25200\tloaded\n"
+        );
+        let kathmandu = builtin::zone("Asia/Kathmandu").expect("Kathmandu");
+        assert_eq!(
+            zone_offset(&kathmandu, ZoneRules::Builtin, 0),
+            "20700\t0\t\t\t\tbuiltin\n"
+        );
+        let line = zone_offset(&builtin::zone("UTC").expect("UTC"), ZoneRules::Builtin, 0);
+        assert_eq!(cells(&line).len(), ZONE_OFFSET_COLUMNS);
+        assert_eq!(line, "0\t0\tUTC\t\t\tbuiltin\n");
+    }
 
     fn cells(line: &str) -> Vec<&str> {
         line.trim_end_matches('\n').split('\t').collect()

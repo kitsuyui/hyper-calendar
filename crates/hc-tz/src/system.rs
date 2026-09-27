@@ -167,6 +167,37 @@ mod tests {
     }
 
     #[test]
+    fn the_system_database_and_the_builtin_table_change_at_the_same_instants() {
+        // From 2026-01-01 00:00 UTC through 2028, every built-in zone's
+        // file and its compiled-in rules name the same next transitions,
+        // with the same offset, flag and abbreviation after each.
+        for entry in crate::builtin::ZONES {
+            let Ok(bytes) = read_zone(entry.id) else {
+                continue;
+            };
+            let file = TzifTimeZone::parse(entry.id, &bytes).unwrap();
+            let rules = crate::builtin::zone(entry.id).unwrap();
+            let mut at = UnixTime::from_seconds(1_767_225_600);
+            while at.seconds() < 1_861_920_000 {
+                let next = file.next_transition(at);
+                assert_eq!(next, rules.next_transition(at), "{} after {at:?}", entry.id);
+                let Some(next) = next else {
+                    break;
+                };
+                assert_eq!(file.offset_at(next), rules.offset_at(next), "{}", entry.id);
+                assert_eq!(file.is_dst_at(next), rules.is_dst_at(next), "{}", entry.id);
+                assert_eq!(
+                    file.abbreviation_at(next),
+                    rules.abbreviation_at(next),
+                    "{}",
+                    entry.id
+                );
+                at = next;
+            }
+        }
+    }
+
+    #[test]
     fn a_real_ambiguous_hour_resolves_the_same_way_as_the_rules_predict() {
         let Ok(bytes) = read_zone("America/New_York") else {
             return;

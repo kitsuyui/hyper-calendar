@@ -67,6 +67,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     loadZone: () => hc.loadZone("Asia/Tokyo", new Uint8Array(0)),
     zones: () => hc.zones("en"),
     zoneLocation: () => hc.zoneLocation("Asia/Tokyo", "en"),
+    zoneOffset: () => hc.zoneOffset("Asia/Tokyo", 0),
     skyAt: () => hc.skyAt(0),
     solarTermsBetween: () => hc.solarTermsBetween(0, 86_400),
     moonPhasesBetween: () => hc.moonPhasesBetween(0, 86_400),

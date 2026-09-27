@@ -1480,6 +1480,7 @@ pub use time_scales::{
 mod time_codes {
     use core::ffi::{c_char, c_int};
 
+    use hc::boundary::{Answer, Refusal};
     use hc::time_code_lines;
 
     use super::{HcStatus, name, text, write_answer};
@@ -1676,8 +1677,11 @@ mod time_codes {
     /// `HC_ERROR_NULL_POINTER`. A second that does not begin a minute of
     /// the years 1 to 9999, or a `leap`, `dut1_tenths` or `dst_next` the
     /// code cannot say, is `HC_ERROR_OUT_OF_RANGE`, and a `summer` state it
-    /// does not name `HC_ERROR_UNKNOWN`. Writes the required length,
-    /// including the terminator, into `written`.
+    /// does not name `HC_ERROR_UNKNOWN`. A `summer` of `zone:` and a zone's
+    /// name reads the state from the rules `hc_fixed_from_unix_in_zone`
+    /// reads for it, as the WebAssembly module does, in a library built
+    /// with `tz` too; without it, `HC_ERROR_UNKNOWN`. Writes the required
+    /// length, including the terminator, into `written`.
     ///
     /// # Safety
     ///
@@ -1702,17 +1706,57 @@ mod time_codes {
             (Ok(code), Ok(summer)) => (code, summer.unwrap_or("")),
             (Err(status), _) | (_, Err(status)) => return status,
         };
-        let answer = time_code_lines::radio_encode_line(
-            code,
-            unix_seconds,
-            leap,
-            summer,
-            zone_change != 0,
-            dut1_tenths,
-            dst_next,
-        );
+        let answer = match time_code_lines::radio_summer_zone(summer) {
+            Some(zone) => by_zone(code, unix_seconds, leap, zone, dut1_tenths, dst_next),
+            None => time_code_lines::radio_encode_line(
+                code,
+                unix_seconds,
+                leap,
+                summer,
+                zone_change != 0,
+                dut1_tenths,
+                dst_next,
+            ),
+        };
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// `hc_radio_encode`'s frame with the summer-time state read from the
+    /// rules `hc_fixed_from_unix_in_zone` reads for a name.
+    #[cfg(feature = "tz")]
+    fn by_zone(
+        code: &str,
+        unix_seconds: i64,
+        leap: i32,
+        zone: &str,
+        dut1_tenths: i32,
+        dst_next: u32,
+    ) -> Answer<String> {
+        super::tz::with_zone(zone, |zone, _| {
+            time_code_lines::radio_encode_line_by_zone(
+                code,
+                unix_seconds,
+                leap,
+                zone,
+                dut1_tenths,
+                dst_next,
+            )
+        })
+        .unwrap_or(Err(Refusal::Unknown))
+    }
+
+    /// A library without `tz` has no zone to read the state from.
+    #[cfg(not(feature = "tz"))]
+    const fn by_zone(
+        _code: &str,
+        _unix_seconds: i64,
+        _leap: i32,
+        _zone: &str,
+        _dut1_tenths: i32,
+        _dst_next: u32,
+    ) -> Answer<String> {
+        Err(Refusal::Unknown)
     }
 }
 
@@ -3735,38 +3779,45 @@ mod tz {
     use hc::hc_calendar::{CivilDateTime, Rd};
     use hc::hc_core::UnixTime;
     use hc::hc_tz::{LocalResolution, TimeZone, TzifTimeZone, builtin};
+    use hc::zone_lines::{self, ZoneRules};
 
     use super::{
         HC_ERROR_MALFORMED, HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK,
-        HcStatus, text,
+        HcStatus, text, write_text,
     };
 
     /// The zones a caller has handed the library as TZif bytes, by name.
     static LOADED: Mutex<Vec<(String, Vec<u8>)>> = Mutex::new(Vec::new());
 
     /// The zone a name selects — one loaded through [`hc_zone_load`] first,
-    /// then the built-in table — handed to `answer`.
+    /// then the built-in table — handed to `answer` with which of the two
+    /// it is. Every entry point that reads a zone by name reads it here, so
+    /// that the day, the offset and a radio frame's summer time come from
+    /// the same rules.
     ///
     /// # Errors
     ///
     /// [`HC_ERROR_UNKNOWN`] for a name neither knows.
-    fn with_zone<R>(name: &str, answer: impl FnOnce(&dyn TimeZone) -> R) -> Result<R, HcStatus> {
+    pub(super) fn with_zone<R>(
+        name: &str,
+        answer: impl FnOnce(&dyn TimeZone, ZoneRules) -> R,
+    ) -> Result<R, HcStatus> {
         let loaded = LOADED.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some((known, bytes)) = loaded
             .iter()
             .find(|(known, _)| known.eq_ignore_ascii_case(name))
         {
             let zone = TzifTimeZone::parse(known, bytes).map_err(|_| HC_ERROR_UNKNOWN)?;
-            return Ok(answer(&zone));
+            return Ok(answer(&zone, ZoneRules::Loaded));
         }
         drop(loaded);
         let zone = builtin::zone(name).map_err(|_| HC_ERROR_UNKNOWN)?;
-        Ok(answer(&zone))
+        Ok(answer(&zone, ZoneRules::Builtin))
     }
 
     /// The fixed day an instant falls on by a zone's wall clock.
     pub(super) fn day_in_zone(unix: i64, name: &str) -> Result<i64, HcStatus> {
-        with_zone(name, |zone| {
+        with_zone(name, |zone, _| {
             zone.local_at(UnixTime::from_seconds(unix))
                 .map(|local| local.day.0)
                 .map_err(|_| HC_ERROR_OUT_OF_RANGE)
@@ -3783,7 +3834,7 @@ mod tz {
     /// [`HC_ERROR_OUT_OF_RANGE`] for a day whose start would overflow an
     /// `i64`.
     pub(super) fn start_in_zone(fixed: i64, name: &str) -> Result<i64, HcStatus> {
-        with_zone(name, |zone| {
+        with_zone(name, |zone, _| {
             let instant = match zone.resolve_local(CivilDateTime::midnight(Rd(fixed))) {
                 LocalResolution::Unambiguous(instant) => instant,
                 LocalResolution::Ambiguous { earlier, .. } => earlier,
@@ -3900,12 +3951,51 @@ mod tz {
         }
     }
 
+    /// The offset a zone keeps at a POSIX timestamp, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// `zone` is as for `hc_fixed_from_unix_in_zone`, read from the same
+    /// rules, and fails the same way. The line is the WebAssembly module's:
+    /// the offset in seconds east of UTC, `1` or `0` for daylight saving or
+    /// summer time, the abbreviation the rules give or empty where they give
+    /// a numeric one, the POSIX second of the next transition and the
+    /// offset after it or both empty where the rules have none, and
+    /// `builtin` or `loaded` for the rules that answered. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be null or NUL-terminated; `buffer` must be writable for
+    /// `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zone_offset(
+        zone: *const c_char,
+        unix_seconds: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let name = match unsafe { zone_argument(zone) } {
+            Ok(name) => name,
+            Err(status) => return status,
+        };
+        match with_zone(name, |zone, rules| {
+            zone_lines::zone_offset(zone, rules, unix_seconds)
+        }) {
+            // SAFETY: forwarded to the caller's contract above.
+            Ok(line) => unsafe { write_text(&line, buffer, capacity, written) },
+            Err(status) => status,
+        }
+    }
+
     /// Give the library a zone's TZif data under an IANA name.
     ///
     /// The built-in table carries seventeen zones and only their current
     /// rules; a caller that wants another zone, or a zone's history, reads
     /// the IANA file and hands its bytes here once, after which the two
-    /// `_in_zone` entry points answer for that name — a loaded zone takes
+    /// `_in_zone` entry points, `hc_zone_offset` and `hc_radio_encode`'s
+    /// `zone:` answer for that name from it — a loaded zone takes
     /// precedence over a built-in one of the same name. The bytes are
     /// copied. A null or empty `name` is `HC_ERROR_NULL_POINTER`, bytes
     /// that are not a TZif file `HC_ERROR_MALFORMED`, and nothing is kept
@@ -3950,7 +4040,9 @@ mod tz {
 }
 
 #[cfg(feature = "tz")]
-pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
+pub use tz::{
+    hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load, hc_zone_offset,
+};
 
 /// Where each zone is, behind the `tz` feature: the principal location
 /// the IANA database gives a zone, its countries and its CLDR exemplar
@@ -6376,6 +6468,128 @@ mod tests {
             0x32, 0x2e, 0x30, 0x2c, 0x4d, 0x31, 0x31, 0x2e, 0x31, 0x2e, 0x30, 0x0a,
         ];
 
+        /// America/Denver as a TZif file: MST and MDT, the two transitions
+        /// of 2026, 8 March 09:00 UTC and 1 November 08:00 UTC, and the
+        /// footer `MST7MDT,M3.2.0,M11.1.0`, which is tzdata 2026c's.
+        const TZIF_V2_DENVER: &[u8] = &[
+            0x54, 0x5a, 0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+            0x00, 0x08, 0x69, 0xad, 0x3a, 0x90, 0x6a, 0xe6, 0xf1, 0x80, 0x01, 0x00, 0xff, 0xff,
+            0x9d, 0x90, 0x00, 0x00, 0xff, 0xff, 0xab, 0xa0, 0x01, 0x04, 0x4d, 0x53, 0x54, 0x00,
+            0x4d, 0x44, 0x54, 0x00, 0x54, 0x5a, 0x69, 0x66, 0x32, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00,
+            0x00, 0x02, 0x00, 0x00, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x69, 0xad, 0x3a, 0x90,
+            0x00, 0x00, 0x00, 0x00, 0x6a, 0xe6, 0xf1, 0x80, 0x01, 0x00, 0xff, 0xff, 0x9d, 0x90,
+            0x00, 0x00, 0xff, 0xff, 0xab, 0xa0, 0x01, 0x04, 0x4d, 0x53, 0x54, 0x00, 0x4d, 0x44,
+            0x54, 0x00, 0x0a, 0x4d, 0x53, 0x54, 0x37, 0x4d, 0x44, 0x54, 0x2c, 0x4d, 0x33, 0x2e,
+            0x32, 0x2e, 0x30, 0x2c, 0x4d, 0x31, 0x31, 0x2e, 0x31, 0x2e, 0x30, 0x0a,
+        ];
+
+        fn offset(zone: &core::ffi::CStr, unix: i64) -> String {
+            super::read_lines(|buffer, capacity, written| unsafe {
+                hc_zone_offset(zone.as_ptr(), unix, buffer, capacity, written)
+            })
+        }
+
+        fn load_denver() {
+            assert_eq!(
+                unsafe {
+                    hc_zone_load(
+                        c"America/Denver".as_ptr(),
+                        TZIF_V2_DENVER.as_ptr(),
+                        TZIF_V2_DENVER.len(),
+                    )
+                },
+                HC_OK
+            );
+        }
+
+        /// The 2026 changes of Europe/Berlin, built in, and America/Denver,
+        /// loaded: the WebAssembly module's lines.
+        #[test]
+        fn the_offset_at_each_change_of_2026() {
+            load_denver();
+            let cases = [
+                (
+                    c"Europe/Berlin",
+                    1_774_745_999,
+                    "3600\t0\tCET\t1774746000\t7200\tbuiltin\n",
+                ),
+                (
+                    c"Europe/Berlin",
+                    1_792_890_000,
+                    "3600\t0\tCET\t1806195600\t7200\tbuiltin\n",
+                ),
+                (
+                    c"America/Denver",
+                    1_772_960_400,
+                    "-21600\t1\tMDT\t1793520000\t-25200\tloaded\n",
+                ),
+                (
+                    c"America/Denver",
+                    1_793_520_000,
+                    "-25200\t0\tMST\t1805014800\t-21600\tloaded\n",
+                ),
+                (c"Asia/Kathmandu", 0, "20700\t0\t\t\t\tbuiltin\n"),
+            ];
+            for (zone, unix, line) in cases {
+                assert_eq!(offset(zone, unix), line, "{zone:?} {unix}");
+            }
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_zone_offset(
+                        c"Mars/Olympus".as_ptr(),
+                        0,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_zone_offset(core::ptr::null(), 0, core::ptr::null_mut(), 0, &mut written)
+                },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+
+        /// WWVB's bits 57 and 58 from Denver's loaded rules on its day of
+        /// change, 8 March 2026, and DCF77's A1 from Berlin's.
+        #[cfg(feature = "time-codes")]
+        #[test]
+        fn a_radio_frame_reads_its_summer_time_from_the_zone() {
+            load_denver();
+            let encode = |code: &core::ffi::CStr, unix: i64, summer: &core::ffi::CStr, change| {
+                super::read_lines(|buffer, capacity, written| unsafe {
+                    hc_radio_encode(
+                        code.as_ptr(),
+                        unix,
+                        0,
+                        summer.as_ptr(),
+                        change,
+                        0,
+                        0,
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                })
+            };
+            assert_eq!(
+                encode(c"wwvb-am", 1_772_928_000, c"zone:America/Denver", 0),
+                encode(c"wwvb-am", 1_772_928_000, c"begins-today", 0)
+            );
+            assert_eq!(
+                encode(c"dcf77", 1_774_746_000, c"ZONE:Europe/Berlin", 0),
+                encode(c"dcf77", 1_774_746_000, c"cest", 1)
+            );
+        }
+
         #[test]
         fn days_follow_the_zones_wall_clock() {
             // 08:00 on 25 September 2026 in Tokyo is 23:00 UTC on the 24th.
@@ -8476,6 +8690,30 @@ mod tests {
     mod time_codes {
         use super::super::*;
         use super::read_lines;
+
+        /// A library without `tz` has no zone to read summer time from.
+        #[cfg(not(feature = "tz"))]
+        #[test]
+        fn without_tz_a_zone_is_unknown() {
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_radio_encode(
+                        c"dcf77".as_ptr(),
+                        1_774_746_000,
+                        0,
+                        c"zone:Europe/Berlin".as_ptr(),
+                        0,
+                        0,
+                        0,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+        }
 
         /// CCSDS 301.0-B-4's example in CDS, `41 2A DE 03 B8 CE 73 01 C8`,
         /// as `docs/systems/ccsds-time-codes.md` works it, and NICT's JJY

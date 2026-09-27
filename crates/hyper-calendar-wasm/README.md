@@ -131,6 +131,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other year is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
+| a byte length | `hc_zone_offset` | every `unix_seconds`; a name neither the loaded zones nor the built-in table knows is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
@@ -293,6 +294,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `fixedFromUnixInZone(unixSeconds, zone)`, `unixFromFixedInZone(fixed, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `zones(locale)`, `zoneLocation(zone, locale)` | `hc_zones`, `hc_zone_location` | `ZoneLocation[]`; a `ZoneLocation` |
+| `zoneOffset(zone, unixSeconds)` | `hc_zone_offset` | a `ZoneOffset` |
 | `skyAt(unixSeconds)` | `hc_sky_at` | a `Sky` |
 | `solarTermsBetween(fromUnix, toUnix)`, `moonPhasesBetween(fromUnix, toUnix)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
 | `decanAt(unixSeconds)` | `hc_decan_at` | a `Decan` |
@@ -419,7 +421,7 @@ one job a layer.
 | `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,256,769 | 1.20 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 90,098 | 88 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 184,121 | 180 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zones`, `hc_zone_location`: the day by a zone's wall clock, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 94,385 | 92 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 94,385 | 92 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_edo_time`, `hc_unix_from_edo_time` | `hc-astro`, `hc-seasons` | 128,396 | 125 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,097 | 63 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,097 | 94 KiB |
@@ -466,7 +468,7 @@ not pass CI.
 
 ### Exports
 
-129 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+130 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -565,6 +567,7 @@ not pass CI.
 | `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
+| `hc_zone_offset(zone: *const u8, zone_len: usize, unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `tz` | The offset a zone keeps at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
 | `hc_zone_load(name: *const u8, name_len: usize, tzif: *const u8, tzif_len: usize) -> i64` | `tz` | Give the module a zone's TZif data under an IANA name, returning 0. |
 | `hc_zones(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Every zone of the IANA database's `zone1970.tab` with its principal location, as UTF-8 lines, returning the byte length written. |
 | `hc_zone_location(zone: *const u8, zone_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `tz` | Where one zone is, as the UTF-8 line `hc_zones` writes for it, returning the byte length written. |
@@ -1088,6 +1091,32 @@ by `dcf77` alone, `dut1_tenths`, −9 to 9, by `wwvb-am` alone, and
 `wwvb-pm` alone. The third party's bits, the call bit and the reserved and
 notice bits are written 0. A value a code cannot say is
 `HC_ERR_OUT_OF_RANGE`, and a `summer` it does not name `HC_ERR_UNKNOWN`.
+
+In a module built with `tz` too, `summer` may instead be `zone:` and a
+zone's name, and the state is read from the rules
+`hc_fixed_from_unix_in_zone` reads for that name — a loaded TZif file
+first, then the built-in table — so that the frames and the page's days
+cannot disagree:
+
+- For `dcf77`, `zone:Europe/Berlin`, the zone of German legal time: Z1 Z2
+  are CET where the rules give UTC+1 and standard time at the minute, CEST
+  where UTC+2 and summer time, and a minute at which the zone keeps
+  neither is `HC_ERR_OUT_OF_RANGE`. A1 replaces `zone_change`: PTB sends it
+  "for one hour" before a change, "from 01:00:16 h CET (02:00:16 h CEST)
+  until 01:59:16 h CET (02:59:16 h CEST)" (`ptb-dcf77-timecode`), so it is
+  set in the frames announcing the minutes after the hour before a change
+  through the change itself — for 29 March 2026, the frames for 00:01 to
+  01:00 UTC.
+- For WWVB, `zone:America/Denver`, the station's, or any zone that keeps
+  the United States' rule: SP 250-67 sets bit 57 "At 0000 UTC on the day
+  ST changes to DST" and bit 58 "at 0000 UTC the following day", and
+  clears them the same way when DST ends (`nist-sp250-67`), so bit 57 is
+  whether the rules keep summer time at 24:00 UTC ending the minute's UTC
+  day and bit 58 whether at 00:00 UTC beginning it. The phase code's
+  `dst_next` is still the caller's.
+
+`jjy` with a zone, a name nobody knows, and a module without `tz`, are
+`HC_ERR_UNKNOWN`.
 NICT's figure of 17:25 JST on 1 April 2004 is POSIX second 1 080 807 900
 and `M01000101M000100111M000001001M001000010M000000100M100000000M`.
 
@@ -2127,7 +2156,8 @@ that is all it can know on its own.
 For any other zone, or for a zone's history, a page fetches the zone's TZif
 file — the IANA database's own format, `/usr/share/zoneinfo/Europe/Rome` on
 most systems — and hands its bytes to `hc_zone_load(name_ptr, name_len,
-tzif_ptr, tzif_len)` once; the two conversions then answer for that name,
+tzif_ptr, tzif_len)` once; the two conversions, `hc_zone_offset` and
+`hc_radio_encode`'s `zone:` then answer for that name,
 with every transition the file records, and a loaded zone outranks a
 built-in one of the same name. The bytes are copied into the module and
 parsed on each call. Bytes that are not TZif are `HC_ERR_MALFORMED` and
@@ -2143,6 +2173,33 @@ const today = hc.fixedFromUnixInZone(Math.floor(Date.now() / 1000), "Europe/Rome
 The `tzdata/` artifact that CI uploads, and `scripts/wasm-tzdata.sh`
 writes, holds the seventeen built-in zones' files with the database's
 release in `VERSION`; see "tzdata beside the module" above.
+
+### A zone's offset
+
+`hc_zone_offset(zone_ptr, zone_len, unix_seconds, buffer, capacity)`
+writes one line: the offset a zone keeps at an instant, read from exactly
+the rules `hc_fixed_from_unix_in_zone` reads for the name, so that a page
+that shows a zone's time, or encodes a time signal, has no need of the
+browser's `Intl` data, and its clock and its days cannot disagree. The
+instant plus column 1, floored to the day, is the fixed day
+`hc_fixed_from_unix_in_zone` gives.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | offset | seconds east of UTC: `3600` for CET, `-21600` for MDT |
+| 2 | dst | `1` when the rules call the time daylight saving or summer time, else `0`: the zone's own flag, not a comparison of offsets |
+| 3 | abbreviation | the rules' abbreviation, `CET` or `MDT`; empty where they give a numeric one, `+0545` or `-03`, which tzdata writes "If there is no common English abbreviation" (`iana-tz-theory`) |
+| 4 | next transition | the POSIX second of the first change after `unix_seconds` of the offset, the flag or the abbreviation; empty where the rules have none — a built-in zone without summer time, or a loaded file whose record ends with no footer |
+| 5 | next offset | the offset from that instant; empty with column 4 |
+| 6 | rules | which rules answered: `builtin`, the built-in POSIX footer, or `loaded`, a TZif file given to `hc_zone_load` |
+
+A built-in zone's next transition is its POSIX rule's next start or end;
+a loaded file's is its next recorded transition that changes something,
+then its footer's (RFC 8536 §3.3). Europe/Berlin at 1 774 745 999, the
+second before its change of 29 March 2026, is
+`3600 0 CET 1774746000 7200 builtin`, and at 1 774 746 000
+`7200 1 CEST 1792890000 3600 builtin`; Asia/Kathmandu is
+`20700 0` with columns 3 to 5 empty.
 
 ### Where each zone is
 
