@@ -21,6 +21,18 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 * **`fat`** — the MS-DOS date and time words of the FAT file system, a local
   reading from 1980 to 2107 at two-second resolution, decoded to a
   `CivilDateTime` in no zone and encoded from one.
+* **`ccsds`** — the CCSDS Calendar Segmented Code and the ASCII codes A and
+  B, UTC readings with the leap second checked against the table, and a
+  front door that reads any binary CCSDS code from its P-field. The binary
+  counts, CUC and CDS, are `hc-core::ccsds`. See
+  `docs/systems/ccsds-time-codes.md`.
+* **`radio`** — a minute's frame of the JJY, DCF77 and WWVB time codes,
+  WWVB's phase code included, decoded with its parity checked and encoded,
+  and read as the JST, CET or CEST, or UTC minute it names. See
+  `docs/systems/radio-time-codes.md`.
+* **`east_african_hours`** — the Ethiopian and Swahili hours, the civil
+  clock read six hours on over a day half and a night half, as two named
+  reckonings. See `docs/systems/hours-of-the-day.md`.
 
 ## ISO 8601-1:2019 coverage
 

@@ -247,6 +247,8 @@ accepts:
 | `mjd` | 1858-11-17T00:00:00 UT |
 | `julian-day` | −4712-01-01T12:00:00 UT, proleptic Julian |
 | `rata-die` | 0001-01-01, proleptic Gregorian |
+| `dotnet-ticks` | 0001-01-01T00:00:00, proleptic Gregorian, the origin of .NET's `DateTime.Ticks`; the same instant as `rata-die` |
+| `ccsds-cuc` | 1958-01-01T00:00:00 TAI, the Level 1 epoch of the CCSDS Unsegmented Code |
 | `windows-filetime` | 1601-01-01T00:00:00Z |
 | `ntp` | 1900-01-01T00:00:00Z |
 | `core-foundation` | 2001-01-01T00:00:00Z |
@@ -301,11 +303,30 @@ Counts that software writes from one of those epochs, each a label of
   Stata's `%tc` milliseconds from 1960, and Stata's `%tC`, which counts the
   leap seconds inserted since 1972 as UTC does and so reads the leap-second
   table [sas-lrcon-dates; stata-help-datetime-conversion].
+- **.NET `DateTime.Ticks`**, `hc-core::dotnet`: 100 ns from `dotnet-ticks`,
+  without leap seconds, in the zone the value's `Kind` names; only a `Utc`
+  value is an instant [ms-datetime-ticks; ms-datetimekind].
+- **CCSDS time codes**, `hc-core::ccsds` and `hc-format::ccsds`
+  [ccsds-301-0-b-4]. The Unsegmented Code counts TAI seconds and binary
+  fractions from `ccsds-cuc` and is not a label: it has no leap seconds.
+  The Day Segmented Code counts UTC days from 1958 and the millisecond of
+  the day, which reaches 86 400 999 on a day that ends in an inserted leap
+  second. The Calendar Segmented Code and the ASCII codes A and B are UTC
+  readings, with second 60. All three UTC codes check the second against
+  the leap-second table, `hc-core::leap::end_of_day_step`, and refuse
+  23:59:60 past its end.
+- **Radio time codes**, `hc-format::radio`: a minute's frame of JJY (JST),
+  DCF77 (CET or CEST, for the following minute) and WWVB's amplitude and
+  phase codes (UTC), each with the frame of 61 or 59 seconds its station
+  sends for a leap second [nict-jjy-timecode; ptb-dcf77-timecode;
+  nist-wwvb-enhanced-2013].
 
-[systems/binary-timestamps.md](systems/binary-timestamps.md) and
-[systems/statistical-software-dates.md](systems/statistical-software-dates.md)
-work examples through; the FAT date and time words, which are local time,
-are in `hc-format::fat`.
+[systems/binary-timestamps.md](systems/binary-timestamps.md),
+[systems/statistical-software-dates.md](systems/statistical-software-dates.md),
+[systems/ccsds-time-codes.md](systems/ccsds-time-codes.md) and
+[systems/radio-time-codes.md](systems/radio-time-codes.md) work examples
+through; the FAT date and time words, which are local time, are in
+`hc-format::fat`.
 
 ## Julian and Besselian epochs
 

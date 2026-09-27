@@ -1,6 +1,7 @@
 //! Parsing and formatting for `hyper-calendar`: ISO 8601, RFC 3339,
-//! RFC 5322, the two pattern vocabularies, and the FAT file system's packed
-//! date and time.
+//! RFC 5322, the two pattern vocabularies, the FAT file system's packed
+//! date and time, the CCSDS calendar codes, the radio time codes and the
+//! East African six-hour clocks.
 //!
 //! # The three things this crate refuses to do
 //!
@@ -27,6 +28,9 @@
 //! | [`rfc3339`] | The internet profile, including `-00:00` |
 //! | [`rfc2822`] | Email and HTTP dates, obsolete syntax included |
 //! | [`fat`] | The MS-DOS date and time words of the FAT file system, a local reading at two-second resolution |
+//! | [`ccsds`] | The CCSDS Calendar Segmented Code and the ASCII codes A and B, UTC with its leap second |
+//! | [`radio`] | The JJY, DCF77 and WWVB time codes, a minute's frame each way |
+//! | [`east_african_hours`] | The Ethiopian and Swahili hours, the civil clock read six hours on |
 //! | [`patterns`] | `strftime`/`strptime` and CLDR field patterns, both directions |
 //! | [`python`] | The ISO 8601 profile and `strptime` defaults of Python's `datetime` |
 //! | [`parse`] | A sniffing front door for "a date string" |
@@ -61,6 +65,8 @@ extern crate alloc;
 
 use core::fmt;
 
+pub mod ccsds;
+pub mod east_african_hours;
 pub mod error;
 pub mod fat;
 pub mod iso8601;
@@ -68,6 +74,7 @@ pub mod label;
 pub mod parse;
 pub mod patterns;
 pub mod python;
+pub mod radio;
 pub mod rfc2822;
 pub mod rfc3339;
 pub mod roman;

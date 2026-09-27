@@ -514,3 +514,7 @@ yoru = "yoru"
 # Shan "Lern Jeing", the first month of the Shan year, in the Shan Herald
 # Agency's romanisation (docs/calendars.md, the `shan` row).
 Lern = "Lern"
+# "Mata", evening, one of the Amharic parts of the day as the University of
+# Wisconsin-Madison's teaching page transliterates them, quoted in
+# docs/systems/hours-of-the-day.md and its references.bib entry.
+Mata = "Mata"
