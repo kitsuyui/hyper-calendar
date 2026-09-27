@@ -297,9 +297,9 @@ Faṣlī 1434, which opened on 1 July 2024.
   eras were written from the fourth century to the thirteenth — the Gupta
   and Valabhī inscriptions run from the year 82 to 945, the Chedi dates
   Kielhorn examined from 793 to 934 [sewell1896, pp. 42–43] — and the true
-  lunisolar calendar here converts 1700 to 2299 only, so a registered
-  calendar would convert no day anyone wrote in them, and `Usage` has no
-  honest end to give it.
+  lunisolar calendar here converts Śaka 1622 to 2221 only, March 1700 to
+  March 2300, so a registered calendar would convert no day anyone wrote
+  in them, and `Usage` has no honest end to give it.
 - **`magi-san`**, as `hindu_solar::MAGI`, the Bengali calendar under the
   era code `magi-san`, on Sewell and Dikshit's months.
 - **`fasli-madras`**, **`fasli-bombay`** and **`sur-san`**, as

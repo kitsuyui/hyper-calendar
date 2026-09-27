@@ -210,6 +210,7 @@ Dubberstein ([babylonian.md](babylonian.md)).
 | Kissufim: Loos 636 is August 576 | `the_kissufim_mosaic_is_in_gaza_636` | Holds (year level: the Gaza day of the month is not carried) |
 | Every day of every era, years 1 to 9 999, round-trips in a release build (a debug build takes every 97th day and each year's first and last), and each refuses the day before its year 1 | `every_era_round_trips_and_starts_at_year_one` | Holds |
 | AE = SE − 64; SE 208 is AE 144 | `the_arsacid_year_is_the_seleucid_less_sixty_four` | Holds |
+| Every day of the Arsacid era is `babylonian`'s day under AE = SE − 64, round-trips directly and through its fields, and has `babylonian`'s leap years | `the_calendar_is_babylonian_day_for_day_and_round_trips` | Holds for every day in a release build, several minutes of one core spread over the machine's threads; a debug build takes every 521st day and every 1 Nisannu with the day before it |
 | 1 Nisannu AE 1 | `the_arsacid_era_begins_with_nisannu_of_se_65` | 15 April 247 BCE here, a day after the 14 April the source gives |
 
 The last row is a day's disagreement of the size and direction of

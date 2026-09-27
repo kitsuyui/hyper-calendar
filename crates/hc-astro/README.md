@@ -200,8 +200,10 @@ by the sky, and the calendars built on top of this say so where it matters.
 * `solar::equation_of_time` takes the true Sun at Terrestrial Time and
   the mean Sun at Universal Time, since Universal Time is the mean Sun's
   hour angle. Meeus's (28.1) and *Calendrical Calculations* take both at
-  dynamical time, which makes their equation larger by ΔT times the mean
-  Sun's rate: 0.2 s today, 38 s in 586 BCE. *Calendrical Calculations*'
+  dynamical time, which makes their equation larger by ΔT's worth of the
+  mean Sun's motion, less the difference of the two mean-Sun polynomials,
+  Meeus's L₀ and the IAU 1982 sidereal time's: 0.2 s today, 3 s in
+  1000 CE, 38 s in 586 BCE. *Calendrical Calculations*'
   solar events carry that lead; this crate's do not.
 * `solar_longitude_after` and `moon_phase_at_or_after` are "at or after" up to
   floating-point noise. If the argument is the answer to within a rounding

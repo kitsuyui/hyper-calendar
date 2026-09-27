@@ -8,9 +8,9 @@
 //! computed with data to December 2025, as a table of TT(BIPMxx) − TAI −
 //! 32.184 s every ten days from MJD 42 589 (BIPM, `TTBIPM.2025`, the Time
 //! Department's FTP server, `bipm-ttbipm-2025`, read 2026-09-27). The
-//! difference is about 27.67 µs today. "When accuracies of better than
-//! 30 µs are required, TT(BIPM) must be used" (Eastman, Siverd and Gaudi,
-//! 2010, §2.2, `eastman2010`).
+//! difference is 27.67 µs at MJD 60 669, 25 December 2024. "When
+//! accuracies of better than 30 µs are required, TT(BIPM) must be used"
+//! (Eastman, Siverd and Gaudi, 2010, §2.2, `eastman2010`).
 //!
 //! The realisations are revised, so they are data and not a formula. A
 //! later one replaces the recent part of an earlier one: TT(BIPM25) is

@@ -1,5 +1,5 @@
 //! The calendar of the Roman province of Asia: the Macedonian months fixed
-//! to the Julian year by the decree of 9 BC.
+//! to the Julian year by the decree of 9/8 BC.
 //!
 //! The koinon of the Greeks of Asia, at the proposal of the proconsul
 //! Paullus Fabius Maximus, began the year on Augustus's birthday, the ninth
@@ -39,11 +39,19 @@
 //! The first year carried begins on 23 September AD 4. The decree's own
 //! year is disputed, 9/8 BC or 5 BC, and its leap day falls "two years
 //! coming between", Rome's practice of the time; Dittenberger's note 45
-//! holds that Asia intercalated in the Roman years. Before 25 February AD 4
-//! no reconstruction of the Roman leap years puts a Roman date on the day
-//! the proleptic Julian calendar gives it (Wikipedia, "Julian calendar",
-//! `wikipedia-julian-calendar`), so the days of the earlier years are
-//! refused rather than guessed.
+//! holds that Asia intercalated in the Roman years. Not until 25 February
+//! AD 4 do all the reconstructions of the Roman leap years put a Roman date
+//! on its proleptic Julian day: Bennett's, Matzat's, Harriot's and
+//! Bünting's do so from 25 February 1 BC, Scaliger's, Ideler's, Kepler's,
+//! Christmann's and Soltau's from AD 4 (Wikipedia, "Julian calendar", its
+//! table of reconstructions, `wikipedia-julian-calendar`, read 2026-09-27).
+//! So the days of the earlier years are refused rather than guessed.
+//!
+//! That start rests on a secondary source alone. The reconstructions
+//! themselves, Bennett's of 2003 (*ZPE* 142 and 147) first, and the
+//! ancient accounts of the triennial leap years they read, Macrobius's
+//! *Saturnalia* 1.14.13–15, Solinus and Pliny, were not read; they are
+//! what would replace the table.
 
 use hc_calendar::shape::{CycleShape, MONTH, WEEKDAY};
 use hc_calendar::{

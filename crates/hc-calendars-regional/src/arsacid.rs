@@ -239,20 +239,16 @@ mod tests {
     fn the_calendar_is_babylonian_day_for_day_and_round_trips() {
         let calendar = ArsacidCalendar;
         let first = earliest().unwrap();
-        // Every day of `babylonian` is a crescent computation, and walking
-        // all 167 000 takes minutes even in a release build, so no build
-        // walks every day, as `babylonian`'s own sweep does not. A release
-        // build takes every 173rd day, and each 1 Nīsannu, where the year
-        // turns, with the day before it. A debug build, which the coverage
-        // job runs instrumented, takes every 521st day and the New Years of
-        // every seventh year and the last (`crate::sweep_years`): seven is
-        // prime to the nineteen-year cycle, so the sample still turns into
-        // and out of leap years of either kind, second Addaru and second
-        // Ulūlu.
+        // Every day of `babylonian` is a crescent computation, about 1.5 ms
+        // for a conversion both ways in a release build, so the 167 000
+        // days are several minutes of one core; a release build walks every
+        // one, spread over the machine's threads. A debug build, which the
+        // coverage job runs instrumented, takes every 521st day and every
+        // 1 Nīsannu, where the year turns, with the day before it
+        // (docs/policy.md §7).
         let last = babylonian::LATEST.0;
-        let stride = if cfg!(debug_assertions) { 521 } else { 173 };
-        // The year each sampled New Year ends: common, with a second
-        // Addaru, with a second Ulūlu.
+        // The year each New Year ends: common, with a second Addaru, with a
+        // second Ulūlu.
         let ended = |year: i64| {
             let se = year - 1 + SELEUCID_OFFSET;
             (
@@ -261,13 +257,22 @@ mod tests {
             )
         };
         for kind in [(false, false), (true, false), (true, true)] {
-            assert!(crate::sweep_years(1, MAX_YEAR, 7).any(|year| ended(year) == kind));
+            assert!((2..=MAX_YEAR).any(|year| ended(year) == kind));
         }
-        let new_years = crate::sweep_years(1, MAX_YEAR, 7)
-            .map(|year| to_fixed(year, Month::regular(1), 1).unwrap().0)
-            .flat_map(|day| [day - 1, day])
-            .filter(|&day| (first.0..=last).contains(&day));
-        for rd in (first.0..=last).step_by(stride).chain(new_years) {
+        let new_years: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+            (1..=MAX_YEAR)
+                .map(|year| to_fixed(year, Month::regular(1), 1).unwrap().0)
+                .chain([last + 1])
+                .collect()
+        } else {
+            alloc::vec::Vec::new()
+        };
+        let mut days: alloc::vec::Vec<i64> =
+            crate::sweep_days(first.0, last, 521, new_years.iter().copied()).collect();
+        days.sort_unstable();
+        days.dedup();
+        assert!(days.contains(&first.0) && days.contains(&last));
+        crate::check_days(&days, |rd| {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             let (se, month, day) = babylonian::from_fixed(Rd(rd)).unwrap();
             assert_eq!(
@@ -282,7 +287,7 @@ mod tests {
                 calendar.is_leap_year(date.year),
                 Ok(babylonian::is_leap_year(se))
             );
-        }
+        });
         assert_eq!(
             calendar.from_fields(&DateFields::ymd(100, 1, 1).with_era("se")),
             Err(CalendarError::UnknownEra)

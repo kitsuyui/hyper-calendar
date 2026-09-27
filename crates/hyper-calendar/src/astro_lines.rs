@@ -29,7 +29,9 @@
 use alloc::string::String;
 use core::fmt::Write;
 
-use hc_astro::earth::{earth_rotation_angle, mean_sidereal_time, mean_sidereal_time_iau2006};
+use hc_astro::earth::{
+    earth_rotation_angle, mean_sidereal_time_iau1982, mean_sidereal_time_iau2006,
+};
 use hc_astro::hjd::{self, Target, heliocentric_correction_seconds};
 use hc_astro::horizon::{HORIZONS, Horizon};
 use hc_astro::riseset::{self, Location};
@@ -143,7 +145,7 @@ pub fn gmst_iau2006_degrees(ut1_unix_seconds: f64) -> Answer<f64> {
 ///
 /// As [`ut1_moment`].
 pub fn gmst_iau1982_degrees(ut1_unix_seconds: f64) -> Answer<f64> {
-    Ok(mean_sidereal_time(ut1_moment(ut1_unix_seconds)?))
+    Ok(mean_sidereal_time_iau1982(ut1_moment(ut1_unix_seconds)?))
 }
 
 /// UT2 − UT1 at a UT1 reading, in seconds: the conventional seasonal

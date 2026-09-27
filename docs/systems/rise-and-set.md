@@ -15,8 +15,9 @@ horizon is:
 - **Refraction.** The air bends the light of a body on the horizon
   upward, so the Sun is seen above the horizon while it is geometrically
   below it. The USNO takes the bending at the horizon as 34′
-  [usno-rst-definitions]. Meeus takes the same 34′ [meeus1998, ch. 15],
-  and so does *Calendrical Calculations* [reingold2018code]. The NAOJ
+  [usno-rst-definitions], and so does *Calendrical Calculations*
+  [reingold2018code]. Meeus is cited for the same 34′ [meeus1998, ch. 15],
+  not read here. The NAOJ
   takes 35′8″ [nao-rekiwiki-hinode-teigi]. The value is a convention: the
   real bending depends on the air, and the USNO warns that a computed time
   "may be in error by a minute or more" for that reason alone.
@@ -117,9 +118,9 @@ USNO's. The book's 8.6′ more puts it a further 8.6/11.4 = 0.76 minute
 
 The USNO publishes 16:46 at UT+2 [usno-api-rstt]. The three horizons here
 give 16:45:48, 16:50:23 and 16:51:08. The 45 s between the last two is
-the size of the steady 40–47 s by which this library's sunsets at
-Jerusalem ran ahead of the book's sample dates before the book's horizon
-was carried under its own name.
+the size of the steady 40–47 s by which the default horizon's sunsets at
+Jerusalem run ahead of the book's sample dates, which the book's horizon,
+carried under its own name, closes.
 
 ## What is carried
 
@@ -135,7 +136,7 @@ one:
 | `calendrical-calculations` | 34′ | geometric dip + 19″·√*h* | 16′, parallax arcsin(sin π cos *h*) |
 
 `riseset::sunrise`, `sunset`, `moonrise` and `moonset` use
-`geometric-dip`, which is what they have always computed. The
+`geometric-dip`. The
 `riseset::sunrise_with`, `sunset_with`, `moonrise_with` and
 `moonset_with` variants take a horizon by name. At the WebAssembly and C
 boundaries `hc_horizons` lists the horizons, each with a one-sentence
@@ -194,14 +195,15 @@ dates of its Appendix C, R.D. −214 193 to 764 652 (586 BCE to 2094), in
 `crates/hyper-calendar/tests/rd_sample_dates.rs` compares the book's
 rise-and-set columns there with this library. The columns:
 
-| Column | Place | Convention | Measured, before | Measured, under the book's horizon |
+| Column | Place | Convention | Measured, under the default horizon | Measured, under the book's horizon |
 | --- | --- | --- | --- | --- |
 | `set` | Jerusalem, 740 m, UT+2 | `sunset`, the book's horizon | −47 s to −7 s | within 2.8 s, once the book's sundial error is taken out |
 | `dawn` | Paris, 27 m, UT+1 | 18° below the geometric horizon, no horizon | −1.2 s to +39 s | within 2.8 s, the same way |
 | `mid-day` | Tehran, UT+3:30 | the Sun's transit | not compared | within 3 s, the same way |
 | `moonrise`, `moonset` | Mecca, 298 m, UT+3 | the book's horizon | −47 s to +50 s | within 23 s, the book's final bracket |
 
-The `set` column's steady gap at Jerusalem was the horizon: 19″·√740 is
+The `set` column's steady gap at Jerusalem under the default is the
+horizon: 19″·√740 is
 8.6′ of arc, 40–47 s of time. At Mecca the 19″·√298 is 5.5′, and the
 Moon's 16′ against 0.2725π differs by −0.8′ to +1.3′ over the month.
 
@@ -213,7 +215,8 @@ test measures them rather than hiding them in a wide bound:
   longitude at dynamical time, while mean time runs with the Earth's
   rotation in Universal Time. In antiquity ΔT is hours, so the two
   drift apart: in 586 BCE, with ΔT = 18 496 s, the book's sundial
-  time runs 38 s ahead of the Sun's hour angle. This library's sunrise,
+  time runs 38 s ahead of the Sun's hour angle, ΔT's 51 s of the mean
+  Sun's motion less the 12 s by which the two mean-Sun polynomials part. This library's sunrise,
   sunset and transit solve for the hour angle directly from sidereal
   time, and its equation of time, `solar::equation_of_time`, is that
   hour angle against Universal Time. The test takes the book's value as
@@ -263,11 +266,12 @@ bounds.
 - [reingold2018] — the book those functions come from; its chapter on
   astronomical events not read here.
 - [reingold2018errata] — the ΔT correction for 2051–2150, as the sample
-  date test cites it.
+  date test cites it. Read 2026-09-27, in the version of 22 September
+  2026.
 - [meeus1998] — chapter 15, the altitudes −0°50′ and 0.7275π − 34′. Not
   read for this document; cited as `hc-astro` has cited it.
 - [nao-koyomi-dni-tokyo-2024] — Tokyo's sunrise and sunset on 1 January
-  2024.
+  2024. Read 2026-09-26.
 
 ## Code
 

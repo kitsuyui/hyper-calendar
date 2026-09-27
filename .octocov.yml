@@ -13,45 +13,25 @@ codeToTestRatio:
 testExecutionTime:
   if: true
   # Higher than a single-crate project would need, deliberately. This suite's
-  # main evidence is exhaustive: the Japanese era calendar round-trips every
-  # day from 862 to 2100, the lunar calendars tens of thousands of days each,
-  # and the ISO 8601 parser every day from 1583 to 2400 through three date
-  # forms in two formats. Under llvm-cov instrumentation that runs three to
-  # five times slower than a plain `cargo test`.
+  # main evidence is exhaustive: every conversion round-trips over its whole
+  # range. This job's run is an instrumented debug build, so the longest of
+  # those sweeps take a fixed sample of their days and, where the years'
+  # boundaries cost more than the days, every k-th year with k prime to the
+  # calendar's cycle; the `sweeps` job of test.yml walks every day in
+  # release mode (docs/policy.md §7). Under llvm-cov instrumentation the
+  # suite runs three to five times slower than a plain `cargo test`.
   #
   # The threshold exists to catch a test that has started hanging, not to
-  # pressure the sweeps into being sampled. If it is ever exceeded, check
-  # which crate grew before lowering the coverage instead.
+  # pressure the sweeps into being sampled further. If it is exceeded, check
+  # which crate grew before lowering the coverage, and do not raise the
+  # limit to fit a test that should not be that slow.
   #
-  # It was briefly 25 minutes, to accommodate a Japanese sweep that walked
-  # 452 000 days re-testing arithmetic another crate already validates. That
-  # sweep now targets the seams instead and takes thirteen seconds rather than
-  # six minutes, so the ceiling comes back down. Raising a limit to fit a test
-  # that should not have been that slow is the wrong way round.
-  #
-  # Thirty minutes since September 2026, after that check was made and nothing
-  # had grown. The plain `Test` job held between five and six and a half
-  # minutes across twenty consecutive runs, while the instrumented time of the
-  # same suite ranged from eight to twenty-three — one commit measured ten
-  # minutes on one runner and twenty-two on another — and crossed fifteen on
-  # three pull requests in a row. The limit sat inside a shared runner's
-  # variance, so it now sits above it, and the job's own `timeout-minutes`
-  # is the guard against a hang.
-  #
-  # One run of #148 still took 32m35s. The instrumented run is a debug
-  # build, so the longest day-by-day sweeps now take a fixed sample of their
-  # days there and walk every day only in the release-mode `sweeps` job of
-  # tests.yml (docs/policy.md §7). That cut the suite's debug test time from
-  # about 234 to 85 seconds on one machine, so the ceiling stays where it is.
-  #
-  # By #205 the instrumented run was back at 27m30s: newer sweeps checked
-  # every year boundary of six hundred years in a debug build too, and those
-  # boundaries cost more than the sampled days. A debug build now samples
-  # the years as well, every k-th with k prime to the calendar's cycle
-  # (docs/policy.md §7), and a few tests stopped repeating conversions
-  # another had just made. On one machine the plain debug suite went from
-  # 202 to 130 seconds and this job's command from 27m34s to 20m33s, build
-  # included, with the same line coverage; the ceiling stays where it is.
+  # It is thirty minutes because the instrumented time sits inside a shared
+  # runner's variance: the plain `Test` job holds between five and six and a
+  # half minutes, while the instrumented time of the same suite has ranged
+  # from eight to twenty-three, and a run of this job, build included, has
+  # measured about twenty minutes. The job's own `timeout-minutes` is the
+  # guard against a hang.
   acceptable: 30min
 diff:
   datastores:

@@ -34,7 +34,7 @@ use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{RAD_TO_DEG, acos};
 
-use crate::earth::{altitude_degrees, apparent_sidereal_time, local_hour_angle};
+use crate::earth::{altitude_degrees, apparent_sidereal_time_iau1982, local_hour_angle};
 use crate::horizon::{GEOMETRIC_DIP, Horizon, MOON_CENTRE_PARALLAX_FRACTION};
 use crate::lunar::{lunar_parallax, lunar_position};
 use crate::search::{bisect_falling, bisect_rising};
@@ -197,7 +197,7 @@ fn computed_solar_noon(day: Rd, location: Location) -> Moment {
     for _ in 0..4 {
         let position = solar_position(Moment(moment));
         let hour_angle = signed_degrees(
-            apparent_sidereal_time(Moment(moment)) + location.longitude_degrees
+            apparent_sidereal_time_iau1982(Moment(moment)) + location.longitude_degrees
                 - position.right_ascension_degrees,
         );
         moment -= hour_angle / 360.0;

@@ -42,8 +42,8 @@ TCB.
 **TT(BIPM).** The `Tt` marker is TT(TAI). The BIPM also publishes better
 realisations of TT, one a year, named for the year: TT(BIPM25) is computed
 from the frequency standards' data to December 2025 and tabulated as
-TT(BIPM25) − TAI − 32.184 s every ten days from MJD 42 589, about 27.67 µs
-now [bipm-ttbipm-2025]. A later realisation revises the recent part of an
+TT(BIPM25) − TAI − 32.184 s every ten days from MJD 42 589: 27.67 µs at
+MJD 60 669, 25 December 2024 [bipm-ttbipm-2025]. A later realisation revises the recent part of an
 earlier one, so they are data. `hc_core::tt_bipm::TtBipmSeries` takes the
 realisation the caller trusts, with its name, interpolates it linearly in
 TAI, and refuses outside it, as `Ut1Offsets` does for DUT1. Its reading is
@@ -186,8 +186,8 @@ hand.
 | --- | --- | --- | --- |
 | **ERA**, the Earth Rotation Angle | `earth_rotation_angle` | IAU 2000: ERA = 2π(0.779 057 273 264 0 + 1.002 737 811 911 354 48 *T*u), *T*u = JD(UT1) − 2 451 545.0 (IERS Conventions 2010 [iers-tn36], ch. 5, eqs 5.14–5.15) | UT1 |
 | **GMST**, IAU 2006 | `mean_sidereal_time_iau2006`, `mean_sidereal_time_iau2006_at` | ERA plus the precession in right ascension, 0.014 506″ + 4612.156 534″ *t* + … (ch. 5, eq. 5.32) | UT1 for the ERA, TT centuries *t* for the polynomial |
-| **GMST**, IAU 1982 | `mean_sidereal_time` | Meeus's (12.4), a polynomial in UT1 alone [meeus1998] | UT1 |
-| **GAST**, from IAU 1982 | `apparent_sidereal_time` | IAU 1982 GMST plus the equation of the equinoxes Δψ cos ε from Meeus's abridged nutation | UT1 |
+| **GMST**, IAU 1982 | `mean_sidereal_time_iau1982` (also `mean_sidereal_time`) | Meeus's (12.4), a polynomial in UT1 alone [meeus1998] | UT1 |
+| **GAST**, from IAU 1982 | `apparent_sidereal_time_iau1982` (also `apparent_sidereal_time`) | IAU 1982 GMST plus the equation of the equinoxes Δψ cos ε from Meeus's abridged nutation | UT1 |
 
 The ERA is the angle between the Celestial and Terrestrial Intermediate
 Origins, and is linear in UT1 by definition: it is what UT1 *is* in the
@@ -281,8 +281,11 @@ exactly that instant, 1999-08-24 04:03:43.787492500 UTC. On an ordinary
 clock, which keeps POSIX time, the label is `tai64-posix-plus-10`; POSIX 0
 is `@400000000000000a`. Read as `tai64`, such a label is `TAI − UTC − 10`
 seconds early, 22 s in 1999 and 27 s since 2017. The bytes do not say which
-clock wrote them, so the caller chooses by name. libtai's `tai_now` was
-not read: its page is no longer online.
+clock wrote them, so the caller chooses by name. libtai's `tai_now`
+makes the same assumption, "that the time_t returned from the time
+function represents the number of TAI seconds since 1970-01-01 00:00:10
+TAI", which it says matches the Olson library's "right" mode
+[bernstein-libtai-tai].
 
 ## Computing timestamps
 

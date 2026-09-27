@@ -14,16 +14,17 @@
 //! sunrise at Ujjain ([`crate::surya_siddhanta`]). It is the modern Hindu
 //! lunisolar calendar of Reingold and Dershowitz, *Calendrical
 //! Calculations*, `hindu-lunar-from-fixed` and `fixed-from-hindu-lunar`
-//! in their published code (`reingold2018code`), and the reckoning of the
-//! almanacs that compute by the Siddhānta: in the questionnaire the
-//! Calendar Reform Committee sent the almanac makers in 1953–54, the
-//! *Hosaritti Panchanga* of Dharwar, the *Bhagyodaya Panchang* alias
-//! *Chintaharan Jantri* of Sitapur and the *Sri Sringagiri Sri Jagat Guru
-//! Srimath Panchangam* of Kollegal answer that they compute by the *Sūrya
-//! Siddhānta* (`crc1955`, Annexure VI, replies 43, 47 and 48). No table of
-//! any of those almanacs was read, so the calendar is held to the book's
-//! sample dates, and whether any almanac's months and tithis are these to
-//! the day is not known here.
+//! in their published code (`reingold2018code`). In the questionnaire the
+//! Calendar Reform Committee sent the almanac makers in 1953–54, three
+//! lunisolar almanacs answer that they compute by the *Sūrya Siddhānta*,
+//! and only one of them on these months: the *Sri Sringagiri Sri Jagat
+//! Guru Srimath Panchangam* of Kollegal is amānta, while the *Hosaritti
+//! Panchanga* of Dharwar and the *Bhagyodaya Panchang* alias *Chintaharan
+//! Jantri* of Sitapur are "Luni Solar, Purnimanta" (`crc1955`, Annexure
+//! VI, replies 48, 43 and 47). A pūrṇimānta calendar on the Siddhānta's
+//! sky is not registered. No table of any of those almanacs was read, so
+//! the calendar is held to the book's sample dates, and whether any
+//! almanac's months and tithis are these to the day is not known here.
 //!
 //! The system is written up in `docs/systems/hindu-calendars.md`, with the
 //! sources and the measurements.
@@ -412,17 +413,28 @@ mod tests {
     }
 
     #[test]
-    fn a_sample_of_days_round_trips_across_the_range() {
+    fn every_day_of_the_range_round_trips() {
+        // Every day of the 3.65 million in a release build, spread over the
+        // machine's threads: about 60 µs a day, four minutes of one core. A
+        // debug build, which the coverage job runs instrumented, takes every
+        // 181st day and every Chaitra śukla 1 of the ten thousand years with
+        // the day before it (docs/policy.md §7).
         let calendar = SiddhantaLunarCalendar::UJJAIN;
         let (first, last) = (NAMED_RANGE.1.0, NAMED_RANGE.2.0);
-        // Every 97th day of a few centuries at each end and around the book's
-        // dates, and the ends themselves.
-        for start in [first, ymd(-600, 1, 1).0, ymd(1980, 1, 1).0, last - 40_000] {
-            for day in (start..start + 40_000).step_by(97) {
-                let date = calendar.from_fixed(Rd(day)).expect("in range");
-                assert_eq!(calendar.to_fixed(date), Ok(Rd(day)), "{date:?}");
-            }
-        }
+        let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+            (MIN_YEAR..=MAX_YEAR)
+                .map(|year| calendar.new_year(year).expect("in range").0)
+                .chain([last + 1])
+                .collect()
+        } else {
+            alloc::vec::Vec::new()
+        };
+        let days = crate::sweep_days(first, last, 181, &openings);
+        assert!(days.contains(&first) && days.contains(&last));
+        crate::check_days(&days, |day| {
+            let date = calendar.from_fixed(Rd(day)).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(day)), "{date:?}");
+        });
         assert_eq!(
             calendar.from_fixed(Rd(first - 1)),
             Err(CalendarError::BeforeEpoch)

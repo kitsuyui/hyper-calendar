@@ -4,9 +4,8 @@
 #
 # The workspace test builds every crate with --all-features, which hides a
 # layer that does not build, or whose tests do not pass, without the
-# others: a default C build once broke that way and only the pre-push hook
-# caught it. For each layer this builds the module for wasm32 and runs both
-# crates' tests with that layer's feature alone:
+# others, as a default C build can. For each layer this builds the module
+# for wasm32 and runs both crates' tests with that layer's feature alone:
 #
 #     cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown --release --no-default-features --features <layer>
 #     cargo test -p hyper-calendar-wasm --no-default-features --features <layer>

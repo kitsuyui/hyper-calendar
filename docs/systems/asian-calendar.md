@@ -4,8 +4,8 @@ Backs the identifier `asian` in `hc-calendars-solar`.
 
 ## What it is
 
-In 9 BC the koinon of the Greeks of Asia adopted a proposal of the
-proconsul Paullus Fabius Maximus: the year would begin on Augustus's
+In 9/8 BC (or 5 BC; see below) the koinon of the Greeks of Asia adopted
+a proposal of the proconsul Paullus Fabius Maximus: the year would begin on Augustus's
 birthday, and the months of the province would be fixed to the Julian
 year. The decree was set up in the chief cities of the province. Copies
 survive from Priene, Apamea, Eumeneia, Dorylaion, Metropolis and Maeonia
@@ -97,13 +97,23 @@ arithmetic and not a count anyone wrote.
 Bultrighini argues for 8 BC and cites Buxton and Hannah for 5 BC
 [bultrighini2021]; Wikipedia gives both readings [wikipedia-julian-calendar].
 Rome was also not yet keeping the Julian leap years correctly, and Asia
-followed Rome's years. Every reconstruction
-of the Roman leap years in Wikipedia's table first puts a Roman date on
-the day the proleptic Julian calendar gives it on 25 February AD 4 or
-earlier [wikipedia-julian-calendar]. Before that, an Asian date's Julian
-day depends on which reconstruction one follows. The first Asian year
+followed Rome's years. Wikipedia's table of the reconstructions of the
+Roman leap years gives, for each, the first day on which a Roman date
+falls on its proleptic Julian day: 25 February 1 BC for Bennett (2003),
+Matzat (1883), Harriot and Bünting (1590), and 25 February AD 4 for
+Soltau (1889), Ideler (1825), Kepler (1614), Christmann (1590) and
+Scaliger (1583) [wikipedia-julian-calendar]. Not until 25 February AD 4
+do all of them agree. Before that, an Asian date's Julian day depends on
+which reconstruction one follows. The first Asian year
 wholly after that day begins on 23 September AD 4, and the calendar
 starts there. The earlier years are refused rather than guessed.
+
+This start rests on one secondary source. The reconstructions were not
+read, nor the ancient accounts of the triennial leap years they
+interpret (Macrobius, *Saturnalia* 1.14.13–15; Solinus; Pliny), which
+Wikipedia cites. Bennett's two papers in *Zeitschrift für Papyrologie
+und Epigraphik* 142 (2003) and 147 (2004), the most recent
+reconstruction, are the source that would replace the table.
 
 **Not carried.** The local month names of Kaunos and Smyrna, and
 Laodikeia's numbered months; the local eras; a count of days "waning" (ἀπιόντος), which
@@ -140,11 +150,14 @@ disagrees by seven weeks, is not in the province and is not checked.
 | --- | --- | --- |
 | [dittenberger-ogis2] | The decree's text, lines 50–77: the new year, Kaisar, the months and their days, the leap Xandikos, the start of each month; notes 36 and 49 | Yes, 2026-09-27, in the Internet Archive's text of the 1905 edition |
 | [bultrighini2021] | The table of months, the copies of the decree, the disputed year, the dated equations nos. 71–81 | Yes, 2026-09-27 |
-| [wikipedia-julian-calendar] | The Roman leap-year reconstructions and the day each aligns with the proleptic Julian calendar; the two readings of the decree's year | Yes, 2026-09-27 |
+| [wikipedia-julian-calendar] | The Roman leap-year reconstructions and the day each aligns with the proleptic Julian calendar, and so the range's start; the two readings of the decree's year | Yes, 2026-09-27; secondary, the reconstructions it tabulates not read |
 
 Laffi 1967, Samuel 1972, Sherk 1969, Thonemann 2015 and Blümel and
 Merkelbach's edition of the Priene copy (I.Priene 14) are cited by
-Bultrighini and were not read.
+Bultrighini and were not read. The reconstructions of the Roman leap
+years (Bennett 2003, Soltau 1889, Matzat 1883, Ideler 1825, Kepler 1614,
+Harriot, Bünting 1590, Christmann 1590, Scaliger 1583) and Macrobius are
+cited by Wikipedia and were not read.
 
 ## Code
 

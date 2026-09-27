@@ -81,7 +81,12 @@ product.
 
 **GMST, IAU 1982.** θ = 280.460 618 37° + 360.985 647 366 29° *d* +
 0.000 387 933° *T*² − *T*³ / 38 710 000, *d* the days and *T* the Julian
-centuries of UT1 since J2000.0 [meeus1998, (12.4)].
+centuries of UT1 since J2000.0. That is ERFA's `eraGmst82`, GMST − UT1 =
+24 110.548 41 s + 8 640 184.812 866 s *T* + 0.093 104 s *T*² −
+6.2 × 10⁻⁶ s *T*³ at 0 h, with the UT1 day added and the constant moved
+twelve hours to the Julian Date's noon, put in degrees at 240 s to the
+degree [erfa-gmst82]. Meeus prints the same polynomial as his (12.4)
+[meeus1998], not read here.
 
 **Worked example: the Earth Rotation Angle.** Take JD 2 454 388.5 UT1,
 00:00 UT1 on 15 October 2007, the date of ERFA's test [erfa].
@@ -121,7 +126,8 @@ Each function takes the caller's UT1 and returns the smoothed reading, so
 that a historical value labelled with one of these names can be put back on
 UT1. The Delaunay arguments are in centuries of TDB, for which the
 Conventions allow TT, and the TT is `UT1 + ΔT`; a minute's error in ΔT
-moves the fortnightly term by under 20 ns.
+moves the largest fortnightly term, 0.786 ms over 13.66 days, by about
+0.25 µs, and the whole table by under 1 µs.
 
 In `hc-astro::earth`:
 
@@ -129,9 +135,10 @@ In `hc-astro::earth`:
 - `mean_sidereal_time_iau2006` and `mean_sidereal_time_iau2006_at`, the
   IAU 2006 GMST: the first takes TT as `UT1 + ΔT`, the second takes it
   from the caller.
-- `mean_sidereal_time`, the IAU 1982 GMST, and `apparent_sidereal_time`,
-  that plus Meeus's equation of the equinoxes Δψ cos ε from his abridged
-  nutation. Every rise, set and transit in the crate uses this pair.
+- `mean_sidereal_time_iau1982`, the IAU 1982 GMST, and
+  `apparent_sidereal_time_iau1982`, that plus Meeus's equation of the
+  equinoxes Δψ cos ε from his abridged nutation. Every rise, set and
+  transit in the crate uses this pair.
 
 **Not carried**, with the reason:
 
@@ -188,12 +195,13 @@ counting the table's 41 short rows.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [iers-tn36] | ch. 5: the ERA (eqs 5.14–5.15), the IAU 2006 GMST (eq. 5.32), the Delaunay arguments (eq. 5.43); ch. 8: Table 8.1, UT1R and UT1S, the tide models, the 6 µs against the 2003 model, the IAU 1982 footnote | Yes; ch. 8 again 2026-09-27 |
+| [iers-tn36] | ch. 5: the ERA (eqs 5.14–5.15), the IAU 2006 GMST (eq. 5.32), the Delaunay arguments (eq. 5.43); ch. 8: Table 8.1, UT1R and UT1S, the tide models, the 6 µs against the 2003 model, the IAU 1982 footnote | Yes, 2026-09-26; ch. 8 again 2026-09-27 |
 | [iers-rg-zont2] | The test case of the whole table | The header only, 2026-09-26 |
 | [usno-eo-values] | The UT2 formula | Yes, 2026-09-26 and 2026-09-27 |
 | [sofa-ts] | UT0 and UT2 as "no longer used" | Yes, 2026-09-27 |
 | [erfa] | The test values of `eraEra00`, `eraGmst06`, `eraGmst82` and `eraGst94` | The test file only, 2026-09-26 |
-| [meeus1998] | The IAU 1982 GMST (12.4), the abridged nutation and the equation of the equinoxes | Not read for this document; `hc-astro::earth` cites it |
+| [erfa-gmst82] | The IAU 1982 GMST: 24 110.548 41 s + 8 640 184.812 866 s *T* + 0.093 104 s *T*² − 6.2 × 10⁻⁶ s *T*³ in UT1 centuries, the coefficients `mean_sidereal_time_iau1982` carries in degrees | Yes, `gmst82.c`, 2026-09-27 |
+| [meeus1998] | Meeus's form (12.4) of the IAU 1982 GMST, the abridged nutation and the equation of the equinoxes | Not read for this document; `hc-astro::earth` cites it |
 | [schlyter-time-scales] | The other UT2 coefficients | Yes, 2026-09-27; secondary |
 
 Capitaine et al. (2000), for the ERA, and Capitaine, Wallace and Chapront

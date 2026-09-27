@@ -53,7 +53,7 @@ assert_eq!(
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August and the *Hundstage* of 23 July to 23 August |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
-| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次 |
+| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanamsa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
 | `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
 
 ## A day is not an instant

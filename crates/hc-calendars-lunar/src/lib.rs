@@ -158,6 +158,41 @@ pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterato
         .chain((!last_is_sampled && first <= last).then_some(last))
 }
 
+/// Run `check` on each of `days`, spread over the machine's threads.
+///
+/// The full sweeps of a release build walk every day of ranges of hundreds
+/// of thousands to millions of days, at tens of microseconds to a
+/// millisecond a day, and no day's check depends on another's. A failing
+/// check panics its thread, and the panic is raised again here when the
+/// threads are joined. Without `std` the days are checked in turn.
+#[cfg(test)]
+pub(crate) fn check_days(days: &[i64], check: impl Fn(i64) + Sync) {
+    #[cfg(feature = "std")]
+    {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        const CHUNK: usize = 256;
+        let next = AtomicUsize::new(0);
+        let threads = std::thread::available_parallelism().map_or(1, usize::from);
+        std::thread::scope(|scope| {
+            for _ in 0..threads {
+                scope.spawn(|| {
+                    loop {
+                        let start = next.fetch_add(CHUNK, Ordering::Relaxed);
+                        match days.get(start..days.len().min(start + CHUNK)) {
+                            Some(part) if !part.is_empty() => {
+                                part.iter().for_each(|&day| check(day))
+                            }
+                            _ => break,
+                        }
+                    }
+                });
+            }
+        });
+    }
+    #[cfg(not(feature = "std"))]
+    days.iter().for_each(|&day| check(day));
+}
+
 pub mod archetypes;
 pub mod babylonian;
 pub mod chinese;

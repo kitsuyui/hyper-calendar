@@ -14,10 +14,11 @@
 //! Greenwich mean sidereal time has been defined twice, and under
 //! `docs/policy.md` §5 each definition is its own function:
 //!
-//! * [`mean_sidereal_time`] is the **IAU 1982** expression, a polynomial in
-//!   UT1 alone, as Meeus prints it in (12.4). [`apparent_sidereal_time`]
-//!   adds Meeus's equation of the equinoxes to it. Every rise, set and
-//!   transit in this crate uses this pair.
+//! * [`mean_sidereal_time_iau1982`] is the **IAU 1982** expression, a
+//!   polynomial in UT1 alone, as Meeus prints it in (12.4).
+//!   [`apparent_sidereal_time_iau1982`] adds Meeus's equation of the
+//!   equinoxes to it. Every rise, set and transit in this crate uses this
+//!   pair.
 //! * [`mean_sidereal_time_iau2006`] is the **IAU 2006** expression: the
 //!   [`earth_rotation_angle`], a linear function of UT1, plus the
 //!   accumulated precession in right ascension, a polynomial in TT (IERS
@@ -219,7 +220,7 @@ pub fn obliquity_at_centuries(centuries: f64) -> Obliquity {
 /// everything else in this crate it takes Universal Time directly and must
 /// not be handed a TT moment.
 #[must_use]
-pub fn mean_sidereal_time(moment: Moment) -> f64 {
+pub fn mean_sidereal_time_iau1982(moment: Moment) -> f64 {
     let days = moment.0 - J2000.0;
     let t = days / JULIAN_CENTURY_DAYS;
     normalize_degrees(
@@ -229,7 +230,7 @@ pub fn mean_sidereal_time(moment: Moment) -> f64 {
 }
 
 /// Apparent sidereal time at Greenwich, in degrees: the IAU 1982 mean
-/// sidereal time, [`mean_sidereal_time`], corrected for nutation by the
+/// sidereal time, [`mean_sidereal_time_iau1982`], corrected for nutation by the
 /// equation of the equinoxes `Δψ cos ε` (Meeus, chapter 12).
 ///
 /// The nutation is Meeus's abridged series, good to 0.5″ in Δψ, so this is
@@ -237,11 +238,11 @@ pub fn mean_sidereal_time(moment: Moment) -> f64 {
 /// sidereal time, which needs the full nutation series this crate does not
 /// carry.
 #[must_use]
-pub fn apparent_sidereal_time(moment: Moment) -> f64 {
+pub fn apparent_sidereal_time_iau1982(moment: Moment) -> f64 {
     let centuries = julian_centuries(moment);
     let correction = nutation_at_centuries(centuries).longitude_degrees
         * cos_deg(true_obliquity_at_centuries(centuries));
-    normalize_degrees(mean_sidereal_time(moment) + correction)
+    normalize_degrees(mean_sidereal_time_iau1982(moment) + correction)
 }
 
 /// The constant of the Earth Rotation Angle, in turns: the angle at
@@ -283,7 +284,7 @@ pub fn earth_rotation_angle(ut1: Moment) -> f64 {
 /// unknown by hours. To give TT exactly, use
 /// [`mean_sidereal_time_iau2006_at`].
 ///
-/// This is not [`mean_sidereal_time`], which is the IAU 1982 convention;
+/// This is not [`mean_sidereal_time_iau1982`], the IAU 1982 convention;
 /// see the [module documentation](self).
 #[must_use]
 pub fn mean_sidereal_time_iau2006(ut1: Moment) -> f64 {
@@ -366,7 +367,8 @@ pub fn altitude_degrees(
 #[must_use]
 pub fn local_hour_angle(position: Equatorial, moment: Moment, longitude_degrees: f64) -> f64 {
     normalize_degrees(
-        apparent_sidereal_time(moment) + longitude_degrees - position.right_ascension_degrees,
+        apparent_sidereal_time_iau1982(moment) + longitude_degrees
+            - position.right_ascension_degrees,
     )
 }
 
@@ -455,7 +457,7 @@ mod tests {
     #[test]
     fn mean_sidereal_time_matches_meeus_example_12a() {
         let moment = Moment::from_julian_date(2_446_895.5);
-        let actual = mean_sidereal_time(moment);
+        let actual = mean_sidereal_time_iau1982(moment);
         assert!(
             (actual - 197.693_195).abs() < 1e-5,
             "sidereal time was {actual}"
@@ -467,7 +469,7 @@ mod tests {
     #[test]
     fn mean_sidereal_time_matches_meeus_example_12b() {
         let moment = Moment::from_julian_date(2_446_896.306_25);
-        let actual = mean_sidereal_time(moment);
+        let actual = mean_sidereal_time_iau1982(moment);
         assert!(
             (actual - 128.737_873).abs() < 1e-5,
             "sidereal time was {actual}"
@@ -526,7 +528,7 @@ mod tests {
     fn the_meeus_mean_sidereal_time_is_the_iau1982_convention() {
         let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
         let expected = 1.754_174_981_860_675 * RAD_TO_DEG;
-        let actual = mean_sidereal_time(moment);
+        let actual = mean_sidereal_time_iau1982(moment);
         // 10⁻⁸ degree is 2.4 µs of time; the two differ by 0.7 µs.
         assert!(
             (actual - expected).abs() < 1e-8,
@@ -540,7 +542,8 @@ mod tests {
     #[test]
     fn the_two_mean_sidereal_times_differ_by_a_fraction_of_a_millisecond() {
         let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
-        let difference = (mean_sidereal_time(moment) - mean_sidereal_time_iau2006(moment)) * 240.0;
+        let difference =
+            (mean_sidereal_time_iau1982(moment) - mean_sidereal_time_iau2006(moment)) * 240.0;
         assert!(
             (difference - 0.000_137).abs() < 0.000_03,
             "difference {difference} s"
@@ -555,14 +558,15 @@ mod tests {
     fn the_apparent_sidereal_time_agrees_with_erfa_gst94_within_the_abridged_nutation() {
         let moment = Moment::from_julian_date(2_400_000.5 + 53_736.0);
         let expected = 1.754_166_136_020_645_3 * RAD_TO_DEG;
-        let difference = (apparent_sidereal_time(moment) - expected) * 3600.0;
+        let difference = (apparent_sidereal_time_iau1982(moment) - expected) * 3600.0;
         assert!(difference.abs() < 0.5, "difference {difference}\"");
     }
 
     #[test]
     fn apparent_sidereal_time_differs_from_mean_by_the_equation_of_the_equinoxes() {
         let moment = Moment::from_julian_date(2_446_895.5);
-        let difference = (apparent_sidereal_time(moment) - mean_sidereal_time(moment)) * 3600.0;
+        let difference =
+            (apparent_sidereal_time_iau1982(moment) - mean_sidereal_time_iau1982(moment)) * 3600.0;
         // Meeus gives −0.2317 s of time = −3.4755″ of arc for this instant.
         assert!(difference.abs() < 20.0, "difference was {difference}\"");
         assert!(
@@ -573,8 +577,8 @@ mod tests {
 
     #[test]
     fn sidereal_time_advances_by_a_full_turn_plus_a_degree_each_day() {
-        let a = mean_sidereal_time(Moment(730_000.0));
-        let b = mean_sidereal_time(Moment(730_001.0));
+        let a = mean_sidereal_time_iau1982(Moment(730_000.0));
+        let b = mean_sidereal_time_iau1982(Moment(730_001.0));
         let advance = crate::util::modulo(b - a, 360.0);
         assert!((advance - 0.985_647).abs() < 1e-4, "advance was {advance}");
     }
@@ -629,7 +633,7 @@ mod tests {
         // sidereal time at Greenwich, then look at it from Greenwich.
         let moment = Moment(730_500.25);
         let position = Equatorial {
-            right_ascension_degrees: apparent_sidereal_time(moment),
+            right_ascension_degrees: apparent_sidereal_time_iau1982(moment),
             declination_degrees: 10.0,
         };
         let angle = local_hour_angle(position, moment, 0.0);

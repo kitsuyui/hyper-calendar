@@ -43,7 +43,8 @@
 //! The tidal arguments are the Delaunay arguments of IERS Conventions
 //! 2010, chapter 5, equation 5.43, in Julian centuries of TDB, for which
 //! the Conventions allow TT; the TT here is this crate's `UT1 + ΔT`, and a
-//! minute's error in ΔT moves the fortnightly term by under 20 ns. The
+//! minute's error in ΔT moves the largest fortnightly term, 0.786 ms over
+//! 13.66 days, by about 0.25 µs, and the whole table by under 1 µs. The
 //! whole-table sum reproduces the test case printed in the IERS routine
 //! `RG_ZONT2.F` (`iers-rg-zont2`) to 10⁻¹² s.
 //!
