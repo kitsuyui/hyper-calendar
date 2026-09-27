@@ -2576,12 +2576,16 @@ mod holiday {
         gregorian::year_from_fixed(day).map_err(|_| HC_ERR_OUT_OF_RANGE)?;
         let mut out = String::new();
         // One memo for every table: the astronomy the tables share — the
-        // same tithis, the same new moons — is done once.
+        // same tithis, the same new moons — is done once, the answers the
+        // context keeps in it and the solstices and new moons of the
+        // lunisolar conversions in the scope.
         let mut context = hc::hc_holiday::EvaluationContext::new();
-        for table in tables() {
-            let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
-            push_lines_on(&mut out, table, &calendar, day);
-        }
+        hc::hc_core::memo::scope(|| {
+            for table in tables() {
+                let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
+                push_lines_on(&mut out, table, &calendar, day);
+            }
+        });
         Ok(out)
     }
 

@@ -2,9 +2,10 @@
 // Time the calendar calls a page makes, in WebAssembly under Node.
 //
 // `describeDay`, `calendars` and `calendarList` of the JavaScript binding,
-// each the shortest of several calls, for three days and three locales:
-// what the WebAssembly README's timings for `hc_describe_day`,
-// `hc_calendars` and `hc_calendar_list` were measured with. The shortest
+// each the shortest of several calls, for three days and three locales,
+// and `holidaysOn` for two days: what the WebAssembly README's timings for
+// `hc_describe_day`, `hc_calendars`, `hc_calendar_list` and
+// `hc_holidays_on` were measured with. The shortest
 // call is the one least disturbed by whatever else the machine is doing;
 // the median is printed beside it.
 //
@@ -13,7 +14,8 @@
 // The default module is the `full` layer scripts/wasm-layers.sh builds in
 // the `release-compact` profile, under <target>/wasm-layers, with <target>
 // being CARGO_TARGET_DIR or ./target. A module without `hc_calendar_list`
-// is timed without it, so an older build can be compared.
+// is timed without it, and one without `hc_holidays_on` without that, so
+// an older build or a smaller layer can be compared.
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -67,5 +69,14 @@ for (const locale of ["ja", "en", "native"]) {
   console.log(`calendars(2026-09-27, ${locale}): ${timed(() => hc.calendars(today, locale))}`);
   if (lists) {
     console.log(`calendarList(${locale}): ${timed(() => hc.calendarList(locale))}`);
+  }
+}
+if (typeof hc.exports.hc_holidays_on === "function") {
+  // Every table, for the costliest day of 2026 and an ordinary one.
+  for (const [name, day] of [
+    ["2026-01-01", hc.gregorianToFixed(2026, 1, 1)],
+    ["2026-09-25", hc.gregorianToFixed(2026, 9, 25)],
+  ]) {
+    console.log(`holidaysOn(${name}): ${timed(() => hc.holidaysOn(day))}`);
   }
 }

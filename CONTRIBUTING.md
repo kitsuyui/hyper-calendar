@@ -45,7 +45,8 @@ day in a release one; CI runs both, so run
 calendar's arithmetic ([`docs/policy.md`](docs/policy.md) §7). CI runs that
 command in shards, side by side;
 [`scripts/release-shards.sh`](scripts/release-shards.sh) says how they are
-cut, and `scripts/release-shards.sh --plan` which shard runs each test binary.
+cut, and `scripts/release-shards.sh --plan` which shard runs each test binary,
+or which tests of a binary split between two shards by name.
 
 All of these must pass. `unwrap()` and `expect()` are deny-level lints outside
 tests — see [`docs/policy.md`](docs/policy.md) §8.

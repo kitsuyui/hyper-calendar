@@ -2872,43 +2872,50 @@ mod holiday {
         let day = Rd(fixed);
         gregorian::year_from_fixed(day).map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
         let mut out = String::new();
-        for table in tables() {
-            let calendar = HolidayCalendar::for_day(table, None, day);
-            for holiday in calendar.on(day) {
-                push_cell(&mut out, table.code);
-                out.push('\t');
-                push_cell(&mut out, table.english_name);
-                out.push('\t');
-                push_cell(&mut out, holiday.name);
-                out.push('\t');
-                push_cell(&mut out, holiday.local_name);
-                let _ = write!(
-                    out,
-                    "\t{}\t{}\t",
-                    kind_name(holiday.kind),
-                    confidence_name(holiday.confidence)
-                );
-                push_cell(&mut out, holiday.source);
-                let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
-                if let Some(observed_for) = holiday.observed_for {
-                    let _ = write!(out, "{}", observed_for.0);
+        // One memo for every table, as the WebAssembly export keeps: the
+        // astronomy the tables share is done once, the answers the context
+        // keeps in it and the solstices and new moons of the lunisolar
+        // conversions in the scope.
+        let mut context = hc::hc_holiday::EvaluationContext::new();
+        hc::hc_core::memo::scope(|| {
+            for table in tables() {
+                let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
+                for holiday in calendar.on(day) {
+                    push_cell(&mut out, table.code);
+                    out.push('\t');
+                    push_cell(&mut out, table.english_name);
+                    out.push('\t');
+                    push_cell(&mut out, holiday.name);
+                    out.push('\t');
+                    push_cell(&mut out, holiday.local_name);
+                    let _ = write!(
+                        out,
+                        "\t{}\t{}\t",
+                        kind_name(holiday.kind),
+                        confidence_name(holiday.confidence)
+                    );
+                    push_cell(&mut out, holiday.source);
+                    let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
+                    if let Some(observed_for) = holiday.observed_for {
+                        let _ = write!(out, "{}", observed_for.0);
+                    }
+                    out.push('\n');
                 }
-                out.push('\n');
+                // A gap is a holiday the table could not place this year — its
+                // calendar's range ended, or no announcement was read — and it
+                // is reported rather than left out, so that a caller can say so.
+                for gap in calendar.gaps() {
+                    push_cell(&mut out, table.code);
+                    out.push('\t');
+                    push_cell(&mut out, table.english_name);
+                    out.push('\t');
+                    push_cell(&mut out, gap.name);
+                    out.push('\t');
+                    push_cell(&mut out, gap.local_name);
+                    out.push_str("\tgap\t\t\t0\t\n");
+                }
             }
-            // A gap is a holiday the table could not place this year — its
-            // calendar's range ended, or no announcement was read — and it
-            // is reported rather than left out, so that a caller can say so.
-            for gap in calendar.gaps() {
-                push_cell(&mut out, table.code);
-                out.push('\t');
-                push_cell(&mut out, table.english_name);
-                out.push('\t');
-                push_cell(&mut out, gap.name);
-                out.push('\t');
-                push_cell(&mut out, gap.local_name);
-                out.push_str("\tgap\t\t\t0\t\n");
-            }
-        }
+        });
         Ok(out)
     }
 
