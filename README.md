@@ -79,22 +79,22 @@ includes the crate.
 
 | Crate | What it holds | Feature |
 | --- | --- | --- |
-| [`hc-core`](crates/hc-core) | Exact `Duration`, `Instant<S>` on the uniform scales, the leap-second table, epochs, timestamp formats | always |
+| [`hc-core`](crates/hc-core) | Exact `Duration`, `Instant<S>` on the uniform scales, the leap-second table, epochs, timestamp formats, CCSDS time codes, .NET ticks | always |
 | [`hc-units`](crates/hc-units) | Exactly defined units of time, as exact ratios of the second | `units` |
 | [`hc-calendar`](crates/hc-calendar) | `Rd`, the `Calendar` and `DynCalendar` traits, the registry, the sexagenary cycle | `civil` |
 | [`hc-calendars-solar`](crates/hc-calendars-solar) | Gregorian, Julian, the national reform calendars, ISO 8601, Coptic, Ethiopic, era counts, reform proposals, day counts | `civil` |
 | [`hc-calendars-lunar`](crates/hc-calendars-lunar) | Hijri, Hebrew, Babylonian, Chinese, Korean, Vietnamese, Tibetan, Javanese, the Japanese lunisolar calendars | `lunar` |
 | [`hc-calendars-equinox`](crates/hc-calendars-equinox) | Solar Hijri, Badíʿ and French Republican calendars fixed by an observed equinox | `equinox` |
-| [`hc-calendars-indic`](crates/hc-calendars-indic) | Hindu lunisolar and solar calendars, Bikram Sambat, the Fasli years | `indic` |
-| [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing eras, Maya, Aztec, Burmese, Balinese Pawukon, Olympiads | `regional` |
-| [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time | `astro` |
+| [`hc-calendars-indic`](crates/hc-calendars-indic) | Hindu lunisolar and solar calendars, Bikram Sambat, the Fasli years, Rāhu kālam | `indic` |
+| [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing eras, Maya, Aztec, Zapotec and Mixtec years, Burmese, Thai, Khmer and Lao lunar, Balinese Pawukon, Olympiads | `regional` |
+| [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time, sundial and temporal hours, Edo hours, zmanim, Islamic prayer times | `astro` |
 | [`hc-seasons`](crates/hc-seasons) | The 24 solar terms, the 72 pentads, 雑節, 六曜, the zodiac, the seasons | `seasons` |
-| [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days | `almanac` |
+| [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days; 恵方, 三元九運, 손 없는 날 | `almanac` |
 | [`hc-fiscal`](crates/hc-fiscal) | Fiscal, tax and academic years | `fiscal` |
 | [`hc-attributes`](crates/hc-attributes) | Birthstones, birth flowers, moon names, traditional month names | `attributes` |
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
-| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns | `format` |
+| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 2822 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the Ethiopian and Swahili hours | `format` |
 | [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities | `i18n` |
 | [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |

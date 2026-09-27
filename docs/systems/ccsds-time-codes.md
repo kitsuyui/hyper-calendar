@@ -207,6 +207,8 @@ finer than the attosecond and neighbouring counts read as one span.
 | Every P-field octet decodes or is refused, and re-encodes to itself | `every_first_octet` | all 256 |
 | CUC, CDS and CCS round-trip over a sample of instants and every format | `round_trips` | exact |
 | A Level 2 format where the Level 1 epoch is needed, a leap flag off midnight, more than six CCS subsecond octets, an ASCII fraction of 0 or over 18 digits, and a T-field of the wrong length are refused | `the_documented_refusals`, `out_of_range_precisions_are_refused` | each refused |
+| Every CDS day of the 16-bit segment, 1958 to 2137, at three milliseconds, and 23:59:60.5 on each of the table's 27 leap-second days | `every_cds_day_round_trips` | every day in a release build; in a debug one every 97th, the last and the leap-second days |
+| The last microsecond of every day from 0001 to 9999 in CCS and ASCII, both variations, and 23:59:60.5 on each leap-second day | `every_day_round_trips` | every day in a release build; in a debug one every 997th, each year's first and last, and the leap-second days |
 
 Annex B3.2 gives 1958 January 1 as "Julian date 2436203.5", and the
 glossary repeats it. That Julian date is the start of 1957 December 31; the

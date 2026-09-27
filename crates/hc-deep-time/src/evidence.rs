@@ -21,7 +21,9 @@
 //! abstract prints 315 ± 34 ka without saying, and the full text was not
 //! read, so that `±` is kept in the description and the standard
 //! uncertainty is [`None`] rather than a guess. An age the source writes
-//! "about", "ca." or "Myr-old" is [`EvidenceAge::approximate`].
+//! "about", "approximately", "ca.", "~" or "Myr-old" is
+//! [`EvidenceAge::approximate`]; one written as a plain figure, "at least
+//! 3,770 million", "more than 3700 million", is not.
 //!
 //! Where two claims compete for one landmark, or a claim is disputed, each
 //! is its own entry under its own identifier ([policy §5]), with the
@@ -66,8 +68,8 @@ pub struct EvidenceAge {
     pub std_dev_years: Option<f64>,
     /// How many significant figures the source prints.
     pub figures: u8,
-    /// Whether the source writes the age as approximate: "about", "ca.",
-    /// "~", or a round "Myr-old".
+    /// Whether the source writes the age as approximate: "about",
+    /// "approximately", "ca.", "~", or a round "Myr-old".
     pub approximate: bool,
 }
 
@@ -253,7 +255,7 @@ hc_core::catalogue! {
                           Isua paper counts such signatures among the 'debated' ones.",
             source: "Rosing, Science 283, 674 (1999), abstract",
             disputed_by: None,
-            dating: Dating::AtLeast(EvidenceAge::about(3.7e9, 2)),
+            dating: Dating::AtLeast(EvidenceAge::printed(3.7e9, 2)),
         };
 
         /// Stromatolites in 3,700-Myr-old Isua metacarbonates.
@@ -388,8 +390,8 @@ hc_core::catalogue! {
             description: "The tablets of writing phase Uruk IV, which 'derive without apparent \
                           exception from Uruk', the earliest proto-cuneiform, after the clay \
                           bullae and numerical tablets that preceded them; Englund dates the emergence \
-                          of proto-cuneiform 'ca. 3300 BC' and the following Uruk III tablets \
-                          ca. 3100-3000 BC. A historian's date from the archaeological sequence, \
+                          of proto-cuneiform 'ca. 3300 BC' (p. 26) and the following Uruk III \
+                          period 'ca. 3100-3000 BC' (p. 40). A historian's date from the archaeological sequence, \
                           not a measurement. A separate reading of the earliest writing from \
                           Abydos, with which it is not merged.",
             source: "Englund, 'Proto-Cuneiform Account-Books and Journals', in Hudson & Wunsch \

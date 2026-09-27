@@ -207,9 +207,13 @@ overflow and answers `HC_ERR_OUT_OF_RANGE` for all of them.
 
 Every entry point that answers with more than one value writes UTF-8 lines,
 one per entry, each ending in `\n`, with the cells of a line separated by
-`\t`, and the whole NUL-terminated like every other text here. The column
-orders are fixed and only ever grow at the end; a cell with nothing to say
-is empty, and no cell contains a tab or a line break. They are the same
+`\t`, and the whole NUL-terminated like every other text here. Before 1.0
+a line's columns may change — a column added at any position, removed or
+given another meaning — and the pull request that changes one lists the
+change under the entry point's name. A stable identifier is in column 1,
+or in column 2 after a column naming the kind of line, as the WebAssembly
+README states export by export. A cell with nothing to say is empty, and
+no cell contains a tab or a line break. They are the same
 lines the WebAssembly module writes, whose
 [README](../hyper-calendar-wasm/README.md) tabulates every column order,
 and the sections below name the differences at this boundary: strings in
@@ -857,7 +861,8 @@ weekday, and ask about leap seconds honestly; the other layers are features,
 above. Formatting is by template and only as wide as a locale's data: a
 locale that has stated none writes a date as its fields in order. Before
 1.0 the only stability promise is the status codes, whose meanings do not
-change, and the column orders, which only grow at the end.
+change; a line's columns may change, each change listed in the pull
+request that makes it.
 
 An entry point here has a twin of the same name in the WebAssembly module
 in [`hyper-calendar-wasm`](../hyper-calendar-wasm), except for those its

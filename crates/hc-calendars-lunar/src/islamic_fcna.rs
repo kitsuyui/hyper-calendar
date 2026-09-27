@@ -11,9 +11,12 @@
 //! angles are geocentric or topocentric, or where "somewhere" may be, and
 //! no reading this library tried reproduces the published months: the
 //! closest, the Unified Hijri Calendar's rule with geocentric angles, gives
-//! 306 of the 335 published first days (`docs/systems/unified-hijri.md`).
+//! 305 of the 335 published first days (`docs/systems/unified-hijri.md`).
 //! So this calendar is the **table**, like [`crate::islamic_umalqura`], and
-//! no computation stands in for it.
+//! no computation stands in for it. The table dates months only: the
+//! Council's Eid al-Aḍḥā is "the day after Yawm 'Arafah as determined by
+//! the Supreme Court of Saudi Arabia" (`fcna-calendar`), which can differ
+//! from the 10th of the table's Dhū al-Ḥijja, and is not carried.
 //!
 //! The Council's earlier rule, adopted on 10 June 2006, began a month at
 //! the sunset of the day on whose Greenwich noon the conjunction had

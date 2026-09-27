@@ -136,6 +136,8 @@ of the same measurement.
 | Equation of time, local apparent (sundial) time | **0.02 s** today, **0.6 s** in 587 BCE | JPL Horizons' apparent hour angle of the Sun at Greenwich on four days, 587 BCE to 2024; Meeus example 28.a, within 0.5 s |
 | Temporal hours | the sunrise and sunset's, **under a minute** over twelve | NAOJ 暦計算室, Tokyo, 2024-01-01 |
 | Edo hours (不定時法) | the dawn at 7°21′40″, **2 s** of the interval to the Sun's centre rising | こよみのページ, Kyoto, the equinoxes of 2020 |
+| Jewish times in temporal hours (zmanim), dawn and nightfall | **within the printed minute**: 48 times within 0.48 min | Hebcal's published zmanim, New York City 2025-01-01, Jerusalem 2025-06-21 and London 2025-03-20, sixteen times each, by the definitions of Hebcal's and KosherJava's `Zmanim` documentation; *chatzot* is not carried ([`docs/systems/hours-of-the-day.md`](../../docs/systems/hours-of-the-day.md)) |
+| Islamic prayer times, Singapore method | the published time the computed one or **up to 1.5 min** later; *ẓuhr* 0.5 to 2.5 min after the transit | MUIS's timetable for 2026, twelve days; the other ten methods checked only against their own angles ([`docs/systems/prayer-times.md`](../../docs/systems/prayer-times.md)) |
 | Heliocentric light-time correction | **0.1 s** of the correction on the J2000 frame, 1940–2100; the HJD itself is good only to 8 s as an inertial time | the IDL Astronomy Library's `helio_jd` comparison table, six objects |
 
 The era over which all of this holds is roughly **1000 BCE to 3000 CE**.

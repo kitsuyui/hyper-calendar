@@ -26,8 +26,8 @@
 //! where one was read. It is empty everywhere else — the future eras and
 //! events and the two `moment` lines have none — and nothing is translated
 //! here. The
-//! English columns stay what they were, so a page that shows the localised
-//! name falls back to the third column itself.
+//! English name is always in the third column, so a page that shows the
+//! localised name falls back to it itself.
 
 use alloc::string::String;
 use core::fmt::Write;

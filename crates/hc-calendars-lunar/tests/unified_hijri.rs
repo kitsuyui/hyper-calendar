@@ -54,20 +54,17 @@ fn differences(calendar: &IslamicGlobalCalendar, rows: &[(i64, u8, Rd)]) -> Vec<
         .collect()
 }
 
-/// Diyanet's lists against `islamic-istanbul-2016`: 171 of the 174 month
+/// Diyanet's lists against `islamic-istanbul-2016`: 172 of the 174 month
 /// starts of 1443–1457 AH. Dhū al-Qaʿda 1444 and Dhū al-Ḥijja 1453 begin a
-/// day earlier here; Rajab 1453 a day later, the evening of 16 October 2031
-/// meeting the parameters, by hundredths of a degree of elongation, only a
-/// little west of the line of places the calendar judges, among the
-/// Patagonian fjords.
+/// day earlier here.
 #[test]
-fn diyanet_s_published_months_are_reproduced_but_three() {
+fn diyanet_s_published_months_are_reproduced_but_two() {
     let rows = starts(DIYANET);
     assert_eq!(rows.len(), 174);
     hc_core::memo::scope(|| {
         assert_eq!(
             differences(&IslamicGlobalCalendar::ISTANBUL_2016, &rows),
-            [(1_444, 11, -1), (1_453, 7, 1), (1_453, 12, -1)]
+            [(1_444, 11, -1), (1_453, 12, -1)]
         );
     });
 }
@@ -122,7 +119,7 @@ fn the_fcna_table_is_the_councils_page() {
 }
 
 /// No computed rule stands in for the FCNA table: in a release build, the
-/// Unified Hijri rules date 30 (KHGT's, geocentric altitude) and 36
+/// Unified Hijri rules date 30 (KHGT's, geocentric altitude) and 35
 /// (Diyanet's, topocentric) of its 335 months otherwise.
 #[test]
 fn neither_unified_rule_reproduces_the_fcna_table() {
@@ -133,6 +130,6 @@ fn neither_unified_rule_reproduces_the_fcna_table() {
     hc_core::memo::scope(|| {
         let khgt = differences(&IslamicGlobalCalendar::KHGT, &rows).len();
         let istanbul = differences(&IslamicGlobalCalendar::ISTANBUL_2016, &rows).len();
-        assert_eq!((khgt, istanbul), (30, 36));
+        assert_eq!((khgt, istanbul), (30, 35));
     });
 }

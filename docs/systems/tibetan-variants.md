@@ -85,12 +85,14 @@ calendar … rather than the Tibetan" [janson2014, Appendix A.11]. Berzin's
 own page gives more: the doubled and omitted days are "calculated as in the
 Pugpa system, so that it is determined how many days there are in a month",
 the days are then "numbered consecutively", the months "always correspond
-in length and initial date with the Pugpa full tenet system months", and
-"if the month to be doubled works out to be the 11th, 12th or 1st month,
-the following 3rd month is doubled instead" [berzin-tibetan-calendar]. It
-does not say which month is the one to be doubled before that exception,
-and no yellow almanac was found to test a reading against, so it is not
-carried.
+in length and initial date with the Pugpa full tenet system months", and the doubled month "is
+calculated according to the Pugpa full tenet system rules", after which
+the classical Chinese calendar's rule applies: "if the month to be doubled
+works out to be the 11th, 12th or 1st month, the following 3rd month is
+doubled instead" [berzin-tibetan-calendar]. The page gives the same
+exception for the classical Chinese calendar itself. The rule is stated,
+but no yellow almanac was found to hold a reading of it to (docs/policy.md
+§7 asks for a published anchor), so it is not carried.
 
 ## How it works
 

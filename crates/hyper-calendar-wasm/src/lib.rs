@@ -62,8 +62,9 @@
 //!
 //! Every export that answers with more than one value writes UTF-8 lines
 //! ending in `\n`, one per entry, with the cells of a line separated by
-//! `\t`. The column order of each is fixed, stated on the export and in the
-//! README, and only ever grows at the end. A cell that has nothing to say is
+//! `\t`. The column order of each is stated on the export and in the
+//! README; before 1.0 it may change, and the pull request that changes it
+//! lists the change. A cell that has nothing to say is
 //! empty, never a placeholder, and a cell's text never contains a tab or a
 //! line break: the few source strings that do have them replaced by a
 //! space. Called with a null `buffer`, such an export returns the byte

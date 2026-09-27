@@ -161,12 +161,20 @@ tables; `hc_describe_day` one line per calendar.
 
 Every export that answers with more than one value writes UTF-8 lines, one
 per entry, each ending in `\n`, with the cells of a line separated by `\t`.
-The column order of each export is fixed, stated below and on the export,
-and only ever grows at the end, so a page that reads columns by position
-keeps working. A cell with nothing to say is empty, never a placeholder, and
-no cell contains a tab or a line break: the few source strings that carry
-one have it replaced by a space. Numbers are written in plain decimal
-notation, however large or small.
+The columns of each export are stated below and on the export. Before 1.0
+they are not frozen: a release may add a column at any position, remove one
+or change what one holds, and the pull request that does so lists each such
+change under the export's name. A page that reads columns by position reads
+them from this README's table of the same version, as the JavaScript
+wrapper does. Where a line names an entry that has a stable identifier, the
+identifier is in column 1 — a calendar's `id`, a locale's `tag`, a holiday
+table's `code` or `table`, a `zone`, a horizon's, a mission's, a body's, a
+gravitating body's `id`, an off-Earth `calendar` — or in column 2 after a
+column that says what kind of line it is: a deep-time line's `kind` and
+`id`, a renamed-month line's `state` and `period`. A cell with nothing to
+say is empty, never a placeholder, and no cell contains a tab or a line
+break: the few source strings that carry one have it replaced by a space.
+Numbers are written in plain decimal notation, however large or small.
 
 Called with a null `buffer`, such an export returns the byte length the text
 needs, so the caller can allocate exactly and call again; called with a
@@ -954,7 +962,7 @@ not ask for; else the locale asked for, with the calendar's own names from
 its shape. A named locale never borrows the calendar's own language. Only
 `native` asks for each calendar's own language first (`he` for the Hebrew
 calendar, `ar` for the Hijri, `zh-Hans` for the Chinese), then English, and
-the last column of every line names the locale data that answered. A tag that does not parse
+column 17 of every line names the locale data that answered. A tag that does not parse
 falls back to the root locale `und`, as `hc-i18n` does, whose month names
 are CLDR's `M01`..`M12` — ask for `en` for English. A null pointer with a
 zero length is `und` too.
@@ -1533,8 +1541,8 @@ once, and only for the months around the day. Measured on 2026-09-27 in
 the `release-compact` profile, one 2026 day across all 297 tables takes
 about 57 ms natively on 1 January, the costliest, and 37 ms on
 25 September, against 0.21 s for every table's whole year; in WebAssembly
-under Node 22, 137 ms and 88 ms. These were measured with 296 of the
-tables; the one since added is a fixed-date Roman calendar.
+under Node 22, 137 ms and 88 ms. These figures are for 296 of the 297
+tables, all but one, a fixed-date Roman calendar.
 
 ### The tables
 

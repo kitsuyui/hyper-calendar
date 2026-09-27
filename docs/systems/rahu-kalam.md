@@ -2,7 +2,9 @@
 
 Backs `hc-calendars-indic::kalam`. No calendar identifier is registered:
 these are periods of a day, not calendars. The two conventions are named
-`rahu-kalam-sunrise` and `rahu-kalam-fixed` here and in the roadmap.
+by their functions, `kalam::by_sunrise` and `kalam::by_fixed_day`
+([policy.md](../policy.md) §5); no string identifier is registered for
+either.
 
 ## What it is
 
@@ -35,11 +37,11 @@ never share a part.
 
 There are two readings of "the day", and they give different times:
 
-- **Sunrise to sunset at the place** (`rahu-kalam-sunrise`). Drik Panchang
+- **Sunrise to sunset at the place** (`by_sunrise`). Drik Panchang
   calls this the *Yamardha* method, an eighth of the daytime, and says it
   is the most common of several [drik-rahu-kalam]. The parts are longer in
   summer and shorter in winter, and they differ from town to town.
-- **06:00 to 18:00 of the clock** (`rahu-kalam-fixed`). Every part is an
+- **06:00 to 18:00 of the clock** (`by_fixed_day`). Every part is an
   hour and a half, so the times are the same every day of the year and in
   every place. Wikipedia states the rule this way [wikipedia-rahukaalam],
   and temple tables print it, saying that the real times move "by a few
@@ -59,11 +61,11 @@ the same Wednesday's Rāhu kālam is 06:00 + 4 × 1.5 h = 12:00 to 13:30.
 - `Kalam`, a table of the three periods with the part each takes on each
   weekday: `Kalam::RAHU`, `Kalam::YAMAGANDA` and `Kalam::GULIKA`, with the
   identifiers `rahu-kalam`, `yamaganda` and `gulika-kalam`.
-- `by_sunrise` (`rahu-kalam-sunrise`): the period on a local day at a
+- `by_sunrise`: the period on a local day at a
   place, in Universal Time, from `hc-astro`'s sunrise and sunset. Where the
   Sun does not rise or set that day it returns `MissingSolarEvent` rather
   than a time: there is no daylight to divide.
-- `by_fixed_day` (`rahu-kalam-fixed`): the period on a day as two readings
+- `by_fixed_day`: the period on a day as two readings
   of the local clock. The zone is the caller's, since the rule is stated in
   clock time.
 

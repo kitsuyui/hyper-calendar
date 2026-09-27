@@ -327,9 +327,11 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
 * The Korea Astronomy and Space Science Institute's 월력요항, the
   Observatory's よくある質問 3-10, *The Old Farmer's Almanac*,
   MeteoSchweiz and the kalendars of the 1552, 1559 and 1662 Books of Common
-  Prayer, for `cold_food`, 伝統的七夕 and `dog_days`; they are listed
-  in [`docs/systems/solar-term-counts.md`](../../docs/systems/solar-term-counts.md)
-  and the module pages.
+  Prayer, for `cold_food`, 伝統的七夕 and `dog_days`. Those of `cold_food`
+  and 伝統的七夕 are listed in
+  [`docs/systems/solar-term-counts.md`](../../docs/systems/solar-term-counts.md);
+  those of the dog days, in `dog_days.rs`'s module documentation and the
+  dog-day row of [`docs/calendars.md`](../../docs/calendars.md).
 
 ## Testing
 

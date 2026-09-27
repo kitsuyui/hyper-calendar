@@ -483,14 +483,12 @@ mod tests {
         );
     }
 
-    /// A sample of minutes from 2000 to 2099, both zones, both ways.
+    /// Five minutes of every day of 2000–2099, both zones, both ways:
+    /// every day in a release build; every 89th and every month's first
+    /// and last in a debug one.
     #[test]
     fn every_code_round_trips() {
-        let step = if cfg!(debug_assertions) { 89 } else { 5 };
-        let first = gregorian::to_fixed(2000, 1, 1).expect("exists").0;
-        let last = gregorian::to_fixed(2099, 12, 31).expect("exists").0;
-        let mut day = first;
-        while day <= last {
+        for day in crate::radio::sweep_days_2000_to_2099(89) {
             for (hour, minute_of_hour) in [(0, 0), (1, 0), (2, 0), (13, 37), (23, 59)] {
                 for zone in [Zone::Cet, Zone::Cest] {
                     let reading = CivilDateTime::new(
@@ -504,7 +502,6 @@ mod tests {
                     assert_eq!(back.reading(2000), Ok(reading));
                 }
             }
-            day += step;
         }
     }
 }

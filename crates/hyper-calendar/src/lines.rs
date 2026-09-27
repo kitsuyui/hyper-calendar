@@ -2,8 +2,9 @@
 //! about calendars, written once.
 //!
 //! Both boundary crates answer with UTF-8 lines ending in `\n`, cells
-//! separated by `\t`, one fixed column order per export that only ever
-//! grows at the end. The text is the same at both boundaries and differs
+//! separated by `\t`, one column order per export, stated in the
+//! WebAssembly README; before 1.0 an order may change, each change listed
+//! in the pull request that makes it. The text is the same at both boundaries and differs
 //! only in how it crosses — a length and a sentinel there, a NUL and a
 //! status code here — so the lines are made in one place, this module,
 //! and each boundary does its own marshalling. A cell never contains a tab

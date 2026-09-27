@@ -38,10 +38,10 @@
 //!
 //! Every entry point that answers with more than one value writes UTF-8
 //! lines ending in `\n`, one per entry, with the cells of a line separated
-//! by `\t`, NUL-terminated as a whole. The column order of each is fixed,
-//! stated on the entry point and in the README, and only ever grows at the
-//! end; a cell with nothing to say is empty, and no cell contains a tab or
-//! a line break. The lines are the same lines the WebAssembly module
+//! by `\t`, NUL-terminated as a whole. The column order of each is stated
+//! on the entry point and in the README; before 1.0 it may change, and the
+//! pull request that changes it lists the change. A cell with nothing to
+//! say is empty, and no cell contains a tab or a line break. The lines are the same lines the WebAssembly module
 //! writes.
 //!
 //! # Layers

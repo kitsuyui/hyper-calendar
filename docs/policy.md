@@ -135,6 +135,22 @@ named conventions — an observation meridian, a location, a published
 uncertainty series — a parameter is correct, because there is no finite set of
 names to enumerate.
 
+### Where a function is the name
+
+Some conventions are not calendars or table entries but ways of computing
+one time of day: the Jewish temporal hours by the GRA or the MGA, the Edo
+dawn by the 寛政暦's angle or the Observatory's, Rāhu kālam over the
+daylight or over a fixed day. Where nothing looks such a convention up by
+a string, the name is a function's — `zman_gra` and `zman_mga_72_minutes`,
+`japanese_dawn_kansei` and `japanese_dawn_naoj`, `kalam::by_sunrise` and
+`kalam::by_fixed_day` — one function per convention, each with its own
+documentation and test anchor. A function cannot be chosen by accident
+either, and it is as discoverable in the documentation as an entry is in a
+registry. No string identifier is registered for these, and the roadmap
+writes "—" and names the functions. A convention a caller selects by
+string, such as a prayer method or a six-hour reckoning, is a table entry
+with an identifier.
+
 ### Where the list itself is open
 
 A short list of named conventions is still not an `enum` when the world can
@@ -172,7 +188,12 @@ Gregorian dates and nothing else.
   too: every k-th year and the last, with k prime to the cycle the years
   run in, so that the sample still holds each kind of boundary the test is
   about, leap and common years and the exceptions. The published anchors
-  are checked in full in both.
+  are checked in full in both. A calendar that is another renamed — the
+  same days under a year shifted by a constant and another era, as the
+  Arsacid era is the Babylonian calendar's — rests on the other's
+  every-day sweep: its own tests check the range at both ends, every year
+  boundary, and the renaming on a sample of days, since walking every day
+  again would repeat the other's computation and test nothing new.
 - Every algorithm is anchored to at least one independently published
   reference value, cited in a comment.
 - Boundaries are tested explicitly: epochs, calendar reforms, leap days, leap

@@ -856,6 +856,68 @@ mod tests {
         }
     }
 
+    /// The last microsecond of every day from 0001 to 9999 round-trips in
+    /// CCS, both variations, and in ASCII A and B: every day in a release
+    /// build; in a debug one every 997th, every year's first and last, and
+    /// every day that ends in an inserted leap second, whose 23:59:60.5
+    /// round-trips too (docs/policy.md §7).
+    #[test]
+    fn every_day_round_trips() {
+        let unix_day = |year: i64, month: u8, day: u8| {
+            gregorian::to_fixed(year, month, day).expect("exists").0
+                - gregorian::to_fixed(1970, 1, 1).expect("exists").0
+        };
+        let (first, last) = (unix_day(1, 1, 1), unix_day(9999, 12, 31));
+        let leap_days: alloc::vec::Vec<i64> = hc_core::leap::steps()
+            .filter(|(_, delta)| *delta > 0)
+            .map(|(at, _)| at.div_euclid(86_400) - 1)
+            .collect();
+        let debug = cfg!(debug_assertions);
+        let mut days: alloc::vec::Vec<i64> = (first..=last)
+            .step_by(if debug { 997 } else { 1 })
+            .collect();
+        if debug {
+            for year in 1..=9999 {
+                days.extend([unix_day(year, 1, 1), unix_day(year, 12, 31)]);
+            }
+            days.extend(leap_days.iter().copied());
+            days.sort_unstable();
+            days.dedup();
+        }
+        let formats =
+            [CcsVariation::MonthOfYear, CcsVariation::DayOfYear].map(|variation| CcsFormat {
+                variation,
+                subsecond_octets: 3,
+            });
+        let check = |utc: UtcInstant| {
+            for format in formats {
+                let code = CcsTime::from_utc_instant(format, utc).expect("in range");
+                let bytes = code.encode(true).expect("fits");
+                assert_eq!(decode(bytes.as_slice()), Ok(CcsdsCode::Ccs(code)));
+                assert_eq!(code.to_utc_instant(), Ok(utc), "{utc:?}");
+            }
+            for variation in [AsciiVariation::A, AsciiVariation::B] {
+                let code =
+                    AsciiTime::from_utc_instant(utc, variation, AsciiPrecision::Fraction(6), true)
+                        .expect("in range");
+                assert_eq!(parse(&code.to_string()), Ok(code));
+                assert_eq!(code.to_utc_instant(), Ok(utc), "{utc:?}");
+            }
+        };
+        for day in days {
+            check(UtcInstant::from_unix(
+                UnixTime::new(day * 86_400 + 86_399, 999_999_000_000_000_000).expect("valid"),
+            ));
+            if leap_days.contains(&day) {
+                check(UtcInstant {
+                    unix_seconds: (day + 1) * 86_400,
+                    leap_second: true,
+                    subsec_attos: 500_000_000_000_000_000,
+                });
+            }
+        }
+    }
+
     /// Every resolution and both variations, both ways, over a sample of
     /// instants from 0001 to 9999.
     #[test]

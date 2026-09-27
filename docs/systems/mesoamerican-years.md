@@ -197,8 +197,9 @@ month, Tecuilhuitontli [caso1956, p. 494]. Caso is careful about one
 point: the Codex Nuttall does not settle whether a Mixtec year began on the
 day that names it, but if the two Reed-year days fall in one month, "el año
 mixteco no pudo principiar por el día de su nombre" [caso1956, p. 495].
-The reconstruction here has it begin 364 days after the naming day of the
-year before, not on its own.
+The reconstruction here names a year by its 360th day, the last of its
+last month, and begins the next year six days after it, after the five
+*nemontemi*: a year does not begin on its own naming day.
 
 ## What is carried
 
