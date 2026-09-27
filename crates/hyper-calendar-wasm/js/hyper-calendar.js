@@ -114,6 +114,7 @@ export const METHODS = Object.freeze([
   { method: "asianDay", export: "hc_asian_day", feature: "calendars" },
   { method: "kalam", export: "hc_kalam", feature: "calendars" },
   { method: "almanacCycles", export: "hc_almanac_cycles", feature: "calendars" },
+  { method: "almanacDay", export: "hc_almanac_day", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
@@ -298,7 +299,9 @@ export const COLUMNS = Object.freeze({
     "calendar", "year", "month", "day", "month name", "week name", "count", "fraction", "leap",
     "source",
   ]),
-  horizons: Object.freeze(["id", "english name", "description", "source", "short name"]),
+  horizons: Object.freeze([
+    "id", "english name", "description", "source", "short name", "name", "locale used",
+  ]),
   solarCrossing: Object.freeze(["instant", "missing", "missing day", "depression", "altitude"]),
   hinduLunarDate: Object.freeze([
     "saka year", "vikrama year", "month", "leap month", "tithi", "leap day", "sunrise",
@@ -344,6 +347,9 @@ export const COLUMNS = Object.freeze({
   almanacCycles: Object.freeze([
     "eho", "eho romaji", "azimuth", "sixteen-point", "direction", "period", "period name", "era",
     "star", "ruler", "first year", "last year", "without son",
+  ]),
+  almanacDay: Object.freeze([
+    "kind", "id", "name", "locale used", "japanese", "reading", "auspicious", "printed",
   ]),
   orthodoxFast: Object.freeze(["fast day", "status", "period", "period name", "kind", "abstinence"]),
   orthodoxFastSeasons: Object.freeze(["id", "english name", "kind", "first", "last"]),
@@ -1426,8 +1432,11 @@ function solarEvent(cells) {
  * @returns {import("./hyper-calendar.d.ts").Horizon}
  */
 function horizonLine(cells) {
-  const [id, englishName, description, source, shortName] = cells;
-  return { id, englishName, description, source, shortName };
+  const [id, englishName, description, source, shortName, name, localeUsed] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").HorizonId} */ (id),
+    englishName, description, source, shortName, name, localeUsed,
+  };
 }
 
 /**
@@ -1938,6 +1947,26 @@ function almanacCycles(cells) {
     firstYear: integer(firstYear, "first year"),
     lastYear: integer(lastYear, "last year"),
     withoutSon: withoutSon === "" ? null : flag(withoutSon, "without son"),
+  };
+}
+
+/**
+ * One line of `hc_almanac_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AlmanacAnnotation}
+ */
+function almanacAnnotation(cells) {
+  const [kind, id, name, localeUsed, japanese, reading, auspicious, printed] = cells;
+  return {
+    kind: /** @type {import("./hyper-calendar.d.ts").AlmanacKind} */ (kind),
+    id,
+    name,
+    localeUsed,
+    japanese,
+    reading: optional(reading),
+    auspicious: auspicious === "" ? null : flag(auspicious, "auspicious"),
+    printed: printed === "" ? null : flag(printed, "printed"),
   };
 }
 
@@ -3837,13 +3866,16 @@ export class HyperCalendar {
   }
 
   /**
-   * Every named horizon a rising or a setting can be measured against.
+   * Every named horizon a rising or a setting can be measured against,
+   * named in a locale where an observatory or almanac office names it.
    *
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").Horizon[]}
    */
-  horizons() {
+  horizons(locale = "und") {
     const fn = this.#export("hc_horizons");
-    const text = this.#text("hc_horizons", (buffer, capacity) => fn(buffer, capacity), true);
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_horizons", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.horizons, "hc_horizons").map(horizonLine);
   }
 
@@ -4281,6 +4313,25 @@ export class HyperCalendar {
     const text = this.#withText(meridian, "meridian", (pointer, len) =>
       this.#text("hc_almanac_cycles", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
     return almanacCycles(this.#oneLine("hc_almanac_cycles", text, COLUMNS.almanacCycles));
+  }
+
+  /**
+   * The almanac's annotations of a day, 干支 to the 選日, each named in a
+   * locale.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [meridian]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").AlmanacAnnotation[]}
+   */
+  almanacDay(fixed, meridian = "", locale = "und") {
+    const fn = this.#export("hc_almanac_day");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_almanac_day", (buffer, capacity) =>
+          fn(day, meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.almanacDay, "hc_almanac_day").map(almanacAnnotation);
   }
 
   /**

@@ -93,8 +93,9 @@ regional = ["lunar", "dep:hc-calendars-regional"]
 astro = ["civil", "dep:hc-astro"]
 # The 24 solar terms, 72 pentads and zassetsu.
 seasons = ["astro", "dep:hc-seasons"]
-# The almanac annotations: mansions, nine stars, directs, selected days.
-almanac = ["seasons", "lunar", "dep:hc-almanac"]
+# The almanac annotations: mansions, nine stars, directs, selected days,
+# named in a locale by hc-i18n.
+almanac = ["seasons", "lunar", "i18n", "dep:hc-almanac"]
 # Fiscal, tax and academic years.
 fiscal = ["civil", "dep:hc-fiscal"]
 # Birthstones, birth flowers, moon names and traditional month names.

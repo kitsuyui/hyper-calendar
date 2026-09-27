@@ -78,6 +78,27 @@ test("every export has one method with the export's feature, and no method an ex
   assert.equal(Number(stated[1]), METHODS.length);
 });
 
+test("the JavaScript method table has a row for every method, each with its export", () => {
+  const start = README.indexOf("| Method | Export | Answers with |");
+  assert.ok(start >= 0, "the method table");
+  const rows = README.slice(start).split("\n\n")[0].split("\n").slice(2);
+  /** @type {Map<string, string[]>} */
+  const listed = new Map();
+  for (const row of rows) {
+    const [methods, exports] = row.slice(1, -1).split(" | ");
+    const names = [...methods.matchAll(/`(\w+)\(/g)].map((match) => match[1]);
+    const exported = [...exports.matchAll(/`(hc_\w+)`/g)].map((match) => match[1]);
+    for (const name of names) {
+      listed.set(name, exported);
+    }
+  }
+  const missing = METHODS.filter((entry) => !listed.has(entry.method)).map((entry) => entry.method);
+  assert.deepEqual(missing, [], "methods the table lacks");
+  for (const entry of METHODS) {
+    assert.ok(listed.get(entry.method)?.includes(entry.export), `${entry.method}: ${entry.export}`);
+  }
+});
+
 test("the sentinels are the README's, value by value", () => {
   const rows = tableAfter("### Error sentinels").slice(2);
   const named = rows
@@ -266,6 +287,7 @@ test("the time codes and clock readings read the README's columns in order", () 
 test("the parts of a day, the cycles and the fasts read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.kalam], columnsAfter("### Rāhu kālam, Yamaganda and Gulika kālam"));
   assert.deepEqual([...COLUMNS.almanacCycles], columnsAfter("### The almanac's cycles"));
+  assert.deepEqual([...COLUMNS.almanacDay], columnsAfter("### The almanac's day"));
   assert.deepEqual([...COLUMNS.orthodoxFast], columnsAfter("### The Orthodox fasts"));
   // The seasons' line is stated in prose: columns 3 to 5 above, then the two days.
   assert.match(README, /the identifier, the English name and the\s+kind of columns 3 to 5 above, then the first and last days/);

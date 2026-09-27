@@ -638,7 +638,7 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `regional` | lunar, hc-calendars-regional |
 | `astro` | civil, hc-astro |
 | `seasons` | astro, hc-seasons |
-| `almanac` | seasons, lunar, hc-almanac |
+| `almanac` | seasons, lunar, i18n, hc-almanac |
 | `fiscal` | civil, hc-fiscal |
 | `attributes` | seasons, hc-attributes |
 | `name-days` | civil, hc-name-days |

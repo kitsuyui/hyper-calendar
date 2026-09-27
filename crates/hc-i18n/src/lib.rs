@@ -29,8 +29,12 @@
 //! * [`plural`] — CLDR cardinal plural categories for 30 languages.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
 //!   vocabulary, keyed by locale, calendar, width and context.
+//! * [`almanac`] — what a locale calls the Japanese almanac's annotations,
+//!   六曜 to the 選日.
 //! * [`dated`] — month and weekday names a government gave for a period,
 //!   with the days they were in force: Turkmenistan's of 2002–2008.
+//! * [`horizons`] — what a locale calls a horizon a rising is measured
+//!   against, where an observatory or almanac office names it.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -56,6 +60,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+pub mod almanac;
 pub mod casing;
 pub mod data;
 pub mod dated;
@@ -63,6 +68,7 @@ pub mod direction;
 pub mod error;
 #[cfg(feature = "exemplar-cities")]
 pub mod exemplar_cities;
+pub mod horizons;
 pub mod locale;
 pub mod names;
 pub mod numbering;

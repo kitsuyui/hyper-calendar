@@ -163,24 +163,23 @@ fn push_flag(out: &mut String, flag: bool) {
     out.push(if flag { '1' } else { '0' });
 }
 
-/// The era's name for a column that is empty when nobody has one: the
-/// locale's, else the calendar's own; never the bare code, which has a
-/// column of its own.
+/// The era's name for a column that is empty when nobody has one, by
+/// [`names::era_label`]'s rule, the one the formatted date follows: the
+/// locale's, else the calendar's own, else English's; never the bare code,
+/// which has a column of its own.
 pub(crate) fn era_label_or_empty(
     locale: &Locale,
     calendar: &dyn DynCalendar,
     code: &str,
 ) -> &'static str {
-    let id = calendar.meta().id;
-    names::era_name_by_code(locale, id, code, NameWidth::Wide).unwrap_or_else(|| {
-        calendar.era_name(code).map_or("", |own| {
-            if names::is_latin_script(locale) {
-                own.latin()
-            } else {
-                own.native
-            }
-        })
-    })
+    names::era_label(
+        locale,
+        calendar.meta().id,
+        code,
+        calendar.era_name(code),
+        NameWidth::Wide,
+    )
+    .unwrap_or("")
 }
 
 /// The month's name in the locale, else the calendar's own, else nothing:

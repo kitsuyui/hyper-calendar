@@ -179,6 +179,27 @@ state; the per-mansion lists of undertakings, on which publishers diverge;
 納音, so neither per-person form above can be computed; 臘日; the mansion the
 Moon is actually in. The crate README lists these gaps.
 
+**At the boundaries.** `hc_almanac_day` writes a day's page, one note a
+line, from `day_notes`: the sexagenary day, 十二直, 二十八宿 and 二十七宿,
+the three 九星, 六曜, and every lower-register note, 選日 and combination
+that falls, each with the Japanese name, the Hepburn reading, the verdict
+and, for the lower register, whether 受死日 or 十死日 suppresses it in
+print. The names in a locale are `hc_i18n::almanac`'s: Japanese, which the
+names were compared with on 2026-09-27 against the 暦Wiki pages 十二直 and
+星宿 [nao-rekiwiki-junichoku, nao-rekiwiki-28shuku] and the National Diet
+Library's 六曜, 下段 and その他 [ndl-koyomi-rokuyo, ndl-koyomi-gedan,
+ndl-koyomi-sonota] — which agree but for 狼藉日, written 狼籍日 on the
+Library's page — and English, which writes the notes in their
+romanisation, as English Wikipedia's "Rokuyō" does [wikipedia-rokuyo],
+and the mansions by the asterisms' English names [wikipedia-twenty-eight-mansions].
+No other language's names were read, so none is carried. The worked
+example's day is the export's anchor too: arachne.jp's 2025 calendar
+prints 赤口, 一粒万倍 and 天赦日 against 21 December 2025
+[arachne-taian-2025-12], and マイナビニュース names 甲子 and 天恩日 on it as
+well [mynavi-2025-12-21], which is the day's page as `hc_almanac_day`
+writes it. 七曜 is not written: it is the weekday, which every locale's
+data already names.
+
 ## Accuracy
 
 The rules are exact arithmetic on the day count, the 節月 and the 旧暦 date;
@@ -262,6 +283,11 @@ Japanese 旧暦 on 89 days, all from 25 August to 21 November 2033; 六曜,
 | [linderabell-kuenichi] | The 貞享暦 凶会日 「節切りの月毎」 | Yes, 2026-09-26 |
 | [kotobank-gomunichi] | 精選版日本国語大辞典's 五墓日 | Yes, 2026-09-26 |
 | [kotobank-kuenichi] | 精選版日本国語大辞典's 凶会日, with 旧暦正月 庚戌・辛卯・甲寅 | Yes, 2026-09-26 |
+| [nao-rekiwiki-junichoku], [nao-rekiwiki-28shuku], [ndl-koyomi-rokuyo], [ndl-koyomi-gedan], [ndl-koyomi-sonota] | Again, for `hc_i18n::almanac`: the Japanese names of the 十二直, the 28 mansions, 六曜, sixteen 下段 notes and the 選日 | Yes, 2026-09-27 |
+| [wikipedia-rokuyo] | English writing the six days in romanisation, Senshō to Shakkō | Yes, 2026-09-27 |
+| [wikipedia-twenty-eight-mansions] | The asterisms' English names, Horn to Chariot | Yes, 2026-09-27 |
+| [arachne-taian-2025-12] | 赤口, 一粒万倍 and 天赦日 on 21 December 2025 | Yes, 2026-09-27 |
+| [mynavi-2025-12-21] | 一粒万倍日, 天赦日, 甲子 and 天恩日 on 21 December 2025 | Yes, 2026-09-27 |
 | [okada-akune1993] | The rule tables at the root of Japanese Wikipedia's and こよみのページ's | Not read; its record from CiNii Books, 2026-09-26 |
 | [okada-kyureki-dokuhon] | Named by こよみのページ as a basis of its rules | Not read |
 
@@ -302,3 +328,11 @@ Anchors:
 `the_last_thirty_days_of_a_leap_period_count_the_other_way` (九星);
 `the_twenty_first_of_december_2025_carries_the_strongest_combination`
 (`day_notes`, the worked example's day).
+
+The lines are `crates/hyper-calendar/src/almanac_lines.rs`'s
+`almanac_day_lines`, anchored by
+`the_twenty_first_of_december_2025_is_written_as_the_almanacs_print_it` and
+`every_line_is_named_and_every_cycle_written`; the names are
+`crates/hc-i18n/src/almanac.rs`, held to `hc-almanac` by
+`the_almanac_vocabulary_names_what_hc_almanac_computes` in
+`crates/hyper-calendar/tests/vocabulary.rs`.

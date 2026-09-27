@@ -214,6 +214,39 @@ export interface AlmanacCycles {
   withoutSon: boolean | null;
 }
 
+/** What an `hc_almanac_day` line is about. */
+export type AlmanacKind =
+  | "sexagenary"
+  | "twelve-direct"
+  | "mansion"
+  | "mansion-27"
+  | "year-star"
+  | "month-star"
+  | "day-star"
+  | "rokuyo"
+  | "lower-register"
+  | "selected-day"
+  | "combination";
+
+/** One line of `hc_almanac_day`. */
+export interface AlmanacAnnotation {
+  kind: AlmanacKind;
+  /** The 1-based position in the cycle, `"6"` for 赤口, or the entry's identifier, `tenshanichi`. */
+  id: string;
+  /** The name in the locale: 赤口 under `ja`, `shakkō` under `en`. */
+  name: string;
+  /** The tag of the data that named it: `ja`, `en`, or `zh-Hant` for a sexagenary day. */
+  localeUsed: string;
+  /** The Japanese name the almanac prints. */
+  japanese: string;
+  /** The Hepburn reading; `null` for a combination, which has none. */
+  reading: string | null;
+  /** Whether the almanac counts the day auspicious; `null` where it gives no verdict. */
+  auspicious: boolean | null;
+  /** For the 暦注下段, whether an almanac prints the entry; `null` for every other kind. */
+  printed: boolean | null;
+}
+
 /** A reckoning of the Orthodox fasts. */
 export type OrthodoxFastReckoning = "orthodox-fasts" | "orthodox-fasts-revised-julian";
 
@@ -396,6 +429,7 @@ export const COLUMNS: {
   readonly sixHourClock: ReadonlyArray<string>;
   readonly kalam: ReadonlyArray<string>;
   readonly almanacCycles: ReadonlyArray<string>;
+  readonly almanacDay: ReadonlyArray<string>;
   readonly orthodoxFast: ReadonlyArray<string>;
   readonly orthodoxFastSeasons: ReadonlyArray<string>;
   readonly prayerTimes: ReadonlyArray<string>;
@@ -1321,6 +1355,10 @@ export interface Horizon {
   source: string;
   /** A short English name for a label: `geometric dip`, `USNO`, `Calendrical Calculations`. */
   shortName: string;
+  /** The name in the locale, where an observatory or almanac office gives one; else `englishName`. */
+  name: string;
+  /** The tag of the data that named it: `zh-Hant`, `fr`, or `en` for the English name. */
+  localeUsed: string;
 }
 
 /** The one line of `hc_sunrise` or `hc_sunset`. */
@@ -1354,9 +1392,9 @@ export interface HinduLunarDate {
   monthName: string | null;
   /** The locale's word for an intercalary month, `Adhika` or अधिक, where this month is one; else `null`. */
   leapMonthWord: string | null;
-  /** The Śaka era's name in the locale, `Saka` or शक; `null` where the locale has none, as in Sanskrit. */
+  /** The Śaka era's name in the locale, शक under `hi`, else English's `Saka`, as in Sanskrit. */
   sakaEra: string | null;
-  /** The Vikrama Saṃvat's name in the locale, `Vikrama Samvat`; `null` where the locale has none. */
+  /** The Vikrama Saṃvat's name in the locale, else English's `Vikrama Samvat`. */
   vikramaEra: string | null;
   /** The tag of the data that named the month: `en`, `hi`, `sa`. */
   localeUsed: string;
@@ -1718,6 +1756,8 @@ export class HyperCalendar {
   kalam(convention: KalamConvention, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): KalamPeriod[];
   /** `hc_almanac_cycles`: 立春 at `meridian`, as for `termInEffect`. */
   almanacCycles(fixed: number | bigint, meridian?: string): AlmanacCycles;
+  /** `hc_almanac_day`: the solar terms and new moons at `meridian`; `und` unless a locale is given. */
+  almanacDay(fixed: number | bigint, meridian?: string, locale?: string): AlmanacAnnotation[];
 
   /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
@@ -1800,8 +1840,8 @@ export class HyperCalendar {
   solarTime(clock: SolarClock, unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): SolarTime;
   /** `hc_solar_event`. */
   solarEvent(event: SolarEventName, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarEvent;
-  /** `hc_horizons`. */
-  horizons(): Horizon[];
+  /** `hc_horizons`; `und`, which names every horizon in English, unless a locale is given. */
+  horizons(locale?: string): Horizon[];
   /** `hc_sunrise`; a missing sunrise is an answer, not an error. */
   sunrise(horizon: HorizonId, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): SolarCrossing;
   /** `hc_sunset`. */

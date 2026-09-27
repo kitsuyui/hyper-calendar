@@ -2715,7 +2715,7 @@ mod day_periods {
 
     use hc::{almanac_lines, astro_lines, panchanga_lines};
 
-    use super::{HcStatus, name, write_answer};
+    use super::{HcStatus, name, text, write_answer};
 
     /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
     /// NUL-terminated UTF-8 lines in a caller-owned buffer.
@@ -2786,10 +2786,55 @@ mod day_periods {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// The almanac's annotations of a fixed day, 干支 to the 選日, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer, one an
+    /// annotation, each named in a locale.
+    ///
+    /// The lines are the WebAssembly module's: the kind, the identifier,
+    /// the name in the `locale` and the tag of the data that named it, the
+    /// Japanese name the almanac prints, its Hepburn reading, whether the
+    /// almanac counts the day auspicious, and for the 暦注下段 whether it
+    /// prints the entry. `meridian` is as for `hc_almanac_cycles`; null is
+    /// `HC_ERROR_NULL_POINTER` and a meridian not read `HC_ERROR_UNKNOWN`.
+    /// `locale` is a NUL-terminated BCP 47 tag, `native` for the almanac's
+    /// own language, Japanese, or null, as for `hc_describe_day`; one that
+    /// is not UTF-8 is `HC_ERROR_NOT_UTF8`. A day outside the years −1000
+    /// to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` and `locale` must be null or NUL-terminated; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_almanac_day(
+        fixed: i64,
+        meridian: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { name(meridian) } {
+            Ok(meridian) => meridian,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let answer = almanac_lines::almanac_day_lines(fixed, meridian, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
 }
 
 #[cfg(feature = "calendars")]
-pub use day_periods::{hc_almanac_cycles, hc_kalam};
+pub use day_periods::{hc_almanac_cycles, hc_almanac_day, hc_kalam};
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
@@ -4299,7 +4344,7 @@ mod earth_and_sun {
 
     use hc::astro_lines;
 
-    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, text, write_answer};
 
     /// One number through an out-parameter.
     ///
@@ -4325,20 +4370,30 @@ mod earth_and_sun {
     ///
     /// The lines are the WebAssembly module's, one per horizon: the
     /// identifier, the English name, what it takes the visible horizon to
-    /// be, the source, and a short English name for a label. Writes the
-    /// required length, including the terminator, into `written`.
+    /// be, the source, a short English name for a label, the name in the
+    /// `locale` and the tag of the data that named it, the English name
+    /// with `en` where the locale has none. `locale` is a NUL-terminated
+    /// BCP 47 tag or null, as for `hc_describe_day`; one that is not UTF-8
+    /// is `HC_ERROR_NOT_UTF8`. Writes the required length, including the
+    /// terminator, into `written`.
     ///
     /// # Safety
     ///
-    /// `buffer` must be writable for `capacity` bytes and `written` must be
-    /// null or writable.
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_horizons(
+        locale: *const c_char,
         buffer: *mut c_char,
         capacity: usize,
         written: *mut usize,
     ) -> HcStatus {
-        let answer = Ok(astro_lines::horizons_lines());
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        let answer = Ok(astro_lines::horizons_lines(tag));
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
@@ -8286,9 +8341,14 @@ mod tests {
         #[test]
         fn the_horizons_are_the_modules_and_the_usnos_rises_on_its_minute() {
             let text = read_lines(|buffer, capacity, written| unsafe {
-                hc_horizons(buffer, capacity, written)
+                hc_horizons(c"zh-TW".as_ptr(), buffer, capacity, written)
             });
-            assert_eq!(text, hc::astro_lines::horizons_lines());
+            assert_eq!(text, hc::astro_lines::horizons_lines("zh-TW"));
+            assert!(text.contains("\t美國海軍天文氣象台\tzh-Hant\n"), "{text}");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_horizons(core::ptr::null(), buffer, capacity, written)
+            });
+            assert_eq!(text, hc::astro_lines::horizons_lines("en"));
             let mut day = 0i64;
             assert_eq!(
                 unsafe { hc_gregorian_to_fixed(2024, 1, 1, &mut day) },
@@ -8944,6 +9004,43 @@ mod tests {
                 hc_almanac_cycles(setsubun, c"japan".as_ptr(), buffer, capacity, written)
             });
             assert!(text.starts_with("丙\thinoe\t165\t"), "{text}");
+            // 21 December 2025, 赤口 with 天赦日 (`arachne-taian-2025-12`).
+            let day = 739_606;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_almanac_day(
+                    day,
+                    c"japan".as_ptr(),
+                    c"ja".as_ptr(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(text.contains("\nrokuyo\t6\t赤口\tja\t"), "{text}");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_almanac_day(
+                    day,
+                    c"japan".as_ptr(),
+                    core::ptr::null(),
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(text.contains("\nrokuyo\t6\tshakkō\ten\t"), "{text}");
+            assert_eq!(
+                unsafe {
+                    hc_almanac_day(
+                        day,
+                        core::ptr::null(),
+                        c"ja".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        core::ptr::null_mut(),
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
         }
     }
 

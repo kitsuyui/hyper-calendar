@@ -6412,6 +6412,22 @@ pub static LOCALES: &[LocaleData] = &[
     NAH, NE, NL, PL, PS, PT, RU, SA, SYR, TA, TH, TR, VI, YUA, ZAP, ZGH, ZH_HANS, ZH_HANT,
 ];
 
+/// Eras more than one calendar counts, each with the one calendar whose
+/// vocabulary names the era for all of them, for
+/// [`crate::names::era_name_by_code`].
+///
+/// An era code names one era wherever a calendar writes it, and a locale
+/// may name that era for one of the calendars only. The Śaka era is the
+/// count of years of the Indian national calendar and of the Hindu
+/// lunisolar calendars, whose year "is the Śaka era" too, turning at
+/// Chaitra śukla 1 rather than on 22 March
+/// (`docs/systems/hindu-calendars.md`, after the Calendar Reform
+/// Committee's report of 1955, `crc1955`); CLDR 48 names it only under
+/// `calendar type="indian"`, so Hindi's शक is keyed to `indian` alone and
+/// answers for the lunisolar calendars through this table. A locale's own
+/// name for the era in the calendar at hand always comes first.
+pub static SHARED_ERAS: &[(&str, CalendarId)] = &[("saka", CalendarId("indian"))];
+
 #[cfg(test)]
 mod tests {
     use super::*;

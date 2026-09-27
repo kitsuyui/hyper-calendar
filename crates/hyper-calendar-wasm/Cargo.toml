@@ -56,8 +56,8 @@ tz = ["civil", "hc/tz"]
 # rotation angle, sidereal time and UT2; solar time, sunrise, sunset and
 # the other solar events under a named horizon; and the heliocentric
 # Julian date; the Islamic prayer times, the zmanim and the Edo hours;
-# from hc-astro's series.
-sky = ["civil", "hc/seasons"]
+# from hc-astro's series. hc-i18n names the horizons in a locale.
+sky = ["civil", "hc/seasons", "hc/i18n"]
 # The orbit: Earth's orbital elements and the June insolation at 65° N, a
 # million years either side of 1950, from Berger's 1978 series.
 orbital = ["hc/orbital"]
