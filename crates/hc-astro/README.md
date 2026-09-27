@@ -14,6 +14,8 @@ calendar asks of the sky:
   sundial read there?
 * How far has the Earth turned? This is the Earth Rotation Angle and
   sidereal time, and UT1 with its smoothed variants UT2, UT1R and UT1S.
+* When would light that reached the Earth have reached the Sun? That is
+  the Heliocentric Julian Date, as HJD_TT and HJD_UTC.
 
 It contains no calendar. Nothing here knows what a month is.
 
@@ -133,6 +135,7 @@ of the same measurement.
 | UT2, UT1R, UT1S corrections to the caller's UT1 | exact as conventions; the tidal sum to **10⁻¹² s** of the IERS model | the USNO formula by hand; the test case of the IERS routine `RG_ZONT2.F` |
 | Local apparent (sundial) time | the equation of time's, **under a second** | Meeus example 28.a, within 0.5 s |
 | Temporal hours | the sunrise and sunset's, **under a minute** over twelve | NAOJ 暦計算室, Tokyo, 2024-01-01 |
+| Heliocentric light-time correction | **0.1 s** of the correction on the J2000 frame, 1940–2100; the HJD itself is good only to 8 s as an inertial time | the IDL Astronomy Library's `helio_jd` comparison table, six objects |
 
 The era over which all of this holds is roughly **1000 BCE to 3000 CE**.
 Inside it the limiting factor is the series; outside it the limiting factor is

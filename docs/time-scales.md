@@ -39,6 +39,18 @@ column gives each scale's definition in terms of TAI or TT.
 `T₀` throughout is `1977-01-01T00:00:00 TAI`, the defining origin of TCG and
 TCB.
 
+**TT(BIPM).** The `Tt` marker is TT(TAI). The BIPM also publishes better
+realisations of TT, one a year, named for the year: TT(BIPM25) is computed
+from the frequency standards' data to December 2025 and tabulated as
+TT(BIPM25) − TAI − 32.184 s every ten days from MJD 42 589, about 27.67 µs
+now [bipm-ttbipm-2025]. A later realisation revises the recent part of an
+earlier one, so they are data. `hc_core::tt_bipm::TtBipmSeries` takes the
+realisation the caller trusts, with its name, interpolates it linearly in
+TAI, and refuses outside it, as `Ut1Offsets` does for DUT1. Its reading is
+a `Duration`, not an `Instant<Tt>`, because converting an `Instant<Tt>` back
+to TAI uses the exact 32.184 s. "When accuracies of better than 30 µs are
+required, TT(BIPM) must be used" [eastman2010, §2.2].
+
 GLONASS time is UTC(SU) + 3 h and takes leap seconds with UTC, so it is
 not a marker here but `hc_core::gnss::GlonassTime`, a `UtcInstant` read three
 hours ahead. The GNSS week numbers, their rollovers and GLONASS's
@@ -303,6 +315,34 @@ scale is TDB, taken as TT, which `eraEpb` calls indistinguishable for this
 purpose. An epoch written without its letter is Besselian before 1984.0 and
 Julian from it. SOFA's example, JD 2 457 073.056 31 as B2015.136 594 102 1
 and J2015.134 993 319 6, is a test.
+
+## The Heliocentric Julian Date
+
+`hc-astro::hjd` corrects a Julian Date to the Sun: the light from a distant
+object reaches the Earth up to 8.3 minutes before or after it passes the
+Sun, and the correction is the Rømer delay, the Earth's heliocentric
+position projected on the object's direction and divided by the speed of
+light, both "in the same coordinate system" [eastman2010, §2.1]. Here that
+system is the mean equator and equinox of J2000: the Earth is VSOP87's,
+turned back from the equinox of date by the general precession, and the
+object's right ascension and declination are J2000's.
+
+The time scale is part of the name, because a Julian Date "can be
+specified in many time standards" [eastman2010, §2.2]. `hjd_tt` is HJD_TT,
+JD_TT plus the delay. `hjd_utc` is HJD_UTC, JD_UTC plus the delay with the
+Earth still placed at the TT instant, from the TT − UTC the caller gives.
+Placing it at the UTC reading instead gives what the paper calls HJD′_UTC,
+which drifts with the leap seconds, and nothing here computes it.
+
+The HJD is good only to 8 s as a time on an inertial clock, because the
+Sun is pulled about the barycentre by Jupiter and Saturn, and the IAU
+deprecated it in 1991 [eastman2010, §2.1]. The barycentric BJD_TDB needs
+the barycentre, which the workspace does not compute. As a computation of
+the HJD, the delay agrees with the IDL Astronomy Library's `helio_jd` to
+the 0.1 s it prints for six objects from 1940 to 2100 [idl-helio-jd]. The
+same table's SLALIB column agrees within ten years of 2000; its 1940 and
+2100 rows, 3.9 s and 4.8 s off, are reproduced to 0.1 s by the Earth on the
+equinox of date against the J2000 direction, a mixed frame.
 
 ## Swatch Internet Time
 

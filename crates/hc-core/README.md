@@ -24,6 +24,7 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | `duration` | `Duration`: an exact span of SI seconds, `i128` whole seconds and `u64` attoseconds, of either sign. No floating point. It also carries what Python's `timedelta` needs: weeks, floor division and a remainder with the divisor's sign (`checked_div_floor`, `checked_rem`, `checked_div_rem`), the normalised `(days, seconds, attoseconds)` split, and `days_and_clock`, the `-1 day, 19:00:00` string form. |
 | `scale` | `Instant<S>`: a reading on a uniform time scale, the scale being a zero-sized type parameter, so a TAI reading cannot be passed where a TT reading is expected. The scales are TAI (International Atomic Time), TT (Terrestrial Time), TCG (Geocentric Coordinate Time), TCB (Barycentric Coordinate Time), TDB (Barycentric Dynamical Time), and the GNSS times GPS, Galileo, BeiDou and NavIC; UT1, the Earth's rotation read as a time, is measured rather than defined, so it is in `hc-astro` beside the ΔT (TT − UT1) model it is computed from. |
 | `leap` | The UTC leap-second table, as data. |
+| `tt_bipm` | TT(BIPM), the BIPM's yearly realisations of Terrestrial Time, from the table of TT(BIPMxx) − TAI − 32.184 s the caller supplies, interpolated inside it and refused outside it. |
 | `unix` | POSIX time (`UnixTime`), UTC with the leap second made explicit (`UtcInstant`), and the conversions between them and TAI under a `LeapPolicy`. |
 | `gnss` | The GNSS week numbers — GPS legacy and CNAV, Galileo, BeiDou, NavIC — with the time of week and rollover resolution against a reference the caller supplies, and GLONASS time, UTC(SU) + 3 h with its leap seconds and its four-year intervals. See `docs/systems/gnss-time.md`. |
 | `epoch` | Well-known epochs as TAI readings: Unix, GPS, Galileo, BeiDou, NavIC, GLONASS, J2000, MJD, the Julian Day, Rata Die, Windows FILETIME, NTP, Core Foundation, the TCG/TCB origin, the UUID's 1582 and SAS's and Stata's 1960. |
@@ -52,7 +53,7 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | Claim | |
 | --- | --- |
 | `Duration` | exact to the attosecond over a range of about 5 × 10³⁰ years; arithmetic reports overflow rather than wrapping. The operators `+ - * / %` panic on overflow or a zero divisor, and each has a `checked_*` twin ([policy §8](../../docs/policy.md)) |
-| TAI − TT | exactly 32.184 s |
+| TAI − TT | exactly 32.184 s, for TT(TAI); TT(BIPMxx) is as good as the series supplied, linearly interpolated between its ten-day samples |
 | TAI − GPS, GST, NavIC; TAI − BDT | 19 s and 33 s, exact by convention; the systems' realisations are steered to national UTCs and differ from these by sub-microsecond residuals that are not carried |
 | TAI − UTC, 1972 onward | exact, a whole number of seconds from the IANA `leap-seconds.list`, which mirrors IERS Bulletin C; the last entry is the leap second of 2017-01-01 |
 | TAI − UTC, 1961 to 1971 | the official rate-offset coefficients of that era, in `RATE_ERA` |

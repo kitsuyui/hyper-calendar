@@ -33,7 +33,7 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// Four kinds are here. Day counts and bare cycles have nothing to be
 /// outside of. Proposals were adopted by nobody. Then calendars whose
 /// sources, as read, give no span: the Egyptian wandering year under
-/// Ptolemy's two eras, the Roman era of later historians, the Yazidi year, the
+/// Ptolemy's two eras, the Roman era of later historians in both its counts, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
 /// counts and the Zapotec year, the Maya 819-day count, the Javanese and Akan weeks, and the
 /// Qumran 364-day year, whose days this library places by a convention of
@@ -41,8 +41,8 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// never the day — the Bostran era, the Era Fascista, the Olympiads and
 /// the Spanish era, whose modules carry the years — since a period of use
 /// is a pair of days and a year is not one; and the Julian eras of Syria
-/// and Palestine and the Arsacid era, which the sources date by the century
-/// or by single documents.
+/// and Palestine, the Arsacid era and the calendar of the province of Asia,
+/// which the sources date by the century or by single documents.
 const UNRECORDED: &[&str] = &[
     // Day counts.
     "ansi-date",
@@ -105,12 +105,14 @@ const UNRECORDED: &[&str] = &[
     "philip-era",
     "qumran",
     "roman-auc",
+    "roman-auc-capitoline",
     "yazidi",
     "zapotec-yza",
     // Sources that date use by the year only.
     "antioch-caesarean-era",
     "antioch-caesarean-era-september",
     "arsacid-era",
+    "asian",
     "bostran-era",
     "era-fascista",
     "gaza-era",

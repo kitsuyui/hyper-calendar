@@ -30,7 +30,7 @@
 //! * [`zodiac`] — 黄道十二宮: the ecliptic cut into twelve, tropically
 //!   (the Western signs), siderally (the Indian rāśi, and the solar months
 //!   the Tamil, Bengali and Malayalam calendars take from them) and as the
-//!   Chinese 十二次.
+//!   Chinese 十二次; and each tropical sign in three decans of 10°.
 //! * [`lunisolar`] — a minimal month-and-day derivation, kept rather than
 //!   routed through `hc-calendars-lunar` for measured reasons the module
 //!   itself records.
@@ -111,8 +111,8 @@ pub use seasons::{Hemisphere, Season, SeasonDefinition};
 pub use solar_terms::{SolarTerm, TermKind, TermOrder};
 pub use zassetsu::{Zassetsu, ZassetsuRule};
 pub use zodiac::{
-    Ayanamsa, ChineseStation, Element, Modality, Rashi, RulingPlanet, SiderealSign, SignPeriod,
-    SolarMonthTradition, TropicalSign,
+    Ayanamsa, ChineseStation, Decan, Element, Modality, Rashi, RulingPlanet, SiderealSign,
+    SignPeriod, SolarMonthTradition, TropicalSign,
 };
 
 pub use hc_astro;

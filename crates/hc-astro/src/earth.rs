@@ -148,6 +148,34 @@ pub fn mean_obliquity_at_centuries(centuries: f64) -> f64 {
         )
 }
 
+/// Coefficients of the general precession in longitude, p_A, in arcseconds,
+/// as a polynomial in Julian centuries of TT from J2000.
+///
+/// Capitaine, Wallace and Chapront, "Expressions for IAU 2000 precession
+/// quantities", *Astronomy & Astrophysics* 412 (2003), equation (39);
+/// adopted as the IAU 2006 precession (`capitaine2003`, not read directly:
+/// the record is Crossref's). The leading term,
+/// 5028.796195″ per century, is the familiar "about 50 arcseconds a year"
+/// that moves the equinox.
+const GENERAL_PRECESSION_ARCSECONDS: [f64; 6] = [
+    0.0,
+    5_028.796_195,
+    1.105_434_8,
+    0.000_079_64,
+    -0.000_023_857,
+    -0.000_000_038_3,
+];
+
+/// The general precession in longitude accumulated since J2000, in
+/// arcseconds, for a count of Julian centuries of TT since J2000.0.
+///
+/// It carries the sidereal zodiac's ayanāṃśa in `hc-seasons` and the
+/// Earth's longitude back to the J2000 equinox in [`crate::hjd`].
+#[must_use]
+pub fn general_precession_arcseconds(centuries: f64) -> f64 {
+    poly(centuries, &GENERAL_PRECESSION_ARCSECONDS)
+}
+
 /// The true obliquity of the ecliptic, in degrees: mean obliquity plus
 /// nutation in obliquity.
 #[must_use]

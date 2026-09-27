@@ -18,6 +18,10 @@
 //! | [`sidereal`] | the fixed stars, an *ayanamsa* behind the equinox | ~24° later than the tropical ones |
 //! | [`chinese_twelve`] | 大雪 at 255° | the twelve 節気, exactly |
 //!
+//! Each tropical sign is further cut into three decans of 10°, the faces
+//! of the Persian and Greek astrologers, each ruled by a planet in the
+//! Chaldean order: [`decans`].
+//!
 //! The first row is the reason this module belongs in `hc-seasons` rather
 //! than anywhere else: the tropical sign boundaries **are** the 中気, the
 //! principal solar terms, the same twelve instants the lunisolar leap-month
@@ -57,11 +61,13 @@
 //! measures it and prints the table, and the document reads the result.
 
 pub mod chinese_twelve;
+pub mod decans;
 pub mod rashi;
 pub mod sidereal;
 pub mod tropical;
 
 pub use chinese_twelve::ChineseStation;
+pub use decans::Decan;
 pub use rashi::{
     BENGALI, MALAYALAM, Rashi, SANSKRIT, SOLAR_MONTH_TRADITIONS, SolarMonthTradition, TAMIL,
 };

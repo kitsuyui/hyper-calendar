@@ -25,6 +25,11 @@
 //!   `hc_format::roman` — including the doubled sixth day before the
 //!   Kalends of March that gives bissextile years their name.
 //!
+//! Varro's is not the only count. The *fasti Capitolini* put the founding a
+//! year later, 752 BC, and that count is
+//! [`crate::year_counts::CAPITOLINE_AUC`], `roman-auc-capitoline`, a
+//! separate calendar under policy §5.
+//!
 //! The AUC era was in any case rarely used for dating in antiquity — Romans
 //! named years after the consuls. It is a convenience of later historians,
 //! and it is implemented here for the same reason.

@@ -29,6 +29,8 @@
 //! * [`plural`] — CLDR cardinal plural categories for 30 languages.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
 //!   vocabulary, keyed by locale, calendar, width and context.
+//! * [`dated`] — month and weekday names a government gave for a period,
+//!   with the days they were in force: Turkmenistan's of 2002–2008.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -53,6 +55,7 @@ extern crate alloc;
 
 pub mod casing;
 pub mod data;
+pub mod dated;
 pub mod direction;
 pub mod error;
 pub mod locale;

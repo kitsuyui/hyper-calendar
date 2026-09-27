@@ -112,6 +112,16 @@ that each 次 opens at a 節気 and holds a 中気 in its middle. This library
 carries all three; the twelve animals of the year are not a division of the
 ecliptic and are not here.
 
+**The decans.** "Each third of a sign — ten degrees — is called a face
+(*wajh*)", and the Persians and Greeks agree on their lords: "the lord of
+the first face of Aries is Mars, of the second the Sun, of the third Venus;
+of the first of Taurus, Mercury, and so on in the order of the planets from
+above downwards till the last face of Pisces" [biruni-wright1934, §449].
+The Hindu *drekkāṇa* are the same thirds under other lords: the lord of the
+sign, then of the fifth and the ninth sign from it [biruni-wright1934,
+§451]. Ptolemy's "face" is something else, a planet keeping to the Sun or
+Moon the aspect its house has to theirs [ptolemy-tetrabiblos, I.23].
+
 ## How it works
 
 **The longitude.** `hc-astro` gives the Sun's apparent geocentric longitude
@@ -151,6 +161,17 @@ third 10° later. It is the same search at a finer step, and its only
 complication is that the Sun stands at about 280° on 1 January, so a
 Gregorian year can contain the 280° pentad twice; `pentads_in_year` walks
 the year and cannot double-count.
+
+**The decans.** A decan is a tropical sign's arc cut at 10° and 20°, so the
+36 decans are the multiples of 10° from the equinox. "From above downwards"
+is the Chaldean order, Saturn, Jupiter, Mars, Sun, Venus, Mercury, Moon.
+*Worked example*: the lords run on through the order without restarting at
+a sign, so from Mars at the first face of Aries the second face of Cancer,
+the eleventh decan, is ten places on: Mars, Sun, Venus, Mercury, Moon,
+Saturn, Jupiter, Mars, Sun, Venus, Mercury. al-Bīrūnī's table gives Cancer
+Venus, Mercury, Moon. Thirty-six is one more than a multiple of seven, so
+the last face of Pisces is Mars again, and the first of Aries would follow
+it with Mars a second time.
 
 **The zodiac.** A tropical sign is the search at a multiple of 30°, and its
 ingress instant is the instant of the 中気 it opens at, to the noise of the
@@ -234,6 +255,11 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   `sign_in_effect`, `sign_on_day`, `sign_beginning_on`, `days_into_sign`
   and `signs_in_year`, each returning or containing a `SignPeriod` whose
   `end` is the next sign's `start`.
+- **`zodiac::decans`**: `Decan`, the 36 thirds of the tropical signs from
+  the first of Aries at 0°, with `sign`, `part`, `start_longitude_degrees`
+  and `ruler`, the Chaldean order from Mars [biruni-wright1934, §449];
+  `decan_at_moment` and `degrees_into_decan` for the Sun. The Hindu
+  *drekkāṇa* lords are not carried.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
   date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI` and
   `FAGAN_BRADLEY` as data and `new` for any other; `degrees_at`;
@@ -339,7 +365,10 @@ each term is asserted to begin on the term's own day for 1990, 2000, 2024
 and 2030.
 
 **The zodiac.** The tropical ingresses are the 中気 instants and share their
-measurement. The sidereal boundaries carry a second uncertainty on top of
+measurement. The decans' rulers are checked against al-Bīrūnī's table, all
+36; their boundaries are the Sun's longitude at multiples of 10°, as good as
+the ingresses, and no source read dates a decan boundary to check them
+against. The sidereal boundaries carry a second uncertainty on top of
 the series: published values for a named ayanāṃśa differ among themselves
 by a few tens of arcseconds, and 20″ of solar longitude is about eight
 minutes of time, so a saṅkrānti near local midnight can move by that
@@ -384,11 +413,12 @@ they were settled.
 | [meeus1998] | The apparent solar longitude, chapter 25, through `hc-astro` | Not read for this document; `hc-astro` cites it |
 | [usno-deltat] | The observed ΔT that `hc-astro` reads from 1974-01-01 to 2026-04-01: 69.18 s at 2024-01-01, 69.11 s at 2026-01-01, 69.13 s at 2026-04-01 | Yes, 2026-09-25 |
 | [usno-deltat-preds] | The predicted ΔT that `hc-astro` reads after 2026-04-01, to 2033-10-01: 69.09 s at 2026-04-02, 71.25 s at 2033-10-01 | Yes, 2026-09-25 |
-| [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; the module cites the equation |
+| [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; `hc-astro`'s `earth::general_precession_arcseconds` cites the equation |
 | [swisseph] | The four ayanāṃśa anchors; Lahiri's own 285 and Raman's own 389 as the years of zero ayanāṃśa, §2.8 | Yes, 2026-09-25, for the Hindu document; §2.8 re-read 2026-09-26 |
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
 | [imd-astronomical-ephemeris] | The saṅkrānti computed at the Indian meridian | Yes, 2026-09-25, for the Hindu document |
-| [ptolemy-tetrabiblos] | I.11, the solstitial, equinoctial, solid and bicorporeal signs; I.17, the houses, Leo to the Sun and Cancer to the Moon and the five pairs; I.18, the four triangles | Yes, 2026-09-25, in Robbins's translation on LacusCurtius |
+| [ptolemy-tetrabiblos] | I.11, the solstitial, equinoctial, solid and bicorporeal signs; I.17, the houses, Leo to the Sun and Cancer to the Moon and the five pairs; I.18, the four triangles; I.23, the "proper face", which is not a decan | Yes, 2026-09-25, in Robbins's translation on LacusCurtius; I.23 on 2026-09-27 in Skyscript's transcription of the same translation |
+| [biruni-wright1934] | §449, the faces and their lords in the Chaldean order, and the table; §451, the Hindu *drekkāṇa* | Yes, 2026-09-27, in the Internet Archive's text of the scan |
 | [unicode-misc-symbols] | U+2648 ARIES to U+2653 PISCES | Yes, 2026-09-25 |
 
 Statements corrected on 2026-09-26, and how:
@@ -463,7 +493,8 @@ that they are not mistaken for sourced:
 
 `crates/hc-seasons/src/solar_terms.rs`, `crates/hc-seasons/src/pentads.rs`,
 `crates/hc-seasons/src/meridian.rs` and `crates/hc-seasons/src/zodiac/`
-(`mod.rs`, `tropical.rs`, `sidereal.rs`, `rashi.rs`, `chinese_twelve.rs`).
+(`mod.rs`, `tropical.rs`, `decans.rs`, `sidereal.rs`, `rashi.rs`,
+`chinese_twelve.rs`).
 `hc-astro`'s `solar::solar_longitude_after` and `solar::seasonal_event` are
 the search.
 
@@ -484,6 +515,9 @@ Anchors in the modules:
 `a_sign_ingress_is_the_same_instant_as_its_opening_term`,
 `the_classical_rulerships_are_symmetric_about_the_two_lights`,
 `the_symbols_run_consecutively_from_the_aries_code_point`;
+`the_rulers_are_al_birunis_table`,
+`thirty_six_decans_tile_the_ecliptic_at_ten_degrees`,
+`the_sun_enters_the_first_decan_of_each_sign_at_the_ingress`;
 `the_ayanamsa_grows_by_about_fifty_arcseconds_a_year`,
 `the_sidereal_longitude_is_the_tropical_one_less_the_ayanamsa`,
 `makara_sankranti_falls_on_the_fourteenth_of_january`,

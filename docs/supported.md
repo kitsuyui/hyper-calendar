@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-189 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+191 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 155 of 189 have months and 155 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 157 of 191 have months and 157 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -32,6 +32,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `armenian` | Armenian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-07-13 | +999887-08-03 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `armenian-fixed` | Armenian (fixed, Sarkawag 1084) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0552-08-13 | +10551-10-26 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `arsacid-era` | Arsacid era (Babylonian) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | -246-04-11 | 0076-03-22 | yes | yes | sunset | end | month ×12–13, weekday ×7 | yes |
+| `asian` | Asian (Roman province of Asia) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0004-09-21 | +10000-12-04 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `assyrian` | Assyrian (modern) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -4749-04-01 | +995250-03-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `aztec-tonalpohualli` | Aztec tonalpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | trecena ×13, day-sign ×20 | — |
 | `aztec-xiuhpohualli` | Aztec xiuhpōhualli | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | — | — | no | no | midnight | — | month ×19 | yes |
@@ -181,6 +182,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `revised-julian` | Revised Julian (Milanković) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999931-06-13 | +9999992-05-24 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `roc` | Minguo (Republic of China) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `roman-auc` | Roman (ab urbe condita) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -753-12-24 | +99249-01-11 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `roman-auc-capitoline` | Roman (ab urbe condita, Capitoline) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -752-12-24 | Rd(3652499632) | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `rumi` | Rumi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1840-03-13 | 1925-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `samaritan` | Samaritan | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-08-25 | 2100-09-03 | yes | yes | sunset | end | month ×12–13, weekday ×7 | yes |
 | `saptarshi` | Saptarshi (Laukika, Kashmir) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |

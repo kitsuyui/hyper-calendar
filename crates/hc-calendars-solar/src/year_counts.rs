@@ -1,9 +1,10 @@
 //! Year counts laid over the Julian or the Gregorian year: the Spanish era,
-//! the four Masonic years and the year After the Development of Agriculture.
+//! the four Masonic years, the year After the Development of Agriculture
+//! and the Capitoline count *ab urbe condita*.
 //!
 //! Each is a calendar whose days, months and leap rule are another
 //! calendar's and whose year number is that calendar's plus a constant, so
-//! the six are one table, [`ALL`], read by one [`YearCountCalendar`]; they
+//! the seven are one table, [`ALL`], read by one [`YearCountCalendar`]; they
 //! differ in data only, as policy §2 asks. Their system document is
 //! `docs/systems/era-counts.md` in the repository, which also covers the
 //! Era of Philip ([`crate::philip_era`]), the Bostran era
@@ -246,6 +247,32 @@ pub const ADA: YearCount = YearCount {
     native_locales: &[],
 };
 
+/// Where the Capitoline count comes from.
+pub const CAPITOLINE_SOURCE: &str = "Solinus, Collectanea rerum memorabilium 1.29-30, ed. \
+    Mommsen, 2nd ed., 1895, read 2026-09-27 [solinus-mommsen1895]: C. Pompeius Gallus and \
+    Q. Veranius consuls \"urbis conditae anno octingentesimo primo\", their consulship noted \
+    in the public records as Olympiad 207, and Rome founded in the first year of Olympiad 7; \
+    Wikipedia, \"Fasti\", retrieved 2026-09-27 [wikipedia-fasti], for that consulship as AD \
+    49, AUC 802 in Varro's count, and the fasti Capitolini counting one year less than Varro";
+
+/// *Ab urbe condita* by the Capitoline count: the Julian year plus 752.
+///
+/// The count of the *fasti Capitolini*, which date the foundation a year
+/// after Varro, so that every year is one less than [`crate::roman`]'s:
+/// AD 49 is AUC 801 here and AUC 802 there. It is a competing convention
+/// under policy §5 and has its own identifier. Unrecorded, as the Varronian
+/// count is: the era was a convenience of chronographers, not a dating
+/// system of daily life.
+pub const CAPITOLINE_AUC: YearCount = YearCount {
+    id: "roman-auc-capitoline",
+    english_name: "Roman (ab urbe condita, Capitoline)",
+    era: "auc",
+    base: Base::Julian,
+    offset: 752,
+    usage: Usage::UNRECORDED,
+    native_locales: &["la"],
+};
+
 /// Every year count in this module, in registry order.
 pub const ALL: &[YearCount] = &[
     SPANISH_ERA,
@@ -254,6 +281,7 @@ pub const ALL: &[YearCount] = &[
     ANNO_DEPOSITIONIS,
     ANNO_ORDINIS,
     ADA,
+    CAPITOLINE_AUC,
 ];
 
 /// The years a kingdom stopped writing the Spanish era, as the source
@@ -494,6 +522,34 @@ mod tests {
             let rd = gregorian::to_fixed(common, 1, 1).unwrap();
             assert_eq!(ADA.from_fixed(rd), Ok((ada, 1, 1)));
         }
+    }
+
+    #[test]
+    fn solinus_puts_the_consuls_of_ad_49_in_auc_801() {
+        // Solinus 1.29-30: Gallus and Veranius were consuls in AUC 801, in
+        // Olympiad 207; Wikipedia, "Fasti": that is AD 49, and AUC 802 by
+        // Varro. The Capitoline count is one less than Varro's throughout.
+        let day = julian::to_fixed(49, 6, 1).unwrap();
+        assert_eq!(CAPITOLINE_AUC.from_fixed(day), Ok((801, 6, 1)));
+        assert_eq!(crate::roman::from_fixed(day), Ok((802, 6, 1)));
+        for rd in (CAPITOLINE_AUC.earliest().0..800_000).step_by(997) {
+            let (capitoline, month, day) = CAPITOLINE_AUC.from_fixed(Rd(rd)).unwrap();
+            assert_eq!(
+                crate::roman::from_fixed(Rd(rd)),
+                Ok((capitoline + 1, month, day)),
+                "rd {rd}"
+            );
+        }
+        // Olympiad 1.1 began in 776 BC, so 207.1 began in the summer of
+        // AD 49 and 7.1 in the summer of 752 BC, astronomical -751: the
+        // foundation year is AUC 1 of this count and AUC 2 of Varro's.
+        assert_eq!(776 - 4 * 206, -48);
+        assert_eq!(776 - 4 * 6, 752);
+        assert_eq!(CAPITOLINE_AUC.base_year(1), -751);
+        assert_eq!(
+            CAPITOLINE_AUC.earliest(),
+            julian::to_fixed(-751, 1, 1).unwrap()
+        );
     }
 
     #[test]

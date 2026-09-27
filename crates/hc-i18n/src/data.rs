@@ -127,6 +127,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-northern-proclaimed"),
     CalendarId("japanese-southern-proclaimed"),
     CalendarId("roman-auc"),
+    CalendarId("roman-auc-capitoline"),
     CalendarId("byzantine"),
     CalendarId("symmetry454"),
     CalendarId("symmetry010"),
@@ -3129,7 +3130,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
     ),
     dated(&[CalendarId("mandaean")], &[], &["aa"], &["AA"]),
     dated(&[CalendarId("nanakshahi")], &[], &["ns"], &["Nanakshahi"]),
-    dated(&[CalendarId("roman-auc")], &[], &["auc"], &["AUC"]),
+    dated(
+        &[CalendarId("roman-auc"), CalendarId("roman-auc-capitoline")],
+        &[],
+        &["auc"],
+        &["AUC"],
+    ),
     dated(&[CalendarId("rumi")], &[], &["rumi"], &["Rumi"]),
     dated(&[CalendarId("samaritan")], &[], &["entry"], &["Entry Era"]),
     dated(

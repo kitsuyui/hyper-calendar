@@ -32,7 +32,7 @@
 //! | Family | Calendars |
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
-//! | Year counts over the Julian or Gregorian year | [`year_counts`] (the Spanish era, the Masonic years, ADA), [`era_fascista`], [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza) |
+//! | Year counts over the Julian or Gregorian year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*), [`era_fascista`], [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
 //! | Other namings of a Gregorian day | [`iso8601`], [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`philip_era`], [`bostran`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`french_republican_richards`], [`zoroastrian`], [`mandaean`], [`jalali_tusi`] |
 //! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
@@ -107,6 +107,7 @@ mod leap_week;
 pub mod adoption;
 pub mod armenian;
 pub mod armenian_fixed;
+pub mod asian;
 pub mod assyrian;
 pub mod bahai;
 pub mod bahai_kept;
@@ -171,6 +172,7 @@ pub mod zoroastrian;
 
 pub use armenian::{ArmenianCalendar, ArmenianDate};
 pub use armenian_fixed::{ArmenianFixedCalendar, ArmenianFixedDate};
+pub use asian::{AsianCalendar, AsianDate};
 pub use assyrian::{AssyrianCalendar, AssyrianDate};
 pub use bahai::{ArithmeticBahaiCalendar, BahaiDate};
 pub use bahai_kept::BahaiCalendar;
@@ -318,6 +320,7 @@ mod registration {
         }
         registry.insert(Box::new(DynAdapter::new(crate::PhilipEraCalendar)));
         registry.insert(Box::new(DynAdapter::new(crate::BostranCalendar)));
+        registry.insert(Box::new(DynAdapter::new(crate::AsianCalendar)));
         for era in crate::syro_macedonian::ALL {
             registry.insert(Box::new(DynAdapter::new(crate::JulianEraCalendar(*era))));
         }
@@ -348,7 +351,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 85;
+const CALENDAR_COUNT: usize = 87;
 
 #[cfg(test)]
 mod tests {
@@ -453,8 +456,10 @@ mod tests {
                 YearCountCalendar(year_counts::ANNO_DEPOSITIONIS),
                 YearCountCalendar(year_counts::ANNO_ORDINIS),
                 YearCountCalendar(year_counts::ADA),
+                YearCountCalendar(year_counts::CAPITOLINE_AUC),
                 PhilipEraCalendar,
                 BostranCalendar,
+                AsianCalendar,
                 JulianEraCalendar(syro_macedonian::SELEUCID_SYRIAN),
                 JulianEraCalendar(syro_macedonian::ANTIOCH_OCTOBER),
                 JulianEraCalendar(syro_macedonian::ANTIOCH_SEPTEMBER),
@@ -509,6 +514,7 @@ mod tests {
             YearCountCalendar(year_counts::ANNO_ORDINIS).meta(),
             PhilipEraCalendar.meta(),
             BostranCalendar.meta(),
+            AsianCalendar.meta(),
             JulianEraCalendar(syro_macedonian::SELEUCID_SYRIAN).meta(),
             JulianEraCalendar(syro_macedonian::GAZA).meta(),
             EraFascistaCalendar.meta(),
