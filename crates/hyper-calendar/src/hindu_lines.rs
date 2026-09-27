@@ -216,7 +216,9 @@ fn date_line(
 /// of the year has no sunrise; on the true sky for a day outside Śaka 1622
 /// through 2221, Chaitra śukla 1 in March 1700 to the eve of the one in
 /// March 2300, and on the Siddhānta's for a day outside
-/// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`].
+/// [`SIDDHANTA_FIRST_DAY`] to [`SIDDHANTA_LAST_DAY`]. [`Refusal::NoData`]
+/// on the true sky for a day whose sunrise at the place, or a search that
+/// reads it, the model does not find.
 pub fn hindu_lunar_date_line(
     sky: &str,
     fixed: i64,

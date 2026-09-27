@@ -85,7 +85,7 @@ fn push_line(out: &mut String, row: &ZoneLocation, locale: &str) {
 /// whose column 4 is `JP;AU`. It is `zone.tab`'s, which gives each name
 /// one country: the first of column 4 for every zone but
 /// `Europe/Simferopol`, `RU;UA` there and `UA` in `zone.tab`. It is empty
-/// for a name `zone.tab` has no row for, which no name of release 2026c
+/// for a name `zone.tab` has no row for, which no name of release 2026d
 /// is (see [`hc_tz::location::ZoneLocation::zone_tab_country`]).
 ///
 /// Column 7 is the zone's CLDR 48 exemplar city in the locale — 東京 for
@@ -177,10 +177,10 @@ mod tests {
         }
     }
 
-    /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre Bird
+    /// `zone1970.tab` 2026d: `JP,AU +353916+1394441 Asia/Tokyo Eyre Bird
     /// Observatory`; 35° 39′ 16″ is 128 356″, 35.654444…°, and 139° 44′ 41″
     /// is 503 081″, 139.744722…°, each written to six places; `zone.tab`
-    /// 2026c: `JP +353916+1394441 Asia/Tokyo`, one country.
+    /// 2026d: `JP +353916+1394441 Asia/Tokyo`, one country.
     #[test]
     fn tokyo_is_its_row_in_decimal_degrees() {
         let line = zone_location("Asia/Tokyo", "en").expect("Tokyo");

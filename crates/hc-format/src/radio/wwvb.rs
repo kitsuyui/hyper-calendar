@@ -1028,6 +1028,97 @@ mod tests {
         assert_eq!(wrong.reading(2000), Err(FrameError::Field("leap year")));
     }
 
+    /// The field refusals of both codes: a reading that is not the start of
+    /// a minute, a UT1 − UTC past ±0.9 s, a minute count outside the
+    /// century or its 26 bits, a `dst_next` word or schedule the state
+    /// cannot carry, and a 1 at bit 59 or 60.
+    #[test]
+    fn field_refusals() {
+        let reading = minute(2012, 7, 4, 17, 30);
+        let mut late = reading;
+        late.time = CivilTime::hms(17, 30, 1).expect("valid");
+        assert_eq!(
+            AmFrame::for_minute(late, 0, DstState::InEffect, false),
+            Err(FrameError::Field("the start of a minute"))
+        );
+        assert_eq!(
+            PmFrame::for_minute(
+                late,
+                2000,
+                DstState::InEffect,
+                LeapNotice::None,
+                DstNext::NoDst
+            ),
+            Err(FrameError::Field("the start of a minute"))
+        );
+        for dut1_tenths in [-10, 10] {
+            assert_eq!(
+                AmFrame::for_minute(reading, dut1_tenths, DstState::InEffect, false),
+                Err(FrameError::Field("UT1 correction"))
+            );
+        }
+        let am = AmFrame::for_minute(reading, 4, DstState::InEffect, false).expect("valid");
+        let wrong = AmFrame {
+            dut1_tenths: 10,
+            ..am
+        };
+        assert_eq!(wrong.encode(), Err(FrameError::Field("date and time")));
+
+        let pm = |century: i64, dst: DstState, next: DstNext| {
+            PmFrame::for_minute(reading, century, dst, LeapNotice::None, next)
+        };
+        assert_eq!(
+            pm(1900, DstState::InEffect, DstNext::NoDst),
+            Err(FrameError::Field("minute count"))
+        );
+        assert_eq!(
+            pm(1950, DstState::InEffect, DstNext::NoDst),
+            Err(FrameError::Field("century"))
+        );
+        // Into summer time while it is in effect, and a reserved word
+        // Table 8 does not have.
+        let into = DstNext::Transition(DstTransition {
+            into_dst: true,
+            weeks: 1,
+            hour: 2,
+        });
+        assert_eq!(
+            pm(2000, DstState::InEffect, into),
+            Err(FrameError::Field("dst_next"))
+        );
+        assert_eq!(
+            pm(2000, DstState::InEffect, DstNext::Reserved(6)),
+            Err(FrameError::Field("dst_next"))
+        );
+        let frame = pm(2000, DstState::InEffect, DstNext::NoDst).expect("valid");
+        let wide = PmFrame {
+            minute_of_century: 1 << 26,
+            ..frame
+        };
+        assert_eq!(wide.encode(), Err(FrameError::Field("minute count")));
+        // 2100-01-01T00:00, one minute past the century's count.
+        let past = PmFrame {
+            minute_of_century: 36_525 * 1_440,
+            ..frame
+        };
+        assert_eq!(past.reading(2000), Err(FrameError::Field("minute count")));
+        let good = frame.encode().expect("valid");
+        let unknown = (0..64u8)
+            .find(|&word| DstNext::from_word(word, true).is_none())
+            .expect("Table 8 leaves words unused");
+        let mut bad = good.as_slice().to_vec();
+        for (index, &second) in DST_NEXT.iter().enumerate() {
+            bad[second] = unknown >> (5 - index) & 1 == 1;
+        }
+        assert_eq!(PmFrame::decode(&bad), Err(FrameError::Field("dst_next")));
+        let mut bad = good.as_slice().to_vec();
+        bad[59] = true;
+        assert_eq!(PmFrame::decode(&bad), Err(FrameError::Symbol(59)));
+        let mut bad = good.as_slice().to_vec();
+        bad.push(true);
+        assert_eq!(PmFrame::decode(&bad), Err(FrameError::Symbol(60)));
+    }
+
     /// A sample of minutes from 2000 to 2099, both codes, both ways.
     #[test]
     fn every_code_round_trips() {

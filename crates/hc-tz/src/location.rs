@@ -4,7 +4,7 @@
 //! The database keeps, beside its rules, tables that say where a zone's
 //! clocks are kept and which names stand for which zone, and this module
 //! carries four of its files from release [`TZDATA_RELEASE`], unmodified,
-//! in `data/` beside the crate [iana-tzdb-2026c]:
+//! in `data/` beside the crate [iana-tzdb-2026d]:
 //!
 //! * `zone1970.tab` — one row per zone: the countries it overlaps, the
 //!   coordinates of its principal location in ISO 6709 form, its name and,
@@ -20,7 +20,9 @@
 //!   row for is answered with the row of the name it links to, and where
 //!   the file's `#=` comment names the link the old name stands for,
 //!   that link: `Iceland` is answered by `Atlantic/Reykjavik`, not by the
-//!   `Africa/Abidjan` its data line names.
+//!   `Africa/Abidjan` its data line names. Its four `Zone` lines, the
+//!   System V names `EST5EDT`, `CST6CDT`, `MST7MDT` and `PST8PDT`, are
+//!   rules and not links, and place nothing.
 //! * `backzone` — the zones outside the database's scope, whose links
 //!   supersede `backward`'s. Only its `Link` lines are read, so that five
 //!   old names stay in their countries: `America/Coral_Harbour` is
@@ -33,7 +35,7 @@
 //! first of `zone1970.tab`'s countries for every zone but
 //! `Europe/Simferopol`, which `zone1970.tab` gives as `RU,UA` and
 //! `zone.tab` lists as `UA` in its `RU` section, saying that its format
-//! "cannot represent Europe/Simferopol well". Every row of release 2026c
+//! "cannot represent Europe/Simferopol well". Every row of release 2026d
 //! has one; a row `zone.tab` did not list would carry the empty string,
 //! since `zone.tab` is deprecated and a later release may drop rows.
 //!
@@ -72,11 +74,11 @@ mod tables;
 
 /// The release of the IANA time zone database the vendored tables are
 /// from.
-pub const TZDATA_RELEASE: &str = "2026c";
+pub const TZDATA_RELEASE: &str = "2026d";
 
 /// Where the locations come from, for a `source` cell.
 pub const SOURCE: &str =
-    "IANA Time Zone Database, release 2026c: zone1970.tab, zone.tab and backward";
+    "IANA Time Zone Database, release 2026d: zone1970.tab, zone.tab and backward";
 
 /// A point on the Earth as ISO 6709 gives it, in whole arcseconds.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -267,7 +269,7 @@ pub struct ZoneLocation {
     /// `JP` for `Asia/Tokyo`, `UA` for `Europe/Simferopol`, `NO` for
     /// `Europe/Oslo`. For a row of `zone.tab` it is the row's own country.
     /// Empty where `zone.tab` has no row for the name, which no row of
-    /// release 2026c is.
+    /// release 2026d is.
     pub zone_tab_country: &'static str,
     /// The table's comment, empty where the row has none. `zone1970.tab`
     /// writes one only where a country has several zones, and it tells
@@ -564,7 +566,7 @@ mod tests {
                 assert_eq!(row.countries().count(), 1, "{}", row.zone);
                 assert_eq!(row.zone_tab_country, row.country_codes, "{}", row.zone);
             }
-            // Release 2026c's `zone.tab` lists every name the rows give.
+            // Release 2026d's `zone.tab` lists every name the rows give.
             assert_eq!(row.zone_tab_country.len(), 2, "{}", row.zone);
         }
     }
@@ -600,7 +602,7 @@ mod tests {
         }
     }
 
-    /// Worked by hand from the rows of `zone1970.tab` 2026c:
+    /// Worked by hand from the rows of `zone1970.tab` 2026d:
     ///
     /// * `JP,AU +353916+1394441 Asia/Tokyo`: 35° 39′ 16″ is
     ///   35 × 3600 + 39 × 60 + 16 = 128 356″, and 139° 44′ 41″ is
@@ -774,7 +776,7 @@ mod tests {
         assert_eq!(Coordinates::from_arcseconds(324_001, 0), None);
     }
 
-    /// `zone.tab` 2026c lists each name once, under one country, and it is
+    /// `zone.tab` 2026d lists each name once, under one country, and it is
     /// the first of `zone1970.tab`'s countries but for Simferopol: `JP
     /// +353916+1394441 Asia/Tokyo`, `CH +4723+00832 Europe/Zurich`, and `UA
     /// +4457+03406 Europe/Simferopol` in its `RU` section, where
@@ -860,6 +862,13 @@ mod tests {
         assert_eq!(location("UTC"), None);
         assert_eq!(location("Etc/GMT+5"), None);
         assert_eq!(location("Mars/Olympus_Mons"), None);
-        assert_eq!(tables::LINKS.lines().count(), 135);
+        // `backward` makes the four System V names zones of its own, which
+        // no table places, and `Asia/Hanoi` is a `backzone` zone that
+        // neither `zone.tab` nor `backward` names.
+        for name in ["EST5EDT", "CST6CDT", "MST7MDT", "PST8PDT", "Asia/Hanoi"] {
+            assert_eq!(location(name), None, "{name}");
+        }
+        assert_eq!(location("EST").map(|row| row.zone), Some("America/Panama"));
+        assert_eq!(tables::LINKS.lines().count(), 131);
     }
 }

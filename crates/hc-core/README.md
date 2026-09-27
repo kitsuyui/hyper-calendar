@@ -64,7 +64,7 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | Julian epoch | exact in definition; an `f64` year, about 10⁻¹³ of a year (3 µs) near the present |
 | Besselian epoch | ERFA's `eraEpb` constants, on TT for TDB; within 10⁻¹⁰ of a year of SOFA's example |
 | NTP, UUID, .NET, SAS and `%tc` counts | exact labels of 86 400-second days; `%tC` exact from the leap-second table, refused past it under `LeapPolicy::Strict` |
-| CCSDS CUC and CDS | exact; a CUC fraction finer than the attosecond, eight octets or more, is rounded up to it; a CDS leap second is checked against the table and refused past it |
+| CCSDS CUC and CDS | CDS exact; CUC exact to two fine octets, and from three the fraction, 2⁻⁸ⁿ s, is rounded up to the attosecond, a count read and written again still the same count to seven octets and neighbouring counts reading as one span from eight; a CDS leap second is checked against the table and refused past it |
 | after the table's announced validity | `LeapPolicy::Strict` refuses with `AfterModelEnd`; `LeapPolicy::Extrapolate` holds the last published offset, and the caller has named the forecast by choosing it |
 | `23:59:60` | representable: `UtcInstant` carries the leap-second flag that POSIX time cannot |
 | TDB | a model, not a constant: the truncated Fairhead–Bretagnon series in `scale`, to about 30 µs over 1980–2100 |

@@ -10,7 +10,7 @@ clock decodes, one frame of one symbol a second every minute:
 | Station | Operator | Carrier | Time it carries | Source |
 | --- | --- | --- | --- | --- |
 | **JJY** | NICT, Japan | 40 kHz and 60 kHz | JST, "協定世界時(ＵＴＣ)を９時間進めたもの" (UTC nine hours ahead) | [nict-jjy-timecode] |
-| **DCF77** | PTB, Germany | 77.5 kHz | CET or CEST, the frame saying which | [ptb-dcf77-timecode] |
+| **DCF77** | PTB, Germany | 77.5 kHz [ptb-dcf77-carrier] | CET or CEST, the frame saying which | [ptb-dcf77-timecode] |
 | **WWVB**, amplitude code | NIST, United States | 60 kHz | UTC | [nist-sp432-2002; nist-sp250-67] |
 | **WWVB**, phase code | NIST | the same carrier, phase-modulated | UTC | [nist-wwvb-enhanced-2013] |
 
@@ -33,7 +33,7 @@ and the position markers P1–P5 and P0 are seconds 9, 19, 29, 39, 49 and 59.
 | 12–13, 15–18 | hour of JST, 20 10 and 8 4 2 1 |
 | 22–23, 25–28, 30–33 | day of the year, 1 January being 1: 200 100, 80 40 20 10, 8 4 2 1 |
 | 36, 37 | PA1 and PA2, even parity of the hour's and the minute's bits |
-| 38, 40 | SU1 and SU2, spare, 0 "until their use is decided" |
+| 38, 40 | SU1 and SU2, spare: NICT sets both to 0 "利用方法が決まるまでは", until their use is decided |
 | 41–48 | the last two digits of the year, 80 … 1 |
 | 50–52 | the weekday, 0 Sunday to 6 Saturday, 4 2 1 |
 | 53, 54 | LS1 and LS2: 00 no leap second within a month, 11 an inserted one, 10 an omitted one |
@@ -213,6 +213,10 @@ of November at 2 AM, `011011` with the state's first bit 1.
     the notices it is given, as a transmitter's operator sets them.
   - *The analogue side*: pulse widths, carrier phase and the detection of
     a second's start are the receiver's.
+  - *DCF77's omitted leap second.* PTB calls one "negligible" and adds
+    that "the technical facilities on the transmitter allow it", but does
+    not say how the minute's marks would be sent, so a frame of 58 marks
+    is refused as a length.
   - *MSF*, the British station, whose specification was not read.
 
 ## Accuracy
@@ -226,19 +230,22 @@ round trip of every field.
 | A JJY call-sign frame at 17:15, with a stop notice | `a_call_sign_frame_needs_the_year` | exact |
 | JJY's inserted and omitted leap second at 08:59 JST on the 1st | `jjy_leap_second_frames` | exact |
 | DCF77's frame for 14:30 CEST on 27 September 2026, and the leap second of 1 January 2017 | `a_dcf77_frame_for_the_following_minute`, `the_dcf77_leap_second_frame` | exact |
-| WWVB's amplitude frames of SP 432 and of the phase-code document | `sp_432s_frame`, `the_2012_example_in_both_codes` | exact |
+| SP 432's figure 2.6: the decoded 2001, day 258, 18:42 UTC and UT1 − UTC = −0.7 s, and seconds 36–43, the UT1 sign and magnitude; the figure's other symbols are not transcribed | `sp_432s_frame` | exact |
+| WWVB's amplitude frame of 4 July 2012, all 60 symbols of the phase-code document's Table 10 | `the_2012_example_in_both_codes` | exact |
 | WWVB's phase frame of 4 July 2012, all 60 bits of Table 10 | `the_2012_example_in_both_codes` | exact |
 | The minute count of 21:30 UTC on 28 July 2016, 8 717 610 | `the_minute_count_of_28_july_2016` | exact |
 | Tables 4 and 8 read in both directions; their words distinct | `table_4_round_trips`, `table_8_round_trips` | all 12 and 56 |
 | Every code round-trips over a sample of minutes, 2000–2099 | `every_code_round_trips` | exact |
 | Parity, BCD, marker and length errors are refused | `broken_frames_are_refused` | each refused |
+| Field errors: a reading off the minute, a UT1 − UTC past ±0.9 s, a stop notice, call sign, minute count or `dst_next` the code cannot carry, a DCF77 weekday of 0, 60 marks without A2, and a 1 at WWVB's phase bits 59 and 60 | `field_refusals` in `jjy`, `dcf77` and `wwvb` | each refused |
 
 ## Sources
 
 | Key | Used for | Read |
 | --- | --- | --- |
 | [nict-jjy-timecode] | JJY's symbols, layout, parity, leap second and stop notice | Yes, jjy.nict.go.jp, the page "標準電波の出し方" and its two figures, 2026-09-27 |
-| [ptb-dcf77-timecode] | DCF77's layout, parity, A1, A2, Z1 Z2 and the leap second | Yes, ptb.de, the page "DCF77 time code" and its figure, 2026-09-27 |
+| [ptb-dcf77-timecode] | DCF77's layout, parity, A1, A2, Z1 Z2, the leap second, and the omitted one left out | Yes, ptb.de, the page "DCF77 time code" and its figure, 2026-09-27 |
+| [ptb-dcf77-carrier] | DCF77's carrier, 77.5 kHz | Yes, ptb.de, the page "DCF77 carrier frequency", 2026-09-27 |
 | [nist-sp432-2002] | WWVB's amplitude code: the bits, UT1, the leap year and leap second bits, summer time, the 2001 example | Yes, the PDF, 2026-09-27 |
 | [nist-sp250-67] | The same, with the leap year bit's timing | Yes, the PDF, chapter 2 §2, 2026-09-27 |
 | [nist-wwvb-enhanced-2013] | The phase code: layout, minute count, parity, Tables 3, 4, 8 and 10, leap seconds in both codes | Yes, revision 1.01, the PDF, 2026-09-27 |

@@ -15,12 +15,12 @@ agreed since 1970": the ISO 3166 codes of the countries the zone overlaps,
 the "latitude and longitude of the timezone's principal location", the
 zone's name, and a comment where a country has several zones. "If a
 timezone covers multiple countries, the most-populous city is used, and
-that country is listed first" [iana-tzdb-2026c, `zone1970.tab`].
+that country is listed first" [iana-tzdb-2026d, `zone1970.tab`].
 
 The older `zone.tab` has one row for each pair of a country and a zone,
 with one country code a row, and "unlike zone1970.tab, a row's third
 column can be a Link from 'backward' instead of a Zone". It is kept "as a
-backward-compatibility aid for older programs" [iana-tzdb-2026c,
+backward-compatibility aid for older programs" [iana-tzdb-2026d,
 `zone.tab`]. Because "the first data column contains exactly one country
 code", each of its rows gives a zone one country, where `zone1970.tab`
 may give several. Its rows for links matter: since the database merged zones
@@ -30,12 +30,12 @@ whose clocks have agreed since 1970, `Europe/Oslo` is a link to
 The file `backward` holds the links from old and merged names to current
 ones, `Link Asia/Kolkata Asia/Calcutta`. A `#= TARGET1` comment on a link
 "says what the target would be if these parsers were fixed so that data
-could contain links to links" [iana-tzdb-2026c, `backward`]. The file
+could contain links to links" [iana-tzdb-2026d, `backward`]. The file
 `backzone` holds zones "outside the normal scope of the tz database", and
 "links in this file point to zones in this file, superseding links in the
 file 'backward'"; a link that holds only when the database is built with
 `PACKRATLIST=zone.tab` is written as a comment that starts
-`#PACKRATLIST zone.tab` [iana-tzdb-2026c, `backzone`].
+`#PACKRATLIST zone.tab` [iana-tzdb-2026d, `backzone`].
 
 Browsers report link names. ECMA-402 requires that "any Link name that is
 present in the 'TZ' column of file zone.tab must be a primary time zone
@@ -59,7 +59,7 @@ lists each zone's aliases, the first being CLDR's, so `Asia/Kolkata` is
 
 `zone1970.tab` writes a coordinate "in ISO 6709 sign-degrees-minutes-seconds
 format, either ±DDMM±DDDMM or ±DDMMSS±DDDMMSS, first latitude (+ is
-north), then longitude (+ is east)" [iana-tzdb-2026c, `zone1970.tab`]. The
+north), then longitude (+ is east)" [iana-tzdb-2026d, `zone1970.tab`]. The
 row for Tokyo is
 
     JP,AU	+353916+1394441	Asia/Tokyo	Eyre Bird Observatory
@@ -88,9 +88,9 @@ country of the most populous city. The exception is `Europe/Simferopol`:
 `zone1970.tab` lists `RU,UA`, a comment saying to "mention RU and UA
 alphabetically", and `zone.tab` lists it as `UA` in its `RU` section, because its
 "obsolescent" format "cannot represent Europe/Simferopol well"
-[iana-tzdb-2026c, `zone.tab`]. A row of `zone.tab` itself, such as
+[iana-tzdb-2026d, `zone.tab`]. A row of `zone.tab` itself, such as
 `Europe/Oslo`, has its own country, `NO`. A name `zone.tab` had no row for
-would have an empty cell; in release 2026c every one of the 418 names
+would have an empty cell; in release 2026d every one of the 418 names
 with a row has one, which a test checks, but `zone.tab` is deprecated and
 a later release may drop rows.
 
@@ -117,7 +117,10 @@ a later release may drop rows.
      `America/Atikokan` in Canada, at `+484531-0913718`. The answer stays
      in Canada.
 4. Anything else places nothing: `UTC` is `Link Etc/UTC UTC`, and
-   `Etc/UTC` has no row. The export refuses it with `HC_ERR_UNKNOWN`.
+   `Etc/UTC` has no row. The export refuses it with `HC_ERR_UNKNOWN`. So
+   does `Asia/Hanoi`, the one `Zone` of `backzone` that neither `zone.tab`
+   nor `backward` names, since only `backzone`'s `Link` lines are read;
+   and so do `backward`'s four `Zone` lines, `EST5EDT` and the like.
 
 ### A city
 
@@ -139,13 +142,15 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
 ## What is carried
 
 - **The tables.** `zone1970.tab`, `zone.tab`, `backward` and `backzone`
-  of release 2026c, unmodified, in `crates/hc-tz/data/`. From them,
+  of release 2026d, unmodified, in `crates/hc-tz/data/`. From them,
   `crates/hc-tz/src/location/tables.rs` is generated: the 312 rows of
   `zone1970.tab`; the 106 rows of `zone.tab` for names `zone1970.tab`
   does not list, all links; for each of those 418 rows, the country
-  `zone.tab` lists its name under; and 135 of `backward`'s 256 links, each with
-  the name with a row it leads to. The other 121 are the 106 with rows of
-  their own and 15 that lead only to `Etc/UTC` or `Etc/GMT`. `zone.tab`'s
+  `zone.tab` lists its name under; and 131 of `backward`'s 252 links, each
+  with the name with a row it leads to. The other 121 are the 106 with rows
+  of their own and 15 that lead only to `Etc/UTC` or `Etc/GMT`. Only
+  `backward`'s `Link` lines are read; its four `Zone` lines, `EST5EDT`,
+  `CST6CDT`, `MST7MDT` and `PST8PDT`, are rules, not places. `zone.tab`'s
   rows for the zones `zone1970.tab` lists are left out: their coordinates
   are the same in both files, which a test checks. Only `backzone`'s 16
   `Link` lines are read, and they change the answer for five names:
@@ -194,14 +199,16 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   names, and `backzone` brings five of them back into their country.
   `Pacific/Johnston`, the Johnston Atoll, is left as `backward` has it,
   with Honolulu: `backzone` has a zone for it, not a link. The names of
-  no place at all, `EST`, `CET`, `EST5EDT` and the like, answer with the
-  zone `backward` links them to: `EST` with Panama, `CET` with Brussels.
+  no place at all that `backward` links, `EST`, `CET` and the like, answer
+  with the zone it links them to: `EST` with Panama, `CET` with Brussels.
+  `EST5EDT`, `CST6CDT`, `MST7MDT` and `PST8PDT` are zones of `backward`'s
+  own, not links, and answer with nothing.
 - **The cities are CLDR's as published.** `America/Coyhaique`, a zone of
   2025, has no German value, and falls back to English.
 
 ## Sources
 
-- [iana-tzdb-2026c] — `zone1970.tab`, `zone.tab`, `backward` and
+- [iana-tzdb-2026d] — `zone1970.tab`, `zone.tab`, `backward` and
   `backzone`, their header comments for the formats and the precedence
   of `backzone`, and `NEWS` for the release date. Read.
 - [cldr48-exemplar-cities] — `common/main/<locale>.xml` for the 36

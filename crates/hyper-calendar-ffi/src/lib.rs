@@ -1958,7 +1958,9 @@ mod calendar_days {
     /// either sky, as is a place off the globe, a day outside Śaka 1622
     /// through 2221 on the true sky, Chaitra śukla 1 in March 1700 to the
     /// eve of the one in March 2300, and a day outside Kali Yuga 1 to
-    /// 10 000 on the Siddhānta's. Writes the
+    /// 10 000 on the Siddhānta's. On the true sky, a day whose sunrise at
+    /// the place, or a search that reads it, the model does not find is
+    /// `HC_ERROR_NO_DATA`. Writes the
     /// required length, including the terminator, into `written`.
     ///
     /// # Safety
@@ -4580,6 +4582,7 @@ mod tests {
     #[cfg(any(
         feature = "timestamps",
         feature = "calendars",
+        feature = "holiday",
         feature = "sky",
         feature = "planetary",
         feature = "relativity"
@@ -5001,6 +5004,22 @@ mod tests {
                 },
                 HC_ERROR_UNKNOWN
             );
+            let not_utf8 = c"\xff";
+            for (calendar, locale) in [(not_utf8, c"tk"), (c"gregory", not_utf8)] {
+                assert_eq!(
+                    unsafe {
+                        hc_naming_period_on(
+                            calendar.as_ptr(),
+                            day,
+                            locale.as_ptr(),
+                            core::ptr::null_mut(),
+                            0,
+                            &mut written,
+                        )
+                    },
+                    HC_ERROR_NOT_UTF8
+                );
+            }
         }
 
         #[test]
@@ -5751,7 +5770,7 @@ mod tests {
             })
         }
 
-        /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre
+        /// `zone1970.tab` 2026d: `JP,AU +353916+1394441 Asia/Tokyo Eyre
         /// Bird Observatory`; `zone.tab`: `NO +5955+01045 Europe/Oslo`;
         /// `backward`: `Link Asia/Kolkata Asia/Calcutta`.
         #[test]
@@ -5912,6 +5931,18 @@ mod tests {
                 },
                 HC_ERROR_OUT_OF_RANGE
             );
+            // A locale that is not UTF-8, for each table export.
+            let not_utf8 = c"\xff".as_ptr();
+            let null = core::ptr::null_mut();
+            for status in unsafe {
+                [
+                    hc_earliest_evidence(not_utf8, null, 0, core::ptr::null_mut()),
+                    hc_archaeological_periods(not_utf8, null, 0, core::ptr::null_mut()),
+                    hc_future_events(not_utf8, null, 0, core::ptr::null_mut()),
+                ]
+            } {
+                assert_eq!(status, HC_ERROR_NOT_UTF8);
+            }
         }
     }
 
@@ -6724,6 +6755,17 @@ mod tests {
                 HC_ERROR_OUT_OF_RANGE
             );
             assert_eq!(
+                unsafe { hc_hebrew_sabbatical_cycle_year(0, &mut place) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            for year in [1, 9_999] {
+                assert_eq!(
+                    unsafe { hc_hebrew_sabbatical_cycle_year(year, &mut place) },
+                    HC_OK
+                );
+                assert!((1..=7).contains(&place), "{year}: {place}");
+            }
+            assert_eq!(
                 unsafe { hc_hebrew_sabbatical_cycle_year(5_782, core::ptr::null_mut()) },
                 HC_ERROR_NULL_POINTER
             );
@@ -7030,7 +7072,7 @@ mod tests {
     #[cfg(feature = "holiday")]
     mod observances {
         use super::super::*;
-        use super::read_lines;
+        use super::{measured, read_lines};
 
         /// The jubilee of 2025 and St George's Day of 2025, a Festival kept
         /// on Monday 28 April, as the module writes them.
@@ -7063,6 +7105,24 @@ mod tests {
                 },
                 HC_ERROR_OUT_OF_RANGE
             );
+            // The documented edges: the holy-year table from the opening of
+            // 1975's jubilee to the day its sources were checked, and the
+            // lectionary's supported days.
+            let holy = |day: i64| {
+                measured(|buffer, capacity, written| unsafe {
+                    hc_holy_year_on(day, buffer, capacity, written)
+                })
+            };
+            assert_eq!(holy(720_981), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(holy(739_886), HC_ERROR_BUFFER_TOO_SMALL);
+            assert_eq!(holy(720_980), HC_ERROR_NO_DATA);
+            assert_eq!(holy(739_887), HC_ERROR_NO_DATA);
+            let worship = |day: i64| unsafe {
+                hc_common_worship_on(day, core::ptr::null_mut(), 0, core::ptr::null_mut())
+            };
+            assert_ne!(worship(-3_652_424_999), HC_ERROR_OUT_OF_RANGE);
+            assert_ne!(worship(3_652_424_634), HC_ERROR_OUT_OF_RANGE);
+            assert_eq!(worship(3_652_424_635), HC_ERROR_OUT_OF_RANGE);
             // A day that keeps nothing writes the empty string.
             let mut buffer = [7 as c_char; 1];
             assert_eq!(
@@ -7196,6 +7256,38 @@ mod tests {
                 },
                 HC_ERROR_OUT_OF_RANGE
             );
+            // A date outside the years −1000 to 3000 (JD 1 000 000 is in
+            // −1975, JD 2 900 000 in 3227) and a declination past either
+            // pole, on both scales.
+            for (date, delta) in [
+                (1_000_000.0, delta),
+                (2_900_000.0, delta),
+                (date, 90.000_1),
+                (date, -90.000_1),
+            ] {
+                assert_eq!(
+                    unsafe {
+                        hc_hjd_tt(date, alpha, delta, core::ptr::null_mut(), 0, &mut written)
+                    },
+                    HC_ERROR_OUT_OF_RANGE,
+                    "{date} {delta}"
+                );
+                assert_eq!(
+                    unsafe {
+                        hc_hjd_utc(
+                            date,
+                            alpha,
+                            delta,
+                            0,
+                            core::ptr::null_mut(),
+                            0,
+                            &mut written,
+                        )
+                    },
+                    HC_ERROR_OUT_OF_RANGE,
+                    "{date} {delta}"
+                );
+            }
             // 1858, before the leap-second table: refused only under `strict`.
             let before_1961 = 2_400_000.5;
             assert_eq!(

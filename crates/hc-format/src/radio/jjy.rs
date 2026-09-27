@@ -556,6 +556,59 @@ mod tests {
         assert_eq!(frame.reading(2100), Err(FrameError::Field("weekday")));
     }
 
+    /// A reading that is not the start of a minute, a stop notice the code
+    /// does not define, and content that does not match the minute are
+    /// refused.
+    #[test]
+    fn field_refusals() {
+        let mut reading = minute(2004, 4, 1, 17, 25);
+        reading.time = CivilTime::hms(17, 25, 1).expect("valid");
+        assert_eq!(
+            JjyFrame::for_minute(reading, LeapNotice::None),
+            Err(FrameError::Field("the start of a minute"))
+        );
+        reading.time = CivilTime::new(17, 25, 0, 1).expect("valid");
+        assert_eq!(
+            JjyFrame::for_minute(reading, LeapNotice::None),
+            Err(FrameError::Field("the start of a minute"))
+        );
+        let call_sign =
+            JjyFrame::for_minute(minute(2004, 4, 1, 17, 15), LeapNotice::None).expect("valid");
+        // ST1–ST3 of 111 is no notice NICT defines; ST1–ST3 above 6 and
+        // ST5–ST6 above 3 cannot be written.
+        let mut symbols = call_sign.encode().expect("valid");
+        for &second in STOP_START {
+            symbols.set(second, I);
+        }
+        assert_eq!(
+            JjyFrame::decode(symbols.as_slice()),
+            Err(FrameError::Field("stop notice"))
+        );
+        for (stop_start, stop_span) in [(7, 0), (0, 4)] {
+            let frame = JjyFrame {
+                content: JjyContent::CallSign {
+                    stop_start,
+                    daytime_only: false,
+                    stop_span,
+                },
+                ..call_sign
+            };
+            assert_eq!(frame.encode(), Err(FrameError::Field("stop notice")));
+        }
+        // The call sign at 17:25, and a year and weekday at 17:15.
+        let standard = JjyFrame::decode(&NICT_EXAMPLE).expect("valid");
+        let misplaced = JjyFrame {
+            content: call_sign.content,
+            ..standard
+        };
+        assert_eq!(misplaced.encode(), Err(FrameError::Field("call sign")));
+        let misplaced = JjyFrame {
+            content: standard.content,
+            ..call_sign
+        };
+        assert_eq!(misplaced.encode(), Err(FrameError::Field("call sign")));
+    }
+
     /// Every hour and minute of a sample of days in 2000–2099, both ways.
     #[test]
     fn every_code_round_trips() {

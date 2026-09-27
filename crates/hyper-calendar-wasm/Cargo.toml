@@ -24,8 +24,8 @@ civil = ["hc/civil", "hc/format"]
 # Time-scale labels and day counts outside the civil calendar: TAI64
 # labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation
 # dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time
-# words, Swatch Internet Time, and Julian and Besselian epochs. A layer of
-# its own so that `civil`, the first a page paints with, does not carry
+# words, Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM)
+# from a caller's series. A layer of its own so that `civil`, the first a page paints with, does not carry
 # their float formatting and 128-bit arithmetic.
 timestamps = ["civil"]
 # Every calendar the facade registers, described for one day in a locale;
@@ -35,16 +35,19 @@ calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i
 holiday = ["civil", "hc/holiday"]
 # The 24 solar terms and the 72 pentads.
 seasons = ["civil", "hc/seasons"]
-# Cosmic, geologic and archaeological time.
+# Cosmic, geologic and archaeological time, the earliest evidence of life,
+# of Homo sapiens and of writing, and the events of the far future.
 deep-time = ["hc/deep-time"]
-# The day by a time zone's wall clock: seventeen built-in zones, and any
-# zone a page loads as TZif bytes.
-# Where each zone is, from tzdata's zone1970.tab, zone.tab and backward,
-# with its exemplar city in English, or in the locale when the build has
-# `calendars` too.
+# The day by a time zone's wall clock, from seventeen built-in zones and
+# any zone a page loads as TZif bytes; and where each zone is, from
+# tzdata's zone1970.tab, zone.tab and backward, with its exemplar city in
+# English, or in the locale when the build has `calendars` too.
 tz = ["civil", "hc/tz"]
-# The sky: where the Sun and Moon are at an instant, and the solar terms and
-# the moon phases within a span, from hc-astro's series.
+# The sky: where the Sun and Moon are at an instant, the decan the Sun is
+# in, and the solar terms and the moon phases within a span; the Earth's
+# rotation angle, sidereal time and UT2; solar time, sunrise, sunset and
+# the other solar events under a named horizon; and the heliocentric
+# Julian date; from hc-astro's series.
 sky = ["civil", "hc/seasons"]
 # The orbit: Earth's orbital elements and the June insolation at 65° N, a
 # million years either side of 1950, from Berger's 1978 series.

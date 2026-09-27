@@ -126,7 +126,10 @@ between them.
     describe. The zone of a FAT reading is not in the words and is not
     guessed.
   - *`DateTime.ToBinary`*, which packs the `Kind` and the ticks into one
-    `Int64`; its page does not state the layout [ms-datetime-tobinary].
+    `Int64`: its page says the `Kind` field is "concatenated to" the
+    `Ticks` field, but gives no bit positions, and says `FromBinary` may
+    adjust a `Local` value to the zone it is read in
+    [ms-datetime-tobinary].
   - *Leap seconds* in all four: each is a label counting 86 400 s a day,
     and RFC 9562 §6.1 allows a generator to smear them.
 

@@ -1113,6 +1113,75 @@ mod tests {
         );
     }
 
+    /// The refusals each documented error names: a Level 2 format where
+    /// the Level 1 epoch is needed, a leap second that is not the last of a
+    /// UTC day, a CCS P-field with more than six subsecond octets, and a
+    /// T-field of the wrong length.
+    #[test]
+    fn the_documented_refusals() {
+        let tai = CCSDS_CUC
+            .instant()
+            .checked_add(Duration::from_secs(1_000))
+            .expect("fits");
+        let level_2 = CucFormat::new(EpochLevel::AgencyDefined, 4, 0).expect("valid");
+        assert_eq!(CucTime::from_tai(level_2, tai), Err(TimeError::OutOfRange));
+        assert_eq!(
+            CucTime::new(level_2, 1_000, 0).and_then(CucTime::to_tai),
+            Err(TimeError::OutOfRange)
+        );
+        let ordinary = UtcInstant::from_unix(UnixTime::from_seconds(946_684_800));
+        let cds_level_2 = CdsFormat {
+            epoch: EpochLevel::AgencyDefined,
+            ..CDS_MICROSECONDS
+        };
+        assert_eq!(
+            CdsTime::from_utc(cds_level_2, ordinary),
+            Err(TimeError::OutOfRange)
+        );
+        // The leap flag on an instant that is not the midnight after a
+        // day's last second: 2016-12-31T12:00 UTC.
+        let not_midnight = UtcInstant {
+            unix_seconds: 1_483_228_800 - 43_200,
+            leap_second: true,
+            subsec_attos: 0,
+        };
+        assert_eq!(
+            CdsTime::from_utc(CDS_MICROSECONDS, not_midnight),
+            Err(TimeError::OutOfRange)
+        );
+        for subsecond_octets in [7, 8, u8::MAX] {
+            let format = CcsFormat {
+                variation: CcsVariation::DayOfYear,
+                subsecond_octets,
+            };
+            assert_eq!(
+                Preamble::Ccs(format).encode(),
+                Err(TimeError::OutOfRange),
+                "{subsecond_octets}"
+            );
+        }
+        let format = cuc(4, 1);
+        for length in [0, 4, 6] {
+            assert_eq!(
+                CucTime::decode(format, &[0; 6][..length]),
+                Err(TimeError::OutOfRange),
+                "CUC, {length} octets"
+            );
+        }
+        assert_eq!(
+            CucTime::decode_with_preamble(&[0x1D, 0x4E, 0xFF, 0xA2, 0x20]),
+            Err(TimeError::OutOfRange)
+        );
+        for length in [7, 9] {
+            assert_eq!(
+                CdsTime::decode(CDS_MICROSECONDS, &[0; 9][..length]),
+                Err(TimeError::OutOfRange),
+                "CDS, {length} octets"
+            );
+        }
+        assert_eq!(CDS_MICROSECONDS.t_field_octets(), 8);
+    }
+
     /// The widest CUC code: seven octets of seconds and ten of fraction, in
     /// a two-octet P-field, with mission bits.
     #[test]

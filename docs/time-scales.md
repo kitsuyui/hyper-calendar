@@ -317,8 +317,10 @@ Counts that software writes from one of those epochs, each a label of
   23:59:60 past its end.
 - **Radio time codes**, `hc-format::radio`: a minute's frame of JJY (JST),
   DCF77 (CET or CEST, for the following minute) and WWVB's amplitude and
-  phase codes (UTC), each with the frame of 61 or 59 seconds its station
-  sends for a leap second [nict-jjy-timecode; ptb-dcf77-timecode;
+  phase codes (UTC). JJY and WWVB send a frame of 61 seconds for an
+  inserted leap second and of 59 for an omitted one; DCF77 sends 60 marks
+  for an inserted one, and its omitted one, which PTB describes no frame
+  for, is not carried [nict-jjy-timecode; ptb-dcf77-timecode;
   nist-wwvb-enhanced-2013].
 
 [systems/binary-timestamps.md](systems/binary-timestamps.md),
