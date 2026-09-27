@@ -86,8 +86,8 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-orbital` | Milankovitch orbital elements and insolation, Berger 1978 | `hc-uncertainty` |
 | `hc-relativity` | Lorentz transforms, Schwarzschild, worldlines | `hc-uncertainty` |
 | `hc-calendars-solar` | Gregorian, Julian, ISO, Coptic, … | — |
-| `hc-tz` | Offsets, POSIX TZ, TZif | — |
-| `hc-i18n` | Locales, plurals, names; country names behind its `territories` feature | — |
+| `hc-tz` | Offsets, POSIX TZ, TZif, where each zone is | — |
+| `hc-i18n` | Locales, plurals, names; country names and zones' cities behind its `territories` and `exemplar-cities` features | — |
 | `hc-astro` | ΔT, solar longitude, new moon, rise and set | — |
 | `hc-format` | ISO 8601, RFC 3339, RFC 2822, patterns, Python's ISO profile | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
 | `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |

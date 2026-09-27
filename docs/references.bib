@@ -6981,3 +6981,31 @@
   howpublished = {libtai, \url{https://cr.yp.to/libtai/tai.html}},
   note         = {\texttt{tai\_now} ``assumes that the time\_t returned from the time function represents the number of TAI seconds since 1970-01-01 00:00:10 TAI'', which ``matches the convention used by the Olson tz library in `right' mode''. Undated. Read 2026-09-27}
 }
+
+@misc{iana-tzdb-2026c,
+  author       = {{Internet Assigned Numbers Authority}},
+  title        = {Time Zone Database, release 2026c: \texttt{zone1970.tab}, \texttt{zone.tab}, \texttt{backward} and \texttt{backzone}},
+  howpublished = {\url{https://github.com/eggert/tz/tree/2026c}; \url{https://www.iana.org/time-zones}},
+  note         = {Release of 2026-07-08, per its \texttt{NEWS}. The four files, in the public domain, vendored unmodified in \texttt{crates/hc-tz/data/}: the principal location of each of the 312 zones in ISO 6709 form, the older table's rows for 106 links, the links of old and merged names with their \texttt{\#=} comments, and \texttt{backzone}'s links, which supersede \texttt{backward}'s. Read 2026-09-27}
+}
+
+@misc{cldr48-exemplar-cities,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/main/<locale>.xml}, \texttt{dates/timeZoneNames/zone/exemplarCity}, and \texttt{common/bcp47/timezone.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common}},
+  note         = {The exemplar city of each zone in \texttt{root.xml} and the 36 files of the locales \texttt{hc-i18n} carries, at the approved and contributed levels, the inheritance marker \texttt{↑↑↑} kept as such; and CLDR's identifier for each zone, the first of its aliases. Tag release-48, read 2026-09-27}
+}
+
+@misc{uts35-dates-48,
+  author       = {Edberg, Peter and others},
+  title        = {Unicode Technical Standard \#35: Unicode Locale Data Markup Language ({LDML}), Part 4: Dates},
+  howpublished = {Version 48.2, \url{https://www.unicode.org/reports/tr35/tr35-dates.html}},
+  note         = {Using Time Zone Names, Composition: ``If the localized exemplar city is not available, use as the exemplar city the last field of the raw TZID, stripping off the prefix and turning \_ into space.'' Read 2026-09-27}
+}
+
+@misc{ecma402-2027,
+  author       = {{Ecma International, TC39}},
+  title        = {{ECMAScript} 2027 Internationalization {API} Specification (draft), §6.5 Use of the {IANA} Time Zone Database},
+  howpublished = {\url{https://tc39.es/ecma402/}},
+  note         = {Every Link name in the TZ column of \texttt{zone.tab} is a primary time zone identifier, and the other links resolve within their country through \texttt{zone.tab} and \texttt{backzone}. Read 2026-09-27}
+}

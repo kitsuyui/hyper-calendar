@@ -3252,6 +3252,102 @@ mod tz {
 #[cfg(feature = "tz")]
 pub use tz::{hc_fixed_from_unix_in_zone, hc_unix_from_fixed_in_zone, hc_zone_load};
 
+/// Where each zone is, behind the `tz` feature: the principal location
+/// the IANA database gives a zone, its countries and its CLDR exemplar
+/// city. The lines are `hyper_calendar::zone_lines`', shared with the
+/// WebAssembly module.
+#[cfg(feature = "tz")]
+mod zones {
+    use core::ffi::c_char;
+
+    use hc::zone_lines;
+
+    use super::{HcStatus, name, text, write_answer, write_text};
+
+    /// Every zone of the IANA database's `zone1970.tab` with its principal
+    /// location, as NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's: one per zone, in the table's
+    /// order, with the zone, the latitude in decimal degrees north, the
+    /// longitude in decimal degrees east, each the table's whole arcseconds
+    /// to six places, the ISO 3166-1 codes of the
+    /// countries it overlaps `;`-separated, the table's comment, the zone's
+    /// CLDR 48 exemplar city in the `locale`, and the tag of the data that
+    /// named the city. A build without the `calendars` feature, a locale
+    /// with no city for the zone, and a null `locale` name the city in
+    /// English, with `en` in column 7. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `locale` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zones(
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_text(&zone_lines::zones(tag), buffer, capacity, written) }
+    }
+
+    /// Where one zone is, as the NUL-terminated UTF-8 line `hc_zones`
+    /// writes for it, in a caller-owned buffer.
+    ///
+    /// `zone` is an IANA name in any case: a zone of `zone1970.tab`; a link
+    /// `zone.tab` gives a place of its own, such as `Europe/Oslo`; or
+    /// another link of the database's `backward` file, such as
+    /// `Asia/Calcutta`, which answers with the line of the name it leads
+    /// to, so that column 1 is then `Asia/Kolkata`. A name that places
+    /// nothing, such as `UTC`, is `HC_ERROR_UNKNOWN`, and a null `zone`
+    /// `HC_ERROR_NULL_POINTER`. `locale` is as for `hc_zones`. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `zone` must be null or NUL-terminated, and so must `locale`;
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zone_location(
+        zone: *const c_char,
+        locale: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let zone = match unsafe { name(zone) } {
+            Ok(zone) => zone,
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale) } {
+            Ok(tag) => tag.unwrap_or(""),
+            Err(status) => return status,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            write_answer(
+                zone_lines::zone_location(zone, tag),
+                buffer,
+                capacity,
+                written,
+            )
+        }
+    }
+}
+
+#[cfg(feature = "tz")]
+pub use zones::{hc_zone_location, hc_zones};
+
 /// The sky, behind the `sky` feature: where the Sun and the Moon are at an
 /// instant, the solar terms and the moon phases within a span, and the
 /// Sun's decan, from `hc-astro`'s series, in Universal Time. The lines are
@@ -4319,6 +4415,7 @@ mod tests {
         feature = "holiday",
         feature = "seasons",
         feature = "deep-time",
+        feature = "tz",
         feature = "sky",
         feature = "orbital",
         feature = "planetary",
@@ -5516,6 +5613,66 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "tz")]
+    mod zones {
+        use super::super::*;
+        use super::read_lines;
+
+        fn line(zone: &core::ffi::CStr, locale: &core::ffi::CStr) -> String {
+            read_lines(|buffer, capacity, written| unsafe {
+                hc_zone_location(zone.as_ptr(), locale.as_ptr(), buffer, capacity, written)
+            })
+        }
+
+        /// `zone1970.tab` 2026c: `JP,AU +353916+1394441 Asia/Tokyo Eyre
+        /// Bird Observatory`; `zone.tab`: `NO +5955+01045 Europe/Oslo`;
+        /// `backward`: `Link Asia/Kolkata Asia/Calcutta`.
+        #[test]
+        fn the_lines_are_the_modules_and_links_answer_with_their_rows() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_zones(core::ptr::null(), buffer, capacity, written)
+            });
+            assert_eq!(text.lines().count(), 312);
+            assert!(text.lines().any(|line| line
+                == "Asia/Tokyo\t35.654444\t139.744722\tJP;AU\tEyre Bird Observatory\tTokyo\ten"));
+            assert!(
+                line(c"Europe/Oslo", c"en").starts_with("Europe/Oslo\t59.916667\t10.750000\tNO\t")
+            );
+            assert!(line(c"Asia/Calcutta", c"en").starts_with("Asia/Kolkata\t"));
+            let mut written = 0usize;
+            assert_eq!(
+                unsafe {
+                    hc_zone_location(
+                        c"UTC".as_ptr(),
+                        c"en".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+            assert_eq!(
+                unsafe {
+                    hc_zone_location(
+                        core::ptr::null(),
+                        c"en".as_ptr(),
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
+            let tokyo = line(c"Asia/Tokyo", c"ja");
+            let expected = if cfg!(feature = "calendars") {
+                "\t東京\tja\n"
+            } else {
+                "\tTokyo\ten\n"
+            };
+            assert!(tokyo.ends_with(expected), "{tokyo}");
+        }
+    }
     #[cfg(feature = "deep-time")]
     mod deep_time {
         use super::super::*;

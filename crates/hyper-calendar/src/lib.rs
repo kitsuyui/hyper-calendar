@@ -115,6 +115,8 @@ pub mod season_lines;
 pub mod sky_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]
 pub mod time_lines;
+#[cfg(all(feature = "alloc", feature = "tz"))]
+pub mod zone_lines;
 
 #[cfg(feature = "almanac")]
 pub use hc_almanac;

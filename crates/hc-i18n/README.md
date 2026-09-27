@@ -23,6 +23,7 @@ nothing else in the workspace hard-codes a localised string.
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
 | `territories` | With the `territories` feature: CLDR's names for the 195 countries the workspace keeps holiday tables for, in every carried locale CLDR names them in, and CLDR's `alt="short"` names for the few it shortens |
+| `exemplar_cities` | With the `exemplar-cities` feature: CLDR's English exemplar city of each of the 418 zones `hc-tz` locates; with `localized-exemplar-cities`, the city in every other carried locale CLDR names it in |
 
 `Locale` is `Copy` and allocation-free: subtags live in inline ASCII buffers,
 and rendering goes through `core::fmt::Write`. Everything works with
@@ -52,7 +53,9 @@ one function.
    existing entry for shape.
 2. Add its name to the `LOCALES` array, keeping the array in tag order.
 3. If CLDR names the countries in the language at a release level, add
-   its table to `src/territories.rs` and to `territories::TABLES`.
+   its table to `src/territories.rs` and to `territories::TABLES`; if it
+   names the zones' exemplar cities, add its table to
+   `src/exemplar_cities.rs` and to `exemplar_cities::TABLES`.
 
 That is all. The consistency test suite will then check the new entry for
 you: every cycle's names as many as the calendar declares for that cycle
@@ -135,6 +138,22 @@ there. The table is checked for sortedness and uniqueness by a test.
   from the same files at the same levels, as (code, name) pairs for the
   few regions each locale shortens — `Hong Kong` for `HK`, `UK` for `GB` —
   and not where the file writes the inheritance marker `↑↑↑`.
+* **Exemplar cities** — what a locale calls a time zone's city,
+  `exemplar_cities::exemplar_city` — are CLDR 48's
+  `dates/timeZoneNames/zone/exemplarCity` at the `approved` and
+  `contributed` levels, for the 418 names `hc_tz::location` gives a row,
+  each read under CLDR's own identifier for the zone from
+  `common/bcp47/timezone.xml` (`Asia/Calcutta` for `Asia/Kolkata`). English
+  is `en.xml`'s value, else `root.xml`'s, else the name UTS #35 derives
+  from the zone's identifier, its last field with underscores as spaces;
+  it is the `exemplar-cities` feature, about 2 kB, which the facade's `tz`
+  feature turns on. The thirty other locales with values are the
+  `localized-exemplar-cities` feature, about 170 kB of text. Where a file
+  writes the inheritance marker `↑↑↑` at a release level, the table keeps
+  it, and the locale answers with the root name under its own tag. Each
+  table is one string of lines in the order of `exemplar_cities::ZONES`,
+  checked at compile time as the territory tables are.
+  `docs/systems/zone-locations.md` explains the lookup.
 * **Bidi** follows UAX 9 §2.4 (isolates) and §P2–P3 (first-strong).
 * **Casing** follows the default case algorithms of The Unicode Standard 17.0
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and

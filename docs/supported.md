@@ -608,7 +608,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Facade features
 
-23 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+24 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -626,7 +626,8 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `fiscal` | civil, hc-fiscal |
 | `attributes` | seasons, hc-attributes |
 | `name-days` | civil, hc-name-days |
-| `tz` | civil, hc-tz |
+| `tz` | civil, hc-tz, hc-i18n, hc-i18n/exemplar-cities |
+| `localized-exemplar-cities` | hc-i18n, hc-i18n/localized-exemplar-cities |
 | `format` | civil, hc-format |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
@@ -636,4 +637,4 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `orbital` | uncertainty, hc-orbital |
 | `planetary` | astro, hc-planetary |
 | `relativity` | uncertainty, hc-relativity |
-| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, format, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |
+| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, localized-exemplar-cities, format, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |

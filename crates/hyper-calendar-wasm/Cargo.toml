@@ -28,8 +28,9 @@ civil = ["hc/civil", "hc/format"]
 # its own so that `civil`, the first a page paints with, does not carry
 # their float formatting and 128-bit arithmetic.
 timestamps = ["civil"]
-# Every calendar the facade registers, described for one day in a locale.
-calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n"]
+# Every calendar the facade registers, described for one day in a locale;
+# and, in a build with `tz` too, each zone's exemplar city in the locale.
+calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n", "hc/localized-exemplar-cities"]
 # The holiday tables: countries, exchanges, traditions and the UN days.
 holiday = ["civil", "hc/holiday"]
 # The 24 solar terms and the 72 pentads.
@@ -38,6 +39,9 @@ seasons = ["civil", "hc/seasons"]
 deep-time = ["hc/deep-time"]
 # The day by a time zone's wall clock: seventeen built-in zones, and any
 # zone a page loads as TZif bytes.
+# Where each zone is, from tzdata's zone1970.tab, zone.tab and backward,
+# with its exemplar city in English, or in the locale when the build has
+# `calendars` too.
 tz = ["civil", "hc/tz"]
 # The sky: where the Sun and Moon are at an instant, and the solar terms and
 # the moon phases within a span, from hc-astro's series.

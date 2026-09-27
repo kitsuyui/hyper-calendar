@@ -102,8 +102,13 @@ attributes = ["seasons", "dep:hc-attributes"]
 # Name-day lists: Latvia's vendored, and a loader for lists a caller has
 # licensed.
 name-days = ["civil", "dep:hc-name-days"]
-# Time zones.
-tz = ["civil", "dep:hc-tz"]
+# Time zones, and where each is: tzdata's zone locations, with CLDR's
+# English exemplar city of each zone for `zone_lines`.
+tz = ["civil", "dep:hc-tz", "dep:hc-i18n", "hc-i18n/exemplar-cities"]
+# CLDR's exemplar cities of the zones in every locale hc-i18n carries, for
+# `zone_lines`. Some 170 kB of text, so apart from `tz`: without it a
+# zone's city is English's.
+localized-exemplar-cities = ["dep:hc-i18n", "hc-i18n/localized-exemplar-cities"]
 # ISO 8601 / RFC 3339 parsing and formatting.
 format = ["civil", "dep:hc-format"]
 # Locales, plural rules and localised vocabulary.
@@ -148,6 +153,7 @@ full = [
     "attributes",
     "name-days",
     "tz",
+    "localized-exemplar-cities",
     "format",
     "i18n",
     "humanize",

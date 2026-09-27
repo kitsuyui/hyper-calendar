@@ -1014,6 +1014,64 @@ describe("time zones", () => {
   });
 });
 
+describe("where each zone is", () => {
+  test("every zone has a location, and Tokyo's is its row in decimal degrees", () => {
+    const zones = hc.zones("en");
+    assert.equal(zones.length, 312);
+    // zone1970.tab 2026c: JP,AU +353916+1394441 Asia/Tokyo; 35° 39′ 16″ is
+    // 128 356″ and 139° 44′ 41″ is 503 081″, written to six places.
+    const tokyo = zones.find((zone) => zone.zone === "Asia/Tokyo");
+    assert.deepEqual(tokyo, {
+      zone: "Asia/Tokyo",
+      latitude: 35.654444,
+      longitude: 139.744722,
+      countries: ["JP", "AU"],
+      comment: "Eyre Bird Observatory",
+      exemplarCity: "Tokyo",
+      localeUsed: "en",
+    });
+    assert.deepEqual(hc.zoneLocation("asia/tokyo", "en"), tokyo);
+    assert.equal(zones.find((zone) => zone.zone === "Europe/Andorra")?.comment, null);
+    assert.equal(Math.round(tokyo.latitude * 3_600), 128_356);
+    assert.equal(Math.round(tokyo.longitude * 3_600), 503_081);
+    assert.equal(zones.find((zone) => zone.zone === "America/Sao_Paulo")?.latitude, -23.533333);
+    for (const zone of zones) {
+      assert.ok(Math.abs(zone.latitude) <= 90 && Math.abs(zone.longitude) <= 180, zone.zone);
+      // Six places identify the whole arcsecond: times 3600, each is
+      // within 0.0018″ of one.
+      for (const degrees of [zone.latitude, zone.longitude]) {
+        const arcseconds = degrees * 3_600;
+        assert.ok(Math.abs(arcseconds - Math.round(arcseconds)) < 0.002, `${zone.zone} ${degrees}`);
+      }
+      assert.ok(zone.exemplarCity.length > 0, zone.zone);
+    }
+  });
+
+  test("a link answers with its own row or the row it leads to, and UTC with none", () => {
+    // zone.tab: NO +5955+01045 Europe/Oslo; backward: Link Asia/Kolkata Asia/Calcutta.
+    const oslo = hc.zoneLocation("Europe/Oslo");
+    assert.equal(oslo.zone, "Europe/Oslo");
+    assert.equal(oslo.latitude, 59.916667);
+    assert.equal(oslo.longitude, 10.75);
+    assert.deepEqual(oslo.countries, ["NO"]);
+    assert.equal(hc.zoneLocation("Asia/Calcutta").zone, "Asia/Kolkata");
+    const error = refused(() => hc.zoneLocation("UTC"), "unknown");
+    assert.equal(error.export, "hc_zone_location");
+    assert.throws(() => hc.zoneLocation(/** @type {any} */ (undefined)), TypeError);
+  });
+
+  test("the city is the locale's, with the tag that answered", () => {
+    // CLDR 48 ja.xml: Asia/Tokyo 東京; de.xml: Europe/Berlin ↑↑↑, root's Berlin.
+    assert.equal(hc.zoneLocation("Asia/Tokyo", "ja-JP").exemplarCity, "東京");
+    assert.equal(hc.zoneLocation("Asia/Tokyo", "ja-JP").localeUsed, "ja");
+    assert.deepEqual(
+      [hc.zoneLocation("Europe/Berlin", "de").exemplarCity, hc.zoneLocation("Europe/Berlin", "de").localeUsed],
+      ["Berlin", "de"],
+    );
+    assert.equal(hc.zoneLocation("Asia/Tokyo", "kab").localeUsed, "en");
+  });
+});
+
 describe("the sky", () => {
   /** The POSIX timestamp of a UTC date and time. */
   const at = (/** @type {number} */ year, /** @type {number} */ month, /** @type {number} */ day, hour = 0, minute = 0) =>
