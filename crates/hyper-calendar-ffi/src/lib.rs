@@ -47,9 +47,9 @@
 //! # Layers
 //!
 //! The entry points come in layers, each a Cargo feature: `civil` (the
-//! default), `timestamps`, `calendars`, `holiday`, `seasons`, `deep-time`,
-//! `tz`, `sky`, `orbital`, `planetary` and `relativity`, with `full` for
-//! all of them. Which feature each needs is in the README's table.
+//! default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
+//! `deep-time`, `tz`, `sky`, `orbital`, `planetary` and `relativity`, with
+//! `full` for all of them. Which feature each needs is in the README's table.
 
 #![allow(unsafe_code)]
 #![warn(missing_docs)]
@@ -1472,6 +1472,403 @@ pub use time_scales::{
     hc_tt_bipm, hc_tt_from_epoch, hc_uuid_timestamp, hc_uuid_timestamp_encode,
 };
 
+/// The CCSDS and radio time codes, behind the `time-codes` feature: the
+/// binary CCSDS codes and the ASCII codes A and B, and the long-wave radio
+/// codes of JJY, DCF77 and WWVB, read and written. The lines are
+/// `hyper_calendar::time_code_lines`', shared with the WebAssembly module.
+#[cfg(feature = "time-codes")]
+mod time_codes {
+    use core::ffi::{c_char, c_int};
+
+    use hc::time_code_lines;
+
+    use super::{HcStatus, name, text, write_answer};
+
+    /// A binary CCSDS time code read, as one NUL-terminated UTF-8 line in a
+    /// caller-owned buffer.
+    ///
+    /// `hex` is the code's octets, the P-field and exactly the T-field it
+    /// announces, as hexadecimal; null is `HC_ERROR_NULL_POINTER`. The line
+    /// is the WebAssembly module's: the code, `cuc`, `cds` or `ccs`, the
+    /// TAI seconds and attoseconds, and the UTC label's POSIX second, leap
+    /// flag and attoseconds, the other scale from the leap-second table.
+    /// `strict` non-zero refuses an instant outside the table with
+    /// `HC_ERROR_NO_DATA`. Text that is not a code is `HC_ERROR_MALFORMED`,
+    /// and a Level 2, 3 or 4 code `HC_ERROR_NO_DATA`. Writes the required
+    /// length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `hex` must be null or NUL-terminated; `buffer` must be writable for
+    /// `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_decode(
+        hex: *const c_char,
+        strict: c_int,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let hex = match unsafe { name(hex) } {
+            Ok(hex) => hex,
+            Err(status) => return status,
+        };
+        let answer = time_code_lines::ccsds_decode_line(hex, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The binary CCSDS time code of a TAI instant in the format a P-field
+    /// names, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the code's octets in
+    /// lower-case hexadecimal, the P-field first. CDS and CCS count the
+    /// instant's UTC label, from the leap-second table under `strict`. A
+    /// `p_field` that is not one P-field is `HC_ERROR_MALFORMED`, null
+    /// `HC_ERROR_NULL_POINTER`, a Level 2, 3 or 4 format
+    /// `HC_ERROR_NO_DATA`, and attoseconds from 10¹⁸ or an instant the
+    /// format cannot count `HC_ERROR_OUT_OF_RANGE`. Writes the required
+    /// length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_ccsds_decode`, for `p_field`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_encode(
+        tai_seconds: i64,
+        attoseconds: u64,
+        p_field: *const c_char,
+        strict: c_int,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let p_field = match unsafe { name(p_field) } {
+            Ok(p_field) => p_field,
+            Err(status) => return status,
+        };
+        let answer =
+            time_code_lines::ccsds_encode_line(tai_seconds, attoseconds, p_field, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// A CCSDS ASCII time code, A or B, read, as one NUL-terminated UTF-8
+    /// line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the variation, the instant in
+    /// the five cells of `hc_ccsds_decode`, the precision, the digits of
+    /// the fraction and whether the terminator `Z` follows. Text that is not
+    /// a code is `HC_ERROR_MALFORMED`, and null `HC_ERROR_NULL_POINTER`;
+    /// `strict` is as for `hc_ccsds_decode`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_ccsds_decode`, for `code`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_ascii_parse(
+        code: *const c_char,
+        strict: c_int,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let code = match unsafe { name(code) } {
+            Ok(code) => code,
+            Err(status) => return status,
+        };
+        let answer = time_code_lines::ccsds_ascii_parse_line(code, strict != 0);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The CCSDS ASCII time code of a TAI instant's UTC label, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `variation` is `a` or `b` and `precision` `hour`, `minute`, `second`
+    /// or the digits of the fraction, `1` to `18`, in any case; anything
+    /// else is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`.
+    /// `terminator` non-zero ends the code with `Z`. The line is the
+    /// WebAssembly module's. Attoseconds from 10¹⁸, or an instant outside
+    /// the years 1 to 9999, are `HC_ERROR_OUT_OF_RANGE`. Writes the
+    /// required length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `variation` and `precision` must be null or NUL-terminated; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_ccsds_ascii_format(
+        tai_seconds: i64,
+        attoseconds: u64,
+        variation: *const c_char,
+        precision: *const c_char,
+        terminator: c_int,
+        strict: c_int,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (variation, precision) = match unsafe { (name(variation), name(precision)) } {
+            (Ok(variation), Ok(precision)) => (variation, precision),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = time_code_lines::ccsds_ascii_format_line(
+            tai_seconds,
+            attoseconds,
+            variation,
+            precision,
+            terminator != 0,
+            strict != 0,
+        );
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// One minute's frame of a long-wave radio time code read, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `code` is `jjy`, `dcf77`, `wwvb-am` or `wwvb-pm`, in any case;
+    /// anything else is `HC_ERROR_UNKNOWN`. `frame` is one character a
+    /// second, `0`, `1` and for `jjy` and `wwvb-am` `M`; null for either is
+    /// `HC_ERROR_NULL_POINTER`. `century` is a multiple of 100 from 0 to
+    /// 9900; any other is `HC_ERROR_OUT_OF_RANGE`. The line is the
+    /// WebAssembly module's. A frame that is not the code's is
+    /// `HC_ERROR_MALFORMED`, and JJY's call-sign frame `HC_ERROR_NO_DATA`.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `code` and `frame` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_radio_decode(
+        code: *const c_char,
+        frame: *const c_char,
+        century: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (code, frame) = match unsafe { (name(code), name(frame)) } {
+            (Ok(code), Ok(frame)) => (code, frame),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = time_code_lines::radio_decode_line(code, frame, century);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The frame of a long-wave radio time code for a minute, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The arguments are the WebAssembly module's, and `summer` may be null
+    /// for the empty string, as `jjy` takes it; a null `code` is
+    /// `HC_ERROR_NULL_POINTER`. A second that does not begin a minute of
+    /// the years 1 to 9999, or a `leap`, `dut1_tenths` or `dst_next` the
+    /// code cannot say, is `HC_ERROR_OUT_OF_RANGE`, and a `summer` state it
+    /// does not name `HC_ERROR_UNKNOWN`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `code` and `summer` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_radio_encode(
+        code: *const c_char,
+        unix_seconds: i64,
+        leap: c_int,
+        summer: *const c_char,
+        zone_change: c_int,
+        dut1_tenths: c_int,
+        dst_next: u32,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let (code, summer) = match unsafe { (name(code), text(summer)) } {
+            (Ok(code), Ok(summer)) => (code, summer.unwrap_or("")),
+            (Err(status), _) | (_, Err(status)) => return status,
+        };
+        let answer = time_code_lines::radio_encode_line(
+            code,
+            unix_seconds,
+            leap,
+            summer,
+            zone_change != 0,
+            dut1_tenths,
+            dst_next,
+        );
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "time-codes")]
+pub use time_codes::{
+    hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_radio_decode,
+    hc_radio_encode,
+};
+
+/// .NET's ticks and the six-hour clocks, behind the `timestamps` feature.
+/// The lines are `hyper_calendar::time_code_lines`', shared with the
+/// WebAssembly module.
+#[cfg(feature = "timestamps")]
+mod clock_readings {
+    use core::ffi::{c_char, c_int};
+
+    use hc::time_code_lines;
+
+    use super::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus, name, status, write_answer};
+
+    /// .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value, the
+    /// 100-nanosecond intervals from 0001-01-01 00:00, floored to the tick.
+    ///
+    /// Attoseconds from 10¹⁸, or an instant before 0001-01-01 or after
+    /// 9999-12-31 23:59:59.9999999, are `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `out_ticks` must be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_dotnet_ticks_from_unix(
+        unix_seconds: i64,
+        attoseconds: u64,
+        out_ticks: *mut i64,
+    ) -> HcStatus {
+        if out_ticks.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        match time_code_lines::dotnet_ticks_from_unix(unix_seconds, attoseconds) {
+            Ok(ticks) => {
+                // SAFETY: checked non-null above.
+                unsafe { *out_ticks = ticks };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+
+    /// The reading a count of .NET ticks names, as one NUL-terminated UTF-8
+    /// line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the whole seconds from
+    /// 1970-01-01 00:00 and the attoseconds, POSIX time for a `Utc` value.
+    /// Ticks outside 0 to 3 155 378 975 999 999 999 are
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_dotnet_ticks(
+        ticks: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = time_code_lines::unix_from_dotnet_ticks_line(ticks);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// A time of the civil day on a six-hour clock, as one NUL-terminated
+    /// UTF-8 line in a caller-owned buffer.
+    ///
+    /// `reckoning` is `ethiopian-hours` or `swahili-hours`, in any case;
+    /// anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. `seconds_of_day` from 86 400 is
+    /// `HC_ERROR_OUT_OF_RANGE`. The line is the WebAssembly module's.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_six_hour_clock(
+        reckoning: *const c_char,
+        seconds_of_day: u32,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { name(reckoning) } {
+            Ok(reckoning) => reckoning,
+            Err(status) => return status,
+        };
+        let answer = time_code_lines::six_hour_clock_line(reckoning, seconds_of_day);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The civil time of day of a six-hour reading, as seconds after
+    /// midnight, 0 through 86 399.
+    ///
+    /// `reckoning` is as for `hc_six_hour_clock`. An hour outside 1 to 12,
+    /// or a minute or second above 59, is `HC_ERROR_OUT_OF_RANGE`.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be null or NUL-terminated, and `out_seconds` must
+    /// be writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_civil_from_six_hour_clock(
+        reckoning: *const c_char,
+        hour: u32,
+        minute: u32,
+        second: u32,
+        night: c_int,
+        out_seconds: *mut u32,
+    ) -> HcStatus {
+        if out_seconds.is_null() {
+            return HC_ERROR_NULL_POINTER;
+        }
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { name(reckoning) } {
+            Ok(reckoning) => reckoning,
+            Err(status) => return status,
+        };
+        match time_code_lines::civil_from_six_hour_clock(
+            reckoning,
+            hour,
+            minute,
+            second,
+            night != 0,
+        ) {
+            Ok(seconds) => {
+                // SAFETY: checked non-null above; the seconds of a day fit.
+                unsafe { *out_seconds = seconds as u32 };
+                HC_OK
+            }
+            Err(refusal) => status(refusal),
+        }
+    }
+}
+
+#[cfg(feature = "timestamps")]
+pub use clock_readings::{
+    hc_civil_from_six_hour_clock, hc_dotnet_ticks_from_unix, hc_six_hour_clock,
+    hc_unix_from_dotnet_ticks,
+};
+
 /// Every calendar, behind the `calendars` feature: the registry the facade
 /// populates, described for one day, walked as eras, years, months and
 /// days, and listed, in the vocabulary of a locale; the locales
@@ -2264,6 +2661,92 @@ pub use calendar_days::{
     hc_surya_siddhanta_sunrise,
 };
 
+/// The parts of a day the calendars mark, behind the `calendars` feature:
+/// Rāhu kālam, Yamaganda and Gulika kālam, and the almanac's cycles of a
+/// day. The lines are `hyper_calendar`'s `panchanga_lines` and
+/// `almanac_lines`, shared with the WebAssembly module.
+#[cfg(feature = "calendars")]
+mod day_periods {
+    use core::ffi::c_char;
+
+    use hc::{almanac_lines, astro_lines, panchanga_lines};
+
+    use super::{HcStatus, name, write_answer};
+
+    /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// `convention` is `rahu-kalam-sunrise` or `rahu-kalam-fixed`, in any
+    /// case; anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. The lines are the WebAssembly module's: the
+    /// period's identifier, English name and eighth of the day, the clock,
+    /// `universal` or `local`, the start and the end, and the four cells of
+    /// a missing solar event. A place off the globe, or a day outside the
+    /// years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required
+    /// length, including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `convention` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_kalam(
+        convention: *const c_char,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let convention = match unsafe { name(convention) } {
+            Ok(convention) => convention,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| panchanga_lines::kalam_lines(convention, fixed, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The almanac's cycles of a fixed day, 恵方, 三元九運 and 손 없는 날, as
+    /// one NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// `meridian` is as for `hc_term_in_effect`; null is
+    /// `HC_ERROR_NULL_POINTER` and a meridian not read `HC_ERROR_UNKNOWN`.
+    /// The line is the WebAssembly module's. A day outside the years −1000
+    /// to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_almanac_cycles(
+        fixed: i64,
+        meridian: *const c_char,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { name(meridian) } {
+            Ok(meridian) => meridian,
+            Err(status) => return status,
+        };
+        let answer = almanac_lines::almanac_cycles_line(fixed, meridian);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "calendars")]
+pub use day_periods::{hc_almanac_cycles, hc_kalam};
+
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
 /// identifier and rendered as tab-separated lines.
@@ -2759,6 +3242,89 @@ pub use observances::{
     hc_astronomical_easter, hc_astronomical_paschal_full_moon, hc_common_worship_on,
     hc_holiday_tables, hc_holy_year_on, hc_lectionary,
 };
+
+/// The Eastern Orthodox fasts, behind the `holiday` feature. The lines are
+/// `hyper_calendar::holiday_lines`', shared with the WebAssembly module.
+#[cfg(feature = "holiday")]
+mod fasts {
+    use core::ffi::c_char;
+
+    use hc::holiday_lines;
+
+    use super::{HcStatus, name, write_answer};
+
+    /// What a fixed day is in the Eastern Orthodox fasting scheme of a
+    /// reckoning, as one NUL-terminated UTF-8 line in a caller-owned
+    /// buffer.
+    ///
+    /// `reckoning` is `orthodox-fasts` or `orthodox-fasts-revised-julian`,
+    /// in any case; anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: `1` or
+    /// `0` for a fast day, `period`, `weekly-fast` or `none`, the period's
+    /// identifier, English name and kind (`fast`, `fast-free` or
+    /// `meat-excluded`), and what the day abstains from, `nothing`, `meat` or
+    /// `fast`. A day outside the years
+    /// 326 to 4099 of the reckoning's calendar is `HC_ERROR_OUT_OF_RANGE`.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orthodox_fast_on(
+        reckoning: *const c_char,
+        fixed: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { name(reckoning) } {
+            Ok(reckoning) => reckoning,
+            Err(status) => return status,
+        };
+        let answer = holiday_lines::orthodox_fast_line(reckoning, fixed);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The fasting seasons and fast-free weeks of a year of a reckoning, as
+    /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+    ///
+    /// `reckoning` is as for `hc_orthodox_fast_on`. The lines are the
+    /// WebAssembly module's, one per period: its identifier, English name
+    /// and kind, and its first and last days, empty in a year it does not
+    /// happen. A year outside 326 to 4099 is `HC_ERROR_OUT_OF_RANGE`.
+    /// Writes the required length, including the terminator, into
+    /// `written`.
+    ///
+    /// # Safety
+    ///
+    /// As `hc_orthodox_fast_on`.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_orthodox_fast_seasons(
+        reckoning: *const c_char,
+        year: i64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { name(reckoning) } {
+            Ok(reckoning) => reckoning,
+            Err(status) => return status,
+        };
+        let answer = holiday_lines::orthodox_fast_seasons_lines(reckoning, year);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "holiday")]
+pub use fasts::{hc_orthodox_fast_on, hc_orthodox_fast_seasons};
 
 /// The almanac, behind the `seasons` feature: the 24 solar terms and the 72
 /// pentads of `hc-seasons`, judged at a named meridian, and 寒食 under each
@@ -3983,6 +4549,195 @@ pub use earth_and_sun::{
     hc_solar_event, hc_solar_time, hc_sunrise, hc_sunset, hc_ut2_minus_ut1,
 };
 
+/// The religious and traditional hours of a day, behind the `sky` feature:
+/// the Islamic prayer times, the Jewish times in temporal hours and the
+/// Edo 不定時法. The lines are `hyper_calendar::hours_lines`', shared with
+/// the WebAssembly module, and answer for the years −1000 to 3000.
+#[cfg(feature = "sky")]
+mod hours {
+    use core::ffi::{c_char, c_int};
+
+    use hc::{astro_lines, hours_lines};
+
+    use super::{HcStatus, name, write_answer};
+
+    /// The Islamic prayer times of a fixed day at a place by a named
+    /// method, as eight NUL-terminated UTF-8 lines in a caller-owned
+    /// buffer.
+    ///
+    /// `method` is an identifier `hc_prayer_methods` lists, in any case;
+    /// anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. `ramadan` non-zero takes the Ramaḍān
+    /// interval of a method that fixes *ʿishāʾ* after *maghrib*. The lines
+    /// are the WebAssembly module's: `fajr`, `sunrise`, `zuhr`,
+    /// `asr-shafii`, `asr-hanafi`, `maghrib`, `isha` and `midnight`, each
+    /// with its instant and the four cells of a missing solar event. A
+    /// place off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `method` must be null or NUL-terminated; `buffer` must be writable
+    /// for `capacity` bytes and `written` must be null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_prayer_times(
+        method: *const c_char,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        ramadan: c_int,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let method = match unsafe { name(method) } {
+            Ok(method) => method,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::prayer_times_lines(method, fixed, place, ramadan != 0));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// Every prayer-time method `hc_prayer_times` reads, with its
+    /// parameters and source, as NUL-terminated UTF-8 lines in a
+    /// caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_prayer_methods(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            write_answer(
+                Ok(hours_lines::prayer_methods_lines()),
+                buffer,
+                capacity,
+                written,
+            )
+        }
+    }
+
+    /// The Jewish times of a fixed day at a place by a reckoning, with the
+    /// dawns and nightfalls, as nine NUL-terminated UTF-8 lines in a
+    /// caller-owned buffer.
+    ///
+    /// `reckoning` is `gra`, `mga-72-minutes` or `mga-16-1-degrees`, in any
+    /// case; anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `HC_ERROR_NULL_POINTER`. The lines are the WebAssembly module's. A
+    /// place off the globe, or a day outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `reckoning` must be null or NUL-terminated; `buffer` must be
+    /// writable for `capacity` bytes and `written` must be null or
+    /// writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_zmanim(
+        reckoning: *const c_char,
+        fixed: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        let reckoning = match unsafe { name(reckoning) } {
+            Ok(reckoning) => reckoning,
+            Err(status) => return status,
+        };
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::zmanim_lines(reckoning, fixed, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The Edo 不定時法 reading of a POSIX timestamp at a place, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The line is the WebAssembly module's: the day, the hour's place and
+    /// name, its romaji, strokes and branch, the tenths and fraction of the
+    /// hour gone, and the four cells of a missing solar event. A place off
+    /// the globe, or an instant outside the years −1000 to 3000, is
+    /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+    /// terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_edo_time(
+        unix_seconds: i64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::edo_time_line(unix_seconds, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+
+    /// The instant of an Edo 不定時法 reading at a place, as one
+    /// NUL-terminated UTF-8 line in a caller-owned buffer.
+    ///
+    /// The reading is the day whose 明け六つ begins it, the hour's place
+    /// from 明け六つ, 0 to 11, and the fraction of the hour gone, from 0 up
+    /// to 1. The line is the WebAssembly module's: the instant and the four
+    /// cells of a missing solar event. An hour above 11, a fraction outside
+    /// 0 to 1, a place off the globe, or a day outside the years −1000 to
+    /// 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_unix_from_edo_time(
+        fixed: i64,
+        hour: u32,
+        fraction: f64,
+        latitude: f64,
+        longitude: f64,
+        elevation: f64,
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        let answer = astro_lines::location(latitude, longitude, elevation)
+            .and_then(|place| hours_lines::unix_from_edo_time_line(fixed, hour, fraction, place));
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { write_answer(answer, buffer, capacity, written) }
+    }
+}
+
+#[cfg(feature = "sky")]
+pub use hours::{
+    hc_edo_time, hc_prayer_methods, hc_prayer_times, hc_unix_from_edo_time, hc_zmanim,
+};
+
 /// The orbit, behind the `orbital` feature: Earth's orbital elements and
 /// the June insolation at 65° N they set, a million years either side of
 /// 1950, from Berger's 1978 series in `hc-orbital`.
@@ -4540,6 +5295,7 @@ mod tests {
     /// allocate, read, and check the terminator.
     #[cfg(any(
         feature = "timestamps",
+        feature = "time-codes",
         feature = "calendars",
         feature = "holiday",
         feature = "seasons",
@@ -7442,7 +8198,7 @@ mod tests {
                     written,
                 )
             });
-            assert_eq!(line, format!("\tno-noon-shadow\t{midwinter}\t\n"));
+            assert_eq!(line, format!("\tno-noon-shadow\t{midwinter}\t\t\n"));
             let line = read_lines(|buffer, capacity, written| unsafe {
                 hc_solar_time(
                     c"local-mean".as_ptr(),
@@ -7703,6 +8459,383 @@ mod tests {
                 measured(|buffer, capacity, written| unsafe {
                     hc_gravitational_dilation(core::ptr::null(), 1e7, buffer, capacity, written)
                 }),
+                HC_ERROR_NULL_POINTER
+            );
+        }
+    }
+
+    /// The time codes and clock readings, called as a C caller calls them.
+    #[cfg(feature = "time-codes")]
+    mod time_codes {
+        use super::super::*;
+        use super::read_lines;
+
+        /// CCSDS 301.0-B-4's example in CDS, `41 2A DE 03 B8 CE 73 01 C8`,
+        /// as `docs/systems/ccsds-time-codes.md` works it, and NICT's JJY
+        /// frame of 17:25 JST on 1 April 2004 (`nict-jjy-timecode`).
+        #[test]
+        fn the_codes_cross_the_c_boundary() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_ccsds_decode(c"412ade03b8ce7301c8".as_ptr(), 1, buffer, capacity, written)
+            });
+            assert!(text.starts_with("cds\t569524867\t"), "{text}");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_ccsds_encode(946_684_832, 0, c"1c".as_ptr(), 1, buffer, capacity, written)
+            });
+            assert_eq!(text, "1c4effa220\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_ccsds_ascii_format(
+                    946_684_832,
+                    0,
+                    c"a".as_ptr(),
+                    c"second".as_ptr(),
+                    1,
+                    1,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "2000-01-01T00:00:00Z\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_ccsds_ascii_parse(c"2000-001T00:00Z".as_ptr(), 1, buffer, capacity, written)
+            });
+            assert!(
+                text.starts_with("b\t946684832\t0\t946684800\t0\t0\tminute"),
+                "{text}"
+            );
+            let frame = c"M01000101M000100111M000001001M001000010M000000100M100000000M";
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_radio_decode(
+                    c"jjy".as_ptr(),
+                    frame.as_ptr(),
+                    2000,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "1080807900\t731672\t17\t25\t9\t60\tnone\t\t\t\t\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_radio_encode(
+                    c"jjy".as_ptr(),
+                    1_080_807_900,
+                    0,
+                    core::ptr::null(),
+                    0,
+                    0,
+                    0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.trim_end(), frame.to_str().expect("ASCII"));
+            let mut written = 0;
+            assert_eq!(
+                unsafe {
+                    hc_radio_decode(
+                        core::ptr::null(),
+                        frame.as_ptr(),
+                        2000,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_NULL_POINTER
+            );
+        }
+    }
+
+    /// .NET's ticks and the six-hour clocks, called as a C caller calls them.
+    #[cfg(feature = "timestamps")]
+    mod clock_readings {
+        use super::super::*;
+        use super::read_lines;
+
+        /// `DateTime.MaxValue` is 3 155 378 975 999 999 999 ticks
+        /// (`ms-datetime-maxvalue`); the Kansas lesson's "7:00 pm is called
+        /// saa moja usiku" (`ku-kiswahili-lesson-17`).
+        #[test]
+        fn ticks_and_six_hour_clocks_cross_the_c_boundary() {
+            let mut ticks = 0i64;
+            assert_eq!(
+                unsafe {
+                    hc_dotnet_ticks_from_unix(253_402_300_799, 999_999_900_000_000_000, &mut ticks)
+                },
+                HC_OK
+            );
+            assert_eq!(ticks, 3_155_378_975_999_999_999);
+            assert_eq!(
+                unsafe { hc_dotnet_ticks_from_unix(253_402_300_800, 0, &mut ticks) },
+                HC_ERROR_OUT_OF_RANGE
+            );
+            assert_eq!(
+                unsafe { hc_dotnet_ticks_from_unix(0, 0, core::ptr::null_mut()) },
+                HC_ERROR_NULL_POINTER
+            );
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_unix_from_dotnet_ticks(0, buffer, capacity, written)
+            });
+            assert_eq!(text, "-62135596800\t0\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_six_hour_clock(
+                    c"swahili-hours".as_ptr(),
+                    19 * 3_600,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "1\t0\t0\tnight\tusiku\tnight\n");
+            let mut seconds = 0u32;
+            assert_eq!(
+                unsafe {
+                    hc_civil_from_six_hour_clock(
+                        c"swahili-hours".as_ptr(),
+                        1,
+                        0,
+                        0,
+                        1,
+                        &mut seconds,
+                    )
+                },
+                HC_OK
+            );
+            assert_eq!(seconds, 19 * 3_600);
+        }
+    }
+
+    /// Rāhu kālam and the almanac's cycles through the C boundary.
+    #[cfg(feature = "calendars")]
+    mod day_periods {
+        use super::super::*;
+        use super::read_lines;
+
+        /// The crescent criteria added with the Unified Hijri calendars:
+        /// Djamaluddin's Neo-MABIMS verdicts for 1447 AH in Indonesia
+        /// (`djamaluddin-kalender-1447`), met on the evening of 25 July 2025
+        /// and not on 25 June; KHGT's geocentric 8° and 5° at sunset, which
+        /// the Istanbul 2016 parameters also judge at; and Odeh's V at
+        /// Bruin's best time, as Yallop's q.
+        #[test]
+        fn the_crescent_criteria_of_the_unified_hijri_calendars_cross_the_c_boundary() {
+            let line = |criterion: &core::ffi::CStr, day: i64, latitude: f64, longitude: f64| {
+                let text = read_lines(|buffer, capacity, written| unsafe {
+                    hc_crescent_visible(
+                        criterion.as_ptr(),
+                        day,
+                        latitude,
+                        longitude,
+                        0.0,
+                        buffer,
+                        capacity,
+                        written,
+                    )
+                });
+                let cells: Vec<String> = text
+                    .trim_end_matches('\n')
+                    .split('\t')
+                    .map(str::to_owned)
+                    .collect();
+                assert_eq!(cells.len(), 7, "{criterion:?}: {text}");
+                cells
+            };
+            let indonesia = [(5.55, 95.3175), (-6.18, 106.83)];
+            for criterion in [
+                c"mabims-2021-topocentric",
+                c"mabims-2021-geocentric-elongation",
+            ] {
+                let met = |day: i64| {
+                    indonesia.iter().any(|&(latitude, longitude)| {
+                        line(criterion, day, latitude, longitude)[0] == "1"
+                    })
+                };
+                // 26 July and 26 June 2025, whose eves are the 25th.
+                assert!(met(739_458), "{criterion:?}");
+                assert!(!met(739_428), "{criterion:?}");
+            }
+            let mecca = (21.423_333, 39.823_333);
+            // 18 to 20 February 2026.
+            for day in 739_665..=739_667 {
+                let khgt = line(c"khgt", day, mecca.0, mecca.1);
+                let arc_of_light: f64 = khgt[3].parse().expect("an arc of light");
+                let altitude: f64 = khgt[4].parse().expect("an altitude");
+                assert_eq!(
+                    khgt[0] == "1",
+                    arc_of_light >= 8.0 && altitude >= 5.0,
+                    "{khgt:?}"
+                );
+                assert_eq!(line(c"istanbul-2016", day, mecca.0, mecca.1)[1], khgt[1]);
+                assert_eq!(
+                    line(c"odeh", day, mecca.0, mecca.1)[1],
+                    line(c"yallop", day, mecca.0, mecca.1)[1]
+                );
+            }
+        }
+
+        /// Drik Panchang's New Delhi page of 1 January 2025, a Wednesday
+        /// (`drik-day-panchang-2025`), and 節分 2026, whose 恵方 is 丙
+        /// (`allabout-eho-2026`).
+        #[test]
+        fn kalam_and_almanac_cycles_cross_the_c_boundary() {
+            let day = 739_252;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_kalam(
+                    c"rahu-kalam-fixed".as_ptr(),
+                    day,
+                    28.6356,
+                    77.2244,
+                    0.0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert!(text.starts_with("rahu-kalam\tRahu Kalam\t5\tlocal\t43200\t48600\t"));
+            let setsubun = 739_650;
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_almanac_cycles(setsubun, c"japan".as_ptr(), buffer, capacity, written)
+            });
+            assert!(text.starts_with("丙\thinoe\t165\t"), "{text}");
+        }
+    }
+
+    /// The Orthodox fasts through the C boundary.
+    #[cfg(feature = "holiday")]
+    mod fasts {
+        use super::super::*;
+        use super::read_lines;
+
+        /// Great Lent began on 3 March 2025 (`oca-fasting-seasons`).
+        #[test]
+        fn great_lent_2025_crosses_the_c_boundary() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_orthodox_fast_on(
+                    c"orthodox-fasts".as_ptr(),
+                    739_313,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(
+                text,
+                "1\tperiod\tgreat-lent\tGreat Lent & Holy Week\tfast\tfast\n"
+            );
+            // Wednesday 18 February 2026, in Cheesefare week.
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_orthodox_fast_on(
+                    c"orthodox-fasts".as_ptr(),
+                    739_665,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text, "0\tperiod\tmeatfast\tMeatfast\tmeat-excluded\tmeat\n");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_orthodox_fast_seasons(
+                    c"orthodox-fasts".as_ptr(),
+                    2025,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.lines().count(), 12);
+            let mut written = 0;
+            assert_eq!(
+                unsafe {
+                    hc_orthodox_fast_seasons(
+                        c"coptic".as_ptr(),
+                        2025,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
+                HC_ERROR_UNKNOWN
+            );
+        }
+    }
+
+    /// The prayer times, the zmanim and the Edo hours through the C
+    /// boundary.
+    #[cfg(feature = "sky")]
+    mod hours {
+        use super::super::*;
+        use super::read_lines;
+
+        /// MUIS's Singapore timetable for 1 January 2026
+        /// (`muis-prayer-timetable-2026`), Hebcal's New York zmanim of
+        /// 1 January 2025 (`hebcal-zmanim-api`), and the Edo hour at Kyoto's
+        /// equinox dawn of 2020 (こよみのページ).
+        #[test]
+        fn the_hours_cross_the_c_boundary() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_prayer_times(
+                    c"singapore".as_ptr(),
+                    739_617,
+                    1.0 + 17.0 / 60.0,
+                    103.0 + 50.0 / 60.0,
+                    0.0,
+                    0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.lines().count(), 8);
+            assert!(text.starts_with("fajr\t"));
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_prayer_methods(buffer, capacity, written)
+            });
+            assert!(text.lines().count() >= 11);
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_zmanim(
+                    c"mga-72-minutes".as_ptr(),
+                    739_252,
+                    40.71427,
+                    -74.00597,
+                    0.0,
+                    buffer,
+                    capacity,
+                    written,
+                )
+            });
+            assert_eq!(text.lines().count(), 9);
+            let kyoto = (35.0 + 36.0 / 3_600.0, 135.7417);
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_unix_from_edo_time(
+                    737_504, 0, 0.0, kyoto.0, kyoto.1, 0.0, buffer, capacity, written,
+                )
+            });
+            let dawn: i64 = text
+                .split('\t')
+                .next()
+                .expect("a cell")
+                .parse()
+                .expect("an instant");
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_edo_time(dawn + 2, kyoto.0, kyoto.1, 0.0, buffer, capacity, written)
+            });
+            assert!(text.starts_with("737504\t0\t明六つ\t"), "{text}");
+            let mut written = 0;
+            assert_eq!(
+                unsafe {
+                    hc_zmanim(
+                        core::ptr::null(),
+                        739_252,
+                        0.0,
+                        0.0,
+                        0.0,
+                        core::ptr::null_mut(),
+                        0,
+                        &mut written,
+                    )
+                },
                 HC_ERROR_NULL_POINTER
             );
         }

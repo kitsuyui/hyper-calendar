@@ -555,3 +555,9 @@ both sources are tests.
 `the_ethiopian_examples`, `the_swahili_examples`,
 `the_reckonings_differ_only_at_the_twelfth_hours` and
 `every_minute_round_trips`.
+
+The WebAssembly and C exports `hc_zmanim`, `hc_edo_time`,
+`hc_unix_from_edo_time`, `hc_six_hour_clock` and
+`hc_civil_from_six_hour_clock` write the Jewish times, the Edo hours and
+the six-hour readings, and `hc_solar_event` the Japanese dawn and dusk, from
+`hyper_calendar`'s `hours_lines`, `astro_lines` and `time_code_lines`.

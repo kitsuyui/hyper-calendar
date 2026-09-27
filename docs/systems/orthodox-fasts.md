@@ -209,3 +209,7 @@ against:
 `the_apostles_fast_is_eight_to_forty_two_days_on_the_julian_reckoning`,
 `the_two_reckonings_share_the_moveable_days` and
 `no_answer_outside_the_computus`.
+
+The WebAssembly and C exports `hc_orthodox_fast_on` and
+`hc_orthodox_fast_seasons` write what a day is and the periods of a year
+under a reckoning, from `hyper_calendar::holiday_lines`.

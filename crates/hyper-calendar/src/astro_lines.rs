@@ -215,36 +215,88 @@ pub fn location(latitude: f64, longitude: f64, elevation: f64) -> Answer<Locatio
 pub const SOLAR_TIMES: [&str; 4] = ["local-mean", "local-apparent", "temporal", "italian"];
 
 /// The times of day `hc_solar_event` answers, by name.
-pub const SOLAR_EVENTS: [&str; 5] = [
+pub const SOLAR_EVENTS: [&str; 9] = [
     "asr-shafii",
     "asr-hanafi",
     "jewish-dusk-vilna-gaon",
     "jewish-sabbath-ends-cohn",
     "italian-zero-hour",
+    "japanese-dawn-kansei",
+    "japanese-dusk-kansei",
+    "japanese-dawn-naoj",
+    "japanese-dusk-naoj",
 ];
+
+/// The depression a missing solar event sought, in arcseconds, if it is a
+/// depression.
+const fn missing_arcseconds(missing: MissingSolarEvent) -> Option<u32> {
+    match missing {
+        MissingSolarEvent::Depression { arcminutes, .. }
+        | MissingSolarEvent::DawnDepression { arcminutes, .. } => Some(arcminutes as u32 * 60),
+        MissingSolarEvent::Twilight { arcseconds, .. } => Some(arcseconds),
+        MissingSolarEvent::Sunrise(_)
+        | MissingSolarEvent::Sunset(_)
+        | MissingSolarEvent::NoNoonShadow(_) => None,
+    }
+}
 
 /// The three cells naming a missing solar event: what is missing
 /// (`sunrise`, `sunset`, `depression` or `no-noon-shadow`), the local day
-/// it is missing on, and the depression sought in arcminutes, or empty.
+/// it is missing on, and the depression sought in arcminutes, or empty —
+/// empty too for a depression that is not a whole number of arcminutes,
+/// the Japanese dawn and dusk, whose figure is
+/// [`push_missing_cells`]'s fourth cell.
 fn push_missing(out: &mut String, missing: MissingSolarEvent) {
-    let (name, day, arcminutes) = match missing {
-        MissingSolarEvent::Sunrise(day) => ("sunrise", day, None),
-        MissingSolarEvent::Sunset(day) => ("sunset", day, None),
-        MissingSolarEvent::Depression { day, arcminutes }
-        | MissingSolarEvent::DawnDepression { day, arcminutes } => {
-            ("depression", day, Some(arcminutes))
-        }
-        MissingSolarEvent::NoNoonShadow(day) => ("no-noon-shadow", day, None),
-        // No export here reads the Japanese dawn and dusk, whose depression
-        // is not a whole number of arcminutes; the cell would drop the
-        // seconds.
-        MissingSolarEvent::Twilight {
-            day, arcseconds, ..
-        } => ("depression", day, u16::try_from(arcseconds / 60).ok()),
+    let (name, day) = match missing {
+        MissingSolarEvent::Sunrise(day) => ("sunrise", day),
+        MissingSolarEvent::Sunset(day) => ("sunset", day),
+        MissingSolarEvent::Depression { day, .. }
+        | MissingSolarEvent::DawnDepression { day, .. }
+        | MissingSolarEvent::Twilight { day, .. } => ("depression", day),
+        MissingSolarEvent::NoNoonShadow(day) => ("no-noon-shadow", day),
     };
     let _ = write!(out, "{name}\t{}\t", day.0);
-    if let Some(arcminutes) = arcminutes {
-        let _ = write!(out, "{arcminutes}");
+    if let Some(arcseconds) = missing_arcseconds(missing)
+        && arcseconds % 60 == 0
+    {
+        let _ = write!(out, "{}", arcseconds / 60);
+    }
+}
+
+/// How many cells [`push_missing_cells`] writes.
+pub const MISSING_COLUMNS: usize = 4;
+
+/// The four cells naming a missing solar event, or four empty ones for
+/// `None`: the three of `hc_solar_time`'s line and the depression sought
+/// in arcseconds, which is the one exact figure for a depression that is
+/// not a whole number of arcminutes.
+pub fn push_missing_cells(out: &mut String, missing: Option<MissingSolarEvent>) {
+    match missing {
+        None => out.push_str("\t\t\t"),
+        Some(missing) => {
+            push_missing(out, missing);
+            out.push('\t');
+            if let Some(arcseconds) = missing_arcseconds(missing) {
+                let _ = write!(out, "{arcseconds}");
+            }
+        }
+    }
+}
+
+/// An instant, or the missing solar event it needs: the whole POSIX
+/// seconds of Universal Time, rounded down, and the four cells of
+/// [`push_missing_cells`], the first cell empty when the time does not
+/// happen.
+pub fn push_moment_or_missing(out: &mut String, answer: Result<Moment, MissingSolarEvent>) {
+    match answer {
+        Ok(moment) => {
+            let _ = write!(out, "{}\t", unix_from_moment(moment));
+            push_missing_cells(out, None);
+        }
+        Err(missing) => {
+            out.push('\t');
+            push_missing_cells(out, Some(missing));
+        }
     }
 }
 
@@ -295,11 +347,14 @@ pub fn solar_time_line(clock: &str, universal_unix: i64, place: Location) -> Ans
 
 /// The line of `hc_solar_event`: a named time of day on a local day at a
 /// place, as whole POSIX seconds of Universal Time, rounded down, then
-/// the three cells of a missing solar event, empty when the time exists.
-/// The times are [`SOLAR_EVENTS`]: ʿaṣr by the Shafiʿi and the Hanafi
-/// shadow rules, Jewish dusk at the Vilna Gaon's 4°40′, the end of the
-/// Sabbath at Berthold Cohn's 7°5′, and the Italian zero hour. A time that
-/// does not happen that day has its first cell empty and names the event.
+/// the four cells of [`push_missing_cells`] naming a missing solar event,
+/// empty when the time exists. The times are [`SOLAR_EVENTS`]: ʿaṣr by
+/// the Shafiʿi and the Hanafi shadow rules, Jewish dusk at the Vilna
+/// Gaon's 4°40′, the end of the Sabbath at Berthold Cohn's 7°5′, the
+/// Italian zero hour, and the Japanese dawn and dusk, 明け六つ and 暮れ六つ
+/// by the 寛政暦's 7°21′41″ and the Observatory's 夜明 and 日暮 at
+/// 7°21′40″. A time that does not happen that day has its first cell
+/// empty and names the event.
 ///
 /// # Errors
 ///
@@ -307,29 +362,30 @@ pub fn solar_time_line(clock: &str, universal_unix: i64, place: Location) -> Ans
 /// [`day_in_era`] and [`location`].
 pub fn solar_event_line(event: &str, fixed: i64, place: Location) -> Answer<String> {
     let day = day_in_era(fixed)?;
-    let answer = if names(event, "asr-shafii") {
-        solar_time::asr_shafii(day, place)
-    } else if names(event, "asr-hanafi") {
-        solar_time::asr_hanafi(day, place)
-    } else if names(event, "jewish-dusk-vilna-gaon") {
-        solar_time::jewish_dusk_vilna_gaon(day, place)
-    } else if names(event, "jewish-sabbath-ends-cohn") {
-        solar_time::jewish_sabbath_ends_cohn(day, place)
-    } else if names(event, "italian-zero-hour") {
-        solar_time::italian_zero_hour(day, place)
-    } else {
-        return Err(Refusal::Unknown);
-    };
+    let reckon: fn(Rd, Location) -> Result<Moment, MissingSolarEvent> =
+        if names(event, "asr-shafii") {
+            solar_time::asr_shafii
+        } else if names(event, "asr-hanafi") {
+            solar_time::asr_hanafi
+        } else if names(event, "jewish-dusk-vilna-gaon") {
+            solar_time::jewish_dusk_vilna_gaon
+        } else if names(event, "jewish-sabbath-ends-cohn") {
+            solar_time::jewish_sabbath_ends_cohn
+        } else if names(event, "italian-zero-hour") {
+            solar_time::italian_zero_hour
+        } else if names(event, "japanese-dawn-kansei") {
+            solar_time::japanese_dawn_kansei
+        } else if names(event, "japanese-dusk-kansei") {
+            solar_time::japanese_dusk_kansei
+        } else if names(event, "japanese-dawn-naoj") {
+            solar_time::japanese_dawn_naoj
+        } else if names(event, "japanese-dusk-naoj") {
+            solar_time::japanese_dusk_naoj
+        } else {
+            return Err(Refusal::Unknown);
+        };
     let mut out = String::new();
-    match answer {
-        Ok(moment) => {
-            let _ = write!(out, "{}\t\t\t", unix_from_moment(moment));
-        }
-        Err(missing) => {
-            out.push('\t');
-            push_missing(&mut out, missing);
-        }
-    }
+    push_moment_or_missing(&mut out, reckon(day, place));
     out.push('\n');
     Ok(out)
 }

@@ -28,14 +28,22 @@ civil = ["hc/civil", "hc/format"]
 # Time-scale labels and day counts outside the civil calendar: TAI64
 # labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation
 # dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time
-# words, Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM)
-# from a caller's series. A layer of its own so that `civil`, the first a page paints with, does not carry
+# words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from
+# a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour
+# clocks. A layer of its own so that `civil`, the first a page paints with, does not carry
 # their float formatting and 128-bit arithmetic.
 timestamps = ["civil"]
+# The CCSDS time codes, binary and ASCII, and the long-wave radio time
+# codes of JJY, DCF77 and WWVB, read and written. A layer of their own, so
+# that `timestamps` stays small for a page that needs only POSIX, ISO and
+# TAI conversions.
+time-codes = ["civil"]
 # Every calendar the facade registers, described for one day in a locale;
+# Rāhu kālam and the almanac's cycles of a day, 恵方, 三元九運 and 손 없는 날;
 # and, in a build with `tz` too, each zone's exemplar city in the locale.
-calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/i18n", "hc/format", "hc/localized-exemplar-cities"]
-# The holiday tables: countries, exchanges, traditions and the UN days.
+calendars = ["civil", "hc/lunar", "hc/equinox", "hc/indic", "hc/regional", "hc/almanac", "hc/i18n", "hc/format", "hc/localized-exemplar-cities"]
+# The holiday tables: countries, exchanges, traditions and the UN days;
+# and the Eastern Orthodox fasts.
 holiday = ["civil", "hc/holiday"]
 # The 24 solar terms and the 72 pentads.
 seasons = ["civil", "hc/seasons"]
@@ -51,7 +59,8 @@ tz = ["civil", "hc/tz"]
 # in, and the solar terms and the moon phases within a span; the Earth's
 # rotation angle, sidereal time and UT2; solar time, sunrise, sunset and
 # the other solar events under a named horizon; and the heliocentric
-# Julian date; from hc-astro's series.
+# Julian date; the Islamic prayer times, the zmanim and the Edo hours;
+# from hc-astro's series.
 sky = ["civil", "hc/seasons"]
 # The orbit: Earth's orbital elements and the June insolation at 65° N, a
 # million years either side of 1950, from Berger's 1978 series.
@@ -66,7 +75,7 @@ planetary = ["hc/planetary"]
 # part of `planetary`, because neither needs the other's crates.
 relativity = ["hc/relativity"]
 # Every layer.
-full = ["civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "hc/full"]
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "hc/full"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.

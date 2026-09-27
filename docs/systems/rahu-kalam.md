@@ -107,3 +107,6 @@ with the temple table's times for all three periods on all seven weekdays
 `the_fixed_day_table_is_the_eighths_of_six_to_six`,
 `the_three_never_share_a_part_and_rahu_never_takes_the_first` and
 `there_is_no_kalam_where_the_sun_does_not_rise`.
+
+The WebAssembly and C export `hc_kalam` writes the three periods of a day
+by either convention, from `hyper_calendar::panchanga_lines`.

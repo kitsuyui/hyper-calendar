@@ -271,3 +271,6 @@ almanacs, and no printed almanac was read.
 `the_cycle_repeats_every_one_hundred_and_eighty_years`) and
 `crates/hc-almanac/src/days_without_son.rs`
 (`the_sixty_eight_days_of_2026_are_the_published_list`).
+
+The WebAssembly and C export `hc_almanac_cycles` writes 恵方, 三元九運
+and 손 없는 날 for a day, from `hyper_calendar::almanac_lines`.

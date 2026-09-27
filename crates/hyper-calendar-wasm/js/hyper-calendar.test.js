@@ -97,7 +97,7 @@ describe("load", () => {
   test("names the version and the layers", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
-      "civil", "timestamps", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
+      "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
       "planetary", "relativity",
     ]);
     for (const entry of METHODS) {
@@ -1663,11 +1663,11 @@ describe("the Earth's rotation and the Sun's hours", () => {
     assert.equal(night.hours, null);
     assert.ok(night.missing && ["sunrise", "sunset"].includes(night.missing.event), JSON.stringify(night));
     assert.deepEqual(hc.solarEvent("asr-hanafi", midwinter, latitude, longitude), {
-      instant: null, missing: { event: "no-noon-shadow", day: midwinter, depressionArcminutes: null },
+      instant: null, missing: { event: "no-noon-shadow", day: midwinter, depressionArcminutes: null, depressionArcseconds: null },
     });
     const midsummer = hc.gregorianToFixed(2024, 6, 21);
     assert.deepEqual(hc.solarEvent("jewish-dusk-vilna-gaon", midsummer, latitude, longitude), {
-      instant: null, missing: { event: "depression", day: midsummer, depressionArcminutes: 280 },
+      instant: null, missing: { event: "depression", day: midsummer, depressionArcminutes: 280, depressionArcseconds: 16_800 },
     });
     // At Padua the Shafiʿi ʿaṣr comes before the Hanafi, and both before dusk.
     const day = hc.gregorianToFixed(2024, 4, 10);
@@ -1703,7 +1703,7 @@ describe("the Earth's rotation and the Sun's hours", () => {
     const midwinter = hc.gregorianToFixed(2024, 12, 21);
     const polar = hc.sunrise("geometric-dip", midwinter, 69.6496, 18.956);
     assert.equal(polar.instant, null);
-    assert.deepEqual(polar.missing, { event: "sunrise", day: midwinter, depressionArcminutes: null });
+    assert.deepEqual(polar.missing, { event: "sunrise", day: midwinter, depressionArcminutes: null, depressionArcseconds: null });
     assert.ok(Math.abs(polar.altitudeDegrees + 50 / 60) < 1e-12, `${polar.altitudeDegrees}`);
     refused(() => hc.sunrise(/** @type {any} */ ("naoj"), day, ...jerusalem), "unknown");
   });
@@ -1759,7 +1759,10 @@ describe("the Hindu date and the crescent", () => {
   test("a crescent is judged on the evening before the day", () => {
     const mecca = [21.423_333, 39.823_333, 298];
     const day = hc.gregorianToFixed(2024, 3, 12);
-    for (const criterion of /** @type {const} */ (["shaukat", "yallop", "saudi-rule"])) {
+    for (const criterion of /** @type {const} */ ([
+      "shaukat", "yallop", "saudi-rule", "odeh", "istanbul-2016", "khgt", "mabims-2021-topocentric",
+      "mabims-2021-geocentric-elongation",
+    ])) {
       const verdict = hc.crescentVisible(criterion, day, ...mecca);
       assert.equal(typeof verdict.visible, "boolean", criterion);
       if (verdict.evaluatedAt === null) {
@@ -1774,6 +1777,28 @@ describe("the Hindu date and the crescent", () => {
       visible: false, evaluatedAt: null, elongation: null, arcOfLight: null, altitude: null, arcOfVision: null, widthArcminutes: null,
     });
     refused(() => hc.crescentVisible(/** @type {any} */ ("danjon"), day, ...mecca), "unknown");
+  });
+
+  test("the criteria of #233 answer at the boundary as their sources have them", () => {
+    // Djamaluddin's analysis of 1447 AH by Neo-MABIMS (`djamaluddin-kalender-1447`):
+    // met in Indonesia on the evening of 25 July 2025, not on 25 June.
+    const indonesia = [[5.55, 95.3175], [-6.18, 106.83]];
+    for (const criterion of /** @type {const} */ (["mabims-2021-topocentric", "mabims-2021-geocentric-elongation"])) {
+      const met = (year, month, date) => indonesia.some(([lat, lon]) =>
+        hc.crescentVisible(criterion, hc.gregorianToFixed(year, month, date) + 1, lat, lon).visible);
+      assert.equal(met(2025, 7, 25), true, criterion);
+      assert.equal(met(2025, 6, 25), false, criterion);
+    }
+    // KHGT takes the elongation and the altitude geocentric at sunset.
+    const mecca = [21.423_333, 39.823_333, 298];
+    for (const date of [18, 19, 20]) {
+      const verdict = hc.crescentVisible("khgt", hc.gregorianToFixed(2026, 2, date), ...mecca);
+      assert.ok(verdict.arcOfLight !== null && verdict.altitude !== null);
+      assert.equal(verdict.visible, verdict.arcOfLight >= 8 && verdict.altitude >= 5, JSON.stringify(verdict));
+    }
+    // Odeh's V, like Yallop's q, is judged at Bruin's best time.
+    const day = hc.gregorianToFixed(2026, 2, 19);
+    assert.equal(hc.crescentVisible("odeh", day, ...mecca).evaluatedAt, hc.crescentVisible("yallop", day, ...mecca).evaluatedAt);
   });
 });
 
@@ -2143,5 +2168,201 @@ describe("the buffer protocol", () => {
     refused(() => counted1.loadZone("Test/Junk", new Uint8Array([1, 2, 3])), "malformed");
     assert.equal(calls.hc_alloc, calls.hc_free);
     assert.ok(calls.hc_alloc >= 8, `${calls.hc_alloc} allocations`);
+  });
+});
+
+describe("time codes and clock readings", () => {
+  test("the standard's CCSDS example decodes and encodes", () => {
+    // CCSDS 301.0-B-4's example, 1988-01-18T17:20:43.123456 UTC, in CDS
+    // with a 16-bit day and microseconds, as docs/systems/ccsds-time-codes.md works it.
+    const cds = hc.ccsdsDecode("41 2A DE 03 B8 CE 73 01 C8".replaceAll(" ", ""), true);
+    assert.deepEqual(cds, {
+      code: "cds",
+      tai: { seconds: 569_524_867n, attoseconds: 123_456_000_000_000_000n },
+      utc: { unixSeconds: 569_524_843n, leapSecond: false, attoseconds: 123_456_000_000_000_000n },
+    });
+    assert.equal(hc.ccsdsEncode(569_524_867, 123_456_000_000_000_000n, "53", true), "5319880118172043123456");
+    assert.equal(hc.ccsdsEncode(946_684_832, 0, "1c"), "1c4effa220");
+    const leap = hc.ccsdsDecode("40542d05265df4", true);
+    assert.equal(leap.utc.leapSecond, true);
+    assert.equal(leap.tai.seconds, 1_483_228_836n);
+    refused(() => hc.ccsdsDecode("2c4effa220"), "no-data");
+    refused(() => hc.ccsdsDecode("zz"), "malformed");
+    assert.equal(COLUMNS.ccsdsDecode.length, 6);
+  });
+
+  test("the ASCII codes read and write the standard's example", () => {
+    const code = hc.ccsdsAsciiParse("1988-01-18T17:20:43.123456Z", true);
+    assert.equal(code.variation, "a");
+    assert.equal(code.tai.seconds, 569_524_867n);
+    assert.equal(code.precision, "fraction");
+    assert.equal(code.digits, 6);
+    assert.equal(code.terminator, true);
+    assert.equal(hc.ccsdsAsciiParse("1988-018T17:20").digits, null);
+    assert.equal(hc.ccsdsAsciiFormat(569_524_867, 123_456_000_000_000_000n, "b", 6), "1988-018T17:20:43.123456Z");
+    assert.equal(hc.ccsdsAsciiFormat(569_524_867, 0, "a", "minute", false), "1988-01-18T17:20");
+    refused(() => hc.ccsdsAsciiFormat(0, 0, /** @type {any} */ ("c"), "hour"), "unknown");
+    refused(() => hc.ccsdsAsciiParse("1988-01-18"), "malformed");
+  });
+
+  test("the stations' frames decode to their minutes and encode back", () => {
+    // NICT's figure of 17:25 JST on 1 April 2004 (nict-jjy-timecode).
+    const nict = "M01000101M000100111M000001001M001000010M000000100M100000000M";
+    assert.deepEqual(hc.radioDecode("jjy", nict, 2000), {
+      unixSeconds: 1_080_807_900, fixed: 731_672, hour: 17, minute: 25, offsetHours: 9, seconds: 60,
+      leap: "none", summer: null, zoneChange: null, dut1Tenths: null, dstNext: null,
+    });
+    assert.equal(hc.radioEncode("jjy", 1_080_807_900), nict);
+    // Table 10 of NIST's Enhanced WWVB Broadcast Format: 17:30 UTC on 4 July 2012.
+    const am = "M01100000M000100111M000101000M011000101M010000001M001001011M";
+    const decoded = hc.radioDecode("wwvb-am", am, 2000);
+    assert.equal(decoded.unixSeconds, 1_341_423_000);
+    assert.equal(decoded.summer, "in-effect");
+    assert.equal(decoded.dut1Tenths, 4);
+    assert.equal(hc.radioEncode("wwvb-am", 1_341_423_000, { summer: "in-effect", dut1Tenths: 4 }), am);
+    // The frame docs/systems/radio-time-codes.md works from PTB's layout, naming 14:30 CEST on 27 September 2026.
+    const dcf77 = "00000000000000000100100001100001010011100111110010011001000";
+    assert.equal(hc.radioDecode("dcf77", dcf77, 2000).zoneChange, false);
+    assert.equal(hc.radioEncode("dcf77", 1_790_512_200, { summer: "cest" }), dcf77);
+    const pm = hc.radioEncode("wwvb-pm", 1_341_423_000, { summer: "in-effect", dstNext: 27 });
+    assert.equal(hc.radioDecode("wwvb-pm", pm, 2000).dstNext, 27);
+    refused(() => hc.radioDecode("jjy", nict, 2001), "out-of-range");
+    refused(() => hc.radioDecode("jjy", nict.slice(1), 2000), "malformed");
+    refused(() => hc.radioDecode("jjy", hc.radioEncode("jjy", 1_080_807_300), 2000), "no-data");
+    refused(() => hc.radioEncode("dcf77", 1_790_512_200, { summer: "cest", leap: -1 }), "out-of-range");
+  });
+
+  test(".NET ticks are Microsoft's", () => {
+    // DateTime.MaxValue (ms-datetime-maxvalue).
+    assert.equal(hc.dotnetTicksFromUnix(253_402_300_799, 999_999_900_000_000_000n), 3_155_378_975_999_999_999n);
+    assert.equal(hc.dotnetTicksFromUnix(0), 621_355_968_000_000_000n);
+    assert.deepEqual(hc.unixFromDotnetTicks(0), { unixSeconds: -62_135_596_800, attoseconds: 0n });
+    refused(() => hc.unixFromDotnetTicks(-1), "out-of-range");
+  });
+
+  test("the six-hour clocks read their sources' examples", () => {
+    // "8 am is 2 o'clock" (undp-eue-ethiopian-time); "7:00 pm is called saa moja usiku" (ku-kiswahili-lesson-17).
+    assert.deepEqual(hc.sixHourClock("ethiopian-hours", 8 * 3_600), {
+      hour: 2, minute: 0, second: 0, half: "day", period: null, periodEnglish: null,
+    });
+    assert.deepEqual(hc.sixHourClock("swahili-hours", 19 * 3_600), {
+      hour: 1, minute: 0, second: 0, half: "night", period: "usiku", periodEnglish: "night",
+    });
+    assert.equal(hc.civilFromSixHourClock("swahili-hours", 1, 0, 0, false), 7 * 3_600);
+    refused(() => hc.civilFromSixHourClock("ethiopian-hours", 13, 0, 0, false), "out-of-range");
+    refused(() => hc.sixHourClock(/** @type {any} */ ("amharic"), 0), "unknown");
+  });
+});
+
+describe("the parts of a day", () => {
+  test("Rāhu kālam falls where Drik Panchang puts it", () => {
+    // Drik Panchang's New Delhi page of 1 January 2025 (drik-day-panchang-2025).
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const periods = hc.kalam("rahu-kalam-sunrise", day, 28.6356, 77.2244);
+    assert.deepEqual(periods.map((period) => [period.id, period.part]), [
+      ["rahu-kalam", 5], ["yamaganda", 2], ["gulika-kalam", 4],
+    ]);
+    const istMidnight = hc.unixFromFixed(day) - 19_800;
+    const minutes = (/** @type {number} */ (periods[0].start) - istMidnight) / 60;
+    assert.ok(Math.abs(minutes - (12 * 60 + 25)) < 1, `${minutes}`);
+    const fixed = hc.kalam("rahu-kalam-fixed", day, 28.6356, 77.2244);
+    assert.deepEqual([fixed[0].clock, fixed[0].start, fixed[0].end, fixed[0].missing], ["local", 43_200, 48_600, null]);
+    const polar = hc.kalam("rahu-kalam-sunrise", hc.gregorianToFixed(2024, 12, 21), 69.6496, 18.956);
+    assert.equal(polar[0].missing?.event, "sunrise");
+    refused(() => hc.kalam(/** @type {any} */ ("yamardha"), day, 28.6, 77.2), "unknown");
+  });
+
+  test("setsubun 2026 faces south-south-east in the ninth period", () => {
+    const cycles = hc.almanacCycles(hc.gregorianToFixed(2026, 2, 3), "japan");
+    assert.deepEqual(cycles, {
+      eho: "丙", ehoRomaji: "hinoe", azimuth: 165, sixteenPoint: "南南東", direction: "south-south-east",
+      period: 9, periodName: "九運", era: "下元", star: "九紫火星", ruler: "右弼", firstYear: 2024, lastYear: 2043,
+      withoutSon: false,
+    });
+    // 7 February 2026 is on the published list of 손 없는 날.
+    assert.equal(hc.almanacCycles(hc.gregorianToFixed(2026, 2, 7), "korea").withoutSon, true);
+    assert.equal(hc.almanacCycles(hc.gregorianToFixed(1600, 1, 1)).withoutSon, null);
+    refused(() => hc.almanacCycles(0, "mars"), "unknown");
+  });
+
+  test("the Orthodox fasts of 2025 are the worked example's", () => {
+    assert.deepEqual(hc.orthodoxFastOn("orthodox-fasts", hc.gregorianToFixed(2025, 3, 3)), {
+      fastDay: true, status: "period", period: "great-lent", periodName: "Great Lent & Holy Week", kind: "fast",
+      abstinence: "fast",
+    });
+    // Wednesday 18 February 2026, in Cheesefare week: no fast day, but no meat.
+    assert.deepEqual(hc.orthodoxFastOn("orthodox-fasts", hc.gregorianToFixed(2026, 2, 18)), {
+      fastDay: false, status: "period", period: "meatfast", periodName: "Meatfast", kind: "meat-excluded",
+      abstinence: "meat",
+    });
+    assert.equal(
+      hc.orthodoxFastSeasons("orthodox-fasts", 2026).find((season) => season.id === "meatfast")?.kind,
+      "meat-excluded",
+    );
+    assert.deepEqual(hc.orthodoxFastOn("orthodox-fasts", hc.gregorianToFixed(2025, 10, 1)), {
+      fastDay: true, status: "weekly-fast", period: null, periodName: null, kind: null, abstinence: "fast",
+    });
+    const apostles = (reckoning, year) =>
+      hc.orthodoxFastSeasons(reckoning, year).find((season) => season.id === "apostles-fast");
+    assert.equal(apostles("orthodox-fasts", 2025)?.last, hc.gregorianToFixed(2025, 7, 11));
+    assert.equal(apostles("orthodox-fasts-revised-julian", 2025)?.last, hc.gregorianToFixed(2025, 6, 28));
+    assert.deepEqual([apostles("orthodox-fasts-revised-julian", 2024)?.first, apostles("orthodox-fasts-revised-julian", 2024)?.last], [null, null]);
+    refused(() => hc.orthodoxFastSeasons("orthodox-fasts", 5000), "out-of-range");
+  });
+});
+
+describe("the hours of prayer and the Edo hours", () => {
+  test("Singapore's prayer times are MUIS's", () => {
+    // MUIS, Prayer Times for Singapore, Year 2026: 1 January, Subuh 5:44 and Maghrib 7:11 pm, UTC+8.
+    const day = hc.gregorianToFixed(2026, 1, 1);
+    const times = hc.prayerTimes("singapore", day, 1 + 17 / 60, 103 + 50 / 60);
+    assert.deepEqual(times.map((time) => time.time), [
+      "fajr", "sunrise", "zuhr", "asr-shafii", "asr-hanafi", "maghrib", "isha", "midnight",
+    ]);
+    const local = (/** @type {number | null} */ instant) => (/** @type {number} */ (instant) - hc.unixFromFixed(day)) / 60 + 480;
+    for (const [index, printed] of [[0, 5 * 60 + 44], [5, 19 * 60 + 11]]) {
+      const late = printed - local(times[index].instant);
+      assert.ok(late > -0.5 && late < 1.5, `${times[index].time}: ${late}`);
+    }
+    const methods = hc.prayerMethods();
+    assert.ok(methods.length >= 11);
+    assert.deepEqual(methods.find((method) => method.id === "umm-al-qura")?.ishaRamadanMinutes, 120);
+    const tromso = hc.prayerTimes("mwl", hc.gregorianToFixed(2026, 6, 21), 69.6496, 18.956);
+    assert.deepEqual(tromso[0].missing, {
+      event: "depression", day: hc.gregorianToFixed(2026, 6, 21), depressionArcminutes: 1_080, depressionArcseconds: 64_800,
+    });
+    refused(() => hc.prayerTimes("", day, 0, 0), "unknown");
+  });
+
+  test("New York's zmanim are Hebcal's", () => {
+    // Hebcal, 1 January 2025: the latest Shema by the GRA at 9:40 EST.
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const zmanim = hc.zmanim("gra", day, 40.71427, -74.00597);
+    assert.equal(zmanim.length, 9);
+    assert.deepEqual([zmanim[0].id, zmanim[0].englishName, zmanim[0].hours], ["sof-zman-shma", "Latest Shema", 3]);
+    const minutes = (/** @type {number} */ (zmanim[0].instant) - hc.unixFromFixed(day)) / 60 - 300;
+    assert.ok(Math.abs(minutes - (9 * 60 + 40)) < 1, `${minutes}`);
+    assert.deepEqual([zmanim[5].id, zmanim[5].englishName, zmanim[5].hours], ["dawn-16-1-degrees", null, null]);
+    refused(() => hc.zmanim(/** @type {any} */ ("rabbeinu-tam"), day, 0, 0), "unknown");
+  });
+
+  test("Kyoto's equinox dawn begins 明六つ, and the Japanese dusk is named to the arcsecond", () => {
+    const kyoto = [35 + 36 / 3_600, 135.7417];
+    const day = hc.gregorianToFixed(2020, 3, 20);
+    const dawn = hc.solarEvent("japanese-dawn-naoj", day, kyoto[0], kyoto[1]);
+    // こよみのページ: 夜明 at 5:28:47 JST.
+    const printed = hc.unixFromFixed(day) + 5 * 3_600 + 28 * 60 + 47 - 9 * 3_600;
+    assert.ok(Math.abs(/** @type {number} */ (dawn.instant) - printed) < 10);
+    const reading = hc.edoTime(/** @type {number} */ (dawn.instant) + 2, kyoto[0], kyoto[1]);
+    assert.deepEqual([reading.day, reading.hour, reading.name, reading.romaji, reading.strokes, reading.branch, reading.tenths],
+      [day, 0, "明六つ", "ake mutsu", 6, "卯", 0]);
+    const back = hc.unixFromEdoTime(day, 0, 0, kyoto[0], kyoto[1]);
+    assert.ok(Math.abs(/** @type {number} */ (back.instant) - /** @type {number} */ (dawn.instant)) <= 1);
+    const helsinki = hc.solarEvent("japanese-dusk-kansei", hc.gregorianToFixed(2024, 6, 21), 60.1699, 24.9384);
+    assert.deepEqual(helsinki, {
+      instant: null,
+      missing: { event: "depression", day: hc.gregorianToFixed(2024, 6, 21), depressionArcminutes: null, depressionArcseconds: 26_501 },
+    });
+    refused(() => hc.unixFromEdoTime(day, 12, 0, kyoto[0], kyoto[1]), "out-of-range");
   });
 });
