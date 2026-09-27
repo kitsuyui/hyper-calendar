@@ -63,9 +63,24 @@ pub enum Prediction {
     OrderOfMagnitude,
 }
 
+impl Prediction {
+    /// A stable identifier, lower-case and hyphenated.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Modelled => "modelled",
+            Self::ExperimentalBound => "experimental-bound",
+            Self::OrderOfMagnitude => "order-of-magnitude",
+        }
+    }
+}
+
 /// A dated event in the future of the universe.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FutureEvent {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The event's name.
     pub name: &'static str,
     /// What happens, and what the number actually claims.
@@ -103,6 +118,12 @@ impl FutureEvent {
         self.std_dev_years
     }
 
+    /// How many significant figures the source's number carries.
+    #[must_use]
+    pub const fn figures(&self) -> u8 {
+        self.figures
+    }
+
     /// The cosmological decade `η = log₁₀(t/yr)` the event falls in, measured
     /// from the Big Bang so that it can be compared with [`ERAS`].
     ///
@@ -128,6 +149,9 @@ fn log10_of_a_year() -> f64 {
 /// One of Adams & Laughlin's eras, in cosmological decades from the Big Bang.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct FutureEra {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The era's name.
     pub name: &'static str,
     /// What characterises it.
@@ -197,6 +221,7 @@ pub fn years_from_decade(decade: f64) -> DeepTimeResult<DeepTime> {
 
 /// The Sun exhausts core hydrogen, about 5.4 billion years from now.
 pub const SUN_LEAVES_MAIN_SEQUENCE: FutureEvent = FutureEvent {
+    id: "sun-leaves-main-sequence",
     name: "The Sun leaves the main sequence",
     description: "Core hydrogen runs out at a model age of 10.0 Gyr and the Sun begins burning \
                   hydrogen in a shell. By then its luminosity is 1.84 times today's, which has \
@@ -210,6 +235,7 @@ pub const SUN_LEAVES_MAIN_SEQUENCE: FutureEvent = FutureEvent {
 
 /// The tip of the red giant branch, 7.59 ± 0.05 Gyr from now.
 pub const SUN_RED_GIANT_TIP: FutureEvent = FutureEvent {
+    id: "sun-red-giant-tip",
     name: "Tip of the red giant branch",
     description: "The Sun reaches 2730 solar luminosities and a radius of 256 solar radii, \
                   having lost a third of its mass to a cool wind. The Earth is engulfed about \
@@ -224,6 +250,7 @@ pub const SUN_RED_GIANT_TIP: FutureEvent = FutureEvent {
 
 /// The Sun becomes a white dwarf, about 7.72 Gyr from now.
 pub const SUN_BECOMES_WHITE_DWARF: FutureEvent = FutureEvent {
+    id: "sun-becomes-white-dwarf",
     name: "The Sun becomes a white dwarf",
     description: "After the helium flash, the horizontal branch and a brief asymptotic giant \
                   phase, the Sun ejects its envelope and leaves a 0.54 solar mass carbon-oxygen \
@@ -237,6 +264,7 @@ pub const SUN_BECOMES_WHITE_DWARF: FutureEvent = FutureEvent {
 
 /// Star formation in galaxies ends, around 10¹⁴ years from now.
 pub const END_OF_STAR_FORMATION: FutureEvent = FutureEvent {
+    id: "end-of-star-formation",
     name: "End of star formation",
     description: "Galaxies exhaust the gas they can turn into stars. The last and longest-lived \
                   stars are 0.1 solar mass red dwarfs, which burn for of order 10^13 years, so \
@@ -251,6 +279,7 @@ pub const END_OF_STAR_FORMATION: FutureEvent = FutureEvent {
 
 /// The experimental lower bound on the proton lifetime.
 pub const PROTON_DECAY_LOWER_BOUND: FutureEvent = FutureEvent {
+    id: "proton-decay-lower-bound",
     name: "Proton decay lower bound",
     description: "Super-Kamiokande saw no candidate for p -> e+ pi0 in 450 kiloton-years of \
                   exposure, giving a partial-lifetime limit of 2.4e34 years at 90 % confidence. \
@@ -266,6 +295,7 @@ pub const PROTON_DECAY_LOWER_BOUND: FutureEvent = FutureEvent {
 
 /// Hawking evaporation of a one-solar-mass black hole.
 pub const SOLAR_MASS_BLACK_HOLE_EVAPORATES: FutureEvent = FutureEvent {
+    id: "solar-mass-black-hole-evaporates",
     name: "Evaporation of a solar-mass black hole",
     description: "A one-solar-mass Schwarzschild hole has a Hawking temperature of 61 nK, far \
                   below the present cosmic microwave background, so it absorbs more than it \
@@ -281,6 +311,7 @@ pub const SOLAR_MASS_BLACK_HOLE_EVAPORATES: FutureEvent = FutureEvent {
 
 /// Hawking evaporation of a million-solar-mass black hole.
 pub const SUPERMASSIVE_BLACK_HOLE_EVAPORATES: FutureEvent = FutureEvent {
+    id: "supermassive-black-hole-evaporates",
     name: "Evaporation of a supermassive black hole",
     description: "Evaporation time goes as the cube of the mass, so the 4.3 million solar mass \
                   hole at the centre of the Milky Way outlasts a stellar one by eighteen \
@@ -294,6 +325,7 @@ pub const SUPERMASSIVE_BLACK_HOLE_EVAPORATES: FutureEvent = FutureEvent {
 
 /// Hawking evaporation of a galaxy-mass black hole.
 pub const GALAXY_MASS_BLACK_HOLE_EVAPORATES: FutureEvent = FutureEvent {
+    id: "galaxy-mass-black-hole-evaporates",
     name: "Evaporation of a galaxy-mass black hole",
     description: "At 10^11 solar masses — the mass of a large galaxy, the largest hole the \
                   Degenerate Era can plausibly build — evaporation takes 10^100 years. This is \
@@ -328,6 +360,7 @@ pub const EVENTS: &[FutureEvent] = &[
 /// than drawing a line it cannot defend.
 pub const ERAS: &[FutureEra] = &[
     FutureEra {
+        id: "stelliferous-era",
         name: "Stelliferous Era",
         description: "Most of the energy generated in the universe comes from nuclear fusion in \
                       stars. We are near its beginning on a logarithmic scale and very near its \
@@ -337,6 +370,7 @@ pub const ERAS: &[FutureEra] = &[
         end_decade: Some(14.0),
     },
     FutureEra {
+        id: "degenerate-era",
         name: "Degenerate Era",
         description: "Fusion has stopped. Most baryonic mass is locked in white dwarfs, brown \
                       dwarfs and neutron stars, and the little energy released comes from dark \
@@ -347,6 +381,7 @@ pub const ERAS: &[FutureEra] = &[
         end_decade: Some(37.0),
     },
     FutureEra {
+        id: "black-hole-era",
         name: "Black Hole Era",
         description: "Protons have decayed and black holes are the only macroscopic objects \
                       left. They evaporate by Hawking radiation in order of increasing mass, the \
@@ -356,6 +391,7 @@ pub const ERAS: &[FutureEra] = &[
         end_decade: Some(100.0),
     },
     FutureEra {
+        id: "dark-era",
         name: "Dark Era",
         description: "Protons have decayed and black holes have evaporated. What remains is a \
                       thinning gas of photons, neutrinos, electrons and positrons, expanding and \

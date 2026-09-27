@@ -65,9 +65,21 @@
 //! likely-subtags expansion: plain `zh` finds nothing, as it finds no
 //! Chinese vocabulary in `hc-i18n`.
 //!
-//! The cosmic epochs and events, the future eras and the archaeological
-//! periods have no published translation that this crate has read, and are
-//! not translated here.
+//! # The other tables, by identifier
+//!
+//! The cosmic epochs and events, the archaeological periods and the
+//! earliest-evidence claims have no translated chart to read their names
+//! from, so [`ENTRY_TRANSLATIONS`] names them one by one, keyed by the
+//! entry's `id`, each name with the source it was read in. Only
+//! established terms are carried, read from a dictionary, an encyclopedia
+//! or the Japanese summary of the paper itself — the Astronomical Society
+//! of Japan's 天文学辞典, the Japanese Wikipedia, Nature's Japanese
+//! highlights — and an entry with no such term is left unnamed rather than
+//! translated here. For Japanese that is the era of galaxies, neutrino
+//! decoupling and the Epipalaeolithic, for which the Japanese Wikipedia
+//! gives two terms at once, and nine of the twelve earliest-evidence
+//! claims. The future eras and events have no table. The system document
+//! `docs/systems/earliest-evidence.md` lists every name with its source.
 
 use crate::geologic::{self, GeologicInterval, GeologicRank};
 
@@ -200,18 +212,21 @@ fn same_tag(tag: &str, candidate: &str) -> bool {
         })
 }
 
-/// The table for a BCP 47 tag, dropping subtags from the right until one
-/// answers; `None` for a language with no table.
-#[must_use]
-pub fn translation(tag: &str) -> Option<&'static Translation> {
+/// The entry of `tables` for a BCP 47 tag, dropping subtags from the right
+/// until one answers.
+fn by_tag<T>(
+    tables: &'static [T],
+    tag: &str,
+    tag_of: impl Fn(&T) -> &'static str,
+) -> Option<&'static T> {
     let mut candidate = tag;
     loop {
         if candidate.is_empty() {
             return None;
         }
-        if let Some(found) = TRANSLATIONS
+        if let Some(found) = tables
             .iter()
-            .find(|translation| same_tag(candidate, translation.tag))
+            .find(|table| same_tag(candidate, tag_of(table)))
         {
             return Some(found);
         }
@@ -222,11 +237,266 @@ pub fn translation(tag: &str) -> Option<&'static Translation> {
     }
 }
 
+/// The table for a BCP 47 tag, dropping subtags from the right until one
+/// answers; `None` for a language with no table.
+#[must_use]
+pub fn translation(tag: &str) -> Option<&'static Translation> {
+    by_tag(TRANSLATIONS, tag, |translation| translation.tag)
+}
+
 /// The name of `interval` in the language of `tag`, if the chart has one.
 #[must_use]
 pub fn interval_name(interval: &GeologicInterval, tag: &str) -> Option<&'static str> {
     translation(tag).and_then(|found| found.name_of(interval))
 }
+
+/// One entry's name in one language, and where it was read.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct EntryName {
+    /// The `id` of the cosmic epoch or event, archaeological period or
+    /// earliest-evidence claim named.
+    pub id: &'static str,
+    /// The name.
+    pub name: &'static str,
+    /// Where the name was read.
+    pub source: &'static str,
+}
+
+/// One language's names for the entries that are not on the chart.
+#[derive(Debug, Clone, Copy)]
+pub struct EntryTranslation {
+    /// The BCP 47 tag, spelled as `hc-i18n` spells its locale.
+    pub tag: &'static str,
+    /// The names, in the order of the tables they name.
+    pub names: &'static [EntryName],
+}
+
+impl EntryTranslation {
+    /// The name of the entry with this `id`, if this language has one.
+    #[must_use]
+    pub fn name_of(&self, id: &str) -> Option<&'static str> {
+        self.names
+            .iter()
+            .find(|entry| entry.id == id)
+            .map(|entry| entry.name)
+    }
+}
+
+/// Every language with names for the entries off the chart, in tag order.
+pub static ENTRY_TRANSLATIONS: &[EntryTranslation] = &[EntryTranslation {
+    tag: "ja",
+    names: JA_ENTRIES,
+}];
+
+/// The entry table for a BCP 47 tag, matched as [`translation`] matches.
+#[must_use]
+pub fn entry_translation(tag: &str) -> Option<&'static EntryTranslation> {
+    by_tag(ENTRY_TRANSLATIONS, tag, |translation| translation.tag)
+}
+
+/// The name of the entry with this `id` in the language of `tag`, if one is
+/// carried.
+#[must_use]
+pub fn entry_name(id: &str, tag: &str) -> Option<&'static str> {
+    entry_translation(tag).and_then(|found| found.name_of(id))
+}
+
+/// The Japanese Wikipedia, as read for the names below.
+macro_rules! ja_wikipedia {
+    ($title:literal, $revision:literal) => {
+        concat!(
+            "Wikipedia (ja), ",
+            $title,
+            ", revision ",
+            $revision,
+            ", retrieved 2026-09-27"
+        )
+    };
+}
+
+/// The Astronomical Society of Japan's dictionary, as read for the names
+/// below.
+macro_rules! astro_dic {
+    ($entry:literal, $slug:literal) => {
+        concat!(
+            "日本天文学会 天文学辞典, 「",
+            $entry,
+            "」 (astro-dic.jp/",
+            $slug,
+            "/), retrieved 2026-09-27"
+        )
+    };
+}
+
+/// Japanese names for the entries off the chart.
+const JA_ENTRIES: &[EntryName] = &[
+    // Cosmic epochs: each the title of its Japanese Wikipedia article, and
+    // the heading it has in 宇宙の年表 (revision 107115362).
+    EntryName {
+        id: "planck-epoch",
+        name: "プランク時代",
+        source: ja_wikipedia!("プランク時代", "101045158"),
+    },
+    EntryName {
+        id: "grand-unification-epoch",
+        name: "大統一時代",
+        source: ja_wikipedia!("大統一時代", "100999664"),
+    },
+    EntryName {
+        id: "inflationary-epoch",
+        name: "インフレーション時代",
+        source: ja_wikipedia!("インフレーション時代", "109989763"),
+    },
+    EntryName {
+        id: "electroweak-epoch",
+        name: "電弱時代",
+        source: ja_wikipedia!("電弱時代", "103828789"),
+    },
+    EntryName {
+        id: "quark-epoch",
+        name: "クォーク時代",
+        source: ja_wikipedia!("クォーク時代", "101045230"),
+    },
+    EntryName {
+        id: "hadron-epoch",
+        name: "ハドロン時代",
+        source: ja_wikipedia!("ハドロン時代", "109989883"),
+    },
+    EntryName {
+        id: "lepton-epoch",
+        name: "レプトン時代",
+        source: ja_wikipedia!("レプトン時代", "84031650"),
+    },
+    EntryName {
+        id: "photon-epoch",
+        name: "光子時代",
+        source: ja_wikipedia!("光子時代", "109990115"),
+    },
+    EntryName {
+        id: "dark-ages",
+        name: "宇宙の暗黒時代",
+        source: astro_dic!("宇宙の暗黒時代", "dark-age-of-the-universe"),
+    },
+    EntryName {
+        id: "reionisation",
+        name: "宇宙の再電離",
+        source: astro_dic!("宇宙の再電離", "cosmic-reionization"),
+    },
+    // Cosmic events.
+    EntryName {
+        id: "big-bang-nucleosynthesis",
+        name: "ビッグバン元素合成",
+        source: astro_dic!("ビッグバン元素合成", "big-bang-nucleosynthesis"),
+    },
+    EntryName {
+        id: "matter-radiation-equality",
+        name: "物質と放射の等密度時",
+        source: astro_dic!("物質優勢期（宇宙の）", "matter-dominant-epoch"),
+    },
+    EntryName {
+        id: "recombination",
+        name: "宇宙の晴れ上がり",
+        source: astro_dic!("宇宙の晴れ上がり", "clear-up-of-the-universe"),
+    },
+    EntryName {
+        id: "first-stars",
+        name: "初代星",
+        source: astro_dic!("初代星", "first-star"),
+    },
+    EntryName {
+        id: "first-galaxies",
+        name: "初代銀河",
+        source: "国立天文台 アルマ望遠鏡, 特集「視力6000で見る宇宙 vol.2」, 2018-02-02 \
+                 (alma-telescope.jp/column/6000vol2.html), retrieved 2026-09-27",
+    },
+    EntryName {
+        id: "milky-way-formation",
+        name: "銀河系の形成",
+        source: ja_wikipedia!("宇宙カレンダー", "106274962"),
+    },
+    EntryName {
+        id: "solar-system-formation",
+        name: "太陽系の形成",
+        source: ja_wikipedia!("宇宙カレンダー", "106274962"),
+    },
+    EntryName {
+        id: "present-day",
+        name: "現在",
+        source: astro_dic!("宇宙年齢", "age-of-the-universe"),
+    },
+    // Archaeological periods: the Japanese article the English Wikipedia
+    // article links to, retrieved 2026-09-27.
+    EntryName {
+        id: "modern-period",
+        name: "近代",
+        source: ja_wikipedia!("近代", "110735057"),
+    },
+    EntryName {
+        id: "middle-ages",
+        name: "中世",
+        source: ja_wikipedia!("中世", "109271310"),
+    },
+    EntryName {
+        id: "classical-antiquity",
+        name: "古典古代",
+        source: ja_wikipedia!("古典古代", "107430659"),
+    },
+    EntryName {
+        id: "iron-age",
+        name: "鉄器時代",
+        source: ja_wikipedia!("鉄器時代", "108779764"),
+    },
+    EntryName {
+        id: "bronze-age",
+        name: "青銅器時代",
+        source: ja_wikipedia!("青銅器時代", "107906763"),
+    },
+    EntryName {
+        id: "chalcolithic",
+        name: "銅器時代",
+        source: ja_wikipedia!("銅器時代", "96014598"),
+    },
+    EntryName {
+        id: "neolithic",
+        name: "新石器時代",
+        source: ja_wikipedia!("新石器時代", "109781164"),
+    },
+    EntryName {
+        id: "upper-palaeolithic",
+        name: "後期旧石器時代",
+        source: ja_wikipedia!("後期旧石器時代", "110969949"),
+    },
+    EntryName {
+        id: "middle-palaeolithic",
+        name: "中期旧石器時代",
+        source: ja_wikipedia!("中期旧石器時代", "109448893"),
+    },
+    EntryName {
+        id: "lower-palaeolithic",
+        name: "前期旧石器時代",
+        source: ja_wikipedia!("前期旧石器時代", "108408322"),
+    },
+    // Earliest-evidence claims.
+    EntryName {
+        id: "earliest-homo-sapiens-jebel-irhoud",
+        name: "ジェベル・イルードのヒト族化石",
+        source: "Nature ハイライト「ヒトの起源：モロッコの化石によってホモ・サピエンスの出現時期が\
+                 早まった」, Nature 546, 7657 (2017-06-08), \
+                 natureasia.com/ja-jp/nature/highlights/86370, retrieved 2026-09-27",
+    },
+    EntryName {
+        id: "earliest-homo-sapiens-omo-kibish",
+        name: "オモの化石",
+        source: "Nature ハイライト「エチオピアの初期のホモ・サピエンスのより正確な年代」, Nature \
+                 601, 7894 (2022-01-27), natureasia.com/ja-jp/nature/highlights/111557, \
+                 retrieved 2026-09-27",
+    },
+    EntryName {
+        id: "earliest-writing-uruk-iv",
+        name: "原楔形文字",
+        source: ja_wikipedia!("原楔形文字", "109939182"),
+    },
+];
 
 // --- The tables -----------------------------------------------------------
 //
@@ -2855,6 +3125,75 @@ mod tests {
             interval_name(by_name("Quaternary"), "ru"),
             Some("Четвертичная")
         );
+    }
+
+    /// Every `id` an entry name could be keyed to.
+    fn named_ids() -> impl Iterator<Item = &'static str> {
+        crate::universe::EPOCHS
+            .iter()
+            .map(|epoch| epoch.id)
+            .chain(crate::universe::EVENTS.iter().map(|event| event.id))
+            .chain(crate::archaeology::PERIODS.iter().map(|period| period.id))
+            .chain(crate::evidence::EVIDENCE.iter().map(|entry| entry.id))
+    }
+
+    #[test]
+    fn every_entry_name_is_keyed_to_an_entry_that_exists() {
+        for translation in ENTRY_TRANSLATIONS {
+            for (index, entry) in translation.names.iter().enumerate() {
+                assert!(
+                    named_ids().any(|id| id == entry.id),
+                    "{}: {} names nothing",
+                    translation.tag,
+                    entry.id
+                );
+                assert!(
+                    !translation.names[index + 1..]
+                        .iter()
+                        .any(|other| other.id == entry.id),
+                    "{}: {} named twice",
+                    translation.tag,
+                    entry.id
+                );
+                assert_eq!(entry.name.trim(), entry.name);
+                assert!(!entry.name.is_empty() && !entry.source.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn the_entry_names_are_in_table_order() {
+        for translation in ENTRY_TRANSLATIONS {
+            let position = |id: &str| named_ids().position(|other| other == id);
+            for pair in translation.names.windows(2) {
+                assert!(
+                    position(pair[0].id) < position(pair[1].id),
+                    "{}",
+                    pair[1].id
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn the_japanese_entry_names_are_the_ones_read() {
+        assert_eq!(
+            entry_name("recombination", "ja-JP"),
+            Some("宇宙の晴れ上がり")
+        );
+        assert_eq!(entry_name("bronze-age", "ja"), Some("青銅器時代"));
+        assert_eq!(
+            entry_name("earliest-writing-uruk-iv", "ja"),
+            Some("原楔形文字")
+        );
+        // No established term was found for these, so none is carried.
+        assert_eq!(entry_name("era-of-galaxies", "ja"), None);
+        assert_eq!(entry_name("neutrino-decoupling", "ja"), None);
+        assert_eq!(entry_name("epipalaeolithic", "ja"), None);
+        assert_eq!(entry_name("earliest-life-isua-stromatolites", "ja"), None);
+        // No other language has a table.
+        assert_eq!(entry_name("recombination", "en"), None);
+        assert_eq!(entry_name("recombination", "de"), None);
     }
 
     #[test]

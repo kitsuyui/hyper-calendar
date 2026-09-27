@@ -117,6 +117,9 @@ export const METHODS = Object.freeze([
   { method: "coldFoodDay", export: "hc_cold_food_day", feature: "seasons" },
   { method: "placeYearsAgo", export: "hc_place_years_ago", feature: "deep-time" },
   { method: "cosmicEvents", export: "hc_cosmic_events", feature: "deep-time" },
+  { method: "earliestEvidence", export: "hc_earliest_evidence", feature: "deep-time" },
+  { method: "archaeologicalPeriods", export: "hc_archaeological_periods", feature: "deep-time" },
+  { method: "futureEvents", export: "hc_future_events", feature: "deep-time" },
   { method: "geologicIntervals", export: "hc_geologic_intervals", feature: "deep-time" },
   { method: "fixedFromUnixInZone", export: "hc_fixed_from_unix_in_zone", feature: "tz" },
   { method: "unixFromFixedInZone", export: "hc_unix_from_fixed_in_zone", feature: "tz" },
@@ -201,7 +204,7 @@ export const COLUMNS = Object.freeze({
     "chinese authority", "japanese authority",
   ]),
   deepTime: Object.freeze([
-    "kind", "name", "scope", "start", "start σ", "start figures", "start approximate",
+    "kind", "id", "name", "scope", "start", "start σ", "start figures", "start approximate",
     "end", "end σ", "end figures", "end approximate", "unit", "description", "source",
     "localised name",
   ]),
@@ -811,44 +814,67 @@ function termInEffect(cells) {
 
 /**
  * The four cells of one bound of a deep-time row, or `null` where the
- * chronology has no figure.
+ * chronology has no figure. The σ must be there unless `sigmaMayBeEmpty`,
+ * which only an earliest-evidence row is, whose source may state none.
  *
  * @param {string} value
  * @param {string} stdDev
  * @param {string} figures
  * @param {string} approximate
  * @param {string} what
- * @returns {import("./hyper-calendar.d.ts").DeepTimeBound | null}
+ * @param {boolean} sigmaMayBeEmpty
+ * @returns {import("./hyper-calendar.d.ts").EarliestEvidenceBound | null}
  */
-function bound(value, stdDev, figures, approximate, what) {
+function bound(value, stdDev, figures, approximate, what, sigmaMayBeEmpty) {
   if (value === "") {
     return null;
   }
   return {
     value: decimal(value, what),
-    stdDev: decimal(stdDev, `${what} σ`),
+    stdDev: sigmaMayBeEmpty && stdDev === "" ? null : decimal(stdDev, `${what} σ`),
     figures: optionalInteger(figures, `${what} figures`),
     approximate: flag(approximate, `${what} approximate`),
   };
 }
 
 /**
- * One row of any deep-time export.
+ * One row of any deep-time export, every bound with its σ.
  *
  * @param {string[]} cells
  * @returns {import("./hyper-calendar.d.ts").DeepTimeRow}
  */
 function deepTimeRow(cells) {
+  return /** @type {import("./hyper-calendar.d.ts").DeepTimeRow} */ (anyDeepTimeRow(cells, false));
+}
+
+/**
+ * One row of `hc_earliest_evidence`, whose σ may be empty.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").EarliestEvidenceRow}
+ */
+function earliestEvidenceRow(cells) {
+  return /** @type {import("./hyper-calendar.d.ts").EarliestEvidenceRow} */ (anyDeepTimeRow(cells, true));
+}
+
+/**
+ * The shared decoding of a deep-time row.
+ *
+ * @param {string[]} cells
+ * @param {boolean} sigmaMayBeEmpty
+ */
+function anyDeepTimeRow(cells, sigmaMayBeEmpty) {
   const [
-    kind, name, scope, start, startStdDev, startFigures, startApproximate,
+    kind, id, name, scope, start, startStdDev, startFigures, startApproximate,
     end, endStdDev, endFigures, endApproximate, unit, description, source, localisedName,
   ] = cells;
   return {
     kind: /** @type {import("./hyper-calendar.d.ts").DeepTimeKind} */ (kind),
+    id,
     name,
     scope: optional(scope),
-    start: bound(start, startStdDev, startFigures, startApproximate, "start"),
-    end: bound(end, endStdDev, endFigures, endApproximate, "end"),
+    start: bound(start, startStdDev, startFigures, startApproximate, "start", sigmaMayBeEmpty),
+    end: bound(end, endStdDev, endFigures, endApproximate, "end", sigmaMayBeEmpty),
     unit: /** @type {import("./hyper-calendar.d.ts").DeepTimeUnit} */ (unit),
     description: optional(description),
     source,
@@ -2343,7 +2369,9 @@ export class HyperCalendar {
    * defines it, the Planck 2018 age of the universe — placed in every
    * chronology at once. Negative years are the future; a moment up to a
    * century ahead is still in the intervals that end at the present. The
-   * geologic rows carry the chart's own name in `locale` where it has one.
+   * geologic rows carry the chart's own name in `locale` where it has one,
+   * and the cosmic and archaeological rows an established term where one
+   * was read.
    *
    * @param {number} yearsAgo
    * @param {number} [stdDevYears]
@@ -2361,8 +2389,8 @@ export class HyperCalendar {
 
   /**
    * Every cosmic epoch, Big Bang to the present, then every dated cosmic
-   * event, oldest first. No cosmic name has a translation, so
-   * `localisedName` is `null` on every row whatever `locale` is.
+   * event, oldest first. `localisedName` is the established term in
+   * `locale` where one was read, and `null` elsewhere.
    *
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
@@ -2372,6 +2400,51 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_cosmic_events", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.deepTime, "hc_cosmic_events").map(deepTimeRow);
+  }
+
+  /**
+   * Every claim to the earliest evidence of life, of *Homo sapiens* and of
+   * writing, grouped by landmark and oldest first, each in the shape its
+   * source dates it: an age, a minimum age with no `start`, or a range. A
+   * σ is `null` where the source does not state one.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").EarliestEvidenceRow[]}
+   */
+  earliestEvidence(locale = "und") {
+    const fn = this.#export("hc_earliest_evidence");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_earliest_evidence", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.deepTime, "hc_earliest_evidence").map(earliestEvidenceRow);
+  }
+
+  /**
+   * Every conventional archaeological period, youngest first, with its
+   * region as the scope.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
+   */
+  archaeologicalPeriods(locale = "und") {
+    const fn = this.#export("hc_archaeological_periods");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_archaeological_periods", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.deepTime, "hc_archaeological_periods").map(deepTimeRow);
+  }
+
+  /**
+   * Every dated event of the far future, soonest first, in years from now,
+   * with the kind of prediction as the scope; an experimental bound has no
+   * `end`.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").DeepTimeRow[]}
+   */
+  futureEvents(locale = "und") {
+    const fn = this.#export("hc_future_events");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_future_events", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.deepTime, "hc_future_events").map(deepTimeRow);
   }
 
   /**

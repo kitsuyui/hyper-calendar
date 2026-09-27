@@ -385,6 +385,7 @@ export type DeepTimeKind =
   | "cosmic-epoch"
   | "cosmic-event"
   | "future-era"
+  | "future-event"
   | GeologicRank
   | "archaeological";
 export type DeepTimeUnit =
@@ -392,6 +393,7 @@ export type DeepTimeUnit =
   | "seconds-before-present"
   | "megayears-before-present"
   | "years-before-1950"
+  | "years-from-now"
   | "log10-years-from-now";
 
 /** One bound of a deep-time entry. */
@@ -401,17 +403,20 @@ export interface DeepTimeBound {
   stdDev: number;
   /** The significant figures claimed, or `null` where the table claims none. */
   figures: number | null;
-  /** Whether the chart marks it `~`. */
+  /** Whether the table marks it approximate: the chart's `~`, or a source's "about". */
   approximate: boolean;
 }
 
 /** One line of any deep-time export. */
 export interface DeepTimeRow {
   kind: DeepTimeKind;
+  /** The entry's stable lower-case kebab identifier, to match on instead of `name`. */
+  id: string;
+  /** The English name. */
   name: string;
-  /** The interval one rank up, or the region of an archaeological period, or `null`. */
+  /** The `id` of the interval one rank up, the region of an archaeological period, the kind of prediction of a future event (`modelled`, `experimental-bound`, `order-of-magnitude`), or `null`. */
   scope: string | null;
-  /** The older bound, or `null` where the chronology has no figure. */
+  /** The older bound — for a future event the sooner — or `null` where the chronology has no figure. */
   start: DeepTimeBound | null;
   /** The younger bound; the same as `start` for a point in time. */
   end: DeepTimeBound | null;
@@ -419,7 +424,36 @@ export interface DeepTimeRow {
   unit: DeepTimeUnit;
   description: string | null;
   source: string;
-  /** The geological chart's own name for an interval in the locale's language, or `null`: always `null` for the cosmic, future and archaeological rows. */
+  /** The geological chart's own name for an interval in the locale's language, or the established term for a cosmic or archaeological row where one was read, or `null`: always `null` for the future rows. */
+  localisedName: string | null;
+}
+
+/** One bound of an earliest-evidence claim: a standard uncertainty only where the source states one. */
+export interface EarliestEvidenceBound extends Omit<DeepTimeBound, "stdDev"> {
+  /** The standard uncertainty, or `null` where the source gives none or does not say what its `±` is; the `±` is then in the description. */
+  stdDev: number | null;
+  /** Whether the source writes the age as approximate: "about", "ca.". */
+  approximate: boolean;
+}
+
+/** The landmark an earliest-evidence claim is for. */
+export type EarliestEvidenceLandmark =
+  | "earliest-life"
+  | "earliest-homo-sapiens"
+  | "earliest-writing"
+  | (string & {});
+
+/** One line of `hc_earliest_evidence`: a published claim, dated in the shape its source gives. */
+export interface EarliestEvidenceRow extends Omit<DeepTimeRow, "kind" | "scope" | "start" | "end" | "unit"> {
+  kind: "earliest-evidence";
+  /** The landmark the claim is for. */
+  scope: EarliestEvidenceLandmark;
+  /** The older limit, or `null` for a minimum age, which has none. */
+  start: EarliestEvidenceBound | null;
+  /** The younger limit: the age itself, the minimum, or the younger end of a range. */
+  end: EarliestEvidenceBound;
+  unit: "years-before-1950";
+  /** The established term in the locale's language where one was read, or `null`. */
   localisedName: string | null;
 }
 
@@ -1331,10 +1365,16 @@ export class HyperCalendar {
   /** `hc_cold_food_day`; a reckoning nobody knows is `unknown`, a year outside −999 to 3000 `out-of-range`. */
   coldFoodDay(convention: ColdFoodConvention, year: number | bigint): number;
 
-  /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. `locale` names the geologic rows, `und` unless given. */
+  /** `hc_place_years_ago`; a value the crate refuses is `out-of-range`. `locale` names the rows it has names for, `und` unless given. */
   placeYearsAgo(yearsAgo: number, stdDevYears?: number, locale?: string): DeepTimeRow[];
   /** `hc_cosmic_events`. */
   cosmicEvents(locale?: string): DeepTimeRow[];
+  /** `hc_earliest_evidence`. */
+  earliestEvidence(locale?: string): EarliestEvidenceRow[];
+  /** `hc_archaeological_periods`. */
+  archaeologicalPeriods(locale?: string): DeepTimeRow[];
+  /** `hc_future_events`. */
+  futureEvents(locale?: string): DeepTimeRow[];
   /** `hc_geologic_intervals`; the rank by name or by number from 0. */
   geologicIntervals(rank: GeologicRank | number, locale?: string): DeepTimeRow[];
 

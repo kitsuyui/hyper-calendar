@@ -15,8 +15,9 @@
 //! | [`universe`] | The chronology of the universe as data, on Planck 2018 parameters |
 //! | [`future`] | The far future as data, out to 10¹⁰⁰ years and past it |
 //! | [`geologic`] | The ICS International Chronostratigraphic Chart as a queryable tree |
-//! | [`names`] | The chart's interval names in fourteen other languages, from the ICS's own vocabulary |
+//! | [`names`] | The chart's interval names in fourteen other languages, from the ICS's own vocabulary, and the other tables' names in Japanese where an established term was read |
 //! | [`archaeology`] | The `BP` convention, and the calibrated/uncalibrated distinction |
+//! | [`evidence`] | The published claims to the earliest evidence of life, of *Homo sapiens* and of writing, each with the shape of its date |
 //! | [`periods`] | Long astronomical recurrences: the precession of the equinoxes and the galactic year |
 //! | [`timeline`] | All of the above, queried together |
 //!
@@ -60,6 +61,7 @@ extern crate alloc;
 pub mod archaeology;
 pub mod constants;
 pub mod error;
+pub mod evidence;
 pub mod future;
 pub mod geologic;
 pub mod magnitude;
@@ -73,6 +75,7 @@ pub use magnitude::{DeepTime, DeepUnit, LogMagnitude};
 
 pub use archaeology::{ArchaeologicalPeriod, Bp, Calibration};
 pub use constants::PhysicalConstant;
+pub use evidence::{Dating, EarliestEvidence, EvidenceAge};
 pub use future::{FutureEra, FutureEvent, Prediction};
 pub use geologic::{GeologicInterval, GeologicRank};
 pub use periods::{AstronomicalPeriod, GALACTIC_YEAR, Stability};
@@ -83,3 +86,83 @@ pub use universe::{CosmicEpoch, CosmicEvent};
 
 pub use hc_core;
 pub use hc_uncertainty;
+
+#[cfg(test)]
+mod identifier_tests {
+    use crate::geologic::{self, GeologicRank};
+    use crate::{archaeology, evidence, future, universe};
+
+    /// Every identifier of every table, in table order.
+    fn every_id() -> impl Iterator<Item = &'static str> {
+        universe::EPOCHS
+            .iter()
+            .map(|entry| entry.id)
+            .chain(universe::EVENTS.iter().map(|entry| entry.id))
+            .chain(future::EVENTS.iter().map(|entry| entry.id))
+            .chain(future::ERAS.iter().map(|entry| entry.id))
+            .chain(
+                GeologicRank::ALL
+                    .iter()
+                    .flat_map(|rank| geologic::intervals(*rank))
+                    .map(|entry| entry.id),
+            )
+            .chain(archaeology::PERIODS.iter().map(|entry| entry.id))
+            .chain(evidence::EVIDENCE.iter().map(|entry| entry.id))
+    }
+
+    /// Lower-case kebab: ASCII letters and digits in hyphen-separated runs.
+    fn is_kebab(id: &str) -> bool {
+        !id.is_empty()
+            && id.split('-').all(|run| {
+                !run.is_empty()
+                    && run
+                        .bytes()
+                        .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
+            })
+    }
+
+    #[test]
+    fn every_identifier_is_lower_case_kebab() {
+        for id in every_id() {
+            assert!(is_kebab(id), "{id}");
+        }
+        assert!(!is_kebab("Upper-Cretaceous") && !is_kebab("stage--10") && !is_kebab(""));
+    }
+
+    #[test]
+    fn no_two_entries_of_any_table_share_an_identifier() {
+        for (index, id) in every_id().enumerate() {
+            assert!(
+                !every_id().skip(index + 1).any(|other| other == id),
+                "{id} is used twice"
+            );
+        }
+    }
+
+    #[test]
+    fn a_geologic_identifier_is_its_chart_name_in_kebab_case() {
+        for rank in GeologicRank::ALL {
+            for interval in geologic::intervals(*rank) {
+                let mut words = interval.name.split(' ');
+                let mut parts = interval.id.split('-');
+                assert!(
+                    words
+                        .by_ref()
+                        .zip(parts.by_ref())
+                        .all(|(word, part)| word.eq_ignore_ascii_case(part)),
+                    "{}",
+                    interval.id
+                );
+                assert!(
+                    words.next().is_none() && parts.next().is_none(),
+                    "{}",
+                    interval.id
+                );
+            }
+        }
+        assert_eq!(
+            geologic::by_name("Cambrian Stage 10").map(|i| i.id),
+            Some("cambrian-stage-10")
+        );
+    }
+}

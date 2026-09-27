@@ -294,6 +294,9 @@ impl GeologicRank {
 /// [`crate::archaeology`] is where the 1950 convention starts to matter.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct GeologicInterval {
+    /// A stable identifier, lower-case and hyphenated, for callers to match
+    /// on instead of the English name.
+    pub id: &'static str,
     /// The interval's name as the chart spells it.
     pub name: &'static str,
     /// Where it sits in the hierarchy.
@@ -476,6 +479,7 @@ pub fn as_megayears(span: DeepTime) -> DeepTimeResult<f64> {
 /// The four eons, youngest first. They tile the whole of Earth history.
 pub const EONS: &[GeologicInterval] = &[
     GeologicInterval {
+        id: "phanerozoic",
         name: "Phanerozoic",
         rank: GeologicRank::Eon,
         parent: None,
@@ -489,6 +493,7 @@ pub const EONS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "proterozoic",
         name: "Proterozoic",
         rank: GeologicRank::Eon,
         parent: None,
@@ -502,6 +507,7 @@ pub const EONS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "archean",
         name: "Archean",
         rank: GeologicRank::Eon,
         parent: None,
@@ -515,6 +521,7 @@ pub const EONS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "hadean",
         name: "Hadean",
         rank: GeologicRank::Eon,
         parent: None,
@@ -532,6 +539,7 @@ pub const EONS: &[GeologicInterval] = &[
 /// The ten eras, youngest first. They tile 0 to 4031 Ma; the Hadean has none.
 pub const ERAS: &[GeologicInterval] = &[
     GeologicInterval {
+        id: "cenozoic",
         name: "Cenozoic",
         rank: GeologicRank::Era,
         parent: Some("Phanerozoic"),
@@ -545,6 +553,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "mesozoic",
         name: "Mesozoic",
         rank: GeologicRank::Era,
         parent: Some("Phanerozoic"),
@@ -558,6 +567,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "paleozoic",
         name: "Paleozoic",
         rank: GeologicRank::Era,
         parent: Some("Phanerozoic"),
@@ -571,6 +581,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "neoproterozoic",
         name: "Neoproterozoic",
         rank: GeologicRank::Era,
         parent: Some("Proterozoic"),
@@ -584,6 +595,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "mesoproterozoic",
         name: "Mesoproterozoic",
         rank: GeologicRank::Era,
         parent: Some("Proterozoic"),
@@ -597,6 +609,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "paleoproterozoic",
         name: "Paleoproterozoic",
         rank: GeologicRank::Era,
         parent: Some("Proterozoic"),
@@ -610,6 +623,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "neoarchean",
         name: "Neoarchean",
         rank: GeologicRank::Era,
         parent: Some("Archean"),
@@ -623,6 +637,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "mesoarchean",
         name: "Mesoarchean",
         rank: GeologicRank::Era,
         parent: Some("Archean"),
@@ -636,6 +651,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "paleoarchean",
         name: "Paleoarchean",
         rank: GeologicRank::Era,
         parent: Some("Archean"),
@@ -649,6 +665,7 @@ pub const ERAS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "eoarchean",
         name: "Eoarchean",
         rank: GeologicRank::Era,
         parent: Some("Archean"),
@@ -666,6 +683,7 @@ pub const ERAS: &[GeologicInterval] = &[
 /// The twenty-two periods, youngest first. They tile 0 to 2500 Ma.
 pub const PERIODS: &[GeologicInterval] = &[
     GeologicInterval {
+        id: "quaternary",
         name: "Quaternary",
         rank: GeologicRank::Period,
         parent: Some("Cenozoic"),
@@ -679,6 +697,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "neogene",
         name: "Neogene",
         rank: GeologicRank::Period,
         parent: Some("Cenozoic"),
@@ -692,6 +711,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "paleogene",
         name: "Paleogene",
         rank: GeologicRank::Period,
         parent: Some("Cenozoic"),
@@ -705,6 +725,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cretaceous",
         name: "Cretaceous",
         rank: GeologicRank::Period,
         parent: Some("Mesozoic"),
@@ -718,6 +739,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "jurassic",
         name: "Jurassic",
         rank: GeologicRank::Period,
         parent: Some("Mesozoic"),
@@ -731,6 +753,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "triassic",
         name: "Triassic",
         rank: GeologicRank::Period,
         parent: Some("Mesozoic"),
@@ -744,6 +767,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "permian",
         name: "Permian",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -757,6 +781,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "carboniferous",
         name: "Carboniferous",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -770,6 +795,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "devonian",
         name: "Devonian",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -783,6 +809,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "silurian",
         name: "Silurian",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -796,6 +823,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "ordovician",
         name: "Ordovician",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -809,6 +837,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "cambrian",
         name: "Cambrian",
         rank: GeologicRank::Period,
         parent: Some("Paleozoic"),
@@ -822,6 +851,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "ediacaran",
         name: "Ediacaran",
         rank: GeologicRank::Period,
         parent: Some("Neoproterozoic"),
@@ -835,6 +865,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "cryogenian",
         name: "Cryogenian",
         rank: GeologicRank::Period,
         parent: Some("Neoproterozoic"),
@@ -848,6 +879,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "tonian",
         name: "Tonian",
         rank: GeologicRank::Period,
         parent: Some("Neoproterozoic"),
@@ -861,6 +893,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "stenian",
         name: "Stenian",
         rank: GeologicRank::Period,
         parent: Some("Mesoproterozoic"),
@@ -874,6 +907,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "ectasian",
         name: "Ectasian",
         rank: GeologicRank::Period,
         parent: Some("Mesoproterozoic"),
@@ -887,6 +921,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "calymmian",
         name: "Calymmian",
         rank: GeologicRank::Period,
         parent: Some("Mesoproterozoic"),
@@ -900,6 +935,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "statherian",
         name: "Statherian",
         rank: GeologicRank::Period,
         parent: Some("Paleoproterozoic"),
@@ -913,6 +949,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "orosirian",
         name: "Orosirian",
         rank: GeologicRank::Period,
         parent: Some("Paleoproterozoic"),
@@ -926,6 +963,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "rhyacian",
         name: "Rhyacian",
         rank: GeologicRank::Period,
         parent: Some("Paleoproterozoic"),
@@ -939,6 +977,7 @@ pub const PERIODS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "siderian",
         name: "Siderian",
         rank: GeologicRank::Period,
         parent: Some("Paleoproterozoic"),
@@ -956,6 +995,7 @@ pub const PERIODS: &[GeologicInterval] = &[
 /// The thirty-eight epochs, youngest first. They tile the Phanerozoic.
 pub const EPOCHS: &[GeologicInterval] = &[
     GeologicInterval {
+        id: "holocene",
         name: "Holocene",
         rank: GeologicRank::Epoch,
         parent: Some("Quaternary"),
@@ -969,6 +1009,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "pleistocene",
         name: "Pleistocene",
         rank: GeologicRank::Epoch,
         parent: Some("Quaternary"),
@@ -982,6 +1023,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "pliocene",
         name: "Pliocene",
         rank: GeologicRank::Epoch,
         parent: Some("Neogene"),
@@ -995,6 +1037,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "miocene",
         name: "Miocene",
         rank: GeologicRank::Epoch,
         parent: Some("Neogene"),
@@ -1008,6 +1051,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "oligocene",
         name: "Oligocene",
         rank: GeologicRank::Epoch,
         parent: Some("Paleogene"),
@@ -1021,6 +1065,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "eocene",
         name: "Eocene",
         rank: GeologicRank::Epoch,
         parent: Some("Paleogene"),
@@ -1034,6 +1079,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "paleocene",
         name: "Paleocene",
         rank: GeologicRank::Epoch,
         parent: Some("Paleogene"),
@@ -1047,6 +1093,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-cretaceous",
         name: "Upper Cretaceous",
         rank: GeologicRank::Epoch,
         parent: Some("Cretaceous"),
@@ -1060,6 +1107,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-cretaceous",
         name: "Lower Cretaceous",
         rank: GeologicRank::Epoch,
         parent: Some("Cretaceous"),
@@ -1073,6 +1121,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-jurassic",
         name: "Upper Jurassic",
         rank: GeologicRank::Epoch,
         parent: Some("Jurassic"),
@@ -1086,6 +1135,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "middle-jurassic",
         name: "Middle Jurassic",
         rank: GeologicRank::Epoch,
         parent: Some("Jurassic"),
@@ -1099,6 +1149,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-jurassic",
         name: "Lower Jurassic",
         rank: GeologicRank::Epoch,
         parent: Some("Jurassic"),
@@ -1112,6 +1163,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-triassic",
         name: "Upper Triassic",
         rank: GeologicRank::Epoch,
         parent: Some("Triassic"),
@@ -1125,6 +1177,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "middle-triassic",
         name: "Middle Triassic",
         rank: GeologicRank::Epoch,
         parent: Some("Triassic"),
@@ -1138,6 +1191,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-triassic",
         name: "Lower Triassic",
         rank: GeologicRank::Epoch,
         parent: Some("Triassic"),
@@ -1151,6 +1205,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "lopingian",
         name: "Lopingian",
         rank: GeologicRank::Epoch,
         parent: Some("Permian"),
@@ -1164,6 +1219,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "guadalupian",
         name: "Guadalupian",
         rank: GeologicRank::Epoch,
         parent: Some("Permian"),
@@ -1177,6 +1233,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cisuralian",
         name: "Cisuralian",
         rank: GeologicRank::Epoch,
         parent: Some("Permian"),
@@ -1190,6 +1247,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-pennsylvanian",
         name: "Upper Pennsylvanian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1203,6 +1261,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "middle-pennsylvanian",
         name: "Middle Pennsylvanian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1216,6 +1275,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-pennsylvanian",
         name: "Lower Pennsylvanian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1229,6 +1289,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-mississippian",
         name: "Upper Mississippian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1242,6 +1303,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "middle-mississippian",
         name: "Middle Mississippian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1255,6 +1317,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-mississippian",
         name: "Lower Mississippian",
         rank: GeologicRank::Epoch,
         parent: Some("Carboniferous"),
@@ -1268,6 +1331,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "upper-devonian",
         name: "Upper Devonian",
         rank: GeologicRank::Epoch,
         parent: Some("Devonian"),
@@ -1281,6 +1345,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "middle-devonian",
         name: "Middle Devonian",
         rank: GeologicRank::Epoch,
         parent: Some("Devonian"),
@@ -1294,6 +1359,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "lower-devonian",
         name: "Lower Devonian",
         rank: GeologicRank::Epoch,
         parent: Some("Devonian"),
@@ -1307,6 +1373,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "pridoli",
         name: "Pridoli",
         rank: GeologicRank::Epoch,
         parent: Some("Silurian"),
@@ -1320,6 +1387,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "ludlow",
         name: "Ludlow",
         rank: GeologicRank::Epoch,
         parent: Some("Silurian"),
@@ -1333,6 +1401,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "wenlock",
         name: "Wenlock",
         rank: GeologicRank::Epoch,
         parent: Some("Silurian"),
@@ -1346,6 +1415,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "llandovery",
         name: "Llandovery",
         rank: GeologicRank::Epoch,
         parent: Some("Silurian"),
@@ -1359,6 +1429,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "upper-ordovician",
         name: "Upper Ordovician",
         rank: GeologicRank::Epoch,
         parent: Some("Ordovician"),
@@ -1372,6 +1443,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "middle-ordovician",
         name: "Middle Ordovician",
         rank: GeologicRank::Epoch,
         parent: Some("Ordovician"),
@@ -1385,6 +1457,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lower-ordovician",
         name: "Lower Ordovician",
         rank: GeologicRank::Epoch,
         parent: Some("Ordovician"),
@@ -1398,6 +1471,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "furongian",
         name: "Furongian",
         rank: GeologicRank::Epoch,
         parent: Some("Cambrian"),
@@ -1411,6 +1485,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "miaolingian",
         name: "Miaolingian",
         rank: GeologicRank::Epoch,
         parent: Some("Cambrian"),
@@ -1424,6 +1499,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cambrian-series-2",
         name: "Cambrian Series 2",
         rank: GeologicRank::Epoch,
         parent: Some("Cambrian"),
@@ -1437,6 +1513,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "terreneuvian",
         name: "Terreneuvian",
         rank: GeologicRank::Epoch,
         parent: Some("Cambrian"),
@@ -1454,6 +1531,7 @@ pub const EPOCHS: &[GeologicInterval] = &[
 /// The hundred and one ages, youngest first. They tile the Phanerozoic apart from the Pridoli, which has no stages.
 pub const AGES: &[GeologicInterval] = &[
     GeologicInterval {
+        id: "meghalayan",
         name: "Meghalayan",
         rank: GeologicRank::Age,
         parent: Some("Holocene"),
@@ -1467,6 +1545,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 2,
     },
     GeologicInterval {
+        id: "northgrippian",
         name: "Northgrippian",
         rank: GeologicRank::Age,
         parent: Some("Holocene"),
@@ -1480,6 +1559,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 2,
     },
     GeologicInterval {
+        id: "greenlandian",
         name: "Greenlandian",
         rank: GeologicRank::Age,
         parent: Some("Holocene"),
@@ -1493,6 +1573,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "upper-pleistocene",
         name: "Upper Pleistocene",
         rank: GeologicRank::Age,
         parent: Some("Pleistocene"),
@@ -1506,6 +1587,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "chibanian",
         name: "Chibanian",
         rank: GeologicRank::Age,
         parent: Some("Pleistocene"),
@@ -1519,6 +1601,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "calabrian",
         name: "Calabrian",
         rank: GeologicRank::Age,
         parent: Some("Pleistocene"),
@@ -1532,6 +1615,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "gelasian",
         name: "Gelasian",
         rank: GeologicRank::Age,
         parent: Some("Pleistocene"),
@@ -1545,6 +1629,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "piacenzian",
         name: "Piacenzian",
         rank: GeologicRank::Age,
         parent: Some("Pliocene"),
@@ -1558,6 +1643,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "zanclean",
         name: "Zanclean",
         rank: GeologicRank::Age,
         parent: Some("Pliocene"),
@@ -1571,6 +1657,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "messinian",
         name: "Messinian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1584,6 +1671,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "tortonian",
         name: "Tortonian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1597,6 +1685,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "serravallian",
         name: "Serravallian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1610,6 +1699,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "langhian",
         name: "Langhian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1623,6 +1713,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "burdigalian",
         name: "Burdigalian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1636,6 +1727,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "aquitanian",
         name: "Aquitanian",
         rank: GeologicRank::Age,
         parent: Some("Miocene"),
@@ -1649,6 +1741,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "chattian",
         name: "Chattian",
         rank: GeologicRank::Age,
         parent: Some("Oligocene"),
@@ -1662,6 +1755,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "rupelian",
         name: "Rupelian",
         rank: GeologicRank::Age,
         parent: Some("Oligocene"),
@@ -1675,6 +1769,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "priabonian",
         name: "Priabonian",
         rank: GeologicRank::Age,
         parent: Some("Eocene"),
@@ -1688,6 +1783,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "bartonian",
         name: "Bartonian",
         rank: GeologicRank::Age,
         parent: Some("Eocene"),
@@ -1701,6 +1797,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "lutetian",
         name: "Lutetian",
         rank: GeologicRank::Age,
         parent: Some("Eocene"),
@@ -1714,6 +1811,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "ypresian",
         name: "Ypresian",
         rank: GeologicRank::Age,
         parent: Some("Eocene"),
@@ -1727,6 +1825,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "thanetian",
         name: "Thanetian",
         rank: GeologicRank::Age,
         parent: Some("Paleocene"),
@@ -1740,6 +1839,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "selandian",
         name: "Selandian",
         rank: GeologicRank::Age,
         parent: Some("Paleocene"),
@@ -1753,6 +1853,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "danian",
         name: "Danian",
         rank: GeologicRank::Age,
         parent: Some("Paleocene"),
@@ -1766,6 +1867,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "maastrichtian",
         name: "Maastrichtian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1779,6 +1881,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "campanian",
         name: "Campanian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1792,6 +1895,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "santonian",
         name: "Santonian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1805,6 +1909,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "coniacian",
         name: "Coniacian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1818,6 +1923,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "turonian",
         name: "Turonian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1831,6 +1937,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "cenomanian",
         name: "Cenomanian",
         rank: GeologicRank::Age,
         parent: Some("Upper Cretaceous"),
@@ -1844,6 +1951,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "albian",
         name: "Albian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1857,6 +1965,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "aptian",
         name: "Aptian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1870,6 +1979,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "barremian",
         name: "Barremian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1883,6 +1993,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "hauterivian",
         name: "Hauterivian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1896,6 +2007,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "valanginian",
         name: "Valanginian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1909,6 +2021,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "berriasian",
         name: "Berriasian",
         rank: GeologicRank::Age,
         parent: Some("Lower Cretaceous"),
@@ -1922,6 +2035,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "tithonian",
         name: "Tithonian",
         rank: GeologicRank::Age,
         parent: Some("Upper Jurassic"),
@@ -1935,6 +2049,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "kimmeridgian",
         name: "Kimmeridgian",
         rank: GeologicRank::Age,
         parent: Some("Upper Jurassic"),
@@ -1948,6 +2063,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "oxfordian",
         name: "Oxfordian",
         rank: GeologicRank::Age,
         parent: Some("Upper Jurassic"),
@@ -1961,6 +2077,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "callovian",
         name: "Callovian",
         rank: GeologicRank::Age,
         parent: Some("Middle Jurassic"),
@@ -1974,6 +2091,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "bathonian",
         name: "Bathonian",
         rank: GeologicRank::Age,
         parent: Some("Middle Jurassic"),
@@ -1987,6 +2105,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "bajocian",
         name: "Bajocian",
         rank: GeologicRank::Age,
         parent: Some("Middle Jurassic"),
@@ -2000,6 +2119,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "aalenian",
         name: "Aalenian",
         rank: GeologicRank::Age,
         parent: Some("Middle Jurassic"),
@@ -2013,6 +2133,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "toarcian",
         name: "Toarcian",
         rank: GeologicRank::Age,
         parent: Some("Lower Jurassic"),
@@ -2026,6 +2147,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "pliensbachian",
         name: "Pliensbachian",
         rank: GeologicRank::Age,
         parent: Some("Lower Jurassic"),
@@ -2039,6 +2161,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "sinemurian",
         name: "Sinemurian",
         rank: GeologicRank::Age,
         parent: Some("Lower Jurassic"),
@@ -2052,6 +2175,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "hettangian",
         name: "Hettangian",
         rank: GeologicRank::Age,
         parent: Some("Lower Jurassic"),
@@ -2065,6 +2189,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "rhaetian",
         name: "Rhaetian",
         rank: GeologicRank::Age,
         parent: Some("Upper Triassic"),
@@ -2078,6 +2203,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "norian",
         name: "Norian",
         rank: GeologicRank::Age,
         parent: Some("Upper Triassic"),
@@ -2091,6 +2217,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "carnian",
         name: "Carnian",
         rank: GeologicRank::Age,
         parent: Some("Upper Triassic"),
@@ -2104,6 +2231,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 3,
     },
     GeologicInterval {
+        id: "ladinian",
         name: "Ladinian",
         rank: GeologicRank::Age,
         parent: Some("Middle Triassic"),
@@ -2117,6 +2245,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "anisian",
         name: "Anisian",
         rank: GeologicRank::Age,
         parent: Some("Middle Triassic"),
@@ -2130,6 +2259,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "olenekian",
         name: "Olenekian",
         rank: GeologicRank::Age,
         parent: Some("Lower Triassic"),
@@ -2143,6 +2273,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "induan",
         name: "Induan",
         rank: GeologicRank::Age,
         parent: Some("Lower Triassic"),
@@ -2156,6 +2287,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "changhsingian",
         name: "Changhsingian",
         rank: GeologicRank::Age,
         parent: Some("Lopingian"),
@@ -2169,6 +2301,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "wuchiapingian",
         name: "Wuchiapingian",
         rank: GeologicRank::Age,
         parent: Some("Lopingian"),
@@ -2182,6 +2315,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 6,
     },
     GeologicInterval {
+        id: "capitanian",
         name: "Capitanian",
         rank: GeologicRank::Age,
         parent: Some("Guadalupian"),
@@ -2195,6 +2329,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "wordian",
         name: "Wordian",
         rank: GeologicRank::Age,
         parent: Some("Guadalupian"),
@@ -2208,6 +2343,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "roadian",
         name: "Roadian",
         rank: GeologicRank::Age,
         parent: Some("Guadalupian"),
@@ -2221,6 +2357,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "kungurian",
         name: "Kungurian",
         rank: GeologicRank::Age,
         parent: Some("Cisuralian"),
@@ -2234,6 +2371,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "artinskian",
         name: "Artinskian",
         rank: GeologicRank::Age,
         parent: Some("Cisuralian"),
@@ -2247,6 +2385,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "sakmarian",
         name: "Sakmarian",
         rank: GeologicRank::Age,
         parent: Some("Cisuralian"),
@@ -2260,6 +2399,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "asselian",
         name: "Asselian",
         rank: GeologicRank::Age,
         parent: Some("Cisuralian"),
@@ -2273,6 +2413,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "gzhelian",
         name: "Gzhelian",
         rank: GeologicRank::Age,
         parent: Some("Upper Pennsylvanian"),
@@ -2286,6 +2427,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "kasimovian",
         name: "Kasimovian",
         rank: GeologicRank::Age,
         parent: Some("Upper Pennsylvanian"),
@@ -2299,6 +2441,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "moscovian",
         name: "Moscovian",
         rank: GeologicRank::Age,
         parent: Some("Middle Pennsylvanian"),
@@ -2312,6 +2455,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "bashkirian",
         name: "Bashkirian",
         rank: GeologicRank::Age,
         parent: Some("Lower Pennsylvanian"),
@@ -2325,6 +2469,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "serpukhovian",
         name: "Serpukhovian",
         rank: GeologicRank::Age,
         parent: Some("Upper Mississippian"),
@@ -2338,6 +2483,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "visean",
         name: "Visean",
         rank: GeologicRank::Age,
         parent: Some("Middle Mississippian"),
@@ -2351,6 +2497,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "tournaisian",
         name: "Tournaisian",
         rank: GeologicRank::Age,
         parent: Some("Lower Mississippian"),
@@ -2364,6 +2511,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "famennian",
         name: "Famennian",
         rank: GeologicRank::Age,
         parent: Some("Upper Devonian"),
@@ -2377,6 +2525,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "frasnian",
         name: "Frasnian",
         rank: GeologicRank::Age,
         parent: Some("Upper Devonian"),
@@ -2390,6 +2539,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "givetian",
         name: "Givetian",
         rank: GeologicRank::Age,
         parent: Some("Middle Devonian"),
@@ -2403,6 +2553,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "eifelian",
         name: "Eifelian",
         rank: GeologicRank::Age,
         parent: Some("Middle Devonian"),
@@ -2416,6 +2567,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "emsian",
         name: "Emsian",
         rank: GeologicRank::Age,
         parent: Some("Lower Devonian"),
@@ -2429,6 +2581,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "pragian",
         name: "Pragian",
         rank: GeologicRank::Age,
         parent: Some("Lower Devonian"),
@@ -2442,6 +2595,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "lochkovian",
         name: "Lochkovian",
         rank: GeologicRank::Age,
         parent: Some("Lower Devonian"),
@@ -2455,6 +2609,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "ludfordian",
         name: "Ludfordian",
         rank: GeologicRank::Age,
         parent: Some("Ludlow"),
@@ -2468,6 +2623,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "gorstian",
         name: "Gorstian",
         rank: GeologicRank::Age,
         parent: Some("Ludlow"),
@@ -2481,6 +2637,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "homerian",
         name: "Homerian",
         rank: GeologicRank::Age,
         parent: Some("Wenlock"),
@@ -2494,6 +2651,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "sheinwoodian",
         name: "Sheinwoodian",
         rank: GeologicRank::Age,
         parent: Some("Wenlock"),
@@ -2507,6 +2665,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "telychian",
         name: "Telychian",
         rank: GeologicRank::Age,
         parent: Some("Llandovery"),
@@ -2520,6 +2679,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "aeronian",
         name: "Aeronian",
         rank: GeologicRank::Age,
         parent: Some("Llandovery"),
@@ -2533,6 +2693,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "rhuddanian",
         name: "Rhuddanian",
         rank: GeologicRank::Age,
         parent: Some("Llandovery"),
@@ -2546,6 +2707,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "hirnantian",
         name: "Hirnantian",
         rank: GeologicRank::Age,
         parent: Some("Upper Ordovician"),
@@ -2559,6 +2721,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "katian",
         name: "Katian",
         rank: GeologicRank::Age,
         parent: Some("Upper Ordovician"),
@@ -2572,6 +2735,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "sandbian",
         name: "Sandbian",
         rank: GeologicRank::Age,
         parent: Some("Upper Ordovician"),
@@ -2585,6 +2749,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "darriwilian",
         name: "Darriwilian",
         rank: GeologicRank::Age,
         parent: Some("Middle Ordovician"),
@@ -2598,6 +2763,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "dapingian",
         name: "Dapingian",
         rank: GeologicRank::Age,
         parent: Some("Middle Ordovician"),
@@ -2611,6 +2777,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "floian",
         name: "Floian",
         rank: GeologicRank::Age,
         parent: Some("Lower Ordovician"),
@@ -2624,6 +2791,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "tremadocian",
         name: "Tremadocian",
         rank: GeologicRank::Age,
         parent: Some("Lower Ordovician"),
@@ -2637,6 +2805,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 5,
     },
     GeologicInterval {
+        id: "cambrian-stage-10",
         name: "Cambrian Stage 10",
         rank: GeologicRank::Age,
         parent: Some("Furongian"),
@@ -2650,6 +2819,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "jiangshanian",
         name: "Jiangshanian",
         rank: GeologicRank::Age,
         parent: Some("Furongian"),
@@ -2663,6 +2833,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "paibian",
         name: "Paibian",
         rank: GeologicRank::Age,
         parent: Some("Furongian"),
@@ -2676,6 +2847,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "guzhangian",
         name: "Guzhangian",
         rank: GeologicRank::Age,
         parent: Some("Miaolingian"),
@@ -2689,6 +2861,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "drumian",
         name: "Drumian",
         rank: GeologicRank::Age,
         parent: Some("Miaolingian"),
@@ -2702,6 +2875,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "wuliuan",
         name: "Wuliuan",
         rank: GeologicRank::Age,
         parent: Some("Miaolingian"),
@@ -2715,6 +2889,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cambrian-stage-4",
         name: "Cambrian Stage 4",
         rank: GeologicRank::Age,
         parent: Some("Cambrian Series 2"),
@@ -2728,6 +2903,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cambrian-stage-3",
         name: "Cambrian Stage 3",
         rank: GeologicRank::Age,
         parent: Some("Cambrian Series 2"),
@@ -2741,6 +2917,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "cambrian-stage-2",
         name: "Cambrian Stage 2",
         rank: GeologicRank::Age,
         parent: Some("Terreneuvian"),
@@ -2754,6 +2931,7 @@ pub const AGES: &[GeologicInterval] = &[
         base_figures: 4,
     },
     GeologicInterval {
+        id: "fortunian",
         name: "Fortunian",
         rank: GeologicRank::Age,
         parent: Some("Terreneuvian"),
@@ -3112,7 +3290,10 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "alloc")]
     fn the_two_editions_differ_in_exactly_the_intervals_the_2026_06_file_notes() {
+        use alloc::vec::Vec;
+
         // The nine intervals bounded by the three moved ages, which are also
         // the nine carrying a 2026-06 `skos:changeNote` in the ICS's
         // chart.ttl.

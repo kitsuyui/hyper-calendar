@@ -127,7 +127,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (1900-01-01T12:00 to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
-| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -272,7 +272,8 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `holyYearOn(fixed)`, `commonWorshipOn(fixed)` | `hc_holy_year_on`, `hc_common_worship_on` | a `HolyYear` or `null`; `CommonWorshipCelebration[]` |
 | `termInEffect(fixed, meridian)`, `pentadInEffect(fixed, meridian)` | `hc_term_in_effect`, `hc_pentad_in_effect` | a `TermInEffect` |
 | `coldFoodDay(convention, year)` | `hc_cold_food_day` | a fixed day number |
-| `placeYearsAgo(yearsAgo, stdDevYears, locale)`, `cosmicEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
+| `placeYearsAgo(yearsAgo, stdDevYears, locale)`, `cosmicEvents(locale)`, `archaeologicalPeriods(locale)`, `futureEvents(locale)`, `geologicIntervals(rank, locale)` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `DeepTimeRow[]` |
+| `earliestEvidence(locale)` | `hc_earliest_evidence` | `EarliestEvidenceRow[]`: a `DeepTimeRow` whose `stdDev` may be `null` and whose `start` is `null` for a minimum age |
 | `fixedFromUnixInZone(unixSeconds, zone)`, `unixFromFixedInZone(fixed, zone)` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone` | a number |
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `zones(locale)`, `zoneLocation(zone, locale)` | `hc_zones`, `hc_zone_location` | `ZoneLocation[]`; a `ZoneLocation` |
@@ -398,15 +399,15 @@ one job a layer.
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 35,652 | 35 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, and TT(BIPM) from a caller's series | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation` and `tt_bipm`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` | 113,322 | 111 KiB |
 | `calendars` | `hc_describe_day`, `hc_calendar_units`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day` | every `hc-calendars-*` crate, `hc-astro`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 872,905 | 852 KiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,186,664 | 1.13 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on` | `hc-holiday` and everything it dates by | 1,191,896 | 1.14 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day` | `hc-seasons`, `hc-astro` | 90,029 | 88 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 152,906 | 149 KiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 184,121 | 180 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zones`, `hc_zone_location`: the day by a zone's wall clock, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 92,831 | 91 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc` | `hc-astro`, `hc-seasons` | 115,479 | 113 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,097 | 63 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,097 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,505 | 51 KiB |
-| `full` | all of the above | everything | 2,362,385 | 2.25 MiB |
+| `full` | all of the above | everything | 2,396,402 | 2.29 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -446,7 +447,7 @@ not pass CI.
 
 ### Exports
 
-107 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+110 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -525,6 +526,9 @@ not pass CI.
 | `hc_cold_food_day(convention: *const u8, convention_len: usize, year: i64) -> i64` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning, or an error sentinel. |
 | `hc_place_years_ago(years_ago: f64, std_dev_years: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A moment some years before the present, placed in every chronology at once, as UTF-8 lines, returning the byte length written. |
 | `hc_cosmic_events(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every cosmic epoch and every dated cosmic event, as UTF-8 lines, returning the byte length written. |
+| `hc_earliest_evidence(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every claim to the earliest evidence of life, of *Homo sapiens* and of writing, as UTF-8 lines, returning the byte length written. |
+| `hc_archaeological_periods(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every conventional archaeological period, as UTF-8 lines, returning the byte length written. |
+| `hc_future_events(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every dated event of the far future, as UTF-8 lines, returning the byte length written. |
 | `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
@@ -1675,44 +1679,66 @@ Chinese reckoning before 1645; `hanshi-eve-of-qingming`, the day before
 
 ## Deep time
 
-`hc_place_years_ago`, `hc_cosmic_events` and `hc_geologic_intervals` need the
-`deep-time` feature. All three take a locale, a BCP 47 tag, after their
-other arguments, and write lines of the same fifteen columns, so a page
-parses them once:
+`hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`,
+`hc_archaeological_periods`, `hc_future_events` and `hc_geologic_intervals`
+need the `deep-time` feature. All six take a locale, a BCP 47 tag, after
+their other arguments, and write lines of the same sixteen columns, so a
+page parses them once:
 
 | # | Column | Holds |
 | --- | --- | --- |
-| 1 | kind | `moment`, `cosmic-epoch`, `cosmic-event`, `future-era`, a geologic rank (`eon`, `era`, `period`, `epoch`, `age`) or `archaeological` |
-| 2 | name | the entry's name |
-| 3 | scope | the interval one rank up for a geologic interval; the region for an archaeological period; else empty |
-| 4 | start | the older bound's value |
-| 5 | start σ | its standard uncertainty |
-| 6 | start figures | the significant figures it claims, or empty where the table claims none |
-| 7 | start approximate | `1` where the chart marks it `~`, else `0` |
-| 8 | end | the younger bound's value |
-| 9 | end σ | its standard uncertainty |
-| 10 | end figures | as column 6 |
-| 11 | end approximate | as column 7 |
-| 12 | unit | what columns 4 to 11 are in, below |
-| 13 | description | the table's description of the entry, or empty |
-| 14 | source | where the numbers came from |
-| 15 | localised name | the geological chart's own name for an interval in the locale's language — 第四系／紀, 显生宇, `Quartär` — or empty: for a language the chart has no names in, for the handful of intervals it names in no language, and for every cosmic, future and archaeological row, which have no published translation this module carries |
+| 1 | kind | `moment`, `cosmic-epoch`, `cosmic-event`, `earliest-evidence`, `future-era`, `future-event`, a geologic rank (`eon`, `era`, `period`, `epoch`, `age`) or `archaeological` |
+| 2 | id | the entry's stable identifier, lower-case kebab like a calendar's: `recombination`, `maastrichtian`, `bronze-age`, `earliest-writing-uruk-iv`; match on this, not on the name |
+| 3 | name | the entry's English name |
+| 4 | scope | the id of the interval one rank up for a geologic interval; the region for an archaeological period; the landmark (`earliest-life`, `earliest-homo-sapiens`, `earliest-writing`) for an earliest-evidence claim; the kind of prediction (`modelled`, `experimental-bound`, `order-of-magnitude`) for a future event; else empty |
+| 5 | start | the older bound's value; for a future event, the sooner |
+| 6 | start σ | its standard uncertainty; empty only on an `hc_earliest_evidence` row whose source states none |
+| 7 | start figures | the significant figures it claims, or empty where the table claims none |
+| 8 | start approximate | `1` where the table marks it approximate — the chart's `~`, a source's "about" — else `0` |
+| 9 | end | the younger bound's value |
+| 10 | end σ | as column 6 |
+| 11 | end figures | as column 7 |
+| 12 | end approximate | as column 8 |
+| 13 | unit | what columns 5 to 12 are in, below |
+| 14 | description | the table's description of the entry, or empty |
+| 15 | source | where the numbers came from |
+| 16 | localised name | the geological chart's own name for an interval in the locale's language — 第四系／紀, 显生宇, `Quartär` — or, for a cosmic, archaeological or earliest-evidence row, the established term `hc_deep_time::names` carries for it — 宇宙の晴れ上がり, 青銅器時代 — or empty: for a language with neither, for the handful of intervals the chart names in no language, for an entry no established term was read for, and for every future row |
 
-The localised names are the International Commission on Stratigraphy's own
-translations, from the chart's vocabulary (`chart.ttl`, CC BY 4.0) in
-fourteen of the module's locales — `cs`, `de`, `es`, `fr`, `id`, `it`, `ja`,
-`ko`, `nl`, `pl`, `pt`, `ru`, `tr` and `zh-Hans` — with the Japanese checked
-against the Geological Society of Japan's chart and the Chinese against the
-ICS's Chinese chart; `hc_deep_time::names` says what was left out and why.
-The English name stays in column 2.
+The localised interval names are the International Commission on
+Stratigraphy's own translations, from the chart's vocabulary (`chart.ttl`,
+CC BY 4.0) in fourteen of the module's locales — `cs`, `de`, `es`, `fr`,
+`id`, `it`, `ja`, `ko`, `nl`, `pl`, `pt`, `ru`, `tr` and `zh-Hans` — with
+the Japanese checked against the Geological Society of Japan's chart and the
+Chinese against the ICS's Chinese chart; `hc_deep_time::names` says what was
+left out and why. The other rows are named in Japanese only, each from the
+source it was read in — the Astronomical Society of Japan's 天文学辞典, the
+Japanese Wikipedia, Nature's Japanese highlights — and an entry with no
+established term is not translated. The English name stays in column 3.
 
 A point in time — an event, the moment itself — has the same start and end.
 The unit is the one each table counts in, so the values are the tables' own
 figures rather than conversions: `seconds-since-big-bang` for the cosmic
 rows and the moment's `since-big-bang` row, `seconds-before-present` for
 its `before-present` row, `megayears-before-present` for the geologic
-chart's rows, `years-before-1950` for the archaeological rows and
-`log10-years-from-now` for a future era.
+chart's rows, `years-before-1950` for the archaeological and
+earliest-evidence rows, `years-from-now` for a future event and
+`log10-years-from-now` for a future era. A future event that is an
+experimental bound — the proton lifetime's — has a start and no end: if it
+happens at all, it is no sooner.
+
+**The earliest evidence.** `hc_earliest_evidence` lists the published
+claims to the earliest evidence of life, of *Homo sapiens* and of writing,
+one row per claim, grouped by landmark and oldest first — Jack Hills, Akilia,
+Nuvvuagittuq, Isua and the Pilbara for life; Jebel Irhoud and Omo-Kibish for
+*Homo sapiens*; Abydos tomb U-j and Uruk IV for writing — so that a
+landmark is never one number where the literature has several.
+Each row keeps the shape of its source's date: an age has the same start
+and end; a minimum age ("at least 233 ± 22 kyr") has an empty start and the
+minimum as its end; a range ("at least 3,770 and possibly 4,280 million
+years") has two different bounds. A σ cell is empty unless the source says
+what its `±` is — Richter et al.'s 315 ± 34 ka is kept in the description
+for that reason — and a disputed claim names the rebuttal in its
+description. `docs/systems/earliest-evidence.md` gives the sources.
 
 **What "present" means.** `hc_place_years_ago(years_ago, std_dev_years,
 locale_ptr, locale_len, buffer, capacity)` counts `years_ago` back from the present as `hc-deep-time`
@@ -1736,7 +1762,11 @@ value the crate refuses — not finite, a negative uncertainty, beyond its range
 
 `hc_cosmic_events(locale_ptr, locale_len, buffer, capacity)` lists every
 cosmic epoch, Big Bang to the present, then every dated cosmic event, oldest
-first. `hc_geologic_intervals(rank, locale_ptr, locale_len, buffer, capacity)`
+first. `hc_archaeological_periods(locale_ptr, locale_len, buffer, capacity)`
+lists the conventional archaeological periods, youngest first, with the
+region as the scope, and `hc_future_events(locale_ptr, locale_len, buffer,
+capacity)` the dated events of the far future, soonest first.
+`hc_geologic_intervals(rank, locale_ptr, locale_len, buffer, capacity)`
 lists every interval of one
 rank of the ICS chart, youngest first, with the chart as the source; `rank`
 is `0` for the eons, `1` for the eras, `2` for the periods, `3` for the

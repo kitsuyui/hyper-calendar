@@ -32,8 +32,9 @@ assert!((now.orders_of_magnitude_between(planck).unwrap() - 60.9).abs() < 0.1);
 | `future` | Eight dated events and four eras, out past 10¹⁰⁰ years, plus `black_hole_lifetime` |
 | `geologic` | 175 intervals of the ICS chart in five ranks, queryable as a tree |
 | `archaeology` | The BP convention, the calibrated/uncalibrated distinction, eleven conventional periods |
+| `evidence` | Twelve published claims to the earliest evidence of life, of *Homo sapiens* and of writing, each dated as an age, a minimum or a range as its source gives it, with the disputes named |
 | `periods` | Two long astronomical recurrences, the precession of the equinoxes and the galactic year, with their spreads and whether they drift |
-| `names` | The chart's interval names in fourteen other languages, from the ICS's own translations |
+| `names` | The chart's interval names in fourteen other languages, from the ICS's own translations; Japanese names by identifier for 31 cosmic, archaeological and earliest-evidence entries, each from the source it was read in |
 | `timeline` | All four chronologies queried together, with the uncertainty carried through; a moment up to a century ahead (`PRESENT_HORIZON_YEARS`) is still in the intervals that end at the present |
 
 Highlights:
@@ -113,8 +114,24 @@ Ma.
 Indonesian, Italian, Japanese, Korean, Dutch, Polish, Portuguese, Russian,
 Turkish and simplified Chinese; the Japanese checked against the Geological
 Society of Japan's 国際年代層序表 v2024/12 and the Chinese against the ICS's
-国际年代地层表 v2023/09. The cosmic, future and archaeological names are not
-translated, because no published translation of them was read.
+国际年代地层表 v2023/09. The cosmic epochs and events, the archaeological
+periods and three of the earliest-evidence claims are named in Japanese by
+identifier, from the Astronomical Society of Japan's 天文学辞典, the Japanese
+Wikipedia, NAOJ and Nature's Japanese highlights, each name citing the page
+it was read on; an entry with no established term, and every future entry,
+is not translated.
+
+**Earliest evidence** — for life: Bell et al., PNAS 112, 14518 (2015);
+Mojzsis et al., Nature 384, 55 (1996), with Fedo & Whitehouse, Science 296,
+1448 (2002); Dodd et al., Nature 543, 60 (2017); Rosing, Science 283, 674
+(1999); Nutman et al., Nature 537, 535 (2016), with Allwood et al., Nature
+563, 241 (2018); Djokic et al., Nat. Commun. 8, 15263 (2017); Schopf,
+Science 260, 640 (1993), with Brasier et al., Nature 416, 76 (2002);
+Allwood et al., Nature 441, 714 (2006). For *Homo sapiens*: Hublin et al.
+and Richter et al., Nature 546, 289 and 293 (2017); Vidal et al., Nature
+601, 579 (2022). For writing: Görsdorf, Dreyer & Hartung, Radiocarbon 40,
+641 (1998); Englund, in *Creating Economic Order* (2004), 23–46. Most were
+read in their abstracts; `docs/systems/earliest-evidence.md` says which.
 
 **Archaeology** — Stuiver & Polach, *Radiocarbon* 19, 355 (1977), for the
 conventions behind a reported radiocarbon age; Reimer et al., *Radiocarbon* 62,
