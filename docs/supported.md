@@ -420,7 +420,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-49 tables, feature `holiday`.
+59 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
@@ -448,13 +448,20 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ember-common-worship` | Ember and Rogation Days (Common Worship, traditional weeks) | 15 |
 | `ethiopian-orthodox` | Ethiopian Orthodox Tewahedo | 14 |
 | `gosekku` | The five seasonal festivals of Japan (五節句) | 5 |
+| `hatsuuma` | Hatsuuma, the first Horse day of February (初午) | 3 |
+| `hatsuuma-lunar` | Hatsuuma on the Japanese lunar calendar (旧暦の初午) | 1 |
 | `hindu` | Hinduism | 19 |
+| `inoko` | Inoko, the first Boar day of the tenth lunar month (亥の子) | 1 |
+| `inoko-november` | Inoko, the first Boar day of November (亥の子) | 1 |
 | `islamic` | Islam | 13 |
 | `jain` | Jainism | 23 |
 | `jewish` | Judaism | 21 |
 | `korean-folk` | Korean folk days | 11 |
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
 | `mandaean` | Mandaean feasts | 20 |
+| `obon-august` | Obon a month late (月遅れ盆) | 3 |
+| `obon-july` | Obon on the Gregorian July (7月盆) | 3 |
+| `obon-lunar` | Obon on the Japanese lunar calendar (旧盆) | 4 |
 | `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
@@ -465,6 +472,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
 | `taoist` | Taoism | 5 |
 | `tenrikyo` | Tenrikyo | 16 |
+| `tokanya` | Tōkanya, the tenth night of the tenth lunar month (十日夜) | 1 |
+| `tokanya-november` | Tōkanya on 10 November (十日夜) | 1 |
+| `tori-no-ichi` | Tori no Ichi, the fairs of the Rooster days (酉の市) | 3 |
 | `unlucky-fridays` | Friday the 13th | 1 |
 | `vietnamese-folk` | Vietnamese folk days | 10 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |

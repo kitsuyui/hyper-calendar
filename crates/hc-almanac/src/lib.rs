@@ -22,6 +22,9 @@
 //! | [`mod@lower_register`] | 暦注下段 | the sexagenary day, the 節月, the mansion |
 //! | [`mod@selected_days`] | 選日 | the sexagenary day, the 節月, the Moon |
 //! | [`seven_luminaries`] | 七曜 | the seven-day week |
+//! | [`lucky_direction`] | 恵方 | the year's heavenly stem |
+//! | [`nine_periods`] | 三元九運 | twenty-year periods from 1864, turning at 立春 |
+//! | [`days_without_son`] | 손 없는 날 | the Korean lunar day, `dangi` |
 //! | [`rokuyo`] | 六曜 | the lunisolar date — re-exported from `hc-seasons` |
 //! | [`mod@day_notes`] | the whole page | all of the above at once |
 //!
@@ -66,7 +69,7 @@
 //!
 //! | Class | Annotations | Exactness |
 //! |---|---|---|
-//! | Pure day count | 干支 rules, 七曜, 二十八宿 | exact |
+//! | Pure day count | 干支 rules, 七曜, 二十八宿, 恵方 | exact |
 //! | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
 //! | Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
 //!
@@ -94,8 +97,11 @@
 
 pub mod context;
 pub mod day_notes;
+pub mod days_without_son;
 pub mod lower_register;
+pub mod lucky_direction;
 pub mod mansions;
+pub mod nine_periods;
 pub mod nine_stars;
 pub mod rokuyo;
 pub mod rules;
@@ -105,8 +111,11 @@ pub mod twelve_directs;
 
 pub use context::{DayContext, SolarMonth, solar_month_of};
 pub use day_notes::{Combination, CombinationSet, DayNotes, day_notes};
+pub use days_without_son::is_day_without_son;
 pub use lower_register::{LowerRegister, LowerRegisterSet, lower_register};
+pub use lucky_direction::{LuckyDirection, lucky_direction_of_year};
 pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of};
+pub use nine_periods::{Period, period, period_of_year};
 pub use nine_stars::{Dun, NineStar, NineStars, day_star, month_star, nine_stars, year_star};
 pub use rokuyo::Rokuyo;
 pub use rules::{AlmanacRule, rule_applies};

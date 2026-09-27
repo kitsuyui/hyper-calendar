@@ -37,6 +37,7 @@
 //! | Jain | the amānta Hindu lunisolar calendar at the national almanac's sunrise; Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last days | **approximate** — Jain almanacs differ from the national one by a day in some years, as the source says |
 //! | Shinto | fixed Gregorian dates, and 節分 as the day before 立春 at the Japanese meridian | exact; a shrine's own festival dates are not carried |
 //! | 五節句 | fixed Gregorian dates, from 1873 | exact |
+//! | お盆, 酉の市, 初午, 亥の子, 十日夜 | fixed Gregorian dates and the 酉, 午 and 亥 days of a Gregorian month from 1873, or days of the Japanese 旧暦 1844–2146, one table per reckoning | exact to the astronomical model; the 旧暦's tenth month of 2033 is a reported gap |
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact: the Nanakshahi dates are fixed Gregorian dates, and the lunar three follow the same model as the Hindu table; the SGPC's post-2010 dates are not carried |
 //! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
@@ -54,10 +55,11 @@
 //! | *Common Worship* | the Gregorian computus and fixed Gregorian dates, with the transfers the Rules require | exact as stated; the years the Rules leave open are reported gaps |
 
 use hc_astro::MEAN_TROPICAL_YEAR;
+use hc_calendar::cycle::sexagenary_day;
 use hc_calendar::fixed::Moment;
-use hc_calendar::{Rd, Weekday};
+use hc_calendar::{Month, Rd, Weekday};
 use hc_calendars_indic::SiddhantaLunarCalendar;
-use hc_calendars_lunar::tibetan;
+use hc_calendars_lunar::{japanese_tenpo, tibetan};
 use hc_calendars_solar::{bahai, gregorian, yazidi};
 use hc_seasons::solar_terms::term_moment;
 use hc_seasons::{Meridian, SolarTerm};
@@ -1617,6 +1619,448 @@ pub static GOSEKKU: RuleSet = RuleSet {
     sources: "Wikipedia (ja), \"節句\", retrieved 2026-09-26, for the five, their \
               names and dates, and their abolition by 太政官第1号布告 of 4 January 1873 \
               (the notice itself not read; secondary)",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// お盆 and the Japanese folk days of the sexagenary cycle
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The earthly branch of 午 days, 子 being 0.
+const UMA: u8 = 6;
+/// The earthly branch of 酉 days.
+const TORI: u8 = 9;
+/// The earthly branch of 亥 days.
+const INOSHISHI: u8 = 11;
+
+/// The first year the Japanese 旧暦 is taken to answer for: 1844, when the
+/// 天保暦 took effect, since the unbounded 天保暦 rules are what the almanacs
+/// have continued, and the calendars before it reckoned differently.
+const KYUREKI_FIRST_YEAR: i32 = 1844;
+
+/// The last year the Japanese 旧暦 is taken to answer for. The 天保暦 rule
+/// cannot number the months of 2033–34, which the rules below report as
+/// gaps. The Observatory lists 2147–48 as the next years it leaves open,
+/// without saying which months (`nao-rekiwiki-2033`), so nothing later is
+/// answered.
+const KYUREKI_LAST_YEAR: i32 = 2146;
+
+/// The first year of the Gregorian calendar in Japan, 1873, from which the
+/// Gregorian-dated folk days are answered.
+const JAPANESE_GREGORIAN_FIRST_YEAR: i32 = 1873;
+
+/// The `n`th day, counting from 1, of the days from `first` to `last` whose
+/// earthly branch is `branch`; none when the span holds fewer.
+fn nth_branch_day(first: Rd, last: Rd, branch: u8, n: i64) -> Days {
+    let offset =
+        (i64::from(branch) - i64::from(sexagenary_day(first).branch_index())).rem_euclid(12);
+    let day = Rd(first.0 + offset + 12 * (n - 1));
+    if day.0 <= last.0 {
+        Days::one(day)
+    } else {
+        Days::new()
+    }
+}
+
+/// The first and last day of a Gregorian month.
+fn gregorian_month(year: i64, month: u8) -> Option<(Rd, Rd)> {
+    let first = gregorian::to_fixed(year, month, 1).ok()?;
+    let length = gregorian::days_in_month(year, month)?;
+    Some((first, Rd(first.0 + i64::from(length) - 1)))
+}
+
+/// A day of the Japanese 旧暦, the 天保暦's rules continued at the Japanese
+/// meridian (`hc_calendars_lunar::japanese_tenpo::UNBOUNDED_PARAMETERS`), in
+/// the ordinary month of its number.
+fn kyureki_day(year: i64, month: u8, day: u8) -> Option<Rd> {
+    japanese_tenpo::UNBOUNDED_PARAMETERS
+        .to_fixed(year, Month::regular(month), day)
+        .ok()
+}
+
+/// The first and last day of an ordinary month of the Japanese 旧暦.
+fn kyureki_month(year: i64, month: u8) -> Option<(Rd, Rd)> {
+    let first = kyureki_day(year, month, 1)?;
+    let length = japanese_tenpo::UNBOUNDED_PARAMETERS.days_in_month(year, Month::regular(month))?;
+    Some((first, Rd(first.0 + i64::from(length) - 1)))
+}
+
+/// Whether the 天保暦 rule leaves the numbering of a 旧暦 month open: the
+/// eighth to the twelfth month of 2033, which the Observatory's three
+/// resolutions number differently (`nao-rekiwiki-2033`).
+const fn kyureki_month_unsettled(year: i64, month: u8) -> bool {
+    year == 2033 && month >= 8
+}
+
+/// Rules over the days of a month whose earthly branch is given: the `n`th
+/// such day of a Gregorian month, or of an ordinary 旧暦 month, where the
+/// 2033 problem leaves that month's numbering open a gap.
+macro_rules! branch_day_rules {
+    ($(gregorian $name:ident = $month:literal, $branch:ident, $n:literal;)*) => {$(
+        fn $name(year: i64) -> Days {
+            gregorian_month(year, $month).map_or(Days::new(), |(first, last)| {
+                nth_branch_day(first, last, $branch, $n)
+            })
+        }
+    )*};
+    ($(kyureki $name:ident = $month:literal, $branch:ident, $n:literal;)*) => {$(
+        fn $name(year: i64) -> Option<Days> {
+            if kyureki_month_unsettled(year, $month) {
+                return None;
+            }
+            Some(kyureki_month(year, $month).map_or(Days::new(), |(first, last)| {
+                nth_branch_day(first, last, $branch, $n)
+            }))
+        }
+    )*};
+}
+
+branch_day_rules! {
+    gregorian ichi_no_tori = 11, TORI, 1;
+    gregorian ni_no_tori = 11, TORI, 2;
+    gregorian san_no_tori = 11, TORI, 3;
+    gregorian hatsuuma = 2, UMA, 1;
+    gregorian ni_no_uma = 2, UMA, 2;
+    gregorian san_no_uma = 2, UMA, 3;
+    gregorian inoko_november = 11, INOSHISHI, 1;
+}
+
+branch_day_rules! {
+    kyureki hatsuuma_kyureki = 2, UMA, 1;
+    kyureki inoko_kyureki = 10, INOSHISHI, 1;
+}
+
+/// Rules for a numbered day of an ordinary 旧暦 month, a gap where the
+/// 2033 problem leaves the month open.
+macro_rules! kyureki_day_rules {
+    ($($name:ident = $month:literal, $day:literal;)*) => {$(
+        fn $name(year: i64) -> Option<Days> {
+            if kyureki_month_unsettled(year, $month) {
+                return None;
+            }
+            Some(kyureki_day(year, $month, $day).map_or(Days::new(), Days::one))
+        }
+    )*};
+}
+
+kyureki_day_rules! {
+    kyureki_7_13 = 7, 13;
+    kyureki_7_14 = 7, 14;
+    kyureki_7_15 = 7, 15;
+    kyureki_10_10 = 10, 10;
+}
+
+/// 新暦 13 July, the first day of 7月盆.
+static JULY_13: Rule = Rule::gregorian(7, 13);
+/// 新暦 16 July, its last.
+static JULY_16: Rule = Rule::gregorian(7, 16);
+/// 13 August, the first day of 月遅れ盆.
+static AUGUST_13: Rule = Rule::gregorian(8, 13);
+/// 16 August, its last.
+static AUGUST_16: Rule = Rule::gregorian(8, 16);
+/// 旧暦 7/13, the first day of 旧盆.
+static KYUREKI_7_13: Rule = Rule::Unsettled(kyureki_7_13);
+/// 旧暦 7/15, its last in Okinawa.
+static KYUREKI_7_15: Rule = Rule::Unsettled(kyureki_7_15);
+
+/// お盆 on a Gregorian month: the four days from the 13th to the 16th, the
+/// 迎え火 on the evening of the 13th and the 送り火 on the 16th, from 1873.
+macro_rules! gregorian_obon {
+    ($first:ident, $last:ident, $month:literal) => {
+        &[
+            feast("Obon", "お盆", Rule::span(&$first, &$last))
+                .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+            feast(
+                "Mukaebi (welcoming fire)",
+                "迎え火",
+                Rule::gregorian($month, 13),
+            )
+            .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+            feast(
+                "Okuribi (sending-off fire)",
+                "送り火",
+                Rule::gregorian($month, 16),
+            )
+            .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+        ]
+    };
+}
+
+/// Where the お盆 tables come from.
+const OBON_SOURCES: &str = "Wikipedia (ja), \"お盆\", retrieved 2026-09-27 \
+    (`wikipedia-ja-obon`): 新暦7月15日 in Tokyo and parts of Tōhoku, Hokuriku and \
+    Shizuoka, 新暦8月15日, 月遅れ, in most of Japan, the period 13 to 16, 迎え火 on the \
+    evening of the 13th and 送り火 on the 16th; 旧暦7月15日 in Okinawa and Amami, with \
+    Okinawa's ウンケー on 7/13, ナカビ on 7/14 and ウークイ on 7/15, and 閏7月15日 not \
+    旧盆 (secondary; the Okinawa prefectural office's Q&A it cites not read)";
+
+/// お盆 on 新暦 7 月, 7月盆: 13 to 16 July, the practice of Tokyo, where the
+/// Meiji government's calendar reform put it, and of parts of Tōhoku and
+/// Hokuriku, from 1873. `obon-august` is the month-late reckoning most of
+/// Japan keeps and `obon-lunar` the 旧暦 one of Okinawa and Amami
+/// (`docs/policy.md` §5; `docs/systems/east-asian-folk-days.md`).
+///
+/// The 迎え火 is on the evening of the 13th and the 送り火 on the 16th; the
+/// places that light the 送り火 on the 15th, and those that keep お盆 on the
+/// weekend nearest the 15th, are not carried.
+pub static OBON_JULY: RuleSet = RuleSet {
+    code: "obon-july",
+    english_name: "Obon on the Gregorian July (7月盆)",
+    rules: gregorian_obon!(JULY_13, JULY_16, 7),
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: OBON_SOURCES,
+};
+
+/// お盆 a month late, 月遅れ盆: 13 to 16 August, as most of Japan keeps it,
+/// from 1873, with the 迎え火 on the 13th and the 送り火 on the 16th. None
+/// of the days is a public holiday; the private sector's summer break is
+/// not carried. The places that keep it on 1 August are not carried.
+pub static OBON_AUGUST: RuleSet = RuleSet {
+    code: "obon-august",
+    english_name: "Obon a month late (月遅れ盆)",
+    rules: gregorian_obon!(AUGUST_13, AUGUST_16, 8),
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: OBON_SOURCES,
+};
+
+static OBON_LUNAR_RULES: &[HolidayRule] = &[
+    feast("Kyūbon", "旧盆", Rule::span(&KYUREKI_7_13, &KYUREKI_7_15))
+        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    feast(
+        "Unkē (welcoming the ancestors)",
+        "ウンケー",
+        Rule::Unsettled(kyureki_7_13),
+    )
+    .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    feast("Nakabi", "ナカビ", Rule::Unsettled(kyureki_7_14))
+        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    feast(
+        "Ukui (sending off the ancestors)",
+        "ウークイ",
+        Rule::Unsettled(kyureki_7_15),
+    )
+    .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+];
+
+/// 旧盆, お盆 on the 旧暦: 7/13 to 7/15, as Okinawa keeps it, with its
+/// names, ウンケー on the 13th, ナカビ on the 14th and ウークイ on the 15th.
+///
+/// The 旧暦 is the one Japanese almanacs print, the 天保暦's rules
+/// continued at the Japanese meridian, from 1844, when the 天保暦 took
+/// effect, to 2146. The fifteenth falls from 8 August to 7 September, and a
+/// leap seventh month does not repeat it: in 2006 旧盆 was 8 August, and
+/// the 15th of that year's leap month, 7 September, was not 旧盆. The
+/// places that keep ウークイ on the 16th, and the Miyako and Yaeyama names,
+/// are not carried.
+pub static OBON_LUNAR: RuleSet = RuleSet {
+    code: "obon-lunar",
+    english_name: "Obon on the Japanese lunar calendar (旧盆)",
+    rules: OBON_LUNAR_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: OBON_SOURCES,
+};
+
+static TORI_NO_ICHI_RULES: &[HolidayRule] = &[
+    feast("Ichi no Tori", "一の酉", Rule::Computed(ichi_no_tori))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    feast("Ni no Tori", "二の酉", Rule::Computed(ni_no_tori))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    feast("San no Tori", "三の酉", Rule::Computed(san_no_tori))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+];
+
+/// 酉の市, the fair of the 酉 days of November at the 鷲 and 大鳥 shrines of
+/// the Kantō: 一の酉, 二の酉 and, when the first falls on 1 to 6 November,
+/// 三の酉, from 1873. Asakusa's 鷲神社 holds it from midnight to midnight
+/// of each 酉 day.
+///
+/// A shrine's own day is not carried: the 鷲宮神社's 大酉祭 on the first 酉
+/// of December and 川越's 熊野神社 on 3 December.
+pub static TORI_NO_ICHI: RuleSet = RuleSet {
+    code: "tori-no-ichi",
+    english_name: "Tori no Ichi, the fairs of the Rooster days (酉の市)",
+    rules: TORI_NO_ICHI_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: "Wikipedia (ja), \"酉の市\", retrieved 2026-09-27 (`wikipedia-ja-tori-no-ichi`), \
+              for the 酉 days of November and the third 酉 when the first is on 1 to 6 \
+              November; 鷲神社 (Asakusa), 「今年の酉の市」 and 「年間祭事」, retrieved \
+              2026-09-27 (`otorisama-kotoshi`), for 7 and 19 November 2026, 二の酉まで",
+};
+
+static HATSUUMA_RULES: &[HolidayRule] = &[
+    feast("Hatsuuma", "初午", Rule::Computed(hatsuuma))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    feast("Ni no Uma", "二の午", Rule::Computed(ni_no_uma))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    feast("San no Uma", "三の午", Rule::Computed(san_no_uma))
+        .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+];
+
+/// Where the two 初午 tables come from.
+const HATSUUMA_SOURCES: &str = "Wikipedia (ja), \"初午\", retrieved 2026-09-27 \
+    (`wikipedia-ja-hatsuuma`), for the first 午 day of February on the Gregorian calendar \
+    today and of the second month of the 旧暦 before the reform and in some places now, and \
+    for 二の午 and 三の午; 伏見稲荷大社, 「祭礼と行事」, for 初午大祭 on 「2月初午の日」, and \
+    京都観光Navi for its day, 1 February 2026 (`inari-hatsuuma`); HugKum, 「2026年の「初午」はいつ？」 \
+    (`hugkum-hatsuuma-2026`), for 2025–2029 on the Gregorian calendar and 21 March 2026 on the \
+    旧暦; all retrieved 2026-09-27";
+
+/// 初午, the festival of the Inari shrines, on the Gregorian calendar: the
+/// first 午 day of February, with 二の午 and 三の午, the second and third,
+/// from 1873. `hatsuuma-lunar` is the first 午 day of the 旧暦's second
+/// month, which some shrines keep.
+///
+/// Not carried, each a reckoning of its own that no dated source read
+/// gives for more than one shrine: the first 午 of Gregorian March, as the
+/// 箭弓稲荷神社 keeps it; the first 午 after 節分, as the 豊川稲荷東京別院
+/// is reported to; the first 午 after the lunar New Year.
+pub static HATSUUMA: RuleSet = RuleSet {
+    code: "hatsuuma",
+    english_name: "Hatsuuma, the first Horse day of February (初午)",
+    rules: HATSUUMA_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: HATSUUMA_SOURCES,
+};
+
+static HATSUUMA_LUNAR_RULES: &[HolidayRule] =
+    &[feast("Hatsuuma", "初午", Rule::Unsettled(hatsuuma_kyureki))
+        .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR))];
+
+/// 初午 on the 旧暦: the first 午 day of the second month, the day before
+/// the reform and in some places now, on the 旧暦 Japanese almanacs print,
+/// 1844 to 2146. The first 午 of an ordinary month comes before any 午 of
+/// a leap month of the same number, so a leap second month changes
+/// nothing.
+pub static HATSUUMA_LUNAR: RuleSet = RuleSet {
+    code: "hatsuuma-lunar",
+    english_name: "Hatsuuma on the Japanese lunar calendar (旧暦の初午)",
+    rules: HATSUUMA_LUNAR_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: HATSUUMA_SOURCES,
+};
+
+/// Where the two 亥の子 tables come from.
+const INOKO_SOURCES: &str = "Wikipedia (ja), \"亥の子\", retrieved 2026-09-27 \
+    (`wikipedia-ja-inoko`), for the first 亥 day of the 旧暦's tenth month, 亥の月, mainly in \
+    western Japan; KOYOMI NOTE, 「亥の子（いのこ）」 (`koyominote-inoko`), for its days of \
+    2020–2028 on the 旧暦; All About, 「2025年こたつや暖房器具を出す日はいつ？」 (三浦康子, \
+    `allabout-inoko-2025`), for 「現在は一般的に新暦11月の最初の亥の日で考える」 and 2 November \
+    2025; all retrieved 2026-09-27";
+
+static INOKO_RULES: &[HolidayRule] =
+    &[
+        HolidayRule::observance("Inoko", "亥の子", Rule::Unsettled(inoko_kyureki))
+            .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    ];
+
+/// 亥の子 on the 旧暦: the first 亥 day of the tenth month, 亥の月, kept
+/// mainly in western Japan with 亥の子餅 and the 亥の子石, 1844 to 2146.
+/// `inoko-november` is the first 亥 day of Gregorian November, the day most
+/// now reckon it by. 2033 is a gap: the Observatory's three resolutions of
+/// the 2033 problem put that year's tenth month on 23 October or on
+/// 22 November.
+pub static INOKO: RuleSet = RuleSet {
+    code: "inoko",
+    english_name: "Inoko, the first Boar day of the tenth lunar month (亥の子)",
+    rules: INOKO_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: INOKO_SOURCES,
+};
+
+static INOKO_NOVEMBER_RULES: &[HolidayRule] =
+    &[
+        HolidayRule::observance("Inoko", "亥の子", Rule::Computed(inoko_november))
+            .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    ];
+
+/// 亥の子 on the Gregorian calendar: the first 亥 day of November, from
+/// 1873, which All About gives as the usual reckoning today.
+pub static INOKO_NOVEMBER: RuleSet = RuleSet {
+    code: "inoko-november",
+    english_name: "Inoko, the first Boar day of November (亥の子)",
+    rules: INOKO_NOVEMBER_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: INOKO_SOURCES,
+};
+
+/// Where the two 十日夜 tables come from.
+const TOKANYA_SOURCES: &str = "Wikipedia (ja), \"十日夜\", retrieved 2026-09-27 \
+    (`wikipedia-ja-tokanya`), for 旧暦10月10日, mainly in northern Kantō, Kōshin'etsu and \
+    southern Tōhoku; 暦生活 (新日本カレンダー), 「十日夜 とおかんや」 (`koyomiseikatsu-tokanya-2023`), \
+    for 22 November 2023; 日本文化研究ブログ, 「「十日夜」2026年はいつ？」 (`jpnculture-tokanya`), \
+    for 11月10日 in many places and 18 November 2026 on the 旧暦; all retrieved 2026-09-27";
+
+static TOKANYA_RULES: &[HolidayRule] =
+    &[
+        HolidayRule::observance("Tōkanya", "十日夜", Rule::Unsettled(kyureki_10_10))
+            .years(Some(KYUREKI_FIRST_YEAR), Some(KYUREKI_LAST_YEAR)),
+    ];
+
+/// 十日夜 on the 旧暦: the tenth day of the tenth month, the harvest
+/// festival of eastern Japan that answers the west's 亥の子, 1844 to 2146.
+/// `tokanya-november` is 10 November, where many places keep it now. 2033
+/// is a gap, as for [`INOKO`].
+pub static TOKANYA: RuleSet = RuleSet {
+    code: "tokanya",
+    english_name: "Tōkanya, the tenth night of the tenth lunar month (十日夜)",
+    rules: TOKANYA_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: TOKANYA_SOURCES,
+};
+
+static TOKANYA_NOVEMBER_RULES: &[HolidayRule] =
+    &[
+        HolidayRule::observance("Tōkanya", "十日夜", Rule::gregorian(11, 10))
+            .years(Some(JAPANESE_GREGORIAN_FIRST_YEAR), None),
+    ];
+
+/// 十日夜 on 10 November, the 旧暦 date moved a month onto the Gregorian
+/// calendar, where many places keep it, from 1873.
+pub static TOKANYA_NOVEMBER: RuleSet = RuleSet {
+    code: "tokanya-november",
+    english_name: "Tōkanya on 10 November (十日夜)",
+    rules: TOKANYA_NOVEMBER_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 27),
+    sources: TOKANYA_SOURCES,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3587,6 +4031,16 @@ pub static ALL: &[&RuleSet] = &[
     &SHINTO,
     &KYUCHU_SAISHI,
     &GOSEKKU,
+    &OBON_JULY,
+    &OBON_AUGUST,
+    &OBON_LUNAR,
+    &TORI_NO_ICHI,
+    &HATSUUMA,
+    &HATSUUMA_LUNAR,
+    &INOKO,
+    &INOKO_NOVEMBER,
+    &TOKANYA,
+    &TOKANYA_NOVEMBER,
     &SIKH_NANAKSHAHI_2003,
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,

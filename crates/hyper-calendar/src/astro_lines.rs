@@ -235,6 +235,12 @@ fn push_missing(out: &mut String, missing: MissingSolarEvent) {
             ("depression", day, Some(arcminutes))
         }
         MissingSolarEvent::NoNoonShadow(day) => ("no-noon-shadow", day, None),
+        // No export here reads the Japanese dawn and dusk, whose depression
+        // is not a whole number of arcminutes; the cell would drop the
+        // seconds.
+        MissingSolarEvent::Twilight {
+            day, arcseconds, ..
+        } => ("depression", day, u16::try_from(arcseconds / 60).ok()),
     };
     let _ = write!(out, "{name}\t{}\t", day.0);
     if let Some(arcminutes) = arcminutes {

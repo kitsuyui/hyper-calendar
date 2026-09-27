@@ -1,4 +1,4 @@
-# Hours of the day: local mean time, sundial time, temporal and Italian hours, and religious times
+# Hours of the day: local mean time, sundial time, temporal, Italian and Edo hours, and religious times
 
 Backs `hc-astro::solar_time`. No calendar identifier is registered: these
 are readings of the time of day, not calendars.
@@ -33,6 +33,11 @@ Older still are hours counted from the Sun's own events:
   nightfall [wikipedia-zmanim].
 - **Italian hours** (*ore italiane*): 24 equal hours counted from the
   "zero hour" half an hour after sunset.
+- **The Edo 不定時法**, Japan's reckoning until the calendar reform of
+  1872: the daylight from 明け六つ to 暮れ六つ in six hours and the night in
+  six more, so that a summer day's hour was about 2 h 39 min and a summer
+  night's about 1 h 21 min [astro-dic-futeijiho]. The hours were named by
+  the strokes of the bell that opened them.
 
 And some religious times are fixed by the Sun's altitude or by a shadow,
 with an angle each community chooses: the Islamic afternoon prayer
@@ -84,6 +89,51 @@ the date turns at the zero hour [reingold2018code].
 **Worked example.** If the 16′ sunset at a place is at 18:10 local mean
 time, the zero hour is 18:40 and the next day begins then; local mean noon
 of that day is 17 h 20 min after it, 17:20 in Italian hours.
+
+### 不定時法, the Edo hours
+
+Each half of the day, 明け六つ to 暮れ六つ and 暮れ六つ to the next 明け六つ,
+is divided into six equal hours, 一刻 each [nao-rekiwiki-futeiji]. The
+hours are named by the strokes of the bell, nine at noon and midnight and
+one fewer at each hour after, down to four, so a day runs 明六つ, 朝五つ,
+朝四つ, 昼九つ, 昼八つ, 夕七つ, 暮六つ, 夜五つ, 夜四つ, 暁九つ, 暁八つ, 暁七つ.
+The prefixes follow the Observatory's list, 今暁九時, 八時, 七時, 明六時,
+朝五時, 四時, 昼九時, 八時, 夕七時, 暮六時, 夜五時, 四時, in which a prefix also
+covers the unprefixed hour after it. The almanac itself kept equal hours,
+except under the 天保暦: from its almanac of 1844 it gave times in the
+unequal hours, with a fraction of an hour in tenths, 分, so that its
+暮六時六分 is six tenths of an hour after 暮れ六つ, not 6:06
+[nao-rekiwiki-futeiji]. Each hour is paired with an earthly branch,
+卯 for 明け六つ, 午 for 昼九つ, 酉 for 暮れ六つ and 子 for 暁九つ
+[wikipedia-ja-jikoku]. People took 明け六つ as the start of the day,
+though the almanac's day began at midnight [nao-rekiwiki-futeiji].
+
+Where 明け六つ and 暮れ六つ fall has had three rules [nao-rekiwiki-yoake]:
+
+1. Before the 寛政暦 of 1798, a fixed 二刻半, two and a half of the
+   hundred 刻 of a day, 36 minutes, before sunrise and after sunset.
+2. The 寛政暦 and the 天保暦 turned that into an angle: the Sun's
+   altitude 二刻半 after sunset at an equinox at the 改暦所 in Kyoto. At
+   an equinox the declination is 0 and the hour angle at sunset 90°;
+   二刻半 adds 360° × 2.5 / 100 = 9°, so `sin h = − cos φ sin 9°`, and with
+   the 寛政暦書's φ = 35°00′36″, h = −7°21′41″. The 寛政暦書 prints 7度36分
+   in its hundred-minute degree, which is 7°21′36″, but computes with the
+   formula; the sunrise it adds 9° to is the Sun's centre on the
+   horizon, with no refraction.
+3. The Observatory's almanacs from 1912 print 夜明 and 日暮 at a
+   depression of the Sun's centre of 7°21′40″, "明治五年以前明六つ暮六つと
+   称したる時刻に相当す", and the 理科年表 still does
+   [koyomi8-yoake-higure]. The Observatory's page traces the second of
+   difference to a latitude of 35°0.8′ in a book of 1917, and says it has
+   no clear record of why.
+
+**Worked example.** Kyoto, 20 March 2020. こよみのページ puts 夜明, at
+7°21′40″, at 5:28:47 JST, and the Sun's centre on the geometric horizon
+at 6:04:43, 35 min 56 s later: the 二刻半 that the angle was made to
+give [koyomi8-yoake-higure]. This library puts 日暮 that evening at
+18:40:40. The daylight is 13 h 11 min 53 s, so each of its six hours is
+2 h 11 min 59 s, and 昼九つ, three hours after 明け六つ, begins at 12:04:44,
+a quarter of a minute after the Sun crosses the meridian at 12:04:29.
 
 ### Religious times
 
@@ -182,6 +232,36 @@ shortcut is off by the equation's change over its own size, up to about
 Standard (zone) time is not carried here: a zone is a civil decision, and
 `hc-tz` owns it.
 
+The Edo hours:
+
+- `japanese_dawn_kansei` and `japanese_dusk_kansei`, 明け六つ and 暮れ六つ
+  by the 寛政暦's rule, at `KANSEI_DEPRESSION_DEGREES`, the formula of
+  rule 2 evaluated, 7°21′41.1″; and `japanese_dawn_naoj` and
+  `japanese_dusk_naoj`, the Observatory's 夜明 and 日暮 at 7°21′40″. Two
+  angles are two conventions, so two pairs of functions
+  ([policy.md](../policy.md) §5), although they are a tenth of a second
+  apart. The place is the caller's: the angle was fixed at Kyoto, but a
+  depression can be read anywhere.
+- `edo_time_kansei` and `universal_from_edo_time_kansei`, a reading and
+  its inverse. A reading is an `EdoTime`: the day, which begins at its
+  明け六つ, so that the hours after midnight belong to the day before the
+  civil date; the hour, an `EdoHour`, with its name, its strokes and its
+  branch; and the fraction of the hour gone, with the 天保暦's tenths.
+- **Not carried: the fixed 二刻半 of the calendars before 1798**, rule 1.
+  The page states it, but not the sunrise it was counted from in each of
+  them, and which calendar a date of the 1700s used is the business of
+  `japanese-lunisolar.md`, not of a clock.
+- **Not carried: the 和時計.** Clocks were made that showed the unequal
+  hours by changing their pace or their dial [nao-rekiwiki-futeiji], and
+  the stepped settings they used, changed at intervals rather than daily,
+  are in no source read. What is carried is the hour the almanac's angle
+  defines, day by day.
+- **Not carried: the spans of the branches.** The source that pairs each
+  hour with a branch gives the branch's hour as about an hour either side
+  of a clock time, not where it begins among the unequal hours, so
+  `EdoHour::branch` is a name and nothing more. The fixed twelve 辰刻 of
+  the almanac, and 更点, the night in five watches, are other reckonings.
+
 Temporal and Italian hours, and the religious times:
 
 - `daytime_temporal_hour`, `nighttime_temporal_hour`, as fractions of a
@@ -255,6 +335,19 @@ was five hours, and its solar events carry that lead; how it was
 measured is in [rise-and-set.md](rise-and-set.md). The inverses return
 the reading they were given to 0.1 ms.
 
+The Edo hours: at Kyoto on 20 March and 22 September 2020, the Observatory's
+夜明 falls 35 min 57.6 s and 36 min 1.6 s before the Sun's centre reaches
+the geometric horizon, where こよみのページ computes 35 min 56 s and 36 min
+0 s, and at 5:28:54 and 5:13:01 JST where it gives 5:28:47 and 5:12:54
+[koyomi8-yoake-higure]; the page names neither the year, taken as 2020,
+when it was written and when the equinoxes fell on those days, nor its
+point in Kyoto, and a point 26″ of longitude east of the 改暦所 used here
+accounts for the 7 s. At the 2024 solstice at Kyoto a daytime hour is
+2 h 37.8 min and a night hour 1 h 22.3 min, against the "about 2 h 39 min"
+and "about 1 h 21 min" of a source that names no place
+[astro-dic-futeijiho]. The formula of rule 2 gives 7°21′41″ to the
+arcsecond, as the Observatory's page does.
+
 The temporal hours are as good as the sunrise and sunset under them, which
 are within a minute of NAOJ's; Tokyo's daytime hour on 1 January 2024 is
 within 0.17 min of the 49.0 min that NAOJ's published minutes give. The
@@ -303,6 +396,22 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 - [hebcal-zmanim-api] — the same definitions in Hebcal's `Zmanim`, the
   MGA day at 16.1°, and the published times of the three places and days
   above. Read 2026-09-27.
+- [nao-rekiwiki-yoake] — 暦Wiki, 「夜明と日暮」: the three rules for 明け六つ
+  and 暮れ六つ, the formula, the 寛政暦書's latitude and its 7度36分, the
+  almanac wording of 1912 and the 35°0.8′ of Ōtani's 『伊能忠敬』 (1917).
+  Read 2026-09-27; the 寛政暦書, Ōtani and Watanabe's 『近世日本天文学史』
+  not read.
+- [nao-rekiwiki-futeiji] — 暦Wiki, 「定時法と不定時法」: six hours each to
+  day and night, the hour names with their prefixes, the 天保暦's tenths,
+  明け六つ as the start of the day, clocks that showed the unequal hours.
+  Read 2026-09-27.
+- [astro-dic-futeijiho] — 天文学辞典, 「不定時法」: the midsummer lengths of
+  a day and a night hour. Read 2026-09-27.
+- [wikipedia-ja-jikoku] — Wikipedia (ja), 「時刻」: the pairing of the bell
+  hours with the branches. Read 2026-09-27.
+- [koyomi8-yoake-higure] — こよみのページ, 「理科年表の「夜明」と「日暮」の
+  角度」 (2020-02-12) and its 補稿 (2020-02-16): the 理科年表's wording, and
+  the Kyoto equinox times. Read 2026-09-27.
 
 ## Code
 
@@ -320,5 +429,12 @@ on 21 June 2025 and London on 20 March 2025: all sixteen times on each day,
 `asr_is_where_the_shadow_rule_puts_it`,
 `the_jewish_evening_times_sit_at_their_angles_in_order`,
 `the_zmanim_fall_where_hebcal_prints_them`,
-`the_mga_day_is_the_gra_day_and_two_twilights` and
-`there_is_no_sixteen_degree_dawn_in_a_london_june`.
+`the_mga_day_is_the_gra_day_and_two_twilights`,
+`there_is_no_sixteen_degree_dawn_in_a_london_june`,
+`the_kansei_depression_is_nine_degrees_of_hour_angle_after_an_equinox_sunset_in_kyoto`,
+`kyoto_dawn_at_the_equinoxes_is_two_and_a_half_koku_before_the_centre_rises`,
+`a_midsummer_edo_hour_is_about_two_hours_thirty_nine_minutes`,
+`the_edo_hours_run_from_dawn_through_noon_and_midnight`,
+`the_edo_hours_are_named_by_their_strokes_and_branches`,
+`edo_time_inverts_its_universal_time` and
+`the_edo_hours_are_refused_on_a_white_night`.

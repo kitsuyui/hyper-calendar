@@ -2502,3 +2502,214 @@ fn no_festival_is_kept_where_the_common_worship_rules_forbid_it() {
         assert_eq!(kept + calendar.gaps().len(), CELEBRATIONS.len(), "{year}");
     }
 }
+
+/// The days a tradition gives a name in a Gregorian year.
+fn days_named(set: &RuleSet, year: i64, name: &str) -> Vec<Rd> {
+    HolidayCalendar::for_year(set, None, year)
+        .all()
+        .iter()
+        .filter(|holiday| holiday.name == name)
+        .map(|holiday| holiday.date)
+        .collect()
+}
+
+/// Wikipedia (ja), "お盆": the Gregorian お盆 of 13 to 16 July and of 13 to
+/// 16 August, with the 迎え火 on the 13th and the 送り火 on the 16th.
+#[test]
+fn obon_is_the_thirteenth_to_the_sixteenth_of_july_or_august() {
+    for (set, month) in [(&traditions::OBON_JULY, 7), (&traditions::OBON_AUGUST, 8)] {
+        assert_eq!(
+            days_named(set, 2026, "Obon"),
+            (13..=16)
+                .map(|day| ymd(2026, month, day))
+                .collect::<Vec<_>>()
+        );
+        expect(
+            set,
+            &[
+                (2026, month, 13, "Mukaebi (welcoming fire)"),
+                (2026, month, 16, "Okuribi (sending-off fire)"),
+            ],
+        );
+        assert!(HolidayCalendar::for_year(set, None, 1872).all().is_empty());
+    }
+}
+
+/// Wikipedia (ja), "お盆": 旧暦7月15日 falls from 8 August to 7 September;
+/// over 1991–2030 the earliest is 8 August 2006 and the latest 6 September
+/// 2025, and the leap seventh month of 2006, whose 15th was 7 September,
+/// is not 旧盆. Its infobox gives 18 August 2024 and 27 August 2026.
+#[test]
+fn kyubon_is_the_fifteenth_of_the_seventh_lunar_month_and_not_its_leap_month() {
+    let lunar = &traditions::OBON_LUNAR;
+    expect(
+        lunar,
+        &[
+            (2006, 8, 8, "Ukui (sending off the ancestors)"),
+            (2025, 9, 6, "Ukui (sending off the ancestors)"),
+            (2024, 8, 18, "Ukui (sending off the ancestors)"),
+            (2026, 8, 27, "Ukui (sending off the ancestors)"),
+            (2026, 8, 25, "Unkē (welcoming the ancestors)"),
+            (2026, 8, 26, "Nakabi"),
+        ],
+    );
+    assert!(
+        days_named(lunar, 2006, "Kyūbon")
+            .iter()
+            .all(|day| day.0 < ymd(2006, 9, 1).0)
+    );
+    let fifteenths: Vec<Rd> = (1991..=2030)
+        .flat_map(|year| days_named(lunar, year, "Ukui (sending off the ancestors)"))
+        .collect();
+    assert_eq!(fifteenths.len(), 40);
+    let window = |day: &Rd| {
+        let (year, _, _) = gregorian::from_fixed(*day).expect("a date");
+        (ymd(year, 8, 8)..=ymd(year, 9, 7)).contains(day)
+    };
+    assert!(fifteenths.iter().all(window));
+    assert_eq!(
+        fifteenths.iter().min_by_key(|day| {
+            let (year, _, _) = gregorian::from_fixed(**day).expect("a date");
+            day.0 - ymd(year, 1, 1).0
+        }),
+        Some(&ymd(2006, 8, 8))
+    );
+    assert_eq!(
+        fifteenths.iter().max_by_key(|day| {
+            let (year, _, _) = gregorian::from_fixed(**day).expect("a date");
+            day.0 - ymd(year, 1, 1).0
+        }),
+        Some(&ymd(2025, 9, 6))
+    );
+    assert!(
+        HolidayCalendar::for_year(lunar, None, 1843)
+            .all()
+            .is_empty()
+    );
+}
+
+/// 鷲神社 (Asakusa), 「今年の酉の市」: 令和8年, 一の酉 on 7 November and
+/// 二の酉 on 19 November, 二の酉まで. Wikipedia (ja), "酉の市", tabulates
+/// the 酉 days of November for 2009–2028.
+#[test]
+fn tori_no_ichi_is_on_the_rooster_days_of_november() {
+    let table: &[(i64, &[u8])] = &[
+        (2009, &[12, 24]),
+        (2010, &[7, 19]),
+        (2011, &[2, 14, 26]),
+        (2012, &[8, 20]),
+        (2013, &[3, 15, 27]),
+        (2014, &[10, 22]),
+        (2015, &[5, 17, 29]),
+        (2016, &[11, 23]),
+        (2017, &[6, 18, 30]),
+        (2018, &[1, 13, 25]),
+        (2019, &[8, 20]),
+        (2020, &[2, 14, 26]),
+        (2021, &[9, 21]),
+        (2022, &[4, 16, 28]),
+        (2023, &[11, 23]),
+        (2024, &[5, 17, 29]),
+        (2025, &[12, 24]),
+        (2026, &[7, 19]),
+        (2027, &[2, 14, 26]),
+        (2028, &[8, 20]),
+    ];
+    for (year, days) in table {
+        let found: Vec<Rd> = ["Ichi no Tori", "Ni no Tori", "San no Tori"]
+            .iter()
+            .flat_map(|name| days_named(&traditions::TORI_NO_ICHI, *year, name))
+            .collect();
+        let expected: Vec<Rd> = days.iter().map(|day| ymd(*year, 11, *day)).collect();
+        assert_eq!(found, expected, "{year}");
+        // A third 酉 exactly when the first falls on 1 to 6 November.
+        assert_eq!(days.len() == 3, days[0] <= 6, "{year}");
+    }
+}
+
+/// HugKum, 「2026年の「初午」はいつ？」: 6 February 2025, 1 February 2026,
+/// 8 February 2027, 3 February 2028 and 9 February 2029, and 21 March 2026
+/// on the 旧暦; Kyoto's tourism office puts 伏見稲荷大社's 初午大祭 on
+/// 1 February 2026; 二の午 and 三の午 of 2026 on 13 and 25 February.
+#[test]
+fn hatsuuma_is_the_first_horse_day_of_february_or_of_the_second_lunar_month() {
+    expect(
+        &traditions::HATSUUMA,
+        &[
+            (2025, 2, 6, "Hatsuuma"),
+            (2026, 2, 1, "Hatsuuma"),
+            (2027, 2, 8, "Hatsuuma"),
+            (2028, 2, 3, "Hatsuuma"),
+            (2029, 2, 9, "Hatsuuma"),
+            (2026, 2, 13, "Ni no Uma"),
+            (2026, 2, 25, "San no Uma"),
+        ],
+    );
+    assert!(days_named(&traditions::HATSUUMA, 2025, "San no Uma").is_empty());
+    assert_eq!(
+        days_named(&traditions::HATSUUMA_LUNAR, 2026, "Hatsuuma"),
+        [ymd(2026, 3, 21)]
+    );
+}
+
+/// KOYOMI NOTE, 「亥の子（いのこ）」: the first 亥 of the 旧暦's tenth month
+/// in 2020–2028. All About: "現在は一般的に新暦11月の最初の亥の日で考えるので、
+/// 2025年の「亥の子の日」は、11月2日".
+#[test]
+fn inoko_is_the_first_boar_day_of_the_tenth_lunar_month_or_of_november() {
+    for (year, month, day) in [
+        (2020, 11, 16),
+        (2021, 11, 11),
+        (2022, 10, 25),
+        (2023, 11, 13),
+        (2024, 11, 7),
+        (2025, 11, 26),
+        (2026, 11, 9),
+        (2027, 11, 4),
+        (2028, 11, 22),
+    ] {
+        assert_eq!(
+            days_named(&traditions::INOKO, year, "Inoko"),
+            [ymd(year, month, day)],
+            "{year}"
+        );
+    }
+    assert_eq!(
+        days_named(&traditions::INOKO_NOVEMBER, 2025, "Inoko"),
+        [ymd(2025, 11, 2)]
+    );
+}
+
+/// 暦生活: 十日夜, 旧暦10月10日, "新暦でいうと2023年は11月22日"; 日本文化研究ブログ:
+/// 11月10日 in many places, and 18 November 2026 on the 旧暦.
+#[test]
+fn tokanya_is_the_tenth_of_the_tenth_lunar_month_or_ten_november() {
+    expect(
+        &traditions::TOKANYA,
+        &[(2023, 11, 22, "Tōkanya"), (2026, 11, 18, "Tōkanya")],
+    );
+    expect(&traditions::TOKANYA_NOVEMBER, &[(2026, 11, 10, "Tōkanya")]);
+}
+
+/// The Observatory's three resolutions of the 2033 problem number the
+/// tenth month from 23 October or from 22 November 2033, so the 旧暦's
+/// tenth-month days that year are gaps, not guesses; its seventh month,
+/// which all three agree on, is answered.
+#[test]
+fn the_2033_problem_leaves_the_lunar_autumn_days_open() {
+    for set in [&traditions::INOKO, &traditions::TOKANYA] {
+        let calendar = HolidayCalendar::for_year(set, None, 2033);
+        assert!(calendar.all().is_empty(), "{}", set.code);
+        assert_eq!(calendar.gaps().len(), 1, "{}", set.code);
+        assert!(HolidayCalendar::for_year(set, None, 2034).gaps().is_empty());
+    }
+    let obon = HolidayCalendar::for_year(&traditions::OBON_LUNAR, None, 2033);
+    assert!(obon.gaps().is_empty());
+    assert_eq!(obon.all().len(), 6);
+    // Past 2146, the next year the 天保暦 rule leaves open, nothing.
+    assert!(
+        HolidayCalendar::for_year(&traditions::TOKANYA, None, 2147)
+            .all()
+            .is_empty()
+    );
+}
