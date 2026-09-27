@@ -2499,10 +2499,64 @@ mod day_periods {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
+
+    /// The almanac's annotations of a fixed day, 干支 to the 選日, as UTF-8
+    /// lines, one an annotation, each named in a locale, returning the byte
+    /// length written.
+    ///
+    /// `meridian` is as for `hc_almanac_cycles`, and sets where the solar
+    /// terms and the new moons fall. The lines, in the order a printed
+    /// almanac page gives them: the sexagenary day, 十二直, 二十八宿,
+    /// 二十七宿, the year's, the month's and the day's 九星, 六曜, then each
+    /// 暦注下段, 選日 and combination of them that falls. Tab-separated: the
+    /// kind (`sexagenary`, `twelve-direct`, `mansion`, `mansion-27`,
+    /// `year-star`, `month-star`, `day-star`, `rokuyo`, `lower-register`,
+    /// `selected-day`, `combination`); the identifier, the 1-based position
+    /// in the cycle or the entry's own (`tenshanichi`); the name in the
+    /// locale and the tag of the data that named it, the locale's where it
+    /// has one, else English's, else Japanese's, Japanese first under
+    /// `native`; the Japanese name the almanac prints; its Hepburn reading;
+    /// `1` where the almanac counts the day auspicious, `0` where
+    /// inauspicious, else empty; and for the 暦注下段 `1` where an almanac
+    /// prints the entry, `0` where 受死日 or 十死日 suppresses it. The
+    /// locale argument fails as `hc_parse_iso_date` does; a meridian not
+    /// read is `HC_ERR_UNKNOWN`, and a day outside the years −1000 to 3000
+    /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+    /// needs.
+    ///
+    /// # Safety
+    ///
+    /// `meridian` and `locale` must each be readable for their lengths
+    /// unless null with a zero length; `buffer` must be writable for
+    /// `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_almanac_day(
+        fixed: i64,
+        meridian: *const u8,
+        meridian_len: usize,
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        let meridian = match unsafe { text(meridian, meridian_len) } {
+            Ok(meridian) => meridian,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        let answer = almanac_lines::almanac_day_lines(fixed, meridian, tag);
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(answer, buffer, capacity) }
+    }
 }
 
 #[cfg(feature = "calendars")]
-pub use day_periods::{hc_almanac_cycles, hc_kalam};
+pub use day_periods::{hc_almanac_cycles, hc_almanac_day, hc_kalam};
 
 /// The holiday tables, behind the `holiday` feature: every country,
 /// exchange, tradition and international set of `hc-holiday`, looked up by
@@ -3943,18 +3997,34 @@ mod earth_and_sun {
     /// One line per horizon of `hc_astro::horizon::HORIZONS`,
     /// tab-separated: its identifier (`geometric-dip`, the default of the
     /// other exports; `usno`; `calendrical-calculations`), its English
-    /// name, what it takes the visible horizon to be, its source, and a
-    /// short English name for a label (`geometric dip`, `USNO`,
-    /// `Calendrical Calculations`). A null `buffer` returns the length the
+    /// name, what it takes the visible horizon to be, its source, a short
+    /// English name for a label (`geometric dip`, `USNO`, `Calendrical
+    /// Calculations`), its name in the locale, and the tag of the data
+    /// that named it. Only an observatory's or an almanac office's own
+    /// wording is carried, so a horizon a locale has no name for is its
+    /// English name, with `en`. The locale argument fails as
+    /// `hc_parse_iso_date` does. A null `buffer` returns the length the
     /// text needs.
     ///
     /// # Safety
     ///
-    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    /// `locale` must be readable for `locale_len` bytes unless null with a
+    /// zero length; `buffer` must be writable for `capacity` bytes unless
+    /// it is null.
     #[unsafe(no_mangle)]
-    pub unsafe extern "C" fn hc_horizons(buffer: *mut u8, capacity: usize) -> i64 {
+    pub unsafe extern "C" fn hc_horizons(
+        locale: *const u8,
+        locale_len: usize,
+        buffer: *mut u8,
+        capacity: usize,
+    ) -> i64 {
         // SAFETY: forwarded to the caller's contract above.
-        unsafe { emit_answer(Ok(astro_lines::horizons_lines()), buffer, capacity) }
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(Ok(astro_lines::horizons_lines(tag)), buffer, capacity) }
     }
 
     /// A crossing's export: the horizon's name read, the place checked,
@@ -8071,7 +8141,11 @@ mod tests {
                 let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
                 assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"], "{sky}");
                 // Chaitra, in Hindi, with CLDR's शक for the era.
-                assert_eq!(cells[7..], ["चैत्र", "", "शक", "", "hi"], "{sky}");
+                assert_eq!(
+                    cells[7..],
+                    ["चैत्र", "", "शक", "Vikrama Samvat", "hi"],
+                    "{sky}"
+                );
             }
             let text = read_lines(|buffer, capacity| unsafe {
                 hc_surya_siddhanta_sunrise(day, 23.15, 75.768_333, buffer, capacity)
@@ -8594,14 +8668,26 @@ mod tests {
         /// the horizons listed; and a missing sunrise named.
         #[test]
         fn the_horizons_are_listed_and_each_rises_and_sets() {
-            let text = read_lines(|buffer, capacity| unsafe { hc_horizons(buffer, capacity) });
+            let text = read_lines(|buffer, capacity| unsafe {
+                hc_horizons("fr-CA".as_ptr(), 5, buffer, capacity)
+            });
             let ids: Vec<&str> = text
                 .lines()
                 .map(|line| line.split('\t').next().expect("an id"))
                 .collect();
             assert_eq!(ids, ["geometric-dip", "usno", "calendrical-calculations"]);
-            assert!(text.lines().all(|line| line.split('\t').count() == 5));
-            assert!(text.lines().any(|line| line.ends_with("\tUSNO")));
+            assert!(text.lines().all(|line| line.split('\t').count() == 7));
+            // The IMCCE's name for the USNO (`imcce-promenade-usno`); the
+            // other two in English.
+            assert!(
+                text.contains("\tObservatoire naval de Washington D.C.\tfr\n"),
+                "{text}"
+            );
+            assert_eq!(
+                text.lines().filter(|line| line.ends_with("\ten")).count(),
+                2
+            );
+            assert!(text.lines().any(|line| line.contains("\tUSNO\t")));
             let day = hc_gregorian_to_fixed(2024, 1, 1);
             let midnight = hc_unix_from_fixed(day);
             let horizon = "USNO";
@@ -9187,6 +9273,40 @@ mod tests {
             let null = core::ptr::null_mut();
             assert_eq!(
                 unsafe { hc_almanac_cycles(day, "mars".as_ptr(), 4, null, 0) },
+                HC_ERR_UNKNOWN
+            );
+        }
+
+        /// 21 December 2025 is 赤口 with 天赦日 and 一粒万倍日
+        /// (`arachne-taian-2025-12`), in Japanese under `ja` and in the
+        /// Hepburn reading under `en`.
+        #[test]
+        fn the_almanac_day_crosses_the_boundary() {
+            let meridian = "japan";
+            let day = hc_gregorian_to_fixed(2025, 12, 21);
+            let lines = |locale: &str| {
+                read_lines(|buffer, capacity| unsafe {
+                    hc_almanac_day(
+                        day,
+                        meridian.as_ptr(),
+                        meridian.len(),
+                        locale.as_ptr(),
+                        locale.len(),
+                        buffer,
+                        capacity,
+                    )
+                })
+            };
+            let japanese = lines("ja");
+            assert!(
+                japanese.contains("\nrokuyo\t6\t赤口\tja\t赤口\tshakkō\t\t\n"),
+                "{japanese}"
+            );
+            assert!(japanese.contains("\nlower-register\ttenshanichi\t天赦日\tja\t"));
+            assert!(lines("en").contains("\nrokuyo\t6\tshakkō\ten\t赤口\t"));
+            let null = core::ptr::null_mut();
+            assert_eq!(
+                unsafe { hc_almanac_day(day, "mars".as_ptr(), 4, "ja".as_ptr(), 2, null, 0) },
                 HC_ERR_UNKNOWN
             );
         }

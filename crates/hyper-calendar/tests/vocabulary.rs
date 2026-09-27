@@ -219,12 +219,16 @@ fn every_era_code_a_calendar_writes_is_one_the_locales_key() {
     );
 
     // The two Saka-era calendars by name: the national calendar in Hindi,
-    // which keys its era, and the lunisolar calendar in English, which
-    // keys its own.
+    // which keys its era; the lunisolar calendar in English, which keys its
+    // own; and the lunisolar calendar in Hindi, which names the era
+    // through the national calendar's vocabulary, the shared era's rule.
     let hindi: Locale = "hi".parse().expect("hi is a locale");
     let english: Locale = "en".parse().expect("en is a locale");
-    for (calendar, locale, name) in [("indian", &hindi, "शक"), ("hindu-lunar", &english, "Saka")]
-    {
+    for (calendar, locale, name) in [
+        ("indian", &hindi, "शक"),
+        ("hindu-lunar", &english, "Saka"),
+        ("hindu-lunar", &hindi, "शक"),
+    ] {
         let id = CalendarId(calendar);
         let fields = registry
             .get(id)
@@ -589,5 +593,177 @@ fn the_afghan_months_are_named_in_dari_pashto_and_english() {
             NameContext::Format
         ),
         Some("فروردین")
+    );
+}
+
+/// `hc-i18n`'s almanac vocabulary and `hc-almanac`'s annotations must
+/// agree, and this is the one place both are in scope: every term a table
+/// names is one `hc-almanac` computes, every term it computes has a
+/// Japanese name, and the Japanese and English names are `hc-almanac`'s
+/// own names and readings — the mansions' English, its English naming —
+/// so that the two copies cannot drift.
+#[cfg(feature = "almanac")]
+#[test]
+fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
+    use hyper_calendar::hc_almanac::mansions::namings;
+    use hyper_calendar::hc_almanac::{
+        Combination, LowerRegister, Mansion, NineStar, Rokuyo, SelectedDay, TwelveDirect,
+    };
+    use hyper_calendar::hc_i18n::almanac::{
+        self, COMBINATION, CYCLES, ENGLISH, JAPANESE, LOWER_REGISTER, MANSION, NINE_STAR, ROKUYO,
+        SELECTED_DAY, TWELVE_DIRECT, Term, VOCABULARIES,
+    };
+
+    let cycles: [(&str, Vec<&str>, Vec<&str>); 4] = [
+        (
+            ROKUYO,
+            Rokuyo::ALL.iter().map(|r| r.japanese_name()).collect(),
+            Rokuyo::ALL.iter().map(|r| r.romaji()).collect(),
+        ),
+        (
+            MANSION,
+            Mansion::all().iter().map(|m| m.japanese_name()).collect(),
+            Mansion::all()
+                .iter()
+                .map(|m| m.name(&namings::ENGLISH))
+                .collect(),
+        ),
+        (
+            NINE_STAR,
+            NineStar::ALL.iter().map(|s| s.japanese_name()).collect(),
+            NineStar::ALL.iter().map(|s| s.romaji()).collect(),
+        ),
+        (
+            TWELVE_DIRECT,
+            TwelveDirect::ALL
+                .iter()
+                .map(|d| d.japanese_name())
+                .collect(),
+            TwelveDirect::ALL.iter().map(|d| d.romaji()).collect(),
+        ),
+    ];
+    for (kind, japanese, english) in &cycles {
+        let length = CYCLES.iter().find(|(cycle, _)| cycle == kind).map(|c| c.1);
+        assert_eq!(length, Some(japanese.len()), "{kind}");
+        for (position, (ja, en)) in japanese.iter().zip(english).enumerate() {
+            assert_eq!(JAPANESE.name_of(kind, Term::Position(position)), Some(*ja));
+            assert_eq!(ENGLISH.name_of(kind, Term::Position(position)), Some(*en));
+        }
+    }
+    let mut terms: Vec<(&str, &str, &str, Option<&str>)> = Vec::new();
+    for entry in LowerRegister::ALL {
+        terms.push((
+            LOWER_REGISTER,
+            entry.id,
+            entry.japanese_name(),
+            Some(entry.romaji()),
+        ));
+    }
+    for entry in SelectedDay::ALL {
+        terms.push((
+            SELECTED_DAY,
+            entry.id,
+            entry.japanese_name(),
+            Some(entry.romaji()),
+        ));
+    }
+    for entry in Combination::ALL {
+        terms.push((COMBINATION, entry.id, entry.japanese_name(), None));
+    }
+    for (kind, id, japanese, english) in &terms {
+        assert_eq!(
+            JAPANESE.name_of(kind, Term::Id(id)),
+            Some(*japanese),
+            "{id}"
+        );
+        assert_eq!(ENGLISH.name_of(kind, Term::Id(id)), *english, "{id}");
+    }
+    for table in VOCABULARIES {
+        for (kind, id, _) in table.terms {
+            assert!(
+                terms.iter().any(|(k, i, _, _)| k == kind && i == id),
+                "{} names {kind} {id}, which hc-almanac does not compute",
+                table.tag
+            );
+        }
+    }
+    assert_eq!(almanac::VOCABULARIES.len(), 2);
+}
+
+/// Every horizon `hc-i18n` names is one `hc-astro` carries, so that a name
+/// keyed to a near miss of an identifier fails on the day it is written.
+#[cfg(feature = "astro")]
+#[test]
+fn every_horizon_a_locale_names_is_one_hc_astro_carries() {
+    use hyper_calendar::hc_astro::horizon::HORIZONS;
+    use hyper_calendar::hc_i18n::horizons::TABLES;
+
+    for table in TABLES {
+        for (id, _) in table.names {
+            assert!(
+                HORIZONS.iter().any(|horizon| horizon.id == *id),
+                "{} names {id}, which hc-astro does not carry",
+                table.tag
+            );
+        }
+    }
+}
+
+/// An era code is an identifier and never reader-facing text: no date,
+/// era label or year label any calendar is written as, in any carried
+/// locale or under `native`, holds a bare era code as a word.
+///
+/// The era's name follows one rule, `hc_i18n::names::era_label` — the
+/// locale's, the shared era's, the calendar's own, English's — which ends
+/// at a name; this is what caught Sanskrit writing the Śaka years of the
+/// lunisolar calendars `saka`.
+#[cfg(feature = "format")]
+#[test]
+fn no_rendered_label_holds_a_bare_era_code() {
+    use hyper_calendar::hc_calendar::units::Unit;
+    use hyper_calendar::hc_format::label;
+    use hyper_calendar::hc_i18n::Locale;
+
+    let registry = registry();
+    let locales: Vec<Locale> = LOCALES
+        .iter()
+        .map(|data| data.tag.parse().expect("a locale's own tag parses"))
+        .collect();
+    let mut leaks: BTreeSet<String> = BTreeSet::new();
+    let mut checked = 0;
+    for id in registered() {
+        let calendar = registry.get(id).expect("registered");
+        let mut days = era_probe_days(&calendar.meta());
+        days.dedup();
+        for day in days {
+            let Ok(fields) = calendar.fixed_to_fields(day) else {
+                continue;
+            };
+            for requested in locales.iter().map(Some).chain([None]) {
+                let locale = label::locale_for(calendar, requested);
+                let texts = [
+                    label::date(calendar, &fields, &locale),
+                    label::label(calendar, &fields, Unit::Era, &locale),
+                    label::label(calendar, &fields, Unit::Year, &locale),
+                ];
+                checked += 1;
+                for text in &texts {
+                    let words = text
+                        .split(|c: char| !(c.is_alphanumeric() || c == '-'))
+                        .filter(|word| !word.is_empty());
+                    let code_leaks = fields
+                        .era
+                        .is_some_and(|code| words.clone().any(|word| word == code));
+                    if code_leaks {
+                        leaks.insert(format!("{} {locale}: {text:?}", id.0));
+                    }
+                }
+            }
+        }
+    }
+    assert!(checked > 1_000, "{checked}");
+    assert!(
+        leaks.is_empty(),
+        "labels with an era code in them: {leaks:#?}"
     );
 }

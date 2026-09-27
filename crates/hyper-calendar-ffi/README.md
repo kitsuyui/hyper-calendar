@@ -123,7 +123,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
-| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanamsa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERROR_NO_DATA` |
 | a line | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_surya_siddhanta_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -255,7 +255,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-126 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+127 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -327,6 +327,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_asian_day(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | A fixed day in the calendar of the Roman province of Asia as the calendar writes it, unnumbered days included, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_kalam(const char *convention, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `calendars` | Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_almanac_cycles(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `calendars` | The almanac's cycles of a fixed day, 恵方, 三元九運 and 손 없는 날, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_almanac_day(int64_t fixed, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The almanac's annotations of a fixed day, 干支 to the 選日, as NUL-terminated UTF-8 lines in a caller-owned buffer, one an annotation, each named in a locale. |
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
@@ -358,7 +359,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_solar_terms_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_moon_phases_between(int64_t from_unix, int64_t to_unix, char *buffer, size_t capacity, size_t *written);` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_decan_at(int64_t unix_seconds, char *buffer, size_t capacity, size_t *written);` | `sky` | The decan the Sun is in at a POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
-| `HcStatus hc_horizons(char *buffer, size_t capacity, size_t *written);` | `sky` | Every named horizon a rising or a setting can be measured against, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_horizons(const char *locale, char *buffer, size_t capacity, size_t *written);` | `sky` | Every named horizon a rising or a setting can be measured against, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_sunrise(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Sunrise on a fixed day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_sunset(const char *horizon, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | Sunset on a fixed day at a place against a named horizon, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_earth_rotation_angle(double ut1_unix_seconds, double *out_degrees);` | `sky` | The Earth Rotation Angle at a UT1 instant, in degrees, 0 to 360. |
@@ -581,9 +582,14 @@ flags.
 capacity, written)` writes the module's three lines of Rāhu kālam,
 Yamaganda and Gulika kālam on a day, by `rahu-kalam-sunrise`, the daylight
 at the place, or `rahu-kalam-fixed`, 06:00 to 18:00 of the local clock;
-and `hc_almanac_cycles(fixed, meridian, buffer, capacity, written)` the
+`hc_almanac_cycles(fixed, meridian, buffer, capacity, written)` the
 module's line of 恵方, 三元九運 and 손 없는 날 for a day, with 立春 at a
-meridian read as for `hc_term_in_effect`. Both are in `calendars`.
+meridian read as for `hc_term_in_effect`; and `hc_almanac_day(fixed,
+meridian, locale, buffer, capacity, written)` the module's lines of the
+day's other annotations, the sexagenary day, 十二直, 二十八宿 and
+二十七宿, the three 九星, 六曜, and every 暦注下段, 選日 and combination
+that falls, each named in the locale as `hc-i18n` names it, with `native`
+for Japanese. All three are in `calendars`.
 
 `hc_hindu_lunar_date(sky, fixed, latitude, longitude, elevation, locale,
 buffer, capacity, written)` writes the module's line of the amānta
@@ -865,10 +871,12 @@ of the Jewish times in temporal hours by `gra`, `mga-72-minutes` or
 capacity, written)` and `hc_unix_from_edo_time(fixed, hour, fraction,
 latitude, longitude, elevation, buffer, capacity, written)` the Edo
 不定時法 reading of an instant and the instant of a reading.
-`hc_horizons(buffer, capacity, written)` lists the named horizons a
-rising or a setting is measured against — `geometric-dip`, `usno` and
+`hc_horizons(locale, buffer, capacity, written)` lists the named horizons
+a rising or a setting is measured against — `geometric-dip`, `usno` and
 `calendrical-calculations` — with their English names, descriptions,
-sources and short names for a label, and `hc_sunrise(horizon, fixed, latitude, longitude, elevation,
+sources and short names for a label, and each name in the locale where an
+observatory or almanac office gives one, else the English, with the tag of
+the data that named it; and `hc_sunrise(horizon, fixed, latitude, longitude, elevation,
 buffer, capacity, written)` and `hc_sunset(...)` write the module's line
 of the crossing against the one named: the instant, the cells of a
 missing sunrise or sunset, and the altitude of the Sun's centre at the
@@ -979,8 +987,9 @@ that README's "What is not here" gives: `hc-planetary`'s circad and
 Martiana calendars in the registry, whose day number is a circad or a sol
 and not an Earth day, though `hc_circad_date` dates an instant in them;
 `hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-attributes` and
-`hc-units`, and `hc-almanac`'s 暦注 notes beyond the three cycles
-`hc_almanac_cycles` writes, for which no line format has been designed; a
+`hc-units`, for which no line format has been designed, and of
+`hc-almanac` 七曜, which is the weekday, and the English glosses of its
+annotations; a
 whole UUID with its clock sequence and node, where
 `hc_uuid_timestamp_encode` writes the time fields only; CCSDS codes whose
 epoch is an agency's, which `hc_ccsds_decode` and `hc_ccsds_encode` refuse

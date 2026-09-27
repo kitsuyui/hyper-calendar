@@ -1749,6 +1749,12 @@ describe("the Earth's rotation and the Sun's hours", () => {
     assert.deepEqual(horizons.map((horizon) => horizon.id), ["geometric-dip", "usno", "calendrical-calculations"]);
     assert.ok(horizons.every((horizon) => horizon.description.length > 0 && horizon.source.length > 0));
     assert.deepEqual(horizons.map((horizon) => horizon.shortName), ["geometric dip", "USNO", "Calendrical Calculations"]);
+    assert.ok(horizons.every((horizon) => horizon.name === horizon.englishName && horizon.localeUsed === "en"));
+    // The Hong Kong Observatory's name for the USNO (hko-astronomy-portal);
+    // no locale names the other two, and Japanese none of the three.
+    assert.deepEqual(hc.horizons("zh-HK").map((horizon) => horizon.localeUsed), ["en", "zh-Hant", "en"]);
+    assert.equal(hc.horizons("zh-Hant")[1].name, "美國海軍天文氣象台");
+    assert.deepEqual(hc.horizons("ja").map((horizon) => horizon.localeUsed), ["en", "en", "en"]);
     // The USNO for Jerusalem on 2024-01-01: sunrise 06:39 and sunset 16:46
     // at UT+2, 04:39 and 14:46 UTC, under its sea-level horizon.
     const day = hc.gregorianToFixed(2024, 1, 1);
@@ -1796,10 +1802,20 @@ describe("the Hindu date and the crescent", () => {
       const date = hc.hinduLunarDate(sky, autumn, 35.654_444, 139.744_722, 0, "hi");
       assert.deepEqual(
         [date.sakaYear, date.month, date.tithi, date.monthName, date.sakaEra, date.vikramaEra, date.localeUsed],
-        [1948, 6, 16, "भाद्रपद", "शक", null, "hi"],
+        [1948, 6, 16, "भाद्रपद", "शक", "Vikrama Samvat", "hi"],
         sky,
       );
     }
+    // describeDay names the Śaka era of the same calendars by the same
+    // rule, in its era cell and in the formatted date.
+    for (const [id, sky] of [["hindu-lunar", "Lahiri"], ["hindu-lunar-surya-siddhanta", "surya-siddhanta"]]) {
+      for (const locale of ["hi", "en", "sa"]) {
+        const row = hc.describeDay(autumn, locale).find((line) => line.id === id);
+        const date = hc.hinduLunarDate(sky, autumn, 35.654_444, 139.744_722, 0, locale);
+        assert.equal(row.eraLabel, date.sakaEra, `${id} ${locale}`);
+      }
+    }
+    assert.equal(hc.describeDay(autumn, "hi").find((line) => line.id === "hindu-lunar").formatted, "16 भाद्रपद 1948 शक");
     // The adhika Śrāvaṇa of Śaka 1945, 18 July to 16 August 2023, at the
     // Central Station.
     const adhika = hc.hinduLunarDate("Lahiri", hc.gregorianToFixed(2023, 8, 1), 23.183_333, 82.5, 0, "en");
@@ -2345,6 +2361,28 @@ describe("the parts of a day", () => {
     assert.equal(hc.almanacCycles(hc.gregorianToFixed(2026, 2, 7), "korea").withoutSon, true);
     assert.equal(hc.almanacCycles(hc.gregorianToFixed(1600, 1, 1)).withoutSon, null);
     refused(() => hc.almanacCycles(0, "mars"), "unknown");
+  });
+
+  test("21 December 2025 is written as the almanacs print it", () => {
+    // 赤口, 一粒万倍日 and 天赦日 (arachne-taian-2025-12); 甲子 and 天恩日
+    // (mynavi-2025-12-21).
+    const day = hc.gregorianToFixed(2025, 12, 21);
+    const japanese = hc.almanacDay(day, "japan", "ja");
+    assert.deepEqual(japanese.find((line) => line.kind === "rokuyo"), {
+      kind: "rokuyo", id: "6", name: "赤口", localeUsed: "ja", japanese: "赤口", reading: "shakkō",
+      auspicious: null, printed: null,
+    });
+    assert.deepEqual(
+      japanese.filter((line) => ["lower-register", "selected-day", "combination"].includes(line.kind)).map((line) => line.id),
+      ["tenonnichi", "tenshanichi", "ichiryu-manbai", "kinoene", "pardon-and-grain"],
+    );
+    assert.equal(japanese[0].name, "甲子");
+    const english = hc.almanacDay(day, "japan", "en");
+    assert.deepEqual(english.map((line) => line.localeUsed).slice(0, 3), ["en", "en", "en"]);
+    assert.equal(english.find((line) => line.kind === "combination")?.localeUsed, "ja");
+    assert.equal(english.find((line) => line.id === "tenshanichi")?.printed, true);
+    assert.deepEqual(hc.almanacDay(day, "japan", "native"), japanese);
+    refused(() => hc.almanacDay(day, "mars"), "unknown");
   });
 
   test("the Orthodox fasts of 2025 are the worked example's", () => {

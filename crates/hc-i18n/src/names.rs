@@ -36,7 +36,7 @@ use hc_calendar::shape::{CycleShape, EraName};
 use hc_calendar::{CalendarId, CalendarMeta, Month, Weekday};
 
 use crate::casing::CasingStyle;
-use crate::data::{LOCALES, ROOT};
+use crate::data::{LOCALES, ROOT, SHARED_ERAS};
 use crate::direction::Direction;
 use crate::locale::{Locale, region_first_day_of_week};
 
@@ -296,7 +296,7 @@ impl EraNames {
 ///
 /// | Placeholder | Filled with |
 /// | --- | --- |
-/// | `{era}` | the era's name: the locale's, else the calendar's own, else its code; nothing for the [`DateTemplates::implied_era`] |
+/// | `{era}` | the era's name by [`era_label`]: the locale's, else the calendar's own, else English's, never its code; nothing for the [`DateTemplates::implied_era`] |
 /// | `{year}` | the year as a number in the locale's numbering system |
 /// | `{month}` | the month's label: name and leap prefix, or its number |
 /// | `{day}` | the day's name from [`DateTemplates::day_names`], or its number |
@@ -1036,6 +1036,14 @@ pub fn era_name(
 }
 
 /// The name of an era, by the stable code the data lists it under.
+///
+/// The locale's name for the era in `calendar` where its fallback chain
+/// has one; else, for an era [`SHARED_ERAS`] lists, the name the chain
+/// gives it in the calendar that table names — Hindi's शक for the Śaka
+/// years of `hindu-lunar`, which CLDR names only for `indian`. That is the
+/// one rule every writer of an era name follows, the date formatter's
+/// `{era}` included, so that a calendar's era cell and its formatted date
+/// never name the same era differently.
 #[must_use]
 pub fn era_name_by_code(
     locale: &Locale,
@@ -1043,11 +1051,27 @@ pub fn era_name_by_code(
     code: &str,
     width: NameWidth,
 ) -> Option<&'static str> {
-    resolve(locale, |data| {
-        let eras = data.eras_for(calendar)?;
-        let index = eras.index_of(code)?;
-        eras.names.get(width).get(index).copied()
+    let named_in = |calendar: CalendarId| {
+        resolve(locale, |data| {
+            let eras = data.eras_for(calendar)?;
+            let index = eras.index_of(code)?;
+            eras.names.get(width).get(index).copied()
+        })
+    };
+    named_in(calendar).or_else(|| {
+        let shared = shared_era_calendar(code).filter(|shared| *shared != calendar)?;
+        named_in(shared)
     })
+}
+
+/// The calendar whose vocabulary names an era [`SHARED_ERAS`] lists, for
+/// every calendar that writes its code; `None` for any other era.
+#[must_use]
+pub fn shared_era_calendar(code: &str) -> Option<CalendarId> {
+    SHARED_ERAS
+        .iter()
+        .find(|(shared, _)| shared.eq_ignore_ascii_case(code))
+        .map(|(_, calendar)| *calendar)
 }
 
 /// The era codes a calendar is described with, in order.
@@ -1082,31 +1106,46 @@ pub fn is_latin_script(locale: &Locale) -> bool {
     locale_data(locale).script == "Latn"
 }
 
-/// The name an era is written under: the locale's own, else the
-/// calendar's own ([`EraName`], romanised for a Latin-script locale), else
-/// the code itself.
+/// The name an era is written under, by the one rule every writer of an
+/// era name follows, and which always ends at a name, never at the code:
+///
+/// 1. the locale's own name for the era in `calendar`, or for an era
+///    [`SHARED_ERAS`] lists the name its chain gives the era in the
+///    calendar that table names ([`era_name_by_code`]);
+/// 2. else the calendar's own ([`EraName`], romanised for a Latin-script
+///    locale);
+/// 3. else English's name, by the same lookup;
+/// 4. else nothing: `None`, and a template's `{era}` is written empty.
 ///
 /// The width applies to the locale's names and degrades as
 /// [`WidthSet::get`] does. The calendar's own name answers for the eras a
 /// locale's data does not list — the two hundred and forty-three nengō
 /// before 明治 — so that 嘉永三年 is written as itself and never as
-/// `kaei 3`.
+/// `kaei 3`; English answers for an era neither the locale nor the
+/// calendar names, as Sanskrit, which names no era, writes the Śaka era of
+/// the lunisolar calendars `Saka`. The code is an identifier and is never
+/// reader-facing text; the facade's vocabulary test holds every era code a
+/// calendar writes to having an English name, so step 4 is not reached by
+/// a registered calendar.
 #[must_use]
-pub fn era_label<'a>(
+pub fn era_label(
     locale: &Locale,
     calendar: CalendarId,
-    code: &'a str,
+    code: &str,
     own: Option<EraName>,
     width: NameWidth,
-) -> &'a str {
-    if let Some(name) = era_name_by_code(locale, calendar, code, width) {
-        return name;
-    }
-    match own {
-        Some(name) if is_latin_script(locale) => name.latin(),
-        Some(name) => name.native,
-        None => code,
-    }
+) -> Option<&'static str> {
+    era_name_by_code(locale, calendar, code, width)
+        .or_else(|| {
+            own.map(|name| {
+                if is_latin_script(locale) {
+                    name.latin()
+                } else {
+                    name.native
+                }
+            })
+        })
+        .or_else(|| era_name_by_code(&english(), calendar, code, width))
 }
 
 /// What a locale calls a calendar, if any locale in the chain has a name
@@ -1252,6 +1291,15 @@ pub fn sexagenary_names(
     position: Sexagenary,
 ) -> Option<(&'static str, &'static str)> {
     sexagenary_reading(locale).map(|reading| reading.pair(position))
+}
+
+/// The locale data that answers for a locale's sexagenary cycle: the
+/// first entry in its fallback chain that states a reading, whose tag is
+/// the `locale used` of a line that writes a stem and branch, and whose
+/// [`SexagenaryNames::joiner`] goes between them.
+#[must_use]
+pub fn sexagenary_data(locale: &Locale) -> Option<&'static LocaleData> {
+    resolve(locale, |data| data.cycle.reading.map(|_| data))
 }
 
 /// What a locale writes between a stem and its branch, from the same
@@ -1600,27 +1648,38 @@ mod tests {
         let kaei = Some(EraName::new("嘉永", "Kaei"));
         assert_eq!(
             era_label(&locale("ja"), japanese, "kaei", kaei, NameWidth::Wide),
-            "嘉永"
+            Some("嘉永")
         );
         assert_eq!(
             era_label(&locale("en"), japanese, "kaei", kaei, NameWidth::Wide),
-            "Kaei"
+            Some("Kaei")
         );
         // A non-Latin locale gets the calendar's own orthography, not
         // Hepburn.
         assert_eq!(
             era_label(&locale("ko"), japanese, "kaei", kaei, NameWidth::Wide),
-            "嘉永"
+            Some("嘉永")
         );
-        // The locale's own name still comes first, and the code is the last
-        // resort.
+        // The locale's own name still comes first; English answers where
+        // neither the locale nor the calendar names the era; and the code
+        // is never an answer.
         assert_eq!(
             era_label(&locale("ja"), japanese, "reiwa", kaei, NameWidth::Wide),
-            "令和"
+            Some("令和")
         );
         assert_eq!(
             era_label(&locale("ja"), japanese, "kaei", None, NameWidth::Wide),
-            "kaei"
+            None
+        );
+        assert_eq!(
+            era_label(
+                &locale("sa"),
+                CalendarId("hindu-lunar"),
+                "saka",
+                None,
+                NameWidth::Wide
+            ),
+            Some("Saka")
         );
         // Era codes match without regard to case, as the calendars spell
         // theirs in capitals.
@@ -1917,6 +1976,52 @@ mod tests {
         );
         assert_eq!(
             era_name(&english, CalendarId("gregory"), 9, NameWidth::Wide),
+            None
+        );
+    }
+
+    /// Hindi keys शक to the national calendar only, as CLDR 48's `hi.xml`
+    /// does; the lunisolar calendars count the same Śaka years and take the
+    /// name through [`SHARED_ERAS`], while English, which names the era for
+    /// `hindu-lunar` itself, keeps its own, and Sanskrit, which names it
+    /// for neither, has none. An era no table shares borrows nothing.
+    #[test]
+    fn a_shared_era_is_named_from_the_calendar_that_names_it() {
+        let hindi = locale("hi-IN");
+        for calendar in [
+            "indian",
+            "hindu-lunar",
+            "hindu-lunar-purnimanta",
+            "hindu-lunar-surya-siddhanta",
+        ] {
+            assert_eq!(
+                era_name_by_code(&hindi, CalendarId(calendar), "saka", NameWidth::Wide),
+                Some("शक"),
+                "{calendar}"
+            );
+        }
+        assert_eq!(
+            era_name_by_code(
+                &locale("en"),
+                CalendarId("hindu-lunar"),
+                "saka",
+                NameWidth::Wide
+            ),
+            Some("Saka")
+        );
+        assert_eq!(
+            era_name_by_code(
+                &locale("sa"),
+                CalendarId("hindu-lunar"),
+                "saka",
+                NameWidth::Wide
+            ),
+            None
+        );
+        assert_eq!(shared_era_calendar("SAKA"), Some(CalendarId("indian")));
+        assert_eq!(shared_era_calendar("vs"), None);
+        assert_eq!(
+            era_name_by_code(&hindi, CalendarId("hindu-lunar"), "vs", NameWidth::Wide),
             None
         );
     }

@@ -71,12 +71,6 @@ const VIKRAMA_VOCABULARY: [CalendarId; 2] = [
     CalendarId("hindu-solar-vikrami"),
 ];
 
-/// The calendar whose vocabulary names the Śaka era where the amānta
-/// calendar's has no name for it: the Indian national calendar, which
-/// counts the same Śaka years from 22 March, and whose Hindi name for the
-/// era is CLDR's शक.
-const SAKA_VOCABULARY: CalendarId = CalendarId("indian");
-
 /// A fixed day the Siddhānta's exports answer for.
 ///
 /// # Errors
@@ -150,21 +144,20 @@ fn date_line(
         );
     }
     out.push('\t');
-    let saka = match era_label_or_empty(&locale, calendar, hc_calendars_indic::hindu_lunar::ERA) {
-        "" => vocabulary::era_name_by_code(
-            &locale,
-            SAKA_VOCABULARY,
-            hc_calendars_indic::hindu_lunar::ERA,
-            NameWidth::Wide,
-        )
-        .unwrap_or(""),
-        label => label,
-    };
-    push_cell(&mut out, saka);
+    push_cell(
+        &mut out,
+        era_label_or_empty(&locale, calendar, hc_calendars_indic::hindu_lunar::ERA),
+    );
     out.push('\t');
-    let vikrama = VIKRAMA_VOCABULARY.iter().find_map(|&vocabulary_of| {
-        vocabulary::era_name_by_code(&locale, vocabulary_of, VIKRAMA, NameWidth::Wide)
-    });
+    // The locale's name for the era in either calendar that names it, else
+    // English's: the fallback `hc_i18n::names::era_label` ends at for
+    // every era, so that the cell is a name or empty and never a code.
+    let named_in = |locale: &hc_i18n::Locale| {
+        VIKRAMA_VOCABULARY.iter().find_map(|&vocabulary_of| {
+            vocabulary::era_name_by_code(locale, vocabulary_of, VIKRAMA, NameWidth::Wide)
+        })
+    };
+    let vikrama = named_in(&locale).or_else(|| named_in(&vocabulary::english()));
     push_cell(&mut out, vikrama.unwrap_or(""));
     out.push('\t');
     out.push_str(locale_used(&locale));
@@ -191,11 +184,16 @@ fn date_line(
 /// names the calendar, else English; `native` asks for the calendar's own
 /// languages first, Sanskrit then Hindi. The amānta calendars have no
 /// name for the Vikrama Saṃvat of their own, so it is the one the
-/// Kārttikādi and Vikrami calendars' vocabulary gives the same era, `vs`;
-/// and where a locale has no name for the Śaka era for them, it is the
-/// national calendar's, whose years are Śaka years too. A cell with no name
-/// in the locale is empty: Hindi and Sanskrit name the months and the
-/// intercalary month but neither era.
+/// Kārttikādi and Vikrami calendars' vocabulary gives the same era, `vs`.
+/// The Śaka era's name is the era cell `describe_day` writes for the
+/// calendar, by `hc-i18n`'s one rule for an era's name,
+/// [`hc_i18n::names::era_label`]: the locale's; else, for an era several
+/// calendars count ([`hc_i18n::data::SHARED_ERAS`]), the national
+/// calendar's, whose years are Śaka years too — Hindi's शक; else the
+/// calendar's own; else English's. The Vikrama Saṃvat's falls back to
+/// English's the same way. So an era cell is a name, never a code:
+/// Sanskrit names neither era and writes `Saka` and `Vikrama Samvat`, and
+/// Hindi, which names no Vikrama Saṃvat, `Vikrama Samvat`.
 ///
 /// `sky` is an ayanamsa [`ayanamsa`] names, for the true Sun and Moon in
 /// its zodiac read at the place's sunrise, as `hindu-lunar` is with Lahiri's
@@ -352,7 +350,8 @@ mod tests {
     /// 1948, Vikrama 2083, the sixth month, Bhādrapada, and the sixteenth
     /// tithi, labelled as `describe_day` labels `hindu-lunar`: Bhadra in
     /// English, भाद्रपद in Hindi and Sanskrit, whose data name no era for
-    /// the calendar but for the Śaka era Hindi's शक. `native` asks for
+    /// the calendar but for the Śaka era Hindi's शक, and English's names for
+    /// every era they do not name. `native` asks for
     /// Sanskrit, and Japanese, which does not name the calendar, is
     /// English.
     #[test]
@@ -379,17 +378,52 @@ mod tests {
                 "{sky}"
             );
             assert_eq!(labels("ja"), labels("en"), "{sky}");
-            assert_eq!(labels("hi-IN"), ["भाद्रपद", "", "शक", "", "hi"], "{sky}");
-            assert_eq!(labels("sa"), ["भाद्रपद", "", "", "", "sa"], "{sky}");
+            assert_eq!(
+                labels("hi-IN"),
+                ["भाद्रपद", "", "शक", "Vikrama Samvat", "hi"],
+                "{sky}"
+            );
+            assert_eq!(
+                labels("sa"),
+                ["भाद्रपद", "", "Saka", "Vikrama Samvat", "sa"],
+                "{sky}"
+            );
             assert_eq!(labels("native"), labels("sa"), "{sky}");
         }
-        // The month label is `describe_day`'s for the registered calendar.
+        // The month label is `describe_day`'s for the registered calendar,
+        // and so is the Śaka era's, by the one rule for a shared era: in
+        // the era cell, in the formatted date, and in this line, for the
+        // true sky's calendar and the Siddhānta's alike.
+        for tag in ["hi", "en", "sa"] {
+            let described = crate::lines::describe_day(&crate::registry(), Rd(day), tag);
+            for (calendar, sky) in [
+                ("hindu-lunar", "Lahiri"),
+                ("hindu-lunar-surya-siddhanta", SURYA_SIDDHANTA),
+            ] {
+                let row: Vec<&str> = described
+                    .lines()
+                    .find(|line| line.starts_with(&alloc::format!("{calendar}\t")))
+                    .expect("registered")
+                    .split('\t')
+                    .collect();
+                let line = hindu_lunar_date_line(sky, day, tokyo, tag).expect("a date");
+                let cells = cells(&line);
+                assert_eq!(row[2], "saka", "{calendar}");
+                assert_eq!(row[3], cells[9], "{calendar} {tag}");
+                assert_eq!(row[7], cells[7], "{calendar} {tag}");
+                assert_eq!(row[16], cells[11], "{calendar} {tag}");
+                if !row[3].is_empty() {
+                    assert!(row[15].contains(row[3]), "{calendar} {tag}: {}", row[15]);
+                }
+            }
+        }
         let described = crate::lines::describe_day(&crate::registry(), Rd(day), "hi");
         let row = described
             .lines()
             .find(|line| line.starts_with("hindu-lunar\t"))
             .expect("hindu-lunar");
-        assert_eq!(row.split('\t').nth(7), Some("भाद्रपद"));
+        assert_eq!(row.split('\t').nth(3), Some("शक"));
+        assert_eq!(row.split('\t').nth(15), Some("16 भाद्रपद 1948 शक"));
     }
 
     /// The adhika Śrāvaṇa of Śaka 1945, 18 July to 16 August 2023, as the

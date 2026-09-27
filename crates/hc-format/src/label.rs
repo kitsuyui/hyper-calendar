@@ -23,7 +23,8 @@
 //! The pieces come from the same fallbacks the rest of the workspace uses:
 //! an era's name is the locale's, else the calendar's own
 //! ([`DynCalendar::era_name`], romanised for a Latin-script locale), else
-//! its code; a month's is the locale's, else the calendar's own shape name,
+//! English's, else nothing — never its code, by
+//! [`hc_i18n::names::era_label`]; a month's is the locale's, else the calendar's own shape name,
 //! else its number; a day's is the locale's day name where it has one and
 //! its number otherwise. A number is written in the locale's numbering
 //! system. Nothing here invents an orthography: a locale that has stated
@@ -293,14 +294,16 @@ impl<'a> Renderer<'a> {
                     Mode::Era => NameWidth::Wide,
                     Mode::Unit | Mode::Date => NameWidth::Abbreviated,
                 });
-                let name = names::era_label(
+                match names::era_label(
                     self.locale,
                     self.id,
                     code,
                     self.calendar.era_name(code),
                     width,
-                );
-                out.write_str(name)
+                ) {
+                    Some(name) => out.write_str(name),
+                    None => Ok(()),
+                }
             }
             ("year", _) => self.write_number(self.fields.year, out),
             ("sexagenary", _) => {
@@ -701,7 +704,7 @@ mod tests {
     }
 
     #[test]
-    fn an_era_year_is_written_from_the_locale_then_the_calendar_then_the_code() {
+    fn an_era_year_is_written_from_the_locale_then_the_calendar_and_never_the_code() {
         let toy = DynAdapter::new(Toy);
         let mut kaei = DateFields::ymd(3, 1, 1).with_era("kaei");
         assert_eq!(render(&toy, &kaei, "ja")[1], "嘉永3年");
@@ -710,8 +713,15 @@ mod tests {
         kaei.year = 1;
         assert_eq!(render(&toy, &kaei, "ja")[1], "嘉永元年");
         assert_eq!(render(&toy, &kaei, "en")[1], "1 Kaei");
+        // An era no locale and no calendar names is written as nothing,
+        // never as its code.
         let unknown = DateFields::ymd(3, 1, 1).with_era("no-such-era");
-        assert_eq!(render(&toy, &unknown, "ja")[1], "no-such-era3年");
+        assert_eq!(render(&toy, &unknown, "ja")[1], "3年");
+        assert!(
+            render(&toy, &unknown, "en")
+                .iter()
+                .all(|cell| !cell.contains("no-such-era"))
+        );
     }
 
     #[test]

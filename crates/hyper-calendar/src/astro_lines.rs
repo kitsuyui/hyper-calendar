@@ -44,7 +44,7 @@ use hc_core::math::floor;
 use hc_core::scale::TT_MINUS_TAI;
 use hc_core::unix::{LeapPolicy, tai_minus_utc_at};
 
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Refusal, names};
 
 /// The first proleptic Gregorian year the sky exports answer for.
 pub const EARLIEST_YEAR: i64 = -1000;
@@ -390,21 +390,47 @@ pub fn solar_event_line(event: &str, fixed: i64, place: Location) -> Answer<Stri
     Ok(out)
 }
 
+/// How many columns [`horizons_lines`] writes.
+#[cfg(feature = "i18n")]
+pub const HORIZONS_COLUMNS: usize = 7;
+
+/// A horizon's name in the locale a tag asks for, by
+/// [`hc_i18n::horizons::horizon_name`], and the tag of the table that
+/// answered; else its English name, answered by `en`, as a table's name in
+/// `hc_holiday_tables` falls back. A tag that does not parse is the root
+/// locale, which names nothing.
+#[cfg(feature = "i18n")]
+#[must_use]
+pub fn horizon_name(horizon: &Horizon, tag: &str) -> hc_i18n::horizons::HorizonName {
+    let locale = hc_i18n::Locale::parse(tag).unwrap_or(hc_i18n::Locale::ROOT);
+    hc_i18n::horizons::horizon_name(&locale, horizon.id).unwrap_or(hc_i18n::horizons::HorizonName {
+        name: horizon.english_name,
+        tag: "en",
+    })
+}
+
 /// The lines of `hc_horizons`: every horizon [`HORIZONS`] carries, one a
 /// line, as its identifier, its English name, what it takes the visible
-/// horizon to be, its source, and its short English name for a label
-/// (`geometric dip`, `USNO`, `Calendrical Calculations`). `hc-i18n` has no
-/// vocabulary for the horizons, so the names are English only.
+/// horizon to be, its source, its short English name for a label
+/// (`geometric dip`, `USNO`, `Calendrical Calculations`), and its name in
+/// the locale `locale` names with the tag of the data that named it, by
+/// [`horizon_name`]'s rule: only an observatory's or an almanac office's
+/// own wording is carried (`hc_i18n::horizons`), so most horizons in most
+/// locales are their English name, with `en`.
+#[cfg(feature = "i18n")]
 #[must_use]
-pub fn horizons_lines() -> String {
+pub fn horizons_lines(locale: &str) -> String {
     let mut out = String::new();
     for horizon in HORIZONS {
+        let named = horizon_name(horizon, locale);
         for (index, cell) in [
             horizon.id,
             horizon.english_name,
             horizon.description,
             horizon.source,
             horizon.short_name,
+            named.name,
+            named.tag,
         ]
         .into_iter()
         .enumerate()
@@ -412,7 +438,7 @@ pub fn horizons_lines() -> String {
             if index > 0 {
                 out.push('\t');
             }
-            push_cell(&mut out, cell);
+            crate::boundary::push_cell(&mut out, cell);
         }
         out.push('\n');
     }
@@ -638,18 +664,56 @@ mod tests {
         assert_eq!(location(91.0, 0.0, 0.0), Err(Refusal::OutOfRange));
     }
 
+    /// The Hong Kong Observatory's name for the USNO, in its traditional
+    /// and simplified pages (`hko-astronomy-portal`), under `zh-TW` and
+    /// `zh-Hans`; the IMCCE's under `fr` (`imcce-promenade-usno`); the
+    /// English name, with `en`, under `ja`, which has no name for any of
+    /// the three, and for the two horizons no locale names.
+    #[cfg(feature = "i18n")]
     #[test]
-    fn every_horizon_is_a_line_of_five_cells() {
-        let text = horizons_lines();
+    fn every_horizon_is_a_line_of_seven_cells_named_in_the_locale() {
+        let text = horizons_lines("en");
         let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
             .lines()
             .map(|line| line.split('\t').collect())
             .collect();
         assert_eq!(rows.len(), HORIZONS.len());
         for (row, horizon) in rows.iter().zip(HORIZONS) {
-            assert_eq!(row.len(), 5);
+            assert_eq!(row.len(), HORIZONS_COLUMNS);
             assert_eq!(row[0], horizon.id);
             assert_eq!(row[4], horizon.short_name);
+            assert_eq!(row[5..], [horizon.english_name, "en"]);
+        }
+        let usno = |tag: &str| {
+            let text = horizons_lines(tag);
+            let line = text
+                .lines()
+                .find(|line| line.starts_with("usno\t"))
+                .expect("usno");
+            let cells: alloc::vec::Vec<&str> = line.split('\t').collect();
+            (String::from(cells[5]), String::from(cells[6]))
+        };
+        assert_eq!(
+            usno("zh-TW"),
+            ("美國海軍天文氣象台".into(), "zh-Hant".into())
+        );
+        assert_eq!(
+            usno("zh-Hans"),
+            ("美国海军天文气象台".into(), "zh-Hans".into())
+        );
+        assert_eq!(
+            usno("fr"),
+            ("Observatoire naval de Washington D.C.".into(), "fr".into())
+        );
+        assert_eq!(
+            usno("ja"),
+            ("US Naval Observatory, sea level".into(), "en".into())
+        );
+        assert_eq!(usno("not a tag"), usno("ja"));
+        for line in horizons_lines("zh-Hant").lines() {
+            if !line.starts_with("usno\t") {
+                assert!(line.ends_with("\ten"), "{line}");
+            }
         }
         assert_eq!(rows[0][0], "geometric-dip");
         assert_eq!(horizon("USNO").map(|horizon| horizon.id), Ok("usno"));

@@ -143,7 +143,14 @@ boundaries `hc_horizons` lists the horizons, each with a one-sentence
 `description` and a short name for a label — `geometric dip`, from
 `calendar-code2`'s `dip`, the "depression of visible horizon"; `USNO`,
 the Observatory's own abbreviation; and `Calendrical Calculations`, the
-book's title — in English only, `hc-i18n` having no words for them, and `hc_sunrise` and `hc_sunset` take one by its
+book's title — and its name in a locale, which `hc_i18n::horizons`
+carries only where an observatory or almanac office writes one: the
+Hong Kong Observatory's 美國海軍天文氣象台 and 美国海军天文气象台 for `usno`
+[hko-astronomy-portal], and the IMCCE's "Observatoire naval de Washington
+D.C." [imcce-promenade-usno]. The Observatory of Japan's definition of its
+own sunrise [nao-rekiwiki-hinode-teigi] names none of the three, and no
+other horizon has a name outside English, so every other name is the
+English one, with `en`. `hc_sunrise` and `hc_sunset` take a horizon by its
 identifier. At sea level the default
 and `usno` are the same horizon.
 
@@ -244,6 +251,14 @@ bounds.
 
 ## Sources
 
+- [hko-astronomy-portal] — the Hong Kong Observatory's astronomy portal,
+  which computes its data from the Royal Nautical Almanac Office's and
+  the 美國海軍天文氣象台's, for mean sea level, in its traditional and
+  simplified pages: the names `hc_i18n::horizons` gives `usno` in
+  `zh-Hant` and `zh-Hans`. Read 2026-09-27.
+- [imcce-promenade-usno] — the IMCCE's page on the observatory, headed
+  "OBSERVATOIRE NAVAL DE WASHINGTON D.C. (USNO)": the French name. Read
+  2026-09-27.
 - [usno-rst-definitions] — the USNO's definitions of sunrise, sunset,
   moonrise, moonset and the three twilights; its observer on the surface
   of the Earth, and the warning that height is left out. Read
