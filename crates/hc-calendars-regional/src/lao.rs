@@ -23,7 +23,11 @@
 //! 24-then-6 exception that gives the first year the month; a leap day when
 //! the avoman is under 137, or under 126 in a 366-day solar year; and a day
 //! that falls in a leap-month year moved to the next year ("on effectue la
-//! correction en reportant d'une année le 7e mois plein", p. 42). Two cases
+//! correction en reportant d'une année le 7e mois plein", p. 42). The
+//! shared computation takes the Khmer bounds, 137 or less and 126 or less
+//! with Tum's 137-then-0 exception (`docs/systems/khmer-chhankitek.md`);
+//! over the years carried the two statements give the same years, which a
+//! test asserts. Two cases
 //! Dupertuis leaves open: a *dithy* of 25 followed by 5, for which his
 //! sources give no rule (annex 7), and a *dithy* of 5 in a year the avoman
 //! makes a leap-day year, which his table's year 1300 shows was not settled
@@ -574,6 +578,28 @@ mod tests {
             month_length(LAST_YEAR + 1, Month::regular(1)),
             Err(CalendarError::YearOutOfRange)
         );
+        for year in [FIRST_YEAR - 1, LAST_YEAR + 1] {
+            assert_eq!(
+                to_fixed(LaoDate::new(year, Month::regular(1), 1)),
+                Err(CalendarError::YearOutOfRange),
+                "{year}"
+            );
+        }
+    }
+
+    /// Dupertuis's "under 137, under 126" and the shared Khmer bounds,
+    /// 137 or less and 126 or less with the 137-then-0 exception, call for
+    /// a leap day in the same years of the range.
+    #[test]
+    fn dupertuis_s_leap_day_bounds_agree_with_the_shared_rule() {
+        for year in FIRST_YEAR..=LAST_YEAR {
+            let bound = if is_solar_leap_year(year) { 126 } else { 137 };
+            assert_eq!(
+                avoman(year) < bound,
+                suryayatra_has_leap_day(year),
+                "{year}"
+            );
+        }
     }
 
     #[test]

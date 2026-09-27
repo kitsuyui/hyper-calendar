@@ -84,8 +84,10 @@ year [koyominote-inoko].
 
 ### 恵方
 
-The direction is the year's heavenly stem. Only the five yang stems have a
-direction of their own, and each yin stem borrows its partner's
+The direction is the year's heavenly stem. The yang stems have virtue and
+the yin stems none, so each yin stem is assigned a yang one's direction,
+and 己 years face 甲; the dictionary's table sends 戊 years, though 戊 is a
+yang stem, to 丙's direction, so four stems name the four directions
 [kotobank-eho]:
 
 | Stems | Last digit of the year | 恵方 | Between | Azimuth |

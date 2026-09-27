@@ -8,8 +8,11 @@
 //! [`crate::epoch::DOTNET_TICKS`] epoch, and "does not include the number
 //! of ticks that are attributable to leap seconds". "GregorianCalendar
 //! Class" (`ms-gregoriancalendar`) gives the calendar's leap-year rule and
-//! no reform date, so the count runs on the Gregorian rule applied to every
-//! year from 1. "DateTime.MaxValue Field" (`ms-datetime-maxvalue`): the
+//! names 15 October 1582 as the day it "was first introduced in a small
+//! number of cultures", but the class has no switch from the Julian
+//! calendar: for earlier dates the page points to the separate
+//! `JulianCalendar` class. So the count runs on the Gregorian rule applied
+//! to every year from 1. "DateTime.MaxValue Field" (`ms-datetime-maxvalue`): the
 //! largest value is 23:59:59.9999999 on 31 December 9999, whose ticks, as
 //! its example prints, are 3 155 378 975 999 999 999, [`MAX_TICKS`].
 //!

@@ -19,11 +19,11 @@
 //! What "the day" is differs, and the two conventions are two functions
 //! (`docs/policy.md` §5):
 //!
-//! * [`by_sunrise`], `rahu-kalam-sunrise`: the day runs from local sunrise
+//! * [`by_sunrise`]: the day runs from local sunrise
 //!   to local sunset, as Drik Panchang computes it (its "Yamardha" method,
 //!   `drik-rahu-kalam`), so the parts are longer in summer and move with
 //!   the place. Returned in Universal Time.
-//! * [`by_fixed_day`], `rahu-kalam-fixed`: the day is 06:00 to 18:00 of the
+//! * [`by_fixed_day`]: the day is 06:00 to 18:00 of the
 //!   local clock, so every part is an hour and a half and the times are the
 //!   same everywhere, as Wikipedia states the rule
 //!   (`wikipedia-rahukaalam`) and South Indian temple tables print it
@@ -127,7 +127,7 @@ fn eighth(start: f64, end: f64, part: u8) -> Span {
     }
 }
 
-/// A period on a local day by the `rahu-kalam-sunrise` convention: the
+/// A period on a local day by the sunrise-to-sunset convention: the
 /// daylight, sunrise to sunset at the place, cut into eight, in Universal
 /// Time.
 ///
@@ -142,13 +142,13 @@ pub fn by_sunrise(kalam: &Kalam, day: Rd, location: Location) -> Result<Span, Mi
     Ok(eighth(rise.0, set.0, kalam.part(Weekday::from_rd(day))))
 }
 
-/// The start of the `rahu-kalam-fixed` day, 06:00, as a fraction of a day.
+/// The start of the fixed day of [`by_fixed_day`], 06:00, as a fraction of a day.
 pub const FIXED_DAY_START: f64 = 0.25;
 
-/// The end of the `rahu-kalam-fixed` day, 18:00, as a fraction of a day.
+/// The end of the fixed day of [`by_fixed_day`], 18:00, as a fraction of a day.
 pub const FIXED_DAY_END: f64 = 0.75;
 
-/// A period on a day by the `rahu-kalam-fixed` convention: 06:00 to 18:00
+/// A period on a day by the fixed-day convention: 06:00 to 18:00
 /// cut into eight parts of an hour and a half.
 ///
 /// The span is two readings of the local clock, not Universal Time: each

@@ -489,10 +489,16 @@ mod tests {
         }
     }
 
+    /// Every day of the calendar round before and after 1567's new year
+    /// round-trips: every day in a release build; in a debug one every
+    /// seventh day and every new year with the day before it
+    /// (docs/policy.md §7).
     #[test]
     fn every_day_of_a_calendar_round_round_trips() {
-        for offset in (-9_490..9_490).step_by(crate::sweep_stride(7)) {
-            let rd = Rd(NEW_YEAR_1567.0 + offset);
+        let new_years = (-26..=26).map(|round| NEW_YEAR_1567.0 + round * YEAR_DAYS);
+        let (first, last) = (NEW_YEAR_1567.0 - 9_490, NEW_YEAR_1567.0 + 9_489);
+        for day in crate::sweep_days(first, last, 7, new_years) {
+            let rd = Rd(day);
             let date = mixtec(rd);
             assert_eq!(MixtecYearCalendar.to_fixed(date), Ok(rd));
             let fields = MixtecYearCalendar.to_fields(date).expect("describable");

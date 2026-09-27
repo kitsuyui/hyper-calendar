@@ -1023,6 +1023,52 @@ mod tests {
         assert_eq!(code.encode(true).expect("fits").as_slice(), bytes);
     }
 
+    /// Every day of the 16-bit day segment, 0 to 65 535 (1958 to 2137),
+    /// round-trips through CDS and UTC at its first, a middle and its last
+    /// millisecond: every day in a release build; in a debug one every 97th,
+    /// the last, and every day that ends in an inserted leap second of the
+    /// table, whose 23:59:60.5 round-trips too, while the day before it has
+    /// none (docs/policy.md §7).
+    #[test]
+    fn every_cds_day_round_trips() {
+        let format = CdsFormat {
+            submillisecond: Submillisecond::None,
+            ..CDS_MICROSECONDS
+        };
+        let leap_days: alloc::vec::Vec<u32> = leap::steps()
+            .filter(|(_, delta)| *delta > 0)
+            .map(|(at, _)| (at.div_euclid(86_400) - 1 - CDS_EPOCH_UNIX_DAY) as u32)
+            .collect();
+        assert_eq!(leap_days.len(), 27);
+        assert_eq!(leap_days.last(), Some(&21_549));
+        let step = if cfg!(debug_assertions) { 97 } else { 1 };
+        let mut days: alloc::vec::Vec<u32> = (0..=u32::from(u16::MAX))
+            .step_by(step)
+            .chain([u32::from(u16::MAX)])
+            .chain(leap_days.iter().copied())
+            .collect();
+        days.sort_unstable();
+        days.dedup();
+        for day in days {
+            for millisecond in [0, 43_200_001, 86_399_999] {
+                let code = CdsTime::new(format, day, millisecond, 0).expect("valid");
+                let bytes = code.encode(true).expect("fits");
+                let back = CdsTime::decode_with_preamble(bytes.as_slice()).expect("valid");
+                assert_eq!(back, code);
+                let utc = code.to_utc().expect("a second the day has");
+                assert_eq!(CdsTime::from_utc(format, utc), Ok(code), "day {day}");
+            }
+            if leap_days.contains(&day) {
+                let leap = CdsTime::new(format, day, 86_400_500, 0).expect("in range");
+                let utc = leap.to_utc().expect("a leap second of the table");
+                assert!(utc.leap_second, "day {day}");
+                assert_eq!(CdsTime::from_utc(format, utc), Ok(leap));
+                let before = CdsTime::new(format, day - 1, 86_400_500, 0).expect("in range");
+                assert_eq!(before.to_utc(), Err(TimeError::OutOfRange), "day {day}");
+            }
+        }
+    }
+
     /// 2016-12-31 ended in an inserted second: it is day 21 549 from 1958,
     /// and millisecond 86 400 500 is 23:59:60.5. The day before has no such
     /// millisecond.

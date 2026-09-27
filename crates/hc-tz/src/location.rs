@@ -24,8 +24,10 @@
 //!   System V names `EST5EDT`, `CST6CDT`, `MST7MDT` and `PST8PDT`, are
 //!   rules and not links, and place nothing.
 //! * `backzone` — the zones outside the database's scope, whose links
-//!   supersede `backward`'s. Only its `Link` lines are read, so that five
-//!   old names stay in their countries: `America/Coral_Harbour` is
+//!   supersede `backward`'s. Only its `Link` lines are read, and the
+//!   `Link` lines it writes as `#PACKRATLIST zone.tab Link` comments
+//!   (`Africa/Timbuktu`, `America/Coral_Harbour`, `Atlantic/Jan_Mayen`), so
+//!   that five old names stay in their countries: `America/Coral_Harbour` is
 //!   answered by `America/Atikokan`, not by `backward`'s `America/Panama`.
 //!
 //! Each row also carries the one country `zone.tab` lists its name under,

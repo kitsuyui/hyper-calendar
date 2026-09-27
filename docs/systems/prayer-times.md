@@ -51,8 +51,9 @@ its own identifier, as an authority's revision is data
 
 Where the Sun does not reach a method's angle — in summer at high
 latitudes, or where it does not set — the time does not exist by that
-method. None of the methods carried states a rule for those latitudes, so
-the functions return `MissingSolarEvent::DawnDepression` for *fajr*,
+method. The compilation read gives no method's own rule for those
+latitudes, the authorities' own texts were not read, and no such rule is
+carried, so the functions return `MissingSolarEvent::DawnDepression` for *fajr*,
 `MissingSolarEvent::Depression` for an evening angle, or
 `MissingSolarEvent::Sunset`, and compute nothing in its place.
 
@@ -62,8 +63,10 @@ the functions return `MissingSolarEvent::DawnDepression` for *fajr*,
 5:44. Sunset is at 19:09.7 local and MUIS's Maghrib 7:11; the Sun reaches
 18° below the horizon at 20:24.4, and Isyak is 8:25; the transit is at
 13:08.1, and Zohor 1:10 [muis-prayer-timetable-2026]. The published times
-are the computed ones rounded up and a minute or so later, as a timetable
-that adds a margin of caution would be.
+are the computed ones rounded up, and up to a minute or so later. That is
+not a margin of caution alone: Syuruk, the sunrise that ends the time of
+Subuh, is also printed later than the computed sunrise, where caution
+would put it earlier. MUIS does not state how it rounds or adjusts.
 
 ## What is carried
 
@@ -78,7 +81,11 @@ that adds a margin of caution would be.
 - **Not carried.** The rules applications use at high latitudes — the
   middle of the night, a seventh of the night, the angle's share of the
   night — which Pray Times offers as general adjustments rather than as
-  any method's own. The authorities' margins of caution and their rounding.
+  any method's own. The Muslim World League's "Local Relative Estimation"
+  for latitudes 48.6° to 66.6°, which the International Astronomical
+  Center reports its Fiqh Council approved at a meeting in Mecca on
+  1 August 2009 [iac-high-latitudes]: that account is secondary, and the
+  League's own text was not read. The authorities' margins of caution and their rounding.
   The choice between the Shafiʿi and Hanafi *ʿaṣr*, which is `asr_shafii`
   and `asr_hanafi`, since it is separate from the method.
 
@@ -105,6 +112,7 @@ a point elsewhere on the island moves the times by up to about a minute.
 | --- | --- | --- |
 | [praytimes-methods] | Every method's parameters, Umm al-Qura's earlier *fajr*, Tehran's unstated *ʿishāʾ* angle | Yes, 2026-09-27; a compilation. The authorities' own documents were not read |
 | [muis-prayer-timetable-2026] | The anchor | Yes, 2026-09-27 |
+| [iac-high-latitudes] | The Muslim World League's high-latitude method, not carried | Yes, 2026-09-27; secondary. The League's own text was not read |
 
 ## Code
 

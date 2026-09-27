@@ -1,16 +1,17 @@
 //! The Ethiopian and Swahili hours: the local clock read six hours on, on a
 //! twelve-hour dial counted from about sunrise and about sunset.
 //!
-//! Both reckonings count twelve hours of the day from 06:00 local time and
-//! twelve of the night from 18:00, so the dial reads the civil hour less
-//! six: 07:00 is hour 1, noon is hour 6 of the day, 18:00 is 12, and
-//! midnight hour 6 of the night. Minutes and seconds are the civil clock's.
+//! Both reckonings number twelve hours of the day and twelve of the night
+//! on a dial that reads the civil hour less six: 07:00 is hour 1, noon is
+//! hour 6 of the day, 18:00 is 12, and midnight hour 6 of the night. They
+//! put the hours 06:00–06:59 and 18:00–18:59 in different halves, below. Minutes and seconds are the civil clock's.
 //! The civil clock is the caller's: East Africa Time, UTC+3, in Ethiopia
 //! and on the Swahili coast, but this module reads whatever wall clock it
 //! is given.
 //!
-//! The two reckonings differ in where the halves meet and in what they
-//! call the parts of the day, and so are two conventions under policy §5:
+//! The two reckonings differ in where the halves meet, as this module reads
+//! the sources, and in what they call the parts of the day, and so are two
+//! conventions under policy §5:
 //!
 //! - **`ethiopian-hours`**: "The daytime cycle begins at dawn 12:00 (6:00:00
 //!   AM EAT) and ends at dusk 11:59:59 (5:59:59 PM EAT). The nighttime cycle
@@ -21,7 +22,14 @@
 //!   Women's Association, *Welcome to Addis Ababa 1994–1995*, as the UNDP
 //!   Emergencies Unit for Ethiopia published it, read in the Internet
 //!   Archive's copy of 22 July 2011, `undp-eue-ethiopian-time`). The day
-//!   half runs from 06:00 to 17:59:59.
+//!   half runs from 06:00 to 17:59:59, as Wikipedia's sentence has it. The
+//!   halves are disputed: the guide's count of the day runs "until 6 pm,
+//!   which is 12 o'clock", and Wikipedia's next sentence begins the day at
+//!   "1:00 o'clock in the morning … (7:00 AM EAT)", both of which read as
+//!   the Swahili halves. Wikipedia's first sentence is the one statement
+//!   read that gives the halves to the second, and is followed here; the
+//!   dial's number is the same either way, and a caller who wants the
+//!   other halves for Ethiopia reads them from `swahili-hours`.
 //! - **`swahili-hours`**: "7:00 am is referred to as saa moja asubuhi to
 //!   mean that it is the first hour of the day. 7:00 pm is called saa moja
 //!   usiku to indicate that it is the first hour of the night" (University
@@ -254,8 +262,10 @@ mod tests {
     }
 
     /// The UNDP page's examples: 8 am is 2 o'clock, 10 am is 4 o'clock,
-    /// 6 pm is 12 o'clock, 7 pm is 1 o'clock and 10 pm 4 o'clock; and
-    /// Wikipedia's halves, 06:00 the day's 12 and 18:00 the night's.
+    /// 6 pm is 12 o'clock, 7 pm is 1 o'clock and 10 pm 4 o'clock, as the
+    /// dial's numbers; and the halves of Wikipedia's first sentence, 06:00
+    /// the day's 12 and 18:00 the night's, which the guide and Wikipedia's
+    /// next sentence dispute (module documentation).
     #[test]
     fn the_ethiopian_examples() {
         for (hour, reading) in [
@@ -322,7 +332,8 @@ mod tests {
         }
     }
 
-    /// Every second of the day, and the leap second, round-trips in both.
+    /// Every minute of the day, read at its 59th second with a fraction of
+    /// a second, and the leap second round-trip in both.
     #[test]
     fn every_minute_round_trips() {
         for reckoning in ALL {

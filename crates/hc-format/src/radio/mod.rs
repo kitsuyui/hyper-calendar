@@ -32,6 +32,36 @@ pub mod dcf77;
 pub mod jjy;
 pub mod wwvb;
 
+/// The days of the codes' round-trip sweeps, 2000 to 2099: every day in a
+/// release build; in a debug one every `sampled`th day and the first and
+/// last day of every month, where a leap second's frames fall
+/// (docs/policy.md §7).
+#[cfg(test)]
+pub(crate) fn sweep_days_2000_to_2099(sampled: usize) -> alloc::vec::Vec<i64> {
+    let day = |year: i64, month: u8| gregorian::to_fixed(year, month, 1).map(|rd| rd.0);
+    let (Ok(first), Ok(end)) = (day(2000, 1), day(2100, 1)) else {
+        return alloc::vec::Vec::new();
+    };
+    let debug = cfg!(debug_assertions);
+    let mut days: alloc::vec::Vec<i64> = (first..end)
+        .step_by(if debug { sampled } else { 1 })
+        .collect();
+    if debug {
+        for year in 2000..=2099 {
+            for month in 1..=12 {
+                if let Ok(start) = day(year, month) {
+                    days.extend([start - 1, start]);
+                }
+            }
+        }
+        days.push(end - 1);
+        days.retain(|&d| (first..end).contains(&d));
+        days.sort_unstable();
+        days.dedup();
+    }
+    days
+}
+
 /// A symbol of a pulse-width code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum Symbol {

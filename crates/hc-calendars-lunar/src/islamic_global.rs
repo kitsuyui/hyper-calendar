@@ -20,10 +20,12 @@
 //!   before dawn in New Zealand (`muhammadiyah-ughc-2025`, §C.3;
 //!   `muhammadiyah-khgt-site`).
 //! * [`GlobalRule::ISTANBUL_2016`]: the month begins if the parameters are
-//!   met at a sunset on the mainland of South or North America and the
-//!   conjunction fell before *imsāk* at Wellington
-//!   (`diyanet-ramazan-1447`), with the altitude topocentric
-//!   (`djamaluddin-khgt-turki-2025`).
+//!   met anywhere on Earth at a sunset before 24:00 UT, or at a sunset on
+//!   the mainland of South or North America with the conjunction before
+//!   *imsāk* at Wellington (`diyanet-ramazan-1447`), with the altitude
+//!   topocentric (`djamaluddin-khgt-turki-2025`). The statement gives the
+//!   "anywhere on Earth" condition without an hour; the bound of 24:00 UT
+//!   is this library's reading of it, set out in the system document.
 //!
 //! # What is modelled
 //!
@@ -445,12 +447,12 @@ impl GlobalRule {
         anywhere_before_midnight: true,
     };
 
-    /// Diyanet's rule: [`VisibilityCriterion::ISTANBUL_2016`] on the
-    /// mainland of the Americas, with the conjunction before *imsāk* at
-    /// Wellington.
+    /// Diyanet's rule: [`VisibilityCriterion::ISTANBUL_2016`] anywhere
+    /// before 24:00 UT, or on the mainland of the Americas with the
+    /// conjunction before *imsāk* at Wellington.
     pub const ISTANBUL_2016: Self = Self {
         criterion: sunset_criterion(VisibilityCriterion::ISTANBUL_2016),
-        anywhere_before_midnight: false,
+        anywhere_before_midnight: true,
     };
 
     /// Whether the parameters hold at some sunset, anywhere on Earth,
@@ -628,8 +630,10 @@ impl Calendar for IslamicGlobalCalendar {
     type Date = IslamicDate;
 
     /// KHGT from 1 Muḥarram 1447, when Muhammadiyah put it into effect.
-    /// Diyanet's calendar is unrecorded here: no source read dates its
-    /// first use of the 2016 rule.
+    /// Diyanet's calendar is unrecorded here: its statement dates the
+    /// criteria to the Istanbul conference of 1978 and their confirmation
+    /// to the congress of 2016, and no source read says from when its
+    /// lists of religious days follow the 2016 rule.
     fn usage(&self) -> hc_calendar::Usage {
         self.usage
     }
@@ -766,6 +770,7 @@ mod tests {
         let khgt = GlobalRule::KHGT;
         let diyanet = GlobalRule::ISTANBUL_2016;
         assert!(!khgt.met_anywhere_before_midnight(eve));
+        assert!(!diyanet.met_anywhere_before_midnight(eve));
         assert!(conjunction_before_new_zealand_dawn(eve));
         assert!(khgt.met_on_the_americas(eve));
         assert!(!diyanet.met_on_the_americas(eve));
@@ -827,6 +832,11 @@ mod tests {
             } else {
                 alloc::vec::Vec::new()
             };
+            // Every year's 1 Muḥarram but the first's, which falls before
+            // 1900, is in the sample.
+            if cfg!(debug_assertions) {
+                assert_eq!(openings.len(), (LAST_YEAR - FIRST_YEAR) as usize);
+            }
             let mut days: alloc::vec::Vec<i64> =
                 crate::sweep_days(EARLIEST.0, LATEST.0, 101, openings.iter().copied())
                     .chain([LATEST.0])

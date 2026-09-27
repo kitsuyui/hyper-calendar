@@ -609,14 +609,12 @@ mod tests {
         assert_eq!(misplaced.encode(), Err(FrameError::Field("call sign")));
     }
 
-    /// Every hour and minute of a sample of days in 2000–2099, both ways.
+    /// Five minutes of every day of 2000–2099, both ways: every day in a
+    /// release build; every 97th and every month's first and last in a
+    /// debug one.
     #[test]
     fn every_code_round_trips() {
-        let step = if cfg!(debug_assertions) { 97 } else { 7 };
-        let first = gregorian::to_fixed(2000, 1, 1).expect("exists").0;
-        let last = gregorian::to_fixed(2099, 12, 31).expect("exists").0;
-        let mut day = first;
-        while day <= last {
+        for day in crate::radio::sweep_days_2000_to_2099(97) {
             for (hour, minute_of_hour) in [(0, 0), (8, 59), (9, 15), (12, 45), (23, 59)] {
                 let reading = CivilDateTime::new(
                     hc_calendar::Rd(day),
@@ -629,7 +627,6 @@ mod tests {
                 let (year, _, _) = gregorian::from_fixed(reading.day).expect("valid");
                 assert_eq!(back.reading_in_year(year), Ok(reading));
             }
-            day += step;
         }
     }
 }

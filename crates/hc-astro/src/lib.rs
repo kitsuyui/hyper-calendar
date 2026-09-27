@@ -77,6 +77,10 @@ pub mod vsop87;
 mod search;
 mod util;
 
+// `check_days`: run a check on each day of a sweep, spread over the
+// machine's threads (docs/policy.md §7).
+hc_core::check_days_in_parallel!();
+
 pub use delta_t_model::{
     DELTA_T_MODELS, DeltaTModel, ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021,
 };

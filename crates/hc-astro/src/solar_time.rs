@@ -92,9 +92,11 @@
 //! (`praytimes-methods`); the authorities' own documents were not read.
 //! [`fajr`], [`maghrib`], [`isha`] and [`islamic_midnight`] compute the
 //! times that depend on the method; *ẓuhr* is [`solar_noon`], sunrise is
-//! [`sunrise`], and *ʿaṣr* is [`asr_shafii`] or [`asr_hanafi`]. No method
-//! carried defines a rule for latitudes where the Sun does not reach its
-//! angle, so none is applied there and the time is refused.
+//! [`sunrise`], and *ʿaṣr* is [`asr_shafii`] or [`asr_hanafi`]. The
+//! compilation gives no method's own rule for latitudes where the Sun does
+//! not reach its angle, and none is carried, so the time is refused there;
+//! the Muslim World League's rule for 48.6° to 66.6°, known here only from
+//! a secondary account (`iac-high-latitudes`), is not carried.
 //! `docs/systems/prayer-times.md` describes the system and its anchor, the
 //! Islamic Religious Council of Singapore's timetable for 2026.
 
@@ -568,9 +570,11 @@ pub fn japanese_dusk_naoj(day: Rd, location: Location) -> Result<Moment, Missing
 /// One of the twelve hours of the Edo 不定時法, counted from 明け六つ: six
 /// of the daylight, 明け六つ to 暮れ六つ, and six of the night.
 ///
-/// An hour is named by the number of strokes of the bell that opened it,
-/// nine at noon and at midnight and one fewer at each hour after, down to
-/// four. The names follow the Observatory's list, 今暁九時, 八時, 七時,
+/// An hour is named by the number of strokes that announced it, nine at
+/// noon and at midnight and one fewer at each hour after, down to four:
+/// the strokes of the time bell from the late Muromachi period
+/// (`wikipedia-ja-jikoku`), of the drum in the Observatory's account
+/// (`nao-rekiwiki-futeiji`). The names follow the Observatory's list, 今暁九時, 八時, 七時,
 /// 明六時, 朝五時, 四時, 昼九時, 八時, 夕七時, 暮六時, 夜五時, 四時, in which a
 /// prefix also covers the unprefixed hour after it; here つ stands for 時
 /// and 暁 for 今暁 (`nao-rekiwiki-futeiji`). Each is also paired with an
@@ -625,7 +629,7 @@ impl EdoHour {
         self.0 < 6
     }
 
-    /// The number the hour is named by, the strokes of the bell: 6, 5, 4
+    /// The number the hour is named by, the strokes that announced it: 6, 5, 4
     /// in the morning, 9, 8, 7 after noon, and the same again at night.
     #[must_use]
     pub const fn strokes(self) -> u8 {
@@ -1131,8 +1135,8 @@ pub enum MidnightRule {
 /// The methods are data, not an `enum` (ADR 0007): another authority's
 /// method is another entry. *Ẓuhr* is solar noon, [`solar_noon`], and
 /// *ʿaṣr* is a juristic choice separate from the method, [`asr_shafii`] or
-/// [`asr_hanafi`]. None of the methods carried states a rule for the
-/// latitudes where the Sun does not reach its angle, so none is applied:
+/// [`asr_hanafi`]. The compilation gives no method's own rule for the
+/// latitudes where the Sun does not reach its angle, and none is carried:
 /// there the functions return [`MissingSolarEvent::DawnDepression`] or
 /// [`MissingSolarEvent::Depression`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -1316,8 +1320,8 @@ hc_core::catalogue! {
 /// # Errors
 ///
 /// [`MissingSolarEvent::DawnDepression`] where the Sun does not get that
-/// far below the horizon, as in summer at high latitudes. No method
-/// carried defines a substitute.
+/// far below the horizon, as in summer at high latitudes. No substitute
+/// is carried.
 pub fn fajr(
     day: Rd,
     location: Location,
@@ -1635,10 +1639,9 @@ mod tests {
     }
 
     /// Hebcal's zmanim (`hebcal-zmanim-api`, retrieved 2026-09-27) for a
-    /// place and day: the place, the zone offset in hours, the date, and the
-    /// printed minutes of the day, in the order of [`ZMANIM_ORDER`].
-    /// A place, its zone offset in hours, a date, and sixteen printed
-    /// times of day as hour and minute.
+    /// place and day: the place, its zone offset in hours, the date, and
+    /// the sixteen printed times of day as hour and minute, in the order of
+    /// [`ZMANIM_ORDER`].
     type Printed = (Location, f64, (i64, u8, u8), [(u8, u8); 16]);
 
     const HEBCAL: [Printed; 3] = [
@@ -1862,8 +1865,9 @@ mod tests {
     /// coordinates; the year is taken as 2020, the year it was written,
     /// whose equinoxes fell on those days, and the place as the 改暦所. The
     /// intervals hardly depend on either and agree to 2 s; the clock times
-    /// come 7 s late, as a point 26″ of longitude east of the 改暦所 would
-    /// make them, and are checked to 10 s.
+    /// come 7 s late, as a point about 1′45″ (0.03°) of longitude east of
+    /// the 改暦所 would make them, at 15″ of longitude to a second of time,
+    /// and are checked to 10 s.
     #[test]
     fn kyoto_dawn_at_the_equinoxes_is_two_and_a_half_koku_before_the_centre_rises() {
         let start = gregorian_new_year(2020);
@@ -1994,6 +1998,41 @@ mod tests {
                 "step {step}: {reading:?}"
             );
         }
+    }
+
+    /// Every day of −1000 to 3000, the era the crate claims, reads as an
+    /// Edo time at Kyoto and back to a millisecond, at an hour that moves
+    /// through the day and night from one day to the next: every day in a
+    /// release build, spread over the machine's threads; in a debug one
+    /// every 1009th day and the first and last day of every 97th year and
+    /// of the last (docs/policy.md §7).
+    #[cfg(feature = "std")]
+    #[test]
+    fn edo_time_inverts_over_the_whole_era() {
+        let (first, end) = (gregorian_new_year(-1000).0, gregorian_new_year(3001).0);
+        let debug = cfg!(debug_assertions);
+        let mut days: std::vec::Vec<i64> =
+            (first..end).step_by(if debug { 1009 } else { 1 }).collect();
+        if debug {
+            for year in (-1000..=3000).step_by(97).chain([3000]) {
+                days.extend([
+                    gregorian_new_year(year).0,
+                    gregorian_new_year(year + 1).0 - 1,
+                ]);
+            }
+            days.sort_unstable();
+            days.dedup();
+        }
+        crate::check_days(&days, |day| {
+            let hour = (day.rem_euclid(97) as f64 + 0.5) / 97.0;
+            let universal = Moment(day as f64 + hour);
+            let reading = edo_time_kansei(universal, KYOTO).expect("defined at Kyoto");
+            let back = universal_from_edo_time_kansei(reading, KYOTO).expect("defined");
+            assert!(
+                (back.0 - universal.0).abs() * 86_400.0 < 1e-3,
+                "day {day}: {reading:?}"
+            );
+        });
     }
 
     /// At Helsinki the midsummer Sun never sinks 7°21′ below the horizon,
@@ -2254,7 +2293,7 @@ mod tests {
     }
 
     /// Where the Sun does not reach a method's angle, the time is refused:
-    /// no method carried defines a rule for high latitudes. At Padua on the
+    /// no rule for high latitudes is carried. At Padua on the
     /// June solstice the Sun sinks about 21° below the horizon, so every
     /// dawn angle is reached; at Tromsø it does not set, and neither dawn
     /// nor dusk exists; at London, 51.5° N, 18° is out of reach but 12° is

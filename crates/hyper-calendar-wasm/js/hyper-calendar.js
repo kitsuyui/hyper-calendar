@@ -480,8 +480,8 @@ function rows(text, columns, exportName) {
       continue;
     }
     const cells = line.split("\t");
-    // A line only ever grows at the end, so more cells are a newer module,
-    // and fewer are not the format this file reads.
+    // The columns are this file's version of the README's tables: cells
+    // past them are ignored, and fewer are not the format this file reads.
     if (cells.length < columns.length) {
       throw new HcError("malformed", {
         export: exportName,

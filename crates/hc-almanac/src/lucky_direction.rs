@@ -9,11 +9,13 @@
 //!
 //! # The rule
 //!
-//! The direction is the year's heavenly stem. Only the five yang stems,
-//! 甲丙戊庚壬, have a direction of their own; each yin stem takes a yang
-//! one's, so that 己 years face 甲 (世界大百科事典, 「恵（吉）方」, on
+//! The direction is the year's heavenly stem. The yang stems have virtue
+//! and the yin stems none, so each yin stem is assigned a yang one's
+//! direction, and 己 years face 甲 (世界大百科事典, 「恵（吉）方」, on
 //! kotobank.jp, `kotobank-eho`). デジタル大辞泉 tabulates all ten, with the
-//! last digit of the Gregorian year (`kotobank-eho`):
+//! last digit of the Gregorian year (`kotobank-eho`), and sends 戊 years,
+//! though 戊 is a yang stem, to 丙's direction, so four stems, 甲丙庚壬,
+//! name the four directions:
 //!
 //! | Stem | Last digit | 恵方 | Between | About |
 //! |---|---|---|---|---|

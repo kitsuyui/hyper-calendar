@@ -66,7 +66,7 @@ there in a leap-second minute "different than before" [ptb-dcf77-timecode].
 | --- | --- |
 | 0 | M, "transmitted as binary zero" |
 | 1–14 | "provided by a third party": civil warnings and Meteo Time's weather data, for which "PTB explicitly denies any responsibility" |
-| 15 | R, the call bit, raised on an irregularity at the transmitter |
+| 15 | R, the call bit, "used to signalize irregularities in the control facilities and to alarm PTB" |
 | 16 | A1, a change between CET and CEST at the end of this hour |
 | 17, 18 | Z1 and Z2: 01 for CET, 10 for CEST |
 | 19 | A2, a leap second at the end of this hour |
@@ -235,7 +235,7 @@ round trip of every field.
 | WWVB's phase frame of 4 July 2012, all 60 bits of Table 10 | `the_2012_example_in_both_codes` | exact |
 | The minute count of 21:30 UTC on 28 July 2016, 8 717 610 | `the_minute_count_of_28_july_2016` | exact |
 | Tables 4 and 8 read in both directions; their words distinct | `table_4_round_trips`, `table_8_round_trips` | all 12 and 56 |
-| Every code round-trips over a sample of minutes, 2000–2099 | `every_code_round_trips` | exact |
+| Every code round-trips at three or five minutes of every day, 2000–2099 | `every_code_round_trips` | exact; every day in a release build, in a debug one every 83rd to 97th and every month's first and last |
 | Parity, BCD, marker and length errors are refused | `broken_frames_are_refused` | each refused |
 | Field errors: a reading off the minute, a UT1 − UTC past ±0.9 s, a stop notice, call sign, minute count or `dst_next` the code cannot carry, a DCF77 weekday of 0, 60 marks without A2, and a 1 at WWVB's phase bits 59 and 60 | `field_refusals` in `jjy`, `dcf77` and `wwvb` | each refused |
 

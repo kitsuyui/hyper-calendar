@@ -19,13 +19,15 @@ dispute it.
 So the useful answer to "when is the earliest evidence of life" is not a
 number but the set of claims, each with its own date in the form its
 source gives it, and a statement of which are disputed. That is what this
-library carries. The set is closed in the sense of
-[policy.md §10](../policy.md): each entry is a published claim that names
-itself the earliest of its kind, or is named so by a later paper, and each
-can be checked against that paper. The choice of the three landmarks is the
-library's, made because a timeline asked for them; within a landmark the
-choice of claims follows the papers that are cited as the earliest in the
-literature read, and the ones not carried are named below.
+library carries. The set is **not** closed in the sense of
+[policy.md §10](../policy.md): no authority defines it. The choice of the
+three landmarks is the library's, made because a timeline asked for them,
+and within a landmark the claims carried are those the literature read
+cites as the earliest; other published claims exist, and the ones known
+and not carried are named below. What can be checked is each entry: it is
+a published claim that names itself the earliest of its kind, or is named
+so by a later paper, and its date is that paper's. Coverage is stated
+entry by entry, not as a complete list.
 
 ## How it works
 
@@ -56,9 +58,12 @@ standard uncertainty is carried only where the source says so:
   description.
 - Bell et al. 2015 give 4.10 ± 0.01 Ga, likewise in an abstract that does
   not say [bell2015]; carried the same way.
-- Every other date read is written without a `±` — "3,700-Myr-old", "ca.
-  3.48 Ga", "ca. 3300 BC" — and is carried as approximate, with no standard
-  uncertainty.
+- Every other date read is written without a `±` and is carried with no
+  standard uncertainty. Those written "about", "approximately", "ca.", "~"
+  or "-Myr-old" — "3,700-Myr-old", "ca. 3.48 Ga", "ca. 3300 BC" — are
+  carried as approximate; those written as plain figures — Dodd et al.'s
+  "at least 3,770 million and possibly 4,280 million years", Rosing's
+  "more than 3700 million years ago" — are not.
 
 ### The datum
 
@@ -111,7 +116,7 @@ Twelve claims under three landmarks, oldest first within each, in
 | `earliest-life-jack-hills` | Graphite inclusions in a Jack Hills zircon, "potentially biogenic" [bell2015] | at least 4.10 Ga (± 0.01 as printed, no σ) | — |
 | `earliest-life-akilia` | Light carbon in apatite, Akilia and Isua [mojzsis1996] | at least about 3.8 Ga | Fedo & Whitehouse 2002 [fedo2002] |
 | `earliest-life-nuvvuagittuq` | Haematite filaments, Nuvvuagittuq belt, "putative" [dodd2017] | between 4.28 and 3.77 Ga | — |
-| `earliest-life-isua-graphite` | Graphite globules in Isua sediments [rosing1999] | at least about 3.7 Ga | — |
+| `earliest-life-isua-graphite` | Graphite globules in Isua sediments [rosing1999] | more than 3.7 Ga | — |
 | `earliest-life-isua-stromatolites` | Stromatolites in Isua metacarbonates [nutman2016] | about 3.7 Ga | Allwood et al. 2018 [allwood2018] |
 | `earliest-life-dresser` | Stromatolites, microfossils and hot-spring deposits, Dresser Formation [djokic2017; nutman2016] | about 3.48 Ga | — |
 | `earliest-life-apex-chert` | Filamentous microfossils, Apex chert [schopf1993] | at least about 3.465 Ga | Brasier et al. 2002 [brasier2002] |
@@ -218,7 +223,7 @@ Three things limit what the entries mean:
 | [richter2017] | The Jebel Irhoud date, 315 ± 34 ka, and the tooth's 286 ± 32 ka | Abstract; the full text, which would give the confidence level, was not reached |
 | [vidal2022] | Omo I, a minimum of 233 ± 22 kyr at 2σ | Yes, open access, 2026-09-27 |
 | [gorsdorf1998] | Tomb U-j, Naqada IIIa2 in the middle of the 34th century BC; U-j as the earliest hieroglyphic writing from Egypt | Yes, from the University of Arizona repository, 2026-09-27 |
-| [englund2004] | Proto-cuneiform, emerging ca. 3300 BC; Uruk IV and Uruk III | Yes, from the CDLI, 2026-09-27; it cites Englund 1998 (OBO 160/1) and Nissen, Damerow & Englund 1993, not read here |
+| [englund2004] | Proto-cuneiform, emerging ca. 3300 BC (p. 26); Uruk IV and Uruk III, the Uruk III period ca. 3100–3000 BC (p. 40) | Yes, the whole chapter, pp. 23–46, in the CDLI's PDF, 2026-09-27; it cites Englund 1998 (OBO 160/1) and Nissen, Damerow & Englund 1993, not read here |
 | [astro-dic] | Japanese names of cosmic epochs and events | Yes, 2026-09-27 |
 | [alma-6000-vol2] | 初代銀河 | Yes, 2026-09-27 |
 | [wikipedia-ja-cosmic-epochs] | Japanese names of the cosmic epochs | Yes, 2026-09-27 |

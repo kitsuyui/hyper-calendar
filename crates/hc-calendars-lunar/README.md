@@ -79,7 +79,7 @@ calendars judged over the whole Earth or published as a body's table —
 and Neo-MABIMS criteria are written up in
 [`docs/systems/unified-hijri.md`](../../docs/systems/unified-hijri.md):
 the two bodies' calendars begin Ramaḍān 1447 a day apart, as each did, and
-reproduce every month Muhammadiyah published for 1447–1449 and 171 of the
+reproduce every month Muhammadiyah published for 1447–1449 and 172 of the
 174 Diyanet published for 1443–1457.
 
 The tabular calendars are counting rules and are exact as such: `tabular`

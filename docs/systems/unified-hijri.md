@@ -61,8 +61,13 @@ The two bodies state the same two thresholds, and the rest differently.
 
 **Diyanet** [diyanet-ramazan-1447]:
 
-1. No place of sighting is privileged; a sighting possible anywhere on
-   Earth begins the month.
+1. No place of sighting is privileged: "Yeryüzünün herhangi bir
+   bölgesinde hilalin ru'yeti mümkün olursa buna dayanılarak ayın
+   başladığına hükmedilir", if the crescent can be sighted in any region
+   of the Earth, the month is held to have begun. Its assessment of time
+   zones says it again: "Dünyanın herhangi bir yerinde", anywhere in the
+   world, together with the conjunction before *imsāk* in the easternmost
+   region, and states that the computations are made in UTC.
 2. The crescent is visible when, after the conjunction, the Moon is at
    least 8° from the Sun, and at sunset at least 5° above the horizon.
 3. For the month to begin, the sighting must be possible on the mainland
@@ -77,12 +82,22 @@ the topocentric altitude and Muhammadiyah's with the geocentric one
 [djamaluddin-khgt-turki-2025]. The topocentric altitude is the geocentric
 one less the Moon's parallax in altitude, about 0.95° at the horizon.
 
-The two texts also differ in shape: Muhammadiyah's first condition takes
-any place on Earth before midnight, which Diyanet's does not state, and
-Muhammadiyah's site, summarising the Turkish model, joins the two
-after-midnight conditions with "atau", or, where its parameters say "and"
-[muhammadiyah-khgt-site]. `docs/policy.md` §5 therefore gives each body's
-calendar its own identifier.
+The two texts also differ in shape. Muhammadiyah bounds its "anywhere"
+condition at 24:00 UT; Diyanet's statement gives it no hour, and lists the
+Americas and Wellington conditions as required for the month to begin. Read
+literally, the Americas condition would make "anywhere" idle. This library
+reads Diyanet's condition with Muhammadiyah's bound: the statement computes
+in UTC, and in Ramaḍān 1447 it set aside a crescent visible over the
+Pacific from 03:42 UT on the 18th, after midnight and not on land. The
+bound is an inference, not the statement's words. Against Diyanet's lists
+it dates 172 of 174 months as published. Requiring the Americas and
+Wellington of every month dates 171, with Rajab 1453 a day late. That
+evening, 16 October 2031, both thresholds are met before 24:00 UT over the
+south-eastern Pacific, west of South America, and not on the mainland as
+the library follows it. Muhammadiyah's site, summarising the Turkish
+model, also joins the two after-midnight conditions with "atau", or, where
+its parameters say "and" [muhammadiyah-khgt-site]. `docs/policy.md` §5
+therefore gives each body's calendar its own identifier.
 
 **This library's reading** of both:
 
@@ -117,8 +132,9 @@ degree.
 
 **Worked example: Ramaḍān 1447.** The conjunction fell at 12:01 UT on
 17 February 2026, as both bodies give it. At 24:00 UT that day the Moon was
-6.11° from the Sun: nothing on the terminator reached 8°, so Muhammadiyah's
-first condition failed, as it says [muhammadiyah-ramadan-1447]. Astronomical
+6.11° from the Sun: nothing on the terminator reached 8°, so the condition
+of anywhere before midnight failed for both rules, as Muhammadiyah says
+[muhammadiyah-ramadan-1447]. Astronomical
 dawn at Wellington on 18 February was at 16:06 UT on the 17th, four hours
 after the conjunction, so the New Zealand condition held. Along the
 Alaskan coast the evening of the 17th, local date, came after midnight UT:
@@ -139,8 +155,10 @@ both figures stand at the thresholds [muhammadiyah-ramadan-1447]. With the
 topocentric altitude no point of the mainland reaches 5°; the crescent is
 visible that evening only over the Pacific, "not on land", as Diyanet says,
 and Ramaḍān begins on the 19th [diyanet-ramazan-1447]. On the evening of
-the 18th the thresholds are met everywhere along the coast, by 10° of
-altitude and more.
+the 18th the thresholds are met at every point of the Alaskan coast, by
+more than 10° of topocentric altitude. On the Pacific coast the
+topocentric altitude falls below 5° at 44 of the 534 points, from 43.4° S
+southward in Chilean Patagonia.
 
 ### The FCNA calendar
 
@@ -150,8 +168,11 @@ should be at least 8°, and the moon should be positioned at least 5° above
 the horizon", the month beginning the next day if so and the day after
 otherwise [fcna-calendar]. It names no frame and no limit on where
 "somewhere" may be; for Ramaḍān 1447 it counted the thresholds met in
-Polynesia or the Fiji region [fcna-ramadan-1447]. The Council's earlier
-rule, from its conference of 10 June 2006, began the month at sunset of the
+Polynesia or the Fiji region [fcna-ramadan-1447]. One day is set
+outside the rule: "Eid al-Aḍḥā will be the day after Yawm 'Arafah as
+determined by the Supreme Court of Saudi Arabia" [fcna-calendar], so the
+Council's Eid al-Aḍḥā can differ from the 10th of its own Dhū al-Ḥijja.
+The Council's earlier rule, from its conference of 10 June 2006, began the month at sunset of the
 day on which the conjunction occurred before 12:00 noon GMT [fcna-2006].
 
 ### Neo-MABIMS
@@ -186,14 +207,19 @@ arc of light.
 - **`islamic-khgt`**, `IslamicGlobalCalendar::KHGT`: Muhammadiyah's rule
   as read above, 1900–2100, in use from 26 June 2025.
 - **`islamic-istanbul-2016`**, `IslamicGlobalCalendar::ISTANBUL_2016`:
-  Diyanet's rule as read above, 1900–2100. No source read dates Diyanet's
-  first use of it, so its period of use is unrecorded.
+  Diyanet's rule as read above, 1900–2100. The statement dates the
+  criteria to the Ru'yet-i Hilâl Conference of Istanbul in 1978 and their
+  confirmation to the congress of 2016 [diyanet-ramazan-1447]. No source
+  read says from when Diyanet's lists follow the 2016 rule, so its period
+  of use is unrecorded.
 - **`islamic-fcna`**, `IslamicFcnaCalendar`: the Council's published
   table, 1 Muḥarram 1440 to the end of Jumādā II 1465, 11 September 2018 to
   7 June 2043. The page lists every month to Dhū al-Ḥijja 1467 but the first
   of Shaʿbān 1465, so the length of Rajab 1465 is unknown, and that month and
   every later one are refused. No rule is computed for it: none this
-  library tried reproduces it (below). The 2006 rule is not carried, since
+  library tried reproduces it (below). The table dates months, not the
+  Council's Eid al-Aḍḥā, which follows the Saudi Supreme Court's day of
+  ʿArafah [fcna-calendar] and is not carried. The 2006 rule is not carried, since
   no month the Council dated by it was read.
 - **The criteria at a place**, each a `NamedCriterion` that any
   `ObservationSite`, and the WebAssembly and C exports' `hc_crescent_visible`,
@@ -222,9 +248,9 @@ arc of light.
 | 1 Muḥarram 1447 = 26 June 2025 under `islamic-khgt` | Reproduced | `the_calendar_began_on_the_first_of_muharram_1447` |
 | Muhammadiyah's page, 1447–1449 AH, the years in force and just ahead | 36 of 36 | `khgt_s_published_months_are_reproduced_for_1447_to_1449` |
 | Muhammadiyah's page, all 551 months of 1447–1492 carried | 493 on the same day, 52 a day later here, 6 a day earlier, every difference from 1450 on | the same, in a release build |
-| Diyanet's lists, 174 month starts of 1443–1457 AH | 171 of 174: Dhū al-Qaʿda 1444 and Dhū al-Ḥijja 1453 a day earlier here, Rajab 1453 a day later | `diyanet_s_published_months_are_reproduced_but_three` |
+| Diyanet's lists, 174 month starts of 1443–1457 AH | 172 of 174: Dhū al-Qaʿda 1444 and Dhū al-Ḥijja 1453 a day earlier here | `diyanet_s_published_months_are_reproduced_but_two` |
 | The FCNA table against the Council's page | 306 of 306 carried, row for row | `the_fcna_table_is_the_councils_page` |
-| The two Unified Hijri rules against the FCNA page, 335 months | KHGT's 305, Diyanet's 299 | `neither_unified_rule_reproduces_the_fcna_table`, in a release build |
+| The two Unified Hijri rules against the FCNA page, 335 months | KHGT's 305, Diyanet's 300 | `neither_unified_rule_reproduces_the_fcna_table`, in a release build |
 | Every day of 1900–2100 converts both ways under both rules | All in a release build, several minutes of one core for the two; every 101st day and every 1 Muḥarram with the day before it in a debug one | `every_day_of_1900_to_2100_round_trips_under_both_rules` |
 | Every month both rules begin in 1900–2100 has 29 or 30 days, as Muhammadiyah requires of its calendar [muhammadiyah-ughc-2025, §C.2] | All in a release build; every seventh year in a debug one | `every_month_has_twenty_nine_or_thirty_days` |
 | The interpolated sky against `hc-astro` | Sun and Moon under 10⁻⁴ degree, sidereal time under 10⁻³ | `the_interpolated_sky_follows_the_ephemeris` |
@@ -232,14 +258,9 @@ arc of light.
 | Odeh's Table V from his equation 2 | Every one of the 27 cells to the printed tenth | `odehs_equation_reproduces_his_table_five` |
 | Djamaluddin's twelve evenings of 1447 by Neo-MABIMS, judged at Banda Aceh and Jakarta | 11 of 12 under either reading; Rajab's evening of 20 December 2025, met "di wilayah Indonesia", is met at neither place | `the_two_mabims_readings_against_djamaluddins_1447` |
 
-**What the disagreements say.** Diyanet's three: the evenings of Dhū
+**What the disagreements say.** Diyanet's two: the evenings of Dhū
 al-Qaʿda 1444 and Dhū al-Ḥijja 1453 meet the thresholds here and not in
-Diyanet's computation, and the evening of Rajab 1453, 16 October 2031, meets
-them in Diyanet's and not here; that evening both thresholds are met,
-the elongation by hundredths of a degree, at points near 50° S a little
-west of the line of places the library follows, among the Patagonian
-fjords, where the places carried do not settle how far west the mainland
-reaches. Muhammadiyah's page agrees exactly for the years in force; from
+Diyanet's computation. Muhammadiyah's page agrees exactly for the years in force; from
 1450 on it begins 52 months a day earlier than the rule as its texts state
 it, and 6 a day later. A reading that follows the site's "atau" — the
 thresholds met anywhere after midnight with the conjunction before dawn in
@@ -262,14 +283,14 @@ across bays and fjords.
 | [muhammadiyah-khgt-site] | The parameters as the site states them, geocentric, and the "atau" of its summary | Yes, 2026-09-27 |
 | [khgt-kalendar-hijriah] | The first day of every month of 1447–1492 | Yes, 2026-09-27 |
 | [muhammadiyah-ramadan-1447] | 1 Ramaḍān 1447 = 18 February 2026; the conjunction, the New Zealand condition, Bethel, the figures in Alaska | Yes, 2026-09-27 |
-| [diyanet-ramazan-1447] | Diyanet's criteria, the Wellington condition, 1 Ramaḍān 1447 = 19 February 2026, visibility over the Pacific | Yes, 2026-09-27 |
+| [diyanet-ramazan-1447] | Diyanet's criteria, "anywhere on Earth", the Wellington condition, the conferences of 1978 and 2016, 1 Ramaḍān 1447 = 19 February 2026, visibility over the Pacific | Yes, 2026-09-27 |
 | [diyanet-dini-gunler] | The first days of months of 1443–1457 | Yes, 2026-09-27 |
 | [diyanet-kongre-2016] | The congress and its final declaration | The declaration only, 2026-09-27; the Scientific Committee's working paper, which Muhammadiyah cites for the rule, not read |
 | [djamaluddin-khgt-turki-2025] | The frames of the Turkish criterion | Yes, 2026-09-27; secondary |
 | [djamaluddin-kalender-1447] | Neo-MABIMS with a geocentric elongation; the twelve evenings of 1447 | Yes, 2026-09-27 |
 | [djamaluddin-mabims-2022] | Neo-MABIMS's ratification and adoption | Yes, 2026-09-27 |
 | [mufid-djamaluddin-2023] | The Neo-MABIMS criterion and its open frames | Yes, 2026-09-27 |
-| [fcna-calendar] | The Council's criterion and its table | Yes, 2026-09-27 |
+| [fcna-calendar] | The Council's criterion, its table, and Eid al-Aḍḥā after the Saudi Supreme Court's day of ʿArafah | Yes, 2026-09-27 |
 | [fcna-ramadan-1447] | 1 Ramaḍān 1447 = 18 February 2026, 1 Shawwāl = 20 March | Yes, 2026-09-27 |
 | [fcna-2006] | The 2006 rule | Yes, 2026-09-27 |
 | [odeh2004] | Odeh's criterion, Table V and equation 2 | Yes, the PDF, 2026-09-27; Table VI not extracted |

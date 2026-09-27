@@ -1,5 +1,4 @@
-# Hours of the day: local mean time, sundial time, temporal, Italian and Edo hours, and religious times
-# Hours of the day: local mean time, sundial time, temporal and Italian hours, religious times, and the Ethiopian and Swahili hours
+# Hours of the day: local mean time, sundial time, temporal, Italian and Edo hours, religious times, and the Ethiopian and Swahili hours
 
 Backs `hc-astro::solar_time`, and `hc-format::east_african_hours` with the
 reckonings `ethiopian-hours` and `swahili-hours`. No calendar identifier is
@@ -39,7 +38,7 @@ Older still are hours counted from the Sun's own events:
   1872: the daylight from 明け六つ to 暮れ六つ in six hours and the night in
   six more, so that a summer day's hour was about 2 h 39 min and a summer
   night's about 1 h 21 min [astro-dic-futeijiho]. The hours were named by
-  the strokes of the bell that opened them.
+  the number of strokes that announced them.
 
 In Ethiopia and on the Swahili-speaking coast of East Africa the civil
 clock itself is read differently: a twelve-hour dial counted from about
@@ -101,8 +100,11 @@ of that day is 17 h 20 min after it, 17:20 in Italian hours.
 
 Each half of the day, 明け六つ to 暮れ六つ and 暮れ六つ to the next 明け六つ,
 is divided into six equal hours, 一刻 each [nao-rekiwiki-futeiji]. The
-hours are named by the strokes of the bell, nine at noon and midnight and
-one fewer at each hour after, down to four, so a day runs 明六つ, 朝五つ,
+hours are named by the number of strokes that announced them, nine at noon
+and midnight and one fewer at each hour after, down to four: the strokes of
+the time bell, 時鐘, from the late Muromachi period [wikipedia-ja-jikoku],
+or of the drum, 太鼓, as the Observatory's page puts it
+[nao-rekiwiki-futeiji]. A day runs 明六つ, 朝五つ,
 朝四つ, 昼九つ, 昼八つ, 夕七つ, 暮六つ, 夜五つ, 夜四つ, 暁九つ, 暁八つ, 暁七つ.
 The prefixes follow the Observatory's list, 今暁九時, 八時, 七時, 明六時,
 朝五時, 四時, 昼九時, 八時, 夕七時, 暮六時, 夜五時, 四時, in which a prefix also
@@ -134,13 +136,15 @@ Where 明け六つ and 暮れ六つ fall has had three rules [nao-rekiwiki-yoake
    difference to a latitude of 35°0.8′ in a book of 1917, and says it has
    no clear record of why.
 
-**Worked example.** Kyoto, 20 March 2020. こよみのページ puts 夜明, at
-7°21′40″, at 5:28:47 JST, and the Sun's centre on the geometric horizon
-at 6:04:43, 35 min 56 s later: the 二刻半 that the angle was made to
-give [koyomi8-yoake-higure]. This library puts 日暮 that evening at
-18:40:40. The daylight is 13 h 11 min 53 s, so each of its six hours is
-2 h 11 min 59 s, and 昼九つ, three hours after 明け六つ, begins at 12:04:44,
-a quarter of a minute after the Sun crosses the meridian at 12:04:29.
+**Worked example.** Kyoto, 20 March 2020, at the 改暦所, with this
+library's times throughout. 明け六つ by the 寛政暦's angle is at 5:28:54 JST,
+and the Sun's centre reaches the geometric horizon 35 min 58 s later: the
+二刻半 that the angle was made to give. 暮れ六つ is at 18:40:40. The
+daylight is 13 h 11 min 46 s, so each of its six hours is 2 h 11 min 58 s,
+and 昼九つ, three hours after 明け六つ, begins at 12:04:47, 18 s after the
+Sun crosses the meridian at 12:04:29. こよみのページ puts 夜明 that morning
+at 5:28:47, 35 min 56 s before the centre rises [koyomi8-yoake-higure];
+the Accuracy section compares the two.
 
 ### Religious times
 
@@ -200,15 +204,18 @@ after sunrise, 07:20 + 140 min = 09:40, and *minḥah gedolah* is
 dawn at 06:08 and nightfall at 17:52, the MGA day is 704 minutes, its hour
 58.67 minutes, and the latest Shema by the MGA is 06:08 + 176 min = 09:04,
 also Hebcal's time.
+
 ### The Ethiopian and Swahili hours
 
 The dial reads the civil hour less six, on twelve hours: 07:00 is 1, noon
 is 6, 18:00 is 12 and midnight 6 again. The Ethiopian day "begins at
 sunrise or 0600 hours … 8 am is 2 o'clock for an Ethiopian, 10 am is
-4 o'clock … 6 pm, which is 12 o'clock and then the counting begins again,
-7 pm is 1 o'clock" [undp-eue-ethiopian-time], and "the daytime cycle begins
-at dawn 12:00 (6:00:00 AM EAT) and ends at dusk 11:59:59 (5:59:59 PM EAT)"
-[wikipedia-time-in-ethiopia]. In Swahili, "7:00 am is referred to as saa
+4 o'clock … This continues until 6 pm, which is 12 o'clock and then the
+counting begins again, 7 pm is 1 o'clock" [undp-eue-ethiopian-time].
+Wikipedia states the halves: "The daytime cycle begins at dawn 12:00
+(6:00:00 AM EAT) and ends at dusk 11:59:59 (5:59:59 PM EAT)", and then
+"the day begins at 1:00 o'clock in the morning according to the 12-hour
+cycle (7:00 AM EAT)" [wikipedia-time-in-ethiopia]. In Swahili, "7:00 am is referred to as saa
 moja asubuhi to mean that it is the first hour of the day. 7:00 pm is
 called saa moja usiku to indicate that it is the first hour of the night",
 and the lesson names every hour with its part of the day: *usiku*, night,
@@ -216,13 +223,24 @@ from 7 pm to 3 am; *alfajiri*, dawn, 4 to 6 am; *asubuhi*, morning, 7 to
 11 am; *mchana*, afternoon, noon to 3 pm; *jioni*, evening, 4 to 6 pm
 [ku-kiswahili-lesson-17].
 
-The two agree on the dial and differ in where the halves meet. The
-Ethiopian day half is 06:00 to 17:59:59. The Swahili lesson's day hours are
-7 am to 6 pm, the night's 7 pm to 6 am, so 06:00 is the night's twelfth
-hour, *saa kumi na mbili alfajiri*, and 18:00 the day's, *saa kumi na
-mbili jioni*; between the whole hours this library gives a reading the
-half of its civil hour, which the lesson's table implies and does not
-state.
+The two agree on the dial. Where the halves meet is stated for Swahili
+and disputed for Ethiopia:
+
+- **Swahili.** The lesson's day hours are 7 am to 6 pm, the night's 7 pm
+  to 6 am, so 06:00 is the night's twelfth hour, *saa kumi na mbili
+  alfajiri*, and 18:00 the day's, *saa kumi na mbili jioni*; between the
+  whole hours this library gives a reading the half of its civil hour,
+  which the lesson's table implies and does not state.
+- **Ethiopian.** Wikipedia's first sentence puts the day half at 06:00 to
+  17:59:59, so that 18:00 is the night's twelve. The guide's counting
+  "continues until 6 pm, which is 12 o'clock and then the counting begins
+  again", which reads as 18:00 closing the day, and Wikipedia's next
+  sentence begins the day at 07:00: both read as the Swahili halves.
+  `ethiopian-hours` follows the first sentence, the one statement read
+  that gives the halves to the second. The disagreement changes only the
+  half of the hours 06:00–06:59 and 18:00–18:59, never the dial's number;
+  a caller who reads the Ethiopian clock with the other halves gets them
+  from `swahili-hours`.
 
 **Worked example.** 10:30 in Addis Ababa or Dar es Salaam: 10 − 6 = 4,
 so 4:30 of the day, *saa nne na nusu asubuhi* in the lesson's own example.
@@ -337,6 +355,12 @@ Temporal and Italian hours, and the religious times:
   [shulchan-arukh-oc-89], and counting those hours from sunrise is the
   Vilna Gaon's reckoning as the *Mishnah Berurah* gives it (58:4)
   [mishnah-berurah-58].
+- **Not carried as a `Zman`: *chatzot*, midday.** Hebcal defines it as
+  "Sunrise plus 6 halachic hours" [hebcal-zmanim-api], the middle of the
+  GRA day, and prints it at 12:08 in London on 20 March 2025. That is
+  temporal time 12:00, which `universal_from_temporal_time` gives at
+  12:08:22, and not the Sun's transit, which `riseset::solar_noon` gives at
+  12:07:52 that day.
 - Dawn and nightfall: `jewish_dawn_16_1_degrees`, `jewish_dawn_72_minutes`,
   `jewish_nightfall_8_5_degrees` and `jewish_nightfall_72_minutes`.
   Candle lighting, the other angles and minute counts Hebcal prints
@@ -401,11 +425,14 @@ the geometric horizon, where こよみのページ computes 35 min 56 s and 36 m
 0 s, and at 5:28:54 and 5:13:01 JST where it gives 5:28:47 and 5:12:54
 [koyomi8-yoake-higure]; the page names neither the year, taken as 2020,
 when it was written and when the equinoxes fell on those days, nor its
-point in Kyoto, and a point 26″ of longitude east of the 改暦所 used here
-accounts for the 7 s. At the 2024 solstice at Kyoto a daytime hour is
+point in Kyoto, and a point about 1′45″ (0.03°) of longitude east of the
+改暦所 used here accounts for the 7 s, 15″ of longitude to a second of
+time. At the 2024 solstice at Kyoto a daytime hour is
 2 h 37.8 min and a night hour 1 h 22.3 min, against the "about 2 h 39 min"
 and "about 1 h 21 min" of a source that names no place
-[astro-dic-futeijiho]. The formula of rule 2 gives 7°21′41″ to the
+[astro-dic-futeijiho]. At Kyoto an instant of every day from −1000 to
+3000 reads as an Edo time and back to a millisecond, every day in a
+release build and a sample of days and year ends in a debug one. The formula of rule 2 gives 7°21′41″ to the
 arcsecond, as the Observatory's page does.
 
 The temporal hours are as good as the sunrise and sunset under them, which
@@ -466,13 +493,15 @@ both sources are tests.
   Read 2026-09-27; the 寛政暦書, Ōtani and Watanabe's 『近世日本天文学史』
   not read.
 - [nao-rekiwiki-futeiji] — 暦Wiki, 「定時法と不定時法」: six hours each to
-  day and night, the hour names with their prefixes, the 天保暦's tenths,
-  明け六つ as the start of the day, clocks that showed the unequal hours.
-  Read 2026-09-27.
+  day and night, the hour names with their prefixes, the numbers as the
+  strokes of the drum, the 天保暦's tenths, 明け六つ as the start of the
+  day, clocks that showed the unequal hours. Read 2026-09-27.
 - [astro-dic-futeijiho] — 天文学辞典, 「不定時法」: the midsummer lengths of
   a day and a night hour. Read 2026-09-27.
-- [wikipedia-ja-jikoku] — Wikipedia (ja), 「時刻」: the pairing of the bell
-  hours with the branches. Read 2026-09-27.
+- [wikipedia-ja-jikoku] — Wikipedia (ja), 「時刻」: the hours named by the
+  strokes of the time bell from the late Muromachi period, nine at noon
+  and one fewer each hour, and the pairing of the bell hours with the
+  branches. Read 2026-09-27.
 - [koyomi8-yoake-higure] — こよみのページ, 「理科年表の「夜明」と「日暮」の
   角度」 (2020-02-12) and its 補稿 (2020-02-16): the 理科年表's wording, and
   the Kyoto equinox times. Read 2026-09-27.
@@ -481,8 +510,9 @@ both sources are tests.
   2026-09-27.
 - [mishnah-berurah-58] — 58:4, the Magen Avraham's and the Vilna Gaon's
   starting points for the hours. Read in Hebrew 2026-09-27.
-- [wikipedia-time-in-ethiopia] — the Ethiopian day and night halves and the
-  six-hour difference. Read 2026-09-27.
+- [wikipedia-time-in-ethiopia] — the Ethiopian day and night halves, the
+  day beginning at 1 o'clock, 07:00, and the six-hour difference. Read
+  2026-09-27.
 - [undp-eue-ethiopian-time] — the Ethiopian hours' examples, from the UN
   Women's Association's guide as the UNDP Emergencies Unit for Ethiopia
   published it. The live page refuses the request; read in the Internet
@@ -517,10 +547,9 @@ both sources are tests.
 `a_midsummer_edo_hour_is_about_two_hours_thirty_nine_minutes`,
 `the_edo_hours_run_from_dawn_through_noon_and_midnight`,
 `the_edo_hours_are_named_by_their_strokes_and_branches`,
-`edo_time_inverts_its_universal_time` and
+`edo_time_inverts_its_universal_time`,
+`edo_time_inverts_over_the_whole_era` and
 `the_edo_hours_are_refused_on_a_white_night`.
-`asr_is_where_the_shadow_rule_puts_it` and
-`the_jewish_evening_times_sit_at_their_angles_in_order`.
 
 `crates/hc-format/src/east_african_hours.rs`, anchored by
 `the_ethiopian_examples`, `the_swahili_examples`,

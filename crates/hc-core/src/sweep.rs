@@ -16,7 +16,7 @@
 /// most 256 days, so that a short list — a debug build's sample of a few
 /// hundred days, or the new years of a few hundred years — is spread over
 /// every thread rather than handed to the first few in two or three chunks
-/// of 256, while a long one is taken 256 days at a time, as before, and a
+/// of 256, while a long one is taken 256 days at a time, and a
 /// chunk that happens to be slow still leaves the other threads work to
 /// take. Each day is checked exactly once, whatever the chunking, so the
 /// outcome does not depend on it. A failing check panics its thread, and
@@ -78,8 +78,8 @@ mod tests {
 
     #[test]
     fn a_short_list_is_spread_over_every_thread_and_a_long_one_taken_256_at_a_time() {
-        // 322 days over 14 threads: 322 / 112 is 2.9, so chunks of 3 and
-        // 108 of them, where chunks of 256 made two.
+        // 322 days over 14 threads: 322 / 112 is 2.9, so 108 chunks of 3,
+        // where chunks of 256 would make two.
         assert_eq!(check_days_chunk(322, 14), 3);
         assert_eq!(check_days_chunk(868, 14), 8);
         assert_eq!(check_days_chunk(3_652_579, 14), 256);

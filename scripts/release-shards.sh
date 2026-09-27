@@ -3,16 +3,17 @@
 # --all-features`, in shards that CI runs side by side.
 #
 # A release build walks every day of the longest sweeps (docs/policy.md §7),
-# and two unit-test binaries hold most of that time. On a four-core runner,
-# the unsharded run of September 2026 took about 30 minutes. It spent about 3
-# minutes building, then 544 s on hc-calendars-indic's unit tests and 428 s
-# on hc-calendars-lunar's, before `babylonian`'s own every-day sweep of
-# about 3 minutes was added. Every other binary, and the doctests, took
-# 2 1/2 minutes together. hc-calendars-regional's binary took 517 s then, and
-# takes about a minute now: its Arsacid era rests on `babylonian`'s sweep
-# rather than walking the same days again. So indic and lunar each have a
-# shard, and `rest` runs every other test binary cargo builds, and the
-# doctests.
+# and two unit-test binaries hold most of that time. Measured on a
+# four-core runner in September 2026, the build takes about 3 minutes;
+# hc-calendars-indic's unit tests take 544 s; hc-calendars-lunar's take
+# 428 s, and about 3 minutes more for `babylonian`'s every-day sweep in the
+# same binary. hc-calendars-regional's binary takes about a minute, since
+# its Arsacid era rests on `babylonian`'s sweep rather than walking the
+# same days again, and every other binary and the doctests take about
+# 2 1/2 minutes together, besides hc-astro's every-day sweep of the Edo
+# hours over 4 000 years, which takes 48 s of ten threads on a desktop and
+# was not measured on the runner. So indic and lunar each have a shard, and `rest`
+# runs every other test binary cargo builds, and the doctests.
 #
 # A shard names a package's unit-test binary and `rest` is the complement,
 # so every test runs in exactly one shard. A new crate, test file or doctest
