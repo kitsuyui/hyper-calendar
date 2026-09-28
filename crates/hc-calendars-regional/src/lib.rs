@@ -26,6 +26,7 @@
 //! | [`gregorian_eras`] | `hongxian` — Yuan Shikai's 洪憲 of 1916; `manchukuo` — Manchukuo's 大同 and 康德, 1932–1945; both on the Gregorian calendar |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
+//! | [`tibetan_almanac`] | No calendar: the Tibetan almanac's columns — lunar mansion, *yoga*, *karaṇa*, true Sun and Moon — the planets and Rāhu, the *rab byung* year names and the count from 127 BCE, the Bhutanese weekday and winter solstice, the Mongolian months and colours, and where a festival on a skipped or repeated date falls |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 //! | [`lao`] | `lao` — the Lao lunar calendar by the *suryayatra* rule as Dupertuis computes it, Chulasakarat 1301–1401 (1938–2039) |
 //! | [`southeast_asian`] | No calendar: the year layout `thai-lunar`, `khmer` and `lao` share, the *suryayatra* quantities of the solar New Year and the rule `khmer` and `lao` compute |
@@ -149,6 +150,7 @@ pub mod olympiad;
 pub mod sexagenary;
 pub mod southeast_asian;
 pub mod thai_lunar;
+pub mod tibetan_almanac;
 mod vague_year;
 pub mod zapotec;
 

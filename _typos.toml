@@ -573,3 +573,8 @@ Presidencial = "Presidencial"
 # Italian "comune", the municipality (the comune di Roma of D.P.R.
 # 792/1985), in docs/observances.md and the Italian table's sources.
 comune = "comune"
+# hc-calendars-regional's tibetan_almanac and docs/systems/tibetan-*.md: the
+# Wylie names of the lunar mansions tha skar (Aśvinī) and mchu (Maghā), as
+# Henning's almanacs print them.
+tha = "tha"
+mchu = "mchu"

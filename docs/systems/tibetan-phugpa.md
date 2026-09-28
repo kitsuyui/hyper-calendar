@@ -1,8 +1,11 @@
 # The Tibetan calendar: the Phugpa arithmetic
 
 Backs the identifier `tibetan` in `hc-calendars-lunar`, and the arithmetic
-the other versions share with it; what they change is in
-[tibetan-variants.md](tibetan-variants.md).
+the other versions share with it; what they change, and the two
+conventions of the true date registered as `tibetan-lochen` and
+`tibetan-tsurphu-karana`, is in [tibetan-variants.md](tibetan-variants.md),
+and what the almanac prints beside the date in
+[tibetan-almanac.md](tibetan-almanac.md).
 
 ## What it is
 
@@ -222,24 +225,32 @@ day 18; there is no day 19, and 12 March is day 20. The module marks the
   shows the mark in a written date, so the text names two days and the
   reader refuses it as `ambiguous` ([written-dates.md](written-dates.md)).
 - **The year's names**: `year_name` gives element, gender and animal,
-  `prabhava` the cycle and the year in it; the Sanskrit and Tibetan names
-  of the sixty years are not carried.
+  `prabhava` the cycle and the year in it; `hc-calendars-regional`'s
+  `tibetan_almanac::rab_byung_name` the year's name in the sixty-year
+  cycle in Tibetan and Sanskrit, *thams cad 'dul*, *sarvajit*, for 2007,
+  from Janson's table after Henning, and `royal_year` the count from 127
+  BCE, *Y* + 127, 2151 for 2024 [janson2014, §4 and Appendix B].
 - **The range** 1000 to 3000, Losar of 1000 to the day before Losar of 3001.
   The bounds are this library's: the Phugpa rules date from 1447 and the
   arithmetic from 806, and no source names 1000 or 3000; the lower bound
   keeps the range inside the era the first *rab byung* cycle opens, and the
   upper is where the other arithmetic calendars here stop.
-- **Not carried** here: the Tsurphu, Mongolian and Bhutanese versions,
-  which are `tibetan-tsurphu`, `mongolian` and `tibetan-bhutan`, and the
-  *Kālacakra* *karaṇa* calculation, which is not carried at all
-  ([tibetan-variants.md](tibetan-variants.md)); Henning's exact *a*₂; the
-  almanac's other components — the five *lnga-bsdus* are the day of week,
-  the lunar day, the lunar mansion, the *yoga* and the *karaṇa*, and the
-  almanac also prints the true date's fraction, the true solar longitude
-  and the planets [janson2014, §10 and Appendix D]; the holidays of
-  Henning's Appendix II and the rule that a holiday on a skipped date moves
-  to the day before [janson2014, §11]; the 127 BCE year count, which is
-  *Y* + 127.
+- **Carried elsewhere**: the Tsurphu, Mongolian and Bhutanese versions,
+  which are `tibetan-tsurphu`, `mongolian` and `tibetan-bhutan`; Henning's
+  exact *a*₂, under which the Phugpa is `tibetan-lochen` in
+  `hc-calendars-regional` ([tibetan-variants.md](tibetan-variants.md));
+  the almanac's other components — the five *lnga-bsdus* are the day of
+  week, the lunar day, the lunar mansion, the *yoga* and the *karaṇa*, and
+  the almanac also prints the true date's fraction, the true solar
+  longitude and the planets [janson2014, §10 and Appendix D] — which
+  `tibetan_almanac` computes, checked against Henning's computed almanacs;
+  the festivals of Henning's almanacs and the rule that a holiday on a
+  skipped date moves to the day before and one on a repeated date keeps
+  the first [janson2014, §11], with the other placement Henning's
+  almanacs follow ([tibetan-almanac.md](tibetan-almanac.md)). Henning's
+  Appendix II itself, the list Janson cites, was not read.
+- **Not carried** at all: the *Kālacakra* *karaṇa* calculation as a
+  calendar ([tibetan-variants.md](tibetan-variants.md)).
 
 **What the other traditions would change.** Janson's Appendix A. All four
 versions share the mean motions *m*₁, *s*₁, *a*₁ and differ in their epoch
@@ -319,7 +330,10 @@ for 2013 [janson2014, §1], and this library has not.
 and Henning's exact *a*₂ give different calendars on about one day in
 4 100, the next being 19 November 2025 [janson2014, Remark 14]; the
 module carries the almanacs' value, and the Losar dates above do not
-depend on the choice.
+depend on the choice. Henning's computed almanacs are the exact *a*₂'s,
+`tibetan-lochen`: his almanac for 2025 has 18 and 19 November as the
+29th of month 9, where `tibetan` has 19 November as the first of two
+days numbered 30 ([tibetan-variants.md](tibetan-variants.md)).
 
 ## Sources
 
@@ -327,6 +341,7 @@ depend on the choice.
 | --- | --- | --- |
 | [janson2014] | The whole arithmetic: the epoch, (5.1)–(5.41), the mean motions and tables (7.1)–(7.24), the day rule (8.1), the Julian Day Number of each day in §2, Remarks 5, 6, 8, 14, 15 and 17, the sixty-year cycle, the mean year, Appendix A on the other traditions, and Tables 1, 7 and 8; the "Extra" of §6 | Yes, 2026-09-25, from the TeX source on arXiv, the PDF not being renderable here; the module read the PDF 2026-09-22; §6 again 2026-09-28 in the ar5iv rendering. Equation numbers are those of the arXiv version |
 | [henning2007] | Mean daybreak at 5 a.m., the Phugpa and Tsurphu histories and epoch data, the holidays of Appendix II | Not read; cited through Janson |
+| [kalacakra-org-archive] | Henning's computed Phugpa almanacs, which are the exact *a*₂'s | Yes, 2026-09-29, for [tibetan-almanac.md](tibetan-almanac.md) |
 | [kalacakra-org] | Henning's epoch data, calendar archive and open-source Phugpa and Tsurphu programs; *zla shol* for the intercalary month | Yes, over plain HTTP: 2026-09-26 the epoch data, 2026-09-28 "On intercalary months" (`intercal.htm`); on 2026-09-25 the HTTPS host presented a certificate for another domain |
 | [tnp-losar] | Losar 2023–2027 with the year names, Saga Dawa Düchen 2024 | Yes, 2026-09-25 |
 | [tibet-net-losar-2152] | The Central Tibetan Administration's name for the year beginning in 2025 | Yes, 2026-09-25; the page carries no Gregorian date |
@@ -354,3 +369,9 @@ tables `MOON_TABLE` and `SUN_TABLE`; the methods `true_month_count`,
 `every_day_of_four_decades_round_trips_and_years_have_the_five_lengths`,
 `impossible_dates_are_refused`. The other versions' anchors are listed in
 [tibetan-variants.md](tibetan-variants.md).
+
+The two conventions are `TIBETAN_LOCHEN` and `TIBETAN_TSURPHU_KARANA` in
+the same module, with the public quantities the almanac reads
+([tibetan-variants.md](tibetan-variants.md)); the almanac's columns and
+the year names are in `crates/hc-calendars-regional/src/tibetan_almanac.rs`
+([tibetan-almanac.md](tibetan-almanac.md)).

@@ -39,6 +39,35 @@
 //! * [`MONGOLIAN`], `mongolian`: Sumpa Khenpo Yeshe Paljor's New Genden,
 //!   the *Tögs buyant* of Mongolia, from 1747.
 //!
+//! # Two conventions of the true date
+//!
+//! Two published calendars change the true date of a version, and so, now
+//! and then, the calendar day a lunar day ends in; each is registered under
+//! its own name (docs/policy.md §5):
+//!
+//! * [`TIBETAN_LOCHEN`], `tibetan-lochen`: the Phugpa under Minling Lochen
+//!   Dharmashri's exact anomaly increment, `a2 = (1 + a1)/30 = 3 781/105 840`
+//!   for the almanacs' `1/28` ([`AnomalyStep::Lochen`]), which Henning uses
+//!   in his computed almanacs (Janson, (7.24) and Remark 14). The two give
+//!   different calendars on about one day in 4 100.
+//! * [`TIBETAN_TSURPHU_KARANA`], `tibetan-tsurphu-karana`: the Tsurphu whose
+//!   true date takes the solar equation of the *Kālacakra Tantra*'s
+//!   *karaṇa* Sun ([`Sun::Karana`]), as "some Tsurphu almanacs" and
+//!   Henning's Tsurphu almanacs do, with Lochen's increment as his have it
+//!   (Janson, Appendices A.2 and A.5). About five days a year move.
+//!
+//! # For the almanac
+//!
+//! The quantities behind the date are public, for
+//! `hc-calendars-regional`'s `tibetan_almanac`, which computes what an
+//! almanac prints beside it: the exact [`Ratio`], the mean motions
+//! [`M1`], [`M2`], [`S1`], [`S2`], [`A1`], the tables through [`table`] and
+//! [`sun_equation`], and the methods [`TibetanCalendar::mean_date`],
+//! [`TibetanCalendar::mean_sun`], [`TibetanCalendar::karana_mean_sun`],
+//! [`TibetanCalendar::anomaly`], [`TibetanCalendar::true_date`],
+//! [`TibetanCalendar::end_day`], [`TibetanCalendar::lunar_day_span`] and
+//! [`TibetanCalendar::locate`].
+//!
 //! # Whose arithmetic
 //!
 //! Svante Janson's *Tibetan Calendar Mathematics* (2014), in modern
@@ -53,14 +82,15 @@
 //! Henning's epoch data of the source texts; a test holds each to Henning's
 //! own mixed-radix digits.
 //!
-//! # What is not carried
+//! # What is not carried here
 //!
-//! The *Kālacakra* *karaṇa* calculation, the Sherab Ling and Sarnath
-//! reforms, and the Inner Mongolian "yellow" calculation (his Appendix A);
-//! the *karaṇa* solar equation some Tsurphu almanacs have used in the true
-//! date; Henning's exact anomaly increment (7.24), which moves about one day
-//! in four thousand; the Bhutanese weekday, one ahead of the world's; and
-//! the almanac's further columns of his Section 10.
+//! The *Kālacakra* *karaṇa* calculation as a calendar of its own, the
+//! Sherab Ling and Sarnath reforms, and the Inner Mongolian "yellow"
+//! calculation (his Appendix A). The almanac's further columns of his
+//! Section 10 — the lunar mansion, *yoga* and *karaṇa*, the true Sun and
+//! Moon, the planets — and the Bhutanese weekday, one ahead of the
+//! world's, are `hc-calendars-regional`'s `tibetan_almanac`, over the
+//! quantities this module makes public.
 //!
 //! # Sources
 //!
@@ -72,6 +102,9 @@
 //! * `kalacakra-org`: Edward Henning, *Kālacakra Calendar*, the pages
 //!   "Epoch data", "Open source Tsurphu calendar software" and "Bhutan
 //!   calendars", www.kalacakra.org, read 2026-09-26.
+//! * `kalacakra-org-archive`: Henning's computed Phugpa, Tsurphu and
+//!   Bhutanese almanacs, read 2026-09-29, which the two conventions
+//!   reproduce.
 //! * `gantumur2026`: Tsogtgerel Gantumur, "Possible reforms of the Tibetan
 //!   lunisolar calendar", arXiv:2604.01233v2, 2026, read from its TeX
 //!   source 2026-09-26.
@@ -107,9 +140,12 @@ pub const MIN_YEAR: i64 = 1000;
 /// The latest year this implementation converts.
 pub const MAX_YEAR: i64 = 3000;
 
-/// A rational number, kept reduced, for the calendar's exact arithmetic.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Ratio {
+/// An exact rational number, kept reduced with a positive denominator: the
+/// calendar's quantities are all rationals (Janson, Section 7), and an
+/// almanac prints their mixed-radix digits, which a float would get wrong
+/// in the last place.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Ratio {
     num: i128,
     den: i128,
 }
@@ -130,7 +166,10 @@ const fn gcd(mut a: i128, mut b: i128) -> i128 {
 }
 
 impl Ratio {
-    const fn new(num: i128, den: i128) -> Self {
+    /// `num / den`, reduced. A zero denominator is taken as one.
+    #[must_use]
+    pub const fn new(num: i128, den: i128) -> Self {
+        let den = if den == 0 { 1 } else { den };
         let g = gcd(num, den);
         let (num, den) = if g == 0 {
             (num, den)
@@ -147,54 +186,121 @@ impl Ratio {
         }
     }
 
-    const fn int(value: i128) -> Self {
+    /// The integer `value`.
+    #[must_use]
+    pub const fn int(value: i128) -> Self {
         Self { num: value, den: 1 }
     }
 
-    const fn add(self, other: Self) -> Self {
+    /// The numerator, in lowest terms.
+    #[must_use]
+    pub const fn numerator(self) -> i128 {
+        self.num
+    }
+
+    /// The denominator, in lowest terms and positive.
+    #[must_use]
+    pub const fn denominator(self) -> i128 {
+        self.den
+    }
+
+    /// The sum.
+    #[must_use]
+    pub const fn add(self, other: Self) -> Self {
         Self::new(
             self.num * other.den + other.num * self.den,
             self.den * other.den,
         )
     }
 
-    const fn sub(self, other: Self) -> Self {
+    /// The difference.
+    #[must_use]
+    pub const fn sub(self, other: Self) -> Self {
         Self::new(
             self.num * other.den - other.num * self.den,
             self.den * other.den,
         )
     }
 
-    const fn mul(self, other: Self) -> Self {
+    /// The product.
+    #[must_use]
+    pub const fn mul(self, other: Self) -> Self {
         Self::new(self.num * other.num, self.den * other.den)
     }
 
-    const fn scale(self, factor: i128) -> Self {
+    /// The product with an integer.
+    #[must_use]
+    pub const fn scale(self, factor: i128) -> Self {
         Self::new(self.num * factor, self.den)
     }
 
-    const fn floor(self) -> i128 {
+    /// The largest integer not above the value.
+    #[must_use]
+    pub const fn floor(self) -> i128 {
         self.num.div_euclid(self.den)
     }
 
     /// The fractional part, in `[0, 1)`.
-    const fn frac(self) -> Self {
+    #[must_use]
+    pub const fn frac(self) -> Self {
         Self::new(self.num.rem_euclid(self.den), self.den)
+    }
+
+    /// Whether the value is below `other`.
+    #[must_use]
+    pub const fn lt(self, other: Self) -> bool {
+        self.num * other.den < other.num * self.den
+    }
+
+    /// The whole part and the first two sexagesimal places, truncated, as
+    /// an almanac prints a weekday (whole; *nāḍī*, *pala*) or a longitude
+    /// in lunar mansions: `2;6,31`.
+    #[must_use]
+    pub const fn sexagesimal(self) -> (i128, u8, u8) {
+        let whole = self.floor();
+        let first = self.frac().scale(60);
+        let second = first.frac().scale(60);
+        (whole, first.floor() as u8, second.floor() as u8)
+    }
+
+    /// The value as a float, for display.
+    #[must_use]
+    #[allow(clippy::cast_precision_loss)]
+    pub fn to_f64(self) -> f64 {
+        self.num as f64 / self.den as f64
+    }
+}
+
+impl fmt::Display for Ratio {
+    /// The almanac's reading: the whole part and two sexagesimal places.
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (whole, first, second) = self.sexagesimal();
+        write!(f, "{whole};{first},{second}")
     }
 }
 
 /// The mean lunar month, `m1`, in days.
-const M1: Ratio = Ratio::new(167_025, 5_656);
+pub const M1: Ratio = Ratio::new(167_025, 5_656);
 /// The mean lunar day, `m2 = m1 / 30`.
-const M2: Ratio = Ratio::new(11_135, 11_312);
+pub const M2: Ratio = Ratio::new(11_135, 11_312);
 /// The sun's mean motion per month, `s1`, in revolutions.
-const S1: Ratio = Ratio::new(65, 804);
+pub const S1: Ratio = Ratio::new(65, 804);
 /// The sun's mean motion per lunar day, `s2`.
-const S2: Ratio = Ratio::new(13, 4_824);
+pub const S2: Ratio = Ratio::new(13, 4_824);
 /// The moon's anomaly per month, `a1`.
-const A1: Ratio = Ratio::new(253, 3_528);
+pub const A1: Ratio = Ratio::new(253, 3_528);
 /// The moon's anomaly per lunar day, `a2`, the almanacs' rounded value.
 const A2: Ratio = Ratio::new(1, 28);
+/// Minling Lochen Dharmashri's exact anomaly increment, `(1 + a1) / 30`
+/// (Janson, (7.24)).
+const A2_LOCHEN: Ratio = Ratio::new(3_781, 105_840);
+/// The *karaṇa* Sun's mean motion per month, `s1` (Janson, Appendix A.5).
+const S1_KARANA: Ratio = Ratio::new(1_277, 15_795);
+/// The *karaṇa* Sun's mean motion per lunar day, `s1 / 30`, as the modern
+/// almanacs take it (Janson, Appendix A.5).
+const S2_KARANA: Ratio = Ratio::new(1_277, 473_850);
+/// The *karaṇa* Sun at the epoch of month 3 of 806 (Janson, Appendix A.5).
+const S0_KARANA: Ratio = Ratio::new(809, 810);
 
 /// The moon's equation table, `moon_tab(i)` for `i = 0..=7`, extended by
 /// symmetry to a period of 28.
@@ -204,8 +310,12 @@ const MOON_TABLE: [i128; 8] = [0, 5, 10, 15, 19, 22, 24, 25];
 const SUN_TABLE: [i128; 4] = [0, 6, 10, 11];
 
 /// A table with the symmetries `tab(2h − i) = tab(i)` and
-/// `tab(2h + i) = −tab(i)`, linearly interpolated.
-fn table(values: &[i128], half: i128, x: Ratio) -> Ratio {
+/// `tab(2h + i) = −tab(i)`, linearly interpolated between integers, as the
+/// Moon's (`h = 7`), the Sun's and the planets' equations (`h = 3`) are
+/// read (Janson, (7.18), (7.21) and Appendix D). `values` holds
+/// `tab(0..=h)`.
+#[must_use]
+pub fn table(values: &[i128], half: i128, x: Ratio) -> Ratio {
     let period = 4 * half;
     let mut x = Ratio::new(x.num.rem_euclid(x.den * period), x.den);
     let mut sign = 1;
@@ -227,6 +337,44 @@ fn table(values: &[i128], half: i128, x: Ratio) -> Ratio {
         Ratio::int(low).add(fraction.scale(high - low))
     };
     value.scale(sign)
+}
+
+/// The Sun's equation (Janson, (7.19)–(7.21)) for a mean Sun in
+/// revolutions, in *nāḍī* of lunar mansions: the true Sun is the mean less
+/// this over 27 × 60.
+#[must_use]
+pub fn sun_equation(mean_sun: Ratio) -> Ratio {
+    table(&SUN_TABLE, 3, mean_sun.sub(Ratio::new(1, 4)).scale(12))
+}
+
+/// The true solar longitude for a mean Sun, in revolutions in `[0, 1)`:
+/// Janson's `true_sun = mean_sun − sun_equ / (27 · 60)`.
+#[must_use]
+pub fn true_sun(mean_sun: Ratio) -> Ratio {
+    mean_sun
+        .sub(sun_equation(mean_sun).mul(Ratio::new(1, 27 * 60)))
+        .frac()
+}
+
+/// Which anomaly increment per lunar day a version uses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum AnomalyStep {
+    /// The almanacs' rounded `a2 = 1/28`.
+    Almanac,
+    /// Minling Lochen Dharmashri's exact `a2 = 3 781/105 840`, which
+    /// Henning uses (Janson, (7.24) and Remark 14).
+    Lochen,
+}
+
+/// Which mean Sun corrects the true date.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Sun {
+    /// The version's own *siddhānta* Sun (Janson, (7.5)).
+    Siddhanta,
+    /// The *Kālacakra Tantra*'s *karaṇa* Sun, `s1 = 1 277/15 795` a month
+    /// from `s0 = 809/810` at month 3 of 806 (Janson, Appendix A.5), for
+    /// the Tsurphu, whose true months are the *karaṇa* ones.
+    Karana,
 }
 
 /// The Julian Day Number of `Rd(0)`, from the crate that defines `Rd`.
@@ -262,6 +410,11 @@ pub struct TibetanCalendar {
     m0: Ratio,
     s0: Ratio,
     a0: Ratio,
+    anomaly_step: AnomalyStep,
+    solar_equation: Sun,
+    /// The true months from month 3 of 806 to the epoch, where the
+    /// version's months are the *karaṇa* calculation's; zero where not.
+    karana_months: i64,
     first_year: Option<i64>,
     usage_source: &'static str,
     native_locales: &'static [&'static str],
@@ -298,12 +451,26 @@ pub const MONGOLIAN_USAGE_SOURCE: &str = "Janson 2014, Appendix A.3 [janson2014]
 /// and every description's metadata ask for; any other calendar computes
 /// them. `tests::the_named_ranges_are_the_computed_ones` computes these
 /// again.
-const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 4] = [
+const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 6] = [
     (TIBETAN, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_TSURPHU, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_BHUTAN, Rd(364_892), Rd(1_095_803)),
     (MONGOLIAN, Rd(364_892), Rd(1_095_802)),
+    (TIBETAN_LOCHEN, Rd(364_892), Rd(1_095_802)),
+    (TIBETAN_TSURPHU_KARANA, Rd(364_892), Rd(1_095_803)),
 ];
+
+/// Where the period of use of `tibetan-lochen` comes from.
+pub const LOCHEN_USAGE_SOURCE: &str = "Janson 2014, (7.24) and Remark 14 [janson2014]: the anomaly increment \
+    proposed by Minling Lochen Dharmashri (1654–1717) and used by Henning in his computed calendars, \
+    the Traditional Tibetan calendar archive [kalacakra-org-archive]; the almanacs use the rounded \
+    1/28; no beginning is dated";
+
+/// Where the period of use of `tibetan-tsurphu-karana` comes from.
+pub const TSURPHU_KARANA_USAGE_SOURCE: &str = "Janson 2014, Appendix A.2 [janson2014]: \"in some Tsurphu \
+    almanacs, the solar equation from the karana solar longitude calculation has also been used to \
+    calculate the (siddhanta) true_date\", the almanacs and years not named; Henning's computed Tsurphu \
+    almanacs [kalacakra-org-archive]; undated";
 
 /// The Phugpa version, from the epoch of month 3 of 806: `β* = 61`, a leap
 /// month where the intercalation index is 48 or 49, and Janson's epoch
@@ -318,6 +485,9 @@ pub const TIBETAN: TibetanCalendar = TibetanCalendar {
     m0: Ratio::new(2_015_501 * 5_656 + 4_783, 5_656),
     s0: Ratio::new(743, 804),
     a0: Ratio::new(475, 3_528),
+    anomaly_step: AnomalyStep::Almanac,
+    solar_equation: Sun::Siddhanta,
+    karana_months: 0,
     first_year: Some(1_447),
     usage_source: USAGE_SOURCE,
     native_locales: &["bo"],
@@ -339,6 +509,14 @@ pub const TIBETAN_TSURPHU: TibetanCalendar = TibetanCalendar {
     m0: Ratio::new(2_397_598 * 7_635_600 + 1_197_103, 7_635_600),
     s0: Ratio::new(23, 27_135),
     a0: Ratio::new(1, 49),
+    anomaly_step: AnomalyStep::Almanac,
+    solar_equation: Sun::Siddhanta,
+    // ⌊67 × 12 552 / 65⌋: the 12 552 solar months from 806 to 1852 hold
+    // 12 938 true months, and the remainder, 14, is the index β* at 1852.
+    // The Tsurphu, like the karaṇa calculation, has index 0 at 806 and
+    // rounds its true month down (Janson, Appendix A.2), so its months are
+    // the karaṇa ones.
+    karana_months: 12_938,
     first_year: Some(1_447),
     usage_source: TSURPHU_USAGE_SOURCE,
     native_locales: &["bo"],
@@ -359,6 +537,9 @@ pub const TIBETAN_BHUTAN: TibetanCalendar = TibetanCalendar {
     m0: Ratio::new(2_361_807 * 707 + 52, 707),
     s0: Ratio::new(1, 67),
     a0: Ratio::new(17, 147),
+    anomaly_step: AnomalyStep::Almanac,
+    solar_equation: Sun::Siddhanta,
+    karana_months: 0,
     first_year: None,
     usage_source: BHUTAN_USAGE_SOURCE,
     native_locales: &["dz"],
@@ -378,9 +559,36 @@ pub const MONGOLIAN: TibetanCalendar = TibetanCalendar {
     m0: Ratio::new(2_359_237 * 2_828 + 2_603, 2_828),
     s0: Ratio::new(397, 402),
     a0: Ratio::new(1_523, 1_764),
+    anomaly_step: AnomalyStep::Almanac,
+    solar_equation: Sun::Siddhanta,
+    karana_months: 0,
     first_year: Some(1_786),
     usage_source: MONGOLIAN_USAGE_SOURCE,
     native_locales: &["mn"],
+};
+
+/// `tibetan-lochen`: the Phugpa under Minling Lochen's exact anomaly
+/// increment, the calendar of Henning's computed Phugpa almanacs.
+pub const TIBETAN_LOCHEN: TibetanCalendar = TibetanCalendar {
+    id: CalendarId("tibetan-lochen"),
+    english_name: "Tibetan (Phugpa, Lochen's anomaly)",
+    anomaly_step: AnomalyStep::Lochen,
+    first_year: None,
+    usage_source: LOCHEN_USAGE_SOURCE,
+    ..TIBETAN
+};
+
+/// `tibetan-tsurphu-karana`: the Tsurphu whose true date takes the
+/// *karaṇa* solar equation, under Lochen's increment: the calendar of
+/// Henning's computed Tsurphu almanacs.
+pub const TIBETAN_TSURPHU_KARANA: TibetanCalendar = TibetanCalendar {
+    id: CalendarId("tibetan-tsurphu-karana"),
+    english_name: "Tibetan (Tsurphu, karaṇa Sun)",
+    anomaly_step: AnomalyStep::Lochen,
+    solar_equation: Sun::Karana,
+    first_year: None,
+    usage_source: TSURPHU_KARANA_USAGE_SOURCE,
+    ..TIBETAN_TSURPHU
 };
 
 impl TibetanCalendar {
@@ -409,6 +617,42 @@ impl TibetanCalendar {
     #[must_use]
     pub const fn leap_numbering(&self) -> LeapNumbering {
         self.leap_numbering
+    }
+
+    /// The anomaly increment per lunar day.
+    #[must_use]
+    pub const fn anomaly_step(&self) -> AnomalyStep {
+        self.anomaly_step
+    }
+
+    /// The same version under another anomaly increment. The result keeps
+    /// the version's identifier and is not a registered calendar: it is
+    /// for reading an almanac computed so, such as Henning's Bhutanese
+    /// ones; the registered convention is [`TIBETAN_LOCHEN`].
+    #[must_use]
+    pub const fn with_anomaly_step(self, anomaly_step: AnomalyStep) -> Self {
+        Self {
+            anomaly_step,
+            ..self
+        }
+    }
+
+    /// The Sun whose equation corrects the true date.
+    #[must_use]
+    pub const fn solar_equation(&self) -> Sun {
+        self.solar_equation
+    }
+
+    /// The true months from month 3 of 806 to the epoch, where the
+    /// version's months are the *karaṇa* calculation's — the Tsurphu's —
+    /// and `None` for the others.
+    #[must_use]
+    pub const fn karana_months(&self) -> Option<i64> {
+        if self.karana_months == 0 {
+            None
+        } else {
+            Some(self.karana_months)
+        }
     }
 
     /// What is added to `67 M' + β*` before the true month is divided by 65
@@ -525,24 +769,80 @@ impl TibetanCalendar {
         }
     }
 
-    /// The true date at the end of lunar day `day` of true month `n`, as a
-    /// Julian Date whose integer part is the calendar day.
-    fn true_date(&self, day: i64, n: i64) -> Ratio {
-        let n = Ratio::int(n as i128);
-        let day = Ratio::int(day as i128);
-        let mean_date = n.mul(M1).add(day.mul(M2)).add(self.m0);
-        let mean_sun = n.mul(S1).add(day.mul(S2)).add(self.s0).frac();
-        let anomaly_moon = n.mul(A1).add(day.mul(A2)).add(self.a0).frac();
-        let moon_equation = table(&MOON_TABLE, 7, anomaly_moon.scale(28));
-        let sun_equation = table(&SUN_TABLE, 3, mean_sun.sub(Ratio::new(1, 4)).scale(12));
-        mean_date
+    /// The mean date (7.1) at the end of lunar day `day` of true month
+    /// `n`, on the local Julian scale whose integer values fall at mean
+    /// daybreak; `mean_date(0, 0)` is the epoch value `m0`.
+    #[must_use]
+    pub const fn mean_date(&self, day: i64, n: i64) -> Ratio {
+        Ratio::int(n as i128)
+            .mul(M1)
+            .add(Ratio::int(day as i128).mul(M2))
+            .add(self.m0)
+    }
+
+    /// The *siddhānta* mean Sun (7.5) at the end of lunar day `day` of true
+    /// month `n`, in revolutions in `[0, 1)`; `mean_sun(0, 0)` is `s0`.
+    #[must_use]
+    pub const fn mean_sun(&self, day: i64, n: i64) -> Ratio {
+        Ratio::int(n as i128)
+            .mul(S1)
+            .add(Ratio::int(day as i128).mul(S2))
+            .add(self.s0)
+            .frac()
+    }
+
+    /// The *karaṇa* mean Sun at the end of lunar day `day` of true month
+    /// `n`, in revolutions, for a version whose months are the *karaṇa*
+    /// ones ([`TibetanCalendar::karana_months`]), and `None` otherwise.
+    #[must_use]
+    pub const fn karana_mean_sun(&self, day: i64, n: i64) -> Option<Ratio> {
+        if self.karana_months == 0 {
+            return None;
+        }
+        Some(
+            Ratio::int((n + self.karana_months) as i128)
+                .mul(S1_KARANA)
+                .add(Ratio::int(day as i128).mul(S2_KARANA))
+                .add(S0_KARANA)
+                .frac(),
+        )
+    }
+
+    /// The Moon's anomaly (7.11) at the end of lunar day `day` of true
+    /// month `n`, in revolutions from apogee in `[0, 1)`, under the
+    /// version's anomaly increment.
+    #[must_use]
+    pub const fn anomaly(&self, day: i64, n: i64) -> Ratio {
+        let a2 = match self.anomaly_step {
+            AnomalyStep::Almanac => A2,
+            AnomalyStep::Lochen => A2_LOCHEN,
+        };
+        Ratio::int(n as i128)
+            .mul(A1)
+            .add(Ratio::int(day as i128).mul(a2))
+            .add(self.a0)
+            .frac()
+    }
+
+    /// The true date (7.22) at the end of lunar day `day` of true month
+    /// `n`, as a Julian Date whose integer part is the calendar day, under
+    /// the version's anomaly increment and solar equation.
+    #[must_use]
+    pub fn true_date(&self, day: i64, n: i64) -> Ratio {
+        let moon_equation = table(&MOON_TABLE, 7, self.anomaly(day, n).scale(28));
+        let mean_sun = match self.karana_mean_sun(day, n) {
+            Some(karana) if matches!(self.solar_equation, Sun::Karana) => karana,
+            _ => self.mean_sun(day, n),
+        };
+        self.mean_date(day, n)
             .add(moon_equation.mul(Ratio::new(1, 60)))
-            .sub(sun_equation.mul(Ratio::new(1, 60)))
+            .sub(sun_equation(mean_sun).mul(Ratio::new(1, 60)))
     }
 
     /// The Julian Day Number of the calendar day in which lunar day `day`
-    /// of true month `n` ends.
-    fn end_day(&self, day: i64, n: i64) -> i64 {
+    /// of true month `n` ends, (8.1).
+    #[must_use]
+    pub fn end_day(&self, day: i64, n: i64) -> i64 {
         self.true_date(day, n).floor() as i64
     }
 
@@ -554,6 +854,15 @@ impl TibetanCalendar {
         } else {
             self.end_day(day - 1, n)
         }
+    }
+
+    /// The end days of the lunar day before `day` of month `n` and of
+    /// `day` itself: equal when `day`'s number is skipped, two apart when
+    /// it is repeated, the first of the two days being the one after the
+    /// first end day.
+    #[must_use]
+    pub fn lunar_day_span(&self, day: i64, n: i64) -> (i64, i64) {
+        (self.previous_end_day(day, n), self.end_day(day, n))
     }
 
     /// The Julian Day Number of Losar, the first day of `year`: the day
@@ -653,6 +962,16 @@ impl TibetanCalendar {
     /// Returns [`CalendarError::BeforeEpoch`] or
     /// [`CalendarError::AfterSupportedRange`] outside the years converted.
     pub fn date_from_fixed(&self, rd: Rd) -> CalendarResult<TibetanDate> {
+        self.locate(rd).map(|(date, _)| date)
+    }
+
+    /// The Tibetan date of a fixed day and the true month count `n` of its
+    /// month.
+    ///
+    /// # Errors
+    ///
+    /// As [`TibetanCalendar::date_from_fixed`].
+    pub fn locate(&self, rd: Rd) -> CalendarResult<(TibetanDate, i64)> {
         if rd < self.earliest() {
             return Err(CalendarError::BeforeEpoch);
         }
@@ -673,7 +992,7 @@ impl TibetanCalendar {
                 let end = self.end_day(day, n);
                 if before < jdn && jdn <= end {
                     let (year, month, leap) = self.month_of_count(n);
-                    return Ok(TibetanDate {
+                    let date = TibetanDate {
                         year,
                         month: if leap {
                             Month::leap(month)
@@ -682,7 +1001,8 @@ impl TibetanCalendar {
                         },
                         day: day as u8,
                         leap_day: end - before == 2 && jdn == before + 1,
-                    });
+                    };
+                    return Ok((date, n));
                 }
                 before = end;
             }
@@ -1703,5 +2023,262 @@ mod tests {
             );
             assert_eq!(calendar.new_year(3_001), Err(CalendarError::YearOutOfRange));
         }
+    }
+
+    /// The end days of the lunar day before and of `day` of `month`.
+    fn span(
+        calendar: &TibetanCalendar,
+        year: i64,
+        month: Month,
+        day: u8,
+    ) -> Result<(i64, i64), ()> {
+        let n = calendar
+            .true_month_count(year, month.ordinal, month.leap)
+            .ok_or(())?;
+        Ok(calendar.lunar_day_span(i64::from(day), n))
+    }
+
+    #[test]
+    fn the_conventions_are_registered_and_round_trip() {
+        for calendar in [TIBETAN_LOCHEN, TIBETAN_TSURPHU_KARANA] {
+            let first = calendar.earliest().0;
+            let last = calendar.latest().0;
+            for rd in (first..=last).step_by(crate::sweep_stride(97) * 13) {
+                let rd = Rd(rd);
+                let date = calendar.date_from_fixed(rd).expect("in range");
+                assert_eq!(calendar.date_to_fixed(date), Ok(rd), "{rd:?}");
+            }
+            assert_eq!(calendar.usage().from, None);
+            assert!(!calendar.usage().source.is_empty());
+            assert_eq!(calendar.meta().native_locales, &["bo"]);
+        }
+        assert_eq!(TIBETAN_LOCHEN.meta().id.0, "tibetan-lochen");
+        assert_eq!(TIBETAN_TSURPHU_KARANA.meta().id.0, "tibetan-tsurphu-karana");
+        assert_eq!(TIBETAN.karana_months(), None);
+        assert_eq!(TIBETAN_TSURPHU.karana_months(), Some(12_938));
+        assert!(TIBETAN.karana_mean_sun(1, 0).is_none());
+        assert_eq!(
+            TIBETAN_BHUTAN
+                .with_anomaly_step(AnomalyStep::Lochen)
+                .anomaly_step(),
+            AnomalyStep::Lochen
+        );
+    }
+
+    /// Janson's Remark 14: the exact increment moves "on the average, one
+    /// day in 4100"; his search found 9 such days in 1900–1999 and 8 in
+    /// 2000–2099, among them 10 February 2001, 10 May 2006 and 19 November
+    /// 2025.
+    #[test]
+    fn lochens_anomaly_moves_the_days_janson_names() {
+        let moved = |from: i64, to: i64| {
+            (greg(from, 1, 1).0..=greg(to, 12, 31).0)
+                .filter(|&rd| {
+                    let rd = Rd(rd);
+                    TIBETAN.date_from_fixed(rd) != TIBETAN_LOCHEN.date_from_fixed(rd)
+                })
+                .map(Rd)
+                .collect::<std::vec::Vec<_>>()
+        };
+        if crate::sweep_stride(2) == 1 {
+            // A moved day is one lunar day ending in another calendar day,
+            // which changes the labels of the day before or after it as
+            // well; count the lunar days, as Janson does, by the days whose
+            // label moves and whose predecessor's does not.
+            let events = |days: &[Rd]| {
+                days.iter()
+                    .filter(|day| !days.contains(&Rd(day.0 - 1)))
+                    .count()
+            };
+            assert_eq!(events(&moved(1900, 1999)), 9);
+            assert_eq!(events(&moved(2000, 2099)), 8);
+        }
+        // Henning's Phugpa almanac for 2025 (`tdata/pl_2025.txt`) prints
+        // 18 and 19 November as the 29th of month 9 and 20 November as the
+        // 30th, as the exact increment gives; the almanacs' value makes 19
+        // November the first of two days numbered 30. His Bhutanese almanac for 2020
+        // (`tdata/bh_2020.txt`) prints 22 and 23 April both as the 30th of
+        // month 2, as the exact increment gives there too.
+        for (rd, text) in [
+            (greg(2025, 11, 18), "2025-9-29x"),
+            (greg(2025, 11, 19), "2025-9-29"),
+            (greg(2025, 11, 20), "2025-9-30"),
+        ] {
+            assert_eq!(
+                TIBETAN_LOCHEN
+                    .date_from_fixed(rd)
+                    .map(|d| d.to_string())
+                    .as_deref(),
+                Ok(text)
+            );
+        }
+        for rd in [greg(2020, 4, 22), greg(2020, 4, 23)] {
+            let date = TIBETAN_BHUTAN
+                .with_anomaly_step(AnomalyStep::Lochen)
+                .date_from_fixed(rd)
+                .expect("in range");
+            assert_eq!((date.month, date.day), (Month::regular(2), 30));
+            assert_ne!(TIBETAN_BHUTAN.date_from_fixed(rd), Ok(date));
+        }
+        for (jdn, almanac, lochen) in [
+            (2_451_951, "2000-12-17", "2000-12-18"),
+            (2_453_866, "2006-3-13x", "2006-3-12"),
+            (2_460_999, "2025-9-30x", "2025-9-29"),
+        ] {
+            let rd = Rd::from_julian_day_number(jdn);
+            assert_eq!(
+                TIBETAN
+                    .date_from_fixed(rd)
+                    .map(|d| d.to_string())
+                    .as_deref(),
+                Ok(almanac)
+            );
+            assert_eq!(
+                TIBETAN_LOCHEN
+                    .date_from_fixed(rd)
+                    .map(|d| d.to_string())
+                    .as_deref(),
+                Ok(lochen)
+            );
+        }
+    }
+
+    /// Janson, Appendix A.2: under the *karaṇa* equation "day 13, month 6,
+    /// 2013, for which the two versions yield 20 and 21 July"; Henning's
+    /// Tsurphu almanac for 2013 omits the 13th, 20 July being the 12th.
+    #[test]
+    fn the_karana_sun_moves_the_day_janson_names() {
+        let thirteenth = TibetanDate {
+            year: 2013,
+            month: Month::regular(6),
+            day: 13,
+            leap_day: false,
+        };
+        assert_eq!(
+            TIBETAN_TSURPHU.date_to_fixed(thirteenth),
+            Ok(greg(2013, 7, 21))
+        );
+        assert_eq!(
+            TIBETAN_TSURPHU_KARANA.date_to_fixed(thirteenth),
+            Err(CalendarError::DayOutOfRange)
+        );
+        assert_eq!(
+            span(&TIBETAN_TSURPHU_KARANA, 2013, Month::regular(6), 13),
+            Ok((
+                greg(2013, 7, 20).to_julian_day_number(),
+                greg(2013, 7, 20).to_julian_day_number()
+            ))
+        );
+        assert_eq!(
+            TIBETAN_TSURPHU.date_to_fixed(thirteenth),
+            Ok(greg(2013, 7, 21))
+        );
+        // "The New Year will differ by a day about 2 times per century":
+        // 44 times in the 2 001 years converted.
+        let moved = (MIN_YEAR..=MAX_YEAR)
+            .filter(|&year| TIBETAN_TSURPHU.new_year(year) != TIBETAN_TSURPHU_KARANA.new_year(year))
+            .count();
+        assert_eq!(moved, 44);
+        // Kongtrul's Losar of 2014, which the Karmapa's office kept on 31
+        // January, is the same under either Sun.
+        assert_eq!(TIBETAN_TSURPHU_KARANA.new_year(2014), Ok(greg(2014, 1, 31)));
+    }
+
+    /// Every skipped (`om`) and repeated (`rep`) number of the year 2013 in
+    /// Henning's computed Phugpa and Tsurphu almanacs, `tdata/pl_2013.txt`
+    /// and `tdata/ts_2013.txt` [kalacakra-org]: every other day of the year
+    /// bears its number once.
+    #[test]
+    fn hennings_almanacs_of_2013_skip_and_repeat_these_days() {
+        type Changes = &'static [(&'static str, u8, &'static str)];
+        const PHUGPA_2013: Changes = &[
+            ("om", 26, "1"),
+            ("rep", 8, "2"),
+            ("om", 20, "2"),
+            ("om", 24, "3"),
+            ("rep", 2, "4"),
+            ("om", 18, "4"),
+            ("om", 21, "5"),
+            ("rep", 28, "5"),
+            ("om", 13, "6"),
+            ("om", 16, "7"),
+            ("rep", 24, "7"),
+            ("om", 9, "8L"),
+            ("om", 12, "8"),
+            ("rep", 20, "8"),
+            ("om", 6, "9"),
+            ("rep", 24, "9"),
+            ("om", 29, "9"),
+            ("om", 4, "11"),
+            ("rep", 16, "11"),
+            ("om", 28, "11"),
+        ];
+        const TSURPHU_2013: Changes = &[
+            ("om", 27, "1"),
+            ("rep", 7, "2"),
+            ("om", 21, "2"),
+            ("om", 25, "3"),
+            ("rep", 1, "4"),
+            ("om", 18, "4"),
+            ("om", 21, "5"),
+            ("rep", 27, "5"),
+            ("om", 13, "6"),
+            ("om", 16, "7"),
+            ("rep", 24, "7"),
+            ("om", 9, "8"),
+            ("om", 13, "9"),
+            ("rep", 19, "9"),
+            ("om", 6, "10"),
+            ("rep", 23, "10"),
+            ("om", 30, "10"),
+            ("om", 5, "12"),
+            ("rep", 15, "12"),
+            ("om", 29, "12"),
+        ];
+        for (reckoning, changes) in [
+            (TIBETAN_LOCHEN, PHUGPA_2013),
+            (TIBETAN_TSURPHU_KARANA, TSURPHU_2013),
+        ] {
+            let mut months = std::vec::Vec::new();
+            for number in 1..=12 {
+                if reckoning.true_month_count(2013, number, true).is_some() {
+                    months.push(Month::leap(number));
+                }
+                months.push(Month::regular(number));
+            }
+            for month in months {
+                let label = if month.leap {
+                    std::format!("{}L", month.ordinal)
+                } else {
+                    std::format!("{}", month.ordinal)
+                };
+                for day in 1..=30 {
+                    let (before, end) = span(&reckoning, 2013, month, day).expect("a date");
+                    let expected = changes
+                        .iter()
+                        .find(|(_, d, m)| *d == day && *m == label)
+                        .map_or(1, |(kind, _, _)| if *kind == "om" { 0 } else { 2 });
+                    assert_eq!(end - before, expected, "{label}/{day}");
+                }
+            }
+        }
+        // The years' first days: Losar on 11 February 2013, and the last
+        // day of the Phugpa year, the 30th of month 12, on 1 March 2014.
+        assert_eq!(TIBETAN_LOCHEN.new_year(2013), Ok(greg(2013, 2, 11)));
+        assert_eq!(TIBETAN_TSURPHU_KARANA.new_year(2013), Ok(greg(2013, 2, 11)));
+        assert_eq!(TIBETAN_LOCHEN.new_year(2014), Ok(greg(2014, 3, 2)));
+    }
+
+    #[test]
+    fn exact_numbers_print_as_the_almanacs_do() {
+        let value = Ratio::new(2 * 3600 + 6 * 60 + 31, 3600);
+        assert_eq!(value.sexagesimal(), (2, 6, 31));
+        assert_eq!(value.to_string(), "2;6,31");
+        assert_eq!(Ratio::new(-1, 4).floor(), -1);
+        assert_eq!(Ratio::new(-1, 4).frac(), Ratio::new(3, 4));
+        assert_eq!(Ratio::new(6, 8).numerator(), 3);
+        assert_eq!(Ratio::new(6, -8).denominator(), 4);
+        assert!(Ratio::new(1, 3).lt(Ratio::new(1, 2)));
+        assert!((Ratio::new(1, 4).to_f64() - 0.25).abs() < 1e-12);
     }
 }

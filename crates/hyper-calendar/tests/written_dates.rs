@@ -190,6 +190,16 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "a doubled lunar day is written as the ordinary one",
     ),
     (
+        "tibetan-lochen",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
+    ),
+    (
+        "tibetan-tsurphu-karana",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
+    ),
+    (
         "hindu-lunar",
         "ambiguous",
         "a tithi that spans two sunrises names both days",
@@ -247,9 +257,10 @@ const MORE_DAYS: &[(&str, &[i64], &str)] = &[
         &[-1_007_453, 453_158, 562_008, 1_913_771],
         "a year's numeral ends as a narrow weekday is written",
     ),
-    // Two days of one number: 15 and 16 January 1990 in `tibetan`, 15 and
-    // 16 February 1990 in the others; the doubled tithi of 15 and 16
-    // February 1990 in the Hindu calendars and Nepal Sambat.
+    // Two days of one number: 15 and 16 January 1990 in `tibetan` and
+    // `tibetan-lochen`, 15 and 16 February 1990 in the others; the doubled
+    // tithi of 15 and 16 February 1990 in the Hindu calendars and Nepal
+    // Sambat.
     ("tibetan", &[726_482, 726_483], "a doubled lunar day"),
     (
         "tibetan-tsurphu",
@@ -258,6 +269,12 @@ const MORE_DAYS: &[(&str, &[i64], &str)] = &[
     ),
     ("tibetan-bhutan", &[726_514, 726_515], "a doubled lunar day"),
     ("mongolian", &[726_514, 726_515], "a doubled lunar day"),
+    ("tibetan-lochen", &[726_482, 726_483], "a doubled lunar day"),
+    (
+        "tibetan-tsurphu-karana",
+        &[726_514, 726_515],
+        "a doubled lunar day",
+    ),
     ("hindu-lunar", &[726_513, 726_514], "a doubled tithi"),
     (
         "hindu-lunar-surya-siddhanta",

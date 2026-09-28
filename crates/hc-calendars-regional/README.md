@@ -7,6 +7,7 @@ Regional, cyclic and era calendars for `hyper-calendar`:
   year;
 - the Balinese Pawukon, the Javanese *pasaran* and the Akan *Adaduanan*;
 - the Burmese, Thai, Khmer and Lao lunar calendars;
+- what the Tibetan almanac prints beside the date;
 - the sexagenary cycle and the Olympiads.
 
 What most of them have in common is that **the day has a name before it has
@@ -236,6 +237,24 @@ written up in
 the three year boundaries, the 五虎遁 and 五鼠遁 rules, the readings and
 their sources, and the four pillars of an instant worked by hand.
 
+## The Tibetan almanac
+
+`hc-calendars-lunar` carries the Tibetan calendar in its four versions and
+two conventions of its true date, and makes public the quantities behind
+the date. `tibetan_almanac` computes the almanac's columns for any of them:
+the lunar mansion, *yoga* and *karaṇa* with their Sanskrit and Tibetan
+names, the true weekday, Moon and Sun, the *yoga* longitude and the mean
+Sun; the five planets and Rāhu under the Phugpa epoch of 1927; the *rab
+byung* names of the years and the count from 127 BCE; the elements,
+colours and animals of years, months and days, and the Mongolian months;
+the Bhutanese weekday and winter solstice; and the day a festival on a
+skipped or repeated date falls on, by Berzin's rule and by Henning's
+almanacs. Every date, name and number of 2 925 days of Henning's Phugpa,
+Tsurphu and Bhutanese almanacs agrees, the numbers to the printed *pala*
+on 2 718 and within one on the rest. The systems are written up in
+[`docs/systems/tibetan-variants.md`](../../docs/systems/tibetan-variants.md)
+and [`docs/systems/tibetan-almanac.md`](../../docs/systems/tibetan-almanac.md).
+
 ## Accuracy
 
 Everything except the pre-1873 half of `japanese`, the lunisolar calendar
@@ -297,6 +316,11 @@ inherits the `chinese` calendar's model, as that README describes.
   calendar"; the 2024–2026 holiday lists named in
   [`docs/systems/burmese.md`](../../docs/systems/burmese.md), keyed in
   `docs/references.bib`.
+* The Tibetan almanac and conventions: Svante Janson, "Tibetan calendar
+  mathematics" (arXiv:1401.6285), Sections 4, 7, 10 and 11 and Appendices
+  A–E; Edward Henning's computed almanacs and program pages at
+  kalacakra.org; Tsogtgerel Gantumur's Mongolian calendar, for the
+  Mongolian words, a secondary source.
 * Checked independently against five published Galungan dates (each must be
   Buda Kliwon Dungulan), the weton of 17 August 1945 (Jumat Legi, neptu 11),
   a published modern long count and Aztec date, six Villa Alta days and
@@ -322,6 +346,11 @@ inherits the `chinese` calendar's model, as that README describes.
 * No Maya "lord of the night" glyph cycle, no Maya or Aztec year bearer as
   a field; the reasons are in
   [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
+* The Tibetan almanac's planets only under the Phugpa epoch of 1927, the
+  only one whose solar longitude Janson describes; its astrological
+  attributes beyond element, colour and animal — trigrams, numbers,
+  lunar-day animals, earth-lords — are not yet carried. The festivals are
+  data here; `hc-holiday` does not use them yet.
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not
   the function you want; `hc_calendar::cycle::month_pillar` takes the
