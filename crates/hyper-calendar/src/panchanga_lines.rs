@@ -36,25 +36,18 @@ use crate::astro_lines::{day_in_era, moment_in_era, unix_from_moment};
 #[cfg(feature = "i18n")]
 use crate::boundary::reckoning_name;
 use crate::boundary::{Answer, Line, Refusal};
-use hc_core::catalogue::matches;
 
-/// The ayanāṃśa a name names: one of [`Ayanamsa::ALL`] by its full name,
-/// `Lahiri (Chitrapaksha)`, or by the part before the parenthesis,
-/// `Lahiri`, each by [`hc_core::catalogue::matches`].
+/// The ayanāṃśa an identifier names: one of [`Ayanamsa::ALL`] by
+/// [`Ayanamsa::by_id`], `lahiri`, `raman`, `krishnamurti` or
+/// `fagan-bradley`.
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for any other name, the empty one included: the
-/// yoga moves with the ayanāṃśa, so none is assumed.
-pub fn ayanamsa(name: &str) -> Answer<Ayanamsa> {
-    Ayanamsa::ALL
-        .into_iter()
-        .find(|ayanamsa| {
-            let full = ayanamsa.name();
-            let short = full.split(" (").next().unwrap_or(full);
-            matches(name, full) || matches(name, short)
-        })
-        .ok_or(Refusal::Unknown)
+/// [`Refusal::Unknown`] for any other text, the empty one and a full name
+/// such as `Lahiri (Chitrapaksha)` included: the yoga moves with the
+/// ayanāṃśa, so none is assumed.
+pub fn ayanamsa(id: &str) -> Answer<Ayanamsa> {
+    Ayanamsa::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// The two lines at a moment, read at the POSIX second `read_at`: the
@@ -290,9 +283,13 @@ mod tests {
             panchanga_of_day_lines(day, place, ""),
             Err(Refusal::Unknown)
         );
+        assert_eq!(
+            panchanga_of_day_lines(day, place, "Lahiri (Chitrapaksha)"),
+            Err(Refusal::Unknown)
+        );
         let polar = Location::new(89.0, 0.0, 0.0);
         assert_eq!(
-            panchanga_of_day_lines(day, polar, "Lahiri (Chitrapaksha)"),
+            panchanga_of_day_lines(day, polar, "lahiri"),
             Err(Refusal::NoData)
         );
     }

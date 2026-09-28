@@ -81,24 +81,27 @@ pub enum DogDaysConvention {
     PrayerBook1552,
 }
 
-impl DogDaysConvention {
+hc_core::catalogue! {
+    type: DogDaysConvention,
+    tests: dog_days_convention_catalogue_tests,
+    variants;
+
     /// Every convention, in the order of the module table.
-    pub const ALL: [Self; 3] = [
-        Self::OldFarmersAlmanac,
-        Self::Hundstage,
-        Self::PrayerBook1552,
-    ];
-
+    pub const ALL;
     /// A short identifier, in kebab case.
-    #[must_use]
-    pub const fn id(self) -> &'static str {
-        match self {
-            Self::OldFarmersAlmanac => "dog-days-old-farmers-almanac",
-            Self::Hundstage => "hundstage",
-            Self::PrayerBook1552 => "dog-days-prayer-book-1552",
-        }
-    }
+    pub fn id;
+    /// The convention with this identifier, by
+    /// [`hc_core::catalogue::matches`].
+    pub fn by_id;
 
+    entries: {
+        OldFarmersAlmanac => "dog-days-old-farmers-almanac",
+        Hundstage => "hundstage",
+        PrayerBook1552 => "dog-days-prayer-book-1552",
+    }
+}
+
+impl DogDaysConvention {
     /// The name in English.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
@@ -256,7 +259,7 @@ mod tests {
 
     #[test]
     fn the_conventions_have_distinct_identifiers() {
-        let ids = DogDaysConvention::ALL.map(DogDaysConvention::id);
+        let ids: [&str; 3] = core::array::from_fn(|index| DogDaysConvention::ALL[index].id());
         assert_eq!(
             ids,
             [

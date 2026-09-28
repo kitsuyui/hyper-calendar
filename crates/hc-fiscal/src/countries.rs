@@ -993,6 +993,9 @@ pub static ETHIOPIA: FiscalProfile = FiscalProfile {
 /// Government of Nepal gazettes. Outside the gazetted years 2080–2083 the
 /// start is computed, and [`StartCalendar::BIKRAM_SAMBAT`] says by how
 /// much that can be trusted.
+///
+/// With the `indic` feature, which brings the Bikram Sambat.
+#[cfg(feature = "indic")]
 pub static NEPAL: FiscalProfile = FiscalProfile {
     code: "NP",
     english_name: "Nepal",
@@ -1031,6 +1034,7 @@ pub static ALL: &[&FiscalProfile] = &[
     &INDIA,
     &IRAN,
     &JAPAN,
+    #[cfg(feature = "indic")]
     &NEPAL,
     &NEW_ZEALAND,
     &PAKISTAN,
@@ -1536,6 +1540,7 @@ mod tests {
         assert_eq!(by_code("JP").unwrap().english_name, "Japan");
         assert_eq!(by_code("ET").unwrap().code, "ET");
         assert!(by_code("ZZ").is_none());
+        #[cfg(feature = "indic")]
         assert_eq!(by_code("NP").unwrap().english_name, "Nepal");
     }
 
@@ -1600,6 +1605,7 @@ mod tests {
         assert!(germany.is_gregorian_calendar_year());
     }
 
+    #[cfg(feature = "indic")]
     #[test]
     fn nepal_starts_its_year_on_1_shrawan() {
         let system = NEPAL.government(2082).unwrap();

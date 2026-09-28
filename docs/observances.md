@@ -504,7 +504,7 @@ not cover.
 
 ## Adding a country
 
-1. Add a `CountryRules` entry with its rules and a `sources_checked` date,
+1. Add a `RuleSet` entry with its rules and a `sources_checked` date,
    and register it in `countries::ALL`, whose length a test holds to the
    count the crate README states.
 2. Cite the statute or the government gazette in a comment. A holiday without a

@@ -107,11 +107,13 @@ const DECLARED: ClockEpoch = ClockEpoch {
 /// One body's rotational and orbital data.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Body {
+    /// The identifier: the English name in lower case, `mars` or `titan`.
+    pub id: &'static str,
     /// The English name.
     pub name: &'static str,
     /// What kind of object it is.
     pub kind: BodyKind,
-    /// The body it orbits, or `None` for the Sun.
+    /// The identifier of the body it orbits, or `None` for the Sun.
     pub primary: Option<&'static str>,
     /// The sidereal rotation period in hours, **negative for a retrograde
     /// rotator**.
@@ -167,11 +169,11 @@ impl Body {
         // Four hops is more than enough for Charon -> Pluto or Titan ->
         // Saturn; the bound stops a malformed table from looping forever.
         for _ in 0..4 {
-            let name = body.primary?;
-            if name == "Sun" {
+            let primary = body.primary?;
+            if primary == "sun" {
                 return Some(abs(body.sidereal_orbit_days));
             }
-            body = by_name(name)?;
+            body = by_id(primary)?;
         }
         None
     }
@@ -233,11 +235,11 @@ impl Body {
     }
 }
 
-/// Look a body up by name, by [`hc_core::catalogue::matches`].
+/// Look a body up by its identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn by_name(name: &str) -> Option<&'static Body> {
+pub fn by_id(id: &str) -> Option<&'static Body> {
     ALL.iter()
-        .find(|body| hc_core::catalogue::matches(name, body.name))
+        .find(|body| hc_core::catalogue::matches(id, body.id))
 }
 
 /// The number of bodies in the table.
@@ -259,6 +261,7 @@ const NSSDC: &str = "NASA NSSDC Planetary Fact Sheet, nssdc.gsfc.nasa.gov/planet
 /// each planet's moons following it.
 pub const ALL: &[Body] = &[
     Body {
+        id: "sun",
         name: "Sun",
         kind: BodyKind::Star,
         primary: None,
@@ -276,9 +279,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "mercury",
         name: "Mercury",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         // The IAU 2015 rate, 6.1385108 deg/day; NSSDC rounds it to 1407.6 h,
         // which would stretch the derived solar day by half an hour and spoil
         // the 3:2 resonance that the same sheet's 4222.6 h assumes.
@@ -292,9 +296,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "venus",
         name: "Venus",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: -5_832.5,
         sidereal_orbit_days: 224.701,
         axial_tilt_degrees: 177.36,
@@ -305,9 +310,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "earth",
         name: "Earth",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: 23.9345,
         sidereal_orbit_days: 365.256,
         axial_tilt_degrees: 23.44,
@@ -329,9 +335,10 @@ pub const ALL: &[Body] = &[
         },
     },
     Body {
+        id: "moon",
         name: "Moon",
         kind: BodyKind::Moon,
-        primary: Some("Earth"),
+        primary: Some("earth"),
         sidereal_rotation_hours: 655.720,
         sidereal_orbit_days: 27.3217,
         axial_tilt_degrees: 6.68,
@@ -354,9 +361,10 @@ pub const ALL: &[Body] = &[
         },
     },
     Body {
+        id: "mars",
         name: "Mars",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: 24.6229,
         sidereal_orbit_days: 686.980,
         axial_tilt_degrees: 25.19,
@@ -379,9 +387,10 @@ pub const ALL: &[Body] = &[
         },
     },
     Body {
+        id: "phobos",
         name: "Phobos",
         kind: BodyKind::Moon,
-        primary: Some("Mars"),
+        primary: Some("mars"),
         sidereal_rotation_hours: 7.653_84,
         sidereal_orbit_days: 0.318_91,
         axial_tilt_degrees: 0.0,
@@ -391,9 +400,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "deimos",
         name: "Deimos",
         kind: BodyKind::Moon,
-        primary: Some("Mars"),
+        primary: Some("mars"),
         sidereal_rotation_hours: 30.298_56,
         sidereal_orbit_days: 1.262_44,
         axial_tilt_degrees: 0.0,
@@ -403,9 +413,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "ceres",
         name: "Ceres",
         kind: BodyKind::DwarfPlanet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: 9.074_170,
         sidereal_orbit_days: 1_681.63,
         axial_tilt_degrees: 4.0,
@@ -416,9 +427,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "jupiter",
         name: "Jupiter",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         // System III, the rotation of the magnetic field; Jupiter has no
         // surface and its cloud decks rotate at their own rates.
         sidereal_rotation_hours: 9.9250,
@@ -430,9 +442,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "io",
         name: "Io",
         kind: BodyKind::Moon,
-        primary: Some("Jupiter"),
+        primary: Some("jupiter"),
         sidereal_rotation_hours: 42.459_31,
         sidereal_orbit_days: 1.769_138,
         axial_tilt_degrees: 0.0,
@@ -442,9 +455,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "europa",
         name: "Europa",
         kind: BodyKind::Moon,
-        primary: Some("Jupiter"),
+        primary: Some("jupiter"),
         sidereal_rotation_hours: 85.228_35,
         sidereal_orbit_days: 3.551_181,
         axial_tilt_degrees: 0.0,
@@ -454,9 +468,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "ganymede",
         name: "Ganymede",
         kind: BodyKind::Moon,
-        primary: Some("Jupiter"),
+        primary: Some("jupiter"),
         sidereal_rotation_hours: 171.709_27,
         sidereal_orbit_days: 7.154_553,
         axial_tilt_degrees: 0.0,
@@ -466,9 +481,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "callisto",
         name: "Callisto",
         kind: BodyKind::Moon,
-        primary: Some("Jupiter"),
+        primary: Some("jupiter"),
         sidereal_rotation_hours: 400.536_41,
         sidereal_orbit_days: 16.689_017,
         axial_tilt_degrees: 0.0,
@@ -478,9 +494,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "saturn",
         name: "Saturn",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: 10.656,
         sidereal_orbit_days: 10_755.699,
         axial_tilt_degrees: 26.73,
@@ -491,9 +508,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "enceladus",
         name: "Enceladus",
         kind: BodyKind::Moon,
-        primary: Some("Saturn"),
+        primary: Some("saturn"),
         sidereal_rotation_hours: 32.885_23,
         sidereal_orbit_days: 1.370_218,
         axial_tilt_degrees: 0.0,
@@ -503,9 +521,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "titan",
         name: "Titan",
         kind: BodyKind::Moon,
-        primary: Some("Saturn"),
+        primary: Some("saturn"),
         sidereal_rotation_hours: 382.690_10,
         sidereal_orbit_days: 15.945_421,
         axial_tilt_degrees: 0.3,
@@ -515,9 +534,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "uranus",
         name: "Uranus",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: -17.24,
         sidereal_orbit_days: 30_685.4,
         axial_tilt_degrees: 97.77,
@@ -528,9 +548,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "neptune",
         name: "Neptune",
         kind: BodyKind::Planet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: 16.11,
         sidereal_orbit_days: 60_189.018,
         axial_tilt_degrees: 28.32,
@@ -542,9 +563,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "triton",
         name: "Triton",
         kind: BodyKind::Moon,
-        primary: Some("Neptune"),
+        primary: Some("neptune"),
         sidereal_rotation_hours: -141.044_50,
         sidereal_orbit_days: -5.876_854,
         axial_tilt_degrees: 0.0,
@@ -555,9 +577,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "pluto",
         name: "Pluto",
         kind: BodyKind::DwarfPlanet,
-        primary: Some("Sun"),
+        primary: Some("sun"),
         sidereal_rotation_hours: -153.2928,
         sidereal_orbit_days: 90_560.0,
         axial_tilt_degrees: 119.51,
@@ -568,9 +591,10 @@ pub const ALL: &[Body] = &[
         clock_epoch: DECLARED,
     },
     Body {
+        id: "charon",
         name: "Charon",
         kind: BodyKind::Moon,
-        primary: Some("Pluto"),
+        primary: Some("pluto"),
         sidereal_rotation_hours: -153.2928,
         sidereal_orbit_days: 6.3872,
         axial_tilt_degrees: 0.0,
@@ -587,7 +611,7 @@ mod tests {
     use super::*;
 
     fn body(name: &str) -> &'static Body {
-        by_name(name).unwrap()
+        by_id(name).unwrap()
     }
 
     #[test]
@@ -617,10 +641,10 @@ mod tests {
             "Ceres",
         ];
         for name in expected {
-            assert!(by_name(name).is_some(), "{name} missing");
+            assert!(by_id(name).is_some(), "{name} missing");
         }
         assert_eq!(count(), expected.len());
-        assert!(by_name("Planet Nine").is_none());
+        assert!(by_id("Planet Nine").is_none());
     }
 
     #[test]
@@ -630,10 +654,10 @@ mod tests {
             match entry.kind {
                 BodyKind::Star => assert!(entry.primary.is_none()),
                 BodyKind::Planet | BodyKind::DwarfPlanet => {
-                    assert_eq!(entry.primary, Some("Sun"), "{}", entry.name);
+                    assert_eq!(entry.primary, Some("sun"), "{}", entry.name);
                 }
                 BodyKind::Moon => {
-                    let primary = by_name(entry.primary.unwrap()).unwrap();
+                    let primary = by_id(entry.primary.unwrap()).unwrap();
                     assert_ne!(primary.kind, BodyKind::Moon, "{}", entry.name);
                 }
             }
@@ -740,8 +764,8 @@ mod tests {
             ("Charon", "Pluto"),
         ] {
             assert_eq!(
-                by_name(moon).unwrap().heliocentric_year_days(),
-                by_name(planet).unwrap().heliocentric_year_days(),
+                by_id(moon).unwrap().heliocentric_year_days(),
+                by_id(planet).unwrap().heliocentric_year_days(),
                 "{moon}"
             );
         }
@@ -912,9 +936,9 @@ mod tests {
 
 hc_core::catalogue_tests! {
     type: Body,
-    id: |body| body.name,
+    id: |body| body.id,
     provenance: |body| body.source,
     tests: body_table_tests,
     all: ALL,
-    lookup: by_name,
+    lookup: by_id,
 }

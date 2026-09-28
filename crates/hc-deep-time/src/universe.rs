@@ -501,10 +501,12 @@ pub fn event_before(seconds: f64) -> Option<&'static CosmicEvent> {
     EVENTS.iter().rev().find(|event| event.seconds <= seconds)
 }
 
-/// Look an epoch up by name, case-sensitively.
+/// Look an epoch up by its identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn epoch_by_name(name: &str) -> Option<&'static CosmicEpoch> {
-    EPOCHS.iter().find(|epoch| epoch.name == name)
+pub fn epoch_by_id(id: &str) -> Option<&'static CosmicEpoch> {
+    EPOCHS
+        .iter()
+        .find(|epoch| hc_core::catalogue::matches(id, epoch.id))
 }
 
 /// Convert "years before the present day" into "seconds after the Big Bang".
@@ -709,11 +711,11 @@ mod tests {
     }
 
     #[test]
-    fn epochs_are_reachable_by_name() {
-        assert!(epoch_by_name("Dark ages").is_some());
+    fn epochs_are_reachable_by_id() {
+        assert_eq!(epoch_by_id("dark-ages").map(|e| e.name), Some("Dark ages"));
         assert!(
-            epoch_by_name("dark ages").is_none(),
-            "lookup is case-sensitive"
+            epoch_by_id("Dark ages").is_none(),
+            "a name is not an identifier"
         );
     }
 

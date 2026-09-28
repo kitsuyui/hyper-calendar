@@ -215,7 +215,7 @@ repeats the quotation and the URL.
 | --- | --- |
 | `hc_name_days::list` | `NameDayList`, `LeapDayRule`, `Licence`, `Provenance`, `Validity`, `Note`, `NameDays`, `slot_index`, `names_on`, `days_of` |
 | `hc_name_days::latvia` | the four editions, as a `catalogue!`, with `latvia/data.rs` generated from the files |
-| `hc_name_days::load` | `OwnedNameDayList::parse`, `NameDayList::to_text`, `ParseError` |
+| `hc_name_days::load` | `OwnedNameDayList::parse`, `NameDayList::to_text`, `LoadError` |
 | `hc_name_days::gaps` | seventeen `Gap`s, as a `catalogue!` |
 
 Anchoring tests, beside the data:

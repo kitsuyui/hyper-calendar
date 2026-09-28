@@ -402,6 +402,8 @@ pub const ALL: &[YearCount] = &[
 /// gives them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Abandonment {
+    /// The identifier: the kingdom's English name in lower case, `aragon`.
+    pub id: &'static str,
     /// The kingdom or region.
     pub kingdom: &'static str,
     /// The earliest Julian year, AD, the source gives for the change, or
@@ -435,36 +437,42 @@ impl Abandonment {
 /// when it was officially abandoned".
 pub const SPANISH_ERA_ABANDONMENT: &[Abandonment] = &[
     Abandonment {
+        id: "catalonia",
         kingdom: "Catalonia",
         earliest: Some(1_180),
         latest: Some(1_180),
         as_written: "1180",
     },
     Abandonment {
+        id: "aragon",
         kingdom: "Aragon",
         earliest: Some(1_349),
         latest: Some(1_350),
         as_written: "1349/1350",
     },
     Abandonment {
+        id: "valencia",
         kingdom: "Valencia",
         earliest: Some(1_358),
         latest: Some(1_358),
         as_written: "1358",
     },
     Abandonment {
+        id: "castile",
         kingdom: "Castile",
         earliest: Some(1_382),
         latest: Some(1_383),
         as_written: "1382/1383",
     },
     Abandonment {
+        id: "portugal",
         kingdom: "Portugal",
         earliest: Some(1_420),
         latest: Some(1_422),
         as_written: "1420/1422",
     },
     Abandonment {
+        id: "navarre",
         kingdom: "Navarre",
         earliest: None,
         latest: None,
@@ -472,13 +480,22 @@ pub const SPANISH_ERA_ABANDONMENT: &[Abandonment] = &[
     },
 ];
 
-/// The abandonment record of `kingdom`, by its English name.
+/// The abandonment record of the kingdom with the identifier `id`, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn spanish_era_abandonment(kingdom: &str) -> Option<Abandonment> {
+pub fn spanish_era_abandonment(id: &str) -> Option<Abandonment> {
     SPANISH_ERA_ABANDONMENT
         .iter()
         .copied()
-        .find(|entry| entry.kingdom.eq_ignore_ascii_case(kingdom))
+        .find(|entry| hc_core::catalogue::matches(id, entry.id))
+}
+
+hc_core::catalogue_tests! {
+    type: Abandonment,
+    id: |entry| entry.id,
+    tests: spanish_era_abandonment_table_tests,
+    all: SPANISH_ERA_ABANDONMENT,
+    lookup: spanish_era_abandonment,
 }
 
 /// A date of a year count.
@@ -594,11 +611,11 @@ mod tests {
         assert_eq!(aragon.abandoned_by(1_349), None);
         assert_eq!(aragon.abandoned_by(1_350), None);
         assert_eq!(aragon.abandoned_by(1_351), Some(true));
-        let portugal = spanish_era_abandonment("Portugal").unwrap();
+        let portugal = spanish_era_abandonment("portugal").unwrap();
         assert_eq!(portugal.abandoned_by(1_423), Some(true));
-        let navarre = spanish_era_abandonment("Navarre").unwrap();
+        let navarre = spanish_era_abandonment("navarre").unwrap();
         assert_eq!(navarre.abandoned_by(1_500), None);
-        assert!(spanish_era_abandonment("Leon").is_none());
+        assert!(spanish_era_abandonment("leon").is_none());
         // In the order the source lists them, which is the order of the
         // years.
         let mut previous = 0;

@@ -395,12 +395,6 @@ pub struct JavaneseCalendar {
     usage: Usage,
 }
 
-impl Default for JavaneseCalendar {
-    fn default() -> Self {
-        JAVANESE
-    }
-}
-
 impl JavaneseCalendar {
     /// A reckoning from its kurup.
     ///
@@ -1157,7 +1151,6 @@ mod tests {
             assert_eq!(calendar.era_name("ah"), None);
             assert!(calendar.usage().is_recorded());
         }
-        assert_eq!(JavaneseCalendar::default(), JAVANESE);
         assert_eq!(JAVANESE.meta().id, CalendarId("javanese"));
         assert_eq!(JAVANESE_ABOGE.meta().id, CalendarId("javanese-aboge"));
         assert_eq!(

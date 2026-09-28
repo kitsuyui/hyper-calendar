@@ -37,9 +37,6 @@ use hc_core::Duration;
 /// Where the astronomical day begins, and which civil day names it.
 pub const ASTRONOMICAL_DAY: DayBoundary = DayBoundary::Noon(DayNaming::ByStart);
 
-/// The first year whose *Nautical Almanac* counts G.M.T. from midnight.
-pub const FIRST_CIVIL_ALMANAC_YEAR: i64 = 1925;
-
 /// Half a day.
 const TWELVE_HOURS: Duration = Duration::from_secs(43_200);
 

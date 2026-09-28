@@ -416,12 +416,6 @@ pub struct MayaLongCountCalendar {
     correlation: i64,
 }
 
-impl Default for MayaLongCountCalendar {
-    fn default() -> Self {
-        Self::GMT
-    }
-}
-
 impl MayaLongCountCalendar {
     /// The Goodman–Martínez–Thompson correlation, 584 283.
     ///
@@ -495,12 +489,6 @@ macro_rules! correlated {
         $plus_two:literal,
         $martin_skidmore:literal
     ) => {
-        impl Default for $calendar {
-            fn default() -> Self {
-                Self::GMT
-            }
-        }
-
         impl $calendar {
             /// Under the Goodman–Martínez–Thompson correlation, 584 283.
             pub const GMT: Self = Self {
@@ -898,13 +886,6 @@ pub fn calendar_round_ordinal(tzolkin: TzolkinPosition, haab: HaabPosition) -> C
     Ok((day - EPOCH.0).rem_euclid(CALENDAR_ROUND_CYCLE))
 }
 
-/// The last day [`MayaCalendarRoundCalendar::GMT`] represents; the GMT+2
-/// calendar's is two days later.
-///
-/// The Calendar Round is bounded here only so that the round number stays
-/// meaningful next to the long count it usually accompanies.
-pub const CALENDAR_ROUND_LATEST: Rd = Rd(EPOCH.0 + 20 * 144_000 - 1);
-
 impl Calendar for MayaCalendarRoundCalendar {
     type Date = MayaCalendarRoundDate;
 
@@ -1003,7 +984,6 @@ mod correlation_tests {
             MayaLongCountCalendar::GMT_PLUS_TWO.id(),
             CalendarId("maya-longcount-gmt2")
         );
-        assert_eq!(MayaLongCountCalendar::default(), MayaLongCountCalendar::GMT);
     }
 
     #[test]
@@ -1071,12 +1051,6 @@ mod correlation_tests {
         assert_eq!(
             MayaCalendarRoundCalendar::GMT_PLUS_TWO.id(),
             CalendarId("maya-round-gmt2")
-        );
-        assert_eq!(MayaTzolkinCalendar::default(), MayaTzolkinCalendar::GMT);
-        assert_eq!(MayaHaabCalendar::default(), MayaHaabCalendar::GMT);
-        assert_eq!(
-            MayaCalendarRoundCalendar::default(),
-            MayaCalendarRoundCalendar::GMT
         );
         assert_eq!(
             MayaCalendarRoundCalendar::MARTIN_SKIDMORE.id(),

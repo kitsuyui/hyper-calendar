@@ -218,94 +218,71 @@ pub use tibetan::{TibetanCalendar, TibetanDate};
 pub use vietnamese::{VietnameseCalendar, VietnameseDate};
 pub use yerm::{YermCalendar, YermDate};
 
-pub use hc_astro;
-pub use hc_calendar;
-
 /// Registration of every calendar in this crate, for the dynamic registry.
 #[cfg(feature = "alloc")]
 mod registration {
-    extern crate alloc;
+    hc_calendar::calendars! {
+        /// Insert every calendar in this crate into a registry.
+        ///
+        /// The observational Hijri calendar is registered at its Mecca default.
+        /// It is a *prediction of a human decision* rather than a computation,
+        /// so a caller who cares about a particular country's announcements
+        /// should build an [`crate::IslamicObservationalCalendar`] with that
+        /// site and insert it themselves, replacing this entry.
+        ///
+        /// Tabular Hijri variants beyond the two canonical epochs get names of
+        /// their own rather than being withheld. A competing convention that
+        /// would otherwise share the `islamic-civil` or `islamic-tbla`
+        /// identifier is what policy §5 says to solve by minting a name, and
+        /// `islamic-fatimid` is that name for the Ṭayyibī Bohra *Misri*
+        /// calendar, which the community uses for every religious date and
+        /// which is defined by an authority that publishes it.
+        ///
+        /// The Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes stay
+        /// constructible rather than registered. They are medieval *zīj*
+        /// variants with no community keeping them and no authority publishing
+        /// them today, so under policy §10 there is nobody who could say the
+        /// registry was wrong about them. Build one from
+        /// [`crate::TabularIslamicCalendar`] when a specific scheme is wanted.
+        ///
+        /// Registering is idempotent: a second call replaces rather than
+        /// duplicates, since [`hc_calendar::CalendarRegistry::register`] keys on the calendar's
+        /// identifier.
+        pub fn register_all;
 
-    use alloc::boxed::Box;
-
-    use hc_calendar::{CalendarRegistry, DynAdapter};
-
-    /// Insert every calendar in this crate into a registry.
-    ///
-    /// The observational Hijri calendar is registered at its Mecca default.
-    /// It is a *prediction of a human decision* rather than a computation,
-    /// so a caller who cares about a particular country's announcements
-    /// should build an [`crate::IslamicObservationalCalendar`] with that
-    /// site and insert it themselves, replacing this entry.
-    ///
-    /// Tabular Hijri variants beyond the two canonical epochs get names of
-    /// their own rather than being withheld. A competing convention that
-    /// would otherwise share the `islamic-civil` or `islamic-tbla`
-    /// identifier is what policy §5 says to solve by minting a name, and
-    /// `islamic-fatimid` is that name for the Ṭayyibī Bohra *Misri*
-    /// calendar, which the community uses for every religious date and
-    /// which is defined by an authority that publishes it.
-    ///
-    /// The Kūshyār ibn Labbān and Ḥabash al-Ḥāsib schemes stay
-    /// constructible rather than registered. They are medieval *zīj*
-    /// variants with no community keeping them and no authority publishing
-    /// them today, so under policy §10 there is nobody who could say the
-    /// registry was wrong about them. Build one from
-    /// [`crate::TabularIslamicCalendar`] when a specific scheme is wanted.
-    ///
-    /// Inserting is idempotent: a second call replaces rather than
-    /// duplicates, since [`CalendarRegistry::insert`] keys on the calendar's
-    /// identifier.
-    pub fn register_all(registry: &mut CalendarRegistry) {
-        registry.insert(Box::new(DynAdapter::new(crate::ChineseCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::DangiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::VietnameseCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JapaneseTenpoCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::KanseiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::HoryakuCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JokyoCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::SenmyoCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::tabular::FATIMID)));
-        registry.insert(Box::new(DynAdapter::new(crate::HebrewCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::ObservationalHebrewCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::SamaritanCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BabylonianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN)));
-        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN_TSURPHU)));
-        registry.insert(Box::new(DynAdapter::new(crate::tibetan::TIBETAN_BHUTAN)));
-        registry.insert(Box::new(DynAdapter::new(crate::tibetan::MONGOLIAN)));
-        registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::javanese::JAVANESE_YOGYAKARTA,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::javanese::JAVANESE_ABOGE)));
-        registry.insert(Box::new(DynAdapter::new(crate::MeyerPalmenCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::YermCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::LiberaliaLunarCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ArchetypesCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::IslamicCivilCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicAstronomicalCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::IslamicUmmAlQuraCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::IslamicFcnaCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicObservationalCalendar::MECCA,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicObservationalCalendar::CAIRO_RD,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicObservationalCalendar::SAUDI_RULE_RD,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicGlobalCalendar::KHGT,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::IslamicGlobalCalendar::ISTANBUL_2016,
-        )));
+        crate::ChineseCalendar,
+        crate::DangiCalendar,
+        crate::VietnameseCalendar,
+        crate::JapaneseTenpoCalendar,
+        crate::KanseiCalendar,
+        crate::HoryakuCalendar,
+        crate::JokyoCalendar,
+        crate::SenmyoCalendar,
+        crate::tabular::FATIMID,
+        crate::HebrewCalendar,
+        crate::ObservationalHebrewCalendar,
+        crate::SamaritanCalendar,
+        crate::BabylonianCalendar,
+        crate::tibetan::TIBETAN,
+        crate::tibetan::TIBETAN_TSURPHU,
+        crate::tibetan::TIBETAN_BHUTAN,
+        crate::tibetan::MONGOLIAN,
+        crate::javanese::JAVANESE,
+        crate::javanese::JAVANESE_YOGYAKARTA,
+        crate::javanese::JAVANESE_ABOGE,
+        crate::MeyerPalmenCalendar,
+        crate::YermCalendar,
+        crate::LiberaliaLunarCalendar,
+        crate::ArchetypesCalendar,
+        crate::IslamicCivilCalendar,
+        crate::IslamicAstronomicalCalendar,
+        crate::IslamicUmmAlQuraCalendar,
+        crate::IslamicFcnaCalendar,
+        crate::IslamicObservationalCalendar::MECCA,
+        crate::IslamicObservationalCalendar::CAIRO_RD,
+        crate::IslamicObservationalCalendar::SAUDI_RULE_RD,
+        crate::IslamicGlobalCalendar::KHGT,
+        crate::IslamicGlobalCalendar::ISTANBUL_2016,
     }
 }
 

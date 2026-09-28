@@ -170,13 +170,15 @@ impl JapaneseDate {
         }
     }
 
-    /// A date whose era is named by identifier, kanji or reading.
+    /// A date whose era is named by its identifier, as [`nengo::by_id`]
+    /// finds it.
     ///
     /// # Errors
     ///
-    /// Returns [`CalendarError::UnknownEra`] when no era answers to `era`.
-    pub fn from_era_name(era: &str, year: i64, month: Month, day: u8) -> CalendarResult<Self> {
-        let era = nengo::find(era).ok_or(CalendarError::UnknownEra)?;
+    /// Returns [`CalendarError::UnknownEra`] when no era has the identifier
+    /// `era`.
+    pub fn from_era_id(era: &str, year: i64, month: Month, day: u8) -> CalendarResult<Self> {
+        let era = nengo::by_id(era).ok_or(CalendarError::UnknownEra)?;
         Ok(Self::new(era, year, month, day))
     }
 
@@ -235,14 +237,13 @@ impl fmt::Display for JapaneseDate {
 ///
 /// Both readings are right about different questions, so per policy §5 each
 /// gets a calendar of its own rather than a flag on one.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum EraReckoning {
     /// 年初改元: an era begins on the first day of its 元年.
     ///
     /// The reading of the chronological tables, and the one the era table's
     /// own `start_year` field describes.
-    #[default]
     Backdated,
     /// An era begins on the day it was proclaimed.
     ///
@@ -264,7 +265,7 @@ pub enum EraReckoning {
 /// country: a date proclaimed in Yoshino and the same day proclaimed in Kyoto
 /// belong to different calendars, not to one calendar with a setting.
 ///
-/// [`JapaneseCalendar::UNIFIED`] is the default and covers everything outside
+/// [`JapaneseCalendar::UNIFIED`] is the single stream and covers everything outside
 /// the schism; inside it, it refuses rather than choosing a side.
 /// [`JapaneseCalendar::NORTHERN`] and [`JapaneseCalendar::SOUTHERN`] each read
 /// one stream and are defined across the whole range, because each court's
@@ -282,12 +283,6 @@ pub enum EraReckoning {
 pub struct JapaneseCalendar {
     court: Court,
     reckoning: EraReckoning,
-}
-
-impl Default for JapaneseCalendar {
-    fn default() -> Self {
-        Self::UNIFIED
-    }
 }
 
 impl JapaneseCalendar {
@@ -332,18 +327,9 @@ impl JapaneseCalendar {
         reckoning: EraReckoning::Proclaimed,
     };
 
-    /// Build a calendar for a given court, backdating era changes.
-    #[must_use]
-    pub const fn new(court: Court) -> Self {
-        Self {
-            court,
-            reckoning: EraReckoning::Backdated,
-        }
-    }
-
     /// Build a calendar for a given court and era reckoning.
     #[must_use]
-    pub const fn with_reckoning(court: Court, reckoning: EraReckoning) -> Self {
+    pub const fn new(court: Court, reckoning: EraReckoning) -> Self {
         Self { court, reckoning }
     }
 
@@ -714,7 +700,7 @@ impl Calendar for JapaneseCalendar {
     fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
         match fields.era {
             Some(name) => {
-                let era = nengo::find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = nengo::by_id(name).ok_or(CalendarError::UnknownEra)?;
                 self.is_leap_year(era.start_year + fields.year - 1)
             }
             None => self.is_leap_year(fields.year),
@@ -725,7 +711,7 @@ impl Calendar for JapaneseCalendar {
     /// so that an era a locale's data does not list — anything before 明治
     /// — is still written as itself.
     fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
-        nengo::find(code).map(|era| hc_calendar::EraName::new(era.kanji, era.romaji))
+        nengo::by_id(code).map(|era| hc_calendar::EraName::new(era.kanji, era.romaji))
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -805,7 +791,7 @@ impl Calendar for JapaneseCalendar {
         let day = fields.require_day()?;
         match fields.era {
             Some(name) => {
-                let era = nengo::find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = nengo::by_id(name).ok_or(CalendarError::UnknownEra)?;
                 Ok(JapaneseDate::new(era, fields.year, month, day))
             }
             None => self.from_fixed(calendar_to_fixed(fields.year, month, day)?),
@@ -822,7 +808,6 @@ mod court_tests {
         assert_eq!(JapaneseCalendar::UNIFIED.id(), ID);
         assert_eq!(JapaneseCalendar::NORTHERN.id(), ID_NORTHERN);
         assert_eq!(JapaneseCalendar::SOUTHERN.id(), ID_SOUTHERN);
-        assert_eq!(JapaneseCalendar::default(), JapaneseCalendar::UNIFIED);
     }
 
     #[test]
@@ -924,7 +909,7 @@ mod tests {
     }
 
     fn japanese(era: &str, year: i64, month: u8, day: u8) -> JapaneseDate {
-        JapaneseDate::from_era_name(era, year, Month::regular(month), day).expect("known era")
+        JapaneseDate::from_era_id(era, year, Month::regular(month), day).expect("known era")
     }
 
     #[test]
@@ -932,10 +917,10 @@ mod tests {
         let day = greg(2019, 5, 1);
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(day),
-            Ok(japanese("令和", 1, 5, 1))
+            Ok(japanese("reiwa", 1, 5, 1))
         );
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("令和", 1, 5, 1)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("reiwa", 1, 5, 1)),
             Ok(day)
         );
         assert_eq!(
@@ -952,10 +937,10 @@ mod tests {
         let day = greg(2019, 4, 30);
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(day),
-            Ok(japanese("平成", 31, 4, 30))
+            Ok(japanese("heisei", 31, 4, 30))
         );
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("平成", 31, 4, 30)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("heisei", 31, 4, 30)),
             Ok(day)
         );
         // The two anchors are consecutive days.
@@ -968,37 +953,37 @@ mod tests {
         let first_heisei = greg(1989, 1, 8);
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(last_showa),
-            Ok(japanese("昭和", 64, 1, 7))
+            Ok(japanese("showa", 64, 1, 7))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(first_heisei),
-            Ok(japanese("平成", 1, 1, 8))
+            Ok(japanese("heisei", 1, 1, 8))
         );
         assert_eq!(first_heisei.0 - last_showa.0, 1);
         // Both era years name the same Western year.
-        assert_eq!(japanese("昭和", 64, 1, 7).calendar_year(), 1989);
-        assert_eq!(japanese("平成", 1, 1, 8).calendar_year(), 1989);
+        assert_eq!(japanese("showa", 64, 1, 7).calendar_year(), 1989);
+        assert_eq!(japanese("heisei", 1, 1, 8).calendar_year(), 1989);
     }
 
     #[test]
     fn a_date_on_the_wrong_side_of_an_era_boundary_is_refused() {
         // 昭和64年 lasted seven days; its eighth is 平成元年1月8日.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("昭和", 64, 1, 8)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("showa", 64, 1, 8)),
             Err(CalendarError::DayOutOfRange)
         );
         // And nothing before an era begins belongs to it either.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("平成", 1, 1, 7)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("heisei", 1, 1, 7)),
             Err(CalendarError::DayOutOfRange)
         );
         // 明治 ran to its 45th year only.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("明治", 50, 1, 1)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("meiji", 50, 1, 1)),
             Err(CalendarError::YearOutOfRange)
         );
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("令和", 0, 5, 1)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("reiwa", 0, 5, 1)),
             Err(CalendarError::YearOutOfRange)
         );
     }
@@ -1010,17 +995,17 @@ mod tests {
         assert_eq!(first_solar, GREGORIAN_ADOPTION);
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(last_lunisolar),
-            Ok(japanese("明治", 5, 12, 2))
+            Ok(japanese("meiji", 5, 12, 2))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(first_solar),
-            Ok(japanese("明治", 6, 1, 1))
+            Ok(japanese("meiji", 6, 1, 1))
         );
         assert_eq!(first_solar.0 - last_lunisolar.0, 1);
         // The decreed-away day does not exist.
         assert!(
             JapaneseCalendar::UNIFIED
-                .to_fixed(japanese("明治", 5, 12, 3))
+                .to_fixed(japanese("meiji", 5, 12, 3))
                 .is_err()
         );
     }
@@ -1031,12 +1016,12 @@ mod tests {
         let day = greg(1868, 1, 25);
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(day),
-            Ok(japanese("明治", 1, 1, 1))
+            Ok(japanese("meiji", 1, 1, 1))
         );
         // The day before belongs to 慶応, in its own third year.
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(Rd(day.0 - 1)),
-            Ok(japanese("慶応", 3, 12, 30))
+            Ok(japanese("keio", 3, 12, 30))
         );
     }
 
@@ -1046,7 +1031,7 @@ mod tests {
         // era table backdates it, so the date still reads as 明治元年.
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1868, 10, 23)),
-            Ok(japanese("明治", 1, 9, 8))
+            Ok(japanese("meiji", 1, 9, 8))
         );
     }
 
@@ -1092,7 +1077,7 @@ mod tests {
             .expect("in range");
         assert_eq!(edict.to_string(), "明治元年9月8日");
         assert_eq!(
-            JapaneseCalendar::PROCLAIMED.to_fixed(japanese("明治", 1, 9, 7)),
+            JapaneseCalendar::PROCLAIMED.to_fixed(japanese("meiji", 1, 9, 7)),
             Err(CalendarError::DayOutOfRange)
         );
         // From 大正 the two readings agree.
@@ -1212,7 +1197,7 @@ mod tests {
         // Every day from the union to the proclamation of 応永 reads as the
         // Northern calendar reads it — 明徳, or 応永 once the backdated
         // reading reaches its first year — and round-trips.
-        let oei = nengo::by_kanji("応永")
+        let oei = nengo::by_id("oei")
             .and_then(|era| era.start)
             .expect("dated");
         for rd in (union.0..oei.0).step_by(crate::sweep_stride(7)) {
@@ -1233,19 +1218,19 @@ mod tests {
     fn taisho_and_showa_start_on_the_official_dates() {
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1912, 7, 30)),
-            Ok(japanese("大正", 1, 7, 30))
+            Ok(japanese("taisho", 1, 7, 30))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1912, 7, 29)),
-            Ok(japanese("明治", 45, 7, 29))
+            Ok(japanese("meiji", 45, 7, 29))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1926, 12, 25)),
-            Ok(japanese("昭和", 1, 12, 25))
+            Ok(japanese("showa", 1, 12, 25))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1926, 12, 24)),
-            Ok(japanese("大正", 15, 12, 24))
+            Ok(japanese("taisho", 15, 12, 24))
         );
     }
 
@@ -1283,7 +1268,7 @@ mod tests {
     fn the_lunisolar_half_carries_intercalary_months() {
         // 明治3年 had a leap tenth month; the Tenpō calendar computes it.
         let leap = JapaneseDate::new(
-            nengo::find("明治").expect("known era"),
+            nengo::by_id("meiji").expect("known era"),
             3,
             Month::leap(10),
             1,
@@ -1302,7 +1287,7 @@ mod tests {
         // And the solar half does not.
         assert_eq!(
             JapaneseCalendar::UNIFIED.to_fixed(JapaneseDate::new(
-                nengo::find("令和").expect("known era"),
+                nengo::by_id("reiwa").expect("known era"),
                 8,
                 Month::leap(9),
                 1
@@ -1329,7 +1314,7 @@ mod tests {
         // guess at. 元禄15年12月14日 — the night of the Akō vendetta — is
         // answered by Jōkyō-reki.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("大化", 1, 1, 1)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("taika", 1, 1, 1)),
             Err(CalendarError::BeforeEpoch)
         );
         // But the era lookup still knows the era was in force.
@@ -1350,22 +1335,24 @@ mod tests {
     }
 
     #[test]
-    fn eras_can_be_named_in_kanji_reading_or_romaji() {
+    fn an_era_is_named_by_its_identifier() {
         let day = greg(2026, 9, 21);
-        for name in ["reiwa", "令和", "れいわ", "Reiwa"] {
-            let date =
-                JapaneseDate::from_era_name(name, 8, Month::regular(9), 21).expect("known era");
+        for id in ["reiwa", " Reiwa "] {
+            let date = JapaneseDate::from_era_id(id, 8, Month::regular(9), 21).expect("known era");
             assert_eq!(JapaneseCalendar::UNIFIED.to_fixed(date), Ok(day));
         }
-        assert_eq!(
-            JapaneseDate::from_era_name("nope", 1, Month::regular(1), 1),
-            Err(CalendarError::UnknownEra)
-        );
+        for name in ["令和", "れいわ", "nope"] {
+            assert_eq!(
+                JapaneseDate::from_era_id(name, 1, Month::regular(1), 1),
+                Err(CalendarError::UnknownEra),
+                "{name}"
+            );
+        }
     }
 
     #[test]
     fn fields_round_trip_with_and_without_an_era() {
-        let date = japanese("令和", 8, 9, 21);
+        let date = japanese("reiwa", 8, 9, 21);
         let fields = JapaneseCalendar::UNIFIED
             .to_fields(date)
             .expect("describable");
@@ -1477,7 +1464,7 @@ mod tests {
         // Every dated era of the unified stream from 貞観 onwards.
         assert_eq!(covered, 195);
         // 貞観 began before the supported range but covers part of it.
-        let jogan = nengo::by_kanji("貞観").expect("in table");
+        let jogan = nengo::by_id("jogan").expect("in table");
         assert!(jogan.start.expect("dated") < EARLIEST);
         assert_eq!(
             JapaneseCalendar::UNIFIED
@@ -1563,18 +1550,17 @@ mod tests {
     /// 嘉永7年1月1日 names under the proclaimed reading.
     #[test]
     fn a_backdated_era_covers_the_whole_of_its_first_year() {
-        let ansei = nengo::by_kanji("安政").expect("in table");
+        let ansei = nengo::by_id("ansei").expect("in table");
         assert_eq!(ansei.start_year, 1854);
 
         // The first day of 安政元年, and the last day of it.
-        let first =
-            JapaneseDate::from_era_name("安政", 1, Month::regular(1), 1).expect("known era");
+        let first = JapaneseDate::from_era_id("ansei", 1, Month::regular(1), 1).expect("known era");
         assert_eq!(
             JapaneseCalendar::UNIFIED.to_fixed(first).map(|rd| rd.0 > 0),
             Ok(true)
         );
         let twelfth =
-            JapaneseDate::from_era_name("安政", 1, Month::regular(12), 1).expect("known era");
+            JapaneseDate::from_era_id("ansei", 1, Month::regular(12), 1).expect("known era");
         assert!(JapaneseCalendar::UNIFIED.to_fixed(twelfth).is_ok());
 
         // Under the proclaimed reading the same date is not in the era yet,
@@ -1624,12 +1610,12 @@ mod tests {
     #[test]
     fn era_years_count_from_the_eras_first_calendar_year() {
         // 令和8年 is 2026; 平成31年 is 2019; 昭和64年 is 1989.
-        assert_eq!(japanese("令和", 8, 1, 1).calendar_year(), 2026);
-        assert_eq!(japanese("平成", 31, 1, 1).calendar_year(), 2019);
-        assert_eq!(japanese("昭和", 64, 1, 1).calendar_year(), 1989);
-        assert_eq!(japanese("大正", 15, 1, 1).calendar_year(), 1926);
+        assert_eq!(japanese("reiwa", 8, 1, 1).calendar_year(), 2026);
+        assert_eq!(japanese("heisei", 31, 1, 1).calendar_year(), 2019);
+        assert_eq!(japanese("showa", 64, 1, 1).calendar_year(), 1989);
+        assert_eq!(japanese("taisho", 15, 1, 1).calendar_year(), 1926);
         // And in the lunisolar half they count lunisolar years.
-        assert_eq!(japanese("安政", 1, 11, 27).calendar_year(), 1854);
+        assert_eq!(japanese("ansei", 1, 11, 27).calendar_year(), 1854);
     }
 
     #[test]
@@ -1637,12 +1623,12 @@ mod tests {
         // 安政元年11月27日 = 1855-01-15: the era was proclaimed in the
         // Western year after the one its year 1 belongs to.
         assert_eq!(
-            JapaneseCalendar::UNIFIED.to_fixed(japanese("安政", 1, 11, 27)),
+            JapaneseCalendar::UNIFIED.to_fixed(japanese("ansei", 1, 11, 27)),
             Ok(greg(1855, 1, 15))
         );
         assert_eq!(
             JapaneseCalendar::UNIFIED.from_fixed(greg(1855, 1, 15)),
-            Ok(japanese("安政", 1, 11, 27))
+            Ok(japanese("ansei", 1, 11, 27))
         );
     }
 }

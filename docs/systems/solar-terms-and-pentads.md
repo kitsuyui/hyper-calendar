@@ -262,7 +262,9 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   *drekkāṇa* lords are not carried.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
   date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI` and
-  `FAGAN_BRADLEY` as data and `new` for any other; `degrees_at`;
+  `FAGAN_BRADLEY` as data, a table of them by identifier (`lahiri`,
+  `raman`, `krishnamurti`, `fagan-bradley`) and `new` for any other;
+  `degrees_at`;
   `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
   Devanagari: the table once carried had no source, and the Hindi
   *Rashtriya Panchang* that would supply one was not read, so it was

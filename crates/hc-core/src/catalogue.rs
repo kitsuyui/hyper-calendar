@@ -108,6 +108,10 @@ pub fn matches(given: &str, id: &str) -> bool {
 /// The generated tests are named after the module you pass as `tests:`, so
 /// a module may hold more than one catalogue.
 ///
+/// An entry's attributes are repeated on its place in the table, so an
+/// entry behind a `#[cfg(feature = …)]` leaves the table and the lookup
+/// with it.
+///
 /// # Entries as associated constants
 ///
 /// When the entries should hang off the type — `Spice::PAPRIKA` rather than
@@ -207,7 +211,11 @@ macro_rules! catalogue {
         )+
 
         $(#[$all_meta])*
-        $all_vis const $all: &[$ty] = &[$($entry),+];
+        // An entry's attributes follow it into the table, so that a
+        // `#[cfg]` removes it from both at once; its doc comment there is
+        // inert.
+        #[allow(unused_doc_comments)]
+        $all_vis const $all: &[$ty] = &[$($(#[$entry_meta])* $entry),+];
 
         $(#[$lookup_meta])*
         ///
@@ -259,7 +267,10 @@ macro_rules! catalogue {
             )+
 
             $(#[$all_meta])*
-            $all_vis const $all: &'static [$ty] = &[$(Self::$entry),+];
+            // As above: an entry's attributes, a `#[cfg]` among them,
+            // follow it into the table.
+            #[allow(unused_doc_comments)]
+            $all_vis const $all: &'static [$ty] = &[$($(#[$entry_meta])* Self::$entry),+];
 
             $(#[$lookup_meta])*
             ///

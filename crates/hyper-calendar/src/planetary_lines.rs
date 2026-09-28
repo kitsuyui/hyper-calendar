@@ -32,7 +32,6 @@
 //! own for it.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_calendar::Calendar;
 use hc_core::catalogue::matches;
@@ -43,7 +42,7 @@ use hc_planetary::bodies::{self, Body, BodyKind, EpochBasis};
 use hc_planetary::circad;
 use hc_planetary::clock::BodyClock;
 use hc_planetary::mars::martiana::MartianaCalendar;
-use hc_planetary::mars::missions::{MISSIONS, Mission};
+use hc_planetary::mars::missions::{self, MISSIONS, Mission};
 use hc_planetary::mars::{DarianCalendar, MarsMoment, darian, martiana};
 use hc_planetary::moon::COORDINATED_LUNAR_TIME_STATUS;
 
@@ -170,38 +169,16 @@ pub fn mars_time_line(unix_seconds: f64, east_longitude_degrees: f64) -> Answer<
     Ok(out)
 }
 
-/// The identifier of a name: lower case, with a hyphen for each space, so
-/// `Viking 1` is `viking-1` and `Mars Pathfinder` is `mars-pathfinder`.
-fn identifier(out: &mut dyn Write, name: &str) {
-    for character in name.chars() {
-        if character == ' ' {
-            let _ = out.write_char('-');
-        } else {
-            for lower in character.to_lowercase() {
-                let _ = out.write_char(lower);
-            }
-        }
-    }
-}
-
-/// Whether `given` names a table entry by its identifier or its English
-/// name, each by [`matches`](fn@matches).
-fn names_entry(given: &str, name: &str) -> bool {
-    let mut id = String::new();
-    identifier(&mut id, name);
-    matches(given, &id) || matches(given, name)
-}
-
-/// The mission `given` names, by identifier or by name.
+/// The mission with the identifier `id`, by [`missions::by_id`]:
+/// `viking-1`, `mars-pathfinder`, `curiosity` and the rest of
+/// [`missions_lines`]' first column.
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a name the table does not carry.
-pub fn mission(given: &str) -> Answer<&'static Mission> {
-    MISSIONS
-        .iter()
-        .find(|mission| names_entry(given, mission.name))
-        .ok_or(Refusal::Unknown)
+/// [`Refusal::Unknown`] for any other text, a name such as `Viking 1`
+/// included.
+pub fn mission(id: &str) -> Answer<&'static Mission> {
+    missions::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// Every surface mission, in landing order, one line each: the
@@ -218,7 +195,7 @@ pub fn missions_lines() -> String {
     let mut out = String::new();
     for mission in MISSIONS {
         let mut line = Line::new(&mut out);
-        line.cell_with(|cell| identifier(cell, mission.name))
+        line.cell(mission.id)
             .cell(mission.name)
             .cell(mission.landing_utc)
             .value(mission.landing_unix_seconds);
@@ -295,16 +272,14 @@ fn status(body: &Body) -> &'static str {
     }
 }
 
-/// The body `given` names, by identifier or by name.
+/// The body with the identifier `id`, by [`bodies::by_id`]: `mars`,
+/// `titan` and the rest of [`bodies_lines`]' first column.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a body the table does not carry.
-pub fn body(given: &str) -> Answer<&'static Body> {
-    bodies::ALL
-        .iter()
-        .find(|body| names_entry(given, body.name))
-        .ok_or(Refusal::Unknown)
+pub fn body(id: &str) -> Answer<&'static Body> {
+    bodies::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// Every body `hc-planetary` carries, outward from the Sun with each
@@ -323,14 +298,10 @@ pub fn bodies_lines() -> String {
     let mut out = String::new();
     for body in bodies::ALL {
         let mut line = Line::new(&mut out);
-        line.cell_with(|cell| identifier(cell, body.name))
+        line.cell(body.id)
             .cell(body.name)
             .cell(kind_id(body.kind))
-            .cell_with(|cell| {
-                if let Some(primary) = body.primary {
-                    identifier(cell, primary);
-                }
-            })
+            .cell_or_empty(body.primary)
             .value(body.sidereal_rotation_hours);
         if let Some(seconds) = body.solar_day_seconds() {
             let origin = if body.measured_solar_day_seconds.is_some() {
@@ -561,14 +532,14 @@ mod tests {
         // published anchors `hc-planetary`'s own tests pin.
         assert_eq!(mission_sol("curiosity", 1_344_230_277.0), Ok(0));
         for (sol, day) in [(1_000, 1_432_944_000.0), (4_032, 1_702_080_000.0)] {
-            let first = mission_sol("Curiosity", day).unwrap_or_default();
-            let last = mission_sol("Curiosity", day + 86_399.0).unwrap_or_default();
+            let first = mission_sol("curiosity", day).unwrap_or_default();
+            let last = mission_sol("curiosity", day + 86_399.0).unwrap_or_default();
             assert!((first..=last).contains(&sol), "{first}..={last}");
         }
         // Viking 1's clock ran from true solar midnight: sol 2243 fell
         // within 1982-11-11.
         let first = mission_sol("viking-1", 405_820_800.0).unwrap_or_default();
-        let last = mission_sol("VIKING 1", 405_820_800.0 + 86_399.0).unwrap_or_default();
+        let last = mission_sol("VIKING-1", 405_820_800.0 + 86_399.0).unwrap_or_default();
         assert!((first..=last).contains(&2_243), "{first}..={last}");
         // Pathfinder and Spirit numbered the landing sol 1.
         assert_eq!(mission_sol("mars-pathfinder", 868_035_415.0), Ok(1));
@@ -586,6 +557,10 @@ mod tests {
             mission_sol("beagle-2", 1_700_000_000.0),
             Err(Refusal::Unknown)
         );
+        // A mission is named by its identifier, not its name.
+        for name in ["Viking 1", "Viking 2", "Mars Pathfinder"] {
+            assert_eq!(mission_sol(name, 1_700_000_000.0), Err(Refusal::Unknown));
+        }
     }
 
     #[test]
@@ -628,7 +603,7 @@ mod tests {
 
     #[test]
     fn the_generic_mars_clock_agrees_with_coordinated_mars_time() {
-        let mars = body_time_line("Mars", 947_116_800.0, 0.0).unwrap_or_default();
+        let mars = body_time_line("mars", 947_116_800.0, 0.0).unwrap_or_default();
         assert_eq!(cells(&mars)[0], "44795");
         assert_eq!(cells(&mars)[2], "23:59:39");
         assert_eq!(

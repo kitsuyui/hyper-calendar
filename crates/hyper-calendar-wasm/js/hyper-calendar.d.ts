@@ -202,6 +202,56 @@ export interface ChoghadiyaPart {
   missing: MissingSolarEvent | null;
 }
 
+/** A Mars surface mission, by the identifier `hc_missions` gives it. */
+export type MissionId =
+  | "viking-1"
+  | "viking-2"
+  | "mars-pathfinder"
+  | "spirit"
+  | "opportunity"
+  | "phoenix"
+  | "curiosity"
+  | "insight"
+  | "perseverance"
+  | "zhurong";
+
+/** A body `hc-planetary` carries, by the identifier `hc_bodies` gives it. */
+export type BodyId =
+  | "sun"
+  | "mercury"
+  | "venus"
+  | "earth"
+  | "moon"
+  | "mars"
+  | "phobos"
+  | "deimos"
+  | "ceres"
+  | "jupiter"
+  | "io"
+  | "europa"
+  | "ganymede"
+  | "callisto"
+  | "saturn"
+  | "enceladus"
+  | "titan"
+  | "uranus"
+  | "neptune"
+  | "triton"
+  | "pluto"
+  | "charon";
+
+/** A body `hc-relativity` carries a GM for, by the identifier `hc_gravitating_bodies` gives it. */
+export type GravitatingBodyId =
+  | "sun"
+  | "earth"
+  | "moon"
+  | "mars"
+  | "jupiter"
+  | "sagittarius-a-star";
+
+/** An ayanāṃśa, by the identifier `hc-seasons`' `Ayanamsa::by_id` finds it by. */
+export type Ayanamsa = "lahiri" | "raman" | "krishnamurti" | "fagan-bradley";
+
 /** A naming table of the Panchak kinds. */
 export type PanchakNaming = "panchak-five-kinds" | "panchak-raj-midweek";
 
@@ -1980,11 +2030,11 @@ export class HyperCalendar {
   /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
   gregorianAdoption(region: string): GregorianAdoption[];
   /** `hc_panchanga_at`: the yoga's line, then the karaṇa's; an ayanamsa nobody knows is `unknown`. */
-  panchangaAt(unixSeconds: number | bigint, ayanamsa: string): PanchangaLimb[];
+  panchangaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): PanchangaLimb[];
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
-  panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: string): PanchangaLimb[];
+  panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: Ayanamsa): PanchangaLimb[];
   /**
-   * `hc_hindu_lunar_date`: `sky` an ayanamsa name or `surya-siddhanta`. A
+   * `hc_hindu_lunar_date`: `sky` an ayanamsa or `surya-siddhanta`. A
    * place beyond 65° of latitude, or off the globe, is `out-of-range` on
    * either sky, as is a day outside Śaka 1622 through 2221 on the true sky
    * and outside Kali Yuga 1 to 10 000 on the Siddhānta's; on the true sky a
@@ -1993,7 +2043,7 @@ export class HyperCalendar {
    * English.
    */
   hinduLunarDate(
-    sky: string,
+    sky: Ayanamsa | "surya-siddhanta",
     fixed: number | bigint,
     latitude: number,
     longitude: number,
@@ -2042,9 +2092,9 @@ export class HyperCalendar {
   /** `hc_choghadiya`: sixteen lines, the day's eight then the night's. */
   choghadiya(fixed: number | bigint, latitude: number, longitude: number, elevation?: number, locale?: string): ChoghadiyaPart[];
   /** `hc_panchak`: the weekday of the opening on a clock `offsetSeconds` ahead of UTC, 0 unless given. */
-  panchak(naming: PanchakNaming, unixSeconds: number | bigint, ayanamsa: string, offsetSeconds?: number, locale?: string): PanchakWindow;
+  panchak(naming: PanchakNaming, unixSeconds: number | bigint, ayanamsa: Ayanamsa, offsetSeconds?: number, locale?: string): PanchakWindow;
   /** `hc_kumbh`: `jupiter` is the caller's, the library having no ephemeris of Jupiter; empty unless given. */
-  kumbh(yoga: KumbhYoga, year: number | bigint, ayanamsa: string, jupiter?: SiderealSignId | "", locale?: string): KumbhOccasion;
+  kumbh(yoga: KumbhYoga, year: number | bigint, ayanamsa: Ayanamsa, jupiter?: SiderealSignId | "", locale?: string): KumbhOccasion;
   /** `hc_pushkaram`: Jupiter's sign and the moment it enters it are the caller's. */
   pushkaram(
     sign: SiderealSignId,
@@ -2194,17 +2244,17 @@ export class HyperCalendar {
   /** `hc_missions`. */
   missions(): Mission[];
   /** `hc_mission_sol`; an unpublished convention is `no-data`, an instant before the landing sol `out-of-range`. */
-  missionSol(mission: string, unixSeconds: number): number;
+  missionSol(mission: MissionId, unixSeconds: number): number;
   /** `hc_bodies`. */
   bodies(): Body[];
   /** `hc_body_time`; the Sun is `no-data`. */
-  bodyTime(body: string, unixSeconds: number, eastLongitude?: number): BodyTime;
+  bodyTime(body: BodyId, unixSeconds: number, eastLongitude?: number): BodyTime;
   /** `hc_circad_date`; an instant more than 100 Julian years from J2000.0 is `out-of-range`. */
   circadDate(calendar: CircadCalendar, unixSeconds: number): CircadDate;
   /** `hc_proper_time`; a speed at or beyond light is `out-of-range`. */
   properTime(speedMetresPerSecond: number, coordinateSeconds: number): ProperTime;
   /** `hc_gravitational_dilation`; a radius at or inside the horizon is `out-of-range`. */
-  gravitationalDilation(body: string, radiusMetres: number): GravitationalDilation;
+  gravitationalDilation(body: GravitatingBodyId, radiusMetres: number): GravitationalDilation;
   /** `hc_gravitating_bodies`. */
   gravitatingBodies(): GravitatingBody[];
 }

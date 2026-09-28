@@ -84,9 +84,6 @@ pub use timeline::{
 };
 pub use universe::{CosmicEpoch, CosmicEvent};
 
-pub use hc_core;
-pub use hc_uncertainty;
-
 #[cfg(test)]
 mod identifier_tests {
     use crate::geologic::{self, GeologicRank};
@@ -161,8 +158,8 @@ mod identifier_tests {
             }
         }
         assert_eq!(
-            geologic::by_name("Cambrian Stage 10").map(|i| i.id),
-            Some("cambrian-stage-10")
+            geologic::by_id("cambrian-stage-10").map(|i| i.name),
+            Some("Cambrian Stage 10")
         );
     }
 }

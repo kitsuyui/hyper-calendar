@@ -38,8 +38,11 @@
 use core::fmt;
 use core::fmt::Write as _;
 
-use hc_calendar::{CivilDateTime, Rd};
+use hc_calendar::CivilDateTime;
+#[cfg(any(test, feature = "format"))]
+use hc_calendar::Rd;
 use hc_core::Duration;
+#[cfg(feature = "format")]
 use hc_format::patterns::{FormatContext, strftime};
 use hc_i18n::{PluralCategory, PluralRules};
 
@@ -711,6 +714,7 @@ impl Natural {
     ///
     /// [`HumanizeError::Unsupported`] for a pattern `hc-format` cannot write,
     /// and [`HumanizeError::WriteFailed`] when the sink refuses.
+    #[cfg(feature = "format")]
     pub fn write_naturalday<W: fmt::Write>(
         &self,
         out: &mut W,
@@ -746,6 +750,7 @@ impl Natural {
     /// # Errors
     ///
     /// As [`Natural::write_naturalday`].
+    #[cfg(feature = "format")]
     pub fn write_naturaldate<W: fmt::Write>(
         &self,
         out: &mut W,
@@ -983,6 +988,7 @@ impl Natural {
     /// # Errors
     ///
     /// As [`Natural::write_naturalday`].
+    #[cfg(feature = "format")]
     pub fn naturalday(
         &self,
         day: Rd,
@@ -997,6 +1003,7 @@ impl Natural {
     /// # Errors
     ///
     /// As [`Natural::write_naturaldate`].
+    #[cfg(feature = "format")]
     pub fn naturaldate(&self, day: Rd, today: Rd) -> HumanizeResult<alloc::string::String> {
         Self::collect(|out| self.write_naturaldate(out, day, today))
     }
@@ -1427,6 +1434,7 @@ mod tests {
         ));
     }
 
+    #[cfg(feature = "format")]
     #[test]
     fn naturalday_and_naturaldate_name_the_near_days_and_write_the_rest() {
         let natural = natural();

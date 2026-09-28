@@ -13,9 +13,13 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-indic/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-indic/alloc"]
+default = ["std", "indic"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-calendars-solar/std", "hc-calendars-indic?/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-calendars-indic?/alloc"]
+# Nepal's fiscal year, which begins on 1 Shrawan of the Bikram Sambat: the
+# one start dated in a calendar of `hc-calendars-indic`, which brings the
+# astronomy with it.
+indic = ["dep:hc-calendars-indic"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm"]
@@ -24,4 +28,4 @@ libm = ["hc-core/libm"]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
 hc-calendars-solar = { workspace = true }
-hc-calendars-indic = { workspace = true }
+hc-calendars-indic = { workspace = true, optional = true }

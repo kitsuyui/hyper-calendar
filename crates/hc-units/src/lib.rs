@@ -66,8 +66,6 @@ pub use ratio::Ratio;
 pub use tempo::{NoteValue, Ppqn, Tempo, TimeSignature};
 pub use unit::{Family, Quantity, Unit, by_id};
 
-pub use hc_core;
-
 #[cfg(test)]
 mod tests {
     use super::media::{FRAME_RATES, SAMPLE_RATES};

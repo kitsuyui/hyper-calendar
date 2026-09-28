@@ -30,8 +30,12 @@
 
 use hc_calendar::{CalendarError, CalendarResult, Month, Weekday};
 
-/// How many entries a month-keyed or sign-keyed table holds.
+/// How many entries a month-keyed table holds.
 pub const MONTHS: usize = 12;
+
+/// How many entries a sign-keyed table holds: one per tropical sign, from
+/// Aries at index 0, as `hc_seasons::TropicalSign::index` numbers them.
+pub const SIGNS: usize = 12;
 
 /// How many entries a weekday-keyed table holds.
 pub const WEEKDAYS: usize = 7;
@@ -352,11 +356,6 @@ pub type MonthTable = AttributionTable<MONTHS>;
 /// [`crate::weekday_attributions`] counts the planetary week from the Sun.
 /// [`hc_calendar::Weekday::sunday_first_number`] produces the index.
 pub type WeekdayTable = AttributionTable<WEEKDAYS>;
-
-/// A zodiac-sign-keyed table: index 0 is Aries.
-///
-/// The index is [`hc_seasons::TropicalSign::index`].
-pub type SignTable = AttributionTable<MONTHS>;
 
 impl<const N: usize> AttributionTable<N> {
     /// Build a table. Used only by this crate's static data.

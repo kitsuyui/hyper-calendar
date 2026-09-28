@@ -639,20 +639,20 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | Feature | Implies |
 | --- | --- |
 | `units` | hc-units |
-| `civil` | hc-calendar, hc-calendars-solar |
+| `civil` | hc-calendar, hc-calendars-solar, hc-uncertainty?/edtf |
 | `lunar` | civil, hc-astro, hc-calendars-lunar, hc-core/memo |
 | `equinox` | astro, hc-calendars-equinox, hc-core/memo |
-| `indic` | seasons, hc-calendars-indic, hc-core/memo |
+| `indic` | seasons, hc-calendars-indic, hc-core/memo, hc-fiscal?/indic |
 | `regional` | lunar, hc-calendars-regional |
 | `astro` | civil, hc-astro |
-| `seasons` | astro, hc-seasons |
+| `seasons` | astro, hc-seasons, hc-attributes?/seasons |
 | `almanac` | seasons, lunar, i18n, hc-almanac |
 | `fiscal` | civil, hc-fiscal |
-| `attributes` | seasons, hc-attributes |
+| `attributes` | civil, hc-attributes |
 | `name-days` | civil, hc-name-days |
 | `tz` | civil, hc-tz, hc-i18n, hc-i18n/exemplar-cities |
 | `localized-exemplar-cities` | hc-i18n, hc-i18n/localized-exemplar-cities |
-| `format` | civil, hc-format |
+| `format` | civil, hc-format, hc-humanize?/format |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
 | `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories |

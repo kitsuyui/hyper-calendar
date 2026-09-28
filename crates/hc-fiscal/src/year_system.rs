@@ -27,6 +27,7 @@
 //! [`LabelConvention`] deliberately does not implement `Default`.
 
 use hc_calendar::{CalendarError, CalendarId, Rd, Weekday};
+#[cfg(feature = "indic")]
 use hc_calendars_indic::{BikramSambatCalendar, HinduSolarDate};
 use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian};
 
@@ -152,6 +153,9 @@ hc_core::catalogue! {
         /// Nepal publishes: `hc-calendars-indic` has the published months of
         /// 2080–2083 BS and computes the others by a reckoning that missed
         /// one of those 48 months by a day.
+        ///
+        /// With the `indic` feature.
+        #[cfg(feature = "indic")]
         pub const BIKRAM_SAMBAT = Self::new(
             CalendarId("bikram-sambat"),
             "Bikram Sambat",

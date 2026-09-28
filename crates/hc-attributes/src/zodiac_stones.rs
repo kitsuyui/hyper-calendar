@@ -20,8 +20,8 @@
 //! but none: Kunz's sign stones and the modern American month stones share
 //! **no** stone in any corresponding position, all twelve of them.
 //!
-//! [`month_and_sign_stones_overlap`] measures it, and a test asserts the
-//! number rather than this comment claiming it.
+//! A test measures it, and asserts the number rather than this comment
+//! claiming it.
 //!
 //! ```
 //! use hc_attributes::zodiac_stones::{ZODIAC_STONES_KUNZ, stones_for_sign};
@@ -50,7 +50,7 @@
 use hc_calendar::Rd;
 use hc_seasons::{Meridian, TropicalSign};
 
-use crate::authority::{Authority, Provenance, Region, SignTable, Validity};
+use crate::authority::{AttributionTable, Authority, Provenance, Region, SIGNS, Validity};
 
 /// The stones assigned to the twelve tropical signs, as Kunz records them.
 ///
@@ -66,7 +66,7 @@ use crate::authority::{Authority, Provenance, Region, SignTable, Validity};
 /// peridot, and the list keeps the old name because that is the word the
 /// sources use. Beryl (Scorpio) is the species; aquamarine and emerald are
 /// both beryl, and the sources do not narrow it.
-pub static ZODIAC_STONES_KUNZ: SignTable = SignTable::new(
+pub static ZODIAC_STONES_KUNZ: AttributionTable<SIGNS> = AttributionTable::new(
     Authority {
         id: "zodiac-stones-kunz-1913",
         english_name: "zodiacal stones of the Western lapidary tradition",
@@ -105,14 +105,17 @@ pub static ZODIAC_STONES_KUNZ: SignTable = SignTable::new(
 /// One, for now. The array exists so that the shape matches
 /// [`crate::birthstones::ALL`] and a second authority can be added without
 /// changing any caller.
-pub static ALL: [&SignTable; 1] = [&ZODIAC_STONES_KUNZ];
+pub static ALL: [&AttributionTable<SIGNS>; 1] = [&ZODIAC_STONES_KUNZ];
 
 /// The stones one authority names for a sign.
 ///
 /// Infallible: [`TropicalSign::index`] is always 0..=11 and the table always
 /// has twelve entries, so the empty fallback is unreachable.
 #[must_use]
-pub fn stones_for_sign_in(table: &SignTable, sign: TropicalSign) -> &'static [&'static str] {
+pub fn stones_for_sign_in(
+    table: &AttributionTable<SIGNS>,
+    sign: TropicalSign,
+) -> &'static [&'static str] {
     table.at(usize::from(sign.index())).unwrap_or(&[])
 }
 
@@ -133,37 +136,34 @@ pub fn stones_on(day: Rd, meridian: Meridian) -> &'static [&'static str] {
     stones_for_sign(hc_seasons::zodiac::tropical::sign_on_day(day, meridian))
 }
 
-/// How many signs share at least one stone with the month that contains the
-/// greater part of the sign, under the current American list.
-///
-/// Zero of twelve. The function exists so the disagreement between the two
-/// systems is a number a caller can print rather than a claim in a comment,
-/// and so that a later revision of either list is caught by a test rather
-/// than by a reader.
-///
-/// The "greater part" mapping is the conventional one: Aries is April's
-/// sign, Taurus May's, and so on round to Pisces, which is March's. That
-/// mapping is itself an approximation — the signs move against the calendar
-/// — and it is used here only to make the comparison possible at all.
-#[must_use]
-pub fn month_and_sign_stones_overlap() -> usize {
-    TropicalSign::ALL
-        .into_iter()
-        .filter(|sign| {
-            let sign_stones = stones_for_sign(*sign);
-            // Aries (index 0) sits mostly in April (month index 3).
-            let month_slot = (usize::from(sign.index()) + 3) % 12;
-            let month_stones = crate::birthstones::BIRTHSTONES_US_2016
-                .at(month_slot)
-                .unwrap_or(&[]);
-            sign_stones.iter().any(|stone| month_stones.contains(stone))
-        })
-        .count()
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// How many signs share at least one stone with the month that contains the
+    /// greater part of the sign, under the current American list.
+    ///
+    /// Zero of twelve, counted so that a later revision of either list is
+    /// caught by a test rather than by a reader.
+    ///
+    /// The "greater part" mapping is the conventional one: Aries is April's
+    /// sign, Taurus May's, and so on round to Pisces, which is March's. That
+    /// mapping is itself an approximation — the signs move against the calendar
+    /// — and it is used here only to make the comparison possible at all.
+    fn month_and_sign_stones_overlap() -> usize {
+        TropicalSign::ALL
+            .into_iter()
+            .filter(|sign| {
+                let sign_stones = stones_for_sign(*sign);
+                // Aries (index 0) sits mostly in April (month index 3).
+                let month_slot = (usize::from(sign.index()) + 3) % 12;
+                let month_stones = crate::birthstones::BIRTHSTONES_US_2016
+                    .at(month_slot)
+                    .unwrap_or(&[]);
+                sign_stones.iter().any(|stone| month_stones.contains(stone))
+            })
+            .count()
+    }
 
     #[test]
     fn every_sign_has_an_entry_and_none_is_empty() {
@@ -275,14 +275,14 @@ mod tests {
 
 /// The table whose authority has this identifier.
 #[must_use]
-pub fn by_id(id: &str) -> Option<&'static SignTable> {
+pub fn by_id(id: &str) -> Option<&'static AttributionTable<SIGNS>> {
     ALL.iter()
         .copied()
         .find(|table| hc_core::catalogue::matches(id, table.authority().id))
 }
 
 hc_core::catalogue_tests! {
-    type: &'static SignTable,
+    type: &'static AttributionTable<SIGNS>,
     id: |table| table.authority().id,
     provenance: |table| table.authority().source,
     tests: zodiac_stone_table_tests,

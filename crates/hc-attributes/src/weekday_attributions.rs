@@ -553,6 +553,7 @@ mod tests {
         // Lodestone appears in no other table in the crate.
         assert!(WEEKDAY_STONES_KUNZ.names("lodestone"));
         assert!(!crate::birthstones::BIRTHSTONES_US_2016.names("lodestone"));
+        #[cfg(feature = "seasons")]
         assert!(!crate::zodiac_stones::ZODIAC_STONES_KUNZ.names("lodestone"));
     }
 

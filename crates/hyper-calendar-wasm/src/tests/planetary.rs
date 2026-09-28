@@ -70,7 +70,8 @@ fn a_mission_sol_is_the_missions_own_and_an_unpublished_one_is_refused() {
     let curiosity = "curiosity";
     let sol = |name: &str, unix: f64| unsafe { hc_mission_sol(name.as_ptr(), name.len(), unix) };
     assert_eq!(sol(curiosity, 1_344_230_277.0), 0);
-    assert_eq!(sol("Mars Pathfinder", 868_035_415.0), 1);
+    assert_eq!(sol("mars-pathfinder", 868_035_415.0), 1);
+    assert_eq!(sol("Mars Pathfinder", 868_035_415.0), HC_ERR_UNKNOWN);
     assert_eq!(sol("zhurong", 1_700_000_000.0), HC_ERR_NO_DATA);
     assert_eq!(sol("beagle-2", 1_700_000_000.0), HC_ERR_UNKNOWN);
     assert_eq!(

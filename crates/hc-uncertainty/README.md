@@ -116,6 +116,7 @@ Highlights:
 | --- | --- |
 | `std` (default) | platform floating-point math; implies `alloc` |
 | `alloc` | the EDTF set and list forms (`[...]`, `{...}`); without it they return `UncertaintyError::Unsupported` rather than parsing less |
+| `edtf` (default) | the `edtf` module, and with it the `hc-calendar` dependency its Gregorian day arithmetic comes from |
 | `libm` | software floating-point math through `hc-core`, for `no_std` targets |
 
 A build with neither `std` nor `libm` does not compile: `hc-core` refuses

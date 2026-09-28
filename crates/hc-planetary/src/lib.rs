@@ -35,7 +35,7 @@
 //! use hc_planetary::mars;
 //!
 //! // Curiosity's landing, 2012-08-06T05:17:57Z.
-//! let landing = mars::missions::mission("Curiosity").unwrap();
+//! let landing = mars::missions::by_id("curiosity").unwrap();
 //! let moment = landing.landing_moment().unwrap();
 //!
 //! assert_eq!(landing.clock().unwrap().sol(moment), 0);
@@ -84,10 +84,6 @@ pub use mars::{
     MartianaCalendar, MartianaDate, Mission, MissionClock, SolConvention,
 };
 
-pub use hc_astro;
-pub use hc_calendar;
-pub use hc_core;
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -96,8 +92,8 @@ mod tests {
     fn the_crate_answers_the_question_it_exists_for() {
         // What time is it at Olympus Mons, and what is the date there?
         let when = util::tai_from_utc_fields(2035, 7, 4, 12, 0, 0).unwrap();
-        let mars = BodyClock::for_name("Mars").unwrap();
-        let olympus = mars::site("Olympus Mons").unwrap();
+        let mars = BodyClock::for_id("mars").unwrap();
+        let olympus = mars::site("olympus-mons").unwrap();
         let local = mars.at_east_longitude(when, olympus.east_longitude_degrees);
         assert!(local.hour() < 24);
 
@@ -106,7 +102,7 @@ mod tests {
         assert_eq!(date.mars_year(), moment.mars_year());
 
         // And on Titan, through the same interface.
-        let titan = BodyClock::for_name("Titan").unwrap();
+        let titan = BodyClock::for_id("titan").unwrap();
         assert!(!titan.is_standardised());
         assert!(titan.solar_day_seconds() > 1.3e6);
     }

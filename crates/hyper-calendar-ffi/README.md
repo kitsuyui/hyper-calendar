@@ -628,8 +628,8 @@ The one period carried is Turkmenistan's of 2002 to 2008. A null
 `hc_panchanga_of_day(fixed, latitude, longitude, elevation, ayanamsa,
 buffer, capacity, written)` need the `calendars` feature and write the
 WebAssembly module's two lines, the yoga's and the karaṇa's, in its eight
-columns; `ayanamsa` is a NUL-terminated name, `Lahiri`, `Raman`,
-`Krishnamurti` or `Fagan-Bradley`, and a day without a sunrise at the
+columns; `ayanamsa` is a NUL-terminated identifier, `lahiri`, `raman`,
+`krishnamurti` or `fagan-bradley`, and a day without a sunrise at the
 place is `HC_ERROR_NO_DATA`. `hc_ioc_olympiad(gregorian_year,
 out_olympiad)`, `hc_hebrew_yahrzeit(death_fixed, hebrew_year, out_fixed)`
 and `hc_hebrew_birthday(birth_fixed, hebrew_year, out_fixed)` write one
@@ -1035,7 +1035,8 @@ UTC through the leap-second table with the last offset held; the longitude
 is planetocentric, east-positive, and wraps. An instant more than 100
 Julian years from J2000.0, where the series is an extrapolation, is
 `HC_ERROR_OUT_OF_RANGE`. `mission` and `body` are NUL-terminated
-identifiers or names, in any ASCII case. No mission convention is
+identifiers, the first column of `hc_missions` and `hc_bodies`, in any
+ASCII case: `viking-1`, not `Viking 1`. No mission convention is
 invented: Zhurong's operators published no sol numbering, so its row
 leaves the landing sol, the clock and its meridian empty and its sol is
 `HC_ERROR_NO_DATA`. The Moon's row carries `hc-planetary`'s statement that

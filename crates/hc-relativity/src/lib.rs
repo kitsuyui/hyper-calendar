@@ -71,6 +71,3 @@ pub use error::{RelativityError, RelativityResult};
 pub use gravitational::{schwarzschild_radius, static_dilation_factor};
 pub use special::{lorentz_factor, proper_time_of, rapidity};
 pub use worldline::{GravitationalPotential, Segment, VelocityProfile, Worldline};
-
-pub use hc_core;
-pub use hc_uncertainty;

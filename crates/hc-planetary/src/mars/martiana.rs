@@ -402,7 +402,7 @@ mod tests {
             MartianaCalendar.convert_to(martiana, &DarianCalendar),
             Ok(darian_date)
         );
-        let landing = super::super::missions::mission("Perseverance")
+        let landing = super::super::missions::by_id("perseverance")
             .unwrap()
             .landing_moment()
             .unwrap();

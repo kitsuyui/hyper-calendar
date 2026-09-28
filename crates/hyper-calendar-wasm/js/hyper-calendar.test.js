@@ -1642,10 +1642,11 @@ describe("the pañcāṅga and the anniversaries", () => {
     assert.equal(karana.ayanamsa, null);
     assert.ok(karana.ends - balavaEnds >= 0 && karana.ends - balavaEnds < 120, `${karana.ends}`);
     assert.equal(karana.readAt, yoga.readAt);
-    const [at] = hc.panchangaAt(vyaghataEnds - 600, "lahiri (chitrapaksha)");
+    const [at] = hc.panchangaAt(vyaghataEnds - 600, "lahiri");
     assert.equal(at.name, "Vyaghata");
     assert.equal(at.readAt, vyaghataEnds - 600);
     refused(() => hc.panchangaAt(vyaghataEnds, ""), "unknown");
+    refused(() => hc.panchangaAt(vyaghataEnds, "Lahiri (Chitrapaksha)"), "unknown");
     refused(() => hc.panchangaOfDay(day, 89, 0, 0, "Lahiri"), "no-data");
     refused(() => hc.panchangaOfDay(day, 91, 0, 0, "Lahiri"), "out-of-range");
   });
@@ -2037,7 +2038,7 @@ describe("time on other bodies", () => {
     assert.equal(missions[6].landingSol, 0);
     assert.equal(missions[2].landingSol, 1);
     assert.equal(hc.missionSol("curiosity", missions[6].landingUnix), 0);
-    assert.equal(hc.missionSol("Spirit", missions[3].landingUnix), 1);
+    assert.equal(hc.missionSol("spirit", missions[3].landingUnix), 1);
     // Curiosity's sol 1000 fell within 2015-05-30 UTC.
     const day = 1_432_944_000;
     const first = hc.missionSol("curiosity", day);
@@ -2045,6 +2046,9 @@ describe("time on other bodies", () => {
     assert.ok(first <= 1_000 && 1_000 <= last, `${first}..${last}`);
     refused(() => hc.missionSol("zhurong", 1_700_000_000), "no-data");
     refused(() => hc.missionSol("beagle-2", 1_700_000_000), "unknown");
+    for (const name of ["Viking 1", "Viking 2", "Mars Pathfinder"]) {
+      refused(() => hc.missionSol(name, 1_700_000_000), "unknown");
+    }
     refused(() => hc.missionSol("curiosity", missions[6].landingUnix - 86_400), "out-of-range");
   });
 
@@ -2064,7 +2068,7 @@ describe("time on other bodies", () => {
     assert.equal(byId.titan.primary, "saturn");
     assert.match(byId.moon.status ?? "", /Coordinated Lunar Time/);
     assert.equal(byId.titan.status, null);
-    const titan = hc.bodyTime("Titan", 947_116_800);
+    const titan = hc.bodyTime("titan", 947_116_800);
     assert.ok(Math.abs(titan.localHourSeconds / 3_600 - 15.97) < 0.01, `${titan.localHourSeconds}`);
     assert.equal(titan.zeroPoint, "convention");
     const mars = hc.bodyTime("mars", 947_116_800);
@@ -2091,7 +2095,7 @@ describe("relativity", () => {
 
   test("a GPS clock gains 45.7 µs a day over one on the ground, before its motion", () => {
     const ground = hc.gravitationalDilation("earth", 6_378_137);
-    const orbit = hc.gravitationalDilation("Earth", 26_561_750);
+    const orbit = hc.gravitationalDilation("earth", 26_561_750);
     const raw = rawRows(hc, (buffer, capacity) => {
       const name = new TextEncoder().encode("earth");
       const pointer = hc.alloc(name.length);
@@ -2111,6 +2115,9 @@ describe("relativity", () => {
     assert.ok(Math.abs(sun.schwarzschildRadius - 2_953.25) < 0.01, `${sun.schwarzschildRadius}`);
     refused(() => hc.gravitationalDilation("sun", 2_000), "out-of-range");
     refused(() => hc.gravitationalDilation("vulcan", 1e7), "unknown");
+    for (const name of ["Sagittarius A*", "Mars system", "Jupiter system"]) {
+      refused(() => hc.gravitationalDilation(name, 1e12), "unknown");
+    }
     const bodies = hc.gravitatingBodies();
     assert.deepEqual(bodies.map((entry) => entry.id), ["sun", "earth", "moon", "mars", "jupiter", "sagittarius-a-star"]);
     assert.ok(bodies.every((entry) => entry.gmConstant.startsWith("GM_")));

@@ -372,7 +372,7 @@ mod tests {
                 "{}: {per_year}",
                 rule.id
             );
-            let derived = crate::bodies::by_name(rule.body)
+            let derived = crate::bodies::by_id(rule.body)
                 .unwrap()
                 .solar_day_days()
                 .unwrap();

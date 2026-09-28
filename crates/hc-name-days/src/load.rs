@@ -115,18 +115,18 @@ pub struct OwnedNameDayList {
 
 /// Why a text is not a list.
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct ParseError {
+pub struct LoadError {
     /// The one-based line the error is on; 0 when it is about the whole
     /// text.
     pub line: usize,
     /// What is wrong.
-    pub kind: ParseErrorKind,
+    pub kind: LoadErrorKind,
 }
 
 /// What is wrong with a line, or with the text as a whole.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
-pub enum ParseErrorKind {
+pub enum LoadErrorKind {
     /// A line without `=`.
     MissingSeparator,
     /// A header key the format does not define.
@@ -156,38 +156,38 @@ pub enum ParseErrorKind {
     NamesOnEmptySlot(MonthDay),
 }
 
-impl fmt::Display for ParseError {
+impl fmt::Display for LoadError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.line > 0 {
             write!(f, "line {}: ", self.line)?;
         }
         match &self.kind {
-            ParseErrorKind::MissingSeparator => f.write_str("expected `key = value`"),
-            ParseErrorKind::UnknownKey(key) => write!(f, "unknown header `{key}`"),
-            ParseErrorKind::DuplicateHeader(key) => write!(f, "header `{key}` given twice"),
-            ParseErrorKind::HeaderAfterDays(key) => {
+            LoadErrorKind::MissingSeparator => f.write_str("expected `key = value`"),
+            LoadErrorKind::UnknownKey(key) => write!(f, "unknown header `{key}`"),
+            LoadErrorKind::DuplicateHeader(key) => write!(f, "header `{key}` given twice"),
+            LoadErrorKind::HeaderAfterDays(key) => {
                 write!(f, "header `{key}` after the first day")
             }
-            ParseErrorKind::MissingHeader(key) => write!(f, "header `{key}` is required"),
-            ParseErrorKind::BadValidity(value) => {
+            LoadErrorKind::MissingHeader(key) => write!(f, "header `{key}` is required"),
+            LoadErrorKind::BadValidity(value) => {
                 write!(f, "`{value}` is not a validity span such as `2025..2029`")
             }
-            ParseErrorKind::BadLeapDayRule(value) => {
+            LoadErrorKind::BadLeapDayRule(value) => {
                 write!(f, "`{value}` is not a leap-day rule")
             }
-            ParseErrorKind::BadDate(value) => write!(f, "`{value}` is not a date `MM-DD`"),
-            ParseErrorKind::DuplicateDay(day) => write!(f, "day {day} given twice"),
-            ParseErrorKind::EmptyName => f.write_str("empty name between separators"),
-            ParseErrorKind::DuplicateName(name) => write!(f, "`{name}` given twice on one day"),
-            ParseErrorKind::MissingDay(day) => write!(f, "day {day} is not given"),
-            ParseErrorKind::NamesOnEmptySlot(day) => {
+            LoadErrorKind::BadDate(value) => write!(f, "`{value}` is not a date `MM-DD`"),
+            LoadErrorKind::DuplicateDay(day) => write!(f, "day {day} given twice"),
+            LoadErrorKind::EmptyName => f.write_str("empty name between separators"),
+            LoadErrorKind::DuplicateName(name) => write!(f, "`{name}` given twice on one day"),
+            LoadErrorKind::MissingDay(day) => write!(f, "day {day} is not given"),
+            LoadErrorKind::NamesOnEmptySlot(day) => {
                 write!(f, "names on {day}, which the leap-day rule leaves empty")
             }
         }
     }
 }
 
-impl core::error::Error for ParseError {}
+impl core::error::Error for LoadError {}
 
 const HEADERS: [&str; 10] = [
     "id",
@@ -207,36 +207,36 @@ impl OwnedNameDayList {
     ///
     /// # Errors
     ///
-    /// A [`ParseError`] naming the line and what is wrong with it; the
+    /// A [`LoadError`] naming the line and what is wrong with it; the
     /// first error found, since a text with one is not a list.
-    pub fn parse(text: &str) -> Result<Self, ParseError> {
+    pub fn parse(text: &str) -> Result<Self, LoadError> {
         let mut headers: [Option<String>; HEADERS.len()] = Default::default();
         let mut days: Vec<Option<Vec<String>>> = (0..DAYS).map(|_| None).collect();
         let mut seen_day = false;
 
         for (offset, raw) in text.lines().enumerate() {
             let line = offset + 1;
-            let at = |kind| ParseError { line, kind };
+            let at = |kind| LoadError { line, kind };
             let trimmed = raw.trim();
             if trimmed.is_empty() || trimmed.starts_with('#') {
                 continue;
             }
             let Some((key, value)) = trimmed.split_once('=') else {
-                return Err(at(ParseErrorKind::MissingSeparator));
+                return Err(at(LoadErrorKind::MissingSeparator));
             };
             let key = key.trim();
             let value = value.trim();
 
             if let Some(day) = parse_month_day(key) {
                 let Some(index) = layout_index(day.month, day.day) else {
-                    return Err(at(ParseErrorKind::BadDate(key.to_string())));
+                    return Err(at(LoadErrorKind::BadDate(key.to_string())));
                 };
                 let Some(slot) = days.get_mut(index) else {
-                    return Err(at(ParseErrorKind::BadDate(key.to_string())));
+                    return Err(at(LoadErrorKind::BadDate(key.to_string())));
                 };
                 let names = parse_names(value).map_err(at)?;
                 if slot.is_some() {
-                    return Err(at(ParseErrorKind::DuplicateDay(day)));
+                    return Err(at(LoadErrorKind::DuplicateDay(day)));
                 }
                 *slot = Some(names);
                 seen_day = true;
@@ -244,31 +244,31 @@ impl OwnedNameDayList {
             }
 
             let Some(position) = HEADERS.iter().position(|header| *header == key) else {
-                return Err(at(ParseErrorKind::UnknownKey(key.to_string())));
+                return Err(at(LoadErrorKind::UnknownKey(key.to_string())));
             };
             if seen_day {
-                return Err(at(ParseErrorKind::HeaderAfterDays(key.to_string())));
+                return Err(at(LoadErrorKind::HeaderAfterDays(key.to_string())));
             }
             let Some(field) = headers.get_mut(position) else {
-                return Err(at(ParseErrorKind::UnknownKey(key.to_string())));
+                return Err(at(LoadErrorKind::UnknownKey(key.to_string())));
             };
             if field.is_some() {
-                return Err(at(ParseErrorKind::DuplicateHeader(key.to_string())));
+                return Err(at(LoadErrorKind::DuplicateHeader(key.to_string())));
             }
             *field = Some(value.to_string());
         }
 
-        let whole = |kind| ParseError { line: 0, kind };
+        let whole = |kind| LoadError { line: 0, kind };
         let header = |name: &'static str| -> Option<String> {
             HEADERS
                 .iter()
                 .position(|header| *header == name)
                 .and_then(|position| headers.get(position).cloned().flatten())
         };
-        let required = |name: &'static str| -> Result<String, ParseError> {
+        let required = |name: &'static str| -> Result<String, LoadError> {
             match header(name) {
                 Some(value) if !value.is_empty() => Ok(value),
-                _ => Err(whole(ParseErrorKind::MissingHeader(name))),
+                _ => Err(whole(LoadErrorKind::MissingHeader(name))),
             }
         };
         let optional = |name: &'static str| header(name).unwrap_or_default();
@@ -277,15 +277,15 @@ impl OwnedNameDayList {
         let source = required("source")?;
         let validity_text = required("validity")?;
         let validity = parse_validity(&validity_text)
-            .ok_or_else(|| whole(ParseErrorKind::BadValidity(validity_text.clone())))?;
+            .ok_or_else(|| whole(LoadErrorKind::BadValidity(validity_text.clone())))?;
         let rule_text = required("leap-day")?;
         let leap_day = LeapDayRule::by_id(&rule_text)
-            .ok_or_else(|| whole(ParseErrorKind::BadLeapDayRule(rule_text.clone())))?;
+            .ok_or_else(|| whole(LoadErrorKind::BadLeapDayRule(rule_text.clone())))?;
         let unlisted_names_day = match header("unlisted-names-day") {
             Some(value) if !value.is_empty() => Some(
                 parse_month_day(&value)
                     .filter(|day| layout_index(day.month, day.day).is_some())
-                    .ok_or_else(|| whole(ParseErrorKind::BadDate(value.clone())))?,
+                    .ok_or_else(|| whole(LoadErrorKind::BadDate(value.clone())))?,
             ),
             _ => None,
         };
@@ -294,7 +294,7 @@ impl OwnedNameDayList {
         for (index, slot) in days.into_iter().enumerate() {
             let Some(names) = slot else {
                 let day = layout_month_day(index).unwrap_or(MonthDay::new(0, 0));
-                return Err(whole(ParseErrorKind::MissingDay(day)));
+                return Err(whole(LoadErrorKind::MissingDay(day)));
             };
             filled.push(names);
         }
@@ -302,7 +302,7 @@ impl OwnedNameDayList {
             && filled.get(index).is_some_and(|names| !names.is_empty())
         {
             let day = layout_month_day(index).unwrap_or(MonthDay::new(0, 0));
-            return Err(whole(ParseErrorKind::NamesOnEmptySlot(day)));
+            return Err(whole(LoadErrorKind::NamesOnEmptySlot(day)));
         }
 
         Ok(Self {
@@ -427,7 +427,7 @@ fn parse_validity(text: &str) -> Option<Validity> {
 }
 
 /// Names separated by `;`; an empty value is no names.
-fn parse_names(value: &str) -> Result<Vec<String>, ParseErrorKind> {
+fn parse_names(value: &str) -> Result<Vec<String>, LoadErrorKind> {
     if value.is_empty() {
         return Ok(Vec::new());
     }
@@ -435,10 +435,10 @@ fn parse_names(value: &str) -> Result<Vec<String>, ParseErrorKind> {
     for piece in value.split(';') {
         let name = piece.trim();
         if name.is_empty() {
-            return Err(ParseErrorKind::EmptyName);
+            return Err(LoadErrorKind::EmptyName);
         }
         if names.iter().any(|seen| seen == name) {
-            return Err(ParseErrorKind::DuplicateName(name.to_string()));
+            return Err(LoadErrorKind::DuplicateName(name.to_string()));
         }
         names.push(name.to_string());
     }
@@ -482,7 +482,7 @@ mod tests {
         }
     }
 
-    fn refused(text: &str) -> ParseError {
+    fn refused(text: &str) -> LoadError {
         match OwnedNameDayList::parse(text) {
             Ok(list) => panic!("parsed {} instead of failing", list.id),
             Err(error) => error,
@@ -583,7 +583,7 @@ mod tests {
         let header = "id = zz\nvalidity = 2025-2029\nleap-day = no-names\nsource = s\n";
         assert_eq!(
             refused(&synthetic(header, three_names)).kind,
-            ParseErrorKind::BadValidity("2025-2029".to_string())
+            LoadErrorKind::BadValidity("2025-2029".to_string())
         );
     }
 
@@ -597,14 +597,14 @@ mod tests {
                 .collect();
             assert_eq!(
                 refused(&synthetic(&header, three_names)).kind,
-                ParseErrorKind::MissingHeader(missing),
+                LoadErrorKind::MissingHeader(missing),
                 "{missing}"
             );
         }
         let header = "id = \nvalidity = ..\nleap-day = no-names\nsource = s\n";
         assert_eq!(
             refused(&synthetic(header, three_names)).kind,
-            ParseErrorKind::MissingHeader("id")
+            LoadErrorKind::MissingHeader("id")
         );
     }
 
@@ -617,7 +617,7 @@ mod tests {
             .collect();
         let error = refused(&text);
         assert_eq!(error.line, 0);
-        assert_eq!(error.kind, ParseErrorKind::MissingDay(MonthDay::new(2, 29)));
+        assert_eq!(error.kind, LoadErrorKind::MissingDay(MonthDay::new(2, 29)));
     }
 
     #[test]
@@ -631,7 +631,7 @@ mod tests {
         });
         assert_eq!(
             refused(&leap_named).kind,
-            ParseErrorKind::NamesOnEmptySlot(MonthDay::new(2, 29))
+            LoadErrorKind::NamesOnEmptySlot(MonthDay::new(2, 29))
         );
         let shifted = "id = zz\nvalidity = ..\nleap-day = shift-after-24-february\nsource = s\n";
         let feb_24_named = synthetic(shifted, |month, day| {
@@ -643,7 +643,7 @@ mod tests {
         });
         assert_eq!(
             refused(&feb_24_named).kind,
-            ParseErrorKind::NamesOnEmptySlot(MonthDay::new(2, 24))
+            LoadErrorKind::NamesOnEmptySlot(MonthDay::new(2, 24))
         );
         // The same names one day later are fine, and read as the rule says.
         let feb_25_named = parsed(&synthetic(shifted, |month, day| {
@@ -675,28 +675,28 @@ mod tests {
 
     #[test]
     fn each_malformed_line_is_refused_with_its_number_and_reason() {
-        let cases: [(&str, ParseErrorKind); 7] = [
-            ("nonsense\n", ParseErrorKind::MissingSeparator),
+        let cases: [(&str, LoadErrorKind); 7] = [
+            ("nonsense\n", LoadErrorKind::MissingSeparator),
             (
                 "colour = red\n",
-                ParseErrorKind::UnknownKey("colour".to_string()),
+                LoadErrorKind::UnknownKey("colour".to_string()),
             ),
             (
                 "country = zz\n",
-                ParseErrorKind::HeaderAfterDays("country".to_string()),
+                LoadErrorKind::HeaderAfterDays("country".to_string()),
             ),
             (
                 "02-30 = Nobody\n",
-                ParseErrorKind::BadDate("02-30".to_string()),
+                LoadErrorKind::BadDate("02-30".to_string()),
             ),
             (
                 "01-01 = Again\n",
-                ParseErrorKind::DuplicateDay(MonthDay::new(1, 1)),
+                LoadErrorKind::DuplicateDay(MonthDay::new(1, 1)),
             ),
-            ("03-03 = A; ; B\n", ParseErrorKind::EmptyName),
+            ("03-03 = A; ; B\n", LoadErrorKind::EmptyName),
             (
                 "03-03 = A; A\n",
-                ParseErrorKind::DuplicateName("A".to_string()),
+                LoadErrorKind::DuplicateName("A".to_string()),
             ),
         ];
         for (line, kind) in cases {
@@ -713,34 +713,31 @@ mod tests {
     fn a_header_given_twice_or_naming_no_rule_is_refused() {
         let twice = format!("id = first\n{HEADER}");
         let error = refused(&synthetic(&twice, three_names));
-        assert_eq!(
-            error.kind,
-            ParseErrorKind::DuplicateHeader("id".to_string())
-        );
+        assert_eq!(error.kind, LoadErrorKind::DuplicateHeader("id".to_string()));
         assert_eq!(error.line, 2);
         let header = "id = zz\nvalidity = ..\nleap-day = sideways\nsource = s\n";
         assert_eq!(
             refused(&synthetic(header, three_names)).kind,
-            ParseErrorKind::BadLeapDayRule("sideways".to_string())
+            LoadErrorKind::BadLeapDayRule("sideways".to_string())
         );
         let header =
             "id = zz\nvalidity = ..\nleap-day = no-names\nsource = s\nunlisted-names-day = 13-01\n";
         assert_eq!(
             refused(&synthetic(header, three_names)).kind,
-            ParseErrorKind::BadDate("13-01".to_string())
+            LoadErrorKind::BadDate("13-01".to_string())
         );
     }
 
     #[test]
     fn the_errors_print_with_their_line() {
-        let error = ParseError {
+        let error = LoadError {
             line: 7,
-            kind: ParseErrorKind::DuplicateDay(MonthDay::new(1, 1)),
+            kind: LoadErrorKind::DuplicateDay(MonthDay::new(1, 1)),
         };
         assert_eq!(error.to_string(), "line 7: day 01-01 given twice");
-        let whole = ParseError {
+        let whole = LoadError {
             line: 0,
-            kind: ParseErrorKind::MissingHeader("id"),
+            kind: LoadErrorKind::MissingHeader("id"),
         };
         assert_eq!(whole.to_string(), "header `id` is required");
     }

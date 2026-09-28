@@ -267,12 +267,6 @@ pub struct TibetanCalendar {
     native_locales: &'static [&'static str],
 }
 
-impl Default for TibetanCalendar {
-    fn default() -> Self {
-        TIBETAN
-    }
-}
-
 /// Where the period of use of `tibetan` comes from.
 pub const USAGE_SOURCE: &str = "Janson 2014, §1 and Appendix A [janson2014]: the Phugpa tradition begun in 1447 by Phugpa \
     Lhundrub Gyatso, used by the Tibetan government from at least 1696 to 1959 and in the \
@@ -1648,7 +1642,6 @@ mod tests {
         assert_eq!(TIBETAN_TSURPHU.meta().native_locales, &["bo"]);
         assert_eq!(MONGOLIAN.meta().native_locales, &["mn"]);
         assert_eq!(TIBETAN_BHUTAN.meta().native_locales, &["dz"]);
-        assert_eq!(TibetanCalendar::default(), TIBETAN);
         let today = greg(2026, 9, 26);
         for calendar in VERSIONS {
             assert_eq!(

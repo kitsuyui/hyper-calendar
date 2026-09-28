@@ -8,9 +8,9 @@
 use hc_calendar::Rd;
 use hc_calendars_lunar::tibetan;
 use hc_calendars_solar::gregorian;
-use hc_holiday::countries::{self, CountryRules};
+use hc_holiday::countries;
 use hc_holiday::engine::{Holiday, HolidayCalendar};
-use hc_holiday::rule::{Confidence, Kind, Rule, TibetanMonth};
+use hc_holiday::rule::{Confidence, Kind, Rule, RuleSet, TibetanMonth};
 
 /// Panics rather than returning a `Result`, because every date in this file
 /// is a literal the author typed and a bad one is a bug in the test.
@@ -28,7 +28,7 @@ fn ymd(year: i64, month: u8, day: u8) -> Rd {
 /// # Panics
 ///
 /// When `code` is not a country this crate carries.
-fn table(code: &str) -> &'static CountryRules {
+fn table(code: &str) -> &'static RuleSet {
     match countries::by_code(code) {
         Some(country) => country,
         None => panic!("{code} is not a registered country"),

@@ -3,8 +3,6 @@
 use core::fmt;
 use core::ops::{Add, Sub};
 
-use hc_core::{Duration, Instant, Tai};
-
 use crate::error::{CalendarError, CalendarResult};
 
 /// A fixed day number. Day 1 is `0001-01-01` in the proleptic Gregorian
@@ -144,7 +142,7 @@ impl Add<i64> for Rd {
     /// # Panics
     ///
     /// Panics on overflow, in release builds as well as debug ones, as
-    /// [`Duration`]'s operators do. Use [`Rd::checked_add_days`] to handle it.
+    /// [`hc_core::Duration`]'s operators do. Use [`Rd::checked_add_days`] to handle it.
     fn add(self, days: i64) -> Self {
         match self.checked_add_days(days) {
             Ok(value) => value,
@@ -218,36 +216,6 @@ impl Moment {
     pub fn from_julian_date(jd: f64) -> Self {
         Self(jd - JDN_OF_RD_ZERO as f64 + 0.5)
     }
-}
-
-/// The fixed day containing a moment.
-#[must_use]
-pub fn moment_to_rd(moment: Moment) -> Rd {
-    moment.day()
-}
-
-/// A moment at midnight of a fixed day.
-#[must_use]
-pub fn rd_to_moment(rd: Rd) -> Moment {
-    Moment(rd.0 as f64)
-}
-
-/// The fixed day and time-of-day offset of a TAI instant, treating the TAI
-/// reading as though it were a uniform 86 400-second day count.
-///
-/// This is the raw, leap-second-free mapping. Civil code should go through
-/// [`hc_core::unix`] first so that leap seconds are handled.
-#[must_use]
-pub fn rd_from_tai_naive(instant: Instant<Tai>) -> (Rd, Duration) {
-    let seconds = instant.since_epoch();
-    let day = seconds.whole_seconds().div_euclid(86_400);
-    let within = seconds.whole_seconds().rem_euclid(86_400);
-    (
-        Rd(day as i64 + RD_OF_UNIX_EPOCH),
-        Duration::from_attos(
-            within * hc_core::ATTOS_PER_SEC as i128 + seconds.subsec_attos() as i128,
-        ),
-    )
 }
 
 #[cfg(test)]
@@ -352,16 +320,5 @@ mod tests {
         let moment = Moment(-0.25);
         assert_eq!(moment.day(), Rd(-1));
         assert!((moment.day_fraction() - 0.75).abs() < 1e-9);
-    }
-
-    #[test]
-    fn tai_instants_map_onto_fixed_days() {
-        let (rd, within) = rd_from_tai_naive(Instant::<Tai>::from_epoch(Duration::from_secs(0)));
-        assert_eq!(rd, Rd::UNIX_EPOCH);
-        assert_eq!(within, Duration::ZERO);
-
-        let (rd, within) = rd_from_tai_naive(Instant::<Tai>::from_epoch(Duration::from_secs(-1)));
-        assert_eq!(rd, Rd(RD_OF_UNIX_EPOCH - 1));
-        assert_eq!(within, Duration::from_secs(86_399));
     }
 }

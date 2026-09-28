@@ -90,9 +90,16 @@ impl From<hc_core::TimeError> for RelativityError {
     }
 }
 
+/// A failure this crate has a variant of keeps it, as in `hc-orbital` and
+/// `hc-deep-time`, so that a non-finite value or an overflow has one
+/// representation whichever crate noticed it; the rest are carried.
 impl From<UncertaintyError> for RelativityError {
     fn from(value: UncertaintyError) -> Self {
-        Self::Uncertainty(value)
+        match value {
+            UncertaintyError::NotFinite => Self::NotFinite,
+            UncertaintyError::Overflow => Self::Overflow,
+            other => Self::Uncertainty(other),
+        }
     }
 }
 
@@ -117,6 +124,18 @@ mod tests {
     fn a_core_overflow_stays_an_overflow() {
         assert_eq!(
             RelativityError::from(hc_core::TimeError::Overflow),
+            RelativityError::Overflow
+        );
+    }
+
+    #[test]
+    fn a_failure_this_crate_names_keeps_its_name_across_the_boundary() {
+        assert_eq!(
+            RelativityError::from(UncertaintyError::NotFinite),
+            RelativityError::NotFinite
+        );
+        assert_eq!(
+            RelativityError::from(UncertaintyError::Overflow),
             RelativityError::Overflow
         );
     }

@@ -78,7 +78,7 @@ pub mod shape;
 pub use daystart::{DayBoundary, DayNaming, Standing, Usage};
 pub use error::{CalendarError, CalendarResult};
 pub use fields::{DateFields, Month, YearKind};
-pub use fixed::{Rd, moment_to_rd, rd_to_moment};
+pub use fixed::Rd;
 pub use shape::{CycleLength, CycleShape, EraName, Naming};
 pub use time::{CivilDateTime, CivilTime};
 pub use traits::{Calendar, CalendarId, CalendarMeta, DynAdapter, DynCalendar};
@@ -87,5 +87,3 @@ pub use weekday::Weekday;
 
 #[cfg(feature = "alloc")]
 pub use registry::CalendarRegistry;
-
-pub use hc_core;

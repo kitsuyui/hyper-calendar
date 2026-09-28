@@ -74,71 +74,93 @@ use crate::zodiac::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC, SignPeriod, degrees_into
 /// arcseconds. See the module documentation for what that costs.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ayanamsa {
+    id: &'static str,
     name: &'static str,
     anchor_julian_date: f64,
     degrees_at_anchor: f64,
 }
 
-impl Ayanamsa {
-    /// Lahiri, also called Chitrapaksha: the Indian government standard.
-    ///
-    /// Defined so that the star Chitrā — Spica, the brightest star of the
-    /// constellation Virgo — sits at sidereal
-    /// longitude 180°, which puts the sidereal zero point near the star ζ
-    /// Piscium. Adopted on the recommendation of the Calendar Reform
-    /// Committee chaired by Meghnad Saha, whose report of 1955 fixed the
-    /// value at 23°15′00″ for 21 March 1956, and used by the *Indian
-    /// Astronomical Ephemeris* and by the national civil calendar's
-    /// astronomical appendix.
-    ///
-    /// Anchored here at 22.460148° for Julian date 2415020.0 (1900 January
-    /// 0.5 TT), exactly one Julian century before J2000.
-    pub const LAHIRI: Self = Self::new("Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148);
-
-    /// Raman: B. V. Raman's ayanāṃśa, about 1.45° smaller than Lahiri.
-    ///
-    /// Anchored at 21.010833° for Julian date 2415020.0.
-    pub const RAMAN: Self = Self::new("Raman", 2_415_020.0, 21.010_833);
-
-    /// Krishnamurti: the ayanāṃśa of the Krishnamurti Paddhati school, about
-    /// 0.48° smaller than Lahiri.
-    ///
-    /// Anchored at 21.978333° for Julian date 2415020.0.
-    pub const KRISHNAMURTI: Self = Self::new("Krishnamurti", 2_415_020.0, 21.978_333);
-
-    /// Fagan–Bradley: the Western sidereal school's ayanāṃśa, about 0.88°
-    /// larger than Lahiri.
-    ///
-    /// Anchored at 24.042044° for Julian date 2433282.5 (1950 January 1.0),
-    /// the epoch B1950 the scheme was defined at.
-    pub const FAGAN_BRADLEY: Self = Self::new("Fagan-Bradley", 2_433_282.5, 24.042_044);
+hc_core::catalogue! {
+    type: Ayanamsa,
+    id: |ayanamsa| ayanamsa.id,
+    tests: ayanamsa_catalogue_tests,
+    associated;
 
     /// The four named ayanamsas this crate ships, largest last.
-    pub const ALL: [Self; 4] = [
-        Self::RAMAN,
-        Self::KRISHNAMURTI,
-        Self::LAHIRI,
-        Self::FAGAN_BRADLEY,
-    ];
+    pub const ALL;
+    /// The named ayanāṃśa with this identifier: `lahiri`, `raman`,
+    /// `krishnamurti` or `fagan-bradley`.
+    pub fn by_id;
 
-    /// An ayanāṃśa from its anchor: a value in degrees at a Julian date.
+    entries: {
+        /// Raman: B. V. Raman's ayanāṃśa, about 1.45° smaller than Lahiri.
+        ///
+        /// Anchored at 21.010833° for Julian date 2415020.0.
+        pub const RAMAN = Self::new("raman", "Raman", 2_415_020.0, 21.010_833);
+
+        /// Krishnamurti: the ayanāṃśa of the Krishnamurti Paddhati school, about
+        /// 0.48° smaller than Lahiri.
+        ///
+        /// Anchored at 21.978333° for Julian date 2415020.0.
+        pub const KRISHNAMURTI = Self::new("krishnamurti", "Krishnamurti", 2_415_020.0, 21.978_333);
+
+        /// Lahiri, also called Chitrapaksha: the Indian government standard.
+        ///
+        /// Defined so that the star Chitrā — Spica, the brightest star of the
+        /// constellation Virgo — sits at sidereal
+        /// longitude 180°, which puts the sidereal zero point near the star ζ
+        /// Piscium. Adopted on the recommendation of the Calendar Reform
+        /// Committee chaired by Meghnad Saha, whose report of 1955 fixed the
+        /// value at 23°15′00″ for 21 March 1956, and used by the *Indian
+        /// Astronomical Ephemeris* and by the national civil calendar's
+        /// astronomical appendix.
+        ///
+        /// Anchored here at 22.460148° for Julian date 2415020.0 (1900 January
+        /// 0.5 TT), exactly one Julian century before J2000.
+        pub const LAHIRI = Self::new("lahiri", "Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148);
+
+        /// Fagan–Bradley: the Western sidereal school's ayanāṃśa, about 0.88°
+        /// larger than Lahiri.
+        ///
+        /// Anchored at 24.042044° for Julian date 2433282.5 (1950 January 1.0),
+        /// the epoch B1950 the scheme was defined at.
+        pub const FAGAN_BRADLEY = Self::new("fagan-bradley", "Fagan-Bradley", 2_433_282.5, 24.042_044);
+    }
+}
+
+impl Ayanamsa {
+    /// An ayanāṃśa from its identifier, its name and its anchor: a value
+    /// in degrees at a Julian date.
     ///
     /// Everything away from the anchor is IAU 2006 general precession in
     /// longitude, which is what every scheme in use agrees about; only the
     /// anchor differs. So a caller wanting Yukteswar, De Luce, Djwhal Khul or
     /// a house convention can have it without this crate taking a position.
     #[must_use]
-    pub const fn new(name: &'static str, anchor_julian_date: f64, degrees_at_anchor: f64) -> Self {
+    pub const fn new(
+        id: &'static str,
+        name: &'static str,
+        anchor_julian_date: f64,
+        degrees_at_anchor: f64,
+    ) -> Self {
         Self {
+            id,
             name,
             anchor_julian_date,
             degrees_at_anchor,
         }
     }
 
+    /// The scheme's identifier, e.g. `"lahiri"`: what [`Ayanamsa::by_id`]
+    /// finds it by.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        self.id
+    }
+
     /// The scheme as words of a [`hc_core::memo`] key: its anchor, bit for
-    /// bit, which is all its value at any instant depends on; the name is
-    /// a label.
+    /// bit, which is all its value at any instant depends on; the
+    /// identifier and the name are labels.
     #[must_use]
     pub const fn key(self) -> [u64; 2] {
         [
@@ -784,7 +806,7 @@ mod tests {
     /// where it came from.
     #[test]
     fn a_caller_can_supply_an_ayanamsa_this_crate_has_never_heard_of() {
-        let invented = Ayanamsa::new("invented", 2_451_545.0, 25.0);
+        let invented = Ayanamsa::new("invented", "invented", 2_451_545.0, 25.0);
         assert_eq!(invented.name(), "invented");
         assert!((invented.anchor_julian_date() - 2_451_545.0).abs() < 1e-9);
         assert!((invented.degrees_at_anchor() - 25.0).abs() < 1e-9);

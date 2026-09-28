@@ -313,7 +313,6 @@ mod tests {
             Maya819Calendar::GMT_PLUS_TWO.id(),
             CalendarId("maya-819-gmt2")
         );
-        assert_eq!(Maya819Calendar::default(), Maya819Calendar::GMT);
         assert_eq!(
             Maya819Calendar::GMT_PLUS_TWO.base().0 - Maya819Calendar::GMT.base().0,
             2

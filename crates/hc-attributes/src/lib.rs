@@ -112,11 +112,15 @@
 //! the tables need neither `std` nor `alloc`. The `std` and `alloc` features
 //! exist only to propagate to the `hc-*` crates below.
 //!
-//! [`moon_names::harvest_moon`], [`moon_names::september_moon_name`] and
-//! [`zodiac_stones::stones_on`] reach the astronomy, and `hc-core` refuses
-//! to compile with neither `std` nor a floating-point backend, so a `no_std`
-//! build enables the `libm` feature, which passes through to `hc-core`:
-//! `--no-default-features --features alloc,libm`.
+//! The `seasons` feature, on by default, brings the two computations and
+//! what they are keyed by: [`zodiac_stones`], whose tables are keyed by
+//! `hc-seasons`' `TropicalSign`, and the Harvest Moon functions of
+//! [`moon_names`]. They reach the astronomy of `hc-seasons` and `hc-astro`;
+//! without the feature the crate is its tables alone.
+//!
+//! `hc-core` refuses to compile with neither `std` nor a floating-point
+//! backend, so a `no_std` build enables the `libm` feature, which passes
+//! through to `hc-core`: `--no-default-features --features alloc,libm`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -129,18 +133,18 @@ pub mod gaps;
 pub mod month_names;
 pub mod moon_names;
 pub mod weekday_attributions;
+#[cfg(feature = "seasons")]
 pub mod zodiac_stones;
 
 pub use authority::{
-    AttributionDate, AttributionTable, Authority, MonthTable, Provenance, Region, SignTable,
-    Validity, WeekdayTable,
+    AttributionDate, AttributionTable, Authority, MonthTable, Provenance, Region, Validity,
+    WeekdayTable,
 };
 pub use gaps::{Gap, GapReason};
 pub use month_names::MonthNameSet;
 
-pub use hc_calendar;
 pub use hc_calendar::{Month, Weekday};
-pub use hc_seasons;
+#[cfg(feature = "seasons")]
 pub use hc_seasons::{Meridian, TropicalSign};
 
 /// Every attribution authority the crate ships, across all subjects.
@@ -148,13 +152,15 @@ pub use hc_seasons::{Meridian, TropicalSign};
 /// The count is checked by a test rather than written down twice.
 #[must_use]
 pub fn authority_count() -> usize {
-    birthstones::ALL.len()
+    let count = birthstones::ALL.len()
         + birth_flowers::ALL.len()
         + moon_names::ALL.len()
         + 1 // moon_names::MOON_NAMES_CARVER_1778, which is not month-keyed
-        + zodiac_stones::ALL.len()
         + month_names::ALL.len()
-        + weekday_attributions::ALL.len()
+        + weekday_attributions::ALL.len();
+    #[cfg(feature = "seasons")]
+    let count = count + zodiac_stones::ALL.len();
+    count
 }
 
 #[cfg(test)]
@@ -251,6 +257,7 @@ mod tests {
             assert!(table.is_complete(), "{}", table.authority().id);
         }
         assert!(moon_names::MOON_NAMES_CARVER_1778.is_complete());
+        #[cfg(feature = "seasons")]
         for table in zodiac_stones::ALL {
             assert!(table.is_complete(), "{}", table.authority().id);
         }
@@ -266,6 +273,7 @@ mod tests {
     /// keeps them apart: months, zodiac signs and weekdays. Conflating them
     /// is the commonest error about birthstones, so a test states the
     /// separation.
+    #[cfg(feature = "seasons")]
     #[test]
     fn the_three_stone_systems_are_three_and_not_one() {
         let january = birthstones::stones(&birthstones::BIRTHSTONES_US_2016, Month::regular(1))
@@ -295,12 +303,27 @@ mod tests {
             .chain(core::iter::once(
                 moon_names::MOON_NAMES_CARVER_1778.authority(),
             ))
-            .chain(zodiac_stones::ALL.into_iter().map(SignTable::authority))
+            .chain(sign_authorities())
             .chain(month_names::ALL.into_iter().map(MonthNameSet::authority))
             .chain(
                 weekday_attributions::ALL
                     .into_iter()
                     .map(WeekdayTable::authority),
             )
+    }
+
+    /// The authorities of the sign-keyed tables, which the `seasons`
+    /// feature brings.
+    #[cfg(feature = "seasons")]
+    fn sign_authorities() -> impl Iterator<Item = &'static Authority> {
+        zodiac_stones::ALL
+            .into_iter()
+            .map(AttributionTable::authority)
+    }
+
+    /// No sign-keyed tables without the `seasons` feature.
+    #[cfg(not(feature = "seasons"))]
+    fn sign_authorities() -> impl Iterator<Item = &'static Authority> {
+        core::iter::empty()
     }
 }

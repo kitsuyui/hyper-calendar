@@ -189,10 +189,7 @@ fn push_interval(out: &mut String, interval: &GeologicInterval, locale: &str) {
             kind: interval.rank.english_name(),
             id: interval.id,
             name: interval.name,
-            scope: interval
-                .parent
-                .and_then(geologic::by_name)
-                .map_or("", |parent| parent.id),
+            scope: interval.parent.unwrap_or(""),
             start: Some(Bound {
                 value: interval.base_ma,
                 std_dev: Some(interval.base_std_dev_ma),

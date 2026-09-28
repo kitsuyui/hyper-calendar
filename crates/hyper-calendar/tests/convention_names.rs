@@ -23,11 +23,13 @@ use hyper_calendar::hc_format::radio::dcf77::Zone;
 use hyper_calendar::hc_format::radio::wwvb::DstState;
 use hyper_calendar::hc_format::radio::{Code as RadioCode, LeapNotice};
 use hyper_calendar::hc_holiday::rule::{Confidence, Kind};
-use hyper_calendar::hc_planetary::mars::missions::SolConvention;
+use hyper_calendar::hc_planetary::bodies;
+use hyper_calendar::hc_planetary::mars::missions::{MISSIONS, SolConvention};
+use hyper_calendar::hc_relativity::constants::GRAVITATING_BODIES;
 use hyper_calendar::hc_seasons::ColdFoodConvention;
 use hyper_calendar::hc_seasons::meiyu::PlumRainRule;
 use hyper_calendar::hc_seasons::meridian::NamedMeridian;
-use hyper_calendar::hc_seasons::zodiac::SiderealSign;
+use hyper_calendar::hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 #[path = "support/boundaries.rs"]
 mod boundaries;
@@ -187,6 +189,44 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+        },
+        Listed {
+            what: "surface missions",
+            ids: MISSIONS.iter().map(|mission| mission.id).collect(),
+            dts: "MissionId",
+            exports: &[],
+            paragraphs: &[],
+            methods: &["missionSol"],
+        },
+        Listed {
+            what: "bodies",
+            ids: bodies::ALL.iter().map(|body| body.id).collect(),
+            dts: "BodyId",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+        },
+        Listed {
+            what: "gravitating bodies",
+            ids: GRAVITATING_BODIES.iter().map(|body| body.id).collect(),
+            dts: "GravitatingBodyId",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+        },
+        Listed {
+            what: "ayanamsas",
+            ids: Ayanamsa::ALL.iter().map(|ayanamsa| ayanamsa.id()).collect(),
+            dts: "Ayanamsa",
+            exports: &[
+                (FFI_SOURCE, "hc_panchanga_at"),
+                (WASM_SOURCE, "hc_panchanga_at"),
+            ],
+            paragraphs: &[
+                (FFI_README, "`ayanamsa` is a NUL-terminated identifier"),
+                (WASM_README, "moves with it twice over"),
+            ],
+            methods: &["panchangaAt"],
         },
         Listed {
             what: "cold-food conventions",

@@ -1223,9 +1223,10 @@ macro_rules! exports {
             /// The lines are the WebAssembly module's: the limb, its number, its
             /// English and Devanagari names, the instants it began and ends and the
             /// instant it was read at, and the ayanāṃśa of the yoga. `ayanamsa` is
-            /// `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or `Fagan-Bradley`,
-            /// or the first word of one, in any case; anything else is
-            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. An instant
+            /// an identifier, `lahiri`, `raman`, `krishnamurti` or `fagan-bradley`,
+            /// in any case; anything else, a full name such as
+            /// `Lahiri (Chitrapaksha)` included, is `HC_ERROR_UNKNOWN`, and null
+            /// `HC_ERROR_NULL_POINTER`. An instant
             /// outside the years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes
             /// the required length, including the terminator, into `written`.
         }
@@ -1240,9 +1241,10 @@ macro_rules! exports {
             /// it began and ends and the instant it was read at as whole POSIX
             /// seconds, rounded down, in Universal Time, and the ayanāṃśa the yoga
             /// was reckoned with (empty for the karaṇa, which needs none).
-            /// `ayanamsa` is `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or
-            /// `Fagan-Bradley`, or the first word of one, in any case; anything
-            /// else, the empty string included, is `HC_ERR_UNKNOWN`. An instant
+            /// `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti` or
+            /// `fagan-bradley`, in any case; anything else, the empty string and
+            /// a full name such as `Lahiri (Chitrapaksha)` included, is
+            /// `HC_ERR_UNKNOWN`. An instant
             /// outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null
             /// `buffer` returns the length the text needs.
         }
@@ -3904,8 +3906,9 @@ macro_rules! exports {
             /// The sol number of a Mars surface mission at a POSIX instant, by the
             /// mission's own clock.
             ///
-            /// `mission` is a NUL-terminated identifier or name `hc_missions`
-            /// lists, in any ASCII case. The sol is counted as the mission counted
+            /// `mission` is a NUL-terminated identifier `hc_missions` lists,
+            /// `viking-1` or `curiosity`, in any ASCII case; a name such as
+            /// `Viking 1` is `HC_ERROR_UNKNOWN`. The sol is counted as the mission counted
             /// it: from the midnight, mean or true, on the mission's clock meridian
             /// that began the landing sol, which is sol 0 or sol 1 as the operators
             /// numbered it. A mission the table does not carry is
@@ -3917,8 +3920,9 @@ macro_rules! exports {
             /// The sol number of a Mars surface mission at a POSIX instant, by the
             /// mission's own clock, or an error sentinel.
             ///
-            /// `mission` is an identifier or a name `hc_missions` lists, in any
-            /// ASCII case. The sol is counted as the mission counted it: from the
+            /// `mission` is an identifier `hc_missions` lists, `viking-1` or
+            /// `curiosity`, in any ASCII case; a name such as `Viking 1` is
+            /// `HC_ERR_UNKNOWN`. The sol is counted as the mission counted it: from the
             /// midnight, mean or true, on the mission's clock meridian that began
             /// the landing sol, which is sol 0 or sol 1 as the operators numbered
             /// it. A mission the table does not carry is `HC_ERR_UNKNOWN`; one
@@ -3973,7 +3977,7 @@ macro_rules! exports {
             /// decimal local hours on a 24-hour face, the solar day and the local
             /// hour in SI seconds, whether the zero point is a `standard` or a
             /// `convention`, and what it is. `body` is a NUL-terminated identifier
-            /// or name `hc_bodies` lists, in any ASCII case; a body it does not
+            /// `hc_bodies` lists, `mars` or `titan`, in any ASCII case; a body it does not
             /// list is `HC_ERROR_UNKNOWN`, and the Sun, which has no solar day,
             /// `HC_ERROR_NO_DATA`. The instant and the longitude fail as for
             /// `hc_mars_time`. Writes the required length, including the
@@ -3987,8 +3991,8 @@ macro_rules! exports {
             /// the reading as `HH:MM:SS` (truncated) and in decimal local hours on
             /// a 24-hour face, the solar day and the local hour in SI seconds,
             /// whether the zero point is a `standard` or a `convention`, and what
-            /// it is. `body` is an identifier or a name `hc_bodies` lists, in any
-            /// ASCII case; a body it does not list is `HC_ERR_UNKNOWN`, and the
+            /// it is. `body` is an identifier `hc_bodies` lists, `mars` or `titan`,
+            /// in any ASCII case; a body it does not list is `HC_ERR_UNKNOWN`, and the
             /// Sun, which has no solar day, is `HC_ERR_NO_DATA`. The instant and
             /// the longitude fail as for `hc_mars_time`. A null `buffer` returns
             /// the length the text needs.
@@ -4080,8 +4084,9 @@ macro_rules! exports {
             /// dτ/dt = √(1 − r_s/r), that factor's offset from 1 in microseconds
             /// per 86 400-second day (negative, computed without cancellation), the
             /// constants used, separated by `;`, and the body's source. `body` is a NUL-terminated
-            /// identifier or name `hc_gravitating_bodies` lists, in any ASCII case;
-            /// another is `HC_ERROR_UNKNOWN`. A radius that is not finite, not
+            /// identifier `hc_gravitating_bodies` lists, `earth` or
+            /// `sagittarius-a-star`, in any ASCII case; another, a name such as
+            /// `Sagittarius A*` included, is `HC_ERROR_UNKNOWN`. A radius that is not finite, not
             /// positive, or at or inside the Schwarzschild radius is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
@@ -4096,9 +4101,10 @@ macro_rules! exports {
             /// in metres, the static dilation factor dτ/dt = √(1 − r_s/r), that
             /// factor's offset from 1 in microseconds per 86 400-second day
             /// (negative, computed without cancellation), the constants used,
-            /// separated by `;`, and the body's source. `body` is an identifier or a name
-            /// `hc_gravitating_bodies` lists, in any ASCII case; another is
-            /// `HC_ERR_UNKNOWN`. A radius that is not finite, not positive, or at
+            /// separated by `;`, and the body's source. `body` is an identifier
+            /// `hc_gravitating_bodies` lists, `earth` or `sagittarius-a-star`, in
+            /// any ASCII case; another, a name such as `Sagittarius A*` included,
+            /// is `HC_ERR_UNKNOWN`. A radius that is not finite, not positive, or at
             /// or inside the Schwarzschild radius is `HC_ERR_OUT_OF_RANGE`. A null
             /// `buffer` returns the length the text needs.
         }

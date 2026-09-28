@@ -37,8 +37,9 @@ depends on those exact phrases. Its tests quote `humanize`'s documented
 examples. Only English is carried: `humanize`'s gettext catalogues were not
 read, so none is reproduced, and a language is one more `NaturalPhrases`
 value whose plurals `hc_i18n::PluralRules` chooses. `naturalday` writes days
-that are not today, tomorrow or yesterday with `hc-format`'s `strftime`,
-which is why this crate depends on `hc-format`. `naturalsize` is bytes, not
+that are not today, tomorrow or yesterday with `hc-format`'s `strftime`, so
+it and `naturaldate` come with the `format` feature, the one that brings
+`hc-format`. `naturalsize` is bytes, not
 time, and is not here.
 
 `relative` follows the CLDR `relativeTime` model properly. Units are second,
@@ -169,7 +170,8 @@ assert_eq!(text, "3週前");
 | --- | --- |
 | `std` (default) | implies `alloc` |
 | `alloc` | the `String`-returning conveniences |
-| `libm` | software floating-point math through `hc-core` and `hc-format`, for `no_std` targets |
+| `format` (default) | `naturalday` and `naturaldate`, through `hc-format`'s `strftime` |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
 
 ## Spell checking
 

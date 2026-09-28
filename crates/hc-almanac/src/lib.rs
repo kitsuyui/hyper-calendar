@@ -129,10 +129,6 @@ pub use selected_days::{SelectedDay, SelectedDaySet, selected_days};
 pub use seven_luminaries::{Luminary, luminary_of};
 pub use twelve_directs::{TwelveDirect, direct_of};
 
-pub use hc_astro;
-pub use hc_calendar;
 pub use hc_calendar::Rd;
-pub use hc_calendars_lunar;
-pub use hc_seasons;
 pub use hc_seasons::Meridian;
 pub use vietnamese_days::{is_nguyet_ky, is_tam_nuong};

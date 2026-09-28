@@ -133,12 +133,6 @@ pub const DEE: DeeCalendar = DeeCalendar {
 /// Both correlations, in registration order.
 pub const ALL: [DeeCalendar; 2] = [DEE_CECIL, DEE];
 
-impl Default for DeeCalendar {
-    fn default() -> Self {
-        DEE_CECIL
-    }
-}
-
 impl DeeCalendar {
     /// The fixed day of 1 January of `year`.
     ///
@@ -542,6 +536,5 @@ mod tests {
             DeeDate::new(MAX_YEAR + 1, 1, 1),
             Err(CalendarError::YearOutOfRange)
         );
-        assert_eq!(DeeCalendar::default(), DEE_CECIL);
     }
 }

@@ -120,9 +120,4 @@ pub use rule::{
 #[cfg(feature = "alloc")]
 pub use engine::{Gap, Holiday, HolidayCalendar, holidays_in_year, holidays_on, is_holiday};
 
-pub use hc_astro;
-pub use hc_calendar;
 pub use hc_calendar::Rd;
-pub use hc_calendars_lunar;
-pub use hc_calendars_solar;
-pub use hc_seasons;

@@ -275,11 +275,11 @@ pub fn of_dynasty(dynasty: Dynasty) -> impl Iterator<Item = &'static ChineseEra>
     ALL.iter().filter(move |era| era.dynasty == dynasty)
 }
 
-/// The era with this identifier or name.
+/// The era with this identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn find(name: &str) -> Option<&'static ChineseEra> {
+pub fn by_id(id: &str) -> Option<&'static ChineseEra> {
     ALL.iter()
-        .find(|era| era.id == name || era.hanzi == name || era.pinyin == name)
+        .find(|era| hc_core::catalogue::matches(id, era.id))
 }
 
 /// The era a lunisolar year belongs to in the backdated reading, the one
@@ -420,7 +420,7 @@ impl Calendar for ChineseRegnalCalendar {
     fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
         match fields.era {
             Some(name) => {
-                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
                 self.is_leap_year(era.start_year + fields.year - 1)
             }
             None => self.is_leap_year(fields.year),
@@ -429,7 +429,7 @@ impl Calendar for ChineseRegnalCalendar {
 
     /// The era in traditional characters with its pinyin.
     fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
-        find(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
+        by_id(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -467,7 +467,7 @@ impl Calendar for ChineseRegnalCalendar {
         let day = fields.require_day()?;
         match fields.era {
             Some(name) => {
-                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
                 if era.dynasty != Dynasty::Qing || !era.in_use {
                     return Err(CalendarError::UnknownEra);
                 }
@@ -548,7 +548,7 @@ mod tests {
         assert_eq!((last_shunzhi.era.id, last_shunzhi.year), ("shunzhi", 18));
         // A year an era never had.
         let too_far = ChineseRegnalDate {
-            era: find("kangxi").unwrap(),
+            era: by_id("kangxi").unwrap(),
             year: 62,
             month: Month::regular(1),
             day: 1,
@@ -577,7 +577,8 @@ mod tests {
         check(Dynasty::Qing, 1899, "guangxu", 25);
         check(Dynasty::Qing, 1795, "qianlong", 60);
         assert_eq!(era_of_year(Dynasty::Ming, 1367), None);
-        assert!(!find("祺祥").unwrap().in_use);
+        assert!(!by_id("qixiang").unwrap().in_use);
+        assert_eq!(by_id("祺祥"), None);
         assert_eq!(
             ALL.iter()
                 .filter(|era| era.dynasty == Dynasty::Qing && era.in_use)

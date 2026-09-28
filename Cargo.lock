@@ -25,6 +25,7 @@ dependencies = [
 name = "hc-attributes"
 version = "0.1.0"
 dependencies = [
+ "hc-astro",
  "hc-calendar",
  "hc-core",
  "hc-seasons",

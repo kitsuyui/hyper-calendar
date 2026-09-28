@@ -89,12 +89,19 @@
 //! be within seconds of 14.77 days either side, and does not occur in the
 //! range this crate is tested over.
 
+#[cfg(feature = "seasons")]
+use hc_astro::lunar::MoonPhase;
+#[cfg(feature = "seasons")]
 use hc_calendar::Rd;
+#[cfg(feature = "seasons")]
 use hc_calendar::fixed::Moment;
+#[cfg(feature = "seasons")]
 use hc_calendar::gregorian;
-use hc_seasons::hc_astro::lunar::MoonPhase;
+#[cfg(feature = "seasons")]
 use hc_seasons::moon_calendar::principal_phases_in_month;
+#[cfg(feature = "seasons")]
 use hc_seasons::solar_terms::term_moment;
+#[cfg(feature = "seasons")]
 use hc_seasons::{Meridian, Season};
 
 use crate::authority::{
@@ -325,6 +332,7 @@ pub fn carver_lunation_name(lunation: usize) -> Option<&'static [&'static str]> 
 /// Ties are broken towards the earlier moon, which cannot arise in practice:
 /// it would require two full moons exactly 14.765 days either side of the
 /// equinox instant.
+#[cfg(feature = "seasons")]
 #[must_use]
 pub fn harvest_moon(year: i64, meridian: Meridian) -> Rd {
     let equinox = september_equinox(year);
@@ -335,6 +343,7 @@ pub fn harvest_moon(year: i64, meridian: Meridian) -> Rd {
 ///
 /// Defined relative to the Harvest Moon rather than to a month, so it moves
 /// with it: an October Harvest Moon puts the Hunter's Moon in November.
+#[cfg(feature = "seasons")]
 #[must_use]
 pub fn hunters_moon(year: i64, meridian: Meridian) -> Rd {
     let harvest = harvest_moon(year, meridian);
@@ -347,6 +356,7 @@ pub fn hunters_moon(year: i64, meridian: Meridian) -> Rd {
 }
 
 /// The Gregorian month the Harvest Moon falls in: 9 or 10.
+#[cfg(feature = "seasons")]
 #[must_use]
 pub fn harvest_moon_falls_in(year: i64, meridian: Meridian) -> u8 {
     let (_, month, _) = gregorian::ymd(harvest_moon(year, meridian));
@@ -359,6 +369,7 @@ pub fn harvest_moon_falls_in(year: i64, meridian: Meridian) -> u8 {
 /// the Corn Moon rather than the Harvest Moon, which is why
 /// [`MOON_NAMES_OFA_CURRENT`] lists both names against September and both
 /// against October.
+#[cfg(feature = "seasons")]
 #[must_use]
 pub fn harvest_moon_is_in_october(year: i64, meridian: Meridian) -> bool {
     harvest_moon_falls_in(year, meridian) == 10
@@ -370,6 +381,7 @@ pub fn harvest_moon_is_in_october(year: i64, meridian: Meridian) -> bool {
 ///
 /// This is the one place in the crate where the answer depends on the year,
 /// and it is the reason the Harvest Moon could not simply be a table entry.
+#[cfg(feature = "seasons")]
 #[must_use]
 pub fn september_moon_name(year: i64, meridian: Meridian) -> &'static str {
     if harvest_moon_is_in_october(year, meridian) {
@@ -381,6 +393,7 @@ pub fn september_moon_name(year: i64, meridian: Meridian) -> &'static str {
 
 /// A whole-day approximation of the synodic month, used only as the
 /// unreachable fallback in [`hunters_moon`].
+#[cfg(feature = "seasons")]
 const SYNODIC_MONTH_WHOLE_DAYS: i64 = 30;
 
 /// The instant of the September equinox, in Universal Time.
@@ -388,6 +401,7 @@ const SYNODIC_MONTH_WHOLE_DAYS: i64 = 30;
 /// Northern autumn opens at the equinox, so this is the cardinal term of
 /// [`Season::Autumn`] — the same 180° of solar longitude `hc-seasons`
 /// computes for 秋分.
+#[cfg(feature = "seasons")]
 fn september_equinox(year: i64) -> Moment {
     term_moment(year, Season::Autumn.cardinal_term())
 }
@@ -399,6 +413,7 @@ fn september_equinox(year: i64) -> Moment {
 /// alone would do. August and November are included so that
 /// [`hunters_moon`] has a successor to find even when the Harvest Moon is
 /// late in October, and so a blue-moon month cannot hide a candidate.
+#[cfg(feature = "seasons")]
 fn full_moons_around_the_equinox(year: i64, meridian: Meridian) -> [Option<(Rd, Moment)>; 8] {
     let mut found = [None; 8];
     let mut next = 0usize;
@@ -423,6 +438,7 @@ fn full_moons_around_the_equinox(year: i64, meridian: Meridian) -> [Option<(Rd, 
 /// itself, if the phase search somehow yields nothing — which it does not
 /// for any year in the supported range, but the crate forbids `unwrap`
 /// outside tests and a fallback is better than a panic in a date library.
+#[cfg(feature = "seasons")]
 fn nearest_full_moon(target: Moment, year: i64, meridian: Meridian) -> Rd {
     let mut best: Option<(f64, Rd)> = None;
     for (day, moment) in full_moons_around_the_equinox(year, meridian)
@@ -614,6 +630,7 @@ mod tests {
     /// The Harvest Moon rule, against years whose harvest moon dates are
     /// published. 2024's fell on 17–18 September and 2025's on 6–7 October;
     /// 2020's fell on 1 October, the earliest an October harvest moon can.
+    #[cfg(feature = "seasons")]
     #[test]
     fn the_harvest_moon_falls_in_october_in_the_years_it_does() {
         let universal = Meridian::UNIVERSAL;
@@ -624,6 +641,7 @@ mod tests {
         assert!(!harvest_moon_is_in_october(2024, universal));
     }
 
+    #[cfg(feature = "seasons")]
     #[test]
     fn the_harvest_moon_is_always_in_september_or_october_over_two_centuries() {
         let mut octobers = 0;
@@ -647,6 +665,7 @@ mod tests {
 
     /// The defining property, asserted directly rather than via the month:
     /// no other full moon of the year is closer to the equinox.
+    #[cfg(feature = "seasons")]
     #[test]
     fn no_full_moon_is_nearer_the_september_equinox_than_the_harvest_moon() {
         for year in 1990..2050i64 {
@@ -672,6 +691,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "seasons")]
     #[test]
     fn the_hunters_moon_is_the_full_moon_after_the_harvest_moon() {
         for year in 2000..2040i64 {
@@ -685,6 +705,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "seasons")]
     #[test]
     fn september_is_the_corn_moon_exactly_when_the_harvest_moon_is_in_october() {
         for year in 2015..2035i64 {
@@ -707,6 +728,7 @@ mod tests {
     /// The meridian shifts which local day a phase instant lands on, but it
     /// cannot move the harvest moon a whole month, because the rule compares
     /// intervals of about a fortnight.
+    #[cfg(feature = "seasons")]
     #[test]
     fn the_meridian_can_move_the_harvest_moon_a_day_but_not_a_month() {
         for year in 2000..2040i64 {

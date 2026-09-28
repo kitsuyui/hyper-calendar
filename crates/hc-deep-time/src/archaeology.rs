@@ -511,10 +511,12 @@ pub fn period_at_bp(bp: f64) -> Option<&'static ArchaeologicalPeriod> {
     PERIODS.iter().find(|period| period.contains_bp(bp))
 }
 
-/// Look a period up by name, case-sensitively.
+/// Look a period up by its identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn period_by_name(name: &str) -> Option<&'static ArchaeologicalPeriod> {
-    PERIODS.iter().find(|period| period.name == name)
+pub fn period_by_id(id: &str) -> Option<&'static ArchaeologicalPeriod> {
+    PERIODS
+        .iter()
+        .find(|period| hc_core::catalogue::matches(id, period.id))
 }
 
 #[cfg(test)]
@@ -638,7 +640,7 @@ mod tests {
 
     #[test]
     fn the_neolithic_opens_at_the_holocene_gssp() {
-        let neolithic = period_by_name("Neolithic").unwrap();
+        let neolithic = period_by_id("neolithic").unwrap();
         assert!(close(neolithic.begins_bp(), b2k_to_bp(11_700.0), 1e-9));
     }
 
@@ -723,13 +725,13 @@ mod tests {
     }
 
     #[test]
-    fn periods_are_reachable_by_name() {
-        assert!(period_by_name("Bronze Age").is_some());
-        assert!(period_by_name("bronze age").is_none(), "case-sensitive");
+    fn periods_are_reachable_by_id() {
+        assert!(period_by_id("bronze-age").is_some());
         assert!(
-            period_by_name("Mesolithic").is_none(),
-            "not in this sequence"
+            period_by_id("Bronze Age").is_none(),
+            "a name is not an identifier"
         );
+        assert!(period_by_id("mesolithic").is_none(), "not in this sequence");
     }
 
     #[test]

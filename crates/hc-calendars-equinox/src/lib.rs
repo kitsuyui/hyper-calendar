@@ -91,25 +91,19 @@ pub use persian_apparent_noon::ApparentNoonPersianCalendar;
 
 #[cfg(feature = "alloc")]
 mod registration {
-    use alloc::boxed::Box;
+    hc_calendar::calendars! {
+        /// Register every calendar in this crate with `registry`.
+        ///
+        /// Registering is idempotent: a second call replaces rather than
+        /// duplicates, since [`hc_calendar::CalendarRegistry::register`] keys on the
+        /// calendar's identifier.
+        pub fn register_all;
 
-    use hc_calendar::{CalendarRegistry, DynAdapter};
-
-    /// Register every calendar in this crate with `registry`.
-    ///
-    /// Inserting is idempotent: a second call replaces rather than
-    /// duplicates, since [`CalendarRegistry::insert`] keys on the
-    /// calendar's identifier.
-    pub fn register_all(registry: &mut CalendarRegistry) {
-        registry.insert(Box::new(DynAdapter::new(crate::PersianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::AfghanPersianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::ApparentNoonPersianCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::AstronomicalBahaiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::EquinoxFrenchRepublicanCalendar,
-        )));
+        crate::PersianCalendar,
+        crate::AfghanPersianCalendar,
+        crate::ApparentNoonPersianCalendar,
+        crate::AstronomicalBahaiCalendar,
+        crate::EquinoxFrenchRepublicanCalendar,
     }
 }
 

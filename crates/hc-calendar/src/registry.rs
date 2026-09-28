@@ -13,7 +13,7 @@ use alloc::vec::Vec;
 use crate::error::{CalendarError, CalendarResult};
 use crate::fields::DateFields;
 use crate::fixed::Rd;
-use crate::traits::{CalendarId, CalendarMeta, DynCalendar};
+use crate::traits::{Calendar, CalendarId, CalendarMeta, DynAdapter, DynCalendar};
 
 /// A collection of calendars addressable by [`CalendarId`].
 #[derive(Default)]
@@ -46,6 +46,12 @@ impl CalendarRegistry {
         } else {
             self.entries.push((id, calendar));
         }
+    }
+
+    /// Register a statically typed calendar through [`DynAdapter`],
+    /// replacing any calendar already under its id.
+    pub fn register<C: Calendar + Send + Sync + 'static>(&mut self, calendar: C) {
+        self.insert(Box::new(DynAdapter::new(calendar)));
     }
 
     /// Look a calendar up.
@@ -119,6 +125,82 @@ impl CalendarRegistry {
         let target = self.get(to).ok_or(CalendarError::UnknownCalendar)?;
         target.fixed_to_fields(source.fields_to_fixed(fields)?)
     }
+}
+
+/// Declare a calendar crate's `register_all`: the calendars it registers,
+/// as a list, in registry order.
+///
+/// Each entry is a calendar value, or `for pattern in table => [calendar,
+/// …]` for the calendars a table of the crate's generates, each registered
+/// with [`CalendarRegistry::register`]. The list is the registration: a
+/// calendar is registered by being named in it, and the order it is named
+/// in is the order [`CalendarRegistry::describe_day`] answers in.
+///
+/// ```
+/// use hc_calendar::{Calendar, CalendarId, CalendarRegistry};
+/// # use hc_calendar::{CalendarMeta, CalendarResult, DateFields, Rd, YearKind};
+/// # #[derive(Clone, Copy)]
+/// # struct Days(i64);
+/// # impl Calendar for Days {
+/// #     type Date = i64;
+/// #     fn meta(&self) -> CalendarMeta {
+/// #         CalendarMeta {
+/// #             id: if self.0 == 0 { CalendarId("days") } else { CalendarId("days-1") },
+/// #             english_name: "Days",
+/// #             year_kind: YearKind::EpochForward,
+/// #             has_leap_months: false,
+/// #             is_astronomical: false,
+/// #             earliest: None,
+/// #             latest: None,
+/// #             native_locales: &[],
+/// #         }
+/// #     }
+/// #     fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] { &[] }
+/// #     fn is_leap_year(&self, _: i64) -> CalendarResult<bool> { Ok(false) }
+/// #     fn to_fixed(&self, date: i64) -> CalendarResult<Rd> { Ok(Rd(date - self.0)) }
+/// #     fn from_fixed(&self, rd: Rd) -> CalendarResult<i64> { Ok(rd.0 + self.0) }
+/// #     fn to_fields(&self, date: i64) -> CalendarResult<DateFields> { Ok(DateFields::new(date)) }
+/// #     fn from_fields(&self, fields: &DateFields) -> CalendarResult<i64> { Ok(fields.year) }
+/// # }
+/// hc_calendar::calendars! {
+///     /// Register every calendar of this example.
+///     pub fn register_all;
+///
+///     Days(0),
+///     for offset in [1] => [Days(offset)],
+/// }
+///
+/// let mut registry = CalendarRegistry::new();
+/// register_all(&mut registry);
+/// assert_eq!(registry.len(), 2);
+/// ```
+#[macro_export]
+macro_rules! calendars {
+    (
+        $(#[$meta:meta])*
+        $vis:vis fn $name:ident;
+        $($entries:tt)*
+    ) => {
+        $(#[$meta])*
+        $vis fn $name(registry: &mut $crate::CalendarRegistry) {
+            $crate::calendars!(@register registry; $($entries)*);
+        }
+    };
+    (@register $registry:ident;) => {};
+    (
+        @register $registry:ident;
+        for $pattern:pat in $table:expr => [$($calendar:expr),+ $(,)?]
+        $(, $($rest:tt)*)?
+    ) => {
+        for $pattern in $table {
+            $($registry.register($calendar);)+
+        }
+        $($crate::calendars!(@register $registry; $($rest)*);)?
+    };
+    (@register $registry:ident; $calendar:expr $(, $($rest:tt)*)?) => {
+        $registry.register($calendar);
+        $($crate::calendars!(@register $registry; $($rest)*);)?
+    };
 }
 
 #[cfg(test)]
