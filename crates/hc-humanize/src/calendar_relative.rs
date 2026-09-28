@@ -440,9 +440,10 @@ mod tests {
             en.format_day(THURSDAY, THURSDAY + 1).expect("a"),
             "tomorrow"
         );
+        // CLDR's English has no word for the day before yesterday.
         assert_eq!(
             en.format_day(THURSDAY, THURSDAY - 2).expect("a"),
-            "the day before yesterday"
+            "2 days ago"
         );
         assert_eq!(
             en.format_day(THURSDAY, THURSDAY - 4).expect("a"),

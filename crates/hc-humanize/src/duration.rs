@@ -372,7 +372,7 @@ mod tests {
         );
         assert_eq!(
             say(&formatter("fr"), span),
-            "1 heure, 2 minutes et 3 secondes"
+            "1\u{a0}heure, 2 minutes et 3\u{a0}secondes"
         );
         assert_eq!(
             say(&formatter("es"), span),
@@ -425,7 +425,7 @@ mod tests {
         let span = 86_400 + 2 * 3_600 + 3 * 60 + 4;
         assert_eq!(
             say(&formatter("en").with_style(DurationStyle::Short), span),
-            "1 day, 2 hr., 3 min., 4 sec."
+            "1 day, 2 hr, 3 min, 4 sec"
         );
         assert_eq!(
             say(&formatter("en").with_style(DurationStyle::Narrow), span),

@@ -95,7 +95,7 @@ pub fn special_word(
 ///
 /// The mapping is fixed: the long style takes CLDR's `standard` list, which
 /// is the one carrying the conjunction, the short style takes `unit`, which
-/// is comma-joined, and the narrow style takes `unit-narrow`.
+/// in English is comma-joined, and the narrow style takes `unit-narrow`.
 #[must_use]
 pub fn list_forms(locale: &Locale, style: RelativeStyle) -> ListForms {
     let pick = |data: &'static LocaleData| -> Option<ListForms> {
@@ -241,19 +241,21 @@ mod tests {
 
     #[test]
     fn a_style_a_locale_does_not_distinguish_falls_back_to_a_wider_one() {
-        // German abbreviates months but not days, and states no narrow
-        // forms at all, so every style has to find an answer.
-        let german = locale("de");
-        let day_long = unit_patterns(&german, TimeUnit::Day, RelativeStyle::Long).expect("stated");
+        // Korean abbreviates nothing, so its entry states the long style
+        // alone, and Portuguese's narrow style is its short one; every
+        // style still finds an answer.
+        let korean = locale("ko");
+        let day_long = unit_patterns(&korean, TimeUnit::Day, RelativeStyle::Long).expect("stated");
         let day_narrow =
-            unit_patterns(&german, TimeUnit::Day, RelativeStyle::Narrow).expect("stated");
-        assert_eq!(day_long.past.other, day_narrow.past.other);
-        let month_short =
-            unit_patterns(&german, TimeUnit::Month, RelativeStyle::Short).expect("stated");
-        let month_narrow =
-            unit_patterns(&german, TimeUnit::Month, RelativeStyle::Narrow).expect("stated");
-        assert_eq!(month_short.past.other, "vor {0} Mon.");
-        assert_eq!(month_narrow.past.other, "vor {0} Mon.");
+            unit_patterns(&korean, TimeUnit::Day, RelativeStyle::Narrow).expect("stated");
+        assert_eq!(day_narrow.past.other, day_long.past.other);
+        let portuguese = locale("pt");
+        let week_short =
+            unit_patterns(&portuguese, TimeUnit::Week, RelativeStyle::Short).expect("stated");
+        let week_narrow =
+            unit_patterns(&portuguese, TimeUnit::Week, RelativeStyle::Narrow).expect("stated");
+        assert_eq!(week_short.past.other, "há {0} sem.");
+        assert_eq!(week_narrow.past.other, "há {0} sem.");
     }
 
     #[test]

@@ -13,8 +13,8 @@ It depends on `hc-core`, `hc-units`, `hc-calendar`, `hc-i18n` and
 
 The grammar is the hard part, and it is why this crate sits on `hc-i18n`
 rather than on a table of English strings. *3 дня*, *5 дней*, *21 день*;
-*2 dni*, *5 dni*, *22 dni*; *يومين*, *3 أيام*, *11 يومًا*; *2 ddiwrnod*,
-*3 diwrnod*, *8 o ddiwrnodau* — four different plural systems, and every one
+*2 dni*, *5 dni*, *22 dni*; *يومين*, *3 أيام*, *11 يومًا*; *2 flynedd*,
+*3 blynedd*, *8 mlynedd* — four different plural systems, and every one
 of them goes through `hc_i18n::PluralRules`. Nothing here decides a plural
 form by comparing a number to one.
 
@@ -66,9 +66,17 @@ crate knows which languages exist, and none gains a branch when one is added.
 
 ### Adding a locale
 
-1. Write a `const LocaleData` in `src/data.rs`, copying the nearest existing
-   entry for shape.
-2. Add its name to `LOCALES`, keeping the array in tag order.
+1. Add the tag and its CLDR files to `LOCALES` in
+   `scripts/humanize-cldr.py` and run it, which rewrites
+   `src/data/cldr48.rs`; add the tag to `scripts/humanize-cldr-sample.py`
+   and run it too.
+2. In `src/data.rs`, take the new entry into `LOCALES`, keeping the array in
+   tag order, or write a `const LocaleData` that adds the hedges, weekday
+   phrases, idioms, compact suffixes and indefinite units to it, copying the
+   nearest existing entry for shape.
+3. A CLDR value a source argues against goes into
+   `src/data/cldr48_overrides.tsv` with its reason, and into
+   `docs/i18n.md`; the generator is then run again.
 
 The consistency tests then check the new entry: every unit stated in the long
 style, every `other` pattern able to take a number, no padded strings, no
@@ -87,34 +95,46 @@ file states no fields, reaches root.
 
 The relative-time phrases follow the Unicode CLDR `<fields>` section of
 `main/<locale>.xml`, and the undirected unit phrases follow the
-`<unit type="duration-…">` section of the same file. The first 21 locales are
-**written by hand, not generated**, a subset chosen to cover the plural
-systems that matter; the eleven added for the most-spoken languages (`fil ha
-mr pa-Guru pcm pt-PT sw te ur yue-Hans yue-Hant`) were read out of their CLDR
-48 files by following CLDR's inheritance, in all three styles where the file
-states them, with the list patterns, the decimal separator and the `atTime`
-pattern of the same file. A value a file marks `↑↑↑` is the one CLDR
-inherits: the parent file's, then what `root.xml`'s aliases give (narrow
-from short, short from long), and last the style's `other`. Nothing here is
-a copy of CLDR's 600.
+`<unit type="duration-…">` section of the same file, with its list
+patterns, the decimal separator of the digits `hc-i18n` writes and its
+`atTime` pattern. All 32 locales take that part from their CLDR 48 file,
+**generated**: `scripts/humanize-cldr.py` reads the files of the
+`release-48` tag, resolves each value in all three styles as CLDR does — a
+value a file marks `↑↑↑` is the parent file's, then what `root.xml`'s
+aliases give (narrow from short, short from long), and last the style's
+`other` — and writes `src/data/cldr48.rs`. Nothing here is a copy of
+CLDR's 600.
+
+The generator then applies one list, `src/data/cldr48_overrides.tsv`, 32
+values in 13 groups, each with its reason, which the generated file
+repeats above the value and [`docs/i18n.md`](../../docs/i18n.md) lists.
+One is this crate's own choice: English closes a list with *and*, not
+CLDR's serial comma. The others are CLDR values a source argues against:
+Traditional Chinese's duration quarter *{0} 刻*, a quarter of an hour;
+Simplified Chinese's two alternatives in one value, *这一时间 / 此时*; the
+Vietnamese long day words and one Indonesian word capitalised where the
+rest of the file is not; the narrow month that is also the narrow minute
+in English, Japanese and Dutch; a Turkish narrow hour, an Arabic past with
+the future's preposition and an Arabic dual with a numeral; and two Welsh
+misspellings.
 
 `tests/cldr48_resolved.rs` checks a sample of every locale — the hour's and
 the day's past, future and duration patterns in each plural category, and
 the day's words, in all three styles — against CLDR 48's own resolution of
-them, read from the `cldr-json` 48.0.0 packages (`cldr-json-48`). The eleven generated
-locales match it everywhere. The hand-written entries differ from it in 352
-of the sampled values, which the test lists: English's *the day before
-yesterday*, which CLDR's English does not state, German's narrow *{0} Std.*
-where CLDR writes *{0}h*, Traditional Chinese's *{0}天前* where CLDR writes
-*{0} 天前*, and the like.
+them, read from the `cldr-json` 48.0.0 packages (`cldr-json-48`) by
+`scripts/humanize-cldr-sample.py`, which shares no code with the
+generator. A sampled value may differ from CLDR's only where the override
+list says so, and every override must be the value the crate carries.
 
-Three kinds of string are **not** from CLDR, because CLDR has no field for
-them, and are ordinary translations kept in the same table: the approximation
-hedges (*just over*, *nearly*), the half-unit idioms (*half an hour*,
-*anderthalb Stunden*) and the compact suffixes of *2h30m*. The eleven
-locales read from CLDR carry none of them: their hedges are root's
-language-free `~5` and `<5`, `pt-PT`'s are `pt`'s, and their counts are
-written with a numeral rather than an indefinite article.
+Five kinds of string are **not** from CLDR, because CLDR has no field for
+them, and are ordinary translations written in `src/data.rs`: the
+approximation hedges (*just over*, *nearly*), the weekday phrases (*last
+Monday*), the half-unit idioms of the long style (*half an hour*,
+*anderthalb Stunden*), the compact suffixes of *2h30m* and the indefinite
+units (*an hour*). The eleven locales added for the most-spoken languages
+carry none of them: their hedges are root's language-free `~5` and `<5`,
+`pt-PT`'s are `pt`'s, and their counts are written with a numeral rather
+than an indefinite article.
 
 Unit lengths are the Gregorian means used by CLDR and ICU: 365.2425 days per
 year, 31 556 952 s, which divides exactly by 12 and by 4 so that the month
@@ -141,11 +161,13 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
 
 ### Known gaps
 
-- **The short style is stated for `en`, `de`, `es`, `fr` and `ru` only, and
-  the narrow style for `en` and `ja`.** Every other style answers through
-  style fallback (narrow → short → long), so most locales return their long
-  forms in all three. That is correct for the languages that do not
-  abbreviate and incomplete for the ones that do.
+- **A style a file does not distinguish is not stated.** Korean states the
+  long style alone, and Portuguese, Punjabi, Cantonese and both Chinese
+  entries have no narrow style of their own, as their CLDR files say
+  nothing there the wider style does not; every other style answers
+  through style fallback (narrow → short → long).
+- **The half-unit idioms are the long style's.** A short or narrow half
+  hour is the decimal, *1.5 hr*.
 - **`ar`, `hi` and `th` state no compact suffixes**, so `DurationStyle::Compact`
   falls back to the root's Latin ones. Inside right-to-left text that needs
   bidi isolation the compact form does not carry; use `Narrow` there.
@@ -175,7 +197,7 @@ assert_eq!(text, "5 дней назад");
 // A traditional-script tag reaches the zh-Hant entry.
 let mut text = String::new();
 RelativeTimeFormatter::new("zh-TW".parse::<Locale>()?).write(-3, TimeUnit::Week, &mut text)?;
-assert_eq!(text, "3週前");
+assert_eq!(text, "3 週前");
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 

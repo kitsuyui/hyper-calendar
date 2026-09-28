@@ -11,7 +11,7 @@
 //! The grammar is the hard part and it is why this crate sits on
 //! [`hc_i18n`] rather than on a table of English strings. "3 days" is easy.
 //! *3 дня*, *5 дней*, *21 день*; *2 dni*, *5 dni*, *22 dni*; *يومين*,
-//! *3 أيام*, *11 يومًا*; *2 ddiwrnod*, *3 diwrnod*, *8 o ddiwrnodau* — those
+//! *3 أيام*, *11 يومًا*; *2 flynedd*, *3 blynedd*, *8 mlynedd* — those
 //! are four different plural systems, and every one of them goes through
 //! [`hc_i18n::PluralRules`]. Nothing in this crate decides a plural form by
 //! comparing a number to one.
