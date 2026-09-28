@@ -47,7 +47,9 @@
 //!
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
 //! their own, though [`tibetan`] is itself one engine under four versions'
-//! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian; so does
+//! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian — and
+//! two conventions of its true date, `tibetan-lochen` and
+//! `tibetan-tsurphu-karana`; so does
 //! [`javanese`], whose months are the tabular Hijri months but whose years
 //! run in eight-year *windu* and 120-year *kurup*, three reckonings of one
 //! rule; so does [`babylonian`], a nineteen-year cycle of intercalations
@@ -268,6 +270,8 @@ mod registration {
         crate::tibetan::TIBETAN_TSURPHU,
         crate::tibetan::TIBETAN_BHUTAN,
         crate::tibetan::MONGOLIAN,
+        crate::tibetan::TIBETAN_LOCHEN,
+        crate::tibetan::TIBETAN_TSURPHU_KARANA,
         crate::javanese::JAVANESE,
         crate::javanese::JAVANESE_YOGYAKARTA,
         crate::javanese::JAVANESE_ABOGE,
@@ -298,7 +302,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 33);
+        assert_eq!(registry.len(), 35);
     }
 
     #[test]
@@ -359,6 +363,8 @@ mod registration_tests {
                 tibetan::TIBETAN_TSURPHU,
                 tibetan::TIBETAN_BHUTAN,
                 tibetan::MONGOLIAN,
+                tibetan::TIBETAN_LOCHEN,
+                tibetan::TIBETAN_TSURPHU_KARANA,
             ] {
                 assert_eq!(
                     DynAdapter::new(calendar).is_leap_year(1_900 + year),

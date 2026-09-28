@@ -1,13 +1,15 @@
 # The Tibetan calendar's other versions: Tsurphu, Bhutanese and Mongolian
 
 Backs the identifiers `tibetan-tsurphu`, `tibetan-bhutan` and `mongolian`
-in `hc-calendars-lunar`. The arithmetic they share with the Phugpa
+and `tibetan-lochen` and `tibetan-tsurphu-karana`, two conventions of the
+true date, in `hc-calendars-lunar`. The arithmetic they share with the Phugpa
 calendar, `tibetan` — the lunar day, the rule that skips and repeats
 calendar days, the mean motions, the tables and the day that begins at
 dawn — is written up in [tibetan-phugpa.md](tibetan-phugpa.md) and not
-repeated here. This document says what each version changes, and why the
-*Kālacakra* *karaṇa* calculation and the Inner Mongolian "yellow"
-calculation are not carried.
+repeated here. This document says what each version and each convention
+changes, and why the *Kālacakra* *karaṇa* calculation and the Inner
+Mongolian "yellow" calculation are not carried. What the almanacs print
+beside the date is in [tibetan-almanac.md](tibetan-almanac.md).
 
 ## What it is
 
@@ -94,6 +96,40 @@ exception for the classical Chinese calendar itself. The rule is stated,
 but no yellow almanac was found to hold a reading of it to (docs/policy.md
 §7 asks for a published anchor), so it is not carried.
 
+**Two conventions of the true date.** Every version above takes the
+almanacs' rounded anomaly increment and its own *siddhānta* Sun. Two
+published calendars change one or the other, and so, now and then, the
+calendar day a lunar day ends in:
+
+- *Minling Lochen's anomaly.* The almanacs' *a*₂ = 1⁄28 rounds (1 + *a*₁)⁄30
+  = 3 781⁄105 840, which Minling Lochen Dharmashri (1654–1717) proposed and
+  Henning uses, "also used in his computed calendars" [janson2014, (7.24)
+  and Remark 14]. The two give different calendars on about one day in
+  4 100. Henning's computed Phugpa, Tsurphu and Bhutanese almanacs all take
+  it [kalacakra-org-archive].
+- *The karaṇa Sun.* "In some Tsurphu almanacs, the solar equation from the
+  karana solar longitude calculation has also been used to calculate the
+  (siddhanta) true_date", which "will lead to a slightly different
+  true_date, and occasionally a different repeated or skipped day", about
+  five times a year, and a New Year a day apart "about 2 times per
+  century" [janson2014, Appendix A.2]; the module finds 44 such New Years
+  in 1000–3000. Henning's Tsurphu program
+  takes the *karaṇa* Sun, and his page says this "makes no difference to
+  the structure of the calendar – the same days are omitted or duplicated"
+  [kalacakra-org-software]; his almanacs show otherwise: they are the
+  Tsurphu under the *karaṇa* Sun, and skip the 13th of month 6 of 2013,
+  which the *siddhānta* Sun puts on 21 July.
+
+The Phugpa under Lochen's anomaly is `tibetan-lochen`, the calendar of
+Henning's Phugpa almanacs; the Tsurphu under the *karaṇa* Sun, with
+Lochen's anomaly as Henning's almanacs have it, is `tibetan-tsurphu-karana`.
+The Bhutanese under Lochen's anomaly, Henning's Bhutanese almanacs, is not
+registered: it and `tibetan-bhutan` agree on every day of 2025 and 2026,
+which the Ministry's calendars print, so no official date tells them apart
+(they differ on 10 December 2001, 10 April 2004 and 22–23 April 2020 in
+1990–2030), and the arithmetic reaches it, unregistered, as
+`TIBETAN_BHUTAN.with_anomaly_step(AnomalyStep::Lochen)`.
+
 ## How it works
 
 Every version uses the Phugpa mean motions *m*₁ = 167 025⁄5 656,
@@ -120,6 +156,32 @@ radices 60, 60, 6, 13, 707, mean sun 0;1,22,2,4,18 and anomaly 0;72
 two older epochs, of which Janson prints the one of 1732 and says it is
 "equivalent and giving the same calendar"; Kongtrul's of 1852 is the one
 Henning's Tsurphu program uses, and is the one carried.
+
+**The two conventions.** Under Lochen's anomaly the Moon's anomaly at
+the end of lunar day *d* of month *n* is *n a*₁ + *d* · 3 781⁄105 840 + *a*₀
+in place of *n a*₁ + *d*⁄28 + *a*₀; nothing else changes. Under the
+*karaṇa* Sun the Sun's equation of the true date is read from the *karaṇa*
+mean Sun, *s*₁ = 1 277⁄15 795 a month and *s*₁⁄30 a lunar day from
+*s*₀ = 809⁄810 at month 3 of 806 [janson2014, Appendix A.5], counted in the
+Tsurphu's own true months moved to that epoch: the Tsurphu, like the
+*karaṇa* calculation, has intercalation index 0 at 806 and rounds its
+true month down, so its months are the *karaṇa* ones, and the 12 552 solar
+months from 806 to Kongtrul's epoch of 1852 hold ⌊67 × 12 552⁄65⌋ = 12 938
+true months, the remainder 14 being β\* at 1852 [janson2014, Appendix A.2].
+The Tsurphu almanac also prints that *karaṇa* Sun as the day's solar
+longitude, under either Sun in the true date [janson2014, Appendix A.2].
+
+**Worked example: the 13th of month 6 of 2013 in the Tsurphu.** Janson's
+example of a day the *karaṇa* Sun moves: "day 13, month 6, 2013, for which
+the two versions yield 20 and 21 July". Under the *siddhānta* Sun lunar
+day 12 ends on 20 July and lunar day 13 on 21 July, so each has its day.
+Under the *karaṇa* Sun, whose mean longitude is then some 7° further on,
+94.2° against 87.2°, and whose equation has the other sign, lunar day 13
+ends at true date 2 456 494.980, before the dawn of 21 July, where the
+*siddhānta* Sun has it at 2 456 495.003, just after; it ends on 20 July
+with the 12th: 20 July is the 12th, the 13th is skipped,
+and 21 July is the 14th. Henning's Tsurphu almanac for 2013 has "13.
+Omitted" between the 12th on 20 July and the 14th on 21 July.
 
 **The month count.** A version's leap rule decides how the true month,
 67 *M*′⁄65 + β\*⁄65, is rounded to a count *n*. With *L* the index at
@@ -203,18 +265,35 @@ month sorts after the regular month of the same number.
   and a leap month takes ཟླ་ཤོལ་ before its name, Henning's *zla shol*
   for "an extra, or intercalary, month" [kalacakra-org]; the word's place
   in a date is this library's ([written-dates.md](written-dates.md)).
+- **The two conventions**: `tibetan-lochen` ("Tibetan (Phugpa, Lochen's
+  anomaly)") and `tibetan-tsurphu-karana` ("Tibetan (Tsurphu, karaṇa
+  Sun)"), `TibetanCalendar` values beside the four versions, the Phugpa's
+  and the Tsurphu's data under `AnomalyStep::Lochen` and, for the second,
+  `Sun::Karana`. Same fields, extra day, range, dawn boundary and native
+  locale `bo` as the Phugpa, and the Tibetan locale's month names;
+  undated usage, the sources dating neither. The engine's quantities —
+  `Ratio`, the mean motions, `table`, `true_sun`, and the methods
+  `mean_date`, `mean_sun`, `karana_mean_sun`, `anomaly`, `true_date`,
+  `end_day`, `lunar_day_span` and `locate` — are public for the almanac,
+  and `with_anomaly_step` gives an unregistered version under the other
+  increment.
+- **The Tsurphu almanac's *karaṇa* Sun**, the solar longitude it prints,
+  and its Moon on the first of two days with one number, as
+  [tibetan-almanac.md](tibetan-almanac.md) describes.
+- **The Bhutanese weekday**, one ahead of the world's —
+  `bhutanese_weekday`, the Ministry's calendar heading the column of
+  Sundays *zla ba* — and **the winter solstice** at mean solar longitude
+  250°, `bhutanese_winter_solstice` ([tibetan-almanac.md](tibetan-almanac.md)).
+- **The Mongolian months by season and by animal, and the colours**:
+  `mongolian_month`, `month_symbol` with the Tsurphu's month cycle, which
+  is the Mongolian one, `year_symbol` and `COLOURS` [janson2014, Appendix
+  A.3], with the Mongolian words of Gantumur's calendar
+  ([tibetan-almanac.md](tibetan-almanac.md)).
 - **Not carried**: the *karaṇa* calculation and the yellow calculation, as
-  above; the Tsurphu almanacs' *karaṇa* solar longitude, which Henning's
-  Tsurphu program prints and which "makes no difference to the structure
-  of the calendar", and the *karaṇa* solar equation some Tsurphu almanacs
-  have used in the true date instead, which would move a skipped or
-  repeated day "about 5 times per year" [janson2014, Appendix A.2;
-  kalacakra-org, "Open source Tsurphu calendar software"]; the Bhutanese
-  weekday, one ahead of the world's — the Ministry's calendar heads the
-  column of Sundays *zla ba* — and its winter solstice at mean solar
-  longitude 250° [janson2014, Appendix A.4; kalacakra-org, "Bhutan
-  calendars"]; the Mongolian month names by season and by animal and the
-  colours of the years [janson2014, Appendix A.3].
+  above. The Mongolian leap month's word, илүү, which Gantumur's calendar
+  writes in a month's heading, is data in `tibetan_almanac` but writes no
+  date, as `hc-i18n` carries no `mn` locale; the months of `mongolian`
+  are written in the English and Tibetan numbered names.
 
 ## Accuracy
 
@@ -274,6 +353,27 @@ doubled days, and every dated holiday of the two lists agree, the Losars of 28 F
 table; it was checked against the pages by eye, and a misreading would
 fail it.
 
+**The two conventions against Henning's almanacs**
+(`hennings_almanacs_of_2013_skip_and_repeat_these_days`,
+`lochens_anomaly_moves_the_days_janson_names`,
+`the_karana_sun_moves_the_day_janson_names`). Every skipped and repeated
+number of 2013 in Henning's Phugpa and Tsurphu almanacs is
+`tibetan-lochen`'s and `tibetan-tsurphu-karana`'s, and every other day of
+the year bears its number once. Janson's search found 9 days that the two
+anomaly increments put differently in 1900–1999 and 8 in 2000–2099, among
+them 10 February 2001, 10 May 2006 and 19 November 2025: the module finds
+the same counts in a release build and the same three days. Henning's
+Phugpa almanac for 2025 prints 18 and 19 November as the 29th of month 9
+and 20 November as the 30th, as `tibetan-lochen` has them, where `tibetan`
+makes 19 November the first of two days numbered 30; his Bhutanese almanac for 2020
+prints 22 and 23 April both as the 30th of month 2, as the exact increment
+gives. Measured on 2026-09-29, every date of the 1 448 days of his Phugpa
+almanacs read (2012–2014 and 2025) and the 1 093 of his Tsurphu ones
+(2012–2014) is the convention's; see [tibetan-almanac.md](tibetan-almanac.md)
+for the columns. No almanac other than Henning's was read for either
+convention, and none of the official dates read — Losar, Tsagaan Sar, the
+Ministry's 730 days — falls on a day the conventions move.
+
 **Known disagreements.**
 
 - *Bhutan, Losar 2003.* Henning reports that the Bhutanese government's
@@ -311,6 +411,8 @@ fail it.
 | [janson2014] | The versions' history, epoch values, leap rules, β and γ\*, the comparison tables of Appendix A.13, the Election Act, the constitution of 1992, the Bhutan 2003 discrepancy, the *karaṇa* constants and the yellow calculation | Yes, 2026-09-26, from the TeX source on arXiv |
 | [berzin-tibetan-calendar] | The yellow calculation's months and its leap-month exception | Yes, 2026-09-27 |
 | [kalacakra-org] | "Epoch data": the digits of every epoch; "Open source Tsurphu calendar software": the 2013 month header, the *karaṇa* Sun; "Bhutan calendars" and "Bhutanese Calendar": the leap-month numbering, the weekday, the holidays; "Example Kālacakra karaṇa calculations" | Yes, 2026-09-26, over plain HTTP, the HTTPS host still presenting another domain's certificate |
+| [kalacakra-org-archive] | Henning's computed Phugpa, Tsurphu and Bhutanese almanacs, their skipped and repeated days and the days the conventions move | Yes, 2026-09-29, over plain HTTP |
+| [kalacakra-org-software] | "Open source Tsurphu calendar software": the *karaṇa* Sun of Henning's Tsurphu program | Yes, 2026-09-29 |
 | [gantumur2026] | The same parameters stated independently, the month count in γ, Tsagaan Sar 2026 worked, Schuh's Tsurphu almanacs | Yes, 2026-09-26, from the TeX source on arXiv |
 | [moha-bt-calendar-2025], [moha-bt-calendar-2026] | Every day of 2025 and 2026, the monthly omitted and doubled days, the holiday lists with Bhutanese dates | Yes, 2026-09-26, the page images extracted from the PDFs |
 | [mn-resolution-2025-109] | Tsagaan Sar 2025, its first day omitted | Yes, 2026-09-26, on legalinfo.mn |
@@ -342,3 +444,11 @@ read a version's data. Anchors: `the_epoch_values_are_hennings_digits`,
 `bhutans_losar_of_2003_is_the_arithmetics_not_the_governments`,
 `the_bhutanese_leap_month_follows_the_month_it_repeats`,
 `the_versions_are_registered_under_their_own_names`.
+
+The conventions are in the same module: `AnomalyStep`, `Sun`,
+`TIBETAN_LOCHEN`, `TIBETAN_TSURPHU_KARANA`, and the public quantities
+above. Anchors: `lochens_anomaly_moves_the_days_janson_names`,
+`the_karana_sun_moves_the_day_janson_names`,
+`hennings_almanacs_of_2013_skip_and_repeat_these_days`,
+`the_conventions_are_registered_and_round_trip`,
+`exact_numbers_print_as_the_almanacs_do`.

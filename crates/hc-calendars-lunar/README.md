@@ -8,8 +8,9 @@ with the Sun by adding leap months. This crate holds:
 - the Hebrew calendar;
 - the Samaritan calendar;
 - the Babylonian calendar of the Seleucid era;
-- the Tibetan calendar in its Phugpa, Tsurphu and Bhutanese versions, and
-  the Mongolian calendar on the same engine;
+- the Tibetan calendar in its Phugpa, Tsurphu and Bhutanese versions, the
+  Mongolian calendar on the same engine, and two conventions of its true
+  date, Lochen's anomaly and the *karaṇa* Sun;
 - the Javanese calendar of Sultan Agung, in its three reckonings;
 - the East Asian lunisolar calendars of China, Korea and Vietnam;
 - the five successive lunisolar calendars Japan used between 862 and 1872;
@@ -43,6 +44,8 @@ others exist.
 | `tibetan::TIBETAN_TSURPHU` | `tibetan-tsurphu` | arithmetic (Tsurphu) | 1000–3000 |
 | `tibetan::TIBETAN_BHUTAN` | `tibetan-bhutan` | arithmetic (Bhutanese) | 1000–3000 |
 | `tibetan::MONGOLIAN` | `mongolian` | arithmetic (New Genden) | 1000–3000 |
+| `tibetan::TIBETAN_LOCHEN` | `tibetan-lochen` | arithmetic (Phugpa, Lochen's anomaly) | 1000–3000 |
+| `tibetan::TIBETAN_TSURPHU_KARANA` | `tibetan-tsurphu-karana` | arithmetic (Tsurphu, *karaṇa* Sun) | 1000–3000 |
 | `javanese::JAVANESE` | `javanese` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_YOGYAKARTA` | `javanese-yogyakarta` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_ABOGE` | `javanese-aboge` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
@@ -280,6 +283,20 @@ Government's Tsagaan Sar of 2025, whose first day was omitted, and
 MONTSAME's of 2020 and 2026; the Bhutanese matches every day of the
 Ministry of Home Affairs' calendars for 2025 and 2026, and disagrees with
 the government's Losar of 2003 by a day, as Janson reports.
+
+`tibetan-lochen` and `tibetan-tsurphu-karana` are two conventions of the
+true date on the same engine: the Phugpa under Minling Lochen's exact
+anomaly increment, 3 781⁄105 840 for the almanacs' 1⁄28, and the Tsurphu
+under the *karaṇa* solar equation, with Lochen's increment — the calendars
+of Henning's computed almanacs, every skipped and repeated day of whose
+2013 they reproduce, with Janson's moved days of 1900–2099 and his *karaṇa*
+example of 13/6/2013 ([`docs/systems/tibetan-variants.md`](../../docs/systems/tibetan-variants.md)).
+The engine's quantities — the exact `Ratio`, the mean motions, the tables,
+the mean date and Sun, the anomaly, the true date and the true month of a
+day — are public, for `hc-calendars-regional`'s `tibetan_almanac`, which
+computes the almanac's lunar mansion, *yoga*, *karaṇa*, planets, year
+names and the Bhutanese weekday
+([`docs/systems/tibetan-almanac.md`](../../docs/systems/tibetan-almanac.md)).
 
 ## Accuracy
 

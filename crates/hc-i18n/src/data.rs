@@ -252,6 +252,8 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("tibetan-tsurphu"),
     CalendarId("tibetan-bhutan"),
     CalendarId("mongolian"),
+    CalendarId("tibetan-lochen"),
+    CalendarId("tibetan-tsurphu-karana"),
     CalendarId("dangi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-tenpo"),
@@ -2229,7 +2231,8 @@ const BN: LocaleData = LocaleData {
 // "First Month" is keyed to the numbered lunisolar calendars — the same
 // twelve words for the same twelve numbers, and not a translation. The
 // Tsurphu version numbers them the same way (Janson, Appendix A.2) and
-// shares them; the Bhutanese is written in Dzongkha, which is not this
+// shares them, as do `tibetan-lochen` and `tibetan-tsurphu-karana`, the
+// same months under other conventions for the day; the Bhutanese is written in Dzongkha, which is not this
 // locale, and is not keyed here. CLDR has no `tibetan` calendar and no word
 // for the doubled month. Henning names it "an extra, or intercalary, month
 // (zla shol, zla ba lhag pa)" (`kalacakra-org`, "On intercalary months",
@@ -2304,7 +2307,12 @@ const BO_CALENDARS: &[CalendarNames] = &[
         )),
     ),
     lunisolar(
-        &[CalendarId("tibetan"), CalendarId("tibetan-tsurphu")],
+        &[
+            CalendarId("tibetan"),
+            CalendarId("tibetan-tsurphu"),
+            CalendarId("tibetan-lochen"),
+            CalendarId("tibetan-tsurphu-karana"),
+        ],
         &[month_cycle(ContextualNames {
             format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
             standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),
