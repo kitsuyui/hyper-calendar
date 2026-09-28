@@ -22,6 +22,11 @@
 //!   1 Vendémiaire is the day, midnight to midnight in true solar time at
 //!   the Paris Observatory, in which the September equinox falls.
 //!   `french-republican-equinox`.
+//! * [`jalali`] — the Seljuk calendar of 1079 as the astronomers defined
+//!   it: Nowruz is the day the Sun enters Aries before its noon at Isfahan,
+//!   and twelve thirty-day months precede the extra days, after Esfandārmoḏ
+//!   (`jalali`) or after Bahman as in the villages of Naṭanz
+//!   (`jalali-natanz`). Written up in `docs/systems/jalali.md`.
 //!
 //! Each has an arithmetic sibling in `hc-calendars-solar` —
 //! `persian-arithmetic` and `persian-arithmetic-33`, `bahai-arithmetic`,
@@ -78,6 +83,7 @@ extern crate alloc;
 
 pub mod bahai;
 pub mod french_republican;
+pub mod jalali;
 pub mod persian;
 pub mod persian_afghan;
 pub mod persian_apparent_noon;
@@ -85,6 +91,7 @@ pub mod places;
 
 pub use bahai::AstronomicalBahaiCalendar;
 pub use french_republican::EquinoxFrenchRepublicanCalendar;
+pub use jalali::AstronomicalJalaliCalendar;
 pub use persian::PersianCalendar;
 pub use persian_afghan::AfghanPersianCalendar;
 pub use persian_apparent_noon::ApparentNoonPersianCalendar;
@@ -104,6 +111,7 @@ mod registration {
         crate::ApparentNoonPersianCalendar,
         crate::AstronomicalBahaiCalendar,
         crate::EquinoxFrenchRepublicanCalendar,
+        for jalali in crate::AstronomicalJalaliCalendar::ALL => [jalali],
     }
 }
 
@@ -117,7 +125,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 5;
+    const CALENDAR_COUNT: usize = 7;
 
     #[test]
     fn every_calendar_here_is_astronomical_and_bounded() {
@@ -127,6 +135,8 @@ mod tests {
             ApparentNoonPersianCalendar.meta(),
             AstronomicalBahaiCalendar.meta(),
             EquinoxFrenchRepublicanCalendar.meta(),
+            AstronomicalJalaliCalendar::JALALI.meta(),
+            AstronomicalJalaliCalendar::NATANZ.meta(),
         ] {
             assert!(meta.is_astronomical, "{}", meta.id);
             let first = meta.earliest.expect("bounded below");

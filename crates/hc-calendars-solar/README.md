@@ -54,7 +54,8 @@ file does not:
 | `byzantine` | Byzantine *Anno Mundi*, September new year | `byzantine` |
 | `roman` | *Ab urbe condita*, Varro's count; the Capitoline count is in `year_counts` | `roman-auc` |
 | `rumi` | Rumi, the Ottoman civil calendar of 1840–1925: Julian days to 1917, Gregorian after, the year less 584 | `rumi` |
-| `french_republican` | French Republican, **arithmetic (Romme)** variant | `french-republican-arithmetic` |
+| `french_republican` | French Republican, **arithmetic (Romme)** variant; article XI's decimal time, `DecimalTime` | `french-republican-arithmetic` |
+| `french_republican_days` | The names of the 366 days, Fabre d'Églantine's table of 1793 and the list in use, with English glosses | — |
 | `french_republican_richards` | French Republican, **arithmetic (Richards)** variant: the sextile years III, VII, XI as kept, from the *Explanatory Supplement*'s parameters | `french-republican-arithmetic-richards` |
 | `bahai` | Badíʿ, **arithmetic Western** variant | `bahai-arithmetic` |
 | `bahai_kept` | Badíʿ as kept: the arithmetic rule to 171 BE, the Bahá'í World Centre's table for 172–221 BE, nothing after | `bahai` |
@@ -71,7 +72,7 @@ file does not:
 | `assyrian` | Modern Assyrian: the Gregorian months from 1 Neesan = 1 April under Syriac names, year 1 in 4750 BC | `assyrian` |
 | `yazidi` | Yazidi: the year from Serêsal, the first Wednesday of Eastern (Julian) Nisan, in the 4750 count; the day of the year over the Julian date | `yazidi` |
 | `hanke_henry` | Hanke–Henry Permanent: quarters of 30, 30 and 31 days from Monday 1 January, the week *Xtr* after December in the years with 53 ISO weeks | `hanke-henry` |
-| `icelandic` | Old Icelandic *misseristal*: 52 weeks in two *misseri*, summer from the first Thursday on or after 19 April Gregorian, or 9 April Julian before 1700, and the leap week *sumarauki* | `icelandic`, `icelandic-julian` |
+| `icelandic` | Old Icelandic *misseristal*: 52 weeks in two *misseri*, summer from the first Thursday on or after 19 April Gregorian, or 9 April Julian before 1700, and the leap week *sumarauki*; the Almanac's leap week at the end of summer (1837–1928), winter from a Friday (to 1837) and the medieval day from sunrise or dawn, each under its own identifier | `icelandic`, `icelandic-julian`, `icelandic-almanac`, `icelandic-friday`, `icelandic-julian-friday`, `icelandic-medieval` |
 | `qumran` | The Qumran and *Jubilees* 364-day year: quarters of 91 days from a Wednesday, no intercalation, the twenty-four priestly courses by week; the epoch a convention of this library | `qumran` |
 | `soviet_week` | The Soviet revolutionary weeks of 1929–1940: Gregorian dates under the continuous five-day week and then the six-day week of the decrees | `soviet-week` |
 | `dee` | Dee's 33-year calendar: the Julian months, leap when the year mod 33 is a non-zero multiple of 4, in Meyer's Dee–Cecil and Dee (eleven-day) correlations; Cassidy's rule of 1996 is the Dee–Cecil calendar ([docs/systems/hermetic-reforms.md](../../docs/systems/hermetic-reforms.md)) | `dee-cecil`, `dee` |
@@ -120,8 +121,9 @@ astronomical forms are in `hc-calendars-equinox`:
   BE. It refuses later days rather than compute them.
 
 The Jalālī calendar of 1079 is defined by the equinox too, and its
-astronomical form is not carried anywhere; `jalali-tusi` is Ṭūsī's
-arithmetic table for its first 295 years and refuses the years after
+astronomical form is `jalali` in `hc-calendars-equinox`, with the Naṭanz
+placement of the extra days as `jalali-natanz`; `jalali-tusi` here is
+Ṭūsī's arithmetic table for its first 295 years and refuses the years after
 ([`docs/systems/jalali.md`](../../docs/systems/jalali.md)).
 
 From 1889 to 1940 Thailand's year began on 1 April, and it was counted in

@@ -1,6 +1,7 @@
-# The Jalālī (Malekī) calendar in Ṭūsī's arithmetic
+# The Jalālī (Malekī) calendar: the astronomers' rule and Ṭūsī's arithmetic
 
-Backs the identifier `jalali-tusi` in `hc-calendars-solar`.
+Backs the identifier `jalali-tusi` in `hc-calendars-solar`, and `jalali`
+and `jalali-natanz` in `hc-calendars-equinox`.
 
 ## What it is
 
@@ -20,9 +21,12 @@ The calendar has two definitions, and they are not the same calendar
 
 * **As the astronomers defined it.** Nowrūz is "the day on which the sun
   entered Aries before noon", the definition Ṭūsī, Oloḡ Beg and later
-  authors give [abdollahy1990]. That is `jalali`, which is Researching in
-  [calendars.md](../calendars.md): no source read names the meridian or the
-  day a month begins on.
+  authors give [abdollahy1990]; Qoṭb-al-Dīn Širāzī's is "the first day in
+  which, at solar noon [...the moment when the sun contacts the observer's
+  meridian], the sun is in Aries" [karamati2014], and Persian Wikipedia's
+  the day the Sun has reached the equinox "by the time of its transit of the
+  local meridian" [fawiki-gahshomari-jalali]. The months "consisted of
+  thirty days each" [abdollahy1990]. That is `jalali`, below.
 * **As an arithmetic scheme.** The months "were not true solar months but
   consisted of thirty days each", the seasons alone being astronomically
   true, and the astronomers "worked out rules for the sequence of ordinary
@@ -80,10 +84,48 @@ choice.
 365 + 72/295 days by the rule (365 + 71.5/295 by Iranica's total), is
 shorter than the Julian 365¼.
 
+**The astronomers' calendar.** The noon is the Sun's at the observer's
+meridian, and no source read names a standard one: Ṭabarī's *Zīj-e mofrad*
+"considers the place of observations to be Isfahan", the Seljuk capital
+[karamati2014], and English Wikipedia says "Khayyam ... positioned Isfahan
+as the prime meridian", citing Amanat (2017), not read
+[wikipedia-jalali-calendar]. `jalali` takes the Sun's transit at Isfahan,
+51.670° E [wikipedia-isfahan]: Nowrūz is the day of the March equinox if the
+equinox falls before Isfahan's apparent noon, and the day after otherwise,
+the rule `persian-apparent-noon` applies at Tehran. Twelve months of thirty
+days follow, then the extra days, five or six as the next Nowrūz falls.
+Year *y* is the Solar Hijri year *y* + 457, Persian Wikipedia making 1
+Jalālī "۴۵۸ هجری خورشیدی" [fawiki-gahshomari-jalali].
+
+*Worked example.* The equinox of 1079 fell about six hours before
+Isfahan's noon of 15 March (Julian), 367 minutes by the model, so Nowrūz 1
+is Friday 15 March 1079, Abdollahy's epoch [abdollahy1990]. 1080 is a
+Julian leap year, and its equinox falls twelve minutes before Isfahan's
+noon of 14 March, so year 2 begins on 14 March 1080, 365 days after year
+1. The equinox of 1081 falls five and a half hours after the noon of
+14 March, so year 3 begins on 15 March 1081, and year 2 has 366 days: the
+long year 2 the table's rule infers, above.
+
+**Naṭanz.** Among the Zoroastrian communities of Iran that adopted the
+Jalālī calendar, "the 5 or 6 epagomenal days follow the month of
+Esfandārmoḏ or, in some villages in the district of Naṭanz, the month of
+Bahman" [panaino1990iv]; Panaino's pre-Islamic part says the same, "in the
+district of Natanz ... the epagomenal days are still inserted after the
+eleventh month, Bahman" [panaino1990], and at Abyāna, a village of the
+district, the five days "are added ... to the end of Bahman, the eleventh
+month, and not to the end of the twelfth month", as Yarshater saw in 1969
+[yarshater1983-abyana]. `jalali-natanz` is that placement on `jalali`'s
+years: Farvardīn to Bahman, the extra days, then Esfandārmoḏ. No source
+read gives the villages' own reckoning of a long year, so the model's
+Nowrūz stands in for it; Taqizadeh (1952, p. 610) and Lambton (in Hartner,
+1971), whom Panaino cites, were not read.
+
 ## What is carried
 
 | Identifier | Rule | Range |
 | --- | --- | --- |
+| `jalali` | Nowrūz the day the equinox falls before the Sun's noon at Isfahan, else the next; twelve thirty-day months under [`zoroastrian::MONTHS`](../../crates/hc-calendars-solar/src/zoroastrian.rs), then five or six extra days as month 13 | 15 March 1079 (Julian) to the day before Nowrūz of 3001 |
+| `jalali-natanz` | `jalali`'s years, the extra days after Bahman, month 11, and before Esfandārmoḏ | the same |
 | `jalali-tusi` | Twelve thirty-day months under [`zoroastrian::MONTHS`](../../crates/hc-calendars-solar/src/zoroastrian.rs), the extra days after the twelfth, long when (*y* + 3)·39 mod 161 < 39 | 1 Farvardīn 1, 15 March 1079, to the last extra day of 295, 20 March 1374 (Gregorian; 12 March Julian) |
 
 **Only the table's years.** The rule is Iranica's fit to Ṭūsī's table, not
@@ -93,9 +135,14 @@ calendar refuses the years after it — `YearOutOfRange` and
 A continuation by the rule would be a calendar of its own name under
 policy §5; none is registered.
 
-**Not carried.** The astronomical calendar `jalali`; Ḵāzenī's 220-year
-rule, which was not read; the Naṭanz placement of the extra days after
-Bahman, which would be its own identifier; the Jalālī day and month names
+**Not carried.** Ḵāzenī's 220-year rule, which was not read; the reading
+in which the months began with the Sun's entry into the signs, which
+Abdollahy calls the mistake of "some people" and English Wikipedia states
+uncited, with month lengths of 1302 and 1303 that are the Solar Hijri
+calendar of 1911–1925, `persian-burj`'s row; the month lengths Persian
+Wikipedia reports from the *Zīj-e Sanjarī* through Taqizadeh and Dehkhoda,
+neither read; Ṭūsī's table on the Naṭanz placement, which nobody is
+recorded as keeping; the Jalālī day and month names
 that Ṭūsī says earlier astronomers introduced, which are in Iranica's
 Tables 35 and 36, images that were not read; and the *Zīj-e īl-ḵānī*
 itself.
@@ -113,6 +160,10 @@ The arithmetic is exact. What it matches is the published description of
 | The extra days follow Esfandārmoḏ, and a long year's sixth is the day before Nowrūz | `the_extra_days_follow_the_twelfth_month` | Holds |
 | Every day of the table round-trips | `every_day_of_the_table_round_trips` | 107 747 days |
 | The years after the table are refused | `the_years_after_the_table_are_refused` | Holds |
+| `jalali`: Nowrūz 1 is Friday 15 March 1079 (Julian), `jalali-tusi`'s epoch, 367 minutes before the noon | `the_epoch_is_friday_the_fifteenth_of_march_1079` (`crates/hc-calendars-equinox/src/jalali.rs`) | Holds |
+| … against Ṭūsī's table over its 295 years: the same Nowrūz in 285, a day later in 10, never earlier; 72 long years in both, year 2 among them; no year within the minute's tolerance, the first such year being 1013 | `nowruz_follows_the_equinox_and_the_table_is_close_to_the_sky` | Holds |
+| `jalali-natanz`: Farvardīn to Bahman as in `jalali`, the extra days from day 331, Esfandārmoḏ after them | `the_extra_days_close_the_year_or_follow_bahman` | Holds |
+| Both round-trip four years from the epoch and a sample of the range | `every_day_round_trips_in_both` | Holds |
 
 The Hejrī side of the epoch, 9 Ramaḍān 471, is `islamic-civil`'s to check
 and is not tested here: the solar crate does not depend on the lunar one.
@@ -122,7 +173,12 @@ and is not tested here: the solar crate does not depend on the lunar one.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [abdollahy1990] | The epoch and its Hejrī and Yazdegerdī equivalents; the thirty-day months; Ṭūsī's table of 295 years and its quinquennia; the 295 × 365 + 286 × ¼ days of the table; the mod-161 rule; the astronomical definition of Nowrūz | Yes, in the Wayback Machine's copy, 2026-09-26; the total of 286 quarter-days in a search engine's extract of the article, 2026-09-27, the live page refusing automated access; Tables 35 and 36 are images and were not read |
-| [panaino1990iv] | The extra days after Esfandārmoḏ, or after Bahman in Naṭanz, among the Zoroastrian communities that adopted the calendar | Yes, the same copy |
+| [panaino1990iv] | The extra days after Esfandārmoḏ, or after Bahman in Naṭanz, among the Zoroastrian communities that adopted the calendar | Yes, the same copy; re-read 2026-09-29 |
+| [panaino1990] | "In the district of Natanz ... still inserted after the eleventh month, Bahman" | Yes, 2026-09-29, the same copy |
+| [karamati2014] | Qoṭb-al-Dīn Širāzī's definition at solar noon, the observer's meridian; Isfahan as the place of observations in Ṭabarī's *Zīj-e mofrad* | Yes, 2026-09-29, in the Wayback Machine's copy, the live page refusing |
+| [fawiki-gahshomari-jalali] | The local meridian; the epoch as Solar Hijri 458; thirty-day months and five extra days after the Geophysics Institute; the *Zīj-e Sanjarī*'s month lengths, reported | Yes, 2026-09-29, secondary |
+| [yarshater1983-abyana] | The five days after Bahman at Abyāna, 1969 | Yes, 2026-09-29, in the Wayback Machine's copy |
+| [wikipedia-isfahan] | Isfahan's coordinates | Yes, 2026-09-29 |
 | [wikipedia-jalali-calendar] | The astronomical reading, months by the Sun's entry into the signs | Yes, 2026-09-26 |
 
 Ṭūsī's *Zīj-e īl-ḵānī*, Ḵāzenī's *al-Zīj al-moʿtabar al-sanjarī*, and
@@ -131,9 +187,13 @@ not read.
 
 ## Code
 
-`crates/hc-calendars-solar/src/jalali_tusi.rs`. Anchors:
+`crates/hc-calendars-solar/src/jalali_tusi.rs` and
+`crates/hc-calendars-equinox/src/jalali.rs`. Anchors:
 `the_epoch_is_friday_the_fifteenth_of_march_1079`,
 `the_rule_is_tusis_table_for_all_295_years`,
 `the_extra_days_follow_the_twelfth_month`,
 `every_day_of_the_table_round_trips`,
-`the_years_after_the_table_are_refused`.
+`the_years_after_the_table_are_refused`;
+`the_epoch_is_friday_the_fifteenth_of_march_1079`,
+`nowruz_follows_the_equinox_and_the_table_is_close_to_the_sky`,
+`the_extra_days_close_the_year_or_follow_bahman`.

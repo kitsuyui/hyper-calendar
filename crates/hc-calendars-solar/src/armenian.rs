@@ -157,6 +157,121 @@ pub const MONTHS: [&str; 13] = [
     "աւելեաց",
 ];
 
+/// The Armenian names of the thirty days of the month, day 1 first, in
+/// Armenian script as Armenian Wikipedia lists them ("Հետաքրքրական է, որ
+/// ամսվա յուրաքանչյուր օր նույնպես ուներ իր անունը", "each day of the month
+/// also had its own name"; «Հայկյան տոմար», after the Armenian Soviet
+/// Encyclopedia, vol. 6, p. 193, `hywiki-haykyan-tomar`, read 2026-09-29).
+/// Where the list gives a second form, the first is kept: Մազդեղ or
+/// Մազդեկան (6), Երեզկան or Երեզհան (11), Ցրոն or Սփյուռ (25), Սիմ or Սեին
+/// (28). English Wikipedia spells day 5 Ահրանկ and day 14 Վանատ.
+pub const DAY_NAMES: hc_calendar::shape::Naming<30> = hc_calendar::shape::Naming {
+    id: "hy",
+    english_name: "Armenian",
+    names: &[
+        "Արեգ",
+        "Հրանդ",
+        "Արամ",
+        "Մարգար",
+        "Ահրանք",
+        "Մազդեղ",
+        "Աստղիկ",
+        "Միհր",
+        "Ձոպաբեր",
+        "Մուրց",
+        "Երեզկան",
+        "Անի",
+        "Պարխար",
+        "Վանատուր",
+        "Արամազդ",
+        "Մանի",
+        "Ասակ",
+        "Մասիս",
+        "Անահիտ",
+        "Արագած",
+        "Գրգուռ",
+        "Կորդուիք",
+        "Ծմակ",
+        "Լուսնակ",
+        "Ցրոն",
+        "Նպատ",
+        "Վահագն",
+        "Սիմ",
+        "Վարագ",
+        "Գիշերավար",
+    ],
+    authority: "Armenian Wikipedia, «Հայկյան տոմար», «Հին հայկական օրանուններ», retrieved 2026-09-29",
+};
+
+/// The same thirty in the romanisation English Wikipedia gives them
+/// ("Armenian calendar", `wikipedia-armenian-calendar`, read 2026-09-29),
+/// which states no system and mixes several.
+pub const DAY_NAMES_ROMANISED: hc_calendar::shape::Naming<30> = hc_calendar::shape::Naming {
+    id: "hy-Latn",
+    english_name: "Armenian, romanised",
+    names: &[
+        "Areg",
+        "Hrand",
+        "Aram",
+        "Margar",
+        "Ahrank’",
+        "Mazdeł",
+        "Astłik",
+        "Mihr",
+        "Jopaber",
+        "Murc’",
+        "Erezhan",
+        "Ani",
+        "Parkhar",
+        "Vanat",
+        "Aramazd",
+        "Mani",
+        "Asak",
+        "Masis",
+        "Anahit",
+        "Aragats",
+        "Gorgor",
+        "Kordvik",
+        "Tsmak",
+        "Lusnak",
+        "Tsrōn",
+        "Npat",
+        "Vahagn",
+        "Sim",
+        "Varag",
+        "Gišeravar",
+    ],
+    authority: "Wikipedia, \"Armenian calendar\", retrieved 2026-09-29",
+};
+
+/// The names of the five *aweleacʿ* days, "Իսկ վերջին «Ավելյաց» ամսվա
+/// օրերի անվանումներն են" ("and the names of the days of the last month,
+/// Aweleacʿ, are"), as Armenian Wikipedia lists them, with no romanisation
+/// (`hywiki-haykyan-tomar`, read 2026-09-29).
+pub const EPAGOMENAL_DAY_NAMES: hc_calendar::shape::Naming<5> = hc_calendar::shape::Naming {
+    id: "hy",
+    english_name: "Armenian",
+    names: &["Լուծ", "Եղջերու", "Ծկրավորի", "Արտախույր", "Փառազնոտի"],
+    authority: "Armenian Wikipedia, «Հայկյան տոմար», retrieved 2026-09-29",
+};
+
+/// The Armenian name of day `day` of month `month`: [`DAY_NAMES`] for the
+/// twelve months, [`EPAGOMENAL_DAY_NAMES`] for the *aweleacʿ*; `None` for a
+/// day the month does not have.
+#[must_use]
+pub const fn day_name(month: u8, day: u8) -> Option<&'static str> {
+    match days_in_month(month) {
+        Some(length) if day >= 1 && day <= length => {
+            if month == 13 {
+                Some(EPAGOMENAL_DAY_NAMES.names[day as usize - 1])
+            } else {
+                Some(DAY_NAMES.names[day as usize - 1])
+            }
+        }
+        _ => None,
+    }
+}
+
 /// Thirteen named months and the seven-day week.
 const SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &MONTHS),
@@ -227,6 +342,26 @@ impl Calendar for ArmenianCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn every_day_has_its_name() {
+        assert_eq!(day_name(1, 1), Some("Արեգ"));
+        assert_eq!(day_name(7, 15), Some("Արամազդ"));
+        assert_eq!(day_name(12, 30), Some("Գիշերավար"));
+        assert_eq!(day_name(13, 1), Some("Լուծ"));
+        assert_eq!(day_name(13, 5), Some("Փառազնոտի"));
+        assert_eq!(day_name(13, 6), None);
+        assert_eq!(day_name(1, 31), None);
+        assert_eq!(day_name(14, 1), None);
+        assert_eq!(day_name(1, 0), None);
+        assert_eq!(DAY_NAMES_ROMANISED.name(26), "Vahagn");
+        // The epoch, 1 Nawasardi 1, is Areg.
+        let (_, month, day) = from_fixed(EPOCH).unwrap();
+        assert_eq!(day_name(month, day), Some("Արեգ"));
+        for (index, name) in DAY_NAMES.names.iter().enumerate() {
+            assert!(!DAY_NAMES.names[index + 1..].contains(name), "{name}");
+        }
+    }
     use crate::{egyptian, julian};
 
     #[test]

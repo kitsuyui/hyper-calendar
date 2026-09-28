@@ -26,6 +26,22 @@
 //! when the Julian rule would have added a *sumarauki* and the Gregorian
 //! one did not.
 //!
+//! Three reckonings Janson describes beside the standard one are
+//! calendars of their own names too:
+//!
+//! * `icelandic-almanac`, the printed Icelandic Almanac's year from 1837
+//!   until 1928, whose leap week "was inserted last in the summer", after
+//!   Haustmánuður, so that in a leap year the last three summer months
+//!   begin a week earlier (§7.1) — [`IcelandicAlmanacCalendar`];
+//! * `icelandic-friday` and `icelandic-julian-friday`, the two rules with
+//!   winter "reckoned from a Friday", the popular reckoning "from the 16th
+//!   century until the Icelandic Almanac began to be published in 1837"
+//!   (§2.1): the dates are the same, and the season and week the fields
+//!   carry turn a day earlier;
+//! * `icelandic-medieval`, the Julian rule with the medieval day, "reckoned
+//!   from sunrise during summer and from dawn during winter" (§2.4),
+//!   [`hc_calendar::DayBoundary::Daybreak`].
+//!
 //! # What is carried
 //!
 //! Dates are the year, one of thirteen positions and a day: the twelve
@@ -42,11 +58,11 @@
 //! week (*veturnætur*) being week 0. Janson warns that "dating by giving
 //! the Icelandic month and day ... has never been used in Iceland".
 //!
-//! Not carried: the Almanac's placement of the leap week at the end of
-//! summer until 1928, the winter reckoned from a Friday from the sixteenth
-//! century to 1837, the confusion of 1702–1703 over the new rule, and the
-//! reckoning of the day from sunrise or dawn. The system document is
-//! `docs/systems/icelandic.md`.
+//! Not carried: the sixteenth-century rule that winter began on a
+//! Saturday "except at rímspillir when it begins on a Friday", which Janson
+//! reports from one document; the Almanac of 1888, which "forgot to insert
+//! the leap week"; and the confusion of 1702–1703 over the new rule. The
+//! system document is `docs/systems/icelandic.md`.
 //!
 //! # Sources
 //!
@@ -58,7 +74,10 @@
 //!   period 19–25 April", the change of 16/28 November 1700 and the first
 //!   divergence at Midsummer 1702; §4 for the First Day of Winter "always
 //!   180 days before the next First Day of Summer"; §5–6 for the formulas
-//!   and the tables of leap years and *rímspillir* years the tests use.
+//!   and the tables of leap years and *rímspillir* years the tests use;
+//!   §2.1 for the Friday reckoning of winter, §2.4 for the day from sunrise
+//!   or dawn, and §7.1 for the Almanac's leap week, with its months'
+//!   Gregorian windows "22–28 July, 21–27 August and 20–26 September".
 //! * Edward M. Reingold and Nachum Dershowitz, *Calendrical Calculations:
 //!   The Ultimate Edition* (Cambridge, 2018), ch. 6 — the book not read
 //!   here, its Apache-licensed `calendar-code2` (`calendar.l`, section
@@ -280,6 +299,24 @@ impl Rule {
     }
 }
 
+/// Which reckoning of the week and the day a calendar under a [`Rule`]
+/// keeps.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Reckoning {
+    /// Winter and its weeks from the Saturday, and the day from midnight:
+    /// the learned reckoning and the Almanac's since 1837.
+    Standard,
+    /// Winter and its weeks "reckoned from a Friday (one day before the
+    /// beginning of winter as shown in Table 1)", the popular reckoning of
+    /// the sixteenth century to 1837 (Janson §2.1). The months are the
+    /// standard ones: Janson dates the beginning of winter, not of
+    /// Gormánuður, by the Friday.
+    FridayWinter,
+    /// The medieval day, from sunrise in summer and dawn in winter (Janson
+    /// §2.4); the week as [`Reckoning::Standard`].
+    Medieval,
+}
+
 /// An Icelandic date.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct IcelandicDate {
@@ -311,11 +348,16 @@ impl IcelandicDate {
     }
 }
 
-/// The Icelandic calendar under one of its two rules.
+/// The Icelandic calendar under one of its two rules and one reckoning of
+/// the week and the day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+///
+/// The five registered pairings are the constants; the fields are private
+/// so that no other pairing, such as the medieval day under the rule of
+/// 1700, can be made and given a name it does not have.
 pub struct IcelandicCalendar {
-    /// The rule that fixes the First Day of Summer.
-    pub rule: Rule,
+    rule: Rule,
+    reckoning: Reckoning,
 }
 
 /// Where the Julian rule's period of use comes from.
@@ -330,15 +372,90 @@ pub const GREGORIAN_USAGE_SOURCE: &str = "Janson, \"The Icelandic calendar\", Sc
     on 1 July 1700; in general use until the late 18th century and printed in the Icelandic \
     Almanac since, the First Day of Summer still a public holiday";
 
+/// Where the Friday reckoning's period under the Julian rule comes from.
+pub const JULIAN_FRIDAY_USAGE_SOURCE: &str = "Janson, \"The Icelandic calendar\", Scripta Islandica 62 (2011), \
+    §2.1: winter \"reckoned from a Friday ... from the 16th century\", \"first documented in 1508\", \
+    16th-century use \"mixed\", and whether it was older contested (Björnsson and Beckman against \
+    Þorkelsson), so undated at the start; the law of 1700 \"explicitly reckons winter from a \
+    Friday\"; kept under the Julian rule until Saturday 16 November 1700 (Julian)";
+
+/// Where the Friday reckoning's period under the Gregorian rule comes from.
+pub const FRIDAY_USAGE_SOURCE: &str = "Janson, \"The Icelandic calendar\", Scripta Islandica 62 (2011), \
+    §2.1 and §3.4: winter reckoned from a Friday under the rule of 1700 from 28 November 1700 \
+    \"until the Icelandic Almanac began to be published in 1837, when the Saturday reckoning was \
+    revived\": to the last day of the Icelandic year 1836, the Almanac's first year being 1837";
+
+/// Where the medieval day's period comes from.
+pub const MEDIEVAL_USAGE_SOURCE: &str = "Janson, \"The Icelandic calendar\", Scripta Islandica 62 (2011), \
+    §2.4: \"the day in Iceland in the Middle Ages was reckoned from sunrise during summer and from \
+    dawn during winter\", citing Schroeter; no source read dates when the day came to be reckoned \
+    from midnight, so the period is bounded only by the Julian rule's, to 16 November 1700 (Julian)";
+
 impl IcelandicCalendar {
     /// The rule since 1700, `icelandic`.
     pub const GREGORIAN: Self = Self {
         rule: Rule::Gregorian,
+        reckoning: Reckoning::Standard,
     };
     /// The rule before 1700, `icelandic-julian`.
-    pub const JULIAN: Self = Self { rule: Rule::Julian };
-    /// Both.
-    pub const ALL: [Self; 2] = [Self::GREGORIAN, Self::JULIAN];
+    pub const JULIAN: Self = Self {
+        rule: Rule::Julian,
+        reckoning: Reckoning::Standard,
+    };
+    /// The rule since 1700 with winter from a Friday, `icelandic-friday`.
+    pub const FRIDAY: Self = Self {
+        rule: Rule::Gregorian,
+        reckoning: Reckoning::FridayWinter,
+    };
+    /// The rule before 1700 with winter from a Friday,
+    /// `icelandic-julian-friday`.
+    pub const JULIAN_FRIDAY: Self = Self {
+        rule: Rule::Julian,
+        reckoning: Reckoning::FridayWinter,
+    };
+    /// The rule before 1700 with the medieval day, `icelandic-medieval`.
+    pub const MEDIEVAL: Self = Self {
+        rule: Rule::Julian,
+        reckoning: Reckoning::Medieval,
+    };
+    /// All five.
+    pub const ALL: [Self; 5] = [
+        Self::GREGORIAN,
+        Self::JULIAN,
+        Self::FRIDAY,
+        Self::JULIAN_FRIDAY,
+        Self::MEDIEVAL,
+    ];
+
+    /// The rule that fixes the First Day of Summer.
+    #[must_use]
+    pub const fn rule(self) -> Rule {
+        self.rule
+    }
+
+    /// How winter's weeks and the day are reckoned.
+    #[must_use]
+    pub const fn reckoning(self) -> Reckoning {
+        self.reckoning
+    }
+
+    /// The fixed day on which this reckoning begins the winter of `year`:
+    /// the Saturday 180 days before the next First Day of Summer, or the
+    /// Friday before it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::YearOutOfRange`] outside
+    /// [`MIN_YEAR`]..=[`MAX_YEAR`].
+    pub const fn first_day_of_winter(self, year: i64) -> CalendarResult<Rd> {
+        match self.rule.first_day_of_winter(year) {
+            Ok(saturday) => match self.reckoning {
+                Reckoning::FridayWinter => Ok(Rd(saturday.0 - 1)),
+                Reckoning::Standard | Reckoning::Medieval => Ok(saturday),
+            },
+            Err(error) => Err(error),
+        }
+    }
 }
 
 /// Thirteen named positions and the seven-day week. The names are the
@@ -353,16 +470,49 @@ impl Calendar for IcelandicCalendar {
 
     /// The Julian rule until 16 November 1700 (Julian); the Gregorian rule
     /// from 28 November 1700, still printed today.
+    ///
+    /// The Friday reckoning from an undated start in the sixteenth century
+    /// until 1700 under the Julian rule, and from 28 November 1700 to the
+    /// last day of the Icelandic year 1836 under the Gregorian; the
+    /// medieval day until 1700 at the latest.
     fn usage(&self) -> hc_calendar::Usage {
-        match self.rule {
-            Rule::Julian => match julian::to_fixed(1700, 11, 16) {
-                Ok(last) => hc_calendar::Usage::until(last, JULIAN_USAGE_SOURCE),
-                Err(_) => hc_calendar::Usage::UNRECORDED,
-            },
-            Rule::Gregorian => match gregorian::to_fixed(1700, 11, 28) {
-                Ok(first) => hc_calendar::Usage::since(first, GREGORIAN_USAGE_SOURCE),
-                Err(_) => hc_calendar::Usage::UNRECORDED,
-            },
+        let (Ok(last_julian), Ok(first_gregorian)) = (
+            julian::to_fixed(1700, 11, 16),
+            gregorian::to_fixed(1700, 11, 28),
+        ) else {
+            return hc_calendar::Usage::UNRECORDED;
+        };
+        match (self.rule, self.reckoning) {
+            (Rule::Julian, Reckoning::Standard) => {
+                hc_calendar::Usage::until(last_julian, JULIAN_USAGE_SOURCE)
+            }
+            (Rule::Julian, Reckoning::FridayWinter) => {
+                hc_calendar::Usage::until(last_julian, JULIAN_FRIDAY_USAGE_SOURCE)
+            }
+            (_, Reckoning::Medieval) => {
+                hc_calendar::Usage::until(last_julian, MEDIEVAL_USAGE_SOURCE)
+            }
+            (Rule::Gregorian, Reckoning::FridayWinter) => hc_calendar::Usage::between(
+                first_gregorian,
+                Rd(Rule::Gregorian.summer_raw(1837).0 - 1),
+                FRIDAY_USAGE_SOURCE,
+            ),
+            (Rule::Gregorian, Reckoning::Standard) => {
+                hc_calendar::Usage::since(first_gregorian, GREGORIAN_USAGE_SOURCE)
+            }
+        }
+    }
+
+    /// Midnight, except for `icelandic-medieval`'s day from sunrise in
+    /// summer and dawn in winter, named by the civil day it begins on
+    /// since "day comes before night throughout the Icelandic calendar"
+    /// (Janson §2.4, quoting *Bókarbót*).
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        match self.reckoning {
+            Reckoning::Medieval => {
+                hc_calendar::DayBoundary::Daybreak(hc_calendar::DayNaming::ByStart)
+            }
+            Reckoning::Standard | Reckoning::FridayWinter => hc_calendar::DayBoundary::Midnight,
         }
     }
 
@@ -380,9 +530,26 @@ impl Calendar for IcelandicCalendar {
     }
 
     fn meta(&self) -> CalendarMeta {
-        let (id, english_name) = match self.rule {
-            Rule::Gregorian => ("icelandic", "Icelandic (misseristal, since 1700)"),
-            Rule::Julian => ("icelandic-julian", "Icelandic (misseristal, Julian rule)"),
+        let (id, english_name) = match (self.rule, self.reckoning) {
+            (Rule::Gregorian, Reckoning::Standard) => {
+                ("icelandic", "Icelandic (misseristal, since 1700)")
+            }
+            (Rule::Julian, Reckoning::Standard) => {
+                ("icelandic-julian", "Icelandic (misseristal, Julian rule)")
+            }
+            (Rule::Gregorian, Reckoning::FridayWinter) => (
+                "icelandic-friday",
+                "Icelandic (misseristal, since 1700, winter from a Friday)",
+            ),
+            (Rule::Julian, Reckoning::FridayWinter) => (
+                "icelandic-julian-friday",
+                "Icelandic (misseristal, Julian rule, winter from a Friday)",
+            ),
+            // The medieval day is paired with the Julian rule only.
+            (_, Reckoning::Medieval) => (
+                "icelandic-medieval",
+                "Icelandic (misseristal, Julian rule, the day from daybreak)",
+            ),
         };
         CalendarMeta {
             id: CalendarId(id),
@@ -409,7 +576,7 @@ impl Calendar for IcelandicCalendar {
     /// (0 on the two *veturnætur*) and a flag on the *sumarauki*.
     fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
         let rd = self.to_fixed(date)?;
-        let winter = self.rule.first_day_of_winter(date.year)?;
+        let winter = self.first_day_of_winter(date.year)?;
         let (season, week) = if rd < winter {
             let since = rd.0 - self.rule.first_day_of_summer(date.year)?.0;
             let summer_weeks = (winter.0 - self.rule.summer_raw(date.year).0) / 7;
@@ -432,6 +599,234 @@ impl Calendar for IcelandicCalendar {
         let day = fields.require_day()?;
         self.rule.to_fixed(fields.year, month.ordinal, day)?;
         Ok(IcelandicDate {
+            year: fields.year,
+            month: month.ordinal,
+            day,
+        })
+    }
+}
+
+/// The fourteen positions of the Almanac's year from 1837 to 1928: the
+/// standard thirteen with the leap week, *Sumarauki*, eighth, after
+/// Haustmánuður, where the printed Almanac "inserted" it "last in the
+/// summer" (Janson §7.1).
+pub const ALMANAC_MONTHS: [&str; 14] = [
+    "Harpa",
+    "Skerpla",
+    "Sólmánuður",
+    "Aukanætur",
+    "Heyannir",
+    "Tvímánuður",
+    "Haustmánuður",
+    "Sumarauki",
+    "Gormánuður",
+    "Ýlir",
+    "Mörsugur",
+    "Þorri",
+    "Góa",
+    "Einmánuður",
+];
+
+/// The position of the leap week in [`ALMANAC_MONTHS`].
+pub const ALMANAC_SUMARAUKI: u8 = 8;
+
+/// Where the Almanac's period comes from.
+pub const ALMANAC_USAGE_SOURCE: &str = "Janson, \"The Icelandic calendar\", Scripta Islandica 62 (2011), \
+    §7.1: \"in the printed Icelandic Almanac, which has been published since 1837, the leap week \
+    was inserted last in the summer until 1928\", citing the Almanac's explanations and Schroeter; \
+    from the First Day of Summer 1837 to the last day of the Icelandic year 1927, since 1928, \
+    itself a leap year, is the year \"until 1928\" leaves open";
+
+/// A date of the Almanac's year, [`IcelandicAlmanacCalendar`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct IcelandicAlmanacDate {
+    /// The year, numbered by the calendar year its summer begins in.
+    pub year: i64,
+    /// The position, 1 for Harpa to 14 for Einmánuður; 4 is the
+    /// *aukanætur* and 8, in a leap year only, the *sumarauki*.
+    pub month: u8,
+    /// The day within it.
+    pub day: u8,
+}
+
+impl IcelandicAlmanacDate {
+    /// The name of the position.
+    #[must_use]
+    pub const fn month_name(self) -> &'static str {
+        ALMANAC_MONTHS[self.month as usize - 1]
+    }
+
+    /// Whether this is one of the seven days of the *sumarauki*.
+    #[must_use]
+    pub const fn is_sumarauki(self) -> bool {
+        self.month == ALMANAC_SUMARAUKI
+    }
+}
+
+/// The Icelandic calendar as the printed Almanac kept it from 1837 until
+/// 1928, `icelandic-almanac`: the rule of 1700 with the leap week after
+/// Haustmánuður, so that in a leap year Heyannir, Tvímánuður and
+/// Haustmánuður begin a week earlier than in `icelandic` — "shifted to
+/// 22–28 July, 21–27 August and 20–26 September" — and "the reckoning by
+/// weeks was not affected" (Janson §7.1).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct IcelandicAlmanacCalendar;
+
+impl IcelandicAlmanacCalendar {
+    /// The days in position `month` of `year`: 30, 4 for the
+    /// *aukanætur*, 7 for the *sumarauki* of a leap year; `None` for the
+    /// *sumarauki* of a common year and outside `1..=14`.
+    #[must_use]
+    pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
+        match month {
+            EXTRA_DAYS => Some(AUKANAETUR),
+            ALMANAC_SUMARAUKI => {
+                if Rule::Gregorian.is_leap_year(year) {
+                    Some(SUMARAUKI)
+                } else {
+                    None
+                }
+            }
+            1..=14 => Some(30),
+            _ => None,
+        }
+    }
+
+    /// The fixed day of an Almanac date: the first seven positions forward
+    /// from the First Day of Summer, the leap week after them, and the six
+    /// winter months back from the next First Day of Summer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::YearOutOfRange`],
+    /// [`CalendarError::MonthOutOfRange`] or [`CalendarError::DayOutOfRange`].
+    pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
+        let start = match Rule::Gregorian.first_day_of_summer(year) {
+            Ok(start) => start,
+            Err(error) => return Err(error),
+        };
+        if let Err(error) = crate::common::check_day(day, Self::days_in_month(year, month)) {
+            return Err(error);
+        }
+        let day = day as i64 - 1;
+        let offset = match month {
+            1..=4 => 30 * (month as i64 - 1),
+            5..=8 => 94 + 30 * (month as i64 - 5),
+            _ => {
+                let next = Rule::Gregorian.summer_raw(year + 1);
+                return Ok(Rd(next.0 - 30 * (15 - month as i64) + day));
+            }
+        };
+        Ok(Rd(start.0 + offset + day))
+    }
+
+    /// The Almanac year, position and day of a fixed day.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::BeforeEpoch`] or
+    /// [`CalendarError::AfterSupportedRange`] outside the range.
+    pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
+        let (year, _, _) = match Rule::Gregorian.from_fixed(rd) {
+            Ok(date) => date,
+            Err(error) => return Err(error),
+        };
+        let since = rd.0 - Rule::Gregorian.summer_raw(year).0;
+        let until = Rule::Gregorian.summer_raw(year + 1).0 - rd.0;
+        if since < 90 {
+            Ok((year, (since / 30 + 1) as u8, (since % 30 + 1) as u8))
+        } else if since < 94 {
+            Ok((year, EXTRA_DAYS, (since - 90 + 1) as u8))
+        } else if since < 184 {
+            let since = since - 94;
+            Ok((year, (since / 30 + 5) as u8, (since % 30 + 1) as u8))
+        } else if until > WINTER_DAYS {
+            Ok((year, ALMANAC_SUMARAUKI, (since - 184 + 1) as u8))
+        } else {
+            let months_back = (until - 1) / 30;
+            Ok((
+                year,
+                (14 - months_back) as u8,
+                (30 - (until - 1) % 30) as u8,
+            ))
+        }
+    }
+}
+
+/// Fourteen named positions and the seven-day week.
+const ALMANAC_SHAPE: &[hc_calendar::shape::CycleShape] = &[
+    hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &ALMANAC_MONTHS),
+    hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
+];
+
+impl Calendar for IcelandicAlmanacCalendar {
+    type Date = IcelandicAlmanacDate;
+
+    /// From the First Day of Summer 1837 to the last day of 1927.
+    fn usage(&self) -> hc_calendar::Usage {
+        hc_calendar::Usage::between(
+            Rule::Gregorian.summer_raw(1837),
+            Rd(Rule::Gregorian.summer_raw(1928).0 - 1),
+            ALMANAC_USAGE_SOURCE,
+        )
+    }
+
+    /// Fourteen positions, the leap week among them, and the week.
+    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+        ALMANAC_SHAPE
+    }
+
+    /// A year with *sumarauki*, the rule of 1700's.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+            return Err(CalendarError::YearOutOfRange);
+        }
+        Ok(Rule::Gregorian.is_leap_year(year))
+    }
+
+    fn meta(&self) -> CalendarMeta {
+        CalendarMeta {
+            id: CalendarId("icelandic-almanac"),
+            english_name: "Icelandic (the Almanac's leap week, 1837–1928)",
+            year_kind: YearKind::EpochForward,
+            has_leap_months: false,
+            is_astronomical: false,
+            earliest: Some(Rule::Gregorian.earliest()),
+            latest: Some(Rule::Gregorian.latest()),
+            native_locales: &["is"],
+        }
+    }
+
+    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+        Self::to_fixed(date.year, date.month, date.day)
+    }
+
+    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+        let (year, month, day) = Self::from_fixed(rd)?;
+        Ok(IcelandicAlmanacDate { year, month, day })
+    }
+
+    /// The year, position and day, with the season, the week and the
+    /// *sumarauki* flag as `icelandic` gives them: the weeks are the same.
+    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+        let rd = self.to_fixed(date)?;
+        let standard = IcelandicCalendar::GREGORIAN;
+        let fields = standard.to_fields(standard.from_fixed(rd)?)?;
+        let extra = |name: &str| fields.extra.get(name).unwrap_or(0);
+        DateFields::ymd(date.year, date.month, date.day)
+            .with_extra("season", extra("season"))?
+            .with_extra("week", extra("week"))?
+            .with_extra("sumarauki", i64::from(date.is_sumarauki()))
+    }
+
+    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+        let month = fields.require_month()?;
+        if month.leap {
+            return Err(CalendarError::MonthOutOfRange);
+        }
+        let day = fields.require_day()?;
+        Self::to_fixed(fields.year, month.ordinal, day)?;
+        Ok(IcelandicAlmanacDate {
             year: fields.year,
             month: month.ordinal,
             day,
@@ -744,6 +1139,221 @@ mod tests {
         );
     }
 
+    /// Janson §7.1: in the Almanac's leap years the last three summer
+    /// months were "shifted to 22–28 July, 21–27 August and 20–26
+    /// September"; the leap week follows Haustmánuður and the weeks are
+    /// `icelandic`'s.
+    #[test]
+    fn the_almanac_puts_the_leap_week_last_in_summer() {
+        let almanac = IcelandicAlmanacCalendar;
+        let mut leap_years = 0;
+        for year in 1837..1928 {
+            let leap = Rule::Gregorian.is_leap_year(year);
+            for (month, (window_month, first, last)) in
+                (5..=7u8).zip([(7, 22, 28), (8, 21, 27), (9, 20, 26)])
+            {
+                let start = IcelandicAlmanacCalendar::to_fixed(year, month, 1).unwrap();
+                let standard = Rule::Gregorian.to_fixed(year, month, 1).unwrap();
+                if leap {
+                    assert_eq!(start, Rd(standard.0 - 7), "{year}-{month}");
+                    let (_, m, d) = gregorian::from_fixed(start).unwrap();
+                    assert_eq!(m, window_month, "{year}-{month}");
+                    assert!((first..=last).contains(&d), "{year}-{month}: {d}");
+                } else {
+                    assert_eq!(start, standard, "{year}-{month}");
+                }
+            }
+            if leap {
+                leap_years += 1;
+                let week = IcelandicAlmanacCalendar::to_fixed(year, ALMANAC_SUMARAUKI, 1).unwrap();
+                let haust = IcelandicAlmanacCalendar::to_fixed(year, 7, 30).unwrap();
+                assert_eq!(week, Rd(haust.0 + 1));
+                let last = IcelandicAlmanacCalendar::to_fixed(year, ALMANAC_SUMARAUKI, 7).unwrap();
+                assert_eq!(
+                    Ok(Rd(last.0 + 1)),
+                    Rule::Gregorian.first_day_of_winter(year)
+                );
+                assert_eq!(
+                    IcelandicAlmanacCalendar::to_fixed(year, 4, 5),
+                    Err(CalendarError::DayOutOfRange)
+                );
+            } else {
+                assert_eq!(
+                    IcelandicAlmanacCalendar::to_fixed(year, ALMANAC_SUMARAUKI, 1),
+                    Err(CalendarError::MonthOutOfRange)
+                );
+            }
+            // Winter is the standard winter, one position later.
+            for month in 9..=14u8 {
+                assert_eq!(
+                    IcelandicAlmanacCalendar::to_fixed(year, month, 1),
+                    Rule::Gregorian.to_fixed(year, month - 1, 1)
+                );
+            }
+        }
+        // 1838, 1843, … 1923: sixteen leap weeks before 1928, among them
+        // 1888, whose Almanac "forgot to insert" it.
+        assert_eq!(leap_years, 16);
+        assert!(Rule::Gregorian.is_leap_year(1888));
+        // 1838: summer on Thursday 19 April; Heyannir from Sunday 22 July,
+        // a week before `icelandic`'s 29 July; the leap week from Saturday
+        // 20 October to Friday 26 October, winter on Saturday 27 October.
+        assert_eq!(
+            IcelandicAlmanacCalendar::to_fixed(1838, 5, 1),
+            Ok(gregorian(1838, 7, 22))
+        );
+        assert_eq!(
+            Rule::Gregorian.to_fixed(1838, 5, 1),
+            Ok(gregorian(1838, 7, 29))
+        );
+        assert_eq!(
+            IcelandicAlmanacCalendar::to_fixed(1838, ALMANAC_SUMARAUKI, 1),
+            Ok(gregorian(1838, 10, 20))
+        );
+        assert_eq!(
+            IcelandicAlmanacCalendar::to_fixed(1838, 9, 1),
+            Ok(gregorian(1838, 10, 27))
+        );
+        let date = almanac.from_fixed(gregorian(1838, 10, 21)).unwrap();
+        assert_eq!((date.month_name(), date.day), ("Sumarauki", 2));
+        assert!(date.is_sumarauki());
+    }
+
+    #[test]
+    fn the_almanacs_weeks_are_the_standard_weeks_and_every_day_round_trips() {
+        let almanac = IcelandicAlmanacCalendar;
+        let standard = IcelandicCalendar::GREGORIAN;
+        let start = Rule::Gregorian.summer_raw(1836).0;
+        for rd in start..Rule::Gregorian.summer_raw(1931).0 {
+            let date = almanac.from_fixed(Rd(rd)).unwrap();
+            assert_eq!(almanac.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
+            let fields = almanac.to_fields(date).unwrap();
+            assert_eq!(almanac.from_fields(&fields), Ok(date));
+            let other = standard
+                .to_fields(standard.from_fixed(Rd(rd)).unwrap())
+                .unwrap();
+            for name in ["season", "week"] {
+                assert_eq!(
+                    fields.extra.get(name),
+                    other.extra.get(name),
+                    "{name} rd {rd}"
+                );
+            }
+        }
+        for rd in (Rule::Gregorian.earliest().0..=Rule::Gregorian.latest().0).step_by(9_973) {
+            let (year, month, day) = IcelandicAlmanacCalendar::from_fixed(Rd(rd)).unwrap();
+            assert_eq!(
+                IcelandicAlmanacCalendar::to_fixed(year, month, day),
+                Ok(Rd(rd))
+            );
+        }
+        assert_eq!(
+            IcelandicAlmanacCalendar::from_fixed(Rd(Rule::Gregorian.earliest().0 - 1)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            IcelandicAlmanacCalendar::to_fixed(2026, 15, 1),
+            Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(
+            IcelandicAlmanacCalendar::to_fixed(0, 1, 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(almanac.is_leap_year(1838), Ok(true));
+        assert_eq!(almanac.is_leap_year(0), Err(CalendarError::YearOutOfRange));
+    }
+
+    /// Janson §2.1 and §3.4: the law of 1 July 1700 put winter on "that
+    /// Friday that is between the 19th and 28th October", where it had
+    /// been "between the 9th and 18th October" (Julian). In 1702 "the
+    /// First Day of Winter in most places was taken to be Friday 20
+    /// October", which is the rule as the Althingi settled it in 1703;
+    /// the first form of the decision gave 27 October (n. 47, after
+    /// Schroeter).
+    #[test]
+    fn winter_from_a_friday_is_the_day_before_the_saturday() {
+        for (calendar, first, last) in [
+            (IcelandicCalendar::FRIDAY, 20, 27),
+            (IcelandicCalendar::JULIAN_FRIDAY, 10, 17),
+        ] {
+            for year in 1500..1900 {
+                let friday = calendar.first_day_of_winter(year).unwrap();
+                assert_eq!(Weekday::from_rd(friday), Weekday::Friday);
+                assert_eq!(
+                    Ok(Rd(friday.0 + 1)),
+                    calendar.rule().first_day_of_winter(year)
+                );
+                let (_, month, day) = match calendar.rule() {
+                    Rule::Gregorian => gregorian::from_fixed(friday).unwrap(),
+                    Rule::Julian => julian::from_fixed(friday).unwrap(),
+                };
+                assert_eq!(month, 10);
+                assert!((first..=last).contains(&day), "{year}: {day} October");
+            }
+        }
+        assert_eq!(
+            IcelandicCalendar::FRIDAY.first_day_of_winter(1702),
+            Ok(gregorian(1702, 10, 20))
+        );
+        // The dates are the standard calendar's; the season and week turn
+        // a day earlier, and the last week of winter has six days.
+        let friday = IcelandicCalendar::FRIDAY;
+        let at = |rd: Rd| friday.to_fields(friday.from_fixed(rd).unwrap()).unwrap();
+        let winter = friday.first_day_of_winter(1750).unwrap();
+        assert_eq!(
+            friday.from_fixed(winter),
+            IcelandicCalendar::GREGORIAN.from_fixed(winter)
+        );
+        let first = at(winter);
+        assert_eq!(
+            (first.extra.get("season"), first.extra.get("week")),
+            (Some(2), Some(1))
+        );
+        let before = at(Rd(winter.0 - 1));
+        assert_eq!(
+            (before.extra.get("season"), before.extra.get("week")),
+            (Some(1), Some(0))
+        );
+        let summer_week = at(Rd(winter.0 - 2));
+        assert_ne!(summer_week.extra.get("week"), Some(0));
+        let last = at(Rd(Rule::Gregorian.summer_raw(1751).0 - 1));
+        assert_eq!(
+            (last.extra.get("season"), last.extra.get("week")),
+            (Some(2), Some(26))
+        );
+        let standard = IcelandicCalendar::GREGORIAN;
+        let saturday = standard
+            .to_fields(standard.from_fixed(winter).unwrap())
+            .unwrap();
+        assert_eq!(saturday.extra.get("season"), Some(1));
+    }
+
+    #[test]
+    fn the_medieval_day_begins_at_daybreak() {
+        use hc_calendar::{DayBoundary, DayNaming};
+        assert_eq!(
+            IcelandicCalendar::MEDIEVAL.day_boundary(),
+            DayBoundary::Daybreak(DayNaming::ByStart)
+        );
+        for calendar in [
+            IcelandicCalendar::GREGORIAN,
+            IcelandicCalendar::JULIAN,
+            IcelandicCalendar::FRIDAY,
+            IcelandicCalendar::JULIAN_FRIDAY,
+        ] {
+            assert_eq!(calendar.day_boundary(), DayBoundary::Midnight);
+        }
+        assert_eq!(
+            IcelandicAlmanacCalendar.day_boundary(),
+            DayBoundary::Midnight
+        );
+        let rd = julian(1250, 6, 1);
+        assert_eq!(
+            IcelandicCalendar::MEDIEVAL.from_fixed(rd),
+            IcelandicCalendar::JULIAN.from_fixed(rd)
+        );
+    }
+
     #[test]
     fn the_two_identifiers_and_their_periods() {
         use hc_calendar::Standing;
@@ -772,5 +1382,41 @@ mod tests {
             IcelandicCalendar::GREGORIAN.standing(gregorian(1700, 11, 27)),
             Standing::Proleptic
         );
+        let ids: Vec<&str> = IcelandicCalendar::ALL
+            .iter()
+            .map(|calendar| calendar.meta().id.0)
+            .chain([IcelandicAlmanacCalendar.meta().id.0])
+            .collect();
+        assert_eq!(
+            ids,
+            [
+                "icelandic",
+                "icelandic-julian",
+                "icelandic-friday",
+                "icelandic-julian-friday",
+                "icelandic-medieval",
+                "icelandic-almanac"
+            ]
+        );
+        let friday = IcelandicCalendar::FRIDAY;
+        assert_eq!(friday.standing(gregorian(1800, 1, 1)), Standing::InUse);
+        assert_eq!(friday.standing(gregorian(1837, 4, 19)), Standing::InUse);
+        assert_eq!(friday.standing(gregorian(1837, 4, 20)), Standing::Extended);
+        assert_eq!(
+            IcelandicCalendar::JULIAN_FRIDAY.standing(julian(1600, 1, 1)),
+            Standing::InUse
+        );
+        assert_eq!(
+            IcelandicCalendar::MEDIEVAL.standing(julian(1701, 1, 1)),
+            Standing::Extended
+        );
+        let almanac = IcelandicAlmanacCalendar;
+        assert_eq!(
+            almanac.standing(gregorian(1837, 4, 19)),
+            Standing::Proleptic
+        );
+        assert_eq!(almanac.standing(gregorian(1837, 4, 20)), Standing::InUse);
+        assert_eq!(almanac.standing(gregorian(1928, 4, 18)), Standing::InUse);
+        assert_eq!(almanac.standing(gregorian(1928, 4, 19)), Standing::Extended);
     }
 }

@@ -86,8 +86,12 @@ All three are the dates Wikipedia gives, and 1370 Y.Z. is 3738 ZRE in each
     which none of these reckonings follows.
   - *The Denkard's intercalation of a month every 120 years*, which no
     community has practised since the 1120s.
-  - *Local variants*: Panaino reports villages near Naṭanz that put the
-    epagomenal days after Bahman rather than Esfandārmoḏ [panaino1990].
+  - *The villages of Naṭanz*, which put the epagomenal days after Bahman
+    rather than Esfandārmoḏ [panaino1990]: Panaino's fourth part places
+    them among the communities that adopted the seasonal Jalālī calendar,
+    not the wandering Yazdegerdī year [panaino1990iv], so they are
+    `jalali-natanz` in `hc-calendars-equinox`, written up in
+    [jalali.md](jalali.md), and not a form of these three.
 
 ## Accuracy
 

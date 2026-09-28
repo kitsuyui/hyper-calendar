@@ -219,11 +219,56 @@ sunset. The French calendars carry the twelve months with the
 complementary days as month 13, the *décade* and its day names, and the
 French one `new_year_margin` to the nearer apparent midnight.
 
+**Beside the French calendars.** Decimal time, article XI of the decree:
+"Le jour, de minuit à minuit, est divisé en 10 parties ou heures, chaque
+partie en dix autres ...; la 100ᵉ partie de l'heure est appelée minute
+décimale; la 100ᵉ partie de la minute est appelée seconde décimale", to be
+"de rigueur pour les actes publics" from 1 Vendémiaire An III
+[decret-4-frimaire-an-ii]; the law of 18 germinal an III (7 April 1795),
+article 22, suspended the obligation "indéfiniment" [duvergier-1825-t8].
+`french_republican::DecimalTime` converts a time of day to it and back,
+exactly (a decimal second is 0.864 s), with `DECIMAL_TIME_MANDATORY_FROM`
+and `DECIMAL_TIME_SUSPENDED`. *Worked example*: 18:00 is 64 800 s, or
+75 000 decimal seconds, 7 hours 50 minutes.
+
+The names of the days, the *calendrier rural* that put "all the objects
+that make up the true national wealth" in place of "the commemoration of a
+so-called saint" [fabre-1793-rapport]: `french_republican_days::FABRE_1793`,
+the table annexed to Fabre d'Églantine's report of 3 brumaire an II, the
+one primary list read, and `IN_USE`, the list both Wikipedias print, after
+Millin's *Annuaire du républicain*, not read [frwiki-calendrier-republicain],
+two names under policy §5, with English Wikipedia's glosses as `ENGLISH`
+[wikipedia-french-republican-calendar]; `FrenchRepublicanDate::day_name`
+reads `IN_USE`. The two lists agree on 266 of 366 names and name different
+things on 53, most of Nivôse among them. The saints the names replaced are
+the Roman calendar's, not the Republican calendar's, and no almanac read
+prints both; Larousse's pairs of a saint's day and its Republican name,
+François and Potiron, Catherine and Cochon [larousse-gdu-calendrier], are
+the test that the lists sit on the right days.
+
+The Paris Commune's An LXXIX: the Commune's *Journal officiel* dated acts
+from "10 germinal an 79" to "4 prairial an 79" [jo-commune-1871], its last
+number "daté du 4 prairial, an 79 et mercredi 24 mai 1871"
+[lepelletier-commune]. The decree's rule begins An LXXIX on 23 September
+1870, the equinox falling at 06:09 UT, over six hours from either
+midnight, and Romme's rule gives the same day, so the Commune's dates are
+`french-republican-equinox`'s and need no identifier of their own: 16
+floréal is 6 May and 4 prairial Wednesday 24 May 1871, as the sources pair
+them. `COMMUNE_FIRST_WRITTEN`, `COMMUNE_LAST_WRITTEN` and `COMMUNE_SOURCE`
+carry the span. Three pairings in secondary sources fit no rule, 21
+floréal as 10 or 12 May and 3 prairial as 22 May; Wikisource's "2 prairial
+An 79 (5 avril 1871)" is a transcriber's addition the reprint does not
+have.
+
 **What neither carries.** The Badíʿ calendar as kept in Iran and the East
-before 172 BE, where Naw-Rúz followed the Iranian equinox day; the Bahá'í
-holy days as observances, which are `hc-holiday`'s `BAHAI` tradition,
-dated on the calendar as kept; the French decimal time of article XI; the saints' and
-plants' names of each day; the Paris Commune's brief revival of 1871.
+before 172 BE: the Universal House of Justice's letter of 10 July 2014
+says only that East and West differed [uhj-2014-07-10], Walbridge that
+Naw-Rúz "is fixed as 21 March for Bahá'ís in all countries outside the
+Middle East" [walbridge1996-nawruz], and Persian Wikipedia, uncited, that
+the year began with the Iranian Nowruz; no source read states how Naw-Rúz
+or Ayyám-i-Há were fixed in Iran, and the table of dates prepared for the
+change is a PDF and was not read. The Bahá'í holy days as observances,
+which are `hc-holiday`'s `BAHAI` tradition, dated on the calendar as kept.
 `bahai-astronomical` before 172 BE and `french-republican-equinox` after
 An XIV are proleptic: 1 BE begins on 20 March 1844 by the equinox, the day
 before the Naw-Rúz the calendar was founded on.
@@ -251,6 +296,9 @@ say so rather than claim it.
 | Richards's rule gives the fourteen kept new years, An XII on 24 September 1803 | `the_fourteen_years_france_kept_begin_where_the_record_says` (Richards's module), `the_twelfth_year_begins_on_the_twenty_fourth_of_september_1803` | 14 of 14 |
 | Richards's rule is his Algorithms 3 and 4 with Table 15.14's row 4, as printed, and its epoch is JDN 2 375 840 | `this_module_is_richards_algorithms_over_its_whole_range`, `the_epoch_is_julian_day_2375840` | Every day of An I–9 999 in a release build |
 | The arithmetic Western calendar and the equinox part company in 173 BE | `before_172_be_the_rule_is_proleptic_and_says_so_by_its_name` | Holds |
+| Decimal time: midnight 0:00:00, noon 5:00:00, 18:00 7:50:00, 86.4 s a decimal minute, every seventh second of the day back to itself; leap seconds refused | `decimal_time_divides_the_day_from_midnight_by_ten` | Holds |
+| The day names: Larousse's six saints' days in both lists, Fabre's Neige and Corbeille against Tourbe and Panier, 100 of 366 differing | `the_lists_are_where_their_sources_put_them`, `every_day_has_its_name` | Holds |
+| An LXXIX from 23 September 1870 by both rules; 7, 8, 22 germinal, 16 and 28 floréal, 4 prairial on the sources' days; 10 germinal 31 March and 4 prairial a Wednesday | `the_communes_an_lxxix_is_the_decrees` | Holds |
 
 The kept calendar's own tests check that the table's two columns, the
 Naw-Rúz and the Ayyám-i-Há, agree row by row, which is the check on the
@@ -273,6 +321,12 @@ true times, as article III's rule is.
 | [romme-an-iii-sextiles] | The proposed fixed rule and the An CXLIV example | Not read directly; read through [frwiki-calendrier-republicain], which quotes it, and [wikipedia-french-republican-calendar] |
 | [romme-1793-rapport] | The calendar's first presentation, 20 September 1793 | Not read |
 | [decret-14-vendemiaire-an-ii] | The calendar's adoption, 5 October 1793 | Not read: Gallica answered with a bot check on 2026-09-26; read through [frwiki-calendrier-republicain] |
+| [fabre-1793-rapport] | The day names' purpose and the annexed table of 3 brumaire an II | Yes, 2026-09-29, in Wikisource's transcription |
+| [duvergier-1825-t8] | The law of 18 germinal an III, article 22, suspending decimal time | Yes, 2026-09-29, in the Internet Archive's text |
+| [larousse-gdu-calendrier] | Saints' days paired with Republican day names | Yes, 2026-09-29, Wikisource's unproofread text, secondary |
+| [jo-commune-1871] | The Commune's acts dated in An 79 | Yes, 2026-09-29, the reprint's text in the Internet Archive |
+| [lepelletier-commune] | The last number of the Journal officiel, 4 prairial an 79, 24 May 1871 | Yes, 2026-09-29, in Wikisource, secondary |
+| [walbridge1996-nawruz] | Naw-Rúz fixed at 21 March outside the Middle East | Yes, 2026-09-29, secondary |
 | [frwiki-calendrier-republicain] | The decrees of 14 vendémiaire, 4 frimaire and 22 fructidor, the entry into force on 15 vendémiaire an II, Romme's 1795 report and its rule, the mean year, Delambre's objections, the dates of use | Yes, 2026-09-26 |
 | [wikipedia-french-republican-calendar] | The rule's proposal date, the sextiles of III, VII and XI, An 144's predicted equinox, the fourteen new years | Yes, 2026-09-26 |
 | [richards2013] | §15.9, the epoch JDN 2 375 840 and the "year 4 E.R." sentence; §15.11.3, Algorithms 3 and 4; Table 15.14, row 4 | Yes, 2026-09-26, in the U.S. Naval Observatory's online copy |

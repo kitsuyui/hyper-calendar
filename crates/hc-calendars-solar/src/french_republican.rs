@@ -204,6 +204,17 @@ impl FrenchRepublicanDate {
         self.month == 13
     }
 
+    /// The name of the day in the list the calendar came to use,
+    /// [`crate::french_republican_days::IN_USE`]: Raisin for 1 Vendémiaire,
+    /// Jour de la Révolution for the sixth complementary day.
+    #[must_use]
+    pub const fn day_name(self) -> Option<&'static str> {
+        match crate::french_republican_days::day_index(self.month, self.day) {
+            Some(index) => Some(crate::french_republican_days::IN_USE.names[index]),
+            None => None,
+        }
+    }
+
     /// The *décade* within the month, 1 to 3, and the day within it, 1 to
     /// 10. The complementary days belong to no *décade*.
     #[must_use]
@@ -215,6 +226,95 @@ impl FrenchRepublicanDate {
             (self.day - 1) / DAYS_IN_DECADE + 1,
             (self.day - 1) % DAYS_IN_DECADE + 1,
         ))
+    }
+}
+
+/// A time of day in the decimal time of article XI of the decree of
+/// 4 frimaire an II: "Le jour, de minuit à minuit, est divisé en 10
+/// parties ou heures, chaque partie en dix autres ...; la 100ᵉ partie de
+/// l'heure est appelée minute décimale; la 100ᵉ partie de la minute est
+/// appelée seconde décimale" (`decret-4-frimaire-an-ii`, read in
+/// Wikisource's transcription, 2026-09-29). A decimal hour is 2.4 hours, a
+/// decimal minute 86.4 seconds and a decimal second 0.864 seconds, all
+/// exact; `hc-units` carries them as units of duration.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct DecimalTime {
+    /// The decimal hour, 0 to 9.
+    pub hour: u8,
+    /// The decimal minute, 0 to 99.
+    pub minute: u8,
+    /// The decimal second, 0 to 99.
+    pub second: u8,
+    /// The rest of the decimal second, in attoseconds of ordinary time,
+    /// below [`DECIMAL_SECOND_ATTOS`].
+    pub subsec_attos: u64,
+}
+
+/// One decimal second in attoseconds: 0.864 seconds.
+pub const DECIMAL_SECOND_ATTOS: u64 = 864_000_000_000_000_000;
+
+/// The first day on which article XI was "de rigueur pour les actes
+/// publics": 1 Vendémiaire An III, 22 September 1794.
+pub const DECIMAL_TIME_MANDATORY_FROM: Rd = Rd(to_fixed_raw(3, 1, 1));
+
+/// The day the law of 18 germinal an III (7 April 1795), article 22,
+/// suspended "indéfiniment" the obligation to use "la division décimale
+/// du jour et de ses parties" (Duvergier, *Collection complète des lois*,
+/// t. 8, 1825, `duvergier-1825-t8`, read 2026-09-29 in the Internet
+/// Archive's text).
+pub const DECIMAL_TIME_SUSPENDED: Rd = match gregorian::to_fixed(1795, 4, 7) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+impl DecimalTime {
+    /// The decimal time of a time of day, exactly; `None` for a leap
+    /// second, which the ten hours from midnight to midnight have no place
+    /// for.
+    #[must_use]
+    pub const fn from_civil(time: hc_calendar::CivilTime) -> Option<Self> {
+        if time.is_leap_second() {
+            return None;
+        }
+        let seconds =
+            time.hour() as u128 * 3_600 + time.minute() as u128 * 60 + time.second() as u128;
+        let attos = seconds * 1_000_000_000_000_000_000 + time.subsec_attos() as u128;
+        let decimal_seconds = attos / DECIMAL_SECOND_ATTOS as u128;
+        let rest = attos % DECIMAL_SECOND_ATTOS as u128;
+        Some(Self {
+            hour: (decimal_seconds / 10_000) as u8,
+            minute: (decimal_seconds / 100 % 100) as u8,
+            second: (decimal_seconds % 100) as u8,
+            subsec_attos: rest as u64,
+        })
+    }
+
+    /// The ordinary time of day of this decimal time, exactly.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CalendarError::DayOutOfRange`] for an hour past 9, a
+    /// minute or second past 99, or a remainder of a decimal second or
+    /// more.
+    pub const fn to_civil(self) -> CalendarResult<hc_calendar::CivilTime> {
+        if self.hour > 9
+            || self.minute > 99
+            || self.second > 99
+            || self.subsec_attos >= DECIMAL_SECOND_ATTOS
+        {
+            return Err(CalendarError::DayOutOfRange);
+        }
+        let decimal_seconds =
+            self.hour as u128 * 10_000 + self.minute as u128 * 100 + self.second as u128;
+        let attos = decimal_seconds * DECIMAL_SECOND_ATTOS as u128 + self.subsec_attos as u128;
+        let seconds = attos / 1_000_000_000_000_000_000;
+        let rest = attos % 1_000_000_000_000_000_000;
+        hc_calendar::CivilTime::new(
+            (seconds / 3_600) as u8,
+            (seconds / 60 % 60) as u8,
+            (seconds % 60) as u8,
+            rest as u64,
+        )
     }
 }
 
@@ -351,6 +451,82 @@ pub(crate) fn fields_date(fields: &DateFields) -> CalendarResult<(i64, u8, u8)> 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Article XI: ten hours from midnight to midnight, a hundred minutes
+    /// to the hour and a hundred seconds to the minute.
+    #[test]
+    fn decimal_time_divides_the_day_from_midnight_by_ten() {
+        use hc_calendar::CivilTime;
+        let at = |h, m, s| DecimalTime::from_civil(CivilTime::hms(h, m, s).unwrap()).unwrap();
+        let decimal = |hour, minute, second| DecimalTime {
+            hour,
+            minute,
+            second,
+            subsec_attos: 0,
+        };
+        assert_eq!(at(0, 0, 0), decimal(0, 0, 0));
+        assert_eq!(at(12, 0, 0), decimal(5, 0, 0));
+        assert_eq!(at(6, 0, 0), decimal(2, 50, 0));
+        assert_eq!(at(18, 0, 0), decimal(7, 50, 0));
+        assert_eq!(at(2, 24, 0), decimal(1, 0, 0));
+        let almost = at(0, 1, 26);
+        assert_eq!((almost.hour, almost.minute, almost.second), (0, 0, 99));
+        assert_eq!(
+            almost.subsec_attos,
+            // 86 s less 99 × 0.864 s is 0.464 s.
+            464_000_000_000_000_000
+        );
+        // 86.4 seconds is one decimal minute; 0.864 seconds one second.
+        let minute = CivilTime::new(0, 1, 26, 400_000_000_000_000_000).unwrap();
+        assert_eq!(DecimalTime::from_civil(minute), Some(decimal(0, 1, 0)));
+        let last = CivilTime::new(23, 59, 59, 999_999_999_999_999_999).unwrap();
+        let reading = DecimalTime::from_civil(last).unwrap();
+        assert_eq!((reading.hour, reading.minute, reading.second), (9, 99, 99));
+        assert_eq!(reading.to_civil(), Ok(last));
+        for seconds in (0..86_400u32).step_by(7) {
+            let time = CivilTime::hms(
+                (seconds / 3_600) as u8,
+                (seconds / 60 % 60) as u8,
+                (seconds % 60) as u8,
+            )
+            .unwrap();
+            assert_eq!(DecimalTime::from_civil(time).unwrap().to_civil(), Ok(time));
+        }
+        let leap = CivilTime::hms(23, 59, 60).unwrap();
+        assert_eq!(DecimalTime::from_civil(leap), None);
+        assert_eq!(
+            decimal(10, 0, 0).to_civil(),
+            Err(CalendarError::DayOutOfRange)
+        );
+        assert_eq!(
+            decimal(0, 100, 0).to_civil(),
+            Err(CalendarError::DayOutOfRange)
+        );
+        // Mandatory for public acts from 1 Vendémiaire An III, suspended
+        // on 18 germinal An III.
+        assert_eq!(
+            gregorian::from_fixed(DECIMAL_TIME_MANDATORY_FROM),
+            Ok((1794, 9, 22))
+        );
+        assert_eq!(from_fixed(DECIMAL_TIME_SUSPENDED), Ok((3, 7, 18)));
+    }
+
+    #[test]
+    fn every_day_has_its_name() {
+        let date = |year, month, day| FrenchRepublicanDate::new(year, month, day).unwrap();
+        assert_eq!(date(2, 1, 1).day_name(), Some("Raisin"));
+        assert_eq!(date(2, 1, 13).day_name(), Some("Potiron"));
+        assert_eq!(date(4, 13, 6).day_name(), Some("Jour de la Révolution"));
+        assert_eq!(
+            FrenchRepublicanDate {
+                year: 1,
+                month: 13,
+                day: 7
+            }
+            .day_name(),
+            None
+        );
+    }
 
     #[test]
     fn the_republic_begins_on_the_autumn_equinox_of_1792() {

@@ -16,6 +16,7 @@ depends on whose clock is asked. Each calendar here names its clock.
 | `persian_apparent_noon` | `persian-apparent-noon` | the Sun's noon at Tehran (51.42° E) | the same |
 | `bahai` | `bahai-astronomical` | sunset at Tehran | 1 BE to Gregorian 3000 |
 | `french_republican` | `french-republican-equinox` | true midnight at the Paris Observatory | An I to Gregorian 3000 |
+| `jalali` | `jalali`, `jalali-natanz` | the Sun's noon at Isfahan (51.67° E) | 1 Jalālī (15 March 1079, Julian) to Gregorian 3000 |
 
 Each has an arithmetic sibling in `hc-calendars-solar` that approximates it
 by a cycle — `persian-arithmetic` and `persian-arithmetic-33`,
@@ -42,6 +43,16 @@ thousand years converted, the first after 1177 being 1470 (2091). The Solar
 Hijri calendars, their readings and their arithmetic approximations are
 written up in
 [`docs/systems/solar-hijri.md`](../../docs/systems/solar-hijri.md).
+
+`jalali` is the Seljuk calendar of 1079 as the astronomers defined it:
+Nowruz on the day the Sun entered Aries before noon, the noon being the
+Sun's at the observer's meridian, taken here at Isfahan, twelve months of
+thirty days and the five or six extra days after Esfandārmoḏ; its
+arithmetic sibling is `jalali-tusi`, Ṭūsī's table of 295 years, which the
+sky at Isfahan matches in 285 of them. `jalali-natanz` is the same year with
+the extra days after Bahman, as some villages of the district of Naṭanz
+kept it. Both are written up in
+[`docs/systems/jalali.md`](../../docs/systems/jalali.md).
 
 The Badíʿ and French Republican calendars, with their siblings, are
 written up in

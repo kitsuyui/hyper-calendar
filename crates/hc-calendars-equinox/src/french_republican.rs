@@ -43,6 +43,26 @@ use hc_calendars_solar::gregorian;
 
 use crate::places::PARIS_OBSERVATORY;
 
+/// The first day of An LXXIX found written in the Paris Commune's
+/// *Journal officiel*: "10 germinal an 79", 31 March 1871, heading the
+/// report of the Comité central d'artillerie de la Seine to the Commune
+/// (*Réimpression du Journal officiel de la République française sous la
+/// Commune*, Paris, Bunel, 1871, `jo-commune-1871`, read 2026-09-29 in the
+/// Internet Archive's text).
+pub const COMMUNE_FIRST_WRITTEN: (i64, u8, u8) = (79, 7, 10);
+
+/// The last: "N° 144, daté du 4 prairial, an 79 et mercredi 24 mai 1871",
+/// the Journal officiel's last number (Lepelletier, *Histoire de la
+/// Commune de 1871*, vol. 2, `lepelletier-commune`, read 2026-09-29).
+pub const COMMUNE_LAST_WRITTEN: (i64, u8, u8) = (79, 9, 4);
+
+/// Where the Commune's use of the calendar comes from.
+pub const COMMUNE_SOURCE: &str = "The Paris Commune's Journal officiel, in its reprint of 1871 \
+    [jo-commune-1871]: acts dated from 10 germinal to 4 prairial an 79 (31 March to 24 May \
+    1871); its last issues, 26 floréal to 4 prairial, carried the Republican date in the title \
+    (French Wikipedia, \"Calendrier républicain\" [frwiki-calendrier-republicain], secondary); \
+    the decree's rule of the equinox gives An LXXIX from 23 September 1870, as Romme's does";
+
 /// The identifier of the equinox-ruled French Republican calendar.
 pub const ID: CalendarId = CalendarId("french-republican-equinox");
 
@@ -324,6 +344,50 @@ impl Calendar for EquinoxFrenchRepublicanCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The Commune's An LXXIX: the decree's rule begins it on 23 September
+    /// 1870, and every date the sources give a Gregorian equivalent for
+    /// that fits any rule is on its day — 7, 8 and 22 germinal (Louise
+    /// Michel; *La Revanche des communeux*; Du Camp on the *Père Duchêne*
+    /// of 12 April), 16 floréal, 6 May (Reinach; Du Camp), 28 floréal,
+    /// 18 May (Du Camp), and 4 prairial, Wednesday 24 May (Lepelletier).
+    /// Romme's rule gives the same days in 1871.
+    #[test]
+    fn the_communes_an_lxxix_is_the_decrees() {
+        use hc_calendars_solar::french_republican as romme;
+        assert_eq!(
+            new_year(79).map(hc_calendar::gregorian::ymd),
+            Ok((1870, 9, 23))
+        );
+        assert!(new_year_margin(79).unwrap().abs() > 6.0 * 60.0);
+        for ((month, day), (gregorian_month, gregorian_day)) in [
+            ((7, 7), (3, 28)),
+            ((7, 8), (3, 29)),
+            ((7, 22), (4, 12)),
+            ((8, 16), (5, 6)),
+            ((8, 28), (5, 18)),
+            ((9, 4), (5, 24)),
+        ] {
+            let rd = to_fixed(79, month, day).unwrap();
+            assert_eq!(
+                hc_calendar::gregorian::ymd(rd),
+                (1871, gregorian_month, gregorian_day)
+            );
+            assert_eq!(romme::to_fixed(79, month, day), Ok(rd));
+        }
+        let (year, month, day) = COMMUNE_FIRST_WRITTEN;
+        assert_eq!(
+            to_fixed(year, month, day).map(hc_calendar::gregorian::ymd),
+            Ok((1871, 3, 31))
+        );
+        let (year, month, day) = COMMUNE_LAST_WRITTEN;
+        let last = to_fixed(year, month, day).unwrap();
+        assert_eq!(hc_calendar::gregorian::ymd(last), (1871, 5, 24));
+        assert_eq!(
+            hc_calendar::Weekday::from_rd(last),
+            hc_calendar::Weekday::Wednesday
+        );
+    }
 
     #[test]
     fn the_written_range_is_the_computed_one() {

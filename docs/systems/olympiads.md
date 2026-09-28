@@ -1,7 +1,8 @@
 # The Olympiads, ancient and modern
 
-Backs the identifier `olympiad` and the functions `olympiad::ioc_olympiad`
-and `olympiad::ioc_olympiad_years` in `hc-calendars-regional`.
+Backs the identifier `olympiad` and the functions `olympiad::ioc_olympiad`,
+`olympiad::ioc_olympiad_years` and `olympiad::ioc_olympiad_before_2004` in
+`hc-calendars-regional`.
 
 ## What it is
 
@@ -25,7 +26,15 @@ of 1 September 2004, "an Olympiad began with the opening of one edition of
 the Games of the Olympiad and ends with the opening of the following
 edition"; since, "an Olympiad is a period of four consecutive calendar
 years, beginning on the first of January of the first year and ending on
-the 31st of December of the fourth year" [olympedia-olympiad]. Under
+the 31st of December of the fourth year" [olympedia-olympiad]. The Charter
+in force from 11 September 2000 words the earlier rule as its Rule 10: "The
+term "Olympiad" designates a period of four successive years. The Olympiad
+begins with the opening of one edition of the Games of the Olympiad and
+ends with the opening of the following edition"; "In the event of
+non-celebration of the Games of an Olympiad, such Olympiad begins four
+years after the start of the preceding Olympiad"; and "The Olympiads are
+numbered consecutively from the first Olympic Games (Games of the Olympiad)
+of modern times, celebrated in Athens in 1896" [ioc-charter-2000]. Under
 policy §10 the set is in scope because the IOC defines it.
 
 ## How it works
@@ -57,6 +66,40 @@ the Games of the XIV Olympiad". The Games of the XXXII Olympiad were
 Olympiad of Gregorian year *Y* ≥ 1896 is 1 + ⌊(*Y* − 1896)/4⌋: 2021 is in
 the XXXII.
 
+**Modern, before 2004.** An Olympiad is a stretch of days, from one opening
+to the next. The Charter's own rule on the ceremony is that "the Olympic
+Games shall be proclaimed open by the Head of State of the host country" at
+the Opening Ceremony, which "shall take place not earlier than one day
+before the competitions" [ioc-charter-2000, Rule 69 and its bye-law], so an
+opening is the opening ceremony, which Olympedia dates for every Games
+[olympedia-editions]. Three Games need a word:
+
+- **1900** had none: "true Opening and Closing Ceremonies were not held"
+  [olympedia-editions]; "Official Opening of the Games by: No official
+  opening" [olympics-com-games]. The II Olympiad begins with the Games
+  themselves, on 14 May 1900.
+- **1896** opened "on 25 March 1896, or on 6 April 1896, depending on
+  whether one used the Julian Calendar ... or the more modern Gregorian"
+  [olympedia-editions]: one day, 6 April Gregorian.
+- **1956** had two: the equestrian Games of the XVI Olympiad at Stockholm,
+  "Opening ceremony 10 June", and the Games at Melbourne on 22 November
+  [olympedia-editions]; olympics.com calls it the one time "the unity of
+  time and place, as stipulated in the Charter, has not been observed"
+  [olympics-com-games]. No source read says which opened the Olympiad, so
+  the days between are refused.
+
+The Olympiads whose Games were not celebrated begin "four years after the
+start of the preceding Olympiad": the rule does not say to the day, and
+the library reads it as the same day of the month four years on, so the VI
+began on 6 July 1916, four years after Stockholm's opening, and the XII and
+XIII on 1 August 1940 and 1944.
+
+**Worked example.** Which Olympiad is 1 June 1908? The III began with the
+ceremony of 14 May 1904 at St. Louis, and the IV with London's of 13 July
+1908, although London's competitions had begun on 27 April: 1 June 1908 is
+in the III Olympiad, and by the 2004 definition in the IV, whose first year
+1908 is.
+
 ## What is carried
 
 | Identifier or item | Crate | What it is | Range |
@@ -65,6 +108,7 @@ the XXXII.
 | `olympiad::from_julian_year`, `olympiad::julian_year` | the same | `olympiad-from-julian-year` and `julian-year-from-olympiad`, in astronomical numbering | Olympiad 1 onward |
 | `olympiad::ioc_olympiad`, `olympiad::ioc_olympiad_years` | the same | The modern Olympiad of a Gregorian year, and the years of an Olympiad, under the 2004 definition | 1896 onward |
 | `olympiad::IOC_GAMES_NOT_CELEBRATED` | the same | The VI, XII and XIII | As recorded to the Games of the XXXIII Olympiad |
+| `olympiad::ioc_olympiad_before_2004`, `olympiad::IOC_OPENINGS` | the same | The modern Olympiad of a day under Rule 10 before 2004, and the 28 openings it runs between; `None` from 10 June to 21 November 1956 | 6 April 1896 to 31 August 2004 |
 
 **The fields.** A date's `year` is the astronomical Julian year and its
 month and day are Julian; the extra fields `olympiad` and
@@ -81,10 +125,10 @@ beginning of July 776 b.c." [grumel-eras-historical]; the calendar starts
 it at 1 January 776 BC instead because it follows the published code,
 whose Olympic year is the Julian year, and a July start would need the
 same unmodelled boundary in every later year. The first half of 776 BC is
-therefore Olympiad 1 here, and before the era by Grumel's reckoning. The modern definition before 2004, from one opening
-ceremony to the next, which would need every opening day as data. A
+therefore Olympiad 1 here, and before the era by Grumel's reckoning. A
 modern Olympiad as a calendar: it is a four-year label on the Gregorian
-year and carries nothing a function does not.
+year, or a stretch of days between openings, and carries nothing a
+function does not.
 
 ## Accuracy
 
@@ -98,6 +142,7 @@ conventions.
 | The two published functions are inverses | `the_two_functions_are_inverses` | Holds, 776 BC to AD 3000 |
 | The modern Olympiads: I in 1896, VI in 1916–1919, XI in 1936, XIV in 1948, XXXII for 2020 and 2021 | `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered` | Holds |
 | The calendar is the Julian calendar with the count beside it, and refuses before 776 BC and disagreeing fields | `the_calendar_is_the_julian_calendar_with_the_olympiad_beside_it`, `the_calendar_refuses_before_776_bc_and_disagreeing_fields` | Holds |
+| Before 2004: the I from 6 April 1896, the II from 14 May 1900, the IV from 13 July 1908, the VI from 6 July 1916, the XIV from 29 July 1948, 1956 refused from 10 June to 21 November, the XXVIII from 13 August 2004 to 31 August 2004; every Games opened in its Olympiad's first year by the 2004 count | `the_olympiads_before_2004_run_from_opening_to_opening` | Holds |
 
 ## Sources
 
@@ -105,7 +150,10 @@ conventions.
 | --- | --- | --- |
 | [reingold2018code] | `olympiad-start`, `olympiad-from-julian-year`, `julian-year-from-olympiad` | Yes, 2026-09-26 |
 | [wikipedia-olympiad] | The formula 780 − 4*N* BC, the summer start, Jerome's example, Timaeus and the *Chronicon Paschale*; the modern count from 1 January 1896, the Games not celebrated, the 2020 Games | Yes, 2026-09-26 |
-| [olympedia-olympiad] | The Charter's two definitions, before and after 1 September 2004 | Yes, 2026-09-26; the Charter itself was not read |
+| [olympedia-olympiad] | The Charter's two definitions, before and after 1 September 2004 | Yes, 2026-09-26 |
+| [ioc-charter-2000] | Rule 10, the Olympiad before 2004 and its Games not celebrated; Rule 69, the Opening Ceremony | Yes, 2026-09-29, the olympic.org HTML of the edition in force from 11 September 2000 in the Wayback Machine; the 1991, 1996 and 2003 editions are PDFs and were not read |
+| [olympedia-editions] | The opening ceremony of every Games of 1896–2004, and the competition dates; 1896's two calendars, 1900 without ceremonies, Stockholm 1956 | Yes, 2026-09-29, secondary |
+| [olympics-com-games] | The IOC's Games pages: 1900's "No official opening", 1956's two cities, and the dates the ceremonies are checked against | Yes, 2026-09-29, in the Wayback Machine's copies of 2024, the live site refusing the connection; its start days are the first day of competition for 1900–1928 and are UTC days, a day early for Melbourne, Tokyo and Seoul |
 | [grumel-eras-historical] | The Olympiads as a historical era, from "the beginning of July 776 b.c." | Yes, 2026-09-26; the epoch's wording re-read 2026-09-27 |
 
 ## Code
@@ -115,4 +163,5 @@ conventions.
 `the_two_functions_are_inverses`,
 `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered`,
 `the_calendar_is_the_julian_calendar_with_the_olympiad_beside_it`,
-`the_calendar_refuses_before_776_bc_and_disagreeing_fields`.
+`the_calendar_refuses_before_776_bc_and_disagreeing_fields`,
+`the_olympiads_before_2004_run_from_opening_to_opening`.

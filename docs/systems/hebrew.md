@@ -245,6 +245,32 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   7 April 1897, 8 April 1925 to 2093 and 9 April 2121 and 2149, are the
   list in Wikipedia's article, which cites no source for it
   [wikipedia-birkat-hachamah].
+- **Shmuel's four *tekufot***, in the same module: `shmuel_tekufah`, the
+  moment in Jerusalem mean time, and `shmuel_tekufah_day`, the Hebrew day
+  and the clock, of *tekufat* Tishrei, Tevet, Nisan and Tammuz
+  (`Tekufah`) of a Hebrew year. Shmuel's year is "365 days and 1/4 of a
+  day", and "between the start of each of the successive seasons of the
+  year, there will be ninety-one days and seven and one-half hours"; the
+  first *tekufat Nisan* "took place at the beginning of the fourth day",
+  the night that began on Tuesday evening, so that Nisan falls only at the
+  beginning of the night or the day, at midnight or midday, Tammuz at 1½ or
+  7½ hours, Tishrei at 3 or 9 and Tevet at 4½ or 10½ [maimonides-kiddush-hachodesh,
+  9:1–9:4]. The hours are the reckoning's equal hours from six in the
+  evening of mean time, the night beginning "six hours (of 60 minutes each
+  hour) after midday throughout the year" [simmons-sinai-111], and Hebrew
+  Wikipedia's dated table is computed "by mean solar time at Jerusalem"
+  [wikipedia-he-four-tekufot]. A Hebrew year meets Tishrei and Tevet before
+  its Nisan and Tammuz after it. *Worked example*: *tekufat Nisan* 5769 is
+  the one that begins the 28-year cycle, six o'clock on Tuesday 7 April
+  2009; 5786 is 17 years later, 17 × 365¼ = 6 209¼ days, so Nisan 5786 is
+  at midnight beginning 8 April 2026, and Tishrei 5786, two seasons
+  earlier, 182 days and 15 hours before that, at nine in the morning of
+  7 October 2025, the third hour of the day, as the table has it. Simmons's
+  own clock times run thirteen minutes later, from the mean noon of the
+  first *tekufah*'s day [simmons-sinai-111]; that is another reading of the
+  hour and is not carried. The day the prayer for rain begins outside the
+  Land of Israel, the sixtieth from *tekufat Tishrei*, is not a function
+  here; a test holds the *tekufot* to its published dates.
 - **Anniversaries**, in the same module: `yahrzeit` and `birthday`, the
   day in a later year that keeps a Hebrew date, by Reingold and
   Dershowitz's `yahrzeit` and `hebrew-birthday` [reingold2018code]. A
@@ -309,7 +335,8 @@ constants named; only the 216 years and the 97 minutes are also quoted.
     that differs from the one carried, and the ancient sabbaticals are
     reconstructions from Josephus and the Bar Kokhba documents, not a
     rule a calendar keeps. Zuckermann and Wacholder were not read.
-  - The *tekufot* other than as `birkat_hachama` uses them, and any true
+  - Rav Adda's *tekufot*, Maimonides' chapter 10, which was not read, and
+    any true
     astronomy: the module calls nothing in `hc-astro`.
 
 ## Accuracy
@@ -336,6 +363,13 @@ what the anchors check.
 | Birkat hachama on a Wednesday every 10 227 days | As stated | `birkat_hachama_falls_on_a_wednesday_every_twenty_eight_years` |
 | Birkat hachama on 30 Paremhat of every Coptic year 17 modulo 28, and on no other 30 Paremhat, Coptic years 1–2 999 [reingold2018code] | 2 999 of 2 999 | `birkat_hachama_is_reingold_and_dershowitzs_thirtieth_of_paremhat` |
 | Birkat hachama from 7 April 1897 to 9 April 2149 [wikipedia-birkat-hachamah] | 10 of 10 | `the_recent_and_next_birkat_hachama_are_the_published_ones` |
+| Shmuel's *tekufot* at the hours of 9:4 in 5600–5899; 4930's Nisan at midnight of the night of Thursday, on 8 Nisan, Tammuz on Thursday at 1½ hours, Tevet 4931 4½ hours into Friday night (9:5–9:7); Nisan at six on Tuesday evening before every *birkat hachama*, 5685–5993; Hebrew Wikipedia's table of 5786–5791, less the 21 and 39 minutes of Israel's clocks [wikipedia-he-four-tekufot] | All | `shmuels_tekufot_are_maimonides_and_the_tables` |
+| The sixtieth day from *tekufat Tishrei*, the *tekufah*'s own day the first [simmons-sinai-111]: 22 November Julian, 23 November before a Julian leap year, 1583–2399 [wikipedia-he-sheelat-geshamim]; its eve on 4 December, or 5 December before a Gregorian leap year, 2001–2098 [chabad-shurpin-rain]; 6 December 2099 | All | `the_sixtieth_day_of_tekufat_tishrei_is_the_diaspora_s_prayer_for_rain` |
+
+Maimonides' Hebrew puts 4930's *tekufat Tishrei* at nine hours "of the
+fifth day", Thursday, where Touger's English has Friday; seven and a half
+hours after Tammuz's Thursday 1½ hours is Thursday, as the Hebrew says,
+and as this module does.
 | A yahrzeit and a birthday of 15 Adar 5783 in 5786, 5787 and 5788 against Hebcal's calculator [hebcal-yahrzeit] | 6 of 6 | `the_adar_anniversaries_agree_with_hebcals_calculator` |
 | The sabbatical years 5712 to 5782 [wikipedia-shmita] and 5789 with its Gregorian span [chabad-shemitah] | 12 of 12 | `the_sabbatical_years_are_the_published_ones` |
 
@@ -359,7 +393,11 @@ bound, which is a choice rather than a finding.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [maimonides-kiddush-hachodesh] | Chapter 6: the molad interval and the part, the solar year and the deficit of a lunar year, BaHaRaD, the seven leap years. Chapter 7: the four dehiyyot with their thresholds (halachot 1, 2, 4 and 5) and the reason (7). Chapter 8: the six year lengths, the two months that vary and the month order (halachot 5 and 8) | Yes, 2026-09-25, in Sefaria's English translation |
+| [maimonides-kiddush-hachodesh] | Chapter 6: the molad interval and the part, the solar year and the deficit of a lunar year, BaHaRaD, the seven leap years. Chapter 7: the four dehiyyot with their thresholds (halachot 1, 2, 4 and 5) and the reason (7). Chapter 8: the six year lengths, the two months that vary and the month order (halachot 5 and 8). Chapter 9: Shmuel's year, the season of 91 days 7½ hours, the first *tekufah*, the hours and the weekday rule, the example of 4930 (halachot 1–7) | Yes, 2026-09-25, in Sefaria's English translation; chapter 9 2026-09-29, in Wikisource's Hebrew and Touger's English |
+| [simmons-sinai-111] | The night of the mean reckoning from six hours after midday; the sixty days from the *tekufah*'s own day, after R. Yose; his clock times thirteen minutes later | Yes, 2026-09-29, secondary |
+| [wikipedia-he-four-tekufot] | The dated *tekufot* of 5786–5791 and their basis in Jerusalem mean time | Yes, 2026-09-29, secondary |
+| [wikipedia-he-sheelat-geshamim] | The sixtieth day on 22 November Julian, 23 November before a leap year | Yes, 2026-09-29, secondary |
+| [chabad-shurpin-rain] | The diaspora's prayer for rain from the night of 4 or 5 December until 2100 | Yes, 2026-09-29, in the Wayback Machine's copy, secondary |
 | [reingold2018] | The arithmetic: the closed forms and the year-length formulation of the last two dehiyyot | Not read directly; the published code was |
 | [reingold2018code] | `birkath-ha-hama`, `fixed-from-coptic`, `coptic-epoch`, `hebrew-epoch`, `hebrew-leap-year?`, `last-month-of-hebrew-year`, `molad`, `hebrew-calendar-elapsed-days`, `hebrew-year-length-correction`, `hebrew-new-year`, `days-in-hebrew-year`, `long-marheshvan?`, `short-kislev?`, `last-day-of-hebrew-month`, `fixed-from-hebrew`, `hebrew-from-fixed`, `mean-synodic-month`, and the month constants; `yahrzeit` and `hebrew-birthday` for the anniversaries; `observational-hebrew-first-of-nisan`, cited for the calendar not carried here | Yes, 2026-09-25; `birkath-ha-hama`, `fixed-from-coptic` and `coptic-epoch` 2026-09-26; `yahrzeit`, `hebrew-birthday` and `observational-hebrew-first-of-nisan` 2026-09-26 |
 | [hebcal-yahrzeit] | One yahrzeit and one birthday of 15 Adar 5783, as a check | Yes, 2026-09-27 |
@@ -389,7 +427,10 @@ the Nisan-first internal one. Anchors:
 `every_year_takes_one_of_the_six_permitted_lengths`. The Omer, birkat
 hachama, `yahrzeit`, `birthday`, `sabbatical_cycle_year` and
 `is_sabbatical_year` functions are in the same module, the sabbatical
-year tested by `the_sabbatical_years_are_the_published_ones`, the
+year tested by `the_sabbatical_years_are_the_published_ones`, Shmuel's
+*tekufot* (`shmuel_tekufah`, `shmuel_tekufah_day`) by
+`shmuels_tekufot_are_maimonides_and_the_tables` and
+`the_sixtieth_day_of_tekufat_tishrei_is_the_diaspora_s_prayer_for_rain`, the
 anniversaries tested by `the_adar_anniversaries_agree_with_hebcals_calculator`, `a_yahrzeit_in_adar_follows_the_books_rules`,
 `a_birthday_in_adar_follows_the_books_rules` and
 `the_thirtieth_of_heshvan_and_kislev_depend_on_the_first_anniversary`; the holidays that sit on the

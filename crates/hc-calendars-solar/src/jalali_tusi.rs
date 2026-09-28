@@ -25,8 +25,10 @@
 //! calendar, "the 5 or 6 epagomenal days follow the month of Esfandārmoḏ",
 //! the twelfth, "or, in some villages in the district of Naṭanz, the month
 //! of Bahman". This module places them after the twelfth month, as a
-//! thirteenth; the Naṭanz placement would be a calendar of its own name
-//! under policy §5 and is not carried. The month names are
+//! thirteenth; the Naṭanz placement is a calendar of its own name under
+//! policy §5, `jalali-natanz` in `hc-calendars-equinox`, on the
+//! astronomical year the communities of Panaino's sentence kept rather
+//! than on Ṭūsī's table. The month names are
 //! [`crate::zoroastrian::MONTHS`], the same names in that module's forms,
 //! since the Jalālī months were the Zoroastrian ones qualified as *jalālī*.
 //!
@@ -34,9 +36,9 @@
 //! and this calendar refuses the years after it rather than extend the
 //! rule: the rule is Abdollahy's fit to the table, not a rule anyone kept.
 //! The calendar as the astronomers defined it, with the new year on the
-//! day the Sun enters Aries before noon, is `jalali`, which is not carried;
-//! the days here are the arithmetic scheme's, and a year whose equinox
-//! fell near noon may begin a day apart from it. The system document is
+//! day the Sun enters Aries before noon, is `jalali` in
+//! `hc-calendars-equinox`; the days here are the arithmetic scheme's, and
+//! a year whose equinox fell near noon may begin a day apart from it. The system document is
 //! `docs/systems/jalali.md` in the repository.
 
 use hc_calendar::{
@@ -166,10 +168,12 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     Ok((year, month, day))
 }
 
-/// A Jalālī date.
+/// A Jalālī date, shared by every Jalālī calendar; [`JalaliDate::new`]
+/// validates it against Ṭūsī's table.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct JalaliDate {
-    /// The year of the Jalālī era, 1 to 295.
+    /// The year of the Jalālī era: 1 to 295 in Ṭūsī's table, and as far as
+    /// the astronomy is asked in `hc-calendars-equinox`'s `jalali`.
     pub year: i64,
     /// The month, 1 (Farvardīn) through 12 (Esfandārmoḏ); 13 holds the
     /// extra days.
@@ -197,8 +201,9 @@ impl JalaliDate {
 pub struct JalaliTusiCalendar;
 
 /// The Zoroastrian months, the extra days as a thirteenth, and the
-/// seven-day week.
-const SHAPE: &[hc_calendar::shape::CycleShape] = &[
+/// seven-day week: the shape of every Jalālī calendar, this one and the
+/// astronomical ones of `hc-calendars-equinox`.
+pub const SHAPE: &[hc_calendar::shape::CycleShape] = &[
     hc_calendar::shape::CycleShape::named(hc_calendar::shape::MONTH, &zoroastrian::MONTHS),
     hc_calendar::shape::CycleShape::fixed(hc_calendar::shape::WEEKDAY, 7),
 ];

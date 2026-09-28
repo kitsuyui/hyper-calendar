@@ -1,7 +1,8 @@
 # The Old Icelandic calendar: the misseri, the sumarauki and the two rules
 
-Backs the identifiers `icelandic` and `icelandic-julian` in
-`hc-calendars-solar`.
+Backs the identifiers `icelandic`, `icelandic-julian`,
+`icelandic-almanac`, `icelandic-friday`, `icelandic-julian-friday` and
+`icelandic-medieval` in `hc-calendars-solar`.
 
 ## What it is
 
@@ -66,6 +67,36 @@ Thursdays, 1 to 26 (27 in a leap year), "ignoring the last two days, which
 are called *veturnætur*"; winter weeks from Saturdays, 1 to 26, "with the
 last week incomplete" [janson2011, §2.2].
 
+**The Almanac's leap week.** "In the printed Icelandic Almanac, which
+has been published since 1837, the leap week was inserted last in the
+summer until 1928", so that "the Gregorian dates in Table 1 for S4–S6
+were shifted to 22–28 July, 21–27 August and 20–26 September" in a leap
+year; "this affects only the last three summer months ... the reckoning
+by weeks was not affected" [janson2011, §7.1]. The year is the same
+length and begins on the same day; only the seven days move, from after
+the *aukanætur* to after Haustmánuður.
+
+**Winter from a Friday.** "While there is agreement that summer begins
+on a Thursday, there are two different traditions for the beginning of
+winter: Friday or Saturday." The learned literature and Grágás specify
+Saturday, "however, winter was reckoned from a Friday (one day before the
+beginning of winter as shown in Table 1) from the 16th century until the
+Icelandic Almanac began to be published in 1837, when the Saturday
+reckoning was revived"; it "is first documented in 1508", and "the law
+made in 1700 ... explicitly reckons winter from a Friday"
+[janson2011, §2.1]. That law moved "the beginning of winter, which until
+now has been on that Friday that is between the 9th and 18th October" to
+"that Friday that is between the 19th and 28th October" [janson2011,
+§3.4]. Winter weeks then "begin on Saturdays (or Fridays, see Section
+2.1)" [janson2011, §2.2]. What Janson dates by the Friday is the
+beginning of winter and its weeks, not of Gormánuður, which "comes on a
+Saturday" in *Bókarbót*.
+
+**The day.** "The day in Iceland in the Middle Ages was reckoned from
+sunrise during summer and from dawn during winter (when the sun rises
+late in Iceland)", and it began in the morning: "Day comes before night
+throughout the Icelandic calendar" (*Bókarbót*) [janson2011, §2.4].
+
 **Worked example.** What is Saturday 26 September 2026? 19 April 2026 is a
 Sunday, so the First Day of Summer is Thursday 23 April 2026; 19 April 2027
 is a Monday, so the next is Thursday 22 April 2027, 364 days on — no
@@ -76,6 +107,16 @@ Haustmánuður, whose 30 days end 180 days before summer: 26 September is
 its 28th day from the end, day 3 of Haustmánuður. In weeks it is day 157 of summer, the
 Saturday of the 23rd week of summer. The First Day of Winter is 180 days
 before 22 April 2027: Saturday 24 October 2026.
+
+**Worked example, the Almanac.** 1838 is a leap year: summer began on
+Thursday 19 April 1838, the next on Thursday 25 April 1839, 371 days on.
+`icelandic` counts Heyannir from Sunday 29 July, after the eleven extra
+days; the Almanac counts it from Sunday 22 July, after the four
+*aukanætur*, in Janson's window of 22–28 July. Haustmánuður then ends
+on Friday 19 October, the *sumarauki* runs from Saturday 20 to Friday
+26 October, and winter begins on Saturday 27 October 1838, 180 days
+before the next summer, as in `icelandic`. Under the Friday reckoning
+the same winter begins on Friday 26 October.
 
 ## What is carried
 
@@ -92,23 +133,52 @@ before 22 April 2027: Saturday 24 October 2026.
 - **The week reckoning** `to_fields` adds: `season`, 1 summer or 2
   winter; `week`, the week of the *misseri*, 0 on the two *veturnætur*;
   and `sumarauki`, 1 on the leap-week days.
+- **`icelandic-almanac`**, the Almanac's year: the rule of 1700, with
+  fourteen positions, the leap week *Sumarauki* the eighth after
+  Haustmánuður, 7 days in a leap year and absent in a common one, and
+  the winter months ninth to fourteenth. The fields' season, week and
+  *sumarauki* flag are as above; the weeks are `icelandic`'s.
+- **`icelandic-friday`** and **`icelandic-julian-friday`**, the two rules
+  with winter from the Friday before the Saturday: the dates are
+  `icelandic`'s and `icelandic-julian`'s, and `season` and `week` turn at
+  the Friday, so winter's 26th week has six days and summer's last day
+  after its full weeks is its one *veturnótt*, week 0. Janson does not
+  say how many *veturnætur* the Friday reckoning had; week 0 is this
+  library's name for the days after the last full week, as for the
+  Saturday.
+- **`icelandic-medieval`**, the Julian rule with the medieval day,
+  `DayBoundary::Daybreak(DayNaming::ByStart)`: sunrise in summer and dawn
+  in winter, the day named by the civil day it begins on. The boundary
+  names the convention; which moment begins a given day is the season's
+  and the place's, and is not computed.
 - **Usage** `icelandic-julian` until 16 November 1700 (Julian), from an
   undated start in the eleventh or twelfth century; `icelandic` from
-  28 November 1700, in use today through the Almanac.
+  28 November 1700, in use today through the Almanac;
+  `icelandic-almanac` from the First Day of Summer 1837 to the last day
+  of 1927, since 1928 — itself a leap year — is the year "until 1928"
+  leaves open; `icelandic-julian-friday` until 16 November 1700 from an
+  undated start, since "the Friday beginning is first documented in
+  1508" and whether it is older is contested; `icelandic-friday` from
+  28 November 1700 to the last day of 1836; `icelandic-medieval` until
+  16 November 1700 at the latest, since no source read dates when the day
+  came to be reckoned from midnight.
 - **Not carried**, with the reason:
-  - *The Almanac's leap week at the end of summer* until 1928, which moved
-    Heyannir to Haustmánuður by a week in leap years and did not affect the
-    week reckoning [janson2011, §7.1]. A third identifier if a caller needs
-    those printed dates.
-  - *Winter from a Friday*, the popular reckoning from the sixteenth
-    century to 1837 [janson2011, §2.1].
+  - *The 1888 Almanac*, which "forgot to insert the leap week
+    (sumarauki); this was corrected the following year" [janson2011,
+    §7.1]: a misprint, not a rule. `icelandic-almanac` has the leap week
+    in 1888.
+  - *Winter from a Saturday "except at rímspillir when it begins on a
+    Friday"*, which "a later 16th-century document" states [janson2011,
+    §2.1]; a single document's rule, and Janson does not say where or how
+    long it was kept.
   - *The confusion of 1702–1703*, when many places took the First Day of
-    Winter from an earlier form of the decision [janson2011, §3.4, n. 47].
+    Winter from an earlier form of the decision [janson2011, §3.4, n. 47]:
+    "in most places ... Friday 20 October", which is what
+    `icelandic-friday` gives for 1702, where the first form of the
+    decision gave 27 October.
   - *The earlier calendars* — the 364-day year without intercalation and
     Þorsteinn surtr's week every seventh summer, c. 955 — whose rules are
     not recoverable [janson2011, §3.1].
-  - *The day boundary*: the medieval day began at sunrise or dawn
-    [janson2011, §2.4]; midnight is kept.
 
 ## Accuracy
 
@@ -123,6 +193,10 @@ before 22 April 2027: Saturday 24 October 2026.
 | Every month begins on its weekday in Table 1; Þorri 19–26 January and Heyannir 23–30 July | `every_month_begins_on_its_own_weekday` | all |
 | Summer and winter weeks and the *veturnætur* of 2026 | `the_seasons_and_weeks_are_the_almanacs` | all |
 | Every day of thirty years from 1690 under both rules, and a sample of the whole range, round-trip | `every_day_round_trips_under_both_rules` | all |
+| The Almanac: in the 16 leap years of 1837–1927 Heyannir, Tvímánuður and Haustmánuður begin in 22–28 July, 21–27 August and 20–26 September, a week before `icelandic`'s, and the leap week ends the day before winter; 1838 worked in full | `the_almanac_puts_the_leap_week_last_in_summer` | all |
+| The Almanac's weeks and seasons are `icelandic`'s on every day of 1836–1930, and its days round-trip | `the_almanacs_weeks_are_the_standard_weeks_and_every_day_round_trips` | all |
+| Winter from a Friday: the Friday 20–27 October Gregorian and 10–17 October Julian, as the law of 1700 words it, 1500–1899; Friday 20 October 1702, "in most places" | `winter_from_a_friday_is_the_day_before_the_saturday` | all |
+| The medieval day begins at daybreak and names its day by its start; every other form at midnight | `the_medieval_day_begins_at_daybreak` | holds |
 
 Janson's text also states that the last year before 1700 in which the two
 rules would have differed is 1495, which the tests confirm. Reingold and
@@ -136,7 +210,7 @@ where Janson ignores them, and has no Julian form.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [janson2011] | Everything above: the structure, the months and their weekdays, the two rules, the change of 1700, the formulas, the leap-week and *rímspillir* tables, the variations | Yes, the DiVA copy, 2026-09-26 |
+| [janson2011] | Everything above: the structure, the months and their weekdays, the two rules, the change of 1700, the formulas, the leap-week and *rímspillir* tables, the variations | Yes, the DiVA copy, 2026-09-26; §2.1, §2.4, §3.4 n. 47 and §7.1 re-read in the same copy's text, 2026-09-29 |
 | [reingold2018code] | Comparison with Reingold and Dershowitz's Icelandic functions | The `calendar.l` section, 2026-09-26; no code taken |
 | [reingold2018] | Chapter 6 | Not read |
 
@@ -145,5 +219,11 @@ where Janson ignores them, and has no Julian form.
 `crates/hc-calendars-solar/src/icelandic.rs`. Anchors:
 `the_first_day_of_summer_is_the_thursday_in_the_window`,
 `the_two_rules_agree_from_1496_and_part_in_1702`,
-`the_gregorian_rule_has_71_leap_weeks_in_400_years`. The rule is
-`Rule::summer_raw`; the counting `Rule::to_fixed` and `Rule::from_fixed`.
+`the_gregorian_rule_has_71_leap_weeks_in_400_years`,
+`the_almanac_puts_the_leap_week_last_in_summer`,
+`winter_from_a_friday_is_the_day_before_the_saturday`,
+`the_medieval_day_begins_at_daybreak`. The rule is `Rule::summer_raw`;
+the counting `Rule::to_fixed` and `Rule::from_fixed`; the reckonings
+`IcelandicCalendar::reckoning` and `IcelandicCalendar::first_day_of_winter`;
+the Almanac `IcelandicAlmanacCalendar`. `DayBoundary::Daybreak` is in
+`crates/hc-calendar/src/daystart.rs`.

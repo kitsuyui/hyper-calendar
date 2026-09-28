@@ -80,6 +80,17 @@ pub enum DayBoundary {
     /// Sunrise, used by several Hindu reckonings and by the Vedic day, which
     /// are [`DayNaming::ByStart`].
     Sunrise(DayNaming),
+    /// Daybreak: sunrise while the sun rises early and dawn while it rises
+    /// late, as the day in medieval Iceland "was reckoned from sunrise
+    /// during summer and from dawn during winter (when the sun rises late
+    /// in Iceland)" (Janson, "The Icelandic calendar", *Scripta Islandica*
+    /// 62, 2011, §2.4), a day [`DayNaming::ByStart`] since "day comes
+    /// before night".
+    ///
+    /// Like [`DayBoundary::Sunrise`] it needs a place and a season, and
+    /// more than that: which of the two moments a day begins at is the
+    /// season's, which this value names and does not compute.
+    Daybreak(DayNaming),
     /// A fixed local time, such as the 05:00 mean daybreak that begins the
     /// Tibetan day.
     LocalTime(CivilTime, DayNaming),
@@ -93,20 +104,20 @@ impl DayBoundary {
     /// which it is dealing with.
     #[must_use]
     pub const fn needs_observation(self) -> bool {
-        matches!(self, Self::Sunset(_) | Self::Sunrise(_))
+        matches!(self, Self::Sunset(_) | Self::Sunrise(_) | Self::Daybreak(_))
     }
 
     /// The offset from midnight, for the boundaries that have a fixed one.
     ///
-    /// Returns `None` for [`DayBoundary::Sunset`] and
-    /// [`DayBoundary::Sunrise`], which vary with place and season.
+    /// Returns `None` for [`DayBoundary::Sunset`], [`DayBoundary::Sunrise`]
+    /// and [`DayBoundary::Daybreak`], which vary with place and season.
     #[must_use]
     pub const fn fixed_offset(self) -> Option<CivilTime> {
         match self {
             Self::Midnight => Some(CivilTime::MIDNIGHT),
             Self::Noon(_) => Some(CivilTime::NOON),
             Self::LocalTime(time, _) => Some(time),
-            Self::Sunset(_) | Self::Sunrise(_) => None,
+            Self::Sunset(_) | Self::Sunrise(_) | Self::Daybreak(_) => None,
         }
     }
 
@@ -121,6 +132,7 @@ impl DayBoundary {
             Self::Noon(naming)
             | Self::Sunset(naming)
             | Self::Sunrise(naming)
+            | Self::Daybreak(naming)
             | Self::LocalTime(_, naming) => naming,
         }
     }
@@ -161,6 +173,7 @@ impl fmt::Display for DayBoundary {
             Self::Noon(_) => f.write_str("noon"),
             Self::Sunset(_) => f.write_str("sunset"),
             Self::Sunrise(_) => f.write_str("sunrise"),
+            Self::Daybreak(_) => f.write_str("daybreak"),
             Self::LocalTime(time, _) => write!(f, "{time}"),
         }
     }
@@ -377,8 +390,12 @@ mod tests {
     fn the_solar_boundaries_admit_they_need_an_ephemeris() {
         let sunset = DayBoundary::Sunset(DayNaming::ByEnd);
         let sunrise = DayBoundary::Sunrise(DayNaming::ByStart);
+        let daybreak = DayBoundary::Daybreak(DayNaming::ByStart);
         assert!(sunset.needs_observation());
         assert!(sunrise.needs_observation());
+        assert!(daybreak.needs_observation());
+        assert_eq!(daybreak.fixed_offset(), None);
+        assert_eq!(daybreak.naming(), DayNaming::ByStart);
         assert_eq!(sunset.fixed_offset(), None);
         assert_eq!(sunrise.civil_day_offset(CivilTime::NOON), None);
         // The naming is known even where the moment is not.

@@ -27,8 +27,8 @@
 //!   crescent on the criterion's edge, or the reference code's own time
 //!   scale, which its errata correct (`reingold2018errata`, correction 15).
 //!
-//! Over the 55 mappings that is 1 274 agreements, 491 refusals and 17 known
-//! differences, and 1 133 round trips; [`SAME`], [`REFUSED`] and
+//! Over the 55 mappings that is 1 275 agreements, 490 refusals and 17 known
+//! differences, and 1 134 round trips; [`SAME`], [`REFUSED`] and
 //! [`ROUND_TRIPS`] hold the counts so that they move only deliberately. The
 //! astronomical columns are compared to a bound instead, in
 //! [`the_astronomy_is_within_seconds_of_the_books`], and the rising and
@@ -836,9 +836,9 @@ fn every_sample_date_agrees_or_is_refused_or_is_a_known_difference() {
 }
 
 /// Values that agree, dates refused as outside a range, and round trips.
-const SAME: usize = 1_274;
-const REFUSED: usize = 491;
-const ROUND_TRIPS: usize = 1_133;
+const SAME: usize = 1_275;
+const REFUSED: usize = 490;
+const ROUND_TRIPS: usize = 1_134;
 
 /// The rising and setting columns
 /// [`the_rising_and_setting_are_within_seconds_of_the_books`] compares,

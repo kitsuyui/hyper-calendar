@@ -4,9 +4,10 @@ Backs the identifier `babylonian` in `hc-calendars-lunar`.
 
 ## What it is
 
-The lunisolar calendar of Babylonia in its regular form, as it ran from the
-fourth century BCE until the last dated cuneiform texts of the first century
-CE. Months began on the evening the new crescent was first seen from Babylon;
+The lunisolar calendar of Babylonia from the accession year of Nabopolassar,
+626 BCE, where Parker and Dubberstein's table begins, until the last dated
+cuneiform texts of the first century CE: in its regular form from the fourth
+century BCE, and with the intercalations the king decreed before. Months began on the evening the new crescent was first seen from Babylon;
 a thirteenth month was added in seven fixed years of every nineteen; the year
 began in spring with Nisannu. Years were counted, from the reign of
 Seleucus I on, in the Seleucid era, whose first year began on 1 Nisannu =
@@ -26,7 +27,11 @@ year congruent to 18 carries a second Ulūlu after the sixth. The closed form
 is `(7y + 13) mod 19 < 7` for "year *y* is long", and `y mod 19 = 18` for
 "the extra month is Ulūlu II" [reingold2018, reingold2018code]. Before about
 380 BCE the king intercalated by decree, and the cycle does not describe
-those years [wikipedia-babylonian-calendar].
+those years [wikipedia-babylonian-calendar]: Parker and Dubberstein's table
+does, year by year, with 90 thirteenth months in the 243 years from SE −314
+to SE −72 — 67 second Addārus and 23 second Ulūlus — the last outside the
+rule in SE −73, and SE −72 common where the rule would make it long
+[vangent2011].
 
 **The month.** A month begins at the sunset that opens the day after the
 crescent was first seen. Reingold and Dershowitz model the sighting with a
@@ -59,15 +64,30 @@ months.
   `DayBoundary::Sunset(DayNaming::ByEnd)`: the criterion for a day is
   judged "on eve of" it, at the sunset of the civil day before
   [reingold2018code, `babylonian-criterion`].
-- **Range** SE −71 to SE 386: 1 Nīsannu of 383 BCE (RD −139 785) to 29 Addāru
-  of 76 CE (RD 27 475). The lower bound is where Parker and Dubberstein's
-  table starts following the nineteen-year rule without exception — its last
-  intercalation outside the rule is in SE −73 — and the upper bound is where
-  the table ends. Outside the range the calendar refuses.
+- **Range** SE −314 to SE 386: 1 Nīsannu of 626 BCE (5 April, RD −228 554)
+  to 29 Addāru of 76 CE (RD 27 475), the whole of Parker and Dubberstein's
+  table. From SE −71, 383 BCE (RD −139 785), where the table starts
+  following the nineteen-year rule without exception, the rule places the
+  thirteenth month; before, `INTERCALATIONS_BEFORE_THE_RULE`, the table's 90
+  intercalations, transcribed from van Gent's copy. The months are the same
+  criterion's throughout. Outside the range the calendar refuses.
 - **Year count** the Seleucid era, continued backwards before SE 1 so that
   year 0 is 312/311 BCE, as van Gent's transcription does. That is a modern
-  convention, and the document says so; the regnal labels the earlier tablets
-  carry are not carried.
+  convention, and the document says so.
+- **Regnal labels** `babylonian::regnal_year`, the king and regnal year van
+  Gent's converter labels each Seleucid year with, from its `REIGNS`: 1
+  Interregnum for SE −314, the accession year of Nabopolassar, then 1
+  Nabopolassar for SE −313 and so on to 11 Demetrius I for SE 160, the last
+  year the converter labels. A year belongs wholly to one reign, the regnal
+  year running from 1 Nisannu, so the year in which a king died is his, and
+  his successor's first year is the next; Alexander III's labels begin at 7
+  (SE −18) and Philip III's and Alexander IV's at 2, their first years
+  carrying their predecessors' last, as the converter's offsets have it.
+  The converter has no Labashi-Marduk, Bardiya, Nebuchadnezzar III or IV,
+  or Antigonus, whose reigns fall inside years it gives to others. This is
+  van Gent's labelling, a secondary source for Parker and Dubberstein's;
+  their own table, which dates accessions to the day, was not read, and a
+  label is a year's, not a day's.
 - **Month lengths** as the criterion gives them, each evening judged on its
   own: 29 or 30 days almost always, 31 in 38 months of the range where a
   first evening just clears the lag and the thirtieth after it just misses,
@@ -87,14 +107,36 @@ Gent's transcription [vangent2011], over the 5 664 months from SE −71:
 
 | Measure | Result |
 | --- | --- |
-| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `babylonian` | 2 of the 2 in its range (−382 to 76); the other 31 refused, in `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
+| The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `babylonian` | 3 of the 3 in its range (−625 to 76), 586 BCE among them, whose year the rule and the table both make common; the other 30 refused, in `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) |
 | Intercalary months in the year and place the rule gives | 168 of 168 |
 | First day of the month on the table's day | 4 694 of 5 664 (82.9%) |
 | A day later than the table | 941 (16.6%) |
 | A day earlier than the table | 29 (0.5%) |
 | Further off than a day | 0 |
 | Month lengths | 29 × 2 696, 30 × 2 929, 31 × 38, 28 × 0 |
-| Every day of the range converts back to itself (`the_calendar_round_trips_every_day_of_its_range`) | All 167 261 days in a release build. A debug build takes every 776th day, 40 days at each end, and every 1 Nisanu with the day before it |
+| Every day of the range converts back to itself (`the_calendar_round_trips_every_day_of_its_range`) | All 256 030 days in a release build. A debug build takes every 776th day, 40 days at each end, and every 1 Nisanu with the day before it |
+
+Before the rule, over the 3 006 months from SE −314 to SE −72, with the
+table's own intercalations
+(`PARKER_DUBBERSTEIN_AGREEMENT_BEFORE_THE_RULE`, the same ignored test):
+
+| Measure | Result |
+| --- | --- |
+| Intercalary months in the table's year and place | 90 of 90, every year of the 243 walked month by month in a release build (`the_years_before_the_rule_intercalate_as_the_table_does`), every 37th in a debug build |
+| First day of the month on the table's day | 2 525 of 3 006 (84.0%) |
+| A day later than the table | 465 |
+| A day earlier than the table | 14 |
+| Two days off | 2: 1 Tašrītu of SE −288, later here, and 1 Kisilīmu of SE −200, earlier, after the table's one lunation of 31 days before the rule |
+| Month lengths | 29 × 1 428, 30 × 1 559, 31 × 18, 28 × 0 |
+
+The regnal labels are checked against the dated examples that pair one with
+a Julian day (`the_regnal_labels_are_the_converters`): "13 Ulūlū in the 5th
+year of Darius III [20 September 331 BCE]", the eclipse of BM 36390
+[vangent2011], which the criterion places a day later, its 1 Ulūlu being a
+day after the table's; the Babylonian Chronicle's "second day of the month
+of Adar [16 March]" in Nebuchadnezzar's seventh year, 597 BCE, on the day
+[wikipedia-siege-of-jerusalem-597]; and 568 BCE as his thirty-seventh year,
+from VAT 4956 [wikipedia-criticism-jw-vat4956].
 
 The disagreement is between 13% and 19% in every fifty-year stretch of the
 range, with no trend, so it is the two visibility criteria that differ — a
@@ -115,7 +157,9 @@ among them that come out a day later are named there.
 | [reingold2018] | The scheme: cycle, criterion, epoch | Not read directly; the published code was |
 | [reingold2018code] | The exact definitions: `babylon`, `babylonian-epoch`, `babylonian-leap-year?`, `babylonian-criterion`, `babylonian-new-month-on-or-before`, `fixed-from-babylonian`, `babylonian-from-fixed`, `moonlag` | Yes, 2026-09-25 |
 | [parker1956] | The reference table of month starts, 626 BCE to 75 CE | Not read directly |
-| [vangent2011] | The 1971 table as data; the month-name normalisation; the range and the 31-day lunation | Yes, 2026-09-25 |
+| [vangent2011] | The 1971 table as data, its intercalations before the rule among them; the month-name normalisation; the range and the 31-day lunation; the regnal labels (`babylon_ruler_name`, `babylon_ruler_year` and the offsets of `babycal.js`); the Darius III eclipse | Yes, 2026-09-25; the regnal data and the converter's code re-read 2026-09-29 |
+| [wikipedia-siege-of-jerusalem-597] | The Chronicle's 2 Addāru, 16 March 597 BCE, in Nebuchadnezzar's seventh year | Yes, 2026-09-29, secondary |
+| [wikipedia-criticism-jw-vat4956] | 568 BCE as Nebuchadnezzar's thirty-seventh year, from VAT 4956 | Yes, 2026-09-29, secondary |
 | [wikipedia-babylonian-calendar] | The regularisation dates (499 BCE, 380 BCE), attributed there to Britton | Yes, 2026-09-25 |
 | [wikipedia-seleucid-era] | The epoch, 1 Nisanu = 3 April 311 BC | Yes, 2026-09-25 |
 

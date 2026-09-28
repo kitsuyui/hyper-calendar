@@ -57,14 +57,35 @@ the era and the months and disagree by five months in that year.
   years 1 to 9 999; in use from 11 August 1084, proleptic before.
 - The month names in Armenian script, declared with each calendar's shape;
   the era code `armenian`.
+- **The day names**, `armenian::DAY_NAMES`: the calendar "gives the days of
+  the month names instead of numbering them" [wikipedia-armenian-calendar],
+  Areg for day 1 to Gišeravar for day 30, in Armenian script as Armenian
+  Wikipedia lists all thirty [hywiki-haykyan-tomar], and
+  `DAY_NAMES_ROMANISED` as English Wikipedia romanises them, which has the
+  script for only 22 and states no system [wikipedia-armenian-calendar];
+  the five *aweleacʿ* days' own names, Լուծ to Փառազնոտի,
+  `EPAGOMENAL_DAY_NAMES`, from Armenian Wikipedia alone; `day_name` gives
+  a day's. Where the list gives two forms, Մազդեղ or Մազդեկան (6),
+  Երեզկան or Երեզհան (11), Ցրոն or Սփյուռ (25), Սիմ or Սեին (28), the
+  first is kept; English Wikipedia spells day 5 Ահրանկ and day 14 Վանատ.
+  Armenian Wikipedia's twenty-four hour names are not carried: it pairs
+  them with the clock from midnight without saying where the count began.
 - **Not carried:**
   - *The Lesser Era's own year numbers* (1084 = year 1): the fixed year is
     numbered in the Great Era here, as Sarkawag's subtraction of 533 lets
     it be, so that the two calendars' years line up.
-  - *The day names* of the thirty days of the month
-    [wikipedia-armenian-calendar], which are a naming of the day and would
-    be a cycle of their own.
-  - *The 532-year Easter tables*, which are a computus.
+  - *The Armenian computus*: the era began when, "after the Easter
+    reckonings had been confused for several years", the 532-year Easter
+    table of Eas (Aeas) of Alexandria came into use, and "the main feasts of
+    the first year, Christmas and Easter, fell on 6 January and 20 April
+    553" [hywiki-hayots-mets-tvakan]. That is the Alexandrian table, and
+    `hc-holiday`'s Julian computus is it: its Easter of 553 is 20 April and
+    its dates repeat every 532 years (`crates/hyper-calendar/tests/armenian_easter.rs`).
+    No source read gives an Armenian rule that departs from it, so no
+    computus of its own is registered; the Armenian Church's later
+    divergences, if any, would need a source that states them. Anania
+    Shirakatsi's perpetual calendar on the 532-year cycle "was never
+    implemented" [wikipedia-anania-shirakatsi].
 
 ## Accuracy
 
@@ -74,6 +95,8 @@ the era and the months and disagree by five months in that year.
 | The epoch is 11 July 552 Julian | `armenian::tests::the_epoch_is_the_eleventh_of_july_552` | as stated |
 | The wandering year is the Egyptian one on another epoch | `only_the_epoch_separates_this_calendar_from_the_egyptian_one` | all |
 | 1 Nawasard 533 is 29 February 1084 in the wandering year and 11 August 1084 in the fixed year, 164 days apart | `the_fixed_new_year_is_where_the_wandering_one_stood_in_four_twenty_eight` | as worked above |
+| Every day of a month and of the *aweleacʿ* has its name, the thirty distinct; 1 Nawasard 1 is Areg | `every_day_has_its_name` | all |
+| The first Easter of the era, 20 April 553, is the Julian computus's, and the Julian Easters repeat after 532 years, 553–1084 | `the_first_easter_of_the_great_era_is_the_julian_computus` (`crates/hyper-calendar/tests/armenian_easter.rs`) | all |
 
 Why Sarkawag chose 11 August no source read says. The arithmetic offers
 one reading — 11 August is 31 days after the epoch's 11 July, 31 days is
@@ -84,8 +107,10 @@ arithmetic, not as a claim about his reasoning.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [wikipedia-armenian-calendar] | The 365-day year, the months, the epoch and the Easter tables of 352, the Sothic slip and 1462 in 2012, the Gregorian civil calendar from 1918 | Yes, 2026-09-26 |
-| [hywiki-hayots-mets-tvakan] | The Great Era from 11 July 552, the Council of Dvin in 554, adoption in 584 | Yes, 2026-09-26 |
+| [wikipedia-armenian-calendar] | The 365-day year, the months, the epoch and the Easter tables of 352, the Sothic slip and 1462 in 2012, the Gregorian civil calendar from 1918; the day names and their romanisation | Yes, 2026-09-26; the day names 2026-09-29 |
+| [hywiki-hayots-mets-tvakan] | The Great Era from 11 July 552, the Council of Dvin in 554, adoption in 584; the table of Eas of Alexandria and the Easter of 20 April 553 | Yes, 2026-09-26; the Easter table 2026-09-29 |
+| [hywiki-haykyan-tomar] | The thirty day names and the five of the *aweleacʿ* in Armenian script | Yes, 2026-09-29, secondary; its source, the *Armenian Soviet Encyclopedia*, vol. 6, p. 193, was not read |
+| [wikipedia-anania-shirakatsi] | Anania's 532-year perpetual calendar of 667, never implemented | Yes, 2026-09-29, secondary |
 | [hywiki-hayots-poqr-tvakan] | Sarkawag's fixed year from 1084 and 11 August, 365¼ days, the 533 years, its limited use, no council's approval | Yes, 2026-09-26 |
 | [wikipedia-hovhannes-imastaser] | 1084 and the added day | Yes, 2026-09-26 |
 | [reingold2018code] | `armenian-epoch`, RD 201 443 | Yes, 2026-09-26 |
@@ -100,7 +125,8 @@ printed chronology.
 
 ## Code
 
-`crates/hc-calendars-solar/src/armenian.rs` (`EPOCH`, `MONTHS`, `ERA`) and
+`crates/hc-calendars-solar/src/armenian.rs` (`EPOCH`, `MONTHS`, `ERA`,
+`DAY_NAMES`, `DAY_NAMES_ROMANISED`, `EPAGOMENAL_DAY_NAMES`, `day_name`) and
 `armenian_fixed.rs` (`REFORM_YEAR`, `JULIAN_OFFSET`, `NEW_YEAR_MONTH`,
 `NEW_YEAR_DAY`, `REFORM`). Anchors:
 `the_epoch_is_the_eleventh_of_july_552`,

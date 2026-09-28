@@ -578,3 +578,20 @@ comune = "comune"
 # Henning's almanacs print them.
 tha = "tha"
 mchu = "mchu"
+
+# French "l'année maçonnique en cours", the current Masonic year, quoted
+# from the Rectified Scottish Rite's page in hc-calendars-solar's
+# masonic_march and docs/systems/era-counts.md.
+cours = "cours"
+# French names of the days of the Republican year in
+# hc-calendars-solar::french_republican_days (Fabre d'Églantine's table of
+# 1793 and the list in use): cuve, vat; brocoli; buis, box; asperge,
+# asparagus, "Asperges" in Fabre's plural; radis, radish; and English
+# Wikipedia's gloss "Savin" for sabine.
+Cuve = "Cuve"
+Brocoli = "Brocoli"
+Buis = "Buis"
+Asperge = "Asperge"
+Asperges = "Asperges"
+Radis = "Radis"
+Savin = "Savin"

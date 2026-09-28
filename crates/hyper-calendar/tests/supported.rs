@@ -210,6 +210,7 @@ fn boundary_name(boundary: hyper_calendar::hc_calendar::DayBoundary) -> String {
         B::Noon(_) => "noon".to_owned(),
         B::Sunset(_) => "sunset".to_owned(),
         B::Sunrise(_) => "sunrise".to_owned(),
+        B::Daybreak(_) => "daybreak".to_owned(),
         B::LocalTime(time, _) => format!("{time} local"),
     }
 }

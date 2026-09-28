@@ -8,11 +8,13 @@
 //!
 //! # What this is
 //!
-//! The lunisolar calendar of Babylonia as it ran from the fourth century
-//! BCE: a month begins on the evening the new crescent is first seen from
-//! Babylon, and seven years of every nineteen carry a thirteenth month, a
-//! second Addaru in the years ≡ 1, 4, 7, 9, 12 and 15 (mod 19) of the
-//! Seleucid count and a second Ulūlu in the years ≡ 18. The rules are those
+//! The lunisolar calendar of Babylonia from 626 BCE to 76 CE: a month
+//! begins on the evening the new crescent is first seen from Babylon, and
+//! from the fourth century BCE seven years of every nineteen carry a
+//! thirteenth month, a second Addaru in the years ≡ 1, 4, 7, 9, 12 and 15
+//! (mod 19) of the Seleucid count and a second Ulūlu in the years ≡ 18.
+//! Before SE −71 the thirteenth months are where Parker and Dubberstein's
+//! table puts them, [`INTERCALATIONS_BEFORE_THE_RULE`]. The rules are those
 //! Reingold and Dershowitz give in *Calendrical Calculations* (4th ed.,
 //! Cambridge, 2018), following the `babylonian-*` functions of their
 //! published source, `calendar.l` in the `calendar-code2` repository
@@ -28,17 +30,20 @@
 //! Years before SE 1 are the era continued backwards, so that year 0 is
 //! 312/311 BCE and year −71 is 383/382 BCE: a modern convention, the one
 //! Parker and Dubberstein's transcribers use, and not a count any Babylonian
-//! wrote. The tablets of those years are dated by regnal years, and those
-//! labels are not carried here.
+//! wrote. The tablets of those years are dated by regnal years:
+//! [`regnal_year`] gives the king and year van Gent's converter of the
+//! table labels each year with, from 1 Interregnum in SE −314 to 11
+//! Demetrius I in SE 160 ([`REIGNS`]).
 //!
 //! # The range, and why
 //!
-//! SE −71 to SE 386: from 1 Nisanu of 383 BCE to the end of Addaru of
-//! 76 CE. The lower bound is where Parker and Dubberstein's table starts
-//! following the nineteen-year rule without exception — its last
-//! intercalation outside the rule is in SE −73 — and the earlier centuries,
-//! in which the king intercalated by decree, would need their table rather
-//! than a rule. The upper bound is where their table ends, with the last
+//! SE −314 to SE 386: from 1 Nisanu of 626 BCE, the accession year of
+//! Nabopolassar, where Parker and Dubberstein's table begins, to the end of
+//! Addaru of 76 CE. From SE −71, 383 BCE, the table follows the
+//! nineteen-year rule without exception — its last intercalation outside
+//! the rule is in SE −73 — and the rule places the thirteenth month; in the
+//! centuries before, in which the king intercalated by decree, the table
+//! does, and the months are the same criterion's. The upper bound is where their table ends, with the last
 //! cuneiform texts; the Seleucid count went on in Syria for centuries, but
 //! on other calendars. A date outside the range is refused
 //! ([`CalendarError::BeforeEpoch`] or [`CalendarError::AfterSupportedRange`]),
@@ -92,8 +97,11 @@
 //! intercalary month falls in the year and the place the rule gives in
 //! every one of the 168 cases, and the first day of the month agrees with
 //! the table on the share of months stated in [`PARKER_DUBBERSTEIN_AGREEMENT`],
-//! never differing by more than a day. The transcription is not carried in
-//! this repository; the test that measures against it,
+//! never differing by more than a day. Over the 3 006 months before the
+//! rule, whose 90 intercalations are the table's own, the first day agrees
+//! on the share in [`PARKER_DUBBERSTEIN_AGREEMENT_BEFORE_THE_RULE`], and two
+//! months are two days off. The transcription is not carried in
+//! this repository beyond the intercalations; the test that measures against it,
 //! `measured_against_parker_dubberstein`, is ignored unless the environment
 //! variable `HC_PD_TABLE` names a copy, and the spot checks in the module's
 //! tests are the rows of it that the documentation cites.
@@ -120,22 +128,132 @@ pub const EPOCH: Rd = Rd(-113_502);
 /// places it.
 pub const BABYLON: Location = Location::new(32.4794, 44.4328, 26.0);
 
-/// The earliest Seleucid year converted, 383/382 BCE.
-pub const MIN_YEAR: i64 = -71;
+/// The earliest Seleucid year converted, 626/625 BCE, the accession year
+/// of Nabopolassar, where Parker and Dubberstein's table begins.
+pub const MIN_YEAR: i64 = -314;
+
+/// The first year of the nineteen-year rule without exception, 383/382
+/// BCE: before it, the intercalary months are
+/// [`INTERCALATIONS_BEFORE_THE_RULE`]'s.
+pub const RULE_START: i64 = -71;
+
+/// The intercalary months of Parker and Dubberstein's table before the
+/// rule, `(Seleucid year, month repeated)`: a second Ulūlu is 6 and a
+/// second Addaru 12. Every year from [`MIN_YEAR`] to `RULE_START − 1` not
+/// listed has twelve months. Transcribed from van Gent's copy of the 1971
+/// table (`babycal_dat.js`, read 2026-09-25): 90 intercalations in 243
+/// years, the last outside the rule in SE −73.
+pub const INTERCALATIONS_BEFORE_THE_RULE: [(i16, u8); 90] = [
+    (-312, 12),
+    (-309, 6),
+    (-307, 12),
+    (-304, 6),
+    (-302, 12),
+    (-299, 6),
+    (-295, 6),
+    (-294, 12),
+    (-291, 6),
+    (-288, 6),
+    (-286, 6),
+    (-284, 6),
+    (-282, 12),
+    (-279, 12),
+    (-276, 12),
+    (-272, 6),
+    (-270, 12),
+    (-267, 12),
+    (-265, 12),
+    (-262, 6),
+    (-260, 12),
+    (-257, 12),
+    (-252, 6),
+    (-251, 12),
+    (-248, 12),
+    (-245, 12),
+    (-243, 12),
+    (-241, 12),
+    (-238, 12),
+    (-234, 6),
+    (-232, 12),
+    (-229, 12),
+    (-225, 6),
+    (-224, 12),
+    (-221, 12),
+    (-218, 6),
+    (-215, 6),
+    (-213, 12),
+    (-210, 12),
+    (-207, 6),
+    (-205, 12),
+    (-202, 12),
+    (-199, 6),
+    (-197, 12),
+    (-194, 12),
+    (-191, 6),
+    (-188, 12),
+    (-186, 12),
+    (-183, 12),
+    (-181, 12),
+    (-178, 12),
+    (-175, 12),
+    (-172, 6),
+    (-170, 12),
+    (-167, 12),
+    (-164, 12),
+    (-162, 12),
+    (-159, 12),
+    (-156, 12),
+    (-153, 6),
+    (-151, 12),
+    (-148, 12),
+    (-145, 12),
+    (-143, 12),
+    (-140, 12),
+    (-137, 12),
+    (-134, 12),
+    (-132, 12),
+    (-129, 12),
+    (-126, 12),
+    (-124, 12),
+    (-121, 12),
+    (-118, 12),
+    (-115, 12),
+    (-113, 12),
+    (-110, 12),
+    (-107, 12),
+    (-105, 12),
+    (-102, 12),
+    (-99, 12),
+    (-96, 6),
+    (-94, 12),
+    (-91, 12),
+    (-88, 12),
+    (-86, 12),
+    (-83, 12),
+    (-80, 12),
+    (-77, 6),
+    (-75, 12),
+    (-73, 12),
+];
 
 /// The latest Seleucid year converted, 75/76 CE.
 pub const MAX_YEAR: i64 = 386;
 
 /// Where the period of use comes from.
-pub const USAGE_SOURCE: &str = "Parker and Dubberstein 1956 [parker1956]: the nineteen-year rule followed without exception \
-    from 1 Nisanu of SE −71, 383 BCE, to 29 Addaru of SE 386, 76 CE, where their table ends \
-    with the last dated cuneiform texts; earlier the king intercalated by decree, and later \
-    the Seleucid count went on in Syria on other calendars";
+pub const USAGE_SOURCE: &str = "Parker and Dubberstein 1956 [parker1956]: their table from 1 Nisanu of the accession \
+    year of Nabopolassar, 626 BCE, the calendar being older, with the intercalations the king \
+    decreed; the nineteen-year rule followed without exception from SE −71, 383 BCE, to \
+    29 Addaru of SE 386, 76 CE, where the table ends with the last dated cuneiform texts; \
+    later the Seleucid count went on in Syria on other calendars";
 
-/// The earliest fixed day converted: 1 Nisanu SE −71, 18 April 383 BCE
+/// The earliest fixed day converted: 1 Nisanu SE −314, 5 April 626 BCE
 /// Julian, as Parker and Dubberstein's table has it and as the criterion
 /// places it.
-pub const EARLIEST: Rd = Rd(-139_785);
+pub const EARLIEST: Rd = Rd(-228_554);
+
+/// The first day of the nineteen-year rule, 1 Nisanu SE −71: 18 April 383
+/// BCE Julian, as the table has it and as the criterion places it.
+pub const RULE_EARLIEST: Rd = Rd(-139_785);
 
 /// The latest fixed day converted: 29 Addaru SE 386, 25 March 76 CE Julian,
 /// the day before the criterion's 1 Nisanu SE 387.
@@ -147,6 +265,212 @@ pub const LATEST: Rd = Rd(27_475);
 /// day later here and 29 a day earlier; none is further off.
 pub const PARKER_DUBBERSTEIN_AGREEMENT: (u32, u32) = (4_694, 5_664);
 
+/// The same for the 3 006 month starts of the table before [`RULE_START`],
+/// SE −314 to SE −72, with the intercalations taken from it: 465 are a day
+/// later here and 14 a day earlier, and two are two days off: 1 Tašrītu of
+/// SE −288, two days later here, and 1 Kisilīmu of SE −200, two days
+/// earlier, the month after the one lunation of 31 days the table prints
+/// before the rule.
+pub const PARKER_DUBBERSTEIN_AGREEMENT_BEFORE_THE_RULE: (u32, u32) = (2_525, 3_006);
+
+/// One reign of the regnal labels: the king as van Gent's converter of
+/// Parker and Dubberstein's table spells him, the first Seleucid year
+/// labelled with his name, and the regnal year that label carries.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Reign {
+    /// The king, or "Interregnum".
+    pub king: &'static str,
+    /// The first Seleucid year labelled with this reign.
+    pub from: i64,
+    /// The regnal year of that first label: 1, except for Alexander III,
+    /// whose labels begin at 7, and Philip III and Alexander IV, whose
+    /// labels begin at 2 because their first years carry their
+    /// predecessors' last.
+    pub first_labelled: i64,
+}
+
+/// The reigns by which the years from SE −314 to SE 160 are labelled,
+/// transcribed from van Gent's converter of Parker and Dubberstein's table
+/// (`babycal_dat.js`, `babylon_ruler_name` and `babylon_ruler_year`, and
+/// the offsets of `babycal.js`; read 2026-09-29), in order. A year belongs
+/// wholly to the reign the converter names for it: the regnal year runs
+/// from 1 Nisannu, and the year in which one king died and the next came to
+/// the throne is the old king's last. The converter has no Labashi-Marduk,
+/// Bardiya, Nebuchadnezzar III or IV, or Antigonus, whose reigns fall
+/// inside a year it gives to another, and it labels no year after SE 160.
+pub const REIGNS: [Reign; 29] = [
+    Reign {
+        king: "Interregnum",
+        from: -314,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Nabopolassar",
+        from: -313,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Nebuchadnezzar II",
+        from: -292,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Amēl-Marduk",
+        from: -249,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Nergal-šar-usur",
+        from: -247,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Nabunaid",
+        from: -243,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Cyrus",
+        from: -226,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Cambyses",
+        from: -217,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Darius I",
+        from: -209,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Xerxes",
+        from: -173,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Artaxerxes I",
+        from: -152,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Darius II",
+        from: -111,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Artaxerxes II Memnon",
+        from: -92,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Artaxerxes III Ochus",
+        from: -46,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Artaxerxes IV Arses",
+        from: -25,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Darius III",
+        from: -23,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Alexander III [the Great]",
+        from: -18,
+        first_labelled: 7,
+    },
+    Reign {
+        king: "Philip III Arrhidaeus",
+        from: -10,
+        first_labelled: 2,
+    },
+    Reign {
+        king: "Alexander IV Aegus",
+        from: -3,
+        first_labelled: 2,
+    },
+    Reign {
+        king: "Seleucus I Nicator",
+        from: 1,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Antiochus I Soter",
+        from: 31,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Antiochus II Theos",
+        from: 51,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Seleucus II Callinicus",
+        from: 66,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Seleucus III Soter",
+        from: 87,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Antiochus III [the Great]",
+        from: 90,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Seleucus IV Philopater",
+        from: 125,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Antiochus IV Epiphanes",
+        from: 137,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Antiochus V Eupator",
+        from: 148,
+        first_labelled: 1,
+    },
+    Reign {
+        king: "Demetrius I Soter",
+        from: 150,
+        first_labelled: 1,
+    },
+];
+
+/// The last Seleucid year the regnal labels reach, SE 160, 152/151 BCE, 11
+/// Demetrius I: the converter refreshes its label below SE 161 only.
+pub const LAST_REGNAL_YEAR: i64 = 160;
+
+/// The king and regnal year labelling the Seleucid year `year`, as van
+/// Gent's converter of Parker and Dubberstein's table labels it: 1
+/// Interregnum for SE −314, the accession year of Nabopolassar; 1
+/// Nabopolassar for SE −313; 5 Darius III for SE −19; 1 Seleucus I Nicator
+/// for SE 1. `None` outside SE −314 to [`LAST_REGNAL_YEAR`].
+#[must_use]
+pub const fn regnal_year(year: i64) -> Option<(&'static str, i64)> {
+    if year < MIN_YEAR || year > LAST_REGNAL_YEAR {
+        return None;
+    }
+    let mut index = REIGNS.len();
+    while index > 0 {
+        index -= 1;
+        let reign = REIGNS[index];
+        if reign.from <= year {
+            return Some((reign.king, reign.first_labelled + year - reign.from));
+        }
+    }
+    None
+}
+
 /// Years in the intercalation cycle.
 pub const CYCLE_YEARS: i64 = 19;
 
@@ -157,39 +481,99 @@ pub const CYCLE_MONTHS: i64 = 235;
 /// count as seen: 48 minutes.
 const MINIMUM_MOONLAG: f64 = 48.0 / (24.0 * 60.0);
 
-/// Whether `year` carries a thirteenth month.
+/// Whether `year` carries a thirteenth month by the nineteen-year rule.
 ///
 /// `(7y + 13) mod 19 < 7` selects the years ≡ 1, 4, 7, 9, 12, 15 and 18
 /// (mod 19); the test `the_closed_form_matches_the_listed_leap_years`
 /// checks that.
 #[must_use]
-pub const fn is_leap_year(year: i64) -> bool {
+pub const fn rule_is_leap_year(year: i64) -> bool {
     (7 * year + 13).rem_euclid(CYCLE_YEARS) < 7
 }
 
+/// Whether `year` carries a thirteenth month: by
+/// [`INTERCALATIONS_BEFORE_THE_RULE`] from [`MIN_YEAR`] to the year before
+/// [`RULE_START`], and by [`rule_is_leap_year`] otherwise.
+#[must_use]
+pub const fn is_leap_year(year: i64) -> bool {
+    leap_month(year).is_some()
+}
+
 /// Whether `year`'s thirteenth month is a second Ulūlu rather than a second
-/// Addaru — true in the years ≡ 18 (mod 19), all of which are leap years.
+/// Addaru — under the rule, the years ≡ 18 (mod 19), all of which are leap
+/// years.
 #[must_use]
 pub const fn has_second_ululu(year: i64) -> bool {
-    year.rem_euclid(CYCLE_YEARS) == 18
+    matches!(leap_month(year), Some(6))
+}
+
+/// The intercalary month of a year before the rule, from the table.
+const fn tabulated_leap_month(year: i64) -> Option<u8> {
+    let mut index = 0;
+    while index < INTERCALATIONS_BEFORE_THE_RULE.len() {
+        let (listed, month) = INTERCALATIONS_BEFORE_THE_RULE[index];
+        if listed as i64 == year {
+            return Some(month);
+        }
+        index += 1;
+    }
+    None
 }
 
 /// The ordinal of the month that `year`'s thirteenth month repeats, or
 /// `None` in a common year.
 #[must_use]
 pub const fn leap_month(year: i64) -> Option<u8> {
-    if !is_leap_year(year) {
+    if year >= MIN_YEAR && year < RULE_START {
+        tabulated_leap_month(year)
+    } else if !rule_is_leap_year(year) {
         None
-    } else if has_second_ululu(year) {
+    } else if year.rem_euclid(CYCLE_YEARS) == 18 {
         Some(6)
     } else {
         Some(12)
     }
 }
 
-/// Months elapsed from the epoch to 1 Nisanu of `year`.
+/// Months elapsed from the epoch to 1 Nisanu of `year`: the rule's closed
+/// form from [`RULE_START`], and the table's months counted back from it
+/// before.
 const fn months_before_year(year: i64) -> i64 {
+    if year >= RULE_START {
+        return rule_months_before_year(year);
+    }
+    let mut months = rule_months_before_year(RULE_START);
+    let mut earlier = RULE_START - 1;
+    while earlier >= year {
+        months -= if leap_month(earlier).is_some() {
+            13
+        } else {
+            12
+        };
+        earlier -= 1;
+    }
+    months
+}
+
+/// Months elapsed from the epoch to 1 Nisanu of `year` by the rule.
+const fn rule_months_before_year(year: i64) -> i64 {
     ((year - 1) * CYCLE_MONTHS + 13).div_euclid(CYCLE_YEARS)
+}
+
+/// The year whose months, counted from the epoch, include the `months`th.
+const fn year_of_month(months: i64) -> i64 {
+    if months >= months_before_year(RULE_START) {
+        return (CYCLE_YEARS * months + 5).div_euclid(CYCLE_MONTHS) + 1;
+    }
+    let mut year = RULE_START - 1;
+    let mut start = months_before_year(RULE_START);
+    loop {
+        start -= if leap_month(year).is_some() { 13 } else { 12 };
+        if months >= start || year < MIN_YEAR {
+            return year;
+        }
+        year -= 1;
+    }
 }
 
 /// The moonlag between the eve's sunset and the Moon's setting, in days.
@@ -283,7 +667,7 @@ fn to_fixed_unchecked(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
 fn from_fixed_unchecked(rd: Rd) -> CalendarResult<(i64, Month, u8)> {
     let crescent = month_start_on_or_before(rd)?;
     let months = round((crescent.0 - EPOCH.0) as f64 / MEAN_SYNODIC_MONTH) as i64;
-    let year = (CYCLE_YEARS * months + 5).div_euclid(CYCLE_MONTHS) + 1;
+    let year = year_of_month(months);
     let approx = EPOCH.0 + round(months_before_year(year) as f64 * MEAN_SYNODIC_MONTH) as i64;
     let new_year = month_start_on_or_before(Rd(approx + 15))?;
     let position = 1 + round((crescent.0 - new_year.0) as f64 / 29.5) as i64;
@@ -321,7 +705,7 @@ fn check_range(rd: Rd) -> CalendarResult<()> {
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::YearOutOfRange`] outside SE −71 to 386,
+/// Returns [`CalendarError::YearOutOfRange`] outside SE −314 to 386,
 /// [`CalendarError::MonthOutOfRange`] for a month the year does not have —
 /// a leap month in a common year, or the wrong one — and
 /// [`CalendarError::DayOutOfRange`] for a day the month does not have.
@@ -347,7 +731,7 @@ pub fn to_fixed(year: i64, month: Month, day: u8) -> CalendarResult<Rd> {
 ///
 /// # Errors
 ///
-/// Returns [`CalendarError::BeforeEpoch`] before 1 Nisanu SE −71 and
+/// Returns [`CalendarError::BeforeEpoch`] before 1 Nisanu SE −314 and
 /// [`CalendarError::AfterSupportedRange`] after 30 Addaru SE 386.
 pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, Month, u8)> {
     check_range(rd)?;
@@ -385,9 +769,9 @@ pub struct BabylonianCalendar;
 impl Calendar for BabylonianCalendar {
     type Date = BabylonianDate;
 
-    /// SE −71 to SE 386, which is also the whole of the range it converts:
-    /// the years in which the nineteen-year rule was followed without
-    /// exception and the cuneiform record runs.
+    /// SE −314 to SE 386, which is also the whole of the range it
+    /// converts: the years Parker and Dubberstein's table covers, the
+    /// calendar itself being older.
     fn usage(&self) -> hc_calendar::Usage {
         hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
     }
@@ -581,9 +965,114 @@ mod tests {
         );
     }
 
+    /// The intercalations before the rule are the table's, the year before
+    /// the rule is common where the rule would have made it leap, and the
+    /// months of every year before the rule come twelve or thirteen, the
+    /// thirteenth where the table puts it.
+    #[test]
+    fn the_years_before_the_rule_intercalate_as_the_table_does() {
+        assert_eq!(leap_month(-73), Some(12));
+        assert_eq!(leap_month(-72), None);
+        assert!(rule_is_leap_year(-72));
+        assert_eq!(leap_month(-71), None);
+        assert_eq!(leap_month(-69), Some(12));
+        assert_eq!(leap_month(-312), Some(12));
+        assert_eq!(leap_month(-309), Some(6));
+        assert!(has_second_ululu(-309));
+        assert_eq!(leap_month(-314), None);
+        assert_eq!(
+            (MIN_YEAR..RULE_START)
+                .filter(|year| is_leap_year(*year))
+                .count(),
+            INTERCALATIONS_BEFORE_THE_RULE.len()
+        );
+        assert!(
+            INTERCALATIONS_BEFORE_THE_RULE
+                .windows(2)
+                .all(|pair| pair[0].0 < pair[1].0)
+        );
+        // The table's first and last rows: 1 Nisannu SE −314 on 5 April
+        // 626 BCE, 1 Nisannu SE −71 on 18 April 383 BCE.
+        assert_eq!(to_fixed(MIN_YEAR, month(1, false), 1), Ok(EARLIEST));
+        assert_eq!(EARLIEST, julian_to_fixed(-625, 4, 5));
+        assert_eq!(to_fixed(RULE_START, month(1, false), 1), Ok(RULE_EARLIEST));
+        let step = if cfg!(debug_assertions) { 37 } else { 1 };
+        hc_core::memo::scope(|| {
+            for year in (MIN_YEAR..RULE_START).step_by(step) {
+                let end = to_fixed(year + 1, month(1, false), 1).expect("in range");
+                let mut cursor = to_fixed(year, month(1, false), 1).expect("in range");
+                let mut count = 0u8;
+                let mut leap = None;
+                while cursor < end {
+                    let (_, this, day) = from_fixed(cursor).expect("in range");
+                    assert_eq!(day, 1, "RD {cursor} is not a month start");
+                    if this.leap {
+                        leap = Some(this.ordinal);
+                    }
+                    count += 1;
+                    cursor = month_start_on_or_before(Rd(cursor.0 + 32)).expect("converges");
+                }
+                assert_eq!(cursor, end, "SE {year}");
+                assert_eq!(count, if is_leap_year(year) { 13 } else { 12 }, "SE {year}");
+                assert_eq!(leap, leap_month(year), "SE {year} leap");
+            }
+        });
+    }
+
+    /// The regnal labels, and the dated examples that pair one with a
+    /// Julian day: "13 Ulūlū in the 5th year of Darius III [20 September
+    /// 331 BCE]" (van Gent's introduction, the eclipse of BM 36390); "on
+    /// the second day of the month of Adar [16 March]" in the seventh year
+    /// of Nebuchadnezzar (the Babylonian Chronicle, in Wikipedia's "Siege
+    /// of Jerusalem (597 BC)", secondary); 568 BC as his thirty-seventh
+    /// year (VAT 4956, in Wikipedia, secondary).
+    #[test]
+    fn the_regnal_labels_are_the_converters() {
+        let julian = julian_to_fixed;
+        assert_eq!(regnal_year(-315), None);
+        assert_eq!(regnal_year(-314), Some(("Interregnum", 1)));
+        assert_eq!(regnal_year(-313), Some(("Nabopolassar", 1)));
+        assert_eq!(regnal_year(-293), Some(("Nabopolassar", 21)));
+        assert_eq!(regnal_year(-292), Some(("Nebuchadnezzar II", 1)));
+        assert_eq!(regnal_year(-256), Some(("Nebuchadnezzar II", 37)));
+        assert_eq!(regnal_year(-227), Some(("Nabunaid", 17)));
+        assert_eq!(regnal_year(-226), Some(("Cyrus", 1)));
+        assert_eq!(regnal_year(-19), Some(("Darius III", 5)));
+        assert_eq!(regnal_year(-18), Some(("Alexander III [the Great]", 7)));
+        assert_eq!(regnal_year(-11), Some(("Alexander III [the Great]", 14)));
+        assert_eq!(regnal_year(-10), Some(("Philip III Arrhidaeus", 2)));
+        assert_eq!(regnal_year(0), Some(("Alexander IV Aegus", 5)));
+        assert_eq!(regnal_year(1), Some(("Seleucus I Nicator", 1)));
+        assert_eq!(
+            regnal_year(LAST_REGNAL_YEAR),
+            Some(("Demetrius I Soter", 11))
+        );
+        assert_eq!(regnal_year(LAST_REGNAL_YEAR + 1), None);
+        assert!(REIGNS.windows(2).all(|pair| pair[0].from < pair[1].from));
+        // The table puts 13 Ulūlu on 20 September; the criterion begins
+        // that Ulūlu a day later, as it does 941 of the 5 664 months from
+        // the rule on (`PARKER_DUBBERSTEIN_AGREEMENT`).
+        assert_eq!(to_fixed(-19, month(6, false), 12), Ok(julian(-330, 9, 20)));
+        assert_eq!(to_fixed(-286, month(12, false), 2), Ok(julian(-596, 3, 16)));
+        let (year, _, _) = from_fixed(julian(-567, 6, 1)).expect("in range");
+        assert_eq!(regnal_year(year), Some(("Nebuchadnezzar II", 37)));
+    }
+
+    /// The fixed day of a Julian date in astronomical years, by the Julian
+    /// Day Number's arithmetic (Richards, *Explanatory Supplement*, 3rd
+    /// ed., 2013, §15.11.3, Algorithm 3 with the Julian parameters), less
+    /// the 1 721 425 days from JDN 0 to RD 0.
+    fn julian_to_fixed(year: i64, month: u8, day: u8) -> Rd {
+        let a = (14 - i64::from(month)) / 12;
+        let y = year + 4800 - a;
+        let m = i64::from(month) + 12 * a - 3;
+        let jdn = i64::from(day) + (153 * m + 2) / 5 + 365 * y + y.div_euclid(4) - 32_083;
+        Rd(jdn - 1_721_425)
+    }
+
     #[test]
     fn the_calendar_round_trips_every_day_of_its_range() {
-        // Every day of the 167 261 is two crescent searches to read and
+        // Every day of the 256 030 is two crescent searches to read and
         // three to write back, about 1.5 ms of one core in a release build,
         // so a release build walks every one spread over the machine's
         // threads. A debug build, which the coverage job runs instrumented,
@@ -608,7 +1097,7 @@ mod tests {
         days.dedup();
         assert!(days.contains(&EARLIEST.0) && days.contains(&LATEST.0));
         if cfg!(debug_assertions) {
-            // SE −71 opens on the first day, and SE 387's eve is the last.
+            // SE −314 opens on the first day, and SE 387's eve is the last.
             let held = |day: i64| days.binary_search(&day).is_ok();
             assert!(
                 openings
@@ -739,7 +1228,7 @@ mod tests {
         assert_eq!(meta.year_kind, YearKind::Astronomical);
     }
 
-    /// Measures every month start from SE −71 against a copy of Parker and
+    /// Measures every month start from SE −314 against a copy of Parker and
     /// Dubberstein's table, one line per month, `<SE year> <month> <leap
     /// 0|1> <fixed day>`, named by `HC_PD_TABLE`. Run with
     /// `HC_PD_TABLE=... cargo test -p hc-calendars-lunar --release
@@ -751,6 +1240,14 @@ mod tests {
             return;
         };
         let table = std::fs::read_to_string(path).expect("the table is readable");
+        for before_the_rule in [false, true] {
+            measure(&table, before_the_rule);
+        }
+    }
+
+    /// One half of [`measured_against_parker_dubberstein`]: the months from
+    /// [`RULE_START`], or the months before it.
+    fn measure(table: &str, before_the_rule: bool) {
         let mut total = 0u32;
         let mut same = 0u32;
         let mut early = 0u32;
@@ -769,6 +1266,9 @@ mod tests {
                 continue;
             };
             if year < MIN_YEAR {
+                continue;
+            }
+            if (year < RULE_START) != before_the_rule {
                 continue;
             }
             total += 1;
@@ -809,9 +1309,14 @@ mod tests {
             lengths[30],
             lengths[31]
         );
-        assert_eq!(total, PARKER_DUBBERSTEIN_AGREEMENT.1);
-        assert_eq!(same, PARKER_DUBBERSTEIN_AGREEMENT.0);
+        let expected = if before_the_rule {
+            PARKER_DUBBERSTEIN_AGREEMENT_BEFORE_THE_RULE
+        } else {
+            PARKER_DUBBERSTEIN_AGREEMENT
+        };
+        assert_eq!(total, expected.1);
+        assert_eq!(same, expected.0);
         assert_eq!(leap_wrong, 0);
-        assert!(worst <= 1);
+        assert!(worst <= if before_the_rule { 2 } else { 1 });
     }
 }

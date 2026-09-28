@@ -57,7 +57,7 @@ such counts, and are here as regional calendars.
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
 | `lao` | The Lao lunar calendar: the same rule as Dupertuis states it for Laos, Chulasakarat 1301–1401 (1938–2039) |
 | `sexagenary` | 干支 over years, months and days |
-| `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
+| `olympiad` | The ancient Olympiads over the Julian year, from 776 BC, as Reingold and Dershowitz count them; the IOC's modern Olympiad number from 1896 as a function, of the year under the Charter of 2004 and of the day, from opening to opening, before it ([docs/systems/olympiads.md](../../docs/systems/olympiads.md)) |
 | `arsacid` | The Arsacid era on the Babylonian months, `babylonian`'s Seleucid year less 64, AE 1 to 322 ([docs/systems/seleucid-eras.md](../../docs/systems/seleucid-eras.md)) |
 | `huangdi` | The years of the Yellow Emperor, 黃帝紀元, in four epochs, each `chinese` with the year renamed, 1645 to 2150 ([docs/systems/era-counts.md](../../docs/systems/era-counts.md)) |
 

@@ -289,6 +289,14 @@ pub const REGIONAL_ADOPTIONS: &[RegionalAdoption] = &[
         Scope::Civil,
     ),
     reform("FR", "France", "julian-gregorian-fr", Scope::Civil),
+    from(
+        "FR",
+        "The Duchy of Lorraine",
+        day(1760, 2, 28),
+        "julian",
+        Scope::Partial,
+        "No instrument read; 16 February followed by 28 February 1760 from French Wikipedia, \"Passage du calendrier julien au calendrier grégorien\", retrieved 2026-09-29, uncited [frwiki-passage-gregorien], and the same days in English Wikipedia's list [wikipedia-adoption-list]; the duchy named by German Wikipedia, which gives 28 February 1760 as the first Gregorian day [dewiki-gregorianischer-kalender]. The same list's change of 1582 and return to the Julian calendar in 1735, whose day it does not give, are not rows. Partial: the duchy, not France",
+    ),
     reform(
         "GB",
         "Great Britain and its colonies",
@@ -365,6 +373,14 @@ pub const REGIONAL_ADOPTIONS: &[RegionalAdoption] = &[
     ),
     reform("PL", "Poland", "julian-gregorian-catholic", Scope::Civil),
     reform("PT", "Portugal", "julian-gregorian-catholic", Scope::Civil),
+    from(
+        "RO",
+        "The Principality of Transylvania",
+        day(1590, 12, 25),
+        "julian",
+        Scope::Partial,
+        "No instrument read; the year 1590 from Romanian Wikipedia, \"Calendarul gregorian\", retrieved 2026-09-29, uncited [rowiki-calendarul-gregorian]; 14 December followed by 25 December 1590 from English Wikipedia's list, uncited [wikipedia-adoption-list], and 25 December 1590 as the first Gregorian day from German Wikipedia, citing Grotefend, Taschenbuch der Zeitrechnung, 5th ed., 1922, pp. 26 f., not read [dewiki-gregorianischer-kalender]. Partial: the principality, not Romania",
+    ),
     reform(
         "RO",
         "Romania (the Old Kingdom)",
@@ -515,7 +531,42 @@ mod tests {
                 .source
         );
         let romania: Vec<_> = steps("RO").collect();
-        assert_eq!(romania, [(fixed(1919, 4, 13), fixed(1919, 4, 14))]);
+        assert_eq!(
+            romania,
+            [
+                (
+                    crate::julian::to_fixed(1590, 12, 14).unwrap().0,
+                    fixed(1590, 12, 25)
+                ),
+                (fixed(1919, 4, 13), fixed(1919, 4, 14))
+            ]
+        );
+    }
+
+    /// Lorraine's 16 followed by 28 February 1760 and Transylvania's 14
+    /// followed by 25 December 1590 (`frwiki-passage-gregorien`,
+    /// `wikipedia-adoption-list`).
+    #[test]
+    fn lorraine_and_transylvania_changed_on_their_own_days() {
+        let france: Vec<_> = steps("FR").collect();
+        assert_eq!(france.len(), 2);
+        assert_eq!(
+            france[1],
+            (
+                crate::julian::to_fixed(1760, 2, 16).unwrap().0,
+                fixed(1760, 2, 28)
+            )
+        );
+        let rows: Vec<_> = gregorian_adoption("FR").collect();
+        assert_eq!(rows[1].scope, Scope::Partial);
+        assert_eq!(rows[1].polity, "The Duchy of Lorraine");
+        let transylvania = gregorian_adoption("RO").next().unwrap();
+        assert_eq!(
+            transylvania.last_old_day(),
+            crate::julian::to_fixed(1590, 12, 14)
+        );
+        assert_eq!(transylvania.first_day(), gregorian::to_fixed(1590, 12, 25));
+        assert_eq!(transylvania.scope, Scope::Partial);
     }
 
     #[test]
