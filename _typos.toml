@@ -551,3 +551,8 @@ Mayu = "Mayu"
 yau = "yau"
 Estoniya = "Estoniya"
 Kazakstan = "Kazakstan"
+# hc-holiday and docs/systems/tibetan-calendar-holidays.md: Haa, a district
+# of Bhutan (BT-13); docs/references.bib: Ned Gagahe, the Island Sun's
+# reporter.
+Haa = "Haa"
+Ned = "Ned"

@@ -263,6 +263,18 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   over a run of typed years, the *suryayatra* quantities and the rule.
   `thai-lunar` gives it a table of published year types, `khmer` and `lao`
   the rule.
+- **The holidays.** `hc-holiday`'s Cambodia table dates its four lunar
+  holidays on `khmer`, through `CalendarSystem::KHMER`: Visak Bochea on
+  15 keit Pisakh, the Royal Ploughing Ceremony on 4 roaj Pisakh, Pchum Ben
+  on 14 and 15 roaj Photrobot and 1 keit Assoch, and the Water Festival on
+  14 and 15 keit and 1 roaj Kadeuk. They are exact in the years whose
+  sub-decree was read, 2021, 2022 and 2024–2027
+  [pressocm-kh-holidays-2021, pressocm-kh-holidays-2022,
+  pressocm-kh-holidays-2024, ibc-kh-holidays-2024-2025,
+  andersen-kh-holidays-2026], and the calendar's prediction, approximate,
+  in any other: the Royal Government lists the days each year. Khmer New
+  Year, the solar New Year's, is the sub-decrees' dates alone, for the
+  reason below.
 - **Not carried:**
   - *Faraut's weekday rule*, which Gislén and Eade set out for Thailand
     [gisleneade2019, pp. 428–429]. Faraut's *Astronomie Cambodgienne*
@@ -301,7 +313,7 @@ reproduced:
 | --- | --- | --- |
 | The lunar date of every New Year day of 2022–2026 as the announcements give it, with its weekday | `the_new_years_of_2022_to_2026_fall_on_the_announced_lunar_days` | 16 of 16 |
 | The day the Buddhist Era changed in 2022–2026, 1 roaj Pisakh, with the weekday of the 15 keit before it | `the_buddhist_era_changes_at_the_full_moon_of_pisakh` | 5 of 5 |
-| Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and the Water Festival of 2024–2027, as the sub-decrees give them | `the_sub_decreed_days_of_2024_to_2027_are_reproduced`; `hc-holiday`'s `cambodia_dates_its_lunar_days_where_the_khmer_calendar_puts_them` | 16 of 16 in this crate; every lunar day of the 2025–2027 table there, 24 of 24 |
+| Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and the Water Festival of 2021, 2022 and 2024–2027, as the sub-decrees give them | `the_sub_decreed_days_of_2024_to_2027_are_reproduced`; `hc-holiday`'s `cambodia_dates_its_lunar_days_on_the_khmer_calendar` | 16 of 16 in this crate for 2024–2027; in `hc-holiday`, whose rules are on `khmer`, every day of the six years, 48 of 48 |
 | Meak Bochea, Visak Bochea, Pchum Ben and the Water Festival of 2015 and 2019, as timeanddate.com listed them | `the_holidays_of_2015_and_2019_are_reproduced` | 8 of 8 |
 | Khmer Wikipedia's example: Sunday 3 December 2017, 15 keit Migasir, printed 2561 | `a_date_reads_as_a_khmer_calendar_writes_it` | yes |
 | The dates Tum lists as checked, from Khmer Wikipedia and other pages: 2 October 1913, 20 November 1947, 18 February 1951, 23–25 September 1969, 26 May 2005, 29 September 2008, and the two whose Gregorian year he finds misprinted, 11 January 1945 and 31 October 1988 | `tums_checked_dates_are_reproduced` | 10 of 10 lunar dates; for 18 February 1951 the page gives a Monday, which was a Sunday, and BE 2493, one less than the 2494 printed by the change at Pisakh |
@@ -375,6 +387,7 @@ table.
 | [ibc-kh-holidays-2024-2025] | The sub-decreed days of 2024 and 2025 | Yes, 2026-09-26 |
 | [andersen-kh-holidays-2026] | The sub-decreed days of 2026 | Yes, 2026-09-26 |
 | `hc-holiday`'s Cambodia table | The sub-decreed days of 2025–2027 | This repository, read by that module 2026-09-23 |
+| [pressocm-kh-holidays-2021], [pressocm-kh-holidays-2022], [pressocm-kh-holidays-2024] | The sub-decreed days of 2021, 2022 and 2024, from the images the Office of the Council of Ministers posted | Yes, 2026-09-29 |
 | [timeanddate-kh-2015], [timeanddate-kh-2019] | The holidays of 2015 and 2019 | Yes, 2026-09-26, in the Internet Archive's copies |
 
 ## Code
@@ -406,5 +419,7 @@ Buddhist Era. Khmer anchors:
 `the_rule_gives_thailands_published_types_but_for_1994_and_1997`,
 `every_day_of_the_range_round_trips`; in `southeast_asian`,
 `the_worked_example_of_chulasakarat_1238_is_reproduced`; in `hc-holiday`,
-`cambodia_dates_its_lunar_days_where_the_khmer_calendar_puts_them`. The
+`cambodia_dates_its_lunar_days_on_the_khmer_calendar` and
+`cambodia_predicts_its_lunar_days_outside_the_years_read`; `hc-holiday`'s
+`CalendarSystem::KHMER` is the calendar its Cambodia table's rules name. The
 English month names are in `hc-i18n`.

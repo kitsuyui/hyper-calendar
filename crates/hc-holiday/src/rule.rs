@@ -32,7 +32,7 @@ use hc_calendars_lunar::samaritan;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::tibetan::{self, LeapNumbering, TibetanCalendar, TibetanDate};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_regional::{burmese, thai_lunar};
+use hc_calendars_regional::{burmese, khmer, thai_lunar};
 use hc_calendars_solar::{
     bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, mandaean, nanakshahi, persian,
     revised_julian, zoroastrian,
@@ -638,6 +638,21 @@ hc_core::catalogue! {
                 thai_lunar::to_fixed(thai_lunar::ThaiLunarDate::new(year, month, day)).ok()
             },
             |rd| thai_lunar::from_fixed(rd).ok().map(|date| date.year),
+        );
+
+        /// The Khmer lunisolar calendar, *Chhankitek*, in which Cambodia
+        /// dates Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and
+        /// the Water Festival: the *suryayatra* rule as Cambodia applies it,
+        /// for 1900 to 2200, and nothing else. Months run Migasir 1 to
+        /// Kadeuk 12, the first Asath of a leap-month year being
+        /// `Month::leap(8)`; a day is counted 1 to 30 through the month, so
+        /// 1 roaj is day 16; and a year is the Buddhist year the rule
+        /// numbers, the one whose Pisakh falls in Gregorian year − 544
+        /// (`hc_calendars_regional::khmer`).
+        pub const KHMER = Self::new(
+            CalendarId("khmer"),
+            |year, month, day| khmer::to_fixed(khmer::KhmerDate::new(year, month, day)).ok(),
+            |rd| khmer::from_fixed(rd).ok().map(|date| date.year),
         );
 
         /// The Samaritan calendar by Reingold and Dershowitz's modern

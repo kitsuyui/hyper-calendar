@@ -1365,7 +1365,7 @@ const IN_SHIVARATRI: HolidayRule = in_listed(
     false,
 )[0];
 
-static IN_RULES: &[HolidayRule] = &[
+pub(super) static IN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Republic Day", "गणतंत्र दिवस", Rule::gregorian(1, 26))
         .years(Some(1950), None),
     HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
@@ -1415,16 +1415,18 @@ static IN_RULES: &[HolidayRule] = &[
 ];
 
 /// India: the three national holidays and the gazetted days of the central
-/// government's list — Christian, Muslim, Hindu, Jain, Buddhist and Sikh.
+/// government's list — Christian, Muslim, Hindu, Jain, Buddhist and Sikh —
+/// with the thirteen largest states' holidays under the Negotiable
+/// Instruments Act for 2025 and 2026 in their states ([`super::india`]).
 pub static INDIA: RuleSet = RuleSet {
     code: "IN",
     english_name: "India",
-    rules: IN_RULES,
+    rules: &super::india::RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 27),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Department of Personnel and Training, O.M.s F.No.12/2/2023-JCA of 9 July 2024, \
               3 July 2025 and 16 July 2026, \"Holidays to be observed in Central Government \
               Offices during the year\" 2025, 2026 and 2027, Annexure-I (`dopt-holidays-2025-2027`); \
@@ -1442,7 +1444,11 @@ pub static INDIA: RuleSet = RuleSet {
               them, with the three optional days of 2026 and 2027, and the Hijri days the \
               tabular prediction. Diwali is Lakṣmī Pūjā, as the O.M.s for 2017, 2018 and \
               2027 date it — 19 October 2017, 7 November 2018 and 29 October 2027 — the \
-              first two read as GConnect reproduces them (secondary), retrieved 2026-09-27",
+              first two read as GConnect reproduces them (secondary), retrieved 2026-09-27; \
+              the states' days from the Reserve Bank of India's \"Holidays under Negotiable \
+              Instruments Act\" for each regional office, 2025 and 2026 \
+              (rbi.org.in/Scripts/HolidayMatrixDisplay.aspx), retrieved 2026-09-29, as \
+              src/countries/india.rs gives them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2257,7 +2263,8 @@ static MY_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// Malaysia, federal holidays only.
+/// Malaysia, federal holidays only: the states' own days, which the same
+/// yearly lists give, are not yet carried.
 pub static MALAYSIA: RuleSet = RuleSet {
     code: "MY",
     english_name: "Malaysia",
@@ -2282,10 +2289,13 @@ pub static MALAYSIA: RuleSet = RuleSet {
               28 Oktober, Khamis\" is a day before Lakṣmī Pūjā, and the rule gives \
               the Deepavali of the 2021, 2022, 2023, 2026 and 2027 schedules, read \
               through web.archive.org on 2026-09-27. Carried approximate, as the \
-              gazette announces the day. State holidays are not modelled — Thaipusam \
-              among them, whose rule is `hindu::THAIPUSAM` — and neither is \
-              the Friday–Saturday weekend of Johor, Kedah, Kelantan and \
-              Terengganu",
+              gazette announces the day. The states' own days, which the same lists \
+              give — Thaipusam among them, whose rule is `hindu::THAIPUSAM` — are not \
+              yet carried: the lists were read for the federal days, and could not be \
+              read again when the other countries' subdivision days were added, \
+              kabinet.gov.my refusing the requests and the lists being PDFs. Nor is the \
+              Friday–Saturday weekend of Johor, Kedah, Kelantan and Terengganu, which a \
+              weekend policy, having no region, cannot scope",
 };
 
 /// The President's proclamations of Eid'l Fitr and Eid'l Adha as regular
@@ -5253,61 +5263,77 @@ pub static MONGOLIA: RuleSet = RuleSet {
 // Cambodia
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The first year of the sub-decrees carried for the days they date.
-const KH_FIRST: i64 = 2025;
-/// The last.
-const KH_LAST: i64 = 2027;
-
-/// The days the annual sub-decrees date on the Khmer calendar, for which
-/// no rule on `hc-calendars-regional`'s `khmer` is carried yet, as
-/// sub-decrees No. 204 (2025), No. 167 (2026) and
-/// No. 198 (2027) list them. Khmer New Year is the three days of the
-/// Songkran, Visak Bochea the full moon of Pisak, Pchum Ben the last days of
-/// Photrobot and the Water Festival the full moon of Kadeuk; the Royal
-/// Ploughing Ceremony is the day the palace sets.
-static KH_DECREED: Listing = Listing::Named(&[
-    // 2025
-    (2025, 4, 14, "Khmer New Year"),
-    (2025, 4, 15, "Khmer New Year"),
-    (2025, 4, 16, "Khmer New Year"),
-    (2025, 5, 11, "Visak Bochea"),
-    (2025, 5, 15, "Royal Ploughing Ceremony"),
-    (2025, 9, 21, "Pchum Ben"),
-    (2025, 9, 22, "Pchum Ben"),
-    (2025, 9, 23, "Pchum Ben"),
-    (2025, 11, 4, "Water Festival"),
-    (2025, 11, 5, "Water Festival"),
-    (2025, 11, 6, "Water Festival"),
-    // 2026, when Visak Bochea is 1 May, International Labour Day.
-    (2026, 4, 14, "Khmer New Year"),
-    (2026, 4, 15, "Khmer New Year"),
-    (2026, 4, 16, "Khmer New Year"),
-    (2026, 5, 1, "Visak Bochea"),
-    (2026, 5, 5, "Royal Ploughing Ceremony"),
-    (2026, 10, 10, "Pchum Ben"),
-    (2026, 10, 11, "Pchum Ben"),
-    (2026, 10, 12, "Pchum Ben"),
-    (2026, 11, 23, "Water Festival"),
-    (2026, 11, 24, "Water Festival"),
-    (2026, 11, 25, "Water Festival"),
-    // 2027
-    (2027, 4, 14, "Khmer New Year"),
-    (2027, 4, 15, "Khmer New Year"),
-    (2027, 4, 16, "Khmer New Year"),
-    (2027, 5, 20, "Visak Bochea"),
-    (2027, 5, 24, "Royal Ploughing Ceremony"),
-    (2027, 9, 29, "Pchum Ben"),
-    (2027, 9, 30, "Pchum Ben"),
-    (2027, 10, 1, "Pchum Ben"),
-    (2027, 11, 12, "Water Festival"),
-    (2027, 11, 13, "Water Festival"),
-    (2027, 11, 14, "Water Festival"),
+/// The Khmer New Year the sub-decrees read give, which the solar New Year's
+/// *Songkran* moment dates and which the Khmer calendar in the crate does
+/// not compute: three days in 2021, 2022 and 2025–2027, four in 2024. The
+/// sub-decree for 2023 was not read.
+static KH_NEW_YEAR: Listing = Listing::Dates(&[
+    (2021, 4, 14),
+    (2021, 4, 15),
+    (2021, 4, 16),
+    (2022, 4, 14),
+    (2022, 4, 15),
+    (2022, 4, 16),
+    (2024, 4, 13),
+    (2024, 4, 14),
+    (2024, 4, 15),
+    (2024, 4, 16),
+    (2025, 4, 14),
+    (2025, 4, 15),
+    (2025, 4, 16),
+    (2026, 4, 14),
+    (2026, 4, 15),
+    (2026, 4, 16),
+    (2027, 4, 14),
+    (2027, 4, 15),
+    (2027, 4, 16),
 ]);
 
-/// A day the sub-decrees date, for the years read, and a gap in any other.
-const fn kh_decreed(name: &'static str, local: &'static str, entry: ListedEntry) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::listed(entry, KH_FIRST, KH_LAST))
+/// A day of the Khmer calendar the sub-decrees date: exact in the years
+/// whose sub-decree was read, 2021, 2022 and 2024–2027, in every one of
+/// which the calendar gives the sub-decree's day, and approximate in the
+/// others, whose lists the Royal Government settles each year.
+const fn kh_lunar(
+    name: &'static str,
+    local_name: &'static str,
+    month: u8,
+    day: u8,
+) -> [HolidayRule; 5] {
+    let rule = HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::in_calendar(CalendarSystem::KHMER, month, day),
+    );
+    [
+        rule.approximate().years(None, Some(2020)),
+        rule.years(Some(2021), Some(2022)),
+        rule.approximate().years(Some(2023), Some(2023)),
+        rule.years(Some(2024), Some(2027)),
+        rule.approximate().years(Some(2028), None),
+    ]
 }
+
+/// Visak Bochea, 15 keit Pisakh.
+const KH_VISAK: [HolidayRule; 5] = kh_lunar("Visak Bochea", "ពិធីបុណ្យវិសាខបូជា", 6, 15);
+/// The Royal Ploughing Ceremony, 4 roaj Pisakh, four days after Visak
+/// Bochea in every sub-decree read.
+const KH_PLOUGHING: [HolidayRule; 5] =
+    kh_lunar("Royal Ploughing Ceremony", "ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល", 6, 19);
+/// Pchum Ben: 14 and 15 roaj Photrobot and 1 keit Assoch.
+const KH_PCHUM_BEN: [[HolidayRule; 5]; 3] = [
+    kh_lunar("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", 10, 29),
+    kh_lunar("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", 10, 30),
+    kh_lunar("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", 11, 1),
+];
+/// The Water Festival: 14 and 15 keit and 1 roaj Kadeuk.
+const KH_WATER_FESTIVAL_NAME: &str = "Water Festival";
+/// Its Khmer name.
+const KH_WATER_FESTIVAL_LOCAL: &str = "ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ អកអំបុក";
+const KH_WATER_FESTIVAL: [[HolidayRule; 5]; 3] = [
+    kh_lunar(KH_WATER_FESTIVAL_NAME, KH_WATER_FESTIVAL_LOCAL, 12, 14),
+    kh_lunar(KH_WATER_FESTIVAL_NAME, KH_WATER_FESTIVAL_LOCAL, 12, 15),
+    kh_lunar(KH_WATER_FESTIVAL_NAME, KH_WATER_FESTIVAL_LOCAL, 12, 16),
+];
 
 /// Article 147 of the Labour Law: weekly time off "shall, in principle, be
 /// given on Sunday".
@@ -5318,6 +5344,11 @@ static KH_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until: None,
     valid_until_day: None,
 }];
+
+/// Khmer New Year's name.
+const KH_NEW_YEAR_NAME: &str = "Khmer New Year";
+/// Its Khmer name.
+const KH_NEW_YEAR_LOCAL: &str = "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ";
 
 static KH_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
@@ -5335,38 +5366,61 @@ static KH_RULES: &[HolidayRule] = &[
         "ទិវាអន្តរជាតិនារី",
         Rule::gregorian(3, 8),
     ),
-    kh_decreed(
-        "Khmer New Year",
-        "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ",
-        KH_DECREED.named("Khmer New Year"),
-    ),
+    // The years read either side of 2023, whose sub-decree was not: a
+    // gap before 2021 and in 2023 and after 2027.
+    HolidayRule::fixed_public(
+        KH_NEW_YEAR_NAME,
+        KH_NEW_YEAR_LOCAL,
+        Rule::listed(KH_NEW_YEAR.every(), 2021, 2022),
+    )
+    .years(None, Some(2022)),
+    HolidayRule::fixed_public(
+        KH_NEW_YEAR_NAME,
+        KH_NEW_YEAR_LOCAL,
+        Rule::listed(KH_NEW_YEAR.every(), 2024, 2027),
+    )
+    .years(Some(2023), None),
     HolidayRule::fixed_public(
         "International Labour Day",
         "ទិវាពលកម្មអន្តរជាតិ",
         Rule::gregorian(5, 1),
     ),
-    kh_decreed(
-        "Visak Bochea",
-        "ពិធីបុណ្យវិសាខបូជា",
-        KH_DECREED.named("Visak Bochea"),
-    ),
+    KH_VISAK[0],
+    KH_VISAK[1],
+    KH_VISAK[2],
+    KH_VISAK[3],
+    KH_VISAK[4],
     HolidayRule::fixed_public(
         "King Norodom Sihamoni's Birthday",
         "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម ព្រះករុណាព្រះបាទសម្តេចព្រះបរមនាថ នរោត្តម សីហមុនី",
         Rule::gregorian(5, 14),
     ),
-    kh_decreed(
-        "Royal Ploughing Ceremony",
-        "ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល",
-        KH_DECREED.named("Royal Ploughing Ceremony"),
-    ),
+    KH_PLOUGHING[0],
+    KH_PLOUGHING[1],
+    KH_PLOUGHING[2],
+    KH_PLOUGHING[3],
+    KH_PLOUGHING[4],
     HolidayRule::fixed_public(
         "Queen Mother Norodom Monineath Sihanouk's Birthday",
         "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម សម្តេចព្រះមហាក្សត្រី នរោត្តម មុនិនាថ សីហនុ",
         Rule::gregorian(6, 18),
     ),
     HolidayRule::fixed_public("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", Rule::gregorian(9, 24)),
-    kh_decreed("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", KH_DECREED.named("Pchum Ben")),
+    KH_PCHUM_BEN[0][0],
+    KH_PCHUM_BEN[0][1],
+    KH_PCHUM_BEN[0][2],
+    KH_PCHUM_BEN[0][3],
+    KH_PCHUM_BEN[0][4],
+    KH_PCHUM_BEN[1][0],
+    KH_PCHUM_BEN[1][1],
+    KH_PCHUM_BEN[1][2],
+    KH_PCHUM_BEN[1][3],
+    KH_PCHUM_BEN[1][4],
+    KH_PCHUM_BEN[2][0],
+    KH_PCHUM_BEN[2][1],
+    KH_PCHUM_BEN[2][2],
+    KH_PCHUM_BEN[2][3],
+    KH_PCHUM_BEN[2][4],
     HolidayRule::fixed_public(
         "Commemoration Day of King Father Norodom Sihanouk",
         "ទិវាប្រារព្ធពិធីគោរពព្រះវិញ្ញាណក្ខន្ធ ព្រះករុណាព្រះបាទសម្តេចព្រះ នរោត្តម សីហនុ",
@@ -5378,34 +5432,59 @@ static KH_RULES: &[HolidayRule] = &[
         Rule::gregorian(10, 29),
     ),
     HolidayRule::fixed_public("Independence Day", "ពិធីបុណ្យឯករាជ្យជាតិ", Rule::gregorian(11, 9)),
-    kh_decreed(
-        "Water Festival",
-        "ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ អកអំបុក",
-        KH_DECREED.named("Water Festival"),
-    ),
+    KH_WATER_FESTIVAL[0][0],
+    KH_WATER_FESTIVAL[0][1],
+    KH_WATER_FESTIVAL[0][2],
+    KH_WATER_FESTIVAL[0][3],
+    KH_WATER_FESTIVAL[0][4],
+    KH_WATER_FESTIVAL[1][0],
+    KH_WATER_FESTIVAL[1][1],
+    KH_WATER_FESTIVAL[1][2],
+    KH_WATER_FESTIVAL[1][3],
+    KH_WATER_FESTIVAL[1][4],
+    KH_WATER_FESTIVAL[2][0],
+    KH_WATER_FESTIVAL[2][1],
+    KH_WATER_FESTIVAL[2][2],
+    KH_WATER_FESTIVAL[2][3],
+    KH_WATER_FESTIVAL[2][4],
+    // Not in the sub-decrees for 2021 and 2022, in those for 2024 to
+    // 2027; 2023's was not read.
+    HolidayRule::fixed_public("Peace Day in Cambodia", "ទិវាសន្តិភាពនៅកម្ពុជា", Rule::UNREAD)
+        .years(Some(2023), Some(2023)),
     HolidayRule::fixed_public(
         "Peace Day in Cambodia",
         "ទិវាសន្តិភាពនៅកម្ពុជា",
         Rule::gregorian(12, 29),
-    ),
+    )
+    .years(Some(2024), None),
 ];
 
 /// Cambodia — the days off the Royal Government's annual sub-decree on the
 /// holiday calendar of civil servants, employees and workers
 /// (អនុក្រឹត្យស្តីពីប្រតិទិនឈប់សម្រាកការងារ) gives, as the sub-decrees for
-/// 2025, 2026 and 2027 list them.
+/// 2021, 2022 and 2024 to 2027 list them.
 ///
-/// Eleven days fall on the same Gregorian date in all three and are carried
-/// as fixed dates: New Year, Victory over Genocide Day, Women's Day, Labour
+/// Ten days fall on the same Gregorian date in all six and are carried as
+/// fixed dates: New Year, Victory over Genocide Day, Women's Day, Labour
 /// Day, the King's and the Queen Mother's birthdays, Constitution Day, the
-/// King Father's commemoration, the Coronation, Independence Day and Peace
-/// Day. They are the present-day list, not a history: each year's list is its
-/// own sub-decree, earlier ones differed, and none before 2025 was read.
+/// King Father's commemoration, the Coronation and Independence Day. They
+/// are the present-day list, not a history: each year's list is its own
+/// sub-decree, earlier ones differed, and none before 2021 was read. Peace
+/// Day, 29 December, is in the sub-decrees from 2024 and not in those for
+/// 2021 and 2022, so it is carried from 2024 and 2023 is a gap.
 ///
-/// Khmer New Year, Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and
-/// the Water Festival are dated on the Khmer lunisolar calendar, or by the
-/// palace, and the crate has neither: they are the three sub-decrees' dates,
-/// and a year outside 2025–2027 reports them as a gap.
+/// Visak Bochea, the Royal Ploughing Ceremony, Pchum Ben and the Water
+/// Festival are dated on the Khmer lunisolar calendar, `khmer`: Visak
+/// Bochea on 15 keit Pisakh, the Ploughing Ceremony on 4 roaj Pisakh, Pchum
+/// Ben on 14 and 15 roaj Photrobot and 1 keit Assoch, and the Water
+/// Festival on 14 and 15 keit and 1 roaj Kadeuk, which is where the
+/// calendar puts every one of the sub-decrees' days in the six years read.
+/// Those years are exact, and every other year is the calendar's
+/// prediction, marked approximate: the Royal Government lists the days
+/// each year, and the Ploughing Ceremony is the day the palace sets. Khmer
+/// New Year is the solar New Year's, which the crate's Khmer calendar does
+/// not compute; it is the sub-decrees' dates, and 2023 and any year outside
+/// 2021–2027 report it as a gap.
 ///
 /// Nothing moves off the weekend. The Ministry of Labour's guideline
 /// No. 028/22 of 5 May 2022 states that, under article 162 (new) of the
@@ -5423,18 +5502,23 @@ pub static CAMBODIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: KH_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Royal Government of Cambodia, the sub-decrees (អនុក្រឹត្យ) on the holiday \
-              calendar of civil servants, employees and workers: No. 204 អនក្រ.បក of \
-              August 2024 for 2025, as the images Commerce Cambodia posted \
-              (commerce-cambodia.com); No. 167 អនក្រ.បក of 5 September 2025 for 2026, from \
-              the Ministry of Labour and Vocational Training (mlvt.gov.kh); No. 198 \
+              calendar of civil servants, employees and workers: for 2021 and 2022, as \
+              the Office of the Council of Ministers' Press and Quick Reaction Unit \
+              posted their pages (pressocm.gov.kh/archives/67153 and 71616, of 27 August \
+              2020 and 23 August 2021), and No. 02 អនក្រ.បក of January 2024 for 2024, which \
+              repealed No. 230 of 2023 (pressocm.gov.kh/archives/89988), read 2026-09-29; \
+              No. 204 អនក្រ.បក of August 2024 for 2025, as the images Commerce Cambodia \
+              posted (commerce-cambodia.com); No. 167 អនក្រ.បក of 5 September 2025 for 2026, \
+              from the Ministry of Labour and Vocational Training (mlvt.gov.kh); No. 198 \
               អនក្រ.បក of 16 September 2026 for 2027, as the images DAP News posted \
-              (dap-news.com) — all retrieved 2026-09-23, with the Khmer names; the \
+              (dap-news.com) — the three retrieved 2026-09-23, with the Khmer names; the \
               Ministry of Labour and Vocational Training's guideline No. 028/22 of \
               5 May 2022 on paid holidays falling on a Sunday (mlvt.gov.kh), and the \
               Council for the Development of Cambodia's summary of articles 146 and \
-              147 of the Labour Law (cdc.gov.kh), retrieved 2026-09-23",
+              147 of the Labour Law (cdc.gov.kh), retrieved 2026-09-23; the lunar days \
+              on `khmer`, whose sources docs/systems/khmer-chhankitek.md gives",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5839,7 +5923,7 @@ const fn bt(name: &'static str, entry: ListedEntry) -> HolidayRule {
 }
 
 /// [`bt`], restricted to the lists' years.
-const fn bt_read(name: &'static str, entry: ListedEntry) -> HolidayRule {
+pub(super) const fn bt_read(name: &'static str, entry: ListedEntry) -> HolidayRule {
     bt(name, entry).years(Some(BT_FIRST as i32), Some(BT_LAST as i32))
 }
 
@@ -5848,7 +5932,7 @@ const fn bt_read(name: &'static str, entry: ListedEntry) -> HolidayRule {
 /// publishes each year's list, and in 2003 its calendar put Losar a day
 /// before the arithmetic. A year in which the day is skipped or repeated
 /// is a gap; see [`Rule::TibetanDay`].
-const fn bt_predicted(
+pub(super) const fn bt_predicted(
     name: &'static str,
     month: TibetanMonth,
     day: u8,
@@ -5897,7 +5981,7 @@ const BT_FIRST_SERMON: &str = "First Sermon of Lord Buddha";
 /// The Descending Day.
 const BT_DESCENDING_DAY: &str = "Descending Day of Lord Buddha";
 
-static BT_RULES: &[HolidayRule] = &[
+pub(super) static BT_RULES: &[HolidayRule] = &[
     bt("Winter Solstice", BT_LISTED.named("Winter Solstice")),
     // 1st day of the 12th month.
     bt_read(BT_OFFERING, BT_LISTED.named("Traditional Day of Offering")),
@@ -6008,9 +6092,10 @@ static BT_RULES: &[HolidayRule] = &[
 /// Indian rule puts on 20 October 2026, a day before the list. The three
 /// are taken from the lists, and a year outside 2025–2026 reports them as
 /// a gap. The lists' Thimphu Drubchoe and Thimphu Tshechu are for Thimphu
-/// only, and the other districts' tshechu days are "confirmed by the
-/// respective Dzongkhag Administration"; none is carried. The names are the
-/// lists' English ones, the 2025 list's "Losar Wood Female Dragon Year"
+/// only, and are carried in `BT-15` in the same way as the lunar days
+/// ([`super::bhutan`]); the other districts' tshechu days are "confirmed by
+/// the respective Dzongkhag Administration", and none was read or is
+/// carried. The names are the lists' English ones, the 2025 list's "Losar Wood Female Dragon Year"
 /// among them shortened to Losar.
 ///
 /// The weekend is Saturday and Sunday, the civil service's "weekly off
@@ -6020,12 +6105,12 @@ static BT_RULES: &[HolidayRule] = &[
 pub static BHUTAN: RuleSet = RuleSet {
     code: "BT",
     english_name: "Bhutan",
-    rules: BT_RULES,
+    rules: &super::bhutan::RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Ministry of Home Affairs, \"Government Holidays list\" for the Wood Female \
               Snake year 2025 and for the Wood Female Snake and Fire Male Horse years \
               2025-2026, in the Ministry's calendars Calendar_2025.pdf and calender-2026.pdf \
@@ -6034,7 +6119,9 @@ pub static BHUTAN: RuleSet = RuleSet {
               section 8.7.5, as the Internet Archive holds it, captured 2024-01-18, \
               rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23; Janson, \
               \"Tibetan calendar mathematics\" (arXiv:1401.6285), Appendix A.4, A.13 and \
-              section 11, for the calendar, the Winter Solstice and Losar 2003",
+              section 11, for the calendar, the Winter Solstice and Losar 2003; the \
+              Ministry's notification of 7 September 2021, \"Change of dates for Thimphu \
+              Dromche and Tshechu\" (moha.gov.bt/?p=3949), retrieved 2026-09-29",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

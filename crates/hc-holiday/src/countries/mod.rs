@@ -1,7 +1,7 @@
 //! The national tables.
 //!
 //! Every country here is a [`RuleSet`] value — a name, a list of
-//! [`HolidayRule`](crate::rule::HolidayRule)s, the weekend and substitution
+//! [`HolidayRule`]s, the weekend and substitution
 //! law that modifies them, the date the sources were last checked and the
 //! statute or gazette they came from. None of them contributes a line of
 //! logic.
@@ -27,14 +27,19 @@
 //! set — `region = None` — returns only the rules with no subdivision
 //! scoping, never the union of every subdivision's rules.
 
-use crate::rule::RuleSet;
+use crate::rule::{HolidayRule, RuleSet};
 
 pub mod africa_middle_east;
 pub mod americas;
 pub mod asia;
+pub mod bhutan;
 pub mod europe;
+pub mod india;
 pub mod japan;
+pub mod new_zealand;
 pub mod oceania;
+pub mod solomon_islands;
+pub mod vanuatu;
 
 pub use africa_middle_east::{
     ALGERIA, ANGOLA, BAHRAIN, BENIN, BOTSWANA, BURKINA_FASO, BURUNDI, CABO_VERDE, CAMEROON, CHAD,
@@ -271,6 +276,31 @@ pub static ALL: &[&RuleSet] = &[
     &ZAMBIA,
     &ZIMBABWE,
 ];
+
+/// A country's nationwide rules followed by its subdivisions' own, as one
+/// array: how a table whose subdivisions' days live in a file of their own
+/// ([`new_zealand`], [`india`]) gives the engine the one list of rules it
+/// takes. `N` is the two lengths together; a const evaluation of any other
+/// fails to compile.
+pub(crate) const fn joined<const N: usize>(
+    nationwide: &[HolidayRule],
+    subdivisions: &[HolidayRule],
+) -> [HolidayRule; N] {
+    assert!(nationwide.len() + subdivisions.len() == N);
+    assert!(!nationwide.is_empty());
+    let mut out = [nationwide[0]; N];
+    let mut index = 0;
+    while index < nationwide.len() {
+        out[index] = nationwide[index];
+        index += 1;
+    }
+    let mut own = 0;
+    while own < subdivisions.len() {
+        out[index + own] = subdivisions[own];
+        own += 1;
+    }
+    out
+}
 
 /// The table for an ISO 3166-1 alpha-2 country code, by
 /// [`hc_core::catalogue::matches`].
