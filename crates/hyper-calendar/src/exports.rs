@@ -843,7 +843,7 @@ macro_rules! exports {
             /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
             /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
             /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
-            /// writes it (令和8年9月21日, 癸卯年闰二月初一), the locale used, and
+            /// writes it (令和8年9月21日, 2023癸卯年闰二月初一), the locale used, and
             /// which civil day names a day that does not begin at midnight (`start`
             /// for the one it begins on, `end` for the one it ends on, empty for
             /// midnight). A
@@ -872,7 +872,7 @@ macro_rules! exports {
             /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
             /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
             /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
-            /// writes it (令和8年9月21日, 癸卯年闰二月初一), the locale used, and
+            /// writes it (令和8年9月21日, 2023癸卯年闰二月初一), the locale used, and
             /// which civil day names a day that does not begin at midnight (`start`
             /// for the one it begins on, `end` for the one it ends on, empty for
             /// midnight). A
@@ -1008,7 +1008,8 @@ macro_rules! exports {
             /// line: its date columns, standing, formatted date and fixed day are
             /// empty, and the error columns say why — `ambiguous` (103),
             /// `two-digit-year` (104), `year-not-written` (105),
-            /// `weekday-mismatch` (106), `not-recognised` (102) or `empty` (101),
+            /// `weekday-mismatch` (106), `field-mismatch` (107),
+            /// `not-recognised` (102) or `empty` (101),
             /// or the calendar's own code and name for fields it has no day for.
             /// Writes the required length, including the terminator, into
             /// `written`.
@@ -1029,7 +1030,8 @@ macro_rules! exports {
             /// is still a line: its date columns, standing, formatted date and
             /// fixed day are empty, and the error columns say why — `ambiguous`
             /// (103), `two-digit-year` (104), `year-not-written` (105),
-            /// `weekday-mismatch` (106), `not-recognised` (102) or `empty` (101),
+            /// `weekday-mismatch` (106), `field-mismatch` (107),
+            /// `not-recognised` (102) or `empty` (101),
             /// or the calendar's own code and name for fields it has no day for.
             /// A null `buffer` returns the length the text needs.
         }

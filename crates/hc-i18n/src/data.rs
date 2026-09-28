@@ -512,6 +512,19 @@ const HEBREW_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The Hebrew date in Hebrew: CLDR 48 `he.xml`, `calendar type="hebrew"`,
+/// writes every length of its date, "d בMMMM y", with `numbers="hebr"`,
+/// the day and the year in Hebrew numerals as `common/rbnf/root.xml`'s
+/// `%hebrew` rules spell them (`cldr48-rbnf`): י״ז בתשרי ה׳תשפ״ז. The
+/// thousands a reader may leave out, תשפ״ז, are those of the present
+/// millennium, which Wikipedia's "Hebrew numerals" gives as five
+/// (`wikipedia-hebrew-numerals`).
+const HE_HEBREW_TEMPLATES: DateTemplates = DateTemplates {
+    date: "{day:hebr} ב{month} {year:hebr}",
+    omitted_thousands: 5_000,
+    ..HEBREW_TEMPLATES
+};
+
 /// The English Hebrew date, day before month, as CLDR 48 `en.xml`,
 /// `calendar type="hebrew"`, writes its long form, "d MMMM y": 16 Tishri
 /// 5787.
@@ -710,17 +723,20 @@ const UR_TEMPLATES: DateTemplates = DateTemplates {
 };
 
 /// The Chinese calendar's year and day as Chinese writes them: the year by
-/// its stem and branch (CLDR 48 `zh.xml`, `calendar type="chinese"`, whose
-/// `y` item is "U年", the cyclic year name) and the day of the month by the
+/// the related Gregorian year and its stem and branch (CLDR 48 `zh.xml` and
+/// `zh_Hant.xml`, `calendar type="chinese"`, whose `y` item is "rU年", r
+/// the related Gregorian year and U the cyclic year name, and whose long
+/// and medium dates are "rU年MMMd"), and the day of the month by the
 /// `hanidays` numbering system (`supplemental/numberingSystems.xml`,
 /// "Han-character day-of-month numbering for lunar/other traditional
-/// calendars": 初一 … 三十), with the date "U年MMMd" — 癸卯年闰二月初一.
-/// The same characters serve both scripts. `yue.xml` and `yue_Hans.xml`
-/// write the year "rU年", the related Gregorian year before the cyclic one;
-/// no placeholder here writes the related year, so the Cantonese entries
-/// take the cyclic year alone.
+/// calendars": 初一 … 三十) — 2023癸卯年闰二月初一, 2026丙午年八月十八. The
+/// same characters serve both scripts, and `yue.xml` and `yue_Hans.xml`
+/// state the same `y` item; their long date, "U (r) 年MMMd", which puts
+/// the related year after the cyclic one, is not carried. A date the
+/// renderer gives no related year is written by its stem and branch alone,
+/// 癸卯年, as the files' "U年MMMd" item writes it.
 const CHINESE_TEMPLATES: DateTemplates = DateTemplates {
-    year: "{sexagenary}年",
+    year: "{extra:related-gregorian-year}{sexagenary}年",
     day: "{day}",
     date: "{year}{month}{day}",
     day_names: HANIDAYS,
@@ -761,10 +777,14 @@ const JA_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
-/// The Dangi year in Korean: by its stem and branch in Hangul, 계묘년
-/// (CLDR 48 `ko.xml`, `calendar type="dangi"`, whose `y` item is "U년").
+/// The Dangi year in Korean: by the related Gregorian year and its stem and
+/// branch in Hangul, 2026년(병오년) (CLDR 48 `ko.xml`, `calendar
+/// type="chinese"`, which its `dangi` inherits, whose `y` item is
+/// "r년(U년)", and whose `yyyyMMMMd` is "r년(U년) MMMM d일"). The long date,
+/// "U년 MMM d일", writes the stem and branch alone, 병오년 8월 18일, and a
+/// reader reads it as a year the text does not write.
 const KO_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
-    year: "{sexagenary}년",
+    year: "{extra:related-gregorian-year}년({sexagenary}년)",
     date: "{year} {month} {day}",
     ..DateTemplates::NONE
 };
@@ -3816,8 +3836,9 @@ const HE_CALENDARS: &[CalendarNames] = &[
         in_leap_years: &[(6, "אדר ב׳")],
     })
     // The year alone, as in English: CLDR 48 `he.xml`, `calendar
-    // type="hebrew"`, formats a date as "d בMMMM y" with no era.
-    .with_templates(HEBREW_TEMPLATES),
+    // type="hebrew"`, formats a date as "d בMMMM y" with no era, and in
+    // Hebrew numerals.
+    .with_templates(HE_HEBREW_TEMPLATES),
     // The Minguo eras as CLDR 48 `he.xml` names them (`contributed`): wide
     // "לפני הרפובליקה של סין" and "לספירת הרפובליקה של סין"; abbreviated
     // "לפני R.O.C" and, by the marker, root's "ROC", which the narrow width
@@ -4570,8 +4591,8 @@ const KO: LocaleData = LocaleData {
         // The Dangi calendar's months are numbered, 1월 … 12월, as CLDR 48
         // `ko.xml` `calendar type="dangi"` numbers them; an intercalary month
         // is 윤 before the number (its `monthPatterns`, leap "윤{0}"); the year
-        // is written by its stem and branch in Hangul, as `KO_CHINESE_TEMPLATES`
-        // states. The Chinese and Vietnamese calendars share the forms.
+        // is written by the related Gregorian year and its stem and branch in
+        // Hangul, as `KO_CHINESE_TEMPLATES` states. The Chinese and Vietnamese calendars share the forms.
         lunisolar(
             CHINESE_FAMILY_CALENDARS,
             &[months(&[

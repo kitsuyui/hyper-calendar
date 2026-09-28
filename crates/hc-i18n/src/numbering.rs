@@ -19,8 +19,14 @@
 //! No grouping separators, no decimal separator, no sign other than an
 //! ASCII hyphen, no currency and no rule-based spellout of ordinals: a
 //! calendar field is an integer, and the surrounding pattern is
-//! `hc-format`'s problem. Hebrew and Greek alphabetic numerals, and the
-//! Chinese counting-rod and `hanidays` systems, are not implemented.
+//! `hc-format`'s problem. Greek alphabetic numerals, and the Chinese
+//! counting-rod and `hanidays` systems, are not implemented.
+//!
+//! Hebrew numerals, `hebr`, are the third kind: letters whose values add,
+//! 17 as י״ז, written as CLDR 48's rule-based number format spells them
+//! (`common/rbnf/root.xml`, the `%hebrew` rules that `numberingSystems.xml`
+//! names for `hebr`, `cldr48-rbnf`). `docs/systems/hebrew-numerals.md` in
+//! the repository gives the rules and the conventions of reading them.
 
 use core::fmt;
 
@@ -34,6 +40,9 @@ enum Kind {
     Positional(&'static [char; 10]),
     /// Han numerals, spelled out with unit words.
     Han(&'static HanStyle),
+    /// Hebrew numerals: letters whose values add, with a geresh or
+    /// gershayim marking the number.
+    Hebrew,
 }
 
 /// The pieces a Han numeral style is built from.
@@ -192,6 +201,10 @@ pub static ALL: &[NumberingSystem] = &[
         kind: Kind::Han(&HANT_STYLE),
     },
     NumberingSystem {
+        id: "hebr",
+        kind: Kind::Hebrew,
+    },
+    NumberingSystem {
         id: "jpan",
         kind: Kind::Han(&JPAN_STYLE),
     },
@@ -256,7 +269,7 @@ impl NumberingSystem {
     /// Whether the system spells numbers out rather than substituting digits.
     #[must_use]
     pub const fn is_algorithmic(&self) -> bool {
-        matches!(self.kind, Kind::Han(_))
+        matches!(self.kind, Kind::Han(_) | Kind::Hebrew)
     }
 
     /// The ten digits, for a positional system.
@@ -264,7 +277,7 @@ impl NumberingSystem {
     pub const fn digits(&self) -> Option<&'static [char; 10]> {
         match self.kind {
             Kind::Positional(digits) => Some(digits),
-            Kind::Han(_) => None,
+            Kind::Han(_) | Kind::Hebrew => None,
         }
     }
 
@@ -279,6 +292,7 @@ impl NumberingSystem {
         match self.kind {
             Kind::Positional(digits) => write_positional(digits, value, out),
             Kind::Han(style) => write_han(style, value, out),
+            Kind::Hebrew => hebrew::write(value, out),
         }
     }
 
@@ -305,6 +319,7 @@ impl NumberingSystem {
         match self.kind {
             Kind::Positional(digits) => parse_positional(digits, text),
             Kind::Han(style) => parse_han(style, text),
+            Kind::Hebrew => hebrew::parse(text),
         }
     }
 }
@@ -501,6 +516,20 @@ fn parse_han(style: &HanStyle, text: &str) -> I18nResult<i64> {
     total += section + pending.unwrap_or(0);
     let signed = if negative { -total } else { total };
     i64::try_from(signed).map_err(|_| I18nError::NumberOutOfRange)
+}
+
+mod hebrew;
+
+/// Whether a character of a text is the one written, or the one a reader
+/// types for it: an apostrophe for the Hebrew geresh ׳, as UTS #35's
+/// loose matching allows (`uts35-v48`, "Lenient Parsing"), and a
+/// quotation mark for the gershayim ״, which Wikipedia's "Gershayim"
+/// describes as the usual substitute (`wikipedia-gershayim`). A reader of
+/// a Hebrew date matches both the numerals and the names by it: י"ז
+/// באדר א'.
+#[must_use]
+pub fn same_typed_mark(written: char, typed: char) -> bool {
+    hebrew::same_mark(written, typed)
 }
 
 /// Write a Japanese era year, using 元 for the first year of the era.
@@ -711,6 +740,87 @@ mod tests {
             Err(I18nError::InvalidNumber)
         );
         assert_eq!(jpan.parse_integer(""), Err(I18nError::InvalidNumber));
+    }
+
+    /// CLDR 48's `%hebrew` rules, and the dates of Wikipedia's "Hebrew
+    /// numerals": ט״ו באדר ה׳תשס״ד, 15 Adar 5764, and the years 5760 to
+    /// 5786 of its table.
+    #[test]
+    fn hebrew_numerals_are_written_as_cldr_spells_them() {
+        for (value, text) in [
+            (1, "א׳"),
+            (10, "י׳"),
+            (15, "ט״ו"),
+            (16, "ט״ז"),
+            (17, "י״ז"),
+            (20, "כ׳"),
+            (28, "כ״ח"),
+            (30, "ל׳"),
+            (100, "ק׳"),
+            (115, "קט״ו"),
+            (120, "ק״כ"),
+            (298, "רח״צ"),
+            (304, "ד״ש"),
+            (500, "ת״ק"),
+            (744, "תשד״מ"),
+            (780, "תש״ף"),
+            (787, "תשפ״ז"),
+            (1_000, "אלף"),
+            (2_000, "אלפיים"),
+            (3_000, "ג׳ אלפים"),
+            (5_760, "ה׳תש״ס"),
+            (5_764, "ה׳תשס״ד"),
+            (5_770, "ה׳תש״ע"),
+            (5_785, "ה׳תשפ״ה"),
+            (5_787, "ה׳תשפ״ז"),
+            (9_999, "ט׳תתקצ״ט"),
+        ] {
+            assert_eq!(render("hebr", value), text, "{value}");
+            assert_eq!(read("hebr", text), value, "{text}");
+        }
+        // A round thousand from four thousand is its number of thousands
+        // with the geresh, and reads as that number: ה׳ is 5 and 5 000.
+        assert_eq!(render("hebr", 5_000), "ה׳");
+        assert_eq!(read("hebr", "ה׳"), 5);
+    }
+
+    #[test]
+    fn hebrew_numerals_round_trip_and_read_typed_marks() {
+        let hebr = NumberingSystem::from_id("hebr").unwrap();
+        assert!(hebr.is_algorithmic());
+        assert!(hebr.digits().is_none());
+        for value in 1..=9_999 {
+            let text = hebr.format_integer(value).unwrap();
+            let expected = if value > 3_000 && value % 1_000 == 0 {
+                value / 1_000
+            } else {
+                value
+            };
+            assert_eq!(hebr.parse_integer(&text), Ok(expected), "{text}");
+            let typed: String = text
+                .chars()
+                .map(|character| match character {
+                    '׳' => '\'',
+                    '״' => '"',
+                    other => other,
+                })
+                .collect();
+            assert_eq!(hebr.parse_integer(&typed), Ok(expected), "{typed}");
+        }
+        for value in [0, -1, 10_000] {
+            assert_eq!(hebr.format_integer(value), Err(I18nError::NumberOutOfRange));
+        }
+        // The older 15, a number out of the rules' order, and not a number.
+        for text in ["י״ה", "ז״י", "תש״פ", "", "abc", "5787"] {
+            assert_eq!(
+                hebr.parse_integer(text),
+                Err(I18nError::InvalidNumber),
+                "{text}"
+            );
+        }
+        assert!(same_typed_mark('׳', '\''));
+        assert!(same_typed_mark('״', '"'));
+        assert!(!same_typed_mark('\'', '׳'));
     }
 
     #[test]

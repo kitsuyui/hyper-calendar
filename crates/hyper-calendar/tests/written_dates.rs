@@ -116,8 +116,9 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "year-not-written",
         "the day's stem and branch recur every 60 days",
     ),
-    // The year by its stem and branch alone, as the Chinese, Japanese
-    // and Korean templates write it: 癸卯年 recurs every sixty years.
+    // The year by its stem and branch alone, as the Japanese template
+    // writes it: 癸卯年 recurs every sixty years. Chinese and Korean write
+    // the related Gregorian year before it, 2026丙午年, and read back.
     (
         "chinese",
         "year-not-written",
@@ -468,6 +469,202 @@ fn written_dates_read_as_their_days() {
     assert_eq!((fields.era, fields.year), (Some("reiwa"), 8));
 }
 
+/// The Hebrew calendar in Hebrew, in Hebrew numerals as CLDR 48 `he.xml`
+/// writes it (docs/systems/hebrew-numerals.md): with the thousands, as the
+/// formatter writes it; without them, as Wikipedia's "Hebrew numerals" says
+/// writers usually do; with the marks typed; and in digits.
+#[test]
+fn hebrew_dates_read_in_hebrew_numerals() {
+    let registry = hyper_calendar::registry();
+    let he: Locale = "he".parse().expect("a tag");
+    for id in ["hebrew", "hebrew-observational"] {
+        let calendar = registry.get_by_name(id).expect("registered");
+        let fields = calendar.fixed_to_fields(TODAY).expect("in range");
+        let text = label::date(calendar, &fields, &he);
+        assert!(text.ends_with("בתשרי ה׳תשפ״ז"), "{id} {text}");
+        assert_eq!(read(id, "he", &text).map(|(day, _)| day), Ok(TODAY), "{id}");
+    }
+    assert_eq!(
+        label::date(
+            registry.get_by_name("hebrew").expect("registered"),
+            &DateFields::ymd(5787, 1, 17).with_era("am"),
+            &he
+        ),
+        "י״ז בתשרי ה׳תשפ״ז"
+    );
+    for text in [
+        "י״ז בתשרי ה׳תשפ״ז",
+        "י״ז בתשרי תשפ״ז",
+        "י\"ז בתשרי תשפ\"ז",
+        "י\"ז בתשרי ה'תשפ\"ז",
+        "17 בתשרי 5787",
+        "יום שני, י״ז בתשרי תשפ״ז",
+    ] {
+        assert_eq!(
+            read("hebrew", "he", text).map(|(day, _)| day),
+            Ok(TODAY),
+            "{text}"
+        );
+    }
+    // Wikipedia's examples, in full and in common usage: Monday, 15 Adar
+    // 5764, 8 March 2004, and Thursday, 3 Nisan 5767, 22 March 2007.
+    let adar = day_of("gregory", DateFields::ymd(2004, 3, 8));
+    let nisan = day_of("gregory", DateFields::ymd(2007, 3, 22));
+    for (text, day) in [
+        ("יום שני ט״ו באדר ה׳תשס״ד", adar),
+        ("יום שני ט״ו באדר תשס״ד", adar),
+        ("יום חמישי ג׳ בניסן ה׳תשס״ז", nisan),
+        ("יום חמישי ג׳ בניסן תשס״ז", nisan),
+    ] {
+        assert_eq!(
+            read("hebrew", "he", text).map(|(day, _)| day),
+            Ok(day),
+            "{text}"
+        );
+    }
+    assert_eq!(
+        read("hebrew", "he", "יום שלישי ט״ו באדר תשס״ד"),
+        Err(DateRefusal::WeekdayMismatch {
+            written: Weekday::Tuesday,
+            actual: Weekday::Monday
+        })
+    );
+    // 16 as ט״ז; the older י״ו, and a day without its year, are refused.
+    let sixteenth = Rd(TODAY.0 - 1);
+    assert_eq!(
+        read("hebrew", "he", "ט״ז בתשרי תשפ״ז").map(|(day, _)| day),
+        Ok(sixteenth)
+    );
+    assert!(matches!(
+        read("hebrew", "he", "י״ו בתשרי תשפ״ז"),
+        Err(DateRefusal::NotRecognised { .. })
+    ));
+    assert_eq!(
+        read("hebrew", "he", "י״ז בתשרי"),
+        Err(DateRefusal::YearNotWritten)
+    );
+    // A year whose numerals would read as one of the sixth millennium is
+    // written in digits: AM 1, not א׳, which reads as AM 5001.
+    let hebrew = registry.get_by_name("hebrew").expect("registered");
+    let first = hebrew.meta().earliest.expect("bounded");
+    let fields = hebrew.fixed_to_fields(first).expect("in range");
+    assert_eq!(label::date(hebrew, &fields, &he), "א׳ בתשרי 1");
+    let later = day_of("hebrew", DateFields::ymd(5001, 1, 1).with_era("am"));
+    assert_eq!(
+        read("hebrew", "he", "א׳ בתשרי א׳").map(|(day, _)| day),
+        Ok(later)
+    );
+}
+
+/// What a date may leave out: an era its calendar has only one of, ۶ مهر
+/// ۱۴۰۵ for ۶ مهر ۱۴۰۵ ه.ش.; and not an era of a calendar that has two, nor
+/// the year, 9月28日, which is refused as unwritten rather than unread.
+#[test]
+fn a_date_may_leave_out_an_only_era_and_not_its_year() {
+    for text in ["۶ مهر ۱۴۰۵", "6 مهر 1405"] {
+        assert_eq!(
+            read("persian", "fa", text).map(|(day, _)| day),
+            Ok(TODAY),
+            "{text}"
+        );
+    }
+    assert_eq!(
+        read("persian", "en", "Mehr 6, 1405").map(|(day, _)| day),
+        Ok(TODAY)
+    );
+    // The Ethiopic calendar counts two eras, Amätä Məḥrät and Amätä Aläm.
+    assert_eq!(
+        read("ethiopic", "en", "Mäskäräm 18, 2019 Amätä Məḥrät").map(|(day, _)| day),
+        Ok(TODAY)
+    );
+    assert!(read("ethiopic", "en", "Mäskäräm 18, 2019").is_err());
+    for (calendar, tag, text) in [
+        ("gregory", "ja", "9月28日"),
+        ("gregory", "ja", "九月二十八日"),
+        ("gregory", "en", "September 28"),
+        ("gregory", "en", "Monday, September 28"),
+        ("gregory", "de", "28. September"),
+        ("persian", "fa", "۶ مهر"),
+        ("japanese", "ja", "9月28日"),
+    ] {
+        assert_eq!(
+            read(calendar, tag, text),
+            Err(DateRefusal::YearNotWritten),
+            "{calendar} {tag} {text}"
+        );
+    }
+}
+
+/// The Chinese calendar's year by the related Gregorian year and its stem
+/// and branch, as CLDR 48's `zh.xml`, `zh_Hant.xml`, `yue.xml` and
+/// `yue_Hans.xml` write it, "rU年", and `ko.xml`, "r년(U년)"; the two must
+/// agree, or the text is refused as contradicting itself.
+#[test]
+fn the_chinese_year_is_read_by_its_related_gregorian_year() {
+    let registry = hyper_calendar::registry();
+    for id in ["chinese", "dangi", "vietnamese"] {
+        let calendar = registry.get_by_name(id).expect("registered");
+        let fields = calendar.fixed_to_fields(TODAY).expect("in range");
+        for (tag, text) in [
+            ("zh-Hans", "2026丙午年八月十八"),
+            ("zh-Hant", "2026丙午年八月十八"),
+            ("yue-Hans", "2026丙午年八月十八"),
+            ("yue-Hant", "2026丙午年八月十八"),
+            ("ko", "2026년(병오년) 8월 18일"),
+        ] {
+            let locale: Locale = tag.parse().expect("a tag");
+            assert_eq!(label::date(calendar, &fields, &locale), text, "{id} {tag}");
+            assert_eq!(
+                read(id, tag, text).map(|(day, _)| day),
+                Ok(TODAY),
+                "{id} {tag}"
+            );
+        }
+        for (tag, text) in [
+            ("zh-Hans", "2025丙午年八月十八"),
+            ("zh-Hant", "2026乙巳年八月十八"),
+            ("ko", "2026년(을사년) 8월 18일"),
+        ] {
+            assert_eq!(
+                read(id, tag, text),
+                Err(DateRefusal::FieldMismatch),
+                "{id} {tag} {text}"
+            );
+        }
+        // English writes the Chinese and Dangi years as CLDR's `en.xml`
+        // does, "r(U)", and the Vietnamese year by its number alone.
+        if id != "vietnamese" {
+            assert_eq!(
+                read(id, "en", "Eighth Month 18, 2025(bing-wu)"),
+                Err(DateRefusal::FieldMismatch),
+                "{id}"
+            );
+        }
+        // Japanese writes the stem and branch alone, as CLDR's `ja.xml`
+        // does, and 丙午 recurs.
+        assert_eq!(
+            read(id, "ja", "丙午年八月18日"),
+            Err(DateRefusal::YearNotWritten),
+            "{id}"
+        );
+        assert_eq!(
+            read(id, "zh-Hans", "丙午年八月十八"),
+            Err(DateRefusal::YearNotWritten)
+        );
+    }
+    // 2023癸卯年闰二月初一, the first day of the leap second month, 22 March
+    // 2023.
+    let leap = day_of("gregory", DateFields::ymd(2023, 3, 22));
+    let chinese = registry.get_by_name("chinese").expect("registered");
+    let fields = chinese.fixed_to_fields(leap).expect("in range");
+    let zh: Locale = "zh-Hans".parse().expect("a tag");
+    assert_eq!(label::date(chinese, &fields, &zh), "2023癸卯年闰二月初一");
+    assert_eq!(
+        read("chinese", "zh-Hans", "2023癸卯年闰二月初一").map(|(day, _)| day),
+        Ok(leap)
+    );
+}
+
 /// Each refusal, on a text that earns it.
 #[test]
 fn a_text_that_is_not_one_day_is_refused_with_the_reason() {
@@ -498,6 +695,16 @@ fn a_text_that_is_not_one_day_is_refused_with_the_reason() {
     // 癸卯年 is every sixtieth year.
     assert_eq!(
         read("chinese", "zh-Hans", "癸卯年闰二月初一"),
+        Err(DateRefusal::YearNotWritten)
+    );
+    // 2025 is 乙巳, not 丙午.
+    assert_eq!(
+        read("chinese", "zh-Hans", "2025丙午年八月十八"),
+        Err(DateRefusal::FieldMismatch)
+    );
+    // No year: 9月28日 is every year's.
+    assert_eq!(
+        read("gregory", "ja", "9月28日"),
         Err(DateRefusal::YearNotWritten)
     );
     // A Stata week names seven days.

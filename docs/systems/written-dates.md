@@ -61,12 +61,16 @@ match only if the calendar agrees with all of it.
      number in the reader's other numbering systems, 九月.
    - **Days and extra fields:** the locale's day names, named cycle values
      (the Pawukon's days, a Tamil year name) and the sexagenary pairs.
-   - **Numbers:** read in the locale's digits and in Latin digits, and in a
+   - **Numbers:** read in the locale's digits and in Latin digits, in a
      locale written in Han characters also as Han numerals and positional
-     Han digits. A Han numeral counts only if the system writes that value
-     the same way, so 二〇二六 is not read as six.
+     Han digits, and in any system a template names, `{year:hebr}`. A
+     numeral counts only if the system writes that value the same way, so
+     二〇二六 is not read as six. A year written in numerals with fewer than
+     four places takes the thousands a template lets it leave out: תשפ״ז is
+     5787 ([hebrew-numerals.md](hebrew-numerals.md)).
    - **An absent field:** the renderer may write nothing, so the reader
-     also tries matching nothing.
+     also tries matching nothing. A date's year is tried as absent too,
+     so 9月28日 is read, and refused as not saying which year.
 
    Literal text matches as the renderer's space-collapsing sink leaves it.
    White space covers any run of it, and a separator (`,` `、` `،`) may be
@@ -83,7 +87,9 @@ match only if the calendar agrees with all of it.
 
    Where the text leaves something out, the reader fills it in and
    checks each option:
-   - an implied era, `ad` or `am`;
+   - an implied era, `ad` or `am`, or the calendar's only era, where the
+     locale's and English's era codes for it and its own name one and no
+     other: ۶ مهر ۱۴۰۵ is in `ap`, the Solar Hijri era;
    - a leap day;
    - a day that the extra fields determine (the Burmese and Thai lunar
      half and day);
@@ -121,9 +127,26 @@ would not write it, but it says nothing the calendar contradicts.
 | `not-recognised` | 102 | no template matches; the offset is where the furthest match stopped | *September 28, 2026 at noon* |
 | `ambiguous` | 103 | two days read | 2026w39, a Stata week; *3. März 1 Man'en*, since 1860 has a leap third month that German, which has no word for it, writes as the ordinary one |
 | `two-digit-year` | 104 | the year has one or two digits, no sign and no era, the calendar's years have three digits or more on its sample day, and it has the same month and day a hundred or four hundred years on | *September 28, 26*; *September 28, 0026* reads as the year 26 |
-| `year-not-written` | 105 | the year is not written, or only by a cycle that recurs, and two probe years give different days | 癸卯年闰二月初一; a Tzolkʼin day |
+| `year-not-written` | 105 | the year is not written, or only by a cycle that recurs, and two probe years give different days | 癸卯年闰二月初一; a Tzolkʼin day; 9月28日, *September 28* |
 | `weekday-mismatch` | 106 | the weekday is not the day's | *Tuesday, September 28, 2026* |
+| `field-mismatch` | 107 | the text writes a year, a month and a day, and another field that the day with them does not have | 2025丙午年八月十八, since 2025 is 乙巳; 2026년(을사년) 8월 18일 |
 | the calendar's | 1–11 | the fields read are not a day of the calendar | *February 30, 2026*, `day-out-of-range` |
+
+A text that leaves out its year is refused as `year-not-written` only
+where no reading with a year came nearer. *September 28* is also September
+of the year 28 without a day, which the calendar refuses as
+`missing-field`. That refusal yields to the reading without the year,
+since the text left the day empty and not the year. A refusal for fields
+the renderer would not write through the template the text matched does
+not count at all. ۶ مهر read by the default template as the year 6 without
+a day is such a case.
+
+The field mismatch is reported only where the text writes the year, or
+fields that count it. Two fields that contradict each other name no day,
+and the reader does not choose which one to believe. A year the text does
+not write is instead tried on two probe years, and those years' fields do
+not match what the text wrote. That is `year-not-written`, not a
+contradiction.
 
 An era name that two of a calendar's eras share — 洪武 is both `hongwu` and
 `hongwu-1402` in `chinese-regnal`'s table — is tried as each. It is
@@ -146,6 +169,25 @@ by the caller, so a name another calendar also uses (*AD* in `julian` and
   characters, Han numerals, positional Han digits, 元 for the first year
   of an era, and the Chinese day names 初一 … 三十 for a lunisolar
   calendar whose data names none.
+- The Hebrew calendar in Hebrew, in Hebrew numerals as CLDR 48 `he.xml`
+  writes it, `numbers="hebr"` [cldr48-calendar-dates]. The formatter
+  writes the thousands, י״ז בתשרי ה׳תשפ״ז. The reader also reads them left
+  out, י״ז בתשרי תשפ״ז, in the millennium Wikipedia gives as the present
+  one [wikipedia-hebrew-numerals]; with an apostrophe and a quotation mark
+  for the geresh and gershayim, י"ז; and in digits, 17 בתשרי 5787. Names
+  match typed marks too, אדר א'. The rules, their exceptions and the
+  years written in digits instead are in
+  [hebrew-numerals.md](hebrew-numerals.md).
+- An era left out of a calendar that has only one: ۶ مهر ۱۴۰۵. An era left
+  out of a calendar with two is refused. *Mäskäräm 18, 2019* names no era
+  of the Ethiopic calendar's two.
+- The Chinese, Dangi and Vietnamese years by the related Gregorian year
+  and the stem and branch. These are the `y` items of CLDR 48 `zh.xml`,
+  `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml`, "rU年", and of `ko.xml`,
+  "r년(U년)", and the long date of the first two, "rU年MMMd"
+  [cldr48-calendar-dates]. They read 2026丙午年八月十八 and 2026년(병오년) 8월
+  18일. The two must agree, or the text is refused as `field-mismatch`.
+  English writes the year so already, *Eighth Month 18, 2026(bing-wu)*.
 - A weekday before or after the date, which must be the day's.
 - A leap month as the locale writes it, with the word the renderer puts
   before it (`hc_i18n::names::leap_month_prefix`). The Japanese era
@@ -183,8 +225,12 @@ Not carried:
 - Dates in a pattern other than the locale's own, such as *09/05/02*.
   UTS #35 resolves these by heuristics, and the reader does not guess.
 - Times of day and zones.
-- The Chinese calendar's year in Chinese, Japanese and Korean, which the
-  templates write only by its stem and branch: `year-not-written`.
+- The Chinese calendar's year in Japanese, which CLDR 48 `ja.xml` writes
+  by its stem and branch alone, "U年", and the Korean long date, "U년 MMM
+  d일", which does the same: `year-not-written`. The Cantonese long date,
+  "U (r) 年MMMd", which puts the related year after the cyclic one, is not
+  written or read.
+- Hebrew numerals with dots over the letters, or with לפ״ק after the year.
 
 ## Accuracy
 
@@ -199,12 +245,20 @@ In a release build the sweep reads 204 calendars × 55 locale settings, on
 
 | Outcome | Texts |
 | --- | ---: |
-| Read back as the day written | 81 028 |
-| `year-not-written`: cycles that recur, see below | 6 650 |
+| Read back as the day written | 81 329 |
+| `year-not-written`: cycles that recur, see below | 6 514 |
 | `missing-field`: the 819-day count's station is not written | 1 155 |
 | `two-digit-year`: years 0–99, on the calendars' first days | 1 092 |
-| `ambiguous`: see below | 825 |
+| `ambiguous`: see below | 660 |
 | Read as a wrong day | 0 |
+
+Counted 2026-09-28 on this change and on the commit before it. The commit
+before it read 81 193 texts back, with 6 650 `year-not-written` and 660
+`ambiguous`; the counts this document gave then, 81 028 and 825, were
+older than the fixes of the leap months it lists. The 136 texts gained are
+the Chinese, Dangi and Vietnamese dates in Chinese, Cantonese and Korean,
+now written with the related Gregorian year. The Hebrew dates in `he`,
+now written in Hebrew numerals, read back as before.
 
 The `year-not-written` cases are all cycles that recur:
 
@@ -212,8 +266,8 @@ The `year-not-written` cases are all cycles that recur:
   Round counts;
 - the year bearers of `mixtec-year` and `zapotec-yza`;
 - the sexagenary day;
-- the sexagenary year of `chinese`, `dangi` and `vietnamese` in the eight
-  locales that write the year by it.
+- the sexagenary year of `chinese`, `dangi` and `vietnamese` in `ja`,
+  which writes the year by it alone.
 
 The `ambiguous` cases are all texts that name more than one day:
 
@@ -259,7 +313,13 @@ either build:
   the formatter writes it in both Chinese scripts;
 - 民國115年9月28日, *28 Eylül 2026*, ٢٨ سبتمبر ٢٠٢٦ and २८ सप्टेंबर, २०२६;
 - *1 Adar II 5784*, with *1 Adar II 5785* refused, since 5785 is a common
-  year.
+  year;
+- Wikipedia's Hebrew dates [wikipedia-hebrew-numerals], in full and in
+  common usage: יום שני ט״ו באדר ה׳תשס״ד and תשס״ד, Monday 8 March 2004;
+  יום חמישי ג׳ בניסן ה׳תשס״ז and תשס״ז, Thursday 22 March 2007;
+- ۶ مهر ۱۴۰۵ without its era; 9月28日 and *September 28*, refused;
+- 2026丙午年八月十八 and 2026년(병오년) 8월 18일 in each of the three calendars,
+  2023癸卯年闰二月初一 for 22 March 2023, and 2025丙午年八月十八 refused.
 
 ## Sources
 
@@ -275,6 +335,8 @@ either build:
 | [janson2014] | The first of a doubled date "denoted 'Extra' in the almanacs", §6; no Tibetan word for the leap month in dates | Yes, 2026-09-28, the ar5iv rendering of the arXiv text |
 | [gb-t-15835-2011] | §4.2.1: Han numerals for 历史朝代纪年 and 农历月日, 清咸丰十年九月二十日 | Yes, 2026-09-28, a reproduction of the standard's text |
 | [wikipedia-zh-kangxi] | 康熙六十一年十一月十三日 and 康熙元年, in both renderings | Yes, 2026-09-28 |
+| [cldr48-calendar-dates] | `he.xml`'s Hebrew-calendar dates with `numbers="hebr"`; the `chinese` calendar's `y` items and long dates in `zh.xml`, `zh_Hant.xml`, `yue.xml`, `yue_Hans.xml`, `ja.xml` and `ko.xml`, which `dangi` inherits | Yes, 2026-09-28, those elements |
+| [wikipedia-hebrew-numerals] | The thousands left out in the present millennium, "presently 5"; the dated examples | Yes, 2026-09-28; the numerals' other sources are in [hebrew-numerals.md](hebrew-numerals.md) |
 
 The templates and names the reader walks are `hc-i18n`'s, sourced where
 they are stated. The leap-month words and the regnal numerals above are
@@ -294,7 +356,10 @@ this document's additions; the rest of the vocabulary is the locales'.
   locale's entries for the calendar, as the Japanese era calendars state
   theirs.
 - `hc-format`'s renderer: a placeholder naming a numbering system,
-  `{year:hans}`, writes the number in it.
+  `{year:hans}`, writes the number in it. `{year:hebr}` falls back to
+  digits for a year whose numerals would not read back as itself.
+- `hc-i18n`: the numbering system `hebr`, `numbering::same_typed_mark`,
+  and `names::DateTemplates::omitted_thousands`.
 - The facade: `lines::parse_date`, the export `hc_parse_date` in the
   `calendars` layer, and the binding's `parseDate`.
 - Tests:

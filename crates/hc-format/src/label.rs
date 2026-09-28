@@ -5,7 +5,7 @@
 //!
 //! A timeline lane needs a word for each box it draws — 令和元年, *Adar I*,
 //! 閏二月, 初四 — and a date needs to read as one in the language it is
-//! shown in: 令和8年9月21日, 癸卯年闰二月初一, *September 21, 2026*. The
+//! shown in: 令和8年9月21日, 2023癸卯年闰二月初一, *September 21, 2026*. The
 //! vocabulary is `hc-i18n`'s; this module is the renderer that assembles
 //! it, for any [`DynCalendar`], from the templates the locale states.
 //!
@@ -622,11 +622,29 @@ impl<'a> Renderer<'a> {
     /// regnal year that a standard writes in Han numerals in a locale
     /// that writes its other dates in Latin digits. A value the system
     /// cannot hold is written as [`Renderer::write_number`] writes it.
+    ///
+    /// A year of a date whose templates let the thousands go unwritten,
+    /// [`DateTemplates::omitted_thousands`], is written in the system only
+    /// where its numerals read back as it: ה׳תשפ״ז, and not א׳ for the year
+    /// 1 or ה׳ for 5000, which a reader takes for 5001 and 5005.
     fn write_in(&self, name: &str, system: &NumberingSystem, out: &mut dyn Write) -> fmt::Result {
         let Some(value) = self.number_of(name) else {
             return Ok(());
         };
-        if system.write_integer(value, &mut Counter).is_ok() {
+        let reads_back = || {
+            let mut written = Buffer::default();
+            system.write_integer(value, &mut written).is_ok()
+                && value >= 1_000
+                && written
+                    .as_str()
+                    .and_then(|text| system.parse_integer(text).ok())
+                    == Some(value)
+        };
+        let whole = name != "year"
+            || self.merged.omitted_thousands == 0
+            || !system.is_algorithmic()
+            || reads_back();
+        if whole && system.write_integer(value, &mut Counter).is_ok() {
             let mut out = Fill { out, filled: false };
             return system
                 .write_integer(value, &mut out)
@@ -820,6 +838,37 @@ struct Counter;
 
 impl Write for Counter {
     fn write_str(&mut self, _: &str) -> fmt::Result {
+        Ok(())
+    }
+}
+
+/// A sink that keeps the first bytes written, for reading a numeral back.
+struct Buffer {
+    bytes: [u8; 64],
+    length: usize,
+}
+
+impl Default for Buffer {
+    fn default() -> Self {
+        Self {
+            bytes: [0; 64],
+            length: 0,
+        }
+    }
+}
+
+impl Buffer {
+    fn as_str(&self) -> Option<&str> {
+        core::str::from_utf8(&self.bytes[..self.length]).ok()
+    }
+}
+
+impl Write for Buffer {
+    fn write_str(&mut self, text: &str) -> fmt::Result {
+        let end = self.length + text.len();
+        let slot = self.bytes.get_mut(self.length..end).ok_or(fmt::Error)?;
+        slot.copy_from_slice(text.as_bytes());
+        self.length = end;
         Ok(())
     }
 }
@@ -1040,7 +1089,7 @@ mod tests {
         // `yue.xml`'s Chinese months, 閏 its leap prefix, and the Han days.
         assert_eq!(
             render(&DynAdapter::new(Toy), &guimao(), "yue")[4],
-            "癸卯年閏二月初一"
+            "2023癸卯年閏二月初一"
         );
     }
 
@@ -1078,11 +1127,11 @@ mod tests {
         let toy = DynAdapter::new(Toy);
         assert_eq!(
             render(&toy, &guimao(), "zh-Hans"),
-            ["", "癸卯年", "闰二月", "初一", "癸卯年闰二月初一"]
+            ["", "2023癸卯年", "闰二月", "初一", "2023癸卯年闰二月初一"]
         );
         assert_eq!(
             render(&toy, &guimao(), "zh-Hant"),
-            ["", "癸卯年", "閏二月", "初一", "癸卯年閏二月初一"]
+            ["", "2023癸卯年", "閏二月", "初一", "2023癸卯年閏二月初一"]
         );
         assert_eq!(
             render(&toy, &guimao(), "ja"),
@@ -1090,7 +1139,13 @@ mod tests {
         );
         assert_eq!(
             render(&toy, &guimao(), "ko"),
-            ["", "계묘년", "윤2월", "1일", "계묘년 윤2월 1일"]
+            [
+                "",
+                "2023년(계묘년)",
+                "윤2월",
+                "1일",
+                "2023년(계묘년) 윤2월 1일"
+            ]
         );
         assert_eq!(
             render(&toy, &guimao(), "en"),

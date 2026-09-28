@@ -201,11 +201,12 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
 fn the_chinese_calendar_is_labelled_by_its_cycle_and_its_day_names() {
     let registry = registry();
     let chinese = registry.get_by_name("chinese").expect("chinese");
-    // 2023-03-22 was 癸卯年闰二月初一.
+    // 2023-03-22 was 癸卯年闰二月初一, written with the related Gregorian
+    // year before the stem and branch.
     let leap_new_moon = day(2023, 3, 22);
     assert_eq!(
         label_on(chinese, leap_new_moon, Unit::Year, "zh-Hans"),
-        "癸卯年"
+        "2023癸卯年"
     );
     assert_eq!(
         label_on(chinese, leap_new_moon, Unit::Month, "zh-Hans"),
@@ -217,11 +218,11 @@ fn the_chinese_calendar_is_labelled_by_its_cycle_and_its_day_names() {
     );
     assert_eq!(
         date_on(chinese, leap_new_moon, "zh-Hans"),
-        "癸卯年闰二月初一"
+        "2023癸卯年闰二月初一"
     );
     assert_eq!(
         date_on(chinese, leap_new_moon, "zh-Hant"),
-        "癸卯年閏二月初一"
+        "2023癸卯年閏二月初一"
     );
     assert_eq!(
         label_on(chinese, leap_new_moon, Unit::Month, "ja"),
@@ -255,7 +256,7 @@ fn the_chinese_calendar_is_labelled_by_its_cycle_and_its_day_names() {
     assert_eq!(leap.len(), 1);
     assert_eq!(leap[0].start, leap_new_moon);
     assert_eq!(leap[0].end, day(2023, 4, 20));
-    // And the years, by their cycle names.
+    // And the years, by the related Gregorian year and their cycle names.
     let spans = units(chinese, Unit::Year, day(2023, 6, 1), day(2025, 6, 1));
     contiguous(&spans);
     let names: Vec<String> = spans
@@ -265,7 +266,7 @@ fn the_chinese_calendar_is_labelled_by_its_cycle_and_its_day_names() {
             label::label(chinese, &dated.fields, Unit::Year, &locale("zh-Hans"))
         })
         .collect();
-    assert_eq!(names, ["癸卯年", "甲辰年", "乙巳年"]);
+    assert_eq!(names, ["2023癸卯年", "2024甲辰年", "2025乙巳年"]);
     assert_eq!(spans[1].start, day(2024, 2, 10));
     assert!(
         spans[0].date().expect("a year").leap,
