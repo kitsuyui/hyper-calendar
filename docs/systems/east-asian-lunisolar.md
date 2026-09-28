@@ -134,6 +134,19 @@ colonial almanacs on KASI's site give their times in Beijing time until
 [icu4x-issue-6455]; the almanac pages it points to returned a server error
 here, so the statement rests on KASI's data, not on the almanacs.
 
+KASI's reading is carried beside `dangi` as a parameter set,
+`dangi::KASI_PARAMETERS` (id `dangi-kasi`, not registered). It drops the
+Qing almanac's first days of 八月 1653 and 十二月 1841 for the rules' days,
+begins 十二月 of 1653 on 19 January 1654 as KASI does, and puts 處暑 of 1653
+on 22 August, a day before the rules' 05:43 on the 23rd: KASI gives no term
+days, and that day is the one that makes its months, 七月 from 24 July and
+閏七月 from 23 August, so it is inferred and marked so. It begins with 1653,
+Joseon's first year on the Shíxiàn rules: before it KASI's data are Korea's
+older calendar — 1651's new year on 20 February and no 閏二月 — which no
+parameter set here computes. On the 321 days of 1653–1911 that were queried
+from KASI it gives KASI's date on every one; `dangi` differs on ten of
+them, the days on either side of the departures above.
+
 ## How it works
 
 ### The rules
@@ -532,19 +545,44 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   is two new years, not an almanac or decree that fixes its meridian and
   its span, so a registered calendar would claim seven years of months
   that nothing here can check.
-- **Beside the Chinese calendar**, two functions of `chinese` that read a
-  person's or a year's place in it, both from the published code of
-  *Calendrical Calculations* [reingold2018code]:
+- **The almanac's solar terms, 1645–1733**, as data:
+  `chinese::almanac_solar_term_days(year)`, the twenty-four term days, 小寒
+  to 冬至, of Liu's calendrical solar terms, the bureau's Tychonic terms
+  before it went over to Kepler's laws, in his own encoding (the day of
+  January of 小寒, then each interval less fourteen days)
+  [liu-chinese-calendar-computation]. Read that way the table gives 春分 on
+  20 March 1651, 秋分 on 23 September 1661 and 穀雨 on 20 April 1727, the
+  three term days the carried leap months turn on. 88 of its major terms
+  are a day from the rules; applied as corrections, they move no new year
+  and no leap month but the five `ALMANAC_TERM_CORRECTIONS` already carry
+  (`the_almanac_term_days_move_no_month_but_the_five_carried`). The rows
+  for 1667–1669 are the Western recomputation, which Liu says the
+  almanacs of those years did not print — they gave the Dàtǒng system's
+  *píngqì* terms — and the function refuses those years.
+- **Beside the Chinese calendar**, functions of `chinese` that read a
+  person's or a year's place in it, the first two from the published code
+  of *Calendrical Calculations* [reingold2018code]:
   - `reckoned_age`, the age by the Chinese count: one at birth and one more
     at each Chinese New Year (`chinese-age`). Wikipedia gives this as the
     pre-modern reckoning of *suì* in China, with the example of a child
     born in June 2000, a dragon year, who turns 13 *suì* at the lunar new
     year of 2012 [wikipedia-en-east-asian-age-reckoning]; the module
-    reproduces it (Chinese New Year 2012 is 23 January). Nothing here
-    describes any other country's count. The age turns at 正月初一 because
-    that is `chinese-age`'s rule; a count that turns at 立春 or on
-    1 January, the other two year boundaries of
-    [sexagenary-cycle.md](sexagenary-cycle.md), is not carried.
+    reproduces it (Chinese New Year 2012 is 23 January). The age turns at
+    正月初一 because that is `chinese-age`'s rule.
+  - `reckoned_age_at_lichun`, the same count turning on the day of 立春
+    (`lichun-age`), which 果壳's account of 虚岁 gives as the custom of some
+    places, 「在有的地方，长虚岁的节点是立春」 [guokr-xusui, a popular
+    secondary source]; `lichun_day` gives the day. A child born on 1 June
+    2009 is two from 4 February 2010, the 立春 the *South China Morning
+    Post* gives [scmp-double-spring-2009], ten days before the New Year
+    count makes it two.
+  - `reckoned_age_at_new_year_day`, one at birth and one more each
+    1 January (`new-year-day-age`): the Korean age, "(Current Year − Birth
+    Year) + 1", with a child born on 31 December two the next day
+    [wikipedia-en-east-asian-age-reckoning], and the modern 虚岁 of Korea
+    [wikipedia-zh-xusui]; and `year_age`, from nothing (`year-age`), the
+    "year age" of some South Korean laws and the modern 虚岁 of Vietnam and
+    parts of China.
   - `marriage_augury` and `MarriageAugury`, the year classed by where 立春,
     the minor term at 315°, falls in it (`chinese-year-marriage-augury`):
     `Widow` with none, `Blind` with one near the end, `Bright` with one
@@ -554,11 +592,27 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     when it has passed. The names are the code's. Wikipedia's "Lichun"
     calls a year without 立春 a "widow year" (寡婦年) in the north and a
     "blind year" (盲年) in the south, unlucky for marriage
-    [wikipedia-en-lichun], so "blind" means the code's `Widow` there;
-    the English names are carried, the Chinese ones are not. The year that
+    [wikipedia-en-lichun], so "blind" means the code's `Widow` there.
+    `MarriageAugury::chinese_names` carries the Chinese names with their
+    script and region: 無春年, 寡婦年 (north) and 盲年 (south)
+    [wikipedia-en-lichun], 无春年, 寡妇年 and 盲年 [wikipedia-zh-lichun] for
+    `Widow`, and 雙春兼閏月 [hko-double-spring] and 双春年
+    [wikipedia-zh-lichun] for `DoubleBright`. No source read names a year
+    with one 立春, so `Blind` and `Bright` have none. The 丁酉 year of 2017,
+    with 立春 on 正月初七 and 臘月十九, is a double spring, and the 戊戌 year
+    after it has its only 立春 on its 除夕 [wikipedia-zh-shuangchun]; both
+    are reproduced. The year that
     began on 10 February 2024 is a Widow Year [scmp-widow-year-2024], and
     the one that began on 26 January 2009 holds two 立春, 4 February 2009
     and 4 February 2010 [scmp-double-spring-2009]; both are reproduced.
+- **The Vietnamese zodiac** (`vietnamese-zodiac`), the cat for the rabbit
+  and the water buffalo for the ox [wikipedia-en-vietnamese-zodiac,
+  wikipedia-en-vietnamese-calendar], is `hc_calendar::cycle::VIETNAMESE_ZODIAC_ANIMALS`
+  and `Sexagenary::vietnamese_zodiac_animal`; `zodiac_animal` stays the
+  Chinese set (`chinese-zodiac`). Wikipedia's example, a book dated
+  辛卯年, Tân Mão, 1831, is a year of the cat
+  (`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`); the `vi` locale of
+  `hc-i18n` already writes the animals Trâu and Mèo.
 - **Not carried, and why.**
   - Any calendar before 1645. From 1645 a date is the modern rule at
     Beijing mean time corrected where a record says the almanac differed,
@@ -568,19 +622,15 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     Tycho's tables to the 1730s and the *Hòubiān*'s after, is not
     implemented, and the Japanese document says what carrying a bureau's
     tables costs; so a month the records do not reach is not guaranteed.
-  - The almanac's solar-term days where they move no month — Liu's table
-    lists many before 1733 — and the terms of 1667–1669, which the Dàtǒng
-    method computed as *píngqì*; the months of those years are the same
-    either way but for the 閏十二月 of 康熙八年, which the calendar kept
-    moved to 康熙九年二月 (above) [liu-chinese-calendar-computation].
-  - KASI's three departures from the Qing almanac, in 1653 and 1841
-    (above): `dangi` is the Qing calendar before 1912 throughout.
+  - The almanac's terms of 1667–1669, which the Dàtǒng method computed as
+    *píngqì*: Liu gives them in a separate article, not in the table read;
+    the months of those years are the same either way but for the 閏十二月
+    of 康熙八年, which the calendar kept moved to 康熙九年二月 (above)
+    [liu-chinese-calendar-computation]. And the almanac's terms after 1733,
+    which Liu lists only where they differ, and which were not transcribed.
   - No Vietnamese table was found.
   - The precision and representation clauses of GB/T 33661-2017, which were
     not read (below).
-  - Local differences in naming: the cat for the rabbit in the Vietnamese
-    zodiac, the buffalo for the ox [wikipedia-en-vietnamese-calendar]. The
-    crate's `zodiac_animal` is the Chinese set.
   - The minor terms (節氣), which are in `hc-seasons`; the holidays keyed to
     these dates, which are in `hc-holiday`; the regnal eras, which are in
     `hc-calendars-regional`.
@@ -595,6 +645,10 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | A child born in June 2000 is 13 *suì* from the lunar new year of 2012 [wikipedia-en-east-asian-age-reckoning]; one at birth, two the day after a New Year's Eve birth | Reproduced | `a_child_born_in_june_2000_turns_thirteen_at_the_new_year_of_2012`, `a_child_born_on_new_years_eve_is_two_the_next_day` |
 | The Widow Year from 10 February 2024 [scmp-widow-year-2024] and the double-spring year from 26 January 2009 [scmp-double-spring-2009] | Both | `the_published_widow_and_double_spring_years_are_reproduced` |
 | Every double-bright year runs more than 366 days and every widow year fewer than 365, over the Chinese years beginning 1653–2142; all four auguries occur | All | `a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve` |
+| The double spring of 丁酉 2017, 立春 on 正月初七 and 臘月十九, and 戊戌's only 立春 on its 除夕 [wikipedia-zh-shuangchun] | Reproduced | `the_year_of_the_rooster_2017_had_two_lichun_and_the_dog_year_after_it_one_at_its_end` |
+| The four age counts: 立春 on 4 February 2010 [scmp-double-spring-2009], a birth on 31 December two the next day and one on 1 January one that day [wikipedia-en-east-asian-age-reckoning, wikipedia-zh-xusui] | Reproduced | `the_age_counts_turn_at_their_own_boundaries` |
+| `dangi-kasi` against the 321 days of 1653–1911 queried from KASI [kasi-lunisolar-conversion] | All 321; the test holds the twelve on either side of its departures and of 1906 | `the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not` |
+| The almanac's term days of 1645–1733 [liu-chinese-calendar-computation] | The three term days of 1651, 1661 and 1727; 88 major terms a day from the rules, which move no month beyond the five carried | `the_almanac_term_days_give_the_three_days_the_leap_months_turn_on`, `the_almanac_term_days_move_no_month_but_the_five_carried` |
 | Chinese New Year 1988 = 17 February and 1985 = 20 February, with the 12th month of 1985 beginning 21 January | Reproduced [hko-conversion-tables] | `seollal_1988_fell_a_day_after_chinese_new_year`, `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Seollal 1988 = 18 February and Seollal 2024 = 10 February, Dangi 4357 | Reproduced; both days are KASI's [kasi-lunisolar-conversion] | `seollal_1988_fell_a_day_after_chinese_new_year`, `seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357` |
 | Every month of the 125 Chinese years from 31 January 1900 to 10 February 2024, 1 546 months, against the Purple Mountain Observatory's table of the promulgated calendar [pmo-calendar-1900-2025] | Every first day, leap month and length; the rules alone miss one, the fourth month of 1906, which the correction supplies; the table and the Hong Kong Observatory's agree on it and on the Beiyang months of 1914, 1916 and 1920 that a 120°E reading would move [hko-conversion-tables] | `the_chinese_calendar_is_the_purple_mountain_observatorys_from_1900_to_2024`, `without_the_almanac_the_rules_miss_one_month_in_the_table`, `the_fourth_month_of_1906_began_on_the_day_the_almanac_gave` |
@@ -677,8 +731,14 @@ finds no month that the difference moves.
 | --- | --- | --- |
 | [reingold2018] | The rules, the suì, the meridian histories | Not read directly; the published code was |
 | [reingold2018code] | `chinese-location`, `korean-location`, `korean-year`, `vietnamese-location`, `chinese-epoch`, `current-major-solar-term`, `chinese-no-major-solar-term?`, `chinese-prior-leap-month?`, `chinese-winter-solstice-on-or-before`, `chinese-new-year-in-sui`, `chinese-new-year-on-or-before`, `chinese-from-fixed`; `chinese-age`, `chinese-year-marriage-augury`, `widow`, `blind`, `bright`, `double-bright`, `current-minor-solar-term` | Yes, 2026-09-25; the last seven 2026-09-26 |
-| [wikipedia-en-east-asian-age-reckoning] | The pre-modern Chinese count of *suì* and the child born in June 2000 | Yes, 2026-09-26, § People's Republic of China only |
+| [wikipedia-en-east-asian-age-reckoning] | The pre-modern Chinese count of *suì* and the child born in June 2000; the Korean count from 1 January, its formula and the child born on 31 December; the "year age" | Yes, 2026-09-26, § People's Republic of China; the Korean section 2026-09-29 |
+| [wikipedia-zh-xusui] | 虚岁 from 春节 and from 1 January, one at birth in Korea and nothing at birth in Vietnam and parts of China; the 除夕 and 1 January births | Yes, 2026-09-29 |
+| [guokr-xusui] | 虚岁 turning at 立春 in some places | Yes, 2026-09-29; a popular secondary source |
 | [wikipedia-en-lichun] | 無春年, 寡婦年 and 盲年, and marriage in such a year thought unlucky | Yes, 2026-09-26 |
+| [wikipedia-zh-lichun] | 双春年, 无春年, 寡妇年 and 盲年 | Yes, 2026-09-29 |
+| [hko-double-spring] | The name 雙春兼閏月 | Yes, 2026-09-29, the announcement of a video only |
+| [wikipedia-zh-shuangchun] | 丁酉 2017 with two 立春, and 戊戌's 立春 on its 除夕 | Yes, 2026-09-29 |
+| [wikipedia-en-vietnamese-zodiac] | The Vietnamese zodiac, with the water buffalo and the cat | Yes, 2026-09-29 |
 | [scmp-widow-year-2024] | The Year of the Dragon of 2024 as a Widow Year | Yes, 2026-09-26 |
 | [scmp-double-spring-2009] | The lunar year from 26 January 2009 with 立春 on 4 February 2009 and 4 February 2010 | Yes, 2026-09-26 |
 | [samr-gbt33661] | The standard's number, title, drafting body and drafters, dates of issue, force and review | The catalogue entry, 2026-09-25; the standard itself was retrieved as a PDF that could not be read here |
@@ -691,7 +751,7 @@ finds no month that the difference moves.
 | [wikipedia-en-time-in-china] | Beijing's reference before standard time; the calendar's reference moving to UT+8 in 1928–1929 | Yes, 2026-09-25 |
 | [kasi-lunisolar-conversion] | KASI as the publisher; the range of its service; the Gregorian calendar as official under the 천문법; the lunar date of every month's first day of 1900–1913, of both sides of each Seoul–Beijing disagreement of 1653–1911, of both days of each of the 28 earlier corrections and the 5 leap months, of the 216 days and 103 leap months against which `dangi` was measured, of 24 April 1906 and of Seollal 1988 and 2024 | The page 2026-09-25; the dates 2026-09-27, through the service's own lookup (`/life/solc`); KASI's FAQ, its 월력요항 page and its almanac scans (`/almanac/pageView/27`) returned server errors |
 | [pmo-calendar-1900-2025] | The promulgated calendar day by day for 1900–2025; the compilation notes on the 時憲書, the Republic's almanacs and GB/T 33661-2017 as its sources | Yes, 2026-09-27, the whole table read as text |
-| [liu-chinese-calendar-computation] | The Qing calculation: Tycho's theory to the 1730s, the 1742 method, the Beijing meridian, apparent time; the Beiyang change to mean time; more than 200 corrections to a modern computation for 1645–1911 from two books; Lǐ Tiānjīng's rule in 1645; the Dàtǒng years 1667–1669 and the moved leap month of 1669–1670; the reconstruction measured against and its calendrical solar terms of 1645–1733 | Yes, 2026-09-27: the page, the table data its conversion page loads (`table_c.js`) and the calendrical solar terms and notes its calendar page loads (`index_c.js`); the books it draws on (the Observatory's 《新编万年历》, Zhang Peiyu's 《三千五百年历日天象》) were not read, and its Shixian computation pages would not load |
+| [liu-chinese-calendar-computation] | The Qing calculation: Tycho's theory to the 1730s, the 1742 method, the Beijing meridian, apparent time; the Beiyang change to mean time; more than 200 corrections to a modern computation for 1645–1911 from two books; Lǐ Tiānjīng's rule in 1645; the Dàtǒng years 1667–1669 and the moved leap month of 1669–1670; the reconstruction measured against and its calendrical solar terms of 1645–1733, carried as `almanac_solar_term_days` | Yes, 2026-09-27; the terms table decoded 2026-09-29: the page, the table data its conversion page loads (`table_c.js`) and the calendrical solar terms and notes its calendar page loads (`index_c.js`); the books it draws on (the Observatory's 《新编万年历》, Zhang Peiyu's 《三千五百年历日天象》) were not read, and its Shixian computation pages would not load |
 | [qing-shilu] | The first day of each month of 1644–1911 by its sexagenary name, and the leap months, as the Veritable Records open each month; the 34 months the corrections carry | Yes, 2026-09-27, in 殆知閣's transcription, every reign from 順治 to 光緒 and the 宣統政紀; the printed edition and the scans the transcription links to were not read |
 | [aslaksen2010] | 1805 as the example of the meridian: 處暑 at 0h07m on 24 August at 120°E, about seven minutes before midnight at Beijing, and his reading of the leap month | Yes, 2026-09-27, §4.6 of the draft of 17 July 2010 |
 | [qingshigao-shixian] | The Dàtǒng method restored during the Calendar Case, the 閏十二月 of 康熙八年 and its move to 康熙九年二月 on Verbiest's showing | Yes, 2026-09-27, 卷四十五 in Wikisource's text |
@@ -700,7 +760,7 @@ finds no month that the difference moves.
 | [wikipedia-vi-gio-viet-nam] | The decision's date, number and wording; the north's time since 1945; the south's UT+8 from 1960 to 1975 | Yes, 2026-09-25 |
 | [wikipedia-vi-tet] | The decision as the reason Tết 1968 fell on 29 January in the north and 30 January in the south | Yes, 2026-09-25 |
 | [tienphong-two-zones] | Decree 362-TTP of 30 December 1959; UT+8 in the south from 1 January 1960; the return to UT+7 on 13 June 1975 | Yes, 2026-09-25 |
-| [wikipedia-en-vietnamese-calendar] | The 1985 case and its leap month of 21 March to 19 April; the cat and the buffalo | Yes, 2026-09-25 |
+| [wikipedia-en-vietnamese-calendar] | The 1985 case and its leap month of 21 March to 19 April; the cat and the buffalo; the book dated 辛卯年, 1831 | Yes, 2026-09-25; re-read 2026-09-29 |
 | [lichhuongque-press] | The Ban Lịch Nhà nước and the VAST Information Centre; 2007 and 2030 as years of difference | Yes, 2026-09-25; a secondary account |
 | [hko-conversion] | The tables' range and the Observatory's own caveat about midnight | Yes, 2026-09-25 |
 | [hko-conversion-tables] | The first day of the first lunar month in 1968, 1985, 1988, 2000 and 2020–2026; the 12th month of 1985 from 21 January; 閏二月 of 2023 from 22 March; the 4th month of 1906 from 24 April; the months of 1914, 1916 and 1920 beginning 17 November, 3 February and 10 November | Yes, 2026-09-25; 1906, 1914, 1916 and 1920 2026-09-27 |
@@ -719,8 +779,11 @@ finds no month that the difference moves.
 conversions, and `CHINESE_EPOCH`. `chinese.rs`, `dangi.rs` and
 `vietnamese.rs` are parameter sets on it: `MERIDIANS`, `PARAMETERS`,
 `ENGINE`, `new_year` (or `tet`), in `chinese` also `ALMANAC_CORRECTIONS`,
-`ALMANAC_TERM_CORRECTIONS`, `reckoned_age`,
-`marriage_augury` and `MarriageAugury`, and in `vietnamese` also
+`ALMANAC_TERM_CORRECTIONS`, `almanac_solar_term_days`, `reckoned_age`,
+`reckoned_age_at_lichun`, `lichun_day`, `reckoned_age_at_new_year_day`,
+`year_age`, `marriage_augury`, `MarriageAugury` with `chinese_names` and
+`AuguryName`, in `dangi` also `KASI_CORRECTIONS`, `KASI_TERM_CORRECTIONS`,
+`KASI_PARAMETERS` and `KASI_ENGINE`, and in `vietnamese` also
 `SOUTHERN_MERIDIANS` and `SOUTHERN_PARAMETERS`.
 
 Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
@@ -741,7 +804,12 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 `the_two_readings_of_the_beijing_meridian_differ_once`,
 `the_calendar_round_trips_across_the_1929_meridian_change`,
 `the_calendar_round_trips_over_the_qing_years`,
-`the_range_is_refused_rather_than_extrapolated`; in `dangi`,
+`the_range_is_refused_rather_than_extrapolated`,
+`the_almanac_term_days_give_the_three_days_the_leap_months_turn_on`,
+`the_almanac_term_days_move_no_month_but_the_five_carried`,
+`the_age_counts_turn_at_their_own_boundaries`,
+`the_year_of_the_rooster_2017_had_two_lichun_and_the_dog_year_after_it_one_at_its_end`;
+in `dangi`, `the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not`,
 `the_calendar_round_trips_over_the_qing_years`,
 `seollal_1988_fell_a_day_after_chinese_new_year`,
 `the_two_calendars_disagree_only_occasionally`,
@@ -755,7 +823,8 @@ Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,
 `tet_1969_fell_a_day_before_chinese_new_year`,
 `tet_1985_fell_a_whole_month_before_chinese_new_year`,
 `the_calendar_sometimes_differs_from_the_chinese_one_since_1968`,
-`the_calendar_round_trips_across_the_1968_change`. In
+`the_calendar_round_trips_across_the_1968_change`,
+`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`. In
 `tests/calendars.rs`,
 `the_four_lunisolar_calendars_agree_on_the_day_of_the_month_when_they_agree_at_all`
 holds the three and the Tenpō calendar to the same month and day on more

@@ -117,11 +117,40 @@ of the change in the twilight interval since the equinox, and no advance
 when an eclipse would be seen at first contact [xintangshu]. The 暦Wiki gives
 the same limit as 6300 of 8400 parts and says the rule was dropped in China
 with 授時暦 [nao-rekiwiki-shinsaku]; Japan, still on Senmyō-reki, kept it
-until Jōkyō-reki, which follows 授時暦 and has none. This library carries a
-single limit for Senmyō-reki and none for the later systems; the seasonal
-variant and the eclipse exception are not modelled. The rule moves about a
+until Jōkyō-reki, which follows 授時暦 and has none. The rule moves about a
 quarter of Senmyō-reki's month boundaries, so a reconstruction without it is
 not the published calendar.
+
+The rule in full reads 「凡定朔小餘，秋分後，四分之三已上，進一日。春分後，
+昏明小餘差春分初日者，五而一，以減四分之三。定朔小餘如此數已上者，進一日。
+或有交，應見虧初，則否」 [xintangshu]. The 昏明小餘 is the 晷漏 table's
+夜半定漏, the water clock from midnight to dawn, turned into parts of the day
+(「刻法通為分，曰昏明小餘」, with 刻法 84): 冬至's 二十七刻四十分 is
+27 × 84 + 40 = 2308 parts, 春分's 二十二刻四十二分 1890, 夏至's 十七刻四十四分
+1472. So after the spring equinox the limit falls with the dawn, by a fifth
+of the dawn's advance since 春分: at 夏至, 6300 − (1890 − 1472) / 5 = 6216.4
+parts, 0.7400 of the day, a limit 14 minutes earlier. After the autumn
+equinox it is three quarters again. And a late conjunction is not held over
+when it is an eclipse whose first contact would be seen. The library carries
+the single limit as the default, and the seasonal limit and the eclipse
+exception as two further parameter sets, `PARAMETERS_SEASONAL` and
+`PARAMETERS_SEASONAL_ECLIPSE`, with the fitted base of 0.80 lowered by the
+same fifth; *Accuracy* measures all three.
+
+Two simplifications, both stated in the code. The day's 昏明小餘 is
+interpolated linearly between the table's 24 values rather than by the
+system's own 屈伸 increments, and the 定氣 are placed at the system's 恒気,
+equal twelfths of its year, rather than at the true terms of its 日躔 table;
+near either equinox the adjustment is close to nothing, so neither moves the
+limit by more than a few parts. The table as printed is symmetric about
+夏至 in every pair but one: 清明 is 二十二刻十分 and 白露, its mirror,
+二十一刻十分; the printed 清明 is carried. **The eclipse is modern
+astronomy's**, not the bureau's prediction, whose 交 and 蝕限 arithmetic is
+not implemented: the first contact of a solar eclipse at Kyoto (35°00′36″N,
+135°46′E), found by `hc-astro` within half a minute — the annular eclipse of
+21 May 2012 begins at Kyoto within four minutes of the Observatory's
+6時17分41秒 [naoj-eclipse-2012] — with the Sun above the horizon at that
+moment.
 
 **里差, the meridian.** Chinese tables give instants for the Chinese capital.
 Shibukawa introduced a 里差, a longitude correction, of 5刻 (five hundredths
@@ -144,7 +173,7 @@ carries them and as the sources re-read on 2026-09-25 give them:
 | --- | --- | --- | --- | --- |
 | 宣明暦 | 3068055/8400 = 365.244643 | 248057/8400 = 29.530595 | 231458.19/8400 = 27.554546 | 統法 8400, 章歳, 章月 and 曆周 in [xintangshu]; the decimals in [nao-rekiwiki-senmyo] |
 | 貞享暦 | 365.241696 | 29.530590 | 27.554600 | [nao-rekiwiki-jokyo]; the year is 授時暦's with 消長法 applied, and the sidereal year 365.256696 is that plus 0.015 |
-| 宝暦暦 | 365.241556 | 29.530590 | 27.554600 | [nao-rekiwiki-horyaku], the value as promulgated; 修正宝暦暦 of 1771 made it 365.241626, six seconds a year, which the library does not carry |
+| 宝暦暦 | 365.241556 | 29.530590 | 27.554600 | [nao-rekiwiki-horyaku], the value as promulgated; 修正宝暦暦 made it 365.241626 「明和八年(1771)より」, six seconds a year, which `horyaku::PARAMETERS_REVISED` carries from 明和8年1月1日 = 1771-02-15 |
 | 寛政暦 | 365.242347 | 29.530584 | 27.554570 | [nao-rekiwiki-kansei] gives 365.242347071 and derives both months from the daily mean motions: 29.530584 = 360 / (13.1763981114 − 0.9856469352) and 27.554570 = 360 / (13.1763981114 − 0.1114147178). The modern 27.554550 differs by 2 × 10⁻⁵ days, which moves no figure below at two decimals, because the anomalistic month enters only as the phase of a sine |
 | 天保暦 | — | — | — | Not used: the library computes Tenpō-reki from the true Sun and Moon. The page gives 365.242233952291 and 29.530588 [nao-rekiwiki-tenpo] |
 
@@ -237,6 +266,19 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
   `PARAMETERS_TABULATED` takes the conjunction from the system's own
   amplitudes as well. Both are exported and both are measured, because the
   gap between them is the most informative number the module produces.
+- **Senmyō-reki's 進朔 in full**, as two more parameter sets:
+  `senmyo::PARAMETERS_SEASONAL`, with the spring half's lower limit
+  (`SEASONAL_ADVANCE`, reading the 夜半定漏 table `DAWN`), and
+  `senmyo::PARAMETERS_SEASONAL_ECLIPSE`, with the eclipse exception at
+  `KYOTO` as well. The engine's `SeasonalAdvance` and `EclipseSite` hold
+  the rule, so a later system with its own table could take one.
+- **修正宝暦暦**, `horyaku::PARAMETERS_REVISED`: 歳周 365.241626 from
+  `REVISED_FROM`, 明和8年1月1日 = 1771-02-15, the table's first day of that
+  year [wikipedia-ja-era-tables]. The revision's own 暦元 was not read; its
+  solstice epoch is set so that its 冬至 of 1770 is the promulgated
+  system's, a construction labelled as one. The registered `japanese-horyaku`
+  and the era calendars keep the promulgated set, because the revision moves
+  no day (*Accuracy*).
 - **A solstice phase per system, fitted.** A system's winter solstice came
   from its 上元積年, an arithmetic chain reaching back millions of years, not
   from an observation in the adoption year, and that chain was not
@@ -283,8 +325,11 @@ dated event in the Wikipedia articles is 正治2年閏2月11日 = 1200-03-27 Jul
   通數 22207 [songshu-lulizhi]; 儀鳳暦's, which is 麟德暦, 總法 1340, 朞實
   489428 and 常朔實 39571 [xintangshu-linde]; 五紀暦's 通法 1340, 策實
   489428 and 揲法 39571 [xintangshu-wuji]; and 大衍暦's 通法 3040, 策實
-  1110343 and 揲法 89773 [xintangshu-dayan]. Also not carried: 修正宝暦暦's revised year; the seasonal 進朔 limit
-  and its eclipse exception; the courts' adjustments by decree.
+  1110343 and 揲法 89773 [xintangshu-dayan]. Also not carried: the courts'
+  adjustments by decree; the bureau's own eclipse prediction, which the
+  eclipse exception would need and for which modern astronomy stands in;
+  the 屈伸 increments by which the system interpolated its 晷漏 table day by
+  day, for which a straight line stands in.
 
 ## Accuracy
 
@@ -405,6 +450,32 @@ on 13 January in both.
 pins every part of this, so that a change to the model that moves it is
 seen.
 
+**進朔 in full.** Measured over all 823 years by
+`the_seasonal_limit_and_the_eclipse_exception_are_measured_against_the_table`:
+
+| Senmyō-reki | New years | Intercalary months | Month starts | Individual days |
+| --- | --- | --- | --- | --- |
+| Single limit, `PARAMETERS` | 94.65% | 93.68% | 96.43% | 96.39% |
+| Seasonal limit, `PARAMETERS_SEASONAL` | 94.65% | 93.68% | 96.32% | 96.27% |
+| Seasonal limit and eclipses, `PARAMETERS_SEASONAL_ECLIPSE` | 94.65% | 93.68% | 96.32% | 96.27% |
+
+The seasonal limit moves 34 first days, each a day later, and costs a tenth
+of a point; the single limit was fitted against this table and the seasonal
+one was not re-fitted, so the comparison favours the default. The eclipse
+exception moves none. Of the 2 080 conjunctions the seasonal rule holds
+over, 151 make an eclipse at Kyoto, and none of those begins with the Sun
+up: a conjunction held over is after 0.79 of the day, 18:58 local mean time
+at the earliest, and every first contact of those 151 falls after sunset.
+So the exception is live code that the Kyoto reading never triggers; with
+the sourced 0.75 at Chang'an's meridian it might, and that arrangement is
+not modelled.
+
+**修正宝暦暦.** `the_revised_horyaku_year_of_1771_is_measured_against_the_table`
+compares every day from 1771-02-15 to 1798-02-15: the revised year moves
+none, and both sets reproduce 97.01% of the month starts and 85.19% of the
+leap months of those years. Six seconds a year for 27 years is under three
+minutes, far below a day boundary.
+
 **The meridian for Senmyō-reki.** With the sourced limit of 0.75 and a
 Chang'an meridian, Senmyō-reki agrees with the table on 95.6% of days; with
 Kyoto and the fitted 0.80, on 96.4%. Both are measured in the integration
@@ -414,13 +485,14 @@ tests, so the trade is visible rather than asserted.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [xintangshu] | Senmyō-reki's 統法 8400, 章歳 3068055, 章月 248057, 曆周 231458 秒 19; the 日躔 table's peak 1526 at 春分 and 秋分; the 月離 table's 3172 at the seventh day plus 53, which is the 3225 the module carries; the 進朔 rule 「秋分後，四分之三已上，進一日」 and its spring-half and eclipse conditions | Yes, 2026-09-25, on Wikisource |
+| [xintangshu] | Senmyō-reki's 統法 8400, 章歳 3068055, 章月 248057, 曆周 231458 秒 19; the 日躔 table's peak 1526 at 春分 and 秋分; the 月離 table's 3172 at the seventh day plus 53, which is the 3225 the module carries; the 進朔 rule 「秋分後，四分之三已上，進一日」 and its spring-half and eclipse conditions; the 夜半定漏 column, 刻法 84 and 昏明小餘 | Yes, 2026-09-25, on Wikisource; the rule and the table re-read 2026-09-29 |
+| [naoj-eclipse-2012] | Kyoto's first contact of the annular eclipse of 21 May 2012, 6時17分41秒, the anchor of the eclipse search | Yes, 2026-09-29 |
 | [songshu-lulizhi] | 元嘉暦's 紀法, 紀日, 日法 and 通數 | Yes, 2026-09-26, on Wikisource |
 | [xintangshu-linde], [xintangshu-wuji], [xintangshu-dayan] | The period constants of 麟德暦 (儀鳳暦), 五紀暦 and 大衍暦 | Yes, 2026-09-26, on Wikisource |
 | [nao-caldb] | 明徳3年閏10月1日 = 1392-11-15, 閏10月5日 = 1392-11-19 and 11月1日 = 1392-12-14 (Julian), for the reunion of 1392 | Yes, 2026-09-26 |
 | [nao-rekiwiki-senmyo] | The decimal constants, 27.554546 for 曆周; 822 and 892 in China, 862 to 1684 in Japan, 823 years; Shibukawa's 「天に後る二日」; the remark that a 里差 of 7刻 would bring it near the modern calendar | Yes, 2026-09-25 |
 | [nao-rekiwiki-jokyo] | 365.241696, 29.530590, 27.554600, the sidereal year 365.256696; 定朔、平気; the 里差 of 5刻 from 大都 to Kyoto; 授時暦 with 消長法 | Yes, 2026-09-25 |
-| [nao-rekiwiki-horyaku] | 365.241556 and 365.256556 as promulgated, 365.241626 for 修正宝暦暦 from 1771; 選者 安倍泰邦 (土御門泰邦); 1755 to 1797 | Yes, 2026-09-25 |
+| [nao-rekiwiki-horyaku] | 365.241556 and 365.256556 as promulgated, 365.241626 and 365.256626 for 修正宝暦暦 「明和八年(1771)より」; 選者 安倍泰邦 (土御門泰邦); 1755 to 1797 | Yes, 2026-09-25; re-read 2026-09-29 |
 | [nao-rekiwiki-kansei] | 365.242347071, 29.530584 and the derived 27.554570; 選者 高橋至時、間重富; 定朔、平気 | Yes, 2026-09-25 |
 | [nao-rekiwiki-tenpo] | 定朔、定気 and apparent solar time; 1844 to 1872; 選者 渋川景佑; the constants this library does not use | Yes, 2026-09-25 |
 | [nao-rekiwiki-shinsaku] | What 進朔 is for; the limit 6300 of 8400; its abolition in 授時暦 | Yes, 2026-09-25 |
@@ -467,7 +539,9 @@ Anchors in the module: `senmyo_states_its_constants_as_the_eight_thousand_four_h
 `kansei_ends_on_the_day_before_tenpo_takes_over`,
 `the_four_systems_tile_the_years_862_to_1844_without_a_gap`,
 `the_epochs_are_the_sky_of_the_adoption_year_and_nothing_later`,
-`shinsaku_holds_a_late_conjunction_over_to_the_next_day`,
+`shinsaku_holds_a_late_conjunction_over_to_the_next_day`; in the engine,
+`the_seasonal_advance_lowers_the_limit_only_between_the_equinoxes` and
+`the_eclipse_site_finds_kyotos_first_contact_of_the_annular_eclipse_of_2012`;
 `senmyos_solar_terms_drift_a_day_and_a_half_away_from_the_sun`; in
 `japanese_tenpo`: `the_calendar_took_effect_on_the_eighteenth_of_february_1844`,
 `the_last_day_is_the_second_of_the_twelfth_month_of_meiji_five`,
@@ -481,4 +555,6 @@ The measurement, in `crates/hc-calendars-lunar/tests/japanese_historical.rs`:
 `the_four_named_anchors_from_the_documents_come_out_right`,
 `dated_events_scattered_over_nine_centuries_come_out_right`,
 `senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary`,
-`the_four_systems_and_tenpo_tile_the_millennium_without_a_gap`.
+`the_four_systems_and_tenpo_tile_the_millennium_without_a_gap`,
+`the_seasonal_limit_and_the_eclipse_exception_are_measured_against_the_table`,
+`the_revised_horyaku_year_of_1771_is_measured_against_the_table`.

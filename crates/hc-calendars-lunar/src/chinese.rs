@@ -55,6 +55,10 @@
 //! two lines in error are set aside — and each begins on the Records' day
 //! (`tests/chinese_qing.rs`).
 //!
+//! The almanac's twenty-four term days of 1645–1733, most of which move no
+//! month, are [`almanac_solar_term_days`], from Liu's table of the
+//! bureau's calendrical terms.
+//!
 //! Each entry names its source. The term days of the leap months are the
 //! weaker part: the leap months themselves are the Veritable Records', the
 //! term days behind four of them are Liu's, and the fifth, 處暑 of 1805, is
@@ -350,6 +354,152 @@ pub static ALMANAC_TERM_CORRECTIONS: [MajorTermCorrection; 5] = [
     ),
 ];
 
+/// The first Gregorian year of [`almanac_solar_term_days`].
+pub const ALMANAC_SOLAR_TERMS_FIRST_YEAR: i64 = 1645;
+
+/// The last Gregorian year of [`almanac_solar_term_days`].
+pub const ALMANAC_SOLAR_TERMS_LAST_YEAR: i64 = 1733;
+
+/// The years of the Calendar Case, 1667–1669, whose almanacs computed the
+/// terms by the Dàtǒng system's *píngqì* and which
+/// [`almanac_solar_term_days`] refuses.
+pub const DATONG_TERM_YEARS: core::ops::RangeInclusive<i64> = 1667..=1669;
+
+/// The Qing almanac's twenty-four solar terms of 1645–1733, as Liu Yuk
+/// Tung tabulates the "calendrical solar terms", the terms the bureau's
+/// Tychonic system gave before the change to Kepler's laws in the 1730s
+/// (`liu-chinese-calendar-computation`, § The Qing Period, and the
+/// `calendricalSolarTerms` table of his conversion data, `table_c.js`).
+///
+/// One row per Gregorian year in Liu's own encoding: the day of January of
+/// 小寒, then for each of the next twenty-three terms, 大寒 to 冬至, its
+/// interval from the one before less fourteen days. Read that way the
+/// table gives the three term days the leap months of 1651, 1661 and 1727
+/// turn on as [`ALMANAC_TERM_CORRECTIONS`] carries them — 春分 on 20 March
+/// 1651, 秋分 on 23 September 1661, 穀雨 on 20 April 1727 — which is how the
+/// encoding was confirmed. The rows for 1667–1669 are the Western system's
+/// recomputation, which Liu says differs from the almanacs of those years;
+/// [`almanac_solar_term_days`] refuses them.
+#[rustfmt::skip]
+static ALMANAC_SOLAR_TERMS: [[u8; 24]; 89] = [
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1645
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1646
+    [5, 1, 1, 0, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1647
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1648
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1649
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1650
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1651
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 0, 2, 2, 1, 1, 0, 1, 1], // 1652
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1653
+    [5, 1, 0, 1, 1, 0, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 0, 1], // 1654
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1655
+    [5, 2, 0, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1656
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1657
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1658
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1659
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1660
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1661
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1662
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1663
+    [5, 1, 1, 1, 0, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1664
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1665
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1666
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1667
+    [5, 1, 1, 0, 1, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 2, 0, 1, 1, 1], // 1668
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1669
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1670
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1671
+    [5, 1, 1, 0, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 2, 0, 1, 1, 1], // 1672
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1673
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1674
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1675
+    [5, 1, 1, 0, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 2, 0, 1, 1, 1], // 1676
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 1, 0, 1], // 1677
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 1, 2, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1678
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1679
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1680
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1681
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1682
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1683
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1684
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1685
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1686
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1687
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1688
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1689
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1690
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1691
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1692
+    [4, 1, 2, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1693
+    [5, 0, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1694
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1695
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1696
+    [4, 1, 1, 1, 0, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 1, 1, 0, 1, 1], // 1697
+    [4, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1698
+    [5, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1699
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1700
+    [5, 1, 1, 1, 0, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 2, 0, 1, 1], // 1701
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1702
+    [6, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1703
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1704
+    [5, 1, 1, 0, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 2, 0, 1, 1, 1], // 1705
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 1, 0, 1], // 1706
+    [6, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1707
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 0], // 1708
+    [5, 1, 1, 0, 1, 1, 2, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1709
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 1, 0, 1], // 1710
+    [6, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1711
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1712
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1713
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1714
+    [6, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1715
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1716
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1717
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1718
+    [6, 0, 1, 1, 1, 1, 1, 1, 2, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1719
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 1, 1, 1, 1, 1, 0], // 1720
+    [5, 1, 1, 0, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1721
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 1, 2, 1, 1, 0, 1, 1], // 1722
+    [6, 0, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1723
+    [6, 1, 0, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1724
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1725
+    [5, 1, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 1, 1, 0, 1, 1], // 1726
+    [6, 0, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1727
+    [6, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1728
+    [5, 1, 0, 1, 1, 1, 2, 1, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1729
+    [5, 1, 1, 1, 0, 2, 1, 1, 2, 1, 2, 2, 1, 2, 2, 1, 2, 1, 2, 1, 1, 0, 1, 1], // 1730
+    [6, 0, 1, 1, 1, 1, 1, 1, 2, 1, 2, 2, 2, 1, 2, 2, 1, 2, 1, 1, 1, 1, 0, 1], // 1731
+    [6, 0, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 2, 2, 1, 2, 1, 2, 1, 1, 1, 1, 1, 0], // 1732
+    [5, 1, 0, 1, 1, 1, 1, 2, 1, 2, 2, 1, 2, 2, 2, 1, 2, 1, 1, 1, 1, 1, 1, 1], // 1733
+];
+
+/// The days of the twenty-four solar terms the Qing almanac gave in
+/// Gregorian year `year`, 小寒 first and 冬至 last, or `None` outside
+/// 1645–1733 and in the Dàtǒng years 1667–1669 (`DATONG_TERM_YEARS`).
+///
+/// Before the bureau went over to Kepler's laws its term days often stood a
+/// day from the modern ones; most of those move no month, so the calendar
+/// here does not need them, and only the five that move a leap month are
+/// [`ALMANAC_TERM_CORRECTIONS`]. This is the almanac's own list, for a
+/// reader who wants the term day the almanac printed. From 1734 Liu lists
+/// the almanac's terms only where they differ from the modern ones, and
+/// that list was not transcribed.
+#[must_use]
+pub fn almanac_solar_term_days(year: i64) -> Option<[Rd; 24]> {
+    if DATONG_TERM_YEARS.contains(&year) {
+        return None;
+    }
+    let row =
+        ALMANAC_SOLAR_TERMS.get(usize::try_from(year - ALMANAC_SOLAR_TERMS_FIRST_YEAR).ok()?)?;
+    let mut day = gregorian::to_fixed_saturating(year, 1, row[0]);
+    let mut days = [day; 24];
+    for (slot, &interval) in days.iter_mut().zip(row.iter()).skip(1) {
+        day = Rd(day.0 + 14 + i64::from(interval));
+        *slot = day;
+    }
+    Some(days)
+}
+
 /// The meridian history of the Chinese calendar. Sources:
 /// [`MERIDIAN_SOURCES`].
 pub static MERIDIANS: [MeridianEra; 2] = [
@@ -459,11 +609,10 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
 /// each lunar new year (`wikipedia-en-east-asian-age-reckoning`). Nothing
 /// here says how any other country counts.
 ///
-/// The year turns at 正月初一 because that is the rule of `chinese-age`,
-/// not because it is the only boundary in use: a sexagenary year can also
-/// be taken to turn at 立春 or at 1 January
-/// (`docs/systems/sexagenary-cycle.md`), and an age counted from either of
-/// those is not carried.
+/// The year turns at 正月初一 because that is the rule of `chinese-age`.
+/// The counts that turn elsewhere are their own functions:
+/// [`reckoned_age_at_lichun`] at 立春, and [`reckoned_age_at_new_year_day`]
+/// and [`year_age`] at 1 January.
 ///
 /// # Errors
 ///
@@ -480,6 +629,90 @@ pub fn reckoned_age(birth: ChineseDate, on: Rd) -> CalendarResult<Option<u32>> {
         .map_err(|_| hc_calendar::CalendarError::YearOutOfRange)
 }
 
+/// The day 立春 falls on in Gregorian year `year`, at the calendar's
+/// meridian: the day at whose end the last minor term passed is 立春 and
+/// at whose beginning it was 小寒.
+///
+/// # Errors
+///
+/// Returns [`hc_calendar::CalendarError::YearOutOfRange`] outside the
+/// calendar's range.
+pub fn lichun_day(year: i64) -> CalendarResult<Rd> {
+    let start = gregorian::to_fixed_saturating(year, 2, 1);
+    if start < EARLIEST || start > LATEST {
+        return Err(hc_calendar::CalendarError::YearOutOfRange);
+    }
+    // 立春 is on 3, 4 or 5 February in every year of the range.
+    (start.0..start.0 + 7)
+        .map(Rd)
+        .find(|&day| minor_solar_term(day) != 1 && minor_solar_term(Rd(day.0 + 1)) == 1)
+        .ok_or(hc_calendar::CalendarError::YearOutOfRange)
+}
+
+/// A person's age counted from 立春 rather than from the New Year, on a
+/// fixed day: one at birth and one more on each day 立春 falls on after
+/// the day of birth (`lichun-age`). `Ok(None)` for a day before the birth.
+///
+/// 果壳's account of 虚岁 gives the count as one more at 正月初一 and adds
+/// that in some places the age turns at 立春 instead:
+/// 「在有的地方，长虚岁的节点是立春」 (`guokr-xusui`, a popular secondary
+/// source; no primary account of the local custom was read). A birth on
+/// the day of 立春 is counted after it, since the source does not say.
+///
+/// A child born on 1 June 2009 is one until 3 February 2010 and two from
+/// 4 February 2010, the 立春 the *South China Morning Post* gives for that
+/// year (`scmp-double-spring-2009`); under [`reckoned_age`] the same child
+/// turns two at the New Year of 14 February 2010.
+///
+/// # Errors
+///
+/// Returns [`hc_calendar::CalendarError::YearOutOfRange`] when a year
+/// between the two days is outside the calendar's range.
+pub fn reckoned_age_at_lichun(birth: Rd, on: Rd) -> CalendarResult<Option<u32>> {
+    if on < birth {
+        return Ok(None);
+    }
+    let first = gregorian::year_from_fixed(birth);
+    let last = gregorian::year_from_fixed(on);
+    let mut age = 1u32;
+    for year in first..=last {
+        let day = lichun_day(year)?;
+        if birth < day && day <= on {
+            age += 1;
+        }
+    }
+    Ok(Some(age))
+}
+
+/// A person's age counted in Gregorian years, one at birth and one more
+/// each 1 January (`new-year-day-age`): the Korean 세는 나이, and the
+/// modern 虚岁 of Korea (`wikipedia-zh-xusui`). `None` for a day before
+/// the birth.
+///
+/// Wikipedia's "East Asian age reckoning" gives it as "Age = (Current Year
+/// − Birth Year) + 1", and a child born on 31 December as two the next day
+/// (`wikipedia-en-east-asian-age-reckoning`); 虚岁 on the Chinese
+/// Wikipedia has the same, a person born on 除夕 two the day after and one
+/// born on 1 January not two that day (`wikipedia-zh-xusui`).
+#[must_use]
+pub fn reckoned_age_at_new_year_day(birth: Rd, on: Rd) -> Option<u32> {
+    year_age(birth, on).and_then(|age| age.checked_add(1))
+}
+
+/// A person's age counted in Gregorian years from nothing at birth, one
+/// more each 1 January (`year-age`): the Korean 연 나이 some South Korean
+/// laws use, "the difference between one's birth year and the current
+/// year" (`wikipedia-en-east-asian-age-reckoning`), and the modern 虚岁
+/// of Vietnam and parts of China, which starts at nothing
+/// (`wikipedia-zh-xusui`). `None` for a day before the birth.
+#[must_use]
+pub fn year_age(birth: Rd, on: Rd) -> Option<u32> {
+    if on < birth {
+        return None;
+    }
+    u32::try_from(gregorian::year_from_fixed(on) - gregorian::year_from_fixed(birth)).ok()
+}
+
 /// Where 立春 (*lìchūn*, the Beginning of Spring) falls in a Chinese year,
 /// the ground of the marriage auguries of the almanacs: none in the year,
 /// once near its end, once near its start, or at both
@@ -491,7 +724,8 @@ pub fn reckoned_age(birth: ChineseDate, on: Rd) -> CalendarResult<Option<u32>> {
 /// ("widow year") in the north and 盲年 ("blind year") in the south, and
 /// says marriage in it is thought unlucky (`wikipedia-en-lichun`). So "blind"
 /// names a year without 立春 there and a year with it only at the end in
-/// the published code; the names here are the code's.
+/// the published code; the names here are the code's, and the Chinese
+/// names the sources give are [`MarriageAugury::chinese_names`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum MarriageAugury {
     /// No 立春 in the year (the code's "double-blind year").
@@ -504,7 +738,97 @@ pub enum MarriageAugury {
     DoubleBright,
 }
 
+/// A Chinese name of a [`MarriageAugury`], as a source writes it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AuguryName {
+    /// The name as written, in the script of `locale`.
+    pub name: &'static str,
+    /// The BCP 47 tag of the script it is written in, `zh-Hant` or
+    /// `zh-Hans`.
+    pub locale: &'static str,
+    /// Where the name is used, when the source says: `"north"` or
+    /// `"south"`.
+    pub region: Option<&'static str>,
+    /// Where the name was read, with the bibliography key.
+    pub source: &'static str,
+}
+
+/// The names of a year without 立春.
+static WIDOW_NAMES: [AuguryName; 6] = [
+    AuguryName {
+        name: "無春年",
+        locale: "zh-Hant",
+        region: None,
+        source: "Wikipedia, \"Lichun\" [wikipedia-en-lichun]",
+    },
+    AuguryName {
+        name: "寡婦年",
+        locale: "zh-Hant",
+        region: Some("north"),
+        source: "Wikipedia, \"Lichun\" [wikipedia-en-lichun]",
+    },
+    AuguryName {
+        name: "盲年",
+        locale: "zh-Hant",
+        region: Some("south"),
+        source: "Wikipedia, \"Lichun\" [wikipedia-en-lichun]",
+    },
+    AuguryName {
+        name: "无春年",
+        locale: "zh-Hans",
+        region: None,
+        source: "维基百科「立春」 [wikipedia-zh-lichun]",
+    },
+    AuguryName {
+        name: "寡妇年",
+        locale: "zh-Hans",
+        region: Some("north"),
+        source: "维基百科「立春」 [wikipedia-zh-lichun]",
+    },
+    AuguryName {
+        name: "盲年",
+        locale: "zh-Hans",
+        region: Some("south"),
+        source: "维基百科「立春」 [wikipedia-zh-lichun]",
+    },
+];
+
+/// The names of a year with two 立春.
+static DOUBLE_BRIGHT_NAMES: [AuguryName; 2] = [
+    AuguryName {
+        name: "雙春兼閏月",
+        locale: "zh-Hant",
+        region: None,
+        source: "Hong Kong Observatory, 『氣象冷知識』：雙春兼閏月, 2020 [hko-double-spring]",
+    },
+    AuguryName {
+        name: "双春年",
+        locale: "zh-Hans",
+        region: None,
+        source: "维基百科「立春」 [wikipedia-zh-lichun]",
+    },
+];
+
 impl MarriageAugury {
+    /// The Chinese names the sources read give this kind of year.
+    ///
+    /// A year without 立春 is 無春年, and 寡婦年 in the north and 盲年 in the
+    /// south (`wikipedia-en-lichun`; 无春年, 寡妇年 and 盲年 in
+    /// `wikipedia-zh-lichun`); a year with two is 雙春兼閏月
+    /// (`hko-double-spring`) or 双春年 (`wikipedia-zh-lichun`). No source
+    /// read names a year with one 立春, at its start or at its end, so
+    /// [`MarriageAugury::Bright`] and [`MarriageAugury::Blind`] have none;
+    /// the Chinese 盲年 is this crate's [`MarriageAugury::Widow`], not its
+    /// `Blind`.
+    #[must_use]
+    pub const fn chinese_names(self) -> &'static [AuguryName] {
+        match self {
+            Self::Widow => &WIDOW_NAMES,
+            Self::DoubleBright => &DOUBLE_BRIGHT_NAMES,
+            Self::Blind | Self::Bright => &[],
+        }
+    }
+
     /// Whether the year's first 立春 comes after its New Year.
     #[must_use]
     pub const fn lichun_at_start(self) -> bool {
@@ -554,6 +878,172 @@ mod tests {
 
     use super::*;
     use crate::lunisolar::LunisolarDate;
+
+    #[test]
+    fn the_almanac_term_days_give_the_three_days_the_leap_months_turn_on() {
+        let day = |year, month, day| gregorian::to_fixed_saturating(year, month, day);
+        // 春分, the sixth term from 小寒; 秋分, the eighteenth; 穀雨, the eighth.
+        assert_eq!(
+            almanac_solar_term_days(1651).map(|days| days[5]),
+            Some(day(1651, 3, 20))
+        );
+        assert_eq!(
+            almanac_solar_term_days(1661).map(|days| days[17]),
+            Some(day(1661, 9, 23))
+        );
+        assert_eq!(
+            almanac_solar_term_days(1727).map(|days| days[7]),
+            Some(day(1727, 4, 20))
+        );
+        for year in ALMANAC_SOLAR_TERMS_FIRST_YEAR..=ALMANAC_SOLAR_TERMS_LAST_YEAR {
+            let Some(days) = almanac_solar_term_days(year) else {
+                assert!(DATONG_TERM_YEARS.contains(&year));
+                continue;
+            };
+            // 小寒 early in January, 冬至 in the third week of December.
+            let (_, month, first) = gregorian::ymd(days[0]);
+            let (_, last_month, last) = gregorian::ymd(days[23]);
+            assert_eq!(month, 1, "{year}");
+            assert!((4..=7).contains(&first), "{year}");
+            assert_eq!(last_month, 12, "{year}");
+            assert!((20..=23).contains(&last), "{year}");
+        }
+        for year in [1644, 1667, 1668, 1669, 1734] {
+            assert_eq!(almanac_solar_term_days(year), None, "{year}");
+        }
+    }
+
+    #[test]
+    fn the_almanac_term_days_move_no_month_but_the_five_carried() {
+        // Every major term of the almanac's list that the rules put on
+        // another day, as a correction; applied, they must leave every
+        // month where the calendar with its five term corrections has it,
+        // which is what "they change no date" means.
+        let mut corrections = Vec::new();
+        let mut differing = 0;
+        for year in ALMANAC_SOLAR_TERMS_FIRST_YEAR..=ALMANAC_SOLAR_TERMS_LAST_YEAR {
+            let Some(days) = almanac_solar_term_days(year) else {
+                continue;
+            };
+            for position in (1..24).step_by(2) {
+                let term = hc_core::math::amod((position as i64 + 1) / 2 - 1, 12);
+                let almanac = days[position];
+                let computed = (almanac.0 - 3..=almanac.0 + 3)
+                    .map(Rd)
+                    .find(|&rd| {
+                        PARAMETERS.computed_major_solar_term(Rd(rd.0 + 1)) == term
+                            && PARAMETERS.computed_major_solar_term(rd) != term
+                    })
+                    .expect("the rules' term within three days");
+                if computed == almanac {
+                    continue;
+                }
+                differing += 1;
+                assert!((computed.0 - almanac.0).abs() <= MajorTermCorrection::MAX_SHIFT);
+                // 1645's 大暑 is carried by Lǐ Tiānjīng's rule, not by the
+                // day the almanac printed.
+                if !ALMANAC_TERM_CORRECTIONS
+                    .iter()
+                    .any(|carried| carried.term as i64 == term && carried.computed == computed)
+                {
+                    corrections.push(MajorTermCorrection::new(
+                        term as u8, computed, almanac, "test",
+                    ));
+                }
+            }
+        }
+        corrections.extend(ALMANAC_TERM_CORRECTIONS);
+        corrections.sort_by_key(|correction| correction.computed);
+        let every_term: &'static [MajorTermCorrection] = Box::leak(corrections.into_boxed_slice());
+        let with_every_term: &'static LunisolarParameters =
+            Box::leak(Box::new(LunisolarParameters {
+                major_term_corrections: every_term,
+                ..PARAMETERS
+            }));
+        assert_eq!(differing, 88);
+        for year in ALMANAC_SOLAR_TERMS_FIRST_YEAR..=ALMANAC_SOLAR_TERMS_LAST_YEAR {
+            let chinese_year = year + 2_637;
+            assert_eq!(
+                with_every_term.new_year(chinese_year),
+                PARAMETERS.new_year(chinese_year),
+                "{year}"
+            );
+            assert_eq!(
+                with_every_term.leap_month(chinese_year),
+                PARAMETERS.leap_month(chinese_year),
+                "{year}"
+            );
+        }
+    }
+
+    #[test]
+    fn the_year_of_the_rooster_2017_had_two_lichun_and_the_dog_year_after_it_one_at_its_end() {
+        // 雙春 of 丁酉: 立春 on 正月初七 and 臘月十九, and 立春 on the 除夕 of
+        // 戊戌 (`wikipedia-zh-shuangchun`).
+        let day = |year, month, day| gregorian::to_fixed_saturating(year, month, day);
+        assert_eq!(marriage_augury(4_654), Ok(MarriageAugury::DoubleBright));
+        assert_eq!(
+            ChineseCalendar.from_fixed(lichun_day(2017).expect("in range")),
+            Ok(LunisolarDate::new(4_654, Month::regular(1), 7))
+        );
+        assert_eq!(
+            ChineseCalendar.from_fixed(lichun_day(2018).expect("in range")),
+            Ok(LunisolarDate::new(4_654, Month::regular(12), 19))
+        );
+        assert_eq!(marriage_augury(4_655), Ok(MarriageAugury::Blind));
+        assert_eq!(
+            lichun_day(2019),
+            Ok(Rd(new_year(4_656).expect("in range").0 - 1))
+        );
+        assert_eq!(lichun_day(2019), Ok(day(2019, 2, 4)));
+        let names = |augury: MarriageAugury| -> Vec<&str> {
+            augury
+                .chinese_names()
+                .iter()
+                .map(|name| name.name)
+                .collect()
+        };
+        assert_eq!(
+            names(MarriageAugury::DoubleBright),
+            ["雙春兼閏月", "双春年"]
+        );
+        assert!(names(MarriageAugury::Widow).contains(&"寡婦年"));
+        assert!(names(MarriageAugury::Widow).contains(&"盲年"));
+        assert!(MarriageAugury::Blind.chinese_names().is_empty());
+        assert!(MarriageAugury::Bright.chinese_names().is_empty());
+    }
+
+    #[test]
+    fn the_age_counts_turn_at_their_own_boundaries() {
+        let day = |year, month, day| gregorian::to_fixed_saturating(year, month, day);
+        // 立春 on 4 February 2009 and 2010 (`scmp-double-spring-2009`).
+        assert_eq!(lichun_day(2009), Ok(day(2009, 2, 4)));
+        assert_eq!(lichun_day(2010), Ok(day(2010, 2, 4)));
+        let born = day(2009, 6, 1);
+        assert_eq!(reckoned_age_at_lichun(born, day(2010, 2, 3)), Ok(Some(1)));
+        assert_eq!(reckoned_age_at_lichun(born, day(2010, 2, 4)), Ok(Some(2)));
+        assert_eq!(reckoned_age_at_lichun(born, day(2009, 5, 31)), Ok(None));
+        // The New Year count turns ten days later, at 14 February 2010.
+        let birth = ChineseCalendar.from_fixed(born).expect("in range");
+        assert_eq!(reckoned_age(birth, day(2010, 2, 13)), Ok(Some(1)));
+        assert_eq!(reckoned_age(birth, day(2010, 2, 14)), Ok(Some(2)));
+        // Born on 31 December, two the next day; born on 1 January, still
+        // one that day (`wikipedia-en-east-asian-age-reckoning`,
+        // `wikipedia-zh-xusui`).
+        let eve = day(2000, 12, 31);
+        assert_eq!(reckoned_age_at_new_year_day(eve, eve), Some(1));
+        assert_eq!(reckoned_age_at_new_year_day(eve, day(2001, 1, 1)), Some(2));
+        let new_year = day(2001, 1, 1);
+        assert_eq!(reckoned_age_at_new_year_day(new_year, new_year), Some(1));
+        assert_eq!(year_age(new_year, new_year), Some(0));
+        assert_eq!(year_age(eve, day(2001, 1, 1)), Some(1));
+        assert_eq!(year_age(eve, day(2000, 12, 30)), None);
+        // (Current Year − Birth Year) + 1.
+        assert_eq!(
+            reckoned_age_at_new_year_day(day(1990, 7, 1), day(2026, 9, 29)),
+            Some(37)
+        );
+    }
 
     #[test]
     fn chinese_new_year_2024_was_the_tenth_of_february() {

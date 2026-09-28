@@ -133,6 +133,9 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("juche"),
     CalendarId("holocene"),
     CalendarId("korean-regnal"),
+    CalendarId("korean-regnal-backdated"),
+    CalendarId("hongxian"),
+    CalendarId("manchukuo"),
     CalendarId("japanese-imperial"),
     CalendarId("japanese"),
     CalendarId("japanese-northern"),
@@ -140,6 +143,7 @@ const GREGORIAN_MONTH_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-proclaimed"),
     CalendarId("japanese-northern-proclaimed"),
     CalendarId("japanese-southern-proclaimed"),
+    CalendarId("japanese-kaigen-toji"),
     CalendarId("roman-auc"),
     CalendarId("roman-auc-capitoline"),
     CalendarId("byzantine"),
@@ -239,6 +243,7 @@ const BUDDHIST_CALENDARS: &[CalendarId] = &[CalendarId("buddhist")];
 const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("chinese-regnal"),
+    CalendarId("chinese-regnal-qing-court"),
     CalendarId("huangdi-era"),
     CalendarId("huangdi-era-tongmenghui"),
     CalendarId("huangdi-era-liu-shipei"),
@@ -279,7 +284,10 @@ const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi")];
 
 /// The Chinese regnal calendar on its own: the months of the Chinese
 /// family, the year of the reign.
-const CHINESE_REGNAL_CALENDARS: &[CalendarId] = &[CalendarId("chinese-regnal")];
+const CHINESE_REGNAL_CALENDARS: &[CalendarId] = &[
+    CalendarId("chinese-regnal"),
+    CalendarId("chinese-regnal-qing-court"),
+];
 
 /// The four counts of the years of the Yellow Emperor, which write the
 /// months of the Chinese family and number the year from their epoch.
@@ -376,6 +384,7 @@ const JAPANESE_CALENDARS: &[CalendarId] = &[
     CalendarId("japanese-proclaimed"),
     CalendarId("japanese-northern-proclaimed"),
     CalendarId("japanese-southern-proclaimed"),
+    CalendarId("japanese-kaigen-toji"),
 ];
 
 const fn gregorian(

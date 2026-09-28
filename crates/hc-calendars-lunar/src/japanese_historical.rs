@@ -81,7 +81,10 @@
 //!   independently derived Edo systems all want a solstice a third to half a
 //!   day early is itself a finding: they determined it by gnomon shadow, and
 //!   this is the size of that method's known bias.
-//! * **Senmyō-reki's 進朔限**, for which see [`senmyo::MODEL`].
+//! * **Senmyō-reki's 進朔限**, for which see [`senmyo::MODEL`]. The
+//!   seasonal limit and the eclipse exception of 新唐書 are
+//!   [`senmyo::PARAMETERS_SEASONAL`] and
+//!   [`senmyo::PARAMETERS_SEASONAL_ECLIPSE`], on the same fitted base.
 //!
 //! Two scalars fitted against 300 592 days of independent data is
 //! calibration rather than curve-fitting, but it is fitting, and it is
@@ -127,8 +130,8 @@ use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
 use crate::lunisolar::{
-    CHINESE_EPOCH, ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters,
-    MeanMotionModel, MeridianEra, SolarTermMode,
+    CHINESE_EPOCH, ConjunctionMode, EclipseSite, LunisolarCalendar, LunisolarDate,
+    LunisolarParameters, MeanMotionModel, MeridianEra, SeasonalAdvance, SolarTermMode,
 };
 
 /// The meridian history shared by every Japanese lunisolar calendar.
@@ -401,6 +404,8 @@ pub mod senmyo {
         // measured in the integration tests, so the trade is visible rather
         // than asserted.
         advance_limit: Some(0.80),
+        seasonal_advance: None,
+        eclipse_exception: None,
     };
 
     /// Senmyō-reki with its own 日躔 and 月離 tables driving the conjunction.
@@ -410,6 +415,98 @@ pub mod senmyo {
     };
 
     parameter_sets!("Japanese Senmyō (lunisolar)");
+
+    /// The 夜半定漏 of the 宣明曆's 晷漏 table, the water clock's reading
+    /// from midnight to dawn at the first day of each 定氣 from 冬至, read as
+    /// 昏明小餘 — 刻 × 刻法 84 + 分, in parts of the day of 8400 — and
+    /// written as fractions of a day (新唐書 卷030上, `xintangshu`).
+    ///
+    /// Printed values, 冬至 二十七刻四十分 to 大雪 二十七刻二十九分. The table
+    /// is symmetric about 夏至 in every pair but one: 清明 is printed
+    /// 二十二刻十分 and 白露, its mirror, 二十一刻十分. The printed 清明 is
+    /// carried; it moves 清明's limit by (1890 − 1858) / 5 = 6 parts rather
+    /// than (1890 − 1774) / 5 = 23, a fiftieth of an hour.
+    pub static DAWN: [f64; 24] = [
+        2_308.0 / 8_400.0, // 冬至 二十七刻四十分
+        2_297.0 / 8_400.0, // 小寒 二十七刻二十九分
+        2_258.0 / 8_400.0, // 大寒 二十六刻七十四分
+        2_194.0 / 8_400.0, // 立春 二十六刻十分
+        2_109.0 / 8_400.0, // 雨水 二十五刻九分
+        2_006.0 / 8_400.0, // 驚蟄 二十三刻七十四分
+        1_890.0 / 8_400.0, // 春分 二十二刻四十二分
+        1_858.0 / 8_400.0, // 清明 二十二刻十分, as printed
+        1_671.0 / 8_400.0, // 穀雨 十九刻七十五分
+        1_586.0 / 8_400.0, // 立夏 十八刻七十四分
+        1_522.0 / 8_400.0, // 小滿 十八刻十分
+        1_483.0 / 8_400.0, // 芒種 十七刻五十五分
+        1_472.0 / 8_400.0, // 夏至 十七刻四十四分
+        1_483.0 / 8_400.0, // 小暑 十七刻五十五分
+        1_522.0 / 8_400.0, // 大暑 十八刻十分
+        1_586.0 / 8_400.0, // 立秋 十八刻七十四分
+        1_671.0 / 8_400.0, // 處暑 十九刻七十五分
+        1_774.0 / 8_400.0, // 白露 二十一刻十分
+        1_890.0 / 8_400.0, // 秋分 二十二刻四十二分
+        2_006.0 / 8_400.0, // 寒露 二十三刻七十四分
+        2_109.0 / 8_400.0, // 霜降 二十五刻九分
+        2_194.0 / 8_400.0, // 立冬 二十六刻十分
+        2_258.0 / 8_400.0, // 小雪 二十六刻七十四分
+        2_297.0 / 8_400.0, // 大雪 二十七刻二十九分
+    ];
+
+    /// Senmyō-reki's seasonal 進朔限: the limit of [`MODEL`] from 秋分 to
+    /// 春分, and after 春分 that limit less a fifth of the day's 昏明小餘's
+    /// difference from 春分's (「春分後，昏明小餘差春分初日者，五而一，
+    /// 以減四分之三」, `xintangshu`). At 夏至 the difference is 1890 − 1472 =
+    /// 418 parts and the limit is lowered by 83.6 parts, 0.00995 of a day.
+    pub const SEASONAL_ADVANCE: SeasonalAdvance = SeasonalAdvance {
+        dawn: &DAWN,
+        divisor: 5.0,
+    };
+
+    /// Where the eclipse exception is judged from: Kyoto, on the meridian
+    /// every Japanese system here is computed for, 135°46′E, and at the
+    /// latitude of the 改暦所 of 1797, 35°00′36″N, which
+    /// `docs/systems/hours-of-the-day.md` sources.
+    pub const KYOTO: EclipseSite = EclipseSite {
+        latitude_degrees: 35.0 + 36.0 / 3_600.0,
+        longitude_degrees: 135.0 + 46.0 / 60.0,
+    };
+
+    /// [`MODEL`] with the seasonal 進朔限 of [`SEASONAL_ADVANCE`].
+    pub const MODEL_SEASONAL: MeanMotionModel = MeanMotionModel {
+        seasonal_advance: Some(SEASONAL_ADVANCE),
+        ..MODEL
+    };
+
+    /// [`MODEL_SEASONAL`] with the eclipse exception as well: a late
+    /// conjunction is not held over when a solar eclipse's first contact is
+    /// seen at [`KYOTO`] with the Sun up. The eclipse is modern
+    /// astronomy's, not the bureau's prediction; see [`EclipseSite`].
+    pub const MODEL_SEASONAL_ECLIPSE: MeanMotionModel = MeanMotionModel {
+        eclipse_exception: Some(KYOTO),
+        ..MODEL_SEASONAL
+    };
+
+    /// Senmyō-reki with the seasonal 進朔限 of 新唐書. Measured against the
+    /// published table in `tests/japanese_historical.rs`; the document
+    /// gives the figures.
+    pub static PARAMETERS_SEASONAL: LunisolarParameters = LunisolarParameters {
+        mean_motion: Some(MODEL_SEASONAL),
+        ..TEMPLATE
+    };
+
+    /// Senmyō-reki with the seasonal 進朔限 and the eclipse exception.
+    pub static PARAMETERS_SEASONAL_ECLIPSE: LunisolarParameters = LunisolarParameters {
+        mean_motion: Some(MODEL_SEASONAL_ECLIPSE),
+        ..TEMPLATE
+    };
+
+    /// The engine configured with [`PARAMETERS_SEASONAL`].
+    pub const ENGINE_SEASONAL: LunisolarCalendar = LunisolarCalendar::new(&PARAMETERS_SEASONAL);
+
+    /// The engine configured with [`PARAMETERS_SEASONAL_ECLIPSE`].
+    pub const ENGINE_SEASONAL_ECLIPSE: LunisolarCalendar =
+        LunisolarCalendar::new(&PARAMETERS_SEASONAL_ECLIPSE);
 
     delegating_calendar! {
         /// 宣明暦, the calendar of Japan from 862 to 1685.
@@ -488,6 +585,8 @@ pub mod jokyo {
         // Shibukawa abolished 進朔; no calendar after Senmyō-reki holds a
         // conjunction over to the following day.
         advance_limit: None,
+        seasonal_advance: None,
+        eclipse_exception: None,
     };
 
     /// Jōkyō-reki with a tabulated conjunction rather than an apparent one.
@@ -516,9 +615,10 @@ pub mod horyaku {
     //! it failed to predict the solar eclipse of 1763, which the amateur
     //! Asada Gōryū did predict, and was patched in 1771 (修正宝暦暦). This
     //! module implements the system as promulgated in 1755, with the tropical
-    //! year 365.241556; the 1771 revision moved it to 365.241626, a change of
-    //! six seconds a year and four minutes over the calendar's whole life,
-    //! far below the resolution of a day boundary.
+    //! year 365.241556, as [`PARAMETERS`]; the 1771 revision moved it to
+    //! 365.241626, a change of six seconds a year, and is
+    //! [`PARAMETERS_REVISED`] from 明和8年1月1日. Measured against the
+    //! published table the revision moves no day of 1771–1798.
     //!
     //! # Constants
     //!
@@ -567,6 +667,8 @@ pub mod horyaku {
         solar_equation_days: MODERN_SOLAR_EQUATION_DAYS,
         lunar_equation_days: MODERN_LUNAR_EQUATION_DAYS,
         advance_limit: None,
+        seasonal_advance: None,
+        eclipse_exception: None,
     };
 
     /// Hōryaku-reki with a tabulated conjunction rather than an apparent one.
@@ -576,6 +678,39 @@ pub mod horyaku {
     };
 
     parameter_sets!("Japanese Hōryaku (lunisolar)");
+
+    /// 明和8年1月1日, 1771-02-15, the first day of the 修正宝暦暦: the 暦Wiki
+    /// has the revised system 「明和八年(1771)より」 (`nao-rekiwiki-horyaku`),
+    /// and the day is the published table's first day of 明和8年
+    /// (`wikipedia-ja-era-tables`).
+    pub const REVISED_FROM: Rd = gregorian::to_fixed_saturating(1771, 2, 15);
+
+    /// The 修正宝暦暦 of 1771: [`MODEL`] with the revised 歳周,
+    /// 365.241626 days (`nao-rekiwiki-horyaku`: 「1太陽年＝365.241626日
+    /// (歳周)：修正宝暦暦」), six seconds a year longer.
+    ///
+    /// The revision's own 暦元 was not read. The solstice epoch here is the
+    /// one that puts the revised system's 冬至 of 1770, the one before its
+    /// first year, where the promulgated system put it — 640 625.718 005 +
+    /// 16 × 365.241 556 = 646 469.582 901 — so that the two part only by the
+    /// revised year's drift from there, a construction of this library and
+    /// labelled as one.
+    pub const MODEL_REVISED: MeanMotionModel = MeanMotionModel {
+        tropical_year: 365.241_626,
+        // 646_469.582_901 − 16 × 365.241_626.
+        solstice_epoch: 640_625.716_885,
+        ..MODEL
+    };
+
+    /// The 修正宝暦暦, from [`REVISED_FROM`] to the end of the system.
+    pub static PARAMETERS_REVISED: LunisolarParameters = LunisolarParameters {
+        mean_motion: Some(MODEL_REVISED),
+        earliest: Some(REVISED_FROM),
+        ..TEMPLATE
+    };
+
+    /// The engine configured with [`PARAMETERS_REVISED`].
+    pub const ENGINE_REVISED: LunisolarCalendar = LunisolarCalendar::new(&PARAMETERS_REVISED);
 
     delegating_calendar! {
         /// 宝暦暦, the calendar of Japan from 1755 to 1798.
@@ -661,6 +796,8 @@ pub mod kansei {
         solar_equation_days: MODERN_SOLAR_EQUATION_DAYS,
         lunar_equation_days: MODERN_LUNAR_EQUATION_DAYS,
         advance_limit: None,
+        seasonal_advance: None,
+        eclipse_exception: None,
     };
 
     /// Kansei-reki with a tabulated conjunction rather than an apparent one.

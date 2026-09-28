@@ -272,6 +272,28 @@ mod tests {
     }
 
     #[test]
+    fn the_vietnamese_zodiac_has_the_cat_and_the_buffalo() {
+        // 辛卯年, Tân Mão, the year the title page of Wikipedia's example
+        // dates to 1831 (`wikipedia-en-vietnamese-calendar`): the cat, not
+        // the rabbit.
+        let tan_mao = PARAMETERS.sexagenary_year(1_831);
+        assert_eq!((tan_mao.stem_name(), tan_mao.branch_name()), ("xin", "mao"));
+        assert_eq!(tan_mao.vietnamese_zodiac_animal(), "cat");
+        assert_eq!(tan_mao.zodiac_animal(), "rabbit");
+        // 甲申, Giáp Thân, 1944, the calendar the article illustrates: the
+        // monkey in both.
+        let giap_than = PARAMETERS.sexagenary_year(1_944);
+        assert_eq!(giap_than.vietnamese_zodiac_animal(), "monkey");
+        assert_eq!(giap_than.zodiac_animal(), "monkey");
+        // 丑 is the water buffalo.
+        assert_eq!(
+            PARAMETERS.sexagenary_year(2_021).vietnamese_zodiac_animal(),
+            "buffalo"
+        );
+        assert_eq!(PARAMETERS.sexagenary_year(2_021).branch_name(), "chou");
+    }
+
+    #[test]
     fn the_year_2024_is_giap_thin_the_wood_dragon() {
         let cycle = PARAMETERS.sexagenary_year(2_024);
         assert_eq!(cycle.stem_name(), "jia");

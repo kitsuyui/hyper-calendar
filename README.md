@@ -30,7 +30,7 @@ authority when a count here is out of date.
 
 | What | Count | Where it is listed |
 | --- | ---: | --- |
-| Calendars in the registry, each with its own identifier | 204 | [supported.md § Calendars](docs/supported.md#calendars) |
+| Calendars in the registry, each with its own identifier | 209 | [supported.md § Calendars](docs/supported.md#calendars) |
 | National holiday tables: 190 of the 193 UN member states, plus Hong Kong, Macau, Palestine, Taiwan and the Holy See | 195 | [supported.md § Holidays by country](docs/supported.md#holidays-by-country) |
 | Religious and cultural tradition tables | 60 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
 | International observance tables (the 236 UN international days) | 1 | [supported.md § International observances](docs/supported.md#international-observances) |
@@ -99,7 +99,7 @@ includes the crate.
 | [`hc-calendars-lunar`](crates/hc-calendars-lunar) | Hijri, Hebrew, Babylonian, Chinese, Korean, Vietnamese, Tibetan, Javanese, the Japanese lunisolar calendars | `lunar` |
 | [`hc-calendars-equinox`](crates/hc-calendars-equinox) | Solar Hijri, Badíʿ and French Republican calendars fixed by an observed equinox | `equinox` |
 | [`hc-calendars-indic`](crates/hc-calendars-indic) | Hindu lunisolar and solar calendars, Bikram Sambat, the Fasli years, Rāhu kālam | `indic` |
-| [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing eras, Maya, Aztec, Zapotec and Mixtec years, Burmese, Thai, Khmer and Lao lunar, Balinese Pawukon, Olympiads | `regional` |
+| [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing, Korean Empire, Hongxian and Manchukuo eras, Maya, Aztec, Zapotec and Mixtec years, Burmese, Thai, Khmer and Lao lunar, Balinese Pawukon, Olympiads | `regional` |
 | [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time, sundial and temporal hours, Edo hours, zmanim, Islamic prayer times | `astro` |
 | [`hc-seasons`](crates/hc-seasons) | The 24 solar terms, the 72 pentads, 雑節, 六曜, the zodiac, the seasons | `seasons` |
 | [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days, 納音, 臘日; 恵方 and the 八将神, 三元九運, 손 없는 날 | `almanac` |
@@ -173,7 +173,7 @@ assert_eq!((fields.era, fields.year), (Some("reiwa"), 8));
 // Every registered calendar at once. A calendar that was not in use on the
 // day returns an error for it rather than being left out.
 let described = calendars.describe_day(day);
-assert_eq!(described.len(), 204);
+assert_eq!(described.len(), 209);
 # Ok::<(), hyper_calendar::CalendarError>(())
 ```
 

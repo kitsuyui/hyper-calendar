@@ -569,8 +569,432 @@ hc_core::catalogue! {
             ],
             authority: "The 宝暦暦 revision as the 1874 略本暦 printed it, in the 宝暦暦以降 column of the National Astronomical Observatory of Japan's 暦Wiki",
         };
+
+        /// Shibukawa Harumi's 本朝七十二候 of the 貞享暦, 1685, as the
+        /// National Astronomical Observatory of Japan's 暦Wiki tabulates it
+        /// in its 貞享暦 column (`nao-rekiwiki-72ko`), name for name. The
+        /// glosses are this crate's, for the names [`JAPANESE`] does not
+        /// share; the rest are [`JAPANESE`]'s.
+        pub const JOKYO = PentadTradition {
+            id: "jokyo",
+            english_name: "Japanese (Jōkyō)",
+            names: &[
+                // 春分 (0°)
+                "雀始巣",
+                "雷乃発声",
+                "桜始開桃始笑",
+                // 清明 (15°)
+                "玄鳥至",
+                "鴻雁北",
+                "虹始見",
+                // 穀雨 (30°)
+                "葭始生",
+                "牡丹華",
+                "霜止出苗",
+                // 立夏 (45°)
+                "䳌始鳴",
+                "蚯蚓出",
+                "竹笋生",
+                // 小満 (60°)
+                "蚕起食桑",
+                "紅花栄",
+                "麦秋至",
+                // 芒種 (75°)
+                "蟷螂生",
+                "腐草為蛍",
+                "梅始黄",
+                // 夏至 (90°)
+                "乃東枯",
+                "分龍雨",
+                "半夏生",
+                // 小暑 (105°)
+                "温風至",
+                "蓮始華",
+                "鷹乃学習",
+                // 大暑 (120°)
+                "桐始結花",
+                "土潤溽暑",
+                "大雨時行",
+                // 立秋 (135°)
+                "涼風至",
+                "山沢浮雲",
+                "霧色巳成",
+                // 処暑 (150°)
+                "寒蝉鳴",
+                "天地始粛",
+                "禾乃登",
+                // 白露 (165°)
+                "草露白",
+                "鶺鴒鳴",
+                "玄鳥去",
+                // 秋分 (180°)
+                "鴻雁来",
+                "蟄虫坏戸",
+                "水始涸",
+                // 寒露 (195°)
+                "棗栗零",
+                "蟋蟀在戸",
+                "菊花開",
+                // 霜降 (210°)
+                "霜始降",
+                "蔦楓紅葉",
+                "鶯雛鳴",
+                // 立冬 (225°)
+                "山茶始開",
+                "地始凍",
+                "霎乃降",
+                // 小雪 (240°)
+                "虹蔵不見",
+                "樹葉咸落",
+                "橘始黄",
+                // 大雪 (255°)
+                "閉塞成冬",
+                "熊蟄穴",
+                "水仙開",
+                // 冬至 (270°)
+                "乃東生",
+                "麋角解",
+                "雪下出麦",
+                // 小寒 (285°)
+                "芹乃栄",
+                "風気乃行",
+                "雉始雊",
+                // 大寒 (300°)
+                "款冬華",
+                "水沢腹堅",
+                "鶏始乳",
+                // 立春 (315°)
+                "東風解凍",
+                "梅花乃芳",
+                "魚上氷",
+                // 雨水 (330°)
+                "土脉潤起",
+                "霞彩碧空",
+                "草木萌動",
+                // 啓蟄 (345°)
+                "蟄虫啓戸",
+                "寒雨間熟",
+                "菜虫化蝶",
+            ],
+            glosses: &[
+                // 春分 (0°)
+                "the sparrows start to nest",
+                "distant thunder is first heard",
+                "the cherries begin to open and the peaches to smile",
+                // 清明 (15°)
+                "the swallows return",
+                "the wild geese fly north",
+                "rainbows are first seen",
+                // 穀雨 (30°)
+                "the first reeds sprout",
+                "the peonies bloom",
+                "the frosts end and the rice seedlings come up",
+                // 立夏 (45°)
+                "the frogs begin to call",
+                "the earthworms surface",
+                "the bamboo shoots come up",
+                // 小満 (60°)
+                "the silkworms wake and eat mulberry",
+                "the safflower blooms in profusion",
+                "the wheat ripens",
+                // 芒種 (75°)
+                "the mantises hatch",
+                "the rotting grass turns into fireflies",
+                "the plums begin to turn yellow",
+                // 夏至 (90°)
+                "the self-heal withers",
+                "the rains of the dividing dragons fall",
+                "the crow-dipper sprouts",
+                // 小暑 (105°)
+                "the warm wind arrives",
+                "the lotus begins to flower",
+                "the young hawks learn to fly",
+                // 大暑 (120°)
+                "the paulownia sets its seed",
+                "the soil is damp and the air sultry",
+                "heavy rains fall from time to time",
+                // 立秋 (135°)
+                "the cool wind arrives",
+                "clouds float over the mountains and marshes",
+                "the mists have gathered",
+                // 処暑 (150°)
+                "the evening cicadas sing",
+                "heaven and earth begin to cool",
+                "the rice ripens",
+                // 白露 (165°)
+                "the dew on the grass turns white",
+                "the wagtails begin to call",
+                "the swallows depart",
+                // 秋分 (180°)
+                "the wild geese arrive",
+                "the hibernating insects seal their burrows",
+                "the paddy fields are drained",
+                // 寒露 (195°)
+                "the jujubes and chestnuts fall",
+                "the crickets sing by the door",
+                "the chrysanthemums bloom",
+                // 霜降 (210°)
+                "the first frost falls",
+                "the ivy and the maples turn red",
+                "the young bush warblers call",
+                // 立冬 (225°)
+                "the sasanqua camellias open",
+                "the ground begins to freeze",
+                "light showers fall",
+                // 小雪 (240°)
+                "the rainbows hide away",
+                "all the leaves fall from the trees",
+                "the tachibana leaves turn yellow",
+                // 大雪 (255°)
+                "the sky is shut and winter sets in",
+                "the bears retire to their dens",
+                "the narcissi open",
+                // 冬至 (270°)
+                "the self-heal sprouts",
+                "the elk shed their antlers",
+                "the wheat sprouts under the snow",
+                // 小寒 (285°)
+                "the parsley flourishes",
+                "the winds begin to move",
+                "the pheasants begin to call",
+                // 大寒 (300°)
+                "the butterbur buds open",
+                "the ice on the marshes is thick and hard",
+                "the hens begin to lay",
+                // 立春 (315°)
+                "the east wind melts the ice",
+                "the plum blossoms are fragrant",
+                "the fish rise to the cracking ice",
+                // 雨水 (330°)
+                "the rain moistens the soil",
+                "the haze colours the blue sky",
+                "the grasses and trees put out shoots",
+                // 啓蟄 (345°)
+                "the hibernating creatures open their doors",
+                "cold rain falls now and then",
+                "the caterpillars become butterflies",
+            ],
+            authority: "Shibukawa Harumi's 本朝七十二候 of the 貞享暦 (1685), in the 貞享暦 column of the National Astronomical Observatory of Japan's 暦Wiki",
+        };
+
+        /// The Chinese list as Japan kept it before 1685, in the 宣明暦以前
+        /// column of the National Astronomical Observatory of Japan's
+        /// 暦Wiki (`nao-rekiwiki-72ko`): shinjitai, the variants the page
+        /// puts in parentheses kept as it prints them — 桐始華(花),
+        /// 菊有黄華(花), 虎(武)始交, 鴻雁来(北) — and readings of its own where
+        /// it departs from the 時訓解 of [`CHINESE`], such as 小暑至 for
+        /// 麥秋至, 雷乃収声 for 雷始收聲 and 鷙鳥厲疾 for 鷙鳥厲. The glosses
+        /// are [`CHINESE`]'s, position by position, but for 小暑至's.
+        pub const SENMYO = PentadTradition {
+            id: "senmyo",
+            english_name: "Japanese (before 1685)",
+            names: &[
+                // 春分 (0°)
+                "玄鳥至",
+                "雷乃発声",
+                "始電",
+                // 清明 (15°)
+                "桐始華(花)",
+                "田鼠化為鴽",
+                "虹始見",
+                // 穀雨 (30°)
+                "萍始生",
+                "鳴鳩払其羽",
+                "戴勝降桑",
+                // 立夏 (45°)
+                "螻蟈鳴",
+                "蚯蚓出",
+                "王瓜生",
+                // 小満 (60°)
+                "苦菜秀",
+                "靡草死",
+                "小暑至",
+                // 芒種 (75°)
+                "蟷螂生",
+                "鵙始鳴",
+                "反舌無声",
+                // 夏至 (90°)
+                "鹿角解",
+                "蜩始鳴",
+                "半夏生",
+                // 小暑 (105°)
+                "温風至",
+                "蟋蟀居壁",
+                "鷹乃学習",
+                // 大暑 (120°)
+                "腐草為蛍",
+                "土潤溽暑",
+                "大雨時行",
+                // 立秋 (135°)
+                "涼風至",
+                "白露降",
+                "寒蝉鳴",
+                // 処暑 (150°)
+                "鷹乃祭鳥",
+                "天地始粛",
+                "禾乃登",
+                // 白露 (165°)
+                "鴻雁来",
+                "玄鳥帰",
+                "群鳥養羞",
+                // 秋分 (180°)
+                "雷乃収声",
+                "蟄虫坏戸",
+                "水始涸",
+                // 寒露 (195°)
+                "鴻雁来賓",
+                "雀入大水為蛤",
+                "菊有黄華(花)",
+                // 霜降 (210°)
+                "豺乃祭獣",
+                "草木黄落",
+                "蟄虫咸俯",
+                // 立冬 (225°)
+                "水始氷",
+                "地始凍",
+                "野雉入大水為蜃",
+                // 小雪 (240°)
+                "虹蔵不見",
+                "天気上騰地気下降",
+                "閉塞而成冬",
+                // 大雪 (255°)
+                "鶡鳥不鳴",
+                "虎(武)始交",
+                "茘挺出",
+                // 冬至 (270°)
+                "蚯蚓結",
+                "麋角解",
+                "水泉動",
+                // 小寒 (285°)
+                "雁北郷",
+                "鵲始巣",
+                "野雉始雊",
+                // 大寒 (300°)
+                "鶏始乳",
+                "鷙鳥厲疾",
+                "水沢腹堅",
+                // 立春 (315°)
+                "東風解凍",
+                "蟄虫始振",
+                "魚上氷",
+                // 雨水 (330°)
+                "獺祭魚",
+                "鴻雁来(北)",
+                "草木萌動",
+                // 啓蟄 (345°)
+                "桃始華",
+                "倉庚鳴",
+                "鷹化為鳩",
+            ],
+            glosses: &[
+                // 春分 (0°)
+                "the swallows return",
+                "thunder begins to sound",
+                "lightning is first seen",
+                // 清明 (15°)
+                "the paulownia flowers",
+                "the field mice turn into quails",
+                "rainbows are first seen",
+                // 穀雨 (30°)
+                "the duckweed begins to grow",
+                "the cooing dove preens its wings",
+                "the hoopoe alights on the mulberry",
+                // 立夏 (45°)
+                "the mole crickets chirp",
+                "the earthworms surface",
+                "the royal gourd puts out shoots",
+                // 小満 (60°)
+                "the sow thistle flowers",
+                "the tender herbs wither",
+                "the lesser heat arrives",
+                // 芒種 (75°)
+                "the mantises hatch",
+                "the shrike begins to call",
+                "the mockingbird falls silent",
+                // 夏至 (90°)
+                "the deer shed their antlers",
+                "the cicadas begin to sing",
+                "the crow-dipper sprouts",
+                // 小暑 (105°)
+                "the warm wind arrives",
+                "the crickets move into the walls",
+                "the young hawks learn to fly",
+                // 大暑 (120°)
+                "the rotting grass turns into fireflies",
+                "the soil is damp and the air sultry",
+                "heavy rains fall from time to time",
+                // 立秋 (135°)
+                "the cool wind arrives",
+                "the white dew descends",
+                "the autumn cicadas sing",
+                // 処暑 (150°)
+                "the hawk lays out its prey",
+                "heaven and earth begin to cool",
+                "the grain ripens",
+                // 白露 (165°)
+                "the wild geese arrive",
+                "the swallows leave",
+                "the birds lay in their winter store",
+                // 秋分 (180°)
+                "the thunder begins to fall silent",
+                "the hibernating insects seal their burrows",
+                "the waters begin to dry",
+                // 寒露 (195°)
+                "the last of the wild geese arrive",
+                "the sparrows enter the sea and become clams",
+                "the chrysanthemums show yellow flowers",
+                // 霜降 (210°)
+                "the jackal lays out its prey",
+                "the leaves yellow and fall",
+                "every hibernating creature lies down",
+                // 立冬 (225°)
+                "the waters begin to freeze",
+                "the ground begins to freeze",
+                "the pheasants enter the great water and become giant clams",
+                // 小雪 (240°)
+                "the rainbows hide away",
+                "the breath of heaven rises and that of earth sinks",
+                "all is closed up and winter sets in",
+                // 大雪 (255°)
+                "the snow partridge falls silent",
+                "the tigers begin to mate",
+                "the broom sedge puts up shoots",
+                // 冬至 (270°)
+                "the earthworms knot together",
+                "the elk shed their antlers",
+                "the springs begin to move",
+                // 小寒 (285°)
+                "the geese turn north",
+                "the magpies start to nest",
+                "the pheasants begin to call",
+                // 大寒 (300°)
+                "the hens begin to lay",
+                "the birds of prey grow fierce",
+                "the ice on the waters is thick and hard",
+                // 立春 (315°)
+                "the east wind melts the ice",
+                "the hibernating creatures begin to stir",
+                "the fish rise to the ice",
+                // 雨水 (330°)
+                "the otter lays out its fish",
+                "the wild geese fly north",
+                "the grasses and trees put out shoots",
+                // 啓蟄 (345°)
+                "the peach trees begin to blossom",
+                "the orioles sing",
+                "the hawk turns into a dove",
+            ],
+            authority: "The Chinese list as Japan kept it before the 貞享暦, in the 宣明暦以前 column of the National Astronomical Observatory of Japan's 暦Wiki",
+        };
     }
 }
+
+/// The 宝暦暦's list, the 暦Wiki's 宝暦暦以降 column (`nao-rekiwiki-72ko`):
+/// the list [`JAPANESE`] carries, name for name, since the 1874 略本暦
+/// printed the 宝暦暦's list. The column's two variants in parentheses,
+/// 虹蔵(蟄)不見 and 東風解凍(氷), are read by their main characters, as
+/// [`JAPANESE`] writes them. One list under one identifier, `japanese`.
+pub const HORYAKU: PentadTradition = JAPANESE;
 
 /// The traditional characters of [`CHINESE`] and the shinjitai [`JAPANESE`]
 /// writes them in, for telling the same name from a different one. 螳 and
@@ -1031,6 +1455,37 @@ mod tests {
                 "{name} is written in shinjitai"
             );
         }
+    }
+
+    /// Three rows of the 暦Wiki's table, read across its 宣明暦以前, 貞享暦
+    /// and 宝暦暦以降 columns (`nao-rekiwiki-72ko`).
+    #[test]
+    fn the_rekiwiki_columns_are_the_senmyo_jokyo_and_horyaku_lists() {
+        let at = |order: u8| Pentad::from_index(TermOrder::BeginningOfSpringFirst, order).unwrap();
+        // 立春次候, 大雪末候 and 秋分初候.
+        for (pentad, senmyo, jokyo, horyaku) in [
+            (at(1), "蟄虫始振", "梅花乃芳", "黄鶯睍睆"),
+            (at(62), "茘挺出", "水仙開", "鱖魚群"),
+            (at(45), "雷乃収声", "鴻雁来", "雷乃収声"),
+        ] {
+            assert_eq!(pentad.name(SENMYO), senmyo);
+            assert_eq!(pentad.name(JOKYO), jokyo);
+            assert_eq!(pentad.name(HORYAKU), horyaku);
+            assert_eq!(pentad.name(JAPANESE), horyaku);
+        }
+        assert_eq!(HORYAKU, JAPANESE);
+        assert_eq!(by_id("jokyo"), Some(JOKYO));
+        assert_eq!(by_id("senmyo"), Some(SENMYO));
+        // Shibukawa's list shares most of the year with the 宝暦暦's, which
+        // revised it, and little with the list it replaced.
+        let shared = |a: PentadTradition, b: PentadTradition| {
+            Pentad::all(TermOrder::SpringEquinoxFirst)
+                .iter()
+                .filter(|pentad| pentad.name(a) == pentad.name(b))
+                .count()
+        };
+        assert_eq!(shared(JOKYO, JAPANESE), 48);
+        assert_eq!(shared(JOKYO, SENMYO), 20);
     }
 
     #[test]

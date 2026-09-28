@@ -28,6 +28,7 @@ such counts, and are here as regional calendars.
 | `japanese-northern`, `japanese-southern` | The same, with the Northern or the Southern Court's eras during the 南北朝 split; both read 明徳 from the reunion of 1392 |
 | `japanese-proclaimed` | The same, with each era from the day it was proclaimed rather than backdated to the first day of its year: 明治 from 1868-10-23 |
 | `japanese-northern-proclaimed`, `japanese-southern-proclaimed` | Each court's stream with each era from the day it was proclaimed: 暦応 from 1338-10-11 and 興国 from 1340-05-25 (Julian) |
+| `japanese-kaigen-toji` | The unified stream as proclaimed, with the 改元当時 changeover days: 1912-07-30 is 明治45年7月30日 and 大正元年7月30日, 1926-12-25 大正15年12月25日 and 昭和元年12月25日 ([docs/systems/japanese-eras.md](../../docs/systems/japanese-eras.md)) |
 | `maya-longcount` | `baktun.katun.tun.uinal.kin`, in `DateFields::extra`, under the GMT correlation |
 | `maya-longcount-gmt2` | The same under the GMT+2 correlation |
 | `maya-longcount-584286` | The same under Martin and Skidmore's 584 286 |
@@ -45,7 +46,11 @@ such counts, and are here as regional calendars.
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
 | `korean-regnal` | The Korean Empire's eras 建陽, 光武, 隆熙 on the Gregorian days of 1896–1910 |
+| `korean-regnal-backdated` | The same with 光武 from 1 January 1897, 「以是年爲光武元年」 |
 | `chinese-regnal` | The Qing eras over the lunisolar calendar, 1645–1912; the Ming, Southern Ming, Shun and Qing era table as data |
+| `chinese-regnal-qing-court` | The same with 宣統 kept by the court in the Forbidden City to 1924-11-05, 宣統十六年十月初九, the 1917 restoration included |
+| `hongxian` | 洪憲元年, Yuan Shikai's era, 1 January to 22 March 1916, on the Gregorian calendar |
+| `manchukuo` | Manchukuo's 大同 from 1 March 1932 and 康德 from 1 March 1934 to 17 August 1945, on the Gregorian calendar ([docs/systems/east-asian-eras.md](../../docs/systems/east-asian-eras.md)) |
 | `burmese` | The Burmese lunisolar calendar of the Myanmar Era: watat years, First Waso and the Nayon day, by the published arithmetic |
 | `thai-lunar` | The Thai lunar calendar as Thailand publishes it: the adhikamāsa and adhikavāra years carried as data for 2535–2570 BE (1992–2027) |
 | `khmer` | The Khmer *Chhankitek*: the leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
