@@ -1,7 +1,8 @@
 # The *Common Worship* calendar: ranks and transfers
 
 Backs `hc-holiday`'s `common_worship` module and its tradition table
-`common-worship`.
+`common-worship`, and the `book_of_common_prayer` module and its table
+`bcp-1662`.
 
 ## What it is
 
@@ -22,6 +23,14 @@ ranks named there, from the highest, are:
   displaced".
 - **Lesser Festivals** and **Commemorations**, which the calendar lists
   and "the minister may be selective in".
+
+The *Book of Common Prayer* of 1662, which *Common Worship* sits beside,
+has a calendar of its own: "A Table of all the Feasts that are to be
+observed in the Church of England through the year" — "All Sundaies in
+the year" and twenty-nine other days, the red-letter days — and a
+Kalendar that names other saints beside them, the black-letter days
+[wikisource-bcp-1892; howell-bcp-kalendar]. It ranks nothing further and
+gives no rule for a holy day on a Sunday.
 
 The Rules also permit moves that a church may make or not: the Epiphany
 to a Sunday, All Saints to a Sunday, the Blessed Virgin Mary from
@@ -116,6 +125,17 @@ Full Fact, quoting the Church, reported St George's Day 2025 on Monday
 - **`common-worship`**, the same as a rule set, every entry religious and
   none a day off; the open years above are reported as gaps
   (`Rule::Unsettled`).
+- **`bcp-1662`** (`book_of_common_prayer::CELEBRATIONS`): the Prayer Book's
+  24 fixed red-letter days, the Ascension and the Mondays and Tuesdays of
+  Easter and Whitsun weeks, with Easter Day, Whitsunday, Trinity Sunday
+  and Advent Sunday by its Rules to know when the Moveable Feasts begin,
+  and the Kalendar's 70 black-letter days, each with its 1662 wording
+  beside the modern; from 1753, on the Gregorian computus the Calendar
+  (New Style) Act 1750 gave the book. The Kalendar of 1662 has four days
+  the modern one does not — King Charles the Martyr, Charles II's Nativity
+  and Return, the Papists' Conspiracy and St Blasius — and they are
+  carried as it prints them; St Mary Magdalen, on 21 July in the 1662
+  transcription and 22 July in the modern, is a gap.
 
 Not carried:
 
@@ -125,7 +145,10 @@ Not carried:
   lists them; the minister chooses which are kept, and a Lesser Festival
   that meets a higher day "is normally omitted", which is a choice too.
 - **Patronal and Dedication Festivals**, which are each church's own.
-- **The Book of Common Prayer's calendar.**
+- **The Book of Common Prayer's own later rules.** The "Rules to Order the
+  Service" of the modern Prayer Book, which move a holy day off some
+  Sundays, are not in the 1662 text and are not carried; nor is a
+  leap-year day for St Matthias, whom the Kalendar keeps on 24 February.
 - **The years before *Common Worship*.** The Rules are applied to every
   year the Gregorian computus gives; when they were authorized was not
   read.
@@ -157,6 +180,12 @@ rest on the rules and one press report.
 | [cofe-daily-prayer-2026] | The days of June and September 2026 | Yes, 2026-09-27 |
 | [cofe-daily-prayer-2022] | St George on Tuesday 26 April 2022 | Yes, 2026-09-27, through web.archive.org |
 | [fullfact-st-george-2025] | St George's Day 2025 | Yes, 2026-09-27 (press) |
+| [wikisource-bcp-1892] | The 1662 Table of Feasts, the Tables and Rules for the Moveable Feasts, the Kalendar of January | Yes, 2026-09-29 (a transcription of the 1892 facsimile) |
+| [howell-bcp-kalendar] | The 1662 and the modern Kalendars, month by month | Yes, 2026-09-29 (a transcription) |
+
+The Church of England's own Kalendar and Tables of the Prayer Book are
+PDFs and were not read; the justus.anglican.org transcription refused the
+request.
 
 ## Code
 
@@ -169,3 +198,6 @@ rest on the rules and one press report.
 WebAssembly and C export `hc_common_worship_on` writes the rank of each
 celebration kept on a day, from `hyper_calendar::holiday_lines`; the
 celebrations and the gaps are lines of `hc_holidays_on`.
+`crates/hc-holiday/src/book_of_common_prayer.rs`: `CELEBRATIONS`, `Letter`
+and `BOOK_OF_COMMON_PRAYER_1662`, anchored by
+`the_table_of_feasts_is_carried_in_red` and `the_moveable_feasts_of_2026`.

@@ -16,54 +16,76 @@
 //! | Class | Count | Examples |
 //! | --- | --- | --- |
 //! | I class | 53 | Christmas, Easter, the Sundays of Advent and Lent, St Joseph, All Souls' Day |
-//! | II class | 41 | the Holy Family, the Purification, the apostles, the vigils of the Ascension and of the Assumption |
+//! | II class | 86 | the Holy Family, the Purification, the apostles, the vigils of the Ascension and of the Assumption, the Sundays after Epiphany, Easter and Pentecost, the ferias of 17 to 23 December |
 //! | III class | 181 | St Hilary, St Agnes, the Holy Name of Mary |
 //! | Commemoration | 106 | St Telesphorus, St George, Our Lady of Mount Carmel |
 //!
 //! A fourth class holds the ferias of the year that are none of these; they
-//! are not listed. The table carries the calendar as the English
+//! are not listed, and nor are the ferias of Advent to 16 December and of
+//! Lent, of the III class, which are every weekday of their seasons:
+//! [`SEASON`] holds them for [`ordo`]. The table carries the calendar as the English
 //! translation of the rubrics prints it, month by month, with the titles in
 //! its abbreviations ("Bp." bishop, "Cf." confessor, "Doct." doctor, "M."
 //! martyr, "V." virgin), a commemoration on the same day as a feast as an
 //! entry of its own; the movable feasts the calendar and the Table of
 //! Liturgical Days name; and the Sundays, ferias, vigils and days within an
-//! octave of the Proper of Time that the Table ranks in the first class,
-//! with the Vigil of the Ascension and the three Sundays of Septuagesima,
-//! which are of the second.
+//! octave of the Proper of Time that the Table ranks in the first class;
+//! and of the second class, the Vigil of the Ascension, the ferias of
+//! Advent from 17 to 23 December (no. 24a) and every other Sunday, "All
+//! other Sundays not mentioned above": within the octave of Christmas,
+//! after Epiphany, of Septuagesima, after Easter, after the Ascension and
+//! after Pentecost, with the Sundays after Epiphany that Septuagesima
+//! impedes resumed after the Twenty-third after Pentecost as no. 18 orders.
+//!
+//! # The ordo
+//!
+//! [`CELEBRATIONS`] and the rule set list every day the calendar gives a
+//! date, before precedence. [`ordo`] and [`office_on`] apply it: which
+//! liturgical day is kept by the Table of Liturgical Days arranged
+//! according to order of precedence (no. 91, [`precedence`]), with its
+//! exceptions (nos. 15, 16, 30); the transfer of an impeded feast of the I
+//! class to the nearest following day not of the I or II class, the
+//! Annunciation's after Easter to the Monday after Low Sunday (nos. 95–99);
+//! the vigils omitted on a Sunday or a feast of the I class, or when their
+//! feast is not kept (no. 33); and the commemorations the office allows,
+//! privileged or ordinary, in their order (nos. 106–114). The Table of
+//! Occurrence itself (p. 115), a grid, is not legible in the text read; its
+//! outcomes are those the numbered rubrics state. The rules for a feast's
+//! own date are the calendar's: St Matthias on 25 February and St Gabriel
+//! of the Sorrowing Virgin on 28 February in a leap year, and All Souls' Day
+//! on 3 November when 2 November is a Sunday (no. 96b).
 //!
 //! # What this is not
 //!
-//! As with [`crate::roman_calendar`], this is the calendar, not the *ordo*:
-//! when two days fall together the Table of Occurrence decides which is
-//! kept and whether the other is commemorated or moved, and that is not
-//! applied. The rules the calendar and the rubrics give for a feast's own
-//! date are: St Matthias on 25 February and St Gabriel of the Sorrowing
-//! Virgin on 28 February in a leap year, and All Souls' Day on 3 November
-//! when 2 November is a Sunday (no. 96). The transfer of an impeded feast
-//! of the I class, the Annunciation's among them (no. 96), is not
-//! applied. The Ember Days, the ferias of Advent from 17 to
-//! 23 December, the other Sundays of the second class — after Epiphany,
-//! the second to the fifth after Easter, after the Ascension and after
-//! Pentecost — and the particular calendars of nations, dioceses and
-//! orders are not carried; the Greater and Lesser Litanies are the
-//! `rogation-roman-1960` table's.
+//! The Ember Days, whose weeks the text read names but does not date, and
+//! so the privileged commemoration of those of September; the concurrence
+//! of vespers (nos. 103–105); the commemorations excluded by the identity
+//! of a saint or a mystery (no. 112a, d) beyond the feasts of the Lord; and
+//! the particular calendars of nations, dioceses and orders, whose places
+//! in the table (nos. 12, 13, 19, 20, 23) are empty here. The Greater and
+//! Lesser Litanies are the `rogation-roman-1960` table's.
 //!
 //! Sources: the Code of Rubrics and its calendar in the English
 //! translation *The New Rubrics of the Roman Breviary and Missal* (1960),
-//! pp. 98–114 (`rubrics-1960`), read in a scanned copy's text layer,
-//! retrieved 2026-09-27; checked day by day against Wikipedia, "General
-//! Roman Calendar of 1960" (`wikipedia-grc-1960`), retrieved 2026-09-27,
-//! whose class and number of commemorations agree on every day. The Latin
-//! text in *Acta Apostolicae Sedis* 52 (1960) was not read.
+//! nos. 6–114 and pp. 98–116 (`rubrics-1960`), read in a scanned copy's
+//! text layer, retrieved 2026-09-27 and re-read 2026-09-29; checked day by
+//! day against Wikipedia, "General Roman Calendar of 1960"
+//! (`wikipedia-grc-1960`), retrieved 2026-09-27, whose class and number of
+//! commemorations agree on every day; the ordo checked against propria.org's
+//! "Catholic Ordo" for 2019 to 2026 (`propria-ordo`), retrieved 2026-09-29.
+//! The Latin text in *Acta Apostolicae Sedis* 52 (1960) was not read.
 
 use alloc::vec::Vec;
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
-use crate::computus::offsets::{
-    ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_SUNDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
-    SEPTUAGESIMA, TRINITY_SUNDAY,
+use crate::computus::{
+    self,
+    offsets::{
+        ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_SUNDAY, PALM_SUNDAY, PENTECOST,
+        SACRED_HEART, SEPTUAGESIMA, TRINITY_SUNDAY,
+    },
 };
 use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
 
@@ -77,6 +99,10 @@ pub enum Class {
     Second,
     /// The third class.
     Third,
+    /// The fourth class: the ferias of the year that are none of the
+    /// others, and the Saturday Office of our Lady (nos. 26, 78). No entry
+    /// of [`CELEBRATIONS`] is of it; the days of [`SEASON`] are.
+    Fourth,
     /// A commemoration: a saint remembered in the office of the day, not a
     /// day of its own rank.
     Commemoration,
@@ -90,6 +116,7 @@ impl Class {
             Self::First => "I class",
             Self::Second => "II class",
             Self::Third => "III class",
+            Self::Fourth => "IV class",
             Self::Commemoration => "Commemoration",
         }
     }
@@ -180,6 +207,150 @@ const fn advent(n: u8) -> Rule {
         },
         weekday: Weekday::Sunday,
     }
+}
+
+/// The Sunday within the octave of Christmas, between 26 and 31 December;
+/// none when Christmas is a Sunday, whose next Sunday is the octave-day.
+fn sunday_within_the_octave_of_christmas(year: i64) -> Days {
+    let Ok(stephen) = gregorian::to_fixed(year, 12, 26) else {
+        return Days::new();
+    };
+    let sunday = Weekday::Sunday.on_or_after(stephen);
+    if sunday.0 - stephen.0 <= 5 {
+        Days::one(sunday)
+    } else {
+        Days::new()
+    }
+}
+
+/// The Holy Family, the first Sunday after the Epiphany, from which the
+/// other Sundays after the Epiphany are counted.
+fn first_sunday_after_epiphany(year: i64) -> Option<Rd> {
+    Some(Weekday::Sunday.after(gregorian::to_fixed(year, 1, 6).ok()?))
+}
+
+/// The `n`-th Sunday after the Epiphany, 2 to 6, when it comes before
+/// Septuagesima; the ones it would meet are resumed after Pentecost
+/// (no. 18).
+fn sunday_after_epiphany(year: i64, n: i64) -> Days {
+    let (Some(first), Some(easter)) = (
+        first_sunday_after_epiphany(year),
+        computus::gregorian_easter(year),
+    ) else {
+        return Days::new();
+    };
+    let sunday = Rd(first.0 + 7 * (n - 1));
+    if sunday.0 < easter.0 + i64::from(SEPTUAGESIMA) {
+        Days::one(sunday)
+    } else {
+        Days::new()
+    }
+}
+
+/// How many Sundays there are after Pentecost, Trinity Sunday the first:
+/// 23 to 28, as no. 18 counts them.
+fn sundays_after_pentecost(year: i64) -> Option<(Rd, i64)> {
+    let pentecost = Rd(computus::gregorian_easter(year)?.0 + i64::from(PENTECOST));
+    let advent = Weekday::Sunday.on_or_after(gregorian::to_fixed(year, 11, 27).ok()?);
+    Some((pentecost, (advent.0 - pentecost.0) / 7 - 1))
+}
+
+/// The `k`-th Sunday after Pentecost, 2 to 23, in its own place; with 23
+/// Sundays the Twenty-third is not kept, since "The Sunday which is set
+/// down as XXIV after Pentecost is always put in the last place, omitting,
+/// if need be, any others for which there happens to be no place" (no. 18).
+fn sunday_after_pentecost(year: i64, k: i64) -> Days {
+    let Some((pentecost, count)) = sundays_after_pentecost(year) else {
+        return Days::new();
+    };
+    if k < count {
+        Days::one(Rd(pentecost.0 + 7 * k))
+    } else {
+        Days::new()
+    }
+}
+
+/// The last Sunday after Pentecost, which is always the Twenty-fourth's
+/// (no. 18): the Sunday before Advent.
+fn last_sunday_after_pentecost(year: i64) -> Days {
+    sundays_after_pentecost(year).map_or_else(Days::new, |(pentecost, count)| {
+        Days::one(Rd(pentecost.0 + 7 * count))
+    })
+}
+
+/// The `m`-th Sunday after the Epiphany, 3 to 6, resumed after the
+/// Twenty-third Sunday after Pentecost (no. 18): with 25 Sundays after
+/// Pentecost the Sixth is the twenty-fourth, with 26 the Fifth and Sixth,
+/// with 27 the Fourth to Sixth, with 28 the Third to Sixth, and the last
+/// is always the Twenty-fourth after Pentecost.
+fn resumed_sunday_after_epiphany(year: i64, m: i64) -> Days {
+    let Some((pentecost, count)) = sundays_after_pentecost(year) else {
+        return Days::new();
+    };
+    let first_resumed = 31 - count;
+    if count < 25 || m < first_resumed {
+        return Days::new();
+    }
+    let place = 24 + (m - first_resumed);
+    Days::one(Rd(pentecost.0 + 7 * place))
+}
+
+/// A feria of Advent of the II class, `day` December, 17 to 23, when it is
+/// not a Sunday (no. 24).
+fn greater_feria_of_advent(year: i64, day: u8) -> Days {
+    match gregorian::to_fixed(year, 12, day) {
+        Ok(rd) if Weekday::from_rd(rd) != Weekday::Sunday => Days::one(rd),
+        _ => Days::new(),
+    }
+}
+
+/// The rules of the Sundays and ferias the Proper of Time adds, each a
+/// `fn(i64) -> Days` for [`Rule::Computed`].
+macro_rules! computed_days {
+    ($($name:ident = $function:ident($($argument:expr),*);)*) => {
+        $(fn $name(year: i64) -> Days { $function(year, $($argument),*) })*
+    };
+}
+
+computed_days! {
+    second_sunday_after_epiphany = sunday_after_epiphany(2);
+    third_sunday_after_epiphany = sunday_after_epiphany(3);
+    fourth_sunday_after_epiphany = sunday_after_epiphany(4);
+    fifth_sunday_after_epiphany = sunday_after_epiphany(5);
+    sixth_sunday_after_epiphany = sunday_after_epiphany(6);
+    third_resumed = resumed_sunday_after_epiphany(3);
+    fourth_resumed = resumed_sunday_after_epiphany(4);
+    fifth_resumed = resumed_sunday_after_epiphany(5);
+    sixth_resumed = resumed_sunday_after_epiphany(6);
+    feria_17 = greater_feria_of_advent(17);
+    feria_18 = greater_feria_of_advent(18);
+    feria_19 = greater_feria_of_advent(19);
+    feria_20 = greater_feria_of_advent(20);
+    feria_21 = greater_feria_of_advent(21);
+    feria_22 = greater_feria_of_advent(22);
+    feria_23 = greater_feria_of_advent(23);
+    pentecost_2 = sunday_after_pentecost(2);
+    pentecost_3 = sunday_after_pentecost(3);
+    pentecost_4 = sunday_after_pentecost(4);
+    pentecost_5 = sunday_after_pentecost(5);
+    pentecost_6 = sunday_after_pentecost(6);
+    pentecost_7 = sunday_after_pentecost(7);
+    pentecost_8 = sunday_after_pentecost(8);
+    pentecost_9 = sunday_after_pentecost(9);
+    pentecost_10 = sunday_after_pentecost(10);
+    pentecost_11 = sunday_after_pentecost(11);
+    pentecost_12 = sunday_after_pentecost(12);
+    pentecost_13 = sunday_after_pentecost(13);
+    pentecost_14 = sunday_after_pentecost(14);
+    pentecost_15 = sunday_after_pentecost(15);
+    pentecost_16 = sunday_after_pentecost(16);
+    pentecost_17 = sunday_after_pentecost(17);
+    pentecost_18 = sunday_after_pentecost(18);
+    pentecost_19 = sunday_after_pentecost(19);
+    pentecost_20 = sunday_after_pentecost(20);
+    pentecost_21 = sunday_after_pentecost(21);
+    pentecost_22 = sunday_after_pentecost(22);
+    pentecost_23 = sunday_after_pentecost(23);
 }
 
 const MATTHIAS: Rule = Rule::Computed(matthias);
@@ -560,6 +731,19 @@ calendar_1960! {
     "Second Sunday of Advent", First, advent(2);
     "Third Sunday of Advent", First, advent(3);
     "Fourth Sunday of Advent", First, advent(4);
+    "Feria of Advent, 17 December", Second, Rule::Computed(feria_17);
+    "Feria of Advent, 18 December", Second, Rule::Computed(feria_18);
+    "Feria of Advent, 19 December", Second, Rule::Computed(feria_19);
+    "Feria of Advent, 20 December", Second, Rule::Computed(feria_20);
+    "Feria of Advent, 21 December", Second, Rule::Computed(feria_21);
+    "Feria of Advent, 22 December", Second, Rule::Computed(feria_22);
+    "Feria of Advent, 23 December", Second, Rule::Computed(feria_23);
+    "Sunday within the octave of Christmas", Second, Rule::Computed(sunday_within_the_octave_of_christmas);
+    "Second Sunday after Epiphany", Second, Rule::Computed(second_sunday_after_epiphany);
+    "Third Sunday after Epiphany", Second, Rule::Computed(third_sunday_after_epiphany);
+    "Fourth Sunday after Epiphany", Second, Rule::Computed(fourth_sunday_after_epiphany);
+    "Fifth Sunday after Epiphany", Second, Rule::Computed(fifth_sunday_after_epiphany);
+    "Sixth Sunday after Epiphany", Second, Rule::Computed(sixth_sunday_after_epiphany);
     "Septuagesima Sunday", Second, Rule::easter(SEPTUAGESIMA);
     "Sexagesima Sunday", Second, Rule::easter(-56);
     "Quinquagesima Sunday", Second, Rule::easter(-49);
@@ -584,8 +768,13 @@ calendar_1960! {
     "Friday within the octave of Easter", First, Rule::easter(5);
     "Saturday within the octave of Easter", First, Rule::easter(6);
     "Low Sunday", First, Rule::easter(7);
+    "Second Sunday after Easter", Second, Rule::easter(14);
+    "Third Sunday after Easter", Second, Rule::easter(21);
+    "Fourth Sunday after Easter", Second, Rule::easter(28);
+    "Fifth Sunday after Easter", Second, Rule::easter(35);
     "Vigil of the Ascension of our Lord", Second, Rule::easter(ASCENSION - 1);
     "Ascension of our Lord", First, Rule::easter(ASCENSION);
+    "Sunday after the Ascension", Second, Rule::easter(ASCENSION + 3);
     "Vigil of Pentecost", First, Rule::easter(PENTECOST - 1);
     "Pentecost or Whit Sunday", First, Rule::easter(PENTECOST);
     "Monday within the octave of Pentecost", First, Rule::easter(PENTECOST + 1);
@@ -597,10 +786,37 @@ calendar_1960! {
     "Feast of Blessed Trinity", First, Rule::easter(TRINITY_SUNDAY);
     "Feast of Corpus Christi", First, Rule::easter(CORPUS_CHRISTI);
     "Feast of the Sacred Heart", First, Rule::easter(SACRED_HEART);
+    "Second Sunday after Pentecost", Second, Rule::Computed(pentecost_2);
+    "Third Sunday after Pentecost", Second, Rule::Computed(pentecost_3);
+    "Fourth Sunday after Pentecost", Second, Rule::Computed(pentecost_4);
+    "Fifth Sunday after Pentecost", Second, Rule::Computed(pentecost_5);
+    "Sixth Sunday after Pentecost", Second, Rule::Computed(pentecost_6);
+    "Seventh Sunday after Pentecost", Second, Rule::Computed(pentecost_7);
+    "Eighth Sunday after Pentecost", Second, Rule::Computed(pentecost_8);
+    "Ninth Sunday after Pentecost", Second, Rule::Computed(pentecost_9);
+    "Tenth Sunday after Pentecost", Second, Rule::Computed(pentecost_10);
+    "Eleventh Sunday after Pentecost", Second, Rule::Computed(pentecost_11);
+    "Twelfth Sunday after Pentecost", Second, Rule::Computed(pentecost_12);
+    "Thirteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_13);
+    "Fourteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_14);
+    "Fifteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_15);
+    "Sixteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_16);
+    "Seventeenth Sunday after Pentecost", Second, Rule::Computed(pentecost_17);
+    "Eighteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_18);
+    "Nineteenth Sunday after Pentecost", Second, Rule::Computed(pentecost_19);
+    "Twentieth Sunday after Pentecost", Second, Rule::Computed(pentecost_20);
+    "Twenty-first Sunday after Pentecost", Second, Rule::Computed(pentecost_21);
+    "Twenty-second Sunday after Pentecost", Second, Rule::Computed(pentecost_22);
+    "Twenty-third Sunday after Pentecost", Second, Rule::Computed(pentecost_23);
+    "Third Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(third_resumed);
+    "Fourth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(fourth_resumed);
+    "Fifth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(fifth_resumed);
+    "Sixth Sunday after Epiphany, resumed after Pentecost", Second, Rule::Computed(sixth_resumed);
+    "Twenty-fourth and last Sunday after Pentecost", Second, Rule::Computed(last_sunday_after_pentecost);
 }
 
 /// The calendar of 1960 as a rule set: every day a [`Kind::Religious`]
-/// observance, with no precedence applied.
+/// observance, with no precedence applied; [`ordo`] applies it.
 pub static GENERAL_ROMAN_CALENDAR_1960: RuleSet = RuleSet {
     code: "roman-general-1960",
     english_name: "General Roman Calendar of 1960",
@@ -611,11 +827,13 @@ pub static GENERAL_ROMAN_CALENDAR_1960: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Code of Rubrics approved by John XXIII's motu proprio Rubricarum instructum of \
-              25 July 1960, General Rubrics nos. 10-36 and 96, the Calendar of the Roman \
-              Breviary and Missal and the Table of Liturgical Days, in the English translation \
-              The New Rubrics of the Roman Breviary and Missal (1960), pp. 98-114, read in the \
-              copy at cdn.restorethe54.com/media/pdf/the-new-rubrics-of-the-roman-missal-and-\
-              breviary-1960.pdf (rubrics-1960), retrieved 2026-09-27; checked against \
+              25 July 1960, General Rubrics nos. 10-36 (the Sundays after Epiphany resumed \
+              after Pentecost, no. 18; the ferias of 17-23 December, no. 24) and 96, the \
+              Calendar of the Roman Breviary and Missal and the Table of Liturgical Days, in the \
+              English translation The New Rubrics of the Roman Breviary and Missal (1960), \
+              pp. 98-114, read in the copy at cdn.restorethe54.com/media/pdf/the-new-rubrics-of-\
+              the-roman-missal-and-breviary-1960.pdf (rubrics-1960), retrieved 2026-09-27 and \
+              re-read in the same text layer 2026-09-29; checked against \
               Wikipedia, \"General Roman Calendar of 1960\" (wikipedia-grc-1960), retrieved \
               2026-09-27. The Latin in Acta Apostolicae Sedis 52 (1960) was not read",
 };
@@ -636,6 +854,671 @@ pub fn celebrations_on(day: Rd) -> Vec<&'static Celebration> {
                 .contains(&day)
         })
         .collect()
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Precedence: the office of a day
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A day that no rule of its own lists: the office of the season on a
+/// weekday that has no other, for [`Office`].
+const fn season_day(title: &'static str, class: Class) -> Celebration {
+    Celebration {
+        title,
+        class,
+        rule: Rule::Computed(no_days),
+    }
+}
+
+/// The rule of a [`SEASON`] day, which [`ordo`] places itself.
+const fn no_days(_: i64) -> Days {
+    Days::new()
+}
+
+/// The days of the season an [`Office`] can be of that are not in
+/// [`CELEBRATIONS`], because they are every weekday of a season rather
+/// than a day the calendar prints: the ferias of Lent and Passiontide
+/// (III class, no. 25a), of Advent to 16 December (III class, no. 25b),
+/// the second to fourth days within the octave of Christmas, on which
+/// the feasts of 26–28 December fall (II class, no. 17 of the table), the
+/// Saturday Office of our Lady on a Saturday that is a feria of the IV
+/// class (no. 78), and the other ferias (IV class, no. 26).
+pub static SEASON: [Celebration; 8] = [
+    season_day("Feria of Lent", Class::Third),
+    season_day("Feria of Passiontide", Class::Third),
+    season_day("Feria of Advent", Class::Third),
+    season_day("II day within the octave of Christmas", Class::Second),
+    season_day("III day within the octave of Christmas", Class::Second),
+    season_day("IV day within the octave of Christmas", Class::Second),
+    season_day("Saturday Office of our Lady", Class::Fourth),
+    season_day("Feria", Class::Fourth),
+];
+
+const FERIA_OF_LENT: &Celebration = &SEASON[0];
+const FERIA_OF_PASSIONTIDE: &Celebration = &SEASON[1];
+const FERIA_OF_ADVENT: &Celebration = &SEASON[2];
+const OCTAVE_OF_CHRISTMAS: [&Celebration; 3] = [&SEASON[3], &SEASON[4], &SEASON[5]];
+const SATURDAY_OF_OUR_LADY: &Celebration = &SEASON[6];
+const FERIA: &Celebration = &SEASON[7];
+
+/// The places of the Table of Liturgical Days arranged according to order
+/// of precedence (no. 91) that are not their class's default: each place
+/// and the titles in it. A title of the I class not here is no. 11, "Feasts
+/// I class of the universal Church not mentioned above"; of the II class,
+/// no. 16, a Sunday no. 15 and a vigil no. 21; of the III class no. 24.
+const PLACES: &[(u8, &[&str])] = &[
+    (
+        1,
+        &["Christmas Day", "Easter Sunday", "Pentecost or Whit Sunday"],
+    ),
+    (
+        2,
+        &[
+            "Thursday of Holy Week",
+            "Friday of Holy Week",
+            "Saturday of Holy Week",
+        ],
+    ),
+    (
+        3,
+        &[
+            "The Epiphany of our Lord",
+            "Ascension of our Lord",
+            "Feast of Blessed Trinity",
+            "Feast of Corpus Christi",
+            "Feast of the Sacred Heart",
+            "Christ, the King",
+        ],
+    ),
+    (
+        4,
+        &[
+            "The Immaculate Conception of our Lady",
+            "The Assumption of our Lady",
+        ],
+    ),
+    (5, &["Vigil of Christmas", "Octave-day of Christmas"]),
+    (
+        6,
+        &[
+            "First Sunday of Advent",
+            "Second Sunday of Advent",
+            "Third Sunday of Advent",
+            "Fourth Sunday of Advent",
+            "First Sunday of Lent",
+            "Second Sunday of Lent",
+            "Third Sunday of Lent",
+            "Fourth Sunday of Lent",
+            "First Sunday of Passiontide",
+            "Second Sunday of Passiontide or Palm Sunday",
+            "Low Sunday",
+        ],
+    ),
+    (
+        7,
+        &[
+            "Ash Wednesday",
+            "Monday of Holy Week",
+            "Tuesday of Holy Week",
+            "Wednesday of Holy Week",
+        ],
+    ),
+    (8, &["All Souls' Day"]),
+    (9, &["Vigil of Pentecost"]),
+    (
+        10,
+        &[
+            "Monday within the octave of Easter",
+            "Tuesday within the octave of Easter",
+            "Wednesday within the octave of Easter",
+            "Thursday within the octave of Easter",
+            "Friday within the octave of Easter",
+            "Saturday within the octave of Easter",
+            "Monday within the octave of Pentecost",
+            "Tuesday within the octave of Pentecost",
+            "Wednesday within the octave of Pentecost",
+            "Thursday within the octave of Pentecost",
+            "Friday within the octave of Pentecost",
+            "Saturday within the octave of Pentecost",
+        ],
+    ),
+    (14, FEASTS_OF_THE_LORD_OF_THE_SECOND_CLASS),
+    (
+        17,
+        &[
+            "II day within the octave of Christmas",
+            "III day within the octave of Christmas",
+            "IV day within the octave of Christmas",
+            "V day within the octave of Christmas",
+            "VI day within the octave of Christmas",
+            "VII day within the octave of Christmas",
+        ],
+    ),
+    (
+        18,
+        &[
+            "Feria of Advent, 17 December",
+            "Feria of Advent, 18 December",
+            "Feria of Advent, 19 December",
+            "Feria of Advent, 20 December",
+            "Feria of Advent, 21 December",
+            "Feria of Advent, 22 December",
+            "Feria of Advent, 23 December",
+        ],
+    ),
+    (22, &["Feria of Lent", "Feria of Passiontide"]),
+    (25, &["Feria of Advent"]),
+    (26, &["Vigil of S. Laurence, M."]),
+    (27, &["Saturday Office of our Lady"]),
+    (28, &["Feria"]),
+];
+
+/// The feasts of the Lord of the II class, the movable ones first, as the
+/// Table of Liturgical Days lists them before the feasts of our Lady, with
+/// the Purification, which the Changes in the Breviary say "is considered
+/// a feast of the Lord" (`rubrics-1960`, pp. 112, 118–).
+const FEASTS_OF_THE_LORD_OF_THE_SECOND_CLASS: &[&str] = &[
+    "The Holy Name of Jesus",
+    "The Holy Family of Jesus, Mary and Joseph",
+    "Commemoration of the Baptism of our Lord",
+    "The Purification of our Lady",
+    "The Transfiguration of our Lord",
+    "The Exaltation of the Holy Cross",
+    "Dedication of the Archbasilica of our Saviour",
+];
+
+/// The movable feasts of the Lord of the II class, which go before the
+/// fixed ones of the same place (no. 91, 14).
+const MOVABLE_FEASTS_OF_THE_LORD: &[&str] = &[
+    "The Holy Name of Jesus",
+    "The Holy Family of Jesus, Mary and Joseph",
+];
+
+/// The feasts of the Lord of the I class: each takes the place of a
+/// Sunday it falls on, which is then not commemorated (nos. 16a, 17), and
+/// excludes the commemoration of another feast of the Lord (no. 112a).
+const FEASTS_OF_THE_LORD_OF_THE_FIRST_CLASS: &[&str] = &[
+    "Christmas Day",
+    "Octave-day of Christmas",
+    "The Epiphany of our Lord",
+    "Easter Sunday",
+    "Ascension of our Lord",
+    "Feast of Blessed Trinity",
+    "Feast of Corpus Christi",
+    "Feast of the Sacred Heart",
+    "The Precious Blood of our Lord",
+    "Christ, the King",
+];
+
+/// Whether a celebration is a feast of the Lord, of the I or II class.
+fn is_feast_of_the_lord(celebration: &Celebration) -> bool {
+    FEASTS_OF_THE_LORD_OF_THE_FIRST_CLASS.contains(&celebration.title)
+        || FEASTS_OF_THE_LORD_OF_THE_SECOND_CLASS.contains(&celebration.title)
+}
+
+/// The place of a liturgical day in the Table of Liturgical Days arranged
+/// according to order of precedence of no. 91, 1 to 28, for the universal
+/// calendar: the places 12, 13, 19, 20 and 23 are the particular calendars'
+/// and hold nothing here. A commemoration is not a liturgical day and has
+/// none.
+#[must_use]
+pub fn precedence(celebration: &Celebration) -> Option<u8> {
+    if let Some((place, _)) = PLACES
+        .iter()
+        .find(|(_, titles)| titles.contains(&celebration.title))
+    {
+        return Some(*place);
+    }
+    let title = celebration.title;
+    match celebration.class {
+        Class::First => Some(11),
+        Class::Second if title.contains("Sunday") => Some(15),
+        Class::Second if title.starts_with("Vigil") => Some(21),
+        Class::Second => Some(16),
+        Class::Third => Some(24),
+        Class::Fourth => Some(28),
+        Class::Commemoration => None,
+    }
+}
+
+/// Whether a liturgical day is of the season — a Sunday, a feria, a vigil
+/// or a day within an octave — rather than a feast.
+fn is_of_the_season(celebration: &Celebration) -> bool {
+    let title = celebration.title;
+    title.contains("Sunday")
+        || title.starts_with("Vigil")
+        || title.contains("within the octave")
+        || title.contains("of Holy Week")
+        || title.starts_with("Feria")
+        || title == "Ash Wednesday"
+        || title == "Saturday Office of our Lady"
+}
+
+/// Whether an impeded day is transferred rather than commemorated or
+/// omitted: a feast of the I class (no. 95). All Souls' Day has its own
+/// rule (no. 96b), which its [`Rule`] applies.
+fn is_transferable(celebration: &Celebration) -> bool {
+    celebration.class == Class::First && !is_of_the_season(celebration)
+}
+
+/// Whether the commemoration of an impeded day is privileged (no. 109): a
+/// Sunday, a day of the I class, a day within the octave of Christmas,
+/// and the ferias of Advent, Lent and Passiontide. The Ember Days of
+/// September are privileged too, and are not carried.
+fn is_privileged(celebration: &Celebration) -> bool {
+    celebration.title.contains("Sunday")
+        || celebration.class == Class::First
+        || precedence(celebration) == Some(17)
+        || matches!(precedence(celebration), Some(18 | 22 | 25))
+}
+
+/// The inseparable commemorations of no. 110: St Peter in the office of
+/// St Paul and St Paul in St Peter's, which the calendar prints beside
+/// the feast, as their titles there.
+const INSEPARABLE: &[&str] = &["S. Peter, Ap.", "S. Paul, Ap."];
+
+/// The feasts whose first vigil precedes them, for no. 33: a vigil is
+/// omitted when its feast is transferred or reduced to a commemoration.
+const VIGILS: &[(&str, &str)] = &[
+    (
+        "Vigil of the Ascension of our Lord",
+        "Ascension of our Lord",
+    ),
+    (
+        "Vigil of the Birthday of S. John the Baptist",
+        "The Birthday of S. John the Baptist",
+    ),
+    (
+        "Vigil of SS. Peter and Paul, Apostles",
+        "SS. Peter and Paul, App.",
+    ),
+    ("Vigil of S. Laurence, M.", "S. Laurence, M."),
+    (
+        "Vigil of the Assumption of our Lady",
+        "The Assumption of our Lady",
+    ),
+];
+
+/// What the rubrics of 1960 make of a day: the liturgical day whose
+/// office and Mass are said, the days commemorated in it, and the days
+/// that fall on it and are not kept there.
+#[derive(Debug, Clone)]
+pub struct Office {
+    /// The day.
+    pub day: Rd,
+    /// The liturgical day kept.
+    pub office: &'static Celebration,
+    /// For a feast of the I class transferred here (no. 96), the day it was
+    /// impeded on.
+    pub transferred_from: Option<Rd>,
+    /// The commemorations made, in their order (no. 113): the season first,
+    /// then the order of the table of precedence, then the commemorations
+    /// the calendar prints, with an inseparable one (no. 110) at once after
+    /// its apostle and not counted.
+    pub commemorations: Vec<&'static Celebration>,
+    /// The feasts of the I class impeded here and transferred (no. 96).
+    pub transferred: Vec<&'static Celebration>,
+    /// The days the calendar lists here that are neither kept,
+    /// commemorated nor transferred: impeded, and "omitted completely in
+    /// that year" (no. 95), or beyond the number of commemorations the day
+    /// allows (no. 114). The ferias of the IV class, which "are never
+    /// commemorated" (no. 26), are not listed.
+    pub omitted: Vec<&'static Celebration>,
+}
+
+/// One liturgical day competing for a day's office.
+#[derive(Clone, Copy)]
+struct Candidate {
+    celebration: &'static Celebration,
+    /// Where it stands in [`CELEBRATIONS`], or past it for a [`SEASON`] day.
+    index: usize,
+    transferred_from: Option<Rd>,
+}
+
+impl Candidate {
+    fn key(&self) -> (u8, u8, usize) {
+        let movable_first = u8::from(!MOVABLE_FEASTS_OF_THE_LORD.contains(&self.celebration.title));
+        (
+            precedence(self.celebration).unwrap_or(u8::MAX),
+            movable_first,
+            self.index,
+        )
+    }
+}
+
+/// Where a [`SEASON`] day sorts after the entries of [`CELEBRATIONS`].
+const SEASON_INDEX: usize = usize::MAX / 2;
+
+/// The office of every day of a Gregorian year under the rubrics of 1960,
+/// with precedence applied: the Table of Liturgical Days (no. 91), the
+/// transfer of an impeded feast of the I class to the nearest following
+/// day not of the I or II class, the Annunciation's to the Monday after
+/// Low Sunday (nos. 95–99), the vigils omitted on a Sunday or a feast of
+/// the I class or when their feast is not kept (no. 33), and the
+/// commemorations the day allows (nos. 106–114). `docs/systems/roman-
+/// calendar-1960.md` says what is and is not applied.
+///
+/// Returns `None` outside 1583 to 4099, the years whose Easter the
+/// Gregorian computus gives.
+#[must_use]
+pub fn ordo(year: i64) -> Option<Vec<Office>> {
+    let easter = computus::gregorian_easter(year)?;
+    let first = gregorian::to_fixed(year, 1, 1).ok()?;
+    let last = gregorian::to_fixed(year, 12, 31).ok()?;
+    let length = usize::try_from(last.0 - first.0 + 1).ok()?;
+    let mut listed: Vec<Vec<usize>> = (0..length).map(|_| Vec::new()).collect();
+    for (index, celebration) in CELEBRATIONS.iter().enumerate() {
+        for day in celebration.rule.days_in_year(year).as_slice() {
+            if let Some(slot) = usize::try_from(day.0 - first.0)
+                .ok()
+                .and_then(|offset| listed.get_mut(offset))
+            {
+                slot.push(index);
+            }
+        }
+    }
+    let year_days = YearDays {
+        first,
+        easter,
+        listed,
+    };
+    // No. 33 omits a vigil whose feast is not kept, which is known only
+    // once the feast's day is settled: run until the omitted vigils stop
+    // changing.
+    let mut omitted_vigils: Vec<Rd> = Vec::new();
+    loop {
+        let offices = year_days.offices(&omitted_vigils);
+        let mut now: Vec<Rd> = Vec::new();
+        for office in &offices {
+            for index in &year_days.listed[office.day.0.abs_diff(first.0) as usize] {
+                let title = CELEBRATIONS[*index].title;
+                if let Some((_, feast)) = VIGILS.iter().find(|(vigil, _)| *vigil == title)
+                    && let Some(next) = offices.iter().find(|o| o.day.0 == office.day.0 + 1)
+                    && next.office.title != *feast
+                {
+                    now.push(office.day);
+                }
+            }
+        }
+        if now == omitted_vigils {
+            return Some(offices);
+        }
+        omitted_vigils = now;
+    }
+}
+
+/// The office of a day under the rubrics of 1960; see [`ordo`].
+///
+/// ```
+/// use hc_holiday::roman_calendar_1960::office_on;
+/// use hc_calendars_solar::gregorian;
+///
+/// // 25 March 1962 was the Third Sunday of Lent: the Annunciation, a
+/// // feast of the I class, went to Monday 26 March.
+/// let sunday = office_on(gregorian::to_fixed(1962, 3, 25)?).expect("in range");
+/// assert_eq!(sunday.office.title, "Third Sunday of Lent");
+/// let monday = office_on(gregorian::to_fixed(1962, 3, 26)?).expect("in range");
+/// assert_eq!(monday.office.title, "The Annunciation of the Blessed Virgin Mary");
+/// # Ok::<(), hc_calendar::CalendarError>(())
+/// ```
+#[must_use]
+pub fn office_on(day: Rd) -> Option<Office> {
+    let year = gregorian::year_from_fixed(day).ok()?;
+    ordo(year)?.into_iter().find(|office| office.day == day)
+}
+
+/// The days of a year and what the calendar lists on each.
+struct YearDays {
+    first: Rd,
+    easter: Rd,
+    /// For each day from 1 January, the indices of [`CELEBRATIONS`] on it.
+    listed: Vec<Vec<usize>>,
+}
+
+impl YearDays {
+    /// The day of the season on a weekday that no entry of the season
+    /// holds.
+    fn season(&self, day: Rd) -> Option<&'static Celebration> {
+        let weekday = Weekday::from_rd(day);
+        if weekday == Weekday::Sunday {
+            return None;
+        }
+        let from_easter = day.0 - self.easter.0;
+        if (-45..=-15).contains(&from_easter) {
+            return Some(FERIA_OF_LENT);
+        }
+        if (-13..=-8).contains(&from_easter) {
+            return Some(FERIA_OF_PASSIONTIDE);
+        }
+        let (year, month, date) = gregorian::from_fixed(day).ok()?;
+        let advent = Weekday::Sunday.on_or_after(gregorian::to_fixed(year, 11, 27).ok()?);
+        if day > advent && (month == 11 || date <= 16) {
+            return Some(FERIA_OF_ADVENT);
+        }
+        if month == 12 && (26..=28).contains(&date) {
+            return OCTAVE_OF_CHRISTMAS.get(usize::from(date - 26)).copied();
+        }
+        Some(if weekday == Weekday::Saturday {
+            SATURDAY_OF_OUR_LADY
+        } else {
+            FERIA
+        })
+    }
+
+    fn offices(&self, omitted_vigils: &[Rd]) -> Vec<Office> {
+        let mut offices = Vec::with_capacity(self.listed.len());
+        // The impeded feasts of the I class not yet placed, with the day
+        // each was impeded on.
+        let mut pending: Vec<Candidate> = Vec::new();
+        // The Annunciation's day when it "must be transferred until after
+        // Easter": the Monday after Low Sunday, "as to its proper place"
+        // (no. 96a).
+        let mut annunciation_after_easter: Option<(Rd, Candidate)> = None;
+        for (offset, indices) in self.listed.iter().enumerate() {
+            let day = Rd(self.first.0 + offset as i64);
+            let is_sunday = Weekday::from_rd(day) == Weekday::Sunday;
+            let listed: Vec<Candidate> = indices
+                .iter()
+                .map(|&index| Candidate {
+                    celebration: &CELEBRATIONS[index],
+                    index,
+                    transferred_from: None,
+                })
+                .collect();
+            let has_first_class_feast = listed.iter().any(|c| is_transferable(c.celebration));
+            let mut candidates: Vec<Candidate> = Vec::new();
+            let mut commemorated: Vec<Candidate> = Vec::new();
+            let mut omitted: Vec<&'static Celebration> = Vec::new();
+            for candidate in &listed {
+                let celebration = candidate.celebration;
+                if celebration.class == Class::Commemoration {
+                    commemorated.push(*candidate);
+                } else if celebration.title.starts_with("Vigil")
+                    && celebration.class != Class::First
+                    && (is_sunday || has_first_class_feast || omitted_vigils.contains(&day))
+                {
+                    // No. 33: "omitted entirely".
+                    omitted.push(celebration);
+                } else {
+                    candidates.push(*candidate);
+                }
+            }
+            if !candidates.iter().any(|c| is_of_the_season(c.celebration))
+                && let Some(season) = self.season(day)
+            {
+                candidates.push(Candidate {
+                    celebration: season,
+                    index: SEASON_INDEX,
+                    transferred_from: None,
+                });
+            }
+            if let Some((pinned, candidate)) = annunciation_after_easter
+                && pinned == day
+            {
+                candidates.push(candidate);
+                annunciation_after_easter = None;
+            }
+            candidates.sort_by_key(Candidate::key);
+            // A transferred feast goes to the nearest day "which is not I or
+            // II class" (no. 96), in the order of the table, the first
+            // impeded first among equals (nos. 97–98).
+            let is_free = candidates
+                .first()
+                .is_none_or(|c| matches!(c.celebration.class, Class::Third | Class::Fourth));
+            if is_free && !pending.is_empty() {
+                let best = (0..pending.len())
+                    .min_by_key(|&i| (pending[i].key().0, pending[i].transferred_from, i))
+                    .unwrap_or(0);
+                let arriving = pending.remove(best);
+                candidates.insert(0, arriving);
+            }
+            let Some((office, losers)) = candidates.split_first() else {
+                continue;
+            };
+            let mut transferred = Vec::new();
+            for loser in losers {
+                if is_transferable(loser.celebration) && loser.transferred_from.is_none() {
+                    transferred.push(loser.celebration);
+                    let moved = Candidate {
+                        transferred_from: Some(day),
+                        ..*loser
+                    };
+                    let from_easter = day.0 - self.easter.0;
+                    if loser.celebration.title == ANNUNCIATION && (-7..=7).contains(&from_easter) {
+                        annunciation_after_easter = Some((Rd(self.easter.0 + 8), moved));
+                    } else {
+                        pending.push(moved);
+                    }
+                } else if loser.celebration.class == Class::Fourth {
+                    // No. 26: never commemorated.
+                } else {
+                    commemorated.push(*loser);
+                }
+            }
+            let (commemorations, dropped) =
+                commemorations(office.celebration, is_sunday, &commemorated);
+            omitted.extend(dropped);
+            offices.push(Office {
+                day,
+                office: office.celebration,
+                transferred_from: office.transferred_from,
+                commemorations,
+                transferred,
+                omitted,
+            });
+        }
+        offices
+    }
+}
+
+/// The title of the Annunciation, whose transfer after Easter no. 96a
+/// gives a day of its own.
+const ANNUNCIATION: &str = "The Annunciation of the Blessed Virgin Mary";
+
+/// The commemorations an office allows of the days impeded on its day,
+/// and the ones it omits (nos. 30, 106–114, 16a).
+fn commemorations(
+    office: &'static Celebration,
+    day_is_sunday: bool,
+    impeded: &[Candidate],
+) -> (Vec<&'static Celebration>, Vec<&'static Celebration>) {
+    let mut omitted = Vec::new();
+    // No. 30: the vigils of the I class "do not admit any commemoration".
+    if matches!(office.title, "Vigil of Christmas" | "Vigil of Pentecost") {
+        omitted.extend(impeded.iter().map(|c| c.celebration));
+        return (Vec::new(), omitted);
+    }
+    let office_is_of_the_lord = is_feast_of_the_lord(office);
+    // A feast of the Lord on a Sunday "takes the place of the Sunday with
+    // all rights and privileges" (no. 16a), and so allows what a Sunday of
+    // the II class allows.
+    let replaces_a_sunday = office_is_of_the_lord && day_is_sunday;
+    let office_is_sunday = office.title.contains("Sunday") || replaces_a_sunday;
+    // The candidates in the order no. 113 sets: the season first, then the
+    // table of precedence, then the calendar's commemorations as printed.
+    let mut ordered: Vec<&Candidate> = impeded
+        .iter()
+        .filter(|c| !INSEPARABLE.contains(&c.celebration.title))
+        .collect();
+    ordered.sort_by_key(|c| {
+        (
+            u8::from(!is_of_the_season(c.celebration)),
+            precedence(c.celebration).unwrap_or(u8::MAX),
+            c.index,
+        )
+    });
+    let privileged_first = ordered.iter().any(|c| is_privileged(c.celebration));
+    let place = match precedence(office).unwrap_or(u8::MAX) {
+        14 if replaces_a_sunday => 15,
+        place => place,
+    };
+    let mut kept: Vec<&'static Celebration> = Vec::new();
+    let mut counted = 0usize;
+    // No. 112c: "the Office, Mass or commemoration of the season excludes
+    // another commemoration of the season".
+    let mut season_taken = is_of_the_season(office);
+    for candidate in ordered {
+        let celebration = candidate.celebration;
+        let seasonal = is_of_the_season(celebration);
+        let excluded = (office_is_of_the_lord
+            && (celebration.title.contains("Sunday") || is_feast_of_the_lord(celebration)))
+            || (office_is_sunday && is_feast_of_the_lord(celebration))
+            || (seasonal && season_taken);
+        let allowed = !excluded
+            && match place {
+                // No. 111a, and no. 23 for the ferias of the I class.
+                ..=13 => is_privileged(celebration) && counted < 1,
+                // No. 111b: one, of a feast of the II class, and none if a
+                // privileged commemoration must be made.
+                15 => {
+                    counted < 1
+                        && if privileged_first {
+                            is_privileged(celebration)
+                        } else {
+                            celebration.class == Class::Second
+                        }
+                }
+                // No. 111c.
+                14..=21 => counted < 1,
+                // No. 111d.
+                _ => counted < 2,
+            };
+        if allowed {
+            kept.push(celebration);
+            counted += 1;
+            season_taken |= seasonal;
+            // No. 110: the other apostle at once after, not counted.
+            if let Some(partner) = inseparable_partner(candidate, impeded) {
+                kept.push(partner);
+            }
+        } else {
+            omitted.push(celebration);
+            if let Some(partner) = inseparable_partner(candidate, impeded) {
+                omitted.push(partner);
+            }
+        }
+    }
+    // The inseparable commemoration of the office's own apostle comes
+    // first and is not counted (no. 110a, b).
+    if let Some(partner) = impeded.iter().find(|c| {
+        INSEPARABLE.contains(&c.celebration.title)
+            && c.index > 0
+            && CELEBRATIONS
+                .get(c.index - 1)
+                .is_some_and(|f| core::ptr::eq(f, office))
+    }) {
+        kept.insert(0, partner.celebration);
+    }
+    (kept, omitted)
+}
+
+/// The inseparable commemoration printed at once after a feast, if the
+/// day lists it.
+fn inseparable_partner(feast: &Candidate, impeded: &[Candidate]) -> Option<&'static Celebration> {
+    impeded
+        .iter()
+        .find(|c| INSEPARABLE.contains(&c.celebration.title) && c.index == feast.index + 1)
+        .map(|c| c.celebration)
 }
 
 #[cfg(test)]
@@ -660,10 +1543,292 @@ mod tests {
             .count()
     }
 
+    fn office(year: i64, month: u8, day: u8) -> Office {
+        office_on(ymd(year, month, day)).expect("in range")
+    }
+
+    fn commemorated(office: &Office) -> Vec<&'static str> {
+        office.commemorations.iter().map(|c| c.title).collect()
+    }
+
+    #[test]
+    fn every_title_the_precedence_tables_name_is_a_day() {
+        let exists = |title: &str| {
+            CELEBRATIONS
+                .iter()
+                .chain(SEASON.iter())
+                .any(|c| c.title == title)
+        };
+        for (_, titles) in PLACES {
+            for title in *titles {
+                assert!(exists(title), "{title}");
+            }
+        }
+        for title in FEASTS_OF_THE_LORD_OF_THE_FIRST_CLASS
+            .iter()
+            .chain(MOVABLE_FEASTS_OF_THE_LORD)
+            .chain(INSEPARABLE)
+            .chain(VIGILS.iter().flat_map(|(vigil, feast)| [vigil, feast]))
+        {
+            assert!(exists(title), "{title}");
+        }
+        // Every liturgical day has a place; the particular calendars'
+        // places hold nothing.
+        for celebration in CELEBRATIONS.iter().chain(SEASON.iter()) {
+            let place = precedence(celebration);
+            assert_eq!(place.is_none(), celebration.class == Class::Commemoration);
+            assert!(!matches!(place, Some(12 | 13 | 19 | 20 | 23)));
+        }
+    }
+
+    /// The Sundays of the II class after Epiphany, Easter and Pentecost, as
+    /// no. 18 orders them: 2026 has 26 Sundays after Pentecost, so the
+    /// Fifth and Sixth after Epiphany are resumed as the 24th and 25th and
+    /// the 26th is the Twenty-fourth and last; 2038 has 23, and the
+    /// Twenty-third is not kept.
+    #[test]
+    fn the_sundays_of_the_second_class_are_ordered_as_no_18_says() {
+        assert_eq!(
+            office(2026, 1, 18).office.title,
+            "Second Sunday after Epiphany"
+        );
+        assert_eq!(
+            office(2026, 1, 25).office.title,
+            "Third Sunday after Epiphany"
+        );
+        assert_eq!(
+            office(2026, 4, 19).office.title,
+            "Second Sunday after Easter"
+        );
+        assert_eq!(
+            office(2026, 5, 17).office.title,
+            "Sunday after the Ascension"
+        );
+        assert_eq!(
+            office(2026, 6, 7).office.title,
+            "Second Sunday after Pentecost"
+        );
+        assert_eq!(
+            office(2026, 11, 8).office.title,
+            "Fifth Sunday after Epiphany, resumed after Pentecost"
+        );
+        assert_eq!(
+            office(2026, 11, 15).office.title,
+            "Sixth Sunday after Epiphany, resumed after Pentecost"
+        );
+        assert_eq!(
+            office(2026, 11, 22).office.title,
+            "Twenty-fourth and last Sunday after Pentecost"
+        );
+        // 2038: Pentecost 13 June, Advent 28 November.
+        assert_eq!(
+            office(2038, 11, 14).office.title,
+            "Twenty-second Sunday after Pentecost"
+        );
+        assert_eq!(
+            office(2038, 11, 21).office.title,
+            "Twenty-fourth and last Sunday after Pentecost"
+        );
+        // Every Sunday of every year has one office.
+        for year in [1962, 2000, 2011, 2026, 2038, 2100] {
+            for o in ordo(year).unwrap() {
+                if Weekday::from_rd(o.day) == Weekday::Sunday {
+                    assert!(
+                        o.office.title.contains("Sunday")
+                            || is_feast_of_the_lord(o.office)
+                            || o.office.class == Class::First,
+                        "{year}: {:?} {}",
+                        gregorian::from_fixed(o.day),
+                        o.office.title
+                    );
+                }
+            }
+        }
+    }
+
+    /// The ordo of propria.org for 2019–2026 (`propria-ordo`), which prints
+    /// each day's Mass, class and commemorations: days that exercise the
+    /// rules, as it prints them.
+    #[test]
+    fn the_ordo_is_the_published_ordo_on_the_days_that_test_the_rules() {
+        // (date, the office, its commemorations)
+        type Day = ((i64, u8, u8), &'static str, &'static [&'static str]);
+        let days: &[Day] = &[
+            // St Joseph on the Fourth Sunday of Lent, transferred (no. 96).
+            ((2023, 3, 19), "Fourth Sunday of Lent", &[]),
+            (
+                (2023, 3, 20),
+                "S. Joseph, Husband of our Lady, Cf., Patron of Universal Church",
+                &["Feria of Lent"],
+            ),
+            // The Annunciation in Holy Week, to the Monday after Low Sunday.
+            ((2024, 3, 25), "Monday of Holy Week", &[]),
+            (
+                (2024, 4, 8),
+                "The Annunciation of the Blessed Virgin Mary",
+                &[],
+            ),
+            // St John the Baptist after the Sacred Heart; his vigil omitted.
+            ((2022, 6, 23), "Feria", &[]),
+            ((2022, 6, 24), "Feast of the Sacred Heart", &[]),
+            ((2022, 6, 25), "The Birthday of S. John the Baptist", &[]),
+            // The Immaculate Conception on a feria of Advent.
+            (
+                (2025, 12, 8),
+                "The Immaculate Conception of our Lady",
+                &["Feria of Advent"],
+            ),
+            // The feasts within the octave of Christmas, the octave day
+            // commemorated; the Sunday, with the Holy Innocents.
+            (
+                (2025, 12, 26),
+                "S. Stephen, Protomartyr",
+                &["II day within the octave of Christmas"],
+            ),
+            (
+                (2025, 12, 28),
+                "Sunday within the octave of Christmas",
+                &["The Holy Innocents, MM."],
+            ),
+            (
+                (2025, 12, 29),
+                "V day within the octave of Christmas",
+                &["S. Thomas, Bp., M."],
+            ),
+            // The Holy Family on its Sunday, as a Sunday, allowing only a
+            // feast of the II class: St Hyginus omitted.
+            (
+                (2026, 1, 11),
+                "The Holy Family of Jesus, Mary and Joseph",
+                &[],
+            ),
+            // A feast of the III class on a Sunday of the II class: omitted.
+            ((2026, 1, 25), "Third Sunday after Epiphany", &[]),
+            // A commemoration on a feria and on a Saturday of our Lady.
+            ((2026, 2, 3), "Feria", &["S. Blaise, Bp., M."]),
+            (
+                (2026, 2, 14),
+                "Saturday Office of our Lady",
+                &["S. Valentine, M."],
+            ),
+            // A feast of the II class in Lent, the feria commemorated; a
+            // feast of the III class in Lent, reduced to a commemoration.
+            ((2026, 2, 24), "S. Matthias, Ap.", &["Feria of Lent"]),
+            (
+                (2026, 3, 6),
+                "Feria of Lent",
+                &["SS. Perpetua and Felicitas, MM."],
+            ),
+            // Christ the King and All Saints on Sundays after Pentecost.
+            ((2026, 10, 25), "Christ, the King", &[]),
+            (
+                (2026, 11, 1),
+                "All Saints",
+                &["Twenty-third Sunday after Pentecost"],
+            ),
+            // St Andrew on the Monday after the First Sunday of Advent.
+            ((2026, 11, 30), "S. Andrew, Ap.", &["Feria of Advent"]),
+        ];
+        for &((year, month, day), title, commemorations) in days {
+            let o = office(year, month, day);
+            assert_eq!(o.office.title, title, "{year}-{month}-{day}");
+            assert_eq!(commemorated(&o), commemorations, "{year}-{month}-{day}");
+        }
+    }
+
+    /// The transfers of no. 96–98 on the years that meet them.
+    #[test]
+    fn an_impeded_feast_of_the_first_class_goes_to_the_nearest_free_day() {
+        // 2035: St Joseph on Monday of Holy Week and the Annunciation on
+        // Easter Sunday. The Annunciation goes to the Monday after Low
+        // Sunday "as to its proper place" and St Joseph, impeded as far,
+        // to the Tuesday.
+        let annunciation = office(2035, 4, 2);
+        assert_eq!(annunciation.office.title, ANNUNCIATION);
+        assert_eq!(annunciation.transferred_from, Some(ymd(2035, 3, 25)));
+        let joseph = office(2035, 4, 3);
+        assert!(joseph.office.title.starts_with("S. Joseph, Husband"));
+        assert_eq!(joseph.transferred_from, Some(ymd(2035, 3, 19)));
+        assert_eq!(
+            office(2035, 3, 19).transferred[0].title,
+            joseph.office.title
+        );
+        // 2011: the Precious Blood on the Sacred Heart, 1 July, passes the
+        // Visitation (II class) and a Sunday (II class) to Monday 4 July.
+        assert_eq!(office(2011, 7, 1).office.title, "Feast of the Sacred Heart");
+        assert_eq!(
+            office(2011, 7, 2).office.title,
+            "The Visitation of our Lady"
+        );
+        assert_eq!(
+            office(2011, 7, 4).office.title,
+            "The Precious Blood of our Lord"
+        );
+        // 1962: the Annunciation on the Third Sunday of Lent, to Monday
+        // 26 March, with the feria commemorated.
+        let monday = office(1962, 3, 26);
+        assert_eq!(monday.office.title, ANNUNCIATION);
+        assert_eq!(commemorated(&monday), ["Feria of Lent"]);
+    }
+
+    #[test]
+    fn the_sunday_and_the_vigils_give_way_as_the_rubrics_say() {
+        // No. 16a: the Transfiguration on a Sunday takes its place, and the
+        // Sunday is not commemorated.
+        let transfiguration = office(2028, 8, 6);
+        assert_eq!(
+            transfiguration.office.title,
+            "The Transfiguration of our Lord"
+        );
+        assert!(transfiguration.commemorations.is_empty());
+        assert!(
+            transfiguration
+                .omitted
+                .iter()
+                .any(|c| c.title.contains("Sunday"))
+        );
+        // No. 111b: a feast of the II class on a Sunday is commemorated.
+        let james = office(2027, 7, 25);
+        assert!(james.office.title.contains("Sunday after Pentecost"));
+        assert_eq!(commemorated(&james), ["S. James, Ap."]);
+        // No. 33: the vigil of St Laurence on a Sunday is omitted.
+        let vigil = office(2026, 8, 9);
+        assert_eq!(vigil.office.title, "Eleventh Sunday after Pentecost");
+        assert!(
+            vigil
+                .omitted
+                .iter()
+                .any(|c| c.title == "Vigil of S. Laurence, M.")
+        );
+        // No. 30: the Vigil of Christmas on the Fourth Sunday of Advent,
+        // which is not commemorated.
+        let eve = office(2023, 12, 24);
+        assert_eq!(eve.office.title, "Vigil of Christmas");
+        assert!(eve.commemorations.is_empty());
+        // No. 15: the Immaculate Conception on the Second Sunday of Advent,
+        // which is commemorated.
+        let conception = office(2024, 12, 8);
+        assert_eq!(commemorated(&conception), ["Second Sunday of Advent"]);
+        // No. 110: St Paul under St Peter's Chair, not counted, then the
+        // one commemoration a day of the II class allows; on the First
+        // Sunday of Lent both are omitted.
+        assert_eq!(
+            commemorated(&office(2027, 2, 22)),
+            ["S. Paul, Ap.", "Feria of Lent"]
+        );
+        let lent = office(2026, 2, 22);
+        assert_eq!(lent.office.title, "First Sunday of Lent");
+        assert!(lent.commemorations.is_empty());
+        assert_eq!(lent.omitted.len(), 2);
+        // Outside the computus's years there is no ordo.
+        assert!(ordo(1582).is_none());
+        assert!(office_on(ymd(4100, 1, 1)).is_none());
+    }
+
     #[test]
     fn the_classes_are_counted_as_the_module_states() {
         assert_eq!(count(Class::First), 53);
-        assert_eq!(count(Class::Second), 41);
+        assert_eq!(count(Class::Second), 86);
         assert_eq!(count(Class::Third), 181);
         assert_eq!(count(Class::Commemoration), 106);
     }
@@ -680,6 +1845,7 @@ mod tests {
                 && !title.contains("of Holy Week")
                 && !title.contains("within the octave")
                 && !title.contains("day within")
+                && !title.starts_with("Feria")
                 && title != "Ash Wednesday"
         };
         let first: Vec<&str> = CELEBRATIONS
@@ -753,12 +1919,25 @@ mod tests {
     #[test]
     fn a_day_carries_its_feast_and_its_commemoration() {
         assert_eq!(
-            titles_on(1962, 1, 14),
+            titles_on(1963, 1, 14),
             ["S. Hilary, Bp., Cf., Doct.", "S. Felix, priest, M."]
         );
-        let hilary = celebrations_on(ymd(1962, 1, 14));
+        let hilary = celebrations_on(ymd(1963, 1, 14));
         assert_eq!(hilary[0].class, Class::Third);
         assert_eq!(hilary[1].class, Class::Commemoration);
+        // In 1962 14 January was the Second Sunday after Epiphany, which
+        // the calendar lists after them and whose office it is.
+        assert_eq!(
+            titles_on(1962, 1, 14),
+            [
+                "S. Hilary, Bp., Cf., Doct.",
+                "S. Felix, priest, M.",
+                "Second Sunday after Epiphany"
+            ]
+        );
+        let sunday = office(1962, 1, 14);
+        assert_eq!(sunday.office.title, "Second Sunday after Epiphany");
+        assert!(sunday.commemorations.is_empty());
         // The feasts the rubrics of 1960 took out are not here: the Finding
         // of the Cross on 3 May and St Peter's Chains on 1 August.
         assert!(!titles_on(1962, 5, 3).iter().any(|t| t.contains("Cross")));

@@ -480,8 +480,10 @@ static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
 /// the Fast of Nineveh to Pentecost as offsets from the Julian-computus
 /// Easter, which is the Alexandrian one.
 ///
-/// The Arabic names are the ones the church's own publications use; the
-/// Coptic-language names of the feasts are not carried.
+/// The Arabic names are the ones the church's own publications use. The
+/// Coptic-language names of seven feasts, where a source prints them, are
+/// `hc-i18n`'s `holiday_names` table for `cop`; no source read prints the
+/// others. The fasts are `orthodox_fasts`'s reckoning `coptic-fasts`.
 pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
     code: "coptic-orthodox",
     english_name: "Coptic Orthodox",
@@ -2550,7 +2552,7 @@ const fn east(name: &'static str, local: &'static str, rule: Rule) -> HolidayRul
     feast(name, local, rule).years(Some(1965), None)
 }
 
-static CHURCH_OF_THE_EAST_RULES: &[HolidayRule] = &[
+pub(crate) static CHURCH_OF_THE_EAST_RULES: &[HolidayRule] = &[
     east(
         "Epiphany (the season of Denha begins)",
         "ܥܹܐܕܵܐ ܕܕܸܢܚܵܐ",
@@ -2634,21 +2636,29 @@ static CHURCH_OF_THE_EAST_RULES: &[HolidayRule] = &[
 /// on the Monday, Tuesday and Wednesday of the third week before the Great
 /// Fast. See `docs/systems/church-of-the-east-year.md`.
 ///
+/// The Fridays of commemoration and the saints' days follow the seasons,
+/// from [`crate::east_syriac::CHURCH_OF_THE_EAST_COMMEMORATIONS`]: the
+/// Fridays whose place the statement fixes, and the saints' days that keep
+/// one date or one distance from Easter in all four years of the Church's
+/// calendar read.
+///
 /// Not carried: the Sundays of Moses, between Elijah and the Dedication,
 /// whose first Sunday the statement read does not fix; the order in which
 /// the Sundays of Elijah and of the Cross are kept when the Cross falls
 /// early in Elijah, which the Church's calendar of 2026–2029 shows varying
 /// in a way the statement does not describe; the numbering of the Sundays
-/// of Epiphany, of which the calendar keeps two on one day to fit the
-/// weeks; the saints' days and Fridays of commemoration; and the Chaldean
-/// Catholic Church, the Syro-Malabar Church and the Ancient Church of the
-/// East, whose calendars are their own. The table begins in 1965, the year
+/// of Epiphany after the first, which the calendar fits to the weeks by
+/// keeping two on one day, differently in two years of five Sundays each;
+/// the Fridays of Epiphany between the first and the penultimate, which it
+/// merges in the same way; the saints' days that move by another rule; and
+/// the Ancient Church of the East, whose calendar was not read. The
+/// Chaldean and Syro-Malabar years are `chaldean` and `syro-malabar`. The table begins in 1965, the year
 /// after the Church's decision of 1964 to take up the Gregorian calendar,
 /// the day that decision took effect not having been read.
 pub static CHURCH_OF_THE_EAST: RuleSet = RuleSet {
     code: "church-of-the-east",
     english_name: "Assyrian Church of the East",
-    rules: CHURCH_OF_THE_EAST_RULES,
+    rules: &crate::east_syriac::CHURCH_OF_THE_EAST_ALL_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
@@ -4125,7 +4135,10 @@ pub static ALL: &[&RuleSet] = &[
     &UNLUCKY_FRIDAYS,
     &SACRED_WEDNESDAYS,
     &CHURCH_OF_THE_EAST,
+    &crate::east_syriac::CHALDEAN,
+    &crate::east_syriac::SYRO_MALABAR,
     &crate::common_worship::COMMON_WORSHIP,
+    &crate::book_of_common_prayer::BOOK_OF_COMMON_PRAYER_1662,
 ];
 
 /// The table for a tradition's identifier, by

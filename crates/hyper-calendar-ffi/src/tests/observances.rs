@@ -109,7 +109,7 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
     let line = read_lines(|buffer, capacity, written| unsafe {
         hc_lectionary(day, buffer, capacity, written)
     });
-    assert_eq!(line, "2026\tA\tII\t\n");
+    assert_eq!(line, "2026\tA\tII\t\t\t\t\n");
     let mut easter = 0i64;
     assert_eq!(unsafe { hc_astronomical_easter(2001, &mut easter) }, HC_OK);
     let mut expected = 0i64;

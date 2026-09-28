@@ -47,6 +47,9 @@
 //!   against, where an observatory or almanac office names it.
 //! * [`holiday_groups`] — what a locale calls a group of people a holiday
 //!   is given to alone, where an instrument in the language names it.
+//! * [`holiday_names`] — what a locale calls a day of a holiday table
+//!   beside the table's own names, where a source in the language prints
+//!   it: the Coptic names of the Coptic Orthodox feasts.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -86,6 +89,7 @@ pub mod error;
 pub mod exemplar_cities;
 pub mod fields;
 pub mod holiday_groups;
+pub mod holiday_names;
 pub mod horizons;
 pub mod locale;
 pub mod names;

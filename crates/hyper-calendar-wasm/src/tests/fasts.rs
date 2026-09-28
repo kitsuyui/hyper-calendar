@@ -41,3 +41,23 @@ fn great_lent_2025_crosses_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The Coptic Apostles' Fast of 2026, 1 June to 11 July, as the Coptic
+/// Metropolis of the Southern United States dates it (`suscopts-fasts`).
+#[test]
+fn the_oriental_fasts_cross_the_same_boundary() {
+    let reckoning = "coptic-fasts";
+    let day = hc_gregorian_to_fixed(2026, 6, 1);
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_orthodox_fast_on(reckoning.as_ptr(), reckoning.len(), day, buffer, capacity)
+    });
+    assert_eq!(
+        text,
+        "1\tperiod\tapostles-fast\tThe Apostles' Fast\tfast\tfast\n"
+    );
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_orthodox_fast_seasons(reckoning.as_ptr(), reckoning.len(), 1582, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}

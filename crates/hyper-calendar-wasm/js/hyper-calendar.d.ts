@@ -528,7 +528,13 @@ export interface AlmanacAnnotation {
 }
 
 /** A reckoning of the Orthodox fasts. */
-export type OrthodoxFastReckoning = "orthodox-fasts" | "orthodox-fasts-revised-julian";
+export type OrthodoxFastReckoning =
+  | "orthodox-fasts"
+  | "orthodox-fasts-revised-julian"
+  | "armenian-fasts"
+  | "armenian-fasts-jerusalem"
+  | "coptic-fasts"
+  | "ethiopian-fasts";
 
 /** The one line of `hc_orthodox_fast_on`. */
 export interface OrthodoxFastDay {
@@ -1663,6 +1669,12 @@ export interface Lectionary {
   weekdayCycle: "I" | "II";
   /** The RCL Proper, 3 to 29, of a Sunday after Trinity Sunday; else `null`. */
   proper: number | null;
+  /** The Roman number of a Sunday in Ordinary Time, 2 to 34; else `null`. */
+  sundayInOrdinaryTime: number | null;
+  /** The week of Ordinary Time, 1 to 34, on the universal calendar (the Baptism on the Sunday after 6 January); else `null`. */
+  weekOfOrdinaryTime: number | null;
+  /** The week of Ordinary Time on a calendar that keeps the Epiphany on the Sunday between 2 and 8 January; else `null`. */
+  weekOfOrdinaryTimeEpiphanyOnSunday: number | null;
 }
 
 /** A local clock `hc_solar_time` reads. */
@@ -2204,9 +2216,9 @@ export class HyperCalendar {
   holyYearOn(fixed: number | bigint): HolyYear | null;
   /** `hc_common_worship_on`: empty on a day that keeps none. */
   commonWorshipOn(fixed: number | bigint): CommonWorshipCelebration[];
-  /** `hc_orthodox_fast_on`: a day outside the years 326 to 4099 is `out-of-range`. */
+  /** `hc_orthodox_fast_on`: a day outside the years 326 to 4099, or 1583 to 4099 on the Gregorian reckonings, is `out-of-range`. */
   orthodoxFastOn(reckoning: OrthodoxFastReckoning, fixed: number | bigint): OrthodoxFastDay;
-  /** `hc_orthodox_fast_seasons`: twelve periods, in the order a day is tested against them. */
+  /** `hc_orthodox_fast_seasons`: the scheme's periods, twelve for the Eastern Orthodox, in the order a day is tested against them. */
   orthodoxFastSeasons(reckoning: OrthodoxFastReckoning, year: number | bigint): OrthodoxFastSeason[];
 
   /** `hc_term_in_effect`; a meridian nobody knows is `unknown`. */

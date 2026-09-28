@@ -26,10 +26,13 @@ assert_eq!(holidays[13].local_name, "国民の休日");
 | `engine` | evaluation, and business-day arithmetic |
 | `hindu` | the Hindu festival rules the traditions and the national tables share |
 | `traditions` | the cross-cutting religious cycles |
-| `lectionary` | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
+| `lectionary` | the lectionary cycles: the Sunday and weekday years, the RCL's Propers, and the Roman Sundays and weeks in Ordinary Time |
 | `orthodox_fasts` | the Eastern Orthodox fasts: whether a day is a fast day, a day of the Meatfast that excludes only meat, or neither, and the span of each season, on the Julian (`orthodox-fasts`) and the Revised Julian (`orthodox-fasts-revised-julian`) fixed dates |
+| `oriental_fasts` | the Armenian (`armenian-fasts`, `armenian-fasts-jerusalem`), Coptic (`coptic-fasts`) and Ethiopian (`ethiopian-fasts`) fasts, each church's own periods, read by `orthodox_fasts` |
+| `east_syriac` | the Church of the East's Fridays of commemoration and saints' days, and the Chaldean (`chaldean`) and Syro-Malabar (`syro-malabar`) years |
+| `book_of_common_prayer` | the Book of Common Prayer of 1662's calendar (`bcp-1662`): the Table of Feasts and the Kalendar's black-letter days |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
-| `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the first-class days of the Proper of Time, with its class |
+| `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the Proper of Time's days of the I and II class, with its class, and the ordo, each day's office with precedence, transfers and commemorations applied |
 | `international` | the United Nations international days, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
 | `countries` | 195 national tables |
@@ -178,15 +181,20 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Sixty traditions.** Western Christianity on the Gregorian computus,
+**Sixty-three traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
-with the class of every day (`roman_calendar_1960`), the Church of England's *Common Worship* calendar with
+with the class of every day and the office of each with its precedence
+applied (`roman_calendar_1960`), the Church of England's *Common Worship* calendar with
 the ranks of its Principal Feasts, Principal Holy Days and Festivals and
 the transfers its Rules require (`common_worship`), the liturgical year of
 the Assyrian Church of the East, its seasons of seven weeks anchored to
-Easter and to the Feast of the Cross on 13 September
-(`church-of-the-east`), Orthodox Christianity with its fixed feasts on the
+Easter and to the Feast of the Cross on 13 September, with its Fridays of
+commemoration and saints' days (`church-of-the-east`), and its sister
+churches' years, the Chaldean (`chaldean`) and the Syro-Malabar
+(`syro-malabar`), with the Cross on 14 September; the calendar of the Book
+of Common Prayer of 1662, its Table of Feasts in red letter and its
+Kalendar's black-letter days (`bcp-1662`), Orthodox Christianity with its fixed feasts on the
 Julian calendar and, as a second table, on the Revised Julian, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, the Armenian
 Apostolic Church on the Gregorian calendar of Etchmiadzin
@@ -232,9 +240,11 @@ whether a day is within one; `computus` carries a third reckoning of Easter, the
 astronomical one at the meridian of Jerusalem that the World Council of
 Churches proposed at Aleppo in 1997 (`astronomical-jerusalem`), which no
 church keeps; and `lectionary` gives the year of the Sunday cycle, A, B or
-C, the Roman weekday cycle, I or II, and the Revised Common Lectionary's
-Proper of a Sunday after Trinity — the rules, not the copyrighted
-readings.
+C, the Roman weekday cycle, I or II, the Revised Common Lectionary's
+Proper of a Sunday after Trinity, and the Roman number of a Sunday or a
+week in Ordinary Time, the week on the universal calendar or on one that
+keeps the Epiphany on a Sunday, held to the Liturgy Office of England and
+Wales's table of 2020–2060 — the rules, not the copyrighted readings.
 
 The Ethiopian entry is worth a word. Its fixed feasts are ordinary dates —
 29 Tahsas, 11 Tirr — in the Ethiopic calendar, which a rule can name because

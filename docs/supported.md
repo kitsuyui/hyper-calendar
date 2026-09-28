@@ -448,16 +448,18 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-60 tables, feature `holiday`.
+63 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
 | `bahai` | Bahá'í Faith | 15 |
+| `bcp-1662` | Book of Common Prayer (1662) | 103 |
 | `buddhist-east-asian` | Buddhism (East Asian) | 4 |
 | `buddhist-thai` | Buddhism (Thai Theravāda) | 4 |
 | `buddhist-tibetan` | Buddhism (Tibetan) | 5 |
 | `buddhist-uposatha-thai` | Buddhism (Thai uposatha days) | 4 |
 | `chaharshanbe-suri` | Chaharshanbe Suri | 1 |
+| `chaldean` | Chaldean Catholic Church | 15 |
 | `chinese-folk` | Chinese folk tradition | 16 |
 | `chinese-xiaonian-jiangnan` | Little New Year (Jiangnan, Fujian and Taiwan) | 1 |
 | `chinese-xiaonian-nanjing` | Little New Year (Nanjing) | 1 |
@@ -469,7 +471,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `christian-orthodox` | Christianity (Julian computus) | 18 |
 | `christian-orthodox-revised-julian` | Christianity (Julian computus, Revised Julian fixed feasts) | 18 |
 | `christian-western` | Christianity (Western computus) | 30 |
-| `church-of-the-east` | Assyrian Church of the East | 16 |
+| `church-of-the-east` | Assyrian Church of the East | 66 |
 | `common-worship` | Church of England (Common Worship calendar) | 40 |
 | `coptic-orthodox` | Coptic Orthodox | 23 |
 | `ember-bcp1662` | Ember and Rogation Days (Book of Common Prayer, 1662) | 15 |
@@ -493,12 +495,13 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
-| `roman-general-1960` | General Roman Calendar of 1960 | 381 |
+| `roman-general-1960` | General Roman Calendar of 1960 | 426 |
 | `sacred-wednesdays` | Wednesdays on the eighth lunar day | 1 |
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |
 | `sikh-nanakshahi-2003` | Sikhism (Nanakshahi calendar of 2003) | 39 |
 | `sikh-sgpc` | Sikhism (SGPC, Bikrami calendar) | 5 |
+| `syro-malabar` | Syro-Malabar Catholic Church | 21 |
 | `taoist` | Taoism | 5 |
 | `tenrikyo` | Tenrikyo | 16 |
 | `tokanya` | Tōkanya, the tenth night of the tenth lunar month (十日夜) | 1 |
