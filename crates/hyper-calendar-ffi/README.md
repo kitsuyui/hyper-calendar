@@ -749,9 +749,13 @@ ISO 10383 Market Identifier Code (`XNYS`), a tradition's slug
 (`christian-western`) or `un-days`, and `hc_holiday_codes` lists them all.
 `hc_holiday_is_day_off` answers for one day; `hc_holidays_in_year` writes a
 year as tab-separated, NUL-terminated lines — the ISO date, the name, the
-local name, the kind, the confidence, `1` for a substitute day and the date it
-stands in for — reporting the length it needs through `written` like every
-other text function here.
+local name, the kind, the confidence, `1` for a substitute day, the date it
+stands in for and the region — reporting the length it needs through
+`written` like every other text function here. The region is the
+subdivision whose own entry the line is: asked for `JP` in `JP-13`, the
+lines are Japan's nationwide days and Tokyo's 都民の日, and only 都民の日
+carries `JP-13`. A region matches in either case, and one the table scopes
+no rule to gives the nationwide days.
 
 The string arguments fail the same way in both, and the same way as in the
 WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code` or
@@ -780,23 +784,40 @@ int main(void) {
 }
 ```
 
+A subdivision is not a table, for every country alike: its days are rules
+of its country's table scoped to its ISO 3166-2 code, and it is asked for
+by `region`, Tokyo as `JP` in `JP-13`. `hc_holiday_codes` lists no
+subdivision code; `hc_holiday_tables` names a country's subdivisions in
+column 9 of the country's row. Asked for `JP` with no region,
+`hc_holidays_in_year` and `hc_holiday_is_day_off` answer for the
+nationwide days alone, not the union of the prefectures'; asked for `JP`
+in `JP-13`, for the nationwide days and Tokyo's own. `hc_holidays_on`
+takes no region and writes a subdivision's own lines under its country's
+code, with the subdivision in the last column, as the WebAssembly
+module's README sets out under "Subdivisions".
+
 `hc_holidays_on(fixed, buffer, capacity, written)` writes every entry on
 one day across every table `hc_holiday_codes` lists, in that order, each
-evaluated nationwide, one line per (table, entry): the table's identifier,
-its English name, the holiday's English name, its local name, the kind
-(`public`, `bank`, `religious`, `observance`, `school`, `workday`, or
-`gap`), the confidence, the instrument the rule cites, `1` for a substitute
-and the fixed day it stands in for. A `gap` line is a holiday the table
+evaluated nationwide and then in each subdivision its rules are scoped to,
+one line per (table, subdivision, entry): the table's identifier, its
+English name, the holiday's English name, its local name, the kind
+(`public`, `bank`, `religious`, `observance`, `school`, `workday`,
+`government`, or `gap`), the confidence, the instrument the rule cites, `1`
+for a substitute, the fixed day it stands in for, and the ISO 3166-2 code
+of the subdivision whose own entry it is, `JP-13`, or nothing for a
+nationwide one. A subdivision's lines are only the entries the nationwide
+calendar does not have, so a nationwide holiday is written once. A `gap` line is a holiday the table
 could not place in the day's year — its calendar's range ended, or the
 year's announcement has not been read — reported so the caller can say so.
 Each table is evaluated for the one day (`HolidayCalendar::for_day`), which
 answers exactly what the whole year would at about a third of the cost.
 
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
-table in `hc_holiday_codes` order, in the eight columns of the WebAssembly
+table in `hc_holiday_codes` order, in the nine columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
-or an exchange where its table records one, and the short name. A country
+or an exchange where its table records one, the short name, and the
+subdivisions the table's rules are scoped to, `;`-separated. A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
 carries one, and else, as for a null `locale`, by CLDR's English name;
 an exchange, a tradition and a set of observances by the table's English

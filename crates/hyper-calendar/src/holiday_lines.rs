@@ -32,7 +32,8 @@ use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, Period, PeriodKind, Reckoning, Status};
 use hc_holiday::rule::RuleSet;
 use hc_holiday::{
-    HolidayCalendar, computus, countries, exchanges, international, lectionary, traditions,
+    Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
+    traditions,
 };
 use hc_i18n::Locale;
 use hc_i18n::territories::{self, TerritoryName};
@@ -40,7 +41,7 @@ use hc_i18n::territories::{self, TerritoryName};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 8;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 9;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 4;
@@ -191,7 +192,8 @@ pub fn short_table_name(
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
 /// the code, the kind, the name in the locale, the English name, the
 /// locale that answered, the sources, the country of a subdivision or an
-/// exchange, and the short name in the locale.
+/// exchange, the short name in the locale, and the subdivisions the
+/// table's rules are scoped to.
 ///
 /// Column 3 follows [`table_name`]: a country is named as the locale's
 /// CLDR 48 data names it, where `hc-i18n` carries a name for it — 日本 under
@@ -209,7 +211,10 @@ pub fn short_table_name(
 /// `alt="short"` name of a country column 3 names from CLDR, from the same
 /// locale's data — `Hong Kong` for `HK` under `en`, `香港` under `ja`, `UK`
 /// for `GB` — and empty where that data has none, which is most countries,
-/// and for every table that is not a country.
+/// and for every table that is not a country. Column 9 is
+/// [`RuleSet::regions`]: the ISO 3166-2 codes a caller may pass as the
+/// region of the table, separated by `;` in code order, `JP-11;JP-12;…`,
+/// and empty for a table with no subdivision's days.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = requested_locale(locale);
@@ -224,7 +229,8 @@ pub fn holiday_tables(locale: &str) -> String {
             .cell(named.tag)
             .cell(set.sources)
             .cell_or_empty(country_of(set, kind))
-            .cell_or_empty(short_table_name(set, kind, requested.as_ref()));
+            .cell_or_empty(short_table_name(set, kind, requested.as_ref()))
+            .cell(&set.regions().join(";"));
         line.end();
     }
     out
@@ -266,16 +272,35 @@ fn iso(day: Rd) -> String {
         .map_or_else(|_| String::from("?"), |date| date.to_string())
 }
 
+/// The subdivision code of `table` that `region` names, as the table
+/// writes it: `JP-13` for `jp-13`. `None` when the table scopes no rule to
+/// it, which leaves the caller with the nationwide days.
+fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
+    let region = region?;
+    table
+        .regions()
+        .into_iter()
+        .find(|code| hc_core::catalogue::matches(region, code))
+}
+
 /// The holidays of a Gregorian year in a table, nationwide or in a
 /// subdivision, one line each: the ISO 8601 date, the name, the local
 /// name, the kind, the confidence, `1` for a substitute day and `0`
-/// otherwise, and the ISO 8601 date the substitute stands in for or
-/// nothing, tab-separated.
+/// otherwise, the ISO 8601 date the substitute stands in for or nothing,
+/// and the subdivision whose own entry it is — the region asked for, as
+/// the table writes its code, on an entry the nationwide calendar does not
+/// have — or nothing, tab-separated.
 #[must_use]
 pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
     let calendar = HolidayCalendar::for_year(table, region, year);
+    let own = table_region(table, region);
+    let nationwide = own.map(|_| HolidayCalendar::for_year(table, None, year));
     let mut out = String::new();
     for holiday in calendar.all() {
+        let regional = nationwide
+            .as_ref()
+            .and_then(|nationwide| (!nationwide.all().contains(holiday)).then_some(own))
+            .flatten();
         let mut line = Line::new(&mut out);
         line.cell(&iso(holiday.date))
             .cell(holiday.name)
@@ -283,7 +308,8 @@ pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
             .cell(holiday.kind.id())
             .cell(holiday.confidence.id())
             .flag(holiday.is_substitute())
-            .cell_or_empty(holiday.observed_for.map(iso).as_deref());
+            .cell_or_empty(holiday.observed_for.map(iso).as_deref())
+            .cell_or_empty(regional);
         line.end();
     }
     out
@@ -300,15 +326,53 @@ pub fn holidays_in_year(code: &str, region: Option<&str>, year: i64) -> Answer<S
     Ok(year_lines(rule_set(code)?, region, year))
 }
 
-/// One table's lines of `hc_holidays_on` for one day: the entries
-/// `calendar` has on the day, then the gaps it reports. Tab-separated:
-/// the table's identifier, its English name, the holiday's English name,
-/// its local name, the kind, the confidence, the instrument the rule
-/// cites, `1` for a substitute day and `0` otherwise, and the fixed day a
-/// substitute stands in for or nothing; a gap has the kind `gap`, an
-/// empty confidence and source, `0` and nothing.
+/// One table's nationwide lines of `hc_holidays_on` for one day: the
+/// entries `calendar` has on the day, then the gaps it reports.
+/// Tab-separated: the table's identifier, its English name, the holiday's
+/// English name, its local name, the kind, the confidence, the instrument
+/// the rule cites, `1` for a substitute day and `0` otherwise, the fixed
+/// day a substitute stands in for or nothing, and the subdivision, which
+/// is nothing here; a gap has the kind `gap`, an empty confidence and
+/// source, `0` and nothing.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
-    for holiday in calendar.on(day) {
+    push_entry_lines(out, table, None, &calendar.on(day), calendar.gaps());
+}
+
+/// One subdivision's lines of `hc_holidays_on` for one day: the entries
+/// and gaps `regional`, the table evaluated in `region`, has on the day
+/// that `nationwide` does not, each with `region` in the last column.
+pub fn push_region_day_lines(
+    out: &mut String,
+    table: &RuleSet,
+    region: &str,
+    regional: &HolidayCalendar<'_>,
+    nationwide: &HolidayCalendar<'_>,
+    day: Rd,
+) {
+    let everywhere = nationwide.on(day);
+    let own: alloc::vec::Vec<Holiday> = regional
+        .on(day)
+        .into_iter()
+        .filter(|holiday| !everywhere.contains(holiday))
+        .collect();
+    let gaps: alloc::vec::Vec<Gap> = regional
+        .gaps()
+        .iter()
+        .filter(|gap| !nationwide.gaps().contains(gap))
+        .copied()
+        .collect();
+    push_entry_lines(out, table, Some(region), &own, &gaps);
+}
+
+/// The lines of [`push_day_lines`] and [`push_region_day_lines`].
+fn push_entry_lines(
+    out: &mut String,
+    table: &RuleSet,
+    region: Option<&str>,
+    holidays: &[Holiday],
+    gaps: &[Gap],
+) {
+    for holiday in holidays {
         let mut line = Line::new(out);
         line.cell(table.code)
             .cell(table.english_name)
@@ -318,13 +382,14 @@ pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalen
             .cell(holiday.confidence.id())
             .cell(holiday.source)
             .flag(holiday.is_substitute())
-            .value_or_empty(holiday.observed_for.map(|day| day.0));
+            .value_or_empty(holiday.observed_for.map(|day| day.0))
+            .cell_or_empty(region);
         line.end();
     }
     // A gap is a holiday the table could not place this year — its
     // calendar's range ended, or no announcement was read — and it is
     // reported rather than left out, so that a caller can say so.
-    for gap in calendar.gaps() {
+    for gap in gaps {
         let mut line = Line::new(out);
         line.cell(table.code)
             .cell(table.english_name)
@@ -333,13 +398,19 @@ pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalen
             .cell("gap")
             .empties(2)
             .flag(false)
-            .empty();
+            .empty()
+            .cell_or_empty(region);
         line.end();
     }
 }
 
-/// The lines of `hc_holidays_on`: [`push_day_lines`] for every table in
-/// [`tables`]' order, each evaluated nationwide.
+/// The lines of `hc_holidays_on`: for every table in [`tables`]' order,
+/// [`push_day_lines`] for the table evaluated nationwide, then
+/// [`push_region_day_lines`] for each subdivision of
+/// [`RuleSet::regions`], in code order, so that a subdivision's own day —
+/// Tokyo's 都民の日, a Canadian province's Civic Holiday — is a line with
+/// its region, and a day the nationwide calendar already has is not
+/// repeated.
 ///
 /// One memo serves every table: the astronomy the tables share — the same
 /// tithis, the same new moons — is done once, the answers the context
@@ -358,6 +429,11 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
         for table in tables() {
             let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
             push_day_lines(&mut out, table, &calendar, day);
+            for region in table.regions() {
+                let regional =
+                    HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
+                push_region_day_lines(&mut out, table, region, &regional, &calendar, day);
+            }
         }
     });
     Ok(out)
@@ -1093,14 +1169,14 @@ mod tests {
     }
 
     /// The names are cells: their tab and line breaks are spaces, and the
-    /// line keeps its seven columns. The year's lines wrote them raw
+    /// line keeps its eight columns. The year's lines wrote them raw
     /// before, so a tab in a name shifted every column after it.
     #[test]
     fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns() {
         let text = year_lines(table_with_separators_in_its_names(), None, 2026);
         assert_eq!(
             text,
-            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\n"
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\n"
         );
     }
 
@@ -1115,7 +1191,7 @@ mod tests {
         push_day_lines(&mut out, table, &calendar, day);
         assert_eq!(
             out,
-            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\n"
+            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\n"
         );
     }
 

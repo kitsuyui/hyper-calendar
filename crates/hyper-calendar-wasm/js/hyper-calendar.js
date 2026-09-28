@@ -239,11 +239,11 @@ export const COLUMNS = Object.freeze({
     "last old day", "first day", "old calendar", "scope", "source", "new calendar", "polity",
   ]),
   holidaysInYear: Object.freeze([
-    "date", "name", "local name", "kind", "confidence", "substitute", "observed for",
+    "date", "name", "local name", "kind", "confidence", "substitute", "observed for", "region",
   ]),
   holidaysOn: Object.freeze([
     "table", "table name", "name", "local name", "kind", "confidence", "source",
-    "substitute", "observed for",
+    "substitute", "observed for", "region",
   ]),
   term: Object.freeze([
     "index", "chinese name", "japanese name", "begins", "ends",
@@ -275,6 +275,7 @@ export const COLUMNS = Object.freeze({
   marriageAugury: Object.freeze(["augury", "lichun at start", "lichun at end"]),
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
+    "regions",
   ]),
   lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
   zones: Object.freeze([
@@ -959,7 +960,7 @@ function gregorianAdoption(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
  */
 function holidayInYear(cells) {
-  const [date, name, localName, kind, confidence, substitute, observedFor] = cells;
+  const [date, name, localName, kind, confidence, substitute, observedFor, region] = cells;
   return {
     date,
     name,
@@ -968,6 +969,7 @@ function holidayInYear(cells) {
     confidence: /** @type {import("./hyper-calendar.d.ts").Confidence} */ (confidence),
     substitute: flag(substitute, "substitute"),
     observedFor: optional(observedFor),
+    region: optional(region),
   };
 }
 
@@ -978,7 +980,8 @@ function holidayInYear(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayOn}
  */
 function holidayOn(cells) {
-  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor] = cells;
+  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor, region] =
+    cells;
   return {
     table,
     tableName,
@@ -989,6 +992,7 @@ function holidayOn(cells) {
     source: optional(source),
     substitute: flag(substitute, "substitute"),
     observedFor: optionalInteger(observedFor, "observed for"),
+    region: optional(region),
   };
 }
 
@@ -1440,7 +1444,7 @@ function circadDate(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayTable}
  */
 function holidayTable(cells) {
-  const [code, kind, name, englishName, localeUsed, source, country, shortName] = cells;
+  const [code, kind, name, englishName, localeUsed, source, country, shortName, regions] = cells;
   return {
     code,
     kind: /** @type {import("./hyper-calendar.d.ts").HolidayTableKind} */ (kind),
@@ -1450,6 +1454,7 @@ function holidayTable(cells) {
     source: optional(source),
     country: optional(country),
     shortName: optional(shortName),
+    regions: regions === "" ? [] : regions.split(";"),
   };
 }
 

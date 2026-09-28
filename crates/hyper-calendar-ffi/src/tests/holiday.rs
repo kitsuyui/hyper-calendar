@@ -96,10 +96,10 @@ fn holiday_tables_answer_by_identifier() {
         .to_str()
         .expect("UTF-8");
     assert!(
-        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\n"),
+        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\n"),
         "{text}"
     );
-    assert!(text.contains("\t1\t2026-05-03\n"), "{text}");
+    assert!(text.contains("\t1\t2026-05-03\t\n"), "{text}");
     assert_eq!(
         unsafe { hc_holiday_codes(core::ptr::null_mut(), 0, &mut written) },
         HC_ERROR_BUFFER_TOO_SMALL
@@ -129,7 +129,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 9), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 10), "{rows:?}");
     let substitute = rows
         .iter()
         .find(|row| row[0] == "JP" && row[7] == "1")

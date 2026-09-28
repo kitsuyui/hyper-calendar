@@ -2169,9 +2169,13 @@ Identifier Code (`XNYS`), a tradition's slug (`christian-western`) or
 `un-days`, and `hc_holiday_codes` lists them all. `hc_holiday_is_day_off`
 answers for one day; `hc_holidays_in_year` writes a year as tab-separated
 lines — the ISO date, the name, the local name, the kind, the confidence,
-`1` for a substitute day and the date it stands in for — and, called with a
-null buffer, returns the length the text needs so the caller can allocate
-exactly.
+`1` for a substitute day, the date it stands in for and the
+region — and, called with a null buffer, returns the length the text needs
+so the caller can allocate exactly. The region is the subdivision whose own entry the
+line is: asked for `JP` in the region `JP-13`, the lines are Japan's
+nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
+region matches in either case, and one the table scopes no rule to gives
+the nationwide days.
 
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
@@ -2181,15 +2185,49 @@ no table is `HC_ERR_UNKNOWN`. An empty region is no region.
 ```js
 hc.holidaysInYear("JP", "", 2026);
 // [{ date: "2026-01-01", name: "New Year's Day", localName: "元日", kind: "public",
-//    confidence: "exact", substitute: false, observedFor: null }, ...]
+//    confidence: "exact", substitute: false, observedFor: null, region: null }, ...]
 hc.holidayIsDayOff("XNYS", "", hc.gregorianToFixed(2026, 4, 3));   // true: Good Friday
+hc.holidaysInYear("JP", "JP-13", 2026).find((day) => day.region);
+// { date: "2026-10-01", name: "Tokyo Citizens' Day", localName: "都民の日",
+//   kind: "school", confidence: "exact", substitute: false, observedFor: null, region: "JP-13" }
 ```
+
+### Subdivisions
+
+A subdivision is not a table. Its days are rules of its country's table,
+scoped to its ISO 3166-2 code, and it is asked for by the `region`
+argument: Tokyo is `JP` in the region `JP-13`, Scotland `GB` in `GB-SCT`,
+the District of Columbia `US` in `US-DC`. The same holds for every
+country. So:
+
+- `hc_holiday_codes` lists tables only, and no subdivision code is one of
+  its lines. `hc_holiday_tables` names a country's subdivisions in its
+  row, in column 9 (`regions`): `JP`'s row lists `JP-13` among the
+  prefectures that have days of their own. The `subdivision` kind of
+  column 2 is for a table whose code is itself an ISO 3166-2 code, and no
+  table is one.
+- `hc_holidays_in_year` and `hc_holiday_is_day_off` asked for `JP` with
+  an empty region answer for the nationwide days alone, not the union of
+  every prefecture's. Asked for `JP` in `JP-13`, they answer for Tokyo:
+  the nationwide days and Tokyo's own, and a year's line of Tokyo's own
+  day carries `JP-13` in its last column.
+- `hc_holidays_on` takes no region. It writes every table's nationwide
+  lines, and after them each subdivision's own lines, still under the
+  country's table code — 都民の日 is a line of `JP`, not of a table
+  `JP-13` — with the subdivision's code in column 10. A page that wants
+  one country's nationwide days keeps the lines whose column 10 is
+  empty; one that wants Tokyo keeps those and the ones that say `JP-13`.
 
 ### One day, every table
 
 `hc_holidays_on(fixed, buffer, capacity)` writes every entry on one day
 across every table `hc_holiday_codes` lists, in that order, each evaluated
-nationwide, one line per (table, entry):
+nationwide and then in each subdivision its rules are scoped to, the
+regions of column 9 of `hc_holiday_tables`, in code order. One line per
+(table, subdivision, entry): a subdivision's lines are the entries it has
+that the nationwide calendar does not, so a nationwide holiday is written
+once and Tokyo's 都民の日 on 1 October is a line of `JP` with `JP-13` in
+column 10.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -2197,11 +2235,12 @@ nationwide, one line per (table, entry):
 | 2 | table name | its English name |
 | 3 | name | the holiday's English name |
 | 4 | local name | its name in the local language, or empty |
-| 5 | kind | `public`, `bank`, `religious`, `observance`, `school`, `workday`, or `gap` |
+| 5 | kind | `public`, `bank`, `religious`, `observance`, `school`, `workday`, `government`, or `gap` |
 | 6 | confidence | `exact` or `approximate`; empty for a gap |
 | 7 | source | the instrument the rule cites, `A/RES/73/161`, or empty |
 | 8 | substitute | `1` for a weekend substitute, else `0` |
 | 9 | observed for | the fixed day a substitute stands in for, or empty |
+| 10 | region | the ISO 3166-2 code of the subdivision whose own entry this is, `JP-13`, or empty for a nationwide one |
 
 A `gap` line is a holiday the table could not place in the day's year — its
 calendar's range ended, or the year's announcement has not been read — with
@@ -2219,12 +2258,15 @@ convert; the scope keeps the winter solstices and new moons that every
 conversion of a lunisolar date searches for, which the Chinese, Korean and
 Vietnamese tables and the functions that date the Japanese 旧暦 days would
 otherwise search for again for every date they convert. Measured on
-2026-09-27 in the `release-compact` profile with
+2026-09-28 in the `release-compact` profile with
 [`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
-one 2026 day across all 298 tables takes about 23 ms natively on
-1 January, the costliest, and 18 ms on 25 September, against 0.19 s for
-every table's whole year; in WebAssembly under Node 22, measured with
-`scripts/wasm-calendar-timing.mjs`, 51 ms and 41 ms. Before the call opened
+one 2026 day across all 298 tables and their subdivisions takes about
+25 ms natively on 1 January, the costliest, and 19 ms on 25 September,
+against 0.20 s for every table's whole year; in WebAssembly under Node 22,
+measured with `scripts/wasm-calendar-timing.mjs`, 60 ms and 47 ms. The
+subdivisions' lines are about 3 ms and 2 ms of that in WebAssembly, and
+under 1 % natively, against the same build without them measured the same
+day. Before the call opened
 the scope, the same days took 54 ms and 36 ms natively and 133 ms and
 88 ms in WebAssembly.
 
@@ -2277,6 +2319,7 @@ from CLDR's English by fallback has English's short name.
 | 6 | source | the statute, gazette or calendar the table names as its sources |
 | 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty; the code of a row whose column 3 names the country in the same locale |
 | 8 | short name | CLDR's `alt="short"` name for a country column 3 names from CLDR, from the same locale's data, else empty |
+| 9 | regions | the ISO 3166-2 codes of the subdivisions the table's rules are scoped to, `;`-separated in code order, the regions `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond the nationwide days; empty for a table with none |
 
 ### The liturgical year
 

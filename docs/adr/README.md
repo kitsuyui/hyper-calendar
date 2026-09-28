@@ -22,3 +22,4 @@ record's status was last checked against the code on that date.
 | [0007](0007-sets-the-world-can-extend-are-data.md) | Sets the world can extend are data; sets we define are enums | Accepted |
 | [0008](0008-exchange-calendars-are-rule-sets.md) | Exchange calendars are rule sets keyed by Market Identifier Code | Accepted |
 | [0009](0009-a-working-day-is-an-entry.md) | A weekend day made a working day is an entry, not a weekend rule | Accepted; updated 2026-09-27 |
+| [0010](0010-a-government-office-day-off-is-its-own-kind.md) | A day off for a government's own offices is its own kind | Accepted |
