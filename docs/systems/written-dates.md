@@ -315,7 +315,7 @@ January 1 CE, 15 October 1582, 15 June 1900, 1 January 1970, 1 January and
 days the test's `MORE_DAYS` lists for it, the doubled days below and four
 Hebrew New Years whose years end in a letter with its geresh.
 
-In a release build the sweep reads 204 calendars × 55 locale settings, on
+In a release build the sweep reads 209 calendars × 55 locale settings, on
 1 684 calendar-days, which is 92 620 texts:
 
 | Outcome | Texts |

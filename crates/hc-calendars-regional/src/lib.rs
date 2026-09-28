@@ -12,7 +12,7 @@
 //!
 //! | Module | Calendars |
 //! | --- | --- |
-//! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed`, `japanese-northern-proclaimed`, `japanese-southern-proclaimed` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
+//! | [`japanese`] | `japanese`, `japanese-northern`, `japanese-southern`, `japanese-proclaimed`, `japanese-northern-proclaimed`, `japanese-southern-proclaimed`, `japanese-kaigen-toji` — imperial eras (和暦), Gregorian from 1873 and lunisolar before it |
 //! | [`maya`] | `maya-longcount`, `maya-tzolkin`, `maya-haab`, `maya-round`, and the same four under the GMT+2 correlation as `maya-longcount-gmt2`, `maya-tzolkin-gmt2`, `maya-haab-gmt2`, `maya-round-gmt2`, and under Martin and Skidmore's 584 286 as `maya-longcount-584286`, `maya-tzolkin-584286`, `maya-haab-584286`, `maya-round-584286` |
 //! | [`maya_819`] | `maya-819`, `maya-819-gmt2`, `maya-819-584286` — the 819-day count's stations and colour-directions over Linden and Bricker's twenty-station cycle of 16 380 days, under the three correlations |
 //! | [`aztec`] | `aztec-tonalpohualli`, `aztec-xiuhpohualli` |
@@ -21,8 +21,9 @@
 //! | [`balinese_pawukon`] | `balinese-pawukon` — thirty *wuku* and ten concurrent week cycles over 210 days |
 //! | [`javanese_pasaran`] | `javanese-pasaran` — the five-day market week and the 35-day wetonan |
 //! | [`akan`] | `akan` — the Akan six-day week and the 42-day Adaduanan it makes with the seven-day one |
-//! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910 |
-//! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming, Southern Ming, Shun and Qing era table as data |
+//! | [`korean_regnal`] | `korean-regnal` — the three eras of the Korean Empire, 建陽, 光武 and 隆熙, on the Gregorian days of 1896–1910; `korean-regnal-backdated` — the same with 光武 from 1 January 1897, as its decree dated it |
+//! | [`chinese_regnal`] | `chinese-regnal` — the Qing eras over the Chinese lunisolar calendar, 1645 to the abdication of 1912, with the Ming, Southern Ming, Shun and Qing era table as data; `chinese-regnal-qing-court` — the same with 宣統 kept by the court in the Forbidden City to 1924 |
+//! | [`gregorian_eras`] | `hongxian` — Yuan Shikai's 洪憲 of 1916; `manchukuo` — Manchukuo's 大同 and 康德, 1932–1945; both on the Gregorian calendar |
 //! | [`burmese`] | `burmese` — the Myanmar Era's lunisolar calendar, its watat years and full moons by the Calendar Advisory Board's arithmetic and the record's exceptions |
 //! | [`thai_lunar`] | `thai-lunar` — the Thai lunar calendar, its adhikamāsa and adhikavāra years carried as published for 2535–2570 BE (1992–2027) |
 //! | [`khmer`] | `khmer` — the Khmer *Chhankitek*, its leap-month and leap-day years by the *suryayatra* rule as Cambodia applies it, 1900–2200 |
@@ -133,6 +134,7 @@ pub mod aztec;
 pub mod balinese_pawukon;
 pub mod burmese;
 pub mod chinese_regnal;
+pub mod gregorian_eras;
 pub mod huangdi;
 pub mod japanese;
 pub mod javanese_pasaran;
@@ -158,12 +160,17 @@ pub use aztec::{
 };
 pub use balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
 pub use burmese::{BurmeseCalendar, BurmeseDate, MoonPhase, Thingyan, YearType};
-pub use chinese_regnal::{ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty};
+pub use chinese_regnal::{
+    ChineseEra, ChineseRegnalCalendar, ChineseRegnalDate, Dynasty, QingCourtCalendar,
+};
+pub use gregorian_eras::{GregorianEraCalendar, GregorianEraDate};
 pub use huangdi::{HuangdiCalendar, HuangdiCount, HuangdiDate};
 pub use japanese::{JapaneseCalendar, JapaneseDate};
 pub use javanese_pasaran::{JavanesePasaranCalendar, WetonDate};
 pub use khmer::{KhmerCalendar, KhmerDate};
-pub use korean_regnal::{KoreanEra, KoreanRegnalCalendar, KoreanRegnalDate};
+pub use korean_regnal::{
+    KoreanEra, KoreanRegnalBackdatedCalendar, KoreanRegnalCalendar, KoreanRegnalDate,
+};
 pub use lao::{LaoCalendar, LaoDate};
 pub use maya::{
     MayaCalendarRoundCalendar, MayaCalendarRoundDate, MayaHaabCalendar, MayaHaabDate,
@@ -203,6 +210,7 @@ mod registration {
         JapaneseCalendar::PROCLAIMED,
         JapaneseCalendar::NORTHERN_PROCLAIMED,
         JapaneseCalendar::SOUTHERN_PROCLAIMED,
+        JapaneseCalendar::KAIGEN_TOJI,
         for long_count in crate::MayaLongCountCalendar::ALL => [
             long_count,
             crate::MayaTzolkinCalendar::beside(long_count),
@@ -218,7 +226,10 @@ mod registration {
         crate::JavanesePasaranCalendar,
         crate::AkanCalendar,
         crate::KoreanRegnalCalendar,
+        crate::KoreanRegnalBackdatedCalendar,
         crate::ChineseRegnalCalendar,
+        crate::QingCourtCalendar,
+        for eras in crate::GregorianEraCalendar::ALL => [eras],
         crate::BurmeseCalendar,
         crate::SexagenaryCalendar,
         crate::ThaiLunarCalendar,
@@ -235,7 +246,7 @@ pub use registration::register_all;
 
 /// How many calendars [`register_all`] inserts.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 41;
+const CALENDAR_COUNT: usize = 46;
 
 #[cfg(test)]
 mod tests {
@@ -453,7 +464,8 @@ mod tests {
         let rd = gregorian::to_fixed(2026, 9, 21).expect("in range");
         let rendered = registry.describe_day(rd);
         // Every calendar answers; the ones that refuse the day are the
-        // Korean Empire's, kept only from 1896 to 1910, the Qing eras', and
+        // Korean Empire's, kept only from 1896 to 1910, the Qing eras' in
+        // both readings, 洪憲's of 1916 and Manchukuo's of 1932–1945, and
         // the Arsacid era's, which ends with `babylonian`'s record in 76 CE.
         assert_eq!(rendered.len(), registry.len());
         let converted = rendered.iter().filter(|(_, fields)| fields.is_ok()).count();
@@ -464,7 +476,18 @@ mod tests {
             .filter(|(_, fields)| fields.is_err())
             .map(|(id, _)| id.0)
             .collect();
-        assert_eq!(refusing, ["korean-regnal", "chinese-regnal", "arsacid-era"]);
+        assert_eq!(
+            refusing,
+            [
+                "korean-regnal",
+                "korean-regnal-backdated",
+                "chinese-regnal",
+                "chinese-regnal-qing-court",
+                "hongxian",
+                "manchukuo",
+                "arsacid-era"
+            ]
+        );
 
         let japanese = registry
             .get(CalendarId("japanese"))
@@ -494,7 +517,7 @@ mod tests {
                 !meta.has_leap_months
                     || meta.id.as_str().starts_with("japanese")
                     || meta.id.as_str().starts_with("huangdi-era")
-                    || meta.id.as_str() == "chinese-regnal"
+                    || meta.id.as_str().starts_with("chinese-regnal")
                     || meta.id.as_str() == "arsacid-era"
                     || meta.id.as_str() == "burmese"
                     || meta.id.as_str() == "thai-lunar"

@@ -777,3 +777,132 @@ fn julian(year: i64, month: usize, day: i64) -> Rd {
         + day
         - 2)
 }
+
+/// The first days that one Senmyō-reki parameter set gives and another
+/// does not, over the system's whole range, by conjunction.
+fn month_starts_moved(
+    from: &'static LunisolarParameters,
+    to: &'static LunisolarParameters,
+) -> Vec<(Rd, Rd)> {
+    let (Some(a), Some(b)) = (from.mean_motion, to.mean_motion) else {
+        return Vec::new();
+    };
+    let first = a.nearby_conjunction_index(senmyo::EARLIEST);
+    let last = a.nearby_conjunction_index(senmyo::LATEST);
+    (first..=last)
+        .filter_map(|index| {
+            let (was, is) = (
+                from.conjunction_day(&a, index),
+                to.conjunction_day(&b, index),
+            );
+            (was != is).then_some((was, is))
+        })
+        .collect()
+}
+
+#[test]
+fn the_seasonal_limit_and_the_eclipse_exception_are_measured_against_the_table() {
+    // 新唐書's rule in full: the limit of the autumn half lowered in the
+    // spring half by a fifth of the change in 昏明小餘 since 春分, and no
+    // advance for a solar eclipse seen from its first contact. The sets
+    // are measured, not asserted better: the fitted single limit was
+    // chosen against this table, and the other two were not re-fitted.
+    let seasonal = month_starts_moved(&senmyo::PARAMETERS, &senmyo::PARAMETERS_SEASONAL);
+    let eclipse = month_starts_moved(
+        &senmyo::PARAMETERS_SEASONAL,
+        &senmyo::PARAMETERS_SEASONAL_ECLIPSE,
+    );
+    // The conjunctions the seasonal rule holds over whose new moon makes a
+    // solar eclipse at Kyoto at all, seen or not.
+    let model = senmyo::MODEL_SEASONAL;
+    let parameters = &senmyo::PARAMETERS_SEASONAL;
+    let (mut held_over, mut eclipses) = (0usize, 0usize);
+    for index in model.nearby_conjunction_index(senmyo::EARLIEST)
+        ..=model.nearby_conjunction_index(senmyo::LATEST)
+    {
+        let local = parameters.conjunction_moment(&model, index);
+        if model.day_of_conjunction(local).0 as f64 > local.floor() {
+            held_over += 1;
+            let universal = parameters.universal_from_local(hc_calendar::fixed::Moment(local));
+            if senmyo::KYOTO
+                .solar_eclipse_first_contact(universal)
+                .is_some()
+            {
+                eclipses += 1;
+            }
+        }
+    }
+    println!(
+        "Senmyō-reki: the seasonal limit moves {} first days; of {held_over} conjunctions held \
+         over, {eclipses} make an eclipse at Kyoto and the exception moves {} first days",
+        seasonal.len(),
+        eclipse.len()
+    );
+    // The seasonal limit only lowers the limit, so it only ever moves a
+    // first day later.
+    assert!(seasonal.iter().all(|(was, is)| is.0 == was.0 + 1));
+    assert!(!seasonal.is_empty());
+    // A conjunction held over is after 0.79 of the day, 18:58 local mean
+    // time at the earliest, and every eclipse it makes at Kyoto begins
+    // after sunset: the exception is live and moves nothing in 823 years.
+    assert!(eclipses > 0);
+    assert!(eclipse.is_empty(), "{eclipse:?}");
+    const STRIDE: usize = if cfg!(debug_assertions) { 17 } else { 1 };
+    for (name, parameters) in [
+        ("single limit", &senmyo::PARAMETERS),
+        ("seasonal limit", &senmyo::PARAMETERS_SEASONAL),
+        (
+            "seasonal limit and eclipses",
+            &senmyo::PARAMETERS_SEASONAL_ECLIPSE,
+        ),
+    ] {
+        let agreement = measure_sampled(parameters, senmyo::EARLIEST.0, senmyo::LATEST.0, STRIDE);
+        println!(
+            "Senmyō {name:28}: new years {:.2}%  leap months {:.2}%  month starts {:.2}%  days {:.2}%",
+            agreement.new_years, agreement.leap_months, agreement.month_starts, agreement.days
+        );
+        assert!(agreement.month_starts > 94.0, "{name}");
+    }
+}
+
+#[test]
+fn the_revised_horyaku_year_of_1771_is_measured_against_the_table() {
+    // 修正宝暦暦: 歳周 365.241626 from 明和8年 (nao-rekiwiki-horyaku), six
+    // seconds a year longer than the promulgated 365.241556, phased to
+    // agree with it at the 冬至 of 1770.
+    let promulgated = LunisolarCalendar::new(&horyaku::PARAMETERS);
+    let revised = &horyaku::ENGINE_REVISED;
+    assert_eq!(
+        revised
+            .from_fixed(horyaku::REVISED_FROM)
+            .map(|date| (date.year, date.month, date.day)),
+        Ok((1771, Month::regular(1), 1))
+    );
+    assert_eq!(
+        revised.from_fixed(Rd(horyaku::REVISED_FROM.0 - 1)),
+        Err(CalendarError::BeforeEpoch)
+    );
+    let moved = (horyaku::REVISED_FROM.0..=horyaku::LATEST.0)
+        .filter(|&rd| promulgated.from_fixed(Rd(rd)) != revised.from_fixed(Rd(rd)))
+        .count();
+    let before = measure(
+        &horyaku::PARAMETERS,
+        horyaku::REVISED_FROM.0,
+        horyaku::LATEST.0,
+    );
+    let after = measure(
+        &horyaku::PARAMETERS_REVISED,
+        horyaku::REVISED_FROM.0,
+        horyaku::LATEST.0,
+    );
+    println!(
+        "Hōryaku from 1771: the revised year moves {moved} days; month starts {:.2}% as \
+         promulgated, {:.2}% revised; leap months {:.2}% and {:.2}%",
+        before.month_starts, after.month_starts, before.leap_months, after.leap_months
+    );
+    assert_eq!(
+        moved, 0,
+        "the revision is expected to move no day of 1771-1798"
+    );
+    assert!(after.month_starts > 96.0);
+}

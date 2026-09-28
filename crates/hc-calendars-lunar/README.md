@@ -237,6 +237,18 @@ and both are measured. Two scalars per calendar — the 暦元 solstice phase,
 and for Senmyō-reki the 進朔 limit — are fitted, and the code labels them as
 such wherever they appear.
 
+Three more parameter sets carry what the sources say and the default does
+not. `senmyo::PARAMETERS_SEASONAL` lowers the 進朔 limit after the spring
+equinox by a fifth of the dawn's advance, reading the 夜半定漏 column of
+新唐書's 晷漏 table, and `senmyo::PARAMETERS_SEASONAL_ECLIPSE` adds the
+exception for a solar eclipse seen from its first contact, with the eclipse
+from modern astronomy at Kyoto; over 823 years the first moves 34 first
+days and costs a tenth of a point, and the second moves none, because every
+eclipse at Kyoto of a conjunction held over begins after sunset.
+`horyaku::PARAMETERS_REVISED` is the 修正宝暦暦 of 1771, whose 歳周 of
+365.241626 moves no day of 1771–1798. The document has the rule, the table
+and the measurement.
+
 **元嘉暦, 儀鳳暦, 大衍暦 and 五紀暦 (604–862) are not implemented**; the
 document says why.
 
@@ -400,14 +412,31 @@ from the rules (`chinese::ALMANAC_CORRECTIONS`), and the solar-term days behind
 5 leap months that it placed a lunation away (`chinese::ALMANAC_TERM_CORRECTIONS`),
 each naming its source — the Veritable Records' first day of the month, Liu Yuk
 Tung's reconstruction, KASI's data, or for 1906 the Purple Mountain
-Observatory's table. Korea kept that almanac, so `dangi` is the Chinese calendar
-until 1912. The lower
+Observatory's table. `chinese::almanac_solar_term_days` gives the almanac's
+twenty-four term days of 1645–1733 as Liu tabulates the bureau's Tychonic
+terms, 1667–1669 refused; 88 of their major terms fall a day from the rules
+and, applied, move no month but the five already carried. Korea kept that
+almanac, so `dangi` is the Chinese calendar until 1912; KASI's own reading,
+which leaves it in four months of 1653 and 1841, is
+`dangi::KASI_PARAMETERS` (`dangi-kasi`), from 1653, and matches every one of
+the 321 days of 1653–1911 queried from KASI. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
 could differ, and the crate refuses those years rather than answering wrongly.
 Joseon adopted the same rules in 1653, and when the Vietnamese court did is
 not established here, so dates in that gap are what the rules give, not what
 was proclaimed in Hanseong or Huế.
+
+Beside the calendars, `chinese` counts ages four ways, each its own
+convention: `reckoned_age` at 正月初一 (`chinese-age`), `reckoned_age_at_lichun`
+at 立春 (`lichun-age`, a local custom a popular account names), and in
+Gregorian years `reckoned_age_at_new_year_day`, one at birth and one more
+each 1 January, the Korean 세는 나이 (`new-year-day-age`), and `year_age`, from
+nothing (`year-age`). `marriage_augury` gives each year's class and
+`MarriageAugury::chinese_names` the Chinese names the sources give two of the
+four, 無春年, 寡婦年 and 盲年 for a year without 立春 and 雙春兼閏月 or 双春年
+for one with two. The Vietnamese zodiac, with the water buffalo and the cat,
+is `Sexagenary::vietnamese_zodiac_animal` in `hc-calendar`.
 
 Japan is the exception, and deliberately so: `japanese_historical` implements
 the pre-1844 Japanese systems *on their own constants* precisely in order to

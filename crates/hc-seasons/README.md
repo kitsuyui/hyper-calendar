@@ -45,7 +45,7 @@ assert_eq!(
 | Module | Covers |
 | --- | --- |
 | `solar_terms` | 二十四節気, both orderings, the 節気 / 中気 split |
-| `pentads` | 七十二候, both the Chinese and the Japanese name sets |
+| `pentads` | 七十二候, four name sets: the Chinese, the Japanese of the 宝暦暦 and the 略本暦, Shibukawa's of the 貞享暦, and the Chinese list as Japan kept it before 1685 |
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
 | `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
 | `meiyu` | 入梅 and 出梅 of the Chinese almanac: the first 丙 day (South China) or 壬 day (Central China) from 芒种, and the first 未 day from 小暑 |
@@ -160,7 +160,9 @@ fixed list could be right everywhere at once.
   name in the Chinese list (traditional characters, from the 逸周書·時訓解
   and, for nine entries, 吳澄's 月令七十二候集解) and the Japanese one (the
   宝暦暦 revision the 略本暦 printed, in shinjitai), which is why shipping
-  one set and calling it "the 72 pentads" is the usual mistake.
+  one set and calling it "the 72 pentads" is the usual mistake. The 貞享暦's
+  set and the one before it, `JOKYO` and `SENMYO`, are the 暦Wiki's other
+  two columns, read on 2026-09-29.
 * **雑節 dates**: the forty-four the 暦要項 prints for 2024–2027, and the
   twenty-four instants among them to the minute; **社日** against the days
   the almanacs printed in 1873–1946, from the Observatory's 暦Wiki. The

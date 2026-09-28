@@ -226,14 +226,25 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   `days_into_term`, and `terms_in_year`, which yields the year's 24 in date
   order from 小寒.
 - **`pentads`**: `Pentad`, the 72 pentads at 5° each, `PentadPosition`
-  (初候, 次候, 末候) and `PentadTradition`, a catalogue of name sets with two
+  (初候, 次候, 末候) and `PentadTradition`, a catalogue of name sets with four
   entries: `CHINESE`, in traditional characters, the 時訓解's reading for
   63 pentads and the 集解's for the nine where the crate's list has always
   followed it — 麥秋至, 腐草為螢, 蟄蟲坏戶, 雀入大水為蛤, 蟄蟲咸俯,
   鶡鴠不鳴, 荔挺出, 鴈北鄉 and 候鴈北, each entry marked with its source
   and the 時訓解's reading beside it — and `JAPANESE`, the 宝暦暦 revision
   the 1874 略本暦 printed, in the shinjitai of the 暦Wiki's 宝暦暦以降
-  column, name for name; each has 72 names and 72 English glosses. The
+  column, name for name; `JOKYO`, Shibukawa's 本朝七十二候 of 1685 as the
+  暦Wiki's 貞享暦 column gives it; and `SENMYO`, the Chinese list as Japan
+  kept it before 1685, the 宣明暦以前 column, with the variants the page puts
+  in parentheses kept as it prints them (桐始華(花), 菊有黄華(花),
+  虎(武)始交, 鴻雁来(北)). `HORYAKU` is `JAPANESE` under the 宝暦暦's name,
+  the 宝暦暦以降 column being the list the 略本暦 printed; its two
+  parenthesised variants, 虹蔵(蟄)不見 and 東風解凍(氷), are read by their
+  main characters as `JAPANESE` writes them. Each has 72 names and 72
+  English glosses; the glosses of the names only `JOKYO` has, such as
+  梅花乃芳 and 霞彩碧空, are this crate's. `JOKYO` shares 48 names with
+  `JAPANESE` and 20 with `SENMYO`
+  (`the_rekiwiki_columns_are_the_senmyo_jokyo_and_horyaku_lists`). The
   `authority` string of each says which text it is. `SHINJITAI` is the 27
   character pairs by which `is_shared_between_traditions` reads a
   traditional name as the Japanese list would write it. `pentad_moment`,
@@ -298,10 +309,9 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   every Japanese calendar before 1844 and every Chinese one before 1645
   printed; a term or pentad date for those years must come from the
   calendar's own system (see [japanese-lunisolar.md](japanese-lunisolar.md)).
-  Regional pentad lists other than the two above — the Korean 칠십이후, the
-  Jōkyō and Hōryaku sets the 暦Wiki tabulates, the variants between
-  almanacs — since none has been carried from a source; the catalogue takes
-  a third entry when one is. The Javanese *pranata mangsa*, whose two
+  Regional pentad lists other than the four above — the Korean 칠십이후 and
+  the variants between almanacs — since no source for them was read; the
+  catalogue takes another entry when one is. The Javanese *pranata mangsa*, whose two
   available tables disagree by a day throughout and neither of which adds
   up, as the roadmap in [calendars.md](../calendars.md) records. Any
   calendar: the Indian solar calendars that count days and years over the

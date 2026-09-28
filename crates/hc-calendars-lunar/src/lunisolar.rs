@@ -69,7 +69,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
-use hc_core::math::{amod, floor, round, sin_deg};
+use hc_core::math::{RAD_TO_DEG, acos, amod, atan2, cos_deg, floor, modulo, round, sin_deg};
 
 /// The number of months in the sexagenary month cycle.
 const SEXAGENARY_MONTH_ANCHOR: i64 = 2;
@@ -413,7 +413,207 @@ pub struct MeanMotionModel {
     /// **It moves about a quarter of all month boundaries**, so a
     /// reconstruction that ignores it is not reconstructing the calendar
     /// that was published.
+    ///
+    /// Under [`MeanMotionModel::seasonal_advance`] this is the limit of the
+    /// half-year from the autumn equinox, and the spring half's limit is
+    /// lowered from it.
     pub advance_limit: Option<f64>,
+    /// The spring half-year's lower 進朔限, or `None` for one limit all year.
+    ///
+    /// Senmyō-reki's rule, as 新唐書 states it (`xintangshu`): the limit is
+    /// three quarters of the day after the autumn equinox, and after the
+    /// spring equinox it is three quarters less a fifth of the difference
+    /// between the day's 昏明小餘 and the equinox day's —
+    /// 「春分後，昏明小餘差春分初日者，五而一，以減四分之三」. See
+    /// [`SeasonalAdvance`].
+    pub seasonal_advance: Option<SeasonalAdvance>,
+    /// Where a solar eclipse would be watched from, for a system that did
+    /// not advance a month whose conjunction was an eclipse seen from its
+    /// first contact, or `None` for one that advanced regardless.
+    ///
+    /// Senmyō-reki's 「或有交，應見虧初，則否」 (`xintangshu`). See
+    /// [`EclipseSite`].
+    pub eclipse_exception: Option<EclipseSite>,
+}
+
+/// A 進朔 limit that is lower between the spring and the autumn equinox.
+///
+/// 新唐書's 宣明曆 (`xintangshu`, 卷030上) gives the rule and the table it
+/// reads. **The rule**: 「凡定朔小餘，秋分後，四分之三已上，進一日。春分後，
+/// 昏明小餘差春分初日者，五而一，以減四分之三。定朔小餘如此數已上者，進一日。」
+/// **The table**: the 夜半定漏 of each 定氣, the water clock's reading from
+/// midnight to dawn, in 刻 and 分 of 刻法 84 — 冬至 二十七刻四十分, 夏至
+/// 十七刻四十四分 — which 「刻法通為分，曰昏明小餘」 makes a number of parts of
+/// the day of 8400; so 冬至's is 27 × 84 + 40 = 2308, 0.2748 of a day.
+///
+/// Two simplifications, both stated: the day's 昏明小餘 is interpolated
+/// linearly between the table's values rather than by the system's own
+/// 屈伸 increments, and the 定氣 are placed at equal twelfths of the
+/// system's year from its solstice — its 恒気 — rather than at the true
+/// terms of its 日躔 table. Near either equinox the adjustment is close to
+/// nothing, so neither choice moves it by more than a few parts of 8400.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct SeasonalAdvance {
+    /// The 昏明小餘 at the first day of each 定氣 from 冬至, as fractions of
+    /// a day: the 夜半定漏 column of the 晷漏 table.
+    pub dawn: &'static [f64; 24],
+    /// What the difference is divided by: 五而一, five.
+    pub divisor: f64,
+}
+
+impl SeasonalAdvance {
+    /// The 昏明小餘 on a day `terms` twenty-fourths of the year after the
+    /// winter solstice, `0 ≤ terms < 24`, interpolated between the table's
+    /// values.
+    #[must_use]
+    pub fn dawn_at(&self, terms: f64) -> f64 {
+        let whole = floor(terms);
+        let index = (whole as usize).min(23);
+        let next = (index + 1) % 24;
+        let part = terms - whole;
+        self.dawn[index] + part * (self.dawn[next] - self.dawn[index])
+    }
+
+    /// The limit on a day `terms` twenty-fourths of the year after the
+    /// winter solstice, given the autumn half's `limit`: `limit` from 秋分
+    /// (term 18) to 春分 (term 6), and after 春分 `limit` less the
+    /// difference between the day's 昏明小餘 and 春分's, over
+    /// [`SeasonalAdvance::divisor`].
+    #[must_use]
+    pub fn limit_at(&self, terms: f64, limit: f64) -> f64 {
+        if !(6.0..18.0).contains(&terms) {
+            return limit;
+        }
+        let difference = self.dawn_at(terms) - self.dawn[6];
+        limit - difference.abs() / self.divisor
+    }
+}
+
+/// The place a system's eclipse exception to 進朔 is judged from.
+///
+/// 新唐書's 宣明曆 holds a late conjunction over to the next day
+/// 「或有交，應見虧初，則否」 (`xintangshu`): unless there is an eclipse whose
+/// first contact would be seen. **What the bureau would have predicted is
+/// not reproduced**: the system's own eclipse arithmetic, its 交 and 蝕限,
+/// is not implemented. This reading takes the eclipse from modern
+/// astronomy (`hc-astro`): the first contact of a partial or greater solar
+/// eclipse at the site, found in steps of a few minutes, with the Sun's
+/// centre above the horizon at that moment, on a spherical Earth with no
+/// refraction. It is a stand-in for the bureau's prediction and is named
+/// as one wherever it is used.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct EclipseSite {
+    /// Latitude in degrees, positive north.
+    pub latitude_degrees: f64,
+    /// Longitude in degrees, positive east.
+    pub longitude_degrees: f64,
+}
+
+impl EclipseSite {
+    /// The greatest geocentric latitude of the Moon, in degrees, at which a
+    /// new moon can make a solar eclipse anywhere on Earth; a little above
+    /// the classical 1°34′, so that it only rules out.
+    const ECLIPTIC_LIMIT_DEGREES: f64 = 1.6;
+
+    /// The step of the coarse search for first contact, in days: ten
+    /// minutes, shorter than any partial phase at a site.
+    const STEP_DAYS: f64 = 10.0 / 1_440.0;
+
+    /// The resolution first contact is refined to by bisection, in days:
+    /// half a minute.
+    const RESOLUTION_DAYS: f64 = 0.5 / 1_440.0;
+
+    /// How far either side of the true new moon the search runs, in days.
+    const HALF_WINDOW_DAYS: f64 = 0.25;
+
+    /// Whether the first contact of a solar eclipse at the new moon nearest
+    /// `universal` happens at this site while the Sun is up.
+    #[must_use]
+    pub fn solar_eclipse_first_contact_seen(&self, universal: Moment) -> bool {
+        self.solar_eclipse_first_contact(universal)
+            .is_some_and(|contact| self.solar_altitude(contact) > 0.0)
+    }
+
+    /// The first contact at this site of a solar eclipse at the new moon
+    /// nearest `universal`, to within half a minute, in
+    /// Universal Time, or `None` when the Moon's disc does not reach the
+    /// Sun's within six hours of that new moon. The Sun may be below the
+    /// horizon at the moment returned.
+    #[must_use]
+    pub fn solar_eclipse_first_contact(&self, universal: Moment) -> Option<Moment> {
+        let new_moon =
+            hc_astro::new_moon_at_or_after(Moment(universal.0 - MEAN_SYNODIC_MONTH / 2.0));
+        if hc_astro::lunar::lunar_latitude(new_moon).abs() > Self::ECLIPTIC_LIMIT_DEGREES {
+            return None;
+        }
+        let steps = (2.0 * Self::HALF_WINDOW_DAYS / Self::STEP_DAYS) as i64;
+        let start = new_moon.0 - Self::HALF_WINDOW_DAYS;
+        let mut overlapping_before = self.discs_overlap(Moment(start));
+        for step in 1..=steps {
+            let moment = start + step as f64 * Self::STEP_DAYS;
+            let overlapping = self.discs_overlap(Moment(moment));
+            if overlapping && !overlapping_before {
+                // Contact lies in the last step: bisect it.
+                let (mut apart, mut touching) = (moment - Self::STEP_DAYS, moment);
+                while touching - apart > Self::RESOLUTION_DAYS {
+                    let middle = 0.5 * (apart + touching);
+                    if self.discs_overlap(Moment(middle)) {
+                        touching = middle;
+                    } else {
+                        apart = middle;
+                    }
+                }
+                return Some(Moment(touching));
+            }
+            overlapping_before = overlapping;
+        }
+        None
+    }
+
+    /// The geometric altitude of the Sun's centre, in degrees.
+    fn solar_altitude(&self, moment: Moment) -> f64 {
+        let sun = hc_astro::solar::solar_position(moment);
+        let hour_angle = hc_astro::earth::local_hour_angle(sun, moment, self.longitude_degrees);
+        hc_astro::earth::altitude_degrees(sun, hour_angle, self.latitude_degrees)
+    }
+
+    /// Whether the Moon's disc, as seen from the site, overlaps the Sun's.
+    ///
+    /// The Moon is moved to the site by its parallax in hour angle and
+    /// declination on a spherical Earth (Meeus, *Astronomical Algorithms*,
+    /// ch. 40, with the height and the flattening left out); the Sun's
+    /// parallax, under nine seconds of arc, is left out, and its
+    /// semidiameter is 959.63″ at one astronomical unit.
+    fn discs_overlap(&self, moment: Moment) -> bool {
+        let sun = hc_astro::solar::solar_position(moment);
+        let moon = hc_astro::lunar::lunar_position(moment);
+        let parallax = hc_astro::lunar::lunar_parallax(moment);
+        let sine_parallax = sin_deg(parallax);
+        let latitude = self.latitude_degrees;
+        let moon_hour_angle =
+            hc_astro::earth::local_hour_angle(moon, moment, self.longitude_degrees);
+        let sun_hour_angle = hc_astro::earth::local_hour_angle(sun, moment, self.longitude_degrees);
+        let declination = moon.declination_degrees;
+        let denominator =
+            cos_deg(declination) - cos_deg(latitude) * sine_parallax * cos_deg(moon_hour_angle);
+        let shift = atan2(
+            -cos_deg(latitude) * sine_parallax * sin_deg(moon_hour_angle),
+            denominator,
+        ) * RAD_TO_DEG;
+        let topocentric_declination = atan2(
+            (sin_deg(declination) - sin_deg(latitude) * sine_parallax) * cos_deg(shift),
+            denominator,
+        ) * RAD_TO_DEG;
+        let topocentric_hour_angle = moon_hour_angle - shift;
+        let cosine = sin_deg(topocentric_declination) * sin_deg(sun.declination_degrees)
+            + cos_deg(topocentric_declination)
+                * cos_deg(sun.declination_degrees)
+                * cos_deg(topocentric_hour_angle - sun_hour_angle);
+        let separation = acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG;
+        let sun_semidiameter = 959.63 / 3_600.0 / hc_astro::solar::solar_radius_vector(moment);
+        let moon_semidiameter = 0.2725 * parallax;
+        separation < sun_semidiameter + moon_semidiameter
+    }
 }
 
 impl MeanMotionModel {
@@ -478,13 +678,29 @@ impl MeanMotionModel {
     /// Separated from [`MeanMotionModel::conjunction`] because a calendar
     /// whose [`ConjunctionMode`] is [`Apparent`](ConjunctionMode::Apparent)
     /// gets its moment elsewhere and still holds it over by the same rule.
+    /// The eclipse exception needs the calendar's meridian and is applied
+    /// by [`LunisolarParameters::conjunction_day`]; this is the rule
+    /// without it.
     #[must_use]
     pub fn day_of_conjunction(&self, local_moment: f64) -> Rd {
         let day = floor(local_moment);
         let held_over = self
-            .advance_limit
+            .advance_limit_on(day)
             .is_some_and(|limit| local_moment - day >= limit);
         Rd(day as i64 + i64::from(held_over))
+    }
+
+    /// The 進朔限 in force on the local day beginning at `day`, a whole
+    /// fixed day as a float, or `None` for a system that did not advance.
+    #[must_use]
+    pub fn advance_limit_on(&self, day: f64) -> Option<f64> {
+        let limit = self.advance_limit?;
+        let Some(seasonal) = &self.seasonal_advance else {
+            return Some(limit);
+        };
+        let terms =
+            24.0 * modulo(day - self.solstice_epoch, self.tropical_year) / self.tropical_year;
+        Some(seasonal.limit_at(terms, limit))
     }
 
     /// A conjunction index within one month of `rd`, from which the search
@@ -771,9 +987,26 @@ impl LunisolarParameters {
     }
 
     /// The first day of the month whose conjunction is numbered `index`.
+    ///
+    /// The model's 進朔, and its eclipse exception where it has one: a
+    /// conjunction the rule would hold over begins its month on its own day
+    /// when [`EclipseSite::solar_eclipse_first_contact_seen`] says so.
     #[must_use]
     pub fn conjunction_day(&self, model: &MeanMotionModel, index: i64) -> Rd {
-        model.day_of_conjunction(self.conjunction_moment(model, index))
+        let local = self.conjunction_moment(model, index);
+        let day = model.day_of_conjunction(local);
+        let own_day = Rd(floor(local) as i64);
+        match &model.eclipse_exception {
+            Some(site)
+                if day > own_day
+                    && site.solar_eclipse_first_contact_seen(
+                        self.universal_from_local(Moment(local)),
+                    ) =>
+            {
+                own_day
+            }
+            _ => day,
+        }
     }
 
     /// Which of the twelve major solar terms, numbered 1 to 12, the Sun had
@@ -1703,6 +1936,8 @@ mod tests {
         solar_equation_days: 0.2,
         lunar_equation_days: 0.4,
         advance_limit: None,
+        seasonal_advance: None,
+        eclipse_exception: None,
     };
 
     #[test]
@@ -1761,6 +1996,63 @@ mod tests {
         let bound = TOY.solar_equation_days + TOY.lunar_equation_days;
         assert!(largest <= bound, "{largest} exceeded {bound}");
         assert!(largest > bound * 0.8, "{largest} never approached {bound}");
+    }
+
+    #[test]
+    fn the_eclipse_site_finds_kyotos_first_contact_of_the_annular_eclipse_of_2012() {
+        // The National Astronomical Observatory of Japan gives the annular
+        // eclipse of 21 May 2012 as beginning at Kyoto at 6時17分41秒 JST,
+        // 21:17:41 UT on the 20th (`naoj-eclipse-2012`).
+        let kyoto = EclipseSite {
+            latitude_degrees: 35.0 + 36.0 / 3_600.0,
+            longitude_degrees: 135.0 + 46.0 / 60.0,
+        };
+        let published = gregorian::to_fixed_saturating(2012, 5, 20).0 as f64
+            + (21.0 + 17.0 / 60.0 + 41.0 / 3_600.0) / 24.0;
+        let contact = kyoto
+            .solar_eclipse_first_contact(Moment(published))
+            .expect("an eclipse");
+        let minutes = (contact.0 - published) * 1_440.0;
+        assert!(
+            minutes.abs() < 4.0,
+            "{minutes} minutes from the published time"
+        );
+        assert!(kyoto.solar_eclipse_first_contact_seen(Moment(published)));
+        // The next new moon, 19 June 2012, makes no eclipse.
+        let june = gregorian::to_fixed_saturating(2012, 6, 19).0 as f64;
+        assert_eq!(kyoto.solar_eclipse_first_contact(Moment(june)), None);
+        assert!(!kyoto.solar_eclipse_first_contact_seen(Moment(june)));
+    }
+
+    #[test]
+    fn the_seasonal_advance_lowers_the_limit_only_between_the_equinoxes() {
+        // 夜半定漏 read as 昏明小餘: 春分 1890 of 8400, 夏至 1472.
+        static DAWN: [f64; 24] = {
+            let mut table = [1_890.0 / 8_400.0; 24];
+            table[12] = 1_472.0 / 8_400.0;
+            table
+        };
+        let seasonal = SeasonalAdvance {
+            dawn: &DAWN,
+            divisor: 5.0,
+        };
+        // From 秋分 to 春分 the limit is the autumn one.
+        for terms in [0.0, 3.0, 5.99, 18.0, 23.9] {
+            assert!(
+                (seasonal.limit_at(terms, 0.75) - 0.75).abs() < 1e-12,
+                "{terms}"
+            );
+        }
+        // At 春分 the difference is nothing yet; at 夏至 it is 418 parts,
+        // and a fifth of that comes off: 0.75 − 83.6 / 8400.
+        assert!((seasonal.limit_at(6.0, 0.75) - 0.75).abs() < 1e-12);
+        let solstice = seasonal.limit_at(12.0, 0.75);
+        assert!(
+            (solstice - (0.75 - 83.6 / 8_400.0)).abs() < 1e-12,
+            "{solstice}"
+        );
+        // Half-way between two entries the table is interpolated.
+        assert!((seasonal.dawn_at(11.5) - (1_890.0 + 1_472.0) / 2.0 / 8_400.0).abs() < 1e-12);
     }
 
     #[test]

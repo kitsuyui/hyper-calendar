@@ -1,6 +1,7 @@
 # The Chinese and Korean regnal eras
 
-Backs the identifiers `chinese-regnal` and `korean-regnal` in
+Backs the identifiers `chinese-regnal`, `chinese-regnal-qing-court`,
+`korean-regnal`, `korean-regnal-backdated`, `hongxian` and `manchukuo` in
 `hc-calendars-regional`, and the Ming and Qing era table `chinese_regnal::ALL`.
 
 ## What it is
@@ -32,7 +33,24 @@ what make the table more than a list:
   [zhwiki-hongguang].
 
 The Qing ended with the abdication on 宣統3年12月25日, 12 February 1912
-[wikipedia-ja-xuantong].
+[wikipedia-ja-xuantong]. Not inside the Forbidden City: under the Articles
+of Favourable Treatment the former emperor kept his title and the court its
+residence, and the court went on dating by 宣統 to 1924-11-05, 宣統十六年
+十月初九, when 馮玉祥 annulled the Articles and expelled it; in 1917 張勳
+restored 溥儀 from 1 July, 宣統九年五月十三, to 12 July, 五月廿四, when
+段祺瑞's army entered Beijing [wikipedia-zh-xuantong, wikipedia-ja-xuantong].
+
+Two regimes after the Qing named their years by an era on the Gregorian
+calendar. Yuan Shikai's order of 31 December 1915 made the next year
+洪憲元年, and his order of 23 March 1916 abolished the era and made the year
+民國五年 again, as the 新聞報 printed them [wikipedia-zh-hongxian]; the
+Japanese article runs the era to 22 March [wikipedia-ja-hongxian].
+Manchukuo took 大同 at its founding on 1 March 1932 and 康德 on
+大同3年3月1日, 1 March 1934, when 溥儀 was enthroned
+[wikipedia-ja-datong-manchukuo, wikipedia-zh-datong-manchukuo,
+wikipedia-ja-kangde]; the state ended with his abdication, which the
+Chinese article dates to 17 August 1945 and the Japanese one to the 18th
+[wikipedia-zh-kangde, wikipedia-ja-kangde].
 
 Korea dated by the Chinese eras on the lunisolar calendar until the end of
 the nineteenth century, and in 1894–1895 by 開國, the count from the founding
@@ -41,7 +59,9 @@ Gregorian calendar and an era of its own, 建陽 [kowiki-geonyang]. Two
 followed. 光武 was chosen over 慶德 on 14 August 1897; a decree of the 15th
 made "this year" 光武元年 and set the proclamation for the 16th, when it was
 announced at the altars [sillok-gojong]; the Korean Empire was proclaimed
-that October. 隆熙 was chosen over 太始 on 2 August 1907, after the
+that October. The decree's 「以是年爲光武元年」 backdates the era over the
+whole of 1897, while the annals head their entry of 1 January 1897 建陽 2년;
+both readings are carried. 隆熙 was chosen over 太始 on 2 August 1907, after the
 abdication of Gojong [sillok-sunjong], and ended with the annexation on
 29 August 1910 [wikipedia-en-korean-era-name]. Secondary accounts put the
 first use of 光武 on the 16th [encykorea-gwangmu] or the 17th
@@ -71,8 +91,27 @@ the Qing.
 
 **Korean.** The three eras are on the Gregorian calendar, so an era is its
 first day, and the era of a day is the last era begun on or before it. Its
-year 1 is the Gregorian year it began in, and the change is not backdated:
-13 August 1897 is 建陽2年8月13日 and 14 August is 光武元年8月14日.
+year 1 is the Gregorian year it began in. In `korean-regnal` the change is
+not backdated: 13 August 1897 is 建陽2年8月13日 and 14 August is
+光武元年8月14日. In `korean-regnal-backdated` 光武's first day is 1 January
+1897, as its decree made the year its first, so 13 August 1897 is
+光武元年8月13日 and 建陽 is 1896 alone; the readings part on the 225 days
+from 1 January to 13 August 1897. 隆熙 keeps its day of choice in both,
+2 August 1907: the annals' entries for it carry no such clause, and the
+entry of the 3rd is headed 隆熙 元年八月三日 [sillok-sunjong].
+
+**The Qing court.** `chinese-regnal-qing-court` is `chinese-regnal` with
+宣統 running on over `chinese` to 1924-11-05: the day after the abdication
+is 宣統3年12月26日, the New Year of 1912 begins 宣統4年, and 1 July 1917 is
+宣統9年5月13日, as the Chinese article gives it. The court's own almanacs
+were not read; the months after 1912 are `chinese`'s, the calendar at
+Beijing's meridian as the Republic's almanacs kept it.
+
+**洪憲 and Manchukuo.** As the Korean eras: `hongxian` is 洪憲元年 from
+1 January to 22 March 1916, the last day both sources give, and refuses the
+23rd they dispute; `manchukuo` is 大同 from 1 March 1932 and 康德 from
+1 March 1934, so 28 February 1934 is 大同3年2月28日 and the next day
+康德元年3月1日, to 17 August 1945, refusing the disputed 18th.
 
 ## What is carried
 
@@ -87,13 +126,24 @@ year 1 is the Gregorian year it began in, and the change is not backdated:
 - **`korean-regnal`** — 建陽, 光武 and 隆熙 on the Gregorian days from
   1 January 1896 to 29 August 1910, each from the day it was chosen;
   `gaeguk_year` gives the 開國 count for any year.
+- **`korean-regnal-backdated`** — the same eras with 光武 from 1 January
+  1897, 「以是年爲光武元年」 [sillok-gojong].
+- **`chinese-regnal-qing-court`** — the Qing eras with 宣統 kept by the court
+  to 1924-11-05, 宣統十六年十月初九 [wikipedia-zh-xuantong]; the twelve days
+  of the 1917 restoration are `chinese_regnal::RESTORATION_1917`, which the
+  calendar dates 宣統9年5月13日 to 5月24日.
+- **`hongxian`** — 洪憲元年, 1 January to 22 March 1916
+  [wikipedia-zh-hongxian, wikipedia-ja-hongxian].
+- **`manchukuo`** — 大同 from 1 March 1932 and 康德 from 1 March 1934 to
+  17 August 1945 [wikipedia-ja-datong-manchukuo,
+  wikipedia-zh-datong-manchukuo, wikipedia-ja-kangde, wikipedia-zh-kangde].
 - **Not carried.** The eras before the Ming, with their mid-year changes
-  and concurrent regimes; 宣統 kept inside the Forbidden City after 1912 and
-  its twelve days of 1917; 洪憲 of 1916 and Manchukuo's 大同 and 康德, which
-  ran on the Gregorian calendar and belong to no dynasty here; the
-  backdated reading of 光武, under which all of 1897 is 光武元年; the
-  Republic of Korea's Dangi count, which is a naming of the Gregorian year
-  and is described with `dangi` in [east-asian-lunisolar.md](east-asian-lunisolar.md).
+  and concurrent regimes, which wait on a table that dates them; the last
+  days the sources dispute, 23 March 1916 and 18 August 1945, which are
+  refused rather than chosen; 隆熙 backdated, which no source read states;
+  and the Republic of Korea's Dangi count, which is a naming of the
+  Gregorian year and is described with `dangi` in
+  [east-asian-lunisolar.md](east-asian-lunisolar.md).
 
 ## Accuracy
 
@@ -107,7 +157,13 @@ The era boundaries are asserted: the backdated years of 1368, 1402, 1457,
 1620, 1636, 1644, 1645, 1683, 1795, 1861 and 1899, the abdication day, and a
 round trip of every day of the Qing range in a release build (every 19th, with
 each lunar New Year and the day before, in a debug one). The Korean eras'
-boundaries are asserted on both sides of each change.
+boundaries are asserted on both sides of each change, in both readings. The
+court's 宣統 is anchored to the three lunisolar dates the Chinese article
+gives, 宣統九年五月十三, 五月廿四 and 宣統十六年十月初九, all of which
+`chinese` reproduces, and round-trips from the abdication to the expulsion.
+洪憲, 大同 and 康德 are asserted at their first and last days, the change of
+1934, 大同元年9月15日 and 康德7年6月26日, which both articles date, and every
+third day round-trips.
 
 The era years come from secondary sources. The dynastic records and the
 standard modern table, 方詩銘『中國歷史紀年表』, were not read, and would
@@ -121,14 +177,18 @@ module carries.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [wikipedia-ja-chinese-era-list] | The years of every Ming and Qing era and the months of the mid-year changes | Yes, 2026-09-22 |
-| [wikipedia-ja-xuantong] | 宣統3年12月25日 as 12 February 1912 and 11月13日 as 1 January 1912 | Yes, 2026-09-22 |
+| [wikipedia-ja-xuantong] | 宣統3年12月25日 as 12 February 1912 and 11月13日 as 1 January 1912; the era kept inside the Forbidden City and made unlawful in 1924 | Yes, 2026-09-22; re-read 2026-09-29 |
+| [wikipedia-zh-xuantong] | The court's 宣統 to 1924-11-05, 宣統十六年十月初九; the restoration of 1917-07-01 to 07-12, 宣統九年五月十三 to 五月廿四 | Yes, 2026-09-29 |
+| [wikipedia-zh-hongxian], [wikipedia-ja-hongxian] | 洪憲 from 1 January 1916; the orders of 31 December 1915 and 23 March 1916; 22 March as its last day in the Japanese article | Yes, 2026-09-29 |
+| [wikipedia-ja-datong-manchukuo], [wikipedia-zh-datong-manchukuo] | 大同 from 1 March 1932 by 政府佈告 二, to 28 February 1934; 大同元年9月15日 | Yes, 2026-09-29 |
+| [wikipedia-ja-kangde], [wikipedia-zh-kangde] | 康德 from 1 March 1934; the abdication on 17 or 18 August 1945; 7年6月26日 | Yes, 2026-09-29 |
 | [wikipedia-en-chinese-era-names] | The characters and pinyin | Yes, 2026-09-22 |
 | [zhwiki-hongguang] | 弘光 fixed in the fifth month of 1644 for 1645, and 隆武 from the seventh month of 1645 | Yes, 2026-09-26 |
 | [zhwiki-chongde] | 崇德 from 天聰10年4月11日, 15 May 1636 | Yes, 2026-09-26 |
 | [zhwiki-baoqing] | 保慶 as a rumoured era, never proclaimed | Yes, 2026-09-26 |
 | [kowiki-geonyang] | 建陽 from 1 January 1896 with the Gregorian calendar | Yes, 2026-09-26 |
 | [sillok-gojong] | 光武 chosen on 고종 34년 8월 14일, the decree of the 15th, the proclamation of the 16th; the entry of 1 January 1897 headed 建陽 2년 | Yes, 2026-09-26 |
-| [sillok-sunjong] | 隆熙 chosen on 순종 즉위년 8월 2일 | Yes, 2026-09-26 |
+| [sillok-sunjong] | 隆熙 chosen on 순종 즉위년 8월 2일; the entry of the 3rd headed 隆熙 元年八月三日 | Yes, 2026-09-26; the entry of the 3rd 2026-09-29 |
 | [encykorea-gwangmu] | 光武 in use from 16 August 1897 | Yes, 2026-09-26 |
 | [kowiki-gwangmu], [kowiki-yunghui] | 光武 in use from 17 August 1897; 隆熙 from 3 August 1907 | Yes, 2026-09-26 |
 | [wikipedia-ja-gaeguk] | 開國 counted from 1392 | Yes, 2026-09-22 |
@@ -137,9 +197,17 @@ module carries.
 ## Code
 
 `crates/hc-calendars-regional/src/chinese_regnal.rs` (`ChineseEra`,
-`Dynasty`, `ALL`, `era_of_year`, `ChineseRegnalCalendar`) and
-`korean_regnal.rs` (`KoreanEra`, `ALL`, `era_at`, `gaeguk_year`,
-`KoreanRegnalCalendar`). Anchors:
+`Dynasty`, `ALL`, `era_of_year`, `ChineseRegnalCalendar`,
+`QingCourtCalendar`, `court_from_fixed`, `court_to_fixed`, `COURT_LATEST`,
+`RESTORATION_1917`), `korean_regnal.rs` (`KoreanEra`, `ALL`, `Reading`,
+`era_at`, `era_under`, `gaeguk_year`, `KoreanRegnalCalendar`,
+`KoreanRegnalBackdatedCalendar`) and `gregorian_eras.rs` (`GregorianEra`,
+`GregorianEraSystem`, `HONGXIAN`, `MANCHUKUO`, `GregorianEraCalendar`).
+Anchors: `the_court_kept_xuantong_to_the_sixteenth_year`,
+`the_backdated_reading_makes_all_of_1897_gwangmu_one`,
+`hongxian_ran_from_new_year_to_the_twenty_second_of_march_1916`,
+`manchukuo_changed_from_datong_to_kangde_on_the_first_of_march_1934`,
+`every_day_round_trips_through_both_calendars_and_their_fields`,
 `the_backdated_reading_gives_shared_years_to_the_later_era`,
 `every_day_of_the_qing_round_trips`,
 `the_three_eras_begin_on_the_days_carried`,

@@ -43,8 +43,9 @@
 //! almanac on the 18th; and the twelfth month of 1841, which KASI begins on
 //! 12 January 1842, the rules' day, and the Qing almanac on the 11th.
 //! Nothing read says what Hanseong printed in those months, so this
-//! calendar stays the Qing one; `docs/systems/east-asian-lunisolar.md` has
-//! the measurement.
+//! calendar stays the Qing one; KASI's reading is the parameter set
+//! [`KASI_PARAMETERS`], `dangi-kasi`, which follows it in all four, and
+//! `docs/systems/east-asian-lunisolar.md` has the measurement.
 //!
 //! # Year numbering
 //!
@@ -69,9 +70,10 @@
 use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
+use crate::chinese::{ALMANAC_CORRECTIONS, ALMANAC_TERM_CORRECTIONS};
 use crate::lunisolar::{
-    CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
-    SolarTermMode,
+    CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MajorTermCorrection,
+    MeridianEra, MonthStartCorrection, SolarTermMode,
 };
 
 /// The machine identifier CLDR uses for this calendar.
@@ -132,8 +134,8 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
     solar_term_mode: SolarTermMode::Apparent,
     // Keyed by the days the rules give at Beijing, which is the meridian
     // this calendar reads in the years they cover: 1906 is the last.
-    month_start_corrections: &crate::chinese::ALMANAC_CORRECTIONS,
-    major_term_corrections: &crate::chinese::ALMANAC_TERM_CORRECTIONS,
+    month_start_corrections: &ALMANAC_CORRECTIONS,
+    major_term_corrections: &ALMANAC_TERM_CORRECTIONS,
     mean_motion: None,
     earliest: Some(EARLIEST),
     latest: Some(LATEST),
@@ -141,6 +143,116 @@ pub static PARAMETERS: LunisolarParameters = LunisolarParameters {
 
 /// The engine configured as the Korean calendar.
 pub const ENGINE: LunisolarCalendar = LunisolarCalendar::new(&PARAMETERS);
+
+/// The identifier of the Korean calendar as KASI publishes it before 1912.
+pub const ID_KASI: CalendarId = CalendarId("dangi-kasi");
+
+/// The first days of the Korean calendar as KASI publishes it: the Qing
+/// almanac's, [`crate::chinese::ALMANAC_CORRECTIONS`], less the three it
+/// does not follow and with one of its own.
+///
+/// - **Not followed**: 八月 of 1653 and 十二月 of 1841, which KASI begins
+///   on the rules' days, 21 September 1653 and 12 January 1842, where the
+///   Veritable Records have the day after and the day before
+///   (`kasi-lunisolar-conversion`, `qing-shilu`). 九月 of 1652, which KASI
+///   also begins on the rules' day, is before [`KASI_EARLIEST`].
+/// - **Its own**: 十二月 of 1653, which KASI begins on 19 January 1654,
+///   the day of the conjunction at Seoul, where the rules at Beijing and
+///   the Records have the 18th.
+pub static KASI_CORRECTIONS: [MonthStartCorrection; 27] = [
+    MonthStartCorrection::new(
+        gregorian::to_fixed_saturating(1654, 1, 18),
+        gregorian::to_fixed_saturating(1654, 1, 19),
+        "KASI's conversion data, 12월 1일 on 1654-01-19 and 11월 30일 on 1654-01-18 \
+        [kasi-lunisolar-conversion]",
+    ),
+    ALMANAC_CORRECTIONS[2],
+    ALMANAC_CORRECTIONS[3],
+    ALMANAC_CORRECTIONS[4],
+    ALMANAC_CORRECTIONS[5],
+    ALMANAC_CORRECTIONS[6],
+    ALMANAC_CORRECTIONS[7],
+    ALMANAC_CORRECTIONS[8],
+    ALMANAC_CORRECTIONS[9],
+    ALMANAC_CORRECTIONS[10],
+    ALMANAC_CORRECTIONS[11],
+    ALMANAC_CORRECTIONS[12],
+    ALMANAC_CORRECTIONS[13],
+    ALMANAC_CORRECTIONS[14],
+    ALMANAC_CORRECTIONS[15],
+    ALMANAC_CORRECTIONS[16],
+    ALMANAC_CORRECTIONS[17],
+    ALMANAC_CORRECTIONS[18],
+    ALMANAC_CORRECTIONS[19],
+    ALMANAC_CORRECTIONS[21],
+    ALMANAC_CORRECTIONS[22],
+    ALMANAC_CORRECTIONS[23],
+    ALMANAC_CORRECTIONS[24],
+    ALMANAC_CORRECTIONS[25],
+    ALMANAC_CORRECTIONS[26],
+    ALMANAC_CORRECTIONS[27],
+    ALMANAC_CORRECTIONS[28],
+];
+
+/// The term days of the Korean calendar as KASI publishes it: the Qing
+/// almanac's five, [`crate::chinese::ALMANAC_TERM_CORRECTIONS`], and one
+/// inferred from KASI's leap month of 1653.
+///
+/// KASI has 七月 from 24 July 1653, 閏七月 from 23 August and 八月 from
+/// 21 September (`kasi-lunisolar-conversion`), where the rules and the
+/// Veritable Records have 閏六月 from 24 July (`qing-shilu`). The rules put
+/// 處暑 at 05:43 Beijing mean time on 23 August, the first day of the
+/// month after; KASI's months follow only if its 處暑 fell on the 22nd,
+/// in the month from 24 July. KASI gives no term days, so the 22nd is
+/// inferred from its months, as the entry says.
+pub static KASI_TERM_CORRECTIONS: [MajorTermCorrection; 6] = [
+    ALMANAC_TERM_CORRECTIONS[0],
+    ALMANAC_TERM_CORRECTIONS[1],
+    MajorTermCorrection::new(
+        7,
+        gregorian::to_fixed_saturating(1653, 8, 23),
+        gregorian::to_fixed_saturating(1653, 8, 22),
+        "處暑 on 22 August 1653 inferred from KASI's 閏七月 from 23 August and 七月 from 24 July \
+        [kasi-lunisolar-conversion]; no record of the term day read",
+    ),
+    ALMANAC_TERM_CORRECTIONS[2],
+    ALMANAC_TERM_CORRECTIONS[3],
+    ALMANAC_TERM_CORRECTIONS[4],
+];
+
+/// The Korean calendar as the Korea Astronomy and Space Science Institute
+/// publishes it (`kasi-lunisolar-conversion`), a reading of its own
+/// before 1912 and the same as [`PARAMETERS`] from then.
+///
+/// `dangi` is the Qing almanac before 1912 throughout, because KASI's data
+/// follow it in every month but four, and nothing read says what Hanseong
+/// printed in those four; this reading follows KASI in them too. It is not
+/// registered: KASI's data are a modern reconstruction, and its departures
+/// are carried for a caller who wants to reproduce them, as
+/// [`KASI_CORRECTIONS`] and [`KASI_TERM_CORRECTIONS`] list.
+///
+/// It begins with 1653, the first year Joseon kept the Shíxiàn rules
+/// ([`KASI_EARLIEST`]). Before it KASI's data are Korea's older calendar,
+/// which no parameter set here computes: KASI has 1651's new year on
+/// 20 February and no 閏二月, where the Shíxiàn rules have 閏二月 from
+/// 21 March.
+pub static KASI_PARAMETERS: LunisolarParameters = LunisolarParameters {
+    id: ID_KASI,
+    english_name: "Dangi (Korean lunisolar, as KASI publishes it)",
+    month_start_corrections: &KASI_CORRECTIONS,
+    major_term_corrections: &KASI_TERM_CORRECTIONS,
+    earliest: Some(KASI_EARLIEST),
+    ..PARAMETERS
+};
+
+/// The first day of [`KASI_PARAMETERS`]: 29 January 1653, the first day of
+/// the first year Joseon kept the Shíxiàn rules, 효종 4년
+/// (`wikipedia-ko-siheollyeok`), as the rules and the Veritable Records
+/// (`qing-shilu`, 順治十年正月) give it.
+pub const KASI_EARLIEST: Rd = gregorian::to_fixed_saturating(1653, 1, 29);
+
+/// The engine configured with [`KASI_PARAMETERS`].
+pub const KASI_ENGINE: LunisolarCalendar = LunisolarCalendar::new(&KASI_PARAMETERS);
 
 /// A Korean lunisolar date. See [`crate::chinese::ChineseDate`] for why the
 /// representation is shared.
@@ -211,6 +323,80 @@ mod tests {
 
     use super::*;
     use crate::chinese::{self, ChineseCalendar};
+
+    /// KASI's conversion data (`kasi-lunisolar-conversion`) on both sides of
+    /// each of its departures from the Qing almanac, as queried on
+    /// 2026-09-27: Gregorian day, then Dangi year, month, leap and day.
+    /// A Gregorian day and the Dangi date KASI gives it.
+    type KasiDay = ((i64, u8, u8), (i64, u8, bool, u8));
+
+    const KASI_DAYS: [KasiDay; 12] = [
+        ((1653, 7, 24), (3_986, 7, false, 1)),
+        ((1653, 8, 22), (3_986, 7, false, 30)),
+        ((1653, 8, 23), (3_986, 7, true, 1)),
+        ((1653, 9, 21), (3_986, 8, false, 1)),
+        ((1653, 9, 22), (3_986, 8, false, 2)),
+        ((1653, 10, 20), (3_986, 8, false, 30)),
+        ((1653, 10, 21), (3_986, 9, false, 1)),
+        ((1654, 1, 18), (3_986, 11, false, 30)),
+        ((1654, 1, 19), (3_986, 12, false, 1)),
+        ((1842, 1, 11), (4_174, 11, false, 30)),
+        ((1842, 1, 12), (4_174, 12, false, 1)),
+        ((1906, 4, 24), (4_239, 4, false, 1)),
+    ];
+
+    #[test]
+    fn the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not() {
+        let mut differs_from_dangi = 0;
+        for ((year, month, day), (dangi_year, ordinal, leap, dangi_day)) in KASI_DAYS {
+            let rd = gregorian::to_fixed_saturating(year, month, day);
+            let month = if leap {
+                Month::leap(ordinal)
+            } else {
+                Month::regular(ordinal)
+            };
+            let kasi = LunisolarDate::new(dangi_year, month, dangi_day);
+            assert_eq!(
+                KASI_ENGINE.from_fixed(rd),
+                Ok(kasi),
+                "{year}-{month:?}-{day}"
+            );
+            assert_eq!(KASI_ENGINE.to_fixed(kasi), Ok(rd));
+            if ENGINE.from_fixed(rd) != Ok(kasi) {
+                differs_from_dangi += 1;
+            }
+        }
+        // Every one of those days differs from `dangi`, the Qing almanac,
+        // but 九月初一 of 1653, where the two meet again, and 1906's.
+        assert_eq!(differs_from_dangi, KASI_DAYS.len() - 2);
+        // From 1912 the two readings are one calendar.
+        for year in [1912, 1954, 1988, 2024] {
+            let chinese_year = year + 2_637 + YEAR_OFFSET;
+            assert_eq!(
+                KASI_PARAMETERS.new_year(chinese_year),
+                PARAMETERS.new_year(chinese_year)
+            );
+        }
+        assert_eq!(
+            KASI_ENGINE.from_fixed(Rd(KASI_EARLIEST.0 - 1)),
+            Err(CalendarError::BeforeEpoch)
+        );
+        assert_eq!(
+            KASI_ENGINE.from_fixed(KASI_EARLIEST),
+            Ok(LunisolarDate::new(3_986, Month::regular(1), 1))
+        );
+        // The tables stay sorted by the rules' day, as the engine needs.
+        assert!(
+            KASI_CORRECTIONS
+                .windows(2)
+                .all(|pair| pair[0].computed < pair[1].computed)
+        );
+        assert!(
+            KASI_TERM_CORRECTIONS
+                .windows(2)
+                .all(|pair| pair[0].computed < pair[1].computed)
+        );
+    }
 
     #[test]
     fn seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357() {

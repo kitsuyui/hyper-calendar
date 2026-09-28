@@ -60,7 +60,9 @@
 //!
 //! From 大正 the era table uses the 公式 boundary dates, under which an era
 //! ends the day before the next begins. See
-//! [`crate::nengo::Nengo::start`].
+//! [`crate::nengo::Nengo::start`]. The 改元当時 reading, under which the
+//! changeover days of 1912 and 1926 belong to both eras, is its own
+//! calendar, [`JapaneseCalendar::KAIGEN_TOJI`].
 //!
 //! # The system document
 //!
@@ -112,6 +114,27 @@ pub const ID_NORTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-northern-pro
 
 /// The identifier of the Southern Court stream read as proclaimed.
 pub const ID_SOUTHERN_PROCLAIMED: CalendarId = CalendarId("japanese-southern-proclaimed");
+
+/// The identifier of the unified stream read as proclaimed, with the
+/// 改元当時 changeover days: [`JapaneseCalendar::KAIGEN_TOJI`].
+pub const ID_KAIGEN_TOJI: CalendarId = CalendarId("japanese-kaigen-toji");
+
+/// The eras whose last day under the 改元当時 reading is the first day of
+/// the next, each with that day: 明治 to 明治45年7月30日 and 大正 to
+/// 大正15年12月25日.
+///
+/// 元号一覧 (日本) sets the 公式 dates beside the 改元当時 ones for the eras
+/// from 明治 (`wikipedia-ja-gengo-list`): 明治's last day 公式 7月29日 and
+/// 改元当時 7月30日, since the 詔書 issued on the day of the emperor's death
+/// renamed that day — 「同日は、「明治45年」であったが、「大正元年」に改めら
+/// れた」 — and 大正's likewise 12月24日 and 12月25日. From 昭和 the two
+/// readings agree: 昭和 ends on 1989-01-07 and 平成 begins on the 8th in
+/// both, and 平成 ends on 2019-04-30 in both.
+pub const KAIGEN_TOJI_LAST_DAYS: [(&str, Rd); 2] = [
+    // 1912-07-30 and 1926-12-25.
+    ("meiji", Rd(698_189)),
+    ("taisho", Rd(703_450)),
+];
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "元号一覧 (日本) [wikipedia-ja-gengo-list]: eras since 大化 (645), continuously since 大宝 (701), \
@@ -283,6 +306,10 @@ pub enum EraReckoning {
 pub struct JapaneseCalendar {
     court: Court,
     reckoning: EraReckoning,
+    /// Whether the changeover days of [`KAIGEN_TOJI_LAST_DAYS`] belong to
+    /// the era ending as well as to the one beginning; only
+    /// [`JapaneseCalendar::KAIGEN_TOJI`] sets it.
+    shares_changeover_days: bool,
 }
 
 impl JapaneseCalendar {
@@ -290,18 +317,21 @@ impl JapaneseCalendar {
     pub const UNIFIED: Self = Self {
         court: Court::Unified,
         reckoning: EraReckoning::Backdated,
+        shares_changeover_days: false,
     };
 
     /// The Northern Court (北朝) stream.
     pub const NORTHERN: Self = Self {
         court: Court::Northern,
         reckoning: EraReckoning::Backdated,
+        shares_changeover_days: false,
     };
 
     /// The Southern Court (南朝) stream.
     pub const SOUTHERN: Self = Self {
         court: Court::Southern,
         reckoning: EraReckoning::Backdated,
+        shares_changeover_days: false,
     };
 
     /// The single-court stream with eras beginning when they were
@@ -311,6 +341,7 @@ impl JapaneseCalendar {
     pub const PROCLAIMED: Self = Self {
         court: Court::Unified,
         reckoning: EraReckoning::Proclaimed,
+        shares_changeover_days: false,
     };
 
     /// The Northern Court (北朝) stream with eras beginning when they were
@@ -318,6 +349,7 @@ impl JapaneseCalendar {
     pub const NORTHERN_PROCLAIMED: Self = Self {
         court: Court::Northern,
         reckoning: EraReckoning::Proclaimed,
+        shares_changeover_days: false,
     };
 
     /// The Southern Court (南朝) stream with eras beginning when they were
@@ -325,12 +357,34 @@ impl JapaneseCalendar {
     pub const SOUTHERN_PROCLAIMED: Self = Self {
         court: Court::Southern,
         reckoning: EraReckoning::Proclaimed,
+        shares_changeover_days: false,
+    };
+
+    /// The unified stream read as the documents were dated at the time of
+    /// each change, 改元当時 (`japanese-kaigen-toji`): as
+    /// [`JapaneseCalendar::PROCLAIMED`], and from 大正 with the day of a
+    /// change belonging to both eras, so that 1912-07-30 is 明治45年7月30日
+    /// and 大正元年7月30日 and 1926-12-25 大正15年12月25日 and 昭和元年12月25日
+    /// ([`KAIGEN_TOJI_LAST_DAYS`]).
+    ///
+    /// A day has one date out of [`Calendar::from_fixed`], and on those two
+    /// days it is the new era's, the name the day was changed to; the old
+    /// era's is accepted by [`Calendar::to_fixed`], and [`eras_at_the_time`]
+    /// gives both.
+    pub const KAIGEN_TOJI: Self = Self {
+        court: Court::Unified,
+        reckoning: EraReckoning::Proclaimed,
+        shares_changeover_days: true,
     };
 
     /// Build a calendar for a given court and era reckoning.
     #[must_use]
     pub const fn new(court: Court, reckoning: EraReckoning) -> Self {
-        Self { court, reckoning }
+        Self {
+            court,
+            reckoning,
+            shares_changeover_days: false,
+        }
     }
 
     /// Which court's proclamations this calendar reads.
@@ -348,6 +402,9 @@ impl JapaneseCalendar {
     /// This calendar's identifier.
     #[must_use]
     pub const fn id(self) -> CalendarId {
+        if self.shares_changeover_days {
+            return ID_KAIGEN_TOJI;
+        }
         match (self.court, self.reckoning) {
             (Court::Unified, EraReckoning::Backdated) => ID,
             (Court::Northern, EraReckoning::Backdated) => ID_NORTHERN,
@@ -361,6 +418,9 @@ impl JapaneseCalendar {
     /// This calendar's English name.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
+        if self.shares_changeover_days {
+            return "Japanese (imperial eras, as dated at each change)";
+        }
         match (self.court, self.reckoning) {
             (Court::Unified, EraReckoning::Backdated) => "Japanese (imperial eras)",
             (Court::Northern, EraReckoning::Backdated) => {
@@ -668,6 +728,33 @@ fn era_in_force(
     found.ok_or(CalendarError::BeforeEpoch)
 }
 
+/// The exclusive end of `era`'s span under the 改元当時 reading: a day
+/// later than `end` for an era of [`KAIGEN_TOJI_LAST_DAYS`], whose last
+/// day is its successor's first.
+fn shared_end(era: &Nengo, end: Rd) -> Rd {
+    KAIGEN_TOJI_LAST_DAYS
+        .iter()
+        .find(|(id, last)| *id == era.id && last.0 == end.0)
+        .map_or(end, |(_, last)| Rd(last.0 + 1))
+}
+
+/// The era of a day under the 改元当時 reading, and on a changeover day of
+/// [`KAIGEN_TOJI_LAST_DAYS`] the era it belonged to as well, ending: on
+/// 1912-07-30 大正 and 明治, on 1926-12-25 昭和 and 大正.
+///
+/// # Errors
+///
+/// As [`Calendar::from_fixed`] for [`JapaneseCalendar::KAIGEN_TOJI`].
+pub fn eras_at_the_time(rd: Rd) -> CalendarResult<(&'static Nengo, Option<&'static Nengo>)> {
+    let (year, _, _) = calendar_year_month_day(rd)?;
+    let era = era_in_force(rd, year, Court::Unified, EraReckoning::Proclaimed)?;
+    let ending = KAIGEN_TOJI_LAST_DAYS
+        .iter()
+        .find(|(_, last)| *last == rd)
+        .and_then(|(id, _)| nengo::by_id(id));
+    Ok((era, ending))
+}
+
 impl Calendar for JapaneseCalendar {
     type Date = JapaneseDate;
 
@@ -740,6 +827,11 @@ impl Calendar for JapaneseCalendar {
             return Err(CalendarError::YearOutOfRange);
         }
         let (start, end) = era_span(date.era, self.court, self.reckoning)?;
+        let end = if self.shares_changeover_days {
+            shared_end(date.era, end)
+        } else {
+            end
+        };
         let rd = calendar_to_fixed(date.calendar_year(), date.month, date.day)?;
         if rd < start || rd >= end {
             // Distinguish "this era never had such a year" from "this era
@@ -1166,6 +1258,76 @@ mod tests {
     /// `senmyo_puts_the_reunion_of_1392_in_the_eleventh_month_where_the_record_has_the_tenth_intercalary`
     /// pins the disagreement. The era and the year are what this test is
     /// about.
+    /// 元号一覧 (日本)'s 改元当時 columns (`wikipedia-ja-gengo-list`): 明治 to
+    /// 明治45年7月30日, 大正 from that day to 大正15年12月25日, 昭和 from that
+    /// day; 昭和64年1月7日 its last and 平成元年1月8日 the next era's first.
+    #[test]
+    fn the_kaigen_toji_reading_gives_each_changeover_day_to_both_eras() {
+        let calendar = JapaneseCalendar::KAIGEN_TOJI;
+        assert_eq!(calendar.id(), ID_KAIGEN_TOJI);
+        let era = |id| nengo::by_id(id).expect("in the table");
+        for (id, year, (y, m, d)) in [("meiji", 45, (1912, 7, 30)), ("taisho", 15, (1926, 12, 25))]
+        {
+            let rd = greg(y, m, d);
+            assert_eq!(
+                KAIGEN_TOJI_LAST_DAYS
+                    .iter()
+                    .find(|(era, _)| *era == id)
+                    .map(|(_, day)| *day),
+                Some(rd)
+            );
+            let ending = JapaneseDate::new(era(id), year, Month::regular(m), d);
+            // Accepted here, refused by the 公式 reading.
+            assert_eq!(calendar.to_fixed(ending), Ok(rd));
+            assert_eq!(
+                JapaneseCalendar::PROCLAIMED.to_fixed(ending),
+                Err(CalendarError::DayOutOfRange)
+            );
+            // One day later it is refused here too.
+            let after = JapaneseDate::new(era(id), year, Month::regular(m), d + 1);
+            assert!(calendar.to_fixed(after).is_err());
+            // The day's own date is the era it was changed to.
+            let beginning = calendar.from_fixed(rd).expect("in range");
+            assert_eq!(beginning.year, 1);
+            assert_eq!(calendar.to_fixed(beginning), Ok(rd));
+            let (new, old) = eras_at_the_time(rd).expect("in range");
+            assert_eq!(
+                (new.id, old.map(|era| era.id)),
+                (beginning.era.id, Some(id))
+            );
+            assert_eq!(eras_at_the_time(Rd(rd.0 - 1)).map(|(_, old)| old), Ok(None));
+        }
+        assert_eq!(
+            calendar
+                .from_fixed(greg(1912, 7, 30))
+                .map(|date| date.to_string()),
+            Ok("大正元年7月30日".into())
+        );
+        // 昭和 and 平成 do not share a day.
+        let showa_64_1_8 = JapaneseDate::new(era("showa"), 64, Month::regular(1), 8);
+        assert_eq!(
+            calendar.to_fixed(showa_64_1_8),
+            Err(CalendarError::DayOutOfRange)
+        );
+        assert_eq!(
+            eras_at_the_time(greg(1989, 1, 7)).map(|(era, old)| (era.id, old)),
+            Ok(("showa", None))
+        );
+        // Before 大正 the reading is the proclaimed one: 慶応4年 until
+        // 明治元年9月8日, 1868-10-23.
+        for rd in [
+            greg(1868, 10, 22),
+            greg(1868, 10, 23),
+            greg(1860, 3, 24),
+            greg(2026, 9, 29),
+        ] {
+            assert_eq!(
+                calendar.from_fixed(rd),
+                JapaneseCalendar::PROCLAIMED.from_fixed(rd)
+            );
+        }
+    }
+
     #[test]
     fn the_southern_calendar_follows_meitoku_from_the_reunion() {
         let union = nengo::NANBOKUCHO_END;

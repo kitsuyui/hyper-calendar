@@ -157,7 +157,8 @@ pub struct Nengo {
     /// officially ended on 1912-07-29. The source's 改元当時 dates count
     /// 明治 from its proclamation, as this field does, and from 大正 give
     /// the changeover day to both eras, 明治 running to 1912-07-30; that
-    /// shared day is not carried.
+    /// shared day is `crate::japanese::KAIGEN_TOJI_LAST_DAYS`, read by the
+    /// calendar `japanese-kaigen-toji`.
     pub start: Option<Rd>,
     /// The first day with no era in force, for an era that lapsed without a
     /// successor rather than being replaced by one.

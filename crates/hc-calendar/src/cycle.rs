@@ -88,6 +88,17 @@ pub const ZODIAC_ANIMALS: [&str; 12] = [
     "pig",
 ];
 
+/// The Vietnamese zodiac (*mười hai con giáp*), in branch order, in
+/// English: [`ZODIAC_ANIMALS`] with the water buffalo for the ox at 丑 and
+/// the cat for the rabbit at 卯, as Wikipedia's "Vietnamese zodiac" and
+/// "Vietnamese calendar" give them (`wikipedia-en-vietnamese-zodiac`,
+/// `wikipedia-en-vietnamese-calendar`). A convention of its own under the
+/// identifier `vietnamese-zodiac`; the Chinese set is `chinese-zodiac`.
+pub const VIETNAMESE_ZODIAC_ANIMALS: [&str; 12] = [
+    "rat", "buffalo", "tiger", "cat", "dragon", "snake", "horse", "goat", "monkey", "rooster",
+    "dog", "pig",
+];
+
 /// The five phases, in stem-pair order.
 pub const FIVE_PHASES: [&str; 5] = ["wood", "fire", "earth", "metal", "water"];
 
@@ -391,6 +402,14 @@ impl Sexagenary {
     #[must_use]
     pub const fn zodiac_animal(self) -> &'static str {
         ZODIAC_ANIMALS[(self.index % 12) as usize]
+    }
+
+    /// The animal of the branch in the Vietnamese zodiac,
+    /// [`VIETNAMESE_ZODIAC_ANIMALS`]: the cat at 卯 and the water buffalo
+    /// at 丑, the Chinese animals elsewhere.
+    #[must_use]
+    pub const fn vietnamese_zodiac_animal(self) -> &'static str {
+        VIETNAMESE_ZODIAC_ANIMALS[(self.index % 12) as usize]
     }
 
     /// The five-phase element associated with the stem.

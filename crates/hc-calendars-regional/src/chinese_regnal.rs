@@ -25,16 +25,21 @@
 //!   in this workspace and a day-level conversion under the wrong calendar
 //!   would be a lie; they are year data.
 //!
+//! And **a second calendar**, `chinese-regnal-qing-court`
+//! ([`QingCourtCalendar`]): the same eras with 宣統 kept on past the
+//! abdication, as the court inside the Forbidden City kept it under the
+//! Articles of Favourable Treatment, to 1924-11-05, 宣統十六年十月初九, the
+//! day 馮玉祥 expelled it (`wikipedia-zh-xuantong`,
+//! `wikipedia-ja-xuantong`). The twelve days of the 1917 restoration,
+//! [`RESTORATION_1917`], fall inside it.
+//!
 //! # What is not carried
 //!
 //! The eras before the Ming, in their hundreds, with 改元 in mid-year and
-//! several regimes at once; the continued use of 宣統 inside the Forbidden
-//! City after 1912 and its restoration for twelve days in 1917; the 洪憲
-//! of 1916 and the eras of Manchukuo, 大同 and 康德, which ran on the
-//! Gregorian calendar and belong to no dynasty in [`Dynasty`]; and 保慶,
-//! which rumour in 1899–1900 gave as the era of a planned successor and
-//! which was never proclaimed (`zhwiki-baoqing`). Each is a table waiting
-//! on a source that dates it, not a gap in the shape.
+//! several regimes at once; and 保慶, which rumour in 1899–1900 gave as the
+//! era of a planned successor and which was never proclaimed
+//! (`zhwiki-baoqing`). The eras of 1916 and of Manchukuo, 洪憲, 大同 and
+//! 康德, ran on the Gregorian calendar and are [`crate::gregorian_eras`].
 //!
 //! The era system — 踰年改元 and the mid-year exceptions, restored and
 //! withdrawn eras, the concurrent regimes of 1644–1683 — is written up with
@@ -266,7 +271,7 @@ pub static ALL: [ChineseEra; 37] = [
         era("xuantong", "宣統", "Xuantong", Dynasty::Qing, 1909, 1911),
         None,
         true,
-        "to the abdication on 宣統 3年 12月 25日, 12 February 1912; kept on inside the Forbidden City and restored for twelve days in 1917, neither carried",
+        "to the abdication on 宣統 3年 12月 25日, 12 February 1912; kept on inside the Forbidden City to 宣統 16年 10月 9日, 5 November 1924, which chinese-regnal-qing-court carries, and restored for twelve days in 1917",
     ),
 ];
 
@@ -309,6 +314,82 @@ pub const LATEST: Rd = match gregorian::to_fixed(1912, 2, 12) {
     Err(_) => Rd(0),
 };
 
+/// Where the Qing court's period of use comes from.
+pub const COURT_USAGE_SOURCE: &str = "The Qing eras over the Shíxiàn calendar from 1 January 1645, and 宣統 kept inside the \
+    Forbidden City after the abdication to 1924-11-05, 宣統十六年十月初九, when 馮玉祥 expelled the \
+    court [wikipedia-zh-xuantong, wikipedia-ja-xuantong]";
+
+/// The last day of `chinese-regnal-qing-court`: 5 November 1924,
+/// 宣統十六年十月初九, when 馮玉祥 annulled the Articles of Favourable
+/// Treatment and expelled the court from the Forbidden City
+/// (`wikipedia-zh-xuantong`); the Japanese article has the era's use made
+/// unlawful in that "1924年10月" of the 首都革命 (`wikipedia-ja-xuantong`).
+pub const COURT_LATEST: Rd = match gregorian::to_fixed(1924, 11, 5) {
+    Ok(rd) => rd,
+    Err(_) => Rd(0),
+};
+
+/// The last Common Era year the court's 宣統 reached: 宣統十六年, the
+/// lunisolar year that began in 1924.
+pub const COURT_LAST_YEAR: i64 = 1924;
+
+/// The twelve days of the restoration of 1917, first and last:
+/// 1 July 1917, 宣統九年五月十三, when 張勳 restored 溥儀, to 12 July,
+/// 宣統九年五月廿四, when 段祺瑞's army entered Beijing and he abdicated a
+/// second time (`wikipedia-zh-xuantong`). Under `chinese-regnal-qing-court`
+/// these days are 宣統九年 as every other day of the court's years is; the
+/// restoration made them the dating of the state for those twelve days.
+pub const RESTORATION_1917: (Rd, Rd) = (
+    match gregorian::to_fixed(1917, 7, 1) {
+        Ok(rd) => rd,
+        Err(_) => Rd(0),
+    },
+    match gregorian::to_fixed(1917, 7, 12) {
+        Ok(rd) => rd,
+        Err(_) => Rd(0),
+    },
+);
+
+/// Which reading of the Qing eras a calendar is.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Reading {
+    /// To the abdication: `chinese-regnal`.
+    Dynasty,
+    /// With 宣統 kept by the court to 1924: `chinese-regnal-qing-court`.
+    Court,
+}
+
+impl Reading {
+    /// The last day this reading converts.
+    const fn latest(self) -> Rd {
+        match self {
+            Self::Dynasty => LATEST,
+            Self::Court => COURT_LATEST,
+        }
+    }
+
+    /// The era of a lunisolar year under this reading.
+    fn era_of_year(self, year: i64) -> Option<&'static ChineseEra> {
+        match self {
+            Self::Court if year > XUANTONG_LAST_YEAR && year <= COURT_LAST_YEAR => {
+                by_id("xuantong")
+            }
+            _ => era_of_year(Dynasty::Qing, year),
+        }
+    }
+
+    /// The last Common Era year of `era` under this reading.
+    fn end_year(self, era: &ChineseEra) -> i64 {
+        match self {
+            Self::Court if era.id == "xuantong" => COURT_LAST_YEAR,
+            _ => era.end_year,
+        }
+    }
+}
+
+/// The last year of 宣統 in the table: the year that began in 1911.
+const XUANTONG_LAST_YEAR: i64 = 1911;
+
 /// A date in a Qing era.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChineseRegnalDate {
@@ -347,9 +428,15 @@ impl fmt::Display for ChineseRegnalDate {
     }
 }
 
-/// The Qing eras over the Chinese lunisolar calendar.
+/// The Qing eras over the Chinese lunisolar calendar, to the abdication:
+/// `chinese-regnal`.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct ChineseRegnalCalendar;
+
+/// The Qing eras with 宣統 kept by the court to 1924:
+/// `chinese-regnal-qing-court`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct QingCourtCalendar;
 
 /// The date of a fixed day.
 ///
@@ -358,12 +445,27 @@ pub struct ChineseRegnalCalendar;
 /// Returns [`CalendarError::BeforeEpoch`] before 1645 and
 /// [`CalendarError::AfterSupportedRange`] after the abdication.
 pub fn from_fixed(rd: Rd) -> CalendarResult<ChineseRegnalDate> {
-    if rd > LATEST {
+    from_fixed_in(Reading::Dynasty, rd)
+}
+
+/// The date of a fixed day under the court's reading, to 1924-11-05.
+///
+/// # Errors
+///
+/// As [`from_fixed`], with [`COURT_LATEST`] for the abdication.
+pub fn court_from_fixed(rd: Rd) -> CalendarResult<ChineseRegnalDate> {
+    from_fixed_in(Reading::Court, rd)
+}
+
+fn from_fixed_in(reading: Reading, rd: Rd) -> CalendarResult<ChineseRegnalDate> {
+    if rd > reading.latest() {
         return Err(CalendarError::AfterSupportedRange);
     }
     let (number, month, day) = chinese::PARAMETERS.from_fixed(rd)?;
     let common_era_year = number - YEAR_OFFSET;
-    let era = era_of_year(Dynasty::Qing, common_era_year).ok_or(CalendarError::UnknownEra)?;
+    let era = reading
+        .era_of_year(common_era_year)
+        .ok_or(CalendarError::UnknownEra)?;
     Ok(ChineseRegnalDate {
         era,
         year: common_era_year - era.start_year + 1,
@@ -381,116 +483,150 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<ChineseRegnalDate> {
 /// and [`CalendarError::AfterSupportedRange`] for a day after the
 /// abdication.
 pub fn to_fixed(date: ChineseRegnalDate) -> CalendarResult<Rd> {
-    if date.year < 1 || date.common_era_year() > date.era.end_year {
+    to_fixed_in(Reading::Dynasty, date)
+}
+
+/// The fixed day of a date under the court's reading, to 1924-11-05.
+///
+/// # Errors
+///
+/// As [`to_fixed`], with 宣統 reaching its sixteenth year.
+pub fn court_to_fixed(date: ChineseRegnalDate) -> CalendarResult<Rd> {
+    to_fixed_in(Reading::Court, date)
+}
+
+fn to_fixed_in(reading: Reading, date: ChineseRegnalDate) -> CalendarResult<Rd> {
+    if date.year < 1 || date.common_era_year() > reading.end_year(date.era) {
         return Err(CalendarError::YearOutOfRange);
     }
     let rd =
         chinese::PARAMETERS.to_fixed(date.common_era_year() + YEAR_OFFSET, date.month, date.day)?;
-    if rd > LATEST {
+    if rd > reading.latest() {
         return Err(CalendarError::AfterSupportedRange);
     }
     Ok(rd)
 }
 
-impl Calendar for ChineseRegnalCalendar {
-    type Date = ChineseRegnalDate;
+/// The one [`Calendar`] implementation of both readings.
+macro_rules! qing_calendar {
+    ($name:ident, $reading:expr, $id:literal, $english:literal, $usage:expr) => {
+        impl Calendar for $name {
+            type Date = ChineseRegnalDate;
 
-    /// Day by day from 1645 to the abdication of 12 February 1912, which is
-    /// also the whole of the range it converts.
-    fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::between(EARLIEST, LATEST, USAGE_SOURCE)
-    }
-
-    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::LUNISOLAR_TWELVE
-    }
-
-    /// For the Common Era year a lunisolar year began in, as
-    /// [`Self::from_fields`] reads one with no era: whether that year had
-    /// a leap month, within the years the Qing eras span.
-    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        if era_of_year(Dynasty::Qing, year).is_none() {
-            return Err(CalendarError::YearOutOfRange);
-        }
-        chinese::PARAMETERS.is_leap_year(year + YEAR_OFFSET)
-    }
-
-    /// Resolves the era first: the fields count years within it, and the
-    /// leap rule counts Common Era years.
-    fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
-        match fields.era {
-            Some(name) => {
-                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
-                self.is_leap_year(era.start_year + fields.year - 1)
+            /// Day by day from 1645 to the last day of the reading, which is also
+            /// the whole of the range it converts.
+            fn usage(&self) -> hc_calendar::Usage {
+                hc_calendar::Usage::between(EARLIEST, $reading.latest(), $usage)
             }
-            None => self.is_leap_year(fields.year),
-        }
-    }
 
-    /// The era in traditional characters with its pinyin.
-    fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
-        by_id(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
-    }
+            fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+                hc_calendar::shape::LUNISOLAR_TWELVE
+            }
 
-    /// The eras of the table, in its order.
-    fn era_code(&self, index: usize) -> Option<&'static str> {
-        ALL.get(index).map(|era| era.id)
-    }
-
-    fn meta(&self) -> CalendarMeta {
-        CalendarMeta {
-            id: CalendarId("chinese-regnal"),
-            english_name: "Qing dynasty eras",
-            year_kind: YearKind::EraRelative,
-            has_leap_months: true,
-            is_astronomical: true,
-            earliest: Some(EARLIEST),
-            latest: Some(LATEST),
-            native_locales: &["zh-Hant", "zh-Hans"],
-        }
-    }
-
-    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        to_fixed(date)
-    }
-
-    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
-        from_fixed(rd)
-    }
-
-    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        let mut fields =
-            DateFields::ymd(date.year, date.month.ordinal, date.day).with_era(date.era.id);
-        fields.month = Some(date.month);
-        Ok(fields)
-    }
-
-    /// Reads era-tagged fields, or fields with no era as the Common Era
-    /// year the lunisolar year began in.
-    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
-        let month = fields.require_month()?;
-        let day = fields.require_day()?;
-        match fields.era {
-            Some(name) => {
-                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
-                if era.dynasty != Dynasty::Qing || !era.in_use {
-                    return Err(CalendarError::UnknownEra);
+            /// For the Common Era year a lunisolar year began in, as
+            /// [`Self::from_fields`] reads one with no era: whether that year had
+            /// a leap month, within the years the Qing eras span.
+            fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+                if $reading.era_of_year(year).is_none() {
+                    return Err(CalendarError::YearOutOfRange);
                 }
-                let date = ChineseRegnalDate {
-                    era,
-                    year: fields.year,
-                    month,
-                    day,
-                };
-                to_fixed(date)?;
-                Ok(date)
+                chinese::PARAMETERS.is_leap_year(year + YEAR_OFFSET)
             }
-            None => {
-                from_fixed(chinese::PARAMETERS.to_fixed(fields.year + YEAR_OFFSET, month, day)?)
+
+            /// Resolves the era first: the fields count years within it, and the
+            /// leap rule counts Common Era years.
+            fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+                match fields.era {
+                    Some(name) => {
+                        let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
+                        self.is_leap_year(era.start_year + fields.year - 1)
+                    }
+                    None => self.is_leap_year(fields.year),
+                }
+            }
+
+            /// The era in traditional characters with its pinyin.
+            fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
+                by_id(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
+            }
+
+            /// The eras of the table, in its order.
+            fn era_code(&self, index: usize) -> Option<&'static str> {
+                ALL.get(index).map(|era| era.id)
+            }
+
+            fn meta(&self) -> CalendarMeta {
+                CalendarMeta {
+                    id: CalendarId($id),
+                    english_name: $english,
+                    year_kind: YearKind::EraRelative,
+                    has_leap_months: true,
+                    is_astronomical: true,
+                    earliest: Some(EARLIEST),
+                    latest: Some($reading.latest()),
+                    native_locales: &["zh-Hant", "zh-Hans"],
+                }
+            }
+
+            fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+                to_fixed_in($reading, date)
+            }
+
+            fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+                from_fixed_in($reading, rd)
+            }
+
+            fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+                let mut fields =
+                    DateFields::ymd(date.year, date.month.ordinal, date.day).with_era(date.era.id);
+                fields.month = Some(date.month);
+                Ok(fields)
+            }
+
+            /// Reads era-tagged fields, or fields with no era as the Common Era
+            /// year the lunisolar year began in.
+            fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+                let month = fields.require_month()?;
+                let day = fields.require_day()?;
+                match fields.era {
+                    Some(name) => {
+                        let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
+                        if era.dynasty != Dynasty::Qing || !era.in_use {
+                            return Err(CalendarError::UnknownEra);
+                        }
+                        let date = ChineseRegnalDate {
+                            era,
+                            year: fields.year,
+                            month,
+                            day,
+                        };
+                        to_fixed_in($reading, date)?;
+                        Ok(date)
+                    }
+                    None => from_fixed_in(
+                        $reading,
+                        chinese::PARAMETERS.to_fixed(fields.year + YEAR_OFFSET, month, day)?,
+                    ),
+                }
             }
         }
-    }
+    };
 }
+
+qing_calendar!(
+    ChineseRegnalCalendar,
+    Reading::Dynasty,
+    "chinese-regnal",
+    "Qing dynasty eras",
+    USAGE_SOURCE
+);
+qing_calendar!(
+    QingCourtCalendar,
+    Reading::Court,
+    "chinese-regnal-qing-court",
+    "Qing dynasty eras, with 宣統 kept by the court to 1924",
+    COURT_USAGE_SOURCE
+);
 
 #[cfg(test)]
 mod tests {
@@ -559,6 +695,59 @@ mod tests {
             day: 1,
         };
         assert_eq!(to_fixed(too_far), Err(CalendarError::YearOutOfRange));
+    }
+
+    /// 維基百科「宣統」 (`wikipedia-zh-xuantong`): the restoration from
+    /// 1917-07-01, 宣統九年五月十三, to 1917-07-12, 五月廿四, and the
+    /// expulsion of 1924-11-05, 宣統十六年十月初九.
+    #[test]
+    fn the_court_kept_xuantong_to_the_sixteenth_year() {
+        let calendar = QingCourtCalendar;
+        let written = |rd: Rd| calendar.from_fixed(rd).map(|date| date.to_string());
+        assert_eq!(written(RESTORATION_1917.0), Ok("宣統9年5月13日".into()));
+        assert_eq!(written(RESTORATION_1917.1), Ok("宣統9年5月24日".into()));
+        assert_eq!(RESTORATION_1917.1.0 - RESTORATION_1917.0.0 + 1, 12);
+        assert_eq!(written(COURT_LATEST), Ok("宣統16年10月9日".into()));
+        assert_eq!(
+            calendar.from_fixed(Rd(COURT_LATEST.0 + 1)),
+            Err(CalendarError::AfterSupportedRange)
+        );
+        // The abdication ends `chinese-regnal`, not this reading: the day
+        // after it is still 宣統3年, and the next New Year begins 宣統4年.
+        assert_eq!(written(Rd(LATEST.0 + 1)), Ok("宣統3年12月26日".into()));
+        assert_eq!(
+            ChineseRegnalCalendar.from_fixed(Rd(LATEST.0 + 1)),
+            Err(CalendarError::AfterSupportedRange)
+        );
+        let fourth = chinese::new_year(1912 + YEAR_OFFSET).expect("in range");
+        assert_eq!(written(fourth), Ok("宣統4年1月1日".into()));
+        // The two readings agree to the abdication.
+        for rd in (EARLIEST.0..=LATEST.0).step_by(997) {
+            assert_eq!(
+                calendar.from_fixed(Rd(rd)),
+                ChineseRegnalCalendar.from_fixed(Rd(rd))
+            );
+        }
+        // And the court's years round-trip.
+        let xuantong = by_id("xuantong").expect("in the table");
+        for rd in (LATEST.0..=COURT_LATEST.0).step_by(13) {
+            let date = calendar.from_fixed(Rd(rd)).expect("in range");
+            assert_eq!(date.era, xuantong);
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
+            let fields = calendar.to_fields(date).expect("describable");
+            assert_eq!(calendar.from_fields(&fields), Ok(date));
+        }
+        let seventeenth = ChineseRegnalDate {
+            era: xuantong,
+            year: 17,
+            month: Month::regular(1),
+            day: 1,
+        };
+        assert_eq!(
+            calendar.to_fixed(seventeenth),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(calendar.meta().id.as_str(), "chinese-regnal-qing-court");
     }
 
     #[test]
