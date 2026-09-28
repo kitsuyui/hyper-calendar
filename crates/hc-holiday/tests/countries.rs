@@ -195,7 +195,7 @@ fn canada_federal_and_provincial_holidays() {
     expect(
         "CA",
         Some("CA-QC"),
-        &[(2025, 6, 24, "Saint-Jean-Baptiste Day")],
+        &[(2026, 6, 24, "Saint-Jean-Baptiste Day")],
     );
     // Quebec has no Family Day; Ontario has no Saint-Jean-Baptiste Day.
     expect_working("CA", Some("CA-QC"), &[(2025, 2, 17)]);
@@ -549,18 +549,27 @@ fn the_low_countries_and_the_alps() {
         ],
     );
     expect_working("BE", None, &[(2024, 7, 22)]);
+    // Nationwide, only 1 August and the three days every canton keeps; the
+    // rest are the cantons' (tests/switzerland_cantons.rs).
     expect(
         "CH",
         None,
         &[
             (2024, 8, 1, "Swiss National Day"),
-            (2024, 5, 20, "Whit Monday"),
-            (2025, 4, 18, "Good Friday"),
             (2025, 5, 29, "Ascension"),
-            (2025, 12, 26, "St Stephen's Day"),
+            (2025, 12, 25, "Christmas Day"),
         ],
     );
-    expect_working("CH", None, &[(1990, 8, 1)]);
+    expect_working("CH", None, &[(1990, 8, 1), (2025, 4, 18), (2025, 12, 26)]);
+    expect(
+        "CH",
+        Some("CH-ZH"),
+        &[
+            (2026, 5, 25, "Whit Monday"),
+            (2026, 4, 3, "Good Friday"),
+            (2026, 12, 26, "St Stephen's Day"),
+        ],
+    );
     expect(
         "AT",
         None,

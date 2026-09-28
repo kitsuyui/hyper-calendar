@@ -11,7 +11,7 @@ use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
-    HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
+    HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
@@ -590,68 +590,12 @@ pub static ITALY: RuleSet = RuleSet {
               1977), and D.P.R. 28 dicembre 1985, n. 792, art. 1 (GU n. 306 del 31 dicembre \
               1985), on Normattiva (urn:nir:stato:legge:1977-03-05;54 and \
               urn:nir:presidente.repubblica:decreto:1985-12-28;792), retrieved 2026-09-26; \
-              legge 20 novembre 2000, n. 336, for Republic Day, not read. Municipal \
-              patron-saint days are real holidays but are not modelled",
-};
-
-static ES_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Epifanía del Señor", Rule::gregorian(1, 6)),
-    HolidayRule::public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Labour Day", "Fiesta del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Assumption",
-        "Asunción de la Virgen",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::public(
-        "National Day",
-        "Fiesta Nacional de España",
-        Rule::gregorian(10, 12),
-    ),
-    HolidayRule::public(
-        "All Saints' Day",
-        "Todos los Santos",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::public(
-        "Constitution Day",
-        "Día de la Constitución",
-        Rule::gregorian(12, 6),
-    )
-    .years(Some(1983), None),
-    HolidayRule::public(
-        "Immaculate Conception",
-        "Inmaculada Concepción",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public(
-        "Christmas Day",
-        "Natividad del Señor",
-        Rule::gregorian(12, 25),
-    ),
-];
-
-/// Spain, national calendar only.
-pub static SPAIN: RuleSet = RuleSet {
-    code: "ES",
-    english_name: "Spain",
-    rules: ES_RULES,
-    substitution: &[],
-    bridges: &[],
-    includes: &[],
-    weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Real Decreto 2001/1983, de 28 de julio, art. 45, as amended by Real Decreto \
-              2403/1985 and Real Decreto 1346/1989, on the BOE \
-              (boe.es/buscar/act.php?id=BOE-A-1983-20906); the Resoluciones de la Dirección \
-              General de Trabajo of 15 October 2024 (BOE-A-2024-21316) and 17 October 2025 \
-              (BOE-A-2025-21667) publishing the fiestas laborales of 2025 and 2026; all \
-              retrieved 2026-09-26; the Estatuto de los Trabajadores (Real Decreto Legislativo \
-              2/2015), art. 37.2, not read. Maundy Thursday and the autonomous communities' \
-              own days are not modelled: each community may move a Sunday holiday to the \
-              following Monday and substitute two of its own, which is a yearly administrative \
-              act rather than a rule",
+              legge 20 novembre 2000, n. 336, for Republic Day, not read. The patron-saint days \
+              are the comuni's: no national instrument read lists them — D.P.R. 23 agosto 1988, \
+              n. 395, art. 4, comma 8, gives public employees the day of the Santo Patrono \
+              without naming one, and D.P.R. 792/1985 names only Rome's 29 June, a day of the \
+              comune di Roma, which no ISO 3166-2 code scopes (IT-RM is the metropolitan city); \
+              both on Normattiva, retrieved 2026-09-29. None is carried",
 };
 
 static PT_RULES: &[HolidayRule] = &[
@@ -857,38 +801,6 @@ pub static BELGIUM: RuleSet = RuleSet {
               Emploi, Travail et Concertation sociale, \"Jours fériés\" (emploi.belgique.be), \
               for the replacement day, both retrieved 2026-09-26; the loi du 4 janvier 1974 \
               itself not read",
-};
-
-static CH_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Ascension", "Auffahrt", Rule::easter(ASCENSION)),
-    HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public("Swiss National Day", "Bundesfeier", Rule::gregorian(8, 1))
-        .years(Some(1994), None),
-    HolidayRule::public("Christmas Day", "Weihnachtstag", Rule::gregorian(12, 25)),
-    HolidayRule::public("St Stephen's Day", "Stephanstag", Rule::gregorian(12, 26)),
-];
-
-/// Switzerland.
-pub static SWITZERLAND: RuleSet = RuleSet {
-    code: "CH",
-    english_name: "Switzerland",
-    rules: CH_RULES,
-    substitution: &[],
-    bridges: &[],
-    includes: &[],
-    weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Bundesverfassung (SR 101), Art. 110 Abs. 3, and the Verordnung vom 30. Mai 1994 \
-              über den Bundesfeiertag, for 1 August, not read, Fedlex rendering by script; the \
-              rest of this list is cantonal law under Arbeitsgesetz (SR 822.11) Art. 20a Abs. \
-              1, checked only against the German Wikipedia, \"Feiertage in der Schweiz\" \
-              (secondary), retrieved 2026-09-26, which shows that not every canton keeps each \
-              of them — Valais keeps neither Good Friday, Easter Monday, Whit Monday nor St \
-              Stephen's Day. The cantons' own days — Berchtoldstag, Fronleichnam, Jeûne \
-              genevois and the rest — are not modelled",
 };
 
 static AT_RULES: &[HolidayRule] = &[
@@ -4974,78 +4886,3 @@ static VA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until: None,
     valid_until_day: None,
 }];
-
-// ─────────────────────────────────────────────────────────────────────────
-// Andorra
-// ─────────────────────────────────────────────────────────────────────────
-
-static AD_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Cap d'Any", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Reis", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public("Carnival", "Carnaval", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Dia de la Constitució",
-        Rule::gregorian(3, 14),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Divendres Sant", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Dilluns de Pasqua",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Festa del Treball", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Dilluns de Pentecosta",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assumpció", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public(
-        "Our Lady of Meritxell",
-        "Mare de Déu de Meritxell",
-        Rule::gregorian(9, 8),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Tots Sants", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Immaculada Concepció",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Nadal", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Sant Esteve",
-        Rule::gregorian(12, 26),
-    ),
-];
-
-/// Andorra.
-///
-/// Law 31/2018 on labour relations, article 62, gives the right to the
-/// holidays "of the work calendar", which the Government decrees each
-/// year; the table carries the fourteen national days of the 2026
-/// calendar (Decree 340/2025), the same the calendars of 2024 and 2025
-/// carried: New Year's Day, Epiphany, Carnival on the Monday before
-/// Lent, Constitution Day, Good Friday, Easter Monday, 1 May, Whit
-/// Monday, the Assumption, Our Lady of Meritxell, All Saints, the
-/// Immaculate Conception, Christmas and Saint Stephen. The up to four
-/// days each parish adds, and the tourism sector's leave to move all but
-/// four of the days by agreement, are not carried. Nothing moves off a
-/// Sunday.
-pub static ANDORRA: RuleSet = RuleSet {
-    code: "AD",
-    english_name: "Andorra",
-    rules: AD_RULES,
-    substitution: &[],
-    bridges: &[],
-    includes: &[],
-    weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
-    sources: "Llei 31/2018, del 6 de desembre, de relacions laborals, article 62, from the \
-              Cambra de Comerç's copy (ccis.ad), retrieved 2026-09-22; the Government's \
-              notice of Decret 340/2025 approving the 2026 work calendar (govern.ad) and \
-              La Vall Associats' reproduction of its list; Wikipedia, \"2024 in \
-              Andorra\", \"2025 in Andorra\" and \"2026 in Andorra\", for the yearly \
-              dates, and \"Public holidays in Andorra\" for the names",
-};

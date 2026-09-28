@@ -61,6 +61,13 @@ crates, modules, functions or holiday tables.
 | New Zealand's provincial anniversary days: the Monday nearest, the exceptions, the provinces that are not regions | [new-zealand-anniversary-days.md](new-zealand-anniversary-days.md) | `hc-holiday`'s `NEW_ZEALAND`, with its regions; `countries::new_zealand` |
 | India's state holidays under the Negotiable Instruments Act, from the Reserve Bank's lists, for the thirteen largest states | [india-state-holidays.md](india-state-holidays.md) | `hc-holiday`'s `INDIA`, with its regions; `countries::india` |
 | The provincial days of Solomon Islands and Vanuatu | [pacific-provincial-days.md](pacific-provincial-days.md) | `hc-holiday`'s `SOLOMON_ISLANDS` and `VANUATU`, with their regions; `countries::solomon_islands`, `countries::vanuatu` |
+| Andorra's national holidays and the parishes' own, fixed by each comú each year | [andorra-holidays.md](andorra-holidays.md) | `hc-holiday`'s `ANDORRA`, with its regions `AD-02` to `AD-08` |
+| Bolivia's national holidays and the departments' efemérides | [bolivia-holidays.md](bolivia-holidays.md) | `hc-holiday`'s `BOLIVIA`, with its regions `BO-L`, `BO-N`, `BO-O`, `BO-S` and `BO-T` |
+| Spain's national holidays and the autonomous communities' days, from the yearly resolutions | [spain-holidays.md](spain-holidays.md) | `hc-holiday`'s `SPAIN`, with its regions `ES-AN` to `ES-VC` |
+| Switzerland's federal day and the cantons' holidays, equal to Sunday or rest days | [switzerland-holidays.md](switzerland-holidays.md) | `hc-holiday`'s `SWITZERLAND`, with its regions `CH-AG` to `CH-ZH` |
+| Canada's federal holidays and the provinces' and territories' general holidays | [canada-holidays.md](canada-holidays.md) | `hc-holiday`'s `CANADA`, with its regions `CA-AB` to `CA-YT` |
+| Mexico's federal days of rest and the states' own for their public servants | [mexico-holidays.md](mexico-holidays.md) | `hc-holiday`'s `MEXICO`, with its region `MX-JAL` |
+| The US states' own holidays beyond the federal list, and what each code makes of them | [us-state-holidays.md](us-state-holidays.md) | `hc-holiday`'s `UNITED_STATES`, with its regions `US-AK` to `US-WV` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions: 定気, the meridian, the ayanāṃśa | [solar-terms-and-pentads.md](solar-terms-and-pentads.md) | `hc-seasons`: `solar_terms`, `pentads`, `meridian`, `zodiac` |
 | The Berber agrarian calendar and the Amazigh era | [berber.md](berber.md) | `berber` |
 | The Mandaean calendar: the Parwanaia and the years after Adam | [mandaean.md](mandaean.md) | `mandaean` |

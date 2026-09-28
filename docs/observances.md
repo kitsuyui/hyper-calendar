@@ -70,9 +70,14 @@ Rules then pass through **observance modifiers**, which are themselves data:
   German *Länder*, Canadian provinces, Australian states and territories,
   the United Kingdom's three jurisdictions, French Alsace-Moselle, the three
   units of Bosnia and Herzegovina, Bangladesh's hill districts, and a few
-  single places: `US-DC`, `MD-CU`, `GT-GU`, `SV-SS`, `NI-MN` and `CL-AP`. Swiss cantons, Spanish
-  autonomous communities and US states are *not* modelled: the vocabulary
-  carries them, the tables do not.
+  single places: `US-DC`, `MD-CU`, `GT-GU`, `SV-SS`, `NI-MN` and `CL-AP`; and,
+  each written up in its system document, the Japanese prefectures, the Swiss
+  cantons, the Spanish autonomous communities, the US states, Andorra's
+  parishes, four Bolivian departments and Mexico's Jalisco. What is not yet
+  carried of them, and why, each document says: a day kept in part of a
+  canton or a parish needs a scope finer than ISO 3166-2, and the days of a
+  state, community or department whose instrument was not read are not
+  guessed.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
   day off, religious day of obligation, and a weekend day made a working day
   (China's 调休上班).
@@ -238,7 +243,7 @@ partial.
 | Country | Note |
 | --- | --- |
 | Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; and the prefectures' own days by ordinance, each scoped to its ISO 3166-2 code — eighteen 県民の日 and their like, and Okinawa's 慰霊の日, a 県の休日 (`Kind::Government`) — from a survey of all forty-seven prefectures' ordinances, 休日条例 and school rules; the law, its amendments, the prefectures and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md). The prefectures' other days set by ordinance are not yet carried |
-| United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and every full-day closure by executive order from 2018 — the two state-funeral days and the Christmas closures, 24 and 26 December 2025 among them; the closures before 2018 not carried |
+| United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and every full-day closure by executive order from 2018 — the two state-funeral days and the Christmas closures, 24 and 26 December 2025 among them; the closures before 2018 not carried; and the states' own days, 147 rules in 45 states and the District of Columbia from their codes, each from the session law that set it, or else from the year of the text read with the years before a gap: [systems/us-state-holidays.md](systems/us-state-holidays.md), which names the days and the states (New Hampshire, Oklahoma, Georgia) not yet carried |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs, Scotland's World Cup bank holiday of 15 June 2026, and the three jubilee moves of the Spring Bank Holiday |
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule and the one-off of 18 March 2022; a holiday on the weekend moves nothing, as section 21 of the 1997 Act gives a benefit and not a next working day |
 | Germany 🇩🇪 | Federal plus all 16 *Länder*, including Buß- und Bettag before and after 1995 |
@@ -256,7 +261,7 @@ partial.
 | China 🇨🇳 | The statutory days by rule across the 1999, 2007, 2013 and 2024 revisions and the State Council's arrangement for each year from 2008 to 2026 as data, days off and working weekend days alike; Article 3's days for some citizens, each given to its group from 1999 — the half days for women, youth and active servicemen and Children's Day for children; the minority festivals of Guangxi, Xinjiang and Ningxia under Article 4, scoped to `CN-GX`, `CN-XJ` and `CN-NX`, for the years of the notices read and gaps in the others; Tibet's days not carried, its notices read being prefecture-level cities', which ISO 3166-2 does not code; how the notices are read, carried and checked is in [systems/china-holiday-arrangements.md](systems/china-holiday-arrangements.md) |
 | Taiwan 🇹🇼 | The 紀念日及節日實施條例 of May 2025 and the 辦法 before it: the making-up of a weekend holiday on the nearer working day and of the Lunar New Year days after them, Children's Day when 清明 falls on it, and the five days the 條例 added; the swaps of each office calendar from 2017 until they ended in 2025; before 2015 only the Lunar New Year days made up. Checked against the government office calendar for 2017–2027; written up in [systems/taiwan-holidays.md](systems/taiwan-holidays.md); article 6's days for the police, the firefighters, the armed forces and the coast guard, and the indigenous ceremonies, each given to its group and a gap from 2025, the services' authorities' rules not read |
 | South Korea 🇰🇷 | The decree's days keyed to the `dangi` calendar, the 대체공휴일 in its three steps with the collision rule, the election days from 2007 and the designated days from 2009; the rules, the engine's part and the check against the Korea Exchange's lists are in [systems/korea-holidays.md](systems/korea-holidays.md) |
-| Canada 🇨🇦 | Federal plus the provincial days fixed by statute |
+| Canada 🇨🇦 | The Canada Labour Code's days, and every province's and territory's own general holidays, several from secondary sources where the statute could not be read; Ontario and Manitoba keep no August holiday; [systems/canada-holidays.md](systems/canada-holidays.md) |
 | Australia 🇦🇺 | National plus all six states and both territories |
 | New Zealand 🇳🇿 | Including mondayisation from 2014, and Matariki over 2022–2035 — the Act schedules to 2052, and a calendar past 2035 reports it as a gap rather than dropping it; the provincial anniversary days from 2010, each province's rule in the region of its name, from Employment New Zealand's list, South Canterbury's Dominion Day and the regions no province is named for not carried ([systems/new-zealand-anniversary-days.md](systems/new-zealand-anniversary-days.md)) |
 | Micronesia 🇫🇲 | Title 1, chapter 6: the national holidays with section 602's Friday and Monday, Veterans' day from 2004, Culture and Tradition Day from 2010, Presidents Day and the Veterans Day name from 2021 |
@@ -269,7 +274,7 @@ partial.
 | Vanuatu 🇻🇺 | Cap. 114's fourteen days with the Sunday rule and the Tuesday for a Monday Family Day, dated and named as the Government lists them; the six provincial days in their provinces from 2020, on the Government's list's dates ([systems/pacific-provincial-days.md](systems/pacific-provincial-days.md)) |
 | Samoa 🇼🇸 | The 2008 Act with the Monday, and Tuesday, for a Sunday, Independence Day on 1 June as the Ministry's calendar gives it, the three Mondays after the second Sundays of May, August and October |
 | Brazil 🇧🇷 | Including Consciência Negra from 2024 |
-| Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover |
+| Mexico 🇲🇽 | Including the 2006 Monday reform and the six-yearly presidential handover; Jalisco's four days for its public servants from 2007; the other states' laws, PDF only or left to a yearly calendar, not yet read ([systems/mexico-holidays.md](systems/mexico-holidays.md)) |
 | Saudi Arabia 🇸🇦 | Article 24 of the Labour Law's executive regulation on the Umm al-Qura calendar: four days of each Eid, National Day and Founding Day; the weekend change of 29 June 2013 on its day |
 | United Arab Emirates 🇦🇪 | With the weekends by their dates: Thursday–Friday to 31 August 2006, Friday–Saturday to 2021, Saturday–Sunday from 1 January 2022; Commemoration Day to 2024, off the list of Cabinet Resolution 27 of 2024, the Prophet's Birthday still on it, National Day 2025 on the 1 and 2 December the circular gave, and Eid al-Fitr from 30 Ramadan |
 | Israel 🇮🇱 | Hebrew-dated and therefore exact, with Yom HaAtzmaut's Sabbath-avoidance rule; Sigd from 2008 as an observance, 29 Cheshvan or the Thursday before a Sabbath, an optional day off under the Sigd Law, checked against Hebcal's dates for 2008–2030 |
@@ -286,7 +291,7 @@ partial.
 | Monaco 🇲🇨 | Law 798's twelve days, six of them to the Monday after a Sunday; the Prince's Day on 19 November since 1952 |
 | San Marino 🇸🇲 | The 2013 rewriting of the 1990 calendar's civil days, the religious days as the Central Bank's calendars give them, 24 and 31 December as bank days |
 | Vatican City 🇻🇦 | The Governorate's and the Curia's staff regulations: canon 1246's holy days of obligation, the Ascension and Corpus Christi on their Thursdays, Holy Week to Easter Tuesday and the regulations' own days; the Pope's election anniversary and name day for 2013–2026, a gap after; a Sunday-only week |
-| Andorra 🇦🇩 | Law 31/2018 art. 62 and the yearly decree's fourteen national days, Carnival on its Monday; parish days not carried |
+| Andorra 🇦🇩 | Law 31/2018 art. 62 and the yearly decree's fourteen national days, Carnival on its Monday; the parish days each comú keeps in the whole parish, as its instruments for 2024–2026 date them, any other year a gap; the village and quarter days not carried, needing a finer scope ([systems/andorra-holidays.md](systems/andorra-holidays.md)) |
 | Moldova 🇲🇩 | Art. 111 with the two Christmases, the Orthodox Easter and the Easter of the Blajini, Europe Day from 2017, Children's Day from 2024, and Chișinău's feast as `MD-CU` |
 | Bulgaria 🇧🇬 | Labour Code art. 154: the list, the Orthodox Easter, 1 November for schools, and the weekend rule of 2017 that excepts the Easter days |
 | Cyprus 🇨🇾 | The Republic's list with the Orthodox Easter and Easter Tuesday as a bank holiday; no substitution |
@@ -311,7 +316,7 @@ partial.
 | Honduras 🇭🇳 | Art. 339 with Holy Week's three days; the October days on their dates to 2013 and as the Semana Morazánica from 2015, its Wednesday from noon as bank and 2020's in November; 2014 not carried |
 | El Salvador 🇸🇻 | Art. 190 with San Salvador's 3 and 5 August as `SV-SS`, Father's Day from 2013 and Mother's Day for everyone from 2016 by their decrees, 7 July 2023; nothing moves |
 | Nicaragua 🇳🇮 | Art. 66's nine days and art. 67's Santo Domingo days for Managua as `NI-MN`; art. 68's "será compensado" names no day, so nothing moves |
-| Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; departmental holidays and yearly bridges not carried |
+| Bolivia 🇧🇴 | Decreto Supremo 2750 with the Sunday rule and the four days it excepts; the departmental days of La Paz, Oruro, Tarija and Pando from the instruments that date them, with the Sunday rule from 2024, and Santa Cruz's 4 May as an observance; the other departments' days, whose instruments were not read, and the yearly bridges not carried ([systems/bolivia-holidays.md](systems/bolivia-holidays.md)) |
 | Chile 🇨🇱 | Every move a rule of its own: Ley 19.668's Mondays, Ley 20.299's Fridays, the computed 2 January and 17/20 September days, the solstice at Chile's meridian; Arica's day as `CL-AP` |
 | Ecuador 🇪🇨 | Art. 65 as reformed in 2016: the moves per holiday, the weekend-only moves of the three excepted days, and the 2/3 November pair as the Government resolved it |
 | Uruguay 🇺🇾 | Ley 16.805 as amended in 2001: paid holidays public, common ones bank, Tourism Week's six days, three holidays to the adjacent Monday from 1997, and 19 June and 2 November too under the law as first enacted, 1997–2001 |
@@ -386,7 +391,10 @@ partial.
 | Timor-Leste 🇹🇱 | Law 10/2005 art. 2 as amended by Laws 3/2016 and 10/2023: Veterans' Day from 2017, 7 December renamed Memorial Day and National Heroes' Day on 31 December from 2016, National Women's Day from 2023; Good Friday and Corpus Christi by the Western computus, Idul Fitri and Idul Adha approximate; the commemorative dates not carried; the Labour Code's Sunday weekend, nothing moved |
 | Maldives 🇲🇻 | Section 97 of the Employment Act, dated as the Maldives Monetary Authority's lists for 2016–2026: New Year, Labour Day, Independence Day's two days, Victory Day and Republic Day fixed; the first of Ramadan, Eid al-Fitr's three days, Hajj Day, Eid al-Adha's four (three in 2016), the Islamic New Year, National Day, the Prophet's Birthday and the Day the Maldives Embraced Islam approximate; the Friday–Saturday weekend, nothing moved off it; the President's declared government holidays not carried |
 | Indonesia 🇮🇩 | The national days of the three ministries' joint decree: Chinese New Year on `chinese` from 2003, Labour Day from 2014, Pancasila Day from 2017, Easter Sunday from 2024; the Islamic days, Vesak and Nyepi as the SKBs date them for 2020–2026, and for 2027 as announced, and outside those years the Islamic days and Vesak predicted, approximate, and Nyepi a gap; the *cuti bersama* not carried |
-| Spain 🇪🇸, Italy 🇮🇹, Netherlands 🇳🇱, Poland 🇵🇱, Türkiye 🇹🇷, Egypt 🇪🇬, Nigeria 🇳🇬, South Africa 🇿🇦, Singapore 🇸🇬, Malaysia 🇲🇾, Philippines 🇵🇭, Switzerland 🇨🇭, Austria 🇦🇹, Belgium 🇧🇪, Sweden 🇸🇪, Norway 🇳🇴, Denmark 🇩🇰, Finland 🇫🇮, Portugal 🇵🇹, Greece 🇬🇷, Czechia 🇨🇿 | Core national list |
+| Spain 🇪🇸 | The national days of Real Decreto 2001/1983, and each autonomous community's and city's days as the Dirección General's resolutions list them for 2013–2015 and 2018–2026, the years before 2013, 2016, 2017 and later years a gap; the municipalities' local days not carried ([systems/spain-holidays.md](systems/spain-holidays.md)) |
+| Switzerland 🇨🇭 | 1 August and the three days every canton keeps nationwide; every canton's other days under its law from its commencement, the years before a gap, days off where the law makes them equal to Sunday and observances where it keeps them as rest days only; the days a law keeps in part of a canton not carried ([systems/switzerland-holidays.md](systems/switzerland-holidays.md)) |
+| Italy 🇮🇹 | The national list of law 260/1949 as amended; the patron-saint days are the comuni's, and the one a national instrument names, Rome's 29 June under D.P.R. 792/1985, is the comune's and not a subdivision's, so none is carried |
+| Netherlands 🇳🇱, Poland 🇵🇱, Türkiye 🇹🇷, Egypt 🇪🇬, Nigeria 🇳🇬, South Africa 🇿🇦, Singapore 🇸🇬, Malaysia 🇲🇾, Philippines 🇵🇭, Austria 🇦🇹, Belgium 🇧🇪, Sweden 🇸🇪, Norway 🇳🇴, Denmark 🇩🇰, Finland 🇫🇮, Portugal 🇵🇹, Greece 🇬🇷, Czechia 🇨🇿 | Core national list |
 
 **Partial**
 
@@ -420,8 +428,11 @@ partial.
 
 **Planned** — the three United Nations member states without a table (the
 Central African Republic, Eritrea, and São Tomé and Príncipe), and the
-subdivisions that have their own legal holidays. Each is tracked as one
-issue per country, so that each lands with a citable source.
+subdivisions whose own legal holidays are not yet carried: the Mexican states
+but Jalisco, five Bolivian departments, New Hampshire, Oklahoma and Georgia,
+Italy's comuni, and the other countries' subdivisions whose system documents
+say so. Each is tracked as one issue per country, so that each lands with a
+citable source.
 
 Of the subdivisions, these are carried in part and wait on a named source
 for the rest. India's states beyond the thirteen largest: the Reserve Bank
