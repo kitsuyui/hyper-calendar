@@ -558,3 +558,18 @@ Haa = "Haa"
 Ned = "Ned"
 # hc-almanac::direction_deities: 姫金神, the princess 金神, read hime.
 hime = "hime"
+# Spanish "Código Administrativo del Estado de Chihuahua", and "MOR", the
+# ISO 3166-2 suffix of Morelos (MX-MOR), in docs/systems/mexico-holidays.md.
+Administrativo = "Administrativo"
+MOR = "MOR"
+# French "restauration" (the Restauration de la République, Geneva's
+# 31 December) and German "oder" in the Swiss cantons' laws,
+# crates/hc-holiday/src/countries/switzerland.rs and its document.
+restauration = "restauration"
+oder = "oder"
+# Spanish "Decreto Presidencial", the La Paz decree of 2009 in
+# crates/hc-holiday/src/countries/bolivia.rs and its document.
+Presidencial = "Presidencial"
+# Italian "comune", the municipality (the comune di Roma of D.P.R.
+# 792/1985), in docs/observances.md and the Italian table's sources.
+comune = "comune"

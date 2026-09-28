@@ -154,7 +154,7 @@ Argentina, Armenia, Australia (eight states and territories), Austria,
 Azerbaijan, the Bahamas, Bahrain, Bangladesh, Barbados, Belarus, Belgium,
 Belize, Benin, Bhutan, Bolivia, Bosnia and Herzegovina, Botswana, Brazil,
 Brunei, Bulgaria, Burkina Faso, Burundi, Cabo Verde, Cambodia, Cameroon, Canada
-(federal plus the provincial days fixed by statute), Chad, Chile, China,
+(federal plus every province's and territory's own days), Chad, Chile, China,
 Colombia, Comoros, Costa Rica, Côte d'Ivoire, Croatia, Cuba, Cyprus, Czechia, Democratic
 Republic of the Congo, Denmark, Djibouti, Dominica, the Dominican Republic,
 Ecuador, Egypt, El Salvador, Equatorial Guinea, Estonia, Eswatini, Ethiopia, Fiji, Finland, France (métropole
@@ -522,11 +522,18 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   regions of Guangxi, Xinjiang and Ningxia for the years of their notices
   read, fifteen of Russia's republics, and a few single places:
   Inauguration Day in the District of Columbia, Chișinău, Guatemala City,
-  San Salvador, Managua and Chile's Arica and Parinacota. US states, Swiss
-  cantons, Spanish autonomous communities and Italian patron-saint days are
-  not. Malaysia's states are not yet carried: the Prime Minister's
-  Department's yearly lists, which give every state's days, are PDFs and
-  were not read, and kabinet.gov.my refused this session's requests.
+  San Salvador, Managua and Chile's Arica and Parinacota. The Swiss
+  cantons, the Spanish autonomous communities, the US states and the
+  District, Andorra's parishes, four Bolivian departments and Mexico's
+  Jalisco are in too, each written up in its system document under
+  `docs/systems/`, which says what is not yet carried and why: the days a
+  law keeps in part of a canton or parish, the states and departments
+  whose instruments were not read, the years whose resolutions were not
+  read. Italy's patron-saint days are the comuni's, a scope below ISO
+  3166-2, and are not carried. Malaysia's states are not yet carried: the
+  Prime Minister's Department's yearly lists, which give every state's
+  days, are PDFs and were not read, and kabinet.gov.my refused this
+  session's requests.
 
 ## Business days
 
