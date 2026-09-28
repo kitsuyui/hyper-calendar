@@ -66,6 +66,27 @@ pub enum DstState {
     EndsToday,
 }
 
+hc_core::catalogue! {
+    type: DstState,
+    tests: dst_state_catalogue_tests,
+    variants;
+
+    /// The four states, standard time first.
+    pub const ALL;
+    /// The state's identifier: `standard`, `begins-today`, `in-effect` or
+    /// `ends-today`.
+    pub fn id;
+    /// The state with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Standard => "standard",
+        BeginsToday => "begins-today",
+        InEffect => "in-effect",
+        EndsToday => "ends-today",
+    }
+}
+
 impl DstState {
     /// The two bits, bit 57 (`dst_on[1]`) first.
     #[must_use]

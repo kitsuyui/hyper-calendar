@@ -15,16 +15,16 @@
 //! x))`, with `x` the crate's `β²` or `r_s / r`.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_core::Duration;
-use hc_relativity::constants::{GRAVITATING_BODIES, GravitatingBody, SPEED_OF_LIGHT};
+use hc_core::catalogue::matches;
+use hc_relativity::constants::{self, GRAVITATING_BODIES, GravitatingBody, SPEED_OF_LIGHT};
 use hc_relativity::gravitational::{
     rate_offset_to_micros_per_day, schwarzschild_radius, static_dilation_factor,
 };
 use hc_relativity::special::{lorentz_factor_from_speed, proper_time_of};
 
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns a line of [`proper_time_line`] has.
 pub const PROPER_TIME_COLUMNS: usize = 7;
@@ -79,25 +79,32 @@ pub fn proper_time_line(speed_metres_per_second: f64, coordinate_seconds: f64) -
     let offset = -(beta * beta) / (1.0 + rate);
     let micros = rate_offset_to_micros_per_day(offset).map_err(|_| Refusal::OutOfRange)?;
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{beta}\t{gamma}\t{}\t{rate}\t{micros}\tSPEED_OF_LIGHT\t",
-        proper.as_secs_f64(),
-    );
-    push_cell(&mut out, SPECIAL_SOURCE);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(beta)
+        .value(gamma)
+        .value(proper.as_secs_f64())
+        .value(rate)
+        .value(micros)
+        .cell("SPEED_OF_LIGHT")
+        .cell(SPECIAL_SOURCE);
+    line.end();
     Ok(out)
 }
 
-/// The body `given` names, by its identifier or its English name.
+/// The body `given` names, by its identifier, [`constants::by_id`], or
+/// its English name, each by [`matches`](fn@matches).
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a body `hc-relativity` carries no `GM` for.
-pub fn gravitating_body(given: &str) -> Answer<&'static GravitatingBody> {
-    GRAVITATING_BODIES
-        .iter()
-        .find(|body| names(given, body.id) || names(given, body.english_name))
+pub fn gravitating_body(given: &str) -> Answer<GravitatingBody> {
+    constants::by_id(given)
+        .or_else(|| {
+            GRAVITATING_BODIES
+                .iter()
+                .copied()
+                .find(|body| matches(given, body.english_name))
+        })
         .ok_or(Refusal::Unknown)
 }
 
@@ -124,16 +131,18 @@ pub fn gravitational_dilation_line(given: &str, radius_metres: f64) -> Answer<St
     let horizon = schwarzschild_radius(body.gm).map_err(|_| Refusal::OutOfRange)?;
     let offset = -(horizon / radius_metres) / (1.0 + factor);
     let micros = rate_offset_to_micros_per_day(offset).map_err(|_| Refusal::OutOfRange)?;
-    let name = gm_constant_name(body);
+    let name = gm_constant_name(&body);
     let mut out = String::new();
-    push_cell(&mut out, body.id);
-    let _ = write!(
-        out,
-        "\t{}\t{name}\t{horizon}\t{factor}\t{micros}\t{name};SPEED_OF_LIGHT_SQUARED\t",
-        body.gm,
-    );
-    push_cell(&mut out, body.source);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.cell(body.id)
+        .value(body.gm)
+        .cell(name)
+        .value(horizon)
+        .value(factor)
+        .value(micros)
+        .value(format_args!("{name};SPEED_OF_LIGHT_SQUARED"))
+        .cell(body.source);
+    line.end();
     Ok(out)
 }
 
@@ -144,12 +153,13 @@ pub fn gravitational_dilation_line(given: &str, radius_metres: f64) -> Answer<St
 pub fn gravitating_bodies_lines() -> String {
     let mut out = String::new();
     for body in GRAVITATING_BODIES {
-        push_cell(&mut out, body.id);
-        out.push('\t');
-        push_cell(&mut out, body.english_name);
-        let _ = write!(out, "\t{}\t{}\t", body.gm, gm_constant_name(body));
-        push_cell(&mut out, body.source);
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(body.id)
+            .cell(body.english_name)
+            .value(body.gm)
+            .cell(gm_constant_name(body))
+            .cell(body.source);
+        line.end();
     }
     out
 }
@@ -157,7 +167,6 @@ pub fn gravitating_bodies_lines() -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
     use hc_relativity::constants::{
         EARTH_EQUATORIAL_RADIUS, GM_EARTH, GM_JUPITER, GM_MARS, GM_MOON, GM_SAGITTARIUS_A_STAR,
         GM_SUN, GPS_ORBIT_RADIUS,
@@ -177,9 +186,7 @@ mod tests {
         }
     }
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.trim_end_matches('\n').split('\t').collect()
-    }
+    use crate::boundary::cells;
 
     fn number(cell: &str) -> f64 {
         cell.parse().unwrap_or(f64::NAN)

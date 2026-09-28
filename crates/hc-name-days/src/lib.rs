@@ -113,7 +113,8 @@ pub static ALL: [NameDayList; 4] = [
 /// The list with this identifier, from any country.
 #[must_use]
 pub fn by_id(id: &str) -> Option<&'static NameDayList> {
-    ALL.iter().find(|list| list.id == id)
+    ALL.iter()
+        .find(|list| hc_core::catalogue::matches(id, list.id))
 }
 
 /// Every list of a country that is in force in a year.

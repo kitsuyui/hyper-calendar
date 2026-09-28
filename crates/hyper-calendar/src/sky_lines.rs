@@ -17,9 +17,7 @@
 //! states its series hold; outside it the answer is
 //! [`Refusal::OutOfRange`] rather than an extrapolation.
 
-use alloc::format;
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::lunar::{
     MEAN_SYNODIC_MONTH, MoonPhase, lunar_distance, lunar_illuminated_fraction, lunar_latitude,
@@ -29,6 +27,7 @@ use hc_astro::lunar::{
 use hc_astro::solar::{solar_longitude, solar_longitude_after, solar_radius_vector};
 use hc_astro::time::{DeltaTRegime, decimal_year, delta_t, delta_t_regime};
 use hc_calendar::fixed::Moment;
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::math::floor;
 use hc_seasons::solar_terms::{DEGREES_PER_TERM, SolarTerm, TermOrder};
 use hc_seasons::zodiac::decans::{decan_at_moment, degrees_into_decan};
@@ -36,7 +35,7 @@ use hc_seasons::zodiac::decans::{decan_at_moment, degrees_into_decan};
 #[cfg(doc)]
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR};
 use crate::astro_lines::{moment_in_era, unix_from_moment};
-use crate::boundary::{Answer, Refusal, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`sky_line`] writes.
 pub const SKY_COLUMNS: usize = 12;
@@ -50,10 +49,6 @@ pub const DECAN_COLUMNS: usize = 6;
 /// The longest span [`term_lines`] and [`phase_lines`] accept, in seconds:
 /// 400 Julian years, about 4 950 lunations and 9 600 solar terms.
 pub const MAX_SPAN_SECONDS: i64 = 400 * 31_557_600;
-
-/// Seconds in a day, as the astronomical series count them: no leap
-/// second, because ΔT carries the Earth's rotational irregularity.
-const SECONDS_PER_DAY: i64 = 86_400;
 
 /// The series behind the Sun's columns, as `hc-astro` names them.
 const SUN_SOURCE: &str = "Sun: VSOP87D Earth series truncated at 1e-7 (213 terms), Meeus ch. 25";
@@ -110,27 +105,23 @@ pub fn sky_line(unix: i64) -> Answer<String> {
     let moment = moment_in_era(unix)?;
     let regime = delta_t_regime(decimal_year(moment));
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-        solar_longitude(moment),
-        solar_radius_vector(moment),
-        lunar_longitude(moment),
-        lunar_latitude(moment),
-        lunar_distance(moment),
-        lunar_phase(moment),
-        lunar_illuminated_fraction(moment),
-        unix_from_moment(new_moon_before(moment)),
-        unix_from_moment(new_moon_at_or_after(moment)),
-        delta_t(moment),
-        regime_name(regime),
-    );
-    let source = format!(
-        "{SUN_SOURCE}; {MOON_SOURCE}; {PHASES_SOURCE}; delta T: {}",
-        delta_t_source(regime)
-    );
-    push_cell(&mut out, &source);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(solar_longitude(moment))
+        .value(solar_radius_vector(moment))
+        .value(lunar_longitude(moment))
+        .value(lunar_latitude(moment))
+        .value(lunar_distance(moment))
+        .value(lunar_phase(moment))
+        .value(lunar_illuminated_fraction(moment))
+        .value(unix_from_moment(new_moon_before(moment)))
+        .value(unix_from_moment(new_moon_at_or_after(moment)))
+        .value(delta_t(moment))
+        .cell(regime_name(regime))
+        .value(format_args!(
+            "{SUN_SOURCE}; {MOON_SOURCE}; {PHASES_SOURCE}; delta T: {}",
+            delta_t_source(regime)
+        ));
+    line.end();
     Ok(out)
 }
 
@@ -185,13 +176,12 @@ pub fn term_lines(from: i64, to: i64) -> Answer<String> {
         if unix < from {
             continue;
         }
-        let _ = writeln!(
-            out,
-            "{}\t{unix}\t{}\t{}",
-            term.solar_longitude_degrees(),
-            term.chinese_name(),
-            term.japanese_name()
-        );
+        let mut line = Line::new(&mut out);
+        line.value(term.solar_longitude_degrees())
+            .value(unix)
+            .cell(term.chinese_name())
+            .cell(term.japanese_name());
+        line.end();
     }
     Ok(out)
 }
@@ -240,12 +230,12 @@ pub fn phase_lines(from: i64, to: i64) -> Answer<String> {
             if unix < from {
                 continue;
             }
-            let _ = writeln!(
-                out,
-                "{}\t{unix}\t{}\t",
-                phase.elongation_degrees(),
-                phase_name(phase)
-            );
+            let mut line = Line::new(&mut out);
+            line.value(phase.elongation_degrees())
+                .value(unix)
+                .cell(phase_name(phase))
+                .empty();
+            line.end();
         }
         lunation += 1;
     }
@@ -268,13 +258,15 @@ pub fn decan_line(unix: i64) -> Answer<String> {
     let decan = decan_at_moment(moment);
     let sign = decan.sign();
     let ruler = decan.ruler();
-    let mut out = format!("{}\t", sign.index() + 1);
-    push_cell(&mut out, sign.english_name());
-    let _ = write!(out, "\t{}\t", decan.part());
-    push_cell(&mut out, ruler.id);
-    out.push('\t');
-    push_cell(&mut out, ruler.english_name());
-    let _ = writeln!(out, "\t{}", degrees_into_decan(moment));
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(sign.index() + 1)
+        .cell(sign.english_name())
+        .value(decan.part())
+        .cell(ruler.id)
+        .cell(ruler.english_name())
+        .value(degrees_into_decan(moment));
+    line.end();
     Ok(out)
 }
 
@@ -295,32 +287,29 @@ fn push_planetary_hour(
     locale: &str,
 ) {
     use hc_seasons::planetary_hours::planetary_hour_start;
-    let _ = write!(out, "{}\t{hour}\t{}\t", day.0, ruler.id);
-    crate::boundary::push_reckoning_name(out, locale, hc_i18n::reckonings::PLANET, ruler.id);
-    let _ = write!(out, "\t{}\t", u8::from(hour <= 12));
+    let mut line = Line::new(out);
+    line.value(day.0).value(hour).cell(ruler.id);
+    crate::boundary::reckoning_name(&mut line, locale, hc_i18n::reckonings::PLANET, ruler.id);
+    line.flag(hour <= 12);
     let start = planetary_hour_start(day, hour, place);
     let end = planetary_hour_start(day, hour + 1, place);
     match (start, end) {
         (Some(Ok(start)), Some(Ok(end))) => {
-            let _ = write!(
-                out,
-                "{}\t{}\t",
-                unix_from_moment(start),
-                unix_from_moment(end)
-            );
-            crate::astro_lines::push_missing_cells(out, None);
+            line.value(unix_from_moment(start))
+                .value(unix_from_moment(end));
+            crate::astro_lines::missing_cells(&mut line, None);
         }
         (Some(Err(missing)), _) | (_, Some(Err(missing))) => {
-            out.push_str("\t\t");
-            crate::astro_lines::push_missing_cells(out, Some(missing));
+            line.empties(2);
+            crate::astro_lines::missing_cells(&mut line, Some(missing));
         }
         // Both hours are from 1 to 25, which `planetary_hour_start` answers.
         _ => {
-            out.push_str("\t\t");
-            crate::astro_lines::push_missing_cells(out, None);
+            line.empties(2);
+            crate::astro_lines::missing_cells(&mut line, None);
         }
     }
-    out.push('\n');
+    line.end();
 }
 
 /// The line of `hc_planetary_hour`: the planetary hour at a Universal Time
@@ -353,9 +342,10 @@ pub fn planetary_hour_line(
     match hc_seasons::planetary_hours::planetary_hour(moment, place) {
         Ok(hour) => push_planetary_hour(&mut out, hour.day, hour.hour, hour.ruler, place, locale),
         Err(missing) => {
-            out.push_str("\t\t\t\t\t\t\t\t");
-            crate::astro_lines::push_missing_cells(&mut out, Some(missing));
-            out.push('\n');
+            let mut line = Line::new(&mut out);
+            line.empties(PLANETARY_HOUR_COLUMNS - crate::astro_lines::MISSING_COLUMNS);
+            crate::astro_lines::missing_cells(&mut line, Some(missing));
+            line.end();
         }
     }
     Ok(out)

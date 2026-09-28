@@ -178,6 +178,23 @@ pub const SURYA_SIDDHANTA_BIJA: MeanSignRule = MeanSignRule {
 /// Every rule carried.
 pub const RULES: &[MeanSignRule] = &[SURYA_SIDDHANTA, ARYA_SIDDHANTA, SURYA_SIDDHANTA_BIJA];
 
+/// The rule with this name, by [`hc_core::catalogue::matches`].
+#[must_use]
+pub fn by_name(name: &str) -> Option<MeanSignRule> {
+    RULES
+        .iter()
+        .copied()
+        .find(|rule| hc_core::catalogue::matches(name, rule.name))
+}
+
+hc_core::catalogue_tests! {
+    type: MeanSignRule,
+    id: |rule| rule.name,
+    tests: mean_sign_rule_catalogue_tests,
+    all: RULES,
+    lookup: by_name,
+}
+
 /// A count modulo sixty, into 1 to 60.
 const fn position(count: i64) -> u8 {
     match count.rem_euclid(LENGTH as i64) {

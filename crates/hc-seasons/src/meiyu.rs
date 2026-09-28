@@ -9,11 +9,14 @@
 //! or six days away. Each convention is a function of its own, under
 //! policy §5:
 //!
-//! | Function | Rule | Region in the source |
-//! | --- | --- | --- |
-//! | [`ru_mei_bing`] | the first 丙 day from 芒种 | 华南 |
-//! | [`ru_mei_ren`] | the first 壬 day from 芒种 | 华中 |
-//! | [`chu_mei_wei`] | the first 未 day from 小暑 | 华南 |
+//! | Function | Identifier | Rule | Region in the source |
+//! | --- | --- | --- | --- |
+//! | [`ru_mei_bing`] | `ru-mei-bing` | the first 丙 day from 芒种 | 华南 |
+//! | [`ru_mei_ren`] | `ru-mei-ren` | the first 壬 day from 芒种 | 华中 |
+//! | [`chu_mei_wei`] | `chu-mei-wei` | the first 未 day from 小暑 | 华南 |
+//!
+//! The identifiers are the table [`PlumRainRule::ALL`], by which a caller at
+//! the boundary selects a rule.
 //!
 //! The source gives no 出梅 for Central China, and none is carried. A
 //! reading that puts 入梅 at 立夏's first 庚 day and 出梅 at 芒种's first 壬
@@ -65,6 +68,38 @@ pub fn ru_mei_ren(year: i64, meridian: Meridian) -> Rd {
 #[must_use]
 pub fn chu_mei_wei(year: i64, meridian: Meridian) -> Rd {
     branch_day_on_or_after(term_day(year, SolarTerm::MINOR_HEAT, meridian), branch::WEI)
+}
+
+/// A rule of 入梅 or 出梅 under the identifier a caller selects it by
+/// (policy §5): the function that gives its day in a Gregorian year, with
+/// its solar term at a meridian.
+#[derive(Debug, Clone, Copy)]
+pub struct PlumRainRule {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The day the rule gives in a Gregorian year.
+    pub day: fn(i64, Meridian) -> Rd,
+}
+
+hc_core::catalogue! {
+    type: PlumRainRule,
+    id: |rule| rule.id,
+    tests: plum_rain_rule_catalogue_tests,
+    associated;
+
+    /// The three rules, in the order of the module's table.
+    pub const ALL;
+    /// The rule with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// [`ru_mei_bing`].
+        pub const RU_MEI_BING = Self { id: "ru-mei-bing", day: ru_mei_bing };
+        /// [`ru_mei_ren`].
+        pub const RU_MEI_REN = Self { id: "ru-mei-ren", day: ru_mei_ren };
+        /// [`chu_mei_wei`].
+        pub const CHU_MEI_WEI = Self { id: "chu-mei-wei", day: chu_mei_wei };
+    }
 }
 
 #[cfg(test)]

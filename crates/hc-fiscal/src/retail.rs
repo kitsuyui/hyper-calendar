@@ -832,7 +832,9 @@ mod tests {
 /// The system with this name.
 #[must_use]
 pub fn by_name(name: &str) -> Option<&'static WeekYearSystem> {
-    ALL.iter().copied().find(|system| system.name == name)
+    ALL.iter()
+        .copied()
+        .find(|system| hc_core::catalogue::matches(name, system.name))
 }
 
 hc_core::catalogue_tests! {

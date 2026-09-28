@@ -2340,6 +2340,29 @@ impl Kind {
     }
 }
 
+hc_core::catalogue! {
+    type: Kind,
+    tests: kind_catalogue_tests,
+    variants;
+
+    /// Every kind.
+    pub const ALL;
+    /// The word the kind is written as at the boundary: `public`, `bank`,
+    /// `religious`, `observance`, `school` or `workday`.
+    pub fn id;
+    /// The kind with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Public => "public",
+        Bank => "bank",
+        Religious => "religious",
+        Observance => "observance",
+        School => "school",
+        Workday => "workday",
+    }
+}
+
 /// How firm a computed date is.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Confidence {
@@ -2352,6 +2375,25 @@ pub enum Confidence {
     /// decree rather than fixed in law, and anything whose calendar this
     /// crate only approximates.
     Approximate,
+}
+
+hc_core::catalogue! {
+    type: Confidence,
+    tests: confidence_catalogue_tests,
+    variants;
+
+    /// Both confidences, exact first.
+    pub const ALL;
+    /// The word the confidence is written as at the boundary: `exact` or
+    /// `approximate`.
+    pub fn id;
+    /// The confidence with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Exact => "exact",
+        Approximate => "approximate",
+    }
 }
 
 /// Which direction a weekend substitution moves in.

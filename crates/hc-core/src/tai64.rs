@@ -197,6 +197,49 @@ pub fn decode_tai64na(bytes: [u8; 16]) -> TimeResult<Instant<Tai>> {
     )
 }
 
+/// Which of Bernstein's three external formats a label is in.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Format {
+    /// Eight bytes: the second, [`encode_tai64`].
+    Tai64,
+    /// Twelve bytes: the second and the nanosecond, [`encode_tai64n`].
+    Tai64N,
+    /// Sixteen bytes: the second, the nanosecond and the attosecond,
+    /// [`encode_tai64na`].
+    Tai64Na,
+}
+
+crate::catalogue! {
+    type: Format,
+    tests: format_catalogue_tests,
+    variants;
+
+    /// The three formats, shortest first.
+    pub const ALL;
+    /// The format's identifier: `tai64`, `tai64n` or `tai64na`.
+    pub fn id;
+    /// The format with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Tai64 => "tai64",
+        Tai64N => "tai64n",
+        Tai64Na => "tai64na",
+    }
+}
+
+impl Format {
+    /// The length of the label in bytes.
+    #[must_use]
+    pub const fn bytes(self) -> usize {
+        match self {
+            Self::Tai64 => 8,
+            Self::Tai64N => 12,
+            Self::Tai64Na => 16,
+        }
+    }
+}
+
 /// The label of POSIX second 0 in the `tai64-posix-plus-10` convention,
 /// `2⁶² + 10`.
 pub const POSIX_PLUS_10_ORIGIN_LABEL: u64 = TAI64_ORIGIN_LABEL + 10;

@@ -38,7 +38,7 @@ assert_eq!(tai.since_epoch().whole_seconds(), 1_483_228_800 + 37);
 | `internet_time` | Swatch Internet Time, @000 to @999 from POSIX time on Biel Mean Time, UTC+1. |
 | `math` | The floating-point functions a `no_std` build has to route somewhere. |
 | `memo` | A memo of pure functions for the length of one call: inside a `scope`, `cached` computes each keyed question once and hands the same value back. It is emptied when the outermost scope ends, and computes every time outside a scope, without `std` or without the `memo` feature, so it changes how long a call takes and never what it returns. |
-| `catalogue` | The `catalogue!` macro, which declares a table of named entries together with the tests every such table needs, and `catalogue_tests!`, which adds those tests to a table assembled by hand. |
+| `catalogue` | The `catalogue!` macro, which declares a table of named entries — or the identifiers of an `enum`'s values — together with the tests every such table needs; `catalogue_tests!`, which adds those tests to a table assembled by hand; and `matches`, the one rule every lookup of an identifier follows: white space around it ignored, ASCII case ignored. |
 
 ## The lines it draws
 

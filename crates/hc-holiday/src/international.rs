@@ -1136,10 +1136,13 @@ pub static UNITED_NATIONS: RuleSet = RuleSet {
 /// Every international table in the crate.
 pub static ALL: &[&RuleSet] = &[&UNITED_NATIONS];
 
-/// The table for an international set's identifier.
+/// The table for an international set's identifier, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static RuleSet> {
-    ALL.iter().copied().find(|set| set.code == code)
+    ALL.iter()
+        .copied()
+        .find(|set| hc_core::catalogue::matches(code, set.code))
 }
 
 hc_core::catalogue_tests! {

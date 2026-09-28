@@ -474,10 +474,24 @@ pub const fn all() -> [CircadCalendar; 5] {
     ]
 }
 
-/// The circad calendar with this identifier.
+/// The circad calendar with this identifier, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_id(id: &str) -> Option<CircadCalendar> {
-    all().into_iter().find(|calendar| calendar.rule.id == id)
+    all()
+        .into_iter()
+        .find(|calendar| hc_core::catalogue::matches(id, calendar.rule.id))
+}
+
+hc_core::catalogue_tests! {
+    type: CircadCalendar,
+    id: |calendar| calendar.rule.id,
+    tests: circad_calendar_catalogue_tests,
+    all: {
+        const ALL: [CircadCalendar; 5] = crate::circad::all();
+        &ALL
+    },
+    lookup: by_id,
 }
 
 #[cfg(test)]

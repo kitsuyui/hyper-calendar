@@ -43,10 +43,10 @@ use hc_format::radio::dcf77::summer_time;
 use hc_format::radio::dcf77::{Dcf77Frame, Zone};
 use hc_format::radio::jjy::{JjyContent, JjyFrame};
 use hc_format::radio::wwvb::{AmFrame, DstNext, DstState, PmFrame};
-use hc_format::radio::{FrameError, LeapNotice, Symbol};
+use hc_format::radio::{Code as RadioCode, FrameError, LeapNotice, Symbol};
 
-use crate::boundary::{Answer, Refusal, names, push_cell};
-use crate::time_lines::{tai_instant, tai_parts, unix_instant};
+use crate::boundary::{Answer, Line, Refusal, line};
+use crate::time_lines::{hex_into, tai_instant, tai_parts, unix_instant};
 
 /// The leap-second policy a `strict` flag asks for.
 const fn policy(strict: bool) -> LeapPolicy {
@@ -83,36 +83,19 @@ fn code_octets(hex: &str) -> Answer<([u8; MAX_CODE_OCTETS], usize)> {
         return Err(Refusal::Malformed);
     }
     let mut octets = [0u8; MAX_CODE_OCTETS];
-    let (pairs, _) = digits.as_chunks::<2>();
-    for (octet, [high, low]) in octets.iter_mut().zip(pairs) {
-        let (Some(high), Some(low)) = (hex_digit(*high), hex_digit(*low)) else {
-            return Err(Refusal::Malformed);
-        };
-        *octet = high << 4 | low;
-    }
+    hex_into(digits, &mut octets)?;
     Ok((octets, digits.len() / 2))
-}
-
-const fn hex_digit(digit: u8) -> Option<u8> {
-    match digit {
-        b'0'..=b'9' => Some(digit - b'0'),
-        b'a'..=b'f' => Some(digit - b'a' + 10),
-        b'A'..=b'F' => Some(digit - b'A' + 10),
-        _ => None,
-    }
 }
 
 /// The five cells of an instant: its TAI seconds and attoseconds, and its
 /// UTC label's POSIX second, leap-second flag and attoseconds.
-fn push_instant(out: &mut String, tai: Instant<Tai>, utc: UtcInstant) -> Answer<()> {
+fn instant_cells(line: &mut Line<'_>, tai: Instant<Tai>, utc: UtcInstant) -> Answer<()> {
     let (seconds, attoseconds) = tai_parts(tai)?;
-    let _ = write!(
-        out,
-        "{seconds}\t{attoseconds}\t{}\t{}\t{}",
-        utc.unix_seconds,
-        u8::from(utc.leap_second),
-        utc.subsec_attos
-    );
+    line.value(seconds)
+        .value(attoseconds)
+        .value(utc.unix_seconds)
+        .flag(utc.leap_second)
+        .value(utc.subsec_attos);
     Ok(())
 }
 
@@ -164,17 +147,18 @@ pub fn ccsds_decode_line(hex: &str, strict: bool) -> Answer<String> {
         ),
         CcsdsCode::AgencyDefined(_) => return Err(Refusal::NoData),
     };
-    let mut out = String::from(name);
-    out.push('\t');
-    push_instant(&mut out, tai, utc)?;
-    out.push('\n');
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(name);
+    instant_cells(&mut line, tai, utc)?;
+    line.end();
     Ok(out)
 }
 
 /// Octets as lower-case hexadecimal.
-fn push_hex(out: &mut String, octets: &[u8]) {
+fn hex(cell: &mut dyn Write, octets: &[u8]) {
     for octet in octets {
-        let _ = write!(out, "{octet:02x}");
+        let _ = write!(cell, "{octet:02x}");
     }
 }
 
@@ -232,22 +216,13 @@ pub fn ccsds_encode_line(
         }
         Preamble::AgencyDefined { .. } => return Err(Refusal::NoData),
     };
-    let mut out = String::new();
-    push_hex(&mut out, code.as_slice());
-    out.push('\n');
-    Ok(out)
+    Ok(line(|line| {
+        line.cell_with(|cell| hex(cell, code.as_slice()));
+    }))
 }
 
 /// How many columns [`ccsds_ascii_parse_line`] writes.
 pub const CCSDS_ASCII_COLUMNS: usize = 9;
-
-/// The name a variation is written as.
-const fn variation_name(variation: AsciiVariation) -> &'static str {
-    match variation {
-        AsciiVariation::A => "a",
-        AsciiVariation::B => "b",
-    }
-}
 
 /// The line of `hc_ccsds_ascii_parse`: an ASCII code A or B read — the
 /// variation, `a` or `b`; the instant it names, the start of the span a
@@ -266,40 +241,19 @@ pub fn ccsds_ascii_parse_line(text: &str, strict: bool) -> Answer<String> {
     let code = ccsds::parse(text).map_err(|_| Refusal::Malformed)?;
     let utc = code.to_utc_instant().map_err(code_refusal)?;
     let (tai, utc) = with_tai(utc, strict)?;
-    let mut out = String::from(variation_name(code.variation));
-    out.push('\t');
-    push_instant(&mut out, tai, utc)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(code.variation.id());
+    instant_cells(&mut line, tai, utc)?;
     match code.precision {
-        AsciiPrecision::Hour => out.push_str("\thour\t"),
-        AsciiPrecision::Minute => out.push_str("\tminute\t"),
-        AsciiPrecision::Second => out.push_str("\tsecond\t"),
-        AsciiPrecision::Fraction(digits) => {
-            let _ = write!(out, "\tfraction\t{digits}");
-        }
-    }
-    let _ = writeln!(out, "\t{}", u8::from(code.terminator));
-    Ok(out)
-}
-
-/// A precision as a line names it: `hour`, `minute`, `second`, or the
-/// digits of the fraction, `1` to `18`.
-fn ascii_precision(name: &str) -> Answer<AsciiPrecision> {
-    let name = name.trim();
-    if names(name, "hour") {
-        return Ok(AsciiPrecision::Hour);
-    }
-    if names(name, "minute") {
-        return Ok(AsciiPrecision::Minute);
-    }
-    if names(name, "second") {
-        return Ok(AsciiPrecision::Second);
-    }
-    let digits = match name.as_bytes() {
-        [digit @ b'1'..=b'9'] => digit - b'0',
-        [b'1', digit @ b'0'..=b'8'] => 10 + digit - b'0',
-        _ => return Err(Refusal::Unknown),
+        AsciiPrecision::Hour => line.cell("hour").empty(),
+        AsciiPrecision::Minute => line.cell("minute").empty(),
+        AsciiPrecision::Second => line.cell("second").empty(),
+        AsciiPrecision::Fraction(digits) => line.cell("fraction").value(digits),
     };
-    Ok(AsciiPrecision::Fraction(digits))
+    line.flag(code.terminator);
+    line.end();
+    Ok(out)
 }
 
 /// The line of `hc_ccsds_ascii_format`: the ASCII code of a TAI instant's
@@ -323,48 +277,21 @@ pub fn ccsds_ascii_format_line(
     strict: bool,
 ) -> Answer<String> {
     let instant = tai_instant(tai_seconds, attoseconds)?;
-    let variation = if names(variation, "a") {
-        AsciiVariation::A
-    } else if names(variation, "b") {
-        AsciiVariation::B
-    } else {
-        return Err(Refusal::Unknown);
-    };
-    let precision = ascii_precision(precision)?;
+    let variation = AsciiVariation::by_id(variation).ok_or(Refusal::Unknown)?;
+    let precision = AsciiPrecision::by_name(precision).ok_or(Refusal::Unknown)?;
     let utc = unix::utc_from_tai(instant, policy(strict))?;
     let code = AsciiTime::from_utc_instant(utc, variation, precision, terminator)
         .map_err(|_| Refusal::OutOfRange)?;
-    let mut out = String::new();
-    code.write(&mut out).map_err(|_| Refusal::OutOfRange)?;
-    out.push('\n');
-    Ok(out)
+    let mut text = String::new();
+    code.write(&mut text).map_err(|_| Refusal::OutOfRange)?;
+    Ok(line(|line| {
+        line.cell(&text);
+    }))
 }
 
-/// The radio codes `hc_radio_decode` and `hc_radio_encode` read and write,
-/// by name.
-pub const RADIO_CODES: [&str; 4] = ["jjy", "dcf77", "wwvb-am", "wwvb-pm"];
-
-/// Which radio code.
-#[derive(Clone, Copy, PartialEq, Eq)]
-enum RadioCode {
-    Jjy,
-    Dcf77,
-    WwvbAm,
-    WwvbPm,
-}
-
+/// The radio code an identifier names, by [`RadioCode::by_id`].
 fn radio_code(name: &str) -> Answer<RadioCode> {
-    [
-        RadioCode::Jjy,
-        RadioCode::Dcf77,
-        RadioCode::WwvbAm,
-        RadioCode::WwvbPm,
-    ]
-    .into_iter()
-    .zip(RADIO_CODES)
-    .find(|(_, id)| names(name, id))
-    .map(|(code, _)| code)
-    .ok_or(Refusal::Unknown)
+    RadioCode::by_id(name).ok_or(Refusal::Unknown)
 }
 
 /// The longest frame, a minute with an inserted leap second.
@@ -405,35 +332,6 @@ const fn frame_refusal(_: FrameError) -> Refusal {
     Refusal::Malformed
 }
 
-const fn leap_name(leap: LeapNotice) -> &'static str {
-    match leap {
-        LeapNotice::None => "none",
-        LeapNotice::Positive => "positive",
-        LeapNotice::Negative => "negative",
-    }
-}
-
-const fn dst_name(dst: DstState) -> &'static str {
-    match dst {
-        DstState::Standard => "standard",
-        DstState::BeginsToday => "begins-today",
-        DstState::InEffect => "in-effect",
-        DstState::EndsToday => "ends-today",
-    }
-}
-
-fn dst_state(name: &str) -> Answer<DstState> {
-    [
-        DstState::Standard,
-        DstState::BeginsToday,
-        DstState::InEffect,
-        DstState::EndsToday,
-    ]
-    .into_iter()
-    .find(|state| names(name, dst_name(*state)))
-    .ok_or(Refusal::Unknown)
-}
-
 /// The century a caller names: a multiple of 100 from 0 to 9 900.
 fn century(century: i64) -> Answer<i64> {
     if (0..=9_900).contains(&century) && century % 100 == 0 {
@@ -459,7 +357,7 @@ struct Decoded {
 }
 
 /// The line of `hc_radio_decode`: one minute's frame of a radio code of
-/// [`RADIO_CODES`], a string of `0`, `1` and, for `jjy` and `wwvb-am`,
+/// [`RadioCode::ALL`], a string of `0`, `1` and, for `jjy` and `wwvb-am`,
 /// `M` for a marker, read in the century beginning `century` — the POSIX
 /// second of the minute the frame names (its first marker, or for `dcf77`
 /// the minute it announces); the fixed day, hour and minute of that
@@ -516,10 +414,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
                 } else {
                     LeapNotice::None
                 },
-                summer: match frame.zone {
-                    Zone::Cet => "cet",
-                    Zone::Cest => "cest",
-                },
+                summer: frame.zone.id(),
                 zone_change: Some(frame.zone_change),
                 dut1_tenths: None,
                 dst_next: None,
@@ -537,7 +432,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
                 } else {
                     LeapNotice::None
                 },
-                summer: dst_name(frame.dst),
+                summer: frame.dst.id(),
                 zone_change: None,
                 dut1_tenths: Some(frame.dut1_tenths),
                 dst_next: None,
@@ -551,7 +446,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
                 offset_hours: 0,
                 seconds: len,
                 leap: frame.leap,
-                summer: dst_name(frame.dst),
+                summer: frame.dst.id(),
                 zone_change: None,
                 dut1_tenths: None,
                 dst_next: frame.next.word(),
@@ -570,31 +465,19 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
             )
         })
         .ok_or(Refusal::Overflow)?;
-    let mut out = String::new();
-    let _ = write!(
-        out,
-        "{unix}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-        reading.day.0,
-        reading.time.hour(),
-        reading.time.minute(),
-        decoded.offset_hours,
-        decoded.seconds,
-        leap_name(decoded.leap),
-        decoded.summer,
-    );
-    if let Some(change) = decoded.zone_change {
-        let _ = write!(out, "{}", u8::from(change));
-    }
-    out.push('\t');
-    if let Some(tenths) = decoded.dut1_tenths {
-        let _ = write!(out, "{tenths}");
-    }
-    out.push('\t');
-    if let Some(word) = decoded.dst_next {
-        let _ = write!(out, "{word}");
-    }
-    out.push('\n');
-    Ok(out)
+    Ok(line(|line| {
+        line.value(unix)
+            .value(reading.day.0)
+            .value(reading.time.hour())
+            .value(reading.time.minute())
+            .value(decoded.offset_hours)
+            .value(decoded.seconds)
+            .cell(decoded.leap.id())
+            .cell(decoded.summer)
+            .value_or_empty(decoded.zone_change.map(u8::from))
+            .value_or_empty(decoded.dut1_tenths)
+            .value_or_empty(decoded.dst_next);
+    }))
 }
 
 /// The first and last POSIX seconds of the years 1 to 9999, the minutes
@@ -602,7 +485,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
 const RADIO_UNIX_RANGE: core::ops::RangeInclusive<i64> = -62_135_596_800..=253_402_300_799;
 
 /// The line of `hc_radio_encode`: the frame of a radio code of
-/// [`RADIO_CODES`] for the minute that begins at a POSIX second, as a
+/// [`RadioCode::ALL`] for the minute that begins at a POSIX second, as a
 /// string of `0`, `1` and, for `jjy` and `wwvb-am`, `M` — the frame that
 /// begins with that minute, or for `dcf77` the one sent during the minute
 /// before, which announces it. `leap` is the leap second announced for
@@ -719,13 +602,8 @@ impl Summer<'_> {
                 summer,
                 zone_change,
             } => {
-                if names(summer, "cet") {
-                    Ok((Zone::Cet, zone_change))
-                } else if names(summer, "cest") {
-                    Ok((Zone::Cest, zone_change))
-                } else {
-                    Err(Refusal::Unknown)
-                }
+                let zone = Zone::by_id(summer).ok_or(Refusal::Unknown)?;
+                Ok((zone, zone_change))
             }
             #[cfg(feature = "tz")]
             Self::Rules(zone) => {
@@ -740,7 +618,7 @@ impl Summer<'_> {
         #[cfg(not(feature = "tz"))]
         let _ = unix_seconds;
         match self {
-            Self::Named { summer, .. } => dst_state(summer),
+            Self::Named { summer, .. } => DstState::by_id(summer).ok_or(Refusal::Unknown),
             #[cfg(feature = "tz")]
             Self::Rules(zone) => Ok(DstState::of_day(zone, UnixTime::from_seconds(unix_seconds))),
         }
@@ -806,10 +684,10 @@ fn encode_radio(
         ))
     };
     let range = |_: FrameError| Refusal::OutOfRange;
-    let mut out = String::new();
+    let mut frame_text = String::new();
     let mut push_symbols = |symbols: &[Symbol]| {
         for symbol in symbols {
-            out.push(match symbol {
+            frame_text.push(match symbol {
                 Symbol::Zero => '0',
                 Symbol::One => '1',
                 Symbol::Marker => 'M',
@@ -857,8 +735,9 @@ fn encode_radio(
             push_symbols(&bits(frame.encode().map_err(range)?.as_slice()));
         }
     }
-    out.push('\n');
-    Ok(out)
+    Ok(line(|line| {
+        line.cell(&frame_text);
+    }))
 }
 
 /// The IRIG code a signal designation names, a format letter and three
@@ -875,13 +754,11 @@ fn irig_code(signal: &str) -> Answer<IrigCode> {
 /// How many columns each line of [`irig_formats_lines`] writes.
 pub const IRIG_FORMATS_COLUMNS: usize = 9;
 
-/// Write a list of digits separated by spaces.
-fn push_digits(out: &mut String, digits: &[u8]) {
+/// A list of digits separated by spaces.
+fn digit_list(cell: &mut dyn Write, digits: &[u8]) {
     for (index, digit) in digits.iter().enumerate() {
-        if index > 0 {
-            out.push(' ');
-        }
-        let _ = write!(out, "{digit}");
+        let separator = if index > 0 { " " } else { "" };
+        let _ = write!(cell, "{separator}{digit}");
     }
 }
 
@@ -903,22 +780,17 @@ fn push_digits(out: &mut String, digits: &[u8]) {
 pub fn irig_formats_lines() -> String {
     let mut out = String::new();
     for format in irig::IrigFormat::ALL {
-        let _ = write!(
-            out,
-            "{}\t{}\t{}\t{}\t",
-            format.letter(),
-            format.index_count_micros(),
-            format.frame_len(),
-            format.frame_micros(),
-        );
-        push_cell(&mut out, &format.time_fields().join(" "));
-        let _ = write!(out, "\t{}\t", format.control_bits());
-        push_digits(&mut out, format.modulations());
-        out.push('\t');
-        push_digits(&mut out, format.carriers());
-        out.push('\t');
-        push_digits(&mut out, format.expressions());
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.value(format.letter())
+            .value(format.index_count_micros())
+            .value(format.frame_len())
+            .value(format.frame_micros())
+            .cell(&format.time_fields().join(" "))
+            .value(format.control_bits())
+            .cell_with(|cell| digit_list(cell, format.modulations()))
+            .cell_with(|cell| digit_list(cell, format.carriers()))
+            .cell_with(|cell| digit_list(cell, format.expressions()));
+        line.end();
     }
     out
 }
@@ -970,30 +842,17 @@ pub fn irig_decode_line(signal: &str, frame: &str, year: i64) -> Answer<String> 
         decoded.reading_in_year(year)
     }
     .map_err(frame_refusal)?;
-    let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t",
-        reading.day.0,
-        decoded.day_of_year,
-        decoded.hour,
-        decoded.minute,
-        decoded.second,
-        decoded.hundredths,
-    );
-    if let Some(digits) = decoded.year {
-        let _ = write!(out, "{digits}");
-    }
-    out.push('\t');
-    if code.has_control() {
-        let _ = write!(out, "{}", decoded.control);
-    }
-    out.push('\t');
-    if code.has_sbs() {
-        let _ = write!(out, "{}", decoded.straight_binary_seconds());
-    }
-    out.push('\n');
-    Ok(out)
+    Ok(line(|line| {
+        line.value(reading.day.0)
+            .value(decoded.day_of_year)
+            .value(decoded.hour)
+            .value(decoded.minute)
+            .value(decoded.second)
+            .value(decoded.hundredths)
+            .value_or_empty(decoded.year)
+            .value_or_empty(code.has_control().then_some(decoded.control))
+            .value_or_empty(code.has_sbs().then(|| decoded.straight_binary_seconds()));
+    }))
 }
 
 /// The line of `hc_irig_encode`: the frame of an IRIG code, named by its
@@ -1041,16 +900,18 @@ pub fn irig_encode_line(
     let range = |_: FrameError| Refusal::OutOfRange;
     let frame = IrigFrame::for_reading(code, CivilDateTime::new(Rd(fixed), time), control)
         .map_err(range)?;
-    let mut out = String::new();
-    for symbol in frame.encode().map_err(range)?.as_slice() {
-        out.push(match symbol {
-            Symbol::Zero => '0',
-            Symbol::One => '1',
-            Symbol::Marker => 'M',
+    let symbols = frame.encode().map_err(range)?;
+    Ok(line(|line| {
+        line.cell_with(|cell| {
+            for symbol in symbols.as_slice() {
+                let _ = cell.write_char(match symbol {
+                    Symbol::Zero => '0',
+                    Symbol::One => '1',
+                    Symbol::Marker => 'M',
+                });
+            }
         });
-    }
-    out.push('\n');
-    Ok(out)
+    }))
 }
 
 /// .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value: the
@@ -1076,24 +937,19 @@ pub fn dotnet_ticks_from_unix(unix_seconds: i64, attoseconds: u64) -> Answer<i64
 /// the range of `DateTime`.
 pub fn unix_from_dotnet_ticks_line(ticks: i64) -> Answer<String> {
     let reading = DotnetDateTime::new(ticks, DateTimeKind::Utc)?.wall_clock();
-    Ok(alloc::format!(
-        "{}\t{}\n",
-        reading.seconds(),
-        reading.subsec_attos()
-    ))
+    Ok(line(|line| {
+        line.value(reading.seconds()).value(reading.subsec_attos());
+    }))
 }
 
 /// The six-hour reckoning an identifier names, `ethiopian-hours` or
-/// `swahili-hours`, in any ASCII case.
+/// `swahili-hours`, by [`east_african_hours::by_id`].
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other.
-pub fn six_hour_reckoning(id: &str) -> Answer<&'static Reckoning> {
-    east_african_hours::ALL
-        .iter()
-        .find(|reckoning| names(id, reckoning.id))
-        .ok_or(Refusal::Unknown)
+pub fn six_hour_reckoning(id: &str) -> Answer<Reckoning> {
+    east_african_hours::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// How many columns [`six_hour_clock_line`] writes.
@@ -1123,27 +979,18 @@ pub fn six_hour_clock_line(reckoning: &str, seconds_of_day: u32) -> Answer<Strin
     )
     .map_err(|_| Refusal::OutOfRange)?;
     let reading = reckoning.reading(civil);
-    let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t",
-        reading.hour,
-        reading.minute,
-        reading.second,
-        match reading.half {
-            Half::Day => "day",
-            Half::Night => "night",
-        }
-    );
-    if let Some(period) = reckoning.period(civil) {
-        push_cell(&mut out, period.name);
-        out.push('\t');
-        push_cell(&mut out, period.english);
-    } else {
-        out.push('\t');
-    }
-    out.push('\n');
-    Ok(out)
+    let period = reckoning.period(civil);
+    Ok(line(|line| {
+        line.value(reading.hour)
+            .value(reading.minute)
+            .value(reading.second)
+            .cell(match reading.half {
+                Half::Day => "day",
+                Half::Night => "night",
+            })
+            .cell_or_empty(period.map(|period| period.name))
+            .cell_or_empty(period.map(|period| period.english));
+    }))
 }
 
 /// The civil time of day of a six-hour reading, as whole seconds after
@@ -1187,9 +1034,7 @@ mod tests {
     use super::*;
     use alloc::vec::Vec;
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.trim_end_matches('\n').split('\t').collect()
-    }
+    use crate::boundary::cells;
 
     /// 1988-01-18T17:20:43.123456 UTC, the standard's example of the ASCII
     /// codes (CCSDS 301.0-B-4 §§3.5.1.1–3.5.1.2, `ccsds-301-0-b-4`): POSIX

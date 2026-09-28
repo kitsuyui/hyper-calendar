@@ -230,7 +230,8 @@ impl NumberingSystem {
     /// Look a system up by its CLDR identifier.
     #[must_use]
     pub fn from_id(id: &str) -> Option<&'static Self> {
-        ALL.iter().find(|system| system.id == id)
+        ALL.iter()
+            .find(|system| hc_core::catalogue::matches(id, system.id))
     }
 
     /// The system a locale asks for.

@@ -181,8 +181,9 @@ the documentation as an entry is in a registry.
 Whether such a convention also has a string name depends on whether
 anything looks it up by a string:
 
-- **Nothing looks it up by a string**, as nothing looks up an Edo dawn. The
-  function's name is its only name. The roadmap writes "—" as its
+- **Nothing looks it up by a string**, as nothing looks up a Greenwich
+  sidereal time: the IAU 2006 and the IAU 1982 conventions are two
+  functions and two exports. The function's name is its only name. The roadmap writes "—" as its
   identifier and names the functions.
 - **A caller selects it by a string at the boundary.** That string is its
   name, and it is registered as one: an entry of a table in the crate that
@@ -190,9 +191,28 @@ anything looks it up by a string:
   as its value. The boundary looks the string up in that table and keeps
   no list of its own. The roadmap row gives the identifiers. `hc-astro`'s
   `ZMANIM_RECKONINGS` holds `zmanim-gra`, `mga-72-minutes` and
-  `mga-16-1-degrees`. `hc-calendars-indic`'s `KalamConvention::ALL` holds
-  `rahu-kalam-sunrise` and `rahu-kalam-fixed`. A prayer method and a
-  six-hour reckoning are table entries in the same way.
+  `mga-16-1-degrees`, and its `SolarEvent::ALL` the named times of day,
+  the Edo dawn `japanese-dawn-kansei` among them. `hc-calendars-indic`'s
+  `KalamConvention::ALL` holds `rahu-kalam-sunrise` and
+  `rahu-kalam-fixed`. A prayer method, a six-hour reckoning, a meridian
+  and a TAI64 format are table entries in the same way. The lists the
+  documents give — the rustdoc of each export, the READMEs, the binding's
+  `.d.ts` and the roadmap — are held to the tables by
+  `crates/hyper-calendar/tests/convention_names.rs`.
+
+### How a name is matched
+
+Every identifier a caller gives — a calendar, a convention, a table, a
+zone — is matched by one rule, `hc_core::catalogue::matches`: the white
+space around it is ignored, and its ASCII letters match in either case,
+so ` Gregory ` finds `gregory` and `us` finds `US`. The lookups
+`catalogue!` generates follow it, and `catalogue_tests!` checks that a
+hand-written one does too, by looking every entry up in upper case, in
+lower case and padded. Two identifiers of one table therefore may not
+differ only in case, and the same tests fail if they do. The rule is
+ASCII only, as the identifiers are. A symbol whose case is its meaning —
+the Planck time `t_P` beside the Planck temperature `T_P` — is not an
+identifier, and its table says `matching: exact`.
 
 ### Where the list itself is open
 

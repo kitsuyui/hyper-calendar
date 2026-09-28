@@ -274,12 +274,13 @@ pub static ALL: &[&CountryRules] = &[
     &ZIMBABWE,
 ];
 
-/// The table for an ISO 3166-1 alpha-2 country code, case-insensitively.
+/// The table for an ISO 3166-1 alpha-2 country code, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static CountryRules> {
     ALL.iter()
         .copied()
-        .find(|country| code.len() == country.code.len() && code.eq_ignore_ascii_case(country.code))
+        .find(|country| hc_core::catalogue::matches(code, country.code))
 }
 
 hc_core::catalogue_tests! {

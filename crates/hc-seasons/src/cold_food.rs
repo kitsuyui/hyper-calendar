@@ -65,6 +65,15 @@ impl ColdFoodConvention {
         }
     }
 
+    /// The convention with this identifier, by
+    /// [`hc_core::catalogue::matches`].
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|convention| hc_core::catalogue::matches(id, convention.id()))
+    }
+
     /// The name in the convention's own language.
     #[must_use]
     pub const fn local_name(self) -> &'static str {
@@ -96,6 +105,14 @@ impl ColdFoodConvention {
             Self::EveOfQingming => Rd(term_day(year, QINGMING, meridian).0 - 1),
         }
     }
+}
+
+hc_core::catalogue_tests! {
+    type: ColdFoodConvention,
+    id: |convention| convention.id(),
+    tests: cold_food_convention_catalogue_tests,
+    all: &ColdFoodConvention::ALL,
+    lookup: ColdFoodConvention::by_id,
 }
 
 #[cfg(test)]

@@ -234,10 +234,13 @@ pub const NAVIC: WeekNumbering = WeekNumbering {
 /// Every broadcast week-number field.
 pub const ALL: &[WeekNumbering] = &[GPS_LNAV, GPS_CNAV, GALILEO, BEIDOU, NAVIC];
 
-/// The week-number field with this identifier.
+/// The week-number field with this identifier, by
+/// [`crate::catalogue::matches`].
 #[must_use]
 pub fn by_id(id: &str) -> Option<WeekNumbering> {
-    ALL.iter().copied().find(|numbering| numbering.id == id)
+    ALL.iter()
+        .copied()
+        .find(|numbering| crate::catalogue::matches(id, numbering.id))
 }
 
 crate::catalogue_tests! {
@@ -247,6 +250,46 @@ crate::catalogue_tests! {
     tests: week_numbering_catalogue,
     all: ALL,
     lookup: by_id,
+}
+
+/// A rule that picks one full week out of the family a broadcast week
+/// names, under the identifier a caller selects it by (`docs/policy.md`
+/// §5): [`WeekNumbering::resolve_not_before`] or
+/// [`WeekNumbering::resolve_nearest`].
+#[derive(Debug, Clone, Copy)]
+pub struct RolloverRule {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The full week the rule picks for a field, a broadcast week and a
+    /// reference instant.
+    pub resolve: fn(WeekNumbering, u32, Instant<Tai>) -> TimeResult<u32>,
+}
+
+crate::catalogue! {
+    type: RolloverRule,
+    id: |rule| rule.id,
+    tests: rollover_rule_catalogue,
+    associated;
+
+    /// The two rules: `not-before` and `nearest`.
+    pub const ALL;
+    /// The rule with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The first full week at or after the reference's,
+        /// [`WeekNumbering::resolve_not_before`].
+        pub const NOT_BEFORE = Self {
+            id: "not-before",
+            resolve: WeekNumbering::resolve_not_before,
+        };
+        /// The full week nearest the reference's,
+        /// [`WeekNumbering::resolve_nearest`].
+        pub const NEAREST = Self {
+            id: "nearest",
+            resolve: WeekNumbering::resolve_nearest,
+        };
+    }
 }
 
 /// `GLONASS − UTC`, three hours: GLONASS time is UTC(SU) + 3 h (GLONASS

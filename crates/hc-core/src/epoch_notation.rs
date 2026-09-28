@@ -63,7 +63,38 @@ pub enum EpochKind {
     Besselian,
 }
 
+crate::catalogue! {
+    type: EpochKind,
+    tests: epoch_kind_catalogue_tests,
+    variants;
+
+    /// Both notations, Julian first.
+    pub const ALL;
+    /// The notation's identifier: `julian-epoch` or `besselian-epoch`.
+    pub fn id;
+    /// The notation with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Julian => "julian-epoch",
+        Besselian => "besselian-epoch",
+    }
+}
+
 impl EpochKind {
+    /// The notation a name selects: its identifier, [`EpochKind::id`], or
+    /// the letter that writes it, [`EpochKind::letter`], each by
+    /// [`crate::catalogue::matches`].
+    #[must_use]
+    pub fn by_name(name: &str) -> Option<Self> {
+        Self::by_id(name).or_else(|| {
+            Self::ALL.iter().copied().find(|kind| {
+                let mut letter = [0; 4];
+                crate::catalogue::matches(name, kind.letter().encode_utf8(&mut letter))
+            })
+        })
+    }
+
     /// The kind SOFA says an epoch written without a letter is: Besselian
     /// before 1984.0, Julian from it.
     #[must_use]

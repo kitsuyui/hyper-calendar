@@ -1045,7 +1045,9 @@ pub static ALL: &[&FiscalProfile] = &[
 /// The profile for an ISO 3166-1 alpha-2 code, if this crate has one.
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static FiscalProfile> {
-    ALL.iter().copied().find(|profile| profile.code == code)
+    ALL.iter()
+        .copied()
+        .find(|profile| hc_core::catalogue::matches(code, profile.code))
 }
 
 #[cfg(test)]

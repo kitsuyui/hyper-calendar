@@ -58,6 +58,25 @@ pub enum SolConvention {
     LocalTrueSolarTimeAtLanding,
 }
 
+hc_core::catalogue! {
+    type: SolConvention,
+    tests: sol_convention_catalogue_tests,
+    variants;
+
+    /// Both conventions, mean first.
+    pub const ALL;
+    /// The convention's identifier: `local-mean-solar-time` or
+    /// `local-true-solar-time-at-landing`.
+    pub fn id;
+    /// The convention with this identifier.
+    pub fn by_id;
+
+    entries: {
+        LocalMeanSolarTime => "local-mean-solar-time",
+        LocalTrueSolarTimeAtLanding => "local-true-solar-time-at-landing",
+    }
+}
+
 /// A surface mission and the rules of its sol count.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Mission {

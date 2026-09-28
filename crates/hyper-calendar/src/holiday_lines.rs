@@ -21,7 +21,6 @@
 //!   (`docs/policy.md` §5), which the caller names.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
@@ -35,7 +34,7 @@ use hc_holiday::{
 use hc_i18n::Locale;
 use hc_i18n::territories::{self, TerritoryName};
 
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
 pub const HOLIDAY_TABLES_COLUMNS: usize = 8;
@@ -214,24 +213,16 @@ pub fn holiday_tables(locale: &str) -> String {
     let mut out = String::new();
     for (set, kind) in tables_with_kinds() {
         let named = table_name(set, kind, requested.as_ref());
-        push_cell(&mut out, set.code);
-        let _ = write!(out, "\t{}\t", kind.name());
-        push_cell(&mut out, named.name);
-        out.push('\t');
-        push_cell(&mut out, set.english_name);
-        out.push('\t');
-        out.push_str(named.tag);
-        out.push('\t');
-        push_cell(&mut out, set.sources);
-        out.push('\t');
-        if let Some(country) = country_of(set, kind) {
-            push_cell(&mut out, country);
-        }
-        out.push('\t');
-        if let Some(short) = short_table_name(set, kind, requested.as_ref()) {
-            push_cell(&mut out, short);
-        }
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(set.code)
+            .cell(kind.name())
+            .cell(named.name)
+            .cell(set.english_name)
+            .cell(named.tag)
+            .cell(set.sources)
+            .cell_or_empty(country_of(set, kind))
+            .cell_or_empty(short_table_name(set, kind, requested.as_ref()));
+        line.end();
     }
     out
 }
@@ -250,11 +241,13 @@ pub fn lectionary_line(fixed: i64) -> Answer<String> {
     let year = lectionary::liturgical_year(day).ok_or(Refusal::OutOfRange)?;
     let sunday = lectionary::sunday_cycle(day).ok_or(Refusal::OutOfRange)?;
     let weekday = lectionary::roman_weekday_cycle(day).ok_or(Refusal::OutOfRange)?;
-    let mut out = alloc::format!("{year}\t{}\t{}\t", sunday.letter(), weekday.numeral());
-    if let Some(proper) = lectionary::rcl_proper(day) {
-        let _ = write!(out, "{proper}");
-    }
-    out.push('\n');
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(year)
+        .value(sunday.letter())
+        .value(weekday.numeral())
+        .value_or_empty(lectionary::rcl_proper(day));
+    line.end();
     Ok(out)
 }
 
@@ -292,38 +285,29 @@ pub const HOLY_YEAR_COLUMNS: usize = 10;
 /// How many columns [`common_worship_lines`] write.
 pub const COMMON_WORSHIP_COLUMNS: usize = 3;
 
-/// The fixed day of a table date, as a cell.
-fn push_table_date(out: &mut String, date: TableDate) {
+/// The fixed day of a table date, if the date exists.
+fn table_day(date: TableDate) -> Option<i64> {
     let (year, month, day) = date;
-    if let Ok(day) = gregorian::to_fixed(year, month, day) {
-        let _ = write!(out, "{}", day.0);
-    }
+    gregorian::to_fixed(year, month, day).ok().map(|day| day.0)
 }
 
 /// A jubilee's cells of [`holy_year_line`], after the first.
-fn push_jubilee(out: &mut String, jubilee: &Jubilee) {
-    push_cell(out, jubilee.title);
-    out.push('\t');
-    out.push_str(match jubilee.kind {
-        JubileeKind::Ordinary => "ordinary",
-        JubileeKind::Extraordinary => "extraordinary",
-    });
-    for text in [jubilee.pope, jubilee.bull] {
-        out.push('\t');
-        push_cell(out, text);
-    }
+fn jubilee_cells(line: &mut Line<'_>, jubilee: &Jubilee) {
+    line.cell(jubilee.title)
+        .cell(match jubilee.kind {
+            JubileeKind::Ordinary => "ordinary",
+            JubileeKind::Extraordinary => "extraordinary",
+        })
+        .cell(jubilee.pope)
+        .cell(jubilee.bull);
     for date in [jubilee.given, jubilee.opens, jubilee.closes] {
-        out.push('\t');
-        push_table_date(out, date);
+        line.value_or_empty(table_day(date));
     }
     for date in [
         jubilee.particular_churches.map(|(opens, _)| opens),
         jubilee.particular_churches.map(|(_, closes)| closes),
     ] {
-        out.push('\t');
-        if let Some(date) = date {
-            push_table_date(out, date);
-        }
+        line.value_or_empty(date.and_then(table_day));
     }
 }
 
@@ -343,15 +327,18 @@ fn push_jubilee(out: &mut String, jubilee: &Jubilee) {
 /// [`holy_years::SOURCES_CHECKED`].
 pub fn holy_year_line(fixed: i64) -> Answer<String> {
     let mut out = String::new();
+    let mut line = Line::new(&mut out);
     match holy_years::holy_year_on(Rd(fixed)) {
         HolyYearOn::Within(jubilee) => {
-            out.push_str("within\t");
-            push_jubilee(&mut out, jubilee);
-            out.push('\n');
+            line.cell("within");
+            jubilee_cells(&mut line, jubilee);
         }
-        HolyYearOn::Outside => out.push_str("outside\t\t\t\t\t\t\t\t\t\n"),
+        HolyYearOn::Outside => {
+            line.cell("outside").empties(HOLY_YEAR_COLUMNS - 1);
+        }
         HolyYearOn::NotCarried => return Err(Refusal::NoData),
     }
+    line.end();
     Ok(out)
 }
 
@@ -387,29 +374,24 @@ pub fn common_worship_lines(fixed: i64) -> Answer<String> {
         else {
             continue;
         };
-        push_cell(&mut out, celebration.title);
-        let _ = writeln!(
-            out,
-            "\t{}\t{}",
-            rank_id(celebration.rank),
-            celebration.rank.english_name()
-        );
+        let mut line = Line::new(&mut out);
+        line.cell(celebration.title)
+            .cell(rank_id(celebration.rank))
+            .cell(celebration.rank.english_name());
+        line.end();
     }
     Ok(out)
 }
 
 /// The reckoning of the Orthodox fasts an identifier names, one of
 /// [`Reckoning::ALL`], `orthodox-fasts` or `orthodox-fasts-revised-julian`,
-/// in any ASCII case.
+/// by [`Reckoning::by_id`].
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other.
-pub fn orthodox_fasts_reckoning(id: &str) -> Answer<&'static Reckoning> {
-    Reckoning::ALL
-        .iter()
-        .find(|reckoning| names(id, reckoning.id))
-        .ok_or(Refusal::Unknown)
+pub fn orthodox_fasts_reckoning(id: &str) -> Answer<Reckoning> {
+    Reckoning::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// The identifier a [`PeriodKind`] is written as.
@@ -449,26 +431,25 @@ pub fn orthodox_fast_line(reckoning: &str, fixed: i64) -> Answer<String> {
     if !(100_000..=1_600_000).contains(&fixed) {
         return Err(Refusal::OutOfRange);
     }
-    let status = orthodox_fasts::status(reckoning, Rd(fixed)).ok_or(Refusal::OutOfRange)?;
+    let status = orthodox_fasts::status(&reckoning, Rd(fixed)).ok_or(Refusal::OutOfRange)?;
     let mut out = String::new();
-    let _ = write!(out, "{}\t", u8::from(status.is_fast_day()));
+    let mut line = Line::new(&mut out);
+    line.flag(status.is_fast_day());
     match status {
-        Status::InPeriod(period) => {
-            out.push_str("period\t");
-            push_cell(&mut out, period.id);
-            out.push('\t');
-            push_cell(&mut out, period.english_name);
-            let _ = write!(out, "\t{}\t", period_kind_id(period.kind));
-        }
-        Status::WeeklyFast(_) => out.push_str("weekly-fast\t\t\t\t"),
-        Status::NotFasting => out.push_str("none\t\t\t\t"),
-    }
-    out.push_str(match status.abstinence() {
+        Status::InPeriod(period) => line
+            .cell("period")
+            .cell(period.id)
+            .cell(period.english_name)
+            .cell(period_kind_id(period.kind)),
+        Status::WeeklyFast(_) => line.cell("weekly-fast").empties(3),
+        Status::NotFasting => line.cell("none").empties(3),
+    };
+    line.cell(match status.abstinence() {
         Abstinence::Nothing => "nothing",
         Abstinence::Meat => "meat",
         Abstinence::Fast => "fast",
     });
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
@@ -494,16 +475,16 @@ pub fn orthodox_fast_seasons_lines(reckoning: &str, year: i64) -> Answer<String>
     }
     let mut out = String::new();
     for period in Period::ALL {
-        push_cell(&mut out, period.id);
-        out.push('\t');
-        push_cell(&mut out, period.english_name);
-        let _ = write!(out, "\t{}\t", period_kind_id(period.kind));
-        if let Some((first, last)) = orthodox_fasts::span(reckoning, period, year) {
-            let _ = write!(out, "{}\t{}", first.0, last.0);
+        let mut line = Line::new(&mut out);
+        line.cell(period.id)
+            .cell(period.english_name)
+            .cell(period_kind_id(period.kind));
+        if let Some((first, last)) = orthodox_fasts::span(&reckoning, period, year) {
+            line.value(first.0).value(last.0);
         } else {
-            out.push('\t');
+            line.empties(2);
         }
-        out.push('\n');
+        line.end();
     }
     Ok(out)
 }

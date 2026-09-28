@@ -325,6 +325,24 @@ pub enum AsciiVariation {
     B,
 }
 
+hc_core::catalogue! {
+    type: AsciiVariation,
+    tests: ascii_variation_catalogue_tests,
+    variants;
+
+    /// Both variations, A first.
+    pub const ALL;
+    /// The variation's identifier: `a` or `b`.
+    pub fn id;
+    /// The variation with this identifier.
+    pub fn by_id;
+
+    entries: {
+        A => "a",
+        B => "b",
+    }
+}
+
 /// How far to the right an ASCII code's time part runs.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AsciiPrecision {
@@ -336,6 +354,30 @@ pub enum AsciiPrecision {
     Second,
     /// `hh:mm:ss.d…d`, with 1 to 18 digits.
     Fraction(u8),
+}
+
+impl AsciiPrecision {
+    /// The precision a name selects, by [`hc_core::catalogue::matches`]:
+    /// `hour`, `minute` or `second`, or the digits of the fraction, `1` to
+    /// `18`, with white space around them allowed.
+    #[must_use]
+    pub fn by_name(name: &str) -> Option<Self> {
+        let name = name.trim();
+        for (id, precision) in [
+            ("hour", Self::Hour),
+            ("minute", Self::Minute),
+            ("second", Self::Second),
+        ] {
+            if hc_core::catalogue::matches(name, id) {
+                return Some(precision);
+            }
+        }
+        match name.as_bytes() {
+            [digit @ b'1'..=b'9'] => Some(Self::Fraction(digit - b'0')),
+            [b'1', digit @ b'0'..=b'8'] => Some(Self::Fraction(10 + digit - b'0')),
+            _ => None,
+        }
+    }
 }
 
 /// An ASCII code: a UTC reading and how it was written.

@@ -200,6 +200,15 @@ needs, so the caller can allocate exactly and call again; called with a
 buffer that is too small it returns `HC_ERR_BUFFER_TOO_SMALL` and writes
 nothing.
 
+## Identifiers
+
+An argument that names something — a calendar, a convention, a holiday
+table, a zone, a horizon, a method — is matched by one rule: the white
+space around it is ignored and its ASCII letters match in either case, so
+`" Gregory "` names `gregory` and `us` names `US`. It is
+`hc_core::catalogue::matches`, and every lookup behind an export follows
+it (`docs/policy.md` §5). A name no table carries is `HC_ERR_UNKNOWN`.
+
 ## Building and calling
 
 ```sh

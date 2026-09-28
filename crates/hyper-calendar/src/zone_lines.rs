@@ -13,7 +13,6 @@
 //! feature; `docs/systems/zone-locations.md` explains both halves.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_calendar::{Rd, gregorian};
 use hc_core::UnixTime;
@@ -21,7 +20,7 @@ use hc_i18n::exemplar_cities::{self, ExemplarCity};
 use hc_tz::TimeZone;
 use hc_tz::location::{self, ZoneLocation};
 
-use crate::boundary::{Answer, Refusal, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`zones`] and [`zone_location`] write.
 pub const ZONE_COLUMNS: usize = 8;
@@ -55,29 +54,22 @@ fn city(row: &ZoneLocation, _locale: &str) -> ExemplarCity<'static> {
 /// row for it; the table's comment; the exemplar city; and the tag that
 /// named it.
 fn push_line(out: &mut String, row: &ZoneLocation, locale: &str) {
-    push_cell(out, row.zone);
-    let _ = write!(
-        out,
-        "\t{}\t{}\t",
-        row.coordinates.latitude_decimal(),
-        row.coordinates.longitude_decimal()
-    );
-    for (index, country) in row.countries().enumerate() {
-        if index > 0 {
-            out.push(';');
-        }
-        push_cell(out, country);
-    }
-    out.push('\t');
-    push_cell(out, row.zone_tab_country);
-    out.push('\t');
-    push_cell(out, row.comment);
-    out.push('\t');
     let city = city(row, locale);
-    let _ = write!(out, "{}", city.name);
-    out.push('\t');
-    out.push_str(city.tag);
-    out.push('\n');
+    let mut line = Line::new(out);
+    line.cell(row.zone)
+        .value(row.coordinates.latitude_decimal())
+        .value(row.coordinates.longitude_decimal())
+        .cell_with(|cell| {
+            for (index, country) in row.countries().enumerate() {
+                let separator = if index > 0 { ";" } else { "" };
+                let _ = write!(cell, "{separator}{country}");
+            }
+        })
+        .cell(row.zone_tab_country)
+        .cell(row.comment)
+        .value(city.name)
+        .cell(city.tag);
+    line.end();
 }
 
 /// The lines of `hc_zones`: one per zone of `zone1970.tab`, in its order,
@@ -226,27 +218,18 @@ fn named_abbreviation(abbreviation: Option<&str>) -> &str {
 pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> Answer<String> {
     let instant = instant_in_zone_range(unix_seconds)?;
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t",
-        zone.offset_at(instant).seconds(),
-        u8::from(zone.is_dst_at(instant))
-    );
-    push_cell(&mut out, named_abbreviation(zone.abbreviation_at(instant)));
-    out.push('\t');
+    let mut line = Line::new(&mut out);
+    line.value(zone.offset_at(instant).seconds())
+        .flag(zone.is_dst_at(instant))
+        .cell(named_abbreviation(zone.abbreviation_at(instant)));
     if let Some(next) = zone.next_transition(instant) {
-        let _ = write!(
-            out,
-            "{}\t{}",
-            next.seconds(),
-            zone.offset_at(next).seconds()
-        );
+        line.value(next.seconds())
+            .value(zone.offset_at(next).seconds());
     } else {
-        out.push('\t');
+        line.empties(2);
     }
-    out.push('\t');
-    out.push_str(rules.name());
-    out.push('\n');
+    line.cell(rules.name());
+    line.end();
     Ok(out)
 }
 
@@ -315,9 +298,7 @@ mod tests {
         assert_eq!(day_in_zone_range(last + 1), Err(Refusal::OutOfRange));
     }
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.trim_end_matches('\n').split('\t').collect()
-    }
+    use crate::boundary::cells;
 
     #[test]
     fn the_exemplar_cities_name_the_rows_hc_tz_gives() {

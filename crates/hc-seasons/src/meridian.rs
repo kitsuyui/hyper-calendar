@@ -165,6 +165,47 @@ impl Meridian {
     }
 }
 
+/// A meridian under the name a caller selects it by at the boundary: the
+/// named meridians of [`Meridian`], each an entry of [`NamedMeridian::ALL`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct NamedMeridian {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The meridian.
+    pub meridian: Meridian,
+}
+
+hc_core::catalogue! {
+    type: NamedMeridian,
+    id: |named| named.id,
+    tests: named_meridian_catalogue_tests,
+    associated;
+
+    /// Every named meridian: Greenwich, Japan, China, Korea, India and
+    /// Beijing before 1929.
+    pub const ALL;
+    /// The named meridian with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// [`Meridian::UNIVERSAL`].
+        pub const UNIVERSAL = Self { id: "universal", meridian: Meridian::UNIVERSAL };
+        /// [`Meridian::JAPAN`].
+        pub const JAPAN = Self { id: "japan", meridian: Meridian::JAPAN };
+        /// [`Meridian::CHINA`].
+        pub const CHINA = Self { id: "china", meridian: Meridian::CHINA };
+        /// [`Meridian::KOREA`].
+        pub const KOREA = Self { id: "korea", meridian: Meridian::KOREA };
+        /// [`Meridian::INDIA`].
+        pub const INDIA = Self { id: "india", meridian: Meridian::INDIA };
+        /// [`Meridian::CHINA_BEFORE_1929`].
+        pub const CHINA_BEFORE_1929 = Self {
+            id: "china-before-1929",
+            meridian: Meridian::CHINA_BEFORE_1929,
+        };
+    }
+}
+
 impl Default for Meridian {
     /// Greenwich, because a library that guessed a country would be worse
     /// than one that made the caller say.

@@ -420,17 +420,13 @@ pub const REGIONAL_ADOPTIONS: &[RegionalAdoption] = &[
     ),
 ];
 
-/// Whether two ISO 3166-1 alpha-2 codes are the same, ignoring ASCII case.
-fn same_region(one: &str, other: &str) -> bool {
-    one.eq_ignore_ascii_case(other)
-}
-
-/// The steps of one country's adoption, oldest first: none for a code the
-/// table does not know.
+/// The steps of one country's adoption, oldest first, its ISO 3166-1
+/// alpha-2 code matched by [`hc_core::catalogue::matches`]: none for a
+/// code the table does not know.
 pub fn gregorian_adoption(region: &str) -> impl Iterator<Item = &'static RegionalAdoption> + '_ {
     REGIONAL_ADOPTIONS
         .iter()
-        .filter(move |row| same_region(row.region, region))
+        .filter(move |row| hc_core::catalogue::matches(region, row.region))
 }
 
 #[cfg(all(test, feature = "alloc"))]

@@ -26,10 +26,10 @@
 //! The days and instants answer for the sky layer's era,
 //! [`crate::astro_lines`], as [`crate::panchanga_lines::kalam_lines`]'s do.
 //! A sidereal sign is named by the lower-case ASCII form of its Sanskrit
-//! name, [`SIGN_IDS`], as the Kumbh conditions' identifiers spell it.
+//! name, [`SiderealSign::id`], as the Kumbh conditions' identifiers spell
+//! it.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_almanac::first_month_counts::first_month_counts;
 use hc_almanac::vietnamese_days::{is_nguyet_ky_day_number, is_tam_nuong_day_number};
@@ -41,55 +41,32 @@ use hc_calendars_indic::kumbh::KumbhYoga;
 use hc_calendars_indic::panchak::{self, PanchakNaming};
 use hc_calendars_indic::pushkaram::{adi_pushkaram, rivers_of};
 use hc_calendars_lunar::{chinese, vietnamese};
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_format::night_watches::fixed_night_watch;
 use hc_i18n::reckonings::{
     CHOGHADIYA, FIRST_MONTH_COUNT, FOLK_HALF, FOLK_NAMED_DAY, KUMBH_SITE, NIGHT_WATCH, PANCHAK,
     PLUM_RAINS, PUSHKARAM_RIVER, VIETNAMESE_DAY,
 };
 use hc_seasons::hizir_kasim::{self, Half as FolkHalf, NamedDay};
+use hc_seasons::meiyu::PlumRainRule;
 use hc_seasons::zodiac::{RulingPlanet, SiderealSign};
 
 use crate::astro_lines::{
-    EARLIEST_YEAR, LATEST_YEAR, MISSING_COLUMNS, day_in_era, moment_in_era, push_missing_cells,
+    EARLIEST_YEAR, LATEST_YEAR, MISSING_COLUMNS, day_in_era, missing_cells, moment_in_era,
     unix_from_moment,
 };
-use crate::boundary::{Answer, Refusal, names, push_cell, push_reckoning_name};
+use crate::boundary::{Answer, Line, Refusal, reckoning_name};
 use crate::panchanga_lines::ayanamsa;
-use crate::season_lines::{PLUM_RAIN_RULES, meridian};
+use crate::season_lines::meridian;
 
-/// The identifier of each sidereal sign, Meṣa first: the lower-case ASCII
-/// form of its Sanskrit name.
-pub const SIGN_IDS: [&str; 12] = [
-    "mesha",
-    "vrishabha",
-    "mithuna",
-    "karka",
-    "simha",
-    "kanya",
-    "tula",
-    "vrishchika",
-    "dhanus",
-    "makara",
-    "kumbha",
-    "mina",
-];
-
-/// The identifier of a sidereal sign.
-#[must_use]
-pub fn sign_id(sign: SiderealSign) -> &'static str {
-    SIGN_IDS[usize::from(sign.index())]
-}
-
-/// The sidereal sign an identifier of [`SIGN_IDS`] names, in any case.
+/// The sidereal sign an identifier names, by [`SiderealSign::by_id`]: the
+/// lower-case ASCII form of its Sanskrit name, `mesha` to `mina`.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other name.
 pub fn sign(name: &str) -> Answer<SiderealSign> {
-    SiderealSign::ALL
-        .into_iter()
-        .find(|sign| names(name, sign_id(*sign)))
-        .ok_or(Refusal::Unknown)
+    SiderealSign::by_id(name).ok_or(Refusal::Unknown)
 }
 
 /// A quality of the choghadiya as the word a line carries.
@@ -146,38 +123,27 @@ pub fn choghadiya_lines(fixed: i64, place: Location, locale: &str) -> Answer<Str
     ] {
         for part in 1..=8u8 {
             let kind = choghadiya::kind_of(weekday, half, part);
-            let _ = write!(out, "{name}\t{part}\t{}\t", kind.id);
-            push_reckoning_name(&mut out, locale, CHOGHADIYA, kind.id);
-            let _ = write!(
-                out,
-                "\t{}\t{}\t",
-                quality_name(kind.quality),
-                ruler_id(&kind)
-            );
+            let mut line = Line::new(&mut out);
+            line.cell(name).value(part).cell(kind.id);
+            reckoning_name(&mut line, locale, CHOGHADIYA, kind.id);
+            line.cell(quality_name(kind.quality)).cell(ruler_id(&kind));
             match &periods {
                 Ok(parts) => {
                     let span = parts[usize::from(part - 1)].span;
-                    let _ = write!(
-                        out,
-                        "{}\t{}\t",
-                        unix_from_moment(span.start),
-                        unix_from_moment(span.end)
-                    );
-                    push_missing_cells(&mut out, None);
+                    line.value(unix_from_moment(span.start))
+                        .value(unix_from_moment(span.end));
+                    missing_cells(&mut line, None);
                 }
                 Err(missing) => {
-                    out.push_str("\t\t");
-                    push_missing_cells(&mut out, Some(*missing));
+                    line.empties(2);
+                    missing_cells(&mut line, Some(*missing));
                 }
             }
-            out.push('\n');
+            line.end();
         }
     }
     Ok(out)
 }
-
-/// Seconds in a day.
-const SECONDS_PER_DAY: i64 = 86_400;
 
 /// How many columns [`panchak_line`] writes.
 pub const PANCHAK_COLUMNS: usize = 7;
@@ -215,10 +181,7 @@ pub fn panchak_line(
     offset_seconds: i32,
     locale: &str,
 ) -> Answer<String> {
-    let naming = PanchakNaming::ALL
-        .iter()
-        .find(|known| names(naming, known.id))
-        .ok_or(Refusal::Unknown)?;
+    let naming = PanchakNaming::by_id(naming).ok_or(Refusal::Unknown)?;
     let ayanamsa = ayanamsa(ayanamsa_name)?;
     let offset = i64::from(offset_seconds);
     if offset.abs() >= SECONDS_PER_DAY {
@@ -233,20 +196,18 @@ pub fn panchak_line(
     let local_day = Rd::from_unix_days((opens + offset).div_euclid(SECONDS_PER_DAY));
     let weekday = Weekday::from_rd(local_day);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{opens}\t{closes}\t{}\t",
-        u8::from(panchak::is_panchak(moment, ayanamsa)),
-        weekday.iso_number()
-    );
+    let mut line = Line::new(&mut out);
+    line.flag(panchak::is_panchak(moment, ayanamsa))
+        .value(opens)
+        .value(closes)
+        .value(weekday.iso_number());
     if let Some(kind) = naming.kind(weekday) {
-        push_cell(&mut out, &kind.to_ascii_lowercase());
-        out.push('\t');
-        push_reckoning_name(&mut out, locale, PANCHAK, kind);
+        line.cell(&kind.to_ascii_lowercase());
+        reckoning_name(&mut line, locale, PANCHAK, kind);
     } else {
-        out.push_str("\t\t");
+        line.empties(3);
     }
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
@@ -259,7 +220,7 @@ pub const KUMBH_COLUMNS: usize = 11;
 /// case, and whether Jupiter's sign, which the caller gives, meets it.
 ///
 /// The library has no ephemeris of Jupiter, so `jupiter` is the caller's:
-/// the sidereal sign, by an identifier of [`SIGN_IDS`], that Jupiter is in
+/// the sidereal sign, by an identifier of [`SiderealSign::id`], that Jupiter is in
 /// at the occasion's first moment, in the zodiac of the same ayanāṃśa. It
 /// is read at that moment because the Sun's stay can hold a change of
 /// Jupiter's sign; the first moment is in this same line whatever `jupiter`
@@ -293,10 +254,7 @@ pub fn kumbh_line(
     jupiter: &str,
     locale: &str,
 ) -> Answer<String> {
-    let yoga = KumbhYoga::ALL
-        .iter()
-        .find(|known| names(yoga, known.id))
-        .ok_or(Refusal::Unknown)?;
+    let yoga = KumbhYoga::by_id(yoga).ok_or(Refusal::Unknown)?;
     let ayanamsa = ayanamsa(ayanamsa_name)?;
     let jupiter = if jupiter.trim().is_empty() {
         None
@@ -308,39 +266,25 @@ pub fn kumbh_line(
     }
     let site = yoga.site.to_ascii_lowercase();
     let mut out = String::new();
-    push_cell(&mut out, yoga.id);
-    out.push('\t');
-    push_cell(&mut out, &site);
-    out.push('\t');
-    push_reckoning_name(&mut out, locale, KUMBH_SITE, &site);
-    out.push('\t');
-    push_cell(&mut out, yoga.river);
-    let _ = write!(
-        out,
-        "\t{}\t{}\t{}\t",
-        sign_id(yoga.jupiter),
-        sign_id(yoga.sun),
-        u8::from(yoga.at_new_moon)
-    );
+    let mut line = Line::new(&mut out);
+    line.cell(yoga.id).cell(&site);
+    reckoning_name(&mut line, locale, KUMBH_SITE, &site);
+    line.cell(yoga.river)
+        .cell(yoga.jupiter.id())
+        .cell(yoga.sun.id())
+        .flag(yoga.at_new_moon);
     let occasion = yoga.occasion(year, ayanamsa);
     if let Some(occasion) = occasion {
-        let _ = write!(
-            out,
-            "{}\t{}\t",
-            unix_from_moment(occasion.from),
-            unix_from_moment(occasion.to)
-        );
+        line.value(unix_from_moment(occasion.from))
+            .value(unix_from_moment(occasion.to));
     } else {
-        out.push_str("\t\t");
+        line.empties(2);
     }
-    if let Some(jupiter) = jupiter {
-        out.push(if occasion.is_some() && jupiter == yoga.jupiter {
-            '1'
-        } else {
-            '0'
-        });
-    }
-    out.push('\n');
+    match jupiter {
+        Some(jupiter) => line.flag(occasion.is_some() && jupiter == yoga.jupiter),
+        None => line.empty(),
+    };
+    line.end();
     Ok(out)
 }
 
@@ -353,7 +297,7 @@ pub const PUSHKARAM_COLUMNS: usize = 7 + MISSING_COLUMNS;
 /// order.
 ///
 /// The library has no ephemeris of Jupiter, so the sign, by an identifier
-/// of [`SIGN_IDS`], and the moment of the entry are the caller's; where
+/// of [`SiderealSign::id`], and the moment of the entry are the caller's; where
 /// Jupiter enters, turns back and enters again, the second entry is the
 /// one the festival follows. The first day is the civil day of the entry
 /// at `meridian`, read as for `hc_term_in_effect`, or the next day when
@@ -385,23 +329,21 @@ pub fn pushkaram_lines(
     let span = adi_pushkaram(entry, place, meridian);
     let mut out = String::new();
     for river in rivers_of(sign) {
-        push_cell(&mut out, river.id);
-        out.push('\t');
-        push_reckoning_name(&mut out, locale, PUSHKARAM_RIVER, river.id);
-        out.push('\t');
-        push_cell(&mut out, river.region);
-        let _ = write!(out, "\t{}\t", sign_id(sign));
+        let mut line = Line::new(&mut out);
+        line.cell(river.id);
+        reckoning_name(&mut line, locale, PUSHKARAM_RIVER, river.id);
+        line.cell(river.region).cell(sign.id());
         match span {
             Ok(days) => {
-                let _ = write!(out, "{}\t{}\t", days.first.0, days.last.0);
-                push_missing_cells(&mut out, None);
+                line.value(days.first.0).value(days.last.0);
+                missing_cells(&mut line, None);
             }
             Err(missing) => {
-                out.push_str("\t\t");
-                push_missing_cells(&mut out, Some(missing));
+                line.empties(2);
+                missing_cells(&mut line, Some(missing));
             }
         }
-        out.push('\n');
+        line.end();
     }
     Ok(out)
 }
@@ -449,16 +391,11 @@ pub const FOLK_DAY_COLUMNS: usize = 5;
 
 /// One line of [`folk_day_lines`].
 fn push_folk(out: &mut String, kind: &str, id: &str, locale: &str, count: Option<i64>) {
-    push_cell(out, kind);
-    out.push('\t');
-    push_cell(out, id);
-    out.push('\t');
-    push_reckoning_name(out, locale, kind, id);
-    out.push('\t');
-    if let Some(count) = count {
-        let _ = write!(out, "{count}");
-    }
-    out.push('\n');
+    let mut line = Line::new(out);
+    line.cell(kind).cell(id);
+    reckoning_name(&mut line, locale, kind, id);
+    line.value_or_empty(count);
+    line.end();
 }
 
 /// The lines of `hc_folk_day`: the folk reckonings of a day outside the
@@ -509,9 +446,9 @@ pub fn folk_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answer<S
         }
     }
     let year = year_from_fixed(day);
-    for (id, day_of) in PLUM_RAIN_RULES {
-        if day_of(year, meridian) == day {
-            push_folk(&mut out, PLUM_RAINS, id, locale, None);
+    for rule in PlumRainRule::ALL {
+        if (rule.day)(year, meridian) == day {
+            push_folk(&mut out, PLUM_RAINS, rule.id, locale, None);
         }
     }
     if let Ok((_, _, lunar_day)) = vietnamese::PARAMETERS.from_fixed(day) {
@@ -584,14 +521,12 @@ pub fn night_watch_line(seconds_of_day: u32, locale: &str) -> Answer<String> {
     let Some(watch) = fixed_night_watch(civil) else {
         return Ok(out);
     };
-    let _ = write!(out, "{}\t{}\t", watch.watch, watch.points);
     let id = WATCH_IDS[usize::from(watch.watch - 1)];
-    push_reckoning_name(&mut out, locale, NIGHT_WATCH, id);
-    out.push('\t');
-    push_cell(&mut out, watch.han_name());
-    out.push('\t');
-    push_cell(&mut out, watch.branch());
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(watch.watch).value(watch.points);
+    reckoning_name(&mut line, locale, NIGHT_WATCH, id);
+    line.cell(watch.han_name()).cell(watch.branch());
+    line.end();
     Ok(out)
 }
 
@@ -1042,7 +977,7 @@ mod tests {
     #[test]
     fn a_sign_is_named_by_its_sanskrit_name() {
         for sign in SiderealSign::ALL {
-            assert_eq!(super::sign(sign_id(sign)), Ok(sign));
+            assert_eq!(super::sign(sign.id()), Ok(sign));
         }
         assert_eq!(super::sign(" Kumbha "), Ok(SiderealSign::KUMBHA));
         assert_eq!(super::sign("aquarius"), Err(Refusal::Unknown));

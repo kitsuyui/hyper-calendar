@@ -57,12 +57,14 @@ impl CalendarRegistry {
             .map(|(_, calendar)| calendar.as_ref())
     }
 
-    /// Look a calendar up by its identifier string.
+    /// Look a calendar up by its identifier string, by
+    /// [`hc_core::catalogue::matches`]: in any ASCII case, with white space
+    /// around it ignored.
     #[must_use]
     pub fn get_by_name(&self, name: &str) -> Option<&(dyn DynCalendar + Send + Sync)> {
         self.entries
             .iter()
-            .find(|(known, _)| known.as_str() == name)
+            .find(|(known, _)| hc_core::catalogue::matches(name, known.as_str()))
             .map(|(_, calendar)| calendar.as_ref())
     }
 
@@ -184,6 +186,21 @@ mod tests {
         assert!(registry.get(CalendarId("zero")).is_some());
         assert!(registry.get_by_name("hundred").is_some());
         assert!(registry.get_by_name("missing").is_none());
+    }
+
+    /// An identifier is matched by `hc_core::catalogue::matches`, as every
+    /// lookup of one is: in any ASCII case, with white space around it.
+    #[test]
+    fn a_name_is_matched_in_any_case_with_white_space_around() {
+        let registry = registry();
+        for given in ["HUNDRED", " hundred ", "\tHundred\n"] {
+            let found = registry
+                .get_by_name(given)
+                .map(|calendar| calendar.meta().id);
+            assert_eq!(found, Some(CalendarId("hundred")), "{given:?}");
+        }
+        assert!(registry.get_by_name("hundred-").is_none());
+        assert!(registry.get_by_name("").is_none());
     }
 
     #[test]
