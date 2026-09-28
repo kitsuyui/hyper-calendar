@@ -114,6 +114,11 @@ tz = ["civil", "dep:hc-tz", "dep:hc-i18n", "hc-i18n/exemplar-cities"]
 # `zone_lines`. Some 230 kB of text, so apart from `tz`: without it a
 # zone's city is English's.
 localized-exemplar-cities = ["dep:hc-i18n", "hc-i18n/localized-exemplar-cities"]
+# CLDR 48's names of every territory and ISO 3166-2 subdivision in every
+# locale hc-i18n carries, for `place_lines`. Some 2.8 MB, so a feature that
+# nothing else turns on: `holiday` names its countries from its own,
+# smaller table.
+place-names = ["dep:hc-i18n", "hc-i18n/place-names"]
 # ISO 8601 / RFC 3339 parsing and formatting; and, with `humanize`,
 # Python `humanize`'s `naturalday` and `naturaldate`, which write a day
 # with it.
@@ -161,6 +166,7 @@ full = [
     "name-days",
     "tz",
     "localized-exemplar-cities",
+    "place-names",
     "format",
     "i18n",
     "humanize",

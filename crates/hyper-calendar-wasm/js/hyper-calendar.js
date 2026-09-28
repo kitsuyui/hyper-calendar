@@ -191,6 +191,9 @@ export const METHODS = Object.freeze([
   { method: "properTime", export: "hc_proper_time", feature: "relativity" },
   { method: "gravitationalDilation", export: "hc_gravitational_dilation", feature: "relativity" },
   { method: "gravitatingBodies", export: "hc_gravitating_bodies", feature: "relativity" },
+  { method: "territories", export: "hc_territories", feature: "places" },
+  { method: "subdivisions", export: "hc_subdivisions", feature: "places" },
+  { method: "placeName", export: "hc_place_name", feature: "places" },
 ].map(Object.freeze));
 
 /** The columns of `hc_describe_day`, which `hc_parse_date` writes before the fixed day. */
@@ -312,6 +315,7 @@ export const COLUMNS = Object.freeze({
     "constants", "source",
   ]),
   gravitatingBodies: Object.freeze(["id", "name", "gm", "gm constant", "source"]),
+  places: Object.freeze(["code", "name", "english name", "locale used", "draft", "status"]),
   utcFromTai: Object.freeze(["unix seconds", "leap second"]),
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
   uuidTimestamp: Object.freeze(["version", "timestamp", "unix seconds", "attoseconds"]),
@@ -1944,6 +1948,24 @@ function gravitationalDilation(cells) {
 function gravitatingBody(cells) {
   const [id, name, gm, gmConstant, source] = cells;
   return { id: /** @type {import("./hyper-calendar.d.ts").GravitatingBodyId} */ (id), name, gm: decimal(gm, "gm"), gmConstant, source };
+}
+
+/**
+ * One line of `hc_territories`, `hc_subdivisions` and `hc_place_name`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PlaceName}
+ */
+function placeName(cells) {
+  const [code, name, englishName, localeUsed, draft, status] = cells;
+  return {
+    code,
+    name: optional(name),
+    englishName: optional(englishName),
+    localeUsed: optional(localeUsed),
+    draft: /** @type {import("./hyper-calendar.d.ts").PlaceDraft | null} */ (optional(draft)),
+    status: /** @type {import("./hyper-calendar.d.ts").PlaceStatus} */ (status),
+  };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -4619,6 +4641,59 @@ export class HyperCalendar {
     const fn = this.#export("hc_gravitating_bodies");
     const text = this.#text("hc_gravitating_bodies", (buffer, capacity) => fn(buffer, capacity), true);
     return rows(text, COLUMNS.gravitatingBodies, "hc_gravitating_bodies").map(gravitatingBody);
+  }
+
+  /**
+   * Every territory CLDR 48 names, in code order — the countries, the UN
+   * M.49 areas such as `001`, and CLDR's `EU`, `UN`, `ZZ` and the like —
+   * with its name in the locale, else in English, the tag that answered,
+   * the draft level of that value and the code's validity status.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PlaceName[]}
+   */
+  territories(locale = "und") {
+    const fn = this.#export("hc_territories");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_territories", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.places, "hc_territories").map(placeName);
+  }
+
+  /**
+   * The ISO 3166-2 subdivisions of a country CLDR 48 names, in code order,
+   * as {@link territories} describes them: `JP-13` is 東京都 under `ja`.
+   * An empty `country` lists every subdivision; one that is not a
+   * territory's code is `unknown`.
+   *
+   * @param {string} country
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PlaceName[]}
+   */
+  subdivisions(country, locale = "und") {
+    const fn = this.#export("hc_subdivisions");
+    const text = this.#withText(country, "country", (countryPointer, countryLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_subdivisions", (buffer, capacity) =>
+          fn(countryPointer, countryLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.places, "hc_subdivisions").map(placeName);
+  }
+
+  /**
+   * One territory, `JP`, or subdivision in ISO form, `JP-13`, as
+   * {@link territories} and {@link subdivisions} describe it; another code,
+   * CLDR's own `jp13` among them, is `unknown`.
+   *
+   * @param {string} code
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PlaceName}
+   */
+  placeName(code, locale = "und") {
+    const fn = this.#export("hc_place_name");
+    const text = this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_place_name", (buffer, capacity) =>
+          fn(codePointer, codeLen, localePointer, localeLen, buffer, capacity), true)));
+    return placeName(this.#oneLine("hc_place_name", text, COLUMNS.places));
   }
 
   /**

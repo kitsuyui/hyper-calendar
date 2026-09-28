@@ -251,7 +251,7 @@ follows it (`docs/policy.md` §5). A name no table carries is
 
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`,
-`seasons`, `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity` and `full`.
+`seasons`, `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity`, `places` and `full`.
 One pair sits in a different layer: `hc_tai_from_unix` and
 `hc_utc_from_tai` are `civil` here and `timestamps` there.
 Each builds on its own —
@@ -277,7 +277,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-145 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+148 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -426,6 +426,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_proper_time(double speed_metres_per_second, double coordinate_seconds, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gravitational_dilation(const char *body, double radius_metres, char *buffer, size_t capacity, size_t *written);` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_gravitating_bodies(char *buffer, size_t capacity, size_t *written);` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_territories(const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | Every territory CLDR 48 names, with its name in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_subdivisions(const char *country, const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | The ISO 3166-2 subdivisions of a country CLDR 48 names, with their names in a locale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_place_name(const char *code, const char *locale, char *buffer, size_t capacity, size_t *written);` | `places` | One territory or subdivision, as the NUL-terminated UTF-8 line `hc_territories` or `hc_subdivisions` writes for it, in a caller-owned buffer. |
 
 ### Status codes
 
@@ -1100,6 +1103,20 @@ with, by name (`SPEED_OF_LIGHT`, `SPEED_OF_LIGHT_SQUARED` and the body's
 `GM_*`). A speed at or beyond light, or a radius at or inside the
 Schwarzschild radius, is `HC_ERROR_OUT_OF_RANGE`; the WebAssembly module's
 README names each constant's source.
+
+## Place names
+
+`hc_territories(locale, buffer, capacity, written)`,
+`hc_subdivisions(country, locale, buffer, capacity, written)` and
+`hc_place_name(code, locale, buffer, capacity, written)` need the
+`places` feature and write the WebAssembly module's lines: one per
+territory or ISO 3166-2 subdivision CLDR 48 names, with its code as ISO
+writes it (`JP-13` for CLDR's `jp13`), its name in the locale, its English
+name, the tag of the data that named it, that value's CLDR draft level and
+the code's CLDR validity status. A null or empty `country` writes every
+subdivision; a `country` or a `code` the data does not name is
+`HC_ERROR_UNKNOWN`. The WebAssembly module's README gives the columns and
+the lookup, and `docs/systems/place-names.md` explains both.
 
 ## Leap seconds, and the `strict` flag
 

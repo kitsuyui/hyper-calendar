@@ -4206,4 +4206,101 @@ macro_rules! exports {
         fn hc_gravitating_bodies() -> line =
             || Ok($crate::relativity_lines::gravitating_bodies_lines());
     } };
+    ("places", $backend:ident) => { $backend! {
+        c {
+            /// Every territory CLDR 48 names, with its name in a locale, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's: one per territory in code
+            /// order — the ISO 3166-1 countries, the UN M.49 areas such as `001`,
+            /// and CLDR's `EU`, `EZ`, `UN`, `QO`, `XA`, `XB` and `ZZ` — with the
+            /// code, the name in the `locale`, the English name, the tag of the
+            /// data that named it, that value's CLDR draft level (`approved`,
+            /// `contributed` or `provisional`), and the code's CLDR validity status
+            /// (`regular`, `macroregion`, `special` or `unknown`). A territory the
+            /// locale's chain does not name, a null `locale` and `native` are
+            /// named in English, with `en` in column 4. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// Every territory CLDR 48 names, with its name in a locale, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// One line per territory, in code order — the ISO 3166-1 countries,
+            /// the UN M.49 areas such as `001` and `419`, and CLDR's `EU`, `EZ`,
+            /// `UN`, `QO`, `XA`, `XB` and `ZZ` — tab-separated: the code; the name
+            /// in the locale, 日本 for `JP` under `ja`; the English name, `en.xml`'s;
+            /// the tag of the data that named column 2, `ja` for a request for
+            /// `ja-JP`, `pt` for a name `pt-PT` inherits, or `en`; that value's
+            /// CLDR draft level, `approved`, `contributed` or `provisional`; and
+            /// the code's status in CLDR's validity data, `regular`, `macroregion`,
+            /// `special` or `unknown`. A territory the locale's chain does not
+            /// name, and every territory under `native` or a tag whose chain
+            /// reaches no table, is named in English with `en`. The locale argument
+            /// fails as `hc_parse_iso_date` does. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_territories(locale: text(locale_len)) -> line =
+            |locale| Ok($crate::place_lines::territories(locale));
+
+        c {
+            /// The ISO 3166-2 subdivisions of a country CLDR 48 names, with their
+            /// names in a locale, as NUL-terminated UTF-8 lines in a caller-owned
+            /// buffer.
+            ///
+            /// The lines are `hc_territories`' columns, one per subdivision in code
+            /// order, column 1 the code as ISO writes it, `JP-13`, and column 6
+            /// `regular` or `deprecated`. `country` is a territory's code in any
+            /// case; one that is not is `HC_ERROR_UNKNOWN`, a territory with no
+            /// subdivision writes nothing, and a null or empty `country` writes
+            /// every subdivision, country by country. `locale` is as for
+            /// `hc_territories`. A deprecated code neither the locale nor English
+            /// names has columns 2 to 5 empty. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The ISO 3166-2 subdivisions of a country CLDR 48 names, with their
+            /// names in a locale, as UTF-8 lines, returning the byte length
+            /// written.
+            ///
+            /// One line per subdivision, in code order, in `hc_territories`'
+            /// columns: the code as ISO writes it, `JP-13` for CLDR's `jp13`; the
+            /// name in the locale, 東京都 under `ja`; the English name; the tag
+            /// that answered; the draft level, `provisional` for nearly every
+            /// name outside English; and `regular` for a code in use or
+            /// `deprecated` for one CLDR keeps from an earlier list. A deprecated
+            /// code neither the locale nor English names has columns 2 to 5 empty.
+            /// `country` is a territory's code in any case, and one that is not is
+            /// `HC_ERR_UNKNOWN`; a territory with no subdivision writes nothing,
+            /// and an empty `country` writes all 5 503, country by country. Both
+            /// text arguments fail as for `hc_parse_iso_date`. A null `buffer`
+            /// returns the length the text needs.
+        }
+        fn hc_subdivisions(country: opt(country_len), locale: text(locale_len)) -> line =
+            $crate::place_lines::subdivisions;
+
+        c {
+            /// One territory or subdivision, as the NUL-terminated UTF-8 line
+            /// `hc_territories` or `hc_subdivisions` writes for it, in a
+            /// caller-owned buffer.
+            ///
+            /// `code` is a territory's code, `JP` or `001`, or a subdivision's in
+            /// ISO form, `JP-13`, in any case; another, CLDR's own form `jp13`
+            /// included, is `HC_ERROR_UNKNOWN`, and a null `code`
+            /// `HC_ERROR_NULL_POINTER`. `locale` is as for `hc_territories`. Writes
+            /// the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// One territory or subdivision, as the UTF-8 line `hc_territories` or
+            /// `hc_subdivisions` writes for it, returning the byte length written.
+            ///
+            /// `code` is a territory's code, `JP` or `001`, or a subdivision's in
+            /// ISO form, `JP-13`, in any case; another, CLDR's own form `jp13`
+            /// included, is `HC_ERR_UNKNOWN`. Both text arguments fail as for
+            /// `hc_parse_iso_date`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_place_name(code: name(code_len), locale: text(locale_len)) -> line =
+            $crate::place_lines::place_name;
+    } };
 }

@@ -33,6 +33,7 @@
 //! | `attributes` | [`hc_attributes`] | Birthstones, birth flowers, moon names |
 //! | `name-days` | [`hc_name_days`] | Name-day lists by authority and edition |
 //! | `tz` | [`hc_tz`] | Time zones |
+//! | `place-names` | [`hc_i18n`]'s `place_names` | Territory and subdivision names |
 //! | `humanize` | [`hc_humanize`] | "3 days ago" |
 //! | `holiday` | [`hc_holiday`] | Holidays and observances |
 //! | `uncertainty` | [`hc_uncertainty`] | Significant figures, fuzzy dates, EDTF |
@@ -118,6 +119,8 @@ pub mod lines;
 pub mod orbital_lines;
 #[cfg(all(feature = "alloc", feature = "indic"))]
 pub mod panchanga_lines;
+#[cfg(all(feature = "alloc", feature = "place-names"))]
+pub mod place_lines;
 #[cfg(all(feature = "alloc", feature = "planetary"))]
 pub mod planetary_lines;
 #[cfg(all(
