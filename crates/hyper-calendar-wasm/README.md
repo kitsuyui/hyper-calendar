@@ -1350,7 +1350,7 @@ zero length is `und` too.
 | 13 | error name | empty when the day converted; otherwise its name |
 | 14 | standing | `in-use`, `proleptic`, `extended` or `unrecorded`; empty on a refusal |
 | 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS` |
-| 16 | formatted | the date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一, `September 21, 2026`, `13.0.13.17.8` — from `hc_format::label`: text for a reader, which holds an extra field only where the calendar's sources write the date with it and never a `name=value` pair, a field's identifier or an era's code; empty on a refusal |
+| 16 | formatted | the date as the locale writes it — 令和8年9月21日, 2023癸卯年闰二月初一, `September 21, 2026`, `13.0.13.17.8` — from `hc_format::label`: text for a reader, which holds an extra field only where the calendar's sources write the date with it and never a `name=value` pair, a field's identifier or an era's code; empty on a refusal |
 | 17 | locale used | the tag of the locale data that answered: `ja`, `he`, `und` |
 | 18 | day named by | which civil day names a day that does not begin at midnight: `start` for the one it begins on (the Julian Day, the Tibetan and Hindu days), `end` for the one it ends on (the Hebrew and Islamic days, whose evening is already the next date); empty for a midnight start |
 
@@ -1388,7 +1388,8 @@ labels of the units below are `hc_format::label::label`: the same
 renderer, over the same per-locale templates in `hc-i18n`. Each locale
 states how it writes a year with its era (`{era}{year}年`, `{year} {era}`),
 a day and a whole date, and a calendar family states what differs for it —
-the Chinese calendar's year by its stem and branch, 癸卯年, and its days
+the Chinese calendar's year by the related Gregorian year and its stem and
+branch, 2023癸卯年, and its days
 by their Han names, 初一 … 三十; the Japanese first year of an era as 元年.
 Every template names the CLDR pattern it was read from. A locale that has
 stated none gets the fields in order, separated by spaces, in the names
@@ -1472,7 +1473,7 @@ does not know is `HC_ERR_UNKNOWN`, and an empty range writes nothing.
 | --- | --- | --- |
 | 1 | start | the first fixed day of the span |
 | 2 | end | the day after the span's last, so that `end - start` is its length and one span's `end` is the next's `start` |
-| 3 | label | the span's label in the locale: 令和元年, 令和6年, `5784`, `1445 AH`, 癸卯年, `Adar I`, 閏二月, 初四; empty on a refusal |
+| 3 | label | the span's label in the locale: 令和元年, 令和6年, `5784`, `1445 AH`, 2023癸卯年, `Adar I`, 閏二月, 初四; empty on a refusal |
 | 4 | leap | `1` for an intercalary unit — a leap year, a leap month, a repeated day — else `0`; empty on a refusal |
 | 5 | standing | the standing of the span's first day; empty on a refusal |
 | 6 | error code | empty for a unit; otherwise the code of the calendar's refusal of every day in the span |
@@ -1514,8 +1515,9 @@ formatted date and fixed day empty, and the error columns say why:
 | 102 | `not-recognised` | matches no way the locale writes the calendar's dates |
 | 103 | `ambiguous` | reads as two days or more: an era name the calendar gives two eras, a week, a doubled day the text does not mark |
 | 104 | `two-digit-year` | writes the year in one or two digits with no era, in a calendar whose years run longer: *September 28, 26* |
-| 105 | `year-not-written` | names the year only by a cycle that recurs, 癸卯年, or not at all, as a Tzolkʼin day |
+| 105 | `year-not-written` | names the year only by a cycle that recurs, 癸卯年, or not at all: a Tzolkʼin day, 9月28日 |
 | 106 | `weekday-mismatch` | names a weekday that is not the day's |
+| 107 | `field-mismatch` | writes a year, a month and a day, and a field beside them the day does not have: 2025丙午年八月十八, whose year is 乙巳 |
 | 1–11 | the calendar's | reads as fields the calendar has no day for, *February 30*, with the calendar's code and name |
 
 ## The calendars

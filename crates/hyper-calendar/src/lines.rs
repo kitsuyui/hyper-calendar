@@ -329,7 +329,8 @@ fn day_cells(
 /// text that is not one day is still a line: its date columns, standing,
 /// formatted date and fixed day are empty, and the error code and name
 /// are the refusal's — `ambiguous`, `two-digit-year`, `year-not-written`,
-/// `weekday-mismatch`, `not-recognised` or `empty`, from 101 up, or the
+/// `weekday-mismatch`, `field-mismatch`, `not-recognised` or `empty`, from
+/// 101 up, or the
 /// calendar's own for fields it has no day for.
 ///
 /// # Errors

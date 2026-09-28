@@ -427,8 +427,8 @@ fn every_extra_field_has_a_labelled_line() {
         row("chinese", "related-gregorian-year")[2..6],
         ["2026", "Related Gregorian year", "2026", "1"]
     );
-    // The Chinese-family dates write the year's stem and branch, 丙午年八月十七
-    // and 병오년 8월 17일, and say so.
+    // The Chinese-family dates write the year's stem and branch,
+    // 2026丙午年八月十七, 丙午年八月17日 and 2026년(병오년) 8월 17일, and say so.
     for (id, tag) in [
         ("chinese", "zh-Hans"),
         ("chinese", "zh-Hant"),

@@ -94,6 +94,13 @@ pub enum DateRefusal {
         /// The day's weekday.
         actual: Weekday,
     },
+    /// The text writes a year, a month and a day, and beside them a field
+    /// the day does not have: 2025丙午年八月十八, whose year 2025 is 乙巳
+    /// and not 丙午. The fields contradict one another, and the reader
+    /// does not choose which to believe.
+    ///
+    /// Code 107, `field-mismatch`.
+    FieldMismatch,
     /// The text reads as fields the calendar has no day for — 31 February,
     /// an era outside the calendar's range — and the calendar's refusal.
     ///
@@ -113,6 +120,7 @@ impl DateRefusal {
             Self::TwoDigitYear => 104,
             Self::YearNotWritten => 105,
             Self::WeekdayMismatch { .. } => 106,
+            Self::FieldMismatch => 107,
             Self::NoSuchDate(error) => error.code(),
         }
     }
@@ -128,6 +136,7 @@ impl DateRefusal {
             Self::TwoDigitYear => "two-digit-year",
             Self::YearNotWritten => "year-not-written",
             Self::WeekdayMismatch { .. } => "weekday-mismatch",
+            Self::FieldMismatch => "field-mismatch",
             Self::NoSuchDate(error) => error.name(),
         }
     }
@@ -155,6 +164,7 @@ impl fmt::Display for DateRefusal {
                 written.iso_number(),
                 actual.iso_number()
             ),
+            Self::FieldMismatch => f.write_str("the text writes a field the day does not have"),
             Self::NoSuchDate(error) => write!(f, "the calendar has no such day: {error}"),
         }
     }
@@ -173,8 +183,11 @@ impl std::error::Error for DateRefusal {}
 /// width and in either context, a number in Latin digits where the locale
 /// has its own, letters in either case, an abbreviation without its
 /// period, spaces where the template has none and more than one where it
-/// has one, and a weekday before or after the date, which must be the
-/// day's.
+/// has one, a weekday before or after the date, which must be the day's,
+/// a Hebrew geresh or gershayim typed as an apostrophe or a quotation
+/// mark, a Hebrew year without its thousands, תשפ״ז, and no era where the
+/// calendar has only one. A date without its year, 9月28日, is refused as
+/// [`DateRefusal::YearNotWritten`].
 ///
 /// ```
 /// use hc_calendar::DynAdapter;
@@ -238,6 +251,9 @@ struct Read {
     weekday: Option<Weekday>,
     /// Whether the template had an era, whether or not it was written.
     era_seen: bool,
+    /// Whether the date's template had a year and the match wrote none
+    /// there: 9月28日 for 2026年9月28日.
+    year_omitted: bool,
     /// The levels of the template chain the match took.
     levels: Levels,
 }
@@ -340,15 +356,22 @@ impl Read {
         self.day_seen = true;
         self
     }
+
+    const fn without_year(mut self) -> Self {
+        self.year_omitted = true;
+        self
+    }
 }
 
 /// The characters a template's separator may be, which the renderer
 /// drops where a field beside it is empty.
 const SEPARATORS: [char; 3] = [',', '、', '،'];
 
-/// Whether two characters are the same letter, in either case.
+/// Whether a character the renderer writes, `a`, is the one the text
+/// has, `b`: the same letter in either case, or a Hebrew geresh or
+/// gershayim typed as an apostrophe or a quotation mark.
 fn same_letter(a: char, b: char) -> bool {
-    a == b || a.to_lowercase().eq(b.to_lowercase())
+    a == b || numbering::same_typed_mark(a, b) || a.to_lowercase().eq(b.to_lowercase())
 }
 
 /// A sink that checks what a name writes against the text, and measures
@@ -432,6 +455,21 @@ impl Write for Renumber<'_, '_> {
 /// The length of the white space a text begins with.
 fn whitespace_len(text: &str) -> usize {
     text.len() - text.trim_start().len()
+}
+
+/// Every numbering system a template's placeholders name, `{year:hebr}`.
+fn for_each_numbering(template: &str, found: &mut dyn FnMut(&'static NumberingSystem)) {
+    let mut rest = template;
+    while let Some(start) = rest.find('{') {
+        let after = &rest[start + 1..];
+        let Some(close) = after.find('}') else {
+            return;
+        };
+        if let (_, _, Spec::Numbering(system)) = parse_placeholder(&after[..close]) {
+            found(system);
+        }
+        rest = &after[close + 1..];
+    }
 }
 
 /// The names one placeholder found at one place in the text: where each
@@ -622,14 +660,24 @@ struct Reader<'a> {
     /// The refusals met on complete matches, by kind.
     two_digit: Cell<bool>,
     year_not_written: Cell<bool>,
+    /// A date whose template has a year that the text leaves out, and
+    /// that names a day only with one: 9月28日.
+    year_missing: Cell<bool>,
+    field_mismatch: Cell<bool>,
     weekday: Cell<Option<(Weekday, Weekday)>>,
     calendar_error: Cell<Option<CalendarError>>,
+    /// A calendar's refusal of a reading that left a placeholder it needs
+    /// empty, which a reading without the year outranks.
+    unfilled_error: Cell<Option<CalendarError>>,
     probe: OnceCell<Probe>,
     memo: Memos,
     /// The numbering systems numbers are read in: the locale's, Latin,
-    /// and for a locale written in Han characters its Han numerals and
-    /// its positional Han digits.
-    systems: [Option<&'static NumberingSystem>; 4],
+    /// for a locale written in Han characters its Han numerals and its
+    /// positional Han digits, and any a template names, `{year:hebr}`.
+    systems: [Option<&'static NumberingSystem>; 6],
+    /// The one era the reader knows the calendar by, where it knows one
+    /// and no other, found the first time a text writes none.
+    sole_era: OnceCell<Option<&'static str>>,
     /// The names of the days of the month: the locale's for the calendar,
     /// or for a lunisolar calendar in a locale written in Han characters,
     /// the Chinese calendar's 初一 to 三十.
@@ -689,14 +737,35 @@ impl<'a> Reader<'a> {
             "Jpan" => Some("jpan"),
             _ => None,
         };
-        let mut systems = [Some(renderer.numbering), None, None, None];
-        for (slot, id) in [Some("latn"), han, han.map(|_| "hanidec")]
-            .into_iter()
-            .enumerate()
-        {
-            let system = id.and_then(NumberingSystem::from_id);
-            if system.is_some_and(|system| system.id() != renderer.numbering.id()) {
-                systems[slot + 1] = system;
+        let mut systems = [Some(renderer.numbering), None, None, None, None, None];
+        let mut add = |system: Option<&'static NumberingSystem>| {
+            let Some(system) = system else {
+                return;
+            };
+            if systems
+                .iter()
+                .flatten()
+                .any(|known| known.id() == system.id())
+            {
+                return;
+            }
+            if let Some(slot) = systems.iter_mut().find(|slot| slot.is_none()) {
+                *slot = Some(system);
+            }
+        };
+        for id in [Some("latn"), han, han.map(|_| "hanidec")] {
+            add(id.and_then(NumberingSystem::from_id));
+        }
+        for level in renderer.chain.levels() {
+            for template in [
+                level.era,
+                level.year,
+                level.first_year,
+                level.month,
+                level.day,
+                level.date,
+            ] {
+                for_each_numbering(template, &mut |system| add(Some(system)));
             }
         }
         let day_names = if !renderer.merged.day_names.is_empty() {
@@ -710,6 +779,7 @@ impl<'a> Reader<'a> {
         };
         Self {
             systems,
+            sole_era: OnceCell::new(),
             day_names,
             renderer,
             text,
@@ -719,8 +789,11 @@ impl<'a> Reader<'a> {
             furthest: Cell::new(0),
             two_digit: Cell::new(false),
             year_not_written: Cell::new(false),
+            year_missing: Cell::new(false),
+            field_mismatch: Cell::new(false),
             weekday: Cell::new(None),
             calendar_error: Cell::new(None),
+            unfilled_error: Cell::new(None),
             probe: OnceCell::new(),
             memo: Memos {
                 eras: Memo::new(),
@@ -793,9 +866,18 @@ impl<'a> Reader<'a> {
             (Some((fixed, fields)), None) => Ok(ParsedDate { fields, fixed }),
             (None, _) => Err(if let Some((written, actual)) = self.weekday.get() {
                 DateRefusal::WeekdayMismatch { written, actual }
+            } else if self.field_mismatch.get() {
+                DateRefusal::FieldMismatch
             } else if self.year_not_written.get() {
                 DateRefusal::YearNotWritten
             } else if let Some(error) = self.calendar_error.get() {
+                DateRefusal::NoSuchDate(error)
+            } else if self.year_missing.get() {
+                // Only where no reading with a year came nearer: a text
+                // whose year was read, and whose day the calendar lacks,
+                // is refused for that.
+                DateRefusal::YearNotWritten
+            } else if let Some(error) = self.unfilled_error.get() {
                 DateRefusal::NoSuchDate(error)
             } else {
                 DateRefusal::NotRecognised {
@@ -956,7 +1038,12 @@ impl<'a> Reader<'a> {
                 next(pos, read);
                 self.extra_names(field, pos, read, next);
             }
-            ("year", Spec::Digits(min)) => digits(min, &|read, value| read.with_year(value, false)),
+            ("year", Spec::Digits(min)) => {
+                if mode == Mode::Date {
+                    next(pos, read.without_year());
+                }
+                digits(min, &|read, value| read.with_year(value, false));
+            }
             ("month", Spec::Digits(min)) => {
                 next(pos, read.seen_month());
                 digits(min, &|read, value| {
@@ -973,7 +1060,16 @@ impl<'a> Reader<'a> {
                 digits(1, &|read, value| read.with_day(value.checked_add(1)?));
             }
             (_, Spec::Digits(_)) => next(pos, read),
-            ("year", _) if mode == Mode::Date => self.year_unit(pos, read, next),
+            // A date may leave its year out, 9月28日; the reading then
+            // names a day only if the year does not matter to it.
+            ("year", Spec::Numbering(_)) if mode == Mode::Date => {
+                next(pos, read.without_year());
+                self.year_numbers(pos, read, next);
+            }
+            ("year", _) if mode == Mode::Date => {
+                next(pos, read.without_year());
+                self.year_unit(pos, read, next);
+            }
             ("day", _) if mode == Mode::Date => {
                 next(pos, read.seen_day());
                 let levels = self.renderer.chain.levels();
@@ -1024,11 +1120,7 @@ impl<'a> Reader<'a> {
                 {
                     next(pos + numbering::FIRST_YEAR_MARKER.len(), read);
                 }
-                self.numbers(pos, 1, &|end, value, short| {
-                    if let Some(read) = read.with_year(value, short) {
-                        next(end, read);
-                    }
-                });
+                self.year_numbers(pos, read, next);
             }
             ("sexagenary", _) => {
                 next(pos, read);
@@ -1041,6 +1133,23 @@ impl<'a> Reader<'a> {
             }
             _ => next(pos, read),
         }
+    }
+
+    /// A year's number at `pos`, in any of the reader's systems, with the
+    /// thousands the templates let a year in numerals leave out added
+    /// where it has fewer than four places: תשפ״ז is 5787.
+    fn year_numbers(&self, pos: usize, read: Read, next: &dyn Fn(usize, Read)) {
+        let omitted = self.renderer.merged.omitted_thousands;
+        self.numbers_in(pos, 1, &|end, value, short, system| {
+            let value = if omitted != 0 && system.is_algorithmic() && (1..1_000).contains(&value) {
+                value + omitted
+            } else {
+                value
+            };
+            if let Some(read) = read.with_year(value, short) {
+                next(end, read);
+            }
+        });
     }
 
     /// The year of a date: each level's template for the first year of an
@@ -1104,6 +1213,11 @@ impl<'a> Reader<'a> {
     /// `next` is told whether the number is a plain one of one or two
     /// digits.
     fn numbers(&self, pos: usize, min: u8, next: &dyn Fn(usize, i64, bool)) {
+        self.numbers_in(pos, min, &|end, value, short, _| next(end, value, short));
+    }
+
+    /// [`Reader::numbers`], each with the system it was read in.
+    fn numbers_in(&self, pos: usize, min: u8, next: &dyn Fn(usize, i64, bool, &NumberingSystem)) {
         let rest = &self.text[pos..];
         let (sign, body) = match rest.strip_prefix('-') {
             Some(body) => (1, body),
@@ -1123,16 +1237,19 @@ impl<'a> Reader<'a> {
                     }
                     let end = pos + sign + run;
                     if let Ok(value) = system.parse_integer(&self.text[pos..end]) {
-                        next(end, value, sign == 0 && count <= 2);
+                        next(end, value, sign == 0 && count <= 2, system);
                     }
                 }
-                None => self.han_numbers(system, pos, sign, body, next),
+                None => self.han_numbers(system, pos, sign, body, &|end, value, short| {
+                    next(end, value, short, system);
+                }),
             }
         }
     }
 
-    /// Every prefix of `body` that is a Han numeral as `system` writes
-    /// it: 二十八, and not 二〇二六 read as six.
+    /// Every prefix of `body` that is a numeral as `system`, an
+    /// algorithmic one, writes it: 二十八, and not 二〇二六 read as six;
+    /// י״ז, and י"ז as a reader types it.
     fn han_numbers(
         &self,
         system: &NumberingSystem,
@@ -1493,7 +1610,7 @@ impl<'a> Reader<'a> {
             self.two_digit.set(true);
             return;
         }
-        let implied = self.renderer.merged.implied_era;
+        let implied = self.implied_era();
         let eras: [Option<&'static str>; 2] = match read.era {
             Some(era) => [Some(era), None],
             None if implied.is_empty() => [None, None],
@@ -1527,6 +1644,45 @@ impl<'a> Reader<'a> {
                 }
             }
         }
+    }
+
+    /// The era a text that writes none is read in: the one the locale
+    /// leaves unwritten, else the calendar's only era, where the locale's
+    /// and English's era codes for the calendar and the calendar's own
+    /// name one era and no other — ۶ مهر
+    /// ۱۴۰۵ without its ه.ش. is the year 1405 of the Solar Hijri era.
+    /// Empty where the calendar has several and the text leaves the era
+    /// to the reader, which then keeps only days the calendar gives no era.
+    fn implied_era(&self) -> &'static str {
+        let implied = self.renderer.merged.implied_era;
+        if !implied.is_empty() {
+            return implied;
+        }
+        self.sole_era
+            .get_or_init(|| {
+                let mut sole: Option<&'static str> = None;
+                let mut several = false;
+                let mut offer = |code: &'static str| match sole {
+                    None => sole = Some(code),
+                    Some(known) if !known.eq_ignore_ascii_case(code) => several = true,
+                    Some(_) => {}
+                };
+                let id = self.renderer.id;
+                for locale in [self.renderer.locale, &self.english] {
+                    for code in names::era_codes(locale, id).unwrap_or(&[]) {
+                        offer(code);
+                    }
+                }
+                let calendar = self.renderer.calendar;
+                for index in 0.. {
+                    let Some(code) = calendar.era_code(index) else {
+                        break;
+                    };
+                    offer(code);
+                }
+                sole.filter(|_| !several)
+            })
+            .unwrap_or("")
     }
 
     /// A year the text does not write: from the extra fields that count
@@ -1588,6 +1744,8 @@ impl<'a> Reader<'a> {
         }
         if found[0].same_as(&found[1]) {
             self.record(&found[0], read);
+        } else if read.year_omitted {
+            self.year_missing.set(true);
         } else {
             self.year_not_written.set(true);
         }
@@ -1641,7 +1799,7 @@ impl<'a> Reader<'a> {
         if near.is_none_or(|near| near.year.unsigned_abs() < 100) {
             return false;
         }
-        let implied = self.renderer.merged.implied_era;
+        let implied = self.implied_era();
         let calendar = self.renderer.calendar;
         [100, 400].into_iter().any(|step| {
             let mut fields = DateFields::new(year + step);
@@ -1703,12 +1861,42 @@ impl<'a> Reader<'a> {
     ) -> Result<(), CalendarError> {
         let calendar = self.renderer.calendar;
         let fixed = self.to_fixed(fields).inspect_err(|error| {
-            if self.calendar_error.get().is_none() {
-                self.calendar_error.set(Some(*error));
+            // A day the calendar lacks is the text's refusal where the
+            // renderer would have written those fields that way; not in a
+            // year the text does not write, nor through a template the
+            // locale does not take — ۶ مهر read by the default's
+            // "{year} {month} {day}" as the year 6 without a day.
+            if read.year_omitted || !self.chosen(fields, read) {
+                return;
+            }
+            // A day or month the template has and the text left empty,
+            // which the calendar needs: *September 28* read as September of
+            // the year 28. It yields to a reading of the same text that
+            // leaves out the year instead.
+            let empty = match error {
+                CalendarError::MissingField("day") => read.day_seen && read.day.is_none(),
+                CalendarError::MissingField("month") => read.month_seen && read.month.is_none(),
+                _ => false,
+            };
+            let slot = if empty {
+                &self.unfilled_error
+            } else {
+                &self.calendar_error
+            };
+            if slot.get().is_none() {
+                slot.set(Some(*error));
             }
         })?;
         let own = self.to_fields(fixed)?;
-        if !self.agrees(&own, fields, read, year, true) || !self.chosen(&own, read) {
+        if !self.agrees(&own, fields, read, year, true) {
+            // A year the text states, with its month and day, and an extra
+            // field beside them that the day does not have.
+            if year && self.agrees_in(&own, fields, read, year, true, false) {
+                self.field_mismatch.set(true);
+            }
+            return Ok(());
+        }
+        if !self.chosen(&own, read) {
             return Ok(());
         }
         days.add(fixed, own);
@@ -1818,6 +2006,20 @@ impl<'a> Reader<'a> {
         year: bool,
         leap_day: bool,
     ) -> bool {
+        self.agrees_in(own, expected, read, year, leap_day, true)
+    }
+
+    /// [`Reader::agrees`], with the extra fields read compared only when
+    /// `extra` asks.
+    fn agrees_in(
+        &self,
+        own: &DateFields,
+        expected: &DateFields,
+        read: &Read,
+        year: bool,
+        leap_day: bool,
+        extra: bool,
+    ) -> bool {
         let era = match (own.era, expected.era) {
             (Some(own), Some(expected)) => own.eq_ignore_ascii_case(expected),
             (None, None) => true,
@@ -1829,10 +2031,11 @@ impl<'a> Reader<'a> {
             && (!read.month_seen && read.month.is_none() || own.month == expected.month)
             && (!read.day_seen && read.day.is_none() || own.day == expected.day)
             && (!leap_day || own.leap_day == expected.leap_day)
-            && read
-                .extra
-                .iter()
-                .all(|extra| own.extra.get(extra.name) == Some(extra.value))
+            && (!extra
+                || read
+                    .extra
+                    .iter()
+                    .all(|extra| own.extra.get(extra.name) == Some(extra.value)))
             && read
                 .leap_year
                 .is_none_or(|leap| self.in_leap_year(own) == Some(leap))
@@ -1946,9 +2149,10 @@ mod tests {
                 written: Weekday::Monday,
                 actual: Weekday::Sunday,
             },
+            DateRefusal::FieldMismatch,
         ];
         let codes: alloc::vec::Vec<u32> = refusals.iter().map(DateRefusal::code).collect();
-        assert_eq!(codes, [101, 102, 103, 104, 105, 106]);
+        assert_eq!(codes, [101, 102, 103, 104, 105, 106, 107]);
         for refusal in refusals {
             assert!(!refusal.to_string().is_empty());
             assert!(

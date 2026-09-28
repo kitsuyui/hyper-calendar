@@ -818,7 +818,8 @@ export interface ParsedDate extends DescribedDay {
   /**
    * The fixed day the text names, or `null` when it names no one day; then
    * `error` says why: `ambiguous`, `two-digit-year`, `year-not-written`,
-   * `weekday-mismatch`, `not-recognised`, `empty`, or the calendar's own.
+   * `weekday-mismatch`, `field-mismatch`, `not-recognised`, `empty`, or
+   * the calendar's own.
    */
   fixed: number | null;
 }

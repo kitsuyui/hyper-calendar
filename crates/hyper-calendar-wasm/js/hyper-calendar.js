@@ -2923,8 +2923,9 @@ export class HyperCalendar {
    * read in the locale that row is written in, so that what its
    * `formatted` writes, this reads. A text that is not one day is a row
    * whose `error` says why — `ambiguous`, `two-digit-year`,
-   * `year-not-written`, `weekday-mismatch`, `not-recognised`, `empty`, or
-   * the calendar's own refusal — and whose `fixed` is `null`.
+   * `year-not-written`, `weekday-mismatch`, `field-mismatch`,
+   * `not-recognised`, `empty`, or the calendar's own refusal — and whose
+   * `fixed` is `null`.
    *
    * @param {string} calendar
    * @param {string} locale

@@ -377,7 +377,7 @@ describe("describeDay", () => {
     assert.equal(chinese.monthLabel, "闰二月");
     assert.equal(chinese.day, 1);
     assert.equal(chinese.leapDay, false);
-    assert.equal(chinese.formatted, "癸卯年闰二月初一");
+    assert.equal(chinese.formatted, "2023癸卯年闰二月初一");
     assert.ok("cycle" in chinese.extras, JSON.stringify(chinese.extras));
     assert.ok(Object.keys(chinese.extras).length > 1, JSON.stringify(chinese.extras));
     for (const value of Object.values(chinese.extras)) {
@@ -458,6 +458,8 @@ describe("parseDate", () => {
     assert.equal(hc.parseDate("chinese", "zh-Hans", "癸卯年闰二月初一").error?.name, "year-not-written");
     assert.equal(hc.parseDate("stata-week", "en", "2026w39").error?.name, "ambiguous");
     assert.equal(hc.parseDate("gregory", "en", "Tuesday, September 28, 2026").error?.name, "weekday-mismatch");
+    assert.deepEqual(hc.parseDate("chinese", "zh-Hans", "2025丙午年八月十八").error, { code: 107, name: "field-mismatch" });
+    assert.equal(hc.parseDate("gregory", "ja", "9月28日").error?.name, "year-not-written");
     assert.equal(hc.parseDate("gregory", "en", "").error?.name, "empty");
     assert.equal(hc.parseDate("gregory", "en", "February 30, 2026").error?.name, "day-out-of-range");
     refused(() => hc.parseDate("no-such-calendar", "en", "1"), "unknown");

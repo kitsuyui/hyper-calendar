@@ -620,8 +620,8 @@ the module's line: the calendar's 18 columns of `hc_describe_day` for the
 day the text names, then the fixed day. A text that is not one day is a
 line whose error columns say why, as the WebAssembly module's README lists
 under "A written date, read back": `ambiguous`, `two-digit-year`,
-`year-not-written`, `weekday-mismatch`, `not-recognised` or `empty`, codes
-101 to 106, or the calendar's own refusal. A null `text` is the empty one;
+`year-not-written`, `weekday-mismatch`, `field-mismatch`, `not-recognised`
+or `empty`, codes 101 to 107, or the calendar's own refusal. A null `text` is the empty one;
 a null `calendar` is `HC_ERROR_NULL_POINTER`, and one the registry does not
 carry `HC_ERROR_UNKNOWN`.
 

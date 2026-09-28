@@ -293,7 +293,7 @@ fn a_leap_month_and_the_extra_fields_are_carried() {
     assert_eq!(chinese[5..10], ["2", "1", "闰二月", "1", "0"]);
     assert!(chinese[10].contains("cycle="), "{chinese:?}");
     assert!(chinese[10].contains(';'), "{chinese:?}");
-    assert_eq!(chinese[15..17], ["癸卯年闰二月初一", "zh-Hans"]);
+    assert_eq!(chinese[15..17], ["2023癸卯年闰二月初一", "zh-Hans"]);
 }
 
 #[test]

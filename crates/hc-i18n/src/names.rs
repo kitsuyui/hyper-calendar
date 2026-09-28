@@ -370,6 +370,15 @@ pub struct DateTemplates {
     /// running text, `am` for the Hebrew calendar's 5784. Matched without
     /// regard to case, as era codes are; empty where every era is written.
     pub implied_era: &'static str,
+    /// The years a year written in an algorithmic numbering system may
+    /// leave out: 5 000 for the Hebrew calendar in Hebrew numerals, whose
+    /// writers "usually omit the thousands" of a year of the present
+    /// millennium and write תשפ״ז for ה׳תשפ״ז, 5787 (Wikipedia, "Hebrew
+    /// numerals", `wikipedia-hebrew-numerals`). A reader adds it to such a
+    /// year of fewer than four places, and a renderer, which writes the
+    /// thousands, writes in digits a year whose numerals would not read
+    /// back as it. Zero where years are written whole.
+    pub omitted_thousands: i64,
 }
 
 impl DateTemplates {
@@ -383,6 +392,7 @@ impl DateTemplates {
         date: "",
         day_names: &[],
         implied_era: "",
+        omitted_thousands: 0,
     };
 
     /// What a renderer writes when no locale and no calendar has said
@@ -400,6 +410,7 @@ impl DateTemplates {
         date: "{year} {month} {day}",
         day_names: &[],
         implied_era: "",
+        omitted_thousands: 0,
     };
 
     /// Whether every field is empty.
@@ -413,6 +424,7 @@ impl DateTemplates {
             && self.date.is_empty()
             && self.day_names.is_empty()
             && self.implied_era.is_empty()
+            && self.omitted_thousands == 0
     }
 
     /// These templates with every empty field taken from `other`.
@@ -434,6 +446,11 @@ impl DateTemplates {
                 self.day_names
             },
             implied_era: pick(self.implied_era, other.implied_era),
+            omitted_thousands: if self.omitted_thousands == 0 {
+                other.omitted_thousands
+            } else {
+                self.omitted_thousands
+            },
         }
     }
 
@@ -2032,10 +2049,14 @@ mod tests {
         assert_eq!(chain.merged().date, "{year}{month}{day}");
         assert!(chain.merged().implies_era("AD"));
         assert!(!chain.merged().implies_era("reiwa"));
-        // The Chinese calendar's entry states the sexagenary year and the
-        // day names; the locale's day suffix stands behind it.
+        // The Chinese calendar's entry states the related Gregorian and the
+        // sexagenary year, and the day names; the locale's day suffix
+        // stands behind it.
         let chinese = templates(&locale("zh-Hans"), CalendarId("chinese"));
-        assert_eq!(chinese.entry.year, "{sexagenary}年");
+        assert_eq!(
+            chinese.entry.year,
+            "{extra:related-gregorian-year}{sexagenary}年"
+        );
         assert_eq!(chinese.entry.day_names.len(), 30);
         assert!(chinese.calendar.is_none());
         assert_eq!(chinese.levels()[2].day, "{day}日");
