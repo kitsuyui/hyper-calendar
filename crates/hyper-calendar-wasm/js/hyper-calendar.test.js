@@ -2586,6 +2586,11 @@ describe("the parts of a day", () => {
       ["tenonnichi", "tenshanichi", "ichiryu-manbai", "kinoene", "pardon-and-grain"],
     );
     assert.equal(japanese[0].name, "甲子");
+    // 甲子's 納音 is 海中金 (wikipedia-ja-nacchin).
+    assert.deepEqual(japanese[1], {
+      kind: "nayin", id: "1", name: "海中金", localeUsed: "ja", japanese: "海中金", reading: "kaichūkin",
+      auspicious: null, printed: null,
+    });
     const english = hc.almanacDay(day, "japan", "en");
     assert.deepEqual(english.map((line) => line.localeUsed).slice(0, 3), ["en", "en", "en"]);
     assert.equal(english.find((line) => line.kind === "combination")?.localeUsed, "ja");

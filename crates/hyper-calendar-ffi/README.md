@@ -666,7 +666,7 @@ Yamaganda and Gulika kālam on a day, each named in the locale, by
 module's line of 恵方, 三元九運 and 손 없는 날 for a day, with 立春 at a
 meridian read as for `hc_term_in_effect`; and `hc_almanac_day(fixed,
 meridian, locale, buffer, capacity, written)` the module's lines of the
-day's other annotations, the sexagenary day, 十二直, 二十八宿 and
+day's other annotations, the sexagenary day and its 納音, 十二直, 二十八宿 and
 二十七宿, the three 九星, 六曜, and every 暦注下段, 選日 and combination
 that falls, each named in the locale as `hc-i18n` names it, with `native`
 for Japanese. All three are in `calendars`.

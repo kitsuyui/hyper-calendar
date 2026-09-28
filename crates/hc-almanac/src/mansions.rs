@@ -484,11 +484,11 @@ impl Mansion {
     ///
     /// `None` for twenty-six of the twenty-eight. The per-mansion lists of
     /// undertakings that commercial almanacs print — "good for marriage, bad
-    /// for funerals" and so on — diverge enough between publishers that
-    /// shipping one of them as *the* list would be inventing a tradition
-    /// rather than reporting one. This crate therefore ships only the two
-    /// statements that every consulted source makes, and leaves the rest as
-    /// a documented gap. See the crate README.
+    /// for funerals" and so on — are publishers' own, and shipping one of
+    /// them as *the* list would be inventing a tradition rather than
+    /// reporting one; [`crate::mansion_undertakings`] carries each under its
+    /// publisher's name. This is only the two statements that every
+    /// consulted source makes.
     #[must_use]
     pub const fn undisputed_note(self) -> Option<&'static str> {
         match self.0 {

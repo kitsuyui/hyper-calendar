@@ -32,9 +32,11 @@ assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 | Module | Annotations |
 |---|---|
 | `mansions` | 二十八宿 (28-day cycle, 四象 grouping, 吉凶, 和名) and the 二十七宿 of 宿曜道 |
+| `mansion_undertakings` | what each mansion's day favours and forbids, list by list: 歳事暦's and うまずたゆまず's, as printed |
 | `nine_stars` | 九星: 年家, 月家, 日家, with 五行, colour, direction and trigram |
 | `twelve_directs` | 十二直 建除満平定執破危成納開閉 |
-| `lower_register` | 21 of the 暦注下段 |
+| `lower_register` | 21 of the 暦注下段; the three readings of 五墓日, each for everyone or by a birth year's 納音; the 三箇の悪日 by a birth year |
+| `nayin` | 納音, the thirty sounds, 海中金 to 大海水, with the phase of each |
 | `selected_days` | 15 選日 |
 | `seven_luminaries` | 七曜 — the planetary association over `hc_calendar::Weekday` |
 | `rokuyo` | 六曜 先勝 友引 先負 仏滅 大安 赤口 |
@@ -42,6 +44,8 @@ assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 | `lunisolar` | the Japanese 旧暦 date the Moon-keyed annotations read, from `hc-calendars-lunar` |
 | `day_notes` | every annotation for one day, from one shared context |
 | `lucky_direction` | 恵方, the year's direction by its stem: 甲, 庚, 丙 or 壬, with the branches and the azimuth |
+| `direction_deities` | the 八将神 by the year's branch, 金神 by its stem, 大金神 and 姫金神 by its branch |
+| `rounichi` | 臘日, one `RounichiRule` for each of five reckonings |
 | `nine_periods` | 三元九運, the twenty-year periods from 上元一運 in 1864, turning at 立春 |
 | `days_without_son` | 손 없는 날, the Korean lunar days ending in 9 and 0, on `dangi` |
 | `vietnamese_days` | Ngày Tam Nương (3, 7, 13, 18, 22, 27) and ngày Nguyệt Kỵ (5, 14, 23) of the lunar month, on `vietnamese` |
@@ -117,8 +121,10 @@ can. Where a table could be read two ways, the crate follows the lists:
 | 二十八宿 vs 二十七宿 | Japan used the 27 of 宿曜道 until 渋川春海's 貞享 reform of 1685 replaced them with the Chinese 28. Both are printed today. 牛宿 is the one the 27 drops. |
 | Mansion 吉凶 | Publishers disagree on roughly a third of the entries. Only 鬼宿 and 牛宿 are agreed by every source; `Mansion::fortune_is_undisputed` says which. |
 | 三隣亡 | The day-selection rule is unchanged from the Edo period; what flipped is the *meaning*. It was 三輪宝, 「屋立てよし」 — auspicious for building — until a copyist's よ/あ slip inverted it. |
-| 五墓日 | Three 干支 sets in print (乙丑・辛未 in Wikipedia and the publishers, 乙未・辛丑 in 精選版日本国語大辞典, 乙未・丙辰・辛丑 in the National Diet Library) and two scopes (everyone, or only those whose birth-year 納音 matches). The crate uses the publishers' set, unconditionally, and names the others. |
-| 三箇の悪日 | Given by birth year in every table read; applied to everyone by many commercial almanacs, and by this crate. |
+| 五墓日 | Three 干支 sets in print (乙丑・辛未 in Wikipedia and the publishers, 乙未・辛丑 in 精選版日本国語大辞典, 乙未・丙辰・辛丑 in the National Diet Library) and two scopes (everyone, or only those whose birth-year 納音 matches). The register holds the publishers' set for everyone; each set is a `GraveDays` reading, and `GraveDays::applies_to_person` gives the per-person form, which the Library's list, giving no day to a phase, does not have. |
+| 三箇の悪日 | Given by birth year in every table read; applied to everyone by many commercial almanacs, and by the register. `three_evil_day_for` gives the birth-year form. |
+| 臘日 | Five reckonings: the second 辰 after 小寒, the 辰 nearest 大寒, the first 戌 after 大寒, the lunar 12月9日, and the Han third 戌 after 冬至. Each is a `RounichiRule`; none is a default. |
+| Mansion undertakings | 歳事暦 and うまずたゆまず print the same lists but for 觜宿; 神仏.ネット writes sentences that differ in substance, and is not carried. |
 | 大明日 | 25-, 21- and 19-entry lists are published. The 25 is implemented and a published date settles it. |
 | 凶会日 | The 宣明暦 table and the 貞享暦 table, each read by 節月 or by 旧暦 month. The 貞享 table by 節月 is `LowerRegister::KUENICHI`; by 旧暦 month it is `lower_register::KUENICHI_BY_LUNISOLAR_MONTH`, checked against こよみる's 2025 dates. |
 | 日家九星 | A solstice on 癸巳 switches on the preceding 甲子 in one school and the following in another; both are `nine_stars::SwitchReading` entries. |
@@ -129,11 +135,11 @@ can. Where a table could be read two ways, the crate follows the lists:
 
 | Class | Annotations | Exactness |
 |---|---|---|
-| Pure day count | all 干支 rules, 七曜, 二十八宿, 恵方 | exact for ever |
+| Pure day count | all 干支 rules, 七曜, 二十八宿, 納音, 恵方, 八将神, 金神 | exact for ever |
 | Year count from 立春 | 三元九運 | exact, the 立春 day as the 九星 year has it |
 | Korean lunisolar | 손 없는 날 | `hc-calendars-lunar`'s `dangi`, 1645–2150 |
-| 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
-| Lunisolar | 六曜, 不成就日, 二十七宿, 十五夜, 十三夜 | the 天保暦's rules continued, `hc-calendars-lunar`'s `japanese_tenpo::UNBOUNDED_PARAMETERS` |
+| 節月-keyed | 十二直, 九星, most of 下段 and 選日, 臘日 but the lunar rule | `hc-astro`'s VSOP87 solar series, good to about 1″ |
+| Lunisolar | 六曜, 不成就日, 二十七宿, 十五夜, 十三夜, 臘日 on the lunar 12月9日 | the 天保暦's rules continued, `hc-calendars-lunar`'s `japanese_tenpo::UNBOUNDED_PARAMETERS` |
 
 A term instant within about a minute of local midnight can still be assigned
 the wrong *day*, which moves a 節月 boundary and with it every annotation
@@ -174,11 +180,11 @@ Things this crate deliberately does not do, rather than guessing:
   solstice — and says that rule alone leaves places that need adjusting,
   without saying how; it is not implemented. `DayStarPeriod::is_leap_period`
   tells a caller when a day is in a period that holds a 閏.
-* **Per-mansion 吉凶 lists.** The 吉/凶 flag is shipped; the per-mansion lists of
-  favoured and forbidden undertakings are not, because published tables diverge
-  enough that picking one would be inventing a tradition. Only the two statements
-  every source makes — 鬼宿 is best for everything but marriage, 牛宿 is
-  auspicious in all things — are shipped, through `Mansion::undisputed_note`.
+* **A default list of each mansion's undertakings.** The lists are
+  `mansion_undertakings`' publishers' own, and no function answers for
+  "the" tradition; `Mansion::undisputed_note` gives the two statements
+  every source makes. 神仏.ネット's entries are sentences, not lists, and
+  are not carried, because splitting them would be this crate's reading.
 * **The 神吉日 suppression rule.** Edo almanacs printed fewer than the 33 in 60
   the rule gives, because a 神吉日 overlapping certain 凶日 was dropped. Which
   ones is not known: Japanese Wikipedia says 「その規則は完全には判明していない」.
@@ -191,18 +197,22 @@ Things this crate deliberately does not do, rather than guessing:
   is not carried: no printed date tests it.
 * **The day a year's 恵方 takes over.** `lucky_direction_of_year` takes the
   year's number; the customs read use the Gregorian year, 恵方参り on New
-  Year's Day and the 恵方巻 of 節分 facing the year already begun. The other
-  方位 deities, 大将軍, 金神 and the rest, are not carried.
+  Year's Day and the 恵方巻 of 節分 facing the year already begun. The
+  other 方位神 are `direction_deities`', whose year turns at 立春.
+* **The days the 方位神 leave their directions**, 大将軍's and 金神's 遊行
+  and 金神's 間日: the sources read disagree on their seasons. 土公神 and
+  歳禄神, with no table read.
 * **The 大三元 of 540 years**, whose epoch the source of 三元九運 does not give,
   and where *son* is on the days that are not 손 없는 날, for which no table
   was found.
-* **臘日.** At least four incompatible definitions are in print and many almanacs
-  omit it. Not implemented.
+* **臘日 where a rule does not say.** "After" 小寒, 大寒 or 冬至 does not
+  say whether the term's own day counts, so each rule declines a winter
+  whose term day bears its sign, and the nearest-辰 rule one whose 辰 days
+  are six days either side of 大寒. Japanese Wikipedia's 「丑節9日」 is not
+  a rule, since it does not say which day is the first.
 * **三伏 (初伏・中伏・末伏).** A period counted from the summer solstice and 立秋
   rather than a rule over a cycle, so it is not an annotation here.
   `hc_seasons::san_fu` computes it.
-* **納音.** Not modelled, so the per-person forms of 五墓日 and the 三箇の悪日
-  cannot be filtered.
 * **The astronomical mansion.** `mansion_of` is the almanac's 28-day *counter*
   and has nothing to do with where the Moon is; the sidereal month is 27.32 days,
   so the two lap each other in about 1,128 days, a little over three years.
@@ -228,8 +238,12 @@ where the doubled star appears.
 
 ## Testing
 
-126 unit tests and 3 doc tests. The anchors are published almanac dates, cited in
-the test doc comments: whole published years of 一粒万倍日, 三隣亡 and 往亡日;
-the 2024 鬼宿日 list; the 2024 and 2025 天赦日; the 八専, 十方暮 and 天一天上
-windows for 2025; the 二十七宿 for September 2026; and the 1685 epoch of the
-mansion cycle, which the crate reproduces 339 years back with the right weekday.
+225 unit tests, the catalogues' generated checks among them, and 5 doc
+tests. The anchors are published almanac dates, cited in the test doc
+comments: whole published years of 一粒万倍日, 三隣亡 and 往亡日; the 2024
+鬼宿日 list; the 2024 and 2025 天赦日; the 八専, 十方暮 and 天一天上
+windows for 2025; the 二十七宿 for September 2026; the 1685 epoch of the
+mansion cycle, which the crate reproduces 339 years back with the right
+weekday; every 2025 五墓日 こよみる lists for each 納音 phase; こよみる's
+臘日 candidates of 2024–2027; and 古文書ネット's 八将神 of 2026 and 金神
+of 2025.

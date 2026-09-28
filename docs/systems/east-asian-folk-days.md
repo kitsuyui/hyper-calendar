@@ -1,9 +1,9 @@
-# East Asian folk days and almanac cycles: お盆, the sexagenary-day festivals, 恵方, 三元九運, 손 없는 날, the Vietnamese days avoided, the counts from 正月, and 入梅 and 出梅
+# East Asian folk days and almanac cycles: お盆, the sexagenary-day festivals, 恵方 and the other 方位神, 三元九運, 손 없는 날, the Vietnamese days avoided, the counts from 正月, and 入梅 and 出梅
 
 Backs `hc-holiday`'s `obon-july`, `obon-august`, `obon-lunar`,
 `tori-no-ichi`, `hatsuuma`, `hatsuuma-lunar`, `inoko`, `inoko-november`,
 `tokanya` and `tokanya-november`, `hc-almanac`'s `lucky_direction`,
-`nine_periods`, `days_without_son`, `vietnamese_days` and
+`direction_deities`, `nine_periods`, `days_without_son`, `vietnamese_days` and
 `first_month_counts`, and `hc-seasons`' `meiyu`. None is a registered
 calendar: the
 festivals are tables of days, and the rest are readings laid over the
@@ -31,7 +31,10 @@ sexagenary cycle and the lunar calendars.
   tenth with straw bundles [wikipedia-ja-inoko, wikipedia-ja-tokanya].
 - **恵方** is the direction in which the deity of the year's fortune, 歳徳神,
   stands. The New Year's shrine visit, 恵方参り, is made in that direction,
-  and the 恵方巻 of 節分 is eaten facing it [kotobank-eho].
+  and the 恵方巻 of 節分 is eaten facing it [kotobank-eho]. The almanac's
+  chart of the year's directions names the gods to be avoided too: the
+  **八将神**, eight gods whose directions follow the year's branch, and
+  **金神**, "whose direction is extremely unlucky" [ndl-koyomi-hoijin].
 - **三元九運** is the reckoning of 玄空 feng shui: periods of twenty years,
   each ruled by one of the nine stars [chanweitang-sanyuan-jiuyun].
 - **손 없는 날**, "days without *son*", are the Korean lunar days on which
@@ -115,6 +118,36 @@ each 15° wide [wikipedia-ja-toshitokujin]. **Worked example.** 2026 ends in
 6, a 丙 year (丙午), so its 恵方 is 丙, 165°, a little south of
 south-south-east, as the 恵方巻 of 3 February 2026 faced [allabout-eho-2026,
 jre-eho-2026].
+
+### The other 方位神
+
+The **八将神** stand on branches, 子 at north and each 30° on, fixed by the
+year's branch [ndl-koyomi-hoijin, wikipedia-ja-hasshojin]:
+
+| God | Where, in a year of branch *b* | What its direction forbids (the Library) |
+| --- | --- | --- |
+| 太歳神 | *b* | felling trees; otherwise lucky |
+| 大将軍 | 酉 in 亥子丑 years, 子 in 寅卯辰, 卯 in 巳午未, 午 in 申酉戌: three years in each, 「三年ふさがり」 | everything |
+| 大陰神 | two branches behind *b* | marriage and birth |
+| 歳刑神 | the 三刑 of *b*: 子 卯, 丑 戌, 寅 巳, 卯 子, 辰 辰, 巳 申, 午 午, 未 丑, 申 寅, 酉 酉, 戌 未, 亥 亥 | tilling and sowing |
+| 歳破神 | opposite 太歳 | moving house, travel, boarding a ship |
+| 歳殺神 | 未 in 申子辰 years, 辰 in 巳酉丑, 丑 in 寅午戌, 戌 in 亥卯未 | marriage and birth |
+| 黄幡神 | 辰 in 申子辰 years, 丑 in 巳酉丑, 戌 in 寅午戌, 未 in 亥卯未 | moving earth |
+| 豹尾神 | opposite 黄幡 | relieving oneself, acquiring livestock |
+
+**金神** stands by the year's stem: 午未申酉 in 甲 and 己 years, 辰巳 in 乙
+and 庚, 子丑寅卯午未 in 丙 and 辛, 寅卯戌亥 in 丁 and 壬, 子丑申酉 in 戊 and
+癸 [wikipedia-ja-konjin, komonjyo-konjin]. **大金神** stands three branches
+behind the year's, and **姫金神** opposite it [wikipedia-ja-konjin]. The
+year is 節区切り, from 立春 to the next 節分 [iinippon-daishogun].
+
+**Worked example.** 2026 is 丙午, branch 6, 午. 太歳 is on 午, south; 大将軍,
+a 巳午未 year, on 卯, east; 大陰, two behind, on 辰; 歳刑, 午's own 刑, on
+午; 歳破, opposite, on 子, north; 歳殺, a 寅午戌 year, on 丑; 黄幡 on 戌 and
+豹尾, opposite, on 辰 — as 古文書ネット gives the year [komonjyo-hasshojin].
+Before 立春 on 4 February it is still the 巳 year, whose 大将軍 is on 卯
+as well [iinippon-daishogun]. 丙 years put 金神 in 子, 丑, 寅, 卯, 午 and 未;
+大金神 is on 卯 and 姫金神 on 酉.
 
 ### 三元九運
 
@@ -200,6 +233,11 @@ In `hc-almanac`:
 - `lucky_direction`: `LuckyDirection`, the four points with their names,
   branches, azimuths and the nearest of the sixteen compass points, and
   `lucky_direction_of_year`, by the Gregorian year's number.
+- `direction_deities`: `General`, the eight 八将神 with their names,
+  readings and what the Library says each forbids, and `General::direction`
+  by the year's branch; `konjin_branches` by the year's stem; `dai_konjin`
+  and `hime_konjin` by its branch; each a `BranchDirection`, with its
+  azimuth; and `year_pillar`, the year's 干支 turning at 立春.
 - `nine_periods`: `Period`, its number, era, star, years, and the ruler's
   name as the source writes it; `period_of_year`, and `period`, which turns
   at 立春 at a meridian through `nine_stars::nine_star_year`.
@@ -230,8 +268,20 @@ Not carried:
 - **The day a year's 恵方 takes over.** `lucky_direction_of_year` takes the
   year by its number. The customs read use the Gregorian year: 恵方参り on
   New Year's Day, and the 恵方巻 of 節分, the eve of 立春, facing the year
-  that has already begun [allabout-eho-2026, jre-eho-2026]. The other
-  方位 deities, 大将軍, 金神 and the rest, are not carried.
+  that has already begun [allabout-eho-2026, jre-eho-2026].
+- **The days the 方位神 leave their directions**: 大将軍's and 金神's 遊行
+  and 金神's 間日, which Japanese Wikipedia, 古文書ネット and いい日本再発見
+  tabulate and disagree on the seasons of — Japanese Wikipedia's 金神
+  seasons run from 立春 to the 土用, 古文書ネット's by lunar month
+  [wikipedia-ja-konjin, komonjyo-konjin, iinippon-daishogun]; no source
+  read settles which. 土公神, which the Library says moves with the
+  seasons, with no table read [ndl-koyomi-hoijin]; and the other gods
+  歳事暦 names, 歳禄神 among them, with no table read [saijigoyomi-hoi].
+- **いい日本再発見's 歳刑神**, whose row runs 卯 辰 巳 午 未 申 辰 酉 戌 亥 子
+  丑 — one branch on each year but at 午 — where Japanese Wikipedia's is the
+  三刑; 古文書ネット's 2026 agrees with Japanese Wikipedia, and every other
+  row of the three tables agrees [iinippon-daishogun, komonjyo-hasshojin].
+  It is taken for a copying slip.
 - **The 大三元 of 540 years**, whose epoch the source does not give; and
   anything the source says about where the ruling star stands.
 - **Where *son* is on the other days**: the source gives no table.
@@ -263,6 +313,14 @@ checked against dated lists:
 - `lucky_direction` gives デジタル大辞泉's table for every year of
   1900–2099 and the directions of 2026–2030 that JRE Media and All About
   publish.
+- `direction_deities` gives Japanese Wikipedia's table of the 八将神 for all
+  twelve years, 古文書ネット's eight directions of 2026, いい日本再発見's
+  大将軍 before 立春 2026, the Library's relations (太歳 on the year's
+  branch, 歳破 opposite it, 豹尾 opposite 黄幡), Japanese Wikipedia's 金神
+  rows and 古文書ネット's 2025, and Japanese Wikipedia's 大金神 and 姫金神.
+  The 八将神 table and いい日本再発見's agree on seven gods; both the Library's
+  and Japanese Wikipedia's descend from the almanacs, and no almanac was
+  read.
 - `nine_periods` gives the source's nine periods and 立春 2024.
 - `days_without_son` gives all sixty-eight days of 2026 in superkts.com's
   list, on the lunar dates it prints beside them.
@@ -315,6 +373,21 @@ almanacs, and no printed almanac was read.
   yang and yin stems. Read 2026-09-27.
 - [wikipedia-ja-toshitokujin] — Wikipedia (ja), 「歳徳神」: the azimuths.
   Read 2026-09-27.
+- [ndl-koyomi-hoijin] — 国立国会図書館, 「日本の暦」, 干支② 方位神: 歳徳神,
+  金神, 土公 and the 八将神 with the almanacs' wording and what each
+  forbids. Read 2026-09-29.
+- [wikipedia-ja-hasshojin] — Wikipedia (ja), 「八将神」: the table of the
+  eight by the year's branch. Read 2026-09-29.
+- [wikipedia-ja-konjin] — Wikipedia (ja), 「金神」: 金神 by the year's stem,
+  its 遊行 and 間日, 大金神 and 姫金神. Read 2026-09-29.
+- [komonjyo-hasshojin], [komonjyo-konjin] — 古文書ネット, 「八将神とは」 and
+  「金神（こんじん）とは」: the directions of 2026 and 2025, and 金神's
+  遊行; it cites 伊東和彦『暦を知る事典』 (2006), not read. Read
+  2026-09-29.
+- [iinippon-daishogun] — いい日本再発見, 「大将軍（方位神）とは？」: a table
+  of the eight, 節区切り, and 大将軍 in 2026. Read 2026-09-29.
+- [saijigoyomi-hoi] — 歳事暦, 「暦の吉凶 方位神」: 金神, 大金神 and 姫金神
+  described, and the other gods named. Read 2026-09-29.
 - [allabout-eho-2026], [jre-eho-2026] — the directions of 2026–2030. Read
   2026-09-27.
 - [chanweitang-sanyuan-jiuyun] — 阐微堂, 「无常派玄空地理—— 三元九运」
@@ -365,6 +438,11 @@ almanacs, and no printed almanac was read.
 `crates/hc-almanac/src/lucky_direction.rs`
 (`the_direction_follows_the_last_digit_of_the_year`,
 `the_published_directions_of_2026_to_2030`),
+`crates/hc-almanac/src/direction_deities.rs`
+(`the_eight_generals_are_the_published_table`,
+`the_library_s_relations_hold`, `the_published_directions_of_2026_match`,
+`the_konjin_rows_and_2025_match`,
+`the_great_and_princess_konjin_are_the_published_table`),
 `crates/hc-almanac/src/nine_periods.rs`
 (`the_nine_periods_of_1864_to_2043_are_the_sources`,
 `a_period_turns_at_the_beginning_of_spring`,

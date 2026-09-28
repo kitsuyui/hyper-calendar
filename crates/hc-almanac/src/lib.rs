@@ -17,12 +17,16 @@
 //! | Module | 暦注 | Cycle it is a rule over |
 //! |---|---|---|
 //! | [`mansions`] | 二十八宿, 二十七宿 | a free-running 28-day cycle; a lunisolar reset |
+//! | [`mansion_undertakings`] | each mansion's favoured and forbidden undertakings, list by list | the 28-day cycle |
+//! | [`nayin`] | 納音 | the sixty in pairs |
 //! | [`mod@nine_stars`] | 九星 | nine, per year, per 節月 and per day |
 //! | [`twelve_directs`] | 十二直 | the day branch, re-anchored at every 節気 |
 //! | [`mod@lower_register`] | 暦注下段 | the sexagenary day, the 節月, the mansion |
 //! | [`mod@selected_days`] | 選日 | the sexagenary day, the 節月, the Moon |
 //! | [`seven_luminaries`] | 七曜 | the seven-day week |
 //! | [`lucky_direction`] | 恵方 | the year's heavenly stem |
+//! | [`direction_deities`] | 八将神, 金神, 大金神, 姫金神 | the year's branch or stem |
+//! | [`rounichi`] | 臘日, one rule per reckoning | 小寒, 大寒 or 冬至 and the day's branch; the lunar date |
 //! | [`nine_periods`] | 三元九運 | twenty-year periods from 1864, turning at 立春 |
 //! | [`days_without_son`] | 손 없는 날 | the Korean lunar day, `dangi` |
 //! | [`vietnamese_days`] | Tam Nương, Nguyệt Kỵ | the Vietnamese lunar day, `vietnamese` |
@@ -99,15 +103,19 @@
 pub mod context;
 pub mod day_notes;
 pub mod days_without_son;
+pub mod direction_deities;
 pub mod first_month_counts;
 pub mod lower_register;
 pub mod lucky_direction;
 pub mod lunisolar;
+pub mod mansion_undertakings;
 pub mod mansions;
 pub mod moon_viewing;
+pub mod nayin;
 pub mod nine_periods;
 pub mod nine_stars;
 pub mod rokuyo;
+pub mod rounichi;
 pub mod rules;
 pub mod selected_days;
 pub mod seven_luminaries;
@@ -117,13 +125,16 @@ pub mod vietnamese_days;
 pub use context::{DayContext, SolarMonth, solar_month_of};
 pub use day_notes::{Combination, CombinationSet, DayNotes, day_notes};
 pub use days_without_son::is_day_without_son;
+pub use direction_deities::{BranchDirection, General};
 pub use first_month_counts::{FirstMonthCounts, first_month_counts};
-pub use lower_register::{LowerRegister, LowerRegisterSet, lower_register};
+pub use lower_register::{GraveDays, LowerRegister, LowerRegisterSet, lower_register};
 pub use lucky_direction::{LuckyDirection, lucky_direction_of_year};
 pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of, mansion27_of_date};
+pub use nayin::Nayin;
 pub use nine_periods::{Period, period, period_of_year};
 pub use nine_stars::{Dun, NineStar, NineStars, day_star, month_star, nine_stars, year_star};
 pub use rokuyo::Rokuyo;
+pub use rounichi::RounichiRule;
 pub use rules::{AlmanacRule, rule_applies};
 pub use selected_days::{SelectedDay, SelectedDaySet, selected_days};
 pub use seven_luminaries::{Luminary, luminary_of};
