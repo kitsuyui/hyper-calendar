@@ -995,6 +995,52 @@ macro_rules! exports {
             $crate::lines::calendar_units_by_id;
 
         c {
+            /// A date as a locale writes it in one calendar, read back, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `calendar` is a NUL-terminated registry identifier; null is
+            /// `HC_ERROR_NULL_POINTER` and one the registry does not carry
+            /// `HC_ERROR_UNKNOWN`. `locale` is as for `hc_describe_day`, and the
+            /// text is read in the locale that export's line for the calendar is
+            /// written in; `text` is NUL-terminated, null being the empty text. The
+            /// line is `hc_describe_day`'s for the calendar and the day the text
+            /// names, then that fixed day. A text that is not one day is still a
+            /// line: its date columns, standing, formatted date and fixed day are
+            /// empty, and the error columns say why — `ambiguous` (103),
+            /// `two-digit-year` (104), `year-not-written` (105),
+            /// `weekday-mismatch` (106), `not-recognised` (102) or `empty` (101),
+            /// or the calendar's own code and name for fields it has no day for.
+            /// Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// A date as a locale writes it in one calendar, read back, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// `calendar` is a registry identifier, as `hc_calendar_units` takes
+            /// it; one the registry does not carry is `HC_ERR_UNKNOWN`. `locale` is
+            /// as for `hc_describe_day`, and the text is read in the locale that
+            /// export's line for the calendar is written in, so that what its
+            /// formatted date writes, this reads: 令和8年9月28日, *28 Eylül 2026*,
+            /// ٢٨ سبتمبر ٢٠٢٦, and a reader's own spelling of them — a name at any
+            /// width, Latin digits, Han numerals and 元年, a weekday that must be
+            /// the day's. The line is `hc_describe_day`'s for the calendar and the
+            /// day the text names, then that fixed day. A text that is not one day
+            /// is still a line: its date columns, standing, formatted date and
+            /// fixed day are empty, and the error columns say why — `ambiguous`
+            /// (103), `two-digit-year` (104), `year-not-written` (105),
+            /// `weekday-mismatch` (106), `not-recognised` (102) or `empty` (101),
+            /// or the calendar's own code and name for fields it has no day for.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_parse_date(
+            calendar: name(calendar_len),
+            locale: text(locale_len),
+            text: text(text_len),
+        ) -> line =
+            $crate::lines::parse_date;
+
+        c {
             /// Every registered calendar, as NUL-terminated UTF-8 lines in a
             /// caller-owned buffer.
             ///

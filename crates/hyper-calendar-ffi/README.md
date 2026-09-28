@@ -277,7 +277,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-144 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+145 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -332,6 +332,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_describe_day(int64_t fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | One fixed day in every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_day_extras(int64_t fixed, const char *id, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The extra fields of one fixed day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_units(const char *id, uint32_t unit, int64_t from_fixed, int64_t to_fixed, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | The days from `from_fixed` up to but not including `to_fixed` as one calendar's eras, years, months or days, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_parse_date(const char *calendar, const char *locale, const char *text, char *buffer, size_t capacity, size_t *written);` | `calendars` | A date as a locale writes it in one calendar, read back, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_calendars(int64_t today, const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_calendar_list(const char *locale, char *buffer, size_t capacity, size_t *written);` | `calendars` | Every registered calendar by name alone, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_locales(char *buffer, size_t capacity, size_t *written);` | `calendars` | Every locale the library carries, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -611,6 +612,18 @@ calendar's identifier and the polity. A code the library does not know is
 an empty string, and a null `region` is `HC_ERROR_NULL_POINTER`. The
 columns are the same as the module's, and the README there describes
 each.
+
+`hc_parse_date(calendar, locale, text, buffer, capacity, written)` reads
+a date as the locale writes it in the calendar — what column 16 of
+`hc_describe_day` writes, and a reader's own spelling of it — and writes
+the module's line: the calendar's 18 columns of `hc_describe_day` for the
+day the text names, then the fixed day. A text that is not one day is a
+line whose error columns say why, as the WebAssembly module's README lists
+under "A written date, read back": `ambiguous`, `two-digit-year`,
+`year-not-written`, `weekday-mismatch`, `not-recognised` or `empty`, codes
+101 to 106, or the calendar's own refusal. A null `text` is the empty one;
+a null `calendar` is `HC_ERROR_NULL_POINTER`, and one the registry does not
+carry `HC_ERROR_UNKNOWN`.
 
 `hc_naming_period_on(calendar, fixed, locale, buffer, capacity, written)`
 writes the module's line of the month and weekday names a government

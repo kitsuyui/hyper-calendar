@@ -36,7 +36,7 @@
 //! | [`patterns`] | `strftime`/`strptime` and CLDR field patterns, both directions |
 //! | [`python`] | The ISO 8601 profile and `strptime` defaults of Python's `datetime` |
 //! | [`parse`] | A sniffing front door for "a date string" |
-//! | [`label`] | A calendar's eras, years, months, days and dates, written as a locale writes them |
+//! | [`label`] | A calendar's eras, years, months, days and dates, written as a locale writes them, and a written date read back |
 //!
 //! ```
 //! use hc_format::{ZoneInfo, iso8601};

@@ -714,6 +714,11 @@ impl Calendar for JapaneseCalendar {
         nengo::by_id(code).map(|era| hc_calendar::EraName::new(era.kanji, era.romaji))
     }
 
+    /// The nengō of the table, in its order.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        nengo::ALL.get(index).map(|era| era.id)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: self.id(),

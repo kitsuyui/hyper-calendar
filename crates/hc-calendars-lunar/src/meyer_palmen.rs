@@ -364,6 +364,11 @@ impl Calendar for MeyerPalmenCalendar {
         (code == ERA).then_some(EraName::new("MP", ""))
     }
 
+    /// The one era, `mp`.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        (index == 0).then_some(ERA)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId(ID),

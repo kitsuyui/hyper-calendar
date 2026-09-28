@@ -45,6 +45,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     describeDay: () => hc.describeDay(739_880, "en"),
     dayExtras: () => hc.dayExtras(739_880, "en"),
     calendarUnits: () => hc.calendarUnits("gregory", "year", 739_000, 739_880, "en"),
+    parseDate: () => hc.parseDate("gregory", "en", "September 21, 2026"),
     calendars: () => hc.calendars(739_880, "en"),
     calendarList: () => hc.calendarList("en"),
     locales: () => hc.locales(),

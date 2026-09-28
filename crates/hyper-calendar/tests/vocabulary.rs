@@ -261,7 +261,9 @@ fn era_probe_days(meta: &CalendarMeta) -> Vec<Rd> {
 
 /// Every era code a registered calendar writes is lowercase kebab-case —
 /// `nepal-sambat`, `kali-yuga`, never `Nepal Sambat` — and English can
-/// name it, from the locale data or from the calendar's own table.
+/// name it, from the locale data or from the calendar's own table; and a
+/// code the calendar names itself is one its `era_code` lists, so that
+/// `hc_format::label::parse_date` can take the name back to it.
 ///
 /// The lookup ignores case and nothing else, so a code with a space or a
 /// capital that the name tables spell with a hyphen is a name written and
@@ -275,6 +277,7 @@ fn every_era_code_is_kebab_case_and_english_names_it() {
     let registry = registry();
     let mut malformed: BTreeSet<String> = BTreeSet::new();
     let mut unnamed: BTreeSet<String> = BTreeSet::new();
+    let mut unlisted: BTreeSet<String> = BTreeSet::new();
     let mut seen = 0;
     for id in registered() {
         let calendar = registry.get(id).expect("registered");
@@ -298,8 +301,20 @@ fn every_era_code_is_kebab_case_and_english_names_it() {
             if !named {
                 unnamed.insert(format!("{}: {code}", id.0));
             }
+            let listed = || {
+                (0..)
+                    .map_while(|index| calendar.era_code(index))
+                    .any(|own| own == code)
+            };
+            if calendar.era_name(code).is_some() && !listed() {
+                unlisted.insert(format!("{}: {code}", id.0));
+            }
         }
     }
+    assert!(
+        unlisted.is_empty(),
+        "era codes a calendar names but does not list: {unlisted:?}"
+    );
     assert!(seen > 0, "some calendar writes an era");
     assert!(
         malformed.is_empty(),

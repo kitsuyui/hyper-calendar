@@ -556,6 +556,11 @@ impl Calendar for JavaneseCalendar {
         (code == ERA).then_some(EraName::new("AJ", ""))
     }
 
+    /// The one era, `aj`.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        (index == 0).then_some(ERA)
+    }
+
     /// The date begins at nightfall and is named by the civil day it ends
     /// on: the *tanggal* is counted "from its night and then its day",
     /// where the weekday and pasaran are counted from sunrise

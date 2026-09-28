@@ -97,6 +97,7 @@ export const METHODS = Object.freeze([
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "dayExtras", export: "hc_day_extras", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
+  { method: "parseDate", export: "hc_parse_date", feature: "calendars" },
   { method: "calendars", export: "hc_calendars", feature: "calendars" },
   { method: "calendarList", export: "hc_calendar_list", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
@@ -192,6 +193,13 @@ export const METHODS = Object.freeze([
   { method: "gravitatingBodies", export: "hc_gravitating_bodies", feature: "relativity" },
 ].map(Object.freeze));
 
+/** The columns of `hc_describe_day`, which `hc_parse_date` writes before the fixed day. */
+const DESCRIBE_DAY_COLUMNS = Object.freeze([
+  "id", "name", "era", "era label", "year", "month", "leap month", "month label",
+  "day", "leap day", "extras", "error code", "error name", "standing",
+  "day boundary", "formatted", "locale used", "day named by",
+]);
+
 /** The columns of `hc_orbit_at`, which `hc_orbit_series` writes after the epoch. */
 const ORBIT_COLUMNS = Object.freeze([
   "eccentricity", "eccentricity spread", "obliquity", "obliquity spread",
@@ -208,11 +216,8 @@ const ORBIT_COLUMNS = Object.freeze([
  * @type {Readonly<Record<string, ReadonlyArray<string>>>}
  */
 export const COLUMNS = Object.freeze({
-  describeDay: Object.freeze([
-    "id", "name", "era", "era label", "year", "month", "leap month", "month label",
-    "day", "leap day", "extras", "error code", "error name", "standing",
-    "day boundary", "formatted", "locale used", "day named by",
-  ]),
+  describeDay: DESCRIBE_DAY_COLUMNS,
+  parseDate: Object.freeze([...DESCRIBE_DAY_COLUMNS, "fixed"]),
   dayExtras: Object.freeze([
     "id", "field", "value", "label", "value label", "in date", "locale used",
   ]),
@@ -804,6 +809,21 @@ function describedDay(cells) {
     formatted: optional(formatted),
     localeUsed,
     dayNamedBy: dayNaming(dayNamedBy),
+  };
+}
+
+/**
+ * The one line of `hc_parse_date`: `hc_describe_day`'s cells, then the
+ * fixed day, empty on a refusal.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").ParsedDate}
+ */
+function parsedDate(cells) {
+  const fixed = cells[DESCRIBE_DAY_COLUMNS.length];
+  return {
+    ...describedDay(cells.slice(0, DESCRIBE_DAY_COLUMNS.length)),
+    fixed: optionalInteger(fixed, "fixed"),
   };
 }
 
@@ -1808,7 +1828,7 @@ function marsTime(cells) {
 function mission(cells) {
   const [id, name, landingUtc, landingUnix, landingSol, clock, clockLongitude, siteLongitude, published, note, source] = cells;
   return {
-    id,
+    id: /** @type {import("./hyper-calendar.d.ts").MissionId} */ (id),
     name,
     landingUtc,
     landingUnix: integer(landingUnix, "landing unix"),
@@ -1834,10 +1854,10 @@ function body(cells) {
     zeroPoint, zeroPointNote, source, status,
   ] = cells;
   return {
-    id,
+    id: /** @type {import("./hyper-calendar.d.ts").BodyId} */ (id),
     name,
     kind: /** @type {import("./hyper-calendar.d.ts").BodyKind} */ (kind),
-    primary: optional(primary),
+    primary: /** @type {import("./hyper-calendar.d.ts").BodyId | null} */ (optional(primary)),
     siderealRotationHours: decimal(siderealRotation, "sidereal rotation"),
     solarDaySeconds: solarDay === "" ? null : decimal(solarDay, "solar day"),
     solarDayOrigin: /** @type {"measured" | "derived" | null} */ (optional(solarDayOrigin)),
@@ -1897,7 +1917,7 @@ function properTime(cells) {
 function gravitationalDilation(cells) {
   const [id, gm, gmConstant, schwarzschildRadius, factor, micros, constants, source] = cells;
   return {
-    id,
+    id: /** @type {import("./hyper-calendar.d.ts").GravitatingBodyId} */ (id),
     gm: decimal(gm, "gm"),
     gmConstant,
     schwarzschildRadius: decimal(schwarzschildRadius, "schwarzschild radius"),
@@ -1916,7 +1936,7 @@ function gravitationalDilation(cells) {
  */
 function gravitatingBody(cells) {
   const [id, name, gm, gmConstant, source] = cells;
-  return { id, name, gm: decimal(gm, "gm"), gmConstant, source };
+  return { id: /** @type {import("./hyper-calendar.d.ts").GravitatingBodyId} */ (id), name, gm: decimal(gm, "gm"), gmConstant, source };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -2892,6 +2912,31 @@ export class HyperCalendar {
         this.#text("hc_calendar_units", (buffer, capacity) =>
           fn(idPointer, idLen, index, start, end, localePointer, localeLen, buffer, capacity), true)));
     return rows(text, COLUMNS.calendarUnits, "hc_calendar_units").map(calendarUnit);
+  }
+
+  /**
+   * A date as the locale writes it in one calendar, read back: the
+   * calendar's row of {@link describeDay} for the day the text names, and
+   * that fixed day. `locale` is as for {@link describeDay}, and the text is
+   * read in the locale that row is written in, so that what its
+   * `formatted` writes, this reads. A text that is not one day is a row
+   * whose `error` says why — `ambiguous`, `two-digit-year`,
+   * `year-not-written`, `weekday-mismatch`, `not-recognised`, `empty`, or
+   * the calendar's own refusal — and whose `fixed` is `null`.
+   *
+   * @param {string} calendar
+   * @param {string} locale
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").ParsedDate}
+   */
+  parseDate(calendar, locale, text) {
+    const fn = this.#export("hc_parse_date");
+    const line = this.#withText(calendar, "calendar", (calendarPointer, calendarLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#withText(text, "text", (textPointer, textLen) =>
+          this.#text("hc_parse_date", (buffer, capacity) =>
+            fn(calendarPointer, calendarLen, localePointer, localeLen, textPointer, textLen, buffer, capacity), true))));
+    return parsedDate(this.#oneLine("hc_parse_date", line, COLUMNS.parseDate));
   }
 
   /**

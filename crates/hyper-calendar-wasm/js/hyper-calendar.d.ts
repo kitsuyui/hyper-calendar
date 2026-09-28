@@ -637,6 +637,7 @@ export const SENTINELS: ReadonlyArray<Sentinel>;
 export const METHODS: ReadonlyArray<MethodEntry>;
 export const COLUMNS: {
   readonly describeDay: ReadonlyArray<string>;
+  readonly parseDate: ReadonlyArray<string>;
   readonly dayExtras: ReadonlyArray<string>;
   readonly calendarUnits: ReadonlyArray<string>;
   readonly calendars: ReadonlyArray<string>;
@@ -810,6 +811,16 @@ export interface DescribedDay {
   localeUsed: string;
   /** Which civil day names the day, or `null` for a day that begins at midnight. */
   dayNamedBy: DayNamedBy | null;
+}
+
+/** The one line of `hc_parse_date`: a written date read back, as `hc_describe_day` writes the day, and the day. */
+export interface ParsedDate extends DescribedDay {
+  /**
+   * The fixed day the text names, or `null` when it names no one day; then
+   * `error` says why: `ambiguous`, `two-digit-year`, `year-not-written`,
+   * `weekday-mismatch`, `not-recognised`, `empty`, or the calendar's own.
+   */
+  fixed: number | null;
 }
 
 /** A unit of a calendar `calendarUnits` walks, largest first. */
@@ -1177,8 +1188,8 @@ export type MissionClock = "local-mean-solar-time" | "local-true-solar-time-at-l
 
 /** One line of `hc_missions`. */
 export interface Mission {
-  /** Lower case, a hyphen for each space: `viking-1`. */
-  id: string;
+  /** Lower case, a hyphen for each space: `viking-1`; what `missionSol` takes. */
+  id: MissionId;
   name: string;
   /** The landing instant, UTC, as the table writes it. */
   landingUtc: string;
@@ -1206,12 +1217,12 @@ export type ZeroPoint = "standard" | "convention";
 
 /** One line of `hc_bodies`. */
 export interface Body {
-  /** The name in lower case: `titan`. */
-  id: string;
+  /** The name in lower case: `titan`; what `bodyTime` takes. */
+  id: BodyId;
   name: string;
   kind: BodyKind;
   /** The identifier of the body it orbits; `null` for the Sun. */
-  primary: string | null;
+  primary: BodyId | null;
   /** The sidereal rotation period in hours, negative for a retrograde rotator. */
   siderealRotationHours: number;
   /** The solar day in SI seconds; `null` for the Sun. */
@@ -1263,7 +1274,7 @@ export interface ProperTime {
 
 /** The one line of `hc_gravitational_dilation`: a clock held still at a radius. */
 export interface GravitationalDilation {
-  id: string;
+  id: GravitatingBodyId;
   /** GM in m³ s⁻². */
   gm: number;
   /** The `hc-relativity` constant that holds `gm`. */
@@ -1281,7 +1292,8 @@ export interface GravitationalDilation {
 
 /** One line of `hc_gravitating_bodies`. */
 export interface GravitatingBody {
-  id: string;
+  /** What `gravitationalDilation` takes. */
+  id: GravitatingBodyId;
   name: string;
   /** GM in m³ s⁻². */
   gm: number;
@@ -2015,6 +2027,11 @@ export class HyperCalendar {
   dayExtras(fixed: number | bigint, locale?: string, id?: string): DayExtra[];
   /** The days from `from` up to but not including `to` as one calendar's eras, years, months or days. */
   calendarUnits(id: string, unit: Unit | number, from: number | bigint, to: number | bigint, locale?: string): CalendarUnit[];
+  /**
+   * `hc_parse_date`: a date as `locale` writes it in `calendar`, read back;
+   * a calendar the registry does not carry is `unknown`.
+   */
+  parseDate(calendar: string, locale: string, text: string): ParsedDate;
   /** Every registered calendar, with what the locale calls it and its standing on `today`. */
   calendars(today: number | bigint, locale?: string): CalendarEntry[];
   /** `hc_calendar_list`: every registered calendar by name alone, with nothing that depends on a day. */

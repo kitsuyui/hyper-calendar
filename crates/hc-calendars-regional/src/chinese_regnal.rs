@@ -432,6 +432,11 @@ impl Calendar for ChineseRegnalCalendar {
         by_id(code).map(|era| hc_calendar::EraName::new(era.hanzi, era.pinyin))
     }
 
+    /// The eras of the table, in its order.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        ALL.get(index).map(|era| era.id)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("chinese-regnal"),

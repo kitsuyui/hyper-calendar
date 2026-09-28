@@ -1,6 +1,65 @@
 use super::super::*;
 use super::read_lines;
 
+/// A written date reads back as the module's line; a null text is the
+/// empty one, and a null calendar is refused.
+#[test]
+fn a_written_date_reads_back_as_the_modules_line() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_parse_date(
+            c"japanese".as_ptr(),
+            c"ja".as_ptr(),
+            c"令和8年9月28日".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(
+        text,
+        hc::lines::parse_date("japanese", "ja", "令和8年9月28日").expect("known")
+    );
+    assert!(text.ends_with("\t739887\n"), "{text}");
+    let empty = read_lines(|buffer, capacity, written| unsafe {
+        hc_parse_date(
+            c"gregory".as_ptr(),
+            c"en".as_ptr(),
+            core::ptr::null(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert!(empty.contains("\t101\tempty\t"), "{empty}");
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe {
+            hc_parse_date(
+                core::ptr::null(),
+                c"en".as_ptr(),
+                c"1".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+    assert_eq!(
+        unsafe {
+            hc_parse_date(
+                c"no-such-calendar".as_ptr(),
+                c"en".as_ptr(),
+                c"1".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+}
+
 /// 21 March 2005 in Turkmen, the module's line: Başgün of Nowruz.
 #[test]
 fn the_naming_period_line_is_the_modules() {
