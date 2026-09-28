@@ -94,6 +94,47 @@ pub fn locale_for(calendar: &dyn DynCalendar, requested: Option<&Locale>) -> Loc
     names::locale_for_calendar(requested, &calendar.meta())
 }
 
+/// An era's name as a date writes it: [`hc_i18n::names::era_label`], the
+/// locale's name, else the calendar's own, else English's — except that a
+/// romanisation the calendar gives another of its eras too is not written
+/// in a Latin-script locale, since the text would name both. The nengō
+/// 延慶 and 延享 are both *Enkyo* in the calendar's own table; English's
+/// names, CLDR root's, tell them apart, *Enkyō (1308–1311)* and *Enkyō
+/// (1744–1748)*, and where English has none, as for the Northern court's
+/// 貞和 beside 承和, both *Jowa*, the era is written by its native name.
+#[must_use]
+pub fn era_label(
+    calendar: &dyn DynCalendar,
+    locale: &Locale,
+    code: &str,
+    width: NameWidth,
+) -> Option<&'static str> {
+    let id = calendar.meta().id;
+    let own = calendar.era_name(code).and_then(|own| {
+        if own.romanised.is_empty()
+            || !names::is_latin_script(locale)
+            || !shares_romanisation(calendar, code, own.romanised)
+        {
+            Some(own)
+        } else if names::era_name_by_code(&names::english(), id, code, width).is_some() {
+            None
+        } else {
+            Some(hc_calendar::shape::EraName::new(own.native, ""))
+        }
+    });
+    names::era_label(locale, id, code, own, width)
+}
+
+/// Whether another of the calendar's eras has the romanisation `name`,
+/// in either case.
+fn shares_romanisation(calendar: &dyn DynCalendar, code: &str, name: &str) -> bool {
+    (0..)
+        .map_while(|index| calendar.era_code(index))
+        .filter(|other| *other != code)
+        .filter_map(|other| calendar.era_name(other))
+        .any(|other| other.romanised.eq_ignore_ascii_case(name))
+}
+
 /// Write the label of one unit of a date: its era, its year with the era,
 /// its month, or its day.
 ///
@@ -139,6 +180,9 @@ pub fn write_date_marking<W: Write>(
     out: &mut W,
 ) -> Result<ExtrasWritten, fmt::Error> {
     let renderer = Renderer::new(calendar, fields, locale);
+    if renderer.merged.omitted_thousands != 0 && !renderer.reads_back() {
+        renderer.year_in_digits.set(true);
+    }
     let mut collapse = Collapse::new(out);
     renderer.write_levels(|templates| templates.date, Mode::Date, &mut collapse)?;
     Ok(renderer.written_with_shared_names())
@@ -270,6 +314,10 @@ struct Renderer<'a> {
     /// [`hc_calendar::fields::ExtraFields::iter`]. A level passed over wrote no
     /// placeholder at all, so whatever is marked is in the text.
     written: core::cell::Cell<u32>,
+    /// Whether a year that [`Renderer::write_in`] would write in numerals
+    /// is written in digits instead, because the whole date in numerals
+    /// does not read back as the day ([`Renderer::reads_back`]).
+    year_in_digits: core::cell::Cell<bool>,
 }
 
 impl<'a> Renderer<'a> {
@@ -286,13 +334,35 @@ impl<'a> Renderer<'a> {
             numbering: NumberingSystem::for_locale(locale),
             in_leap_year: core::cell::OnceCell::new(),
             written: core::cell::Cell::new(0),
+            year_in_digits: core::cell::Cell::new(false),
         }
     }
 
+    /// Whether the whole date, written with its year in numerals, reads
+    /// back as the day the fields name: the check a date whose templates
+    /// let a year's thousands go unwritten needs, since its numerals and
+    /// the text around them may read as another day. A text too long to
+    /// hold, or fields that are no day, count as not reading back.
+    fn reads_back(&self) -> bool {
+        let Ok(fixed) = self.calendar.fields_to_fixed(self.fields) else {
+            return false;
+        };
+        let mut text = Buffer::<256>::default();
+        let mut collapse = Collapse::new(&mut text);
+        let written = self.write_levels(|templates| templates.date, Mode::Date, &mut collapse);
+        self.written.set(0);
+        written.is_ok()
+            && text.as_str().is_some_and(|text| {
+                parse_date(self.calendar, self.locale, text).is_ok_and(|read| read.fixed == fixed)
+            })
+    }
+
     fn in_leap_year(&self) -> bool {
-        *self
-            .in_leap_year
-            .get_or_init(|| self.calendar.is_leap_year_of(self.fields).unwrap_or(false))
+        *self.in_leap_year.get_or_init(|| {
+            self.calendar
+                .has_intercalary_month_of(self.fields)
+                .unwrap_or(false)
+        })
     }
 
     fn write_unit(&self, unit: Unit, out: &mut dyn Write) -> fmt::Result {
@@ -314,9 +384,22 @@ impl<'a> Renderer<'a> {
             Unit::Day if self.fields.day.is_none() => {
                 self.write_levels(|templates| templates.date, Mode::Date, out)
             }
+            Unit::Day if let Some(name) = self.leap_day_name() => {
+                out.write_str(name).map(|()| true)
+            }
             Unit::Day => self.write_levels(|templates| templates.day, Mode::Unit, out),
         }
         .map(|_| ())
+    }
+
+    /// The name the date's day is written by, where it is a leap day the
+    /// locale names ([`names::leap_day_name`]): St. Tib's Day.
+    fn leap_day_name(&self) -> Option<&'static str> {
+        let named = names::leap_day_name(self.locale, self.id)?;
+        (self.fields.leap_day
+            && self.fields.month.map(|month| month.ordinal) == Some(named.month)
+            && self.fields.day == Some(named.day))
+        .then_some(named.name)
     }
 
     /// Render the first level whose template for a field says something —
@@ -409,6 +492,9 @@ impl<'a> Renderer<'a> {
     ) -> fmt::Result {
         match (name, mode) {
             ("year", Mode::Date) => self.write_unit(Unit::Year, out),
+            // A leap day the locale names is written by its name in the
+            // day's place, which stands for the month too.
+            ("month", Mode::Date) if self.leap_day_name().is_some() => Ok(()),
             // Inside a date the month is in its format context — сентября,
             // not сентябрь — and at the width the template asks for, since
             // `y年M月d日` wants the numbered form.
@@ -421,6 +507,7 @@ impl<'a> Renderer<'a> {
                 ),
                 None => Ok(()),
             },
+            ("day", Mode::Date) if let Some(name) = self.leap_day_name() => out.write_str(name),
             // An absent day writes nothing here: the Day unit of a calendar
             // without days is the date, and the date must not ask for it back.
             ("day", Mode::Date) => match self.fields.day {
@@ -438,13 +525,7 @@ impl<'a> Renderer<'a> {
                     Mode::Era => NameWidth::Wide,
                     Mode::Unit | Mode::Date => NameWidth::Abbreviated,
                 });
-                match names::era_label(
-                    self.locale,
-                    self.id,
-                    code,
-                    self.calendar.era_name(code),
-                    width,
-                ) {
+                match era_label(self.calendar, self.locale, code, width) {
                     Some(name) => out.write_str(name),
                     None => Ok(()),
                 }
@@ -626,13 +707,15 @@ impl<'a> Renderer<'a> {
     /// A year of a date whose templates let the thousands go unwritten,
     /// [`DateTemplates::omitted_thousands`], is written in the system only
     /// where its numerals read back as it: ה׳תשפ״ז, and not א׳ for the year
-    /// 1 or ה׳ for 5000, which a reader takes for 5001 and 5005.
+    /// 1 or ה׳ for 5000, which a reader takes for 5001 and 5005. A whole
+    /// date is written so only where it reads back as its day too
+    /// ([`Renderer::reads_back`]).
     fn write_in(&self, name: &str, system: &NumberingSystem, out: &mut dyn Write) -> fmt::Result {
         let Some(value) = self.number_of(name) else {
             return Ok(());
         };
         let reads_back = || {
-            let mut written = Buffer::default();
+            let mut written = Buffer::<64>::default();
             system.write_integer(value, &mut written).is_ok()
                 && value >= 1_000
                 && written
@@ -643,7 +726,7 @@ impl<'a> Renderer<'a> {
         let whole = name != "year"
             || self.merged.omitted_thousands == 0
             || !system.is_algorithmic()
-            || reads_back();
+            || (!self.year_in_digits.get() && reads_back());
         if whole && system.write_integer(value, &mut Counter).is_ok() {
             let mut out = Fill { out, filled: false };
             return system
@@ -717,7 +800,8 @@ impl<'a> Renderer<'a> {
             names::month_label_in(self.locale, self.id, month, in_leap_year, width, context)
         {
             out.write_str(label.prefix)?;
-            return out.write_str(label.name);
+            out.write_str(label.name)?;
+            return out.write_str(label.suffix);
         }
         let own = self
             .calendar
@@ -732,16 +816,20 @@ impl<'a> Renderer<'a> {
             Some(name) => {
                 if month.leap {
                     out.write_str(names::leap_month_prefix(self.locale, self.id))?;
+                    out.write_str(name)?;
+                    return out.write_str(names::leap_month_suffix(self.locale, self.id));
                 }
                 out.write_str(name)
             }
             None if month.leap => {
                 let prefix = names::leap_month_prefix(self.locale, self.id);
-                if prefix.is_empty() {
+                let suffix = names::leap_month_suffix(self.locale, self.id);
+                if prefix.is_empty() && suffix.is_empty() {
                     write!(out, "{month}")
                 } else {
                     out.write_str(prefix)?;
-                    self.write_number(i64::from(month.ordinal), out)
+                    self.write_number(i64::from(month.ordinal), out)?;
+                    out.write_str(suffix)
                 }
             }
             None => self.write_number(i64::from(month.ordinal), out),
@@ -842,28 +930,29 @@ impl Write for Counter {
     }
 }
 
-/// A sink that keeps the first bytes written, for reading a numeral back.
-struct Buffer {
-    bytes: [u8; 64],
+/// A sink that keeps the bytes written, up to `N`, for reading a numeral
+/// or a date back, and refuses more.
+struct Buffer<const N: usize> {
+    bytes: [u8; N],
     length: usize,
 }
 
-impl Default for Buffer {
+impl<const N: usize> Default for Buffer<N> {
     fn default() -> Self {
         Self {
-            bytes: [0; 64],
+            bytes: [0; N],
             length: 0,
         }
     }
 }
 
-impl Buffer {
+impl<const N: usize> Buffer<N> {
     fn as_str(&self) -> Option<&str> {
         core::str::from_utf8(&self.bytes[..self.length]).ok()
     }
 }
 
-impl Write for Buffer {
+impl<const N: usize> Write for Buffer<N> {
     fn write_str(&mut self, text: &str) -> fmt::Result {
         let end = self.length + text.len();
         let slot = self.bytes.get_mut(self.length..end).ok_or(fmt::Error)?;
@@ -1152,9 +1241,9 @@ mod tests {
             [
                 "",
                 "2023(gui-mao)",
-                "leap Second Month",
+                "intercalary Second Month",
                 "1",
-                "leap Second Month 1, 2023(gui-mao)"
+                "intercalary Second Month 1, 2023(gui-mao)"
             ]
         );
         // Without the sexagenary extra the family's year template says

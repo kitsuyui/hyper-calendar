@@ -462,9 +462,11 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   years.
 * **Cambodia** carries the days off of the Royal Government's sub-decrees
   for 2025, 2026 and 2027. Khmer New Year, Visak Bochea, the Royal Ploughing
-  Ceremony, Pchum Ben and the Water Festival are dated on the Khmer calendar,
-  which the crate does not have, or by the palace; they are the sub-decrees'
-  dates, and another year reports them as gaps.
+  Ceremony, Pchum Ben and the Water Festival are dated on the Khmer calendar
+  or by the palace. The crate depends on `hc-calendars-regional`, which
+  registers `khmer`, but rules for the Khmer days on that calendar are not
+  yet carried: they are the sub-decrees' dates, and another year reports
+  them as gaps.
 * **Laos** carries the official holidays of its Decree on Holidays. Lao New
   Year is the dates of the Prime Minister's Office's notices for 2024 to
   2026, and another year reports it as a gap; the Lao Women's Union's day,

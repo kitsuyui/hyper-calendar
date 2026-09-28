@@ -5258,8 +5258,9 @@ const KH_FIRST: i64 = 2025;
 /// The last.
 const KH_LAST: i64 = 2027;
 
-/// The days the annual sub-decrees date on the Khmer calendar, which the
-/// crate does not have, as sub-decrees No. 204 (2025), No. 167 (2026) and
+/// The days the annual sub-decrees date on the Khmer calendar, for which
+/// no rule on `hc-calendars-regional`'s `khmer` is carried yet, as
+/// sub-decrees No. 204 (2025), No. 167 (2026) and
 /// No. 198 (2027) list them. Khmer New Year is the three days of the
 /// Songkran, Visak Bochea the full moon of Pisak, Pchum Ben the last days of
 /// Photrobot and the Water Festival the full moon of Kadeuk; the Royal

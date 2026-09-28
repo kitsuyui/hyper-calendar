@@ -89,16 +89,36 @@ fn the_japanese_eras_are_labelled_from_the_locale_and_from_the_calendar() {
         date_on(japanese, day(2026, 9, 21), "en"),
         "September 21, 8 Reiwa"
     );
-    // 嘉永三年: an era the locale data does not list, written from the
-    // calendar's own table — in kanji for Japanese, romanised for English.
+    // 嘉永三年: an era before Meiji, as each locale's CLDR file names it,
+    // with the years where the file writes them (root's, for English).
     let kaei = day(1850, 6, 1);
     let fields = japanese.fixed_to_fields(kaei).expect("converts");
     assert_eq!(fields.era, Some("kaei"));
     assert_eq!(fields.year, 3);
     assert_eq!(label_on(japanese, kaei, Unit::Year, "ja"), "嘉永3年");
     assert_eq!(label_on(japanese, kaei, Unit::Era, "ja"), "嘉永");
-    assert_eq!(label_on(japanese, kaei, Unit::Year, "en"), "3 Kaei");
-    assert_eq!(label_on(japanese, kaei, Unit::Era, "ko"), "嘉永");
+    assert_eq!(
+        label_on(japanese, kaei, Unit::Year, "en"),
+        "3 Kaei (1848–1854)"
+    );
+    assert_eq!(
+        label_on(japanese, kaei, Unit::Era, "ko"),
+        "가에이 (1848 ~ 1854)"
+    );
+    // 貞和三年 of the Northern court: an era CLDR's list and so the locale
+    // data leave out, written from the calendar's own table, in kanji. Its
+    // romanisation, Jowa, is also 承和's in that table, so English, which
+    // has no name of its own for it, writes the kanji too.
+    let northern = registry
+        .get_by_name("japanese-northern")
+        .expect("japanese-northern");
+    let jowa = day(1347, 6, 1);
+    let fields = northern.fixed_to_fields(jowa).expect("converts");
+    assert_eq!(fields.era, Some("jowa-1345"));
+    assert_eq!(fields.year, 3);
+    assert_eq!(label_on(northern, jowa, Unit::Year, "ja"), "貞和3年");
+    assert_eq!(label_on(northern, jowa, Unit::Year, "en"), "3 貞和");
+    assert_eq!(label_on(northern, jowa, Unit::Era, "ko"), "貞和");
     // The walk over the eras from the Restoration to Reiwa.
     let spans = units(japanese, Unit::Era, day(1868, 1, 1), day(2019, 12, 31));
     contiguous(&spans);
@@ -232,7 +252,7 @@ fn the_chinese_calendar_is_labelled_by_its_cycle_and_its_day_names() {
     assert_eq!(label_on(chinese, leap_new_moon, Unit::Day, "ja"), "1日");
     assert_eq!(
         label_on(chinese, leap_new_moon, Unit::Month, "en"),
-        "leap Second Month"
+        "intercalary Second Month"
     );
     assert_eq!(
         label_on(chinese, day(2023, 3, 25), Unit::Day, "zh-Hans"),

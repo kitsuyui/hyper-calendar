@@ -350,8 +350,8 @@ fn the_units_of_a_calendar_are_labelled_spans() {
     for pair in eras.windows(2) {
         assert_eq!(pair[0][1], pair[1][0], "spans touch");
     }
-    // The same eras in English, from the calendar's own romanisation
-    // where the data lists none.
+    // The same eras in English, as CLDR 48's `root.xml` names them, with
+    // the years of every era before Meiji.
     let eras = walk(
         "japanese",
         0,
@@ -361,7 +361,7 @@ fn the_units_of_a_calendar_are_labelled_spans() {
     );
     let labels: Vec<&str> = eras.iter().map(|row| row[2].as_str()).collect();
     assert!(
-        labels.contains(&"Kaei") && labels.contains(&"Meiji"),
+        labels.contains(&"Kaei (1848–1854)") && labels.contains(&"Meiji"),
         "{labels:?}"
     );
     // A first year is 元年 and the years after it are numbered.

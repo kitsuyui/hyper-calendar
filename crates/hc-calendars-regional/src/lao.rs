@@ -88,9 +88,10 @@ pub const LAST_YEAR: i64 = 1401;
 /// The twelve months in Lao, ເດືອນອ້າຍ first. Source: Lao Wikipedia,
 /// "ບຸນສົງການ", revision 54397, retrieved 2026-09-27, where month 1 is also
 /// called ເດືອນຈຽງ; Dupertuis's glossary gives ເດືອນຈຽງ, ເດືອນກຽງ and
-/// ເດືອນອ້າຍ for the first month and ເດືອນຍີ່ for the second (p. 66). Both
-/// months 8 of a leap-month year are ເດືອນແປດ: no name for the extra one
-/// in Lao script was found.
+/// ເດືອນອ້າຍ for the first month and ເດືອນຍີ່ for the second (p. 66). The
+/// extra month 8 of a leap-month year is ເດືອນແປດ too: no name for it in
+/// Lao script was found. The regular one after it is the later eighth
+/// month, ເດືອນແປດຫລັງ, which `hc-i18n` names.
 pub const MONTHS: [&str; 12] = [
     "ເດືອນອ້າຍ",
     "ເດືອນຍີ່",

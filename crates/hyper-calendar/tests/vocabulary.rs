@@ -207,10 +207,15 @@ fn every_era_code_a_calendar_writes_is_one_the_locales_key() {
             "{}: era codes are lowercase",
             id.0
         );
+        // A locale may name only some of a calendar's eras, as `fa.xml`
+        // names two of the Japanese ones; its list then holds codes the
+        // calendar lists, and a code outside them is the mismatch.
+        let listed: Vec<&str> = (0..).map_while(|index| calendar.era_code(index)).collect();
         for locale in LOCALES {
             let tag: Locale = locale.tag.parse().expect("a locale's own tag parses");
             if let Some(codes) = era_codes(&tag, id)
                 && !codes.contains(&code)
+                && (listed.is_empty() || !codes.iter().all(|own| listed.contains(own)))
             {
                 unmatched.insert(format!("{} {}: {code} not in {codes:?}", locale.tag, id.0));
             }

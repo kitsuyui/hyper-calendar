@@ -193,8 +193,13 @@ syr ta te th tr ur vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant`, plus the
 Japanese (正月, 二月 … 十二月) and in Korean, the Tibetan months in Tibetan,
 the numbered lunisolar months in English, the Japanese lunisolar calendars'
 traditional names (睦月 … 師走, which serve those five calendars and no
-other), Japanese era names, the Ethiopic months in Amharic, the Coptic
-months in Coptic and in Egyptian Arabic, the Burmese months in Burmese, the
+other), the Japanese era names 大化 to 令和 in every locale whose CLDR 48
+file states them (`ar cs en fa he hi id ja ko nl ru th yue-Hans yue-Hant
+zh-Hans zh-Hant`, generated into `src/data/japanese_eras.rs` by
+`scripts/japanese-eras-cldr.py`: each file's own names as it writes them,
+with the years where it gives them, 만엔 (1860 ~ 1861)), the Ethiopic
+months in Amharic, the Coptic months in Coptic and in Egyptian Arabic, the
+Burmese months in Burmese, the
 Bikram Sambat and Nepal Sambat months in Devanagari, the Hindu lunisolar and
 Vikrami solar months in Devanagari (Sanskrit and Hindi), the Indian national
 calendar's months in Hindi, Tamil, Malayalam and Bengali, the Tamil,
@@ -217,9 +222,9 @@ what their sources cover and no more:
 |---|---|---|---|---|
 | `am` Amharic | `ethiopic`, `coptic` | CLDR 48 `am.xml` | the thirteen Ethiopic months (CLDR `ethiopic`), the Coptic era abbreviation ዓ/ም (CLDR `coptic`) | Ethiopic era names: CLDR's `am` inherits root's Latin `AA`/`AM` |
 | `cop` Coptic | `coptic` | none: CLDR has no `cop`, so it inherits | the thirteen Bohairic months (Wikipedia, "Coptic calendar") | weekdays, day periods, the era: no source read names them |
-| `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar") | a "Second Waso" prefix in Burmese script |
-| `bo` Tibetan | `tibetan`, `tibetan-tsurphu` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months | the doubled-month prefix; the sixty-year cycle, which the crate's cycle model cannot hold |
-| `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
+| `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar"); First Waso, Second Waso and the late Tagu in Burmese script ([burmese.md](../../docs/systems/burmese.md)) | — |
+| `bo` Tibetan | `tibetan`, `tibetan-tsurphu` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months; ཟླ་ཤོལ་ before a leap month, Henning's *zla shol* | a mark for a doubled day, which no source read writes in a date; the sixty-year cycle, which the crate's cycle model cannot hold |
+| `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari and its intercalary month, अनला (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
 | `sa` Sanskrit | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `sa.xml`, with the ASCII colon it prints for a visarga in the abbreviated months and in Thursday's wide form transcribed as printed | the twelve lunar months in Devanagari as the amānta calendar declares them (Rashtriya Panchang, Sanskrit edition; Wikipedia, "Hindu calendar"), the prefix अधिक (Wikipedia, "Adhik Maas"), the Vikrami solar months from Vaiśākha | the eras (CLDR's default forms are Latin); the rāśi names in Devanagari and the nakṣatras: no source read prints the former, no calendar declares the latter |
 | `hi` Hindi | `indian`, `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `hi.xml` | the national calendar's months and era abbreviation शक (CLDR `indian`), which names the Śaka years of the lunisolar calendars too through `data::SHARED_ERAS`; the same twelve names keyed to the lunisolar calendars with the prefix अधिक, and from Vaiśākha to the Vikrami solar calendar | the rāśi names in Devanagari; the nakṣatras |
 | `ta` Tamil | `indian`, `hindu-solar-tamil` | CLDR 48 `ta.xml`; the *Tamil Lexicon* | the Tamil months சித்திரை … (CLDR `indian`), serving both calendars, with the era abbreviation சாகா; the sixty year names பிரபவ … அட்சய of `hindu-solar-tamil`, from the Lexicon's entry வருஷம் | day periods: CLDR's `ta` inherits root's |
@@ -259,7 +264,7 @@ relative-time phrases.
 | `sw` Swahili | `sw.xml` | none | — |
 | `te` Telugu | `te.xml` | the Minguo eras; the Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Śaka era | the Hijri months, whose format names the file leaves to root's Latin ones |
 | `ur` Urdu | `ur.xml` | the Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Hijri and Śaka eras | — |
-| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the English era, `Anno Martyrum1743年1月17日` |
+| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the calendar's own or the English era, apart from the year as the files' `generic` calendar, to which `root.xml` aliases these calendars' date formats, writes it ("G y年"): `Anno Martyrum 1743年1月17日` |
 
 Plural languages: `am ar bn bo cs cy da de en es fa fi fil fr ga ha he hi id it
 ja jv kab ko lt lv ml mr my nah ne nl pa pcm pl ps pt pt-PT ro ru sl sv sw syr
@@ -283,8 +288,8 @@ root's rule, `other` for everything.
   first-strong questions; it does not reorder text.
 * **No word-level title casing.** Only the first character is ever recased,
   because a per-word rule would mangle *2 de enero* and *tháng 1*.
-* **No transliteration**, no Hebrew or Greek alphabetic numerals, no
-  counting-rod numerals.
+* **No transliteration**, no Greek alphabetic numerals, no counting-rod
+  numerals. Hebrew numerals are carried, as `hebr`.
 * **Lossless or nothing in tags.** A `-u-` key this crate does not model, or
   a `-t-`/`-x-` extension, is an error rather than something silently
   dropped: a formatter that ignored `-u-co-phonebk` would answer for a tag it

@@ -35,7 +35,11 @@
 //! Source: Wikipedia, "Discordian calendar", retrieved 2026-09-22 and
 //! 2026-09-26 (`wikipedia-discordian-calendar`), for the seasons, the week,
 //! St. Tib's Day and its leap rule, the era, the table of holydays and
-//! `ddate`. The *Principia Discordia* itself was not read.
+//! `ddate`; and page 34 of the *Principia Discordia*, in the transcription
+//! at principiadiscordia.com, retrieved 2026-09-28
+//! (`principia-discordia-p34`), for St. Tib's Day, "inserted between the
+//! 59th and 60th days of the Season of Chaos". The rest of the book was not
+//! read. `hc-i18n` writes the day by that name, *St. Tib's Day, 3190 YOLD*.
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
