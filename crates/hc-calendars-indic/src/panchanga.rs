@@ -257,7 +257,11 @@ pub fn karana_span(moment: Moment) -> (Moment, Moment) {
 /// it entered and leaves it. `angle` must grow steadily by more than a
 /// width in a day and less than a revolution in half a day, as the sum of
 /// the longitudes (12° to 16° a day) and the elongation (10° to 15°) do.
-fn span_of(angle: impl Fn(Moment) -> f64, width: f64, moment: Moment) -> (Moment, Moment) {
+pub(crate) fn span_of(
+    angle: impl Fn(Moment) -> f64,
+    width: f64,
+    moment: Moment,
+) -> (Moment, Moment) {
     let now = angle(moment);
     let entered_at = floor(now / width) * width;
     let left_at = normalize_degrees(entered_at + width);

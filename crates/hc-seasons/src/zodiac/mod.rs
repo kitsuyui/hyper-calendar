@@ -20,7 +20,9 @@
 //!
 //! Each tropical sign is further cut into three decans of 10°, the faces
 //! of the Persian and Greek astrologers, each ruled by a planet in the
-//! Chaldean order: [`decans`].
+//! Chaldean order: [`decans`]. Each sidereal sign is cut the same way
+//! into the three *drekkāṇa* of Hindu astrology, each ruled by the lord of
+//! a sign of its triplicity: [`drekkana`].
 //!
 //! The first row is the reason this module belongs in `hc-seasons` rather
 //! than anywhere else: the tropical sign boundaries **are** the 中気, the
@@ -62,12 +64,14 @@
 
 pub mod chinese_twelve;
 pub mod decans;
+pub mod drekkana;
 pub mod rashi;
 pub mod sidereal;
 pub mod tropical;
 
 pub use chinese_twelve::ChineseStation;
 pub use decans::Decan;
+pub use drekkana::Drekkana;
 pub use rashi::{
     BENGALI, MALAYALAM, Rashi, SANSKRIT, SOLAR_MONTH_TRADITIONS, SolarMonthTradition, TAMIL,
 };

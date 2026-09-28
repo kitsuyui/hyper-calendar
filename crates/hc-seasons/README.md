@@ -55,7 +55,7 @@ assert_eq!(
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
-| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanāṃśa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
+| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanāṃśa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them; `zodiac::drekkana`, the 36 Hindu thirds of the sidereal signs, each ruled by the lord of its sign, of the fifth or of the ninth, as his §451 tabulates them |
 | `planetary_hours` | The twelve temporal hours of the daylight and twelve of the night, from sunrise, each ruled by a planet in the Chaldean order from the weekday's, as al-Bīrūnī states the rule and Lilly's table for London works it |
 
 ## A day is not an instant
@@ -103,7 +103,9 @@ calendars of Tamil Nadu, West Bengal, Assam, Odisha and Kerala take their
 months from it, so `zodiac::rashi` is month names over the same boundaries and
 no second algorithm.
 
-The ayanāṃśa is a parameter: four named anchors are shipped, `Ayanamsa::new`
+The ayanāṃśa is a parameter: five named anchors are shipped, the Swiss
+Ephemeris's four and Reingold and Dershowitz's zero at the *Sūrya
+Siddhānta*'s Meṣa saṅkrānti of 285 CE, `Ayanamsa::new`
 takes any other, and the document says where each anchor comes from. Moving
 from Lahiri to Raman — 1.45° — moves **all twelve** month boundaries by a day
 or more.

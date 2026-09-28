@@ -282,6 +282,75 @@ pub const fn northern_of_saka(saka: i64) -> u8 {
     SURYA_SIDDHANTA_BIJA.of_saka(saka)
 }
 
+/// The twelve saṃvatsaras of the twelve-year cycle of Jupiter, "named
+/// after the lunar months" (Sewell and Dikshit, Art. 63, `sewell1896`), as
+/// their Table XII spells them, Chaitra first: the positions
+/// [`twelve_year_of`] returns, 1 to 12.
+pub const TWELVE_YEAR_NAMES: [&str; 12] = [
+    "Chaitra",
+    "Vaisakha",
+    "Jyeshtha",
+    "Ashadha",
+    "Sravana",
+    "Bhadrapada",
+    "Asvina",
+    "Karttika",
+    "Margasirsha",
+    "Pausha",
+    "Magha",
+    "Phalguna",
+];
+
+/// The position, 1 for Chaitra through 12 for Phālguna, of the saṃvatsara
+/// of the twelve-year cycle "of the mean-sign system" that Sewell and
+/// Dikshit's Table XII couples with a name of the sixty-year cycle, 1 for
+/// Prabhava through 60 for Kṣaya: Prabhava with Śrāvaṇa, and on
+/// regularly, so that each twelve-year name comes five times in the sixty.
+/// The two kinds of year "are similar in length", "and begin at the same
+/// moment" (Art. 63), so the twelve-year name in progress is this of the
+/// sixty-year name in progress by a [`MeanSignRule`]; Table XII's N.B. i
+/// holds it only for the name "of the mean-sign (Northern) 60-year cycle",
+/// not the southern one. A `position` outside 1 to 60 is clamped.
+#[must_use]
+pub const fn twelve_year_of(position: u8) -> u8 {
+    let position = clamp_position(position);
+    (position - 1 + 4) % 12 + 1
+}
+
+/// The sign Jupiter stands in by his mean longitude while a name of the
+/// sixty-year cycle is current, 1 for Prabhava through 60 for Kṣaya:
+/// Table XII's third column, Kumbha for Prabhava and one sign on for each
+/// name. His apparent sign "is either the same, as or the next preceding,
+/// or the next succeeding" (Table XII, N.B. ii). A `position` outside 1 to
+/// 60 is clamped.
+#[must_use]
+pub const fn mean_sign_of(position: u8) -> SiderealSign {
+    let position = clamp_position(position);
+    match SiderealSign::from_index((position - 1 + 10) % 12) {
+        Some(sign) => sign,
+        None => SiderealSign::MESHA,
+    }
+}
+
+/// The position, 1 to 12, of the twelve-year cycle's saṃvatsara in
+/// progress at a moment by `rule`: [`twelve_year_of`] the sixty-year name
+/// [`in_progress_at`] gives.
+#[must_use]
+pub fn twelve_year_in_progress_at(rule: MeanSignRule, moment: Moment) -> u8 {
+    twelve_year_of(in_progress_at(rule, moment))
+}
+
+/// `position` into 1 to 60.
+const fn clamp_position(position: u8) -> u8 {
+    if position < 1 {
+        1
+    } else if position > LENGTH {
+        LENGTH
+    } else {
+        position
+    }
+}
+
 /// The apparent Meṣa saṅkrānti of the *Sūrya Siddhānta* at or before a
 /// moment, and the expired Kali year of the solar year it opens.
 fn sankranti_at_or_before(moment: Moment) -> (Moment, i64) {
@@ -763,5 +832,69 @@ mod tests {
         assert_eq!(position(61), 1);
         assert_eq!(next(60), 1);
         assert_eq!(RULES.len(), 3);
+    }
+
+    /// Sewell and Dikshit's Table XII, "the names and numbers of the
+    /// samvatsaras, or years of the sixty-year cycle of Jupiter, with those
+    /// of the twelve-year cycle corresponding thereto" (Art. 115): for each
+    /// of the sixty, Prabhava first, the twelve-year saṃvatsara's number
+    /// and Jupiter's mean sign, as read off the Internet Archive's OCR
+    /// text.
+    #[test]
+    fn table_xii_couples_the_two_cycles() {
+        let twelve: [u8; 60] = [
+            5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7,
+            8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+            11, 12, 1, 2, 3, 4,
+        ];
+        let signs = [
+            "kumbha",
+            "mina",
+            "mesha",
+            "vrishabha",
+            "mithuna",
+            "karka",
+            "simha",
+            "kanya",
+            "tula",
+            "vrishchika",
+            "dhanus",
+            "makara",
+        ];
+        for position in 1..=LENGTH {
+            let index = usize::from(position - 1);
+            assert_eq!(twelve_year_of(position), twelve[index], "{position}");
+            assert_eq!(mean_sign_of(position).id(), signs[index % 12], "{position}");
+        }
+        // Prabhava is Śrāvaṇa with Jupiter in mean Kumbha; Kṣaya Āṣāḍha
+        // in Makara.
+        assert_eq!(
+            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(1) - 1)],
+            "Sravana"
+        );
+        assert_eq!(
+            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(60) - 1)],
+            "Ashadha"
+        );
+        assert_eq!(twelve_year_of(0), twelve_year_of(1));
+        assert_eq!(twelve_year_of(61), twelve_year_of(60));
+    }
+
+    #[test]
+    fn the_twelve_year_name_turns_with_the_sixty_year_one() {
+        // By the rule with the bīja, Pingala (51), the name Vikrama 2081
+        // is headed with, runs out a fortnight after the Meṣa saṅkrānti of
+        // 2024, and Kālayukta (52) is in progress on 1 June: Table XII
+        // couples the two with Āśvina and Kārttika.
+        let rule = SURYA_SIDDHANTA_BIJA;
+        let at = |month, day| {
+            let day = hc_calendars_solar::gregorian::to_fixed(2024, month, day).unwrap();
+            Moment(day.0 as f64)
+        };
+        assert_eq!(in_progress_at(rule, at(4, 14)), 51);
+        assert_eq!(twelve_year_in_progress_at(rule, at(4, 14)), 7);
+        assert_eq!(in_progress_at(rule, at(6, 1)), 52);
+        assert_eq!(twelve_year_in_progress_at(rule, at(6, 1)), 8);
+        assert_eq!(TWELVE_YEAR_NAMES[6..8], ["Asvina", "Karttika"]);
     }
 }

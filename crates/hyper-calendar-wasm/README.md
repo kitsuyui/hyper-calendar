@@ -1727,8 +1727,8 @@ where a pañcāṅga reads them at sunrise. A day on which the Sun does not
 rise at the place is `HC_ERR_NO_DATA`; no other moment is put in the
 sunrise's place. The yoga is the sum of the Sun's and the Moon's sidereal
 longitudes, so it needs an ayanāṃśa, and moves with it twice over:
-`ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti` or
-`fagan-bradley`, in any case, and anything else, the empty string and a
+`ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti`,
+`reingold-dershowitz` or `fagan-bradley`, in any case, and anything else, the empty string and a
 full name such as `Lahiri (Chitrapaksha)` included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
 needs none. The instants answer for the sky layer's era, below, and a
 place is a latitude and a longitude in degrees, north and east positive,

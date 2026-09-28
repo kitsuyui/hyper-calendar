@@ -27,8 +27,8 @@
 //!   crescent on the criterion's edge, or the reference code's own time
 //!   scale, which its errata correct (`reingold2018errata`, correction 15).
 //!
-//! Over the 53 mappings that is 1 252 agreements, 451 refusals and 13 known
-//! differences, and 1 107 round trips; [`SAME`], [`REFUSED`] and
+//! Over the 55 mappings that is 1 274 agreements, 491 refusals and 17 known
+//! differences, and 1 133 round trips; [`SAME`], [`REFUSED`] and
 //! [`ROUND_TRIPS`] hold the counts so that they move only deliberately. The
 //! astronomical columns are compared to a bound instead, in
 //! [`the_astronomy_is_within_seconds_of_the_books`], and the rising and
@@ -63,7 +63,7 @@ use hyper_calendar::hc_calendar::{
     CalendarError, CalendarId, CalendarRegistry, DateFields, DynAdapter, DynCalendar, Rd,
 };
 use hyper_calendar::hc_calendars_indic::HinduLunarCalendar;
-use hyper_calendar::hc_calendars_indic::hindu_solar::{self, SolarModel};
+use hyper_calendar::hc_calendars_indic::hindu_solar::{self, SankrantiRule, SolarModel};
 use hyper_calendar::hc_calendars_indic::places::UJJAIN;
 use hyper_calendar::hc_calendars_solar::{gregorian, julian};
 use hyper_calendar::hc_format::roman::{Anchor, BissextileStyle, RomanDayName};
@@ -392,11 +392,37 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
             ))),
             ymd,
         ),
+        // The same at Ujjain with the book's own ayanāṃśa, zero at the Sūrya
+        // Siddhānta's Meṣa saṅkrānti of 285 CE, and its own sunset, the
+        // Sun's centre on the geometric horizon (`sidereal-start`,
+        // `astro-hindu-sunset`).
+        built(
+            "astro-hindu-solar",
+            "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+            Box::new(DynAdapter::new(hindu_solar::HinduSolarCalendar {
+                rule: SankrantiRule::BeforeCentreSets,
+                ..hindu_solar::TAMIL.new(
+                    CalendarId("x-hindu-solar-tamil-book"),
+                    UJJAIN,
+                    SolarModel::Modern(Ayanamsa::REINGOLD_DERSHOWITZ),
+                )
+            })),
+            ymd,
+        ),
         registered("astro-hindu-solar", "hindu-solar-tamil", ymd),
         built(
             "astro-hindu-lunar",
             "HinduLunarCalendar::UJJAIN",
             Box::new(DynAdapter::new(HinduLunarCalendar::UJJAIN)),
+            hindu_lunar,
+        ),
+        built(
+            "astro-hindu-lunar",
+            "the lunisolar calendar at Ujjain with the book's ayanamsa, built",
+            Box::new(DynAdapter::new(HinduLunarCalendar::new(
+                UJJAIN,
+                Ayanamsa::REINGOLD_DERSHOWITZ,
+            ))),
             hindu_lunar,
         ),
         registered("astro-hindu-lunar", "hindu-lunar", hindu_lunar),
@@ -609,6 +635,34 @@ const KNOWN: &[Known] = &[
         rd: 764_652,
         reason: "as for HinduLunarCalendar::UJJAIN",
     },
+    Known {
+        column: "astro-hindu-lunar",
+        ours: "the lunisolar calendar at Ujjain with the book's ayanamsa, built",
+        rd: 764_652,
+        reason: "as for HinduLunarCalendar::UJJAIN: the book's own ayanāṃśa does not \
+                 move it",
+    },
+    Known {
+        column: "astro-hindu-solar",
+        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        rd: 664_224,
+        reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
+                 ayanāṃśa and sunset do not move it",
+    },
+    Known {
+        column: "astro-hindu-solar",
+        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        rd: 694_799,
+        reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
+                 ayanāṃśa and sunset do not move it",
+    },
+    Known {
+        column: "astro-hindu-solar",
+        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        rd: 744_313,
+        reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
+                 ayanāṃśa and sunset do not move it",
+    },
 ];
 
 /// The columns this library has no counterpart for, or does not hold to
@@ -782,9 +836,9 @@ fn every_sample_date_agrees_or_is_refused_or_is_a_known_difference() {
 }
 
 /// Values that agree, dates refused as outside a range, and round trips.
-const SAME: usize = 1_252;
-const REFUSED: usize = 451;
-const ROUND_TRIPS: usize = 1_107;
+const SAME: usize = 1_274;
+const REFUSED: usize = 491;
+const ROUND_TRIPS: usize = 1_133;
 
 /// The rising and setting columns
 /// [`the_rising_and_setting_are_within_seconds_of_the_books`] compares,

@@ -1272,8 +1272,8 @@ macro_rules! exports {
             /// English and Devanagari names, the instants it began and ends and the
             /// instant it was read at, and the ayanāṃśa of the yoga by its
             /// identifier, which this call reads back, and by its full name. `ayanamsa` is
-            /// an identifier, `lahiri`, `raman`, `krishnamurti` or `fagan-bradley`,
-            /// in any case; anything else, a full name such as
+            /// an identifier, `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`
+            /// or `fagan-bradley`, in any case; anything else, a full name such as
             /// `Lahiri (Chitrapaksha)` included, is `HC_ERROR_UNKNOWN`, and null
             /// `HC_ERROR_NULL_POINTER`. An instant
             /// outside the years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes
@@ -1291,8 +1291,8 @@ macro_rules! exports {
             /// seconds, rounded down, in Universal Time, and the ayanāṃśa the yoga
             /// was reckoned with, by the identifier `ayanamsa` takes and by its
             /// full name (both empty for the karaṇa, which needs none).
-            /// `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti` or
-            /// `fagan-bradley`, in any case; anything else, the empty string and
+            /// `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti`,
+            /// `reingold-dershowitz` or `fagan-bradley`, in any case; anything else, the empty string and
             /// a full name such as `Lahiri (Chitrapaksha)` included, is
             /// `HC_ERR_UNKNOWN`. An instant
             /// outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null

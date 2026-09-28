@@ -3922,7 +3922,7 @@ export class HyperCalendar {
   /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
    * Universal Time, the yoga reckoned with an ayanamsa: `lahiri`, `raman`,
-   * `krishnamurti` or `fagan-bradley`.
+   * `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`.
    *
    * @param {number | bigint} unixSeconds
    * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa

@@ -250,7 +250,12 @@ export type GravitatingBodyId =
   | "sagittarius-a-star";
 
 /** An ayanāṃśa, by the identifier `hc-seasons`' `Ayanamsa::by_id` finds it by. */
-export type Ayanamsa = "lahiri" | "raman" | "krishnamurti" | "fagan-bradley";
+export type Ayanamsa =
+  | "lahiri"
+  | "raman"
+  | "krishnamurti"
+  | "reingold-dershowitz"
+  | "fagan-bradley";
 
 /** A naming table of the Panchak kinds. */
 export type PanchakNaming = "panchak-five-kinds" | "panchak-raj-midweek";

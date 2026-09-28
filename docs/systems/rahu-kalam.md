@@ -1,7 +1,8 @@
 # Rāhu kālam, Yamaganda and Gulika kālam
 
-Backs `hc-calendars-indic::kalam`. No calendar identifier is registered:
-these are periods of a day, not calendars. The two conventions are two
+Backs `hc-calendars-indic::kalam`, and `hc-calendars-indic::muhurta` for
+the fifteenths of the day, Abhijit and Dur Muhurtam (below). No calendar
+identifier is registered: these are periods of a day, not calendars. The two conventions are two
 functions, `kalam::by_sunrise` and `kalam::by_fixed_day`, and two entries
 of the table `KalamConvention::ALL` under the identifiers
 `rahu-kalam-sunrise` and `rahu-kalam-fixed`, by which the boundary's
@@ -17,6 +18,17 @@ such as Drik Panchang print all three for every day and place
 [drik-day-panchang-2025], and a South Indian temple guide calls its fixed
 times "the standard daily timings followed widely across South India"
 [tirumala-kalam-table].
+
+The same pages print two periods by another division of the day, into
+fifteen *muhūrtas*: **Abhijit**, auspicious, and **Dur Muhurtam**,
+inauspicious. "Abhijit Muhurat is the 8th Muhurat out of 15 Muhurats
+which prevail between the sunrise and the sunset. The time interval
+between the sunrise and the sunset is divided into 15 equal parts and the
+middle portion of fifteen parts is known as Abhijit Muhurat", and it "is
+not suitable on Wednesday as it forms a malefic Muhurta on this weekday"
+[drik-abhijit-muhurat]; the day pages print "None" for it on every
+Wednesday [drik-day-panchang-2025]. Dur Muhurtam is one or two muhūrtas
+by the weekday, and on Tuesdays the second falls in the night.
 
 ## How it works
 
@@ -57,6 +69,37 @@ the second part, 08:31.75 to 09:49.5, printed as 08:32 to 09:49. Gulika is
 the fourth, 11:07.25 to 12:25, printed as 11:07 to 12:25. On the fixed day
 the same Wednesday's Rāhu kālam is 06:00 + 4 × 1.5 h = 12:00 to 13:30.
 
+**The muhūrtas.** The daylight, sunrise to sunset, is cut into fifteen
+equal muhūrtas, and the night, sunset to the next sunrise, into fifteen
+more. Abhijit is the eighth of the day, and none on a Wednesday. Dur
+Muhurtam takes these by the weekday:
+
+| Weekday | Dur Muhurtam |
+| --- | --- |
+| Sunday | the 14th of the day |
+| Monday | the 9th and the 12th of the day |
+| Tuesday | the 4th of the day and the 7th of the night |
+| Wednesday | the 8th of the day |
+| Thursday | the 6th and the 12th of the day |
+| Friday | the 4th and the 9th of the day |
+| Saturday | the 1st and the 2nd of the day |
+
+No statement of the Dur Muhurtam rule was read. The table is the
+muhūrtas the times of Drik Panchang's New Delhi pages of 1 to 7 January
+2025 fall in, one page for each weekday [drik-day-panchang-2025], as the
+Yamaganda and Gulika columns above are, and the pages of 8 to 31 January
+are the test of it.
+
+**Worked example.** On Wednesday 1 January 2025 the pages' 07:14 to 17:36
+is 622 minutes of daylight, so a muhūrta is 41.47 minutes. The eighth
+begins 7 × 41.47 = 290.3 minutes after sunrise, at 12:04.3, and ends at
+12:45.8: the page prints "Dur Muhurtam 12:04 PM to 12:46 PM" and
+"Abhijit None". On Tuesday 7 January the night runs from sunset at 17:40
+to sunrise at 07:15 on the 8th, 815 minutes, so a night muhūrta is 54.33
+minutes; the seventh begins 6 × 54.33 = 326 minutes after sunset, at
+23:06, and ends at 00:00: the page's second Dur Muhurtam, "11:06 PM to
+12:00 AM, Jan 08".
+
 ## What is carried
 
 - `Kalam`, a table of the three periods with the part each takes on each
@@ -73,13 +116,33 @@ the same Wednesday's Rāhu kālam is 06:00 + 4 × 1.5 h = 12:00 to 13:30.
   `FIXED_DAY`, with the identifiers `rahu-kalam-sunrise` and
   `rahu-kalam-fixed`, the clock each span is read on, and the function.
 
+- `muhurta::muhurta`: a muhūrta of the day or of the night, `Muhurta`
+  with a `Half`, on a local day at a place, in Universal Time;
+  `abhijit`, the eighth of the day or `None` on a Wednesday; and
+  `dur_muhurtam`, the one or two of `DUR_MUHURTAM` for the weekday. Each
+  returns `MissingSolarEvent` where the Sun does not rise or set. The
+  names, `ABHIJIT_NAME` and `DUR_MUHURTAM_NAME`, are the English pages',
+  and `ABHIJIT_NAME_DEVANAGARI` and `DUR_MUHURTAM_NAME_DEVANAGARI` the Hindi
+  edition's labels, अभिजित मुहूर्त and दुर्मुहूर्त [drik-day-panchang-2025].
+
 Not carried: the other methods Drik Panchang names (*Month Rahu*, *Khanda
 Rahu*, *Vaar Rahu*, *Muhurta Rahu*), whose rules were not read, and the
 night-time periods, which Drik Panchang says Rāhu kālam does not have
-[drik-rahu-kalam]. Nor are the other day periods a pañcāṅga prints, such as
-*Dur Muhurtam* or *Abhijit*.
+[drik-rahu-kalam]. Nor, not yet, the other periods the day pages print —
+Brahma Muhurta, Pratah and Sayahna Sandhya, Vijaya, Godhuli and Nishita
+Muhurta, Amrit Kalam and Varjyam — whose rules were not read. Neither
+this document nor [hindu-calendars.md](hindu-calendars.md) names an
+authority's margin of caution for any of these periods: Drik Panchang
+prints whole minutes, and no other almanac's times were read.
 
 ## Accuracy
+
+The muhūrtas: against the same pages of 1 to 31 January 2025, Abhijit's
+start and end on every day that has one and its absence on the five
+Wednesdays, the first Dur Muhurtam of every day, and the second of 2, 3,
+4, 6, 7, 13 and 14 January, each within a minute of the printed minute;
+Drik Panchang's example, Abhijit from 24 minutes before the middle of a
+twelve-hour day to 24 after, within half a minute.
 
 The division is exact. The times are as good as the sunrise and sunset
 beneath them. Against Drik Panchang's New Delhi pages of 1 to 7 January
@@ -99,7 +162,13 @@ with the temple table's times for all three periods on all seven weekdays
 - [drik-day-panchang-2025]: the pages for New Delhi of 1 to 7 January 2025,
   with sunrise, sunset and all three periods. The Yamaganda and Gulika
   columns of the table above are the parts these pages' times fall in.
-  Read 2026-09-27.
+  Read 2026-09-27. The pages of 1 to 31 January for Abhijit and Dur
+  Muhurtam, and the Hindi edition's labels for them, read 2026-09-29;
+  the Dur Muhurtam table is the muhūrtas the first seven days' times fall
+  in.
+- [drik-abhijit-muhurat]: Abhijit as the eighth of the fifteen muhūrtas
+  from sunrise to sunset, the middle one, its example of a twelve-hour
+  day, and that it is not taken on a Wednesday. Read 2026-09-29.
 - [tirumala-kalam-table]: the fixed-day times of all three periods for each
   weekday. Read 2026-09-27.
 - [drik-day-panchang-hi-2026]: the Hindi day pañcāṅga of 27 September
@@ -112,7 +181,13 @@ with the temple table's times for all three periods on all seven weekdays
 `a_monday_rahu_kalam_is_seven_thirty_to_nine_on_the_fixed_day`,
 `the_fixed_day_table_is_the_eighths_of_six_to_six`,
 `the_three_never_share_a_part_and_rahu_never_takes_the_first` and
-`there_is_no_kalam_where_the_sun_does_not_rise`.
+`there_is_no_kalam_where_the_sun_does_not_rise`; and
+`crates/hc-calendars-indic/src/muhurta.rs`, whose tests are
+`the_muhurtas_of_january_2025_are_where_drik_panchang_prints_them`,
+`abhijit_straddles_the_middle_of_the_day`,
+`every_weekday_has_a_dur_muhurtam_and_only_tuesdays_is_at_night` and
+`there_is_no_muhurta_where_the_sun_does_not_rise`. No boundary export
+writes the muhūrtas yet.
 
 The WebAssembly and C export `hc_kalam` writes the three periods of a day
 by either convention, from `hyper_calendar::panchanga_lines`, each named
