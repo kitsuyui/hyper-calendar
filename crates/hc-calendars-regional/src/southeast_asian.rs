@@ -29,6 +29,8 @@
 //! [`khmer`]: crate::khmer
 //! [`lao`]: crate::lao
 
+use core::fmt;
+
 use hc_calendar::{CalendarError, CalendarResult, Month, Rd};
 
 /// The three kinds of year.
@@ -417,6 +419,31 @@ pub const fn suryayatra_year_type(year: i64) -> YearType {
     } else {
         YearType::Normal
     }
+}
+
+/// Writes `number` in a script's own decimal digits, the ten code points
+/// from `zero` on: Lao ໐ (U+0ED0) to ໙, Khmer ០ (U+17E0) to ៩. A negative
+/// number takes an ASCII hyphen.
+pub(crate) fn write_digits(f: &mut fmt::Formatter<'_>, number: i64, zero: char) -> fmt::Result {
+    if number < 0 {
+        write!(f, "-")?;
+    }
+    let mut digits = [0u8; 20];
+    let mut count = 0;
+    let mut rest = number.unsigned_abs();
+    loop {
+        digits[count] = (rest % 10) as u8;
+        count += 1;
+        rest /= 10;
+        if rest == 0 {
+            break;
+        }
+    }
+    for &digit in digits[..count].iter().rev() {
+        let glyph = char::from_u32(u32::from(zero) + u32::from(digit)).unwrap_or('?');
+        write!(f, "{glyph}")?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]

@@ -140,7 +140,7 @@ Terms are 15 days apart, pentads 5 and signs 30, so the *term*, *pentad* or
 conjunctions land within about a minute, so month boundaries, phase dates,
 十五夜 and 六曜 are firmer than the solar-term dates. 月齢 and the illuminated
 fraction are quoted for **local noon**, as NAOJ's 暦象年表 quotes its 正午月齢
-for noon; `moon_age_at` takes any instant. The sidereal boundaries carry a second,
+for noon; `hc_astro::lunar::moon_age` takes any instant. The sidereal boundaries carry a second,
 independent uncertainty, the few tens of arcseconds by which published values
 of a named ayanāṃśa disagree.
 
@@ -318,8 +318,8 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
 * Jean Meeus, *Astronomical Algorithms*, 2nd ed., Willmann-Bell 1998, through
   `hc-astro`.
 * Edward M. Reingold and Nachum Dershowitz, *Calendrical Calculations*, 4th
-  ed., Cambridge 2018 — the Rata Die pivot and the Gregorian arithmetic that
-  `gregorian.rs` adapts from `hc_calendar::gregorian`.
+  ed., Cambridge 2018 — the Rata Die pivot and the Gregorian arithmetic,
+  which this crate calls in `hc_calendar::gregorian`.
 * National Astronomical Observatory of Japan, 暦要項 (*Calendar Essentials*),
   published annually in the *Official Gazette* — the 雑節 dates and the
   春分の日 / 秋分の日 table. The 雑節, 六曜 and lunisolar sources are listed

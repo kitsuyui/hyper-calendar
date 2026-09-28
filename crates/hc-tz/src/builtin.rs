@@ -160,14 +160,15 @@ mod tests {
         assert_eq!(ZONES.len(), 17);
     }
 
-    use super::*;
-    use crate::gregorian::rd_from_ymd;
-    use crate::zone::TimeZone;
     use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
+    use hc_calendar::gregorian;
     use hc_core::UnixTime;
 
+    use super::*;
+    use crate::zone::TimeZone;
+
     fn instant(year: i64, month: u8, day: u8, hour: u8) -> UnixTime {
-        let days = rd_from_ymd(year, month, day) - RD_OF_UNIX_EPOCH;
+        let days = gregorian::to_fixed_saturating(year, month, day).0 - RD_OF_UNIX_EPOCH;
         UnixTime::from_seconds(days * 86_400 + i64::from(hour) * 3_600)
     }
 

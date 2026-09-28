@@ -74,7 +74,7 @@ use hc_calendar::{
     Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd, YearKind,
 };
 
-use crate::southeast_asian::{Fortnight, YearType, Years, suryayatra_year_type};
+use crate::southeast_asian::{Fortnight, YearType, Years, suryayatra_year_type, write_digits};
 
 /// The first year carried, in the Chulasakarat era: the lunar year that
 /// begins on 23 November 1938.
@@ -219,28 +219,8 @@ impl LaoDate {
     }
 }
 
-/// Writes `number` in Lao digits, ໐ to ໙.
-fn lao_digits(f: &mut fmt::Formatter<'_>, number: i64) -> fmt::Result {
-    if number < 0 {
-        write!(f, "-")?;
-    }
-    let mut digits = [0u8; 20];
-    let mut count = 0;
-    let mut rest = number.unsigned_abs();
-    loop {
-        digits[count] = (rest % 10) as u8;
-        count += 1;
-        rest /= 10;
-        if rest == 0 {
-            break;
-        }
-    }
-    for &digit in digits[..count].iter().rev() {
-        let glyph = char::from_u32(0x0ED0 + u32::from(digit)).unwrap_or('?');
-        write!(f, "{glyph}")?;
-    }
-    Ok(())
-}
+/// The Lao digit zero, ໐; the nine after it follow in order.
+const LAO_ZERO: char = '\u{0ED0}';
 
 impl fmt::Display for LaoDate {
     /// Writes the month, the half and the day in Lao digits, in the order of
@@ -252,9 +232,9 @@ impl fmt::Display for LaoDate {
             Fortnight::Waning => "ແຮມ",
         };
         write!(f, "{} {half} ", self.month_name())?;
-        lao_digits(f, i64::from(self.fortnight_day()))?;
+        write_digits(f, i64::from(self.fortnight_day()), LAO_ZERO)?;
         write!(f, " ຄ່ຳ ປີ ")?;
-        lao_digits(f, self.year)
+        write_digits(f, self.year, LAO_ZERO)
     }
 }
 

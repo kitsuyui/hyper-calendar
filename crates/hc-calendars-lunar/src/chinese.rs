@@ -80,9 +80,9 @@
 //! `hc-astro`'s ΔT fit. Earlier years are refused rather than answered with
 //! a rule that was not in force.
 
+use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
-use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MajorTermCorrection,
     MeridianEra, MonthStartCorrection, SolarTermMode,
@@ -93,7 +93,7 @@ pub const ID: CalendarId = CalendarId("chinese");
 
 /// The last day the calendar was China's civil calendar, 31 December 1911:
 /// the Republic adopted the Gregorian calendar at its founding the next day.
-pub const LAST_CIVIL: Rd = civil::to_rd(1911, 12, 31);
+pub const LAST_CIVIL: Rd = gregorian::to_fixed_saturating(1911, 12, 31);
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "The Shíxiàn calendar promulgated by the Shunzhi Emperor for 1645 [wikipedia-en-chongzhen-calendar]; \
@@ -102,10 +102,10 @@ pub const USAGE_SOURCE: &str = "The Shíxiàn calendar promulgated by the Shunzh
     the festivals, under GB/T 33661-2017 today, as docs/systems/east-asian-lunisolar.md states";
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1645, 1, 1);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(2150, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
 pub const MERIDIAN_SOURCES: &str = "Beijing at 116°25′E, 1397/180 hours, before 1929 and the 120°E zone from \
@@ -130,148 +130,148 @@ pub const MERIDIAN_SOURCES: &str = "Beijing at 116°25′E, 1397/180 hours, befo
 /// the fourth twenty-nine.
 pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 29] = [
     MonthStartCorrection::new(
-        civil::to_rd(1652, 10, 2),
-        civil::to_rd(1652, 10, 3),
+        gregorian::to_fixed_saturating(1652, 10, 2),
+        gregorian::to_fixed_saturating(1652, 10, 3),
         "《清世祖實錄》, 順治九年九月庚午朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1653, 9, 21),
-        civil::to_rd(1653, 9, 22),
+        gregorian::to_fixed_saturating(1653, 9, 21),
+        gregorian::to_fixed_saturating(1653, 9, 22),
         "《清世祖實錄》, 順治十年八月甲子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1673, 11, 8),
-        civil::to_rd(1673, 11, 9),
+        gregorian::to_fixed_saturating(1673, 11, 8),
+        gregorian::to_fixed_saturating(1673, 11, 9),
         "《清聖祖實錄》, 康熙十二年十月丁酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1686, 4, 22),
-        civil::to_rd(1686, 4, 23),
+        gregorian::to_fixed_saturating(1686, 4, 22),
+        gregorian::to_fixed_saturating(1686, 4, 23),
         "《清聖祖實錄》, 康熙二十五年四月乙酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1687, 3, 14),
-        civil::to_rd(1687, 3, 13),
+        gregorian::to_fixed_saturating(1687, 3, 14),
+        gregorian::to_fixed_saturating(1687, 3, 13),
         "《清聖祖實錄》, 康熙二十六年二月己酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1692, 6, 14),
-        civil::to_rd(1692, 6, 15),
+        gregorian::to_fixed_saturating(1692, 6, 14),
+        gregorian::to_fixed_saturating(1692, 6, 15),
         "《清聖祖實錄》, 康熙三十一年五月庚戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1693, 4, 5),
-        civil::to_rd(1693, 4, 6),
+        gregorian::to_fixed_saturating(1693, 4, 5),
+        gregorian::to_fixed_saturating(1693, 4, 6),
         "《清聖祖實錄》, 康熙三十二年三月乙巳朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1704, 10, 28),
-        civil::to_rd(1704, 10, 29),
+        gregorian::to_fixed_saturating(1704, 10, 28),
+        gregorian::to_fixed_saturating(1704, 10, 29),
         "《清聖祖實錄》, 康熙四十三年十月戊辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1708, 2, 22),
-        civil::to_rd(1708, 2, 21),
+        gregorian::to_fixed_saturating(1708, 2, 22),
+        gregorian::to_fixed_saturating(1708, 2, 21),
         "《清聖祖實錄》, 康熙四十七年二月戊寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1713, 12, 17),
-        civil::to_rd(1713, 12, 18),
+        gregorian::to_fixed_saturating(1713, 12, 17),
+        gregorian::to_fixed_saturating(1713, 12, 18),
         "《清聖祖實錄》, 康熙五十二年十一月乙巳朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1715, 3, 5),
-        civil::to_rd(1715, 3, 6),
+        gregorian::to_fixed_saturating(1715, 3, 5),
+        gregorian::to_fixed_saturating(1715, 3, 6),
         "《清聖祖實錄》, 康熙五十四年二月戊辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1728, 8, 5),
-        civil::to_rd(1728, 8, 6),
+        gregorian::to_fixed_saturating(1728, 8, 5),
+        gregorian::to_fixed_saturating(1728, 8, 6),
         "《清世宗實錄》, 雍正六年七月庚戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1731, 6, 4),
-        civil::to_rd(1731, 6, 5),
+        gregorian::to_fixed_saturating(1731, 6, 4),
+        gregorian::to_fixed_saturating(1731, 6, 5),
         "《清世宗實錄》, 雍正九年五月癸亥朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1754, 9, 16),
-        civil::to_rd(1754, 9, 17),
+        gregorian::to_fixed_saturating(1754, 9, 16),
+        gregorian::to_fixed_saturating(1754, 9, 17),
         "《清高宗實錄》, 乾隆十九年八月戊申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1789, 10, 18),
-        civil::to_rd(1789, 10, 19),
+        gregorian::to_fixed_saturating(1789, 10, 18),
+        gregorian::to_fixed_saturating(1789, 10, 19),
         "《清高宗實錄》, 乾隆五十四年九月甲申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1794, 11, 22),
-        civil::to_rd(1794, 11, 23),
+        gregorian::to_fixed_saturating(1794, 11, 22),
+        gregorian::to_fixed_saturating(1794, 11, 23),
         "《清高宗實錄》, 乾隆五十九年十一月乙酉朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1813, 4, 30),
-        civil::to_rd(1813, 5, 1),
+        gregorian::to_fixed_saturating(1813, 4, 30),
+        gregorian::to_fixed_saturating(1813, 5, 1),
         "《清仁宗實錄》, 嘉慶十八年四月戊戌朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1817, 10, 10),
-        civil::to_rd(1817, 10, 11),
+        gregorian::to_fixed_saturating(1817, 10, 10),
+        gregorian::to_fixed_saturating(1817, 10, 11),
         "《清仁宗實錄》, 嘉慶二十二年九月壬寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1820, 12, 5),
-        civil::to_rd(1820, 12, 6),
+        gregorian::to_fixed_saturating(1820, 12, 5),
+        gregorian::to_fixed_saturating(1820, 12, 6),
         "《清宣宗實錄》, 嘉慶二十五年十一月甲寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1823, 5, 10),
-        civil::to_rd(1823, 5, 11),
+        gregorian::to_fixed_saturating(1823, 5, 10),
+        gregorian::to_fixed_saturating(1823, 5, 11),
         "《清宣宗實錄》, 道光三年四月庚子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1842, 1, 12),
-        civil::to_rd(1842, 1, 11),
+        gregorian::to_fixed_saturating(1842, 1, 12),
+        gregorian::to_fixed_saturating(1842, 1, 11),
         "《清宣宗實錄》, 道光二十一年十二月庚辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1842, 11, 2),
-        civil::to_rd(1842, 11, 3),
+        gregorian::to_fixed_saturating(1842, 11, 2),
+        gregorian::to_fixed_saturating(1842, 11, 3),
         "《清宣宗實錄》, 道光二十二年十月丙子朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1849, 9, 16),
-        civil::to_rd(1849, 9, 17),
+        gregorian::to_fixed_saturating(1849, 9, 16),
+        gregorian::to_fixed_saturating(1849, 9, 17),
         "《清宣宗實錄》, 道光二十九年八月丙寅朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1856, 11, 27),
-        civil::to_rd(1856, 11, 28),
+        gregorian::to_fixed_saturating(1856, 11, 27),
+        gregorian::to_fixed_saturating(1856, 11, 28),
         "《清文宗實錄》, 咸豐六年十一月乙卯朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1861, 11, 2),
-        civil::to_rd(1861, 11, 3),
+        gregorian::to_fixed_saturating(1861, 11, 2),
+        gregorian::to_fixed_saturating(1861, 11, 3),
         "《清穆宗實錄》, 咸豐十一年十月丙辰朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1869, 5, 11),
-        civil::to_rd(1869, 5, 12),
+        gregorian::to_fixed_saturating(1869, 5, 11),
+        gregorian::to_fixed_saturating(1869, 5, 12),
         "《清穆宗實錄》, 同治八年四月癸卯朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1880, 11, 2),
-        civil::to_rd(1880, 11, 3),
+        gregorian::to_fixed_saturating(1880, 11, 2),
+        gregorian::to_fixed_saturating(1880, 11, 3),
         "《清德宗實錄》, 光緒六年十月丙申朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1887, 3, 24),
-        civil::to_rd(1887, 3, 25),
+        gregorian::to_fixed_saturating(1887, 3, 24),
+        gregorian::to_fixed_saturating(1887, 3, 25),
         "《清德宗實錄》, 光緒十三年三月己丑朔 [qing-shilu]; Liu's table [liu-chinese-calendar-computation]; KASI [kasi-lunisolar-conversion]",
     ),
     MonthStartCorrection::new(
-        civil::to_rd(1906, 4, 23),
-        civil::to_rd(1906, 4, 24),
+        gregorian::to_fixed_saturating(1906, 4, 23),
+        gregorian::to_fixed_saturating(1906, 4, 24),
         "The 《时宪书》 of 光绪三十二年 as the Purple Mountain Observatory's 1900-2025 calendar gives it, \
         四月初一 on 戊戌 [pmo-calendar-1900-2025]; 《清德宗實錄》, 光緒三十二年四月戊戌朔 [qing-shilu]; \
         the Hong Kong Observatory's table for 1906 [hko-conversion-tables]; KASI \
@@ -313,37 +313,37 @@ pub static ALMANAC_CORRECTIONS: [MonthStartCorrection; 29] = [
 pub static ALMANAC_TERM_CORRECTIONS: [MajorTermCorrection; 5] = [
     MajorTermCorrection::new(
         6,
-        civil::to_rd(1645, 7, 23),
-        civil::to_rd(1645, 7, 22),
+        gregorian::to_fixed_saturating(1645, 7, 23),
+        gregorian::to_fixed_saturating(1645, 7, 22),
         "閏六月辛巳朔, 順治二年, in 《清世祖實錄》 [qing-shilu]; 大暑 on its first day counted to the \
         month before, by Wāng Yuēzhēn's account in [liu-chinese-calendar-computation] \
         (《歷代長術輯要》, cited by Liu, not read)",
     ),
     MajorTermCorrection::new(
         2,
-        civil::to_rd(1651, 3, 21),
-        civil::to_rd(1651, 3, 20),
+        gregorian::to_fixed_saturating(1651, 3, 21),
+        gregorian::to_fixed_saturating(1651, 3, 20),
         "閏二月戊申朔, 順治八年, in 《清世祖實錄》 [qing-shilu]; 春分 on 20 March in Liu's calendrical \
         solar terms only [liu-chinese-calendar-computation]",
     ),
     MajorTermCorrection::new(
         8,
-        civil::to_rd(1661, 9, 22),
-        civil::to_rd(1661, 9, 23),
+        gregorian::to_fixed_saturating(1661, 9, 22),
+        gregorian::to_fixed_saturating(1661, 9, 23),
         "閏七月戊寅朔, 順治十八年, in 《清聖祖實錄》 [qing-shilu]; 秋分 on 23 September in Liu's \
         calendrical solar terms only [liu-chinese-calendar-computation]",
     ),
     MajorTermCorrection::new(
         3,
-        civil::to_rd(1727, 4, 21),
-        civil::to_rd(1727, 4, 20),
+        gregorian::to_fixed_saturating(1727, 4, 21),
+        gregorian::to_fixed_saturating(1727, 4, 20),
         "閏三月丁巳朔, 雍正五年, in 《清世宗實錄》 [qing-shilu]; 穀雨 on 20 April in Liu's calendrical \
         solar terms only [liu-chinese-calendar-computation]",
     ),
     MajorTermCorrection::new(
         7,
-        civil::to_rd(1805, 8, 23),
-        civil::to_rd(1805, 8, 24),
+        gregorian::to_fixed_saturating(1805, 8, 23),
+        gregorian::to_fixed_saturating(1805, 8, 24),
         "閏六月壬午朔, 嘉慶十年, in 《清仁宗實錄》 [qing-shilu], and Liu's table \
         [liu-chinese-calendar-computation]; 處暑 on 24 August inferred from that leap month, no \
         record of the term day read; the term within minutes of midnight also in [aslaksen2010]",
@@ -550,15 +550,16 @@ pub fn marriage_augury(year: i64) -> CalendarResult<MarriageAugury> {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CalendarError, Month};
+
     use super::*;
     use crate::lunisolar::LunisolarDate;
-    use hc_calendar::{CalendarError, Month};
 
     #[test]
     fn chinese_new_year_2024_was_the_tenth_of_february() {
         // A published anchor: the Year of the Wood Dragon began on
         // 2024-02-10.
-        let rd = civil::to_rd(2024, 2, 10);
+        let rd = gregorian::to_fixed_saturating(2024, 2, 10);
         assert_eq!(new_year(4_661), Ok(rd));
         assert_eq!(
             ChineseCalendar.from_fixed(rd),
@@ -587,7 +588,7 @@ mod tests {
         assert_eq!(cycle.stem_name(), "jia");
         assert_eq!(cycle.branch_name(), "chen");
         assert_eq!(cycle.zodiac_animal(), "dragon");
-        assert_eq!(cycle.five_phase(), "wood");
+        assert_eq!(cycle.five_phase(), hc_calendar::cycle::FivePhase::Wood);
         // 1984 was the last jiǎ-zǐ year, the start of a sexagenary cycle.
         assert_eq!(PARAMETERS.sexagenary_year(4_621).index(), 0);
     }
@@ -598,7 +599,7 @@ mod tests {
         assert_eq!(PARAMETERS.leap_month(4_660), Ok(Some(2)));
         assert_eq!(
             ChineseCalendar.to_fixed(LunisolarDate::new(4_660, Month::leap(2), 1)),
-            Ok(civil::to_rd(2023, 3, 22))
+            Ok(gregorian::to_fixed_saturating(2023, 3, 22))
         );
         assert_eq!(PARAMETERS.months_in_year(4_660), Ok(13));
         assert_eq!(PARAMETERS.is_leap_year(4_660), Ok(true));
@@ -611,13 +612,16 @@ mod tests {
         // table from the 時憲書 (`pmo-calendar-1900-2025`); 閏四月 from
         // 23 May, 五月 from 22 June.
         let year = 4_543;
-        assert_eq!(new_year(year), Ok(civil::to_rd(1906, 1, 25)));
         assert_eq!(
-            ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::regular(4), 1)),
-            Ok(civil::to_rd(1906, 4, 24))
+            new_year(year),
+            Ok(gregorian::to_fixed_saturating(1906, 1, 25))
         );
         assert_eq!(
-            ChineseCalendar.from_fixed(civil::to_rd(1906, 4, 23)),
+            ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::regular(4), 1)),
+            Ok(gregorian::to_fixed_saturating(1906, 4, 24))
+        );
+        assert_eq!(
+            ChineseCalendar.from_fixed(gregorian::to_fixed_saturating(1906, 4, 23)),
             Ok(LunisolarDate::new(year, Month::regular(3), 30))
         );
         assert_eq!(PARAMETERS.days_in_month(year, Month::regular(3)), Some(30));
@@ -625,10 +629,12 @@ mod tests {
         assert_eq!(PARAMETERS.leap_month(year), Ok(Some(4)));
         assert_eq!(
             ChineseCalendar.to_fixed(LunisolarDate::new(year, Month::leap(4), 1)),
-            Ok(civil::to_rd(1906, 5, 23))
+            Ok(gregorian::to_fixed_saturating(1906, 5, 23))
         );
         assert_eq!(
-            PARAMETERS.sexagenary_day(civil::to_rd(1906, 4, 24)).index(),
+            PARAMETERS
+                .sexagenary_day(gregorian::to_fixed_saturating(1906, 4, 24))
+                .index(),
             34,
             "戊戌 is the 35th day of the cycle"
         );
@@ -688,8 +694,8 @@ mod tests {
         }
         // Without the table the rules give 23 April 1906.
         assert_eq!(
-            RULES.new_moon_on_or_after(civil::to_rd(1906, 4, 20)),
-            civil::to_rd(1906, 4, 23)
+            RULES.new_moon_on_or_after(gregorian::to_fixed_saturating(1906, 4, 20)),
+            gregorian::to_fixed_saturating(1906, 4, 23)
         );
     }
 
@@ -769,7 +775,7 @@ mod tests {
     #[test]
     fn each_month_the_almanac_moved_begins_on_the_veritable_records_day() {
         for (year, ordinal, name, (y, m, d)) in VERITABLE_FIRST_DAYS {
-            let first = civil::to_rd(y, m, d);
+            let first = gregorian::to_fixed_saturating(y, m, d);
             assert_eq!(cjk_day(first), name, "{y}-{m}-{d}");
             assert_eq!(
                 ChineseCalendar.from_fixed(first),
@@ -805,7 +811,7 @@ mod tests {
     #[test]
     fn the_leap_months_the_almanac_moved_are_where_the_veritable_records_have_them() {
         for (year, leap, before, name, (y, m, d), by_the_rules) in VERITABLE_LEAP_MONTHS {
-            let first = civil::to_rd(y, m, d);
+            let first = gregorian::to_fixed_saturating(y, m, d);
             assert_eq!(PARAMETERS.leap_month(year), Ok(Some(leap)), "{year}");
             assert_eq!(RULES.leap_month(year), Ok(Some(by_the_rules)), "{year}");
             assert_eq!(
@@ -820,7 +826,7 @@ mod tests {
             assert_eq!(cjk_day(regular), before, "{year}");
             let correction = ALMANAC_TERM_CORRECTIONS
                 .iter()
-                .find(|correction| civil::year_from_rd(correction.computed) == y)
+                .find(|correction| gregorian::year_from_fixed(correction.computed) == y)
                 .expect("a term correction for the year");
             assert!(correction.source.contains(&format!("{name}朔")), "{year}");
         }
@@ -842,7 +848,11 @@ mod tests {
         ] {
             assert_eq!(
                 new_year(year),
-                Ok(civil::to_rd(gregorian.0, gregorian.1, gregorian.2)),
+                Ok(gregorian::to_fixed_saturating(
+                    gregorian.0,
+                    gregorian.1,
+                    gregorian.2
+                )),
                 "year {year}"
             );
         }
@@ -852,7 +862,7 @@ mod tests {
     fn chinese_new_year_always_falls_between_january_twenty_first_and_february_twenty_first() {
         for year in 4_570..4_780i64 {
             let rd = new_year(year).expect("in range");
-            let (_, month, day) = civil::from_rd(rd);
+            let (_, month, day) = gregorian::ymd(rd);
             let within = (month == 1 && day >= 21) || (month == 2 && day <= 21);
             assert!(within, "year {year} began on {month}-{day}");
         }
@@ -861,7 +871,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_six_thousand_modern_days() {
         let calendar = ChineseCalendar;
-        let start = civil::to_rd(2000, 1, 1);
+        let start = gregorian::to_fixed_saturating(2000, 1, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..6_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
@@ -922,8 +932,9 @@ mod tests {
         let from_1928 = LunisolarCalendar::new(&PARAMETERS_1928);
         // Every day in a release build, every fifth in a debug one: a month
         // that began a day apart would differ on all of its days.
-        for rd in
-            (civil::to_rd(1926, 1, 1).0..civil::to_rd(1931, 1, 1).0).step_by(crate::sweep_stride(5))
+        for rd in (gregorian::to_fixed_saturating(1926, 1, 1).0
+            ..gregorian::to_fixed_saturating(1931, 1, 1).0)
+            .step_by(crate::sweep_stride(5))
         {
             assert_eq!(
                 ENGINE.from_fixed(Rd(rd)),
@@ -954,7 +965,7 @@ mod tests {
         };
         let rules = LunisolarCalendar::new(&RULES);
         let other = LunisolarCalendar::new(&RULES_116_23);
-        let march_13 = civil::to_rd(1687, 3, 13);
+        let march_13 = gregorian::to_fixed_saturating(1687, 3, 13);
         let march_14 = Rd(march_13.0 + 1);
         let first = |calendar: LunisolarCalendar, rd: Rd| {
             let date = calendar.from_fixed(rd).expect("in range");
@@ -966,7 +977,7 @@ mod tests {
         if cfg!(debug_assertions) {
             return;
         }
-        let differing = (EARLIEST.0..civil::to_rd(1930, 1, 1).0)
+        let differing = (EARLIEST.0..gregorian::to_fixed_saturating(1930, 1, 1).0)
             .filter(|rd| rules.from_fixed(Rd(*rd)) != other.from_fixed(Rd(*rd)))
             .count();
         // The thirty days of that one month, 13 March to 11 April 1687.
@@ -976,7 +987,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_across_the_1929_meridian_change() {
         let calendar = ChineseCalendar;
-        let start = civil::to_rd(1925, 1, 1);
+        let start = gregorian::to_fixed_saturating(1925, 1, 1);
         // Every day in a release build, every fifth in a debug one.
         for offset in (0..3_000i64).step_by(crate::sweep_stride(5)) {
             let rd = Rd(start.0 + offset);
@@ -1080,7 +1091,7 @@ mod tests {
     fn the_generic_interface_carries_the_cycle_and_its_position() {
         let calendar = ChineseCalendar;
         let date = calendar
-            .from_fixed(civil::to_rd(2024, 2, 10))
+            .from_fixed(gregorian::to_fixed_saturating(2024, 2, 10))
             .expect("in range");
         let fields = calendar.to_fields(date).expect("describable");
         assert_eq!(fields.year, 4_661);
@@ -1107,16 +1118,22 @@ mod tests {
         // child born in June 2000, a dragon year, 13 suì from the lunar new
         // year of 2012.
         let birth = ChineseCalendar
-            .from_fixed(civil::to_rd(2000, 6, 15))
+            .from_fixed(gregorian::to_fixed_saturating(2000, 6, 15))
             .expect("in range");
         assert_eq!(birth.year, 4_637);
         assert_eq!(PARAMETERS.sexagenary_year(4_637).zodiac_animal(), "dragon");
         let new_year_2012 = new_year(4_649).expect("in range");
-        assert_eq!(new_year_2012, civil::to_rd(2012, 1, 23));
+        assert_eq!(new_year_2012, gregorian::to_fixed_saturating(2012, 1, 23));
         assert_eq!(reckoned_age(birth, new_year_2012), Ok(Some(13)));
         assert_eq!(reckoned_age(birth, Rd(new_year_2012.0 - 1)), Ok(Some(12)));
-        assert_eq!(reckoned_age(birth, civil::to_rd(2000, 6, 15)), Ok(Some(1)));
-        assert_eq!(reckoned_age(birth, civil::to_rd(2000, 6, 14)), Ok(None));
+        assert_eq!(
+            reckoned_age(birth, gregorian::to_fixed_saturating(2000, 6, 15)),
+            Ok(Some(1))
+        );
+        assert_eq!(
+            reckoned_age(birth, gregorian::to_fixed_saturating(2000, 6, 14)),
+            Ok(None)
+        );
     }
 
     #[test]
@@ -1137,7 +1154,10 @@ mod tests {
         // The lunar year that began on 26 January 2009 holds two 立春, on
         // 4 February 2009 and 4 February 2010 (South China Morning Post,
         // 25 January 2009).
-        assert_eq!(new_year(4_646), Ok(civil::to_rd(2009, 1, 26)));
+        assert_eq!(
+            new_year(4_646),
+            Ok(gregorian::to_fixed_saturating(2009, 1, 26))
+        );
         assert_eq!(marriage_augury(4_646), Ok(MarriageAugury::DoubleBright));
     }
 

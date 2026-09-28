@@ -56,6 +56,7 @@
 //! (`wikipedia-nityayoga`, `wikipedia-karana`).
 
 use hc_astro::riseset::Location;
+use hc_astro::search::next_angle_crossing;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{floor, normalize_degrees};
@@ -262,38 +263,9 @@ fn span_of(angle: impl Fn(Moment) -> f64, width: f64, moment: Moment) -> (Moment
     let left_at = normalize_degrees(entered_at + width);
     // An arc of 13°20′ takes under a day and a quarter to cross, so it
     // was entered within that of `moment`.
-    let entry = reaches(&angle, entered_at, Moment(moment.0 - 1.25));
-    let exit = reaches(&angle, left_at, moment);
+    let entry = next_angle_crossing(&angle, entered_at, Moment(moment.0 - 1.25), 0.5);
+    let exit = next_angle_crossing(&angle, left_at, moment, 0.5);
     (entry, exit)
-}
-
-/// The first moment at or after `moment` when `angle` reaches `degrees`,
-/// for an angle that grows steadily and covers less than a revolution in
-/// half a day.
-fn reaches(angle: &impl Fn(Moment) -> f64, degrees: f64, moment: Moment) -> Moment {
-    // What is left to travel, in [0, 360): it falls with time and jumps by
-    // a revolution at the crossing.
-    let to_go = |at: Moment| normalize_degrees(degrees - angle(at));
-    const STEP: f64 = 0.5;
-    let mut low = moment;
-    let mut left = to_go(low);
-    let mut high = Moment(low.0 + STEP);
-    let mut ahead = to_go(high);
-    while ahead < left {
-        low = high;
-        left = ahead;
-        high = Moment(high.0 + STEP);
-        ahead = to_go(high);
-    }
-    for _ in 0..40 {
-        let mid = Moment(f64::midpoint(low.0, high.0));
-        if to_go(mid) < 180.0 {
-            low = mid;
-        } else {
-            high = mid;
-        }
-    }
-    high
 }
 
 #[cfg(test)]

@@ -53,6 +53,7 @@
 //! `docs/systems/astronomical-easter.md` explains the rule, the full moon
 //! that falls on a Sunday, the choice of solar time and the range.
 
+use hc_astro::Location;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::{gregorian, julian};
@@ -210,20 +211,17 @@ pub const ASTRONOMICAL_EASTER_FIRST_YEAR: i64 = 1583;
 /// taken from where the fitted ΔT ends.
 pub const ASTRONOMICAL_EASTER_LAST_YEAR: i64 = 2150;
 
-/// The longitude of Jerusalem, 35.24° east, as Reingold and Dershowitz's
+/// Jerusalem, 31.78° N, 35.24° E, 740 m, as Reingold and Dershowitz's
 /// `jerusalem` location gives it (`reingold2018code`). The Aleppo
-/// statement names the meridian and not a longitude.
-pub const JERUSALEM_LONGITUDE_DEGREES: f64 = 35.24;
+/// statement names the meridian and not a longitude; only the longitude
+/// enters the reckoning.
+pub const JERUSALEM: Location = Location::new(31.78, 35.24, 740.0);
 
 /// Apparent solar time at Jerusalem of a moment in Universal Time: local
-/// mean time at [`JERUSALEM_LONGITUDE_DEGREES`] plus the equation of time,
-/// as `apparent-from-universal` computes it (`reingold2018code`).
+/// mean time at [`JERUSALEM`] plus the equation of time, as
+/// `apparent-from-universal` computes it (`reingold2018code`).
 fn apparent_at_jerusalem(universal: Moment) -> Moment {
-    Moment(
-        universal.0
-            + JERUSALEM_LONGITUDE_DEGREES / 360.0
-            + hc_astro::solar::equation_of_time(universal),
-    )
+    hc_astro::solar_time::local_apparent_time(universal, JERUSALEM)
 }
 
 /// The day, in apparent solar time at Jerusalem, of the first full moon at
@@ -673,7 +671,7 @@ mod tests {
             let astronomical = astronomical_easter(year).expect("in range");
             gregorian_same += usize::from(gregorian_easter(year) == Some(astronomical));
             julian_same += usize::from(orthodox_easter(year) == Some(astronomical));
-            let mean_time = easter_at_fixed_offset(year, JERUSALEM_LONGITUDE_DEGREES / 360.0);
+            let mean_time = easter_at_fixed_offset(year, JERUSALEM.longitude_degrees / 360.0);
             assert_eq!(mean_time, astronomical, "local mean time {year}");
             if easter_at_fixed_offset(year, 2.0 / 24.0) != astronomical {
                 standard_time_differs.push(year);

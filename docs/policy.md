@@ -72,8 +72,10 @@ simplified lunisolar derivation, which differs from the full calculation on
 
 Sometimes a different shape is genuinely wanted. An example is bare
 integers instead of `Rd` and `Result`, because the call site is a `const`
-table of published dates. Then keep the adapter, keep it thin, and give it
-a test that asserts it changes the shape and nothing else.
+table of published dates. Then keep the adapter, keep it thin, write it
+once beside the owner rather than once per caller (as
+`hc_calendar::gregorian::to_fixed_saturating` is), and give it a test that
+asserts it changes the shape and nothing else.
 
 ## 3. Precision is stated, never implied
 

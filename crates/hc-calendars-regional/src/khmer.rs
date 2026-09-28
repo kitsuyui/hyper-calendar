@@ -74,7 +74,7 @@ use hc_calendar::{
 
 use crate::southeast_asian::{
     Fortnight, YearType, Years, suryayatra_has_leap_day, suryayatra_has_leap_month,
-    suryayatra_year_type,
+    suryayatra_year_type, write_digits,
 };
 
 /// The Buddhist Era year minus the Gregorian year its Visak Bochea falls in.
@@ -278,41 +278,21 @@ impl KhmerDate {
     }
 }
 
-/// Writes `number` in Khmer digits, ០ to ៩.
-fn khmer_digits(f: &mut fmt::Formatter<'_>, number: i64) -> fmt::Result {
-    if number < 0 {
-        write!(f, "-")?;
-    }
-    let mut digits = [0u8; 20];
-    let mut count = 0;
-    let mut rest = number.unsigned_abs();
-    loop {
-        digits[count] = (rest % 10) as u8;
-        count += 1;
-        rest /= 10;
-        if rest == 0 {
-            break;
-        }
-    }
-    for &digit in digits[..count].iter().rev() {
-        let glyph = char::from_u32(0x17E0 + u32::from(digit)).unwrap_or('?');
-        write!(f, "{glyph}")?;
-    }
-    Ok(())
-}
+/// The Khmer digit zero, ០; the nine after it follow in order.
+const KHMER_ZERO: char = '\u{17E0}';
 
 impl fmt::Display for KhmerDate {
     /// Writes the date in Khmer digits with the printed Buddhist year after
     /// it, in the form the pages Tum checked print, «២កើត ខែអស្សុជ
     /// ព.ស.២៤៥៧»: `១៥កើត ខែពិសាខ ព.ស.២៥៦៨`.
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        khmer_digits(f, i64::from(self.fortnight_day()))?;
+        write_digits(f, i64::from(self.fortnight_day()), KHMER_ZERO)?;
         let half = match self.fortnight() {
             Fortnight::Waxing => "កើត",
             Fortnight::Waning => "រោច",
         };
         write!(f, "{half} ខែ{} ព.ស.", self.month_name())?;
-        khmer_digits(f, self.printed_year())
+        write_digits(f, self.printed_year(), KHMER_ZERO)
     }
 }
 

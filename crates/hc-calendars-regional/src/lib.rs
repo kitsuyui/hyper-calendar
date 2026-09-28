@@ -265,45 +265,6 @@ mod tests {
     use super::*;
     use hc_calendars_lunar::japanese_historical;
 
-    /// Round-trip one fixed day through every calendar that supports it,
-    /// returning how many did.
-    ///
-    /// A macro rather than a collection of trait objects so that the test
-    /// exercises the *static* interface, where each calendar has its own
-    /// date type, rather than only the erased one.
-    macro_rules! round_trip_every_calendar {
-        ($rd:expr, $($calendar:expr),+ $(,)?) => {{
-            let mut checked = 0;
-            $(
-                {
-                    let calendar = $calendar;
-                    if calendar.meta().supports($rd) {
-                        let date = calendar.from_fixed($rd).unwrap_or_else(|error| {
-                            panic!("{} rejected {} in range: {error}", calendar.meta().id, $rd)
-                        });
-                        assert_eq!(
-                            calendar.to_fixed(date),
-                            Ok($rd),
-                            "{} failed to round-trip {}",
-                            calendar.meta().id,
-                            $rd
-                        );
-                        let fields = calendar.to_fields(date).unwrap();
-                        assert_eq!(
-                            calendar.from_fields(&fields),
-                            Ok(date),
-                            "{} failed to round-trip fields at {}",
-                            calendar.meta().id,
-                            $rd
-                        );
-                        checked += 1;
-                    }
-                }
-            )+
-            checked
-        }};
-    }
-
     #[test]
     fn every_calendar_round_trips_every_day_of_a_shared_range() {
         // The step is deliberately coprime with 210, 260, 365 and 60 so that
@@ -312,7 +273,7 @@ mod tests {
         // coverage job runs instrumented.
         let step = if cfg!(debug_assertions) { 3_001 } else { 1_009 };
         for rd in (-1_100_000..=800_000).step_by(step) {
-            round_trip_every_calendar!(
+            hc_calendar::round_trip_every_calendar!(
                 Rd(rd),
                 MayaLongCountCalendar::GMT,
                 MayaLongCountCalendar::GMT_PLUS_TWO,

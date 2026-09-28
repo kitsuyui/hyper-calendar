@@ -30,6 +30,8 @@
 //!   unequal hours, and religious times of day, the Islamic prayer times by
 //!   named method among them.
 //! * [`hjd`] — the Heliocentric Julian Date, HJD_TT and HJD_UTC.
+//! * [`search`] — the bisections every search above is built on, public so
+//!   that the calendars with their own models of the sky use them too.
 //!
 //! # What it is not
 //!
@@ -70,15 +72,13 @@ pub mod hjd;
 pub mod horizon;
 pub mod lunar;
 pub mod riseset;
+pub mod search;
 pub mod solar;
 pub mod solar_time;
 pub mod time;
 pub mod ut1;
 pub mod ut_variants;
 pub mod vsop87;
-
-mod search;
-mod util;
 
 // `check_days`: run a check on each day of a sweep, spread over the
 // machine's threads (docs/policy.md §7).

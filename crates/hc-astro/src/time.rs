@@ -45,8 +45,8 @@
 //! end is therefore about nine seconds early, and the gap grows with the
 //! forecast's slope until the tables are extended.
 
-use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
+use hc_calendar::{Rd, gregorian};
 
 use crate::delta_t_model::DeltaTModel;
 #[cfg(doc)]
@@ -54,7 +54,9 @@ use crate::delta_t_model::{ESPENAK_MEEUS_2006, MORRISON_STEPHENSON_2021};
 use crate::delta_t_table::{
     DeltaTPredictionSample, DeltaTSample, PREDICTED_DELTA_T, TABULATED_DELTA_T,
 };
-use crate::util::poly;
+use hc_core::duration::SECONDS_PER_DAY_F64;
+use hc_core::epoch_notation::JULIAN_CENTURY_DAYS;
+use hc_core::math::poly;
 
 /// The J2000.0 epoch as a Rata Die moment: 2000-01-01 12:00 TT.
 ///
@@ -62,13 +64,8 @@ use crate::util::poly;
 /// epoch is at noon, so the moment is half a day later.
 pub const J2000: Moment = Moment(730_120.5);
 
-/// Days in a Julian century, the unit every one of these series uses.
-pub const JULIAN_CENTURY_DAYS: f64 = 36_525.0;
-
-/// Seconds in a day, as the astronomical series count them: a day is exactly
-/// 86 400 seconds here, with no leap second, because ΔT already carries the
-/// whole of the Earth's rotational irregularity.
-pub const SECONDS_PER_DAY: f64 = 86_400.0;
+/// The Julian Date of [`J2000`], 2000-01-01T12:00 TT.
+pub const J2000_JULIAN_DATE: f64 = 2_451_545.0;
 
 /// The earliest year over which the ΔT fit is anything other than an
 /// extrapolation.
@@ -103,9 +100,9 @@ pub const PREDICTED_DELTA_T_LAST: f64 =
 /// The decimal Gregorian year of 0h on a fixed day, by the same rule as
 /// [`decimal_year`]: the elapsed fraction of the actual year.
 const fn decimal_year_of_day(day: Rd) -> f64 {
-    let year = gregorian_year_from_rd(day);
-    let start = gregorian_new_year(year).0;
-    let length = gregorian_new_year(year + 1).0 - start;
+    let year = gregorian::year_from_fixed(day);
+    let start = gregorian::new_year(year).0;
+    let length = gregorian::new_year(year + 1).0 - start;
     year as f64 + (day.0 - start) as f64 / length as f64
 }
 
@@ -446,7 +443,7 @@ pub fn is_fitted_year(year: f64) -> bool {
 /// The Terrestrial Time reading of a Universal Time moment.
 #[must_use]
 pub fn dynamical_time(moment: Moment) -> Moment {
-    Moment(moment.0 + delta_t(moment) / SECONDS_PER_DAY)
+    Moment(moment.0 + delta_t(moment) / SECONDS_PER_DAY_F64)
 }
 
 /// The Universal Time reading of a Terrestrial Time moment.
@@ -459,7 +456,7 @@ pub fn dynamical_time(moment: Moment) -> Moment {
 /// polishing a guess.
 #[must_use]
 pub fn universal_time(dynamical: Moment) -> Moment {
-    Moment(dynamical.0 - delta_t(dynamical) / SECONDS_PER_DAY)
+    Moment(dynamical.0 - delta_t(dynamical) / SECONDS_PER_DAY_F64)
 }
 
 /// Julian centuries of Terrestrial Time since J2000.0, for a Universal Time
@@ -501,26 +498,6 @@ pub fn centuries_from_dynamical_julian_date(julian_date: f64) -> f64 {
     julian_centuries_from_dynamical(Moment::from_julian_date(julian_date))
 }
 
-/// The fixed day on which a proleptic Gregorian year begins.
-///
-/// An adapter over [`hc_calendar::gregorian::new_year`], which owns this
-/// arithmetic. The owner is `hc-calendar` rather than `hc-calendars-solar`,
-/// so this crate can use it without depending on the solar calendars, which
-/// depend on the astronomy.
-#[must_use]
-pub const fn gregorian_new_year(year: i64) -> Rd {
-    hc_calendar::gregorian::new_year(year)
-}
-
-/// The proleptic Gregorian year containing a fixed day.
-///
-/// An adapter over [`hc_calendar::gregorian::year_from_fixed`]; see
-/// [`gregorian_new_year`].
-#[must_use]
-pub const fn gregorian_year_from_rd(rd: Rd) -> i64 {
-    hc_calendar::gregorian::year_from_fixed(rd)
-}
-
 /// A moment as a decimal Gregorian year, e.g. 2000.5 for midsummer 2000.
 ///
 /// The fraction is the elapsed part of the actual year rather than Espenak's
@@ -528,9 +505,9 @@ pub const fn gregorian_year_from_rd(rd: Rd) -> i64 {
 /// root finders in this crate need a continuous function to bisect.
 #[must_use]
 pub fn decimal_year(moment: Moment) -> f64 {
-    let year = gregorian_year_from_rd(moment.day());
-    let start = gregorian_new_year(year).0;
-    let length = gregorian_new_year(year + 1).0 - start;
+    let year = gregorian::year_from_fixed(moment.day());
+    let start = gregorian::new_year(year).0;
+    let length = gregorian::new_year(year + 1).0 - start;
     year as f64 + (moment.0 - start as f64) / length as f64
 }
 
@@ -556,7 +533,7 @@ mod tests {
     /// 2000-01-01 is RD 730120 and the J2000 epoch is noon that day.
     #[test]
     fn the_j2000_epoch_sits_at_noon_on_the_first_of_january_2000() {
-        assert_eq!(gregorian_new_year(2000), Rd(730_120));
+        assert_eq!(gregorian::new_year(2000), Rd(730_120));
         assert!((J2000.0 - 730_120.5).abs() < 1e-12);
         // Julian Date 2451545.0 is the conventional statement of J2000.0.
         assert!((J2000.to_julian_date() - 2_451_545.0).abs() < 1e-9);
@@ -566,10 +543,14 @@ mod tests {
     #[test]
     fn gregorian_years_and_new_years_round_trip_over_four_millennia() {
         for year in -1000..3000 {
-            let start = gregorian_new_year(year);
-            assert_eq!(gregorian_year_from_rd(start), year, "new year of {year}");
+            let start = gregorian::new_year(year);
             assert_eq!(
-                gregorian_year_from_rd(gregorian_new_year(year + 1) - 1),
+                gregorian::year_from_fixed(start),
+                year,
+                "new year of {year}"
+            );
+            assert_eq!(
+                gregorian::year_from_fixed(gregorian::new_year(year + 1) - 1),
                 year,
                 "last day of {year}"
             );
@@ -578,10 +559,10 @@ mod tests {
 
     #[test]
     fn decimal_years_run_from_the_year_number_to_the_next() {
-        assert!((decimal_year(Moment(gregorian_new_year(2000).0 as f64)) - 2000.0).abs() < 1e-12);
-        let midyear = decimal_year(Moment(gregorian_new_year(2000).0 as f64 + 183.0));
+        assert!((decimal_year(Moment(gregorian::new_year(2000).0 as f64)) - 2000.0).abs() < 1e-12);
+        let midyear = decimal_year(Moment(gregorian::new_year(2000).0 as f64 + 183.0));
         assert!((midyear - 2000.5).abs() < 0.01, "midyear was {midyear}");
-        assert!(decimal_year(Moment(gregorian_new_year(-44).0 as f64)) < -43.9);
+        assert!(decimal_year(Moment(gregorian::new_year(-44).0 as f64)) < -43.9);
     }
 
     /// ΔT at 2000-01-01 is 63.8285 s by observation (USNO `deltat.data`).
@@ -917,7 +898,7 @@ mod tests {
         assert!((universal_time(dynamical_time(modern)).0 - modern.0).abs() < 1e-9);
         let ancient = Moment(-200_000.0);
         let error_seconds =
-            (universal_time(dynamical_time(ancient)).0 - ancient.0).abs() * SECONDS_PER_DAY;
+            (universal_time(dynamical_time(ancient)).0 - ancient.0).abs() * SECONDS_PER_DAY_F64;
         assert!(error_seconds < 0.02, "round trip cost {error_seconds} s");
     }
 
@@ -925,7 +906,7 @@ mod tests {
     fn dynamical_time_runs_ahead_of_universal_time_today() {
         let now = Moment(739_000.0);
         assert!(dynamical_time(now).0 > now.0);
-        let seconds = (dynamical_time(now).0 - now.0) * SECONDS_PER_DAY;
+        let seconds = (dynamical_time(now).0 - now.0) * SECONDS_PER_DAY_F64;
         assert!((60.0..90.0).contains(&seconds), "delta t was {seconds}");
     }
 

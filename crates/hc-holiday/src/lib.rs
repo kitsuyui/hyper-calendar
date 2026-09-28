@@ -110,8 +110,8 @@ pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
 #[cfg(feature = "alloc")]
 pub use rule::EvaluationContext;
 pub use rule::{
-    BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, Phase, Rule, RuleSet,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy,
+    BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SourceDate,
+    SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy,
 };
 
 #[cfg(feature = "alloc")]

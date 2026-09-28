@@ -272,17 +272,29 @@ impl Calendar for IslamicFcnaCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
 
     /// The Council's own announcement for 1447: Ramaḍān on 18 February
     /// 2026 and Shawwāl on 20 March (`fcna-ramadan-1447`), and the page's
     /// first and last rows carried.
     #[test]
     fn the_published_dates_are_reproduced() {
-        assert_eq!(to_fixed(1_447, 9, 1), Ok(civil::to_rd(2026, 2, 18)));
-        assert_eq!(to_fixed(1_447, 10, 1), Ok(civil::to_rd(2026, 3, 20)));
-        assert_eq!(to_fixed(1_440, 1, 1), Ok(civil::to_rd(2018, 9, 11)));
-        assert_eq!(from_fixed(civil::to_rd(2043, 6, 7)), Ok((1_465, 6, 29)));
+        assert_eq!(
+            to_fixed(1_447, 9, 1),
+            Ok(gregorian::to_fixed_saturating(2026, 2, 18))
+        );
+        assert_eq!(
+            to_fixed(1_447, 10, 1),
+            Ok(gregorian::to_fixed_saturating(2026, 3, 20))
+        );
+        assert_eq!(
+            to_fixed(1_440, 1, 1),
+            Ok(gregorian::to_fixed_saturating(2018, 9, 11))
+        );
+        assert_eq!(
+            from_fixed(gregorian::to_fixed_saturating(2043, 6, 7)),
+            Ok((1_465, 6, 29))
+        );
     }
 
     #[test]

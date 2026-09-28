@@ -69,9 +69,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
-use hc_core::math::{floor, round, sin_deg};
-
-use crate::civil;
+use hc_core::math::{amod, floor, round, sin_deg};
 
 /// The number of months in the sexagenary month cycle.
 const SEXAGENARY_MONTH_ANCHOR: i64 = 2;
@@ -228,7 +226,7 @@ impl MajorTermCorrection {
             term
         } else if rd.0 > self.computed.0 && rd.0 <= self.promulgated.0 {
             // Reckoned later: at these midnights it has not.
-            adjusted_modulo(term - 1, 12)
+            amod(term - 1, 12)
         } else {
             index
         }
@@ -507,7 +505,7 @@ impl MeanMotionModel {
     #[must_use]
     pub fn major_solar_term(&self, rd: Rd) -> i64 {
         let twelfths = (rd.0 as f64 - self.solstice_epoch) / (self.tropical_year / 12.0);
-        adjusted_modulo(11 + floor(twelfths) as i64, 12)
+        amod(11 + floor(twelfths) as i64, 12)
     }
 }
 
@@ -578,17 +576,11 @@ pub const RELATED_GREGORIAN_YEAR: &str = "related-gregorian-year";
 /// Gregorian year −2636.
 const RELATED_GREGORIAN_OFFSET: i64 = -2_637;
 
-/// `x` reduced into `1..=n`, the "adjusted modulo" of *Calendrical
-/// Calculations*.
-const fn adjusted_modulo(x: i64, n: i64) -> i64 {
-    (x - 1).rem_euclid(n) + 1
-}
-
 impl LunisolarParameters {
     /// The meridian era in force on a fixed day.
     #[must_use]
     pub fn meridian_era(&self, rd: Rd) -> MeridianEra {
-        let year = civil::year_from_rd(rd);
+        let year = gregorian::year_from_fixed(rd);
         let mut chosen = self.meridians[0];
         for era in self.meridians {
             if era.from_year <= year {
@@ -633,7 +625,11 @@ impl LunisolarParameters {
             // A mean solstice drifting by at most a couple of days over a
             // system's lifetime never leaves December, so the last one of the
             // Gregorian year is the one wanted.
-            return model.winter_solstice_on_or_before(civil::to_rd(gregorian_year, 12, 31));
+            return model.winter_solstice_on_or_before(gregorian::to_fixed_saturating(
+                gregorian_year,
+                12,
+                31,
+            ));
         }
         let day = self
             .local_from_universal(hc_astro::solstice(gregorian_year, Solstice::December))
@@ -650,7 +646,7 @@ impl LunisolarParameters {
         if let Some(model) = &self.mean_motion {
             return model.winter_solstice_on_or_before(rd);
         }
-        let year = civil::year_from_rd(rd);
+        let year = gregorian::year_from_fixed(rd);
         let candidate = self.winter_solstice_day(year);
         if candidate <= rd {
             candidate
@@ -662,7 +658,7 @@ impl LunisolarParameters {
     /// The December solstice preceding local midnight of `rd`, in Universal
     /// Time.
     fn preceding_december_solstice(&self, rd: Rd) -> Moment {
-        let year = civil::year_from_rd(rd);
+        let year = gregorian::year_from_fixed(rd);
         let candidate = hc_astro::solstice(year, Solstice::December);
         if self.local_from_universal(candidate).0 <= rd.0 as f64 {
             candidate
@@ -821,13 +817,13 @@ impl LunisolarParameters {
         match self.solar_term_mode {
             SolarTermMode::Apparent => {
                 let longitude = hc_astro::solar_longitude(self.midnight(rd));
-                adjusted_modulo(2 + floor(longitude / 30.0) as i64, 12)
+                amod(2 + floor(longitude / 30.0) as i64, 12)
             }
             SolarTermMode::Mean => {
                 let solstice = self.preceding_december_solstice(rd);
                 let elapsed = self.midnight(rd).0 - solstice.0;
                 let step = MEAN_TROPICAL_YEAR / 12.0;
-                adjusted_modulo(11 + floor(elapsed / step) as i64, 12)
+                amod(11 + floor(elapsed / step) as i64, 12)
             }
         }
     }
@@ -982,7 +978,7 @@ impl LunisolarParameters {
         } else {
             0
         };
-        let ordinal = adjusted_modulo(elapsed_months - shift, 12);
+        let ordinal = amod(elapsed_months - shift, 12);
         let is_leap_month = leap_year
             && self.has_no_major_solar_term(this_month)
             && !self.prior_leap_month(month_twelve, self.new_moon_before(this_month));
@@ -1269,9 +1265,7 @@ impl Calendar for LunisolarCalendar {
         fields
             .extra
             .set("cycle", (elapsed - 1).div_euclid(60) + 1)?;
-        fields
-            .extra
-            .set("year_of_cycle", adjusted_modulo(elapsed, 60))?;
+        fields.extra.set("year_of_cycle", amod(elapsed, 60))?;
         fields.extra.set(
             "sexagenary_year",
             i64::from(self.parameters.sexagenary_year(date.year).index()),
@@ -1399,7 +1393,10 @@ mod tests {
         // The first and last years of the bounded calendars are still
         // answered or refused by the day the rules produce.
         let chinese = &crate::chinese::PARAMETERS;
-        assert_eq!(chinese.new_year(4_661), Ok(civil::to_rd(2024, 2, 10)));
+        assert_eq!(
+            chinese.new_year(4_661),
+            Ok(gregorian::to_fixed_saturating(2024, 2, 10))
+        );
         let first = chinese.from_fixed(crate::chinese::EARLIEST).unwrap().0;
         let last = chinese.from_fixed(crate::chinese::LATEST).unwrap().0;
         // The year containing the first supported day began before it.
@@ -1414,30 +1411,30 @@ mod tests {
 
     #[test]
     fn adjusted_modulo_lands_in_one_through_n() {
-        assert_eq!(adjusted_modulo(1, 12), 1);
-        assert_eq!(adjusted_modulo(12, 12), 12);
-        assert_eq!(adjusted_modulo(13, 12), 1);
-        assert_eq!(adjusted_modulo(0, 12), 12);
-        assert_eq!(adjusted_modulo(-1, 12), 11);
-        assert_eq!(adjusted_modulo(60, 60), 60);
+        assert_eq!(amod(1, 12), 1);
+        assert_eq!(amod(12, 12), 12);
+        assert_eq!(amod(13, 12), 1);
+        assert_eq!(amod(0, 12), 12);
+        assert_eq!(amod(-1, 12), 11);
+        assert_eq!(amod(60, 60), 60);
     }
 
     #[test]
     fn the_meridian_table_is_read_in_order() {
-        let before = ENGINE_TEST.meridian_era(civil::to_rd(1900, 1, 1));
-        let after = ENGINE_TEST.meridian_era(civil::to_rd(1930, 1, 1));
+        let before = ENGINE_TEST.meridian_era(gregorian::to_fixed_saturating(1900, 1, 1));
+        let after = ENGINE_TEST.meridian_era(gregorian::to_fixed_saturating(1930, 1, 1));
         assert!((before.offset_hours - 116.416_666_7 / 15.0).abs() < 1e-9);
         assert!((after.offset_hours - 8.0).abs() < 1e-12);
         // The boundary is the Gregorian new year of the era's first year.
         assert_eq!(
             ENGINE_TEST
-                .meridian_era(civil::to_rd(1929, 1, 1))
+                .meridian_era(gregorian::to_fixed_saturating(1929, 1, 1))
                 .offset_hours,
             8.0
         );
         assert!(
             (ENGINE_TEST
-                .meridian_era(civil::to_rd(1928, 12, 31))
+                .meridian_era(gregorian::to_fixed_saturating(1928, 12, 31))
                 .offset_hours
                 - 8.0)
                 .abs()
@@ -1456,7 +1453,7 @@ mod tests {
     fn the_winter_solstice_lands_in_the_second_half_of_december() {
         for year in 1900..2100i64 {
             let day = ENGINE_TEST.winter_solstice_day(year);
-            let (gregorian_year, month, date) = civil::from_rd(day);
+            let (gregorian_year, month, date) = gregorian::ymd(day);
             assert_eq!(gregorian_year, year);
             assert_eq!(month, 12);
             assert!((20..=23).contains(&date), "{year}-12-{date}");
@@ -1468,7 +1465,8 @@ mod tests {
         // The December solstice of 2000 and 雨水 of 2001, each reckoned a day
         // away from where the rules put them, one later and one earlier.
         let solstice = ENGINE_TEST.winter_solstice_day(2000);
-        let rain_water = (civil::to_rd(2001, 2, 10).0..civil::to_rd(2001, 3, 1).0)
+        let rain_water = (gregorian::to_fixed_saturating(2001, 2, 10).0
+            ..gregorian::to_fixed_saturating(2001, 3, 1).0)
             .map(Rd)
             .find(|rd| ENGINE_TEST.major_solar_term(Rd(rd.0 + 1)) == 1)
             .expect("雨水 falls in February");
@@ -1520,8 +1518,9 @@ mod tests {
 
     #[test]
     fn consecutive_new_moons_are_twenty_nine_or_thirty_days_apart() {
-        let mut cursor = ENGINE_TEST.new_moon_on_or_after(civil::to_rd(1980, 1, 1));
-        let end = civil::to_rd(2030, 1, 1);
+        let mut cursor =
+            ENGINE_TEST.new_moon_on_or_after(gregorian::to_fixed_saturating(1980, 1, 1));
+        let end = gregorian::to_fixed_saturating(2030, 1, 1);
         let mut months = 0;
         while cursor < end {
             let next = ENGINE_TEST.new_moon_on_or_after(Rd(cursor.0 + 1));
@@ -1564,7 +1563,7 @@ mod tests {
         // a good fraction of days.
         let mut differing = 0;
         for offset in 0..365i64 {
-            let rd = Rd(civil::to_rd(2000, 1, 1).0 + offset);
+            let rd = Rd(gregorian::to_fixed_saturating(2000, 1, 1).0 + offset);
             if MEAN.major_solar_term(rd) != ENGINE_TEST.major_solar_term(rd) {
                 differing += 1;
             }
@@ -1574,7 +1573,7 @@ mod tests {
 
     #[test]
     fn the_engine_round_trips_over_four_thousand_days() {
-        let start = civil::to_rd(2000, 1, 1);
+        let start = gregorian::to_fixed_saturating(2000, 1, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..4_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
@@ -1808,7 +1807,7 @@ mod tests {
 
     #[test]
     fn the_day_cycle_advances_by_one_a_day() {
-        let rd = civil::to_rd(2024, 2, 10);
+        let rd = gregorian::to_fixed_saturating(2024, 2, 10);
         assert_eq!(
             ENGINE_TEST.sexagenary_day(Rd(rd.0 + 1)),
             ENGINE_TEST.sexagenary_day(rd).next()

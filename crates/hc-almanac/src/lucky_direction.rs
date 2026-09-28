@@ -37,6 +37,8 @@
 //! `jre-eho-2026`), and 恵方参り is on New Year's Day. The 九星 year,
 //! which turns at 立春, is [`crate::nine_stars::nine_star_year`].
 
+use hc_calendar::cycle::{readings, sexagenary_year_from_gregorian_year, stem};
+
 /// One of the four directions 歳徳神 can stand in, named for its point of
 /// the twenty-four.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -68,37 +70,39 @@ impl LuckyDirection {
         }
     }
 
+    /// The stem the point is named for, as an index, 甲 being 0.
+    #[must_use]
+    pub const fn stem_index(self) -> u8 {
+        match self {
+            Self::Kinoe => stem::JIA,
+            Self::Kanoe => stem::GENG,
+            Self::Hinoe => stem::BING,
+            Self::Mizunoe => stem::REN,
+        }
+    }
+
     /// The point of the twenty-four, a stem: `"甲"`, `"庚"`, `"丙"` or `"壬"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
-        match self {
-            Self::Kinoe => "甲",
-            Self::Kanoe => "庚",
-            Self::Hinoe => "丙",
-            Self::Mizunoe => "壬",
-        }
+        readings::HAN.stems[self.stem_index() as usize]
     }
 
     /// The reading in Hepburn romaji, e.g. `"kinoe"`.
     #[must_use]
     pub const fn romaji(self) -> &'static str {
-        match self {
-            Self::Kinoe => "kinoe",
-            Self::Kanoe => "kanoe",
-            Self::Hinoe => "hinoe",
-            Self::Mizunoe => "mizunoe",
-        }
+        readings::JAPANESE_KUN.stems[self.stem_index() as usize]
     }
 
-    /// The two earthly branches the point lies between, e.g. `("寅", "卯")`.
+    /// The two earthly branches the point lies between, e.g. `("寅", "卯")`:
+    /// the branches stand every 30° from 子 at north, and each of the four
+    /// points 15° past one of them.
     #[must_use]
     pub const fn between_branches(self) -> (&'static str, &'static str) {
-        match self {
-            Self::Kinoe => ("寅", "卯"),
-            Self::Kanoe => ("申", "酉"),
-            Self::Hinoe => ("巳", "午"),
-            Self::Mizunoe => ("亥", "子"),
-        }
+        let before = (self.azimuth_degrees() / 30) as usize;
+        (
+            readings::HAN.branches[before],
+            readings::HAN.branches[(before + 1) % 12],
+        )
     }
 
     /// The azimuth of the point's centre, in degrees clockwise from north.
@@ -139,10 +143,11 @@ impl LuckyDirection {
 }
 
 /// 恵方 of a year numbered as the Gregorian year it mostly overlaps: the
-/// direction of the year's stem, `(year − 4) mod 10`, 1984 being 甲子.
+/// direction of the year's stem, 1984 being 甲子
+/// ([`sexagenary_year_from_gregorian_year`]).
 #[must_use]
 pub const fn lucky_direction_of_year(year: i64) -> LuckyDirection {
-    LuckyDirection::of_stem((year - 4).rem_euclid(10) as u8)
+    LuckyDirection::of_stem(sexagenary_year_from_gregorian_year(year).stem_index())
 }
 
 #[cfg(test)]

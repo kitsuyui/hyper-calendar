@@ -120,7 +120,7 @@
 //!   for the dated checks in the tests. Neither was re-read on 2026-09-26.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{FivePhase, sexagenary_day, sexagenary_year_from_gregorian_year};
 use hc_calendar::gregorian;
 use hc_seasons::Meridian;
 use hc_seasons::solar_terms::{SolarTerm, term_day};
@@ -298,17 +298,17 @@ impl NineStar {
         }
     }
 
-    /// The five-phase element, e.g. `"water"`.
+    /// The five-phase element, e.g. water.
     ///
     /// The phase is in the name: 一白**水**星 is the water star.
     #[must_use]
-    pub const fn five_phase(self) -> &'static str {
+    pub const fn five_phase(self) -> FivePhase {
         match self {
-            Self::OneWhite => "water",
-            Self::TwoBlack | Self::FiveYellow | Self::EightWhite => "earth",
-            Self::ThreeJade | Self::FourGreen => "wood",
-            Self::SixWhite | Self::SevenRed => "metal",
-            Self::NinePurple => "fire",
+            Self::OneWhite => FivePhase::Water,
+            Self::TwoBlack | Self::FiveYellow | Self::EightWhite => FivePhase::Earth,
+            Self::ThreeJade | Self::FourGreen => FivePhase::Wood,
+            Self::SixWhite | Self::SevenRed => FivePhase::Metal,
+            Self::NinePurple => FivePhase::Fire,
         }
     }
 
@@ -585,11 +585,11 @@ const FIRST_MONTH_STAR: [u8; 3] = [8, 5, 2];
 
 /// The earthly branch of a 九星 year.
 ///
-/// The sexagenary year cycle is anchored so that 1984 was 甲子; the branch
-/// is therefore `(year − 4) mod 12`.
+/// The sexagenary year cycle is anchored so that 1984 was 甲子
+/// ([`sexagenary_year_from_gregorian_year`]).
 #[must_use]
 pub const fn year_branch_index(nine_star_year: i64) -> u8 {
-    (nine_star_year - 4).rem_euclid(12) as u8
+    sexagenary_year_from_gregorian_year(nine_star_year).branch_index()
 }
 
 /// 月家九星 — the month star of a 九星 year and a 節月 number.
@@ -676,14 +676,7 @@ mod tests {
         for star in NineStar::ALL {
             let name = star.japanese_name();
             assert_eq!(name.chars().count(), 4);
-            let phase_character = match star.five_phase() {
-                "water" => "水",
-                "earth" => "土",
-                "wood" => "木",
-                "metal" => "金",
-                _ => "火",
-            };
-            assert!(name.contains(phase_character), "{name}");
+            assert!(name.contains(star.five_phase().cjk()), "{name}");
         }
         assert_eq!(NineStar::FiveYellow.direction(), "centre");
         assert_eq!(NineStar::FiveYellow.trigram(), None);

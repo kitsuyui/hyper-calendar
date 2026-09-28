@@ -90,15 +90,16 @@ impl Calendar for IslamicAstronomicalCalendar {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::civil;
-    use crate::islamic_civil::IslamicCivilCalendar;
     use hc_calendar::Weekday;
+    use hc_calendar::gregorian;
+
+    use super::*;
+    use crate::islamic_civil::IslamicCivilCalendar;
 
     #[test]
     fn the_epoch_is_thursday_the_fifteenth_of_july_622_julian() {
         assert_eq!(Weekday::from_rd(EPOCH), Weekday::Thursday);
-        assert_eq!(civil::from_rd(EPOCH), (622, 7, 18));
+        assert_eq!(gregorian::ymd(EPOCH), (622, 7, 18));
     }
 
     #[test]

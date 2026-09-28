@@ -69,9 +69,9 @@
 //! this crate's convention, stated so that nobody mistakes it for a
 //! historical one.
 
+use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
-use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
     SolarTermMode,
@@ -92,14 +92,14 @@ pub const USAGE_SOURCE: &str = "天保15年1月1日 = 1844-02-18 [nao-rekiwiki-t
 /// month of Tenpō 15, when the Tenpō calendar took effect.
 ///
 /// This module computes that day as 1844-02-18, and the crate tests it.
-pub const EARLIEST: Rd = civil::to_rd(1844, 2, 18);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1844, 2, 18);
 
 /// The latest fixed day this calendar converts: Meiji 5, twelfth month,
 /// second day, which is Gregorian 1872-12-31.
 ///
 /// The next day was decreed to be 1 January 1873 in the solar calendar, so
 /// there is no Tenpō date after this one.
-pub const LATEST: Rd = civil::to_rd(1872, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(1872, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
 pub const MERIDIAN_SOURCES: &str = "Kyoto as the reference of the Edo calendars, at 135°46′E \
@@ -240,14 +240,15 @@ pub static UNBOUNDED: LunisolarCalendar = LunisolarCalendar::new(&UNBOUNDED_PARA
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CalendarError, Month};
+
     use super::*;
     use crate::lunisolar::MeridianEra;
-    use hc_calendar::{CalendarError, Month};
 
     #[test]
     fn the_calendar_took_effect_on_the_eighteenth_of_february_1844() {
         assert_eq!(new_year(1_844), Ok(EARLIEST));
-        assert_eq!(civil::from_rd(EARLIEST), (1844, 2, 18));
+        assert_eq!(gregorian::ymd(EARLIEST), (1844, 2, 18));
         assert_eq!(
             JapaneseTenpoCalendar.from_fixed(EARLIEST),
             Ok(LunisolarDate::new(1_844, Month::regular(1), 1))
@@ -257,7 +258,7 @@ mod tests {
     #[test]
     fn the_last_day_is_the_second_of_the_twelfth_month_of_meiji_five() {
         // The decree: Meiji 5, twelfth month, third day became 1873-01-01.
-        assert_eq!(civil::from_rd(LATEST), (1872, 12, 31));
+        assert_eq!(gregorian::ymd(LATEST), (1872, 12, 31));
         assert_eq!(
             JapaneseTenpoCalendar.from_fixed(LATEST),
             Ok(LunisolarDate::new(1_872, Month::regular(12), 2))
@@ -268,7 +269,7 @@ mod tests {
         );
         // The day that would have been the third of the twelfth month is
         // 1873-01-01, and the calendar refuses to name it.
-        assert_eq!(civil::from_rd(Rd(LATEST.0 + 1)), (1873, 1, 1));
+        assert_eq!(gregorian::ymd(Rd(LATEST.0 + 1)), (1873, 1, 1));
         assert_eq!(
             JapaneseTenpoCalendar.to_fixed(LunisolarDate::new(1_872, Month::regular(12), 3)),
             Err(CalendarError::AfterSupportedRange)
@@ -279,9 +280,12 @@ mod tests {
     fn the_twelfth_month_of_meiji_five_began_on_the_thirtieth_of_december() {
         assert_eq!(
             JapaneseTenpoCalendar.to_fixed(LunisolarDate::new(1_872, Month::regular(12), 1)),
-            Ok(civil::to_rd(1872, 12, 30))
+            Ok(gregorian::to_fixed_saturating(1872, 12, 30))
         );
-        assert_eq!(new_year(1_872), Ok(civil::to_rd(1872, 2, 9)));
+        assert_eq!(
+            new_year(1_872),
+            Ok(gregorian::to_fixed_saturating(1872, 2, 9))
+        );
     }
 
     #[test]
@@ -344,8 +348,8 @@ mod tests {
 
     #[test]
     fn the_kyoto_meridian_is_three_minutes_ahead_of_japan_standard_time() {
-        let kyoto = PARAMETERS.meridian_era(civil::to_rd(1860, 1, 1));
-        let standard = PARAMETERS.meridian_era(civil::to_rd(1900, 1, 1));
+        let kyoto = PARAMETERS.meridian_era(gregorian::to_fixed_saturating(1860, 1, 1));
+        let standard = PARAMETERS.meridian_era(gregorian::to_fixed_saturating(1900, 1, 1));
         assert!((standard.offset_hours - 9.0).abs() < 1e-12);
         let minutes = (kyoto.offset_hours - standard.offset_hours) * 60.0;
         assert!((minutes - 3.066_666).abs() < 1e-3, "{minutes} minutes");
@@ -407,7 +411,7 @@ mod tests {
             .iter()
             .zip(&tokyo)
             .filter(|(k, t)| k != t)
-            .map(|(k, _)| civil::from_rd(*k))
+            .map(|(k, _)| gregorian::ymd(*k))
             .collect();
         assert_eq!(apart.len(), 7, "{apart:?}");
         assert_eq!(apart[0], (1_850, 10, 5));

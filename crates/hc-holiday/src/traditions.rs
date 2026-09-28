@@ -56,7 +56,7 @@
 //! | *Common Worship* | the Gregorian computus and fixed Gregorian dates, with the transfers the Rules require | exact as stated; the years the Rules leave open are reported gaps |
 
 use hc_astro::MEAN_TROPICAL_YEAR;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{branch, branch_day_on_or_after};
 use hc_calendar::fixed::Moment;
 use hc_calendar::{Month, Rd, Weekday};
 use hc_calendars_indic::SiddhantaLunarCalendar;
@@ -1633,12 +1633,12 @@ pub static GOSEKKU: RuleSet = RuleSet {
 // お盆 and the Japanese folk days of the sexagenary cycle
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The earthly branch of 午 days, 子 being 0.
-const UMA: u8 = 6;
+/// The earthly branch of 午 days.
+const UMA: u8 = branch::WU;
 /// The earthly branch of 酉 days.
-const TORI: u8 = 9;
+const TORI: u8 = branch::YOU;
 /// The earthly branch of 亥 days.
-const INOSHISHI: u8 = 11;
+const INOSHISHI: u8 = branch::HAI;
 
 /// The first year the Japanese 旧暦 is taken to answer for: 1844, when the
 /// 天保暦 took effect, since the unbounded 天保暦 rules are what the almanacs
@@ -1659,21 +1659,12 @@ const JAPANESE_GREGORIAN_FIRST_YEAR: i32 = 1873;
 /// The `n`th day, counting from 1, of the days from `first` to `last` whose
 /// earthly branch is `branch`; none when the span holds fewer.
 fn nth_branch_day(first: Rd, last: Rd, branch: u8, n: i64) -> Days {
-    let offset =
-        (i64::from(branch) - i64::from(sexagenary_day(first).branch_index())).rem_euclid(12);
-    let day = Rd(first.0 + offset + 12 * (n - 1));
+    let day = Rd(branch_day_on_or_after(first, branch).0 + 12 * (n - 1));
     if day.0 <= last.0 {
         Days::one(day)
     } else {
         Days::new()
     }
-}
-
-/// The first and last day of a Gregorian month.
-fn gregorian_month(year: i64, month: u8) -> Option<(Rd, Rd)> {
-    let first = gregorian::to_fixed(year, month, 1).ok()?;
-    let length = gregorian::days_in_month(year, month)?;
-    Some((first, Rd(first.0 + i64::from(length) - 1)))
 }
 
 /// A day of the Japanese 旧暦, the 天保暦's rules continued at the Japanese
@@ -1710,7 +1701,7 @@ const fn kyureki_month_unsettled(year: i64, month: u8) -> bool {
 macro_rules! branch_day_rules {
     ($(gregorian $name:ident = $month:literal, $branch:ident, $n:literal;)*) => {$(
         fn $name(year: i64) -> Days {
-            gregorian_month(year, $month).map_or(Days::new(), |(first, last)| {
+            crate::rule::gregorian_month_span(year, $month).map_or(Days::new(), |(first, last)| {
                 nth_branch_day(first, last, $branch, $n)
             })
         }

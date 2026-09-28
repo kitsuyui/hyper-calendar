@@ -38,55 +38,40 @@
 //! repository describes the rules and their tests.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{branch, branch_day_on_or_after, stem, stem_day_on_or_after};
 
 use crate::solar_terms::term_day;
 use crate::{Meridian, SolarTerm};
-
-/// The index of 丙 among the ten stems, 甲 being 0.
-const BING: i64 = 2;
-/// The index of 壬 among the ten stems.
-const REN: i64 = 8;
-/// The index of 未 among the twelve branches, 子 being 0.
-const WEI: i64 = 7;
-
-/// The first day from `start`, `start` included, whose stem is `stem`.
-fn stem_day_from(start: Rd, stem: i64) -> Rd {
-    let offset = (stem - i64::from(sexagenary_day(start).stem_index())).rem_euclid(10);
-    Rd(start.0 + offset)
-}
-
-/// The first day from `start`, `start` included, whose branch is `branch`.
-fn branch_day_from(start: Rd, branch: i64) -> Rd {
-    let offset = (branch - i64::from(sexagenary_day(start).branch_index())).rem_euclid(12);
-    Rd(start.0 + offset)
-}
 
 /// 入梅 by South China's rule: the first 丙 day from 芒种 of `year`, with
 /// the term at `meridian`.
 #[must_use]
 pub fn ru_mei_bing(year: i64, meridian: Meridian) -> Rd {
-    stem_day_from(term_day(year, SolarTerm::GRAIN_IN_EAR, meridian), BING)
+    stem_day_on_or_after(
+        term_day(year, SolarTerm::GRAIN_IN_EAR, meridian),
+        stem::BING,
+    )
 }
 
 /// 入梅 by Central China's rule: the first 壬 day from 芒种 of `year`, with
 /// the term at `meridian`.
 #[must_use]
 pub fn ru_mei_ren(year: i64, meridian: Meridian) -> Rd {
-    stem_day_from(term_day(year, SolarTerm::GRAIN_IN_EAR, meridian), REN)
+    stem_day_on_or_after(term_day(year, SolarTerm::GRAIN_IN_EAR, meridian), stem::REN)
 }
 
 /// 出梅 by South China's rule: the first 未 day from 小暑 of `year`, with
 /// the term at `meridian`.
 #[must_use]
 pub fn chu_mei_wei(year: i64, meridian: Meridian) -> Rd {
-    branch_day_from(term_day(year, SolarTerm::MINOR_HEAT, meridian), WEI)
+    branch_day_on_or_after(term_day(year, SolarTerm::MINOR_HEAT, meridian), branch::WEI)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use hc_calendar::cycle::readings::HAN;
+    use hc_calendar::cycle::sexagenary_day;
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         hc_calendar::gregorian::to_fixed(year, month, day).expect("a date")

@@ -15,6 +15,7 @@
 //! and `hc-holiday` reads those from here.
 
 use hc_astro::lunar::lunar_longitude;
+use hc_astro::search::next_angle_crossing;
 use hc_astro::solar::solar_longitude_after;
 use hc_calendar::fixed::Moment;
 use hc_core::math::{floor, normalize_degrees};
@@ -106,32 +107,14 @@ pub fn sidereal_lunar_longitude_at_or_after(
     moment: Moment,
     ayanamsa: Ayanamsa,
 ) -> Moment {
-    // What is left to travel, in [0, 360). The Moon never turns back and
-    // never covers more than about 15.5° in a day, so this falls with time
-    // and jumps by a revolution at the crossing.
-    let to_go = |at: Moment| normalize_degrees(degrees - sidereal_lunar_longitude(at, ayanamsa));
-    const STEP: f64 = 0.5;
-    let mut low = moment;
-    let mut left = to_go(low);
-    let mut high = Moment(low.0 + STEP);
-    let mut ahead = to_go(high);
-    while ahead < left {
-        low = high;
-        left = ahead;
-        high = Moment(high.0 + STEP);
-        ahead = to_go(high);
-    }
-    // The crossing lies between `low` and `high`: before it less than a
-    // step's travel is left, after it nearly a revolution.
-    for _ in 0..40 {
-        let mid = Moment(f64::midpoint(low.0, high.0));
-        if to_go(mid) < 180.0 {
-            low = mid;
-        } else {
-            high = mid;
-        }
-    }
-    high
+    // The Moon never turns back and never covers more than about 15.5° in
+    // a day, so half-day steps meet the search's contract.
+    next_angle_crossing(
+        |at| sidereal_lunar_longitude(at, ayanamsa),
+        degrees,
+        moment,
+        0.5,
+    )
 }
 
 /// The Moon's stay in a nakṣatra: when it enters and when it leaves. The

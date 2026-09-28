@@ -92,7 +92,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 /// counting from 1.
 #[must_use]
 pub const fn indiction(year: i64) -> u8 {
-    ((year - 1).rem_euclid(15) + 1) as u8
+    hc_core::math::amod(year, 15) as u8
 }
 
 /// The fixed day of 1 September of `year`.

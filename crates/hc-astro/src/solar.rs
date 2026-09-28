@@ -15,12 +15,13 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, cos_deg, normalize_degrees, sin_deg};
+use hc_core::math::{RAD_TO_DEG, cos_deg, modulo, normalize_degrees, poly, sin_deg};
 
 use crate::earth::{Equatorial, equatorial_from_ecliptic, true_obliquity_at_centuries};
 use crate::search::invert_angular;
-use crate::time::{gregorian_new_year, julian_centuries};
-use crate::util::{max_of, modulo, poly};
+use hc_calendar::gregorian;
+
+use crate::time::julian_centuries;
 
 /// The mean tropical year in days, as used to seed the longitude searches.
 ///
@@ -178,7 +179,7 @@ pub fn equation_of_time(moment: Moment) -> f64 {
     // Apparent time less mean time, as angles from midnight; the fold into
     // (−180°, 180°] removes the whole day that appears when one of the two
     // has passed midnight and the other has not.
-    crate::util::signed_degrees(hour_angle + 180.0 - 360.0 * mean_solar_time) / 360.0
+    hc_core::math::signed_degrees(hour_angle + 180.0 - 360.0 * mean_solar_time) / 360.0
 }
 
 /// The first moment at or after `moment` when the Sun's apparent longitude
@@ -213,7 +214,7 @@ fn computed_solar_longitude_after(target_degrees: f64, moment: Moment) -> Moment
     invert_angular(
         solar_longitude,
         normalize_degrees(target_degrees),
-        Moment(max_of(moment.0, estimate - 5.0)),
+        Moment(moment.0.max(estimate - 5.0)),
         Moment(estimate + 5.0),
     )
 }
@@ -280,7 +281,7 @@ pub fn solstice(year: i64, which: Solstice) -> Moment {
 /// apparent longitude.
 #[must_use]
 pub fn seasonal_event(year: i64, target_degrees: f64) -> Moment {
-    solar_longitude_after(target_degrees, Moment(gregorian_new_year(year).0 as f64))
+    solar_longitude_after(target_degrees, Moment(gregorian::new_year(year).0 as f64))
 }
 
 /// The Rata Die day on which a seasonal event falls, in Universal Time.
@@ -374,8 +375,8 @@ mod tests {
     #[test]
     fn the_earth_is_closest_to_the_sun_in_january() {
         // Perihelion is in the first week of January, aphelion in early July.
-        let january = solar_radius_vector(Moment(gregorian_new_year(2024).0 as f64 + 3.0));
-        let july = solar_radius_vector(Moment(gregorian_new_year(2024).0 as f64 + 185.0));
+        let january = solar_radius_vector(Moment(gregorian::new_year(2024).0 as f64 + 3.0));
+        let july = solar_radius_vector(Moment(gregorian::new_year(2024).0 as f64 + 185.0));
         assert!(january < 0.9840, "january distance {january}");
         assert!(july > 1.0160, "july distance {july}");
     }
@@ -398,7 +399,7 @@ mod tests {
         // Sampled every five days, the apparent longitude must rise by
         // between 4.5 and 5.5 degrees: the Sun never goes backwards along the
         // ecliptic, and its rate varies only with the orbital eccentricity.
-        let start = gregorian_new_year(2024).0 as f64;
+        let start = gregorian::new_year(2024).0 as f64;
         let mut previous = solar_longitude(Moment(start));
         for step in 1..73 {
             let current = solar_longitude(Moment(start + f64::from(step) * 5.0));
@@ -416,9 +417,9 @@ mod tests {
         for target_step in 0..24 {
             let target = f64::from(target_step) * 15.0;
             for year in [-500i64, 1, 1582, 1900, 2000, 2024, 2400] {
-                let start = Moment(gregorian_new_year(year).0 as f64);
+                let start = Moment(gregorian::new_year(year).0 as f64);
                 let found = solar_longitude_after(target, start);
-                let error = crate::util::signed_degrees(solar_longitude(found) - target);
+                let error = hc_core::math::signed_degrees(solar_longitude(found) - target);
                 assert!(
                     error.abs() < 1e-5,
                     "target {target} in {year}: off by {error} degrees"
@@ -443,7 +444,7 @@ mod tests {
         // The 24 solar terms are the 15-degree multiples of solar longitude.
         let mut longitude = 285.0;
         let mut moment =
-            solar_longitude_after(longitude, Moment(gregorian_new_year(2024).0 as f64));
+            solar_longitude_after(longitude, Moment(gregorian::new_year(2024).0 as f64));
         for _ in 0..24 {
             longitude = modulo(longitude + 15.0, 360.0);
             let next = solar_longitude_after(longitude, moment);
@@ -458,7 +459,7 @@ mod tests {
 
     #[test]
     fn the_twenty_four_solar_terms_of_a_year_span_one_tropical_year() {
-        let start = solar_longitude_after(315.0, Moment(gregorian_new_year(2024).0 as f64));
+        let start = solar_longitude_after(315.0, Moment(gregorian::new_year(2024).0 as f64));
         let mut moment = start;
         for step in 1..=24 {
             moment = solar_longitude_after(modulo(315.0 + f64::from(step) * 15.0, 360.0), moment);
@@ -523,7 +524,7 @@ mod tests {
         let mut total_error = 0.0;
         let mut worst: f64 = 0.0;
         for (day, hour, minute, longitude) in PUBLISHED_SEASONAL_EVENTS {
-            let year = crate::time::gregorian_year_from_rd(Rd(day));
+            let year = gregorian::year_from_fixed(Rd(day));
             let found = seasonal_event(year, longitude);
             assert_eq!(
                 found.day(),
@@ -551,7 +552,7 @@ mod tests {
     #[test]
     fn the_four_seasonal_events_of_a_year_fall_in_the_right_months() {
         let year = 2024;
-        let start = gregorian_new_year(year).0;
+        let start = gregorian::new_year(year).0;
         let march = equinox(year, Equinox::March).0 - start as f64;
         let june = solstice(year, Solstice::June).0 - start as f64;
         let september = equinox(year, Equinox::September).0 - start as f64;
@@ -601,7 +602,7 @@ mod tests {
 
     #[test]
     fn the_equation_of_time_reaches_its_known_annual_extremes() {
-        let start = gregorian_new_year(2024).0;
+        let start = gregorian::new_year(2024).0;
         let mut greatest: f64 = -1.0;
         let mut least: f64 = 1.0;
         for day in 0..366 {
@@ -656,10 +657,10 @@ mod tests {
         for (julian_date, ut1_minus_ut, hour_angle_hours, bound) in cases {
             let ut1 = Moment::from_julian_date(julian_date + ut1_minus_ut / 86_400.0);
             let day_fraction = modulo(julian_date + 0.5, 1.0);
-            let horizons =
-                crate::util::signed_degrees(hour_angle_hours * 15.0 + 180.0 - 360.0 * day_fraction)
-                    * 240.0
-                    - ut1_minus_ut;
+            let horizons = hc_core::math::signed_degrees(
+                hour_angle_hours * 15.0 + 180.0 - 360.0 * day_fraction,
+            ) * 240.0
+                - ut1_minus_ut;
             let ours = equation_of_time(ut1) * 86_400.0;
             assert!(
                 (ours - horizons).abs() < bound,
@@ -670,7 +671,7 @@ mod tests {
 
     #[test]
     fn the_equation_of_time_crosses_zero_four_times_a_year() {
-        let start = gregorian_new_year(2024).0;
+        let start = gregorian::new_year(2024).0;
         let mut crossings = 0;
         let mut previous = equation_of_time(Moment(start as f64));
         for day in 1..366 {
@@ -695,7 +696,7 @@ mod tests {
     fn the_seasonal_event_day_is_the_day_containing_the_event() {
         let day = seasonal_event_day(2024, 0.0);
         assert_eq!(day, equinox(2024, Equinox::March).day());
-        assert_eq!(day, Rd(gregorian_new_year(2024).0 + 79));
+        assert_eq!(day, Rd(gregorian::new_year(2024).0 + 79));
     }
 
     #[test]

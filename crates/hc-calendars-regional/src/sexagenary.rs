@@ -38,11 +38,9 @@ use hc_calendars_lunar::chinese;
 pub const CYCLE: i64 = 60;
 
 /// The fixed day whose cycle index is zero, the first 甲子 day at or before
-/// the fixed-day origin.
-///
-/// [`hc_calendar::cycle::sexagenary_day`] computes the position as
-/// `index = rd + 14`, so RD 1 is index 15 and index 0 falls on RD -14.
-pub const EPOCH: Rd = Rd(-14);
+/// the fixed-day origin: [`hc_calendar::cycle::DAY_EPOCH`], RD −14, from
+/// which [`hc_calendar::cycle::sexagenary_day`] counts.
+pub const EPOCH: Rd = hc_calendar::cycle::DAY_EPOCH;
 
 /// A day named by the sexagenary cycle, plus the cycle it falls in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -271,7 +269,10 @@ mod tests {
         assert_eq!(readings::PINYIN.stem(pillars.year), "jia");
         assert_eq!(readings::PINYIN.branch(pillars.year), "chen");
         assert_eq!(pillars.year.zodiac_animal(), "dragon");
-        assert_eq!(pillars.year.five_phase(), "wood");
+        assert_eq!(
+            pillars.year.five_phase(),
+            hc_calendar::cycle::FivePhase::Wood
+        );
     }
 
     #[test]

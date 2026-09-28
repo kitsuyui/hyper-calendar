@@ -380,11 +380,11 @@ impl fmt::Display for OffsetText {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::rd_from_ymd;
+    use hc_calendar::gregorian;
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
     }
@@ -574,7 +574,7 @@ mod tests {
         // 2016-12-31T23:59:60Z is the 86 400th second of that day, so in
         // Tokyo it collapses onto 1 January 09:00:00 rather than 08:59:60.
         let leap = CivilDateTime::new(
-            Rd(rd_from_ymd(2016, 12, 31)),
+            gregorian::to_fixed_saturating(2016, 12, 31),
             CivilTime::hms(23, 59, 60).unwrap(),
         );
         let tokyo = UtcOffset::from_hms(9, 0, 0).unwrap();

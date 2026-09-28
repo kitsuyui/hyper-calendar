@@ -50,20 +50,15 @@
 use hc_astro::earth::general_precession_arcseconds;
 use hc_astro::julian_centuries;
 use hc_astro::solar::{solar_longitude, solar_longitude_after};
+use hc_astro::time::J2000_JULIAN_DATE;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
+use hc_core::epoch_notation::JULIAN_CENTURY_DAYS;
 use hc_core::math::{floor, normalize_degrees};
 
 use crate::meridian::Meridian;
 use crate::zodiac::tropical::{RulingPlanet, TropicalSign};
 use crate::zodiac::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC, SignPeriod, degrees_into_arc};
-
-/// The Julian date of J2000.0, the epoch the precession series is reckoned
-/// from.
-const J2000_JULIAN_DATE: f64 = 2_451_545.0;
-
-/// Days in a Julian century.
-const DAYS_PER_JULIAN_CENTURY: f64 = 36_525.0;
 
 /// The angle between the tropical and the sidereal zero point.
 ///
@@ -189,8 +184,7 @@ impl Ayanamsa {
     /// ```
     #[must_use]
     pub fn degrees_at(self, moment: Moment) -> f64 {
-        let anchor_centuries =
-            (self.anchor_julian_date - J2000_JULIAN_DATE) / DAYS_PER_JULIAN_CENTURY;
+        let anchor_centuries = (self.anchor_julian_date - J2000_JULIAN_DATE) / JULIAN_CENTURY_DAYS;
         let accumulated = general_precession_arcseconds(julian_centuries(moment))
             - general_precession_arcseconds(anchor_centuries);
         self.degrees_at_anchor + accumulated / 3_600.0
@@ -517,7 +511,7 @@ pub fn ingress_moment(year: i64, sign: SiderealSign, ayanamsa: Ayanamsa) -> Mome
     ingress_after(
         sign,
         ayanamsa,
-        Moment(crate::gregorian::new_year(year).0 as f64),
+        Moment(hc_calendar::gregorian::new_year(year).0 as f64),
     )
 }
 
@@ -610,7 +604,7 @@ pub fn sign_beginning_on(
 /// double-count however far the ayanāṃśa has drifted.
 #[must_use]
 pub fn signs_in_year(year: i64, ayanamsa: Ayanamsa, meridian: Meridian) -> SiderealSignsInYear {
-    let probe = Moment(crate::gregorian::new_year(year).0 as f64);
+    let probe = Moment(hc_calendar::gregorian::new_year(year).0 as f64);
     let sign = sign_at_moment(probe, ayanamsa).next();
     SiderealSignsInYear {
         ayanamsa,
@@ -654,8 +648,9 @@ impl ExactSizeIterator for SiderealSignsInYear {}
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::gregorian;
+
     use super::*;
-    use crate::gregorian::{from_year_month_day, year_month_day_from_rd};
     use crate::zodiac::tropical;
 
     const INDIA: Meridian = Meridian::INDIA;
@@ -726,18 +721,22 @@ mod tests {
     /// Fagan–Bradley's.
     #[test]
     fn the_two_zodiacs_coincided_in_the_third_century() {
-        let ayanamsa = LAHIRI.degrees_at(Moment(from_year_month_day(285, 3, 21).0 as f64));
+        let ayanamsa =
+            LAHIRI.degrees_at(Moment(gregorian::to_fixed_saturating(285, 3, 21).0 as f64));
         assert!(
             ayanamsa.abs() < 0.05,
             "Lahiri at 285 CE was {ayanamsa}, not near zero"
         );
         for (anchor, year) in [(Ayanamsa::RAMAN, 389), (Ayanamsa::FAGAN_BRADLEY, 221)] {
-            let degrees = anchor.degrees_at(Moment(from_year_month_day(year, 3, 21).0 as f64));
+            let degrees =
+                anchor.degrees_at(Moment(gregorian::to_fixed_saturating(year, 3, 21).0 as f64));
             assert!(degrees.abs() < 0.05, "{year}: {degrees}");
         }
         // A thousand years earlier the sidereal zero point was ahead of the
         // equinox, so the ayanāṃśa is negative.
-        assert!(LAHIRI.degrees_at(Moment(from_year_month_day(-715, 1, 1).0 as f64)) < -13.0);
+        assert!(
+            LAHIRI.degrees_at(Moment(gregorian::to_fixed_saturating(-715, 1, 1).0 as f64)) < -13.0
+        );
     }
 
     /// Not a published scheme: an anchor invented here, to show that the
@@ -783,7 +782,7 @@ mod tests {
     /// signs. The task this module exists for.
     #[test]
     fn the_two_zodiacs_name_different_signs_for_four_days_in_five() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut disagreements = 0;
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
@@ -812,7 +811,7 @@ mod tests {
     /// spring the Sun is tropically in Aries and siderally in Pisces.
     #[test]
     fn late_march_is_aries_tropically_and_pisces_siderally() {
-        let day = from_year_month_day(2024, 3, 25);
+        let day = gregorian::to_fixed_saturating(2024, 3, 25);
         assert_eq!(tropical::sign_on_day(day, INDIA), TropicalSign::ARIES);
         assert_eq!(sign_on_day(day, LAHIRI, INDIA), SiderealSign::MINA);
         assert_eq!(
@@ -899,7 +898,7 @@ mod tests {
         assert_eq!(iterator.len(), 12);
         let first = iterator.next().unwrap();
         assert_eq!(first.sign, SiderealSign::MAKARA);
-        let (_, month, day) = year_month_day_from_rd(first.start_day);
+        let (_, month, day) = gregorian::ymd(first.start_day);
         assert_eq!(month, 1);
         assert!(
             (14..=15).contains(&day),
@@ -907,7 +906,7 @@ mod tests {
         );
         let last = iterator.last().unwrap();
         assert_eq!(last.sign, SiderealSign::DHANUS);
-        assert_eq!(year_month_day_from_rd(last.start_day).1, 12);
+        assert_eq!(gregorian::ymd(last.start_day).1, 12);
     }
 
     /// Makara Saṅkrānti is the one major Indian festival fixed to a solar,
@@ -921,7 +920,7 @@ mod tests {
     fn makara_sankranti_falls_on_the_fourteenth_of_january() {
         for year in 2020..=2025 {
             let day = ingress_day(year, SiderealSign::MAKARA, LAHIRI, INDIA);
-            let (got_year, month, got_day) = year_month_day_from_rd(day);
+            let (got_year, month, got_day) = gregorian::ymd(day);
             assert_eq!(got_year, year);
             assert_eq!(month, 1);
             assert!(
@@ -939,8 +938,8 @@ mod tests {
     fn a_sidereal_boundary_creeps_later_against_the_gregorian_calendar() {
         let early = ingress_day(1500, SiderealSign::MAKARA, LAHIRI, INDIA);
         let late = ingress_day(2500, SiderealSign::MAKARA, LAHIRI, INDIA);
-        let early_fraction = early.0 - crate::gregorian::new_year(1500).0;
-        let late_fraction = late.0 - crate::gregorian::new_year(2500).0;
+        let early_fraction = early.0 - hc_calendar::gregorian::new_year(1500).0;
+        let late_fraction = late.0 - hc_calendar::gregorian::new_year(2500).0;
         let creep = late_fraction - early_fraction;
         // A thousand years at about 50 arcseconds a year is 13.9 degrees,
         // which the Sun covers in about fourteen days.
@@ -971,8 +970,8 @@ mod tests {
 
     #[test]
     fn exactly_twelve_days_of_a_year_begin_a_sidereal_sign() {
-        let start = from_year_month_day(2024, 1, 1);
-        let end = from_year_month_day(2025, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
+        let end = gregorian::to_fixed_saturating(2025, 1, 1);
         let mut beginnings = 0;
         for offset in 0..(end.0 - start.0) {
             if sign_beginning_on(Rd(start.0 + offset), LAHIRI, INDIA).is_some() {

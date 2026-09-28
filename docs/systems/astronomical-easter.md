@@ -109,7 +109,7 @@ misprint. It is not used.
 `crates/hc-holiday/src/computus.rs`: `Computus::ASTRONOMICAL_JERUSALEM`,
 `astronomical_paschal_full_moon`, `astronomical_easter`,
 `ASTRONOMICAL_EASTER_FIRST_YEAR`, `ASTRONOMICAL_EASTER_LAST_YEAR`,
-`JERUSALEM_LONGITUDE_DEGREES`. Anchors:
+`JERUSALEM`. Anchors:
 `the_astronomical_reckoning_reproduces_the_aleppo_table`,
 `a_full_moon_on_a_sunday_puts_easter_a_week_later`,
 `the_measured_agreements_of_1583_to_2150_hold`. The WebAssembly module's

@@ -217,15 +217,6 @@ pub fn by_symbol(symbol: &str) -> Option<&'static PhysicalConstant> {
     ALL.iter().find(|constant| constant.symbol == symbol)
 }
 
-/// The Julian year, 365.25 days of 86 400 SI seconds.
-///
-/// This is the IAU's definition (IAU 1976 System of Astronomical Constants)
-/// and the one every "Gyr" in the astronomical literature means. It is a
-/// defined conversion factor, not a measurement, so it is exact — and it is
-/// deliberately not the tropical or the Gregorian mean year, both of which
-/// drift.
-pub const JULIAN_YEAR_SECONDS: f64 = 31_557_600.0;
-
 /// Reconstruct the Planck time from `hbar`, `G` and `c` and check it.
 ///
 /// `t_P = sqrt(hbar G / c^5)`. This exists so that the tabulated value above
@@ -354,11 +345,6 @@ mod tests {
         assert_eq!(by_symbol("t_P"), Some(&PLANCK_TIME));
         assert_eq!(by_symbol("c"), Some(&SPEED_OF_LIGHT));
         assert_eq!(by_symbol("not a symbol"), None);
-    }
-
-    #[test]
-    fn the_julian_year_is_exactly_three_hundred_and_sixty_five_and_a_quarter_days() {
-        assert!((JULIAN_YEAR_SECONDS - 365.25 * 86_400.0).abs() < 1e-9);
     }
 
     #[test]

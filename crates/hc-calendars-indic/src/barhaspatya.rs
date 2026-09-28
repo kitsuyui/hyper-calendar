@@ -636,7 +636,7 @@ mod tests {
     fn at_ujjain(year: i64, month: u8, day: u8, ghatikas: f64, palas: f64) -> Moment {
         let rd = hc_calendars_solar::julian::to_fixed(year, month, day).unwrap();
         let local = 0.25 + (ghatikas + palas / 60.0) / 60.0;
-        Moment(rd.0 as f64 + local - crate::surya_siddhanta::UJJAIN_LONGITUDE_DEGREES / 360.0)
+        Moment(rd.0 as f64 + local - crate::places::UJJAIN.longitude_degrees / 360.0)
     }
 
     #[test]

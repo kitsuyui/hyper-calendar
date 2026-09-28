@@ -272,7 +272,7 @@ impl Sky for HinduLunarCalendar {
     /// Pauṣa through Phālguna.
     fn sankranti_search_start(&self, year: i64, month: u8) -> Moment {
         let gregorian_year = year + GREGORIAN_YEAR_OFFSET + i64::from(month >= 10);
-        Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64)
+        Moment(hc_calendar::gregorian::new_year(gregorian_year).0 as f64)
     }
 
     fn years(&self) -> (i64, i64) {

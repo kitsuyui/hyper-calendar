@@ -559,9 +559,9 @@ mod tests {
     use super::*;
 
     use crate::constants::{
-        EARTH_EQUATORIAL_RADIUS, GM_EARTH, GPS_ORBIT_RADIUS, JULIAN_YEAR_SECONDS, LIGHT_YEAR,
-        STANDARD_GRAVITY,
+        EARTH_EQUATORIAL_RADIUS, GM_EARTH, GPS_ORBIT_RADIUS, LIGHT_YEAR, STANDARD_GRAVITY,
     };
+    use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 
     fn years(seconds: f64) -> f64 {
         seconds / JULIAN_YEAR_SECONDS

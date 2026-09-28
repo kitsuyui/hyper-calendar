@@ -30,6 +30,7 @@ use hc_calendar::{
     YearKind,
 };
 use hc_core::Duration;
+use hc_core::duration::SECONDS_PER_DAY_F64;
 
 use crate::day_counts::{DayCountCalendar, DayNumber, MATLAB, OLE_AUTOMATION};
 use crate::gregorian;
@@ -180,8 +181,6 @@ impl Calendar for Excel1900Calendar {
     }
 }
 
-const SECONDS_PER_DAY: f64 = 86_400.0;
-
 /// The day and the time of day of an OLE Automation date.
 ///
 /// The integer part counts days from 30 December 1899 and the fraction is
@@ -215,7 +214,7 @@ pub fn ole_automation(value: f64) -> CalendarResult<(Rd, Duration)> {
     let rd = OLE_AUTOMATION.day_of(DayNumber(days as i64));
     // The fraction is at most 1 − 2⁻⁵³, and that times 86 400 rounds to a
     // value below 86 400, so the time of day is always below a day.
-    let seconds = hc_core::math::abs(value - days) * SECONDS_PER_DAY;
+    let seconds = hc_core::math::abs(value - days) * SECONDS_PER_DAY_F64;
     let time = Duration::from_secs_f64(seconds).map_err(|_| CalendarError::Overflow)?;
     Ok((rd, time))
 }
@@ -235,7 +234,7 @@ pub fn to_ole_automation(rd: Rd, time_of_day: Duration) -> CalendarResult<f64> {
     }
     DayCountCalendar(OLE_AUTOMATION).meta().check_range(rd)?;
     let days = OLE_AUTOMATION.number_of(rd).0 as f64;
-    let fraction = time_of_day.as_secs_f64() / SECONDS_PER_DAY;
+    let fraction = time_of_day.as_secs_f64() / SECONDS_PER_DAY_F64;
     Ok(if days < 0.0 {
         days - fraction
     } else {
@@ -267,7 +266,7 @@ pub fn matlab_datenum(value: f64) -> CalendarResult<(Rd, Duration)> {
     let days = hc_core::math::floor(value);
     // Non-negative and below 9 × 10¹⁵, so an exact integer in `i64`.
     let rd = MATLAB.day_of(DayNumber(days as i64));
-    let seconds = (value - days) * SECONDS_PER_DAY;
+    let seconds = (value - days) * SECONDS_PER_DAY_F64;
     let time = Duration::from_secs_f64(seconds).map_err(|_| CalendarError::Overflow)?;
     Ok((rd, time))
 }
@@ -288,7 +287,7 @@ pub fn to_matlab_datenum(rd: Rd, time_of_day: Duration) -> CalendarResult<f64> {
     if days < 0 {
         return Err(CalendarError::BeforeEpoch);
     }
-    Ok(days as f64 + time_of_day.as_secs_f64() / SECONDS_PER_DAY)
+    Ok(days as f64 + time_of_day.as_secs_f64() / SECONDS_PER_DAY_F64)
 }
 
 #[cfg(test)]

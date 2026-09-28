@@ -19,8 +19,8 @@ pub const CENTRAL_STATION: Location = Location::new(23.183_333, 82.5, 0.0);
 /// and the reference Reingold and Dershowitz keep for every Hindu
 /// computation, at the coordinates their published code gives
 /// (`reingold2018code`, `ujjain`: `(angle 23 9 0) (angle 75 46 6)`), the
-/// same longitude [`crate::surya_siddhanta::UJJAIN_LONGITUDE_DEGREES`]
-/// uses. The city's modern coordinates, 23.1765° N, 75.7885° E, lie about
+/// longitude the Surya Siddhanta's clock is kept at
+/// ([`crate::surya_siddhanta`]). The city's modern coordinates, 23.1765° N, 75.7885° E, lie about
 /// a minute of arc away, five seconds of sunrise; over 1700–2299 the two
 /// put a different sunrise tithi at Ujjain on sixteen days, 7 January 1995
 /// the only one in the twentieth century.

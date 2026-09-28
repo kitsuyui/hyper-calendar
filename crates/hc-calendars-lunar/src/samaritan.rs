@@ -63,7 +63,7 @@
 use hc_astro::Location;
 use hc_astro::lunar::{new_moon_at_or_after, new_moon_before};
 use hc_astro::riseset::solar_noon;
-use hc_astro::solar::equation_of_time;
+use hc_astro::solar_time::local_apparent_time;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
@@ -155,17 +155,12 @@ const fn to_public(biblical: u8) -> Month {
     }
 }
 
-/// Apparent solar time at Gerizim of a moment in Universal Time, as
-/// `apparent-from-universal` computes it: local mean time plus the
-/// equation of time.
-fn apparent_at_gerizim(moment: Moment) -> f64 {
-    moment.0 + GERIZIM.longitude_degrees / 360.0 + equation_of_time(moment)
-}
-
 /// The first day of the month begun by the conjunction at `conjunction`:
-/// its apparent day at Gerizim, or the next when it falls after noon.
+/// its day in apparent solar time at Gerizim (`apparent-from-universal`),
+/// or the next when it falls after noon.
 fn month_start(conjunction: Moment) -> Rd {
-    Rd(hc_core::math::ceil(apparent_at_gerizim(conjunction) - 0.5) as i64)
+    let apparent = local_apparent_time(conjunction, GERIZIM);
+    Rd(hc_core::math::ceil(apparent.0 - 0.5) as i64)
 }
 
 /// The first day of the first month to begin after `moment`,
@@ -439,7 +434,7 @@ impl Calendar for SamaritanCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
 
     #[test]
     fn the_written_range_is_the_computed_one() {
@@ -462,7 +457,7 @@ mod tests {
     fn the_epoch_is_the_first_of_march_1638_bce_gregorian() {
         // `samaritan-epoch` is Julian 15 March 1639 BCE; the errata to the
         // 4th edition correct its Gregorian form to 1 March −1638.
-        assert_eq!(civil::from_rd(EPOCH), (-1_638, 3, 1));
+        assert_eq!(gregorian::ymd(EPOCH), (-1_638, 3, 1));
     }
 
     #[test]
@@ -471,10 +466,10 @@ mod tests {
         // lists the Passover sacrifice on Mount Gerizim for five years; the
         // rule gives four of them. 2016 is the next test.
         for (year, rd) in [
-            (3_655, civil::to_rd(2017, 4, 10)),
-            (3_656, civil::to_rd(2018, 4, 29)),
-            (3_657, civil::to_rd(2019, 4, 18)),
-            (3_658, civil::to_rd(2020, 5, 6)),
+            (3_655, gregorian::to_fixed_saturating(2017, 4, 10)),
+            (3_656, gregorian::to_fixed_saturating(2018, 4, 29)),
+            (3_657, gregorian::to_fixed_saturating(2019, 4, 18)),
+            (3_658, gregorian::to_fixed_saturating(2020, 5, 6)),
         ] {
             assert_eq!(passover_sacrifice(year), Ok(rd), "{year}");
             let date = from_fixed(rd).expect("in range");
@@ -489,7 +484,7 @@ mod tests {
         // 2016 came at about 11:24 UT, after apparent noon at Gerizim, so
         // the rule begins the First Month on the 8th and puts the
         // fourteenth on the 21st. Held as a known disagreement.
-        let published = civil::to_rd(2016, 4, 20);
+        let published = gregorian::to_fixed_saturating(2016, 4, 20);
         assert_eq!(passover_sacrifice(3_654), Ok(Rd(published.0 + 1)));
         assert_eq!(from_fixed(published), Ok(first_month(3_654, 13)));
     }
@@ -501,10 +496,10 @@ mod tests {
         // the year: the First Month began a lunation later, and the
         // sacrifice fell on 6 May, as published.
         assert_eq!(
-            from_fixed(civil::to_rd(2020, 4, 23)),
+            from_fixed(gregorian::to_fixed_saturating(2020, 4, 23)),
             Ok(first_month(3_658, 1))
         );
-        let before = from_fixed(civil::to_rd(2020, 4, 22)).expect("in range");
+        let before = from_fixed(gregorian::to_fixed_saturating(2020, 4, 22)).expect("in range");
         assert_eq!(before.biblical_month(), 13);
         assert!(is_leap_year(3_658).expect("in range"));
     }
@@ -524,14 +519,14 @@ mod tests {
             ((2026, 11, 9), (3, 1)),
             ((2026, 12, 9), (4, 1)),
         ] {
-            let date = from_fixed(civil::to_rd(y, m, d)).expect("in range");
+            let date = from_fixed(gregorian::to_fixed_saturating(y, m, d)).expect("in range");
             assert_eq!(
                 (date.year, date.month, date.day),
                 (3_665, Month::regular(month), day),
                 "{y}-{m}-{d}"
             );
         }
-        let eve = from_fixed(civil::to_rd(2026, 9, 10)).expect("in range");
+        let eve = from_fixed(gregorian::to_fixed_saturating(2026, 9, 10)).expect("in range");
         assert_eq!((eve.year, eve.biblical_month()), (3_664, 5));
     }
 
@@ -539,10 +534,10 @@ mod tests {
     fn year_3656_began_at_the_sixth_month_of_2017() {
         // Benyamim Tsedaka, 24 January 2017: "Samaritan year 3656 will
         // start later this year, in the 6th month".
-        let spring = from_fixed(civil::to_rd(2017, 4, 10)).expect("in range");
+        let spring = from_fixed(gregorian::to_fixed_saturating(2017, 4, 10)).expect("in range");
         assert_eq!(spring.year, 3_655);
         let start = month_start_of(3_656, SIXTH).expect("in range");
-        let (y, m, _) = civil::from_rd(start);
+        let (y, m, _) = gregorian::ymd(start);
         assert_eq!((y, m), (2017, 8));
         assert_eq!(
             from_fixed(start),
@@ -568,7 +563,7 @@ mod tests {
         let mut on_the_seventh = alloc::vec::Vec::new();
         for year in MIN_YEAR..=MAX_YEAR {
             let passover = passover_sacrifice(year).expect("in range");
-            let (g, m, d) = civil::from_rd(passover);
+            let (g, m, d) = gregorian::ymd(passover);
             assert!((m, d) >= (4, 7), "{year}: {g}-{m}-{d}");
             assert!((m, d) <= (5, 7), "{year}: {g}-{m}-{d}");
             if (m, d) == (4, 7) {
@@ -637,9 +632,9 @@ mod tests {
             from_fixed(Rd(last.0 + 1)),
             Err(CalendarError::AfterSupportedRange)
         );
-        let (y, _, _) = civil::from_rd(first);
+        let (y, _, _) = gregorian::ymd(first);
         assert_eq!(y, 1900);
-        let (y, _, _) = civil::from_rd(last);
+        let (y, _, _) = gregorian::ymd(last);
         assert_eq!(y, 2100);
     }
 

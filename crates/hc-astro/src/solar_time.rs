@@ -688,9 +688,9 @@ impl EdoHour {
     /// begins here.
     #[must_use]
     pub const fn branch(self) -> &'static str {
-        [
-            "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑", "寅",
-        ][self.0 as usize]
+        // 明け六つ is the 卯 hour, and the rest follow in branch order.
+        let first = hc_calendar::cycle::branch::MAO as usize;
+        hc_calendar::cycle::readings::HAN.branches[(first + self.0 as usize) % 12]
     }
 }
 
@@ -1470,7 +1470,8 @@ pub fn islamic_midnight(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::time::{gregorian_new_year, universal_from_dynamical_julian_date};
+    use crate::time::universal_from_dynamical_julian_date;
+    use hc_calendar::gregorian;
     use hc_core::math::{asin, cos_deg, sin_deg};
 
     const GREENWICH: Location = Location::new(51.4779, 0.0, 0.0);
@@ -1520,7 +1521,7 @@ mod tests {
 
     #[test]
     fn the_sundial_reads_noon_at_the_suns_transit() {
-        let start = gregorian_new_year(2024);
+        let start = gregorian::new_year(2024);
         for day in [0i64, 45, 100, 170, 230, 300, 355] {
             let noon = solar_noon(start + day, PADUA);
             let apparent = local_apparent_time(noon, PADUA);
@@ -1535,7 +1536,7 @@ mod tests {
 
     #[test]
     fn apparent_and_mean_time_invert_each_other() {
-        let start = gregorian_new_year(2024).0 as f64;
+        let start = gregorian::new_year(2024).0 as f64;
         for step in 0..73 {
             let universal = Moment(start + f64::from(step) * 5.013);
             let local_mean = local_mean_time(universal, PADUA);
@@ -1559,7 +1560,7 @@ mod tests {
     /// published minute over twelve, 0.17 min.
     #[test]
     fn a_tokyo_new_years_temporal_hour_matches_the_national_ephemeris() {
-        let day = gregorian_new_year(2024);
+        let day = gregorian::new_year(2024);
         let minutes = daytime_temporal_hour(day, TOKYO).expect("Tokyo has a day") * 1440.0;
         assert!((minutes - 49.0).abs() < 0.17, "hour was {minutes} min");
         let night = nighttime_temporal_hour(day, TOKYO).expect("and a night") * 1440.0;
@@ -1572,7 +1573,7 @@ mod tests {
 
     #[test]
     fn temporal_hours_six_and_eighteen_are_sunrise_and_sunset() {
-        let day = gregorian_new_year(2024) + 170;
+        let day = gregorian::new_year(2024) + 170;
         let rise = sunrise(day, PADUA).expect("Padua has a sunrise");
         let set = sunset(day, PADUA).expect("and a sunset");
         let at = |hour: f64| {
@@ -1592,7 +1593,7 @@ mod tests {
 
     #[test]
     fn temporal_time_inverts_its_universal_time() {
-        let start = gregorian_new_year(2024).0 as f64;
+        let start = gregorian::new_year(2024).0 as f64;
         for step in 0..200 {
             let universal = Moment(start + f64::from(step) * 1.83 + 0.011);
             let reading = temporal_time(universal, PADUA).expect("defined at Padua");
@@ -1608,7 +1609,7 @@ mod tests {
     /// a number.
     #[test]
     fn temporal_hours_are_refused_under_the_midnight_sun_and_the_polar_night() {
-        let midsummer = gregorian_new_year(2024) + 172;
+        let midsummer = gregorian::new_year(2024) + 172;
         assert_eq!(
             daytime_temporal_hour(midsummer, TROMSO),
             Err(MissingSolarEvent::Sunrise(midsummer))
@@ -1617,7 +1618,7 @@ mod tests {
             nighttime_temporal_hour(midsummer, TROMSO),
             Err(MissingSolarEvent::Sunset(midsummer))
         );
-        let midwinter = gregorian_new_year(2024) + 355;
+        let midwinter = gregorian::new_year(2024) + 355;
         assert!(daytime_temporal_hour(midwinter, TROMSO).is_err());
         let reading = Moment(midwinter.0 as f64 + 0.5);
         assert!(universal_from_temporal_time(reading, TROMSO).is_err());
@@ -1639,7 +1640,7 @@ mod tests {
 
     #[test]
     fn the_italian_zero_hour_is_half_an_hour_after_the_suns_limb_meets_the_horizon() {
-        let day = gregorian_new_year(2024) + 80;
+        let day = gregorian::new_year(2024) + 80;
         let zero = italian_zero_hour(day, PADUA).expect("Padua has one");
         let sunset_moment = Moment(zero.0 - ITALIAN_ZERO_HOUR_AFTER_SUNSET);
         let altitude = solar_altitude(sunset_moment, PADUA);
@@ -1655,7 +1656,7 @@ mod tests {
 
     #[test]
     fn italian_hours_count_a_day_from_one_zero_hour_to_the_next() {
-        let start = gregorian_new_year(2024);
+        let start = gregorian::new_year(2024);
         for offset in [0i64, 90, 180, 270] {
             let day = start + offset;
             let zero = italian_zero_hour(day, PADUA).expect("defined");
@@ -1683,7 +1684,7 @@ mod tests {
     /// (Shafiʿi) or two (Hanafi), and the Hanafi time is the later.
     #[test]
     fn asr_is_where_the_shadow_rule_puts_it() {
-        let day = gregorian_new_year(2024) + 100;
+        let day = gregorian::new_year(2024) + 100;
         let noon = solar_noon(day, PADUA);
         let noon_shadow = 1.0 / tan_deg(solar_altitude(noon, PADUA));
         let shadow = |moment: Moment| 1.0 / tan_deg(solar_altitude(moment, PADUA));
@@ -1697,7 +1698,7 @@ mod tests {
 
     #[test]
     fn the_jewish_evening_times_sit_at_their_angles_in_order() {
-        let day = gregorian_new_year(2024) + 200;
+        let day = gregorian::new_year(2024) + 200;
         let dusk = jewish_dusk_vilna_gaon(day, PADUA).expect("defined");
         let ends = jewish_sabbath_ends_cohn(day, PADUA).expect("defined");
         assert!((solar_altitude(dusk, PADUA) + (4.0 + 40.0 / 60.0)).abs() < 1e-4);
@@ -1849,7 +1850,7 @@ mod tests {
 
     #[test]
     fn the_mga_day_is_the_gra_day_and_two_twilights() {
-        let day = gregorian_new_year(2025) + 100;
+        let day = gregorian::new_year(2025) + 100;
         let gra = temporal_hour_gra(day, PADUA).expect("defined");
         let mga = temporal_hour_mga_72_minutes(day, PADUA).expect("defined");
         assert!((12.0 * (mga - gra) - 2.0 * JEWISH_TWILIGHT_72_MINUTES).abs() < 1e-9);
@@ -1872,7 +1873,7 @@ mod tests {
     #[test]
     fn there_is_no_sixteen_degree_dawn_in_a_london_june() {
         let london = Location::new(51.50853, -0.12574, 0.0);
-        let day = gregorian_new_year(2025) + 171;
+        let day = gregorian::new_year(2025) + 171;
         assert_eq!(
             jewish_dawn_16_1_degrees(day, london),
             Err(MissingSolarEvent::DawnDepression {
@@ -1913,7 +1914,7 @@ mod tests {
         // 二刻半 is 36 minutes: at the March equinox of 2024 the 寛政暦's
         // dusk at Kyoto falls that long after the Sun's centre reaches the
         // geometric horizon, to the Sun's small declination that day.
-        let day = gregorian_new_year(2024) + 79;
+        let day = gregorian::new_year(2024) + 79;
         let horizon = sun_crossing(day, KYOTO, 0.0, false).expect("an equinox sunset");
         let dusk = japanese_dusk_kansei(day, KYOTO).expect("and a dusk");
         let minutes = (dusk.0 - horizon.0) * 1_440.0;
@@ -1938,7 +1939,7 @@ mod tests {
     /// and are checked to 10 s.
     #[test]
     fn kyoto_dawn_at_the_equinoxes_is_two_and_a_half_koku_before_the_centre_rises() {
-        let start = gregorian_new_year(2020);
+        let start = gregorian::new_year(2020);
         for (offset, dawn_jst, interval) in [
             (79, 5.0 * 3_600.0 + 28.0 * 60.0 + 47.0, 35.0 * 60.0 + 56.0),
             (265, 5.0 * 3_600.0 + 12.0 * 60.0 + 54.0, 36.0 * 60.0),
@@ -1965,7 +1966,7 @@ mod tests {
     /// 2024, are 2 h 37.8 min and 1 h 22.3 min, each within 1.5 min.
     #[test]
     fn a_midsummer_edo_hour_is_about_two_hours_thirty_nine_minutes() {
-        let day = gregorian_new_year(2024) + 171;
+        let day = gregorian::new_year(2024) + 171;
         let dawn = japanese_dawn_kansei(day, KYOTO).expect("dawn");
         let dusk = japanese_dusk_kansei(day, KYOTO).expect("dusk");
         let next = japanese_dawn_kansei(day + 1, KYOTO).expect("dawn");
@@ -1980,7 +1981,7 @@ mod tests {
 
     #[test]
     fn the_edo_hours_run_from_dawn_through_noon_and_midnight() {
-        let day = gregorian_new_year(2024) + 200;
+        let day = gregorian::new_year(2024) + 200;
         let at = |hour: EdoHour, fraction: f64| {
             universal_from_edo_time_kansei(
                 EdoTime {
@@ -2055,7 +2056,7 @@ mod tests {
 
     #[test]
     fn edo_time_inverts_its_universal_time() {
-        let start = gregorian_new_year(2024).0 as f64;
+        let start = gregorian::new_year(2024).0 as f64;
         for step in 0..200 {
             let universal = Moment(start + f64::from(step) * 1.83 + 0.011);
             let reading = edo_time_kansei(universal, KYOTO).expect("defined at Kyoto");
@@ -2077,15 +2078,15 @@ mod tests {
     #[cfg(feature = "std")]
     #[test]
     fn edo_time_inverts_over_the_whole_era() {
-        let (first, end) = (gregorian_new_year(-1000).0, gregorian_new_year(3001).0);
+        let (first, end) = (gregorian::new_year(-1000).0, gregorian::new_year(3001).0);
         let debug = cfg!(debug_assertions);
         let mut days: std::vec::Vec<i64> =
             (first..end).step_by(if debug { 1009 } else { 1 }).collect();
         if debug {
             for year in (-1000..=3000).step_by(97).chain([3000]) {
                 days.extend([
-                    gregorian_new_year(year).0,
-                    gregorian_new_year(year + 1).0 - 1,
+                    gregorian::new_year(year).0,
+                    gregorian::new_year(year + 1).0 - 1,
                 ]);
             }
             days.sort_unstable();
@@ -2107,7 +2108,7 @@ mod tests {
     /// so there is no 明け六つ and no Edo hour: an error, not a number.
     #[test]
     fn the_edo_hours_are_refused_on_a_white_night() {
-        let midsummer = gregorian_new_year(2024) + 172;
+        let midsummer = gregorian::new_year(2024) + 172;
         let missing = japanese_dusk_kansei(midsummer, HELSINKI);
         assert_eq!(
             missing,
@@ -2307,7 +2308,7 @@ mod tests {
     /// Umm al-Qura's *ʿishāʾ* is its interval after sunset.
     #[test]
     fn every_method_puts_its_times_at_its_angles() {
-        let day = gregorian_new_year(2026) + 100;
+        let day = gregorian::new_year(2026) + 100;
         for method in PRAYER_METHODS {
             let dawn = fajr(day, PADUA, method).expect("Padua has a dawn in April");
             let degrees = f64::from(method.fajr_depression_arcminutes) / 60.0;
@@ -2349,7 +2350,7 @@ mod tests {
     /// or to the next *fajr* for Tehran and Jafari.
     #[test]
     fn the_middle_of_the_night_follows_the_methods_rule() {
-        let day = gregorian_new_year(2026) + 30;
+        let day = gregorian::new_year(2026) + 30;
         let set = sunset(day, PADUA).expect("sunset");
         let rise = sunrise(day + 1, PADUA).expect("sunrise");
         let mwl = islamic_midnight(day, PADUA, &MWL).expect("a night");
@@ -2368,7 +2369,7 @@ mod tests {
     /// not.
     #[test]
     fn a_method_refuses_the_times_the_sun_does_not_reach() {
-        let midsummer = gregorian_new_year(2026) + 171;
+        let midsummer = gregorian::new_year(2026) + 171;
         assert!(fajr(midsummer, PADUA, &SINGAPORE).is_ok());
         assert_eq!(
             fajr(midsummer, TROMSO, &FRANCE),

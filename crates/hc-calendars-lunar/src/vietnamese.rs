@@ -52,9 +52,9 @@
 //!
 //! As for [`crate::chinese`]: 1645-01-01 to 2150-12-31.
 
+use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
-use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
     SolarTermMode,
@@ -67,7 +67,7 @@ pub const ID: CalendarId = CalendarId("vietnamese");
 pub const YEAR_OFFSET: i64 = -2_637;
 
 /// The first day the calendar was computed at UT+7 by decree, 1 January 1968.
-pub const DECREED_FROM: Rd = civil::to_rd(1968, 1, 1);
+pub const DECREED_FROM: Rd = gregorian::to_fixed_saturating(1968, 1, 1);
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "Decision 121-CP of 8 August 1967, in effect from 1 January 1968 [vn-decision-121-cp]: \
@@ -76,10 +76,10 @@ pub const USAGE_SOURCE: &str = "Decision 121-CP of 8 August 1967, in effect from
     years are proleptic";
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1645, 1, 1);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(2150, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
 pub const MERIDIAN_SOURCES: &str = "UT+8 before 1968 and UT+7 from 1 January 1968, as vietnamese-location in \
@@ -213,19 +213,20 @@ pub fn tet(year: i64) -> CalendarResult<Rd> {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CalendarError, Month};
+
     use super::*;
     use crate::chinese;
-    use hc_calendar::{CalendarError, Month};
 
     #[test]
     fn tet_1968_fell_on_different_days_in_the_north_and_the_south() {
         // The documented case: the north, computing on UT+7 from 1 January
         // 1968, kept Tết on 29 January; the south, whose calendar stayed on
         // UT+8, on 30 January.
-        assert_eq!(tet(1_968), Ok(civil::to_rd(1968, 1, 29)));
+        assert_eq!(tet(1_968), Ok(gregorian::to_fixed_saturating(1968, 1, 29)));
         assert_eq!(
             SOUTHERN_PARAMETERS.new_year(1_968),
-            Ok(civil::to_rd(1968, 1, 30))
+            Ok(gregorian::to_fixed_saturating(1968, 1, 30))
         );
     }
 
@@ -250,22 +251,22 @@ mod tests {
         // Chí Minh's tree-planting at
         // Vật Lại "sáng 16-2-1969 (mồng 1 Tết)" (`nhandan-tet-trong-cay-2019`);
         // the south, on UT+8, kept Tết with China on the 17th.
-        assert_eq!(tet(1_969), Ok(civil::to_rd(1969, 2, 16)));
+        assert_eq!(tet(1_969), Ok(gregorian::to_fixed_saturating(1969, 2, 16)));
         assert_eq!(
             SOUTHERN_PARAMETERS.new_year(1_969),
-            Ok(civil::to_rd(1969, 2, 17))
+            Ok(gregorian::to_fixed_saturating(1969, 2, 17))
         );
         assert_eq!(
             chinese::new_year(1_969 + 2_637),
-            Ok(civil::to_rd(1969, 2, 17))
+            Ok(gregorian::to_fixed_saturating(1969, 2, 17))
         );
     }
 
     #[test]
     fn tet_2024_was_the_tenth_of_february_and_the_year_is_numbered_2024() {
-        assert_eq!(tet(2_024), Ok(civil::to_rd(2024, 2, 10)));
+        assert_eq!(tet(2_024), Ok(gregorian::to_fixed_saturating(2024, 2, 10)));
         assert_eq!(
-            VietnameseCalendar.from_fixed(civil::to_rd(2024, 2, 10)),
+            VietnameseCalendar.from_fixed(gregorian::to_fixed_saturating(2024, 2, 10)),
             Ok(LunisolarDate::new(2_024, Month::regular(1), 1))
         );
     }
@@ -284,10 +285,10 @@ mod tests {
         // the hour between the two midnights moved a zhōngqì, which moved
         // the leap month, which moved the new year by a whole lunation.
         // Tết 1985 was 21 January; Chinese New Year was 20 February.
-        assert_eq!(tet(1_985), Ok(civil::to_rd(1985, 1, 21)));
+        assert_eq!(tet(1_985), Ok(gregorian::to_fixed_saturating(1985, 1, 21)));
         assert_eq!(
             chinese::new_year(1_985 + 2_637),
-            Ok(civil::to_rd(1985, 2, 20))
+            Ok(gregorian::to_fixed_saturating(1985, 2, 20))
         );
     }
 
@@ -316,7 +317,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_across_the_1968_change() {
         let calendar = VietnameseCalendar;
-        let start = civil::to_rd(1964, 1, 1);
+        let start = gregorian::to_fixed_saturating(1964, 1, 1);
         for offset in 0..3_000i64 {
             let rd = Rd(start.0 + offset);
             let date = calendar.from_fixed(rd).expect("in range");
@@ -327,7 +328,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_four_thousand_modern_days() {
         let calendar = VietnameseCalendar;
-        let start = civil::to_rd(2005, 1, 1);
+        let start = gregorian::to_fixed_saturating(2005, 1, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..4_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);

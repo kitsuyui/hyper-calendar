@@ -464,11 +464,11 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::rd_from_ymd;
+    use hc_calendar::gregorian;
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
     }

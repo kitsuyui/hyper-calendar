@@ -139,8 +139,8 @@ name under each — everything a caller needs to explain the problem to a user.
 * Gregorian arithmetic (needed for `Mm.w.d` and `Jn` rules) is the standard
   Rata Die formulation from Reingold and Dershowitz, *Calendrical
   Calculations* (4th ed., §2.2), and it is **not** implemented here: the
-  private `gregorian` module is five thin adapters over `hc_calendar`'s
-  implementation, which policy §2 names as the one owner of this arithmetic.
+  rules call `hc_calendar::gregorian`, which policy §2 names as the one
+  owner of this arithmetic, in its total `to_fixed_saturating` shape.
 
 ## Deliberate omissions
 

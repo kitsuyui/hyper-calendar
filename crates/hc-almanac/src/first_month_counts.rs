@@ -17,17 +17,8 @@
 //! tests.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{branch, branch_day_on_or_after, stem, stem_day_on_or_after};
 use hc_calendars_lunar::chinese;
-
-/// The index of 辰 among the twelve branches, 子 being 0.
-const CHEN: u8 = 4;
-/// The index of 丑 among the twelve branches.
-const CHOU: u8 = 1;
-/// The index of 辛 among the ten stems, 甲 being 0.
-const XIN: u8 = 7;
-/// The index of 丙 among the ten stems.
-const BING: u8 = 2;
 
 /// The four counts of a Chinese year.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -46,15 +37,19 @@ impl FirstMonthCounts {
     /// The counts of the year whose 正月初一 is `new_year`.
     #[must_use]
     pub const fn from_new_year(new_year: Rd) -> Self {
-        let first = sexagenary_day(new_year);
-        let (stem, branch) = (first.stem_index(), first.branch_index());
         Self {
-            dragons: (CHEN + 12 - branch) % 12 + 1,
-            oxen: (CHOU + 12 - branch) % 12 + 1,
-            xin: (XIN + 10 - stem) % 10 + 1,
-            cakes: (BING + 10 - stem) % 10 + 1,
+            dragons: day_of_first_month(new_year, branch_day_on_or_after(new_year, branch::CHEN)),
+            oxen: day_of_first_month(new_year, branch_day_on_or_after(new_year, branch::CHOU)),
+            xin: day_of_first_month(new_year, stem_day_on_or_after(new_year, stem::XIN)),
+            cakes: day_of_first_month(new_year, stem_day_on_or_after(new_year, stem::BING)),
         }
     }
+}
+
+/// The day of 正月 of `day`, 初一 being 1, for a day within twelve days of
+/// `new_year`.
+const fn day_of_first_month(new_year: Rd, day: Rd) -> u8 {
+    (day.0 - new_year.0 + 1) as u8
 }
 
 /// The counts of the Chinese year that begins in `gregorian_year`, or
@@ -69,6 +64,7 @@ pub fn first_month_counts(gregorian_year: i64) -> Option<FirstMonthCounts> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hc_calendar::cycle::sexagenary_day;
     use hc_calendar::gregorian;
 
     #[test]
@@ -104,22 +100,22 @@ mod tests {
                 |test: &dyn Fn(u8) -> bool, limit: u8| (1..=limit).find(|n| test(*n)).unwrap();
             assert_eq!(
                 counts.dragons,
-                first_with(&|n| day(n).branch_index() == CHEN, 12),
+                first_with(&|n| day(n).branch_index() == branch::CHEN, 12),
                 "{year}"
             );
             assert_eq!(
                 counts.oxen,
-                first_with(&|n| day(n).branch_index() == CHOU, 12),
+                first_with(&|n| day(n).branch_index() == branch::CHOU, 12),
                 "{year}"
             );
             assert_eq!(
                 counts.xin,
-                first_with(&|n| day(n).stem_index() == XIN, 10),
+                first_with(&|n| day(n).stem_index() == stem::XIN, 10),
                 "{year}"
             );
             assert_eq!(
                 counts.cakes,
-                first_with(&|n| day(n).stem_index() == BING, 10),
+                first_with(&|n| day(n).stem_index() == stem::BING, 10),
                 "{year}"
             );
         }

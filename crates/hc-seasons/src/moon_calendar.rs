@@ -20,8 +20,8 @@
 //! retrieved 2026-09-26). That page does not name the time scale of the
 //! noon; the Observatory's 暦要項 gives its times in 中央標準時, Japan
 //! Standard Time, and at [`Meridian::JAPAN`] this module's noon is noon
-//! JST. [`moon_age_at`] takes any instant for callers who need to match a
-//! source that quotes another.
+//! JST. [`hc_astro::lunar::moon_age`] takes any instant for callers who
+//! need to match a source that quotes another.
 //!
 //! # 十五夜 and 十三夜
 //!
@@ -186,27 +186,15 @@ pub fn phase_name(day: Rd, meridian: Meridian) -> PhaseName {
     PhaseName::from_elongation_degrees(elongation_degrees(day, meridian))
 }
 
-/// The age of the Moon at an instant, in days since the preceding
-/// conjunction.
-///
-/// This is 月齢, and it runs from 0 to about 29.53 and then resets. The
-/// conjunction it counts from is found by search rather than by a mean
-/// lunation, so the answer tracks the real Moon, which runs up to half a day
-/// either side of the mean.
-#[must_use]
-pub fn moon_age_at(moment: Moment) -> f64 {
-    moment.0 - new_moon_before(moment).0
-}
-
 /// The age of the Moon at local noon on a day, in days.
 ///
 /// Quoted at noon so that one number describes a whole day, as the National
 /// Astronomical Observatory of Japan quotes its 正午月齢: at
 /// [`Meridian::JAPAN`] this is that figure before rounding. Use
-/// [`moon_age_at`] for any other instant.
+/// [`hc_astro::lunar::moon_age`] for any other instant.
 #[must_use]
 pub fn moon_age(day: Rd, meridian: Meridian) -> f64 {
-    moon_age_at(meridian.noon(day))
+    hc_astro::lunar::moon_age(meridian.noon(day))
 }
 
 /// The fraction of the Moon's disc lit at local noon on a day, from 0 to 1.
@@ -368,11 +356,11 @@ impl ExactSizeIterator for MonthPhasesIter {}
 /// ```
 #[must_use]
 pub fn principal_phases_in_month(year: i64, month: u8, meridian: Meridian) -> MonthPhases {
-    let first = crate::gregorian::from_year_month_day(year, month, 1);
+    let first = hc_calendar::gregorian::to_fixed_saturating(year, month, 1);
     let next = if month >= 12 {
-        crate::gregorian::from_year_month_day(year + 1, 1, 1)
+        hc_calendar::gregorian::to_fixed_saturating(year + 1, 1, 1)
     } else {
-        crate::gregorian::from_year_month_day(year, month + 1, 1)
+        hc_calendar::gregorian::to_fixed_saturating(year, month + 1, 1)
     };
     let start = meridian.midnight(first);
     let end = meridian.midnight(next);
@@ -450,8 +438,8 @@ pub fn traditional_tanabata(year: i64, meridian: Meridian) -> Rd {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
     use hc_astro::lunar::MEAN_SYNODIC_MONTH;
+    use hc_calendar::gregorian;
 
     /// Every date of the National Astronomical Observatory's table,
     /// 2011–2050 (よくある質問 3-10).
@@ -502,7 +490,7 @@ mod tests {
         for (year, month, day) in table {
             assert_eq!(
                 traditional_tanabata(year, JAPAN),
-                from_year_month_day(year, month, day),
+                gregorian::to_fixed_saturating(year, month, day),
                 "伝統的七夕 of {year}"
             );
         }
@@ -618,7 +606,7 @@ mod tests {
 
     #[test]
     fn the_moons_age_runs_from_zero_to_a_synodic_month_and_resets() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut previous = moon_age(start, JAPAN);
         let mut resets = 0;
         for offset in 1..400 {
@@ -647,7 +635,7 @@ mod tests {
 
     #[test]
     fn the_age_and_the_illuminated_fraction_tell_the_same_story() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for offset in 0..200 {
             let day = Rd(start.0 + offset);
             let age = moon_age(day, JAPAN);
@@ -666,7 +654,7 @@ mod tests {
     /// other: a day called full cannot be a sliver.
     #[test]
     fn the_phase_name_and_the_illuminated_fraction_agree() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
             let lit = illuminated_fraction(day, JAPAN);
@@ -695,19 +683,19 @@ mod tests {
         assert_eq!(phases.len(), 4);
         assert_eq!(
             phases.new_moon().map(|event| event.day),
-            Some(from_year_month_day(2024, 9, 3))
+            Some(gregorian::to_fixed_saturating(2024, 9, 3))
         );
         assert_eq!(
             phases.first_quarter().map(|event| event.day),
-            Some(from_year_month_day(2024, 9, 11))
+            Some(gregorian::to_fixed_saturating(2024, 9, 11))
         );
         assert_eq!(
             phases.full_moon().map(|event| event.day),
-            Some(from_year_month_day(2024, 9, 18))
+            Some(gregorian::to_fixed_saturating(2024, 9, 18))
         );
         assert_eq!(
             phases.last_quarter().map(|event| event.day),
-            Some(from_year_month_day(2024, 9, 25))
+            Some(gregorian::to_fixed_saturating(2024, 9, 25))
         );
     }
 
@@ -731,7 +719,7 @@ mod tests {
                         );
                     }
                     assert_eq!(
-                        crate::gregorian::year_month_day_from_rd(event.day).1,
+                        hc_calendar::gregorian::ymd(event.day).1,
                         month,
                         "a phase escaped its month"
                     );
@@ -799,7 +787,7 @@ mod tests {
         for (year, month, day) in expected {
             assert_eq!(
                 mid_autumn_moon(year, JAPAN),
-                Some(from_year_month_day(year, month, day)),
+                Some(gregorian::to_fixed_saturating(year, month, day)),
                 "中秋の名月 of {year}"
             );
         }
@@ -818,7 +806,7 @@ mod tests {
         for (year, month, day) in expected {
             assert_eq!(
                 thirteenth_night(year, JAPAN),
-                Some(from_year_month_day(year, month, day)),
+                Some(gregorian::to_fixed_saturating(year, month, day)),
                 "十三夜 of {year}"
             );
         }
@@ -876,8 +864,8 @@ mod tests {
             };
             total += 1;
             let phases = principal_phases_in_month(
-                crate::gregorian::year_month_day_from_rd(night).0,
-                crate::gregorian::year_month_day_from_rd(night).1,
+                hc_calendar::gregorian::ymd(night).0,
+                hc_calendar::gregorian::ymd(night).1,
                 JAPAN,
             );
             if phases.full_moon().map(|event| event.day) == Some(night) {

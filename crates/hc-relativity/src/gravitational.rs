@@ -24,14 +24,11 @@
 //! which is why the satellites' oscillators are deliberately offset before
 //! launch. Both figures and their sum are tested here.
 
+use hc_core::duration::SECONDS_PER_DAY_F64;
 use hc_core::math;
 
 use crate::constants::SPEED_OF_LIGHT_SQUARED;
 use crate::error::{RelativityError, RelativityResult, finite};
-
-/// Seconds in a nominal day, for expressing a fractional rate as a clock
-/// offset.
-const SECONDS_PER_DAY: f64 = 86_400.0;
 
 /// Check a standard gravitational parameter.
 ///
@@ -274,7 +271,7 @@ pub fn weak_field_orbit_rate_offset(
 ///
 /// Returns [`RelativityError::NotFinite`] for a non-finite offset.
 pub fn rate_offset_to_micros_per_day(offset: f64) -> RelativityResult<f64> {
-    Ok(finite(offset)? * SECONDS_PER_DAY * 1e6)
+    Ok(finite(offset)? * SECONDS_PER_DAY_F64 * 1e6)
 }
 
 #[cfg(test)]

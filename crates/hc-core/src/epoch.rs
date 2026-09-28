@@ -124,6 +124,11 @@ pub const J2000: Epoch = Epoch {
         TT = TAI + 32.184 s [rots2015, Table 2]",
 };
 
+/// The TT reading of [`J2000`] in seconds from `1970-01-01T00:00:00 TT`:
+/// 10 957 days of 86 400 s and twelve hours, exactly, which is also the
+/// POSIX timestamp of `2000-01-01T12:00:00` read on the TT scale.
+pub const J2000_TT_SECONDS: i64 = 946_728_000;
+
 /// `1977-01-01T00:00:00 TAI`, the origin of TCG and TCB.
 pub const TCG_TCB_ORIGIN: Epoch = Epoch {
     id: "tcg-tcb-origin",
@@ -301,6 +306,10 @@ mod tests {
         // exact, and any slip shows up immediately.
         let tt: Instant<Tt> = J2000.instant().convert();
         assert_eq!(tt.since_epoch(), Duration::from_secs(946_728_000));
+        assert_eq!(
+            tt.since_epoch(),
+            Duration::from_secs(i128::from(J2000_TT_SECONDS))
+        );
     }
 
     #[test]

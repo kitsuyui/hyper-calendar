@@ -48,7 +48,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
-use hc_core::math::{ceil, floor};
+use hc_core::math::{ceil, floor, modulo};
 use hc_seasons::zodiac::SiderealSign;
 
 /// The identifier of the mean solar calendar.
@@ -103,11 +103,6 @@ pub const SOLAR_MONTHS: [&str; 12] = [
 /// the start of the civil day.
 fn sun_of(rd: Rd) -> f64 {
     (rd.0 - HINDU_EPOCH.0) as f64 + 0.25
-}
-
-/// `x mod y` for a positive `y`, in `[0, y)`.
-fn modulo(x: f64, y: f64) -> f64 {
-    x - y * floor(x / y)
 }
 
 // ─────────────────────────────────────────────────────────────────────────

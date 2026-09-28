@@ -16,8 +16,9 @@
 //! The formulae are those of Reingold and Dershowitz, *Calendrical
 //! Calculations* (4th ed., 2018), chapter 2, and the year arithmetic is
 //! [`hc_calendar::gregorian`]'s, which owns it because it defines `Rd`
-//! (policy §2); this module adds the range checks, the month split it shares
-//! with the Julian calendar, and the `Calendar` implementation. They are exact — there is no
+//! (policy §2), as is the month split the Gregorian calendar shares with
+//! the Julian; this module adds the range checks, the eras and the
+//! `Calendar` implementation. They are exact — there is no
 //! floating point anywhere in this module — for every year in
 //! [`MIN_YEAR`]..=[`MAX_YEAR`], which comfortably contains the
 //! -9999..=9999 range that callers of this crate can assume.
@@ -26,8 +27,6 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,
     YearKind,
 };
-
-use crate::common;
 
 /// The year bounds, re-exported from the crate that owns this arithmetic.
 ///
@@ -56,7 +55,7 @@ pub const fn is_leap_year(year: i64) -> bool {
 /// `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    common::julian_style_days_in_month(month, is_leap_year(year))
+    hc_calendar::gregorian::days_in_month(year, month)
 }
 
 /// The number of days in `year`.
@@ -72,14 +71,7 @@ pub const fn days_in_year(year: i64) -> u16 {
 /// Returns [`CalendarError::MonthOutOfRange`] or
 /// [`CalendarError::DayOutOfRange`] when the date does not exist.
 pub const fn day_of_year(year: i64, month: u8, day: u8) -> CalendarResult<u16> {
-    match common::check_day(day, days_in_month(year, month)) {
-        Err(error) => Err(error),
-        Ok(()) => Ok(common::julian_style_day_of_year(
-            month,
-            day,
-            is_leap_year(year),
-        )),
-    }
+    hc_calendar::gregorian::ordinal_day(month, day, is_leap_year(year))
 }
 
 /// The fixed day of 1 January of `year`, without any range check.
@@ -125,13 +117,7 @@ pub const fn new_year(year: i64) -> CalendarResult<Rd> {
 /// Returns [`CalendarError::YearOutOfRange`],
 /// [`CalendarError::MonthOutOfRange`] or [`CalendarError::DayOutOfRange`].
 pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
-    if year < MIN_YEAR || year > MAX_YEAR {
-        return Err(CalendarError::YearOutOfRange);
-    }
-    match day_of_year(year, month, day) {
-        Err(error) => Err(error),
-        Ok(within) => Ok(Rd(new_year_raw(year) + within as i64 - 1)),
-    }
+    hc_calendar::gregorian::to_fixed(year, month, day)
 }
 
 /// The Gregorian year containing a fixed day.
@@ -162,11 +148,7 @@ pub const fn year_from_fixed(rd: Rd) -> CalendarResult<i64> {
 pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     match year_from_fixed(rd) {
         Err(error) => Err(error),
-        Ok(year) => {
-            let within = (rd.0 - new_year_raw(year) + 1) as u16;
-            let (month, day) = common::julian_style_month_day(within, is_leap_year(year));
-            Ok((year, month, day))
-        }
+        Ok(_) => hc_calendar::gregorian::from_fixed(rd),
     }
 }
 

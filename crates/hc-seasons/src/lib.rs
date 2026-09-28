@@ -106,8 +106,6 @@ pub mod solar_terms;
 pub mod zassetsu;
 pub mod zodiac;
 
-mod gregorian;
-
 pub use cold_food::ColdFoodConvention;
 pub use dog_days::DogDaysConvention;
 pub use lunisolar::LunisolarDay;

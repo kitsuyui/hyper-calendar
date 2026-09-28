@@ -187,8 +187,9 @@ pub fn ship_reading_uncertain(
 mod tests {
     use super::*;
 
-    use crate::constants::{JULIAN_YEAR_SECONDS, LIGHT_YEAR, STANDARD_GRAVITY};
+    use crate::constants::{LIGHT_YEAR, STANDARD_GRAVITY};
     use crate::worldline::Segment;
+    use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 
     fn epoch() -> Instant<Tai> {
         Instant::from_epoch(Duration::ZERO)

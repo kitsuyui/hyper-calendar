@@ -99,8 +99,6 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
-mod civil;
-
 /// How far apart the days of a day-by-day sweep in this crate's tests are:
 /// every day in a release build, every `sampled`th in a debug build.
 ///

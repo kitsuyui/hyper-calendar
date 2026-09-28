@@ -48,21 +48,24 @@
 //! [`crate::islamic_observational`], whose month search and month count
 //! these calendars share.
 
-use hc_astro::earth::apparent_sidereal_time_iau1982;
+use hc_astro::earth::{
+    Equatorial, altitude_degrees, angular_separation, apparent_sidereal_time_iau1982,
+    hour_angle_at_altitude,
+};
 use hc_astro::lunar::{lunar_parallax, lunar_position};
-use hc_astro::riseset::sunrise_altitude_degrees;
+use hc_astro::riseset::{sunrise_altitude_degrees, topocentric_altitude};
 use hc_astro::solar::solar_position;
 use hc_astro::{Location, Twilight, dawn};
 use hc_calendar::fixed::Moment;
+use hc_calendar::gregorian;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
 };
-use hc_core::math::{RAD_TO_DEG, acos, asin, cos_deg, floor, sin_deg};
+use hc_core::math::signed_degrees;
 
-use crate::civil;
 use crate::islamic_observational::{
     EARLIEST, Frame, LATEST, NewMonthRule, SunsetCriterion, VisibilityCriterion, compose_with,
-    decompose_with,
+    decompose_with, lowered_arc,
 };
 use crate::tabular::{ERA, IslamicDate};
 
@@ -78,20 +81,18 @@ pub const ISTANBUL_2016_ID: CalendarId = CalendarId("islamic-istanbul-2016");
 pub struct CoastPoint {
     /// The title of the article.
     pub name: &'static str,
-    /// Latitude in degrees, positive north.
-    pub latitude_degrees: f64,
-    /// Longitude in degrees, positive east.
-    pub longitude_degrees: f64,
+    /// Where it is, at sea level.
+    pub location: Location,
 }
 
 impl CoastPoint {
-    /// A named point.
+    /// A named point at sea level, its latitude positive north and its
+    /// longitude positive east, in degrees.
     #[must_use]
     pub const fn new(name: &'static str, latitude_degrees: f64, longitude_degrees: f64) -> Self {
         Self {
             name,
-            latitude_degrees,
-            longitude_degrees,
+            location: Location::new(latitude_degrees, longitude_degrees, 0.0),
         }
     }
 }
@@ -262,13 +263,6 @@ fn interpolate(values: &[f64; NODES], at: f64) -> f64 {
     total
 }
 
-/// A direction in right ascension and declination, in degrees.
-#[derive(Debug, Clone, Copy)]
-struct Place {
-    ra: f64,
-    dec: f64,
-}
-
 impl Sky {
     /// The sky over the sunsets of local date `eve`.
     fn for_evening(eve: Rd) -> Self {
@@ -291,19 +285,19 @@ impl Sky {
         (moment - self.first) / SKY_STEP
     }
 
-    fn sun(&self, moment: f64) -> Place {
+    fn sun(&self, moment: f64) -> Equatorial {
         let at = self.index(moment);
-        Place {
-            ra: interpolate(&self.sun_ra, at),
-            dec: interpolate(&self.sun_dec, at),
+        Equatorial {
+            right_ascension_degrees: interpolate(&self.sun_ra, at),
+            declination_degrees: interpolate(&self.sun_dec, at),
         }
     }
 
-    fn moon(&self, moment: f64) -> Place {
+    fn moon(&self, moment: f64) -> Equatorial {
         let at = self.index(moment);
-        Place {
-            ra: interpolate(&self.moon_ra, at),
-            dec: interpolate(&self.moon_dec, at),
+        Equatorial {
+            right_ascension_degrees: interpolate(&self.moon_ra, at),
+            declination_degrees: interpolate(&self.moon_dec, at),
         }
     }
 
@@ -317,38 +311,10 @@ impl Sky {
     }
 }
 
-/// The altitude of a direction at an hour angle and a latitude, in degrees.
-fn altitude(place: Place, hour_angle: f64, latitude: f64) -> f64 {
-    let sine = sin_deg(latitude) * sin_deg(place.dec)
-        + cos_deg(latitude) * cos_deg(place.dec) * cos_deg(hour_angle);
-    asin(sine.clamp(-1.0, 1.0)) * RAD_TO_DEG
-}
-
-/// The angle between two directions, in degrees.
-fn separation(a: Place, b: Place) -> f64 {
-    let cosine =
-        sin_deg(a.dec) * sin_deg(b.dec) + cos_deg(a.dec) * cos_deg(b.dec) * cos_deg(a.ra - b.ra);
-    acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG
-}
-
-/// An angle reduced to `(-180, 180]`.
-fn signed(degrees: f64) -> f64 {
-    let reduced = degrees - 360.0 * floor(degrees / 360.0);
-    if reduced > 180.0 {
-        reduced - 360.0
-    } else {
-        reduced
-    }
-}
-
 /// The hour angle of the setting Sun's centre at a latitude, or `None`
 /// where it does not set: the centre 50′ below the geometric horizon.
-fn setting_hour_angle(sun: Place, latitude: f64) -> Option<f64> {
-    let cosine = (sin_deg(sunrise_altitude_degrees(0.0)) - sin_deg(latitude) * sin_deg(sun.dec))
-        / (cos_deg(latitude) * cos_deg(sun.dec));
-    (-1.0..=1.0)
-        .contains(&cosine)
-        .then(|| acos(cosine) * RAD_TO_DEG)
+fn setting_hour_angle(sun: Equatorial, latitude: f64) -> Option<f64> {
+    hour_angle_at_altitude(sun, latitude, sunrise_altitude_degrees(0.0))
 }
 
 impl SunsetCriterion {
@@ -357,24 +323,15 @@ impl SunsetCriterion {
         let sun = sky.sun(moment);
         let moon = sky.moon(moment);
         let sidereal = sky.sidereal_time(moment);
-        let sun_altitude = altitude(sun, sidereal + longitude - sun.ra, latitude);
-        let geocentric = altitude(moon, sidereal + longitude - moon.ra, latitude);
-        let parallax = sky.parallax(moment);
-        let topocentric = geocentric
-            - asin((sin_deg(parallax) * cos_deg(geocentric)).clamp(-1.0, 1.0)) * RAD_TO_DEG;
-        let arc = separation(sun, moon);
+        let hour_angle = |body: Equatorial| sidereal + longitude - body.right_ascension_degrees;
+        let sun_altitude = altitude_degrees(sun, hour_angle(sun), latitude);
+        let geocentric = altitude_degrees(moon, hour_angle(moon), latitude);
+        let topocentric = topocentric_altitude(geocentric, sky.parallax(moment));
+        let arc = angular_separation(sun, moon);
         let elongation = match self.elongation {
             Frame::Geocentric => arc,
-            Frame::Topocentric => {
-                // As `topocentric_arc_of_light`: the azimuth difference from
-                // the geocentric arc, the arc again from the lowered Moon.
-                let cos_azimuth = ((cos_deg(arc) - sin_deg(sun_altitude) * sin_deg(geocentric))
-                    / (cos_deg(sun_altitude) * cos_deg(geocentric)))
-                .clamp(-1.0, 1.0);
-                let cosine = sin_deg(sun_altitude) * sin_deg(topocentric)
-                    + cos_deg(sun_altitude) * cos_deg(topocentric) * cos_azimuth;
-                acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG
-            }
+            // As `topocentric_arc_of_light`.
+            Frame::Topocentric => lowered_arc(arc, sun_altitude, geocentric, topocentric),
         };
         let height = match self.altitude {
             Frame::Geocentric => geocentric,
@@ -392,8 +349,8 @@ fn sunset_in(sky: &Sky, eve: Rd, latitude: f64, longitude: f64) -> Option<f64> {
     for _ in 0..4 {
         let sun = sky.sun(moment);
         let setting = setting_hour_angle(sun, latitude)?;
-        let hour_angle = sky.sidereal_time(moment) + longitude - sun.ra;
-        moment -= signed(hour_angle - setting) / SIDEREAL_DEGREES_PER_DAY;
+        let hour_angle = sky.sidereal_time(moment) + longitude - sun.right_ascension_degrees;
+        moment -= signed_degrees(hour_angle - setting) / SIDEREAL_DEGREES_PER_DAY;
     }
     Some(moment)
 }
@@ -405,7 +362,7 @@ fn coast_points() -> impl Iterator<Item = (f64, f64)> {
     AMERICAS_WEST_COAST.into_iter().flat_map(|line| {
         line.windows(2)
             .flat_map(|pair| {
-                let (a, b) = (pair[0], pair[1]);
+                let (a, b) = (pair[0].location, pair[1].location);
                 let span = hc_core::math::abs(b.latitude_degrees - a.latitude_degrees).max(
                     hc_core::math::abs(b.longitude_degrees - a.longitude_degrees),
                 );
@@ -419,10 +376,12 @@ fn coast_points() -> impl Iterator<Item = (f64, f64)> {
                     )
                 })
             })
-            .chain(
-                line.last()
-                    .map(|last| (last.latitude_degrees, last.longitude_degrees)),
-            )
+            .chain(line.last().map(|last| {
+                (
+                    last.location.latitude_degrees,
+                    last.location.longitude_degrees,
+                )
+            }))
     })
 }
 
@@ -473,7 +432,7 @@ impl GlobalRule {
             let Some(setting) = setting_hour_angle(sun, latitude) else {
                 return false;
             };
-            let longitude = signed(sun.ra + setting - sidereal);
+            let longitude = signed_degrees(sun.right_ascension_degrees + setting - sidereal);
             // A sunset at 24:00 UT belongs to the local date `eve` west of
             // Greenwich; east of it the Sun set there on the next day.
             longitude < 0.0 && self.criterion.holds_in(&sky, midnight, latitude, longitude)
@@ -585,7 +544,10 @@ impl IslamicGlobalCalendar {
         rule: GlobalRule::KHGT,
         id: KHGT_ID,
         english_name: "Hijri (Unified Global Hijri Calendar, Muhammadiyah)",
-        usage: hc_calendar::Usage::since(civil::to_rd(2025, 6, 26), KHGT_USAGE_SOURCE),
+        usage: hc_calendar::Usage::since(
+            gregorian::to_fixed_saturating(2025, 6, 26),
+            KHGT_USAGE_SOURCE,
+        ),
         native_locales: &["id"],
     };
 
@@ -706,7 +668,7 @@ mod tests {
     use hc_astro::riseset::{lunar_altitude, sunset};
 
     fn day(year: i64, month: u8, day: u8) -> Rd {
-        civil::to_rd(year, month, day)
+        gregorian::to_fixed_saturating(year, month, day)
     }
 
     /// The interpolated sky follows the series it samples: the Sun and the
@@ -723,16 +685,28 @@ mod tests {
                 let ours_sun = sky.sun(moment);
                 let ours_moon = sky.moon(moment);
                 assert!(
-                    hc_core::math::abs(signed(ours_sun.ra - sun.right_ascension_degrees)) < 1e-4
+                    hc_core::math::abs(signed_degrees(
+                        ours_sun.right_ascension_degrees - sun.right_ascension_degrees
+                    )) < 1e-4
                 );
-                assert!(hc_core::math::abs(ours_sun.dec - sun.declination_degrees) < 1e-4);
                 assert!(
-                    hc_core::math::abs(signed(ours_moon.ra - moon.right_ascension_degrees)) < 1e-4,
+                    hc_core::math::abs(ours_sun.declination_degrees - sun.declination_degrees)
+                        < 1e-4
+                );
+                assert!(
+                    hc_core::math::abs(signed_degrees(
+                        ours_moon.right_ascension_degrees - moon.right_ascension_degrees
+                    )) < 1e-4,
                     "{step}"
                 );
-                assert!(hc_core::math::abs(ours_moon.dec - moon.declination_degrees) < 1e-4);
+                assert!(
+                    hc_core::math::abs(ours_moon.declination_degrees - moon.declination_degrees)
+                        < 1e-4
+                );
                 let sidereal = apparent_sidereal_time_iau1982(Moment(moment));
-                assert!(hc_core::math::abs(signed(sky.sidereal_time(moment) - sidereal)) < 1e-3);
+                assert!(
+                    hc_core::math::abs(signed_degrees(sky.sidereal_time(moment) - sidereal)) < 1e-3
+                );
                 assert!(
                     hc_core::math::abs(sky.parallax(moment) - lunar_parallax(Moment(moment)))
                         < 1e-6

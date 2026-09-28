@@ -54,6 +54,8 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
 };
 
+use hc_calendar::gregorian;
+
 use crate::common;
 
 /// The earliest year this implementation converts.
@@ -94,7 +96,7 @@ const fn days_before_year(year: i64) -> i64 {
 /// The number of days in `month` of `year`, or `None` outside `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    common::julian_style_days_in_month(month, is_leap_year(year))
+    gregorian::month_length(month, is_leap_year(year))
 }
 
 /// The number of days in `year`.
@@ -175,11 +177,9 @@ impl DeeCalendar {
             Err(error) => return Err(error),
         };
         let leap = is_leap_year(year);
-        match common::check_day(day, common::julian_style_days_in_month(month, leap)) {
+        match gregorian::ordinal_day(month, day, leap) {
             Err(error) => Err(error),
-            Ok(()) => Ok(Rd(start.0
-                + common::julian_style_day_of_year(month, day, leap) as i64
-                - 1)),
+            Ok(within) => Ok(Rd(start.0 + within as i64 - 1)),
         }
     }
 
@@ -206,8 +206,10 @@ impl DeeCalendar {
             year += 1;
         }
         let day_of_year = (elapsed - days_before_year(year) + 1) as u16;
-        let (month, day) = common::julian_style_month_day(day_of_year, is_leap_year(year));
-        Ok((year, month, day))
+        match gregorian::month_day(day_of_year, is_leap_year(year)) {
+            Ok((month, day)) => Ok((year, month, day)),
+            Err(error) => Err(error),
+        }
     }
 }
 

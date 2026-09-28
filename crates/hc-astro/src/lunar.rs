@@ -22,13 +22,14 @@
 //! is derived from the other, so that agreement is real evidence.
 
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, acos, asin, atan2, cos_deg, normalize_degrees, sin_deg};
+use hc_core::math::{
+    RAD_TO_DEG, acos, asin, atan2, cos_deg, modulo, normalize_degrees, poly, round, sin_deg,
+};
 
 use crate::earth::{Equatorial, equatorial_from_ecliptic, true_obliquity_at_centuries};
 use crate::search::invert_angular;
 use crate::solar::{solar_longitude, solar_radius_vector_at_centuries};
 use crate::time::{julian_centuries, universal_time};
-use crate::util::{clamp, max_of, modulo, poly};
 
 /// The mean synodic month — the mean interval between new moons — in days.
 ///
@@ -374,7 +375,7 @@ pub fn lunar_distance(moment: Moment) -> f64 {
 /// happen a little earlier than geometry alone would say.
 #[must_use]
 pub fn lunar_parallax(moment: Moment) -> f64 {
-    asin(clamp(EARTH_RADIUS_KM / lunar_distance(moment), -1.0, 1.0)) * RAD_TO_DEG
+    asin((EARTH_RADIUS_KM / lunar_distance(moment)).clamp(-1.0, 1.0)) * RAD_TO_DEG
 }
 
 /// The Moon's apparent right ascension and declination at a Universal Time
@@ -415,7 +416,7 @@ pub fn lunar_illuminated_fraction(moment: Moment) -> f64 {
     let solar_distance = solar_radius_vector_at_centuries(centuries) * ASTRONOMICAL_UNIT_KM;
     let lunar_distance = lunar_distance_at_centuries(centuries);
 
-    let cos_elongation = clamp(cos_deg(latitude) * cos_deg(lunar - solar), -1.0, 1.0);
+    let cos_elongation = (cos_deg(latitude) * cos_deg(lunar - solar)).clamp(-1.0, 1.0);
     let elongation = acos(cos_elongation) * RAD_TO_DEG;
     let phase_angle = atan2(
         solar_distance * sin_deg(elongation),
@@ -424,8 +425,9 @@ pub fn lunar_illuminated_fraction(moment: Moment) -> f64 {
     (1.0 + cos_deg(phase_angle)) / 2.0
 }
 
-/// Which quarter of the lunation a phase instant belongs to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+/// Which quarter of the lunation a phase instant belongs to, in the order
+/// of the lunation.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MoonPhase {
     /// Conjunction: the Moon and Sun share an ecliptic longitude.
     New,
@@ -666,6 +668,46 @@ fn estimated_lunation(moment: Moment) -> i64 {
     hc_core::math::floor((moment.0 - zeroth) / MEAN_SYNODIC_MONTH) as i64
 }
 
+/// The Meeus lunation containing a moment: the `k` whose new moon,
+/// [`nth_new_moon`]`(k)`, is at or before `moment` while the next one is
+/// after it.
+///
+/// The mean-rate seed is never more than one lunation out, because a true
+/// new moon departs from the mean one by at most about fourteen hours; the
+/// three steps either way are a bound, so that a nonsensical argument
+/// cannot spin.
+#[must_use]
+pub fn lunation_containing(moment: Moment) -> i64 {
+    let mut lunation = round((moment.0 - nth_new_moon(0).0) / MEAN_SYNODIC_MONTH) as i64;
+    for _ in 0..3 {
+        if nth_new_moon(lunation).0 > moment.0 {
+            lunation -= 1;
+        } else {
+            break;
+        }
+    }
+    for _ in 0..3 {
+        if nth_new_moon(lunation + 1).0 <= moment.0 {
+            lunation += 1;
+        } else {
+            break;
+        }
+    }
+    lunation
+}
+
+/// The age of the Moon at a moment, in days: the time since the new moon
+/// that began the [lunation containing it](lunation_containing).
+///
+/// It runs from 0 at the instant of the new moon to about 29.53 just
+/// before the next, and is the age almanacs print (月齢 in Japan). It is
+/// not the phase angle, because the Moon's angular speed varies by about
+/// 12 % between perigee and apogee.
+#[must_use]
+pub fn moon_age(moment: Moment) -> f64 {
+    moment.0 - nth_new_moon(lunation_containing(moment)).0
+}
+
 /// The last new moon strictly before a moment.
 #[must_use]
 pub fn new_moon_before(moment: Moment) -> Moment {
@@ -729,7 +771,7 @@ fn computed_moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment
     invert_angular(
         lunar_phase,
         normalize_degrees(phase_degrees),
-        Moment(max_of(moment.0, estimate - 2.0)),
+        Moment(moment.0.max(estimate - 2.0)),
         Moment(estimate + 2.0),
     )
 }
@@ -737,7 +779,8 @@ fn computed_moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::time::{centuries_from_dynamical_julian_date, dynamical_time, gregorian_new_year};
+    use crate::time::{centuries_from_dynamical_julian_date, dynamical_time};
+    use hc_calendar::gregorian;
 
     /// Meeus, example 47.a: 1992 April 12.0 TD.
     const EXAMPLE_47A_JDE: f64 = 2_448_724.5;
@@ -979,7 +1022,7 @@ mod tests {
 
     #[test]
     fn the_moon_moves_about_thirteen_degrees_a_day() {
-        let start = gregorian_new_year(2024).0 as f64;
+        let start = gregorian::new_year(2024).0 as f64;
         for step in 0..120 {
             let a = lunar_longitude(Moment(start + f64::from(step)));
             let b = lunar_longitude(Moment(start + f64::from(step) + 1.0));
@@ -1018,7 +1061,7 @@ mod tests {
         for target_step in 0..24 {
             let target = f64::from(target_step) * 15.0;
             let found = moon_phase_at_or_after(target, start);
-            let error = crate::util::signed_degrees(lunar_phase(found) - target);
+            let error = hc_core::math::signed_degrees(lunar_phase(found) - target);
             assert!(
                 error.abs() < 1e-4,
                 "target {target}: off by {error} degrees"
@@ -1042,6 +1085,23 @@ mod tests {
         }
     }
 
+    /// The age is 0 at the instant of a new moon, not a whole lunation:
+    /// the interval is closed at the new moon and open at the next.
+    #[test]
+    fn the_moon_is_no_age_at_the_instant_of_its_new_moon() {
+        for lunation in [-100, 0, 1, 300] {
+            let new = nth_new_moon(lunation);
+            assert_eq!(lunation_containing(new), lunation);
+            assert_eq!(moon_age(new), 0.0);
+            let before = Moment(new.0 - 1e-6);
+            assert_eq!(lunation_containing(before), lunation - 1);
+            let age = moon_age(before);
+            assert!((29.2..29.9).contains(&age), "{age}");
+            // Strictly before, as `new_moon_before` counts.
+            assert_eq!(new_moon_before(before), nth_new_moon(lunation - 1));
+        }
+    }
+
     #[test]
     fn the_phase_enum_names_the_right_elongations_and_offsets() {
         assert!((MoonPhase::New.elongation_degrees() - 0.0).abs() < 1e-12);
@@ -1056,8 +1116,9 @@ mod tests {
         let moment = nth_new_moon(300);
         let moon = lunar_position(moment);
         let sun = crate::solar::solar_position(moment);
-        let separation =
-            crate::util::signed_degrees(moon.right_ascension_degrees - sun.right_ascension_degrees);
+        let separation = hc_core::math::signed_degrees(
+            moon.right_ascension_degrees - sun.right_ascension_degrees,
+        );
         assert!(separation.abs() < 1.0, "separation {separation} degrees");
     }
 }

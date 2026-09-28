@@ -449,7 +449,7 @@ impl Calendar for BabylonianCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
 
     /// Parker and Dubberstein's first days of the month, as fixed days, for
     /// the rows the module documentation cites: 1 Nisanu of every
@@ -505,7 +505,7 @@ mod tests {
     fn the_epoch_is_the_third_of_april_311_bce() {
         // 3 April 311 BCE Julian is 29 March of the proleptic Gregorian
         // year −310, five days earlier, as every date of that century is.
-        assert_eq!(EPOCH, civil::to_rd(-310, 3, 29));
+        assert_eq!(EPOCH, gregorian::to_fixed_saturating(-310, 3, 29));
         assert_eq!(from_fixed(EPOCH), Ok((1, month(1, false), 1)));
         assert_eq!(to_fixed(1, month(1, false), 1), Ok(EPOCH));
     }
