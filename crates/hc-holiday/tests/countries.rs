@@ -2496,21 +2496,23 @@ fn cambodia_keeps_the_days_its_sub_decrees_give() {
 }
 
 #[test]
-fn cambodia_dates_its_lunar_days_where_the_khmer_calendar_puts_them() {
-    // The table carries the sub-decrees' dates, not the calendar's; this
-    // holds the two together. Visak Bochea is 15 keit Pisakh, the Royal
-    // Ploughing Ceremony 4 roaj Pisakh, Pchum Ben 14 and 15 roaj Photrobot
-    // and 1 keit Assoch, and the Water Festival 14 and 15 keit and 1 roaj
-    // Kadeuk (docs/systems/khmer-chhankitek.md).
-    use hc_calendar::Month;
-    use hc_calendars_regional::khmer::{self, KhmerDate};
-
-    let lunar = |year: i64, month: u8, day: u8| {
-        let be = year + khmer::BUDDHIST_ERA_OFFSET;
-        khmer::to_fixed(KhmerDate::new(be, Month::regular(month), day)).expect("in range")
-    };
+fn cambodia_dates_its_lunar_days_on_the_khmer_calendar() {
+    // The sub-decrees' days in every year read, each where `khmer` puts
+    // it: Visak Bochea 15 keit Pisakh, the Royal Ploughing Ceremony 4 roaj
+    // Pisakh, Pchum Ben 14 and 15 roaj Photrobot and 1 keit Assoch, the
+    // Water Festival 14 and 15 keit and 1 roaj Kadeuk.
+    #[allow(clippy::type_complexity)]
+    const DECREED: &[(i64, (u8, u8), (u8, u8), (u8, u8), (u8, u8))] = &[
+        // year, Visak, Ploughing, Pchum Ben's first, Water Festival's first
+        (2021, (4, 26), (4, 30), (10, 5), (11, 18)),
+        (2022, (5, 15), (5, 19), (9, 24), (11, 7)),
+        (2024, (5, 22), (5, 26), (10, 1), (11, 14)),
+        (2025, (5, 11), (5, 15), (9, 21), (11, 4)),
+        (2026, (5, 1), (5, 5), (10, 10), (11, 23)),
+        (2027, (5, 20), (5, 24), (9, 29), (11, 12)),
+    ];
     let mut checked = 0;
-    for year in 2025..=2027 {
+    for &(year, visak, plough, pchum, water) in DECREED {
         let calendar = HolidayCalendar::for_year(table("KH"), None, year);
         let dated = |name: &str| -> Vec<Rd> {
             calendar
@@ -2520,27 +2522,58 @@ fn cambodia_dates_its_lunar_days_where_the_khmer_calendar_puts_them() {
                 .map(|holiday| holiday.date)
                 .collect()
         };
+        let run = |(month, day): (u8, u8)| -> Vec<Rd> {
+            let first = ymd(year, month, day);
+            (0..3).map(|offset| Rd(first.0 + offset)).collect()
+        };
         for (name, expected) in [
-            ("Visak Bochea", vec![lunar(year, 6, 15)]),
-            ("Royal Ploughing Ceremony", vec![lunar(year, 6, 19)]),
+            ("Visak Bochea", vec![ymd(year, visak.0, visak.1)]),
             (
-                "Pchum Ben",
-                vec![lunar(year, 10, 29), lunar(year, 10, 30), lunar(year, 11, 1)],
+                "Royal Ploughing Ceremony",
+                vec![ymd(year, plough.0, plough.1)],
             ),
-            (
-                "Water Festival",
-                vec![
-                    lunar(year, 12, 14),
-                    lunar(year, 12, 15),
-                    lunar(year, 12, 16),
-                ],
-            ),
+            ("Pchum Ben", run(pchum)),
+            ("Water Festival", run(water)),
         ] {
             assert_eq!(dated(name), expected, "{year} {name}");
+            for day in &expected {
+                let confidence = calendar
+                    .on(*day)
+                    .into_iter()
+                    .find(|holiday| holiday.name == name)
+                    .map(|holiday| holiday.confidence);
+                assert_eq!(confidence, Some(Confidence::Exact), "{year} {name}");
+            }
             checked += expected.len();
         }
     }
-    assert_eq!(checked, 24);
+    assert_eq!(checked, 48);
+}
+
+#[test]
+fn cambodia_predicts_its_lunar_days_outside_the_years_read() {
+    // 2023, whose sub-decree was not read, and 2028: the calendar's days,
+    // approximate. 15 keit Pisakh 2567 is 4 May 2023.
+    assert_eq!(
+        confidence_of("KH", 2023, 5, 4, "Visak Bochea"),
+        Confidence::Approximate
+    );
+    assert_eq!(
+        confidence_of("KH", 2028, 11, 9, "Independence Day"),
+        Confidence::Exact
+    );
+    let calendar = HolidayCalendar::for_year(table("KH"), None, 2028);
+    let visak: Vec<Rd> = calendar
+        .in_year(2028)
+        .iter()
+        .filter(|holiday| holiday.name == "Visak Bochea")
+        .map(|holiday| holiday.date)
+        .collect();
+    assert_eq!(visak.len(), 1);
+    assert_eq!(
+        confidence_of("KH", 2028, 1, 1, "International New Year Day"),
+        Confidence::Exact
+    );
 }
 
 #[test]
@@ -2559,23 +2592,38 @@ fn cambodia_moves_nothing_off_its_sunday_weekend() {
 
 #[test]
 fn cambodia_reports_the_years_its_sub_decrees_do_not_cover_as_gaps() {
-    assert!(HolidayCalendar::for_year(table("KH"), None, 2027).is_complete());
-    let beyond = HolidayCalendar::for_year(table("KH"), None, 2028);
-    assert!(!beyond.is_complete());
-    let missing: Vec<&str> = beyond.gaps().iter().map(|gap| gap.name).collect();
-    for name in [
-        "Khmer New Year",
-        "Visak Bochea",
-        "Royal Ploughing Ceremony",
-        "Pchum Ben",
-        "Water Festival",
-    ] {
+    for year in [2021, 2022, 2024, 2025, 2026, 2027] {
         assert!(
-            missing.contains(&name),
-            "{name} should be a gap: {missing:?}"
+            HolidayCalendar::for_year(table("KH"), None, year).is_complete(),
+            "{year}"
         );
     }
-    assert_eq!(beyond.name_on(ymd(2028, 11, 9)), Some("Independence Day"));
+    // Khmer New Year, which the Khmer calendar does not date, before,
+    // between and after the sub-decrees read; Peace Day in 2023 alone.
+    for (year, expected) in [
+        (2020, &["Khmer New Year"][..]),
+        (2023, &["Khmer New Year", "Peace Day in Cambodia"][..]),
+        (2028, &["Khmer New Year"][..]),
+    ] {
+        let calendar = HolidayCalendar::for_year(table("KH"), None, year);
+        let mut missing: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        missing.dedup();
+        assert_eq!(missing, expected, "{year}");
+    }
+    // Peace Day is in the sub-decrees from 2024, and not in 2021's or
+    // 2022's.
+    expect_working("KH", None, &[(2021, 12, 29), (2022, 12, 29)]);
+    expect("KH", None, &[(2024, 12, 29, "Peace Day in Cambodia")]);
+    expect(
+        "KH",
+        None,
+        &[
+            (2021, 4, 14, "Khmer New Year"),
+            (2022, 4, 16, "Khmer New Year"),
+            (2024, 4, 13, "Khmer New Year"),
+            (2024, 4, 16, "Khmer New Year"),
+        ],
+    );
 }
 
 #[test]

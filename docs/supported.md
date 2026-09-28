@@ -258,7 +258,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BO` | Bolivia | 11 | yes | stated | 2026-09-22 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
-| `BT` | Bhutan | 33 | none | stated | 2026-09-26 |
+| `BT` | Bhutan | 43 | none | stated | 2026-09-29 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
@@ -311,7 +311,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 39 | none | stated | 2026-09-27 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 14 | none | stated | 2026-09-28 |
-| `IN` | India | 42 | none | stated | 2026-09-27 |
+| `IN` | India | 581 | none | stated | 2026-09-29 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
@@ -321,7 +321,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `JP` | Japan | 64 | yes | stated | 2026-09-28 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
-| `KH` | Cambodia | 16 | none | stated | 2026-09-23 |
+| `KH` | Cambodia | 54 | none | stated | 2026-09-29 |
 | `KI` | Kiribati | 18 | none | stated | 2026-09-23 |
 | `KM` | Comoros | 13 | none | stated | 2026-09-25 |
 | `KN` | Saint Kitts and Nevis | 10 | yes | stated | 2026-09-23 |
@@ -367,7 +367,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NO` | Norway | 12 | none | stated | 2026-09-26 |
 | `NP` | Nepal | 23 | none | stated | 2026-09-23 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
-| `NZ` | New Zealand | 13 | yes | stated | 2026-09-26 |
+| `NZ` | New Zealand | 25 | yes | stated | 2026-09-29 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
 | `PA` | Panama | 15 | yes | stated | 2026-09-22 |
 | `PE` | Peru | 16 | none | stated | 2026-09-26 |
@@ -385,7 +385,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `RU` | Russia | 19 | none | stated | 2026-09-23 |
 | `RW` | Rwanda | 17 | yes | stated | 2026-09-23 |
 | `SA` | Saudi Arabia | 10 | none | stated | 2026-09-26 |
-| `SB` | Solomon Islands | 8 | yes | stated | 2026-09-23 |
+| `SB` | Solomon Islands | 17 | yes | stated | 2026-09-29 |
 | `SC` | Seychelles | 16 | yes | stated | 2026-09-23 |
 | `SD` | Sudan | 6 | none | stated | 2026-09-26 |
 | `SE` | Sweden | 17 | none | stated | 2026-09-26 |
@@ -423,7 +423,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `VC` | Saint Vincent and the Grenadines | 13 | yes | stated | 2026-09-23 |
 | `VE` | Venezuela | 15 | none | stated | 2026-09-23 |
 | `VN` | Vietnam | 14 | yes | stated | 2026-09-23 |
-| `VU` | Vanuatu | 14 | yes | stated | 2026-09-23 |
+| `VU` | Vanuatu | 20 | yes | stated | 2026-09-29 |
 | `WS` | Samoa | 11 | yes | stated | 2026-09-23 |
 | `YE` | Yemen | 19 | none | stated | 2026-09-23 |
 | `ZA` | South Africa | 12 | yes | stated | 2026-09-26 |

@@ -429,14 +429,21 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 | Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
-| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days and Traditional Day of Offering | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
+| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days and Traditional Day of Offering, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
+| Cambodia's Visak Bochea, Royal Ploughing Ceremony, Pchum Ben and Water Festival | the day the sub-decrees give on `khmer`, outside the years read (2021, 2022, 2024–2027); the Royal Government lists them each year, and the palace sets the Ploughing Ceremony |
 
 ## Deliberate gaps
 
 * **India** carries the three national holidays and the gazetted list, with
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
-  Diwali and Guru Nanak's Birthday computed on `hindu-lunar`; the states' own
-  days are not carried. Singapore's and Malaysia's Deepavali is the same
+  Diwali and Guru Nanak's Birthday computed on `hindu-lunar`. The thirteen
+  largest states' holidays under the Negotiable Instruments Act are carried
+  in their regions for 2025 and 2026, from the Reserve Bank of India's lists
+  for its regional offices, the states' notifications, gazette PDFs, not
+  having been read; 2027 is a gap. The other states and union territories
+  are not yet carried, and the Reserve Bank's list has most of them
+  ([india-state-holidays.md](../../docs/systems/india-state-holidays.md)).
+  Singapore's and Malaysia's Deepavali is the same
   Dīpāvalī rule. Indonesia's Nyepi is dated by the Balinese Śaka lunisolar
   calendar, which is not in the crate (`balinese-pawukon` is the 210-day
   wuku cycle, a different reckoning): it is carried from the joint decrees
@@ -459,14 +466,17 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   its third number skipped, and two were counted in 2025, its first
   skipped — so that year is a gap. Bhutan's Winter Solstice, Blessed Rainy Day
   and Dassain are its Ministry's lists for 2025 and 2026, and gaps in other
-  years.
+  years. Thimphu Drubchoe and Thimphu Tshechu, for Thimphu only, are carried
+  in `BT-15` as the lunar days are; the other districts' tshechus, whose
+  days each Dzongkhag Administration confirms, are not yet carried, as no
+  confirmation was read.
 * **Cambodia** carries the days off of the Royal Government's sub-decrees
-  for 2025, 2026 and 2027. Khmer New Year, Visak Bochea, the Royal Ploughing
-  Ceremony, Pchum Ben and the Water Festival are dated on the Khmer calendar
-  or by the palace. The crate depends on `hc-calendars-regional`, which
-  registers `khmer`, but rules for the Khmer days on that calendar are not
-  yet carried: they are the sub-decrees' dates, and another year reports
-  them as gaps.
+  for 2021, 2022 and 2024 to 2027. Visak Bochea, the Royal Ploughing
+  Ceremony, Pchum Ben and the Water Festival are rules on the Khmer
+  calendar, `khmer`, exact in those years and approximate in the others,
+  whose sub-decrees were not read. Khmer New Year is the solar New Year's,
+  which `khmer` does not compute: it is the sub-decrees' dates, and 2023 and
+  any year outside 2021–2027 report it as a gap.
 * **Laos** carries the official holidays of its Decree on Holidays. Lao New
   Year is the dates of the Prime Minister's Office's notices for 2024 to
   2026, and another year reports it as a gap; the Lao Women's Union's day,
@@ -478,12 +488,15 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   *Länder*, Australian states and territories, Canadian provinces, UK
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
   Herzegovina, Bangladesh's hill districts and the Japanese prefectures
-  that set a day of their own by ordinance are in, and so are a few
-  single places: Inauguration Day in the District of Columbia, Chișinău,
-  Guatemala City, San Salvador, Managua and Chile's Arica and Parinacota.
-  US states, Swiss cantons, Spanish autonomous communities, Italian
-  patron-saint days, Malaysian states and New Zealand anniversary days are
-  not.
+  that set a day of their own by ordinance are in, and so are New Zealand's
+  provincial anniversary days, India's thirteen largest states, the
+  provinces of Solomon Islands and Vanuatu, and Thimphu, and a few single
+  places: Inauguration Day in the District of Columbia, Chișinău, Guatemala
+  City, San Salvador, Managua and Chile's Arica and Parinacota. US states,
+  Swiss cantons, Spanish autonomous communities and Italian patron-saint
+  days are not. Malaysia's states are not yet carried: the Prime Minister's
+  Department's yearly lists, which give every state's days, are PDFs and
+  were not read, and kabinet.gov.my refused this session's requests.
 
 ## Business days
 

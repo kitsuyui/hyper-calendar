@@ -173,7 +173,7 @@ static MATARIKI: Listing = Listing::Dates(&[
     (2034, 7, 7), (2035, 6, 29),
 ]);
 
-static NZ_RULES: &[HolidayRule] = &[
+pub(super) static NZ_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
     HolidayRule::public("Day after New Year's Day", "", Rule::gregorian(1, 2)),
     // Waitangi Day and Anzac Day were mondayised only from 2014.
@@ -207,24 +207,27 @@ static NZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// New Zealand.
+/// New Zealand, with the provincial anniversary days in the regions that
+/// bear their provinces' names ([`super::new_zealand`]).
 pub static NEW_ZEALAND: RuleSet = RuleSet {
     code: "NZ",
     english_name: "New Zealand",
-    rules: NZ_RULES,
+    rules: &super::new_zealand::RULES,
     substitution: NZ_SUBSTITUTION,
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Holidays Act 2003, sections 44, 45 and 45A, and the Holidays (Full Recognition \
               of Waitangi Day and ANZAC Day) Amendment Act 2013; Te Kāhui o Matariki Public \
               Holiday Act 2022, Schedule 1, for the Matariki dates; legislation.govt.nz \
               refused access on 2026-09-26, so the Acts were not read, and the dates were \
               checked against Employment New Zealand's \"Public holidays and anniversary \
               dates\" (employment.govt.nz), retrieved 2026-09-26, and for Matariki 2028 to \
-              2035 Wikipedia, \"Matariki\" (secondary). Regional anniversary days are set by \
-              provincial custom and are not modelled",
+              2035 Wikipedia, \"Matariki\" (secondary); the provincial anniversary days from \
+              Employment New Zealand's list for 2026 and 2027 and its \"Previous years: \
+              Public holidays and anniversary dates\" for 2010 to 2025, retrieved \
+              2026-09-29, as src/countries/new_zealand.rs gives them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -596,7 +599,7 @@ static SB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static SB_RULES: &[HolidayRule] = &[
+pub(super) static SB_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
     HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
@@ -616,23 +619,26 @@ static SB_RULES: &[HolidayRule] = &[
 /// Sovereign" is appointed each year — the notices for 2018 and 2020
 /// gave the second Saturday of June, and the 2026 gazette as reported
 /// gave none — and is not carried. The notices also keep a Saturday
-/// holiday on the Friday before, which the Act does not say, and the
-/// provincial days are appointed each year under section 6; neither is
-/// modelled.
+/// holiday on the Friday before, which the Act does not say, and that is
+/// not modelled. The provincial days are appointed each year under
+/// section 6; those of 2026 are carried in their provinces
+/// ([`super::solomon_islands`]), and a later year reports them as a gap.
 pub static SOLOMON_ISLANDS: RuleSet = RuleSet {
     code: "SB",
     english_name: "Solomon Islands",
-    rules: SB_RULES,
+    rules: &super::solomon_islands::RULES,
     substitution: SB_SUBSTITUTION,
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act (Cap. 151), 1996 edition, PacLII's consolidation \
               (pha163) as the Internet Archive holds it, captured 2024-12-22, PacLII \
               refusing this session's requests; Ministry of Home Affairs, Public Notices \
               1/2017 and 1/2019 for 2018 and 2020 (mehrd.gov.sb, solomons.gov.sb); the \
-              Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23",
+              Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23; \
+              the same Island Sun report for the provincial days of 2026, retrieved \
+              2026-09-29",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -829,7 +835,7 @@ static VU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static VU_RULES: &[HolidayRule] = &[
+pub(super) static VU_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
     HolidayRule::public("Lini Day", "", Rule::gregorian(2, 21)),
     HolidayRule::public("Custom Chief's Day", "", Rule::gregorian(3, 5)),
@@ -856,21 +862,23 @@ static VU_RULES: &[HolidayRule] = &[
 /// Labour's brochure both give Constitution Day on 5 October and Unity
 /// Day on 29 November, and date the rest, and the table follows them —
 /// the days off are the same either way. The six provincial days those
-/// two list are not in the Act and are not carried, nor are days the
-/// President declares under section 2.
+/// two list are not in the Act; they are carried in their provinces from
+/// the Government's list ([`super::vanuatu`]). The days the President
+/// declares under section 2 are not carried.
 pub static VANUATU: RuleSet = RuleSet {
     code: "VU",
     english_name: "Vanuatu",
-    rules: VU_RULES,
+    rules: &super::vanuatu::RULES,
     substitution: VU_SUBSTITUTION,
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act [Cap. 114], Consolidated Edition 2006, sections 1 to 3 \
               and Schedule (moia.gov.vu; the same text on NATLEX); Government of Vanuatu, \
               \"Holidays\" (gov.vu); Department of Labour, Industrial Relations Unit, \
-              \"Public Holiday Brochure\" (dol.gov.vu); retrieved 2026-09-23",
+              \"Public Holiday Brochure\" (dol.gov.vu); retrieved 2026-09-23; the \
+              Government's list again for the provincial days, retrieved 2026-09-29",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
