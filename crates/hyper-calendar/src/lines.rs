@@ -777,12 +777,7 @@ fn period_cells(line: &mut Line<'_>, period: &NamingPeriod, calendar: &dyn DynCa
 mod tests {
     use super::*;
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.strip_suffix('\n')
-            .expect("a line")
-            .split('\t')
-            .collect()
-    }
+    use crate::boundary::cells;
 
     fn day(year: i64, month: u8, day: u8) -> i64 {
         hc_calendars_solar::gregorian::to_fixed(year, month, day)

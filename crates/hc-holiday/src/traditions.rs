@@ -3020,7 +3020,10 @@ static SIKH_RULES: &[HolidayRule] = &[
 /// Chhor Divas and the Parkash of Guru Nanak on the same rules as Diwali
 /// and Kartik Purnima in the Hindu table. The SGPC's own list of the
 /// movable dates of 2010 to 2020 has all three on those rules' days, and
-/// has Hola Mohalla a day after Holi in 2012, 2013 and 2016.
+/// has Hola Mohalla a day after Holi in 2012, 2013 and 2016. The same
+/// table's Hola Mohalla of 2003 to 2008 is the rule's too; its 11 March
+/// 2009 is Holi itself, a day before Chet vadi 1 at sunrise, and is the one
+/// year of 2003–2020 the rule misses, which the table's test states.
 ///
 /// **This is the 2003 calendar.** Pal Singh Purewal's calendar was adopted
 /// by the SGPC's general house and the Akal Takht in 2003. The SGPC's 2010
@@ -3060,8 +3063,10 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
 /// SikhNet's lists "as per SGPC Calendar" (`sikhnet-gurpurab-2021`,
 /// `sikhnet-gurpurab-2026`); 2022 and 2023 dekho-ji's "Nanakshahi Calendar
 /// SGPC" (`dekhoji-nanakshahi-sgpc`, secondary); 2024 PTC News,
-/// 1 November 2024 (`ptcnews-bandi-chhor-2024`); 2025 Babushahi, "as
-/// confirmed by" the SGPC (`babushahi-bandi-chhor-2025`).
+/// 1 November 2024 (`ptcnews-bandi-chhor-2024`); 2025 The Tribune,
+/// 22 October 2025 (`tribune-bandi-chhor-2025`), and Babushahi, "as
+/// confirmed by" the SGPC (`babushahi-bandi-chhor-2025`, secondary: read
+/// in a search engine's summary only).
 #[rustfmt::skip]
 static SGPC_BANDI_CHHOR: Listing = Listing::Dates(&[
     (2010, 11, 5), (2011, 10, 26), (2012, 11, 13), (2013, 11, 3), (2014, 10, 23),
@@ -3147,11 +3152,15 @@ pub static SIKH_SGPC: RuleSet = RuleSet {
               sikhnet-gurpurab-2026), \"as per SGPC Calendar\", for the sangrands and the \
               days of those years; the Encyclopaedia of Sikhism, \"Hola Mahalla\", as Asia \
               Samachar reprints it (asiasamachar-hola-mahalla-2015), for Chet wadi 1; The \
-              Tribune, AIR and The Week for Hola Mohalla and Vaisakhi of 2010 to 2025 \
-              (tribune-sgpc-days, air-hola-mohalla-2025, theweek-khalsa-sajna-2025); \
-              dekho-ji (dekhoji-nanakshahi-sgpc, secondary), PTC News \
-              (ptcnews-bandi-chhor-2024) and Babushahi (babushahi-bandi-chhor-2025) for \
-              Bandi Chhor Divas of 2022 to 2025; all retrieved 2026-09-28",
+              Tribune's reports of Vaisakhi, one a year from 2010 to 2025 \
+              (tribune-baisakhi-2010 to tribune-baisakhi-2025; those of 2020 and 2025 \
+              by the weekday only), and of Hola Mohalla on 26 March 2024 \
+              (tribune-hola-mohalla-2024), AIR (air-hola-mohalla-2025) and The Week \
+              (theweek-khalsa-sajna-2025); dekho-ji (dekhoji-nanakshahi-sgpc, \
+              secondary), PTC News (ptcnews-bandi-chhor-2024), The Tribune \
+              (tribune-bandi-chhor-2025) and Babushahi (babushahi-bandi-chhor-2025, \
+              secondary, a search summary) for Bandi Chhor Divas of 2022 to 2025; all \
+              retrieved 2026-09-28",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

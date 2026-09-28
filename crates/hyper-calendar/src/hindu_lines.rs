@@ -47,7 +47,7 @@ use hc_core::catalogue::matches;
 
 /// The name of the *Sūrya Siddhānta*'s sky, beside the ayanāṃśa names of
 /// the true one.
-pub const SURYA_SIDDHANTA: &str = "surya-siddhanta";
+pub use hc_calendars_indic::surya_siddhanta::SKY as SURYA_SIDDHANTA;
 
 /// The first fixed day the Siddhānta's exports answer for: Chaitra śukla 1
 /// of Kali Yuga 1 on `hindu-lunar-surya-siddhanta`, 13 January 3101 BCE.
@@ -290,7 +290,7 @@ pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<Strin
 }
 
 /// The rule of [`barhaspatya::RULES`] a name names, by
-/// [`barhaspatya::by_name`]:
+/// [`barhaspatya::by_id`]:
 /// `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the *bīja*, by which
 /// the registered pūrṇimānta calendar names its years;
 /// `surya-siddhanta`, the same without it; or `arya-siddhanta`.
@@ -299,7 +299,7 @@ pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<Strin
 ///
 /// [`Refusal::Unknown`] for any other name.
 pub fn barhaspatya_rule(name: &str) -> Answer<MeanSignRule> {
-    barhaspatya::by_name(name).ok_or(Refusal::Unknown)
+    barhaspatya::by_id(name).ok_or(Refusal::Unknown)
 }
 
 /// The first and last Śaka years, expired, the Bārhaspatya exports answer
@@ -339,8 +339,10 @@ pub const BARHASPATYA_YEAR_COLUMNS: usize = 5;
 ///
 /// The cells: the name's position, 1 for Prabhava through 60 for Kṣaya;
 /// its name in the locale; the expunged name's position and name, both
-/// empty in a year that expunges none; and the tag of the data that named
-/// them. The names are the pūrṇimānta calendar's, whose
+/// empty in a year that expunges none; and the locale used, the tag of the
+/// locale data that answered, as `hc_day_extras` writes it — the names are
+/// English's where that locale names no year, so `hi` is written beside
+/// Pingala. The names are the pūrṇimānta calendar's, whose
 /// `barhaspatya-samvatsara` field `hc_day_extras` writes, resolved as
 /// [`crate::lines`] resolves every locale. `rule` is
 /// [`barhaspatya_rule`]'s: the pūrṇimānta calendar's own is
@@ -386,8 +388,7 @@ pub const BARHASPATYA_AT_COLUMNS: usize = 3;
 /// give as correct within two ghaṭikās where the saṅkrānti is known.
 ///
 /// The cells: the position, 1 to 60; its name in the locale, as
-/// [`barhaspatya_year_line`] names it; and the tag of the data that named
-/// it.
+/// [`barhaspatya_year_line`] names it; and the locale used, as there.
 ///
 /// # Errors
 ///
@@ -418,12 +419,7 @@ mod tests {
 
     use hc_calendars_indic::places::{CENTRAL_STATION, UJJAIN};
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.strip_suffix('\n')
-            .expect("a line")
-            .split('\t')
-            .collect()
-    }
+    use crate::boundary::cells;
 
     fn ymd(year: i64, month: u8, day: u8) -> i64 {
         hc_calendars_solar::gregorian::to_fixed(year, month, day)

@@ -199,8 +199,10 @@ pub const HOLI: Rule = Rule::Offset {
 /// is fitted: it gives every day the SGPC kept that was read, 2010 to 2026,
 /// among them the three a day after [`HOLI`], 9 March 2012, 28 March 2013
 /// and 24 March 2016, and 26 March 2024, 15 March 2025 and 4 March 2026.
-/// A table carries the rule approximate, because it is fitted to those
-/// days and not quoted.
+/// It gives the 2003 calendar's days of 2003 to 2020 in Wikipedia's table of
+/// them, all but 11 March 2009, which is Holi's day and not the day after
+/// (`sikh-nanakshahi-2003`). A table carries the rule approximate, because
+/// it is fitted to those days and not quoted.
 ///
 /// The same reading gives 4 March 2026 and 23 March 2027, the days the
 /// central government's lists keep Holī a day after [`HOLI`] (see the

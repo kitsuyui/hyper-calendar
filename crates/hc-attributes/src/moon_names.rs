@@ -69,6 +69,7 @@
 //! reports which month it landed in.
 //!
 //! ```
+//! # #[cfg(feature = "seasons")] {
 //! use hc_attributes::moon_names::{harvest_moon, harvest_moon_falls_in};
 //! use hc_seasons::Meridian;
 //!
@@ -77,6 +78,7 @@
 //! assert_eq!(harvest_moon_falls_in(2025, Meridian::UNIVERSAL), 10);
 //! assert_eq!(harvest_moon_falls_in(2024, Meridian::UNIVERSAL), 9);
 //! let _ = harvest_moon(2025, Meridian::UNIVERSAL);
+//! # }
 //! ```
 //!
 //! # Accuracy

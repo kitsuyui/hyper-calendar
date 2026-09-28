@@ -69,6 +69,7 @@
 pub mod bodies;
 pub mod circad;
 pub mod clock;
+pub mod dated;
 pub mod galilean;
 pub mod mars;
 pub mod moon;

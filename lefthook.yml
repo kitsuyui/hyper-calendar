@@ -71,8 +71,15 @@ pre-push:
     # target that the default build never exercises.
     - name: build-no-std
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar --no-default-features --features alloc,libm
+    # Every crate for a target with no `std`, with and without `alloc`, as
+    # the no-std job builds them: about 10 s on a warm target directory.
+    # Needs `rustup target add aarch64-unknown-none`.
     - name: build-no-std-crates
-      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; for manifest in crates/hc-*/Cargo.toml; do crate=$(basename "$(dirname "$manifest")"); cargo build -p "$crate" --no-default-features --features alloc,libm || exit 1; done
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; scripts/no-std-builds.sh
+    # The crates whose defaults turn on an optional dependency, tested
+    # with it off, as the no-std job tests them.
+    - name: test-optional-off
+      run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; for crate in hc-fiscal hc-attributes hc-uncertainty hc-humanize; do cargo test -q -p "$crate" --no-default-features --features std || exit 1; done
     - name: build-wasm
       run: for name in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$name"; done; cargo build -p hyper-calendar-wasm --target wasm32-unknown-unknown
     - name: build-wasm-holiday

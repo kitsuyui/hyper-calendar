@@ -158,6 +158,9 @@ pub struct GravitatingBody {
     pub english_name: &'static str,
     /// The standard gravitational parameter `GM`, in m³ s⁻².
     pub gm: f64,
+    /// The name of the constant of this module that holds `gm`, as a
+    /// program that reads the table can refer to it: `GM_SUN`.
+    pub gm_constant: &'static str,
     /// Where the value came from, for a footnote or a provenance record.
     pub source: &'static str,
 }
@@ -203,6 +206,7 @@ hc_core::catalogue! {
             id: "sun",
             english_name: "Sun",
             gm: GM_SUN,
+            gm_constant: "GM_SUN",
             source: "JPL DE440, Park et al., AJ 161:105 (2021), via NAIF gm_de440.tpc BODY10_GM",
         };
 
@@ -211,6 +215,7 @@ hc_core::catalogue! {
             id: "earth",
             english_name: "Earth",
             gm: GM_EARTH,
+            gm_constant: "GM_EARTH",
             source: "IERS Conventions (2010) and WGS 84",
         };
 
@@ -219,6 +224,7 @@ hc_core::catalogue! {
             id: "moon",
             english_name: "Moon",
             gm: GM_MOON,
+            gm_constant: "GM_MOON",
             source: "JPL DE440, Park et al., AJ 161:105 (2021), via NAIF gm_de440.tpc BODY301_GM",
         };
 
@@ -227,6 +233,7 @@ hc_core::catalogue! {
             id: "mars",
             english_name: "Mars system",
             gm: GM_MARS,
+            gm_constant: "GM_MARS",
             source: "JPL DE440, Mars system",
         };
 
@@ -235,6 +242,7 @@ hc_core::catalogue! {
             id: "jupiter",
             english_name: "Jupiter system",
             gm: GM_JUPITER,
+            gm_constant: "GM_JUPITER",
             source: "JPL DE440, Jupiter system",
         };
 
@@ -243,6 +251,7 @@ hc_core::catalogue! {
             id: "sagittarius-a-star",
             english_name: "Sagittarius A*",
             gm: GM_SAGITTARIUS_A_STAR,
+            gm_constant: "GM_SAGITTARIUS_A_STAR",
             source: "GRAVITY Collaboration, A&A 657, L12 (2022)",
         };
     }

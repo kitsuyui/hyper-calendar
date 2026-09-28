@@ -245,11 +245,10 @@ pub fn ccsds_ascii_parse_line(text: &str, strict: bool) -> Answer<String> {
     let mut line = Line::new(&mut out);
     line.cell(code.variation.id());
     instant_cells(&mut line, tai, utc)?;
+    line.cell(code.precision.kind());
     match code.precision {
-        AsciiPrecision::Hour => line.cell("hour").empty(),
-        AsciiPrecision::Minute => line.cell("minute").empty(),
-        AsciiPrecision::Second => line.cell("second").empty(),
-        AsciiPrecision::Fraction(digits) => line.cell("fraction").value(digits),
+        AsciiPrecision::Fraction(digits) => line.value(digits),
+        AsciiPrecision::Hour | AsciiPrecision::Minute | AsciiPrecision::Second => line.empty(),
     };
     line.flag(code.terminator);
     line.end();

@@ -217,7 +217,12 @@ fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
     let mut flags = 0_usize;
     for meta in registry.metas() {
         let calendar = registry.get(meta.id).expect("registered");
-        let days = [meta.sample_day(Rd(739_886)), meta.sample_day(Rd(730_179))];
+        // Two days of every calendar, and four that reach the leap and
+        // late units: a late Tagu, 29 March 2017; First Waso and the
+        // Thai first eighth month, 14 July 2026; Waso's full moon,
+        // 20 July 2024; and the Chinese leap sixth month, 30 July 2025.
+        let days = [739_886, 730_179, 736_417, 739_811, 739_087, 739_462]
+            .map(|day| meta.sample_day(Rd(day)));
         // One memo for the calendar's days, as in the test above.
         hyper_calendar::hc_core::memo::scope(|| {
             for day in days {
@@ -319,7 +324,10 @@ fn every_flag_reads_as_words() {
         assert!(
             matches!(
                 named.names,
-                ValueNames::Flag | ValueNames::Own(_) | ValueNames::Localized { .. }
+                ValueNames::Flag
+                    | ValueNames::Marker { .. }
+                    | ValueNames::Own(_)
+                    | ValueNames::Localized { .. }
             ),
             "{id} {field}"
         );
@@ -533,6 +541,19 @@ fn the_extras_a_source_writes_are_in_the_date() {
         "Asvina 16, 71 Anka 1434"
     );
     assert_eq!(formatted("juche", today, "ko"), "주체115(2026)년 9월 27일");
+    // The zh and ja pages' forms, 主体99（2010）年 and 主体113年（2024年）.
+    assert_eq!(
+        formatted("juche", today, "zh-Hans"),
+        "主体115（2026）年9月27日"
+    );
+    assert_eq!(
+        formatted("juche", today, "zh-Hant"),
+        "主體115（2026）年9月27日"
+    );
+    assert_eq!(
+        formatted("juche", today, "ja"),
+        "主体115年（2026年）9月27日"
+    );
     assert_eq!(
         formatted("juche", today, "en"),
         "September 27, Juche 115 (2026)"
@@ -550,7 +571,39 @@ fn the_extras_a_source_writes_are_in_the_date() {
     );
     assert_eq!(
         formatted("burmese", 736_417, "my"),
-        "၁၃၇၈ ခုနှစ်၊ တန်ခူးလဆန်း ၂ ရက်"
+        "၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်"
+    );
+    assert_eq!(
+        formatted("burmese", 736_417, "en"),
+        "Late Tagu waxing 2, 1378 ME"
+    );
+    // The two Wasos of a watat year: a government order's «၁၃၈၅ ခုနှစ်၊
+    // ဒုတိယဝါဆိုလဆန်း ၄ ရက်» for 21 July 2023, as Burmese Wikipedia's
+    // ဇင်မင်းထက် cites it, and the Ministry of Religious Affairs' 14 July
+    // 2026, the fifteenth waning day of First Waso, «၁၃၈၈ ခုနှစ်၊ ပထမ
+    // ဝါဆိုလပြည့်ကျော်(၁၅)ရက်» (mora.gov.mm, read 2026-09-28), which this
+    // library writes by the half, လဆုတ်.
+    assert_eq!(
+        formatted("burmese", 738_722, "my"),
+        "၁၃၈၅ ခုနှစ်၊ ဒုတိယဝါဆိုလဆန်း ၄ ရက်"
+    );
+    assert_eq!(
+        formatted("burmese", 739_811, "my"),
+        "၁၃၈၈ ခုနှစ်၊ ပထမဝါဆိုလဆုတ် ၁၅ ရက်"
+    );
+    assert_eq!(
+        formatted("burmese", 739_811, "en"),
+        "First Waso waning 15, 1388 ME"
+    );
+    assert_eq!(
+        formatted("burmese", 738_722, "en"),
+        "Second Waso waxing 4, 1385 ME"
+    );
+    // The Persian date in Cantonese, in one script: `yue.xml`'s numbered
+    // months with its era, 波斯曆.
+    assert_eq!(
+        formatted("persian", today, "yue-Hant"),
+        "波斯曆1405年7月5日"
     );
     // The Khmer date in Tum's order, the printed year after it.
     assert_eq!(formatted("khmer", today, "en"), "1 roaj Phôtrôbât 2570 BE");
@@ -563,6 +616,18 @@ fn the_extras_a_source_writes_are_in_the_date() {
     assert_eq!(formatted("hebrew", today, "en"), "16 Tishri 5787");
     assert_eq!(formatted("roc", today, "zh-Hant"), "民國115年9月27日");
     assert_eq!(formatted("roc", 697_000, "zh-Hant"), "民國前3年4月28日");
+    // The Minguo era in the abbreviated width a date writes, as CLDR 48's
+    // files name it or, where they write the marker, root's ROC.
+    for (tag, era) in [
+        ("th", "ไต้หวัน"),
+        ("fr", "RdC"),
+        ("ru", "Minguo"),
+        ("vi", "ROC"),
+        ("he", "ROC"),
+    ] {
+        let text = formatted("roc", today, tag);
+        assert!(text.contains(era), "{tag}: {text}");
+    }
     assert_eq!(formatted("yazidi", today, "en"), "6776, day 166");
     assert_eq!(
         formatted("olympiad", today, "en"),

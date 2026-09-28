@@ -102,6 +102,9 @@ the ayanāṃśa.
   2026-09-28.
 - [drik-panchak]: the windows of 2025 and 2026 for New Delhi. Read
   2026-09-28. The page does not state the rule.
+- [amarujala-raj-panchak-2026]: the five kinds' Hindi names, रोग पंचक to
+  राज पंचक, which `hc_i18n::reckonings` carries under `hi`, and Raj Panchak
+  from Monday 13 April 2026. Read 2026-09-28.
 
 ## Code
 

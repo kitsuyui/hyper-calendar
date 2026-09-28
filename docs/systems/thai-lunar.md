@@ -167,6 +167,13 @@ later.
   `fortnight-day`; the module documentation gives the layout. The functions
   `makha_bucha`, `visakha_bucha`, `asalha_bucha` and `khao_phansa` give the
   holy days, and `hc-holiday` dates Thailand's public holidays on them.
+- **The written date**, by `hc-i18n`'s notation for the calendar, the half,
+  the day, ค่ำ, the month and the year, «ขึ้น 15 ค่ำ เดือนแปด 2569»; the extra
+  month 8 of an adhikamāsa year is เดือนแปดแรก, as Thai Wikipedia's
+  จุลศักราช names it beside เดือนแปดหลัง [thwiki-chulasakarat], so that no
+  two days are written alike. The regular month keeps เดือนแปด in that year
+  too: the calendar's leap years are the adhikavāra ones as well, whose
+  month 8 is not หลัง, and a name by the year type is not carried.
 - **The uposatha days**, วันพระ, in `hc-holiday`'s `buddhist-uposatha-thai`:
   ขึ้น 8 ค่ำ, ขึ้น 15 ค่ำ, แรม 8 ค่ำ, and the last day of the month, which is
   แรม 15 ค่ำ in a month of 30 days and แรม 14 ค่ำ in one of 29, a เดือนขาด
@@ -319,6 +326,7 @@ those years rest on the module's reading of 2026-09-23.
 
 | Key | Used for | Read |
 | --- | --- | --- |
+| [thwiki-chulasakarat] | เดือนแปดแรก and เดือนแปดหลัง, the two eighth months of an adhikamāsa year | Yes, 2026-09-28 |
 | [bot-fiholiday] | The Makha, Visakha and Khao Phansa (to 2006) or Asalha Bucha (from 2007) dates of 2535–2565 BE, and the 2007 note that Asalha Bucha replaced Khao Phansa on the advice of the Office of National Buddhism | 1992, 2007 and 2022 re-read 2026-09-25 through the Internet Archive; the other years read 2026-09-23 and now unreachable there |
 | [bot-fpg3-2565] | The dates of 2566 BE (2023) | Read 2026-09-23; on 2026-09-25 through press reports only |
 | [bot-fpg8-2566] | The dates of 2567 BE (2024) | Yes, the Royal Gazette copy, 2026-09-25 |

@@ -153,11 +153,12 @@ calendars print another. Every reading opens a `hc_core::memo::scope`, and
 3,653 consecutive days take 21 to 26 ms inside one in a release build, and
 about 45 µs a day outside one.
 
-Until 2026 these annotations read a simplified derivation `hc-seasons` kept
-for cost. At the Japanese meridian it was wrong on 89 of the 3,653 days of
-2024–2033, all from 25 August to 21 November 2033, and on 268 days in five
-runs over 1900–2100, and at the Chinese meridian on the same 89 and on 329
-in seven runs;
+The annotations read the calendars, not the plain 中気 rule applied month
+by month, which is cheaper and wrong where a month holds two 中気: at the
+Japanese meridian that rule numbers other months than the calendar on 89 of
+the 3,653 days of 2024–2033, all from 25 August to 21 November 2033, and on
+268 days in five runs over 1900–2100, and at the Chinese meridian on the
+same 89 and on 329 in seven runs;
 `docs/systems/zassetsu-and-rokuyo.md` lists them and the published calendar
 they were checked against.
 

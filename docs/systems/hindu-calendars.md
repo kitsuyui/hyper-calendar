@@ -352,7 +352,7 @@ print:
 
 | Vikrama | Year | *Bīja* rule | Without the *bīja* | What the press printed |
 | --- | --- | --- | --- | --- |
-| 2068–2074 | 2011–17 | Krodhin to Sadharana | the same | the same names every year: Webdunia and Oneindia [webdunia-samvat-2068-2074] |
+| 2068–2074 | 2011–17 | Krodhin to Sadharana | the same | the same names every year: Webdunia and Oneindia [webdunia-samvat-2068-2074, oneindia-samvat-2069] |
 | 2075 | 2018 | Virodhakrit | Paridhavin | Virodhakrit: Punjab Kesari [punjabkesari-samvat-2075] |
 | 2076 | 2019 | Paridhavin | Pramadin | Paridhavi: Amar Ujala [amarujala-samvat-2076] |
 | 2077 | 2020 | Pramadin | Ananda | Pramadi: Future Point, and Amar Ujala with Ananda "from 6 April" [futurepoint-samvat-2077, amarujala-samvat-2077] |
@@ -1112,7 +1112,8 @@ for 2024 and 2025 give the times the tests hold.
 | [dainiktribune-samvat-2082] | Vikrama 2082 Siddharthi, from 30 March 2025 | Yes, 2026-09-28 |
 | [aajtak-samvat-2083] | Vikrama 2083 Raudra, from 19 March 2026 | Yes, 2026-09-28 |
 | [drikpanchang-samvatsara-days] | The Vikrama year's name and the samvatsaras running for New Delhi on 1 June 1942, 1 January and 1 June 1943, 1 June 2019 to 2027, 1 January and 1 June 2028, and 23 to 25 March and 1 April 2031 | Yes, 2026-09-28 |
-| [webdunia-samvat-2068-2074] | Vikrama 2068 Krodhi, 2070 Parabhava, 2071 Plavanga, 2072 Kilaka, 2073 Saumya and 2074 Sadharana; Oneindia's 2069 Vishvavasu | Yes, 2026-09-28 |
+| [webdunia-samvat-2068-2074] | Vikrama 2068 Krodhi, 2070 Parabhava, 2071 Plavanga, 2072 Kilaka, 2073 Saumya and 2074 Sadharana | Yes, 2026-09-28 |
+| [oneindia-samvat-2069] | Vikrama 2069 Vishvavasu | Yes, 2026-09-28 |
 | [punjabkesari-samvat-2075] | Vikrama 2075 Virodhakrit | Yes, 2026-09-28 |
 | [amarujala-samvat-2076] | Vikrama 2076 Paridhavi | Yes, 2026-09-28 |
 | [futurepoint-samvat-2077] | Vikrama 2077 Pramadi | Yes, 2026-09-28 |

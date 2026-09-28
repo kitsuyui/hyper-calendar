@@ -1618,6 +1618,86 @@ hc_core::catalogue! {
     }
 }
 
+/// One of the times of a day of prayer, by its identifier: a line of
+/// prayer times names each time by it.
+#[derive(Debug, Clone, Copy)]
+pub struct PrayerTime {
+    /// The identifier, `fajr` to `midnight`.
+    pub id: &'static str,
+    /// The time on a local day at a place by a method, in Universal Time,
+    /// in Ramadan or not, which only *ʿishāʾ* asks.
+    pub at: fn(Rd, Location, &PrayerMethod, bool) -> Result<Moment, MissingSolarEvent>,
+}
+
+/// The times of a day of prayer, in the order of the day: *fajr*, sunrise,
+/// *ẓuhr* at solar noon, *ʿaṣr* by the Shāfiʿī and the Ḥanafī shadow,
+/// *maghrib*, *ʿishāʾ* and the Islamic midnight.
+pub const PRAYER_TIMES: [PrayerTime; 8] = [
+    PrayerTime {
+        id: "fajr",
+        at: |day, place, method, _| fajr(day, place, method),
+    },
+    PrayerTime {
+        id: "sunrise",
+        at: |day, place, _, _| sunrise(day, place).ok_or(MissingSolarEvent::Sunrise(day)),
+    },
+    PrayerTime {
+        id: "zuhr",
+        at: |day, place, _, _| Ok(solar_noon(day, place)),
+    },
+    PrayerTime {
+        id: "asr-shafii",
+        at: |day, place, _, _| asr_shafii(day, place),
+    },
+    PrayerTime {
+        id: "asr-hanafi",
+        at: |day, place, _, _| asr_hanafi(day, place),
+    },
+    PrayerTime {
+        id: "maghrib",
+        at: |day, place, method, _| maghrib(day, place, method),
+    },
+    PrayerTime {
+        id: "isha",
+        at: isha,
+    },
+    PrayerTime {
+        id: "midnight",
+        at: |day, place, method, _| islamic_midnight(day, place, method),
+    },
+];
+
+/// One of the dawns and nightfalls of the Jewish day that no reckoning of
+/// the temporal hours changes, by its identifier.
+#[derive(Debug, Clone, Copy)]
+pub struct JewishTwilight {
+    /// The identifier, `dawn-16-1-degrees` to `nightfall-72-minutes`.
+    pub id: &'static str,
+    /// The time on a local day at a place, in Universal Time.
+    pub at: fn(Rd, Location) -> Result<Moment, MissingSolarEvent>,
+}
+
+/// The dawns and nightfalls, dawn first: the Sun 16.1° below the horizon
+/// and 72 minutes before sunrise, then 8.5° below it and 72 minutes after
+/// sunset.
+pub const JEWISH_TWILIGHTS: [JewishTwilight; 4] = [
+    JewishTwilight {
+        id: "dawn-16-1-degrees",
+        at: jewish_dawn_16_1_degrees,
+    },
+    JewishTwilight {
+        id: "dawn-72-minutes",
+        at: jewish_dawn_72_minutes,
+    },
+    JewishTwilight {
+        id: "nightfall-8-5-degrees",
+        at: jewish_nightfall_8_5_degrees,
+    },
+    JewishTwilight {
+        id: "nightfall-72-minutes",
+        at: jewish_nightfall_72_minutes,
+    },
+];
 #[cfg(test)]
 mod tests {
     use super::*;

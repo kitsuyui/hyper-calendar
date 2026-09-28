@@ -307,22 +307,23 @@ pub fn zones() -> impl Iterator<Item = ZoneLocation> {
     rows().take(tables::ZONE1970_ROWS)
 }
 
-/// The row of a name in [`rows`], matched without regard to ASCII case.
+/// The row of a name in [`rows`], matched by [`hc_core::catalogue::matches`]:
+/// without regard to ASCII case or the white space around it.
 #[must_use]
 pub fn row_of(name: &str) -> Option<ZoneLocation> {
-    rows().find(|row| row.zone.eq_ignore_ascii_case(name))
+    rows().find(|row| hc_core::catalogue::matches(name, row.zone))
 }
 
 /// The name with a row that a link of `backward` is answered by:
-/// `Asia/Kolkata` for `Asia/Calcutta`, matched without regard to ASCII
-/// case. `None` for a name that is not such a link — a name with a row of
+/// `Asia/Kolkata` for `Asia/Calcutta`, matched by
+/// [`hc_core::catalogue::matches`]. `None` for a name that is not such a link — a name with a row of
 /// its own, and a link to a zone with no location, such as `UTC` to
 /// `Etc/UTC`.
 #[must_use]
 pub fn link_target(name: &str) -> Option<&'static str> {
     tables::LINKS.lines().find_map(|line| {
         let (link, target) = line.split_once('\t')?;
-        link.eq_ignore_ascii_case(name).then_some(target)
+        hc_core::catalogue::matches(name, link).then_some(target)
     })
 }
 
@@ -369,6 +370,43 @@ fn parse_row(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Every row and every link is found by its name upper-cased,
+    /// lower-cased and padded, as `hc_core::catalogue_tests!` checks a
+    /// table, and no two names are one in every case.
+    #[test]
+    fn every_name_matches_by_the_catalogue_rule() {
+        for row in rows() {
+            for given in [
+                row.zone.to_ascii_uppercase(),
+                row.zone.to_ascii_lowercase(),
+                std::format!(" {} ", row.zone),
+            ] {
+                assert_eq!(row_of(&given), Some(row), "{given:?}");
+            }
+            assert_eq!(
+                rows()
+                    .filter(|other| other.zone.eq_ignore_ascii_case(row.zone))
+                    .count(),
+                1,
+                "{}",
+                row.zone
+            );
+        }
+        for line in tables::LINKS.lines() {
+            let (link, target) = line.split_once('\t').expect("a link and its target");
+            assert_eq!(
+                link_target(&link.to_ascii_uppercase()),
+                Some(target),
+                "{link}"
+            );
+            assert_eq!(
+                link_target(&std::format!(" {link} ")),
+                Some(target),
+                "{link}"
+            );
+        }
+    }
 
     const ZONE1970: &str = include_str!("../data/zone1970.tab");
     const ZONE_TAB: &str = include_str!("../data/zone.tab");

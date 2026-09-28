@@ -1710,9 +1710,11 @@ macro_rules! exports {
             /// saṅkrānti of its solar year. Tab-separated: the name's position, 1
             /// for Prabhava through 60 for Kṣaya, and its name in the locale; the
             /// position and name of the one the rule expunges in that solar year,
-            /// both empty in a year that expunges none; and the tag of the data
-            /// that named them, as `hc_day_extras` names the pūrṇimānta calendar's
-            /// `barhaspatya-samvatsara`. The locale argument fails as
+            /// both empty in a year that expunges none, named as `hc_day_extras`
+            /// names the pūrṇimānta calendar's `barhaspatya-samvatsara`; and the
+            /// locale used, as column 7 of `hc_day_extras` gives it, the tag of the
+            /// locale data that answered, whose names may be English's: `hi` for
+            /// Pingala under `hi`. The locale argument fails as
             /// `hc_parse_iso_date` does. A Śaka year outside −3178 to 6821, Kali
             /// Yuga 1 to 10 000 expired, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
             /// returns the length the text needs.
@@ -1726,8 +1728,8 @@ macro_rules! exports {
             /// caller-owned buffer.
             ///
             /// `rule` is as for `hc_barhaspatya_year`. The line is the WebAssembly
-            /// module's: the position, its name in the `locale`, and the tag that
-            /// named it. An instant outside the days of Kali Yuga 1 to 10 000 is
+            /// module's: the position, its name in the `locale`, and the locale
+            /// used. An instant outside the days of Kali Yuga 1 to 10 000 is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
         }
@@ -1741,7 +1743,8 @@ macro_rules! exports {
             /// rule ends it, and the next from then; Sewell and Dikshit give the
             /// ends as correct within two ghaṭikās where the saṅkrānti is known.
             /// Tab-separated: the position, 1 to 60, its name in the locale, and
-            /// the tag of the data that named it. The locale argument fails as
+            /// the locale used, as `hc_barhaspatya_year` gives it. The locale
+            /// argument fails as
             /// `hc_parse_iso_date` does. An instant outside the days of Kali Yuga 1
             /// to 10 000, as for `hc_surya_siddhanta_at`, is `HC_ERR_OUT_OF_RANGE`.
             /// A null `buffer` returns the length the text needs.
@@ -1755,7 +1758,8 @@ macro_rules! exports {
 
         c {
             /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
-            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            /// NUL-terminated UTF-8 lines, each named in a locale, in a
+            /// caller-owned buffer.
             ///
             /// `convention` is `rahu-kalam-sunrise` or `rahu-kalam-fixed`, in any
             /// case; anything else is `HC_ERROR_UNKNOWN`, and null
@@ -1770,7 +1774,8 @@ macro_rules! exports {
         }
         wasm {
             /// Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three
-            /// UTF-8 lines, returning the byte length written.
+            /// UTF-8 lines, each named in a locale, returning the byte length
+            /// written.
             ///
             /// `convention` is `rahu-kalam-sunrise`, the daylight from sunrise to
             /// sunset at the place cut into eight, as Drik Panchang computes it, or
@@ -3705,7 +3710,8 @@ macro_rules! exports {
 
         c {
             /// The planetary hour at a POSIX timestamp and a place, as one
-            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            /// NUL-terminated UTF-8 line, its ruler named in a locale, in a
+            /// caller-owned buffer.
             ///
             /// The line is the WebAssembly module's: the fixed day of the sunrise
             /// the planetary day began at, the hour, 1 to 24, the ruler's
@@ -3719,7 +3725,8 @@ macro_rules! exports {
         }
         wasm {
             /// The planetary hour at a POSIX timestamp and a place, as one UTF-8
-            /// line, returning the byte length written.
+            /// line, its ruler named in a locale, returning the byte length
+            /// written.
             ///
             /// The daylight from sunrise to sunset and the night to the next
             /// sunrise are each twelve temporal hours, and each hour is ruled by a
@@ -3757,7 +3764,8 @@ macro_rules! exports {
         c {
             /// The twenty-four planetary hours of the planetary day that begins at
             /// the sunrise of a fixed day at a place, as NUL-terminated UTF-8 lines
-            /// in `hc_planetary_hour`'s columns in a caller-owned buffer.
+            /// in `hc_planetary_hour`'s columns, each ruler named in a locale, in a
+            /// caller-owned buffer.
             ///
             /// A place off the globe, or a day outside the years −1000 to 3000, is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
@@ -3766,7 +3774,8 @@ macro_rules! exports {
         wasm {
             /// The twenty-four planetary hours of the planetary day that begins at
             /// the sunrise of a fixed day at a place, as UTF-8 lines in
-            /// `hc_planetary_hour`'s columns, returning the byte length written.
+            /// `hc_planetary_hour`'s columns, each ruler named in a locale,
+            /// returning the byte length written.
             ///
             /// The rulers are the weekday's alone; where the sunrise or sunset an
             /// hour is counted from does not happen, its start and end are empty

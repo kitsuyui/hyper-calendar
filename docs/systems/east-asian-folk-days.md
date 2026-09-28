@@ -345,6 +345,9 @@ almanacs, and no printed almanac was read.
 - [qq-meiyu-2024], [qq-meiyu-2025], [netease-meiyu-2025], [qq-meiyu-2026] —
   news articles giving 入梅 and 出梅 of 2024–2026 with their day signs.
   Read 2026-09-28.
+- [nownews-er-long-zhi-shui-2020] — NOWnews 保庇網, 18 December 2020: the
+  almanac's 幾龍治水, 幾牛耕地 and 幾日得辛 in Traditional characters, which
+  `hc_i18n::reckonings` carries under `zh-Hant`. Read 2026-09-28.
 
 ## Code
 

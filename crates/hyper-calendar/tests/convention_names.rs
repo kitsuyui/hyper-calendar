@@ -7,28 +7,41 @@
 //! the rustdoc of each export of the C library and the WebAssembly module,
 //! in their READMEs, and as a union type in the binding's `.d.ts` — and a
 //! written list is right on the day it is written. So each is held to the
-//! table here: the `.d.ts` type names exactly the table's identifiers, and
+//! table here: the `.d.ts` type names exactly the table's identifiers,
 //! every rustdoc block, README paragraph and roadmap table that lists them
-//! names every one. A listing that hands the identifiers back — `missions()`,
-//! `bodies()`, `horizons()` — types its field with the same union, so that
-//! a caller passes a listed identifier to the lookup without a cast.
+//! names every one, and each identifier of a convention is named by a row
+//! or paragraph of the roadmaps, as §5's "The roadmap row gives the
+//! identifiers" asks. Every `.d.ts` union of a convention's identifiers is
+//! one of these; the unions of the words a line is written in, such as
+//! `Standing` or `MoonPhaseName`, are not tables and are not held here. A
+//! listing that hands the identifiers back — `missions()`, `bodies()`,
+//! `horizons()` — types its field with the same union, so that a caller
+//! passes a listed identifier to the lookup without a cast.
 
 #![cfg(feature = "full")]
 
 use std::collections::BTreeSet;
 
 use hyper_calendar::hc_astro::HORIZONS;
-use hyper_calendar::hc_astro::solar_time::{SolarClock, SolarEvent};
+use hyper_calendar::hc_astro::solar_time::{SolarClock, SolarEvent, ZMANIM_RECKONINGS};
+use hyper_calendar::hc_calendars_indic::barhaspatya;
+use hyper_calendar::hc_calendars_indic::kalam::KalamConvention;
 use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
+use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
+use hyper_calendar::hc_calendars_lunar::islamic_observational::NamedCriterion;
+use hyper_calendar::hc_calendars_solar::adoption::Scope;
 use hyper_calendar::hc_core::epoch_notation::EpochKind;
 use hyper_calendar::hc_core::gnss::{self, RolloverRule};
 use hyper_calendar::hc_core::tai64;
+use hyper_calendar::hc_format::ccsds::AsciiPrecision;
+use hyper_calendar::hc_format::east_african_hours;
 use hyper_calendar::hc_format::radio::dcf77::Zone;
 use hyper_calendar::hc_format::radio::wwvb::DstState;
 use hyper_calendar::hc_format::radio::{Code as RadioCode, LeapNotice};
+use hyper_calendar::hc_holiday::orthodox_fasts;
 use hyper_calendar::hc_holiday::rule::{Confidence, Kind};
-use hyper_calendar::hc_planetary::bodies;
 use hyper_calendar::hc_planetary::mars::missions::{MISSIONS, SolConvention};
+use hyper_calendar::hc_planetary::{bodies, dated};
 use hyper_calendar::hc_relativity::constants::GRAVITATING_BODIES;
 use hyper_calendar::hc_seasons::ColdFoodConvention;
 use hyper_calendar::hc_seasons::meiyu::PlumRainRule;
@@ -47,6 +60,15 @@ const WASM_README: &str = "../hyper-calendar-wasm/README.md";
 const DTS: &str = "../hyper-calendar-wasm/js/hyper-calendar.d.ts";
 const BINDING: &str = "../hyper-calendar-wasm/js/hyper-calendar.js";
 const ROADMAP: &str = "../../docs/calendars.md";
+/// The roadmaps: the calendars', the observances', the time scales' and
+/// the off-Earth reckonings'. Policy §5 has the roadmap row give a
+/// convention's identifiers.
+const ROADMAPS: &[&str] = &[
+    ROADMAP,
+    "../../docs/observances.md",
+    "../../docs/time-scales.md",
+    "../../docs/off-earth.md",
+];
 
 fn read(path: &str) -> String {
     std::fs::read_to_string(path).unwrap_or_else(|error| panic!("could not read {path}: {error}"))
@@ -376,24 +398,6 @@ fn listed() -> Vec<Listed> {
             fields: &[("Mission", "clock")],
         },
         Listed {
-            what: "horizons",
-            ids: HORIZONS.iter().map(|horizon| horizon.id).collect(),
-            dts: "HorizonId",
-            exports: &[],
-            paragraphs: &[],
-            methods: &[],
-            fields: &[("Horizon", "id")],
-        },
-        Listed {
-            what: "Kumbh conditions",
-            ids: KumbhYoga::ALL.iter().map(|yoga| yoga.id).collect(),
-            dts: "KumbhYoga",
-            exports: &[],
-            paragraphs: &[],
-            methods: &[],
-            fields: &[("KumbhOccasion", "id")],
-        },
-        Listed {
             what: "holiday kinds",
             ids: Kind::ALL.iter().map(|kind| kind.id()).collect(),
             dts: "HolidayKind",
@@ -411,12 +415,185 @@ fn listed() -> Vec<Listed> {
             methods: &[],
             fields: &[],
         },
+        Listed {
+            what: "horizons",
+            ids: HORIZONS.iter().map(|horizon| horizon.id).collect(),
+            dts: "HorizonId",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[("Horizon", "id")],
+        },
+        Listed {
+            what: "crescent criteria",
+            ids: NamedCriterion::ALL.iter().map(|named| named.id).collect(),
+            dts: "CrescentCriterion",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "zmanim reckonings",
+            ids: ZMANIM_RECKONINGS
+                .iter()
+                .map(|reckoning| reckoning.id)
+                .collect(),
+            dts: "ZmanimReckoning",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "kalam conventions",
+            ids: KalamConvention::ALL.iter().map(|c| c.id).collect(),
+            dts: "KalamConvention",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "Kumbh yogas",
+            ids: KumbhYoga::ALL.iter().map(|yoga| yoga.id).collect(),
+            dts: "KumbhYoga",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[("KumbhOccasion", "id")],
+        },
+        Listed {
+            what: "Orthodox fast reckonings",
+            ids: orthodox_fasts::Reckoning::ALL
+                .iter()
+                .map(|reckoning| reckoning.id)
+                .collect(),
+            dts: "OrthodoxFastReckoning",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "six-hour reckonings",
+            ids: east_african_hours::ALL
+                .iter()
+                .map(|reckoning| reckoning.id)
+                .collect(),
+            dts: "SixHourReckoning",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "Panchak namings",
+            ids: PanchakNaming::ALL.iter().map(|naming| naming.id).collect(),
+            dts: "PanchakNaming",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "Barhaspatya rules",
+            ids: barhaspatya::RULES.iter().map(|rule| rule.id).collect(),
+            dts: "BarhaspatyaRule",
+            exports: &[
+                (FFI_SOURCE, "hc_barhaspatya_year"),
+                (WASM_SOURCE, "hc_barhaspatya_year"),
+            ],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "calendars dated at an instant",
+            ids: dated::ALL.iter().map(|calendar| calendar.id()).collect(),
+            dts: "CircadCalendar",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "CCSDS ASCII precisions",
+            ids: AsciiPrecision::KINDS.to_vec(),
+            dts: "CcsdsAsciiPrecision",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "adoption scopes",
+            ids: Scope::ALL.iter().map(|scope| scope.as_str()).collect(),
+            dts: "AdoptionScope",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
     ]
 }
 
-/// What each list gets wrong against its table.
-fn problems(listed: &Listed, dts: &str, sources: &[(&str, String)], binding: &str) -> Vec<String> {
+/// The tables that are not conventions, whose identifiers the roadmap does
+/// not list: the bodies and the gravitating bodies, which are catalogues
+/// of things in the sky; the twelve sidereal signs, the positions of one
+/// cycle; and the words a line or a frame is read in — a radio frame's
+/// summer-time state and leap notice, a holiday's kind and confidence, a
+/// CCSDS ASCII code's precision, an adoption's scope.
+const NOT_CONVENTIONS: &[&str] = &[
+    "bodies",
+    "gravitating bodies",
+    "sidereal signs",
+    "radio summer-time states",
+    "radio leap notices",
+    "holiday kinds",
+    "holiday confidences",
+    "CCSDS ASCII precisions",
+    "adoption scopes",
+];
+
+/// The rows and paragraphs of the roadmaps, each one line: a table row is
+/// a line of its own, and a paragraph runs from blank line to blank line.
+fn roadmap_blocks(roadmaps: &[String]) -> Vec<String> {
+    let mut blocks = Vec::new();
+    for roadmap in roadmaps {
+        for paragraph in roadmap.split("\n\n") {
+            if paragraph.trim_start().starts_with('|') {
+                blocks.extend(paragraph.lines().map(str::to_owned));
+            } else {
+                blocks.push(paragraph.replace('\n', " "));
+            }
+        }
+    }
+    blocks
+}
+
+/// What each list gets wrong against its table: the `.d.ts` type, the
+/// prose that lists the identifiers, and the roadmap, some row or
+/// paragraph of which must name each (policy §5, "The roadmap row gives
+/// the identifiers").
+fn problems(
+    listed: &Listed,
+    dts: &str,
+    sources: &[(&str, String)],
+    binding: &str,
+    roadmap: &[String],
+) -> Vec<String> {
     let mut out = Vec::new();
+    for id in listed
+        .ids
+        .iter()
+        .filter(|_| !NOT_CONVENTIONS.contains(&listed.what))
+    {
+        let quoted = format!("`{id}`");
+        if !roadmap.iter().any(|block| block.contains(&quoted)) {
+            out.push(format!("{}: no roadmap row names `{id}`", listed.what));
+        }
+    }
     let ids: BTreeSet<String> = listed.ids.iter().map(|id| (*id).to_owned()).collect();
     let typed = dts_literals(dts, listed.dts);
     if typed != ids {
@@ -479,15 +656,24 @@ fn every_list_of_a_conventions_names_is_its_table() {
         (WASM_SOURCE, rustdoc_of(WASM_SOURCE, boundaries::Side::Wasm)),
     ];
     let binding = read(BINDING);
-    let found: Vec<String> = listed()
+    let roadmap = roadmap_blocks(&ROADMAPS.iter().map(|path| read(path)).collect::<Vec<_>>());
+    let tables = listed();
+    for what in NOT_CONVENTIONS {
+        assert!(
+            tables.iter().any(|listed| listed.what == *what),
+            "{what} is not a table here"
+        );
+    }
+    let found: Vec<String> = tables
         .iter()
-        .flat_map(|listed| problems(listed, &dts, &sources, &binding))
+        .flat_map(|listed| problems(listed, &dts, &sources, &binding, &roadmap))
         .collect();
     assert!(found.is_empty(), "{}", found.join("\n"));
 }
 
-/// The check fails a list that leaves an identifier out, a type that
-/// adds one, and a listing's field typed as a bare string.
+/// The check fails a list that leaves an identifier out, a type that adds
+/// one, a listing's field typed as a bare string, and a roadmap no row of
+/// which names one.
 #[test]
 fn the_check_catches_a_short_list_and_a_long_type() {
     let listed = Listed {
@@ -504,9 +690,13 @@ fn the_check_catches_a_short_list_and_a_long_type() {
         "src",
         "/// `a` only.\npub extern \"C\" fn hc_x() {}".to_owned(),
     )];
-    let found = problems(&listed, dts, &sources, "");
-    assert_eq!(found.len(), 3, "{found:?}");
-    assert!(found[0].contains("the .d.ts type T"));
-    assert!(found[1].contains("the .d.ts field R.id"));
-    assert!(found[2].contains("does not name `b`"));
+    let roadmap = roadmap_blocks(&["| A | `a` |\n| C | `c` |".to_owned()]);
+    let found = problems(&listed, dts, &sources, "", &roadmap);
+    assert_eq!(found.len(), 4, "{found:?}");
+    assert!(found[0].contains("no roadmap row names `b`"));
+    assert!(found[1].contains("the .d.ts type T"));
+    assert!(found[2].contains("the .d.ts field R.id"));
+    assert!(found[3].contains("does not name `b`"));
+    let roadmap = roadmap_blocks(&["| A | `a` |\n| B | `b` |".to_owned()]);
+    assert_eq!(problems(&listed, dts, &sources, "", &roadmap).len(), 3);
 }

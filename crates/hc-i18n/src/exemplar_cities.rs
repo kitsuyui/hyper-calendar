@@ -6,7 +6,8 @@
 //! name: the *exemplar city*, `dates/timeZoneNames/zone/exemplarCity` in
 //! `common/main/<locale>.xml`. The values here are the `release-48` tag of
 //! <https://github.com/unicode-org/cldr>, read 2026-09-27
-//! [cldr48-exemplar-cities], at CLDR's release levels, `approved` and
+//! [cldr48-exemplar-cities], and for the twelve locales of the most-spoken
+//! languages 2026-09-28 [cldr48-most-spoken], at CLDR's release levels, `approved` and
 //! `contributed`, as the territory names in `territories` are; a
 //! `provisional` or `unconfirmed` value is left out. The system document
 //! `docs/systems/zone-locations.md` explains the lookup with examples.
@@ -73,7 +74,8 @@ use crate::locale::Locale;
 /// Where the names come from, for a `source` cell.
 pub const SOURCE: &str = "Unicode CLDR 48, common/main/<locale>.xml, \
      dates/timeZoneNames/zone/exemplarCity (approved and contributed values), \
-     release-48, read 2026-09-27; UTS #35 Part 4 for the name derived from the zone";
+     release-48, read 2026-09-27, and for the twelve locales of the most-spoken languages \
+     2026-09-28 (cldr48-most-spoken); UTS #35 Part 4 for the name derived from the zone";
 
 /// The line a table holds where its file writes CLDR's inheritance marker
 /// `↑↑↑` at a release level.

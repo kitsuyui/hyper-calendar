@@ -1476,19 +1476,51 @@ pub static ROOT: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &["a", "p"])),
     cycle: SexagenaryNames::EMPTY,
-    calendars: &[gregorian(
-        &[month_cycle(ContextualNames::same(widths(
-            &[
-                "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11", "M12",
-            ],
-            &[],
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-            ],
-        )))],
-        gregorian_eras(&["BCE", "CE"], &[], &[]),
-        ContextualNames::same(widths(&["Q1", "Q2", "Q3", "Q4"], &[], &[])),
-    )],
+    calendars: &[
+        gregorian(
+            &[month_cycle(ContextualNames::same(widths(
+                &[
+                    "M01", "M02", "M03", "M04", "M05", "M06", "M07", "M08", "M09", "M10", "M11",
+                    "M12",
+                ],
+                &[],
+                &[
+                    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+                ],
+            )))],
+            gregorian_eras(&["BCE", "CE"], &[], &[]),
+            ContextualNames::same(widths(&["Q1", "Q2", "Q3", "Q4"], &[], &[])),
+        ),
+        // The Thai lunar months as the calendar writes them in every language
+        // (`hc_calendars_regional::thai_lunar::MONTHS`, which these repeat), so
+        // that the extra month 8 of an adhikamāsa year can have its own name,
+        // เดือนแปดแรก, as Thai Wikipedia's จุลศักราช names it beside the
+        // regular month's เดือนแปดหลัง (`thwiki-chulasakarat`, read 2026-09-28). The
+        // regular month keeps its plain name in that year too: the calendar's
+        // leap years include the adhikavāra years, whose month 8 is not หลัง.
+        lunisolar(
+            &[CalendarId("thai-lunar")],
+            &[months(&[
+                "เดือนอ้าย",
+                "เดือนยี่",
+                "เดือนสาม",
+                "เดือนสี่",
+                "เดือนห้า",
+                "เดือนหก",
+                "เดือนเจ็ด",
+                "เดือนแปด",
+                "เดือนเก้า",
+                "เดือนสิบ",
+                "เดือนสิบเอ็ด",
+                "เดือนสิบสอง",
+            ])],
+            "",
+        )
+        .with_leap_names(LeapMonthNames {
+            intercalary: &[(8, "เดือนแปดแรก")],
+            in_leap_years: &[],
+        }),
+    ],
 };
 
 // --- Amharic --------------------------------------------------------------
@@ -2556,6 +2588,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
             ..DateTemplates::NONE
         },
     ),
+    // The months as CLDR 48 `en.xml` names the `chinese` calendar's, "First
+    // Month" to "Twelfth Month". The file states no `monthPatterns`, so
+    // CLDR's English leap month is root's pattern "{0}bis", "Sixth
+    // Monthbis", which no English text writes; the prefix here is the
+    // library's own, "leap Sixth Month": no source read writes a Chinese
+    // leap month in English.
     lunisolar(
         NUMBERED_LUNISOLAR_CALENDARS,
         &[months(&[
@@ -2691,7 +2729,13 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // Wikipedia, "Burmese calendar" (`wikipedia-burmese-calendar`),
     // compared 2026-09-26. A date is the month, its half and the day of
     // the half, and the Myanmar Era year, "Nayon waxing 3, 1374 ME"
-    // (`docs/systems/burmese.md`, from yannaingaye2013).
+    // (`docs/systems/burmese.md`, from yannaingaye2013), the late Tagu and
+    // Kason with *Late* before them (`crate::fields`). The two Wasos of a
+    // watat year are First Waso, the intercalary one, and Second Waso, as
+    // Yan Naing Aye's tables name them, "First Waso 30 0" and "Second Waso
+    // 30 4" (yannaingaye2013, read 2026-09-28), and as his calendar code
+    // writes the regular Waso of a watat year, "Second " before "Waso"
+    // (yan9a/mmcal, `ceMmDateTime.js`, read 2026-09-28).
     dated(
         BURMESE_CALENDARS,
         &[months(&[
@@ -2712,8 +2756,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &[],
     )
     .with_templates(DateTemplates {
-        date: "{month} {extra:waning} {extra:fortnight-day}, {year} ME",
+        date: "{extra:late}{month} {extra:waning} {extra:fortnight-day}, {year} ME",
         ..DateTemplates::NONE
+    })
+    .with_leap_names(LeapMonthNames {
+        intercalary: &[(4, "First Waso")],
+        in_leap_years: &[(4, "Second Waso")],
     }),
     // The Khmer months in the UNGEGN romanisation of Wikipedia, "Month",
     // section "Khmer calendar" (revision of 24 September 2026, read
@@ -3138,7 +3186,13 @@ const EN_CALENDARS: &[CalendarNames] = &[
         },
         quarters: ContextualNames::EMPTY,
         templates: DateTemplates::NONE,
-        leap_names: LeapMonthNames::NONE,
+        // The intercalary days, which the calendar carries as a repetition
+        // of month 18, as the Bahá'í World Centre's page "The Bahá'í
+        // Calendar" spells them, Ayyám-i-Há (bahai-org-calendar).
+        leap_names: LeapMonthNames {
+            intercalary: &[(18, "Ayyám-i-Há")],
+            in_leap_years: &[],
+        },
     },
     // Eras only, for calendars whose months English names elsewhere or not at
     // all, placed after every other entry so that each calendar's first entry,
@@ -3626,44 +3680,59 @@ const FR: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
-    calendars: &[gregorian(
-        &[month_cycle(ContextualNames::same(widths(
-            &[
-                "janvier",
-                "février",
-                "mars",
-                "avril",
-                "mai",
-                "juin",
-                "juillet",
-                "août",
-                "septembre",
-                "octobre",
-                "novembre",
-                "décembre",
-            ],
-            &[
-                "janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.",
-                "nov.", "déc.",
-            ],
-            &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
-        )))],
-        gregorian_eras(
-            &["avant Jésus-Christ", "après Jésus-Christ"],
-            &["av. J.-C.", "ap. J.-C."],
-            &[],
+    calendars: &[
+        gregorian(
+            &[month_cycle(ContextualNames::same(widths(
+                &[
+                    "janvier",
+                    "février",
+                    "mars",
+                    "avril",
+                    "mai",
+                    "juin",
+                    "juillet",
+                    "août",
+                    "septembre",
+                    "octobre",
+                    "novembre",
+                    "décembre",
+                ],
+                &[
+                    "janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.",
+                    "oct.", "nov.", "déc.",
+                ],
+                &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
+            )))],
+            gregorian_eras(
+                &["avant Jésus-Christ", "après Jésus-Christ"],
+                &["av. J.-C.", "ap. J.-C."],
+                &[],
+            ),
+            ContextualNames::same(widths(
+                &[
+                    "1er trimestre",
+                    "2e trimestre",
+                    "3e trimestre",
+                    "4e trimestre",
+                ],
+                &["T1", "T2", "T3", "T4"],
+                &[],
+            )),
         ),
-        ContextualNames::same(widths(
-            &[
-                "1er trimestre",
-                "2e trimestre",
-                "3e trimestre",
-                "4e trimestre",
-            ],
-            &["T1", "T2", "T3", "T4"],
+        // The Minguo eras as CLDR 48 `fr.xml` names them (`contributed`): wide
+        // "avant RdC" and, by the marker, the abbreviated "RdC"; abbreviated
+        // and narrow "av. RdC" and "RdC".
+        calendar_entry(
+            &[CalendarId("roc")],
             &[],
-        )),
-    )],
+            era_names(
+                &["broc", "roc"],
+                &["avant RdC", "RdC"],
+                &["av. RdC", "RdC"],
+                &[],
+            ),
+        ),
+    ],
 };
 
 // --- Hebrew ---------------------------------------------------------------
@@ -3723,6 +3792,20 @@ const HE_CALENDARS: &[CalendarNames] = &[
     // The year alone, as in English: CLDR 48 `he.xml`, `calendar
     // type="hebrew"`, formats a date as "d בMMMM y" with no era.
     .with_templates(HEBREW_TEMPLATES),
+    // The Minguo eras as CLDR 48 `he.xml` names them (`contributed`): wide
+    // "לפני הרפובליקה של סין" and "לספירת הרפובליקה של סין"; abbreviated
+    // "לפני R.O.C" and, by the marker, root's "ROC", which the narrow width
+    // inherits.
+    calendar_entry(
+        &[CalendarId("roc")],
+        &[],
+        era_names(
+            &["broc", "roc"],
+            &["לפני הרפובליקה של סין", "לספירת הרפובליקה של סין"],
+            &["לפני R.O.C", "ROC"],
+            &[],
+        ),
+    ),
 ];
 
 const HE: LocaleData = LocaleData {
@@ -4113,6 +4196,13 @@ const JA_CALENDARS: &[CalendarNames] = &[
         &["broc", "roc"],
         &["民国前", "民国"],
     ),
+    // The era 主体, the Juche year and the Gregorian year beside it, as the
+    // Japanese page writes 2024, 主体113年（2024年） (Wikipedia (ja),
+    // 「主体年号」, revision 109808142, retrieved 2026-09-28).
+    dated(&[CalendarId("juche")], &[], &["juche"], &["主体"]).with_templates(DateTemplates {
+        year: "{era}{year}年（{extra:common-era-year}年）",
+        ..DateTemplates::NONE
+    }),
 ];
 
 const JA_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -4707,12 +4797,15 @@ const ML: LocaleData = LocaleData {
 // "Burmese calendar", read 2026-09-25 — the same forms
 // `hc_calendars_regional::burmese::MONTHS` holds, which the calendar's
 // numbered shape does not declare, so this entry is what lets a Burmese
-// date print in Burmese. The page names the intercalary month only as
-// ဝါထပ်, "watat", and does not spell "Second Waso" in Burmese script, so
-// the leap-month prefix is empty. A date is written as the page writes
-// 29 March 2017, «၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်»: the year and
-// ခုနှစ်, then the month, its half and the day and ရက်. The prefix
-// နှောင်း of the late Tagu and Kason is not written.
+// date print in Burmese. A date is written as the page writes 29 March
+// 2017, «၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်»: the year and ခုနှစ်, then
+// the month, its half and the day and ရက်, with နှောင်း before the late
+// Tagu and Kason (`crate::fields`). The two Wasos of a watat year are
+// ပထမဝါဆို and ဒုတိယဝါဆို, as Burmese Wikipedia's ဝါဆိုလ names them,
+// «ပထမဝါဆိုနှင့် ဒုတိယဝါဆို» (read 2026-09-28), and as the dates it cites
+// write them, «၁၂၈၂ ခုနှစ်၊ ပထမဝါဆိုလဆန်း ၈ ရက်» (ရွှေကျင်ဂိုဏ်း) and a
+// government order's «၁၃၈၅ ခုနှစ်၊ ဒုတိယဝါဆိုလဆန်း ၄ ရက်» (ဇင်မင်းထက်);
+// the pages write them without a space, as most of the dates read do.
 
 const MY_CALENDARS: &[CalendarNames] = &[
     gregorian(
@@ -4774,8 +4867,12 @@ const MY_CALENDARS: &[CalendarNames] = &[
         &[],
     )
     .with_templates(DateTemplates {
-        date: "{year} ခုနှစ်၊ {month}{extra:waning} {extra:fortnight-day} ရက်",
+        date: "{year} ခုနှစ်၊ {extra:late}{month}{extra:waning} {extra:fortnight-day} ရက်",
         ..DateTemplates::NONE
+    })
+    .with_leap_names(LeapMonthNames {
+        intercalary: &[(4, "ပထမဝါဆို")],
+        in_leap_years: &[(4, "ဒုတိယဝါဆို")],
     }),
 ];
 
@@ -5527,82 +5624,98 @@ const RU: LocaleData = LocaleData {
     )),
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
-    calendars: &[gregorian(
-        &[month_cycle(ContextualNames {
-            format: widths(
-                &[
-                    "января",
-                    "февраля",
-                    "марта",
-                    "апреля",
-                    "мая",
-                    "июня",
-                    "июля",
-                    "августа",
-                    "сентября",
-                    "октября",
-                    "ноября",
-                    "декабря",
-                ],
-                &[
-                    "янв.",
-                    "февр.",
-                    "мар.",
-                    "апр.",
-                    "мая",
-                    "июн.",
-                    "июл.",
-                    "авг.",
-                    "сент.",
-                    "окт.",
-                    "нояб.",
-                    "дек.",
-                ],
+    calendars: &[
+        gregorian(
+            &[month_cycle(ContextualNames {
+                format: widths(
+                    &[
+                        "января",
+                        "февраля",
+                        "марта",
+                        "апреля",
+                        "мая",
+                        "июня",
+                        "июля",
+                        "августа",
+                        "сентября",
+                        "октября",
+                        "ноября",
+                        "декабря",
+                    ],
+                    &[
+                        "янв.",
+                        "февр.",
+                        "мар.",
+                        "апр.",
+                        "мая",
+                        "июн.",
+                        "июл.",
+                        "авг.",
+                        "сент.",
+                        "окт.",
+                        "нояб.",
+                        "дек.",
+                    ],
+                    &[],
+                ),
+                standalone: widths(
+                    &[
+                        "январь",
+                        "февраль",
+                        "март",
+                        "апрель",
+                        "май",
+                        "июнь",
+                        "июль",
+                        "август",
+                        "сентябрь",
+                        "октябрь",
+                        "ноябрь",
+                        "декабрь",
+                    ],
+                    &[
+                        "янв.",
+                        "февр.",
+                        "март",
+                        "апр.",
+                        "май",
+                        "июнь",
+                        "июль",
+                        "авг.",
+                        "сент.",
+                        "окт.",
+                        "нояб.",
+                        "дек.",
+                    ],
+                    &[],
+                ),
+            })],
+            gregorian_eras(
+                &["до Рождества Христова", "от Рождества Христова"],
+                &["до н. э.", "н. э."],
                 &[],
             ),
-            standalone: widths(
-                &[
-                    "январь",
-                    "февраль",
-                    "март",
-                    "апрель",
-                    "май",
-                    "июнь",
-                    "июль",
-                    "август",
-                    "сентябрь",
-                    "октябрь",
-                    "ноябрь",
-                    "декабрь",
-                ],
-                &[
-                    "янв.",
-                    "февр.",
-                    "март",
-                    "апр.",
-                    "май",
-                    "июнь",
-                    "июль",
-                    "авг.",
-                    "сент.",
-                    "окт.",
-                    "нояб.",
-                    "дек.",
-                ],
+            ContextualNames::same(widths(
+                &["1-й квартал", "2-й квартал", "3-й квартал", "4-й квартал"],
+                &["1-й кв.", "2-й кв.", "3-й кв.", "4-й кв."],
                 &[],
-            ),
-        })],
-        gregorian_eras(
-            &["до Рождества Христова", "от Рождества Христова"],
-            &["до н. э.", "н. э."],
-            &[],
+            )),
         ),
-        ContextualNames::same(widths(
-            &["1-й квартал", "2-й квартал", "3-й квартал", "4-й квартал"],
-            &["1-й кв.", "2-й кв.", "3-й кв.", "4-й кв."],
+        // The Minguo eras as CLDR 48 `ru.xml` names them: wide "до основания
+        // Китайской республики" and "Миньго", narrow "до респ." and "Миньго"
+        // (`contributed`); the abbreviated before-era is the marker, so
+        // root's "BROC", and the after-era the file's own "Minguo".
+        calendar_entry(
+            &[CalendarId("roc")],
             &[],
-        )),
-    )],
+            era_names(
+                &["broc", "roc"],
+                &["до основания Китайской республики", "Миньго"],
+                &["BROC", "Minguo"],
+                &["до респ.", "Миньго"],
+            ),
+        ),
+    ],
 };
 
 // --- Sanskrit -------------------------------------------------------------
@@ -6163,6 +6276,14 @@ const TH: LocaleData = LocaleData {
             templates: DateTemplates::NONE,
             leap_names: LeapMonthNames::NONE,
         },
+        // The Minguo eras as CLDR 48 `th.xml` names them, `calendar type="roc"`,
+        // abbreviated only (`contributed`), which the other widths inherit
+        // through root's aliases.
+        calendar_entry(
+            &[CalendarId("roc")],
+            &[],
+            era_names(&["broc", "roc"], &["ปีก่อนไต้หวัน", "ไต้หวัน"], &[], &[]),
+        ),
     ],
 };
 
@@ -6267,39 +6388,49 @@ const VI: LocaleData = LocaleData {
             "Chuột", "Trâu", "Hổ", "Mèo", "Rồng", "Rắn", "Ngựa", "Dê", "Khỉ", "Gà", "Chó", "Lợn",
         ]),
     },
-    calendars: &[gregorian(
-        // Capitalised when the month stands alone, and not abbreviated.
-        &[month_cycle(ContextualNames {
-            format: widths(
-                &[
-                    "tháng 1",
-                    "tháng 2",
-                    "tháng 3",
-                    "tháng 4",
-                    "tháng 5",
-                    "tháng 6",
-                    "tháng 7",
-                    "tháng 8",
-                    "tháng 9",
-                    "tháng 10",
-                    "tháng 11",
-                    "tháng 12",
-                ],
-                &[
-                    "thg 1", "thg 2", "thg 3", "thg 4", "thg 5", "thg 6", "thg 7", "thg 8",
-                    "thg 9", "thg 10", "thg 11", "thg 12",
-                ],
+    calendars: &[
+        gregorian(
+            // Capitalised when the month stands alone, and not abbreviated.
+            &[month_cycle(ContextualNames {
+                format: widths(
+                    &[
+                        "tháng 1",
+                        "tháng 2",
+                        "tháng 3",
+                        "tháng 4",
+                        "tháng 5",
+                        "tháng 6",
+                        "tháng 7",
+                        "tháng 8",
+                        "tháng 9",
+                        "tháng 10",
+                        "tháng 11",
+                        "tháng 12",
+                    ],
+                    &[
+                        "thg 1", "thg 2", "thg 3", "thg 4", "thg 5", "thg 6", "thg 7", "thg 8",
+                        "thg 9", "thg 10", "thg 11", "thg 12",
+                    ],
+                    &[],
+                ),
+                standalone: widths(VI_STANDALONE_MONTHS, VI_STANDALONE_MONTHS, &[]),
+            })],
+            gregorian_eras(
+                &["Trước Công Nguyên", "Sau Công Nguyên"],
+                &["TCN", "SCN"],
                 &[],
             ),
-            standalone: widths(VI_STANDALONE_MONTHS, VI_STANDALONE_MONTHS, &[]),
-        })],
-        gregorian_eras(
-            &["Trước Công Nguyên", "Sau Công Nguyên"],
-            &["TCN", "SCN"],
-            &[],
+            ContextualNames::EMPTY,
         ),
-        ContextualNames::EMPTY,
-    )],
+        // The Minguo eras as CLDR 48 `vi.xml` names them, abbreviated only
+        // (`contributed`): "Trước R.O.C", and for the era itself the marker,
+        // so root's "ROC"; the other widths inherit them.
+        calendar_entry(
+            &[CalendarId("roc")],
+            &[],
+            era_names(&["broc", "roc"], &["Trước R.O.C", "ROC"], &[], &[]),
+        ),
+    ],
 };
 
 // --- Yucatec Maya ---------------------------------------------------------
@@ -6556,6 +6687,13 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
         &["broc", "roc"],
         &["民国前", "民国"],
     ),
+    // The era 主体, the Juche year and the Gregorian year beside it, as the
+    // Chinese page's caption writes 2010, 主体99（2010）年 (Wikipedia (zh),
+    // 「主體年號」, revision 93919392, retrieved 2026-09-28).
+    dated(&[CalendarId("juche")], &[], &["juche"], &["主体"]).with_templates(DateTemplates {
+        year: "{era}{year}（{extra:common-era-year}）年",
+        ..DateTemplates::NONE
+    }),
 ];
 
 const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -6658,6 +6796,13 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
         &["broc", "roc"],
         &["民國前", "民國"],
     ),
+    // The era 主體, as the Chinese page's title writes it in Traditional
+    // characters, and its caption's form, 主体99（2010）年 (Wikipedia (zh),
+    // 「主體年號」, revision 93919392, retrieved 2026-09-28).
+    dated(&[CalendarId("juche")], &[], &["juche"], &["主體"]).with_templates(DateTemplates {
+        year: "{era}{year}（{extra:common-era-year}）年",
+        ..DateTemplates::NONE
+    }),
 ];
 
 const ZH_HANT_LUNAR_MONTHS: &[CycleNames] = &[months(&[
@@ -6999,7 +7144,10 @@ const HA: LocaleData = LocaleData {
 // Coptic months, the Ethiopic months, the Persian months, the Indian
 // national months and era.
 // Marathi writes its digits in Devanagari by default (`defaultNumberingSystem`
-// `deva`).
+// `deva`). The file's Buddhist era is "इसवीसन पूर्व", abbreviated "इसपू.",
+// the words of its Gregorian "BCE", as published (`contributed`): a
+// Buddhist year reads as a year before Christ, "२१ सप्टेंबर, इसपू. २५६९".
+// It is carried as the file states it, as Punjabi's is.
 
 const MR_CALENDAR_NAMES: &[CalendarDisplayName] = &[
     CalendarDisplayName::new("buddhist", "बौद्ध दिनदर्शिका"),
@@ -8436,9 +8584,10 @@ const UR: LocaleData = LocaleData {
 //
 // CLDR 48 `common/main/yue_Hans.xml`: the Gregorian vocabulary, the Buddhist
 // era, the Japanese eras, the Minguo eras, the Hijri months and era, the
-// Hebrew months and era, the Persian era, the Indian national months and
-// era, the Dangi months, the Chinese calendar's months and zodiac.
-// `yue_Hans.xml`, whose parent is root; `yue-CN` reaches it through CLDR 48's
+// Hebrew months and era, the Persian months and era, the Coptic and
+// Ethiopic months, the Indian national months and era, the Dangi months,
+// the Chinese calendar's months and zodiac. `yue_Hans.xml`, whose parent is
+// root; `yue-CN` reaches it through CLDR 48's
 // likely subtags (`yue_CN` → `yue_Hans_CN`).
 
 const YUE_HANS_CALENDAR_NAMES: &[CalendarDisplayName] = &[
@@ -8541,10 +8690,23 @@ const YUE_HANS_CALENDARS: &[CalendarNames] = &[
         intercalary: &[(5, "亚达月 I")],
         in_leap_years: &[(6, "亚达月 II")],
     }),
+    // The Persian, Coptic and Ethiopic months as the file numbers them,
+    // 1月 to 12月 and to 13月, at the `contributed` level; the narrow width,
+    // which the file leaves to root's bare numerals, takes the wide name.
     calendar_entry(
         SOLAR_HIJRI_CALENDARS,
-        &[],
+        &[months(YUE_NUMBERED_MONTHS)],
         era_names(&["ap"], &["波斯历"], &[], &[]),
+    ),
+    calendar_entry(
+        COPTIC_CALENDARS,
+        &[months(YUE_NUMBERED_MONTHS_13)],
+        EraNames::EMPTY,
+    ),
+    calendar_entry(
+        ETHIOPIC_CALENDARS,
+        &[months(YUE_NUMBERED_MONTHS_13)],
+        EraNames::EMPTY,
     ),
     calendar_entry(
         &[CalendarId("indian")],
@@ -8662,12 +8824,22 @@ const YUE_HANS: LocaleData = LocaleData {
     calendars: YUE_HANS_CALENDARS,
 };
 
+/// The months Cantonese numbers, as `yue.xml` and `yue_Hans.xml` write the
+/// Persian calendar's: 1月 to 12月, the numerals Japanese writes too.
+const YUE_NUMBERED_MONTHS: &[&str] = JA_MONTHS;
+
+/// The same, to 13月, for the Coptic and Ethiopic calendars' thirteen.
+const YUE_NUMBERED_MONTHS_13: &[&str] = &[
+    "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月", "13月",
+];
+
 // --- Cantonese, traditional ----------------------------------------------
 //
 // CLDR 48 `common/main/yue.xml`: the Gregorian vocabulary, the Buddhist era,
 // the Japanese eras, the Minguo eras, the Hijri months and era, the Hebrew
-// months and era, the Persian era, the Indian national months and era, the
-// Dangi months, the Chinese calendar's months and zodiac.
+// months and era, the Persian months and era, the Coptic and Ethiopic
+// months, the Indian national months and era, the Dangi months, the Chinese
+// calendar's months and zodiac.
 // `yue.xml`, whose script CLDR 48's likely subtags give as `Hant` (`yue` →
 // `yue_Hant_HK`).
 
@@ -8771,10 +8943,23 @@ const YUE_HANT_CALENDARS: &[CalendarNames] = &[
         intercalary: &[(5, "亞達月 I")],
         in_leap_years: &[(6, "亞達月 II")],
     }),
+    // The Persian, Coptic and Ethiopic months as the file numbers them,
+    // 1月 to 12月 and to 13月, at the `contributed` level; the narrow width,
+    // which the file leaves to root's bare numerals, takes the wide name.
     calendar_entry(
         SOLAR_HIJRI_CALENDARS,
-        &[],
+        &[months(YUE_NUMBERED_MONTHS)],
         era_names(&["ap"], &["波斯曆"], &[], &[]),
+    ),
+    calendar_entry(
+        COPTIC_CALENDARS,
+        &[months(YUE_NUMBERED_MONTHS_13)],
+        EraNames::EMPTY,
+    ),
+    calendar_entry(
+        ETHIOPIC_CALENDARS,
+        &[months(YUE_NUMBERED_MONTHS_13)],
+        EraNames::EMPTY,
     ),
     calendar_entry(
         &[CalendarId("indian")],

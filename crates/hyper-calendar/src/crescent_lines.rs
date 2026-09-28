@@ -76,16 +76,10 @@ pub fn crescent_line(criterion_id: &str, fixed: i64, place: Location) -> Answer<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
 
     use hc_calendars_lunar::islamic_observational::{IslamicObservationalCalendar, MECCA};
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.strip_suffix('\n')
-            .expect("a line")
-            .split('\t')
-            .collect()
-    }
+    use crate::boundary::cells;
 
     /// The line's verdict is the calendar's: over the 60 days round the
     /// first of Ramadan 1445 at Mecca, each of the three days `islamic-rgsa`

@@ -45,7 +45,8 @@ pub const INSTRUMENTED: bool = cfg!(coverage);
 /// more than 256 days' values.
 ///
 /// In a build instrumented for coverage ([`INSTRUMENTED`]) the days are
-/// checked on one thread, in the same chunks.
+/// checked on one thread, in chunks of an eighth of the list, at most 256
+/// days.
 ///
 /// Invoke it once, at the root of a crate with a `std` feature:
 /// `hc_core::check_days_in_parallel!();`, and call `crate::check_days`.

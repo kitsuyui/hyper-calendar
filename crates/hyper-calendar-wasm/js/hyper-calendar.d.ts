@@ -355,7 +355,7 @@ export interface NightWatch {
 /** A rule of the northern sixty-year cycle, Sewell and Dikshit's Art. 59. */
 export type BarhaspatyaRule = "surya-siddhanta-bija" | "surya-siddhanta" | "arya-siddhanta";
 
-/** The name of a year of the northern cycle, and the tag that named it. */
+/** The name of a year of the northern cycle, and the locale used, as `hc_day_extras` gives it. */
 export interface BarhaspatyaName {
   /** 1 for Prabhava through 60 for Kṣaya. */
   position: number;

@@ -79,12 +79,14 @@ Nothing in the library assumes a local time zone or reads a clock.
 ## Crate graph
 
 The table lists the crates in dependency order: a crate depends only on
-crates in rows above it. Every crate depends on `hc-core`. Every crate from
-`hc-calendars-solar` down also depends on `hc-calendar`. The third column
-gives each crate's other direct dependencies; one in *italics* comes with
-the named feature of the crate, on by default, which the facade turns on
-with its own feature of that name. The workspace manifest, `Cargo.toml`, is
-the list of record.
+crates in rows above it. Every library crate depends on `hc-core`, and
+every one from `hc-calendars-solar` down also depends on `hc-calendar`; the
+two boundary crates depend on the facade alone. The third column gives each
+crate's other direct dependencies; one in *italics* comes with the named
+feature of the crate, on by default, which the facade turns on with its own
+feature of that name — except `hc-uncertainty`'s `edtf`, which the facade's
+`civil` turns on. The workspace manifest, `Cargo.toml`, is the list of
+record.
 
 | Crate | Holds | Also depends on |
 | --- | --- | --- |
@@ -126,7 +128,11 @@ boundary crates do.
 
 - It re-exports each crate behind a feature, and is the only crate that
   re-exports another: a path such as `hyper_calendar::hc_seasons` reaches
-  a crate, and no crate below it passes its own dependencies on.
+  a crate, and no crate below it passes a dependency on whole. Some pass on
+  the few items of a dependency their own signatures take: `hc-astro`
+  `Moment`, `hc-seasons` `Rd` and `Moment`, `hc-almanac` `Rd` and
+  `Meridian`, and `hc-attributes` `Month`, `Weekday`, `Meridian` and
+  `TropicalSign`.
   `registry()` returns a
   `CalendarRegistry` holding every calendar the enabled features provide.
 - `civil` is a layer shaped like Python's `datetime`: `Date`, `Time`,

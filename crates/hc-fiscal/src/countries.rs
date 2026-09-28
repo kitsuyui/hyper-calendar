@@ -1510,7 +1510,8 @@ mod tests {
                 assert_ne!(profile.code, other.code, "duplicate {}", profile.code);
             }
         }
-        assert_eq!(ALL.len(), 22);
+        // Nepal's profile needs the Bikram Sambat calendar of `indic`.
+        assert_eq!(ALL.len(), 21 + usize::from(cfg!(feature = "indic")));
     }
 
     #[test]

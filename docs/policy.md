@@ -236,6 +236,11 @@ Gregorian dates and nothing else.
   `--no-default-features --features alloc,libm`. Each crate's `libm` feature
   passes through to `hc-core`, which refuses to compile with neither `std`
   nor `libm`.
+- Every `hc-*` crate on its own also builds without `alloc`, under
+  `--no-default-features --features libm`: what needs an allocator is behind
+  the crate's `alloc` feature. `scripts/no-std-builds.sh` builds each crate
+  both ways for `aarch64-unknown-none`, a target with no `std`, and CI runs
+  it.
 - No crate depends on another unless it genuinely needs it. The dependency
   graph is a DAG and is documented in [architecture.md](architecture.md).
 
@@ -257,7 +262,10 @@ Gregorian dates and nothing else.
     in a debug build, a staggered share of the pairings of day and locale
     that still renders every calendar in every locale, and each calendar's
     own language and the days they must render in full; a release build
-    renders every pairing.
+    renders every pairing. The page of every calendar's names,
+    `crates/hyper-calendar/tests/distinct_names.rs`, is the exception: a
+    debug build reads it in every fourth locale, and the next test there
+    holds every locale's names to the same rule from `hc-i18n` directly.
   - Some calendars are another calendar renamed: the same days under a year
     shifted by a constant and another era, as the Arsacid era is the
     Babylonian calendar's. Such a calendar rests on the other's every-day

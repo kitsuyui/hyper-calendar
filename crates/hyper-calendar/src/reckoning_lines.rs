@@ -31,7 +31,7 @@
 
 use alloc::string::String;
 
-use hc_almanac::first_month_counts::first_month_counts;
+use hc_almanac::first_month_counts::{FirstMonthCounts, first_month_counts};
 use hc_almanac::vietnamese_days::{is_nguyet_ky_day_number, is_tam_nuong_day_number};
 use hc_astro::riseset::Location;
 use hc_calendar::gregorian::year_from_fixed;
@@ -384,7 +384,7 @@ fn chinese_year_begun(day: Rd) -> Option<i64> {
 
 /// The identifiers of the four counts of the first month, in the order
 /// [`folk_day_lines`] writes them: 几龙治水, 几牛耕田, 几日得辛, 几人分饼.
-pub const FIRST_MONTH_COUNT_IDS: [&str; 4] = ["dragons", "oxen", "xin", "cakes"];
+pub const FIRST_MONTH_COUNT_IDS: [&str; 4] = FirstMonthCounts::IDS;
 
 /// How many columns each line of [`folk_day_lines`] writes.
 pub const FOLK_DAY_COLUMNS: usize = 5;
@@ -434,8 +434,7 @@ pub fn folk_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answer<S
     let day = day_in_era(fixed)?;
     let mut out = String::new();
     if let Some(counts) = chinese_year_begun(day).and_then(first_month_counts) {
-        let values = [counts.dragons, counts.oxen, counts.xin, counts.cakes];
-        for (id, count) in FIRST_MONTH_COUNT_IDS.into_iter().zip(values) {
+        for (id, count) in counts.by_id() {
             push_folk(
                 &mut out,
                 FIRST_MONTH_COUNT,
@@ -485,9 +484,6 @@ pub fn folk_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answer<S
     Ok(out)
 }
 
-/// The identifiers of the five watches in [`hc_i18n::reckonings`].
-const WATCH_IDS: [&str; 5] = ["1", "2", "3", "4", "5"];
-
 /// How many columns [`night_watch_line`] writes.
 pub const NIGHT_WATCH_COLUMNS: usize = 6;
 
@@ -521,7 +517,7 @@ pub fn night_watch_line(seconds_of_day: u32, locale: &str) -> Answer<String> {
     let Some(watch) = fixed_night_watch(civil) else {
         return Ok(out);
     };
-    let id = WATCH_IDS[usize::from(watch.watch - 1)];
+    let id = watch.id();
     let mut line = Line::new(&mut out);
     line.value(watch.watch).value(watch.points);
     reckoning_name(&mut line, locale, NIGHT_WATCH, id);

@@ -149,11 +149,6 @@ const REFUSALS: &[(&str, &str, &str)] = &[
     // The text names more than one day.
     ("stata-week", "ambiguous", "a %tw date names a week"),
     (
-        "burmese",
-        "ambiguous",
-        "a late Tagu is written as the early one",
-    ),
-    (
         "fasli-bombay",
         "ambiguous",
         "the doubled 3 June is written as the ordinary one",

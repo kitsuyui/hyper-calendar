@@ -30,14 +30,14 @@
 //! reading of the Moon at the offset passed; the 節月 and the other solar
 //! annotations are read at that offset.
 //!
-//! Until this crate read the calendars, `hc-seasons` kept a simplified
-//! derivation for them, numbering each month by the later of its 中気 one
-//! month at a time at the meridian passed. It was wrong on 89 of the 3,653
-//! days of 2024–2033 at the Japanese meridian, all from 25 August to 21
-//! November 2033, and its cost argument had gone: 3,653 consecutive days
-//! take 21 to 26 ms here inside one [`hc_core::memo::scope`], against about
-//! 10 ms for the simplified one, in a release build on an M-series Mac.
-//! `docs/systems/zassetsu-and-rokuyo.md` lists the days that changed.
+//! The calendars are read, and not a month-by-month rule: numbering each
+//! month by the later of its 中気 at the meridian passed gives other months
+//! on 89 of the 3,653 days of 2024–2033 at the Japanese meridian, all from
+//! 25 August to 21 November 2033, and costs little less: 3,653 consecutive
+//! days take 21 to 26 ms here inside one [`hc_core::memo::scope`], against
+//! about 10 ms for that rule, in a release build on an M-series Mac.
+//! `docs/systems/zassetsu-and-rokuyo.md` lists the days on which the two
+//! differ.
 //!
 //! # Cost
 //!

@@ -126,8 +126,8 @@ pub const PALAS_PER_DAY: f64 = 3_600.0;
 /// One authority's form of Sewell and Dikshit's rule (Art. 59).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct MeanSignRule {
-    /// A short name for the authority.
-    pub name: &'static str,
+    /// The rule's identifier, which names its authority.
+    pub id: &'static str,
     /// What the expired Kali year is multiplied by.
     pub multiplier: i64,
     /// What is subtracted from the product: the Jovian motion between the
@@ -143,7 +143,7 @@ pub struct MeanSignRule {
 /// by 211. Subtract 108 from the product. Divide the result by 18000", and
 /// add 15 palas to the days (Art. 59 a). Table I uses it to A.D. 1500.
 pub const SURYA_SIDDHANTA: MeanSignRule = MeanSignRule {
-    name: "surya-siddhanta",
+    id: "surya-siddhanta",
     multiplier: 211,
     subtrahend: 108,
     divisor: 18_000,
@@ -155,7 +155,7 @@ pub const SURYA_SIDDHANTA: MeanSignRule = MeanSignRule {
 /// 1 ghaṭikā 45 palas to the days (Art. 59 b). The *Jyotiṣatattva* rule is
 /// the same for the mean saṅkrānti (Art. 59 d).
 pub const ARYA_SIDDHANTA: MeanSignRule = MeanSignRule {
-    name: "arya-siddhanta",
+    id: "arya-siddhanta",
     multiplier: 22,
     subtrahend: 11,
     divisor: 1_875,
@@ -168,7 +168,7 @@ pub const ARYA_SIDDHANTA: MeanSignRule = MeanSignRule {
 /// (Art. 59 c). Table I uses it from A.D. 1501, and the registered
 /// pūrṇimānta calendar names its years by it.
 pub const SURYA_SIDDHANTA_BIJA: MeanSignRule = MeanSignRule {
-    name: "surya-siddhanta-bija",
+    id: "surya-siddhanta-bija",
     multiplier: 117,
     subtrahend: 60,
     divisor: 10_000,
@@ -178,21 +178,21 @@ pub const SURYA_SIDDHANTA_BIJA: MeanSignRule = MeanSignRule {
 /// Every rule carried.
 pub const RULES: &[MeanSignRule] = &[SURYA_SIDDHANTA, ARYA_SIDDHANTA, SURYA_SIDDHANTA_BIJA];
 
-/// The rule with this name, by [`hc_core::catalogue::matches`].
+/// The rule with this identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn by_name(name: &str) -> Option<MeanSignRule> {
+pub fn by_id(id: &str) -> Option<MeanSignRule> {
     RULES
         .iter()
         .copied()
-        .find(|rule| hc_core::catalogue::matches(name, rule.name))
+        .find(|rule| hc_core::catalogue::matches(id, rule.id))
 }
 
 hc_core::catalogue_tests! {
     type: MeanSignRule,
-    id: |rule| rule.name,
+    id: |rule| rule.id,
     tests: mean_sign_rule_catalogue_tests,
     all: RULES,
-    lookup: by_name,
+    lookup: by_id,
 }
 
 /// A count modulo sixty, into 1 to 60.
@@ -566,6 +566,31 @@ mod tests {
             let printed = ist(year, month, day, hours);
             assert_eq!(in_progress_at(rule, Moment(printed.0 + 0.08)), ending);
             assert_eq!(in_progress_at(rule, Moment(printed.0 + 0.1)), ending + 1);
+        }
+    }
+
+    #[test]
+    fn the_press_names_of_2011_to_2017_are_both_rules() {
+        // Webdunia's New Year announcements of Vikrama 2068 and 2070 to
+        // 2074, 2011 and 2013 to 2017, and Oneindia's of 2069, 2012
+        // (`webdunia-samvat-2068-2074`, `oneindia-samvat-2069`): Krodhi,
+        // Vishvavasu, Parabhava, Plavanga, Kilaka, Saumya and Sadharana,
+        // the names both rules give, Śaka 1933 to 1939.
+        for (saka, printed) in [
+            (1_933, "Krodhin"),
+            (1_934, "Visvavasu"),
+            (1_935, "Parabhava"),
+            (1_936, "Plavanga"),
+            (1_937, "Kilaka"),
+            (1_938, "Saumya"),
+            (1_939, "Sadharana"),
+        ] {
+            assert_eq!(
+                name(SURYA_SIDDHANTA_BIJA.of_saka(saka)),
+                Some(printed),
+                "{saka}"
+            );
+            assert_eq!(name(SURYA_SIDDHANTA.of_saka(saka)), Some(printed), "{saka}");
         }
     }
 
