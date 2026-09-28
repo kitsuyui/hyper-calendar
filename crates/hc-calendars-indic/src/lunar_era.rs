@@ -790,24 +790,30 @@ mod tests {
 
     #[test]
     fn every_day_of_three_years_converts_and_converts_back() {
+        use core::sync::atomic::{AtomicI64, Ordering};
         for era in ALL {
-            let mut intercalary = alloc::vec::Vec::new();
+            // The first and last year a day in an intercalary month falls
+            // in: one year when they are equal.
+            let (earliest, latest) = (AtomicI64::new(i64::MAX), AtomicI64::new(i64::MIN));
             let (first, last) = (ymd(2022, 11, 1).0, ymd(2025, 11, 1).0 - 1);
             let year = |day: i64| era.from_fixed(Rd(day)).expect("in range").year;
             // Every day in a release build; in a debug one every third and
-            // each year's first day and the day before it.
+            // each year's first day and the day before it, spread over the
+            // machine's threads.
             let openings = openings(era, year(first)..=year(last));
-            for day in crate::sweep_days(first, last, 3, &openings) {
+            crate::check_days(&crate::sweep_days(first, last, 3, &openings), |day| {
                 let date = round_trips(era, Rd(day));
-                if date.leap_month && !intercalary.contains(&date.year) {
-                    intercalary.push(date.year);
+                if date.leap_month {
+                    earliest.fetch_min(date.year, Ordering::Relaxed);
+                    latest.fetch_max(date.year, Ordering::Relaxed);
                 }
-            }
+            });
             // The adhika Śrāvaṇa of Śaka 1945, July–August 2023, is one
             // year of each era's, which says it is leap.
-            assert_eq!(intercalary.len(), 1, "{}", era.id);
-            assert_eq!(Calendar::is_leap_year(era, intercalary[0]), Ok(true));
-            assert_eq!(Calendar::is_leap_year(era, intercalary[0] + 1), Ok(false));
+            let intercalary = earliest.into_inner();
+            assert_eq!(latest.into_inner(), intercalary, "{}", era.id);
+            assert_eq!(Calendar::is_leap_year(era, intercalary), Ok(true));
+            assert_eq!(Calendar::is_leap_year(era, intercalary + 1), Ok(false));
         }
     }
 
@@ -823,7 +829,7 @@ mod tests {
             meta.latest.expect("bounded"),
         );
         let year = |day: Rd| era.from_fixed(day).expect("in range").year;
-        let mut count = 0;
+        let count = core::sync::atomic::AtomicUsize::new(0);
         let date = |day: i64| {
             if cfg!(debug_assertions) {
                 era.from_fixed(Rd(day)).expect("in range")
@@ -831,14 +837,21 @@ mod tests {
                 round_trips(era, Rd(day))
             }
         };
-        for day in openings(era, year(first) + 1..=year(last)) {
+        // The years spread over the machine's threads, each opened where
+        // `new_year` says as `openings` does.
+        let years: alloc::vec::Vec<i64> = (year(first) + 1..=year(last)).collect();
+        crate::check_days(&years, |year| {
+            let Ok(Rd(day)) = era.new_year(year) else {
+                return;
+            };
             let opening = date(day);
             let eve = date(day - 1);
             assert_eq!(eve.year + 1, opening.year, "{}: {opening:?}", era.id);
             assert_eq!(era.new_year(opening.year), Ok(Rd(day)));
-            count += 1;
-        }
+            count.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        });
         // Chaitra 1700 to March 2300: some six hundred years.
+        let count = count.into_inner();
         assert!(count >= 598, "{}: {count}", era.id);
     }
 

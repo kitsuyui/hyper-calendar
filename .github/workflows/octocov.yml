@@ -26,9 +26,16 @@ jobs:
         with:
           components: llvm-tools-preview
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+      # One test at a time. Every thread of an instrumented binary
+      # increments the same coverage counters, and threads that run the
+      # same code fight over the cache lines that hold them. Measured on a
+      # fourteen-core desktop on 28 September 2026, the lunar calendars'
+      # unit tests took 275 s on four test threads and 144 s on one; the
+      # sweeps' own threads are kept to one for the same reason
+      # (`hc_core::sweep::INSTRUMENTED`).
       - run: |
           cargo install cargo-llvm-cov --version 0.8.5 --locked || true
-          cargo llvm-cov --workspace --all-features --lcov --output-path coverage.lcov
+          cargo llvm-cov --workspace --all-features --lcov --output-path coverage.lcov -- --test-threads=1
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

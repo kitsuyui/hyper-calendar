@@ -631,28 +631,32 @@ mod tests {
 
     #[test]
     fn years_have_twelve_or_thirteen_months_in_the_cycles_places() {
-        for year in 1..=38 {
-            let end = to_fixed(year + 1, month(1, false), 1).expect("in range");
-            let mut cursor = to_fixed(year, month(1, false), 1).expect("in range");
-            let mut count = 0u8;
-            let mut second_ululu = false;
-            while cursor < end {
-                let (_, this, day) = from_fixed(cursor).expect("in range");
-                assert_eq!(day, 1, "RD {cursor} is not a month start");
-                second_ululu |= this == month(6, true);
-                count += 1;
-                let next = month_start_on_or_before(Rd(cursor.0 + 32)).expect("converges");
-                let length = next.0 - cursor.0;
-                assert!(
-                    (28..=31).contains(&length),
-                    "SE {year}: a month of {length} days"
-                );
-                cursor = next;
+        // One memo for the nineteen-year cycle's years: each month's
+        // search asks again the evenings the search before it judged.
+        hc_core::memo::scope(|| {
+            for year in 1..=38 {
+                let end = to_fixed(year + 1, month(1, false), 1).expect("in range");
+                let mut cursor = to_fixed(year, month(1, false), 1).expect("in range");
+                let mut count = 0u8;
+                let mut second_ululu = false;
+                while cursor < end {
+                    let (_, this, day) = from_fixed(cursor).expect("in range");
+                    assert_eq!(day, 1, "RD {cursor} is not a month start");
+                    second_ululu |= this == month(6, true);
+                    count += 1;
+                    let next = month_start_on_or_before(Rd(cursor.0 + 32)).expect("converges");
+                    let length = next.0 - cursor.0;
+                    assert!(
+                        (28..=31).contains(&length),
+                        "SE {year}: a month of {length} days"
+                    );
+                    cursor = next;
+                }
+                assert_eq!(cursor, end, "SE {year}");
+                assert_eq!(count, if is_leap_year(year) { 13 } else { 12 }, "SE {year}");
+                assert_eq!(second_ululu, has_second_ululu(year), "SE {year}");
             }
-            assert_eq!(cursor, end, "SE {year}");
-            assert_eq!(count, if is_leap_year(year) { 13 } else { 12 }, "SE {year}");
-            assert_eq!(second_ululu, has_second_ululu(year), "SE {year}");
-        }
+        });
     }
 
     #[test]

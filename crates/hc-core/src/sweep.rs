@@ -8,6 +8,19 @@
 //! invokes it, so that each crate's `std` feature decides whether threads
 //! are used and nothing of it is compiled outside a test build.
 
+/// Whether this build is instrumented for coverage: `cargo llvm-cov`, which
+/// the coverage job runs, sets `cfg(coverage)`.
+///
+/// Every thread of an instrumented build increments the same counters, one
+/// per region of code, and threads that run the same code fight over the
+/// cache lines that hold them. Measured on a fourteen-core desktop on
+/// 28 September 2026, the Babylonian calendar's sampled sweep took 56 s
+/// spread over fourteen threads and 12 s on one, and the Tibetan
+/// calendar's 24 s and 6 s, for the same instructions. So
+/// [`check_days_in_parallel!`](crate::check_days_in_parallel) keeps an
+/// instrumented sweep on one thread.
+pub const INSTRUMENTED: bool = cfg!(coverage);
+
 /// Defines `check_days(days, check)` in the invoking crate's tests: run
 /// `check` on each of `days`, spread over the machine's threads.
 ///
@@ -22,6 +35,17 @@
 /// outcome does not depend on it. A failing check panics its thread, and
 /// the panic is raised again when the threads are joined. Without the
 /// invoking crate's `std` feature the days are checked in turn.
+///
+/// Each chunk is checked inside one [`memo::scope`](crate::memo::scope),
+/// as a call at the boundary is. A day's conversion and its conversion
+/// back ask the same astronomy, and so do the days of one month, and a
+/// year's first day and its eve, which a sweep's sorted list keeps side by
+/// side. A scope changes how long a check takes and nothing else
+/// (`hc_core::memo`), and it ends with its chunk, so the memo never holds
+/// more than 256 days' values.
+///
+/// In a build instrumented for coverage ([`INSTRUMENTED`]) the days are
+/// checked on one thread, in the same chunks.
 ///
 /// Invoke it once, at the root of a crate with a `std` feature:
 /// `hc_core::check_days_in_parallel!();`, and call `crate::check_days`.
@@ -43,7 +67,11 @@ macro_rules! check_days_in_parallel {
             #[cfg(feature = "std")]
             {
                 use std::sync::atomic::{AtomicUsize, Ordering};
-                let available = std::thread::available_parallelism().map_or(1, usize::from);
+                let available = if $crate::sweep::INSTRUMENTED {
+                    1
+                } else {
+                    std::thread::available_parallelism().map_or(1, usize::from)
+                };
                 let chunk = check_days_chunk(days.len(), available);
                 // No more threads than there are chunks.
                 let threads = available.min(days.len().div_ceil(chunk)).max(1);
@@ -54,9 +82,9 @@ macro_rules! check_days_in_parallel {
                             loop {
                                 let start = next.fetch_add(chunk, Ordering::Relaxed);
                                 match days.get(start..days.len().min(start + chunk)) {
-                                    Some(part) if !part.is_empty() => {
+                                    Some(part) if !part.is_empty() => $crate::memo::scope(|| {
                                         part.iter().for_each(|&day| check(day))
-                                    }
+                                    }),
                                     _ => break,
                                 }
                             }

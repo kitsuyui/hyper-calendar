@@ -1483,10 +1483,14 @@ mod tests {
             IslamicObservationalCalendar::SAUDI_RULE_RD,
         ] {
             let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
-                (FIRST_YEAR..=LAST_YEAR)
-                    .filter_map(|year| calendar.compose(year, 1, 1).ok())
-                    .map(|day| day.0)
-                    .collect()
+                // One memo for the openings: a year's composition reads
+                // the month back, asking the same evenings again.
+                hc_core::memo::scope(|| {
+                    (FIRST_YEAR..=LAST_YEAR)
+                        .filter_map(|year| calendar.compose(year, 1, 1).ok())
+                        .map(|day| day.0)
+                        .collect()
+                })
             } else {
                 alloc::vec::Vec::new()
             };
@@ -1716,25 +1720,29 @@ mod tests {
         let mut earlier = 0u32;
         let mut later = 0u32;
         let mut worst = 0i64;
-        for year in 1_400..1_446i64 {
-            for month in 1..=12u8 {
-                let (Ok(by_shaukat), Ok(by_yallop)) = (
-                    shaukat.compose(year, month, 1),
-                    yallop.compose(year, month, 1),
-                ) else {
-                    continue;
-                };
-                months += 1;
-                let difference = by_yallop.0 - by_shaukat.0;
-                worst = worst.max(difference.abs());
-                if difference < 0 {
-                    earlier += 1;
-                }
-                if difference > 0 {
-                    later += 1;
+        // One memo for the months: composing a month reads it back, and
+        // the next month's search asks the same evenings again.
+        hc_core::memo::scope(|| {
+            for year in 1_400..1_446i64 {
+                for month in 1..=12u8 {
+                    let (Ok(by_shaukat), Ok(by_yallop)) = (
+                        shaukat.compose(year, month, 1),
+                        yallop.compose(year, month, 1),
+                    ) else {
+                        continue;
+                    };
+                    months += 1;
+                    let difference = by_yallop.0 - by_shaukat.0;
+                    worst = worst.max(difference.abs());
+                    if difference < 0 {
+                        earlier += 1;
+                    }
+                    if difference > 0 {
+                        later += 1;
+                    }
                 }
             }
-        }
+        });
         assert_eq!(months, 552);
         assert_eq!(worst, 1, "the two never differ by more than a day");
         // 21 of 552: Yallop's test begins the month a day earlier in 6 and
@@ -1746,6 +1754,13 @@ mod tests {
     /// 1 212 months of 1400–1500 AH, at a site: how many ran 29, 30 and
     /// 31 days, and the first days of those of 31.
     fn month_lengths_1400_to_1500(site: ObservationSite) -> ([u32; 3], Vec<(i64, u8, u8)>) {
+        // One memo for the walk: each month's search asks again the
+        // evenings the search before it judged.
+        hc_core::memo::scope(|| month_lengths_in_scope(site))
+    }
+
+    /// [`month_lengths_1400_to_1500`], with the memo open.
+    fn month_lengths_in_scope(site: ObservationSite) -> ([u32; 3], Vec<(i64, u8, u8)>) {
         let calendar = IslamicObservationalCalendar::new(site);
         let mut cursor = calendar.compose(1_400, 1, 1).expect("in range");
         let last = calendar.compose(1_501, 1, 1).expect("in range");

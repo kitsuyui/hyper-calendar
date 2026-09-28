@@ -32,6 +32,8 @@ use hyper_calendar::hc_i18n::fields;
 use hyper_calendar::hc_i18n::names::{self, NameWidth};
 use hyper_calendar::lines;
 
+mod locale_sample;
+
 /// The days a calendar is sampled on: the days of the line digests where
 /// the calendar converts them, else its own sample day, and a run of
 /// consecutive days from the middle of its range, which crosses a month's
@@ -117,6 +119,10 @@ fn fault(
         .then(|| format!("the era code {code}"))
 }
 
+/// Every calendar's sample days in every locale: every pairing in a
+/// release build, and in a debug build a staggered share of them that
+/// still renders every calendar in every locale, and the first and last
+/// days of its range and its own language in full (`locale_sample`).
 #[test]
 fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
     let registry = hyper_calendar::registry();
@@ -132,40 +138,57 @@ fn no_formatted_date_holds_a_raw_extra_field_or_era_code() {
     );
     let mut faults: BTreeSet<String> = BTreeSet::new();
     let mut unlabelled: BTreeSet<String> = BTreeSet::new();
+    let mut rendered: BTreeSet<(&str, usize)> = BTreeSet::new();
     let mut checked = 0_usize;
+    let mut converting = 0_usize;
     for meta in registry.metas() {
         let calendar = registry.get(meta.id).expect("registered");
-        for day in sample_days(&meta) {
-            let Ok(fields) = calendar.fixed_to_fields(day) else {
-                continue;
-            };
-            for extra in fields.extra.iter() {
-                if fields::label(&Locale::ROOT, extra.name).is_none() {
-                    unlabelled.insert(format!("{} {}", meta.id.0, extra.name));
+        // One memo for the calendar's days, as the boundary opens one for
+        // a call, so that a label does not recompute the months its date
+        // was converted with.
+        hyper_calendar::hc_core::memo::scope(|| {
+            let dates: Vec<_> = sample_days(&meta)
+                .into_iter()
+                .filter_map(|day| Some((day, calendar.fixed_to_fields(day).ok()?)))
+                .collect();
+            converting += usize::from(!dates.is_empty());
+            for (index, (day, fields)) in dates.iter().enumerate() {
+                for extra in fields.extra.iter() {
+                    if fields::label(&Locale::ROOT, extra.name).is_none() {
+                        unlabelled.insert(format!("{} {}", meta.id.0, extra.name));
+                    }
                 }
-            }
-            for requested in &locales {
-                let locale = label::locale_for(calendar, requested.as_ref());
-                let texts = [
-                    label::date(calendar, &fields, &locale),
-                    label::label(calendar, &fields, Unit::Era, &locale),
-                    label::label(calendar, &fields, Unit::Year, &locale),
-                    label::label(calendar, &fields, Unit::Month, &locale),
-                    label::label(calendar, &fields, Unit::Day, &locale),
-                ];
-                for text in &texts {
-                    checked += 1;
-                    if let Some(fault) = fault(calendar, &fields, &locale, text, &identifiers) {
-                        faults.insert(format!(
-                            "{} {locale} {}: {fault}: {text:?}",
-                            meta.id.0, day.0
-                        ));
+                let ends = Some(*day) == meta.earliest || Some(*day) == meta.latest;
+                for (position, requested) in locales.iter().enumerate() {
+                    if !locale_sample::paired(index, dates.len(), position, locales.len(), ends) {
+                        continue;
+                    }
+                    rendered.insert((meta.id.0, position));
+                    let locale = label::locale_for(calendar, requested.as_ref());
+                    let texts = [
+                        label::date(calendar, fields, &locale),
+                        label::label(calendar, fields, Unit::Era, &locale),
+                        label::label(calendar, fields, Unit::Year, &locale),
+                        label::label(calendar, fields, Unit::Month, &locale),
+                        label::label(calendar, fields, Unit::Day, &locale),
+                    ];
+                    for text in &texts {
+                        checked += 1;
+                        if let Some(fault) = fault(calendar, fields, &locale, text, &identifiers) {
+                            faults.insert(format!(
+                                "{} {locale} {}: {fault}: {text:?}",
+                                meta.id.0, day.0
+                            ));
+                        }
                     }
                 }
             }
-        }
+        });
     }
     assert!(checked > 100_000, "{checked}");
+    // Every calendar that converts a sample day is rendered in every
+    // locale, in either build.
+    assert_eq!(rendered.len(), converting * locales.len());
     assert!(
         unlabelled.is_empty(),
         "extra fields without a label: {unlabelled:#?}"
@@ -191,34 +214,37 @@ fn the_in_date_flag_says_whether_the_date_depends_on_the_field() {
     for meta in registry.metas() {
         let calendar = registry.get(meta.id).expect("registered");
         let days = [meta.sample_day(Rd(739_886)), meta.sample_day(Rd(730_179))];
-        for day in days {
-            let Ok(fields) = calendar.fixed_to_fields(day) else {
-                continue;
-            };
-            for requested in &locales {
-                let locale = label::locale_for(calendar, requested.as_ref());
-                let (text, marked) = label::date_marking(calendar, &fields, &locale);
-                for (index, extra) in fields.extra.iter().enumerate() {
-                    let depends = [extra.value + 1, extra.value - 1].into_iter().any(|value| {
-                        let mut changed = fields;
-                        changed.extra.set(extra.name, value).expect("replaces");
-                        label::date(calendar, &changed, &locale) != text
-                    });
-                    if marked.contains(index) {
-                        written += 1;
-                    }
-                    if marked.contains(index) != depends {
-                        wrong.insert(format!(
-                            "{} {locale} {} {}: marked {}, depends {depends}: {text:?}",
-                            meta.id.0,
-                            day.0,
-                            extra.name,
-                            marked.contains(index)
-                        ));
+        // One memo for the calendar's days, as in the test above.
+        hyper_calendar::hc_core::memo::scope(|| {
+            for day in days {
+                let Ok(fields) = calendar.fixed_to_fields(day) else {
+                    continue;
+                };
+                for requested in &locales {
+                    let locale = label::locale_for(calendar, requested.as_ref());
+                    let (text, marked) = label::date_marking(calendar, &fields, &locale);
+                    for (index, extra) in fields.extra.iter().enumerate() {
+                        let depends = [extra.value + 1, extra.value - 1].into_iter().any(|value| {
+                            let mut changed = fields;
+                            changed.extra.set(extra.name, value).expect("replaces");
+                            label::date(calendar, &changed, &locale) != text
+                        });
+                        if marked.contains(index) {
+                            written += 1;
+                        }
+                        if marked.contains(index) != depends {
+                            wrong.insert(format!(
+                                "{} {locale} {} {}: marked {}, depends {depends}: {text:?}",
+                                meta.id.0,
+                                day.0,
+                                extra.name,
+                                marked.contains(index)
+                            ));
+                        }
                     }
                 }
             }
-        }
+        });
     }
     assert!(written > 100, "{written}");
     assert!(wrong.is_empty(), "{} wrong flags: {wrong:#?}", wrong.len());
