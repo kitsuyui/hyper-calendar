@@ -1736,7 +1736,8 @@ Each call writes two lines, the yoga's and then the karaṇa's:
 | 5 | began | the instant it began, as POSIX seconds, rounded down |
 | 6 | ends | the instant it ends |
 | 7 | read at | the instant it was read at: the one asked for, or the sunrise |
-| 8 | ayanamsa | the ayanāṃśa the yoga was reckoned with, by its full name; empty for the karaṇa |
+| 8 | ayanamsa | the ayanāṃśa the yoga was reckoned with, by the identifier `ayanamsa` takes: `lahiri`; empty for the karaṇa |
+| 9 | ayanamsa name | its full name: `Lahiri (Chitrapaksha)`; empty for the karaṇa |
 
 For 1 January 2025 at 23°11′ N, 82°30′ E, the yoga at sunrise is
 Vyaghata, ending within a minute and a half of the 17:07 IST Drik Panchang

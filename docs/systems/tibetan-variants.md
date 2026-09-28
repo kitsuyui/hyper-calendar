@@ -199,7 +199,10 @@ month sorts after the regular month of the same number.
   giving no beginning.
 - **Native locales** `bo` for the Tsurphu, `mn` for the Mongolian, `dz`
   for the Bhutanese, whose almanac and acts are in Dzongkha; the Tsurphu
-  months take the Tibetan locale's numbered names, as the Phugpa ones do.
+  months take the Tibetan locale's numbered names, as the Phugpa ones do,
+  and a leap month takes ཟླ་ཤོལ་ before its name, Henning's *zla shol*
+  for "an extra, or intercalary, month" [kalacakra-org]; the word's place
+  in a date is this library's ([written-dates.md](written-dates.md)).
 - **Not carried**: the *karaṇa* calculation and the yellow calculation, as
   above; the Tsurphu almanacs' *karaṇa* solar longitude, which Henning's
   Tsurphu program prints and which "makes no difference to the structure

@@ -1509,8 +1509,10 @@ export interface PanchangaLimb {
   ends: number;
   /** The instant read: the one asked for, or the sunrise. */
   readAt: number;
-  /** The yoga's ayanamsa by its full name; `null` for the karaṇa. */
-  ayanamsa: string | null;
+  /** The yoga's ayanamsa, as `panchangaAt` takes it; `null` for the karaṇa. */
+  ayanamsa: Ayanamsa | null;
+  /** Its full name, `Lahiri (Chitrapaksha)`; `null` for the karaṇa. */
+  ayanamsaName: string | null;
 }
 
 /** The published code's names for where 立春 falls in a Chinese year. */

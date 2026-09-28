@@ -270,6 +270,7 @@ export const COLUMNS = Object.freeze({
   excel1900Day: Object.freeze(["fixed", "phantom"]),
   panchanga: Object.freeze([
     "limb", "number", "name", "devanagari", "began", "ends", "read at", "ayanamsa",
+    "ayanamsa name",
   ]),
   marriageAugury: Object.freeze(["augury", "lichun at start", "lichun at end"]),
   holidayTables: Object.freeze([
@@ -1243,7 +1244,7 @@ function excel1900Day(cells) {
  * @returns {import("./hyper-calendar.d.ts").PanchangaLimb}
  */
 function panchangaLimb(cells) {
-  const [limb, number, name, devanagari, began, ends, readAt, ayanamsa] = cells;
+  const [limb, number, name, devanagari, began, ends, readAt, ayanamsa, ayanamsaName] = cells;
   return {
     limb: /** @type {"yoga" | "karana"} */ (limb),
     number: integer(number, "number"),
@@ -1252,7 +1253,8 @@ function panchangaLimb(cells) {
     began: integer(began, "began"),
     ends: integer(ends, "ends"),
     readAt: integer(readAt, "read at"),
-    ayanamsa: optional(ayanamsa),
+    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa | null} */ (optional(ayanamsa)),
+    ayanamsaName: optional(ayanamsaName),
   };
 }
 

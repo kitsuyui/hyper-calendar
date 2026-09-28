@@ -1268,7 +1268,8 @@ macro_rules! exports {
             ///
             /// The lines are the WebAssembly module's: the limb, its number, its
             /// English and Devanagari names, the instants it began and ends and the
-            /// instant it was read at, and the ayanāṃśa of the yoga. `ayanamsa` is
+            /// instant it was read at, and the ayanāṃśa of the yoga by its
+            /// identifier, which this call reads back, and by its full name. `ayanamsa` is
             /// an identifier, `lahiri`, `raman`, `krishnamurti` or `fagan-bradley`,
             /// in any case; anything else, a full name such as
             /// `Lahiri (Chitrapaksha)` included, is `HC_ERROR_UNKNOWN`, and null
@@ -1286,7 +1287,8 @@ macro_rules! exports {
             /// Drik Panchang spells it in English and in Devanagari, the instants
             /// it began and ends and the instant it was read at as whole POSIX
             /// seconds, rounded down, in Universal Time, and the ayanāṃśa the yoga
-            /// was reckoned with (empty for the karaṇa, which needs none).
+            /// was reckoned with, by the identifier `ayanamsa` takes and by its
+            /// full name (both empty for the karaṇa, which needs none).
             /// `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti` or
             /// `fagan-bradley`, in any case; anything else, the empty string and
             /// a full name such as `Lahiri (Chitrapaksha)` included, is

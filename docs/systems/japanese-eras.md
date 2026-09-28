@@ -110,6 +110,11 @@ proclaimed, and for 19 November 1392 (Julian) in the Southern stream give
   romanisation and identifier, court, proclamation day in Julian or
   Gregorian as the source gives it, 元年, how firmly the day is known, and
   the two lapses. `nengo::era_at` answers under the proclaimed reading.
+- **A leap month** is written with 閏 before its number in `ja`,
+  元中9年閏10月5日 [wikipedia-ja-genchu], and with the word each other
+  locale carrying the calendar has for it, as
+  [written-dates.md](written-dates.md) lists; 万延元年閏3月3日 is 23 April
+  1860, a month after 万延元年3月3日.
 - **Not carried.** The 改元当時 reading's shared changeover day from 大正 on,
   under which 1912-07-30 is both 明治45年 and 大正元年; `japanese-proclaimed`
   follows 改元当時 for 明治 and the 公式 dates from 大正. The eras' own

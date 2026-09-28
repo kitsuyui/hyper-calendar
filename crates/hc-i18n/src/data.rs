@@ -727,6 +727,23 @@ const CHINESE_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The Chinese regnal calendar's year and day in Chinese, in Han numerals:
+/// 康熙五十二年, 十一月一日, 康熙元年.
+const ZH_HANS_REGNAL_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era}{year:hans}年",
+    first_year: "{era}元年",
+    day: "{day:hans}日",
+    ..DateTemplates::NONE
+};
+
+/// [`ZH_HANS_REGNAL_TEMPLATES`] in the traditional numerals.
+const ZH_HANT_REGNAL_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era}{year:hant}年",
+    first_year: "{era}元年",
+    day: "{day:hant}日",
+    ..DateTemplates::NONE
+};
+
 /// The thirty day names of CLDR's `hanidays`.
 const HANIDAYS: &[&str] = &[
     "初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二",
@@ -2077,9 +2094,14 @@ const BN: LocaleData = LocaleData {
 // Tsurphu version numbers them the same way (Janson, Appendix A.2) and
 // shares them; the Bhutanese is written in Dzongkha, which is not this
 // locale, and is not keyed here. CLDR has no `tibetan` calendar and no word
-// for the doubled month, so the leap-month prefix is empty. The sixty-year names are not here: the
-// calendar module carries them in English, and this crate's cycle model
-// names stems and branches, not elements.
+// for the doubled month. Henning names it "an extra, or intercalary, month
+// (zla shol, zla ba lhag pa)" (`kalacakra-org`, "On intercalary months",
+// read 2026-09-28), and its first word, ཟླ་ཤོལ་, prefixes the month as 閏
+// does in Chinese: ཟླ་ཤོལ་ཟླ་བ་གསུམ་པ, the leap third month. Where an almanac
+// puts the word in a date was not read, so the place is this library's.
+// The sixty-year names are not here: the calendar module carries them in
+// English, and this crate's cycle model names stems and branches, not
+// elements.
 
 const BO_MONTHS: &[&str] = &[
     "ཟླ་བ་དང་པོ",
@@ -2150,7 +2172,7 @@ const BO_CALENDARS: &[CalendarNames] = &[
             format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
             standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),
         })],
-        "",
+        "ཟླ་ཤོལ་",
     ),
 ];
 
@@ -2480,10 +2502,14 @@ const EN_CALENDARS: &[CalendarNames] = &[
             &[],
         )),
     ),
+    // The intercalary month before 1873 is the ordinary month's with
+    // "intercalary", as Bramsen's chronological tables of the Japanese
+    // months call it, "the intercalary one … called by the name of the
+    // preceding month" (`bramsen1910`): intercalary March 3, 1 Man'en.
     CalendarNames {
         calendars: JAPANESE_CALENDARS,
         cycles: &[],
-        leap_month_prefix: "",
+        leap_month_prefix: "intercalary ",
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
             names: widths(
@@ -4137,10 +4163,13 @@ const JA_CALENDARS: &[CalendarNames] = &[
             &[],
         )),
     ),
+    // 閏 before the month number, as Wikipedia (ja) dates the reunion of
+    // the courts, 元中9年閏10月5日 (`wikipedia-ja-genchu`), and tabulates
+    // 万延元年's 閏三月 (`wikipedia-ja-manen`).
     CalendarNames {
         calendars: JAPANESE_CALENDARS,
         cycles: &[],
-        leap_month_prefix: "",
+        leap_month_prefix: "閏",
         eras: EraNames {
             codes: JAPANESE_ERA_CODES,
             // CLDR 48 `ja.xml`, `calendar type="japanese"`, `eraAbbr`.
@@ -6661,7 +6690,16 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
     // with the year of the reign.
     lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰")
         .with_templates(CHINESE_TEMPLATES),
-    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰"),
+    // A reign's year and day in Han numerals, 康熙五十二年十一月一日, as GB/T
+    // 15835-2011 §4.2.1 prescribes for 历史朝代纪年 and 农历月日, "清咸丰十年九月
+    // 二十日" (`gb-t-15835-2011`), and 元年 for the first year, as Wikipedia
+    // (zh) tabulates 康熙元年 (`wikipedia-zh-kangxi`).
+    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANS_LUNAR_MONTHS, "闰")
+        .with_templates(ZH_HANS_REGNAL_TEMPLATES),
+    // A Japanese era's intercalary month, 明德3年闰10月5日, as Wikipedia (zh)
+    // dates the reunion of the courts in its simplified rendering
+    // (`wikipedia-zh-go-komatsu`).
+    CalendarNames::empty(JAPANESE_CALENDARS).with_leap_month_prefix("闰"),
     // The years of the Yellow Emperor, 黄帝纪元 in every count (Wikipedia
     // (zh), 「黃帝紀元」, retrieved 2026-09-28), on the Chinese months.
     dated(
@@ -6772,7 +6810,14 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
     // `zh_Hant.xml`, `calendar type="chinese"`).
     lunisolar(CHINESE_FAMILY_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏")
         .with_templates(CHINESE_TEMPLATES),
-    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏"),
+    // As the simplified entry, in the traditional rendering of the same
+    // Wikipedia article, 康熙六十一年十一月十三日 (`wikipedia-zh-kangxi`).
+    lunisolar(CHINESE_REGNAL_CALENDARS, ZH_HANT_LUNAR_MONTHS, "閏")
+        .with_templates(ZH_HANT_REGNAL_TEMPLATES),
+    // A Japanese era's intercalary month, 明德3年閏10月5日, as Wikipedia (zh)
+    // dates the reunion of the courts in its traditional rendering
+    // (`wikipedia-zh-go-komatsu`).
+    CalendarNames::empty(JAPANESE_CALENDARS).with_leap_month_prefix("閏"),
     // As the simplified entry: 黃帝紀元 and 太平天國.
     dated(
         HUANGDI_CALENDARS,
@@ -8627,6 +8672,11 @@ const YUE_HANS_CALENDARS: &[CalendarNames] = &[
         &[],
         era_names(&["be"], &["佛历"], &[], &[]),
     ),
+    // CLDR's `japanese` calendar has no intercalary month, since it is
+    // the Gregorian year under the modern eras; before 1873 the months are
+    // lunisolar, and the intercalary one takes the prefix `yue_Hans.xml` gives
+    // the Chinese calendar's, `闰{0}` (`cldr48-most-spoken`, read
+    // 2026-09-28).
     calendar_entry(
         JAPANESE_CALENDARS,
         &[],
@@ -8636,7 +8686,8 @@ const YUE_HANS_CALENDARS: &[CalendarNames] = &[
             &[],
             &[],
         ),
-    ),
+    )
+    .with_leap_month_prefix("闰"),
     calendar_entry(
         &[CalendarId("roc")],
         &[],
@@ -8880,6 +8931,11 @@ const YUE_HANT_CALENDARS: &[CalendarNames] = &[
         &[],
         era_names(&["be"], &["佛曆"], &[], &[]),
     ),
+    // CLDR's `japanese` calendar has no intercalary month, since it is
+    // the Gregorian year under the modern eras; before 1873 the months are
+    // lunisolar, and the intercalary one takes the prefix `yue.xml` gives
+    // the Chinese calendar's, `閏{0}` (`cldr48-most-spoken`, read
+    // 2026-09-28).
     calendar_entry(
         JAPANESE_CALENDARS,
         &[],
@@ -8889,7 +8945,8 @@ const YUE_HANT_CALENDARS: &[CalendarNames] = &[
             &[],
             &[],
         ),
-    ),
+    )
+    .with_leap_month_prefix("閏"),
     calendar_entry(
         &[CalendarId("roc")],
         &[],
@@ -9501,7 +9558,9 @@ mod tests {
                     assert!(
                         WIDTHS.contains(&width)
                             || width.parse::<u8>().is_ok()
-                            || (name == "day" && width == "0-based"),
+                            || (name == "day" && width == "0-based")
+                            || (matches!(name, "year" | "month" | "day")
+                                && crate::numbering::NumberingSystem::from_id(width).is_some()),
                         "{tag} {field}: unknown width {width}"
                     );
                     rest = &after[end + 1..];

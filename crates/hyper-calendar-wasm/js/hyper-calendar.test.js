@@ -1679,16 +1679,19 @@ describe("the pañcāṅga and the anniversaries", () => {
     assert.equal(yoga.number, 13);
     assert.equal(yoga.name, "Vyaghata");
     assert.equal(yoga.devanagari, "व्याघात");
-    assert.equal(yoga.ayanamsa, "Lahiri (Chitrapaksha)");
+    assert.equal(yoga.ayanamsa, "lahiri");
+    assert.equal(yoga.ayanamsaName, "Lahiri (Chitrapaksha)");
     assert.ok(Math.abs(yoga.ends - vyaghataEnds) < 90, `${yoga.ends}`);
     assert.ok(yoga.began < yoga.readAt && yoga.readAt < yoga.ends);
     assert.equal(karana.limb, "karana");
     assert.equal(karana.name, "Balava");
     assert.equal(karana.devanagari, "बालव");
     assert.equal(karana.ayanamsa, null);
+    assert.equal(karana.ayanamsaName, null);
     assert.ok(karana.ends - balavaEnds >= 0 && karana.ends - balavaEnds < 120, `${karana.ends}`);
     assert.equal(karana.readAt, yoga.readAt);
-    const [at] = hc.panchangaAt(vyaghataEnds - 600, "lahiri");
+    // The listing's identifier is the lookup's.
+    const [at] = hc.panchangaAt(vyaghataEnds - 600, yoga.ayanamsa);
     assert.equal(at.name, "Vyaghata");
     assert.equal(at.readAt, vyaghataEnds - 600);
     refused(() => hc.panchangaAt(vyaghataEnds, ""), "unknown");

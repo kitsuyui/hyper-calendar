@@ -178,7 +178,9 @@ fn the_panchanga_of_the_first_of_january_2025_decodes_column_by_column() {
         .map(|line| line.split('\t').collect())
         .collect();
     assert_eq!(rows.len(), 2);
-    assert!(rows.iter().all(|row| row.len() == 8), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 9), "{rows:?}");
+    assert_eq!(rows[0][7..], ["lahiri", "Lahiri (Chitrapaksha)"]);
+    assert_eq!(rows[1][7..], ["", ""]);
     assert_eq!(rows[0][..4], ["yoga", "13", "Vyaghata", "व्याघात"]);
     assert_eq!(rows[1][2..4], ["Balava", "बालव"]);
     let null = core::ptr::null_mut();
