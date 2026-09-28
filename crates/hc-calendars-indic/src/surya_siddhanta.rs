@@ -45,6 +45,14 @@
 //! at zero at the epoch, and 25 926 790 776¾ anomalistic months, so its
 //! anomaly stands at three quarters.
 //!
+//! The yoga and the karaṇa follow from the same two bodies as the tithi
+//! does ([`yoga_at`], [`karana_at`]): Reingold and Dershowitz's `yoga` and
+//! `karana` (`reingold2018code`), the day read at the Siddhānta's own
+//! sunrise. The tests hold them to the pañcāṅga extract of Sewell and
+//! Dikshit's Art. 30 (`sewell1896`), Poona, September 1894, which was
+//! computed by the *Grahalāghava* and so checks the arithmetic, not the
+//! model: every legible yoga end within 1.6 ghaṭikās of the printed one.
+//!
 //! # Whose clock
 //!
 //! The book evaluates the model at moments counted in the local time of
@@ -245,6 +253,61 @@ pub fn conjunction_at_or_after(moment: Moment) -> Moment {
     // Just before the conjunction the elongation is close to 360, just
     // after it close to 0.
     bisect_until(|at| lunar_phase(at) < 180.0, low, high, 64)
+}
+
+/// The sum of the Siddhānta's Sun and Moon, modulo 360°: the angle its
+/// yoga counts.
+#[must_use]
+pub fn yoga_longitude(moment: Moment) -> f64 {
+    modulo(solar_longitude(moment) + lunar_longitude(moment), 360.0)
+}
+
+/// The yoga in progress at a moment by the Siddhānta's Sun and Moon, 1 for
+/// Viṣkambha through 27 for Vaidhṛti: one plus the floor of their sum,
+/// modulo 360°, over 13°20′ (`reingold2018code`, `yoga`). The names are
+/// [`crate::panchanga::YOGA_NAMES`]'s.
+#[must_use]
+pub fn yoga_at(moment: Moment) -> u8 {
+    let arc = floor(yoga_longitude(moment) / crate::panchanga::DEGREES_PER_YOGA);
+    (arc as u8).min(crate::panchanga::YOGAS_PER_REVOLUTION - 1) + 1
+}
+
+/// The yoga the Siddhānta gives a day: the one in progress at its own
+/// sunrise at the place ([`sunrise`]).
+#[must_use]
+pub fn yoga_of_day(day: Rd, location: Location) -> u8 {
+    yoga_at(sunrise(day, location))
+}
+
+/// The Siddhānta's yoga in progress at a moment: when it began and when it
+/// ends.
+#[must_use]
+pub fn yoga_span(moment: Moment) -> (Moment, Moment) {
+    crate::panchanga::span_of(yoga_longitude, crate::panchanga::DEGREES_PER_YOGA, moment)
+}
+
+/// The half-tithi in progress at a moment by the Siddhānta's elongation,
+/// 1 for the first half of śukla 1 to 60 for the second half of amāvāsyā;
+/// [`crate::panchanga::karana_name`] names it. Two to a tithi of
+/// [`tithi_at`], as Reingold and Dershowitz's `karana` numbers them.
+#[must_use]
+pub fn karana_at(moment: Moment) -> u8 {
+    let half = floor(lunar_phase(moment) / crate::panchanga::DEGREES_PER_KARANA);
+    (half as u8).min(crate::panchanga::KARANAS_PER_MONTH - 1) + 1
+}
+
+/// The half-tithi the Siddhānta gives a day: the one in progress at its own
+/// sunrise at the place.
+#[must_use]
+pub fn karana_of_day(day: Rd, location: Location) -> u8 {
+    karana_at(sunrise(day, location))
+}
+
+/// The Siddhānta's half-tithi in progress at a moment: when it began and
+/// when it ends.
+#[must_use]
+pub fn karana_span(moment: Moment) -> (Moment, Moment) {
+    crate::panchanga::span_of(lunar_phase, crate::panchanga::DEGREES_PER_KARANA, moment)
 }
 
 /// `x` into `[low, high)`, as the book's `mod3`.
@@ -466,5 +529,141 @@ mod tests {
         let lahiri = sidereal::ingress_after(SiderealSign::MESHA, Ayanamsa::LAHIRI, from);
         let minutes = (siddhanta.0 - lahiri.0) * 24.0 * 60.0;
         assert!((minutes - 139.0).abs() < 1.0, "{minutes}");
+    }
+
+    /// Poona, 18°31′ N, 73°52′ E, where the pañcāṅga of Sewell and
+    /// Dikshit's Art. 30 was published.
+    const POONA: Location = Location::new(18.0 + 31.0 / 60.0, 73.0 + 52.0 / 60.0, 0.0);
+
+    /// Sewell and Dikshit's pañcāṅga extract of Art. 30 (`sewell1896`),
+    /// Poona, Bhādrapada of Śaka 1816 expired, 31 August to 29 September
+    /// 1894: the day as days after 31 August, the yoga, 1 to 27, it prints
+    /// for the day and the ghaṭikās and palas after sunrise at which that
+    /// yoga ends. Read off the Internet Archive's OCR text; the days whose
+    /// figures the OCR garbles are left out. The extract is computed by
+    /// Gaṇeśa Daivajña's *Grahalāghava*, not by the *Sūrya Siddhānta*.
+    const EXTRACT_YOGAS: [(i64, u8, u8, u8); 24] = [
+        (0, 21, 31, 22),
+        (1, 22, 25, 23),
+        (2, 23, 19, 31),
+        (3, 24, 14, 50),
+        (4, 25, 11, 7),
+        (5, 26, 8, 24),
+        (6, 27, 6, 30),
+        (7, 1, 5, 19),
+        (8, 2, 6, 2),
+        (9, 3, 6, 53),
+        (10, 4, 8, 1),
+        (11, 5, 9, 29),
+        (13, 7, 11, 51),
+        (14, 8, 12, 20),
+        (15, 9, 12, 7),
+        (16, 10, 10, 43),
+        (17, 11, 8, 30),
+        (20, 15, 49, 13),
+        (21, 16, 43, 1),
+        (22, 17, 35, 58),
+        (23, 18, 28, 28),
+        (24, 19, 20, 15),
+        (27, 23, 51, 4),
+        (29, 25, 38, 10),
+    ];
+
+    /// The same extract's karaṇas: the day, the name, 0 to 10 as
+    /// [`crate::panchanga::KARANA_NAMES`] numbers them, and the ghaṭikās
+    /// and palas after sunrise at which it ends.
+    const EXTRACT_KARANAS: [(i64, u8, u8, u8); 15] = [
+        (0, 0, 16, 30),
+        (1, 2, 11, 53),
+        (2, 4, 8, 9),
+        (3, 6, 5, 27),
+        (4, 1, 3, 54),
+        (5, 3, 3, 42),
+        (6, 5, 4, 44),
+        (7, 7, 6, 53),
+        (9, 4, 14, 28),
+        (10, 6, 19, 16),
+        (11, 1, 24, 14),
+        (15, 1, 8, 11),
+        (16, 3, 9, 59),
+        (18, 7, 9, 35),
+        (19, 2, 7, 20),
+    ];
+
+    /// The ghaṭikās from the Siddhānta's sunrise at Poona to a moment.
+    fn ghatikas(day: Rd, moment: Moment) -> f64 {
+        (moment.0 - sunrise(day, POONA).0) * 60.0
+    }
+
+    #[test]
+    fn the_siddhantas_yoga_is_the_extracts_on_every_legible_day() {
+        let first = gregorian::to_fixed(1894, 8, 31).unwrap();
+        let mut worst: f64 = 0.0;
+        for (offset, yoga, ghatika, pala) in EXTRACT_YOGAS {
+            let day = Rd(first.0 + offset);
+            assert_eq!(yoga_of_day(day, POONA), yoga, "day {offset}");
+            let (_, ends) = yoga_span(sunrise(day, POONA));
+            let printed = f64::from(ghatika) + f64::from(pala) / 60.0;
+            worst = worst.max((ghatikas(day, ends) - printed).abs());
+        }
+        // Every end within a ghaṭikā and three quarters, 42 minutes, of
+        // the printed one: the *Grahalāghava*'s Sun and Moon are not the
+        // Siddhānta's.
+        assert!(worst < 1.75, "{worst} ghatikas");
+    }
+
+    #[test]
+    fn the_siddhantas_karana_is_the_extracts_on_every_legible_day() {
+        let first = gregorian::to_fixed(1894, 8, 31).unwrap();
+        let mut worst: f64 = 0.0;
+        for (offset, name, ghatika, pala) in EXTRACT_KARANAS {
+            let day = Rd(first.0 + offset);
+            let half = karana_of_day(day, POONA);
+            assert_eq!(crate::panchanga::karana_name(half), name, "day {offset}");
+            let (_, ends) = karana_span(sunrise(day, POONA));
+            let printed = f64::from(ghatika) + f64::from(pala) / 60.0;
+            worst = worst.max((ghatikas(day, ends) - printed).abs());
+        }
+        assert!(worst < 2.0, "{worst} ghatikas");
+    }
+
+    #[test]
+    fn the_yoga_is_the_books_arithmetic_and_the_karana_half_the_tithi() {
+        // `yoga`: one plus the floor of the two longitudes' sum, modulo
+        // 360°, over 13°20′; `karana` numbers two halves to a tithi.
+        let mut moment = Moment(ymd(2024, 1, 1));
+        for _ in 0..200 {
+            let sum = (solar_longitude(moment) + lunar_longitude(moment)) % 360.0;
+            assert_eq!(yoga_at(moment), (sum / (360.0 / 27.0)) as u8 + 1);
+            assert_eq!(karana_at(moment).div_ceil(2), tithi_at(moment));
+            let (entry, exit) = yoga_span(moment);
+            assert!(entry.0 <= moment.0 && moment.0 < exit.0);
+            assert_eq!(yoga_at(Moment(exit.0 + 1e-5)), yoga_at(moment) % 27 + 1);
+            let (entry, exit) = karana_span(moment);
+            assert!(entry.0 <= moment.0 && moment.0 < exit.0);
+            assert_eq!(karana_at(Moment(exit.0 + 1e-5)), karana_at(moment) % 60 + 1);
+            moment = Moment(moment.0 + 0.37);
+        }
+    }
+
+    /// Reingold and Dershowitz's ayanāṃśa is zero at this Sun's Meṣa
+    /// saṅkrānti of 285 CE (`sidereal-start`), which `hc-seasons` anchors
+    /// as a Julian date because it cannot compute this Sun itself.
+    #[test]
+    fn the_books_ayanamsa_is_zero_at_the_siddhantas_mesha_of_285() {
+        use hc_seasons::zodiac::Ayanamsa;
+        let from = Moment(gregorian::to_fixed(285, 1, 1).unwrap().0 as f64);
+        let mesha = ingress_after(SiderealSign::MESHA, from);
+        let anchor = Ayanamsa::REINGOLD_DERSHOWITZ.anchor_julian_date() - 1_721_424.5;
+        assert!((mesha.0 - anchor).abs() * 86_400.0 < 1.0, "{}", mesha.0);
+        assert_eq!(Ayanamsa::REINGOLD_DERSHOWITZ.degrees_at_anchor(), 0.0);
+        // The book's own `ayanamsha`, Meeus's precession since then,
+        // evaluated from its code: 23.863 933° on 1 January 2000 and
+        // 24.213 224° on 1 January 2025. The IAU 2006 precession carries
+        // the same zero to within 1.3″ of both.
+        for (rd, book) in [(730_120.0, 23.863_933), (739_252.0, 24.213_224)] {
+            let ours = Ayanamsa::REINGOLD_DERSHOWITZ.degrees_at(Moment(rd));
+            assert!(((ours - book) * 3_600.0).abs() < 1.3, "{rd}: {ours}");
+        }
     }
 }

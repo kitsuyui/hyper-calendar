@@ -205,6 +205,65 @@ pub fn solar_nakshatra_span(moment: Moment, ayanamsa: Ayanamsa) -> (Moment, Mome
     (entry, exit)
 }
 
+// ── The names in Malayalam, and the ñāṭṭuvēla ───────────────────────────
+
+/// The twenty-seven in Malayalam, Aśvinī (അശ്വതി) first, as the Malayalam
+/// Wikipedia's "നക്ഷത്രം (ജ്യോതിഷം)" lists them under "മലയാള നാമം"
+/// (`wikipedia-ml-nakshatra`), the headword each links to: the list gives
+/// four with a shorter form first, ആതിര for തിരുവാതിര, ചിത്തിര with ചിത്ര,
+/// കേട്ട for തൃക്കേട്ട and ഓണം for തിരുവോണം, which are not carried.
+pub const NAMES_MALAYALAM: [&str; 27] = [
+    "അശ്വതി",
+    "ഭരണി",
+    "കാർത്തിക",
+    "രോഹിണി",
+    "മകയിരം",
+    "തിരുവാതിര",
+    "പുണർതം",
+    "പൂയം",
+    "ആയില്യം",
+    "മകം",
+    "പൂരം",
+    "ഉത്രം",
+    "അത്തം",
+    "ചിത്തിര",
+    "ചോതി",
+    "വിശാഖം",
+    "അനിഴം",
+    "തൃക്കേട്ട",
+    "മൂലം",
+    "പൂരാടം",
+    "ഉത്രാടം",
+    "തിരുവോണം",
+    "അവിട്ടം",
+    "ചതയം",
+    "പൂരുരുട്ടാതി",
+    "ഉത്രട്ടാതി",
+    "രേവതി",
+];
+
+/// The word the Malayalam name of a ñāṭṭuvēla ends in. The twenty-seven
+/// take the names of the twenty-seven nāḷ, each known by the nakṣatra the
+/// Sun stands with, അശ്വതി first and രേവതി last, so the Thiruvathira
+/// ñāṭṭuvēla is "തിരുവാതിര ഞാറ്റുവേല" (`wikipedia-ml-njattuvela`, its
+/// words put into English here).
+pub const NJATTUVELA: &str = "ഞാറ്റുവേല";
+
+/// The Malayalam name of the nakṣatra `nakshatra`, 1 for Aśvinī through 27
+/// for Revatī, clamped; the ñāṭṭuvēla of the Sun's stay in it
+/// ([`solar_nakshatra_at`]) is this and [`NJATTUVELA`].
+#[must_use]
+pub const fn malayalam_name(nakshatra: u8) -> &'static str {
+    let nakshatra = if nakshatra < ASHVINI {
+        ASHVINI
+    } else if nakshatra > REVATI {
+        REVATI
+    } else {
+        nakshatra
+    };
+    NAMES_MALAYALAM[(nakshatra - 1) as usize]
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -370,5 +429,21 @@ mod tests {
             assert!(entry.0 <= moment.0 && moment.0 < exit.0);
             moment = Moment(exit.0 + 0.001);
         }
+    }
+
+    #[test]
+    fn the_thiruvathira_njattuvela_is_the_suns_stay_in_ardra() {
+        // "തിരുവാതിര ഞാറ്റുവേല എന്നു പറഞ്ഞാൽ ... സൂര്യൻ ഇപ്പോൾ തിരുവാതിര
+        // നക്ഷത്രഭാഗത്താണ്": the Sun is in Ārdrā. Drik Panchang has it
+        // enter Ārdrā at 06:28 IST on 22 June 2025, the monsoon's height.
+        let june = at(2025, 6, 30, 0.0, 0.0);
+        let nakshatra = solar_nakshatra_at(june, Ayanamsa::LAHIRI);
+        assert_eq!(nakshatra, ARDRA);
+        assert_eq!(malayalam_name(nakshatra), "തിരുവാതിര");
+        // The first ñāṭṭuvēla is Aśvati and the last Revati.
+        assert_eq!(malayalam_name(ASHVINI), "അശ്വതി");
+        assert_eq!(malayalam_name(REVATI), "രേവതി");
+        assert_eq!(malayalam_name(0), malayalam_name(ASHVINI));
+        assert!(NAMES_MALAYALAM.iter().all(|name| !name.is_empty()));
     }
 }

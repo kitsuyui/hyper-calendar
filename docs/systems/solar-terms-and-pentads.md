@@ -173,6 +173,16 @@ Venus, Mercury, Moon. Thirty-six is one more than a multiple of seven, so
 the last face of Pisces is Mars again, and the first of Aries would follow
 it with Mars a second time.
 
+**The drekkāṇa.** A drekkāṇa is the same third of a *sidereal* sign, and
+its lord is the lord of the sign, of the fifth sign from it or of the
+ninth, counted inclusively [biruni-wright1934, §451], so the three thirds
+of a sign are ruled by the lords of its triplicity. *Worked example*: the
+second drekkāṇa of Karka, Cancer, 10° to 20° of the sign, takes the lord
+of the fifth sign from Karka, Karka, Siṃha, Kanyā, Tulā, Vṛścika: Mars.
+al-Bīrūnī's table gives Cancer "Moon Mars Jupiter", where the faces give
+"Venus Mercury Moon". The sidereal sign, and so the drekkāṇa the Sun is in
+at an instant, moves with the ayanāṃśa.
+
 **The zodiac.** A tropical sign is the search at a multiple of 30°, and its
 ingress instant is the instant of the 中気 it opens at, to the noise of the
 search. A 次 is the search at a multiple of 30° offset by 15°, so its
@@ -186,7 +196,12 @@ are the Swiss Ephemeris's: Lahiri 22.460 148° at JD 2 415 020.0, Raman
 21.010 833° and Krishnamurti 21.978 333° at the same epoch, Fagan–Bradley
 24.042 044° at JD 2 433 282.5 [swisseph]. Lahiri, also Chitrapaksha, is the
 Indian standard, adopted on the Calendar Reform Committee's recommendation,
-which fixed it at 23°15′ for 21 March 1956 [crc1955]. `Ayanamsa::new` takes
+which fixed it at 23°15′ for 21 March 1956 [crc1955]. The fifth,
+`reingold-dershowitz`, is Reingold and Dershowitz's: zero at the *Sūrya
+Siddhānta*'s Meṣa saṅkrānti of 285 CE, JD 1 825 229.269 399, the moment
+their code's `sidereal-start` takes the precession at [reingold2018code];
+it stands 24.9″ above the Lahiri anchor here, and
+[hindu-calendars.md](hindu-calendars.md) works it. `Ayanamsa::new` takes
 any other anchor.
 
 **Worked example: 大雪 of 2024.** 大雪 is the term at 255°. At 0h UT on
@@ -269,12 +284,17 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
 - **`zodiac::decans`**: `Decan`, the 36 thirds of the tropical signs from
   the first of Aries at 0°, with `sign`, `part`, `start_longitude_degrees`
   and `ruler`, the Chaldean order from Mars [biruni-wright1934, §449];
-  `decan_at_moment` and `degrees_into_decan` for the Sun. The Hindu
-  *drekkāṇa* lords are not carried.
+  `decan_at_moment` and `degrees_into_decan` for the Sun.
+- **`zodiac::drekkana`**: `Drekkana`, the 36 thirds of the sidereal signs
+  from the first of Meṣa, with `sign`, `part`, `start_longitude_degrees`,
+  `lord_sign` and `lord`, the lord of the sign, the fifth or the ninth
+  [biruni-wright1934, §451]; `drekkana_at_moment` and
+  `degrees_into_drekkana` for the Sun under an ayanāṃśa.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
-  date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI` and
-  `FAGAN_BRADLEY` as data, a table of them by identifier (`lahiri`,
-  `raman`, `krishnamurti`, `fagan-bradley`) and `new` for any other;
+  date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI`,
+  `REINGOLD_DERSHOWITZ` and `FAGAN_BRADLEY` as data, a table of them by
+  identifier (`lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`,
+  `fagan-bradley`) and `new` for any other;
   `degrees_at`;
   `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
   Devanagari: the table once carried had no source, and the Hindi
@@ -378,7 +398,7 @@ and 2030.
 
 **The zodiac.** The tropical ingresses are the 中気 instants and share their
 measurement. The decans' rulers are checked against al-Bīrūnī's table, all
-36; their boundaries are the Sun's longitude at multiples of 10°, as good as
+36, and the drekkāṇa lords against his table of §451, all 36; their boundaries are the Sun's longitude at multiples of 10°, as good as
 the ingresses, and no source read dates a decan boundary to check them
 against. The sidereal boundaries carry a second uncertainty on top of
 the series: published values for a named ayanāṃśa differ among themselves
@@ -427,10 +447,11 @@ they were settled.
 | [usno-deltat-preds] | The predicted ΔT that `hc-astro` reads after 2026-04-01, to 2033-10-01: 69.09 s at 2026-04-02, 71.25 s at 2033-10-01 | Yes, 2026-09-25 |
 | [capitaine2003] | The general precession in longitude, equation (39), 5028.796 195″ per century | Not read directly; the bibliographic record from Crossref, 2026-09-25; `hc-astro`'s `earth::general_precession_arcseconds` cites the equation |
 | [swisseph] | The four ayanāṃśa anchors; Lahiri's own 285 and Raman's own 389 as the years of zero ayanāṃśa, §2.8 | Yes, 2026-09-25, for the Hindu document; §2.8 re-read 2026-09-26 |
+| [reingold2018code] | `sidereal-start`, `mesha-samkranti`, `precession` and `ayanamsha`: the book's ayanāṃśa, zero at the *Sūrya Siddhānta*'s Meṣa saṅkrānti of 285 CE | Yes, 2026-09-29, `calendar.l` at commit `9afc1f3` |
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
 | [imd-astronomical-ephemeris] | The saṅkrānti computed at the Indian meridian | Yes, 2026-09-25, for the Hindu document |
 | [ptolemy-tetrabiblos] | I.11, the solstitial, equinoctial, solid and bicorporeal signs; I.17, the houses, Leo to the Sun and Cancer to the Moon and the five pairs; I.18, the four triangles; I.23, the "proper face", which is not a decan | Yes, 2026-09-25, in Robbins's translation on LacusCurtius; I.23 on 2026-09-27 in Skyscript's transcription of the same translation |
-| [biruni-wright1934] | §449, the faces and their lords in the Chaldean order, and the table; §451, the Hindu *drekkāṇa* | Yes, 2026-09-27, in the Internet Archive's text of the scan |
+| [biruni-wright1934] | §449, the faces and their lords in the Chaldean order, and the table; §451, the Hindu *drekkāṇa*, the rule of their lords and the table of the lords of the faces and of the *darījān* | Yes, 2026-09-27, in the Internet Archive's text of the scan; §451 and its table again 2026-09-29 |
 | [unicode-misc-symbols] | U+2648 ARIES to U+2653 PISCES | Yes, 2026-09-25 |
 
 Statements corrected on 2026-09-26, and how:
@@ -505,7 +526,7 @@ that they are not mistaken for sourced:
 
 `crates/hc-seasons/src/solar_terms.rs`, `crates/hc-seasons/src/pentads.rs`,
 `crates/hc-seasons/src/meridian.rs` and `crates/hc-seasons/src/zodiac/`
-(`mod.rs`, `tropical.rs`, `decans.rs`, `sidereal.rs`, `rashi.rs`,
+(`mod.rs`, `tropical.rs`, `decans.rs`, `drekkana.rs`, `sidereal.rs`, `rashi.rs`,
 `chinese_twelve.rs`).
 `hc-astro`'s `solar::solar_longitude_after` and `solar::seasonal_event` are
 the search.
@@ -530,6 +551,10 @@ Anchors in the modules:
 `the_rulers_are_al_birunis_table`,
 `thirty_six_decans_tile_the_ecliptic_at_ten_degrees`,
 `the_sun_enters_the_first_decan_of_each_sign_at_the_ingress`;
+`the_lords_are_al_birunis_table`,
+`the_first_third_of_every_sign_is_its_own_lords`,
+`thirty_six_thirds_tile_the_ecliptic_at_ten_degrees`,
+`the_sun_enters_the_first_third_of_each_sign_at_the_sankranti`;
 `the_ayanamsa_grows_by_about_fifty_arcseconds_a_year`,
 `the_sidereal_longitude_is_the_tropical_one_less_the_ayanamsa`,
 `makara_sankranti_falls_on_the_fourteenth_of_january`,

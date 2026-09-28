@@ -241,7 +241,17 @@ the conjunction being the return of the Moon's elongation to zero, as
   whose sunrise the day begins, as the amānta calendar's is.
   `MONTHS_DEVANAGARI` and
   `MONTHS_NEWA` are the article's spellings in Devanagari and the
-  Prachalit script. `new` takes another place and ayanāṃśa.
+  Prachalit script. `new` takes another place and ayanāṃśa. The article's
+  "Monthly cycle" names the fortnights *thwa* and *gā*, थ्वः and गाः,
+  and a tithi *milālyā*, मिलाल्याः, each in the Newa script too, which
+  are `FORTNIGHTS` and `TITHI_WORD`; its table of the tithis gives a Newar
+  name beside the Sanskrit one for seven of the thirty — Pāru for the
+  first of either fortnight, Dutiya and Chauthi for the second and fourth
+  of *thwa*, Punhi for the full moon, Charhe for the fourteenth of *gā*
+  and Āmai for the new moon — in Latin letters only, which are
+  `NEWAR_TITHI_NAMES` and `newar_tithi_name` [wikipedia-nepal-sambat].
+  The table cites the *Journal of Newar Studies*, issue 7, p. 89, which
+  was not read.
 - **Range.** Both calendars answer over the amānta and solar engines'
   Gregorian 1700 to 2299: `bikram-sambat` from 9 April 1700 to 18 April
   2300, `nepal-sambat` from 21 March 1700 to 22 March 2300, and refuse
@@ -272,9 +282,12 @@ the conjunction being the return of the Moon's elongation to zero, as
     municipality's own notice would be the source that changes it.
   - *The Malla-period dates* the calendar was made for: before 1700, out
     of the amānta engine's range.
-  - *The Newar names of the tithis* (Pāru for pratipadā, and so on), and
-    the festival rules — Mha Puja, Yomari Punhi, the Swanti days — which
-    `hc-holiday`'s Nepal rules date on `hindu-lunar` and `bikram-sambat`.
+  - *The Newar names of the other tithis*, and the seven carried in
+    Devanagari or the Newa script: the article's table gives the other
+    tithis their Sanskrit names only and the seven in Latin letters, and
+    the journal it cites was not read. The festival rules — Mha Puja,
+    Yomari Punhi, the Swanti days — are `hc-holiday`'s Nepal rules, dated
+    on `hindu-lunar` and `bikram-sambat`.
 
 ## Accuracy
 
@@ -294,6 +307,7 @@ states. The tests assert:
 | Every day of 2020–2030 round-trips across the gazetted years and the computed ones on either side | `every_day_round_trips_across_the_gazetted_years_and_beyond` | all |
 | Months of 29 to 32 days and years of 365 or 366, 2000–2099 BS | `months_run_twenty_nine_to_thirty_two_days_and_years_365_or_366` | all |
 | Mha Puja of 2013, 2014, 2016 and 2017 — 4 November, 24 October, 31 October, 20 October — is Kachhalā 1 of 1134, 1135, 1137 and 1138, and the day before is Kaulā of the year before | `nepal_sambat::new_years_day_is_mha_puja` | 4 of 4 |
+| The tithis' Newar names: Punhi the fifteenth, Āmai the new moon, Pāru both first days, and Mha Puja of 2013 Kachhalā *thwa* Pāru | `nepal_sambat::the_full_moons_are_punhi_and_the_new_moon_amai` | all |
 | 1 July 2020 is in Nepal Sambat 1140, the year Lalitpur began dating in | `the_year_lalitpur_began_dating_in_is_1140` | yes |
 | Each month's full moon falls in one of the two Gregorian months the article's table gives, 1130–1159 | `each_full_moon_falls_in_the_gregorian_months_the_table_gives` | 360 of 360 |
 | Years run 353–355 or 383–385 days, 1100–1199, with at least one intercalary year | `years_run_353_to_355_days_or_383_to_385` | all |
@@ -343,7 +357,7 @@ were re-read in their wikitext, Reingold and Dershowitz's code directly.
 | [np-moha-holidays-2083] | The same for 2083 BS; Khaṇḍa 75, No. 67; New Year on a Tuesday | Yes, 2026-09-25, pp. 1–2 of the scanned PDF |
 | [npns-samiti] | The Samiti, its ministry, and its approval of every published calendar | The official site refused the connection on 2026-09-25; the site at nepalpanchanga.com read instead |
 | [wikipedia-vikram-samvat] | The Rana adoption in 1901 as 1958 VS; the Nepali month names beside the Sanskrit ones; Baisakh first and Chait last | Yes, 2026-09-25 |
-| [wikipedia-nepal-sambat] | The epoch, the Malla use, the 1903 replacement, the revival of 1999, 2011, 2020 and 2023; the table of months and full moons; Analā and Nhanlā; the year lengths; Lalitpur's solar calendar | Yes, 2026-09-25 |
+| [wikipedia-nepal-sambat] | The epoch, the Malla use, the 1903 replacement, the revival of 1999, 2011, 2020 and 2023; the table of months and full moons; Analā and Nhanlā; the year lengths; Lalitpur's solar calendar; the "Monthly cycle": *thwa*, *gā*, *milālyā* and the table of the tithis with their Newar names | Yes, 2026-09-25; the "Monthly cycle" in the wikitext 2026-09-29 |
 | [wikipedia-mha-puja] | Mha Puja as Nepal Sambat's New Year's Day during Swanti; the dates of 2013, 2014, 2016 and 2017 | Yes, 2026-09-25; the four dates are the infobox's |
 | [wikipedia-time-in-nepal] | Nepal Standard Time as UTC+05:45 | Yes, 2026-09-25 |
 | [wikipedia-kathmandu] | Kathmandu's coordinates, as `places.rs` cites them | Not re-read; the module's reading of 2026-09-23 |
@@ -374,7 +388,7 @@ published ones.
 `the_reckoning_misses_the_gazette_once_in_forty_eight_months`,
 `the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day`,
 `a_day_the_reckoning_puts_in_magh_is_pus_30_by_the_gazette`,
-`new_years_day_is_mha_puja`, `the_year_lalitpur_began_dating_in_is_1140`,
+`new_years_day_is_mha_puja`, `the_full_moons_are_punhi_and_the_new_moon_amai`, `the_year_lalitpur_began_dating_in_is_1140`,
 `each_full_moon_falls_in_the_gregorian_months_the_table_gives`,
 `every_day_of_three_years_converts_and_converts_back`. The holiday rules
 that date Nepal's festivals on these calendars are

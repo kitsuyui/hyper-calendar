@@ -121,6 +121,44 @@ pub const MONTHS_NEWA: [&str; 12] = [
     "𑐎𑑁𑐮𑐵",
 ];
 
+/// The two fortnights, the waxing *thwa* and the waning *gā*, in the
+/// Latin, Devanagari and Newa letters the Wikipedia article "Nepal Sambat"
+/// writes them in (`wikipedia-nepal-sambat`, "Monthly cycle"): thwa, थ्वः,
+/// 𑐠𑑂𑐰𑑅, and gā, गाः, 𑐐𑐵𑑅.
+pub const FORTNIGHTS: [[&str; 3]; 2] = [["thwa", "थ्वः", "𑐠𑑂𑐰𑑅"], ["gā", "गाः", "𑐐𑐵𑑅"]];
+
+/// What a tithi is called, *milālyā*, in Devanagari and Newa letters, as the
+/// same section writes it.
+pub const TITHI_WORD: [&str; 3] = ["milālyā", "मिलाल्याः", "𑐩𑐶𑐮𑐵𑐮𑑂𑐫𑐵𑑅"];
+
+/// The tithis for which the same section's table gives a Newar name beside
+/// the Sanskrit one, by the tithi's number, 1 to 30, śukla 1 first: Pāru
+/// for the first of either fortnight, Dutiya and Chauthi for the second and
+/// fourth of *thwa*, Punhi for the full moon, Charhe for the fourteenth of
+/// *gā* and Āmai for the new moon. The table names the other tithis by
+/// their Sanskrit names only, and it gives the Newar ones in Latin letters
+/// alone; it cites the *Journal of Newar Studies*, issue 7, p. 89, which
+/// was not read.
+pub const NEWAR_TITHI_NAMES: [(u8, &str); 7] = [
+    (1, "Pāru"),
+    (2, "Dutiya"),
+    (4, "Chauthi"),
+    (15, "Punhi"),
+    (16, "Pāru"),
+    (29, "Charhe"),
+    (30, "Āmai"),
+];
+
+/// The Newar name of the tithi `tithi`, 1 to 30, where
+/// [`NEWAR_TITHI_NAMES`] has one.
+#[must_use]
+pub fn newar_tithi_name(tithi: u8) -> Option<&'static str> {
+    NEWAR_TITHI_NAMES
+        .iter()
+        .find(|(number, _)| *number == tithi)
+        .map(|(_, name)| *name)
+}
+
 /// A date in Nepal Sambat.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct NepalSambatDate {
@@ -468,5 +506,23 @@ mod tests {
             NS.to_fixed(NepalSambatDate { month: 13, ..date }),
             Err(CalendarError::MonthOutOfRange)
         );
+    }
+
+    #[test]
+    fn the_full_moons_are_punhi_and_the_new_moon_amai() {
+        // The article's table of months names each full moon "… Punhi",
+        // Saki Milā Punhi to Analā Punhi, and its table of tithis gives
+        // Punhi for the fifteenth of thwa and Āmai for the new moon.
+        assert_eq!(newar_tithi_name(15), Some("Punhi"));
+        assert_eq!(newar_tithi_name(30), Some("Āmai"));
+        assert_eq!(newar_tithi_name(1), newar_tithi_name(16));
+        assert_eq!(newar_tithi_name(3), None);
+        // Mha Puja, the first day of the year, is Kachhalā thwa Pāru: 4
+        // November 2013, as Wikipedia's "Mha Puja" dates it.
+        let mha_puja = gregorian::to_fixed(2013, 11, 4).unwrap();
+        let date = NepalSambatCalendar::KATHMANDU.from_fixed(mha_puja).unwrap();
+        assert_eq!((date.month, date.day), (1, 1));
+        assert_eq!(newar_tithi_name(date.day), Some("Pāru"));
+        assert_eq!(FORTNIGHTS[0][0], "thwa");
     }
 }

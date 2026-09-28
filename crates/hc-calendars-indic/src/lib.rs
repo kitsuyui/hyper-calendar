@@ -36,11 +36,17 @@
 //! * [`panchanga`] — the two other limbs of the almanac: the yoga, from
 //!   the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa,
 //!   the half-tithi.
+//! * [`amrita_siddhi`] — the *amṛta siddhi yoga*, a weekday's
+//!   conjunction with its nakṣatra, the auspicious yoga of Sewell and
+//!   Dikshit's Art. 39: the part of the day the Moon spends in it.
 //! * [`panchak`] — the Moon's passage through the last five nakṣatras,
 //!   and the kind a window takes from the weekday it begins on.
 //! * [`kalam`] — Rāhu kālam, Yamaganda and Gulika kālam, the eighths of the
 //!   day a pañcāṅga marks by the weekday: from sunrise to sunset
 //!   (`kalam::by_sunrise`) or from 06:00 to 18:00 (`kalam::by_fixed_day`).
+//! * [`muhurta`] — the fifteen muhūrtas of the daylight and of the
+//!   night, Abhijit, the eighth of the day, and Dur Muhurtam, the one or
+//!   two a weekday marks.
 //! * [`kumbh`] and [`pushkaram`] — the festivals set by Jupiter's sign:
 //!   the conditions of the Kumbh Mela at its four sites, and the river of
 //!   each sign with the twelve days after Jupiter enters it. Jupiter's
@@ -172,6 +178,7 @@ pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterato
 hc_core::check_days_in_parallel!();
 
 mod amanta;
+pub mod amrita_siddhi;
 pub mod barhaspatya;
 pub mod bikram_sambat;
 pub mod choghadiya;
@@ -186,6 +193,7 @@ pub mod kalam;
 mod kartikadi;
 pub mod kumbh;
 pub mod lunar_era;
+pub mod muhurta;
 pub mod nakshatra;
 pub mod nepal_sambat;
 pub mod odia_anka;

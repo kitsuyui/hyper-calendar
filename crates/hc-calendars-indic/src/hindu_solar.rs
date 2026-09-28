@@ -101,6 +101,9 @@ use hc_seasons::zodiac::rashi::{self, SolarMonthTradition};
 use hc_seasons::zodiac::sidereal;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
+use hc_astro::horizon::{Dip, Horizon, MoonLimb};
+use hc_astro::riseset::sunset_with;
+
 use crate::places::CENTRAL_STATION;
 use crate::tithi::{sunrise_of, sunset_of};
 
@@ -135,6 +138,40 @@ pub enum SankrantiRule {
     /// Government of Nepal gazettes show it with the *Sūrya Siddhānta*'s
     /// saṅkrāntis ([`crate::bikram_sambat`]).
     CivilDay,
+    /// The saṅkrānti's civil day when it falls before the Sun's *centre*
+    /// sets on the geometric horizon, with no refraction and no
+    /// semidiameter, the next day otherwise: the Tamil rule as Reingold and
+    /// Dershowitz's astronomical solar calendar reads it, whose sunset is
+    /// `dusk` at a depression of 0° (`reingold2018code`,
+    /// `astro-hindu-sunset`). The Sun's centre reaches the geometric
+    /// horizon three to four minutes before [`Self::BeforeSunset`]'s
+    /// sunset, when its upper limb meets the horizon lifted by 34′ of
+    /// refraction.
+    BeforeCentreSets,
+}
+
+/// The horizon of [`SankrantiRule::BeforeCentreSets`]: the Sun's centre on
+/// the geometric horizon, as `calendar-code2`'s `dusk` at a depression of
+/// 0° finds it.
+const CENTRE_ON_THE_GEOMETRIC_HORIZON: Horizon = Horizon {
+    id: "centre-on-the-geometric-horizon",
+    english_name: "the Sun's centre on the geometric horizon",
+    short_name: "geometric centre",
+    description: "no refraction, no semidiameter and no dip: the Sun's centre at an altitude of 0°",
+    refraction_degrees: 0.0,
+    solar_semidiameter_degrees: 0.0,
+    dip: Dip::Ignored,
+    moon: MoonLimb::ScaledByParallax,
+    source: "E. M. Reingold and N. Dershowitz, calendar-code2, calendar.l, astro-hindu-sunset: \
+             (dusk date hindu-location (deg 0))",
+};
+
+/// Sunset by [`CENTRE_ON_THE_GEOMETRIC_HORIZON`], or the mean one where the
+/// Sun does not set, as [`sunset_of`] does.
+fn centre_sets(day: Rd, location: Location) -> Moment {
+    sunset_with(day, location, &CENTRE_ON_THE_GEOMETRIC_HORIZON).unwrap_or(Moment(
+        day.0 as f64 + 0.75 - location.longitude_degrees / 360.0,
+    ))
 }
 
 impl SankrantiRule {
@@ -158,6 +195,13 @@ impl SankrantiRule {
             }
             Self::BeforeSunset => {
                 if instant.0 < sunset_of(civil, location).0 {
+                    civil
+                } else {
+                    Rd(civil.0 + 1)
+                }
+            }
+            Self::BeforeCentreSets => {
+                if instant.0 < centre_sets(civil, location).0 {
                     civil
                 } else {
                     Rd(civil.0 + 1)
@@ -1291,5 +1335,51 @@ mod tests {
             }
         }
         assert_eq!(differ, 5);
+    }
+
+    #[test]
+    fn the_books_ayanamsa_and_sunset_move_one_month_start_at_ujjain() {
+        // Reingold and Dershowitz's astronomical solar calendar is the Tamil
+        // rule at Ujjain with their own ayanāṃśa, 24.9″ above Lahiri, and
+        // their own sunset, the Sun's centre on the geometric horizon.
+        // Either alone, and the two together, move one of the 372 month
+        // starts of Śaka 1922–1952 from the rule at Ujjain with Lahiri's
+        // ayanāṃśa and the library's sunset: Māsi of Śaka 1922, whose
+        // saṅkrānti on 12 February 2001 fell just before the library's
+        // sunset and after the book's.
+        let lahiri = TAMIL.new(
+            CalendarId("x-hindu-solar-tamil-ujjain"),
+            crate::places::UJJAIN,
+            TAMIL.model,
+        );
+        let ayanamsa = lahiri.new(
+            CalendarId("x-hindu-solar-tamil-ujjain-book-ayanamsa"),
+            crate::places::UJJAIN,
+            SolarModel::Modern(Ayanamsa::REINGOLD_DERSHOWITZ),
+        );
+        let sunset = HinduSolarCalendar {
+            rule: SankrantiRule::BeforeCentreSets,
+            ..lahiri
+        };
+        let book = HinduSolarCalendar {
+            rule: SankrantiRule::BeforeCentreSets,
+            ..ayanamsa
+        };
+        let moved = |other: &HinduSolarCalendar| {
+            let mut moved = alloc::vec::Vec::new();
+            for year in 1_922..=1_952 {
+                for month in 1..=MONTHS_IN_YEAR {
+                    if lahiri.month_start(year, month) != other.month_start(year, month) {
+                        moved.push((year, month));
+                    }
+                }
+            }
+            moved
+        };
+        for other in [&ayanamsa, &sunset, &book] {
+            assert_eq!(moved(other), [(1_922, 11)]);
+        }
+        assert_eq!(lahiri.month_start(1_922, 11), Ok(Rd(730_528)));
+        assert_eq!(book.month_start(1_922, 11), Ok(Rd(730_529)));
     }
 }

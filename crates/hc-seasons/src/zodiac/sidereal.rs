@@ -86,10 +86,10 @@ hc_core::catalogue! {
     tests: ayanamsa_catalogue_tests,
     associated;
 
-    /// The four named ayanamsas this crate ships, largest last.
+    /// The five named ayanamsas this crate ships, largest last.
     pub const ALL;
     /// The named ayanāṃśa with this identifier: `lahiri`, `raman`,
-    /// `krishnamurti` or `fagan-bradley`.
+    /// `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`.
     pub fn by_id;
 
     entries: {
@@ -119,6 +119,30 @@ hc_core::catalogue! {
         /// 0.5 TT), exactly one Julian century before J2000.
         pub const LAHIRI = Self::new("lahiri", "Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148);
 
+        /// Reingold and Dershowitz's: zero at the *Sūrya Siddhānta*'s Meṣa
+        /// saṅkrānti of 285 CE, the ayanāṃśa of the astronomical Hindu
+        /// calendars of *Calendrical Calculations*, 24.9″ larger than
+        /// [`Self::LAHIRI`] at every date, since both are carried by the
+        /// same precession.
+        ///
+        /// Their code defines `sidereal-start` as the precession at that
+        /// moment, `(precession (universal-from-local (mesha-samkranti (ce
+        /// 285)) hindu-location))`, and the sidereal longitude as the
+        /// tropical one less the precession since then
+        /// (`reingold2018code`, `sidereal-start`,
+        /// `sidereal-solar-longitude`, `ayanamsha`). The anchor here is that
+        /// moment, Julian date 1 825 229.269 399 (16 March 285, 18:28 UT),
+        /// which `hc-calendars-indic`'s `surya_siddhanta::ingress_after`
+        /// finds and its test holds this to, at 0°; the book carries it by
+        /// Meeus's precession on the ecliptic of date and this crate by the
+        /// IAU 2006 one, which stand 0.3″ apart in 1700, 1.2″ in 2025 and
+        /// 2.1″ in 2300.
+        pub const REINGOLD_DERSHOWITZ = Self::new(
+            "reingold-dershowitz",
+            "Reingold-Dershowitz (Surya Siddhanta Mesha of 285)",
+            1_825_229.269_399,
+            0.0,
+        );
         /// Fagan–Bradley: the Western sidereal school's ayanāṃśa, about 0.88°
         /// larger than Lahiri.
         ///

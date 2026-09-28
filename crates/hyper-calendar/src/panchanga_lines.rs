@@ -39,8 +39,8 @@ use crate::boundary::reckoning_name;
 use crate::boundary::{Answer, Line, Refusal};
 
 /// The ayanāṃśa an identifier names: one of [`Ayanamsa::ALL`] by
-/// [`Ayanamsa::by_id`], `lahiri`, `raman`, `krishnamurti` or
-/// `fagan-bradley`.
+/// [`Ayanamsa::by_id`], `lahiri`, `raman`, `krishnamurti`,
+/// `reingold-dershowitz` or `fagan-bradley`.
 ///
 /// # Errors
 ///
