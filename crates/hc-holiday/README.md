@@ -65,7 +65,13 @@ holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
 `WeekendPolicy` (which days are the weekend, over stated years and, where
 the law changed mid-year, from the day it took effect),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
-and `Kind` for public / bank / religious / observance. A set can also
+`groups` for the days a statute gives to one group of people alone — China's
+half day for women on 8 March, Nepal's Teej for women employees — and `Kind`
+for public / bank / religious / observance / school / workday / government /
+half-day. A calendar is evaluated in a `Scope`, a region and a group, either
+of which may be absent; asked for no group, a table answers for everyone's
+days alone, as asked for no region it answers for the nationwide days
+([ADR 0011](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0011-a-day-for-one-group-is-a-scoped-rule.md)). A set can also
 `include` other sets — an exchange on its country's calendar — each evaluated
 under its own policies, with its days off merged in and its observances left
 behind.
@@ -450,15 +456,27 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   for 2020–2027 and is a gap in any other year.
 * **Nepal** carries the holidays of its Home Ministry's notices for every
   office in the country, except Chhath, which no one tithi rule puts where all
-  four notices do. The holidays for one community, region or group — the
-  Kathmandu Valley's *jātrā*s, Fagu Purnima's two dates, the days for women
-  or for the Newar community — are not carried.
+  four notices do; and the days the notices give one group alone, each
+  scoped to it: Gai Jatra for the Newar community, Dura Mhaipru Nakuma for
+  the Dura, Teej and Jitiya for women employees, the Day of Persons with
+  Disabilities for employees with disabilities, and Falgunanda Jayanti, the
+  Prophet's birthday and Guru Nanak Jayanti for the Kirat, Muslim and Sikh
+  faithful; Basanta Panchami for the schools; and the days kept with the
+  offices open. The days for one place — the Kathmandu Valley's four
+  *jātrā*s, Siruwa Pawani in five districts, Fagu Purnima's two dates for
+  the hill and the Terai districts — are not carried: they are districts,
+  and ISO 3166-2:NP codes the seven provinces and no district. Gaura Parva,
+  which the notices give without saying to whom, is not carried either.
+  See [`docs/systems/nepal-holidays.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/nepal-holidays.md).
 * **Bangladesh** carries the general and executive-order holidays of the
   Ministry of Public Administration's notifications. Janmashtami, the Durga
   Puja's Navami and Bijoya Dashami, and Buddha Purnima are those
   notifications' dates for 2025 and 2026 — the Indian rules miss each by a
   day in one of the two years — and a later year reports them as gaps. The
-  optional holidays are not carried.
+  optional holidays (ঐচ্ছিক ছুটি), which a government servant may take by
+  faith, are not carried yet: they are the notifications' third section,
+  which was not transcribed when the first two were read, and each would be
+  a rule given to the group of its faith.
 * **Mongolia** and **Bhutan** date their lunar days on the Tibetan
   calendar, `mongolian` and `tibetan-bhutan`, with `TibetanDay`. Where the
   calendar skips or repeats the day's number, the sources read do not say
@@ -479,22 +497,34 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   any year outside 2021–2027 report it as a gap.
 * **Laos** carries the official holidays of its Decree on Holidays. Lao New
   Year is the dates of the Prime Minister's Office's notices for 2024 to
-  2026, and another year reports it as a gap; the Lao Women's Union's day,
-  off for women alone, is not carried.
+  2026, and another year reports it as a gap. The Lao Women's Union's day,
+  20 July, which the notices give as a day off for female civil servants
+  and workers, is not carried yet: it would be a rule given to `women`, and
+  its Lao name and the notices' wording for it were not transcribed when
+  the notices were read.
 * **Papua New Guinea** carries only the days its Public Holidays Act fixes.
   Independence Day, the Sovereign's Birthday and any other day are appointed
   by notice in the National Gazette, and no gazette was read.
+* **Groups.** China's days for some citizens (women, youth, children,
+  active servicemen) are carried from 1999, Nepal's from its notices, and
+  Taiwan's services' days as gaps, their authorities' rules not read. The
+  Lao Women's Union's day and Bangladesh's optional holidays are not yet,
+  as above. A half day off is `Kind::HalfDay`, which business-day
+  arithmetic counts as a working day
+  ([ADR 0012](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0012-a-half-day-off-is-its-own-kind.md)).
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, Australian states and territories, Canadian provinces, UK
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
   Herzegovina, Bangladesh's hill districts and the Japanese prefectures
   that set a day of their own by ordinance are in, and so are New Zealand's
   provincial anniversary days, India's thirteen largest states, the
-  provinces of Solomon Islands and Vanuatu, and Thimphu, and a few single
-  places: Inauguration Day in the District of Columbia, Chișinău, Guatemala
-  City, San Salvador, Managua and Chile's Arica and Parinacota. US states,
-  Swiss cantons, Spanish autonomous communities and Italian patron-saint
-  days are not. Malaysia's states are not yet carried: the Prime Minister's
+  provinces of Solomon Islands and Vanuatu, Thimphu, China's autonomous
+  regions of Guangxi, Xinjiang and Ningxia for the years of their notices
+  read, fifteen of Russia's republics, and a few single places:
+  Inauguration Day in the District of Columbia, Chișinău, Guatemala City,
+  San Salvador, Managua and Chile's Arica and Parinacota. US states, Swiss
+  cantons, Spanish autonomous communities and Italian patron-saint days are
+  not. Malaysia's states are not yet carried: the Prime Minister's
   Department's yearly lists, which give every state's days, are PDFs and
   were not read, and kabinet.gov.my refused this session's requests.
 

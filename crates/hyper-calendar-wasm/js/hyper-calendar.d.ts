@@ -942,7 +942,8 @@ export type HolidayKind =
   | "observance"
   | "school"
   | "workday"
-  | "government";
+  | "government"
+  | "half-day";
 export type Confidence = "exact" | "approximate";
 
 /** One line of `hc_holidays_in_year`. */
@@ -959,6 +960,8 @@ export interface HolidayInYear {
   observedFor: string | null;
   /** The subdivision whose own entry this is, `JP-13`, or `null` for a nationwide one. */
   region: string | null;
+  /** The group whose own entry this is, `women`, or `null` for one everyone has. */
+  group: string | null;
 }
 
 /** One line of `hc_holidays_on`: one entry of one table on one day. */
@@ -980,6 +983,8 @@ export interface HolidayOn {
   observedFor: number | null;
   /** The ISO 3166-2 subdivision whose own entry this is, `JP-13`, or `null` for a nationwide one. */
   region: string | null;
+  /** The group of people whose own entry this is, `women`, or `null` for one everyone has. */
+  group: string | null;
 }
 
 /** The one line of `hc_term_in_effect` or `hc_pentad_in_effect`. */
@@ -1590,6 +1595,10 @@ export interface HolidayTable {
   shortName: string | null;
   /** The ISO 3166-2 codes of the subdivisions its rules are scoped to, the regions it answers for: `JP-11`, `JP-12`, … */
   regions: string[];
+  /** The groups of people its rules give days to alone, the groups it answers for: `children`, `military`, `women`, `youth`. */
+  groups: string[];
+  /** Those groups' names in the locale, in the same order, English where `hc-i18n` carries none: `少年儿童` under `zh-CN`. */
+  groupNames: string[];
 }
 
 /** Which rules answered for a zone's name. */
@@ -2169,10 +2178,10 @@ export class HyperCalendar {
   /** `hc_night_watch`: `null` from 05:00 to 18:59. */
   nightWatch(secondsOfDay: number, locale?: string): NightWatch | null;
 
-  /** `hc_holiday_is_day_off`; `region` may be empty. A code naming no table is `unknown`. */
-  holidayIsDayOff(code: string, region: string, fixed: number | bigint): boolean;
-  /** `hc_holidays_in_year`. */
-  holidaysInYear(code: string, region: string, year: number | bigint): HolidayInYear[];
+  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table is `unknown`. */
+  holidayIsDayOff(code: string, region: string, fixed: number | bigint, group?: string): boolean;
+  /** `hc_holidays_in_year`; `region` may be empty, and `group` left out or empty for everyone. */
+  holidaysInYear(code: string, region: string, year: number | bigint, group?: string): HolidayInYear[];
   /** `hc_holiday_codes`: countries, then exchanges, traditions and the international sets. */
   holidayCodes(): string[];
   /** `hc_holidays_on`: every entry on one day across every table, in `holidayCodes()` order. A day with no Gregorian year is `out-of-range`. */

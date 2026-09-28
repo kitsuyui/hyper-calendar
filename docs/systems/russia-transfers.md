@@ -192,13 +192,68 @@ is closed while 30 December trades.
     decrees were not read for this document.
   - The предпраздничный день, the working day before a holiday shortened
     by an hour under Article 95, which is a working day.
-  - Regional holidays that the republics set under Article 112's
-    reference to the Federal Law on freedom of conscience — Kurban Bayram
-    in Tatarstan and Bashkortostan, for instance — which would need
-    subdivisions the table does not have.
+  - Of the republics' days, those the section below lists as not
+    carried, each with its reason: Buryatia's Sagaalgan, whose law leaves
+    the day to each employer; Kalmykia's 28 December and 5 April; Mari
+    El's law, which was not reached; the Christian days Dagestan and
+    Kabardino-Balkaria declare each year where only a reference list was
+    read; and every year whose act was not read, which is a gap.
   - The Labour Code's predecessor, the КЗоТ of the RSFSR, whose article
     65 governed to 2002; the years before are what the secondary source
     says, above.
+
+### The republics' own days
+
+Article 4(7) of the Federal Law «О свободе совести и о религиозных
+объединениях» lets a subject of the Federation make its religious
+holidays non-working days, and several republics add days of their own.
+Each is a rule of `RUSSIA` scoped to the republic's ISO 3166-2 code, so
+that the nationwide calendar does not have it. A fixed day is a rule from
+the first year its text was in force on the date; where that text is a
+later wording of the law that set the day, the years from the law to the
+wording are gaps, and where it is the instrument that set the day, the
+years before are absent. A movable day is the dates the year's act sets,
+carried for the years read and a gap in the others, back to the law that
+made it non-working or, where no instrument read gives that year, in
+every earlier year; and where the republic's law moves a day off from the weekend,
+a year in which one of its days falls on a Saturday or a Sunday is a gap,
+"Day off moved from a holiday on the weekend", because the day it moves
+to is the republic's act's and was not read. All were read on
+2026-09-29, the laws on Garant (base.garant.ru) and the annual acts
+either there or, marked "list", as ConsultantPlus's reference list of
+the regions' non-working days gives them [ru-regional-days-consultant].
+
+| Republic | Instrument | Non-working days carried | Kind | From | Movable days carried | Weekend |
+| --- | --- | --- | --- | --- | --- | --- |
+| Adygea `RU-AD` | Закон РА № 168-1 of 1995, arts. 2 and 4, art. 2 as of 06.11.2020 [ru-ad-holidays-law] | 5 October | public | 2014, the text read; 1995–2013 gaps | Uraza Bayram, Radonitsa and Kurban Bayram 2024–2026 (2026 read, the rest list), with Monday 20 April 2026 off for Saturday 25 April worked; Uraza gaps 1995–2023, the others 2021–2023 | moved: gap |
+| Altai Republic `RU-AL` | Закон РА № 11-11 of 2003, as amended in 2013, 2021 and 2026 [ru-al-holidays-law] | 3 July, День образования Республики Алтай, for the republic's bodies and budget organisations | government | 2026 | Chaga Bayram 2024–2026 (list); gaps 2013–2023 | moved: gap |
+| Bashkortostan `RU-BA` | Закон РБ № ВС-10/21 of 1992, art. 1 as of 01.03.2011 [ru-ba-holidays-law] | 11 October, День Республики | public | 2011; 1992–2010 gaps | Uraza and Kurban Bayram 2024–2026 (2024 and 2026 resolutions read, 2025 list); gaps 1992–2023 | moved: gap |
+| Buryatia `RU-BU` | Закон РБ № 2562-V of 2017 | — | — | — | Sagaalgan not carried: art. 7 leaves the day to each employer | — |
+| Chechnya `RU-CE` | Head's decrees [ru-ce-decrees] | 23 March (from the decree of 24.03.2003), 16 April (04.05.2009) | public | 2004, 2010 | Uraza and Kurban Bayram, three days each, 2024–2026 (2026 read, the rest list); every year before a gap | not stated |
+| Chuvashia `RU-CU` | Закон ЧР № 4 of 04.05.2000 [ru-cu-holidays-law] | 24 June, День Республики | public | 2000 | — | not stated |
+| Dagestan `RU-DA` | decrees of the State Council (1995, 2000) and the Government's resolutions [ru-da-decrees] | 26 July, Constitution Day | public | 1995 | Uraza Bayram 2024–2026 and Kurban Bayram 2024–2026 (2026 Uraza read, the rest list), Uraza gaps 1991–2023, Kurban 2000–2023; the Day of Unity, 15 September 2026 (read), gaps 2011–2025 | not stated |
+| Ingushetia `RU-IN` | Head's decrees [ru-in-decrees] | — | — | — | Мархаш and Гӏурба 2024–2026 (2026 read, the rest list); every year before a gap | not stated |
+| Kabardino-Balkaria `RU-KB` | decrees of 25.03.1994 and 12.08.2014, the Parliament's resolution of 01.09.1997 [ru-kb-decrees] | 28 March, 1 September, 20 September | public | 1995 (1994 a gap), 1998 (1997 a gap), 2014 | Kurban Bayram 2024 (read) and 2026 (list), 2025 a gap; Uraza Bayram 2025 (read) and 2026 (list), 2024 a gap; Radonitsa 2026 (list), 2024–2025 gaps; every year before 2024 a gap for each | not stated |
+| Kalmykia `RU-KL` | Закон РК № 156-III-З of 2004, as restated in 2019 [ru-kl-holidays-law] | 5 July, День Республики Калмыкия | public | 2020 | Tsagan Sar and Buddha's Birthday 2024–2026, Zul 2024–2025 (list); gaps from 2005, the law's first year | moved: gap |
+| Karachay-Cherkessia `RU-KC` | decree of 27.04.2001 and the Head's decrees for 2026 [ru-kc-decrees] | 3 May | public | 2002 (2001 a gap) | Uraza and Kurban Bayram 2026 (read); every year before a gap | not stated |
+| Karelia `RU-KR` | Закон РК № 346-ЗРК of 1999 | none: 8 June is a holiday with no day off | — | — | — | — |
+| Khakassia `RU-KK` | the law of 1992 as restated in 2005 | none: 3 July is a holiday with no day off | — | — | — | — |
+| Komi `RU-KO` | Закон РК № 30-РЗ of 05.05.2014 [ru-ko-holidays-law] | 22 August, День Республики Коми, for the republic's bodies and institutions | government | 2014 | — | not moved |
+| Mari El `RU-ME` | not reached: Garant's page is not free | — | — | — | — | — |
+| Mordovia `RU-MO` | none standing; the one-off day of 5 August 2026 was seen in a list only, not read | — | — | — | — | — |
+| North Ossetia–Alania `RU-SE` | Закон РСО-А № 61-РЗ of 2018 [ru-se-holidays-law] | — | — | — | the first Monday of Uastyrdzhi, 18 November 2024 and 23 November 2026 (list); 2018–2023 gaps, and 2025, for which the Head's decree № 453 declared 17 November, whose text was not read | — |
+| Sakha (Yakutia) `RU-SA` | Закон РС(Я) 1993-З № 1545-V of 2018 [ru-sa-holidays-law] | 27 April, 21 June (Ysyakh), for the organisations the republic's budget funds | government | 2019, 2018 | — | moved: gap |
+| Tatarstan `RU-TA` | Закон РТ № 1448-XII of 1992, restated 2003 and 2010, amended 2016 and 2023 [ru-ta-holidays-law] | 30 August, 6 November | public | 2004, 2003; gaps from 1992 | Uraza Bayram and Kurban Bayram 2024–2026 (2026 read, the rest list); Uraza gaps 2011–2023, Uraza having been added in 2010, Kurban 1992–2023 | moved until 2016: gap; from 2017 none |
+| Tuva `RU-TY` | Закон РТ № 143 of 1999, as worded in 2012 [ru-ty-holidays-law] | 15 August, 6 May (8 May in 2026, by the Supreme Khural's resolution № 742, list) | public | 2013; 1999–2012 gaps | Shagaa and Naadym 2024–2026 (list); gaps 1999–2023 | moved: gap |
+| Udmurtia `RU-UD` | Закон УР № 81-РЗ of 2020, art. 3 | none: holidays with no day off | — | — | — | — |
+
+Every year after the last act read is a gap for a movable day. Where the
+table says "not stated", no instrument read moves a day off the weekend,
+and none is moved. Two things are open and noted: Garant's page for the
+Tatarstan law notes the Constitutional Court's ruling № 55-П of
+24 September 2026 on the pay for work on the regions' holidays, which
+was not read and does not change which days are off; and the laws' own
+years before the texts read are absent.
 
 ## Accuracy
 
@@ -251,9 +306,18 @@ Known points a reader may stumble on:
 | [ru-transfer-decree-2027] | The three transfers of 2027 and the decree's date | Yes, 2026-09-25, a legal-database copy; government.ru's announcement and Garant's page refused the fetch |
 | [ru-transfer-decrees] | The decrees for 2013 to 2027 as a series: numbers, dates, lines | 2024 and 2027 as above; 2025 and 2026 through ConsultantPlus's calendars, 2026-09-25; 2013 to 2023 not re-read |
 | [ru-production-calendars] | The check for every year 2013–2027; the transfers of 2025 and 2026 as the calendars quote them | 2024, 2025, 2026 and 2027 read 2026-09-25; the rest as the test transcribes them, retrieved 2026-09-23 |
+| [ru-ta-holidays-law], [ru-ba-holidays-law], [ru-ad-holidays-law], [ru-sa-holidays-law], [ru-ty-holidays-law], [ru-kl-holidays-law], [ru-al-holidays-law], [ru-se-holidays-law], [ru-cu-holidays-law], [ru-ko-holidays-law] | The republics' laws | Yes, 2026-09-29, on Garant, with the amending laws where the free text was out of date |
+| [ru-ce-decrees], [ru-da-decrees], [ru-in-decrees], [ru-kb-decrees], [ru-kc-decrees] | The North Caucasus republics' decrees and resolutions | Yes, 2026-09-29, the ones the table above marks read |
+| [ru-regional-days-consultant] | The annual dates the table marks "list" | Yes, 2026-09-29; a reference list, not the acts |
 | [moex-holiday-schedules] | The exchange as the consumer: the days it closes, the days off it trades, the working Saturdays "в обычном режиме", the 2026 weekend sessions | As the exchange table cites them, retrieved 2026-09-23; not re-read |
 
 ## Code
+
+`crates/hc-holiday/src/countries/russia_republics.rs`: the republics'
+dates in the listing `RU_REPUBLIC_DAYS`, their rules in
+`RU_REPUBLIC_RULES`, each scoped with `in_regions`, the weekend gaps of
+`moved`, and `RU_ALL_RULES`, which joins them to `RU_RULES` and is what
+`RUSSIA` carries. Anchors: `crates/hc-holiday/tests/russia_republics.rs`.
 
 `crates/hc-holiday/src/countries/europe.rs`: the rows in `RU_TRANSFERS`
 with `RU_TRANSFERS_FIRST` and `RU_TRANSFERS_LAST`, the holiday list

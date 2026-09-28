@@ -2338,8 +2338,11 @@ macro_rules! exports {
             ///
             /// `code` is a NUL-terminated table identifier — a country's ISO 3166-1
             /// alpha-2 code, an exchange's ISO 10383 Market Identifier Code, a
-            /// tradition's slug or `un-days` — and `region`, which may be null, a
-            /// subdivision's ISO 3166-2 code. Writes 1 or 0 to `out_is_day_off`.
+            /// tradition's slug or `un-days` — `region`, which may be null, a
+            /// subdivision's ISO 3166-2 code, and `group`, which may be null, the
+            /// identifier of a group of people the table gives days to alone
+            /// (`women`, `children`; column 10 of `hc_holiday_tables`). A null
+            /// `group` asks for everyone's days. Writes 1 or 0 to `out_is_day_off`.
             /// A null `code` or `out_is_day_off` is `HC_ERROR_NULL_POINTER`, a
             /// string that is not UTF-8 `HC_ERROR_NOT_UTF8`, and a code that names
             /// no table `HC_ERROR_UNKNOWN`.
@@ -2350,14 +2353,18 @@ macro_rules! exports {
             ///
             /// `code` names the table — a country's ISO 3166-1 alpha-2 code, an
             /// exchange's ISO 10383 Market Identifier Code, a tradition's slug or
-            /// `un-days` — and `region`, which may be empty, a subdivision's ISO
-            /// 3166-2 code. A null pointer with a non-zero length is
+            /// `un-days` — `region`, which may be empty, a subdivision's ISO
+            /// 3166-2 code, and `group`, which may be empty, the identifier of a
+            /// group of people the table gives days to alone (`women`,
+            /// `children`; column 10 of `hc_holiday_tables`); an empty `group`
+            /// asks for everyone's days. A null pointer with a non-zero length is
             /// `HC_ERR_NULL_POINTER`, text that is not UTF-8 `HC_ERR_NOT_UTF8`, and a
             /// code that names no table `HC_ERR_UNKNOWN`.
         }
         fn hc_holiday_is_day_off(
             code: name(code_len),
             region: opt(region_len),
+            group: opt(group_len),
             fixed: i64,
         ) -> value(out_is_day_off: int) =
             $crate::holiday_lines::is_day_off;
@@ -2368,14 +2375,17 @@ macro_rules! exports {
             ///
             /// One line per entry, tab-separated: the ISO 8601 date, the name, the
             /// local name, the kind (`public`, `bank`, `religious`, `observance`,
-            /// `school`, `workday` or `government`), the confidence (`exact` or
+            /// `school`, `workday`, `government` or `half-day`), the confidence
+            /// (`exact` or
             /// `approximate`), `1` for a substitute day and `0` otherwise, the date
-            /// the substitute stands in for or nothing, and the subdivision whose
-            /// own entry it is — `region` as the table writes it, `JP-13`, on an
-            /// entry the nationwide calendar does not have — or nothing. `region`
-            /// matches in either case. Writes the required length, including the
-            /// terminator, into `written`. The string arguments fail as for
-            /// `hc_holiday_is_day_off`.
+            /// the substitute stands in for or nothing, the subdivision whose own
+            /// entry it is — `region` as the table writes it, `JP-13`, on an entry
+            /// the calendar for no region does not have — or nothing, and the
+            /// group whose own entry it is — `group` as the table writes it,
+            /// `women`, on an entry the calendar for everyone does not have — or
+            /// nothing. `region` and `group` match in either case, and either may
+            /// be null. Writes the required length, including the terminator, into
+            /// `written`. The string arguments fail as for `hc_holiday_is_day_off`.
         }
         wasm {
             /// The holidays of a Gregorian year in a table, as UTF-8 lines,
@@ -2383,16 +2393,25 @@ macro_rules! exports {
             ///
             /// One line per entry, tab-separated: the ISO 8601 date, the name, the
             /// local name, the kind (`public`, `bank`, `religious`, `observance`,
-            /// `school`, `workday` or `government`), the confidence (`exact` or
+            /// `school`, `workday`, `government` or `half-day`), the confidence
+            /// (`exact` or
             /// `approximate`), `1` for a substitute day and `0` otherwise, the date
-            /// the substitute stands in for or nothing, and the subdivision whose
-            /// own entry it is — `region` as the table writes it, `JP-13`, on an
-            /// entry the nationwide calendar does not have — or nothing. `region`
-            /// matches in either case. A null `buffer` returns the length the text
-            /// needs, so a caller can allocate exactly. The string arguments fail
-            /// as for `hc_holiday_is_day_off`.
+            /// the substitute stands in for or nothing, the subdivision whose own
+            /// entry it is — `region` as the table writes it, `JP-13`, on an entry
+            /// the calendar for no region does not have — or nothing, and the
+            /// group whose own entry it is — `group` as the table writes it,
+            /// `women`, on an entry the calendar for everyone does not have — or
+            /// nothing. `region` and `group` match in either case, and either may
+            /// be empty. A null `buffer` returns the length the text needs, so a
+            /// caller can allocate exactly. The string arguments fail as for
+            /// `hc_holiday_is_day_off`.
         }
-        fn hc_holidays_in_year(code: name(code_len), region: opt(region_len), year: i64) -> line =
+        fn hc_holidays_in_year(
+            code: name(code_len),
+            region: opt(region_len),
+            group: opt(group_len),
+            year: i64,
+        ) -> line =
             $crate::holiday_lines::holidays_in_year;
 
         c {
@@ -2417,16 +2436,22 @@ macro_rules! exports {
             /// UTF-8 lines in a caller-owned buffer.
             ///
             /// The tables are the ones `hc_holiday_codes` lists, in that order, each
-            /// evaluated nationwide and then in each subdivision its rules name, in
-            /// code order. One line per (table, subdivision, entry), tab-separated:
+            /// evaluated nationwide, then in each subdivision its rules name, in
+            /// code order, then for each group of people its rules give days to
+            /// alone, in identifier order, and last for each subdivision and group
+            /// a rule names together. One line per (table, scope, entry),
+            /// tab-separated:
             /// the table's identifier, its English name, the holiday's English
             /// name, its local name, the kind (`public`, `bank`, `religious`,
-            /// `observance`, `school`, `workday`, `government`, or `gap`), the
+            /// `observance`, `school`, `workday`, `government`, `half-day`, or
+            /// `gap`), the
             /// confidence (`exact` or `approximate`), the instrument the rule cites
             /// or nothing, `1` for a substitute day and `0` otherwise, the fixed day
-            /// a substitute stands in for or nothing, and the subdivision's ISO
-            /// 3166-2 code, `JP-13`, for an entry the nationwide calendar does not
-            /// have, or nothing for a nationwide one. A `gap` line is a holiday the table could
+            /// a substitute stands in for or nothing, the subdivision's ISO 3166-2
+            /// code, `JP-13`, for an entry the nationwide calendar does not have, or
+            /// nothing for a nationwide one, and the group's identifier, `women`,
+            /// for an entry the calendar for everyone does not have, or nothing. A
+            /// `gap` line is a holiday the table could
             /// not place in the day's year — its calendar's range ended, or no
             /// announcement was read — with the confidence and source empty, so a
             /// caller can say the year is unanswered rather than show nothing. A
@@ -2438,16 +2463,22 @@ macro_rules! exports {
             /// returning the byte length written.
             ///
             /// The tables are the ones `hc_holiday_codes` lists, in that order, each
-            /// evaluated nationwide and then in each subdivision its rules name, in
-            /// code order. One line per (table, subdivision, entry), tab-separated:
+            /// evaluated nationwide, then in each subdivision its rules name, in
+            /// code order, then for each group of people its rules give days to
+            /// alone, in identifier order, and last for each subdivision and group
+            /// a rule names together. One line per (table, scope, entry),
+            /// tab-separated:
             /// the table's identifier, its English name, the holiday's English
             /// name, its local name, the kind (`public`, `bank`, `religious`,
-            /// `observance`, `school`, `workday`, `government`, or `gap`), the
+            /// `observance`, `school`, `workday`, `government`, `half-day`, or
+            /// `gap`), the
             /// confidence (`exact` or `approximate`), the instrument the rule cites
             /// or nothing, `1` for a substitute day and `0` otherwise, the fixed day
-            /// a substitute stands in for or nothing, and the subdivision's ISO
-            /// 3166-2 code, `JP-13`, for an entry the nationwide calendar does not
-            /// have, or nothing for a nationwide one. A `gap` line is a holiday the table could
+            /// a substitute stands in for or nothing, the subdivision's ISO 3166-2
+            /// code, `JP-13`, for an entry the nationwide calendar does not have, or
+            /// nothing for a nationwide one, and the group's identifier, `women`,
+            /// for an entry the calendar for everyone does not have, or nothing. A
+            /// `gap` line is a holiday the table could
             /// not place in the day's year — its calendar's range ended, or no
             /// announcement was read — with the confidence and source empty, so a
             /// page can say the year is unanswered rather than show nothing. A day
@@ -2465,9 +2496,12 @@ macro_rules! exports {
             /// `subdivision`, `exchange`, `tradition` or `observance`), the name in
             /// the locale, the English name, the locale that answered, the sources,
             /// the ISO 3166-1 country of a subdivision or an exchange where its
-            /// table records one, the short name in the locale, and the ISO 3166-2
+            /// table records one, the short name in the locale, the ISO 3166-2
             /// codes of the subdivisions its rules are scoped to, `;`-separated in
-            /// code order, or nothing. A country is
+            /// code order, or nothing, the identifiers of the groups of people its
+            /// rules give days to alone, `;`-separated in identifier order, or
+            /// nothing, and those groups' names in the locale, in the same order,
+            /// each its English name where `hc-i18n` carries none. A country is
             /// named by its CLDR 48 territory name
             /// in the `locale` where `hc-i18n` carries one, and else, as for a null
             /// `locale`, by CLDR's English one; every other table by its English
@@ -2488,8 +2522,12 @@ macro_rules! exports {
             /// that answered; the sources the table names; and, for a subdivision
             /// or an exchange, the ISO 3166-1 country it belongs to as its table
             /// records it, else empty; the short name in the locale, else empty;
-            /// and the ISO 3166-2 codes of the subdivisions its rules are scoped
-            /// to, `;`-separated in code order, else empty. A country is named by its CLDR 48 territory
+            /// the ISO 3166-2 codes of the subdivisions its rules are scoped to,
+            /// `;`-separated in code order, else empty; the identifiers of the
+            /// groups of people its rules give days to alone, `;`-separated in
+            /// identifier order, else empty; and those groups' names in the locale,
+            /// in the same order, each its English name where `hc-i18n` carries
+            /// none. A country is named by its CLDR 48 territory
             /// name in the locale where `hc-i18n` carries one, a country the locale
             /// has no name for by CLDR's English one, and every other table by its
             /// English name; column 5 is the tag that answered. Column 8 is CLDR

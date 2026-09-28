@@ -269,7 +269,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-26 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
-| `CN` | China | 36 | none | stated | 2026-09-23 |
+| `CN` | China | 50 | none | stated | 2026-09-29 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
@@ -365,7 +365,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NI` | Nicaragua | 11 | none | stated | 2026-09-23 |
 | `NL` | Netherlands | 10 | none | stated | 2026-09-26 |
 | `NO` | Norway | 12 | none | stated | 2026-09-26 |
-| `NP` | Nepal | 23 | none | stated | 2026-09-23 |
+| `NP` | Nepal | 42 | none | stated | 2026-09-29 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
 | `NZ` | New Zealand | 25 | yes | stated | 2026-09-29 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
@@ -382,7 +382,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `QA` | Qatar | 16 | none | stated | 2026-09-22 |
 | `RO` | Romania | 17 | none | stated | 2026-09-22 |
 | `RS` | Serbia | 26 | yes | stated | 2026-09-22 |
-| `RU` | Russia | 19 | none | stated | 2026-09-23 |
+| `RU` | Russia | 114 | none | stated | 2026-09-29 |
 | `RW` | Rwanda | 17 | yes | stated | 2026-09-23 |
 | `SA` | Saudi Arabia | 10 | none | stated | 2026-09-26 |
 | `SB` | Solomon Islands | 17 | yes | stated | 2026-09-29 |
@@ -412,7 +412,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TR` | Türkiye | 15 | none | stated | 2026-09-26 |
 | `TT` | Trinidad and Tobago | 17 | yes | stated | 2026-09-27 |
 | `TV` | Tuvalu | 10 | yes | stated | 2026-09-23 |
-| `TW` | Taiwan | 21 | yes | stated | 2026-09-26 |
+| `TW` | Taiwan | 26 | yes | stated | 2026-09-29 |
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |

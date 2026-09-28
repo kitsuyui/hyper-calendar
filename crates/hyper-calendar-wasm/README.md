@@ -316,8 +316,8 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `kumbh(yoga, year, ayanamsa, jupiter, locale)`, `pushkaram(sign, entryUnixSeconds, latitude, longitude, elevation, meridian, locale)` | `hc_kumbh`, `hc_pushkaram` | a `KumbhOccasion`; `PushkaramDays[]`, one per river |
 | `almanacCycles(fixed, meridian)`, `almanacDay(fixed, meridian, locale)` | `hc_almanac_cycles`, `hc_almanac_day` | an `AlmanacCycles`; `AlmanacAnnotation[]`, one per annotation |
 | `folkDay(fixed, meridian, locale)`, `nightWatch(secondsOfDay, locale)` | `hc_folk_day`, `hc_night_watch` | `FolkDay[]`, one per reckoning; a `NightWatch` or `null` |
-| `holidayIsDayOff(code, region, fixed)` | `hc_holiday_is_day_off` | a boolean |
-| `holidaysInYear(code, region, year)` | `hc_holidays_in_year` | `HolidayInYear[]` |
+| `holidayIsDayOff(code, region, fixed, group)` | `hc_holiday_is_day_off` | a boolean |
+| `holidaysInYear(code, region, year, group)` | `hc_holidays_in_year` | `HolidayInYear[]` |
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
 | `holidaysOn(fixed)` | `hc_holidays_on` | `HolidayOn[]` |
 | `holidayTables(locale)` | `hc_holiday_tables` | `HolidayTable[]` |
@@ -468,7 +468,7 @@ one job a layer.
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 120,941 | 118 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 110,654 | 108 KiB |
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,241,172 | 1.18 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,356,936 | 1.29 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,454,328 | 1.39 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,399 | 89 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 98,786 | 96 KiB |
@@ -477,11 +477,11 @@ one job a layer.
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,732 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,905,917 | 2.77 MiB |
-| `full` | all of the above | everything | 5,930,658 | 5.66 MiB |
+| `full` | all of the above | everything | 6,028,048 | 5.75 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
-printed them on 2026-09-28 with rustc 1.98.1:
+printed them on 2026-09-29 with rustc 1.98.1:
 
 ```sh
 scripts/wasm-layers.sh
@@ -617,8 +617,8 @@ not pass CI.
 | `hc_pentad_in_effect(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one UTF-8 line, returning the byte length written. |
 | `hc_cold_food_day(convention: *const u8, convention_len: usize, year: i64) -> i64` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning, or an error sentinel. |
 | `hc_plum_rains(rule: *const u8, rule_len: usize, year: i64, meridian: *const u8, meridian_len: usize) -> i64` | `seasons` | The fixed day of 入梅 or 出梅, the beginning or the end of the plum rains, of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian, or an error sentinel. |
-| `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
-| `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
+| `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
+| `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The identifier of every holiday table, one per line, returning the byte length written. |
 | `hc_holidays_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday on one fixed day across every table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_tables(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday table with its kind, names and sources, as UTF-8 lines, returning the byte length written. |
@@ -2175,30 +2175,40 @@ Identifier Code (`XNYS`), a tradition's slug (`christian-western`) or
 `un-days`, and `hc_holiday_codes` lists them all. `hc_holiday_is_day_off`
 answers for one day; `hc_holidays_in_year` writes a year as tab-separated
 lines — the ISO date, the name, the local name, the kind, the confidence,
-`1` for a substitute day, the date it stands in for and the
-region — and, called with a null buffer, returns the length the text needs
+`1` for a substitute day, the date it stands in for, the region and the
+group — and, called with a null buffer, returns the length the text needs
 so the caller can allocate exactly. The region is the subdivision whose own entry the
 line is: asked for `JP` in the region `JP-13`, the lines are Japan's
 nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
 region matches in either case, and one the table scopes no rule to gives
-the nationwide days.
+the nationwide days. The group is the group of people whose own entry the
+line is, in the same way: asked for `CN` for the group `women`, the lines
+are China's days for everyone and the half day of 8 March, and only that
+line carries `women`. A kind is `public`, `bank`, `religious`,
+`observance`, `school`, `workday`, `government` or `half-day`.
 
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
-code or region that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a code that names
-no table is `HC_ERR_UNKNOWN`. An empty region is no region.
+code, region or group that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a code
+that names no table is `HC_ERR_UNKNOWN`. An empty region is no region, and
+an empty group is everyone.
 
 ```js
 hc.holidaysInYear("JP", "", 2026);
 // [{ date: "2026-01-01", name: "New Year's Day", localName: "元日", kind: "public",
-//    confidence: "exact", substitute: false, observedFor: null, region: null }, ...]
+//    confidence: "exact", substitute: false, observedFor: null, region: null, group: null }, ...]
 hc.holidayIsDayOff("XNYS", "", hc.gregorianToFixed(2026, 4, 3));   // true: Good Friday
 hc.holidaysInYear("JP", "JP-13", 2026).find((day) => day.region);
 // { date: "2026-10-01", name: "Tokyo Citizens' Day", localName: "都民の日",
-//   kind: "school", confidence: "exact", substitute: false, observedFor: null, region: "JP-13" }
+//   kind: "school", confidence: "exact", substitute: false, observedFor: null, region: "JP-13",
+//   group: null }
+hc.holidaysInYear("CN", "", 2026, "women").find((day) => day.group);
+// { date: "2026-03-08", name: "Women's Day", localName: "妇女节", kind: "half-day",
+//   confidence: "exact", substitute: false, observedFor: null, region: null, group: "women" }
+hc.holidayIsDayOff("CN", "", hc.gregorianToFixed(2026, 6, 1), "children");  // true
 ```
 
-### Subdivisions
+### Subdivisions and groups
 
 A subdivision is not a table. Its days are rules of its country's table,
 scoped to its ISO 3166-2 code, and it is asked for by the `region`
@@ -2224,16 +2234,48 @@ country. So:
   one country's nationwide days keeps the lines whose column 10 is
   empty; one that wants Tokyo keeps those and the ones that say `JP-13`.
 
+A group of people is asked for in the same way, by the `group` argument,
+and is independent of the region. Some statutes give a day to a group
+alone: China's Article 3 gives women half of 8 March, youth of fourteen and
+over half of 4 May, children under fourteen 1 June and active servicemen
+half of 1 August; Taiwan's Article 6 leaves Police Day, Fire Fighters' Day,
+Armed Forces Day and Coast Guard Day to each service's authority. A group
+is named by an identifier of `hc_holiday::group` — `women`, `youth`,
+`children`, `military`, `police`, `firefighters`, `coast-guard`,
+`indigenous-peoples` — matched in either case. So:
+
+- `hc_holiday_tables` lists the groups a table's rules name in column 10
+  (`groups`), `children;military;women;youth` for `CN`, and their names in
+  the locale in column 11, 少年儿童;现役军人;妇女;青年 under `zh-CN`,
+  English where `hc-i18n` names a group in no other language.
+- `hc_holidays_in_year` and `hc_holiday_is_day_off` asked for no group
+  answer for everyone's days alone, not the union of every group's. Asked
+  for `CN` and `women`, they answer for women: everyone's days and the
+  half day of 8 March, whose year's line carries `women` in its last
+  column. A group and a region together answer for the group in the
+  subdivision.
+- `hc_holidays_on` writes, after a table's nationwide and subdivisions'
+  lines, each group's own lines, with the group in column 11, and last the
+  lines of a rule scoped to both a subdivision and a group, with both.
+- A half day is the kind `half-day`: work stops for part of the day, and
+  the day is still a business day, as an exchange's early close is. China's
+  Children's Day is `public` for children, a day off for them alone. A
+  Taiwanese service's day is a `gap` for its group in every year from
+  2025, the authority's rule that gives it not having been read.
+
 ### One day, every table
 
 `hc_holidays_on(fixed, buffer, capacity)` writes every entry on one day
 across every table `hc_holiday_codes` lists, in that order, each evaluated
-nationwide and then in each subdivision its rules are scoped to, the
-regions of column 9 of `hc_holiday_tables`, in code order. One line per
-(table, subdivision, entry): a subdivision's lines are the entries it has
-that the nationwide calendar does not, so a nationwide holiday is written
-once and Tokyo's 都民の日 on 1 October is a line of `JP` with `JP-13` in
-column 10.
+nationwide, then in each subdivision its rules are scoped to, the
+regions of column 9 of `hc_holiday_tables`, in code order, then for each
+group of its column 10, in identifier order, and last for each subdivision
+and group a rule names together. One line per (table, scope, entry): a
+subdivision's lines are the entries it has that the nationwide calendar
+does not, so a nationwide holiday is written once and Tokyo's 都民の日 on
+1 October is a line of `JP` with `JP-13` in column 10; a group's are the
+entries it has that the calendar for everyone does not, so China's half day
+of 8 March is a line of `CN` with `women` in column 11.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -2241,12 +2283,13 @@ column 10.
 | 2 | table name | its English name |
 | 3 | name | the holiday's English name |
 | 4 | local name | its name in the local language, or empty |
-| 5 | kind | `public`, `bank`, `religious`, `observance`, `school`, `workday`, `government`, or `gap` |
+| 5 | kind | `public`, `bank`, `religious`, `observance`, `school`, `workday`, `government`, `half-day`, or `gap` |
 | 6 | confidence | `exact` or `approximate`; empty for a gap |
 | 7 | source | the instrument the rule cites, `A/RES/73/161`, or empty |
 | 8 | substitute | `1` for a weekend substitute, else `0` |
 | 9 | observed for | the fixed day a substitute stands in for, or empty |
 | 10 | region | the ISO 3166-2 code of the subdivision whose own entry this is, `JP-13`, or empty for a nationwide one |
+| 11 | group | the identifier of the group of people whose own entry this is, `women`, or empty for one everyone has |
 
 A `gap` line is a holiday the table could not place in the day's year — its
 calendar's range ended, or the year's announcement has not been read — with
@@ -2326,6 +2369,8 @@ from CLDR's English by fallback has English's short name.
 | 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty; the code of a row whose column 3 names the country in the same locale |
 | 8 | short name | CLDR's `alt="short"` name for a country column 3 names from CLDR, from the same locale's data, else empty |
 | 9 | regions | the ISO 3166-2 codes of the subdivisions the table's rules are scoped to, `;`-separated in code order, the regions `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond the nationwide days; empty for a table with none |
+| 10 | groups | the identifiers of the groups of people the table's rules give days to alone, `;`-separated in identifier order, the groups `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond everyone's days; empty for a table with none |
+| 11 | group names | those groups' names in the locale, in the same order: `hc-i18n`'s where it names the group in a language of the locale's chain, 妇女 for `women` under `zh-CN`, else the English name |
 
 ### The liturgical year
 

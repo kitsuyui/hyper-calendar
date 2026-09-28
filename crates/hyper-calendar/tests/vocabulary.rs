@@ -829,6 +829,40 @@ fn every_horizon_a_locale_names_is_one_hc_astro_carries() {
     }
 }
 
+/// Every group `hc-i18n` names is one `hc-holiday` carries, and every group
+/// a table's rules are given to is in `hc-holiday`'s catalogue, so that a
+/// name keyed to a near miss of an identifier, or a group declared and not
+/// catalogued, fails on the day it is written.
+#[cfg(feature = "holiday")]
+#[test]
+fn every_group_a_locale_names_is_one_hc_holiday_carries() {
+    use hyper_calendar::hc_holiday::group::{GROUPS, by_id};
+    use hyper_calendar::hc_i18n::holiday_groups::TABLES;
+
+    for table in TABLES {
+        for (id, _) in table.names {
+            assert!(
+                GROUPS.iter().any(|group| group.id == *id),
+                "{} names {id}, which hc-holiday does not carry",
+                table.tag
+            );
+        }
+    }
+    for set in hyper_calendar::holiday_lines::tables() {
+        for group in set.groups() {
+            assert_eq!(by_id(group.id), Some(group), "{}", set.code);
+        }
+    }
+    // Every catalogued group is given a day by some table.
+    for group in GROUPS {
+        assert!(
+            hyper_calendar::holiday_lines::tables().any(|set| set.groups().contains(group)),
+            "{} is given no day",
+            group.id
+        );
+    }
+}
+
 /// Whether a rendered text holds `code` as a word.
 fn holds_code(text: &str, code: &str) -> bool {
     text.split(|c: char| !(c.is_alphanumeric() || c == '-'))

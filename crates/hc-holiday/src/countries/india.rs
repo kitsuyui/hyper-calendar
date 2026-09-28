@@ -49,7 +49,7 @@
 use crate::rule::{HolidayRule, Kind, Rule};
 
 use super::asia::IN_RULES;
-use super::joined;
+use crate::rule::joined;
 
 /// The first year of the Reserve Bank's lists carried.
 const FIRST: i32 = 2025;
@@ -699,4 +699,4 @@ pub static STATE_DAYS: &[HolidayRule] = &[
 /// India's nationwide rules and its states' days, the table
 /// [`super::INDIA`] evaluates.
 pub(super) static RULES: [HolidayRule; IN_RULES.len() + STATE_DAYS.len()] =
-    joined(IN_RULES, STATE_DAYS);
+    joined(&[IN_RULES, STATE_DAYS]);

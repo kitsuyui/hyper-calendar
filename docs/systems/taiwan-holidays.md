@@ -93,6 +93,26 @@ worked [tw-dgpa-office-calendars].
   and the other holidays from 2015.
 - **The swaps of 2017 to 2025**, from the calendars, as `Rule::Listed`
   rules; a year before 2017 is a gap.
+- **The services' days and the indigenous ceremonies, as gaps.** The
+  條例's article 6 paragraph 1 gives, besides the days off for everyone,
+  items for one group each
+  ([ADR 0011](../adr/0011-a-day-for-one-group-is-a-scoped-rule.md)):
+
+  | Item | Day | Text | Group | Carried |
+  | --- | --- | --- | --- | --- |
+  | 3 | 原住民族歲時祭儀 | 由原住民依其族別歲時祭儀擇定三日放假 | `indigenous-peoples` | a gap every year: three days each person chooses, on no date the 條例 gives |
+  | 4 | 消防節, 19 January | 消防節及警察節：依主管機關規定放假 | `firefighters` | a gap every year |
+  | 4 | 警察節, 15 June | the same | `police` | a gap every year |
+  | 5 | 軍人節, 3 September | 軍人節：依國防部規定放假 | `military` | a gap every year |
+  | 6 | 海巡節, 8 November | 海巡節：依海洋委員會規定放假 | `coast-guard` | a gap every year |
+
+  Each is a rule of `TAIWAN` given to its group alone. Whether and for whom
+  a service's day is a day off is its authority's rule, which was not
+  read: the Ministry of National Defense's 國軍人員週休二日實施規定, as the
+  defense law database shows it, does not mention 軍人節. So a caller who
+  asks for the police is told that Police Day's effect is unknown, not
+  that the police have no day. The years before the 條例 are gaps too:
+  the 辦法 it replaced was not read for these days.
 - **Not carried, and why:**
   - 兒童節 in 2012, when 4 April was also 清明 and the coincidence rule
     entered the 辦法 only in September; what that year gave is not in the
@@ -101,8 +121,13 @@ worked [tw-dgpa-office-calendars].
     Lunar New Year make-up before the run: the calendars of 2026 and 2027
     used neither, and a later calendar that does will show as a
     disagreement in the test below.
-  - Article 9's days for the police, the military, schools and the other
-    services that keep their own.
+  - Article 9's moves of the days off for the services that work every
+    day — transport, the police, fire, the coast guard, hospitals,
+    customs, prisons, schools and the armed forces — which their
+    authorities decide (由目的事業主管機關調移之) and no authority's
+    decision was read; the services' own days are above.
+  - The dates of the indigenous ceremonies, which the Council of
+    Indigenous Peoples' announcements would give and which were not read.
   - The swaps before 2017 and the make-up days before 2012.
 
 ## Accuracy
@@ -126,13 +151,20 @@ make-up only; the calendars of those years were read for article 3 of the
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [tw-memorial-days-act-2025] | The 條例: promulgation, articles 4, 6, 8 and 9 | Yes, 2026-09-26, law.moj.gov.tw |
+| [tw-memorial-days-act-2025] | The 條例: promulgation, articles 4, 6, 8 and 9 | Yes, 2026-09-26, law.moj.gov.tw; articles 5, 6 and 9 again 2026-09-29 |
+| [tw-mnd-two-day-weekend] | The Ministry of National Defense's 國軍人員週休二日實施規定, which does not name 軍人節 | Yes, 2026-09-29, law.mnd.gov.tw, article 5 in its three versions |
 | [tw-memorial-days-regulations] | The 辦法: articles 5 and 5-1 and their amendments, the repeal | Yes, 2026-09-26, law.moj.gov.tw and its old versions |
 | [tw-dgpa-make-up-points-2025] | The 處理要點 of 13 June 2025, the end of the swaps, the 116年 release | Yes, 2026-09-26, dgpa.gov.tw |
 | [tw-dgpa-calendars-2012-2014] | Article 3 of the 週休二日實施辦法 as the 101年 to 103年 calendars quote it | Yes, 2026-09-26, dgpa.gov.tw |
 | [tw-dgpa-office-calendars] | The weekdays off and Saturdays worked of 2017 to 2027 | Yes, 2026-09-23, data.gov.tw |
 
 ## Code
+
+`crates/hc-holiday/src/countries/taiwan_scoped.rs`: `TW_SCOPED_RULES`,
+the days of article 6's items 3 to 6 given to their groups, each a gap,
+and `TW_ALL_RULES`, which joins them to `TW_RULES` and is what `TAIWAN`
+carries. Anchor: `taiwan_s_services_days_are_gaps_from_the_statute` in
+`crates/hc-holiday/tests/groups.rs`.
 
 `crates/hc-holiday/src/countries/asia.rs`: `TW_RULES`, `tw_public` and
 `TW_WEEKEND_MAKE_UP_FROM`, `tw_new_year_day`, `tw_childrens_day`,

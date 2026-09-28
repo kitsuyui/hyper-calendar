@@ -106,7 +106,7 @@ after 2027, and a council may change its day.
 
 `crates/hc-holiday/src/countries/new_zealand.rs`: `ANNIVERSARY_DAYS`, built
 by `anniversary` with the moves of `NEAREST_MONDAY`, joined to the
-nationwide rules of `oceania.rs` by `countries::joined` into the `RULES`
+nationwide rules of `oceania.rs` by `rule::joined` into the `RULES`
 that `NEW_ZEALAND` evaluates.
 
 Anchors: `crates/hc-holiday/tests/new_zealand_anniversaries.rs`,

@@ -18,6 +18,8 @@ use hc_astro::riseset::Location;
 use hc_calendar::Calendar as _;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
+
+use crate::group::Group;
 use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_indic::nakshatra::nakshatra_span;
 use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH};
@@ -2354,6 +2356,13 @@ pub enum Kind {
     /// private employer is bound, so business-day arithmetic does not
     /// count it as a day off.
     Government,
+    /// Half a day off: work stops for part of the day and not the rest.
+    /// China's Article 3 gives women the half of 8 March (妇女放假半天),
+    /// youth of fourteen and over the half of 4 May, and active servicemen
+    /// the half of 1 August. The day is still a working day, as an
+    /// exchange's early close is a trading day, so business-day arithmetic
+    /// counts it (ADR 0012).
+    HalfDay,
 }
 
 impl Kind {
@@ -2373,7 +2382,8 @@ hc_core::catalogue! {
     /// Every kind.
     pub const ALL;
     /// The word the kind is written as at the boundary: `public`, `bank`,
-    /// `religious`, `observance`, `school`, `workday` or `government`.
+    /// `religious`, `observance`, `school`, `workday`, `government` or
+    /// `half-day`.
     pub fn id;
     /// The kind with this identifier.
     pub fn by_id;
@@ -2386,6 +2396,7 @@ hc_core::catalogue! {
         School => "school",
         Workday => "workday",
         Government => "government",
+        HalfDay => "half-day",
     }
 }
 
@@ -2597,6 +2608,10 @@ pub struct HolidayRule {
     /// The subdivisions it applies to, as ISO 3166-2 codes. Empty means
     /// nationwide.
     pub regions: &'static [&'static str],
+    /// The groups of people it is given to alone. Empty means everyone.
+    /// Independent of `regions`: a rule scoped to both applies to the
+    /// group in the subdivision.
+    pub groups: &'static [Group],
     /// The first year the country's substitution policy reaches this
     /// holiday, or `None` when it never does.
     ///
@@ -2639,6 +2654,7 @@ impl HolidayRule {
             valid_from: None,
             valid_until: None,
             regions: &[],
+            groups: &[],
             substitute_from: Some(i32::MIN),
             substitute_trigger: None,
             substitute_direction: None,
@@ -2695,6 +2711,12 @@ impl HolidayRule {
     #[must_use]
     pub const fn in_regions(self, regions: &'static [&'static str]) -> Self {
         Self { regions, ..self }
+    }
+
+    /// The same rule, given to a set of groups alone.
+    #[must_use]
+    pub const fn for_groups(self, groups: &'static [Group]) -> Self {
+        Self { groups, ..self }
     }
 
     /// The same rule, marked as a prediction rather than a fact.
@@ -2764,6 +2786,31 @@ impl HolidayRule {
         })
     }
 
+    /// Whether the holiday applies to `group`, as
+    /// [`HolidayRule::applies_in_region`] does for a region.
+    ///
+    /// `None` asks for everyone's days: only rules given to no group in
+    /// particular qualify. `Some(id)` adds the rules given to that group,
+    /// matched as every identifier is.
+    #[must_use]
+    pub fn applies_to_group(&self, group: Option<&str>) -> bool {
+        if self.groups.is_empty() {
+            return true;
+        }
+        group.is_some_and(|id| {
+            self.groups
+                .iter()
+                .any(|scoped| hc_core::catalogue::matches(id, scoped.id))
+        })
+    }
+
+    /// Whether the holiday applies in `scope`: in its region and to its
+    /// group.
+    #[must_use]
+    pub fn applies_in_scope(&self, scope: Scope<'_>) -> bool {
+        self.applies_in_region(scope.region) && self.applies_to_group(scope.group)
+    }
+
     /// Whether the country's substitution policy reaches this holiday in
     /// `year`.
     #[must_use]
@@ -2795,6 +2842,84 @@ impl SourceDate {
     #[must_use]
     pub const fn new(year: i32, month: u8, day: u8) -> Self {
         Self { year, month, day }
+    }
+}
+
+/// Whom a calendar is evaluated for: a subdivision, a group of people,
+/// both or neither.
+///
+/// The two are independent, as a rule's `regions` and `groups` are. A
+/// scope with neither is the nationwide calendar for everyone; a region
+/// adds the rules scoped to that subdivision, a group the rules given to
+/// that group, and both add the rules scoped to either and to both. Asked
+/// for no group, a table answers for everyone's days alone, never the
+/// union of every group's (ADR 0011).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
+pub struct Scope<'a> {
+    /// A subdivision's ISO 3166-2 code, or `None` for the nationwide days.
+    pub region: Option<&'a str>,
+    /// A [`Group`]'s identifier, or `None` for everyone's days.
+    pub group: Option<&'a str>,
+}
+
+impl<'a> Scope<'a> {
+    /// The nationwide days for everyone.
+    pub const EVERYONE: Scope<'static> = Scope {
+        region: None,
+        group: None,
+    };
+
+    /// A scope from a region and a group, either of which may be absent.
+    #[must_use]
+    pub const fn new(region: Option<&'a str>, group: Option<&'a str>) -> Self {
+        Self { region, group }
+    }
+
+    /// The days of one subdivision, for everyone.
+    #[must_use]
+    pub const fn region(code: &'a str) -> Self {
+        Self {
+            region: Some(code),
+            group: None,
+        }
+    }
+
+    /// The nationwide days of one group.
+    #[must_use]
+    pub const fn group(id: &'a str) -> Self {
+        Self {
+            region: None,
+            group: Some(id),
+        }
+    }
+
+    /// The same scope, for everyone.
+    #[must_use]
+    pub const fn for_everyone(self) -> Self {
+        Self {
+            group: None,
+            ..self
+        }
+    }
+
+    /// The same scope, nationwide.
+    #[must_use]
+    pub const fn nationwide(self) -> Self {
+        Self {
+            region: None,
+            ..self
+        }
+    }
+}
+
+impl<'a> From<Option<&'a str>> for Scope<'a> {
+    /// A region alone, for everyone: what every calendar constructor that
+    /// takes a region means by it.
+    fn from(region: Option<&'a str>) -> Self {
+        Self {
+            region,
+            group: None,
+        }
     }
 }
 
@@ -2911,6 +3036,85 @@ impl RuleSet {
         codes.dedup();
         codes
     }
+
+    /// Every group the table's rules are given to, once each, in
+    /// identifier order: what a caller may pass as the group of this table
+    /// and get more than everyone's days.
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn groups(&self) -> alloc::vec::Vec<Group> {
+        let mut groups: alloc::vec::Vec<Group> = self
+            .rules
+            .iter()
+            .flat_map(|rule| rule.groups.iter().copied())
+            .collect();
+        groups.sort_unstable_by_key(|group| group.id);
+        groups.dedup();
+        groups
+    }
+
+    /// Every pair of a subdivision and a group that one of the table's
+    /// rules is scoped to both of, once each, in code and then identifier
+    /// order: the scopes whose own days neither the region nor the group
+    /// alone has.
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn region_groups(&self) -> alloc::vec::Vec<(&'static str, Group)> {
+        let mut pairs: alloc::vec::Vec<(&'static str, Group)> = self
+            .rules
+            .iter()
+            .flat_map(|rule| {
+                rule.regions
+                    .iter()
+                    .flat_map(|region| rule.groups.iter().map(|group| (*region, *group)))
+            })
+            .collect();
+        pairs.sort_unstable_by_key(|(region, group)| (*region, group.id));
+        pairs.dedup();
+        pairs
+    }
+}
+
+/// The rules of several slices, in order, as one array: how a country's
+/// table takes in the rules of its subdivisions or groups that live in a
+/// file of their own — India's states, New Zealand's anniversary days, the
+/// Pacific provinces, Thimphu, China's, Taiwan's, Nepal's and Russia's
+/// scoped days — the one helper every such table uses. `N` must be the sum
+/// of the slices' lengths, and a wrong `N` fails to compile where the array
+/// is a constant.
+///
+/// # Panics
+///
+/// When `N` is not the slices' total length, or every slice is empty.
+#[must_use]
+pub const fn joined<const N: usize>(parts: &[&[HolidayRule]]) -> [HolidayRule; N] {
+    let mut filler = None;
+    let mut part = 0;
+    while part < parts.len() {
+        if !parts[part].is_empty() {
+            filler = Some(parts[part][0]);
+            break;
+        }
+        part += 1;
+    }
+    let Some(filler) = filler else {
+        panic!("the slices hold no rule");
+    };
+    let mut out = [filler; N];
+    let mut index = 0;
+    let mut part = 0;
+    while part < parts.len() {
+        let mut rule = 0;
+        while rule < parts[part].len() {
+            assert!(index < N, "more rules than N");
+            out[index] = parts[part][rule];
+            index += 1;
+            rule += 1;
+        }
+        part += 1;
+    }
+    assert!(index == N, "fewer rules than N");
+    out
 }
 
 /// Whether `year` falls inside an inclusive, optionally open-ended range.
