@@ -230,6 +230,11 @@ Gregorian dates and nothing else.
     in. The sample then still holds each kind of boundary the test is
     about: leap years, common years and the exceptions.
   - The published anchors are checked in full in both builds.
+  - The tests that render every calendar in every carried locale render,
+    in a debug build, a staggered share of the pairings of day and locale
+    that still renders every calendar in every locale, and each calendar's
+    own language and the days they must render in full; a release build
+    renders every pairing.
   - Some calendars are another calendar renamed: the same days under a year
     shifted by a constant and another era, as the Arsacid era is the
     Babylonian calendar's. Such a calendar rests on the other's every-day

@@ -105,93 +105,102 @@ fn the_table_is_read_whole() {
     assert_eq!(keys.len(), months.len());
 }
 
+// Both tests below convert every month of the table under one
+// `hc_core::memo::scope`, as a call at the boundary is converted: the months
+// of a year ask the same solstices, terms and conjunctions, which the scope
+// finds once. It changes how long the tests take and nothing they check.
+
 #[test]
 fn every_month_the_veritable_records_open_begins_on_their_day() {
-    for (year, month, name) in months() {
-        let date = LunisolarDate::new(year, month, 1);
-        let first = ChineseCalendar
-            .to_fixed(date)
-            .unwrap_or_else(|error| panic!("{year} {month:?} is not a month: {error:?}"));
-        assert_eq!(
-            first_day_name(&chinese::PARAMETERS, year, month).as_deref(),
-            Some(name.as_str()),
-            "{year} {month:?}, which the calendar begins on RD {first:?}"
-        );
-    }
+    hc_core::memo::scope(|| {
+        for (year, month, name) in months() {
+            let date = LunisolarDate::new(year, month, 1);
+            let first = ChineseCalendar
+                .to_fixed(date)
+                .unwrap_or_else(|error| panic!("{year} {month:?} is not a month: {error:?}"));
+            assert_eq!(
+                first_day_name(&chinese::PARAMETERS, year, month).as_deref(),
+                Some(name.as_str()),
+                "{year} {month:?}, which the calendar begins on RD {first:?}"
+            );
+        }
+    });
 }
 
 #[test]
 fn without_the_corrections_the_rules_miss_the_months_the_corrections_carry() {
-    static RULES: LunisolarParameters = LunisolarParameters {
-        month_start_corrections: &[],
-        major_term_corrections: &[],
-        ..chinese::PARAMETERS
-    };
-    let calendar = &chinese::PARAMETERS;
-    let first_day = |year: i64, month: Month| {
-        calendar
-            .to_fixed(year, month, 1)
-            .unwrap_or_else(|error| panic!("{year} {month:?} is not a month: {error:?}"))
-    };
-    let months = months();
-    // Every correction the engine applies has a month in the Records to
-    // test it: the first day of a month for each of the 29 first days, and
-    // the leap month of each of the five years whose term day it moves.
-    for correction in &chinese::ALMANAC_CORRECTIONS {
-        assert!(
-            months
-                .iter()
-                .any(|(year, month, _)| first_day(*year, *month) == correction.promulgated),
-            "no month of the Records begins on {:?}: {}",
-            correction.promulgated,
-            correction.source
-        );
-    }
-    let term_years: Vec<i64> = chinese::ALMANAC_TERM_CORRECTIONS
-        .iter()
-        .map(|correction| {
+    hc_core::memo::scope(|| {
+        static RULES: LunisolarParameters = LunisolarParameters {
+            month_start_corrections: &[],
+            major_term_corrections: &[],
+            ..chinese::PARAMETERS
+        };
+        let calendar = &chinese::PARAMETERS;
+        let first_day = |year: i64, month: Month| {
             calendar
-                .from_fixed(correction.promulgated)
+                .to_fixed(year, month, 1)
+                .unwrap_or_else(|error| panic!("{year} {month:?} is not a month: {error:?}"))
+        };
+        let months = months();
+        // Every correction the engine applies has a month in the Records to
+        // test it: the first day of a month for each of the 29 first days, and
+        // the leap month of each of the five years whose term day it moves.
+        for correction in &chinese::ALMANAC_CORRECTIONS {
+            assert!(
+                months
+                    .iter()
+                    .any(|(year, month, _)| first_day(*year, *month) == correction.promulgated),
+                "no month of the Records begins on {:?}: {}",
+                correction.promulgated,
+                correction.source
+            );
+        }
+        let term_years: Vec<i64> = chinese::ALMANAC_TERM_CORRECTIONS
+            .iter()
+            .map(|correction| {
+                calendar
+                    .from_fixed(correction.promulgated)
+                    .expect("in range")
+                    .0
+            })
+            .collect();
+        for (year, correction) in term_years.iter().zip(&chinese::ALMANAC_TERM_CORRECTIONS) {
+            let leap = calendar
+                .leap_month(*year)
                 .expect("in range")
-                .0
-        })
-        .collect();
-    for (year, correction) in term_years.iter().zip(&chinese::ALMANAC_TERM_CORRECTIONS) {
-        let leap = calendar
-            .leap_month(*year)
-            .expect("in range")
-            .expect("the correction places a leap month");
-        assert!(
-            months
-                .iter()
-                .any(|(y, month, _)| y == year && *month == Month::leap(leap)),
-            "the Records do not open the leap month of {year}: {}",
-            correction.source
-        );
-    }
-    // Where the rules miss: the 29 months whose first day a correction
-    // moves, and in each of the five years, the leap month and the month
-    // the rules number differently beside it.
-    let missed: Vec<&(i64, Month, String)> = months
-        .iter()
-        .filter(|(year, month, name)| {
-            first_day_name(&RULES, *year, *month).as_deref() != Some(name.as_str())
-        })
-        .collect();
-    let moved_first_days = missed
-        .iter()
-        .filter(|(year, month, _)| {
-            chinese::ALMANAC_CORRECTIONS
-                .iter()
-                .any(|correction| correction.promulgated == first_day(*year, *month))
-        })
-        .count();
-    let in_term_years = missed
-        .iter()
-        .filter(|(year, _, _)| term_years.contains(year))
-        .count();
-    assert_eq!(moved_first_days, chinese::ALMANAC_CORRECTIONS.len());
-    assert_eq!(in_term_years, 2 * chinese::ALMANAC_TERM_CORRECTIONS.len());
-    assert_eq!(missed.len(), moved_first_days + in_term_years);
-    assert_eq!(missed.len(), 39);
+                .expect("the correction places a leap month");
+            assert!(
+                months
+                    .iter()
+                    .any(|(y, month, _)| y == year && *month == Month::leap(leap)),
+                "the Records do not open the leap month of {year}: {}",
+                correction.source
+            );
+        }
+        // Where the rules miss: the 29 months whose first day a correction
+        // moves, and in each of the five years, the leap month and the month
+        // the rules number differently beside it.
+        let missed: Vec<&(i64, Month, String)> = months
+            .iter()
+            .filter(|(year, month, name)| {
+                first_day_name(&RULES, *year, *month).as_deref() != Some(name.as_str())
+            })
+            .collect();
+        let moved_first_days = missed
+            .iter()
+            .filter(|(year, month, _)| {
+                chinese::ALMANAC_CORRECTIONS
+                    .iter()
+                    .any(|correction| correction.promulgated == first_day(*year, *month))
+            })
+            .count();
+        let in_term_years = missed
+            .iter()
+            .filter(|(year, _, _)| term_years.contains(year))
+            .count();
+        assert_eq!(moved_first_days, chinese::ALMANAC_CORRECTIONS.len());
+        assert_eq!(in_term_years, 2 * chinese::ALMANAC_TERM_CORRECTIONS.len());
+        assert_eq!(missed.len(), moved_first_days + in_term_years);
+        assert_eq!(missed.len(), 39);
+    });
 }

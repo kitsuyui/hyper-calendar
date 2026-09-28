@@ -825,10 +825,14 @@ mod tests {
             IslamicGlobalCalendar::ISTANBUL_2016,
         ] {
             let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
-                (FIRST_YEAR..=LAST_YEAR)
-                    .filter_map(|year| calendar.compose(year, 1, 1).ok())
-                    .map(|day| day.0)
-                    .collect()
+                // One memo for the openings: a year's composition reads
+                // the month back, asking the same evenings again.
+                hc_core::memo::scope(|| {
+                    (FIRST_YEAR..=LAST_YEAR)
+                        .filter_map(|year| calendar.compose(year, 1, 1).ok())
+                        .map(|day| day.0)
+                        .collect()
+                })
             } else {
                 alloc::vec::Vec::new()
             };

@@ -428,24 +428,28 @@ mod tests {
         let mut lengths = [0u32; 3];
         let mut long_months = Vec::new();
         let last = civil::to_rd(2_101, 1, 1);
-        let mut cursor = SITE
-            .month_start_on_or_after(civil::to_rd(1_900, 1, 1))
-            .expect("converges");
-        while cursor < last {
-            let next = SITE
-                .month_start_on_or_after(Rd(cursor.0 + 1))
+        // One memo for the walk: each month's search asks again the
+        // evenings the search before it judged.
+        hc_core::memo::scope(|| {
+            let mut cursor = SITE
+                .month_start_on_or_after(civil::to_rd(1_900, 1, 1))
                 .expect("converges");
-            let length = next.0 - cursor.0;
-            assert!(
-                (29..=31).contains(&length),
-                "month at {cursor} ran {length}"
-            );
-            lengths[(length - 29) as usize] += 1;
-            if length == 31 {
-                long_months.push(civil::from_rd(cursor));
+            while cursor < last {
+                let next = SITE
+                    .month_start_on_or_after(Rd(cursor.0 + 1))
+                    .expect("converges");
+                let length = next.0 - cursor.0;
+                assert!(
+                    (29..=31).contains(&length),
+                    "month at {cursor} ran {length}"
+                );
+                lengths[(length - 29) as usize] += 1;
+                if length == 31 {
+                    long_months.push(civil::from_rd(cursor));
+                }
+                cursor = next;
             }
-            cursor = next;
-        }
+        });
         assert_eq!(lengths, [1_171, 1_311, 4]);
         assert_eq!(
             long_months,
