@@ -43,7 +43,7 @@ use hc_i18n::Locale;
 use hc_i18n::dated::{self, NamingPeriod, PeriodOn};
 use hc_i18n::names::{self, NameContext, NameWidth};
 
-use crate::boundary::{Answer, Refusal};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// The tag that asks for each calendar's own language.
 pub const NATIVE: &str = "native";
@@ -112,17 +112,6 @@ pub fn locale_used(locale: &Locale) -> &'static str {
     names::locale_data(locale).tag
 }
 
-/// Append one cell of a line: `text` with any tab or line break replaced
-/// by a space, so the line format survives whatever a source string holds.
-pub fn push_cell(out: &mut String, text: &str) {
-    for character in text.chars() {
-        out.push(match character {
-            '\t' | '\n' | '\r' => ' ',
-            other => other,
-        });
-    }
-}
-
 /// [`Standing`] as the word a line carries.
 #[must_use]
 pub const fn standing_name(standing: Standing) -> &'static str {
@@ -134,17 +123,15 @@ pub const fn standing_name(standing: Standing) -> &'static str {
     }
 }
 
-/// [`DayBoundary`] as the word a line carries.
-fn push_day_boundary(out: &mut String, boundary: DayBoundary) {
+/// [`DayBoundary`] as the word a line carries, as a cell.
+fn day_boundary_cell(line: &mut Line<'_>, boundary: DayBoundary) {
     match boundary {
-        DayBoundary::Midnight => out.push_str("midnight"),
-        DayBoundary::Noon(_) => out.push_str("noon"),
-        DayBoundary::Sunset(_) => out.push_str("sunset"),
-        DayBoundary::Sunrise(_) => out.push_str("sunrise"),
-        DayBoundary::LocalTime(time, _) => {
-            let _ = write!(out, "local-time {time}");
-        }
-    }
+        DayBoundary::Midnight => line.cell("midnight"),
+        DayBoundary::Noon(_) => line.cell("noon"),
+        DayBoundary::Sunset(_) => line.cell("sunset"),
+        DayBoundary::Sunrise(_) => line.cell("sunrise"),
+        DayBoundary::LocalTime(time, _) => line.value(format_args!("local-time {time}")),
+    };
 }
 
 /// Which civil day names a day that begins at `boundary`, as the word a
@@ -158,11 +145,6 @@ const fn day_naming_name(boundary: DayBoundary) -> &'static str {
             DayNaming::ByEnd => "end",
         },
     }
-}
-
-/// `1` or `0`.
-fn push_flag(out: &mut String, flag: bool) {
-    out.push(if flag { '1' } else { '0' });
 }
 
 /// The era's name for a column that is empty when nobody has one, by
@@ -229,40 +211,35 @@ pub(crate) fn month_label_or_empty(
 /// The date columns of a converted day: era code, era label, year, month
 /// ordinal, leap-month flag, month label, day, leap-day flag and the extra
 /// fields.
-fn push_fields(out: &mut String, locale: &Locale, calendar: &dyn DynCalendar, fields: &DateFields) {
-    let era = fields.era.unwrap_or("");
-    push_cell(out, era);
-    out.push('\t');
-    if let Some(code) = fields.era {
-        push_cell(out, era_label_or_empty(locale, calendar, code));
-    }
-    let _ = write!(out, "\t{}\t", fields.year);
+fn fields_cells(
+    line: &mut Line<'_>,
+    locale: &Locale,
+    calendar: &dyn DynCalendar,
+    fields: &DateFields,
+) {
+    line.cell(fields.era.unwrap_or(""))
+        .cell(
+            fields
+                .era
+                .map_or("", |code| era_label_or_empty(locale, calendar, code)),
+        )
+        .value(fields.year);
     match fields.month {
-        Some(month) => {
-            let _ = write!(out, "{}\t{}\t", month.ordinal, u8::from(month.leap));
-        }
-        None => out.push_str("\t0\t"),
-    }
-    push_cell(out, &month_label_or_empty(locale, calendar, fields));
-    out.push('\t');
-    if let Some(day) = fields.day {
-        let _ = write!(out, "{day}");
-    }
-    let _ = write!(out, "\t{}\t", u8::from(fields.leap_day));
-    push_extras(out, fields);
+        Some(month) => line.value(month.ordinal).flag(month.leap),
+        None => line.empty().flag(false),
+    };
+    line.cell(&month_label_or_empty(locale, calendar, fields))
+        .value_or_empty(fields.day)
+        .flag(fields.leap_day)
+        .cell_with(|cell| extras(cell, fields));
 }
 
 /// The extra fields as `name=value` pairs joined by `;`: identifiers and
 /// integers for a program, which [`day_extras`] labels for a reader.
-fn push_extras(out: &mut String, fields: &DateFields) {
-    let mut first = true;
-    for extra in fields.extra.iter() {
-        if !first {
-            out.push(';');
-        }
-        first = false;
-        push_cell(out, extra.name);
-        let _ = write!(out, "={}", extra.value);
+fn extras(cell: &mut dyn Write, fields: &DateFields) {
+    for (index, extra) in fields.extra.iter().enumerate() {
+        let separator = if index == 0 { "" } else { ";" };
+        let _ = write!(cell, "{separator}{}={}", extra.name, extra.value);
     }
 }
 
@@ -297,36 +274,31 @@ fn describe_day_in_scope(registry: &CalendarRegistry, day: Rd, locale: &str) -> 
         };
         let meta = calendar.meta();
         let locale = locale_for(calendar, locale);
-        push_cell(&mut out, id.as_str());
-        out.push('\t');
-        push_cell(&mut out, meta.english_name);
-        out.push('\t');
+        let mut line = Line::new(&mut out);
+        line.cell(id.as_str()).cell(meta.english_name);
         match described {
             Ok(fields) => {
-                push_fields(&mut out, &locale, calendar, &fields);
+                fields_cells(&mut line, &locale, calendar, &fields);
                 // No error code, no error name; then the standing.
-                out.push_str("\t\t\t");
-                out.push_str(standing_name(calendar.standing(day)));
-                out.push('\t');
-                push_day_boundary(&mut out, calendar.day_boundary());
-                out.push('\t');
-                push_cell(&mut out, &label::date(calendar, &fields, &locale));
+                line.empties(2).cell(standing_name(calendar.standing(day)));
+                day_boundary_cell(&mut line, calendar.day_boundary());
+                line.cell(&label::date(calendar, &fields, &locale));
             }
             Err(refusal) => {
                 // The nine date columns stay empty; the refusal is the
                 // answer, and there is no standing for a day the calendar
                 // cannot name.
-                out.push_str("\t\t\t\t\t\t\t\t\t");
-                let _ = write!(out, "{}\t{}\t\t", refusal.code(), refusal.name());
-                push_day_boundary(&mut out, calendar.day_boundary());
-                out.push('\t');
+                line.empties(9)
+                    .value(refusal.code())
+                    .cell(refusal.name())
+                    .empty();
+                day_boundary_cell(&mut line, calendar.day_boundary());
+                line.empty();
             }
         }
-        out.push('\t');
-        out.push_str(locale_used(&locale));
-        out.push('\t');
-        out.push_str(day_naming_name(calendar.day_boundary()));
-        out.push('\n');
+        line.cell(locale_used(&locale))
+            .cell(day_naming_name(calendar.day_boundary()));
+        line.end();
     }
     out
 }
@@ -392,20 +364,15 @@ fn push_day_extras(out: &mut String, calendar: &dyn DynCalendar, day: Rd, tag: &
     let (_, written) = label::date_marking(calendar, &fields, &locale);
     let id = calendar.meta().id;
     for (index, extra) in fields.extra.iter().enumerate() {
-        push_cell(out, id.as_str());
-        out.push('\t');
-        push_cell(out, extra.name);
-        let _ = write!(out, "\t{}\t", extra.value);
-        if let Some(name) = hc_i18n::fields::label(&locale, extra.name) {
-            push_cell(out, name.name);
-        }
-        out.push('\t');
-        push_cell(out, &label::extra(calendar, &fields, extra.name, &locale));
-        out.push('\t');
-        push_flag(out, written.contains(index));
-        out.push('\t');
-        out.push_str(used);
-        out.push('\n');
+        let mut line = Line::new(out);
+        line.cell(id.as_str())
+            .cell(extra.name)
+            .value(extra.value)
+            .cell_or_empty(hc_i18n::fields::label(&locale, extra.name).map(|name| name.name))
+            .cell(&label::extra(calendar, &fields, extra.name, &locale))
+            .flag(written.contains(index))
+            .cell(used);
+        line.end();
     }
 }
 
@@ -438,25 +405,18 @@ pub fn calendar_units(
     let used = locale_used(&locale);
     let mut out = String::new();
     for span in spans {
-        let _ = write!(out, "{}\t{}\t", span.start.0, span.end.0);
+        let mut line = Line::new(&mut out);
+        line.value(span.start.0).value(span.end.0);
         match span.dated {
-            Ok(dated) => {
-                push_cell(
-                    &mut out,
-                    &label::label(calendar, &dated.fields, unit, &locale),
-                );
-                out.push('\t');
-                push_flag(&mut out, dated.leap);
-                out.push('\t');
-                out.push_str(standing_name(dated.standing));
-                out.push_str("\t\t\t");
-            }
-            Err(refusal) => {
-                let _ = write!(out, "\t\t\t{}\t{}\t", refusal.code(), refusal.name());
-            }
-        }
-        out.push_str(used);
-        out.push('\n');
+            Ok(dated) => line
+                .cell(&label::label(calendar, &dated.fields, unit, &locale))
+                .flag(dated.leap)
+                .cell(standing_name(dated.standing))
+                .empties(2),
+            Err(refusal) => line.empties(3).value(refusal.code()).cell(refusal.name()),
+        };
+        line.cell(used);
+        line.end();
     }
     Ok(out)
 }
@@ -507,32 +467,20 @@ fn calendars_in_scope(registry: &CalendarRegistry, today: Rd, locale: &str) -> S
             continue;
         };
         let named_in = requested.unwrap_or_else(|| label::locale_for(calendar, None));
-        push_cell(&mut out, meta.id.as_str());
-        out.push('\t');
-        push_cell(
-            &mut out,
-            names::calendar_display_name(&named_in, meta.id).unwrap_or(""),
-        );
-        out.push('\t');
-        push_cell(&mut out, meta.english_name);
-        out.push('\t');
-        if let Some(earliest) = meta.earliest {
-            let _ = write!(out, "{}", earliest.0);
-        }
-        out.push('\t');
-        if let Some(latest) = meta.latest {
-            let _ = write!(out, "{}", latest.0);
-        }
-        out.push('\t');
         let (era, year, month, day) = has_units(calendar, today);
-        for flag in [era, year, month, day] {
-            push_flag(&mut out, flag);
-            out.push('\t');
-        }
-        push_cell(&mut out, &meta.native_locales.join(";"));
-        out.push('\t');
-        out.push_str(standing_name(calendar.standing(today)));
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(meta.id.as_str())
+            .cell(names::calendar_display_name(&named_in, meta.id).unwrap_or(""))
+            .cell(meta.english_name)
+            .value_or_empty(meta.earliest.map(|earliest| earliest.0))
+            .value_or_empty(meta.latest.map(|latest| latest.0))
+            .flag(era)
+            .flag(year)
+            .flag(month)
+            .flag(day)
+            .cell(&meta.native_locales.join(";"))
+            .cell(standing_name(calendar.standing(today)));
+        line.end();
     }
     out
 }
@@ -569,20 +517,14 @@ pub fn calendar_list(registry: &CalendarRegistry, locale: &str) -> String {
         let named_in = requested.unwrap_or_else(|| label::locale_for(calendar, None));
         let (name, tag) =
             names::calendar_display_name_with_tag(&named_in, meta.id).unwrap_or(("", ""));
-        push_cell(&mut out, meta.id.as_str());
-        out.push('\t');
-        push_cell(&mut out, name);
-        out.push('\t');
-        push_cell(&mut out, meta.english_name);
-        out.push('\t');
-        out.push_str(tag);
-        out.push('\t');
-        if let Some(krate) = crates.get(meta.id.as_str()) {
-            out.push_str(krate);
-        }
-        out.push('\t');
-        push_cell(&mut out, &meta.native_locales.join(";"));
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(meta.id.as_str())
+            .cell(name)
+            .cell(meta.english_name)
+            .cell(tag)
+            .cell_or_empty(crates.get(meta.id.as_str()).copied())
+            .cell(&meta.native_locales.join(";"));
+        line.end();
     }
     out
 }
@@ -613,21 +555,9 @@ pub fn locales() -> String {
     let gregory = CalendarId("gregory");
     let mut out = String::new();
     for data in hc_i18n::data::LOCALES {
-        push_cell(&mut out, data.tag);
-        out.push('\t');
-        push_cell(&mut out, data.english_name);
-        out.push('\t');
-        push_cell(&mut out, data.native_name);
-        out.push('\t');
         let months = data
             .calendar(gregory)
             .is_some_and(|entry| !entry.months().is_empty());
-        push_flag(&mut out, months);
-        out.push('\t');
-        push_flag(&mut out, !data.weekdays.is_empty());
-        out.push('\t');
-        push_flag(&mut out, data.eras_for(gregory).is_some());
-        out.push('\t');
         let mut named: Vec<&str> = Vec::new();
         for entry in data.calendars {
             // The entry that serves the Gregorian calendar is the shared
@@ -642,8 +572,15 @@ pub fn locales() -> String {
                 }
             }
         }
-        push_cell(&mut out, &named.join(";"));
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(data.tag)
+            .cell(data.english_name)
+            .cell(data.native_name)
+            .flag(months)
+            .flag(!data.weekdays.is_empty())
+            .flag(data.eras_for(gregory).is_some())
+            .cell(&named.join(";"));
+        line.end();
     }
     out
 }
@@ -665,21 +602,18 @@ pub fn locales() -> String {
 pub fn gregorian_adoption(region: &str) -> String {
     let mut out = String::new();
     for row in hc_calendars_solar::adoption::gregorian_adoption(region) {
+        let mut line = Line::new(&mut out);
         if let (Ok(last), Ok(first)) = (row.last_old_day(), row.first_day()) {
-            let _ = write!(out, "{}\t{}\t", last.0, first.0);
+            line.value(last.0).value(first.0);
         } else {
-            out.push_str("\t\t");
+            line.empties(2);
         }
-        push_cell(&mut out, row.old_calendar);
-        out.push('\t');
-        out.push_str(row.scope.as_str());
-        out.push('\t');
-        push_cell(&mut out, row.source());
-        out.push('\t');
-        push_cell(&mut out, row.new_calendar);
-        out.push('\t');
-        push_cell(&mut out, row.polity);
-        out.push('\n');
+        line.cell(row.old_calendar)
+            .cell(row.scope.as_str())
+            .cell(row.source())
+            .cell(row.new_calendar)
+            .cell(row.polity);
+        line.end();
     }
     out
 }
@@ -715,16 +649,24 @@ pub fn naming_period_line(
     let (state, period) = match dated::period_on(&locale, calendar.meta().id, day) {
         PeriodOn::InForce(period) => ("in-force", period),
         PeriodOn::Undecided(period) => ("undecided", period),
-        PeriodOn::Ordinary => return Ok(String::from("ordinary\t\t\t\t\t\t\t\t\n")),
+        PeriodOn::Ordinary => {
+            let mut out = String::new();
+            let mut line = Line::new(&mut out);
+            line.cell("ordinary").empties(NAMING_PERIOD_COLUMNS - 1);
+            line.end();
+            return Ok(out);
+        }
     };
-    let mut out = String::from(state);
-    out.push('\t');
-    push_period(&mut out, period, calendar, day);
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(state);
+    period_cells(&mut line, period, calendar, day);
+    line.end();
     Ok(out)
 }
 
 /// A period's cells of [`naming_period_line`] for a day, after the state.
-fn push_period(out: &mut String, period: &NamingPeriod, calendar: &dyn DynCalendar, day: Rd) {
+fn period_cells(line: &mut Line<'_>, period: &NamingPeriod, calendar: &dyn DynCalendar, day: Rd) {
     let month = calendar
         .fixed_to_fields(day)
         .ok()
@@ -735,18 +677,14 @@ fn push_period(out: &mut String, period: &NamingPeriod, calendar: &dyn DynCalend
         .weekday_meanings
         .get(usize::from(weekday.monday_first_number()))
         .copied();
-    push_cell(out, period.id);
-    for cell in [month, period.weekday_name(weekday), meaning] {
-        out.push('\t');
-        push_cell(out, cell.unwrap_or(""));
-    }
-    let _ = write!(
-        out,
-        "\t{}\t{}\t{}\t",
-        period.earliest.0, period.in_force_by.0, period.ended.0
-    );
-    push_cell(out, period.source);
-    out.push('\n');
+    line.cell(period.id)
+        .cell_or_empty(month)
+        .cell_or_empty(period.weekday_name(weekday))
+        .cell_or_empty(meaning)
+        .value(period.earliest.0)
+        .value(period.in_force_by.0)
+        .value(period.ended.0)
+        .cell(period.source);
 }
 
 #[cfg(test)]

@@ -34,17 +34,20 @@
 use alloc::string::String;
 use core::fmt::Write;
 
+use hc_calendar::Calendar;
+use hc_core::catalogue::matches;
 use hc_core::math::floor;
 use hc_core::unix::{self, LeapPolicy};
 use hc_core::{ATTOS_PER_SEC, Instant, Tai, UnixTime};
 use hc_planetary::bodies::{self, Body, BodyKind, EpochBasis};
 use hc_planetary::circad;
 use hc_planetary::clock::BodyClock;
-use hc_planetary::mars::missions::{MISSIONS, Mission, SolConvention};
+use hc_planetary::mars::martiana::MartianaCalendar;
+use hc_planetary::mars::missions::{MISSIONS, Mission};
 use hc_planetary::mars::{DarianCalendar, MarsMoment, darian, martiana};
 use hc_planetary::moon::COORDINATED_LUNAR_TIME_STATUS;
 
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How far either side of J2000.0, in TT days, the planetary exports
 /// answer: 100 Julian years, the span Allison and McEwen state their
@@ -65,18 +68,6 @@ pub const BODY_TIME_COLUMNS: usize = 8;
 
 /// How many columns a line of [`circad_date_line`] has.
 pub const CIRCAD_DATE_COLUMNS: usize = 10;
-
-/// The calendars [`circad_date_line`] answers for, in the order
-/// `hc-planetary` defines them: the circad calendars of Titan and the
-/// Galilean moons, then Mars's Martiana.
-pub const CIRCAD_CALENDARS: [&str; 6] = [
-    "darian-titan",
-    "gregorian-io",
-    "gregorian-europa",
-    "gregorian-ganymede",
-    "gregorian-callisto",
-    "martiana",
-];
 
 /// What the last cell of a Martiana line names.
 const MARTIANA_SOURCE: &str = "Gangale, The Darian Calendar for Mars, §1.4.1 The Martiana \
@@ -158,47 +149,47 @@ pub fn mars_time_line(unix_seconds: f64, east_longitude_degrees: f64) -> Answer<
     let lmst = moment.local_mean_solar_time_east(east);
     let ltst = moment.local_true_solar_time_east(east);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{mtc}\t{}\t{lmst}\t{}\t{ltst}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-        moment.mars_sol_date(),
-        mtc.decimal_hours(),
-        lmst.decimal_hours(),
-        ltst.decimal_hours(),
-        moment.equation_of_time_minutes(),
-        moment.solar_longitude(),
-        moment.mars_year(),
-        date.year,
-        date.month,
-        date.day,
-    );
-    push_cell(&mut out, month);
-    out.push('\t');
-    push_cell(&mut out, weekday);
-    out.push('\t');
-    push_cell(&mut out, MARS_SOURCE);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(moment.mars_sol_date())
+        .value(mtc)
+        .value(mtc.decimal_hours())
+        .value(lmst)
+        .value(lmst.decimal_hours())
+        .value(ltst)
+        .value(ltst.decimal_hours())
+        .value(moment.equation_of_time_minutes())
+        .value(moment.solar_longitude())
+        .value(moment.mars_year())
+        .value(date.year)
+        .value(date.month)
+        .value(date.day)
+        .cell(month)
+        .cell(weekday)
+        .cell(MARS_SOURCE);
+    line.end();
     Ok(out)
 }
 
 /// The identifier of a name: lower case, with a hyphen for each space, so
 /// `Viking 1` is `viking-1` and `Mars Pathfinder` is `mars-pathfinder`.
-fn identifier(out: &mut String, name: &str) {
+fn identifier(out: &mut dyn Write, name: &str) {
     for character in name.chars() {
         if character == ' ' {
-            out.push('-');
+            let _ = out.write_char('-');
         } else {
-            out.extend(character.to_lowercase());
+            for lower in character.to_lowercase() {
+                let _ = out.write_char(lower);
+            }
         }
     }
 }
 
 /// Whether `given` names a table entry by its identifier or its English
-/// name, in any ASCII case.
+/// name, each by [`matches`](fn@matches).
 fn names_entry(given: &str, name: &str) -> bool {
     let mut id = String::new();
     identifier(&mut id, name);
-    names(given, &id) || names(given, name)
+    matches(given, &id) || matches(given, name)
 }
 
 /// The mission `given` names, by identifier or by name.
@@ -211,14 +202,6 @@ pub fn mission(given: &str) -> Answer<&'static Mission> {
         .iter()
         .find(|mission| names_entry(given, mission.name))
         .ok_or(Refusal::Unknown)
-}
-
-/// The identifier a clock convention is written as.
-const fn convention_id(convention: SolConvention) -> &'static str {
-    match convention {
-        SolConvention::LocalMeanSolarTime => "local-mean-solar-time",
-        SolConvention::LocalTrueSolarTimeAtLanding => "local-true-solar-time-at-landing",
-    }
 }
 
 /// Every surface mission, in landing order, one line each: the
@@ -234,40 +217,27 @@ const fn convention_id(convention: SolConvention) -> &'static str {
 pub fn missions_lines() -> String {
     let mut out = String::new();
     for mission in MISSIONS {
-        identifier(&mut out, mission.name);
-        out.push('\t');
-        push_cell(&mut out, mission.name);
-        out.push('\t');
-        push_cell(&mut out, mission.landing_utc);
-        let _ = write!(out, "\t{}\t", mission.landing_unix_seconds);
+        let mut line = Line::new(&mut out);
+        line.cell_with(|cell| identifier(cell, mission.name))
+            .cell(mission.name)
+            .cell(mission.landing_utc)
+            .value(mission.landing_unix_seconds);
         if mission.convention_is_published {
-            let _ = write!(
-                out,
-                "{}\t{}\t{}",
-                mission.first_sol,
-                convention_id(mission.convention),
-                mission.clock_east_longitude_degrees,
-            );
+            line.value(mission.first_sol)
+                .cell(mission.convention.id())
+                .value(mission.clock_east_longitude_degrees);
         } else {
-            out.push_str("\t\t");
+            line.empties(3);
         }
-        let _ = write!(
-            out,
-            "\t{}\t{}\t",
-            mission.site_east_longitude_degrees,
-            u8::from(mission.convention_is_published),
-        );
-        push_cell(&mut out, mission.note);
-        out.push('\t');
-        push_cell(
-            &mut out,
-            if mission.convention_is_published {
+        line.value(mission.site_east_longitude_degrees)
+            .flag(mission.convention_is_published)
+            .cell(mission.note)
+            .cell(if mission.convention_is_published {
                 MISSION_SOURCE
             } else {
                 UNPUBLISHED_MISSION_SOURCE
-            },
-        );
-        out.push('\n');
+            });
+        line.end();
     }
     out
 }
@@ -352,35 +322,32 @@ pub fn body(given: &str) -> Answer<&'static Body> {
 pub fn bodies_lines() -> String {
     let mut out = String::new();
     for body in bodies::ALL {
-        identifier(&mut out, body.name);
-        out.push('\t');
-        push_cell(&mut out, body.name);
-        let _ = write!(out, "\t{}\t", kind_id(body.kind));
-        if let Some(primary) = body.primary {
-            identifier(&mut out, primary);
-        }
-        let _ = write!(out, "\t{}\t", body.sidereal_rotation_hours);
+        let mut line = Line::new(&mut out);
+        line.cell_with(|cell| identifier(cell, body.name))
+            .cell(body.name)
+            .cell(kind_id(body.kind))
+            .cell_with(|cell| {
+                if let Some(primary) = body.primary {
+                    identifier(cell, primary);
+                }
+            })
+            .value(body.sidereal_rotation_hours);
         if let Some(seconds) = body.solar_day_seconds() {
             let origin = if body.measured_solar_day_seconds.is_some() {
                 "measured"
             } else {
                 "derived"
             };
-            let _ = write!(out, "{seconds}\t{origin}");
+            line.value(seconds).cell(origin);
         } else {
-            out.push('\t');
+            line.empties(2);
         }
-        out.push('\t');
-        if let Some(year) = body.year_in_local_days() {
-            let _ = write!(out, "{year}");
-        }
-        let _ = write!(out, "\t{}\t", basis_id(body.clock_epoch.basis));
-        push_cell(&mut out, body.clock_epoch.note);
-        out.push('\t');
-        push_cell(&mut out, body.source);
-        out.push('\t');
-        push_cell(&mut out, status(body));
-        out.push('\n');
+        line.value_or_empty(body.year_in_local_days())
+            .cell(basis_id(body.clock_epoch.basis))
+            .cell(body.clock_epoch.note)
+            .cell(body.source)
+            .cell(status(body));
+        line.end();
     }
     out
 }
@@ -410,18 +377,16 @@ pub fn body_time_line(
     let east = longitude(east_longitude_degrees)?;
     let local = clock.at_east_longitude(instant, east);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{local}\t{}\t{}\t{}\t{}\t",
-        local.day_number(),
-        local.day_fraction(),
-        local.decimal_hours(),
-        local.solar_day_seconds(),
-        local.local_hour_seconds(),
-        basis_id(body.clock_epoch.basis),
-    );
-    push_cell(&mut out, body.clock_epoch.note);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(local.day_number())
+        .value(local.day_fraction())
+        .value(local)
+        .value(local.decimal_hours())
+        .value(local.solar_day_seconds())
+        .value(local.local_hour_seconds())
+        .cell(basis_id(body.clock_epoch.basis))
+        .cell(body.clock_epoch.note);
+    line.end();
     Ok(out)
 }
 
@@ -431,7 +396,8 @@ pub fn body_time_line(
 /// day count the date is numbered by, the fraction of that day elapsed,
 /// `1` for a leap year, and the source.
 ///
-/// `calendar` is one of the [`CIRCAD_CALENDARS`], in any ASCII case. For
+/// `calendar` is a circad calendar of [`circad::all`], by [`circad::by_id`],
+/// or `martiana`, [`MartianaCalendar`]'s identifier. For
 /// Titan's and the Galilean moons' calendars a day is a *circad*, a fixed
 /// fraction of the moon's solar day, the week has eight circads, and the
 /// count is the circad number from the calendar's epoch, as
@@ -447,50 +413,52 @@ pub fn body_time_line(
 /// instant: the span is Mars24's, ±100 years of J2000.0, for these
 /// calendars too, whose calibrations are of 2002.
 pub fn circad_date_line(calendar: &str, unix_seconds: f64) -> Answer<String> {
-    let known = CIRCAD_CALENDARS
-        .iter()
-        .find(|id| names(calendar, id))
-        .ok_or(Refusal::Unknown)?;
+    let martiana_id = MartianaCalendar.meta().id.0;
+    let circad = if matches(calendar, martiana_id) {
+        None
+    } else {
+        Some(circad::by_id(calendar).ok_or(Refusal::Unknown)?)
+    };
     let instant = instant(unix_seconds)?;
     let mut out = String::new();
-    push_cell(&mut out, known);
-    if *known == "martiana" {
-        let msd = MarsMoment::from_tai(instant).mars_sol_date();
-        let sol = darian::sol_from_mars_sol_date(msd);
-        let date = martiana::date_from_sol(sol).map_err(|_| Refusal::OutOfRange)?;
-        let month = date.month_name().map_err(|_| Refusal::OutOfRange)?;
-        let week = date.weekday_name().map_err(|_| Refusal::OutOfRange)?;
-        let _ = write!(out, "\t{}\t{}\t{}\t", date.year, date.month, date.day);
-        push_cell(&mut out, month);
-        out.push('\t');
-        push_cell(&mut out, week.unwrap_or(""));
-        let _ = write!(
-            out,
-            "\t{sol}\t{}\t{}\t",
-            msd - floor(msd),
-            u8::from(martiana::is_leap_year(date.year))
-        );
-        push_cell(&mut out, MARTIANA_SOURCE);
-    } else {
-        let calendar = circad::by_id(known).ok_or(Refusal::Unknown)?;
-        let rule = calendar.rule();
-        let (count, fraction) = calendar.circad_and_fraction_at(instant);
-        let date = calendar
-            .date_from_circad(count)
-            .map_err(|_| Refusal::OutOfRange)?;
-        let month = calendar.month_name(date).map_err(|_| Refusal::OutOfRange)?;
-        let _ = write!(out, "\t{}\t{}\t{}\t", date.year, date.month, date.day);
-        push_cell(&mut out, month);
-        out.push('\t');
-        push_cell(&mut out, calendar.week_name(count));
-        let _ = write!(
-            out,
-            "\t{count}\t{fraction}\t{}\t",
-            u8::from(rule.is_leap_year(date.year))
-        );
-        push_cell(&mut out, rule.source);
+    let mut line = Line::new(&mut out);
+    line.cell(circad.map_or(martiana_id, |calendar| calendar.rule().id));
+    match circad {
+        None => {
+            let msd = MarsMoment::from_tai(instant).mars_sol_date();
+            let sol = darian::sol_from_mars_sol_date(msd);
+            let date = martiana::date_from_sol(sol).map_err(|_| Refusal::OutOfRange)?;
+            let month = date.month_name().map_err(|_| Refusal::OutOfRange)?;
+            let week = date.weekday_name().map_err(|_| Refusal::OutOfRange)?;
+            line.value(date.year)
+                .value(date.month)
+                .value(date.day)
+                .cell(month)
+                .cell_or_empty(week)
+                .value(sol)
+                .value(msd - floor(msd))
+                .flag(martiana::is_leap_year(date.year))
+                .cell(MARTIANA_SOURCE);
+        }
+        Some(calendar) => {
+            let rule = calendar.rule();
+            let (count, fraction) = calendar.circad_and_fraction_at(instant);
+            let date = calendar
+                .date_from_circad(count)
+                .map_err(|_| Refusal::OutOfRange)?;
+            let month = calendar.month_name(date).map_err(|_| Refusal::OutOfRange)?;
+            line.value(date.year)
+                .value(date.month)
+                .value(date.day)
+                .cell(month)
+                .cell(calendar.week_name(count))
+                .value(count)
+                .value(fraction)
+                .flag(rule.is_leap_year(date.year))
+                .cell(rule.source);
+        }
     }
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
@@ -499,9 +467,7 @@ mod tests {
     use super::*;
     use alloc::vec::Vec;
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.trim_end_matches('\n').split('\t').collect()
-    }
+    use crate::boundary::cells;
 
     fn number(cell: &str) -> f64 {
         cell.parse().unwrap_or(f64::NAN)
@@ -705,7 +671,8 @@ mod tests {
     /// Darian one of the same instant, and 2128, past the span, is refused.
     #[test]
     fn every_circad_calendar_answers() {
-        for id in CIRCAD_CALENDARS {
+        let ids = circad::all().map(|calendar| calendar.rule().id);
+        for id in ids.into_iter().chain(["martiana"]) {
             let line = circad_date_line(id, 1_700_000_000.0).expect("in the span");
             assert_eq!(cells(&line).len(), CIRCAD_DATE_COLUMNS, "{id}");
         }

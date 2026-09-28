@@ -12,7 +12,6 @@
 //! the sky layer's era, [`crate::astro_lines`].
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::riseset::{Location, lunar_altitude};
 use hc_calendar::Rd;
@@ -21,20 +20,16 @@ use hc_calendars_lunar::islamic_observational::{
 };
 
 use crate::astro_lines::{day_in_era, unix_from_moment};
-use crate::boundary::{Answer, Refusal, names};
+use crate::boundary::{Answer, Line, Refusal};
 
-/// The criterion an identifier names, one of [`NamedCriterion::ALL`], in
-/// any ASCII case.
+/// The criterion an identifier names, one of [`NamedCriterion::ALL`], by
+/// [`NamedCriterion::by_id`].
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other text, the empty string included.
 pub fn criterion(given: &str) -> Answer<NamedCriterion> {
-    NamedCriterion::ALL
-        .iter()
-        .copied()
-        .find(|named| names(given, named.id))
-        .ok_or(Refusal::Unknown)
+    NamedCriterion::by_id(given).ok_or(Refusal::Unknown)
 }
 
 /// The line of `hc_crescent_visible`: whether the crescent should have been
@@ -62,22 +57,19 @@ pub fn crescent_line(criterion_id: &str, fixed: i64, place: Location) -> Answer<
     let site = ObservationSite::new(place, named.criterion);
     let visible = site.crescent_visible_on_the_eve_of(day);
     let mut out = String::new();
-    let _ = write!(out, "{}", u8::from(visible));
+    let mut line = Line::new(&mut out);
+    line.flag(visible);
     match site.evaluation_moment(Rd(day.0 - 1)) {
-        Some(moment) => {
-            let _ = writeln!(
-                out,
-                "\t{}\t{}\t{}\t{}\t{}\t{}",
-                unix_from_moment(moment),
-                hc_astro::lunar_phase(moment),
-                arc_of_light(moment),
-                lunar_altitude(moment, place),
-                arc_of_vision(moment, place),
-                crescent_width_arcminutes(moment, place),
-            );
-        }
-        None => out.push_str("\t\t\t\t\t\t\n"),
-    }
+        Some(moment) => line
+            .value(unix_from_moment(moment))
+            .value(hc_astro::lunar_phase(moment))
+            .value(arc_of_light(moment))
+            .value(lunar_altitude(moment, place))
+            .value(arc_of_vision(moment, place))
+            .value(crescent_width_arcminutes(moment, place)),
+        None => line.empties(6),
+    };
+    line.end();
     Ok(out)
 }
 

@@ -26,11 +26,10 @@
 //! [`SIDDHANTA_FIRST_DAY`] and [`SIDDHANTA_LAST_DAY`] name.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::riseset::{Location, sunrise};
-use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
-use hc_calendar::{Calendar, CalendarError, CalendarId, DynAdapter, DynCalendar, Rd};
+use hc_calendar::fixed::Moment;
+use hc_calendar::{Calendar, CalendarId, DynAdapter, DynCalendar, Rd};
 use hc_calendars_indic::barhaspatya::{self, MeanSignRule};
 use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
 use hc_calendars_indic::{
@@ -40,10 +39,11 @@ use hc_core::math::floor;
 use hc_i18n::Locale;
 use hc_i18n::names::{self as vocabulary, NameContext, NameWidth};
 
-use crate::astro_lines::unix_from_moment;
-use crate::boundary::{Answer, Refusal, names};
-use crate::lines::{era_label_or_empty, locale_for, locale_used, month_label_or_empty, push_cell};
+use crate::astro_lines::{moment_on_day, unix_from_moment};
+use crate::boundary::{Answer, Line, Refusal};
+use crate::lines::{era_label_or_empty, locale_for, locale_used, month_label_or_empty};
 use crate::panchanga_lines::ayanamsa;
+use hc_core::catalogue::matches;
 
 /// The name of the *Sūrya Siddhānta*'s sky, beside the ayanāṃśa names of
 /// the true one.
@@ -56,9 +56,6 @@ pub const SIDDHANTA_FIRST_DAY: i64 = -1_132_604;
 /// The last fixed day the Siddhānta's exports answer for, the last of Kali
 /// Yuga 10 000 on the same calendar, 15 June 6900.
 pub const SIDDHANTA_LAST_DAY: i64 = 2_519_974;
-
-/// Seconds in a day.
-const SECONDS_PER_DAY: i64 = 86_400;
 
 /// How many columns [`hindu_lunar_date_line`] writes.
 pub const HINDU_LUNAR_DATE_COLUMNS: usize = 12;
@@ -95,13 +92,7 @@ fn siddhanta_day(fixed: i64) -> Answer<Rd> {
 ///
 /// [`Refusal::OutOfRange`] on any other day.
 fn siddhanta_moment(universal_unix: i64) -> Answer<Moment> {
-    let day = universal_unix
-        .div_euclid(SECONDS_PER_DAY)
-        .checked_add(RD_OF_UNIX_EPOCH)
-        .ok_or(Refusal::OutOfRange)?;
-    siddhanta_day(day)?;
-    let seconds = universal_unix.rem_euclid(SECONDS_PER_DAY);
-    Ok(Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64))
+    moment_on_day(universal_unix, siddhanta_day)
 }
 
 /// A place where the Sun rises every day, on either sky: within
@@ -120,16 +111,6 @@ fn sunrise_place(place: Location) -> Answer<Location> {
     }
 }
 
-/// A calendar's refusal of a day as a boundary's: the ends of its range are
-/// [`Refusal::OutOfRange`], and a search that does not converge, which a
-/// place without sunrises can cause, [`Refusal::NoData`].
-fn refusal(error: CalendarError) -> Refusal {
-    match error {
-        CalendarError::AstronomicalModelFailure => Refusal::NoData,
-        _ => Refusal::OutOfRange,
-    }
-}
-
 /// The line of a date and the sunrise it was read at, with its labels in
 /// the locale a tag asks for, from the vocabulary of `calendar`, the
 /// registered calendar of the sky that read it.
@@ -140,34 +121,27 @@ fn date_line(
     fields: &hc_calendar::DateFields,
     tag: &str,
 ) -> String {
-    let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-        date.year,
-        date.vikrama_year(),
-        date.month,
-        u8::from(date.leap_month),
-        date.day,
-        u8::from(date.leap_day),
-        unix_from_moment(sunrise),
-    );
     let locale = locale_for(calendar, tag);
     let id = calendar.meta().id;
-    push_cell(&mut out, &month_label_or_empty(&locale, calendar, fields));
-    out.push('\t');
-    if date.leap_month {
-        push_cell(
-            &mut out,
-            vocabulary::leap_month_prefix(&locale, id).trim_end(),
-        );
-    }
-    out.push('\t');
-    push_cell(
-        &mut out,
-        era_label_or_empty(&locale, calendar, hc_calendars_indic::hindu_lunar::ERA),
-    );
-    out.push('\t');
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(date.year)
+        .value(date.vikrama_year())
+        .value(date.month)
+        .flag(date.leap_month)
+        .value(date.day)
+        .flag(date.leap_day)
+        .value(unix_from_moment(sunrise))
+        .cell(&month_label_or_empty(&locale, calendar, fields))
+        .cell_or_empty(
+            date.leap_month
+                .then(|| vocabulary::leap_month_prefix(&locale, id).trim_end()),
+        )
+        .cell(era_label_or_empty(
+            &locale,
+            calendar,
+            hc_calendars_indic::hindu_lunar::ERA,
+        ));
     // The locale's name for the era in either calendar that names it, else
     // English's: the fallback `hc_i18n::names::era_label` ends at for
     // every era, so that the cell is a name or empty and never a code.
@@ -177,10 +151,8 @@ fn date_line(
         })
     };
     let vikrama = named_in(&locale).or_else(|| named_in(&vocabulary::english()));
-    push_cell(&mut out, vikrama.unwrap_or(""));
-    out.push('\t');
-    out.push_str(locale_used(&locale));
-    out.push('\n');
+    line.cell_or_empty(vikrama).cell(locale_used(&locale));
+    line.end();
     out
 }
 
@@ -242,14 +214,14 @@ pub fn hindu_lunar_date_line(
     place: Location,
     locale: &str,
 ) -> Answer<String> {
-    if names(sky, SURYA_SIDDHANTA) {
+    if matches(sky, SURYA_SIDDHANTA) {
         let day = siddhanta_day(fixed)?;
         let place = sunrise_place(place)?;
         let date = SiddhantaLunarCalendar::new(place)
             .from_fixed(day)
-            .map_err(refusal)?;
+            .map_err(Refusal::from)?;
         let registered = SiddhantaLunarCalendar::UJJAIN;
-        let fields = registered.to_fields(date).map_err(refusal)?;
+        let fields = registered.to_fields(date).map_err(Refusal::from)?;
         return Ok(date_line(
             date,
             surya_siddhanta::sunrise(day, place),
@@ -261,10 +233,10 @@ pub fn hindu_lunar_date_line(
     let place = sunrise_place(place)?;
     let calendar = HinduLunarCalendar::new(place, ayanamsa(sky)?);
     let day = Rd(fixed);
-    let date = calendar.from_fixed(day).map_err(refusal)?;
+    let date = calendar.from_fixed(day).map_err(Refusal::from)?;
     let rise = sunrise(day, place).ok_or(Refusal::NoData)?;
     let registered = HinduLunarCalendar::RASHTRIYA;
-    let fields = registered.to_fields(date).map_err(refusal)?;
+    let fields = registered.to_fields(date).map_err(Refusal::from)?;
     Ok(date_line(
         date,
         rise,
@@ -288,14 +260,13 @@ pub fn surya_siddhanta_line(universal_unix: i64) -> Answer<String> {
     let moment = siddhanta_moment(universal_unix)?;
     let sun = surya_siddhanta::solar_longitude(moment);
     let mut out = String::new();
-    let _ = writeln!(
-        out,
-        "{sun}\t{}\t{}\t{}\t{}",
-        surya_siddhanta::lunar_longitude(moment),
-        surya_siddhanta::lunar_phase(moment),
-        surya_siddhanta::tithi_at(moment),
-        floor(sun / 30.0) as u8 % 12 + 1,
-    );
+    let mut line = Line::new(&mut out);
+    line.value(sun)
+        .value(surya_siddhanta::lunar_longitude(moment))
+        .value(surya_siddhanta::lunar_phase(moment))
+        .value(surya_siddhanta::tithi_at(moment))
+        .value(floor(sun / 30.0) as u8 % 12 + 1);
+    line.end();
     Ok(out)
 }
 
@@ -312,15 +283,14 @@ pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<Strin
     let day = siddhanta_day(fixed)?;
     let place = sunrise_place(place)?;
     let mut out = String::new();
-    let _ = writeln!(
-        out,
-        "{}",
-        unix_from_moment(surya_siddhanta::sunrise(day, place))
-    );
+    let mut line = Line::new(&mut out);
+    line.value(unix_from_moment(surya_siddhanta::sunrise(day, place)));
+    line.end();
     Ok(out)
 }
 
-/// The rule of [`barhaspatya::RULES`] a name names, in any case:
+/// The rule of [`barhaspatya::RULES`] a name names, by
+/// [`barhaspatya::by_name`]:
 /// `surya-siddhanta-bija`, the *Sūrya Siddhānta* with the *bīja*, by which
 /// the registered pūrṇimānta calendar names its years;
 /// `surya-siddhanta`, the same without it; or `arya-siddhanta`.
@@ -329,11 +299,7 @@ pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<Strin
 ///
 /// [`Refusal::Unknown`] for any other name.
 pub fn barhaspatya_rule(name: &str) -> Answer<MeanSignRule> {
-    barhaspatya::RULES
-        .iter()
-        .find(|rule| names(name, rule.name))
-        .copied()
-        .ok_or(Refusal::Unknown)
+    barhaspatya::by_name(name).ok_or(Refusal::Unknown)
 }
 
 /// The first and last Śaka years, expired, the Bārhaspatya exports answer
@@ -342,28 +308,23 @@ pub fn barhaspatya_rule(name: &str) -> Answer<MeanSignRule> {
 pub const BARHASPATYA_SAKA_YEARS: core::ops::RangeInclusive<i64> =
     1 - barhaspatya::SAKA_TO_KALI..=10_000 - barhaspatya::SAKA_TO_KALI;
 
-/// Append the name of a position of the northern cycle in the locale of
-/// the registered pūrṇimānta calendar's vocabulary, as `hc_day_extras`
-/// writes its `barhaspatya-samvatsara` field.
-fn push_samvatsara_name(
-    out: &mut String,
-    calendar: &dyn DynCalendar,
-    locale: &Locale,
-    position: u8,
-) {
-    let mut name = String::new();
-    // A `String` never refuses a write.
-    let _ = hc_i18n::fields::write_value_name(
-        locale,
-        calendar.meta().id,
-        calendar.cycles(),
-        barhaspatya::FIELD,
-        i64::from(position),
-        NameWidth::Wide,
-        NameContext::Format,
-        &mut name,
-    );
-    push_cell(out, &name);
+/// The name of a position of the northern cycle in the locale of the
+/// registered pūrṇimānta calendar's vocabulary, as a cell, as
+/// `hc_day_extras` writes its `barhaspatya-samvatsara` field.
+fn samvatsara_name(line: &mut Line<'_>, calendar: &dyn DynCalendar, locale: &Locale, position: u8) {
+    line.cell_with(|cell| {
+        // A cell never refuses a write.
+        let _ = hc_i18n::fields::write_value_name(
+            locale,
+            calendar.meta().id,
+            calendar.cycles(),
+            barhaspatya::FIELD,
+            i64::from(position),
+            NameWidth::Wide,
+            NameContext::Format,
+            cell,
+        );
+    });
 }
 
 /// How many columns [`barhaspatya_year_line`] writes.
@@ -400,18 +361,17 @@ pub fn barhaspatya_year_line(rule: &str, saka: i64, locale: &str) -> Answer<Stri
     let locale = locale_for(&calendar, locale);
     let position = rule.of_saka(saka);
     let mut out = String::new();
-    let _ = write!(out, "{position}\t");
-    push_samvatsara_name(&mut out, &calendar, &locale, position);
-    out.push('\t');
+    let mut line = Line::new(&mut out);
+    line.value(position);
+    samvatsara_name(&mut line, &calendar, &locale, position);
     if let Some(expunged) = rule.expunged_in(saka + barhaspatya::SAKA_TO_KALI) {
-        let _ = write!(out, "{expunged}\t");
-        push_samvatsara_name(&mut out, &calendar, &locale, expunged);
+        line.value(expunged);
+        samvatsara_name(&mut line, &calendar, &locale, expunged);
     } else {
-        out.push('\t');
+        line.empties(2);
     }
-    out.push('\t');
-    out.push_str(locale_used(&locale));
-    out.push('\n');
+    line.cell(locale_used(&locale));
+    line.end();
     Ok(out)
 }
 
@@ -441,11 +401,11 @@ pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -
     let locale = locale_for(&calendar, locale);
     let position = barhaspatya::in_progress_at(rule, moment);
     let mut out = String::new();
-    let _ = write!(out, "{position}\t");
-    push_samvatsara_name(&mut out, &calendar, &locale, position);
-    out.push('\t');
-    out.push_str(locale_used(&locale));
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(position);
+    samvatsara_name(&mut line, &calendar, &locale, position);
+    line.cell(locale_used(&locale));
+    line.end();
     Ok(out)
 }
 
@@ -453,6 +413,8 @@ pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -
 mod tests {
     use super::*;
     use alloc::vec::Vec;
+
+    use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 
     use hc_calendars_indic::places::{CENTRAL_STATION, UJJAIN};
 

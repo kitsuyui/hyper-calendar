@@ -18,7 +18,6 @@
 //! locale, so in a build with `i18n` too: `kalam_lines`.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::fixed::Moment;
@@ -32,15 +31,16 @@ use hc_seasons::zodiac::Ayanamsa;
 use hc_calendars_indic::kalam::{Kalam, KalamConvention, SpanClock};
 
 #[cfg(feature = "i18n")]
-use crate::astro_lines::{MISSING_COLUMNS, push_missing_cells};
+use crate::astro_lines::{MISSING_COLUMNS, missing_cells};
 use crate::astro_lines::{day_in_era, moment_in_era, unix_from_moment};
 #[cfg(feature = "i18n")]
-use crate::boundary::push_reckoning_name;
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::reckoning_name;
+use crate::boundary::{Answer, Line, Refusal};
+use hc_core::catalogue::matches;
 
 /// The ayanāṃśa a name names: one of [`Ayanamsa::ALL`] by its full name,
 /// `Lahiri (Chitrapaksha)`, or by the part before the parenthesis,
-/// `Lahiri`, in any case.
+/// `Lahiri`, each by [`hc_core::catalogue::matches`].
 ///
 /// # Errors
 ///
@@ -52,7 +52,7 @@ pub fn ayanamsa(name: &str) -> Answer<Ayanamsa> {
         .find(|ayanamsa| {
             let full = ayanamsa.name();
             let short = full.split(" (").next().unwrap_or(full);
-            names(name, full) || names(name, short)
+            matches(name, full) || matches(name, short)
         })
         .ok_or(Refusal::Unknown)
 }
@@ -65,27 +65,29 @@ fn lines_at(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
     let yoga = yoga_at(moment, ayanamsa);
     let (began, ends) = yoga_span(moment, ayanamsa);
     let index = usize::from(yoga - 1);
-    let _ = write!(
-        out,
-        "yoga\t{yoga}\t{}\t{}\t{}\t{}\t{read_at}\t",
-        YOGA_NAMES[index],
-        YOGA_NAMES_DEVANAGARI[index],
-        unix_from_moment(began),
-        unix_from_moment(ends),
-    );
-    push_cell(&mut out, ayanamsa.name());
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.cell("yoga")
+        .value(yoga)
+        .cell(YOGA_NAMES[index])
+        .cell(YOGA_NAMES_DEVANAGARI[index])
+        .value(unix_from_moment(began))
+        .value(unix_from_moment(ends))
+        .value(read_at)
+        .cell(ayanamsa.name());
+    line.end();
     let half = karana_at(moment);
     let (began, ends) = karana_span(moment);
     let name = usize::from(karana_name(half));
-    let _ = writeln!(
-        out,
-        "karana\t{half}\t{}\t{}\t{}\t{}\t{read_at}\t",
-        KARANA_NAMES[name],
-        KARANA_NAMES_DEVANAGARI[name],
-        unix_from_moment(began),
-        unix_from_moment(ends),
-    );
+    let mut line = Line::new(&mut out);
+    line.cell("karana")
+        .value(half)
+        .cell(KARANA_NAMES[name])
+        .cell(KARANA_NAMES_DEVANAGARI[name])
+        .value(unix_from_moment(began))
+        .value(unix_from_moment(ends))
+        .value(read_at)
+        .empty();
+    line.end();
     out
 }
 
@@ -150,10 +152,7 @@ pub const KALAM_COLUMNS: usize = 8 + MISSING_COLUMNS;
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
 #[cfg(feature = "i18n")]
 pub fn kalam_lines(convention: &str, fixed: i64, place: Location, locale: &str) -> Answer<String> {
-    let convention = KalamConvention::ALL
-        .iter()
-        .find(|known| names(convention, known.id))
-        .ok_or(Refusal::Unknown)?;
+    let convention = KalamConvention::by_id(convention).ok_or(Refusal::Unknown)?;
     let day = day_in_era(fixed)?;
     let (clock, seconds): (&str, &dyn Fn(Moment) -> i64) = match convention.clock {
         SpanClock::Universal => ("universal", &unix_from_moment),
@@ -163,24 +162,22 @@ pub fn kalam_lines(convention: &str, fixed: i64, place: Location, locale: &str) 
     };
     let mut out = String::new();
     for period in Kalam::ALL {
-        push_cell(&mut out, period.id);
-        out.push('\t');
-        push_cell(&mut out, period.english_name);
-        out.push('\t');
-        push_reckoning_name(&mut out, locale, hc_i18n::reckonings::KALAM, period.id);
-        let part = period.part(hc_calendar::Weekday::from_rd(day));
-        let _ = write!(out, "\t{part}\t{clock}\t");
+        let mut line = Line::new(&mut out);
+        line.cell(period.id).cell(period.english_name);
+        reckoning_name(&mut line, locale, hc_i18n::reckonings::KALAM, period.id);
+        line.value(period.part(hc_calendar::Weekday::from_rd(day)))
+            .cell(clock);
         match (convention.span)(period, day, place) {
             Ok(span) => {
-                let _ = write!(out, "{}\t{}\t", seconds(span.start), seconds(span.end));
-                push_missing_cells(&mut out, None);
+                line.value(seconds(span.start)).value(seconds(span.end));
+                missing_cells(&mut line, None);
             }
             Err(missing) => {
-                out.push_str("\t\t");
-                push_missing_cells(&mut out, Some(missing));
+                line.empties(2);
+                missing_cells(&mut line, Some(missing));
             }
         }
-        out.push('\n');
+        line.end();
     }
     Ok(out)
 }

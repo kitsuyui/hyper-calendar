@@ -397,6 +397,15 @@ Temporal and Italian hours, and the religious times:
 - `asr_shafii`, `asr_hanafi`, `jewish_dusk_vilna_gaon` and
   `jewish_sabbath_ends_cohn`, one function per convention, with the angles
   as named constants.
+- The tables the boundary selects by a string: `SolarClock::ALL`, the
+  clocks `local-mean`, `local-apparent`, `temporal` and `italian`, each an
+  identifier with the function that reads it; and `SolarEvent::ALL`, the
+  named times of day `asr-shafii`, `asr-hanafi`, `jewish-dusk-vilna-gaon`,
+  `jewish-sabbath-ends-cohn`, `italian-zero-hour`, `japanese-dawn-kansei`,
+  `japanese-dusk-kansei`, `japanese-dawn-naoj` and `japanese-dusk-naoj`,
+  each an identifier with its function. `hc_solar_time` and
+  `hc_solar_event` look a name up there and keep no list of their own
+  ([policy.md](../policy.md) §5).
 - The Jewish times in temporal hours as a table, `Zman`, with the
   identifiers `sof-zman-shma`, `sof-zman-tfila`, `mincha-gedola`,
   `mincha-ketana` and `plag-hamincha`, and one function per reckoning:

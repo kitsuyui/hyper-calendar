@@ -27,24 +27,24 @@
 //!   Julian Date, a double, and answers for the same years.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::earth::{
     earth_rotation_angle, mean_sidereal_time_iau1982, mean_sidereal_time_iau2006,
 };
 use hc_astro::hjd::{self, Target, heliocentric_correction_seconds};
-use hc_astro::horizon::{HORIZONS, Horizon};
+use hc_astro::horizon::{self, Horizon};
 use hc_astro::riseset::{self, Location};
-use hc_astro::solar_time::{self, MissingSolarEvent};
+use hc_astro::solar_time::{MissingSolarEvent, SolarClock, SolarEvent};
 use hc_astro::ut_variants::ut2_minus_ut1;
 use hc_calendar::Rd;
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::gregorian::new_year;
+use hc_core::duration::{SECONDS_PER_DAY, SECONDS_PER_DAY_F64};
 use hc_core::math::floor;
 use hc_core::scale::TT_MINUS_TAI;
 use hc_core::unix::{LeapPolicy, tai_minus_utc_at};
 
-use crate::boundary::{Answer, Refusal, names};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// The first proleptic Gregorian year the sky exports answer for.
 pub const EARLIEST_YEAR: i64 = -1000;
@@ -57,9 +57,6 @@ const FIRST_DAY: i64 = new_year(EARLIEST_YEAR).0;
 
 /// The first fixed day after the era.
 const END_DAY: i64 = new_year(LATEST_YEAR + 1).0;
-
-/// Seconds in a day, as the astronomical series count them.
-const SECONDS_PER_DAY: i64 = 86_400;
 
 /// A fixed day, if it lies in the era.
 ///
@@ -80,13 +77,25 @@ pub fn day_in_era(fixed: i64) -> Answer<Rd> {
 ///
 /// [`Refusal::OutOfRange`] outside [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
 pub fn moment_in_era(unix: i64) -> Answer<Moment> {
-    let day = unix
+    moment_on_day(unix, day_in_era)
+}
+
+/// The Universal Time moment of a POSIX timestamp, if `day` answers for
+/// the fixed day it falls on: the check shared by the exports that take
+/// an instant, each with its own range of days.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day whose number overflows, and what
+/// `day` answers for the day.
+pub(crate) fn moment_on_day(unix: i64, day: fn(i64) -> Answer<Rd>) -> Answer<Moment> {
+    let fixed = unix
         .div_euclid(SECONDS_PER_DAY)
         .checked_add(RD_OF_UNIX_EPOCH)
         .ok_or(Refusal::OutOfRange)?;
-    day_in_era(day)?;
+    day(fixed)?;
     let seconds = unix.rem_euclid(SECONDS_PER_DAY);
-    Ok(Moment(day as f64 + seconds as f64 / SECONDS_PER_DAY as f64))
+    Ok(Moment(fixed as f64 + seconds as f64 / SECONDS_PER_DAY_F64))
 }
 
 /// The moment of a UT1 reading given as seconds from 1970-01-01 00:00
@@ -100,7 +109,7 @@ pub fn ut1_moment(ut1_unix_seconds: f64) -> Answer<Moment> {
     if !ut1_unix_seconds.is_finite() {
         return Err(Refusal::OutOfRange);
     }
-    let days = ut1_unix_seconds / SECONDS_PER_DAY as f64 + RD_OF_UNIX_EPOCH as f64;
+    let days = ut1_unix_seconds / SECONDS_PER_DAY_F64 + RD_OF_UNIX_EPOCH as f64;
     if !(FIRST_DAY as f64..END_DAY as f64).contains(&days) {
         return Err(Refusal::OutOfRange);
     }
@@ -111,12 +120,17 @@ pub fn ut1_moment(ut1_unix_seconds: f64) -> Answer<Moment> {
 /// the sky exports write every instant.
 #[must_use]
 pub fn unix_from_moment(moment: Moment) -> i64 {
-    floor((moment.0 - RD_OF_UNIX_EPOCH as f64) * SECONDS_PER_DAY as f64) as i64
+    floor((moment.0 - RD_OF_UNIX_EPOCH as f64) * SECONDS_PER_DAY_F64) as i64
 }
 
 /// One number as a line.
 fn number_line(value: Answer<f64>) -> Answer<String> {
-    Ok(alloc::format!("{}\n", value?))
+    let value = value?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(value);
+    line.end();
+    Ok(out)
 }
 
 /// The Earth Rotation Angle at a UT1 reading, in degrees, 0 to 360.
@@ -211,22 +225,6 @@ pub fn location(latitude: f64, longitude: f64, elevation: f64) -> Answer<Locatio
     }
 }
 
-/// The clocks `hc_solar_time` reads, by name.
-pub const SOLAR_TIMES: [&str; 4] = ["local-mean", "local-apparent", "temporal", "italian"];
-
-/// The times of day `hc_solar_event` answers, by name.
-pub const SOLAR_EVENTS: [&str; 9] = [
-    "asr-shafii",
-    "asr-hanafi",
-    "jewish-dusk-vilna-gaon",
-    "jewish-sabbath-ends-cohn",
-    "italian-zero-hour",
-    "japanese-dawn-kansei",
-    "japanese-dusk-kansei",
-    "japanese-dawn-naoj",
-    "japanese-dusk-naoj",
-];
-
 /// The depression a missing solar event sought, in arcseconds, if it is a
 /// depression.
 const fn missing_arcseconds(missing: MissingSolarEvent) -> Option<u32> {
@@ -245,8 +243,8 @@ const fn missing_arcseconds(missing: MissingSolarEvent) -> Option<u32> {
 /// it is missing on, and the depression sought in arcminutes, or empty —
 /// empty too for a depression that is not a whole number of arcminutes,
 /// the Japanese dawn and dusk, whose figure is
-/// [`push_missing_cells`]'s fourth cell.
-fn push_missing(out: &mut String, missing: MissingSolarEvent) {
+/// [`missing_cells`]'s fourth cell.
+fn missing(line: &mut Line<'_>, missing: MissingSolarEvent) {
     let (name, day) = match missing {
         MissingSolarEvent::Sunrise(day) => ("sunrise", day),
         MissingSolarEvent::Sunset(day) => ("sunset", day),
@@ -255,47 +253,43 @@ fn push_missing(out: &mut String, missing: MissingSolarEvent) {
         | MissingSolarEvent::Twilight { day, .. } => ("depression", day),
         MissingSolarEvent::NoNoonShadow(day) => ("no-noon-shadow", day),
     };
-    let _ = write!(out, "{name}\t{}\t", day.0);
-    if let Some(arcseconds) = missing_arcseconds(missing)
-        && arcseconds % 60 == 0
-    {
-        let _ = write!(out, "{}", arcseconds / 60);
-    }
+    let arcminutes = missing_arcseconds(missing)
+        .filter(|arcseconds| arcseconds % 60 == 0)
+        .map(|arcseconds| arcseconds / 60);
+    line.cell(name).value(day.0).value_or_empty(arcminutes);
 }
 
-/// How many cells [`push_missing_cells`] writes.
+/// How many cells [`missing_cells`] writes.
 pub const MISSING_COLUMNS: usize = 4;
 
 /// The four cells naming a missing solar event, or four empty ones for
 /// `None`: the three of `hc_solar_time`'s line and the depression sought
 /// in arcseconds, which is the one exact figure for a depression that is
 /// not a whole number of arcminutes.
-pub fn push_missing_cells(out: &mut String, missing: Option<MissingSolarEvent>) {
+pub fn missing_cells(line: &mut Line<'_>, missing: Option<MissingSolarEvent>) {
     match missing {
-        None => out.push_str("\t\t\t"),
-        Some(missing) => {
-            push_missing(out, missing);
-            out.push('\t');
-            if let Some(arcseconds) = missing_arcseconds(missing) {
-                let _ = write!(out, "{arcseconds}");
-            }
+        None => {
+            line.empties(MISSING_COLUMNS);
+        }
+        Some(event) => {
+            self::missing(line, event);
+            line.value_or_empty(missing_arcseconds(event));
         }
     }
 }
 
 /// An instant, or the missing solar event it needs: the whole POSIX
 /// seconds of Universal Time, rounded down, and the four cells of
-/// [`push_missing_cells`], the first cell empty when the time does not
-/// happen.
-pub fn push_moment_or_missing(out: &mut String, answer: Result<Moment, MissingSolarEvent>) {
+/// [`missing_cells`], the first cell empty when the time does not happen.
+pub fn moment_or_missing(line: &mut Line<'_>, answer: Result<Moment, MissingSolarEvent>) {
     match answer {
         Ok(moment) => {
-            let _ = write!(out, "{}\t", unix_from_moment(moment));
-            push_missing_cells(out, None);
+            line.value(unix_from_moment(moment));
+            missing_cells(line, None);
         }
-        Err(missing) => {
-            out.push('\t');
-            push_missing_cells(out, Some(missing));
+        Err(event) => {
+            line.empty();
+            missing_cells(line, Some(event));
         }
     }
 }
@@ -303,11 +297,11 @@ pub fn push_moment_or_missing(out: &mut String, answer: Result<Moment, MissingSo
 /// The line of `hc_solar_time`: a clock's reading at a Universal Time
 /// instant at a place, as the local date's fixed day and the hours into
 /// it, then the three cells of a missing solar event, empty when the
-/// reading exists. The clocks are [`SOLAR_TIMES`]: `local-mean`,
-/// `local-apparent` (the sundial), `temporal` (6 at sunrise, 18 at
-/// sunset) and `italian` (hours since the zero hour of the evening
-/// before). A reading that needs a solar event that does not happen has
-/// its first two cells empty and names the event.
+/// reading exists. The clocks are [`SolarClock::ALL`], selected by
+/// identifier: `local-mean`, `local-apparent` (the sundial), `temporal` (6
+/// at sunrise, 18 at sunset) and `italian` (hours since the zero hour of
+/// the evening before). A reading that needs a solar event that does not
+/// happen has its first two cells empty and names the event.
 ///
 /// # Errors
 ///
@@ -315,46 +309,32 @@ pub fn push_moment_or_missing(out: &mut String, answer: Result<Moment, MissingSo
 /// [`moment_in_era`] and [`location`].
 pub fn solar_time_line(clock: &str, universal_unix: i64, place: Location) -> Answer<String> {
     let universal = moment_in_era(universal_unix)?;
-    let clock_reading = |moment: Moment| (moment.day(), moment.day_fraction() * 24.0);
-    let reading = if names(clock, "local-mean") {
-        Ok(clock_reading(solar_time::local_mean_time(universal, place)))
-    } else if names(clock, "local-apparent") {
-        Ok(clock_reading(solar_time::local_apparent_time(
-            universal, place,
-        )))
-    } else if names(clock, "temporal") {
-        solar_time::temporal_time(universal, place).map(clock_reading)
-    } else if names(clock, "italian") {
-        // The reading's own date and hours: the hours can run a minute or
-        // two past 24 before the next zero hour.
-        solar_time::italian_time(universal, place).map(|reading| (reading.day, reading.hours))
-    } else {
-        return Err(Refusal::Unknown);
-    };
+    let clock = SolarClock::by_id(clock).ok_or(Refusal::Unknown)?;
     let mut out = String::new();
-    match reading {
-        Ok((day, hours)) => {
-            let _ = write!(out, "{}\t{hours}\t\t\t", day.0);
+    let mut line = Line::new(&mut out);
+    match (clock.read)(universal, place) {
+        Ok(reading) => {
+            line.value(reading.day.0).value(reading.hours).empties(3);
         }
-        Err(missing) => {
-            out.push_str("\t\t");
-            push_missing(&mut out, missing);
+        Err(event) => {
+            line.empties(2);
+            missing(&mut line, event);
         }
     }
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
 /// The line of `hc_solar_event`: a named time of day on a local day at a
 /// place, as whole POSIX seconds of Universal Time, rounded down, then
-/// the four cells of [`push_missing_cells`] naming a missing solar event,
-/// empty when the time exists. The times are [`SOLAR_EVENTS`]: ʿaṣr by
-/// the Shafiʿi and the Hanafi shadow rules, Jewish dusk at the Vilna
-/// Gaon's 4°40′, the end of the Sabbath at Berthold Cohn's 7°5′, the
-/// Italian zero hour, and the Japanese dawn and dusk, 明け六つ and 暮れ六つ
-/// by the 寛政暦's 7°21′41″ and the Observatory's 夜明 and 日暮 at
-/// 7°21′40″. A time that does not happen that day has its first cell
-/// empty and names the event.
+/// the four cells of [`missing_cells`] naming a missing solar event,
+/// empty when the time exists. The times are [`SolarEvent::ALL`],
+/// selected by identifier: ʿaṣr by the Shafiʿi and the Hanafi shadow
+/// rules, Jewish dusk at the Vilna Gaon's 4°40′, the end of the Sabbath at
+/// Berthold Cohn's 7°5′, the Italian zero hour, and the Japanese dawn and
+/// dusk, 明け六つ and 暮れ六つ by the 寛政暦's 7°21′41″ and the
+/// Observatory's 夜明 and 日暮 at 7°21′40″. A time that does not happen
+/// that day has its first cell empty and names the event.
 ///
 /// # Errors
 ///
@@ -362,31 +342,11 @@ pub fn solar_time_line(clock: &str, universal_unix: i64, place: Location) -> Ans
 /// [`day_in_era`] and [`location`].
 pub fn solar_event_line(event: &str, fixed: i64, place: Location) -> Answer<String> {
     let day = day_in_era(fixed)?;
-    let reckon: fn(Rd, Location) -> Result<Moment, MissingSolarEvent> =
-        if names(event, "asr-shafii") {
-            solar_time::asr_shafii
-        } else if names(event, "asr-hanafi") {
-            solar_time::asr_hanafi
-        } else if names(event, "jewish-dusk-vilna-gaon") {
-            solar_time::jewish_dusk_vilna_gaon
-        } else if names(event, "jewish-sabbath-ends-cohn") {
-            solar_time::jewish_sabbath_ends_cohn
-        } else if names(event, "italian-zero-hour") {
-            solar_time::italian_zero_hour
-        } else if names(event, "japanese-dawn-kansei") {
-            solar_time::japanese_dawn_kansei
-        } else if names(event, "japanese-dusk-kansei") {
-            solar_time::japanese_dusk_kansei
-        } else if names(event, "japanese-dawn-naoj") {
-            solar_time::japanese_dawn_naoj
-        } else if names(event, "japanese-dusk-naoj") {
-            solar_time::japanese_dusk_naoj
-        } else {
-            return Err(Refusal::Unknown);
-        };
+    let event = SolarEvent::by_id(event).ok_or(Refusal::Unknown)?;
     let mut out = String::new();
-    push_moment_or_missing(&mut out, reckon(day, place));
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    moment_or_missing(&mut line, (event.reckon)(day, place));
+    line.end();
     Ok(out)
 }
 
@@ -409,7 +369,7 @@ pub fn horizon_name(horizon: &Horizon, tag: &str) -> hc_i18n::horizons::HorizonN
     })
 }
 
-/// The lines of `hc_horizons`: every horizon [`HORIZONS`] carries, one a
+/// The lines of `hc_horizons`: every horizon [`horizon::HORIZONS`] carries, one a
 /// line, as its identifier, its English name, what it takes the visible
 /// horizon to be, its source, its short English name for a label
 /// (`geometric dip`, `USNO`, `Calendrical Calculations`), and its name in
@@ -421,42 +381,30 @@ pub fn horizon_name(horizon: &Horizon, tag: &str) -> hc_i18n::horizons::HorizonN
 #[must_use]
 pub fn horizons_lines(locale: &str) -> String {
     let mut out = String::new();
-    for horizon in HORIZONS {
+    for horizon in horizon::HORIZONS {
         let named = horizon_name(horizon, locale);
-        for (index, cell) in [
-            horizon.id,
-            horizon.english_name,
-            horizon.description,
-            horizon.source,
-            horizon.short_name,
-            named.name,
-            named.tag,
-        ]
-        .into_iter()
-        .enumerate()
-        {
-            if index > 0 {
-                out.push('\t');
-            }
-            crate::boundary::push_cell(&mut out, cell);
-        }
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(horizon.id)
+            .cell(horizon.english_name)
+            .cell(horizon.description)
+            .cell(horizon.source)
+            .cell(horizon.short_name)
+            .cell(named.name)
+            .cell(named.tag);
+        line.end();
     }
     out
 }
 
-/// The horizon an identifier names, one of [`HORIZONS`], in any ASCII
-/// case.
+/// The horizon an identifier names, one of [`horizon::HORIZONS`], by
+/// [`horizon::by_id`].
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other text, the empty string included: a
 /// rising is measured against a horizon, so none is assumed.
-pub fn horizon(given: &str) -> Answer<&'static Horizon> {
-    HORIZONS
-        .iter()
-        .find(|horizon| names(given, horizon.id))
-        .ok_or(Refusal::Unknown)
+pub fn horizon(given: &str) -> Answer<Horizon> {
+    horizon::by_id(given).ok_or(Refusal::Unknown)
 }
 
 /// The line of a crossing of the horizon: the instant, the three cells of
@@ -472,19 +420,13 @@ fn crossing_line(
     let horizon = horizon(horizon_id)?;
     let day = day_in_era(fixed)?;
     let mut out = String::new();
-    match event(day, place, horizon) {
-        Some(moment) => {
-            let _ = write!(out, "{}\t\t\t", unix_from_moment(moment));
-        }
-        None => {
-            let _ = write!(out, "\t{name}\t{}\t", day.0);
-        }
-    }
-    let _ = writeln!(
-        out,
-        "\t{}",
-        horizon.sunrise_altitude_degrees(place.elevation_metres)
-    );
+    let mut line = Line::new(&mut out);
+    match event(day, place, &horizon) {
+        Some(moment) => line.value(unix_from_moment(moment)).empties(3),
+        None => line.empty().cell(name).value(day.0).empty(),
+    };
+    line.value(horizon.sunrise_altitude_degrees(place.elevation_metres));
+    line.end();
     Ok(out)
 }
 
@@ -500,7 +442,7 @@ fn crossing_line(
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a horizon [`horizon`] does not name, and the
+/// [`Refusal::Unknown`] for a horizon [`horizon()`] does not name, and the
 /// range errors of [`day_in_era`] and [`location`].
 pub fn sunrise_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<String> {
     crossing_line(riseset::sunrise_with, "sunrise", horizon_id, fixed, place)
@@ -577,11 +519,12 @@ pub fn hjd_tt_line(
 ) -> Answer<String> {
     let date = julian_date_in_era(tt_julian_date)?;
     let target = hjd_target(right_ascension_degrees, declination_degrees)?;
-    Ok(alloc::format!(
-        "{}\t{}\n",
-        hjd::hjd_tt(date, target),
-        heliocentric_correction_seconds(date, target)
-    ))
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(hjd::hjd_tt(date, target))
+        .value(heliocentric_correction_seconds(date, target));
+    line.end();
+    Ok(out)
 }
 
 /// The line of `hc_hjd_utc`: the HJD_UTC of a Julian Date of UTC for a
@@ -609,14 +552,16 @@ pub fn hjd_utc_line(
     } else {
         LeapPolicy::Extrapolate
     };
-    let unix = floor((date - JULIAN_DATE_OF_UNIX_EPOCH) * SECONDS_PER_DAY as f64) as i64;
+    let unix = floor((date - JULIAN_DATE_OF_UNIX_EPOCH) * SECONDS_PER_DAY_F64) as i64;
     let tt_minus_utc = TT_MINUS_TAI.as_secs_f64() + tai_minus_utc_at(unix, policy)?.as_secs_f64();
-    let tt = date + tt_minus_utc / SECONDS_PER_DAY as f64;
-    Ok(alloc::format!(
-        "{}\t{}\t{tt_minus_utc}\n",
-        hjd::hjd_utc(date, tt_minus_utc, target),
-        heliocentric_correction_seconds(tt, target)
-    ))
+    let tt = date + tt_minus_utc / SECONDS_PER_DAY_F64;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(hjd::hjd_utc(date, tt_minus_utc, target))
+        .value(heliocentric_correction_seconds(tt, target))
+        .value(tt_minus_utc);
+    line.end();
+    Ok(out)
 }
 
 /// The fixed days of the Gregorian years −9 999 999 through 9 999 999,
@@ -661,7 +606,11 @@ fn reading_line(reading: hc_calendar::CivilDateTime) -> String {
     let seconds =
         u32::from(time.hour()) * 3_600 + u32::from(time.minute()) * 60 + u32::from(time.second());
     let mut out = String::new();
-    let _ = writeln!(out, "{}\t{seconds}\t{}", reading.day.0, time.subsec_attos());
+    let mut line = Line::new(&mut out);
+    line.value(reading.day.0)
+        .value(seconds)
+        .value(time.subsec_attos());
+    line.end();
     out
 }
 
@@ -761,8 +710,8 @@ mod tests {
             .lines()
             .map(|line| line.split('\t').collect())
             .collect();
-        assert_eq!(rows.len(), HORIZONS.len());
-        for (row, horizon) in rows.iter().zip(HORIZONS) {
+        assert_eq!(rows.len(), horizon::HORIZONS.len());
+        for (row, horizon) in rows.iter().zip(horizon::HORIZONS) {
             assert_eq!(row.len(), HORIZONS_COLUMNS);
             assert_eq!(row[0], horizon.id);
             assert_eq!(row[4], horizon.short_name);

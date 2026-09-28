@@ -21,7 +21,7 @@ use hc_calendars_lunar::hebrew::{self, HebrewDate};
 use hc_calendars_regional::olympiad;
 use hc_calendars_solar::asian::{AsianCalendar, WrittenDay};
 
-use crate::boundary::{Answer, Refusal};
+use crate::boundary::{Answer, Refusal, line};
 
 /// The number of the modern Olympiad a Gregorian year belongs to, from 1
 /// for 1896–1899, by [`olympiad::ioc_olympiad`].
@@ -101,12 +101,13 @@ pub fn asian_day_line(fixed: i64) -> Answer<String> {
         WrittenDay::Unnumbered(place) => ("unnumbered", place),
         WrittenDay::Numbered(number) => ("numbered", number),
     };
-    Ok(alloc::format!(
-        "{}\t{}\t{}\t{written}\t{number}\n",
-        date.year,
-        date.month,
-        date.month_name()
-    ))
+    Ok(line(|line| {
+        line.value(date.year)
+            .value(date.month)
+            .value(date.month_name())
+            .cell(written)
+            .value(number);
+    }))
 }
 
 /// A person's age as the Chinese count reckons it on a fixed day, one at
@@ -160,12 +161,11 @@ pub fn chinese_marriage_augury_line(chinese_year: i64) -> Answer<String> {
         return Err(Refusal::OutOfRange);
     }
     let augury = chinese::marriage_augury(chinese_year).map_err(|_| Refusal::OutOfRange)?;
-    Ok(alloc::format!(
-        "{}\t{}\t{}\n",
-        marriage_augury_name(augury),
-        u8::from(augury.lichun_at_start()),
-        u8::from(augury.lichun_at_end())
-    ))
+    Ok(line(|line| {
+        line.cell(marriage_augury_name(augury))
+            .flag(augury.lichun_at_start())
+            .flag(augury.lichun_at_end());
+    }))
 }
 
 #[cfg(test)]

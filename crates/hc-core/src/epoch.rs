@@ -147,6 +147,10 @@ pub const MJD: Epoch = Epoch {
     source: "MJD = JD - 2400000.5, citing IAU 1997 [rots2015]",
 };
 
+/// The Modified Julian Date of 1970-01-01, the day the POSIX count
+/// begins: [`MJD`] is 40 587 days before [`UNIX`]'s calendar day.
+pub const MJD_OF_UNIX_EPOCH: i64 = 40_587;
+
 /// `-4712-01-01T12:00:00 UT` (Julian proleptic), the origin of the Julian Day.
 ///
 /// This predates every atomic scale by millennia, so the TAI reading here is
@@ -277,21 +281,12 @@ pub const ALL: &[Epoch] = &[
     SAS_STATA,
 ];
 
-/// Look an epoch up by its identifier.
+/// Look an epoch up by its identifier, by [`crate::catalogue::matches`].
 #[must_use]
 pub fn by_id(id: &str) -> Option<Epoch> {
-    let mut index = 0;
-    while index < ALL.len() {
-        if str_eq(ALL[index].id, id) {
-            return Some(ALL[index]);
-        }
-        index += 1;
-    }
-    None
-}
-
-fn str_eq(a: &str, b: &str) -> bool {
-    a.as_bytes() == b.as_bytes()
+    ALL.iter()
+        .copied()
+        .find(|epoch| crate::catalogue::matches(id, epoch.id))
 }
 
 #[cfg(test)]

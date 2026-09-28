@@ -94,6 +94,59 @@ pub enum LeapNotice {
     Negative,
 }
 
+hc_core::catalogue! {
+    type: LeapNotice,
+    tests: leap_notice_catalogue_tests,
+    variants;
+
+    /// The three notices, none first.
+    pub const ALL;
+    /// The notice's identifier: `none`, `positive` or `negative`.
+    pub fn id;
+    /// The notice with this identifier.
+    pub fn by_id;
+
+    entries: {
+        None => "none",
+        Positive => "positive",
+        Negative => "negative",
+    }
+}
+
+/// A time code of this module, under the identifier a caller selects it
+/// by: JJY, DCF77, and WWVB's amplitude and phase codes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Code {
+    /// JJY's code, [`jjy`].
+    Jjy,
+    /// DCF77's code, [`dcf77`].
+    Dcf77,
+    /// WWVB's amplitude code, [`wwvb::AmFrame`].
+    WwvbAm,
+    /// WWVB's phase code, [`wwvb::PmFrame`].
+    WwvbPm,
+}
+
+hc_core::catalogue! {
+    type: Code,
+    tests: code_catalogue_tests,
+    variants;
+
+    /// The four codes.
+    pub const ALL;
+    /// The code's identifier: `jjy`, `dcf77`, `wwvb-am` or `wwvb-pm`.
+    pub fn id;
+    /// The code with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Jjy => "jjy",
+        Dcf77 => "dcf77",
+        WwvbAm => "wwvb-am",
+        WwvbPm => "wwvb-pm",
+    }
+}
+
 /// Why a frame is not a time code.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]

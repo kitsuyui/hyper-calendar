@@ -233,10 +233,11 @@ impl Body {
     }
 }
 
-/// Look a body up by name. The comparison is case-sensitive.
+/// Look a body up by name, by [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_name(name: &str) -> Option<&'static Body> {
-    ALL.iter().find(|body| body.name == name)
+    ALL.iter()
+        .find(|body| hc_core::catalogue::matches(name, body.name))
 }
 
 /// The number of bodies in the table.

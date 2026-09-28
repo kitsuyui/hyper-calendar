@@ -48,6 +48,11 @@
 //!   named in [`EdoHour`]). The Observatory's 夜明 and 日暮 at 7°21′40″ are
 //!   [`japanese_dawn_naoj`] and [`japanese_dusk_naoj`].
 //!
+//! The clocks a caller selects by a string at the boundary are the table
+//! [`SolarClock::ALL`] — `local-mean`, `local-apparent`, `temporal` and
+//! `italian` — and the named times of day [`SolarEvent::ALL`], one entry for
+//! each function of this module a caller asks for by name.
+//!
 //! Where the Sun does not rise or set, or not sink far enough, there is no
 //! temporal hour, no zero hour and no Edo hour, and the functions return a
 //! [`MissingSolarEvent`] rather than a number: a length of daylight that is
@@ -1465,6 +1470,152 @@ pub fn islamic_midnight(
         MidnightRule::SunsetToFajr => fajr(day + 1, location, method)?,
     };
     Ok(Moment((set.0 + end.0) / 2.0))
+}
+
+/// A reading of one of the clocks of [`SolarClock::ALL`]: the local date it
+/// belongs to and the hours into it.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct ClockReading {
+    /// The local date.
+    pub day: Rd,
+    /// The hours into it on the clock: 0 to 24, and for Italian hours a
+    /// minute or two either side of 24 before the next zero hour.
+    pub hours: f64,
+}
+
+impl ClockReading {
+    /// The reading a local clock's [`Moment`] is: its day, and its day's
+    /// fraction in hours.
+    fn of(reading: Moment) -> Self {
+        Self {
+            day: reading.day(),
+            hours: reading.day_fraction() * 24.0,
+        }
+    }
+}
+
+/// A clock of this module under the identifier a caller selects it by at
+/// the boundary (`docs/policy.md` §5): the function that reads it at a
+/// Universal Time moment and a place.
+#[derive(Debug, Clone, Copy)]
+pub struct SolarClock {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The clock's reading at a Universal Time moment and a place.
+    pub read: fn(Moment, Location) -> Result<ClockReading, MissingSolarEvent>,
+}
+
+hc_core::catalogue! {
+    type: SolarClock,
+    id: |clock| clock.id,
+    tests: solar_clock_catalogue_tests,
+    associated;
+
+    /// The four clocks carried: local mean time, the sundial, temporal
+    /// hours and Italian hours.
+    pub const ALL;
+    /// The clock with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// Local mean time, [`local_mean_time`].
+        pub const LOCAL_MEAN = Self {
+            id: "local-mean",
+            read: |universal, location| Ok(ClockReading::of(local_mean_time(universal, location))),
+        };
+        /// The sundial, [`local_apparent_time`].
+        pub const LOCAL_APPARENT = Self {
+            id: "local-apparent",
+            read: |universal, location| {
+                Ok(ClockReading::of(local_apparent_time(universal, location)))
+            },
+        };
+        /// Temporal hours, 6 at sunrise and 18 at sunset, [`temporal_time`].
+        pub const TEMPORAL = Self {
+            id: "temporal",
+            read: |universal, location| temporal_time(universal, location).map(ClockReading::of),
+        };
+        /// Italian hours since the zero hour of the evening before,
+        /// [`italian_time`]: the reading's own date and hours, which can
+        /// run a minute or two past 24 before the next zero hour.
+        pub const ITALIAN = Self {
+            id: "italian",
+            read: |universal, location| {
+                italian_time(universal, location).map(|reading| ClockReading {
+                    day: reading.day,
+                    hours: reading.hours,
+                })
+            },
+        };
+    }
+}
+
+/// A named time of day of this module under the identifier a caller
+/// selects it by at the boundary (`docs/policy.md` §5): the function that
+/// finds it on a local day at a place, in Universal Time.
+#[derive(Debug, Clone, Copy)]
+pub struct SolarEvent {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The time on a local day at a place, in Universal Time.
+    pub reckon: fn(Rd, Location) -> Result<Moment, MissingSolarEvent>,
+}
+
+hc_core::catalogue! {
+    type: SolarEvent,
+    id: |event| event.id,
+    tests: solar_event_catalogue_tests,
+    associated;
+
+    /// The nine times carried: ʿaṣr by the two shadow rules, Jewish dusk
+    /// and the end of the Sabbath, the Italian zero hour, and the Japanese
+    /// dawn and dusk by the 寛政暦 and by the Observatory.
+    pub const ALL;
+    /// The time with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// ʿAṣr by the Shafiʿi rule, [`asr_shafii`].
+        pub const ASR_SHAFII = Self { id: "asr-shafii", reckon: asr_shafii };
+        /// ʿAṣr by the Hanafi rule, [`asr_hanafi`].
+        pub const ASR_HANAFI = Self { id: "asr-hanafi", reckon: asr_hanafi };
+        /// Jewish dusk at the Vilna Gaon's 4°40′, [`jewish_dusk_vilna_gaon`].
+        pub const JEWISH_DUSK_VILNA_GAON = Self {
+            id: "jewish-dusk-vilna-gaon",
+            reckon: jewish_dusk_vilna_gaon,
+        };
+        /// The end of the Sabbath at Berthold Cohn's 7°5′,
+        /// [`jewish_sabbath_ends_cohn`].
+        pub const JEWISH_SABBATH_ENDS_COHN = Self {
+            id: "jewish-sabbath-ends-cohn",
+            reckon: jewish_sabbath_ends_cohn,
+        };
+        /// The Italian zero hour, [`italian_zero_hour`].
+        pub const ITALIAN_ZERO_HOUR = Self {
+            id: "italian-zero-hour",
+            reckon: italian_zero_hour,
+        };
+        /// 明け六つ by the 寛政暦, [`japanese_dawn_kansei`].
+        pub const JAPANESE_DAWN_KANSEI = Self {
+            id: "japanese-dawn-kansei",
+            reckon: japanese_dawn_kansei,
+        };
+        /// 暮れ六つ by the 寛政暦, [`japanese_dusk_kansei`].
+        pub const JAPANESE_DUSK_KANSEI = Self {
+            id: "japanese-dusk-kansei",
+            reckon: japanese_dusk_kansei,
+        };
+        /// The Observatory's 夜明, [`japanese_dawn_naoj`].
+        pub const JAPANESE_DAWN_NAOJ = Self {
+            id: "japanese-dawn-naoj",
+            reckon: japanese_dawn_naoj,
+        };
+        /// The Observatory's 日暮, [`japanese_dusk_naoj`].
+        pub const JAPANESE_DUSK_NAOJ = Self {
+            id: "japanese-dusk-naoj",
+            reckon: japanese_dusk_naoj,
+        };
+    }
 }
 
 #[cfg(test)]

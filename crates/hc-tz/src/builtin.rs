@@ -118,13 +118,24 @@ pub const ZONES: &[BuiltinZone] = &[
     },
 ];
 
-/// Look up a zone by IANA identifier, ignoring ASCII case.
+/// Look up a zone by IANA identifier, by [`hc_core::catalogue::matches`]:
+/// in any ASCII case, with white space around it ignored.
 ///
 /// Case folding matches what `TZ=asia/tokyo` does on most systems, and costs
 /// nothing at this table size.
 #[must_use]
 pub fn find(id: &str) -> Option<&'static BuiltinZone> {
-    ZONES.iter().find(|zone| zone.id.eq_ignore_ascii_case(id))
+    ZONES
+        .iter()
+        .find(|zone| hc_core::catalogue::matches(id, zone.id))
+}
+
+hc_core::catalogue_tests! {
+    type: BuiltinZone,
+    id: |zone| zone.id,
+    tests: builtin_zone_catalogue_tests,
+    all: ZONES,
+    lookup: find,
 }
 
 /// The POSIX `TZ` string for a zone.

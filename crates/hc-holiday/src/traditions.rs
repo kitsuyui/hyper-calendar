@@ -4119,10 +4119,13 @@ pub static ALL: &[&RuleSet] = &[
     &crate::common_worship::COMMON_WORSHIP,
 ];
 
-/// The table for a tradition's identifier.
+/// The table for a tradition's identifier, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static RuleSet> {
-    ALL.iter().copied().find(|set| set.code == code)
+    ALL.iter()
+        .copied()
+        .find(|set| hc_core::catalogue::matches(code, set.code))
 }
 
 hc_core::catalogue_tests! {

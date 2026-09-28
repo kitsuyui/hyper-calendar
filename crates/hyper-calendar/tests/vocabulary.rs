@@ -714,9 +714,9 @@ fn the_reckoning_vocabulary_names_what_the_crates_compute() {
         table,
     };
     use hyper_calendar::hc_seasons::hizir_kasim::{Half, NamedDay};
+    use hyper_calendar::hc_seasons::meiyu::PlumRainRule;
     use hyper_calendar::hc_seasons::zodiac::RulingPlanet;
     use hyper_calendar::reckoning_lines::{FIRST_MONTH_COUNT_IDS, folk_named_day_id};
-    use hyper_calendar::season_lines::PLUM_RAIN_RULES;
 
     let mut terms: Vec<(&str, String, &str)> = Vec::new();
     let mut add = |kind: &'static str, id: String, name: &'static str| {
@@ -752,8 +752,8 @@ fn the_reckoning_vocabulary_names_what_the_crates_compute() {
     // `hc-seasons` and `hc-almanac` write these names in their
     // documentation only: 入梅 and 出梅 in `meiyu`, the counts in
     // `first_month_counts`.
-    for ((id, _), name) in PLUM_RAIN_RULES.iter().zip(["入梅", "入梅", "出梅"]) {
-        add(PLUM_RAINS, (*id).to_owned(), name);
+    for (rule, name) in PlumRainRule::ALL.iter().zip(["入梅", "入梅", "出梅"]) {
+        add(PLUM_RAINS, rule.id.to_owned(), name);
     }
     for (id, name) in
         FIRST_MONTH_COUNT_IDS

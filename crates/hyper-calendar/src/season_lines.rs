@@ -17,45 +17,43 @@
 //! to 3000 over which `hc-astro` states its series hold.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_calendar::Rd;
 use hc_seasons::hc_astro::solar::solar_longitude_after;
+use hc_seasons::meiyu::PlumRainRule;
+use hc_seasons::meridian::NamedMeridian;
 use hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};
-use hc_seasons::{ColdFoodConvention, Meridian, meiyu, pentads};
+use hc_seasons::{ColdFoodConvention, Meridian, pentads};
 
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era};
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`term_line`] and [`pentad_line`] write.
 pub const ALMANAC_COLUMNS: usize = 7;
 
 /// The meridian a string names.
 ///
-/// A name — `universal`, `japan`, `china`, `korea`, `india` or
-/// `china-before-1929`, in any case, with the empty string meaning
-/// `universal` — or a longitude in decimal degrees east of Greenwich, from
+/// A name of [`NamedMeridian::ALL`] — `universal`, `japan`, `china`,
+/// `korea`, `india` or `china-before-1929` — with the empty string meaning
+/// `universal`, or a longitude in decimal degrees east of Greenwich, from
 /// −180 to 180, read as local mean solar time.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for anything else.
 pub fn meridian(name: &str) -> Answer<Meridian> {
-    let lowered = name.trim().to_ascii_lowercase();
-    Ok(match lowered.as_str() {
-        "" | "universal" => Meridian::UNIVERSAL,
-        "japan" => Meridian::JAPAN,
-        "china" => Meridian::CHINA,
-        "korea" => Meridian::KOREA,
-        "india" => Meridian::INDIA,
-        "china-before-1929" => Meridian::CHINA_BEFORE_1929,
-        degrees => degrees
-            .parse::<f64>()
-            .ok()
-            .filter(|degrees| degrees.is_finite() && (-180.0..=180.0).contains(degrees))
-            .map(Meridian::from_longitude_degrees)
-            .ok_or(Refusal::Unknown)?,
-    })
+    let name = name.trim();
+    if name.is_empty() {
+        return Ok(Meridian::UNIVERSAL);
+    }
+    if let Some(named) = NamedMeridian::by_id(name) {
+        return Ok(named.meridian);
+    }
+    name.parse::<f64>()
+        .ok()
+        .filter(|degrees| degrees.is_finite() && (-180.0..=180.0).contains(degrees))
+        .map(Meridian::from_longitude_degrees)
+        .ok_or(Refusal::Unknown)
 }
 
 /// The meridian and the day of a call, checked in that order.
@@ -80,19 +78,15 @@ pub fn term_line(fixed: i64, meridian_name: &str) -> Answer<String> {
     let next = solar_longitude_after(event.term.next().solar_longitude_degrees(), event.moment);
     let end = Rd(meridian.day_of(next).0 - 1);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t",
-        event.term.index(TermOrder::SpringEquinoxFirst),
-        event.term.chinese_name(),
-        event.term.japanese_name(),
-        event.day.0,
-        end.0
-    );
-    push_cell(&mut out, namings::TRADITIONAL_CHINESE.authority);
-    out.push('\t');
-    push_cell(&mut out, namings::JAPANESE.authority);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(event.term.index(TermOrder::SpringEquinoxFirst))
+        .cell(event.term.chinese_name())
+        .cell(event.term.japanese_name())
+        .value(event.day.0)
+        .value(end.0)
+        .cell(namings::TRADITIONAL_CHINESE.authority)
+        .cell(namings::JAPANESE.authority);
+    line.end();
     Ok(out)
 }
 
@@ -111,34 +105,26 @@ pub fn pentad_line(fixed: i64, meridian_name: &str) -> Answer<String> {
     let next = solar_longitude_after(event.pentad.next().solar_longitude_degrees(), event.moment);
     let end = Rd(meridian.day_of(next).0 - 1);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t",
-        event.pentad.index(TermOrder::SpringEquinoxFirst),
-        event.pentad.name(pentads::CHINESE),
-        event.pentad.name(pentads::JAPANESE),
-        event.day.0,
-        end.0
-    );
-    push_cell(&mut out, pentads::CHINESE.authority);
-    out.push('\t');
-    push_cell(&mut out, pentads::JAPANESE.authority);
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.value(event.pentad.index(TermOrder::SpringEquinoxFirst))
+        .cell(event.pentad.name(pentads::CHINESE))
+        .cell(event.pentad.name(pentads::JAPANESE))
+        .value(event.day.0)
+        .value(end.0)
+        .cell(pentads::CHINESE.authority)
+        .cell(pentads::JAPANESE.authority);
+    line.end();
     Ok(out)
 }
 
 /// The reckoning of 寒食 an identifier names: `hanshi-solstice-105`,
-/// `hanshi-eve-of-qingming` or `hansik`, in any case, as
-/// [`ColdFoodConvention::id`] spells them.
+/// `hanshi-eve-of-qingming` or `hansik`, by [`ColdFoodConvention::by_id`].
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for anything else.
 pub fn cold_food_convention(id: &str) -> Answer<ColdFoodConvention> {
-    ColdFoodConvention::ALL
-        .into_iter()
-        .find(|convention| names(id, convention.id()))
-        .ok_or(Refusal::Unknown)
+    ColdFoodConvention::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// The fixed day of 寒食 in Gregorian `year` under the reckoning `id`
@@ -161,44 +147,27 @@ pub fn cold_food_day(id: &str, year: i64) -> Answer<i64> {
     Ok(convention.day(year).0)
 }
 
-/// A rule of 入梅 or 出梅: the day it gives in a Gregorian year, with its
-/// solar term at a meridian.
-pub type PlumRainRule = fn(i64, Meridian) -> Rd;
-
-/// The rules of 入梅 and 出梅, each with its identifier, as
-/// [`hc_seasons::meiyu`] carries them: one a function, per policy §5.
-pub const PLUM_RAIN_RULES: [(&str, PlumRainRule); 3] = [
-    ("ru-mei-bing", meiyu::ru_mei_bing),
-    ("ru-mei-ren", meiyu::ru_mei_ren),
-    ("chu-mei-wei", meiyu::chu_mei_wei),
-];
-
 /// The day of 入梅 or 出梅 in Gregorian `year` by a rule of
-/// [`PLUM_RAIN_RULES`], selected by its identifier in any case, with the
-/// solar term it counts from at a meridian [`meridian`] reads: the first
-/// 丙 or 壬 day from 芒种, or the first 未 day from 小暑, the term's own day
-/// counted.
+/// [`PlumRainRule::ALL`], selected by its identifier, with the solar term
+/// it counts from at a meridian [`meridian`] reads: the first 丙 or 壬 day
+/// from 芒种, or the first 未 day from 小暑, the term's own day counted.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a rule or a meridian not named, and
 /// [`Refusal::OutOfRange`] for a year outside −1000 to 3000.
 pub fn plum_rains_day(rule: &str, year: i64, meridian_name: &str) -> Answer<i64> {
-    let (_, day_of) = PLUM_RAIN_RULES
-        .iter()
-        .find(|(id, _)| names(rule, id))
-        .ok_or(Refusal::Unknown)?;
+    let rule = PlumRainRule::by_id(rule).ok_or(Refusal::Unknown)?;
     let meridian = meridian(meridian_name)?;
     if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
-    Ok(day_of(year, meridian).0)
+    Ok((rule.day)(year, meridian).0)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::vec::Vec;
 
     fn day(year: i64, month: u8, day: u8) -> i64 {
         hc_calendars_solar::gregorian::to_fixed(year, month, day)
@@ -206,9 +175,7 @@ mod tests {
             .0
     }
 
-    fn cells(line: &str) -> Vec<&str> {
-        line.trim_end_matches('\n').split('\t').collect()
-    }
+    use crate::boundary::cells;
 
     /// 秋分 of 2026 fell on 23 September in Japan, so on 27 September the
     /// term in effect is 秋分, index 12, begun on the 23rd; its pentad is

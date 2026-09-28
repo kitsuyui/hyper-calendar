@@ -44,28 +44,20 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt::Write;
 
-use hc_calendar::{CalendarError, Rd};
+use hc_calendar::Rd;
 use hc_calendars_solar::spreadsheet::{self, Excel1900Day};
+use hc_core::epoch::MJD_OF_UNIX_EPOCH;
 use hc_core::epoch_notation::EpochKind;
-use hc_core::gnss::{self, GlonassDate, GlonassTime, WeekNumbering, WeekTime};
+use hc_core::gnss::{self, GlonassDate, GlonassTime, RolloverRule, WeekNumbering, WeekTime};
 use hc_core::internet_time::Beat;
 use hc_core::ntp::{NtpDate, NtpTimestamp};
-use hc_core::tai64;
+use hc_core::tai64::{self, Format as Tai64Format};
 use hc_core::tt_bipm::TtBipmSeries;
 use hc_core::unix::{self, LeapPolicy, UtcInstant};
 use hc_core::uuid::{self, TimeVersion};
 use hc_core::{Duration, Instant, Tai, Tt, UnixTime};
 
-use crate::boundary::{Answer, Refusal, names};
-
-/// The refusal a calendar error is: every one of them a value outside
-/// what the day count answers for, but for arithmetic that overflowed.
-const fn calendar_refusal(error: CalendarError) -> Refusal {
-    match error {
-        CalendarError::Overflow => Refusal::Overflow,
-        _ => Refusal::OutOfRange,
-    }
-}
+use crate::boundary::{Answer, Refusal, line};
 
 /// A TAI instant from whole seconds and attoseconds.
 ///
@@ -89,53 +81,13 @@ pub fn tai_parts(instant: Instant<Tai>) -> Answer<(i64, u64)> {
     Ok((seconds, reading.subsec_attos()))
 }
 
-/// Which of Bernstein's three external formats a label is in.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Tai64Format {
-    /// Eight bytes: the second.
-    Tai64,
-    /// Twelve bytes: the second and the nanosecond.
-    Tai64N,
-    /// Sixteen bytes: the second, the nanosecond and the attosecond.
-    Tai64Na,
-}
-
-impl Tai64Format {
-    /// The three formats.
-    pub const ALL: [Self; 3] = [Self::Tai64, Self::Tai64N, Self::Tai64Na];
-
-    /// The format's name as a line carries it: `tai64`, `tai64n` or
-    /// `tai64na`.
-    #[must_use]
-    pub const fn name(self) -> &'static str {
-        match self {
-            Self::Tai64 => "tai64",
-            Self::Tai64N => "tai64n",
-            Self::Tai64Na => "tai64na",
-        }
-    }
-
-    /// The length of the label in bytes.
-    #[must_use]
-    pub const fn bytes(self) -> usize {
-        match self {
-            Self::Tai64 => 8,
-            Self::Tai64N => 12,
-            Self::Tai64Na => 16,
-        }
-    }
-
-    /// The format a name names, in any case.
-    ///
-    /// # Errors
-    ///
-    /// [`Refusal::Unknown`] for any other name.
-    pub fn from_name(name: &str) -> Answer<Self> {
-        Self::ALL
-            .into_iter()
-            .find(|format| names(name, format.name()))
-            .ok_or(Refusal::Unknown)
-    }
+/// The format an identifier names, by [`Tai64Format::by_id`].
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other name.
+fn tai64_format(id: &str) -> Answer<Tai64Format> {
+    Tai64Format::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// The label of a TAI instant in a format, as lower-case hexadecimal:
@@ -168,10 +120,11 @@ pub fn tai64_hex(instant: Instant<Tai>, format: Tai64Format) -> Answer<String> {
 /// `tai64na`, and [`Refusal::OutOfRange`] for attoseconds from 10¹⁸ or a
 /// second outside the labels.
 pub fn tai64_encode_line(seconds: i64, attoseconds: u64, format: &str) -> Answer<String> {
-    let format = Tai64Format::from_name(format)?;
-    let mut out = tai64_hex(tai_instant(seconds, attoseconds)?, format)?;
-    out.push('\n');
-    Ok(out)
+    let format = tai64_format(format)?;
+    let hex = tai64_hex(tai_instant(seconds, attoseconds)?, format)?;
+    Ok(line(|line| {
+        line.cell(&hex);
+    }))
 }
 
 /// A label in hexadecimal read back: its format, by its length, and the
@@ -206,7 +159,8 @@ pub fn tai64_decode(hex: &str) -> Answer<(Tai64Format, Instant<Tai>)> {
 fn tai64_bytes(hex: &str) -> Answer<(Tai64Format, [u8; 16])> {
     let digits = hex.trim().as_bytes();
     let format = Tai64Format::ALL
-        .into_iter()
+        .iter()
+        .copied()
         .find(|format| format.bytes() * 2 == digits.len())
         .ok_or(Refusal::Malformed)?;
     let mut bytes = [0u8; 16];
@@ -219,7 +173,7 @@ fn tai64_bytes(hex: &str) -> Answer<(Tai64Format, [u8; 16])> {
 /// # Errors
 ///
 /// [`Refusal::Malformed`] for a character that is not a hexadecimal digit.
-fn hex_into(digits: &[u8], bytes: &mut [u8]) -> Answer<()> {
+pub(crate) fn hex_into(digits: &[u8], bytes: &mut [u8]) -> Answer<()> {
     let (pairs, _) = digits.as_chunks::<2>();
     for (byte, [high, low]) in bytes.iter_mut().zip(pairs) {
         let (Some(high), Some(low)) = (hex_digit(*high), hex_digit(*low)) else {
@@ -248,13 +202,12 @@ const fn hex_digit(digit: u8) -> Option<u8> {
 pub fn tai64_decode_line(hex: &str) -> Answer<String> {
     let (format, instant) = tai64_decode(hex)?;
     let (seconds, attoseconds) = tai_parts(instant)?;
-    Ok(alloc::format!(
-        "{}\t{seconds}\t{attoseconds}\n",
-        format.name()
-    ))
+    Ok(line(|line| {
+        line.cell(format.id()).value(seconds).value(attoseconds);
+    }))
 }
 
-/// The week-number field an identifier names, in any case:
+/// The week-number field an identifier names, by [`gnss::by_id`]:
 /// `gps-lnav-week`, `gps-cnav-week`, `galileo-week`, `beidou-week` or
 /// `navic-week`, as [`gnss::ALL`] has them.
 ///
@@ -262,11 +215,7 @@ pub fn tai64_decode_line(hex: &str) -> Answer<String> {
 ///
 /// [`Refusal::Unknown`] for any other identifier.
 pub fn week_numbering(id: &str) -> Answer<WeekNumbering> {
-    gnss::ALL
-        .iter()
-        .copied()
-        .find(|numbering| names(id, numbering.id()))
-        .ok_or(Refusal::Unknown)
+    gnss::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// The full week and the time of week of a TAI instant under a field.
@@ -304,11 +253,12 @@ pub fn time_of_week_parts(time: WeekTime) -> Answer<(u32, u64)> {
 pub fn gnss_week_line(id: &str, seconds: i64, attoseconds: u64) -> Answer<String> {
     let (numbering, time) = gnss_week(id, seconds, attoseconds)?;
     let (tow_seconds, tow_attoseconds) = time_of_week_parts(time)?;
-    Ok(alloc::format!(
-        "{}\t{}\t{tow_seconds}\t{tow_attoseconds}\n",
-        time.week,
-        numbering.broadcast(time.week)
-    ))
+    Ok(line(|line| {
+        line.value(time.week)
+            .value(numbering.broadcast(time.week))
+            .value(tow_seconds)
+            .value(tow_attoseconds);
+    }))
 }
 
 /// The TAI instant of a full week and a time of week under a field.
@@ -342,12 +292,14 @@ pub fn gnss_to_tai_line(
     tow_attoseconds: u64,
 ) -> Answer<String> {
     let (seconds, attoseconds) = tai_parts(gnss_to_tai(id, week, tow_seconds, tow_attoseconds)?)?;
-    Ok(alloc::format!("{seconds}\t{attoseconds}\n"))
+    Ok(line(|line| {
+        line.value(seconds).value(attoseconds);
+    }))
 }
 
-/// The rule that picks one full week out of the family a broadcast week
-/// names: `not-before`, [`WeekNumbering::resolve_not_before`], or
-/// `nearest`, [`WeekNumbering::resolve_nearest`].
+/// The full week a broadcast week names by a rule of [`RolloverRule::ALL`]:
+/// `not-before`, [`WeekNumbering::resolve_not_before`], or `nearest`,
+/// [`WeekNumbering::resolve_nearest`].
 ///
 /// # Errors
 ///
@@ -362,14 +314,8 @@ pub fn gnss_resolve_week(
 ) -> Answer<u32> {
     let numbering = week_numbering(id)?;
     let reference = tai_instant(reference_tai_seconds, 0)?;
-    let week = if names(rule, "not-before") {
-        numbering.resolve_not_before(broadcast, reference)
-    } else if names(rule, "nearest") {
-        numbering.resolve_nearest(broadcast, reference)
-    } else {
-        return Err(Refusal::Unknown);
-    };
-    week.map_err(|_| Refusal::OutOfRange)
+    let rule = RolloverRule::by_id(rule).ok_or(Refusal::Unknown)?;
+    (rule.resolve)(numbering, broadcast, reference).map_err(|_| Refusal::OutOfRange)
 }
 
 /// GLONASS's four-year interval *N*4 and day *N*T at a TAI instant,
@@ -398,11 +344,9 @@ pub fn glonass_date(seconds: i64, attoseconds: u64, strict: bool) -> Answer<Glon
 /// As [`glonass_date`].
 pub fn glonass_date_line(seconds: i64, attoseconds: u64, strict: bool) -> Answer<String> {
     let date = glonass_date(seconds, attoseconds, strict)?;
-    Ok(alloc::format!(
-        "{}\t{}\n",
-        date.four_year_interval,
-        date.day
-    ))
+    Ok(line(|line| {
+        line.value(date.four_year_interval).value(date.day);
+    }))
 }
 
 /// The fixed day and the time of day, in seconds, of an OLE Automation
@@ -425,7 +369,9 @@ pub fn fixed_from_ole_automation(value: f64) -> Answer<(Rd, f64)> {
 /// As [`fixed_from_ole_automation`].
 pub fn fixed_from_ole_automation_line(value: f64) -> Answer<String> {
     let (day, seconds) = fixed_from_ole_automation(value)?;
-    Ok(alloc::format!("{}\t{seconds}\n", day.0))
+    Ok(line(|line| {
+        line.value(day.0).value(seconds);
+    }))
 }
 
 /// The OLE Automation date of a fixed day and a time of day in seconds,
@@ -438,7 +384,12 @@ pub fn fixed_from_ole_automation_line(value: f64) -> Answer<String> {
 /// 31 December 9999.
 pub fn ole_automation_from_fixed(fixed: i64, seconds_of_day: f64) -> Answer<f64> {
     let time = Duration::from_secs_f64(seconds_of_day).map_err(|_| Refusal::OutOfRange)?;
-    spreadsheet::to_ole_automation(Rd(fixed), time).map_err(calendar_refusal)
+    // A time of day is a number, not a date: out of its range it is out
+    // of range, where the day count's error would name a day.
+    if time.is_negative() || time >= Duration::DAY {
+        return Err(Refusal::OutOfRange);
+    }
+    spreadsheet::to_ole_automation(Rd(fixed), time).map_err(Refusal::from)
 }
 
 /// The line of `hc_ole_automation_from_fixed`: the value.
@@ -447,10 +398,10 @@ pub fn ole_automation_from_fixed(fixed: i64, seconds_of_day: f64) -> Answer<f64>
 ///
 /// As [`ole_automation_from_fixed`].
 pub fn ole_automation_from_fixed_line(fixed: i64, seconds_of_day: f64) -> Answer<String> {
-    Ok(alloc::format!(
-        "{}\n",
-        ole_automation_from_fixed(fixed, seconds_of_day)?
-    ))
+    let value = ole_automation_from_fixed(fixed, seconds_of_day)?;
+    Ok(line(|line| {
+        line.value(value);
+    }))
 }
 
 /// What an Excel 1900 serial names, serial 60 included.
@@ -460,7 +411,7 @@ pub fn ole_automation_from_fixed_line(fixed: i64, seconds_of_day: f64) -> Answer
 /// [`Refusal::OutOfRange`] below serial 1 and above
 /// [`spreadsheet::LAST_SERIAL`].
 pub fn excel_1900_day(serial: i64) -> Answer<Excel1900Day> {
-    spreadsheet::excel_1900_day(serial).map_err(calendar_refusal)
+    spreadsheet::excel_1900_day(serial).map_err(Refusal::from)
 }
 
 /// The line of `hc_excel_1900_day`: the fixed day, empty for serial 60,
@@ -471,10 +422,13 @@ pub fn excel_1900_day(serial: i64) -> Answer<Excel1900Day> {
 ///
 /// As [`excel_1900_day`].
 pub fn excel_1900_day_line(serial: i64) -> Answer<String> {
-    Ok(match excel_1900_day(serial)? {
-        Excel1900Day::Date(day) => alloc::format!("{}\t0\n", day.0),
-        Excel1900Day::Phantom29February1900 => String::from("\t1\n"),
-    })
+    let day = excel_1900_day(serial)?;
+    Ok(line(|line| {
+        match day {
+            Excel1900Day::Date(day) => line.value(day.0).flag(false),
+            Excel1900Day::Phantom29February1900 => line.empty().flag(true),
+        };
+    }))
 }
 
 /// The leap-second policy a `strict` flag asks for: strict refuses outside
@@ -508,7 +462,9 @@ pub fn tai_from_unix(unix_seconds: i64, strict: bool) -> Answer<(i64, u64)> {
 /// As [`tai_from_unix`].
 pub fn tai_from_unix_line(unix_seconds: i64, strict: bool) -> Answer<String> {
     let (seconds, attoseconds) = tai_from_unix(unix_seconds, strict)?;
-    Ok(alloc::format!("{seconds}\t{attoseconds}\n"))
+    Ok(line(|line| {
+        line.value(seconds).value(attoseconds);
+    }))
 }
 
 /// The UTC label of a whole TAI second: its POSIX second, and whether it
@@ -532,11 +488,9 @@ pub fn utc_from_tai(tai_seconds: i64, strict: bool) -> Answer<UtcInstant> {
 /// As [`utc_from_tai`].
 pub fn utc_from_tai_line(tai_seconds: i64, strict: bool) -> Answer<String> {
     let utc = utc_from_tai(tai_seconds, strict)?;
-    Ok(alloc::format!(
-        "{}\t{}\n",
-        utc.unix_seconds,
-        u8::from(utc.leap_second)
-    ))
+    Ok(line(|line| {
+        line.value(utc.unix_seconds).flag(utc.leap_second);
+    }))
 }
 
 /// A POSIX instant from whole seconds and attoseconds.
@@ -586,10 +540,11 @@ pub fn tai64_posix_plus_10_encode_line(
     attoseconds: u64,
     format: &str,
 ) -> Answer<String> {
-    let format = Tai64Format::from_name(format)?;
-    let mut out = tai64_posix_plus_10_hex(unix_instant(unix_seconds, attoseconds)?, format)?;
-    out.push('\n');
-    Ok(out)
+    let format = tai64_format(format)?;
+    let hex = tai64_posix_plus_10_hex(unix_instant(unix_seconds, attoseconds)?, format)?;
+    Ok(line(|line| {
+        line.cell(&hex);
+    }))
 }
 
 /// A `tai64-posix-plus-10` label in hexadecimal read back: its format, by
@@ -623,12 +578,11 @@ pub fn tai64_posix_plus_10_decode(hex: &str) -> Answer<(Tai64Format, UnixTime)> 
 /// As [`tai64_posix_plus_10_decode`].
 pub fn tai64_posix_plus_10_decode_line(hex: &str) -> Answer<String> {
     let (format, unix) = tai64_posix_plus_10_decode(hex)?;
-    Ok(alloc::format!(
-        "{}\t{}\t{}\n",
-        format.name(),
-        unix.seconds(),
-        unix.subsec_attos()
-    ))
+    Ok(line(|line| {
+        line.cell(format.id())
+            .value(unix.seconds())
+            .value(unix.subsec_attos());
+    }))
 }
 
 /// The sixteen octets of a UUID written in RFC 9562's string form: 32
@@ -691,12 +645,12 @@ pub fn uuid_timestamp(text: &str) -> Answer<(TimeVersion, u64, UnixTime)> {
 /// As [`uuid_timestamp`].
 pub fn uuid_timestamp_line(text: &str) -> Answer<String> {
     let (version, timestamp, unix) = uuid_timestamp(text)?;
-    Ok(alloc::format!(
-        "{}\t{timestamp}\t{}\t{}\n",
-        version.number(),
-        unix.seconds(),
-        unix.subsec_attos()
-    ))
+    Ok(line(|line| {
+        line.value(version.number())
+            .value(timestamp)
+            .value(unix.seconds())
+            .value(unix.subsec_attos());
+    }))
 }
 
 /// The UUID time fields of a timestamp in one version's layout: octets 0
@@ -743,7 +697,9 @@ pub fn uuid_timestamp_encode(unix_seconds: i64, attoseconds: u64) -> Answer<(u64
 /// As [`uuid_timestamp_encode`].
 pub fn uuid_timestamp_encode_line(unix_seconds: i64, attoseconds: u64) -> Answer<String> {
     let (timestamp, v1, v6) = uuid_timestamp_encode(unix_seconds, attoseconds)?;
-    Ok(alloc::format!("{timestamp}\t{v1}\t{v6}\n"))
+    Ok(line(|line| {
+        line.value(timestamp).cell(&v1).cell(&v6);
+    }))
 }
 
 /// The 128-bit NTP date of a POSIX instant, the fraction floored to 2⁻⁶⁴ s.
@@ -769,16 +725,21 @@ pub fn ntp_encode(unix_seconds: i64, attoseconds: u64) -> Answer<NtpDate> {
 /// As [`ntp_encode`].
 pub fn ntp_encode_line(unix_seconds: i64, attoseconds: u64) -> Answer<String> {
     let date = ntp_encode(unix_seconds, attoseconds)?;
-    let mut out = alloc::format!("{}\t{}\t{}\t", date.era, date.offset, date.fraction);
-    for byte in date.to_bytes() {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out.push('\t');
-    for byte in date.timestamp().to_bytes() {
-        let _ = write!(out, "{byte:02x}");
-    }
-    out.push('\n');
-    Ok(out)
+    Ok(line(|line| {
+        line.value(date.era)
+            .value(date.offset)
+            .value(date.fraction)
+            .cell_with(|cell| {
+                for byte in date.to_bytes() {
+                    let _ = write!(cell, "{byte:02x}");
+                }
+            })
+            .cell_with(|cell| {
+                for byte in date.timestamp().to_bytes() {
+                    let _ = write!(cell, "{byte:02x}");
+                }
+            });
+    }))
 }
 
 /// A 64-bit NTP timestamp placed in the era that puts it within 2³¹ s of a
@@ -812,14 +773,13 @@ pub fn ntp_resolve(
 /// As [`ntp_resolve`].
 pub fn ntp_resolve_line(seconds: u32, fraction: u32, reference_unix: i64) -> Answer<String> {
     let (date, unix) = ntp_resolve(seconds, fraction, reference_unix)?;
-    Ok(alloc::format!(
-        "{}\t{}\t{}\t{}\t{}\n",
-        date.era,
-        date.offset,
-        date.fraction,
-        unix.seconds(),
-        unix.subsec_attos()
-    ))
+    Ok(line(|line| {
+        line.value(date.era)
+            .value(date.offset)
+            .value(date.fraction)
+            .value(unix.seconds())
+            .value(unix.subsec_attos());
+    }))
 }
 
 /// The local reading a pair of FAT words names: its fixed day and the
@@ -852,7 +812,9 @@ pub fn fat_decode(date: u32, time: u32) -> Answer<(Rd, u32)> {
 #[cfg(feature = "format")]
 pub fn fat_decode_line(date: u32, time: u32) -> Answer<String> {
     let (day, seconds) = fat_decode(date, time)?;
-    Ok(alloc::format!("{}\t{seconds}\n", day.0))
+    Ok(line(|line| {
+        line.value(day.0).value(seconds);
+    }))
 }
 
 /// The FAT date and time words of a fixed day and a time of day in whole
@@ -873,7 +835,7 @@ pub fn fat_encode(fixed: i64, seconds_of_day: u32) -> Answer<(u16, u16)> {
         (seconds_of_day / 60 % 60) as u8,
         (seconds_of_day % 60) as u8,
     );
-    let time = hc_calendar::CivilTime::hms(hour, minute, second).map_err(calendar_refusal)?;
+    let time = hc_calendar::CivilTime::hms(hour, minute, second).map_err(Refusal::from)?;
     hc_format::fat::encode(hc_calendar::CivilDateTime::new(Rd(fixed), time))
         .map_err(|_| Refusal::OutOfRange)
 }
@@ -886,7 +848,9 @@ pub fn fat_encode(fixed: i64, seconds_of_day: u32) -> Answer<(u16, u16)> {
 #[cfg(feature = "format")]
 pub fn fat_encode_line(fixed: i64, seconds_of_day: u32) -> Answer<String> {
     let (date, time) = fat_encode(fixed, seconds_of_day)?;
-    Ok(alloc::format!("{date}\t{time}\n"))
+    Ok(line(|line| {
+        line.value(date).value(time);
+    }))
 }
 
 /// The Swatch Internet Time at a POSIX instant, @000 to @999: the
@@ -899,21 +863,15 @@ pub fn swatch_beat(unix_seconds: i64, attoseconds: u64) -> Answer<u16> {
     Ok(Beat::at(unix_instant(unix_seconds, attoseconds)?).value())
 }
 
-/// The epoch notation a name selects: `J` or `julian-epoch` for Julian
-/// years of 365.25 days of TT, `B` or `besselian-epoch` for Besselian
-/// years, in any case.
+/// The epoch notation a name selects, by [`EpochKind::by_name`]: `J` or
+/// `julian-epoch` for Julian years of 365.25 days of TT, `B` or
+/// `besselian-epoch` for Besselian years.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for any other name.
 pub fn epoch_kind(notation: &str) -> Answer<EpochKind> {
-    if names(notation, "J") || names(notation, "julian-epoch") {
-        Ok(EpochKind::Julian)
-    } else if names(notation, "B") || names(notation, "besselian-epoch") {
-        Ok(EpochKind::Besselian)
-    } else {
-        Err(Refusal::Unknown)
-    }
+    EpochKind::by_name(notation).ok_or(Refusal::Unknown)
 }
 
 /// A TT instant from whole seconds from 1970-01-01 00:00:00 TT and
@@ -957,7 +915,9 @@ pub fn epoch_from_tt(
 /// As [`epoch_from_tt`].
 pub fn epoch_from_tt_line(notation: &str, tt_seconds: i64, attoseconds: u64) -> Answer<String> {
     let (kind, year) = epoch_from_tt(notation, tt_seconds, attoseconds)?;
-    Ok(alloc::format!("{}\t{year}\n", kind.letter()))
+    Ok(line(|line| {
+        line.value(kind.letter()).value(year);
+    }))
 }
 
 /// The TT instant of a Julian or Besselian epoch, as whole seconds from
@@ -989,14 +949,10 @@ pub fn tt_from_epoch(notation: &str, year: f64) -> Answer<(EpochKind, i64, u64)>
 /// As [`tt_from_epoch`].
 pub fn tt_from_epoch_line(notation: &str, year: f64) -> Answer<String> {
     let (kind, seconds, attoseconds) = tt_from_epoch(notation, year)?;
-    Ok(alloc::format!(
-        "{}\t{seconds}\t{attoseconds}\n",
-        kind.letter()
-    ))
+    Ok(line(|line| {
+        line.value(kind.letter()).value(seconds).value(attoseconds);
+    }))
 }
-
-/// The Modified Julian Date of 1970-01-01, the POSIX epoch.
-const MJD_OF_UNIX_EPOCH: i64 = 40_587;
 
 /// How many columns [`tt_bipm_line`] writes.
 pub const TT_BIPM_COLUMNS: usize = 5;
@@ -1115,9 +1071,13 @@ pub fn tt_bipm_line(
     let offset = series.offset_from_tt_tai(instant, policy)?;
     let (minus_seconds, minus_attoseconds) = duration_parts(series.minus_tai(instant, policy)?)?;
     let (seconds, attos) = duration_parts(series.reading(instant, policy)?)?;
-    Ok(alloc::format!(
-        "{offset}\t{minus_seconds}\t{minus_attoseconds}\t{seconds}\t{attos}\n"
-    ))
+    Ok(line(|line| {
+        line.value(offset)
+            .value(minus_seconds)
+            .value(minus_attoseconds)
+            .value(seconds)
+            .value(attos);
+    }))
 }
 
 #[cfg(test)]

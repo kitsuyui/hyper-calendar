@@ -74,7 +74,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | --- | --- | --- |
 | a fixed day | `hc_gregorian_to_fixed` | `year` −9 999 999 through 9 999 999, which are the fixed days −3 652 424 999 through 3 652 424 634; any other date is `HC_ERROR_INVALID_DATE` |
 | a fixed day | `hc_parse_iso_date` | the dates of the years −9 999 999 through 9 999 999; any other text is `HC_ERROR_INVALID_DATE` |
-| a year, month and day; a day of the year; 1 or 0; ISO 8601 text | `hc_gregorian_from_fixed`, `hc_day_of_year`, `hc_is_leap_year`, `hc_format_iso_date` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_NO_DATA` |
+| a year, month and day; a day of the year; 1 or 0; ISO 8601 text | `hc_gregorian_from_fixed`, `hc_day_of_year`, `hc_is_leap_year`, `hc_format_iso_date` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a weekday, 1 through 7 | `hc_weekday` | every `fixed` |
 | a fixed day | `hc_fixed_from_unix` | every `unix_seconds`; the day is between −106 751 990 448 138 and 106 751 991 886 463 |
 | a POSIX timestamp | `hc_unix_from_fixed` | `fixed` −106 751 990 448 137 through 106 751 991 886 463, the days whose midnight fits an `int64_t`; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -146,16 +146,15 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | `death_fixed` and `birth_fixed` −1 373 427 through 2 278 650 and `hebrew_year` 1 through 9999, the Hebrew years 1 through 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERROR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERROR_NO_DATA`, and a mission the table does not carry `HC_ERROR_UNKNOWN` |
 
-A day outside the Gregorian range is `HC_ERROR_NO_DATA` from the entry
-points in the third row, as it is from every calendar here: the C library
-maps a calendar's own "after its supported range" to `HC_ERROR_NO_DATA`
-for all of them alike. The WebAssembly module's `hc_gregorian_year` and
-its neighbours answer the same day with `HC_ERR_OUT_OF_RANGE`, because
-its civil exports have one sentinel for any day they cannot place.
-`hc_day_of_year` and `hc_is_leap_year` read the day through the same
-Gregorian conversion as `hc_gregorian_from_fixed`, and so answer with its
-code: each boundary keeps one code for a day its calendars cannot place,
-and the two boundaries' codes differ.
+A day outside the Gregorian range is `HC_ERROR_OUT_OF_RANGE` from the
+entry points in the third row, and the WebAssembly module's
+`hc_gregorian_year` and its neighbours answer the same day with
+`HC_ERR_OUT_OF_RANGE`: a library error becomes a refusal in one place,
+`hyper_calendar::boundary`, whose rustdoc tabulates the codes, so both
+boundaries refuse one input alike. A date before a calendar's epoch or
+past its supported range is out of range; `HC_ERROR_NO_DATA` is for a
+value a table of data does not reach, such as the leap-second table
+under `strict`.
 
 ### No floor here, a floor there: a deliberate difference
 
@@ -237,6 +236,16 @@ lines the WebAssembly module writes, whose
 and the sections below name the differences at this boundary: strings in
 are NUL-terminated and may be null, and the length comes back through
 `written`.
+
+## Identifiers
+
+An argument that names something — a calendar, a convention, a holiday
+table, a zone, a horizon, a method — is matched by one rule: the white
+space around it is ignored and its ASCII letters match in either case, so
+`" Gregory "` names `gregory` and `us` names `US`. It is
+`hc_core::catalogue::matches`, and every lookup behind an entry point
+follows it (`docs/policy.md` §5). A name no table carries is
+`HC_ERROR_UNKNOWN`.
 
 ## Layers
 

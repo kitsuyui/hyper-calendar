@@ -56,8 +56,6 @@
 
 use core::ffi::{c_char, c_int};
 
-use hc::hc_core::TimeError;
-
 /// The status returned by every entry point. Zero is success.
 pub type HcStatus = c_int;
 
@@ -82,16 +80,6 @@ pub const HC_ERROR_UNKNOWN: HcStatus = -7;
 pub const HC_ERROR_NOT_UTF8: HcStatus = -8;
 /// Data was not in the format the call expects.
 pub const HC_ERROR_MALFORMED: HcStatus = -9;
-
-#[allow(dead_code)]
-fn status_from_time(error: TimeError) -> HcStatus {
-    match error {
-        TimeError::Overflow => HC_ERROR_OVERFLOW,
-        TimeError::OutOfRange => HC_ERROR_OUT_OF_RANGE,
-        TimeError::BeforeModelStart | TimeError::AfterModelEnd => HC_ERROR_NO_DATA,
-        _ => HC_ERROR_OUT_OF_RANGE,
-    }
-}
 
 /// Write a string into a caller-owned buffer, NUL-terminated.
 ///
@@ -138,18 +126,6 @@ unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> 
         .to_str()
         .map(Some)
         .map_err(|_| HC_ERROR_NOT_UTF8)
-}
-
-/// Append one cell of a line: `text` with any tab or line break replaced
-/// by a space, so the line format survives whatever a source string holds.
-#[allow(dead_code)]
-fn push_cell(out: &mut String, text: &str) {
-    for character in text.chars() {
-        out.push(match character {
-            '\t' | '\n' | '\r' => ' ',
-            other => other,
-        });
-    }
 }
 
 /// The status a refusal of the shared line-makers in `hyper_calendar` is.
@@ -224,26 +200,13 @@ mod civil {
 
     use hc::civil::Date;
     use hc::hc_calendar::fixed::RD_OF_UNIX_EPOCH;
-    use hc::hc_calendar::{CalendarError, Rd, Weekday};
+    use hc::hc_calendar::{Rd, Weekday};
     use hc::hc_core::unix::{self, LeapPolicy};
 
     use super::{
-        HC_ERROR_BUFFER_TOO_SMALL, HC_ERROR_INVALID_DATE, HC_ERROR_NO_DATA, HC_ERROR_NULL_POINTER,
-        HC_ERROR_OUT_OF_RANGE, HC_ERROR_OVERFLOW, HC_ERROR_UNKNOWN, HC_OK, HcStatus,
-        status_from_time, write_text,
+        HC_ERROR_BUFFER_TOO_SMALL, HC_ERROR_INVALID_DATE, HC_ERROR_NULL_POINTER,
+        HC_ERROR_OUT_OF_RANGE, HC_ERROR_OVERFLOW, HC_OK, HcStatus, status, write_text,
     };
-
-    fn status_from_calendar(error: CalendarError) -> HcStatus {
-        match error {
-            CalendarError::MonthOutOfRange
-            | CalendarError::DayOutOfRange
-            | CalendarError::YearOutOfRange => HC_ERROR_INVALID_DATE,
-            CalendarError::Overflow => HC_ERROR_OVERFLOW,
-            CalendarError::BeforeEpoch | CalendarError::AfterSupportedRange => HC_ERROR_NO_DATA,
-            CalendarError::UnknownCalendar | CalendarError::UnknownEra => HC_ERROR_UNKNOWN,
-            _ => HC_ERROR_OUT_OF_RANGE,
-        }
-    }
 
     /// The fixed day number of a proleptic Gregorian date.
     ///
@@ -269,7 +232,7 @@ mod civil {
                 unsafe { *out_fixed = date.to_ordinal() };
                 HC_OK
             }
-            Err(error) => status_from_calendar(error),
+            Err(error) => status(error.into()),
         }
     }
 
@@ -298,7 +261,7 @@ mod civil {
                 }
                 HC_OK
             }
-            Err(error) => status_from_calendar(error),
+            Err(error) => status(error.into()),
         }
     }
 
@@ -334,7 +297,7 @@ mod civil {
                 unsafe { *out_day_of_year = u32::from(date.day_of_year()) };
                 HC_OK
             }
-            Err(error) => status_from_calendar(error),
+            Err(error) => status(error.into()),
         }
     }
 
@@ -355,7 +318,7 @@ mod civil {
                 unsafe { *out_is_leap = c_int::from(date.is_leap_year()) };
                 HC_OK
             }
-            Err(error) => status_from_calendar(error),
+            Err(error) => status(error.into()),
         }
     }
 
@@ -457,7 +420,7 @@ mod civil {
     ) -> HcStatus {
         let date = match Date::from_ordinal(fixed) {
             Ok(value) => value,
-            Err(error) => return status_from_calendar(error),
+            Err(error) => return status(error.into()),
         };
         // 17 bytes covers a signed expanded year, the separators and the
         // terminator; `write_text` reports the exact requirement regardless.
@@ -535,7 +498,7 @@ mod civil {
 
     /// `TAI - UTC` in whole seconds at a POSIX timestamp.
     ///
-    /// Returns [`HC_ERROR_NO_DATA`] under the strict policy outside the published
+    /// Returns [`HC_ERROR_NO_DATA`](super::HC_ERROR_NO_DATA) under the strict policy outside the published
     /// leap-second table, which is the honest answer rather than a forecast.
     ///
     /// # Safety
@@ -565,7 +528,7 @@ mod civil {
                 unsafe { *out_offset = seconds };
                 HC_OK
             }
-            Err(error) => status_from_time(error),
+            Err(error) => status(error.into()),
         }
     }
 
@@ -597,11 +560,11 @@ mod civil {
         let policy = LeapPolicy::Extrapolate;
         let before = match unix::tai_minus_utc_at(day_start, policy) {
             Ok(value) => value,
-            Err(error) => return status_from_time(error),
+            Err(error) => return status(error.into()),
         };
         let after = match unix::tai_minus_utc_at(next_day, policy) {
             Ok(value) => value,
-            Err(error) => return status_from_time(error),
+            Err(error) => return status(error.into()),
         };
         let has_leap = c_int::from(after > before);
         // SAFETY: checked non-null immediately above.
@@ -3335,15 +3298,16 @@ pub use day_periods::{
 mod holiday {
     use core::ffi::{c_char, c_int};
 
+    use hc::boundary::Line;
     use hc::hc_calendar::Rd;
     use hc::hc_holiday::engine::HolidayCalendar;
     use hc::hc_holiday::hc_calendars_solar::gregorian;
-    use hc::hc_holiday::rule::{Confidence, Kind, RuleSet};
+    use hc::hc_holiday::rule::RuleSet;
     use hc::hc_holiday::{countries, exchanges, international, traditions};
 
     use super::{
-        HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK, HcStatus, push_cell,
-        text, write_text,
+        HC_ERROR_NULL_POINTER, HC_ERROR_OUT_OF_RANGE, HC_ERROR_UNKNOWN, HC_OK, HcStatus, text,
+        write_text,
     };
 
     /// The table an identifier names: a country's ISO 3166-1 alpha-2 code,
@@ -3390,54 +3354,29 @@ mod holiday {
     pub(super) fn codes() -> String {
         let mut out = String::new();
         for set in tables() {
-            out.push_str(set.code);
-            out.push('\n');
+            let mut line = Line::new(&mut out);
+            line.cell(set.code);
+            line.end();
         }
         out
-    }
-
-    /// The word a [`Kind`] is written as.
-    const fn kind_name(kind: Kind) -> &'static str {
-        match kind {
-            Kind::Public => "public",
-            Kind::Bank => "bank",
-            Kind::Religious => "religious",
-            Kind::Observance => "observance",
-            Kind::School => "school",
-            Kind::Workday => "workday",
-        }
-    }
-
-    /// The word a [`Confidence`] is written as.
-    const fn confidence_name(confidence: Confidence) -> &'static str {
-        match confidence {
-            Confidence::Exact => "exact",
-            Confidence::Approximate => "approximate",
-        }
     }
 
     /// The holidays of a year as lines: the ISO date, the name, the local
     /// name, the kind, the confidence, `1` for a substitute day and the date
     /// it stands in for, tab-separated.
     pub(super) fn lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
-        use core::fmt::Write;
         let calendar = HolidayCalendar::for_year(table, region, year);
         let mut out = String::new();
         for holiday in calendar.all() {
-            let _ = write!(
-                out,
-                "{}\t{}\t{}\t{}\t{}\t{}\t",
-                iso(holiday.date),
-                holiday.name,
-                holiday.local_name,
-                kind_name(holiday.kind),
-                confidence_name(holiday.confidence),
-                u8::from(holiday.is_substitute())
-            );
-            if let Some(day) = holiday.observed_for {
-                out.push_str(&iso(day));
-            }
-            out.push('\n');
+            let mut line = Line::new(&mut out);
+            line.cell(&iso(holiday.date))
+                .cell(holiday.name)
+                .cell(holiday.local_name)
+                .cell(holiday.kind.id())
+                .cell(holiday.confidence.id())
+                .flag(holiday.is_substitute())
+                .cell_or_empty(holiday.observed_for.map(iso).as_deref());
+            line.end();
         }
         out
     }
@@ -3449,7 +3388,6 @@ mod holiday {
     ///
     /// [`HC_ERROR_OUT_OF_RANGE`] for a day with no Gregorian year.
     pub(super) fn lines_on(fixed: i64) -> Result<String, HcStatus> {
-        use core::fmt::Write;
         let day = Rd(fixed);
         gregorian::year_from_fixed(day).map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
         let mut out = String::new();
@@ -3462,38 +3400,32 @@ mod holiday {
             for table in tables() {
                 let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
                 for holiday in calendar.on(day) {
-                    push_cell(&mut out, table.code);
-                    out.push('\t');
-                    push_cell(&mut out, table.english_name);
-                    out.push('\t');
-                    push_cell(&mut out, holiday.name);
-                    out.push('\t');
-                    push_cell(&mut out, holiday.local_name);
-                    let _ = write!(
-                        out,
-                        "\t{}\t{}\t",
-                        kind_name(holiday.kind),
-                        confidence_name(holiday.confidence)
-                    );
-                    push_cell(&mut out, holiday.source);
-                    let _ = write!(out, "\t{}\t", u8::from(holiday.is_substitute()));
-                    if let Some(observed_for) = holiday.observed_for {
-                        let _ = write!(out, "{}", observed_for.0);
-                    }
-                    out.push('\n');
+                    let mut line = Line::new(&mut out);
+                    line.cell(table.code)
+                        .cell(table.english_name)
+                        .cell(holiday.name)
+                        .cell(holiday.local_name)
+                        .cell(holiday.kind.id())
+                        .cell(holiday.confidence.id())
+                        .cell(holiday.source)
+                        .flag(holiday.is_substitute())
+                        .value_or_empty(holiday.observed_for.map(|day| day.0));
+                    line.end();
                 }
                 // A gap is a holiday the table could not place this year — its
                 // calendar's range ended, or no announcement was read — and it
                 // is reported rather than left out, so that a caller can say so.
                 for gap in calendar.gaps() {
-                    push_cell(&mut out, table.code);
-                    out.push('\t');
-                    push_cell(&mut out, table.english_name);
-                    out.push('\t');
-                    push_cell(&mut out, gap.name);
-                    out.push('\t');
-                    push_cell(&mut out, gap.local_name);
-                    out.push_str("\tgap\t\t\t0\t\n");
+                    let mut line = Line::new(&mut out);
+                    line.cell(table.code)
+                        .cell(table.english_name)
+                        .cell(gap.name)
+                        .cell(gap.local_name)
+                        .cell("gap")
+                        .empties(2)
+                        .flag(false)
+                        .empty();
+                    line.end();
                 }
             }
         });
@@ -4380,7 +4312,7 @@ mod tz {
         let loaded = LOADED.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some((known, bytes)) = loaded
             .iter()
-            .find(|(known, _)| known.eq_ignore_ascii_case(name))
+            .find(|(known, _)| hc::hc_core::catalogue::matches(name, known))
         {
             let zone = TzifTimeZone::parse(known, bytes).map_err(|_| HC_ERROR_UNKNOWN)?;
             return Ok(answer(&zone, ZoneRules::Loaded));
@@ -4597,7 +4529,7 @@ mod tz {
         let mut loaded = LOADED.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some(slot) = loaded
             .iter_mut()
-            .find(|(known, _)| known.eq_ignore_ascii_case(name))
+            .find(|(known, _)| hc::hc_core::catalogue::matches(name, known))
         {
             slot.1 = bytes.to_vec();
         } else {
@@ -5123,11 +5055,14 @@ mod earth_and_sun {
     /// UTF-8 line in a caller-owned buffer.
     ///
     /// `event` is `asr-shafii`, `asr-hanafi`, `jewish-dusk-vilna-gaon`,
-    /// `jewish-sabbath-ends-cohn` or `italian-zero-hour`, in any case;
-    /// anything else is `HC_ERROR_UNKNOWN`, and null
+    /// `jewish-sabbath-ends-cohn`, `italian-zero-hour`,
+    /// `japanese-dawn-kansei`, `japanese-dusk-kansei`, `japanese-dawn-naoj`
+    /// or `japanese-dusk-naoj`, in any case, with white space around it
+    /// ignored; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: the
-    /// instant as whole POSIX seconds of Universal Time, and the three cells
-    /// of `hc_solar_time` naming a missing solar event. A place off the
+    /// instant as whole POSIX seconds of Universal Time, and the four cells
+    /// naming a missing solar event, the depression sought in arcseconds
+    /// last. A place off the
     /// globe, or a day outside the years −1000 to 3000, is
     /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
     /// terminator, into `written`.
@@ -5561,7 +5496,8 @@ mod orbital {
         VALID_SPAN, daily_insolation, elements_at,
     };
 
-    use super::{HC_ERROR_OUT_OF_RANGE, HcStatus, push_cell, write_text};
+    use super::{HC_ERROR_OUT_OF_RANGE, HcStatus, write_text};
+    use hc::boundary::Line;
 
     /// The solar constant every insolation cell is computed with: the
     /// 1360 W m⁻² of Berger & Loutre's 1991 tables, `hc-orbital`'s
@@ -5585,8 +5521,7 @@ mod orbital {
     ///
     /// [`HC_ERROR_OUT_OF_RANGE`] for an epoch the crate refuses: not
     /// finite, or beyond a million years either side of 1950.
-    fn push_epoch(out: &mut String, years_before_present: f64) -> Result<(), HcStatus> {
-        use core::fmt::Write;
+    fn push_epoch(line: &mut Line<'_>, years_before_present: f64) -> Result<(), HcStatus> {
         let elements = elements_at(years_before_present).map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
         let insolation = daily_insolation(
             &elements,
@@ -5595,24 +5530,20 @@ mod orbital {
             SOLAR_CONSTANT,
         )
         .map_err(|_| HC_ERROR_OUT_OF_RANGE)?;
-        let _ = write!(
-            out,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{insolation}\t{SOLAR_CONSTANT}\t",
-            elements.eccentricity.value,
-            elements.eccentricity.std_dev,
-            elements.obliquity_degrees.value,
-            elements.obliquity_degrees.std_dev,
-            elements.longitude_of_perihelion_degrees.value,
-            elements.longitude_of_perihelion_degrees.std_dev,
-            elements.climatic_precession.value,
-            elements.climatic_precession.std_dev,
-        );
-        push_cell(out, SOURCE);
-        out.push_str(
-            "; insolation: Berger (1978) daily mean at 65N for solar longitude 90, solar constant ",
-        );
-        out.push_str(SOLAR_CONSTANT_NAME);
-        out.push('\n');
+        line.value(elements.eccentricity.value)
+            .value(elements.eccentricity.std_dev)
+            .value(elements.obliquity_degrees.value)
+            .value(elements.obliquity_degrees.std_dev)
+            .value(elements.longitude_of_perihelion_degrees.value)
+            .value(elements.longitude_of_perihelion_degrees.std_dev)
+            .value(elements.climatic_precession.value)
+            .value(elements.climatic_precession.std_dev)
+            .value(insolation)
+            .value(SOLAR_CONSTANT)
+            .value(format_args!(
+                "{SOURCE}; insolation: Berger (1978) daily mean at 65N for solar longitude 90, \
+                 solar constant {SOLAR_CONSTANT_NAME}"
+            ));
         Ok(())
     }
 
@@ -5624,7 +5555,9 @@ mod orbital {
     /// As [`push_epoch`].
     pub(super) fn orbit_line(years_before_present: f64) -> Result<String, HcStatus> {
         let mut out = String::new();
-        push_epoch(&mut out, years_before_present)?;
+        let mut line = Line::new(&mut out);
+        push_epoch(&mut line, years_before_present)?;
+        line.end();
         Ok(out)
     }
 
@@ -5637,7 +5570,6 @@ mod orbital {
     /// positive, an end outside the span, or more than
     /// [`MAX_SERIES_SAMPLES`] samples.
     pub(super) fn series_lines(from: f64, to: f64, step: f64) -> Result<String, HcStatus> {
-        use core::fmt::Write;
         if !(from.is_finite() && to.is_finite() && step.is_finite()) || step <= 0.0 {
             return Err(HC_ERROR_OUT_OF_RANGE);
         }
@@ -5660,8 +5592,10 @@ mod orbital {
             // accumulated, so the error does not grow along the series, and
             // the last one is held to `to` against rounding.
             let epoch = (from + sample as f64 * step).min(to);
-            let _ = write!(out, "{epoch}\t");
-            push_epoch(&mut out, epoch)?;
+            let mut line = Line::new(&mut out);
+            line.value(epoch);
+            push_epoch(&mut line, epoch)?;
+            line.end();
         }
         Ok(out)
     }
@@ -6159,6 +6093,67 @@ mod tests {
         call(core::ptr::null_mut(), 0, &mut written)
     }
 
+    /// The refusals of the civil entry points, from the table the
+    /// WebAssembly module's tests read too.
+    #[cfg(feature = "civil")]
+    mod civil_refusals {
+        use super::super::*;
+        use hc::boundary::Refusal;
+
+        include!("../../hyper-calendar/tests/data/civil_refusals.rs");
+
+        /// The statuses a call answers with: one per entry point it names.
+        fn statuses(call: CivilCall) -> Vec<HcStatus> {
+            let (mut fixed, mut year, mut month, mut day) = (0i64, 0i64, 0u8, 0u8);
+            let (mut day_of_year, mut leap, mut offset) = (0u32, 0 as core::ffi::c_int, 0i64);
+            let mut buffer = [0 as core::ffi::c_char; 32];
+            let mut written = 0usize;
+            match call {
+                CivilCall::GregorianToFixed(y, m, d) => {
+                    vec![unsafe { hc_gregorian_to_fixed(y, m, d, &mut fixed) }]
+                }
+                CivilCall::GregorianFromFixed(on) => {
+                    vec![unsafe { hc_gregorian_from_fixed(on, &mut year, &mut month, &mut day) }]
+                }
+                CivilCall::DayOfYear(on) => vec![unsafe { hc_day_of_year(on, &mut day_of_year) }],
+                CivilCall::IsLeapYear(on) => vec![unsafe { hc_is_leap_year(on, &mut leap) }],
+                CivilCall::FormatIsoDate(on) => vec![unsafe {
+                    hc_format_iso_date(on, buffer.as_mut_ptr(), buffer.len(), &mut written)
+                }],
+                CivilCall::TaiMinusUtc(unix, strict) => vec![unsafe {
+                    hc_tai_minus_utc(unix, core::ffi::c_int::from(strict), &mut offset)
+                }],
+            }
+        }
+
+        /// Each input of the table is refused with the status of its
+        /// refusal, which the module gives as the sentinel of the same one.
+        #[test]
+        fn every_civil_refusal_is_the_shared_one() {
+            for &(call, refusal) in CIVIL_REFUSALS {
+                for got in statuses(call) {
+                    assert_eq!(got, status(refusal), "{call:?}");
+                }
+            }
+        }
+
+        /// The status of each refusal, as `hyper_calendar::boundary`
+        /// documents it.
+        #[test]
+        fn each_refusal_has_its_documented_status() {
+            for (refusal, code) in [
+                (Refusal::OutOfRange, HC_ERROR_OUT_OF_RANGE),
+                (Refusal::Overflow, HC_ERROR_OVERFLOW),
+                (Refusal::NoData, HC_ERROR_NO_DATA),
+                (Refusal::Unknown, HC_ERROR_UNKNOWN),
+                (Refusal::Malformed, HC_ERROR_MALFORMED),
+                (Refusal::InvalidDate, HC_ERROR_INVALID_DATE),
+            ] {
+                assert_eq!(status(refusal), code, "{refusal:?}");
+            }
+        }
+    }
+
     #[cfg(feature = "civil")]
     mod civil {
         use super::super::*;
@@ -6261,11 +6256,11 @@ mod tests {
             for outside in [-3_652_425_000, 3_652_424_635] {
                 assert_eq!(
                     unsafe { hc_day_of_year(outside, &mut day_of_year) },
-                    HC_ERROR_NO_DATA
+                    HC_ERROR_OUT_OF_RANGE
                 );
                 assert_eq!(
                     unsafe { hc_is_leap_year(outside, &mut leap) },
-                    HC_ERROR_NO_DATA
+                    HC_ERROR_OUT_OF_RANGE
                 );
             }
 
@@ -6459,7 +6454,7 @@ mod tests {
             for outside in [-3_652_425_000, 3_652_424_635, i64::MIN, i64::MAX] {
                 assert_eq!(
                     unsafe { hc_gregorian_from_fixed(outside, &mut year, &mut month, &mut day) },
-                    HC_ERROR_NO_DATA,
+                    HC_ERROR_OUT_OF_RANGE,
                     "{outside}"
                 );
             }
@@ -6866,6 +6861,42 @@ mod tests {
     mod holiday {
         use super::super::*;
         use super::read_lines;
+
+        /// A table of one holiday whose names hold a tab and line breaks,
+        /// as data can.
+        fn table_with_separators_in_its_names() -> &'static hc::hc_holiday::rule::RuleSet {
+            use hc::hc_holiday::rule::{HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+            static RULES: [HolidayRule; 1] = [HolidayRule::public(
+                "New\tYear's\nDay",
+                "元\r\n日",
+                Rule::FixedGregorian { month: 1, day: 1 },
+            )];
+            static TABLE: RuleSet = RuleSet {
+                code: "XX",
+                english_name: "A\ttest",
+                rules: &RULES,
+                substitution: &[],
+                bridges: &[],
+                includes: &[],
+                weekend: SATURDAY_SUNDAY,
+                sources_checked: SourceDate::new(2026, 9, 28),
+                sources: "invented for the test",
+            };
+            &TABLE
+        }
+
+        /// The names are cells: their tab and line breaks are spaces, and
+        /// the line keeps its seven columns. The year's lines wrote them
+        /// raw before, so a tab in a name shifted every column after it.
+        #[test]
+        fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns() {
+            let text =
+                super::super::holiday::lines(table_with_separators_in_its_names(), None, 2026);
+            assert_eq!(
+                text,
+                "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\n"
+            );
+        }
 
         #[test]
         fn holiday_tables_answer_by_identifier() {

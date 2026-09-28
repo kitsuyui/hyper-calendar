@@ -27,7 +27,6 @@
 //! which every locale's data already names.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_almanac::mansions::{Fortune, namings};
 use hc_almanac::{
@@ -41,7 +40,7 @@ use hc_i18n::almanac::{self as vocabulary, AlmanacName, Term};
 use hc_i18n::names::sexagenary_data;
 
 use crate::astro_lines::day_in_era;
-use crate::boundary::{Answer, push_cell};
+use crate::boundary::{Answer, Line};
 use crate::season_lines::meridian;
 
 /// How many columns [`almanac_cycles_line`] writes.
@@ -70,26 +69,21 @@ pub fn almanac_cycles_line(fixed: i64, meridian_name: &str) -> Answer<String> {
     let direction = lucky_direction_of_year(year_from_fixed(day));
     let period = nine_periods::period(day, meridian);
     let mut out = String::new();
-    let _ = write!(
-        out,
-        "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-        direction.japanese_name(),
-        direction.romaji(),
-        direction.azimuth_degrees(),
-        direction.sixteen_point_name(),
-        direction.english_name(),
-        period.number,
-        period.japanese_name(),
-        period.era().chinese_name(),
-        period.star().japanese_name(),
-        period.ruling_star_name(),
-        period.first_year,
-        period.last_year(),
-    );
-    if let Some(without_son) = is_day_without_son(day) {
-        let _ = write!(out, "{}", u8::from(without_son));
-    }
-    out.push('\n');
+    let mut line = Line::new(&mut out);
+    line.cell(direction.japanese_name())
+        .cell(direction.romaji())
+        .value(direction.azimuth_degrees())
+        .cell(direction.sixteen_point_name())
+        .cell(direction.english_name())
+        .value(period.number)
+        .cell(period.japanese_name())
+        .cell(period.era().chinese_name())
+        .cell(period.star().japanese_name())
+        .cell(period.ruling_star_name())
+        .value(period.first_year)
+        .value(period.last_year())
+        .value_or_empty(is_day_without_son(day).map(u8::from));
+    line.end();
     Ok(out)
 }
 
@@ -125,28 +119,16 @@ struct Row<'a> {
 }
 
 fn push_row(out: &mut String, row: &Row<'_>) {
-    push_cell(out, row.kind);
-    out.push('\t');
-    push_cell(out, row.id);
-    out.push('\t');
-    if let Some(named) = row.named {
-        push_cell(out, named.name);
-        out.push('\t');
-        push_cell(out, named.tag);
-    } else {
-        out.push('\t');
-    }
-    out.push('\t');
-    push_cell(out, row.japanese);
-    out.push('\t');
-    push_cell(out, row.reading);
-    for flag in [row.auspicious, row.printed] {
-        out.push('\t');
-        if let Some(flag) = flag {
-            out.push(if flag { '1' } else { '0' });
-        }
-    }
-    out.push('\n');
+    let mut line = Line::new(out);
+    line.cell(row.kind)
+        .cell(row.id)
+        .cell_or_empty(row.named.map(|named| named.name))
+        .cell_or_empty(row.named.map(|named| named.tag))
+        .cell(row.japanese)
+        .cell(row.reading)
+        .value_or_empty(row.auspicious.map(u8::from))
+        .value_or_empty(row.printed.map(u8::from));
+    line.end();
 }
 
 /// The 1-based position of a cycle's term, as its identifier.
@@ -234,16 +216,15 @@ pub fn almanac_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answe
         .into_iter()
         .find_map(|candidate| data_of(candidate).and_then(in_reading));
     let (han_stem, han_branch) = hc_calendar::cycle::readings::HAN.pair(sexagenary);
-    push_cell(&mut out, "sexagenary");
-    let _ = write!(out, "\t{}\t", usize::from(sexagenary.index()) + 1);
-    if let Some((name, tag)) = &named {
-        push_cell(&mut out, name);
-        out.push('\t');
-        push_cell(&mut out, tag);
-    } else {
-        out.push('\t');
-    }
-    let _ = writeln!(out, "\t{han_stem}{han_branch}\t{kun_stem} {kun_branch}\t\t");
+    let mut line = Line::new(&mut out);
+    line.cell("sexagenary")
+        .value(usize::from(sexagenary.index()) + 1)
+        .cell_or_empty(named.as_ref().map(|(name, _)| name.as_str()))
+        .cell_or_empty(named.as_ref().map(|(_, tag)| *tag))
+        .value(format_args!("{han_stem}{han_branch}"))
+        .value(format_args!("{kun_stem} {kun_branch}"))
+        .empties(2);
+    line.end();
 
     let direct = notes.twelve_direct();
     let position = usize::from(direct.index());

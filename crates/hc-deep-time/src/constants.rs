@@ -357,6 +357,7 @@ hc_core::catalogue_tests! {
     type: PhysicalConstant,
     id: |constant| constant.symbol,
     provenance: |constant| constant.source,
+    matching: exact,
     tests: constant_table_tests,
     all: ALL,
     lookup: by_symbol,

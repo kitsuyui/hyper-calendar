@@ -30,7 +30,6 @@
 //! localised name falls back to it itself.
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_deep_time::archaeology;
 use hc_deep_time::evidence::{self, EarliestEvidence, EvidenceAge};
@@ -40,6 +39,8 @@ use hc_deep_time::universe::{self, CosmicEpoch, CosmicEvent};
 use hc_deep_time::{
     ArchaeologicalPeriod, Bp, DeepTime, DeepTimeResult, FutureEra, names, place_years_ago,
 };
+
+use crate::boundary::Line;
 
 /// How many columns every deep-time line has.
 pub const DEEP_TIME_COLUMNS: usize = 16;
@@ -92,52 +93,33 @@ struct Row<'a> {
     localised: &'a str,
 }
 
-/// Append one cell: `text` with any tab or line break replaced by a space.
-fn push_cell(out: &mut String, text: &str) {
-    for character in text.chars() {
-        out.push(match character {
-            '\t' | '\n' | '\r' => ' ',
-            other => other,
-        });
-    }
-}
-
-fn push_bound(out: &mut String, bound: Option<&Bound>) {
+/// A bound's four cells: its value, its standard deviation, its
+/// significant figures and `1` if it is approximate; four empty cells for
+/// none.
+fn bound_cells(line: &mut Line<'_>, bound: Option<&Bound>) {
     match bound {
-        Some(bound) => {
-            let _ = write!(out, "{}\t", bound.value);
-            if let Some(std_dev) = bound.std_dev {
-                let _ = write!(out, "{std_dev}");
-            }
-            out.push('\t');
-            if let Some(figures) = bound.figures {
-                let _ = write!(out, "{figures}");
-            }
-            let _ = write!(out, "\t{}\t", u8::from(bound.approximate));
-        }
-        None => out.push_str("\t\t\t\t"),
-    }
+        Some(bound) => line
+            .value(bound.value)
+            .value_or_empty(bound.std_dev)
+            .value_or_empty(bound.figures)
+            .flag(bound.approximate),
+        None => line.empties(4),
+    };
 }
 
 fn push_row(out: &mut String, row: &Row<'_>) {
-    push_cell(out, row.kind);
-    out.push('\t');
-    push_cell(out, row.id);
-    out.push('\t');
-    push_cell(out, row.name);
-    out.push('\t');
-    push_cell(out, row.scope);
-    out.push('\t');
-    push_bound(out, row.start.as_ref());
-    push_bound(out, row.end.as_ref());
-    push_cell(out, row.unit);
-    out.push('\t');
-    push_cell(out, row.description);
-    out.push('\t');
-    push_cell(out, row.source);
-    out.push('\t');
-    push_cell(out, row.localised);
-    out.push('\n');
+    let mut line = Line::new(out);
+    line.cell(row.kind)
+        .cell(row.id)
+        .cell(row.name)
+        .cell(row.scope);
+    bound_cells(&mut line, row.start.as_ref());
+    bound_cells(&mut line, row.end.as_ref());
+    line.cell(row.unit)
+        .cell(row.description)
+        .cell(row.source)
+        .cell(row.localised);
+    line.end();
 }
 
 /// The unit of every cosmic figure: seconds after the Big Bang.

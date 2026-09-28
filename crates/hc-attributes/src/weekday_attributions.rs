@@ -593,7 +593,9 @@ mod tests {
 /// The table whose authority has this identifier.
 #[must_use]
 pub fn by_id(id: &str) -> Option<&'static WeekdayTable> {
-    ALL.iter().copied().find(|table| table.authority().id == id)
+    ALL.iter()
+        .copied()
+        .find(|table| hc_core::catalogue::matches(id, table.authority().id))
 }
 
 hc_core::catalogue_tests! {

@@ -13,24 +13,23 @@
 //! Every time is whole POSIX seconds of Universal Time, rounded down, and
 //! a time that does not happen that day — the Sun does not reach an angle,
 //! or does not rise or set — is a line naming what is missing in the four
-//! cells of [`crate::astro_lines::push_missing_cells`], never a number.
+//! cells of [`crate::astro_lines::missing_cells`], never a number.
 //! The days and instants answer for the sky layer's era,
 //! [`crate::astro_lines`].
 
 use alloc::string::String;
-use core::fmt::Write;
 
 use hc_astro::riseset::{Location, solar_noon, sunrise};
 use hc_astro::solar_time::{
     self, EdoHour, EdoTime, IshaRule, MaghribRule, MidnightRule, MissingSolarEvent, PRAYER_METHODS,
-    PrayerMethod, ZMANIM_RECKONINGS, Zman,
+    Zman,
 };
 use hc_calendar::fixed::Moment;
 
 use crate::astro_lines::{
-    MISSING_COLUMNS, day_in_era, moment_in_era, push_missing_cells, push_moment_or_missing,
+    MISSING_COLUMNS, day_in_era, missing_cells, moment_in_era, moment_or_missing,
 };
-use crate::boundary::{Answer, Refusal, names, push_cell};
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns each line of [`prayer_times_lines`] writes: the time's
 /// identifier, the instant and the four cells of a missing solar event.
@@ -48,20 +47,6 @@ pub const PRAYER_TIMES: [&str; 8] = [
     "midnight",
 ];
 
-/// The prayer-time method an identifier names, one of [`PRAYER_METHODS`],
-/// in any ASCII case.
-///
-/// # Errors
-///
-/// [`Refusal::Unknown`] for any other, the empty string included: the
-/// times move with the method, so none is assumed.
-pub fn prayer_method(id: &str) -> Answer<&'static PrayerMethod> {
-    PRAYER_METHODS
-        .iter()
-        .find(|method| names(id, method.id))
-        .ok_or(Refusal::Unknown)
-}
-
 /// The lines of `hc_prayer_times`: the Islamic prayer times of a local day
 /// at a place by a method, one line each of [`PRAYER_TIMES`] — *fajr* at
 /// the method's angle, sunrise, *ẓuhr* at the Sun's transit, *ʿaṣr* by the
@@ -74,15 +59,17 @@ pub fn prayer_method(id: &str) -> Answer<&'static PrayerMethod> {
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a method [`prayer_method`] does not name, and
-/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+/// [`Refusal::Unknown`] for a method [`solar_time::prayer_method`] does
+/// not find, the empty string included: the times move with the method,
+/// so none is assumed; and [`Refusal::OutOfRange`] for a day outside the
+/// sky layer's era.
 pub fn prayer_times_lines(
     method: &str,
     fixed: i64,
     place: Location,
     ramadan: bool,
 ) -> Answer<String> {
-    let method = prayer_method(method)?;
+    let method = &solar_time::prayer_method(method).ok_or(Refusal::Unknown)?;
     let day = day_in_era(fixed)?;
     let times: [Result<Moment, MissingSolarEvent>; 8] = [
         solar_time::fajr(day, place, method),
@@ -96,10 +83,10 @@ pub fn prayer_times_lines(
     ];
     let mut out = String::new();
     for (id, time) in PRAYER_TIMES.into_iter().zip(times) {
-        out.push_str(id);
-        out.push('\t');
-        push_moment_or_missing(&mut out, time);
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(id);
+        moment_or_missing(&mut line, time);
+        line.end();
     }
     Ok(out)
 }
@@ -119,31 +106,27 @@ pub const PRAYER_METHOD_COLUMNS: usize = 9;
 pub fn prayer_methods_lines() -> String {
     let mut out = String::new();
     for method in PRAYER_METHODS {
-        push_cell(&mut out, method.id);
-        out.push('\t');
-        push_cell(&mut out, method.english_name);
-        let _ = write!(out, "\t{}\t", method.fajr_depression_arcminutes);
-        if let MaghribRule::Depression(arcminutes) = method.maghrib {
-            let _ = write!(out, "{arcminutes}");
-        }
-        out.push('\t');
+        let mut line = Line::new(&mut out);
+        line.cell(method.id)
+            .cell(method.english_name)
+            .value(method.fajr_depression_arcminutes);
+        match method.maghrib {
+            MaghribRule::Depression(arcminutes) => line.value(arcminutes),
+            MaghribRule::Sunset => line.empty(),
+        };
         match method.isha {
-            IshaRule::Depression(arcminutes) => {
-                let _ = write!(out, "{arcminutes}\t\t");
-            }
+            IshaRule::Depression(arcminutes) => line.value(arcminutes).empties(2),
             IshaRule::AfterMaghrib {
                 minutes,
                 ramadan_minutes,
-            } => {
-                let _ = write!(out, "\t{minutes}\t{ramadan_minutes}");
-            }
-        }
-        out.push_str(match method.midnight {
-            MidnightRule::SunsetToSunrise => "\tsunset-to-sunrise\t",
-            MidnightRule::SunsetToFajr => "\tsunset-to-fajr\t",
-        });
-        push_cell(&mut out, method.source);
-        out.push('\n');
+            } => line.empty().value(minutes).value(ramadan_minutes),
+        };
+        line.cell(match method.midnight {
+            MidnightRule::SunsetToSunrise => "sunset-to-sunrise",
+            MidnightRule::SunsetToFajr => "sunset-to-fajr",
+        })
+        .cell(method.source);
+        line.end();
     }
     out
 }
@@ -161,8 +144,8 @@ pub const JEWISH_TWILIGHTS: [&str; 4] = [
 pub const ZMAN_COLUMNS: usize = 4 + MISSING_COLUMNS;
 
 /// The lines of `hc_zmanim`: the Jewish times of a local day at a place by
-/// a reckoning of [`ZMANIM_RECKONINGS`], selected by its identifier in any
-/// case — one line for each of
+/// a reckoning of [`solar_time::ZMANIM_RECKONINGS`], selected by its
+/// identifier — one line for each of
 /// [`Zman::ALL`], its identifier, its English name as Hebcal prints it,
 /// its temporal hours from the start of the day, the instant and the four
 /// cells of a missing solar event — then one line for each of
@@ -174,20 +157,16 @@ pub const ZMAN_COLUMNS: usize = 4 + MISSING_COLUMNS;
 /// [`Refusal::Unknown`] for a reckoning not named, and
 /// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
 pub fn zmanim_lines(reckoning: &str, fixed: i64, place: Location) -> Answer<String> {
-    let zman = ZMANIM_RECKONINGS
-        .iter()
-        .find(|known| names(reckoning, known.id))
+    let zman = solar_time::zmanim_reckoning(reckoning)
         .ok_or(Refusal::Unknown)?
         .zman;
     let day = day_in_era(fixed)?;
     let mut out = String::new();
     for time in Zman::ALL {
-        push_cell(&mut out, time.id);
-        out.push('\t');
-        push_cell(&mut out, time.english_name);
-        let _ = write!(out, "\t{}\t", time.hours);
-        push_moment_or_missing(&mut out, zman(time, day, place));
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(time.id).cell(time.english_name).value(time.hours);
+        moment_or_missing(&mut line, zman(time, day, place));
+        line.end();
     }
     let twilights = [
         solar_time::jewish_dawn_16_1_degrees(day, place),
@@ -196,10 +175,10 @@ pub fn zmanim_lines(reckoning: &str, fixed: i64, place: Location) -> Answer<Stri
         solar_time::jewish_nightfall_72_minutes(day, place),
     ];
     for (id, time) in JEWISH_TWILIGHTS.into_iter().zip(twilights) {
-        out.push_str(id);
-        out.push_str("\t\t\t");
-        push_moment_or_missing(&mut out, time);
-        out.push('\n');
+        let mut line = Line::new(&mut out);
+        line.cell(id).empties(2);
+        moment_or_missing(&mut line, time);
+        line.end();
     }
     Ok(out)
 }
@@ -223,29 +202,26 @@ pub const EDO_TIME_COLUMNS: usize = 8 + MISSING_COLUMNS;
 pub fn edo_time_line(unix_seconds: i64, place: Location) -> Answer<String> {
     let universal = moment_in_era(unix_seconds)?;
     let mut out = String::new();
+    let mut line = Line::new(&mut out);
     match solar_time::edo_time_kansei(universal, place) {
         Ok(reading) => {
             let hour = reading.hour;
-            let _ = write!(
-                out,
-                "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t",
-                reading.day.0,
-                hour.index(),
-                hour.japanese_name(),
-                hour.romaji(),
-                hour.strokes(),
-                hour.branch(),
-                reading.tenths(),
-                reading.fraction
-            );
-            push_missing_cells(&mut out, None);
+            line.value(reading.day.0)
+                .value(hour.index())
+                .cell(hour.japanese_name())
+                .cell(hour.romaji())
+                .value(hour.strokes())
+                .value(hour.branch())
+                .value(reading.tenths())
+                .value(reading.fraction);
+            missing_cells(&mut line, None);
         }
         Err(missing) => {
-            out.push_str("\t\t\t\t\t\t\t\t");
-            push_missing_cells(&mut out, Some(missing));
+            line.empties(EDO_TIME_COLUMNS - MISSING_COLUMNS);
+            missing_cells(&mut line, Some(missing));
         }
     }
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
@@ -280,11 +256,12 @@ pub fn unix_from_edo_time_line(
         fraction,
     };
     let mut out = String::new();
-    push_moment_or_missing(
-        &mut out,
+    let mut line = Line::new(&mut out);
+    moment_or_missing(
+        &mut line,
         solar_time::universal_from_edo_time_kansei(reading, place),
     );
-    out.push('\n');
+    line.end();
     Ok(out)
 }
 
@@ -437,7 +414,7 @@ mod tests {
         );
         // The names are `hc-astro`'s table's, and each answers with its
         // own reckoning's times; the bare authority is not one of them.
-        for reckoning in ZMANIM_RECKONINGS {
+        for reckoning in solar_time::ZMANIM_RECKONINGS {
             let text = zmanim_lines(reckoning.id, day.0, new_york).expect("in range");
             let expected = (reckoning.zman)(&Zman::SOF_ZMAN_SHMA, day, new_york).expect("a time");
             let cells = &rows(&text)[0];

@@ -134,8 +134,10 @@ boundary crates do.
   `calendar_values` produce the
   answers the two boundary crates return. Each answer about a set of things
   is a set of UTF-8 lines, one per entry, with tab-separated cells in a
-  fixed column order. `boundary::Refusal` is the one list of reasons a
-  line-maker refuses, which each boundary spells as its own error code.
+  fixed column order, written with `boundary::Line`, which escapes every
+  cell. `boundary::Refusal` is the one list of reasons a line-maker
+  refuses: a library error becomes a refusal there, once, and each
+  boundary spells a refusal as its own error code.
 
 The two *boundary crates*, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the

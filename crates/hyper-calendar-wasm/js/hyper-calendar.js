@@ -4262,9 +4262,10 @@ export class HyperCalendar {
 
   /**
    * A named time of day on a fixed day at a place — `asr-shafii`,
-   * `asr-hanafi`, `jewish-dusk-vilna-gaon`, `jewish-sabbath-ends-cohn` or
-   * `italian-zero-hour` — as POSIX seconds of Universal Time, or `null`
-   * with the missing solar event named.
+   * `asr-hanafi`, `jewish-dusk-vilna-gaon`, `jewish-sabbath-ends-cohn`,
+   * `italian-zero-hour`, `japanese-dawn-kansei`, `japanese-dusk-kansei`,
+   * `japanese-dawn-naoj` or `japanese-dusk-naoj` — as POSIX seconds of
+   * Universal Time, or `null` with the missing solar event named.
    *
    * @param {import("./hyper-calendar.d.ts").SolarEventName} event
    * @param {number | bigint} fixed

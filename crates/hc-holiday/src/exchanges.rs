@@ -3148,12 +3148,13 @@ pub static ALL: &[&RuleSet] = &[
     &WIENER_BOERSE,
 ];
 
-/// The table for an ISO 10383 Market Identifier Code, case-insensitively.
+/// The table for an ISO 10383 Market Identifier Code, by
+/// [`hc_core::catalogue::matches`].
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static RuleSet> {
-    ALL.iter().copied().find(|exchange| {
-        code.len() == exchange.code.len() && code.eq_ignore_ascii_case(exchange.code)
-    })
+    ALL.iter()
+        .copied()
+        .find(|exchange| hc_core::catalogue::matches(code, exchange.code))
 }
 
 hc_core::catalogue_tests! {

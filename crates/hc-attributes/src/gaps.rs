@@ -215,7 +215,8 @@ pub static ALL: [Gap; 6] = [
 /// The gap with a given identifier, if there is one.
 #[must_use]
 pub fn by_id(id: &str) -> Option<&'static Gap> {
-    ALL.iter().find(|gap| gap.id == id)
+    ALL.iter()
+        .find(|gap| hc_core::catalogue::matches(id, gap.id))
 }
 
 /// Every gap recorded for a given reason.

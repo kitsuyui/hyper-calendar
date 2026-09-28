@@ -437,7 +437,9 @@ pub static ALL: &[&AcademicProfile] = &[
 /// one.
 #[must_use]
 pub fn by_code(code: &str) -> Option<&'static AcademicProfile> {
-    ALL.iter().copied().find(|profile| profile.code == code)
+    ALL.iter()
+        .copied()
+        .find(|profile| hc_core::catalogue::matches(code, profile.code))
 }
 
 #[cfg(test)]

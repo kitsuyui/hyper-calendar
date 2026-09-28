@@ -78,6 +78,24 @@ pub enum Zone {
     Cest,
 }
 
+hc_core::catalogue! {
+    type: Zone,
+    tests: zone_catalogue_tests,
+    variants;
+
+    /// Both zones, CET first.
+    pub const ALL;
+    /// The zone's identifier: `cet` or `cest`.
+    pub fn id;
+    /// The zone with this identifier.
+    pub fn by_id;
+
+    entries: {
+        Cet => "cet",
+        Cest => "cest",
+    }
+}
+
 impl Zone {
     /// Hours ahead of UTC.
     #[must_use]

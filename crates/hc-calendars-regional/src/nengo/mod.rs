@@ -297,12 +297,13 @@ pub const fn is_nanbokucho(rd: Rd) -> bool {
 /// to the *earlier* era, which for 昭和 is six centuries wrong.
 #[must_use]
 pub fn find(name: &str) -> Option<&'static Nengo> {
-    if let Some(exact) = ALL.iter().find(|era| era.id == name || era.kanji == name) {
+    let named = |id| hc_core::catalogue::matches(name, id);
+    if let Some(exact) = ALL.iter().find(|era| named(era.id) || named(era.kanji)) {
         return Some(exact);
     }
     let mut ambiguous = ALL
         .iter()
-        .filter(|era| era.reading == name || era.romaji == name);
+        .filter(|era| named(era.reading) || named(era.romaji));
     let first = ambiguous.next()?;
     if !is_year_suffixed(first.id) {
         return Some(first);

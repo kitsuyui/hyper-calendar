@@ -427,6 +427,46 @@ impl SiderealSign {
     pub const fn opposite(self) -> Self {
         Self((self.0 + 6) % 12)
     }
+
+    /// The sign's identifier, the lower-case ASCII form of its Sanskrit
+    /// name: `mesha`, `vrishabha`, `mithuna`, `karka`, `simha`, `kanya`,
+    /// `tula`, `vrishchika`, `dhanus`, `makara`, `kumbha` and `mina`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        SIGN_IDS[self.0 as usize]
+    }
+
+    /// The sign with this identifier, by [`hc_core::catalogue::matches`].
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|sign| hc_core::catalogue::matches(id, sign.id()))
+    }
+}
+
+/// The identifier of each sign, Meṣa first.
+const SIGN_IDS: [&str; SIGNS_PER_ZODIAC] = [
+    "mesha",
+    "vrishabha",
+    "mithuna",
+    "karka",
+    "simha",
+    "kanya",
+    "tula",
+    "vrishchika",
+    "dhanus",
+    "makara",
+    "kumbha",
+    "mina",
+];
+
+hc_core::catalogue_tests! {
+    type: SiderealSign,
+    id: |sign| sign.id(),
+    tests: sidereal_sign_catalogue_tests,
+    all: &SiderealSign::ALL,
+    lookup: SiderealSign::by_id,
 }
 
 /// The Sun's apparent sidereal longitude at a moment, in degrees.
