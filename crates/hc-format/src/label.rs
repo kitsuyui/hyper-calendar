@@ -43,7 +43,9 @@
 //! [`hc_i18n::names::era_label`]; a month's is the locale's, else the calendar's own shape name,
 //! else its number; a day's is the locale's day name where it has one and
 //! its number otherwise. A number is written in the locale's numbering
-//! system. Nothing here invents an orthography: a locale that has stated
+//! system, or in the one a template names, `{year:hans}`, where a
+//! standard writes a calendar's years in Han numerals and the locale's
+//! other dates in Latin digits. Nothing here invents an orthography: a locale that has stated
 //! no template gets its fields in [`hc_calendar::DateFields`] order,
 //! separated by spaces.
 //!
@@ -375,6 +377,7 @@ impl<'a> Renderer<'a> {
                     self.write_extra(field, spec.width(), context, &mut fill)?;
                 }
                 (_, Spec::Digits(digits)) => self.write_digits(name, digits, &mut fill)?,
+                (_, Spec::Numbering(system)) => self.write_in(name, system, &mut fill)?,
                 ("day", Spec::ZeroBased) => {
                     if let Some(day) = self.fields.day {
                         self.write_number(i64::from(day) - 1, &mut fill)?;
@@ -598,16 +601,38 @@ impl<'a> Renderer<'a> {
     /// A field as a number of at least `digits` digits, never a name: the
     /// year without its era, the month's ordinal, the day of the month.
     fn write_digits(&self, name: &str, digits: u8, out: &mut dyn Write) -> fmt::Result {
-        let value = match name {
+        match self.number_of(name) {
+            Some(value) => self.write_padded(value, digits, out),
+            None => Ok(()),
+        }
+    }
+
+    /// The year, the month's number or the day, as a placeholder names it.
+    fn number_of(&self, name: &str) -> Option<i64> {
+        match name {
             "year" => Some(self.fields.year),
             "month" => self.fields.month.map(|month| i64::from(month.ordinal)),
             "day" => self.fields.day.map(i64::from),
             _ => None,
-        };
-        match value {
-            Some(value) => self.write_padded(value, digits, out),
-            None => Ok(()),
         }
+    }
+
+    /// The year, the month's number or the day in the numbering system a
+    /// template names, `{year:hans}`, whatever the locale's own: a
+    /// regnal year that a standard writes in Han numerals in a locale
+    /// that writes its other dates in Latin digits. A value the system
+    /// cannot hold is written as [`Renderer::write_number`] writes it.
+    fn write_in(&self, name: &str, system: &NumberingSystem, out: &mut dyn Write) -> fmt::Result {
+        let Some(value) = self.number_of(name) else {
+            return Ok(());
+        };
+        if system.write_integer(value, &mut Counter).is_ok() {
+            let mut out = Fill { out, filled: false };
+            return system
+                .write_integer(value, &mut out)
+                .map_err(|_| fmt::Error);
+        }
+        self.write_number(value, out)
     }
 
     /// A number of at least `digits` digits, padded with the zero of the
@@ -722,7 +747,7 @@ impl<'a> Renderer<'a> {
 }
 
 /// What follows a placeholder's colon.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 enum Spec {
     /// Nothing, or nothing this renderer knows.
     None,
@@ -732,6 +757,9 @@ enum Spec {
     Digits(u8),
     /// The day counted from zero: `{day:0-based}`.
     ZeroBased,
+    /// The number in a numbering system by its CLDR identifier,
+    /// `{year:hans}`.
+    Numbering(&'static NumberingSystem),
 }
 
 impl Spec {
@@ -742,7 +770,10 @@ impl Spec {
         if let Ok(digits) = text.parse::<u8>() {
             return Self::Digits(digits.min(20));
         }
-        width_named(text).map_or(Self::None, Self::Width)
+        if let Some(width) = width_named(text) {
+            return Self::Width(width);
+        }
+        NumberingSystem::from_id(text).map_or(Self::None, Self::Numbering)
     }
 
     fn width(self) -> NameWidth {

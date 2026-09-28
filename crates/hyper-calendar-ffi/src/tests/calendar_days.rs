@@ -254,6 +254,7 @@ fn the_panchanga_lines_are_the_modules() {
     assert_eq!(rows.len(), 2);
     assert_eq!(rows[0][2], "Vyaghata");
     assert_eq!(rows[1][2], "Balava");
+    assert_eq!(rows[0][7..], ["lahiri", "Lahiri (Chitrapaksha)"]);
     let mut written = 0usize;
     assert_eq!(
         unsafe { hc_panchanga_at(0, core::ptr::null(), core::ptr::null_mut(), 0, &mut written) },

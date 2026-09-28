@@ -1,15 +1,16 @@
 //! The tab-separated lines the WebAssembly module and the C library write
 //! about the pañcāṅga's yoga and karaṇa, written once.
 //!
-//! Each answer is two lines of the same eight columns, the yoga's first
+//! Each answer is two lines of the same nine columns, the yoga's first
 //! and the karaṇa's second: the limb (`yoga` or `karana`), its number
 //! (the yoga 1 for Viṣkambha through 27 for Vaidhṛti; the karaṇa the
 //! half-tithi, 1 for the first half of śukla 1 through 60 for the second
 //! half of amāvāsyā), its name as Drik Panchang spells it in English and
 //! in Devanagari, the moments it began and ends and the moment it was read
 //! at, each as whole POSIX seconds of Universal Time, rounded down, and
-//! the ayanāṃśa the yoga was reckoned with, empty for the karaṇa, which
-//! needs none. The arithmetic and the names are
+//! the ayanāṃśa the yoga was reckoned with, by the identifier [`ayanamsa`]
+//! reads back and by its full name, both empty for the karaṇa, which needs
+//! none. The arithmetic and the names are
 //! [`hc_calendars_indic::panchanga`]'s; the instants are held to the sky
 //! layer's era, [`crate::astro_lines`].
 //!
@@ -66,6 +67,7 @@ fn lines_at(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
         .value(unix_from_moment(began))
         .value(unix_from_moment(ends))
         .value(read_at)
+        .cell(ayanamsa.id())
         .cell(ayanamsa.name());
     line.end();
     let half = karana_at(moment);
@@ -79,7 +81,7 @@ fn lines_at(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
         .value(unix_from_moment(began))
         .value(unix_from_moment(ends))
         .value(read_at)
-        .empty();
+        .empties(2);
     line.end();
     out
 }
@@ -270,14 +272,17 @@ mod tests {
             .collect();
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[0][..4], ["yoga", "13", "Vyaghata", "व्याघात"]);
-        assert_eq!(rows[0][7], "Lahiri (Chitrapaksha)");
+        assert!(rows.iter().all(|row| row.len() == 9), "{rows:?}");
+        assert_eq!(rows[0][7..], ["lahiri", "Lahiri (Chitrapaksha)"]);
+        // The identifier the line writes is the one the lookup reads.
+        assert_eq!(ayanamsa(rows[0][7]), Ok(Ayanamsa::LAHIRI));
         let ends: i64 = rows[0][5].parse().expect("an instant");
         assert!((ends - 1_735_731_420).abs() < 90, "{ends}");
         assert_eq!(rows[1][0], "karana");
         assert_eq!(rows[1][2..4], ["Balava", "बालव"]);
         let ends: i64 = rows[1][5].parse().expect("an instant");
         assert!((0..120).contains(&(ends - 1_735_723_500)), "{ends}");
-        assert_eq!(rows[1][7], "");
+        assert_eq!(rows[1][7..], ["", ""]);
         assert_eq!(rows[0][6], rows[1][6]);
         assert_eq!(
             panchanga_of_day_lines(day, place, ""),

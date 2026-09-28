@@ -54,9 +54,17 @@ pub fn week_one_start(year: i64) -> CalendarResult<Rd> {
     if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
         return Err(CalendarError::YearOutOfRange);
     }
+    next_week_one_start(year - 1)
+}
+
+/// The Monday that opens week 1 of the year after `year`: where `year`'s
+/// last week ends. The ISO years stop one short of the Gregorian ones, so
+/// this is defined for [`MAX_YEAR`] too, whose length and last days need
+/// it.
+fn next_week_one_start(year: i64) -> CalendarResult<Rd> {
     // 4 January is in week 1 by definition, so the Monday on or before it
     // opens week 1.
-    Ok(Weekday::Monday.on_or_before(gregorian::to_fixed(year, 1, 4)?))
+    Ok(Weekday::Monday.on_or_before(gregorian::to_fixed(year + 1, 1, 4)?))
 }
 
 /// The number of weeks in `year`, either 52 or 53.
@@ -67,7 +75,7 @@ pub fn week_one_start(year: i64) -> CalendarResult<Rd> {
 /// [`MIN_YEAR`]..=[`MAX_YEAR`].
 pub fn weeks_in_year(year: i64) -> CalendarResult<u8> {
     let start = week_one_start(year)?;
-    let next = week_one_start(year + 1)?;
+    let next = next_week_one_start(year)?;
     Ok(((next.0 - start.0) / 7) as u8)
 }
 
@@ -146,7 +154,7 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     // can be at most three days into a week that started in the previous
     // Gregorian year.
     let candidate = gregorian::year_from_fixed(Rd(rd.0 - 3))?;
-    let year = if rd >= week_one_start(candidate + 1)? {
+    let year = if rd >= next_week_one_start(candidate)? {
         candidate + 1
     } else {
         candidate
@@ -346,6 +354,27 @@ mod tests {
             IsoWeekDate::new(2021, 1, 8),
             Err(CalendarError::DayOutOfRange)
         );
+    }
+
+    #[test]
+    fn the_last_iso_year_has_a_length_and_its_last_day_converts() {
+        // The ISO years stop a year short of the Gregorian ones, and the
+        // last one's length is read from the Gregorian year after it.
+        assert!(matches!(weeks_in_year(MAX_YEAR), Ok(52 | 53)));
+        assert_eq!(
+            weeks_in_year(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        assert_eq!(
+            week_one_start(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
+        );
+        let calendar = IsoWeekCalendar;
+        for day in [calendar.meta().earliest, calendar.meta().latest] {
+            let day = day.unwrap();
+            let date = calendar.from_fixed(day).unwrap();
+            assert_eq!(calendar.to_fixed(date), Ok(day), "{date:?}");
+        }
     }
 
     #[test]

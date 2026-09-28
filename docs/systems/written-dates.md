@@ -119,7 +119,7 @@ would not write it, but it says nothing the calendar contradicts.
 | --- | ---: | --- | --- |
 | `empty` | 101 | the text is white space | |
 | `not-recognised` | 102 | no template matches; the offset is where the furthest match stopped | *September 28, 2026 at noon* |
-| `ambiguous` | 103 | two days read | 2026w39, a Stata week; 万延元年3月3日, since 1860 has a leap third month the Japanese templates write as the ordinary one |
+| `ambiguous` | 103 | two days read | 2026w39, a Stata week; *3. März 1 Man'en*, since 1860 has a leap third month that German, which has no word for it, writes as the ordinary one |
 | `two-digit-year` | 104 | the year has one or two digits, no sign and no era, the calendar's years have three digits or more on its sample day, and it has the same month and day a hundred or four hundred years on | *September 28, 26*; *September 28, 0026* reads as the year 26 |
 | `year-not-written` | 105 | the year is not written, or only by a cycle that recurs, and two probe years give different days | 癸卯年闰二月初一; a Tzolkʼin day |
 | `weekday-mismatch` | 106 | the weekday is not the day's | *Tuesday, September 28, 2026* |
@@ -147,6 +147,32 @@ by the caller, so a name another calendar also uses (*AD* in `julian` and
   of an era, and the Chinese day names 初一 … 三十 for a lunisolar
   calendar whose data names none.
 - A weekday before or after the date, which must be the day's.
+- A leap month as the locale writes it, with the word the renderer puts
+  before it (`hc_i18n::names::leap_month_prefix`). The Japanese era
+  calendars take their months from the Gregorian entry, which has no leap
+  month, and the word from an entry of their own: 万延元年閏3月3日 in `ja`,
+  as Wikipedia (ja) dates the reunion of the courts, 元中9年閏10月5日
+  [wikipedia-ja-genchu] and tabulates 万延元年's 閏三月
+  [wikipedia-ja-manen]; 万延1年閏3月3日 in `zh-Hant` and 万延1年闰3月3日 in
+  `zh-Hans`, as Wikipedia (zh) dates it, 明德3年閏10月5日
+  [wikipedia-zh-go-komatsu]; the same in `yue-Hant` and `yue-Hans`, with
+  the prefix CLDR gives their Chinese calendar, 閏{0} and 闰{0}
+  [cldr48-most-spoken]; and *intercalary March 3, 1 Man'en* in `en`, the
+  word Bramsen's tables use for the month "called by the name of the
+  preceding month" [bramsen1910]. Tibetan writes ཟླ་ཤོལ་ before the month,
+  ཟླ་ཤོལ་ཟླ་བ་དགུ་པ, Henning's *zla shol* for "an extra, or intercalary,
+  month" [kalacakra-org]; where an almanac puts the word was not read, so
+  its place before the month is this library's. The other locales write
+  the Japanese leap month as the ordinary one, and a date in it is
+  `ambiguous` there.
+- The Chinese regnal calendar in Chinese in Han numerals, the year with
+  元年 for the first: 康熙五十二年十一月一日, 康熙元年正月一日. GB/T
+  15835-2011 §4.2.1 prescribes Han numerals for 历史朝代纪年 and 农历月日,
+  "清咸丰十年九月二十日" [gb-t-15835-2011], and Wikipedia (zh) writes the
+  reign's dates so in both scripts, 康熙六十一年十一月十三日, with 康熙元年
+  in its table [wikipedia-zh-kangxi]. The template names the system,
+  `{year:hans}`, since the locale writes its other dates in Latin digits.
+  The reader still reads 康熙52年十一月1日 and 康熙五十二年十一月初一.
 
 Not carried:
 
@@ -169,16 +195,15 @@ reform, of 1900, of 1970 and of 2026, 28 September 2026 and 1 January
 2100, where the calendar converts them, and its first and last days.
 
 In a release build the sweep reads 204 calendars × 55 locale settings, on
-1 647 calendar-days, which is 90 585 texts:
+1 650 calendar-days, which is 90 750 texts:
 
 | Outcome | Texts |
 | --- | ---: |
-| Read back as the day written | 80 694 |
+| Read back as the day written | 81 028 |
 | `year-not-written`: cycles that recur, see below | 6 650 |
 | `missing-field`: the 819-day count's station is not written | 1 155 |
 | `two-digit-year`: years 0–99, on the calendars' first days | 1 092 |
-| `ambiguous`: see below | 829 |
-| `year-out-of-range`: the calendar does not convert its own last day's fields back | 165 |
+| `ambiguous`: see below | 825 |
 | Read as a wrong day | 0 |
 
 The `year-not-written` cases are all cycles that recur:
@@ -194,30 +219,44 @@ The `ambiguous` cases are all texts that name more than one day:
 
 - `stata-week`, a week;
 - `fasli-bombay` and `sur-san`, a doubled 3 June written as the ordinary
-  one;
-- `tibetan-bhutan`, a doubled lunar day;
-- `tibetan-tsurphu`, a leap month that Tibetan writes as the ordinary
-  one.
+  one. The doubled day is this library's: the year keeps Hijri months
+  that are not carried, and the Gregorian day under the year is the
+  library's choice ([indian-eras.md](indian-eras.md)). No source writes
+  a date in it, so none marks the second 3 June, and the text is refused;
+- `tibetan-bhutan`, a doubled lunar day. Janson says the first of two days
+  with the same number "is regarded as a leap day, and denoted 'Extra' in
+  the almanacs" [janson2014, §6], of the Phugpa almanacs, and gives no
+  date written with it. Henning's archive of the Bhutanese calendar writes
+  the two days as two entries of one number, each with its Western date,
+  and no mark [kalacakra-org]. No source read writes the mark in a date,
+  so the formatter writes none and the text is refused.
 
 The test lists each of these calendars with its refusal and reason. It
 fails on any other refusal, on a wrong day, and in a release build on a
 listed refusal the sweep no longer meets.
 
-The `year-out-of-range` cases are one day each, on the last day of
-`hindu-lunar-purnimanta`, `odia-anka` and `saptarshi`. Each calendar
-refuses to convert its own fields for that day back to it. That is a
-limitation of those calendars, not of the reader.
+Every calendar converts its own first and last day back from its fields
+(`crates/hyper-calendar/tests/range_ends.rs`). The last days of
+`hindu-lunar-purnimanta`, `odia-anka` and `saptarshi` did not: each is a
+dark fortnight named for the Chaitra after it, which begins past the
+range, and the dark half is now found from the Phālguna it belongs to.
+Nor did the last days of `iso8601`, `iso8601-week` and `week-and-month`,
+whose last ISO year needed the next year's week one, which the week
+arithmetic refused; those days were not read at all, and now are.
 
 A debug build reads every sample day in the calendar's own language, and
 each other locale on one day of every fifth pairing of calendar and locale,
-staggered: 3 847 texts, about seven seconds. The anchors are the dates of
+staggered: 3 853 texts, about seven seconds. The anchors are the dates of
 this document and of the calendars' own system documents, all read in
 either build:
 
 - 令和元年5月1日; 嘉永三年一月一日, an era only the calendar's own table names;
   明治元年9月8日, 23 October 1868 ([japanese-eras.md](japanese-eras.md));
+  万延元年3月3日 and 万延元年閏3月3日, a month apart, and the leap day as
+  every locale that carries the calendar writes it;
 - 광무 1년 8월 14일 ([east-asian-eras.md](east-asian-eras.md));
-- 康熙五十二年十一月初一 and 康熙52年十一月1日;
+- 康熙五十二年十一月初一 and 康熙52年十一月1日, and 康熙五十二年十一月一日 as
+  the formatter writes it in both Chinese scripts;
 - 民國115年9月28日, *28 Eylül 2026*, ٢٨ سبتمبر ٢٠٢٦ and २८ सप्टेंबर, २०२६;
 - *1 Adar II 5784*, with *1 Adar II 5785* refused, since 5785 is a common
   year.
@@ -228,9 +267,18 @@ either build:
 | --- | --- | --- |
 | [uts35-dates-48] | "Parsing Dates and Times": numeric and symbolic fields, symbols first, names at every width with and without an abbreviation marker, case and normalisation variants, the warning about narrow names; `yy` as the two low-order digits of the year | Yes, 2026-09-28, the section in the release-48 source of the specification (`docs/ldml/tr35-dates.md` of `unicode-org/cldr`) |
 | The system documents of the calendars | The dated examples used as anchors: [japanese-eras.md](japanese-eras.md) for 万延元年3月3日 and 明治元年9月8日, [east-asian-eras.md](east-asian-eras.md) for 光武元年8月14日 | Their own sources, as those documents record |
+| [wikipedia-ja-genchu], [wikipedia-ja-manen] | 閏 before a Japanese era's month number: 元中9年閏10月5日; 万延元年's 閏三月 | Yes, 2026-09-28 |
+| [wikipedia-zh-go-komatsu] | 明德3年閏10月5日 and 明德3年闰10月5日, a Japanese era's leap month in Chinese | Yes, 2026-09-28, both renderings |
+| [cldr48-most-spoken] | `yue.xml` and `yue_Hans.xml`: the Chinese calendar's leap pattern 閏{0} and 闰{0}; no leap pattern in their `japanese` calendar | Yes, 2026-09-28, those two elements |
+| [bramsen1910] | The intercalary month named "by the name of the preceding month", marked "Int." in the tables | Yes, 2026-09-28, the introductory essay in the Internet Archive's text; the tables not read |
+| [kalacakra-org] | *zla shol*, *zla ba lhag pa* for the intercalary month; the Bhutanese archive's doubled days, written without a mark | Yes, 2026-09-28, "On intercalary months" and the year beginning in 2025 |
+| [janson2014] | The first of a doubled date "denoted 'Extra' in the almanacs", §6; no Tibetan word for the leap month in dates | Yes, 2026-09-28, the ar5iv rendering of the arXiv text |
+| [gb-t-15835-2011] | §4.2.1: Han numerals for 历史朝代纪年 and 农历月日, 清咸丰十年九月二十日 | Yes, 2026-09-28, a reproduction of the standard's text |
+| [wikipedia-zh-kangxi] | 康熙六十一年十一月十三日 and 康熙元年, in both renderings | Yes, 2026-09-28 |
 
 The templates and names the reader walks are `hc-i18n`'s, sourced where
-they are stated; this document adds no vocabulary.
+they are stated. The leap-month words and the regnal numerals above are
+this document's additions; the rest of the vocabulary is the locales'.
 
 ## Code
 
@@ -240,12 +288,20 @@ they are stated; this document adds no vocabulary.
 - `hc-calendar`: `Calendar::era_code` and `DynCalendar::era_code`,
   implemented by `japanese` and its variants, `chinese-regnal`,
   `korean-regnal`, `meyer-palmen` and the Javanese calendars.
-- `hc-i18n`: `names::for_each_era_name`.
+- `hc-i18n`: `names::for_each_era_name`; `names::leap_month_prefix`
+  and `names::month_label_in`, which take a calendar's leap-month word
+  from the entry that names its months, or else from another of the
+  locale's entries for the calendar, as the Japanese era calendars state
+  theirs.
+- `hc-format`'s renderer: a placeholder naming a numbering system,
+  `{year:hans}`, writes the number in it.
 - The facade: `lines::parse_date`, the export `hc_parse_date` in the
   `calendars` layer, and the binding's `parseDate`.
 - Tests:
   - `crates/hyper-calendar/tests/written_dates.rs`, the sweep, the anchors
     and one test for each refusal;
+  - `crates/hyper-calendar/tests/range_ends.rs`, which converts every
+    calendar's first and last day to fields and back;
   - `crates/hyper-calendar/tests/vocabulary.rs`, which holds `era_code` to
     every era a calendar names itself;
   - `lines`' `a_described_date_reads_back_as_its_line`;

@@ -156,7 +156,24 @@ impl HinduPurnimantaCalendar {
         }
         // The dark half of an ordinary pūrṇimānta month is the dark half of
         // the amānta month before the first amānta month of that name —
-        // before the intercalary one, if the year has it.
+        // before the intercalary one, if the year has it. That month is the
+        // ordinary month before, of the same Śaka year: Phālguna for
+        // Chaitra, whose dark fortnight ends the old year. It is taken if
+        // the month after it bears this name, which needs nothing past the
+        // month itself, so the last day of the range, a dark fortnight
+        // named for a Chaitra the range does not reach, converts too.
+        let before = HinduLunarDate {
+            month: if date.month == 1 { 12 } else { date.month - 1 },
+            leap_month: false,
+            ..date
+        };
+        if let Ok(day) = self.amanta.to_fixed(before)
+            && self.amanta.next_month_label(day).0 == date.month
+        {
+            return Ok(before);
+        }
+        // A kṣaya month took the name before this one: find the month
+        // before this name's first.
         let year = if date.month == 1 {
             date.year + 1
         } else {
@@ -386,6 +403,23 @@ mod tests {
             let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
             assert_eq!(Calendar::from_fields(&RASHTRIYA, &fields), Ok(date));
         }
+    }
+
+    #[test]
+    fn the_first_and_last_days_convert_back() {
+        // The last day is a dark fortnight named for the Chaitra after it,
+        // which begins past the range: it is found from the Phālguna it is
+        // the dark half of.
+        let meta = Calendar::meta(&RASHTRIYA);
+        for day in [meta.earliest.unwrap(), meta.latest.unwrap()] {
+            let date = RASHTRIYA.from_fixed(day).unwrap();
+            assert_eq!(RASHTRIYA.to_fixed(date), Ok(day), "{date:?}");
+            let fields = Calendar::to_fields(&RASHTRIYA, date).unwrap();
+            assert_eq!(Calendar::from_fields(&RASHTRIYA, &fields), Ok(date));
+        }
+        let last = RASHTRIYA.from_fixed(meta.latest.unwrap()).unwrap();
+        assert_eq!((last.month, last.leap_month), (1, false));
+        assert!(last.day > FULL_MOON);
     }
 
     #[test]

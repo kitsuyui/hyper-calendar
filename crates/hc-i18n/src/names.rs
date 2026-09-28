@@ -942,7 +942,7 @@ pub fn month_label_in(
             return Some(
                 LeapMonthNames::find(entry.leap_names.intercalary, month.ordinal).map_or(
                     MonthLabel {
-                        prefix: entry.leap_month_prefix,
+                        prefix: prefix_in(data, calendar, entry),
                         name,
                     },
                     |own| MonthLabel {
@@ -1006,9 +1006,25 @@ pub fn leap_month_prefix(locale: &Locale, calendar: CalendarId) -> &'static str 
     resolve(locale, |data| {
         data.entries_for(calendar)
             .find(|entry| !entry.months().is_empty())
-            .map(|entry| entry.leap_month_prefix)
+            .map(|entry| prefix_in(data, calendar, entry))
     })
     .unwrap_or("")
+}
+
+/// The leap-month prefix a locale's data writes for a calendar whose
+/// months `months` names: that entry's own, or where it states none, the
+/// first another of the locale's entries for the calendar states. The
+/// Japanese era calendars take their months from the Gregorian entry,
+/// which has no intercalary month, and their 閏 from an entry of their
+/// own.
+fn prefix_in(data: &LocaleData, calendar: CalendarId, months: &CalendarNames) -> &'static str {
+    if !months.leap_month_prefix.is_empty() {
+        return months.leap_month_prefix;
+    }
+    data.entries_for(calendar)
+        .map(|entry| entry.leap_month_prefix)
+        .find(|prefix| !prefix.is_empty())
+        .unwrap_or("")
 }
 
 /// How many months a calendar is named for in a locale.
@@ -1656,6 +1672,29 @@ mod tests {
         );
         assert_eq!(leap_month_prefix(&locale("ko"), CalendarId("dangi")), "윤");
         assert_eq!(leap_month_prefix(&locale("de"), CalendarId("gregory")), "");
+        // The Japanese era calendars name their months through the
+        // Gregorian entry and their leap month through their own.
+        for (tag, prefix) in [
+            ("ja", "閏"),
+            ("en", "intercalary "),
+            ("zh-Hant", "閏"),
+            ("zh-Hans", "闰"),
+            ("de", ""),
+        ] {
+            assert_eq!(
+                leap_month_prefix(&locale(tag), CalendarId("japanese")),
+                prefix,
+                "{tag}"
+            );
+        }
+        assert_eq!(
+            lunisolar_month("ja", "japanese", Month::leap(3)).as_deref(),
+            Some("閏3月")
+        );
+        assert_eq!(
+            leap_month_prefix(&locale("bo"), CalendarId("tibetan-tsurphu")),
+            "ཟླ་ཤོལ་"
+        );
     }
 
     /// CLDR 48 `yue.xml`, `calendar type="hebrew"`: month 6, 亞達月 I, and

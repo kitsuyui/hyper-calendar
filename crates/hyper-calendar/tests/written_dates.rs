@@ -148,6 +148,9 @@ const REFUSALS: &[(&str, &str, &str)] = &[
     ),
     // The text names more than one day.
     ("stata-week", "ambiguous", "a %tw date names a week"),
+    // A doubled day that no source read writes with a mark: the Gregorian
+    // day under the year is this library's choice, and Henning's
+    // Bhutanese archive writes both days alike.
     (
         "fasli-bombay",
         "ambiguous",
@@ -162,27 +165,6 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "tibetan-bhutan",
         "ambiguous",
         "a doubled lunar day is written as the ordinary one",
-    ),
-    (
-        "tibetan-tsurphu",
-        "ambiguous",
-        "Tibetan writes a leap month as the ordinary one",
-    ),
-    // The calendar does not convert its own last day's fields back.
-    (
-        "hindu-lunar-purnimanta",
-        "year-out-of-range",
-        "the last day's fields do not convert",
-    ),
-    (
-        "odia-anka",
-        "year-out-of-range",
-        "the last day's fields do not convert",
-    ),
-    (
-        "saptarshi",
-        "year-out-of-range",
-        "the last day's fields do not convert",
     ),
 ];
 
@@ -375,15 +357,43 @@ fn written_dates_read_as_their_days() {
         read("japanese", "ja", "明治元年9月8日").map(|(day, _)| day),
         Ok(meiji)
     );
-    // 万延元年3月3日, 24 March 1860, that document's worked example: 1860
-    // has a leap third month, which the Japanese templates write as the
-    // ordinary one, so the text is both days.
+    // 万延元年3月3日, 24 March 1860, that document's worked example. 1860
+    // has a leap third month, whose third day, 23 April, the locales that
+    // carry the calendar write with their word for it: 閏 as Wikipedia (ja)
+    // dates the reunion of the courts, 元中9年閏10月5日, and "intercalary" as
+    // Bramsen's tables call the month. German, which carries no word for
+    // it, writes both days alike.
     let man_en = day_of("gregory", DateFields::ymd(1860, 3, 24));
+    let leap = Rd(man_en.0 + 30);
     assert_eq!(
-        read("japanese", "ja", "万延元年3月3日"),
+        read("japanese", "ja", "万延元年3月3日").map(|(day, _)| day),
+        Ok(man_en)
+    );
+    let registry = hyper_calendar::registry();
+    let japanese = registry.get_by_name("japanese").expect("registered");
+    let fields = japanese.fixed_to_fields(leap).expect("in range");
+    assert_eq!(fields.month.map(|month| month.leap), Some(true));
+    for (tag, text) in [
+        ("ja", "万延元年閏3月3日"),
+        ("en", "intercalary March 3, 1 Man'en"),
+        ("zh-Hant", "万延1年閏3月3日"),
+        ("zh-Hans", "万延1年闰3月3日"),
+        ("yue-Hant", "万延1年閏3月3日"),
+        ("yue-Hans", "万延1年闰3月3日"),
+    ] {
+        let locale: Locale = tag.parse().expect("a tag");
+        assert_eq!(label::date(japanese, &fields, &locale), text, "{tag}");
+        assert_eq!(
+            read("japanese", tag, text).map(|(day, _)| day),
+            Ok(leap),
+            "{tag}"
+        );
+    }
+    assert_eq!(
+        read("japanese", "de", "3. März 1 Man'en"),
         Err(DateRefusal::Ambiguous {
             first: man_en,
-            second: Rd(man_en.0 + 30)
+            second: leap
         })
     );
     // 光武元年8月14日, 14 August 1897 (docs/systems/east-asian-eras.md),
@@ -409,6 +419,28 @@ fn written_dates_read_as_their_days() {
         read("chinese-regnal", "zh-Hant", "康熙五十二年十一月二十").map(|(day, _)| day),
         Ok(Rd(kangxi.0 + 19))
     );
+    // The formatter writes the reign's year and day in Han numerals, as GB/T
+    // 15835-2011 writes 清咸丰十年九月二十日, and the first year as 元年.
+    let regnal = registry.get_by_name("chinese-regnal").expect("registered");
+    let first = day_of(
+        "chinese-regnal",
+        DateFields::ymd(1, 1, 1).with_era("kangxi"),
+    );
+    for (tag, day, text) in [
+        ("zh-Hans", kangxi, "康熙五十二年十一月一日"),
+        ("zh-Hant", kangxi, "康熙五十二年十一月一日"),
+        ("zh-Hans", Rd(kangxi.0 + 19), "康熙五十二年十一月二十日"),
+        ("zh-Hant", first, "康熙元年正月一日"),
+    ] {
+        let locale: Locale = tag.parse().expect("a tag");
+        let fields = regnal.fixed_to_fields(day).expect("in range");
+        assert_eq!(label::date(regnal, &fields, &locale), text, "{tag}");
+        assert_eq!(
+            read("chinese-regnal", tag, text).map(|(day, _)| day),
+            Ok(day),
+            "{tag}"
+        );
+    }
     // 광무 5년, the Korean Empire's second era.
     let gwangmu = day_of(
         "korean-regnal",

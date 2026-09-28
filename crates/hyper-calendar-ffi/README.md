@@ -640,8 +640,9 @@ The one period carried is Turkmenistan's of 2002 to 2008. A null
 `hc_panchanga_at(unix_seconds, ayanamsa, buffer, capacity, written)` and
 `hc_panchanga_of_day(fixed, latitude, longitude, elevation, ayanamsa,
 buffer, capacity, written)` need the `calendars` feature and write the
-WebAssembly module's two lines, the yoga's and the karaṇa's, in its eight
-columns; `ayanamsa` is a NUL-terminated identifier, `lahiri`, `raman`,
+WebAssembly module's two lines, the yoga's and the karaṇa's, in its nine
+columns, the yoga's ayanāṃśa by the identifier `ayanamsa` takes and by
+its full name; `ayanamsa` is a NUL-terminated identifier, `lahiri`, `raman`,
 `krishnamurti` or `fagan-bradley`, and a day without a sunrise at the
 place is `HC_ERROR_NO_DATA`. `hc_ioc_olympiad(gregorian_year,
 out_olympiad)`, `hc_hebrew_yahrzeit(death_fixed, hebrew_year, out_fixed)`
