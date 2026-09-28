@@ -50,8 +50,7 @@
 //! removed — 昭和 is `showa`, 安永 is `anei`. Twelve pairs of eras collide
 //! under that rule; where they do, the Western start year is appended to
 //! the older one, so 正和 (1312) is `showa-1312` and 昭和 (1926) keeps
-//! `showa`. The kanji, being unique across the table, is always an
-//! unambiguous key: see [`by_kanji`].
+//! `showa`. An era is looked up by its identifier alone: see [`by_id`].
 
 mod table;
 
@@ -278,58 +277,13 @@ pub const fn is_nanbokucho(rd: Rd) -> bool {
     rd.0 >= NANBOKUCHO_START.0 && rd.0 < NANBOKUCHO_END.0
 }
 
-/// Look an era up by its identifier, kanji, hiragana reading or Hepburn
-/// romanisation.
-///
-/// A bare romanisation or reading that collides — `"Showa"` and `"しょうわ"`
-/// are both 正和 (1312) and 昭和 (1926) — resolves to whichever era kept the
-/// plain identifier, here 昭和; use the kanji or the year-suffixed
-/// identifier (`showa-1312`) to name the other one.
-///
-/// Some collisions have no winner: 弘安 and 康安 are both `Koan`, and the
-/// table gives both a year suffix, so neither kept a plain `koan`. There the
-/// earlier era answers and the caller has to be explicit.
-///
-/// The passes matter. Identifiers and kanji are unique across the whole
-/// table, so they are searched first and completely; only then are the
-/// ambiguous romanisations and readings tried. Searching all four fields in
-/// one pass over a chronologically ordered table would hand every collision
-/// to the *earlier* era, which for 昭和 is six centuries wrong.
+/// Look an era up by its identifier, by [`hc_core::catalogue::matches`]:
+/// `reiwa`, or `showa-1312` for the 正和 that lost the plain `showa` to
+/// 昭和. The kanji, the reading and the romanisation are names, not keys.
 #[must_use]
-pub fn find(name: &str) -> Option<&'static Nengo> {
-    let named = |id| hc_core::catalogue::matches(name, id);
-    if let Some(exact) = ALL.iter().find(|era| named(era.id) || named(era.kanji)) {
-        return Some(exact);
-    }
-    let mut ambiguous = ALL
-        .iter()
-        .filter(|era| named(era.reading) || named(era.romaji));
-    let first = ambiguous.next()?;
-    if !is_year_suffixed(first.id) {
-        return Some(first);
-    }
-    // The first match carries a year suffix, so it is the era that lost the
-    // plain identifier. Look for the one that kept it before settling.
-    Some(
-        ambiguous
-            .find(|era| !is_year_suffixed(era.id))
-            .unwrap_or(first),
-    )
-}
-
-/// Whether an identifier carries the `-YYYY` suffix that marks the era which
-/// lost a romanisation collision, as `showa-1312` did to `showa`.
-fn is_year_suffixed(id: &str) -> bool {
-    match id.rsplit_once('-') {
-        Some((_, tail)) => tail.len() == 4 && tail.bytes().all(|byte| byte.is_ascii_digit()),
-        None => false,
-    }
-}
-
-/// Look an era up by its kanji, which is unique across the whole table.
-#[must_use]
-pub fn by_kanji(kanji: &str) -> Option<&'static Nengo> {
-    ALL.iter().find(|era| era.kanji == kanji)
+pub fn by_id(id: &str) -> Option<&'static Nengo> {
+    ALL.iter()
+        .find(|era| hc_core::catalogue::matches(id, era.id))
 }
 
 /// Every era one court used, in chronological order.
@@ -413,9 +367,7 @@ mod tests {
 
     use super::*;
 
-    /// The identifier and kanji namespaces have to be unique for `find` to
-    /// be able to resolve a collision at all, so that is checked here rather
-    /// than assumed by the function that relies on it.
+    /// The identifiers are the key, and the kanji name one era each.
     #[test]
     fn identifiers_and_kanji_are_unique_across_the_table() {
         for (index, era) in ALL.iter().enumerate() {
@@ -426,40 +378,26 @@ mod tests {
         }
     }
 
-    /// Twelve romanisations and twelve readings are shared by two eras each.
-    /// A single pass over the chronologically ordered table would resolve
-    /// every one of them to the earlier era.
+    /// Twelve romanisations are shared by two eras each, and the identifier
+    /// tells them apart: 昭和 (1926) keeps `showa`, 正和 (1312) is
+    /// `showa-1312`, and 弘安 and 康安, both `Koan`, are `koan-1278` and
+    /// `koan-1361`. A name is not a key.
     #[test]
-    fn a_colliding_romanisation_resolves_to_the_era_that_kept_the_plain_id() {
-        // 昭和 (1926) keeps `showa`; 正和 (1312) is `showa-1312`.
-        let showa = find("Showa").expect("Showa is an era");
-        assert_eq!(showa.kanji, "昭和");
-        assert_eq!(showa.id, "showa");
-        assert_eq!(find("しょうわ").map(|era| era.kanji), Some("昭和"));
-        assert_eq!(find("showa-1312").map(|era| era.kanji), Some("正和"));
-        assert_eq!(find("正和").map(|era| era.id), Some("showa-1312"));
-
-        // 弘安 (1278) and 康安 (1361) are both `Koan` and the table suffixes
-        // both, so there is no plain identifier to prefer and the earlier era
-        // answers. Asserted so that giving one of them a plain `koan` later
-        // is a deliberate change rather than a silent one.
-        assert_eq!(find("Koan").map(|era| era.id), Some("koan-1278"));
-        assert_eq!(find("康安").map(|era| era.id), Some("koan-1361"));
+    fn a_colliding_romanisation_is_told_apart_by_the_identifier() {
+        assert_eq!(by_id("Showa").map(|era| era.kanji), Some("昭和"));
+        assert_eq!(by_id("showa-1312").map(|era| era.kanji), Some("正和"));
+        assert_eq!(by_id("koan-1278").map(|era| era.kanji), Some("弘安"));
+        assert_eq!(by_id("koan-1361").map(|era| era.kanji), Some("康安"));
+        assert_eq!(by_id("koan"), None);
+        for name in ["昭和", "しょうわ", "正和", "康安"] {
+            assert_eq!(by_id(name), None, "{name}");
+        }
     }
 
-    /// The property the two passes are for, over the whole table: a bare id
-    /// always finds the era that owns it, whatever else shares its
-    /// romanisation.
     #[test]
     fn every_era_is_findable_by_its_own_identifier() {
         for era in ALL {
-            assert_eq!(
-                find(era.id).map(|found| found.kanji),
-                Some(era.kanji),
-                "{} did not find itself",
-                era.id
-            );
-            assert_eq!(find(era.kanji).map(|found| found.id), Some(era.id));
+            assert_eq!(by_id(era.id).map(|found| found.kanji), Some(era.kanji));
         }
     }
 
@@ -517,7 +455,7 @@ mod tests {
 
     #[test]
     fn the_julian_gregorian_switch_happens_where_the_source_says() {
-        let tensho = by_kanji("天正").expect("in table");
+        let tensho = by_id("tensho-1573").expect("in table");
         assert_eq!(tensho.scale, WesternScale::Julian);
         assert_eq!(
             (
@@ -527,7 +465,7 @@ mod tests {
             ),
             (1573, 8, 25)
         );
-        let bunroku = by_kanji("文禄").expect("in table");
+        let bunroku = by_id("bunroku").expect("in table");
         assert_eq!(bunroku.scale, WesternScale::Gregorian);
         assert_eq!(
             (
@@ -604,7 +542,7 @@ mod tests {
 
     #[test]
     fn the_one_era_known_only_to_the_month_has_no_start_day() {
-        let bunchu = by_kanji("文中").expect("in table");
+        let bunchu = by_id("bunchu").expect("in table");
         assert_eq!(bunchu.certainty, Certainty::MonthOnly);
         assert_eq!(bunchu.court, Court::Southern);
         assert_eq!((bunchu.western_year, bunchu.western_month), (1372, 5));
@@ -622,9 +560,9 @@ mod tests {
         // The source says outright that no promulgation records survive for
         // 建徳 onward and that it is following 『続史愚抄』 and
         // 『南朝公卿補任』 by convention.
-        for kanji in ["建徳", "文中", "天授", "弘和", "元中"] {
-            let era = by_kanji(kanji).expect("in table");
-            assert_ne!(era.certainty, Certainty::Attested, "{kanji}");
+        for id in ["kentoku", "bunchu", "tenju", "kowa-1381", "genchu"] {
+            let era = by_id(id).expect("in table");
+            assert_ne!(era.certainty, Certainty::Attested, "{id}");
             assert_eq!(era.court, Court::Southern);
         }
     }
@@ -634,10 +572,13 @@ mod tests {
         assert_eq!(stream(Court::Unified).count(), 222);
         assert_eq!(stream(Court::Northern).count(), 222 + 17);
         assert_eq!(stream(Court::Southern).count(), 222 + 9);
-        assert_eq!(by_kanji("正慶").expect("in table").court, Court::Northern);
-        assert_eq!(by_kanji("元弘").expect("in table").court, Court::Southern);
-        assert_eq!(by_kanji("建武").expect("in table").court, Court::Unified);
-        assert_eq!(by_kanji("明徳").expect("in table").court, Court::Northern);
+        assert_eq!(by_id("shokei").expect("in table").court, Court::Northern);
+        assert_eq!(
+            by_id("genko-1331").expect("in table").court,
+            Court::Southern
+        );
+        assert_eq!(by_id("kenmu").expect("in table").court, Court::Unified);
+        assert_eq!(by_id("meitoku").expect("in table").court, Court::Northern);
     }
 
     #[test]
@@ -684,7 +625,7 @@ mod tests {
                 kanji_at(julian::to_fixed(1393, 6, 1).expect("valid"), court),
                 Ok(Some("明徳"))
             );
-            let oei = by_kanji("応永").and_then(|era| era.start).expect("dated");
+            let oei = by_id("oei").and_then(|era| era.start).expect("dated");
             assert_eq!(kanji_at(Rd(oei.0 - 1), court), Ok(Some("明徳")));
             assert_eq!(kanji_at(oei, court), Ok(Some("応永")));
         }
@@ -777,15 +718,12 @@ mod tests {
     }
 
     #[test]
-    fn eras_can_be_found_by_every_spelling_they_carry() {
-        assert_eq!(find("reiwa").map(|era| era.kanji), Some("令和"));
-        assert_eq!(find("令和").map(|era| era.kanji), Some("令和"));
-        assert_eq!(find("れいわ").map(|era| era.kanji), Some("令和"));
-        assert_eq!(find("Reiwa").map(|era| era.kanji), Some("令和"));
-        assert_eq!(find("no-such-era"), None);
-        assert_eq!(by_kanji("正和").map(|era| era.id), Some("showa-1312"));
-        assert_eq!(by_kanji("昭和").map(|era| era.id), Some("showa"));
-        assert_eq!(by_kanji("no-such-era"), None);
+    fn eras_are_found_by_identifier_alone() {
+        assert_eq!(by_id("reiwa").map(|era| era.kanji), Some("令和"));
+        assert_eq!(by_id(" Reiwa ").map(|era| era.kanji), Some("令和"));
+        assert_eq!(by_id("令和"), None);
+        assert_eq!(by_id("れいわ"), None);
+        assert_eq!(by_id("no-such-era"), None);
     }
 
     #[test]
@@ -798,7 +736,7 @@ mod tests {
         // 文中 is undated, so for lookup purposes 建徳's successor is the
         // next Southern era that does have a day.
         assert_eq!(
-            next_in_stream(by_kanji("建徳").expect("in table"), Court::Southern)
+            next_in_stream(by_id("kentoku").expect("in table"), Court::Southern)
                 .map(|era| era.kanji),
             Some("天授")
         );
@@ -808,14 +746,14 @@ mod tests {
     fn era_year_numbering_follows_the_lunisolar_year_not_the_western_one() {
         // 安政 was proclaimed on 嘉永7年11月27日 = 1855-01-15, but that day
         // belongs to the lunisolar year that began in 1854.
-        let ansei = by_kanji("安政").expect("in table");
+        let ansei = by_id("ansei").expect("in table");
         assert_eq!(ansei.western_year, 1855);
         assert_eq!(ansei.start_year, 1854);
-        let koka = by_kanji("弘化").expect("in table");
+        let koka = by_id("koka").expect("in table");
         assert_eq!((koka.western_year, koka.western_month), (1845, 1));
         assert_eq!(koka.start_year, 1844);
         // Where the change fell early in the year the two agree.
-        let kaei = by_kanji("嘉永").expect("in table");
+        let kaei = by_id("kaei").expect("in table");
         assert_eq!(kaei.western_year, 1848);
         assert_eq!(kaei.start_year, 1848);
     }
@@ -863,11 +801,11 @@ mod tests {
 
     #[test]
     fn a_nengo_is_in_its_own_courts_stream_and_not_the_others() {
-        let genko = by_kanji("元弘").expect("in table");
+        let genko = by_id("genko-1331").expect("in table");
         assert!(genko.used_by(Court::Southern));
         assert!(!genko.used_by(Court::Northern));
         assert!(!genko.used_by(Court::Unified));
-        let kenmu = by_kanji("建武").expect("in table");
+        let kenmu = by_id("kenmu").expect("in table");
         assert!(kenmu.used_by(Court::Southern));
         assert!(kenmu.used_by(Court::Northern));
         assert!(kenmu.used_by(Court::Unified));
@@ -879,5 +817,5 @@ hc_core::catalogue_tests! {
     id: |era| era.id,
     tests: era_table_tests,
     all: &ALL,
-    lookup: find,
+    lookup: by_id,
 }

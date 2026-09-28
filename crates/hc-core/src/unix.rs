@@ -278,16 +278,6 @@ pub fn tai_from_unix(unix: UnixTime, policy: LeapPolicy) -> TimeResult<Instant<T
     tai_from_utc(UtcInstant::from_unix(unix), policy)
 }
 
-/// Convert TAI to POSIX time, collapsing any leap second onto the following
-/// timestamp.
-///
-/// # Errors
-///
-/// See [`tai_minus_utc_at`].
-pub fn unix_from_tai(tai: Instant<Tai>, policy: LeapPolicy) -> TimeResult<UnixTime> {
-    Ok(utc_from_tai(tai, policy)?.to_unix_lossy())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

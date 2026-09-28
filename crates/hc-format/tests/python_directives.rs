@@ -9,11 +9,11 @@
 //! "21:30:00". They were worked out from the definitions, not produced by
 //! running Python.
 
+use hc_calendar::{CivilDateTime, CivilTime, Rd};
+use hc_calendars_solar::gregorian;
 use hc_format::ZoneInfo;
-use hc_format::hc_calendar::{CivilDateTime, CivilTime, Rd};
-use hc_format::hc_calendars_solar::gregorian;
-use hc_format::hc_tz::UtcOffset;
 use hc_format::patterns::{FormatContext, strftime};
+use hc_tz::UtcOffset;
 
 fn sample(micros: u64) -> CivilDateTime {
     let day = match gregorian::to_fixed(1988, 8, 16) {

@@ -13,13 +13,16 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc"]
+default = ["std", "edtf"]
+std = ["alloc", "hc-core/std", "hc-calendar?/std"]
+alloc = ["hc-core/alloc", "hc-calendar?/alloc"]
+# ISO 8601-2 Extended Date/Time Format, which places a date by the
+# proleptic Gregorian arithmetic of `hc-calendar`.
+edtf = ["dep:hc-calendar"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
-libm = ["hc-core/libm", "hc-calendar/libm"]
+libm = ["hc-core/libm"]
 
 [dependencies]
 hc-core = { workspace = true }
-hc-calendar = { workspace = true }
+hc-calendar = { workspace = true, optional = true }

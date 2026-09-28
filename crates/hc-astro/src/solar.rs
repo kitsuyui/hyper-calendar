@@ -61,13 +61,6 @@ pub fn geometric_solar_ecliptic_at_centuries(centuries: f64) -> (f64, f64, f64) 
     (fk5_longitude, fk5_latitude, radius)
 }
 
-/// The Sun's true geometric longitude in degrees, referred to the mean
-/// equinox of the date — no nutation, no aberration.
-#[must_use]
-pub fn geometric_solar_longitude_at_centuries(centuries: f64) -> f64 {
-    geometric_solar_ecliptic_at_centuries(centuries).0
-}
-
 /// The Sun's geometric ecliptic latitude in degrees: never more than about
 /// 1.2″ from zero, and the reason "the Sun is on the ecliptic" is only
 /// nearly true.

@@ -81,14 +81,16 @@ Nothing in the library assumes a local time zone or reads a clock.
 The table lists the crates in dependency order: a crate depends only on
 crates in rows above it. Every crate depends on `hc-core`. Every crate from
 `hc-calendars-solar` down also depends on `hc-calendar`. The third column
-gives each crate's other direct dependencies. The workspace manifest,
-`Cargo.toml`, is the list of record.
+gives each crate's other direct dependencies; one in *italics* comes with
+the named feature of the crate, on by default, which the facade turns on
+with its own feature of that name. The workspace manifest, `Cargo.toml`, is
+the list of record.
 
 | Crate | Holds | Also depends on |
 | --- | --- | --- |
 | `hc-core` | `Duration`, `Instant<S>`, time scales, the leap-second table, epochs, timestamp formats, math, the per-call memo of pure functions | — |
 | `hc-calendar` | `Rd`, `CivilTime`, the `Calendar` trait, the registry | — |
-| `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | `hc-calendar` |
+| `hc-uncertainty` | Significant figures, fuzzy dates, EDTF, intervals | *`hc-calendar`* (`edtf`) |
 | `hc-units` | Exact ratios, tempo and media rates | — |
 | `hc-deep-time` | Planck time to cosmology | `hc-uncertainty` |
 | `hc-orbital` | Milankovitch orbital elements and insolation, Berger 1978 | `hc-uncertainty` |
@@ -98,7 +100,7 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-i18n` | Locales, plurals, names; country names and zones' cities behind its `territories` and `exemplar-cities` features | — |
 | `hc-astro` | ΔT, solar longitude, new moon, rise and set, sundial, temporal and Edo hours, zmanim, prayer times | — |
 | `hc-format` | ISO 8601, RFC 3339, RFC 5322, patterns, Python's ISO profile, CCSDS fields, radio and IRIG time codes, the Ethiopian and Swahili hours | `hc-calendars-solar`, `hc-tz`, `hc-i18n` |
-| `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, `hc-format` |
+| `hc-humanize` | Relative times, spelled-out durations, Python `humanize`'s phrasing | `hc-i18n`, `hc-units`, *`hc-format`* (`format`) |
 | `hc-planetary` | Mars sols, MTC, Darian and Martiana; Titan and Galilean circad calendars | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Babylonian, Chinese, Korean, Vietnamese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
@@ -106,9 +108,9 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-calendars-regional` | Japanese, Qing and Korean eras, Maya, Aztec, Zapotec and Mixtec years, Pawukon, Burmese, Thai, Khmer and Lao lunar, Olympiads | `hc-calendars-solar`, `hc-calendars-lunar` |
 | `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
 | `hc-almanac` | 暦注, 六曜, 十五夜 and 十三夜 from the Japanese 旧暦; 恵方, 三元九運, 손 없는 날 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
-| `hc-attributes` | Birthstones and the like | `hc-seasons` |
+| `hc-attributes` | Birthstones and the like | *`hc-seasons`, `hc-astro`* (`seasons`) |
 | `hc-name-days` | Name-day lists by authority and edition, and a loader for licensed ones | — |
-| `hc-fiscal` | Fiscal and academic years | `hc-calendars-solar`, `hc-calendars-indic` |
+| `hc-fiscal` | Fiscal and academic years | `hc-calendars-solar`, *`hc-calendars-indic`* (`indic`) |
 | `hc-holiday` | The rule engine and the country, tradition and exchange tables | `hc-astro`, `hc-seasons` and every `hc-calendars-*` crate |
 | `hyper-calendar` | The feature-gated facade, the `civil` layer, and the lines both boundary crates write | Every crate above, each behind a feature |
 | `hyper-calendar-ffi` | `cdylib` and `staticlib`, C ABI | `hyper-calendar` |
@@ -122,7 +124,10 @@ boundary crates do.
 
 `hyper-calendar`, the facade, holds little logic of its own:
 
-- It re-exports each crate behind a feature, and `registry()` returns a
+- It re-exports each crate behind a feature, and is the only crate that
+  re-exports another: a path such as `hyper_calendar::hc_seasons` reaches
+  a crate, and no crate below it passes its own dependencies on.
+  `registry()` returns a
   `CalendarRegistry` holding every calendar the enabled features provide.
 - `civil` is a layer shaped like Python's `datetime`: `Date`, `Time`,
   `DateTime` and `TimeDelta` over `Rd`, `CivilTime` and `Duration`.

@@ -207,8 +207,10 @@ ones:
 
 Every table is `&'static` data and every lookup is an array index, so the tables
 need neither `std` nor `alloc`. Both features exist only to propagate to the
-`hc-*` crates below. The Harvest Moon, `september_moon_name` and
-`zodiac_stones::stones_on` reach the astronomy, and `hc-core` refuses to
+`hc-*` crates below. The `seasons` feature, on by default, brings
+`zodiac_stones`, keyed by `hc-seasons`' `TropicalSign`, and the Harvest Moon
+functions of `moon_names`, which reach the astronomy of `hc-seasons` and
+`hc-astro`; without it the crate is its tables alone. `hc-core` refuses to
 compile with neither `std` nor a floating-point backend, so a `no_std` build
 also enables `libm`, which passes through to `hc-core`:
 

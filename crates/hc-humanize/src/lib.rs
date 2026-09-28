@@ -48,7 +48,9 @@
 //! builds without `std`, with or without `alloc`, given `hc-core`'s `libm`
 //! feature for floating-point math, and the `alloc` feature adds only the
 //! `String`-returning conveniences — `format`, `format_amount`,
-//! `format_elapsed` — beside the `write` ones.
+//! `format_elapsed` — beside the `write` ones. The `format` feature, on by
+//! default, brings `hc-format` for [`natural`]'s `naturalday` and
+//! `naturaldate`.
 //!
 //! ```
 //! use core::fmt::Write as _;
@@ -106,6 +108,3 @@ pub use pattern::RelativeStyle;
 pub use relative::{Numeric, RelativeTimeFormatter};
 pub use unit::{TimeUnit, UnitAmount};
 pub use unit_choice::{RoundingPolicy, Threshold, Thresholds};
-
-pub use hc_calendar;
-pub use hc_i18n;

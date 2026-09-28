@@ -177,76 +177,56 @@ pub use sexagenary::{SexagenaryCalendar, SexagenaryDayDate};
 pub use thai_lunar::{ThaiLunarCalendar, ThaiLunarDate};
 pub use zapotec::{ZapotecYzaCalendar, ZapotecYzaDate};
 
-pub use hc_calendar;
-pub use hc_calendars_lunar;
-pub use hc_calendars_solar;
-
 #[cfg(feature = "alloc")]
 mod registration {
-    use alloc::boxed::Box;
-
-    use hc_calendar::{CalendarRegistry, DynAdapter};
-
     use crate::JapaneseCalendar;
 
-    /// Register every calendar in this crate with `registry`.
-    ///
-    /// Inserting is idempotent: a second call replaces rather than
-    /// duplicates, since [`CalendarRegistry::insert`] keys on the
-    /// calendar's identifier.
-    ///
-    /// The four Maya calendars are registered separately because they are
-    /// four calendars and not four views of one: a Maya scribe who wrote a
-    /// Calendar Round date had said something a long count date does not
-    /// say, and vice versa. Each is registered under all three published
-    /// correlation constants, so that the cycles read beside
-    /// `maya-longcount-gmt2` or `maya-longcount-584286` are anchored as it
-    /// is.
-    pub fn register_all(registry: &mut CalendarRegistry) {
-        registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::UNIFIED)));
-        registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::NORTHERN)));
-        registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::SOUTHERN)));
-        registry.insert(Box::new(DynAdapter::new(JapaneseCalendar::PROCLAIMED)));
-        registry.insert(Box::new(DynAdapter::new(
-            JapaneseCalendar::NORTHERN_PROCLAIMED,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            JapaneseCalendar::SOUTHERN_PROCLAIMED,
-        )));
-        for long_count in crate::MayaLongCountCalendar::ALL {
-            registry.insert(Box::new(DynAdapter::new(long_count)));
-            registry.insert(Box::new(DynAdapter::new(
-                crate::MayaTzolkinCalendar::beside(long_count),
-            )));
-            registry.insert(Box::new(DynAdapter::new(crate::MayaHaabCalendar::beside(
-                long_count,
-            ))));
-            registry.insert(Box::new(DynAdapter::new(
-                crate::MayaCalendarRoundCalendar::beside(long_count),
-            )));
-            registry.insert(Box::new(DynAdapter::new(crate::Maya819Calendar::beside(
-                long_count,
-            ))));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::AztecTonalpohualliCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::AztecXiuhpohualliCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ZapotecYzaCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::MixtecYearCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BalinesePawukonCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JavanesePasaranCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::AkanCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::KoreanRegnalCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ChineseRegnalCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BurmeseCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::SexagenaryCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ThaiLunarCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::KhmerCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::LaoCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::OlympiadCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ArsacidCalendar)));
-        for count in crate::huangdi::ALL {
-            registry.insert(Box::new(DynAdapter::new(crate::HuangdiCalendar(count))));
-        }
+    hc_calendar::calendars! {
+        /// Register every calendar in this crate with `registry`.
+        ///
+        /// Registering is idempotent: a second call replaces rather than
+        /// duplicates, since [`hc_calendar::CalendarRegistry::register`] keys on the
+        /// calendar's identifier.
+        ///
+        /// The four Maya calendars are registered separately because they are
+        /// four calendars and not four views of one: a Maya scribe who wrote a
+        /// Calendar Round date had said something a long count date does not
+        /// say, and vice versa. Each is registered under all three published
+        /// correlation constants, so that the cycles read beside
+        /// `maya-longcount-gmt2` or `maya-longcount-584286` are anchored as it
+        /// is.
+        pub fn register_all;
+
+        JapaneseCalendar::UNIFIED,
+        JapaneseCalendar::NORTHERN,
+        JapaneseCalendar::SOUTHERN,
+        JapaneseCalendar::PROCLAIMED,
+        JapaneseCalendar::NORTHERN_PROCLAIMED,
+        JapaneseCalendar::SOUTHERN_PROCLAIMED,
+        for long_count in crate::MayaLongCountCalendar::ALL => [
+            long_count,
+            crate::MayaTzolkinCalendar::beside(long_count),
+            crate::MayaHaabCalendar::beside(long_count),
+            crate::MayaCalendarRoundCalendar::beside(long_count),
+            crate::Maya819Calendar::beside(long_count),
+        ],
+        crate::AztecTonalpohualliCalendar,
+        crate::AztecXiuhpohualliCalendar,
+        crate::ZapotecYzaCalendar,
+        crate::MixtecYearCalendar,
+        crate::BalinesePawukonCalendar,
+        crate::JavanesePasaranCalendar,
+        crate::AkanCalendar,
+        crate::KoreanRegnalCalendar,
+        crate::ChineseRegnalCalendar,
+        crate::BurmeseCalendar,
+        crate::SexagenaryCalendar,
+        crate::ThaiLunarCalendar,
+        crate::KhmerCalendar,
+        crate::LaoCalendar,
+        crate::OlympiadCalendar,
+        crate::ArsacidCalendar,
+        for count in crate::huangdi::ALL => [crate::HuangdiCalendar(count)],
     }
 }
 

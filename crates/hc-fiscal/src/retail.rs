@@ -161,6 +161,8 @@ impl PeriodShape {
 /// deriving the start from it keeps consecutive years abutting exactly.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekYearSystem {
+    /// The identifier, `nrf-4-5-4` or `iso-8601-week-year`.
+    pub id: &'static str,
     /// The English name.
     pub name: &'static str,
     /// The weekday the year ends on.
@@ -383,6 +385,7 @@ impl WeekYearSystem {
 /// The retail months, in order from February, are 4-5-4 repeated: February
 /// four weeks, March five, April four, and so on to January.
 pub static NRF_4_5_4: WeekYearSystem = WeekYearSystem {
+    id: "nrf-4-5-4",
     name: "NRF 4-5-4 retail calendar",
     anchor_weekday: Weekday::Saturday,
     anchor_month: 1,
@@ -410,6 +413,7 @@ pub static NRF_4_5_4: WeekYearSystem = WeekYearSystem {
 /// ISO defines no periods, so [`WeekYearSystem::period_span`] refuses rather
 /// than inventing a shape for it.
 pub static ISO_8601_WEEK_YEAR: WeekYearSystem = WeekYearSystem {
+    id: "iso-8601-week-year",
     name: "ISO 8601 week-numbering year",
     anchor_weekday: Weekday::Sunday,
     anchor_month: 12,
@@ -430,6 +434,7 @@ pub static ISO_8601_WEEK_YEAR: WeekYearSystem = WeekYearSystem {
 /// shape, not a particular company's calendar; no source names it as a
 /// national or industry standard, and the entry says so.
 pub static LAST_SATURDAY_OF_DECEMBER_4_4_5: WeekYearSystem = WeekYearSystem {
+    id: "last-saturday-of-december-4-4-5",
     name: "4-4-5 year ending the last Saturday of December",
     anchor_weekday: Weekday::Saturday,
     anchor_month: 12,
@@ -829,19 +834,19 @@ mod tests {
     }
 }
 
-/// The system with this name.
+/// The system with this identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn by_name(name: &str) -> Option<&'static WeekYearSystem> {
+pub fn by_id(id: &str) -> Option<&'static WeekYearSystem> {
     ALL.iter()
         .copied()
-        .find(|system| hc_core::catalogue::matches(name, system.name))
+        .find(|system| hc_core::catalogue::matches(id, system.id))
 }
 
 hc_core::catalogue_tests! {
     type: &'static WeekYearSystem,
-    id: |system| system.name,
+    id: |system| system.id,
     provenance: |system| system.source,
     tests: system_table_tests,
     all: ALL,
-    lookup: by_name,
+    lookup: by_id,
 }

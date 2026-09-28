@@ -77,29 +77,33 @@ libm = ["hc-core/libm"]
 # Exactly defined units of time: SI, civil, horological, decimal,
 # hexadecimal, media and musical.
 units = ["dep:hc-units"]
-# Civil dates: the Gregorian family plus the calendar abstraction.
-civil = ["dep:hc-calendar", "dep:hc-calendars-solar"]
+# Civil dates: the Gregorian family plus the calendar abstraction; and,
+# with `uncertainty`, the EDTF dates it places by that arithmetic.
+civil = ["dep:hc-calendar", "dep:hc-calendars-solar", "hc-uncertainty?/edtf"]
 # Lunar and lunisolar calendars, which need the astronomical engine.
 lunar = ["civil", "dep:hc-astro", "dep:hc-calendars-lunar", "hc-core/memo"]
 # Solar calendars judged by an equinox at a place: Solar Hijri, Badíʿ and
 # French Republican computed astronomically.
 equinox = ["astro", "dep:hc-calendars-equinox", "hc-core/memo"]
 # The calendars of the Indian subcontinent: the Hindu lunisolar calendar,
-# computed with the sidereal zodiac of hc-seasons.
-indic = ["seasons", "dep:hc-calendars-indic", "hc-core/memo"]
+# computed with the sidereal zodiac of hc-seasons; and, with `fiscal`,
+# Nepal's fiscal year, which is dated in the Bikram Sambat.
+indic = ["seasons", "dep:hc-calendars-indic", "hc-core/memo", "hc-fiscal?/indic"]
 # Regional and cyclic calendars.
 regional = ["lunar", "dep:hc-calendars-regional"]
 # Astronomy on its own, for solar longitude and phases.
 astro = ["civil", "dep:hc-astro"]
-# The 24 solar terms, 72 pentads and zassetsu.
-seasons = ["astro", "dep:hc-seasons"]
+# The 24 solar terms, 72 pentads and zassetsu; and, with `attributes`,
+# the zodiac-sign stones and the Harvest Moon.
+seasons = ["astro", "dep:hc-seasons", "hc-attributes?/seasons"]
 # The almanac annotations: mansions, nine stars, directs, selected days,
 # named in a locale by hc-i18n.
 almanac = ["seasons", "lunar", "i18n", "dep:hc-almanac"]
-# Fiscal, tax and academic years.
+# Fiscal, tax and academic years; Nepal's with `indic`.
 fiscal = ["civil", "dep:hc-fiscal"]
-# Birthstones, birth flowers, moon names and traditional month names.
-attributes = ["seasons", "dep:hc-attributes"]
+# Birthstones, birth flowers, moon names and traditional month names; the
+# zodiac-sign stones and the Harvest Moon with `seasons`.
+attributes = ["civil", "dep:hc-attributes"]
 # Name-day lists: Latvia's vendored, and a loader for lists a caller has
 # licensed.
 name-days = ["civil", "dep:hc-name-days"]
@@ -110,8 +114,10 @@ tz = ["civil", "dep:hc-tz", "dep:hc-i18n", "hc-i18n/exemplar-cities"]
 # `zone_lines`. Some 230 kB of text, so apart from `tz`: without it a
 # zone's city is English's.
 localized-exemplar-cities = ["dep:hc-i18n", "hc-i18n/localized-exemplar-cities"]
-# ISO 8601 / RFC 3339 parsing and formatting.
-format = ["civil", "dep:hc-format"]
+# ISO 8601 / RFC 3339 parsing and formatting; and, with `humanize`,
+# Python `humanize`'s `naturalday` and `naturaldate`, which write a day
+# with it.
+format = ["civil", "dep:hc-format", "hc-humanize?/format"]
 # Locales, plural rules and localised vocabulary.
 i18n = ["civil", "dep:hc-i18n"]
 # Human-readable relative times.

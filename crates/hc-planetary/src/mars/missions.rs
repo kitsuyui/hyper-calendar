@@ -80,6 +80,9 @@ hc_core::catalogue! {
 /// A surface mission and the rules of its sol count.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Mission {
+    /// The identifier: the name in lower case, with a hyphen for each
+    /// space, `viking-1` or `mars-pathfinder`.
+    pub id: &'static str,
     /// The English name the mission is usually called by.
     pub name: &'static str,
     /// The landing instant in UTC, written out for display.
@@ -232,6 +235,7 @@ impl MissionClock {
 /// — by a whole sol.
 pub const MISSIONS: &[Mission] = &[
     Mission {
+        id: "viking-1",
         name: "Viking 1",
         landing_utc: "1976-07-20T11:53:06Z",
         landing_unix_seconds: utc_unix_seconds(1976, 7, 20, 11, 53, 6),
@@ -246,6 +250,7 @@ pub const MISSIONS: &[Mission] = &[
                (2014); the 1976 mission clock used 312.5.",
     },
     Mission {
+        id: "viking-2",
         name: "Viking 2",
         landing_utc: "1976-09-03T22:37:50Z",
         landing_unix_seconds: utc_unix_seconds(1976, 9, 3, 22, 37, 50),
@@ -257,6 +262,7 @@ pub const MISSIONS: &[Mission] = &[
         note: "Utopia Planitia; same clock design as Viking 1.",
     },
     Mission {
+        id: "mars-pathfinder",
         name: "Mars Pathfinder",
         landing_utc: "1997-07-04T16:56:55Z",
         landing_unix_seconds: utc_unix_seconds(1997, 7, 4, 16, 56, 55),
@@ -269,6 +275,7 @@ pub const MISSIONS: &[Mission] = &[
                solar time, and the landing sol is sol 1.",
     },
     Mission {
+        id: "spirit",
         name: "Spirit",
         landing_utc: "2004-01-04T04:26:53Z",
         landing_unix_seconds: utc_unix_seconds(2004, 1, 4, 4, 26, 53),
@@ -282,6 +289,7 @@ pub const MISSIONS: &[Mission] = &[
                the mission's, the times of sol are LMST.",
     },
     Mission {
+        id: "opportunity",
         name: "Opportunity",
         landing_utc: "2004-01-25T04:54:00Z",
         landing_unix_seconds: utc_unix_seconds(2004, 1, 25, 4, 54, 0),
@@ -294,6 +302,7 @@ pub const MISSIONS: &[Mission] = &[
                Hybrid local solar time offset was more than 37 minutes.",
     },
     Mission {
+        id: "phoenix",
         name: "Phoenix",
         landing_utc: "2008-05-25T23:38:24Z",
         landing_unix_seconds: utc_unix_seconds(2008, 5, 25, 23, 38, 24),
@@ -307,6 +316,7 @@ pub const MISSIONS: &[Mission] = &[
                and a half minutes from LMST at the achieved site.",
     },
     Mission {
+        id: "curiosity",
         name: "Curiosity",
         landing_utc: "2012-08-06T05:17:57Z",
         landing_unix_seconds: utc_unix_seconds(2012, 8, 6, 5, 17, 57),
@@ -320,6 +330,7 @@ pub const MISSIONS: &[Mission] = &[
                sol is sol 0. The quoted 05:32 UTC is Earth-received time.",
     },
     Mission {
+        id: "insight",
         name: "InSight",
         landing_utc: "2018-11-26T19:44:52Z",
         landing_unix_seconds: utc_unix_seconds(2018, 11, 26, 19, 44, 52),
@@ -333,6 +344,7 @@ pub const MISSIONS: &[Mission] = &[
                of site LMST. The quoted 19:52:59 UTC is Earth-received time.",
     },
     Mission {
+        id: "perseverance",
         name: "Perseverance",
         landing_utc: "2021-02-18T20:43:48Z",
         landing_unix_seconds: utc_unix_seconds(2021, 2, 18, 20, 43, 48),
@@ -346,6 +358,7 @@ pub const MISSIONS: &[Mission] = &[
                Earth-received time.",
     },
     Mission {
+        id: "zhurong",
         name: "Zhurong",
         landing_utc: "2021-05-14T23:18:00Z",
         landing_unix_seconds: utc_unix_seconds(2021, 5, 14, 23, 18, 0),
@@ -363,11 +376,20 @@ pub const MISSIONS: &[Mission] = &[
     },
 ];
 
-/// Look a mission up by name. The comparison is case-sensitive, because these
-/// are proper nouns.
+/// The mission with this identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn mission(name: &str) -> Option<&'static Mission> {
-    MISSIONS.iter().find(|entry| entry.name == name)
+pub fn by_id(id: &str) -> Option<&'static Mission> {
+    MISSIONS
+        .iter()
+        .find(|entry| hc_core::catalogue::matches(id, entry.id))
+}
+
+hc_core::catalogue_tests! {
+    type: Mission,
+    id: |entry| entry.id,
+    tests: mission_table_tests,
+    all: MISSIONS,
+    lookup: by_id,
 }
 
 #[cfg(test)]
@@ -395,19 +417,19 @@ mod tests {
     #[test]
     fn the_sol_numbering_conventions_are_the_ones_the_missions_used() {
         let zero: [&str; 6] = [
-            "Viking 1",
-            "Viking 2",
-            "Phoenix",
-            "Curiosity",
-            "InSight",
-            "Perseverance",
+            "viking-1",
+            "viking-2",
+            "phoenix",
+            "curiosity",
+            "insight",
+            "perseverance",
         ];
-        let one: [&str; 3] = ["Mars Pathfinder", "Spirit", "Opportunity"];
+        let one: [&str; 3] = ["mars-pathfinder", "spirit", "opportunity"];
         for name in zero {
-            assert_eq!(mission(name).unwrap().first_sol, 0, "{name}");
+            assert_eq!(by_id(name).unwrap().first_sol, 0, "{name}");
         }
         for name in one {
-            assert_eq!(mission(name).unwrap().first_sol, 1, "{name}");
+            assert_eq!(by_id(name).unwrap().first_sol, 1, "{name}");
         }
     }
 
@@ -417,19 +439,19 @@ mod tests {
     #[test]
     fn the_published_sol_anchors_all_land_in_the_right_sol() {
         let anchors: [(&str, i64, (i64, u8, u8)); 10] = [
-            ("Viking 1", 2243, (1982, 11, 11)),
-            ("Viking 2", 1280, (1980, 4, 11)),
-            ("Mars Pathfinder", 93, (1997, 10, 7)),
-            ("Spirit", 2210, (2010, 3, 22)),
-            ("Opportunity", 5111, (2018, 6, 10)),
-            ("Phoenix", 156, (2008, 11, 2)),
-            ("Curiosity", 4032, (2023, 12, 9)),
-            ("Curiosity", 1000, (2015, 5, 30)),
-            ("InSight", 1440, (2022, 12, 15)),
-            ("Perseverance", 997, (2023, 12, 9)),
+            ("viking-1", 2243, (1982, 11, 11)),
+            ("viking-2", 1280, (1980, 4, 11)),
+            ("mars-pathfinder", 93, (1997, 10, 7)),
+            ("spirit", 2210, (2010, 3, 22)),
+            ("opportunity", 5111, (2018, 6, 10)),
+            ("phoenix", 156, (2008, 11, 2)),
+            ("curiosity", 4032, (2023, 12, 9)),
+            ("curiosity", 1000, (2015, 5, 30)),
+            ("insight", 1440, (2022, 12, 15)),
+            ("perseverance", 997, (2023, 12, 9)),
         ];
         for (name, sol, (year, month, day)) in anchors {
-            let clock = mission(name).unwrap().clock().unwrap();
+            let clock = by_id(name).unwrap().clock().unwrap();
             let first = clock.sol(moment(year, month, day, 0, 0, 0));
             let last = clock.sol(moment(year, month, day, 23, 59, 59));
             assert!(
@@ -441,7 +463,7 @@ mod tests {
 
     #[test]
     fn a_sol_lasts_one_sol_and_the_count_advances_by_one() {
-        let clock = mission("Curiosity").unwrap().clock().unwrap();
+        let clock = by_id("curiosity").unwrap().clock().unwrap();
         for sol in [0, 1, 1_000, 4_032] {
             let start = clock.sol_start(sol);
             let next = clock.sol_start(sol + 1);
@@ -493,8 +515,8 @@ mod tests {
 
     #[test]
     fn the_viking_clocks_start_at_a_sundial_midnight_and_then_drift() {
-        for name in ["Viking 1", "Viking 2", "Mars Pathfinder"] {
-            let entry = mission(name).unwrap();
+        for name in ["viking-1", "viking-2", "mars-pathfinder"] {
+            let entry = by_id(name).unwrap();
             let clock = entry.clock().unwrap();
             let start = clock.sol_start(entry.first_sol);
             let ltst = start
@@ -521,9 +543,9 @@ mod tests {
         // published at the time and neither is used to derive anything here,
         // so they are an independent check on the landing instants and the
         // longitudes at once.
-        let expected: [(&str, u8, u8); 2] = [("Curiosity", 15, 3), ("Perseverance", 15, 53)];
+        let expected: [(&str, u8, u8); 2] = [("curiosity", 15, 3), ("perseverance", 15, 53)];
         for (name, hour, minute) in expected {
-            let entry = mission(name).unwrap();
+            let entry = by_id(name).unwrap();
             let time = entry
                 .landing_moment()
                 .unwrap()
@@ -540,7 +562,7 @@ mod tests {
     fn the_insight_clock_runs_the_published_eighty_five_seconds_fast() {
         // The clock meridian is east of the achieved site, so mission time is
         // ahead of site local mean solar time by a fixed amount.
-        let entry = mission("InSight").unwrap();
+        let entry = by_id("insight").unwrap();
         let clock = entry.clock().unwrap();
         let moment = clock.sol_start(500);
         let site = moment
@@ -553,7 +575,7 @@ mod tests {
 
     #[test]
     fn the_clock_meridian_and_the_site_are_recorded_separately() {
-        let insight = mission("InSight").unwrap();
+        let insight = by_id("insight").unwrap();
         assert!(
             (insight.clock_east_longitude_degrees - insight.site_east_longitude_degrees - 0.35)
                 .abs()
@@ -566,15 +588,15 @@ mod tests {
 
     #[test]
     fn longitudes_convert_between_the_two_conventions() {
-        let curiosity = mission("Curiosity").unwrap();
+        let curiosity = by_id("curiosity").unwrap();
         assert!((curiosity.site_west_longitude_degrees() - 222.5583).abs() < 1e-6);
-        let opportunity = mission("Opportunity").unwrap();
+        let opportunity = by_id("opportunity").unwrap();
         assert!((opportunity.site_west_longitude_degrees() - 5.5266).abs() < 1e-6);
     }
 
     #[test]
     fn zhurong_is_present_but_flagged_as_having_no_published_convention() {
-        let zhurong = mission("Zhurong").unwrap();
+        let zhurong = by_id("zhurong").unwrap();
         assert!(!zhurong.convention_is_published);
         for entry in MISSIONS {
             if entry.name != "Zhurong" {
@@ -587,15 +609,15 @@ mod tests {
     fn the_landing_strings_agree_with_the_timestamps() {
         // A cheap guard against a typo in one of the two representations.
         let expected: [(&str, &str); 3] = [
-            ("Viking 1", "1976-07-20T11:53:06Z"),
-            ("Curiosity", "2012-08-06T05:17:57Z"),
-            ("Perseverance", "2021-02-18T20:43:48Z"),
+            ("viking-1", "1976-07-20T11:53:06Z"),
+            ("curiosity", "2012-08-06T05:17:57Z"),
+            ("perseverance", "2021-02-18T20:43:48Z"),
         ];
-        for (name, text) in expected {
-            assert_eq!(mission(name).unwrap().landing_utc, text);
+        for (id, text) in expected {
+            assert_eq!(by_id(id).unwrap().landing_utc, text);
         }
         assert_eq!(
-            mission("Curiosity").unwrap().landing_unix_seconds,
+            by_id("curiosity").unwrap().landing_unix_seconds,
             1_344_230_277
         );
     }
@@ -616,8 +638,7 @@ mod tests {
 
     #[test]
     fn an_unknown_mission_is_not_invented() {
-        assert!(mission("Beagle 2").is_none());
-        assert!(mission("curiosity").is_none());
+        assert!(by_id("beagle-2").is_none());
     }
 
     #[test]

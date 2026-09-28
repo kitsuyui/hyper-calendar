@@ -21,9 +21,9 @@
 use std::time::Instant;
 
 use hc_calendar::Rd;
+use hc_calendars_solar::gregorian;
 use hc_holiday::EvaluationContext;
 use hc_holiday::engine::{Gap, Holiday, HolidayCalendar};
-use hc_holiday::hc_calendars_solar::gregorian;
 use hc_holiday::rule::RuleSet;
 use hc_holiday::{countries, exchanges, international, traditions};
 

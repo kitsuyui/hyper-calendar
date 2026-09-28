@@ -25,9 +25,9 @@
 
 use hyper_calendar::hc_calendar::Rd;
 use hyper_calendar::hc_calendars_lunar::{chinese, dangi, japanese_tenpo};
-use hyper_calendar::hc_calendars_solar::adoption::{REGIONAL_ADOPTIONS, Scope};
+use hyper_calendar::hc_calendars_solar::adoption::{REGIONAL_ADOPTIONS, Scope, gregorian_adoption};
 use hyper_calendar::hc_calendars_solar::gregorian;
-use hyper_calendar::{gregorian_adoption, lines};
+use hyper_calendar::lines;
 
 fn day(year: i64, month: u8, day: u8) -> Rd {
     gregorian::to_fixed(year, month, day).expect("a Gregorian date")

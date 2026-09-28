@@ -17,7 +17,6 @@
 use alloc::string::String;
 
 use hc_core::Duration;
-use hc_core::catalogue::matches;
 use hc_relativity::constants::{self, GRAVITATING_BODIES, GravitatingBody, SPEED_OF_LIGHT};
 use hc_relativity::gravitational::{
     rate_offset_to_micros_per_day, schwarzschild_radius, static_dilation_factor,
@@ -91,21 +90,16 @@ pub fn proper_time_line(speed_metres_per_second: f64, coordinate_seconds: f64) -
     Ok(out)
 }
 
-/// The body `given` names, by its identifier, [`constants::by_id`], or
-/// its English name, each by [`matches`](fn@matches).
+/// The body with the identifier `id`, by [`constants::by_id`]: `earth`,
+/// `sagittarius-a-star` and the rest of [`gravitating_bodies_lines`]' first
+/// column.
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a body `hc-relativity` carries no `GM` for.
-pub fn gravitating_body(given: &str) -> Answer<GravitatingBody> {
-    constants::by_id(given)
-        .or_else(|| {
-            GRAVITATING_BODIES
-                .iter()
-                .copied()
-                .find(|body| matches(given, body.english_name))
-        })
-        .ok_or(Refusal::Unknown)
+/// [`Refusal::Unknown`] for a body `hc-relativity` carries no `GM` for, and
+/// for a name such as `Sagittarius A*`.
+pub fn gravitating_body(id: &str) -> Answer<GravitatingBody> {
+    constants::by_id(id).ok_or(Refusal::Unknown)
 }
 
 /// A clock held still at a radius from a body's centre, against one far
@@ -243,7 +237,7 @@ mod tests {
     fn a_gps_clock_gains_forty_five_microseconds_a_day_over_the_ground() {
         let ground =
             gravitational_dilation_line("earth", EARTH_EQUATORIAL_RADIUS).unwrap_or_default();
-        let orbit = gravitational_dilation_line("Earth", GPS_ORBIT_RADIUS).unwrap_or_default();
+        let orbit = gravitational_dilation_line("EARTH", GPS_ORBIT_RADIUS).unwrap_or_default();
         let (ground, orbit) = (cells(&ground), cells(&orbit));
         assert_eq!(ground[2], "GM_EARTH");
         assert_eq!(ground[6], "GM_EARTH;SPEED_OF_LIGHT_SQUARED");
@@ -268,6 +262,13 @@ mod tests {
             gravitational_dilation_line("vulcan", 1e7),
             Err(Refusal::Unknown)
         );
+        // A body is named by its identifier, not its name.
+        for name in ["Sagittarius A*", "Mars system", "Jupiter system"] {
+            assert_eq!(
+                gravitational_dilation_line(name, 1e12),
+                Err(Refusal::Unknown)
+            );
+        }
     }
 
     #[test]

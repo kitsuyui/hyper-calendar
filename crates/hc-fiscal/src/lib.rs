@@ -24,8 +24,8 @@
 //! depending on where the equinox falls. Ethiopia's begins on Hamle 1 in the
 //! Ethiopic calendar. So a [`YearStart`] carries a
 //! [`StartCalendar`], and the non-Gregorian
-//! entries go through the real calendars in `hc-calendars-solar` and
-//! `hc-calendars-indic` rather than through a hard-coded "about 21 March".
+//! entries go through the real calendars in `hc-calendars-solar` and, with
+//! the `indic` feature, `hc-calendars-indic` rather than through a hard-coded "about 21 March".
 //!
 //! # The modules
 //!
@@ -65,6 +65,13 @@
 //! * It claims nothing about Iran's official calendar beyond what the
 //!   arithmetic approximation in `hc-calendars-solar` supports. See
 //!   [`countries::IRAN`].
+//!
+//! # Features
+//!
+//! `indic`, on by default, carries Nepal: its year begins on 1 Shrawan of
+//! the Bikram Sambat, which `hc-calendars-indic` computes with the
+//! astronomy of `hc-astro` and `hc-seasons`. Without it, the crate needs
+//! only the arithmetic calendars of `hc-calendars-solar`.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]
@@ -84,6 +91,3 @@ pub use year_system::{
     Authority, FiscalPosition, FiscalSpan, LabelConvention, SourceDate, StartCalendar, SystemKind,
     YearStart, YearSystem,
 };
-
-pub use hc_calendar;
-pub use hc_calendars_solar;

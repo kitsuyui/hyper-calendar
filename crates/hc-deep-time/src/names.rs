@@ -3017,8 +3017,8 @@ const ZH_HANS: [&str; INTERVAL_COUNT] = [
 mod tests {
     use super::*;
 
-    fn by_name(name: &str) -> &'static GeologicInterval {
-        geologic::by_name(name).unwrap()
+    fn by_id(id: &str) -> &'static GeologicInterval {
+        geologic::by_id(id).unwrap()
     }
 
     #[test]
@@ -3054,25 +3054,16 @@ mod tests {
     #[test]
     fn the_japanese_names_are_the_geological_society_of_japans() {
         // 国際年代層序表 v2024/12, 日本地質学会.
+        assert_eq!(interval_name(by_id("quaternary"), "ja"), Some("第四系／紀"));
+        assert_eq!(interval_name(by_id("holocene"), "ja"), Some("完新統／世"));
+        assert_eq!(interval_name(by_id("meghalayan"), "ja"), Some("メガラヤン"));
+        assert_eq!(interval_name(by_id("chibanian"), "ja"), Some("チバニアン"));
         assert_eq!(
-            interval_name(by_name("Quaternary"), "ja"),
-            Some("第四系／紀")
-        );
-        assert_eq!(interval_name(by_name("Holocene"), "ja"), Some("完新統／世"));
-        assert_eq!(
-            interval_name(by_name("Meghalayan"), "ja"),
-            Some("メガラヤン")
-        );
-        assert_eq!(
-            interval_name(by_name("Chibanian"), "ja"),
-            Some("チバニアン")
-        );
-        assert_eq!(
-            interval_name(by_name("Phanerozoic"), "ja"),
+            interval_name(by_id("phanerozoic"), "ja"),
             Some("顕生（累）界／代")
         );
         assert_eq!(
-            interval_name(by_name("Neoarchean"), "ja"),
+            interval_name(by_id("neoarchean"), "ja"),
             Some("新太古界／代（新始生界／代）")
         );
     }
@@ -3081,30 +3072,30 @@ mod tests {
     fn the_chinese_names_are_the_ics_chinese_charts_without_layout_spaces() {
         // 国际年代地层表 v2023/09.
         assert_eq!(
-            interval_name(by_name("Phanerozoic"), "zh-Hans"),
+            interval_name(by_id("phanerozoic"), "zh-Hans"),
             Some("显生宇")
         );
-        assert_eq!(interval_name(by_name("Archean"), "zh-Hans"), Some("太古宇"));
+        assert_eq!(interval_name(by_id("archean"), "zh-Hans"), Some("太古宇"));
         assert_eq!(
-            interval_name(by_name("Quaternary"), "zh-Hans"),
+            interval_name(by_id("quaternary"), "zh-Hans"),
             Some("第四系")
         );
         assert_eq!(
-            interval_name(by_name("Meghalayan"), "zh-Hans"),
+            interval_name(by_id("meghalayan"), "zh-Hans"),
             Some("梅加拉亚阶")
         );
         assert_eq!(
-            interval_name(by_name("Chibanian"), "zh-Hans-CN"),
+            interval_name(by_id("chibanian"), "zh-Hans-CN"),
             Some("千叶阶")
         );
         // No traditional-script table, and no likely-subtags expansion.
-        assert_eq!(interval_name(by_name("Quaternary"), "zh-Hant"), None);
-        assert_eq!(interval_name(by_name("Quaternary"), "zh"), None);
+        assert_eq!(interval_name(by_id("quaternary"), "zh-Hant"), None);
+        assert_eq!(interval_name(by_id("quaternary"), "zh"), None);
     }
 
     #[test]
     fn tags_are_matched_as_hc_i18n_matches_them() {
-        let quaternary = by_name("Quaternary");
+        let quaternary = by_id("quaternary");
         assert_eq!(interval_name(quaternary, "JA_jp"), Some("第四系／紀"));
         assert_eq!(interval_name(quaternary, "de-AT"), Some("Quartär"));
         assert_eq!(interval_name(quaternary, "en"), None);
@@ -3115,14 +3106,14 @@ mod tests {
     #[test]
     fn what_the_chart_does_not_name_is_left_unnamed() {
         for translation in TRANSLATIONS {
-            assert_eq!(translation.name_of(by_name("Upper Cretaceous")), None);
-            assert_eq!(translation.name_of(by_name("Upper Pleistocene")), None);
+            assert_eq!(translation.name_of(by_id("upper-cretaceous")), None);
+            assert_eq!(translation.name_of(by_id("upper-pleistocene")), None);
         }
         // Placeholders in the wrong script are not names.
-        assert_eq!(interval_name(by_name("Meghalayan"), "ru"), None);
-        assert_eq!(interval_name(by_name("Hadean"), "ru"), None);
+        assert_eq!(interval_name(by_id("meghalayan"), "ru"), None);
+        assert_eq!(interval_name(by_id("hadean"), "ru"), None);
         assert_eq!(
-            interval_name(by_name("Quaternary"), "ru"),
+            interval_name(by_id("quaternary"), "ru"),
             Some("Четвертичная")
         );
     }
@@ -3199,11 +3190,11 @@ mod tests {
     #[test]
     fn the_cambrian_numbered_units_are_named_by_their_identifiers() {
         assert_eq!(
-            interval_name(by_name("Cambrian Stage 10"), "zh-Hans"),
+            interval_name(by_id("cambrian-stage-10"), "zh-Hans"),
             Some("第十阶")
         );
         assert_eq!(
-            interval_name(by_name("Cambrian Series 2"), "ko"),
+            interval_name(by_id("cambrian-series-2"), "ko"),
             Some("제2세")
         );
     }

@@ -13,9 +13,13 @@ categories.workspace = true
 keywords.workspace = true
 
 [features]
-default = ["std"]
-std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-seasons/std"]
-alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-seasons/alloc"]
+default = ["std", "seasons"]
+std = ["alloc", "hc-core/std", "hc-calendar/std", "hc-seasons?/std", "hc-astro?/std"]
+alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-seasons?/alloc", "hc-astro?/alloc"]
+# The zodiac-sign stones and the Harvest Moon, which ask `hc-seasons` for a
+# sign's dates, the equinox and the full moons; without it the crate is
+# tables alone and needs no astronomy.
+seasons = ["dep:hc-seasons", "dep:hc-astro"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm"]
@@ -23,4 +27,5 @@ libm = ["hc-core/libm"]
 [dependencies]
 hc-core = { workspace = true }
 hc-calendar = { workspace = true }
-hc-seasons = { workspace = true }
+hc-seasons = { workspace = true, optional = true }
+hc-astro = { workspace = true, optional = true }

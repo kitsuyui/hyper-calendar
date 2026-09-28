@@ -2415,7 +2415,7 @@ mod tests {
     /// each row and each of the five times.
     fn muis_lateness(method: &PrayerMethod) -> impl Iterator<Item = [f64; 5]> + '_ {
         MUIS_2026.into_iter().map(move |((month, day), row)| {
-            let rd = crate::hc_calendar::gregorian::to_fixed(2026, month, day).expect("a date");
+            let rd = hc_calendar::gregorian::to_fixed(2026, month, day).expect("a date");
             let local = |moment: Moment| (moment.0 + 8.0 / 24.0 - rd.0 as f64) * 1_440.0;
             let ours = [
                 local(fajr(rd, SINGAPORE_CITY, method).expect("Singapore has a dawn")),

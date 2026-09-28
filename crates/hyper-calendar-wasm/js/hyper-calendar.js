@@ -3830,11 +3830,11 @@ export class HyperCalendar {
 
   /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
-   * Universal Time, the yoga reckoned with an ayanamsa: `Lahiri`, `Raman`,
-   * `Krishnamurti` or `Fagan-Bradley`.
+   * Universal Time, the yoga reckoned with an ayanamsa: `lahiri`, `raman`,
+   * `krishnamurti` or `fagan-bradley`.
    *
    * @param {number | bigint} unixSeconds
-   * @param {string} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
    * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
    */
   panchangaAt(unixSeconds, ayanamsa) {
@@ -3853,7 +3853,7 @@ export class HyperCalendar {
    * @param {number} latitude
    * @param {number} longitude
    * @param {number} elevation
-   * @param {string} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
    * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
    */
   panchangaOfDay(fixed, latitude, longitude, elevation, ayanamsa) {
@@ -3872,7 +3872,7 @@ export class HyperCalendar {
    * *Sūrya Siddhānta*'s, `surya-siddhanta`; with the month and the eras
    * named in `locale`, as {@link describeDay} names them for `hindu-lunar`.
    *
-   * @param {string} sky
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa | "surya-siddhanta"} sky
    * @param {number | bigint} fixed
    * @param {number} latitude
    * @param {number} longitude
@@ -4459,11 +4459,12 @@ export class HyperCalendar {
   }
 
   /**
-   * A mission's sol number at a POSIX instant by its own clock. A mission
+   * A mission's sol number at a POSIX instant by its own clock, the
+   * mission by its identifier: `viking-1`, `viking-2`, `mars-pathfinder`, `spirit`, `opportunity`, `phoenix`, `curiosity`, `insight`, `perseverance` or `zhurong`. A mission
    * with no published sol numbering is `no-data`; an instant before its
    * landing sol began is `out-of-range`.
    *
-   * @param {string} mission
+   * @param {import("./hyper-calendar.d.ts").MissionId} mission
    * @param {number} unixSeconds
    * @returns {number}
    */
@@ -4487,9 +4488,10 @@ export class HyperCalendar {
 
   /**
    * Local mean solar time on a body at a POSIX instant and an east
-   * longitude. The Sun, which has no solar day, is `no-data`.
+   * longitude, the body by its identifier, as `hc_bodies` gives it. The
+   * Sun, which has no solar day, is `no-data`.
    *
-   * @param {string} body
+   * @param {import("./hyper-calendar.d.ts").BodyId} body
    * @param {number} unixSeconds
    * @param {number} [eastLongitude]
    * @returns {import("./hyper-calendar.d.ts").BodyTime}
@@ -4540,9 +4542,10 @@ export class HyperCalendar {
   /**
    * A clock held still at a radius in metres from a body's centre, against
    * one far from every mass. A radius at or inside the Schwarzschild
-   * radius is `out-of-range`.
+   * radius is `out-of-range`. The body is named by its identifier, `earth`
+   * or `sagittarius-a-star`, as `hc_gravitating_bodies` gives it.
    *
-   * @param {string} body
+   * @param {import("./hyper-calendar.d.ts").GravitatingBodyId} body
    * @param {number} radiusMetres
    * @returns {import("./hyper-calendar.d.ts").GravitationalDilation}
    */
@@ -4884,7 +4887,7 @@ export class HyperCalendar {
    *
    * @param {import("./hyper-calendar.d.ts").PanchakNaming} naming
    * @param {number | bigint} unixSeconds
-   * @param {string} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
    * @param {number} [offsetSeconds]
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").PanchakWindow}
@@ -4909,7 +4912,7 @@ export class HyperCalendar {
    *
    * @param {import("./hyper-calendar.d.ts").KumbhYoga} yoga
    * @param {number | bigint} year
-   * @param {string} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
    * @param {import("./hyper-calendar.d.ts").SiderealSignId | ""} [jupiter]
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").KumbhOccasion}

@@ -215,47 +215,27 @@ pub use vira_nirvana::{ViraNirvanaCalendar, ViraNirvanaDate};
 
 #[cfg(feature = "alloc")]
 mod registration {
-    use alloc::boxed::Box;
+    hc_calendar::calendars! {
+        /// Register every calendar in this crate with `registry`.
+        ///
+        /// Registering is idempotent: a second call replaces rather than
+        /// duplicates, since [`hc_calendar::CalendarRegistry::register`] keys on the
+        /// calendar's identifier.
+        pub fn register_all;
 
-    use hc_calendar::{CalendarRegistry, DynAdapter};
-
-    /// Register every calendar in this crate with `registry`.
-    ///
-    /// Inserting is idempotent: a second call replaces rather than
-    /// duplicates, since [`CalendarRegistry::insert`] keys on the
-    /// calendar's identifier.
-    pub fn register_all(registry: &mut CalendarRegistry) {
-        registry.insert(Box::new(DynAdapter::new(
-            crate::HinduLunarCalendar::RASHTRIYA,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::SiddhantaLunarCalendar::UJJAIN,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::HinduPurnimantaCalendar::RASHTRIYA,
-        )));
-        for calendar in crate::hindu_solar::ALL {
-            registry.insert(Box::new(DynAdapter::new(*calendar)));
-        }
-        registry.insert(Box::new(DynAdapter::new(
-            crate::SiddhantaSolarCalendar::UJJAIN,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::OldHinduSolarCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::OldHinduLunarCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::NepalSambatCalendar::KATHMANDU,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::BikramSambatCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::ViraNirvanaCalendar::RASHTRIYA,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::OdiaAnkaCalendar::PURI)));
-        for calendar in crate::lunar_era::ALL {
-            registry.insert(Box::new(DynAdapter::new(*calendar)));
-        }
-        for calendar in crate::fasli::ALL {
-            registry.insert(Box::new(DynAdapter::new(*calendar)));
-        }
+        crate::HinduLunarCalendar::RASHTRIYA,
+        crate::SiddhantaLunarCalendar::UJJAIN,
+        crate::HinduPurnimantaCalendar::RASHTRIYA,
+        for calendar in crate::hindu_solar::ALL => [*calendar],
+        crate::SiddhantaSolarCalendar::UJJAIN,
+        crate::OldHinduSolarCalendar,
+        crate::OldHinduLunarCalendar,
+        crate::NepalSambatCalendar::KATHMANDU,
+        crate::BikramSambatCalendar,
+        crate::ViraNirvanaCalendar::RASHTRIYA,
+        crate::OdiaAnkaCalendar::PURI,
+        for calendar in crate::lunar_era::ALL => [*calendar],
+        for calendar in crate::fasli::ALL => [*calendar],
     }
 }
 

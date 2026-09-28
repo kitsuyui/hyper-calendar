@@ -79,10 +79,14 @@ fn mars_time_and_a_mission_sol_cross_the_boundary() {
     assert_eq!(cells[5], "23:38:54");
     let mut sol = -1i64;
     assert_eq!(
-        unsafe { hc_mission_sol(c"Curiosity".as_ptr(), 1_344_230_277.0, &mut sol) },
+        unsafe { hc_mission_sol(c"curiosity".as_ptr(), 1_344_230_277.0, &mut sol) },
         HC_OK
     );
     assert_eq!(sol, 0);
+    assert_eq!(
+        unsafe { hc_mission_sol(c"Viking 1".as_ptr(), 1_344_230_277.0, &mut sol) },
+        HC_ERROR_UNKNOWN
+    );
     assert_eq!(
         unsafe { hc_mission_sol(c"zhurong".as_ptr(), 1_700_000_000.0, &mut sol) },
         HC_ERROR_NO_DATA
@@ -123,7 +127,7 @@ fn the_tables_and_a_body_clock_are_the_modules_lines() {
     assert_eq!(bodies, hc::planetary_lines::bodies_lines());
     let titan = read_lines(|buffer, capacity, written| unsafe {
         hc_body_time(
-            c"Titan".as_ptr(),
+            c"titan".as_ptr(),
             947_116_800.0,
             0.0,
             buffer,

@@ -236,116 +236,88 @@ pub use zoroastrian::{Reckoning, ZoroastrianCalendar, ZoroastrianDate};
 
 #[cfg(feature = "alloc")]
 mod registration {
-    use alloc::boxed::Box;
-
-    use hc_calendar::{CalendarRegistry, DynAdapter};
-
     use crate::julian_gregorian::{ADOPTIONS, ReformCalendar};
 
-    /// Register every calendar in this crate with `registry`.
-    ///
-    /// The reform calendars are registered one per polity, under the
-    /// identifiers in [`ADOPTIONS`], because a date written in Britain in
-    /// 1700 and the same date written in Russia belong to genuinely
-    /// different calendars rather than to one calendar with a parameter.
-    /// That makes this function insert more entries than there are modules.
-    ///
-    /// Inserting is idempotent: a second call replaces rather than
-    /// duplicates, since [`CalendarRegistry::insert`] keys on the
-    /// calendar's identifier.
-    pub fn register_all(registry: &mut CalendarRegistry) {
-        registry.insert(Box::new(DynAdapter::new(crate::GregorianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JulianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::IsoWeekCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::OrdinalCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JulianDayCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ModifiedJulianDayCalendar)));
-        for count in crate::day_counts::ALL {
-            registry.insert(Box::new(DynAdapter::new(
-                crate::day_counts::DayCountCalendar(*count),
-            )));
-        }
-        registry.insert(Box::new(DynAdapter::new(
-            crate::spreadsheet::Excel1900Calendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::day_counts::StataWeekCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::CopticCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::EthiopicCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::EgyptianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ArmenianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ArmenianFixedCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ArithmeticPersianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::ThirtyThreeYearPersianCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::IndianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::NanakshahiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BangladeshiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::DiscordianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BuddhistCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::MinguoCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JucheCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::KokiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::HoloceneCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::ByzantineCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::RomanCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::RumiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::ArithmeticFrenchRepublicanCalendar,
-        )));
-        registry.insert(Box::new(DynAdapter::new(crate::ArithmeticBahaiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BahaiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::Symmetry454Calendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::Symmetry010Calendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::RevisedJulianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::WorldCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::InternationalFixedCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::PositivistCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::SwedishCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BerberCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::MandaeanCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::AssyrianCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::YazidiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::HankeHenryCalendar)));
-        for icelandic in crate::IcelandicCalendar::ALL {
-            registry.insert(Box::new(DynAdapter::new(icelandic)));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::QumranCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::SovietWeekCalendar)));
-        for zoroastrian in crate::ZoroastrianCalendar::ALL {
-            registry.insert(Box::new(DynAdapter::new(zoroastrian)));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::IsoCalendar)));
-        for count in crate::year_counts::ALL {
-            registry.insert(Box::new(DynAdapter::new(crate::YearCountCalendar(*count))));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::PhilipEraCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::BostranCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::AsianCalendar)));
-        for era in crate::syro_macedonian::ALL {
-            registry.insert(Box::new(DynAdapter::new(crate::JulianEraCalendar(*era))));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::EraFascistaCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::JalaliTusiCalendar)));
-        registry.insert(Box::new(DynAdapter::new(
-            crate::RichardsFrenchRepublicanCalendar,
-        )));
-        for dee in crate::dee::ALL {
-            registry.insert(Box::new(DynAdapter::new(dee)));
-        }
-        registry.insert(Box::new(DynAdapter::new(crate::HermeticLeapWeekCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::WeekAndMonthCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::LiberaliaSolarCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::TabotCalendar)));
-        registry.insert(Box::new(DynAdapter::new(crate::TaipingCalendar)));
+    hc_calendar::calendars! {
+        /// Register every calendar in this crate with `registry`.
+        ///
+        /// The reform calendars are registered one per polity, under the
+        /// identifiers in [`ADOPTIONS`], because a date written in Britain in
+        /// 1700 and the same date written in Russia belong to genuinely
+        /// different calendars rather than to one calendar with a parameter.
+        /// That makes this function insert more entries than there are modules.
+        ///
+        /// Registering is idempotent: a second call replaces rather than
+        /// duplicates, since [`hc_calendar::CalendarRegistry::register`] keys on the
+        /// calendar's identifier.
+        pub fn register_all;
 
-        for adoption in ADOPTIONS {
-            if let Ok(reform) = ReformCalendar::new(adoption) {
-                registry.insert(Box::new(DynAdapter::new(reform)));
-            }
-        }
+        crate::GregorianCalendar,
+        crate::JulianCalendar,
+        crate::IsoWeekCalendar,
+        crate::OrdinalCalendar,
+        crate::JulianDayCalendar,
+        crate::ModifiedJulianDayCalendar,
+        for count in crate::day_counts::ALL => [crate::day_counts::DayCountCalendar(*count)],
+        crate::spreadsheet::Excel1900Calendar,
+        crate::day_counts::StataWeekCalendar,
+        crate::CopticCalendar,
+        crate::EthiopicCalendar,
+        crate::EgyptianCalendar,
+        crate::ArmenianCalendar,
+        crate::ArmenianFixedCalendar,
+        crate::ArithmeticPersianCalendar,
+        crate::ThirtyThreeYearPersianCalendar,
+        crate::IndianCalendar,
+        crate::NanakshahiCalendar,
+        crate::BangladeshiCalendar,
+        crate::DiscordianCalendar,
+        crate::BuddhistCalendar,
+        crate::MinguoCalendar,
+        crate::JucheCalendar,
+        crate::KokiCalendar,
+        crate::HoloceneCalendar,
+        crate::ByzantineCalendar,
+        crate::RomanCalendar,
+        crate::RumiCalendar,
+        crate::ArithmeticFrenchRepublicanCalendar,
+        crate::ArithmeticBahaiCalendar,
+        crate::BahaiCalendar,
+        crate::Symmetry454Calendar,
+        crate::Symmetry010Calendar,
+        crate::RevisedJulianCalendar,
+        crate::WorldCalendar,
+        crate::InternationalFixedCalendar,
+        crate::PositivistCalendar,
+        crate::SwedishCalendar,
+        crate::BerberCalendar,
+        crate::MandaeanCalendar,
+        crate::AssyrianCalendar,
+        crate::YazidiCalendar,
+        crate::HankeHenryCalendar,
+        for icelandic in crate::IcelandicCalendar::ALL => [icelandic],
+        crate::QumranCalendar,
+        crate::SovietWeekCalendar,
+        for zoroastrian in crate::ZoroastrianCalendar::ALL => [zoroastrian],
+        crate::IsoCalendar,
+        for count in crate::year_counts::ALL => [crate::YearCountCalendar(*count)],
+        crate::PhilipEraCalendar,
+        crate::BostranCalendar,
+        crate::AsianCalendar,
+        for era in crate::syro_macedonian::ALL => [crate::JulianEraCalendar(*era)],
+        crate::EraFascistaCalendar,
+        crate::JalaliTusiCalendar,
+        crate::RichardsFrenchRepublicanCalendar,
+        for dee in crate::dee::ALL => [dee],
+        crate::HermeticLeapWeekCalendar,
+        crate::WeekAndMonthCalendar,
+        crate::LiberaliaSolarCalendar,
+        crate::TabotCalendar,
+        crate::TaipingCalendar,
+        for reform in ADOPTIONS
+            .into_iter()
+            .filter_map(|adoption| ReformCalendar::new(adoption).ok())
+            => [reform],
     }
 }
 
@@ -441,7 +413,7 @@ mod tests {
                 LiberaliaSolarCalendar,
                 TabotCalendar,
                 TaipingCalendar,
-                ReformCalendar::default(),
+                ReformCalendar::new(crate::julian_gregorian::ADOPTIONS[0]).expect("the reform"),
             );
             assert!(checked > 0, "no calendar covered rd {rd}");
         }

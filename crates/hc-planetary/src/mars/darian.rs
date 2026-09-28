@@ -633,7 +633,7 @@ mod tests {
     /// article on the Darian calendar.
     #[test]
     fn the_published_event_conversions_reproduce() {
-        let viking = super::super::missions::mission("Viking 1")
+        let viking = super::super::missions::by_id("viking-1")
             .unwrap()
             .landing_moment()
             .unwrap();
@@ -642,7 +642,7 @@ mod tests {
         assert_eq!(date.month_name().unwrap(), "Mina");
         assert_eq!(sol_from_mars_sol_date(viking.mars_sol_date()), 130_584);
 
-        let perseverance = super::super::missions::mission("Perseverance")
+        let perseverance = super::super::missions::by_id("perseverance")
             .unwrap()
             .landing_moment()
             .unwrap();
@@ -658,7 +658,7 @@ mod tests {
     #[test]
     fn darian_years_are_mars_years_plus_one_hundred_and_eighty_three() {
         // Curiosity landed in Mars Year 31, which is Darian year 214.
-        let landing = super::super::missions::mission("Curiosity")
+        let landing = super::super::missions::by_id("curiosity")
             .unwrap()
             .landing_moment()
             .unwrap();

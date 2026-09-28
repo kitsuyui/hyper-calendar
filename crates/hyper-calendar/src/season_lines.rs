@@ -18,8 +18,8 @@
 
 use alloc::string::String;
 
+use hc_astro::solar::solar_longitude_after;
 use hc_calendar::Rd;
-use hc_seasons::hc_astro::solar::solar_longitude_after;
 use hc_seasons::meiyu::PlumRainRule;
 use hc_seasons::meridian::NamedMeridian;
 use hc_seasons::solar_terms::{TermOrder, namings, term_in_effect};

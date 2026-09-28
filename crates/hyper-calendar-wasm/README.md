@@ -1684,9 +1684,9 @@ where a pañcāṅga reads them at sunrise. A day on which the Sun does not
 rise at the place is `HC_ERR_NO_DATA`; no other moment is put in the
 sunrise's place. The yoga is the sum of the Sun's and the Moon's sidereal
 longitudes, so it needs an ayanāṃśa, and moves with it twice over:
-`ayanamsa` is `Lahiri (Chitrapaksha)`, `Raman`, `Krishnamurti` or
-`Fagan-Bradley`, or the first word of one, in any case, and anything else,
-the empty string included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
+`ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti` or
+`fagan-bradley`, in any case, and anything else, the empty string and a
+full name such as `Lahiri (Chitrapaksha)` included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
 needs none. The instants answer for the sky layer's era, below, and a
 place is a latitude and a longitude in degrees, north and east positive,
 and an elevation in metres; one off the globe is `HC_ERR_OUT_OF_RANGE`.
@@ -3401,8 +3401,8 @@ landing order:
 | 11 | source | where the row is from |
 
 `hc_mission_sol(mission, mission_len, unix_seconds)` returns the sol by
-that mission's clock, `mission` being an identifier or a name the list
-gives, in any ASCII case. The conventions are the ones NASA GISS's
+that mission's clock, `mission` being an identifier the list gives, in
+any ASCII case: `viking-1`, not `Viking 1`. The conventions are the ones NASA GISS's
 *Mars24 Technical Notes* state under "Lander Mission Times": Viking 1 and
 2, Phoenix, Curiosity, InSight and Perseverance number the landing sol 0,
 Pathfinder, Spirit and Opportunity 1; Viking and Pathfinder clocks began
@@ -3470,8 +3470,8 @@ Only the rate is physical wherever the zero point is a `convention`: the
 library declares J2000.0 local mean midnight at the prime meridian, which
 is reproducible and nobody's standard. A retrograde rotator's longitude
 needs no care from the caller — east is east, and the Sun rises in the
-west. `body` is an identifier or a name `hc_bodies` gives, in any ASCII
-case; another is `HC_ERR_UNKNOWN`, and the Sun, which has no solar day,
+west. `body` is an identifier `hc_bodies` gives, `mars` or `titan`, in
+any ASCII case; another is `HC_ERR_UNKNOWN`, and the Sun, which has no solar day,
 `HC_ERR_NO_DATA`. The Moon's clock is a mean solar clock under a declared
 zero and is not Coordinated Lunar Time.
 

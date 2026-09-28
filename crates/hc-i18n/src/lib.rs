@@ -99,5 +99,3 @@ pub use names::{
 };
 pub use numbering::NumberingSystem;
 pub use plural::{PluralCategory, PluralOperands, PluralRules};
-
-pub use hc_calendar;

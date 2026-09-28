@@ -51,29 +51,27 @@ pub enum ColdFoodConvention {
     Hansik,
 }
 
-impl ColdFoodConvention {
+hc_core::catalogue! {
+    type: ColdFoodConvention,
+    tests: cold_food_convention_catalogue_tests,
+    variants;
+
     /// Every convention, in the order of the module table.
-    pub const ALL: [Self; 3] = [Self::SolsticePlus105, Self::EveOfQingming, Self::Hansik];
-
+    pub const ALL;
     /// A short identifier, in kebab case.
-    #[must_use]
-    pub const fn id(self) -> &'static str {
-        match self {
-            Self::SolsticePlus105 => "hanshi-solstice-105",
-            Self::EveOfQingming => "hanshi-eve-of-qingming",
-            Self::Hansik => "hansik",
-        }
-    }
-
+    pub fn id;
     /// The convention with this identifier, by
     /// [`hc_core::catalogue::matches`].
-    #[must_use]
-    pub fn by_id(id: &str) -> Option<Self> {
-        Self::ALL
-            .into_iter()
-            .find(|convention| hc_core::catalogue::matches(id, convention.id()))
-    }
+    pub fn by_id;
 
+    entries: {
+        SolsticePlus105 => "hanshi-solstice-105",
+        EveOfQingming => "hanshi-eve-of-qingming",
+        Hansik => "hansik",
+    }
+}
+
+impl ColdFoodConvention {
     /// The name in the convention's own language.
     #[must_use]
     pub const fn local_name(self) -> &'static str {
@@ -105,14 +103,6 @@ impl ColdFoodConvention {
             Self::EveOfQingming => Rd(term_day(year, QINGMING, meridian).0 - 1),
         }
     }
-}
-
-hc_core::catalogue_tests! {
-    type: ColdFoodConvention,
-    id: |convention| convention.id(),
-    tests: cold_food_convention_catalogue_tests,
-    all: &ColdFoodConvention::ALL,
-    lookup: ColdFoodConvention::by_id,
 }
 
 #[cfg(test)]
@@ -178,7 +168,7 @@ mod tests {
 
     #[test]
     fn the_conventions_have_distinct_identifiers() {
-        let ids = ColdFoodConvention::ALL.map(ColdFoodConvention::id);
+        let ids: [&str; 3] = core::array::from_fn(|index| ColdFoodConvention::ALL[index].id());
         assert_eq!(
             ids,
             ["hanshi-solstice-105", "hanshi-eve-of-qingming", "hansik"]

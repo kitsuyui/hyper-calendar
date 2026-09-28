@@ -32,7 +32,9 @@
 //! exception is EDTF, which needs proleptic Gregorian day arithmetic to
 //! place `1984-01-01` at all; it takes that from
 //! [`hc_calendar::gregorian`], the one place it lives, as [`edtf`]
-//! documents.
+//! documents. It comes with the `edtf` feature, on by default, which is
+//! all that brings `hc-calendar`: a crate that measures deep time, orbits
+//! or relativity with these types can leave both out.
 //!
 //! It also does not do Monte Carlo. [`Uncertain`] is a linear approximation
 //! and says so; when the relative uncertainty is large enough for that to
@@ -45,6 +47,7 @@
 #[cfg(feature = "alloc")]
 extern crate alloc;
 
+#[cfg(feature = "edtf")]
 pub mod edtf;
 pub mod error;
 pub mod fuzzy;
@@ -58,8 +61,7 @@ pub use interval::DurationInterval;
 pub use quantity::Uncertain;
 pub use sig_figs::{MAX_FIGURES, Significant};
 
+#[cfg(feature = "edtf")]
 pub use edtf::{
     EdtfComponent, EdtfDate, EdtfEndpoint, EdtfPrecision, EdtfQualifier, EdtfSetMember, EdtfValue,
 };
-
-pub use hc_core;

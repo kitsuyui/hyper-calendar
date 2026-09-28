@@ -234,14 +234,13 @@ impl MajorTermCorrection {
 }
 
 /// How the twelve major solar terms are placed.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SolarTermMode {
     /// *Dìngqì*: a term falls when the Sun's **apparent** longitude reaches a
     /// multiple of 30°, so the intervals between terms are unequal.
     ///
     /// In use in China from the Shíxiàn calendar of 1645 and in Japan from
     /// the Tenpō calendar of 1844.
-    #[default]
     Apparent,
     /// *Píngqì*: the year is divided into twelve equal stretches from the
     /// winter solstice, so the terms are evenly spaced in time.
@@ -263,7 +262,7 @@ pub enum SolarTermMode {
 /// runs out (`wikipedia-zh-dingshuo`, `wikipedia-zh-wuyinyuanli`,
 /// `wikipedia-zh-lindeli`); Japan inherited the change with the Gihō
 /// calendar of 697.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ConjunctionMode {
     /// *Heisaku* (平朔): the month begins at the mean conjunction, so the
     /// months alternate 30, 29, 30, 29 with an occasional doubled long month.
@@ -271,7 +270,6 @@ pub enum ConjunctionMode {
     /// *Teisaku* (定朔): the month begins at the true conjunction — the mean
     /// one displaced by the equations of centre of the Sun and the Moon, as
     /// the system's own 日躔 and 月離 tables gave them.
-    #[default]
     True,
     /// 定朔 taken from modern astronomy instead of from the system's tables.
     ///

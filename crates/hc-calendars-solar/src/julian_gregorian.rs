@@ -354,24 +354,6 @@ impl ReformCalendar {
     }
 }
 
-impl Default for ReformCalendar {
-    /// The Catholic adoption of October 1582, the reform itself.
-    fn default() -> Self {
-        Self {
-            id: ADOPTIONS[0].id,
-            name: ADOPTIONS[0].name,
-            region: ADOPTIONS[0].region,
-            source: ADOPTIONS[0].source,
-            // `to_fixed` of 1582-10-15 cannot fail; the fallback keeps the
-            // no-panic rule without pretending the failure is meaningful.
-            cutover: match ADOPTIONS[0].cutover() {
-                Ok(rd) => rd,
-                Err(_) => Rd(577_736),
-            },
-        }
-    }
-}
-
 impl Calendar for ReformCalendar {
     type Date = ReformDate;
 
@@ -698,7 +680,7 @@ mod tests {
     fn a_leap_year_is_one_in_which_29_february_was_written() {
         // 1582 has 355 days in the Catholic reform and 1583 is an ordinary
         // 365: neither is leap, whatever a comparison of their lengths says.
-        let catholic = ReformCalendar::default();
+        let catholic = calendar("julian-gregorian-catholic");
         assert_eq!(catholic.is_leap_year(1582), Ok(false));
         assert_eq!(catholic.is_leap_year(1583), Ok(false));
         assert_eq!(catholic.is_leap_year(1584), Ok(true));
@@ -722,10 +704,10 @@ mod tests {
     }
 
     #[test]
-    fn the_default_calendar_is_the_reform_itself() {
-        let default = ReformCalendar::default();
+    fn the_catholic_calendar_is_the_reform_itself() {
+        let catholic = calendar("julian-gregorian-catholic");
         assert_eq!(
-            default.cutover(),
+            catholic.cutover(),
             gregorian::to_fixed(1582, 10, 15).unwrap()
         );
         assert_eq!(adoption_by_id("nowhere"), None);

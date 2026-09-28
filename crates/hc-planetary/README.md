@@ -13,12 +13,12 @@ It depends on `hc-core`, `hc-calendar` and `hc-astro`.
 ```rust
 use hc_planetary::{BodyClock, mars};
 
-let landing = mars::missions::mission("Curiosity").unwrap();
+let landing = mars::missions::by_id("curiosity").unwrap();
 let moment = landing.landing_moment().unwrap();
 assert_eq!(landing.clock().unwrap().sol(moment), 0);   // sol 0 at Gale Crater
 assert_eq!(moment.mars_year(), 31);                    // Mars Year 31
 
-let titan = BodyClock::for_name("Titan").unwrap();
+let titan = BodyClock::for_id("titan").unwrap();
 assert!(!titan.is_standardised());                     // no standard exists
 ```
 

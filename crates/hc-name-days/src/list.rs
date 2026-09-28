@@ -86,31 +86,27 @@ pub enum LeapDayRule {
     LeapYearsOnly,
 }
 
-impl LeapDayRule {
+hc_core::catalogue! {
+    type: LeapDayRule,
+    tests: leap_day_rule_catalogue_tests,
+    variants;
+
+    /// Every rule, in the order of the variants.
+    pub const ALL;
     /// The identifier the loader's text format uses.
-    #[must_use]
-    pub const fn id(self) -> &'static str {
-        match self {
-            Self::NoNames => "no-names",
-            Self::OwnNames => "own-names",
-            Self::ShiftAfter24February => "shift-after-24-february",
-            Self::LeapYearsOnly => "leap-years-only",
-        }
-    }
+    pub fn id;
+    /// The rule with this identifier, by [`hc_core::catalogue::matches`].
+    pub fn by_id;
 
-    /// The rule with this identifier.
-    #[must_use]
-    pub fn by_id(id: &str) -> Option<Self> {
-        [
-            Self::NoNames,
-            Self::OwnNames,
-            Self::ShiftAfter24February,
-            Self::LeapYearsOnly,
-        ]
-        .into_iter()
-        .find(|rule| rule.id() == id)
+    entries: {
+        NoNames => "no-names",
+        OwnNames => "own-names",
+        ShiftAfter24February => "shift-after-24-february",
+        LeapYearsOnly => "leap-years-only",
     }
+}
 
+impl LeapDayRule {
     /// A one-line description.
     #[must_use]
     pub const fn english_description(self) -> &'static str {

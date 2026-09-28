@@ -167,11 +167,11 @@ pub fn era_at(rd: Rd) -> CalendarResult<&'static KoreanEra> {
         .unwrap_or(&GEONYANG))
 }
 
-/// The era with this identifier, Hanja or Hangul name.
+/// The era with this identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn find(name: &str) -> Option<&'static KoreanEra> {
+pub fn by_id(id: &str) -> Option<&'static KoreanEra> {
     ALL.iter()
-        .find(|era| era.id == name || era.hanja == name || era.hangul == name)
+        .find(|era| hc_core::catalogue::matches(id, era.id))
         .copied()
 }
 
@@ -288,7 +288,7 @@ impl Calendar for KoreanRegnalCalendar {
     fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
         match fields.era {
             Some(name) => {
-                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
                 self.is_leap_year(era.start_year + fields.year - 1)
             }
             None => self.is_leap_year(fields.year),
@@ -297,7 +297,7 @@ impl Calendar for KoreanRegnalCalendar {
 
     /// The era in Hangul with its Revised Romanisation.
     fn era_name(&self, code: &str) -> Option<hc_calendar::EraName> {
-        find(code).map(|era| hc_calendar::EraName::new(era.hangul, era.romanised))
+        by_id(code).map(|era| hc_calendar::EraName::new(era.hangul, era.romanised))
     }
 
     fn meta(&self) -> CalendarMeta {
@@ -335,7 +335,7 @@ impl Calendar for KoreanRegnalCalendar {
         let day = fields.require_day()?;
         match fields.era {
             Some(name) => {
-                let era = find(name).ok_or(CalendarError::UnknownEra)?;
+                let era = by_id(name).ok_or(CalendarError::UnknownEra)?;
                 let date = KoreanRegnalDate {
                     era,
                     year: fields.year,
@@ -448,8 +448,10 @@ mod tests {
             calendar.from_fields(&DateFields::ymd(1, 1, 1).with_era("meiji")),
             Err(CalendarError::UnknownEra)
         );
-        assert_eq!(find("光武"), Some(&GWANGMU));
-        assert_eq!(find("융희"), Some(&YUNGHUI));
+        assert_eq!(by_id("gwangmu"), Some(&GWANGMU));
+        assert_eq!(by_id(" Yunghui "), Some(&YUNGHUI));
+        assert_eq!(by_id("光武"), None);
+        assert_eq!(by_id("융희"), None);
         assert_eq!(month_of(from_fixed(EARLIEST).unwrap()), Month::regular(1));
     }
 }

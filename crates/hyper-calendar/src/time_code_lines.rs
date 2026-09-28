@@ -35,8 +35,6 @@ use hc_core::{Instant, Tai, TimeError};
 use hc_format::ValueError;
 use hc_format::ccsds::{self, AsciiPrecision, AsciiTime, AsciiVariation, CcsTime, CcsdsCode};
 use hc_format::east_african_hours::{self, Half, HourReading, Reckoning};
-#[cfg(feature = "tz")]
-use hc_format::hc_tz::TimeZone;
 use hc_format::irig::{self, IrigCode, IrigFrame};
 #[cfg(feature = "tz")]
 use hc_format::radio::dcf77::summer_time;
@@ -44,6 +42,8 @@ use hc_format::radio::dcf77::{Dcf77Frame, Zone};
 use hc_format::radio::jjy::{JjyContent, JjyFrame};
 use hc_format::radio::wwvb::{AmFrame, DstNext, DstState, PmFrame};
 use hc_format::radio::{Code as RadioCode, FrameError, LeapNotice, Symbol};
+#[cfg(feature = "tz")]
+use hc_tz::TimeZone;
 
 use crate::boundary::{Answer, Line, Refusal, line};
 use crate::time_lines::{hex_into, tai_instant, tai_parts, unix_instant};
@@ -1401,8 +1401,8 @@ mod tests {
     #[cfg(feature = "tz")]
     #[test]
     fn a_zones_rules_give_the_frames_the_caller_would() {
-        let berlin = hc_format::hc_tz::builtin::zone("Europe/Berlin").expect("built in");
-        let new_york = hc_format::hc_tz::builtin::zone("America/New_York").expect("built in");
+        let berlin = hc_tz::builtin::zone("Europe/Berlin").expect("built in");
+        let new_york = hc_tz::builtin::zone("America/New_York").expect("built in");
         let named = |code, unix, summer, change, dut1, next| {
             radio_encode_line(code, unix, 0, summer, change, dut1, next).expect("a minute")
         };
@@ -1476,7 +1476,7 @@ mod tests {
         );
         assert_eq!(radio_summer_zone("cest"), None);
         assert_eq!(radio_summer_zone("zon"), None);
-        let london = hc_format::hc_tz::builtin::zone("Europe/London").expect("built in");
+        let london = hc_tz::builtin::zone("Europe/London").expect("built in");
         assert_eq!(
             radio_encode_line_by_zone("dcf77", 1_790_512_200, 0, &london, 0),
             Err(Refusal::OutOfRange)

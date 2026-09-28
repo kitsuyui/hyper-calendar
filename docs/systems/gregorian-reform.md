@@ -427,9 +427,8 @@ calendar is `swedish.rs`, with `DOUBLE_LEAP_DAY`, `EARLIEST` and
 starts are `year_style.rs`; the Rumi calendar is `rumi.rs`.
 
 The regional table is `adoption.rs`: `RegionalAdoption`, `Step`, `Scope`,
-`REGIONAL_ADOPTIONS` and `gregorian_adoption`, which the facade re-exports
-as `hyper_calendar::gregorian_adoption` and renders as lines in
-`hyper_calendar::lines::gregorian_adoption`. Anchors:
+`REGIONAL_ADOPTIONS` and `gregorian_adoption`, which the facade renders as
+lines in `hyper_calendar::lines::gregorian_adoption`. Anchors:
 `every_row_resolves_and_names_its_source`,
 `sweden_went_there_and_back_before_it_went_for_good`,
 `serbia_has_its_own_date`, `belgium_changed_in_two_steps_after_zeeland`,

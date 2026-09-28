@@ -171,6 +171,15 @@ a citation it does not have. Where a commonly repeated claim could not be
 sourced at all — Pakistan's supposed 1959 change, the UK's 1800 leap day — the
 crate declines to encode it and says why.
 
+## Features
+
+| Feature | Effect |
+| --- | --- |
+| `std` (default) | implies `alloc` |
+| `alloc` | passed to the `hc-*` crates below |
+| `indic` (default) | Nepal, whose year begins on 1 Shrawan of the Bikram Sambat, from `hc-calendars-indic`; without it the crate needs no astronomy |
+| `libm` | software floating-point math through `hc-core`, for `no_std` targets |
+
 ## Testing
 
 134 unit tests and 1 doc test. Among them: Japan's 年度 boundary from both sides; the United States

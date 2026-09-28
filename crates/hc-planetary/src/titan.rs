@@ -288,7 +288,7 @@ mod tests {
 
     #[test]
     fn the_circad_agrees_with_the_bodies_table() {
-        let derived = crate::bodies::by_name("Titan")
+        let derived = crate::bodies::by_id("Titan")
             .unwrap()
             .solar_day_days()
             .unwrap();

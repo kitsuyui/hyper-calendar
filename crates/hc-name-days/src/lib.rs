@@ -96,8 +96,6 @@ pub use list::{
 #[cfg(feature = "alloc")]
 pub use load::OwnedNameDayList;
 
-pub use hc_calendar;
-
 /// Every list the crate ships, across all countries, by identifier.
 ///
 /// Hand-assembled from the per-country tables because a `const` slice

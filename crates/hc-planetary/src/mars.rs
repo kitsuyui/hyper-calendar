@@ -598,6 +598,9 @@ pub fn mars_year(instant: Instant<Tai>) -> i64 {
 /// differs), so no distinction is drawn here.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Site {
+    /// The identifier: the name in lower case, with a hyphen for each
+    /// space, `olympus-mons` or `airy-0`.
+    pub id: &'static str,
     /// The English name of the place.
     pub name: &'static str,
     /// East longitude in degrees.
@@ -632,6 +635,7 @@ impl Site {
 /// exactly 47.951 37° east of it, which is why the Viking 1 longitude in
 /// [`missions`] is so precise a number.
 pub const AIRY_0: Site = Site {
+    id: "airy-0",
     name: "Airy-0",
     east_longitude_degrees: 0.0,
     source: "IAU prime meridian; Kuchynka et al. (2014)",
@@ -642,37 +646,52 @@ pub const AIRY_0: Site = Site {
 pub const SITES: &[Site] = &[
     AIRY_0,
     Site {
+        id: "olympus-mons",
         name: "Olympus Mons",
         east_longitude_degrees: 226.2,
         source: "IAU Gazetteer of Planetary Nomenclature (centre of the caldera)",
     },
     Site {
+        id: "valles-marineris",
         name: "Valles Marineris",
         east_longitude_degrees: 301.4,
         source: "IAU Gazetteer of Planetary Nomenclature (centre)",
     },
     Site {
+        id: "hellas-planitia",
         name: "Hellas Planitia",
         east_longitude_degrees: 70.5,
         source: "IAU Gazetteer of Planetary Nomenclature (centre)",
     },
     Site {
+        id: "gale-crater",
         name: "Gale Crater",
         east_longitude_degrees: 137.44,
         source: "NASA GISS Mars24 lander table",
     },
     Site {
+        id: "jezero-crater",
         name: "Jezero Crater",
         east_longitude_degrees: 77.45,
         source: "NASA GISS Mars24 lander table",
     },
 ];
 
-/// Look a landmark up by name. The comparison is case-sensitive, because these
-/// are proper nouns.
+/// Look a landmark up by its identifier, by [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn site(name: &str) -> Option<&'static Site> {
-    SITES.iter().find(|entry| entry.name == name)
+pub fn site(id: &str) -> Option<&'static Site> {
+    SITES
+        .iter()
+        .find(|entry| hc_core::catalogue::matches(id, entry.id))
+}
+
+hc_core::catalogue_tests! {
+    type: Site,
+    id: |entry| entry.id,
+    provenance: |entry| entry.source,
+    tests: site_table_tests,
+    all: SITES,
+    lookup: site,
 }
 
 #[cfg(test)]
@@ -1011,17 +1030,17 @@ mod tests {
         // Every one of these is the Mars year quoted in the mission
         // literature for the landing.
         let expected: [(&str, i64); 8] = [
-            ("Viking 1", 12),
-            ("Mars Pathfinder", 23),
-            ("Spirit", 26),
-            ("Opportunity", 26),
-            ("Phoenix", 29),
-            ("Curiosity", 31),
-            ("InSight", 34),
-            ("Perseverance", 36),
+            ("viking-1", 12),
+            ("mars-pathfinder", 23),
+            ("spirit", 26),
+            ("opportunity", 26),
+            ("phoenix", 29),
+            ("curiosity", 31),
+            ("insight", 34),
+            ("perseverance", 36),
         ];
         for (name, year) in expected {
-            let mission = missions::mission(name).unwrap();
+            let mission = missions::by_id(name).unwrap();
             let moment = mission.landing_moment().unwrap();
             assert_eq!(moment.mars_year(), year, "{name}");
         }
@@ -1073,10 +1092,14 @@ mod tests {
 
     #[test]
     fn the_landmark_table_is_self_consistent() {
-        assert_eq!(site("Airy-0").unwrap().west_longitude_degrees(), 0.0);
-        let olympus = site("Olympus Mons").unwrap();
+        assert_eq!(site("airy-0").unwrap().west_longitude_degrees(), 0.0);
+        assert!(
+            site("Olympus Mons").is_none(),
+            "a name is not an identifier"
+        );
+        let olympus = site("olympus-mons").unwrap();
         assert!((olympus.west_longitude_degrees() - 133.8).abs() < 1e-9);
-        assert!(site("Tharsis").is_none());
+        assert!(site("tharsis").is_none());
         // Every landmark's true solar time differs from its mean by the
         // equation of time, whichever way it is reached.
         let moment = at(2030, 1, 1, 0, 0, 0);

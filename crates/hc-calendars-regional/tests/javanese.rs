@@ -11,7 +11,7 @@
 //! Surakarta, 1971, as the Yayasan Sastra Lestari transcribes it
 //! (sastra.org, #616) [tanaya1971], unless a test names another.
 
-use hc_calendars_lunar::hc_calendar::{Calendar, Rd, gregorian};
+use hc_calendar::{Calendar, Rd, gregorian};
 use hc_calendars_lunar::javanese::{
     JAVANESE, JAVANESE_ABOGE, JAVANESE_YOGYAKARTA, JavaneseCalendar, JavaneseDate,
 };
@@ -426,7 +426,7 @@ fn the_months_of_two_windu_open_as_tanaya_tabulates() {
                 for (place, &printed) in row.iter().enumerate() {
                     let year = windu + i64::try_from(place).unwrap();
                     let rd = day(&JAVANESE, year, month, 1);
-                    let weekday = hc_calendars_lunar::hc_calendar::Weekday::from_rd(rd);
+                    let weekday = hc_calendar::Weekday::from_rd(rd);
                     let computed = (
                         u8::try_from(DINA_NEPTU[usize::from(weekday.sunday_first_number())])
                             .unwrap(),

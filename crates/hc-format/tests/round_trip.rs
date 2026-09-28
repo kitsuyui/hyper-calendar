@@ -16,9 +16,8 @@
 //! in each form, and catches the off-by-one that a thousand random samples
 //! would miss.
 
-use hc_format::hc_calendar::{CivilDateTime, CivilTime, Rd};
-use hc_format::hc_calendars_solar::{gregorian, iso_week, ordinal};
-use hc_format::hc_tz::{OffsetStyle, UtcOffset};
+use hc_calendar::{CivilDateTime, CivilTime, Rd};
+use hc_calendars_solar::{gregorian, iso_week, ordinal};
 use hc_format::iso8601::{self, Strictness, duration, interval};
 use hc_format::patterns::{FormatContext, cldr, strftime};
 use hc_format::value::{
@@ -26,6 +25,7 @@ use hc_format::value::{
     YearStyle, ZoneInfo,
 };
 use hc_format::{format_to_string, rfc2822, rfc3339};
+use hc_tz::{OffsetStyle, UtcOffset};
 
 /// 1583-01-01, the first full year after the Gregorian reform.
 const FIRST_DAY: i64 = 577_814;
@@ -270,15 +270,15 @@ fn a_fractional_component_always_names_the_span_it_should() {
     let half_second = iso8601::parse("2026-09-21T14:30:30.5").unwrap();
     assert_eq!(
         half_hour.time.unwrap().since_midnight(),
-        hc_format::hc_core::Duration::from_secs(14 * 3_600 + 30 * 60)
+        hc_core::Duration::from_secs(14 * 3_600 + 30 * 60)
     );
     assert_eq!(
         half_minute.time.unwrap().since_midnight(),
-        hc_format::hc_core::Duration::from_secs(14 * 3_600 + 30 * 60 + 30)
+        hc_core::Duration::from_secs(14 * 3_600 + 30 * 60 + 30)
     );
     assert_eq!(
         half_second.time.unwrap().since_midnight(),
-        hc_format::hc_core::Duration::from_millis((14 * 3_600 + 30 * 60 + 30) * 1_000 + 500)
+        hc_core::Duration::from_millis((14 * 3_600 + 30 * 60 + 30) * 1_000 + 500)
     );
 }
 

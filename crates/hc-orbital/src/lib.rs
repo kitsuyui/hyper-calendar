@@ -75,6 +75,3 @@ pub use insolation::{
     insolation_65n_june,
 };
 pub use series::Term;
-
-pub use hc_core;
-pub use hc_uncertainty;

@@ -40,7 +40,7 @@ use core::fmt;
 use hc_core::math::{floor, modulo};
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
-use crate::bodies::{Body, EpochBasis, by_name, whole_and_fraction};
+use crate::bodies::{Body, EpochBasis, by_id, whole_and_fraction};
 use crate::util::j2000_offset_days;
 
 /// A local time on some body: which local day, and how far through it.
@@ -149,11 +149,11 @@ impl BodyClock {
         })
     }
 
-    /// A clock for the named body, or `None` when the name is unknown or the
-    /// body has no solar day. The comparison is case-sensitive.
+    /// A clock for the body with this identifier, or `None` when the
+    /// identifier is unknown or the body has no solar day.
     #[must_use]
-    pub fn for_name(name: &str) -> Option<Self> {
-        Self::new(by_name(name)?)
+    pub fn for_id(id: &str) -> Option<Self> {
+        Self::new(by_id(id)?)
     }
 
     /// The body this clock belongs to.
@@ -232,9 +232,9 @@ mod tests {
             let clock = BodyClock::new(entry);
             assert_eq!(clock.is_some(), entry.name != "Sun", "{}", entry.name);
         }
-        assert!(BodyClock::for_name("Sun").is_none());
-        assert!(BodyClock::for_name("Arrakis").is_none());
-        assert!(BodyClock::for_name("Titan").is_some());
+        assert!(BodyClock::for_id("sun").is_none());
+        assert!(BodyClock::for_id("arrakis").is_none());
+        assert!(BodyClock::for_id("titan").is_some());
     }
 
     #[test]
@@ -257,7 +257,7 @@ mod tests {
         // The strongest cross-check in the crate: the table-driven clock and
         // the Allison-McEwen implementation are wholly separate code paths
         // that must agree on Mars.
-        let clock = BodyClock::for_name("Mars").unwrap();
+        let clock = BodyClock::for_id("mars").unwrap();
         for when in [
             at(2000, 1, 6, 0, 0, 0),
             at(2012, 8, 6, 5, 17, 57),
@@ -279,7 +279,7 @@ mod tests {
 
     #[test]
     fn the_generic_mars_clock_reproduces_local_mean_solar_time() {
-        let clock = BodyClock::for_name("Mars").unwrap();
+        let clock = BodyClock::for_id("mars").unwrap();
         let when = at(2021, 2, 18, 20, 43, 48);
         let moment = mars::MarsMoment::from_tai(when);
         for west in [0.0, 5.5266, 133.8, 222.56, 359.9] {
@@ -296,8 +296,8 @@ mod tests {
     fn what_time_is_it_at_olympus_mons() {
         // The question the module exists to answer, asked through the generic
         // interface and checked against the Mars-specific one.
-        let clock = BodyClock::for_name("Mars").unwrap();
-        let olympus = mars::site("Olympus Mons").unwrap();
+        let clock = BodyClock::for_id("mars").unwrap();
+        let olympus = mars::site("olympus-mons").unwrap();
         let when = at(2030, 6, 1, 12, 0, 0);
         let generic = clock.at_east_longitude(when, olympus.east_longitude_degrees);
         let special = olympus.local_mean_solar_time(mars::MarsMoment::from_tai(when));
@@ -308,7 +308,7 @@ mod tests {
 
     #[test]
     fn the_earth_clock_numbers_its_days_by_rata_die() {
-        let clock = BodyClock::for_name("Earth").unwrap();
+        let clock = BodyClock::for_id("earth").unwrap();
         // 2000-01-01 is Rata Die 730120; the epoch is its midnight in TT, and
         // TT ran 64.184 s ahead of UTC in 2000, so noon UTC is inside it.
         let local = clock.at_prime_meridian(at(2000, 1, 1, 12, 0, 0));
@@ -325,7 +325,7 @@ mod tests {
     fn the_earth_clock_is_uniform_and_so_parts_company_with_ut1() {
         // Documented limitation, pinned so it cannot be forgotten: the clock
         // ticks 86400 s per day and the planet does not.
-        let clock = BodyClock::for_name("Earth").unwrap();
+        let clock = BodyClock::for_id("earth").unwrap();
         let local = clock.at_prime_meridian(at(2020, 1, 1, 0, 0, 0));
         // TT - UTC was 69.184 s in 2020, and the epoch is a TT midnight, so
         // the clock reads about 69 s past midnight at UTC midnight.
@@ -335,7 +335,7 @@ mod tests {
 
     #[test]
     fn longitude_runs_the_right_way_on_a_prograde_body() {
-        let clock = BodyClock::for_name("Earth").unwrap();
+        let clock = BodyClock::for_id("earth").unwrap();
         let when = at(2024, 6, 21, 12, 0, 0);
         let greenwich = clock.at_prime_meridian(when).day_fraction();
         let tokyo = clock.at_east_longitude(when, 135.0).day_fraction();
@@ -347,13 +347,13 @@ mod tests {
     fn longitude_runs_the_other_way_on_a_retrograde_body() {
         // On Venus the Sun rises in the west, so a place to the west of the
         // prime meridian reaches noon first and its clock reads later.
-        let clock = BodyClock::for_name("Venus").unwrap();
+        let clock = BodyClock::for_id("venus").unwrap();
         let when = at(2024, 6, 21, 12, 0, 0);
         let prime = clock.at_prime_meridian(when).day_fraction();
         let west = clock.at_west_longitude(when, 90.0).day_fraction();
         assert!((modulo(west - prime, 1.0) - 0.25).abs() < 1e-9);
         // And the opposite for a prograde body, to prove the branch matters.
-        let mars = BodyClock::for_name("Mars").unwrap();
+        let mars = BodyClock::for_id("mars").unwrap();
         let mars_prime = mars.at_prime_meridian(when).day_fraction();
         let mars_west = mars.at_west_longitude(when, 90.0).day_fraction();
         assert!((modulo(mars_prime - mars_west, 1.0) - 0.25).abs() < 1e-9);
@@ -362,7 +362,7 @@ mod tests {
     #[test]
     fn a_local_day_takes_a_solar_day_of_si_time() {
         for name in ["Earth", "Mars", "Titan", "Venus", "Io", "Charon"] {
-            let clock = BodyClock::for_name(name).unwrap();
+            let clock = BodyClock::for_id(name).unwrap();
             let start = at(2030, 1, 1, 0, 0, 0);
             let index = clock.prime_meridian_index(start);
             let day = clock.solar_day_seconds();
@@ -384,7 +384,7 @@ mod tests {
             ("Venus", 420_302.0),
         ];
         for (name, seconds) in expectations {
-            let clock = BodyClock::for_name(name).unwrap();
+            let clock = BodyClock::for_id(name).unwrap();
             let hour = clock
                 .at_prime_meridian(at(2020, 1, 1, 0, 0, 0))
                 .local_hour_seconds();
@@ -413,7 +413,7 @@ mod tests {
 
     #[test]
     fn time_since_local_midnight_matches_the_day_fraction() {
-        let clock = BodyClock::for_name("Titan").unwrap();
+        let clock = BodyClock::for_id("titan").unwrap();
         let local = clock.at_prime_meridian(at(2025, 9, 1, 6, 0, 0));
         let elapsed = local.since_local_midnight().unwrap().as_secs_f64();
         assert!((elapsed - local.day_fraction() * local.solar_day_seconds()).abs() < 1e-6);
@@ -422,7 +422,7 @@ mod tests {
 
     #[test]
     fn the_day_number_advances_by_exactly_one_per_local_day() {
-        let clock = BodyClock::for_name("Io").unwrap();
+        let clock = BodyClock::for_id("io").unwrap();
         let start = at(2026, 1, 1, 0, 0, 0);
         let first = clock.at_prime_meridian(start).day_number();
         let day = Duration::from_secs_f64(clock.solar_day_seconds()).unwrap();
@@ -435,7 +435,7 @@ mod tests {
 
     #[test]
     fn a_longitude_of_three_hundred_and_sixty_degrees_is_the_prime_meridian() {
-        let clock = BodyClock::for_name("Ganymede").unwrap();
+        let clock = BodyClock::for_id("ganymede").unwrap();
         let when = at(2031, 7, 7, 7, 7, 7);
         let prime = clock.at_prime_meridian(when);
         let wrapped = clock.at_west_longitude(when, 360.0);

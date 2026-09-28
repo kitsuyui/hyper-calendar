@@ -47,7 +47,7 @@
 use hc_calendar::{CalendarResult, Month};
 
 use crate::authority::{
-    Authority, MonthTable, Provenance, Region, Validity, disagreement_count, month_index, unanimous,
+    Authority, MonthTable, Provenance, Region, Validity, disagreement_count, month_index,
 };
 
 /// The list the *Old Farmer's Almanac* prints, and the commonest one in the
@@ -100,8 +100,7 @@ pub static BIRTH_FLOWERS_ANGLO_AMERICAN: MonthTable = MonthTable::new(
 /// are printed in the other order.
 ///
 /// A crate that averaged the two lists would lose all three facts. This one
-/// ships both and lets [`differences_from_the_anglo_american_list`] count
-/// them.
+/// ships both, and a test counts them.
 pub static BIRTH_FLOWERS_BRITISH_TRADE: MonthTable = MonthTable::new(
     Authority {
         id: "birth-flowers-uk-trade",
@@ -165,21 +164,6 @@ pub fn all_for_month(
         .filter_map(move |table| Some((table.authority(), table.at(index).ok()?))))
 }
 
-/// The months in which the two lists print different text.
-///
-/// Three: February, July and December. July's is a naming difference rather
-/// than a botanical one and December's is an ordering difference, which is
-/// why the function returns the months and leaves the interpretation to the
-/// caller instead of pretending to classify them.
-pub fn differences_from_the_anglo_american_list() -> impl Iterator<Item = Month> {
-    (0..12u8).filter_map(|index| {
-        let position = usize::from(index);
-        let anglo = BIRTH_FLOWERS_ANGLO_AMERICAN.at(position).ok()?;
-        let british = BIRTH_FLOWERS_BRITISH_TRADE.at(position).ok()?;
-        (anglo != british).then(|| Month::regular(index + 1))
-    })
-}
-
 /// How many months the two lists disagree about. Three.
 ///
 /// # Errors
@@ -189,20 +173,36 @@ pub fn months_in_dispute() -> CalendarResult<usize> {
     disagreement_count(&ALL)
 }
 
-/// Whether both lists name exactly the same flowers for a month.
-///
-/// # Errors
-///
-/// As [`flowers`].
-pub fn lists_agree(month: Month) -> CalendarResult<bool> {
-    unanimous(&ALL, month_index(month)?)
-}
-
 #[cfg(test)]
 mod tests {
     use hc_calendar::CalendarError;
 
     use super::*;
+    use crate::authority::unanimous;
+
+    /// The months in which the two lists print different text.
+    ///
+    /// Three: February, July and December. July's is a naming difference rather
+    /// than a botanical one and December's is an ordering difference, which is
+    /// why this returns the months and leaves the interpretation to the
+    /// reader instead of pretending to classify them.
+    fn differences_from_the_anglo_american_list() -> impl Iterator<Item = Month> {
+        (0..12u8).filter_map(|index| {
+            let position = usize::from(index);
+            let anglo = BIRTH_FLOWERS_ANGLO_AMERICAN.at(position).ok()?;
+            let british = BIRTH_FLOWERS_BRITISH_TRADE.at(position).ok()?;
+            (anglo != british).then(|| Month::regular(index + 1))
+        })
+    }
+
+    /// Whether both lists name exactly the same flowers for a month.
+    ///
+    /// # Errors
+    ///
+    /// As [`flowers`].
+    fn lists_agree(month: Month) -> CalendarResult<bool> {
+        unanimous(&ALL, month_index(month)?)
+    }
 
     #[test]
     fn every_list_has_an_entry_for_all_twelve_months() {

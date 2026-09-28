@@ -301,7 +301,7 @@ pub static BIRTHSTONES_JP_1958: MonthTable = MonthTable::new(
 /// associated with them.
 ///
 /// Compare with [`BIRTHSTONES_US_2016`]: the two still disagree in seven
-/// months, and [`crate::birthstones::us_and_japan_differ_in`] counts them.
+/// months, and a test counts them.
 pub static BIRTHSTONES_JP_2021: MonthTable = MonthTable::new(
     Authority {
         id: "birthstones-jp-2021",
@@ -414,25 +414,25 @@ pub fn months_in_dispute() -> CalendarResult<usize> {
     disagreement_count(&ALL)
 }
 
-/// The months in which the current American and Japanese lists differ.
-///
-/// Both were revised recently, both are current, and they still disagree —
-/// which is the fact that makes a single `birthstone(month)` function
-/// impossible to write honestly.
-pub fn us_and_japan_differ_in() -> impl Iterator<Item = Month> {
-    (0..12u8).filter_map(|index| {
-        let position = usize::from(index);
-        let us = BIRTHSTONES_US_2016.at(position).ok()?;
-        let jp = BIRTHSTONES_JP_2021.at(position).ok()?;
-        (us != jp).then(|| Month::regular(index + 1))
-    })
-}
-
 #[cfg(test)]
 mod tests {
     use hc_calendar::CalendarError;
 
     use super::*;
+
+    /// The months in which the current American and Japanese lists differ.
+    ///
+    /// Both were revised recently, both are current, and they still disagree —
+    /// which is the fact that makes a single `birthstone(month)` function
+    /// impossible to write honestly.
+    fn us_and_japan_differ_in() -> impl Iterator<Item = Month> {
+        (0..12u8).filter_map(|index| {
+            let position = usize::from(index);
+            let us = BIRTHSTONES_US_2016.at(position).ok()?;
+            let jp = BIRTHSTONES_JP_2021.at(position).ok()?;
+            (us != jp).then(|| Month::regular(index + 1))
+        })
+    }
 
     #[test]
     fn every_authority_has_an_entry_for_all_twelve_months() {

@@ -46,7 +46,7 @@ use core::fmt;
 use hc_calendar::fields::ExtraFields;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, Weekday,
-    YearKind, weekday::DayCycle,
+    YearKind,
 };
 
 /// The length of the six-day week.
@@ -199,12 +199,6 @@ impl fmt::Display for AkanDate {
 /// The Akan *Adaduanan* cycle.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
 pub struct AkanCalendar;
-
-/// The six-day week as a plain [`DayCycle`].
-pub const NNANSON_DAY_CYCLE: DayCycle = DayCycle::new(NNANSON_CYCLE as u16, EPOCH);
-
-/// The 42-day cycle as a plain [`DayCycle`].
-pub const ADADUANAN_DAY_CYCLE: DayCycle = DayCycle::new(ADADUANAN_CYCLE as u16, EPOCH);
 
 /// The *nnanson* day of a fixed day, 1 for Fo through 6 for Mono.
 #[must_use]

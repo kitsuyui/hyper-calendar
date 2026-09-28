@@ -114,7 +114,5 @@ pub use zodiac::{
     SignPeriod, SolarMonthTradition, TropicalSign,
 };
 
-pub use hc_astro;
-pub use hc_calendar;
 pub use hc_calendar::Rd;
 pub use hc_calendar::fixed::Moment;

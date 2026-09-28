@@ -1,6 +1,6 @@
 //! The national tables.
 //!
-//! Every country here is a [`CountryRules`] value — a name, a list of
+//! Every country here is a [`RuleSet`] value — a name, a list of
 //! [`HolidayRule`](crate::rule::HolidayRule)s, the weekend and substitution
 //! law that modifies them, the date the sources were last checked and the
 //! statute or gazette they came from. None of them contributes a line of
@@ -71,12 +71,10 @@ pub use oceania::{
     PAPUA_NEW_GUINEA, SAMOA, SOLOMON_ISLANDS, TONGA, TUVALU, VANUATU,
 };
 
-/// A country's holiday table. The same type as any other rule set: a country
-/// is not special, it is just the rule set people ask for most.
-pub type CountryRules = RuleSet;
-
-/// Every country table in the crate, in ISO 3166-1 alpha-2 order.
-pub static ALL: &[&CountryRules] = &[
+/// Every country table in the crate, in ISO 3166-1 alpha-2 order. A
+/// country's table is a [`RuleSet`] like any other: a country is not
+/// special, it is just the rule set people ask for most.
+pub static ALL: &[&RuleSet] = &[
     &ANDORRA,
     &UNITED_ARAB_EMIRATES,
     &AFGHANISTAN,
@@ -277,14 +275,14 @@ pub static ALL: &[&CountryRules] = &[
 /// The table for an ISO 3166-1 alpha-2 country code, by
 /// [`hc_core::catalogue::matches`].
 #[must_use]
-pub fn by_code(code: &str) -> Option<&'static CountryRules> {
+pub fn by_code(code: &str) -> Option<&'static RuleSet> {
     ALL.iter()
         .copied()
         .find(|country| hc_core::catalogue::matches(code, country.code))
 }
 
 hc_core::catalogue_tests! {
-    type: &'static CountryRules,
+    type: &'static RuleSet,
     id: |country| country.code,
     sorted_by: |country| country.code,
     provenance: |country| country.sources,

@@ -28,9 +28,6 @@ pub const TEHRAN: Location = Location::new(35.696_111, 51.423_056, 0.0);
 /// the elevation is theirs and changes no transit.
 pub const TEHRAN_PERSIAN: Location = Location::new(35.68, 51.42, 1_100.0);
 
-/// The standard meridian of Iran Standard Time, UTC+03:30.
-pub const IRAN_STANDARD_MERIDIAN_DEGREES: f64 = 52.5;
-
 /// Iran Standard Time's offset from Universal Time, as a fraction of a day.
 pub const IRAN_STANDARD_OFFSET_DAYS: f64 = 3.5 / 24.0;
 

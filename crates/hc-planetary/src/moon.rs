@@ -51,7 +51,7 @@ use hc_core::math::{
 };
 use hc_core::{Instant, Tai};
 
-use crate::bodies::by_name;
+use crate::bodies::by_id;
 use crate::clock::{BodyClock, LocalTime};
 use crate::util::j2000_offset_days;
 
@@ -237,7 +237,7 @@ pub fn mean_solar_time(instant: Instant<Tai>, west_longitude_degrees: f64) -> Lo
 /// day. The `unwrap_or_else` exists only because the table is data and a
 /// future edit could in principle remove the row.
 fn lunar_clock() -> BodyClock {
-    match by_name("Moon").and_then(BodyClock::new) {
+    match by_id("Moon").and_then(BodyClock::new) {
         Some(clock) => clock,
         None => unreachable!("the Moon is always in the body table"),
     }

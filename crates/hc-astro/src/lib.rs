@@ -104,5 +104,4 @@ pub use solar::{
 pub use time::{delta_t, delta_t_with, dynamical_time, julian_centuries, universal_time};
 pub use ut1::{Ut1, Ut1Offsets};
 
-pub use hc_calendar;
 pub use hc_calendar::fixed::Moment;
