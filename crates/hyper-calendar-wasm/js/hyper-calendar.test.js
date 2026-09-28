@@ -98,7 +98,7 @@ describe("load", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
       "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
-      "planetary", "relativity",
+      "planetary", "relativity", "places",
     ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
@@ -2779,5 +2779,42 @@ describe("the reckonings of #243 to #246", () => {
     const start = reading - (reading % b.frameMicroseconds);
     assert.equal(hc.irigEncode("B124", hc.gregorianToFixed(2003, 6, 22), start / 1_000_000), frame);
     assert.equal(formats[2].frameMicroseconds, 3_600_000_000);
+  });
+});
+
+describe("places", () => {
+  test("Tokyo is 東京都 in Japanese and Tokyo in English", () => {
+    const japan = hc.subdivisions("jp", "ja-JP");
+    assert.equal(japan.length, 47);
+    const tokyo = japan.find((row) => row.code === "JP-13");
+    assert.deepEqual(tokyo, {
+      code: "JP-13", name: "東京都", englishName: "Tokyo", localeUsed: "ja", draft: "provisional", status: "regular",
+    });
+    assert.deepEqual(hc.placeName("jp-13", "ja"), tokyo);
+    assert.equal(hc.placeName("JP-13", "en").name, "Tokyo");
+    assert.equal(hc.placeName("JP", "ja").name, "日本");
+  });
+
+  test("a name falls back along CLDR's chain, then to English", () => {
+    assert.equal(hc.placeName("DE-BY", "de").name, "Bayern");
+    assert.equal(hc.placeName("US-CA", "fr").name, "Californie");
+    const taipei = hc.placeName("JP-13", "zh-TW");
+    assert.deepEqual([taipei.name, taipei.localeUsed], ["Tokyo", "en"]);
+    const lisbon = hc.placeName("JP-13", "pt-PT");
+    assert.deepEqual([lisbon.name, lisbon.localeUsed], ["Tóquio", "pt"]);
+    const paris = hc.placeName("FR-75", "ja");
+    assert.deepEqual([paris.name, paris.englishName, paris.localeUsed, paris.draft, paris.status],
+      [null, null, null, null, "deprecated"]);
+  });
+
+  test("every territory and subdivision has a line, and an unknown code is refused", () => {
+    const raw = rawRows(hc, (buffer, capacity) => hc.exports.hc_territories(0, 0, buffer, capacity));
+    assert.equal(raw.length, 295);
+    assert.ok(raw.every((row) => row.length === COLUMNS.places.length));
+    assert.equal(hc.territories("de").find((row) => row.code === "001")?.status, "macroregion");
+    assert.equal(hc.subdivisions("", "en").length, 5503);
+    assert.deepEqual(hc.subdivisions("AQ"), []);
+    refused(() => hc.subdivisions("JPN"), "unknown");
+    refused(() => hc.placeName("jp13"), "unknown");
   });
 });

@@ -18,8 +18,15 @@
 # calendar or a holiday table does.
 # The line digests are generated hexadecimal hashes, and a hash can spell a
 # "misspelling" such as `caf`.
+# hc-i18n's place_names/cldr48.rs is generated from CLDR 48 by
+# scripts/place-names-cldr.py: some 130 000 names of places in 45 languages
+# (Czech "provincie", Dutch "departement") and ISO 3166-2 codes run
+# together in fixed-width records (`GH-OT`, `PE-SAMPE-TAC`), none of them
+# English words, and a generator's output is checked against CLDR, not
+# corrected by hand.
 extend-exclude = [
     "Cargo.lock",
+    "crates/hc-i18n/src/place_names/cldr48.rs",
     "crates/hyper-calendar/tests/line_digests.txt",
     "crates/hyper-calendar/tests/line_digests_holidays.txt",
 ]

@@ -4310,7 +4310,7 @@
   author       = {{Unicode Consortium}},
   title        = {Unicode {CLDR} 48, \texttt{common/supplemental/}: \texttt{supplementalData.xml}, \texttt{likelySubtags.xml}, \texttt{plurals.xml} and \texttt{numberingSystems.xml}},
   howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/supplemental}},
-  note         = {Tag \texttt{release-48}. \texttt{weekData/firstDay}: Friday for MV; Saturday for AF BH DJ DZ EG IQ IR JO KW LY OM QA SD SY; Sunday for 56 regions including BD, ET, ID and TW; Monday for \texttt{001} and the rest, CN and AE among them. \texttt{likelySubtags}: \texttt{zh} to \texttt{zh\_Hans\_CN}, \texttt{zh\_TW}, \texttt{zh\_HK}, \texttt{zh\_MO} and twelve other regions to \texttt{zh\_Hant}. The cardinal plural rules and their samples, \texttt{pt\_PT} with the Italian rule. Retrieved 2026-09-26}
+  note         = {Tag \texttt{release-48}. \texttt{weekData/firstDay}: Friday for MV; Saturday for AF BH DJ DZ EG IQ IR JO KW LY OM QA SD SY; Sunday for 56 regions including BD, ET, ID and TW; Monday for \texttt{001} and the rest, CN and AE among them. \texttt{likelySubtags}: \texttt{zh} to \texttt{zh\_Hans\_CN}, \texttt{zh\_TW}, \texttt{zh\_HK}, \texttt{zh\_MO} and twelve other regions to \texttt{zh\_Hant}. The cardinal plural rules and their samples, \texttt{pt\_PT} with the Italian rule. Retrieved 2026-09-26. \texttt{supplementalData.xml}'s main \texttt{parentLocales}, root the parent of \texttt{pa\_Arab}, \texttt{yue\_Hans} and \texttt{zh\_Hant}: read 2026-09-28}
 }
 
 @misc{uts35-v48,
@@ -4318,7 +4318,7 @@
   title        = {Unicode Technical Standard \#35: Unicode Locale Data Markup Language ({LDML}), Version 48.2},
   howpublished = {\url{https://www.unicode.org/reports/tr35/tr35-78/tr35.html}},
   year         = {2026},
-  note         = {Dated 2026-03-03. Part 1, ``Unicode BCP 47 U Extension'' and ``Truncation''; Part 3 (Numbers, ed. Shane F. Carr), ``Language Plural Rules'' and ``Operands''. Retrieved 2026-09-26}
+  note         = {Dated 2026-03-03. Part 1, ``Unicode BCP 47 U Extension'' and ``Truncation''; Part 3 (Numbers, ed. Shane F. Carr), ``Language Plural Rules'' and ``Operands''. Retrieved 2026-09-26. Part 1, ``Subdivision Codes'' (the ISO and the CLDR forms, deprecated codes, the Iran renumbering, the names from Wikidata), ``Attribute draft'', ``Inheritance and Validity'' (inherited item lookup, the fallback locales before root, the identifier as the last value, the marker) and ``Parent Locales'': read 2026-09-28}
 }
 
 @misc{codata2022,
@@ -6372,7 +6372,7 @@
   author       = {{Unicode Consortium}},
   title        = {Unicode {CLDR} 48, \texttt{common/main/<locale>.xml}, \texttt{localeDisplayNames/territories}},
   howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/main}},
-  note         = {What each locale calls each territory; the plain values of the 195 regions with a holiday table, carried at the approved and contributed levels only. Tag release-48, read 2026-09-27; the twelve files of the most-spoken languages (cldr48-most-spoken) 2026-09-28}
+  note         = {What each locale calls each territory; the plain values of the 195 regions with a holiday table, carried at the approved and contributed levels only. Tag release-48, read 2026-09-27; the twelve files of the most-spoken languages (cldr48-most-spoken) 2026-09-28. Read again 2026-09-28 for every carried locale's file, all 295 territories en.xml names at the approved, contributed and provisional levels, for hc-i18n's place\_names (docs/systems/place-names.md)}
 }
 
 % --- The promulgated Chinese and Korean calendars (docs/systems/east-asian-lunisolar.md) ---
@@ -9257,4 +9257,20 @@
   title        = {琉球政府の時代: 「慰霊の日」が6月23日となる},
   howpublished = {\url{https://www3.archives.pref.okinawa.jp/GRI/histories/1961/?vpage=3} and \url{https://www3.archives.pref.okinawa.jp/GRI/histories2022/}},
   note         = {慰霊の日 under 住民の祝祭日に関する立法 (1961年立法第85号) on 22 June, moved to 23 June by 1965年立法第6号. The two acts themselves not read. Read 2026-09-28}
+}
+
+% --- Place names (docs/systems/place-names.md) ---
+
+@misc{cldr48-subdivision-names,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/subdivisions/<locale>.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/subdivisions}},
+  note         = {What each locale calls each ISO 3166-2 subdivision, keyed by CLDR's lower-case id without a hyphen (\texttt{jp13}), nearly every value outside English at the provisional level. Tag release-48, each carried locale's file and \texttt{root.xml}, which names none, read from \texttt{raw.githubusercontent.com} 2026-09-28}
+}
+
+@misc{cldr48-validity,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/validity/region.xml} and \texttt{subdivision.xml}, and \texttt{common/supplemental/supplementalMetadata.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/validity}},
+  note         = {Each region's and subdivision's \texttt{idStatus}: 5 027 regular and 626 deprecated subdivisions, 257 unknown (\texttt{zzzz}); \texttt{supplementalMetadata.xml}'s \texttt{territoryAlias} and \texttt{subdivisionAlias}, 147 of the latter in force and the others commented out. Tag release-48, read 2026-09-28}
 }

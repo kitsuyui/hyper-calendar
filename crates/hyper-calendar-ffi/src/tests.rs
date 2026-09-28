@@ -29,7 +29,8 @@ fn querying_the_version_works_in_both_passes() {
     feature = "sky",
     feature = "orbital",
     feature = "planetary",
-    feature = "relativity"
+    feature = "relativity",
+    feature = "places"
 ))]
 fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
     let mut written = 0usize;
@@ -67,7 +68,8 @@ fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> Stri
     feature = "holiday",
     feature = "sky",
     feature = "planetary",
-    feature = "relativity"
+    feature = "relativity",
+    feature = "places"
 ))]
 fn measured(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> HcStatus {
     let mut written = 0usize;
@@ -120,6 +122,9 @@ mod planetary;
 
 #[cfg(feature = "relativity")]
 mod relativity;
+
+#[cfg(feature = "places")]
+mod places;
 
 #[cfg(feature = "time-codes")]
 mod time_codes;

@@ -674,6 +674,7 @@ export const COLUMNS: {
   readonly properTime: ReadonlyArray<string>;
   readonly gravitationalDilation: ReadonlyArray<string>;
   readonly gravitatingBodies: ReadonlyArray<string>;
+  readonly places: ReadonlyArray<string>;
   readonly utcFromTai: ReadonlyArray<string>;
   readonly tai64PosixPlus10: ReadonlyArray<string>;
   readonly uuidTimestamp: ReadonlyArray<string>;
@@ -1312,6 +1313,31 @@ export interface GravitatingBody {
   /** The `hc-relativity` constant that holds `gm`. */
   gmConstant: string;
   source: string;
+}
+
+/** CLDR's draft level of a name: how far its vetting went. */
+export type PlaceDraft = "approved" | "contributed" | "provisional";
+
+/** A code's status in CLDR's validity data. */
+export type PlaceStatus = "regular" | "deprecated" | "macroregion" | "special" | "unknown";
+
+/** One line of `hc_territories`, `hc_subdivisions` and `hc_place_name`. */
+export interface PlaceName {
+  /** The code as ISO writes it: `JP`, `001`, or `JP-13` for CLDR's `jp13`. */
+  code: string;
+  /**
+   * The name in the locale, else in English: 東京都 for `JP-13` under `ja`.
+   * `null` only for a deprecated subdivision neither names.
+   */
+  name: string | null;
+  /** CLDR's English name, `en.xml`'s; `null` for the deprecated subdivisions it does not name. */
+  englishName: string | null;
+  /** The tag of the data that named it: `ja`, `pt` for a name `pt-PT` inherits, or `en`. */
+  localeUsed: string | null;
+  /** The draft level of that value; nearly every subdivision name outside English is `provisional`. */
+  draft: PlaceDraft | null;
+  /** `regular` for a code in use; `deprecated` for a subdivision CLDR keeps from an earlier ISO list. */
+  status: PlaceStatus;
 }
 
 /** A TAI64 label's format. */
@@ -2290,6 +2316,12 @@ export class HyperCalendar {
   gravitationalDilation(body: GravitatingBodyId, radiusMetres: number): GravitationalDilation;
   /** `hc_gravitating_bodies`. */
   gravitatingBodies(): GravitatingBody[];
+  /** `hc_territories`: every territory CLDR 48 names, in code order. */
+  territories(locale?: string): PlaceName[];
+  /** `hc_subdivisions`: a country's ISO 3166-2 subdivisions, every one for `""`; a code that is not a territory's is `unknown`. */
+  subdivisions(country: string, locale?: string): PlaceName[];
+  /** `hc_place_name`: one territory or subdivision in ISO form; another code, `jp13` among them, is `unknown`. */
+  placeName(code: string, locale?: string): PlaceName;
 }
 
 /**

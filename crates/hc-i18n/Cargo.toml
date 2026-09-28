@@ -35,6 +35,12 @@ exemplar-cities = []
 # `localized-exemplar-cities` feature turns it on, and a build that shows
 # zones in English does not carry it.
 localized-exemplar-cities = ["exemplar-cities"]
+# CLDR 48's names of every territory and every ISO 3166-2 subdivision it
+# names, in every carried locale (the `place_names` module). Some 2.8 MB,
+# 2.6 MB of it the subdivisions, so a feature of its own that nothing else
+# turns on: the facade's `place-names` feature, and the `places` layer of
+# the WebAssembly module and the C library.
+place-names = []
 
 [dependencies]
 hc-core = { workspace = true }

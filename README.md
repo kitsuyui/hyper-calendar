@@ -108,7 +108,7 @@ includes the crate.
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
 | [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours, a calendar's dates written in a locale and read back | `format` |
-| [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities | `i18n` |
+| [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities; with `place-names`, every territory's and ISO 3166-2 subdivision's name | `i18n`, `place-names` |
 | [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |
 | [`hc-uncertainty`](crates/hc-uncertainty) | Significant figures, error bars, intervals, fuzzy instants, EDTF | `uncertainty` |

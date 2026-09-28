@@ -351,6 +351,10 @@ test("the new reckonings read the README's columns in order", () => {
   assert.match(README, /It\s+writes one line of one cell, the frame\./);
 });
 
+test("the place names read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.places], columnsAfter("## Place names"));
+});
+
 test("the relativity lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.properTime], columnsAfter("## Relativity"));
   assert.deepEqual([...COLUMNS.gravitationalDilation], columnsAfter("### A clock at a radius"));

@@ -75,7 +75,7 @@
 //!
 //! The exports come in layers that a page can load as it needs them, each a
 //! Cargo feature: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
-//! `deep-time`, `tz`, `sky`, `orbital`, `planetary` and `relativity`, with
+//! `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity` and `places`, with
 //! `full` for all of them.
 //! Which feature each export needs is in the README's table.
 //!
@@ -224,6 +224,11 @@ pub use planetary::*;
 mod relativity;
 #[cfg(feature = "relativity")]
 pub use relativity::*;
+
+#[cfg(feature = "places")]
+mod places;
+#[cfg(feature = "places")]
+pub use places::*;
 
 #[cfg(test)]
 mod tests;
