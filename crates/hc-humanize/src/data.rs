@@ -10,23 +10,32 @@
 //! The relative-time phrases follow the Unicode CLDR common locale data —
 //! the `main/<locale>.xml` `<fields>` section, which is where
 //! `<relative>` and `<relativeTime>` live — and the undirected unit phrases
-//! follow the `<unit type="duration-…">` section of the same file. They are
-//! a subset: CLDR carries roughly 600 locales and this crate carries 32. The
-//! first 21 are written by hand; the eleven added for the most-spoken
-//! languages were read out of their CLDR 48 files by following CLDR's
-//! inheritance, as the comment above them says. `tests/cldr48_resolved.rs`
-//! compares a sample of every entry with CLDR 48's own resolution: the
-//! eleven match it, and the values in which the hand-written entries differ
-//! from it are listed there.
+//! follow the `<unit type="duration-…">` section of the same file, with the
+//! file's list patterns, decimal separator and `atTime` pattern. They are a
+//! subset: CLDR carries roughly 600 locales and this crate carries 32.
 //!
-//! Three kinds of string here are **not** from CLDR, because CLDR has no
-//! field for them, and are ordinary translations kept in the same table so
-//! that adding a language stays a single edit:
+//! Every one of the 32 takes that part from its CLDR 48 file, generated:
+//! `scripts/humanize-cldr.py` resolves each value as CLDR resolves it and
+//! writes `data/cldr48.rs`, applying the documented overrides of
+//! `data/cldr48_overrides.tsv`, each with its reason — one choice of this
+//! crate's own (English's list without the serial comma) and the values of
+//! CLDR's that a source argues against, such as Traditional Chinese's
+//! *{0} 刻*, a quarter of an hour, for a quarter of a year.
+//! `tests/cldr48_resolved.rs` compares a sample of every entry with CLDR
+//! 48's own resolution, read from `cldr-json`, and holds that the two differ
+//! only where an override says so.
+//!
+//! Five kinds of string here are **not** from CLDR, because CLDR has no
+//! field for them, and are ordinary translations written in this file, so
+//! that adding a language stays one entry here and one line of the script:
 //!
 //! * the approximation hedges (*just over*, *nearly*) used by
 //!   [`crate::approximate`](mod@crate::approximate);
-//! * the half-unit idioms (*half an hour*, *anderthalb Stunden*);
-//! * the compact suffixes of *2h30m*.
+//! * the weekday phrases (*last Monday*);
+//! * the half-unit idioms (*half an hour*, *anderthalb Stunden*), which are
+//!   the long style's;
+//! * the compact suffixes of *2h30m*;
+//! * the indefinite units (*an hour*).
 //!
 //! # Deliberate deviations
 //!
@@ -39,17 +48,22 @@
 //!   only, not in what a tag resolves to: a tag that names no script first
 //!   takes the one CLDR's likely subtags give it
 //!   ([`hc_i18n::locale::LIKELY_SCRIPTS`]), so `zh-TW`, `zh-HK` and `zh-MO`
-//!   resolve to Traditional (*3週前*) and `zh` and `zh-CN` to Simplified
+//!   resolve to Traditional (*3 週前*) and `zh` and `zh-CN` to Simplified
 //!   (*3周前*), as CLDR's would.
 //! * Weekday phrases avoid agreement wherever a language inflects the
 //!   demonstrative for gender. Russian says *понедельник на прошлой неделе*
 //!   rather than *в прошлый понедельник* because the latter is wrong for
 //!   *среда*, and Portuguese and Italian do the same.
 
+mod cldr48;
+
+use cldr48::{FIL, HA, MR, PA_GURU, PCM, SW, TE, UR, YUE_HANS, YUE_HANT};
+
 use crate::pattern::{
     ApproximatePatterns, ListForms, ListPatterns, LocaleData, PluralForms, StyleData, UnitPatterns,
     UnitStrings, WeekdayPatterns,
 };
+use crate::unit::TimeUnit;
 
 // --- construction helpers -------------------------------------------------
 //
@@ -165,15 +179,27 @@ const fn u_day(
     }
 }
 
-/// Attach the half-unit idioms to a unit that has them.
-const fn u_half(
-    mut patterns: UnitPatterns,
+/// Attach the half-unit idioms, which CLDR has no field for, to one unit of
+/// a style.
+const fn idioms(
+    mut style: StyleData,
+    unit: TimeUnit,
     half: &'static str,
     one_and_a_half: &'static str,
-) -> UnitPatterns {
+) -> StyleData {
+    let patterns = match unit {
+        TimeUnit::Second => &mut style.second,
+        TimeUnit::Minute => &mut style.minute,
+        TimeUnit::Hour => &mut style.hour,
+        TimeUnit::Day => &mut style.day,
+        TimeUnit::Week => &mut style.week,
+        TimeUnit::Month => &mut style.month,
+        TimeUnit::Quarter => &mut style.quarter,
+        TimeUnit::Year => &mut style.year,
+    };
     patterns.half = half;
     patterns.one_and_a_half = one_and_a_half;
-    patterns
+    style
 }
 
 /// A list that joins everything with the same pattern.
@@ -303,258 +329,12 @@ const LANGUAGE_FREE_WEEKDAYS: WeekdayPatterns = WeekdayPatterns {
 // carry no `{0}` at all, because the noun's own form already says how many
 // — يومين *is* "two days".
 
-const AR_LONG: StyleData = StyleData {
-    second: u(
-        p6(
-            "قبل {0} ثانية",
-            "قبل ثانية واحدة",
-            "قبل ثانيتين",
-            "قبل {0} ثوانٍ",
-            "قبل {0} ثانية",
-            "قبل {0} ثانية",
-        ),
-        p6(
-            "خلال {0} ثانية",
-            "خلال ثانية واحدة",
-            "خلال ثانيتين",
-            "خلال {0} ثوانٍ",
-            "خلال {0} ثانية",
-            "خلال {0} ثانية",
-        ),
-        p6(
-            "{0} ثانية",
-            "ثانية واحدة",
-            "ثانيتان",
-            "{0} ثوانٍ",
-            "{0} ثانية",
-            "{0} ثانية",
-        ),
-        "",
-        "الآن",
-        "",
-    ),
-    minute: u(
-        p6(
-            "قبل {0} دقيقة",
-            "قبل دقيقة واحدة",
-            "قبل دقيقتين",
-            "قبل {0} دقائق",
-            "قبل {0} دقيقة",
-            "قبل {0} دقيقة",
-        ),
-        p6(
-            "خلال {0} دقيقة",
-            "خلال دقيقة واحدة",
-            "خلال دقيقتين",
-            "خلال {0} دقائق",
-            "خلال {0} دقيقة",
-            "خلال {0} دقيقة",
-        ),
-        p6(
-            "{0} دقيقة",
-            "دقيقة واحدة",
-            "دقيقتان",
-            "{0} دقائق",
-            "{0} دقيقة",
-            "{0} دقيقة",
-        ),
-        "",
-        "هذه الدقيقة",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p6(
-                "قبل {0} ساعة",
-                "قبل ساعة واحدة",
-                "قبل ساعتين",
-                "قبل {0} ساعات",
-                "قبل {0} ساعة",
-                "قبل {0} ساعة",
-            ),
-            p6(
-                "خلال {0} ساعة",
-                "خلال ساعة واحدة",
-                "خلال ساعتين",
-                "خلال {0} ساعات",
-                "خلال {0} ساعة",
-                "خلال {0} ساعة",
-            ),
-            p6(
-                "{0} ساعة",
-                "ساعة واحدة",
-                "ساعتان",
-                "{0} ساعات",
-                "{0} ساعة",
-                "{0} ساعة",
-            ),
-            "",
-            "هذه الساعة",
-            "",
-        ),
-        "نصف ساعة",
-        "ساعة ونصف",
-    ),
-    day: u_day(
-        p6(
-            "قبل {0} يوم",
-            "قبل يوم واحد",
-            "قبل يومين",
-            "قبل {0} أيام",
-            "قبل {0} يومًا",
-            "قبل {0} يوم",
-        ),
-        p6(
-            "خلال {0} يوم",
-            "خلال يوم واحد",
-            "خلال يومين",
-            "خلال {0} أيام",
-            "خلال {0} يومًا",
-            "خلال {0} يوم",
-        ),
-        p6(
-            "{0} يوم",
-            "يوم واحد",
-            "يومان",
-            "{0} أيام",
-            "{0} يومًا",
-            "{0} يوم",
-        ),
-        "أول أمس",
-        "أمس",
-        "اليوم",
-        "غدًا",
-        "بعد الغد",
-    ),
-    week: u(
-        p6(
-            "قبل {0} أسبوع",
-            "قبل أسبوع واحد",
-            "قبل أسبوعين",
-            "قبل {0} أسابيع",
-            "قبل {0} أسبوعًا",
-            "قبل {0} أسبوع",
-        ),
-        p6(
-            "خلال {0} أسبوع",
-            "خلال أسبوع واحد",
-            "خلال أسبوعين",
-            "خلال {0} أسابيع",
-            "خلال {0} أسبوعًا",
-            "خلال {0} أسبوع",
-        ),
-        p6(
-            "{0} أسبوع",
-            "أسبوع واحد",
-            "أسبوعان",
-            "{0} أسابيع",
-            "{0} أسبوعًا",
-            "{0} أسبوع",
-        ),
-        "الأسبوع الماضي",
-        "هذا الأسبوع",
-        "الأسبوع القادم",
-    ),
-    month: u(
-        p6(
-            "قبل {0} شهر",
-            "قبل شهر واحد",
-            "قبل شهرين",
-            "قبل {0} أشهر",
-            "قبل {0} شهرًا",
-            "قبل {0} شهر",
-        ),
-        p6(
-            "خلال {0} شهر",
-            "خلال شهر واحد",
-            "خلال شهرين",
-            "خلال {0} أشهر",
-            "خلال {0} شهرًا",
-            "خلال {0} شهر",
-        ),
-        p6(
-            "{0} شهر",
-            "شهر واحد",
-            "شهران",
-            "{0} أشهر",
-            "{0} شهرًا",
-            "{0} شهر",
-        ),
-        "الشهر الماضي",
-        "هذا الشهر",
-        "الشهر القادم",
-    ),
-    quarter: u(
-        p6(
-            "قبل {0} ربع سنة",
-            "قبل ربع سنة",
-            "قبل ربعي سنة",
-            "قبل {0} أرباع سنة",
-            "قبل {0} ربع سنة",
-            "قبل {0} ربع سنة",
-        ),
-        p6(
-            "خلال {0} ربع سنة",
-            "خلال ربع سنة",
-            "خلال ربعي سنة",
-            "خلال {0} أرباع سنة",
-            "خلال {0} ربع سنة",
-            "خلال {0} ربع سنة",
-        ),
-        p6(
-            "{0} ربع سنة",
-            "ربع سنة",
-            "ربعا سنة",
-            "{0} أرباع سنة",
-            "{0} ربع سنة",
-            "{0} ربع سنة",
-        ),
-        "الربع الأخير",
-        "هذا الربع",
-        "الربع القادم",
-    ),
-    year: u(
-        p6(
-            "قبل {0} سنة",
-            "قبل سنة واحدة",
-            "قبل سنتين",
-            "قبل {0} سنوات",
-            "قبل {0} سنة",
-            "قبل {0} سنة",
-        ),
-        p6(
-            "خلال {0} سنة",
-            "خلال سنة واحدة",
-            "خلال سنتين",
-            "خلال {0} سنوات",
-            "خلال {0} سنة",
-            "خلال {0} سنة",
-        ),
-        p6(
-            "{0} سنة",
-            "سنة واحدة",
-            "سنتان",
-            "{0} سنوات",
-            "{0} سنة",
-            "{0} سنة",
-        ),
-        "السنة الماضية",
-        "هذه السنة",
-        "السنة القادمة",
-    ),
-};
-
 const AR: LocaleData = LocaleData {
-    tag: "ar",
-    long: AR_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::AR.long, TimeUnit::Hour, "نصف ساعة", "ساعة ونصف"),
     // Left empty on purpose: Arabic has no `2h30m` convention, and mixing
     // the root's Latin suffixes into a right-to-left string would need bidi
     // isolation the compact form does not carry. Use `Narrow` instead.
     compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0} و{1}", "{0} و{1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "حوالي {0}",
@@ -569,8 +349,7 @@ const AR: LocaleData = LocaleData {
         current: "{0} هذا الأسبوع",
         next: "{0} الأسبوع القادم",
     },
-    decimal_separator: "٫",
-    at_pattern: "{0} في {1}",
+    ..cldr48::AR
 };
 
 // --- Czech ----------------------------------------------------------------
@@ -580,159 +359,13 @@ const AR: LocaleData = LocaleData {
 // ones: *3 dny* but *před 3 dny*, *3 roky* but *před 3 lety*. Its `many`
 // category is the fraction category, so an integer never reaches it.
 
-const CS_LONG: StyleData = StyleData {
-    second: u(
-        p4(
-            "před {0} sekundou",
-            "před {0} sekundami",
-            "před {0} sekundy",
-            "před {0} sekundami",
-        ),
-        p4(
-            "za {0} sekundu",
-            "za {0} sekundy",
-            "za {0} sekundy",
-            "za {0} sekund",
-        ),
-        p4("{0} sekunda", "{0} sekundy", "{0} sekundy", "{0} sekund"),
-        "",
-        "nyní",
-        "",
-    ),
-    minute: u(
-        p4(
-            "před {0} minutou",
-            "před {0} minutami",
-            "před {0} minuty",
-            "před {0} minutami",
-        ),
-        p4(
-            "za {0} minutu",
-            "za {0} minuty",
-            "za {0} minuty",
-            "za {0} minut",
-        ),
-        p4("{0} minuta", "{0} minuty", "{0} minuty", "{0} minut"),
-        "",
-        "tato minuta",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p4(
-                "před {0} hodinou",
-                "před {0} hodinami",
-                "před {0} hodiny",
-                "před {0} hodinami",
-            ),
-            p4(
-                "za {0} hodinu",
-                "za {0} hodiny",
-                "za {0} hodiny",
-                "za {0} hodin",
-            ),
-            p4("{0} hodina", "{0} hodiny", "{0} hodiny", "{0} hodin"),
-            "",
-            "tato hodina",
-            "",
-        ),
+const CS: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::CS.long,
+        TimeUnit::Hour,
         "půl hodiny",
         "hodina a půl",
     ),
-    day: u_day(
-        p4(
-            "před {0} dnem",
-            "před {0} dny",
-            "před {0} dne",
-            "před {0} dny",
-        ),
-        p4("za {0} den", "za {0} dny", "za {0} dne", "za {0} dní"),
-        p4("{0} den", "{0} dny", "{0} dne", "{0} dní"),
-        "předevčírem",
-        "včera",
-        "dnes",
-        "zítra",
-        "pozítří",
-    ),
-    week: u(
-        p4(
-            "před {0} týdnem",
-            "před {0} týdny",
-            "před {0} týdne",
-            "před {0} týdny",
-        ),
-        p4(
-            "za {0} týden",
-            "za {0} týdny",
-            "za {0} týdne",
-            "za {0} týdnů",
-        ),
-        p4("{0} týden", "{0} týdny", "{0} týdne", "{0} týdnů"),
-        "minulý týden",
-        "tento týden",
-        "příští týden",
-    ),
-    month: u(
-        p4(
-            "před {0} měsícem",
-            "před {0} měsíci",
-            "před {0} měsíce",
-            "před {0} měsíci",
-        ),
-        p4(
-            "za {0} měsíc",
-            "za {0} měsíce",
-            "za {0} měsíce",
-            "za {0} měsíců",
-        ),
-        p4("{0} měsíc", "{0} měsíce", "{0} měsíce", "{0} měsíců"),
-        "minulý měsíc",
-        "tento měsíc",
-        "příští měsíc",
-    ),
-    quarter: u(
-        p4(
-            "před {0} čtvrtletím",
-            "před {0} čtvrtletími",
-            "před {0} čtvrtletí",
-            "před {0} čtvrtletími",
-        ),
-        p4(
-            "za {0} čtvrtletí",
-            "za {0} čtvrtletí",
-            "za {0} čtvrtletí",
-            "za {0} čtvrtletí",
-        ),
-        p4(
-            "{0} čtvrtletí",
-            "{0} čtvrtletí",
-            "{0} čtvrtletí",
-            "{0} čtvrtletí",
-        ),
-        "minulé čtvrtletí",
-        "toto čtvrtletí",
-        "příští čtvrtletí",
-    ),
-    year: u(
-        p4(
-            "před {0} rokem",
-            "před {0} lety",
-            "před {0} roku",
-            "před {0} lety",
-        ),
-        p4("za {0} rok", "za {0} roky", "za {0} roku", "za {0} let"),
-        p4("{0} rok", "{0} roky", "{0} roku", "{0} let"),
-        "minulý rok",
-        "tento rok",
-        "příští rok",
-    ),
-};
-
-const CS: LocaleData = LocaleData {
-    tag: "cs",
-    long: CS_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -743,8 +376,6 @@ const CS: LocaleData = LocaleData {
         quarter: "čtvrtl",
         year: "r",
     },
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} a {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "přibližně {0}",
@@ -759,8 +390,7 @@ const CS: LocaleData = LocaleData {
         current: "{0} tento týden",
         next: "{0} příští týden",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} v {1}",
+    ..cldr48::CS
 };
 
 // --- German ---------------------------------------------------------------
@@ -772,149 +402,13 @@ const CS: LocaleData = LocaleData {
 // weeks happen to coincide, which is exactly why the mistake is easy to
 // miss.
 
-const DE_LONG: StyleData = StyleData {
-    second: u(
-        p2("vor {0} Sekunde", "vor {0} Sekunden"),
-        p2("in {0} Sekunde", "in {0} Sekunden"),
-        p2("{0} Sekunde", "{0} Sekunden"),
-        "",
-        "jetzt",
-        "",
-    ),
-    minute: u(
-        p2("vor {0} Minute", "vor {0} Minuten"),
-        p2("in {0} Minute", "in {0} Minuten"),
-        p2("{0} Minute", "{0} Minuten"),
-        "",
-        "in dieser Minute",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("vor {0} Stunde", "vor {0} Stunden"),
-            p2("in {0} Stunde", "in {0} Stunden"),
-            p2("{0} Stunde", "{0} Stunden"),
-            "",
-            "in dieser Stunde",
-            "",
-        ),
+const DE: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::DE.long,
+        TimeUnit::Hour,
         "eine halbe Stunde",
         "anderthalb Stunden",
     ),
-    day: u_day(
-        p2("vor {0} Tag", "vor {0} Tagen"),
-        p2("in {0} Tag", "in {0} Tagen"),
-        p2("{0} Tag", "{0} Tage"),
-        "vorgestern",
-        "gestern",
-        "heute",
-        "morgen",
-        "übermorgen",
-    ),
-    week: u(
-        p2("vor {0} Woche", "vor {0} Wochen"),
-        p2("in {0} Woche", "in {0} Wochen"),
-        p2("{0} Woche", "{0} Wochen"),
-        "letzte Woche",
-        "diese Woche",
-        "nächste Woche",
-    ),
-    month: u(
-        p2("vor {0} Monat", "vor {0} Monaten"),
-        p2("in {0} Monat", "in {0} Monaten"),
-        p2("{0} Monat", "{0} Monate"),
-        "letzten Monat",
-        "diesen Monat",
-        "nächsten Monat",
-    ),
-    quarter: u(
-        p2("vor {0} Quartal", "vor {0} Quartalen"),
-        p2("in {0} Quartal", "in {0} Quartalen"),
-        p2("{0} Quartal", "{0} Quartale"),
-        "letztes Quartal",
-        "dieses Quartal",
-        "nächstes Quartal",
-    ),
-    year: u(
-        p2("vor {0} Jahr", "vor {0} Jahren"),
-        p2("in {0} Jahr", "in {0} Jahren"),
-        p2("{0} Jahr", "{0} Jahre"),
-        "letztes Jahr",
-        "dieses Jahr",
-        "nächstes Jahr",
-    ),
-};
-
-/// German abbreviates the unit noun but not the preposition, and it does not
-/// abbreviate *Tag* at all — so the day entry is left empty and inherits the
-/// long form, which is what CLDR does too.
-const DE_SHORT: StyleData = StyleData {
-    second: u(
-        p1("vor {0} Sek."),
-        p1("in {0} Sek."),
-        p1("{0} Sek."),
-        "",
-        "jetzt",
-        "",
-    ),
-    minute: u(
-        p1("vor {0} Min."),
-        p1("in {0} Min."),
-        p1("{0} Min."),
-        "",
-        "in dieser Minute",
-        "",
-    ),
-    hour: u(
-        p1("vor {0} Std."),
-        p1("in {0} Std."),
-        p1("{0} Std."),
-        "",
-        "in dieser Stunde",
-        "",
-    ),
-    day: UnitPatterns::EMPTY,
-    week: u(
-        p1("vor {0} Wo."),
-        p1("in {0} Wo."),
-        p1("{0} Wo."),
-        "letzte Wo.",
-        "diese Wo.",
-        "nächste Wo.",
-    ),
-    month: u(
-        p1("vor {0} Mon."),
-        p1("in {0} Mon."),
-        p1("{0} Mon."),
-        "letzten Mon.",
-        "diesen Mon.",
-        "nächsten Mon.",
-    ),
-    quarter: u(
-        p1("vor {0} Q"),
-        p1("in {0} Q"),
-        p1("{0} Q"),
-        "letztes Q",
-        "dieses Q",
-        "nächstes Q",
-    ),
-    year: u(
-        p1("vor {0} J"),
-        p1("in {0} J"),
-        p1("{0} J"),
-        "letztes J",
-        "dieses J",
-        "nächstes J",
-    ),
-};
-
-const DE: LocaleData = LocaleData {
-    tag: "de",
-    long: DE_LONG,
-    short: DE_SHORT,
-    // German narrow and short coincide, so narrow states nothing and the
-    // style fallback finds the short forms.
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -935,7 +429,6 @@ const DE: LocaleData = LocaleData {
         "ein Quartal",
         "ein Jahr",
     ),
-    list: lists("{0}, {1}", "{0} und {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "ungefähr {0}",
@@ -950,229 +443,23 @@ const DE: LocaleData = LocaleData {
         current: "diesen {0}",
         next: "nächsten {0}",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} um {1}",
+    ..cldr48::DE
 };
 
 // --- English --------------------------------------------------------------
 
-const EN_LONG: StyleData = StyleData {
-    second: u(
-        p2("{0} second ago", "{0} seconds ago"),
-        p2("in {0} second", "in {0} seconds"),
-        p2("{0} second", "{0} seconds"),
-        "",
-        "now",
-        "",
-    ),
-    minute: u(
-        p2("{0} minute ago", "{0} minutes ago"),
-        p2("in {0} minute", "in {0} minutes"),
-        p2("{0} minute", "{0} minutes"),
-        "",
-        "this minute",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("{0} hour ago", "{0} hours ago"),
-            p2("in {0} hour", "in {0} hours"),
-            p2("{0} hour", "{0} hours"),
-            "",
-            "this hour",
-            "",
+const EN: LocaleData = LocaleData {
+    long: idioms(
+        idioms(
+            cldr48::EN.long,
+            TimeUnit::Hour,
+            "half an hour",
+            "an hour and a half",
         ),
-        "half an hour",
-        "an hour and a half",
-    ),
-    day: u_half(
-        u_day(
-            p2("{0} day ago", "{0} days ago"),
-            p2("in {0} day", "in {0} days"),
-            p2("{0} day", "{0} days"),
-            "the day before yesterday",
-            "yesterday",
-            "today",
-            "tomorrow",
-            "the day after tomorrow",
-        ),
+        TimeUnit::Day,
         "half a day",
         "a day and a half",
     ),
-    week: u(
-        p2("{0} week ago", "{0} weeks ago"),
-        p2("in {0} week", "in {0} weeks"),
-        p2("{0} week", "{0} weeks"),
-        "last week",
-        "this week",
-        "next week",
-    ),
-    month: u(
-        p2("{0} month ago", "{0} months ago"),
-        p2("in {0} month", "in {0} months"),
-        p2("{0} month", "{0} months"),
-        "last month",
-        "this month",
-        "next month",
-    ),
-    quarter: u(
-        p2("{0} quarter ago", "{0} quarters ago"),
-        p2("in {0} quarter", "in {0} quarters"),
-        p2("{0} quarter", "{0} quarters"),
-        "last quarter",
-        "this quarter",
-        "next quarter",
-    ),
-    year: u(
-        p2("{0} year ago", "{0} years ago"),
-        p2("in {0} year", "in {0} years"),
-        p2("{0} year", "{0} years"),
-        "last year",
-        "this year",
-        "next year",
-    ),
-};
-
-const EN_SHORT: StyleData = StyleData {
-    second: u(
-        p1("{0} sec. ago"),
-        p1("in {0} sec."),
-        p1("{0} sec."),
-        "",
-        "now",
-        "",
-    ),
-    minute: u(
-        p1("{0} min. ago"),
-        p1("in {0} min."),
-        p1("{0} min."),
-        "",
-        "this minute",
-        "",
-    ),
-    hour: u(
-        p1("{0} hr. ago"),
-        p1("in {0} hr."),
-        p1("{0} hr."),
-        "",
-        "this hour",
-        "",
-    ),
-    // English short does not abbreviate "day", so only the special words
-    // differ from the long style — and they do not, which is why this entry
-    // repeats the long patterns rather than inheriting: a short-style caller
-    // asking for a day must still get "yesterday".
-    day: u_day(
-        p2("{0} day ago", "{0} days ago"),
-        p2("in {0} day", "in {0} days"),
-        p2("{0} day", "{0} days"),
-        "the day before yesterday",
-        "yesterday",
-        "today",
-        "tomorrow",
-        "the day after tomorrow",
-    ),
-    week: u(
-        p1("{0} wk. ago"),
-        p1("in {0} wk."),
-        p1("{0} wk."),
-        "last wk.",
-        "this wk.",
-        "next wk.",
-    ),
-    month: u(
-        p1("{0} mo. ago"),
-        p1("in {0} mo."),
-        p1("{0} mo."),
-        "last mo.",
-        "this mo.",
-        "next mo.",
-    ),
-    quarter: u(
-        p1("{0} qtr. ago"),
-        p1("in {0} qtr."),
-        p1("{0} qtr."),
-        "last qtr.",
-        "this qtr.",
-        "next qtr.",
-    ),
-    year: u(
-        p1("{0} yr. ago"),
-        p1("in {0} yr."),
-        p1("{0} yr."),
-        "last yr.",
-        "this yr.",
-        "next yr.",
-    ),
-};
-
-const EN_NARROW: StyleData = StyleData {
-    second: u(p1("{0}s ago"), p1("in {0}s"), p1("{0}s"), "", "now", ""),
-    minute: u(
-        p1("{0}m ago"),
-        p1("in {0}m"),
-        p1("{0}m"),
-        "",
-        "this minute",
-        "",
-    ),
-    hour: u(
-        p1("{0}h ago"),
-        p1("in {0}h"),
-        p1("{0}h"),
-        "",
-        "this hour",
-        "",
-    ),
-    day: u_day(
-        p1("{0}d ago"),
-        p1("in {0}d"),
-        p1("{0}d"),
-        "",
-        "yesterday",
-        "today",
-        "tomorrow",
-        "",
-    ),
-    week: u(
-        p1("{0}w ago"),
-        p1("in {0}w"),
-        p1("{0}w"),
-        "last wk.",
-        "this wk.",
-        "next wk.",
-    ),
-    month: u(
-        p1("{0}mo ago"),
-        p1("in {0}mo"),
-        p1("{0}mo"),
-        "last mo.",
-        "this mo.",
-        "next mo.",
-    ),
-    quarter: u(
-        p1("{0}q ago"),
-        p1("in {0}q"),
-        p1("{0}q"),
-        "last qtr.",
-        "this qtr.",
-        "next qtr.",
-    ),
-    year: u(
-        p1("{0}y ago"),
-        p1("in {0}y"),
-        p1("{0}y"),
-        "last yr.",
-        "this yr.",
-        "next yr.",
-    ),
-};
-
-const EN: LocaleData = LocaleData {
-    tag: "en",
-    long: EN_LONG,
-    short: EN_SHORT,
-    narrow: EN_NARROW,
     compact: UnitStrings {
         second: "s",
         minute: "m",
@@ -1193,7 +480,6 @@ const EN: LocaleData = LocaleData {
         "a quarter",
         "a year",
     ),
-    list: lists("{0}, {1}", "{0} and {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "about {0}",
@@ -1208,159 +494,18 @@ const EN: LocaleData = LocaleData {
         current: "this {0}",
         next: "next {0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} at {1}",
+    ..cldr48::EN
 };
 
 // --- Spanish --------------------------------------------------------------
 
-const ES_LONG: StyleData = StyleData {
-    second: u(
-        p2("hace {0} segundo", "hace {0} segundos"),
-        p2("dentro de {0} segundo", "dentro de {0} segundos"),
-        p2("{0} segundo", "{0} segundos"),
-        "",
-        "ahora",
-        "",
-    ),
-    minute: u(
-        p2("hace {0} minuto", "hace {0} minutos"),
-        p2("dentro de {0} minuto", "dentro de {0} minutos"),
-        p2("{0} minuto", "{0} minutos"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("hace {0} hora", "hace {0} horas"),
-            p2("dentro de {0} hora", "dentro de {0} horas"),
-            p2("{0} hora", "{0} horas"),
-            "",
-            "esta hora",
-            "",
-        ),
+const ES: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::ES.long,
+        TimeUnit::Hour,
         "media hora",
         "una hora y media",
     ),
-    day: u_day(
-        p2("hace {0} día", "hace {0} días"),
-        p2("dentro de {0} día", "dentro de {0} días"),
-        p2("{0} día", "{0} días"),
-        "anteayer",
-        "ayer",
-        "hoy",
-        "mañana",
-        "pasado mañana",
-    ),
-    week: u(
-        p2("hace {0} semana", "hace {0} semanas"),
-        p2("dentro de {0} semana", "dentro de {0} semanas"),
-        p2("{0} semana", "{0} semanas"),
-        "la semana pasada",
-        "esta semana",
-        "la próxima semana",
-    ),
-    month: u(
-        p2("hace {0} mes", "hace {0} meses"),
-        p2("dentro de {0} mes", "dentro de {0} meses"),
-        p2("{0} mes", "{0} meses"),
-        "el mes pasado",
-        "este mes",
-        "el próximo mes",
-    ),
-    quarter: u(
-        p2("hace {0} trimestre", "hace {0} trimestres"),
-        p2("dentro de {0} trimestre", "dentro de {0} trimestres"),
-        p2("{0} trimestre", "{0} trimestres"),
-        "el trimestre pasado",
-        "este trimestre",
-        "el próximo trimestre",
-    ),
-    year: u(
-        p2("hace {0} año", "hace {0} años"),
-        p2("dentro de {0} año", "dentro de {0} años"),
-        p2("{0} año", "{0} años"),
-        "el año pasado",
-        "este año",
-        "el próximo año",
-    ),
-};
-
-const ES_SHORT: StyleData = StyleData {
-    second: u(
-        p1("hace {0} s"),
-        p1("dentro de {0} s"),
-        p1("{0} s"),
-        "",
-        "ahora",
-        "",
-    ),
-    minute: u(
-        p1("hace {0} min"),
-        p1("dentro de {0} min"),
-        p1("{0} min"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u(
-        p1("hace {0} h"),
-        p1("dentro de {0} h"),
-        p1("{0} h"),
-        "",
-        "esta hora",
-        "",
-    ),
-    day: u_day(
-        p1("hace {0} d"),
-        p1("dentro de {0} d"),
-        p1("{0} d"),
-        "anteayer",
-        "ayer",
-        "hoy",
-        "mañana",
-        "pasado mañana",
-    ),
-    week: u(
-        p1("hace {0} sem."),
-        p1("dentro de {0} sem."),
-        p1("{0} sem."),
-        "sem. pasada",
-        "esta sem.",
-        "próx. sem.",
-    ),
-    month: u(
-        p1("hace {0} m"),
-        p1("dentro de {0} m"),
-        p1("{0} m"),
-        "el mes pasado",
-        "este mes",
-        "el próximo mes",
-    ),
-    quarter: u(
-        p1("hace {0} trim."),
-        p1("dentro de {0} trim."),
-        p1("{0} trim."),
-        "trim. pasado",
-        "este trim.",
-        "próx. trim.",
-    ),
-    year: u(
-        p1("hace {0} a"),
-        p1("dentro de {0} a"),
-        p1("{0} a"),
-        "el año pasado",
-        "este año",
-        "el próximo año",
-    ),
-};
-
-const ES: LocaleData = LocaleData {
-    tag: "es",
-    long: ES_LONG,
-    short: ES_SHORT,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -1381,7 +526,6 @@ const ES: LocaleData = LocaleData {
         "un trimestre",
         "un año",
     ),
-    list: lists("{0}, {1}", "{0} y {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "aproximadamente {0}",
@@ -1396,8 +540,7 @@ const ES: LocaleData = LocaleData {
         current: "este {0}",
         next: "el próximo {0}",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} a las {1}",
+    ..cldr48::ES
 };
 
 // --- French ---------------------------------------------------------------
@@ -1405,153 +548,13 @@ const ES: LocaleData = LocaleData {
 // French puts 0 in the `one` category, so *dans 0 jour* is singular. That is
 // the CLDR rule `one: i = 0,1`, not an oversight.
 
-const FR_LONG: StyleData = StyleData {
-    second: u(
-        p2("il y a {0} seconde", "il y a {0} secondes"),
-        p2("dans {0} seconde", "dans {0} secondes"),
-        p2("{0} seconde", "{0} secondes"),
-        "",
-        "maintenant",
-        "",
-    ),
-    minute: u(
-        p2("il y a {0} minute", "il y a {0} minutes"),
-        p2("dans {0} minute", "dans {0} minutes"),
-        p2("{0} minute", "{0} minutes"),
-        "",
-        "cette minute-ci",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("il y a {0} heure", "il y a {0} heures"),
-            p2("dans {0} heure", "dans {0} heures"),
-            p2("{0} heure", "{0} heures"),
-            "",
-            "cette heure-ci",
-            "",
-        ),
+const FR: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::FR.long,
+        TimeUnit::Hour,
         "une demi-heure",
         "une heure et demie",
     ),
-    day: u_day(
-        p2("il y a {0} jour", "il y a {0} jours"),
-        p2("dans {0} jour", "dans {0} jours"),
-        p2("{0} jour", "{0} jours"),
-        "avant-hier",
-        "hier",
-        "aujourd’hui",
-        "demain",
-        "après-demain",
-    ),
-    week: u(
-        p2("il y a {0} semaine", "il y a {0} semaines"),
-        p2("dans {0} semaine", "dans {0} semaines"),
-        p2("{0} semaine", "{0} semaines"),
-        "la semaine dernière",
-        "cette semaine",
-        "la semaine prochaine",
-    ),
-    month: u(
-        p1("il y a {0} mois"),
-        p1("dans {0} mois"),
-        p1("{0} mois"),
-        "le mois dernier",
-        "ce mois-ci",
-        "le mois prochain",
-    ),
-    quarter: u(
-        p2("il y a {0} trimestre", "il y a {0} trimestres"),
-        p2("dans {0} trimestre", "dans {0} trimestres"),
-        p2("{0} trimestre", "{0} trimestres"),
-        "le trimestre dernier",
-        "ce trimestre",
-        "le trimestre prochain",
-    ),
-    year: u(
-        p2("il y a {0} an", "il y a {0} ans"),
-        p2("dans {0} an", "dans {0} ans"),
-        p2("{0} an", "{0} ans"),
-        "l’année dernière",
-        "cette année",
-        "l’année prochaine",
-    ),
-};
-
-const FR_SHORT: StyleData = StyleData {
-    second: u(
-        p1("il y a {0} s"),
-        p1("dans {0} s"),
-        p1("{0} s"),
-        "",
-        "maintenant",
-        "",
-    ),
-    minute: u(
-        p1("il y a {0} min"),
-        p1("dans {0} min"),
-        p1("{0} min"),
-        "",
-        "cette minute-ci",
-        "",
-    ),
-    hour: u(
-        p1("il y a {0} h"),
-        p1("dans {0} h"),
-        p1("{0} h"),
-        "",
-        "cette heure-ci",
-        "",
-    ),
-    day: u_day(
-        p1("il y a {0} j"),
-        p1("dans {0} j"),
-        p1("{0} j"),
-        "avant-hier",
-        "hier",
-        "aujourd’hui",
-        "demain",
-        "après-demain",
-    ),
-    week: u(
-        p1("il y a {0} sem."),
-        p1("dans {0} sem."),
-        p1("{0} sem."),
-        "la semaine dernière",
-        "cette semaine",
-        "la semaine prochaine",
-    ),
-    month: u(
-        p1("il y a {0} m."),
-        p1("dans {0} m."),
-        p1("{0} m."),
-        "le mois dernier",
-        "ce mois-ci",
-        "le mois prochain",
-    ),
-    quarter: u(
-        p1("il y a {0} trim."),
-        p1("dans {0} trim."),
-        p1("{0} trim."),
-        "le trimestre dernier",
-        "ce trimestre",
-        "le trimestre prochain",
-    ),
-    year: u(
-        p1("il y a {0} a"),
-        p1("dans {0} a"),
-        p1("{0} a"),
-        "l’année dernière",
-        "cette année",
-        "l’année prochaine",
-    ),
-};
-
-const FR: LocaleData = LocaleData {
-    tag: "fr",
-    long: FR_LONG,
-    short: FR_SHORT,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -1572,7 +575,6 @@ const FR: LocaleData = LocaleData {
         "un trimestre",
         "un an",
     ),
-    list: lists("{0}, {1}", "{0} et {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "environ {0}",
@@ -1587,99 +589,20 @@ const FR: LocaleData = LocaleData {
         current: "ce {0}",
         next: "{0} prochain",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} à {1}",
+    ..cldr48::FR
 };
 
 // --- Hindi ----------------------------------------------------------------
 //
 // Hindi has one word, कल, for both yesterday and tomorrow, and one word,
 // परसों, for both the day before and the day after; direction comes from the
-// verb. So the ±1 and ±2 special words are deliberately identical, and
-// `Numeric::Auto` on a Hindi day offset produces a phrase that is only
-// unambiguous inside a sentence.
-
-const HI_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} सेकंड पहले"),
-        p1("{0} सेकंड में"),
-        p1("{0} सेकंड"),
-        "",
-        "अब",
-        "",
-    ),
-    minute: u(
-        p1("{0} मिनट पहले"),
-        p1("{0} मिनट में"),
-        p1("{0} मिनट"),
-        "",
-        "यह मिनट",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("{0} घंटा पहले", "{0} घंटे पहले"),
-            p2("{0} घंटे में", "{0} घंटे में"),
-            p2("{0} घंटा", "{0} घंटे"),
-            "",
-            "यह घंटा",
-            "",
-        ),
-        "आधा घंटा",
-        "डेढ़ घंटा",
-    ),
-    day: u_day(
-        p1("{0} दिन पहले"),
-        p1("{0} दिन में"),
-        p1("{0} दिन"),
-        "परसों",
-        "कल",
-        "आज",
-        "कल",
-        "परसों",
-    ),
-    week: u(
-        p1("{0} सप्ताह पहले"),
-        p1("{0} सप्ताह में"),
-        p1("{0} सप्ताह"),
-        "पिछला सप्ताह",
-        "यह सप्ताह",
-        "अगला सप्ताह",
-    ),
-    month: u(
-        p1("{0} माह पहले"),
-        p1("{0} माह में"),
-        p1("{0} माह"),
-        "पिछला माह",
-        "इस माह",
-        "अगला माह",
-    ),
-    quarter: u(
-        p1("{0} तिमाही पहले"),
-        p1("{0} तिमाही में"),
-        p1("{0} तिमाही"),
-        "पिछली तिमाही",
-        "इस तिमाही",
-        "अगली तिमाही",
-    ),
-    year: u(
-        p1("{0} वर्ष पहले"),
-        p1("{0} वर्ष में"),
-        p1("{0} वर्ष"),
-        "पिछला वर्ष",
-        "इस वर्ष",
-        "अगला वर्ष",
-    ),
-};
+// verb. So CLDR's long ±1 and ±2 words are identical, and `Numeric::Auto`
+// on a Hindi day offset in the long style produces a phrase that is only
+// unambiguous inside a sentence; the short and narrow styles say बीता कल and
+// आने वाला कल, the past and the coming कल.
 
 const HI: LocaleData = LocaleData {
-    tag: "hi",
-    long: HI_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} और {1}", "{0} {1}"),
+    long: idioms(cldr48::HI.long, TimeUnit::Hour, "आधा घंटा", "डेढ़ घंटा"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "लगभग {0}",
@@ -1694,90 +617,18 @@ const HI: LocaleData = LocaleData {
         current: "इस {0}",
         next: "अगला {0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} को {1}",
+    ..cldr48::HI
 };
 
 // --- Indonesian -----------------------------------------------------------
 
-const ID_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} detik yang lalu"),
-        p1("dalam {0} detik"),
-        p1("{0} detik"),
-        "",
-        "sekarang",
-        "",
-    ),
-    minute: u(
-        p1("{0} menit yang lalu"),
-        p1("dalam {0} menit"),
-        p1("{0} menit"),
-        "",
-        "menit ini",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} jam yang lalu"),
-            p1("dalam {0} jam"),
-            p1("{0} jam"),
-            "",
-            "jam ini",
-            "",
-        ),
+const ID: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::ID.long,
+        TimeUnit::Hour,
         "setengah jam",
         "satu setengah jam",
     ),
-    day: u_day(
-        p1("{0} hari yang lalu"),
-        p1("dalam {0} hari"),
-        p1("{0} hari"),
-        "kemarin dulu",
-        "kemarin",
-        "hari ini",
-        "besok",
-        "lusa",
-    ),
-    week: u(
-        p1("{0} minggu yang lalu"),
-        p1("dalam {0} minggu"),
-        p1("{0} minggu"),
-        "minggu lalu",
-        "minggu ini",
-        "minggu depan",
-    ),
-    month: u(
-        p1("{0} bulan yang lalu"),
-        p1("dalam {0} bulan"),
-        p1("{0} bulan"),
-        "bulan lalu",
-        "bulan ini",
-        "bulan depan",
-    ),
-    quarter: u(
-        p1("{0} kuartal yang lalu"),
-        p1("dalam {0} kuartal"),
-        p1("{0} kuartal"),
-        "kuartal lalu",
-        "kuartal ini",
-        "kuartal berikutnya",
-    ),
-    year: u(
-        p1("{0} tahun yang lalu"),
-        p1("dalam {0} tahun"),
-        p1("{0} tahun"),
-        "tahun lalu",
-        "tahun ini",
-        "tahun depan",
-    ),
-};
-
-const ID: LocaleData = LocaleData {
-    tag: "id",
-    long: ID_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "dtk",
         minute: "mnt",
@@ -1798,7 +649,6 @@ const ID: LocaleData = LocaleData {
         "satu kuartal",
         "satu tahun",
     ),
-    list: lists("{0}, {1}", "{0} dan {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "sekitar {0}",
@@ -1813,90 +663,18 @@ const ID: LocaleData = LocaleData {
         current: "{0} ini",
         next: "{0} depan",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} pukul {1}",
+    ..cldr48::ID
 };
 
 // --- Italian --------------------------------------------------------------
 
-const IT_LONG: StyleData = StyleData {
-    second: u(
-        p2("{0} secondo fa", "{0} secondi fa"),
-        p2("tra {0} secondo", "tra {0} secondi"),
-        p2("{0} secondo", "{0} secondi"),
-        "",
-        "ora",
-        "",
-    ),
-    minute: u(
-        p2("{0} minuto fa", "{0} minuti fa"),
-        p2("tra {0} minuto", "tra {0} minuti"),
-        p2("{0} minuto", "{0} minuti"),
-        "",
-        "questo minuto",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("{0} ora fa", "{0} ore fa"),
-            p2("tra {0} ora", "tra {0} ore"),
-            p2("{0} ora", "{0} ore"),
-            "",
-            "quest’ora",
-            "",
-        ),
+const IT: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::IT.long,
+        TimeUnit::Hour,
         "mezz’ora",
         "un’ora e mezza",
     ),
-    day: u_day(
-        p2("{0} giorno fa", "{0} giorni fa"),
-        p2("tra {0} giorno", "tra {0} giorni"),
-        p2("{0} giorno", "{0} giorni"),
-        "l’altro ieri",
-        "ieri",
-        "oggi",
-        "domani",
-        "dopodomani",
-    ),
-    week: u(
-        p2("{0} settimana fa", "{0} settimane fa"),
-        p2("tra {0} settimana", "tra {0} settimane"),
-        p2("{0} settimana", "{0} settimane"),
-        "settimana scorsa",
-        "questa settimana",
-        "settimana prossima",
-    ),
-    month: u(
-        p2("{0} mese fa", "{0} mesi fa"),
-        p2("tra {0} mese", "tra {0} mesi"),
-        p2("{0} mese", "{0} mesi"),
-        "mese scorso",
-        "questo mese",
-        "mese prossimo",
-    ),
-    quarter: u(
-        p2("{0} trimestre fa", "{0} trimestri fa"),
-        p2("tra {0} trimestre", "tra {0} trimestri"),
-        p2("{0} trimestre", "{0} trimestri"),
-        "trimestre scorso",
-        "questo trimestre",
-        "trimestre prossimo",
-    ),
-    year: u(
-        p2("{0} anno fa", "{0} anni fa"),
-        p2("tra {0} anno", "tra {0} anni"),
-        p2("{0} anno", "{0} anni"),
-        "anno scorso",
-        "quest’anno",
-        "anno prossimo",
-    ),
-};
-
-const IT: LocaleData = LocaleData {
-    tag: "it",
-    long: IT_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -1917,7 +695,6 @@ const IT: LocaleData = LocaleData {
         "un trimestre",
         "un anno",
     ),
-    list: lists("{0}, {1}", "{0} e {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "circa {0}",
@@ -1932,140 +709,13 @@ const IT: LocaleData = LocaleData {
         current: "{0} di questa settimana",
         next: "{0} della prossima settimana",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} alle {1}",
+    ..cldr48::IT
 };
 
 // --- Japanese -------------------------------------------------------------
 
-const JA_LONG: StyleData = StyleData {
-    second: u(p1("{0} 秒前"), p1("{0} 秒後"), p1("{0} 秒"), "", "今", ""),
-    minute: u(
-        p1("{0} 分前"),
-        p1("{0} 分後"),
-        p1("{0} 分"),
-        "",
-        "この分",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} 時間前"),
-            p1("{0} 時間後"),
-            p1("{0} 時間"),
-            "",
-            "この時間",
-            "",
-        ),
-        "30 分",
-        "1 時間半",
-    ),
-    day: u_day(
-        p1("{0} 日前"),
-        p1("{0} 日後"),
-        p1("{0} 日"),
-        "一昨日",
-        "昨日",
-        "今日",
-        "明日",
-        "明後日",
-    ),
-    week: u(
-        p1("{0} 週間前"),
-        p1("{0} 週間後"),
-        p1("{0} 週間"),
-        "先週",
-        "今週",
-        "来週",
-    ),
-    month: u(
-        p1("{0} か月前"),
-        p1("{0} か月後"),
-        p1("{0} か月"),
-        "先月",
-        "今月",
-        "来月",
-    ),
-    quarter: u(
-        p1("{0} 四半期前"),
-        p1("{0} 四半期後"),
-        p1("{0} 四半期"),
-        "前四半期",
-        "今四半期",
-        "翌四半期",
-    ),
-    year: u(
-        p1("{0} 年前"),
-        p1("{0} 年後"),
-        p1("{0} 年"),
-        "昨年",
-        "今年",
-        "来年",
-    ),
-};
-
-/// Japanese narrow differs from long only in dropping the space before the
-/// counter, which is exactly what CLDR's `ja` narrow forms do.
-const JA_NARROW: StyleData = StyleData {
-    second: u(p1("{0}秒前"), p1("{0}秒後"), p1("{0}秒"), "", "今", ""),
-    minute: u(p1("{0}分前"), p1("{0}分後"), p1("{0}分"), "", "この分", ""),
-    hour: u(
-        p1("{0}時間前"),
-        p1("{0}時間後"),
-        p1("{0}時間"),
-        "",
-        "この時間",
-        "",
-    ),
-    day: u_day(
-        p1("{0}日前"),
-        p1("{0}日後"),
-        p1("{0}日"),
-        "一昨日",
-        "昨日",
-        "今日",
-        "明日",
-        "明後日",
-    ),
-    week: u(
-        p1("{0}週間前"),
-        p1("{0}週間後"),
-        p1("{0}週間"),
-        "先週",
-        "今週",
-        "来週",
-    ),
-    month: u(
-        p1("{0}か月前"),
-        p1("{0}か月後"),
-        p1("{0}か月"),
-        "先月",
-        "今月",
-        "来月",
-    ),
-    quarter: u(
-        p1("{0}四半期前"),
-        p1("{0}四半期後"),
-        p1("{0}四半期"),
-        "前四半期",
-        "今四半期",
-        "翌四半期",
-    ),
-    year: u(
-        p1("{0}年前"),
-        p1("{0}年後"),
-        p1("{0}年"),
-        "昨年",
-        "今年",
-        "来年",
-    ),
-};
-
 const JA: LocaleData = LocaleData {
-    tag: "ja",
-    long: JA_LONG,
-    short: StyleData::EMPTY,
-    narrow: JA_NARROW,
+    long: idioms(cldr48::JA.long, TimeUnit::Hour, "30 分", "1 時間半"),
     compact: UnitStrings {
         second: "秒",
         minute: "分",
@@ -2075,12 +725,6 @@ const JA: LocaleData = LocaleData {
         month: "か月",
         quarter: "四半期",
         year: "年",
-    },
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: list_uniform("{0}、{1}"),
-        unit: list_uniform("{0} {1}"),
-        narrow: list_uniform("{0}{1}"),
     },
     approximate: ApproximatePatterns {
         exactly: "{0}",
@@ -2096,83 +740,13 @@ const JA: LocaleData = LocaleData {
         current: "今週の{0}",
         next: "来週の{0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} {1}",
+    ..cldr48::JA
 };
 
 // --- Korean ---------------------------------------------------------------
 
-const KO_LONG: StyleData = StyleData {
-    second: u(p1("{0}초 전"), p1("{0}초 후"), p1("{0}초"), "", "지금", ""),
-    minute: u(
-        p1("{0}분 전"),
-        p1("{0}분 후"),
-        p1("{0}분"),
-        "",
-        "현재 분",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0}시간 전"),
-            p1("{0}시간 후"),
-            p1("{0}시간"),
-            "",
-            "현재 시간",
-            "",
-        ),
-        "30분",
-        "1시간 30분",
-    ),
-    day: u_day(
-        p1("{0}일 전"),
-        p1("{0}일 후"),
-        p1("{0}일"),
-        "그저께",
-        "어제",
-        "오늘",
-        "내일",
-        "모레",
-    ),
-    week: u(
-        p1("{0}주 전"),
-        p1("{0}주 후"),
-        p1("{0}주"),
-        "지난주",
-        "이번 주",
-        "다음 주",
-    ),
-    month: u(
-        p1("{0}개월 전"),
-        p1("{0}개월 후"),
-        p1("{0}개월"),
-        "지난달",
-        "이번 달",
-        "다음 달",
-    ),
-    quarter: u(
-        p1("{0}분기 전"),
-        p1("{0}분기 후"),
-        p1("{0}분기"),
-        "지난 분기",
-        "이번 분기",
-        "다음 분기",
-    ),
-    year: u(
-        p1("{0}년 전"),
-        p1("{0}년 후"),
-        p1("{0}년"),
-        "작년",
-        "올해",
-        "내년",
-    ),
-};
-
 const KO: LocaleData = LocaleData {
-    tag: "ko",
-    long: KO_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::KO.long, TimeUnit::Hour, "30분", "1시간 30분"),
     compact: UnitStrings {
         second: "초",
         minute: "분",
@@ -2182,12 +756,6 @@ const KO: LocaleData = LocaleData {
         month: "개월",
         quarter: "분기",
         year: "년",
-    },
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: list_conjunction("{0}, {1}", "{0} 및 {1}"),
-        unit: list_uniform("{0} {1}"),
-        narrow: list_uniform("{0} {1}"),
     },
     approximate: ApproximatePatterns {
         exactly: "{0}",
@@ -2203,90 +771,18 @@ const KO: LocaleData = LocaleData {
         current: "이번 주 {0}",
         next: "다음 주 {0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} {1}",
+    ..cldr48::KO
 };
 
 // --- Dutch ----------------------------------------------------------------
 
-const NL_LONG: StyleData = StyleData {
-    second: u(
-        p2("{0} seconde geleden", "{0} seconden geleden"),
-        p2("over {0} seconde", "over {0} seconden"),
-        p2("{0} seconde", "{0} seconden"),
-        "",
-        "nu",
-        "",
-    ),
-    minute: u(
-        p2("{0} minuut geleden", "{0} minuten geleden"),
-        p2("over {0} minuut", "over {0} minuten"),
-        p2("{0} minuut", "{0} minuten"),
-        "",
-        "deze minuut",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} uur geleden"),
-            p1("over {0} uur"),
-            p1("{0} uur"),
-            "",
-            "dit uur",
-            "",
-        ),
+const NL: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::NL.long,
+        TimeUnit::Hour,
         "een half uur",
         "anderhalf uur",
     ),
-    day: u_day(
-        p2("{0} dag geleden", "{0} dagen geleden"),
-        p2("over {0} dag", "over {0} dagen"),
-        p2("{0} dag", "{0} dagen"),
-        "eergisteren",
-        "gisteren",
-        "vandaag",
-        "morgen",
-        "overmorgen",
-    ),
-    week: u(
-        p2("{0} week geleden", "{0} weken geleden"),
-        p2("over {0} week", "over {0} weken"),
-        p2("{0} week", "{0} weken"),
-        "vorige week",
-        "deze week",
-        "volgende week",
-    ),
-    month: u(
-        p2("{0} maand geleden", "{0} maanden geleden"),
-        p2("over {0} maand", "over {0} maanden"),
-        p2("{0} maand", "{0} maanden"),
-        "vorige maand",
-        "deze maand",
-        "volgende maand",
-    ),
-    quarter: u(
-        p2("{0} kwartaal geleden", "{0} kwartalen geleden"),
-        p2("over {0} kwartaal", "over {0} kwartalen"),
-        p2("{0} kwartaal", "{0} kwartalen"),
-        "vorig kwartaal",
-        "dit kwartaal",
-        "volgend kwartaal",
-    ),
-    year: u(
-        p1("{0} jaar geleden"),
-        p1("over {0} jaar"),
-        p1("{0} jaar"),
-        "vorig jaar",
-        "dit jaar",
-        "volgend jaar",
-    ),
-};
-
-const NL: LocaleData = LocaleData {
-    tag: "nl",
-    long: NL_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -2307,7 +803,6 @@ const NL: LocaleData = LocaleData {
         "een kwartaal",
         "een jaar",
     ),
-    list: lists("{0}, {1}", "{0} en {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "ongeveer {0}",
@@ -2322,8 +817,7 @@ const NL: LocaleData = LocaleData {
         current: "deze {0}",
         next: "komende {0}",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} om {1}",
+    ..cldr48::NL
 };
 
 // --- Polish ---------------------------------------------------------------
@@ -2333,164 +827,13 @@ const NL: LocaleData = LocaleData {
 // and 5 is `many`, and Polish puts `i = 1, v = 0` alone in `one` where
 // Russian admits 21, 31, 101. Both are in the tests.
 
-const PL_LONG: StyleData = StyleData {
-    second: u(
-        p4(
-            "{0} sekundę temu",
-            "{0} sekundy temu",
-            "{0} sekund temu",
-            "{0} sekundy temu",
-        ),
-        p4(
-            "za {0} sekundę",
-            "za {0} sekundy",
-            "za {0} sekund",
-            "za {0} sekundy",
-        ),
-        p4("{0} sekunda", "{0} sekundy", "{0} sekund", "{0} sekundy"),
-        "",
-        "teraz",
-        "",
-    ),
-    minute: u(
-        p4(
-            "{0} minutę temu",
-            "{0} minuty temu",
-            "{0} minut temu",
-            "{0} minuty temu",
-        ),
-        p4(
-            "za {0} minutę",
-            "za {0} minuty",
-            "za {0} minut",
-            "za {0} minuty",
-        ),
-        p4("{0} minuta", "{0} minuty", "{0} minut", "{0} minuty"),
-        "",
-        "ta minuta",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p4(
-                "{0} godzinę temu",
-                "{0} godziny temu",
-                "{0} godzin temu",
-                "{0} godziny temu",
-            ),
-            p4(
-                "za {0} godzinę",
-                "za {0} godziny",
-                "za {0} godzin",
-                "za {0} godziny",
-            ),
-            p4("{0} godzina", "{0} godziny", "{0} godzin", "{0} godziny"),
-            "",
-            "ta godzina",
-            "",
-        ),
+const PL: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::PL.long,
+        TimeUnit::Hour,
         "pół godziny",
         "półtorej godziny",
     ),
-    day: u_day(
-        p4(
-            "{0} dzień temu",
-            "{0} dni temu",
-            "{0} dni temu",
-            "{0} dnia temu",
-        ),
-        p4("za {0} dzień", "za {0} dni", "za {0} dni", "za {0} dnia"),
-        p4("{0} dzień", "{0} dni", "{0} dni", "{0} dnia"),
-        "przedwczoraj",
-        "wczoraj",
-        "dzisiaj",
-        "jutro",
-        "pojutrze",
-    ),
-    week: u(
-        p4(
-            "{0} tydzień temu",
-            "{0} tygodnie temu",
-            "{0} tygodni temu",
-            "{0} tygodnia temu",
-        ),
-        p4(
-            "za {0} tydzień",
-            "za {0} tygodnie",
-            "za {0} tygodni",
-            "za {0} tygodnia",
-        ),
-        p4("{0} tydzień", "{0} tygodnie", "{0} tygodni", "{0} tygodnia"),
-        "w zeszłym tygodniu",
-        "w tym tygodniu",
-        "w przyszłym tygodniu",
-    ),
-    month: u(
-        p4(
-            "{0} miesiąc temu",
-            "{0} miesiące temu",
-            "{0} miesięcy temu",
-            "{0} miesiąca temu",
-        ),
-        p4(
-            "za {0} miesiąc",
-            "za {0} miesiące",
-            "za {0} miesięcy",
-            "za {0} miesiąca",
-        ),
-        p4(
-            "{0} miesiąc",
-            "{0} miesiące",
-            "{0} miesięcy",
-            "{0} miesiąca",
-        ),
-        "w zeszłym miesiącu",
-        "w tym miesiącu",
-        "w przyszłym miesiącu",
-    ),
-    quarter: u(
-        p4(
-            "{0} kwartał temu",
-            "{0} kwartały temu",
-            "{0} kwartałów temu",
-            "{0} kwartału temu",
-        ),
-        p4(
-            "za {0} kwartał",
-            "za {0} kwartały",
-            "za {0} kwartałów",
-            "za {0} kwartału",
-        ),
-        p4(
-            "{0} kwartał",
-            "{0} kwartały",
-            "{0} kwartałów",
-            "{0} kwartału",
-        ),
-        "zeszły kwartał",
-        "ten kwartał",
-        "przyszły kwartał",
-    ),
-    year: u(
-        p4(
-            "{0} rok temu",
-            "{0} lata temu",
-            "{0} lat temu",
-            "{0} roku temu",
-        ),
-        p4("za {0} rok", "za {0} lata", "za {0} lat", "za {0} roku"),
-        p4("{0} rok", "{0} lata", "{0} lat", "{0} roku"),
-        "w zeszłym roku",
-        "w tym roku",
-        "w przyszłym roku",
-    ),
-};
-
-const PL: LocaleData = LocaleData {
-    tag: "pl",
-    long: PL_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -2501,8 +844,6 @@ const PL: LocaleData = LocaleData {
         quarter: "kw",
         year: "l",
     },
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} i {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "około {0}",
@@ -2517,90 +858,18 @@ const PL: LocaleData = LocaleData {
         current: "{0} w tym tygodniu",
         next: "{0} w przyszłym tygodniu",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} o {1}",
+    ..cldr48::PL
 };
 
 // --- Portuguese -----------------------------------------------------------
 
-const PT_LONG: StyleData = StyleData {
-    second: u(
-        p2("há {0} segundo", "há {0} segundos"),
-        p2("em {0} segundo", "em {0} segundos"),
-        p2("{0} segundo", "{0} segundos"),
-        "",
-        "agora",
-        "",
-    ),
-    minute: u(
-        p2("há {0} minuto", "há {0} minutos"),
-        p2("em {0} minuto", "em {0} minutos"),
-        p2("{0} minuto", "{0} minutos"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p2("há {0} hora", "há {0} horas"),
-            p2("em {0} hora", "em {0} horas"),
-            p2("{0} hora", "{0} horas"),
-            "",
-            "esta hora",
-            "",
-        ),
+const PT: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::PT.long,
+        TimeUnit::Hour,
         "meia hora",
         "uma hora e meia",
     ),
-    day: u_day(
-        p2("há {0} dia", "há {0} dias"),
-        p2("em {0} dia", "em {0} dias"),
-        p2("{0} dia", "{0} dias"),
-        "anteontem",
-        "ontem",
-        "hoje",
-        "amanhã",
-        "depois de amanhã",
-    ),
-    week: u(
-        p2("há {0} semana", "há {0} semanas"),
-        p2("em {0} semana", "em {0} semanas"),
-        p2("{0} semana", "{0} semanas"),
-        "semana passada",
-        "esta semana",
-        "próxima semana",
-    ),
-    month: u(
-        p2("há {0} mês", "há {0} meses"),
-        p2("em {0} mês", "em {0} meses"),
-        p2("{0} mês", "{0} meses"),
-        "mês passado",
-        "este mês",
-        "próximo mês",
-    ),
-    quarter: u(
-        p2("há {0} trimestre", "há {0} trimestres"),
-        p2("em {0} trimestre", "em {0} trimestres"),
-        p2("{0} trimestre", "{0} trimestres"),
-        "trimestre passado",
-        "este trimestre",
-        "próximo trimestre",
-    ),
-    year: u(
-        p2("há {0} ano", "há {0} anos"),
-        p2("em {0} ano", "em {0} anos"),
-        p2("{0} ano", "{0} anos"),
-        "ano passado",
-        "este ano",
-        "próximo ano",
-    ),
-};
-
-const PT: LocaleData = LocaleData {
-    tag: "pt",
-    long: PT_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "s",
         minute: "min",
@@ -2621,7 +890,6 @@ const PT: LocaleData = LocaleData {
         "um trimestre",
         "um ano",
     ),
-    list: lists("{0}, {1}", "{0} e {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "cerca de {0}",
@@ -2636,8 +904,7 @@ const PT: LocaleData = LocaleData {
         current: "{0} desta semana",
         next: "{0} da próxima semana",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} às {1}",
+    ..cldr48::PT
 };
 
 // --- Russian --------------------------------------------------------------
@@ -2646,238 +913,8 @@ const PT: LocaleData = LocaleData {
 // 25 дней. The `other` column is reached only by decimals, which is how a
 // half hour comes out as *1,5 часа*.
 
-const RU_LONG: StyleData = StyleData {
-    second: u(
-        p4(
-            "{0} секунду назад",
-            "{0} секунды назад",
-            "{0} секунд назад",
-            "{0} секунды назад",
-        ),
-        p4(
-            "через {0} секунду",
-            "через {0} секунды",
-            "через {0} секунд",
-            "через {0} секунды",
-        ),
-        p4("{0} секунда", "{0} секунды", "{0} секунд", "{0} секунды"),
-        "",
-        "сейчас",
-        "",
-    ),
-    minute: u(
-        p4(
-            "{0} минуту назад",
-            "{0} минуты назад",
-            "{0} минут назад",
-            "{0} минуты назад",
-        ),
-        p4(
-            "через {0} минуту",
-            "через {0} минуты",
-            "через {0} минут",
-            "через {0} минуты",
-        ),
-        p4("{0} минута", "{0} минуты", "{0} минут", "{0} минуты"),
-        "",
-        "в эту минуту",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p4(
-                "{0} час назад",
-                "{0} часа назад",
-                "{0} часов назад",
-                "{0} часа назад",
-            ),
-            p4(
-                "через {0} час",
-                "через {0} часа",
-                "через {0} часов",
-                "через {0} часа",
-            ),
-            p4("{0} час", "{0} часа", "{0} часов", "{0} часа"),
-            "",
-            "в этот час",
-            "",
-        ),
-        "полчаса",
-        "полтора часа",
-    ),
-    day: u_day(
-        p4(
-            "{0} день назад",
-            "{0} дня назад",
-            "{0} дней назад",
-            "{0} дня назад",
-        ),
-        p4(
-            "через {0} день",
-            "через {0} дня",
-            "через {0} дней",
-            "через {0} дня",
-        ),
-        p4("{0} день", "{0} дня", "{0} дней", "{0} дня"),
-        "позавчера",
-        "вчера",
-        "сегодня",
-        "завтра",
-        "послезавтра",
-    ),
-    week: u(
-        p4(
-            "{0} неделю назад",
-            "{0} недели назад",
-            "{0} недель назад",
-            "{0} недели назад",
-        ),
-        p4(
-            "через {0} неделю",
-            "через {0} недели",
-            "через {0} недель",
-            "через {0} недели",
-        ),
-        p4("{0} неделя", "{0} недели", "{0} недель", "{0} недели"),
-        "на прошлой неделе",
-        "на этой неделе",
-        "на следующей неделе",
-    ),
-    month: u(
-        p4(
-            "{0} месяц назад",
-            "{0} месяца назад",
-            "{0} месяцев назад",
-            "{0} месяца назад",
-        ),
-        p4(
-            "через {0} месяц",
-            "через {0} месяца",
-            "через {0} месяцев",
-            "через {0} месяца",
-        ),
-        p4("{0} месяц", "{0} месяца", "{0} месяцев", "{0} месяца"),
-        "в прошлом месяце",
-        "в этом месяце",
-        "в следующем месяце",
-    ),
-    quarter: u(
-        p4(
-            "{0} квартал назад",
-            "{0} квартала назад",
-            "{0} кварталов назад",
-            "{0} квартала назад",
-        ),
-        p4(
-            "через {0} квартал",
-            "через {0} квартала",
-            "через {0} кварталов",
-            "через {0} квартала",
-        ),
-        p4(
-            "{0} квартал",
-            "{0} квартала",
-            "{0} кварталов",
-            "{0} квартала",
-        ),
-        "в прошлом квартале",
-        "в текущем квартале",
-        "в следующем квартале",
-    ),
-    year: u(
-        p4(
-            "{0} год назад",
-            "{0} года назад",
-            "{0} лет назад",
-            "{0} года назад",
-        ),
-        p4(
-            "через {0} год",
-            "через {0} года",
-            "через {0} лет",
-            "через {0} года",
-        ),
-        p4("{0} год", "{0} года", "{0} лет", "{0} года"),
-        "в прошлом году",
-        "в этом году",
-        "в следующем году",
-    ),
-};
-
-const RU_SHORT: StyleData = StyleData {
-    second: u(
-        p1("{0} с назад"),
-        p1("через {0} с"),
-        p1("{0} с"),
-        "",
-        "сейчас",
-        "",
-    ),
-    minute: u(
-        p1("{0} мин. назад"),
-        p1("через {0} мин."),
-        p1("{0} мин."),
-        "",
-        "в эту минуту",
-        "",
-    ),
-    hour: u(
-        p1("{0} ч назад"),
-        p1("через {0} ч"),
-        p1("{0} ч"),
-        "",
-        "в этот час",
-        "",
-    ),
-    day: u_day(
-        p1("{0} дн. назад"),
-        p1("через {0} дн."),
-        p1("{0} дн."),
-        "позавчера",
-        "вчера",
-        "сегодня",
-        "завтра",
-        "послезавтра",
-    ),
-    week: u(
-        p1("{0} нед. назад"),
-        p1("через {0} нед."),
-        p1("{0} нед."),
-        "на прошлой неделе",
-        "на этой неделе",
-        "на следующей неделе",
-    ),
-    month: u(
-        p1("{0} мес. назад"),
-        p1("через {0} мес."),
-        p1("{0} мес."),
-        "в прошлом месяце",
-        "в этом месяце",
-        "в следующем месяце",
-    ),
-    quarter: u(
-        p1("{0} кв. назад"),
-        p1("через {0} кв."),
-        p1("{0} кв."),
-        "в прошлом квартале",
-        "в текущем квартале",
-        "в следующем квартале",
-    ),
-    year: u(
-        p1("{0} г. назад"),
-        p1("через {0} г."),
-        p1("{0} г."),
-        "в прошлом году",
-        "в этом году",
-        "в следующем году",
-    ),
-};
-
 const RU: LocaleData = LocaleData {
-    tag: "ru",
-    long: RU_LONG,
-    short: RU_SHORT,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::RU.long, TimeUnit::Hour, "полчаса", "полтора часа"),
     compact: UnitStrings {
         second: "с",
         minute: "мин",
@@ -2888,8 +925,6 @@ const RU: LocaleData = LocaleData {
         quarter: "кв",
         year: "г",
     },
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} и {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "приблизительно {0}",
@@ -2904,97 +939,13 @@ const RU: LocaleData = LocaleData {
         current: "{0} на этой неделе",
         next: "{0} на следующей неделе",
     },
-    decimal_separator: ",",
-    at_pattern: "{0}, {1}",
+    ..cldr48::RU
 };
 
 // --- Thai -----------------------------------------------------------------
 
-const TH_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} วินาทีที่ผ่านมา"),
-        p1("ในอีก {0} วินาที"),
-        p1("{0} วินาที"),
-        "",
-        "ขณะนี้",
-        "",
-    ),
-    minute: u(
-        p1("{0} นาทีที่ผ่านมา"),
-        p1("ในอีก {0} นาที"),
-        p1("{0} นาที"),
-        "",
-        "นาทีนี้",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} ชั่วโมงที่ผ่านมา"),
-            p1("ในอีก {0} ชั่วโมง"),
-            p1("{0} ชั่วโมง"),
-            "",
-            "ชั่วโมงนี้",
-            "",
-        ),
-        "ครึ่งชั่วโมง",
-        "หนึ่งชั่วโมงครึ่ง",
-    ),
-    day: u_day(
-        p1("{0} วันที่ผ่านมา"),
-        p1("ในอีก {0} วัน"),
-        p1("{0} วัน"),
-        "เมื่อวานซืน",
-        "เมื่อวาน",
-        "วันนี้",
-        "พรุ่งนี้",
-        "มะรืนนี้",
-    ),
-    week: u(
-        p1("{0} สัปดาห์ที่ผ่านมา"),
-        p1("ในอีก {0} สัปดาห์"),
-        p1("{0} สัปดาห์"),
-        "สัปดาห์ที่แล้ว",
-        "สัปดาห์นี้",
-        "สัปดาห์หน้า",
-    ),
-    month: u(
-        p1("{0} เดือนที่ผ่านมา"),
-        p1("ในอีก {0} เดือน"),
-        p1("{0} เดือน"),
-        "เดือนที่แล้ว",
-        "เดือนนี้",
-        "เดือนหน้า",
-    ),
-    quarter: u(
-        p1("{0} ไตรมาสที่ผ่านมา"),
-        p1("ในอีก {0} ไตรมาส"),
-        p1("{0} ไตรมาส"),
-        "ไตรมาสที่แล้ว",
-        "ไตรมาสนี้",
-        "ไตรมาสหน้า",
-    ),
-    year: u(
-        p1("{0} ปีที่ผ่านมา"),
-        p1("ในอีก {0} ปี"),
-        p1("{0} ปี"),
-        "ปีที่แล้ว",
-        "ปีนี้",
-        "ปีหน้า",
-    ),
-};
-
 const TH: LocaleData = LocaleData {
-    tag: "th",
-    long: TH_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: list_conjunction("{0} {1}", "{0} และ{1}"),
-        unit: list_uniform("{0} {1}"),
-        narrow: list_uniform("{0} {1}"),
-    },
+    long: idioms(cldr48::TH.long, TimeUnit::Hour, "ครึ่งชั่วโมง", "หนึ่งชั่วโมงครึ่ง"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "ประมาณ {0}",
@@ -3009,8 +960,7 @@ const TH: LocaleData = LocaleData {
         current: "{0} นี้",
         next: "{0} หน้า",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} เวลา {1}",
+    ..cldr48::TH
 };
 
 // --- Turkish --------------------------------------------------------------
@@ -3021,84 +971,13 @@ const TH: LocaleData = LocaleData {
 // pattern cannot produce. *{0} ve üzeri* and *en fazla {0}* are grammatical
 // for every filling.
 
-const TR_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} saniye önce"),
-        p1("{0} saniye sonra"),
-        p1("{0} saniye"),
-        "",
-        "şimdi",
-        "",
-    ),
-    minute: u(
-        p1("{0} dakika önce"),
-        p1("{0} dakika sonra"),
-        p1("{0} dakika"),
-        "",
-        "bu dakika",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} saat önce"),
-            p1("{0} saat sonra"),
-            p1("{0} saat"),
-            "",
-            "bu saat",
-            "",
-        ),
+const TR: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::TR.long,
+        TimeUnit::Hour,
         "yarım saat",
         "bir buçuk saat",
     ),
-    day: u_day(
-        p1("{0} gün önce"),
-        p1("{0} gün sonra"),
-        p1("{0} gün"),
-        "evvelsi gün",
-        "dün",
-        "bugün",
-        "yarın",
-        "öbür gün",
-    ),
-    week: u(
-        p1("{0} hafta önce"),
-        p1("{0} hafta sonra"),
-        p1("{0} hafta"),
-        "geçen hafta",
-        "bu hafta",
-        "gelecek hafta",
-    ),
-    month: u(
-        p1("{0} ay önce"),
-        p1("{0} ay sonra"),
-        p1("{0} ay"),
-        "geçen ay",
-        "bu ay",
-        "gelecek ay",
-    ),
-    quarter: u(
-        p1("{0} çeyrek önce"),
-        p1("{0} çeyrek sonra"),
-        p1("{0} çeyrek"),
-        "geçen çeyrek",
-        "bu çeyrek",
-        "gelecek çeyrek",
-    ),
-    year: u(
-        p1("{0} yıl önce"),
-        p1("{0} yıl sonra"),
-        p1("{0} yıl"),
-        "geçen yıl",
-        "bu yıl",
-        "gelecek yıl",
-    ),
-};
-
-const TR: LocaleData = LocaleData {
-    tag: "tr",
-    long: TR_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "sn",
         minute: "dk",
@@ -3119,7 +998,6 @@ const TR: LocaleData = LocaleData {
         "bir çeyrek",
         "bir yıl",
     ),
-    list: lists("{0}, {1}", "{0} ve {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "yaklaşık {0}",
@@ -3134,90 +1012,13 @@ const TR: LocaleData = LocaleData {
         current: "bu {0}",
         next: "gelecek {0}",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} {1}",
+    ..cldr48::TR
 };
 
 // --- Vietnamese -----------------------------------------------------------
 
-const VI_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} giây trước"),
-        p1("sau {0} giây nữa"),
-        p1("{0} giây"),
-        "",
-        "bây giờ",
-        "",
-    ),
-    minute: u(
-        p1("{0} phút trước"),
-        p1("sau {0} phút nữa"),
-        p1("{0} phút"),
-        "",
-        "phút này",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0} giờ trước"),
-            p1("sau {0} giờ nữa"),
-            p1("{0} giờ"),
-            "",
-            "giờ này",
-            "",
-        ),
-        "nửa giờ",
-        "một giờ rưỡi",
-    ),
-    day: u_day(
-        p1("{0} ngày trước"),
-        p1("sau {0} ngày nữa"),
-        p1("{0} ngày"),
-        "hôm kia",
-        "hôm qua",
-        "hôm nay",
-        "ngày mai",
-        "ngày kia",
-    ),
-    week: u(
-        p1("{0} tuần trước"),
-        p1("sau {0} tuần nữa"),
-        p1("{0} tuần"),
-        "tuần trước",
-        "tuần này",
-        "tuần sau",
-    ),
-    month: u(
-        p1("{0} tháng trước"),
-        p1("sau {0} tháng nữa"),
-        p1("{0} tháng"),
-        "tháng trước",
-        "tháng này",
-        "tháng sau",
-    ),
-    quarter: u(
-        p1("{0} quý trước"),
-        p1("sau {0} quý nữa"),
-        p1("{0} quý"),
-        "quý trước",
-        "quý này",
-        "quý sau",
-    ),
-    year: u(
-        p1("{0} năm trước"),
-        p1("sau {0} năm nữa"),
-        p1("{0} năm"),
-        "năm ngoái",
-        "năm nay",
-        "năm sau",
-    ),
-};
-
 const VI: LocaleData = LocaleData {
-    tag: "vi",
-    long: VI_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::VI.long, TimeUnit::Hour, "nửa giờ", "một giờ rưỡi"),
     compact: UnitStrings {
         second: "s",
         minute: "p",
@@ -3228,8 +1029,6 @@ const VI: LocaleData = LocaleData {
         quarter: "quý",
         year: "năm",
     },
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} và {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "khoảng {0}",
@@ -3244,8 +1043,7 @@ const VI: LocaleData = LocaleData {
         current: "{0} tuần này",
         next: "{0} tuần sau",
     },
-    decimal_separator: ",",
-    at_pattern: "{0} lúc {1}",
+    ..cldr48::VI
 };
 
 // --- Welsh ----------------------------------------------------------------
@@ -3254,257 +1052,18 @@ const VI: LocaleData = LocaleData {
 // boundaries are nothing like Arabic's: `zero` for 0, `one` for 1, `two` for
 // 2, `few` for 3 and `many` for 6 alone, with everything else `other`. Three
 // and six are singled out because *tri* and *chwe* mutate the following
-// noun where other numerals do not. The forms below follow CLDR's `cy`
-// entry; Welsh is carried here because a six-category language whose
+// noun where other numerals do not. The phrases are CLDR's `cy` entry's
+// (the future years state all six); Welsh is carried here because a six-category language whose
 // categories are *not* Arabic's is the only way to test that the selection
 // really goes through the plural rules.
 
-const CY_LONG: StyleData = StyleData {
-    second: u(
-        p6(
-            "{0} eiliad yn ôl",
-            "{0} eiliad yn ôl",
-            "{0} eiliad yn ôl",
-            "{0} eiliad yn ôl",
-            "{0} eiliad yn ôl",
-            "{0} o eiliadau yn ôl",
-        ),
-        p6(
-            "ymhen {0} eiliad",
-            "ymhen {0} eiliad",
-            "ymhen {0} eiliad",
-            "ymhen {0} eiliad",
-            "ymhen {0} eiliad",
-            "ymhen {0} o eiliadau",
-        ),
-        p6(
-            "{0} eiliad",
-            "{0} eiliad",
-            "{0} eiliad",
-            "{0} eiliad",
-            "{0} eiliad",
-            "{0} o eiliadau",
-        ),
-        "",
-        "nawr",
-        "",
-    ),
-    minute: u(
-        p6(
-            "{0} munud yn ôl",
-            "{0} funud yn ôl",
-            "{0} funud yn ôl",
-            "{0} munud yn ôl",
-            "{0} munud yn ôl",
-            "{0} o funudau yn ôl",
-        ),
-        p6(
-            "ymhen {0} munud",
-            "ymhen {0} funud",
-            "ymhen {0} funud",
-            "ymhen {0} munud",
-            "ymhen {0} munud",
-            "ymhen {0} o funudau",
-        ),
-        p6(
-            "{0} munud",
-            "{0} funud",
-            "{0} funud",
-            "{0} munud",
-            "{0} munud",
-            "{0} o funudau",
-        ),
-        "",
-        "y funud hon",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p6(
-                "{0} awr yn ôl",
-                "{0} awr yn ôl",
-                "{0} awr yn ôl",
-                "{0} awr yn ôl",
-                "{0} awr yn ôl",
-                "{0} o oriau yn ôl",
-            ),
-            p6(
-                "ymhen {0} awr",
-                "ymhen {0} awr",
-                "ymhen {0} awr",
-                "ymhen {0} awr",
-                "ymhen {0} awr",
-                "ymhen {0} o oriau",
-            ),
-            p6(
-                "{0} awr",
-                "{0} awr",
-                "{0} awr",
-                "{0} awr",
-                "{0} awr",
-                "{0} o oriau",
-            ),
-            "",
-            "yr awr hon",
-            "",
-        ),
+const CY: LocaleData = LocaleData {
+    long: idioms(
+        cldr48::CY.long,
+        TimeUnit::Hour,
         "hanner awr",
         "awr a hanner",
     ),
-    day: u_day(
-        p6(
-            "{0} diwrnod yn ôl",
-            "{0} diwrnod yn ôl",
-            "{0} ddiwrnod yn ôl",
-            "{0} diwrnod yn ôl",
-            "{0} diwrnod yn ôl",
-            "{0} o ddiwrnodau yn ôl",
-        ),
-        p6(
-            "ymhen {0} diwrnod",
-            "ymhen {0} diwrnod",
-            "ymhen {0} ddiwrnod",
-            "ymhen {0} diwrnod",
-            "ymhen {0} diwrnod",
-            "ymhen {0} o ddiwrnodau",
-        ),
-        p6(
-            "{0} diwrnod",
-            "{0} diwrnod",
-            "{0} ddiwrnod",
-            "{0} diwrnod",
-            "{0} diwrnod",
-            "{0} o ddiwrnodau",
-        ),
-        "echdoe",
-        "ddoe",
-        "heddiw",
-        "yfory",
-        "drennydd",
-    ),
-    week: u(
-        p6(
-            "{0} wythnos yn ôl",
-            "{0} wythnos yn ôl",
-            "{0} wythnos yn ôl",
-            "{0} wythnos yn ôl",
-            "{0} wythnos yn ôl",
-            "{0} o wythnosau yn ôl",
-        ),
-        p6(
-            "ymhen {0} wythnos",
-            "ymhen {0} wythnos",
-            "ymhen {0} wythnos",
-            "ymhen {0} wythnos",
-            "ymhen {0} wythnos",
-            "ymhen {0} o wythnosau",
-        ),
-        p6(
-            "{0} wythnos",
-            "{0} wythnos",
-            "{0} wythnos",
-            "{0} wythnos",
-            "{0} wythnos",
-            "{0} o wythnosau",
-        ),
-        "wythnos ddiwethaf",
-        "yr wythnos hon",
-        "wythnos nesaf",
-    ),
-    month: u(
-        p6(
-            "{0} mis yn ôl",
-            "{0} mis yn ôl",
-            "{0} fis yn ôl",
-            "{0} mis yn ôl",
-            "{0} mis yn ôl",
-            "{0} o fisoedd yn ôl",
-        ),
-        p6(
-            "ymhen {0} mis",
-            "ymhen {0} mis",
-            "ymhen {0} fis",
-            "ymhen {0} mis",
-            "ymhen {0} mis",
-            "ymhen {0} o fisoedd",
-        ),
-        p6(
-            "{0} mis",
-            "{0} mis",
-            "{0} fis",
-            "{0} mis",
-            "{0} mis",
-            "{0} o fisoedd",
-        ),
-        "mis diwethaf",
-        "y mis hwn",
-        "mis nesaf",
-    ),
-    quarter: u(
-        p6(
-            "{0} chwarter yn ôl",
-            "{0} chwarter yn ôl",
-            "{0} chwarter yn ôl",
-            "{0} chwarter yn ôl",
-            "{0} chwarter yn ôl",
-            "{0} o chwarteri yn ôl",
-        ),
-        p6(
-            "ymhen {0} chwarter",
-            "ymhen {0} chwarter",
-            "ymhen {0} chwarter",
-            "ymhen {0} chwarter",
-            "ymhen {0} chwarter",
-            "ymhen {0} o chwarteri",
-        ),
-        p6(
-            "{0} chwarter",
-            "{0} chwarter",
-            "{0} chwarter",
-            "{0} chwarter",
-            "{0} chwarter",
-            "{0} o chwarteri",
-        ),
-        "chwarter diwethaf",
-        "y chwarter hwn",
-        "chwarter nesaf",
-    ),
-    year: u(
-        p6(
-            "{0} mlynedd yn ôl",
-            "{0} flwyddyn yn ôl",
-            "{0} flynedd yn ôl",
-            "{0} blynedd yn ôl",
-            "{0} blynedd yn ôl",
-            "{0} o flynyddoedd yn ôl",
-        ),
-        p6(
-            "ymhen {0} mlynedd",
-            "ymhen {0} flwyddyn",
-            "ymhen {0} flynedd",
-            "ymhen {0} blynedd",
-            "ymhen {0} blynedd",
-            "ymhen {0} o flynyddoedd",
-        ),
-        p6(
-            "{0} mlynedd",
-            "{0} flwyddyn",
-            "{0} flynedd",
-            "{0} blynedd",
-            "{0} blynedd",
-            "{0} o flynyddoedd",
-        ),
-        "llynedd",
-        "eleni",
-        "y flwyddyn nesaf",
-    ),
-};
-
-const CY: LocaleData = LocaleData {
-    tag: "cy",
-    long: CY_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
     compact: UnitStrings {
         second: "e",
         minute: "mun",
@@ -3515,8 +1074,6 @@ const CY: LocaleData = LocaleData {
         quarter: "chw",
         year: "bl",
     },
-    indefinite: UnitStrings::EMPTY,
-    list: lists("{0}, {1}", "{0} a {1}", "{0} {1}"),
     approximate: ApproximatePatterns {
         exactly: "{0}",
         about: "tua {0}",
@@ -3531,8 +1088,7 @@ const CY: LocaleData = LocaleData {
         current: "{0} hwn",
         next: "{0} nesaf",
     },
-    decimal_separator: ".",
-    at_pattern: "{0} am {1}",
+    ..cldr48::CY
 };
 
 // --- Chinese, Simplified --------------------------------------------------
@@ -3540,77 +1096,8 @@ const CY: LocaleData = LocaleData {
 // Tagged `zh` rather than `zh-Hans` so that `zh`, `zh-Hans` and `zh-CN` all
 // reach it by truncation; `zh-Hant` below is the separate entry.
 
-const ZH_LONG: StyleData = StyleData {
-    second: u(p1("{0}秒前"), p1("{0}秒后"), p1("{0}秒"), "", "现在", ""),
-    minute: u(
-        p1("{0}分钟前"),
-        p1("{0}分钟后"),
-        p1("{0}分钟"),
-        "",
-        "此刻",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0}小时前"),
-            p1("{0}小时后"),
-            p1("{0}小时"),
-            "",
-            "这一小时",
-            "",
-        ),
-        "半小时",
-        "一个半小时",
-    ),
-    day: u_day(
-        p1("{0}天前"),
-        p1("{0}天后"),
-        p1("{0}天"),
-        "前天",
-        "昨天",
-        "今天",
-        "明天",
-        "后天",
-    ),
-    week: u(
-        p1("{0}周前"),
-        p1("{0}周后"),
-        p1("{0}周"),
-        "上周",
-        "本周",
-        "下周",
-    ),
-    month: u(
-        p1("{0}个月前"),
-        p1("{0}个月后"),
-        p1("{0}个月"),
-        "上个月",
-        "本月",
-        "下个月",
-    ),
-    quarter: u(
-        p1("{0}个季度前"),
-        p1("{0}个季度后"),
-        p1("{0}个季度"),
-        "上季度",
-        "本季度",
-        "下季度",
-    ),
-    year: u(
-        p1("{0}年前"),
-        p1("{0}年后"),
-        p1("{0}年"),
-        "去年",
-        "今年",
-        "明年",
-    ),
-};
-
 const ZH: LocaleData = LocaleData {
-    tag: "zh",
-    long: ZH_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::ZH.long, TimeUnit::Hour, "半小时", "一个半小时"),
     compact: UnitStrings {
         second: "秒",
         minute: "分钟",
@@ -3620,12 +1107,6 @@ const ZH: LocaleData = LocaleData {
         month: "个月",
         quarter: "个季度",
         year: "年",
-    },
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: list_conjunction("{0}、{1}", "{0}和{1}"),
-        unit: list_uniform("{0}{1}"),
-        narrow: list_uniform("{0}{1}"),
     },
     approximate: ApproximatePatterns {
         exactly: "{0}",
@@ -3641,83 +1122,13 @@ const ZH: LocaleData = LocaleData {
         current: "这{0}",
         next: "下{0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0}{1}",
+    ..cldr48::ZH
 };
 
 // --- Chinese, Traditional -------------------------------------------------
 
-const ZH_HANT_LONG: StyleData = StyleData {
-    second: u(p1("{0}秒前"), p1("{0}秒後"), p1("{0}秒"), "", "現在", ""),
-    minute: u(
-        p1("{0}分鐘前"),
-        p1("{0}分鐘後"),
-        p1("{0}分鐘"),
-        "",
-        "這一分鐘",
-        "",
-    ),
-    hour: u_half(
-        u(
-            p1("{0}小時前"),
-            p1("{0}小時後"),
-            p1("{0}小時"),
-            "",
-            "這一小時",
-            "",
-        ),
-        "半小時",
-        "一個半小時",
-    ),
-    day: u_day(
-        p1("{0}天前"),
-        p1("{0}天後"),
-        p1("{0}天"),
-        "前天",
-        "昨天",
-        "今天",
-        "明天",
-        "後天",
-    ),
-    week: u(
-        p1("{0}週前"),
-        p1("{0}週後"),
-        p1("{0}週"),
-        "上週",
-        "本週",
-        "下週",
-    ),
-    month: u(
-        p1("{0}個月前"),
-        p1("{0}個月後"),
-        p1("{0}個月"),
-        "上個月",
-        "本月",
-        "下個月",
-    ),
-    quarter: u(
-        p1("{0}個季度前"),
-        p1("{0}個季度後"),
-        p1("{0}個季度"),
-        "上一季",
-        "這一季",
-        "下一季",
-    ),
-    year: u(
-        p1("{0}年前"),
-        p1("{0}年後"),
-        p1("{0}年"),
-        "去年",
-        "今年",
-        "明年",
-    ),
-};
-
 const ZH_HANT: LocaleData = LocaleData {
-    tag: "zh-Hant",
-    long: ZH_HANT_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    long: idioms(cldr48::ZH_HANT.long, TimeUnit::Hour, "半小時", "一個半小時"),
     compact: UnitStrings {
         second: "秒",
         minute: "分鐘",
@@ -3727,12 +1138,6 @@ const ZH_HANT: LocaleData = LocaleData {
         month: "個月",
         quarter: "季",
         year: "年",
-    },
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: list_conjunction("{0}、{1}", "{0}和{1}"),
-        unit: list_uniform("{0}{1}"),
-        narrow: list_uniform("{0}{1}"),
     },
     approximate: ApproximatePatterns {
         exactly: "{0}",
@@ -3748,2426 +1153,23 @@ const ZH_HANT: LocaleData = LocaleData {
         current: "這{0}",
         next: "下{0}",
     },
-    decimal_separator: ".",
-    at_pattern: "{0}{1}",
+    ..cldr48::ZH_HANT
 };
 
 // --- the locales of the most-spoken languages -----------------------------
 //
 // The languages `hc-i18n` added for Ethnologue's thirty most-spoken (see
-// `docs/i18n.md`), each from its CLDR 48 file, `common/main/<file>.xml` at
-// the `release-48` tag, read 2026-09-28: `fil.xml`, `ha.xml`, `mr.xml`,
-// `pa.xml` (Gurmukhi), `pcm.xml`, `pt_PT.xml` over `pt.xml`, `sw.xml`,
-// `te.xml`, `ur.xml`, `yue_Hans.xml` and `yue.xml`. Every phrase is CLDR's:
-// the `<relative>` words and `<relativeTime>` patterns of the `<fields>`
-// section for each style (`day`, `day-short`, `day-narrow`), the
-// `<unit type="duration-…">` patterns of `<units>` for the undirected
-// counts, the `listPattern`s standard, `unit` and `unit-narrow`, the Latin
-// decimal separator, and the long `atTime` date-time pattern (or, where the
-// file states none, its standard one), with CLDR's date `{1}` and time
-// `{0}` put in this crate's order. A value the file marks `↑↑↑` is the
-// one CLDR inherits in its place: the parent's, then, where no file states
-// the path, what root's aliases give — a narrow style's the short one's,
-// the short style's the long one's — and, at the end of that chain, the
-// category `other` of the style it ended in (TR35's lateral inheritance).
-// So Urdu's narrow *in 1 hour* is the long style's «{0} گھنٹے میں», not
-// the narrow plural, and `pt-PT` carries the short and narrow phrases
-// `pt_PT.xml` states, «há {0} s», with root's «{0} s» where `pt_PT.xml` and
-// `pt.xml` mark a unit's count. A category no file writes is left empty
-// and takes the style's `other`, as a reader of CLDR's resolved data does;
-// a style that says nothing the wider one does not is left empty and falls
-// to it; a special word root alone gives — root's English *yesterday* — is
-// not carried. `tests/cldr48_resolved.rs` compares a sample of every
-// locale's values with CLDR's own resolution of them.
-//
-// The three kinds of string CLDR has no field for are not translated: the
-// hedges and the weekday phrases are root's language-free ones, and the
-// compact suffixes and indefinite units are left empty, so that a count is
-// written with its numeral. `pt-PT` takes `pt`'s, which are the same
-// language's. `pa_Arab.xml` states no fields, so Punjabi in the Arabic
-// script has no entry and falls to root.
-
-const FIL_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} segundo ang nakalipas"),
-        p1("sa {0} segundo"),
-        p2("{0} segundo", "{0} na segundo"),
-        "",
-        "ngayon",
-        "",
-    ),
-    minute: u(
-        p1("{0} minuto ang nakalipas"),
-        p1("sa {0} minuto"),
-        p2("{0} minuto", "{0} na minuto"),
-        "",
-        "sa minutong ito",
-        "",
-    ),
-    hour: u(
-        p1("{0} oras ang nakalipas"),
-        p1("sa {0} oras"),
-        p2("{0} oras", "{0} na oras"),
-        "",
-        "ngayong oras",
-        "",
-    ),
-    day: u_day(
-        p1("{0} araw ang nakalipas"),
-        p1("sa {0} araw"),
-        p2("{0} araw", "{0} na araw"),
-        "Araw bago ang kahapon",
-        "kahapon",
-        "ngayong araw",
-        "bukas",
-        "Samakalawa",
-    ),
-    week: u(
-        p1("{0} linggo ang nakalipas"),
-        p1("sa {0} linggo"),
-        p2("{0} linggo", "{0} na linggo"),
-        "nakalipas na linggo",
-        "sa linggong ito",
-        "susunod na linggo",
-    ),
-    month: u(
-        p1("{0} buwan ang nakalipas"),
-        p1("sa {0} buwan"),
-        p1("{0} buwan"),
-        "nakaraang buwan",
-        "ngayong buwan",
-        "susunod na buwan",
-    ),
-    quarter: u(
-        p1("{0} quarter ang nakalipas"),
-        p1("sa {0} quarter"),
-        p2("{0} qtr", "{0} quarter"),
-        "nakaraang quarter",
-        "ngayong quarter",
-        "susunod na quarter",
-    ),
-    year: u(
-        p1("{0} taon ang nakalipas"),
-        p1("sa {0} taon"),
-        p2("{0} taon", "{0} na taon"),
-        "nakaraang taon",
-        "ngayong taon",
-        "susunod na taon",
-    ),
-};
-
-const FIL_SHORT: StyleData = StyleData {
-    second: u(
-        p2("{0} seg. ang nakalipas", "{0} seg. ang nakalipas"),
-        p2("sa {0} seg.", "sa {0} seg."),
-        p1("{0} seg."),
-        "",
-        "ngayon",
-        "",
-    ),
-    minute: u(
-        p2("{0} min. ang nakalipas", "{0} min. ang nakalipas"),
-        p2("sa {0} min.", "sa {0} min."),
-        p1("{0} min."),
-        "",
-        "sa minutong ito",
-        "",
-    ),
-    hour: u(
-        p1("{0} oras ang nakalipas"),
-        p2("sa {0} oras", "sa {0} (na) oras"),
-        p2("{0} oras", "{0} na oras"),
-        "",
-        "ngayong oras",
-        "",
-    ),
-    day: u_day(
-        p2("{0} araw ang nakalipas", "{0} (na) araw ang nakalipas"),
-        p2("sa {0} (na) araw", "sa {0} araw"),
-        p1("{0} araw"),
-        "Araw bago ang kahapon",
-        "kahapon",
-        "ngayong araw",
-        "bukas",
-        "Samakalawa",
-    ),
-    week: u(
-        p2("{0} linggo ang nakalipas", "{0} (na) linggo ang nakalipas"),
-        p1("sa {0} linggo"),
-        p2("{0} linggo", "{0} na linggo"),
-        "nakaraang linggo",
-        "ngayong linggo",
-        "susunod na linggo",
-    ),
-    month: u(
-        p1("{0} buwan ang nakalipas"),
-        p1("sa {0} buwan"),
-        p1("{0} buwan"),
-        "nakaraang buwan",
-        "ngayong buwan",
-        "susunod na buwan",
-    ),
-    quarter: u(
-        p1("{0} quarter ang nakalipas"),
-        p1("sa {0} quarter"),
-        p2("{0} qtr", "{0} qtrs"),
-        "nakaraang quarter",
-        "ngayong quarter",
-        "susunod na quarter",
-    ),
-    year: u(
-        p1("{0} taon ang nakalipas"),
-        p1("sa {0} taon"),
-        p1("{0} taon"),
-        "nakaraang taon",
-        "ngayong taon",
-        "susunod na taon",
-    ),
-};
-
-const FIL_NARROW: StyleData = StyleData {
-    second: u(
-        p2("{0} seg. ang nakalipas", "{0} seg. ang nakalipas"),
-        p2("sa {0} seg.", "sa {0} seg."),
-        p2("{0}s", "{0}s"),
-        "",
-        "ngayon",
-        "",
-    ),
-    minute: u(
-        p2("{0} min. ang nakalipas", "{0} min. ang nakalipas"),
-        p2("sa {0} min.", "sa {0} min."),
-        p2("{0}m", "{0}m"),
-        "",
-        "sa minutong ito",
-        "",
-    ),
-    hour: u(
-        p1("{0} oras ang nakalipas"),
-        p1("sa {0} oras"),
-        p2("{0} oras", "{0} oras"),
-        "",
-        "ngayong oras",
-        "",
-    ),
-    day: u_day(
-        p1("{0} araw ang nakalipas"),
-        p2("sa {0} araw", "sa {0} araw"),
-        p2("{0} araw", "{0} na araw"),
-        "Araw bago ang kahapon",
-        "kahapon",
-        "ngayong araw",
-        "bukas",
-        "Samakalawa",
-    ),
-    week: u(
-        p1("{0} linggo ang nakalipas"),
-        p1("sa {0} linggo"),
-        p2("{0}linggo", "{0}linggo"),
-        "nakaraang linggo",
-        "ngayong linggo",
-        "susunod na linggo",
-    ),
-    month: u(
-        p1("{0} buwan ang nakalipas"),
-        p1("sa {0} buwan"),
-        p2("{0}buwan", "{0} buwan"),
-        "nakaraang buwan",
-        "ngayong buwan",
-        "susunod na buwan",
-    ),
-    quarter: u(
-        p1("{0} quarter ang nakalipas"),
-        p1("sa {0} quarter"),
-        p2("{0} qtr", "{0} qtrs"),
-        "nakaraang quarter",
-        "ngayong quarter",
-        "susunod na quarter",
-    ),
-    year: u(
-        p1("{0} taon ang nakalipas"),
-        p1("sa {0} taon"),
-        p2("{0}taon", "{0}taon"),
-        "nakaraang taon",
-        "ngayong taon",
-        "susunod na taon",
-    ),
-};
-
-const FIL: LocaleData = LocaleData {
-    tag: "fil",
-    long: FIL_LONG,
-    short: FIL_SHORT,
-    narrow: FIL_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} at {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, at {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} nang {1}",
-};
-
-const HA_LONG: StyleData = StyleData {
-    second: u(
-        p2("dakika {0} da ta gabata", "dakiku {0} da suka gabata"),
-        p2("cikin dakika {0}", "cikin dakiku {0}"),
-        p2("daƙiƙa {0}", "daƙiƙoƙi {0}"),
-        "",
-        "yanzu",
-        "",
-    ),
-    minute: u(
-        p2("minti {0} da ya gabata", "mintuna {0} da suka gabata"),
-        p2("cikin minti {0}", "cikin mintuna {0}"),
-        p2("minti {0}", "mintoci {0}"),
-        "",
-        "wannan mintin",
-        "",
-    ),
-    hour: u(
-        p2("awa {0} da ta gabata", "awanni {0} da suka gabata"),
-        p2("cikin awa {0}", "cikin awanni {0}"),
-        p2("sa′a {0}", "sa′o′i {0}"),
-        "",
-        "wannan awa",
-        "",
-    ),
-    day: u(
-        p2("kwana {0} da ya gabata", "kwanaki {0} da suka gabata"),
-        p1("a cikin kwanaki {0}"),
-        p2("rana {0}", "ranaku {0}"),
-        "jiya",
-        "yau",
-        "gobe",
-    ),
-    week: u(
-        p2("mako {0} da ya gabata", "makonni {0} da suka gabata"),
-        p2("a cikin mako {0}", "a cikin makonni {0}"),
-        p2("mako {0}", "makonni {0}"),
-        "satin da ya gabata",
-        "wannan satin",
-        "sati na gaba",
-    ),
-    month: u(
-        p2("wata {0} da ya gabata", "watanni {0} da suka gabata"),
-        p2("a cikin watan {0}", "a cikin watanni {0}"),
-        p2("wata {0}", "watanni {0}"),
-        "watan da ya gabata",
-        "wannan watan",
-        "wata na gaba",
-    ),
-    quarter: u(
-        p1("kwata {0} da suka gabata"),
-        p2("a cikin kwata {0}", "a cikin kwatas {0}"),
-        p2("kwata {0}", "kwatoci {0}"),
-        "kwatan karshe",
-        "wannan kwatan",
-        "kwata na gaba",
-    ),
-    year: u(
-        p2("shekara {0} da ta gabata", "shekaru {0} da suka gabata"),
-        p2("a shekarar {0}", "a shekaru {0}"),
-        p2("shekara {0}", "shekaru {0}"),
-        "bara",
-        "bana",
-        "badi",
-    ),
-};
-
-const HA_SHORT: StyleData = StyleData {
-    second: u(
-        p2("dakika {0} da ta gabata", "dakiku {0} da suka gabata"),
-        p2("cikin dakika {0}", "cikin dakiku {0}"),
-        p1("d {0}"),
-        "",
-        "yanzu",
-        "",
-    ),
-    minute: u(
-        p2("minti {0} da ya gabata", "mintuna {0} da suka gabata"),
-        p2("cikin minti {0}", "cikin mintuna {0}"),
-        p1("mnt {0}"),
-        "",
-        "wannan mintin",
-        "",
-    ),
-    hour: u(
-        p2("awa {0} da ta gabata", "awanni {0} da suka gabata"),
-        p2("cikin awa {0}", "cikin awanni {0}"),
-        p1("s {0}"),
-        "",
-        "wannan awa",
-        "",
-    ),
-    day: u(
-        p2("kwana {0} da ya gabata", "kwanaki {0} da suka gabata"),
-        p1("a cikin kwanaki {0}"),
-        p2("rana {0}", "Rnk. {0}"),
-        "jiya",
-        "yau",
-        "gobe",
-    ),
-    week: u(
-        p2("mako {0} da ya gabata", "makonni {0} da suka gabata"),
-        p2("a cikin mako {0}", "a cikin makonni {0}"),
-        p2("mk {0}", "mkn {0}"),
-        "satin da ya gabata",
-        "wannan satin",
-        "sati na gaba",
-    ),
-    month: u(
-        p2("wata {0} da ya gabata", "watanni {0} da suka gabata"),
-        p2("a cikin watan {0}", "a cikin watan {0}"),
-        p2("wat {0}", "wtnn {0}"),
-        "watan da ya gabata",
-        "wannan watan",
-        "wata na gaba",
-    ),
-    quarter: u(
-        p1("kwata {0} da suka gabata"),
-        p2("a cikin kwata {0}", "a cikin kwatas {0}"),
-        p2("kwt {0}", "kwtc {0}"),
-        "kwatan karshe",
-        "wannan kwatan",
-        "kwata na gaba",
-    ),
-    year: u(
-        p2("shekara {0} da ta gabata", "shekaru {0} da suka gabata"),
-        p2("a shekarar {0}", "a shekaru {0}"),
-        p2("shkr {0}", "shkru {0}"),
-        "bara",
-        "bana",
-        "badi",
-    ),
-};
-
-const HA_NARROW: StyleData = StyleData {
-    second: u(
-        p2("dakika {0} da ta gabata", "dakiku {0} da suka gabata"),
-        p2("cikin dakika {0}", "cikin dakiku {0}"),
-        p1("d {0}"),
-        "",
-        "yanzu",
-        "",
-    ),
-    minute: u(
-        p2("minti {0} da ya gabata", "mintuna {0} da suka gabata"),
-        p2("cikin minti {0}", "cikin mintuna {0}"),
-        p2("minti{0}", "minti {0}"),
-        "",
-        "wannan mintin",
-        "",
-    ),
-    hour: u(
-        p2("awa {0} da ta gabata", "awanni {0} da suka gabata"),
-        p2("cikin awa {0}", "cikin awanni {0}"),
-        p2("s{0}", "s{0}"),
-        "",
-        "wannan awa",
-        "",
-    ),
-    day: u(
-        p2("kwana {0} da ya gabata", "kwanaki {0} da suka gabata"),
-        p1("a cikin kwanaki {0}"),
-        p2("r{0}", "r{0}"),
-        "jiya",
-        "yau",
-        "gobe",
-    ),
-    week: u(
-        p2("mako {0} da ya gabata", "mako {0} da ya gabata"),
-        p2("a cikin mako {0}", "a cikin makonni {0}"),
-        p2("m{0}", "m{0}"),
-        "satin da ya gabata",
-        "wannan satin",
-        "sati na gaba",
-    ),
-    month: u(
-        p2("wata {0} da ya gabata", "watanni {0} da suka gabata"),
-        p2("a cikin watan {0}", "a cikin watan {0}"),
-        p2("w{0}", "w{0}"),
-        "watan da ya gabata",
-        "wannan watan",
-        "wata na gaba",
-    ),
-    quarter: u(
-        p1("kwata {0} da suka gabata"),
-        p2("a cikin kwata {0}", "a cikin kwatas {0}"),
-        p2("kwt{0}", "kwt{0}"),
-        "kwatan karshe",
-        "wannan kwatan",
-        "kwata na gaba",
-    ),
-    year: u(
-        p2("shekara {0} da ta gabata", "shekaru {0} da suka gabata"),
-        p2("a shekarar {0}", "a shekaru {0}"),
-        p2("shkr {0}", "s{0}"),
-        "bara",
-        "bana",
-        "badi",
-    ),
-};
-
-const HA: LocaleData = LocaleData {
-    tag: "ha",
-    long: HA_LONG,
-    short: HA_SHORT,
-    narrow: HA_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} da {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, da {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} da {1}",
-};
-
-const MR_LONG: StyleData = StyleData {
-    second: u(
-        p2("{0} सेकंदापूर्वी", "{0} सेकंदांपूर्वी"),
-        p2("{0} सेकंदामध्ये", "{0} सेकंदांमध्ये"),
-        p2("{0} सेकंद", "{0} सेकंद"),
-        "",
-        "आत्ता",
-        "",
-    ),
-    minute: u(
-        p2("{0} मिनिटापूर्वी", "{0} मिनिटांपूर्वी"),
-        p2("{0} मिनिटामध्ये", "{0} मिनिटांमध्ये"),
-        p2("{0} मिनिट", "{0} मिनिटे"),
-        "",
-        "या मिनिटात",
-        "",
-    ),
-    hour: u(
-        p2("{0} तासापूर्वी", "{0} तासांपूर्वी"),
-        p2("{0} तासामध्ये", "{0} तासांमध्ये"),
-        p2("{0} तास", "{0} तास"),
-        "",
-        "तासात",
-        "",
-    ),
-    day: u(
-        p2("{0} दिवसापूर्वी", "{0} दिवसांपूर्वी"),
-        p2("येत्या {0} दिवसामध्ये", "येत्या {0} दिवसांमध्ये"),
-        p1("{0} दिवस"),
-        "काल",
-        "आज",
-        "उद्या",
-    ),
-    week: u(
-        p2("{0} आठवड्यापूर्वी", "{0} आठवड्यांपूर्वी"),
-        p2("{0} आठवड्यामध्ये", "{0} आठवड्यांमध्ये"),
-        p2("{0} आठवडा", "{0} आठवडे"),
-        "मागील आठवडा",
-        "हा आठवडा",
-        "पुढील आठवडा",
-    ),
-    month: u(
-        p2("{0} महिन्यापूर्वी", "{0} महिन्यांपूर्वी"),
-        p2("येत्या {0} महिन्यामध्ये", "येत्या {0} महिन्यांमध्ये"),
-        p2("{0} महिना", "{0} महिने"),
-        "मागील महिना",
-        "हा महिना",
-        "पुढील महिना",
-    ),
-    quarter: u(
-        p2("{0} तिमाहीपूर्वी", "{0} तिमाहींपूर्वी"),
-        p2("{0} तिमाहीमध्ये", "{0} तिमाहींमध्ये"),
-        p1("{0} तिमाही"),
-        "मागील तिमाही",
-        "ही तिमाही",
-        "पुढील तिमाही",
-    ),
-    year: u(
-        p2("{0} वर्षापूर्वी", "{0} वर्षांपूर्वी"),
-        p2("येत्या {0} वर्षामध्ये", "येत्या {0} वर्षांमध्ये"),
-        p2("{0} वर्ष", "{0} वर्षे"),
-        "मागील वर्ष",
-        "हे वर्ष",
-        "पुढील वर्ष",
-    ),
-};
-
-const MR_SHORT: StyleData = StyleData {
-    second: u(
-        p2("{0} से. पूर्वी", "{0} से. पूर्वी"),
-        p2("{0} से. मध्ये", "{0} से. मध्ये"),
-        p1("{0} से"),
-        "",
-        "आत्ता",
-        "",
-    ),
-    minute: u(
-        p2("{0} मिनि. पूर्वी", "{0} मिनि. पूर्वी"),
-        p2("{0} मिनि. मध्ये", "{0} मिनि. मध्ये"),
-        p1("{0} मिनि"),
-        "",
-        "या मिनिटात",
-        "",
-    ),
-    hour: u(
-        p2("{0} तासापूर्वी", "{0} तासांपूर्वी"),
-        p2("{0} तासामध्ये", "{0} तासांमध्ये"),
-        p1("{0} ता"),
-        "",
-        "तासात",
-        "",
-    ),
-    day: u(
-        p2("{0} दिवसापूर्वी", "{0} दिवसांपूर्वी"),
-        p2("{0} दिवसामध्ये", "येत्या {0} दिवसांमध्ये"),
-        p1("{0} दिवस"),
-        "काल",
-        "आज",
-        "उद्या",
-    ),
-    week: u(
-        p2("{0} आठवड्यापूर्वी", "{0} आठवड्यांपूर्वी"),
-        p2("येत्या {0} आठवड्यामध्ये", "येत्या {0} आठवड्यांमध्ये"),
-        p1("{0} आ"),
-        "मागील आठवडा",
-        "हा आठवडा",
-        "पुढील आठवडा",
-    ),
-    month: u(
-        p2("{0} महिन्यापूर्वी", "{0} महिन्यांपूर्वी"),
-        p2("{0} महिन्यामध्ये", "{0} महिन्यामध्ये"),
-        p2("{0} महिना", "{0} महिने"),
-        "मागील महिना",
-        "हा महिना",
-        "पुढील महिना",
-    ),
-    quarter: u(
-        p2("{0} तिमाहीपूर्वी", "{0} तिमाहींपूर्वी"),
-        p2("येत्या {0} तिमाहीमध्ये", "येत्या {0} तिमाहींमध्ये"),
-        p1("{0} तिमाही"),
-        "मागील तिमाही",
-        "ही तिमाही",
-        "पुढील तिमाही",
-    ),
-    year: u(
-        p2("{0} वर्षापूर्वी", "{0} वर्षांपूर्वी"),
-        p2("{0} वर्षामध्ये", "{0} वर्षांमध्ये"),
-        p2("{0} वर्ष", "{0} वर्षे"),
-        "मागील वर्ष",
-        "हे वर्ष",
-        "पुढील वर्ष",
-    ),
-};
-
-const MR_NARROW: StyleData = StyleData {
-    second: u(
-        p2("{0} से. पूर्वी", "{0} से. पूर्वी"),
-        p2("{0} से. मध्ये", "येत्या {0} से. मध्ये"),
-        p2("{0}से", "{0}से"),
-        "",
-        "आत्ता",
-        "",
-    ),
-    minute: u(
-        p2("{0} मिनि. पूर्वी", "{0} मिनि. पूर्वी"),
-        p2("{0} मिनि. मध्ये", "{0} मिनि. मध्ये"),
-        p2("{0}मि", "{0}मि"),
-        "",
-        "या मिनिटात",
-        "",
-    ),
-    hour: u(
-        p2("{0} तासापूर्वी", "{0} तासांपूर्वी"),
-        p2("येत्या {0} तासामध्ये", "येत्या {0} तासांमध्ये"),
-        p2("{0}ता", "{0}ता"),
-        "",
-        "तासात",
-        "",
-    ),
-    day: u(
-        p2("{0} दिवसापूर्वी", "{0} दिवसांपूर्वी"),
-        p2("{0} दिवसामध्ये", "{0} दिवसांमध्ये"),
-        p2("{0}दि", "{0}दि"),
-        "काल",
-        "आज",
-        "उद्या",
-    ),
-    week: u(
-        p2("{0} आठवड्यापूर्वी", "{0} आठवड्यांपूर्वी"),
-        p2("येत्या {0} आठवड्यामध्ये", "येत्या {0} आठवड्यांमध्ये"),
-        p2("{0}आ", "{0}आ"),
-        "मागील आठवडा",
-        "हा आठवडा",
-        "पुढील आठवडा",
-    ),
-    month: u(
-        p2("{0} महिन्यापूर्वी", "{0} महिन्यांपूर्वी"),
-        p2("{0} महिन्यामध्ये", "{0} महिन्यांमध्ये"),
-        p2("{0}म", "{0}म"),
-        "मागील महिना",
-        "हा महिना",
-        "पुढील महिना",
-    ),
-    quarter: u(
-        p2("{0} तिमाहीपूर्वी", "{0} तिमाहींपूर्वी"),
-        p2("{0} तिमाहीमध्ये", "{0} तिमाहींमध्ये"),
-        p2("{0}ति", "{0}ति"),
-        "मागील तिमाही",
-        "ही तिमाही",
-        "पुढील तिमाही",
-    ),
-    year: u(
-        p2("{0} वर्षापूर्वी", "{0} वर्षांपूर्वी"),
-        p2("येत्या {0} वर्षामध्ये", "येत्या {0} वर्षांमध्ये"),
-        p2("{0}व", "{0}व"),
-        "मागील वर्ष",
-        "हे वर्ष",
-        "पुढील वर्ष",
-    ),
-};
-
-const MR: LocaleData = LocaleData {
-    tag: "mr",
-    long: MR_LONG,
-    short: MR_SHORT,
-    narrow: MR_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} आणि {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} आणि {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} रोजी {1} वाजता",
-};
-
-const PA_GURU_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} ਸਕਿੰਟ ਪਹਿਲਾਂ"),
-        p2("{0} ਸਕਿੰਟ ਵਿੱਚ", "{0} ਸਕਿੰਟਾਂ ਵਿੱਚ"),
-        p1("{0} ਸਕਿੰਟ"),
-        "",
-        "ਹੁਣ",
-        "",
-    ),
-    minute: u(
-        p1("{0} ਮਿੰਟ ਪਹਿਲਾਂ"),
-        p2("{0} ਮਿੰਟ ਵਿੱਚ", "{0} ਮਿੰਟਾਂ ਵਿੱਚ"),
-        p1("{0} ਮਿੰਟ"),
-        "",
-        "ਇਸ ਮਿੰਟ",
-        "",
-    ),
-    hour: u(
-        p2("{0} ਘੰਟਾ ਪਹਿਲਾਂ", "{0} ਘੰਟੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਘੰਟੇ ਵਿੱਚ", "{0} ਘੰਟਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਘੰਟਾ", "{0} ਘੰਟੇ"),
-        "",
-        "ਇਸ ਘੰਟੇ",
-        "",
-    ),
-    day: u(
-        p1("{0} ਦਿਨ ਪਹਿਲਾਂ"),
-        p2("{0} ਦਿਨ ਵਿੱਚ", "{0} ਦਿਨਾਂ ਵਿੱਚ"),
-        p1("{0} ਦਿਨ"),
-        "ਬੀਤਿਆ ਕੱਲ੍ਹ",
-        "ਅੱਜ",
-        "ਭਲਕੇ",
-    ),
-    week: u(
-        p2("{0} ਹਫ਼ਤਾ ਪਹਿਲਾਂ", "{0} ਹਫ਼ਤੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਹਫ਼ਤੇ ਵਿੱਚ", "{0} ਹਫ਼ਤਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਹਫ਼ਤਾ", "{0} ਹਫ਼ਤੇ"),
-        "ਪਿਛਲਾ ਹਫ਼ਤਾ",
-        "ਇਹ ਹਫ਼ਤਾ",
-        "ਅਗਲਾ ਹਫ਼ਤਾ",
-    ),
-    month: u(
-        p2("{0} ਮਹੀਨਾ ਪਹਿਲਾਂ", "{0} ਮਹੀਨੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਮਹੀਨੇ ਵਿੱਚ", "{0} ਮਹੀਨਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਮਹੀਨਾ", "{0} ਮਹੀਨੇ"),
-        "ਪਿਛਲਾ ਮਹੀਨਾ",
-        "ਇਹ ਮਹੀਨਾ",
-        "ਅਗਲਾ ਮਹੀਨਾ",
-    ),
-    quarter: u(
-        p2("{0} ਤਿਮਾਹੀ ਪਹਿਲਾਂ", "{0} ਤਿਮਾਹੀਆਂ ਪਹਿਲਾਂ"),
-        p2("{0} ਤਿਮਾਹੀ ਵਿੱਚ", "{0} ਤਿਮਾਹੀਆਂ ਵਿੱਚ"),
-        p2("{0} ਤਿਮਾਹੀ", "{0} ਤਿਮਾਹੀਆਂ"),
-        "ਪਿਛਲੀ ਤਿਮਾਹੀ",
-        "ਇਸ ਤਿਮਾਹੀ",
-        "ਅਗਲੀ ਤਿਮਾਹੀ",
-    ),
-    year: u(
-        p1("{0} ਸਾਲ ਪਹਿਲਾਂ"),
-        p2("{0} ਸਾਲ ਵਿੱਚ", "{0} ਸਾਲਾਂ ਵਿੱਚ"),
-        p1("{0} ਸਾਲ"),
-        "ਪਿਛਲਾ ਸਾਲ",
-        "ਇਹ ਸਾਲ",
-        "ਅਗਲਾ ਸਾਲ",
-    ),
-};
-
-const PA_GURU_SHORT: StyleData = StyleData {
-    second: u(
-        p1("{0} ਸਕਿੰਟ ਪਹਿਲਾਂ"),
-        p2("{0} ਸਕਿੰਟ ਵਿੱਚ", "{0} ਸਕਿੰਟਾਂ ਵਿੱਚ"),
-        p1("{0} ਸਕਿੰਟ"),
-        "",
-        "ਹੁਣ",
-        "",
-    ),
-    minute: u(
-        p1("{0} ਮਿੰਟ ਪਹਿਲਾਂ"),
-        p2("{0} ਮਿੰਟ ਵਿੱਚ", "{0} ਮਿੰਟਾਂ ਵਿੱਚ"),
-        p1("{0} ਮਿੰਟ"),
-        "",
-        "ਇਸ ਮਿੰਟ",
-        "",
-    ),
-    hour: u(
-        p2("{0} ਘੰਟਾ ਪਹਿਲਾਂ", "{0} ਘੰਟੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਘੰਟੇ ਵਿੱਚ", "{0} ਘੰਟਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਘੰਟਾ", "{0} ਘੰਟੇ"),
-        "",
-        "ਇਸ ਘੰਟੇ",
-        "",
-    ),
-    day: u(
-        p1("{0} ਦਿਨ ਪਹਿਲਾਂ"),
-        p2("{0} ਦਿਨ ਵਿੱਚ", "{0} ਦਿਨਾਂ ਵਿੱਚ"),
-        p1("{0} ਦਿਨ"),
-        "ਬੀਤਿਆ ਕੱਲ੍ਹ",
-        "ਅੱਜ",
-        "ਭਲਕੇ",
-    ),
-    week: u(
-        p2("{0} ਹਫ਼ਤਾ ਪਹਿਲਾਂ", "{0} ਹਫ਼ਤੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਹਫ਼ਤੇ ਵਿੱਚ", "{0} ਹਫ਼ਤਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਹਫ਼ਤਾ", "{0} ਹਫ਼ਤੇ"),
-        "ਪਿਛਲਾ ਹਫ਼ਤਾ",
-        "ਇਹ ਹਫ਼ਤਾ",
-        "ਅਗਲਾ ਹਫ਼ਤਾ",
-    ),
-    month: u(
-        p2("{0} ਮਹੀਨਾ ਪਹਿਲਾਂ", "{0} ਮਹੀਨੇ ਪਹਿਲਾਂ"),
-        p2("{0} ਮਹੀਨੇ ਵਿੱਚ", "{0} ਮਹੀਨਿਆਂ ਵਿੱਚ"),
-        p2("{0} ਮਹੀਨਾ", "{0} ਮਹੀਨੇ"),
-        "ਪਿਛਲਾ ਮਹੀਨਾ",
-        "ਇਹ ਮਹੀਨਾ",
-        "ਅਗਲਾ ਮਹੀਨਾ",
-    ),
-    quarter: u(
-        p2("{0} ਤਿਮਾਹੀ ਪਹਿਲਾਂ", "{0} ਤਿਮਾਹੀਆਂ ਪਹਿਲਾਂ"),
-        p2("{0} ਤਿਮਾਹੀ ਵਿੱਚ", "{0} ਤਿਮਾਹੀਆਂ ਵਿੱਚ"),
-        p2("{0} ਤਿਮਾਹੀ", "{0} ਤਿਮਾਹੀਆਂ"),
-        "ਪਿਛਲੀ ਤਿਮਾਹੀ",
-        "ਇਹ ਤਿਮਾਹੀ",
-        "ਅਗਲੀ ਤਿਮਾਹੀ",
-    ),
-    year: u(
-        p1("{0} ਸਾਲ ਪਹਿਲਾਂ"),
-        p2("{0} ਸਾਲ ਵਿੱਚ", "{0} ਸਾਲਾਂ ਵਿੱਚ"),
-        p1("{0} ਸਾਲ"),
-        "ਪਿਛਲਾ ਸਾਲ",
-        "ਇਹ ਸਾਲ",
-        "ਅਗਲਾ ਸਾਲ",
-    ),
-};
-
-const PA_GURU: LocaleData = LocaleData {
-    tag: "pa-Guru",
-    long: PA_GURU_LONG,
-    short: PA_GURU_SHORT,
-    narrow: StyleData::EMPTY,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} ਅਤੇ {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} ਅਤੇ {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} {1}",
-};
-
-const PCM_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
-        p1("{0} Sẹ́kọn"),
-        "",
-        "nau",
-        "",
-    ),
-    minute: u(
-        p1("{0} mínit wé dọ́n pas"),
-        p1("Fọ {0} mínit wé de kọm"),
-        p1("{0} Mínit"),
-        "",
-        "Dís mínit",
-        "",
-    ),
-    hour: u(
-        p1("{0} áwa wé dọ́n pas"),
-        p1("Fọ {0} áwa wé de kọm"),
-        p1("{0} Áwa"),
-        "",
-        "Dís áwa",
-        "",
-    ),
-    day: u(
-        p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
-        p2("{0} Dè", "{0} Dè"),
-        "Yẹ́stadè",
-        "Todè",
-        "Tumọ́ro",
-    ),
-    week: u(
-        p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
-        p2("{0} Wik", "{0} Wik"),
-        "Lást wik",
-        "Dís wik",
-        "Nẹ́st wik",
-    ),
-    month: u(
-        p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
-        p1("{0} Mọnt"),
-        "Lást mọnt",
-        "Dís mọnt",
-        "Nẹ́st mọnt",
-    ),
-    quarter: u(
-        p1("{0} kwọ́ta wé dọ́n pas"),
-        p1("fọ {0} kwọ́ta wé de kọm"),
-        p2("{0} kwọ́ta", "{0} kwọ́ta"),
-        "Lást kwọ́ta",
-        "Dís kwọ́ta",
-        "Nẹ́st kwọ́ta",
-    ),
-    year: u(
-        p1("{0} yiẹ wé dọ́n pas"),
-        p1("fọ {0} yiẹ wé de kọm"),
-        p1("{0} Yiẹ"),
-        "Lást yiẹ",
-        "Dís yiẹ",
-        "Nẹ́st yiẹ",
-    ),
-};
-
-const PCM_SHORT: StyleData = StyleData {
-    second: u(
-        p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
-        p1("{0} Sẹ́kọn"),
-        "",
-        "nau",
-        "",
-    ),
-    minute: u(
-        p1("{0} mínit wé dọ́n pas"),
-        p1("Fọ {0} mínit wé de kọm"),
-        p1("{0} Mínit"),
-        "",
-        "Dís mínit",
-        "",
-    ),
-    hour: u(
-        p1("{0} áwa wé dọ́n pas"),
-        p1("Fọ {0} áwa wé de kọm"),
-        p1("{0} Áwa"),
-        "",
-        "Dís áwa",
-        "",
-    ),
-    day: u(
-        p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
-        p2("{0} dè", "{0} dez"),
-        "Yẹ́stadè",
-        "Todè",
-        "Tumọ́ro",
-    ),
-    week: u(
-        p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
-        p2("{0} Wik", "Wik {0}"),
-        "Lást wik",
-        "Dís wik",
-        "Nẹ́st wik",
-    ),
-    month: u(
-        p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
-        p1("{0} Mọnt"),
-        "Lást mọnt",
-        "Dís mọnt",
-        "Nẹ́st mọnt",
-    ),
-    quarter: u(
-        p1("{0} kwọ́ta wé dọ́n pas"),
-        p1("fọ {0} kwọ́ta wé de kọm"),
-        p2("{0} kwt", "{0} kwtd"),
-        "Lást kwọ́ta",
-        "Dís kwọ́ta",
-        "Nẹ́st kwọ́ta",
-    ),
-    year: u(
-        p1("{0} yiẹ wé dọ́n pas"),
-        p1("fọ {0} yiẹ wé de kọm"),
-        p1("{0} Yiẹ"),
-        "Lást yiẹ",
-        "Dís yiẹ",
-        "Nẹ́st yiẹ",
-    ),
-};
-
-const PCM_NARROW: StyleData = StyleData {
-    second: u(
-        p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
-        p2("{0}Sẹ́kọn", "{0}Sẹ́kọn"),
-        "",
-        "nau",
-        "",
-    ),
-    minute: u(
-        p1("{0} mínit wé dọ́n pas"),
-        p1("Fọ {0} mínit wé de kọm"),
-        p2("{0}Mínit", "{0}Mínit"),
-        "",
-        "Dís mínit",
-        "",
-    ),
-    hour: u(
-        p2("Fọ {0} áwa wé de kọm", "Fọ {0} áwa wé de kọm"),
-        p1("Fọ {0} áwa wé de kọm"),
-        p2("{0}Áwa", "{0}Áwa"),
-        "",
-        "Dís áwa",
-        "",
-    ),
-    day: u(
-        p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
-        p2("{0}Dè", "{0}Dè"),
-        "Yẹ́stadè",
-        "Todè",
-        "Tumọ́ro",
-    ),
-    week: u(
-        p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
-        p2("{0}Wik", "{0}Wik"),
-        "Lást wik",
-        "Dís wik",
-        "Nẹ́st wik",
-    ),
-    month: u(
-        p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
-        p2("{0}Mọnt", "{0}Mọnt"),
-        "Lást mọnt",
-        "Dís mọnt",
-        "Nẹ́st mọnt",
-    ),
-    quarter: u(
-        p1("{0} kwọ́ta wé dọ́n pas"),
-        p1("fọ {0} kwọ́ta wé de kọm"),
-        p2("{0} kwt", "{0} kwtd"),
-        "Lást kwọ́ta",
-        "Dís kwọ́ta",
-        "Nẹ́st kwọ́ta",
-    ),
-    year: u(
-        p1("{0} yiẹ wé dọ́n pas"),
-        p1("fọ {0} yiẹ wé de kọm"),
-        p2("{0}Yiẹ", "{0}Yiẹ"),
-        "Lást yiẹ",
-        "Dís yiẹ",
-        "Nẹ́st yiẹ",
-    ),
-};
-
-const PCM: LocaleData = LocaleData {
-    tag: "pcm",
-    long: PCM_LONG,
-    short: PCM_SHORT,
-    narrow: PCM_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} an {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, an {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} fọ {1}",
-};
-
-const PT_PT_LONG: StyleData = StyleData {
-    second: u(
-        p2("há {0} segundo", "há {0} segundos"),
-        p2("dentro de {0} segundo", "dentro de {0} segundos"),
-        p2("{0} segundo", "{0} segundos"),
-        "",
-        "agora",
-        "",
-    ),
-    minute: u(
-        p2("há {0} minuto", "há {0} minutos"),
-        p2("dentro de {0} minuto", "dentro de {0} minutos"),
-        p2("{0} minuto", "{0} minutos"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u(
-        p2("há {0} hora", "há {0} horas"),
-        p2("dentro de {0} hora", "dentro de {0} horas"),
-        p2("{0} hora", "{0} horas"),
-        "",
-        "esta hora",
-        "",
-    ),
-    day: u_day(
-        p2("há {0} dia", "há {0} dias"),
-        p2("dentro de {0} dia", "dentro de {0} dias"),
-        p2("{0} dia", "{0} dias"),
-        "anteontem",
-        "ontem",
-        "hoje",
-        "amanhã",
-        "depois de amanhã",
-    ),
-    week: u(
-        p2("há {0} semana", "há {0} semanas"),
-        p2("dentro de {0} semana", "dentro de {0} semanas"),
-        p2("{0} semana", "{0} semanas"),
-        "semana passada",
-        "esta semana",
-        "próxima semana",
-    ),
-    month: u(
-        p2("há {0} mês", "há {0} meses"),
-        p2("dentro de {0} mês", "dentro de {0} meses"),
-        p2("{0} mês", "{0} meses"),
-        "mês passado",
-        "este mês",
-        "próximo mês",
-    ),
-    quarter: u(
-        p2("há {0} trimestre", "há {0} trimestres"),
-        p2("dentro de {0} trimestre", "dentro de {0} trimestres"),
-        p2("{0} trimestre", "{0} trimestres"),
-        "trimestre passado",
-        "este trimestre",
-        "próximo trimestre",
-    ),
-    year: u(
-        p2("há {0} ano", "há {0} anos"),
-        p2("dentro de {0} ano", "dentro de {0} anos"),
-        p2("{0} ano", "{0} anos"),
-        "ano passado",
-        "este ano",
-        "próximo ano",
-    ),
-};
-
-const PT_PT_SHORT: StyleData = StyleData {
-    second: u(
-        p2("há {0} s", "há {0} s"),
-        p2("dentro de {0} s", "dentro de {0} s"),
-        p1("{0} s"),
-        "",
-        "agora",
-        "",
-    ),
-    minute: u(
-        p2("há {0} min", "há {0} min"),
-        p2("dentro de {0} min", "dentro de {0} min"),
-        p1("{0} min"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u(
-        p2("há {0} h", "há {0} h"),
-        p2("dentro de {0} h", "dentro de {0} h"),
-        p1("{0} h"),
-        "",
-        "esta hora",
-        "",
-    ),
-    day: u_day(
-        p2("há {0} dia", "há {0} dias"),
-        p2("dentro de {0} dia", "dentro de {0} dias"),
-        p2("{0} dia", "{0} dias"),
-        "anteontem",
-        "ontem",
-        "hoje",
-        "amanhã",
-        "depois de amanhã",
-    ),
-    week: u(
-        p2("há {0} sem.", "há {0} sem."),
-        p2("dentro de {0} sem.", "dentro de {0} sem."),
-        p1("{0} sem."),
-        "semana passada",
-        "esta semana",
-        "próxima semana",
-    ),
-    month: u(
-        p2("há {0} mês", "há {0} meses"),
-        p2("dentro de {0} mês", "dentro de {0} meses"),
-        p2("{0} mês", "{0} meses"),
-        "mês passado",
-        "este mês",
-        "próximo mês",
-    ),
-    quarter: u(
-        p2("há {0} trim.", "há {0} trim."),
-        p2("dentro de {0} trim.", "dentro de {0} trim."),
-        p1("{0} trim."),
-        "trim. passado",
-        "este trim.",
-        "próximo trim.",
-    ),
-    year: u(
-        p2("há {0} ano", "há {0} anos"),
-        p2("dentro de {0} ano", "dentro de {0} anos"),
-        p2("{0} ano", "{0} anos"),
-        "ano passado",
-        "este ano",
-        "próximo ano",
-    ),
-};
-
-const PT_PT_NARROW: StyleData = StyleData {
-    second: u(
-        p2("-{0} s", "-{0} s"),
-        p2("+{0} s", "+{0} s"),
-        p1("{0} s"),
-        "",
-        "agora",
-        "",
-    ),
-    minute: u(
-        p2("-{0} min", "-{0} min"),
-        p2("+{0} min", "+{0} min"),
-        p1("{0} min"),
-        "",
-        "este minuto",
-        "",
-    ),
-    hour: u(
-        p2("-{0} h", "-{0} h"),
-        p2("+{0} h", "+{0} h"),
-        p1("{0} h"),
-        "",
-        "esta hora",
-        "",
-    ),
-    day: u_day(
-        p2("-{0} dia", "-{0} dias"),
-        p2("+{0} dia", "+{0} dias"),
-        p2("{0} dia", "{0} dias"),
-        "anteontem",
-        "ontem",
-        "hoje",
-        "amanhã",
-        "depois de amanhã",
-    ),
-    week: u(
-        p2("-{0} sem.", "-{0} sem."),
-        p2("+{0} sem.", "+{0} sem."),
-        p1("{0} sem."),
-        "semana passada",
-        "esta semana",
-        "próxima semana",
-    ),
-    month: u(
-        p2("-{0} mês", "-{0} meses"),
-        p2("+{0} mês", "+{0} meses"),
-        p2("{0} mês", "{0} meses"),
-        "mês passado",
-        "este mês",
-        "próximo mês",
-    ),
-    quarter: u(
-        p2("-{0} trim.", "-{0} trim."),
-        p2("+{0} trim.", "+{0} trim."),
-        p1("{0} trim."),
-        "trim. passado",
-        "este trim.",
-        "próximo trim.",
-    ),
-    year: u(
-        p2("-{0} ano", "-{0} anos"),
-        p2("+{0} ano", "+{0} anos"),
-        p2("{0} ano", "{0} anos"),
-        "ano passado",
-        "este ano",
-        "próximo ano",
-    ),
-};
+// `docs/i18n.md`) carry nothing CLDR does not give: their entries are
+// `cldr48`'s as they stand, with root's language-free hedges and weekday
+// phrases, and no compact suffixes or indefinite units, so that a count is
+// written with its numeral. `pt-PT` takes `pt`'s hedges and weekday
+// phrases, which are the same language's. `pa_Arab.xml` states no fields,
+// so Punjabi in the Arabic script has no entry and falls to root.
 
 const PT_PT: LocaleData = LocaleData {
-    tag: "pt-PT",
-    long: PT_PT_LONG,
-    short: PT_PT_SHORT,
-    narrow: PT_PT_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} e {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} e {1}",
-        },
-        unit: ListForms {
-            two: "{0} e {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} e {1}",
-        },
-        narrow: ListForms {
-            two: "{0} e {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} e {1}",
-        },
-    },
     approximate: PT.approximate,
     weekday: PT.weekday,
-    decimal_separator: ",",
-    at_pattern: "{0} às {1}",
-};
-
-const SW_LONG: StyleData = StyleData {
-    second: u(
-        p2("Sekunde {0} iliyopita", "Sekunde {0} zilizopita"),
-        p1("baada ya sekunde {0}"),
-        p1("sekunde {0}"),
-        "",
-        "sasa hivi",
-        "",
-    ),
-    minute: u(
-        p2("dakika {0} iliyopita", "dakika {0} zilizopita"),
-        p1("baada ya dakika {0}"),
-        p1("dakika {0}"),
-        "",
-        "dakika hii",
-        "",
-    ),
-    hour: u(
-        p2("saa {0} iliyopita", "saa {0} zilizopita"),
-        p1("baada ya saa {0}"),
-        p1("saa {0}"),
-        "",
-        "saa hii",
-        "",
-    ),
-    day: u_day(
-        p2("siku {0} iliyopita", "siku {0} zilizopita"),
-        p1("baada ya siku {0}"),
-        p1("siku {0}"),
-        "juzi",
-        "jana",
-        "leo",
-        "kesho",
-        "kesho kutwa",
-    ),
-    week: u(
-        p2("wiki {0} iliyopita", "wiki {0} zilizopita"),
-        p1("baada ya wiki {0}"),
-        p1("wiki {0}"),
-        "wiki iliyopita",
-        "wiki hii",
-        "wiki ijayo",
-    ),
-    month: u(
-        p2("mwezi {0} uliopita", "miezi {0} iliyopita"),
-        p2("baada ya mwezi {0}", "baada ya miezi {0}"),
-        p2("mwezi {0}", "miezi {0}"),
-        "mwezi uliopita",
-        "mwezi huu",
-        "mwezi ujao",
-    ),
-    quarter: u(
-        p2("robo {0} iliyopita", "robo {0} zilizopita"),
-        p1("baada ya robo {0}"),
-        p1("robo {0}"),
-        "robo ya mwaka iliyopita",
-        "robo hii ya mwaka",
-        "robo ya mwaka inayofuata",
-    ),
-    year: u(
-        p2("mwaka {0} uliopita", "miaka {0} iliyopita"),
-        p2("baada ya mwaka {0}", "baada ya miaka {0}"),
-        p2("mwaka {0}", "miaka {0}"),
-        "mwaka uliopita",
-        "mwaka huu",
-        "mwaka ujao",
-    ),
-};
-
-const SW_SHORT: StyleData = StyleData {
-    second: u(
-        p2("sekunde {0} iliyopita", "sekunde {0} zilizopita"),
-        p1("baada ya sekunde {0}"),
-        p1("sekunde {0}"),
-        "",
-        "sasa hivi",
-        "",
-    ),
-    minute: u(
-        p2("dakika {0} iliyopita", "dakika {0} zilizopita"),
-        p1("baada ya dakika {0}"),
-        p1("dakika {0}"),
-        "",
-        "dakika hii",
-        "",
-    ),
-    hour: u(
-        p2("saa {0} iliyopita", "saa {0} zilizopita"),
-        p1("baada ya saa {0}"),
-        p1("saa {0}"),
-        "",
-        "saa hii",
-        "",
-    ),
-    day: u_day(
-        p2("siku {0} iliyopita", "siku {0} zilizopita"),
-        p1("baada ya siku {0}"),
-        p1("siku {0}"),
-        "juzi",
-        "jana",
-        "leo",
-        "kesho",
-        "kesho kutwa",
-    ),
-    week: u(
-        p2("wiki {0} iliyopita", "wiki {0} zilizopita"),
-        p1("baada ya wiki {0}"),
-        p1("wiki {0}"),
-        "wiki iliyopita",
-        "wiki hii",
-        "wiki ijayo",
-    ),
-    month: u(
-        p2("mwezi {0} uliopita", "miezi {0} iliyopita"),
-        p2("baada ya mwezi {0}", "baada ya miezi {0}"),
-        p2("mwezi {0}", "miezi {0}"),
-        "mwezi uliopita",
-        "mwezi huu",
-        "mwezi ujao",
-    ),
-    quarter: u(
-        p2("robo {0} iliyopita", "robo {0} zilizopita"),
-        p1("baada ya robo {0}"),
-        p1("robo {0}"),
-        "robo ya mwaka iliyopita",
-        "robo hii ya mwaka",
-        "robo ya mwaka inayofuata",
-    ),
-    year: u(
-        p2("mwaka {0} uliopita", "miaka {0} iliyopita"),
-        p2("baada ya mwaka {0}", "baada ya miaka {0}"),
-        p2("mwaka {0}", "miaka {0}"),
-        "mwaka uliopita",
-        "mwaka huu",
-        "mwaka ujao",
-    ),
-};
-
-const SW_NARROW: StyleData = StyleData {
-    second: u(
-        p2("sekunde {0} iliyopita", "sekunde {0} zilizopita"),
-        p1("baada ya sekunde {0}"),
-        p2("sek {0}", "sek {0}"),
-        "",
-        "sasa hivi",
-        "",
-    ),
-    minute: u(
-        p2("dakika {0} iliyopita", "dakika {0} zilizopita"),
-        p1("baada ya dakika {0}"),
-        p2("dak {0}", "dak {0}"),
-        "",
-        "dakika hii",
-        "",
-    ),
-    hour: u(
-        p2("Saa {0} iliyopita", "Saa {0} zilizopita"),
-        p1("baada ya saa {0}"),
-        p1("saa {0}"),
-        "",
-        "saa hii",
-        "",
-    ),
-    day: u_day(
-        p2("siku {0} iliyopita", "siku {0} zilizopita"),
-        p1("baada ya siku {0}"),
-        p1("siku {0}"),
-        "juzi",
-        "jana",
-        "leo",
-        "kesho",
-        "kesho kutwa",
-    ),
-    week: u(
-        p2("wiki {0} iliyopita", "wiki {0} zilizopita"),
-        p1("baada ya wiki {0}"),
-        p1("wiki {0}"),
-        "wiki iliyopita",
-        "wiki hii",
-        "wiki ijayo",
-    ),
-    month: u(
-        p2("mwezi {0} uliopita", "miezi {0} iliyopita"),
-        p2("baada ya mwezi {0}", "baada ya miezi {0}"),
-        p2("mwezi {0}", "miezi {0}"),
-        "mwezi uliopita",
-        "mwezi huu",
-        "mwezi ujao",
-    ),
-    quarter: u(
-        p2("robo {0} iliyopita", "robo {0} zilizopita"),
-        p1("baada ya robo {0}"),
-        p1("robo {0}"),
-        "robo ya mwaka iliyopita",
-        "robo hii ya mwaka",
-        "robo ya mwaka inayofuata",
-    ),
-    year: u(
-        p2("mwaka {0} uliopita", "miaka {0} iliyopita"),
-        p2("baada ya mwaka {0}", "baada ya miaka {0}"),
-        p2("mwaka {0}", "miaka {0}"),
-        "mwaka uliopita",
-        "mwaka huu",
-        "mwaka ujao",
-    ),
-};
-
-const SW: LocaleData = LocaleData {
-    tag: "sw",
-    long: SW_LONG,
-    short: SW_SHORT,
-    narrow: SW_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} na {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} na {1}",
-        },
-        unit: ListForms {
-            two: "{0} na {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} na {1}",
-        },
-        narrow: ListForms {
-            two: "{0} na {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} na {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0}, {1}",
-};
-
-const TE_LONG: StyleData = StyleData {
-    second: u(
-        p2("{0} సెకను క్రితం", "{0} సెకన్ల క్రితం"),
-        p2("{0} సెకనులో", "{0} సెకన్లలో"),
-        p2("{0} సెకను", "{0} సెకన్లు"),
-        "",
-        "ప్రస్తుతం",
-        "",
-    ),
-    minute: u(
-        p2("{0} నిమిషం క్రితం", "{0} నిమిషాల క్రితం"),
-        p2("{0} నిమిషంలో", "{0} నిమిషాల్లో"),
-        p2("{0} నిమిషం", "{0} నిమిషాలు"),
-        "",
-        "ఈ నిమిషం",
-        "",
-    ),
-    hour: u(
-        p2("{0} గంట క్రితం", "{0} గంటల క్రితం"),
-        p2("{0} గంటలో", "{0} గంటల్లో"),
-        p2("{0} గంట", "{0} గంటలు"),
-        "",
-        "ఈ గంట",
-        "",
-    ),
-    day: u_day(
-        p2("{0} రోజు క్రితం", "{0} రోజుల క్రితం"),
-        p2("{0} రోజులో", "{0} రోజుల్లో"),
-        p2("{0} రోజు", "{0} రోజులు"),
-        "మొన్న",
-        "నిన్న",
-        "ఈ రోజు",
-        "రేపు",
-        "ఎల్లుండి",
-    ),
-    week: u(
-        p2("{0} వారం క్రితం", "{0} వారాల క్రితం"),
-        p2("{0} వారంలో", "{0} వారాల్లో"),
-        p2("{0} వారం", "{0} వారాలు"),
-        "గత వారం",
-        "ఈ వారం",
-        "తదుపరి వారం",
-    ),
-    month: u(
-        p2("{0} నెల క్రితం", "{0} నెలల క్రితం"),
-        p2("{0} నెలలో", "{0} నెలల్లో"),
-        p2("{0} నెల", "{0} నెలలు"),
-        "గత నెల",
-        "ఈ నెల",
-        "తదుపరి నెల",
-    ),
-    quarter: u(
-        p2("{0} త్రైమాసికం క్రితం", "{0} త్రైమాసికాల క్రితం"),
-        p2("{0} త్రైమాసికంలో", "{0} త్రైమాసికాల్లో"),
-        p2("{0} క్వార్టర్", "{0} క్వార్టర్లు"),
-        "గత త్రైమాసికం",
-        "ఈ త్రైమాసికం",
-        "తదుపరి త్రైమాసికం",
-    ),
-    year: u(
-        p2("{0} సంవత్సరం క్రితం", "{0} సంవత్సరాల క్రితం"),
-        p2("{0} సంవత్సరంలో", "{0} సంవత్సరాల్లో"),
-        p2("{0} సంవత్సరం", "{0} సంవత్సరాలు"),
-        "గత సంవత్సరం",
-        "ఈ సంవత్సరం",
-        "తదుపరి సంవత్సరం",
-    ),
-};
-
-const TE_SHORT: StyleData = StyleData {
-    second: u(
-        p2("{0} సెక. క్రితం", "{0} సెక. క్రితం"),
-        p2("{0} సెకనులో", "{0} సెకన్లలో"),
-        p2("{0} సె.", "{0} సెక."),
-        "",
-        "ప్రస్తుతం",
-        "",
-    ),
-    minute: u(
-        p2("{0} నిమి. క్రితం", "{0} నిమి. క్రితం"),
-        p2("{0} నిమి.లో", "{0} నిమి.లో"),
-        p1("{0} నిమి."),
-        "",
-        "ఈ నిమిషం",
-        "",
-    ),
-    hour: u(
-        p2("{0} గం. క్రితం", "{0} గం. క్రితం"),
-        p2("{0} గం.లో", "{0} గం.లో"),
-        p1("{0} గం."),
-        "",
-        "ఈ గంట",
-        "",
-    ),
-    day: u_day(
-        p2("{0} రోజు క్రితం", "{0} రోజుల క్రితం"),
-        p2("{0} రోజులో", "{0} రోజుల్లో"),
-        p2("{0} రోజు", "{0} రోజులు"),
-        "మొన్న",
-        "నిన్న",
-        "ఈ రోజు",
-        "రేపు",
-        "ఎల్లుండి",
-    ),
-    week: u(
-        p2("{0} వారం క్రితం", "{0} వారాల క్రితం"),
-        p2("{0} వారంలో", "{0} వారాల్లో"),
-        p1("{0} వా."),
-        "గత వారం",
-        "ఈ వారం",
-        "తదుపరి వారం",
-    ),
-    month: u(
-        p2("{0} నెల క్రితం", "{0} నెలల క్రితం"),
-        p2("{0} నెలలో", "{0} నెలల్లో"),
-        p1("{0} నె."),
-        "గత నెల",
-        "ఈ నెల",
-        "తదుపరి నెల",
-    ),
-    quarter: u(
-        p2("{0} త్రైమా. క్రితం", "{0} త్రైమా. క్రితం"),
-        p2("{0} త్రైమా.లో", "{0} త్రైమా.ల్లో"),
-        p1("{0} క్వా"),
-        "గత త్రైమాసికం",
-        "ఈ త్రైమాసికం",
-        "తదుపరి త్రైమాసికం",
-    ),
-    year: u(
-        p2("{0} సం. క్రితం", "{0} సం. క్రితం"),
-        p2("{0} సం.లో", "{0} సం.ల్లో"),
-        p1("{0} సం."),
-        "గత సంవ.",
-        "ఈ సంవ.",
-        "తదుపరి సంవ.",
-    ),
-};
-
-const TE_NARROW: StyleData = StyleData {
-    second: u(
-        p2("{0} సెక. క్రితం", "{0} సెక. క్రితం"),
-        p2("{0} సెక.లో", "{0} సెక. లో"),
-        p2("{0}సె", "{0}సె"),
-        "",
-        "ప్రస్తుతం",
-        "",
-    ),
-    minute: u(
-        p2("{0} నిమి. క్రితం", "{0} నిమి. క్రితం"),
-        p2("{0} నిమి.లో", "{0} నిమి.లో"),
-        p2("{0}ని", "{0}ని"),
-        "",
-        "ఈ నిమిషం",
-        "",
-    ),
-    hour: u(
-        p2("{0} గం. క్రితం", "{0} గం. క్రితం"),
-        p2("{0} గం.లో", "{0} గం.లో"),
-        p2("{0}గం", "{0}గం"),
-        "",
-        "ఈ గంట",
-        "",
-    ),
-    day: u_day(
-        p2("{0} రోజు క్రితం", "{0} రోజుల క్రితం"),
-        p2("{0} రోజులో", "{0} రోజుల్లో"),
-        p2("{0}రో", "{0}రో"),
-        "మొన్న",
-        "నిన్న",
-        "ఈ రోజు",
-        "రేపు",
-        "ఎల్లుండి",
-    ),
-    week: u(
-        p2("{0} వారం క్రితం", "{0} వారాల క్రితం"),
-        p2("{0} వారంలో", "{0} వారాల్లో"),
-        p2("{0}వా", "{0}వా"),
-        "గత వారం",
-        "ఈ వారం",
-        "తదుపరి వారం",
-    ),
-    month: u(
-        p2("{0} నెల క్రితం", "{0} నెలల క్రితం"),
-        p2("{0} నెలలో", "{0} నెలల్లో"),
-        p2("{0}నె", "{0}నె"),
-        "గత నెల",
-        "ఈ నెల",
-        "తదుపరి నెల",
-    ),
-    quarter: u(
-        p2("{0} త్రైమా. క్రితం", "{0} త్రైమా. క్రితం"),
-        p2("{0} త్రైమాసికంలో", "{0} త్రైమాసికాల్లో"),
-        p2("{0}క్వా", "{0}క్వా"),
-        "గత త్రైమాసికం",
-        "ఈ త్రైమాసికం",
-        "తదుపరి త్రైమాసికం",
-    ),
-    year: u(
-        p2("{0} సం. క్రితం", "{0} సం. క్రితం"),
-        p2("{0} సం.లో", "{0} సం.ల్లో"),
-        p2("{0}సం", "{0}సం"),
-        "గత సం.",
-        "ఈ సం.",
-        "తదుపరి సం.",
-    ),
-};
-
-const TE: LocaleData = LocaleData {
-    tag: "te",
-    long: TE_LONG,
-    short: TE_SHORT,
-    narrow: TE_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} మరియు {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0} మరియు {1}",
-        },
-        unit: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-        narrow: ListForms {
-            two: "{0}, {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}, {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} {1}కి",
-};
-
-const UR_LONG: StyleData = StyleData {
-    second: u(
-        p1("{0} سیکنڈ پہلے"),
-        p1("{0} سیکنڈ میں"),
-        p1("{0} سیکنڈ"),
-        "",
-        "اب",
-        "",
-    ),
-    minute: u(
-        p1("{0} منٹ پہلے"),
-        p1("{0} منٹ میں"),
-        p1("{0} منٹ"),
-        "",
-        "اس منٹ",
-        "",
-    ),
-    hour: u(
-        p2("{0} گھنٹہ پہلے", "{0} گھنٹے پہلے"),
-        p1("{0} گھنٹے میں"),
-        p2("{0} گھنٹہ", "{0} گھنٹے"),
-        "",
-        "اس گھنٹے",
-        "",
-    ),
-    day: u_day(
-        p2("{0} دن پہلے", "{0} دنوں پہلے"),
-        p2("{0} دن میں", "{0} دنوں میں"),
-        p1("{0} دن"),
-        "گزشتہ پرسوں",
-        "گزشتہ کل",
-        "آج",
-        "آئندہ کل",
-        "آنے والا پرسوں",
-    ),
-    week: u(
-        p2("{0} ہفتہ پہلے", "{0} ہفتے پہلے"),
-        p2("{0} ہفتہ میں", "{0} ہفتے میں"),
-        p2("{0} ہفتہ", "{0} ہفتے"),
-        "گزشتہ ہفتے",
-        "اس ہفتہ",
-        "اگلے ہفتے",
-    ),
-    month: u(
-        p2("{0} مہینہ پہلے", "{0} مہینے پہلے"),
-        p2("{0} مہینہ میں", "{0} مہینے میں"),
-        p2("{0} مہینہ", "{0} مہینے"),
-        "گزشتہ ماہ",
-        "اس ماہ",
-        "اگلا مہینہ",
-    ),
-    quarter: u(
-        p1("{0} سہ ماہی پہلے"),
-        p1("{0} سہ ماہی میں"),
-        p2("{0} کوارٹر", "{0} کوارٹرز"),
-        "گزشتہ سہ ماہی",
-        "اس سہ ماہی",
-        "اگلے سہ ماہی",
-    ),
-    year: u(
-        p1("{0} سال پہلے"),
-        p1("{0} سال میں"),
-        p1("{0} سال"),
-        "گزشتہ سال",
-        "اس سال",
-        "اگلے سال",
-    ),
-};
-
-const UR_SHORT: StyleData = StyleData {
-    second: u(
-        p1("{0} سیکنڈ پہلے"),
-        p1("{0} سیکنڈ میں"),
-        p1("{0} سیکنڈ"),
-        "",
-        "اب",
-        "",
-    ),
-    minute: u(
-        p1("{0} منٹ پہلے"),
-        p1("{0} منٹ میں"),
-        p1("{0} منٹ"),
-        "",
-        "اس منٹ",
-        "",
-    ),
-    hour: u(
-        p2("{0} گھنٹے پہلے", "{0} گھنٹے پہلے"),
-        p1("{0} گھنٹے میں"),
-        p2("{0} گھنٹہ", "{0} گھنٹے"),
-        "",
-        "اس گھنٹے",
-        "",
-    ),
-    day: u_day(
-        p2("{0} دن پہلے", "{0} دن پہلے"),
-        p2("{0} دن میں", "{0} دنوں میں"),
-        p1("{0} دن"),
-        "گزشتہ پرسوں",
-        "گزشتہ کل",
-        "آج",
-        "آئندہ کل",
-        "آنے والا پرسوں",
-    ),
-    week: u(
-        p2("{0} ہفتے پہلے", "{0} ہفتے پہلے"),
-        p2("{0} ہفتے میں", "{0} ہفتے میں"),
-        p2("{0} ہفتہ", "{0} ہفتے"),
-        "پچھلے ہفتہ",
-        "اس ہفتہ",
-        "اگلے ہفتہ",
-    ),
-    month: u(
-        p2("{0} ماہ قبل", "{0} ماہ قبل"),
-        p2("{0} ماہ میں", "{0} ماہ میں"),
-        p2("{0} مہینہ", "{0} مہینے"),
-        "پچھلے مہینہ",
-        "اس مہینہ",
-        "اگلے مہینہ",
-    ),
-    quarter: u(
-        p2("{0} سہ ماہی قبل", "{0} سہ ماہی قبل"),
-        p1("{0} سہ ماہی میں"),
-        p2("{0} کوارٹر", "{0} کوارٹرز"),
-        "گزشتہ سہ ماہی",
-        "اس سہ ماہی",
-        "اگلے سہ ماہی",
-    ),
-    year: u(
-        p1("{0} سال پہلے"),
-        p1("{0} سال میں"),
-        p1("{0} سال"),
-        "گزشتہ سال",
-        "اس سال",
-        "اگلے سال",
-    ),
-};
-
-const UR_NARROW: StyleData = StyleData {
-    second: u(
-        p1("{0} سیکنڈ پہلے"),
-        p1("{0} سیکنڈ میں"),
-        p1("{0} سیکنڈ"),
-        "",
-        "اب",
-        "",
-    ),
-    minute: u(
-        p1("{0} منٹ پہلے"),
-        p1("{0} منٹ میں"),
-        p1("{0} منٹ"),
-        "",
-        "اس منٹ",
-        "",
-    ),
-    hour: u(
-        p2("{0} گھنٹہ پہلے", "{0} گھنٹے پہلے"),
-        p2("{0} گھنٹے میں", "{0} گھنٹوں میں"),
-        p2("{0} گھنٹہ", "{0} گھنٹے"),
-        "",
-        "اس گھنٹے",
-        "",
-    ),
-    day: u_day(
-        p2("{0} دن پہلے", "{0} دن پہلے"),
-        p2("{0} دن میں", "{0} دنوں میں"),
-        p1("{0} دن"),
-        "گزشتہ پرسوں",
-        "گزشتہ کل",
-        "آج",
-        "آئندہ کل",
-        "آنے والا پرسوں",
-    ),
-    week: u(
-        p2("{0} ہفتہ پہلے", "{0} ہفتے پہلے"),
-        p2("{0} ہفتہ میں", "{0} ہفتے میں"),
-        p2("{0} ہفتہ", "{0} ہفتے"),
-        "پچھلے ہفتہ",
-        "اس ہفتہ",
-        "اگلے ہفتہ",
-    ),
-    month: u(
-        p2("{0} ماہ پہلے", "{0} ماہ پہلے"),
-        p2("{0} ماہ میں", "{0} ماہ میں"),
-        p2("{0} مہینہ", "{0} مہینے"),
-        "گزشتہ ماہ",
-        "اس ماہ",
-        "اگلے ماہ",
-    ),
-    quarter: u(
-        p2("{0} سہ ماہی پہلے", "{0} سہ ماہی پہلے"),
-        p1("{0} سہ ماہی میں"),
-        p2("{0}q", "{0}q"),
-        "گزشتہ سہ ماہی",
-        "اس سہ ماہی",
-        "اگلے سہ ماہی",
-    ),
-    year: u(
-        p1("{0} سال پہلے"),
-        p1("{0} سال میں"),
-        p1("{0} سال"),
-        "گزشتہ سال",
-        "اس سال",
-        "اگلے سال",
-    ),
-};
-
-const UR: LocaleData = LocaleData {
-    tag: "ur",
-    long: UR_LONG,
-    short: UR_SHORT,
-    narrow: UR_NARROW,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0} اور {1}",
-            start: "{0}، {1}",
-            middle: "{0}، {1}",
-            end: "{0}، اور {1}",
-        },
-        unit: ListForms {
-            two: "{0}، {1}",
-            start: "{0}, {1}",
-            middle: "{0}, {1}",
-            end: "{0}، اور {1}",
-        },
-        narrow: ListForms {
-            two: "{0} اور {1}",
-            start: "{0}، {1}",
-            middle: "{0}، {1}",
-            end: "{0}، اور {1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0} کو {1}",
-};
-
-const YUE_HANS_LONG: StyleData = StyleData {
-    second: u(p1("{0} 秒前"), p1("{0} 秒后"), p1("{0} 秒"), "", "宜家", ""),
-    minute: u(
-        p1("{0} 分钟前"),
-        p1("{0} 分钟后"),
-        p1("{0} 分钟"),
-        "",
-        "呢分钟",
-        "",
-    ),
-    hour: u(
-        p1("{0} 小时前"),
-        p1("{0} 小时后"),
-        p1("{0} 小时"),
-        "",
-        "呢个小时",
-        "",
-    ),
-    day: u_day(
-        p1("{0} 日前"),
-        p1("{0} 日后"),
-        p1("{0} 天"),
-        "前天",
-        "寻日",
-        "今日",
-        "听日",
-        "后天",
-    ),
-    week: u(
-        p1("{0} 个星期前"),
-        p1("{0} 个星期后"),
-        p1("{0} 周"),
-        "上星期",
-        "今个星期",
-        "下星期",
-    ),
-    month: u(
-        p1("{0} 个月前"),
-        p1("{0} 个月后"),
-        p1("{0} 个月"),
-        "上个月",
-        "今个月",
-        "下个月",
-    ),
-    quarter: u(
-        p1("{0} 季前"),
-        p1("{0} 季后"),
-        p1("{0} 季"),
-        "上一季",
-        "今季",
-        "下一季",
-    ),
-    year: u(
-        p1("{0} 年前"),
-        p1("{0} 年后"),
-        p1("{0} 年"),
-        "旧年",
-        "今年",
-        "下年",
-    ),
-};
-
-const YUE_HANS_SHORT: StyleData = StyleData {
-    second: u(p1("{0} 秒前"), p1("{0} 秒后"), p1("{0} 秒"), "", "宜家", ""),
-    minute: u(
-        p1("{0} 分钟前"),
-        p1("{0} 分钟后"),
-        p1("{0} 分钟"),
-        "",
-        "呢分钟",
-        "",
-    ),
-    hour: u(
-        p1("{0} 小时前"),
-        p1("{0} 小时后"),
-        p1("{0} 小时"),
-        "",
-        "呢个小时",
-        "",
-    ),
-    day: u_day(
-        p1("{0} 日前"),
-        p1("{0} 日后"),
-        p1("{0} 天"),
-        "前天",
-        "寻日",
-        "今日",
-        "听日",
-        "后天",
-    ),
-    week: u(
-        p1("{0} 个星期前"),
-        p1("{0} 个星期后"),
-        p1("{0} 周"),
-        "上星期",
-        "今个星期",
-        "下星期",
-    ),
-    month: u(
-        p1("{0} 个月前"),
-        p1("{0} 个月后"),
-        p1("{0} 个月"),
-        "上个月",
-        "今个月",
-        "下个月",
-    ),
-    quarter: u(
-        p1("{0} 季前"),
-        p1("{0} 季后"),
-        p1("{0} 季"),
-        "上季",
-        "今季",
-        "下季",
-    ),
-    year: u(
-        p1("{0} 年前"),
-        p1("{0} 年后"),
-        p1("{0} 年"),
-        "旧年",
-        "今年",
-        "下年",
-    ),
-};
-
-const YUE_HANS: LocaleData = LocaleData {
-    tag: "yue-Hans",
-    long: YUE_HANS_LONG,
-    short: YUE_HANS_SHORT,
-    narrow: StyleData::EMPTY,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0}同{1}",
-            start: "{0}、{1}",
-            middle: "{0}、{1}",
-            end: "{0}同{1}",
-        },
-        unit: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-        narrow: ListForms {
-            two: "{0}{1}",
-            start: "{0}{1}",
-            middle: "{0}{1}",
-            end: "{0}{1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0}{1}",
-};
-
-const YUE_HANT_LONG: StyleData = StyleData {
-    second: u(p1("{0} 秒前"), p1("{0} 秒後"), p1("{0} 秒"), "", "宜家", ""),
-    minute: u(
-        p1("{0} 分鐘前"),
-        p1("{0} 分鐘後"),
-        p1("{0} 分鐘"),
-        "",
-        "呢分鐘",
-        "",
-    ),
-    hour: u(
-        p1("{0} 小時前"),
-        p1("{0} 小時後"),
-        p1("{0} 小時"),
-        "",
-        "呢個小時",
-        "",
-    ),
-    day: u_day(
-        p1("{0} 日前"),
-        p1("{0} 日後"),
-        p1("{0} 天"),
-        "前天",
-        "尋日",
-        "今日",
-        "聽日",
-        "後天",
-    ),
-    week: u(
-        p1("{0} 個星期前"),
-        p1("{0} 個星期後"),
-        p1("{0} 週"),
-        "上星期",
-        "今個星期",
-        "下星期",
-    ),
-    month: u(
-        p1("{0} 個月前"),
-        p1("{0} 個月後"),
-        p1("{0} 個月"),
-        "上個月",
-        "今個月",
-        "下個月",
-    ),
-    quarter: u(
-        p1("{0} 季前"),
-        p1("{0} 季後"),
-        p1("{0} 季"),
-        "上一季",
-        "今季",
-        "下一季",
-    ),
-    year: u(
-        p1("{0} 年前"),
-        p1("{0} 年後"),
-        p1("{0} 年"),
-        "舊年",
-        "今年",
-        "下年",
-    ),
-};
-
-const YUE_HANT_SHORT: StyleData = StyleData {
-    second: u(p1("{0} 秒前"), p1("{0} 秒後"), p1("{0} 秒"), "", "宜家", ""),
-    minute: u(
-        p1("{0} 分鐘前"),
-        p1("{0} 分鐘後"),
-        p1("{0} 分鐘"),
-        "",
-        "呢分鐘",
-        "",
-    ),
-    hour: u(
-        p1("{0} 小時前"),
-        p1("{0} 小時後"),
-        p1("{0} 小時"),
-        "",
-        "呢個小時",
-        "",
-    ),
-    day: u_day(
-        p1("{0} 日前"),
-        p1("{0} 日後"),
-        p1("{0} 天"),
-        "前天",
-        "尋日",
-        "今日",
-        "聽日",
-        "後天",
-    ),
-    week: u(
-        p1("{0} 個星期前"),
-        p1("{0} 個星期後"),
-        p1("{0} 週"),
-        "上星期",
-        "今個星期",
-        "下星期",
-    ),
-    month: u(
-        p1("{0} 個月前"),
-        p1("{0} 個月後"),
-        p1("{0} 個月"),
-        "上個月",
-        "今個月",
-        "下個月",
-    ),
-    quarter: u(
-        p1("{0} 季前"),
-        p1("{0} 季後"),
-        p1("{0} 季"),
-        "上季",
-        "今季",
-        "下季",
-    ),
-    year: u(
-        p1("{0} 年前"),
-        p1("{0} 年後"),
-        p1("{0} 年"),
-        "舊年",
-        "今年",
-        "下年",
-    ),
-};
-
-const YUE_HANT: LocaleData = LocaleData {
-    tag: "yue-Hant",
-    long: YUE_HANT_LONG,
-    short: YUE_HANT_SHORT,
-    narrow: StyleData::EMPTY,
-    compact: UnitStrings::EMPTY,
-    indefinite: UnitStrings::EMPTY,
-    list: ListPatterns {
-        standard: ListForms {
-            two: "{0}同{1}",
-            start: "{0}、{1}",
-            middle: "{0}、{1}",
-            end: "{0}同{1}",
-        },
-        unit: ListForms {
-            two: "{0} {1}",
-            start: "{0} {1}",
-            middle: "{0} {1}",
-            end: "{0} {1}",
-        },
-        narrow: ListForms {
-            two: "{0}{1}",
-            start: "{0}{1}",
-            middle: "{0}{1}",
-            end: "{0}{1}",
-        },
-    },
-    approximate: LANGUAGE_FREE_HEDGES,
-    weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: ".",
-    at_pattern: "{0}{1}",
+    ..cldr48::PT_PT
 };
 
 /// Every locale this crate carries, in tag order.

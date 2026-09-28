@@ -5899,7 +5899,6 @@
   note         = {The lunar year from 2009 with two lichun, on 4 February 2009 and 4 February 2010, and double-spring years as a good time to marry. Retrieved 2026-09-26}
 }
 
-
 % --- Folk days: the Cold Food Day, 伝統的七夕, the dog days and the folk and religious tables (docs/systems/solar-term-counts.md) ---
 
 @misc{wikipedia-zh-hanshi,
@@ -6579,8 +6578,6 @@
   howpublished = {\url{https://stjarnhimlen.se/comp/time.html}},
   note         = {UT2 as UT1 plus $+0.022 \sin 2\pi t - 0.017 \cos 2\pi t - 0.007 \sin 4\pi t + 0.006 \cos 4\pi t$ seconds, $t$ the fraction of the year from 1 January; ``nowadays considered obsolete''. Undated; names no authority for the coefficients. Secondary. Retrieved 2026-09-27}
 }
-
-
 
 % --- The Qing almanac before 1900 (docs/systems/east-asian-lunisolar.md) ---
 
@@ -8782,9 +8779,9 @@
 
 @misc{cldr-json-48,
   author       = {{Unicode Consortium}},
-  title        = {cldr-json 48.0.0: \texttt{cldr-dates-full} and \texttt{cldr-units-full}},
-  howpublished = {\url{https://cdn.jsdelivr.net/npm/cldr-dates-full@48.0.0/} and \url{https://cdn.jsdelivr.net/npm/cldr-units-full@48.0.0/}, \texttt{main/<locale>/dateFields.json} and \texttt{main/<locale>/units.json}},
-  note         = {CLDR 48 resolved by CLDR's own tools, every parent, alias and inheritance marker followed. The hour's and the day's relative-time and duration patterns and the day's words of the 32 locales \texttt{hc-humanize} carries, read into memory, not saved. Retrieved 2026-09-28}
+  title        = {cldr-json 48.0.0: \texttt{cldr-dates-full}, \texttt{cldr-units-full}, \texttt{cldr-numbers-full} and \texttt{cldr-core}},
+  howpublished = {\url{https://cdn.jsdelivr.net/npm/cldr-dates-full@48.0.0/} and \url{https://cdn.jsdelivr.net/npm/cldr-units-full@48.0.0/}, \texttt{main/<locale>/dateFields.json} and \texttt{main/<locale>/units.json}; \url{https://cdn.jsdelivr.net/npm/cldr-numbers-full@48.0.0/}, \texttt{main/<locale>/numbers.json}; \url{https://cdn.jsdelivr.net/npm/cldr-core@48.0.0/}, \texttt{supplemental/plurals.json}},
+  note         = {CLDR 48 resolved by CLDR's own tools, every parent, alias and inheritance marker followed. The hour's and the day's relative-time and duration patterns and the day's words of the 32 locales \texttt{hc-humanize} carries, with the cardinal plural categories of \texttt{plurals.json}, read into memory, not saved, by \texttt{scripts/humanize-cldr-sample.py}; and the \texttt{defaultNumberingSystem} of \texttt{ar} (\texttt{latn}, its \texttt{native} \texttt{arab}) and \texttt{mr} (\texttt{deva}) with their decimal symbols. Retrieved 2026-09-28}
 }
 
 @misc{mywiki-waso,
@@ -8999,3 +8996,39 @@
   note         = {Chinese Wikipedia, in its simplified and traditional renderings: the reign's dates in Han numerals, 康熙六十一年十一月十三日 and 十一月二十日, and 康熙元年 for 1662 in its table of years. Retrieved 2026-09-28}
 }
 
+% --- hc-humanize's CLDR 48 phrases and their overrides (docs/i18n.md, Relative-time phrases) ---
+
+@misc{cldr48-humanize,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/main/} \texttt{ar.xml}, \texttt{cs.xml}, \texttt{cy.xml}, \texttt{de.xml}, \texttt{en.xml}, \texttt{es.xml}, \texttt{fr.xml}, \texttt{hi.xml}, \texttt{id.xml}, \texttt{it.xml}, \texttt{ja.xml}, \texttt{ko.xml}, \texttt{nl.xml}, \texttt{pl.xml}, \texttt{pt.xml}, \texttt{ru.xml}, \texttt{th.xml}, \texttt{tr.xml}, \texttt{vi.xml}, \texttt{zh.xml}, \texttt{zh\_Hant.xml} and \texttt{root.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/main}},
+  note         = {Tag \texttt{release-48}, each file read whole from \texttt{raw.githubusercontent.com} into memory by \texttt{scripts/humanize-cldr.py}, with \texttt{supplemental/plurals.xml}: the \texttt{fields}, \texttt{units}, \texttt{listPatterns}, \texttt{numbers} and Gregorian \texttt{dateTimeFormats} sections of the 21 \texttt{hc-humanize} entries that were hand-written until then, and \texttt{root.xml}'s aliases; the files of the other eleven are \texttt{cldr48-most-spoken}. Read in full for \texttt{vi.xml}'s day fields and context transforms, \texttt{cs.xml}'s short quarter and \texttt{cy.xml}'s duration quarter. Retrieved 2026-09-28}
+}
+
+@misc{uts35-general-48,
+  author       = {Davis, Mark and others},
+  title        = {Unicode Technical Standard \#35: Unicode Locale Data Markup Language ({LDML}), Part 2: General},
+  howpublished = {Version 48.2, \url{https://www.unicode.org/reports/tr35/tr35-general.html}},
+  note         = {Display Name Elements: capitalization ``should follow the conventions used in the middle of running text'', with \texttt{contextTransforms} for other contexts; Context Transform Elements, the usage type \texttt{relative}, words for a position relative to the present. Read 2026-09-28 in a web-fetch extract of the page}
+}
+
+@misc{moe-revised-dict-ke,
+  author       = {{教育部}},
+  title        = {刻},
+  howpublished = {《重編國語辭典修訂本》, 2021, \url{https://dict.revised.moe.edu.tw/dictView.jsp?ID=4456&q=1&word=%E5%88%BB}},
+  note         = {The entry's sense as a unit of time: ``古代計時的名稱，一晝夜共分一百刻。今以十五分鐘為一刻。'' Read 2026-09-28 in a web-fetch extract of the page}
+}
+
+@misc{tdk-kisaltmalar-dizini,
+  author       = {{Türk Dil Kurumu}},
+  title        = {Kısaltmalar Dizini},
+  howpublished = {\url{https://tdk.gov.tr/icerik/yazim-kurallari/kisaltmalar-dizini/}, its PDF \url{https://tdk.gov.tr/wp-content/uploads/2019/01/K%C4%B1saltmalar_Dizini.pdf}},
+  note         = {The entries ``dk. Dakika'', ``g Gram'', ``s. Sayfa'', ``sa. Saat'' and ``sn. Saniye''. The PDF read 2026-09-28 through its text layer}
+}
+
+@misc{wiktionary-chwarter,
+  author       = {{Wiktionary contributors}},
+  title        = {chwarter},
+  howpublished = {Wiktionary, \url{https://en.wiktionary.org/wiki/chwarter}},
+  note         = {Secondary. The Welsh headword line: chwarter, masculine, plural chwarterau, chwarteriau, chwarterion or chwarteri. Read 2026-09-28 in a web-fetch extract of the page}
+}

@@ -405,7 +405,7 @@ mod tests {
     fn the_hedge_wording_is_per_locale() {
         let span = 3 * HOUR + 3 * 60;
         assert_eq!(say("de", span), "ungefähr 3 Stunden");
-        assert_eq!(say("fr", span), "environ 3 heures");
+        assert_eq!(say("fr", span), "environ 3\u{a0}heures");
         assert_eq!(say("ja", span), "約3 時間");
         assert_eq!(say("cy", span), "tua 3 awr");
         assert_eq!(say("ko", span), "약 3시간");

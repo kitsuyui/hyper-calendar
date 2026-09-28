@@ -375,13 +375,14 @@ mod tests {
     fn welsh_uses_six_categories_that_are_not_arabics() {
         // Welsh singles out 2, 3 and 6 — chwe blynedd mutates where other
         // numerals do not — and 0 takes its own form.
+        // CLDR's `cy` future years state all six.
         let cy = numeric("cy");
-        assert_eq!(say(&cy, 0, TimeUnit::Year), "ymhen 0 mlynedd");
-        assert_eq!(say(&cy, -1, TimeUnit::Year), "1 flwyddyn yn ôl");
-        assert_eq!(say(&cy, -2, TimeUnit::Year), "2 flynedd yn ôl");
-        assert_eq!(say(&cy, -3, TimeUnit::Year), "3 blynedd yn ôl");
-        assert_eq!(say(&cy, -6, TimeUnit::Year), "6 blynedd yn ôl");
-        assert_eq!(say(&cy, -8, TimeUnit::Year), "8 o flynyddoedd yn ôl");
+        assert_eq!(say(&cy, 0, TimeUnit::Year), "ymhen 0 o flynyddoedd");
+        assert_eq!(say(&cy, 1, TimeUnit::Year), "ymhen blwyddyn");
+        assert_eq!(say(&cy, 2, TimeUnit::Year), "ymhen 2 flynedd");
+        assert_eq!(say(&cy, 3, TimeUnit::Year), "ymhen 3 blynedd");
+        assert_eq!(say(&cy, 6, TimeUnit::Year), "ymhen 6 blynedd");
+        assert_eq!(say(&cy, 8, TimeUnit::Year), "ymhen 8 mlynedd");
     }
 
     #[test]
@@ -390,7 +391,7 @@ mod tests {
         assert_eq!(say(&cy, -1, TimeUnit::Day), "1 diwrnod yn ôl");
         assert_eq!(say(&cy, -2, TimeUnit::Day), "2 ddiwrnod yn ôl");
         assert_eq!(say(&cy, -3, TimeUnit::Day), "3 diwrnod yn ôl");
-        assert_eq!(say(&cy, -8, TimeUnit::Day), "8 o ddiwrnodau yn ôl");
+        assert_eq!(say(&cy, -8, TimeUnit::Day), "8 diwrnod yn ôl");
     }
 
     #[test]
@@ -425,10 +426,15 @@ mod tests {
 
     #[test]
     fn auto_reaches_the_offsets_a_language_has_words_for_and_no_further() {
+        // Hindi has a word for two days off, परसों; CLDR's English has none.
+        let hi = auto("hi");
+        assert_eq!(say(&hi, -2, TimeUnit::Day), "परसों");
+        assert_eq!(say(&hi, 2, TimeUnit::Day), "परसों");
+        assert_eq!(say(&hi, -3, TimeUnit::Day), "3 दिन पहले");
         let en = auto("en");
-        assert_eq!(say(&en, -2, TimeUnit::Day), "the day before yesterday");
-        assert_eq!(say(&en, 2, TimeUnit::Day), "the day after tomorrow");
-        assert_eq!(say(&en, -3, TimeUnit::Day), "3 days ago");
+        assert_eq!(say(&en, -1, TimeUnit::Day), "yesterday");
+        assert_eq!(say(&en, -2, TimeUnit::Day), "2 days ago");
+        assert_eq!(say(&en, 2, TimeUnit::Day), "in 2 days");
         assert_eq!(say(&en, 3, TimeUnit::Day), "in 3 days");
     }
 
@@ -490,13 +496,12 @@ mod tests {
     }
 
     #[test]
-    fn german_abbreviates_the_month_and_not_the_day() {
+    fn german_abbreviates_the_quarter_and_not_the_day() {
         let short = numeric("de").with_style(RelativeStyle::Short);
         let narrow = numeric("de").with_style(RelativeStyle::Narrow);
-        assert_eq!(say(&short, -3, TimeUnit::Month), "vor 3 Mon.");
-        // German states no narrow forms, so narrow finds short.
-        assert_eq!(say(&narrow, -3, TimeUnit::Month), "vor 3 Mon.");
-        // and German short states no day forms, so short finds long.
+        assert_eq!(say(&short, -3, TimeUnit::Quarter), "vor 3 Quart.");
+        assert_eq!(say(&narrow, -3, TimeUnit::Quarter), "vor 3 Q");
+        // CLDR's German writes the day in full in every style.
         assert_eq!(say(&short, -3, TimeUnit::Day), "vor 3 Tagen");
         assert_eq!(say(&narrow, -3, TimeUnit::Day), "vor 3 Tagen");
     }
@@ -504,8 +509,9 @@ mod tests {
     #[test]
     fn a_locale_that_abbreviates_nothing_still_answers_every_style() {
         for style in RelativeStyle::ALL {
-            let formatter = numeric("it").with_style(style);
-            assert_eq!(say(&formatter, -3, TimeUnit::Day), "3 giorni fa");
+            // Korean states no short or narrow style: they are its long one.
+            let formatter = numeric("ko").with_style(style);
+            assert_eq!(say(&formatter, -3, TimeUnit::Day), "3일 전");
         }
     }
 
@@ -621,10 +627,10 @@ mod tests {
         assert_eq!(say(&numeric("en-GB"), -3, TimeUnit::Day), "3 days ago");
         assert_eq!(say(&numeric("pt-BR"), -3, TimeUnit::Day), "há 3 dias");
         assert_eq!(say(&numeric("zh-Hans"), -3, TimeUnit::Day), "3天前");
-        assert_eq!(say(&numeric("zh-Hant"), -3, TimeUnit::Week), "3週前");
+        assert_eq!(say(&numeric("zh-Hant"), -3, TimeUnit::Week), "3 週前");
         // Traditional by the region's likely script, not Simplified.
-        assert_eq!(say(&numeric("zh-TW"), -3, TimeUnit::Week), "3週前");
-        assert_eq!(say(&numeric("zh-HK"), -3, TimeUnit::Week), "3週前");
+        assert_eq!(say(&numeric("zh-TW"), -3, TimeUnit::Week), "3 週前");
+        assert_eq!(say(&numeric("zh-HK"), -3, TimeUnit::Week), "3 週前");
         assert_eq!(say(&numeric("zh-CN"), -3, TimeUnit::Week), "3周前");
     }
 
