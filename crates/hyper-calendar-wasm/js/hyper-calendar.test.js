@@ -786,7 +786,7 @@ describe("holidays", () => {
       const code = hc.alloc(2);
       new Uint8Array(hc.memory.buffer, code, 2).set([0x4a, 0x50]);
       try {
-        return hc.exports.hc_holidays_in_year(code, 2, 0, 0, 2026n, buffer, capacity);
+        return hc.exports.hc_holidays_in_year(code, 2, 0, 0, 0, 0, 2026n, buffer, capacity);
       } finally {
         hc.free(code, 2);
       }
@@ -805,6 +805,7 @@ describe("holidays", () => {
       substitute: false,
       observedFor: null,
       region: null,
+      group: null,
     });
     // 3 May 2026 is a Sunday; Constitution Memorial Day is taken on the 6th.
     const substitute = year.find((holiday) => holiday.substitute);
@@ -817,6 +818,7 @@ describe("holidays", () => {
       substitute: true,
       observedFor: "2026-05-03",
       region: null,
+      group: null,
     });
     assert.equal(hc.holidaysInYear("JP", "", 2026n).length, year.length);
     // A year before any rule applies is an empty list, not an error.
@@ -843,6 +845,7 @@ describe("holidays", () => {
       substitute: true,
       observedFor: hc.gregorianToFixed(2026, 5, 3),
       region: null,
+      group: null,
     });
     // The tables come in the order holidayCodes() lists them.
     const codes = hc.holidayCodes();
@@ -872,6 +875,7 @@ describe("holidays", () => {
       substitute: false,
       observedFor: null,
       region: null,
+      group: null,
     });
   });
 
@@ -890,6 +894,7 @@ describe("holidays", () => {
       substitute: false,
       observedFor: null,
       region: null,
+      group: null,
     });
   });
 
@@ -910,6 +915,7 @@ describe("holidays", () => {
       substitute: false,
       observedFor: null,
       region: "JP-13",
+      group: null,
     }]);
     assert.ok(tokyo[0].source?.includes("昭和27年東京都条例第75号"));
     const year = hc.holidaysInYear("JP", "JP-13", 2026);
@@ -920,6 +926,33 @@ describe("holidays", () => {
     assert.ok(japan?.regions.includes("JP-13"));
     assert.ok(japan?.regions.includes("JP-47"));
     assert.deepEqual(hc.holidayTables("en").find((table) => table.code === "XNYS")?.regions, []);
+  });
+
+  test("a group's own day is a scope of its country's table", () => {
+    const women = hc.holidaysOn(hc.gregorianToFixed(2026, 3, 8)).filter((row) => row.group === "women");
+    assert.deepEqual(women, [{
+      table: "CN",
+      tableName: "China",
+      name: "Women's Day",
+      localName: "妇女节",
+      kind: "half-day",
+      confidence: "exact",
+      source: "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天",
+      substitute: false,
+      observedFor: null,
+      region: null,
+      group: "women",
+    }]);
+    const year = hc.holidaysInYear("CN", "", 2026, "women");
+    assert.deepEqual(year.filter((day) => day.group).map((day) => day.date), ["2026-03-08"]);
+    assert.ok(!hc.holidaysInYear("CN", "", 2026).some((day) => day.localName === "妇女节"));
+    const childrensDay = hc.gregorianToFixed(2026, 6, 1);
+    assert.equal(hc.holidayIsDayOff("CN", "", childrensDay, "children"), true);
+    assert.equal(hc.holidayIsDayOff("CN", "", childrensDay), false);
+    const china = hc.holidayTables("zh-CN").find((table) => table.code === "CN");
+    assert.deepEqual(china?.groups, ["children", "military", "women", "youth"]);
+    assert.deepEqual(china?.groupNames, ["少年儿童", "现役军人", "妇女", "青年"]);
+    assert.deepEqual(hc.holidayTables("en").find((table) => table.code === "JP")?.groups, []);
   });
 });
 

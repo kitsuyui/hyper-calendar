@@ -28,9 +28,10 @@ use alloc::string::{String, ToString};
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
+use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, Period, PeriodKind, Reckoning, Status};
-use hc_holiday::rule::RuleSet;
+use hc_holiday::rule::{RuleSet, Scope};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
     traditions,
@@ -41,7 +42,7 @@ use hc_i18n::territories::{self, TerritoryName};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 9;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 11;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 4;
@@ -192,8 +193,9 @@ pub fn short_table_name(
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
 /// the code, the kind, the name in the locale, the English name, the
 /// locale that answered, the sources, the country of a subdivision or an
-/// exchange, the short name in the locale, and the subdivisions the
-/// table's rules are scoped to.
+/// exchange, the short name in the locale, the subdivisions the table's
+/// rules are scoped to, and the groups its rules are given to alone, by
+/// identifier and by name in the locale.
 ///
 /// Column 3 follows [`table_name`]: a country is named as the locale's
 /// CLDR 48 data names it, where `hc-i18n` carries a name for it — 日本 under
@@ -214,7 +216,14 @@ pub fn short_table_name(
 /// and for every table that is not a country. Column 9 is
 /// [`RuleSet::regions`]: the ISO 3166-2 codes a caller may pass as the
 /// region of the table, separated by `;` in code order, `JP-11;JP-12;…`,
-/// and empty for a table with no subdivision's days.
+/// and empty for a table with no subdivision's days. Column 10 is
+/// [`RuleSet::groups`]: the identifiers of the groups a caller may pass as
+/// the group of the table, `;`-separated in identifier order,
+/// `children;military;women;youth` for `CN`, and empty for a table that
+/// gives no day to a group alone. Column 11 names them, in the same order:
+/// each group's name in the locale where `hc-i18n` carries one
+/// ([`group_name`]), 妇女 for `women` under `zh-CN`, and else its English
+/// name.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = requested_locale(locale);
@@ -231,6 +240,13 @@ pub fn holiday_tables(locale: &str) -> String {
             .cell_or_empty(country_of(set, kind))
             .cell_or_empty(short_table_name(set, kind, requested.as_ref()))
             .cell(&set.regions().join(";"));
+        let groups = set.groups();
+        let ids: alloc::vec::Vec<&str> = groups.iter().map(|group| group.id).collect();
+        let names: alloc::vec::Vec<&str> = groups
+            .iter()
+            .map(|group| group_name(group, requested.as_ref()))
+            .collect();
+        line.cell(&ids.join(";")).cell(&names.join(";"));
         line.end();
     }
     out
@@ -272,6 +288,28 @@ fn iso(day: Rd) -> String {
         .map_or_else(|_| String::from("?"), |date| date.to_string())
 }
 
+/// What a group is called in a locale: its name in `hc-i18n`'s table for
+/// the first locale of the chain that has one, and else its English name,
+/// which is also its name under `native`, a request for no one locale.
+#[must_use]
+pub fn group_name(group: &Group, locale: Option<&Locale>) -> &'static str {
+    locale
+        .and_then(|locale| hc_i18n::holiday_groups::group_name(locale, group.id))
+        .map_or(group.english_name, |named| named.name)
+}
+
+/// The group identifier of `table` that `group` names, as the table
+/// writes it: `women` for ` Women `. `None` when the table gives no rule
+/// to it, which leaves the caller with everyone's days.
+fn table_group(table: &RuleSet, group: Option<&str>) -> Option<&'static str> {
+    let group = group?;
+    table
+        .groups()
+        .into_iter()
+        .map(|named| named.id)
+        .find(|id| hc_core::catalogue::matches(group, id))
+}
+
 /// The subdivision code of `table` that `region` names, as the table
 /// writes it: `JP-13` for `jp-13`. `None` when the table scopes no rule to
 /// it, which leaves the caller with the nationwide days.
@@ -284,23 +322,33 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 }
 
 /// The holidays of a Gregorian year in a table, nationwide or in a
-/// subdivision, one line each: the ISO 8601 date, the name, the local
-/// name, the kind, the confidence, `1` for a substitute day and `0`
-/// otherwise, the ISO 8601 date the substitute stands in for or nothing,
-/// and the subdivision whose own entry it is — the region asked for, as
-/// the table writes its code, on an entry the nationwide calendar does not
-/// have — or nothing, tab-separated.
+/// subdivision, for everyone or for a group, one line each: the ISO 8601
+/// date, the name, the local name, the kind, the confidence, `1` for a
+/// substitute day and `0` otherwise, the ISO 8601 date the substitute
+/// stands in for or nothing, the subdivision whose own entry it is — the
+/// region asked for, as the table writes its code, on an entry the
+/// calendar for no region does not have — or nothing, and the group whose
+/// own entry it is — the group asked for, as the table writes its
+/// identifier, on an entry the calendar for everyone does not have — or
+/// nothing, tab-separated.
 #[must_use]
-pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
-    let calendar = HolidayCalendar::for_year(table, region, year);
-    let own = table_region(table, region);
-    let nationwide = own.map(|_| HolidayCalendar::for_year(table, None, year));
+pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
+    let calendar = HolidayCalendar::for_year_scoped(table, scope, year);
+    let own_region = table_region(table, scope.region);
+    let own_group = table_group(table, scope.group);
+    // The calendar without the region, and the calendar without the group:
+    // an entry the one lacks is the region's own, the other's the group's.
+    let without_region =
+        own_region.map(|_| HolidayCalendar::for_year_scoped(table, scope.nationwide(), year));
+    let without_group =
+        own_group.map(|_| HolidayCalendar::for_year_scoped(table, scope.for_everyone(), year));
+    let own = |parent: Option<&HolidayCalendar<'_>>, holiday: &Holiday, code| {
+        parent.and_then(|parent| (!parent.all().contains(holiday)).then_some(code))
+    };
     let mut out = String::new();
     for holiday in calendar.all() {
-        let regional = nationwide
-            .as_ref()
-            .and_then(|nationwide| (!nationwide.all().contains(holiday)).then_some(own))
-            .flatten();
+        let regional = own(without_region.as_ref(), holiday, own_region).flatten();
+        let grouped = own(without_group.as_ref(), holiday, own_group).flatten();
         let mut line = Line::new(&mut out);
         line.cell(&iso(holiday.date))
             .cell(holiday.name)
@@ -309,7 +357,8 @@ pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
             .cell(holiday.confidence.id())
             .flag(holiday.is_substitute())
             .cell_or_empty(holiday.observed_for.map(iso).as_deref())
-            .cell_or_empty(regional);
+            .cell_or_empty(regional)
+            .cell_or_empty(grouped);
         line.end();
     }
     out
@@ -317,13 +366,18 @@ pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
 
 /// The lines of `hc_holidays_in_year`: [`year_lines`] for the table
 /// `code` names, in the subdivision `region` names, or nationwide for
-/// none.
+/// none, and for the group `group` names, or for everyone for none.
 ///
 /// # Errors
 ///
 /// As [`rule_set`].
-pub fn holidays_in_year(code: &str, region: Option<&str>, year: i64) -> Answer<String> {
-    Ok(year_lines(rule_set(code)?, region, year))
+pub fn holidays_in_year(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    year: i64,
+) -> Answer<String> {
+    Ok(year_lines(rule_set(code)?, Scope::new(region, group), year))
 }
 
 /// One table's nationwide lines of `hc_holidays_on` for one day: the
@@ -331,16 +385,23 @@ pub fn holidays_in_year(code: &str, region: Option<&str>, year: i64) -> Answer<S
 /// Tab-separated: the table's identifier, its English name, the holiday's
 /// English name, its local name, the kind, the confidence, the instrument
 /// the rule cites, `1` for a substitute day and `0` otherwise, the fixed
-/// day a substitute stands in for or nothing, and the subdivision, which
-/// is nothing here; a gap has the kind `gap`, an empty confidence and
-/// source, `0` and nothing.
+/// day a substitute stands in for or nothing, the subdivision and the
+/// group, which are nothing here; a gap has the kind `gap`, an empty
+/// confidence and source, `0` and nothing.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
-    push_entry_lines(out, table, None, &calendar.on(day), calendar.gaps());
+    push_entry_lines(
+        out,
+        table,
+        Scope::EVERYONE,
+        &calendar.on(day),
+        calendar.gaps(),
+    );
 }
 
 /// One subdivision's lines of `hc_holidays_on` for one day: the entries
 /// and gaps `regional`, the table evaluated in `region`, has on the day
-/// that `nationwide` does not, each with `region` in the last column.
+/// that `nationwide` does not, each with `region` in the subdivision's
+/// column.
 pub fn push_region_day_lines(
     out: &mut String,
     table: &RuleSet,
@@ -349,26 +410,50 @@ pub fn push_region_day_lines(
     nationwide: &HolidayCalendar<'_>,
     day: Rd,
 ) {
-    let everywhere = nationwide.on(day);
-    let own: alloc::vec::Vec<Holiday> = regional
-        .on(day)
-        .into_iter()
-        .filter(|holiday| !everywhere.contains(holiday))
-        .collect();
-    let gaps: alloc::vec::Vec<Gap> = regional
-        .gaps()
-        .iter()
-        .filter(|gap| !nationwide.gaps().contains(gap))
-        .copied()
-        .collect();
-    push_entry_lines(out, table, Some(region), &own, &gaps);
+    push_scoped_day_lines(
+        out,
+        table,
+        Scope::region(region),
+        regional,
+        &[nationwide],
+        day,
+    );
 }
 
-/// The lines of [`push_day_lines`] and [`push_region_day_lines`].
+/// One scope's lines of `hc_holidays_on` for one day: the entries and gaps
+/// `scoped`, the table evaluated in `scope`, has on the day that none of
+/// `parents` — the table evaluated without the scope's region, or without
+/// its group — has, each with the scope's region and group in the last two
+/// columns.
+pub fn push_scoped_day_lines(
+    out: &mut String,
+    table: &RuleSet,
+    scope: Scope<'_>,
+    scoped: &HolidayCalendar<'_>,
+    parents: &[&HolidayCalendar<'_>],
+    day: Rd,
+) {
+    let elsewhere: alloc::vec::Vec<alloc::vec::Vec<Holiday>> =
+        parents.iter().map(|parent| parent.on(day)).collect();
+    let own: alloc::vec::Vec<Holiday> = scoped
+        .on(day)
+        .into_iter()
+        .filter(|holiday| !elsewhere.iter().any(|entries| entries.contains(holiday)))
+        .collect();
+    let gaps: alloc::vec::Vec<Gap> = scoped
+        .gaps()
+        .iter()
+        .filter(|gap| !parents.iter().any(|parent| parent.gaps().contains(gap)))
+        .copied()
+        .collect();
+    push_entry_lines(out, table, scope, &own, &gaps);
+}
+
+/// The lines of [`push_day_lines`] and [`push_scoped_day_lines`].
 fn push_entry_lines(
     out: &mut String,
     table: &RuleSet,
-    region: Option<&str>,
+    scope: Scope<'_>,
     holidays: &[Holiday],
     gaps: &[Gap],
 ) {
@@ -383,7 +468,8 @@ fn push_entry_lines(
             .cell(holiday.source)
             .flag(holiday.is_substitute())
             .value_or_empty(holiday.observed_for.map(|day| day.0))
-            .cell_or_empty(region);
+            .cell_or_empty(scope.region)
+            .cell_or_empty(scope.group);
         line.end();
     }
     // A gap is a holiday the table could not place this year — its
@@ -399,7 +485,8 @@ fn push_entry_lines(
             .empties(2)
             .flag(false)
             .empty()
-            .cell_or_empty(region);
+            .cell_or_empty(scope.region)
+            .cell_or_empty(scope.group);
         line.end();
     }
 }
@@ -410,7 +497,11 @@ fn push_entry_lines(
 /// [`RuleSet::regions`], in code order, so that a subdivision's own day —
 /// Tokyo's 都民の日, a Canadian province's Civic Holiday — is a line with
 /// its region, and a day the nationwide calendar already has is not
-/// repeated.
+/// repeated; then [`push_scoped_day_lines`] for each group of
+/// [`RuleSet::groups`], in identifier order, nationwide, so that China's
+/// half day for women is a line with the group `women`; and last for each
+/// pair of [`RuleSet::region_groups`], a day of one group in one
+/// subdivision, less what the region alone and the group alone have.
 ///
 /// One memo serves every table: the astronomy the tables share — the same
 /// tithis, the same new moons — is done once, the answers the context
@@ -434,23 +525,51 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
                     HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
                 push_region_day_lines(&mut out, table, region, &regional, &calendar, day);
             }
+            for group in table.groups() {
+                let scope = Scope::group(group.id);
+                let grouped = HolidayCalendar::for_day_scoped_with(table, scope, day, &mut context);
+                push_scoped_day_lines(&mut out, table, scope, &grouped, &[&calendar], day);
+            }
+            for (region, group) in table.region_groups() {
+                let scope = Scope::new(Some(region), Some(group.id));
+                let both = HolidayCalendar::for_day_scoped_with(table, scope, day, &mut context);
+                let regional = HolidayCalendar::for_day_scoped_with(
+                    table,
+                    scope.for_everyone(),
+                    day,
+                    &mut context,
+                );
+                let grouped = HolidayCalendar::for_day_scoped_with(
+                    table,
+                    scope.nationwide(),
+                    day,
+                    &mut context,
+                );
+                push_scoped_day_lines(&mut out, table, scope, &both, &[&regional, &grouped], day);
+            }
         }
     });
     Ok(out)
 }
 
 /// Whether a fixed day is a day off in the table `code` names, nationwide
-/// or in the subdivision `region` names.
+/// or in the subdivision `region` names, for everyone or for the group
+/// `group` names.
 ///
 /// # Errors
 ///
 /// As [`rule_set`], and [`Refusal::OutOfRange`] for a day with no
 /// Gregorian year.
-pub fn is_day_off(code: &str, region: Option<&str>, fixed: i64) -> Answer<bool> {
+pub fn is_day_off(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    fixed: i64,
+) -> Answer<bool> {
     let table = rule_set(code)?;
     let day = Rd(fixed);
     gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
-    Ok(HolidayCalendar::for_day(table, region, day).is_holiday(day))
+    Ok(HolidayCalendar::for_day_scoped(table, Scope::new(region, group), day).is_holiday(day))
 }
 
 /// The line of `hc_lectionary`: the liturgical year a day falls in, named
@@ -902,6 +1021,81 @@ mod tests {
         assert!(rows.iter().all(|row| row[1] != "subdivision"));
     }
 
+    /// Columns 10 and 11 list the groups a table gives days to alone, by
+    /// identifier and by name, in the locale where `hc-i18n` names them and
+    /// in English otherwise; a table that names none has both empty.
+    #[test]
+    fn the_tables_list_their_groups_by_identifier_and_name() {
+        let english = rows_in("en");
+        assert_eq!(english["CN"][9], "children;military;women;youth");
+        assert_eq!(english["CN"][10], "children;military personnel;women;youth");
+        let chinese = rows_in("zh-CN");
+        assert_eq!(chinese["CN"][9], "children;military;women;youth");
+        assert_eq!(chinese["CN"][10], "少年儿童;现役军人;妇女;青年");
+        assert_eq!(
+            chinese["TW"][9],
+            "coast-guard;firefighters;indigenous-peoples;military;police"
+        );
+        assert_eq!(chinese["TW"][10].split(';').nth(3), Some("现役军人"));
+        assert_eq!(english["JP"][9], "");
+        assert_eq!(english["JP"][10], "");
+        assert_eq!(rows_in("native")["CN"][10], english["CN"][10]);
+    }
+
+    /// A group's own day is a line of the year with the group in the last
+    /// column, and is not a line of everyone's year; a day everyone has
+    /// keeps the column empty.
+    #[test]
+    fn a_group_s_own_day_is_marked_with_its_group() {
+        let china = rule_set("CN").expect("China");
+        let women = year_lines(china, Scope::group(" WOMEN "), 2026);
+        let own: Vec<&str> = women
+            .lines()
+            .filter(|line| line.ends_with("\twomen"))
+            .collect();
+        assert_eq!(
+            own,
+            ["2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen"]
+        );
+        assert!(women.starts_with("2026-01-01\tNew Year's Day\t元旦\tpublic\texact\t0\t\t\t\n"));
+        let everyone = year_lines(china, Scope::EVERYONE, 2026);
+        assert!(!everyone.contains("妇女节"));
+        assert_eq!(
+            everyone.lines().count() + 1,
+            women.lines().count(),
+            "{women}"
+        );
+    }
+
+    /// On 8 March the day's lines have China's half day once, as a line of
+    /// the group; the nationwide lines do not have it.
+    #[test]
+    fn the_day_s_lines_carry_each_group_s_own_day() {
+        let day = ymd(2026, 3, 8);
+        let text = holidays_on(day).expect("a day");
+        let women: Vec<&str> = text
+            .lines()
+            .filter(|line| line.starts_with("CN\t") && line.contains("妇女节"))
+            .collect();
+        assert_eq!(women.len(), 1, "{text}");
+        assert!(women[0].ends_with(
+            "\thalf-day\texact\t全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t\twomen"
+        ));
+        assert!(
+            text.lines().all(|line| line.split('\t').count() == 11),
+            "{text}"
+        );
+        assert_eq!(
+            is_day_off("CN", None, Some("children"), ymd(2026, 6, 1)),
+            Ok(true)
+        );
+        assert_eq!(is_day_off("CN", None, None, ymd(2026, 6, 1)), Ok(false));
+        assert_eq!(
+            is_day_off("CN", None, Some("women"), ymd(2027, 3, 8)),
+            Ok(false)
+        );
+    }
+
     /// The rows of [`holiday_tables`] in a locale, by code.
     fn rows_in(locale: &str) -> BTreeMap<String, Vec<String>> {
         holiday_tables(locale)
@@ -1169,14 +1363,14 @@ mod tests {
     }
 
     /// The names are cells: their tab and line breaks are spaces, and the
-    /// line keeps its eight columns. The year's lines wrote them raw
+    /// line keeps its nine columns. The year's lines wrote them raw
     /// before, so a tab in a name shifted every column after it.
     #[test]
     fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns() {
-        let text = year_lines(table_with_separators_in_its_names(), None, 2026);
+        let text = year_lines(table_with_separators_in_its_names(), Scope::EVERYONE, 2026);
         assert_eq!(
             text,
-            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\n"
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\n"
         );
     }
 
@@ -1191,7 +1385,7 @@ mod tests {
         push_day_lines(&mut out, table, &calendar, day);
         assert_eq!(
             out,
-            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\n"
+            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\n"
         );
     }
 

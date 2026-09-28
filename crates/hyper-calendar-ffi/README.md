@@ -367,8 +367,8 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_pentad_in_effect(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `seasons` | The pentad (候) in effect on a fixed day at a meridian, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_cold_food_day(const char *convention, int64_t year, int64_t *out_fixed);` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning. |
 | `HcStatus hc_plum_rains(const char *rule, int64_t year, const char *meridian, int64_t *out_fixed);` | `seasons` | The fixed day of 入梅 or 出梅 of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian. |
-| `HcStatus hc_holiday_is_day_off(const char *code, const char *region, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
-| `HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
+| `HcStatus hc_holidays_in_year(const char *code, const char *region, const char *group, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
 | `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_tables(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday table with its kind, names and sources, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -752,18 +752,23 @@ ISO 10383 Market Identifier Code (`XNYS`), a tradition's slug
 (`christian-western`) or `un-days`, and `hc_holiday_codes` lists them all.
 `hc_holiday_is_day_off` answers for one day; `hc_holidays_in_year` writes a
 year as tab-separated, NUL-terminated lines — the ISO date, the name, the
-local name, the kind, the confidence, `1` for a substitute day, the date it
-stands in for and the region — reporting the length it needs through
-`written` like every other text function here. The region is the
-subdivision whose own entry the line is: asked for `JP` in `JP-13`, the
-lines are Japan's nationwide days and Tokyo's 都民の日, and only 都民の日
-carries `JP-13`. A region matches in either case, and one the table scopes
-no rule to gives the nationwide days.
+local name, the kind (`public`, `bank`, `religious`, `observance`,
+`school`, `workday`, `government` or `half-day`), the confidence, `1` for a
+substitute day, the date it stands in for, the region and the group —
+reporting the length it needs through `written` like every other text
+function here. The region is the subdivision whose own entry the line is:
+asked for `JP` in `JP-13`, the lines are Japan's nationwide days and
+Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A region matches in
+either case, and one the table scopes no rule to gives the nationwide
+days. The group is the group of people whose own entry the line is, in the
+same way: asked for `CN` and `women`, the lines are China's days for
+everyone and the half day of 8 March, and only that line carries `women`.
 
 The string arguments fail the same way in both, and the same way as in the
-WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code` or
-`region` that is not UTF-8 is `HC_ERROR_NOT_UTF8`, and a `code` that names
-no table is `HC_ERROR_UNKNOWN`. A null or empty `region` is no region.
+WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code`,
+`region` or `group` that is not UTF-8 is `HC_ERROR_NOT_UTF8`, and a `code`
+that names no table is `HC_ERROR_UNKNOWN`. A null or empty `region` is no
+region, and a null or empty `group` is everyone.
 
 ```c
 #include <stdint.h>
@@ -772,14 +777,14 @@ no table is `HC_ERROR_UNKNOWN`. A null or empty `region` is no region.
 
 typedef int HcStatus;
 #define HC_OK 0
-HcStatus hc_holidays_in_year(const char *code, const char *region, int64_t year,
-                             char *buffer, size_t capacity, size_t *written);
+HcStatus hc_holidays_in_year(const char *code, const char *region, const char *group,
+                             int64_t year, char *buffer, size_t capacity, size_t *written);
 
 int main(void) {
     size_t need = 0;
-    hc_holidays_in_year("JP", NULL, 2026, NULL, 0, &need);   /* HC_ERROR_BUFFER_TOO_SMALL */
+    hc_holidays_in_year("JP", NULL, NULL, 2026, NULL, 0, &need);   /* HC_ERROR_BUFFER_TOO_SMALL */
     char *lines = malloc(need);
-    if (lines != NULL && hc_holidays_in_year("JP", NULL, 2026, lines, need, &need) == HC_OK) {
+    if (lines != NULL && hc_holidays_in_year("JP", NULL, NULL, 2026, lines, need, &need) == HC_OK) {
         fputs(lines, stdout);
     }
     free(lines);
@@ -796,31 +801,52 @@ column 9 of the country's row. Asked for `JP` with no region,
 nationwide days alone, not the union of the prefectures'; asked for `JP`
 in `JP-13`, for the nationwide days and Tokyo's own. `hc_holidays_on`
 takes no region and writes a subdivision's own lines under its country's
-code, with the subdivision in the last column, as the WebAssembly
-module's README sets out under "Subdivisions".
+code, with the subdivision in its tenth column, as the WebAssembly
+module's README sets out under "Subdivisions and groups".
+
+A group of people a statute gives a day to alone is asked for by `group`,
+independently of the region, by an identifier of `hc_holiday::group`:
+`women`, `youth`, `children`, `military`, `police`, `firefighters`,
+`coast-guard`, `indigenous-peoples`, matched in either case. China's
+Article 3 gives women half of 8 March, youth half of 4 May, children
+1 June and active servicemen half of 1 August; Taiwan's Article 6 leaves
+the services' days to their authorities, which were not read, so each is a
+gap for its group. `hc_holiday_tables` lists a table's groups in column 10
+and their names in the locale in column 11. With no group,
+`hc_holidays_in_year` and `hc_holiday_is_day_off` answer for everyone's
+days alone; with `CN` and `children`, 1 June is a day off. A half day is
+the kind `half-day`, a business day on which work stops for part of the
+day. `hc_holidays_on` writes each group's own lines after the
+subdivisions', with the group in its last column.
 
 `hc_holidays_on(fixed, buffer, capacity, written)` writes every entry on
 one day across every table `hc_holiday_codes` lists, in that order, each
-evaluated nationwide and then in each subdivision its rules are scoped to,
-one line per (table, subdivision, entry): the table's identifier, its
-English name, the holiday's English name, its local name, the kind
-(`public`, `bank`, `religious`, `observance`, `school`, `workday`,
-`government`, or `gap`), the confidence, the instrument the rule cites, `1`
-for a substitute, the fixed day it stands in for, and the ISO 3166-2 code
-of the subdivision whose own entry it is, `JP-13`, or nothing for a
-nationwide one. A subdivision's lines are only the entries the nationwide
-calendar does not have, so a nationwide holiday is written once. A `gap` line is a holiday the table
+evaluated nationwide, then in each subdivision its rules are scoped to,
+then for each group its rules give days to alone, and last for each
+subdivision and group a rule names together, one line per (table, scope,
+entry): the table's identifier, its English name, the holiday's English
+name, its local name, the kind (`public`, `bank`, `religious`,
+`observance`, `school`, `workday`, `government`, `half-day`, or `gap`), the
+confidence, the instrument the rule cites, `1` for a substitute, the fixed
+day it stands in for, the ISO 3166-2 code of the subdivision whose own
+entry it is, `JP-13`, or nothing for a nationwide one, and the identifier
+of the group whose own entry it is, `women`, or nothing for one everyone
+has. A subdivision's lines are only the entries the nationwide calendar
+does not have, and a group's the entries the calendar for everyone does
+not, so a nationwide holiday is written once. A `gap` line is a holiday the table
 could not place in the day's year — its calendar's range ended, or the
 year's announcement has not been read — reported so the caller can say so.
 Each table is evaluated for the one day (`HolidayCalendar::for_day`), which
 answers exactly what the whole year would at about a third of the cost.
 
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
-table in `hc_holiday_codes` order, in the nine columns of the WebAssembly
+table in `hc_holiday_codes` order, in the eleven columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
-or an exchange where its table records one, the short name, and the
-subdivisions the table's rules are scoped to, `;`-separated. A country
+or an exchange where its table records one, the short name, the
+subdivisions the table's rules are scoped to, `;`-separated, the groups its
+rules give days to alone, `;`-separated, and those groups' names in the
+locale, English where `hc-i18n` names a group in no other language. A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
 carries one, and else, as for a null `locale`, by CLDR's English name;
 an exchange, a tradition and a set of observances by the table's English

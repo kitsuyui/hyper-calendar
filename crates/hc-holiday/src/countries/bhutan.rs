@@ -21,7 +21,7 @@
 use crate::rule::{HolidayRule, Listing, TibetanMonth};
 
 use super::asia::{BT_RULES, bt_predicted, bt_read};
-use super::joined;
+use crate::rule::joined;
 
 /// The Thimphu district.
 const THIMPHU: &[&str] = &["BT-15"];
@@ -64,4 +64,4 @@ pub static THIMPHU_DAYS: &[HolidayRule] = &[
 /// Bhutan's nationwide rules and Thimphu's days, the table
 /// [`super::BHUTAN`] evaluates.
 pub(super) static RULES: [HolidayRule; BT_RULES.len() + THIMPHU_DAYS.len()] =
-    joined(BT_RULES, THIMPHU_DAYS);
+    joined(&[BT_RULES, THIMPHU_DAYS]);

@@ -16,8 +16,8 @@
 
 use crate::rule::{HolidayRule, Rule};
 
-use super::joined;
 use super::oceania::VU_RULES;
+use crate::rule::joined;
 
 /// The year of the Government's list read.
 const FIRST: i32 = 2020;
@@ -47,4 +47,4 @@ pub static PROVINCIAL_DAYS: &[HolidayRule] = &[
 /// Vanuatu's national rules and its provincial days, the table
 /// [`super::VANUATU`] evaluates.
 pub(super) static RULES: [HolidayRule; VU_RULES.len() + PROVINCIAL_DAYS.len()] =
-    joined(VU_RULES, PROVINCIAL_DAYS);
+    joined(&[VU_RULES, PROVINCIAL_DAYS]);

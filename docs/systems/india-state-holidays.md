@@ -136,7 +136,7 @@ state keeps that festival.
 
 `crates/hc-holiday/src/countries/india.rs`: `STATE_DAYS`, built by `nia` for
 each day and `not_read` for each state's gap, joined to the nationwide rules
-of `asia.rs` by `countries::joined` into the `RULES` that `INDIA`
+of `asia.rs` by `rule::joined` into the `RULES` that `INDIA`
 evaluates.
 
 Anchors: `crates/hc-holiday/tests/india_states.rs`,

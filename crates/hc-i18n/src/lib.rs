@@ -45,6 +45,8 @@
 //!   the night watches, and the Vietnamese, Chinese and Turkish folk days.
 //! * [`horizons`] — what a locale calls a horizon a rising is measured
 //!   against, where an observatory or almanac office names it.
+//! * [`holiday_groups`] — what a locale calls a group of people a holiday
+//!   is given to alone, where an instrument in the language names it.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -83,6 +85,7 @@ pub mod error;
 #[cfg(feature = "exemplar-cities")]
 pub mod exemplar_cities;
 pub mod fields;
+pub mod holiday_groups;
 pub mod horizons;
 pub mod locale;
 pub mod names;

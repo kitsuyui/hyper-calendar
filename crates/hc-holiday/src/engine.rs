@@ -25,8 +25,9 @@ use alloc::{vec, vec::Vec};
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
+use crate::group::Group;
 use crate::rule::{
-    Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, SubstituteDirection,
+    Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, Scope, SubstituteDirection,
     SubstitutionPolicy, Window,
 };
 
@@ -46,6 +47,8 @@ pub struct Holiday {
     pub confidence: Confidence,
     /// The subdivisions it applies to; empty means nationwide.
     pub regions: &'static [&'static str],
+    /// The groups it is given to alone; empty means everyone.
+    pub groups: &'static [Group],
     /// When this entry is a weekend substitute, the day it substitutes for.
     pub observed_for: Option<Rd>,
     /// Whether this entry was produced by a bridge policy.
@@ -111,7 +114,7 @@ pub struct Gap {
 #[derive(Debug, Clone)]
 pub struct HolidayCalendar<'a> {
     rules: &'a RuleSet,
-    region: Option<&'a str>,
+    scope: Scope<'a>,
     first_year: i64,
     last_year: i64,
     first_day: Rd,
@@ -157,16 +160,47 @@ impl<'a> HolidayCalendar<'a> {
         last_year: i64,
         context: &mut EvaluationContext,
     ) -> Self {
+        Self::scoped_with(rules, Scope::from(region), first_year, last_year, context)
+    }
+
+    /// Evaluate `rules` over `first_year..=last_year` in a [`Scope`]: a
+    /// subdivision, a group of people, both or neither.
+    ///
+    /// [`HolidayCalendar::new`] is this with no group. A group adds the
+    /// rules given to it alone — China's 妇女节 half day for `women` —
+    /// and no group asks for everyone's days, not the union of every
+    /// group's.
+    #[must_use]
+    pub fn scoped(rules: &'a RuleSet, scope: Scope<'a>, first_year: i64, last_year: i64) -> Self {
+        Self::scoped_with(
+            rules,
+            scope,
+            first_year,
+            last_year,
+            &mut EvaluationContext::new(),
+        )
+    }
+
+    /// [`HolidayCalendar::scoped`] with the astronomy memoised in
+    /// `context`.
+    #[must_use]
+    pub fn scoped_with(
+        rules: &'a RuleSet,
+        scope: Scope<'a>,
+        first_year: i64,
+        last_year: i64,
+        context: &mut EvaluationContext,
+    ) -> Self {
         let first_day = gregorian::to_fixed(first_year, 1, 1).unwrap_or(Rd(0));
         let last_day = gregorian::to_fixed(last_year, 12, 31).unwrap_or(Rd(-1));
         let (holidays, gaps) = if first_year > last_year {
             (Vec::new(), Vec::new())
         } else {
-            evaluate_with_includes(rules, region, first_day, last_day, 0, context)
+            evaluate_with_includes(rules, scope, first_day, last_day, 0, context)
         };
         Self {
             rules,
-            region,
+            scope,
             first_year,
             last_year,
             first_day,
@@ -180,6 +214,12 @@ impl<'a> HolidayCalendar<'a> {
     #[must_use]
     pub fn for_year(rules: &'a RuleSet, region: Option<&'a str>, year: i64) -> Self {
         Self::new(rules, region, year, year)
+    }
+
+    /// Evaluate one year in a [`Scope`].
+    #[must_use]
+    pub fn for_year_scoped(rules: &'a RuleSet, scope: Scope<'a>, year: i64) -> Self {
+        Self::scoped(rules, scope, year, year)
     }
 
     /// [`HolidayCalendar::for_year`] with the astronomy memoised in
@@ -237,12 +277,31 @@ impl<'a> HolidayCalendar<'a> {
         day: Rd,
         context: &mut EvaluationContext,
     ) -> Self {
+        Self::for_day_scoped_with(rules, Scope::from(region), day, context)
+    }
+
+    /// Evaluate one day in a [`Scope`], as [`HolidayCalendar::for_day`]
+    /// does in a region.
+    #[must_use]
+    pub fn for_day_scoped(rules: &'a RuleSet, scope: Scope<'a>, day: Rd) -> Self {
+        Self::for_day_scoped_with(rules, scope, day, &mut EvaluationContext::new())
+    }
+
+    /// [`HolidayCalendar::for_day_scoped`] with the astronomy memoised in
+    /// `context`.
+    #[must_use]
+    pub fn for_day_scoped_with(
+        rules: &'a RuleSet,
+        scope: Scope<'a>,
+        day: Rd,
+        context: &mut EvaluationContext,
+    ) -> Self {
         let year = gregorian::year_from_fixed(day).unwrap_or(0);
         let (holidays, gaps) =
-            hc_core::memo::scope(|| evaluate_with_includes(rules, region, day, day, 0, context));
+            hc_core::memo::scope(|| evaluate_with_includes(rules, scope, day, day, 0, context));
         Self {
             rules,
-            region,
+            scope,
             first_year: year,
             last_year: year,
             first_day: day,
@@ -282,7 +341,19 @@ impl<'a> HolidayCalendar<'a> {
     /// The subdivision this calendar was built for.
     #[must_use]
     pub const fn region(&self) -> Option<&'a str> {
-        self.region
+        self.scope.region
+    }
+
+    /// The group this calendar was built for.
+    #[must_use]
+    pub const fn group(&self) -> Option<&'a str> {
+        self.scope.group
+    }
+
+    /// The region and the group this calendar was built for.
+    #[must_use]
+    pub const fn scope(&self) -> Scope<'a> {
+        self.scope
     }
 
     /// The first and last Gregorian year covered.
@@ -501,20 +572,22 @@ const REACH_DAYS: i64 = 62;
 /// each evaluated under its own policies, merged in date order.
 fn evaluate_with_includes(
     rules: &RuleSet,
-    region: Option<&str>,
+    scope: Scope<'_>,
     first_day: Rd,
     last_day: Rd,
     depth: u8,
     context: &mut EvaluationContext,
 ) -> (Vec<Holiday>, Vec<Gap>) {
-    let (mut holidays, mut gaps) = evaluate(rules, region, first_day, last_day, context);
+    let (mut holidays, mut gaps) = evaluate(rules, scope, first_day, last_day, context);
     if depth >= INCLUDE_DEPTH {
         return (holidays, gaps);
     }
     for included in rules.includes {
         let (more, more_gaps) = evaluate_with_includes(
             included.set,
-            included.region,
+            // The region is the inclusion's, and the group no one's: an
+            // exchange closes on its country's days for everyone.
+            Scope::from(included.region),
             first_day,
             last_day,
             depth + 1,
@@ -536,7 +609,7 @@ fn evaluate_with_includes(
 /// and clip to those days.
 fn evaluate(
     rules: &RuleSet,
-    region: Option<&str>,
+    scope: Scope<'_>,
     first_day: Rd,
     last_day: Rd,
     context: &mut EvaluationContext,
@@ -568,7 +641,7 @@ fn evaluate(
     let mut gaps: Vec<Gap> = Vec::new();
     for year in first_reached..=last_reached {
         for rule in rules.rules {
-            if !rule.applies_in(year) || !rule.applies_in_region(region) {
+            if !rule.applies_in(year) || !rule.applies_in_scope(scope) {
                 continue;
             }
             // Only the years actually asked for are reported as gaps; the
@@ -605,6 +678,7 @@ fn evaluate(
             kind: occurrence.rule.kind,
             confidence: occurrence.rule.confidence,
             regions: occurrence.rule.regions,
+            groups: occurrence.rule.groups,
             observed_for: None,
             bridged: false,
             source: occurrence.rule.source,
@@ -660,6 +734,7 @@ fn evaluate(
             kind: occurrence.rule.kind,
             confidence: occurrence.rule.confidence,
             regions: occurrence.rule.regions,
+            groups: occurrence.rule.groups,
             observed_for: Some(occurrence.date),
             bridged: false,
             source: occurrence.rule.source,
@@ -713,6 +788,7 @@ fn evaluate(
                         kind: Kind::Public,
                         confidence: Confidence::Exact,
                         regions: &[],
+                        groups: &[],
                         observed_for: None,
                         bridged: true,
                         source: "",

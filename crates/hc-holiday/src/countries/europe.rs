@@ -1691,7 +1691,7 @@ const fn ru_tabulated(function: fn(i64) -> Days) -> Rule {
     }
 }
 
-static RU_RULES: &[HolidayRule] = &[
+pub(super) static RU_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "New Year Holidays",
         "Новогодние каникулы",
@@ -1815,12 +1815,12 @@ static RU_RULES: &[HolidayRule] = &[
 pub static RUSSIA: RuleSet = RuleSet {
     code: "RU",
     english_name: "Russia",
-    rules: RU_RULES,
+    rules: &super::russia_republics::RU_ALL_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
               (Federal Law 201-ФЗ of 29 December 2004 for the 2005 list, \
               35-ФЗ of 23 April 2012 for 6 and 8 January); the Government's \
@@ -1832,7 +1832,10 @@ pub static RUSSIA: RuleSet = RuleSet {
               1992, 1993, 1996 and 2002 — rest on Wikipedia, \"Public \
               holidays in Russia\", retrieved 2026-09-22, and on no statute \
               read; the President's non-working days of 2020 and 2021 were \
-              not read and are not carried",
+              not read and are not carried. The republics' laws, decrees and \
+              resolutions on Garant and ConsultantPlus's reference list of \
+              the regions' non-working days, read 2026-09-29, for the \
+              republics' own days",
 };
 
 // ─────────────────────────────────────────────────────────────────────────

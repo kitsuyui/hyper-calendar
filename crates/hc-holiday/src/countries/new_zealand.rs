@@ -44,8 +44,8 @@ use hc_calendar::Weekday;
 use crate::computus::offsets::EASTER_TUESDAY;
 use crate::rule::{HolidayRule, Rule};
 
-use super::joined;
 use super::oceania::NZ_RULES;
+use crate::rule::joined;
 
 /// The Monday nearest a date: the three days after a Monday back to it, and
 /// the three days before one forward.
@@ -162,4 +162,4 @@ pub static ANNIVERSARY_DAYS: &[HolidayRule] = &[
 /// New Zealand's nationwide rules and its anniversary days, the table
 /// [`super::NEW_ZEALAND`] evaluates.
 pub(super) static RULES: [HolidayRule; NZ_RULES.len() + ANNIVERSARY_DAYS.len()] =
-    joined(NZ_RULES, ANNIVERSARY_DAYS);
+    joined(&[NZ_RULES, ANNIVERSARY_DAYS]);

@@ -20,8 +20,8 @@
 
 use crate::rule::{HolidayRule, Listing, Rule};
 
-use super::joined;
 use super::oceania::SB_RULES;
+use crate::rule::joined;
 
 /// The year of the notice read.
 const YEAR: i64 = 2026;
@@ -67,4 +67,4 @@ pub static PROVINCIAL_DAYS: &[HolidayRule] = &[
 /// Solomon Islands' national rules and its provincial days, the table
 /// [`super::SOLOMON_ISLANDS`] evaluates.
 pub(super) static RULES: [HolidayRule; SB_RULES.len() + PROVINCIAL_DAYS.len()] =
-    joined(SB_RULES, PROVINCIAL_DAYS);
+    joined(&[SB_RULES, PROVINCIAL_DAYS]);

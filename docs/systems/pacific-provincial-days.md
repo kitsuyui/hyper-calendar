@@ -98,7 +98,7 @@ list of the Government's that names no instrument.
 `APPOINTED` and `PROVINCIAL_DAYS`, built by `provincial`;
 `crates/hc-holiday/src/countries/vanuatu.rs`: `PROVINCIAL_DAYS`, built by
 `provincial`. Each is joined to the nationwide rules of `oceania.rs` by
-`countries::joined` into the `RULES` the country's table evaluates.
+`rule::joined` into the `RULES` the country's table evaluates.
 
 Anchors: `crates/hc-holiday/tests/provincial_days.rs`,
 `solomon_islands_keeps_the_provincial_days_of_2026` and

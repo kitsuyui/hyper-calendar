@@ -429,14 +429,14 @@ const CN_UNREAD: Rule = Rule::UNREAD;
 
 /// The first year the statutory rules answer for: the 1999 revision is the
 /// earliest text whose days the later decrees' amendments give.
-const CN_STATUTE_FIRST: i32 = 1999;
+pub(super) const CN_STATUTE_FIRST: i32 = 1999;
 
 /// A statutory day the 1999 text gave and no later revision took away.
 const fn cn_statutory(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
     HolidayRule::fixed_public(name, local_name, rule).years(Some(CN_STATUTE_FIRST), None)
 }
 
-static CN_RULES: &[HolidayRule] = &[
+pub(super) static CN_RULES: &[HolidayRule] = &[
     // The statute before the 1999 revision: not carried, and reported as a
     // gap so that a year before 1999 is not answered with the 1999 days.
     HolidayRule::fixed_public("Statutory holidays", "法定节假日", CN_UNREAD)
@@ -609,12 +609,12 @@ static CN_RULES: &[HolidayRule] = &[
 pub static CHINA: RuleSet = RuleSet {
     code: "CN",
     english_name: "China",
-    rules: CN_RULES,
+    rules: &super::china_scoped::CN_ALL_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "《全国年节及纪念日放假办法》, promulgated 1949 and revised by \
               国务院令第270号 (1999), 第513号 (2007), 第644号 (2013) and \
               第795号 (2024), the text in force, for the statutory days — \
@@ -626,7 +626,11 @@ pub static CHINA: RuleSet = RuleSet {
               国发明电〔2015〕1号 for 3 September 2015, the change of \
               22 March 2019 to that year's Labour Day, and the extension of \
               26 January 2020 to that year's Spring Festival. An \
-              arrangement for 2027 may still begin in late December 2026",
+              arrangement for 2027 may still begin in late December 2026. \
+              Articles 3 and 4 read again 2026-09-29 for the days of some \
+              citizens; the autonomous regions' days from 广西's 令第98号 \
+              (2014) and notices of 2024 and 2026, 新疆's 令第174号 (2011) and \
+              notices of 2023 to 2026, and 宁夏's notices of 2023 to 2026",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -736,7 +740,7 @@ const fn tw_new_year_day(name: &'static str, local_name: &'static str, rule: Rul
     HolidayRule::public(name, local_name, rule).substitute_towards(SubstituteDirection::Forward)
 }
 
-static TW_RULES: &[HolidayRule] = &[
+pub(super) static TW_RULES: &[HolidayRule] = &[
     tw_public(
         "Founding Day of the Republic of China",
         "中華民國開國紀念日",
@@ -843,12 +847,12 @@ static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 pub static TAIWAN: RuleSet = RuleSet {
     code: "TW",
     english_name: "Taiwan",
-    rules: TW_RULES,
+    rules: &super::taiwan_scoped::TW_ALL_RULES,
     substitution: TW_SUBSTITUTION,
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "紀念日及節日實施條例 (華總一義字第11400053171號, 28 May 2025), articles 4, 6 and 8, and the \
               紀念日及節日實施辦法 it replaced, articles 5 and 5-1 in their versions of 25 September \
               2012 and 11 June 2014, on the 全國法規資料庫 (law.moj.gov.tw, pcode D0020095 and \
@@ -856,7 +860,8 @@ pub static TAIWAN: RuleSet = RuleSet {
               its press release of that day, and its calendars for 2012 to 2014 for the \
               公務人員週休二日實施辦法's article 3, on dgpa.gov.tw; all retrieved 2026-09-26; the \
               政府行政機關辦公日曆表 for 2017 to 2027 (data.gov.tw dataset 14718), retrieved 2026-09-23, \
-              for the adjusted days and the Saturdays worked. The system is written up in \
+              for the adjusted days and the Saturdays worked; the 條例's article 6 again on \
+              2026-09-29 for the services' days. The system is written up in \
               docs/systems/taiwan-holidays.md",
 };
 
@@ -2766,7 +2771,7 @@ const fn np_festival(name: &'static str, local: &'static str, rule: Rule) -> Hol
 /// national days and the two that open a month, in the Gregorian calendar
 /// for the three the notice dates that way — it prints "(मे १)", "(मार्च
 /// ८)" and "(डिसेम्बर २५)" beside them. Local names are the notice's.
-static NP_RULES: &[HolidayRule] = &[
+pub(super) static NP_RULES: &[HolidayRule] = &[
     np_bs("Nepali New Year", "नव वर्ष", 1, 1),
     HolidayRule::fixed_public("Labour Day", "विश्व मजदुर दिवस", Rule::gregorian(5, 1)),
     np_bs("Republic Day", "गणतन्त्र दिवस", 2, 15),
@@ -2854,12 +2859,12 @@ static NP_RULES: &[HolidayRule] = &[
 pub static NEPAL: RuleSet = RuleSet {
     code: "NP",
     english_name: "Nepal",
-    rules: NP_RULES,
+    rules: &super::nepal_sections::NP_ALL_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: NP_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 23),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Government of Nepal, Ministry of Home Affairs, the annual \
               notices of public holidays in the Nepal Rajpatra, Part 5: for \
               2082 BS (Khanda 74, No. 59) and 2083 BS (Khanda 75, No. 67), \
@@ -2877,8 +2882,12 @@ pub static NEPAL: RuleSet = RuleSet {
               the Tibetan year, whose Phugpa reckoning the 2083 notice does \
               not follow), all retrieved 2026-09-23. The part of the day each \
               tithi holds is fitted to the notices for 2080 to 2083 BS. \
-              Chhath, which no single rule fits, and the holidays for one \
-              community, region or group are not listed yet. The Sunday \
+              Chhath, which no single rule fits, is not listed. The notices' \
+              sections 2.2 to 8 for 2080 to 2083 BS, read 2026-09-29, for the \
+              days of one community, faith or group of employees, the schools' \
+              day and the days kept with the offices open; the days of one \
+              district or the Kathmandu Valley are not listed, ISO 3166-2 \
+              coding no district. The Sunday \
               weekend: the cabinet decision of 5 April 2026, effective \
               Chaitra 23, 2082 BS (6 April 2026), as quoted by New \
               Spotlight, retrieved 2026-09-23",

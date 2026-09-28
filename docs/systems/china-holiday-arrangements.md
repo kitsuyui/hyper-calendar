@@ -197,15 +197,65 @@ Monday 19 February is the first trading day after the break.
     revision were not read; what the table knows of the 1999 text is what
     the 2007 decree amended, which is enough for 1999 to 2007 and says
     nothing about the years before.
-  - The half-days and the day for children of Article 3, which are holidays
-    for some citizens only, and the commemorations of Article 5, which give
-    no day off: neither stops business-day arithmetic, and the table
-    carries no observances for China.
-  - The festivals of the ethnic minorities under Article 4, which are set
-    by provincial and local governments and would need subdivisions the
-    table does not have.
+  - The commemorations of Article 5, which give no day off
+    (均不放假): 二七纪念日, 五卅纪念日 and the others. They are not yet
+    carried as observances: five are named by their dates, but 教师节,
+    护士节, 记者节 and 植树节 are set by instruments of their own, which
+    were not read, and no rule was written for either set.
+  - Tibet's 藏历新年 and 雪顿节 under Article 4, whose notices read are
+    Lhasa's and Nyingchi's: those of prefecture-level cities, which ISO
+    3166-2 does not code, and no instrument of the region was reached
+    (xizang.gov.cn refused the connection). Inner Mongolia, whose 2024
+    notice lists the national days alone and for which no festival day
+    off was found; and the other provinces' autonomous prefectures and
+    counties, which ISO 3166-2 does not code either. The State Council's
+    notice of the 1950s on the 开斋节 and 古尔邦节 of the Muslim
+    nationalities, which a Guangzhou notice of 1995 (穗府办〔1995〕14号)
+    cites by its spirit, was not found.
   - The employers' leave the notices encourage on the eve of the Spring
     Festival 2024 and around other breaks, which is not a day off.
+
+### The days for some citizens and the autonomous regions' days
+
+Article 3 gives four days to some citizens only, and Article 4 leaves
+the minority festivals to the regions where each minority lives. Each is
+a rule of `CHINA`, given to a group of people or scoped to a region
+([ADR 0011](../adr/0011-a-day-for-one-group-is-a-scoped-rule.md)), so
+that the calendar for everyone, nationwide, does not have it:
+
+| Article | Day | For | Effect | Kind | Group or region | From, a gap before |
+| --- | --- | --- | --- | --- | --- | --- |
+| 3 (一) | 妇女节, 8 March | 妇女 | 放假半天 | `half-day` | `women` | 1999 |
+| 3 (二) | 青年节, 4 May | 14周岁以上的青年 | 放假半天 | `half-day` | `youth` | 1999 |
+| 3 (三) | 儿童节, 1 June | 不满14周岁的少年儿童 | 放假1天 | `public` | `children` | 1999 |
+| 3 (四) | 中国人民解放军建军纪念日, 1 August | 现役军人 | 放假半天 | `half-day` | `military` | 1999 |
+
+A half day is its own kind, which business-day arithmetic counts as a
+working day ([ADR 0012](../adr/0012-a-half-day-off-is-its-own-kind.md)).
+Article 6 makes up a day for everyone that falls on a weekend and says a
+day for some citizens is not made up; the table has no substitution rule
+in any case. The first year is the statutory days' own, 1999: the text
+of Article 3 is the one the 2007 decision reprints and the 2024
+consolidated text keeps, and no decision read changed it. Every year
+before 1999 is a gap for each of the four, the 1949 text not having been
+read.
+
+The autonomous regions' festivals, as the instruments read give them:
+
+| Region | Instrument | Festival | Days off | Years carried | Otherwise |
+| --- | --- | --- | --- | --- | --- |
+| 广西 `CN-GX` | 广西壮族自治区少数民族习惯节日放假办法, 令第98号 of 7 January 2014, in force 1 March 2014 [gx-minority-festival-measures-2014]: two days for every citizen of the region, the dates announced each year | 壮族三月三 | 11–12 April 2024 [gx-sanyuesan-2024]; 17–20 April 2026, the 18th and 19th and the 补休 on the Friday and Monday [gx-sanyuesan-2026] | 2024, 2026 | 2014–2023 and 2025 gaps, the notices not read; 2027 on a gap |
+| 新疆 `CN-XJ` | 新疆维吾尔自治区少数民族习惯节日放假办法 as amended by 令第174号 of 21 December 2011, in force 1 January 2012 [xj-minority-festival-measures-2011]: 肉孜节 one day and 古尔邦节 three, for the cadres and workers of every nationality in the region | 肉孜节 | 21 April 2023 (the festival on Saturday the 22nd, the day off moved); 10 April 2024; 29–31 March 2025; 20–22 March 2026 [xj-holidays-2023, xj-holidays-2024, xj-holidays-2025, xj-holidays-2026] | 2023–2026 | every year before 2023 a gap, the 1999 办法 not read; 2027 on a gap |
+| 新疆 `CN-XJ` | the same | 古尔邦节 | 28–30 June 2023; 17–19 June 2024; 6–10 June 2025; 27–31 May 2026 | 2023–2026 | the same |
+| 宁夏 `CN-NX` | no standing instrument found; each year's notice of the 自治区人民政府办公厅, "经自治区党委和政府同意" [nx-holidays-2023, nx-holidays-2024, nx-holidays-2025, nx-holidays-2026] | 开斋节 | none in 2023 and 2026, a Saturday (周末正常休息); 10–11 April 2024; 31 March – 1 April 2025 | 2023–2026 | every year before 2023 a gap; 2027 on a gap |
+| 宁夏 `CN-NX` | the same | 古尔邦节 | 29–30 June 2023; 17–18 June 2024; 6 June 2025; 27–28 May 2026 | 2023–2026 | the same |
+| 西藏 `CN-XZ` | no instrument of the region reached; the notices of Lhasa (拉萨市) for 2022 to 2026 and Nyingchi (林芝市) for 2026, for 驻市各单位 | 藏历新年, 雪顿节 | — | not carried | a prefecture's days, with no ISO 3166-2 code |
+| 内蒙古 `CN-NM` | the notice for 2024, 内政办发电〔2023〕8号, the national days alone | — | — | — | no festival found |
+
+The days are the notices' own, the weekend days inside a span of days off
+among them. The Hijri dates the festivals fall on were each year's
+announcement, and no rule predicts them; so the regions' days are exact
+in the years read and gaps in the others.
 
 ## Accuracy
 
@@ -240,7 +290,14 @@ Known points a reader may stumble on:
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [gov-cn-holiday-measures-2024] | The statute as in force: the seven holidays and thirteen days, Articles 3 to 7, the revision history | Yes, 2026-09-25, the consolidated text in the State Council Gazette |
+| [gov-cn-holiday-measures-2024] | The statute as in force: the seven holidays and thirteen days, Articles 3 to 7, the revision history | Yes, 2026-09-25, the consolidated text in the State Council Gazette; Articles 3, 4 and 6 again 2026-09-29 |
+| [gx-minority-festival-measures-2014] | 广西's 壮族三月三, two days for every citizen | Yes, 2026-09-29, on gov.cn |
+| [gx-sanyuesan-2024] | 广西's days of 2024 | Yes, 2026-09-29, the notice as reposted by 光明网 |
+| [gx-sanyuesan-2026] | 广西's days of 2026 | Yes, 2026-09-29, a press report of the notice; the notice on gxzf.gov.cn timed out |
+| [xj-minority-festival-measures-2011] | 新疆's 肉孜节 and 古尔邦节 | Yes, 2026-09-29, the amending decision on gov.cn; the consolidated text, a PDF, not opened |
+| [xj-holidays-2023], [xj-holidays-2024], [xj-holidays-2025], [xj-holidays-2026] | 新疆's days of each year | Yes, 2026-09-29 |
+| [nx-holidays-2023], [nx-holidays-2024], [nx-holidays-2025], [nx-holidays-2026] | 宁夏's days of each year | Yes, 2026-09-29 |
+| [cn-xz-lhasa-notices] | Tibet's notices, a prefecture's, not carried | Yes, 2026-09-29, Lhasa's and Nyingchi's pages; xizang.gov.cn refused |
 | [gov-cn-holiday-measures-2013] | The 2013 text's Spring Festival without the eve, eleven days | Yes, 2026-09-25 |
 | [gov-cn-holiday-measures-2007] | The 2007 text: the three festivals added, the eve, Labour Day at one day, Article 6's make-up rule | Yes, 2026-09-25 |
 | [gov-cn-holiday-notice-2008] | The arrangement for 2008, and its two days in December 2007 | Yes, 2026-09-25 |
@@ -275,6 +332,18 @@ and what the table's rules assume. The date 18 September 1999 and the
 them.
 
 ## Code
+
+`crates/hc-holiday/src/countries/china_scoped.rs`: the days of Article 3
+in `CN_SCOPED_RULES`, each given to its group with `for_groups`, and the
+autonomous regions' days in `CN_REGION_RULES`, read from the listing
+`CN_REGION_DAYS` and scoped with `in_regions`; `CN_ALL_RULES` joins them
+to `CN_RULES`, and is what `CHINA` carries. The groups are
+`hc_holiday::group`, and the `Scope` a calendar is evaluated in is in
+`rule.rs`. Anchors: `crates/hc-holiday/tests/groups.rs` (each day of
+Article 3 in its group's calendar and not in everyone's, 1999, 2008 and
+2026; nothing in 1998; a half day a business day and Children's Day a day
+off for children) and `crates/hc-holiday/tests/china_regions.rs` (every
+region's days in a year read, a region's days its own, the gaps).
 
 `crates/hc-holiday/src/countries/asia.rs`: the statutory rules in
 `CN_RULES`, bounded below by `CN_STATUTE_FIRST` with `CN_UNREAD` for the

@@ -17,6 +17,7 @@
 //! | Module | What it holds |
 //! | --- | --- |
 //! | [`rule`] | the rule vocabulary and the observance modifiers |
+//! | [`group`] | the groups of people a day can be given to alone |
 //! | [`computus`] | Easter, Gregorian and Julian, the astronomical reckoning at Jerusalem, and the offsets keyed to it |
 //! | [`engine`] | evaluation, and business-day arithmetic |
 //! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
@@ -88,6 +89,7 @@ extern crate alloc;
 
 pub mod common_worship;
 pub mod computus;
+pub mod group;
 pub mod hindu;
 pub mod holy_years;
 pub mod international;
@@ -109,12 +111,13 @@ pub mod roman_calendar_1960;
 pub mod traditions;
 
 pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
+pub use group::Group;
 #[cfg(feature = "alloc")]
 pub use rule::EvaluationContext;
 pub use rule::{
     BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing,
-    ListingKey, Rule, RuleSet, SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth,
-    WeekendPolicy,
+    ListingKey, Rule, RuleSet, Scope, SourceDate, SubstituteDirection, SubstitutionPolicy,
+    TibetanMonth, WeekendPolicy,
 };
 
 #[cfg(feature = "alloc")]

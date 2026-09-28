@@ -23,3 +23,5 @@ record's status was last checked against the code on that date.
 | [0008](0008-exchange-calendars-are-rule-sets.md) | Exchange calendars are rule sets keyed by Market Identifier Code | Accepted |
 | [0009](0009-a-working-day-is-an-entry.md) | A weekend day made a working day is an entry, not a weekend rule | Accepted; updated 2026-09-27 |
 | [0010](0010-a-government-office-day-off-is-its-own-kind.md) | A day off for a government's own offices is its own kind | Accepted |
+| [0011](0011-a-day-for-one-group-is-a-scoped-rule.md) | A day for one group of people is a rule scoped to the group | Accepted |
+| [0012](0012-a-half-day-off-is-its-own-kind.md) | A half day off is its own kind | Accepted |

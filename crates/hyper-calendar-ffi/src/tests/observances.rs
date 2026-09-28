@@ -73,8 +73,22 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         .split('\t')
         .collect();
     assert_eq!(japan[..5], ["JP", "country", "Japan", "Japan", "en"]);
-    assert_eq!(japan.len(), 9);
+    assert_eq!(japan.len(), 11);
     assert!(japan[8].split(';').any(|code| code == "JP-13"), "{japan:?}");
+    assert_eq!(japan[9..], ["", ""], "Japan gives no day to a group alone");
+    let china: Vec<&str> = english
+        .lines()
+        .find(|line| line.starts_with("CN\t"))
+        .expect("China")
+        .split('\t')
+        .collect();
+    assert_eq!(
+        china[9..],
+        [
+            "children;military;women;youth",
+            "children;military personnel;women;youth"
+        ]
+    );
     assert_eq!(japan[7], "", "CLDR has no short name for Japan");
     let japanese = read_lines(|buffer, capacity, written| unsafe {
         hc_holiday_tables(c"ja".as_ptr(), buffer, capacity, written)
