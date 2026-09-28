@@ -56,7 +56,7 @@ crates, modules, functions or holiday tables.
 | Hong Kong's general and statutory holidays: the Sunday and coincidence rules, the eve rule of 1983 to 2011, and the phasing of 2021 | [hong-kong-holidays.md](hong-kong-holidays.md) | `hc-holiday`'s `HONG_KONG`; `XHKG` |
 | Holidays announced year by year: the thirteen tables whose days a yearly list or a declaration per holiday fixes, the years each carries, its gaps, its weekend and the class of its sources | [announced-holidays.md](announced-holidays.md) | `hc-holiday`'s `FIJI`, `KIRIBATI`, `LIBERIA`, `GAMBIA`, `SUDAN`, `TOGO`, `NIGER`, `GABON`, `SIERRA_LEONE`, `ESWATINI`, `GUINEA_BISSAU`, `SOUTH_SUDAN`, `NORTH_KOREA` |
 | Afghanistan's holidays under the Islamic Emirate: the official lunar calendar, the Ministry of Labour's notices, the solar days on `persian-afghan` | [afghanistan-holidays.md](afghanistan-holidays.md) | `hc-holiday`'s `AFGHANISTAN`; `CalendarSystem::SOLAR_HIJRI_AFGHAN` |
-| Japan's holiday law and its amendments | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`; `XJPX` |
+| Japan's holiday law and its amendments, and the prefectures' own days | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`, with its regions `JP-01` to `JP-47`; `XJPX` |
 | The 24 solar terms and 72 pentads, and the zodiac conventions: 定気, the meridian, the ayanāṃśa | [solar-terms-and-pentads.md](solar-terms-and-pentads.md) | `hc-seasons`: `solar_terms`, `pentads`, `meridian`, `zodiac` |
 | The Berber agrarian calendar and the Amazigh era | [berber.md](berber.md) | `berber` |
 | The Mandaean calendar: the Parwanaia and the years after Adam | [mandaean.md](mandaean.md) | `mandaean` |

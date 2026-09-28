@@ -2329,6 +2329,16 @@ pub enum Kind {
     /// It is the opposite of a day off — business-day arithmetic counts it
     /// even when it falls on the weekend.
     Workday,
+    /// A day off for the offices of the government that sets it, and for
+    /// no one else. Okinawa's 慰霊の日 is one: a 県の休日 under its 休日条例,
+    /// which 地方自治法 Article 4-2 paragraph 3 allows for a day of
+    /// "特別な歴史的、社会的意義". The prefecture's offices close, and a
+    /// deadline for an application to them that falls on the day moves to
+    /// the next (paragraph 4). The national government works, a bank's
+    /// holidays are the national ones of 銀行法施行令 Article 5, and no
+    /// private employer is bound, so business-day arithmetic does not
+    /// count it as a day off.
+    Government,
 }
 
 impl Kind {
@@ -2348,7 +2358,7 @@ hc_core::catalogue! {
     /// Every kind.
     pub const ALL;
     /// The word the kind is written as at the boundary: `public`, `bank`,
-    /// `religious`, `observance`, `school` or `workday`.
+    /// `religious`, `observance`, `school`, `workday` or `government`.
     pub fn id;
     /// The kind with this identifier.
     pub fn by_id;
@@ -2360,6 +2370,7 @@ hc_core::catalogue! {
         Observance => "observance",
         School => "school",
         Workday => "workday",
+        Government => "government",
     }
 }
 
@@ -2723,13 +2734,19 @@ impl HolidayRule {
     /// Whether the holiday applies in `region`.
     ///
     /// `None` asks for the nationwide set: only rules with no subdivision
-    /// scoping qualify. `Some(code)` adds the rules scoped to that code.
+    /// scoping qualify. `Some(code)` adds the rules scoped to that code,
+    /// matched as every identifier is (`hc_core::catalogue::matches`), so
+    /// `jp-13` and ` JP-13 ` find what `JP-13` does.
     #[must_use]
     pub fn applies_in_region(&self, region: Option<&str>) -> bool {
         if self.regions.is_empty() {
             return true;
         }
-        region.is_some_and(|code| self.regions.contains(&code))
+        region.is_some_and(|code| {
+            self.regions
+                .iter()
+                .any(|scoped| hc_core::catalogue::matches(code, scoped))
+        })
     }
 
     /// Whether the country's substitution policy reaches this holiday in
@@ -2866,6 +2883,18 @@ impl RuleSet {
         self.rules
             .iter()
             .flat_map(|rule| rule.regions.iter().copied())
+    }
+
+    /// Every subdivision code the table's rules are scoped to, once each,
+    /// in code order: what a caller may pass as the region of this table
+    /// and get more than the nationwide days.
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn regions(&self) -> alloc::vec::Vec<&'static str> {
+        let mut codes: alloc::vec::Vec<&'static str> = self.region_codes().collect();
+        codes.sort_unstable();
+        codes.dedup();
+        codes
     }
 }
 

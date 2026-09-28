@@ -801,6 +801,7 @@ describe("holidays", () => {
       confidence: "exact",
       substitute: false,
       observedFor: null,
+      region: null,
     });
     // 3 May 2026 is a Sunday; Constitution Memorial Day is taken on the 6th.
     const substitute = year.find((holiday) => holiday.substitute);
@@ -812,6 +813,7 @@ describe("holidays", () => {
       confidence: "exact",
       substitute: true,
       observedFor: "2026-05-03",
+      region: null,
     });
     assert.equal(hc.holidaysInYear("JP", "", 2026n).length, year.length);
     // A year before any rule applies is an empty list, not an error.
@@ -837,6 +839,7 @@ describe("holidays", () => {
       source: null,
       substitute: true,
       observedFor: hc.gregorianToFixed(2026, 5, 3),
+      region: null,
     });
     // The tables come in the order holidayCodes() lists them.
     const codes = hc.holidayCodes();
@@ -865,6 +868,7 @@ describe("holidays", () => {
       source: "A/RES/73/161",
       substitute: false,
       observedFor: null,
+      region: null,
     });
   });
 
@@ -882,11 +886,37 @@ describe("holidays", () => {
       source: null,
       substitute: false,
       observedFor: null,
+      region: null,
     });
   });
 
   test("a day with no year is refused", () => {
     refused(() => hc.holidaysOn(2n ** 63n - 1n), "out-of-range");
+  });
+
+  test("a subdivision's own day is a region of its country's table", () => {
+    const tokyo = hc.holidaysOn(hc.gregorianToFixed(2026, 10, 1)).filter((row) => row.region === "JP-13");
+    assert.deepEqual(tokyo, [{
+      table: "JP",
+      tableName: "Japan",
+      name: "Tokyo Citizens' Day",
+      localName: "都民の日",
+      kind: "school",
+      confidence: "exact",
+      source: tokyo[0]?.source ?? null,
+      substitute: false,
+      observedFor: null,
+      region: "JP-13",
+    }]);
+    assert.ok(tokyo[0].source?.includes("昭和27年東京都条例第75号"));
+    const year = hc.holidaysInYear("JP", "JP-13", 2026);
+    assert.deepEqual(year.filter((day) => day.region).map((day) => day.date), ["2026-10-01"]);
+    assert.ok(!hc.holidaysInYear("JP", "", 2026).some((day) => day.localName === "都民の日"));
+    assert.ok(!hc.holidayCodes().includes("JP-13"));
+    const japan = hc.holidayTables("en").find((table) => table.code === "JP");
+    assert.ok(japan?.regions.includes("JP-13"));
+    assert.ok(japan?.regions.includes("JP-47"));
+    assert.deepEqual(hc.holidayTables("en").find((table) => table.code === "XNYS")?.regions, []);
   });
 });
 

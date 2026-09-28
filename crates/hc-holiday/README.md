@@ -112,6 +112,20 @@ Every Japanese public holiday from the 祝日法 (昭和23年法律第178号, in
 
 The 1959, 1989, 1990 and 1993 imperial one-offs are there too.
 
+**The prefectures' own days** are rules of the same table, each scoped to
+its prefecture's ISO 3166-2 code and none of them a 国民の祝日: Tokyo's
+都民の日 (`JP-13`, 1 October, from 1952), the 県民の日 of Ibaraki, Tochigi,
+Gunma, Saitama, Chiba, Yamanashi, Shizuoka, Aichi, Mie, Tottori, Kagawa,
+Kagoshima and Fukushima, Hokkaido's 北海道みんなの日, Toyama's and Fukui's
+ふるさとの日, Wakayama's ふるさと誕生日, and Okinawa's 慰霊の日 (`JP-47`,
+23 June). Each has the kind its instruments give it: `Kind::School` where
+the prefectural schools close on it, from the first year a text of the
+school rule read shows so, `Kind::Government` for 慰霊の日, a day
+off for the prefecture's offices under its 休日条例, and `Kind::Observance`
+otherwise. None is a day off for business-day arithmetic. The system
+document has the survey of all forty-seven prefectures, the ones with no
+such day among them.
+
 **春分の日 and 秋分の日 are computed, not tabulated.** The statute defines them
 as the day of the equinox; the National Astronomical Observatory of Japan
 computes the instant in JST and the Cabinet Office prints the resulting date
@@ -461,7 +475,8 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, Australian states and territories, Canadian provinces, UK
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
-  Herzegovina and Bangladesh's hill districts are in, and so are a few
+  Herzegovina, Bangladesh's hill districts and the Japanese prefectures
+  that set a day of their own by ordinance are in, and so are a few
   single places: Inauguration Day in the District of Columbia, Chișinău,
   Guatemala City, San Salvador, Managua and Chile's Arica and Parinacota.
   US states, Swiss cantons, Spanish autonomous communities, Italian

@@ -82,10 +82,10 @@ fn holiday_tables_answer_by_identifier() {
     let text = unsafe { core::str::from_utf8(core::slice::from_raw_parts(pointer, capacity)) }
         .expect("UTF-8");
     assert!(
-        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\n"),
+        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\n"),
         "{text}"
     );
-    assert!(text.contains("\t1\t2026-05-03\n"), "{text}");
+    assert!(text.contains("\t1\t2026-05-03\t\n"), "{text}");
     unsafe { hc_free(pointer, capacity) };
     let codes_len = unsafe { hc_holiday_codes(core::ptr::null_mut(), 0) };
     assert!(codes_len > 0);
@@ -108,7 +108,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 9), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 10), "{rows:?}");
     let japan: Vec<&Vec<&str>> = rows.iter().filter(|row| row[0] == "JP").collect();
     let substitute = japan
         .iter()
@@ -134,7 +134,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
     // A gap on an ordinary day is a table whose announcement for
     // the year has not been read, and it is reported as such.
     let gap = rows.iter().find(|row| row[4] == "gap").expect("a gap");
-    assert_eq!(gap[5..9], ["", "", "0", ""], "{gap:?}");
+    assert_eq!(gap[5..10], ["", "", "0", "", ""], "{gap:?}");
 }
 
 #[test]
@@ -158,6 +158,7 @@ fn a_rule_that_cites_its_instrument_carries_it() {
             "exact",
             "A/RES/73/161",
             "0",
+            "",
             ""
         ]
     );
@@ -213,14 +214,21 @@ fn one_day_across_every_table_is_what_the_years_say() {
         let text =
             read_lines(|buffer, capacity| unsafe { hc_holidays_on(fixed, buffer, capacity) });
         let mut expected = String::new();
+        let day = hc::hc_holiday::Rd(fixed);
         for table in hc::holiday_lines::tables() {
             let year = hc::hc_holiday::HolidayCalendar::for_year(table, None, 2026);
-            hc::holiday_lines::push_day_lines(
-                &mut expected,
-                table,
-                &year,
-                hc::hc_holiday::Rd(fixed),
-            );
+            hc::holiday_lines::push_day_lines(&mut expected, table, &year, day);
+            for region in table.regions() {
+                let regional = hc::hc_holiday::HolidayCalendar::for_year(table, Some(region), 2026);
+                hc::holiday_lines::push_region_day_lines(
+                    &mut expected,
+                    table,
+                    region,
+                    &regional,
+                    &year,
+                    day,
+                );
+            }
         }
         assert_eq!(text, expected, "2026-{month:02}-{day:02}");
     }
@@ -243,4 +251,58 @@ fn one_day_across_every_table_is_timed() {
             "hc_holidays_on for 2026-{month:02}-{day:02} across {tables} tables: {elapsed:?}"
         );
     }
+}
+
+#[test]
+fn a_subdivision_is_a_region_of_its_country_s_table() {
+    // Tokyo's 都民の日 on 1 October: a line of `JP` in the region
+    // `JP-13`, in the year and on the day, and nowhere in the nationwide
+    // year. `JP-13` is not a table.
+    let jp = b"JP";
+    let tokyo = b"jp-13";
+    let year = read_lines(|buffer, capacity| unsafe {
+        hc_holidays_in_year(jp.as_ptr(), 2, tokyo.as_ptr(), 5, 2026, buffer, capacity)
+    });
+    let own: Vec<&str> = year
+        .lines()
+        .filter(|line| line.ends_with("\tJP-13"))
+        .collect();
+    assert_eq!(
+        own,
+        ["2026-10-01\tTokyo Citizens' Day\t都民の日\tschool\texact\t0\t\tJP-13"]
+    );
+    assert!(year.contains("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\n"));
+    let nationwide = read_lines(|buffer, capacity| unsafe {
+        hc_holidays_in_year(jp.as_ptr(), 2, core::ptr::null(), 0, 2026, buffer, capacity)
+    });
+    assert!(!nationwide.contains("都民の日"), "{nationwide}");
+    let day = hc_gregorian_to_fixed(2026, 10, 1);
+    let lines = read_lines(|buffer, capacity| unsafe { hc_holidays_on(day, buffer, capacity) });
+    let tokyo_lines: Vec<&str> = lines
+        .lines()
+        .filter(|line| line.contains("都民の日"))
+        .collect();
+    assert_eq!(tokyo_lines.len(), 1, "{lines}");
+    assert!(tokyo_lines[0].starts_with("JP\tJapan\tTokyo Citizens' Day\t"));
+    assert!(tokyo_lines[0].ends_with("\t0\t\tJP-13"));
+    assert_eq!(
+        unsafe { hc_holiday_is_day_off(jp.as_ptr(), 2, tokyo.as_ptr(), 5, day) },
+        0
+    );
+    let codes = read_lines(|buffer, capacity| unsafe { hc_holiday_codes(buffer, capacity) });
+    assert!(!codes.lines().any(|code| code == "JP-13"));
+    let tables = read_lines(|buffer, capacity| unsafe {
+        hc_holiday_tables("en".as_ptr(), 2, buffer, capacity)
+    });
+    let japan: Vec<&str> = tables
+        .lines()
+        .find(|line| line.starts_with("JP\t"))
+        .expect("Japan")
+        .split('\t')
+        .collect();
+    assert!(japan[8].split(';').any(|code| code == "JP-13"), "{japan:?}");
+    assert!(
+        !japan[8].split(';').any(|code| code == "JP-14"),
+        "{japan:?}"
+    );
 }

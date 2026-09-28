@@ -237,7 +237,7 @@ partial.
 
 | Country | Note |
 | --- | --- |
-| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; the law, its amendments and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md) |
+| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; and the prefectures' own days by ordinance, each scoped to its ISO 3166-2 code — eighteen 県民の日 and their like, and Okinawa's 慰霊の日, a 県の休日 (`Kind::Government`) — from a survey of all forty-seven prefectures' ordinances, 休日条例 and school rules; the law, its amendments, the prefectures and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md). The prefectures' other days set by ordinance are not yet carried |
 | United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and every full-day closure by executive order from 2018 — the two state-funeral days and the Christmas closures, 24 and 26 December 2025 among them; the closures before 2018 not carried |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs, Scotland's World Cup bank holiday of 15 June 2026, and the three jubilee moves of the Spring Bank Holiday |
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule and the one-off of 18 March 2022; a holiday on the weekend moves nothing, as section 21 of the 1997 Act gives a benefit and not a next working day |

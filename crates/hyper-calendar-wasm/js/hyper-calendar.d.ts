@@ -934,7 +934,14 @@ export interface LocaleEntry {
   calendars: string[];
 }
 
-export type HolidayKind = "public" | "bank" | "religious" | "observance" | "school" | "workday";
+export type HolidayKind =
+  | "public"
+  | "bank"
+  | "religious"
+  | "observance"
+  | "school"
+  | "workday"
+  | "government";
 export type Confidence = "exact" | "approximate";
 
 /** One line of `hc_holidays_in_year`. */
@@ -949,6 +956,8 @@ export interface HolidayInYear {
   substitute: boolean;
   /** The ISO 8601 date a substitute stands in for, or `null`. */
   observedFor: string | null;
+  /** The subdivision whose own entry this is, `JP-13`, or `null` for a nationwide one. */
+  region: string | null;
 }
 
 /** One line of `hc_holidays_on`: one entry of one table on one day. */
@@ -968,6 +977,8 @@ export interface HolidayOn {
   substitute: boolean;
   /** The fixed day a substitute stands in for, or `null`. */
   observedFor: number | null;
+  /** The ISO 3166-2 subdivision whose own entry this is, `JP-13`, or `null` for a nationwide one. */
+  region: string | null;
 }
 
 /** The one line of `hc_term_in_effect` or `hc_pentad_in_effect`. */
@@ -1551,6 +1562,8 @@ export interface HolidayTable {
    * country.
    */
   shortName: string | null;
+  /** The ISO 3166-2 codes of the subdivisions its rules are scoped to, the regions it answers for: `JP-11`, `JP-12`, … */
+  regions: string[];
 }
 
 /** Which rules answered for a zone's name. */

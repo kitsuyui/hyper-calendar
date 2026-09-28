@@ -43,8 +43,10 @@ fn ms(duration: Duration) -> f64 {
     duration.as_secs_f64() * 1e3
 }
 
-/// Every table's entries and gaps for `day`, through one context; returns
-/// how many entries and gaps there were and each table's time.
+/// Every table's entries and gaps for `day`, nationwide and in each of its
+/// subdivisions as the exports evaluate them, through one context; returns
+/// how many entries and gaps there were and each table's time, its
+/// subdivisions' included.
 fn one_day(day: Rd) -> (usize, Vec<Duration>) {
     let mut context = EvaluationContext::new();
     let mut count = 0;
@@ -53,6 +55,10 @@ fn one_day(day: Rd) -> (usize, Vec<Duration>) {
         let start = Instant::now();
         let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
         count += calendar.on(day).len() + calendar.gaps().len();
+        for region in table.regions() {
+            let regional = HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
+            count += regional.on(day).len() + regional.gaps().len();
+        }
         times.push(start.elapsed());
     }
     (count, times)
@@ -98,6 +104,13 @@ fn dump(first: i64, last: i64, step: usize) {
                 }
                 for gap in calendar.gaps() {
                     println!("{fixed}\t{}\tgap {gap:?}", table.code);
+                }
+                for region in table.regions() {
+                    let regional =
+                        HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
+                    for holiday in regional.on(day) {
+                        println!("{fixed}\t{}\t{region}\t{holiday:?}", table.code);
+                    }
                 }
             }
         });

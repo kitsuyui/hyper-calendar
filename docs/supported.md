@@ -318,7 +318,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `IT` | Italy | 20 | none | stated | 2026-09-26 |
 | `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
 | `JO` | Jordan | 25 | none | stated | 2026-09-26 |
-| `JP` | Japan | 38 | yes | stated | 2026-09-26 |
+| `JP` | Japan | 64 | yes | stated | 2026-09-28 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 16 | none | stated | 2026-09-23 |
