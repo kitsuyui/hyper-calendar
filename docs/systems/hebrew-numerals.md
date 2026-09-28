@@ -15,9 +15,11 @@ thousands, as ט״ו באדר תשס״ד.
 
 CLDR carries the system as the numbering system `hebr`, of the algorithmic
 type, whose rules are the `hebrew` rule set [cldr48-supplemental]. The
-Hebrew locale writes every length of its Hebrew-calendar date with it:
-`he.xml` gives the pattern "d בMMMM y" with `numbers="hebr"`
-[cldr48-calendar-dates].
+Hebrew locale writes the four patterns of its Hebrew-calendar date with
+it: in `he.xml`, the full pattern "EEEE, d בMMMM y" and the long, medium
+and short "d בMMMM y" carry `numbers="hebr"`. Its `availableFormats`
+items, the year alone and the month and day among them, carry no
+`numbers` attribute [cldr48-calendar-dates].
 
 ## How it works
 
@@ -53,11 +55,17 @@ out in `common/rbnf/root.xml`, in its `%hebrew`, `%%hebrew-0-99`,
 
 **The millennium.** "When specifying years of the Hebrew calendar in the
 present millennium, writers usually omit the thousands (which is presently
-5 [ה])", and a year written with them "is accepted to mean 5,000, with no
-ambiguity" [wikipedia-hebrew-numerals]. The source's own example of the
+5 [ה])", and the sentence goes on: "but if they do not, this is accepted
+to mean 5,000, with no ambiguity" [wikipedia-hebrew-numerals]. "This" can
+be read two ways: the thousands, when a writer does write them, are taken
+as 5 000 and not as the letter's 5; or a year the writer leaves them off
+is taken to be of the millennium of 5 000. The library reads a year
+written with its thousands as written, and one written without them by
+the first half of the sentence, as of the present millennium. The source's own example of the
 common usage is יום חמישי ג׳ בניסן תשס״ז: Thursday, 3 Nisan (5)767. A
 tombstone of 1935 it shows writes the year 695 with לפ״ק after it,
-"without the thousands".
+"without the thousands". "Presently 5" holds until AM 6000, which begins
+in 2239 CE; the source says nothing of another millennium.
 
 **Typed marks.** Most keyboards have neither mark. A reader types an
 apostrophe ' (U+0027) for the geresh and a quotation mark " (U+0022) for
@@ -95,18 +103,38 @@ matching names the first substitution: "U+05F3 HEBREW PUNCTUATION GERESH
 - The Hebrew calendar in `he` (`hebrew` and `hebrew-observational`). The
   day and the year are written in Hebrew numerals, as CLDR's pattern does:
   י״ז בתשרי ה׳תשפ״ז. The year keeps its thousands, since CLDR's rules write
-  them. A year whose numerals would not read back as itself is written in
-  the locale's digits instead. That is a year before AM 1000, whose letters
-  are those of a year of the sixth millennium without its thousands: the
-  first day, 1 Tishri AM 1, is written א׳ בתשרי 1, not א׳ בתשרי א׳, which
-  reads as AM 5001. It is also a round thousand from AM 4000, whose
-  numerals ה׳ are also 5. This fallback is the library's choice, made to
-  keep the reading exact; no source writes such years.
+  them. The year is written in the locale's digits instead where its
+  numerals would not read back as itself, or where the whole date would
+  not read back as its day:
+  - a year before AM 1000, whose letters are those of a year of the sixth
+    millennium without its thousands: the first day, 1 Tishri AM 1, is
+    written א׳ בתשרי 1, not א׳ בתשרי א׳, which reads as AM 5001. The
+    years 1 to 99 so written are then refused as two-digit years
+    ([written-dates.md](written-dates.md)), and the years from 100 read
+    back;
+  - a round thousand from AM 4000, whose numerals ה׳ are also 5;
+  - any date whose text, read back, names another day. The renderer reads
+    each date it writes so before writing it. With the reading rules
+    below, no date of AM 1000 to 9 998 is written in digits on this
+    account: of every seventh day, about 470 000 dates, counted on
+    2026-09-28, only the 311 of the round thousands were.
+
+  This fallback is the library's choice, made to keep the reading exact;
+  no source writes such years.
 - Reading the millennium. `DateTemplates::omitted_thousands` states it for
   the Hebrew date in `he`: 5 000. A year read in Hebrew numerals with fewer
   than four places is taken to be of that millennium, so תשפ״ז is 5787. A
   year written with its thousands, ה׳תשפ״ז, or in digits, 5787, is read as
-  written.
+  written. The rule is the present millennium's, and it is applied to
+  every year the calendar converts: תשפ״ז is never read as 6787 or 4787.
+- A run of letters each with its geresh is one numeral, and so is a
+  letter with its geresh followed at once by another letter: the
+  thousands and the rest. The reader ends neither a number nor a name
+  inside one. 1 Tishri 5002 is א׳ בתשרי ה׳ב׳, 5002, and not the year 5005
+  followed by the narrow weekday ב׳ (Monday), which Hebrew writes with the
+  same letter and geresh; 1 Adar 1011 is א׳ באדר א׳י״א, Adar and the year
+  1011, and not אדר א׳, Adar I, and the year 11. A weekday after the
+  year needs a space: א׳ בתשרי ה׳ ב׳ is Monday, 1 Tishri 5005.
 
 Not carried:
 
@@ -136,7 +164,14 @@ in common usage: יום שני ט״ו באדר ה׳תשס״ד and תשס״ד (Mo
 2004), and יום חמישי ג׳ בניסן ה׳תשס״ז and תשס״ז (Thursday, 22 March 2007).
 Each weekday is checked against the day. The sweep of every calendar
 ([written-dates.md](written-dates.md)) formats the Hebrew calendars in
-`he` on every sample day and reads them back.
+`he` on every sample day and reads them back, and `hebrew` also on 1
+Tishri of AM 1003, 5002, 5300 and 9001, whose years end in a letter with
+its geresh.
+
+Every day of the 63 years AM k × 1000 + 1 to 6 and k × 1000 + 300, for k
+from 1 to 9, 23 007 days in all, whose years end as a narrow weekday is
+written, was written in `he` and read back as itself on 2026-09-28; and 1
+Tishri of every year from AM 100 to 9 998.
 
 ## Sources
 
@@ -144,7 +179,7 @@ Each weekday is checked against the day. The sweep of every calendar
 | --- | --- | --- |
 | [cldr48-rbnf] | The `%hebrew` rules: the marks, 15 and 16, the reordered hundreds, the thousands, the words for 1 000 to 3 000 | Yes, 2026-09-28, `common/rbnf/root.xml` of the release-48 tag |
 | [cldr48-supplemental] | `numberingSystems.xml`: `hebr` is algorithmic, with the rules `hebrew` | Yes, 2026-09-28, that element |
-| [cldr48-calendar-dates] | `he.xml`, `calendar type="hebrew"`: every date length "d בMMMM y" with `numbers="hebr"` | Yes, 2026-09-28, that calendar's `dateFormats` |
+| [cldr48-calendar-dates] | `he.xml`, `calendar type="hebrew"`: the full pattern "EEEE, d בMMMM y" and the long, medium and short "d בMMMM y" with `numbers="hebr"`; no `numbers` on the `availableFormats` items | Yes, 2026-09-28, that calendar's `dateFormats` and `availableFormats` |
 | [wikipedia-hebrew-numerals] | The letters' values; 15 and 16; 744; the thousands omitted in the present millennium, "presently 5"; the dated examples and the table of recent years | Yes, 2026-09-28, the article's wikitext |
 | [wikipedia-geresh], [wikipedia-gershayim] | An apostrophe typed for the geresh and a quotation mark for the gershayim | Yes, 2026-09-28 |
 | [uts35-v48] | Loose matching: the geresh "might be typed instead as" an apostrophe | Yes, 2026-09-28, "Lenient Parsing" in the release-48 source, `docs/ldml/tr35.md` |
@@ -157,9 +192,11 @@ Each weekday is checked against the day. The sweep of every calendar
   `{day:hebr} ב{month} {year:hebr}` of `he`'s Hebrew calendar in
   `crates/hc-i18n/src/data.rs`.
 - `hc-format`'s renderer: `write_in` falls back to digits for a year that
-  would not read back. Its reader, `label/read.rs`, reads the numbering
-  systems a template names, applies the millennium, and matches typed
-  marks.
+  would not read back, and `write_date` for a date that would not
+  (`Renderer::reads_back`). Its reader, `label/read.rs`, reads the
+  numbering systems a template names, applies the millennium, keeps a
+  numeral's run whole (`NumberingSystem::continues_into`), and matches
+  typed marks.
 - Tests:
   - `numbering`'s `hebrew_numerals_are_written_as_cldr_spells_them` and
     `hebrew_numerals_round_trip_and_read_typed_marks`;

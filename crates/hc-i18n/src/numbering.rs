@@ -71,6 +71,24 @@ struct HanStyle {
     zero_filler: Option<&'static str>,
 }
 
+impl HanStyle {
+    /// Every piece the style writes numbers with.
+    fn pieces(&self) -> impl Iterator<Item = &'static str> + '_ {
+        self.digits
+            .iter()
+            .copied()
+            .chain([
+                self.ten,
+                self.hundred,
+                self.thousand,
+                self.myriad,
+                self.hundred_million,
+                self.trillion,
+            ])
+            .chain(self.zero_filler)
+    }
+}
+
 /// Latin digits.
 const LATN_DIGITS: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 /// Arabic-Indic digits, used for Arabic.
@@ -306,6 +324,30 @@ impl NumberingSystem {
         let mut text = alloc::string::String::new();
         self.write_integer(value, &mut text)?;
         Ok(text)
+    }
+
+    /// Whether `character` is one this system writes numbers with: a
+    /// digit, a Han numeral or unit, a Hebrew letter or its mark.
+    #[must_use]
+    pub fn writes_char(&self, character: char) -> bool {
+        match self.kind {
+            Kind::Positional(digits) => digits.contains(&character),
+            Kind::Han(style) => style.pieces().any(|piece| piece.contains(character)),
+            Kind::Hebrew => hebrew::writes_char(character),
+        }
+    }
+
+    /// Whether a numeral of this system that ends with `written` goes on
+    /// into `rest`, so that a reader must not end a number or a name
+    /// there: a Hebrew letter with its geresh followed at once by another
+    /// letter is the thousands of a longer numeral, so ה׳ב׳ is 5002 and
+    /// אדר א׳י״א is Adar and the year 1011.
+    #[must_use]
+    pub fn continues_into(&self, written: &str, rest: &str) -> bool {
+        match self.kind {
+            Kind::Hebrew => hebrew::continues(written, rest),
+            Kind::Positional(_) | Kind::Han(_) => false,
+        }
     }
 
     /// Read an integer back out of this system's notation.

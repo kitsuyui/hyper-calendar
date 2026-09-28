@@ -2,20 +2,20 @@
 //!
 //! A leap unit that reads like an ordinary one makes two days one text:
 //! the Burmese First Waso written as Waso, the late Tagu of the year's end
-//! as its first Tagu, the Thai extra eighth month as the eighth, the
-//! Bahá'í intercalary days as days of Mulk. Each is named here, in the
+//! as its first Tagu, the Thai extra eighth month as the eighth, the Lao
+//! later eighth month as the extra one, the Bahá'í intercalary days as days
+//! of Mulk, St. Tib's Day as Chaos 59, Nepal Sambat's Analā as the month
+//! it doubles. Each is named here, in the
 //! words its sources write (`hc_i18n::data`, `hc_i18n::fields`), and this
 //! test holds every day from 1950 to 2050 to a text of its own, in each
 //! locale the calendar's dates are read in.
 //!
 //! Calendars whose written dates repeat by their sources' own practice are
-//! not held here: a Hindu tithi that spans two sunrises gives both days its
-//! name, as Drik Panchang writes them, and a Tibetan duplicated day its
-//! number twice. So are those whose leap unit this library does not yet
-//! name: the Lao extra eighth month, whose name in Lao script no source read
-//! gives; St. Tib's Day, which the Discordian date writes as Chaos 59
-//! because a template has no form of its own for a leap day; and the
-//! repeated first day of a Faṣlī year, for which no written form was found.
+//! not held here: a Hindu or Nepal Sambat tithi that spans two sunrises
+//! gives both days its name, and a Tibetan or Mongolian duplicated day its
+//! number twice. So is the repeated day of a Faṣlī year, for which no
+//! written form was found. `tests/written_dates.rs` lists each with a
+//! doubled day, and `docs/systems/written-dates.md` the sources.
 
 #![cfg(all(
     feature = "alloc",
@@ -43,6 +43,8 @@ const CALENDARS: &[(&str, &[Option<&str>])] = &[
     ("bahai", &[Some("en"), None]),
     ("bahai-arithmetic", &[Some("en"), None]),
     ("bahai-astronomical", &[Some("en"), None]),
+    ("lao", &[Some("en"), None]),
+    ("discordian", &[Some("en"), Some("de")]),
 ];
 
 /// The days a build walks: every day in a release build; in a debug build

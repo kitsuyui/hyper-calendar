@@ -1,36 +1,11 @@
-//! Hebrew numerals, `hebr`: the letters' values added, the units last, a
-//! geresh after a number of one letter and a gershayim before the last
-//! letter of a longer one — 17 is י״ז, 20 is כ׳, 5787 is ה׳תשפ״ז.
-//!
-//! The spellings are CLDR 48's rule-based number format, the `%hebrew`,
-//! `%%hebrew-0-99`, `%%hebrew-thousands` and `%hebrew-item` rules of
-//! `common/rbnf/root.xml` that `numberingSystems.xml` names for `hebr`
-//! (`cldr48-rbnf`), for 1 to 9 999, which is every Hebrew year the library
-//! converts and every day of a month:
-//!
-//! - 15 and 16 are ט״ו and ט״ז, not the letters of ten and five or six, as
-//!   Wikipedia's "Hebrew numerals" gives the convention
-//!   (`wikipedia-hebrew-numerals`), and the rules keep the same order in
-//!   298, 304, 344, 698 and 744: רח״צ, ד״ש, שד״מ, תרח״צ, תשד״מ;
-//! - a hundred with nothing after it takes a geresh, ק׳, and a round
-//!   number of tens after hundreds takes the gershayim before it, תש״ע,
-//!   with the final form of the eighty, תש״ף;
-//! - the thousands are the number of thousands, marked, before the rest:
-//!   ה׳תשפ״ז; a thousand, two thousand and three thousand are the words
-//!   אלף, אלפיים and ג׳ אלפים, and a round thousand from four thousand is
-//!   its number of thousands alone, ה׳, which [`parse`] reads as 5: the
-//!   rules write both alike.
-//!
-//! A reader types the geresh as an apostrophe and the gershayim as a
-//! quotation mark, which UTS #35's loose matching allows for the first
-//! (`uts35-v48`, "Lenient Parsing") and Wikipedia's "Gershayim" and
-//! "Geresh" describe for both (`wikipedia-gershayim`,
-//! `wikipedia-geresh`): [`parse`] reads י"ז as י״ז. It reads a number only
-//! as the rules write it, so י״ה, the older spelling of 15, is refused.
-//!
-//! Leaving out the thousands of a year, תשפ״ז for 5787, is a convention of
-//! dates, not of the numerals: `hc_i18n::names::DateTemplates` states it
-//! for the Hebrew calendar's dates.
+//! Hebrew numerals, `hebr`: the letters' values added, a geresh after a
+//! number of one letter and a gershayim before the last letter of a
+//! longer one, 17 as י״ז and 5787 as ה׳תשפ״ז, spelled as CLDR 48's
+//! `%hebrew` rules of `common/rbnf/root.xml` spell them from 1 to 9 999
+//! (`cldr48-rbnf`), and read back with a geresh or gershayim typed as an
+//! apostrophe or a quotation mark. `docs/systems/hebrew-numerals.md` in
+//! the repository gives the rules, their exceptions, the typed marks and
+//! the date conventions built on them, with their sources.
 
 use core::fmt::{self, Write};
 
@@ -191,6 +166,24 @@ pub(super) fn same_mark(written: char, typed: char) -> bool {
     written == typed
         || (written == GERESH && typed == '\'')
         || (written == GERSHAYIM && typed == '"')
+}
+
+/// Whether a character is one [`write`] writes or a reader types for
+/// one: a letter, a geresh, a gershayim or their typed marks.
+pub(super) fn writes_char(character: char) -> bool {
+    letter_value(character).is_some()
+        || is_geresh(character)
+        || matches!(character, GERSHAYIM | '"')
+}
+
+/// Whether a numeral that ends with `written` goes on into `rest`: a
+/// letter with its geresh followed at once by another letter is the
+/// thousands of a longer numeral, so a run of letters each with its
+/// geresh is one numeral, ה׳ב׳ for 5002 and not ה׳ and the letter ב׳, and
+/// א׳י״א is 1011.
+pub(super) fn continues(written: &str, rest: &str) -> bool {
+    written.chars().next_back().is_some_and(is_geresh)
+        && rest.chars().next().and_then(letter_value).is_some()
 }
 
 /// A sink that checks what [`write`] writes against a text.

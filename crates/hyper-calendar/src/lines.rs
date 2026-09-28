@@ -151,7 +151,7 @@ const fn day_naming_name(boundary: DayBoundary) -> &'static str {
 }
 
 /// The era's name for a column that is empty when nobody has one, by
-/// [`names::era_label`]'s rule, the one the formatted date follows: the
+/// [`label::era_label`]'s rule, the one the formatted date follows: the
 /// locale's, else the calendar's own, else English's; never the bare code,
 /// which has a column of its own.
 pub(crate) fn era_label_or_empty(
@@ -159,14 +159,7 @@ pub(crate) fn era_label_or_empty(
     calendar: &dyn DynCalendar,
     code: &str,
 ) -> &'static str {
-    names::era_label(
-        locale,
-        calendar.meta().id,
-        code,
-        calendar.era_name(code),
-        NameWidth::Wide,
-    )
-    .unwrap_or("")
+    label::era_label(calendar, locale, code, NameWidth::Wide).unwrap_or("")
 }
 
 /// The month's name in the locale, else the calendar's own, else nothing:
@@ -181,7 +174,7 @@ pub(crate) fn month_label_or_empty(
     };
     let id = calendar.meta().id;
     let in_leap_year = names::has_leap_year_month_names(locale, id)
-        && calendar.is_leap_year_of(fields).unwrap_or(false);
+        && calendar.has_intercalary_month_of(fields).unwrap_or(false);
     if let Some(label) = names::month_label_in(
         locale,
         id,

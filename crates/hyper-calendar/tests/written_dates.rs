@@ -7,9 +7,9 @@
 //!
 //! A release build reads every sample day in every locale. A debug build,
 //! which the coverage job runs instrumented, reads every sample day in
-//! the calendar's own language, and each other locale on one day of every
-//! fifth calendar, staggered, so that every locale is still read in
-//! forty-odd calendars and every calendar in a dozen locales.
+//! the calendar's own language, and every other locale on one of the
+//! days, staggered, so that every calendar is still read in every locale
+//! (policy §7).
 //! `docs/systems/written-dates.md` explains the reader and each refusal.
 
 #![cfg(all(
@@ -117,8 +117,10 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "the day's stem and branch recur every 60 days",
     ),
     // The year by its stem and branch alone, as the Japanese template
-    // writes it: 癸卯年 recurs every sixty years. Chinese and Korean write
-    // the related Gregorian year before it, 2026丙午年, and read back.
+    // writes it, and the Dangi date in Traditional Chinese and Cantonese
+    // (CLDR 48's own `dangi` patterns, "U年MMMd日"): 癸卯年 recurs every
+    // sixty years. Chinese and Korean otherwise write the related
+    // Gregorian year before it, 2026丙午年, and read back.
     (
         "chinese",
         "year-not-written",
@@ -150,34 +152,158 @@ const REFUSALS: &[(&str, &str, &str)] = &[
     // The text names more than one day.
     ("stata-week", "ambiguous", "a %tw date names a week"),
     // A doubled day that no source read writes with a mark: the Gregorian
-    // day under the year is this library's choice, and Henning's
-    // Bhutanese archive writes both days alike.
+    // day under the Faṣlī year is this library's choice; Henning's
+    // Tibetan and Bhutanese almanac data write both days alike, and Janson's
+    // "Extra" is not shown in a date; the Hindu sources name a tithi that
+    // spans two sunrises (adhika) and write it on both days; and
+    // the Nepal Sambat almanac committee writes the tithi on both days and
+    // tells them apart by the weekday, which the formatter does not write
+    // (docs/systems/written-dates.md).
     (
         "fasli-bombay",
         "ambiguous",
-        "the doubled 3 June is written as the ordinary one",
+        "the doubled day in early June is written as the ordinary one",
     ),
     (
         "sur-san",
         "ambiguous",
-        "the doubled 3 June is written as the ordinary one",
+        "the doubled day in early June is written as the ordinary one",
+    ),
+    (
+        "tibetan",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
+    ),
+    (
+        "tibetan-tsurphu",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
     ),
     (
         "tibetan-bhutan",
         "ambiguous",
         "a doubled lunar day is written as the ordinary one",
     ),
+    (
+        "mongolian",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
+    ),
+    (
+        "hindu-lunar",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "hindu-lunar-surya-siddhanta",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "hindu-lunar-purnimanta",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "vira-nirvana-samvat",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "vikram-samvat-kartikadi",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "rajyabhisheka-saka",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "saptarshi",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "odia-anka",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "nepal-sambat",
+        "ambiguous",
+        "a doubled tithi is written on both days, told apart by a weekday",
+    ),
 ];
 
-/// The days a calendar's dates are read on: the start of 1 CE, of the
-/// Gregorian reform, of 1900, of the Unix epoch, of 2026 and a day of
-/// it, and 2100, where the calendar converts them, else its own sample
-/// day; and its first and last days.
+/// Days a calendar's dates are also read on, with why: days whose text
+/// the sample days would not meet.
+const MORE_DAYS: &[(&str, &[i64], &str)] = &[
+    // 1 Tishri of AM 1003, 5002, 5300 and 9001, whose years end in a
+    // letter with its geresh, א׳ג׳ and ה׳ב׳, as the narrow weekdays are
+    // written (docs/systems/hebrew-numerals.md).
+    (
+        "hebrew",
+        &[-1_007_453, 453_158, 562_008, 1_913_771],
+        "a year's numeral ends as a narrow weekday is written",
+    ),
+    // Two days of one number: 15 and 16 January 1990 in `tibetan`, 15 and
+    // 16 February 1990 in the others; the doubled tithi of 15 and 16
+    // February 1990 in the Hindu calendars and Nepal Sambat.
+    ("tibetan", &[726_482, 726_483], "a doubled lunar day"),
+    (
+        "tibetan-tsurphu",
+        &[726_514, 726_515],
+        "a doubled lunar day",
+    ),
+    ("tibetan-bhutan", &[726_514, 726_515], "a doubled lunar day"),
+    ("mongolian", &[726_514, 726_515], "a doubled lunar day"),
+    ("hindu-lunar", &[726_513, 726_514], "a doubled tithi"),
+    (
+        "hindu-lunar-surya-siddhanta",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
+    (
+        "hindu-lunar-purnimanta",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
+    (
+        "vira-nirvana-samvat",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
+    (
+        "vikram-samvat-kartikadi",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
+    ("rajyabhisheka-saka", &[726_513, 726_514], "a doubled tithi"),
+    ("saptarshi", &[726_513, 726_514], "a doubled tithi"),
+    ("odia-anka", &[726_513, 726_514], "a doubled tithi"),
+    ("nepal-sambat", &[726_513, 726_514], "a doubled tithi"),
+    // 7 June 1993 and 7 June 1994, both 7 June of Faṣlī 1403 and of
+    // Sūr-san 1394.
+    ("fasli-bombay", &[727_721, 728_086], "a doubled day"),
+    ("sur-san", &[727_721, 728_086], "a doubled day"),
+];
+
+/// The days a calendar's dates are read on: 1 January 1 CE, 15 October
+/// 1582, the first day of the Gregorian reform, 15 June 1900, 1 January
+/// 1970, 1 January and 28 September 2026 and 22 December 2100, where the
+/// calendar converts them, else its own sample day; its first and last
+/// days; and the days [`MORE_DAYS`] lists for it.
 fn sample_days(meta: &CalendarMeta) -> Vec<Rd> {
     let mut days: Vec<Rd> = [1, 577_736, 693_761, 719_163, 739_617, 739_887, 767_000]
         .into_iter()
         .map(|day| meta.sample_day(Rd(day)))
         .collect();
+    for (calendar, more, _) in MORE_DAYS {
+        if *calendar == meta.id.0 {
+            days.extend(more.iter().copied().map(Rd));
+        }
+    }
     days.extend(meta.earliest);
     days.extend(meta.latest);
     days.sort_unstable();
@@ -189,13 +315,13 @@ fn sample_days(meta: &CalendarMeta) -> Vec<Rd> {
 /// Whether the `day`th of `days` days of the `calendar`th calendar is
 /// read in the `locale`th of `locales` locales, the last of which is the
 /// calendar's own language: always in a release build; in a debug build
-/// in the calendar's own language, and on one day in every fifth pairing
-/// of calendar and locale.
+/// in the calendar's own language, and in every other locale on one day,
+/// staggered over the pairings of calendar and locale.
 fn read_in(calendar: usize, day: usize, days: usize, locale: usize, locales: usize) -> bool {
     if !cfg!(debug_assertions) || locale + 1 == locales {
         return true;
     }
-    (calendar + locale).is_multiple_of(5) && (calendar + locale) / 5 % days == day
+    (calendar + locale) % days == day
 }
 
 #[test]
@@ -266,12 +392,8 @@ fn every_calendar_reads_back_the_dates_it_writes() {
         faults.len()
     );
     assert!(read > 3_000, "{read}");
-    // Every locale is read in some calendars, and every calendar in some
-    // locales, in either build.
-    let calendars: BTreeSet<&str> = paired.iter().map(|(calendar, _)| *calendar).collect();
-    let read_locales: BTreeSet<usize> = paired.iter().map(|(_, locale)| *locale).collect();
-    assert_eq!(calendars.len(), registry.len());
-    assert_eq!(read_locales.len(), locales.len());
+    // Every calendar is read in every locale, in either build.
+    assert_eq!(paired.len(), registry.len() * locales.len());
     if !cfg!(debug_assertions) {
         let stale: Vec<_> = expected.keys().filter(|key| !met.contains(*key)).collect();
         assert!(
@@ -335,13 +457,34 @@ fn written_dates_read_as_their_days() {
             "{calendar} {tag} {text:?}"
         );
     }
-    // 令和元年, the first year of Reiwa, 1 May 2019; 嘉永三年, an era no
-    // locale's data lists, by the calendar's own name for it.
+    // 令和元年, the first year of Reiwa, 1 May 2019; 嘉永三年, an era
+    // before Meiji, by the name CLDR's `ja.xml` gives it.
     let reiwa = day_of("japanese", DateFields::ymd(1, 5, 1).with_era("reiwa"));
-    assert_eq!(
-        read("japanese", "ja", "令和元年5月1日").map(|(day, _)| day),
-        Ok(reiwa)
-    );
+    for text in ["令和元年5月1日", "令和1年5月1日", "令和一年五月一日"] {
+        assert_eq!(
+            read("japanese", "ja", text).map(|(day, _)| day),
+            Ok(reiwa),
+            "{text}"
+        );
+    }
+    // The first years of 平成 and 明治 written with 1 as well: 8 January
+    // 1989 and 23 October 1868, the day 明治 was proclaimed.
+    for (text, day) in [
+        (
+            "平成1年1月8日",
+            day_of("gregory", DateFields::ymd(1989, 1, 8)),
+        ),
+        (
+            "明治1年9月8日",
+            day_of("gregory", DateFields::ymd(1868, 10, 23)),
+        ),
+    ] {
+        assert_eq!(
+            read("japanese", "ja", text).map(|(day, _)| day),
+            Ok(day),
+            "{text}"
+        );
+    }
     let kaei = day_of("japanese", DateFields::ymd(3, 1, 1).with_era("kaei"));
     assert_eq!(
         read("japanese", "ja", "嘉永3年1月1日").map(|(day, _)| day),
@@ -361,9 +504,14 @@ fn written_dates_read_as_their_days() {
     // 万延元年3月3日, 24 March 1860, that document's worked example. 1860
     // has a leap third month, whose third day, 23 April, the locales that
     // carry the calendar write with their word for it: 閏 as Wikipedia (ja)
-    // dates the reunion of the courts, 元中9年閏10月5日, and "intercalary" as
-    // Bramsen's tables call the month. German, which carries no word for
-    // it, writes both days alike.
+    // dates the reunion of the courts, 元中9年閏10月5日, "intercalary" as
+    // the National Diet Library's "Calendar History" calls the month, and
+    // in Korean and Vietnamese the
+    // word their CLDR files give the Chinese calendar's, 윤{0} and {0}
+    // Nhuận. The era is each file's name for it, with the years where the
+    // file writes them, and the calendar's own where the file has none, as
+    // in Vietnamese. German, which carries no word for the month, writes
+    // both days alike.
     let man_en = day_of("gregory", DateFields::ymd(1860, 3, 24));
     let leap = Rd(man_en.0 + 30);
     assert_eq!(
@@ -376,11 +524,13 @@ fn written_dates_read_as_their_days() {
     assert_eq!(fields.month.map(|month| month.leap), Some(true));
     for (tag, text) in [
         ("ja", "万延元年閏3月3日"),
-        ("en", "intercalary March 3, 1 Man'en"),
-        ("zh-Hant", "万延1年閏3月3日"),
-        ("zh-Hans", "万延1年闰3月3日"),
-        ("yue-Hant", "万延1年閏3月3日"),
+        ("en", "intercalary March 3, 1 Man’en (1860–1861)"),
+        ("zh-Hant", "萬延1年閏3月3日"),
+        ("zh-Hans", "万延 (1860–1861)1年闰3月3日"),
+        ("yue-Hant", "萬延1年閏3月3日"),
         ("yue-Hans", "万延1年闰3月3日"),
+        ("ko", "만엔 (1860 ~ 1861) 1년 윤3월 3일"),
+        ("vi", "3 tháng 3 Nhuận, 1 Man'en"),
     ] {
         let locale: Locale = tag.parse().expect("a tag");
         assert_eq!(label::date(japanese, &fields, &locale), text, "{tag}");
@@ -390,6 +540,12 @@ fn written_dates_read_as_their_days() {
             "{tag}"
         );
     }
+    // The era names CLDR states with their years read without them too,
+    // by the calendar's own name: 万延1年闰3月3日.
+    assert_eq!(
+        read("japanese", "zh-Hans", "万延1年闰3月3日").map(|(day, _)| day),
+        Ok(leap)
+    );
     assert_eq!(
         read("japanese", "de", "3. März 1 Man'en"),
         Err(DateRefusal::Ambiguous {
@@ -464,6 +620,34 @@ fn written_dates_read_as_their_days() {
         Ok(adar_ii)
     );
     assert!(read("hebrew", "en", "1 Adar II 5785").is_err());
+    // The Minguo date as CLDR 48 writes it in Russian, by `ru.xml`'s
+    // `generic` patterns, and in Thai, by `th.xml`'s `roc` ones; the
+    // Japanese date in Russian by the same `generic` pattern.
+    let japanese = registry.get_by_name("japanese").expect("registered");
+    let fields = japanese.fixed_to_fields(TODAY).expect("in range");
+    let ru: Locale = "ru".parse().expect("a tag");
+    assert_eq!(
+        label::date(japanese, &fields, &ru),
+        "28 сентября 8 г. Рэйва"
+    );
+    assert_eq!(
+        read("japanese", "ru", "28 сентября 8 г. Рэйва").map(|(day, _)| day),
+        Ok(TODAY)
+    );
+    let roc = registry.get_by_name("roc").expect("registered");
+    let fields = roc.fixed_to_fields(TODAY).expect("in range");
+    for (tag, text) in [
+        ("ru", "28 сентября 115 г. Minguo"),
+        ("th", "28 กันยายน ปีไต้หวัน 115"),
+    ] {
+        let locale: Locale = tag.parse().expect("a tag");
+        assert_eq!(label::date(roc, &fields, &locale), text, "{tag}");
+        assert_eq!(
+            read("roc", tag, text).map(|(day, _)| day),
+            Ok(TODAY),
+            "{tag}"
+        );
+    }
     // The fields are the calendar's own for the day.
     let (_, fields) = read("japanese", "ja", "令和8年9月28日").expect("a day");
     assert_eq!((fields.era, fields.year), (Some("reiwa"), 8));
@@ -544,16 +728,232 @@ fn hebrew_dates_read_in_hebrew_numerals() {
         Err(DateRefusal::YearNotWritten)
     );
     // A year whose numerals would read as one of the sixth millennium is
-    // written in digits: AM 1, not א׳, which reads as AM 5001.
+    // written in digits: AM 1, not א׳, which reads as AM 5001. The years
+    // 1 to 99 so written are then refused as two-digit years, and the
+    // years from 100 read back.
     let hebrew = registry.get_by_name("hebrew").expect("registered");
     let first = hebrew.meta().earliest.expect("bounded");
     let fields = hebrew.fixed_to_fields(first).expect("in range");
     assert_eq!(label::date(hebrew, &fields, &he), "א׳ בתשרי 1");
+    assert_eq!(
+        read("hebrew", "he", "א׳ בתשרי 1"),
+        Err(DateRefusal::TwoDigitYear)
+    );
+    let hundred = day_of("hebrew", DateFields::ymd(100, 1, 1).with_era("am"));
+    let fields = hebrew.fixed_to_fields(hundred).expect("in range");
+    assert_eq!(label::date(hebrew, &fields, &he), "א׳ בתשרי 100");
+    assert_eq!(
+        read("hebrew", "he", "א׳ בתשרי 100").map(|(day, _)| day),
+        Ok(hundred)
+    );
     let later = day_of("hebrew", DateFields::ymd(5001, 1, 1).with_era("am"));
     assert_eq!(
         read("hebrew", "he", "א׳ בתשרי א׳").map(|(day, _)| day),
         Ok(later)
     );
+    // A run of letters each with its geresh is one numeral: ה׳ב׳ is 5002,
+    // and not 5005 and the narrow weekday ב׳, Monday. A weekday after the
+    // year needs a space.
+    let year_5002 = day_of("hebrew", DateFields::ymd(5002, 1, 1).with_era("am"));
+    let fields = hebrew.fixed_to_fields(year_5002).expect("in range");
+    assert_eq!(label::date(hebrew, &fields, &he), "א׳ בתשרי ה׳ב׳");
+    assert_eq!(
+        read("hebrew", "he", "א׳ בתשרי ה׳ב׳").map(|(day, _)| day),
+        Ok(year_5002)
+    );
+    // Nor does a name end inside one: אדר א׳י״א is Adar of 1011, and not
+    // Adar I of 5011.
+    let adar_1011 = day_of("hebrew", DateFields::ymd(1011, 6, 1).with_era("am"));
+    let fields = hebrew.fixed_to_fields(adar_1011).expect("in range");
+    assert_eq!(label::date(hebrew, &fields, &he), "א׳ באדר א׳י״א");
+    assert_eq!(
+        read("hebrew", "he", "א׳ באדר א׳י״א").map(|(day, _)| day),
+        Ok(adar_1011)
+    );
+    let year_5005 = day_of("hebrew", DateFields::ymd(5005, 1, 1).with_era("am"));
+    assert_eq!(
+        read("hebrew", "he", "א׳ בתשרי ה׳ ב׳").map(|(day, _)| day),
+        Ok(year_5005)
+    );
+    assert!(matches!(
+        read("hebrew", "he", "י״ז בתשרי תשפ״זב׳"),
+        Err(DateRefusal::NotRecognised { .. })
+    ));
+    assert_eq!(
+        read("hebrew", "he", "י״ז בתשרי תשפ״ז ב׳").map(|(day, _)| day),
+        Ok(TODAY)
+    );
+}
+
+/// A leap unit that repeats another is written by its own name where a
+/// source names it, and the text then reads as the one day: St. Tib's Day,
+/// Nepal Sambat's Analā and the Lao later eighth month. A doubled day that
+/// no source marks is refused as naming two, and read as one where the
+/// text names the weekday, as the Nepal Sambat almanac committee tells a
+/// doubled tithi's days apart.
+#[test]
+fn a_repeated_unit_is_named_where_a_source_names_it() {
+    let registry = hyper_calendar::registry();
+    let text = |id: &str, day: i64, tag: &str| {
+        let calendar = registry.get_by_name(id).expect("registered");
+        let fields = calendar.fixed_to_fields(Rd(day)).expect("in range");
+        let locale: Locale = tag.parse().expect("a tag");
+        label::date(calendar, &fields, &locale)
+    };
+    // 28 and 29 February 2024: Chaos 59 and St. Tib's Day, 3190 YOLD, "inserted
+    // between the 59th and 60th days of the Season of Chaos" (the
+    // Principia Discordia, p. 34).
+    for (day, en, de) in [
+        (738_944, "Chaos 59, 3190 YOLD", "3190 YOLD Chaos 59"),
+        (
+            738_945,
+            "St. Tib's Day, 3190 YOLD",
+            "3190 YOLD St. Tib's Day",
+        ),
+    ] {
+        assert_eq!(text("discordian", day, "en"), en);
+        assert_eq!(text("discordian", day, "de"), de);
+        assert_eq!(read("discordian", "en", en).map(|(d, _)| d), Ok(Rd(day)));
+        assert_eq!(read("discordian", "de", de).map(|(d, _)| d), Ok(Rd(day)));
+    }
+    assert!(matches!(
+        read("discordian", "en", "St. Tib's Day, 3191 YOLD"),
+        Err(DateRefusal::NoSuchDate(_))
+    ));
+    // 1 of the intercalary Bachhalā of 1111 NS, 16 April 1991, and of the
+    // ordinary one after it: Analā, अनला in Wikipedia's table of months.
+    for (day, en, ne) in [
+        (726_937, "Analā 1, 1111 NS", "११११ NS अनला १"),
+        (726_967, "Bachhalā 1, 1111 NS", "११११ NS बछला १"),
+    ] {
+        assert_eq!(text("nepal-sambat", day, "en"), en);
+        assert_eq!(text("nepal-sambat", day, "ne"), ne);
+        assert_eq!(read("nepal-sambat", "en", en).map(|(d, _)| d), Ok(Rd(day)));
+        assert_eq!(read("nepal-sambat", "ne", ne).map(|(d, _)| d), Ok(Rd(day)));
+    }
+    // 30 June and 29 July 2026, the first waning day of the extra month 8
+    // of 1388 and the full moon of the later one, ເດືອນແປດຫລັງ.
+    for (day, lao) in [
+        (739_797, "ເດືອນແປດ ແຮມ 1 ຄ່ຳ ປີ 1388"),
+        (739_826, "ເດືອນແປດຫລັງ ຂຶ້ນ 15 ຄ່ຳ ປີ 1388"),
+    ] {
+        assert_eq!(text("lao", day, "en"), lao);
+        assert_eq!(read("lao", "en", lao).map(|(d, _)| d), Ok(Rd(day)));
+    }
+    // 15 and 16 February 1990, one tithi at two sunrises: refused alone,
+    // and read as the Friday by its weekday.
+    assert_eq!(text("nepal-sambat", 726_514, "en"), "Silā 21, 1110 NS");
+    assert_eq!(
+        read("nepal-sambat", "en", "Silā 21, 1110 NS"),
+        Err(DateRefusal::Ambiguous {
+            first: Rd(726_513),
+            second: Rd(726_514)
+        })
+    );
+    for with_weekday in ["Silā 21, 1110 NS, Friday", "Friday, Silā 21, 1110 NS"] {
+        assert_eq!(
+            read("nepal-sambat", "en", with_weekday).map(|(d, _)| d),
+            Ok(Rd(726_514)),
+            "{with_weekday}"
+        );
+    }
+    // 15 and 16 January 1990, the twentieth of the eleventh Tibetan month
+    // twice.
+    assert_eq!(
+        read("tibetan", "en", "Eleventh Month 20, 1989"),
+        Err(DateRefusal::Ambiguous {
+            first: Rd(726_482),
+            second: Rd(726_483)
+        })
+    );
+}
+
+/// An era English writes with an apostrophe, *Man’en (1860–1861)* as
+/// CLDR's root writes it, reads back on its first day, and so does the
+/// text with the apostrophe typed as U+0027 or U+02BC, which UTS #35's
+/// loose matching treats as the same (Part 1, "Lenient Parsing", "Loose
+/// Matching").
+#[test]
+fn an_era_written_with_an_apostrophe_reads_back_however_it_is_typed() {
+    use hyper_calendar::hc_calendars_regional::nengo::{self, Court};
+    let registry = hyper_calendar::registry();
+    let en: Locale = "en".parse().expect("a tag");
+    let mut read_back = 0;
+    for era in nengo::ALL.iter() {
+        let Some(start) = era.start else {
+            continue;
+        };
+        let id = match era.court {
+            Court::Northern => "japanese-northern",
+            Court::Southern => "japanese-southern",
+            Court::Unified => "japanese",
+        };
+        let calendar = registry.get_by_name(id).expect("registered");
+        let Ok(fields) = calendar.fixed_to_fields(start) else {
+            continue;
+        };
+        let text = label::date(calendar, &fields, &en);
+        if !text.contains('\u{2019}') {
+            continue;
+        }
+        for typed in ['\u{2019}', '\u{0027}', '\u{02BC}'] {
+            let typed_text = text.replace('\u{2019}', &typed.to_string());
+            assert_eq!(
+                read(id, "en", &typed_text).map(|(day, _)| day),
+                Ok(start),
+                "{} {typed_text}",
+                era.id
+            );
+        }
+        read_back += 1;
+    }
+    // 安永 An’ei to 万延 Man’en: the thirteen CLDR root names with one.
+    assert_eq!(read_back, 13);
+    // The calendar's own romanisation, Man'en, reads as typed with a
+    // curly apostrophe too.
+    assert_eq!(
+        read("japanese", "en", "intercalary March 3, 1 Man’en").map(|(day, _)| day),
+        Ok(day_of("gregory", DateFields::ymd(1860, 4, 23)))
+    );
+}
+
+/// An era the calendar's own table romanises as it does another, 延慶 and
+/// 延享 both *Enkyo*, is written in a Latin-script locale with no name of
+/// its own by English's name, which tells the two apart, and where English
+/// has none by its native name: 貞和 of the Northern court, beside 承和,
+/// both *Jowa*.
+#[test]
+fn a_shared_romanisation_is_not_written() {
+    let registry = hyper_calendar::registry();
+    let de: Locale = "de".parse().expect("a tag");
+    let japanese = registry.get_by_name("japanese").expect("registered");
+    let northern = registry
+        .get_by_name("japanese-northern")
+        .expect("registered");
+    for (calendar, id, fields, text) in [
+        (
+            japanese,
+            "japanese",
+            DateFields::ymd(1, 12, 1).with_era("enkyo-1308"),
+            "1. Dezember 1 Enkyō (1308–1311)",
+        ),
+        (
+            japanese,
+            "japanese",
+            DateFields::ymd(1, 12, 1).with_era("enkyo-1744"),
+            "1. Dezember 1 Enkyō (1744–1748)",
+        ),
+        (
+            northern,
+            "japanese-northern",
+            DateFields::ymd(3, 1, 1).with_era("jowa-1345"),
+            "1. Januar 3 貞和",
+        ),
+    ] {
+        assert_eq!(label::date(calendar, &fields, &de), text, "{id}");
+        let day = calendar.fields_to_fixed(&fields).expect("a day");
+        assert_eq!(read(id, "de", text).map(|(day, _)| day), Ok(day), "{text}");
+    }
 }
 
 /// What a date may leave out: an era its calendar has only one of, ۶ مهر
@@ -598,20 +998,25 @@ fn a_date_may_leave_out_an_only_era_and_not_its_year() {
 /// The Chinese calendar's year by the related Gregorian year and its stem
 /// and branch, as CLDR 48's `zh.xml`, `zh_Hant.xml`, `yue.xml` and
 /// `yue_Hans.xml` write it, "rU年", and `ko.xml`, "r년(U년)"; the two must
-/// agree, or the text is refused as contradicting itself.
+/// agree, or the text is refused as contradicting itself. The Dangi date in
+/// `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml` is their own, "U年MMMd日".
 #[test]
 fn the_chinese_year_is_read_by_its_related_gregorian_year() {
     let registry = hyper_calendar::registry();
     for id in ["chinese", "dangi", "vietnamese"] {
         let calendar = registry.get_by_name(id).expect("registered");
         let fields = calendar.fixed_to_fields(TODAY).expect("in range");
+        let own_dangi = id == "dangi";
         for (tag, text) in [
             ("zh-Hans", "2026丙午年八月十八"),
             ("zh-Hant", "2026丙午年八月十八"),
             ("yue-Hans", "2026丙午年八月十八"),
             ("yue-Hant", "2026丙午年八月十八"),
             ("ko", "2026년(병오년) 8월 18일"),
-        ] {
+        ]
+        .into_iter()
+        .filter(|(tag, _)| !own_dangi || matches!(*tag, "zh-Hans" | "ko"))
+        {
             let locale: Locale = tag.parse().expect("a tag");
             assert_eq!(label::date(calendar, &fields, &locale), text, "{id} {tag}");
             assert_eq!(
@@ -624,7 +1029,10 @@ fn the_chinese_year_is_read_by_its_related_gregorian_year() {
             ("zh-Hans", "2025丙午年八月十八"),
             ("zh-Hant", "2026乙巳年八月十八"),
             ("ko", "2026년(을사년) 8월 18일"),
-        ] {
+        ]
+        .into_iter()
+        .filter(|(tag, _)| !own_dangi || *tag != "zh-Hant")
+        {
             assert_eq!(
                 read(id, tag, text),
                 Err(DateRefusal::FieldMismatch),
@@ -650,6 +1058,23 @@ fn the_chinese_year_is_read_by_its_related_gregorian_year() {
         assert_eq!(
             read(id, "zh-Hans", "丙午年八月十八"),
             Err(DateRefusal::YearNotWritten)
+        );
+    }
+    // The Dangi in Traditional Chinese and Cantonese: 丙午年八月18日, which
+    // names no year of the sixty.
+    let dangi = registry.get_by_name("dangi").expect("registered");
+    let fields = dangi.fixed_to_fields(TODAY).expect("in range");
+    for tag in ["zh-Hant", "yue-Hant", "yue-Hans"] {
+        let locale: Locale = tag.parse().expect("a tag");
+        assert_eq!(
+            label::date(dangi, &fields, &locale),
+            "丙午年八月18日",
+            "{tag}"
+        );
+        assert_eq!(
+            read("dangi", tag, "丙午年八月18日"),
+            Err(DateRefusal::YearNotWritten),
+            "{tag}"
         );
     }
     // 2023癸卯年闰二月初一, the first day of the leap second month, 22 March

@@ -461,6 +461,9 @@ describe("parseDate", () => {
     assert.deepEqual(hc.parseDate("chinese", "zh-Hans", "2025丙午年八月十八").error, { code: 107, name: "field-mismatch" });
     assert.equal(hc.parseDate("gregory", "ja", "9月28日").error?.name, "year-not-written");
     assert.equal(hc.parseDate("gregory", "en", "").error?.name, "empty");
+    const unread = hc.parseDate("gregory", "en", "September 28, 2026!");
+    assert.deepEqual(unread.error, { code: 102, name: "not-recognised" });
+    assert.equal(unread.fixed, null);
     assert.equal(hc.parseDate("gregory", "en", "February 30, 2026").error?.name, "day-out-of-range");
     refused(() => hc.parseDate("no-such-calendar", "en", "1"), "unknown");
   });

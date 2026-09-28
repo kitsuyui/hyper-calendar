@@ -209,9 +209,10 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
 * **No default meridian, and no default season definition.** A caller who has
   not said which they mean has not decided yet, and a library that decided for
   them would be asserting something it cannot know.
-* **Japanese 雑節 only, and the Chinese 三伏 and 數九.** The 雑節 list is
-  Japan's; of China's own, the dog days and the nines are in `san_fu`, and
-  China's 入梅 and 出梅 and Korea's are not carried.
+* **Japanese 雑節, and the Chinese 三伏, 數九, 入梅 and 出梅.** The 雑節 list
+  is Japan's; of China's own, the dog days and the nines are in `san_fu`,
+  and 入梅 and 出梅 of the Chinese almanac in `meiyu`. Korea's are not
+  carried.
 * **The Sun only, in the zodiac too.** Every sign function here places the
   **Sun**. There is no Moon sign, no planet in a sign, no ascendant, no house
   system and no chart. That matters most for the sidereal side: in Jyotiṣa a

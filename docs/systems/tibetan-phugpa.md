@@ -212,6 +212,15 @@ day 18; there is no day 19, and 12 March is day 20. The module marks the
   dawn, as the astronomical one's fall at noon [janson2014, Remark 6], so
   Losar 2024 runs from the dawn of 10 February to the dawn of the 11th,
   and the small hours of 10 February are still the last day of 2023.
+- **Written dates.** In Tibetan a leap month takes ཟླ་ཤོལ་ before its name,
+  ཟླ་ཤོལ་ཟླ་བ་དགུ་པ, Henning's *zla shol* for "an extra, or intercalary,
+  month" [kalacakra-org], and in English "intercalary", *intercalary Sixth
+  Month*. Where an almanac puts the word was not read, so its place before
+  the month is this library's. A doubled day is written as the ordinary
+  one: Janson says the first of the two "is regarded as a leap day, and
+  denoted 'Extra' in the almanacs" [janson2014, §6], and no source read
+  shows the mark in a written date, so the text names two days and the
+  reader refuses it as `ambiguous` ([written-dates.md](written-dates.md)).
 - **The year's names**: `year_name` gives element, gender and animal,
   `prabhava` the cycle and the year in it; the Sanskrit and Tibetan names
   of the sixty years are not carried.
@@ -316,9 +325,9 @@ depend on the choice.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [janson2014] | The whole arithmetic: the epoch, (5.1)–(5.41), the mean motions and tables (7.1)–(7.24), the day rule (8.1), the Julian Day Number of each day in §2, Remarks 5, 6, 8, 14, 15 and 17, the sixty-year cycle, the mean year, Appendix A on the other traditions, and Tables 1, 7 and 8 | Yes, 2026-09-25, from the TeX source on arXiv, the PDF not being renderable here; the module read the PDF 2026-09-22. Equation numbers are those of the arXiv version |
+| [janson2014] | The whole arithmetic: the epoch, (5.1)–(5.41), the mean motions and tables (7.1)–(7.24), the day rule (8.1), the Julian Day Number of each day in §2, Remarks 5, 6, 8, 14, 15 and 17, the sixty-year cycle, the mean year, Appendix A on the other traditions, and Tables 1, 7 and 8; the "Extra" of §6 | Yes, 2026-09-25, from the TeX source on arXiv, the PDF not being renderable here; the module read the PDF 2026-09-22; §6 again 2026-09-28 in the ar5iv rendering. Equation numbers are those of the arXiv version |
 | [henning2007] | Mean daybreak at 5 a.m., the Phugpa and Tsurphu histories and epoch data, the holidays of Appendix II | Not read; cited through Janson |
-| [kalacakra-org] | Henning's epoch data, calendar archive and open-source Phugpa and Tsurphu programs | Not read: on 2026-09-25 the host presented a certificate for another domain |
+| [kalacakra-org] | Henning's epoch data, calendar archive and open-source Phugpa and Tsurphu programs; *zla shol* for the intercalary month | Yes, over plain HTTP: 2026-09-26 the epoch data, 2026-09-28 "On intercalary months" (`intercal.htm`); on 2026-09-25 the HTTPS host presented a certificate for another domain |
 | [tnp-losar] | Losar 2023–2027 with the year names, Saga Dawa Düchen 2024 | Yes, 2026-09-25 |
 | [tibet-net-losar-2152] | The Central Tibetan Administration's name for the year beginning in 2025 | Yes, 2026-09-25; the page carries no Gregorian date |
 | Salden, *The story of Losar* | Losar 2000 on Sunday 6 February | Not read; Janson's citation, the page gone by 2013 |

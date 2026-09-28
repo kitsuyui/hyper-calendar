@@ -185,7 +185,8 @@ impl std::error::Error for DateRefusal {}
 /// period, spaces where the template has none and more than one where it
 /// has one, a weekday before or after the date, which must be the day's,
 /// a Hebrew geresh or gershayim typed as an apostrophe or a quotation
-/// mark, a Hebrew year without its thousands, תשפ״ז, and no era where the
+/// mark, the apostrophes UTS #35's loose matching holds equal, *Man'en*
+/// for *Man’en*, a Hebrew year without its thousands, תשפ״ז, and no era where the
 /// calendar has only one. A date without its year, 9月28日, is refused as
 /// [`DateRefusal::YearNotWritten`].
 ///
@@ -245,6 +246,9 @@ struct Read {
     day: Option<u8>,
     /// Whether the template had a day of the month.
     day_seen: bool,
+    /// Whether the text named the calendar's leap day, St. Tib's Day,
+    /// which stands for its month and day.
+    leap_day: bool,
     /// The extra fields written.
     extra: ExtraFields,
     /// The weekday written, if one was.
@@ -368,10 +372,35 @@ impl Read {
 const SEPARATORS: [char; 3] = [',', '、', '،'];
 
 /// Whether a character the renderer writes, `a`, is the one the text
-/// has, `b`: the same letter in either case, or a Hebrew geresh or
-/// gershayim typed as an apostrophe or a quotation mark.
+/// has, `b`: the same letter in either case, a Hebrew geresh or
+/// gershayim typed as an apostrophe or a quotation mark, or one of the
+/// apostrophes [`APOSTROPHES`] holds equal.
 fn same_letter(a: char, b: char) -> bool {
-    a == b || numbering::same_typed_mark(a, b) || a.to_lowercase().eq(b.to_lowercase())
+    a == b
+        || numbering::same_typed_mark(a, b)
+        || same_apostrophe(a, b)
+        || a.to_lowercase().eq(b.to_lowercase())
+}
+
+/// The apostrophe-like characters loose matching treats as one, each set
+/// as UTS #35 Part 1, "Lenient Parsing", "Loose Matching", lists them
+/// (`uts35-v48`): "U+02BC MODIFIER LETTER APOSTROPHE (ʼ) might be typed
+/// instead as U+2019 RIGHT SINGLE QUOTATION MARK (’), U+0027 APOSTROPHE",
+/// and "U+02BB MODIFIER LETTER TURNED COMMA (ʻ) might be typed instead as
+/// U+2018 LEFT SINGLE QUOTATION MARK (‘)". So *Man’en*, as CLDR's root
+/// writes the era, reads as typed, *Man'en*, and *Rabiʻ I* as *Rabi‘ I*.
+/// CLDR 48's `supplemental/characters.xml` maps none of these; its one
+/// apostrophe fallback, the geresh's, is [`numbering::same_typed_mark`].
+const APOSTROPHES: [&[char]; 2] = [
+    &['\u{0027}', '\u{2019}', '\u{02BC}'],
+    &['\u{02BB}', '\u{2018}'],
+];
+
+/// Whether two characters are apostrophes of one [`APOSTROPHES`] set.
+fn same_apostrophe(a: char, b: char) -> bool {
+    APOSTROPHES
+        .iter()
+        .any(|set| set.contains(&a) && set.contains(&b))
 }
 
 /// A sink that checks what a name writes against the text, and measures
@@ -827,7 +856,7 @@ impl<'a> Reader<'a> {
         if let Some(known) = self.leap_years.borrow().get(&key) {
             return known.ok();
         }
-        let answer = self.renderer.calendar.is_leap_year_of(fields);
+        let answer = self.renderer.calendar.has_intercalary_month_of(fields);
         self.leap_years.borrow_mut().put(key, answer);
         answer.ok()
     }
@@ -853,7 +882,10 @@ impl<'a> Reader<'a> {
                 weekday: Some(weekday),
                 ..Read::default()
             };
-            self.dates(self.skip_separators(end), read);
+            let date = self.skip_separators(end);
+            if date > end || !self.begins_number(date) {
+                self.dates(date, read);
+            }
         });
         if self.two_digit.get() {
             return Err(DateRefusal::TwoDigitYear);
@@ -904,7 +936,10 @@ impl<'a> Reader<'a> {
     }
 
     /// A date template matched up to `pos`: the rest of the text may be
-    /// white space, a separator and a weekday.
+    /// white space, a separator and a weekday. A weekday after a number
+    /// needs the white space or the separator, since the letters of a
+    /// narrow Hebrew weekday, ב׳, are also a numeral's; after a word or a
+    /// template's text it may follow directly, 2026年9月28日月曜日.
     fn finish(&self, pos: usize, read: Read) {
         let end = self.skip_separators(pos);
         self.reached(end);
@@ -912,7 +947,7 @@ impl<'a> Reader<'a> {
             self.resolve(read);
             return;
         }
-        if read.weekday.is_none() {
+        if read.weekday.is_none() && (end > pos || !self.ends_number(pos)) {
             self.weekdays(end, &|after, weekday| {
                 let after = self.skip_separators(after);
                 if after == self.text.len() {
@@ -923,6 +958,40 @@ impl<'a> Reader<'a> {
                 }
             });
         }
+    }
+
+    /// Whether the character before `pos` is one of a number in any of
+    /// the reader's numbering systems.
+    fn ends_number(&self, pos: usize) -> bool {
+        self.text[..pos]
+            .chars()
+            .next_back()
+            .is_some_and(|character| self.is_numeral(character))
+    }
+
+    /// Whether the character at `pos` is one of a number in any of the
+    /// reader's numbering systems.
+    fn begins_number(&self, pos: usize) -> bool {
+        self.text[pos..]
+            .chars()
+            .next()
+            .is_some_and(|character| self.is_numeral(character))
+    }
+
+    /// Whether `pos` falls inside a numeral of one of the reader's
+    /// systems, as it would between two letters each with its geresh.
+    fn splits_numeral(&self, pos: usize) -> bool {
+        self.systems
+            .iter()
+            .flatten()
+            .any(|system| system.continues_into(&self.text[..pos], &self.text[pos..]))
+    }
+
+    fn is_numeral(&self, character: char) -> bool {
+        self.systems
+            .iter()
+            .flatten()
+            .any(|system| system.writes_char(character))
     }
 
     fn reached(&self, pos: usize) {
@@ -1072,6 +1141,15 @@ impl<'a> Reader<'a> {
             }
             ("day", _) if mode == Mode::Date => {
                 next(pos, read.seen_day());
+                if let Some(named) = names::leap_day_name(self.renderer.locale, self.renderer.id)
+                    && let Some(end) = self.name_at(pos, |out| out.write_str(named.name))
+                    && let Some(mut read) = read
+                        .with_month(Month::regular(named.month), false, None)
+                        .and_then(|read| read.with_day(i64::from(named.day)))
+                {
+                    read.leap_day = true;
+                    next(end, read);
+                }
                 let levels = self.renderer.chain.levels();
                 for (index, level) in levels.iter().enumerate() {
                     let template = level.day;
@@ -1189,6 +1267,9 @@ impl<'a> Reader<'a> {
             taken: 0,
         };
         match write(&mut prefix) {
+            // A name that ends in a letter with its geresh, אדר א׳, does not
+            // end inside a run of them: אדר א׳ג׳ is Adar and the year א׳ג׳.
+            Ok(()) if prefix.taken > 0 && self.splits_numeral(pos + prefix.taken) => None,
             Ok(()) if prefix.taken > 0 => {
                 // An abbreviation may be written with its period where the
                 // data has none: *Sep.* for *Sep*.
@@ -1249,7 +1330,9 @@ impl<'a> Reader<'a> {
 
     /// Every prefix of `body` that is a numeral as `system`, an
     /// algorithmic one, writes it: 二十八, and not 二〇二六 read as six;
-    /// י״ז, and י"ז as a reader types it.
+    /// י״ז, and י"ז as a reader types it. A prefix that the text's numeral
+    /// goes on after is not one: ה׳ב׳ is 5002, and not the year 5005 and
+    /// the weekday ב׳.
     fn han_numbers(
         &self,
         system: &NumberingSystem,
@@ -1268,7 +1351,9 @@ impl<'a> Reader<'a> {
             let text = &self.text[pos..stop];
             if let Ok(value) = system.parse_integer(text) {
                 let mut written = Prefix { text, taken: 0 };
-                if system.write_integer(value, &mut written).is_ok() && written.taken == text.len()
+                if system.write_integer(value, &mut written).is_ok()
+                    && written.taken == text.len()
+                    && !self.splits_numeral(stop)
                 {
                     next(stop, value, false);
                 }
@@ -1628,7 +1713,13 @@ impl<'a> Reader<'a> {
                 if month_index == 1 && month.is_none() {
                     continue;
                 }
+                // A leap day the locale names is its name, and a day
+                // written by its number is not it.
+                let named = names::leap_day_name(self.renderer.locale, self.renderer.id).is_some();
                 for leap_day in [false, true] {
+                    if named && leap_day != read.leap_day {
+                        continue;
+                    }
                     let mut fields = DateFields::new(read.year.unwrap_or(0));
                     fields.era = *era;
                     fields.month = *month;
@@ -1964,19 +2055,17 @@ impl<'a> Reader<'a> {
         {
             return false;
         }
+        // A first year written through the year's template, 令和1年, is
+        // kept although the renderer writes 令和元年: it says nothing the
+        // calendar contradicts.
         if let Some(year) = chosen.year {
-            let first_years = own.era.is_some() && own.year == 1;
             let earlier = &levels[..year];
             let passed_over = if chosen.first_year {
                 earlier
                     .iter()
                     .any(|level| says(level.first_year, Mode::Unit))
             } else {
-                (first_years
-                    && levels
-                        .iter()
-                        .any(|level| says(level.first_year, Mode::Unit)))
-                    || earlier.iter().any(|level| says(level.year, Mode::Unit))
+                earlier.iter().any(|level| says(level.year, Mode::Unit))
             };
             if passed_over {
                 return false;

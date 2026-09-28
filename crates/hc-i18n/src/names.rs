@@ -324,7 +324,14 @@ impl EraNames {
 ///   as a notation writes `2026-W09-1`; `{year:4}` is the year's number
 ///   alone, without its era;
 /// * `{day:0-based}` is the day of the month counted from zero, as the
-///   Haabʼ writes its first day, 0 Pop, the month's seating.
+///   Haabʼ writes its first day, 0 Pop, the month's seating;
+/// * a numbering system by its CLDR identifier, `{year:hans}`,
+///   `{day:hebr}`, asks for the number in that system whatever the
+///   locale's own: the Chinese regnal year in Han numerals, 康熙五十二年, in
+///   a locale that writes its other dates in Latin digits, and the Hebrew
+///   day and year in Hebrew numerals. A year so written that
+///   [`DateTemplates::omitted_thousands`] lets go without its thousands is
+///   written in digits where the numerals would not read back as the day.
 ///
 /// A placeholder whose field the date does not carry is filled with
 /// nothing, and the renderer then trims the pattern and collapses the
@@ -528,6 +535,26 @@ pub struct LeapMonthNames {
     /// The name a month takes in a year that has the intercalary month, by
     /// ordinal: `(6, "Adar II")`.
     pub in_leap_years: &'static [(u8, &'static str)],
+    /// The name the calendar's leap day is written by, in place of its
+    /// month and day, where a source names it: St. Tib's Day.
+    pub leap_day: Option<LeapDayName>,
+}
+
+/// A leap day written by its name in place of its month and day.
+///
+/// The Discordian calendar's St. Tib's Day is the day inserted between
+/// Chaos 59 and Chaos 60, which the calendar carries as Chaos 59 with
+/// [`hc_calendar::DateFields::leap_day`]: the name stands for those fields,
+/// and a date with them is written *St. Tib's Day, 3190 YOLD* rather than
+/// as the Chaos 59 before it.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct LeapDayName {
+    /// The ordinal of the month the calendar carries the leap day in.
+    pub month: u8,
+    /// The day of that month it repeats.
+    pub day: u8,
+    /// The name.
+    pub name: &'static str,
 }
 
 impl LeapMonthNames {
@@ -535,6 +562,7 @@ impl LeapMonthNames {
     pub const NONE: Self = Self {
         intercalary: &[],
         in_leap_years: &[],
+        leap_day: None,
     };
 
     fn find(list: &'static [(u8, &'static str)], ordinal: u8) -> Option<&'static str> {
@@ -573,6 +601,11 @@ pub struct CalendarNames {
     /// What an intercalary month is prefixed with: 闰 in Chinese, 閏 in
     /// Japanese, `leap ` in English. Empty where the calendar has none.
     pub leap_month_prefix: &'static str,
+    /// What follows an intercalary month's name where the locale writes
+    /// its word after the month: ` Nhuận` in Vietnamese, CLDR's `{0}
+    /// Nhuận`. Empty where it has none. A CLDR leap `monthPattern` is the
+    /// prefix before its `{0}` and the suffix after it.
+    pub leap_month_suffix: &'static str,
     /// The intercalary month's own name, and the leap-year names of the
     /// months, where a prefix cannot say them.
     pub leap_names: LeapMonthNames,
@@ -616,6 +649,7 @@ impl CalendarNames {
             calendars,
             cycles: &[],
             leap_month_prefix: "",
+            leap_month_suffix: "",
             leap_names: LeapMonthNames::NONE,
             eras: EraNames::EMPTY,
             quarters: ContextualNames::EMPTY,
@@ -641,6 +675,13 @@ impl CalendarNames {
     #[must_use]
     pub const fn with_leap_month_prefix(mut self, prefix: &'static str) -> Self {
         self.leap_month_prefix = prefix;
+        self
+    }
+
+    /// This entry with a leap-month suffix.
+    #[must_use]
+    pub const fn with_leap_month_suffix(mut self, suffix: &'static str) -> Self {
+        self.leap_month_suffix = suffix;
         self
     }
 
@@ -880,22 +921,26 @@ pub fn locale_data(locale: &Locale) -> &'static LocaleData {
     resolve(locale, Some).unwrap_or(&ROOT)
 }
 
-/// A month name plus the prefix an intercalary month carries.
+/// A month name plus the prefix or suffix an intercalary month carries.
 ///
-/// The two are kept apart so that a `no_std` caller can write them straight
-/// to a sink without joining them into an allocation first.
+/// The parts are kept apart so that a `no_std` caller can write them
+/// straight to a sink without joining them into an allocation first.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct MonthLabel {
     /// The leap-month prefix, or `""` for an ordinary month.
     pub prefix: &'static str,
     /// The month name.
     pub name: &'static str,
+    /// The leap-month suffix, or `""` for an ordinary month and for a
+    /// locale that writes its word before the month.
+    pub suffix: &'static str,
 }
 
 impl fmt::Display for MonthLabel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.prefix)?;
-        f.write_str(self.name)
+        f.write_str(self.name)?;
+        f.write_str(self.suffix)
     }
 }
 
@@ -935,7 +980,8 @@ pub fn has_leap_year_month_names(locale: &Locale, calendar: CalendarId) -> bool 
 /// month when `in_leap_year` says so.
 ///
 /// An intercalary month is the locale's own name for it where it has one
-/// (*Adar I*), else the ordinary name with the locale's prefix (闰二月); a
+/// (*Adar I*), else the ordinary name with the locale's prefix (闰二月) or
+/// suffix (*tháng 3 Nhuận*); a
 /// month of a leap year takes its leap-year name where the locale lists
 /// one (*Adar II*). Everything comes from whichever entry carries the
 /// months, since that is the entry that knows how the calendar writes
@@ -957,14 +1003,19 @@ pub fn month_label_in(
         let name = entry.months().get(width, context).get(index).copied()?;
         if month.leap {
             return Some(
-                LeapMonthNames::find(entry.leap_names.intercalary, month.ordinal).map_or(
-                    MonthLabel {
-                        prefix: prefix_in(data, calendar, entry),
-                        name,
+                LeapMonthNames::find(entry.leap_names.intercalary, month.ordinal).map_or_else(
+                    || {
+                        let (prefix, suffix) = affixes_in(data, calendar, entry);
+                        MonthLabel {
+                            prefix,
+                            name,
+                            suffix,
+                        }
                     },
                     |own| MonthLabel {
                         prefix: "",
                         name: own,
+                        suffix: "",
                     },
                 ),
             );
@@ -974,7 +1025,11 @@ pub fn month_label_in(
         } else {
             name
         };
-        Some(MonthLabel { prefix: "", name })
+        Some(MonthLabel {
+            prefix: "",
+            name,
+            suffix: "",
+        })
     })
 }
 
@@ -1020,28 +1075,59 @@ pub fn month_name(
 /// calendar's months, or empty when none does.
 #[must_use]
 pub fn leap_month_prefix(locale: &Locale, calendar: CalendarId) -> &'static str {
+    leap_month_affixes(locale, calendar).0
+}
+
+/// What a locale writes after an intercalary month of a calendar: ` Nhuận`
+/// in Vietnamese; empty for a locale that writes its word before the
+/// month, and where no entry names the calendar's months.
+#[must_use]
+pub fn leap_month_suffix(locale: &Locale, calendar: CalendarId) -> &'static str {
+    leap_month_affixes(locale, calendar).1
+}
+
+/// The prefix and the suffix together, from the one entry that decides
+/// both, so that a locale never writes one entry's prefix with another's
+/// suffix.
+fn leap_month_affixes(locale: &Locale, calendar: CalendarId) -> (&'static str, &'static str) {
     resolve(locale, |data| {
         data.entries_for(calendar)
             .find(|entry| !entry.months().is_empty())
-            .map(|entry| prefix_in(data, calendar, entry))
+            .map(|entry| affixes_in(data, calendar, entry))
     })
-    .unwrap_or("")
+    .unwrap_or(("", ""))
 }
 
-/// The leap-month prefix a locale's data writes for a calendar whose
-/// months `months` names: that entry's own, or where it states none, the
-/// first another of the locale's entries for the calendar states. The
-/// Japanese era calendars take their months from the Gregorian entry,
-/// which has no intercalary month, and their 閏 from an entry of their
-/// own.
-fn prefix_in(data: &LocaleData, calendar: CalendarId, months: &CalendarNames) -> &'static str {
-    if !months.leap_month_prefix.is_empty() {
-        return months.leap_month_prefix;
-    }
-    data.entries_for(calendar)
-        .map(|entry| entry.leap_month_prefix)
-        .find(|prefix| !prefix.is_empty())
-        .unwrap_or("")
+/// The name a locale writes a calendar's leap day by, in place of its
+/// month and day: the first entry in the chain that names one, else
+/// English's, as an era's name falls back to English's. `None` where no
+/// source names the day and it is written as the day it repeats.
+#[must_use]
+pub fn leap_day_name(locale: &Locale, calendar: CalendarId) -> Option<LeapDayName> {
+    let pick = |data: &'static LocaleData| {
+        data.entries_for(calendar)
+            .find_map(|entry| entry.leap_names.leap_day)
+    };
+    resolve(locale, pick).or_else(|| resolve(&english(), pick))
+}
+
+/// The leap-month prefix and suffix a locale's data writes for a calendar
+/// whose months `months` names: that entry's own, or where it states
+/// neither, the first another of the locale's entries for the calendar
+/// states. The Japanese era calendars take their months from the Gregorian
+/// entry, which has no intercalary month, and their 閏 or ` Nhuận` from an
+/// entry of their own.
+fn affixes_in(
+    data: &LocaleData,
+    calendar: CalendarId,
+    months: &CalendarNames,
+) -> (&'static str, &'static str) {
+    let affixes = |entry: &CalendarNames| (entry.leap_month_prefix, entry.leap_month_suffix);
+    let stated = |(prefix, suffix): &(&str, &str)| !prefix.is_empty() || !suffix.is_empty();
+    Some(affixes(months))
+        .filter(stated)
+        .or_else(|| data.entries_for(calendar).map(affixes).find(stated))
+        .unwrap_or(("", ""))
 }
 
 /// How many months a calendar is named for in a locale.
@@ -1243,9 +1329,9 @@ pub fn is_latin_script(locale: &Locale) -> bool {
 ///
 /// The width applies to the locale's names and degrades as
 /// [`WidthSet::get`] does. The calendar's own name answers for the eras a
-/// locale's data does not list — the two hundred and forty-three nengō
-/// before 明治 — so that 嘉永三年 is written as itself and never as
-/// `kaei 3`; English answers for an era neither the locale nor the
+/// locale's data does not list — every nengō in a locale whose CLDR file
+/// names none, and the Northern court's eras CLDR's list leaves out — so
+/// that 貞和三年 is written as itself and never as `jowa-1345 3`; English answers for an era neither the locale nor the
 /// calendar names, as Sanskrit, which names no era, writes the Śaka era of
 /// the lunisolar calendars `Saka`. The code is an identifier and is never
 /// reader-facing text; the facade's vocabulary test holds every era code a
@@ -1681,7 +1767,7 @@ mod tests {
         );
         assert_eq!(
             lunisolar_month("en", "chinese", Month::leap(2)).as_deref(),
-            Some("leap Second Month")
+            Some("intercalary Second Month")
         );
         assert_eq!(
             leap_month_prefix(&locale("ja"), CalendarId("chinese")),
@@ -1691,19 +1777,23 @@ mod tests {
         assert_eq!(leap_month_prefix(&locale("de"), CalendarId("gregory")), "");
         // The Japanese era calendars name their months through the
         // Gregorian entry and their leap month through their own.
-        for (tag, prefix) in [
-            ("ja", "閏"),
-            ("en", "intercalary "),
-            ("zh-Hant", "閏"),
-            ("zh-Hans", "闰"),
-            ("de", ""),
+        for (tag, prefix, suffix) in [
+            ("ja", "閏", ""),
+            ("en", "intercalary ", ""),
+            ("zh-Hant", "閏", ""),
+            ("zh-Hans", "闰", ""),
+            ("ko", "윤", ""),
+            ("vi", "", " Nhuận"),
+            ("de", "", ""),
         ] {
-            assert_eq!(
-                leap_month_prefix(&locale(tag), CalendarId("japanese")),
-                prefix,
-                "{tag}"
-            );
+            let calendar = CalendarId("japanese");
+            assert_eq!(leap_month_prefix(&locale(tag), calendar), prefix, "{tag}");
+            assert_eq!(leap_month_suffix(&locale(tag), calendar), suffix, "{tag}");
         }
+        assert_eq!(
+            lunisolar_month("vi", "japanese", Month::leap(3)).as_deref(),
+            Some("Tháng 3 Nhuận")
+        );
         assert_eq!(
             lunisolar_month("ja", "japanese", Month::leap(3)).as_deref(),
             Some("閏3月")
@@ -1906,35 +1996,36 @@ mod tests {
     fn an_era_the_locale_does_not_list_is_written_from_the_calendars_own_name() {
         use hc_calendar::shape::EraName;
         let japanese = CalendarId("japanese");
-        // The data lists the modern five; 嘉永 is not among them.
+        // The data lists the eras CLDR 48 lists; 貞和, an era of the
+        // Northern court, is not among them.
         assert_eq!(
-            era_name_by_code(&locale("ja"), japanese, "kaei", NameWidth::Wide),
+            era_name_by_code(&locale("ja"), japanese, "jowa-1345", NameWidth::Wide),
             None
         );
-        let kaei = Some(EraName::new("嘉永", "Kaei"));
+        let jowa = Some(EraName::new("貞和", "Jowa"));
         assert_eq!(
-            era_label(&locale("ja"), japanese, "kaei", kaei, NameWidth::Wide),
-            Some("嘉永")
+            era_label(&locale("ja"), japanese, "jowa-1345", jowa, NameWidth::Wide),
+            Some("貞和")
         );
         assert_eq!(
-            era_label(&locale("en"), japanese, "kaei", kaei, NameWidth::Wide),
-            Some("Kaei")
+            era_label(&locale("en"), japanese, "jowa-1345", jowa, NameWidth::Wide),
+            Some("Jowa")
         );
         // A non-Latin locale gets the calendar's own orthography, not
         // Hepburn.
         assert_eq!(
-            era_label(&locale("ko"), japanese, "kaei", kaei, NameWidth::Wide),
-            Some("嘉永")
+            era_label(&locale("ko"), japanese, "jowa-1345", jowa, NameWidth::Wide),
+            Some("貞和")
         );
         // The locale's own name still comes first; English answers where
         // neither the locale nor the calendar names the era; and the code
         // is never an answer.
         assert_eq!(
-            era_label(&locale("ja"), japanese, "reiwa", kaei, NameWidth::Wide),
+            era_label(&locale("ja"), japanese, "reiwa", jowa, NameWidth::Wide),
             Some("令和")
         );
         assert_eq!(
-            era_label(&locale("ja"), japanese, "kaei", None, NameWidth::Wide),
+            era_label(&locale("ja"), japanese, "jowa-1345", None, NameWidth::Wide),
             None
         );
         assert_eq!(
@@ -2317,6 +2408,33 @@ mod tests {
             era_name_by_code(&locale("en"), calendar, "reiwa", NameWidth::Wide),
             Some("Reiwa")
         );
+        // Every era CLDR 48 lists, as each file writes it: 萬延 in
+        // `zh_Hant.xml`, 만엔 with its years in `ko.xml`, root's Latin
+        // name with its years in English, and the narrow width of `ja.xml`,
+        // which is the name itself before 明治.
+        for (tag, width, name) in [
+            ("ja", NameWidth::Wide, "万延"),
+            ("ja", NameWidth::Narrow, "万延"),
+            ("zh-Hant", NameWidth::Abbreviated, "萬延"),
+            ("ko", NameWidth::Wide, "만엔 (1860 ~ 1861)"),
+            ("en", NameWidth::Wide, "Man’en (1860–1861)"),
+        ] {
+            assert_eq!(
+                era_name_by_code(&locale(tag), calendar, "manen", width),
+                Some(name),
+                "{tag}"
+            );
+        }
+        // A file that names a few eras names only those: `fa.xml`'s ریوا,
+        // and no name of its own for 万延.
+        assert_eq!(
+            era_name_by_code(&locale("fa"), calendar, "reiwa", NameWidth::Wide),
+            Some("ریوا")
+        );
+        assert_eq!(
+            era_name_by_code(&locale("fa"), calendar, "manen", NameWidth::Wide),
+            None
+        );
         assert_eq!(
             month_name(
                 &japanese,
@@ -2445,7 +2563,7 @@ mod tests {
             NameContext::Format,
         )
         .unwrap();
-        assert_eq!(english.to_string(), "leap Fourth Month");
+        assert_eq!(english.to_string(), "intercalary Fourth Month");
     }
 
     #[test]

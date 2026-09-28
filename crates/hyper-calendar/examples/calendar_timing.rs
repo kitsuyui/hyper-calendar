@@ -100,7 +100,7 @@ fn describe_day_steps(calendar: &dyn DynCalendar, day: Rd, tag: &str) -> Steps {
                     names::era_name_by_code(&locale, id, code, names::NameWidth::Wide)
                 });
                 let leap = names::has_leap_year_month_names(&locale, id)
-                    && calendar.is_leap_year_of(&fields).unwrap_or(false);
+                    && calendar.has_intercalary_month_of(&fields).unwrap_or(false);
                 (era, leap)
             }),
             once(|| label::date(calendar, &fields, &locale)),

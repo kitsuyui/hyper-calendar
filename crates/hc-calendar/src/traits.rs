@@ -5,7 +5,7 @@ use core::marker::PhantomData;
 
 use crate::daystart::{DayBoundary, Standing, Usage};
 use crate::error::{CalendarError, CalendarResult};
-use crate::fields::{DateFields, YearKind};
+use crate::fields::{DateFields, Month, YearKind};
 use crate::fixed::Rd;
 use crate::shape::{CycleShape, EraName};
 
@@ -452,6 +452,29 @@ pub trait DynCalendar {
     /// As [`DynCalendar::is_leap_year`], plus [`CalendarError::UnknownEra`].
     fn is_leap_year_of(&self, fields: &DateFields) -> CalendarResult<bool> {
         self.is_leap_year(fields.year)
+    }
+
+    /// Whether the year a date falls in has an intercalary month: a
+    /// leap year, [`DynCalendar::is_leap_year_of`], in which some
+    /// `Month::leap` has a first day. A year whose leap unit is a day, as
+    /// the Lao calendar's thirtieth of month 7 is, has none. The names a
+    /// month takes in a year with the intercalary month, *Adar II*, go by
+    /// this.
+    ///
+    /// # Errors
+    ///
+    /// As [`DynCalendar::is_leap_year_of`].
+    fn has_intercalary_month_of(&self, fields: &DateFields) -> CalendarResult<bool> {
+        if !self.meta().has_leap_months || !self.is_leap_year_of(fields)? {
+            return Ok(false);
+        }
+        Ok((1..=13).any(|ordinal| {
+            let mut first = DateFields::new(fields.year);
+            first.era = fields.era;
+            first.month = Some(Month::leap(ordinal));
+            first.day = Some(1);
+            self.fields_to_fixed(&first).is_ok()
+        }))
     }
 
     /// The calendar's own name for an era code. See [`Calendar::era_name`].

@@ -7,13 +7,24 @@
 //! the rustdoc of each export of the C library and the WebAssembly module,
 //! in their READMEs, and as a union type in the binding's `.d.ts` — and a
 //! written list is right on the day it is written. So each is held to the
-//! table here: the `.d.ts` type names exactly the table's identifiers,
-//! every rustdoc block, README paragraph and roadmap table that lists them
-//! names every one, and each identifier of a convention is named by a row
-//! or paragraph of the roadmaps, as §5's "The roadmap row gives the
-//! identifiers" asks. Every `.d.ts` union of a convention's identifiers is
-//! one of these; the unions of the words a line is written in, such as
-//! `Standing` or `MoonPhaseName`, are not tables and are not held here. A
+//! table here, both ways: the `.d.ts` type names exactly the table's
+//! identifiers; every rustdoc block, README paragraph and roadmap table
+//! that lists them names every one, and every list it gives of them — a
+//! run of code words joined by commas, "and" and "or" — names nothing no
+//! table holds;
+//! and each identifier of a convention is named by a row or paragraph of
+//! the roadmaps, as §5's "The roadmap row gives the identifiers" asks,
+//! while every list of a roadmap row that names one of them names only
+//! identifiers a table holds. A list may name two tables' identifiers, as
+//! the roadmap's row of Galileo System Time names the epoch
+//! `galileo-system-time` and the week field `galileo-week`; an identifier
+//! a table has lost, still in a list beside its old neighbours, is in no
+//! table and fails. Every `.d.ts` union a caller passes to the binding is one
+//! of these, and so is every union of a convention's identifiers; the
+//! unions of the words a line is written in, such as `Standing` or
+//! `MoonPhaseName`, are not tables and are not held here. Where the
+//! binding turns a name into the number the boundary takes, as `UNITS`
+//! and `GEOLOGIC_RANKS` do, its list is the table in the table's order. A
 //! listing that hands the identifiers back — `missions()`, `bodies()`,
 //! `horizons()` — types its field with the same union, so that a caller
 //! passes a listed identifier to the lookup without a cast.
@@ -24,15 +35,18 @@ use std::collections::BTreeSet;
 
 use hyper_calendar::hc_astro::HORIZONS;
 use hyper_calendar::hc_astro::solar_time::{SolarClock, SolarEvent, ZMANIM_RECKONINGS};
+use hyper_calendar::hc_calendar::Unit;
 use hyper_calendar::hc_calendars_indic::barhaspatya;
 use hyper_calendar::hc_calendars_indic::kalam::KalamConvention;
 use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
 use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
 use hyper_calendar::hc_calendars_lunar::islamic_observational::NamedCriterion;
 use hyper_calendar::hc_calendars_solar::adoption::Scope;
+use hyper_calendar::hc_core::epoch;
 use hyper_calendar::hc_core::epoch_notation::EpochKind;
 use hyper_calendar::hc_core::gnss::{self, RolloverRule};
 use hyper_calendar::hc_core::tai64;
+use hyper_calendar::hc_deep_time::GeologicRank;
 use hyper_calendar::hc_format::ccsds::AsciiPrecision;
 use hyper_calendar::hc_format::east_african_hours;
 use hyper_calendar::hc_format::radio::dcf77::Zone;
@@ -50,6 +64,10 @@ use hyper_calendar::hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
 #[path = "support/boundaries.rs"]
 mod boundaries;
+#[path = "support/code_lists.rs"]
+mod code_lists;
+
+use code_lists::code_lists;
 
 /// The C library's exports, by the name of its crate.
 const FFI_SOURCE: &str = "../hyper-calendar-ffi";
@@ -535,13 +553,70 @@ fn listed() -> Vec<Listed> {
             methods: &[],
             fields: &[],
         },
+        Listed {
+            what: "calendar units",
+            ids: Unit::ALL.iter().map(|unit| unit.name()).collect(),
+            dts: "Unit",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "geologic ranks",
+            ids: GeologicRank::ALL
+                .iter()
+                .map(|rank| rank.english_name())
+                .collect(),
+            dts: "GeologicRank",
+            exports: &[],
+            paragraphs: &[(WASM_README, "a geologic rank (`eon`")],
+            methods: &["geologicIntervals"],
+            fields: &[],
+        },
     ]
+}
+
+/// The binding's own lists of names it turns into the number the boundary
+/// takes, each with the table whose order the number is: `UNITS` for
+/// `hc_calendar_units`, `GEOLOGIC_RANKS` for `hc_geologic_intervals`.
+fn binding_lists() -> [(&'static str, Vec<&'static str>); 2] {
+    [
+        ("UNITS", Unit::ALL.iter().map(|unit| unit.name()).collect()),
+        (
+            "GEOLOGIC_RANKS",
+            GeologicRank::ALL
+                .iter()
+                .map(|rank| rank.english_name())
+                .collect(),
+        ),
+    ]
+}
+
+/// The string literals of `export const NAME = Object.freeze([...]);` in
+/// the binding, in order.
+fn binding_array(binding: &str, name: &str) -> Vec<String> {
+    let start = format!("export const {name} = Object.freeze([");
+    let at = binding
+        .find(&start)
+        .unwrap_or_else(|| panic!("the binding has no frozen array {name}"));
+    let body = &binding[at + start.len()..];
+    let body = &body[..body
+        .find("])")
+        .unwrap_or_else(|| panic!("the binding's {name} does not end"))];
+    body.split('"')
+        .skip(1)
+        .step_by(2)
+        .map(str::to_owned)
+        .collect()
 }
 
 /// The tables that are not conventions, whose identifiers the roadmap does
 /// not list: the bodies and the gravitating bodies, which are catalogues
 /// of things in the sky; the twelve sidereal signs, the positions of one
-/// cycle; and the words a line or a frame is read in — a radio frame's
+/// cycle; the units a calendar's days are cut into and the ranks of the
+/// geologic time scale, which are divisions, not ways of reckoning one;
+/// and the words a line or a frame is read in — a radio frame's
 /// summer-time state and leap notice, a holiday's kind and confidence, a
 /// CCSDS ASCII code's precision, an adoption's scope.
 const NOT_CONVENTIONS: &[&str] = &[
@@ -554,6 +629,8 @@ const NOT_CONVENTIONS: &[&str] = &[
     "holiday confidences",
     "CCSDS ASCII precisions",
     "adoption scopes",
+    "calendar units",
+    "geologic ranks",
 ];
 
 /// The rows and paragraphs of the roadmaps, each one line: a table row is
@@ -572,26 +649,56 @@ fn roadmap_blocks(roadmaps: &[String]) -> Vec<String> {
     blocks
 }
 
+/// The words of `text`'s lists that name one of `ids` and that no table
+/// holds: neither one of `ids` nor one of `known`.
+fn strangers<'a>(text: &'a str, ids: &[&str], known: &BTreeSet<&str>) -> Vec<&'a str> {
+    code_lists(text)
+        .into_iter()
+        .filter(|list| list.iter().any(|word| ids.contains(word)))
+        .flatten()
+        .filter(|word| !ids.contains(word) && !known.contains(word))
+        .collect()
+}
+
+/// Every identifier a table holds: those of the tables here, and the
+/// epochs', which the time scales' roadmap rows name beside a week field.
+fn known_ids(tables: &[Listed]) -> BTreeSet<&'static str> {
+    tables
+        .iter()
+        .flat_map(|listed| listed.ids.iter().copied())
+        .chain(epoch::ALL.iter().map(|epoch| epoch.id))
+        .collect()
+}
+
 /// What each list gets wrong against its table: the `.d.ts` type, the
 /// prose that lists the identifiers, and the roadmap, some row or
 /// paragraph of which must name each (policy §5, "The roadmap row gives
-/// the identifiers").
+/// the identifiers"), in both directions: a list that leaves one out, and
+/// a list that names one the table does not hold.
 fn problems(
     listed: &Listed,
     dts: &str,
     sources: &[(&str, String)],
     binding: &str,
     roadmap: &[String],
+    known: &BTreeSet<&str>,
 ) -> Vec<String> {
     let mut out = Vec::new();
-    for id in listed
-        .ids
-        .iter()
-        .filter(|_| !NOT_CONVENTIONS.contains(&listed.what))
-    {
-        let quoted = format!("`{id}`");
-        if !roadmap.iter().any(|block| block.contains(&quoted)) {
-            out.push(format!("{}: no roadmap row names `{id}`", listed.what));
+    if !NOT_CONVENTIONS.contains(&listed.what) {
+        for id in &listed.ids {
+            let quoted = format!("`{id}`");
+            if !roadmap.iter().any(|block| block.contains(&quoted)) {
+                out.push(format!("{}: no roadmap row names `{id}`", listed.what));
+            }
+        }
+        for block in roadmap {
+            for stranger in strangers(block, &listed.ids, known) {
+                let head: String = block.chars().take(60).collect();
+                out.push(format!(
+                    "{}: the roadmap row {head}… lists `{stranger}` with the table's identifiers, and no table holds it",
+                    listed.what
+                ));
+            }
         }
     }
     let ids: BTreeSet<String> = listed.ids.iter().map(|id| (*id).to_owned()).collect();
@@ -635,6 +742,12 @@ fn problems(
                 out.push(format!("{}: {place} does not name `{id}`", listed.what));
             }
         }
+        for stranger in strangers(&text, &listed.ids, known) {
+            out.push(format!(
+                "{}: {place} lists `{stranger}` with the table's identifiers, and no table holds it",
+                listed.what
+            ));
+        }
     }
     out
 }
@@ -664,16 +777,28 @@ fn every_list_of_a_conventions_names_is_its_table() {
             "{what} is not a table here"
         );
     }
+    let known = known_ids(&tables);
     let found: Vec<String> = tables
         .iter()
-        .flat_map(|listed| problems(listed, &dts, &sources, &binding, &roadmap))
+        .flat_map(|listed| problems(listed, &dts, &sources, &binding, &roadmap, &known))
         .collect();
     assert!(found.is_empty(), "{}", found.join("\n"));
 }
 
+/// The binding's `UNITS` and `GEOLOGIC_RANKS` are the tables in their
+/// order, since a name crosses the boundary as its position there.
+#[test]
+fn the_bindings_lists_of_numbered_names_are_their_tables_in_order() {
+    let binding = read(BINDING);
+    for (name, ids) in binding_lists() {
+        assert_eq!(binding_array(&binding, name), ids, "the binding's {name}");
+    }
+}
+
 /// The check fails a list that leaves an identifier out, a type that adds
-/// one, a listing's field typed as a bare string, and a roadmap no row of
-/// which names one.
+/// one, a listing's field typed as a bare string, a roadmap no row of
+/// which names one, and a list, in prose or in a roadmap row, that names
+/// one the table does not hold.
 #[test]
 fn the_check_catches_a_short_list_and_a_long_type() {
     let listed = Listed {
@@ -691,12 +816,49 @@ fn the_check_catches_a_short_list_and_a_long_type() {
         "/// `a` only.\npub extern \"C\" fn hc_x() {}".to_owned(),
     )];
     let roadmap = roadmap_blocks(&["| A | `a` |\n| C | `c` |".to_owned()]);
-    let found = problems(&listed, dts, &sources, "", &roadmap);
+    let known = BTreeSet::new();
+    let found = problems(&listed, dts, &sources, "", &roadmap, &known);
     assert_eq!(found.len(), 4, "{found:?}");
     assert!(found[0].contains("no roadmap row names `b`"));
     assert!(found[1].contains("the .d.ts type T"));
     assert!(found[2].contains("the .d.ts field R.id"));
     assert!(found[3].contains("does not name `b`"));
     let roadmap = roadmap_blocks(&["| A | `a` |\n| B | `b` |".to_owned()]);
-    assert_eq!(problems(&listed, dts, &sources, "", &roadmap).len(), 3);
+    assert_eq!(
+        problems(&listed, dts, &sources, "", &roadmap, &known).len(),
+        3
+    );
+    // Both ways: a prose list and a roadmap list that add `c`, which no
+    // table holds, and `k`, which another table does.
+    let known = BTreeSet::from(["k"]);
+    let sources = [(
+        "src",
+        "/// `x` is `a`, `b`, `k` or `c`; `d` for `a` is not a list.\npub extern \"C\" fn hc_x() {}"
+            .to_owned(),
+    )];
+    let roadmap = roadmap_blocks(&["| A | `a`, `k`, `b` and `c` |".to_owned()]);
+    let found = problems(&listed, dts, &sources, "", &roadmap, &known);
+    assert_eq!(found.len(), 4, "{found:?}");
+    assert!(found[0].contains("the roadmap row | A |") && found[0].contains("lists `c`"));
+    assert!(found[3].contains("src hc_x lists `c`"));
+}
+
+#[test]
+fn a_code_list_is_a_run_joined_by_commas_and_or() {
+    assert_eq!(
+        code_lists("`a`, `b` or `c`; `d` for `e`, and `f` (`g`) `h`"),
+        vec![
+            vec!["a", "b", "c"],
+            vec!["d"],
+            vec!["e", "f"],
+            vec!["g"],
+            vec!["h"]
+        ]
+    );
+    let known = BTreeSet::from(["k"]);
+    assert_eq!(
+        strangers("`x` is `a`, `z`, `k` or `b`", &["a", "b"], &known),
+        vec!["z"]
+    );
+    assert!(strangers("`z` and `y`", &["a"], &known).is_empty());
 }
