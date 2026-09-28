@@ -366,6 +366,24 @@ mod tests {
     }
 
     #[test]
+    fn english_outside_the_united_states_drops_the_serial_comma() {
+        // CLDR 48 `en_001.xml`'s standard list ends `{0} and {1}`; `en_GB.xml`
+        // and every region `parentLocales` puts under `en_001` inherit it.
+        let span = 3_600 + 2 * 60 + 3;
+        for tag in ["en-001", "en-GB", "en-AU", "en-IN"] {
+            assert_eq!(
+                say(&formatter(tag), span),
+                "1 hour, 2 minutes and 3 seconds",
+                "{tag}"
+            );
+        }
+        assert_eq!(
+            say(&formatter("en-US"), span),
+            "1 hour, 2 minutes, and 3 seconds"
+        );
+    }
+
+    #[test]
     fn the_conjunction_is_per_locale() {
         let span = 3_600 + 2 * 60 + 3;
         assert_eq!(

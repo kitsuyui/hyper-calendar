@@ -55,7 +55,7 @@
 
 mod cldr48;
 
-use cldr48::{FIL, HA, MR, PA_GURU, PCM, SW, TE, UR, YUE_HANS, YUE_HANT};
+use cldr48::{FIL, HA, MN, MR, PA_GURU, PCM, SW, TE, UR, UR_IN, YUE_HANS, YUE_HANT};
 
 use crate::pattern::{
     ApproximatePatterns, ListForms, ListPatterns, LocaleData, PluralForms, StyleData, UnitPatterns,
@@ -198,6 +198,41 @@ const fn idioms(
     patterns.half = half;
     patterns.one_and_a_half = one_and_a_half;
     style
+}
+
+/// A style with the half-unit idioms of another style of the same
+/// language, unit by unit.
+const fn idioms_of(mut style: StyleData, from: StyleData) -> StyleData {
+    style.second = unit_idioms_of(style.second, from.second);
+    style.minute = unit_idioms_of(style.minute, from.minute);
+    style.hour = unit_idioms_of(style.hour, from.hour);
+    style.day = unit_idioms_of(style.day, from.day);
+    style.week = unit_idioms_of(style.week, from.week);
+    style.month = unit_idioms_of(style.month, from.month);
+    style.quarter = unit_idioms_of(style.quarter, from.quarter);
+    style.year = unit_idioms_of(style.year, from.year);
+    style
+}
+
+const fn unit_idioms_of(mut patterns: UnitPatterns, from: UnitPatterns) -> UnitPatterns {
+    patterns.half = from.half;
+    patterns.one_and_a_half = from.one_and_a_half;
+    patterns
+}
+
+/// A regional entry: its own CLDR part, and the parts CLDR has no field
+/// for from its language's entry — the half-unit idioms, the compact
+/// suffixes, the indefinite units, the hedges and the weekday phrases —
+/// which are the same language's.
+const fn regional(cldr: LocaleData, language: &LocaleData) -> LocaleData {
+    LocaleData {
+        long: idioms_of(cldr.long, language.long),
+        compact: language.compact,
+        indefinite: language.indefinite,
+        approximate: language.approximate,
+        weekday: language.weekday,
+        ..cldr
+    }
 }
 
 /// A list that joins everything with the same pattern.
@@ -1170,12 +1205,29 @@ const PT_PT: LocaleData = LocaleData {
     ..cldr48::PT_PT
 };
 
+// --- the regional entries ---------------------------------------------------
+//
+// The CLDR 48 regional files `hc-i18n` carries (`scripts/locales-cldr.py`):
+// each takes its CLDR part from its own file and its parents', so that
+// `en-001` and `en-GB` close a list without the serial comma, *1 hour,
+// 2 minutes and 3 seconds*, and write *3 mo ago*, as `en_001.xml` has them,
+// and everything CLDR has no field for from its language's entry.
+// Mongolian, a language of its own, carries nothing CLDR does not give, as
+// the entries of the most-spoken languages above.
+
+const AR_EG: LocaleData = regional(cldr48::AR_EG, &AR);
+const EN_001: LocaleData = regional(cldr48::EN_001, &EN);
+const EN_GB: LocaleData = regional(cldr48::EN_GB, &EN);
+const ES_419: LocaleData = regional(cldr48::ES_419, &ES);
+const ZH_HANT_HK: LocaleData = regional(cldr48::ZH_HANT_HK, &ZH_HANT);
+
 /// Every locale this crate carries, in tag order.
 ///
 /// Adding a language is one line here plus one `const` above.
 pub static LOCALES: &[LocaleData] = &[
-    AR, CS, CY, DE, EN, ES, FIL, FR, HA, HI, ID, IT, JA, KO, MR, NL, PA_GURU, PCM, PL, PT, PT_PT,
-    RU, SW, TE, TH, TR, UR, VI, YUE_HANS, YUE_HANT, ZH, ZH_HANT,
+    AR, AR_EG, CS, CY, DE, EN, EN_001, EN_GB, ES, ES_419, FIL, FR, HA, HI, ID, IT, JA, KO, MN, MR,
+    NL, PA_GURU, PCM, PL, PT, PT_PT, RU, SW, TE, TH, TR, UR, UR_IN, VI, YUE_HANS, YUE_HANT, ZH,
+    ZH_HANT, ZH_HANT_HK,
 ];
 
 #[cfg(test)]

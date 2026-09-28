@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn a_region_inherits_everything_its_language_states() {
-        assert_eq!(locale_data(&locale("en-GB")).tag, "en");
+        assert_eq!(locale_data(&locale("en-US")).tag, "en");
         assert_eq!(locale_data(&locale("pt-BR")).tag, "pt");
         assert_eq!(locale_data(&locale("de-AT-u-ca-gregory")).tag, "de");
     }
@@ -221,16 +221,30 @@ mod tests {
     }
 
     /// CLDR 48's likely subtags give these regions the Hant script, so a
-    /// tag that names only the region still reaches the Traditional entry;
+    /// tag that names only the region still reaches the Traditional entry,
+    /// and Hong Kong's own, which Macao's `parentLocales` row leads to;
     /// `zh-CN` and `zh-SG` take Hans.
     #[test]
     fn a_traditional_region_reaches_the_zh_hant_entry_without_naming_the_script() {
-        for tag in ["zh-TW", "zh-HK", "zh-MO"] {
-            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant", "{tag}");
+        assert_eq!(locale_data(&locale("zh-TW")).tag, "zh-Hant");
+        for tag in ["zh-HK", "zh-MO"] {
+            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant-HK", "{tag}");
         }
         for tag in ["zh-CN", "zh-SG"] {
             assert_eq!(locale_data(&locale(tag)).tag, "zh", "{tag}");
         }
+    }
+
+    /// CLDR 48's `parentLocales`: British, Australian and Indian English
+    /// inherit `en-001`, Mexican Spanish `es-419`.
+    #[test]
+    fn a_region_reaches_its_cldr_parent() {
+        assert_eq!(locale_data(&locale("en-GB")).tag, "en-GB");
+        assert_eq!(locale_data(&locale("en-AU")).tag, "en-001");
+        assert_eq!(locale_data(&locale("en-IN")).tag, "en-001");
+        assert_eq!(locale_data(&locale("es-MX")).tag, "es-419");
+        assert_eq!(locale_data(&locale("ur-IN")).tag, "ur-IN");
+        assert_eq!(locale_data(&locale("ar-EG")).tag, "ar-EG");
     }
 
     #[test]

@@ -416,6 +416,7 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("lt", rule_lithuanian),
     ("lv", rule_latvian),
     ("ml", rule_one_if_n_is_one),
+    ("mn", rule_one_if_n_is_one),
     ("mr", rule_one_if_n_is_one),
     ("my", rule_other_only),
     ("nah", rule_one_if_n_is_one),
@@ -429,6 +430,7 @@ pub static RULES: &[(&str, RuleFn)] = &[
     ("pt-PT", rule_italian),
     ("ro", rule_romanian),
     ("ru", rule_east_slavic),
+    ("shi", rule_tachelhit),
     ("sl", rule_slovenian),
     ("sv", rule_one_if_i_is_one_and_v_is_zero),
     ("sw", rule_one_if_i_is_one_and_v_is_zero),
@@ -533,6 +535,18 @@ fn rule_french(operands: &PluralOperands) -> PluralCategory {
 fn rule_one_if_i_is_zero_or_one(operands: &PluralOperands) -> PluralCategory {
     if operands.i() <= 1 {
         PluralCategory::One
+    } else {
+        PluralCategory::Other
+    }
+}
+
+/// Tachelhit: `one: i = 0 or n = 1`, `few: n = 2..10` (CLDR 48
+/// `plurals.xml`).
+fn rule_tachelhit(operands: &PluralOperands) -> PluralCategory {
+    if operands.i() == 0 || operands.n_is(1) {
+        PluralCategory::One
+    } else if operands.n_in(2, 10) {
+        PluralCategory::Few
     } else {
         PluralCategory::Other
     }
@@ -1250,7 +1264,7 @@ mod tests {
         for pair in RULES.windows(2) {
             assert!(pair[0].0 < pair[1].0, "{} !< {}", pair[0].0, pair[1].0);
         }
-        assert_eq!(RULES.len(), 54);
+        assert_eq!(RULES.len(), 56);
     }
 
     #[test]

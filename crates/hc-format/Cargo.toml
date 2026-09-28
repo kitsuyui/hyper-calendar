@@ -19,6 +19,12 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-t
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm"]
+# The time zone names of the CLDR fields `z`, `v` and `V`: CLDR 48's
+# metazones and English's names (`hc_i18n::zone_names`). Without it those
+# fields take their UTS #35 fallbacks, the localized GMT format and `unk`.
+zone-names = ["hc-i18n/zone-names"]
+# Every other carried locale's zone names and exemplar cities.
+localized-zone-names = ["zone-names", "hc-i18n/localized-zone-names"]
 
 [dependencies]
 hc-core = { workspace = true }

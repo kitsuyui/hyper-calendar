@@ -143,8 +143,20 @@ input. `write_imf_fixdate` produces the HTTP `Date` shape with the literal
 
 `strftime` supports `%Y %C %y %G %g %m %d %e %j %H %k %I %l %M %S %f %u %w
 %U %W %V %a %A %b %B %h %p %P %z %:z %Z %s %n %t %% %F %T %R %D %r %c %x %X`,
-the flags `-` `_` `0` `^` `#` and an explicit field width. Not implemented:
-the `%E…`/`%O…` locale-alternative modifiers. `%f` is Python's: six digits of
+the flags `-` `_` `0` `^` `#` and an explicit field width, and POSIX's
+modifiers (IEEE Std 1003.1-2024, "Modified Conversion Specifiers",
+[posix-strftime-2024]): `%EC`, `%Ey`, `%EY`, `%Ex` and `%Ec` write the era,
+year and date of the calendar `FormatContext::era_calendar` names, or of
+the Buddhist or Minguo calendar a locale's `-u-ca-` key names
+(`th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569), `%EX` is `%X`, and a locale
+with no such calendar writes the unmodified conversion, as POSIX says;
+`%Ob` and `%OB` write the stand-alone month, POSIX's nominative
+`alt_mon` (Russian's *сентябрь* for *сентября*); and `%Od` … `%Oy` write the
+number in the locale's alternative digits, CLDR 48's `native` system where
+it is not the usual one, else its `traditional` one (Devanagari for `hi`,
+Han numerals for `ja`, Hebrew for `he`). The Japanese eras need the
+calendar passed in, since this crate does not depend on the nengō table.
+`strptime` reads a modified conversion as the unmodified one. `%f` is Python's: six digits of
 microseconds, or as many as a width asks for, truncated. `%z` keeps the
 seconds of an offset that has them (`+063415`), as Python does. When
 parsing, `%U` and `%W` fix a date only together with a year and a weekday,
@@ -163,13 +175,30 @@ six and accepts `23:59:60`; it refuses offsets with a fraction of a second,
 which Python accepts. `tests/python_directives.rs` checks every directive
 Python documents against that table's own sample.
 
-CLDR supports `G y Y u Q q M L w W d D F E e c a h H K k m s S A z Z O X x`
-and `'` quoting. Not implemented: `b`/`B` (flexible day periods, which need
-per-locale hour ranges), `v`/`V` (metazones), `U` (cyclic year names), `r`
-(related Gregorian year) and `g` (modified Julian day). `z`, `v` and `V` are
+CLDR supports `G y Y u U r Q q M L w W d D F g E e c a b B h H K k m s S A
+z Z O v V X x` and `'` quoting, UTS #35 Part 4, version 48.2
+[uts35-dates-48]. In these Gregorian patterns `U`, with no cyclic year
+names, "behaves like `y`", `r` "is the same as the `u` year", and `g` is
+the Julian day number of the local date, 2451545 for 2000-01-01. `b` writes
+*noon* and *midnight* at 12:00:00 and 00:00:00 where the locale's language
+has them and am or pm otherwise, and `B` the flexible period of the
+language's rules, *in the afternoon*, *at night*, from CLDR 48's
+`dayPeriods.xml` (`hc_i18n::day_periods`). The zone fields follow "Using
+Time Zone Names": `z` the specific name, *Pacific Daylight Time* (a name
+given to the context first), `v` the generic one, *Pacific Time*, *Pacific
+Time (Canada)* for Vancouver, `V` the short identifier `uslax`, `VV` the
+zone as given, `VVV` its exemplar city and `VVVV` its location, *Italy
+Time*, `O` and `ZZZZ` the localized GMT format in the locale's words and
+digits, *UTC+2* in French, each falling back as UTS #35 lists; the context
+takes the zone's identifier (`with_zone_id`) and whether the reading is
+daylight time (`with_daylight`). The names are the `zone-names` feature,
+English's with root's, and `localized-zone-names`, every other locale's;
+without them the fields take their fallbacks.
+`docs/systems/zone-names.md` works the rules through. `z`, `v` and `V` are
 not resolved when parsing: mapping an abbreviation back to a zone is not
-possible — `CST` is three different zones — so those fields are consumed and
-the zone left unstated unless RFC 5322 assigns the name an offset.
+possible — `CST` is three different zones — so those fields are consumed
+and the zone left unstated unless RFC 5322 assigns the name an offset. `B`
+parsed gives am or pm where its period lies wholly on one side of noon.
 
 With no locale, names are the POSIX `C` (English) ones, which is what
 `strftime` without `setlocale` gives and what a protocol field needs. With a

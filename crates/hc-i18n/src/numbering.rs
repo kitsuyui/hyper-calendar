@@ -19,8 +19,14 @@
 //! No grouping separators, no decimal separator, no sign other than an
 //! ASCII hyphen, no currency and no rule-based spellout of ordinals: a
 //! calendar field is an integer, and the surrounding pattern is
-//! `hc-format`'s problem. Greek alphabetic numerals, and the Chinese
-//! counting-rod and `hanidays` systems, are not implemented.
+//! `hc-format`'s problem. The Chinese counting-rod and `hanidays` systems
+//! are not implemented here.
+//!
+//! Greek alphabetic numerals, `grek` in capitals and `greklow` in small
+//! letters, are a fourth kind, spelled as CLDR 48's `%greek-upper` and
+//! `%greek-lower` rules of `common/rbnf/root.xml` spell them (`cldr48-rbnf`):
+//! 2026 is ͵βκϝ´, the thousands after the lower numeral sign and the
+//! acute accent the rules write for the numeral sign after the number.
 //!
 //! Hebrew numerals, `hebr`, are the third kind: letters whose values add,
 //! 17 as י״ז, written as CLDR 48's rule-based number format spells them
@@ -43,6 +49,8 @@ enum Kind {
     /// Hebrew numerals: letters whose values add, with a geresh or
     /// gershayim marking the number.
     Hebrew,
+    /// Greek alphabetic numerals, in capitals or small letters.
+    Greek(&'static greek::Letters),
 }
 
 /// The pieces a Han numeral style is built from.
@@ -107,6 +115,18 @@ const MYMR_DIGITS: [char; 10] = ['၀', '၁', '၂', '၃', '၄', '၅', '၆'
 const HANIDEC_DIGITS: [char; 10] = ['〇', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 /// Fullwidth Latin digits.
 const FULLWIDE_DIGITS: [char; 10] = ['０', '１', '２', '３', '４', '５', '６', '７', '８', '９'];
+/// Gurmukhi digits, Punjabi's native ones.
+const GURU_DIGITS: [char; 10] = ['੦', '੧', '੨', '੩', '੪', '੫', '੬', '੭', '੮', '੯'];
+/// Javanese digits.
+const JAVA_DIGITS: [char; 10] = ['꧐', '꧑', '꧒', '꧓', '꧔', '꧕', '꧖', '꧗', '꧘', '꧙'];
+/// Malayalam digits.
+const MLYM_DIGITS: [char; 10] = ['൦', '൧', '൨', '൩', '൪', '൫', '൬', '൭', '൮', '൯'];
+/// Tamil decimal digits, `tamldec`, Tamil's native ones.
+const TAMLDEC_DIGITS: [char; 10] = ['௦', '௧', '௨', '௩', '௪', '௫', '௬', '௭', '௮', '௯'];
+/// Telugu digits.
+const TELU_DIGITS: [char; 10] = ['౦', '౧', '౨', '౩', '౪', '౫', '౬', '౭', '౮', '౯'];
+/// Tibetan digits.
+const TIBT_DIGITS: [char; 10] = ['༠', '༡', '༢', '༣', '༤', '༥', '༦', '༧', '༨', '༩'];
 
 /// Japanese Han numerals.
 static JPAN_STYLE: HanStyle = HanStyle {
@@ -207,6 +227,18 @@ pub static ALL: &[NumberingSystem] = &[
         kind: Kind::Positional(&FULLWIDE_DIGITS),
     },
     NumberingSystem {
+        id: "grek",
+        kind: Kind::Greek(&greek::UPPER),
+    },
+    NumberingSystem {
+        id: "greklow",
+        kind: Kind::Greek(&greek::LOWER),
+    },
+    NumberingSystem {
+        id: "guru",
+        kind: Kind::Positional(&GURU_DIGITS),
+    },
+    NumberingSystem {
         id: "hanidec",
         kind: Kind::Positional(&HANIDEC_DIGITS),
     },
@@ -223,6 +255,10 @@ pub static ALL: &[NumberingSystem] = &[
         kind: Kind::Hebrew,
     },
     NumberingSystem {
+        id: "java",
+        kind: Kind::Positional(&JAVA_DIGITS),
+    },
+    NumberingSystem {
         id: "jpan",
         kind: Kind::Han(&JPAN_STYLE),
     },
@@ -235,12 +271,28 @@ pub static ALL: &[NumberingSystem] = &[
         kind: Kind::Positional(&LATN_DIGITS),
     },
     NumberingSystem {
+        id: "mlym",
+        kind: Kind::Positional(&MLYM_DIGITS),
+    },
+    NumberingSystem {
         id: "mymr",
         kind: Kind::Positional(&MYMR_DIGITS),
     },
     NumberingSystem {
+        id: "tamldec",
+        kind: Kind::Positional(&TAMLDEC_DIGITS),
+    },
+    NumberingSystem {
+        id: "telu",
+        kind: Kind::Positional(&TELU_DIGITS),
+    },
+    NumberingSystem {
         id: "thai",
         kind: Kind::Positional(&THAI_DIGITS),
+    },
+    NumberingSystem {
+        id: "tibt",
+        kind: Kind::Positional(&TIBT_DIGITS),
     },
 ];
 
@@ -278,6 +330,30 @@ impl NumberingSystem {
             .unwrap_or(&LATN)
     }
 
+    /// The system a locale writes as its alternative to its usual digits:
+    /// CLDR 48's `native` system where it is not the one
+    /// [`NumberingSystem::for_locale`] gives, else its `traditional` one
+    /// (`numbers/otherNumberingSystems`, [`crate::data::OTHER_NUMBERING`]),
+    /// where this crate carries it: Han numerals for `ja`, whose native
+    /// digits are its usual Latin ones, and Hebrew numerals for `he`;
+    /// Devanagari digits for `hi`. `None` where the locale has none, or
+    /// only one this crate does not write (`am`'s Ethiopic numerals, `ta`'s
+    /// algorithmic Tamil ones, whose native digits `tamldec` it writes).
+    #[must_use]
+    pub fn alternative_for_locale(locale: &Locale) -> Option<&'static Self> {
+        let usual = Self::for_locale(locale);
+        let (native, traditional) = locale.fallback().find_map(|candidate| {
+            let rendered = candidate.rendered()?;
+            crate::data::OTHER_NUMBERING
+                .iter()
+                .find(|(tag, _, _)| *tag == rendered.as_str())
+                .map(|(_, native, traditional)| (*native, *traditional))
+        })?;
+        Self::from_id(native)
+            .filter(|system| system.id != usual.id)
+            .or_else(|| Self::from_id(traditional).filter(|system| system.id != usual.id))
+    }
+
     /// The CLDR identifier.
     #[must_use]
     pub const fn id(&self) -> &'static str {
@@ -287,7 +363,7 @@ impl NumberingSystem {
     /// Whether the system spells numbers out rather than substituting digits.
     #[must_use]
     pub const fn is_algorithmic(&self) -> bool {
-        matches!(self.kind, Kind::Han(_) | Kind::Hebrew)
+        matches!(self.kind, Kind::Han(_) | Kind::Hebrew | Kind::Greek(_))
     }
 
     /// The ten digits, for a positional system.
@@ -295,7 +371,7 @@ impl NumberingSystem {
     pub const fn digits(&self) -> Option<&'static [char; 10]> {
         match self.kind {
             Kind::Positional(digits) => Some(digits),
-            Kind::Han(_) | Kind::Hebrew => None,
+            Kind::Han(_) | Kind::Hebrew | Kind::Greek(_) => None,
         }
     }
 
@@ -311,6 +387,7 @@ impl NumberingSystem {
             Kind::Positional(digits) => write_positional(digits, value, out),
             Kind::Han(style) => write_han(style, value, out),
             Kind::Hebrew => hebrew::write(value, out),
+            Kind::Greek(letters) => greek::write(letters, value, out),
         }
     }
 
@@ -334,6 +411,7 @@ impl NumberingSystem {
             Kind::Positional(digits) => digits.contains(&character),
             Kind::Han(style) => style.pieces().any(|piece| piece.contains(character)),
             Kind::Hebrew => hebrew::writes_char(character),
+            Kind::Greek(letters) => greek::writes_char(letters, character),
         }
     }
 
@@ -346,7 +424,7 @@ impl NumberingSystem {
     pub fn continues_into(&self, written: &str, rest: &str) -> bool {
         match self.kind {
             Kind::Hebrew => hebrew::continues(written, rest),
-            Kind::Positional(_) | Kind::Han(_) => false,
+            Kind::Positional(_) | Kind::Han(_) | Kind::Greek(_) => false,
         }
     }
 
@@ -362,6 +440,7 @@ impl NumberingSystem {
             Kind::Positional(digits) => parse_positional(digits, text),
             Kind::Han(style) => parse_han(style, text),
             Kind::Hebrew => hebrew::parse(text),
+            Kind::Greek(letters) => greek::parse(letters, text),
         }
     }
 }
@@ -560,6 +639,7 @@ fn parse_han(style: &HanStyle, text: &str) -> I18nResult<i64> {
     i64::try_from(signed).map_err(|_| I18nError::NumberOutOfRange)
 }
 
+mod greek;
 mod hebrew;
 
 /// Whether a character of a text is the one written, or the one a reader

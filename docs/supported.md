@@ -635,7 +635,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Readings of the sexagenary cycle
 
-9 readings of the sixty stem-branch names, from `hc_calendar::cycle::readings`. Each holds exactly ten stems and twelve branches; the two columns show the first and the last pair.
+10 readings of the sixty stem-branch names, from `hc_calendar::cycle::readings`. Each holds exactly ten stems and twelve branches; the two columns show the first and the last pair.
 
 | id | Name | 甲子 | 癸亥 | Authority |
 | --- | --- | --- | --- | --- |
@@ -648,10 +648,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ko-hangul` | Korean, in Hangul | 갑 자 | 계 해 | 표준국어대사전 (National Institute of Korean Language), entries 십간 and 십이지 |
 | `ko-latn` | Korean, Revised Romanization | gap ja | gye hae | 국어의 로마자 표기법 (Revised Romanization of Korean, 2000) applied to the Hangul |
 | `vi` | Vietnamese can chi | Giáp Tý | Quý Hợi | The can chi as Vietnamese almanacs (lịch vạn niên) print them; Mão is the standard form of 卯 and Mẹo the southern one |
+| `bo` | Tibetan elements and animals | ཤིང་ཕོ བྱི | ཆུ་མོ ཕག | Wikipedia, "Tibetan calendar" (wikipedia-tibetan-calendar, read 2026-09-29, secondary): the elements me, sa, lcags, chu, shing and the animals in Tibetan script, each element male (pho) then female (mo), the cycle from a Wood-Rat year, and the year names of 2008-2021 in Wylie, sa pho byi for 2008, which write the Rat byi |
 
 ## Facade features
 
-25 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+27 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -673,6 +674,8 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `localized-exemplar-cities` | hc-i18n, hc-i18n/localized-exemplar-cities |
 | `place-names` | hc-i18n, hc-i18n/place-names |
 | `format` | civil, hc-format, hc-humanize?/format |
+| `zone-names` | format, tz, hc-format/zone-names |
+| `localized-zone-names` | zone-names, localized-exemplar-cities, hc-format/localized-zone-names |
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
 | `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories |
@@ -681,4 +684,4 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `orbital` | uncertainty, hc-orbital |
 | `planetary` | astro, hc-planetary |
 | `relativity` | uncertainty, hc-relativity |
-| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, localized-exemplar-cities, place-names, format, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |
+| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, localized-exemplar-cities, place-names, format, zone-names, localized-zone-names, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |

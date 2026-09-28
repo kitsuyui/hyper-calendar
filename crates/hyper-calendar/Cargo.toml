@@ -123,6 +123,13 @@ place-names = ["dep:hc-i18n", "hc-i18n/place-names"]
 # Python `humanize`'s `naturalday` and `naturaldate`, which write a day
 # with it.
 format = ["civil", "dep:hc-format", "hc-humanize?/format"]
+# The time zone names of the CLDR pattern fields `z`, `v` and `V`: CLDR 48's
+# metazones and English's names. About 60 kB.
+zone-names = ["format", "tz", "hc-format/zone-names"]
+# Every other locale's zone names. Some 600 kB of text, so apart from
+# `zone-names`: without it a locale other than English writes a zone by its
+# offset, UTS #35's fallback.
+localized-zone-names = ["zone-names", "localized-exemplar-cities", "hc-format/localized-zone-names"]
 # Locales, plural rules and localised vocabulary.
 i18n = ["civil", "dep:hc-i18n"]
 # Human-readable relative times.
@@ -168,6 +175,8 @@ full = [
     "localized-exemplar-cities",
     "place-names",
     "format",
+    "zone-names",
+    "localized-zone-names",
     "i18n",
     "humanize",
     "holiday",

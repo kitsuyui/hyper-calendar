@@ -186,10 +186,15 @@ there. The table is checked for sortedness and uniqueness by a test.
   §3.13 plus the Turkic tailoring of `SpecialCasing-17.0.0.txt` for `tr` and
   `az`.
 
-Locales shipped: `am ar ban bn bo cop cs de en es fa fil fr ha he hi id it ja
-jv kab ko mid ml mr my nah ne nl pa-Arab pa-Guru pcm pl ps pt pt-PT ru sa sw
-syr ta te th tr ur vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant`, plus the
-`und` root. Non-Gregorian vocabulary: Hijri months
+Locales shipped: `aeb-Latn am ar ar-EG ayl-Latn ban bn bo cop cs de en en-001
+en-GB es es-419 fa fil fr ha he hi id it ja jv kab ko mid mix ml mn mr my nah ne
+nl pa-Arab pa-Guru pcm pl ps pt pt-PT rif ru sa shi-Latn sw syr ta te th tr ur
+ur-IN vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant zh-Hant-HK`, plus the
+`und` root. The regional entries `en-001`, `en-GB`, `es-419`, `zh-Hant-HK`,
+`ur-IN` and `ar-EG`, and the languages `mn` and `shi-Latn`, are generated
+by `scripts/locales-cldr.py` (`--check`) into `src/data/cldr48_locales.rs`
+with CLDR 48's `parentLocales`, which `Locale::parent` follows:
+`docs/i18n.md`, "Regional locales", says what each carries. Non-Gregorian vocabulary: Hijri months
 (Arabic, English), Hebrew months (Hebrew, English), Babylonian months
 (English), the Chinese calendar's months in both Chinese scripts, in
 Japanese (正月, 二月 … 十二月) and in Korean, the Tibetan months in Tibetan,
@@ -217,7 +222,7 @@ scripts the calendars carry themselves), and the zodiac animals in Chinese, Japa
 and English. The stems and branches are not spelled here: each locale names
 one of the readings `hc_calendar::cycle::readings` catalogues.
 
-Twenty of the locales exist for a calendar's own language, and they cover
+Twenty-five of the locales exist for a calendar's own language, and they cover
 what their sources cover and no more:
 
 | Locale | Calendar | Gregorian vocabulary | Calendar vocabulary | Not carried |
@@ -225,22 +230,25 @@ what their sources cover and no more:
 | `am` Amharic | `ethiopic`, `coptic` | CLDR 48 `am.xml` | the thirteen Ethiopic months (CLDR `ethiopic`), the Coptic era abbreviation ዓ/ም (CLDR `coptic`) | Ethiopic era names: CLDR's `am` inherits root's Latin `AA`/`AM` |
 | `cop` Coptic | `coptic` | none: CLDR has no `cop`, so it inherits | the thirteen Bohairic months (Wikipedia, "Coptic calendar") | weekdays, day periods, the era: no source read names them |
 | `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar"); First Waso, Second Waso and the late Tagu in Burmese script ([burmese.md](../../docs/systems/burmese.md)) | — |
-| `bo` Tibetan | `tibetan`, `tibetan-tsurphu`, `tibetan-lochen`, `tibetan-tsurphu-karana` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months; ཟླ་ཤོལ་ before a leap month, Henning's *zla shol* | a mark for a doubled day, which no source read writes in a date; the sixty-year cycle, which the crate's cycle model cannot hold |
-| `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari and its intercalary month, अनला (Wikipedia, "Nepal Sambat") | either era in Devanagari; a `new` (Newar) locale, which CLDR does not have |
+| `bo` Tibetan | `tibetan`, `tibetan-tsurphu`, `tibetan-lochen`, `tibetan-tsurphu-karana` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months; ཟླ་ཤོལ་ before a leap month, Henning's *zla shol*; the sixty-year cycle by element, sex and animal, ས་ཕོ་བྱི for 2008, the reading `hc_calendar::cycle::readings::TIBETAN` (Wikipedia, "Tibetan calendar", secondary) | a mark for a doubled day, which no source read writes in a date; the Tibetan calendars' dates do not yet carry the sexagenary field their year names would be written from |
+| `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari and its intercalary month, अनला (Wikipedia, "Nepal Sambat"); the eras विक्रम संवत् (विसं) and नेपाल सम्वत् (नेसं), as Nepali Wikipedia writes them (secondary) | a `new` (Newar) locale, which CLDR does not have |
 | `sa` Sanskrit | `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `sa.xml`, with the ASCII colon it prints for a visarga in the abbreviated months and in Thursday's wide form transcribed as printed | the twelve lunar months in Devanagari as the amānta calendar declares them (Rashtriya Panchang, Sanskrit edition; Wikipedia, "Hindu calendar"), the prefix अधिक (Wikipedia, "Adhik Maas"), the Vikrami solar months from Vaiśākha | the eras (CLDR's default forms are Latin); the rāśi names in Devanagari and the nakṣatras: no source read prints the former, no calendar declares the latter |
 | `hi` Hindi | `indian`, `hindu-lunar`, `hindu-lunar-purnimanta`, `hindu-solar-vikrami` | CLDR 48 `hi.xml` | the national calendar's months and era abbreviation शक (CLDR `indian`), which names the Śaka years of the lunisolar calendars too through `data::SHARED_ERAS`; the same twelve names keyed to the lunisolar calendars with the prefix अधिक, and from Vaiśākha to the Vikrami solar calendar | the rāśi names in Devanagari; the nakṣatras |
 | `ta` Tamil | `indian`, `hindu-solar-tamil` | CLDR 48 `ta.xml`; the *Tamil Lexicon* | the Tamil months சித்திரை … (CLDR `indian`), serving both calendars, with the era abbreviation சாகா; the sixty year names பிரபவ … அட்சய of `hindu-solar-tamil`, from the Lexicon's entry வருஷம் | day periods: CLDR's `ta` inherits root's |
 | `ml` Malayalam | `indian`, `hindu-solar-malayalam` | CLDR 48 `ml.xml` | the national calendar's months in Malayalam and the era abbreviation ശക (CLDR `indian`); the Kollam months ചിങ്ങം … (Wikipedia, "Malayalam calendar") | day periods: CLDR's `ml` inherits root's |
 | `bn` Bengali | `indian`, `hindu-solar-bengali`, `bangladeshi` | CLDR 48 `bn.xml` | the twelve months (CLDR `indian`), Chaitra first for the national calendar and Boishakh first for the Bengali year, the same spellings Wikipedia's "Bangladeshi national calendar" prints; CLDR's era abbreviation সাল | day periods: CLDR's `bn` inherits root's |
-| `yua` Yucatec Maya | `maya-tzolkin`, `maya-haab`, `maya-round` and their `-gmt2` twins | none: CLDR has no `yua`, so it inherits | the twenty day-signs and nineteen haabʼ months in the sixteenth-century Yucatec spelling the calendar declares (Reingold and Dershowitz; Wikipedia, "Tzolkʼin", "Maya calendar") | the revised orthography; weekdays, day periods, eras |
+| `yua` Yucatec Maya | `maya-tzolkin`, `maya-haab`, `maya-round` and their `-gmt2` twins | none: CLDR has no `yua`, so it inherits | the twenty day-signs and nineteen haabʼ months in the sixteenth-century Yucatec spelling the calendar declares (Reingold and Dershowitz; Wikipedia, "Tzolkʼin", "Maya calendar") | the revised orthography, which Wikipedia's "Tzolkʼin" and "Haabʼ" give (after Kettunen and Helmke) but which no BCP 47 subtag tells from the colonial one; weekdays, day periods, eras |
 | `nah` Nahuatl | `aztec-tonalpohualli`, `aztec-xiuhpohualli` | none: CLDR has no `nah`, so it inherits | the twenty day-signs and nineteen months as the calendar declares them (Wikipedia, "Tonalpohualli"; Reingold and Dershowitz) | weekdays, day periods, eras |
 | `zap` Zapotec | `zapotec-yza` | none: CLDR has no `zap`, so it inherits | the nineteen months of Manuscript 85 and the four year bearers as the calendar declares them (Urcid, *Zapotec Hieroglyphic Writing*, Table 3.5; Tavárez and Justeson 2008, Table 1) | the day-signs of the 260-day count, whose names change with their number; weekdays, day periods, eras |
 | `ban` Balinese | `balinese-pawukon` | none: CLDR has no `ban`, so it inherits | all ten Pawukon cycles as the calendar declares them (Reingold and Dershowitz, §10.6); the Saptawara as weekdays | Balinese script: no source read prints it; day periods, eras |
 | `jv` Javanese | `javanese-pasaran` | CLDR 48 `jv.xml` | the five pasaran and the seven dina (Wikipedia, "Javanese calendar"), with Monday in the Javanese form Senen the module declares (Javanese Wikipedia and Wiktionary, "Senèn") where that page prints the Indonesian Senin | the Javanese-script forms that page prints, `jv` being a Latin-script locale |
-| `syr` Syriac | `assyrian` | CLDR 48 `syr.xml` | the twelve Assyrian months in vocalised East Syriac (Wikipedia, "Assyrian calendar"), Neesan first, ܛܲܒܵܚ for Tabakh | the era AY in Syriac |
+| `syr` Syriac | `assyrian`, `seleucid-syrian` | CLDR 48 `syr.xml` | the twelve Assyrian months in vocalised East Syriac (Wikipedia, "Assyrian calendar"), Neesan first, ܛܲܒܵܚ for Tabakh; the Seleucid year's months, `syr.xml`'s Julian ones, as the Zabad inscription's "Illul" 823 dates by them, and its era ܕܝܲܘܢܵܝܹ̈ܐ, "of the Greeks" (Wikipedia, "Zabad inscription" and "Assyrian calendar", secondary) | the era AY in Syriac: no source read writes it |
 | `kab` Kabyle | `berber` | CLDR 48 `kab.xml` | the Gregorian months, which are the agrarian calendar's under the same Latin-derived names (Encyclopédie berbère, "Calendrier"); CLDR spells Fuṛar and Nunembeṛ where the calendar has Furar and Wambeṛ | — |
 | `zgh` Standard Moroccan Tamazight | `berber` | CLDR 48 `zgh.xml` | the Gregorian months in Tifinagh, ⵉⵏⵏⴰⵢⵔ …, keyed to the agrarian calendar for the same reason | Kabyle forms in Tifinagh: no source read prints them |
 | `ps` Pashto | `persian-afghan`, `persian`, `persian-arithmetic` | CLDR 48 `ps.xml`, less the narrow weekdays and stand-alone narrow months, which resolve to root's Latin letters and numerals | the twelve Solar Hijri months وری … کب (CLDR `persian`, which keys them to its one Solar Hijri calendar and so to all three here), in CLDR's spelling where Wikipedia's "Solar Hijri calendar" has ګ, ي and ك in four | the Solar Hijri era in Pashto: CLDR's `ps` inherits root's; date templates, which `ps.xml` inherits |
+| `shi-Latn` Tachelhit | `berber` | CLDR 48 `shi_Latn.xml`, generated | the Gregorian months, innayr …, keyed to the agrarian calendar as Kabyle's are, the Shilha column of Wikipedia's "Berber calendar" | — |
+| `rif` Riffian, `aeb-Latn` Tunisian Arabic, `ayl-Latn` Libyan Arabic | `berber` | none: `rif.xml` is unconfirmed throughout and CLDR has no `aeb` or `ayl` | the twelve months as Wikipedia's "Berber calendar" spells them for each (secondary), in its romanisation | the Tunisian and Libyan names in Arabic script, which no source read prints; the Shawiya and Mozabite spellings |
+| `mix` Mixtec | `mixtec-year` | none: CLDR has no `mix` | the four year bearers Huiyo, Si, Cuau and Sayu, the first forms of Wikipedia's "Mesoamerican calendars" Mixtec day names, after Caso (secondary) | the language's own name, which no source read gives |
 | `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
 Ten of the locales carry the languages of Ethnologue's thirty most-spoken
@@ -269,9 +277,9 @@ relative-time phrases.
 | `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the calendar's own or the English era, apart from the year as the files' `generic` calendar, to which `root.xml` aliases these calendars' date formats, writes it ("G y年"): `Anno Martyrum 1743年1月17日` |
 
 Plural languages: `am ar bn bo cs cy da de en es fa fi fil fr ga ha he hi id it
-ja jv kab ko lt lv ml mr my nah ne nl pa pcm pl ps pt pt-PT ro ru sl sv sw syr
-ta te th tl tr uk ur vi yue zh`.
-`ban cop mid sa yua zap zgh` are not in CLDR 48's `plurals.xml` and take
+ja jv kab ko lt lv ml mn mr my nah ne nl pa pcm pl ps pt pt-PT ro ru shi sl sv
+sw syr ta te th tl tr uk ur vi yue zh`.
+`aeb ayl ban cop mid mix rif sa yua zap zgh` are not in CLDR 48's `plurals.xml` and take
 root's rule, `other` for everything.
 
 ## What it deliberately does not do
@@ -290,8 +298,9 @@ root's rule, `other` for everything.
   first-strong questions; it does not reorder text.
 * **No word-level title casing.** Only the first character is ever recased,
   because a per-word rule would mangle *2 de enero* and *tháng 1*.
-* **No transliteration**, no Greek alphabetic numerals, no counting-rod
-  numerals. Hebrew numerals are carried, as `hebr`.
+* **No transliteration**, no counting-rod numerals. Hebrew numerals are
+  carried, as `hebr`, and Greek alphabetic numerals as `grek` and
+  `greklow`, CLDR 48's `%greek-upper` and `%greek-lower`: 2026 is ͵βκϝ´.
 * **Lossless or nothing in tags.** A `-u-` key this crate does not model, or
   a `-t-`/`-x-` extension, is an error rather than something silently
   dropped: a formatter that ignored `-u-co-phonebk` would answer for a tag it

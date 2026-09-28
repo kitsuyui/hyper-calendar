@@ -74,7 +74,10 @@
 use hc_calendar::cycle::readings;
 use hc_calendar::{CalendarId, Weekday};
 
+mod cldr48_locales;
 mod japanese_eras;
+
+pub use cldr48_locales::{OTHER_NUMBERING, PARENT_LOCALES};
 
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
@@ -2239,9 +2242,12 @@ const BN: LocaleData = LocaleData {
 // read 2026-09-28), and its first word, ཟླ་ཤོལ་, prefixes the month as 閏
 // does in Chinese: ཟླ་ཤོལ་ཟླ་བ་གསུམ་པ, the leap third month. Where an almanac
 // puts the word in a date was not read, so the place is this library's.
-// The sixty-year names are not here: the calendar module carries them in
-// English, and this crate's cycle model names stems and branches, not
-// elements.
+// The sixty-year names are the sexagenary cycle in the Tibetan reading of
+// `hc_calendar::cycle::readings::TIBETAN`: a stem is an element and its
+// sex, a branch an animal, joined by the tsheg as Wikipedia's "Tibetan
+// calendar" writes the year names in Wylie, *sa pho byi* for 2008
+// (`wikipedia-tibetan-calendar`, secondary): ས་ཕོ་བྱི. The animals alone
+// are the zodiac, from the same table, with the Rat's full *byi ba*.
 
 const BO_MONTHS: &[&str] = &[
     "ཟླ་བ་དང་པོ",
@@ -2357,7 +2363,24 @@ const BO: LocaleData = LocaleData {
         &["ཟླ", "མིག", "ལྷག", "ཕུར", "སངས", "སྤེན", "ཉི"],
     )),
     day_periods: ContextualNames::same(widths(&["སྔ་དྲོ་", "ཕྱི་དྲོ་"], &[], &[])),
-    cycle: SexagenaryNames::EMPTY,
+    cycle: SexagenaryNames {
+        reading: Some(&readings::TIBETAN),
+        joiner: "་",
+        zodiac: Some(&[
+            "བྱི་བ",
+            "གླང",
+            "སྟག",
+            "ཡོས",
+            "འབྲུག",
+            "སྦྲུལ",
+            "རྟ",
+            "ལུག",
+            "སྤྲེ",
+            "བྱ",
+            "ཁྱི",
+            "ཕག",
+        ]),
+    },
     calendars: BO_CALENDARS,
 };
 
@@ -5413,7 +5436,11 @@ const NE_CALENDARS: &[CalendarNames] = &[
             ),
         },
     ),
-    dated(
+    // The eras as Nepali Wikipedia writes them (secondary): विक्रम संवत्,
+    // abbreviated विसं in its year links, "विसं २०८२" (`wikipedia-ne-bikram-
+    // sambat`, read 2026-09-29), and नेपाल सम्वत्, "छोटकरीमा : नेसं", in
+    // short नेसं (`wikipedia-ne-nepal-sambat`, read 2026-09-29).
+    calendar_entry(
         &[CalendarId("bikram-sambat")],
         &[months(&[
             "वैशाख",
@@ -5429,8 +5456,7 @@ const NE_CALENDARS: &[CalendarNames] = &[
             "फागुन",
             "चैत",
         ])],
-        &[],
-        &[],
+        era_names(&["bikram-sambat"], &["विक्रम संवत्"], &["विसं"], &[]),
     ),
     // Nepal Sambat's months in Devanagari, as the calendar writes them, so
     // that the intercalary month has its name, अनला, from the same table of
@@ -5458,7 +5484,8 @@ const NE_CALENDARS: &[CalendarNames] = &[
         intercalary: &same_intercalary_name("अनला"),
         in_leap_years: &[],
         leap_day: None,
-    }),
+    })
+    .with_eras(era_names(&["nepal-sambat"], &["नेपाल सम्वत्"], &["नेसं"], &[])),
 ];
 
 const NE: LocaleData = LocaleData {
@@ -6168,39 +6195,43 @@ const SA: LocaleData = LocaleData {
 // ܣܘܪܝܝܐ in `syr.xml`. No templates: `syr.xml` writes the long date
 // "d ܒMMMM y", with a prefixed ܒ no template here has.
 
+/// CLDR 48 `syr.xml`'s months, the Syriac names of the Julian months
+/// under the Gregorian numbering, Kānōn ʾḤrāy for January.
+const SYR_MONTHS: ContextualNames = ContextualNames::same(widths(
+    &[
+        "ܟܢܘܢ ܐܚܪܝܐ",
+        "ܫܒܛ",
+        "ܐܕܪ",
+        "ܢܝܣܢ",
+        "ܐܝܪ",
+        "ܚܙܝܪܢ",
+        "ܬܡܘܙ",
+        "ܐܒ",
+        "ܐܝܠܘܠ",
+        "ܬܫܪܝܢ ܩܕܡܝܐ",
+        "ܬܫܪܝܢ ܐܚܪܝܐ",
+        "ܟܢܘܢ ܩܕܡܝܐ",
+    ],
+    &[
+        "ܟܢܘܢ ܒ",
+        "ܫܒܛ",
+        "ܐܕܪ",
+        "ܢܝܣܢ",
+        "ܐܝܪ",
+        "ܚܙܝܪܢ",
+        "ܬܡܘܙ",
+        "ܐܒ",
+        "ܐܝܠܘܠ",
+        "ܬܫܪܝܢ ܐ",
+        "ܬܫܪܝܢ ܒ",
+        "ܟܢܘܢ ܐ",
+    ],
+    &["ܟ", "ܫ", "ܐ", "ܢ", "ܐ", "ܚ", "ܬ", "ܐ", "ܐ", "ܬ", "ܬ", "ܟ"],
+));
+
 const SYR_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        &[month_cycle(ContextualNames::same(widths(
-            &[
-                "ܟܢܘܢ ܐܚܪܝܐ",
-                "ܫܒܛ",
-                "ܐܕܪ",
-                "ܢܝܣܢ",
-                "ܐܝܪ",
-                "ܚܙܝܪܢ",
-                "ܬܡܘܙ",
-                "ܐܒ",
-                "ܐܝܠܘܠ",
-                "ܬܫܪܝܢ ܩܕܡܝܐ",
-                "ܬܫܪܝܢ ܐܚܪܝܐ",
-                "ܟܢܘܢ ܩܕܡܝܐ",
-            ],
-            &[
-                "ܟܢܘܢ ܒ",
-                "ܫܒܛ",
-                "ܐܕܪ",
-                "ܢܝܣܢ",
-                "ܐܝܪ",
-                "ܚܙܝܪܢ",
-                "ܬܡܘܙ",
-                "ܐܒ",
-                "ܐܝܠܘܠ",
-                "ܬܫܪܝܢ ܐ",
-                "ܬܫܪܝܢ ܒ",
-                "ܟܢܘܢ ܐ",
-            ],
-            &["ܟ", "ܫ", "ܐ", "ܢ", "ܐ", "ܚ", "ܬ", "ܐ", "ܐ", "ܬ", "ܬ", "ܟ"],
-        )))],
+        &[month_cycle(SYR_MONTHS)],
         gregorian_eras(
             &["ܩܕܡ ܡܫܝܚܐ", "ܫܢܬܐ ܡܪܢܝܬܐ"],
             &["\u{70f}ܩܡ\u{200c}", "\u{70f}ܫܡ\u{200c}"],
@@ -6211,6 +6242,19 @@ const SYR_CALENDARS: &[CalendarNames] = &[
             &["\u{70f}ܪ ܐ", "\u{70f}ܪ ܒ", "\u{70f}ܪ ܓ", "\u{70f}ܪ ܕ"],
             &[],
         )),
+    ),
+    // The Syro-Macedonian year of the Seleucid era as Syriac writes it:
+    // the months `syr.xml` names, whose January, Kānōn ʾḤrāy, is the
+    // calendar's first, Audynaios, as the Greek and the Syriac texts of
+    // the Zabad inscription date one day, 24 Gorpiaios 823 and "the month
+    // Illul" 823, 24 September 512 (Wikipedia, "Zabad inscription",
+    // secondary); and the era "of the Greeks", ܕܝܲܘܢܵܝܹ̈ܐ (d-yawnāyē), as
+    // Wikipedia's "Assyrian calendar" gives it after Coakley, *Robinson's
+    // Paradigms and Exercises in Syriac Grammar*, p. 148 (secondary).
+    calendar_entry(
+        &[CalendarId("seleucid-syrian")],
+        &[month_cycle(SYR_MONTHS)],
+        era_names(&["se"], &["ܕܝܲܘܢܵܝܹ̈ܐ"], &[], &[]),
     ),
     dated(
         &[CalendarId("assyrian")],
@@ -6783,6 +6827,162 @@ const YUA: LocaleData = LocaleData {
     cycle: SexagenaryNames::EMPTY,
     calendars: YUA_CALENDARS,
 };
+
+// --- the Berber calendar's other spellings ---------------------------------
+//
+// The months of the Berber agrarian calendar as Wikipedia's "Berber
+// calendar" tabulates them for Riffian (north Morocco) and for Tunisian and
+// Libyan Arabic (`wikipedia-berber-calendar`, read 2026-09-29, secondary:
+// the table cites *Les Matins d'Algérie*, "Les origines du calendrier
+// amazigh", not read), in the table's romanisation; Shilha's are CLDR 48's
+// `shi_Latn.xml` months, which that table prints too (`data::cldr48_locales`).
+// Where the table gives a letter in parentheses, the form without it is
+// carried — Tunisian *yennar* for yenna(ye)r, *furar* for fura(ye)r — and
+// where it gives two forms, the first: Tunisian *uktuber* of "uktuber /
+// ktubru"; its note on Riffian *cutembir*, "c=sh", is the Kabyle convention
+// for the sound. CLDR 48's `rif.xml` states every value at the
+// `unconfirmed` level, and CLDR has no `aeb` or `ayl`, so the entries have
+// no Gregorian vocabulary; the Tunisian and Libyan forms are the Arabic
+// dialects' names in Latin letters, and their own script is not carried,
+// for no source read prints it. The languages' own names are Wikipedia's
+// "Tarifit", "Tunisian Arabic" and "Libyan Arabic" (read 2026-09-29):
+// Tarifit, Tūnsi and Lībi.
+
+const RIF_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    dated(
+        &[CalendarId("berber")],
+        &[months(&[
+            "yennayer", "yebrayer", "mares", "yebrir", "may", "yunyu", "yulyuz", "ɣuct",
+            "cutembir", "ktuber", "nwambir", "dujembir",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const AEB_LATN_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    dated(
+        &[CalendarId("berber")],
+        &[months(&[
+            "yennar", "furar", "marsu", "abril", "mayu", "yunyu", "yulyu", "awussu", "ctamber",
+            "uktuber", "nufember", "dejember",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+const AYL_LATN_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    dated(
+        &[CalendarId("berber")],
+        &[months(&[
+            "yannayer",
+            "febrayer",
+            "mars",
+            "ibril",
+            "mayu",
+            "yunyu",
+            "yulyu",
+            "aɣustus",
+            "september",
+            "uktuber",
+            "nuvamber",
+            "december",
+        ])],
+        &[],
+        &[],
+    ),
+];
+
+/// A locale with no CLDR vocabulary that names only the calendars its
+/// sources name.
+const fn calendar_only(
+    tag: &'static str,
+    sources: &'static str,
+    english_name: &'static str,
+    native_name: &'static str,
+    calendars: &'static [CalendarNames],
+) -> LocaleData {
+    LocaleData {
+        tag,
+        sources,
+        english_name,
+        native_name,
+        script: "Latn",
+        templates: DateTemplates::NONE,
+        calendar_names: &[],
+        direction: Direction::LeftToRight,
+        numbering: "latn",
+        first_day_of_week: Weekday::Monday,
+        casing: CasingStyle::Standard,
+        capitalises_month_names: false,
+        weekdays: ContextualNames::EMPTY,
+        day_periods: ContextualNames::EMPTY,
+        cycle: SexagenaryNames::EMPTY,
+        calendars,
+    }
+}
+
+const RIF: LocaleData = calendar_only(
+    "rif",
+    "none from CLDR, whose rif.xml states every value unconfirmed: wikipedia-berber-calendar (secondary), read 2026-09-29, the Riffian months of the Berber calendar",
+    "Riffian",
+    "Tarifit",
+    RIF_CALENDARS,
+);
+
+const AEB_LATN: LocaleData = calendar_only(
+    "aeb-Latn",
+    "none from CLDR, which has no aeb locale: wikipedia-berber-calendar (secondary), read 2026-09-29, the Tunisian Arabic months of the Berber calendar, romanised",
+    "Tunisian Arabic (Latin)",
+    "Tūnsi",
+    AEB_LATN_CALENDARS,
+);
+
+const AYL_LATN: LocaleData = calendar_only(
+    "ayl-Latn",
+    "none from CLDR, which has no ayl locale: wikipedia-berber-calendar (secondary), read 2026-09-29, the Libyan Arabic months of the Berber calendar, romanised",
+    "Libyan Arabic (Latin)",
+    "Lībi",
+    AYL_LATN_CALENDARS,
+);
+
+// --- Mixtec ---------------------------------------------------------------
+//
+// The language `mixtec-year` declares as its own. The four year bearers, the
+// Reed, the Flint, the House and the Rabbit in the order the years take them
+// (`hc_calendars_regional::mixtec::YEAR_BEARERS`), by their Mixtec day
+// names as Wikipedia's "Mesoamerican calendars" tabulates them after
+// Wauchope's *Handbook of Middle American Indians* and Caso's "El
+// Calendario Mixteco" (1956) (`wikipedia-mesoamerican-calendars`, read
+// 2026-09-29, secondary; Caso and Wauchope were not read): the table gives
+// Huiyo or Huiya for the Reed, Si, Cusi or Cuxi for the Flint, Cuau
+// ("night") and Huahi ("house") for the House, and Sayu or Xay for the
+// Rabbit, and the first form of each is carried. The names of the other
+// sixteen signs are in the table too, but the calendar counts no day-signs.
+// The language's name in itself is left English's: Wikipedia's "Mixtec
+// languages" gives none.
+
+const MIX_CALENDARS: &[CalendarNames] = &[
+    gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),
+    dated(
+        &[CalendarId("mixtec-year")],
+        &[cycle("year-bearer", &["Huiyo", "Si", "Cuau", "Sayu"])],
+        &[],
+        &[],
+    ),
+];
+
+const MIX: LocaleData = calendar_only(
+    "mix",
+    "none from CLDR, which has no mix locale: wikipedia-mesoamerican-calendars (secondary), read 2026-09-29, after Caso 1956 and Wauchope 1965, the Mixtec names of the year bearers",
+    "Mixtec",
+    "Mixtec",
+    MIX_CALENDARS,
+);
 
 // --- Standard Moroccan Tamazight ------------------------------------------
 //
@@ -9379,9 +9579,71 @@ const YUE_HANT: LocaleData = LocaleData {
 /// The root entry is not in this table: it is [`ROOT`], the floor that the
 /// lookup falls to when nothing here claims the locale.
 pub static LOCALES: &[LocaleData] = &[
-    AM, AR, BAN, BN, BO, COP, CS, DE, EN, ES, FA, FIL, FR, HA, HE, HI, ID, IT, JA, JV, KAB, KO,
-    MID, ML, MR, MY, NAH, NE, NL, PA_ARAB, PA_GURU, PCM, PL, PS, PT, PT_PT, RU, SA, SW, SYR, TA,
-    TE, TH, TR, UR, VI, YUA, YUE_HANS, YUE_HANT, ZAP, ZGH, ZH_HANS, ZH_HANT,
+    AEB_LATN,
+    AM,
+    AR,
+    cldr48_locales::AR_EG,
+    AYL_LATN,
+    BAN,
+    BN,
+    BO,
+    COP,
+    CS,
+    DE,
+    EN,
+    cldr48_locales::EN_001,
+    cldr48_locales::EN_GB,
+    ES,
+    cldr48_locales::ES_419,
+    FA,
+    FIL,
+    FR,
+    HA,
+    HE,
+    HI,
+    ID,
+    IT,
+    JA,
+    JV,
+    KAB,
+    KO,
+    MID,
+    MIX,
+    ML,
+    cldr48_locales::MN,
+    MR,
+    MY,
+    NAH,
+    NE,
+    NL,
+    PA_ARAB,
+    PA_GURU,
+    PCM,
+    PL,
+    PS,
+    PT,
+    PT_PT,
+    RIF,
+    RU,
+    SA,
+    cldr48_locales::SHI_LATN,
+    SW,
+    SYR,
+    TA,
+    TE,
+    TH,
+    TR,
+    UR,
+    cldr48_locales::UR_IN,
+    VI,
+    YUA,
+    YUE_HANS,
+    YUE_HANT,
+    ZAP,
+    ZGH,
+    ZH_HANS,
+    ZH_HANT,
+    cldr48_locales::ZH_HANT_HK,
 ];
 
 /// Eras more than one calendar counts, each with the one calendar whose
@@ -9686,8 +9948,13 @@ mod tests {
     }
 
     #[test]
-    fn every_locale_states_the_gregorian_calendar() {
+    fn every_language_states_the_gregorian_calendar() {
+        // A regional entry states what its files change, and inherits the
+        // rest from its parent: `en-GB` states no Gregorian names at all.
         for data in every_entry() {
+            if Locale::parse(data.tag).unwrap().region().is_some() {
+                continue;
+            }
             assert!(
                 data.calendar(CalendarId("gregory")).is_some(),
                 "{}: no gregorian vocabulary",
@@ -9729,7 +9996,12 @@ mod tests {
             .filter(|data| data.direction == Direction::RightToLeft)
             .map(|data| data.tag)
             .collect();
-        assert_eq!(rtl, ["ar", "fa", "he", "mid", "pa-Arab", "ps", "syr", "ur"]);
+        assert_eq!(
+            rtl,
+            [
+                "ar", "ar-EG", "fa", "he", "mid", "pa-Arab", "ps", "syr", "ur", "ur-IN"
+            ]
+        );
     }
 
     #[test]
@@ -9874,11 +10146,71 @@ mod tests {
         assert_eq!(
             tags,
             [
-                "am", "ar", "ban", "bn", "bo", "cop", "cs", "de", "en", "es", "fa", "fil", "fr",
-                "ha", "he", "hi", "id", "it", "ja", "jv", "kab", "ko", "mid", "ml", "mr", "my",
-                "nah", "ne", "nl", "pa-Arab", "pa-Guru", "pcm", "pl", "ps", "pt", "pt-PT", "ru",
-                "sa", "sw", "syr", "ta", "te", "th", "tr", "ur", "vi", "yua", "yue-Hans",
-                "yue-Hant", "zap", "zgh", "zh-Hans", "zh-Hant"
+                "aeb-Latn",
+                "am",
+                "ar",
+                "ar-EG",
+                "ayl-Latn",
+                "ban",
+                "bn",
+                "bo",
+                "cop",
+                "cs",
+                "de",
+                "en",
+                "en-001",
+                "en-GB",
+                "es",
+                "es-419",
+                "fa",
+                "fil",
+                "fr",
+                "ha",
+                "he",
+                "hi",
+                "id",
+                "it",
+                "ja",
+                "jv",
+                "kab",
+                "ko",
+                "mid",
+                "mix",
+                "ml",
+                "mn",
+                "mr",
+                "my",
+                "nah",
+                "ne",
+                "nl",
+                "pa-Arab",
+                "pa-Guru",
+                "pcm",
+                "pl",
+                "ps",
+                "pt",
+                "pt-PT",
+                "rif",
+                "ru",
+                "sa",
+                "shi-Latn",
+                "sw",
+                "syr",
+                "ta",
+                "te",
+                "th",
+                "tr",
+                "ur",
+                "ur-IN",
+                "vi",
+                "yua",
+                "yue-Hans",
+                "yue-Hant",
+                "zap",
+                "zgh",
+                "zh-Hans",
+                "zh-Hant",
+                "zh-Hant-HK"
             ]
         );
         assert_eq!(ROOT.tag.to_string(), "und");

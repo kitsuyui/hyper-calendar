@@ -36,6 +36,9 @@
 
 pub mod cldr;
 pub mod strftime;
+mod zone;
+
+use core::fmt;
 
 use hc_calendar::{CivilDateTime, Weekday};
 use hc_calendars_solar::{gregorian, iso_week};
@@ -115,7 +118,7 @@ const C_QUARTERS_WIDE: [&str; 4] = ["1st quarter", "2nd quarter", "3rd quarter",
 /// offset because they cannot be derived from it: `+09:00` is `JST` in Tokyo
 /// and `KST` in Seoul, and only the zone that produced the reading knows
 /// which. Supply them from [`hc_tz::TimeZone::abbreviation_at`].
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct FormatContext<'a> {
     /// The local civil reading to format.
     pub date_time: CivilDateTime,
@@ -125,8 +128,40 @@ pub struct FormatContext<'a> {
     pub zone_abbreviation: Option<&'a str>,
     /// The long zone name, such as `Japan Standard Time`, for CLDR `zzzz`.
     pub zone_name: Option<&'a str>,
+    /// The zone's identifier, `America/Los_Angeles`, from which the CLDR
+    /// fields `z`, `v` and `V` find the zone's names.
+    pub zone_id: Option<&'a str>,
+    /// Whether the reading is the zone's daylight time, which a specific
+    /// name (`z`, *Pacific Daylight Time*) needs; `None` where it is not
+    /// known. Supply it from [`hc_tz::TimeZone::is_dst_at`].
+    pub zone_daylight: Option<bool>,
     /// The locale whose vocabulary to use, or `None` for POSIX `C`.
     pub locale: Option<&'a Locale>,
+    /// The calendar whose era `strftime`'s `%E` conversions write, POSIX's
+    /// "alternative representation" of the year: `%EC` its era, `%Ey` its
+    /// year, `%EY` both. `None` takes the one the locale's `-u-ca-` key
+    /// names, where it is the Buddhist or the Minguo calendar, which this
+    /// crate reaches; any other, the Japanese eras among them, is given
+    /// here.
+    pub era_calendar: Option<&'a dyn hc_calendar::DynCalendar>,
+}
+
+impl fmt::Debug for FormatContext<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("FormatContext")
+            .field("date_time", &self.date_time)
+            .field("zone", &self.zone)
+            .field("zone_abbreviation", &self.zone_abbreviation)
+            .field("zone_name", &self.zone_name)
+            .field("zone_id", &self.zone_id)
+            .field("zone_daylight", &self.zone_daylight)
+            .field("locale", &self.locale)
+            .field(
+                "era_calendar",
+                &self.era_calendar.map(|calendar| calendar.meta().id),
+            )
+            .finish()
+    }
 }
 
 impl<'a> FormatContext<'a> {
@@ -138,8 +173,18 @@ impl<'a> FormatContext<'a> {
             zone: ZoneInfo::Unspecified,
             zone_abbreviation: None,
             zone_name: None,
+            zone_id: None,
+            zone_daylight: None,
             locale: None,
+            era_calendar: None,
         }
+    }
+
+    /// The same context, with the calendar `%E` writes its era in.
+    #[must_use]
+    pub const fn with_era_calendar(mut self, calendar: &'a dyn hc_calendar::DynCalendar) -> Self {
+        self.era_calendar = Some(calendar);
+        self
     }
 
     /// The same context, with a zone designator.
@@ -160,6 +205,20 @@ impl<'a> FormatContext<'a> {
     #[must_use]
     pub const fn with_zone_name(mut self, name: &'a str) -> Self {
         self.zone_name = Some(name);
+        self
+    }
+
+    /// The same context, with the zone's identifier, `America/Los_Angeles`.
+    #[must_use]
+    pub const fn with_zone_id(mut self, id: &'a str) -> Self {
+        self.zone_id = Some(id);
+        self
+    }
+
+    /// The same context, saying whether the reading is daylight time.
+    #[must_use]
+    pub const fn with_daylight(mut self, daylight: bool) -> Self {
+        self.zone_daylight = Some(daylight);
         self
     }
 
@@ -522,6 +581,9 @@ pub struct ParsedFields {
     pub week_of_year_sunday: Option<u8>,
     /// The week of the year counted from the first Monday, from `%W`.
     pub week_of_year_monday: Option<u8>,
+    /// A day by itself, from CLDR `g`, the Julian day number, which names a
+    /// day on its own.
+    pub rd: Option<hc_calendar::Rd>,
 }
 
 impl ParsedFields {
@@ -574,6 +636,9 @@ impl ParsedFields {
     }
 
     fn resolve_day(&self) -> ValueResult<hc_calendar::Rd> {
+        if let Some(day) = self.rd {
+            return Ok(day);
+        }
         if let (Some(year), Some(week), Some(weekday)) =
             (self.iso_year, self.iso_week, self.iso_weekday)
         {
@@ -630,6 +695,7 @@ impl ParsedFields {
     #[must_use]
     pub const fn with_default_date(mut self, year: i64, month: u8, day: u8) -> Self {
         if self.unix_seconds.is_some()
+            || self.rd.is_some()
             || (self.iso_year.is_some() && self.iso_week.is_some() && self.iso_weekday.is_some())
         {
             return self;

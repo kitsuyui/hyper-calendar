@@ -9,42 +9,71 @@
 //!
 //! # Supported fields
 //!
-//! `G` era, `y` year, `Y` week-numbering year, `u` extended year, `Q`/`q`
-//! quarter, `M`/`L` month, `w` week of year, `W` week of month, `d` day,
-//! `D` day of year, `F` day of week in month, `E`/`e`/`c` weekday, `a` day
+//! `G` era, `y` year, `Y` week-numbering year, `u` extended year, `U`
+//! cyclic year, `r` related Gregorian year, `Q`/`q` quarter, `M`/`L`
+//! month, `w` week of year, `W` week of month, `d` day, `D` day of year,
+//! `F` day of week in month, `g` Julian day, `E`/`e`/`c` weekday, `a`
+//! day period, `b` day period with noon and midnight, `B` flexible day
 //! period, `h`/`H`/`K`/`k` hour, `m` minute, `s` second, `S` fractional
-//! second, `A` milliseconds in day, `z`/`Z`/`O`/`X`/`x` zone.
+//! second, `A` milliseconds in day, `z`/`Z`/`O`/`v`/`V`/`X`/`x` zone.
+//!
+//! The fields UTS #35 Part 4 (version 48.2, "Date Field Symbol Table")
+//! defines for other calendars take its Gregorian meaning here, since
+//! these patterns are Gregorian: `U`, where "the calendar does not provide
+//! cyclic year name data", "behaves like `y`", and `r`, "for the Gregorian
+//! calendar", "is the same as the `u` year". `g` is the Julian day number
+//! of the local date, which "demarcates days at local zone midnight": the
+//! day whose noon falls in it, 2 451 545 for 2000-01-01.
+//!
+//! `b` writes *noon* at 12:00:00 and *midnight* at 00:00:00 where the
+//! locale's language has the word (`hc_i18n::day_periods`, CLDR 48's
+//! `dayPeriods.xml`), and am or pm otherwise; `B` writes the flexible
+//! period of the language's rules, *in the afternoon*, *at night*, and am or
+//! pm where it has none. With no locale both are the `C` am and pm.
+//!
+//! The zone fields follow UTS #35's "Using Time Zone Names": `z` the
+//! specific name (*Pacific Daylight Time*), `v` the generic one (*Pacific
+//! Time*), `V` the zone's identifier (`uslax`), its identifier as given,
+//! its exemplar city and its location name (*Los Angeles Time*), and `O`
+//! the localized GMT format in the locale's own words and digits (`fr`'s
+//! *UTC+2*), each with the fallbacks UTS #35 gives; `z` takes the name
+//! the context was given first. The names need the `zone-names` feature,
+//! and a locale's other than English's `localized-zone-names`: without
+//! them the fields take their fallbacks. `docs/systems/zone-names.md` in
+//! the repository works the rules through.
 //!
 //! # Deliberate gaps
 //!
-//! * `b` and `B`, the flexible day periods ("in the morning", "at night"),
-//!   need per-locale hour ranges that `hc-i18n` deliberately does not carry.
-//! * `v` and `V`, the generic non-location and zone-ID formats, need the
-//!   IANA metazone table, which is a different kind of data from anything in
-//!   this workspace.
-//! * `U` (cyclic year name), `r` (related Gregorian year) and `g` (modified
-//!   Julian day) belong to calendars that are not this module's subject.
 //! * `z`, `v` and `V` are not resolved when parsing. Resolving them would
 //!   mean mapping an abbreviation back to a zone, and abbreviations are not
 //!   unique: `CST` is three different zones. Parsing consumes such a field
 //!   and leaves the zone unstated unless RFC 5322 assigns the name an
 //!   offset.
+//! * `B` fixes no hour when parsing: a period that lies wholly before or
+//!   after noon gives am or pm, and one that spans midnight gives neither.
 
 use core::fmt;
 
 use hc_i18n::Locale;
-use hc_i18n::names::{self, NameContext, NameWidth};
+use hc_i18n::day_periods::{self, FlexibleDayPeriod};
+use hc_i18n::names::{self, DayPeriod, NameContext, NameWidth};
 use hc_tz::{OffsetStyle, UtcOffset};
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
 use crate::patterns::strftime::{
-    match_day_period, match_month, match_weekday, number_field, ranged, read_offset,
+    match_day_period, match_longest, match_month, match_weekday, number_field, ranged, read_offset,
     starts_with_ignore_case,
 };
 use crate::patterns::{
     Fields, FormatContext, ParsedFields, day_period_name, era_candidates, era_name, month_name,
-    quarter_name, weekday_name,
+    quarter_name, weekday_name, zone,
 };
+
+/// The Julian day number of the day before the first of January of year 1,
+/// `Rd(0)`: a day's `g` is its `Rd` plus this. The Julian date of
+/// 1970-01-01 00:00 is 2 440 587.5, so its Julian day number, the day
+/// whose noon it begins, is 2 440 588, and its `Rd` 719 163.
+const JULIAN_DAY_OF_RD_ZERO: i64 = 1_721_425;
 use crate::scan::Scanner;
 use crate::value::ZoneInfo;
 
@@ -229,6 +258,9 @@ fn write_field<W: fmt::Write>(
             }
         }
         'a' => Ok(out.write_str(day_period_name(locale, fields.day_period(), width))?),
+        'b' | 'B' => {
+            Ok(out.write_str(extended_day_period(locale, fields, width, letter == 'B'))?)
+        }
         'h' => write_padded(out, u64::from(fields.hour12()), count),
         'H' => write_padded(out, u64::from(fields.hour), count),
         'K' => write_padded(out, u64::from(fields.hour % 12), count),
@@ -241,13 +273,80 @@ fn write_field<W: fmt::Write>(
         's' => write_padded(out, u64::from(fields.second), count),
         'S' => write_fraction(out, fields.subsec_attos, count),
         'A' => write_padded(out, u64::from(fields.millis_in_day()), count),
-        'z' => write_zone_name(out, context, count),
-        'Z' => write_zone_offset(out, context.zone, count),
-        'O' => write_localised_gmt(out, context.zone, count >= 4),
+        'z' => zone::write_specific(out, context, count >= 4),
+        'Z' => write_zone_offset(out, context, count),
+        'O' => zone::write_localized_gmt(out, locale, context.zone, count >= 4),
+        'v' => zone::write_generic(out, context, count >= 4),
+        'V' => zone::write_zone_id(out, context, count),
+        // UTS #35: a calendar with no cyclic year names writes `U` as `y`,
+        // and the Gregorian calendar's related Gregorian year `r` is `u`.
+        'U' => write_year(out, fields.era_year(), count),
+        'r' => write_signed(out, fields.year, count),
+        'g' => write_signed(out, context.date_time.day.0 + JULIAN_DAY_OF_RD_ZERO, count),
         'X' => write_iso_offset(out, context.zone, count, true),
         'x' => write_iso_offset(out, context.zone, count, false),
         other => Err(FormatError::UnknownField(other)),
     }
+}
+
+/// `b` and `B`: midnight or noon at exactly 00:00 or 12:00 where the
+/// locale's language has the word, and otherwise am or pm for `b` and the
+/// flexible period of the language's rules for `B`, am or pm where it has
+/// none; with no locale, the `C` am and pm.
+fn extended_day_period(
+    locale: Option<&Locale>,
+    fields: &Fields,
+    width: NameWidth,
+    flexible: bool,
+) -> &'static str {
+    let am_pm = day_period_name(locale, fields.day_period(), width);
+    let Some(locale) = locale else {
+        return am_pm;
+    };
+    let exact = fields.minute == 0 && fields.second == 0 && fields.subsec_attos == 0;
+    let fixed = match fields.hour {
+        0 if exact => Some(FlexibleDayPeriod::Midnight),
+        12 if exact => Some(FlexibleDayPeriod::Noon),
+        _ => None,
+    };
+    let named = |period| day_periods::period_name(locale, period, width);
+    if let Some(period) = fixed
+        && day_periods::has_fixed_period(locale, period)
+        && let Some(name) = named(period)
+    {
+        return name;
+    }
+    if flexible
+        && let Some(period) = day_periods::flexible_period(
+            locale,
+            u16::from(fields.hour) * 60 + u16::from(fields.minute),
+        )
+        && let Some(name) = named(period)
+    {
+        return name;
+    }
+    am_pm
+}
+
+/// A `b` or `B` name read back: am or pm where the name says one.
+fn match_extended_day_period(
+    scanner: &mut Scanner<'_>,
+    locale: Option<&Locale>,
+) -> Option<Option<DayPeriod>> {
+    if let Some(locale) = locale {
+        let found = match_longest(scanner, FlexibleDayPeriod::ALL.len(), |index| {
+            let period = FlexibleDayPeriod::ALL[index];
+            [NameWidth::Wide, NameWidth::Abbreviated, NameWidth::Narrow]
+                .map(|width| day_periods::period_name(locale, period, width).unwrap_or(""))
+        });
+        if let Some(index) = found {
+            return Some(day_periods::period_half(
+                locale,
+                FlexibleDayPeriod::ALL[index],
+            ));
+        }
+    }
+    match_day_period(scanner, locale).map(Some)
 }
 
 /// The weekday numbered from the locale's own first day of the week.
@@ -288,25 +387,12 @@ fn offset_of(zone: ZoneInfo) -> Option<UtcOffset> {
     zone.offset()
 }
 
-fn write_zone_name<W: fmt::Write>(
+fn write_zone_offset<W: fmt::Write>(
     out: &mut W,
     context: &FormatContext<'_>,
     count: usize,
 ) -> FormatResult<()> {
-    let name = if count >= 4 {
-        context.zone_name.or(context.zone_abbreviation)
-    } else {
-        context.zone_abbreviation.or(context.zone_name)
-    };
-    if let Some(name) = name {
-        out.write_str(name)?;
-        return Ok(());
-    }
-    // TR 35's fallback when no name is known is the localised GMT format.
-    write_localised_gmt(out, context.zone, count >= 4)
-}
-
-fn write_zone_offset<W: fmt::Write>(out: &mut W, zone: ZoneInfo, count: usize) -> FormatResult<()> {
+    let zone = context.zone;
     match count {
         1..=3 => {
             let Some(offset) = offset_of(zone) else {
@@ -315,33 +401,9 @@ fn write_zone_offset<W: fmt::Write>(out: &mut W, zone: ZoneInfo, count: usize) -
             out.write_str(offset.format(OffsetStyle::Basic).as_str())?;
             Ok(())
         }
-        4 => write_localised_gmt(out, zone, true),
+        4 => zone::write_localized_gmt(out, context.locale, zone, true),
         _ => write_iso_offset(out, zone, 3, true),
     }
-}
-
-fn write_localised_gmt<W: fmt::Write>(out: &mut W, zone: ZoneInfo, long: bool) -> FormatResult<()> {
-    let Some(offset) = offset_of(zone) else {
-        return Err(FormatError::Unrepresentable("a zone field with no zone"));
-    };
-    out.write_str("GMT")?;
-    if offset.is_utc() && !long {
-        return Ok(());
-    }
-    if offset.is_utc() {
-        out.write_str("+00:00")?;
-        return Ok(());
-    }
-    out.write_char(if offset.is_negative() { '-' } else { '+' })?;
-    if long {
-        write!(out, "{:02}:{:02}", offset.abs_hours(), offset.abs_minutes())?;
-    } else {
-        write!(out, "{}", offset.abs_hours())?;
-        if offset.abs_minutes() != 0 {
-            write!(out, ":{:02}", offset.abs_minutes())?;
-        }
-    }
-    Ok(())
 }
 
 fn write_iso_offset<W: fmt::Write>(
@@ -489,6 +551,26 @@ fn read_field(
                 match_day_period(scanner, locale)
                     .ok_or_else(|| scanner.error(ErrorKind::UnknownName("day period")))?,
             );
+        }
+        'b' | 'B' => {
+            let half = match_extended_day_period(scanner, locale)
+                .ok_or_else(|| scanner.error(ErrorKind::UnknownName("day period")))?;
+            if half.is_some() {
+                fields.day_period = half;
+            }
+        }
+        'U' => fields.year = Some(number_field(scanner, 10, "year")?),
+        'r' => {
+            let negative = scanner.peek() == Some(b'-');
+            if negative {
+                scanner.advance(1);
+            }
+            let value = number_field(scanner, 10, "year")?;
+            fields.year = Some(if negative { -value } else { value });
+        }
+        'g' => {
+            let value = number_field(scanner, 12, "Julian day")?;
+            fields.rd = Some(hc_calendar::Rd(value - JULIAN_DAY_OF_RD_ZERO));
         }
         'h' => fields.hour12 = Some(ranged(scanner, 2, 1, 12, "hour")? as u8),
         'H' => fields.hour = Some(ranged(scanner, 2, 0, 23, "hour")? as u8),
@@ -728,6 +810,168 @@ mod tests {
         assert_eq!(out, "JST|Japan Standard Time");
     }
 
+    fn zoned(
+        day: i64,
+        hour: u8,
+        offset_hours: i32,
+        zone: &'static str,
+        daylight: bool,
+    ) -> FormatContext<'static> {
+        FormatContext::new(CivilDateTime::new(
+            Rd(day),
+            CivilTime::hms(hour, 0, 0).unwrap(),
+        ))
+        .with_zone(ZoneInfo::Offset(
+            UtcOffset::from_hms(offset_hours, 0, 0).unwrap(),
+        ))
+        .with_zone_id(zone)
+        .with_daylight(daylight)
+    }
+
+    fn render_in(pattern: &str, context: &FormatContext<'_>) -> String {
+        let mut out = String::new();
+        format(&mut out, pattern, context).unwrap();
+        out
+    }
+
+    /// UTS #35 Part 4's own examples, "Using Time Zone Names" and the
+    /// symbol table, in English: 2026-07-01 (`Rd` 739 798) and 2026-01-15
+    /// (`Rd` 739 631).
+    #[cfg(feature = "zone-names")]
+    #[test]
+    fn the_zone_fields_write_tr_35s_examples() {
+        let english = Locale::parse("en").unwrap();
+        let summer = zoned(739_798, 12, -7, "America/Los_Angeles", true).with_locale(&english);
+        assert_eq!(
+            render_in("z|zzzz|v|vvvv|V|VV|VVV|VVVV|O|OOOO", &summer),
+            "PDT|Pacific Daylight Time|PT|Pacific Time|uslax|America/Los_Angeles|Los Angeles|\
+             Los Angeles Time|GMT-7|GMT-07:00"
+        );
+        let winter = zoned(739_631, 12, -8, "America/Los_Angeles", false).with_locale(&english);
+        assert_eq!(render_in("z|zzzz", &winter), "PST|Pacific Standard Time");
+        // "Pacific Time (Canada)": Vancouver is not the metazone's preferred
+        // zone for the United States, English's likely country, but is
+        // Canada's.
+        let vancouver = zoned(739_798, 12, -7, "America/Vancouver", true).with_locale(&english);
+        assert_eq!(
+            render_in("vvvv|VVVV|V", &vancouver),
+            "Pacific Time (Canada)|Vancouver Time|cavan"
+        );
+        // The generic location format: Asia/Shanghai is China's primary
+        // zone, Europe/Rome Italy's only one, and Argentina has several.
+        let at = |zone, offset| zoned(739_798, 12, offset, zone, false).with_locale(&english);
+        assert_eq!(render_in("VVVV", &at("Asia/Shanghai", 8)), "China Time");
+        assert_eq!(render_in("VVVV", &at("Europe/Rome", 2)), "Italy Time");
+        assert_eq!(
+            render_in("VVVV", &at("America/Buenos_Aires", -3)),
+            "Buenos Aires Time"
+        );
+        // A zone's own name comes before its metazone's.
+        let london = zoned(739_798, 12, 1, "Europe/London", true).with_locale(&english);
+        assert_eq!(render_in("zzzz", &london), "British Summer Time");
+        let london = zoned(739_631, 12, 0, "Europe/London", false).with_locale(&english);
+        assert_eq!(render_in("zzzz|z", &london), "Greenwich Mean Time|GMT");
+        // The IANA name reaches CLDR's identifier, Asia/Calcutta.
+        let kolkata = at("Asia/Kolkata", 5);
+        assert_eq!(render_in("V|vvvv", &kolkata), "inccu|India Standard Time");
+    }
+
+    #[test]
+    fn a_zone_field_falls_back_where_its_names_are_unavailable() {
+        // No daylight flag, so no specific name; and with no zone at all,
+        // `V` is `unk` and `VVV` the unknown zone's city.
+        let mut unknown =
+            context().with_zone(ZoneInfo::Offset(UtcOffset::from_hms(9, 0, 0).unwrap()));
+        assert_eq!(
+            render_in("z|zzzz|V|VVV", &unknown),
+            "GMT+9|GMT+09:00|unk|Unknown Location"
+        );
+        unknown.zone_id = Some("Etc/GMT-9");
+        assert_eq!(render_in("VVVV", &unknown), "GMT+09:00");
+    }
+
+    #[test]
+    fn the_localized_gmt_format_is_the_locales() {
+        // `fr.xml`: "UTC{0}" and "+HH:mm;−HH:mm", a minus sign;
+        // `ar.xml` in its Arabic-Indic digits.
+        let french = Locale::parse("fr").unwrap();
+        let paris = context()
+            .with_zone(ZoneInfo::Offset(UtcOffset::from_hms(-3, -30, 0).unwrap()))
+            .with_locale(&french);
+        assert_eq!(
+            render_in("O|OOOO|ZZZZ", &paris),
+            "UTC−3:30|UTC−03:30|UTC−03:30"
+        );
+        let utc = context().with_zone(ZoneInfo::Zulu).with_locale(&french);
+        assert_eq!(render_in("O", &utc), "UTC");
+    }
+
+    #[cfg(feature = "localized-zone-names")]
+    #[test]
+    fn the_zone_names_are_the_locales() {
+        let japanese = Locale::parse("ja").unwrap();
+        let tokyo = zoned(739_798, 12, 9, "Asia/Tokyo", false).with_locale(&japanese);
+        assert_eq!(render_in("zzzz|VVV", &tokyo), "日本標準時|東京");
+        let german = Locale::parse("de").unwrap();
+        let berlin = zoned(739_798, 12, 2, "Europe/Berlin", true).with_locale(&german);
+        assert_eq!(
+            render_in("zzzz|z", &berlin),
+            "Mitteleuropäische Sommerzeit|MESZ"
+        );
+    }
+
+    /// `g`, the Julian day number of the local date: 2 440 588 for
+    /// 1970-01-01 and 2 451 545 for 2000-01-01, whose noon is J2000.0.
+    #[test]
+    fn the_julian_day_and_the_related_and_cyclic_years() {
+        let day = |rd| FormatContext::new(CivilDateTime::midnight(Rd(rd)));
+        assert_eq!(render_in("g", &day(719_163)), "2440588");
+        assert_eq!(render_in("g", &day(730_120)), "2451545");
+        assert_eq!(render_in("r|U|UU", &context()), "2026|2026|26");
+    }
+
+    /// `b` and `B` against `dayPeriods.xml` and the locales' files:
+    /// English says *noon* and *midnight* and has *in the afternoon* and
+    /// *at night*; German has *Mitternacht* but no word for 12:00, so noon
+    /// is *PM* for `b` and the afternoon period *mittags* (12:00–13:00)
+    /// for `B`; Japanese's 夜中 runs from 23:00 across midnight.
+    #[test]
+    fn the_extended_day_periods_follow_each_languages_rules() {
+        let at = |hour, minute, tag: &str| {
+            let locale = Locale::parse(tag).unwrap();
+            let context = FormatContext::new(CivilDateTime::new(
+                Rd(739_880),
+                CivilTime::hms(hour, minute, 0).unwrap(),
+            ))
+            .with_locale(&locale);
+            render_in("b|bbbb|B|BBBB", &context)
+        };
+        assert_eq!(at(12, 0, "en"), "noon|noon|noon|noon");
+        assert_eq!(at(0, 0, "en"), "midnight|midnight|midnight|midnight");
+        assert_eq!(at(15, 30, "en"), "PM|PM|in the afternoon|in the afternoon");
+        assert_eq!(at(22, 0, "en"), "PM|PM|at night|at night");
+        assert_eq!(
+            at(0, 0, "de"),
+            "Mitternacht|Mitternacht|Mitternacht|Mitternacht"
+        );
+        assert_eq!(at(12, 0, "de"), "PM|PM|mittags|mittags");
+        assert_eq!(at(1, 0, "ja"), "午前|午前|夜中|夜中");
+        // With no locale, `b` and `B` are the `C` am and pm.
+        assert_eq!(render_in("b|B", &context()), "PM|PM");
+    }
+
+    #[test]
+    fn the_new_fields_parse_back() {
+        let parsed = parse("g", "2451545").unwrap();
+        assert_eq!(parsed.to_offset_date_time().unwrap().local.day, Rd(730_120));
+        let english = Locale::parse("en").unwrap();
+        let evening = parse_with_locale("h:mm B", "8:15 in the evening", Some(&english)).unwrap();
+        assert_eq!(evening.day_period, Some(DayPeriod::Pm));
+        let noon = parse_with_locale("h b", "12 noon", Some(&english)).unwrap();
+        assert_eq!(noon.day_period, Some(DayPeriod::Pm));
+        assert_eq!(parse("r-MM-dd", "2026-09-21").unwrap().year, Some(2026));
+    }
+
     #[test]
     fn a_locale_changes_the_names() {
         let japanese = Locale::parse("ja").unwrap();
@@ -755,8 +999,8 @@ mod tests {
     fn an_unimplemented_field_names_itself() {
         let mut out = String::new();
         assert_eq!(
-            format(&mut out, "B", &context()).unwrap_err(),
-            FormatError::UnknownField('B')
+            format(&mut out, "n", &context()).unwrap_err(),
+            FormatError::UnknownField('n')
         );
     }
 
@@ -820,8 +1064,8 @@ mod tests {
     #[test]
     fn a_field_this_module_cannot_parse_names_itself() {
         assert_eq!(
-            parse("B", "morning").unwrap_err().kind(),
-            ErrorKind::UnsupportedPatternField('B')
+            parse("n", "morning").unwrap_err().kind(),
+            ErrorKind::UnsupportedPatternField('n')
         );
     }
 }

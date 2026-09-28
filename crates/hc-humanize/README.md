@@ -83,11 +83,17 @@ style, every `other` pattern able to take a number, no padded strings, no
 placeholder in a special word, list patterns shaped `{0}<glue>{1}`, and a
 language `hc-i18n` has plural rules for.
 
-Locales shipped, 32 of them: `ar cs cy de en es fil fr ha hi id it ja ko mr
-nl pa-Guru pcm pl pt pt-PT ru sw te th tr ur vi yue-Hans yue-Hant zh
-zh-Hant`. `hc-i18n`'s fallback chain applies CLDR's likely script to a
-Chinese, Cantonese or Punjabi tag, so `zh-Hans` and `zh-CN` reach the `zh`
-entry, `zh-TW` and `zh-HK` reach `zh-Hant`, `yue-CN` reaches `yue-Hans`, and
+Locales shipped, 39 of them: `ar ar-EG cs cy de en en-001 en-GB es es-419
+fil fr ha hi id it ja ko mn mr nl pa-Guru pcm pl pt pt-PT ru sw te th tr ur
+ur-IN vi yue-Hans yue-Hant zh zh-Hant zh-Hant-HK`. The regional entries take
+their CLDR part from their own files and everything CLDR has no field for
+from their language's entry, so that `en-GB` writes *1 hour, 2 minutes and
+3 seconds* and *3 mo ago*, as `en_001.xml` has them, and `zh-HK` *3 星期前*.
+`hc-i18n`'s fallback chain applies CLDR's likely script to a Chinese,
+Cantonese or Punjabi tag and CLDR's `parentLocales`, so `zh-Hans` and
+`zh-CN` reach the `zh` entry, `zh-TW` reaches `zh-Hant` and `zh-HK` and
+`zh-MO` `zh-Hant-HK`, `en-AU` and `en-IN` reach `en-001` and `es-MX`
+`es-419`, `yue-CN` reaches `yue-Hans`, and
 `pa` reaches `pa-Guru`; `pa-PK`, Punjabi in the Arabic script, whose CLDR
 file states no fields, reaches root.
 
@@ -99,7 +105,7 @@ The relative-time phrases follow the Unicode CLDR `<fields>` section of
 patterns, the decimal separator of the digits `hc-i18n` writes and its
 long `relative` date-time pattern, which UTS #35 Part 4 gives a relative
 date with a time (*yesterday at 15:05*; `es` *ayer, 15:05*, not its
-`atTime` *ayer a las 15:05*). All 32 locales take that part from their
+`atTime` *ayer a las 15:05*). All 39 locales take that part from their
 CLDR 48 file, **generated**: `scripts/humanize-cldr.py` reads the files of
 the `release-48` tag, resolves each value in all three styles as CLDR does
 — a value a file marks `↑↑↑` is the parent file's, then what `root.xml`'s

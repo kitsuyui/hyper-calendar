@@ -239,6 +239,26 @@ hc_core::catalogue! {
             authority: "The can chi as Vietnamese almanacs (lịch vạn niên) print them; Mão is \
                         the standard form of 卯 and Mẹo the southern one",
         };
+        /// Tibetan, in its own script: a stem is an element and its sex,
+        /// *pho* for the first year of the two an element holds and *mo*
+        /// for the second, and a branch is an animal, so that 戊子, 2008, is
+        /// ས་ཕོ་བྱི, *sa pho byi*, Earth-male-Rat.
+        pub const TIBETAN = Reading {
+            id: "bo",
+            english_name: "Tibetan elements and animals",
+            stems: &[
+                "ཤིང་ཕོ", "ཤིང་མོ", "མེ་ཕོ", "མེ་མོ", "ས་ཕོ", "ས་མོ", "ལྕགས་ཕོ", "ལྕགས་མོ", "ཆུ་ཕོ",
+                "ཆུ་མོ",
+            ],
+            branches: &[
+                "བྱི", "གླང", "སྟག", "ཡོས", "འབྲུག", "སྦྲུལ", "རྟ", "ལུག", "སྤྲེ", "བྱ", "ཁྱི", "ཕག",
+            ],
+            authority: "Wikipedia, \"Tibetan calendar\" (wikipedia-tibetan-calendar, read \
+                        2026-09-29, secondary): the elements me, sa, lcags, chu, shing and the \
+                        animals in Tibetan script, each element male (pho) then female (mo), the \
+                        cycle from a Wood-Rat year, and the year names of 2008-2021 in Wylie, \
+                        sa pho byi for 2008, which write the Rat byi",
+        };
     }
 }
 
@@ -269,6 +289,7 @@ mod tests {
         (&HANGUL, ("갑", "자"), ("계", "해")),
         (&KOREAN_REVISED, ("gap", "ja"), ("gye", "hae")),
         (&VIETNAMESE, ("Giáp", "Tý"), ("Quý", "Hợi")),
+        (&TIBETAN, ("ཤིང་ཕོ", "བྱི"), ("ཆུ་མོ", "ཕག")),
     ];
 
     #[test]

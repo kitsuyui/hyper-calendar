@@ -671,6 +671,13 @@ impl CalendarNames {
         self
     }
 
+    /// The same entry, with eras.
+    #[must_use]
+    pub const fn with_eras(mut self, eras: EraNames) -> Self {
+        self.eras = eras;
+        self
+    }
+
     /// This entry with a leap-month prefix.
     #[must_use]
     pub const fn with_leap_month_prefix(mut self, prefix: &'static str) -> Self {
@@ -2636,6 +2643,187 @@ mod tests {
         assert_eq!(first_day_of_week(&locale("zh")), Weekday::Monday);
     }
 
+    /// The regional entries of `data::cldr48_locales`, against the values
+    /// CLDR 48's files write (`release-48`, read 2026-09-29): each states
+    /// what its file changes and inherits the rest.
+    #[test]
+    fn the_regional_entries_state_what_their_files_change() {
+        use NameContext::{Format, Standalone};
+        use NameWidth::{Abbreviated, Narrow, Short, Wide};
+        // `en_001.xml`: "Sept" for September, abbreviated, and lower-case
+        // am and pm; the wide names are `en.xml`'s. `en_GB.xml` changes
+        // neither, and `en-AU` reaches both through `en-001`.
+        for tag in ["en-001", "en-GB", "en-AU", "en-IN"] {
+            assert_eq!(
+                gregorian_month(tag, 9, Abbreviated, Format),
+                "Sept",
+                "{tag}"
+            );
+            assert_eq!(gregorian_month(tag, 9, Wide, Format), "September", "{tag}");
+            assert_eq!(
+                day_period_name(&locale(tag), DayPeriod::Pm, Wide, Format),
+                Some("pm")
+            );
+        }
+        assert_eq!(gregorian_month("en", 9, Abbreviated, Format), "Sep");
+        assert_eq!(gregorian_month("en-US", 9, Abbreviated, Format), "Sep");
+        // `es_419.xml`: the short weekdays "LU" … "DO", "a.m.", and the
+        // eras "a.C." and "d.C."; the months are `es.xml`'s.
+        let mexico = locale("es-MX");
+        assert_eq!(
+            weekday_name(&mexico, Weekday::Monday, Short, Format),
+            Some("LU")
+        );
+        assert_eq!(
+            day_period_name(&mexico, DayPeriod::Am, Wide, Format),
+            Some("a.m.")
+        );
+        assert_eq!(
+            era_name(&mexico, CalendarId("gregory"), 1, Abbreviated),
+            Some("d.C.")
+        );
+        assert_eq!(gregorian_month("es-MX", 1, Wide, Format), "enero");
+        // `zh_Hant_HK.xml`: 公元 for the Common Era where `zh_Hant.xml` has
+        // 西元, and the Chinese calendar's last two months 十一月 and 十二月
+        // where Taiwan's are 十一月 and 臘月.
+        for tag in ["zh-HK", "zh-Hant-HK", "zh-MO"] {
+            assert_eq!(
+                era_name(&locale(tag), CalendarId("gregory"), 1, Wide),
+                Some("公元"),
+                "{tag}"
+            );
+            assert_eq!(
+                month_name(
+                    &locale(tag),
+                    CalendarId("chinese"),
+                    Month::regular(12),
+                    Wide,
+                    Format
+                ),
+                Some("十二月")
+            );
+        }
+        assert_eq!(
+            month_name(
+                &locale("zh-TW"),
+                CalendarId("chinese"),
+                Month::regular(12),
+                Wide,
+                Format
+            ),
+            Some("臘月")
+        );
+        // `ur_IN.xml` writes Persian digits by default, `ur.xml` Latin
+        // ones; `ar_EG.xml` Arabic-Indic, and Saturday first.
+        assert_eq!(locale_data(&locale("ur-IN")).numbering, "arabext");
+        assert_eq!(locale_data(&locale("ur")).numbering, "latn");
+        assert_eq!(locale_data(&locale("ar-EG")).numbering, "arab");
+        assert_eq!(first_day_of_week(&locale("ar-EG")), Weekday::Saturday);
+        // The names the regional files do not change are the parent's.
+        assert_eq!(
+            gregorian_month("ur-IN", 1, Wide, Format),
+            gregorian_month("ur", 1, Wide, Format)
+        );
+        // `mn.xml`: the ninth month, the stand-alone capital, the Roman
+        // narrow numerals and the era МЭ.
+        assert_eq!(gregorian_month("mn", 9, Wide, Format), "есдүгээр сар");
+        assert_eq!(gregorian_month("mn", 9, Wide, Standalone), "Есдүгээр сар");
+        assert_eq!(gregorian_month("mn", 9, Narrow, Format), "IX");
+        assert_eq!(
+            era_name(&locale("mn"), CalendarId("gregory"), 1, Abbreviated),
+            Some("МЭ")
+        );
+        assert_eq!(
+            weekday_name(&locale("mn"), Weekday::Friday, Wide, Format),
+            Some("баасан")
+        );
+    }
+
+    /// Wikipedia's "Berber calendar" table: January in Riffian, Shilha,
+    /// Tunisian and Libyan Arabic; and the Mixtec Reed of "Mesoamerican
+    /// calendars".
+    #[test]
+    fn the_berber_months_have_each_spelling_and_mixtec_its_bearers() {
+        let month = |tag: &str, ordinal| {
+            month_name(
+                &locale(tag),
+                CalendarId("berber"),
+                Month::regular(ordinal),
+                NameWidth::Wide,
+                NameContext::Format,
+            )
+        };
+        assert_eq!(month("rif", 1), Some("yennayer"));
+        assert_eq!(month("shi-Latn", 1), Some("innayr"));
+        assert_eq!(month("aeb-Latn", 8), Some("awussu"));
+        assert_eq!(month("ayl-Latn", 8), Some("aɣustus"));
+        assert_eq!(month("kab", 1), Some("Yennayer"));
+        let bearers = locale_data(&locale("mix"))
+            .cycle_for(CalendarId("mixtec-year"), "year-bearer")
+            .unwrap()
+            .get(NameWidth::Wide, NameContext::Format);
+        assert_eq!(bearers, ["Huiyo", "Si", "Cuau", "Sayu"]);
+    }
+
+    /// Nepali Wikipedia's विसं २०८२ and नेसं: the two eras in Nepali.
+    #[test]
+    fn nepali_names_its_two_eras() {
+        let nepali = locale("ne");
+        let era =
+            |calendar, code, width| era_name_by_code(&nepali, CalendarId(calendar), code, width);
+        assert_eq!(
+            era("bikram-sambat", "bikram-sambat", NameWidth::Abbreviated),
+            Some("विसं")
+        );
+        assert_eq!(
+            era("bikram-sambat", "bikram-sambat", NameWidth::Wide),
+            Some("विक्रम संवत्")
+        );
+        assert_eq!(
+            era("nepal-sambat", "nepal-sambat", NameWidth::Abbreviated),
+            Some("नेसं")
+        );
+    }
+
+    /// Tibetan writes the sexagenary year by element, sex and animal:
+    /// 2008 is *sa pho byi*, 2021 *lcags mo glang* (Wikipedia, "Tibetan
+    /// calendar").
+    #[test]
+    fn tibetan_names_the_sixty_years_by_element_and_animal() {
+        let tibetan = locale("bo");
+        let name = |year| {
+            let position = hc_calendar::cycle::sexagenary_year_from_gregorian_year(year);
+            let (stem, branch) = sexagenary_names(&tibetan, position).unwrap();
+            alloc::format!("{stem}{}{branch}", sexagenary_joiner(&tibetan))
+        };
+        assert_eq!(name(2008), "ས་ཕོ་བྱི");
+        assert_eq!(name(2021), "ལྕགས་མོ་གླང");
+        assert_eq!(zodiac_animal_name(&tibetan, 3), Some("ཡོས"));
+    }
+
+    /// The Zabad inscription dates 24 September 512 as 24 Gorpiaios 823 in
+    /// Greek and "the month Illul" 823 in Syriac: the ninth Julian month,
+    /// Syriac's ܐܝܠܘܠ, with the era "of the Greeks".
+    #[test]
+    fn syriac_names_the_seleucid_year() {
+        let syriac = locale("syr");
+        let seleucid = CalendarId("seleucid-syrian");
+        assert_eq!(
+            month_name(
+                &syriac,
+                seleucid,
+                Month::regular(9),
+                NameWidth::Wide,
+                NameContext::Format
+            ),
+            Some("ܐܝܠܘܠ")
+        );
+        assert_eq!(
+            era_name_by_code(&syriac, seleucid, "se", NameWidth::Wide),
+            Some("ܕܝܲܘܢܵܝܹ̈ܐ")
+        );
+    }
+
     #[test]
     fn a_chinese_tag_without_a_script_takes_the_likely_one() {
         for tag in ["zh", "zh-CN", "zh-SG"] {
@@ -2645,8 +2833,10 @@ mod tests {
                 "{tag}"
             );
         }
-        for tag in ["zh-TW", "zh-HK", "zh-MO"] {
-            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant", "{tag}");
+        assert_eq!(locale_data(&locale("zh-TW")).tag, "zh-Hant");
+        // Macao inherits Hong Kong's file, as CLDR 48's `parentLocales` say.
+        for tag in ["zh-HK", "zh-MO"] {
+            assert_eq!(locale_data(&locale(tag)).tag, "zh-Hant-HK", "{tag}");
         }
         assert_eq!(locale_data(&locale("zh")).tag, "zh-Hans");
     }

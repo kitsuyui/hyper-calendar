@@ -74,8 +74,12 @@ calendrier julien" [laporte2019]; the Julian 29 February is kept.
   the extra field `julian-year`. The month names are declared with the
   shape in the Kabyle forms Wikipedia tabulates: Yennayer, Furar, Meɣres,
   Yebrir, Mayyu, Yunyu, Yulyu, Ɣuct, Ctembeṛ, Tubeṛ, Wambeṛ, Duǧembeṛ. The
-  Riffian, Shilha, Shawiya, Mozabite and Maghrebi Arabic spellings are a
-  locale's and are not carried.
+  other spellings are a locale's: `hc-i18n` carries Riffian (`rif`) and
+  Tunisian and Libyan Arabic in the table's romanisation (`aeb-Latn`,
+  `ayl-Latn`) from Wikipedia's table [wikipedia-berber-calendar], and
+  Shilha (`shi-Latn`) from CLDR 48's `shi_Latn.xml`, whose months are the
+  table's, beside Kabyle and Tifinagh. The Shawiya, Mozabite and Moroccan
+  Arabic columns are not yet carried.
 - **Year number** the Amazigh era, the Julian year plus 950, `EpochForward`
   from year 1 in 950 BC; the module documentation and this document say
   what it is. `usage` begins on 1 Yennayer 2930, 14 January 1980, the first
@@ -91,8 +95,9 @@ calendrier julien" [laporte2019]; the Julian 29 February is kept.
     rather than its structure, and belong in `hc-holiday` if anywhere.
   - *The medieval Berber month names* van den Boogert reconstructs, which
     are a different and undated calendar [wikipedia-berber-calendar].
-  - *The Tunisian and Libyan form* of the calendar, which has the same
-    days under other spellings.
+  - *The Tunisian and Libyan form* in Arabic script: the table prints
+    its names romanised, which `aeb-Latn` and `ayl-Latn` carry, and no
+    source read prints them in Arabic.
 
 ## Accuracy
 

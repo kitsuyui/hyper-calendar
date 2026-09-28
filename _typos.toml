@@ -24,9 +24,14 @@
 # together in fixed-width records (`GH-OT`, `PE-SAMPE-TAC`), none of them
 # English words, and a generator's output is checked against CLDR, not
 # corrected by hand.
+# hc-i18n's zone_names/cldr48.rs is generated from CLDR 48 by
+# scripts/zone-names-cldr.py: the metazone names of 55 locales (Indonesian
+# "Standar", Turkish "Standart", French "normale"), checked against CLDR
+# rather than corrected by hand.
 extend-exclude = [
     "Cargo.lock",
     "crates/hc-i18n/src/place_names/cldr48.rs",
+    "crates/hc-i18n/src/zone_names/cldr48.rs",
     "crates/hyper-calendar/tests/line_digests.txt",
     "crates/hyper-calendar/tests/line_digests_holidays.txt",
 ]
@@ -40,6 +45,18 @@ extend-exclude = [
 extend-ignore-re = ["[Ss]haʿot", "Puẹ́rto"]
 
 [default.extend-words]
+# French "origines", in the title "Les origines du calendrier amazigh"
+# that Wikipedia's "Berber calendar" cites, quoted in hc-i18n's data.
+origines = "origines"
+# Latin American Spanish "sems.", CLDR 48 `es_419.xml`'s abbreviation of
+# *semanas*, weeks, in hc-humanize's generated `cldr48.rs` and its sample.
+sems = "sems"
+# "Muh.", CLDR 48 `es_419.xml`'s abbreviation of the Hijri month Muharram,
+# in hc-i18n's generated `cldr48_locales.rs`.
+Muh = "Muh"
+# `vai`, the ISO 639 code of the Vai language, in CLDR 48's
+# `parentLocales` (`vai-Latn`), in hc-i18n's generated `cldr48_locales.rs`.
+vai = "vai"
 # Lilly's *Christian Astrology* (1647) spells "untill", quoted as printed by
 # hc-seasons::planetary_hours and docs/calendars.md.
 untill = "untill"
