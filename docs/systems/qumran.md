@@ -83,10 +83,22 @@ Maaziah, Joiarib, Jedaiah); the next day, 2/II, is the Sabbath 4Q325 calls
   not a reconstruction, and anybody with a scholar's correlation should
   add it under its own identifier.
 - **Usage** unrecorded: no source read dates when the calendar was kept.
+- **The festivals**, in `hc-holiday`'s table `qumran-festivals` on this
+  calendar: the Passover on 14/I, the Feast of Unleavened Bread on 15/I,
+  the Omer on 26/I, the Second Passover on 14/II, the Feast of Weeks on
+  15/III, the Day of Remembrance on 1/VII, the Day of Atonement on 10/VII
+  and the Feast of Booths on 15/VII, as Talmon gives them
+  [talmon2000, p. 110], 4Q326's Unleavened Bread on the fourth day of the
+  week and Barley Festival on the 26th as Wikipedia quotes it
+  [wikipedia-qumran-calendrical-texts]. Their weekdays are the scrolls';
+  their Gregorian dates are this library's epoch's. Talmon's pages were
+  read in a scanned PDF on 2026-09-26 and are carried as the test
+  `the_first_years_festivals_fall_in_the_courses_of_4q320` transcribes
+  them; they were not re-read for the table. The Temple Scroll's New Wine,
+  New Oil and Wood Offering are not carried: no source read dates them.
 - **Not carried:** the lunar data of 4Q317 and 4Q320–321, the 294-year
-  *Otot* cycle of 4Q319, the festivals as observances (for `hc-holiday`),
-  the Enoch form with the four added days outside the count, and any
-  intercalation scheme.
+  *Otot* cycle of 4Q319, the Enoch form with the four added days outside
+  the count, and any intercalation scheme.
 
 ## Accuracy
 
@@ -110,12 +122,14 @@ evidence that the rotation is the one the scrolls assume.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [talmon2000] | The year, the Sabbaths and festivals, the courses and their rotation, the texts quoted | Yes, the scan, pp. 110–111, 2026-09-26 |
-| [wikipedia-qumran-calendrical-texts] | The quarters, Jubilees and Enoch, the intercalation debate | Yes, 2026-09-26 |
+| [wikipedia-qumran-calendrical-texts] | The quarters, Jubilees and Enoch, the intercalation debate; 4Q326's festivals | Yes, 2026-09-26, and 2026-09-29 for 4Q326 |
 | [vanderkam1998] | The intercalation proposals | Not read |
 
 ## Code
 
-`crates/hc-calendars-solar/src/qumran.rs`. Anchors:
+`crates/hc-calendars-solar/src/qumran.rs`; the festivals, `hc-holiday`'s
+`traditions::QUMRAN`, anchored by
+`the_qumran_festivals_keep_their_weekdays_and_their_courses`. Anchors:
 `the_sabbaths_and_festivals_fall_where_the_scrolls_put_them`,
 `the_first_years_festivals_fall_in_the_courses_of_4q320`,
 `the_six_years_are_headed_by_the_courses_of_4q329`. The rotation is

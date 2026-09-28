@@ -18,10 +18,50 @@
 //! their days are "confirmed by the respective Dzongkhag Administration",
 //! and no district's confirmation was read. The names are the lists'.
 
-use crate::rule::{HolidayRule, Listing, TibetanMonth};
+use hc_calendar::Rd;
+use hc_calendars_lunar::tibetan;
+use hc_calendars_regional::tibetan_almanac::bhutanese_winter_solstice;
+
+use crate::rule::{Days, HolidayRule, Listing, Rule, TibetanMonth};
 
 use super::asia::{BT_RULES, bt_predicted, bt_read};
 use crate::rule::joined;
+
+/// The Bhutanese Winter Solstice of `year`: the day the mean Sun of the
+/// Bhutanese calendar reaches 250°, 18;45 in mansions, as Henning's
+/// Bhutanese program computes it (Janson, "Tibetan calendar mathematics",
+/// Appendix A.4; Henning, "Bhutan calendars"), which gives 2 January in
+/// both the Ministry's lists read, 2025 and 2026, and every year from 2011
+/// to 2019 of Henning's Bhutanese almanacs; see
+/// `hc_calendars_regional::tibetan_almanac::bhutanese_winter_solstice`.
+fn winter_solstice(year: i64) -> Days {
+    bhutanese_winter_solstice(&tibetan::TIBETAN_BHUTAN, year).map_or_else(
+        |_| Days::new(),
+        |instant| Days::one(Rd::from_julian_day_number(instant.floor() as i64)),
+    )
+}
+
+/// The Winter Solstice predicted by [`winter_solstice`] before the lists'
+/// years (`before`) or after them, over the years the Bhutanese calendar
+/// converts. The Ministry prints the day each year, so a prediction is
+/// approximate, as the lists' lunar days are.
+pub(super) const fn winter_solstice_predicted(before: bool) -> HolidayRule {
+    let rule = HolidayRule::fixed_public(
+        "Winter Solstice",
+        "",
+        Rule::Tabulated {
+            function: winter_solstice,
+            first_year: tibetan::MIN_YEAR,
+            last_year: tibetan::MAX_YEAR,
+        },
+    )
+    .approximate();
+    if before {
+        rule.years(None, Some(super::asia::BT_FIRST as i32 - 1))
+    } else {
+        rule.years(Some(super::asia::BT_LAST as i32 + 1), None)
+    }
+}
 
 /// The Thimphu district.
 const THIMPHU: &[&str] = &["BT-15"];

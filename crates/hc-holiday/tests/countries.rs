@@ -724,6 +724,51 @@ fn china_statutory_holidays() {
 }
 
 #[test]
+fn china_s_article_5_commemorations_are_observances_without_a_day_off() {
+    use hc_holiday::rule::Kind;
+    // Article 5: 二七纪念日、五卅纪念日、七七抗战纪念日、九三抗战胜利纪念日、
+    // 九一八纪念日、教师节、护士节、记者节、植树节 … 均不放假.
+    let days = [
+        ("二七纪念日", 2, 7),
+        ("植树节", 3, 12),
+        ("护士节", 5, 12),
+        ("五卅纪念日", 5, 30),
+        ("七七抗战纪念日", 7, 7),
+        ("九三抗战胜利纪念日", 9, 3),
+        ("教师节", 9, 10),
+        ("九一八纪念日", 9, 18),
+        ("记者节", 11, 8),
+    ];
+    for year in [2008, 2014, 2025, 2026] {
+        let calendar = HolidayCalendar::for_year(table("CN"), None, year);
+        for (local_name, month, day) in days {
+            let date = ymd(year, month, day);
+            let entry = calendar
+                .on(date)
+                .into_iter()
+                .find(|holiday| holiday.local_name == local_name)
+                .unwrap_or_else(|| panic!("{year} {local_name}"));
+            assert_eq!(entry.kind, Kind::Observance, "{local_name}");
+        }
+    }
+    // Teachers' Day from the decision of 1985, Arbor Day from 1979 and
+    // Journalists' Day from 2000, each with no gap before; the others'
+    // years before 2008, whose texts were not read, are gaps.
+    let old = HolidayCalendar::for_year(table("CN"), None, 1990);
+    let local: Vec<&str> = old.all().iter().map(|holiday| holiday.local_name).collect();
+    assert!(local.contains(&"教师节") && local.contains(&"植树节"));
+    assert!(!local.contains(&"记者节") && !local.contains(&"二七纪念日"));
+    let gaps: Vec<&str> = old.gaps().iter().map(|gap| gap.name).collect();
+    for name in ["February 7th Memorial Day", "Nurses' Day"] {
+        assert!(gaps.contains(&name), "{name}: {gaps:?}");
+    }
+    assert!(!gaps.contains(&"Teachers' Day"));
+    // An observance leaves 10 September 2025, a Wednesday, a working day.
+    let calendar = HolidayCalendar::for_year(table("CN"), None, 2025);
+    assert!(calendar.is_business_day(ymd(2025, 9, 10)));
+}
+
+#[test]
 fn a_chinese_working_day_is_a_weekend_day_and_never_a_day_off() {
     use hc_calendar::Weekday;
     use hc_holiday::rule::Kind;
@@ -812,7 +857,17 @@ fn china_keeps_each_years_arrangement() {
         "{:?}",
         calendar.gaps()
     );
-    assert!(calendar.all().is_empty(), "{:?}", calendar.all());
+    // Only the commemorations whose own instruments were read, Arbor Day's
+    // of 1979 and Teachers' Day's of 1985, which give no day off.
+    assert!(
+        calendar
+            .all()
+            .iter()
+            .all(|holiday| holiday.kind == hc_holiday::rule::Kind::Observance
+                && !holiday.source.contains("放假办法")),
+        "{:?}",
+        calendar.all()
+    );
     // From 1999 the statutory days are answered; only the arrangement is
     // missing.
     let calendar = HolidayCalendar::for_year(table("CN"), None, 1999);
@@ -2934,18 +2989,34 @@ fn bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists() {
     let beyond = HolidayCalendar::for_year(table("BT"), None, 2027);
     let mut missing: Vec<&str> = beyond.gaps().iter().map(|gap| gap.name).collect();
     missing.sort_unstable();
-    // The solar days and Dassain, taken from the lists alone, and Guru
-    // Rinpoche's birthday, whose 10th day of the 5th month 2027 skips or
-    // repeats.
+    // The Blessed Rainy Day and Dassain, taken from the lists alone, and
+    // Guru Rinpoche's birthday, whose 10th day of the 5th month 2027 skips
+    // or repeats.
     assert_eq!(
         missing,
         [
             "Birth Anniversary of Guru Rinpoche",
             "Blessed Rainy Day",
-            "Dassain",
-            "Winter Solstice"
+            "Dassain"
         ]
     );
+    // The Winter Solstice is the Bhutanese mean Sun's 250°, predicted: the
+    // lists' 2 January of 2025 and 2026, and of Henning's almanacs of 2011
+    // to 2019, and 3 January in 2020 as Janson says it first would be.
+    for (year, day) in [(2011, 2), (2019, 2), (2020, 3), (2027, 2)] {
+        assert_eq!(
+            confidence_of("BT", year, 1, day, "Winter Solstice"),
+            Confidence::Approximate,
+            "{year}"
+        );
+    }
+    for year in [2025, 2026] {
+        assert_eq!(
+            confidence_of("BT", year, 1, 2, "Winter Solstice"),
+            Confidence::Exact,
+            "{year}"
+        );
+    }
     // The royal and national days are Gregorian and remain known.
     assert_eq!(beyond.name_on(ymd(2027, 12, 17)), Some("National Day"));
     assert!(HolidayCalendar::for_year(table("BT"), None, 2025).is_complete());
@@ -4973,7 +5044,7 @@ fn guatemala_moves_army_day_to_a_monday_and_moved_two_more_only_until_the_court_
             (2018, 6, 30, "Army Day"),
         ],
     );
-    expect("GT", Some("GT-GU"), &[(2026, 8, 15, "Assumption Day")]);
+    expect("GT", Some("GT-01"), &[(2026, 8, 15, "Assumption Day")]);
     expect_working(
         "GT",
         None,
@@ -7367,6 +7438,44 @@ fn palestine_follows_the_council_of_ministers_tables_with_the_eastern_easter_for
             .collect();
         assert_eq!(found, [(name, Kind::Religious)], "{month}-{day}");
     }
+}
+
+#[test]
+fn palestine_s_fourth_table_gives_the_samaritan_employees_their_feasts() {
+    // The Council of Ministers' fourth table for 2025, as the National
+    // Information Centre publishes it: ten days, each a religious day, not
+    // a day off for all.
+    let calendar = HolidayCalendar::for_year(table("PS"), None, 2025);
+    for (month, day, local_name) in [
+        (4, 13, "عيد الفسح والقربان"),
+        (4, 14, "عيد الفسح والقربان"),
+        (4, 20, "اخر أيام عيد الفسح"),
+        (5, 28, "عيد نزول التوراة"),
+        (6, 1, "عيد المعراج/الحصاد"),
+        (9, 22, "عيد رأس السنة العبرية"),
+        (10, 1, "عيد الغفران/الصوم"),
+        (10, 2, "عيد الغفران/الصوم"),
+        (10, 6, "عيد العرش/المظلة"),
+        (10, 13, "عيد نهاية الأعياد"),
+    ] {
+        let found: Vec<Kind> = calendar
+            .on(ymd(2025, month, day))
+            .iter()
+            .filter(|holiday| holiday.local_name == local_name)
+            .map(|holiday| holiday.kind)
+            .collect();
+        assert_eq!(found, [Kind::Religious], "{month}-{day}");
+    }
+    // 28 May 2025, a Wednesday, stays a working day for everyone.
+    assert!(calendar.is_business_day(ymd(2025, 5, 28)));
+    // The table is set each year, and 2026's was not read.
+    let later = HolidayCalendar::for_year(table("PS"), None, 2026);
+    assert!(
+        later
+            .gaps()
+            .iter()
+            .any(|gap| gap.name == "Samaritan New Year")
+    );
 }
 
 #[test]

@@ -96,6 +96,18 @@ notices print (BS, then Gregorian; each printed weekday agrees):
 | 8 | जातीय भेदभाव तथा छुवाछुत उन्मूलन राष्ट्रिय दिवस | offices open | जेठ २१ | जेठ २१ | जेठ २१ | जेठ २१ | everyone, `observance`, Jyeṣṭha 21 from 2023, a gap before |
 | 8 | निजामती सेवा दिवस, Civil Service Day | offices open | भदौ २२ | भदौ २२ | भदौ २२ | भदौ २२ | everyone, `observance`, Bhadra 22 from 2023, a gap before |
 | 8 | जेनजी सहिद दिवस, Gen Z Martyrs' Day | offices open | — | — | — | भदौ २३, 2026-09-08 | everyone, `observance`, Bhadra 23 from 2026 |
+| 8, then 6.1 | सहिद दिवस, Martyrs' Day | offices open in 2080; a day off for everyone in 2081–2083 | माघ १६, 2024-01-30, offices open | माघ १६, 2025-01-29 | माघ १६, 2026-01-30 | माघ १६, 2027-01-30 | everyone: `observance` in 2024, a day off in the other years |
+
+Martyrs' Day is the one day whose section changed. The notice for 2080
+lists it in section 8, kept with the offices open, and those for 2081 to
+2083 in section 6.1, a day off for everyone, which the press's copies of
+the lists bear out: Nagarik News prints Māgha 16 of 2080 under "राष्ट्रिय
+रूपमा मनाइने तर कार्यालय खुला रहने" [nagarik-bida-2080], and Nepal Press
+the 2081 day under "मुलुकभरि सबैलाई हुने सार्वजनिक दिवस बिदा"
+[nepalpress-bida-2081]. So 30 January 2024 is an observance and a business
+day, and Māgha 16 of every other year a day off; the years before 2080,
+whose notices were not read, are carried as a day off as the other days
+of section 6.1 are.
 
 Guru Nanak Jayanti is `hindu::GURU_NANAK_JAYANTI`, Kārtika pūrṇimā at
 midday, which gives both printed dates and 5 November 2025 and
@@ -120,11 +132,6 @@ Eids are.
   the jātrā is held" and no date.
 - **The provinces' days** under the notes, which are each province's own
   instrument, and the missions' days of section 9: none was read.
-- **Martyrs' Day in 2080 BS.** The notice for 2080 lists सहिद दिवस,
-  Māgha 16, in section 8, a day with the offices open; those for 2081 to
-  2083 list it in 6.1, a day off for everyone. The table's 2.1 rule
-  carries it as a day off in every year, 30 January 2024 among them.
-  This is left as a follow-up for the rules for everyone.
 
 ## Accuracy
 
@@ -151,6 +158,8 @@ of Siruwa Pawani and of Fagu Purnima, which is kept as a misprint of
 | [np-moha-holidays-2081] | The notice for 2081 BS, the same, and its सूचना २ | Yes, 2026-09-29, the same |
 | [np-moha-holidays-2082] | The notice for 2082 BS, the same | Yes, 2026-09-29, the same |
 | [np-moha-holidays-2083] | The notice for 2083 BS, the same | Yes, 2026-09-29, the same |
+| [nagarik-bida-2080] | Martyrs' Day of 2080 BS kept with the offices open, a secondary check on the notice | Yes, 2026-09-29 |
+| [nepalpress-bida-2081] | Martyrs' Day of 2081 BS a day off for everyone, the same | Yes, 2026-09-29 |
 
 ## Code
 

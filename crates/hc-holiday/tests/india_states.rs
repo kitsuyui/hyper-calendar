@@ -1,7 +1,7 @@
 //! India's states' holidays under the Negotiable Instruments Act.
 //!
 //! The rows are the Reserve Bank of India's lists for its regional
-//! offices, "Holidays under Negotiable Instruments Act" for 2025 and 2026,
+//! offices, "Holidays under Negotiable Instruments Act" for 2019 to 2026,
 //! retrieved 2026-09-29, not dates this crate produced.
 
 use hc_calendar::Rd;
@@ -35,6 +35,22 @@ const STATES: &[&str] = &[
 #[test]
 fn a_state_keeps_the_days_the_reserve_bank_lists_for_it() {
     for (region, year, month, day, name) in [
+        (
+            "IN-MH",
+            2019,
+            2,
+            19,
+            "Chhatrapati Shivaji Maharaj Jayanti/Guru Ravidas’s Birthday",
+        ),
+        ("IN-MH", 2020, 2, 19, "Chhatrapati Shivaji Maharaj Jayanti"),
+        ("IN-WB", 2022, 1, 12, "Birthday of Swami Vivekananda"),
+        (
+            "IN-MH",
+            2024,
+            9,
+            7,
+            "Ganesh Chaturthi/Samvatsari (Chaturthi Paksha)/Varasiddhi Vinayaka Vrata/Vinayakar Chathurthi",
+        ),
         ("IN-MH", 2025, 2, 19, "Chhatrapati Shivaji Maharaj Jayanti"),
         ("IN-MH", 2026, 2, 19, "Chhatrapati Shivaji Maharaj Jayanti"),
         ("IN-TN", 2025, 1, 16, "Uzhavar Thirunal"),
@@ -77,55 +93,56 @@ fn a_state_s_day_is_its_own() {
     assert!(own_on(Some("IN-TN"), 2026, 4, 23).is_empty());
 }
 
+/// The gap every state carried reports for a year whose list is not read.
+const GAP: &str = "Holidays under the Negotiable Instruments Act";
+
 #[test]
-fn the_states_are_carried_for_2025_and_2026_and_are_a_gap_after() {
+fn the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after() {
     for region in STATES {
-        let before = HolidayCalendar::for_year(&INDIA, Some(region), 2024);
+        // Vijayawada's list for Andhra Pradesh begins in 2023.
+        let first = if *region == "IN-AP" { 2023 } else { 2019 };
+        let before = HolidayCalendar::for_year(&INDIA, Some(region), first - 1);
         assert!(
             before
-                .in_year(2024)
+                .in_year(first - 1)
                 .iter()
                 .all(|holiday| holiday.regions.is_empty()),
             "{region}"
         );
-        for year in [2025, 2026] {
+        let gaps: Vec<&str> = before.gaps().iter().map(|gap| gap.name).collect();
+        assert!(gaps.contains(&GAP), "{region} {}: {gaps:?}", first - 1);
+        for year in first..=2026 {
             let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
             let own = calendar
                 .in_year(year)
                 .iter()
                 .filter(|holiday| !holiday.regions.is_empty())
                 .count();
-            assert!(own >= 12, "{region} {year}: {own}");
+            assert!(own >= 10, "{region} {year}: {own}");
             assert!(
-                !calendar
-                    .gaps()
-                    .iter()
-                    .any(|gap| gap.name == "Holidays under the Negotiable Instruments Act"),
+                !calendar.gaps().iter().any(|gap| gap.name == GAP),
                 "{region} {year}"
             );
         }
         let after = HolidayCalendar::for_year(&INDIA, Some(region), 2027);
         let gaps: Vec<&str> = after.gaps().iter().map(|gap| gap.name).collect();
-        assert!(
-            gaps.contains(&"Holidays under the Negotiable Instruments Act"),
-            "{region}: {gaps:?}"
-        );
+        assert!(gaps.contains(&GAP), "{region}: {gaps:?}");
     }
     // The nationwide table has no such gap.
-    let nationwide = HolidayCalendar::for_year(&INDIA, None, 2027);
-    assert!(
-        !nationwide
-            .gaps()
-            .iter()
-            .any(|gap| gap.name == "Holidays under the Negotiable Instruments Act")
-    );
+    for year in [2018, 2027] {
+        let nationwide = HolidayCalendar::for_year(&INDIA, None, year);
+        assert!(
+            !nationwide.gaps().iter().any(|gap| gap.name == GAP),
+            "{year}"
+        );
+    }
 }
 
 #[test]
 fn no_state_day_falls_on_a_sunday() {
     // The Reserve Bank lists no Sunday, when the banks are closed anyway.
     for region in STATES {
-        for year in [2025, 2026] {
+        for year in 2019..=2026 {
             let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
             for holiday in calendar.in_year(year) {
                 if !holiday.regions.is_empty() {

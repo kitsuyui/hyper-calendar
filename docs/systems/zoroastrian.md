@@ -80,8 +80,14 @@ All three are the dates Wikipedia gives, and 1370 Y.Z. is 3738 ZRE in each
   exact; for the wandering years it pairs the year numbers and nothing
   more.
 - **Not carried:**
-  - *The Bastani calendar* of Iran, which is the civil Solar Hijri year
-    (`persian`, [solar-hijri.md](solar-hijri.md)) under Zoroastrian names.
+  - *The Bastani calendar* of Iran as a calendar: the civil Solar Hijri
+    year (`persian`, [solar-hijri.md](solar-hijri.md)) in twelve months of
+    thirty days and the five Gatha days. Its name-day feasts are
+    `hc-holiday`'s table `zoroastrian-iranian`, on the days of the civil
+    year the Persian Wikipedia's list gives — Mehregan, 16 Mehr, on
+    10 Mehr of the civil calendar [wikipedia-fa-zoroastrian-festivals];
+    the civil calendar's own dates of Tirgan and Mehregan, 13 Tir and
+    16 Mehr, with Sadeh and Yalda, are `iranian-festivals`.
   - *The ZRE as a calendar*: its year turns at the astronomical equinox,
     which none of these reckonings follows.
   - *The Denkard's intercalation of a month every 120 years*, which no

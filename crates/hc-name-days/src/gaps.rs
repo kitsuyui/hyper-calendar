@@ -115,7 +115,7 @@ hc_core::catalogue! {
                  to which saint is custom, and no church-published name list exists. The movable \
                  name days (Цветница on Palm Sunday, Великден, Тодоровден on the Saturday of the \
                  first week of Lent, Спасовден on Ascension) follow the Julian computus and are \
-                 not yet carried.",
+                 hc-holiday's table name-days-bulgarian-movable.",
             sources: "bg-patriarshia-calendar; bg.wikipedia, \"Имен ден\", \
                       https://bg.wikipedia.org/wiki/Имен_ден",
         };
@@ -221,7 +221,7 @@ hc_core::catalogue! {
                  use are private sites that assert copyright. The movable rules are citable — Thomas \
                  Sunday (Pascha + 7) for Θωμάς and Θωμαΐς, All Saints (Pascha + 56) for names with no \
                  saint of their own, and St George moved to Easter Monday when 23 April falls before \
-                 Pascha — and are not yet carried.",
+                 Pascha — and are hc-holiday's table name-days-greek-movable.",
             sources: "elwiki-eortologio; https://eortologio.gr/assist/about_gr.php",
         };
         /// Croatia's imendan.
@@ -377,8 +377,8 @@ mod tests {
     #[test]
     fn the_orthodox_countries_record_the_movable_rules_they_do_not_yet_carry() {
         assert!(GREECE.explanation.contains("Pascha + 56"));
-        assert!(GREECE.explanation.contains("not yet carried"));
-        assert!(BULGARIA.explanation.contains("not yet carried"));
+        assert!(GREECE.explanation.contains("name-days-greek-movable"));
+        assert!(BULGARIA.explanation.contains("name-days-bulgarian-movable"));
         assert_eq!(for_reason(GapReason::SaintsNotNames).count(), 5);
     }
 

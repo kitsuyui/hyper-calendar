@@ -16,7 +16,8 @@
 //! that designated it. Each entry cites its resolution or agency in
 //! [`HolidayRule::source`](crate::rule::HolidayRule::source): a test asserts
 //! that none is blank. The weeks the list also carries — World Space Week,
-//! Disarmament Week and the rest — are spans, not days, and are not here.
+//! Disarmament Week and the rest — are spans, a table of their own,
+//! [`UNITED_NATIONS_WEEKS`], each on every day of its week.
 //!
 //! # The days that are rules
 //!
@@ -1133,8 +1134,135 @@ pub static UNITED_NATIONS: RuleSet = RuleSet {
               resolution or designating body in its `source`",
 };
 
+/// A week of observance: every day from `from` to `to`, an observance
+/// citing the instrument that set it.
+const fn week(
+    name: &'static str,
+    from: &'static Rule,
+    to: &'static Rule,
+    source: &'static str,
+) -> HolidayRule {
+    HolidayRule::observance(name, "", Rule::span(from, to)).cited(source)
+}
+
+const FEBRUARY_1: Rule = Rule::gregorian(2, 1);
+const FEBRUARY_7: Rule = Rule::gregorian(2, 7);
+const MARCH_21: Rule = Rule::gregorian(3, 21);
+const MARCH_27: Rule = Rule::gregorian(3, 27);
+const APRIL_24: Rule = Rule::gregorian(4, 24);
+const APRIL_30: Rule = Rule::gregorian(4, 30);
+const MAY_25: Rule = Rule::gregorian(5, 25);
+const MAY_31: Rule = Rule::gregorian(5, 31);
+const AUGUST_1: Rule = Rule::gregorian(8, 1);
+const AUGUST_7: Rule = Rule::gregorian(8, 7);
+const OCTOBER_4: Rule = Rule::gregorian(10, 4);
+const OCTOBER_10: Rule = Rule::gregorian(10, 10);
+const OCTOBER_24: Rule = Rule::gregorian(10, 24);
+const OCTOBER_30: Rule = Rule::gregorian(10, 30);
+const OCTOBER_31: Rule = Rule::gregorian(10, 31);
+const NOVEMBER_18: Rule = Rule::gregorian(11, 18);
+const NOVEMBER_24: Rule = Rule::gregorian(11, 24);
+/// The Monday of the week, Monday to Sunday, in which 11 November falls.
+const MONDAY_OF_11_NOVEMBER: Rule = Rule::WeekdayOnOrBefore {
+    month: 11,
+    day: 11,
+    weekday: Weekday::Monday,
+};
+/// Its Sunday.
+const SUNDAY_OF_11_NOVEMBER: Rule = Rule::WeekdayOnOrAfter {
+    month: 11,
+    day: 11,
+    weekday: Weekday::Sunday,
+};
+
+static UNITED_NATIONS_WEEKS_RULES: &[HolidayRule] = &[
+    week(
+        "World Interfaith Harmony Week",
+        &FEBRUARY_1,
+        &FEBRUARY_7,
+        "A/RES/65/5; the first week of February",
+    ),
+    week(
+        "Week of Solidarity with the Peoples Struggling against Racism and Racial Discrimination",
+        &MARCH_21,
+        &MARCH_27,
+        "A/RES/34/24",
+    ),
+    week("World Immunization Week", &APRIL_24, &APRIL_30, "WHO"),
+    week(
+        "Week of Solidarity with the Peoples of Non-Self-Governing Territories",
+        &MAY_25,
+        &MAY_31,
+        "A/RES/54/91",
+    ),
+    week("World Breastfeeding Week", &AUGUST_1, &AUGUST_7, "WHO"),
+    week("World Space Week", &OCTOBER_4, &OCTOBER_10, "A/RES/54/68"),
+    week(
+        "Disarmament Week",
+        &OCTOBER_24,
+        &OCTOBER_30,
+        "A/RES/S-10/2, paragraph 102; from 24 October, the anniversary of the United Nations",
+    ),
+    // Eight days, one more than a span holds: its first seven and its
+    // last.
+    week(
+        "Global Media and Information Literacy Week",
+        &OCTOBER_24,
+        &OCTOBER_30,
+        "A/RES/75/267",
+    ),
+    HolidayRule::observance("Global Media and Information Literacy Week", "", OCTOBER_31)
+        .cited("A/RES/75/267"),
+    week(
+        "International Week of Science and Peace",
+        &MONDAY_OF_11_NOVEMBER,
+        &SUNDAY_OF_11_NOVEMBER,
+        "A/RES/43/61; the week in which 11 November falls",
+    ),
+    week(
+        "World Antimicrobial Resistance Awareness Week",
+        &NOVEMBER_18,
+        &NOVEMBER_24,
+        "WHO",
+    ),
+];
+
+/// The international weeks of the United Nations and its agencies, every
+/// day of each, as the United Nations' list gives them and the resolutions
+/// set them: World Interfaith Harmony Week, "the first week of February"
+/// (A/RES/65/5), 1 to 7 February; the Week of Solidarity with the Peoples
+/// Struggling against Racism and Racial Discrimination, 21 to 27 March
+/// (A/RES/34/24); the Week of Solidarity with the Peoples of Non-Self-
+/// Governing Territories, 25 to 31 May (A/RES/54/91); World Space Week,
+/// 4 to 10 October (A/RES/54/68); Disarmament Week, "starting on
+/// 24 October, the anniversary of the founding of the United Nations",
+/// to the 30th (A/RES/S-10/2); the Global Media and Information Literacy
+/// Week, 24 to 31 October (A/RES/75/267); the International Week of Science
+/// and Peace, "the week in which 11 November falls" (A/RES/43/61), read as
+/// the Monday-to-Sunday week, which gives the list's 9 to 15 November of
+/// 2026; and the World Health Organization's World Immunization Week,
+/// World Breastfeeding Week and World Antimicrobial Resistance Awareness
+/// Week, on the dates the list prints for them.
+pub static UNITED_NATIONS_WEEKS: RuleSet = RuleSet {
+    code: "un-weeks",
+    english_name: "United Nations international weeks",
+    rules: UNITED_NATIONS_WEEKS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "United Nations, \"International Days and Weeks\", \
+              un.org/en/observances/list-days-weeks, retrieved 2026-09-29, for every \
+              week and its dates; the observances' own pages for World Interfaith \
+              Harmony Week (A/RES/65/5), the International Week of Science and Peace \
+              (A/RES/43/61), World Space Week (A/RES/54/68), Disarmament Week (A/RES/S-10/2) \
+              and the Global Media and Information Literacy Week (A/RES/75/267), \
+              retrieved 2026-09-29; the resolutions themselves, PDFs, were not read",
+};
+
 /// Every international table in the crate.
-pub static ALL: &[&RuleSet] = &[&UNITED_NATIONS];
+pub static ALL: &[&RuleSet] = &[&UNITED_NATIONS, &UNITED_NATIONS_WEEKS];
 
 /// The table for an international set's identifier, by
 /// [`hc_core::catalogue::matches`].

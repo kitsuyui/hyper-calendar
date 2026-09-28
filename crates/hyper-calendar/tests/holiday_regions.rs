@@ -14,9 +14,8 @@ use hyper_calendar::hc_i18n::place_names::{self, Status};
 
 /// Codes scoped to that are not ISO 3166-2 subdivisions in current use,
 /// each for a reason: England and Wales as one jurisdiction, which ISO
-/// 3166-2 splits; and Guatemala City's department under the code ISO
-/// retired, which Guatemala's table still uses and should replace.
-const EXCEPTIONS: &[&str] = &["GB-EAW", "GT-GU"];
+/// 3166-2 splits.
+const EXCEPTIONS: &[&str] = &["GB-EAW"];
 
 #[test]
 fn every_region_is_a_regular_subdivision_of_its_country() {

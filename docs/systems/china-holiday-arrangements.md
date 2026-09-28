@@ -197,11 +197,20 @@ Monday 19 February is the first trading day after the break.
     revision were not read; what the table knows of the 1999 text is what
     the 2007 decree amended, which is enough for 1999 to 2007 and says
     nothing about the years before.
-  - The commemorations of Article 5, which give no day off
-    (均不放假): 二七纪念日, 五卅纪念日 and the others. They are not yet
-    carried as observances: five are named by their dates, but 教师节,
-    护士节, 记者节 and 植树节 are set by instruments of their own, which
-    were not read, and no rule was written for either set.
+  - Before 2008, the commemorations of Article 5 whose dates the
+    办法 alone gives, and the "其他" days it leaves unnamed. The five
+    named by their dates, 二七纪念日 (7 February), 五卅纪念日 (30 May),
+    七七抗战纪念日 (7 July), 九三抗战胜利纪念日 (3 September) and 九一八纪念日
+    (18 September), and 护士节, 12 May, which the National Health
+    Commission's notices call "国际护士节" [nhc-nurses-day-2024], are
+    carried as observances from 2008, the first year of the text read, the
+    2007 decision's, which the 2013 and 2024 texts repeat word for word;
+    each year before is a gap. 植树节, 12 March, is carried from 1979, by
+    the Standing Committee's resolution of 23 February 1979
+    [npcsc-arbor-day-1979]; 教师节, 10 September, from 1985, by its decision
+    of 21 January 1985 [moe-teachers-day-chronology]; and 记者节, 8 November,
+    from 2000, the year the State Council approved the day at the
+    中国记协's request [dangyuan-journalists-day]. None gives a day off.
   - Tibet's 藏历新年 and 雪顿节 under Article 4, whose notices read are
     Lhasa's and Nyingchi's: those of prefecture-level cities, which ISO
     3166-2 does not code, and no instrument of the region was reached
@@ -290,7 +299,11 @@ Known points a reader may stumble on:
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [gov-cn-holiday-measures-2024] | The statute as in force: the seven holidays and thirteen days, Articles 3 to 7, the revision history | Yes, 2026-09-25, the consolidated text in the State Council Gazette; Articles 3, 4 and 6 again 2026-09-29 |
+| [gov-cn-holiday-measures-2024] | The statute as in force: the seven holidays and thirteen days, Articles 3 to 7, the revision history | Yes, 2026-09-25, the consolidated text in the State Council Gazette; Articles 3, 4 and 6 again 2026-09-29, and Article 5 in it and in the 2007 and 2013 texts the same day |
+| [npcsc-arbor-day-1979] | 植树节 on 12 March, by the resolution of 23 February 1979 | Yes, 2026-09-29, a law site's copy (secondary) |
+| [moe-teachers-day-chronology] | 教师节 on 10 September, by the decision of 21 January 1985 | Yes, 2026-09-29 |
+| [dangyuan-journalists-day] | 记者节 on 8 November, approved by the State Council in 2000 | Yes, 2026-09-29 (secondary) |
+| [nhc-nurses-day-2024] | "5月12日是国际护士节" | Yes, 2026-09-29, the Xinjiang commission's repost |
 | [gx-minority-festival-measures-2014] | 广西's 壮族三月三, two days for every citizen | Yes, 2026-09-29, on gov.cn |
 | [gx-sanyuesan-2024] | 广西's days of 2024 | Yes, 2026-09-29, the notice as reposted by 光明网 |
 | [gx-sanyuesan-2026] | 广西's days of 2026 | Yes, 2026-09-29, a press report of the notice; the notice on gxzf.gov.cn timed out |
@@ -336,14 +349,17 @@ them.
 `crates/hc-holiday/src/countries/china_scoped.rs`: the days of Article 3
 in `CN_SCOPED_RULES`, each given to its group with `for_groups`, and the
 autonomous regions' days in `CN_REGION_RULES`, read from the listing
-`CN_REGION_DAYS` and scoped with `in_regions`; `CN_ALL_RULES` joins them
+`CN_REGION_DAYS` and scoped with `in_regions`, and the commemorations of
+Article 5 in `CN_COMMEMORATIONS`; `CN_ALL_RULES` joins them
 to `CN_RULES`, and is what `CHINA` carries. The groups are
 `hc_holiday::group`, and the `Scope` a calendar is evaluated in is in
 `rule.rs`. Anchors: `crates/hc-holiday/tests/groups.rs` (each day of
 Article 3 in its group's calendar and not in everyone's, 1999, 2008 and
 2026; nothing in 1998; a half day a business day and Children's Day a day
 off for children) and `crates/hc-holiday/tests/china_regions.rs` (every
-region's days in a year read, a region's days its own, the gaps).
+region's days in a year read, a region's days its own, the gaps), and
+`china_s_article_5_commemorations_are_observances_without_a_day_off` in
+`crates/hc-holiday/tests/countries.rs`.
 
 `crates/hc-holiday/src/countries/asia.rs`: the statutory rules in
 `CN_RULES`, bounded below by `CN_STATUTE_FIRST` with `CN_UNREAD` for the

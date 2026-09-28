@@ -34,10 +34,10 @@ use hc_calendars_lunar::samaritan;
 use hc_calendars_lunar::tabular::{self, LeapYearRule};
 use hc_calendars_lunar::tibetan::{self, LeapNumbering, TibetanCalendar, TibetanDate};
 use hc_calendars_lunar::{ChineseCalendar, DangiCalendar, LunisolarDate, VietnameseCalendar};
-use hc_calendars_regional::{burmese, khmer, thai_lunar};
+use hc_calendars_regional::{burmese, khmer, thai_lunar, tibetan_almanac};
 use hc_calendars_solar::{
     bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, mandaean, nanakshahi, persian,
-    revised_julian, zoroastrian,
+    qumran, revised_julian, zoroastrian,
 };
 use hc_core::math::{floor, modulo, normalize_degrees};
 use hc_seasons::solar_terms::term_moment;
@@ -687,6 +687,21 @@ hc_core::catalogue! {
             |rd| mandaean::from_fixed(rd).ok().map(|(year, _, _)| year),
         );
 
+        /// The 364-day year of the Qumran scrolls and Jubilees, in which the
+        /// covenanters' festivals are dated: four quarters of 30, 30 and 31
+        /// days, every quarter opening on a Wednesday, on this library's
+        /// conventional epoch (`hc_calendars_solar::qumran`).
+        pub const QUMRAN = Self::new(
+            CalendarId(qumran::ID),
+            |year, month, day| {
+                if month.leap {
+                    return None;
+                }
+                qumran::to_fixed(year, month.ordinal, day).ok()
+            },
+            |rd| qumran::from_fixed(rd).ok().map(|(year, _, _)| year),
+        );
+
         /// The Zoroastrian calendar by the Qadimi reckoning: the 365-day
         /// year from the accession of Yazdegerd III, drifting a day every
         /// four years, in which the Kadmi Parsis and the Zoroastrians of
@@ -831,6 +846,38 @@ pub enum TibetanMonth {
     /// Phugpa leap month 6 — so a Gregorian year that either month reaches
     /// is not answered, and reported as a gap.
     Unrepeated(u8),
+}
+
+/// Where a [`Rule::TibetanDay`] is kept in a year whose calendar skips its
+/// day's number or repeats it: the conventions the sources give, each by
+/// name, so that a table says which it follows ([policy §5]).
+///
+/// The calendar names a day by the lunar day current at its dawn, so a
+/// lunar day that begins and ends between two dawns gives no day its
+/// number, and one that holds two dawns gives two. Whose day a festival
+/// then is, the sources answer differently; see
+/// `docs/systems/tibetan-calendar-holidays.md`.
+///
+/// [policy §5]: https://github.com/kitsuyui/hyper-calendar/blob/main/docs/policy.md#5-competing-conventions-get-names-not-parameters
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TibetanDayRule {
+    /// Not answered: a Gregorian year in which the day is skipped or
+    /// repeated is a gap. Mongolia's and Bhutan's lists, the tables of
+    /// countries, follow no stated rule, and Mongolia's own practice has
+    /// varied.
+    Unsettled,
+    /// The general rule Janson reports from Berzin: a festival on a
+    /// skipped date is kept on the day before, the calendar day the
+    /// skipped lunar day ends in, and one on a repeated date on the first
+    /// of the two (Janson, "Tibetan calendar mathematics", §11), as
+    /// `hc_calendars_regional::tibetan_almanac::berzin_day` computes it.
+    /// Janson has "not checked them against published calendars".
+    Berzin,
+    /// As Henning's computed Phugpa almanacs mark a festival: on the second
+    /// of two days of a repeated number, and on no day when the number is
+    /// skipped, as `tibetan_almanac::henning_almanac_day` computes it. The
+    /// almanacs state no rule; this is the library's reading of them.
+    HenningAlmanac,
 }
 
 /// The shape of a holiday.
@@ -1052,8 +1099,9 @@ pub enum Rule {
     /// reports a general rule from Berzin — the day before for a skipped
     /// date, the first of the two for a repeated one — which he did not
     /// check against published calendars, and Mongolia's own practice has
-    /// varied. A Gregorian year in which the day is skipped or repeated is
-    /// therefore not answered, and reported as a gap. See
+    /// varied. Which convention a rule follows is its `when`: with
+    /// [`TibetanDayRule::Unsettled`], a Gregorian year in which the day is
+    /// skipped or repeated is not answered, and reported as a gap. See
     /// `docs/systems/tibetan-calendar-holidays.md`.
     TibetanDay {
         /// The version of the calendar.
@@ -1062,6 +1110,8 @@ pub enum Rule {
         month: TibetanMonth,
         /// The day number, 1 to 30.
         day: u8,
+        /// Where the day is kept when its number is skipped or repeated.
+        when: TibetanDayRule,
     },
     /// The genuine handful that resist everything else — a one-off statute,
     /// a rule stated as a sentence and not as a pattern.
@@ -1205,14 +1255,27 @@ impl Rule {
         }
     }
 
-    /// A numbered day of a month of the Tibetan calendar; see
-    /// [`Rule::TibetanDay`].
+    /// A numbered day of a month of the Tibetan calendar, a gap in a year
+    /// that skips or repeats it; see [`Rule::TibetanDay`].
     #[must_use]
     pub const fn tibetan(calendar: &'static TibetanCalendar, month: TibetanMonth, day: u8) -> Self {
+        Self::tibetan_by(calendar, month, day, TibetanDayRule::Unsettled)
+    }
+
+    /// A numbered day of a month of the Tibetan calendar, kept by `when` in
+    /// a year that skips or repeats it; see [`Rule::TibetanDay`].
+    #[must_use]
+    pub const fn tibetan_by(
+        calendar: &'static TibetanCalendar,
+        month: TibetanMonth,
+        day: u8,
+        when: TibetanDayRule,
+    ) -> Self {
         Self::TibetanDay {
             calendar,
             month,
             day,
+            when,
         }
     }
 
@@ -1287,7 +1350,8 @@ impl Rule {
                 calendar,
                 month,
                 day,
-            } => tibetan_days(calendar, *month, *day, year).is_some(),
+                when,
+            } => tibetan_days(calendar, *month, *day, *when, year).is_some(),
             Self::Offset { base, .. } | Self::MovedByWeekday { base, .. } => {
                 base.is_resolvable_with(year, lookups)
             }
@@ -1519,7 +1583,8 @@ impl Rule {
                 calendar,
                 month,
                 day,
-            } => tibetan_days(calendar, *month, *day, year).unwrap_or_default(),
+                when,
+            } => tibetan_days(calendar, *month, *day, *when, year).unwrap_or_default(),
             Self::Computed(function) => function(year).clamped(first, last),
             Self::Unsettled(function) => function(year).unwrap_or_default().clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
@@ -2024,8 +2089,11 @@ fn fixed_in_calendar<L: Lookups>(
 
 /// The days a [`Rule::TibetanDay`] falls on in Gregorian `year`, or `None`
 /// when the year cannot be answered: the day is skipped or repeated in a
-/// Tibetan year whose occurrence lies within it, or the Tibetan years it
-/// needs lie outside the calendar's range.
+/// Tibetan year whose occurrence lies within it and `when` is
+/// [`TibetanDayRule::Unsettled`], or the Tibetan years it needs lie outside
+/// the calendar's range. Under [`TibetanDayRule::Berzin`] and
+/// [`TibetanDayRule::HenningAlmanac`] a skipped or repeated day is the one
+/// `tibetan_almanac`'s rule of that name gives.
 ///
 /// A Tibetan year begins between late January and March, so the two that
 /// can reach Gregorian `year` are those numbered `year - 1` and `year`. A
@@ -2036,6 +2104,7 @@ fn tibetan_days(
     calendar: &TibetanCalendar,
     month: TibetanMonth,
     day: u8,
+    when: TibetanDayRule,
     year: i64,
 ) -> Option<Days> {
     let first = gregorian::to_fixed(year, 1, 1).ok()?;
@@ -2086,39 +2155,37 @@ fn tibetan_days(
             }
             TibetanMonth::Unrepeated(number) => Month::regular(number),
         };
-        let date = |day: u8, leap_day: bool| {
-            calendar
-                .date_to_fixed(TibetanDate {
-                    year: tibetan_year,
-                    month,
-                    day,
-                    leap_day,
-                })
-                .ok()
+        // The end days of the lunar day before and of this one: one apart
+        // for an ordinary day, two for a repeated number, none for a
+        // skipped one, whose lunar day ends in the calendar day `end`.
+        let n = calendar.true_month_count(tibetan_year, month.ordinal, month.leap)?;
+        let (before, end) = calendar.lunar_day_span(i64::from(day), n);
+        let last = Rd::from_julian_day_number(end);
+        if end - before == 1 {
+            if within(last) {
+                out.push(last);
+            }
+            continue;
+        }
+        let kept = match when {
+            TibetanDayRule::Unsettled => {
+                let first = Rd::from_julian_day_number(before + 1);
+                if within(last) || (end - before == 2 && within(first)) {
+                    return None;
+                }
+                continue;
+            }
+            TibetanDayRule::Berzin => {
+                tibetan_almanac::berzin_day(calendar, tibetan_year, month, day).ok()
+            }
+            TibetanDayRule::HenningAlmanac => {
+                tibetan_almanac::henning_almanac_day(calendar, tibetan_year, month, day)
+                    .ok()
+                    .flatten()
+            }
         };
-        match (date(day, false), date(day, true)) {
-            (Some(regular), None) => {
-                if within(regular) {
-                    out.push(regular);
-                }
-            }
-            (Some(regular), Some(extra)) => {
-                if within(regular) || within(extra) {
-                    return None;
-                }
-            }
-            (None, _) => {
-                let ends = if day < 30 {
-                    date(day + 1, true)
-                        .or_else(|| date(day + 1, false))
-                        .map(|next| Rd(next.0 - 1))
-                } else {
-                    date(29, false)
-                };
-                if ends.is_none_or(within) {
-                    return None;
-                }
-            }
+        if let Some(kept) = kept.filter(|kept| within(*kept)) {
+            out.push(kept);
         }
     }
     Some(out)

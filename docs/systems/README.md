@@ -36,7 +36,7 @@ crates, modules, functions or holiday tables.
 | System | Document | Backs |
 | --- | --- | --- |
 | Babylonian calendar of the Seleucid era | [babylonian.md](babylonian.md) | `babylonian` |
-| Name-day lists | [name-days.md](name-days.md) | `hc-name-days` |
+| Name-day lists, and the movable Orthodox name days | [name-days.md](name-days.md) | `hc-name-days`; `hc-holiday`'s `name-days-greek-movable` and `name-days-bulgarian-movable` |
 | The Japanese lunisolar calendars, Senmyō to Tenpō | [japanese-lunisolar.md](japanese-lunisolar.md) | `japanese-senmyo`, `japanese-jokyo`, `japanese-horyaku`, `japanese-kansei`, `japanese-tenpo`; the seasonal 進朔 and the 修正宝暦暦 as parameter sets |
 | The Thai lunar calendar's year types, and the Buddhist year as printed | [thai-lunar.md](thai-lunar.md) | `thai-lunar`; `buddhist::printed_year` |
 | The Khmer *Chhankitek* and the Lao calendar: the *suryayatra* rule for the leap month and the leap day as Cambodia and Laos apply it, where Dupertuis's statement for Laos leaves it open, the Buddhist Era changing at Pisakh, and why the Sinhalese and Tai calendars are not carried | [khmer-chhankitek.md](khmer-chhankitek.md) | `khmer`; `lao`; `southeast_asian` |
@@ -59,7 +59,7 @@ crates, modules, functions or holiday tables.
 | Afghanistan's holidays under the Islamic Emirate: the official lunar calendar, the Ministry of Labour's notices, the solar days on `persian-afghan` | [afghanistan-holidays.md](afghanistan-holidays.md) | `hc-holiday`'s `AFGHANISTAN`; `CalendarSystem::SOLAR_HIJRI_AFGHAN` |
 | Japan's holiday law and its amendments, and the prefectures' own days | [japan-holidays.md](japan-holidays.md) | `hc-holiday`'s `JAPAN`, with its regions `JP-01` to `JP-47`; `XJPX` |
 | New Zealand's provincial anniversary days: the Monday nearest, the exceptions, the provinces that are not regions | [new-zealand-anniversary-days.md](new-zealand-anniversary-days.md) | `hc-holiday`'s `NEW_ZEALAND`, with its regions; `countries::new_zealand` |
-| India's state holidays under the Negotiable Instruments Act, from the Reserve Bank's lists, for the thirteen largest states | [india-state-holidays.md](india-state-holidays.md) | `hc-holiday`'s `INDIA`, with its regions; `countries::india` |
+| India's state holidays under the Negotiable Instruments Act, from the Reserve Bank's lists of 2019–2026, for the thirteen largest states | [india-state-holidays.md](india-state-holidays.md) | `hc-holiday`'s `INDIA`, with its regions; `countries::india` |
 | The provincial days of Solomon Islands and Vanuatu | [pacific-provincial-days.md](pacific-provincial-days.md) | `hc-holiday`'s `SOLOMON_ISLANDS` and `VANUATU`, with their regions; `countries::solomon_islands`, `countries::vanuatu` |
 | Andorra's national holidays and the parishes' own, fixed by each comú each year | [andorra-holidays.md](andorra-holidays.md) | `hc-holiday`'s `ANDORRA`, with its regions `AD-02` to `AD-08` |
 | Bolivia's national holidays and the departments' efemérides | [bolivia-holidays.md](bolivia-holidays.md) | `hc-holiday`'s `BOLIVIA`, with its regions `BO-L`, `BO-N`, `BO-O`, `BO-S` and `BO-T` |
@@ -72,10 +72,10 @@ crates, modules, functions or holiday tables.
 | The Berber agrarian calendar and the Amazigh era | [berber.md](berber.md) | `berber` |
 | The Mandaean calendar: the Parwanaia and the years after Adam | [mandaean.md](mandaean.md) | `mandaean` |
 | The modern Assyrian calendar and its 4750 BC epoch | [assyrian.md](assyrian.md) | `assyrian` |
-| The Yazidi year: Serêsal and the Eastern calendar | [yazidi.md](yazidi.md) | `yazidi` |
+| The Yazidi year: Serêsal and the Eastern calendar | [yazidi.md](yazidi.md) | `yazidi`; `hc-holiday`'s `yazidi` table |
 | The Hanke–Henry Permanent Calendar: the ISO year cut into months, and Xtr | [hanke-henry.md](hanke-henry.md) | `hanke-henry` |
 | The Old Icelandic calendar: the misseri, the sumarauki, the Julian and Gregorian rules, the Almanac's leap week, the Friday winter and the medieval day | [icelandic.md](icelandic.md) | `icelandic`, `icelandic-julian`, `icelandic-almanac`, `icelandic-friday`, `icelandic-julian-friday`, `icelandic-medieval` |
-| The Qumran and Jubilees 364-day year and the mishmarot, on an epoch of this library's | [qumran.md](qumran.md) | `qumran` |
+| The Qumran and Jubilees 364-day year and the mishmarot, on an epoch of this library's, and its festivals | [qumran.md](qumran.md) | `qumran`; `hc-holiday`'s `qumran-festivals` |
 | The Soviet revolutionary weeks of 1929–1940, from the decrees | [soviet-week.md](soviet-week.md) | `soviet-week` |
 | The Meyer–Palmen Solilunar Calendar: two remainders over a 6840-year era, and Meton | [meyer-palmen.md](meyer-palmen.md) | `meyer-palmen` |
 | Palmen's Yerm lunar calendar: yerms of 17 and 15 months, 52 to a cycle, the night from noon | [yerm.md](yerm.md) | `yerm` |
@@ -103,10 +103,10 @@ crates, modules, functions or holiday tables.
 | The Tibetan calendar: the Phugpa arithmetic, the lunar day with its skipped and extra days, the leap-month rule, the sixty-year names | [tibetan-phugpa.md](tibetan-phugpa.md) | `tibetan` |
 | The Tibetan calendar's other versions: the Tsurphu, the Bhutanese with its leap month after the month it repeats, the Mongolian New Genden and Tsagaan Sar; Lochen's anomaly and the *karaṇa* Sun, the conventions of Henning's almanacs; why the Kālacakra *karaṇa* and the yellow calculation are not carried | [tibetan-variants.md](tibetan-variants.md) | `tibetan-tsurphu`, `tibetan-bhutan`, `mongolian`, `tibetan-lochen`, `tibetan-tsurphu-karana` |
 | The Tibetan almanac: the five components — lunar mansion, *yoga*, *karaṇa* — and the true Sun and Moon, the planets and Rāhu, the *rab byung* names and the count from 127 BCE, the Bhutanese weekday and winter solstice, the Mongolian months and colours, and where a festival on a skipped or repeated date falls | [tibetan-almanac.md](tibetan-almanac.md) | `hc-calendars-regional`'s `tibetan_almanac` |
-| Holidays on the Tibetan calendar: Mongolia's lunar days of its holidays law, Bhutan's Bhutanese-dated list days and Thimphu's festivals, and the Tibetan *düchen*, the month a holiday is kept in, and the skipped and repeated days and months reported as gaps | [tibetan-calendar-holidays.md](tibetan-calendar-holidays.md) | `hc-holiday`'s `MONGOLIA`, `BHUTAN` and `buddhist-tibetan`, `Rule::TibetanDay`; `CalendarSystem::MONGOLIAN`, `CalendarSystem::TIBETAN_BHUTAN` |
+| Holidays on the Tibetan calendar: Mongolia's lunar days of its holidays law, Bhutan's Bhutanese-dated list days, Winter Solstice and Thimphu's festivals, and the Tibetan *düchen*, the month a holiday is kept in, and the skipped and repeated days and months: gaps, Berzin's rule or Henning's almanacs, each a named convention | [tibetan-calendar-holidays.md](tibetan-calendar-holidays.md) | `hc-holiday`'s `MONGOLIA`, `BHUTAN`, `buddhist-tibetan`, `buddhist-tibetan-berzin` and `buddhist-tibetan-henning`, `Rule::TibetanDay` and `TibetanDayRule`; `CalendarSystem::MONGOLIAN`, `CalendarSystem::TIBETAN_BHUTAN` |
 | The Milankovitch orbital elements and daily insolation, from Berger's 1978 series | [orbital-elements.md](orbital-elements.md) | `hc-orbital` |
 | The Javanese calendar: Sultan Agung's lunar year, the windu and the kurup, and the Yogyakarta and Aboge reckonings | [javanese.md](javanese.md) | `javanese`, `javanese-yogyakarta`, `javanese-aboge` |
-| The Balinese Pawukon's ten concurrent weeks, and the Javanese pasaran and wetonan | [pawukon-and-pasaran.md](pawukon-and-pasaran.md) | `balinese-pawukon`, `javanese-pasaran` |
+| The Balinese Pawukon's ten concurrent weeks and its holy days, and the Javanese pasaran and wetonan | [pawukon-and-pasaran.md](pawukon-and-pasaran.md) | `balinese-pawukon`, `javanese-pasaran`; `hc-holiday`'s `balinese-pawukon-days` |
 | The Badíʿ calendar from 2015 and the French Republican decree, against their arithmetic siblings, Romme's and Richards's | [equinox-calendars.md](equinox-calendars.md) | `bahai-astronomical`, `french-republican-equinox`; `bahai`, `bahai-arithmetic`, `french-republican-arithmetic`, `french-republican-arithmetic-richards` |
 | The Jalālī calendar: Nowrūz before the Sun's noon at Isfahan, Ṭūsī's table of 295 years with its quinquennia and the rule of 161, the extra days after Esfandārmoḏ or after Bahman at Naṭanz | [jalali.md](jalali.md) | `jalali`, `jalali-natanz`, `jalali-tusi` |
 | The Olympiads: the ancient count from 776 BC over the Julian year, and the IOC's Olympiads from 1896 with the Games not celebrated | [olympiads.md](olympiads.md) | `olympiad`; `olympiad::ioc_olympiad` |
@@ -115,7 +115,7 @@ crates, modules, functions or holiday tables.
 | The Taiping Heavenly Calendar: the 366-day year of 1852–1869, and its day names a day ahead | [taiping-tianli.md](taiping-tianli.md) | `taiping-tianli` |
 | The calendar of the Roman province of Asia: the decree of 9/8 BC, the months from the ninth day before the Kalends, Sebaste and the leap Xandikos, and why the range starts in AD 4 | [asian-calendar.md](asian-calendar.md) | `asian` |
 | The Solar Hijri calendar: Nowruz by the clock's noon and by the Sun's at Tehran, the 33-year rule and the 2 820-year cycle | [solar-hijri.md](solar-hijri.md) | `persian`, `persian-apparent-noon`, `persian-afghan`, `persian-arithmetic`, `persian-arithmetic-33` |
-| The Zoroastrian calendars: the Parsi intercalation of the 1120s, the split of 1745, the Fasli of 1906, the ZRE | [zoroastrian.md](zoroastrian.md) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli` |
+| The Zoroastrian calendars: the Parsi intercalation of the 1120s, the split of 1745, the Fasli of 1906, the ZRE, and the Iranian community's thirty-day months | [zoroastrian.md](zoroastrian.md) | `zoroastrian-qadimi`, `zoroastrian-shahanshahi`, `zoroastrian-fasli`; `hc-holiday`'s `zoroastrian-iranian` |
 | The Armenian calendar: the Great Era's wandering year and Sarkawag's fixed year of 1084 | [armenian.md](armenian.md) | `armenian`, `armenian-fixed` |
 | The Bangladeshi and Nanakshahi calendars: fixed month lengths by decree, and their revisions | [fixed-solar-namings.md](fixed-solar-namings.md) | `bangladeshi`, `nanakshahi` |
 | The sexagenary cycle for year, month, day and hour, its three year boundaries and its readings | [sexagenary-cycle.md](sexagenary-cycle.md) | `sexagenary`; `hc-calendar::cycle`, `cycle::readings` |

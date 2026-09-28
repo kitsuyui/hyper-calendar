@@ -274,7 +274,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BO` | Bolivia | 22 | yes | stated | 2026-09-29 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
-| `BT` | Bhutan | 43 | none | stated | 2026-09-29 |
+| `BT` | Bhutan | 45 | none | stated | 2026-09-29 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
@@ -285,7 +285,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-26 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
-| `CN` | China | 50 | none | stated | 2026-09-29 |
+| `CN` | China | 65 | none | stated | 2026-09-29 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
@@ -327,7 +327,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 39 | none | stated | 2026-09-27 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 14 | none | stated | 2026-09-28 |
-| `IN` | India | 581 | none | stated | 2026-09-29 |
+| `IN` | India | 2040 | none | stated | 2026-09-29 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
@@ -381,7 +381,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NI` | Nicaragua | 11 | none | stated | 2026-09-23 |
 | `NL` | Netherlands | 10 | none | stated | 2026-09-26 |
 | `NO` | Norway | 12 | none | stated | 2026-09-26 |
-| `NP` | Nepal | 42 | none | stated | 2026-09-29 |
+| `NP` | Nepal | 44 | none | stated | 2026-09-29 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
 | `NZ` | New Zealand | 25 | yes | stated | 2026-09-29 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
@@ -391,7 +391,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `PH` | Philippines | 45 | none | stated | 2026-09-28 |
 | `PK` | Pakistan | 13 | none | stated | 2026-09-26 |
 | `PL` | Poland | 15 | none | stated | 2026-09-26 |
-| `PS` | Palestine | 39 | none | stated | 2026-09-23 |
+| `PS` | Palestine | 47 | none | stated | 2026-09-23 |
 | `PT` | Portugal | 18 | none | stated | 2026-09-26 |
 | `PW` | Palau | 9 | yes | stated | 2026-09-23 |
 | `PY` | Paraguay | 24 | none | stated | 2026-09-23 |
@@ -448,15 +448,18 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-63 tables, feature `holiday`.
+71 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
 | `bahai` | Bahá'í Faith | 15 |
+| `balinese-pawukon-days` | Balinese Hinduism (Pawukon holy days) | 10 |
 | `bcp-1662` | Book of Common Prayer (1662) | 103 |
 | `buddhist-east-asian` | Buddhism (East Asian) | 4 |
 | `buddhist-thai` | Buddhism (Thai Theravāda) | 4 |
-| `buddhist-tibetan` | Buddhism (Tibetan) | 5 |
+| `buddhist-tibetan` | Buddhism (Tibetan) | 23 |
+| `buddhist-tibetan-berzin` | Buddhism (Tibetan, Berzin's rule) | 23 |
+| `buddhist-tibetan-henning` | Buddhism (Tibetan, as Henning's almanacs mark it) | 27 |
 | `buddhist-uposatha-thai` | Buddhism (Thai uposatha days) | 4 |
 | `chaharshanbe-suri` | Chaharshanbe Suri | 1 |
 | `chaldean` | Chaldean Catholic Church | 15 |
@@ -483,16 +486,20 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `hindu` | Hinduism | 20 |
 | `inoko` | Inoko, the first Boar day of the tenth lunar month (亥の子) | 1 |
 | `inoko-november` | Inoko, the first Boar day of November (亥の子) | 1 |
+| `iranian-festivals` | Iranian festivals | 4 |
 | `islamic` | Islam | 13 |
 | `jain` | Jainism | 23 |
 | `jewish` | Judaism | 21 |
 | `korean-folk` | Korean folk days | 11 |
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
 | `mandaean` | Mandaean feasts | 20 |
+| `name-days-bulgarian-movable` | Bulgarian movable name days | 9 |
+| `name-days-greek-movable` | Greek movable name days | 22 |
 | `obon-august` | Obon a month late (月遅れ盆) | 3 |
 | `obon-july` | Obon on the Gregorian July (7月盆) | 3 |
 | `obon-lunar` | Obon on the Japanese lunar calendar (旧盆) | 4 |
 | `plough-days` | Plough Monday, Plough Sunday and Distaff Day | 3 |
+| `qumran-festivals` | Qumran festivals | 8 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
 | `roman-general-1960` | General Roman Calendar of 1960 | 426 |
@@ -511,18 +518,20 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `vietnamese-folk` | Vietnamese folk days | 10 |
 | `wheel-of-the-year` | Wheel of the Year | 8 |
 | `wheel-of-the-year-south` | Wheel of the Year (southern hemisphere) | 8 |
-| `yazidi` | Yazidi feasts | 12 |
+| `yazidi` | Yazidi feasts | 15 |
 | `zoroastrian-fasli` | Zoroastrian (Fasli) | 62 |
+| `zoroastrian-iranian` | Zoroastrian (Iran) | 15 |
 | `zoroastrian-qadimi` | Zoroastrian (Qadimi) | 62 |
 | `zoroastrian-shahanshahi` | Zoroastrian (Shahanshahi) | 62 |
 
 ## International observances
 
-1 table, feature `holiday`. Every entry cites its resolution or designating body.
+2 tables, feature `holiday`. Every entry cites its resolution or designating body.
 
 | Code | Set | Observances |
 | --- | --- | --- |
 | `un-days` | United Nations international days | 236 |
+| `un-weeks` | United Nations international weeks | 11 |
 
 ## Exchange calendars
 

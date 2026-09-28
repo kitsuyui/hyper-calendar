@@ -2779,7 +2779,18 @@ pub(super) static NP_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Christmas Day", "क्रिसमस डे", Rule::gregorian(12, 25)),
     np_bs("Prithvi Jayanti", "पृथ्वी जयन्ती", 9, 27),
     np_bs("Maghe Sankranti", "माघे सङ्क्रान्ति", 10, 1),
-    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16),
+    // Martyrs' Day, Māgha 16: a day off in the notices for 2081 to 2083
+    // BS (section 6.1), but in the notice for 2080 BS a day kept with the
+    // offices open (section 8), so 30 January 2024 is an observance.
+    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16).years(None, Some(2023)),
+    HolidayRule::observance(
+        "Martyrs' Day",
+        "सहिद दिवस",
+        Rule::in_calendar(CalendarSystem::BIKRAM_SAMBAT, 10, 16),
+    )
+    .years(Some(2024), Some(2024))
+    .cited("गृह मन्त्रालय, २०८० सालको सार्वजनिक बिदा, 8: कार्यालय खुल्ने प्रकृतिका दिवस"),
+    np_bs("Martyrs' Day", "सहिद दिवस", 10, 16).years(Some(2025), None),
     np_bs("National Democracy Day", "राष्ट्रिय प्रजातन्त्र दिवस", 11, 7),
     HolidayRule::fixed_public(
         "International Women's Day",
@@ -5890,9 +5901,9 @@ pub static TIMOR_LESTE: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// The first year of the Ministry of Home Affairs' lists carried.
-const BT_FIRST: i64 = 2025;
+pub(super) const BT_FIRST: i64 = 2025;
 /// The last.
-const BT_LAST: i64 = 2026;
+pub(super) const BT_LAST: i64 = 2026;
 
 /// The days of the lists that are on the Bhutanese calendar, or that the
 /// lists alone date, as the lists for 2025 and 2026 give them.
@@ -5991,7 +6002,9 @@ const BT_FIRST_SERMON: &str = "First Sermon of Lord Buddha";
 const BT_DESCENDING_DAY: &str = "Descending Day of Lord Buddha";
 
 pub(super) static BT_RULES: &[HolidayRule] = &[
-    bt("Winter Solstice", BT_LISTED.named("Winter Solstice")),
+    bt_read("Winter Solstice", BT_LISTED.named("Winter Solstice")),
+    super::bhutan::winter_solstice_predicted(true),
+    super::bhutan::winter_solstice_predicted(false),
     // 1st day of the 12th month.
     bt_read(BT_OFFERING, BT_LISTED.named("Traditional Day of Offering")),
     bt_predicted(BT_OFFERING, BT_TWELFTH, 1, true),
@@ -6095,12 +6108,16 @@ pub(super) static BT_RULES: &[HolidayRule] = &[
 ///
 /// The Winter Solstice and the Blessed Rainy Day fall on 2 January and
 /// 23 September in both lists, on different Bhutanese days, so they are
-/// solar; the solstice's definition, the mean Sun at 250°, is Janson's
-/// report of Henning's program, which could not be read, and no rule was
-/// read for the Rainy Day. Dassain is Vijayadashami, which the crate's
-/// Indian rule puts on 20 October 2026, a day before the list. The three
-/// are taken from the lists, and a year outside 2025–2026 reports them as
-/// a gap. The lists' Thimphu Drubchoe and Thimphu Tshechu are for Thimphu
+/// solar. The solstice is the day the Bhutanese calendar's mean Sun reaches
+/// 250°, as Janson reports Henning's program and Henning's own pages on
+/// the Bhutanese calendar and its almanacs give it
+/// (`hc_calendars_regional::tibetan_almanac::bhutanese_winter_solstice`,
+/// which reproduces the lists' 2 January and Henning's almanacs of 2001 to
+/// 2020): the lists' day in 2025 and 2026, and that computation, marked
+/// approximate, in the other years. No rule was read for the Rainy Day.
+/// Dassain is Vijayadashami, which the crate's Indian rule puts on
+/// 20 October 2026, a day before the list. Those two are taken from the
+/// lists, and a year outside 2025–2026 reports them as a gap. The lists' Thimphu Drubchoe and Thimphu Tshechu are for Thimphu
 /// only, and are carried in `BT-15` in the same way as the lunar days
 /// ([`super::bhutan`]); the other districts' tshechu days are "confirmed by
 /// the respective Dzongkhag Administration", and none was read or is
@@ -6128,7 +6145,10 @@ pub static BHUTAN: RuleSet = RuleSet {
               section 8.7.5, as the Internet Archive holds it, captured 2024-01-18, \
               rcsc.gov.bt refusing this session's requests; retrieved 2026-09-23; Janson, \
               \"Tibetan calendar mathematics\" (arXiv:1401.6285), Appendix A.4, A.13 and \
-              section 11, for the calendar, the Winter Solstice and Losar 2003; the \
+              section 11, for the calendar, the Winter Solstice and Losar 2003; Edward \
+              Henning, \"The Bhutanese calendar\" and its archive of computed almanacs \
+              (kalacakra.org, `kalacakra-org`), read 2026-09-29, for the Winter \
+              Solstice's 250° and its days of 2001 to 2020; the \
               Ministry's notification of 7 September 2021, \"Change of dates for Thimphu \
               Dromche and Tshechu\" (moha.gov.bt/?p=3949), retrieved 2026-09-29",
 };

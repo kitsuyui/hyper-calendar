@@ -25,7 +25,7 @@
 //! | Bahá'í | the Badíʿ calendar as kept — arithmetic to 171 BE, the Bahá'í World Centre's table for 172–221 BE; the Twin Holy Birthdays from the same table | exact through 19 March 2065, and a reported gap after, where the table ends |
 //! | Buddhist, Thai | the Thai lunar calendar, `thai-lunar`, as Thailand publishes its year types | exact for 1992–2027, and reported gaps outside |
 //! | Buddhist, East Asian | the Gregorian dates Japan keeps, and the Chinese lunisolar calendar for the lunar Birthday | exact |
-//! | Buddhist, Tibetan | the Phugpa calendar, `tibetan`, on the day that bears the number | exact to the arithmetic; a year in which the number is skipped or repeated is a reported gap |
+//! | Buddhist, Tibetan | the Phugpa calendar, `tibetan`, on the day that bears the number; three tables, one per convention for a skipped or repeated number | exact to the arithmetic; in `buddhist-tibetan` a year in which the number is skipped or repeated is a reported gap, in `buddhist-tibetan-berzin` it is Berzin's day, and `buddhist-tibetan-henning`, on `tibetan-lochen`, is Henning's almanacs' placement |
 //! | Buddhist, Thai uposatha | `thai-lunar`, the month's length deciding แรม 14 or 15 ค่ำ | exact for 1992–2027, and reported gaps outside |
 //! | Chinese folk | Chinese lunisolar calendar and the solar terms | exact to the astronomical model |
 //! | 小年, five regional tables | Chinese lunisolar calendar | exact to the astronomical model; which region keeps which day is the source's |
@@ -41,12 +41,16 @@
 //! | Imperial court rites (宮中祭祀) | fixed Gregorian dates and the two equinox days at the Japanese meridian | exact for the Reiwa-era schedule the source gives; the rites tied to a reign change with it |
 //! | Sikh | the Nanakshahi calendar of 2003 for the gurpurabs; the amānta Hindu lunisolar calendar for the three the 2003 calendar left on the Bikrami | exact for the Nanakshahi dates, which are fixed Gregorian dates, and for two of the lunar three; Hola Mohalla's sunrise is fitted |
 //! | Sikh, SGPC | the Vikrami solar calendar and the amānta Hindu lunisolar calendar, for the observances whose Bikrami rule was read, and the SGPC's published days of Bandi Chhor Divas, 2010–2026 | exact to the astronomical model, but Hola Mohalla, whose sunrise is fitted; Bandi Chhor Divas outside 2010–2026 is a reported gap, and the SGPC's other gurpurabs are not carried |
-//! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic; the Iranian community's dates on the civil calendar are not carried |
+//! | Zoroastrian | the Parsi schedule of feasts on each of the three reckonings — Fasli, Shahanshahi, Qadimi — as three tables, and the name-day feasts of the Zoroastrians of Iran on their thirty-day months from the civil Nowruz | exact: every feast is a fixed day of a fixed month, and each reckoning is arithmetic |
+//! | Iranian festivals | the Solar Hijri calendar, `persian`: Tirgan, Mehregan, Yalda and Sadeh on their civil dates | exact to the calendar |
 //! | Armenian Apostolic | Gregorian calendar and computus (Etchmiadzin), or Julian (the Patriarchate of Jerusalem), as two tables; the feasts on the Sunday nearest a date as a moved date | exact; the saints' days are not carried |
 //! | Ember and Rogation Days | the Gregorian computus and fixed Gregorian dates, one table per church: the 1662 Prayer Book, *Common Worship*'s traditional weeks, the Roman rubrics of 1960 | exact as stated; *Common Worship*'s week before an ordination is the bishop's and not computed |
 //! | Samaritan | the `samaritan` calendar, a modern calculation of the priesthood's | exact to that calculation, which puts one Passover of 2016–2020 a day late; a reported gap outside 1900–2100 |
 //! | Mandaean | the `mandaean` calendar of 365 days | exact: arithmetic |
 //! | Yazidi | the Eastern calendar, which is the Julian, and Serêsal by its weekday rule | exact |
+//! | Balinese Pawukon holy days | the 210-day Pawukon's concurrent weeks | exact: the cycle is arithmetic |
+//! | Movable name days, Greek and Bulgarian | the Julian computus and the Revised Julian fixed dates | exact as stated; which names belong to a feast is custom, and only the principal ones are named |
+//! | Qumran festivals | the 364-day year, `qumran` | exact to the scrolls' weekdays; the Gregorian date is the calendar's conventional epoch's |
 //! | Plough Monday, Plough Sunday, Distaff Day | fixed Gregorian dates and the weekday after one | exact as stated; the regional variants are not carried |
 //! | Chaharshanbe Suri | the Solar Hijri calendar, `persian`: the Tuesday before the year's last Wednesday | exact to the calendar |
 //! | Tenrikyo | fixed Gregorian dates | exact for the present schedule; when the services left the lunar dates was not read |
@@ -56,15 +60,18 @@
 //! | *Common Worship* | the Gregorian computus and fixed Gregorian dates, with the transfers the Rules require | exact as stated; the years the Rules leave open are reported gaps |
 
 use hc_astro::MEAN_TROPICAL_YEAR;
+use hc_calendar::Calendar as _;
 use hc_calendar::cycle::{branch, branch_day_on_or_after};
 use hc_calendar::fixed::Moment;
 use hc_calendar::{Month, Rd, Weekday};
 use hc_calendars_indic::SiddhantaLunarCalendar;
 use hc_calendars_lunar::{japanese_tenpo, tibetan};
+use hc_calendars_regional::balinese_pawukon::{BalinesePawukonCalendar, PawukonDate};
 use hc_calendars_solar::{bahai, gregorian, yazidi};
 use hc_seasons::solar_terms::term_moment;
 use hc_seasons::{Meridian, SolarTerm};
 
+use crate::computus::Computus;
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, DIVINE_MERCY_SUNDAY, EASTER_MONDAY, EASTER_SUNDAY,
     GOOD_FRIDAY, HOLY_SATURDAY, MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SACRED_HEART,
@@ -78,7 +85,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    TibetanMonth,
+    TibetanDayRule, TibetanMonth, joined,
 };
 
 /// 清明, the fifth solar term.
@@ -589,13 +596,35 @@ const PURIM_EVE: Rule = Rule::Offset {
 };
 
 /// Ta'anit Esther: the day before Purim, or the Thursday before when Purim
-/// is a Sunday, so that the fast is not kept on the Sabbath.
+/// is a Sunday, so that the fast is not kept on the Sabbath: "if Purim
+/// falls on Sunday, we start the fast on Thursday" (*Shulchan Arukh*,
+/// Orach Chayim 686:2).
 const TAANIT_ESTHER: Rule = Rule::moved_by_weekday(&PURIM_EVE, &[(Weekday::Saturday, -2)]);
+
+/// The move of the four fasts of the destruction off the Sabbath: "All four
+/// fasts, if they fall on Shabbos, are pushed to after Shabbos" (*Shulchan
+/// Arukh*, Orach Chayim 550:3), to the Sunday.
+const AFTER_THE_SABBATH: &[(Weekday, i16)] = &[(Weekday::Saturday, 1)];
+
+/// 3 Tishrei, the Fast of Gedaliah's date.
+const TISHREI_3: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 1, 3);
+/// 17 Tammuz.
+const TAMMUZ_17: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 10, 17);
+/// 9 Av.
+const AV_9: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 11, 9);
+
+/// The Fast of Gedaliah: 3 Tishrei, or 4 Tishrei when the 3rd is a Sabbath.
+const FAST_OF_GEDALIAH: Rule = Rule::moved_by_weekday(&TISHREI_3, AFTER_THE_SABBATH);
+/// The Seventeenth of Tammuz, or the 18th when the 17th is a Sabbath.
+const SEVENTEENTH_OF_TAMMUZ: Rule = Rule::moved_by_weekday(&TAMMUZ_17, AFTER_THE_SABBATH);
+/// Tisha B'Av, or 10 Av when the 9th is a Sabbath, as Reingold and
+/// Dershowitz's `tishah-be-av` gives it.
+const TISHA_BAV: Rule = Rule::moved_by_weekday(&AV_9, AFTER_THE_SABBATH);
 
 static JEWISH_RULES: &[HolidayRule] = &[
     hebrew_day("Rosh Hashanah", "ראש השנה", 1, 1),
     hebrew_day("Rosh Hashanah (second day)", "ראש השנה", 1, 2),
-    hebrew_day("Fast of Gedaliah", "צום גדליה", 1, 3),
+    feast("Fast of Gedaliah", "צום גדליה", FAST_OF_GEDALIAH),
     hebrew_day("Yom Kippur", "יום כיפור", 1, 10),
     hebrew_day("Sukkot", "סוכות", 1, 15),
     hebrew_day("Hoshana Rabbah", "הושענא רבה", 1, 21),
@@ -611,8 +640,12 @@ static JEWISH_RULES: &[HolidayRule] = &[
     hebrew_day("Seventh Day of Passover", "שביעי של פסח", 7, 21),
     hebrew_day("Lag BaOmer", "ל\"ג בעומר", 8, 18),
     hebrew_day("Shavuot", "שבועות", 9, 6),
-    hebrew_day("Seventeenth of Tammuz", "שבעה עשר בתמוז", 10, 17),
-    hebrew_day("Tisha B'Av", "תשעה באב", 11, 9),
+    feast(
+        "Seventeenth of Tammuz",
+        "שבעה עשר בתמוז",
+        SEVENTEENTH_OF_TAMMUZ,
+    ),
+    feast("Tisha B'Av", "תשעה באב", TISHA_BAV),
     // Sh'ela, the first day of the prayer for rain outside the Land of
     // Israel: 26 Hatur, in the Coptic calendar's third month.
     feast(
@@ -624,14 +657,18 @@ static JEWISH_RULES: &[HolidayRule] = &[
 
 /// Judaism.
 ///
-/// The Hebrew calendar is arithmetic, so every date here is exact. Two
-/// things it does not model: a Jewish day begins at sunset on the preceding
-/// evening, and several of these dates are *postponed* when they would fall
-/// on the Sabbath — the Fast of Gedaliah and Tisha B'Av move to the Sunday,
-/// the Tenth of Tevet never can. Those postponements are liturgical rules
-/// this crate has not encoded; the one it has is Ta'anit Esther's, which
-/// moves back to the Thursday when Purim is a Sunday, as Reingold and
-/// Dershowitz's `ta-anit-esther` gives it.
+/// The Hebrew calendar is arithmetic, so every date here is exact. A Jewish
+/// day begins at sunset on the preceding evening, which is not modelled.
+///
+/// The minor fasts are kept off the Sabbath. The four fasts of the
+/// destruction, "if they fall on Shabbos, are pushed to after Shabbos"
+/// (*Shulchan Arukh*, Orach Chayim 550:3): the Fast of Gedaliah, the
+/// Seventeenth of Tammuz and Tisha B'Av move to the Sunday — the first to
+/// 6 October 2024, the others to 13 July and 3 August 2025 — and the Tenth
+/// of Tevet never falls on a Sabbath in the fixed calendar, which a test
+/// checks. Ta'anit Esther moves back instead:
+/// "if Purim falls on Sunday, we start the fast on Thursday" (686:2), as
+/// Reingold and Dershowitz's `ta-anit-esther` gives it.
 ///
 /// *Sh'ela*, the day the prayer for rain begins outside the Land of Israel,
 /// is "60 days after the onset of tekufat Tishrei", the autumn *tekufah* of
@@ -656,9 +693,13 @@ pub static JEWISH: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 21),
     sources: "The arithmetic Hebrew calendar as `hc-calendars-lunar` \
               implements it, following Dershowitz and Reingold, \
-              Calendrical Calculations, chapter 8; Ta'anit Esther and Sh'ela \
-              as `ta-anit-esther` and `sh-ela` in their calendar.l \
-              (`reingold2018code`), read 2026-09-26; Yehuda Shurpin, \"Why Is the \
+              Calendrical Calculations, chapter 8; Ta'anit Esther, Tisha B'Av and \
+              Sh'ela as `ta-anit-esther`, `tishah-be-av` and `sh-ela` in their \
+              calendar.l (`reingold2018code`), read 2026-09-26 and, for Tisha B'Av, \
+              2026-09-29; Shulchan Arukh, Orach Chayim 550:3 and 686:2, for the \
+              moves of the minor fasts off the Sabbath, read on Sefaria in the Hebrew \
+              of the Lemberg 1893 edition and the Sefaria Community Translation \
+              (`sefaria-shulchan-arukh-oc`), retrieved 2026-09-29; Yehuda Shurpin, \"Why Is the \
               Prayer for Rain Based on the Civil Calendar?\", Chabad.org, retrieved \
               2026-09-26, for the dates of Sh'ela to 2100; Hebcal, \"Ta'anit Esther\", \
               retrieved 2026-09-26, for the fast's dates of 2024–2031 as a check",
@@ -2021,51 +2062,225 @@ pub static TOKANYA_NOVEMBER: RuleSet = RuleSet {
 // Tibetan Buddhism
 // ─────────────────────────────────────────────────────────────────────────
 
-/// A numbered day of the Phugpa calendar, `tibetan`; a year in which the
-/// day is skipped or repeated is a gap, see [`Rule::TibetanDay`].
-const fn duchen(name: &'static str, month: TibetanMonth, day: u8) -> HolidayRule {
-    feast(name, "", Rule::tibetan(&tibetan::TIBETAN, month, day))
+/// A numbered day of the Phugpa calendar, `tibetan`, kept by `when` where
+/// the number is skipped or repeated; see [`Rule::TibetanDay`].
+const fn duchen(
+    name: &'static str,
+    month: TibetanMonth,
+    day: u8,
+    when: TibetanDayRule,
+) -> HolidayRule {
+    feast(
+        name,
+        "",
+        Rule::tibetan_by(&tibetan::TIBETAN, month, day, when),
+    )
 }
 
-static BUDDHIST_TIBETAN_RULES: &[HolidayRule] = &[
-    duchen("Losar", TibetanMonth::First, 1),
-    duchen("Saga Dawa Düchen", TibetanMonth::Unrepeated(4), 15),
-    duchen("Universal Prayer Day", TibetanMonth::Unrepeated(5), 15),
-    duchen("Chökhor Düchen", TibetanMonth::Unrepeated(6), 4),
-    duchen("Lhabab Düchen", TibetanMonth::Unrepeated(9), 22),
-];
+/// The Demonstration of Miracles, the first fifteen days of the first
+/// month, Henning's "From 1st to 15th", on `$calendar` by `$when`.
+macro_rules! demonstration_of_miracles {
+    ($make:ident, $when:expr) => {
+        [
+            $make(MIRACLES, TibetanMonth::First, 1, $when),
+            $make(MIRACLES, TibetanMonth::First, 2, $when),
+            $make(MIRACLES, TibetanMonth::First, 3, $when),
+            $make(MIRACLES, TibetanMonth::First, 4, $when),
+            $make(MIRACLES, TibetanMonth::First, 5, $when),
+            $make(MIRACLES, TibetanMonth::First, 6, $when),
+            $make(MIRACLES, TibetanMonth::First, 7, $when),
+            $make(MIRACLES, TibetanMonth::First, 8, $when),
+            $make(MIRACLES, TibetanMonth::First, 9, $when),
+            $make(MIRACLES, TibetanMonth::First, 10, $when),
+            $make(MIRACLES, TibetanMonth::First, 11, $when),
+            $make(MIRACLES, TibetanMonth::First, 12, $when),
+            $make(MIRACLES, TibetanMonth::First, 13, $when),
+            $make(MIRACLES, TibetanMonth::First, 14, $when),
+            $make(MIRACLES, TibetanMonth::First, 15, $when),
+        ]
+    };
+}
+
+/// The fifteen days of the Demonstration of Miracles, Chötrul Düchen the
+/// last of them.
+const MIRACLES: &str = "Demonstration of Miracles";
+
+/// The *düchen* and the New Year on the Phugpa calendar, each kept by
+/// `$when` where its number is skipped or repeated, and a gap in a year
+/// that doubles its month.
+macro_rules! buddhist_tibetan_rules {
+    ($when:expr) => {
+        joined::<{ 1 + 15 + 7 }>(&[
+            &[duchen("Losar", TibetanMonth::First, 1, $when)],
+            &demonstration_of_miracles!(duchen, $when),
+            &[
+                duchen(
+                    "Revelation of the Kalacakra Tantra",
+                    TibetanMonth::Unrepeated(3),
+                    15,
+                    $when,
+                ),
+                duchen("Birth of the Buddha", TibetanMonth::Unrepeated(4), 7, $when),
+                duchen("Saga Dawa Düchen", TibetanMonth::Unrepeated(4), 15, $when),
+                duchen(
+                    "Universal Prayer Day",
+                    TibetanMonth::Unrepeated(5),
+                    15,
+                    $when,
+                ),
+                duchen("Chökhor Düchen", TibetanMonth::Unrepeated(6), 4, $when),
+                duchen(
+                    "The Buddha's entry into the womb of his mother",
+                    TibetanMonth::Unrepeated(6),
+                    15,
+                    $when,
+                ),
+                duchen("Lhabab Düchen", TibetanMonth::Unrepeated(9), 22, $when),
+            ],
+        ])
+    };
+}
+
+static BUDDHIST_TIBETAN_RULES: [HolidayRule; 23] =
+    buddhist_tibetan_rules!(TibetanDayRule::Unsettled);
+static BUDDHIST_TIBETAN_BERZIN_RULES: [HolidayRule; 23] =
+    buddhist_tibetan_rules!(TibetanDayRule::Berzin);
+
+/// The sources the Phugpa tables share.
+const BUDDHIST_TIBETAN_SOURCES: &str = "Tibetan Nuns Project, \"Important Tibetan Buddhist \
+     Holidays in 2024\" (tnp.org, `tnp-losar`), retrieved 2026-09-26, for Losar, Saga Dawa \
+     Düchen, the Universal Prayer Day, Chökhor Düchen and Lhabab Düchen, their lunar dates and \
+     their 2024 dates: Losar 10 February, Saga Dawa Düchen 23 May, the Universal Prayer Day \
+     22 June, Chökhor Düchen 9 July, Lhabab Düchen 22 November; Edward Henning's computed \
+     Phugpa almanacs (kalacakra.org, tdata/pl_*.txt, `kalacakra-org`), read 2026-09-29 for \
+     1990 and 2024 to 2026, for the Demonstration of Miracles \"From 1st to 15th\" of the first \
+     month, the Revelation of the Kalacakra Tantra on 3/15, the Birth of the Buddha on 4/7 and \
+     the Buddha's entry into the womb of his mother on 6/15, with his English words; the lunar \
+     days as `hc_calendars_lunar::tibetan::TIBETAN` computes them";
 
 /// Tibetan Buddhism's *düchen* and the New Year on the Phugpa calendar,
-/// `tibetan`: Losar on the first day of the year, Saga Dawa Düchen on
-/// 4/15, the Universal Prayer Day on 5/15, Chökhor Düchen, the first
-/// teaching, on 6/4, and Lhabab Düchen, the descent from heaven, on 9/22.
+/// `tibetan`: Losar on the first day of the year and the Demonstration of
+/// Miracles on the first fifteen, Chötrul Düchen the last; the Revelation
+/// of the Kalacakra Tantra on 3/15; the Birth of the Buddha on 4/7; Saga
+/// Dawa Düchen on 4/15; the Universal Prayer Day on 5/15; Chökhor Düchen,
+/// the first teaching, on 6/4; the Buddha's entry into the womb of his
+/// mother on 6/15; and Lhabab Düchen, the descent from heaven, on 9/22.
 ///
 /// A holiday is on the calendar day that bears its number. Where the
 /// calendar skips that number, or repeats it, the day is reported as a gap
-/// rather than guessed, as for Mongolia's and Bhutan's lunar holidays: which
-/// neighbouring day is kept is not settled. So is a year that repeats the
-/// month: the list keeps Chökhor Düchen of 2024 on 9 July, the first of two
-/// fourth days of the leap month 6, where Janson's rule would keep it in the
-/// regular month, on 8 August, so a year in which the month is doubled is a
-/// gap too ([`TibetanMonth::Unrepeated`];
+/// rather than guessed, as for Mongolia's and Bhutan's lunar holidays
+/// ([`TibetanDayRule::Unsettled`]): which neighbouring day is kept is not
+/// settled, and the two rules that answer it are the tables
+/// [`BUDDHIST_TIBETAN_BERZIN`] and [`BUDDHIST_TIBETAN_HENNING`]. So is a
+/// year that repeats the month: the list keeps Chökhor Düchen of 2024 on
+/// 9 July, the first of two fourth days of the leap month 6, where Janson's
+/// rule would keep it in the regular month, on 8 August, so a year in which
+/// the month is doubled is a gap too ([`TibetanMonth::Unrepeated`];
 /// `docs/systems/tibetan-calendar-holidays.md`). The days are those of the
-/// Tibetan Nuns Project's 2024 list, which names no almanac; Chötrul Düchen
-/// on 1/15 and the other *düchen* it does not list are not carried.
+/// Tibetan Nuns Project's 2024 list, which names no almanac, and the four
+/// Henning's almanacs mark that the list does not.
 pub static BUDDHIST_TIBETAN: RuleSet = RuleSet {
     code: "buddhist-tibetan",
     english_name: "Buddhism (Tibetan)",
-    rules: BUDDHIST_TIBETAN_RULES,
+    rules: &BUDDHIST_TIBETAN_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
-    sources: "Tibetan Nuns Project, \"Important Tibetan Buddhist Holidays in 2024\" \
-              (tnp.org, `tnp-losar`), retrieved 2026-09-26, for the days, their lunar \
-              dates and their 2024 dates: Losar 10 February, Saga Dawa Düchen 23 May, \
-              the Universal Prayer Day 22 June, Chökhor Düchen 9 July, Lhabab Düchen \
-              22 November; the lunar days as `hc_calendars_lunar::tibetan::TIBETAN` \
-              computes them",
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: BUDDHIST_TIBETAN_SOURCES,
+};
+
+/// The days of [`BUDDHIST_TIBETAN`], kept where a number is skipped or
+/// repeated by the general rule Janson reports from Berzin
+/// ([`TibetanDayRule::Berzin`]): a skipped date on the day before, a
+/// repeated one on the first of its two days, which is where the Tibetan
+/// Nuns Project kept Chökhor Düchen of 2024, on 9 July. A year that repeats
+/// the month is still a gap, the rule saying nothing of months.
+pub static BUDDHIST_TIBETAN_BERZIN: RuleSet = RuleSet {
+    code: "buddhist-tibetan-berzin",
+    english_name: "Buddhism (Tibetan, Berzin's rule)",
+    rules: &BUDDHIST_TIBETAN_BERZIN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "As `buddhist-tibetan`; Svante Janson, \"Tibetan calendar mathematics\" \
+              (arXiv:1401.6285, `janson2014`), §11, for Berzin's rule, which Janson has \
+              \"not checked against published calendars\"; the day as \
+              `hc_calendars_regional::tibetan_almanac::berzin_day` gives it",
+};
+
+/// A festival Henning's almanacs mark, in the regular month of its number
+/// and in the leap month of that number too, on `tibetan-lochen`.
+const fn henning_festival(name: &'static str, month: u8, day: u8) -> [HolidayRule; 2] {
+    [
+        henning_day(name, TibetanMonth::Regular(month), day),
+        henning_day(name, TibetanMonth::Leap(month), day),
+    ]
+}
+
+/// A day of Henning's almanacs, as they mark it.
+const fn henning_day(name: &'static str, month: TibetanMonth, day: u8) -> HolidayRule {
+    feast(
+        name,
+        "",
+        Rule::tibetan_by(
+            &tibetan::TIBETAN_LOCHEN,
+            month,
+            day,
+            TibetanDayRule::HenningAlmanac,
+        ),
+    )
+}
+
+/// [`henning_day`], with the unused parameter [`demonstration_of_miracles`]
+/// passes.
+const fn henning_first_month(
+    name: &'static str,
+    month: TibetanMonth,
+    day: u8,
+    _when: TibetanDayRule,
+) -> HolidayRule {
+    henning_day(name, month, day)
+}
+
+static BUDDHIST_TIBETAN_HENNING_RULES: [HolidayRule; 15 + 12] = joined(&[
+    &demonstration_of_miracles!(henning_first_month, TibetanDayRule::HenningAlmanac),
+    &henning_festival("Revelation of the Kalacakra Tantra", 3, 15),
+    &henning_festival("Birth of the Buddha", 4, 7),
+    &henning_festival("Enlightenment and Parinirvana of the Buddha", 4, 15),
+    &henning_festival("Turning of the Wheel of the Dharma", 6, 4),
+    &henning_festival("The Buddha's entry into the womb of his mother", 6, 15),
+    &henning_festival("Descent of the Buddha from the realm of the gods", 9, 22),
+]);
+
+/// The seven festivals Edward Henning's computed Phugpa almanacs mark, with
+/// his English words, on the calendar of those almanacs, `tibetan-lochen`
+/// (the Phugpa under Minling Lochen's anomaly), as the almanacs place them
+/// ([`TibetanDayRule::HenningAlmanac`]): on the second of two days of a
+/// repeated number, on no day when the number is skipped — his Birth of the
+/// Buddha is unmarked in 1966, 1975 and 1990 — and, in a year that repeats
+/// the month, in both months: the almanac for 2024 marks the Turning of the
+/// Wheel on 10 July, in the leap month 6, and on 8 August, in the regular
+/// one. The first month's fifteen days of the Demonstration of Miracles
+/// are his "From 1st to 15th" on its first day. The almanacs state no rule;
+/// these are the library's reading of them.
+pub static BUDDHIST_TIBETAN_HENNING: RuleSet = RuleSet {
+    code: "buddhist-tibetan-henning",
+    english_name: "Buddhism (Tibetan, as Henning's almanacs mark it)",
+    rules: &BUDDHIST_TIBETAN_HENNING_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Edward Henning's computed Phugpa almanacs (kalacakra.org, tdata/pl_*.txt, \
+              `kalacakra-org`), read 2026-09-29 for 1990 and 2024 to 2026: every festival \
+              and its English words, the two months of 2024 and the unmarked Birth of the \
+              Buddha of 1990; the days as `tibetan-lochen` and \
+              `hc_calendars_regional::tibetan_almanac::henning_almanac_day` give them",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2309,6 +2524,121 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
               Nowruz was a Wednesday, \
               https://www.eventbrite.com/e/chahar-shanbe-suri-tickets-853218709127, \
               retrieved 2026-09-27, as a weak check",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The Iranian festivals and the Zoroastrians of Iran
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A festival on a day of a month of the Solar Hijri calendar, `persian`.
+const fn iranian(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    HolidayRule::observance(
+        name,
+        local,
+        Rule::in_calendar(CalendarSystem::SOLAR_HIJRI, month, day),
+    )
+}
+
+static IRANIAN_FESTIVALS_RULES: &[HolidayRule] = &[
+    iranian("Tirgan", "جشن تیرگان", 4, 13),
+    iranian("Mehregan", "جشن مهرگان", 7, 16),
+    // The night between 30 Azar and 1 Dey, from the evening of the 30th.
+    iranian("Yalda Night", "شب یلدا", 9, 30),
+    // From the evening of 10 Bahman.
+    iranian("Sadeh", "جشن سده", 11, 10),
+];
+
+/// The Iranian festivals on the civil calendar, the Solar Hijri, `persian`:
+/// Tirgan on 13 Tir and Mehregan on 16 Mehr, the name days of their months
+/// on the civil months; Yalda, "the night between the last day of the
+/// ninth month (Azar) and the first day of the tenth month (Dey)", the
+/// longest night; and Sadeh, "در شامگاه دهمین روز … از بهمن ماه", on the
+/// evening of 10 Bahman, fifty days before Nowruz.
+///
+/// Yalda and Sadeh are nights, and the date given is the day whose evening
+/// begins them — 30 Azar and 10 Bahman — as Chaharshanbe Suri's is.
+/// Tirgan and Mehregan are also the Zoroastrians' name-day feasts, which
+/// the Zoroastrians of Iran keep on their own reckoning of thirty-day
+/// months, on 10 Tir and 10 Mehr of the civil calendar: that is the table
+/// [`ZOROASTRIAN_IRANIAN`], a convention of its own (§5).
+pub static IRANIAN_FESTIVALS: RuleSet = RuleSet {
+    code: "iranian-festivals",
+    english_name: "Iranian festivals",
+    rules: IRANIAN_FESTIVALS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Wikipedia, \"Tirgan\" (Tir 13), \"Mehregan\" (8 October), \"Yaldā Night\" \
+              (the night between the last day of Azar and 1 Dey, 21 December or 20 in a \
+              leap year) and \"Sadeh\" (10 Bahman, 29 to 31 January, 50 days before \
+              Nowruz); Wikipedia (fa), \"جشن سده\", for the evening of 10 Bahman, and \
+              \"جشن‌های زرتشتی\", for Mehregan on 16 Mehr of the Iranian calendar; all \
+              secondary, retrieved 2026-09-29",
+};
+
+/// A feast of the Zoroastrians of Iran on day `day` of month `month` of
+/// their year of twelve thirty-day months, which begins with the civil
+/// Nowruz: the `(month − 1) × 30 + day`-th day of the Solar Hijri year.
+const fn bastani(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        local,
+        Rule::Offset {
+            base: &NOWRUZ,
+            days: (month as i16 - 1) * 30 + day as i16 - 1,
+        },
+    )
+}
+
+static ZOROASTRIAN_IRANIAN_RULES: &[HolidayRule] = &[
+    bastani("Farvardingan", "فروردینگان", 1, 19),
+    bastani("Ardibeheshtgan", "اردیبهشتگان", 2, 3),
+    bastani("Khordadgan", "خردادگان", 3, 6),
+    bastani("Tirgan", "تیرگان", 4, 13),
+    bastani("Amordadgan", "امردادگان", 5, 7),
+    bastani("Shahrivargan", "شهریورگان", 6, 4),
+    bastani("Mehregan", "مهرگان", 7, 16),
+    bastani("Abangan", "آبانگان", 8, 10),
+    bastani("Azargan", "آذرگان", 9, 9),
+    bastani("Digan", "دیگان", 10, 1),
+    bastani("Digan", "دیگان", 10, 8),
+    bastani("Digan", "دیگان", 10, 15),
+    bastani("Digan", "دیگان", 10, 23),
+    bastani("Bahmangan", "بهمنگان", 11, 2),
+    bastani("Esfandgan", "اسفندگان", 12, 5),
+];
+
+/// The twelve name-day feasts of the Zoroastrians of Iran, on the day whose
+/// name is its month's, in their reckoning: twelve months of thirty days
+/// from the civil Nowruz, with the five Gatha days at the end, so that
+/// the feasts fall on other days of the civil months, whose first six have
+/// 31 days. Mehregan, 16 Mehr of the Zoroastrian year, is 10 Mehr of the
+/// civil calendar; Tirgan, 13 Tir, is 10 Tir; and the four days of the
+/// Creator in Dey are 25 Azar and 2, 9 and 17 Dey — each as the Persian
+/// Wikipedia's list gives the two dates side by side.
+///
+/// It is the Parsi Fasli schedule's name-day feasts on another year: the
+/// Fasli begins on 21 March of every Gregorian year, this one on the civil
+/// Nowruz, the day of the equinox at Tehran's noon. The Gahambars, Muktad
+/// and the Gatha days, which the source read does not date on this
+/// reckoning, are not carried.
+pub static ZOROASTRIAN_IRANIAN: RuleSet = RuleSet {
+    code: "zoroastrian-iranian",
+    english_name: "Zoroastrian (Iran)",
+    rules: ZOROASTRIAN_IRANIAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Wikipedia (fa), \"جشن‌های زرتشتی\" (`wikipedia-fa-zoroastrian-festivals`), \
+              the twelve monthly feasts with their Zoroastrian and their present Iranian \
+              dates, secondary, citing Hayedeh Ramezan Rostamabadi, Zoroastrians in Iran \
+              (1384 SH) and Mobed Ardeshir Azargoshasb, The Religious Ceremonies and \
+              Customs of the Zoroastrians (1372 SH), not read; retrieved 2026-09-29; the \
+              civil Nowruz as `persian` computes it",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3290,11 +3620,11 @@ const ZOROASTRIAN_SOURCES: &str = "Rohinton Erach Kadva, Compendium of Fasli Zor
 /// Zartosht No-Diso 26 December and Muktad the ten days to 20 March — a day
 /// earlier for the last twenty-one days of a Fasli leap year.
 ///
-/// The Iranian community keeps the same feasts on the civil Solar Hijri
-/// calendar under the name *Bastani*, and where that calendar's 31-day
-/// months put a feast — Tiragan on 10 or 13 Tir, Mehregan on 10 or 16 Mehr —
-/// its sources disagree; those dates, and Sadeh and Yalda, which are
-/// Iranian festivals rather than days of this schedule, are not carried.
+/// The Iranian community keeps the same name-day feasts on its own year of
+/// thirty-day months from the civil Nowruz, which is
+/// [`ZOROASTRIAN_IRANIAN`]; the civil calendar's dates of Tirgan and
+/// Mehregan, and Sadeh and Yalda, which are Iranian festivals rather than
+/// days of this schedule, are [`IRANIAN_FESTIVALS`].
 pub static ZOROASTRIAN_FASLI: RuleSet = RuleSet {
     code: "zoroastrian-fasli",
     english_name: "Zoroastrian (Fasli)",
@@ -3825,6 +4155,386 @@ pub static MANDAEAN: RuleSet = RuleSet {
 };
 
 // ─────────────────────────────────────────────────────────────────────────
+// The Qumran covenanters
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A festival of the 364-day year, on its day and month.
+const fn qumran(name: &'static str, month: u8, day: u8) -> HolidayRule {
+    feast(
+        name,
+        "",
+        Rule::in_calendar(CalendarSystem::QUMRAN, month, day),
+    )
+}
+
+static QUMRAN_RULES: &[HolidayRule] = &[
+    qumran("Passover", 1, 14),
+    qumran("Feast of Unleavened Bread", 1, 15),
+    qumran("Waving of the Omer", 1, 26),
+    qumran("Second Passover", 2, 14),
+    qumran("Feast of Weeks", 3, 15),
+    qumran("Day of Remembrance", 7, 1),
+    qumran("Day of Atonement", 7, 10),
+    qumran("Feast of Booths", 7, 15),
+];
+
+/// The festivals of the 364-day year of the Qumran scrolls, on `qumran`,
+/// each on the same weekday every year: the Passover lamb on Tuesday 14/I,
+/// Passover — the Feast of Unleavened Bread — on Wednesday 15/I, the Omer
+/// on Sunday 26/I, the Second Passover on 14/II, the Feast of Weeks on
+/// Sunday 15/III, the Day of Remembrance on 1/VII, the Day of Atonement on
+/// Friday 10/VII and the Feast of Booths on Wednesday 15/VII, as Talmon
+/// gives them and as 4Q320 4.ii sets them in the priestly courses.
+///
+/// The year has no intercalation and `qumran`'s epoch is a convention of
+/// this library, chosen near an equinox at the turn of the era: the
+/// weekday, the day of the year and the course of each festival are the
+/// scrolls', and its Gregorian date is the convention's, not a
+/// reconstruction (`docs/systems/qumran.md`). The festivals of the Temple
+/// Scroll — the New Wine, the New Oil, the Wood Offering — are not carried:
+/// no source read dates them.
+pub static QUMRAN: RuleSet = RuleSet {
+    code: "qumran-festivals",
+    english_name: "Qumran festivals",
+    rules: QUMRAN_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Shemaryahu Talmon, \"Calendars and Mishmarot\", Encyclopedia of the Dead \
+              Sea Scrolls (2000), pp. 110–111 (`talmon2000`), read 2026-09-26 in a scanned \
+              PDF, not re-read, as the test `the_first_years_festivals_fall_in_the_courses_of_4q320` \
+              of `hc_calendars_solar::qumran` transcribes it; Wikipedia, \"Qumran calendrical \
+              texts\" (`wikipedia-qumran-calendrical-texts`), retrieved 2026-09-29, for 4Q326's \
+              Feast of Unleavened Bread on the fourth day of the week and the Barley Festival \
+              on the 26th, secondary",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// Balinese Hinduism, on the Pawukon
+// ─────────────────────────────────────────────────────────────────────────
+
+/// The days of Gregorian `year`, from `first_month` to `last_month`, whose
+/// Pawukon day `keep` accepts.
+fn pawukon_days(year: i64, first_month: u8, last_month: u8, keep: fn(PawukonDate) -> bool) -> Days {
+    let mut out = Days::new();
+    let first = gregorian::to_fixed(year, first_month, 1);
+    let last = if last_month == 12 {
+        gregorian::to_fixed(year, 12, 31)
+    } else {
+        gregorian::to_fixed(year, last_month + 1, 1).map(|next| Rd(next.0 - 1))
+    };
+    let (Ok(first), Ok(last)) = (first, last) else {
+        return out;
+    };
+    for day in first.0..=last.0 {
+        if BalinesePawukonCalendar.from_fixed(Rd(day)).is_ok_and(keep) {
+            out.push(Rd(day));
+        }
+    }
+    out
+}
+
+/// The seven-day week's Buda, Wednesday.
+const BUDA: u8 = 4;
+/// The seven-day week's Saniscara, Saturday.
+const SANISCARA: u8 = 7;
+/// The five-day week's Kliwon.
+const KLIWON: u8 = 5;
+/// The three-day week's Kajeng.
+const KAJENG: u8 = 3;
+/// The *wuku* Dungulan, the eleventh.
+const DUNGULAN: u8 = 11;
+/// The *wuku* Kuningan, the twelfth.
+const WUKU_KUNINGAN: u8 = 12;
+
+/// Galungan, Buda Kliwon Dungulan.
+fn galungan(year: i64) -> Days {
+    pawukon_days(year, 1, 12, |date| {
+        date.wuku() == DUNGULAN && date.saptawara() == BUDA && date.pancawara() == KLIWON
+    })
+}
+
+/// Kuningan, Saniscara Kliwon Kuningan, ten days after Galungan.
+fn kuningan(year: i64) -> Days {
+    pawukon_days(year, 1, 12, |date| {
+        date.wuku() == WUKU_KUNINGAN && date.saptawara() == SANISCARA && date.pancawara() == KLIWON
+    })
+}
+
+/// A Tumpek, Saniscara Kliwon, of the *wuku* numbered `W`: six to the
+/// Pawukon, 35 days apart, from the second *wuku*, Landep.
+fn tumpek<const W: u8>(year: i64) -> Days {
+    pawukon_days(year, 1, 12, |date| {
+        date.wuku() == W && date.saptawara() == SANISCARA && date.pancawara() == KLIWON
+    })
+}
+
+/// Whether a day is Kajeng Kliwon, Kajeng in the three-day week and Kliwon
+/// in the five.
+const fn is_kajeng_kliwon(date: PawukonDate) -> bool {
+    date.triwara() == KAJENG && date.pancawara() == KLIWON
+}
+
+/// Kajeng Kliwon from January to June: a rule yields at most
+/// [`Days::CAPACITY`] days a year, and the day comes every fifteen, so the
+/// year is taken in two halves.
+fn kajeng_kliwon_first_half(year: i64) -> Days {
+    pawukon_days(year, 1, 6, is_kajeng_kliwon)
+}
+
+/// Kajeng Kliwon from July to December.
+fn kajeng_kliwon_second_half(year: i64) -> Days {
+    pawukon_days(year, 7, 12, is_kajeng_kliwon)
+}
+
+/// A holy day of the Pawukon, an observance.
+const fn pawukon_day(
+    name: &'static str,
+    local: &'static str,
+    function: fn(i64) -> Days,
+) -> HolidayRule {
+    HolidayRule::observance(name, local, Rule::Computed(function))
+}
+
+static BALINESE_PAWUKON_DAYS_RULES: &[HolidayRule] = &[
+    feast("Galungan", "Galungan", Rule::Computed(galungan)),
+    feast("Kuningan", "Kuningan", Rule::Computed(kuningan)),
+    pawukon_day("Tumpek Landep", "Tumpek Landep", tumpek::<2>),
+    pawukon_day("Tumpek Wariga", "Tumpek Wariga", tumpek::<7>),
+    pawukon_day("Tumpek Kuningan", "Tumpek Kuningan", tumpek::<12>),
+    pawukon_day("Tumpek Krulut", "Tumpek Krulut", tumpek::<17>),
+    pawukon_day("Tumpek Uye", "Tumpek Uye", tumpek::<22>),
+    pawukon_day("Tumpek Wayang", "Tumpek Wayang", tumpek::<27>),
+    pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_first_half),
+    pawukon_day("Kajeng Kliwon", "Kajeng Kliwon", kajeng_kliwon_second_half),
+];
+
+/// The holy days of Balinese Hinduism that the 210-day Pawukon,
+/// `balinese-pawukon`, dates by its concurrent weeks: Galungan on Buda
+/// Kliwon Dungulan, the Wednesday that is Kliwon in the *wuku* Dungulan;
+/// Kuningan ten days later, Saniscara Kliwon Kuningan; the six Tumpek,
+/// every Saniscara Kliwon, the Saturday that is Kliwon, named by their
+/// *wuku* — Landep, Wariga, Kuningan, Krulut, Uye and Wayang; and Kajeng
+/// Kliwon, every fifteen days, Kajeng in the three-day week and Kliwon in
+/// the five.
+///
+/// The Pawukon repeats every 210 days and has no year, so each is exact:
+/// Galungan and Kuningan once or twice a Gregorian year, each Tumpek once
+/// or twice, and Kajeng Kliwon 24 or 25 times. Tumpek is Reingold and
+/// Dershowitz's `tumpek`, "the 14th day of Pawukon and every 35th
+/// subsequent day", and Kajeng Kliwon their `kajeng-keliwon`, "the 9th day
+/// of each 15-day subcycle"; the Tumpek of the *wuku* Wariga is Tumpek
+/// Uduh, "Saniscara Kliwon Wariga, 25 days before Galungan". Each Tumpek's
+/// other names — Tumpek Kandang for Uye's, Tumpek Pengatag for Wariga's —
+/// and the days around Galungan (Penampahan, Manis Galungan and the rest)
+/// are not carried. See `docs/systems/pawukon-and-pasaran.md`.
+pub static BALINESE_PAWUKON_DAYS: RuleSet = RuleSet {
+    code: "balinese-pawukon-days",
+    english_name: "Balinese Hinduism (Pawukon holy days)",
+    rules: BALINESE_PAWUKON_DAYS_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
+              (`reingold2018code`), `tumpek` and `kajeng-keliwon`, read 2026-09-29; \
+              Wikipedia, \"Galungan\" (`wikipedia-galungan`), for Buda Keliwon Dunggulan \
+              and the dates of Galungan and Kuningan, 2018–2028; Wikipedia, \"Kuningan \
+              (Bali)\", for Saniscara Kliwon Wuku Kuningan; Wikipedia (id), \"Tumpek Uduh\" \
+              and \"Kajeng Kliwon\" (`wikipedia-id-tumpek-uduh`, \
+              `wikipedia-id-kajeng-kliwon`), for Tumpek Wariga and the fifteen-day round, \
+              all secondary, retrieved 2026-09-29; the Pawukon as \
+              `hc_calendars_regional::balinese_pawukon` computes it",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
+// The movable Orthodox name days
+// ─────────────────────────────────────────────────────────────────────────
+
+/// A name day on a movable feast, `offset` days from Pascha by the Julian
+/// computus.
+const fn movable_name_day(name: &'static str, local: &'static str, offset: i16) -> HolidayRule {
+    HolidayRule::observance(name, local, Rule::paschal(offset))
+}
+
+/// A saint's day of April that the Church of Greece keeps after Pascha when
+/// Pascha falls after 23 April: on `day` of April, or `after` days after
+/// Pascha. `None` outside the computus's years.
+fn after_pascha_if_late(year: i64, day: u8, after: i64) -> Option<Days> {
+    let pascha = Computus::JULIAN.easter(year)?;
+    let fixed = gregorian::to_fixed(year, 4, day).ok()?;
+    let april_23 = gregorian::to_fixed(year, 4, 23).ok()?;
+    Some(Days::one(if pascha > april_23 {
+        Rd(pascha.0 + after)
+    } else {
+        fixed
+    }))
+}
+
+/// St George, 23 April, or Easter Monday when Pascha falls after it.
+fn st_george_greek(year: i64) -> Option<Days> {
+    after_pascha_if_late(year, 23, 1)
+}
+
+/// St Mark, 25 April, or two days after Pascha when Pascha falls after
+/// 23 April.
+fn st_mark_greek(year: i64) -> Option<Days> {
+    after_pascha_if_late(year, 25, 2)
+}
+
+static NAME_DAYS_GREEK_MOVABLE_RULES: &[HolidayRule] = &[
+    HolidayRule::observance(
+        "Chloe",
+        "Χλόη",
+        Rule::WeekdayOnOrAfter {
+            month: 2,
+            day: 13,
+            weekday: Weekday::Sunday,
+        },
+    ),
+    movable_name_day(
+        "Saturday of St Theodore (Theodore, Theodora)",
+        "Αγίου Θεοδώρου",
+        -43,
+    ),
+    movable_name_day(
+        "Sunday of Orthodoxy (Orthodoxia)",
+        "Κυριακή της Ορθοδοξίας",
+        -42,
+    ),
+    movable_name_day("Gregory Palamas (Gregory)", "Γρηγορίου του Παλαμά", -35),
+    movable_name_day("Lazarus Saturday (Lazarus)", "Σάββατο του Λαζάρου", -8),
+    movable_name_day("Palm Sunday (Vaios, Vaia)", "Κυριακή των Βαΐων", -7),
+    movable_name_day("Holy Monday (Pangalos)", "Μεγάλη Δευτέρα", -6),
+    movable_name_day("Holy Thursday (Alitheia)", "Μεγάλη Πέμπτη", -3),
+    movable_name_day("Pascha (Anastasios, Anastasia)", "Το Άγιο Πάσχα", 0),
+    movable_name_day(
+        "Bright Tuesday (Raphael, Nicholas and Irene of Mytilene)",
+        "Τρίτη της Διακαινησίμου",
+        2,
+    ),
+    movable_name_day(
+        "Bright Wednesday (Theocharis)",
+        "Τετάρτη της Διακαινησίμου",
+        3,
+    ),
+    movable_name_day("Life-giving Spring (Zoe, Pigi)", "Ζωοδόχου Πηγής", 5),
+    movable_name_day("Thomas Sunday (Thomas)", "Του Θωμά", 7),
+    movable_name_day(
+        "Sunday of the Myrrh-bearers (Myrofora)",
+        "Των Μυροφόρων",
+        14,
+    ),
+    movable_name_day("Sunday of the Paralytic (Vithesda)", "Του Παραλύτου", 21),
+    movable_name_day(
+        "Sunday of the Samaritan Woman (Photini)",
+        "Της Σαμαρείτιδος",
+        28,
+    ),
+    movable_name_day("Ascension (Nefeli)", "Ανάληψη του Χριστού", 39),
+    movable_name_day("Monday of the Holy Spirit (Triada)", "Αγίου Πνεύματος", 50),
+    movable_name_day(
+        "All Saints (the names with no saint of their own)",
+        "Αγίων Πάντων",
+        56,
+    ),
+    HolidayRule::observance(
+        "St George (George, Georgia)",
+        "Αγίου Γεωργίου",
+        Rule::Unsettled(st_george_greek),
+    ),
+    HolidayRule::observance(
+        "St Mark (Mark)",
+        "Μάρκου του Αποστόλου",
+        Rule::Unsettled(st_mark_greek),
+    ),
+    HolidayRule::observance(
+        "Sunday of the Forefathers",
+        "Κυριακή των Προπατόρων",
+        Rule::WeekdayOnOrAfter {
+            month: 12,
+            day: 11,
+            weekday: Weekday::Sunday,
+        },
+    ),
+];
+
+/// The Greek name days that move, as the Greek Orthodox calendar keeps
+/// them: the feasts counted from Pascha by the Julian computus on which
+/// names are celebrated, with the principal names of each, from the
+/// Saturday of St Theodore, 43 days before Pascha, to All Saints, 56 days
+/// after, when "the names that have no known feast day" are celebrated;
+/// St George on 23 April and St Mark on 25 April, each moved "1 day" or
+/// "2 days after Pascha" when Pascha falls after 23 April; Chloe on the
+/// first Sunday after 13 February, 13 February itself when it is a Sunday;
+/// and the Forefathers on 11 December or the Sunday after.
+///
+/// The fixed dates are the Church of Greece's Revised Julian ones, which
+/// are the Gregorian dates from 1600 to 2800. Which given names belong to
+/// which feast is custom, and no church-published list exists
+/// (`docs/systems/name-days.md`); the names given are the principal ones
+/// the source prints, not its whole lists. The fixed name days are not
+/// carried: they are a list, not rules, and no list may be shipped.
+pub static NAME_DAYS_GREEK_MOVABLE: RuleSet = RuleSet {
+    code: "name-days-greek-movable",
+    english_name: "Greek movable name days",
+    rules: NAME_DAYS_GREEK_MOVABLE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "eortologio.gr, \"Υπολογισμός ημέρας του Πάσχα και κινητών γιορτών\" \
+              (eortologio.gr/arthra/pasxa.php, `eortologio-pasxa`), the table of the \
+              Orthodox movable feasts with their days from Pascha and their names, and \
+              the special rules of Chloe, St George, St Mark and the Forefathers; its \
+              \"about\" page for All Saints' names; Wikipedia (el), \"Άγιος Γεώργιος\", for \
+              St George on the Monday of Bright Week when 23 April falls before \
+              Pascha; all retrieved 2026-09-29, secondary",
+};
+
+static NAME_DAYS_BULGARIAN_MOVABLE_RULES: &[HolidayRule] = &[
+    movable_name_day("Todorovden (Todor, Teodora)", "Тодоровден", -43),
+    movable_name_day("Lazarovden (Lazar)", "Лазаровден", -8),
+    movable_name_day("Tsvetnitsa (names of flowers and plants)", "Цветница", -7),
+    movable_name_day("Velikden (Veliko, Velika)", "Великден", 0),
+    movable_name_day("Bright Friday (Zhivko, Zhivka)", "Светли петък", 5),
+    movable_name_day("Thomas Sunday (Toma)", "Томина неделя", 7),
+    movable_name_day("Spasovden (Spas)", "Спасовден", 39),
+    movable_name_day("All Saints (Panayot)", "Всички светии", 56),
+    movable_name_day(
+        "All Bulgarian Saints (Rumen, Rumyana)",
+        "Всички български светии",
+        63,
+    ),
+];
+
+/// The Bulgarian name days that move with Великден, Pascha by the Julian
+/// computus: Тодоровден, the Saturday at the end of the first week of
+/// Great Lent, 43 days before; Лазаровден, 8 days before; Цветница, the
+/// Sunday before, for the names of flowers and plants; Великден itself;
+/// Bright Friday, of the Life-giving Spring; Томина неделя, a week after;
+/// Спасовден, the Ascension, 39 days after; Всички светии, 56; and All
+/// Bulgarian Saints, 63, with the principal names the source prints. The
+/// fixed name days, a list, are not carried (`docs/systems/name-days.md`).
+pub static NAME_DAYS_BULGARIAN_MOVABLE: RuleSet = RuleSet {
+    code: "name-days-bulgarian-movable",
+    english_name: "Bulgarian movable name days",
+    rules: NAME_DAYS_BULGARIAN_MOVABLE_RULES,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "Wikipedia (bg), \"Имен ден\" (`bgwiki-imen-den`), \"Подвижни имени дни в \
+              България\": each feast's rule and names, and its table of the days of \
+              2010–2023, secondary, retrieved 2026-09-29",
+};
+
+// ─────────────────────────────────────────────────────────────────────────
 // The Yazidis
 // ─────────────────────────────────────────────────────────────────────────
 
@@ -3842,6 +4552,9 @@ const fn eastern(name: &'static str, local: &'static str, month: u8, day: u8) ->
         Rule::in_calendar(CalendarSystem::JULIAN, month, day),
     )
 }
+
+/// 1 Shawwāl, ʿAyd al-Fiṭr, on the tabular calendar.
+const SHAWWAL_1: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1);
 
 const WINTER_FAST_FIRST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 28);
 const WINTER_FAST_LAST: Rule = Rule::in_calendar(CalendarSystem::JULIAN, 11, 30);
@@ -3868,6 +4581,18 @@ static YAZIDI_RULES: &[HolidayRule] = &[
         Rule::span(&WINTER_FAST_FIRST, &WINTER_FAST_LAST),
     ),
     eastern("Bêlinde", "Bêlinde", 12, 1),
+    // The mobile feasts, on the Islamic calendar (pp. 157–158).
+    hijri("Sheva Berat", "Sheva Berat", 8, 15),
+    feast(
+        "Feast of Ramadan (Sheykh Khal Shemsan)",
+        "Sheykh Khal Shemsan",
+        Rule::Offset {
+            base: &SHAWWAL_1,
+            days: -2,
+        },
+    )
+    .approximate(),
+    hijri("Feast of ‘Erefat", "Jezhna ‘Erefat", 12, 9),
 ];
 
 /// The Yazidi feasts that Kreyenbroek dates, on the Eastern calendar.
@@ -3884,12 +4609,21 @@ static YAZIDI_RULES: &[HolidayRule] = &[
 /// winter fast that "immediately precedes the Festival of Bêlinde on the
 /// first of December" (p. 155).
 ///
+/// The "mobile" feasts "follow the Islamic lunar calendar" (p. 150), and
+/// are dated on the tabular one, approximate, as every Hijri day in this
+/// crate is: Sheva Berat, the counterpart of the night of mid-Shaʿbān,
+/// "celebrated on the same date, 15 Sha'ban"; the Feast of Ramadan, of
+/// Sheykh Khal Shemsan, "two days before the Muslim festival of 'Ayd
+/// al-Fitr"; and the Feast of ʿErefat, which "according to one source
+/// falls on 9 Dhi 'l-Hijja" (pp. 157–158). That "the Yezidi festival
+/// precedes the Islamic 'Ayd al-Adha by two days" is also reported, of the
+/// custom of killing an animal, and the source cannot say how it relates
+/// to the feast, so no day is carried for it.
+///
 /// Not carried: the Feast of the Dead "said to fall on 10 December" and
 /// Khidr-Ilyas "said to fall on the first of February" (p. 156), which
-/// the source reports with doubt, and which some Yazidis deny; the
-/// *tiwafs*, which are each village's; and the "mobile" feasts, which
-/// "follow the Islamic lunar calendar" (p. 150) and for which no dates
-/// were read.
+/// the source reports with doubt, and which some Yazidis deny; and the
+/// *tiwafs*, which are each village's.
 pub static YAZIDI: RuleSet = RuleSet {
     code: "yazidi",
     english_name: "Yazidi feasts",
@@ -3900,9 +4634,11 @@ pub static YAZIDI: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Philip G. Kreyenbroek, Yezidism: Its Background, Observances and Textual \
-              Tradition (Lewiston: Edwin Mellen Press, 1995), pp. 150–156 and 164 n. 53, \
-              read in the archive.org text (`kreyenbroek1995`), retrieved 2026-09-26, with \
-              the names in his forms; Serêsal as `hc_calendars_solar::yazidi` computes it",
+              Tradition (Lewiston: Edwin Mellen Press, 1995), pp. 150–158 and 164 n. 53, \
+              read in the archive.org text (`kreyenbroek1995`), retrieved 2026-09-26 and, \
+              for the mobile feasts of pp. 157–158, 2026-09-29, with the names in his \
+              forms; Serêsal as `hc_calendars_solar::yazidi` computes it; the mobile \
+              feasts on the tabular Hijri calendar",
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4090,6 +4826,8 @@ pub static ALL: &[&RuleSet] = &[
     &BUDDHIST_THAI,
     &BUDDHIST_EAST_ASIAN,
     &BUDDHIST_TIBETAN,
+    &BUDDHIST_TIBETAN_BERZIN,
+    &BUDDHIST_TIBETAN_HENNING,
     &BUDDHIST_UPOSATHA_THAI,
     &CHINESE_FOLK,
     &CHINESE_XIAONIAN_NORTH,
@@ -4121,16 +4859,22 @@ pub static ALL: &[&RuleSet] = &[
     &ZOROASTRIAN_FASLI,
     &ZOROASTRIAN_SHAHANSHAHI,
     &ZOROASTRIAN_QADIMI,
+    &ZOROASTRIAN_IRANIAN,
     &EMBER_BCP1662,
     &EMBER_COMMON_WORSHIP,
     &ROGATION_ROMAN_1960,
     &SAMARITAN,
     &MANDAEAN,
     &YAZIDI,
+    &BALINESE_PAWUKON_DAYS,
+    &NAME_DAYS_GREEK_MOVABLE,
+    &NAME_DAYS_BULGARIAN_MOVABLE,
+    &QUMRAN,
     &CHRISTIAN_ARMENIAN,
     &CHRISTIAN_ARMENIAN_JERUSALEM,
     &PLOUGH_DAYS,
     &CHAHARSHANBE_SURI,
+    &IRANIAN_FESTIVALS,
     &TENRIKYO,
     &UNLUCKY_FRIDAYS,
     &SACRED_WEDNESDAYS,

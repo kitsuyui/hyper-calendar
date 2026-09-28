@@ -622,3 +622,8 @@ Mede = "Mede"
 # crates/hc-holiday/src/book_of_common_prayer.rs.
 Convers = "Convers"
 Nativ = "Nativ"
+# The Reserve Bank of India's descriptions of its holidays, carried as it
+# prints them in hc-holiday's India state days: "Lok Sabha", the lower
+# house, and "Milad-i- Sherif", its spelling of Milad-i-Sharif.
+Lok = "Lok"
+Sherif = "Sherif"

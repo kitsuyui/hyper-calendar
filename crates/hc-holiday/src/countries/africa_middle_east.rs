@@ -3718,6 +3718,38 @@ const fn ps_christian(name: &'static str, local: &'static str, rule: Rule) -> Ho
 /// 1 Shawwal, the base of the eve of Eid al-Fitr.
 static PS_SHAWWAL_1: Rule = EID_AL_FITR;
 
+/// The Council of Ministers' fourth table, the Samaritan employees' days,
+/// as the National Information Centre publishes it for 2025.
+static PS_SAMARITAN_DAYS: Listing = Listing::Named(&[
+    (2025, 4, 13, "passover"),
+    (2025, 4, 14, "passover"),
+    (2025, 4, 20, "last-day-of-passover"),
+    (2025, 5, 28, "giving-of-the-torah"),
+    (2025, 6, 1, "harvest"),
+    (2025, 9, 22, "new-year"),
+    (2025, 10, 1, "atonement"),
+    (2025, 10, 2, "atonement"),
+    (2025, 10, 6, "tabernacles"),
+    (2025, 10, 13, "end-of-the-festivals"),
+]);
+
+/// The first and last years of the Samaritan table read.
+const PS_SAMARITAN_YEARS: (i64, i64) = (2025, 2025);
+
+/// A day of the fourth table: the Samaritan employees' alone, and a gap in
+/// a year whose table was not read.
+const fn ps_samaritan(name: &'static str, local: &'static str, key: &'static str) -> HolidayRule {
+    ps_christian(
+        name,
+        local,
+        Rule::listed(
+            PS_SAMARITAN_DAYS.named(key),
+            PS_SAMARITAN_YEARS.0,
+            PS_SAMARITAN_YEARS.1,
+        ),
+    )
+}
+
 static PS_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "New Year's Day",
@@ -3846,6 +3878,43 @@ static PS_RULES: &[HolidayRule] = &[
         "عيد الميلاد المجيد",
         Rule::gregorian(12, 26),
     ),
+    // The Samaritan employees, by the table's dates.
+    ps_samaritan(
+        "Samaritan Passover and the Sacrifice",
+        "عيد الفسح والقربان",
+        "passover",
+    ),
+    ps_samaritan(
+        "Samaritan last day of Passover",
+        "اخر أيام عيد الفسح",
+        "last-day-of-passover",
+    ),
+    ps_samaritan(
+        "Samaritan Feast of the Giving of the Torah",
+        "عيد نزول التوراة",
+        "giving-of-the-torah",
+    ),
+    ps_samaritan(
+        "Samaritan Feast of the Ascent (Harvest)",
+        "عيد المعراج/الحصاد",
+        "harvest",
+    ),
+    ps_samaritan("Samaritan New Year", "عيد رأس السنة العبرية", "new-year"),
+    ps_samaritan(
+        "Samaritan Day of Atonement (the Fast)",
+        "عيد الغفران/الصوم",
+        "atonement",
+    ),
+    ps_samaritan(
+        "Samaritan Feast of Tabernacles",
+        "عيد العرش/المظلة",
+        "tabernacles",
+    ),
+    ps_samaritan(
+        "Samaritan Feast of the End of the Festivals",
+        "عيد نهاية الأعياد",
+        "end-of-the-festivals",
+    ),
 ];
 
 /// Palestine.
@@ -3867,9 +3936,15 @@ static PS_RULES: &[HolidayRule] = &[
 /// Week from its Thursday, Ascension and Pentecost, and the Eastern New
 /// Year on 14 January — which are [`Kind::Religious`] here; their days that
 /// the first table already gives everyone — 1 and 7 January, the Eastern
-/// Easter Sunday, 25 December — are not repeated. The fourth,
-/// the Samaritans' feasts, is on the Samaritan calendar, which this table
-/// does not read, and is not carried. Wikipedia's older copy of the list has neither the Easter
+/// Easter Sunday, 25 December — are not repeated. The fourth gives the
+/// Samaritan employees their feasts, eight of them over ten days, which are
+/// [`Kind::Religious`] too and carried as the table dates them for 2025, a
+/// gap in any other year: the Council sets them each year, and they do not
+/// follow `samaritan`, the modern calculation of the Samaritan calendar,
+/// in spring — the table's Passover of 13 and 14 April and last day of
+/// 20 April are each a day after its 12 April and 19 April — while the
+/// autumn days, 22 September, 1 October, 6 October and 13 October, are
+/// its own. Wikipedia's older copy of the list has neither the Easter
 /// for all nor the eve of Eid al-Fitr, and the year either was added is
 /// not known, so both are carried without a first year, as is every
 /// other day. The weekend is Friday and Saturday, as the Centre states
@@ -3887,7 +3962,8 @@ pub static PALESTINE: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "Palestinian National Information Centre (WAFA), \"العطل الرسمية في فلسطين\" \
               (info.wafa.ps/pages/details/29601), retrieved 2026-09-23, for the Council of \
-              Ministers' 2025 tables and the working week; the Council's announcements for \
+              Ministers' 2025 tables, the fourth, the Samaritan employees', re-read \
+              2026-09-29, and the working week; the Council's announcements for \
               2026 reported by Al-Dahriyeh Municipality (Easter, 12 April), the National \
               Press Agency (Eid al-Fitr, 19 to 22 March) and An-Najah News (the Hijri New \
               Year, 16 June); Cabinet Decision No. 16 of 2003 on the paid religious and \
