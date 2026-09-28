@@ -32,7 +32,9 @@
 //! `name=value` pair is not something a reader can read. The rest are
 //! metadata, which [`extra`] writes one at a time, as the value a
 //! template would write, for the lines that list them beside the date;
-//! [`date_marking`] says which of them the date itself wrote.
+//! [`date_marking`] says which of them the date itself wrote, a field
+//! whose value the date writes by the same name in the calendar's own
+//! words included: the Burmese phase *waning* is the half *waning*.
 //!
 //! The pieces come from the same fallbacks the rest of the workspace uses:
 //! an era's name is the locale's, else the calendar's own
@@ -122,7 +124,7 @@ pub fn write_date_marking<W: Write>(
     let renderer = Renderer::new(calendar, fields, locale);
     let mut collapse = Collapse::new(out);
     renderer.write_levels(|templates| templates.date, Mode::Date, &mut collapse)?;
-    Ok(ExtrasWritten(renderer.written.get()))
+    Ok(renderer.written_with_shared_names())
 }
 
 /// Write one extra field's value as a template's `{extra:FIELD}` writes
@@ -513,6 +515,32 @@ impl<'a> Renderer<'a> {
             return Ok(());
         }
         self.write_number(value, out)
+    }
+
+    /// The extra fields the date wrote, and with them each field whose
+    /// value has the same name in the calendar's own words
+    /// ([`fields::own_value_name`]) as a field it wrote: the Burmese phase
+    /// *waning* is written by the half of the month *waning*, and the full
+    /// moon, *waxing* 15, is not.
+    fn written_with_shared_names(&self) -> ExtrasWritten {
+        let written = self.written.get();
+        let name = |index: usize| {
+            let extra = self.fields.extra.iter().nth(index)?;
+            fields::own_value_name(self.locale, self.id, extra.name, extra.value)
+        };
+        let mut shared = written;
+        for index in 0..self.fields.extra.len().min(32) {
+            if written & 1 << index != 0 {
+                continue;
+            }
+            if let Some(own) = name(index)
+                && (0..self.fields.extra.len().min(32))
+                    .any(|other| written & 1 << other != 0 && name(other) == Some(own))
+            {
+                shared |= 1 << index;
+            }
+        }
+        ExtrasWritten(shared)
     }
 
     /// Note that the date's text holds an extra field.

@@ -1219,6 +1219,11 @@ describe("a zone's offset", () => {
       fresh.radioEncode("wwvb-am", 1_772_928_000, { summer: "zone:America/Denver" }),
       fresh.radioEncode("wwvb-am", 1_772_928_000, { summer: "begins-today" }),
     );
+    // From that instant the phase code's dst_next names 1 November, 011011.
+    assert.equal(
+      fresh.radioEncode("wwvb-pm", 1_772_928_000, { summer: "zone:America/Denver" }),
+      fresh.radioEncode("wwvb-pm", 1_772_928_000, { summer: "begins-today", dstNext: 27 }),
+    );
     refused(() => fresh.radioEncode("dcf77", 1_774_746_000, { summer: "zone:Europe/London" }), "out-of-range");
   });
 });
@@ -2422,6 +2427,12 @@ describe("the parts of a day", () => {
     const polar = hc.kalam("rahu-kalam-sunrise", hc.gregorianToFixed(2024, 12, 21), 69.6496, 18.956);
     assert.equal(polar[0].missing?.event, "sunrise");
     refused(() => hc.kalam(/** @type {any} */ ("yamardha"), day, 28.6, 77.2), "unknown");
+    // Drik Panchang's Hindi day pañcāṅga (drik-day-panchang-hi-2026) labels the three.
+    const hindi = hc.kalam("rahu-kalam-fixed", day, 28.6356, 77.2244, 0, "hi");
+    assert.deepEqual(hindi.map((period) => [period.name, period.localeUsed]), [
+      ["राहुकाल", "hi"], ["यमगण्ड", "hi"], ["गुलिक काल", "hi"],
+    ]);
+    assert.equal(periods[0].name, "Rahu Kalam");
   });
 
   test("setsubun 2026 faces south-south-east in the ninth period", () => {
@@ -2667,5 +2678,18 @@ describe("the reckonings of #243 to #246", () => {
     refused(() => hc.irigDecode("B112", frame, 2026), "unknown");
     refused(() => hc.irigDecode("B124", frame.slice(1), 2026), "malformed");
     refused(() => hc.irigEncode("B124", hc.gregorianToFixed(2003, 6, 22), 76_722, { hundredths: 50 }), "out-of-range");
+    // Tables 3-1, 3-2 and 4-1: B's frame is a second, so 21:18:42.5 rounds down to Figure 5-2's.
+    const formats = hc.irigFormats();
+    assert.deepEqual(formats.map((format) => format.format), ["A", "B", "D", "E", "G", "H"]);
+    const b = formats[1];
+    assert.deepEqual(b, {
+      format: "B", indexCountMicroseconds: 10_000, indexCounts: 100, frameMicroseconds: 1_000_000,
+      fields: ["days", "hours", "minutes", "seconds"], controlBits: 18, modulations: [0, 1, 2],
+      carriers: [0, 2, 3, 4, 5], expressions: [0, 1, 2, 3, 4, 5, 6, 7],
+    });
+    const reading = 76_722_500_000;
+    const start = reading - (reading % b.frameMicroseconds);
+    assert.equal(hc.irigEncode("B124", hc.gregorianToFixed(2003, 6, 22), start / 1_000_000), frame);
+    assert.equal(formats[2].frameMicroseconds, 3_600_000_000);
   });
 });

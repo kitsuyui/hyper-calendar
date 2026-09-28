@@ -102,6 +102,8 @@ with the temple table's times for all three periods on all seven weekdays
   Read 2026-09-27.
 - [tirumala-kalam-table]: the fixed-day times of all three periods for each
   weekday. Read 2026-09-27.
+- [drik-day-panchang-hi-2026]: the Hindi day pañcāṅga of 27 September
+  2026, for the three periods' Hindi names only. Read 2026-09-28.
 
 ## Code
 
@@ -113,4 +115,7 @@ with the temple table's times for all three periods on all seven weekdays
 `there_is_no_kalam_where_the_sun_does_not_rise`.
 
 The WebAssembly and C export `hc_kalam` writes the three periods of a day
-by either convention, from `hyper_calendar::panchanga_lines`.
+by either convention, from `hyper_calendar::panchanga_lines`, each named
+in a locale by `hc_i18n::reckonings`: in English as Drik Panchang prints
+them, and in Hindi as its Hindi day pañcāṅga labels them, राहुकाल,
+यमगण्ड and गुलिक काल [drik-day-panchang-hi-2026].

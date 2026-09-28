@@ -1457,12 +1457,13 @@ mod time_codes {
     /// `zone_change`, and a minute at which the zone keeps neither is
     /// `HC_ERR_OUT_OF_RANGE`; for WWVB bit 57 from the flag at 24:00 UTC
     /// ending the minute's day and bit 58 from the flag at 00:00 UTC
-    /// beginning it. A name the module does not know, `jjy`, and a module
-    /// without `tz` are `HC_ERR_UNKNOWN`. `zone_change` is
-    /// DCF77's A1, read by that code alone; `dut1_tenths` is WWVB's
-    /// amplitude UT1 − UTC, −9 to 9; `dst_next` is the phase code's
-    /// six-bit word, one its Table 8 lists for the direction `summer`
-    /// gives. A second that does not begin a minute of those years, or a
+    /// beginning it, and for `wwvb-pm` `dst_next` from the zone's next
+    /// change after that day, in place of the caller's. A name the module
+    /// does not know, `jjy`, and a module without `tz` are
+    /// `HC_ERR_UNKNOWN`. `zone_change` is DCF77's A1, read by that code
+    /// alone; `dut1_tenths` is WWVB's amplitude UT1 − UTC, −9 to 9;
+    /// `dst_next` is the phase code's six-bit word, one its Table 8 lists
+    /// for the direction `summer` gives. A second that does not begin a minute of those years, or a
     /// `leap`, `dut1_tenths` or `dst_next` outside what the code says, is
     /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
     /// needs.
@@ -1492,7 +1493,7 @@ mod time_codes {
             (Err(sentinel), _) | (_, Err(sentinel)) => return sentinel,
         };
         let answer = match time_code_lines::radio_summer_zone(summer) {
-            Some(zone) => by_zone(code, unix_seconds, leap, zone, dut1_tenths, dst_next),
+            Some(zone) => by_zone(code, unix_seconds, leap, zone, dut1_tenths),
             None => time_code_lines::radio_encode_line(
                 code,
                 unix_seconds,
@@ -1516,17 +1517,9 @@ mod time_codes {
         leap: i32,
         zone: &str,
         dut1_tenths: i32,
-        dst_next: u32,
     ) -> Answer<String> {
         super::tz::with_zone(zone, |zone, _| {
-            time_code_lines::radio_encode_line_by_zone(
-                code,
-                unix_seconds,
-                leap,
-                zone,
-                dut1_tenths,
-                dst_next,
-            )
+            time_code_lines::radio_encode_line_by_zone(code, unix_seconds, leap, zone, dut1_tenths)
         })
         .unwrap_or(Err(Refusal::Unknown))
     }
@@ -1622,6 +1615,31 @@ mod time_codes {
         unsafe { emit_answer(answer, buffer, capacity) }
     }
 
+    /// Every IRIG format `hc_irig_decode` and `hc_irig_encode` read, with
+    /// its frame's length, its rate and its fields, as UTF-8 lines,
+    /// returning the byte length written.
+    ///
+    /// One line per format, A, B, D, E, G and H, tab-separated: its letter;
+    /// the index count interval in microseconds, 1 000 for A; the index
+    /// counts in a frame, 100 or 60; the frame's length in microseconds,
+    /// whose multiples from midnight are the readings `hc_irig_encode`
+    /// writes a frame at; the fields of the BCD time of year, most
+    /// significant first, separated by spaces, the last being the frame's
+    /// length; the control bits the format has room for; and the
+    /// modulations, the carriers and the coded expressions Table 4-1 of
+    /// IRIG 200-16 permits it, the three digits of a signal designation,
+    /// each list separated by spaces. A null `buffer` returns the length
+    /// the text needs.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes unless it is null.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_irig_formats(buffer: *mut u8, capacity: usize) -> i64 {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe { emit_answer(Ok(time_code_lines::irig_formats_lines()), buffer, capacity) }
+    }
+
     /// A module without `tz` has no zone to read the state from.
     #[cfg(not(feature = "tz"))]
     const fn by_zone(
@@ -1630,7 +1648,6 @@ mod time_codes {
         _leap: i32,
         _zone: &str,
         _dut1_tenths: i32,
-        _dst_next: u32,
     ) -> Answer<String> {
         Err(Refusal::Unknown)
     }
@@ -1639,7 +1656,7 @@ mod time_codes {
 #[cfg(feature = "time-codes")]
 pub use time_codes::{
     hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_irig_decode,
-    hc_irig_encode, hc_radio_decode, hc_radio_encode,
+    hc_irig_encode, hc_irig_formats, hc_radio_decode, hc_radio_encode,
 };
 
 /// .NET's ticks and the six-hour clocks, behind the `timestamps` feature:
@@ -2652,9 +2669,11 @@ mod day_periods {
     /// `HC_ERR_UNKNOWN`. The place is as for `hc_solar_time`. One line per
     /// period, in the order a pañcāṅga prints them, tab-separated: its
     /// identifier (`rahu-kalam`, `yamaganda`, `gulika-kalam`), its English
-    /// name, the eighth of the day it takes, 1 to 8, the clock its times
-    /// are read on, and its start and end, then the four cells of a missing
-    /// solar event, as `hc_solar_event` writes them. On
+    /// name, its name in the locale and the tag of the data that named it,
+    /// राहुकाल under `hi`, the eighth of the day it takes, 1 to 8, the clock
+    /// its times are read on, and its start and end, then the four cells of
+    /// a missing solar event, as `hc_solar_event` writes them. The locale
+    /// argument fails as `hc_parse_iso_date` does. On
     /// `rahu-kalam-sunrise` the clock is `universal` and the times are
     /// whole POSIX seconds, rounded down, empty where the Sun does not rise
     /// or set and the event is named; on `rahu-kalam-fixed` the clock is
@@ -2665,9 +2684,9 @@ mod day_periods {
     ///
     /// # Safety
     ///
-    /// `convention` must be readable for `convention_len` bytes unless null
-    /// with a zero length; `buffer` must be writable for `capacity` bytes
-    /// unless it is null.
+    /// `convention` and `locale` must each be readable for their lengths
+    /// unless null with a zero length; `buffer` must be writable for
+    /// `capacity` bytes unless it is null.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_kalam(
         convention: *const u8,
@@ -2676,6 +2695,8 @@ mod day_periods {
         latitude: f64,
         longitude: f64,
         elevation: f64,
+        locale: *const u8,
+        locale_len: usize,
         buffer: *mut u8,
         capacity: usize,
     ) -> i64 {
@@ -2684,11 +2705,16 @@ mod day_periods {
             Ok(convention) => convention,
             Err(sentinel) => return sentinel,
         };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { text(locale, locale_len) } {
+            Ok(tag) => tag,
+            Err(sentinel) => return sentinel,
+        };
         let place = match astro_lines::location(latitude, longitude, elevation) {
             Ok(place) => place,
             Err(refusal) => return sentinel(refusal),
         };
-        let answer = panchanga_lines::kalam_lines(convention, fixed, place);
+        let answer = panchanga_lines::kalam_lines(convention, fixed, place, tag);
         // SAFETY: forwarded to the caller's contract above.
         unsafe { emit_answer(answer, buffer, capacity) }
     }
@@ -7478,13 +7504,15 @@ mod tests {
         }
 
         /// The radio codes' summer time from the zones' rules: DCF77's
-        /// frames around Berlin's change of 29 March 2026, and WWVB's
-        /// bits 57 and 58 on Denver's day of change, 8 March.
+        /// frames around Berlin's change of 29 March 2026, WWVB's bits 57
+        /// and 58 on Denver's day of change, 8 March, and the phase code's
+        /// `dst_next` either side of 00:00 UTC that day: 8 March, then
+        /// 1 November, both `011011`, 27.
         #[cfg(feature = "time-codes")]
         #[test]
         fn a_radio_frame_reads_its_summer_time_from_the_zone() {
             load("America/Denver", TZIF_V2_DENVER);
-            let encode = |code: &str, unix: i64, summer: &str, change: i32| {
+            let frame = |code: &str, unix: i64, summer: &str, change: i32, next: u32| {
                 super::read_lines(|buffer, capacity| unsafe {
                     hc_radio_encode(
                         code.as_ptr(),
@@ -7495,11 +7523,14 @@ mod tests {
                         summer.len(),
                         change,
                         0,
-                        0,
+                        next,
                         buffer,
                         capacity,
                     )
                 })
+            };
+            let encode = |code: &str, unix: i64, summer: &str, change: i32| {
+                frame(code, unix, summer, change, 0)
             };
             let change = 1_774_746_000;
             for (minute, summer, a1) in [
@@ -7523,6 +7554,11 @@ mod tests {
                 assert_eq!(
                     encode("wwvb-am", minute, "zone:America/Denver", 0),
                     encode("wwvb-am", minute, summer, 0),
+                    "{minute}"
+                );
+                assert_eq!(
+                    frame("wwvb-pm", minute, "zone:America/Denver", 0, 0),
+                    frame("wwvb-pm", minute, summer, 0, 27),
                     "{minute}"
                 );
             }
@@ -9952,6 +9988,8 @@ mod tests {
                     28.6356,
                     77.2244,
                     0.0,
+                    "hi".as_ptr(),
+                    2,
                     buffer,
                     capacity,
                 )
@@ -9959,7 +9997,7 @@ mod tests {
             let first = text.lines().next().expect("three lines");
             assert_eq!(
                 first,
-                "rahu-kalam\tRahu Kalam\t5\tlocal\t43200\t48600\t\t\t\t"
+                "rahu-kalam\tRahu Kalam\tराहुकाल\thi\t5\tlocal\t43200\t48600\t\t\t\t"
             );
             assert_eq!(text.lines().count(), 3);
         }
@@ -10641,6 +10679,17 @@ mod tests {
                 },
                 HC_ERR_MALFORMED
             );
+        }
+
+        /// The six formats, B's frame a second long and D's an hour.
+        #[test]
+        fn the_formats_are_listed() {
+            let text = read_lines(|buffer, capacity| unsafe { hc_irig_formats(buffer, capacity) });
+            assert_eq!(text.lines().count(), 6);
+            assert!(text.contains(
+                "B\t10000\t100\t1000000\tdays hours minutes seconds\t18\t0 1 2\t0 2 3 4 5\t0 1 2 3 4 5 6 7\n"
+            ));
+            assert!(text.contains("\nD\t60000000\t60\t3600000000\tdays hours\t9\t"));
         }
     }
 

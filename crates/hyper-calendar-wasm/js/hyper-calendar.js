@@ -89,6 +89,7 @@ export const METHODS = Object.freeze([
   { method: "radioEncode", export: "hc_radio_encode", feature: "time-codes" },
   { method: "irigDecode", export: "hc_irig_decode", feature: "time-codes" },
   { method: "irigEncode", export: "hc_irig_encode", feature: "time-codes" },
+  { method: "irigFormats", export: "hc_irig_formats", feature: "time-codes" },
   { method: "dotnetTicksFromUnix", export: "hc_dotnet_ticks_from_unix", feature: "timestamps" },
   { method: "unixFromDotnetTicks", export: "hc_unix_from_dotnet_ticks", feature: "timestamps" },
   { method: "sixHourClock", export: "hc_six_hour_clock", feature: "timestamps" },
@@ -360,8 +361,8 @@ export const COLUMNS = Object.freeze({
   unixFromDotnetTicks: Object.freeze(["unix seconds", "attoseconds"]),
   sixHourClock: Object.freeze(["hour", "minute", "second", "half", "period", "period english"]),
   kalam: Object.freeze([
-    "id", "english name", "part", "clock", "start", "end", "missing", "missing day", "depression",
-    "depression arcseconds",
+    "id", "english name", "name", "locale used", "part", "clock", "start", "end", "missing",
+    "missing day", "depression", "depression arcseconds",
   ]),
   almanacCycles: Object.freeze([
     "eho", "eho romaji", "azimuth", "sixteen-point", "direction", "period", "period name", "era",
@@ -412,6 +413,10 @@ export const COLUMNS = Object.freeze({
   irigDecode: Object.freeze([
     "fixed", "day of year", "hour", "minute", "second", "hundredths", "year", "control",
     "straight binary seconds",
+  ]),
+  irigFormats: Object.freeze([
+    "format", "index count microseconds", "index counts", "frame microseconds", "fields",
+    "control bits", "modulations", "carriers", "expressions",
   ]),
 });
 
@@ -2014,10 +2019,13 @@ function sixHourReading(cells) {
  * @returns {import("./hyper-calendar.d.ts").KalamPeriod}
  */
 function kalamPeriod(cells) {
-  const [id, englishName, part, clock, start, end, missing, missingDay, depression, arcseconds] = cells;
+  const [id, englishName, name, localeUsed, part, clock, start, end, missing, missingDay, depression, arcseconds] =
+    cells;
   return {
     id: /** @type {import("./hyper-calendar.d.ts").KalamId} */ (id),
     englishName,
+    name,
+    localeUsed,
     part: integer(part, "part"),
     clock: /** @type {"universal" | "local"} */ (clock),
     start: optionalInteger(start, "start"),
@@ -2266,6 +2274,38 @@ function irigReading(cells) {
     year: optionalInteger(year, "year"),
     control: optionalInteger(control, "control"),
     straightBinarySeconds: optionalInteger(sbs, "straight binary seconds"),
+  };
+}
+
+/**
+ * A cell of numbers separated by spaces.
+ *
+ * @param {string} cell
+ * @param {string} column
+ * @returns {number[]}
+ */
+function integers(cell, column) {
+  return cell === "" ? [] : cell.split(" ").map((item) => integer(item, column));
+}
+
+/**
+ * One line of `hc_irig_formats`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IrigFormatInfo}
+ */
+function irigFormat(cells) {
+  const [format, indexCount, counts, frame, fields, control, modulations, carriers, expressions] = cells;
+  return {
+    format,
+    indexCountMicroseconds: integer(indexCount, "index count microseconds"),
+    indexCounts: integer(counts, "index counts"),
+    frameMicroseconds: integer(frame, "frame microseconds"),
+    fields: fields.split(" "),
+    controlBits: integer(control, "control bits"),
+    modulations: integers(modulations, "modulations"),
+    carriers: integers(carriers, "carriers"),
+    expressions: integers(expressions, "expressions"),
   };
 }
 
@@ -4685,6 +4725,19 @@ export class HyperCalendar {
     return this.#oneLine("hc_irig_encode", text, ["frame"])[0];
   }
 
+  /**
+   * Every IRIG format, with its frame's length, its rate, its fields and
+   * the designations Table 4-1 permits it: a reading `irigEncode` writes a
+   * frame at is a multiple of `frameMicroseconds` from midnight.
+   *
+   * @returns {import("./hyper-calendar.d.ts").IrigFormatInfo[]}
+   */
+  irigFormats() {
+    const fn = this.#export("hc_irig_formats");
+    const text = this.#text("hc_irig_formats", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.irigFormats, "hc_irig_formats").map(irigFormat);
+  }
+
 
   /**
    * .NET's `DateTime.Ticks` of a POSIX instant as a `Utc` value.
@@ -4748,21 +4801,24 @@ export class HyperCalendar {
   }
 
   /**
-   * Rāhu kālam, Yamaganda and Gulika kālam on a day.
+   * Rāhu kālam, Yamaganda and Gulika kālam on a day, each named in a locale.
    *
    * @param {import("./hyper-calendar.d.ts").KalamConvention} convention
    * @param {number | bigint} fixed
    * @param {number} latitude
    * @param {number} longitude
    * @param {number} [elevation]
+   * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").KalamPeriod[]}
    */
-  kalam(convention, fixed, latitude, longitude, elevation = 0) {
+  kalam(convention, fixed, latitude, longitude, elevation = 0, locale = "und") {
     const fn = this.#export("hc_kalam");
     const day = toI64(fixed, "fixed");
     const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
     const text = this.#withText(convention, "convention", (pointer, len) =>
-      this.#text("hc_kalam", (buffer, capacity) => fn(pointer, len, day, lat, lon, elev, buffer, capacity), true));
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_kalam", (buffer, capacity) =>
+          fn(pointer, len, day, lat, lon, elev, localePointer, localeLen, buffer, capacity), true)));
     return rows(text, COLUMNS.kalam, "hc_kalam").map(kalamPeriod);
   }
 

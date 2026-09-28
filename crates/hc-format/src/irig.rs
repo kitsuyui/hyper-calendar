@@ -256,6 +256,51 @@ impl IrigFormat {
         self.layout().control.len()
     }
 
+    /// The fields of the BCD time of year, most significant first, as
+    /// the module's table names them: `days`, `hours`, `minutes`,
+    /// `seconds` or E's `tens-of-seconds`, and A's `tenths` or G's
+    /// `tenths` and `hundredths`. The last is the frame's length: a frame
+    /// begins at every multiple of it from midnight.
+    #[must_use]
+    pub const fn time_fields(self) -> &'static [&'static str] {
+        match self {
+            Self::A => &["days", "hours", "minutes", "seconds", "tenths"],
+            Self::B => &["days", "hours", "minutes", "seconds"],
+            Self::D => &["days", "hours"],
+            Self::E => &["days", "hours", "minutes", "tens-of-seconds"],
+            Self::G => &[
+                "days",
+                "hours",
+                "minutes",
+                "seconds",
+                "tenths",
+                "hundredths",
+            ],
+            Self::H => &["days", "hours", "minutes"],
+        }
+    }
+
+    /// The modulation types Table 4-1 permits the format, the first digit
+    /// of a signal designation.
+    #[must_use]
+    pub const fn modulations(self) -> &'static [u8] {
+        self.permitted().0
+    }
+
+    /// The carrier frequencies Table 4-1 permits the format, the second
+    /// digit.
+    #[must_use]
+    pub const fn carriers(self) -> &'static [u8] {
+        self.permitted().1
+    }
+
+    /// The coded expressions Table 4-1 permits the format, the third
+    /// digit.
+    #[must_use]
+    pub const fn expressions(self) -> &'static [u8] {
+        self.permitted().2
+    }
+
     const fn layout(self) -> &'static Layout {
         match self {
             Self::A => &LAYOUT_A,
@@ -709,6 +754,31 @@ mod tests {
     }
 
     /// Each figure's frame, both ways: 22 June 2003 is day 173.
+    /// Each format's fields are its layout's, and its frame is its finest
+    /// field: A 0.1 s and tenths, D an hour and hours.
+    #[test]
+    fn the_time_fields_are_the_layouts() {
+        for format in IrigFormat::ALL {
+            let layout = format.layout();
+            let carried = [
+                &layout.days,
+                &layout.hours,
+                &layout.minutes,
+                &layout.seconds,
+                &layout.fraction,
+            ]
+            .iter()
+            .filter(|field| !field.digits.is_empty())
+            .count()
+                + usize::from(matches!(format, IrigFormat::G));
+            assert_eq!(format.time_fields().len(), carried, "{format}");
+        }
+        assert_eq!(IrigFormat::A.frame_micros(), 100_000);
+        assert_eq!(IrigFormat::D.frame_micros(), 3_600_000_000);
+        assert_eq!(IrigFormat::G.time_fields().last(), Some(&"hundredths"));
+        assert_eq!(IrigFormat::B.carriers(), &[0, 2, 3, 4, 5]);
+    }
+
     #[test]
     fn the_standards_figures() {
         let cases = [

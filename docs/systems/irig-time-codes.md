@@ -102,7 +102,9 @@ Day 173 of 2003 is 22 June.
 `hc_format::irig`:
 
 - `IrigFormat`, the six formats with their frame length, index count,
-  frame time and number of control bits.
+  frame time and number of control bits, the fields of their BCD time of
+  year, the last of which the frame time is, and the modulations,
+  carriers and coded expressions Table 4-1 permits each.
 - `IrigCode`, a format and a coded expression that Table 4-1 permits, from
   the two or from a signal designation such as `B122`, whose modulation
   and frequency digits are checked against Table 4-1 and then dropped.
@@ -188,4 +190,7 @@ helpers shared from `crates/hc-format/src/radio/mod.rs`. Anchors:
 
 The WebAssembly and C exports `hc_irig_decode` and `hc_irig_encode` read
 and write a frame named by its signal designation, `B124`, in the radio
-codes' string of `0`, `1` and `M`, from `hyper_calendar::time_code_lines`.
+codes' string of `0`, `1` and `M`, from `hyper_calendar::time_code_lines`;
+`hc_irig_formats` lists the formats, so that a caller can round a reading
+down to a frame's start and offer only the designations Table 4-1
+permits. Anchor: `the_irig_formats_are_the_standards`.

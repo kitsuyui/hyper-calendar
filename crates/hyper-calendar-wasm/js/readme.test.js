@@ -335,6 +335,17 @@ test("the new reckonings read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.planetaryHour], columnsAfter("### Planetary hours"));
   assert.deepEqual([...COLUMNS.gmat], columnsAfter("## Greenwich Mean Astronomical Time"));
   assert.deepEqual([...COLUMNS.irigDecode], columnsAfter("### IRIG time codes"));
+  // The formats' table is the second after the heading.
+  const formats = README.slice(README.indexOf("`hc_irig_formats(buffer, capacity)` lists"));
+  const formatColumns = [];
+  for (const row of formats.split("\n").filter((line) => /^\| \d+ \| /.test(line))) {
+    const cells = row.slice(1, -1).split(" | ").map((cell) => cell.trim());
+    if (cells[0] !== String(formatColumns.length + 1)) {
+      break;
+    }
+    formatColumns.push(cells[1]);
+  }
+  assert.deepEqual([...COLUMNS.irigFormats], formatColumns);
   assert.match(README, /It\s+writes one line of one cell, the frame\./);
 });
 

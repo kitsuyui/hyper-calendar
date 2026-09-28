@@ -1678,8 +1678,9 @@ mod time_codes {
     /// the years 1 to 9999, or a `leap`, `dut1_tenths` or `dst_next` the
     /// code cannot say, is `HC_ERROR_OUT_OF_RANGE`, and a `summer` state it
     /// does not name `HC_ERROR_UNKNOWN`. A `summer` of `zone:` and a zone's
-    /// name reads the state from the rules `hc_fixed_from_unix_in_zone`
-    /// reads for it, as the WebAssembly module does, in a library built
+    /// name reads the state, and for `wwvb-pm` the `dst_next` word, from
+    /// the rules `hc_fixed_from_unix_in_zone` reads for it, as the
+    /// WebAssembly module does, in a library built
     /// with `tz` too; without it, `HC_ERROR_UNKNOWN`. Writes the required
     /// length, including the terminator, into `written`.
     ///
@@ -1707,7 +1708,7 @@ mod time_codes {
             (Err(status), _) | (_, Err(status)) => return status,
         };
         let answer = match time_code_lines::radio_summer_zone(summer) {
-            Some(zone) => by_zone(code, unix_seconds, leap, zone, dut1_tenths, dst_next),
+            Some(zone) => by_zone(code, unix_seconds, leap, zone, dut1_tenths),
             None => time_code_lines::radio_encode_line(
                 code,
                 unix_seconds,
@@ -1731,17 +1732,9 @@ mod time_codes {
         leap: i32,
         zone: &str,
         dut1_tenths: i32,
-        dst_next: u32,
     ) -> Answer<String> {
         super::tz::with_zone(zone, |zone, _| {
-            time_code_lines::radio_encode_line_by_zone(
-                code,
-                unix_seconds,
-                leap,
-                zone,
-                dut1_tenths,
-                dst_next,
-            )
+            time_code_lines::radio_encode_line_by_zone(code, unix_seconds, leap, zone, dut1_tenths)
         })
         .unwrap_or(Err(Refusal::Unknown))
     }
@@ -1754,7 +1747,6 @@ mod time_codes {
         _leap: i32,
         _zone: &str,
         _dut1_tenths: i32,
-        _dst_next: u32,
     ) -> Answer<String> {
         Err(Refusal::Unknown)
     }
@@ -1837,12 +1829,40 @@ mod time_codes {
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
+
+    /// Every IRIG format `hc_irig_decode` and `hc_irig_encode` read, with
+    /// its frame's length, its rate and its fields, as NUL-terminated UTF-8
+    /// lines in a caller-owned buffer.
+    ///
+    /// The lines are the WebAssembly module's. Writes the required length,
+    /// including the terminator, into `written`.
+    ///
+    /// # Safety
+    ///
+    /// `buffer` must be writable for `capacity` bytes and `written` must be
+    /// null or writable.
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn hc_irig_formats(
+        buffer: *mut c_char,
+        capacity: usize,
+        written: *mut usize,
+    ) -> HcStatus {
+        // SAFETY: forwarded to the caller's contract above.
+        unsafe {
+            write_answer(
+                Ok(time_code_lines::irig_formats_lines()),
+                buffer,
+                capacity,
+                written,
+            )
+        }
+    }
 }
 
 #[cfg(feature = "time-codes")]
 pub use time_codes::{
     hc_ccsds_ascii_format, hc_ccsds_ascii_parse, hc_ccsds_decode, hc_ccsds_encode, hc_irig_decode,
-    hc_irig_encode, hc_radio_decode, hc_radio_encode,
+    hc_irig_encode, hc_irig_formats, hc_radio_decode, hc_radio_encode,
 };
 
 /// .NET's ticks and the six-hour clocks, behind the `timestamps` feature.
@@ -2931,16 +2951,18 @@ mod day_periods {
     /// `convention` is `rahu-kalam-sunrise` or `rahu-kalam-fixed`, in any
     /// case; anything else is `HC_ERROR_UNKNOWN`, and null
     /// `HC_ERROR_NULL_POINTER`. The lines are the WebAssembly module's: the
-    /// period's identifier, English name and eighth of the day, the clock,
-    /// `universal` or `local`, the start and the end, and the four cells of
-    /// a missing solar event. A place off the globe, or a day outside the
-    /// years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required
-    /// length, including the terminator, into `written`.
+    /// period's identifier and English name, its name in the `locale` and
+    /// the tag that named it, its eighth of the day, the clock, `universal`
+    /// or `local`, the start and the end, and the four cells of a missing
+    /// solar event. `locale` is a NUL-terminated BCP 47 tag, `native` or
+    /// null, as for `hc_describe_day`. A place off the globe, or a day
+    /// outside the years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes
+    /// the required length, including the terminator, into `written`.
     ///
     /// # Safety
     ///
-    /// `convention` must be null or NUL-terminated; `buffer` must be
-    /// writable for `capacity` bytes and `written` must be null or
+    /// `convention` and `locale` must be null or NUL-terminated; `buffer`
+    /// must be writable for `capacity` bytes and `written` must be null or
     /// writable.
     #[unsafe(no_mangle)]
     pub unsafe extern "C" fn hc_kalam(
@@ -2949,6 +2971,7 @@ mod day_periods {
         latitude: f64,
         longitude: f64,
         elevation: f64,
+        locale: *const c_char,
         buffer: *mut c_char,
         capacity: usize,
         written: *mut usize,
@@ -2958,8 +2981,13 @@ mod day_periods {
             Ok(convention) => convention,
             Err(status) => return status,
         };
+        // SAFETY: forwarded to the caller's contract above.
+        let tag = match unsafe { self::locale(locale) } {
+            Ok(tag) => tag,
+            Err(status) => return status,
+        };
         let answer = astro_lines::location(latitude, longitude, elevation)
-            .and_then(|place| panchanga_lines::kalam_lines(convention, fixed, place));
+            .and_then(|place| panchanga_lines::kalam_lines(convention, fixed, place, tag));
         // SAFETY: forwarded to the caller's contract above.
         unsafe { write_answer(answer, buffer, capacity, written) }
     }
@@ -7244,27 +7272,36 @@ mod tests {
         }
 
         /// WWVB's bits 57 and 58 from Denver's loaded rules on its day of
-        /// change, 8 March 2026, and DCF77's A1 from Berlin's.
+        /// change, 8 March 2026, with the phase code's `dst_next` for
+        /// 1 November, `011011`, 27, and DCF77's A1 from Berlin's.
         #[cfg(feature = "time-codes")]
         #[test]
         fn a_radio_frame_reads_its_summer_time_from_the_zone() {
             load_denver();
+            let frame =
+                |code: &core::ffi::CStr, unix: i64, summer: &core::ffi::CStr, change, next| {
+                    super::read_lines(|buffer, capacity, written| unsafe {
+                        hc_radio_encode(
+                            code.as_ptr(),
+                            unix,
+                            0,
+                            summer.as_ptr(),
+                            change,
+                            0,
+                            next,
+                            buffer,
+                            capacity,
+                            written,
+                        )
+                    })
+                };
             let encode = |code: &core::ffi::CStr, unix: i64, summer: &core::ffi::CStr, change| {
-                super::read_lines(|buffer, capacity, written| unsafe {
-                    hc_radio_encode(
-                        code.as_ptr(),
-                        unix,
-                        0,
-                        summer.as_ptr(),
-                        change,
-                        0,
-                        0,
-                        buffer,
-                        capacity,
-                        written,
-                    )
-                })
+                frame(code, unix, summer, change, 0)
             };
+            assert_eq!(
+                frame(c"wwvb-pm", 1_772_928_000, c"zone:America/Denver", 0, 0),
+                frame(c"wwvb-pm", 1_772_928_000, c"begins-today", 0, 27)
+            );
             assert_eq!(
                 encode(c"wwvb-am", 1_772_928_000, c"zone:America/Denver", 0),
                 encode(c"wwvb-am", 1_772_928_000, c"begins-today", 0)
@@ -9653,12 +9690,18 @@ mod tests {
                     28.6356,
                     77.2244,
                     0.0,
+                    core::ptr::null(),
                     buffer,
                     capacity,
                     written,
                 )
             });
-            assert!(text.starts_with("rahu-kalam\tRahu Kalam\t5\tlocal\t43200\t48600\t"));
+            assert!(
+                text.starts_with(
+                    "rahu-kalam\tRahu Kalam\tRahu Kalam\ten\t5\tlocal\t43200\t48600\t"
+                ),
+                "{text}"
+            );
             let setsubun = 739_650;
             let text = read_lines(|buffer, capacity, written| unsafe {
                 hc_almanac_cycles(setsubun, c"japan".as_ptr(), buffer, capacity, written)
@@ -10114,6 +10157,18 @@ mod tests {
                     )
                 }),
                 HC_ERROR_NULL_POINTER
+            );
+        }
+
+        /// The six formats, the WebAssembly module's lines.
+        #[test]
+        fn the_formats_are_listed() {
+            let text = read_lines(|buffer, capacity, written| unsafe {
+                hc_irig_formats(buffer, capacity, written)
+            });
+            assert_eq!(text.lines().count(), 6);
+            assert!(
+                text.starts_with("A\t1000\t100\t100000\tdays hours minutes seconds tenths\t18\t")
             );
         }
     }

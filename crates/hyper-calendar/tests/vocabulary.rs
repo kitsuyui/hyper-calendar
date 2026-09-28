@@ -703,13 +703,15 @@ fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
 fn the_reckoning_vocabulary_names_what_the_crates_compute() {
     use hyper_calendar::hc_almanac::vietnamese_days::{NGUYET_KY_NAME, TAM_NUONG_NAME};
     use hyper_calendar::hc_calendars_indic::choghadiya::Choghadiya;
+    use hyper_calendar::hc_calendars_indic::kalam::Kalam;
     use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
     use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
     use hyper_calendar::hc_calendars_indic::pushkaram::PushkaramRiver;
     use hyper_calendar::hc_format::night_watches::WATCH_NAMES;
     use hyper_calendar::hc_i18n::reckonings::{
-        CHOGHADIYA, FIRST_MONTH_COUNT, FOLK_HALF, FOLK_NAMED_DAY, KUMBH_SITE, NIGHT_WATCH, PANCHAK,
-        PLANET, PLUM_RAINS, PUSHKARAM_RIVER, VIETNAMESE_DAY, VOCABULARIES, native_tag, table,
+        CHOGHADIYA, FIRST_MONTH_COUNT, FOLK_HALF, FOLK_NAMED_DAY, KALAM, KUMBH_SITE, NIGHT_WATCH,
+        PANCHAK, PLANET, PLUM_RAINS, PUSHKARAM_RIVER, VIETNAMESE_DAY, VOCABULARIES, native_tag,
+        table,
     };
     use hyper_calendar::hc_seasons::hizir_kasim::{Half, NamedDay};
     use hyper_calendar::hc_seasons::zodiac::RulingPlanet;
@@ -738,6 +740,9 @@ fn the_reckoning_vocabulary_names_what_the_crates_compute() {
     }
     for planet in RulingPlanet::CHALDEAN_ORDER {
         add(PLANET, planet.id.to_owned(), planet.english_name());
+    }
+    for period in Kalam::ALL {
+        add(KALAM, period.id.to_owned(), period.english_name);
     }
     for (index, name) in WATCH_NAMES.iter().enumerate() {
         add(NIGHT_WATCH, (index + 1).to_string(), name);
@@ -782,7 +787,7 @@ fn the_reckoning_vocabulary_names_what_the_crates_compute() {
             );
         }
     }
-    assert_eq!(terms.len(), 7 + 5 + 4 + 14 + 7 + 5 + 2 + 3 + 4 + 2 + 7);
+    assert_eq!(terms.len(), 7 + 5 + 4 + 14 + 7 + 3 + 5 + 2 + 3 + 4 + 2 + 7);
 }
 
 /// Every horizon `hc-i18n` names is one `hc-astro` carries, so that a name

@@ -340,11 +340,13 @@ fn describe_day_in_scope(registry: &CalendarRegistry, day: Rd, locale: &str) -> 
 /// its value, an integer; what the locale calls the field
 /// ([`hc_i18n::fields::label`]), else its English label; the value as a
 /// reader reads it — the name of the position it holds in the cycle it
-/// counts where that is named, *Parābhava*, else the number in the
-/// locale's numbering system — as a template's `{extra:FIELD}` writes it;
-/// `1` when the date as the locale writes it, [`describe_day`]'s formatted
-/// cell, already holds the field, else `0`, so that a page can show the
-/// others beside the date; and the locale used, as [`describe_day`] names
+/// counts where that is named, *Parābhava*, a flag's *no* or *yes* or its
+/// calendar's own words for the two, else the number in the locale's
+/// numbering system — as a template's `{extra:FIELD}` writes it; `1` when
+/// the date as the locale writes it, [`describe_day`]'s formatted cell,
+/// already holds the field, itself or by the same name in the calendar's
+/// own words ([`label::date_marking`]), else `0`, so that a page can show
+/// the others beside the date; and the locale used, as [`describe_day`] names
 /// it. The locale follows the module's rule. A calendar that refuses the
 /// day, or whose date has no extra fields, writes no line.
 ///
