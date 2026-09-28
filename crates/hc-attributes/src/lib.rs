@@ -131,8 +131,6 @@ pub mod moon_names;
 pub mod weekday_attributions;
 pub mod zodiac_stones;
 
-mod gregorian;
-
 pub use authority::{
     AttributionDate, AttributionTable, Authority, MonthTable, Provenance, Region, SignTable,
     Validity, WeekdayTable,

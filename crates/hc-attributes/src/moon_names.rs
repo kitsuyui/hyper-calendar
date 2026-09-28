@@ -91,6 +91,7 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
+use hc_calendar::gregorian;
 use hc_seasons::hc_astro::lunar::MoonPhase;
 use hc_seasons::moon_calendar::principal_phases_in_month;
 use hc_seasons::solar_terms::term_moment;
@@ -99,7 +100,6 @@ use hc_seasons::{Meridian, Season};
 use crate::authority::{
     AttributionDate, Authority, MonthTable, Provenance, Region, Validity, month_index,
 };
-use crate::gregorian::year_month_day_from_rd;
 
 /// The list the *Old Farmer's Almanac* prints today.
 ///
@@ -349,7 +349,7 @@ pub fn hunters_moon(year: i64, meridian: Meridian) -> Rd {
 /// The Gregorian month the Harvest Moon falls in: 9 or 10.
 #[must_use]
 pub fn harvest_moon_falls_in(year: i64, meridian: Meridian) -> u8 {
-    let (_, month, _) = year_month_day_from_rd(harvest_moon(year, meridian));
+    let (_, month, _) = gregorian::ymd(harvest_moon(year, meridian));
     month
 }
 

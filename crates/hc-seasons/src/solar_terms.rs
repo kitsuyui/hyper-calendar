@@ -598,7 +598,7 @@ impl ExactSizeIterator for TermsInYear {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
+    use hc_calendar::gregorian;
 
     #[test]
     fn the_two_orderings_are_rotations_of_one_another() {
@@ -757,7 +757,7 @@ mod tests {
         for (term, (year, month, day)) in expected {
             assert_eq!(
                 term_day(2024, term, japan),
-                from_year_month_day(year, month, day),
+                gregorian::to_fixed_saturating(year, month, day),
                 "{} landed wrong",
                 term.japanese_name()
             );
@@ -771,15 +771,15 @@ mod tests {
         let japan = Meridian::JAPAN;
         assert_eq!(
             term_day(2000, SolarTerm::BEGINNING_OF_SPRING, japan),
-            from_year_month_day(2000, 2, 4)
+            gregorian::to_fixed_saturating(2000, 2, 4)
         );
         assert_eq!(
             term_day(2000, SolarTerm::SPRING_EQUINOX, japan),
-            from_year_month_day(2000, 3, 20)
+            gregorian::to_fixed_saturating(2000, 3, 20)
         );
         assert_eq!(
             term_day(2000, SolarTerm::WINTER_SOLSTICE, japan),
-            from_year_month_day(2000, 12, 21)
+            gregorian::to_fixed_saturating(2000, 12, 21)
         );
     }
 
@@ -864,7 +864,7 @@ mod tests {
 
     #[test]
     fn the_term_in_effect_never_lies_about_which_day_it_started() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
             let event = term_in_effect(day, Meridian::JAPAN);
@@ -883,8 +883,8 @@ mod tests {
 
     #[test]
     fn exactly_twenty_four_days_of_a_year_begin_a_term() {
-        let start = crate::gregorian::from_year_month_day(2024, 1, 1);
-        let end = crate::gregorian::from_year_month_day(2025, 1, 1);
+        let start = hc_calendar::gregorian::to_fixed_saturating(2024, 1, 1);
+        let end = hc_calendar::gregorian::to_fixed_saturating(2025, 1, 1);
         let mut beginnings = 0;
         for offset in 0..(end.0 - start.0) {
             if term_beginning_on(Rd(start.0 + offset), Meridian::JAPAN).is_some() {
@@ -934,8 +934,8 @@ mod tests {
     #[test]
     fn the_terms_of_a_year_stay_inside_that_year() {
         for year in [1700i64, 1900, 2000, 2024, 2200] {
-            let start = crate::gregorian::from_year_month_day(year, 1, 1);
-            let end = crate::gregorian::from_year_month_day(year + 1, 1, 1);
+            let start = hc_calendar::gregorian::to_fixed_saturating(year, 1, 1);
+            let end = hc_calendar::gregorian::to_fixed_saturating(year + 1, 1, 1);
             for event in terms_in_year(year, Meridian::JAPAN) {
                 assert!(
                     event.day >= start && event.day < end,

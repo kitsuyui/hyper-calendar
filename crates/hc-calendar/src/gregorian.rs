@@ -15,6 +15,22 @@
 //! solar year, and none of them can depend on `hc-calendars-solar` without
 //! inverting the layering. All of them already depend on this crate.
 //!
+//! # The month table
+//!
+//! The Gregorian reform kept the Julian calendar's months, so the split of
+//! a year into months is written once here, with the leap flag as an
+//! argument: [`month_length`], [`ordinal_day`] and [`month_day`]. The Julian
+//! calendar and the other calendars of that shape in `hc-calendars-solar`
+//! call them with their own leap rule.
+//!
+//! # Two shapes for tables of published dates
+//!
+//! [`to_fixed_saturating`] and [`ymd`] are [`to_fixed`] and [`from_fixed`]
+//! as total functions, for `const` tables of published dates and for
+//! arithmetic that cannot fail, where a `Result` would be threaded through
+//! every caller without ever being `Err` (policy §2). They change the shape
+//! and nothing else, and a test below says so.
+//!
 //! # What is *not* here
 //!
 //! Eras, validation ranges, the `Calendar` implementation, the reform
@@ -32,6 +48,76 @@ use crate::fixed::Rd;
 /// Days in each month of a common year, January first.
 const COMMON_MONTH_LENGTHS: [u8; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
+/// Days of a common year before the first of each month.
+const DAYS_BEFORE_MONTH: [u16; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+
+/// The length of `month` in a year of the Julian and Gregorian months,
+/// February having 29 days when `leap` is true, or `None` when `month` is
+/// not in `1..=12`.
+#[must_use]
+pub const fn month_length(month: u8, leap: bool) -> Option<u8> {
+    if month == 0 || month > 12 {
+        return None;
+    }
+    if month == 2 && leap {
+        return Some(29);
+    }
+    Some(COMMON_MONTH_LENGTHS[(month - 1) as usize])
+}
+
+/// The 1-based day of the year of a month and day in a year of the Julian
+/// and Gregorian months, a leap year when `leap` is true.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::MonthOutOfRange`] when `month` is not in
+/// `1..=12` and [`CalendarError::DayOutOfRange`] when the month has no
+/// such day, in that order.
+pub const fn ordinal_day(month: u8, day: u8, leap: bool) -> CalendarResult<u16> {
+    let length = match month_length(month, leap) {
+        Some(length) => length,
+        None => return Err(CalendarError::MonthOutOfRange),
+    };
+    if day == 0 || day > length {
+        return Err(CalendarError::DayOutOfRange);
+    }
+    let leap_day = if leap && month > 2 { 1 } else { 0 };
+    Ok(DAYS_BEFORE_MONTH[(month - 1) as usize] + leap_day + day as u16)
+}
+
+/// The month and day of a 1-based day of the year in a year of the Julian
+/// and Gregorian months, a leap year when `leap` is true: the inverse of
+/// [`ordinal_day`].
+///
+/// The month comes from Reingold and Dershowitz's closed form in
+/// `gregorian-from-fixed` (`reingold2018code`): a correction of 0, 1 or 2
+/// days after February absorbs its irregularity, so that the other eleven
+/// months fall out of one division.
+///
+/// # Errors
+///
+/// Returns [`CalendarError::DayOutOfRange`] for day 0 or a day past the
+/// end of the year.
+pub const fn month_day(ordinal: u16, leap: bool) -> CalendarResult<(u8, u8)> {
+    let year_length = if leap { 366 } else { 365 };
+    if ordinal == 0 || ordinal > year_length {
+        return Err(CalendarError::DayOutOfRange);
+    }
+    let prior = ordinal as i64 - 1;
+    let prior_before_march = if leap { 60 } else { 59 };
+    let correction = if prior < prior_before_march {
+        0
+    } else if leap {
+        1
+    } else {
+        2
+    };
+    let month = ((12 * (prior + correction) + 373) / 367) as u8;
+    let leap_day = if leap && month > 2 { 1 } else { 0 };
+    let day = ordinal - DAYS_BEFORE_MONTH[(month - 1) as usize] - leap_day;
+    Ok((month, day as u8))
+}
+
 /// Whether `year` is a leap year under the Gregorian rule.
 ///
 /// Every fourth year, except centuries, except every fourth century.
@@ -44,13 +130,7 @@ pub const fn is_leap_year(year: i64) -> bool {
 /// `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    if month == 0 || month > 12 {
-        return None;
-    }
-    if month == 2 && is_leap_year(year) {
-        return Some(29);
-    }
-    Some(COMMON_MONTH_LENGTHS[(month - 1) as usize])
+    month_length(month, is_leap_year(year))
 }
 
 /// The number of days in `year`.
@@ -106,23 +186,29 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
     if !year_in_range(year) {
         return Err(CalendarError::YearOutOfRange);
     }
-    let length = match days_in_month(year, month) {
-        Some(length) => length,
-        None => return Err(CalendarError::MonthOutOfRange),
-    };
-    if day == 0 || day > length {
-        return Err(CalendarError::DayOutOfRange);
+    match ordinal_day(month, day, is_leap_year(year)) {
+        Ok(ordinal) => Ok(Rd(new_year(year).0 + ordinal as i64 - 1)),
+        Err(error) => Err(error),
     }
-    let mut rd = new_year(year).0;
-    let mut index = 1u8;
-    while index < month {
-        rd += match days_in_month(year, index) {
-            Some(value) => value as i64,
-            None => return Err(CalendarError::MonthOutOfRange),
-        };
-        index += 1;
+}
+
+/// The fixed day of a Gregorian date from a table of published dates, or
+/// 1 January of `year` when the date does not exist.
+///
+/// This is [`to_fixed`] in the shape a `const` table wants: every caller
+/// passes a constant date that its own tests check, so an impossible one is
+/// a transcription error those tests catch rather than a condition to
+/// propagate.
+///
+/// # Panics
+///
+/// As [`new_year`], outside [`MIN_YEAR`]..=[`MAX_YEAR`].
+#[must_use]
+pub const fn to_fixed_saturating(year: i64, month: u8, day: u8) -> Rd {
+    match to_fixed(year, month, day) {
+        Ok(rd) => rd,
+        Err(_) => new_year(year),
     }
-    Ok(Rd(rd + day as i64 - 1))
 }
 
 /// The proleptic Gregorian year containing a fixed day.
@@ -156,20 +242,25 @@ pub const fn year_from_fixed(rd: Rd) -> i64 {
 /// intermediate arithmetic cannot be completed; every ordinary day succeeds.
 pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     let year = year_from_fixed(rd);
-    let mut remaining = rd.0 - new_year(year).0;
-    let mut month = 1u8;
-    while month <= 12 {
-        let length = match days_in_month(year, month) {
-            Some(value) => value as i64,
-            None => return Err(CalendarError::MonthOutOfRange),
-        };
-        if remaining < length {
-            return Ok((year, month, (remaining + 1) as u8));
-        }
-        remaining -= length;
-        month += 1;
+    let ordinal = (rd.0 - new_year(year).0 + 1) as u16;
+    match month_day(ordinal, is_leap_year(year)) {
+        Ok((month, day)) => Ok((year, month, day)),
+        Err(error) => Err(error),
     }
-    Err(CalendarError::DayOutOfRange)
+}
+
+/// The proleptic Gregorian year, month and day of a fixed day, as a total
+/// function: [`from_fixed`] for arithmetic that cannot fail.
+///
+/// `from_fixed` fails only where its intermediate arithmetic cannot be
+/// completed, which no representable year reaches; there this answers
+/// `(0, 1, 1)`.
+#[must_use]
+pub const fn ymd(rd: Rd) -> (i64, u8, u8) {
+    match from_fixed(rd) {
+        Ok(parts) => parts,
+        Err(_) => (0, 1, 1),
+    }
 }
 
 /// The 1-based day of the year.
@@ -299,6 +390,77 @@ mod tests {
         assert_eq!(to_fixed(2023, 13, 1), Err(CalendarError::MonthOutOfRange));
         assert_eq!(to_fixed(2023, 0, 1), Err(CalendarError::MonthOutOfRange));
         assert_eq!(to_fixed(2023, 1, 0), Err(CalendarError::DayOutOfRange));
+    }
+
+    /// Policy §2: the total shapes change the shape of [`to_fixed`] and
+    /// [`from_fixed`] and nothing else.
+    #[test]
+    fn the_total_shapes_change_the_shape_and_nothing_else() {
+        // Every day in release, a sample in debug, and in both the days
+        // either side of each new year of the range.
+        let step = if cfg!(debug_assertions) { 97 } else { 1 };
+        let years = (-548..=548).flat_map(|year| {
+            let first = new_year(year).0;
+            [first - 1, first]
+        });
+        for rd in (-200_000..200_000).step_by(step).chain(years) {
+            let day = Rd(rd);
+            assert_eq!(Ok(ymd(day)), from_fixed(day), "rd {rd}");
+        }
+        for year in [-400i64, 0, 1, 622, 1582, 1873, 1900, 2000, 2024] {
+            for month in 1..=12u8 {
+                for day in 1..=days_in_month(year, month).unwrap() {
+                    assert_eq!(
+                        Ok(to_fixed_saturating(year, month, day)),
+                        to_fixed(year, month, day)
+                    );
+                }
+            }
+        }
+        // A date that does not exist falls back to the year's first day.
+        assert_eq!(to_fixed_saturating(2023, 2, 30), new_year(2023));
+        assert_eq!(to_fixed_saturating(2023, 13, 1), new_year(2023));
+        assert_eq!(to_fixed_saturating(1970, 1, 1), Rd(719_163));
+        assert_eq!(ymd(Rd(719_163)), (1970, 1, 1));
+    }
+
+    /// The closed form of [`month_day`] against a walk through the month
+    /// lengths, in a common and a leap year, and both refusing what the
+    /// year does not have.
+    #[test]
+    fn the_month_split_agrees_with_the_month_lengths() {
+        for leap in [false, true] {
+            let mut ordinal = 0u16;
+            for month in 1..=12u8 {
+                for day in 1..=month_length(month, leap).unwrap() {
+                    ordinal += 1;
+                    assert_eq!(ordinal_day(month, day, leap), Ok(ordinal));
+                    assert_eq!(month_day(ordinal, leap), Ok((month, day)));
+                }
+            }
+            assert_eq!(ordinal, if leap { 366 } else { 365 });
+            assert_eq!(month_day(0, leap), Err(CalendarError::DayOutOfRange));
+            assert_eq!(
+                month_day(ordinal + 1, leap),
+                Err(CalendarError::DayOutOfRange)
+            );
+        }
+        for month in 1..=12u8 {
+            let lengths = (month_length(month, false), month_length(month, true));
+            if month == 2 {
+                assert_eq!(lengths, (Some(28), Some(29)));
+            } else {
+                assert_eq!(lengths.0, lengths.1);
+            }
+        }
+        assert_eq!(month_length(0, false), None);
+        assert_eq!(month_length(13, true), None);
+        assert_eq!(
+            ordinal_day(13, 1, false),
+            Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(ordinal_day(2, 29, false), Err(CalendarError::DayOutOfRange));
+        assert_eq!(ordinal_day(2, 29, true), Ok(60));
     }
 
     #[test]

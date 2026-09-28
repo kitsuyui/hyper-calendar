@@ -102,13 +102,13 @@ impl Calendar for IslamicCivilCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
     use hc_calendar::{CalendarError, Weekday};
 
     #[test]
     fn the_epoch_is_friday_the_sixteenth_of_july_622_julian() {
         assert_eq!(Weekday::from_rd(EPOCH), Weekday::Friday);
-        assert_eq!(civil::from_rd(EPOCH), (622, 7, 19));
+        assert_eq!(gregorian::ymd(EPOCH), (622, 7, 19));
         let calendar = IslamicCivilCalendar;
         assert_eq!(
             calendar.to_fixed(IslamicDate {

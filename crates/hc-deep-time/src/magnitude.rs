@@ -23,6 +23,7 @@
 use core::cmp::Ordering;
 use core::fmt;
 
+use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 use hc_core::{Duration, math};
 use hc_uncertainty::{MAX_FIGURES, Significant, Uncertain};
 
@@ -122,10 +123,10 @@ impl DeepUnit {
             Self::Minute => 60.0,
             Self::Hour => 3600.0,
             Self::Day => 86_400.0,
-            Self::JulianYear => constants::JULIAN_YEAR_SECONDS,
-            Self::Kiloyear => constants::JULIAN_YEAR_SECONDS * 1e3,
-            Self::Megayear => constants::JULIAN_YEAR_SECONDS * 1e6,
-            Self::Gigayear => constants::JULIAN_YEAR_SECONDS * 1e9,
+            Self::JulianYear => JULIAN_YEAR_SECONDS,
+            Self::Kiloyear => JULIAN_YEAR_SECONDS * 1e3,
+            Self::Megayear => JULIAN_YEAR_SECONDS * 1e6,
+            Self::Gigayear => JULIAN_YEAR_SECONDS * 1e9,
         }
     }
 

@@ -45,7 +45,9 @@ use hc_core::scale::TT_MINUS_TAI;
 use hc_core::unix::{LeapPolicy, tai_minus_utc_at, utc_from_tai};
 use hc_core::{Duration, Instant, Tai, TimeError, TimeResult, TimeScale, TimeScaleId};
 
-use crate::time::{SECONDS_PER_DAY, delta_t};
+use hc_core::duration::SECONDS_PER_DAY_F64;
+
+use crate::time::delta_t;
 
 /// UT1 — Universal Time, the scale of the Earth's rotation angle, read from
 /// the ΔT model: `UT1 = TT − ΔT`.
@@ -71,7 +73,7 @@ pub struct Ut1;
 
 /// The [`Moment`] of a reading measured in seconds from 1970-01-01T00:00:00.
 fn moment_of(seconds_since_1970: f64) -> Moment {
-    Moment(RD_OF_UNIX_EPOCH as f64 + seconds_since_1970 / SECONDS_PER_DAY)
+    Moment(RD_OF_UNIX_EPOCH as f64 + seconds_since_1970 / SECONDS_PER_DAY_F64)
 }
 
 /// `base` moved by `offset_secs`, saturating at the ends of [`Duration`]

@@ -119,14 +119,15 @@ impl TimeZone for Utc {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::gregorian::rd_from_ymd;
-    use crate::zone::Disambiguation;
+    use hc_calendar::gregorian;
     use hc_calendar::{CivilTime, Rd};
+
+    use super::*;
+    use crate::zone::Disambiguation;
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
     }

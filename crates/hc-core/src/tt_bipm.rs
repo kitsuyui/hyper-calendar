@@ -29,16 +29,13 @@
 //! [`Instant`] of [`crate::Tt`]: an `Instant<Tt>` is converted back to TAI
 //! by the exact 32.184 s, and would lose the 27 µs this module is for.
 
-use crate::duration::Duration;
+use crate::duration::{Duration, SECONDS_PER_DAY};
 use crate::error::{TimeError, TimeResult};
 use crate::scale::{Instant, TT_MINUS_TAI, Tai};
 use crate::unix::{LeapPolicy, tai_minus_utc_at};
 
 /// The Modified Julian Date of 1970-01-01, the POSIX epoch.
 const MJD_OF_UNIX_EPOCH: i64 = 40_587;
-
-/// Seconds in a day.
-const SECONDS_PER_DAY: i64 = 86_400;
 
 /// A published realisation of TT(BIPM): the BIPM's table of TT(BIPMxx) −
 /// TAI − 32.184 s.

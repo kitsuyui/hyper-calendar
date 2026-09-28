@@ -42,6 +42,7 @@
 
 use core::f64::consts::PI;
 
+use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 use hc_uncertainty::Uncertain;
 
 use crate::constants;
@@ -143,7 +144,7 @@ impl FutureEvent {
 /// `log₁₀` of a Julian year in seconds, 7.499, used to turn a logarithm of
 /// seconds into a logarithm of years.
 fn log10_of_a_year() -> f64 {
-    hc_core::math::log10(constants::JULIAN_YEAR_SECONDS)
+    hc_core::math::log10(JULIAN_YEAR_SECONDS)
 }
 
 /// One of Adams & Laughlin's eras, in cosmological decades from the Big Bang.

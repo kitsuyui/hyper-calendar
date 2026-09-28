@@ -820,7 +820,7 @@ pub fn pentads_from(day: Rd, meridian: Meridian) -> PentadsFrom {
 /// table.
 #[must_use]
 pub fn pentads_in_year(year: i64, meridian: Meridian) -> PentadsFrom {
-    pentads_from(crate::gregorian::new_year(year), meridian)
+    pentads_from(hc_calendar::gregorian::new_year(year), meridian)
 }
 
 /// The iterator returned by [`pentads_from`] and [`pentads_in_year`].
@@ -864,7 +864,7 @@ impl ExactSizeIterator for PentadsFrom {}
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::{from_year_month_day, new_year};
+    use hc_calendar::gregorian;
 
     /// A tradition's names are a slice, which could hold 71 rows where a
     /// `[PentadNames; PENTADS_PER_YEAR]` could not, so the length is
@@ -1010,7 +1010,7 @@ mod tests {
     /// form is left in the Chinese list.
     #[test]
     fn the_chinese_list_is_traditional_and_the_japanese_shinjitai() {
-        let day = from_year_month_day(2026, 9, 26);
+        let day = gregorian::to_fixed_saturating(2026, 9, 26);
         let pentad = pentad_on_day(day, Meridian::CHINA);
         assert_eq!(pentad.term(), SolarTerm::AUTUMN_EQUINOX);
         assert_eq!(pentad.name(CHINESE), "雷始收聲");
@@ -1132,8 +1132,8 @@ mod tests {
     #[test]
     fn a_years_pentads_all_start_inside_that_year() {
         for year in [1950i64, 2000, 2024] {
-            let start = new_year(year);
-            let end = new_year(year + 1);
+            let start = gregorian::new_year(year);
+            let end = gregorian::new_year(year + 1);
             for event in pentads_in_year(year, Meridian::JAPAN) {
                 assert!(
                     event.day >= start && event.day < end,
@@ -1145,7 +1145,7 @@ mod tests {
 
     #[test]
     fn every_day_of_a_year_belongs_to_the_pentad_that_covers_it() {
-        let start = from_year_month_day(2024, 1, 10);
+        let start = gregorian::to_fixed_saturating(2024, 1, 10);
         for offset in 0..365 {
             let day = Rd(start.0 + offset);
             let event = pentad_in_effect(day, Meridian::JAPAN);
@@ -1165,7 +1165,7 @@ mod tests {
 
     #[test]
     fn seventy_two_days_of_a_year_begin_a_pentad() {
-        let start = from_year_month_day(2024, 1, 10);
+        let start = gregorian::to_fixed_saturating(2024, 1, 10);
         let mut beginnings = 0;
         for offset in 0..365 {
             if pentad_beginning_on(Rd(start.0 + offset), Meridian::JAPAN).is_some() {
@@ -1188,10 +1188,10 @@ mod tests {
     fn a_named_pentad_of_a_year_lands_on_the_day_the_iterator_gives_it() {
         let pentad = Pentad::from_index(TermOrder::BeginningOfSpringFirst, 0).unwrap();
         let event = pentad_event(2024, pentad, Meridian::JAPAN);
-        assert_eq!(event.day, from_year_month_day(2024, 2, 4));
+        assert_eq!(event.day, gregorian::to_fixed_saturating(2024, 2, 4));
         assert_eq!(
             pentad_day(2024, pentad, Meridian::JAPAN),
-            from_year_month_day(2024, 2, 4)
+            gregorian::to_fixed_saturating(2024, 2, 4)
         );
     }
 

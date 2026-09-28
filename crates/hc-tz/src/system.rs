@@ -74,16 +74,17 @@ pub fn zone_available(name: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CivilDateTime, CivilTime, gregorian};
+    use hc_core::UnixTime;
+
     use super::*;
     use crate::posix::PosixTz;
     use crate::tzif::{TzifData, TzifTimeZone, TzifVersion};
     use crate::zone::{Disambiguation, TimeZone};
-    use hc_calendar::{CivilDateTime, CivilTime, Rd};
-    use hc_core::UnixTime;
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(crate::gregorian::rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, 0).unwrap(),
         )
     }

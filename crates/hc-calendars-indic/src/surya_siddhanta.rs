@@ -57,10 +57,13 @@
 //! not move any of them.
 
 use hc_astro::riseset::Location;
+use hc_astro::search::bisect_until;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{abs, ceil, floor, round, sin_deg};
+use hc_core::math::{abs, ceil, floor, fract, modulo, round, sin_deg};
 use hc_seasons::zodiac::SiderealSign;
+
+use crate::places::UJJAIN;
 
 /// The sidereal year: 1 577 917 828 days in a *mahāyuga* of 4 320 000
 /// years, 365.258 756 days.
@@ -96,19 +99,11 @@ const EPOCH: f64 = -1_132_959.0;
 /// 387⁄4 320 000 000) anomalistic years, 1 955 879 824.785 75.
 const ANOMALY_AT_EPOCH: f64 = 0.785_75;
 
-/// Ujjain's longitude as the book gives it (`ujjain`), in degrees east.
-pub const UJJAIN_LONGITUDE_DEGREES: f64 = 75.0 + 46.0 / 60.0 + 6.0 / 3_600.0;
-
 /// The step of the sine table, 225 minutes of arc, in degrees.
 const SINE_STEP_DEGREES: f64 = 225.0 / 60.0;
 
 /// The radius the table's sines are measured in, 3438 minutes of arc.
 const RADIUS: f64 = 3_438.0;
-
-/// `x mod 1`, into `[0, 1)`.
-fn fraction(x: f64) -> f64 {
-    x - floor(x)
-}
 
 /// An entry of the sine table: the sine of `entry` steps, in the radius's
 /// whole minutes, with the book's correction for how the table was
@@ -134,7 +129,7 @@ fn signum(x: f64) -> f64 {
 /// the entries either side (`hindu-sine`).
 fn sine(theta: f64) -> f64 {
     let entry = theta / SINE_STEP_DEGREES;
-    let part = fraction(entry);
+    let part = fract(entry);
     part * sine_table(ceil(entry)) + (1.0 - part) * sine_table(floor(entry))
 }
 
@@ -170,24 +165,24 @@ fn true_position(mean: f64, anomaly: f64, size: f64, change: f64) -> f64 {
     let contraction = abs(offset) * change * size;
     let equation = arcsin(offset * (size - contraction));
     let longitude = lambda - equation;
-    longitude - 360.0 * floor(longitude / 360.0)
+    modulo(longitude, 360.0)
 }
 
 /// Ujjain's local time, the book's clock, at a moment in Universal Time.
 fn local(moment: Moment) -> f64 {
-    moment.0 + UJJAIN_LONGITUDE_DEGREES / 360.0
+    moment.0 + UJJAIN.longitude_degrees / 360.0
 }
 
 /// The Sun's mean anomaly, as a fraction of a revolution, at a moment of
 /// Ujjain's local time.
 fn solar_anomaly(local: f64) -> f64 {
-    fraction((local - EPOCH) / ANOMALISTIC_YEAR + ANOMALY_AT_EPOCH)
+    fract((local - EPOCH) / ANOMALISTIC_YEAR + ANOMALY_AT_EPOCH)
 }
 
 /// The Sun's sidereal longitude in degrees at a moment of Ujjain's local
 /// time.
 fn solar_longitude_local(local: f64) -> f64 {
-    let mean = fraction((local - EPOCH) / SIDEREAL_YEAR);
+    let mean = fract((local - EPOCH) / SIDEREAL_YEAR);
     true_position(mean, solar_anomaly(local), 14.0 / 360.0, 1.0 / 42.0)
 }
 
@@ -203,8 +198,8 @@ pub fn solar_longitude(moment: Moment) -> f64 {
 #[must_use]
 pub fn lunar_longitude(moment: Moment) -> f64 {
     let days = local(moment) - EPOCH;
-    let mean = fraction(days / SIDEREAL_MONTH);
-    let anomaly = fraction(days / ANOMALISTIC_MONTH + MOON_ANOMALY_AT_EPOCH);
+    let mean = fract(days / SIDEREAL_MONTH);
+    let anomaly = fract(days / ANOMALISTIC_MONTH + MOON_ANOMALY_AT_EPOCH);
     true_position(mean, anomaly, 32.0 / 360.0, 1.0 / 96.0)
 }
 
@@ -213,7 +208,7 @@ pub fn lunar_longitude(moment: Moment) -> f64 {
 #[must_use]
 pub fn lunar_phase(moment: Moment) -> f64 {
     let phase = lunar_longitude(moment) - solar_longitude(moment);
-    phase - 360.0 * floor(phase / 360.0)
+    modulo(phase, 360.0)
 }
 
 /// The number, 1 to 30, of the tithi in progress at a moment in Universal
@@ -240,19 +235,11 @@ pub fn conjunction_at_or_after(moment: Moment) -> Moment {
     // seven and a half degrees of elongation and so under two thirds of a
     // day.
     let estimate = moment.0 + (360.0 - phase) / 360.0 * SYNODIC_MONTH;
-    let mut low = (estimate - 1.5).max(moment.0);
-    let mut high = estimate + 1.5;
+    let low = Moment((estimate - 1.5).max(moment.0));
+    let high = Moment(estimate + 1.5);
     // Just before the conjunction the elongation is close to 360, just
     // after it close to 0.
-    for _ in 0..64 {
-        let middle = (low + high) / 2.0;
-        if lunar_phase(Moment(middle)) < 180.0 {
-            high = middle;
-        } else {
-            low = middle;
-        }
-    }
-    Moment(high)
+    bisect_until(|at| lunar_phase(at) < 180.0, low, high, 64)
 }
 
 /// `x` into `[low, high)`, as the book's `mod3`.
@@ -280,7 +267,7 @@ fn tropical_longitude(date: f64) -> f64 {
     let days = floor(date) - EPOCH;
     let precession = 27.0 - abs(108.0 * wrap(600.0 / 1_577_917_828.0 * days - 0.25, -0.5, 0.5));
     let longitude = solar_longitude_local(date) - precession;
-    longitude - 360.0 * floor(longitude / 360.0)
+    modulo(longitude, 360.0)
 }
 
 /// The tabulated speed of rising of the sign the Sun stands in on a day
@@ -330,13 +317,13 @@ fn ascensional_difference(date: f64, latitude_degrees: f64) -> f64 {
 #[must_use]
 pub fn sunrise(day: Rd, location: Location) -> Moment {
     let date = day.0 as f64;
-    let offset = (UJJAIN_LONGITUDE_DEGREES - location.longitude_degrees) / 360.0;
+    let offset = (UJJAIN.longitude_degrees - location.longitude_degrees) / 360.0;
     let sidereal = 1_577_917_828.0 / 1_582_237_828.0 / 360.0;
     let local = date + 0.25 + offset - equation_of_time(date)
         + sidereal
             * (ascensional_difference(date, location.latitude_degrees)
                 + 0.25 * solar_sidereal_difference(date));
-    Moment(local - UJJAIN_LONGITUDE_DEGREES / 360.0)
+    Moment(local - UJJAIN.longitude_degrees / 360.0)
 }
 
 /// The greatest latitude, north or south, at which the Siddhānta's Sun
@@ -363,26 +350,18 @@ pub fn ingress_after(sign: SiderealSign, moment: Moment) -> Moment {
     // How far the Sun still has to go, in degrees, from where it stands.
     let ahead = |at: f64| {
         let gap = target - solar_longitude(Moment(at));
-        gap - 360.0 * floor(gap / 360.0)
+        modulo(gap, 360.0)
     };
     // Carrying the Sun from where it stands at the mean rate misplaces the
     // entry by however much the equation of centre changes on the way,
     // which is never more than twice its greatest value of 2.18°: under
     // four and a half degrees, and so under five days at the Sun's slowest.
     let estimate = moment.0 + ahead(moment.0) / 360.0 * SIDEREAL_YEAR;
-    let mut low = (estimate - 6.0).max(moment.0);
-    let mut high = estimate + 6.0;
+    let low = Moment((estimate - 6.0).max(moment.0));
+    let high = Moment(estimate + 6.0);
     // Bisect on whether the Sun has passed the target: `ahead` is small
     // just before the entry and close to 360 just after it.
-    for _ in 0..64 {
-        let middle = (low + high) / 2.0;
-        if ahead(middle) >= 180.0 {
-            high = middle;
-        } else {
-            low = middle;
-        }
-    }
-    Moment(high)
+    bisect_until(|at| ahead(at.0) >= 180.0, low, high, 64)
 }
 
 #[cfg(test)]
@@ -452,8 +431,8 @@ mod tests {
         // at quadrature: arcsin(14⁄360 × (1 − 1⁄42)) is 2.18°.
         let mut largest: f64 = 0.0;
         for day in 0..366 {
-            let days = ymd(2024, 1, 1) + f64::from(day) + UJJAIN_LONGITUDE_DEGREES / 360.0 - EPOCH;
-            let mean = 360.0 * fraction(days / SIDEREAL_YEAR);
+            let days = ymd(2024, 1, 1) + f64::from(day) + UJJAIN.longitude_degrees / 360.0 - EPOCH;
+            let mean = 360.0 * fract(days / SIDEREAL_YEAR);
             let lon = solar_longitude(Moment(ymd(2024, 1, 1) + f64::from(day)));
             let gap = (lon - mean + 540.0) % 360.0 - 180.0;
             largest = largest.max(gap.abs());

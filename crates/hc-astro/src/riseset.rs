@@ -32,14 +32,13 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{RAD_TO_DEG, acos, asin, cos_deg, sin_deg};
+use hc_core::math::{RAD_TO_DEG, acos, asin, cos_deg, signed_degrees, sin_deg};
 
 use crate::earth::{altitude_degrees, apparent_sidereal_time_iau1982, local_hour_angle};
 use crate::horizon::{GEOMETRIC_DIP, Horizon, MOON_CENTRE_PARALLAX_FRACTION};
 use crate::lunar::{lunar_parallax, lunar_position};
 use crate::search::{bisect_falling, bisect_rising};
 use crate::solar::solar_position;
-use crate::util::{clamp, signed_degrees};
 
 /// A place on the Earth.
 ///
@@ -131,11 +130,8 @@ pub fn horizon_dip_degrees(elevation_metres: f64) -> f64 {
     if elevation_metres <= 0.0 {
         return 0.0;
     }
-    acos(clamp(
-        EARTH_RADIUS_METRES / (EARTH_RADIUS_METRES + elevation_metres),
-        -1.0,
-        1.0,
-    )) * RAD_TO_DEG
+    acos((EARTH_RADIUS_METRES / (EARTH_RADIUS_METRES + elevation_metres)).clamp(-1.0, 1.0))
+        * RAD_TO_DEG
 }
 
 /// The altitude of the Sun's centre at the moment its upper limb touches the
@@ -182,9 +178,17 @@ pub fn lunar_altitude(moment: Moment, location: Location) -> f64 {
 /// and the Earth's flattening, which moves it by under 0.01°, is ignored.
 #[must_use]
 pub fn topocentric_lunar_altitude(moment: Moment, location: Location) -> f64 {
-    let geocentric = lunar_altitude(moment, location);
-    let parallax = lunar_parallax(moment);
-    geocentric - asin(clamp(sin_deg(parallax) * cos_deg(geocentric), -1.0, 1.0)) * RAD_TO_DEG
+    topocentric_altitude(lunar_altitude(moment, location), lunar_parallax(moment))
+}
+
+/// A geocentric altitude lowered by the parallax in altitude,
+/// `arcsin(sin π · cos h)`, for a body of horizontal parallax π at
+/// geocentric altitude h, both in degrees, on a spherical Earth: the
+/// altitude an observer on the surface sees without an atmosphere.
+#[must_use]
+pub fn topocentric_altitude(geocentric_degrees: f64, horizontal_parallax_degrees: f64) -> f64 {
+    let sine = sin_deg(horizontal_parallax_degrees) * cos_deg(geocentric_degrees);
+    geocentric_degrees - asin(sine.clamp(-1.0, 1.0)) * RAD_TO_DEG
 }
 
 /// The moment of apparent solar noon — the Sun's upper transit of the local
@@ -436,7 +440,7 @@ pub fn moonset_with(day: Rd, location: Location, horizon: &Horizon) -> Option<Mo
 mod tests {
     use super::*;
     use crate::solar::{Solstice, solstice};
-    use crate::time::gregorian_new_year;
+    use hc_calendar::gregorian;
 
     /// Tokyo, at the point NAOJ's 暦計算室 computes 「東京(東京都)」 for:
     /// latitude 35.6581°, longitude 139.7414°, elevation 0 m (`nao-koyomi-dni-tokyo-2024`).
@@ -461,7 +465,7 @@ mod tests {
 
     #[test]
     fn the_first_of_january_2024_is_where_we_think_it_is() {
-        assert_eq!(gregorian_new_year(2024), NEW_YEAR_2024);
+        assert_eq!(gregorian::new_year(2024), NEW_YEAR_2024);
     }
 
     /// NAOJ's 暦計算室, 「日の出入り＠東京(東京都) 令和6年(2024)01月」

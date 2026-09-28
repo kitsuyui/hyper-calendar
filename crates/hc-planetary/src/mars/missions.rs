@@ -39,10 +39,10 @@
 //! written up in `docs/systems/mars-timekeeping.md`.
 
 use hc_core::TimeResult;
-use hc_core::math::floor;
+use hc_core::math::{floor, modulo};
 use hc_core::{Instant, Tai};
 
-use crate::util::{modulo, utc_unix_seconds};
+use crate::util::utc_unix_seconds;
 
 use super::{MarsMoment, MarsTime};
 

@@ -38,18 +38,17 @@
 //! nines and the alternative count.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{stem, stem_day_on_or_after};
 
 use crate::solar_terms::term_day;
 use crate::{Meridian, SolarTerm};
 
 /// The index of 庚 among the ten stems, 甲 being 0.
-const GENG: u8 = 6;
+const GENG: u8 = stem::GENG;
 
 /// The `n`th 庚 day counting from `start`, `start` included.
 fn nth_geng_from(start: Rd, n: i64) -> Rd {
-    let offset = (i64::from(GENG) - i64::from(sexagenary_day(start).stem_index())).rem_euclid(10);
-    Rd(start.0 + offset + 10 * (n - 1))
+    Rd(stem_day_on_or_after(start, GENG).0 + 10 * (n - 1))
 }
 
 /// Which of the three *fu* a day is in.
@@ -129,7 +128,7 @@ impl SanFu {
 /// eighty-one days.
 #[must_use]
 pub fn shu_jiu(day: Rd, meridian: Meridian) -> Option<(u8, u8)> {
-    let (year, _, _) = crate::gregorian::year_month_day_from_rd(day);
+    let (year, _, _) = hc_calendar::gregorian::ymd(day);
     let this_year = term_day(year, SolarTerm::WINTER_SOLSTICE, meridian);
     let start = if day >= this_year {
         this_year
@@ -146,7 +145,8 @@ pub fn shu_jiu(day: Rd, meridian: Meridian) -> Option<(u8, u8)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::{from_year_month_day, year_month_day_from_rd};
+    use hc_calendar::cycle::sexagenary_day;
+    use hc_calendar::gregorian;
 
     #[test]
     fn the_three_fu_begin_on_the_days_published_for_2017_to_2030() {
@@ -172,13 +172,21 @@ mod tests {
         ];
         for (year, chu, zhong, mo) in table {
             let fu = SanFu::of_year(year, Meridian::CHINA);
-            assert_eq!(fu.chu, from_year_month_day(year, chu.0, chu.1), "{year}");
             assert_eq!(
-                fu.zhong,
-                from_year_month_day(year, zhong.0, zhong.1),
+                fu.chu,
+                gregorian::to_fixed_saturating(year, chu.0, chu.1),
                 "{year}"
             );
-            assert_eq!(fu.mo, from_year_month_day(year, mo.0, mo.1), "{year}");
+            assert_eq!(
+                fu.zhong,
+                gregorian::to_fixed_saturating(year, zhong.0, zhong.1),
+                "{year}"
+            );
+            assert_eq!(
+                fu.mo,
+                gregorian::to_fixed_saturating(year, mo.0, mo.1),
+                "{year}"
+            );
             // Each fu starts on a 庚 day, and 初伏 and 末伏 are ten days.
             for start in [fu.chu, fu.zhong, fu.mo, fu.end] {
                 assert_eq!(sexagenary_day(start).stem_index(), GENG);
@@ -196,7 +204,7 @@ mod tests {
     fn a_solstice_on_a_geng_day_is_the_first_geng_day() {
         // 21 June 2021 was a 庚 day, and 入伏 is the third 庚 day counting it.
         let solstice = term_day(2021, SolarTerm::SUMMER_SOLSTICE, Meridian::CHINA);
-        assert_eq!(year_month_day_from_rd(solstice), (2021, 6, 21));
+        assert_eq!(gregorian::ymd(solstice), (2021, 6, 21));
         assert_eq!(sexagenary_day(solstice).stem_index(), GENG);
         assert_eq!(
             SanFu::of_year(2021, Meridian::CHINA).chu,
@@ -207,12 +215,24 @@ mod tests {
     #[test]
     fn a_day_knows_its_fu() {
         let fu = SanFu::of_year(2026, Meridian::CHINA);
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 7, 14)), None);
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 7, 15)), Some(Fu::Chu));
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 7, 25)), Some(Fu::Zhong));
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 8, 13)), Some(Fu::Zhong));
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 8, 14)), Some(Fu::Mo));
-        assert_eq!(fu.fu_of(from_year_month_day(2026, 8, 24)), None);
+        assert_eq!(fu.fu_of(gregorian::to_fixed_saturating(2026, 7, 14)), None);
+        assert_eq!(
+            fu.fu_of(gregorian::to_fixed_saturating(2026, 7, 15)),
+            Some(Fu::Chu)
+        );
+        assert_eq!(
+            fu.fu_of(gregorian::to_fixed_saturating(2026, 7, 25)),
+            Some(Fu::Zhong)
+        );
+        assert_eq!(
+            fu.fu_of(gregorian::to_fixed_saturating(2026, 8, 13)),
+            Some(Fu::Zhong)
+        );
+        assert_eq!(
+            fu.fu_of(gregorian::to_fixed_saturating(2026, 8, 14)),
+            Some(Fu::Mo)
+        );
+        assert_eq!(fu.fu_of(gregorian::to_fixed_saturating(2026, 8, 24)), None);
         assert_eq!(Fu::Mo.chinese_name(), "末伏");
     }
 
@@ -222,18 +242,21 @@ mod tests {
         // to 29 December, and 三九, the coldest, 8 to 16 January 2026, "in
         // mid-January" as the Observatory has it.
         let solstice = term_day(2025, SolarTerm::WINTER_SOLSTICE, Meridian::CHINA);
-        assert_eq!(year_month_day_from_rd(solstice), (2025, 12, 21));
+        assert_eq!(gregorian::ymd(solstice), (2025, 12, 21));
         assert_eq!(
-            shu_jiu(from_year_month_day(2025, 12, 20), Meridian::CHINA),
+            shu_jiu(
+                gregorian::to_fixed_saturating(2025, 12, 20),
+                Meridian::CHINA
+            ),
             None
         );
         assert_eq!(shu_jiu(solstice, Meridian::CHINA), Some((1, 1)));
         assert_eq!(
-            shu_jiu(from_year_month_day(2026, 1, 8), Meridian::CHINA),
+            shu_jiu(gregorian::to_fixed_saturating(2026, 1, 8), Meridian::CHINA),
             Some((3, 1))
         );
         assert_eq!(
-            shu_jiu(from_year_month_day(2026, 1, 16), Meridian::CHINA),
+            shu_jiu(gregorian::to_fixed_saturating(2026, 1, 16), Meridian::CHINA),
             Some((3, 9))
         );
         // The eighty-first day, and the day after it.

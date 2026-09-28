@@ -101,7 +101,7 @@ impl ColdFoodConvention {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::{from_year_month_day, year_month_day_from_rd};
+    use hc_calendar::gregorian;
 
     #[test]
     fn hansik_falls_where_the_korean_almanac_puts_it() {
@@ -110,7 +110,7 @@ mod tests {
         for (year, month, day) in [(2024, 4, 5), (2025, 4, 5), (2026, 4, 6)] {
             assert_eq!(
                 ColdFoodConvention::Hansik.day(year),
-                from_year_month_day(year, month, day),
+                gregorian::to_fixed_saturating(year, month, day),
                 "한식 {year}"
             );
         }
@@ -124,7 +124,7 @@ mod tests {
         let solstices = [(2023, 12, 22), (2024, 12, 21), (2025, 12, 22)];
         for (year, month, day) in solstices {
             let solstice = term_day(year, SolarTerm::WINTER_SOLSTICE, Meridian::KOREA);
-            assert_eq!(year_month_day_from_rd(solstice), (year, month, day));
+            assert_eq!(gregorian::ymd(solstice), (year, month, day));
             assert_eq!(ColdFoodConvention::Hansik.day(year + 1).0 - solstice.0, 105);
         }
     }
@@ -145,11 +145,11 @@ mod tests {
         // 清明 was 4 April 2025 and 5 April 2026 in China.
         assert_eq!(
             ColdFoodConvention::EveOfQingming.day(2025),
-            from_year_month_day(2025, 4, 3)
+            gregorian::to_fixed_saturating(2025, 4, 3)
         );
         assert_eq!(
             ColdFoodConvention::EveOfQingming.day(2026),
-            from_year_month_day(2026, 4, 4)
+            gregorian::to_fixed_saturating(2026, 4, 4)
         );
         // The older reckoning is a day or two after the newer one.
         for year in 1900..=2100 {

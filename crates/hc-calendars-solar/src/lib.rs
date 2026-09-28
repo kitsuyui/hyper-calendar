@@ -363,52 +363,13 @@ mod tests {
 
     use super::*;
 
-    /// Round-trip one fixed day through every calendar that supports it,
-    /// returning how many did.
-    ///
-    /// Written as a macro rather than a collection of trait objects so that
-    /// the test exercises the *static* interface, where each calendar has
-    /// its own date type, rather than only the erased one.
-    macro_rules! round_trip_every_calendar {
-        ($rd:expr, $($calendar:expr),+ $(,)?) => {{
-            let mut checked = 0;
-            $(
-                {
-                    let calendar = $calendar;
-                    if calendar.meta().supports($rd) {
-                        let date = calendar.from_fixed($rd).unwrap_or_else(|error| {
-                            panic!("{} rejected {} in range: {error}", calendar.meta().id, $rd)
-                        });
-                        assert_eq!(
-                            calendar.to_fixed(date),
-                            Ok($rd),
-                            "{} failed to round-trip {}",
-                            calendar.meta().id,
-                            $rd
-                        );
-                        let fields = calendar.to_fields(date).unwrap();
-                        assert_eq!(
-                            calendar.from_fields(&fields),
-                            Ok(date),
-                            "{} failed to round-trip fields at {}",
-                            calendar.meta().id,
-                            $rd
-                        );
-                        checked += 1;
-                    }
-                }
-            )+
-            checked
-        }};
-    }
-
     #[test]
     fn every_calendar_round_trips_every_day_of_a_shared_range() {
         // One loop over the whole crate: whatever a calendar claims to
         // support it must convert both ways, and must survive the trip
         // through calendar-agnostic fields as well.
         for rd in (-400_000..=1_100_000).step_by(313) {
-            let checked = round_trip_every_calendar!(
+            let checked = hc_calendar::round_trip_every_calendar!(
                 Rd(rd),
                 GregorianCalendar,
                 JulianCalendar,

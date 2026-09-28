@@ -11,6 +11,14 @@ pub const ATTOS_PER_SEC: u64 = 1_000_000_000_000_000_000;
 
 const ATTOS_PER_SEC_I128: i128 = ATTOS_PER_SEC as i128;
 
+/// Seconds in a nominal day, [`Duration::DAY`] as an integer: 86 400 with
+/// no leap second, the day of POSIX time, of TAI and TT, and of every
+/// astronomical series that counts days of uniform time.
+pub const SECONDS_PER_DAY: i64 = 86_400;
+
+/// [`SECONDS_PER_DAY`] as an `f64`, the divisor of a day fraction.
+pub const SECONDS_PER_DAY_F64: f64 = SECONDS_PER_DAY as f64;
+
 /// An exact, signed span of SI seconds with attosecond resolution.
 ///
 /// The representation is a *floor* decomposition: `value = secs + attos·10⁻¹⁸`
@@ -63,7 +71,7 @@ impl Duration {
     /// This is the *nominal* day of the SI-second world, not the varying
     /// rotation period of the Earth, which UT1 follows (see `hc-astro`).
     pub const DAY: Self = Self {
-        secs: 86_400,
+        secs: SECONDS_PER_DAY as i128,
         attos: 0,
     };
 

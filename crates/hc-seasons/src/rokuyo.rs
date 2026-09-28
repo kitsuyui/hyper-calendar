@@ -201,8 +201,9 @@ pub const fn rokuyo_of(date: LunisolarDay) -> Rokuyo {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::gregorian;
+
     use super::*;
-    use crate::gregorian::from_year_month_day;
     use crate::lunisolar::{month_number, month_start_containing, next_month_start};
 
     const JAPAN: Meridian = Meridian::JAPAN;
@@ -283,7 +284,7 @@ mod tests {
         ];
         for ((year, month, day), rokuyo_expected) in expected {
             assert_eq!(
-                rokuyo(from_year_month_day(year, month, day), JAPAN),
+                rokuyo(gregorian::to_fixed_saturating(year, month, day), JAPAN),
                 rokuyo_expected,
                 "{year}-{month:02}-{day:02}"
             );
@@ -295,7 +296,7 @@ mod tests {
     /// it. Over three years that must hold on every single day.
     #[test]
     fn the_cycle_advances_daily_and_resets_at_every_new_moon() {
-        let start = from_year_month_day(2022, 1, 1);
+        let start = gregorian::to_fixed_saturating(2022, 1, 1);
         let mut previous_date = crate::lunisolar::lunisolar_day(start, JAPAN);
         let mut previous = rokuyo(start, JAPAN);
         let mut resets = 0;
@@ -328,8 +329,8 @@ mod tests {
     /// gets wrong, and it is the reason 六曜 needs a real leap flag.
     #[test]
     fn a_leap_month_repeats_the_previous_months_rokuyo_sequence() {
-        let ordinary_start = from_year_month_day(2023, 2, 20);
-        let leap_start = from_year_month_day(2023, 3, 22);
+        let ordinary_start = gregorian::to_fixed_saturating(2023, 2, 20);
+        let leap_start = gregorian::to_fixed_saturating(2023, 3, 22);
         assert_eq!(month_number(ordinary_start, JAPAN), (2, false));
         assert_eq!(month_number(leap_start, JAPAN), (2, true));
         assert_eq!(rokuyo(ordinary_start, JAPAN), Rokuyo::Tomobiki);
@@ -354,8 +355,8 @@ mod tests {
     /// Every leap month in a century must behave that way, not just 2023's.
     #[test]
     fn every_leap_month_reruns_the_previous_months_rokuyo() {
-        let mut start = month_start_containing(from_year_month_day(1950, 1, 1), JAPAN);
-        let end = from_year_month_day(2050, 1, 1);
+        let mut start = month_start_containing(gregorian::to_fixed_saturating(1950, 1, 1), JAPAN);
+        let end = gregorian::to_fixed_saturating(2050, 1, 1);
         let mut checked = 0;
         while start < end {
             let (number, leap) = month_number(start, JAPAN);
@@ -376,7 +377,7 @@ mod tests {
     /// why the bound is loose rather than exact.
     #[test]
     fn each_of_the_six_gets_roughly_a_sixth_of_the_days() {
-        let start = from_year_month_day(2000, 1, 1);
+        let start = gregorian::to_fixed_saturating(2000, 1, 1);
         let mut counts = [0usize; 6];
         for offset in 0..3_653 {
             let rokuyo = rokuyo(Rd(start.0 + offset), JAPAN);
@@ -408,7 +409,7 @@ mod tests {
             (Rokuyo::Taian.cycle_index() + 6 - Rokuyo::Butsumetsu.cycle_index()) % 6,
             1
         );
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
             if rokuyo(day, JAPAN) == Rokuyo::Butsumetsu {

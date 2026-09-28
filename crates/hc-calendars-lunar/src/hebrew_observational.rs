@@ -59,13 +59,13 @@
 
 use hc_astro::solar::{Equinox, equinox};
 use hc_astro::{Location, sunset};
+use hc_calendar::gregorian;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
 };
 use hc_core::math::{floor, round};
 
-use crate::civil;
 use crate::hebrew::{self, ERA, HebrewDate};
 use crate::islamic_observational::{
     MAXIMUM_MONTH_LENGTH, ObservationSite, VisibilityCriterion, read_back_error,
@@ -85,10 +85,10 @@ pub const SITE: ObservationSite = ObservationSite::new(HAIFA, VisibilityCriterio
 
 /// The earliest fixed day this calendar converts: 1 January of the
 /// proleptic Gregorian year −382, 383 BCE.
-pub const EARLIEST: Rd = civil::to_rd(-382, 1, 1);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(-382, 1, 1);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = civil::to_rd(2100, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(2100, 12, 31);
 
 /// The mean month the published code rounds by: 29.5 days.
 const ROUNDING_MONTH: f64 = 29.5;
@@ -153,7 +153,7 @@ fn thirteen_months_from(gregorian_year: i64) -> CalendarResult<bool> {
 /// year as the observational one).
 fn spring_of(year: i64) -> CalendarResult<i64> {
     let nisan = hebrew::to_fixed(year, Month::regular(7), 1)?;
-    Ok(civil::year_from_rd(Rd(nisan.0 + 60)))
+    Ok(gregorian::year_from_fixed(Rd(nisan.0 + 60)))
 }
 
 /// Whether Hebrew year `year` of this calendar has thirteen months: whether
@@ -216,7 +216,7 @@ fn check_range(rd: Rd) -> CalendarResult<()> {
 pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, Month, u8)> {
     check_range(rd)?;
     let crescent = SITE.month_start_on_or_before(rd)?;
-    let gregorian_year = civil::year_from_rd(rd);
+    let gregorian_year = gregorian::year_from_fixed(rd);
     let this_spring = first_of_nisan(gregorian_year)?;
     let (spring_year, new_year) = if rd < this_spring {
         (gregorian_year - 1, first_of_nisan(gregorian_year - 1)?)
@@ -358,19 +358,25 @@ mod tests {
     fn nisan_2024_is_worked_in_the_document() {
         // docs/systems/hebrew-observational.md, "Worked example".
         let first = first_of_nisan(2024).expect("converges");
-        assert_eq!(first, civil::to_rd(2024, 3, 12));
+        assert_eq!(first, gregorian::to_fixed_saturating(2024, 3, 12));
         assert_eq!(Weekday::from_rd(first), Weekday::Tuesday);
-        assert_eq!(classical_passover_eve(2024), Ok(civil::to_rd(2024, 3, 25)));
+        assert_eq!(
+            classical_passover_eve(2024),
+            Ok(gregorian::to_fixed_saturating(2024, 3, 25))
+        );
         assert_eq!(from_fixed(first), Ok((5_784, NISAN, 1)));
         // On the fixed calendar the same day is 2 Adar II 5784, and its
         // 1 Nisan four weeks later (Hebcal, "Jewish Holidays 5784").
         assert_eq!(hebrew::from_fixed(first), Ok((5_784, Month::regular(6), 2)));
         assert_eq!(
             hebrew::to_fixed(5_784, Month::regular(7), 1),
-            Ok(civil::to_rd(2024, 4, 9))
+            Ok(gregorian::to_fixed_saturating(2024, 4, 9))
         );
         // The fixed calendar made 5784 leap; the prediction makes 5785 so.
-        assert_eq!(first_of_nisan(2025), Ok(civil::to_rd(2025, 3, 31)));
+        assert_eq!(
+            first_of_nisan(2025),
+            Ok(gregorian::to_fixed_saturating(2025, 3, 31))
+        );
         assert_eq!(is_leap_year(5_784), Ok(false));
         assert_eq!(is_leap_year(5_785), Ok(true));
         assert!(hebrew::is_leap_year(5_784) && !hebrew::is_leap_year(5_785));
@@ -427,12 +433,12 @@ mod tests {
         // this module: four in the 2 486 months of 1900–2100.
         let mut lengths = [0u32; 3];
         let mut long_months = Vec::new();
-        let last = civil::to_rd(2_101, 1, 1);
+        let last = gregorian::to_fixed_saturating(2_101, 1, 1);
         // One memo for the walk: each month's search asks again the
         // evenings the search before it judged.
         hc_core::memo::scope(|| {
             let mut cursor = SITE
-                .month_start_on_or_after(civil::to_rd(1_900, 1, 1))
+                .month_start_on_or_after(gregorian::to_fixed_saturating(1_900, 1, 1))
                 .expect("converges");
             while cursor < last {
                 let next = SITE
@@ -445,7 +451,7 @@ mod tests {
                 );
                 lengths[(length - 29) as usize] += 1;
                 if length == 31 {
-                    long_months.push(civil::from_rd(cursor));
+                    long_months.push(gregorian::ymd(cursor));
                 }
                 cursor = next;
             }
@@ -462,7 +468,7 @@ mod tests {
         );
         // The 31st of each is a date, and round-trips.
         for (year, month, day) in long_months {
-            let last = Rd(civil::to_rd(year, month, day).0 + 30);
+            let last = Rd(gregorian::to_fixed_saturating(year, month, day).0 + 30);
             let (hebrew_year, hebrew_month, hebrew_day) = from_fixed(last).expect("in range");
             assert_eq!(hebrew_day, 31, "{year}-{month}-{day}");
             assert_eq!(to_fixed(hebrew_year, hebrew_month, 31), Ok(last));
@@ -482,7 +488,7 @@ mod tests {
             (1_971, 7, 24),
             (2_042, 9, 16),
         ] {
-            let first = civil::to_rd(year, month, day);
+            let first = gregorian::to_fixed_saturating(year, month, day);
             let (hebrew_year, hebrew_month, _) = from_fixed(first).expect("in range");
             for offset in -1..=31i64 {
                 let rd = Rd(first.0 + offset);
@@ -523,7 +529,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_four_years_of_days() {
         let calendar = ObservationalHebrewCalendar;
-        let start = civil::to_rd(2022, 6, 1);
+        let start = gregorian::to_fixed_saturating(2022, 6, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..1_500i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);

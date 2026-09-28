@@ -509,8 +509,9 @@ impl ExactSizeIterator for StationsInYear {}
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::gregorian;
+
     use super::*;
-    use crate::gregorian::{from_year_month_day, year_month_day_from_rd};
     use crate::solar_terms::{TermKind, term_moment};
 
     const JAPAN: Meridian = Meridian::JAPAN;
@@ -723,12 +724,12 @@ mod tests {
         assert_eq!(iterator.len(), 12);
         let first = iterator.next().unwrap();
         assert_eq!(first.sign, ChineseStation::XUANXIAO);
-        let (_, month, day) = year_month_day_from_rd(first.start_day);
+        let (_, month, day) = gregorian::ymd(first.start_day);
         assert_eq!(month, 1);
         assert!(day <= 7, "小寒 was on January {day}");
         let last = iterator.last().unwrap();
         assert_eq!(last.sign, ChineseStation::XINGJI);
-        assert_eq!(year_month_day_from_rd(last.start_day).1, 12);
+        assert_eq!(gregorian::ymd(last.start_day).1, 12);
     }
 
     #[test]
@@ -750,7 +751,7 @@ mod tests {
     /// after it, the term in effect is always one of those two.
     #[test]
     fn every_day_of_a_year_falls_in_exactly_one_station() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut counts = [0i64; SIGNS_PER_ZODIAC];
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
@@ -823,7 +824,7 @@ mod tests {
     /// days.
     #[test]
     fn a_station_and_its_western_counterpart_overlap_for_about_half_a_month() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut agreements = 0;
         for offset in 0..366 {
             let day = Rd(start.0 + offset);

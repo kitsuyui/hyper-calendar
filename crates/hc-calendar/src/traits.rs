@@ -563,6 +563,54 @@ impl<C> CalendarHandle<C> {
     }
 }
 
+/// Round-trip one fixed day through every calendar given that supports it,
+/// and evaluate to how many did: a test helper for the calendar crates.
+///
+/// For each calendar whose [`CalendarMeta::supports`] the day, it asserts
+/// that [`Calendar::from_fixed`] succeeds, that [`Calendar::to_fixed`]
+/// takes the date back to the day, and that [`Calendar::to_fields`] and
+/// [`Calendar::from_fields`] take it back to the date; a failure panics
+/// with the calendar's id and the day.
+///
+/// A macro rather than a collection of trait objects so that a test
+/// exercises the *static* interface, where each calendar has its own date
+/// type, rather than only the erased one. `hc-calendars-solar` and
+/// `hc-calendars-regional` sweep every calendar they register with it.
+#[macro_export]
+macro_rules! round_trip_every_calendar {
+    ($rd:expr, $($calendar:expr),+ $(,)?) => {{
+        use $crate::Calendar as _;
+        let mut checked = 0;
+        $(
+            {
+                let calendar = $calendar;
+                if calendar.meta().supports($rd) {
+                    let date = calendar.from_fixed($rd).unwrap_or_else(|error| {
+                        panic!("{} rejected {} in range: {error}", calendar.meta().id, $rd)
+                    });
+                    assert_eq!(
+                        calendar.to_fixed(date),
+                        Ok($rd),
+                        "{} failed to round-trip {}",
+                        calendar.meta().id,
+                        $rd
+                    );
+                    let fields = calendar.to_fields(date).unwrap();
+                    assert_eq!(
+                        calendar.from_fields(&fields),
+                        Ok(date),
+                        "{} failed to round-trip fields at {}",
+                        calendar.meta().id,
+                        $rd
+                    );
+                    checked += 1;
+                }
+            }
+        )+
+        checked
+    }};
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

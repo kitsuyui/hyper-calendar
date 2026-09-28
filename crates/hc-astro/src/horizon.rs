@@ -36,7 +36,6 @@ use crate::riseset::{
     HORIZONTAL_REFRACTION_DEGREES, Location, SOLAR_SEMIDIAMETER_DEGREES, horizon_dip_degrees,
     lunar_altitude,
 };
-use crate::util::clamp;
 
 /// How a horizon takes the observer's height above the sea.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -153,7 +152,7 @@ impl Horizon {
                 semidiameter_degrees,
             } => {
                 let parallax_at_altitude =
-                    asin(clamp(sin_deg(parallax) * cos_deg(geocentric), -1.0, 1.0)) * RAD_TO_DEG;
+                    asin((sin_deg(parallax) * cos_deg(geocentric)).clamp(-1.0, 1.0)) * RAD_TO_DEG;
                 geocentric - parallax_at_altitude + depression + semidiameter_degrees
             }
         }

@@ -26,7 +26,7 @@
 //! *Astronomical Almanac* for 2002, pp. A11 and F45, which was not read.
 
 use crate::circad::{self, CircadCalendar, CircadRule, YearCycle};
-use crate::util::SECONDS_PER_DAY;
+use hc_core::duration::SECONDS_PER_DAY_F64;
 
 /// Titan's solar day in Earth days, as the page derives it (§3.2).
 pub const SOLAR_DAY_DAYS: f64 = 15.969_095;
@@ -91,7 +91,7 @@ pub const RULE: CircadRule = CircadRule {
     circads_per_solar_day: 16,
     circad_days: CIRCAD_DAYS,
     anchor_j2000_tt_days: (CALIBRATION_JULIAN_DATE_UTC - 2_451_545.0)
-        + (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY,
+        + (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY_F64,
     anchor_circad: CALIBRATION_JULIAN_CIRCAD,
     epoch_year: 0,
     month_names: &MONTH_NAMES,
@@ -154,9 +154,9 @@ mod tests {
         let printed = tai_from_utc_fields(2002, 4, 22, 21, 49, 32).unwrap();
         let gap = crate::util::j2000_offset_days(start) - crate::util::j2000_offset_days(printed);
         assert!(
-            (gap * SECONDS_PER_DAY).abs() < 1.0,
+            (gap * SECONDS_PER_DAY_F64).abs() < 1.0,
             "{} s",
-            gap * SECONDS_PER_DAY
+            gap * SECONDS_PER_DAY_F64
         );
         assert_eq!(
             DARIAN_TITAN.date_at(tai_from_utc_fields(2002, 4, 22, 21, 50, 0).unwrap()),
@@ -176,9 +176,9 @@ mod tests {
         // 2308809.27604.
         let zero = DARIAN_TITAN.circad_start(0).unwrap();
         let tt_days = crate::util::j2000_offset_days(zero);
-        let page_scale = tt_days - (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY;
+        let page_scale = tt_days - (CALIBRATION_TAI_MINUS_UTC + 32.184) / SECONDS_PER_DAY_F64;
         let julian_date = page_scale + 2_451_545.0;
-        let gap = (julian_date - PRINTED_JULIAN_CIRCAD_ZERO_JULIAN_DATE) * SECONDS_PER_DAY;
+        let gap = (julian_date - PRINTED_JULIAN_CIRCAD_ZERO_JULIAN_DATE) * SECONDS_PER_DAY_F64;
         assert!(gap.abs() < 3.0, "{gap} s");
         assert_eq!(
             DARIAN_TITAN.from_fixed(hc_calendar::Rd(0)),
@@ -295,7 +295,7 @@ mod tests {
         let relative = (derived - SOLAR_DAY_DAYS).abs() / SOLAR_DAY_DAYS;
         assert!(relative < 1e-7, "{derived} vs {SOLAR_DAY_DAYS}: {relative}");
         // "23 hours, 57 minutes, 13.11 seconds".
-        let seconds = CIRCAD_DAYS * SECONDS_PER_DAY;
+        let seconds = CIRCAD_DAYS * SECONDS_PER_DAY_F64;
         assert!((seconds - (23.0 * 3_600.0 + 57.0 * 60.0 + 13.11)).abs() < 0.005);
     }
 

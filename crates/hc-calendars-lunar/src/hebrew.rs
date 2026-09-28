@@ -573,7 +573,7 @@ pub const fn sabbatical_cycle_year(year: i64) -> CalendarResult<u8> {
         return Err(CalendarError::YearOutOfRange);
     }
     let cycle = SABBATICAL_CYCLE_YEARS as i64;
-    Ok(((year - 1).rem_euclid(cycle) + 1) as u8)
+    Ok(hc_core::math::amod(year, cycle) as u8)
 }
 
 /// Whether a Hebrew year is a sabbatical year, *shemittah*: the seventh
@@ -804,8 +804,8 @@ impl Calendar for HebrewCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
     use hc_calendar::Weekday;
+    use hc_calendar::gregorian;
 
     fn date(year: i64, month: u8, day: u8) -> HebrewDate {
         HebrewDate {
@@ -841,7 +841,7 @@ mod tests {
     #[test]
     fn rosh_hashanah_5784_was_the_sixteenth_of_september_2023() {
         // A published anchor: 1 Tishrei 5784 fell on 2023-09-16.
-        let rd = civil::to_rd(2023, 9, 16);
+        let rd = gregorian::to_fixed_saturating(2023, 9, 16);
         assert_eq!(new_year(5_784), rd);
         assert_eq!(to_fixed(5_784, Month::regular(1), 1), Ok(rd));
         assert_eq!(from_fixed(rd), Ok((5_784, Month::regular(1), 1)));
@@ -850,7 +850,7 @@ mod tests {
     #[test]
     fn passover_5784_was_the_twenty_third_of_april_2024() {
         // A published anchor: 15 Nisan 5784 fell on 2024-04-23.
-        let rd = civil::to_rd(2024, 4, 23);
+        let rd = gregorian::to_fixed_saturating(2024, 4, 23);
         assert_eq!(passover(5_784), Ok(rd));
         assert_eq!(from_fixed(rd), Ok((5_784, Month::regular(7), 15)));
     }
@@ -1103,7 +1103,7 @@ mod tests {
 
     #[test]
     fn birkat_hachama_falls_on_a_wednesday_every_twenty_eight_years() {
-        assert_eq!(civil::from_rd(BIRKAT_HACHAMA_ANCHOR), (2009, 4, 8));
+        assert_eq!(gregorian::ymd(BIRKAT_HACHAMA_ANCHOR), (2009, 4, 8));
         assert!(is_birkat_hachama(BIRKAT_HACHAMA_ANCHOR));
         for cycle in -60..60i64 {
             let rd = Rd(BIRKAT_HACHAMA_ANCHOR.0 + cycle * BIRKAT_HACHAMA_CYCLE_DAYS);
@@ -1148,28 +1148,28 @@ mod tests {
         .windows(2)
         {
             let ((y0, m0, d0), (y1, m1, d1)) = (pair[0], pair[1]);
-            let rd = civil::to_rd(y0, m0, d0);
+            let rd = gregorian::to_fixed_saturating(y0, m0, d0);
             assert!(is_birkat_hachama(rd), "{y0}-{m0}-{d0}");
             assert_eq!(
                 birkat_hachama_on_or_after(Rd(rd.0 + 1)),
-                civil::to_rd(y1, m1, d1)
+                gregorian::to_fixed_saturating(y1, m1, d1)
             );
         }
         assert_eq!(
-            birkat_hachama_on_or_after(civil::to_rd(2009, 4, 9)),
-            civil::to_rd(2037, 4, 8)
+            birkat_hachama_on_or_after(gregorian::to_fixed_saturating(2009, 4, 9)),
+            gregorian::to_fixed_saturating(2037, 4, 8)
         );
         assert_eq!(
-            birkat_hachama_on_or_after(civil::to_rd(1982, 1, 1)),
-            civil::to_rd(2009, 4, 8)
+            birkat_hachama_on_or_after(gregorian::to_fixed_saturating(1982, 1, 1)),
+            gregorian::to_fixed_saturating(2009, 4, 8)
         );
         assert_eq!(
-            birkat_hachama_on_or_after(civil::to_rd(1981, 4, 8)),
-            civil::to_rd(1981, 4, 8)
+            birkat_hachama_on_or_after(gregorian::to_fixed_saturating(1981, 4, 8)),
+            gregorian::to_fixed_saturating(1981, 4, 8)
         );
         assert_eq!(
-            birkat_hachama_on_or_after(civil::to_rd(1870, 1, 1)),
-            civil::to_rd(1897, 4, 7)
+            birkat_hachama_on_or_after(gregorian::to_fixed_saturating(1870, 1, 1)),
+            gregorian::to_fixed_saturating(1897, 4, 7)
         );
     }
 
@@ -1185,8 +1185,8 @@ mod tests {
         // September 20, 2028 to September 9, 2029", each the evening before
         // the day this calendar starts the year on.
         assert_eq!(is_sabbatical_year(5_789), Ok(true));
-        assert_eq!(new_year(5_789), civil::to_rd(2028, 9, 21));
-        assert_eq!(new_year(5_790), civil::to_rd(2029, 9, 10));
+        assert_eq!(new_year(5_789), gregorian::to_fixed_saturating(2028, 9, 21));
+        assert_eq!(new_year(5_790), gregorian::to_fixed_saturating(2029, 9, 10));
         for year in 5_783..=5_788 {
             assert_eq!(is_sabbatical_year(year), Ok(false), "{year}");
             assert_eq!(sabbatical_cycle_year(year), Ok((year - 5_782) as u8));
@@ -1278,7 +1278,7 @@ mod tests {
         let date = HebrewDate::new(5783, Month::regular(6), 15).expect("15 Adar 5783");
         assert_eq!(
             to_fixed(5783, Month::regular(6), 15),
-            Ok(civil::to_rd(2023, 3, 8))
+            Ok(gregorian::to_fixed_saturating(2023, 3, 8))
         );
         for (year, yahrzeit_day, birthday_day) in [
             (5786, (2026, 3, 4), (2026, 3, 4)),
@@ -1286,9 +1286,17 @@ mod tests {
             (5788, (2028, 3, 13), (2028, 3, 13)),
         ] {
             let (y, m, d) = yahrzeit_day;
-            assert_eq!(yahrzeit(date, year), Ok(civil::to_rd(y, m, d)), "{year}");
+            assert_eq!(
+                yahrzeit(date, year),
+                Ok(gregorian::to_fixed_saturating(y, m, d)),
+                "{year}"
+            );
             let (y, m, d) = birthday_day;
-            assert_eq!(birthday(date, year), Ok(civil::to_rd(y, m, d)), "{year}");
+            assert_eq!(
+                birthday(date, year),
+                Ok(gregorian::to_fixed_saturating(y, m, d)),
+                "{year}"
+            );
         }
     }
 

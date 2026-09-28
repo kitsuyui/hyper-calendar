@@ -34,7 +34,7 @@
 
 use hc_calendar::Rd;
 
-use crate::gregorian;
+use hc_calendar::gregorian;
 
 /// The half of the folk year a day is in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -142,18 +142,18 @@ impl NamedDay {
 
 /// Hıdırellez of `year`, 6 May.
 const fn hizir_start(year: i64) -> Rd {
-    gregorian::from_year_month_day(year, 5, 6)
+    gregorian::to_fixed_saturating(year, 5, 6)
 }
 
 /// The first Kasım day of `year`, 8 November.
 const fn kasim_start(year: i64) -> Rd {
-    gregorian::from_year_month_day(year, 11, 8)
+    gregorian::to_fixed_saturating(year, 11, 8)
 }
 
 /// The day of the folk year a day is.
 #[must_use]
 pub const fn folk_day(day: Rd) -> FolkDay {
-    let (year, _, _) = gregorian::year_month_day_from_rd(day);
+    let (year, _, _) = gregorian::ymd(day);
     let (half, start) = if day.0 < hizir_start(year).0 {
         (Half::Kasim, kasim_start(year - 1))
     } else if day.0 < kasim_start(year).0 {
@@ -238,7 +238,7 @@ mod tests {
             for year in [2023, 2024, 2025, 2026] {
                 let day = named.in_year(year);
                 assert_eq!(folk_day(day), named.folk_day(), "{named:?} {year}");
-                assert_eq!(gregorian::year_from_rd(day), year, "{named:?}");
+                assert_eq!(gregorian::year_from_fixed(day), year, "{named:?}");
             }
         }
         assert_eq!(NamedDay::CemreEarth.turkish_name(), "üçüncü cemre");

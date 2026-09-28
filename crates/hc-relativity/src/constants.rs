@@ -41,15 +41,10 @@ pub const GRAVITATIONAL_CONSTANT: f64 = 6.674_30e-11;
 /// gravity anywhere in particular.
 pub const STANDARD_GRAVITY: f64 = 9.806_65;
 
-/// The Julian year, in seconds.
-///
-/// Exactly 365.25 × 86 400 by IAU convention. This is the year the
-/// light-year is defined against and the one astronomical ages are quoted in.
-pub const JULIAN_YEAR_SECONDS: f64 = 31_557_600.0;
-
 /// The light-year, in metres.
 ///
-/// Exact, being [`SPEED_OF_LIGHT`] × [`JULIAN_YEAR_SECONDS`] (IAU 2012).
+/// Exact, being [`SPEED_OF_LIGHT`] ×
+/// [`hc_core::epoch_notation::JULIAN_YEAR_SECONDS`] (IAU 2012).
 pub const LIGHT_YEAR: f64 = 9_460_730_472_580_800.0;
 
 /// The astronomical unit, in metres.
@@ -256,16 +251,12 @@ hc_core::catalogue! {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 
     #[test]
     fn the_light_year_is_the_speed_of_light_times_the_julian_year() {
         let derived = SPEED_OF_LIGHT * JULIAN_YEAR_SECONDS;
         assert!((derived - LIGHT_YEAR).abs() < 1.0, "got {derived}");
-    }
-
-    #[test]
-    fn the_julian_year_is_exactly_three_hundred_and_sixty_five_and_a_quarter_days() {
-        assert!((JULIAN_YEAR_SECONDS - 365.25 * 86_400.0).abs() < 1e-9);
     }
 
     #[test]

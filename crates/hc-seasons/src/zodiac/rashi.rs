@@ -337,7 +337,7 @@ pub fn months_in_year(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::year_month_day_from_rd;
+    use hc_calendar::gregorian;
 
     /// The same buy-back as the pentads: `[MonthNames; 12]` could not hold
     /// eleven, and a slice can, so the length is asserted rather than
@@ -454,7 +454,7 @@ mod tests {
     #[test]
     fn the_two_festival_sankranti_land_in_mid_january_and_mid_april() {
         for year in 2015..=2030 {
-            let makara = year_month_day_from_rd(makara_sankranti(year, LAHIRI, INDIA));
+            let makara = gregorian::ymd(makara_sankranti(year, LAHIRI, INDIA));
             assert_eq!(makara.0, year);
             assert_eq!(makara.1, 1);
             assert!(
@@ -463,7 +463,7 @@ mod tests {
                 makara.2
             );
 
-            let mesha = year_month_day_from_rd(mesha_sankranti(year, LAHIRI, INDIA));
+            let mesha = gregorian::ymd(mesha_sankranti(year, LAHIRI, INDIA));
             assert_eq!(mesha.0, year);
             assert_eq!(mesha.1, 4);
             assert!(
@@ -507,7 +507,7 @@ mod tests {
 
     #[test]
     fn a_day_belongs_to_the_month_whose_period_contains_it() {
-        let start = crate::gregorian::from_year_month_day(2024, 1, 1);
+        let start = hc_calendar::gregorian::to_fixed_saturating(2024, 1, 1);
         for offset in (0..366).step_by(5) {
             let day = Rd(start.0 + offset);
             let period = month_in_effect(day, LAHIRI, INDIA);
@@ -546,7 +546,7 @@ mod tests {
     #[test]
     fn the_kollam_year_opens_in_august() {
         let day = sankranti_day(2024, SiderealSign::SIMHA, LAHIRI, INDIA);
-        let (year, month, _) = year_month_day_from_rd(day);
+        let (year, month, _) = gregorian::ymd(day);
         assert_eq!(year, 2024);
         assert_eq!(month, 8);
         assert_eq!(month_name(SiderealSign::SIMHA, MALAYALAM), "Chingam");

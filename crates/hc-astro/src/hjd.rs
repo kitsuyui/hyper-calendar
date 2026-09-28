@@ -49,19 +49,16 @@
 use hc_core::math::{DEG_TO_RAD, cos, sin};
 
 use crate::earth::{general_precession_arcseconds, mean_obliquity_at_centuries};
-use crate::time::JULIAN_CENTURY_DAYS;
+use hc_core::duration::SECONDS_PER_DAY_F64;
+use hc_core::epoch_notation::JULIAN_CENTURY_DAYS;
+
+use crate::time::J2000_JULIAN_DATE;
 use crate::vsop87::earth_heliocentric;
 
 /// The seconds light takes to cross one astronomical unit: the unit of
 /// 149 597 870 700 m (IAU 2012 Resolution B2, `iau-2012-b2`) over the
 /// speed of light, 299 792 458 m/s, both exact.
 pub const LIGHT_TIME_PER_AU_SECONDS: f64 = 149_597_870_700.0 / 299_792_458.0;
-
-/// Seconds in a day.
-const SECONDS_PER_DAY: f64 = 86_400.0;
-
-/// The Julian Date of J2000.0, 2000-01-01T12:00 TT.
-const J2000_JULIAN_DATE: f64 = 2_451_545.0;
 
 /// Arcseconds in a degree.
 const ARCSECONDS_PER_DEGREE: f64 = 3_600.0;
@@ -113,7 +110,7 @@ pub fn heliocentric_correction_seconds(tt_julian_date: f64, target: Target) -> f
 /// HJD_TT: a Julian Date of TT corrected to the Sun.
 #[must_use]
 pub fn hjd_tt(tt_julian_date: f64, target: Target) -> f64 {
-    tt_julian_date + heliocentric_correction_seconds(tt_julian_date, target) / SECONDS_PER_DAY
+    tt_julian_date + heliocentric_correction_seconds(tt_julian_date, target) / SECONDS_PER_DAY_F64
 }
 
 /// HJD_UTC: a Julian Date of UTC corrected to the Sun, the Earth's
@@ -121,8 +118,8 @@ pub fn hjd_tt(tt_julian_date: f64, target: Target) -> f64 {
 /// plus TAI − UTC, which `hc_core::unix::tai_minus_utc_at` gives.
 #[must_use]
 pub fn hjd_utc(utc_julian_date: f64, tt_minus_utc_seconds: f64, target: Target) -> f64 {
-    let tt_julian_date = utc_julian_date + tt_minus_utc_seconds / SECONDS_PER_DAY;
-    utc_julian_date + heliocentric_correction_seconds(tt_julian_date, target) / SECONDS_PER_DAY
+    let tt_julian_date = utc_julian_date + tt_minus_utc_seconds / SECONDS_PER_DAY_F64;
+    utc_julian_date + heliocentric_correction_seconds(tt_julian_date, target) / SECONDS_PER_DAY_F64
 }
 
 #[cfg(test)]

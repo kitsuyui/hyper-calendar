@@ -203,7 +203,7 @@ fn astronomical_opening(year: i64, northern: Season, meridian: Meridian) -> Rd {
 
 /// Whole calendar months: spring is March to May, and so on.
 fn meteorological_opening(year: i64, northern: Season, _: Meridian) -> Rd {
-    crate::gregorian::from_year_month_day(year, northern.meteorological_first_month(), 1)
+    hc_calendar::gregorian::to_fixed_saturating(year, northern.meteorological_first_month(), 1)
 }
 
 /// The 立 terms: each season runs from 立春, 立夏, 立秋 or 立冬 to the next.
@@ -403,7 +403,7 @@ pub fn season_period(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
+    use hc_calendar::gregorian;
 
     const JAPAN: Meridian = Meridian::JAPAN;
     const NORTH: Hemisphere = Hemisphere::Northern;
@@ -450,9 +450,9 @@ mod tests {
             NORTH,
             JAPAN,
         );
-        assert_eq!(astronomical, from_year_month_day(2024, 6, 21));
-        assert_eq!(meteorological, from_year_month_day(2024, 6, 1));
-        assert_eq!(east_asian, from_year_month_day(2024, 5, 5));
+        assert_eq!(astronomical, gregorian::to_fixed_saturating(2024, 6, 21));
+        assert_eq!(meteorological, gregorian::to_fixed_saturating(2024, 6, 1));
+        assert_eq!(east_asian, gregorian::to_fixed_saturating(2024, 5, 5));
         assert!(east_asian < meteorological && meteorological < astronomical);
         // Six weeks separate the earliest and the latest answer.
         assert_eq!(astronomical.0 - east_asian.0, 47);
@@ -496,13 +496,13 @@ mod tests {
                 let start =
                     season_start(year, season, SeasonDefinition::METEOROLOGICAL, NORTH, JAPAN);
                 assert_eq!(
-                    crate::gregorian::year_month_day_from_rd(start).2,
+                    hc_calendar::gregorian::ymd(start).2,
                     1,
                     "{} of {year} did not start on the first",
                     season.english_name()
                 );
                 assert_eq!(
-                    crate::gregorian::year_month_day_from_rd(start).1,
+                    hc_calendar::gregorian::ymd(start).1,
                     season.meteorological_first_month()
                 );
             }
@@ -511,7 +511,7 @@ mod tests {
 
     #[test]
     fn every_day_of_a_year_has_a_season_under_every_definition() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for definition in [
             SeasonDefinition::ASTRONOMICAL,
             SeasonDefinition::METEOROLOGICAL,
@@ -535,7 +535,7 @@ mod tests {
 
     #[test]
     fn the_southern_hemisphere_is_always_in_the_opposite_season() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         for definition in [
             SeasonDefinition::ASTRONOMICAL,
             SeasonDefinition::METEOROLOGICAL,
@@ -674,7 +674,7 @@ mod tests {
     /// reckoning — a disagreement of a whole season for part of the year.
     #[test]
     fn the_two_astronomical_definitions_disagree_for_half_the_year() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut disagreements = 0;
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
@@ -699,7 +699,7 @@ mod tests {
             SeasonDefinition::METEOROLOGICAL,
             SeasonDefinition::EAST_ASIAN,
         ] {
-            let start = from_year_month_day(2024, 4, 1);
+            let start = gregorian::to_fixed_saturating(2024, 4, 1);
             for offset in 0..200 {
                 let day = Rd(start.0 + offset);
                 let season = season_of(day, definition, NORTH, JAPAN);

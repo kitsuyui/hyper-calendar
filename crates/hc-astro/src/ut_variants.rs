@@ -54,10 +54,11 @@
 //! places these beside UT1 and UTC.
 
 use hc_calendar::fixed::Moment;
-use hc_core::math::{DEG_TO_RAD, cos, sin};
+use hc_core::math::{DEG_TO_RAD, cos, poly, sin};
 
-use crate::time::{SECONDS_PER_DAY, julian_centuries};
-use crate::util::poly;
+use hc_core::duration::SECONDS_PER_DAY_F64;
+
+use crate::time::julian_centuries;
 
 /// The Modified Julian Date of the Besselian epoch B2000.0 as the USNO's
 /// UT2 formula writes it: *T* = 2000.000 + (MJD − 51 544.03) / 365.2422.
@@ -95,14 +96,14 @@ pub fn ut2_minus_ut1(ut1: Moment) -> f64 {
     let year = ut2_besselian_year(ut1);
     // Only the fraction of the year matters, and taking it first keeps the
     // sines' argument small.
-    let phase = 2.0 * core::f64::consts::PI * crate::util::modulo(year, 1.0);
+    let phase = 2.0 * core::f64::consts::PI * hc_core::math::modulo(year, 1.0);
     0.022 * sin(phase) - 0.012 * cos(phase) - 0.006 * sin(2.0 * phase) + 0.007 * cos(2.0 * phase)
 }
 
 /// The UT2 reading of a UT1 moment: UT1 plus [`ut2_minus_ut1`].
 #[must_use]
 pub fn ut2(ut1: Moment) -> Moment {
-    Moment(ut1.0 + ut2_minus_ut1(ut1) / SECONDS_PER_DAY)
+    Moment(ut1.0 + ut2_minus_ut1(ut1) / SECONDS_PER_DAY_F64)
 }
 
 /// One zonal tide term of IERS Conventions 2010, Table 8.1, in its UT1
@@ -535,7 +536,7 @@ pub fn delaunay_arguments(centuries: f64) -> [f64; 5] {
     const ARCSECONDS_PER_TURN: f64 = 1_296_000.0;
     SERIES.map(|(constant, rates)| {
         let arcseconds = constant * 3600.0 + centuries * poly(centuries, &rates);
-        crate::util::modulo(arcseconds, ARCSECONDS_PER_TURN) / 3600.0 * DEG_TO_RAD
+        hc_core::math::modulo(arcseconds, ARCSECONDS_PER_TURN) / 3600.0 * DEG_TO_RAD
     })
 }
 
@@ -580,7 +581,7 @@ pub fn ut1r_minus_ut1_iers2010(ut1: Moment) -> f64 {
 /// documentation](self) for why the model is in the name.
 #[must_use]
 pub fn ut1r_iers2010(ut1: Moment) -> Moment {
-    Moment(ut1.0 + ut1r_minus_ut1_iers2010(ut1) / SECONDS_PER_DAY)
+    Moment(ut1.0 + ut1r_minus_ut1_iers2010(ut1) / SECONDS_PER_DAY_F64)
 }
 
 /// UT1S − UT1, in seconds, at a UT1 moment, by the IERS 2010 zonal tide
@@ -597,7 +598,7 @@ pub fn ut1s_minus_ut1_iers2010(ut1: Moment) -> f64 {
 /// UT1 plus [`ut1s_minus_ut1_iers2010`].
 #[must_use]
 pub fn ut1s_iers2010(ut1: Moment) -> Moment {
-    Moment(ut1.0 + ut1s_minus_ut1_iers2010(ut1) / SECONDS_PER_DAY)
+    Moment(ut1.0 + ut1s_minus_ut1_iers2010(ut1) / SECONDS_PER_DAY_F64)
 }
 
 #[cfg(test)]
@@ -639,7 +640,9 @@ mod tests {
         }
         let moment = mjd(60_000.0);
         let shifted = ut2(moment);
-        assert!(((shifted.0 - moment.0) * SECONDS_PER_DAY - ut2_minus_ut1(moment)).abs() < 1e-5);
+        assert!(
+            ((shifted.0 - moment.0) * SECONDS_PER_DAY_F64 - ut2_minus_ut1(moment)).abs() < 1e-5
+        );
     }
 
     /// The test case in the header of the IERS routine `RG_ZONT2.F`
@@ -687,7 +690,8 @@ mod tests {
         for tide in &ZONAL_TIDES_IERS2010 {
             let mut rate = 0.0;
             for (index, multiplier) in tide.multipliers.iter().enumerate() {
-                let change = crate::util::signed_degrees((later[index] - now[index]).to_degrees());
+                let change =
+                    hc_core::math::signed_degrees((later[index] - now[index]).to_degrees());
                 rate += f64::from(*multiplier) * change.to_radians() / days;
             }
             let period = two_pi / rate;
@@ -715,7 +719,7 @@ mod tests {
             assert!(all.abs() < 0.173, "δUT1 {all}");
         }
         let moment = mjd(60_000.0);
-        let seconds = |reading: Moment| (reading.0 - moment.0) * SECONDS_PER_DAY;
+        let seconds = |reading: Moment| (reading.0 - moment.0) * SECONDS_PER_DAY_F64;
         assert!((seconds(ut1r_iers2010(moment)) - ut1r_minus_ut1_iers2010(moment)).abs() < 1e-5);
         assert!((seconds(ut1s_iers2010(moment)) - ut1s_minus_ut1_iers2010(moment)).abs() < 1e-5);
     }

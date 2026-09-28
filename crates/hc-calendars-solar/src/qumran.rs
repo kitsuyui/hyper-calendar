@@ -202,7 +202,7 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
 /// The year of the six-year *mishmarot* cycle, 1 to 6; 1 is Gamul's.
 #[must_use]
 pub const fn cycle_year(year: i64) -> u8 {
-    ((year - 1).rem_euclid(CYCLE_YEARS) + 1) as u8
+    hc_core::math::amod(year, CYCLE_YEARS) as u8
 }
 
 /// The course serving the week of `rd`, as a position in [`COURSES`] from

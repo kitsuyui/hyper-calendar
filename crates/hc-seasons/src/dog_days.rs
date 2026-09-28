@@ -58,7 +58,7 @@
 use hc_calendar::Rd;
 use hc_calendars_solar::julian;
 
-use crate::gregorian;
+use hc_calendar::gregorian;
 
 /// The calendar a convention's month and day are dates in.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -158,7 +158,7 @@ impl DogDaysConvention {
     /// every year, and the two calendars cover the same years.
     const fn date(self, year: i64, month: u8, day: u8) -> Rd {
         match self.calendar() {
-            SpanCalendar::Gregorian => gregorian::from_year_month_day(year, month, day),
+            SpanCalendar::Gregorian => gregorian::to_fixed_saturating(year, month, day),
             SpanCalendar::Julian => match julian::to_fixed(year, month, day) {
                 Ok(rd) => rd,
                 Err(_) => gregorian::new_year(year),
@@ -169,10 +169,10 @@ impl DogDaysConvention {
     /// The year of the convention's calendar that `day` falls in.
     const fn year_of(self, day: Rd) -> i64 {
         match self.calendar() {
-            SpanCalendar::Gregorian => gregorian::year_from_rd(day),
+            SpanCalendar::Gregorian => gregorian::year_from_fixed(day),
             SpanCalendar::Julian => match julian::from_fixed(day) {
                 Ok((year, _, _)) => year,
-                Err(_) => gregorian::year_from_rd(day),
+                Err(_) => gregorian::year_from_fixed(day),
             },
         }
     }
@@ -195,7 +195,7 @@ impl DogDaysConvention {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
+    use hc_calendar::gregorian;
 
     #[test]
     fn the_almanacs_forty_days_run_from_3_july_to_11_august() {
@@ -204,14 +204,14 @@ mod tests {
         assert_eq!(
             convention.span(2026),
             (
-                from_year_month_day(2026, 7, 3),
-                from_year_month_day(2026, 8, 11)
+                gregorian::to_fixed_saturating(2026, 7, 3),
+                gregorian::to_fixed_saturating(2026, 8, 11)
             )
         );
-        assert!(!convention.contains(from_year_month_day(2026, 7, 2)));
-        assert!(convention.contains(from_year_month_day(2026, 7, 3)));
-        assert!(convention.contains(from_year_month_day(2026, 8, 11)));
-        assert!(!convention.contains(from_year_month_day(2026, 8, 12)));
+        assert!(!convention.contains(gregorian::to_fixed_saturating(2026, 7, 2)));
+        assert!(convention.contains(gregorian::to_fixed_saturating(2026, 7, 3)));
+        assert!(convention.contains(gregorian::to_fixed_saturating(2026, 8, 11)));
+        assert!(!convention.contains(gregorian::to_fixed_saturating(2026, 8, 12)));
     }
 
     #[test]
@@ -222,14 +222,14 @@ mod tests {
         assert_eq!(
             convention.span(2025),
             (
-                from_year_month_day(2025, 7, 23),
-                from_year_month_day(2025, 8, 23)
+                gregorian::to_fixed_saturating(2025, 7, 23),
+                gregorian::to_fixed_saturating(2025, 8, 23)
             )
         );
         assert_eq!(convention.length(), 32);
-        assert!(!convention.contains(from_year_month_day(2025, 7, 22)));
-        assert!(convention.contains(from_year_month_day(2025, 8, 23)));
-        assert!(!convention.contains(from_year_month_day(2025, 8, 24)));
+        assert!(!convention.contains(gregorian::to_fixed_saturating(2025, 7, 22)));
+        assert!(convention.contains(gregorian::to_fixed_saturating(2025, 8, 23)));
+        assert!(!convention.contains(gregorian::to_fixed_saturating(2025, 8, 24)));
     }
 
     /// The 1552 kalendar prints "Dog daies" on the Nones of July and "Dog
@@ -244,14 +244,14 @@ mod tests {
         let (first, last) = convention.span(1559);
         assert_eq!(julian::from_fixed(first), Ok((1559, 7, 7)));
         assert_eq!(julian::from_fixed(last), Ok((1559, 9, 5)));
-        assert_eq!(first, from_year_month_day(1559, 7, 17));
-        assert_eq!(last, from_year_month_day(1559, 9, 15));
+        assert_eq!(first, gregorian::to_fixed_saturating(1559, 7, 17));
+        assert_eq!(last, gregorian::to_fixed_saturating(1559, 9, 15));
         assert!(!convention.contains(first - 1));
         assert!(convention.contains(first));
         assert!(convention.contains(last));
         assert!(!convention.contains(last + 1));
         // Gregorian 7 July is Julian 27 June, before the span.
-        assert!(!convention.contains(from_year_month_day(1559, 7, 7)));
+        assert!(!convention.contains(gregorian::to_fixed_saturating(1559, 7, 7)));
     }
 
     #[test]

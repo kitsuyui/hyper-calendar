@@ -530,6 +530,7 @@ pub fn since_big_bang_from_years_ago(
 mod tests {
     use super::*;
 
+    use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
     use hc_core::math;
 
     use crate::constants;
@@ -684,7 +685,7 @@ mod tests {
     #[test]
     fn the_solar_system_formed_four_and_a_half_gigayears_before_the_present() {
         let before_now = AGE_OF_UNIVERSE.seconds - SOLAR_SYSTEM_FORMATION.seconds;
-        let gigayears = before_now / constants::JULIAN_YEAR_SECONDS / 1e9;
+        let gigayears = before_now / JULIAN_YEAR_SECONDS / 1e9;
         assert!((gigayears - 4.5673).abs() < 0.01, "{gigayears} Ga");
     }
 

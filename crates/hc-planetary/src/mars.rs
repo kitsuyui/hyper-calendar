@@ -53,10 +53,10 @@ pub mod missions;
 
 use core::fmt;
 
-use hc_core::math::{cos_deg, floor, sin_deg};
+use hc_core::math::{cos_deg, floor, fract, modulo, signed_degrees, sin_deg};
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
-use crate::util::{fract, instant_from_j2000_offset, j2000_offset_days, modulo, signed_degrees};
+use crate::util::{instant_from_j2000_offset, j2000_offset_days};
 
 pub use darian::{DarianCalendar, DarianDate};
 pub use martiana::{MartianaCalendar, MartianaDate};

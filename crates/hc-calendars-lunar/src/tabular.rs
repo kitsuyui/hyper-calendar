@@ -619,7 +619,7 @@ mod tests {
         assert_eq!(FATIMID.days_in_year(1432), 354);
     }
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
 
     const ALL_RULES: [LeapYearRule; 4] = [
         LeapYearRule::CIVIL,
@@ -647,7 +647,7 @@ mod tests {
         // calendar; the Julian Day Number of the civil Hijri epoch is
         // 1 948 440.
         assert_eq!(CIVIL_EPOCH.to_julian_day_number(), 1_948_440);
-        assert_eq!(civil::from_rd(CIVIL_EPOCH), (622, 7, 19));
+        assert_eq!(gregorian::ymd(CIVIL_EPOCH), (622, 7, 19));
         assert_eq!(
             to_fixed(CIVIL_EPOCH, LeapYearRule::CIVIL, 1, 1, 1),
             Ok(CIVIL_EPOCH)
@@ -658,7 +658,7 @@ mod tests {
     fn the_astronomical_epoch_is_one_day_earlier() {
         assert_eq!(ASTRONOMICAL_EPOCH.to_julian_day_number(), 1_948_439);
         assert_eq!(ASTRONOMICAL_EPOCH.0, CIVIL_EPOCH.0 - 1);
-        assert_eq!(civil::from_rd(ASTRONOMICAL_EPOCH), (622, 7, 18));
+        assert_eq!(gregorian::ymd(ASTRONOMICAL_EPOCH), (622, 7, 18));
     }
 
     #[test]

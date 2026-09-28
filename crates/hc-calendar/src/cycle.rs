@@ -109,6 +109,122 @@ pub const FIVE_PHASES_JAPANESE_ON: [&str; 5] = ["moku", "ka", "do", "gon", "sui"
 /// [`readings::JAPANESE_KUN`] exactly.
 pub const FIVE_PHASES_JAPANESE_KUN: [&str; 5] = ["ki", "hi", "tsuchi", "ka", "mizu"];
 
+/// The five phases (五行) as a value, in stem-pair order: 甲乙 are wood,
+/// 丙丁 fire, 戊己 earth, 庚辛 metal and 壬癸 water.
+///
+/// Its names are the tables above, so a phase is spelled once whichever
+/// cycle — a stem, one of the nine stars, a planet — it comes from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum FivePhase {
+    /// 木.
+    Wood,
+    /// 火.
+    Fire,
+    /// 土.
+    Earth,
+    /// 金.
+    Metal,
+    /// 水.
+    Water,
+}
+
+impl FivePhase {
+    /// The five, in stem-pair order.
+    pub const ALL: [Self; 5] = [
+        Self::Wood,
+        Self::Fire,
+        Self::Earth,
+        Self::Metal,
+        Self::Water,
+    ];
+
+    /// The zero-based position in stem-pair order, wood being 0.
+    #[must_use]
+    pub const fn index(self) -> u8 {
+        self as u8
+    }
+
+    /// The phase at a zero-based position in stem-pair order, reduced
+    /// modulo five.
+    #[must_use]
+    pub const fn from_index(index: u8) -> Self {
+        Self::ALL[(index % 5) as usize]
+    }
+
+    /// The English name, e.g. `"wood"`, from [`FIVE_PHASES`].
+    #[must_use]
+    pub const fn english_name(self) -> &'static str {
+        FIVE_PHASES[self as usize]
+    }
+
+    /// The character, e.g. `"木"`, from [`FIVE_PHASES_CJK`].
+    #[must_use]
+    pub const fn cjk(self) -> &'static str {
+        FIVE_PHASES_CJK[self as usize]
+    }
+}
+
+impl fmt::Display for FivePhase {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(self.english_name())
+    }
+}
+
+/// The ten Heavenly Stems by zero-based index, 甲 being 0, in Hanyu
+/// Pinyin, so that a rule stated for a stem names it. The characters are
+/// [`readings::HAN`]'s.
+pub mod stem {
+    /// 甲.
+    pub const JIA: u8 = 0;
+    /// 乙.
+    pub const YI: u8 = 1;
+    /// 丙.
+    pub const BING: u8 = 2;
+    /// 丁.
+    pub const DING: u8 = 3;
+    /// 戊.
+    pub const WU: u8 = 4;
+    /// 己.
+    pub const JI: u8 = 5;
+    /// 庚.
+    pub const GENG: u8 = 6;
+    /// 辛.
+    pub const XIN: u8 = 7;
+    /// 壬.
+    pub const REN: u8 = 8;
+    /// 癸.
+    pub const GUI: u8 = 9;
+}
+
+/// The twelve Earthly Branches by zero-based index, 子 being 0, in Hanyu
+/// Pinyin. The characters are [`readings::HAN`]'s.
+pub mod branch {
+    /// 子.
+    pub const ZI: u8 = 0;
+    /// 丑.
+    pub const CHOU: u8 = 1;
+    /// 寅.
+    pub const YIN: u8 = 2;
+    /// 卯.
+    pub const MAO: u8 = 3;
+    /// 辰.
+    pub const CHEN: u8 = 4;
+    /// 巳.
+    pub const SI: u8 = 5;
+    /// 午.
+    pub const WU: u8 = 6;
+    /// 未.
+    pub const WEI: u8 = 7;
+    /// 申.
+    pub const SHEN: u8 = 8;
+    /// 酉.
+    pub const YOU: u8 = 9;
+    /// 戌.
+    pub const XU: u8 = 10;
+    /// 亥.
+    pub const HAI: u8 = 11;
+}
+
 /// The classical names of the twelve double-hours (十二時辰), in branch
 /// order from 子.
 ///
@@ -279,20 +395,8 @@ impl Sexagenary {
 
     /// The five-phase element associated with the stem.
     #[must_use]
-    pub const fn five_phase(self) -> &'static str {
-        FIVE_PHASES[((self.index % 10) / 2) as usize]
-    }
-
-    /// The five-phase character associated with the stem.
-    #[must_use]
-    pub const fn five_phase_cjk(self) -> &'static str {
-        FIVE_PHASES_CJK[((self.index % 10) / 2) as usize]
-    }
-
-    /// The zero-based five-phase index of the stem.
-    #[must_use]
-    pub const fn five_phase_index(self) -> u8 {
-        (self.index % 10) / 2
+    pub const fn five_phase(self) -> FivePhase {
+        FivePhase::from_index((self.index % 10) / 2)
     }
 
     /// The polarity of the stem.
@@ -602,9 +706,13 @@ pub const fn sexagenary_year_at(rd: Rd, gregorian_year: i64, start_of_spring: Rd
     sexagenary_year_from_solar_term_year(solar_term_year(rd, gregorian_year, start_of_spring))
 }
 
+/// The *jia-zi* day, index 0 of the day cycle, that begins the sixty-day
+/// run containing RD 1: RD −14. [`sexagenary_day`] counts from it.
+pub const DAY_EPOCH: Rd = Rd(-14);
+
 /// The sexagenary day of a fixed day.
 ///
-/// The anchor is that RD −14 is *jia-zi*, index 0, so RD 1 (`0001-01-01`
+/// The anchor is that RD −14 ([`DAY_EPOCH`]) is *jia-zi*, index 0, so RD 1 (`0001-01-01`
 /// proleptic Gregorian) is index 15, *ji-mao*; *Calendrical Calculations*
 /// puts the same *jia-zi* at RD 46, counting its names from
 /// `chinese-day-name-epoch`, RD 45 (`reingold2018code`).
@@ -621,7 +729,27 @@ pub const fn sexagenary_year_at(rd: Rd, gregorian_year: i64, start_of_spring: Rd
 /// to.
 #[must_use]
 pub const fn sexagenary_day(rd: Rd) -> Sexagenary {
-    Sexagenary::from_index(rd.0 + 14)
+    Sexagenary::from_index(rd.0 - DAY_EPOCH.0)
+}
+
+/// The first day at or after `start` whose stem is the one at
+/// `stem_index`, 甲 being 0 ([`stem`]); an index of ten or more is reduced
+/// modulo ten. The stems repeat every ten days, so the answer is at most
+/// nine days on.
+#[must_use]
+pub const fn stem_day_on_or_after(start: Rd, stem_index: u8) -> Rd {
+    let here = sexagenary_day(start).stem_index() as i64;
+    Rd(start.0 + (stem_index as i64 - here).rem_euclid(10))
+}
+
+/// The first day at or after `start` whose branch is the one at
+/// `branch_index`, 子 being 0 ([`branch`]); an index of twelve or more is
+/// reduced modulo twelve. The branches repeat every twelve days, so the
+/// answer is at most eleven days on.
+#[must_use]
+pub const fn branch_day_on_or_after(start: Rd, branch_index: u8) -> Rd {
+    let here = sexagenary_day(start).branch_index() as i64;
+    Rd(start.0 + (branch_index as i64 - here).rem_euclid(12))
 }
 
 /// The stem of the 子 hour of a day with the given day stem: the 五鼠遁 rule.
@@ -694,13 +822,20 @@ pub const fn month_pillar(year: Sexagenary, solar_term_month: u8) -> CalendarRes
         return Err(CalendarError::MonthOutOfRange);
     }
     let stem = (first_month_stem(year.stem_index()) + solar_term_month - 1) % 10;
-    let branch = (solar_term_month + 1) % 12;
-    match Sexagenary::from_stem_branch_index(stem, branch) {
+    match Sexagenary::from_stem_branch_index(stem, branch_of_solar_term_month(solar_term_month)) {
         Some(pillar) => Ok(pillar),
         // Unreachable: the 五虎遁 offset is even, so stem and branch keep the
         // same parity for every month of every year.
         None => Err(CalendarError::MonthOutOfRange),
     }
+}
+
+/// The branch that names a one-based solar-term month: 寅 (2) for the
+/// first, which opens at 立春, through 丑 (1) for the twelfth. A month
+/// past twelve wraps.
+#[must_use]
+pub const fn branch_of_solar_term_month(solar_term_month: u8) -> u8 {
+    (solar_term_month % 12 + 1) % 12
 }
 
 /// The one-based solar-term month a month branch belongs to.
@@ -875,7 +1010,7 @@ pub const fn sexagenary_year_cycle(chinese_year: i64) -> i64 {
 /// The one-based position of a year within its sixty-year cycle.
 #[must_use]
 pub const fn year_of_sexagenary_cycle(chinese_year: i64) -> u8 {
-    ((chinese_year - 1).rem_euclid(60) + 1) as u8
+    hc_core::math::amod(chinese_year, 60) as u8
 }
 
 /// The number of the sixty-**day** cycle containing a fixed day.
@@ -887,7 +1022,7 @@ pub const fn year_of_sexagenary_cycle(chinese_year: i64) -> u8 {
 /// grouping and for diagnostics, not for citation.
 #[must_use]
 pub const fn sexagenary_cycle_containing(rd: Rd) -> i64 {
-    (rd.0 + 14).div_euclid(60) + 1
+    (rd.0 - DAY_EPOCH.0).div_euclid(60) + 1
 }
 
 /// A generic named cycle: `n` positions repeating from an anchor day.
@@ -982,7 +1117,7 @@ mod tests {
         assert_eq!(first.stem_name(), "jia");
         assert_eq!(first.branch_name(), "zi");
         assert_eq!(first.zodiac_animal(), "rat");
-        assert_eq!(first.five_phase(), "wood");
+        assert_eq!(first.five_phase(), FivePhase::Wood);
         assert_eq!(first.ordinal(), 1);
     }
 
@@ -1099,10 +1234,10 @@ mod tests {
     fn jia_is_yang_wood_and_gui_is_yin_water() {
         let jia_zi = Sexagenary::from_index(0);
         assert_eq!(jia_zi.polarity(), Polarity::Yang);
-        assert_eq!(jia_zi.five_phase(), "wood");
+        assert_eq!(jia_zi.five_phase(), FivePhase::Wood);
         let gui_hai = Sexagenary::from_index(59);
         assert_eq!(gui_hai.polarity(), Polarity::Yin);
-        assert_eq!(gui_hai.five_phase(), "water");
+        assert_eq!(gui_hai.five_phase(), FivePhase::Water);
         assert_eq!(readings::HAN.stem(gui_hai), "癸");
         assert_eq!(readings::HAN.branch(gui_hai), "亥");
     }
@@ -1148,9 +1283,79 @@ mod tests {
     fn the_first_pair_is_the_wood_rat() {
         let jia_zi = Sexagenary::from_index(0);
         assert_eq!(jia_zi.zodiac_animal(), "rat");
-        assert_eq!(jia_zi.five_phase_cjk(), "木");
-        assert_eq!(jia_zi.five_phase_index(), 0);
+        assert_eq!(jia_zi.five_phase(), FivePhase::Wood);
+        assert_eq!(jia_zi.five_phase().cjk(), "木");
+        assert_eq!(jia_zi.five_phase().to_string(), "wood");
         assert_eq!(jia_zi.to_string(), "jia-zi");
+    }
+
+    #[test]
+    fn the_named_stems_and_branches_are_the_characters_they_name() {
+        let han = readings::HAN;
+        let stems = [
+            stem::JIA,
+            stem::YI,
+            stem::BING,
+            stem::DING,
+            stem::WU,
+            stem::JI,
+            stem::GENG,
+            stem::XIN,
+            stem::REN,
+            stem::GUI,
+        ];
+        let branches = [
+            branch::ZI,
+            branch::CHOU,
+            branch::YIN,
+            branch::MAO,
+            branch::CHEN,
+            branch::SI,
+            branch::WU,
+            branch::WEI,
+            branch::SHEN,
+            branch::YOU,
+            branch::XU,
+            branch::HAI,
+        ];
+        assert_eq!(
+            stems.map(|s| han.stems[usize::from(s)]).concat(),
+            "甲乙丙丁戊己庚辛壬癸"
+        );
+        assert_eq!(
+            branches.map(|b| han.branches[usize::from(b)]).concat(),
+            "子丑寅卯辰巳午未申酉戌亥"
+        );
+        for (index, phase) in FivePhase::ALL.into_iter().enumerate() {
+            assert_eq!(usize::from(phase.index()), index);
+            assert_eq!(FivePhase::from_index(phase.index()), phase);
+            assert_eq!(phase.cjk(), FIVE_PHASES_CJK[index]);
+        }
+    }
+
+    #[test]
+    fn the_next_day_of_a_stem_or_branch_is_at_most_a_cycle_away() {
+        for start in (-200..200).map(Rd) {
+            for stem_index in 0..10 {
+                let day = stem_day_on_or_after(start, stem_index);
+                assert_eq!(sexagenary_day(day).stem_index(), stem_index);
+                assert!((0..10).contains(&(day.0 - start.0)));
+            }
+            for branch_index in 0..12 {
+                let day = branch_day_on_or_after(start, branch_index);
+                assert_eq!(sexagenary_day(day).branch_index(), branch_index);
+                assert!((0..12).contains(&(day.0 - start.0)));
+            }
+        }
+        assert_eq!(sexagenary_day(DAY_EPOCH), Sexagenary::from_index(0));
+        for month in 1..=12u8 {
+            assert_eq!(
+                solar_term_month_of_branch(branch_of_solar_term_month(month)),
+                month
+            );
+        }
+        assert_eq!(branch_of_solar_term_month(1), branch::YIN);
+        assert_eq!(branch_of_solar_term_month(12), branch::CHOU);
     }
 
     #[test]

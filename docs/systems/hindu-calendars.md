@@ -1180,7 +1180,7 @@ two lunisolar skies share, `Sky`, `Amanta`), `hindu_lunar_siddhanta.rs`
 `panchanga.rs` (`yoga_at`, `yoga_span`, `karana_at`, `karana_name`,
 `karana_span`, `YOGA_NAMES`, `KARANA_NAMES`), `surya_siddhanta.rs`
 (`SIDEREAL_YEAR`, `ANOMALISTIC_YEAR`, `SIDEREAL_MONTH`,
-`ANOMALISTIC_MONTH`, `SYNODIC_MONTH`, `UJJAIN_LONGITUDE_DEGREES`,
+`ANOMALISTIC_MONTH`, `SYNODIC_MONTH`,
 `lunar_longitude`, `conjunction_at_or_after`, `sunrise`) and
 `places.rs`. Anchors:
 `every_fortnight_of_two_years_begins_where_the_rashtriya_panchang_says`,

@@ -45,14 +45,15 @@
 //! model — comfortably better than the tenth of a degree that lunar
 //! observation tables are quoted to.
 
-use hc_astro::MEAN_SYNODIC_MONTH;
 use hc_astro::Moment;
-use hc_core::math::{RAD_TO_DEG, asin, atan2, cos_deg, normalize_degrees, round, sin_deg};
+use hc_core::math::{
+    RAD_TO_DEG, asin, atan2, cos_deg, normalize_degrees, poly, signed_degrees, sin_deg,
+};
 use hc_core::{Instant, Tai};
 
 use crate::bodies::by_name;
 use crate::clock::{BodyClock, LocalTime};
-use crate::util::{j2000_offset_days, signed_degrees};
+use crate::util::j2000_offset_days;
 
 /// A one-sentence statement of where Coordinated Lunar Time stands, for
 /// callers that want to display something rather than silently omit it.
@@ -90,25 +91,7 @@ pub fn universal_time_moment(instant: Instant<Tai>) -> Moment {
 /// the one `hc_astro::nth_new_moon` is indexed by.
 #[must_use]
 pub fn lunation_meeus(instant: Instant<Tai>) -> i64 {
-    let moment = universal_time_moment(instant);
-    let mut lunation = round((moment.0 - hc_astro::nth_new_moon(0).0) / MEAN_SYNODIC_MONTH) as i64;
-    // The mean-rate seed is never more than one lunation out, because a true
-    // new moon departs from the mean one by at most about fourteen hours.
-    for _ in 0..3 {
-        if hc_astro::nth_new_moon(lunation).0 > moment.0 {
-            lunation -= 1;
-        } else {
-            break;
-        }
-    }
-    for _ in 0..3 {
-        if hc_astro::nth_new_moon(lunation + 1).0 <= moment.0 {
-            lunation += 1;
-        } else {
-            break;
-        }
-    }
-    lunation
+    hc_astro::lunar::lunation_containing(universal_time_moment(instant))
 }
 
 /// The **Brown lunation number** containing an instant: lunation 1 begins at
@@ -119,15 +102,14 @@ pub fn lunation_brown(instant: Instant<Tai>) -> i64 {
 }
 
 /// The **age of the Moon**: days elapsed since the new moon that began the
-/// current lunation.
+/// current lunation, [`hc_astro::lunar::moon_age`] at an instant.
 ///
 /// Runs from 0 at new moon to about 29.5 just before the next one. This is the
 /// quantity almanacs print; it is not the same as the phase angle, because the
 /// Moon's angular speed varies by about 12% between perigee and apogee.
 #[must_use]
 pub fn age_days(instant: Instant<Tai>) -> f64 {
-    let moment = universal_time_moment(instant);
-    moment.0 - hc_astro::nth_new_moon(lunation_meeus(instant)).0
+    hc_astro::lunar::moon_age(universal_time_moment(instant))
 }
 
 /// The fraction of the Moon's disc that is lit, from 0 at new to 1 at full.
@@ -159,7 +141,7 @@ pub fn subsolar_selenographic_position(instant: Instant<Tai>) -> (f64, f64) {
 
     // Meeus (47.7) and (47.1): the argument of latitude and the longitude of
     // the ascending node of the Moon's mean orbit.
-    let argument_of_latitude = polynomial(
+    let argument_of_latitude = poly(
         centuries,
         &[
             93.272_095_0,
@@ -169,7 +151,7 @@ pub fn subsolar_selenographic_position(instant: Instant<Tai>) -> (f64, f64) {
             1.0 / 863_310_000.0,
         ],
     );
-    let node = polynomial(
+    let node = poly(
         centuries,
         &[
             125.044_547_9,
@@ -265,19 +247,11 @@ fn lunar_clock() -> BodyClock {
 /// Resolution B2 (`iau-2012-b2`).
 const ASTRONOMICAL_UNIT_KM: f64 = 149_597_870.7;
 
-/// Horner evaluation of a polynomial in `x`.
-fn polynomial(x: f64, coefficients: &[f64]) -> f64 {
-    let mut total = 0.0;
-    for coefficient in coefficients.iter().rev() {
-        total = total * x + coefficient;
-    }
-    total
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::util::tai_from_utc_fields;
+    use hc_astro::MEAN_SYNODIC_MONTH;
 
     fn at(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> Instant<Tai> {
         tai_from_utc_fields(year, month, day, hour, minute, second).unwrap()

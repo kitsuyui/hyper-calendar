@@ -34,10 +34,10 @@ use core::fmt;
 
 use hc_calendar::CivilDateTime;
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
+use hc_calendar::{Rd, Weekday, gregorian};
 use hc_core::UnixTime;
 
 use crate::error::{TzError, TzResult};
-use crate::gregorian;
 use crate::offset::UtcOffset;
 use crate::zone::{LocalResolution, TimeZone, resolve_local_by_probing};
 
@@ -194,19 +194,22 @@ impl PosixRule {
     pub fn fixed_day(self, year: i64) -> i64 {
         match self {
             Self::JulianNoLeap(day) => {
-                let january_first = gregorian::rd_from_ymd(year, 1, 1);
+                let january_first = gregorian::to_fixed_saturating(year, 1, 1).0;
                 let ordinal = i64::from(day);
                 // 29 February is not counted, so every day from 1 March on is
                 // one further along the real calendar in a leap year.
                 let skip = i64::from(ordinal >= 60 && gregorian::is_leap_year(year));
                 january_first + ordinal - 1 + skip
             }
-            Self::ZeroBasedDay(day) => gregorian::rd_from_ymd(year, 1, 1) + i64::from(day),
+            Self::ZeroBasedDay(day) => {
+                gregorian::to_fixed_saturating(year, 1, 1).0 + i64::from(day)
+            }
             Self::MonthWeekDay { month, week, day } => {
-                let first = gregorian::rd_from_ymd(year, month, 1);
-                let shift = (day + 7 - gregorian::weekday_from_rd(first)) % 7;
+                let first = gregorian::to_fixed_saturating(year, month, 1).0;
+                let shift = (day + 7 - Weekday::from_rd(Rd(first)).sunday_first_number()) % 7;
                 let mut chosen = first + i64::from(shift) + 7 * (i64::from(week) - 1);
-                let last = first + i64::from(gregorian::days_in_month(year, month)) - 1;
+                let last =
+                    first + i64::from(gregorian::days_in_month(year, month).unwrap_or(31)) - 1;
                 while chosen > last {
                     chosen -= 7;
                 }
@@ -445,7 +448,7 @@ impl PosixTz {
     /// checked too.
     fn approximate_local_year(&self, seconds: i64) -> i64 {
         let shifted = seconds.saturating_add(i64::from(self.standard_offset.seconds()));
-        gregorian::year_from_rd(shifted.div_euclid(86_400) + RD_OF_UNIX_EPOCH)
+        gregorian::year_from_fixed(Rd(shifted.div_euclid(86_400) + RD_OF_UNIX_EPOCH))
     }
 
     /// Whether saving time is in force at an instant.
@@ -816,20 +819,21 @@ fn write_signed_hms(f: &mut fmt::Formatter<'_>, seconds: i32) -> fmt::Result {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::gregorian::rd_from_ymd;
-    use crate::zone::Disambiguation;
+    use hc_calendar::gregorian;
     use hc_calendar::{CivilTime, Rd};
+
+    use super::*;
+    use crate::zone::Disambiguation;
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
     }
 
     fn instant(year: i64, month: u8, day: u8, hour: u8, minute: u8) -> UnixTime {
-        let days = rd_from_ymd(year, month, day) - RD_OF_UNIX_EPOCH;
+        let days = gregorian::to_fixed_saturating(year, month, day).0 - RD_OF_UNIX_EPOCH;
         UnixTime::from_seconds(days * 86_400 + i64::from(hour) * 3_600 + i64::from(minute) * 60)
     }
 
@@ -887,11 +891,11 @@ mod tests {
         )));
         assert_eq!(
             FIRST_RULE_SECOND,
-            (rd_from_ymd(-9_999_994, 1, 1) - RD_OF_UNIX_EPOCH) * 86_400
+            (gregorian::to_fixed_saturating(-9_999_994, 1, 1).0 - RD_OF_UNIX_EPOCH) * 86_400
         );
         assert_eq!(
             LAST_RULE_SECOND + 1,
-            (rd_from_ymd(9_999_995, 1, 1) - RD_OF_UNIX_EPOCH) * 86_400
+            (gregorian::to_fixed_saturating(9_999_995, 1, 1).0 - RD_OF_UNIX_EPOCH) * 86_400
         );
     }
 
@@ -1146,19 +1150,25 @@ mod tests {
     fn julian_rules_never_count_the_twenty_ninth_of_february() {
         // J60 is 1 March in every year.
         let rule = PosixRule::JulianNoLeap(60);
-        assert_eq!(rule.fixed_day(2023), rd_from_ymd(2023, 3, 1));
-        assert_eq!(rule.fixed_day(2024), rd_from_ymd(2024, 3, 1));
+        assert_eq!(
+            rule.fixed_day(2023),
+            gregorian::to_fixed_saturating(2023, 3, 1).0
+        );
+        assert_eq!(
+            rule.fixed_day(2024),
+            gregorian::to_fixed_saturating(2024, 3, 1).0
+        );
         assert_eq!(
             PosixRule::JulianNoLeap(1).fixed_day(2024),
-            rd_from_ymd(2024, 1, 1)
+            gregorian::to_fixed_saturating(2024, 1, 1).0
         );
         assert_eq!(
             PosixRule::JulianNoLeap(365).fixed_day(2024),
-            rd_from_ymd(2024, 12, 31)
+            gregorian::to_fixed_saturating(2024, 12, 31).0
         );
         assert_eq!(
             PosixRule::JulianNoLeap(365).fixed_day(2023),
-            rd_from_ymd(2023, 12, 31)
+            gregorian::to_fixed_saturating(2023, 12, 31).0
         );
     }
 
@@ -1166,15 +1176,21 @@ mod tests {
     fn zero_based_rules_do_count_the_twenty_ninth_of_february() {
         // n59 is 29 February in a leap year and 1 March otherwise.
         let rule = PosixRule::ZeroBasedDay(59);
-        assert_eq!(rule.fixed_day(2024), rd_from_ymd(2024, 2, 29));
-        assert_eq!(rule.fixed_day(2023), rd_from_ymd(2023, 3, 1));
+        assert_eq!(
+            rule.fixed_day(2024),
+            gregorian::to_fixed_saturating(2024, 2, 29).0
+        );
+        assert_eq!(
+            rule.fixed_day(2023),
+            gregorian::to_fixed_saturating(2023, 3, 1).0
+        );
         assert_eq!(
             PosixRule::ZeroBasedDay(0).fixed_day(2024),
-            rd_from_ymd(2024, 1, 1)
+            gregorian::to_fixed_saturating(2024, 1, 1).0
         );
         assert_eq!(
             PosixRule::ZeroBasedDay(365).fixed_day(2024),
-            rd_from_ymd(2024, 12, 31)
+            gregorian::to_fixed_saturating(2024, 12, 31).0
         );
     }
 
@@ -1188,11 +1204,11 @@ mod tests {
         // March 2024 has five Sundays; March 2021 has four.
         assert_eq!(
             last_sunday_in_march.fixed_day(2024),
-            rd_from_ymd(2024, 3, 31)
+            gregorian::to_fixed_saturating(2024, 3, 31).0
         );
         assert_eq!(
             last_sunday_in_march.fixed_day(2021),
-            rd_from_ymd(2021, 3, 28)
+            gregorian::to_fixed_saturating(2021, 3, 28).0
         );
         let last_thursday_in_october = PosixRule::MonthWeekDay {
             month: 10,
@@ -1201,7 +1217,7 @@ mod tests {
         };
         assert_eq!(
             last_thursday_in_october.fixed_day(2024),
-            rd_from_ymd(2024, 10, 31)
+            gregorian::to_fixed_saturating(2024, 10, 31).0
         );
     }
 
@@ -1213,13 +1229,15 @@ mod tests {
                     for day in 0..=6u8 {
                         let rule = PosixRule::MonthWeekDay { month, week, day };
                         let chosen = rule.fixed_day(year);
-                        let first = rd_from_ymd(year, month, 1);
-                        let last = first + i64::from(gregorian::days_in_month(year, month)) - 1;
+                        let first = gregorian::to_fixed_saturating(year, month, 1).0;
+                        let last = first
+                            + i64::from(gregorian::days_in_month(year, month).unwrap_or(31))
+                            - 1;
                         assert!(
                             chosen >= first && chosen <= last,
                             "{year}-{month} {week}.{day}"
                         );
-                        assert_eq!(gregorian::weekday_from_rd(chosen), day);
+                        assert_eq!(Weekday::from_rd(Rd(chosen)).sunday_first_number(), day);
                     }
                 }
             }

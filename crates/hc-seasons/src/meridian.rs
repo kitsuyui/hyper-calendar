@@ -23,10 +23,8 @@
 
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
+use hc_core::duration::SECONDS_PER_DAY_F64;
 use hc_core::math::{floor, round};
-
-/// Seconds in a day, as the astronomical series count them.
-const SECONDS_PER_DAY: f64 = 86_400.0;
 
 /// A fixed offset from Universal Time, used to decide which day an instant
 /// falls on.
@@ -118,7 +116,7 @@ impl Meridian {
     /// The offset east of Greenwich as a fraction of a day.
     #[must_use]
     pub fn offset_days(self) -> f64 {
-        f64::from(self.offset_seconds) / SECONDS_PER_DAY
+        f64::from(self.offset_seconds) / SECONDS_PER_DAY_F64
     }
 
     /// A Universal Time moment read as a local one.

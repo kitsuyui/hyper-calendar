@@ -37,7 +37,9 @@
 use hc_calendar::Weekday;
 use hc_seasons::Meridian;
 
-use crate::rule::{HolidayRule, Phase, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use hc_astro::lunar::MoonPhase;
+
+use crate::rule::{HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
 
 /// An international day: an observance, nowhere a day off, citing the
 /// instrument that set it.
@@ -1066,7 +1068,7 @@ static UNITED_NATIONS_RULES: &[HolidayRule] = &[
     day(
         "Vesak, the Day of the Full Moon",
         Rule::LunarPhase {
-            phase: Phase::Full,
+            phase: MoonPhase::Full,
             month: 5,
             day: 1,
             meridian: Meridian::UNIVERSAL,

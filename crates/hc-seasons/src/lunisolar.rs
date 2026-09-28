@@ -208,8 +208,8 @@ pub fn ordinary_date_in_gregorian_year(
     day: u8,
     meridian: Meridian,
 ) -> Option<Rd> {
-    let year_start = crate::gregorian::new_year(year);
-    let year_end = crate::gregorian::new_year(year + 1);
+    let year_start = hc_calendar::gregorian::new_year(year);
+    let year_end = hc_calendar::gregorian::new_year(year + 1);
     let mut start = month_start_containing(year_start, meridian);
     // Thirteen new moons can begin inside a Gregorian year and a fourteenth
     // can be the one the year opened in, so fourteen steps covers it.
@@ -235,7 +235,7 @@ pub fn ordinary_date_in_gregorian_year(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
+    use hc_calendar::gregorian;
 
     const JAPAN: Meridian = Meridian::JAPAN;
 
@@ -260,7 +260,7 @@ mod tests {
     #[test]
     fn the_lunar_new_year_is_the_first_day_of_the_first_month() {
         for (year, month, day) in LUNAR_NEW_YEARS {
-            let rd = from_year_month_day(year, month, day);
+            let rd = gregorian::to_fixed_saturating(year, month, day);
             let date = lunisolar_day(rd, JAPAN);
             assert_eq!(
                 (date.month, date.day, date.leap_month),
@@ -380,8 +380,8 @@ mod tests {
     /// to another.
     #[test]
     fn leap_months_occur_at_the_metonic_rate() {
-        let mut start = month_start_containing(from_year_month_day(1950, 1, 1), JAPAN);
-        let end = from_year_month_day(2050, 1, 1);
+        let mut start = month_start_containing(gregorian::to_fixed_saturating(1950, 1, 1), JAPAN);
+        let end = gregorian::to_fixed_saturating(2050, 1, 1);
         let mut leaps = 0;
         let mut months = 0;
         let mut previous_was_leap = false;
@@ -409,7 +409,7 @@ mod tests {
     /// calendars: it began on 22 March 2023 and contained no 中気.
     #[test]
     fn the_leap_second_month_of_2023_is_found() {
-        let start = from_year_month_day(2023, 3, 22);
+        let start = gregorian::to_fixed_saturating(2023, 3, 22);
         let (number, leap) = month_number(start, JAPAN);
         assert_eq!(number, 2);
         assert!(leap, "2023-03-22 did not start a leap month");
@@ -426,7 +426,7 @@ mod tests {
         // 2024.
         assert_eq!(
             ordinary_date_in_gregorian_year(2024, 8, 15, JAPAN),
-            Some(from_year_month_day(2024, 9, 17))
+            Some(gregorian::to_fixed_saturating(2024, 9, 17))
         );
         let found = ordinary_date_in_gregorian_year(2024, 8, 15, JAPAN).unwrap();
         let date = lunisolar_day(found, JAPAN);
@@ -484,7 +484,7 @@ mod tests {
     #[test]
     fn the_months_of_2014_are_the_ones_the_observatory_tabulates() {
         for ((year, month, day), number, leap) in MONTHS_2014 {
-            let start = from_year_month_day(year, month, day);
+            let start = gregorian::to_fixed_saturating(year, month, day);
             assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
             assert_eq!(month_number(start, JAPAN), (number, leap), "{start}");
         }
@@ -510,7 +510,7 @@ mod tests {
         ];
         let mut disagreements = Vec::new();
         for (((year, month, day), number, leap), expected) in MONTHS_1984.into_iter().zip(here) {
-            let start = from_year_month_day(year, month, day);
+            let start = gregorian::to_fixed_saturating(year, month, day);
             assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
             assert_eq!(month_number(start, JAPAN), expected, "{start}");
             if (number, leap) != expected {
@@ -520,9 +520,9 @@ mod tests {
         assert_eq!(
             disagreements,
             [
-                from_year_month_day(1984, 12, 22),
-                from_year_month_day(1985, 1, 21),
-                from_year_month_day(1985, 2, 20),
+                gregorian::to_fixed_saturating(1984, 12, 22),
+                gregorian::to_fixed_saturating(1985, 1, 21),
+                gregorian::to_fixed_saturating(1985, 2, 20),
             ]
         );
     }
@@ -547,13 +547,13 @@ mod tests {
             ((2034, 3, 20), 2, false),
         ];
         for ((year, month, day), number, leap) in expected {
-            let start = from_year_month_day(year, month, day);
+            let start = gregorian::to_fixed_saturating(year, month, day);
             assert_eq!(month_start_containing(start, JAPAN), start, "{start}");
             assert_eq!(month_number(start, JAPAN), (number, leap), "{start}");
         }
         assert_eq!(
             ordinary_date_in_gregorian_year(2033, 8, 15, JAPAN),
-            Some(from_year_month_day(2033, 10, 7))
+            Some(gregorian::to_fixed_saturating(2033, 10, 7))
         );
     }
 
@@ -564,8 +564,9 @@ mod tests {
     #[test]
     fn tokyo_and_beijing_sometimes_begin_a_month_on_different_days() {
         let mut disagreements = 0;
-        let mut start = month_start_containing(from_year_month_day(1950, 1, 1), Meridian::JAPAN);
-        let end = from_year_month_day(2050, 1, 1);
+        let mut start =
+            month_start_containing(gregorian::to_fixed_saturating(1950, 1, 1), Meridian::JAPAN);
+        let end = gregorian::to_fixed_saturating(2050, 1, 1);
         while start < end {
             if new_moon_day_on_or_before(start, Meridian::CHINA) != start {
                 disagreements += 1;

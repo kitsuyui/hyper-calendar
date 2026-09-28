@@ -11,6 +11,7 @@
 //! [`Rule::Offset`], [`Rule::Tabulated`] and [`Rule::Unsettled`].
 
 #[cfg(feature = "alloc")]
+use hc_astro::lunar::MoonPhase;
 use hc_astro::riseset::Location;
 use hc_calendar::Calendar as _;
 use hc_calendar::fixed::Moment;
@@ -34,7 +35,7 @@ use hc_calendars_solar::{
     bahai_kept, bangladeshi, coptic, ethiopic, gregorian, julian, mandaean, nanakshahi, persian,
     revised_julian, zoroastrian,
 };
-use hc_core::math::{floor, normalize_degrees};
+use hc_core::math::{floor, modulo, normalize_degrees};
 use hc_seasons::solar_terms::term_moment;
 use hc_seasons::zodiac::sidereal::ingress_moment;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
@@ -673,26 +674,6 @@ pub enum TibetanMonth {
     Unrepeated(u8),
 }
 
-/// A lunar phase a [`Rule::LunarPhase`] can key to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Phase {
-    /// Conjunction.
-    New,
-    /// Opposition — the full moon.
-    Full,
-}
-
-impl Phase {
-    /// The elongation from the Sun, in degrees, that defines this phase.
-    #[must_use]
-    pub const fn elongation_degrees(self) -> f64 {
-        match self {
-            Self::New => 0.0,
-            Self::Full => 180.0,
-        }
-    }
-}
-
 /// The shape of a holiday.
 ///
 /// Each variant answers the same question — which fixed days does this fall
@@ -792,7 +773,7 @@ pub enum Rule {
     /// [`crate::traditions::BUDDHIST_THAI`] has `thai-lunar`, uses it.
     LunarPhase {
         /// Which phase.
-        phase: Phase,
+        phase: MoonPhase,
         /// The Gregorian month the search window opens in.
         month: u8,
         /// The day of the month the search window opens on.
@@ -1396,16 +1377,16 @@ impl Window {
 /// day by less than one more. The estimate is the search's own arithmetic,
 /// repeated here so that the bound cannot disagree with it.
 fn solar_term_bound(year: i64, term: SolarTerm) -> (Rd, Rd) {
-    let new_year = Moment(hc_astro::time::gregorian_new_year(year).0 as f64);
+    let new_year = Moment(hc_calendar::gregorian::new_year(year).0 as f64);
     let rate = hc_astro::MEAN_TROPICAL_YEAR / 360.0;
     let to_go = term.solar_longitude_degrees() - hc_astro::solar_longitude(new_year);
-    let to_go = to_go - 360.0 * floor(to_go / 360.0);
+    let to_go = modulo(to_go, 360.0);
     let estimate = floor(new_year.0 + rate * to_go) as i64;
     (Rd(estimate - 7), Rd(estimate + 7))
 }
 
 /// The first and last fixed day of a Gregorian month.
-fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
+pub(crate) fn gregorian_month_span(year: i64, month: u8) -> Option<(Rd, Rd)> {
     let start = gregorian::to_fixed(year, month, 1).ok()?;
     let length = gregorian::days_in_month(year, month)?;
     Some((start, Rd(start.0 + i64::from(length) - 1)))
@@ -1462,7 +1443,7 @@ pub(crate) trait Lookups {
     /// [`lunar_phase_day`].
     fn lunar_phase_day(
         &mut self,
-        phase: Phase,
+        phase: MoonPhase,
         year: i64,
         month: u8,
         day: u8,
@@ -1522,7 +1503,7 @@ impl Lookups for Uncached {
 
     fn lunar_phase_day(
         &mut self,
-        phase: Phase,
+        phase: MoonPhase,
         year: i64,
         month: u8,
         day: u8,
@@ -1639,7 +1620,7 @@ pub struct EvaluationContext {
     tithis: Memo<(LocationKey, Prevalence, Rd), u8>,
     ingresses: Memo<(i64, SiderealSign, AyanamsaKey), Moment>,
     terms: Memo<(i64, SolarTerm), Moment>,
-    lunar_phases: Memo<(Phase, i64, u8, u8, Meridian), Days>,
+    lunar_phases: Memo<(MoonPhase, i64, u8, u8, Meridian), Days>,
     nakshatras: Memo<NakshatraKey, Days>,
 }
 
@@ -1731,7 +1712,7 @@ impl Lookups for EvaluationContext {
 
     fn lunar_phase_day(
         &mut self,
-        phase: Phase,
+        phase: MoonPhase,
         year: i64,
         month: u8,
         day: u8,
@@ -2104,7 +2085,7 @@ fn day_holding_most_of(meridian: Meridian, (from, to): (Moment, Moment)) -> Rd {
     best.0
 }
 
-fn lunar_phase_day(phase: Phase, year: i64, month: u8, day: u8, meridian: Meridian) -> Days {
+fn lunar_phase_day(phase: MoonPhase, year: i64, month: u8, day: u8, meridian: Meridian) -> Days {
     let Ok(anchor) = gregorian::to_fixed(year, month, day) else {
         return Days::new();
     };

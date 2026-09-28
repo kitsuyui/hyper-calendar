@@ -13,7 +13,7 @@
 //! one by reference.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::{Sexagenary, sexagenary_day};
+use hc_calendar::cycle::{Sexagenary, branch_of_solar_term_month, sexagenary_day};
 use hc_core::math::{floor, normalize_degrees};
 use hc_seasons::lunisolar::{LunisolarDay, lunisolar_day};
 use hc_seasons::solar_terms::SolarTerm;
@@ -32,9 +32,6 @@ const LICHUN_LONGITUDE: f64 = 315.0;
 /// year back — and later than 31.5 days before the instant wanted brackets
 /// exactly one crossing, so 35 is comfortably inside both bounds.
 const SEARCH_LOOKBACK_DAYS: f64 = 35.0;
-
-/// The earthly branch index of 寅, which names the first 節月.
-const BRANCH_OF_FIRST_SOLAR_MONTH: u8 = 2;
 
 /// A 節月: one of the twelve months that begin at a sectional solar term.
 ///
@@ -81,7 +78,7 @@ impl SolarMonth {
     /// first, wrapping to 1 (丑) for the twelfth.
     #[must_use]
     pub const fn branch_index(self) -> u8 {
-        (self.number + BRANCH_OF_FIRST_SOLAR_MONTH - 1) % 12
+        branch_of_solar_term_month(self.number)
     }
 
     /// The zero-based index into a twelve-entry table written in almanac

@@ -384,14 +384,10 @@ impl StaveDay {
     }
 }
 
-/// Days of a common Julian year before the first of each month.
-const DAYS_BEFORE: [u16; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-
-/// The day's letter in a common year: 1 January is A, and the seven run on
-/// round the year.
-const fn common_letter(month: u8, day: u8) -> DominicalLetter {
-    let index = (DAYS_BEFORE[month as usize - 1] + day as u16 - 1) % 7;
-    DominicalLetter::ALL[index as usize]
+/// The letter of the `ordinal`-th day of a common year: 1 January is A,
+/// and the seven run on round the year.
+const fn common_letter(ordinal: u16) -> DominicalLetter {
+    DominicalLetter::ALL[((ordinal - 1) % 7) as usize]
 }
 
 /// The golden number whose new moon falls on a day of a common year.
@@ -418,7 +414,9 @@ pub fn reading(month: u8, day: u8, leap: bool) -> CalendarResult<StaveDay> {
     let letter = if month == 2 && day == 29 {
         None
     } else {
-        Some(common_letter(month, day))
+        Some(common_letter(hc_calendar::gregorian::ordinal_day(
+            month, day, false,
+        )?))
     };
     let lunar_day = if leap && month == 2 && day >= 25 {
         day - 1
@@ -479,9 +477,10 @@ pub fn paschal_new_moon(year: i64) -> CalendarResult<Rd> {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::Weekday;
+
     use super::*;
     use crate::cycles::{golden_number, julian_dominical_letter, julian_epact};
-    use hc_calendar::Weekday;
 
     /// Every day of a common year, in order, with its table column.
     fn common_days() -> impl Iterator<Item = (u8, u8)> {
@@ -497,7 +496,9 @@ mod tests {
         let mut days = Vec::new();
         for (column, cell) in NEW_MOONS[usize::from(number) - 1].iter().enumerate() {
             for &day in *cell {
-                days.push(i64::from(DAYS_BEFORE[column]) + i64::from(day) - 1);
+                let month = column as u8 + 1;
+                let ordinal = hc_calendar::gregorian::ordinal_day(month, day, false).unwrap();
+                days.push(i64::from(ordinal) - 1);
             }
         }
         days

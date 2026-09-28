@@ -35,7 +35,7 @@
 //! `stata-date` and `sas-date` in `hc-calendars-solar`.
 //! `docs/systems/statistical-software-dates.md` describes all five.
 
-use crate::duration::{ATTOS_PER_SEC, Duration};
+use crate::duration::{ATTOS_PER_SEC, Duration, SECONDS_PER_DAY};
 use crate::error::{TimeError, TimeResult};
 use crate::scale::{Instant, Tai};
 use crate::unix::{LeapPolicy, UnixTime, UtcInstant, tai_from_utc, utc_from_tai};
@@ -55,7 +55,6 @@ pub const STATA_FIRST_DAY: i64 = -679_350;
 /// The last Stata day, 31dec9999, 2 936 549 in `%td`.
 pub const STATA_LAST_DAY: i64 = 2_936_549;
 
-const SECONDS_PER_DAY: i64 = 86_400;
 const MILLIS_PER_DAY: i64 = 86_400_000;
 const ATTOS_PER_MILLI: u64 = 1_000_000_000_000_000;
 

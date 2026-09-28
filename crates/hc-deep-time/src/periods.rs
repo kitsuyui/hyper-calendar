@@ -20,6 +20,7 @@
 //! purpose. Anyone who needs a galactic year to better than ten per cent
 //! needs a specific paper's parameters, not a library constant.
 
+use hc_core::epoch_notation::JULIAN_YEAR_SECONDS;
 use hc_uncertainty::Uncertain;
 
 use crate::error::DeepTimeResult;
@@ -70,7 +71,7 @@ impl AstronomicalPeriod {
     ///
     /// Propagates [`crate::DeepTimeError::NotFinite`] for a non-finite pair.
     pub fn uncertain_seconds(&self) -> DeepTimeResult<Uncertain> {
-        let seconds = crate::constants::JULIAN_YEAR_SECONDS;
+        let seconds = JULIAN_YEAR_SECONDS;
         Ok(Uncertain::new(
             self.julian_years * seconds,
             self.spread_julian_years * seconds,

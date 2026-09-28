@@ -485,7 +485,7 @@ impl HinduSolarCalendar {
         let gregorian_year = year - self.era_offset;
         self.model.ingress_after(
             self.tradition.year_opens_at,
-            Moment(hc_astro::time::gregorian_new_year(gregorian_year).0 as f64),
+            Moment(hc_calendar::gregorian::new_year(gregorian_year).0 as f64),
         )
     }
 

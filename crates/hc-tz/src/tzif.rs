@@ -681,10 +681,10 @@ impl TimeZone for TzifTimeZone<'_> {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CivilTime, gregorian};
+
     use super::*;
-    use crate::gregorian::rd_from_ymd;
     use crate::zone::Disambiguation;
-    use hc_calendar::{CivilTime, Rd};
 
     /// A handcrafted version 2 file: two local time types (`EST` and `EDT`),
     /// four transitions covering 2024 and 2025 on the United States rules,
@@ -743,7 +743,7 @@ mod tests {
 
     fn civil(year: i64, month: u8, day: u8, hour: u8, minute: u8, second: u8) -> CivilDateTime {
         CivilDateTime::new(
-            Rd(rd_from_ymd(year, month, day)),
+            gregorian::to_fixed_saturating(year, month, day),
             CivilTime::hms(hour, minute, second).unwrap(),
         )
     }

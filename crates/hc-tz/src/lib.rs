@@ -50,7 +50,6 @@
 pub mod builtin;
 pub mod error;
 pub mod fixed;
-mod gregorian;
 pub mod location;
 pub mod offset;
 pub mod posix;

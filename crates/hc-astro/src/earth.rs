@@ -41,10 +41,13 @@
 //! here.
 
 use hc_calendar::fixed::Moment;
-use hc_core::math::{DEG_TO_RAD, RAD_TO_DEG, asin, atan2, cos_deg, normalize_degrees, sin_deg};
+use hc_core::math::{
+    DEG_TO_RAD, RAD_TO_DEG, acos, asin, atan2, cos_deg, normalize_degrees, poly, sin_deg,
+};
 
-use crate::time::{J2000, JULIAN_CENTURY_DAYS, julian_centuries};
-use crate::util::{clamp, poly};
+use hc_core::epoch_notation::JULIAN_CENTURY_DAYS;
+
+use crate::time::{J2000, julian_centuries};
 
 /// The two nutation angles, in degrees.
 ///
@@ -269,9 +272,9 @@ const ERA_EXCESS_TURNS_PER_DAY: f64 = 0.002_737_811_911_354_48;
 #[must_use]
 pub fn earth_rotation_angle(ut1: Moment) -> f64 {
     let days = ut1.0 - J2000.0;
-    let day_fraction = crate::util::modulo(days, 1.0);
+    let day_fraction = hc_core::math::modulo(days, 1.0);
     let turns = day_fraction + ERA_AT_J2000_TURNS + ERA_EXCESS_TURNS_PER_DAY * days;
-    normalize_degrees(360.0 * crate::util::modulo(turns, 1.0))
+    normalize_degrees(360.0 * hc_core::math::modulo(turns, 1.0))
 }
 
 /// Mean sidereal time at Greenwich by the **IAU 2006** convention, in
@@ -359,7 +362,43 @@ pub fn altitude_degrees(
         + cos_deg(latitude_degrees)
             * cos_deg(position.declination_degrees)
             * cos_deg(local_hour_angle_degrees);
-    asin(clamp(sine, -1.0, 1.0)) * RAD_TO_DEG
+    asin(sine.clamp(-1.0, 1.0)) * RAD_TO_DEG
+}
+
+/// The angle on the sky between two directions, in degrees, from 0 to 180:
+/// `cos d = sin δ₁ sin δ₂ + cos δ₁ cos δ₂ cos(α₁ − α₂)`.
+///
+/// The cosine is clamped to `[−1, 1]` before the arccosine, as in
+/// [`altitude_degrees`], so rounding cannot turn two coincident directions
+/// into a `NaN`.
+#[must_use]
+pub fn angular_separation(a: Equatorial, b: Equatorial) -> f64 {
+    let cosine = sin_deg(a.declination_degrees) * sin_deg(b.declination_degrees)
+        + cos_deg(a.declination_degrees)
+            * cos_deg(b.declination_degrees)
+            * cos_deg(a.right_ascension_degrees - b.right_ascension_degrees);
+    acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG
+}
+
+/// The hour angle, from 0 to 180 degrees, at which a direction stands at
+/// `altitude_degrees` at a latitude: the inverse of [`altitude_degrees`],
+/// `cos H = (sin h − sin φ sin δ) / (cos φ cos δ)`.
+///
+/// The rising is at −H and the setting at +H. `None` where the direction
+/// never reaches that altitude or never leaves it, because the cosine is
+/// outside `[−1, 1]`: a polar day or night for the Sun.
+#[must_use]
+pub fn hour_angle_at_altitude(
+    position: Equatorial,
+    latitude_degrees: f64,
+    altitude_degrees: f64,
+) -> Option<f64> {
+    let cosine = (sin_deg(altitude_degrees)
+        - sin_deg(latitude_degrees) * sin_deg(position.declination_degrees))
+        / (cos_deg(latitude_degrees) * cos_deg(position.declination_degrees));
+    (-1.0..=1.0)
+        .contains(&cosine)
+        .then(|| acos(cosine) * RAD_TO_DEG)
 }
 
 /// The hour angle of a direction, in degrees, at a moment and an east-positive
@@ -496,7 +535,7 @@ mod tests {
         let at_epoch = earth_rotation_angle(J2000);
         assert!((at_epoch - 0.779_057_273_264_0 * 360.0).abs() < 1e-9);
         let next = earth_rotation_angle(Moment(J2000.0 + 1.0));
-        let advance = crate::util::modulo(next - at_epoch, 360.0);
+        let advance = hc_core::math::modulo(next - at_epoch, 360.0);
         assert!((advance - 0.002_737_811_911_354_48 * 360.0).abs() < 1e-9);
     }
 
@@ -579,7 +618,7 @@ mod tests {
     fn sidereal_time_advances_by_a_full_turn_plus_a_degree_each_day() {
         let a = mean_sidereal_time_iau1982(Moment(730_000.0));
         let b = mean_sidereal_time_iau1982(Moment(730_001.0));
-        let advance = crate::util::modulo(b - a, 360.0);
+        let advance = hc_core::math::modulo(b - a, 360.0);
         assert!((advance - 0.985_647).abs() < 1e-4, "advance was {advance}");
     }
 
@@ -625,6 +664,57 @@ mod tests {
         let anti = altitude_degrees(position, 180.0, 35.0);
         assert!((transit - 55.0).abs() < 1e-9, "transit altitude {transit}");
         assert!((anti + 55.0).abs() < 1e-9, "anti-transit altitude {anti}");
+    }
+
+    #[test]
+    fn the_hour_angle_at_an_altitude_inverts_the_altitude() {
+        let position = Equatorial {
+            right_ascension_degrees: 40.0,
+            declination_degrees: 18.0,
+        };
+        for latitude in [-60.0, -20.0, 0.0, 35.0, 64.0] {
+            for altitude in [-0.833, 0.0, 10.0, 30.0] {
+                if let Some(hour_angle) = hour_angle_at_altitude(position, latitude, altitude) {
+                    let back = altitude_degrees(position, hour_angle, latitude);
+                    assert!(
+                        (back - altitude).abs() < 1e-9,
+                        "{latitude} {altitude}: {back}"
+                    );
+                }
+            }
+        }
+        // The Sun at the northern summer solstice never sets at 80° N.
+        let solstice = Equatorial {
+            right_ascension_degrees: 90.0,
+            declination_degrees: 23.44,
+        };
+        assert_eq!(hour_angle_at_altitude(solstice, 80.0, -0.833), None);
+    }
+
+    #[test]
+    fn the_separation_of_two_directions_is_symmetric_and_bounded() {
+        let a = Equatorial {
+            right_ascension_degrees: 10.0,
+            declination_degrees: 20.0,
+        };
+        let b = Equatorial {
+            right_ascension_degrees: 350.0,
+            declination_degrees: -5.0,
+        };
+        assert_eq!(angular_separation(a, a), 0.0);
+        assert_eq!(angular_separation(a, b), angular_separation(b, a));
+        let opposite = Equatorial {
+            right_ascension_degrees: 190.0,
+            declination_degrees: -20.0,
+        };
+        assert!((angular_separation(a, opposite) - 180.0).abs() < 1e-9);
+        // Along the equator the separation is the difference of right
+        // ascensions, across 0° as well.
+        let on_equator = |ra| Equatorial {
+            right_ascension_degrees: ra,
+            declination_degrees: 0.0,
+        };
+        assert!((angular_separation(on_equator(355.0), on_equator(5.0)) - 10.0).abs() < 1e-9);
     }
 
     #[test]

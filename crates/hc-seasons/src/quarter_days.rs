@@ -47,7 +47,7 @@
 
 use hc_calendar::Rd;
 
-use crate::gregorian;
+use hc_calendar::gregorian;
 
 /// Whose quarter days these are.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -130,7 +130,7 @@ impl QuarterDay {
     /// The fixed day this falls on in `year`.
     #[must_use]
     pub const fn day_in(self, year: i64) -> Rd {
-        gregorian::from_year_month_day(year, self.month, self.day)
+        gregorian::to_fixed_saturating(year, self.month, self.day)
     }
 }
 
@@ -222,7 +222,7 @@ mod tests {
     use super::*;
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
-        gregorian::from_year_month_day(year, month, day)
+        gregorian::to_fixed_saturating(year, month, day)
     }
 
     #[test]

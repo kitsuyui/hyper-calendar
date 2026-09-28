@@ -37,11 +37,11 @@
 
 use core::fmt;
 
-use hc_core::math::floor;
+use hc_core::math::{floor, modulo};
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
 use crate::bodies::{Body, EpochBasis, by_name, whole_and_fraction};
-use crate::util::{j2000_offset_days, modulo};
+use crate::util::j2000_offset_days;
 
 /// A local time on some body: which local day, and how far through it.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]

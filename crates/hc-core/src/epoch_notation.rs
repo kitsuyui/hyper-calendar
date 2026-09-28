@@ -29,15 +29,23 @@
 //! 10⁻¹³ of a year, some 3 µs; the conversions do their arithmetic on the
 //! exact span from J2000.0 and round only at the end.
 
-use crate::duration::Duration;
+use crate::duration::{Duration, SECONDS_PER_DAY_F64};
+use crate::epoch::J2000_TT_SECONDS;
 use crate::error::TimeResult;
 use crate::scale::{Instant, Tt};
 
 /// J2000.0, 2000-01-01T12:00:00 TT, as a TT reading from 1970 TT.
-const J2000_TT: Duration = Duration::from_secs(946_728_000);
+const J2000_TT: Duration = Duration::from_secs(J2000_TT_SECONDS as i128);
 
 /// Days in a Julian year.
 pub const JULIAN_YEAR_DAYS: f64 = 365.25;
+
+/// Days in a Julian century, the unit the astronomical series are stated in.
+pub const JULIAN_CENTURY_DAYS: f64 = 100.0 * JULIAN_YEAR_DAYS;
+
+/// SI seconds in a Julian year of 365.25 days of 86 400 s: the light-year's
+/// year, and the year of the IAU's `a` symbol (IAU 2012 Resolution B2).
+pub const JULIAN_YEAR_SECONDS: f64 = JULIAN_YEAR_DAYS * SECONDS_PER_DAY_F64;
 
 /// Days in the Besselian (tropical) year of `eraEpb`.
 pub const BESSELIAN_YEAR_DAYS: f64 = 365.242_198_781;
@@ -145,6 +153,12 @@ pub fn from_besselian_epoch(year: f64) -> TimeResult<Instant<Tt>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_julian_year_and_century_are_whole_multiples_of_the_day() {
+        assert_eq!(JULIAN_YEAR_SECONDS, 31_557_600.0);
+        assert_eq!(JULIAN_CENTURY_DAYS, 36_525.0);
+    }
 
     /// The instant of a Julian Date of TT.
     fn tt_of_jd(jd: f64) -> Instant<Tt> {

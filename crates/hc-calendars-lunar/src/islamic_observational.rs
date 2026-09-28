@@ -128,12 +128,12 @@ use hc_astro::riseset::{
 };
 use hc_astro::{Location, MEAN_SYNODIC_MONTH, Twilight, dusk, moonset, sunset};
 use hc_calendar::fixed::Moment;
+use hc_calendar::gregorian;
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
 };
 use hc_core::math::{RAD_TO_DEG, acos, cos_deg, floor, round, sin_deg};
 
-use crate::civil;
 use crate::tabular::{CIVIL_EPOCH, ERA, IslamicDate};
 
 /// The machine identifier CLDR uses for this calendar.
@@ -158,10 +158,10 @@ pub const SAUDI_RULE_RD_ID: CalendarId = CalendarId("islamic-saudi-rule-rd");
 pub const EPOCH: Rd = CIVIL_EPOCH;
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = civil::to_rd(1900, 1, 1);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1900, 1, 1);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = civil::to_rd(2100, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(2100, 12, 31);
 
 /// The longest month a prediction can produce: 31 days.
 ///
@@ -765,14 +765,25 @@ pub fn yallop_q(moment: Moment, location: Location) -> f64 {
 /// Sun's own parallax, under 9″, is left out.
 #[must_use]
 pub fn topocentric_arc_of_light(moment: Moment, location: Location) -> f64 {
-    let sun = solar_altitude(moment, location);
-    let moon = lunar_altitude(moment, location);
-    let topocentric = topocentric_lunar_altitude(moment, location);
-    let cos_azimuth = ((cos_deg(arc_of_light(moment)) - sin_deg(sun) * sin_deg(moon))
-        / (cos_deg(sun) * cos_deg(moon)))
+    lowered_arc(
+        arc_of_light(moment),
+        solar_altitude(moment, location),
+        lunar_altitude(moment, location),
+        topocentric_lunar_altitude(moment, location),
+    )
+}
+
+/// The arc between the Sun, at `sun_altitude`, and the Moon, once the Moon
+/// is lowered along its vertical from `geocentric` to `topocentric`
+/// altitude, given the two bodies' geocentric `arc`, all in degrees: the
+/// difference in azimuth, which parallax leaves alone, recovered from the
+/// geocentric triangle, and the arc recomputed with the lowered Moon.
+pub(crate) fn lowered_arc(arc: f64, sun_altitude: f64, geocentric: f64, topocentric: f64) -> f64 {
+    let cos_azimuth = ((cos_deg(arc) - sin_deg(sun_altitude) * sin_deg(geocentric))
+        / (cos_deg(sun_altitude) * cos_deg(geocentric)))
     .clamp(-1.0, 1.0);
-    let cosine =
-        sin_deg(sun) * sin_deg(topocentric) + cos_deg(sun) * cos_deg(topocentric) * cos_azimuth;
+    let cosine = sin_deg(sun_altitude) * sin_deg(topocentric)
+        + cos_deg(sun_altitude) * cos_deg(topocentric) * cos_azimuth;
     acos(cosine.clamp(-1.0, 1.0)) * RAD_TO_DEG
 }
 
@@ -1326,7 +1337,7 @@ mod tests {
     fn the_evaluation_moment_falls_between_sunset_and_civil_dusk() {
         let site = ObservationSite::MECCA;
         for offset in (0..365i64).step_by(17) {
-            let rd = Rd(civil::to_rd(2024, 1, 1).0 + offset);
+            let rd = Rd(gregorian::to_fixed_saturating(2024, 1, 1).0 + offset);
             let set = sunset(rd, MECCA).expect("the Sun sets at Mecca");
             let civil_dusk = dusk(rd, MECCA, Twilight::Civil).expect("twilight ends at Mecca");
             let judged = site.evaluation_moment(rd).expect("both exist");
@@ -1341,8 +1352,8 @@ mod tests {
     /// bisection between sunset and civil dusk.
     fn worst_interpolation_error_seconds(location: Location) -> f64 {
         let mut worst = 0.0f64;
-        let first = civil::to_rd(2_000, 1, 1).0;
-        let last = civil::to_rd(2_030, 12, 31).0;
+        let first = gregorian::to_fixed_saturating(2_000, 1, 1).0;
+        let last = gregorian::to_fixed_saturating(2_030, 12, 31).0;
         for day in (first..=last).step_by(13) {
             let rd = Rd(day);
             let (Some(set), Some(civil_dusk)) =
@@ -1390,7 +1401,7 @@ mod tests {
         // down the shape the search relies on: a run of five to eight
         // visible evenings, then a long gap around the next conjunction.
         let site = ObservationSite::MECCA;
-        let start = civil::to_rd(2024, 3, 1);
+        let start = gregorian::to_fixed_saturating(2024, 3, 1);
         let mut visible = [false; 90];
         for (offset, seen) in visible.iter_mut().enumerate() {
             *seen = site.crescent_visible_on_the_eve_of(Rd(start.0 + offset as i64));
@@ -1430,7 +1441,7 @@ mod tests {
     fn a_month_start_is_followed_by_twenty_nine_or_thirty_days() {
         let site = ObservationSite::MECCA;
         let mut cursor = site
-            .month_start_on_or_before(civil::to_rd(2020, 1, 15))
+            .month_start_on_or_before(gregorian::to_fixed_saturating(2020, 1, 15))
             .expect("converges");
         for _ in 0..40 {
             let next = site
@@ -1448,7 +1459,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_four_years_of_days() {
         let calendar = IslamicObservationalCalendar::MECCA;
-        let start = civil::to_rd(2021, 6, 1);
+        let start = gregorian::to_fixed_saturating(2021, 6, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..1_500i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
@@ -1635,7 +1646,7 @@ mod tests {
         ) in YALLOP_TABLE_4
         {
             let location = Location::new(latitude, longitude, 0.0);
-            let evening = civil::to_rd(year, month, day);
+            let evening = gregorian::to_fixed_saturating(year, month, day);
             let best = bruin_best_time(evening, location).expect("the Moon sets after the Sun");
             let computed_parallax = hc_astro::lunar::lunar_parallax(best) * 60.0;
             assert!(
@@ -1674,7 +1685,7 @@ mod tests {
 
     #[test]
     fn bruins_best_time_is_four_ninths_of_the_lag_after_sunset() {
-        let evening = civil::to_rd(2024, 3, 11);
+        let evening = gregorian::to_fixed_saturating(2024, 3, 11);
         let set = sunset(evening, MECCA).expect("the Sun sets");
         let moon = moonset(evening, MECCA).expect("the Moon sets");
         let best = bruin_best_time(evening, MECCA).expect("after sunset");
@@ -1682,7 +1693,7 @@ mod tests {
         // The evening of the conjunction at Mecca, 10 March 2024: the Moon
         // set thirteen minutes after the Sun, so there is still a best
         // time, and it is under six minutes after sunset.
-        let conjunction = civil::to_rd(2024, 3, 10);
+        let conjunction = gregorian::to_fixed_saturating(2024, 3, 10);
         let early = bruin_best_time(conjunction, MECCA).expect("the Moon set after the Sun");
         let set = sunset(conjunction, MECCA).expect("the Sun sets");
         assert!((early.0 - set.0) * 1_440.0 < 6.0);
@@ -1774,7 +1785,7 @@ mod tests {
             assert!((29..=31).contains(&length), "{cursor} ran {length}");
             lengths[(length - 29) as usize] += 1;
             if length == 31 {
-                long_months.push(civil::from_rd(cursor));
+                long_months.push(gregorian::ymd(cursor));
             }
             cursor = next;
         }
@@ -1835,8 +1846,8 @@ mod tests {
             crate::hebrew_observational::HAIFA,
             VisibilityCriterion::SHAUKAT,
         ));
-        let first = civil::to_rd(2_042, 9, 16);
-        let last = civil::to_rd(2_042, 10, 16);
+        let first = gregorian::to_fixed_saturating(2_042, 9, 16);
+        let last = gregorian::to_fixed_saturating(2_042, 10, 16);
         assert_eq!(haifa.decompose(first), Ok((1_464, 10, 1)));
         assert_eq!(haifa.decompose(last), Ok((1_464, 10, 31)));
         assert_eq!(haifa.compose(1_464, 10, 31), Ok(last));
@@ -1863,8 +1874,8 @@ mod tests {
         let cairo = CAIRO;
         let haifa = crate::hebrew_observational::HAIFA;
         for (place, first) in [
-            (cairo, civil::to_rd(1_988, 8, 14)),
-            (haifa, civil::to_rd(2_042, 9, 16)),
+            (cairo, gregorian::to_fixed_saturating(1_988, 8, 14)),
+            (haifa, gregorian::to_fixed_saturating(2_042, 9, 16)),
         ] {
             let calendar = IslamicObservationalCalendar::new(ObservationSite::new(
                 place,
@@ -1894,7 +1905,7 @@ mod tests {
         let mecca = ObservationSite::MECCA;
         let mut differences = 0;
         for offset in 0..500i64 {
-            let rd = Rd(civil::to_rd(2020, 1, 1).0 + offset);
+            let rd = Rd(gregorian::to_fixed_saturating(2020, 1, 1).0 + offset);
             if jakarta.crescent_visible_on_the_eve_of(rd)
                 != mecca.crescent_visible_on_the_eve_of(rd)
             {
@@ -1918,7 +1929,10 @@ mod tests {
         let count = |site: &ObservationSite| {
             (0..400i64)
                 .filter(|offset| {
-                    site.crescent_visible_on_the_eve_of(Rd(civil::to_rd(2022, 1, 1).0 + offset))
+                    site.crescent_visible_on_the_eve_of(Rd(gregorian::to_fixed_saturating(
+                        2022, 1, 1,
+                    )
+                    .0 + offset))
                 })
                 .count()
         };
@@ -2099,7 +2113,7 @@ mod tests {
         // 1518 AH: on the evening of 12 July 2094 the Moon sets 3.8
         // minutes after the Sun at Mecca, just past conjunction, so the
         // rule begins Rabīʿ I on the 13th and the table on the 14th.
-        let evening = civil::to_rd(2_094, 7, 12);
+        let evening = gregorian::to_fixed_saturating(2_094, 7, 12);
         let set = sunset(evening, MECCA).expect("the Sun sets");
         let moon = moonset(evening, MECCA).expect("the Moon sets");
         let lag = (moon.0 - set.0) * 1_440.0;
@@ -2108,10 +2122,13 @@ mod tests {
         // The worked example of docs/systems/hijri.md: 1 Ramaḍān 1445 by
         // the rule is Monday 11 March 2024, the table's day, a day before
         // the prediction at Mecca.
-        assert_eq!(saudi.compose(1_445, 9, 1), Ok(civil::to_rd(2_024, 3, 11)));
+        assert_eq!(
+            saudi.compose(1_445, 9, 1),
+            Ok(gregorian::to_fixed_saturating(2_024, 3, 11))
+        );
         assert_eq!(
             IslamicObservationalCalendar::MECCA.compose(1_445, 9, 1),
-            Ok(civil::to_rd(2_024, 3, 12))
+            Ok(gregorian::to_fixed_saturating(2_024, 3, 12))
         );
     }
 
@@ -2152,11 +2169,11 @@ mod tests {
         assert_eq!(saudi_rule_against_the_table(1_423, 1_446), [288, 287, 1, 0]);
         assert_eq!(
             IslamicObservationalCalendar::SAUDI_RULE_RD.compose(1_427, 6, 1),
-            Ok(civil::to_rd(2_006, 6, 26))
+            Ok(gregorian::to_fixed_saturating(2_006, 6, 26))
         );
         assert_eq!(
             islamic_umalqura::to_fixed(1_427, 6, 1),
-            Ok(civil::to_rd(2_006, 6, 27))
+            Ok(gregorian::to_fixed_saturating(2_006, 6, 27))
         );
         // 1420–1422, when moonset after sunset alone was the rule and a
         // month could begin before the conjunction, as van Gent says Rajab
@@ -2224,7 +2241,8 @@ mod tests {
     #[test]
     fn odehs_topocentric_quantities_sit_below_the_geocentric_ones() {
         let boston = Location::new(42.3, -71.1, 0.0);
-        let moment = bruin_best_time(civil::to_rd(1921, 2, 8), boston).expect("a best time");
+        let moment = bruin_best_time(gregorian::to_fixed_saturating(1921, 2, 8), boston)
+            .expect("a best time");
         let parallax = hc_astro::lunar::lunar_parallax(moment);
         let drop = arc_of_vision(moment, boston) - topocentric_arc_of_vision(moment, boston);
         assert!((drop - parallax).abs() < 0.01, "{drop} against {parallax}");
@@ -2281,7 +2299,7 @@ mod tests {
             let disagreements: Vec<_> = EVENINGS
                 .iter()
                 .filter(|((year, month, day), met)| {
-                    let first = civil::to_rd(*year, *month, *day + 1);
+                    let first = gregorian::to_fixed_saturating(*year, *month, *day + 1);
                     INDONESIA.iter().any(|place| {
                         ObservationSite::new(*place, criterion)
                             .crescent_visible_on_the_eve_of(first)
@@ -2291,7 +2309,7 @@ mod tests {
                 .collect();
             assert_eq!(disagreements, [(2025, 12, 20)], "{criterion:?}");
         }
-        let evening = civil::to_rd(2025, 12, 20);
+        let evening = gregorian::to_fixed_saturating(2025, 12, 20);
         let [aceh, jakarta] = INDONESIA.map(|place| {
             let set = sunset(evening, place).expect("a sunset");
             (arc_of_light(set), topocentric_lunar_altitude(set, place))

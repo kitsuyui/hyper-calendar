@@ -193,8 +193,9 @@ pub const ALL: [CircadCalendar; 4] = [
 mod tests {
     use super::*;
     use crate::circad::CircadDate;
-    use crate::util::{SECONDS_PER_DAY, j2000_offset_days, tai_from_utc_fields};
+    use crate::util::{j2000_offset_days, tai_from_utc_fields};
     use crate::util::{j2000_tt_days_from_utc, utc_unix_seconds};
+    use hc_core::duration::SECONDS_PER_DAY_F64;
 
     /// A UTC time as its fields: year, month, day, hour, minute, second.
     type Utc = (i64, u8, u8, u8, u8, u8);
@@ -212,7 +213,8 @@ mod tests {
         for (calendar, (y, mo, d, h, mi, s)) in CONJUNCTIONS {
             let conjunction = tai_from_utc_fields(y, mo, d, h, mi, s).unwrap();
             let start = calendar.circad_start(0).unwrap();
-            let gap = (j2000_offset_days(start) - j2000_offset_days(conjunction)) * SECONDS_PER_DAY;
+            let gap =
+                (j2000_offset_days(start) - j2000_offset_days(conjunction)) * SECONDS_PER_DAY_F64;
             assert!(gap.abs() < 1e-3, "{}: {gap} s", calendar.rule().id);
             // A second after the conjunction is 1 Januarius 2002, a Solis; a
             // second before is the last circad of 2001.
@@ -310,7 +312,7 @@ mod tests {
         assert_eq!(IO_RULE.month_lengths(2_002)[12], 24);
         let start = GREGORIAN_IO.circad_start(408).unwrap();
         let expected = tai_from_utc_fields(2002, 12, 27, 17, 21, 49).unwrap();
-        let gap = (j2000_offset_days(start) - j2000_offset_days(expected)) * SECONDS_PER_DAY;
+        let gap = (j2000_offset_days(start) - j2000_offset_days(expected)) * SECONDS_PER_DAY_F64;
         assert!(gap.abs() < 1.0, "{gap} s");
         let date = GREGORIAN_IO
             .date_at(tai_from_utc_fields(2002, 12, 27, 18, 0, 0).unwrap())

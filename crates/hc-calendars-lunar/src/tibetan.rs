@@ -491,7 +491,7 @@ impl TibetanCalendar {
     #[must_use]
     pub const fn month_of_count(&self, n: i64) -> (i64, u8, bool) {
         let x = self.label(n);
-        let month = (x - 1).rem_euclid(12) + 1;
+        let month = hc_core::math::amod(x, 12);
         let year = (x + 11).div_euclid(12) - 1 + self.epoch_year;
         // A leap month shares its number with its neighbour on the side it
         // takes the number from.
@@ -712,11 +712,12 @@ pub const ANIMALS: [&str; 12] = [
 /// give the element as a colour, which is not carried.
 #[must_use]
 pub fn year_name(year: i64) -> (&'static str, bool, &'static str) {
-    let position = (year - 4).rem_euclid(60);
+    // The Tibetan year shares the Chinese sexagenary year's position.
+    let position = hc_calendar::cycle::sexagenary_year_from_gregorian_year(year);
     (
-        ELEMENTS[(position % 10 / 2) as usize],
-        position % 2 == 0,
-        ANIMALS[(position % 12) as usize],
+        ELEMENTS[usize::from(position.five_phase().index())],
+        position.polarity().is_yang(),
+        ANIMALS[usize::from(position.branch_index())],
     )
 }
 
@@ -847,7 +848,7 @@ impl Calendar for TibetanCalendar {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::civil;
+    use hc_calendar::gregorian;
 
     #[test]
     fn the_named_ranges_are_the_computed_ones() {
@@ -860,7 +861,7 @@ mod tests {
     const VERSIONS: [TibetanCalendar; 4] = [TIBETAN, TIBETAN_TSURPHU, MONGOLIAN, TIBETAN_BHUTAN];
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
-        civil::to_rd(year, month, day)
+        gregorian::to_fixed_saturating(year, month, day)
     }
 
     fn date(year: i64, month: Month, day: u8, leap_day: bool) -> TibetanDate {

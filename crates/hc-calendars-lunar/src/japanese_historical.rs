@@ -123,9 +123,9 @@
 //! that nothing could check would be worse than none, so they are absent
 //! rather than approximate.
 
+use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
-use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, ConjunctionMode, LunisolarCalendar, LunisolarDate, LunisolarParameters,
     MeanMotionModel, MeridianEra, SolarTermMode,
@@ -358,11 +358,11 @@ pub mod senmyo {
     pub const ID: CalendarId = CalendarId("japanese-senmyo");
 
     /// 貞観4年1月1日, Julian 862-02-03, proleptic Gregorian 862-02-07.
-    pub const EARLIEST: Rd = civil::to_rd(862, 2, 7);
+    pub const EARLIEST: Rd = gregorian::to_fixed_saturating(862, 2, 7);
 
     /// 貞享元年12月30日, Gregorian 1685-02-03 — the last day before the Jōkyō
     /// reform.
-    pub const LATEST: Rd = civil::to_rd(1685, 2, 3);
+    pub const LATEST: Rd = gregorian::to_fixed_saturating(1685, 2, 3);
 
     /// Where the period of use comes from.
     pub const USAGE_SOURCE: &str = "貞観4年1月1日 = 862-02-03 Julian, 862-02-07 proleptic Gregorian [wikipedia-ja-senmyo, nao-rekiwiki-senmyo], \\
@@ -458,10 +458,10 @@ pub mod jokyo {
 
     /// 貞享2年1月1日, Gregorian 1685-02-04 — the first day of the first
     /// calendar computed in Japan.
-    pub const EARLIEST: Rd = civil::to_rd(1685, 2, 4);
+    pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1685, 2, 4);
 
     /// 宝暦4年12月30日, Gregorian 1755-02-10.
-    pub const LATEST: Rd = civil::to_rd(1755, 2, 10);
+    pub const LATEST: Rd = gregorian::to_fixed_saturating(1755, 2, 10);
 
     /// Where the period of use comes from.
     pub const USAGE_SOURCE: &str = "貞享2年1月1日 = 1685-02-04, by imperial proclamation [wikipedia-ja-jokyo, nao-rekiwiki-jokyo], to \\
@@ -542,10 +542,10 @@ pub mod horyaku {
     pub const ID: CalendarId = CalendarId("japanese-horyaku");
 
     /// 宝暦5年1月1日, Gregorian 1755-02-11.
-    pub const EARLIEST: Rd = civil::to_rd(1755, 2, 11);
+    pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1755, 2, 11);
 
     /// 寛政9年12月30日, Gregorian 1798-02-15.
-    pub const LATEST: Rd = civil::to_rd(1798, 2, 15);
+    pub const LATEST: Rd = gregorian::to_fixed_saturating(1798, 2, 15);
 
     /// Where the period of use comes from.
     pub const USAGE_SOURCE: &str = "宝暦5年1月1日 = 1755-02-11 [nao-rekiwiki-horyaku, wikipedia-ja-horyaku] to 寛政9年12月30日 = \\
@@ -635,10 +635,10 @@ pub mod kansei {
     pub const ID: CalendarId = CalendarId("japanese-kansei");
 
     /// 寛政10年1月1日, Gregorian 1798-02-16.
-    pub const EARLIEST: Rd = civil::to_rd(1798, 2, 16);
+    pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1798, 2, 16);
 
     /// 天保14年12月29日, Gregorian 1844-02-17.
-    pub const LATEST: Rd = civil::to_rd(1844, 2, 17);
+    pub const LATEST: Rd = gregorian::to_fixed_saturating(1844, 2, 17);
 
     /// Where the period of use comes from.
     pub const USAGE_SOURCE: &str = "寛政10年1月1日 = 1798-02-16 [nao-rekiwiki-kansei, wikipedia-ja-kansei] to 天保14年12月29日 = \\
@@ -843,7 +843,7 @@ mod tests {
     fn senmyo_took_effect_on_the_third_of_february_862_in_the_julian_calendar() {
         // 貞観4年1月1日. The Julian date is 862-02-03; this crate's civil
         // helper is proleptic Gregorian, in which the same day is 862-02-07.
-        assert_eq!(civil::from_rd(senmyo::EARLIEST), (862, 2, 7));
+        assert_eq!(gregorian::ymd(senmyo::EARLIEST), (862, 2, 7));
         assert_eq!(senmyo::EARLIEST.0, 314_512);
         assert_eq!(senmyo::new_year(862), Ok(senmyo::EARLIEST));
         assert_eq!(
@@ -856,7 +856,7 @@ mod tests {
     fn senmyo_names_the_day_of_the_honnoji_incident() {
         // 天正10年6月2日, Julian 1582-06-21 — nineteen days before the
         // Gregorian reform, so proleptic Gregorian 1582-07-01.
-        let rd = civil::to_rd(1582, 7, 1);
+        let rd = gregorian::to_fixed_saturating(1582, 7, 1);
         assert_eq!(
             senmyo::SenmyoCalendar.from_fixed(rd),
             Ok(LunisolarDate::new(1_582, Month::regular(6), 2))
@@ -871,7 +871,7 @@ mod tests {
     fn senmyo_names_the_day_of_sekigahara() {
         // 慶長5年9月15日 = 1600-10-21 Gregorian (1600-10-11 Julian).
         assert_eq!(
-            senmyo::SenmyoCalendar.from_fixed(civil::to_rd(1600, 10, 21)),
+            senmyo::SenmyoCalendar.from_fixed(gregorian::to_fixed_saturating(1600, 10, 21)),
             Ok(LunisolarDate::new(1_600, Month::regular(9), 15))
         );
     }
@@ -879,7 +879,7 @@ mod tests {
     #[test]
     fn senmyo_ends_on_the_day_before_the_jokyo_reform() {
         // 貞享元年12月30日 = 1685-02-03, and the next day is 貞享2年1月1日.
-        assert_eq!(civil::from_rd(senmyo::LATEST), (1685, 2, 3));
+        assert_eq!(gregorian::ymd(senmyo::LATEST), (1685, 2, 3));
         assert_eq!(
             senmyo::SenmyoCalendar.from_fixed(senmyo::LATEST),
             Ok(LunisolarDate::new(1_684, Month::regular(12), 30))
@@ -901,7 +901,7 @@ mod tests {
 
     #[test]
     fn jokyo_took_effect_on_the_fourth_of_february_1685() {
-        assert_eq!(civil::from_rd(jokyo::EARLIEST), (1685, 2, 4));
+        assert_eq!(gregorian::ymd(jokyo::EARLIEST), (1685, 2, 4));
         assert_eq!(jokyo::new_year(1_685), Ok(jokyo::EARLIEST));
         assert_eq!(
             jokyo::JokyoCalendar.from_fixed(jokyo::EARLIEST),
@@ -914,14 +914,14 @@ mod tests {
         // 元禄15年12月14日 = 1703-01-30 Gregorian. The lunisolar year had
         // begun in 1702, so this crate numbers it 1702.
         assert_eq!(
-            jokyo::JokyoCalendar.from_fixed(civil::to_rd(1703, 1, 30)),
+            jokyo::JokyoCalendar.from_fixed(gregorian::to_fixed_saturating(1703, 1, 30)),
             Ok(LunisolarDate::new(1_702, Month::regular(12), 14))
         );
     }
 
     #[test]
     fn horyaku_took_effect_on_the_eleventh_of_february_1755() {
-        assert_eq!(civil::from_rd(horyaku::EARLIEST), (1755, 2, 11));
+        assert_eq!(gregorian::ymd(horyaku::EARLIEST), (1755, 2, 11));
         assert_eq!(horyaku::new_year(1_755), Ok(horyaku::EARLIEST));
         assert_eq!(
             horyaku::HoryakuCalendar.from_fixed(horyaku::EARLIEST),
@@ -936,7 +936,7 @@ mod tests {
 
     #[test]
     fn kansei_took_effect_on_the_sixteenth_of_february_1798() {
-        assert_eq!(civil::from_rd(kansei::EARLIEST), (1798, 2, 16));
+        assert_eq!(gregorian::ymd(kansei::EARLIEST), (1798, 2, 16));
         assert_eq!(kansei::new_year(1_798), Ok(kansei::EARLIEST));
         assert_eq!(
             kansei::KanseiCalendar.from_fixed(kansei::EARLIEST),
@@ -947,7 +947,7 @@ mod tests {
     #[test]
     fn kansei_ends_on_the_day_before_tenpo_takes_over() {
         // 天保14年12月29日 = 1844-02-17, and 天保15年1月1日 = 1844-02-18.
-        assert_eq!(civil::from_rd(kansei::LATEST), (1844, 2, 17));
+        assert_eq!(gregorian::ymd(kansei::LATEST), (1844, 2, 17));
         assert_eq!(
             kansei::KanseiCalendar.from_fixed(kansei::LATEST),
             Ok(LunisolarDate::new(1_843, Month::regular(12), 29))
@@ -1079,8 +1079,9 @@ mod tests {
         let parameters = &senmyo::PARAMETERS;
         let mut long_run = false;
         let mut short_run = false;
-        let mut cursor = parameters.new_moon_on_or_after(civil::to_rd(1000, 1, 1));
-        let end = civil::to_rd(1100, 1, 1);
+        let mut cursor =
+            parameters.new_moon_on_or_after(gregorian::to_fixed_saturating(1000, 1, 1));
+        let end = gregorian::to_fixed_saturating(1100, 1, 1);
         let mut previous = 0;
         while cursor < end {
             let next = parameters.new_moon_on_or_after(Rd(cursor.0 + 1));
@@ -1125,8 +1126,9 @@ mod tests {
         let mut mean_alternations = 0;
         let mut true_alternations = 0;
         let mut months = 0;
-        let mut mean_cursor = MEAN.new_moon_on_or_after(civil::to_rd(1000, 1, 1));
-        let mut true_cursor = senmyo::PARAMETERS.new_moon_on_or_after(civil::to_rd(1000, 1, 1));
+        let mut mean_cursor = MEAN.new_moon_on_or_after(gregorian::to_fixed_saturating(1000, 1, 1));
+        let mut true_cursor =
+            senmyo::PARAMETERS.new_moon_on_or_after(gregorian::to_fixed_saturating(1000, 1, 1));
         let mut mean_previous = 0;
         let mut true_previous = 0;
         for _ in 0..1_200 {
@@ -1165,7 +1167,7 @@ mod tests {
         // boundaries on different days, which is why the README reports both
         // agreement rates rather than one.
         let mut differing = 0;
-        let start = civil::to_rd(1200, 1, 1);
+        let start = gregorian::to_fixed_saturating(1200, 1, 1);
         for offset in 0..3_000 {
             let rd = Rd(start.0 + offset);
             if senmyo::PARAMETERS_TABULATED.new_moon_before(rd)
@@ -1183,8 +1185,8 @@ mod tests {
     #[test]
     fn the_years_of_every_system_hold_twelve_or_thirteen_months() {
         for (name, parameters) in systems() {
-            let first = civil::year_from_rd(parameters.earliest.expect("bounded")) + 1;
-            let last = civil::year_from_rd(parameters.latest.expect("bounded")) - 1;
+            let first = gregorian::year_from_fixed(parameters.earliest.expect("bounded")) + 1;
+            let last = gregorian::year_from_fixed(parameters.latest.expect("bounded")) - 1;
             for year in first..=last {
                 let months = parameters.months_in_year(year).expect("in range");
                 assert!(months == 12 || months == 13, "{name} year {year}: {months}");
@@ -1220,8 +1222,8 @@ mod tests {
     #[test]
     fn a_leap_month_immediately_follows_the_month_it_repeats() {
         for (name, parameters) in systems() {
-            let first = civil::year_from_rd(parameters.earliest.expect("bounded")) + 1;
-            let last = civil::year_from_rd(parameters.latest.expect("bounded")) - 1;
+            let first = gregorian::year_from_fixed(parameters.earliest.expect("bounded")) + 1;
+            let last = gregorian::year_from_fixed(parameters.latest.expect("bounded")) - 1;
             for year in first..=last {
                 let Ok(Some(ordinal)) = parameters.leap_month(year) else {
                     continue;
@@ -1261,7 +1263,7 @@ mod tests {
     #[test]
     fn out_of_range_months_and_days_are_refused_by_every_system() {
         for (name, parameters) in systems() {
-            let year = civil::year_from_rd(parameters.earliest.expect("bounded")) + 1;
+            let year = gregorian::year_from_fixed(parameters.earliest.expect("bounded")) + 1;
             assert_eq!(
                 parameters.to_fixed(year, Month::regular(0), 1),
                 Err(CalendarError::MonthOutOfRange),
@@ -1323,7 +1325,7 @@ mod tests {
         // solstice, which pins it between about 21 January and 21 February.
         for year in 863..1_684i64 {
             let rd = senmyo::new_year(year).expect("in range");
-            let (_, month, day) = civil::from_rd(rd);
+            let (_, month, day) = gregorian::ymd(rd);
             let within = (month == 1 && day >= 20) || (month == 2 && day <= 23);
             assert!(within, "year {year} began on {month}-{day}");
         }
@@ -1332,8 +1334,8 @@ mod tests {
     #[test]
     fn month_eleven_contains_the_winter_solstice_in_every_system() {
         for (name, parameters) in systems() {
-            let first = civil::year_from_rd(parameters.earliest.expect("bounded")) + 1;
-            let last = civil::year_from_rd(parameters.latest.expect("bounded")) - 1;
+            let first = gregorian::year_from_fixed(parameters.earliest.expect("bounded")) + 1;
+            let last = gregorian::year_from_fixed(parameters.latest.expect("bounded")) - 1;
             for year in first..=last {
                 let solstice = parameters.winter_solstice_day(year);
                 let (_, month, _) = parameters.from_fixed(solstice).expect("in range");
@@ -1397,7 +1399,7 @@ mod tests {
     fn the_generic_field_interface_round_trips_a_historical_date() {
         let calendar = senmyo::SenmyoCalendar;
         let date = calendar
-            .from_fixed(civil::to_rd(1582, 7, 1))
+            .from_fixed(gregorian::to_fixed_saturating(1582, 7, 1))
             .expect("in range");
         let fields = calendar.to_fields(date).expect("describable");
         assert_eq!(fields.year, 1_582);
@@ -1410,7 +1412,7 @@ mod tests {
     fn the_model_finds_the_solstice_bracketing_any_day() {
         let model = senmyo::MODEL;
         for offset in 0..800i64 {
-            let rd = Rd(civil::to_rd(1200, 1, 1).0 + offset);
+            let rd = Rd(gregorian::to_fixed_saturating(1200, 1, 1).0 + offset);
             let solstice = model.winter_solstice_on_or_before(rd);
             assert!(solstice <= rd);
             let gap = rd.0 - solstice.0;
@@ -1422,7 +1424,7 @@ mod tests {
     fn the_model_finds_the_conjunction_bracketing_any_day() {
         let parameters = &senmyo::PARAMETERS;
         for offset in 0..400i64 {
-            let rd = Rd(civil::to_rd(1300, 6, 1).0 + offset);
+            let rd = Rd(gregorian::to_fixed_saturating(1300, 6, 1).0 + offset);
             let before = parameters.new_moon_before(rd);
             let after = parameters.new_moon_on_or_after(rd);
             assert!(before < rd);
@@ -1457,7 +1459,7 @@ mod tests {
     fn the_major_solar_terms_run_one_to_twelve_and_back() {
         let model = senmyo::MODEL;
         let mut seen = [false; 13];
-        let start = civil::to_rd(1500, 1, 1);
+        let start = gregorian::to_fixed_saturating(1500, 1, 1);
         let mut previous = model.major_solar_term(start);
         for offset in 0..400i64 {
             let term = model.major_solar_term(Rd(start.0 + offset));

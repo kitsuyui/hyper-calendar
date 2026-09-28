@@ -60,22 +60,24 @@
 //! The keys are those of `docs/references.bib` in the repository.
 
 use hc_calendar::Rd;
-use hc_calendar::cycle::sexagenary_day;
+use hc_calendar::cycle::{
+    branch, branch_day_on_or_after, sexagenary_day, stem, stem_day_on_or_after,
+};
 
 use crate::meridian::Meridian;
 use crate::seasons::Season;
 use crate::solar_terms::{SolarTerm, term_day, term_moment};
 
 /// The heavenly stem 戊 (tsuchinoe), the fifth, which 社日 is pinned to.
-const STEM_TSUCHINOE: u8 = 4;
+const STEM_TSUCHINOE: u8 = stem::WU;
 
 /// The heavenly stem 壬 (mizunoe), the ninth, which the classical 入梅 rule
 /// is pinned to.
-const STEM_MIZUNOE: u8 = 8;
+const STEM_MIZUNOE: u8 = stem::REN;
 
 /// The earthly branch 丑 (ushi, the ox), the second, whose days inside 土用
 /// are the ones eel is eaten on.
-const BRANCH_USHI: u8 = 1;
+const BRANCH_USHI: u8 = branch::CHOU;
 
 /// How the day of a 雑節 is derived.
 ///
@@ -549,12 +551,6 @@ fn nearest_stem_day(centre: Rd, stem: u8, later_on_tie: bool) -> Rd {
     }
 }
 
-/// The first day at or after `start` whose sexagenary stem is `stem`.
-fn stem_day_at_or_after(start: Rd, stem: u8) -> Rd {
-    let here = sexagenary_day(start).stem_index();
-    Rd(start.0 + i64::from((stem + 10 - here) % 10))
-}
-
 /// 彼岸, the seven days centred on an equinox.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct HiganPeriod {
@@ -685,8 +681,7 @@ impl DoyoPeriod {
     pub fn ox_days(self) -> OxDays {
         let mut days = [Rd(0); 2];
         let mut count = 0;
-        let here = sexagenary_day(self.start).branch_index();
-        let first = Rd(self.start.0 + i64::from((BRANCH_USHI + 12 - here) % 12));
+        let first = branch_day_on_or_after(self.start, BRANCH_USHI);
         if self.contains(first) {
             days[0] = first;
             count = 1;
@@ -821,7 +816,7 @@ pub fn classical_shanichi(year: i64, season: HiganSeason, meridian: Meridian) ->
 /// differ from the modern rule by several days.
 #[must_use]
 pub fn classical_nyubai(year: i64, meridian: Meridian) -> Rd {
-    stem_day_at_or_after(
+    stem_day_on_or_after(
         term_day(year, SolarTerm::GRAIN_IN_EAR, meridian),
         STEM_MIZUNOE,
     )
@@ -851,7 +846,7 @@ pub fn classical_hangesho(year: i64, meridian: Meridian) -> Rd {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::gregorian::from_year_month_day;
+    use hc_calendar::gregorian;
 
     const JAPAN: Meridian = Meridian::JAPAN;
 
@@ -941,7 +936,7 @@ mod tests {
             for (kind, month, day) in days {
                 assert_eq!(
                     day_of(kind, year, JAPAN),
-                    from_year_month_day(year, month, day),
+                    gregorian::to_fixed_saturating(year, month, day),
                     "{} ({}) of {year}",
                     kind.japanese_name(),
                     kind.english_name()
@@ -1020,7 +1015,7 @@ mod tests {
         for (year, instants) in REKIYOKO_INSTANTS {
             for (degrees, month, day, hour, minute) in instants {
                 let moment = hc_astro::solar::seasonal_event(year, degrees);
-                let published_day = from_year_month_day(year, month, day);
+                let published_day = gregorian::to_fixed_saturating(year, month, day);
                 assert_eq!(JAPAN.day_of(moment), published_day, "{degrees}° of {year}");
                 let published =
                     published_day.0 as f64 + (f64::from(hour) + f64::from(minute) / 60.0) / 24.0;
@@ -1055,19 +1050,19 @@ mod tests {
     fn the_counted_days_shift_with_the_leap_year() {
         assert_eq!(
             day_of(Zassetsu::HACHIJUHACHIYA, 2023, JAPAN),
-            from_year_month_day(2023, 5, 2)
+            gregorian::to_fixed_saturating(2023, 5, 2)
         );
         assert_eq!(
             day_of(Zassetsu::HACHIJUHACHIYA, 2024, JAPAN),
-            from_year_month_day(2024, 5, 1)
+            gregorian::to_fixed_saturating(2024, 5, 1)
         );
         assert_eq!(
             day_of(Zassetsu::NIHYAKUTOKA, 2023, JAPAN),
-            from_year_month_day(2023, 9, 1)
+            gregorian::to_fixed_saturating(2023, 9, 1)
         );
         assert_eq!(
             day_of(Zassetsu::NIHYAKUTOKA, 2024, JAPAN),
-            from_year_month_day(2024, 8, 31)
+            gregorian::to_fixed_saturating(2024, 8, 31)
         );
     }
 
@@ -1119,32 +1114,32 @@ mod tests {
         for year in 1985..=2020 {
             assert_eq!(
                 day_of(Zassetsu::SPRING_SETSUBUN, year, JAPAN),
-                from_year_month_day(year, 2, 3),
+                gregorian::to_fixed_saturating(year, 2, 3),
                 "{year}"
             );
         }
         for year in 1898..=2020 {
             assert_ne!(
                 day_of(Zassetsu::SPRING_SETSUBUN, year, JAPAN),
-                from_year_month_day(year, 2, 2),
+                gregorian::to_fixed_saturating(year, 2, 2),
                 "{year}"
             );
         }
         assert_eq!(
             day_of(Zassetsu::SPRING_SETSUBUN, 1897, JAPAN),
-            from_year_month_day(1897, 2, 2)
+            gregorian::to_fixed_saturating(1897, 2, 2)
         );
         assert_eq!(
             day_of(Zassetsu::SPRING_SETSUBUN, 2021, JAPAN),
-            from_year_month_day(2021, 2, 2)
+            gregorian::to_fixed_saturating(2021, 2, 2)
         );
         assert_eq!(
             day_of(Zassetsu::SPRING_SETSUBUN, 2020, JAPAN),
-            from_year_month_day(2020, 2, 3)
+            gregorian::to_fixed_saturating(2020, 2, 3)
         );
         assert_eq!(
             day_of(Zassetsu::SPRING_SETSUBUN, 1984, JAPAN),
-            from_year_month_day(1984, 2, 4)
+            gregorian::to_fixed_saturating(1984, 2, 4)
         );
     }
 
@@ -1302,11 +1297,11 @@ mod tests {
                 (HiganSeason::Spring, 3, spring_equinox, spring),
                 (HiganSeason::Autumn, 9, autumn_equinox, autumn),
             ] {
-                let printed = from_year_month_day(year, month, printed_day);
+                let printed = gregorian::to_fixed_saturating(year, month, printed_day);
                 let equinox = higan(year, season, JAPAN).middle;
                 assert_eq!(
                     equinox,
-                    from_year_month_day(year, month, equinox_day),
+                    gregorian::to_fixed_saturating(year, month, equinox_day),
                     "the {season:?} equinox of {year}"
                 );
                 if (printed.0 - equinox.0).abs() == 5 {
@@ -1332,11 +1327,11 @@ mod tests {
     fn the_almanac_of_1874_took_the_earlier_day_on_an_afternoon_tie() {
         assert_eq!(
             classical_shanichi(1874, HiganSeason::Autumn, JAPAN),
-            from_year_month_day(1874, 9, 18)
+            gregorian::to_fixed_saturating(1874, 9, 18)
         );
         assert_eq!(
             shanichi(1874, HiganSeason::Autumn, JAPAN),
-            from_year_month_day(1874, 9, 28)
+            gregorian::to_fixed_saturating(1874, 9, 28)
         );
     }
 
@@ -1347,17 +1342,17 @@ mod tests {
     #[test]
     fn the_spring_shanichi_of_2024_is_decided_by_six_minutes() {
         let equinox = higan(2024, HiganSeason::Spring, JAPAN).middle;
-        assert_eq!(equinox, from_year_month_day(2024, 3, 20));
+        assert_eq!(equinox, gregorian::to_fixed_saturating(2024, 3, 20));
         assert_eq!(sexagenary_day(equinox).stem_index(), 9);
         let hours = JAPAN.local_hours(term_moment(2024, SolarTerm::SPRING_EQUINOX));
         assert!((12.0..12.2).contains(&hours), "{hours}");
         assert_eq!(
             shanichi(2024, HiganSeason::Spring, JAPAN),
-            from_year_month_day(2024, 3, 25)
+            gregorian::to_fixed_saturating(2024, 3, 25)
         );
         assert_eq!(
             classical_shanichi(2024, HiganSeason::Spring, JAPAN),
-            from_year_month_day(2024, 3, 15)
+            gregorian::to_fixed_saturating(2024, 3, 15)
         );
     }
 
@@ -1408,7 +1403,7 @@ mod tests {
                 assert_eq!(sexagenary_day(found).stem_index(), STEM_TSUCHINOE);
                 assert!((found.0 - start.0).abs() <= 5);
             }
-            let after = stem_day_at_or_after(start, STEM_MIZUNOE);
+            let after = stem_day_on_or_after(start, STEM_MIZUNOE);
             assert_eq!(sexagenary_day(after).stem_index(), STEM_MIZUNOE);
             assert!((0..10).contains(&(after.0 - start.0)));
         }
@@ -1464,15 +1459,21 @@ mod tests {
         let period = doyo(2024, Season::Summer, JAPAN);
         let days = period.ox_days();
         assert_eq!(days.len(), 2);
-        assert_eq!(days.as_slice()[0], from_year_month_day(2024, 7, 24));
-        assert_eq!(days.as_slice()[1], from_year_month_day(2024, 8, 5));
+        assert_eq!(
+            days.as_slice()[0],
+            gregorian::to_fixed_saturating(2024, 7, 24)
+        );
+        assert_eq!(
+            days.as_slice()[1],
+            gregorian::to_fixed_saturating(2024, 8, 5)
+        );
         assert_eq!(
             period.first_ox_day(),
-            Some(from_year_month_day(2024, 7, 24))
+            Some(gregorian::to_fixed_saturating(2024, 7, 24))
         );
         assert_eq!(
             period.second_ox_day(),
-            Some(from_year_month_day(2024, 8, 5))
+            Some(gregorian::to_fixed_saturating(2024, 8, 5))
         );
     }
 
@@ -1485,7 +1486,7 @@ mod tests {
         assert_eq!(period.ox_days().len(), 1);
         assert_eq!(
             period.first_ox_day(),
-            Some(from_year_month_day(2023, 7, 30))
+            Some(gregorian::to_fixed_saturating(2023, 7, 30))
         );
         assert_eq!(period.second_ox_day(), None);
     }
@@ -1495,15 +1496,15 @@ mod tests {
     #[test]
     fn the_summer_doyo_of_2025_opened_on_a_day_of_the_ox() {
         let period = doyo(2025, Season::Summer, JAPAN);
-        assert_eq!(period.start, from_year_month_day(2025, 7, 19));
+        assert_eq!(period.start, gregorian::to_fixed_saturating(2025, 7, 19));
         assert_eq!(period.ox_days().len(), 2);
         assert_eq!(
             period.first_ox_day(),
-            Some(from_year_month_day(2025, 7, 19))
+            Some(gregorian::to_fixed_saturating(2025, 7, 19))
         );
         assert_eq!(
             period.second_ox_day(),
-            Some(from_year_month_day(2025, 7, 31))
+            Some(gregorian::to_fixed_saturating(2025, 7, 31))
         );
     }
 
@@ -1546,8 +1547,8 @@ mod tests {
     #[test]
     fn every_zassetsu_of_a_year_falls_inside_that_year() {
         for year in [1900i64, 2000, 2024, 2100] {
-            let start = crate::gregorian::new_year(year);
-            let end = crate::gregorian::new_year(year + 1);
+            let start = hc_calendar::gregorian::new_year(year);
+            let end = hc_calendar::gregorian::new_year(year + 1);
             for event in zassetsu_in_year(year, JAPAN) {
                 assert!(
                     event.day >= start && event.day < end,

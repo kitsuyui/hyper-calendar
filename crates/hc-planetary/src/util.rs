@@ -7,12 +7,9 @@
 
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::gregorian;
-use hc_core::math::floor;
+use hc_core::duration::SECONDS_PER_DAY_F64;
+use hc_core::epoch::J2000_TT_SECONDS;
 use hc_core::{Duration, Instant, Tai, TimeResult};
-
-/// Seconds in a terrestrial day as the astronomical series count them: 86 400
-/// exactly, with no leap second, because TAI and TT are uniform scales.
-pub(crate) const SECONDS_PER_DAY: f64 = 86_400.0;
 
 /// The TAI reading of J2000.0, measured from `1970-01-01T00:00:00 TAI`.
 ///
@@ -42,7 +39,7 @@ pub(crate) fn j2000_offset_days(instant: Instant<Tai>) -> f64 {
     let epoch = J2000_TAI_READING;
     let seconds = (reading.whole_seconds() - epoch.whole_seconds()) as f64;
     let attos = (reading.subsec_attos() as f64 - epoch.subsec_attos() as f64) * 1e-18;
-    (seconds + attos) / SECONDS_PER_DAY
+    (seconds + attos) / SECONDS_PER_DAY_F64
 }
 
 /// The TAI instant a number of TT days after J2000.0.
@@ -53,31 +50,8 @@ pub(crate) fn j2000_offset_days(instant: Instant<Tai>) -> f64 {
 /// [`hc_core::TimeError::Overflow`] when the result leaves the representable
 /// range.
 pub(crate) fn instant_from_j2000_offset(days: f64) -> TimeResult<Instant<Tai>> {
-    let span = Duration::from_secs_f64(days * SECONDS_PER_DAY)?;
+    let span = Duration::from_secs_f64(days * SECONDS_PER_DAY_F64)?;
     Instant::from_epoch(J2000_TAI_READING).checked_add(span)
-}
-
-/// The fractional part of `x`, always in `[0, 1)` even when `x` is negative.
-pub(crate) fn fract(x: f64) -> f64 {
-    x - floor(x)
-}
-
-/// `x` reduced modulo `modulus` into `[0, modulus)`.
-pub(crate) fn modulo(x: f64, modulus: f64) -> f64 {
-    x - modulus * floor(x / modulus)
-}
-
-/// `degrees` folded into `(-180, 180]`.
-///
-/// Differences of two angles are always small in this crate; folding removes
-/// the spurious 360° that appears whenever the pair straddles zero.
-pub(crate) fn signed_degrees(degrees: f64) -> f64 {
-    let wrapped = modulo(degrees, 360.0);
-    if wrapped > 180.0 {
-        wrapped - 360.0
-    } else {
-        wrapped
-    }
 }
 
 /// The POSIX timestamp of a UTC civil date and time.
@@ -115,7 +89,8 @@ pub(crate) const fn utc_unix_seconds(
 /// 946 728 000 read on the TT scale, and a UTC reading is
 /// `TAI − UTC + 32.184 s` behind TT.
 pub(crate) const fn j2000_tt_days_from_utc(unix_seconds: i64, tai_minus_utc_seconds: i64) -> f64 {
-    ((unix_seconds - 946_728_000) as f64 + tai_minus_utc_seconds as f64 + 32.184) / SECONDS_PER_DAY
+    ((unix_seconds - J2000_TT_SECONDS) as f64 + tai_minus_utc_seconds as f64 + 32.184)
+        / SECONDS_PER_DAY_F64
 }
 
 /// The TAI instant of a UTC civil date and time.
@@ -205,7 +180,7 @@ mod tests {
         // 2000-01-01T12:00:00 TT is 2000-01-01T11:58:55.816 UTC, because
         // TT - UTC was 32.184 + 32 = 64.184 s in 2000.
         let instant = tai_from_utc_fields(2000, 1, 1, 11, 58, 55).unwrap();
-        let offset = j2000_offset_days(instant) * SECONDS_PER_DAY;
+        let offset = j2000_offset_days(instant) * SECONDS_PER_DAY_F64;
         assert!((offset + 0.816).abs() < 1e-6, "offset {offset} s");
     }
 
@@ -219,15 +194,7 @@ mod tests {
                 tai_from_utc_fields(year, month, day, hour, minute, second).unwrap(),
             );
             let from_const = j2000_tt_days_from_utc(unix, leap);
-            assert!(((from_table - from_const) * SECONDS_PER_DAY).abs() < 1e-6);
+            assert!(((from_table - from_const) * SECONDS_PER_DAY_F64).abs() < 1e-6);
         }
-    }
-
-    #[test]
-    fn angles_fold_into_the_expected_intervals() {
-        assert!((modulo(-10.0, 360.0) - 350.0).abs() < 1e-12);
-        assert!((signed_degrees(350.0) + 10.0).abs() < 1e-12);
-        assert!((signed_degrees(180.0) - 180.0).abs() < 1e-12);
-        assert!((fract(-0.25) - 0.75).abs() < 1e-12);
     }
 }

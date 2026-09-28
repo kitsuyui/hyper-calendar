@@ -66,9 +66,9 @@
 //! Shíxiàn rules in 1653, so dates in the gap are what these rules give
 //! rather than what was proclaimed in Hanseong.
 
+use hc_calendar::gregorian;
 use hc_calendar::{Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd};
 
-use crate::civil;
 use crate::lunisolar::{
     CHINESE_EPOCH, LunisolarCalendar, LunisolarDate, LunisolarParameters, MeridianEra,
     SolarTermMode,
@@ -84,7 +84,7 @@ pub const YEAR_OFFSET: i64 = -304;
 
 /// The last day the lunisolar calendar was Korea's civil calendar,
 /// 31 December 1895: the next day was 建陽 元年 1月 1日, Gregorian.
-pub const LAST_CIVIL: Rd = civil::to_rd(1895, 12, 31);
+pub const LAST_CIVIL: Rd = gregorian::to_fixed_saturating(1895, 12, 31);
 
 /// Where the period of use comes from.
 pub const USAGE_SOURCE: &str = "Joseon's adoption of the Shíxiàn rules in 1653 [wikipedia-ko-siheollyeok, \
@@ -94,10 +94,10 @@ pub const USAGE_SOURCE: &str = "Joseon's adoption of the Shíxiàn rules in 1653
     docs/systems/east-asian-lunisolar.md states";
 
 /// The earliest fixed day this calendar converts.
-pub const EARLIEST: Rd = civil::to_rd(1645, 1, 1);
+pub const EARLIEST: Rd = gregorian::to_fixed_saturating(1645, 1, 1);
 
 /// The latest fixed day this calendar converts.
-pub const LATEST: Rd = civil::to_rd(2150, 12, 31);
+pub const LATEST: Rd = gregorian::to_fixed_saturating(2150, 12, 31);
 
 /// Where [`MERIDIANS`] comes from.
 pub const MERIDIAN_SOURCES: &str = "Beijing local mean time, 1397/180 hours, before 1912, the meridian of the \
@@ -207,15 +207,19 @@ pub fn new_year(year: i64) -> CalendarResult<Rd> {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::{CalendarError, Month};
+
     use super::*;
     use crate::chinese::{self, ChineseCalendar};
-    use hc_calendar::{CalendarError, Month};
 
     #[test]
     fn seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357() {
-        assert_eq!(new_year(4_357), Ok(civil::to_rd(2024, 2, 10)));
         assert_eq!(
-            DangiCalendar.from_fixed(civil::to_rd(2024, 2, 10)),
+            new_year(4_357),
+            Ok(gregorian::to_fixed_saturating(2024, 2, 10))
+        );
+        assert_eq!(
+            DangiCalendar.from_fixed(gregorian::to_fixed_saturating(2024, 2, 10)),
             Ok(LunisolarDate::new(4_357, Month::regular(1), 1))
         );
         // 2024 + 2333 = 4357.
@@ -239,8 +243,14 @@ mod tests {
     fn seollal_1988_fell_a_day_after_chinese_new_year() {
         // Widely reported: Korea kept Seollal on 18 February 1988 while
         // China's new year was 17 February. The meridian is the only reason.
-        assert_eq!(new_year(4_321), Ok(civil::to_rd(1988, 2, 18)));
-        assert_eq!(chinese::new_year(4_625), Ok(civil::to_rd(1988, 2, 17)));
+        assert_eq!(
+            new_year(4_321),
+            Ok(gregorian::to_fixed_saturating(1988, 2, 18))
+        );
+        assert_eq!(
+            chinese::new_year(4_625),
+            Ok(gregorian::to_fixed_saturating(1988, 2, 17))
+        );
     }
 
     #[test]
@@ -277,7 +287,7 @@ mod tests {
             (1961, 9.0),
             (2024, 9.0),
         ] {
-            let era = PARAMETERS.meridian_era(civil::to_rd(year, 6, 1));
+            let era = PARAMETERS.meridian_era(gregorian::to_fixed_saturating(year, 6, 1));
             assert!(
                 (era.offset_hours - hours).abs() < 1e-9,
                 "{year} gave {}",
@@ -328,15 +338,15 @@ mod tests {
             (
                 &AT_NINE,
                 &AT_HALF,
-                civil::to_rd(1954, 1, 1),
-                civil::to_rd(1954, 3, 20),
+                gregorian::to_fixed_saturating(1954, 1, 1),
+                gregorian::to_fixed_saturating(1954, 3, 20),
             ),
             // 1 January to 9 August 1961: UT+8:30 against UT+9.
             (
                 &AT_HALF,
                 &AT_NINE,
-                civil::to_rd(1961, 1, 1),
-                civil::to_rd(1961, 8, 9),
+                gregorian::to_fixed_saturating(1961, 1, 1),
+                gregorian::to_fixed_saturating(1961, 8, 9),
             ),
         ];
         let mut events = 0;
@@ -363,7 +373,7 @@ mod tests {
         // And the table does read the offsets the windows assume.
         assert!(
             (PARAMETERS
-                .meridian_era(civil::to_rd(1954, 2, 1))
+                .meridian_era(gregorian::to_fixed_saturating(1954, 2, 1))
                 .offset_hours
                 - 8.5)
                 .abs()
@@ -371,7 +381,7 @@ mod tests {
         );
         assert!(
             (PARAMETERS
-                .meridian_era(civil::to_rd(1961, 2, 1))
+                .meridian_era(gregorian::to_fixed_saturating(1961, 2, 1))
                 .offset_hours
                 - 9.0)
                 .abs()
@@ -401,7 +411,7 @@ mod tests {
             ((1908, 4, 30), 4_241, 4, true),
             ((1911, 12, 20), 4_244, 11, true),
         ] {
-            let rd = civil::to_rd(year, month, day);
+            let rd = gregorian::to_fixed_saturating(year, month, day);
             assert_eq!(
                 DangiCalendar.from_fixed(rd),
                 Ok(LunisolarDate::new(dangi_year, Month::regular(ordinal), 1)),
@@ -425,8 +435,8 @@ mod tests {
         // seventh day and each new year and the day before it.
         let new_years = (4_233..=4_245).filter_map(|year| new_year(year).ok().map(|rd| rd.0));
         for rd in crate::sweep_days(
-            civil::to_rd(1900, 1, 1).0,
-            civil::to_rd(1911, 12, 31).0,
+            gregorian::to_fixed_saturating(1900, 1, 1).0,
+            gregorian::to_fixed_saturating(1911, 12, 31).0,
             7,
             new_years,
         ) {
@@ -474,7 +484,7 @@ mod tests {
             (1880, 11, 3),
             (1887, 3, 25),
         ] {
-            let rd = civil::to_rd(year, month, day);
+            let rd = gregorian::to_fixed_saturating(year, month, day);
             assert_eq!(
                 DangiCalendar.from_fixed(rd).map(|date| date.day),
                 Ok(1),
@@ -492,7 +502,7 @@ mod tests {
                     Month::leap(leap),
                     1
                 )),
-                Ok(civil::to_rd(y, m, d))
+                Ok(gregorian::to_fixed_saturating(y, m, d))
             );
         }
         // The three KASI does not follow the almanac in, which this calendar
@@ -502,7 +512,7 @@ mod tests {
         assert_eq!(PARAMETERS.leap_month(4_290 + YEAR_OFFSET), Ok(Some(6)));
         for (y, m, d) in [(1654, 1, 18), (1842, 1, 11)] {
             let date = DangiCalendar
-                .from_fixed(civil::to_rd(y, m, d))
+                .from_fixed(gregorian::to_fixed_saturating(y, m, d))
                 .expect("in range");
             assert_eq!((date.month, date.day), (Month::regular(12), 1));
         }
@@ -543,10 +553,10 @@ mod tests {
     fn the_calendar_round_trips_across_every_meridian_change() {
         let calendar = DangiCalendar;
         for start in [
-            civil::to_rd(1906, 1, 1),
-            civil::to_rd(1910, 1, 1),
-            civil::to_rd(1952, 1, 1),
-            civil::to_rd(1959, 1, 1),
+            gregorian::to_fixed_saturating(1906, 1, 1),
+            gregorian::to_fixed_saturating(1910, 1, 1),
+            gregorian::to_fixed_saturating(1952, 1, 1),
+            gregorian::to_fixed_saturating(1959, 1, 1),
         ] {
             // Every day in a release build, every fifth in a debug one.
             for offset in (0..1_200i64).step_by(crate::sweep_stride(5)) {
@@ -560,7 +570,7 @@ mod tests {
     #[test]
     fn the_calendar_round_trips_over_four_thousand_modern_days() {
         let calendar = DangiCalendar;
-        let start = civil::to_rd(2010, 1, 1);
+        let start = gregorian::to_fixed_saturating(2010, 1, 1);
         // Every day in a release build, every eleventh in a debug one.
         for offset in (0..4_000i64).step_by(crate::sweep_stride(11)) {
             let rd = Rd(start.0 + offset);
@@ -594,7 +604,7 @@ mod tests {
     fn the_calendar_is_not_the_chinese_one_even_where_they_agree() {
         // The same fixed day has different year numbers in the two
         // calendars, so a date is not portable between them by accident.
-        let rd = civil::to_rd(2024, 6, 1);
+        let rd = gregorian::to_fixed_saturating(2024, 6, 1);
         let korean = DangiCalendar.from_fixed(rd).expect("in range");
         let chinese_date = ChineseCalendar.from_fixed(rd).expect("in range");
         assert_eq!(korean.month, chinese_date.month);

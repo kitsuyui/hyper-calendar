@@ -903,8 +903,9 @@ impl ExactSizeIterator for SignsInYear {}
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::gregorian;
+
     use super::*;
-    use crate::gregorian::{from_year_month_day, year_month_day_from_rd};
     use crate::solar_terms::{TermKind, term_moment};
 
     const JAPAN: Meridian = Meridian::JAPAN;
@@ -1258,7 +1259,7 @@ mod tests {
         for (sign, (month, day)) in expected {
             assert_eq!(
                 ingress_day(2024, sign, JAPAN),
-                from_year_month_day(2024, month, day),
+                gregorian::to_fixed_saturating(2024, month, day),
                 "{} of 2024",
                 sign.english_name()
             );
@@ -1331,12 +1332,12 @@ mod tests {
         assert_eq!(iterator.len(), 12);
         let first = iterator.next().unwrap();
         assert_eq!(first.sign, TropicalSign::AQUARIUS);
-        assert_eq!(year_month_day_from_rd(first.start_day).1, 1);
+        assert_eq!(gregorian::ymd(first.start_day).1, 1);
         let last = iterator.last().unwrap();
         assert_eq!(last.sign, TropicalSign::CAPRICORN);
-        assert_eq!(year_month_day_from_rd(last.start_day).1, 12);
+        assert_eq!(gregorian::ymd(last.start_day).1, 12);
         // Capricorn's period runs into the next Gregorian year.
-        assert_eq!(year_month_day_from_rd(last.end_day).0, 2025);
+        assert_eq!(gregorian::ymd(last.end_day).0, 2025);
     }
 
     /// The Earth's orbit is an ellipse, so a 30° arc takes between about 29.4
@@ -1379,7 +1380,7 @@ mod tests {
 
     #[test]
     fn every_day_of_a_year_falls_in_exactly_one_sign() {
-        let start = from_year_month_day(2024, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
         let mut counts = [0i64; SIGNS_PER_ZODIAC];
         for offset in 0..366 {
             let day = Rd(start.0 + offset);
@@ -1402,8 +1403,8 @@ mod tests {
 
     #[test]
     fn exactly_twelve_days_of_a_year_begin_a_sign() {
-        let start = from_year_month_day(2024, 1, 1);
-        let end = from_year_month_day(2025, 1, 1);
+        let start = gregorian::to_fixed_saturating(2024, 1, 1);
+        let end = gregorian::to_fixed_saturating(2025, 1, 1);
         let mut beginnings = 0;
         for offset in 0..(end.0 - start.0) {
             if sign_beginning_on(Rd(start.0 + offset), JAPAN).is_some() {
@@ -1463,7 +1464,7 @@ mod tests {
                 let ingress = ingress_moment(year, sign);
                 // The fraction of the year the ingress falls at, so the
                 // comparison is not confused by the year changing.
-                let fraction = ingress.0 - crate::gregorian::new_year(year).0 as f64;
+                let fraction = ingress.0 - hc_calendar::gregorian::new_year(year).0 as f64;
                 earliest = if fraction < earliest {
                     fraction
                 } else {
@@ -1486,7 +1487,7 @@ mod tests {
             let mut days = [0u8; 40];
             for year in 2000..2040 {
                 let day = ingress_day(year, sign, JAPAN);
-                days[(year - 2000) as usize] = year_month_day_from_rd(day).2;
+                days[(year - 2000) as usize] = gregorian::ymd(day).2;
             }
             let smallest = days.iter().copied().min().unwrap();
             let largest = days.iter().copied().max().unwrap();
@@ -1531,8 +1532,8 @@ mod tests {
             let next = sign.next().conventional_period();
             // The day after one sign conventionally ends is the day the next
             // conventionally begins, so the printed dates tile the year too.
-            let ends = from_year_month_day(2001, period.end_month, period.end_day);
-            let begins = from_year_month_day(2001, next.start_month, next.start_day);
+            let ends = gregorian::to_fixed_saturating(2001, period.end_month, period.end_day);
+            let begins = gregorian::to_fixed_saturating(2001, next.start_month, next.start_day);
             let gap = (begins.0 - ends.0).rem_euclid(365);
             assert_eq!(
                 gap,

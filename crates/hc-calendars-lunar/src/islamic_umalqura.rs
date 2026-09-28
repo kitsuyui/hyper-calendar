@@ -364,8 +364,9 @@ impl Calendar for IslamicUmmAlQuraCalendar {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::gregorian;
+
     use super::*;
-    use crate::civil;
     use crate::islamic_civil::IslamicCivilCalendar;
 
     /// A Hijri year, month and day paired with the Gregorian year, month and
@@ -392,7 +393,7 @@ mod tests {
     fn the_published_dates_are_reproduced() {
         for (year, month, day, gregorian) in PUBLISHED {
             let rd = to_fixed(year, month, day).expect("inside the table");
-            assert_eq!(civil::from_rd(rd), gregorian, "{year}-{month}-{day} AH");
+            assert_eq!(gregorian::ymd(rd), gregorian, "{year}-{month}-{day} AH");
             assert_eq!(from_fixed(rd), Ok((year, month, day)));
         }
     }
@@ -407,8 +408,8 @@ mod tests {
         assert!(!covers_year(1_299));
         assert!(!covers_year(1_601));
         assert_eq!(EARLIEST, EPOCH);
-        assert_eq!(civil::from_rd(EARLIEST), (1882, 11, 12));
-        assert_eq!(civil::from_rd(LATEST), (2174, 11, 25));
+        assert_eq!(gregorian::ymd(EARLIEST), (1882, 11, 12));
+        assert_eq!(gregorian::ymd(LATEST), (2174, 11, 25));
     }
 
     #[test]

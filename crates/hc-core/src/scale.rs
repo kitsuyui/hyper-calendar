@@ -14,7 +14,9 @@ use core::cmp::Ordering;
 use core::fmt;
 use core::marker::PhantomData;
 
-use crate::duration::Duration;
+use crate::duration::{Duration, SECONDS_PER_DAY_F64};
+use crate::epoch::J2000_TT_SECONDS;
+use crate::epoch_notation::JULIAN_CENTURY_DAYS;
 use crate::error::TimeResult;
 use crate::math;
 
@@ -279,7 +281,8 @@ fn add_small_offset(base: Duration, offset_secs: f64) -> Duration {
 pub fn tdb_minus_tt_secs(tt_secs: f64) -> f64 {
     // Julian centuries of TT from J2000.0, whose TT reading on this epoch is
     // exactly 946_728_000 s. See `crate::epoch::J2000`.
-    let centuries = (tt_secs - 946_728_000.0) / (36_525.0 * 86_400.0);
+    let centuries =
+        (tt_secs - J2000_TT_SECONDS as f64) / (JULIAN_CENTURY_DAYS * SECONDS_PER_DAY_F64);
     0.001_657 * math::sin(628.307_6 * centuries + 6.240_1)
         + 0.000_022 * math::sin(575.338_5 * centuries + 4.297_0)
         + 0.000_014 * math::sin(1_256.615_2 * centuries + 6.196_9)

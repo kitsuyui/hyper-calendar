@@ -25,7 +25,7 @@ use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,
 };
 
-use crate::common;
+use hc_calendar::gregorian;
 
 /// The fixed day of 1 January of Julian year 1, which is 0000-12-30 in the
 /// proleptic Gregorian calendar.
@@ -56,7 +56,7 @@ pub const fn is_leap_year(year: i64) -> bool {
 /// `1..=12`.
 #[must_use]
 pub const fn days_in_month(year: i64, month: u8) -> Option<u8> {
-    common::julian_style_days_in_month(month, is_leap_year(year))
+    gregorian::month_length(month, is_leap_year(year))
 }
 
 /// The number of days in `year`.
@@ -109,12 +109,9 @@ pub const fn to_fixed(year: i64, month: u8, day: u8) -> CalendarResult<Rd> {
     if year < MIN_YEAR || year > MAX_YEAR {
         return Err(CalendarError::YearOutOfRange);
     }
-    match common::check_day(day, days_in_month(year, month)) {
+    match gregorian::ordinal_day(month, day, is_leap_year(year)) {
         Err(error) => Err(error),
-        Ok(()) => {
-            let within = common::julian_style_day_of_year(month, day, is_leap_year(year));
-            Ok(Rd(new_year_raw(year) + within as i64 - 1))
-        }
+        Ok(within) => Ok(Rd(new_year_raw(year) + within as i64 - 1)),
     }
 }
 
@@ -138,8 +135,10 @@ pub const fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
     let elapsed = rd.0 - EPOCH.0;
     let year = (4 * elapsed + 3).div_euclid(1_461) + 1;
     let within = (rd.0 - new_year_raw(year) + 1) as u16;
-    let (month, day) = common::julian_style_month_day(within, is_leap_year(year));
-    Ok((year, month, day))
+    match gregorian::month_day(within, is_leap_year(year)) {
+        Ok((month, day)) => Ok((year, month, day)),
+        Err(error) => Err(error),
+    }
 }
 
 /// A proleptic Julian date.
@@ -286,9 +285,10 @@ impl Calendar for JulianCalendar {
 
 #[cfg(test)]
 mod tests {
+    use hc_calendar::Weekday;
+
     use super::*;
     use crate::gregorian;
-    use hc_calendar::Weekday;
 
     #[test]
     fn the_julian_epoch_is_two_days_before_the_gregorian_one() {

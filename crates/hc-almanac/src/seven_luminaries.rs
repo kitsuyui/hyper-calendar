@@ -36,6 +36,7 @@
 //! reason.
 
 use hc_calendar::Weekday;
+use hc_calendar::cycle::FivePhase;
 use hc_calendar::shape::Naming;
 
 /// One of the seven luminaries (七曜): the Sun, the Moon and the five
@@ -311,14 +312,14 @@ impl Luminary {
     /// outside the five, so they answer `None`. Do not fill that gap with a
     /// guess; the tradition leaves it open deliberately.
     #[must_use]
-    pub const fn five_phase(self) -> Option<&'static str> {
+    pub const fn five_phase(self) -> Option<FivePhase> {
         match self {
             Self::Sun | Self::Moon => None,
-            Self::Mars => Some("fire"),
-            Self::Mercury => Some("water"),
-            Self::Jupiter => Some("wood"),
-            Self::Venus => Some("metal"),
-            Self::Saturn => Some("earth"),
+            Self::Mars => Some(FivePhase::Fire),
+            Self::Mercury => Some(FivePhase::Water),
+            Self::Jupiter => Some(FivePhase::Wood),
+            Self::Venus => Some(FivePhase::Metal),
+            Self::Saturn => Some(FivePhase::Earth),
         }
     }
 
@@ -386,11 +387,11 @@ mod tests {
 
     #[test]
     fn the_five_planets_carry_the_five_phases_and_the_two_lights_do_not() {
-        assert_eq!(Luminary::Mars.five_phase(), Some("fire"));
-        assert_eq!(Luminary::Mercury.five_phase(), Some("water"));
-        assert_eq!(Luminary::Jupiter.five_phase(), Some("wood"));
-        assert_eq!(Luminary::Venus.five_phase(), Some("metal"));
-        assert_eq!(Luminary::Saturn.five_phase(), Some("earth"));
+        assert_eq!(Luminary::Mars.five_phase(), Some(FivePhase::Fire));
+        assert_eq!(Luminary::Mercury.five_phase(), Some(FivePhase::Water));
+        assert_eq!(Luminary::Jupiter.five_phase(), Some(FivePhase::Wood));
+        assert_eq!(Luminary::Venus.five_phase(), Some(FivePhase::Metal));
+        assert_eq!(Luminary::Saturn.five_phase(), Some(FivePhase::Earth));
         assert_eq!(Luminary::Sun.five_phase(), None);
         assert_eq!(Luminary::Moon.five_phase(), None);
         assert!(Luminary::Sun.is_light() && Luminary::Moon.is_light());
