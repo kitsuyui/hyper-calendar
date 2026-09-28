@@ -3,8 +3,9 @@
 
 Every one of the 32 locales hc-humanize carries takes its relative-time
 phrases, its duration patterns, its list patterns, its decimal separator
-and its `atTime` pattern from its CLDR 48 file, resolved as CLDR resolves
-it, and then the documented overrides of
+and its relative date-time pattern (UTS #35 Part 4's `relative`
+`dateTimeFormat`) from its CLDR 48 file, resolved as CLDR resolves it, and
+then the documented overrides of
 crates/hc-humanize/src/data/cldr48_overrides.tsv, each with its reason:
 
     python3 scripts/humanize-cldr.py            # rewrite the file
@@ -164,6 +165,9 @@ def through_alias(base, relative):
             continue
         match = re.match(r"([A-Za-z-]+)((?:\[@[a-zA-Z]+='[^']*'\])*)$", part)
         attrs = tuple(sorted(re.findall(r"\[@([a-zA-Z]+)='([^']*)'\]", match.group(2))))
+        if (match.group(1), attrs) == ('dateTimeFormat', (('type', 'standard'),)):
+            # the DTD's default type, which the files leave unwritten
+            attrs = ()
         out.append((match.group(1), attrs))
     return tuple(out)
 
@@ -310,16 +314,22 @@ def values(chain):
 
 
 def at_pattern(chain):
-    """The long `atTime` pattern, or where the file states none its standard
-    one, in this crate's order: CLDR's `{1}` is the date and `{0}` the time,
-    this crate's `{0}` is the day phrase and `{1}` the time."""
+    """How a relative day and a time of day combine, in this crate's order:
+    CLDR's `{1}` is the date and `{0}` the time, this crate's `{0}` is the
+    day phrase and `{1}` the time.
+
+    UTS #35 Part 4 ("Element dateTimeFormat"): "For a relative date with a
+    single time, by default use the relative pattern (if available) to
+    produce an event time". So the long `dateTimeFormat[@type='relative']`
+    first, then the long `atTime` pattern, then the standard one. root.xml
+    aliases the relative pattern to the standard one, so for every file
+    CLDR 48 resolves the first and the other two are never reached."""
     greg = ('dates', 'calendars', 'calendar[gregorian]', 'dateTimeFormats',
             'dateTimeFormatLength[long]')
-    found = resolve(chain, path(*greg, ('dateTimeFormat', {'type': 'atTime'}), 'pattern'))
-    if found[0] is None:
-        # root's alias names the standard pattern as type="standard", which
-        # the files write without the attribute
-        found = resolve(chain, path(*greg, ('dateTimeFormat', {}), 'pattern'))
+    for kind in ({'type': 'relative'}, {'type': 'atTime'}, {}):
+        found = resolve(chain, path(*greg, ('dateTimeFormat', kind), 'pattern'))
+        if found[0] is not None:
+            break
     value, name, marked = found
     assert value and (name != 'root' or marked), (chain, found)
     swapped = value.replace('{0}', '\x00').replace('{1}', '{0}').replace('\x00', '{1}')

@@ -11,19 +11,20 @@
 //! the `main/<locale>.xml` `<fields>` section, which is where
 //! `<relative>` and `<relativeTime>` live — and the undirected unit phrases
 //! follow the `<unit type="duration-…">` section of the same file, with the
-//! file's list patterns, decimal separator and `atTime` pattern. They are a
-//! subset: CLDR carries roughly 600 locales and this crate carries 32.
+//! file's list patterns, decimal separator and long `relative` date-time
+//! pattern, which UTS #35 Part 4 gives a relative date joined to a time.
+//! They are a subset: CLDR carries roughly 600 locales and this crate
+//! carries 32.
 //!
 //! Every one of the 32 takes that part from its CLDR 48 file, generated:
 //! `scripts/humanize-cldr.py` resolves each value as CLDR resolves it and
 //! writes `data/cldr48.rs`, applying the documented overrides of
-//! `data/cldr48_overrides.tsv`, each with its reason — one choice of this
-//! crate's own (English's list without the serial comma) and the values of
-//! CLDR's that a source argues against, such as Traditional Chinese's
-//! *{0} 刻*, a quarter of an hour, for a quarter of a year.
-//! `tests/cldr48_resolved.rs` compares a sample of every entry with CLDR
-//! 48's own resolution, read from `cldr-json`, and holds that the two differ
-//! only where an override says so.
+//! `data/cldr48_overrides.tsv`, each a value of CLDR's that a source argues
+//! against, with its reason, such as Traditional Chinese's *{0} 刻*, a
+//! quarter of an hour, for a quarter of a year. `tests/cldr48_resolved.rs`
+//! compares every value an entry takes from CLDR with CLDR 48's own
+//! resolution, read from `cldr-json`, and holds that the two differ only
+//! where an override says so.
 //!
 //! Five kinds of string here are **not** from CLDR, because CLDR has no
 //! field for them, and are ordinary translations written in this file, so
@@ -39,9 +40,6 @@
 //!
 //! # Deliberate deviations
 //!
-//! * English uses `{0} and {1}` to close a list, not CLDR's `{0}, and {1}`.
-//!   The serial comma is a house-style choice, not a linguistic one, and the
-//!   comma-free form is what the rest of this workspace writes.
 //! * The `zh` entry carries Simplified Chinese and is tagged `zh` rather
 //!   than `zh-Hans`, so `zh-Hans` reaches it by truncation inheritance;
 //!   `zh-Hant` is a separate entry. This is a deviation in the tagging

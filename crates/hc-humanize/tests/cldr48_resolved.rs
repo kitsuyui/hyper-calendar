@@ -1,14 +1,17 @@
 //! Every carried locale's phrases against CLDR's own resolution of them.
 //!
 //! `data/cldr48_resolved.tsv` holds, for each locale [`LOCALES`] carries,
-//! a sample of the values CLDR 48 resolves: the past, future and duration
-//! patterns of the hour and the day in each plural category of the
-//! language, and the words for yesterday, today and the like, in the long,
-//! short and narrow styles. `scripts/humanize-cldr-sample.py` reads them
-//! from the `cldr-json` 48.0.0 packages (`cldr-dates-full`
-//! `main/<locale>/dateFields.json` and `cldr-units-full`
-//! `main/<locale>/units.json`, `cldr-json-48`, read 2026-09-28), which
-//! CLDR's own tools resolve from the XML: every parent, alias and
+//! every value it takes from CLDR 48, as CLDR resolves it: the past, future
+//! and duration patterns of all eight units in each plural category of the
+//! language and their words for two units before to two after (*the day
+//! before yesterday*, *last year*), in the long, short and narrow styles;
+//! the standard, unit and narrow list patterns; the decimal separator of
+//! the digits `hc-i18n` writes; and the long `relative` date-time pattern
+//! (UTS #35 Part 4, `uts35-dates-48`), in this crate's order.
+//! `scripts/humanize-cldr-sample.py` reads them from the `cldr-json` 48.0.0
+//! packages (`cldr-dates-full`, `cldr-units-full`, `cldr-misc-full`,
+//! `cldr-numbers-full` and `cldr-core`, `cldr-json-48`, read 2026-09-28),
+//! which CLDR's own tools resolve from the XML: every parent, alias and
 //! inheritance marker (`↑↑↑`) is already followed there. A category the
 //! file has no key for is the style's `other`, as a reader of those files
 //! takes it; a word it has no key for is none.
@@ -18,11 +21,13 @@
 //! CLDR's inheritance wrongly — a style left to the long one where the file
 //! states its own, or a count filled from `other` where a wider style
 //! states it — differs from CLDR's here. Every locale's data is generated,
-//! so a sampled value may differ from CLDR's only where
+//! so a value may differ from CLDR's only where
 //! `src/data/cldr48_overrides.tsv`, the one list of documented overrides,
-//! says so and gives the value; an override the sample covers must differ
-//! from CLDR's, and every override, sampled or not, must be the value the
-//! crate carries.
+//! says so and gives the value; every override must differ from CLDR's, be
+//! the value the crate carries, and have its reason written above it in
+//! the generated `src/data/cldr48.rs`. The sample and the list are both in
+//! the repository, so the check needs no network: only regenerating the
+//! sample or the data does.
 //!
 //! [`LOCALES`]: hc_humanize::data::LOCALES
 #![expect(
@@ -38,6 +43,7 @@ use hc_i18n::{Locale, PluralCategory};
 
 const SAMPLE: &str = include_str!("data/cldr48_resolved.tsv");
 const OVERRIDES: &str = include_str!("../src/data/cldr48_overrides.tsv");
+const GENERATED: &str = include_str!("../src/data/cldr48.rs");
 
 fn category(name: &str) -> PluralCategory {
     match name {
@@ -67,8 +73,8 @@ fn unit(name: &str) -> TimeUnit {
         .unwrap_or_else(|| panic!("unknown unit {name}"))
 }
 
-/// The override list: (tag, key, value).
-fn overrides() -> Vec<(&'static str, &'static str, &'static str)> {
+/// The override list: (tag, key, value, reason).
+fn overrides() -> Vec<(&'static str, &'static str, &'static str, &'static str)> {
     OVERRIDES
         .lines()
         .filter(|line| !line.is_empty() && !line.starts_with('#'))
@@ -77,7 +83,7 @@ fn overrides() -> Vec<(&'static str, &'static str, &'static str)> {
             assert_eq!(cells.len(), 4, "{line:?}: four cells");
             assert!(!cells[3].is_empty(), "{line:?}: no reason");
             let value = if cells[2] == "-" { "" } else { cells[2] };
-            (cells[0], cells[1], value)
+            (cells[0], cells[1], value, cells[3])
         })
         .collect()
 }
@@ -136,18 +142,15 @@ fn every_locale_resolves_its_phrases_as_cldr_does_but_where_an_override_says() {
     let mut sampled = Vec::new();
     for line in SAMPLE.lines() {
         let mut cells = line.split('\t');
-        let (Some(tag), Some(style_name), Some(unit_name), Some(kind)) =
-            (cells.next(), cells.next(), cells.next(), cells.next())
-        else {
-            panic!("short line {line:?}");
+        let Some(tag) = cells.next() else {
+            panic!("empty line");
         };
         if !seen.contains(&tag) {
             seen.push(tag);
         }
         for cell in cells {
             let (key, expected) = cell.split_once('=').expect("key=value");
-            let key = format!("{style_name}.{unit_name}.{kind}.{key}");
-            let actual = carried(tag, &key);
+            let actual = carried(tag, key);
             let listed = overrides.iter().find(|row| row.0 == tag && row.1 == key);
             match listed {
                 None if actual != expected => {
@@ -163,12 +166,15 @@ fn every_locale_resolves_its_phrases_as_cldr_does_but_where_an_override_says() {
             }
         }
     }
-    for (tag, key, value) in &overrides {
+    for (tag, key, value, _) in &overrides {
         let actual = carried(tag, key);
         if actual != *value {
             failures.push(format!(
                 "{tag} {key}: overridden with {value:?}, carries {actual:?}"
             ));
+        }
+        if !sampled.contains(&(*tag, *key)) {
+            failures.push(format!("{tag} {key}: overridden, but not in the sample"));
         }
     }
     for data in LOCALES {
@@ -179,9 +185,32 @@ fn every_locale_resolves_its_phrases_as_cldr_does_but_where_an_override_says() {
         );
     }
     assert!(failures.is_empty(), "{}", failures.join("\n"));
-    // The sample reaches the overrides of the hour and the day; the rest are
-    // held by the loop over the list above.
-    assert_eq!(sampled.len(), 13, "{sampled:?}");
+    // The sample holds every key, so it reaches every override once.
+    assert_eq!(sampled.len(), overrides.len(), "{sampled:?}");
+}
+
+/// Every override's reason is written in the generated file, so that the
+/// file was generated from the list as it stands: a reason edited in the
+/// list and not regenerated fails here, with no network.
+#[test]
+fn the_generated_file_carries_every_override_reason() {
+    let comments = GENERATED
+        .lines()
+        .filter_map(|line| line.trim_start().strip_prefix("// "))
+        .collect::<Vec<_>>()
+        .join(" ");
+    let squeeze = |text: &str| text.split_whitespace().collect::<Vec<_>>().join(" ");
+    let comments = squeeze(&comments);
+    for (tag, key, _, reason) in overrides() {
+        assert!(
+            comments.contains(&squeeze(reason)),
+            "{tag} {key}: the reason is not in src/data/cldr48.rs; run scripts/humanize-cldr.py"
+        );
+        assert!(
+            comments.contains(&format!("`{key}`")),
+            "{tag} {key}: the key is not in src/data/cldr48.rs; run scripts/humanize-cldr.py"
+        );
+    }
 }
 
 /// The decimal separator is the one of the digits `hc-i18n` writes the
