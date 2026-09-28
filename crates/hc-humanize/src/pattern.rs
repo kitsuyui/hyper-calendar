@@ -404,7 +404,9 @@ pub struct LocaleData {
     pub weekday: WeekdayPatterns,
     /// The decimal separator, needed by the half-unit forms.
     pub decimal_separator: &'static str,
-    /// How a day phrase and a time of day combine: *{0} at {1}*.
+    /// How a day phrase and a time of day combine: *{0} at {1}*, CLDR's
+    /// long `relative` date-time pattern with its placeholders swapped, so
+    /// that `{0}` is the day phrase and `{1}` the time.
     pub at_pattern: &'static str,
 }
 

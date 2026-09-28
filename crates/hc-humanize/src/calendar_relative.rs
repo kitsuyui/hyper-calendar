@@ -188,6 +188,11 @@ impl CalendarRelativeFormatter {
 
     /// Write *yesterday at 15:30*, given the time already formatted.
     ///
+    /// The two join through the locale's long `relative` date-time pattern,
+    /// which UTS #35 Part 4 gives a relative date with a single time: `es`
+    /// writes *ayer, 15:30*, `ja` *昨日の 15:30* and `vi`, time first,
+    /// *lúc 15:30 hôm qua*.
+    ///
     /// The time is a `&str` rather than a [`CivilTime`] because rendering a
     /// time of day is `hc-format`'s job, not this crate's: an hour cycle, a
     /// day period and a numbering system are a formatter's worth of
@@ -569,6 +574,28 @@ mod tests {
             .write_day_at(THURSDAY, THURSDAY - 1, &time, &mut text)
             .expect("a phrase");
         assert_eq!(text, "gestern um 15:05");
+    }
+
+    #[test]
+    fn a_day_phrase_and_a_time_take_the_relative_pattern_not_at_time() {
+        // UTS #35 Part 4: a relative date with a time takes the `relative`
+        // dateTimeFormat. CLDR 48's long relative patterns: `es` inherits
+        // root's alias to its standard `{1}, {0}` (its `atTime` is
+        // `{1} 'a' 'las' {0}`); `ja.xml` states `{1}の {0}`; `vi.xml`
+        // `'lúc' {0} {1}`, the time first.
+        for (tag, expected) in [
+            ("es", "ayer, 15:05"),
+            ("ja", "昨日の 15:05"),
+            ("vi", "lúc 15:05 hôm qua"),
+            ("cs", "včera 15:05"),
+            ("en", "yesterday at 15:05"),
+        ] {
+            let mut text = alloc::string::String::new();
+            formatter(tag)
+                .write_day_at(THURSDAY, THURSDAY - 1, "15:05", &mut text)
+                .expect("a phrase");
+            assert_eq!(text, expected, "{tag}");
+        }
     }
 
     #[test]

@@ -357,9 +357,11 @@ mod tests {
 
     #[test]
     fn the_conjunction_closes_a_longer_list_and_commas_carry_the_rest() {
+        // CLDR 48 `en.xml`'s standard list: `{0}, and {1}` at the end, the
+        // serial comma, and `{0} and {1}` for two.
         assert_eq!(
             say(&formatter("en"), 3_600 + 2 * 60 + 3),
-            "1 hour, 2 minutes and 3 seconds"
+            "1 hour, 2 minutes, and 3 seconds"
         );
     }
 
@@ -398,7 +400,7 @@ mod tests {
         );
         assert_eq!(
             say(&formatter("en").with_max_components(3), span),
-            "2 hours, 30 minutes and 50 seconds"
+            "2 hours, 30 minutes, and 50 seconds"
         );
     }
 

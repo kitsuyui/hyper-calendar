@@ -957,7 +957,7 @@ pub(super) const CS: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ",",
-    at_pattern: "{0} v {1}",
+    at_pattern: "{0} {1}",
 };
 
 // --- cy: `cy.xml`, `root.xml` ------------------------------------------------
@@ -1879,15 +1879,12 @@ pub(super) const EN: LocaleData = LocaleData {
     narrow: EN_NARROW,
     compact: UnitStrings::EMPTY,
     indefinite: UnitStrings::EMPTY,
-    // Override `list.standard.end`: (b) house style: CLDR closes an English list with the serial
-    // comma, `{0}, and {1}`; the workspace writes lists without it, and the comma is a style, not
-    // a rule of the language.
     list: ListPatterns {
         standard: ListForms {
             two: "{0} and {1}",
             start: "{0}, {1}",
             middle: "{0}, {1}",
-            end: "{0} and {1}",
+            end: "{0}, and {1}",
         },
         unit: ListForms {
             two: "{0}, {1}",
@@ -2148,7 +2145,7 @@ pub(super) const ES: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ",",
-    at_pattern: "{0} a las {1}",
+    at_pattern: "{0}, {1}",
 };
 
 // --- fil: `fil.xml`, `root.xml` ----------------------------------------------
@@ -2178,11 +2175,17 @@ const FIL_LONG: StyleData = StyleData {
         "ngayong oras",
         "",
     ),
+    // Override `long.day.relative.-2`: (c) CLDR's `fil` capitalises its word for the day before
+    // yesterday alone (Araw bago ang kahapon), in every style, where every other relative word of
+    // the file is lower-case, kahapon among them, and the file writes araw in lower case (the day
+    // field's displayName, {0} araw ang nakalipas); UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form.
     day: u_day(
         p1("{0} araw ang nakalipas"),
         p1("sa {0} araw"),
         p2("{0} araw", "{0} na araw"),
-        "Araw bago ang kahapon",
+        "araw bago ang kahapon",
         "kahapon",
         "ngayong araw",
         "bukas",
@@ -2247,11 +2250,17 @@ const FIL_SHORT: StyleData = StyleData {
         "ngayong oras",
         "",
     ),
+    // Override `short.day.relative.-2`: (c) CLDR's `fil` capitalises its word for the day before
+    // yesterday alone (Araw bago ang kahapon), in every style, where every other relative word of
+    // the file is lower-case, kahapon among them, and the file writes araw in lower case (the day
+    // field's displayName, {0} araw ang nakalipas); UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form.
     day: u_day(
         p2("{0} araw ang nakalipas", "{0} (na) araw ang nakalipas"),
         p2("sa {0} (na) araw", "sa {0} araw"),
         p1("{0} araw"),
-        "Araw bago ang kahapon",
+        "araw bago ang kahapon",
         "kahapon",
         "ngayong araw",
         "bukas",
@@ -2316,11 +2325,17 @@ const FIL_NARROW: StyleData = StyleData {
         "ngayong oras",
         "",
     ),
+    // Override `narrow.day.relative.-2`: (c) CLDR's `fil` capitalises its word for the day before
+    // yesterday alone (Araw bago ang kahapon), in every style, where every other relative word of
+    // the file is lower-case, kahapon among them, and the file writes araw in lower case (the day
+    // field's displayName, {0} araw ang nakalipas); UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form.
     day: u_day(
         p1("{0} araw ang nakalipas"),
         p2("sa {0} araw", "sa {0} araw"),
         p2("{0} araw", "{0} na araw"),
-        "Araw bago ang kahapon",
+        "araw bago ang kahapon",
         "kahapon",
         "ngayong araw",
         "bukas",
@@ -2391,7 +2406,7 @@ pub(super) const FIL: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} nang {1}",
+    at_pattern: "{0}, {1}",
 };
 
 // --- fr: `fr.xml`, `root.xml` ------------------------------------------------
@@ -2830,10 +2845,13 @@ const HA_NARROW: StyleData = StyleData {
         "wannan kwatan",
         "kwata na gaba",
     ),
+    // Override `narrow.year.count.other`: (c) CLDR's `ha` narrow year is s{0} for other, which is
+    // also its narrow hour, so s3 could be either; the file's short year, shkru {0}, is kept, as
+    // the narrow `one` already inherits the short shkr {0}.
     year: u(
         p2("shekara {0} da ta gabata", "shekaru {0} da suka gabata"),
         p2("a shekarar {0}", "a shekaru {0}"),
-        p2("shkr {0}", "s{0}"),
+        p2("shkr {0}", "shkru {0}"),
         "bara",
         "bana",
         "badi",
@@ -2871,7 +2889,7 @@ pub(super) const HA: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} da {1}",
+    at_pattern: "{0} a {1}",
 };
 
 // --- hi: `hi.xml`, `root.xml` ------------------------------------------------
@@ -3114,7 +3132,7 @@ pub(super) const HI: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} को {1} बजे",
+    at_pattern: "{0}, {1}",
 };
 
 // --- id: `id.xml`, `root.xml` ------------------------------------------------
@@ -3171,9 +3189,11 @@ const ID_LONG: StyleData = StyleData {
         "bulan depan",
     ),
     // Override `long.quarter.relative.-1`: (c) CLDR's `id` capitalises this word alone (Kuartal
-    // lalu), where its short krtl lalu and every other relative word are lower-case; UTS #35 Part
-    // 2 [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in
-    // its middle-of-sentence form.
+    // lalu), where its short krtl lalu and every other unit's relative word are lower-case, and
+    // the file writes kuartal in lower case (the quarter field's displayName); UTS #35 Part 2
+    // [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its
+    // middle-of-sentence form, and the file's `relative` context transform capitalises the first
+    // word where a context needs it.
     quarter: u(
         p1("{0} kuartal yang lalu"),
         p1("dalam {0} kuartal"),
@@ -3822,7 +3842,7 @@ pub(super) const JA: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} {1}",
+    at_pattern: "{0}の {1}",
 };
 
 // --- ko: `ko.xml`, `root.xml` ------------------------------------------------
@@ -4157,7 +4177,7 @@ pub(super) const MR: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} रोजी {1} वाजता",
+    at_pattern: "{0}, {1}",
 };
 
 // --- nl: `nl.xml`, `root.xml` ------------------------------------------------
@@ -4573,7 +4593,7 @@ pub(super) const PA_GURU: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0} {1}",
+    at_pattern: "{0}, {1}",
 };
 
 // --- pcm: `pcm.xml`, `root.xml` ----------------------------------------------
@@ -4729,8 +4749,11 @@ const PCM_NARROW: StyleData = StyleData {
         "Dís mínit",
         "",
     ),
+    // Override `narrow.hour.past.one`, `narrow.hour.past.other`: (c) CLDR's `pcm` narrow past for
+    // hours is Fọ {0} áwa wé de kọm, the future's wording, the same as its narrow future; the
+    // file's long and short past say {0} áwa wé dọ́n pas, as kept here.
     hour: u(
-        p2("Fọ {0} áwa wé de kọm", "Fọ {0} áwa wé de kọm"),
+        p2("{0} áwa wé dọ́n pas", "{0} áwa wé dọ́n pas"),
         p1("Fọ {0} áwa wé de kọm"),
         p2("{0}Áwa", "{0}Áwa"),
         "",
@@ -5198,7 +5221,7 @@ pub(super) const PL: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ",",
-    at_pattern: "{0} {1}",
+    at_pattern: "{0}, {1}",
 };
 
 // --- pt: `pt.xml`, `root.xml` ------------------------------------------------
@@ -5989,75 +6012,11 @@ pub(super) const RU: LocaleData = LocaleData {
 // --- sw: `sw.xml`, `root.xml` ------------------------------------------------
 
 const SW_LONG: StyleData = StyleData {
-    second: u(
-        p2("Sekunde {0} iliyopita", "Sekunde {0} zilizopita"),
-        p1("baada ya sekunde {0}"),
-        p1("sekunde {0}"),
-        "",
-        "sasa hivi",
-        "",
-    ),
-    minute: u(
-        p2("dakika {0} iliyopita", "dakika {0} zilizopita"),
-        p1("baada ya dakika {0}"),
-        p1("dakika {0}"),
-        "",
-        "dakika hii",
-        "",
-    ),
-    hour: u(
-        p2("saa {0} iliyopita", "saa {0} zilizopita"),
-        p1("baada ya saa {0}"),
-        p1("saa {0}"),
-        "",
-        "saa hii",
-        "",
-    ),
-    day: u_day(
-        p2("siku {0} iliyopita", "siku {0} zilizopita"),
-        p1("baada ya siku {0}"),
-        p1("siku {0}"),
-        "juzi",
-        "jana",
-        "leo",
-        "kesho",
-        "kesho kutwa",
-    ),
-    week: u(
-        p2("wiki {0} iliyopita", "wiki {0} zilizopita"),
-        p1("baada ya wiki {0}"),
-        p1("wiki {0}"),
-        "wiki iliyopita",
-        "wiki hii",
-        "wiki ijayo",
-    ),
-    month: u(
-        p2("mwezi {0} uliopita", "miezi {0} iliyopita"),
-        p2("baada ya mwezi {0}", "baada ya miezi {0}"),
-        p2("mwezi {0}", "miezi {0}"),
-        "mwezi uliopita",
-        "mwezi huu",
-        "mwezi ujao",
-    ),
-    quarter: u(
-        p2("robo {0} iliyopita", "robo {0} zilizopita"),
-        p1("baada ya robo {0}"),
-        p1("robo {0}"),
-        "robo ya mwaka iliyopita",
-        "robo hii ya mwaka",
-        "robo ya mwaka inayofuata",
-    ),
-    year: u(
-        p2("mwaka {0} uliopita", "miaka {0} iliyopita"),
-        p2("baada ya mwaka {0}", "baada ya miaka {0}"),
-        p2("mwaka {0}", "miaka {0}"),
-        "mwaka uliopita",
-        "mwaka huu",
-        "mwaka ujao",
-    ),
-};
-
-const SW_SHORT: StyleData = StyleData {
+    // Override `long.second.past.one`, `long.second.past.other`: (c) CLDR's `sw` capitalises its
+    // long past for seconds alone (Sekunde {0} iliyopita), where its short and narrow styles,
+    // sekunde {0} iliyopita, and every other past pattern are lower-case; UTS #35 Part 2
+    // [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its
+    // middle-of-sentence form.
     second: u(
         p2("sekunde {0} iliyopita", "sekunde {0} zilizopita"),
         p1("baada ya sekunde {0}"),
@@ -6143,8 +6102,13 @@ const SW_NARROW: StyleData = StyleData {
         "dakika hii",
         "",
     ),
+    // Override `narrow.hour.past.one`, `narrow.hour.past.other`: (c) CLDR's `sw` capitalises its
+    // narrow past for hours alone (Saa {0} iliyopita), where its long and short styles, saa {0}
+    // iliyopita, and every other past pattern are lower-case; UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form.
     hour: u(
-        p2("Saa {0} iliyopita", "Saa {0} zilizopita"),
+        p2("saa {0} iliyopita", "saa {0} zilizopita"),
         p1("baada ya saa {0}"),
         p1("saa {0}"),
         "",
@@ -6199,7 +6163,7 @@ const SW_NARROW: StyleData = StyleData {
 pub(super) const SW: LocaleData = LocaleData {
     tag: "sw",
     long: SW_LONG,
-    short: SW_SHORT,
+    short: StyleData::EMPTY,
     narrow: SW_NARROW,
     compact: UnitStrings::EMPTY,
     indefinite: UnitStrings::EMPTY,
@@ -6226,7 +6190,7 @@ pub(super) const SW: LocaleData = LocaleData {
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
     decimal_separator: ".",
-    at_pattern: "{0}, {1}",
+    at_pattern: "{0} {1}",
 };
 
 // --- te: `te.xml`, `root.xml` ------------------------------------------------
@@ -6875,8 +6839,9 @@ const TR_NARROW: StyleData = StyleData {
     // Override `narrow.hour.count.other`: (c) CLDR's `tr` narrow hour is {0} sa for one and {0}s
     // for other, though a Turkish noun after a numeral does not change with it; TDK's Kısaltmalar
     // Dizini [tdk-kisaltmalar-dizini,
-    // https://tdk.gov.tr/icerik/yazim-kurallari/kisaltmalar-dizini/] abbreviates saat as sa. and
-    // saniye as sn., so `s` is not the hour, and the file's own `one` value is kept for both.
+    // https://tdk.gov.tr/wp-content/uploads/2019/01/K%C4%B1saltmalar_Dizini.pdf] abbreviates saat
+    // as sa. and saniye as sn., so `s` is not the hour, and the file's own `one` value is kept for
+    // both.
     hour: u(
         p2("{0} sa. önce", "{0} sa. önce"),
         p2("{0} sa. sonra", "{0} sa. sonra"),
@@ -7235,10 +7200,11 @@ const VI_LONG: StyleData = StyleData {
     ),
     // Override `long.day.relative.-1`, `long.day.relative.-2`, `long.day.relative.0`,
     // `long.day.relative.1`, `long.day.relative.2`: (c) CLDR's `vi` capitalises its long day words
-    // alone (Hôm qua), where its short style and every other unit are lower-case; UTS #35 Part 2
-    // [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its
-    // middle-of-sentence form and leaves a capital to the `relative` context transform, and this
-    // crate writes the word inside a phrase (hôm qua lúc 15:05).
+    // alone (Hôm qua), where its short style (hôm qua, hôm nay, ngày mai) and every other unit are
+    // lower-case; UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form, and `vi.xml` has no `relative` context transform, only a `typographicNames` one; this
+    // crate writes the word inside a phrase (lúc 15:05 hôm qua).
     day: u_day(
         p1("{0} ngày trước"),
         p1("sau {0} ngày nữa"),
@@ -7288,16 +7254,18 @@ pub(super) const VI: LocaleData = LocaleData {
     tag: "vi",
     long: VI_LONG,
     // Override `short.day.relative.-2`, `short.day.relative.2`: (c) CLDR's `vi` capitalises its
-    // long day words alone (Hôm qua), where its short style and every other unit are lower-case;
-    // UTS #35 Part 2 [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html]
-    // keeps data in its middle-of-sentence form and leaves a capital to the `relative` context
-    // transform, and this crate writes the word inside a phrase (hôm qua lúc 15:05).
+    // long day words alone (Hôm qua), where its short style (hôm qua, hôm nay, ngày mai) and every
+    // other unit are lower-case; UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form, and `vi.xml` has no `relative` context transform, only a `typographicNames` one; this
+    // crate writes the word inside a phrase (lúc 15:05 hôm qua).
     short: StyleData::EMPTY,
     // Override `narrow.day.relative.-2`, `narrow.day.relative.2`: (c) CLDR's `vi` capitalises its
-    // long day words alone (Hôm qua), where its short style and every other unit are lower-case;
-    // UTS #35 Part 2 [uts35-general-48, https://www.unicode.org/reports/tr35/tr35-general.html]
-    // keeps data in its middle-of-sentence form and leaves a capital to the `relative` context
-    // transform, and this crate writes the word inside a phrase (hôm qua lúc 15:05).
+    // long day words alone (Hôm qua), where its short style (hôm qua, hôm nay, ngày mai) and every
+    // other unit are lower-case; UTS #35 Part 2 [uts35-general-48,
+    // https://www.unicode.org/reports/tr35/tr35-general.html] keeps data in its middle-of-sentence
+    // form, and `vi.xml` has no `relative` context transform, only a `typographicNames` one; this
+    // crate writes the word inside a phrase (lúc 15:05 hôm qua).
     narrow: StyleData::EMPTY,
     compact: UnitStrings::EMPTY,
     indefinite: UnitStrings::EMPTY,
@@ -7667,8 +7635,7 @@ const ZH_LONG: StyleData = StyleData {
         "",
     ),
     // Override `long.hour.relative.0`: (c) CLDR's `zh` puts two alternatives in one value, 这一时间 /
-    // 此时; its own minute is 这一分钟 and `zh_Hant.xml`'s hour 這一小時, of which this is the Simplified
-    // spelling.
+    // 此时; `zh_Hant.xml`'s hour is 這一小時, of which this is the Simplified spelling.
     hour: u(
         p1("{0}小时前"),
         p1("{0}小时后"),
@@ -7732,8 +7699,7 @@ const ZH_SHORT: StyleData = StyleData {
         "",
     ),
     // Override `short.hour.relative.0`: (c) CLDR's `zh` puts two alternatives in one value, 这一时间 /
-    // 此时; its own minute is 这一分钟 and `zh_Hant.xml`'s hour 這一小時, of which this is the Simplified
-    // spelling.
+    // 此时; `zh_Hant.xml`'s hour is 這一小時, of which this is the Simplified spelling.
     hour: u(
         p1("{0}小时前"),
         p1("{0}小时后"),
@@ -7792,8 +7758,7 @@ pub(super) const ZH: LocaleData = LocaleData {
     long: ZH_LONG,
     short: ZH_SHORT,
     // Override `narrow.hour.relative.0`: (c) CLDR's `zh` puts two alternatives in one value, 这一时间
-    // / 此时; its own minute is 这一分钟 and `zh_Hant.xml`'s hour 這一小時, of which this is the Simplified
-    // spelling.
+    // / 此时; `zh_Hant.xml`'s hour is 這一小時, of which this is the Simplified spelling.
     narrow: StyleData::EMPTY,
     compact: UnitStrings::EMPTY,
     indefinite: UnitStrings::EMPTY,

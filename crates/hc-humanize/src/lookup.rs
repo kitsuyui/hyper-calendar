@@ -315,7 +315,11 @@ mod tests {
     #[test]
     fn the_list_style_mapping_is_fixed() {
         let english = locale("en");
-        assert_eq!(list_forms(&english, RelativeStyle::Long).end, "{0} and {1}");
+        assert_eq!(
+            list_forms(&english, RelativeStyle::Long).end,
+            "{0}, and {1}"
+        );
+        assert_eq!(list_forms(&english, RelativeStyle::Long).two, "{0} and {1}");
         assert_eq!(list_forms(&english, RelativeStyle::Short).end, "{0}, {1}");
         assert_eq!(list_forms(&english, RelativeStyle::Narrow).end, "{0} {1}");
     }
