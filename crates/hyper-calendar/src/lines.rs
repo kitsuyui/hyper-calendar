@@ -50,6 +50,9 @@ pub const NATIVE: &str = "native";
 
 /// How many columns [`describe_day`] writes.
 pub const DESCRIBE_DAY_COLUMNS: usize = 18;
+/// How many columns [`parse_date`] writes: [`describe_day`]'s, then the
+/// fixed day.
+pub const PARSE_DATE_COLUMNS: usize = DESCRIBE_DAY_COLUMNS + 1;
 /// How many columns [`day_extras`] writes.
 pub const DAY_EXTRAS_COLUMNS: usize = 7;
 /// How many columns [`calendar_units`] writes.
@@ -272,35 +275,97 @@ fn describe_day_in_scope(registry: &CalendarRegistry, day: Rd, locale: &str) -> 
         let Some(calendar) = registry.get(id) else {
             continue;
         };
-        let meta = calendar.meta();
         let locale = locale_for(calendar, locale);
         let mut line = Line::new(&mut out);
-        line.cell(id.as_str()).cell(meta.english_name);
-        match described {
-            Ok(fields) => {
-                fields_cells(&mut line, &locale, calendar, &fields);
-                // No error code, no error name; then the standing.
-                line.empties(2).cell(standing_name(calendar.standing(day)));
-                day_boundary_cell(&mut line, calendar.day_boundary());
-                line.cell(&label::date(calendar, &fields, &locale));
-            }
-            Err(refusal) => {
-                // The nine date columns stay empty; the refusal is the
-                // answer, and there is no standing for a day the calendar
-                // cannot name.
-                line.empties(9)
-                    .value(refusal.code())
-                    .cell(refusal.name())
-                    .empty();
-                day_boundary_cell(&mut line, calendar.day_boundary());
-                line.empty();
-            }
-        }
-        line.cell(locale_used(&locale))
-            .cell(day_naming_name(calendar.day_boundary()));
+        let outcome = match &described {
+            Ok(fields) => Ok((day, fields)),
+            Err(refusal) => Err((refusal.code(), refusal.name())),
+        };
+        day_cells(&mut line, calendar, outcome, &locale);
         line.end();
     }
     out
+}
+
+/// One calendar's cells of [`describe_day`]'s line: the day's fields, or
+/// the code and name of the refusal in their place.
+fn day_cells(
+    line: &mut Line<'_>,
+    calendar: &dyn DynCalendar,
+    outcome: Result<(Rd, &DateFields), (u32, &str)>,
+    locale: &Locale,
+) {
+    let meta = calendar.meta();
+    line.cell(meta.id.as_str()).cell(meta.english_name);
+    match outcome {
+        Ok((day, fields)) => {
+            fields_cells(line, locale, calendar, fields);
+            // No error code, no error name; then the standing.
+            line.empties(2).cell(standing_name(calendar.standing(day)));
+            day_boundary_cell(line, calendar.day_boundary());
+            line.cell(&label::date(calendar, fields, locale));
+        }
+        Err((code, name)) => {
+            // The nine date columns stay empty; the refusal is the
+            // answer, and there is no standing for a day the calendar
+            // cannot name.
+            line.empties(9).value(code).cell(name).empty();
+            day_boundary_cell(line, calendar.day_boundary());
+            line.empty();
+        }
+    }
+    line.cell(locale_used(locale))
+        .cell(day_naming_name(calendar.day_boundary()));
+}
+
+/// A date as a locale writes it in one calendar, read back
+/// ([`label::parse_date`]): one line of [`describe_day`]'s columns for
+/// the calendar and the day the text names, then that fixed day.
+///
+/// `calendar` is a registry identifier, by the one rule every
+/// identifier is matched by. `locale` follows the module's rule: the text
+/// is read in the locale a rendered cell of the calendar is written in,
+/// so that what [`describe_day`]'s formatted cell writes, this reads. A
+/// text that is not one day is still a line: its date columns, standing,
+/// formatted date and fixed day are empty, and the error code and name
+/// are the refusal's — `ambiguous`, `two-digit-year`, `year-not-written`,
+/// `weekday-mismatch`, `not-recognised` or `empty`, from 101 up, or the
+/// calendar's own for fields it has no day for.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a `calendar` the registry does not carry.
+pub fn parse_date(calendar: &str, locale: &str, text: &str) -> Answer<String> {
+    let registry = crate::registry();
+    let calendar = registry.get_by_name(calendar).ok_or(Refusal::Unknown)?;
+    let locale = locale_for(calendar, locale);
+    Ok(hc_core::memo::scope(|| {
+        let parsed = label::parse_date(calendar, &locale, text);
+        let mut out = String::new();
+        let mut line = Line::new(&mut out);
+        match &parsed {
+            Ok(parsed) => {
+                day_cells(
+                    &mut line,
+                    calendar,
+                    Ok((parsed.fixed, &parsed.fields)),
+                    &locale,
+                );
+                line.value(parsed.fixed.0);
+            }
+            Err(refusal) => {
+                day_cells(
+                    &mut line,
+                    calendar,
+                    Err((refusal.code(), refusal.name())),
+                    &locale,
+                );
+                line.empty();
+            }
+        }
+        line.end();
+        out
+    }))
 }
 
 /// The extra fields of one day, one line per field, in registry order and,
@@ -768,6 +833,42 @@ mod tests {
         }
         assert_eq!(
             naming_period_line(&registry, "tk", "no-such-calendar", 0),
+            Err(Refusal::Unknown)
+        );
+    }
+
+    /// What `describe_day` writes for a calendar, `parse_date` reads back:
+    /// the same cells, and the fixed day after them; a text that is not
+    /// one day is a line with the refusal's code and name.
+    #[test]
+    fn a_described_date_reads_back_as_its_line() {
+        let today = day(2026, 9, 28);
+        let described = describe_day(&crate::registry(), Rd(today), "ja");
+        let japanese = described
+            .lines()
+            .find(|line| line.starts_with("japanese\t"))
+            .expect("the Japanese calendar is registered");
+        let formatted = cells(&format!("{japanese}\n"))[15].to_owned();
+        assert_eq!(formatted, "令和8年9月28日");
+        let line = parse_date(" Japanese ", "ja", &formatted).expect("known");
+        let row = cells(&line);
+        assert_eq!(row.len(), PARSE_DATE_COLUMNS);
+        assert_eq!(
+            row[..DESCRIBE_DAY_COLUMNS],
+            cells(&format!("{japanese}\n"))[..]
+        );
+        assert_eq!(row[DESCRIBE_DAY_COLUMNS], today.to_string());
+        let refused = parse_date("gregory", "en", "September 28, 26").expect("known");
+        let row = cells(&refused);
+        assert_eq!(row.len(), PARSE_DATE_COLUMNS);
+        assert_eq!(row[..2], ["gregory", "Gregorian"]);
+        assert!(row[2..11].iter().all(|cell| cell.is_empty()));
+        assert_eq!(row[11..13], ["104", "two-digit-year"]);
+        assert_eq!(row[16..], ["en", "", ""]);
+        let unreadable = parse_date("gregory", "en", "February 30, 2026").expect("known");
+        assert_eq!(cells(&unreadable)[11..13], ["3", "day-out-of-range"]);
+        assert_eq!(
+            parse_date("no-such-calendar", "en", "1"),
             Err(Refusal::Unknown)
         );
     }

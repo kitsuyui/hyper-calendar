@@ -45,6 +45,15 @@ renders into its own buffer. `String`-returning conveniences sit behind the
   watches of two hours and five points of 24 minutes, read from the civil
   clock. The seasonal reckoning, fifths of the night from dusk to dawn, is
   not carried.
+* **`label`** — a calendar's eras, years, months, days and dates written as
+  a locale writes them, for any registered calendar, and `parse_date`, its
+  inverse: 令和8年9月28日, 康熙五十二年十一月初一, *28 Eylül 2026* and
+  ٢٨ سبتمبر ٢٠٢٦ read back as the calendar's fields and the fixed day. The
+  reader walks the same templates, reads every name at every width and
+  native, Latin and Han numerals, and refuses a text that is not one day —
+  two days read, a year of two digits, a year named only by a recurring
+  cycle, a weekday that is not the day's — with the reason. See
+  `docs/systems/written-dates.md`.
 
 ## ISO 8601-1:2019 coverage
 

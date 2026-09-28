@@ -418,6 +418,52 @@ describe("describeDay", () => {
   });
 });
 
+describe("parseDate", () => {
+  test("reads back what describeDay writes, and a reader's own spelling", () => {
+    const rd = hc.gregorianToFixed(2026, 9, 28);
+    const japanese = hc.describeDay(rd, "ja").find((row) => row.id === "japanese");
+    assert.equal(japanese?.formatted, "令和8年9月28日");
+    const parsed = hc.parseDate("japanese", "ja", "令和8年9月28日");
+    assert.deepEqual(parsed, { ...japanese, fixed: rd });
+    for (const [calendar, locale, text] of [
+      ["japanese", "ja", "令和八年九月二十八日"],
+      ["gregory", "en", "Monday, Sep. 28, 2026"],
+      ["gregory", "tr", "28 Eylül 2026"],
+      ["gregory", "ar", "٢٨ سبتمبر ٢٠٢٦"],
+      ["roc", "zh-Hant", "民國115年9月28日"],
+    ]) {
+      assert.equal(hc.parseDate(calendar, locale, text).fixed, rd, `${calendar} ${text}`);
+    }
+    const raw = rawRows(hc, (buffer, capacity) => {
+      const calendar = new TextEncoder().encode("gregory");
+      const text = new TextEncoder().encode("September 28, 2026");
+      const at = hc.alloc(calendar.length + text.length);
+      new Uint8Array(hc.memory.buffer, at, calendar.length).set(calendar);
+      new Uint8Array(hc.memory.buffer, at + calendar.length, text.length).set(text);
+      try {
+        return hc.exports.hc_parse_date(at, calendar.length, 0, 0, at + calendar.length, text.length, buffer, capacity);
+      } finally {
+        hc.free(at, calendar.length + text.length);
+      }
+    });
+    assert.equal(raw.length, 1);
+    assert.equal(raw[0].length, COLUMNS.parseDate.length);
+  });
+
+  test("a text that is not one day says why", () => {
+    const twoDigits = hc.parseDate("gregory", "en", "September 28, 26");
+    assert.deepEqual(twoDigits.error, { code: 104, name: "two-digit-year" });
+    assert.equal(twoDigits.fixed, null);
+    assert.equal(twoDigits.year, null);
+    assert.equal(hc.parseDate("chinese", "zh-Hans", "癸卯年闰二月初一").error?.name, "year-not-written");
+    assert.equal(hc.parseDate("stata-week", "en", "2026w39").error?.name, "ambiguous");
+    assert.equal(hc.parseDate("gregory", "en", "Tuesday, September 28, 2026").error?.name, "weekday-mismatch");
+    assert.equal(hc.parseDate("gregory", "en", "").error?.name, "empty");
+    assert.equal(hc.parseDate("gregory", "en", "February 30, 2026").error?.name, "day-out-of-range");
+    refused(() => hc.parseDate("no-such-calendar", "en", "1"), "unknown");
+  });
+});
+
 describe("calendarUnits", () => {
   test("walks a calendar's eras, years, months and days as labelled spans", () => {
     const id = new TextEncoder().encode("gregory");

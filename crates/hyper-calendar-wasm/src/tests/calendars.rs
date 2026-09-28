@@ -51,6 +51,76 @@ fn a_turkmen_day_of_2005_is_named_by_the_period() {
     );
 }
 
+/// 令和8年9月28日 reads back as 28 September 2026, the Japanese calendar's
+/// line of `hc_describe_day` and the fixed day; a text with a year of two
+/// digits is a line that says so; the strings fail as every export's do.
+#[test]
+fn a_written_date_reads_back_as_its_line() {
+    let read = |calendar: &str, locale: &str, text: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_parse_date(
+                calendar.as_ptr(),
+                calendar.len(),
+                locale.as_ptr(),
+                locale.len(),
+                text.as_ptr(),
+                text.len(),
+                buffer,
+                capacity,
+            )
+        })
+    };
+    let line = read("japanese", "ja", "令和8年9月28日");
+    let cells: Vec<&str> = line.trim_end_matches('\n').split('\t').collect();
+    assert_eq!(cells.len(), hc::lines::PARSE_DATE_COLUMNS);
+    assert_eq!(
+        cells[..5],
+        ["japanese", "Japanese (imperial eras)", "reiwa", "令和", "8"]
+    );
+    assert_eq!(cells[15], "令和8年9月28日");
+    assert_eq!(cells[18], "739887");
+    let refused = read("gregory", "en", "September 28, 26");
+    assert!(refused.contains("\t104\ttwo-digit-year\t"), "{refused}");
+    assert!(refused.ends_with("\ten\t\t\n"), "{refused}");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe {
+            hc_parse_date(
+                "maya".as_ptr(),
+                4,
+                "en".as_ptr(),
+                2,
+                "1".as_ptr(),
+                1,
+                null,
+                0,
+            )
+        },
+        HC_ERR_UNKNOWN
+    );
+    let nothing = core::ptr::null();
+    assert_eq!(
+        unsafe { hc_parse_date(nothing, 7, "en".as_ptr(), 2, "1".as_ptr(), 1, null, 0) },
+        HC_ERR_NULL_POINTER
+    );
+    let not_utf8 = [0xff_u8];
+    assert_eq!(
+        unsafe {
+            hc_parse_date(
+                "gregory".as_ptr(),
+                7,
+                "en".as_ptr(),
+                2,
+                not_utf8.as_ptr(),
+                1,
+                null,
+                0,
+            )
+        },
+        HC_ERR_NOT_UTF8
+    );
+}
+
 /// 2026-09-21, described for a locale.
 fn describe(locale: &str) -> Vec<Vec<String>> {
     let text = read_lines(|buffer, capacity| unsafe {

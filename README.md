@@ -48,6 +48,10 @@ Beyond those tables, the library carries:
 - Time zones: fixed offsets, POSIX TZ strings and TZif files.
 - ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, and relative
   phrases such as "3 days ago".
+- Every calendar's dates written as each locale writes them, and read
+  back: 令和8年9月28日, 康熙五十二年十一月初一 and *28 Eylül 2026* are
+  fields and a fixed day again, and a text that names no one day is
+  refused with the reason.
 - Significant figures, error bars and Extended Date/Time Format (EDTF,
   ISO 8601-2) dates.
 - Spans from the Planck time to cosmological ages, and the geological time
@@ -103,7 +107,7 @@ includes the crate.
 | [`hc-attributes`](crates/hc-attributes) | Birthstones, birth flowers, moon names, traditional month names | `attributes` |
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
-| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours | `format` |
+| [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours, a calendar's dates written in a locale and read back | `format` |
 | [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities | `i18n` |
 | [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |

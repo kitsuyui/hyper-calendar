@@ -47,6 +47,17 @@
 //! no template gets its fields in [`hc_calendar::DateFields`] order,
 //! separated by spaces.
 //!
+//! # Reading a date back
+//!
+//! [`parse_date`] is the inverse: it walks the same templates, tries at
+//! each placeholder every name the locale's chain has at every width and
+//! numbers in the locale's digits, Latin digits and, for a locale written
+//! in Han characters, Han numerals, and keeps a reading only where the
+//! calendar's own fields for the day agree with the text. A text that is
+//! not one day is refused with a [`DateRefusal`] rather than guessed at.
+//! `docs/systems/written-dates.md` in the repository explains the
+//! matching and each refusal.
+//!
 //! # Which locale
 //!
 //! [`locale_for`] answers that, with one rule for every rendered cell: the
@@ -66,6 +77,10 @@ use hc_i18n::Locale;
 use hc_i18n::fields;
 use hc_i18n::names::{self, DateTemplates, NameContext, NameWidth, TemplateChain};
 use hc_i18n::numbering::{self, NumberingSystem};
+
+mod read;
+
+pub use read::{DateRefusal, ParsedDate, parse_date};
 
 /// The locale a calendar is rendered in: the one asked for when it names
 /// the calendar, else English, else the one asked for with the calendar's
@@ -456,36 +471,47 @@ impl<'a> Renderer<'a> {
             },
             ("day", _) => match self.fields.day {
                 Some(day) => {
-                    let named = usize::from(day)
-                        .checked_sub(1)
-                        .and_then(|index| self.merged.day_names.get(index));
-                    if let Some(name) = named {
-                        return out.write_str(name);
-                    }
-                    // A day that is a position in a named cycle, the
-                    // Pawukon's seven-day week, is written by its name.
                     let context = match mode {
                         Mode::Date => NameContext::Format,
                         Mode::Unit | Mode::Era => NameContext::Standalone,
                     };
-                    if fields::write_value_name(
-                        self.locale,
-                        self.id,
-                        self.calendar.cycles(),
-                        "day",
-                        i64::from(day),
-                        width.unwrap_or(NameWidth::Wide),
-                        context,
-                        out,
-                    )? {
-                        return Ok(());
-                    }
-                    self.write_number(i64::from(day), out)
+                    self.write_day(day, width.unwrap_or(NameWidth::Wide), context, out)
                 }
                 None => Ok(()),
             },
             _ => Ok(()),
         }
+    }
+
+    /// A day of the month by the locale's name for it, else by its name
+    /// in a named cycle — the Pawukon's seven-day week — else by its
+    /// number.
+    fn write_day(
+        &self,
+        day: u8,
+        width: NameWidth,
+        context: NameContext,
+        out: &mut dyn Write,
+    ) -> fmt::Result {
+        let named = usize::from(day)
+            .checked_sub(1)
+            .and_then(|index| self.merged.day_names.get(index));
+        if let Some(name) = named {
+            return out.write_str(name);
+        }
+        if fields::write_value_name(
+            self.locale,
+            self.id,
+            self.calendar.cycles(),
+            "day",
+            i64::from(day),
+            width,
+            context,
+            out,
+        )? {
+            return Ok(());
+        }
+        self.write_number(i64::from(day), out)
     }
 
     /// An extra field, where the date carries it: the name of the position
@@ -502,6 +528,19 @@ impl<'a> Renderer<'a> {
             return Ok(());
         };
         self.mark(field);
+        self.write_extra_value(field, value, width, context, out)
+    }
+
+    /// An extra field's value: the name of the position it holds where
+    /// its cycle is named, else its number.
+    fn write_extra_value(
+        &self,
+        field: &str,
+        value: i64,
+        width: NameWidth,
+        context: NameContext,
+        out: &mut dyn Write,
+    ) -> fmt::Result {
         if fields::write_value_name(
             self.locale,
             self.id,
@@ -616,14 +655,24 @@ impl<'a> Renderer<'a> {
         context: NameContext,
         out: &mut dyn Write,
     ) -> fmt::Result {
-        if let Some(label) = names::month_label_in(
-            self.locale,
-            self.id,
-            month,
-            names::has_leap_year_month_names(self.locale, self.id) && self.in_leap_year(),
-            width,
-            context,
-        ) {
+        let in_leap_year =
+            names::has_leap_year_month_names(self.locale, self.id) && self.in_leap_year();
+        self.write_month_in(month, in_leap_year, width, context, out)
+    }
+
+    /// [`Renderer::write_month`] in a year that has the intercalary month
+    /// or not, as `in_leap_year` says.
+    fn write_month_in(
+        &self,
+        month: Month,
+        in_leap_year: bool,
+        width: NameWidth,
+        context: NameContext,
+        out: &mut dyn Write,
+    ) -> fmt::Result {
+        if let Some(label) =
+            names::month_label_in(self.locale, self.id, month, in_leap_year, width, context)
+        {
             out.write_str(label.prefix)?;
             return out.write_str(label.name);
         }

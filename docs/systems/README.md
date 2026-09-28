@@ -130,6 +130,7 @@ crates, modules, functions or holiday tables.
 | Mars timekeeping: the Mars Sol Date, Coordinated Mars Time, local mean and true solar time, the Mars year from 1955, the mission sol conventions, the Darian calendar and its Martiana variant | [mars-timekeeping.md](mars-timekeeping.md) | `hc-planetary`: `mars`, `mars::missions`, `mars::darian`, `mars::martiana` (`martiana`) |
 | Circad calendars: Gangale's Darian calendar for Titan and the Gregorian-based calendars of the Galilean moons, and why the Darian-based Galilean family is not carried | [circad-calendars.md](circad-calendars.md) | `darian-titan`, `gregorian-io`, `gregorian-europa`, `gregorian-ganymede`, `gregorian-callisto`; `hc-planetary`: `circad`, `titan`, `galilean` |
 | The earliest evidence of life, of *Homo sapiens* and of writing: the published claims, each dated in the shape its source gives — an age, a minimum, a range — with the disputes named, and the Japanese names of the deep-time tables by identifier | [earliest-evidence.md](earliest-evidence.md) | `hc-deep-time`: `evidence`, `names::entry_name` |
+| Written dates read back: the templates walked in reverse, every name at every width, native digits, Han numerals and 元年, and the refusals — an ambiguous text, a two-digit year, a year named only by a cycle, a weekday that is not the day's | [written-dates.md](written-dates.md) | `hc-format`: `label::parse_date`; `hc_parse_date`; `DynCalendar::era_code` |
 
 ## Systems that need a document
 

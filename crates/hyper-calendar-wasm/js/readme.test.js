@@ -119,6 +119,8 @@ test("the sentinels are the README's, value by value", () => {
 
 test("describeDay reads the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.describeDay], columnsAfter("## Every calendar"));
+  // hc_parse_date writes hc_describe_day's columns, then the fixed day.
+  assert.deepEqual([...COLUMNS.parseDate], [...COLUMNS.describeDay, "fixed"]);
 });
 
 test("calendarUnits, calendars and locales read the README's columns in order", () => {

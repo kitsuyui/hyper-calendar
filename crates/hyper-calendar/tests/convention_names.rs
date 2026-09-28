@@ -9,13 +9,17 @@
 //! written list is right on the day it is written. So each is held to the
 //! table here: the `.d.ts` type names exactly the table's identifiers, and
 //! every rustdoc block, README paragraph and roadmap table that lists them
-//! names every one.
+//! names every one. A listing that hands the identifiers back — `missions()`,
+//! `bodies()`, `horizons()` — types its field with the same union, so that
+//! a caller passes a listed identifier to the lookup without a cast.
 
 #![cfg(feature = "full")]
 
 use std::collections::BTreeSet;
 
+use hyper_calendar::hc_astro::HORIZONS;
 use hyper_calendar::hc_astro::solar_time::{SolarClock, SolarEvent};
+use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
 use hyper_calendar::hc_core::epoch_notation::EpochKind;
 use hyper_calendar::hc_core::gnss::{self, RolloverRule};
 use hyper_calendar::hc_core::tai64;
@@ -73,6 +77,21 @@ fn dts_literals(dts: &str, name: &str) -> BTreeSet<String> {
         }
     }
     out
+}
+
+/// The type a `.d.ts` interface gives one of its fields, without the `;`.
+fn dts_field(dts: &str, interface: &str, field: &str) -> Option<String> {
+    let start = dts
+        .find(&format!("export interface {interface} {{"))
+        .or_else(|| dts.find(&format!("export interface {interface} extends")))?;
+    let body = &dts[start..];
+    let body = &body[..body.find("\n}").unwrap_or(body.len())];
+    body.lines().find_map(|line| {
+        let rest = line
+            .strip_prefix(&format!("  {field}: "))
+            .or_else(|| line.strip_prefix(&format!("  {field}?: ")))?;
+        Some(rest.trim_end_matches(';').trim().to_owned())
+    })
 }
 
 /// The doc comment above the line that begins with `start`, one line:
@@ -137,6 +156,10 @@ struct Listed {
     paragraphs: &'static [(&'static str, &'static str)],
     /// Methods of the JavaScript binding whose JSDoc names every one.
     methods: &'static [&'static str],
+    /// Fields of the `.d.ts` interfaces a listing or a reading returns,
+    /// `(interface, field)`, that hold one of the identifiers and so must
+    /// be typed with the union, or with it or `null`.
+    fields: &'static [(&'static str, &'static str)],
 }
 
 fn listed() -> Vec<Listed> {
@@ -155,6 +178,7 @@ fn listed() -> Vec<Listed> {
                 (ROADMAP, "| Italian hours (*ore italiane*) |"),
             ],
             methods: &["solarTime"],
+            fields: &[],
         },
         Listed {
             what: "solar events",
@@ -170,6 +194,7 @@ fn listed() -> Vec<Listed> {
                 (ROADMAP, "| Italian hours (*ore italiane*) |"),
             ],
             methods: &["solarEvent"],
+            fields: &[],
         },
         Listed {
             what: "named meridians",
@@ -178,6 +203,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "plum-rain rules",
@@ -189,6 +215,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "surface missions",
@@ -197,6 +224,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &["missionSol"],
+            fields: &[("Mission", "id")],
         },
         Listed {
             what: "bodies",
@@ -205,6 +233,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[("Body", "id"), ("Body", "primary")],
         },
         Listed {
             what: "gravitating bodies",
@@ -213,6 +242,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[("GravitatingBody", "id"), ("GravitationalDilation", "id")],
         },
         Listed {
             what: "ayanamsas",
@@ -227,6 +257,7 @@ fn listed() -> Vec<Listed> {
                 (WASM_README, "moves with it twice over"),
             ],
             methods: &["panchangaAt"],
+            fields: &[],
         },
         Listed {
             what: "cold-food conventions",
@@ -238,6 +269,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "TAI64 formats",
@@ -252,6 +284,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[("Tai64Label", "format")],
         },
         Listed {
             what: "GNSS week fields",
@@ -260,6 +293,7 @@ fn listed() -> Vec<Listed> {
             exports: &[(FFI_SOURCE, "hc_gnss_week"), (WASM_SOURCE, "hc_gnss_week")],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "GNSS rollover rules",
@@ -271,6 +305,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "epoch notations",
@@ -283,6 +318,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "radio codes",
@@ -294,6 +330,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "radio summer-time states",
@@ -309,6 +346,7 @@ fn listed() -> Vec<Listed> {
             ],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "radio leap notices",
@@ -317,6 +355,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "sidereal signs",
@@ -325,6 +364,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[("KumbhOccasion", "jupiter"), ("PushkaramDays", "sign")],
         },
         Listed {
             what: "mission clocks",
@@ -333,6 +373,25 @@ fn listed() -> Vec<Listed> {
             exports: &[(FFI_SOURCE, "hc_missions"), (WASM_SOURCE, "hc_missions")],
             paragraphs: &[],
             methods: &[],
+            fields: &[("Mission", "clock")],
+        },
+        Listed {
+            what: "horizons",
+            ids: HORIZONS.iter().map(|horizon| horizon.id).collect(),
+            dts: "HorizonId",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[("Horizon", "id")],
+        },
+        Listed {
+            what: "Kumbh conditions",
+            ids: KumbhYoga::ALL.iter().map(|yoga| yoga.id).collect(),
+            dts: "KumbhYoga",
+            exports: &[],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[("KumbhOccasion", "id")],
         },
         Listed {
             what: "holiday kinds",
@@ -341,6 +400,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
         Listed {
             what: "holiday confidences",
@@ -349,6 +409,7 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
         },
     ]
 }
@@ -363,6 +424,16 @@ fn problems(listed: &Listed, dts: &str, sources: &[(&str, String)], binding: &st
             "{}: the .d.ts type {} lists {typed:?}, the table {ids:?}",
             listed.what, listed.dts
         ));
+    }
+    for (interface, field) in listed.fields {
+        let typed = dts_field(dts, interface, field);
+        let union = listed.dts;
+        if typed.as_deref() != Some(union) && typed != Some(format!("{union} | null")) {
+            out.push(format!(
+                "{}: the .d.ts field {interface}.{field} is {typed:?}, not {union}",
+                listed.what
+            ));
+        }
     }
     let mut prose: Vec<(String, String)> = Vec::new();
     for (path, export) in listed.exports {
@@ -415,8 +486,8 @@ fn every_list_of_a_conventions_names_is_its_table() {
     assert!(found.is_empty(), "{}", found.join("\n"));
 }
 
-/// The check fails a list that leaves an identifier out, and a type that
-/// adds one.
+/// The check fails a list that leaves an identifier out, a type that
+/// adds one, and a listing's field typed as a bare string.
 #[test]
 fn the_check_catches_a_short_list_and_a_long_type() {
     let listed = Listed {
@@ -426,14 +497,16 @@ fn the_check_catches_a_short_list_and_a_long_type() {
         exports: &[("src", "hc_x")],
         paragraphs: &[],
         methods: &[],
+        fields: &[("R", "id")],
     };
-    let dts = "export type T = \"a\" | \"b\" | \"c\";";
+    let dts = "export type T = \"a\" | \"b\" | \"c\";\nexport interface R {\n  id: string;\n}";
     let sources = [(
         "src",
         "/// `a` only.\npub extern \"C\" fn hc_x() {}".to_owned(),
     )];
     let found = problems(&listed, dts, &sources, "");
-    assert_eq!(found.len(), 2, "{found:?}");
+    assert_eq!(found.len(), 3, "{found:?}");
     assert!(found[0].contains("the .d.ts type T"));
-    assert!(found[1].contains("does not name `b`"));
+    assert!(found[1].contains("the .d.ts field R.id"));
+    assert!(found[2].contains("does not name `b`"));
 }

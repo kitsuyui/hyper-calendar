@@ -1120,6 +1120,56 @@ pub fn era_codes(locale: &Locale, calendar: CalendarId) -> Option<&'static [&'st
     })
 }
 
+/// Every name the fallback chain of `locale` gives an era of `calendar`,
+/// at every width, with the era's code: what a reader of a written date
+/// takes a name back to its code by.
+///
+/// Each entry of the chain that lists eras for the calendar is visited in
+/// chain order, the root last, and within it each era in list order; an
+/// era [`SHARED_ERAS`] lists is visited under the calendar that table
+/// names too, since [`era_name_by_code`] writes it from there. A name is
+/// visited once for each width that has it, so a caller sees duplicates.
+pub fn for_each_era_name(
+    locale: &Locale,
+    calendar: CalendarId,
+    mut visit: impl FnMut(&'static str, &'static str),
+) {
+    let mut from = |data: &'static LocaleData| {
+        let mut eras = |id: CalendarId, only: Option<&str>| {
+            let Some(eras) = data.eras_for(id) else {
+                return;
+            };
+            for (index, code) in eras.codes.iter().enumerate() {
+                if only.is_some_and(|only| !only.eq_ignore_ascii_case(code)) {
+                    continue;
+                }
+                for width in NameWidth::ALL {
+                    if let Some(name) = eras.names.exact(width).get(index) {
+                        visit(code, name);
+                    }
+                }
+            }
+        };
+        eras(calendar, None);
+        for (code, shared) in SHARED_ERAS {
+            if *shared != calendar {
+                eras(*shared, Some(code));
+            }
+        }
+    };
+    for candidate in locale.fallback() {
+        let Some(rendered) = candidate.rendered() else {
+            continue;
+        };
+        for data in LOCALES {
+            if rendered.as_str() == data.tag {
+                from(data);
+            }
+        }
+    }
+    from(&ROOT);
+}
+
 /// How a locale writes a calendar's units and dates.
 ///
 /// The first entry in the fallback chain that names the calendar decides:

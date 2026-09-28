@@ -300,6 +300,11 @@ impl Calendar for KoreanRegnalCalendar {
         by_id(code).map(|era| hc_calendar::EraName::new(era.hangul, era.romanised))
     }
 
+    /// The three eras, in order.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        ALL.get(index).map(|era| era.id)
+    }
+
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
             id: CalendarId("korean-regnal"),

@@ -288,6 +288,20 @@ pub trait Calendar {
         None
     }
 
+    /// The era codes [`Calendar::era_name`] answers for, one by one: the
+    /// code at `index`, or `None` past the last.
+    ///
+    /// A reader of a written date takes an era's name back to its code
+    /// with it — 嘉永 to `kaei` — where no locale's data lists the era.
+    /// Defaults to `None`, which is right for a calendar whose era names
+    /// are all the locales' and for one without eras; a calendar that
+    /// overrides [`Calendar::era_name`] overrides this too, and the
+    /// facade's tests hold it to naming every era the calendar writes.
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        let _ = index;
+        None
+    }
+
     /// Where this calendar's day begins, and which civil day names it.
     ///
     /// Defaults to midnight, which is right for most calendars and for every
@@ -445,6 +459,13 @@ pub trait DynCalendar {
         let _ = code;
         None
     }
+
+    /// The era codes the calendar names itself, by position. See
+    /// [`Calendar::era_code`].
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        let _ = index;
+        None
+    }
 }
 
 /// Turns any [`Calendar`] into a [`DynCalendar`].
@@ -547,6 +568,10 @@ impl<C: Calendar> DynCalendar for DynAdapter<C> {
 
     fn era_name(&self, code: &str) -> Option<EraName> {
         self.inner.era_name(code)
+    }
+
+    fn era_code(&self, index: usize) -> Option<&'static str> {
+        self.inner.era_code(index)
     }
 }
 
