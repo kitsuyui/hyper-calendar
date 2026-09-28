@@ -127,7 +127,18 @@ León sighted Florida.
   - *The Norwegian primstav*, whose content is those marks.
   - *Pentadic numerals*, the later staffs' alternative to the golden
     runes [wikipedia-runic-calendar], for want of a table of their forms.
-  - *The Gregorian staffs* cut after 1753 [wikipedia-sv-runstav].
+  - *The Gregorian staffs* cut after 1753, "enstaka runstavar med
+    kalendern korrigerad utifrån den nya kalendern" [wikipedia-sv-runstav].
+    Digelius engraved the staff in 1755 "med gyllental lämpade efter nya
+    stilen", and the staffs of the new style have "gyllentalet 9 den 2 jan.
+    för 1700-talet, gyllentalet 1 vid 1 jan. för 1800-talet" [brate1908,
+    p. 13]; Lithberg says Digelius reworked the staff "så att den göres
+    brukbar för den kalender, som nu skulle gälla" [lithberg1920, p. 24].
+    That is two entries of each century's series, not the series, and no
+    museum record read (Nordiska museet's staffs of 1766 and 1790 among
+    them) says whether a staff's golden numbers are of the new style.
+    Digelius's engraving of 1755 would give the series; it was not
+    read.
 
 ## Accuracy
 

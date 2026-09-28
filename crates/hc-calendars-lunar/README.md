@@ -39,7 +39,7 @@ others exist.
 | `hebrew` | `hebrew` | arithmetic | AM 1–9999 |
 | `hebrew_observational` | `hebrew-observational` | prediction | 383 BCE – 2100 CE |
 | `samaritan` | `samaritan` | astronomical | Samaritan 3539–3738 (1900–2100 CE) |
-| `babylonian` | `babylonian` | astronomical | SE −71 to 386 (383 BCE to 76 CE) |
+| `babylonian` | `babylonian` | astronomical | SE −314 to 386 (626 BCE to 76 CE): the rule from SE −71, the table's intercalations before; regnal labels SE −314 to 160 |
 | `tibetan::TIBETAN` | `tibetan` | arithmetic (Phugpa) | 1000–3000 |
 | `tibetan::TIBETAN_TSURPHU` | `tibetan-tsurphu` | arithmetic (Tsurphu) | 1000–3000 |
 | `tibetan::TIBETAN_BHUTAN` | `tibetan-bhutan` | arithmetic (Bhutanese) | 1000–3000 |
@@ -152,6 +152,7 @@ six year lengths, Rosh Hashanah 5784 worked by hand through the rules, the
 drift from the sky, what is carried and what is not, and the sources,
 Maimonides first. The module keeps the month-numbering convention, Tishrei
 first with Adar I as `Month::leap(5)`, and the Omer, *birkat hachama*,
+Shmuel's four *tekufot* (`shmuel_tekufah`, from Maimonides' chapter 9),
 anniversary and sabbatical-year (*shemittah*) functions beside the
 calendar.
 
@@ -345,9 +346,11 @@ earlier for 0.5%, never further off; the rate is much the same in every
 fifty-year stretch, so it is the two visibility criteria that differ. The
 criterion is applied to each evening on its own, so 38 of those months run
 31 days here where the table, which does the same, has 29 or 30; the module
-documentation says why the thirty-day rule is not imposed. The range stops
-where the table stops following the rule at one end and where
-the table ends at the other. The figure is asserted in an ignored test that
+documentation says why the thirty-day rule is not imposed. Before SE −71
+the thirteenth months are the table's own, 90 of them back to SE −314,
+626 BCE, where the table begins, and over those 3 006 months the first day
+is theirs for 84.0%, a day off for all but two, which are two days off. The
+range is the table's. The figure is asserted in an ignored test that
 runs against a copy of the table, and the module documentation names the
 rows it cites.
 

@@ -170,6 +170,7 @@ row yet uses, because no source for such a step has been read.
 | FI, SE | Sweden (with Finland) | 30 February 1712 (Swedish) | 1 March 1712 (Julian) | `swedish-1700` → `julian` | civil | Charles XII's order of January 1711, not read [hogman-tiderakning, wikipedia-swedish-calendar] |
 | FI, SE | Sweden (with Finland) | 17 February 1753 (Julian) | 1 March 1753 | `julian` → `gregory` | civil | as `julian-gregorian-se` |
 | FR | France | 9 December 1582 (Julian) | 20 December 1582 | `julian` → `gregory` | civil | as `julian-gregorian-fr` |
+| FR | The Duchy of Lorraine | 16 February 1760 (Julian) | 28 February 1760 | `julian` → `gregory` | partial | none read [frwiki-passage-gregorien, wikipedia-adoption-list, dewiki-gregorianischer-kalender] |
 | GB | Great Britain and its colonies | 2 September 1752 (Julian) | 14 September 1752 | `julian` → `gregory` | civil | as `julian-gregorian-gb` |
 | GR | Greece | 15 February 1923 (Julian) | 1 March 1923 | `julian` → `gregory` | civil | as `julian-gregorian-gr` |
 | HU | Hungary | 21 October 1587 (Julian) | 1 November 1587 | `julian` → `gregory` | civil | as `julian-gregorian-hu` |
@@ -181,6 +182,7 @@ row yet uses, because no source for such a step has been read.
 | NL | Utrecht and Overijssel | 30 November 1700 (Julian) | 12 December 1700 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
 | NL | Friesland and Groningen | 31 December 1700 (Julian) | 12 January 1701 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
 | NL | Drenthe | 30 April 1701 (Julian) | 12 May 1701 | `julian` → `gregory` | partial | none read [nlwiki-gregoriaanse-kalender] |
+| RO | The Principality of Transylvania | 14 December 1590 (Julian) | 25 December 1590 | `julian` → `gregory` | partial | none read; the year from [rowiki-calendarul-gregorian], the days from [wikipedia-adoption-list] and [dewiki-gregorianischer-kalender], the latter citing Grotefend's *Taschenbuch der Zeitrechnung* (1922), not read |
 | RO | Romania (the Old Kingdom) | 31 March 1919 (Julian) | 14 April 1919 | `julian` → `gregory` | civil | as `julian-gregorian-ro` |
 | RS | Kingdom of Serbs, Croats and Slovenes | 14 January 1919 (Julian) | 28 January 1919 | `julian` → `gregory` | civil | as `julian-gregorian-rs` |
 | RU | Soviet Russia | 31 January 1918 (Julian) | 14 February 1918 | `julian` → `gregory` | civil | as `julian-gregorian-ru` |
@@ -297,14 +299,24 @@ gap in the middle, which is not what the identifier claims to be.
     Gelderland on 12 July 1700, Utrecht and Overijssel on 12 December
     1700, Friesland and Groningen on 12 January 1701, Drenthe on 12 May
     1701 [nlwiki-gregoriaanse-kalender]; they are rows of the regional
-    table, as `NL` with a partial scope — and the other territories of the
-    Empire, Catholic and Protestant, each on its own day; Lorraine in
-    1760 [frwiki-passage-gregorien]; Transylvania in 1590 and Bukovina in
-    1773 [rowiki-calendarul-gregorian]; Mount Athos, which never changed.
-    The table is deliberately fourteen rows, the ones a reader of European
-    and Russian sources meets; every other polity is a fixed day away
-    through `with_cutover`, and a row is added when a source for it has
-    been read.
+    table, as `NL` with a partial scope, and so are Lorraine, 16 followed
+    by 28 February 1760 [frwiki-passage-gregorien], and Transylvania, 14
+    followed by 25 December 1590 [wikipedia-adoption-list,
+    dewiki-gregorianischer-kalender] — and the other territories of the
+    Empire, Catholic and Protestant, each on its own day; Mount Athos,
+    which never changed. The table is deliberately fourteen rows, the ones
+    a reader of European and Russian sources meets; every other polity is
+    a fixed day away through `with_cutover`, and a row of the regional
+    table is added when a source for it has been read.
+  - **Bukovina**, which Romanian Wikipedia says took the Gregorian
+    calendar in 1773, uncited [rowiki-calendarul-gregorian]: no source
+    read gives the days, and none of the other Wikipedias read, nor their
+    articles on Bukovina, mentions the change, so it is not a row.
+    Grotefend's *Taschenbuch* would be the source to read.
+  - **Lorraine's first change**, 9 followed by 20 December 1582, and its
+    return to the Julian calendar in 1735, which English Wikipedia's list
+    gives, uncited and the return without a day [wikipedia-adoption-list]:
+    a row needs both days of each step.
   - **Alaska**, which on its transfer to the United States changed
     calendar and side of the date line in one act, so that Friday
     6 October 1867 was followed by Friday 18 October and a weekday

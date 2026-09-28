@@ -36,3 +36,12 @@ pub const IRAN_STANDARD_OFFSET_DAYS: f64 = 3.5 / 24.0;
 /// Dershowitz give it (`reingold2018code`, `paris`), the longitude
 /// tied to the 9 minutes 21 seconds between Paris time and Universal Time.
 pub const PARIS_OBSERVATORY: Location = Location::new(48.836_389, 2.337_5, 27.0);
+
+/// Isfahan, 32.665 28° N, 51.670 28° E, the Seljuk capital, "the place of
+/// observations" for the Jalālī reform in Ṭabarī's *Zīj-e mofrad* (Karamati,
+/// "Khayyam, Omar xv. As astronomer", *Encyclopaedia Iranica*,
+/// `karamati2014`), at the coordinates English Wikipedia's "Isfahan" gives
+/// (retrieved 2026-09-29). Only the longitude matters to the calendars that
+/// use it, [`crate::jalali`], whose rule is the Sun's transit here; the
+/// elevation is left at sea level, which changes no transit.
+pub const ISFAHAN: Location = Location::new(32.665_278, 51.670_278, 0.0);

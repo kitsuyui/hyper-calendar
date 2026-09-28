@@ -552,7 +552,14 @@ pub static VALUES: &[FieldValues] = &[
     // is its common rest day. The Burmese half is named by its own words
     // above.
     flag(
-        &[CalendarId("icelandic"), CalendarId("icelandic-julian")],
+        &[
+            CalendarId("icelandic"),
+            CalendarId("icelandic-julian"),
+            CalendarId("icelandic-friday"),
+            CalendarId("icelandic-julian-friday"),
+            CalendarId("icelandic-medieval"),
+            CalendarId("icelandic-almanac"),
+        ],
         "sumarauki",
     ),
     flag(

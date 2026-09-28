@@ -133,6 +133,7 @@ fn day_boundary_cell(line: &mut Line<'_>, boundary: DayBoundary) {
         DayBoundary::Noon(_) => line.cell("noon"),
         DayBoundary::Sunset(_) => line.cell("sunset"),
         DayBoundary::Sunrise(_) => line.cell("sunrise"),
+        DayBoundary::Daybreak(_) => line.cell("daybreak"),
         DayBoundary::LocalTime(time, _) => line.value(format_args!("local-time {time}")),
     };
 }

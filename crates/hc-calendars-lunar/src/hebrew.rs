@@ -545,6 +545,107 @@ pub const BIRKAT_HACHAMA_CYCLE_DAYS: i64 = 10_227;
 /// Reingold and Dershowitz gives it.
 pub const BIRKAT_HACHAMA_ANCHOR: Rd = Rd(733_505);
 
+/// One of the four *tekufot*, the seasons of the solar year.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Tekufah {
+    /// *Tekufat Tishrei*, the Sun at the head of Libra, the autumn
+    /// equinox that opens the year.
+    Tishrei,
+    /// *Tekufat Tevet*, the Sun at the head of Capricorn, the winter
+    /// solstice.
+    Tevet,
+    /// *Tekufat Nisan*, the Sun at the head of Aries, the spring equinox.
+    Nisan,
+    /// *Tekufat Tammuz*, the Sun at the head of Cancer, the summer solstice.
+    Tammuz,
+}
+
+impl Tekufah {
+    /// The four in the order a Hebrew year meets them.
+    pub const ALL: [Self; 4] = [Self::Tishrei, Self::Tevet, Self::Nisan, Self::Tammuz];
+
+    /// Minutes from this *tekufah* of a Hebrew year to the same year's
+    /// *tekufat Nisan*, which is the reckoning's anchor: a season is 91
+    /// days and 7½ hours.
+    const fn minutes_before_nisan(self) -> i64 {
+        match self {
+            Self::Tishrei => 2 * SHMUEL_SEASON_MINUTES,
+            Self::Tevet => SHMUEL_SEASON_MINUTES,
+            Self::Nisan => 0,
+            Self::Tammuz => -SHMUEL_SEASON_MINUTES,
+        }
+    }
+}
+
+/// Minutes in a season of Shmuel's year, 91 days and 7½ hours: "between
+/// the start of each of the successive seasons of the year, there will be
+/// ninety-one days and seven and one-half hours" (Maimonides, *Hilkhot
+/// Kiddush HaChodesh* 9:2).
+pub const SHMUEL_SEASON_MINUTES: i64 = 91 * 1_440 + 450;
+
+/// Minutes in Shmuel's year of 365¼ days.
+pub const SHMUEL_YEAR_MINUTES: i64 = 4 * SHMUEL_SEASON_MINUTES;
+
+/// *Tekufat Nisan* 5769: Tuesday 7 April 2009 at six in the evening,
+/// Jerusalem mean time, "the beginning of the night of the fourth day" at
+/// which the 28-year cycle begins again (Maimonides, *Hilkhot Berakhot*
+/// 10:18), as minutes from RD 0.
+const SHMUEL_NISAN_5769_MINUTES: i64 = (BIRKAT_HACHAMA_ANCHOR.0 - 1) * 1_440 + 18 * 60;
+
+/// The Hebrew year whose *tekufat Nisan* is the anchor.
+const SHMUEL_ANCHOR_YEAR: i64 = 5_769;
+
+/// A *tekufah* of Shmuel's reckoning as minutes from midnight at the start
+/// of RD 0, in Jerusalem mean solar time.
+const fn shmuel_tekufah_minutes(year: i64, tekufah: Tekufah) -> i64 {
+    SHMUEL_NISAN_5769_MINUTES + (year - SHMUEL_ANCHOR_YEAR) * SHMUEL_YEAR_MINUTES
+        - tekufah.minutes_before_nisan()
+}
+
+/// The moment of a *tekufah* of the Hebrew year `year` by Shmuel's
+/// reckoning, in Jerusalem mean solar time as [`molad`] is.
+///
+/// Shmuel's solar year is 365¼ days, and "between the start of each of the
+/// successive seasons of the year, there will be ninety-one days and seven
+/// and one-half hours"; the first *tekufat Nisan* "took place at the
+/// beginning of the fourth day", the night that began on Tuesday evening
+/// (Maimonides, *Hilkhot Kiddush HaChodesh* 9:2–9:4, in Wikisource's Hebrew
+/// and Touger's English on Sefaria, read 2026-09-29). The year's
+/// *tekufot* are Tishrei and Tevet before its Nisan and Tammuz after it, so
+/// that Tishrei 5786 is 7 October 2025. The hours are the reckoning's equal
+/// hours, the night beginning at six in the evening of mean time (Simmons,
+/// *Sinai* 111, secondary); Hebrew Wikipedia's "ארבע התקופות" computes
+/// its dated table the same way, in Jerusalem mean time. Simmons's own
+/// clock times, thirteen minutes later, are another reading of the hour
+/// and are not this one.
+///
+/// [`birkat_hachama_on_or_after`] is the day after the *tekufat Nisan*
+/// that begins the 28-year cycle.
+#[must_use]
+pub fn shmuel_tekufah(year: i64, tekufah: Tekufah) -> Moment {
+    let minutes = shmuel_tekufah_minutes(year, tekufah);
+    Moment(minutes.div_euclid(1_440) as f64 + minutes.rem_euclid(1_440) as f64 / 1_440.0)
+}
+
+/// The fixed day whose Hebrew day a *tekufah* of Shmuel's reckoning falls
+/// in: the civil day of the moment, or the next one from six in the
+/// evening, when the reckoning's night begins, together with the minutes
+/// of Jerusalem mean time since that civil midnight.
+///
+/// Maimonides' own example: *tekufat Nisan* of 4930 "on the night of the
+/// fifth day at midnight", and "on the eighth of Nisan" (9:5–9:7).
+#[must_use]
+pub const fn shmuel_tekufah_day(year: i64, tekufah: Tekufah) -> (Rd, i64) {
+    let minutes = shmuel_tekufah_minutes(year, tekufah);
+    let civil = minutes.div_euclid(1_440);
+    let clock = minutes.rem_euclid(1_440);
+    if clock >= 18 * 60 {
+        (Rd(civil + 1), clock)
+    } else {
+        (Rd(civil), clock)
+    }
+}
+
 /// Years in the sabbatical cycle.
 pub const SABBATICAL_CYCLE_YEARS: u8 = 7;
 
@@ -1099,6 +1200,122 @@ mod tests {
         assert_eq!(omer_weeks_and_days(Rd(start.0 + 6)), Ok(Some((1, 0))));
         assert_eq!(omer_weeks_and_days(Rd(start.0 + 7)), Ok(Some((1, 1))));
         assert_eq!(omer_weeks_and_days(Rd(start.0 + 32)), Ok(Some((4, 5))));
+    }
+
+    /// Maimonides, *Hilkhot Kiddush HaChodesh* 9:4–9:7: the hours each
+    /// *tekufah* can fall at, the weekday rule and the example of 4930;
+    /// the *birkat hachama* of 2009; and Hebrew Wikipedia's table of
+    /// 5786–5791 in Jerusalem mean time.
+    #[test]
+    fn shmuels_tekufot_are_maimonides_and_the_tables() {
+        use Tekufah::*;
+        // 9:4: Nisan at the start of the night or day, at midnight or
+        // midday; Tammuz at 1½ or 7½ hours, Tishrei at 3 or 9, Tevet at 4½
+        // or 10½, of the day or the night, counted from six o'clock.
+        for year in 5_600..5_900 {
+            for (tekufah, hours) in [
+                (Nisan, [0.0, 6.0]),
+                (Tammuz, [1.5, 7.5]),
+                (Tishrei, [3.0, 9.0]),
+                (Tevet, [4.5, 10.5]),
+            ] {
+                let (_, clock) = shmuel_tekufah_day(year, tekufah);
+                let from_six = ((clock - 360).rem_euclid(720)) as f64 / 60.0;
+                assert!(hours.contains(&from_six), "{year} {tekufah:?}: {from_six}");
+            }
+        }
+        // 9:5–9:7: Nisan 4930 "on the night of the fifth day at midnight",
+        // "on the eighth of Nisan"; Tammuz on Thursday at 1½ hours of the
+        // day, Tevet 4½ hours into the night of the sixth day.
+        let (day, clock) = shmuel_tekufah_day(4_930, Nisan);
+        assert_eq!(clock, 0);
+        assert_eq!(
+            hc_calendar::Weekday::from_rd(day),
+            hc_calendar::Weekday::Thursday
+        );
+        assert_eq!(from_fixed(day), Ok((4_930, Month::regular(7), 8)));
+        let (day, clock) = shmuel_tekufah_day(4_930, Tammuz);
+        assert_eq!(
+            (hc_calendar::Weekday::from_rd(day), clock),
+            (hc_calendar::Weekday::Thursday, 7 * 60 + 30)
+        );
+        let (day, clock) = shmuel_tekufah_day(4_931, Tevet);
+        assert_eq!(
+            (hc_calendar::Weekday::from_rd(day), clock),
+            (hc_calendar::Weekday::Friday, 22 * 60 + 30)
+        );
+        // Berakhot 10:18 and the blessing of 8 April 2009: the tekufah at
+        // six on Tuesday evening, the blessing the next morning.
+        let (day, clock) = shmuel_tekufah_day(5_769, Nisan);
+        assert_eq!((day, clock), (BIRKAT_HACHAMA_ANCHOR, 18 * 60));
+        for cycle in -3..=5 {
+            let (day, clock) = shmuel_tekufah_day(5_769 + 28 * cycle, Nisan);
+            assert_eq!(clock, 18 * 60);
+            assert!(is_birkat_hachama(day));
+        }
+        // Hebrew Wikipedia, "ארבע התקופות", the table of the coming years
+        // (retrieved 2026-09-29), less its 21 minutes of Israel time:
+        // Tishrei 5786 on 7 October 2025 at 9:00, Tevet on 6 January 2026
+        // at 16:30, Nisan on 8 April 2026 at 0:00, Tammuz on 8 July 2026 at
+        // 7:30; Tishrei 5788 on 7 October 2027 at 21:00, whose Hebrew day
+        // is the 8th.
+        let at = |year: i64, tekufah: Tekufah| {
+            let minutes = shmuel_tekufah_minutes(year, tekufah);
+            (
+                gregorian::ymd(Rd(minutes.div_euclid(1_440))),
+                minutes.rem_euclid(1_440),
+            )
+        };
+        assert_eq!(at(5_786, Tishrei), ((2025, 10, 7), 9 * 60));
+        assert_eq!(at(5_786, Tevet), ((2026, 1, 6), 16 * 60 + 30));
+        assert_eq!(at(5_786, Nisan), ((2026, 4, 8), 0));
+        assert_eq!(at(5_786, Tammuz), ((2026, 7, 8), 7 * 60 + 30));
+        assert_eq!(at(5_787, Tishrei), ((2026, 10, 7), 15 * 60));
+        assert_eq!(at(5_791, Tammuz), ((2031, 7, 8), 13 * 60 + 30));
+        assert_eq!(at(5_788, Tishrei), ((2027, 10, 7), 21 * 60));
+        assert_eq!(
+            gregorian::ymd(shmuel_tekufah_day(5_788, Tishrei).0),
+            (2027, 10, 8)
+        );
+        let moment = shmuel_tekufah(5_786, Tishrei);
+        assert_eq!(moment.day(), gregorian::to_fixed_saturating(2025, 10, 7));
+        assert!((moment.0 - moment.day().0 as f64 - 0.375).abs() < 1e-9);
+    }
+
+    /// The prayer for rain outside the Land of Israel from the sixtieth
+    /// day of *tekufat Tishrei*, the *tekufah*'s own day the first (Simmons,
+    /// *Sinai* 111, after R. Yose): on the Julian calendar "22 November in
+    /// most years and 23 November before a leap year" (Hebrew Wikipedia,
+    /// "שאלת גשמים", after Bar Ḥiyya, secondary), and "until the year 2100,
+    /// in a regular year we start saying the prayer for rain on the night
+    /// of December 4, and in the year before a (civil) leap year ... on the
+    /// night of December 5" (Shurpin, Chabad.org, secondary). 2099, before
+    /// a Julian leap year and a Gregorian common one, already has the later
+    /// day.
+    #[test]
+    fn the_sixtieth_day_of_tekufat_tishrei_is_the_diaspora_s_prayer_for_rain() {
+        for gregorian_year in 1_583..2_400 {
+            let (day, _) = shmuel_tekufah_day(gregorian_year + 3_761, Tekufah::Tishrei);
+            let sixtieth = Rd(day.0 + 59);
+            let (year, month, date) = hc_calendars_solar::julian::from_fixed(sixtieth).unwrap();
+            let julian_leap = hc_calendars_solar::julian::is_leap_year(gregorian_year + 1);
+            assert_eq!(
+                (year, month, date),
+                (gregorian_year, 11, if julian_leap { 23 } else { 22 }),
+                "{gregorian_year}"
+            );
+            if (2001..2099).contains(&gregorian_year) {
+                let eve = gregorian::ymd(Rd(sixtieth.0 - 1));
+                let expected = if gregorian::is_leap_year(gregorian_year + 1) {
+                    5
+                } else {
+                    4
+                };
+                assert_eq!(eve, (gregorian_year, 12, expected), "{gregorian_year}");
+            }
+        }
+        let (day, _) = shmuel_tekufah_day(2_099 + 3_761, Tekufah::Tishrei);
+        assert_eq!(gregorian::ymd(Rd(day.0 + 59)), (2099, 12, 6));
     }
 
     #[test]

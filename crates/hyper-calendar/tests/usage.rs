@@ -33,7 +33,7 @@ use hyper_calendar::hc_calendars_solar::gregorian;
 /// Four kinds are here. Day counts and bare cycles have nothing to be
 /// outside of. Proposals were adopted by nobody. Then calendars whose
 /// sources, as read, give no span: the Egyptian wandering year under
-/// Ptolemy's two eras, the Roman era of later historians in both its counts, the Yazidi year, the
+/// Ptolemy's two eras, with the civil day and with his day from noon, the Roman era of later historians in both its counts, the Yazidi year, the
 /// observational Hijri prediction, the Old Hindu mean reckonings, the Aztec
 /// counts and the Zapotec year, the Maya 819-day count, the Javanese and Akan weeks, and the
 /// Qumran 364-day year, whose days this library places by a convention of
@@ -93,6 +93,7 @@ const UNRECORDED: &[&str] = &[
     "aztec-tonalpohualli",
     "aztec-xiuhpohualli",
     "egyptian",
+    "egyptian-ptolemy",
     "hindu-old-lunar",
     "hindu-old-solar",
     "hebrew-observational",
@@ -107,6 +108,7 @@ const UNRECORDED: &[&str] = &[
     "maya-819-584286",
     "mixtec-year",
     "philip-era",
+    "philip-era-ptolemy",
     "qumran",
     "roman-auc",
     "roman-auc-capitoline",

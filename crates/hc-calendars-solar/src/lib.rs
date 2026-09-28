@@ -32,7 +32,7 @@
 //! | Family | Calendars |
 //! | --- | --- |
 //! | Julian/Gregorian structure | [`gregorian`], [`julian`], [`julian_gregorian`], [`swedish`], [`revised_julian`], [`byzantine`], [`roman`], [`rumi`], [`berber`], [`yazidi`], [`icelandic`] |
-//! | Year counts over the Julian, Gregorian or Solar Hijri year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*, the Cheondogyo 포덕 year, the Iranian imperial year), [`era_fascista`], [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
+//! | Year counts over the Julian, Gregorian or Solar Hijri year | [`year_counts`] (the Spanish era, the Masonic years, ADA, the Capitoline *ab urbe condita*, the Cheondogyo 포덕 year, the Iranian imperial year), [`era_fascista`], [`masonic_march`] (Anno Lucis from 1 March), [`ptolemaic_day`] (the Egyptian eras with Ptolemy's day from noon), [`syro_macedonian`] (the Seleucid era in its Syrian form, the eras of Antioch and Gaza), [`asian`] (the Macedonian months of the province of Asia) |
 //! | Other namings of a Gregorian day | [`iso8601`], [`iso_week`], [`ordinal`], [`buddhist`], [`minguo`], [`juche`], [`holocene`], [`koki`], [`indian`], [`nanakshahi`], [`bangladeshi`], [`discordian`], [`assyrian`], [`soviet_week`] |
 //! | Twelve thirties plus epagomenal days | [`coptic`], [`ethiopic`], [`egyptian`], [`philip_era`], [`bostran`], [`armenian`], [`armenian_fixed`], [`french_republican`], [`french_republican_richards`], [`zoroastrian`], [`mandaean`], [`jalali_tusi`] |
 //! | Day counts | [`julian_day`], [`day_counts`], [`spreadsheet`] |
@@ -126,6 +126,7 @@ pub mod egyptian;
 pub mod era_fascista;
 pub mod ethiopic;
 pub mod french_republican;
+pub mod french_republican_days;
 pub mod french_republican_richards;
 pub mod gregorian;
 pub mod hanke_henry;
@@ -144,6 +145,7 @@ pub mod julian_gregorian;
 pub mod koki;
 pub mod liberalia;
 pub mod mandaean;
+pub mod masonic_march;
 pub mod minguo;
 pub mod nanakshahi;
 pub mod ordinal;
@@ -151,6 +153,7 @@ pub mod persian;
 pub mod persian_33;
 pub mod philip_era;
 pub mod positivist;
+pub mod ptolemaic_day;
 pub mod qumran;
 pub mod revised_julian;
 pub mod roman;
@@ -195,7 +198,9 @@ pub use gregorian::{GregorianCalendar, GregorianDate};
 pub use hanke_henry::{HankeHenryCalendar, HankeHenryDate};
 pub use hermetic_leap_week::{HermeticLeapWeekCalendar, HermeticLeapWeekDate};
 pub use holocene::{HoloceneCalendar, HoloceneDate};
-pub use icelandic::{IcelandicCalendar, IcelandicDate};
+pub use icelandic::{
+    IcelandicAlmanacCalendar, IcelandicAlmanacDate, IcelandicCalendar, IcelandicDate,
+};
 pub use indian::{IndianCalendar, IndianDate};
 pub use international_fixed::{InternationalFixedCalendar, InternationalFixedDate};
 pub use iso_week::{IsoWeekCalendar, IsoWeekDate};
@@ -210,6 +215,7 @@ pub use julian_gregorian::{Adoption, ReformCalendar, ReformDate};
 pub use koki::{KokiCalendar, KokiDate};
 pub use liberalia::{LiberaliaSolarCalendar, LiberaliaSolarDate};
 pub use mandaean::{MandaeanCalendar, MandaeanDate};
+pub use masonic_march::{MasonicMarchCalendar, MasonicMarchDate};
 pub use minguo::{MinguoCalendar, MinguoDate};
 pub use nanakshahi::{NanakshahiCalendar, NanakshahiDate};
 pub use ordinal::{OrdinalCalendar, OrdinalDate};
@@ -296,12 +302,16 @@ mod registration {
         crate::YazidiCalendar,
         crate::HankeHenryCalendar,
         for icelandic in crate::IcelandicCalendar::ALL => [icelandic],
+        crate::IcelandicAlmanacCalendar,
         crate::QumranCalendar,
         crate::SovietWeekCalendar,
         for zoroastrian in crate::ZoroastrianCalendar::ALL => [zoroastrian],
         crate::IsoCalendar,
         for count in crate::year_counts::ALL => [crate::YearCountCalendar(*count)],
+        crate::MasonicMarchCalendar,
         crate::PhilipEraCalendar,
+        crate::ptolemaic_day::EGYPTIAN_PTOLEMY,
+        crate::ptolemaic_day::PHILIP_ERA_PTOLEMY,
         crate::BostranCalendar,
         crate::AsianCalendar,
         for era in crate::syro_macedonian::ALL => [crate::JulianEraCalendar(*era)],
@@ -327,7 +337,7 @@ pub use registration::register_all;
 /// How many calendars [`register_all`] inserts, not counting the reform
 /// variants.
 #[cfg(test)]
-const CALENDAR_COUNT: usize = 90;
+const CALENDAR_COUNT: usize = 97;
 
 #[cfg(test)]
 mod tests {
@@ -381,6 +391,10 @@ mod tests {
                 HankeHenryCalendar,
                 IcelandicCalendar::GREGORIAN,
                 IcelandicCalendar::JULIAN,
+                IcelandicCalendar::FRIDAY,
+                IcelandicCalendar::JULIAN_FRIDAY,
+                IcelandicCalendar::MEDIEVAL,
+                IcelandicAlmanacCalendar,
                 QumranCalendar,
                 SovietWeekCalendar,
                 ZoroastrianCalendar::QADIMI,
@@ -397,6 +411,8 @@ mod tests {
                 YearCountCalendar(year_counts::PODEOK),
                 YearCountCalendar(year_counts::IMPERIAL_IRANIAN),
                 PhilipEraCalendar,
+                ptolemaic_day::EGYPTIAN_PTOLEMY,
+                ptolemaic_day::PHILIP_ERA_PTOLEMY,
                 BostranCalendar,
                 AsianCalendar,
                 JulianEraCalendar(syro_macedonian::SELEUCID_SYRIAN),
@@ -404,6 +420,7 @@ mod tests {
                 JulianEraCalendar(syro_macedonian::ANTIOCH_SEPTEMBER),
                 JulianEraCalendar(syro_macedonian::GAZA),
                 EraFascistaCalendar,
+                MasonicMarchCalendar,
                 JalaliTusiCalendar,
                 RichardsFrenchRepublicanCalendar,
                 dee::DEE_CECIL,
@@ -447,6 +464,10 @@ mod tests {
             HankeHenryCalendar.meta(),
             IcelandicCalendar::GREGORIAN.meta(),
             IcelandicCalendar::JULIAN.meta(),
+            IcelandicCalendar::FRIDAY.meta(),
+            IcelandicCalendar::JULIAN_FRIDAY.meta(),
+            IcelandicCalendar::MEDIEVAL.meta(),
+            IcelandicAlmanacCalendar.meta(),
             QumranCalendar.meta(),
             SovietWeekCalendar.meta(),
             IsoCalendar.meta(),
@@ -454,11 +475,14 @@ mod tests {
             YearCountCalendar(year_counts::ANNO_ORDINIS).meta(),
             YearCountCalendar(year_counts::IMPERIAL_IRANIAN).meta(),
             PhilipEraCalendar.meta(),
+            ptolemaic_day::EGYPTIAN_PTOLEMY.meta(),
+            ptolemaic_day::PHILIP_ERA_PTOLEMY.meta(),
             BostranCalendar.meta(),
             AsianCalendar.meta(),
             JulianEraCalendar(syro_macedonian::SELEUCID_SYRIAN).meta(),
             JulianEraCalendar(syro_macedonian::GAZA).meta(),
             EraFascistaCalendar.meta(),
+            MasonicMarchCalendar.meta(),
             JalaliTusiCalendar.meta(),
             RichardsFrenchRepublicanCalendar.meta(),
             dee::DEE_CECIL.meta(),

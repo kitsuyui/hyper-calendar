@@ -3,8 +3,9 @@
 Backs the identifiers `spanish-era`, `masonic-anno-lucis`,
 `masonic-anno-inventionis`, `masonic-anno-depositionis`,
 `masonic-anno-ordinis`, `ada`, `roman-auc-capitoline`,
-`cheondogyo-podeok`, `persian-imperial`, `philip-era`, `bostran-era` and
-`era-fascista` in `hc-calendars-solar`, and `huangdi-era`,
+`cheondogyo-podeok`, `persian-imperial`, `philip-era`, `bostran-era`,
+`era-fascista`, `masonic-anno-lucis-march`, `egyptian-ptolemy` and
+`philip-era-ptolemy` in `hc-calendars-solar`, and `huangdi-era`,
 `huangdi-era-tongmenghui`, `huangdi-era-liu-shipei` and
 `huangdi-era-jiangsu` in `hc-calendars-regional`.
 
@@ -88,9 +89,41 @@ the Julian days and leap years unchanged. The Masonic years and ADA are the
 Gregorian year plus 4000, 530, 1000, −1118 and 8000: 2010 is "6010 A.L.",
 "2540 A.I.", "3010 A:.Dep:" and "892 A.O." [lodge43-masonic-calendar], and
 2026 is AL 6026 and 10026 ADA [wikipedia-anno-lucis, wikipedia-ada]. None
-of the sources for the Masonic years or ADA names a new year other than
-the common one, so the count changes on 1 January; a rite that keeps
-another would be its own identifier.
+of these sources names a new year other than the common one, so the
+count changes on 1 January.
+
+**The year of light from 1 March.** French Freemasonry kept another:
+"L'année maçonnique a la même longueur que l'année grégorienne, mais
+débute le 1er mars", the Gregorian year plus 4000 with the months known by
+number [frwiki-calendrier-maconnique]; "le premier mois de l'année
+maçonnique en cours est mars", January and February being "le 11ème mois
+de l'année précédente" and "le douzième" [rer-calendrier-maconnique].
+Bernheim calls it "the March = 1st month code", "frequently used on
+documents issued in France or by French Brethren", and the classical code
+of eighteenth-century French Freemasonry [bernheim1986, §1.2.1]. It is
+`masonic-anno-lucis-march`, a competing convention of
+`masonic-anno-lucis` (policy §5). *Worked example*: 21 February 1802 is in
+the Masonic year that began on 1 March 1801, 1801 + 4000 = 5801, whose
+twelfth month is February: "le 21e Jour du 12e mois de l'an Maçonnique
+5801 ... means 21 February 1802, not 1801" [bernheim1986]. Bernheim's
+"June = 1st month code", from the regulations of one lodge at
+Saint-Pierre de la Martinique of 1750 and "very seldom used", is not
+carried: he gives no day for its first month to begin on.
+
+**Ptolemy's day.** The *Almagest*'s era of Nabonassar begins "at noon on
+26 February 747 BC" [wikipedia-nabonassar], and "the astronomical day had
+begun at noon ever since Ptolemy chose to begin the days for his
+astronomical observations at noon", at "the meridian of Alexandria"
+[wikipedia-julian-day, quoting Herschel]; in Ptolemy's time "the Egyptian
+calendar day started at dawn" [vangent-almagest]. `egyptian` and
+`philip-era` keep the civil midnight, and `egyptian-ptolemy` and
+`philip-era-ptolemy` are the same days under Ptolemy's
+`DayBoundary::Noon(DayNaming::ByStart)`: the day 1 Thoth 1 runs from the
+noon of the civil 1 Thoth 1, 26 February 747 BC, to the next noon, as the
+Julian Day 1 448 638 does. The naming follows from the era's beginning at
+the noon of its first civil day and from van Gent's calculator, which
+reads a time as "local time since noon" of its Egyptian date; no source
+read states it in words.
 
 **The 포덕 year.** The Gregorian year less 1859, from 1 January. The
 newspaper's Sunday sermons of "포덕 166년 12월 28일" and "포덕 167년 1월
@@ -174,6 +207,9 @@ an Anno and its 1st to 28th close the one before.
 | `philip-era` | Egyptian wandering year | − 424 from Nabonassar | Philip 1 (324 BC) to `egyptian`'s end | Unrecorded: no span in the sources |
 | `bostran-era` | Julian days, Macedonian months | from 22 March 106 | Years 1–9 999 | Unrecorded as days; attested 107–735 |
 | `era-fascista` | Gregorian | from 29 October 1922 | Anno I–XXIII, to 28 October 1945 | Unrecorded as days; written Anno IV–XXI, XXIII in Salò |
+| `masonic-anno-lucis-march` | Gregorian days, months numbered from March | + 4000, from 1 March | A.L. 1 (from 1 March 3999 BC) on | Attested, undated |
+| `egyptian-ptolemy` | `egyptian`, the day from noon at Alexandria | as `egyptian` | as `egyptian` | Unrecorded |
+| `philip-era-ptolemy` | `philip-era`, the day from noon at Alexandria | as `philip-era` | as `philip-era` | Unrecorded |
 
 The nine pure offsets on a solar year are one table, `year_counts::ALL`,
 read by one calendar type, whose `Base` is the Julian, the Gregorian or
@@ -204,9 +240,15 @@ its own year numbers and 張新斌's, which are followed
 [wikipedia-zh-huangdi-era]; 孔子紀年, year 1 in 551 BC, whose year boundary
 no source read gives [wikipedia-zh-kongzi-era]. The Spanish era's year beginning at 25 December once the
 Anno Domini came in [wikipedia-spanish-era], which would be its own
-identifier and has no dated source; Ptolemy's day from noon, which the
-Egyptian calendars here do not model either; the other provincial eras of
-the *hemerologia*; a Masonic year boundary other than 1 January.
+identifier and has no dated source; the other provincial eras of the
+*hemerologia* — Tyre, Sidon, Heliopolis, Lycia, Crete, Cyprus, Ephesus,
+Bithynia, Gaza's own, Ascalon and Seleucia Pieria among the sixteen
+calendars the Florence, Leiden and Vatican manuscripts tabulate
+[wikipedia-bostran-era, citing Samuel 1972] — whose epochs, new years and
+leap days no readable source gives: Kubitschek's edition (1915), Samuel's
+*Greek and Roman Chronology* (1972, pp. 171–178) and Bultrighini's chapter
+of 2021, which is read only as a PDF, would give them; the June code of
+the Masonic year, above.
 
 ## Accuracy
 
@@ -230,6 +272,9 @@ Every conversion is exact integer arithmetic over its base calendar.
 | 1 Xanthikos is 22 March in every Bostran year | `every_new_year_is_the_twenty_second_of_march` | 9 999 of 9 999 |
 | The sixth epagomenal day is the day before 1 Xanthikos | `the_sixth_epagomenal_day_is_the_day_before_the_new_year` | Holds |
 | Anno I from 29 October 1922; the source's coin and sundial; Anni IV, XXI and XXIII in 1926, 1943 and April 1945 | `anno_one_begins_on_the_twenty_ninth_of_october_1922`, `the_dated_objects_carry_the_anno_the_rule_gives` | Holds |
+| The year of light from 1 March: 28 February 2019 is 28/12/6018 and 1 March 2019 1/1/6019; 21/12/5801 is 21 February 1802; the 12th month of 5772 is February 1773; 1 January 1872 is 1/11/5871; 3 January 2017 is the 3rd of the 11th month | `the_sources_dates_decode_as_they_say` | 6 of 6 |
+| … and `masonic-anno-lucis`'s year from March to December, a year less and the month ten more in January and February | `the_year_agrees_with_anno_lucis_from_march_to_december` | Holds |
+| Ptolemy's day begins at the noon of its civil day and keeps the morning after; the dates are `egyptian`'s and `philip-era`'s | `the_day_begins_at_noon_and_is_named_by_its_start`, `the_dates_are_the_civil_calendars` | Holds |
 
 The Spanish era page's own second example, a document of 1137 dated "Era
 millesima centesima LXXVI", is 39 years apart, not 38. A year of the
@@ -252,7 +297,12 @@ those changes; none was read.
 | --- | --- | --- |
 | [wikipedia-spanish-era] | The epoch, the offset and Era 941, the kingdoms' years, the year from 1 January and later 25 December, the 1137 document | Yes, 2026-09-26 |
 | [grumel-eras-historical] | The Spanish era in Spain and Portugal; the Bostran epoch | Yes, 2026-09-26 |
-| [lodge43-masonic-calendar] | The four Masonic years, their rites and the examples for 2010 | Yes, 2026-09-26 |
+| [lodge43-masonic-calendar] | The four Masonic years, their rites and the examples for 2010 | Yes, 2026-09-26; re-read 2026-09-29, no new year other than the common one stated |
+| [frwiki-calendrier-maconnique] | The year of light from 1 March, its numbered months, the examples of 2019 | Yes, 2026-09-29, secondary |
+| [rer-calendrier-maconnique] | March the first month, January and February the eleventh and twelfth of the year before, 3 January 2017 | Yes, 2026-09-29 |
+| [bernheim1986] | "The March = 1st month code", its use in France and its decodings; the June code of Martinique, 1750 | Yes, 2026-09-29, in the Wayback Machine's HTML copy |
+| [wikipedia-julian-day] | Ptolemy's day from noon and the meridian of Alexandria, quoting Herschel | Yes, 2026-09-29; Toomer's *Almagest*, which it cites, was not read |
+| [vangent-almagest] | The Egyptian civil day from dawn in Ptolemy's time, the epoch at mean noon at Alexandria, the calculator's "local time since noon" | Yes, 2026-09-29 |
 | [wikipedia-anno-lucis] | Anno Lucis in the 18th century and AL 6026 | Yes, 2026-09-26 |
 | [wikipedia-ada] | Merlin Stone's proposal and its two examples | Yes, 2026-09-26; Stone's own writing was not read |
 | [chabas2013] | The epochs of Philip and Nabonassar | Yes, 2026-09-26; Tihon and Mercier's edition was not read |
@@ -275,6 +325,8 @@ those changes; none was read.
 `crates/hc-calendars-solar/src/year_counts.rs`,
 `crates/hc-calendars-regional/src/huangdi.rs`,
 `crates/hc-calendars-solar/src/philip_era.rs`,
-`crates/hc-calendars-solar/src/bostran.rs` and
-`crates/hc-calendars-solar/src/era_fascista.rs`; the anchors are the tests
-named above.
+`crates/hc-calendars-solar/src/bostran.rs`,
+`crates/hc-calendars-solar/src/era_fascista.rs`,
+`crates/hc-calendars-solar/src/masonic_march.rs` and
+`crates/hc-calendars-solar/src/ptolemaic_day.rs`; the anchors are the
+tests named above.
