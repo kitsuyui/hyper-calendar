@@ -122,8 +122,8 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | lines | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes no lines |
 | 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holidays_on`, `hc_common_worship_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERROR_NO_DATA` |
-| a line | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; any other is `HC_ERROR_OUT_OF_RANGE` |
-| lines | `hc_orthodox_fast_seasons` | `year` 326 through 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem`, 577 814 through 1 497 129 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`, and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; any other is `HC_ERROR_OUT_OF_RANGE` |
+| lines | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -377,7 +377,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_astronomical_paschal_full_moon(int64_t year, int64_t *out_fixed);` | `holiday` | The fixed day of the paschal full moon of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem. |
 | `HcStatus hc_holy_year_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The Holy Year of the Catholic Church a fixed day falls in, if any, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_common_worship_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The rank of every *Common Worship* celebration kept on a fixed day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
-| `HcStatus hc_orthodox_fast_on(const char *reckoning, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | What a fixed day is in the Eastern Orthodox fasting scheme of a reckoning, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_orthodox_fast_on(const char *reckoning, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | What a fixed day is in the fasting scheme of a reckoning, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orthodox_fast_seasons(const char *reckoning, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The fasting seasons and fast-free weeks of a year of a reckoning, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_geologic_intervals(uint32_t rank, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | Every interval of one rank of the geologic time scale, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_place_years_ago(double years_ago, double std_dev_years, const char *locale, char *buffer, size_t capacity, size_t *written);` | `deep-time` | A moment some years before the present, placed in every chronology at once, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -854,7 +854,10 @@ name; the tag that answered is in column 5. Column 8 is
 CLDR 48's `alt="short"` name beside a CLDR name in column 3, from the same
 data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_lectionary(fixed, buffer,
 capacity, written)` writes the liturgical year, the Sunday cycle, the
-Roman weekday cycle and the RCL Proper of a day, and
+Roman weekday cycle and the RCL Proper of a day, the Roman number of a
+Sunday in Ordinary Time and the week of Ordinary Time on the universal
+calendar and on one that keeps the Epiphany on a Sunday, as the
+WebAssembly README's table of its seven columns describes, and
 `hc_astronomical_easter(year, out_fixed)` the fixed day of Easter by the
 astronomical reckoning at Jerusalem, 1583 to 2150, and
 `hc_astronomical_paschal_full_moon(year, out_fixed)` the day of the full
@@ -879,8 +882,11 @@ written)` its twelve periods of a year, each with its first and last day,
 the kind of each `fast`, `fast-free` or `meat-excluded`, and the day's
 line ending in what it abstains from, `nothing`, `meat` or `fast`;
 `reckoning` is `orthodox-fasts`, the fixed dates in the Julian calendar,
-or `orthodox-fasts-revised-julian`, in the Revised Julian, and a year
-outside 326 to 4099 is `HC_ERROR_OUT_OF_RANGE`.
+or `orthodox-fasts-revised-julian`, in the Revised Julian; `armenian-fasts`
+or `armenian-fasts-jerusalem`, the Armenian fasts on the Gregorian or the
+Julian calendar; or `coptic-fasts` or `ethiopian-fasts`; and a year
+outside 326 to 4099, 1583 to 4099 on `armenian-fasts`, `coptic-fasts` and
+`ethiopian-fasts`, is `HC_ERROR_OUT_OF_RANGE`.
 
 ## Almanac
 

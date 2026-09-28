@@ -152,7 +152,9 @@ Not carried:
 - **Which church keeps which reckoning in a given year.** The dates of
   adoption are as in the `christian-orthodox-revised-julian` table's
   sources. The two reckonings here are conventions with no years.
-- The Armenian, Coptic and Ethiopian fasts, which follow other schemes.
+- The Armenian, Coptic and Ethiopian fasts, which follow schemes of
+  their own: they are four more reckonings of the same module, with
+  their own periods, in [oriental-fasts.md](oriental-fasts.md).
 
 ## Accuracy
 

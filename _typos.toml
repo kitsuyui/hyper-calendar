@@ -595,3 +595,13 @@ Asperge = "Asperge"
 Asperges = "Asperges"
 Radis = "Radis"
 Savin = "Savin"
+# Armenian "Boun Barekendan", the eve of Great Lent, as the Mother See's
+# calendar spells it, in docs/references.bib (armenian-mother-see-calendar-2026).
+Boun = "Boun"
+# St Abraham Mede (the Mede), a saint of the Church of the East's calendar,
+# in crates/hc-holiday/src/east_syriac.rs and docs/systems/church-of-the-east-year.md.
+Mede = "Mede"
+# The 1662 Prayer Book's Kalendar abbreviations "Convers:" and "Nativ.", in
+# crates/hc-holiday/src/book_of_common_prayer.rs.
+Convers = "Convers"
+Nativ = "Nativ"

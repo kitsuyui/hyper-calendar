@@ -23,10 +23,13 @@
 //! This carries the rules, not the readings. The texts are the
 //! Consultation on Common Texts' and the Holy See's, under their own
 //! copyright, and a caller who has them can look a Sunday up by the year
-//! and Proper these functions give. The Roman Sundays of Ordinary Time and
-//! the Propers of the Sundays after the Epiphany, which the RCL's calendar
-//! prints as Propers 1 to 3 for churches that use them there, are not
-//! numbered here.
+//! and Proper these functions give. The Roman Sundays in Ordinary Time are
+//! numbered by [`sunday_in_ordinary_time`], and the weeks by
+//! [`week_of_ordinary_time`] and, for a calendar that keeps the Epiphany on
+//! a Sunday, [`week_of_ordinary_time_epiphany_on_sunday`], as the Liturgy
+//! Office of England and Wales tabulates them. The Propers of the Sundays
+//! after the Epiphany, which the RCL's calendar prints as Propers 1 to 3
+//! for churches that use them there, are not numbered here.
 //!
 //! The cycles are arithmetic and answer for the liturgical years whose
 //! Easter the Gregorian computus gives, 1583 to 4099. The Roman Lectionary dates from 1969 and
@@ -192,6 +195,159 @@ pub fn rcl_proper(day: Rd) -> Option<u8> {
     LAST_PROPER.checked_sub(weeks_before)
 }
 
+/// The number of the last Sunday in Ordinary Time, Christ the King, on the
+/// Sunday between 20 and 26 November (`liturgyoffice-sundays`).
+pub const LAST_SUNDAY_IN_ORDINARY_TIME: u8 = 34;
+
+/// Days from Easter to Ash Wednesday, the day after Ordinary Time's first
+/// part ends.
+const ASH_WEDNESDAY: i64 = computus::offsets::ASH_WEDNESDAY as i64;
+
+/// Days from Easter to Pentecost, the day before Ordinary Time resumes.
+const PENTECOST: i64 = computus::offsets::PENTECOST as i64;
+
+/// The Sundays of a year that bound Ordinary Time: the Second Sunday, the
+/// Sunday between 14 and 20 January, and the Thirty-fourth, between 20 and
+/// 26 November, with Ash Wednesday and Pentecost between them.
+struct OrdinaryTime {
+    second_sunday: Rd,
+    ash_wednesday: Rd,
+    pentecost: Rd,
+    last_sunday: Rd,
+}
+
+impl OrdinaryTime {
+    fn of(year: i64) -> Option<Self> {
+        let easter = computus::gregorian_easter(year)?;
+        Some(Self {
+            second_sunday: Weekday::Sunday.on_or_after(gregorian::to_fixed(year, 1, 14).ok()?),
+            ash_wednesday: Rd(easter.0 + ASH_WEDNESDAY),
+            pentecost: Rd(easter.0 + PENTECOST),
+            last_sunday: Weekday::Sunday.on_or_after(gregorian::to_fixed(year, 11, 20).ok()?),
+        })
+    }
+
+    /// The number of the week of Ordinary Time after Pentecost that holds
+    /// `day`: 34 less the weeks from the Sunday that begins it to the last.
+    fn week_after_pentecost(&self, day: Rd) -> Option<u8> {
+        let sunday = Weekday::Sunday.on_or_before(day);
+        let weeks_before = u8::try_from((self.last_sunday.0 - sunday.0) / 7).ok()?;
+        LAST_SUNDAY_IN_ORDINARY_TIME.checked_sub(weeks_before)
+    }
+}
+
+/// The number the Roman calendar gives a Sunday in Ordinary Time, from the
+/// Second, the Sunday between 14 and 20 January, to the Thirty-fourth,
+/// Christ the King, on the Sunday between 20 and 26 November.
+///
+/// Before Lent the Sundays are counted on from the Second; after Pentecost
+/// they are counted back from the Thirty-fourth, so the number a Sunday
+/// takes after Pentecost is set by the date, not by the Sundays before it,
+/// and one number is skipped in a year of 33 weeks. The Liturgy Office of
+/// England and Wales tabulates each Sunday's window (`liturgyoffice-
+/// sundays`): the 2nd on 14–20 January, the 8th on 22–28 May, the 34th on
+/// 20–26 November. A Sunday that a solemnity or feast takes the place of
+/// — Trinity Sunday, the Presentation on 2 February — keeps its number
+/// here: which celebration is kept is the ordo's question.
+///
+/// Returns `None` for a day that is not a Sunday, for a Sunday outside
+/// Ordinary Time (the Baptism of the Lord among them) and outside the
+/// Gregorian computus's years.
+///
+/// ```
+/// use hc_holiday::lectionary::sunday_in_ordinary_time;
+/// use hc_calendars_solar::gregorian;
+///
+/// // 2026: the 2nd Sunday on 18 January, the 10th on 7 June, the Sunday
+/// // after Trinity Sunday, and Christ the King on 22 November.
+/// assert_eq!(sunday_in_ordinary_time(gregorian::to_fixed(2026, 1, 18)?), Some(2));
+/// assert_eq!(sunday_in_ordinary_time(gregorian::to_fixed(2026, 6, 7)?), Some(10));
+/// assert_eq!(sunday_in_ordinary_time(gregorian::to_fixed(2026, 11, 22)?), Some(34));
+/// # Ok::<(), hc_calendar::CalendarError>(())
+/// ```
+#[must_use]
+pub fn sunday_in_ordinary_time(day: Rd) -> Option<u8> {
+    if Weekday::from_rd(day) != Weekday::Sunday {
+        return None;
+    }
+    let time = OrdinaryTime::of(gregorian::year_from_fixed(day).ok()?)?;
+    if day >= time.second_sunday && day < time.ash_wednesday {
+        return u8::try_from((day.0 - time.second_sunday.0) / 7 + 2).ok();
+    }
+    if day > time.pentecost && day <= time.last_sunday {
+        return time.week_after_pentecost(day);
+    }
+    None
+}
+
+/// The week of Ordinary Time a day falls in, on the calendar that keeps
+/// the Epiphany on 6 January and the Baptism of the Lord on the Sunday
+/// after it, as the General Roman Calendar does ([`crate::roman_calendar`]).
+///
+/// Ordinary Time's first part runs from the Monday after the Baptism to the
+/// Tuesday before Ash Wednesday; its first week is the days before the
+/// Second Sunday, and a week then runs from Sunday to Saturday. Its second
+/// part runs from the Monday after Pentecost to the Saturday before the
+/// First Sunday of Advent, the weeks numbered back from the Thirty-fourth
+/// (the Liturgy Office of England and Wales, "Dates for Sundays" and the
+/// Table of Moveable Feasts 2020–2060, `liturgyoffice-sundays`,
+/// `liturgyoffice-moveable`). The week after Pentecost is therefore
+/// not always one more than the week before Lent.
+///
+/// Returns `None` for a day outside Ordinary Time and outside the
+/// Gregorian computus's years. [`week_of_ordinary_time_epiphany_on_sunday`]
+/// is the reckoning of the conferences that keep the Epiphany on a Sunday.
+#[must_use]
+pub fn week_of_ordinary_time(day: Rd) -> Option<u8> {
+    week_of_ordinary_time_from(day, |year| {
+        // The Baptism of the Lord, the Sunday after 6 January.
+        let epiphany = gregorian::to_fixed(year, 1, 6).ok()?;
+        Some(Weekday::Sunday.after(epiphany))
+    })
+}
+
+/// The week of Ordinary Time a day falls in, on the calendar of a
+/// conference that keeps the Epiphany on the Sunday between 2 and
+/// 8 January, as England and Wales do. The Baptism of the Lord is then the
+/// Sunday after it, or the Monday after it "When the Epiphany falls on
+/// either 7 or 8 January" (`liturgyoffice-sundays`), and Ordinary Time
+/// begins the day after the Baptism. Otherwise as [`week_of_ordinary_time`]:
+/// the two differ only on the day after the Baptism when that is a Monday,
+/// which is Ordinary Time on one calendar and the Baptism on the other.
+///
+/// This is the reckoning of the Liturgy Office's Table of Moveable Feasts
+/// (`liturgyoffice-moveable`), whose weeks of Ordinary Time it gives for
+/// every year from 2020 to 2060.
+#[must_use]
+pub fn week_of_ordinary_time_epiphany_on_sunday(day: Rd) -> Option<u8> {
+    week_of_ordinary_time_from(day, |year| {
+        let epiphany = Weekday::Sunday.on_or_after(gregorian::to_fixed(year, 1, 2).ok()?);
+        let (_, _, date) = gregorian::from_fixed(epiphany).ok()?;
+        Some(if date >= 7 {
+            Rd(epiphany.0 + 1)
+        } else {
+            Weekday::Sunday.after(epiphany)
+        })
+    })
+}
+
+/// The week of Ordinary Time of a day, given the day of the Baptism of the
+/// Lord in a year.
+fn week_of_ordinary_time_from(day: Rd, baptism: impl Fn(i64) -> Option<Rd>) -> Option<u8> {
+    let year = gregorian::year_from_fixed(day).ok()?;
+    let time = OrdinaryTime::of(year)?;
+    if day > baptism(year)? && day < time.ash_wednesday {
+        if day < time.second_sunday {
+            return Some(1);
+        }
+        return u8::try_from((day.0 - time.second_sunday.0) / 7 + 2).ok();
+    }
+    if day > time.pentecost && day.0 < time.last_sunday.0 + 7 {
+        return time.week_after_pentecost(day);
+    }
+    None
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -345,6 +501,180 @@ mod tests {
         assert_eq!(sunday_cycle(greg(1583, 6, 1)), Some(SundayCycle::B));
         assert_eq!(sunday_cycle(greg(4099, 6, 1)), Some(SundayCycle::A));
         assert_eq!(sunday_cycle(greg(4099, 12, 25)), None);
+    }
+
+    /// The Liturgy Office's Table of Moveable Feasts 2020–2060: for each
+    /// year, the number of weeks of Ordinary Time before Lent and the day
+    /// that part ends, and the day Ordinary Time begins again after Easter
+    /// with the number of its week. The table is England and Wales's,
+    /// whose Epiphany is on a Sunday.
+    #[test]
+    fn the_liturgy_office_weeks_of_ordinary_time_2020_to_2060() {
+        // (year, weeks before Lent, their last day, the day Ordinary Time
+        // resumes, its week)
+        type Row = (i64, u8, (u8, u8), (u8, u8), u8);
+        let table: [Row; 41] = [
+            (2020, 7, (2, 25), (6, 1), 9),
+            (2021, 6, (2, 16), (5, 24), 8),
+            (2022, 8, (3, 1), (6, 6), 10),
+            (2023, 7, (2, 21), (5, 29), 8),
+            (2024, 6, (2, 13), (5, 20), 7),
+            (2025, 8, (3, 4), (6, 9), 10),
+            (2026, 6, (2, 17), (5, 25), 8),
+            (2027, 5, (2, 9), (5, 17), 7),
+            (2028, 8, (2, 29), (6, 5), 9),
+            (2029, 6, (2, 13), (5, 21), 7),
+            (2030, 8, (3, 5), (6, 10), 10),
+            (2031, 7, (2, 25), (6, 2), 9),
+            (2032, 5, (2, 10), (5, 17), 7),
+            (2033, 8, (3, 1), (6, 6), 10),
+            (2034, 7, (2, 21), (5, 29), 8),
+            (2035, 4, (2, 6), (5, 14), 6),
+            (2036, 7, (2, 26), (6, 2), 9),
+            (2037, 6, (2, 17), (5, 25), 8),
+            (2038, 9, (3, 9), (6, 14), 11),
+            (2039, 7, (2, 22), (5, 30), 9),
+            (2040, 6, (2, 14), (5, 21), 7),
+            (2041, 8, (3, 5), (6, 10), 10),
+            (2042, 6, (2, 18), (5, 26), 8),
+            (2043, 5, (2, 10), (5, 18), 7),
+            (2044, 8, (3, 1), (6, 6), 10),
+            (2045, 7, (2, 21), (5, 29), 8),
+            (2046, 5, (2, 6), (5, 14), 6),
+            (2047, 7, (2, 26), (6, 3), 9),
+            (2048, 6, (2, 18), (5, 25), 8),
+            (2049, 8, (3, 2), (6, 7), 10),
+            (2050, 7, (2, 22), (5, 30), 9),
+            (2051, 6, (2, 14), (5, 22), 7),
+            (2052, 9, (3, 5), (6, 10), 10),
+            (2053, 6, (2, 18), (5, 26), 8),
+            (2054, 5, (2, 10), (5, 18), 7),
+            (2055, 8, (3, 2), (6, 7), 10),
+            (2056, 6, (2, 15), (5, 22), 7),
+            (2057, 9, (3, 6), (6, 11), 10),
+            (2058, 7, (2, 26), (6, 3), 9),
+            (2059, 5, (2, 11), (5, 19), 7),
+            (2060, 8, (3, 2), (6, 7), 10),
+        ];
+        for (year, weeks, (em, ed), (bm, bd), week) in table {
+            let ending = greg(year, em, ed);
+            let beginning = greg(year, bm, bd);
+            let before = week_of_ordinary_time_epiphany_on_sunday;
+            // The table prints 4 weeks for 2035 and 5 for 2046, two years
+            // of the same days: both begin on a Monday, with the Epiphany
+            // on Sunday 7 January, the Baptism on Monday 8 January, Easter
+            // on 25 March and Ash Wednesday on 7 February. The Sundays of
+            // 14 January to 4 February are the 2nd to the 5th, so the week
+            // that ends on 6 February is the 5th in both; 2035's 4 is the
+            // table's slip, and the only row that disagrees.
+            let weeks = if year == 2035 { 5 } else { weeks };
+            assert_eq!(
+                before(ending),
+                Some(weeks),
+                "{year}: the last week before Lent"
+            );
+            assert_eq!(before(Rd(ending.0 + 1)), None, "{year}: Ash Wednesday");
+            assert_eq!(before(Rd(beginning.0 - 1)), None, "{year}: Pentecost");
+            assert_eq!(
+                before(beginning),
+                Some(week),
+                "{year}: the week after Pentecost"
+            );
+            // The universal calendar's weeks are the same on these days.
+            assert_eq!(week_of_ordinary_time(ending), Some(weeks), "{year}");
+            assert_eq!(week_of_ordinary_time(beginning), Some(week), "{year}");
+            // The last week, 34, ends the Saturday before Advent.
+            let advent = first_sunday_of_advent(year).expect("in range");
+            assert_eq!(before(Rd(advent.0 - 1)), Some(34), "{year}");
+            assert_eq!(before(advent), None, "{year}: Advent");
+        }
+    }
+
+    /// The Liturgy Office's Dates for Sundays: the 2nd Sunday in Ordinary
+    /// Time on 14–20 January, the 3rd on 21–27 January, and so on to the
+    /// 9th, whose window ends on 7 March; after Pentecost the 8th on
+    /// 22–28 May to the 34th on 20–26 November.
+    #[test]
+    fn every_sunday_in_ordinary_time_is_in_the_liturgy_office_window() {
+        for year in 1583..=2600 {
+            let mut sunday = Weekday::Sunday.on_or_after(greg(year, 1, 1));
+            while gregorian::year_from_fixed(sunday).unwrap() == year {
+                if let Some(n) = sunday_in_ordinary_time(sunday) {
+                    let window = if n <= 9 && sunday < greg(year, 3, 10) {
+                        greg(year, 1, 14).0 + 7 * (i64::from(n) - 2)
+                    } else {
+                        greg(year, 11, 20).0 - 7 * i64::from(34 - n)
+                    };
+                    assert!(
+                        (window..window + 7).contains(&sunday.0),
+                        "{year}: Sunday {n} on {:?}",
+                        gregorian::from_fixed(sunday)
+                    );
+                    assert_eq!(week_of_ordinary_time(sunday), Some(n));
+                }
+                sunday = Rd(sunday.0 + 7);
+            }
+        }
+    }
+
+    #[test]
+    fn the_sundays_of_ordinary_time_in_2026() {
+        // Easter 5 April 2026: Ash Wednesday 18 February, Pentecost 24 May.
+        assert_eq!(
+            sunday_in_ordinary_time(greg(2026, 1, 11)),
+            None,
+            "the Baptism"
+        );
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 1, 18)), Some(2));
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 2, 15)), Some(6));
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 2, 22)), None, "Lent");
+        assert_eq!(
+            sunday_in_ordinary_time(greg(2026, 5, 24)),
+            None,
+            "Pentecost"
+        );
+        // Trinity Sunday takes the place of the 9th, the week of 25 May
+        // being the 8th: 2026 has 34 weeks, 6 before Lent and 8 to 34.
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 5, 31)), Some(9));
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 6, 7)), Some(10));
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 11, 22)), Some(34));
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 11, 29)), None, "Advent");
+        assert_eq!(sunday_in_ordinary_time(greg(2026, 6, 8)), None, "a Monday");
+        // The RCL's bracket, Ordinary Time = Proper + 5, is the same number.
+        assert_eq!(rcl_proper(greg(2026, 6, 7)), Some(5));
+        assert_eq!(week_of_ordinary_time(greg(2026, 5, 25)), Some(8));
+        assert_eq!(week_of_ordinary_time(greg(2026, 1, 12)), Some(1));
+        assert_eq!(week_of_ordinary_time(greg(2026, 1, 11)), None);
+    }
+
+    #[test]
+    fn the_two_epiphany_reckonings_differ_only_on_a_monday_baptism() {
+        // 2023: 6 January a Friday. The universal calendar keeps the
+        // Baptism on Sunday 8 January, and 9 January is the first day of
+        // Ordinary Time; with the Epiphany on Sunday 8 January, the Baptism
+        // is Monday 9 January and Ordinary Time begins on the 10th.
+        assert_eq!(week_of_ordinary_time(greg(2023, 1, 9)), Some(1));
+        assert_eq!(
+            week_of_ordinary_time_epiphany_on_sunday(greg(2023, 1, 9)),
+            None
+        );
+        assert_eq!(
+            week_of_ordinary_time_epiphany_on_sunday(greg(2023, 1, 10)),
+            Some(1)
+        );
+        for year in 1583..=2600 {
+            for day in greg(year, 1, 1).0..greg(year, 12, 31).0 {
+                let (a, b) = (
+                    week_of_ordinary_time(Rd(day)),
+                    week_of_ordinary_time_epiphany_on_sunday(Rd(day)),
+                );
+                if a != b {
+                    assert_eq!((a, b), (Some(1), None), "{year}");
+                    assert_eq!(Weekday::from_rd(Rd(day)), Weekday::Monday);
+                }
+            }
+        }
+        assert_eq!(week_of_ordinary_time(greg(4100, 6, 1)), None);
     }
 
     #[test]

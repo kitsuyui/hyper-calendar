@@ -123,7 +123,7 @@ fn the_lectionary_and_the_astronomical_easter_cross_the_boundary() {
     let text = read_lines(|buffer, capacity| unsafe {
         hc_lectionary(hc_gregorian_to_fixed(2026, 11, 22), buffer, capacity)
     });
-    assert_eq!(text, "2026\tA\tII\t29\n");
+    assert_eq!(text, "2026\tA\tII\t29\t34\t34\t34\n");
     assert_eq!(
         unsafe { hc_lectionary(hc_gregorian_to_fixed(4100, 1, 1), core::ptr::null_mut(), 0) },
         HC_ERR_OUT_OF_RANGE

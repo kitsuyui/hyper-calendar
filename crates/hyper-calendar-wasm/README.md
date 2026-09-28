@@ -117,8 +117,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes nothing |
 | a byte length | `hc_holidays_on`, `hc_common_worship_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERR_NO_DATA` |
-| a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
@@ -627,7 +627,7 @@ not pass CI.
 | `hc_astronomical_paschal_full_moon(year: i64) -> i64` | `holiday` | The fixed day of the paschal full moon of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
 | `hc_holy_year_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The Holy Year of the Catholic Church a fixed day falls in, if any, as one UTF-8 line, returning the byte length written. |
 | `hc_common_worship_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The rank of every *Common Worship* celebration kept on a fixed day, as UTF-8 lines, returning the byte length written. |
-| `hc_orthodox_fast_on(reckoning: *const u8, reckoning_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | What a fixed day is in the Eastern Orthodox fasting scheme of a reckoning, as one UTF-8 line, returning the byte length written. |
+| `hc_orthodox_fast_on(reckoning: *const u8, reckoning_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | What a fixed day is in the fasting scheme of a reckoning, as one UTF-8 line, returning the byte length written. |
 | `hc_orthodox_fast_seasons(reckoning: *const u8, reckoning_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The fasting seasons and fast-free weeks of a year of a reckoning, as UTF-8 lines, returning the byte length written. |
 | `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
 | `hc_place_years_ago(years_ago: f64, std_dev_years: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A moment some years before the present, placed in every chronology at once, as UTF-8 lines, returning the byte length written. |
@@ -2309,7 +2309,8 @@ Vietnamese tables and the functions that date the Japanese 旧暦 days would
 otherwise search for again for every date they convert. Measured on
 2026-09-28 in the `release-compact` profile with
 [`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
-one 2026 day across all 298 tables and their subdivisions takes about
+one 2026 day across all 301 tables and their subdivisions (298 when it was
+measured) takes about
 25 ms natively on 1 January, the costliest, and 19 ms on 25 September,
 against 0.20 s for every table's whole year; in WebAssembly under Node 22,
 measured with `scripts/wasm-calendar-timing.mjs`, 60 ms and 47 ms. The
@@ -2379,7 +2380,8 @@ day falls in, from `hc-holiday`'s `lectionary`: the rules, not the
 readings. Every cycle turns at the First Sunday of Advent, and a liturgical
 year is named by the civil year of its Easter, so the year that began on
 30 November 2025 is 2026, Year A of the Sunday cycle and Year II of the
-weekdays, and Christ the King, 22 November 2026, is Proper 29. A day
+weekdays, and Christ the King, 22 November 2026, is Proper 29 and the
+34th Sunday in Ordinary Time. A day
 outside the liturgical years 1583 to 4099 is `HC_ERR_OUT_OF_RANGE`.
 
 | # | Column | Holds |
@@ -2388,6 +2390,9 @@ outside the liturgical years 1583 to 4099 is `HC_ERR_OUT_OF_RANGE`.
 | 2 | sunday cycle | `A`, `B` or `C`, the Roman Lectionary's and the Revised Common Lectionary's |
 | 3 | weekday cycle | `I` or `II`, the Roman weekday cycle of Ordinary Time |
 | 4 | proper | the RCL's numbered Proper, 3 to 29, for a Sunday after Trinity Sunday; else empty |
+| 5 | sunday in ordinary time | the Roman number of a Sunday in Ordinary Time, 2 (14–20 January) to 34 (Christ the King, 20–26 November); else empty |
+| 6 | week of ordinary time | the week of Ordinary Time, 1 to 34, on the universal calendar, whose Baptism of the Lord is the Sunday after 6 January; else empty |
+| 7 | week, epiphany on a sunday | the same on a calendar that keeps the Epiphany on the Sunday between 2 and 8 January, whose Baptism is on the Monday after an Epiphany of 7 or 8 January; else empty |
 
 `hc_astronomical_easter(year)` answers the fixed day of Easter by the
 astronomical reckoning at the meridian of Jerusalem that the World Council
@@ -2450,26 +2455,30 @@ as a Festival. A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
 ### The Orthodox fasts
 
 `hc_orthodox_fast_on(reckoning_ptr, reckoning_len, fixed, buffer,
-capacity)`, in the same feature, says what a day is in the Eastern
-Orthodox fasting scheme the OCA's outline gives, from `hc-holiday`'s
-`orthodox_fasts`: the four fasting seasons, the one-day fasts, the
-fast-free weeks, and the Wednesday and Friday fasts outside them. The
-fixed dates are read in the Julian calendar, `orthodox-fasts`, or in the
-Revised Julian, `orthodox-fasts-revised-julian`, and both keep Pascha by
-the Julian computus; in any case, and anything else is `HC_ERR_UNKNOWN`.
-It writes one line:
+capacity)`, in the same feature, says what a day is in a church's fasting
+scheme, from `hc-holiday`'s `orthodox_fasts`: its fasting seasons, its
+one-day fasts, its fast-free days, and the Wednesday and Friday fasts
+outside them. The Eastern Orthodox scheme is the OCA's outline, its fixed
+dates read in the Julian calendar, `orthodox-fasts`, or in the Revised
+Julian, `orthodox-fasts-revised-julian`, both keeping Pascha by the Julian
+computus. The Armenian scheme is `armenian-fasts`, on the Gregorian
+calendar and computus Etchmiadzin keeps, or `armenian-fasts-jerusalem`,
+on the Julian; the Coptic and Ethiopian are `coptic-fasts` and
+`ethiopian-fasts`, dated in their own calendars with the Julian Pascha
+(`hc-holiday`'s `oriental_fasts`). In any case; anything else is
+`HC_ERR_UNKNOWN`. It writes one line:
 
 | # | Column | Holds |
 | --- | --- | --- |
 | 1 | fast day | `1` if the day is a fast day, else `0` |
 | 2 | status | `period` for a day in a period, `weekly-fast` for a Wednesday or Friday in none, else `none` |
 | 3 | period | the period's identifier, such as `great-lent` or `bright-week`; else empty |
-| 4 | period name | its English name as the outline gives it; else empty |
+| 4 | period name | its English name, as the OCA's outline gives it for the Eastern Orthodox; else empty |
 | 5 | kind | `fast`, `fast-free` or `meat-excluded`, the Meatfast's, when no day is a fast day and none allows meat; else empty |
 | 6 | abstinence | what the day abstains from: `nothing`, `meat` or `fast`; a day of the Meatfast is `0` in column 1 and `meat` here |
 
 `hc_orthodox_fast_seasons(reckoning_ptr, reckoning_len, year, buffer,
-capacity)` writes the twelve periods that begin in a year of the
+capacity)` writes the periods, twelve for the Eastern Orthodox, that begin in a year of the
 reckoning's calendar, one line each in the order a day is tested against
 them, fast-free weeks first: the identifier, the English name and the
 kind of columns 3 to 5 above, then the first and last days as fixed days,
@@ -2479,7 +2488,10 @@ Pascha is late, as in 2024. Christmastide ends in the next year. Great
 Lent began on 3 March 2025, Wednesday 18 February 2026, in Cheesefare
 week, is `0`, `meat-excluded` and `meat`, and the Apostles' Fast of 2025 ran from
 16 June to 11 July on the Julian reckoning and to 28 June on the Revised
-Julian. A year outside 326 to 4099 is `HC_ERR_OUT_OF_RANGE`.
+Julian. On `coptic-fasts` the Apostles' Fast of 2026 runs from 1 June to
+11 July, and on `armenian-fasts` Great Lent of 2026 from 16 February to
+4 April. A year outside 326 to 4099, or 1583 to 4099 on the three
+Gregorian reckonings, is `HC_ERR_OUT_OF_RANGE`.
 
 ## Almanac
 

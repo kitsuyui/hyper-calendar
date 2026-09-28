@@ -23,11 +23,14 @@
 //! | [`hindu`] | the Hindu festival rules the traditions and the national tables share |
 //! | [`traditions`] | the cross-cutting religious cycles |
 //! | [`roman_calendar`] | the General Roman Calendar, every celebration with its rank |
-//! | [`roman_calendar_1960`] | the General Roman Calendar of 1960, the 1962 Missal's, every day with its class |
+//! | [`roman_calendar_1960`] | the General Roman Calendar of 1960, the 1962 Missal's, every day with its class, and the ordo with precedence applied |
 //! | [`common_worship`] | the Church of England's *Common Worship* calendar, its ranks and its required transfers |
 //! | [`holy_years`] | the Catholic Holy Years, each from its bull of indiction |
 //! | [`lectionary`] | the lectionary cycles: the Sunday and weekday years and the RCL's Propers |
 //! | [`orthodox_fasts`] | the Eastern Orthodox fasting seasons, weekly fasts and fast-free weeks, on the Julian and the Revised Julian reckoning |
+//! | [`oriental_fasts`] | the Armenian, Coptic and Ethiopian fasts, each church's own scheme, as reckonings of [`orthodox_fasts`] |
+//! | [`east_syriac`] | the Church of the East's Fridays and saints' days, and the Chaldean and Syro-Malabar years |
+//! | [`book_of_common_prayer`] | the calendar of the Book of Common Prayer of 1662, red-letter and black-letter days |
 //! | [`international`] | the United Nations international days, each citing its resolution |
 //! | [`countries`] | the national tables |
 //! | [`exchanges`] | the trading calendars of stock exchanges |
@@ -94,11 +97,16 @@ pub mod hindu;
 pub mod holy_years;
 pub mod international;
 pub mod lectionary;
+pub mod oriental_fasts;
 pub mod orthodox_fasts;
 pub mod rule;
 
 #[cfg(feature = "alloc")]
+pub mod book_of_common_prayer;
+#[cfg(feature = "alloc")]
 pub mod countries;
+#[cfg(feature = "alloc")]
+pub mod east_syriac;
 #[cfg(feature = "alloc")]
 pub mod engine;
 #[cfg(feature = "alloc")]

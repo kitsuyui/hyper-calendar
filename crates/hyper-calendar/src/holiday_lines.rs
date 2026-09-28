@@ -30,7 +30,7 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
 use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
-use hc_holiday::orthodox_fasts::{self, Abstinence, Period, PeriodKind, Reckoning, Status};
+use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
 use hc_holiday::rule::{RuleSet, Scope};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
@@ -45,7 +45,7 @@ use crate::boundary::{Answer, Line, Refusal};
 pub const HOLIDAY_TABLES_COLUMNS: usize = 11;
 
 /// How many columns [`lectionary_line`] writes.
-pub const LECTIONARY_COLUMNS: usize = 4;
+pub const LECTIONARY_COLUMNS: usize = 7;
 
 /// Every table, in the order `hc_holiday_codes` lists them: the countries,
 /// then the exchanges, the traditions and the international sets.
@@ -574,8 +574,11 @@ pub fn is_day_off(
 
 /// The line of `hc_lectionary`: the liturgical year a day falls in, named
 /// by the civil year of its Easter; the Sunday cycle, `A`, `B` or `C`; the
-/// Roman weekday cycle, `I` or `II`; and the Revised Common Lectionary's
-/// Proper, 3 to 29, for a Sunday after Trinity Sunday, else empty.
+/// Roman weekday cycle, `I` or `II`; the Revised Common Lectionary's
+/// Proper, 3 to 29, for a Sunday after Trinity Sunday, else empty; the
+/// Roman number of a Sunday in Ordinary Time, 2 to 34, else empty; and the
+/// week of Ordinary Time the day falls in, 1 to 34, on the universal
+/// calendar and on one that keeps the Epiphany on a Sunday, else empty.
 ///
 /// # Errors
 ///
@@ -591,7 +594,10 @@ pub fn lectionary_line(fixed: i64) -> Answer<String> {
     line.value(year)
         .value(sunday.letter())
         .value(weekday.numeral())
-        .value_or_empty(lectionary::rcl_proper(day));
+        .value_or_empty(lectionary::rcl_proper(day))
+        .value_or_empty(lectionary::sunday_in_ordinary_time(day))
+        .value_or_empty(lectionary::week_of_ordinary_time(day))
+        .value_or_empty(lectionary::week_of_ordinary_time_epiphany_on_sunday(day));
     line.end();
     Ok(out)
 }
@@ -728,9 +734,10 @@ pub fn common_worship_lines(fixed: i64) -> Answer<String> {
     Ok(out)
 }
 
-/// The reckoning of the Orthodox fasts an identifier names, one of
-/// [`Reckoning::ALL`], `orthodox-fasts` or `orthodox-fasts-revised-julian`,
-/// by [`Reckoning::by_id`].
+/// The reckoning of the fasts an identifier names, one of
+/// [`Reckoning::ALL`] — `orthodox-fasts`, `orthodox-fasts-revised-julian`,
+/// `armenian-fasts`, `armenian-fasts-jerusalem`, `coptic-fasts` or
+/// `ethiopian-fasts` — by [`Reckoning::by_id`].
 ///
 /// # Errors
 ///
@@ -747,10 +754,6 @@ const fn period_kind_id(kind: PeriodKind) -> &'static str {
         PeriodKind::MeatExcluded => "meat-excluded",
     }
 }
-
-/// The first and last years of either reckoning's calendar the Julian
-/// computus gives a Pascha for, and so the only years with a scheme.
-const FAST_YEARS: core::ops::RangeInclusive<i64> = 326..=4_099;
 
 /// How many columns [`orthodox_fast_line`] writes.
 pub const ORTHODOX_FAST_COLUMNS: usize = 6;
@@ -815,11 +818,12 @@ pub const ORTHODOX_FAST_SEASON_COLUMNS: usize = 5;
 /// not name, and [`Refusal::OutOfRange`] for a year outside 326 to 4099.
 pub fn orthodox_fast_seasons_lines(reckoning: &str, year: i64) -> Answer<String> {
     let reckoning = orthodox_fasts_reckoning(reckoning)?;
-    if !FAST_YEARS.contains(&year) {
+    let (first_year, last_year) = reckoning.years;
+    if !(first_year..=last_year).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
     let mut out = String::new();
-    for period in Period::ALL {
+    for period in reckoning.periods {
         let mut line = Line::new(&mut out);
         line.cell(period.id)
             .cell(period.english_name)
@@ -839,6 +843,7 @@ mod tests {
     use super::*;
     use alloc::collections::{BTreeMap, BTreeSet};
     use alloc::vec::Vec;
+    use hc_holiday::orthodox_fasts::Period;
 
     fn ymd(year: i64, month: u8, day: u8) -> i64 {
         gregorian::to_fixed(year, month, day).expect("a date").0
@@ -1237,15 +1242,26 @@ mod tests {
     fn the_liturgical_year_2026_is_year_a_and_year_ii() {
         assert_eq!(
             lectionary_line(day(2025, 11, 30)).as_deref(),
-            Ok("2026\tA\tII\t\n")
+            Ok("2026\tA\tII\t\t\t\t\n")
         );
         assert_eq!(
             lectionary_line(day(2025, 11, 29)).as_deref(),
-            Ok("2025\tC\tI\t\n")
+            Ok("2025\tC\tI\t\t\t34\t34\n")
         );
         assert_eq!(
             lectionary_line(day(2026, 11, 22)).as_deref(),
-            Ok("2026\tA\tII\t29\n")
+            Ok("2026\tA\tII\t29\t34\t34\t34\n")
+        );
+        // 12 January 2026, the Monday after the Baptism on both calendars.
+        assert_eq!(
+            lectionary_line(day(2026, 1, 12)).as_deref(),
+            Ok("2026\tA\tII\t\t\t1\t1\n")
+        );
+        // 9 January 2023: Ordinary Time on the universal calendar, the
+        // Baptism where the Epiphany was Sunday 8 January.
+        assert_eq!(
+            lectionary_line(day(2023, 1, 9)).as_deref(),
+            Ok("2023\tA\tI\t\t\t1\t\n")
         );
         assert_eq!(lectionary_line(day(1500, 1, 1)), Err(Refusal::OutOfRange));
     }

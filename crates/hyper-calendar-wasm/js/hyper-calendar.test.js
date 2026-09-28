@@ -1852,10 +1852,16 @@ describe("the holiday tables and the liturgical year", () => {
   test("the liturgical year 2026 is Year A and Year II", () => {
     assert.deepEqual(hc.lectionary(hc.gregorianToFixed(2025, 11, 30)), {
       liturgicalYear: 2026, sundayCycle: "A", weekdayCycle: "II", proper: null,
+      sundayInOrdinaryTime: null, weekOfOrdinaryTime: null, weekOfOrdinaryTimeEpiphanyOnSunday: null,
     });
     assert.deepEqual(hc.lectionary(hc.gregorianToFixed(2025, 11, 29)), {
       liturgicalYear: 2025, sundayCycle: "C", weekdayCycle: "I", proper: null,
+      sundayInOrdinaryTime: null, weekOfOrdinaryTime: 34, weekOfOrdinaryTimeEpiphanyOnSunday: 34,
     });
+    assert.equal(hc.lectionary(hc.gregorianToFixed(2026, 6, 7)).sundayInOrdinaryTime, 10);
+    const monday = hc.lectionary(hc.gregorianToFixed(2023, 1, 9));
+    assert.equal(monday.weekOfOrdinaryTime, 1);
+    assert.equal(monday.weekOfOrdinaryTimeEpiphanyOnSunday, null);
     assert.equal(hc.lectionary(hc.gregorianToFixed(2026, 11, 22)).proper, 29);
     assert.equal(hc.lectionary(hc.gregorianToFixed(2026, 6, 7)).proper, 5);
     refused(() => hc.lectionary(hc.gregorianToFixed(1500, 1, 1)), "out-of-range");
@@ -2622,6 +2628,12 @@ describe("the parts of a day", () => {
     assert.equal(apostles("orthodox-fasts-revised-julian", 2025)?.last, hc.gregorianToFixed(2025, 6, 28));
     assert.deepEqual([apostles("orthodox-fasts-revised-julian", 2024)?.first, apostles("orthodox-fasts-revised-julian", 2024)?.last], [null, null]);
     refused(() => hc.orthodoxFastSeasons("orthodox-fasts", 5000), "out-of-range");
+    // The Oriental churches' schemes on the same exports.
+    const coptic = hc.orthodoxFastSeasons("coptic-fasts", 2026).find((season) => season.id === "apostles-fast");
+    assert.deepEqual([coptic?.first, coptic?.last], [hc.gregorianToFixed(2026, 6, 1), hc.gregorianToFixed(2026, 7, 11)]);
+    assert.equal(hc.orthodoxFastOn("armenian-fasts", hc.gregorianToFixed(2026, 2, 16)).period, "great-lent");
+    assert.equal(hc.orthodoxFastOn("ethiopian-fasts", hc.gregorianToFixed(2026, 1, 18)).period, "gahad-of-timkat");
+    refused(() => hc.orthodoxFastOn("coptic-fasts", hc.gregorianToFixed(1500, 1, 1)), "out-of-range");
   });
 });
 

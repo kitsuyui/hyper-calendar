@@ -2546,7 +2546,9 @@ macro_rules! exports {
             ///
             /// The line is the WebAssembly module's: the liturgical year, the
             /// Sunday cycle `A`, `B` or `C`, the Roman weekday cycle `I` or `II`,
-            /// and the RCL's Proper for a Sunday after Trinity Sunday, else empty.
+            /// the RCL's Proper for a Sunday after Trinity Sunday, else empty, the
+            /// Roman Sunday in Ordinary Time, and the week of Ordinary Time on the
+            /// universal calendar and on one that keeps the Epiphany on a Sunday.
             /// A day outside the liturgical years 1583 to 4099 is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
@@ -2558,9 +2560,12 @@ macro_rules! exports {
             /// Tab-separated: the liturgical year, named by the civil year of its
             /// Easter and begun on the First Sunday of Advent before it; the Sunday
             /// cycle of the Roman Lectionary and the Revised Common Lectionary, `A`,
-            /// `B` or `C`; the Roman weekday cycle, `I` or `II`; and the RCL's
+            /// `B` or `C`; the Roman weekday cycle, `I` or `II`; the RCL's
             /// numbered Proper, 3 to 29, for a Sunday after Trinity Sunday, else
-            /// empty. A day outside the liturgical years 1583 to 4099 is
+            /// empty; the Roman number of a Sunday in Ordinary Time, 2 to 34, else
+            /// empty; and the week of Ordinary Time, 1 to 34, on the universal
+            /// calendar and on one that keeps the Epiphany on a Sunday, else empty.
+            /// A day outside the liturgical years 1583 to 4099 is
             /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
             /// needs.
         }
@@ -2668,36 +2673,43 @@ macro_rules! exports {
         fn hc_common_worship_on(fixed: i64) -> line = $crate::holiday_lines::common_worship_lines;
 
         c {
-            /// What a fixed day is in the Eastern Orthodox fasting scheme of a
-            /// reckoning, as one NUL-terminated UTF-8 line in a caller-owned
-            /// buffer.
+            /// What a fixed day is in the fasting scheme of a reckoning, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
-            /// `reckoning` is `orthodox-fasts` or `orthodox-fasts-revised-julian`,
-            /// in any case; anything else is `HC_ERROR_UNKNOWN`, and null
+            /// `reckoning` is `orthodox-fasts`, `orthodox-fasts-revised-julian`,
+            /// `armenian-fasts`, `armenian-fasts-jerusalem`, `coptic-fasts` or
+            /// `ethiopian-fasts`, in any case; anything else is `HC_ERROR_UNKNOWN`, and null
             /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: `1` or
             /// `0` for a fast day, `period`, `weekly-fast` or `none`, the period's
             /// identifier, English name and kind (`fast`, `fast-free` or
             /// `meat-excluded`), and what the day abstains from, `nothing`, `meat` or
             /// `fast`. A day outside the years
-            /// 326 to 4099 of the reckoning's calendar is `HC_ERROR_OUT_OF_RANGE`.
+            /// 326 to 4099 of the reckoning's calendar, 1583 to 4099 for
+            /// `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`, is
+            /// `HC_ERROR_OUT_OF_RANGE`.
             /// Writes the required length, including the terminator, into
             /// `written`.
         }
         wasm {
-            /// What a fixed day is in the Eastern Orthodox fasting scheme of a
-            /// reckoning, as one UTF-8 line, returning the byte length written.
+            /// What a fixed day is in the fasting scheme of a reckoning, as one
+            /// UTF-8 line, returning the byte length written.
             ///
-            /// `reckoning` is `orthodox-fasts`, the fixed dates in the Julian
-            /// calendar, or `orthodox-fasts-revised-julian`, in the Revised Julian
-            /// calendar, both keeping Pascha by the Julian computus, in any case;
+            /// `reckoning` is `orthodox-fasts`, the Eastern Orthodox fixed dates
+            /// in the Julian calendar, or `orthodox-fasts-revised-julian`, in the
+            /// Revised Julian calendar, both keeping Pascha by the Julian
+            /// computus; `armenian-fasts`, the Armenian fasts on the Gregorian
+            /// calendar and computus, or `armenian-fasts-jerusalem`, on the
+            /// Julian; `coptic-fasts` or `ethiopian-fasts`, dated in the Coptic
+            /// and Ethiopic calendars with the Julian Pascha; in any case;
             /// anything else is `HC_ERR_UNKNOWN`. Tab-separated: `1` if the day is
             /// a fast day, else `0`; `period`, `weekly-fast` for a Wednesday or
             /// Friday in no period, or `none`; for a period its identifier, its
-            /// English name as the OCA's outline gives it, and its kind, `fast`,
+            /// English name, and its kind, `fast`,
             /// `fast-free` or `meat-excluded`, else empty; and what the day abstains
             /// from, `nothing`, `meat` or `fast`, which tells a day of the Meatfast
             /// from an ordinary one. A day outside the years 326 to 4099 of the
-            /// reckoning's calendar is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
+            /// reckoning's calendar, 1583 to 4099 for the three on the Gregorian
+            /// calendar, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
             /// returns the length the text needs.
         }
         fn hc_orthodox_fast_on(reckoning: name(reckoning_len), fixed: i64) -> line =
@@ -2710,7 +2722,8 @@ macro_rules! exports {
             /// `reckoning` is as for `hc_orthodox_fast_on`. The lines are the
             /// WebAssembly module's, one per period: its identifier, English name
             /// and kind, and its first and last days, empty in a year it does not
-            /// happen. A year outside 326 to 4099 is `HC_ERROR_OUT_OF_RANGE`.
+            /// happen. A year outside the reckoning's, 326 to 4099 or 1583 to
+            /// 4099, is `HC_ERROR_OUT_OF_RANGE`.
             /// Writes the required length, including the terminator, into
             /// `written`.
         }
@@ -2719,15 +2732,17 @@ macro_rules! exports {
             /// UTF-8 lines, returning the byte length written.
             ///
             /// `reckoning` is as for `hc_orthodox_fast_on`, and `year` is a year of
-            /// its calendar. One line per period of the scheme, twelve, in the
-            /// order a day is tested against them, tab-separated: its identifier,
+            /// its calendar. One line per period of the scheme, twelve for the
+            /// Eastern Orthodox, thirteen for the Armenian, nine for the Coptic and
+            /// the Ethiopian, in the order a day is tested against them,
+            /// tab-separated: its identifier,
             /// its English name, its kind (`fast`, `fast-free` or `meat-excluded`),
             /// and its first and last days as fixed
             /// days, both included, empty in a year it does not happen, as the
             /// Apostles' Fast does not on the Revised Julian reckoning when Pascha
-            /// is late. Christmastide ends in the next year. A year outside 326 to
-            /// 4099 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
-            /// the text needs.
+            /// is late. Christmastide ends in the next year. A year outside the
+            /// reckoning's, 326 to 4099 or 1583 to 4099, is `HC_ERR_OUT_OF_RANGE`.
+            /// A null `buffer` returns the length the text needs.
         }
         fn hc_orthodox_fast_seasons(reckoning: name(reckoning_len), year: i64) -> line =
             $crate::holiday_lines::orthodox_fast_seasons_lines;

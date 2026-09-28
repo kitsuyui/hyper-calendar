@@ -63,6 +63,29 @@ the Liturgy Office's dates for the Roman Sundays in Ordinary Time — the
 8th on 22–28 May, the 9th on 29 May–4 June, the 34th, Christ the King, on
 20–26 November [liturgyoffice-sundays] — are the same windows.
 
+**The Roman Sundays and weeks in Ordinary Time.** The Roman calendar
+numbers the Sundays outside its seasons. The Liturgy Office's "Dates for
+Sundays" ties each to a window of dates [liturgyoffice-sundays]: the 2nd
+Sunday in Ordinary Time on "14 January - 20 January", the 3rd on 21–27
+January, and so on to the 9th, whose window ends on 7 March; after Easter
+the 8th on 22–28 May, and so on to the 34th, Christ the King, on 20–26
+November. Before Lent the Sundays are therefore counted on from the
+Sunday between 14 and 20 January, and after Pentecost back from the one
+between 20 and 26 November. Ordinary Time's weeks run from Sunday to
+Saturday, except the first two of each part: the first begins the day
+after the Baptism of the Lord, and the week after Pentecost begins on its
+Monday. The Liturgy Office's Table of Moveable Feasts gives, for each
+year from 2020 to 2060, the "Number of Weeks" before Lent and the day
+they end, and the day Ordinary Time begins "after season of Easter" with
+the "Number Week" [liturgyoffice-moveable]. In a year of 33 weeks one
+number is not used: 2020 has weeks 1 to 7 before Lent and resumes with
+week 9. Where the Epiphany is transferred to the Sunday between 2 and
+8 January, as in England and Wales, "When the Epiphany falls on either 7
+or 8 January The Baptism of the Lord is celebrated on the following Monday
+(8 or 9)" [liturgyoffice-sundays], and Ordinary Time begins a day later
+than on the universal calendar, whose Baptism is the Sunday after
+6 January. The Sundays' numbers are the same on both calendars.
+
 **Worked example: 2025–26.** The First Sunday of Advent of 2025 is the
 Sunday between 27 November and 3 December: 30 November. The liturgical
 year it begins is 2026. 2025 is divisible by three (675 × 3), so it is
@@ -72,7 +95,13 @@ May. Christ the King is the Sunday
 between 20 and 26 November 2026, the 22nd, Proper 29. The first Sunday
 after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
 10]. The Liturgy Office's table gives A and II for 2026 and 29 November
-2026 as the next Advent [liturgyoffice-moveable].
+2026 as the next Advent [liturgyoffice-moveable]. The Second Sunday in
+Ordinary Time is the Sunday between 14 and 20 January, 18 January, and
+Ash Wednesday, 18 February, ends the first part after six weeks, on
+Tuesday 17 February. Christ the King, 22 November, is the 34th Sunday; the
+week of the Monday after Pentecost, 25 May, is the one that began on
+Pentecost, 26 weeks before it, so 25 May begins week 8, and 7 June is the 10th Sunday, as the table has it: "6",
+"17 Feb", "25 May", "8".
 
 ## What is carried
 
@@ -80,6 +109,15 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
   `sunday_cycle` (`SundayCycle::A`, `B`, `C`), `roman_weekday_cycle`
   (`WeekdayCycle::I`, `II`) and `rcl_proper`, which answers for a Sunday
   after Trinity Sunday up to Christ the King, and `None` otherwise.
+- **The Roman numbering of Ordinary Time**: `sunday_in_ordinary_time`,
+  the number of a Sunday from the 2nd to the 34th, and the week of a day
+  on two calendars, one function each as §5 names a convention that is a
+  function: `week_of_ordinary_time`, the universal calendar's with the
+  Baptism on the Sunday after 6 January, and
+  `week_of_ordinary_time_epiphany_on_sunday`, a conference's that keeps
+  the Epiphany on the Sunday between 2 and 8 January, as the Liturgy
+  Office's table does. A Sunday a solemnity or feast takes the place of
+  keeps its number; which is celebrated is the ordo's.
 - **Range** the liturgical years 1583 to 4099, whose Easter the Gregorian
   computus (the rule for the date of Easter) gives. The Roman Lectionary
   is of 1969 and the RCL begins with Advent 1992 [cct-rcl, §8]; a letter
@@ -92,9 +130,6 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
     to 3 for the churches that use them there, "except when this is the
     Last Sunday after the Epiphany" [cct-rcl, table]; which churches do
     is a choice the table leaves to each.
-  - *The Roman numbering of the Sundays in Ordinary Time*, which the
-    Liturgy Office tabulates year by year [liturgyoffice-moveable]; after
-    Trinity Sunday it is the Proper plus five.
   - *The ordo*, the yearly directory of celebrations that makes the
     day-by-day choice between a Sunday and a feast; see
     `roman_calendar` for what that means and why it is out of scope.
@@ -109,14 +144,17 @@ after Trinity, 7 June, is 24 weeks earlier, so it is Proper 5 [Ordinary
 | Proper 29 on the Sunday 20–26 November, 1990–2040 [cct-rcl] | `proper_29_is_the_sunday_between_20_and_26_november` | all |
 | The Sunday after Trinity is Proper 3 when Easter is 22 March, as in 1818 [cct-rcl]; never below 3 or above 8 in 1583–2500 | `an_easter_on_22_march_makes_the_sunday_after_trinity_proper_3` | yes |
 | The Propers fall in the Liturgy Office's windows of Ordinary 8–34, 2000–2060 [liturgyoffice-sundays] | `the_propers_match_the_roman_sundays_in_ordinary_time_windows` | all |
+| The weeks of Ordinary Time of 2020–2060: the number before Lent, the day it ends, the day it resumes and its number [liturgyoffice-moveable] | `the_liturgy_office_weeks_of_ordinary_time_2020_to_2060` | 163 of 164; the table's 4 weeks before Lent in 2035 is 5, as it prints for 2046, a year of the same days |
+| Every Sunday in Ordinary Time, 1583–2600, in its window of dates [liturgyoffice-sundays] | `every_sunday_in_ordinary_time_is_in_the_liturgy_office_window` | all |
+| The two reckonings of the weeks differ only on a Monday that is the Baptism on one of them, as 9 January 2023 | `the_two_epiphany_reckonings_differ_only_on_a_monday_baptism` | yes |
 
 ## Sources
 
 | Key | Used for | Read |
 | --- | --- | --- |
 | [cct-rcl] | §8, Year A in Advent of years divisible by three and the table of Advents and years 1992–2021; §19, the RCL and the Roman Lectionary; the table of the Christian year with the Advent and Proper 29 windows and the note on Proper 3 | Yes, the PDF, 2026-09-26; the table of the Christian year re-read 2026-09-27 |
-| [liturgyoffice-moveable] | The Sunday and weekday cycles of 2020–2060 by liturgical year, and the Advent Sundays | Yes, 2026-09-26 |
-| [liturgyoffice-sundays] | The date windows of the Roman Sundays in Ordinary Time | Yes, 2026-09-26 |
+| [liturgyoffice-moveable] | The Sunday and weekday cycles of 2020–2060 by liturgical year, the Advent Sundays, and the weeks of Ordinary Time before Lent and after Pentecost | Yes, 2026-09-26; the weeks re-read 2026-09-29 (the HTML table, not its PDF) |
+| [liturgyoffice-sundays] | The date windows of the Roman Sundays in Ordinary Time, and the Baptism on a Monday when the Epiphany is transferred to 7 or 8 January | Yes, 2026-09-26 and 2026-09-29 |
 | [wikipedia-lectionary] | The three-year and two-year cycles, odd years Cycle I | Yes, 2026-09-26 (secondary) |
 | [wikipedia-ordo-lectionum-missae] | The Lectionary's editions of 1969 and 1981 | Yes, 2026-09-26 (secondary) |
 
@@ -128,4 +166,6 @@ states the cycles for the Roman Rite, was not read.
 `crates/hc-holiday/src/lectionary.rs`. Anchors:
 `the_rcl_table_of_advents_and_years_1992_to_2021`,
 `the_liturgy_office_cycles_of_2020_to_2030`,
-`the_propers_match_the_roman_sundays_in_ordinary_time_windows`.
+`the_propers_match_the_roman_sundays_in_ordinary_time_windows`,
+`the_liturgy_office_weeks_of_ordinary_time_2020_to_2060`,
+`every_sunday_in_ordinary_time_is_in_the_liturgy_office_window`.

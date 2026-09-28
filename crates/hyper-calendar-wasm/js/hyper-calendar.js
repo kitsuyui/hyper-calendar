@@ -281,7 +281,15 @@ export const COLUMNS = Object.freeze({
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
     "regions", "groups", "group names",
   ]),
-  lectionary: Object.freeze(["liturgical year", "sunday cycle", "weekday cycle", "proper"]),
+  lectionary: Object.freeze([
+    "liturgical year",
+    "sunday cycle",
+    "weekday cycle",
+    "proper",
+    "sunday in ordinary time",
+    "week of ordinary time",
+    "week, epiphany on a sunday",
+  ]),
   zones: Object.freeze([
     "zone", "latitude", "longitude", "countries", "country", "comment", "exemplar city",
     "locale used",
@@ -1513,12 +1521,19 @@ function zoneOffset(cells) {
  * @returns {import("./hyper-calendar.d.ts").Lectionary}
  */
 function lectionaryLine(cells) {
-  const [liturgicalYear, sundayCycle, weekdayCycle, proper] = cells;
+  const [liturgicalYear, sundayCycle, weekdayCycle, proper, sunday, week, weekEpiphanyOnSunday] =
+    cells;
   return {
     liturgicalYear: integer(liturgicalYear, "liturgical year"),
     sundayCycle: /** @type {"A" | "B" | "C"} */ (sundayCycle),
     weekdayCycle: /** @type {"I" | "II"} */ (weekdayCycle),
     proper: optionalInteger(proper, "proper"),
+    sundayInOrdinaryTime: optionalInteger(sunday, "sunday in ordinary time"),
+    weekOfOrdinaryTime: optionalInteger(week, "week of ordinary time"),
+    weekOfOrdinaryTimeEpiphanyOnSunday: optionalInteger(
+      weekEpiphanyOnSunday,
+      "week of ordinary time, epiphany on a sunday",
+    ),
   };
 }
 
@@ -4207,8 +4222,8 @@ export class HyperCalendar {
 
   /**
    * The lectionary cycles of a fixed day: the liturgical year, the Sunday
-   * cycle, the Roman weekday cycle and the RCL Proper of a Sunday after
-   * Trinity Sunday.
+   * cycle, the Roman weekday cycle, the RCL Proper of a Sunday after
+   * Trinity Sunday, and the Roman Sunday and weeks in Ordinary Time.
    *
    * @param {number | bigint} fixed
    * @returns {import("./hyper-calendar.d.ts").Lectionary}

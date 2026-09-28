@@ -24,6 +24,14 @@
 //! | `orthodox-fasts` | the Julian calendar |
 //! | `orthodox-fasts-revised-julian` | the Revised Julian calendar |
 //!
+//! The same machinery reads four more reckonings, each with its own
+//! periods from [`crate::oriental_fasts`]: `armenian-fasts` and
+//! `armenian-fasts-jerusalem`, on the Gregorian and the Julian calendar
+//! and computus, `coptic-fasts` and `ethiopian-fasts`, whose bounds are
+//! dates of the Coptic and Ethiopic calendars ([`Bound::InCalendar`]), of
+//! the Sunday nearest a date ([`Bound::FromSundayNearest`]) and of a
+//! Paramoun ([`Bound::Paramoun`]).
+//!
 //! What a day abstains from is carried to one degree, [`Abstinence`]:
 //! nothing, meat, or the fast. The week before Great Lent is the one
 //! period of the middle degree. The OCA's outline lists it among its
@@ -38,21 +46,42 @@
 
 use hc_calendar::{Month, Rd, Weekday};
 
-use crate::computus::{COMPUTUS_LAST_YEAR, JULIAN_COMPUTUS_FIRST_YEAR, orthodox_easter};
+use crate::computus::{
+    COMPUTUS_LAST_YEAR, GREGORIAN_COMPUTUS_FIRST_YEAR, JULIAN_COMPUTUS_FIRST_YEAR,
+    gregorian_easter, orthodox_easter,
+};
+use crate::oriental_fasts;
 use crate::rule::CalendarSystem;
 
-/// A reckoning of the fasts: the calendar its fixed dates are read in.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// A reckoning of the fasts: a church's periods, the calendar their fixed
+/// dates are read in, and the computus its Easter is dated by.
+#[derive(Debug, Clone, Copy)]
 pub struct Reckoning {
     /// The identifier.
     pub id: &'static str,
     /// Its name in English.
     pub english_name: &'static str,
-    /// The calendar the fixed dates of the [`Period`]s are dates of.
+    /// The calendar the fixed dates of the [`Period`]s are dates of, and
+    /// whose years a period begins in.
     pub fixed: CalendarSystem,
+    /// Easter Sunday of a year, by the computus the church keeps.
+    pub pascha: fn(i64) -> Option<Rd>,
+    /// The first and last years the computus gives an Easter for.
+    pub years: (i64, i64),
+    /// The periods, in the order a day is tested against them: the
+    /// fast-free ones first, since they lift the weekly fasts.
+    pub periods: &'static [Period],
     /// Where it comes from.
     pub sources: &'static str,
 }
+
+impl PartialEq for Reckoning {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for Reckoning {}
 
 /// The sources every reckoning shares.
 const SCHEME: &str = "OCA, \"Fasting & Fast-Free Seasons of the Church\" \
@@ -81,6 +110,9 @@ hc_core::catalogue! {
             id: "orthodox-fasts",
             english_name: "Eastern Orthodox fasts (Julian calendar)",
             fixed: CalendarSystem::JULIAN,
+            pascha: orthodox_easter,
+            years: (JULIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: Period::ALL,
             sources: SCHEME,
         };
         /// The fixed dates in the Revised Julian calendar, which are the
@@ -89,7 +121,57 @@ hc_core::catalogue! {
             id: "orthodox-fasts-revised-julian",
             english_name: "Eastern Orthodox fasts (Revised Julian calendar)",
             fixed: CalendarSystem::REVISED_JULIAN,
+            pascha: orthodox_easter,
+            years: (JULIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: Period::ALL,
             sources: SCHEME,
+        };
+        /// The Armenian Apostolic Church's fasts as the Mother See of Holy
+        /// Etchmiadzin keeps them, on the Gregorian calendar and computus
+        /// it took up in 1923: [`oriental_fasts::ARMENIAN`].
+        pub const ARMENIAN = Self {
+            id: "armenian-fasts",
+            english_name: "Armenian Apostolic fasts (Gregorian calendar)",
+            fixed: CalendarSystem::GREGORIAN,
+            pascha: gregorian_easter,
+            years: (GREGORIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: oriental_fasts::ARMENIAN,
+            sources: oriental_fasts::ARMENIAN_SOURCES,
+        };
+        /// The same fasts as the Armenian Patriarchate of Jerusalem keeps
+        /// them, on the Julian calendar and computus.
+        pub const ARMENIAN_JERUSALEM = Self {
+            id: "armenian-fasts-jerusalem",
+            english_name: "Armenian Apostolic fasts (Patriarchate of Jerusalem, Julian calendar)",
+            fixed: CalendarSystem::JULIAN,
+            pascha: orthodox_easter,
+            years: (JULIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: oriental_fasts::ARMENIAN,
+            sources: oriental_fasts::ARMENIAN_SOURCES,
+        };
+        /// The Coptic Orthodox Church's fasts, dated in the Coptic
+        /// calendar and, for the Nativity, on 7 January, with Easter by the
+        /// Alexandrian computus: [`oriental_fasts::COPTIC`].
+        pub const COPTIC = Self {
+            id: "coptic-fasts",
+            english_name: "Coptic Orthodox fasts",
+            fixed: CalendarSystem::GREGORIAN,
+            pascha: orthodox_easter,
+            years: (GREGORIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: oriental_fasts::COPTIC,
+            sources: oriental_fasts::COPTIC_SOURCES,
+        };
+        /// The Ethiopian Orthodox Tewahedo Church's seven fasts, dated in
+        /// the Ethiopic calendar, with Easter by the Alexandrian computus:
+        /// [`oriental_fasts::ETHIOPIAN`].
+        pub const ETHIOPIAN = Self {
+            id: "ethiopian-fasts",
+            english_name: "Ethiopian Orthodox Tewahedo fasts",
+            fixed: CalendarSystem::GREGORIAN,
+            pascha: orthodox_easter,
+            years: (GREGORIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: oriental_fasts::ETHIOPIAN,
+            sources: oriental_fasts::ETHIOPIAN_SOURCES,
         };
     }
 }
@@ -132,6 +214,47 @@ pub enum Bound {
         /// The day of the month.
         day: u8,
     },
+    /// A month and day in another calendar, as 16 Hatour in the Coptic
+    /// one: the day of that date that falls in the reckoning's year.
+    InCalendar {
+        /// The calendar the date is a date of.
+        calendar: CalendarSystem,
+        /// Its month, 1 to 13.
+        month: u8,
+        /// The day of the month.
+        day: u8,
+    },
+    /// A number of days from the Sunday nearest a month and day of the
+    /// reckoning's calendar, which falls from three days before it to three
+    /// after, as the Armenian Assumption is the Sunday nearest 15 August.
+    FromSundayNearest {
+        /// The month, 1 to 12.
+        month: u8,
+        /// The day of the month.
+        day: u8,
+        /// The days from that Sunday, negative before it.
+        days: i16,
+    },
+    /// The first day of a Coptic Paramoun, the fast before a feast on a
+    /// date of another calendar: the eve, or the Friday before when the
+    /// feast is a Sunday or a Monday.
+    Paramoun {
+        /// The calendar the feast's date is a date of.
+        calendar: CalendarSystem,
+        /// Its month.
+        month: u8,
+        /// Its day.
+        day: u8,
+    },
+}
+
+impl Bound {
+    /// Whether the bound is counted from Pascha, and so can come before
+    /// the other bound of its period in a year without the period running
+    /// into the next.
+    const fn is_paschal(self) -> bool {
+        matches!(self, Self::FromPascha(_))
+    }
 }
 
 /// A period of the scheme: a fasting season, a one-day fast or a
@@ -331,10 +454,51 @@ impl Status {
 fn resolve(bound: Bound, reckoning: &Reckoning, year: i64) -> Option<Rd> {
     match bound {
         Bound::FromPascha(offset) => {
-            orthodox_easter(year).map(|pascha| Rd(pascha.0 + i64::from(offset)))
+            (reckoning.pascha)(year).map(|pascha| Rd(pascha.0 + i64::from(offset)))
         }
         Bound::Fixed { month, day } => reckoning.fixed.to_fixed(year, Month::regular(month), day),
+        Bound::InCalendar {
+            calendar,
+            month,
+            day,
+        } => in_calendar(reckoning, year, calendar, month, day),
+        Bound::FromSundayNearest { month, day, days } => {
+            let date = reckoning.fixed.to_fixed(year, Month::regular(month), day)?;
+            let sunday = Weekday::Sunday.on_or_after(Rd(date.0 - 3));
+            Some(Rd(sunday.0 + i64::from(days)))
+        }
+        Bound::Paramoun {
+            calendar,
+            month,
+            day,
+        } => {
+            let feast = in_calendar(reckoning, year, calendar, month, day)?;
+            let before = match Weekday::from_rd(feast) {
+                Weekday::Sunday => 2,
+                Weekday::Monday => 3,
+                _ => 1,
+            };
+            Some(Rd(feast.0 - before))
+        }
     }
+}
+
+/// The day of a date of another calendar that falls in a year of the
+/// reckoning's.
+fn in_calendar(
+    reckoning: &Reckoning,
+    year: i64,
+    calendar: CalendarSystem,
+    month: u8,
+    day: u8,
+) -> Option<Rd> {
+    let start = reckoning.fixed.to_fixed(year, Month::regular(1), 1)?;
+    let first = calendar.year_containing(start)?;
+    [first, first + 1].into_iter().find_map(|native| {
+        calendar
+            .to_fixed(native, Month::regular(month), day)
+            .filter(|rd| reckoning.fixed.year_containing(*rd) == Some(year))
+    })
 }
 
 /// The first and last day of a period that begins in a year of the
@@ -344,11 +508,14 @@ fn resolve(bound: Bound, reckoning: &Reckoning, year: i64) -> Option<Rd> {
 /// first, as Christmastide's is, ends in the next year. A period with a
 /// bound counted from Pascha whose last day comes before its first does
 /// not happen that year, which is the Apostles' Fast on the Revised Julian
-/// reckoning when Pascha is late: `None`. So is a year outside 326 to
-/// 4099, whose Pascha the Julian computus does not give.
+/// reckoning when Pascha is late: `None`. So is a year outside the
+/// reckoning's [`Reckoning::years`], whose Pascha its computus does not
+/// give: 326 to 4099 for the Julian computus, 1583 to 4099 for the
+/// Gregorian.
 #[must_use]
 pub fn span(reckoning: &Reckoning, period: &Period, year: i64) -> Option<(Rd, Rd)> {
-    if !(JULIAN_COMPUTUS_FIRST_YEAR..=COMPUTUS_LAST_YEAR).contains(&year) {
+    let (first_year, last_year) = reckoning.years;
+    if !(first_year..=last_year).contains(&year) {
         return None;
     }
     let first = resolve(period.first, reckoning, year)?;
@@ -356,26 +523,25 @@ pub fn span(reckoning: &Reckoning, period: &Period, year: i64) -> Option<(Rd, Rd
     if last >= first {
         return Some((first, last));
     }
-    match (period.first, period.last) {
-        (Bound::Fixed { .. }, Bound::Fixed { .. }) => {
-            Some((first, resolve(period.last, reckoning, year + 1)?))
-        }
-        _ => None,
+    if period.first.is_paschal() || period.last.is_paschal() {
+        return None;
     }
+    Some((first, resolve(period.last, reckoning, year + 1)?))
 }
 
 /// What a day is in the scheme of a reckoning: in a period, a weekly
 /// fast, or neither.
 ///
-/// Returns `None` outside the years 326 to 4099 of the reckoning's
-/// calendar, whose Pascha the Julian computus gives.
+/// Returns `None` outside the reckoning's [`Reckoning::years`] of its
+/// calendar, whose Pascha its computus gives.
 #[must_use]
 pub fn status(reckoning: &Reckoning, day: Rd) -> Option<Status> {
     let year = reckoning.fixed.year_containing(day)?;
-    if !(JULIAN_COMPUTUS_FIRST_YEAR..=COMPUTUS_LAST_YEAR).contains(&year) {
+    let (first_year, last_year) = reckoning.years;
+    if !(first_year..=last_year).contains(&year) {
         return None;
     }
-    for period in Period::ALL {
+    for period in reckoning.periods {
         for begun in [year - 1, year] {
             if let Some((first, last)) = span(reckoning, period, begun)
                 && first <= day
@@ -511,7 +677,7 @@ mod tests {
     /// Wednesday and Friday are not weekly fasts.
     #[test]
     fn cheesefare_week_excludes_meat_and_lifts_the_weekly_fasts() {
-        for reckoning in Reckoning::ALL {
+        for reckoning in [&Reckoning::JULIAN, &Reckoning::REVISED_JULIAN] {
             // Pascha on 20 April 2025: the week of 24 February to 2 March.
             let (first, last) = span(reckoning, &Period::MEATFAST, 2025).unwrap();
             assert_eq!((first, last), (ymd(2025, 2, 24), ymd(2025, 3, 2)));
