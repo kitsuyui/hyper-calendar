@@ -26,3 +26,8 @@ hc-calendar = { workspace = true }
 hc-astro = { workspace = true }
 hc-seasons = { workspace = true }
 hc-calendars-lunar = { workspace = true }
+
+[dev-dependencies]
+# The memo, so that the tests that walk a run of days inside one
+# `hc_core::memo::scope` do each solstice and new-moon search once.
+hc-core = { workspace = true, features = ["memo"] }

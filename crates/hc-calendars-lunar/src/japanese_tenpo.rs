@@ -417,6 +417,60 @@ mod tests {
         assert_eq!(apart[0], (1_850, 10, 5));
     }
 
+    /// The continued calendar against the Observatory's tables of the 旧暦
+    /// (国立天文台 暦計算室, 「旧暦2033年問題について」, `nao-topics-2014-2033`,
+    /// <https://eco.mtk.nao.ac.jp/koyomi/topics/html/topics2014.html>, and
+    /// 暦Wiki 「太陰太陽暦/2033年問題」, `nao-rekiwiki-2033`, both retrieved
+    /// 2026-09-26): 2014, with its leap ninth month; 1984–85, where the
+    /// month from 22 December holds both 冬至 and 大寒 and is the eleventh;
+    /// and 2033–34, where no numbering satisfies the 天保暦 rule and these
+    /// rules give the first of the Observatory's three resolutions, 閏11月.
+    #[test]
+    fn the_continued_calendar_follows_the_observatorys_tables() {
+        let months = [
+            ((2014, 9, 24), 9, false),
+            ((2014, 10, 24), 9, true),
+            ((2014, 11, 22), 10, false),
+            ((1984, 11, 23), 10, true),
+            ((1984, 12, 22), 11, false),
+            ((1985, 1, 21), 12, false),
+            ((1985, 2, 20), 1, false),
+            ((2033, 8, 25), 8, false),
+            ((2033, 9, 23), 9, false),
+            ((2033, 10, 23), 10, false),
+            ((2033, 11, 22), 11, false),
+            ((2033, 12, 22), 11, true),
+            ((2034, 1, 20), 12, false),
+            ((2034, 2, 19), 1, false),
+        ];
+        for ((year, month, day), ordinal, leap) in months {
+            let start = gregorian::to_fixed_saturating(year, month, day);
+            let (_, found, first) = UNBOUNDED_PARAMETERS.from_fixed_unbounded(start);
+            assert_eq!(
+                (found.ordinal, found.leap, first),
+                (ordinal, leap, 1),
+                "{start}"
+            );
+        }
+    }
+
+    /// Unbounded parameters never refuse a day, so the unchecked reading is
+    /// the checked one without the `Result`.
+    #[test]
+    fn the_unbounded_reading_is_the_checked_one() {
+        // Every 97th day in release, every 997th in a debug build.
+        let step = if cfg!(debug_assertions) { 997 } else { 97 };
+        for rd in (gregorian::to_fixed_saturating(1_840, 1, 1).0
+            ..gregorian::to_fixed_saturating(2_060, 1, 1).0)
+            .step_by(step)
+        {
+            assert_eq!(
+                UNBOUNDED_PARAMETERS.from_fixed(Rd(rd)),
+                Ok(UNBOUNDED_PARAMETERS.from_fixed_unbounded(Rd(rd)))
+            );
+        }
+    }
+
     #[test]
     fn the_metadata_bounds_the_calendar_at_the_abolition() {
         let meta = JapaneseTenpoCalendar.meta();

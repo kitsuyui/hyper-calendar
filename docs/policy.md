@@ -66,9 +66,10 @@ adapt the shape. For example, proleptic Gregorian conversion lives in
 validation and `Calendar` implementation stay in `hc-calendars-solar`.
 
 This is not tidiness. A second implementation is a second thing to be
-wrong. A measured case is next door: `hc-almanac` reads `hc-seasons`'
-simplified lunisolar derivation, which differs from the full calculation on
-89 of the 3,653 days of 2024–2033.
+wrong. A measured case: `hc-almanac` read a simplified lunisolar derivation
+`hc-seasons` kept for 六曜, which differed from `hc-calendars-lunar`'s
+calendar on 89 of the 3,653 days of 2024–2033, until it was replaced by the
+calendar itself.
 
 Sometimes a different shape is genuinely wanted. An example is bare
 integers instead of `Rd` and `Result`, because the call site is a `const`

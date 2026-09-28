@@ -38,15 +38,20 @@ TibetanDay { cal, month, d }  Tsagaan Sar, days 1–3 of the first month in mong
 Offset { base, days }         除夕, Seollal's eve
 Span { from, to }             Dashain, Phūlpātī to Āśvina śukla 12
 MovedByWeekday { base, moves } a Monday-holiday law: Argentina's trasladables, Colombia's Ley Emiliani
-Tabulated { fn, first, last } Matariki, gazetted through a stated last year
+Listed { entry, first, last } Matariki; a decree's, a gazette's or an exchange's list, year by year
+Tabulated { fn, first, last } Russia's transfers, computed over a table read to a last year
 Computed(fn)                  the few that really are bespoke
 Unsettled(fn)                 Common Worship's St George's Day, unsettled when Easter is 23 April
 ```
 
 Each is a pure rule value. `WeekdayOnOrAfter`, `WeekdayOnOrBefore` and
-`Offset` each spare a `Computed` that would otherwise be needed, and
-`Tabulated` gives a published table a last year, so that running out of table
-is reported as a gap rather than passing for a year without the holiday.
+`Offset` each spare a `Computed` that would otherwise be needed. `Listed`
+reads one holiday's rows from a `Listing`, a table of the dates a source
+announced — dates, named dates, numbered dates or named spans — and gives
+it the years read, so that running out of table is reported as a gap
+rather than passing for a year without the holiday; a country that
+publishes its holidays by annual act is such a table and its entries, with
+no code. `Tabulated` does the same for a computation over a table.
 `Unsettled` does the same for the years a stated rule leaves open.
 
 Rules then pass through **observance modifiers**, which are themselves data:
@@ -84,7 +89,7 @@ pattern: Ireland's St Brigid's Day, the Dutch royal day (under two monarchs),
 US Inauguration Day, Mexico's presidential handover, Israel's Yom HaAtzmaut
 and some thirty more in the national tables, most of them a move that
 depends on the weekday or on another holiday. New Zealand's Matariki is
-`Tabulated`, with the last gazetted year stated, and a year past it is a
+`Listed`, with the last gazetted year stated, and a year past it is a
 gap. *Common Worship*'s St George, St Mark and Philip and James are
 `Unsettled`, a gap in the years its Rules leave open. Japan needs none.
 

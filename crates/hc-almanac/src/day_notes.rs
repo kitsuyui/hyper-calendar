@@ -36,12 +36,12 @@
 
 use hc_calendar::Weekday;
 use hc_calendar::cycle::Sexagenary;
-use hc_seasons::lunisolar::LunisolarDay;
+use hc_calendars_lunar::LunisolarDate;
 use hc_seasons::{Meridian, Rd};
 
 use crate::context::{DayContext, SolarMonth};
 use crate::lower_register::{LowerRegister, LowerRegisterSet, lower_register_of_context};
-use crate::mansions::{Mansion, Mansion27, mansion_of, mansion27_of};
+use crate::mansions::{Mansion, Mansion27, mansion_of, mansion27_of_date};
 use crate::nine_stars::{NineStars, nine_stars_of_context};
 use crate::rokuyo::{Rokuyo, rokuyo_of};
 use crate::selected_days::{SelectedDay, SelectedDaySet, selected_days_of_context};
@@ -321,6 +321,7 @@ impl CombinationSet {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct DayNotes {
     context: DayContext,
+    lunisolar: LunisolarDate,
     rokuyo: Rokuyo,
     mansion: Mansion,
     mansion27: Mansion27,
@@ -362,10 +363,10 @@ impl DayNotes {
         self.context.solar_month()
     }
 
-    /// The day's lunisolar month and day.
+    /// The day's lunisolar date, in the calendar the meridian names.
     #[must_use]
-    pub const fn lunisolar(&self) -> LunisolarDay {
-        self.context.lunisolar()
+    pub const fn lunisolar(&self) -> LunisolarDate {
+        self.lunisolar
     }
 
     /// The day of the seven-day week.
@@ -439,20 +440,28 @@ impl DayNotes {
 /// Every almanac annotation for a day at a meridian.
 ///
 /// One [`DayContext`] is built and shared, so this costs one solar-longitude
-/// solve, two new-moon searches and six solar-term solves for the 九星
-/// period — not one set per annotation.
+/// solve, the 旧暦's solstice and new-moon searches and six solar-term solves
+/// for the 九星 period — not one set per annotation — all inside one
+/// [`hc_core::memo::scope`].
 #[must_use]
 pub fn day_notes(day: Rd, meridian: Meridian) -> DayNotes {
+    hc_core::memo::scope(|| day_notes_in_scope(day, meridian))
+}
+
+/// [`day_notes`], with the memo already open.
+fn day_notes_in_scope(day: Rd, meridian: Meridian) -> DayNotes {
     let context = DayContext::new(day, meridian);
-    let rokuyo = rokuyo_of(context.lunisolar());
+    let lunisolar = context.lunisolar();
+    let rokuyo = rokuyo_of(lunisolar);
     let lower = lower_register_of_context(&context);
     let selected = selected_days_of_context(&context);
     let combinations = combinations_of(rokuyo, lower, selected);
     DayNotes {
         context,
+        lunisolar,
         rokuyo,
         mansion: mansion_of(day),
-        mansion27: mansion27_of(day, meridian),
+        mansion27: mansion27_of_date(lunisolar),
         direct: direct_of_context(&context),
         stars: nine_stars_of_context(&context),
         lower,
@@ -557,20 +566,22 @@ mod tests {
     /// 6 October and 21 December. That is the whole year and nothing else.
     #[test]
     fn the_published_2025_strongest_days_match() {
-        const CUMULATIVE: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-        let expected = [(3usize, 10i64), (7, 24), (10, 6), (12, 21)];
-        let mut found = 0;
-        for offset in 0..365 {
-            let notes = day_notes(Rd(NEW_YEAR_2025 + offset), JAPAN);
-            if notes.combinations().contains(Combination::PARDON_AND_GRAIN) {
-                found += 1;
-                let matched = expected.iter().any(|(month, day)| {
-                    NEW_YEAR_2025 + CUMULATIVE[month - 1] + day - 1 == NEW_YEAR_2025 + offset
-                });
-                assert!(matched, "unexpected day at offset {offset}");
+        hc_core::memo::scope(|| {
+            const CUMULATIVE: [i64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+            let expected = [(3usize, 10i64), (7, 24), (10, 6), (12, 21)];
+            let mut found = 0;
+            for offset in 0..365 {
+                let notes = day_notes(Rd(NEW_YEAR_2025 + offset), JAPAN);
+                if notes.combinations().contains(Combination::PARDON_AND_GRAIN) {
+                    found += 1;
+                    let matched = expected.iter().any(|(month, day)| {
+                        NEW_YEAR_2025 + CUMULATIVE[month - 1] + day - 1 == NEW_YEAR_2025 + offset
+                    });
+                    assert!(matched, "unexpected day at offset {offset}");
+                }
             }
-        }
-        assert_eq!(found, expected.len());
+            assert_eq!(found, expected.len());
+        });
     }
 
     /// The assembled page must agree with every individual query, which is
@@ -584,7 +595,7 @@ mod tests {
             assert_eq!(notes.day(), day);
             assert_eq!(notes.meridian(), JAPAN);
             assert_eq!(notes.mansion(), mansion_of(day));
-            assert_eq!(notes.mansion27(), mansion27_of(day, JAPAN));
+            assert_eq!(notes.mansion27(), crate::mansions::mansion27_of(day, JAPAN));
             assert_eq!(notes.twelve_direct(), direct_of(day, JAPAN));
             assert_eq!(notes.selected_days(), selected_days(day, JAPAN));
             assert_eq!(
@@ -607,17 +618,19 @@ mod tests {
     /// argument would be decorative.
     #[test]
     fn the_meridian_changes_answers_at_least_sometimes() {
-        let mut disagreements = 0;
-        for offset in 0..3_653 {
-            let day = Rd(NEW_YEAR_2025 + offset);
-            if direct_of(day, Meridian::JAPAN) != direct_of(day, Meridian::CHINA) {
-                disagreements += 1;
+        hc_core::memo::scope(|| {
+            let mut disagreements = 0;
+            for offset in 0..3_653 {
+                let day = Rd(NEW_YEAR_2025 + offset);
+                if direct_of(day, Meridian::JAPAN) != direct_of(day, Meridian::CHINA) {
+                    disagreements += 1;
+                }
             }
-        }
-        assert!(
-            disagreements > 0,
-            "Japan and China must disagree about a 十二直 at least once a decade"
-        );
+            assert!(
+                disagreements > 0,
+                "Japan and China must disagree about a 十二直 at least once a decade"
+            );
+        });
     }
 
     /// Nothing in a day's page may be silently undetermined: every rule the

@@ -1,4 +1,4 @@
-//! 六曜 — re-exported, because the implementation belongs somewhere else.
+//! 六曜 — the six-day cycle printed on Japanese calendars.
 //!
 //! 六曜 is the 暦注 everyone in Japan can name: 大安 for weddings, and 友引
 //! the day funerals are avoided, when some crematoria close. The National
@@ -8,59 +8,423 @@
 //! Japanese Wikipedia 六曜 adds that funeral businesses and crematoria are
 //! sometimes closed on 友引 (「友引の日は葬祭関連業や火葬場が休業となって
 //! いることがある」, <https://ja.wikipedia.org/wiki/六曜>, read 2026-09-26).
-//! It plainly belongs in an almanac crate, and a caller looking for 暦注
-//! should find it here.
 //!
-//! It is nonetheless implemented in [`hc_seasons::rokuyo`], and this module
-//! is a re-export rather than a second implementation. The reason is that
-//! 六曜 is not a rule over a cycle the way everything else in this crate is:
-//! it is `(lunisolar month + lunisolar day) mod 6` and nothing else. It has
-//! no sexagenary component, no solar term, no 節月 — it is a pure function of
-//! the lunisolar date, exactly like 十五夜 and the phase names that sit
-//! beside it in `hc-seasons`. Splitting it away from the lunisolar
-//! derivation it is made of, to put it next to rules it shares no machinery
-//! with, would be filing by subject matter instead of by dependency.
+//! The rule is one line: `(lunisolar month + lunisolar day) mod 6`, with 0
+//! landing on 大安. The first day of the first month is therefore always
+//! 先勝, the first of the second month always 友引, and so on: the cycle
+//! restarts at every new moon, which is why a Japanese calendar's 六曜 column
+//! jumps a step at apparently random intervals. It is not a weekday. A leap
+//! month runs as the month before it did.
 //!
-//! So: one implementation, in the crate that owns the lunisolar day; one
-//! place to look, which is here.
+//! The rule, the lunisolar date it needs and a worked example are in
+//! `docs/systems/zassetsu-and-rokuyo.md` in the repository.
 //!
-//! ```
-//! use hc_almanac::{Meridian, Rd, rokuyo::rokuyo};
+//! # Where the lunisolar date comes from
 //!
-//! // The 六曜 of a day comes from its lunisolar date, so it needs a
-//! // meridian like everything else that touches the Moon.
-//! let _ = rokuyo(Rd(738_886), Meridian::JAPAN);
-//! ```
+//! From [`crate::lunisolar`], the lunisolar calendar of `hc-calendars-lunar`
+//! the meridian names — the Japanese 旧暦 at [`Meridian::JAPAN`], the
+//! Chinese calendar at [`Meridian::CHINA`] — which 不成就日 and 二十七宿
+//! read too, so the three agree with one another.
+//!
+//! # Before 1873
+//!
+//! The six names in their modern form are first found in the 『万暦両面鑑』
+//! of about 1747; a table of 1688 has a six-day cycle under other names, and
+//! in the Edo period the cycle was one 暦注 among many. The Meiji reform of
+//! 1872 banned the notes of lucky and unlucky days from the official
+//! almanac; almanacs full of them circulated privately from about 1882.
+//! Nothing here is historical before the Gregorian adoption in 1873: before
+//! 1844 the answers are the modern rule over the 天保暦's rules continued
+//! backwards, not what any surviving almanac says.
+//!
+//! # Sources
+//!
+//! * `wikipedia-ja-rokuyo`: Japanese Wikipedia, 「六曜」, revision 110850826
+//!   (2026-08-31), <https://ja.wikipedia.org/wiki/%E5%85%AD%E6%9B%9C>, retrieved
+//!   2026-09-26, a secondary source: the rule as 「旧暦の月の数字と旧暦の日の
+//!   数字の和が6の倍数であれば大安」, the fixed 六曜 of the first of each
+//!   month with a leap month as the month before, the readings, 友引 and
+//!   funerals, and the history above. The works it cites — 『頭書長暦』,
+//!   『万暦両面鑑』, Kanda Shigeru's study — were not read.
+//! * `nao-rekiwiki-rekichu`: 国立天文台 暦計算室, 暦Wiki 「暦注」,
+//!   <https://eco.mtk.nao.ac.jp/koyomi/wiki/CEF1C3ED.html>, retrieved
+//!   2026-09-26: the 暦注 as the notes of good and bad days, and the
+//!   abolition of the middle and lower registers in the Meiji reform. The
+//!   暦Wiki has no page on 六曜 and the 暦要項 does not print it; the
+//!   Observatory does not compute the lunisolar calendar it depends on
+//!   (`nao-faq-kyureki`).
 
-pub use hc_seasons::rokuyo::{Rokuyo, rokuyo, rokuyo_of};
+use hc_calendar::Rd;
+use hc_calendars_lunar::LunisolarDate;
+
+use hc_seasons::Meridian;
+
+use crate::lunisolar::lunisolar_date;
+
+/// One of the six days.
+///
+/// Ordering is the cycle order, 先勝 first, which is the order they succeed
+/// one another within a lunisolar month.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Rokuyo {
+    /// 先勝: haste brings fortune. Lucky in the morning, unlucky after noon.
+    Sensho,
+    /// 友引: "pulling friends". Funerals are avoided, and some crematoria and
+    /// funeral businesses close.
+    Tomobiki,
+    /// 先負: the opposite of 先勝. Act late, not early.
+    Senbu,
+    /// 仏滅: "the Buddha's death", the unluckiest of the six.
+    Butsumetsu,
+    /// 大安: "great peace", the luckiest; the day most weddings are held on.
+    Taian,
+    /// 赤口: "the red mouth". Unlucky except around noon.
+    Shakko,
+}
+
+impl Rokuyo {
+    /// All six, in cycle order.
+    pub const ALL: [Self; 6] = [
+        Self::Sensho,
+        Self::Tomobiki,
+        Self::Senbu,
+        Self::Butsumetsu,
+        Self::Taian,
+        Self::Shakko,
+    ];
+
+    /// The six in the order `(month + day) mod 6` produces them.
+    ///
+    /// This is the table the rule is: remainder 0 is 大安, and since the
+    /// first day of the first month gives 1 + 1 = 2, remainder 2 is 先勝.
+    const BY_REMAINDER: [Self; 6] = [
+        Self::Taian,
+        Self::Shakko,
+        Self::Sensho,
+        Self::Tomobiki,
+        Self::Senbu,
+        Self::Butsumetsu,
+    ];
+
+    /// The 六曜 of a lunisolar month and day.
+    ///
+    /// A leap month carries the number of the month it follows, so a leap
+    /// month's 六曜 run exactly as the preceding month's did.
+    #[must_use]
+    pub const fn from_lunisolar(month: u8, day: u8) -> Self {
+        Self::BY_REMAINDER[((month as usize) + (day as usize)) % 6]
+    }
+
+    /// This day's position in the cycle, 0 for 先勝 through 5 for 赤口.
+    #[must_use]
+    pub const fn cycle_index(self) -> u8 {
+        match self {
+            Self::Sensho => 0,
+            Self::Tomobiki => 1,
+            Self::Senbu => 2,
+            Self::Butsumetsu => 3,
+            Self::Taian => 4,
+            Self::Shakko => 5,
+        }
+    }
+
+    /// The next in the cycle, which is the next day's 六曜 unless a new
+    /// lunisolar month begins.
+    #[must_use]
+    pub const fn next(self) -> Self {
+        Self::ALL[((self.cycle_index() as usize) + 1) % 6]
+    }
+
+    /// The name in Japanese characters, e.g. `"大安"`.
+    #[must_use]
+    pub const fn japanese_name(self) -> &'static str {
+        match self {
+            Self::Sensho => "先勝",
+            Self::Tomobiki => "友引",
+            Self::Senbu => "先負",
+            Self::Butsumetsu => "仏滅",
+            Self::Taian => "大安",
+            Self::Shakko => "赤口",
+        }
+    }
+
+    /// The name in Hepburn romaji.
+    ///
+    /// Several have more than one reading — 先勝 is *senshō* or *senkachi*,
+    /// 先負 *senpu*, *senbu* or *senmake*, 赤口 *shakkō* or *shakku*
+    /// (`wikipedia-ja-rokuyo`) — and one of them is given here.
+    #[must_use]
+    pub const fn romaji(self) -> &'static str {
+        match self {
+            Self::Sensho => "senshō",
+            Self::Tomobiki => "tomobiki",
+            Self::Senbu => "senbu",
+            Self::Butsumetsu => "butsumetsu",
+            Self::Taian => "taian",
+            Self::Shakko => "shakkō",
+        }
+    }
+
+    /// A short English gloss of what the day is held to mean.
+    #[must_use]
+    pub const fn english_name(self) -> &'static str {
+        match self {
+            Self::Sensho => "haste brings fortune; lucky before noon",
+            Self::Tomobiki => "friends are drawn along; no funerals",
+            Self::Senbu => "act late; unlucky before noon",
+            Self::Butsumetsu => "the Buddha's death; the unluckiest day",
+            Self::Taian => "great peace; the luckiest day",
+            Self::Shakko => "the red mouth; unlucky except at noon",
+        }
+    }
+}
+
+/// The 六曜 of a day, from the lunisolar calendar `meridian` names.
+///
+/// ```
+/// use hc_almanac::{Meridian, Rd, rokuyo::{Rokuyo, rokuyo}};
+///
+/// // 10 February 2024 was the first of the first lunisolar month, and the
+/// // first of the first month is always 先勝.
+/// assert_eq!(rokuyo(Rd(738_926), Meridian::JAPAN), Rokuyo::Sensho);
+/// ```
+#[must_use]
+pub fn rokuyo(day: Rd, meridian: Meridian) -> Rokuyo {
+    rokuyo_of(lunisolar_date(day, meridian))
+}
+
+/// The 六曜 of a lunisolar date already in hand.
+///
+/// Cheaper than [`rokuyo`] when the caller has the date, because the
+/// solstice and new-moon searches are the expensive part.
+#[must_use]
+pub const fn rokuyo_of(date: LunisolarDate) -> Rokuyo {
+    Rokuyo::from_lunisolar(date.month.ordinal, date.day)
+}
 
 #[cfg(test)]
 mod tests {
-    use hc_calendar::Rd;
-    use hc_seasons::Meridian;
-
     use super::*;
+    use crate::lunisolar::Reckoning;
 
-    /// The rule in one line: the first day of the first lunisolar month is
-    /// always 先勝, the first of the second month always 友引, and the cycle
-    /// restarts at every new moon.
+    const JAPAN: Meridian = Meridian::JAPAN;
+    use hc_calendar::gregorian;
+
+    /// The first day of each lunisolar month has a fixed 六曜, and the twelve
+    /// of them are the six taken twice; Japanese Wikipedia's 「六曜」 prints
+    /// this table (`wikipedia-ja-rokuyo`).
+    const FIRST_OF_MONTH: [(u8, Rokuyo); 12] = [
+        (1, Rokuyo::Sensho),
+        (2, Rokuyo::Tomobiki),
+        (3, Rokuyo::Senbu),
+        (4, Rokuyo::Butsumetsu),
+        (5, Rokuyo::Taian),
+        (6, Rokuyo::Shakko),
+        (7, Rokuyo::Sensho),
+        (8, Rokuyo::Tomobiki),
+        (9, Rokuyo::Senbu),
+        (10, Rokuyo::Butsumetsu),
+        (11, Rokuyo::Taian),
+        (12, Rokuyo::Shakko),
+    ];
+
     #[test]
-    fn the_re_export_is_the_same_cycle_hc_seasons_computes() {
-        assert_eq!(Rokuyo::from_lunisolar(1, 1), Rokuyo::Sensho);
-        assert_eq!(Rokuyo::from_lunisolar(2, 1), Rokuyo::Tomobiki);
-        assert_eq!(
-            rokuyo(Rd(738_886), Meridian::JAPAN),
-            hc_seasons::rokuyo::rokuyo(Rd(738_886), Meridian::JAPAN)
-        );
+    fn the_first_of_each_month_has_the_rokuyo_the_almanacs_print() {
+        for (month, expected) in FIRST_OF_MONTH {
+            assert_eq!(
+                Rokuyo::from_lunisolar(month, 1),
+                expected,
+                "the first of month {month}"
+            );
+        }
     }
 
     #[test]
-    fn the_six_advance_one_a_day_inside_a_lunisolar_month() {
-        for day in 1..=28u8 {
+    fn the_cycle_runs_forward_within_a_month() {
+        for month in 1..=12u8 {
+            let mut expected = Rokuyo::from_lunisolar(month, 1);
+            for day in 1..=29u8 {
+                assert_eq!(
+                    Rokuyo::from_lunisolar(month, day),
+                    expected,
+                    "month {month} day {day}"
+                );
+                expected = expected.next();
+            }
+        }
+    }
+
+    #[test]
+    fn the_six_are_a_closed_cycle() {
+        for rokuyo in Rokuyo::ALL {
+            let mut walked = rokuyo;
+            for _ in 0..6 {
+                walked = walked.next();
+            }
+            assert_eq!(walked, rokuyo);
+            assert!((0..6).contains(&rokuyo.cycle_index()));
+            assert!(!rokuyo.japanese_name().is_empty());
+            assert!(!rokuyo.romaji().is_empty());
+            assert!(rokuyo.english_name().is_ascii());
+        }
+        let indices: [u8; 6] = Rokuyo::ALL.map(Rokuyo::cycle_index);
+        assert_eq!(indices, [0, 1, 2, 3, 4, 5]);
+    }
+
+    /// Anchors derived from the rule. 1 January 2024 was the twentieth of
+    /// the eleventh month, 11 + 20 = 31, remainder 1, so 赤口; the lunar new
+    /// years are the first of the first month and so are always 先勝; 中秋の
+    /// 名月 is the fifteenth of the eighth month, 8 + 15 = 23, remainder 5, so
+    /// it is always 仏滅, as `wikipedia-ja-rokuyo` also works it.
+    #[test]
+    fn published_rokuyo_dates_come_out_right() {
+        for ((year, month, day), expected) in [
+            ((2024, 1, 1), Rokuyo::Shakko),
+            ((2024, 2, 10), Rokuyo::Sensho),
+            ((2025, 1, 29), Rokuyo::Sensho),
+            ((2024, 9, 17), Rokuyo::Butsumetsu),
+        ] {
             assert_eq!(
-                Rokuyo::from_lunisolar(3, day + 1),
-                Rokuyo::from_lunisolar(3, day).next()
+                rokuyo(gregorian::to_fixed_saturating(year, month, day), JAPAN),
+                expected,
+                "{year}-{month:02}-{day:02}"
             );
         }
+    }
+
+    /// The 六曜 of the five runs 1900–2100 in which the simplified
+    /// derivation `hc-seasons` kept numbered a month differently, against a
+    /// published online calendar: Arachne's 「カレンダー」
+    /// (`arachne-onlinecalendar`), whose October 1965, January 1985,
+    /// September to November 2033, February 2034 and January 2053 agree
+    /// with this module on every day. Each pair is the last day of one
+    /// month and the first of the next, where the two derivations part.
+    /// 便利コム's calendar prints 案2's 六曜 for 2033 instead, 友引 on 23
+    /// September and 先負 on 23 October: publishers differ there, and the
+    /// 日本カレンダー暦文化振興協会 recommended 案1 in 2015
+    /// (`wikipedia-ja-kyureki-2033`).
+    #[test]
+    fn the_changed_months_are_the_ones_a_published_calendar_prints() {
+        for ((year, month, day), expected) in [
+            ((1965, 10, 23), Rokuyo::Sensho),
+            ((1965, 10, 24), Rokuyo::Butsumetsu),
+            ((1985, 1, 20), Rokuyo::Butsumetsu),
+            ((1985, 1, 21), Rokuyo::Shakko),
+            ((2033, 9, 1), Rokuyo::Senbu),
+            ((2033, 9, 22), Rokuyo::Shakko),
+            ((2033, 9, 23), Rokuyo::Senbu),
+            ((2033, 10, 22), Rokuyo::Tomobiki),
+            ((2033, 10, 23), Rokuyo::Butsumetsu),
+            ((2033, 11, 21), Rokuyo::Senbu),
+            ((2033, 11, 22), Rokuyo::Taian),
+            ((2034, 2, 18), Rokuyo::Taian),
+            ((2034, 2, 19), Rokuyo::Sensho),
+            ((2053, 1, 19), Rokuyo::Butsumetsu),
+            ((2053, 1, 20), Rokuyo::Shakko),
+        ] {
+            assert_eq!(
+                rokuyo(gregorian::to_fixed_saturating(year, month, day), JAPAN),
+                expected,
+                "{year}-{month:02}-{day:02}"
+            );
+        }
+    }
+
+    /// The defining property: the cycle advances by one every day *except*
+    /// at a new moon, where it jumps to whatever the new month number makes
+    /// it. Over three years that must hold on every single day.
+    #[test]
+    fn the_cycle_advances_daily_and_resets_at_every_new_moon() {
+        hc_core::memo::scope(|| {
+            let start = gregorian::to_fixed_saturating(2022, 1, 1);
+            let mut previous = rokuyo(start, JAPAN);
+            let mut resets = 0;
+            for offset in 1..1_100 {
+                let day = Rd(start.0 + offset);
+                let date = Reckoning::JapaneseTenpo.date(day);
+                let current = rokuyo(day, JAPAN);
+                if date.day == 1 {
+                    resets += 1;
+                    assert_eq!(
+                        current,
+                        Rokuyo::from_lunisolar(date.month.ordinal, 1),
+                        "a month began at {day} with the wrong 六曜"
+                    );
+                } else {
+                    assert_eq!(current, previous.next(), "the cycle skipped at {day}");
+                }
+                previous = current;
+            }
+            assert!(
+                (34..=40).contains(&resets),
+                "{resets} new moons in three years"
+            );
+        });
+    }
+
+    /// 2023 had a leap second month. A leap month repeats the number of the
+    /// month before it, so 閏二月 runs the same 六曜 sequence that 二月 did:
+    /// both open on 友引, and the third month after them on 先負.
+    #[test]
+    fn a_leap_month_repeats_the_previous_months_rokuyo_sequence() {
+        hc_core::memo::scope(|| {
+            let ordinary = gregorian::to_fixed_saturating(2023, 2, 20);
+            let leap = gregorian::to_fixed_saturating(2023, 3, 22);
+            let third = gregorian::to_fixed_saturating(2023, 4, 20);
+            assert!(Reckoning::JapaneseTenpo.date(leap).month.leap);
+            assert_eq!(rokuyo(ordinary, JAPAN), Rokuyo::Tomobiki);
+            assert_eq!(rokuyo(leap, JAPAN), Rokuyo::Tomobiki);
+            for offset in 0..29 {
+                assert_eq!(
+                    rokuyo(Rd(ordinary.0 + offset), JAPAN),
+                    rokuyo(Rd(leap.0 + offset), JAPAN),
+                    "day {offset} of the two second months differed"
+                );
+            }
+            assert_eq!(Reckoning::JapaneseTenpo.date(third).month.ordinal, 3);
+            assert_eq!(rokuyo(third, JAPAN), Rokuyo::Senbu);
+        });
+    }
+
+    /// Each of the six turns up about a sixth of the time. Months of 29 and
+    /// 30 days and the 12-into-6 month numbering skew it slightly, which is
+    /// why the bound is loose rather than exact.
+    #[test]
+    fn each_of_the_six_gets_roughly_a_sixth_of_the_days() {
+        hc_core::memo::scope(|| {
+            let start = gregorian::to_fixed_saturating(2000, 1, 1);
+            let mut counts = [0usize; 6];
+            for offset in 0..3_653 {
+                counts[rokuyo(Rd(start.0 + offset), JAPAN).cycle_index() as usize] += 1;
+            }
+            assert_eq!(counts.iter().sum::<usize>(), 3_653);
+            for count in counts {
+                assert!(
+                    (540..=680).contains(&count),
+                    "one of the six got {count} days in a decade: {counts:?}"
+                );
+            }
+        });
+    }
+
+    /// 大安 follows 仏滅 immediately in the cycle, always: the unluckiest day
+    /// of the six is the eve of the luckiest.
+    #[test]
+    fn the_luckiest_day_always_follows_the_unluckiest() {
+        assert_eq!(
+            (Rokuyo::Taian.cycle_index() + 6 - Rokuyo::Butsumetsu.cycle_index()) % 6,
+            1
+        );
+        hc_core::memo::scope(|| {
+            let start = gregorian::to_fixed_saturating(2024, 1, 1);
+            for offset in 0..366 {
+                let day = Rd(start.0 + offset);
+                if rokuyo(day, JAPAN) == Rokuyo::Butsumetsu
+                    && Reckoning::JapaneseTenpo.date(Rd(day.0 + 1)).day != 1
+                {
+                    assert_eq!(rokuyo(Rd(day.0 + 1), JAPAN), Rokuyo::Taian);
+                }
+            }
+        });
     }
 }

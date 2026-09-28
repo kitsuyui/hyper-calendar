@@ -53,7 +53,8 @@ TibetanDay { calendar, month, day }   Tsagaan Sar, days 1–3 of the first month
 Offset { base, days }                 Seollal's eve, 除夕
 Span { from, to }                     Dashain, Phūlpātī to Āśvina śukla 12, six or seven days
 MovedByWeekday { base, moves }        Argentina's feriados trasladables, Colombia's Ley Emiliani
-Tabulated { function, first, last }   Matariki, gazetted through a stated last year
+Listed { entry, first, last }         Matariki; China's and Vietnam's annual arrangements; any decree's list
+Tabulated { function, first, last }   Russia's transfers, a computation over a table with its years
 Computed(fn)                          the handful that really are bespoke
 Unsettled(fn)                         a computed rule with the years its source leaves open
 ```
@@ -75,9 +76,17 @@ monarchs), US Inauguration Day, Mexico's presidential handover, Israel's Yom
 HaAtzmaut and some thirty more in the national tables, most of them a move
 that depends on the weekday or on another holiday — Chile's September days,
 Costa Rica's tourism Mondays of 2020–2024, Hong Kong's make-up days of
-1983–2011, Myanmar's Thingyan. New Zealand's Matariki is `Tabulated`, a
-published schedule with its last year stated, so that running past it is a
-reported gap. `Unsettled` is a computed rule that names the years its source
+1983–2011, Myanmar's Thingyan. A holiday a government or an exchange announces year by
+year is `Listed`: a row in a `Listing`, the table of the decrees, gazettes or
+schedules read, in one of four shapes — dates, named dates, numbered dates,
+or named spans of days — with the years it answers for, so that running past
+them is a reported gap. New Zealand's Matariki is one, a published schedule
+with its last year stated; China's and Vietnam's annual arrangements, the
+days off as spans and the weekend days worked as dates, are two more tables.
+A new country of that kind is a table and its entries, not a function.
+`Tabulated` is left for the handful that compute over such a table:
+Russia's transfers, Bosnia and Herzegovina's Republic Day, the Vatican's
+pontifical days, the Thai lunar days and the sacred Wednesdays. `Unsettled` is a computed rule that names the years its source
 does not settle, which are reported as gaps too: *Common Worship*'s St
 George, St Mark and Philip and James in the years its Rules move one onto
 another's day or into Easter Week. Japan needs none.

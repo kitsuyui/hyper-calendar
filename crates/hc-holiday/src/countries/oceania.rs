@@ -1,15 +1,14 @@
 //! Australia, New Zealand and the Pacific island states.
 
 use hc_calendar::Weekday;
-use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, EASTER_TUESDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     WHIT_MONDAY,
 };
 use crate::rule::{
-    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
-    SubstitutionPolicy,
+    HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    SubstituteDirection, SubstitutionPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -158,34 +157,21 @@ pub static AUSTRALIA: RuleSet = RuleSet {
 /// gives a *table*, because the date is the Friday nearest the Tangaroa
 /// nights of the lunar month in which the Pleiades rise, as determined by
 /// the Matariki Advisory Group. No rule in the vocabulary expresses that, so
-/// this function holds the schedule verbatim.
+/// this table holds the schedule verbatim.
 ///
 /// The Act schedules dates through 2052. Only the years published in the
 /// sources this crate checked are carried here; a year outside them yields
 /// nothing rather than an invented Friday. "Nothing" must not read as "no
-/// holiday that year", so the rule is a [`Rule::Tabulated`] with its last
+/// holiday that year", so the rule is a [`Rule::Listed`] with its last
 /// year written down, and a calendar built past 2035 reports Matariki as a
 /// gap instead of dropping it.
-fn matariki(year: i64) -> Days {
-    let (month, day) = match year {
-        2022 => (6u8, 24u8),
-        2023 => (7, 14),
-        2024 => (6, 28),
-        2025 => (6, 20),
-        2026 => (7, 10),
-        2027 => (6, 25),
-        2028 => (7, 14),
-        2029 => (7, 6),
-        2030 => (6, 21),
-        2031 => (7, 11),
-        2032 => (7, 2),
-        2033 => (6, 24),
-        2034 => (7, 7),
-        2035 => (6, 29),
-        _ => return Days::new(),
-    };
-    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
-}
+#[rustfmt::skip]
+static MATARIKI: Listing = Listing::Dates(&[
+    (2022, 6, 24), (2023, 7, 14), (2024, 6, 28), (2025, 6, 20),
+    (2026, 7, 10), (2027, 6, 25), (2028, 7, 14), (2029, 7, 6),
+    (2030, 6, 21), (2031, 7, 11), (2032, 7, 2), (2033, 6, 24),
+    (2034, 7, 7), (2035, 6, 29),
+]);
 
 static NZ_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -204,11 +190,7 @@ static NZ_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Matariki",
         "Matariki",
-        Rule::Tabulated {
-            function: matariki,
-            first_year: 2022,
-            last_year: 2035,
-        },
+        Rule::listed(MATARIKI.every(), 2022, 2035),
     )
     .years(Some(2022), None),
     HolidayRule::public("Labour Day", "", Rule::nth(10, 4, Weekday::Monday)),
@@ -384,98 +366,46 @@ static NR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-/// A day the President declared in the gazettes this table read, for the
-/// years they covered.
-fn nr_declared(year: i64, month: u8, day: u8, years: &[i64]) -> Days {
-    if !years.contains(&year) {
-        return Days::new();
-    }
-    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
-}
-
-/// The years whose public-holiday gazettes were read: 2023, 2024 and 2026.
-const NR_GAZETTED: &[i64] = &[2023, 2024, 2026];
-
-/// The day only the 2026 gazette declared.
-const NR_GAZETTED_2026: &[i64] = &[2026];
-
-fn nr_women_day(year: i64) -> Days {
-    nr_declared(year, 3, 8, NR_GAZETTED)
-}
-
-fn nr_eigigu_day(year: i64) -> Days {
-    nr_declared(year, 6, 26, NR_GAZETTED_2026)
-}
-
-fn nr_remembrance_day(year: i64) -> Days {
-    nr_declared(year, 6, 29, NR_GAZETTED_2026)
-}
-
-fn nr_ronphos_handover(year: i64) -> Days {
-    nr_declared(year, 7, 1, NR_GAZETTED)
-}
-
-fn nr_judicial_well_being(year: i64) -> Days {
-    nr_declared(year, 7, 25, NR_GAZETTED_2026)
-}
-
-fn nr_ibumin_earoeni_day(year: i64) -> Days {
-    nr_declared(year, 8, 19, NR_GAZETTED)
-}
-
-fn nr_hammer_deroburt_day(year: i64) -> Days {
-    nr_declared(year, 9, 25, NR_GAZETTED)
-}
+/// The days the President declared in the gazettes this table read: those
+/// of 2023, 2024 and 2026, and three that only the 2026 gazette declared.
+#[rustfmt::skip]
+static NR_DECLARED: Listing = Listing::Named(&[
+    (2023, 3, 8, "women"), (2023, 7, 1, "ronphos"), (2023, 8, 19, "ibumin-earoeni"),
+    (2023, 9, 25, "hammer-deroburt"),
+    (2024, 3, 8, "women"), (2024, 7, 1, "ronphos"), (2024, 8, 19, "ibumin-earoeni"),
+    (2024, 9, 25, "hammer-deroburt"),
+    (2026, 3, 8, "women"), (2026, 6, 26, "eigigu"), (2026, 6, 29, "remembrance"),
+    (2026, 7, 1, "ronphos"), (2026, 7, 25, "judicial-well-being"), (2026, 8, 19, "ibumin-earoeni"),
+    (2026, 9, 25, "hammer-deroburt"),
+]);
 
 /// A day declared in the 2023, 2024 and 2026 gazettes, as two tables: 2023
 /// to 2024, and 2026 standing in for 2025 onwards, so that 2025, whose
 /// gazette was not read, and every year after 2026 are reported as gaps
 /// rather than as years without the day.
-const fn nr_gazetted(name: &'static str, function: fn(i64) -> Days) -> [HolidayRule; 2] {
+const fn nr_gazetted(name: &'static str, entry: ListedEntry) -> [HolidayRule; 2] {
     [
-        HolidayRule::public(
-            name,
-            "",
-            Rule::Tabulated {
-                function,
-                first_year: 2023,
-                last_year: 2024,
-            },
-        )
-        .years(None, Some(2024)),
-        HolidayRule::public(
-            name,
-            "",
-            Rule::Tabulated {
-                function,
-                first_year: 2026,
-                last_year: 2026,
-            },
-        )
-        .years(Some(2025), None),
+        HolidayRule::public(name, "", Rule::listed(entry, 2023, 2024)).years(None, Some(2024)),
+        HolidayRule::public(name, "", Rule::listed(entry, 2026, 2026)).years(Some(2025), None),
     ]
 }
 
 /// A day the 2026 gazette alone declared, known for 2026 and a gap in
 /// every other year.
-const fn nr_gazetted_2026(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    HolidayRule::public(
-        name,
-        "",
-        Rule::Tabulated {
-            function,
-            first_year: 2026,
-            last_year: 2026,
-        },
-    )
+const fn nr_gazetted_2026(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::public(name, "", Rule::listed(entry, 2026, 2026))
 }
 
-const NR_WOMEN_DAY: [HolidayRule; 2] = nr_gazetted("International Women's Day", nr_women_day);
-const NR_RONPHOS_HANDOVER: [HolidayRule; 2] = nr_gazetted("RONPHOS Handover", nr_ronphos_handover);
+const NR_WOMEN_DAY: [HolidayRule; 2] =
+    nr_gazetted("International Women's Day", NR_DECLARED.named("women"));
+const NR_RONPHOS_HANDOVER: [HolidayRule; 2] =
+    nr_gazetted("RONPHOS Handover", NR_DECLARED.named("ronphos"));
 const NR_IBUMIN_EAROENI_DAY: [HolidayRule; 2] =
-    nr_gazetted("Ibumin Earoeni Day", nr_ibumin_earoeni_day);
-const NR_HAMMER_DEROBURT_DAY: [HolidayRule; 2] =
-    nr_gazetted("Sir Hammer DeRoburt Day", nr_hammer_deroburt_day);
+    nr_gazetted("Ibumin Earoeni Day", NR_DECLARED.named("ibumin-earoeni"));
+const NR_HAMMER_DEROBURT_DAY: [HolidayRule; 2] = nr_gazetted(
+    "Sir Hammer DeRoburt Day",
+    NR_DECLARED.named("hammer-deroburt"),
+);
 
 static NR_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -487,13 +417,13 @@ static NR_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
     HolidayRule::fixed_public("Easter Tuesday", "", Rule::easter(EASTER_TUESDAY)),
     HolidayRule::public("Constitution Day", "", Rule::gregorian(5, 17)),
-    nr_gazetted_2026("Eigigu Day", nr_eigigu_day),
-    nr_gazetted_2026("Remembrance Day", nr_remembrance_day),
+    nr_gazetted_2026("Eigigu Day", NR_DECLARED.named("eigigu")),
+    nr_gazetted_2026("Remembrance Day", NR_DECLARED.named("remembrance")),
     NR_RONPHOS_HANDOVER[0],
     NR_RONPHOS_HANDOVER[1],
     nr_gazetted_2026(
         "International Day for Judicial Well-Being",
-        nr_judicial_well_being,
+        NR_DECLARED.named("judicial-well-being"),
     ),
     NR_IBUMIN_EAROENI_DAY[0],
     NR_IBUMIN_EAROENI_DAY[1],
@@ -603,16 +533,9 @@ static PG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 /// Nothing: no National Gazette was read, so the days it appoints are a
 /// gap in every year.
-fn pg_gazetted(_: i64) -> Days {
-    Days::new()
-}
-
+///
 /// A day the Head of State appoints each year by notice in the Gazette.
-const PG_GAZETTED: Rule = Rule::Tabulated {
-    function: pg_gazetted,
-    first_year: 1,
-    last_year: 0,
-};
+const PG_GAZETTED: Rule = Rule::UNREAD;
 
 static PG_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -1041,26 +964,6 @@ pub static SAMOA: RuleSet = RuleSet {
 // The lists read day by day
 // ─────────────────────────────────────────────────────────────────────────
 
-/// A lookup into a list of `(year, month, day, name)` for each holiday it
-/// names: the days of that name the list gives for `year`.
-macro_rules! listed_days {
-    ($table:ident; $($function:ident => $name:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                let mut out = Days::new();
-                for &(y, month, day, name) in $table {
-                    if y == year && name == $name {
-                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                            out.push(fixed);
-                        }
-                    }
-                }
-                out
-            }
-        )*
-    };
-}
-
 // ─────────────────────────────────────────────────────────────────────────
 // Fiji
 // ─────────────────────────────────────────────────────────────────────────
@@ -1072,7 +975,7 @@ const FJ_LAST: i64 = 2026;
 
 /// Every day of the lists for 2019 to 2026 but the three of Easter, as the
 /// lists date them.
-static FJ_LISTED: &[(i64, u8, u8, &str)] = &[
+static FJ_LISTED: Listing = Listing::Named(&[
     // 2019
     (2019, 1, 1, "New Year's Day"),
     (2019, 9, 9, "Constitution Day"),
@@ -1141,47 +1044,32 @@ static FJ_LISTED: &[(i64, u8, u8, &str)] = &[
     (2026, 11, 9, "Diwali"),
     (2026, 12, 25, "Christmas Day"),
     (2026, 12, 28, "Boxing Day"),
-];
-
-listed_days! {
-    FJ_LISTED;
-    fj_new_year => "New Year's Day",
-    fj_girmit => "Girmit Day",
-    fj_sukuna => "Ratu Sir Lala Sukuna Day",
-    fj_constitution => "Constitution Day",
-    fj_prophet => "Prophet Mohammed's Birthday",
-    fj_fiji_day => "Fiji Day",
-    fj_diwali => "Diwali",
-    fj_christmas => "Christmas Day",
-    fj_boxing => "Boxing Day",
-}
+]);
 
 /// A day the lists give, for the years they cover.
-const fn fj(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        "",
-        Rule::Tabulated {
-            function,
-            first_year: FJ_FIRST,
-            last_year: FJ_LAST,
-        },
-    )
+const fn fj(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::listed(entry, FJ_FIRST, FJ_LAST))
 }
 
 static FJ_RULES: &[HolidayRule] = &[
-    fj("New Year's Day", fj_new_year),
+    fj("New Year's Day", FJ_LISTED.named("New Year's Day")),
     HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
     HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    fj("Girmit Day", fj_girmit),
-    fj("Ratu Sir Lala Sukuna Day", fj_sukuna),
-    fj("Constitution Day", fj_constitution),
-    fj("Prophet Mohammed's Birthday", fj_prophet),
-    fj("Fiji Day", fj_fiji_day),
-    fj("Diwali", fj_diwali),
-    fj("Christmas Day", fj_christmas),
-    fj("Boxing Day", fj_boxing),
+    fj("Girmit Day", FJ_LISTED.named("Girmit Day")),
+    fj(
+        "Ratu Sir Lala Sukuna Day",
+        FJ_LISTED.named("Ratu Sir Lala Sukuna Day"),
+    ),
+    fj("Constitution Day", FJ_LISTED.named("Constitution Day")),
+    fj(
+        "Prophet Mohammed's Birthday",
+        FJ_LISTED.named("Prophet Mohammed's Birthday"),
+    ),
+    fj("Fiji Day", FJ_LISTED.named("Fiji Day")),
+    fj("Diwali", FJ_LISTED.named("Diwali")),
+    fj("Christmas Day", FJ_LISTED.named("Christmas Day")),
+    fj("Boxing Day", FJ_LISTED.named("Boxing Day")),
 ];
 
 /// Fiji — the public holidays as the Government's own yearly lists give
@@ -1242,7 +1130,7 @@ const KI_LAST: i64 = 2026;
 /// and Easter Monday, under one name for each holiday: the "in honour of"
 /// day an order gives beside or instead of the day itself is listed under
 /// the holiday's name.
-static KI_LISTED: &[(i64, u8, u8, &str)] = &[
+static KI_LISTED: Listing = Listing::Named(&[
     // 2025, the revised order of 18 December 2025
     (2025, 1, 1, "New Year's Day"),
     (2025, 3, 7, "International Women's Day"),
@@ -1282,61 +1170,61 @@ static KI_LISTED: &[(i64, u8, u8, &str)] = &[
     (2026, 12, 29, "Kiribati Holiday"),
     (2026, 12, 30, "Kiribati Holiday"),
     (2026, 12, 31, "Kiribati Holiday"),
-];
-
-listed_days! {
-    KI_LISTED;
-    ki_new_year => "New Year's Day",
-    ki_holiday => "Kiribati Holiday",
-    ki_women => "International Women's Day",
-    ki_health => "National Health Day",
-    ki_pope_francis => "Special Day in honour of Pope Francis",
-    ki_labour => "International Labour Day",
-    ki_police => "National Police Day",
-    ki_gospel => "Gospel Day",
-    ki_national => "National Day",
-    ki_culture => "Kiribati Culture and Senior Citizens Day",
-    ki_special => "Kiribati Special Day",
-    ki_youth => "National Youth and Children's Day",
-    ki_teachers => "World Teachers' Day",
-    ki_human_rights => "Human Rights Day",
-    ki_christmas => "Christmas Day",
-    ki_boxing => "Boxing Day",
-}
+]);
 
 /// A day the orders declare, for the years they cover.
-const fn ki(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        "",
-        Rule::Tabulated {
-            function,
-            first_year: KI_FIRST,
-            last_year: KI_LAST,
-        },
-    )
+const fn ki(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::listed(entry, KI_FIRST, KI_LAST))
 }
 
 static KI_RULES: &[HolidayRule] = &[
-    ki("New Year's Day", ki_new_year),
-    ki("Kiribati Holiday", ki_holiday),
-    ki("International Women's Day", ki_women),
+    ki("New Year's Day", KI_LISTED.named("New Year's Day")),
+    ki("Kiribati Holiday", KI_LISTED.named("Kiribati Holiday")),
+    ki(
+        "International Women's Day",
+        KI_LISTED.named("International Women's Day"),
+    ),
     HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    ki("National Health Day", ki_health),
+    ki(
+        "National Health Day",
+        KI_LISTED.named("National Health Day"),
+    ),
     // Declared by the revised order for 2025 alone.
-    ki("Special Day in honour of Pope Francis", ki_pope_francis).years(Some(2025), Some(2025)),
-    ki("International Labour Day", ki_labour),
-    ki("National Police Day", ki_police),
-    ki("Gospel Day", ki_gospel),
-    ki("National Day", ki_national),
-    ki("Kiribati Culture and Senior Citizens Day", ki_culture),
-    ki("Kiribati Special Day", ki_special),
-    ki("National Youth and Children's Day", ki_youth),
-    ki("World Teachers' Day", ki_teachers),
-    ki("Human Rights Day", ki_human_rights),
-    ki("Christmas Day", ki_christmas),
-    ki("Boxing Day", ki_boxing),
+    ki(
+        "Special Day in honour of Pope Francis",
+        KI_LISTED.named("Special Day in honour of Pope Francis"),
+    )
+    .years(Some(2025), Some(2025)),
+    ki(
+        "International Labour Day",
+        KI_LISTED.named("International Labour Day"),
+    ),
+    ki(
+        "National Police Day",
+        KI_LISTED.named("National Police Day"),
+    ),
+    ki("Gospel Day", KI_LISTED.named("Gospel Day")),
+    ki("National Day", KI_LISTED.named("National Day")),
+    ki(
+        "Kiribati Culture and Senior Citizens Day",
+        KI_LISTED.named("Kiribati Culture and Senior Citizens Day"),
+    ),
+    ki(
+        "Kiribati Special Day",
+        KI_LISTED.named("Kiribati Special Day"),
+    ),
+    ki(
+        "National Youth and Children's Day",
+        KI_LISTED.named("National Youth and Children's Day"),
+    ),
+    ki(
+        "World Teachers' Day",
+        KI_LISTED.named("World Teachers' Day"),
+    ),
+    ki("Human Rights Day", KI_LISTED.named("Human Rights Day")),
+    ki("Christmas Day", KI_LISTED.named("Christmas Day")),
+    ki("Boxing Day", KI_LISTED.named("Boxing Day")),
 ];
 
 /// Kiribati — the days the Beretitenti's orders under the Public Holidays

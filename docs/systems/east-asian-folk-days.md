@@ -281,9 +281,8 @@ checked against dated lists:
   the term day, which 2024's 出梅 requires, is taken for 入梅 too, as
   `san_fu` takes it for 末伏.
 
-The lunar dates are those of the full lunisolar calculation, not
-`hc-seasons`' minimal derivation for 六曜, which differs on some months of
-2033–34 ([zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md)). The dated
+The lunar dates are those of the full lunisolar calculation, which 六曜
+reads too ([zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md)). The dated
 lists are secondary: they are computed calendars or articles, not
 almanacs, and no printed almanac was read.
 

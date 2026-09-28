@@ -3,8 +3,8 @@
 Seasonal subdivisions: what a year is made of once you stop counting months.
 
 A calendar names days. This crate names the *parts of the year* underneath
-that naming — the 24 solar terms, the 72 pentads, the Japanese 雑節, the 六曜
-cycle, the Moon's phases, the zodiac in its three incompatible divisions, and
+that naming — the 24 solar terms, the 72 pentads, the Japanese 雑節, the
+Moon's phases, the zodiac in its three incompatible divisions, and
 the four seasons under each of the three definitions that disagree about them.
 It contains no calendar.
 
@@ -13,13 +13,15 @@ The solar terms, the pentads, the meridians and the zodiac are written up in
 the rules from the sources, a worked example against the 暦要項, what is
 carried and what is not, how the instants compare with the published
 almanacs, and the sources, keyed in
-[`docs/references.bib`](../../docs/references.bib). The 雑節, 六曜 and the
-minimal lunisolar derivation they rest on are written up the same way in
-[`docs/systems/zassetsu-and-rokuyo.md`](../../docs/systems/zassetsu-and-rokuyo.md).
+[`docs/references.bib`](../../docs/references.bib). The 雑節 are written up
+the same way in
+[`docs/systems/zassetsu-and-rokuyo.md`](../../docs/systems/zassetsu-and-rokuyo.md),
+with 六曜, 十五夜 and 十三夜, which read the lunisolar date and are
+`hc-almanac`'s.
 This README summarises both and states the crate's own facts.
 
-It depends on `hc-core`, `hc-calendar` and `hc-astro`, and on
-`hc-calendars-lunar` when its `lunar` feature is on.
+It depends on `hc-core`, `hc-calendar`, `hc-calendars-solar` and
+`hc-astro`, and not on any lunisolar calendar.
 
 ```rust
 use hc_seasons::{Meridian, SolarTerm};
@@ -39,25 +41,22 @@ assert_eq!(
 | `std` (default) | platform floating-point math; implies `alloc` |
 | `alloc` | passed through to the crates below |
 | `libm` | software floating-point math through `hc-core`, for `no_std` targets |
-| `lunar` | `lunisolar::exact_lunisolar_day`, which reads a day from `hc-calendars-lunar`'s Tenpō calendar |
 
 | Module | Covers |
 | --- | --- |
 | `solar_terms` | 二十四節気, both orderings, the 節気 / 中気 split |
 | `pentads` | 七十二候, both the Chinese and the Japanese name sets |
 | `zassetsu` | 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 + 丑の日, 二百十日, 二百二十日 |
-| `rokuyo` | 六曜: 先勝 友引 先負 仏滅 大安 赤口 |
 | `san_fu` | 三伏 (初伏, 中伏, 末伏) counted in 庚 days from the summer solstice and 立秋, and 數九, the nine nines from the winter solstice |
 | `meiyu` | 入梅 and 出梅 of the Chinese almanac: the first 丙 day (South China) or 壬 day (Central China) from 芒种, and the first 未 day from 小暑 |
 | `hizir_kasim` | Rûz-ı Hızır and Rûz-ı Kasım, the Turkish folk year's summer and winter halves from 6 May and 8 November, and *erbain*, *hamsin* and the three *cemre* on the Kasım count |
 | `cold_food` | 寒食, the Cold Food Day, one convention per reckoning: 105 days after the winter solstice, the eve of 清明 after 1645, and Korea's 한식 |
 | `quarter_days` | the quarter days and term days of England and Wales, Ireland and Scotland, traditional and under the 1990 Act |
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |
-| `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, 十五夜, 十三夜, and the National Astronomical Observatory's 伝統的七夕 |
+| `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
 | `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanāṃśa, the Indian solar months, and the Chinese 十二次; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them |
 | `planetary_hours` | The twelve temporal hours of the daylight and twelve of the night, from sunrise, each ruled by a planet in the Chaldean order from the weekday's, as al-Bīrūnī states the rule and Lilly's table for London works it |
-| `lunisolar` | a minimal month/day derivation for 六曜 and the moon-viewing nights — see Known gaps |
 
 ## A day is not an instant
 
@@ -137,8 +136,8 @@ would put them 6.4 s early.
 
 Terms are 15 days apart, pentads 5 and signs 30, so the *term*, *pentad* or
 *sign* is never wrong; only its day, and only at a midnight boundary. Lunar
-conjunctions land within about a minute, so month boundaries, phase dates,
-十五夜 and 六曜 are firmer than the solar-term dates. 月齢 and the illuminated
+conjunctions land within about a minute, so phase dates are firmer than
+the solar-term dates. 月齢 and the illuminated
 fraction are quoted for **local noon**, as NAOJ's 暦象年表 quotes its 正午月齢
 for noon; `hc_astro::lunar::moon_age` takes any instant. The sidereal boundaries carry a second,
 independent uncertainty, the few tens of arcseconds by which published values
@@ -168,13 +167,10 @@ fixed list could be right everywhere at once.
   **equinox-day table** against the 暦要項.
 * **土用の丑の日** is checked against the published eel days for 2023–2025,
   two of which had a 二の丑.
-* **中秋の名月 and 十三夜** against the published dates for 2020–2025, and
-  **伝統的七夕** against the forty dates the Observatory gives for 2011–2050.
+* **伝統的七夕** against the forty dates the Observatory gives for 2011–2050.
 * **한식** against the Korea Astronomy and Space Science Institute's dates
   for 2024–2026, which settle that the 105 days are counted after the
   solstice's day (`docs/systems/solar-term-counts.md`).
-* **Lunar new year** for 2015–2026, which every almanac agrees about, anchors
-  the lunisolar derivation.
 
 None of these reference values was produced by this crate.
 
@@ -245,37 +241,12 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   data of a naming scheme with citations. The crate makes no claim about what
   any of it means, and there is no interpretation, compatibility or forecast
   anywhere in it.
-* **No pre-1873 六曜.** The six names in their modern form are first found
-  in an almanac of about 1747, and in the Edo period the cycle was one 暦注
-  among many. Answers before 1873 are extrapolations of the modern rule, not
-  what any surviving almanac says.
+* **No 六曜, 十五夜 or 十三夜.** They are dated by the lunisolar calendar, so
+  they are `hc-almanac`'s, which reads it from `hc-calendars-lunar`; this
+  crate carries no lunisolar calendar.
 
 ## Known gaps
 
-* **`lunisolar` is a minimal derivation.** 六曜 is a function of the lunisolar
-  month and day, and this crate computes it from its own minimal derivation
-  rather than from `hc-calendars-lunar`: new moon starts the month, the 中気
-  it contains numbers it, a month without a 中気 is a leap month repeating the
-  previous number. Routing every 六曜 through the full calendar would make each
-  one pay for a new-moon search; the module documentation records the cost.
-  With the `lunar` feature, `lunisolar::exact_lunisolar_day` reads the same
-  day from the unbounded Tenpō calendar, and a test counts the difference: 89
-  of the 3,653 days of 2024–2033 differ, all in one run from 25 August to 21
-  November 2033.
-
-  What the derivation does not implement: a month can occasionally hold two
-  中気, and the 天保暦 then requires the months of the solstices and
-  equinoxes to be the eleventh, second, fifth and eighth, while the Chinese
-  rule takes the first 中気-less month between two winter solstices as the
-  leap month. This code decides month by month and takes the later 中気
-  when a month holds two. In 2033–34 no numbering satisfies the 天保暦 rule
-  at all — the 旧暦2033年問題, the first such case since the calendar took
-  effect in 1844 — and no official lunisolar calculation is made in Japan
-  today to settle it. The derivation reproduces every lunar new year
-  2015–2026, the 2023 閏二月 and the Observatory's table of 2014, and puts
-  the winter solstice in month 11 for every year 1990–2039; it disagrees
-  with the Observatory's table of 1984–85, whose December month holds two
-  中気.
 * **社日 has two tie rules, and both are carried.** When the equinox falls on
   a 癸 day the two 戊 days are exactly five days either side. The almanacs
   took the earlier through the 明治7年暦, and from the 明治14年暦 the earlier
@@ -322,8 +293,8 @@ document, with keys in `docs/references.bib`. The rest of the crate cites:
   which this crate calls in `hc_calendar::gregorian`.
 * National Astronomical Observatory of Japan, 暦要項 (*Calendar Essentials*),
   published annually in the *Official Gazette* — the 雑節 dates and the
-  春分の日 / 秋分の日 table. The 雑節, 六曜 and lunisolar sources are listed
-  in their document.
+  春分の日 / 秋分の日 table. The 雑節 sources are listed in their
+  document.
 * The Term and Quarter Days (Scotland) Act 1990 and the Removal Terms
   (Scotland) Act 1886, on legislation.gov.uk, for the Scottish days in
   `quarter_days`.

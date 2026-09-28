@@ -24,8 +24,9 @@ use crate::hindu::{
     MAHAVIR_JAYANTI, NARAKA_CHATURDASHI, RAMA_NAVAMI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy, WhenTwice,
+    CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
+    SATURDAY_SUNDAY, SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth,
+    WeekendPolicy, WhenTwice,
 };
 use crate::traditions::{
     THAI_ASALHA_BUCHA, THAI_KHAO_PHANSA, THAI_MAKHA_BUCHA, THAI_VISAKHA_BUCHA,
@@ -54,26 +55,21 @@ const MAWLID: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 12);
 
 // ── The State Council's arrangements ─────────────────────────────────────
 
-/// A festival the State Council's annual arrangement gives days off for.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Arranged {
-    NewYear,
-    Spring,
-    Qingming,
-    Labour,
-    DragonBoat,
-    MidAutumn,
-    National,
+/// The festivals the State Council's annual arrangement gives days off
+/// for, as the names the rows of `CN_DAYS_OFF` and `CN_WORKDAYS` carry.
+mod cn {
+    pub(super) const NEW_YEAR: &str = "new-year";
+    pub(super) const SPRING: &str = "spring";
+    pub(super) const QINGMING: &str = "qingming";
+    pub(super) const LABOUR: &str = "labour";
+    pub(super) const DRAGON_BOAT: &str = "dragon-boat";
+    pub(super) const MID_AUTUMN: &str = "mid-autumn";
+    pub(super) const NATIONAL: &str = "national";
     /// 国庆节、中秋节, one span for both when they fall together.
-    NationalAndMidAutumn,
+    pub(super) const NATIONAL_AND_MID_AUTUMN: &str = "national-and-mid-autumn";
     /// The 70th anniversary of the victory in 1945, off by its own notice.
-    Victory,
+    pub(super) const VICTORY: &str = "victory";
 }
-
-use Arranged::{
-    DragonBoat, Labour, MidAutumn, National, NationalAndMidAutumn, NewYear, Qingming, Spring,
-    Victory,
-};
 
 /// The first year the arrangements carried here cover.
 ///
@@ -85,385 +81,323 @@ const CN_ARRANGED_FIRST: i64 = 2008;
 /// The last.
 const CN_ARRANGED_LAST: i64 = 2026;
 
-/// The days each arrangement gives off, as spans: the festival, the
-/// Gregorian year, and the first and last month and day. A span that
+/// The days each arrangement gives off, as spans: the Gregorian year, the
+/// first and last month and day, and the festival. A span that
 /// crosses a New Year is split at it; the arrangement for 2019 begins on
 /// 30 December 2018.
 #[rustfmt::skip]
-static CN_DAYS_OFF: &[(Arranged, i64, u8, u8, u8, u8)] = &[
+static CN_DAYS_OFF: Listing = Listing::Spans(&[
     // The arrangement for 2008
-    (NewYear, 2008, 1, 1, 1, 1),
-    (Spring, 2008, 2, 6, 2, 12),
-    (Qingming, 2008, 4, 4, 4, 6),
-    (Labour, 2008, 5, 1, 5, 3),
-    (DragonBoat, 2008, 6, 7, 6, 9),
-    (MidAutumn, 2008, 9, 13, 9, 15),
-    (National, 2008, 9, 29, 10, 5),
+    (2008, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2008, 2, 6, 2, 12, cn::SPRING),
+    (2008, 4, 4, 4, 6, cn::QINGMING),
+    (2008, 5, 1, 5, 3, cn::LABOUR),
+    (2008, 6, 7, 6, 9, cn::DRAGON_BOAT),
+    (2008, 9, 13, 9, 15, cn::MID_AUTUMN),
+    (2008, 9, 29, 10, 5, cn::NATIONAL),
     // The arrangement for 2009
-    (NewYear, 2009, 1, 1, 1, 3),
-    (Spring, 2009, 1, 25, 1, 31),
-    (Qingming, 2009, 4, 4, 4, 6),
-    (Labour, 2009, 5, 1, 5, 3),
-    (DragonBoat, 2009, 5, 28, 5, 30),
-    (NationalAndMidAutumn, 2009, 10, 1, 10, 8),
+    (2009, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2009, 1, 25, 1, 31, cn::SPRING),
+    (2009, 4, 4, 4, 6, cn::QINGMING),
+    (2009, 5, 1, 5, 3, cn::LABOUR),
+    (2009, 5, 28, 5, 30, cn::DRAGON_BOAT),
+    (2009, 10, 1, 10, 8, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2010
-    (NewYear, 2010, 1, 1, 1, 3),
-    (Spring, 2010, 2, 13, 2, 19),
-    (Qingming, 2010, 4, 3, 4, 5),
-    (Labour, 2010, 5, 1, 5, 3),
-    (DragonBoat, 2010, 6, 14, 6, 16),
-    (MidAutumn, 2010, 9, 22, 9, 24),
-    (National, 2010, 10, 1, 10, 7),
+    (2010, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2010, 2, 13, 2, 19, cn::SPRING),
+    (2010, 4, 3, 4, 5, cn::QINGMING),
+    (2010, 5, 1, 5, 3, cn::LABOUR),
+    (2010, 6, 14, 6, 16, cn::DRAGON_BOAT),
+    (2010, 9, 22, 9, 24, cn::MID_AUTUMN),
+    (2010, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2011
-    (NewYear, 2011, 1, 1, 1, 3),
-    (Spring, 2011, 2, 2, 2, 8),
-    (Qingming, 2011, 4, 3, 4, 5),
-    (Labour, 2011, 4, 30, 5, 2),
-    (DragonBoat, 2011, 6, 4, 6, 6),
-    (MidAutumn, 2011, 9, 10, 9, 12),
-    (National, 2011, 10, 1, 10, 7),
+    (2011, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2011, 2, 2, 2, 8, cn::SPRING),
+    (2011, 4, 3, 4, 5, cn::QINGMING),
+    (2011, 4, 30, 5, 2, cn::LABOUR),
+    (2011, 6, 4, 6, 6, cn::DRAGON_BOAT),
+    (2011, 9, 10, 9, 12, cn::MID_AUTUMN),
+    (2011, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2012
-    (NewYear, 2012, 1, 1, 1, 3),
-    (Spring, 2012, 1, 22, 1, 28),
-    (Qingming, 2012, 4, 2, 4, 4),
-    (Labour, 2012, 4, 29, 5, 1),
-    (DragonBoat, 2012, 6, 22, 6, 24),
-    (NationalAndMidAutumn, 2012, 9, 30, 10, 7),
+    (2012, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2012, 1, 22, 1, 28, cn::SPRING),
+    (2012, 4, 2, 4, 4, cn::QINGMING),
+    (2012, 4, 29, 5, 1, cn::LABOUR),
+    (2012, 6, 22, 6, 24, cn::DRAGON_BOAT),
+    (2012, 9, 30, 10, 7, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2013
-    (NewYear, 2013, 1, 1, 1, 3),
-    (Spring, 2013, 2, 9, 2, 15),
-    (Qingming, 2013, 4, 4, 4, 6),
-    (Labour, 2013, 4, 29, 5, 1),
-    (DragonBoat, 2013, 6, 10, 6, 12),
-    (MidAutumn, 2013, 9, 19, 9, 21),
-    (National, 2013, 10, 1, 10, 7),
+    (2013, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2013, 2, 9, 2, 15, cn::SPRING),
+    (2013, 4, 4, 4, 6, cn::QINGMING),
+    (2013, 4, 29, 5, 1, cn::LABOUR),
+    (2013, 6, 10, 6, 12, cn::DRAGON_BOAT),
+    (2013, 9, 19, 9, 21, cn::MID_AUTUMN),
+    (2013, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2014
-    (NewYear, 2014, 1, 1, 1, 1),
-    (Spring, 2014, 1, 31, 2, 6),
-    (Qingming, 2014, 4, 5, 4, 5),
-    (Qingming, 2014, 4, 7, 4, 7),
-    (Labour, 2014, 5, 1, 5, 3),
-    (DragonBoat, 2014, 6, 2, 6, 2),
-    (MidAutumn, 2014, 9, 8, 9, 8),
-    (National, 2014, 10, 1, 10, 7),
+    (2014, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2014, 1, 31, 2, 6, cn::SPRING),
+    (2014, 4, 5, 4, 5, cn::QINGMING),
+    (2014, 4, 7, 4, 7, cn::QINGMING),
+    (2014, 5, 1, 5, 3, cn::LABOUR),
+    (2014, 6, 2, 6, 2, cn::DRAGON_BOAT),
+    (2014, 9, 8, 9, 8, cn::MID_AUTUMN),
+    (2014, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2015
-    (NewYear, 2015, 1, 1, 1, 3),
-    (Spring, 2015, 2, 18, 2, 24),
-    (Qingming, 2015, 4, 5, 4, 5),
-    (Qingming, 2015, 4, 6, 4, 6),
-    (Labour, 2015, 5, 1, 5, 1),
-    (DragonBoat, 2015, 6, 20, 6, 20),
-    (DragonBoat, 2015, 6, 22, 6, 22),
+    (2015, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2015, 2, 18, 2, 24, cn::SPRING),
+    (2015, 4, 5, 4, 5, cn::QINGMING),
+    (2015, 4, 6, 4, 6, cn::QINGMING),
+    (2015, 5, 1, 5, 1, cn::LABOUR),
+    (2015, 6, 20, 6, 20, cn::DRAGON_BOAT),
+    (2015, 6, 22, 6, 22, cn::DRAGON_BOAT),
     // 国发明电〔2015〕1号.
-    (Victory, 2015, 9, 3, 9, 5),
-    (MidAutumn, 2015, 9, 27, 9, 27),
-    (National, 2015, 10, 1, 10, 7),
+    (2015, 9, 3, 9, 5, cn::VICTORY),
+    (2015, 9, 27, 9, 27, cn::MID_AUTUMN),
+    (2015, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2016
-    (NewYear, 2016, 1, 1, 1, 1),
-    (Spring, 2016, 2, 7, 2, 13),
-    (Qingming, 2016, 4, 4, 4, 4),
-    (Labour, 2016, 5, 1, 5, 1),
-    (Labour, 2016, 5, 2, 5, 2),
-    (DragonBoat, 2016, 6, 9, 6, 11),
-    (MidAutumn, 2016, 9, 15, 9, 17),
-    (National, 2016, 10, 1, 10, 7),
+    (2016, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2016, 2, 7, 2, 13, cn::SPRING),
+    (2016, 4, 4, 4, 4, cn::QINGMING),
+    (2016, 5, 1, 5, 1, cn::LABOUR),
+    (2016, 5, 2, 5, 2, cn::LABOUR),
+    (2016, 6, 9, 6, 11, cn::DRAGON_BOAT),
+    (2016, 9, 15, 9, 17, cn::MID_AUTUMN),
+    (2016, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2017
-    (NewYear, 2017, 1, 1, 1, 1),
-    (NewYear, 2017, 1, 2, 1, 2),
-    (Spring, 2017, 1, 27, 2, 2),
-    (Qingming, 2017, 4, 2, 4, 4),
-    (Labour, 2017, 5, 1, 5, 1),
-    (DragonBoat, 2017, 5, 28, 5, 30),
-    (NationalAndMidAutumn, 2017, 10, 1, 10, 8),
+    (2017, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2017, 1, 2, 1, 2, cn::NEW_YEAR),
+    (2017, 1, 27, 2, 2, cn::SPRING),
+    (2017, 4, 2, 4, 4, cn::QINGMING),
+    (2017, 5, 1, 5, 1, cn::LABOUR),
+    (2017, 5, 28, 5, 30, cn::DRAGON_BOAT),
+    (2017, 10, 1, 10, 8, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2018
-    (NewYear, 2018, 1, 1, 1, 1),
-    (Spring, 2018, 2, 15, 2, 21),
-    (Qingming, 2018, 4, 5, 4, 7),
-    (Labour, 2018, 4, 29, 5, 1),
-    (DragonBoat, 2018, 6, 18, 6, 18),
-    (MidAutumn, 2018, 9, 24, 9, 24),
-    (National, 2018, 10, 1, 10, 7),
+    (2018, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2018, 2, 15, 2, 21, cn::SPRING),
+    (2018, 4, 5, 4, 7, cn::QINGMING),
+    (2018, 4, 29, 5, 1, cn::LABOUR),
+    (2018, 6, 18, 6, 18, cn::DRAGON_BOAT),
+    (2018, 9, 24, 9, 24, cn::MID_AUTUMN),
+    (2018, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2019
-    (NewYear, 2018, 12, 30, 12, 31),
-    (NewYear, 2019, 1, 1, 1, 1),
-    (Spring, 2019, 2, 4, 2, 10),
-    (Qingming, 2019, 4, 5, 4, 5),
+    (2018, 12, 30, 12, 31, cn::NEW_YEAR),
+    (2019, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2019, 2, 4, 2, 10, cn::SPRING),
+    (2019, 4, 5, 4, 5, cn::QINGMING),
     // As changed on 22 March 2019, from 1 May alone.
-    (Labour, 2019, 5, 1, 5, 4),
-    (DragonBoat, 2019, 6, 7, 6, 7),
-    (MidAutumn, 2019, 9, 13, 9, 13),
-    (National, 2019, 10, 1, 10, 7),
+    (2019, 5, 1, 5, 4, cn::LABOUR),
+    (2019, 6, 7, 6, 7, cn::DRAGON_BOAT),
+    (2019, 9, 13, 9, 13, cn::MID_AUTUMN),
+    (2019, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2020
-    (NewYear, 2020, 1, 1, 1, 1),
+    (2020, 1, 1, 1, 1, cn::NEW_YEAR),
     // As extended on 26 January 2020 for the epidemic, from 30 January.
-    (Spring, 2020, 1, 24, 2, 2),
-    (Qingming, 2020, 4, 4, 4, 6),
-    (Labour, 2020, 5, 1, 5, 5),
-    (DragonBoat, 2020, 6, 25, 6, 27),
-    (NationalAndMidAutumn, 2020, 10, 1, 10, 8),
+    (2020, 1, 24, 2, 2, cn::SPRING),
+    (2020, 4, 4, 4, 6, cn::QINGMING),
+    (2020, 5, 1, 5, 5, cn::LABOUR),
+    (2020, 6, 25, 6, 27, cn::DRAGON_BOAT),
+    (2020, 10, 1, 10, 8, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2021
-    (NewYear, 2021, 1, 1, 1, 3),
-    (Spring, 2021, 2, 11, 2, 17),
-    (Qingming, 2021, 4, 3, 4, 5),
-    (Labour, 2021, 5, 1, 5, 5),
-    (DragonBoat, 2021, 6, 12, 6, 14),
-    (MidAutumn, 2021, 9, 19, 9, 21),
-    (National, 2021, 10, 1, 10, 7),
+    (2021, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2021, 2, 11, 2, 17, cn::SPRING),
+    (2021, 4, 3, 4, 5, cn::QINGMING),
+    (2021, 5, 1, 5, 5, cn::LABOUR),
+    (2021, 6, 12, 6, 14, cn::DRAGON_BOAT),
+    (2021, 9, 19, 9, 21, cn::MID_AUTUMN),
+    (2021, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2022
-    (NewYear, 2022, 1, 1, 1, 3),
-    (Spring, 2022, 1, 31, 2, 6),
-    (Qingming, 2022, 4, 3, 4, 5),
-    (Labour, 2022, 4, 30, 5, 4),
-    (DragonBoat, 2022, 6, 3, 6, 5),
-    (MidAutumn, 2022, 9, 10, 9, 12),
-    (National, 2022, 10, 1, 10, 7),
+    (2022, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2022, 1, 31, 2, 6, cn::SPRING),
+    (2022, 4, 3, 4, 5, cn::QINGMING),
+    (2022, 4, 30, 5, 4, cn::LABOUR),
+    (2022, 6, 3, 6, 5, cn::DRAGON_BOAT),
+    (2022, 9, 10, 9, 12, cn::MID_AUTUMN),
+    (2022, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2023
-    (NewYear, 2022, 12, 31, 12, 31),
-    (NewYear, 2023, 1, 1, 1, 2),
-    (Spring, 2023, 1, 21, 1, 27),
-    (Qingming, 2023, 4, 5, 4, 5),
-    (Labour, 2023, 4, 29, 5, 3),
-    (DragonBoat, 2023, 6, 22, 6, 24),
-    (NationalAndMidAutumn, 2023, 9, 29, 10, 6),
+    (2022, 12, 31, 12, 31, cn::NEW_YEAR),
+    (2023, 1, 1, 1, 2, cn::NEW_YEAR),
+    (2023, 1, 21, 1, 27, cn::SPRING),
+    (2023, 4, 5, 4, 5, cn::QINGMING),
+    (2023, 4, 29, 5, 3, cn::LABOUR),
+    (2023, 6, 22, 6, 24, cn::DRAGON_BOAT),
+    (2023, 9, 29, 10, 6, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2024
-    (NewYear, 2024, 1, 1, 1, 1),
-    (Spring, 2024, 2, 10, 2, 17),
-    (Qingming, 2024, 4, 4, 4, 6),
-    (Labour, 2024, 5, 1, 5, 5),
-    (DragonBoat, 2024, 6, 10, 6, 10),
-    (MidAutumn, 2024, 9, 15, 9, 17),
-    (National, 2024, 10, 1, 10, 7),
+    (2024, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2024, 2, 10, 2, 17, cn::SPRING),
+    (2024, 4, 4, 4, 6, cn::QINGMING),
+    (2024, 5, 1, 5, 5, cn::LABOUR),
+    (2024, 6, 10, 6, 10, cn::DRAGON_BOAT),
+    (2024, 9, 15, 9, 17, cn::MID_AUTUMN),
+    (2024, 10, 1, 10, 7, cn::NATIONAL),
     // The arrangement for 2025
-    (NewYear, 2025, 1, 1, 1, 1),
-    (Spring, 2025, 1, 28, 2, 4),
-    (Qingming, 2025, 4, 4, 4, 6),
-    (Labour, 2025, 5, 1, 5, 5),
-    (DragonBoat, 2025, 5, 31, 6, 2),
-    (NationalAndMidAutumn, 2025, 10, 1, 10, 8),
+    (2025, 1, 1, 1, 1, cn::NEW_YEAR),
+    (2025, 1, 28, 2, 4, cn::SPRING),
+    (2025, 4, 4, 4, 6, cn::QINGMING),
+    (2025, 5, 1, 5, 5, cn::LABOUR),
+    (2025, 5, 31, 6, 2, cn::DRAGON_BOAT),
+    (2025, 10, 1, 10, 8, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2026
-    (NewYear, 2026, 1, 1, 1, 3),
-    (Spring, 2026, 2, 15, 2, 23),
-    (Qingming, 2026, 4, 4, 4, 6),
-    (Labour, 2026, 5, 1, 5, 5),
-    (DragonBoat, 2026, 6, 19, 6, 21),
-    (MidAutumn, 2026, 9, 25, 9, 27),
-    (National, 2026, 10, 1, 10, 7),
-];
+    (2026, 1, 1, 1, 3, cn::NEW_YEAR),
+    (2026, 2, 15, 2, 23, cn::SPRING),
+    (2026, 4, 4, 4, 6, cn::QINGMING),
+    (2026, 5, 1, 5, 5, cn::LABOUR),
+    (2026, 6, 19, 6, 21, cn::DRAGON_BOAT),
+    (2026, 9, 25, 9, 27, cn::MID_AUTUMN),
+    (2026, 10, 1, 10, 7, cn::NATIONAL),
+]);
 
 /// The weekend days each arrangement makes working days, 上班, with the
-/// festival they pay for.
+/// festival they pay for, last.
 #[rustfmt::skip]
-static CN_WORKDAYS: &[(Arranged, i64, u8, u8)] = &[
+static CN_WORKDAYS: Listing = Listing::Named(&[
     // The arrangement for 2008
-    (Spring, 2008, 2, 2),
-    (Spring, 2008, 2, 3),
-    (Labour, 2008, 5, 4),
-    (National, 2008, 9, 27),
-    (National, 2008, 9, 28),
+    (2008, 2, 2, cn::SPRING),
+    (2008, 2, 3, cn::SPRING),
+    (2008, 5, 4, cn::LABOUR),
+    (2008, 9, 27, cn::NATIONAL),
+    (2008, 9, 28, cn::NATIONAL),
     // The arrangement for 2009
-    (NewYear, 2009, 1, 4),
-    (Spring, 2009, 1, 24),
-    (Spring, 2009, 2, 1),
-    (DragonBoat, 2009, 5, 31),
-    (NationalAndMidAutumn, 2009, 9, 27),
-    (NationalAndMidAutumn, 2009, 10, 10),
+    (2009, 1, 4, cn::NEW_YEAR),
+    (2009, 1, 24, cn::SPRING),
+    (2009, 2, 1, cn::SPRING),
+    (2009, 5, 31, cn::DRAGON_BOAT),
+    (2009, 9, 27, cn::NATIONAL_AND_MID_AUTUMN),
+    (2009, 10, 10, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2010
-    (Spring, 2010, 2, 20),
-    (Spring, 2010, 2, 21),
-    (DragonBoat, 2010, 6, 12),
-    (DragonBoat, 2010, 6, 13),
-    (MidAutumn, 2010, 9, 19),
-    (MidAutumn, 2010, 9, 25),
-    (National, 2010, 9, 26),
-    (National, 2010, 10, 9),
+    (2010, 2, 20, cn::SPRING),
+    (2010, 2, 21, cn::SPRING),
+    (2010, 6, 12, cn::DRAGON_BOAT),
+    (2010, 6, 13, cn::DRAGON_BOAT),
+    (2010, 9, 19, cn::MID_AUTUMN),
+    (2010, 9, 25, cn::MID_AUTUMN),
+    (2010, 9, 26, cn::NATIONAL),
+    (2010, 10, 9, cn::NATIONAL),
     // The arrangement for 2011
-    (Spring, 2011, 1, 30),
-    (Spring, 2011, 2, 12),
-    (Qingming, 2011, 4, 2),
-    (National, 2011, 10, 8),
-    (National, 2011, 10, 9),
+    (2011, 1, 30, cn::SPRING),
+    (2011, 2, 12, cn::SPRING),
+    (2011, 4, 2, cn::QINGMING),
+    (2011, 10, 8, cn::NATIONAL),
+    (2011, 10, 9, cn::NATIONAL),
     // The arrangement for 2012
-    (NewYear, 2011, 12, 31),
-    (Spring, 2012, 1, 21),
-    (Spring, 2012, 1, 29),
-    (Qingming, 2012, 3, 31),
-    (Qingming, 2012, 4, 1),
-    (Labour, 2012, 4, 28),
-    (NationalAndMidAutumn, 2012, 9, 29),
+    (2011, 12, 31, cn::NEW_YEAR),
+    (2012, 1, 21, cn::SPRING),
+    (2012, 1, 29, cn::SPRING),
+    (2012, 3, 31, cn::QINGMING),
+    (2012, 4, 1, cn::QINGMING),
+    (2012, 4, 28, cn::LABOUR),
+    (2012, 9, 29, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2013
-    (NewYear, 2013, 1, 5),
-    (NewYear, 2013, 1, 6),
-    (Spring, 2013, 2, 16),
-    (Spring, 2013, 2, 17),
-    (Qingming, 2013, 4, 7),
-    (Labour, 2013, 4, 27),
-    (Labour, 2013, 4, 28),
-    (DragonBoat, 2013, 6, 8),
-    (DragonBoat, 2013, 6, 9),
-    (MidAutumn, 2013, 9, 22),
-    (National, 2013, 9, 29),
-    (National, 2013, 10, 12),
+    (2013, 1, 5, cn::NEW_YEAR),
+    (2013, 1, 6, cn::NEW_YEAR),
+    (2013, 2, 16, cn::SPRING),
+    (2013, 2, 17, cn::SPRING),
+    (2013, 4, 7, cn::QINGMING),
+    (2013, 4, 27, cn::LABOUR),
+    (2013, 4, 28, cn::LABOUR),
+    (2013, 6, 8, cn::DRAGON_BOAT),
+    (2013, 6, 9, cn::DRAGON_BOAT),
+    (2013, 9, 22, cn::MID_AUTUMN),
+    (2013, 9, 29, cn::NATIONAL),
+    (2013, 10, 12, cn::NATIONAL),
     // The arrangement for 2014
-    (Spring, 2014, 1, 26),
-    (Spring, 2014, 2, 8),
-    (Labour, 2014, 5, 4),
-    (National, 2014, 9, 28),
-    (National, 2014, 10, 11),
+    (2014, 1, 26, cn::SPRING),
+    (2014, 2, 8, cn::SPRING),
+    (2014, 5, 4, cn::LABOUR),
+    (2014, 9, 28, cn::NATIONAL),
+    (2014, 10, 11, cn::NATIONAL),
     // The arrangement for 2015
-    (NewYear, 2015, 1, 4),
-    (Spring, 2015, 2, 15),
-    (Spring, 2015, 2, 28),
-    (Victory, 2015, 9, 6),
-    (National, 2015, 10, 10),
+    (2015, 1, 4, cn::NEW_YEAR),
+    (2015, 2, 15, cn::SPRING),
+    (2015, 2, 28, cn::SPRING),
+    (2015, 9, 6, cn::VICTORY),
+    (2015, 10, 10, cn::NATIONAL),
     // The arrangement for 2016
-    (Spring, 2016, 2, 6),
-    (Spring, 2016, 2, 14),
-    (DragonBoat, 2016, 6, 12),
-    (MidAutumn, 2016, 9, 18),
-    (National, 2016, 10, 8),
-    (National, 2016, 10, 9),
+    (2016, 2, 6, cn::SPRING),
+    (2016, 2, 14, cn::SPRING),
+    (2016, 6, 12, cn::DRAGON_BOAT),
+    (2016, 9, 18, cn::MID_AUTUMN),
+    (2016, 10, 8, cn::NATIONAL),
+    (2016, 10, 9, cn::NATIONAL),
     // The arrangement for 2017
-    (Spring, 2017, 1, 22),
-    (Spring, 2017, 2, 4),
-    (Qingming, 2017, 4, 1),
-    (DragonBoat, 2017, 5, 27),
-    (NationalAndMidAutumn, 2017, 9, 30),
+    (2017, 1, 22, cn::SPRING),
+    (2017, 2, 4, cn::SPRING),
+    (2017, 4, 1, cn::QINGMING),
+    (2017, 5, 27, cn::DRAGON_BOAT),
+    (2017, 9, 30, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2018
-    (Spring, 2018, 2, 11),
-    (Spring, 2018, 2, 24),
-    (Qingming, 2018, 4, 8),
-    (Labour, 2018, 4, 28),
-    (National, 2018, 9, 29),
-    (National, 2018, 9, 30),
+    (2018, 2, 11, cn::SPRING),
+    (2018, 2, 24, cn::SPRING),
+    (2018, 4, 8, cn::QINGMING),
+    (2018, 4, 28, cn::LABOUR),
+    (2018, 9, 29, cn::NATIONAL),
+    (2018, 9, 30, cn::NATIONAL),
     // The arrangement for 2019
-    (NewYear, 2018, 12, 29),
-    (Spring, 2019, 2, 2),
-    (Spring, 2019, 2, 3),
-    (Labour, 2019, 4, 28),
-    (Labour, 2019, 5, 5),
-    (National, 2019, 9, 29),
-    (National, 2019, 10, 12),
+    (2018, 12, 29, cn::NEW_YEAR),
+    (2019, 2, 2, cn::SPRING),
+    (2019, 2, 3, cn::SPRING),
+    (2019, 4, 28, cn::LABOUR),
+    (2019, 5, 5, cn::LABOUR),
+    (2019, 9, 29, cn::NATIONAL),
+    (2019, 10, 12, cn::NATIONAL),
     // The arrangement for 2020
     // The extension turned Saturday 1 February into a day off.
-    (Spring, 2020, 1, 19),
-    (Labour, 2020, 4, 26),
-    (Labour, 2020, 5, 9),
-    (DragonBoat, 2020, 6, 28),
-    (NationalAndMidAutumn, 2020, 9, 27),
-    (NationalAndMidAutumn, 2020, 10, 10),
+    (2020, 1, 19, cn::SPRING),
+    (2020, 4, 26, cn::LABOUR),
+    (2020, 5, 9, cn::LABOUR),
+    (2020, 6, 28, cn::DRAGON_BOAT),
+    (2020, 9, 27, cn::NATIONAL_AND_MID_AUTUMN),
+    (2020, 10, 10, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2021
-    (Spring, 2021, 2, 7),
-    (Spring, 2021, 2, 20),
-    (Labour, 2021, 4, 25),
-    (Labour, 2021, 5, 8),
-    (MidAutumn, 2021, 9, 18),
-    (National, 2021, 9, 26),
-    (National, 2021, 10, 9),
+    (2021, 2, 7, cn::SPRING),
+    (2021, 2, 20, cn::SPRING),
+    (2021, 4, 25, cn::LABOUR),
+    (2021, 5, 8, cn::LABOUR),
+    (2021, 9, 18, cn::MID_AUTUMN),
+    (2021, 9, 26, cn::NATIONAL),
+    (2021, 10, 9, cn::NATIONAL),
     // The arrangement for 2022
-    (Spring, 2022, 1, 29),
-    (Spring, 2022, 1, 30),
-    (Qingming, 2022, 4, 2),
-    (Labour, 2022, 4, 24),
-    (Labour, 2022, 5, 7),
-    (National, 2022, 10, 8),
-    (National, 2022, 10, 9),
+    (2022, 1, 29, cn::SPRING),
+    (2022, 1, 30, cn::SPRING),
+    (2022, 4, 2, cn::QINGMING),
+    (2022, 4, 24, cn::LABOUR),
+    (2022, 5, 7, cn::LABOUR),
+    (2022, 10, 8, cn::NATIONAL),
+    (2022, 10, 9, cn::NATIONAL),
     // The arrangement for 2023
-    (Spring, 2023, 1, 28),
-    (Spring, 2023, 1, 29),
-    (Labour, 2023, 4, 23),
-    (Labour, 2023, 5, 6),
-    (DragonBoat, 2023, 6, 25),
-    (NationalAndMidAutumn, 2023, 10, 7),
-    (NationalAndMidAutumn, 2023, 10, 8),
+    (2023, 1, 28, cn::SPRING),
+    (2023, 1, 29, cn::SPRING),
+    (2023, 4, 23, cn::LABOUR),
+    (2023, 5, 6, cn::LABOUR),
+    (2023, 6, 25, cn::DRAGON_BOAT),
+    (2023, 10, 7, cn::NATIONAL_AND_MID_AUTUMN),
+    (2023, 10, 8, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2024
-    (Spring, 2024, 2, 4),
-    (Spring, 2024, 2, 18),
-    (Qingming, 2024, 4, 7),
-    (Labour, 2024, 4, 28),
-    (Labour, 2024, 5, 11),
-    (MidAutumn, 2024, 9, 14),
-    (National, 2024, 9, 29),
-    (National, 2024, 10, 12),
+    (2024, 2, 4, cn::SPRING),
+    (2024, 2, 18, cn::SPRING),
+    (2024, 4, 7, cn::QINGMING),
+    (2024, 4, 28, cn::LABOUR),
+    (2024, 5, 11, cn::LABOUR),
+    (2024, 9, 14, cn::MID_AUTUMN),
+    (2024, 9, 29, cn::NATIONAL),
+    (2024, 10, 12, cn::NATIONAL),
     // The arrangement for 2025
-    (Spring, 2025, 1, 26),
-    (Spring, 2025, 2, 8),
-    (Labour, 2025, 4, 27),
-    (NationalAndMidAutumn, 2025, 9, 28),
-    (NationalAndMidAutumn, 2025, 10, 11),
+    (2025, 1, 26, cn::SPRING),
+    (2025, 2, 8, cn::SPRING),
+    (2025, 4, 27, cn::LABOUR),
+    (2025, 9, 28, cn::NATIONAL_AND_MID_AUTUMN),
+    (2025, 10, 11, cn::NATIONAL_AND_MID_AUTUMN),
     // The arrangement for 2026
-    (NewYear, 2026, 1, 4),
-    (Spring, 2026, 2, 14),
-    (Spring, 2026, 2, 28),
-    (Labour, 2026, 5, 9),
-    (National, 2026, 9, 20),
-    (National, 2026, 10, 10),
-];
+    (2026, 1, 4, cn::NEW_YEAR),
+    (2026, 2, 14, cn::SPRING),
+    (2026, 2, 28, cn::SPRING),
+    (2026, 5, 9, cn::LABOUR),
+    (2026, 9, 20, cn::NATIONAL),
+    (2026, 10, 10, cn::NATIONAL),
+]);
 
-fn cn_days_off(festival: Arranged, year: i64) -> Days {
-    let mut out = Days::new();
-    for &(of, y, first_month, first_day, last_month, last_day) in CN_DAYS_OFF {
-        if of != festival || y != year {
-            continue;
-        }
-        let (Ok(first), Ok(last)) = (
-            gregorian::to_fixed(y, first_month, first_day),
-            gregorian::to_fixed(y, last_month, last_day),
-        ) else {
-            continue;
-        };
-        for day in first.0..=last.0 {
-            out.push(Rd(day));
-        }
-    }
-    out
-}
-
-fn cn_workdays(festival: Arranged, year: i64) -> Days {
-    let mut out = Days::new();
-    for &(of, y, month, day) in CN_WORKDAYS {
-        if of == festival
-            && y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
-
-/// The two lookups for each festival, as the `fn(i64) -> Days` a
-/// [`Rule::Tabulated`] takes.
-macro_rules! cn_arranged {
-    ($($festival:ident => $off:ident, $work:ident);* $(;)?) => {
-        $(
-            fn $off(year: i64) -> Days {
-                cn_days_off($festival, year)
-            }
-            fn $work(year: i64) -> Days {
-                cn_workdays($festival, year)
-            }
-        )*
-    };
-}
-
-cn_arranged! {
-    NewYear => cn_new_year_off, cn_new_year_work;
-    Spring => cn_spring_off, cn_spring_work;
-    Qingming => cn_qingming_off, cn_qingming_work;
-    Labour => cn_labour_off, cn_labour_work;
-    DragonBoat => cn_dragon_boat_off, cn_dragon_boat_work;
-    MidAutumn => cn_mid_autumn_off, cn_mid_autumn_work;
-    National => cn_national_off, cn_national_work;
-    NationalAndMidAutumn => cn_national_mid_autumn_off, cn_national_mid_autumn_work;
-    Victory => cn_victory_off, cn_victory_work;
-}
-
-const fn cn_tabulated(function: fn(i64) -> Days) -> Rule {
-    Rule::Tabulated {
-        function,
-        first_year: CN_ARRANGED_FIRST,
-        last_year: CN_ARRANGED_LAST,
-    }
+/// The days of the arrangements read, in the years they cover.
+const fn cn_arranged(entry: ListedEntry) -> Rule {
+    Rule::listed(entry, CN_ARRANGED_FIRST, CN_ARRANGED_LAST)
 }
 
 /// The days an arrangement gives off for a festival, under the
@@ -471,35 +405,27 @@ const fn cn_tabulated(function: fn(i64) -> Days) -> Rule {
 const fn cn_off(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    festival: &'static str,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, cn_tabulated(function))
+    HolidayRule::fixed_public(name, local_name, cn_arranged(CN_DAYS_OFF.named(festival)))
 }
 
 /// The weekend days it makes working days.
 const fn cn_work(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    festival: &'static str,
 ) -> HolidayRule {
-    HolidayRule::workday(name, local_name, cn_tabulated(function))
+    HolidayRule::workday(name, local_name, cn_arranged(CN_WORKDAYS.named(festival)))
 }
 
 static CN_NEW_YEAR: Rule = Rule::in_calendar(CalendarSystem::CHINESE, 1, 1);
 
-/// Nothing: the 1949 text of the 放假办法 and its 1999 revision were not
-/// read, so the statutory days before 1999 are a gap rather than the 1999
-/// text's days answered on no authority.
-fn cn_unread(_: i64) -> Days {
-    Days::new()
-}
-
-/// The statutory days of 1949 to 1998, which depend on texts not read.
-const CN_UNREAD: Rule = Rule::Tabulated {
-    function: cn_unread,
-    first_year: 1,
-    last_year: 0,
-};
+/// The statutory days of 1949 to 1998, which depend on texts not read:
+/// the 1949 text of the 放假办法 and its 1999 revision were not read, so
+/// the statutory days before 1999 are a gap rather than the 1999 text's
+/// days answered on no authority.
+const CN_UNREAD: Rule = Rule::UNREAD;
 
 /// The first year the statutory rules answer for: the 1999 revision is the
 /// earliest text whose days the later decrees' amendments give.
@@ -593,67 +519,67 @@ static CN_RULES: &[HolidayRule] = &[
     cn_statutory("National Day", "国庆节", Rule::gregorian(10, 3)),
     // The arrangements: the days off beyond the statutory ones, and the
     // weekend days worked in exchange.
-    cn_off("New Year's Day", "元旦", cn_new_year_off),
-    cn_off("Spring Festival", "春节", cn_spring_off),
-    cn_off("Qingming Festival", "清明节", cn_qingming_off),
-    cn_off("Labour Day", "劳动节", cn_labour_off),
-    cn_off("Dragon Boat Festival", "端午节", cn_dragon_boat_off),
-    cn_off("Mid-Autumn Festival", "中秋节", cn_mid_autumn_off),
-    cn_off("National Day", "国庆节", cn_national_off),
+    cn_off("New Year's Day", "元旦", cn::NEW_YEAR),
+    cn_off("Spring Festival", "春节", cn::SPRING),
+    cn_off("Qingming Festival", "清明节", cn::QINGMING),
+    cn_off("Labour Day", "劳动节", cn::LABOUR),
+    cn_off("Dragon Boat Festival", "端午节", cn::DRAGON_BOAT),
+    cn_off("Mid-Autumn Festival", "中秋节", cn::MID_AUTUMN),
+    cn_off("National Day", "国庆节", cn::NATIONAL),
     cn_off(
         "National Day and Mid-Autumn Festival",
         "国庆节、中秋节",
-        cn_national_mid_autumn_off,
+        cn::NATIONAL_AND_MID_AUTUMN,
     ),
     cn_off(
         "70th anniversary of the victory of the War of Resistance against Japanese Aggression",
         "中国人民抗日战争暨世界反法西斯战争胜利70周年纪念日",
-        cn_victory_off,
+        cn::VICTORY,
     ),
     cn_work(
         "Adjusted working day, New Year's Day",
         "元旦调休上班",
-        cn_new_year_work,
+        cn::NEW_YEAR,
     ),
     cn_work(
         "Adjusted working day, Spring Festival",
         "春节调休上班",
-        cn_spring_work,
+        cn::SPRING,
     ),
     cn_work(
         "Adjusted working day, Qingming Festival",
         "清明节调休上班",
-        cn_qingming_work,
+        cn::QINGMING,
     ),
     cn_work(
         "Adjusted working day, Labour Day",
         "劳动节调休上班",
-        cn_labour_work,
+        cn::LABOUR,
     ),
     cn_work(
         "Adjusted working day, Dragon Boat Festival",
         "端午节调休上班",
-        cn_dragon_boat_work,
+        cn::DRAGON_BOAT,
     ),
     cn_work(
         "Adjusted working day, Mid-Autumn Festival",
         "中秋节调休上班",
-        cn_mid_autumn_work,
+        cn::MID_AUTUMN,
     ),
     cn_work(
         "Adjusted working day, National Day",
         "国庆节调休上班",
-        cn_national_work,
+        cn::NATIONAL,
     ),
     cn_work(
         "Adjusted working day, National Day and Mid-Autumn Festival",
         "国庆节、中秋节调休上班",
-        cn_national_mid_autumn_work,
+        cn::NATIONAL_AND_MID_AUTUMN,
     ),
     cn_work(
         "Adjusted working day, the 70th anniversary of the victory",
         "胜利70周年纪念日调休上班",
-        cn_victory_work,
+        cn::VICTORY,
     ),
 ];
 
@@ -740,7 +666,7 @@ const TW_ADJUSTED_LAST: i64 = 2025;
 /// exchange for a Saturday, 調整放假 — among them 小年夜 in 2023 to 2025,
 /// before it was a holiday.
 #[rustfmt::skip]
-static TW_ADJUSTED_OFF: &[(i64, u8, u8)] = &[
+static TW_ADJUSTED_OFF: Listing = Listing::Dates(&[
     // 2017
     (2017, 2, 27), (2017, 5, 29), (2017, 10, 9),
     // 2018
@@ -759,12 +685,12 @@ static TW_ADJUSTED_OFF: &[(i64, u8, u8)] = &[
     (2024, 2, 8),
     // 2025
     (2025, 1, 27),
-];
+]);
 
 /// The Saturdays each year's calendar makes working days, 調整上班 or
 /// 補行上班.
 #[rustfmt::skip]
-static TW_MADE_UP: &[(i64, u8, u8)] = &[
+static TW_MADE_UP: Listing = Listing::Dates(&[
     // 2017
     (2017, 2, 18), (2017, 6, 3), (2017, 9, 30),
     // 2018
@@ -783,39 +709,12 @@ static TW_MADE_UP: &[(i64, u8, u8)] = &[
     (2024, 2, 17),
     // 2025
     (2025, 2, 8),
-];
+]);
 
-fn tw_lookup(table: &[(i64, u8, u8)], year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day) in table {
-        if y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
+const TW_ADJUSTED: Rule =
+    Rule::listed(TW_ADJUSTED_OFF.every(), TW_ADJUSTED_FIRST, TW_ADJUSTED_LAST);
 
-fn tw_adjusted_off(year: i64) -> Days {
-    tw_lookup(TW_ADJUSTED_OFF, year)
-}
-
-fn tw_made_up(year: i64) -> Days {
-    tw_lookup(TW_MADE_UP, year)
-}
-
-const TW_ADJUSTED: Rule = Rule::Tabulated {
-    function: tw_adjusted_off,
-    first_year: TW_ADJUSTED_FIRST,
-    last_year: TW_ADJUSTED_LAST,
-};
-
-const TW_MADE_UP_DAYS: Rule = Rule::Tabulated {
-    function: tw_made_up,
-    first_year: TW_ADJUSTED_FIRST,
-    last_year: TW_ADJUSTED_LAST,
-};
+const TW_MADE_UP_DAYS: Rule = Rule::listed(TW_MADE_UP.every(), TW_ADJUSTED_FIRST, TW_ADJUSTED_LAST);
 
 /// The first year a weekend holiday other than the Lunar New Year days was
 /// made up: the 辦法's article 5-1 of 11 June 2014, in force from
@@ -828,16 +727,8 @@ const fn tw_public(name: &'static str, local_name: &'static str, rule: Rule) -> 
     HolidayRule::public(name, local_name, rule).substituted_from(TW_WEEKEND_MAKE_UP_FROM)
 }
 
-fn tw_unread(_: i64) -> Days {
-    Days::new()
-}
-
 /// A year whose day the sources read do not give: every year a gap.
-const TW_UNREAD: Rule = Rule::Tabulated {
-    function: tw_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const TW_UNREAD: Rule = Rule::UNREAD;
 
 /// The Lunar New Year days are made up after, whichever weekend day they
 /// fall on.
@@ -1355,7 +1246,7 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
 /// Janmashtami in 2025 and Holi, Ram Navami and Janmashtami in 2026 and
 /// 2027.
 #[rustfmt::skip]
-static IN_LISTED: &[(i64, u8, u8, &str)] = &[
+static IN_LISTED: Listing = Listing::Named(&[
     (2025, 2, 26, "shivaratri"), (2025, 3, 14, "holi"), (2025, 4, 10, "mahavir"),
     (2025, 5, 12, "buddha"), (2025, 8, 16, "janmashtami"), (2025, 10, 2, "dussehra"),
     (2025, 10, 20, "diwali"), (2025, 11, 5, "nanak"),
@@ -1368,7 +1259,7 @@ static IN_LISTED: &[(i64, u8, u8, &str)] = &[
     (2027, 8, 25, "janmashtami"), (2027, 10, 9, "dussehra"), (2027, 10, 29, "diwali"),
     (2027, 11, 14, "nanak"),
     (2027, 3, 10, "fitr"), (2027, 5, 17, "zuha"), (2027, 6, 16, "muharram"), (2027, 8, 15, "milad"),
-];
+]);
 
 /// The first and the last year of the DoPT lists read.
 const IN_LISTED_FIRST: i32 = 2025;
@@ -1379,13 +1270,13 @@ const IN_LISTED_LAST: i32 = 2027;
 /// Ministry may change on the sighting of the Moon; and `base`,
 /// approximate, before and after them. `base` is `None` for a day Delhi
 /// kept in a year read and is not carried outside them.
-const fn in_listed(base: HolidayRule, function: fn(i64) -> Days, hijri: bool) -> [HolidayRule; 3] {
+const fn in_listed(base: HolidayRule, name: &'static str, hijri: bool) -> [HolidayRule; 3] {
     let read = HolidayRule {
-        rule: Rule::Tabulated {
-            function,
-            first_year: IN_LISTED_FIRST as i64,
-            last_year: IN_LISTED_LAST as i64,
-        },
+        rule: Rule::listed(
+            IN_LISTED.named(name),
+            IN_LISTED_FIRST as i64,
+            IN_LISTED_LAST as i64,
+        ),
         confidence: if hijri {
             Confidence::Approximate
         } else {
@@ -1401,54 +1292,14 @@ const fn in_listed(base: HolidayRule, function: fn(i64) -> Days, hijri: bool) ->
     ]
 }
 
-fn in_shivaratri(year: i64) -> Days {
-    announced(IN_LISTED, year, "shivaratri")
-}
-fn in_holi(year: i64) -> Days {
-    announced(IN_LISTED, year, "holi")
-}
-fn in_rama(year: i64) -> Days {
-    announced(IN_LISTED, year, "rama")
-}
-fn in_mahavir(year: i64) -> Days {
-    announced(IN_LISTED, year, "mahavir")
-}
-fn in_buddha(year: i64) -> Days {
-    announced(IN_LISTED, year, "buddha")
-}
-fn in_janmashtami(year: i64) -> Days {
-    announced(IN_LISTED, year, "janmashtami")
-}
-fn in_dussehra(year: i64) -> Days {
-    announced(IN_LISTED, year, "dussehra")
-}
-fn in_diwali(year: i64) -> Days {
-    announced(IN_LISTED, year, "diwali")
-}
-fn in_nanak(year: i64) -> Days {
-    announced(IN_LISTED, year, "nanak")
-}
-fn in_fitr(year: i64) -> Days {
-    announced(IN_LISTED, year, "fitr")
-}
-fn in_zuha(year: i64) -> Days {
-    announced(IN_LISTED, year, "zuha")
-}
-fn in_muharram(year: i64) -> Days {
-    announced(IN_LISTED, year, "muharram")
-}
-fn in_milad(year: i64) -> Days {
-    announced(IN_LISTED, year, "milad")
-}
-
 const IN_FITR: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Id-ul-Fitr", "ईद उल-फ़ित्र", EID_AL_FITR),
-    in_fitr,
+    "fitr",
     true,
 );
 const IN_ZUHA: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Id-ul-Zuha", "ईद उल-अज़हा", EID_AL_ADHA),
-    in_zuha,
+    "zuha",
     true,
 );
 const IN_MUHARRAM: [HolidayRule; 3] = in_listed(
@@ -1457,52 +1308,52 @@ const IN_MUHARRAM: [HolidayRule; 3] = in_listed(
         "मुहर्रम",
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 10),
     ),
-    in_muharram,
+    "muharram",
     true,
 );
 const IN_MILAD: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Milad-un-Nabi", "ईद मिलाद उन-नबी", MAWLID),
-    in_milad,
+    "milad",
     true,
 );
 const IN_HOLI: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Holi", "होली", HOLI),
-    in_holi,
+    "holi",
     false,
 );
 const IN_RAMA: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Ram Navami", "राम नवमी", RAMA_NAVAMI),
-    in_rama,
+    "rama",
     false,
 );
 const IN_MAHAVIR: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Mahavir Jayanti", "महावीर जयंती", MAHAVIR_JAYANTI),
-    in_mahavir,
+    "mahavir",
     false,
 );
 const IN_BUDDHA: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Buddha Purnima", "बुद्ध पूर्णिमा", BUDDHA_PURNIMA),
-    in_buddha,
+    "buddha",
     false,
 );
 const IN_JANMASHTAMI: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Janmashtami", "जन्माष्टमी", JANMASHTAMI),
-    in_janmashtami,
+    "janmashtami",
     false,
 );
 const IN_DUSSEHRA: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Dussehra", "दशहरा", VIJAYA_DASHAMI),
-    in_dussehra,
+    "dussehra",
     false,
 );
 const IN_DIWALI: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Diwali", "दीपावली", DIWALI),
-    in_diwali,
+    "diwali",
     false,
 );
 const IN_NANAK: [HolidayRule; 3] = in_listed(
     HolidayRule::fixed_public("Guru Nanak's Birthday", "गुरु नानक जयंती", GURU_NANAK_JAYANTI),
-    in_nanak,
+    "nanak",
     false,
 );
 /// Maha Shivaratri, one of Delhi's three optional days in 2025 alone of
@@ -1510,7 +1361,7 @@ const IN_NANAK: [HolidayRule; 3] = in_listed(
 /// and 2027.
 const IN_SHIVARATRI: HolidayRule = in_listed(
     HolidayRule::fixed_public("Maha Shivaratri", "महाशिवरात्रि", MAHA_SHIVARATRI),
-    in_shivaratri,
+    "shivaratri",
     false,
 )[0];
 
@@ -1687,17 +1538,15 @@ pub static THAILAND: RuleSet = RuleSet {
 
 // ── The annual notices ───────────────────────────────────────────────────
 
-/// A holiday an annual notice gives days off, or a Saturday worked, for.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum VnFestival {
-    NewYearsDay,
-    Tet,
+/// The holidays an annual notice gives days off, or a Saturday worked,
+/// for, as the names the rows of `VN_DAYS_OFF` and `VN_WORKDAYS` carry.
+mod vn {
+    pub(super) const NEW_YEARS_DAY: &str = "new-years-day";
+    pub(super) const TET: &str = "tet";
     /// 30 April and 1 May, which the notices swap days around together.
-    VictoryAndLabour,
-    NationalDay,
+    pub(super) const VICTORY_AND_LABOUR: &str = "victory-and-labour";
+    pub(super) const NATIONAL_DAY: &str = "national-day";
 }
-
-use VnFestival::{NationalDay, NewYearsDay, Tet, VictoryAndLabour};
 
 /// The first year the notices carried here cover: the first under the
 /// 2019 Labour Code, whose article 112 gives National Day two days.
@@ -1706,8 +1555,8 @@ const VN_NOTICES_FIRST: i64 = 2021;
 const VN_NOTICES_LAST: i64 = 2026;
 
 /// The days each year's notices give civil servants off beyond the
-/// statutory days the rules below compute, as spans: the holiday, the
-/// Gregorian year, and the first and last month and day.
+/// statutory days the rules below compute, as spans: the Gregorian year,
+/// the first and last month and day, and the holiday.
 ///
 /// A Tết span is the five days the notice counts as Tết together with the
 /// days it gives in lieu of those that fall on a weekend, and nothing
@@ -1715,116 +1564,59 @@ const VN_NOTICES_LAST: i64 = 2026;
 /// already. A National Day entry is the second day the notice names, or a
 /// weekday it swaps for a Saturday.
 #[rustfmt::skip]
-static VN_DAYS_OFF: &[(VnFestival, i64, u8, u8, u8, u8)] = &[
+static VN_DAYS_OFF: Listing = Listing::Spans(&[
     // Thông báo 4875/TB-LĐTBXH, 10 December 2020: two days before Tết and
     // three after, 10–14 February, with 15 and 16 February in lieu of the
     // second and third days of the lunar year, a Saturday and a Sunday;
     // National Day on 2 and 3 September.
-    (Tet, 2021, 2, 10, 2, 16),
-    (NationalDay, 2021, 9, 3, 9, 3),
+    (2021, 2, 10, 2, 16, vn::TET),
+    (2021, 9, 3, 9, 3, vn::NATIONAL_DAY),
     // Thông báo 119/TB-LĐTBXH, 14 January 2022: Tết from 31 January to
     // 4 February; National Day on 1 and 2 September.
-    (Tet, 2022, 1, 31, 2, 4),
-    (NationalDay, 2022, 9, 1, 9, 1),
+    (2022, 1, 31, 2, 4, vn::TET),
+    (2022, 9, 1, 9, 1, vn::NATIONAL_DAY),
     // Thông báo 5034/TB-LĐTBXH, 7 December 2022: five days of Tết from
     // 20 January and two in lieu of the weekend, to 26 January; National
     // Day on 1 and 2 September, the 2nd a Saturday made up on the 4th.
-    (Tet, 2023, 1, 20, 1, 26),
-    (NationalDay, 2023, 9, 1, 9, 1),
+    (2023, 1, 20, 1, 26, vn::TET),
+    (2023, 9, 1, 9, 1, vn::NATIONAL_DAY),
     // Thông báo 5015/TB-LĐTBXH, 22 November 2023: five days of Tết from
     // 8 February and two in lieu, to 14 February; National Day on 2 and
     // 3 September.
-    (Tet, 2024, 2, 8, 2, 14),
-    (NationalDay, 2024, 9, 3, 9, 3),
+    (2024, 2, 8, 2, 14, vn::TET),
+    (2024, 9, 3, 9, 3, vn::NATIONAL_DAY),
     // Thông báo 1570/TB-LĐTBXH, 12 April 2024: Monday 29 April off, for
     // Saturday 4 May.
-    (VictoryAndLabour, 2024, 4, 29, 4, 29),
+    (2024, 4, 29, 4, 29, vn::VICTORY_AND_LABOUR),
     // Thông báo 6150/TB-BLĐTBXH, 3 December 2024: Tết from 27 to
     // 31 January, between two weekends; Friday 2 May off, for Saturday
     // 26 April; National Day on 1 and 2 September.
-    (Tet, 2025, 1, 27, 1, 31),
-    (VictoryAndLabour, 2025, 5, 2, 5, 2),
-    (NationalDay, 2025, 9, 1, 9, 1),
+    (2025, 1, 27, 1, 31, vn::TET),
+    (2025, 5, 2, 5, 2, vn::VICTORY_AND_LABOUR),
+    (2025, 9, 1, 9, 1, vn::NATIONAL_DAY),
     // Công văn 12729/VPCP-KGVX, 25 December 2025: Friday 2 January off,
     // for Saturday 10 January.
-    (NewYearsDay, 2026, 1, 2, 1, 2),
+    (2026, 1, 2, 1, 2, vn::NEW_YEARS_DAY),
     // Thông báo 9441/TB-BNV, 16 October 2025: one day before Tết and four
     // after, 16–20 February; National Day on 1 and 2 September, and
     // Monday 31 August off for Saturday 22 August.
-    (Tet, 2026, 2, 16, 2, 20),
-    (NationalDay, 2026, 8, 31, 9, 1),
-];
+    (2026, 2, 16, 2, 20, vn::TET),
+    (2026, 8, 31, 9, 1, vn::NATIONAL_DAY),
+]);
 
 /// The Saturdays the notices make working days, in exchange for the
 /// weekdays off above.
 #[rustfmt::skip]
-static VN_WORKDAYS: &[(VnFestival, i64, u8, u8)] = &[
-    (VictoryAndLabour, 2024, 5, 4),
-    (VictoryAndLabour, 2025, 4, 26),
-    (NewYearsDay, 2026, 1, 10),
-    (NationalDay, 2026, 8, 22),
-];
+static VN_WORKDAYS: Listing = Listing::Named(&[
+    (2024, 5, 4, vn::VICTORY_AND_LABOUR),
+    (2025, 4, 26, vn::VICTORY_AND_LABOUR),
+    (2026, 1, 10, vn::NEW_YEARS_DAY),
+    (2026, 8, 22, vn::NATIONAL_DAY),
+]);
 
-fn vn_days_off(festival: VnFestival, year: i64) -> Days {
-    let mut out = Days::new();
-    for &(of, y, first_month, first_day, last_month, last_day) in VN_DAYS_OFF {
-        if of != festival || y != year {
-            continue;
-        }
-        let (Ok(first), Ok(last)) = (
-            gregorian::to_fixed(y, first_month, first_day),
-            gregorian::to_fixed(y, last_month, last_day),
-        ) else {
-            continue;
-        };
-        for day in first.0..=last.0 {
-            out.push(Rd(day));
-        }
-    }
-    out
-}
-
-fn vn_workdays(festival: VnFestival, year: i64) -> Days {
-    let mut out = Days::new();
-    for &(of, y, month, day) in VN_WORKDAYS {
-        if of == festival
-            && y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
-
-/// The lookups for each holiday, as the `fn(i64) -> Days` a
-/// [`Rule::Tabulated`] takes.
-macro_rules! vn_noticed {
-    ($($festival:ident => $off:ident, $work:ident);* $(;)?) => {
-        $(
-            fn $off(year: i64) -> Days {
-                vn_days_off($festival, year)
-            }
-            fn $work(year: i64) -> Days {
-                vn_workdays($festival, year)
-            }
-        )*
-    };
-}
-
-vn_noticed! {
-    NewYearsDay => vn_new_year_off, vn_new_year_work;
-    Tet => vn_tet_off, vn_tet_work;
-    VictoryAndLabour => vn_victory_labour_off, vn_victory_labour_work;
-    NationalDay => vn_national_off, vn_national_work;
-}
-
-const fn vn_tabulated(function: fn(i64) -> Days) -> Rule {
-    Rule::Tabulated {
-        function,
-        first_year: VN_NOTICES_FIRST,
-        last_year: VN_NOTICES_LAST,
-    }
+/// The days of the notices read, in the years they cover.
+const fn vn_noticed(entry: ListedEntry) -> Rule {
+    Rule::listed(entry, VN_NOTICES_FIRST, VN_NOTICES_LAST)
 }
 
 /// The days the notices give off for a holiday, under the holiday's own
@@ -1833,18 +1625,18 @@ const fn vn_tabulated(function: fn(i64) -> Days) -> Rule {
 const fn vn_off(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    holiday: &'static str,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, vn_tabulated(function))
+    HolidayRule::fixed_public(name, local_name, vn_noticed(VN_DAYS_OFF.named(holiday)))
 }
 
 /// The Saturdays they make working days.
 const fn vn_work(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    holiday: &'static str,
 ) -> HolidayRule {
-    HolidayRule::workday(name, local_name, vn_tabulated(function))
+    HolidayRule::workday(name, local_name, vn_noticed(VN_WORKDAYS.named(holiday)))
 }
 
 static VN_RULES: &[HolidayRule] = &[
@@ -1852,7 +1644,7 @@ static VN_RULES: &[HolidayRule] = &[
     // Tết is five days by article 112(1)(b), and which five is the Prime
     // Minister's decision each year under article 112(3). There is no
     // rule for it, only the notices.
-    vn_off("Tết", "Tết Nguyên Đán", vn_tet_off),
+    vn_off("Tết", "Tết Nguyên Đán", vn::TET),
     HolidayRule::public(
         "Hùng Kings' Festival",
         "Giỗ Tổ Hùng Vương",
@@ -1868,7 +1660,7 @@ static VN_RULES: &[HolidayRule] = &[
     HolidayRule::public("National Day", "Quốc khánh", Rule::gregorian(9, 2)),
     // The second National Day holiday, from 2021, is "the day before or
     // after" 2 September, and which is again the Prime Minister's choice.
-    vn_off("National Day", "Quốc khánh", vn_national_off),
+    vn_off("National Day", "Quốc khánh", vn::NATIONAL_DAY),
     // Ngày Văn hóa Việt Nam, a paid day off by Nghị quyết 28/2026/QH16
     // from 1 July 2026. The resolution says nothing of a weekend, and the
     // make-up rule of article 111(3) reaches only the days of article
@@ -1880,32 +1672,32 @@ static VN_RULES: &[HolidayRule] = &[
     )
     .years(Some(2026), None),
     // The weekdays the notices swap for a Saturday.
-    vn_off("New Year's Day", "Tết Dương lịch", vn_new_year_off),
+    vn_off("New Year's Day", "Tết Dương lịch", vn::NEW_YEARS_DAY),
     vn_off(
         "Reunification Day and Labour Day",
         "Ngày Chiến thắng và Ngày Quốc tế Lao động",
-        vn_victory_labour_off,
+        vn::VICTORY_AND_LABOUR,
     ),
     // And the Saturdays worked for them.
     vn_work(
         "Make-up working day, New Year's Day",
         "Làm bù, Tết Dương lịch",
-        vn_new_year_work,
+        vn::NEW_YEARS_DAY,
     ),
     vn_work(
         "Make-up working day, Tết",
         "Làm bù, Tết Nguyên Đán",
-        vn_tet_work,
+        vn::TET,
     ),
     vn_work(
         "Make-up working day, Reunification Day and Labour Day",
         "Làm bù, Ngày Chiến thắng và Ngày Quốc tế Lao động",
-        vn_victory_labour_work,
+        vn::VICTORY_AND_LABOUR,
     ),
     vn_work(
         "Make-up working day, National Day",
         "Làm bù, Quốc khánh",
-        vn_national_work,
+        vn::NATIONAL_DAY,
     ),
 ];
 
@@ -1977,16 +1769,12 @@ const SEA_LISTED_ANNOUNCED: i32 = 2027;
 /// and after. For a Hijri-dated day `base` is the tabular prediction.
 const fn listed(
     base: HolidayRule,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
     first: i32,
     settled: i32,
     announced: i32,
 ) -> [HolidayRule; 4] {
-    let read = Rule::Tabulated {
-        function,
-        first_year: first as i64,
-        last_year: announced as i64,
-    };
+    let read = Rule::listed(entry, first as i64, announced as i64);
     [
         HolidayRule {
             rule: read,
@@ -2003,18 +1791,6 @@ const fn listed(
         base.approximate().years(None, Some(first - 1)),
         base.approximate().years(Some(announced + 1), None),
     ]
-}
-
-/// The lookups into one country's list, as the `fn(i64) -> Days` a
-/// [`Rule::Tabulated`] takes.
-macro_rules! listed_days {
-    ($table:ident: $($function:ident => $entry:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                announced($table, year, $entry)
-            }
-        )*
-    };
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2034,7 +1810,7 @@ macro_rules! listed_days {
 /// holiday stayed on Saturday 9 July. 2027 has two Isra and Mi'raj, of
 /// 1448 and 1449 AH.
 #[rustfmt::skip]
-static ID_LISTED: &[(i64, u8, u8, &str)] = &[
+static ID_LISTED: Listing = Listing::Named(&[
     (2020, 3, 22, "isra"), (2020, 3, 25, "nyepi"), (2020, 5, 24, "fitr1"), (2020, 5, 25, "fitr2"),
     (2020, 5, 7, "waisak"), (2020, 7, 31, "adha"), (2020, 8, 20, "muharram"), (2020, 10, 29, "mawlid"),
     (2021, 3, 11, "isra"), (2021, 3, 14, "nyepi"), (2021, 5, 13, "fitr1"), (2021, 5, 14, "fitr2"),
@@ -2052,23 +1828,12 @@ static ID_LISTED: &[(i64, u8, u8, &str)] = &[
     (2027, 1, 5, "isra"), (2027, 12, 26, "isra"), (2027, 3, 8, "nyepi"), (2027, 3, 10, "fitr1"),
     (2027, 3, 11, "fitr2"), (2027, 5, 20, "waisak"), (2027, 5, 17, "adha"), (2027, 6, 6, "muharram"),
     (2027, 8, 15, "mawlid"),
-];
+]);
 
-listed_days! { ID_LISTED:
-    id_isra => "isra",
-    id_nyepi => "nyepi",
-    id_fitr_1 => "fitr1",
-    id_fitr_2 => "fitr2",
-    id_waisak => "waisak",
-    id_adha => "adha",
-    id_muharram => "muharram",
-    id_mawlid => "mawlid",
-}
-
-const fn id_listed(base: HolidayRule, function: fn(i64) -> Days) -> [HolidayRule; 4] {
+const fn id_listed(base: HolidayRule, entry: ListedEntry) -> [HolidayRule; 4] {
     listed(
         base,
-        function,
+        entry,
         SEA_LISTED_FIRST,
         SEA_LISTED_SETTLED,
         SEA_LISTED_ANNOUNCED,
@@ -2081,7 +1846,7 @@ const ID_ISRA: [HolidayRule; 4] = id_listed(
         "Isra Mikraj",
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
     ),
-    id_isra,
+    ID_LISTED.named("isra"),
 );
 const ID_WAISAK: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public(
@@ -2089,11 +1854,11 @@ const ID_WAISAK: [HolidayRule; 4] = id_listed(
         "Hari Raya Waisak",
         Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
     ),
-    id_waisak,
+    ID_LISTED.named("waisak"),
 );
 const ID_FITR_1: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public("Eid al-Fitr", "Idul Fitri", EID_AL_FITR),
-    id_fitr_1,
+    ID_LISTED.named("fitr1"),
 );
 const ID_FITR_2: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public(
@@ -2101,30 +1866,30 @@ const ID_FITR_2: [HolidayRule; 4] = id_listed(
         "Idul Fitri",
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
     ),
-    id_fitr_2,
+    ID_LISTED.named("fitr2"),
 );
 const ID_ADHA: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public("Eid al-Adha", "Idul Adha", EID_AL_ADHA),
-    id_adha,
+    ID_LISTED.named("adha"),
 );
 const ID_MUHARRAM: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public("Islamic New Year", "Tahun Baru Islam", HIJRI_NEW_YEAR),
-    id_muharram,
+    ID_LISTED.named("muharram"),
 );
 const ID_MAWLID: [HolidayRule; 4] = id_listed(
     HolidayRule::fixed_public("Mawlid", "Maulid Nabi Muhammad", MAWLID),
-    id_mawlid,
+    ID_LISTED.named("mawlid"),
 );
 
 /// Nyepi, the Balinese Śaka new year, as the SKBs date it. Its calendar,
 /// the Balinese Śaka lunisolar one, is not carried — `balinese-pawukon` is
 /// the 210-day wuku cycle, a different reckoning — so a year outside the
 /// lists read is a gap.
-const ID_NYEPI_RULE: Rule = Rule::Tabulated {
-    function: id_nyepi,
-    first_year: SEA_LISTED_FIRST as i64,
-    last_year: SEA_LISTED_ANNOUNCED as i64,
-};
+const ID_NYEPI_RULE: Rule = Rule::listed(
+    ID_LISTED.named("nyepi"),
+    SEA_LISTED_FIRST as i64,
+    SEA_LISTED_ANNOUNCED as i64,
+);
 
 static ID_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Tahun Baru Masehi", Rule::gregorian(1, 1)),
@@ -2248,7 +2013,7 @@ pub static INDONESIA: RuleSet = RuleSet {
 /// them gives the Monday, as the releases say, by the table's
 /// substitution.
 #[rustfmt::skip]
-static SG_LISTED: &[(i64, u8, u8, &str)] = &[
+static SG_LISTED: Listing = Listing::Named(&[
     (2020, 5, 24, "puasa"), (2020, 7, 31, "haji"), (2020, 5, 7, "vesak"),
     (2021, 5, 13, "puasa"), (2021, 7, 20, "haji"), (2021, 5, 26, "vesak"),
     (2022, 5, 3, "puasa"), (2022, 7, 10, "haji"), (2022, 5, 15, "vesak"),
@@ -2257,24 +2022,18 @@ static SG_LISTED: &[(i64, u8, u8, &str)] = &[
     (2025, 3, 31, "puasa"), (2025, 6, 7, "haji"), (2025, 5, 12, "vesak"),
     (2026, 3, 21, "puasa"), (2026, 5, 27, "haji"), (2026, 5, 31, "vesak"),
     (2027, 3, 10, "puasa"), (2027, 5, 17, "haji"), (2027, 5, 20, "vesak"),
-];
-
-listed_days! { SG_LISTED:
-    sg_puasa => "puasa",
-    sg_haji => "haji",
-    sg_vesak => "vesak",
-}
+]);
 
 const SG_PUASA: [HolidayRule; 4] = listed(
     HolidayRule::public("Hari Raya Puasa", "", EID_AL_FITR),
-    sg_puasa,
+    SG_LISTED.named("puasa"),
     SEA_LISTED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_ANNOUNCED,
 );
 const SG_HAJI: [HolidayRule; 4] = listed(
     HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA),
-    sg_haji,
+    SG_LISTED.named("haji"),
     SEA_LISTED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_ANNOUNCED,
@@ -2285,7 +2044,7 @@ const SG_VESAK: [HolidayRule; 4] = listed(
         "",
         Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
     ),
-    sg_vesak,
+    SG_LISTED.named("vesak"),
     SEA_LISTED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_ANNOUNCED,
@@ -2370,7 +2129,7 @@ pub static SINGAPORE: RuleSet = RuleSet {
 /// The special holiday of 21 April 2023, gazetted separately, was not read
 /// and is not carried.
 #[rustfmt::skip]
-static MY_LISTED: &[(i64, u8, u8, &str)] = &[
+static MY_LISTED: Listing = Listing::Named(&[
     (2020, 5, 24, "fitr1"), (2020, 5, 25, "fitr2"), (2020, 7, 31, "adha"), (2020, 8, 20, "muharram"),
     (2020, 10, 29, "mawlid"), (2020, 5, 7, "wesak"),
     (2021, 5, 13, "fitr1"), (2021, 5, 14, "fitr2"), (2021, 7, 20, "adha"), (2021, 8, 10, "muharram"),
@@ -2387,22 +2146,12 @@ static MY_LISTED: &[(i64, u8, u8, &str)] = &[
     (2026, 8, 25, "mawlid"), (2026, 5, 31, "wesak"), (2026, 3, 20, "fitr-added"),
     (2027, 3, 10, "fitr1"), (2027, 3, 11, "fitr2"), (2027, 5, 17, "adha"), (2027, 6, 6, "muharram"),
     (2027, 8, 15, "mawlid"), (2027, 5, 20, "wesak"),
-];
+]);
 
-listed_days! { MY_LISTED:
-    my_fitr_1 => "fitr1",
-    my_fitr_2 => "fitr2",
-    my_fitr_added => "fitr-added",
-    my_adha => "adha",
-    my_muharram => "muharram",
-    my_mawlid => "mawlid",
-    my_wesak => "wesak",
-}
-
-const fn my_listed(base: HolidayRule, function: fn(i64) -> Days) -> [HolidayRule; 4] {
+const fn my_listed(base: HolidayRule, entry: ListedEntry) -> [HolidayRule; 4] {
     listed(
         base,
-        function,
+        entry,
         SEA_LISTED_FIRST,
         SEA_LISTED_SETTLED,
         SEA_LISTED_ANNOUNCED,
@@ -2411,7 +2160,7 @@ const fn my_listed(base: HolidayRule, function: fn(i64) -> Days) -> [HolidayRule
 
 const MY_FITR_1: [HolidayRule; 4] = my_listed(
     HolidayRule::public("Hari Raya Aidilfitri", "", EID_AL_FITR),
-    my_fitr_1,
+    MY_LISTED.named("fitr1"),
 );
 const MY_FITR_2: [HolidayRule; 4] = my_listed(
     HolidayRule::public(
@@ -2419,7 +2168,7 @@ const MY_FITR_2: [HolidayRule; 4] = my_listed(
         "",
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
     ),
-    my_fitr_2,
+    MY_LISTED.named("fitr2"),
 );
 const MY_WESAK: [HolidayRule; 4] = my_listed(
     HolidayRule::public(
@@ -2427,19 +2176,19 @@ const MY_WESAK: [HolidayRule; 4] = my_listed(
         "Hari Wesak",
         Rule::in_calendar(CalendarSystem::CHINESE, 4, 15),
     ),
-    my_wesak,
+    MY_LISTED.named("wesak"),
 );
 const MY_ADHA: [HolidayRule; 4] = my_listed(
     HolidayRule::public("Hari Raya Haji", "", EID_AL_ADHA),
-    my_adha,
+    MY_LISTED.named("adha"),
 );
 const MY_MUHARRAM: [HolidayRule; 4] = my_listed(
     HolidayRule::public("Awal Muharram", "", HIJRI_NEW_YEAR),
-    my_muharram,
+    MY_LISTED.named("muharram"),
 );
 const MY_MAWLID: [HolidayRule; 4] = my_listed(
     HolidayRule::public("Mawlid", "Maulidur Rasul", MAWLID),
-    my_mawlid,
+    MY_LISTED.named("mawlid"),
 );
 
 static MY_RULES: &[HolidayRule] = &[
@@ -2465,11 +2214,7 @@ static MY_RULES: &[HolidayRule] = &[
     HolidayRule::public(
         "Additional Hari Raya Aidilfitri holiday",
         "Cuti tambahan Hari Raya Aidilfitri",
-        Rule::Tabulated {
-            function: my_fitr_added,
-            first_year: 2026,
-            last_year: 2026,
-        },
+        Rule::listed(MY_LISTED.named("fitr-added"), 2026, 2026),
     )
     .years(Some(2026), Some(2026)),
     HolidayRule::public("Labour Day", "Hari Pekerja", Rule::gregorian(5, 1)),
@@ -2554,7 +2299,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
 /// March (No. 1189 by the titles of its reports) and No. 1264. The 2027
 /// proclamations had not been issued.
 #[rustfmt::skip]
-static PH_LISTED: &[(i64, u8, u8, &str)] = &[
+static PH_LISTED: Listing = Listing::Named(&[
     (2012, 8, 20, "fitr"), (2012, 10, 26, "adha"),
     (2013, 8, 9, "fitr"), (2013, 10, 15, "adha"),
     (2014, 7, 29, "fitr"), (2014, 10, 6, "adha"),
@@ -2570,23 +2315,18 @@ static PH_LISTED: &[(i64, u8, u8, &str)] = &[
     (2024, 4, 10, "fitr"), (2024, 6, 17, "adha"),
     (2025, 4, 1, "fitr"), (2025, 6, 6, "adha"),
     (2026, 3, 20, "fitr"), (2026, 5, 27, "adha"),
-];
-
-listed_days! { PH_LISTED:
-    ph_fitr => "fitr",
-    ph_adha => "adha",
-}
+]);
 
 const PH_FITR: [HolidayRule; 4] = listed(
     HolidayRule::fixed_public("Eid'l Fitr", "", EID_AL_FITR),
-    ph_fitr,
+    PH_LISTED.named("fitr"),
     PH_PROCLAIMED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_SETTLED,
 );
 const PH_ADHA: [HolidayRule; 4] = listed(
     HolidayRule::fixed_public("Eid'l Adha", "", EID_AL_ADHA),
-    ph_adha,
+    PH_LISTED.named("adha"),
     PH_PROCLAIMED_FIRST,
     SEA_LISTED_SETTLED,
     SEA_LISTED_SETTLED,
@@ -2626,7 +2366,7 @@ const PH_ADHA: [HolidayRule; 4] = listed(
 /// Cristo's anniversary on Sunday 27 July 2025. The EDSA anniversary was
 /// a special (working) day from 2025 and in none of the lists for 2024.
 #[rustfmt::skip]
-static PH_PROCLAIMED: &[(i64, u8, u8, &str)] = &[
+static PH_PROCLAIMED: Listing = Listing::Named(&[
     (2012, 1, 23, "cny"), (2012, 2, 25, "edsa-schools"), (2012, 4, 7, "black-saturday"),
     (2012, 11, 2, "all-souls"), (2012, 12, 24, "christmas-eve"),
     (2013, 2, 25, "edsa-schools"), (2013, 3, 30, "black-saturday"), (2013, 5, 13, "elections"),
@@ -2662,48 +2402,22 @@ static PH_PROCLAIMED: &[(i64, u8, u8, &str)] = &[
     (2026, 12, 24, "christmas-eve"),
     (2027, 2, 6, "cny"), (2027, 3, 27, "black-saturday"), (2027, 11, 2, "all-souls"),
     (2027, 12, 24, "christmas-eve"),
-];
+]);
 
 /// The first and the last year of the proclamations read.
 const PH_PROCLAIMED_FIRST: i32 = 2012;
 const PH_PROCLAIMED_LAST: i32 = 2027;
 
-listed_days! { PH_PROCLAIMED:
-    ph_cny => "cny",
-    ph_edsa => "edsa",
-    ph_edsa_schools => "edsa-schools",
-    ph_black_saturday => "black-saturday",
-    ph_all_souls => "all-souls",
-    ph_christmas_eve => "christmas-eve",
-    ph_all_saints_eve => "all-saints-eve",
-    ph_additional => "additional",
-    ph_elections => "elections",
-    ph_barangay_elections => "barangay-elections",
-    ph_inc => "inc",
-    ph_kagitingan => "kagitingan",
-    ph_bonifacio => "bonifacio",
-    ph_ninoy => "ninoy",
-}
-
-/// Nothing: the rule of the gaps before and after the proclamations read.
-const fn ph_unproclaimed(_year: i64) -> Days {
-    Days::new()
-}
-
 /// A day of the proclamations read, in the years they cover.
 const fn ph_proclaimed(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
 ) -> HolidayRule {
     HolidayRule::public(
         name,
         local_name,
-        Rule::Tabulated {
-            function,
-            first_year: PH_PROCLAIMED_FIRST as i64,
-            last_year: PH_PROCLAIMED_LAST as i64,
-        },
+        Rule::listed(entry, PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
     )
     .of_kind(Kind::Bank)
     .years(Some(PH_PROCLAIMED_FIRST), Some(PH_PROCLAIMED_LAST))
@@ -2716,17 +2430,13 @@ const fn ph_regular_moved(
     local_name: &'static str,
     rule: Rule,
     moved: i32,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
 ) -> [HolidayRule; 3] {
     let statute = HolidayRule::fixed_public(name, local_name, rule);
     [
         statute.years(None, Some(moved - 1)),
         HolidayRule {
-            rule: Rule::Tabulated {
-                function,
-                first_year: moved as i64,
-                last_year: moved as i64,
-            },
+            rule: Rule::listed(entry, moved as i64, moved as i64),
             ..statute
         }
         .years(Some(moved), Some(moved)),
@@ -2739,14 +2449,14 @@ const PH_KAGITINGAN: [HolidayRule; 3] = ph_regular_moved(
     "Araw ng Kagitingan",
     Rule::gregorian(4, 9),
     2023,
-    ph_kagitingan,
+    PH_PROCLAIMED.named("kagitingan"),
 );
 const PH_BONIFACIO: [HolidayRule; 3] = ph_regular_moved(
     "Bonifacio Day",
     "Araw ni Bonifacio",
     Rule::gregorian(11, 30),
     2023,
-    ph_bonifacio,
+    PH_PROCLAIMED.named("bonifacio"),
 );
 const PH_NINOY: [HolidayRule; 3] = {
     let [before, moved, after] = ph_regular_moved(
@@ -2754,7 +2464,7 @@ const PH_NINOY: [HolidayRule; 3] = {
         "",
         Rule::gregorian(8, 21),
         2024,
-        ph_ninoy,
+        PH_PROCLAIMED.named("ninoy"),
     );
     [
         before.of_kind(Kind::Bank),
@@ -2769,7 +2479,7 @@ static PH_RULES: &[HolidayRule] = &[
     // years read, and predicted after them, approximate. Before them
     // Black Saturday is predicted too, and Chinese New Year, first
     // proclaimed for 2012, is not a day off.
-    ph_proclaimed("Chinese New Year", "", ph_cny),
+    ph_proclaimed("Chinese New Year", "", PH_PROCLAIMED.named("cny")),
     HolidayRule::public(
         "Chinese New Year",
         "",
@@ -2778,11 +2488,15 @@ static PH_RULES: &[HolidayRule] = &[
     .of_kind(Kind::Bank)
     .approximate()
     .years(Some(PH_PROCLAIMED_LAST + 1), None),
-    ph_proclaimed("EDSA People Power Revolution Anniversary", "", ph_edsa),
     ph_proclaimed(
         "EDSA People Power Revolution Anniversary",
         "",
-        ph_edsa_schools,
+        PH_PROCLAIMED.named("edsa"),
+    ),
+    ph_proclaimed(
+        "EDSA People Power Revolution Anniversary",
+        "",
+        PH_PROCLAIMED.named("edsa-schools"),
     )
     .of_kind(Kind::School),
     HolidayRule::fixed_public(
@@ -2795,7 +2509,11 @@ static PH_RULES: &[HolidayRule] = &[
         .of_kind(Kind::Bank)
         .approximate()
         .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
-    ph_proclaimed("Black Saturday", "Sabado de Gloria", ph_black_saturday),
+    ph_proclaimed(
+        "Black Saturday",
+        "Sabado de Gloria",
+        PH_PROCLAIMED.named("black-saturday"),
+    ),
     HolidayRule::public("Black Saturday", "Sabado de Gloria", Rule::easter(-1))
         .of_kind(Kind::Bank)
         .approximate()
@@ -2851,36 +2569,44 @@ static PH_RULES: &[HolidayRule] = &[
         .years(Some(2023), None),
     // The days the proclamations read add, and before and after them a
     // gap: a year's are not known without its proclamation.
-    ph_proclaimed("All Souls' Day", "", ph_all_souls),
-    ph_proclaimed("Christmas Eve", "", ph_christmas_eve),
-    ph_proclaimed("All Saints' Day Eve", "", ph_all_saints_eve),
-    ph_proclaimed("Additional special day", "", ph_additional),
-    ph_proclaimed("National and Local Elections", "", ph_elections),
+    ph_proclaimed("All Souls' Day", "", PH_PROCLAIMED.named("all-souls")),
+    ph_proclaimed("Christmas Eve", "", PH_PROCLAIMED.named("christmas-eve")),
+    ph_proclaimed(
+        "All Saints' Day Eve",
+        "",
+        PH_PROCLAIMED.named("all-saints-eve"),
+    ),
+    ph_proclaimed(
+        "Additional special day",
+        "",
+        PH_PROCLAIMED.named("additional"),
+    ),
+    ph_proclaimed(
+        "National and Local Elections",
+        "",
+        PH_PROCLAIMED.named("elections"),
+    ),
     ph_proclaimed(
         "Barangay and Sangguniang Kabataan Elections",
         "",
-        ph_barangay_elections,
+        PH_PROCLAIMED.named("barangay-elections"),
     ),
-    ph_proclaimed("Iglesia ni Cristo Founding Anniversary", "", ph_inc),
+    ph_proclaimed(
+        "Iglesia ni Cristo Founding Anniversary",
+        "",
+        PH_PROCLAIMED.named("inc"),
+    ),
     HolidayRule::public(
         "Proclaimed special days",
         "",
-        Rule::Tabulated {
-            function: ph_unproclaimed,
-            first_year: PH_PROCLAIMED_FIRST as i64,
-            last_year: PH_PROCLAIMED_LAST as i64,
-        },
+        Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
     )
     .of_kind(Kind::Bank)
     .years(Some(PH_PROCLAIMED_LAST + 1), None),
     HolidayRule::public(
         "Proclaimed special days",
         "",
-        Rule::Tabulated {
-            function: ph_unproclaimed,
-            first_year: PH_PROCLAIMED_FIRST as i64,
-            last_year: PH_PROCLAIMED_LAST as i64,
-        },
+        Rule::unlisted(PH_PROCLAIMED_FIRST as i64, PH_PROCLAIMED_LAST as i64),
     )
     .of_kind(Kind::Bank)
     .years(None, Some(PH_PROCLAIMED_FIRST - 1)),
@@ -3159,7 +2885,7 @@ const LK_LAST: i64 = 2027;
 
 /// The days the Holidays Act orders name: each year's section 4 schedule in
 /// its order, with the section 10 orders that add or move a day applied.
-static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
+static LK_GAZETTED: Listing = Listing::Named(&[
     // 2023
     (2023, 1, 6, "Duruthu Full Moon Poya Day"),
     (2023, 1, 15, "Tamil Thai Pongal Day"),
@@ -3284,107 +3010,124 @@ static LK_GAZETTED: &[(i64, u8, u8, &str)] = &[
     (2027, 10, 28, "Deepavali Festival Day"),
     (2027, 11, 13, "Il Full Moon Poya Day"),
     (2027, 12, 13, "Unduvap Full Moon Poya Day"),
-];
-
-/// A lookup into [`LK_GAZETTED`] for each holiday it names: the days of
-/// that name the gazette for `year` lists.
-macro_rules! lk_gazetted {
-    ($($function:ident => $name:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                let mut out = Days::new();
-                for &(y, month, day, name) in LK_GAZETTED {
-                    if y == year && name == $name {
-                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                            out.push(fixed);
-                        }
-                    }
-                }
-                out
-            }
-        )*
-    };
-}
-
-lk_gazetted! {
-    lk_duruthu => "Duruthu Full Moon Poya Day",
-    lk_navam => "Navam Full Moon Poya Day",
-    lk_medin => "Medin Full Moon Poya Day",
-    lk_bak => "Bak Full Moon Poya Day",
-    lk_adhi_poya => "Full Moon Poya Day",
-    lk_vesak => "Vesak Full Moon Poya Day",
-    lk_after_vesak => "Day Following Vesak Full Moon Poya Day",
-    lk_poson => "Poson Full Moon Poya Day",
-    lk_adhi_esala => "Adhi Esala Full Moon Poya Day",
-    lk_esala => "Esala Full Moon Poya Day",
-    lk_nikini => "Nikini Full Moon Poya Day",
-    lk_binara => "Binara Full Moon Poya Day",
-    lk_vap => "Vap Full Moon Poya Day",
-    lk_il => "Il Full Moon Poya Day",
-    lk_unduvap => "Unduvap Full Moon Poya Day",
-    lk_thai_pongal => "Tamil Thai Pongal Day",
-    lk_shivarathri => "Maha Shivarathri Day",
-    lk_new_year_eve => "Day Prior to Sinhala & Tamil New Year Day",
-    lk_new_year => "Sinhala & Tamil New Year Day",
-    lk_fitr => "Id-Ul-Fitr (Ramazan Festival Day)",
-    lk_adha => "Id-Ul-Adha (Hadji Festival Day)",
-    lk_milad => "Milad-Un-Nabi (Holy Prophet's Birthday)",
-    lk_deepavali => "Deepavali Festival Day",
-    lk_special_bank => "Special Bank Holiday",
-    lk_declared => "Public Holiday",
-}
+]);
 
 /// A day the gazettes list, public and bank holiday alike, for the years
 /// they cover.
-const fn lk(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        "",
-        Rule::Tabulated {
-            function,
-            first_year: LK_FIRST,
-            last_year: LK_LAST,
-        },
-    )
+const fn lk(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::listed(entry, LK_FIRST, LK_LAST))
 }
 
 static LK_RULES: &[HolidayRule] = &[
-    lk("Duruthu Full Moon Poya Day", lk_duruthu),
-    lk("Tamil Thai Pongal Day", lk_thai_pongal),
+    lk(
+        "Duruthu Full Moon Poya Day",
+        LK_GAZETTED.named("Duruthu Full Moon Poya Day"),
+    ),
+    lk(
+        "Tamil Thai Pongal Day",
+        LK_GAZETTED.named("Tamil Thai Pongal Day"),
+    ),
     HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(2, 4)),
-    lk("Navam Full Moon Poya Day", lk_navam),
-    lk("Maha Shivarathri Day", lk_shivarathri),
-    lk("Medin Full Moon Poya Day", lk_medin),
-    lk("Id-Ul-Fitr (Ramazan Festival Day)", lk_fitr),
-    lk("Bak Full Moon Poya Day", lk_bak),
+    lk(
+        "Navam Full Moon Poya Day",
+        LK_GAZETTED.named("Navam Full Moon Poya Day"),
+    ),
+    lk(
+        "Maha Shivarathri Day",
+        LK_GAZETTED.named("Maha Shivarathri Day"),
+    ),
+    lk(
+        "Medin Full Moon Poya Day",
+        LK_GAZETTED.named("Medin Full Moon Poya Day"),
+    ),
+    lk(
+        "Id-Ul-Fitr (Ramazan Festival Day)",
+        LK_GAZETTED.named("Id-Ul-Fitr (Ramazan Festival Day)"),
+    ),
+    lk(
+        "Bak Full Moon Poya Day",
+        LK_GAZETTED.named("Bak Full Moon Poya Day"),
+    ),
     HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    lk("Day Prior to Sinhala & Tamil New Year Day", lk_new_year_eve),
-    lk("Sinhala & Tamil New Year Day", lk_new_year),
+    lk(
+        "Day Prior to Sinhala & Tamil New Year Day",
+        LK_GAZETTED.named("Day Prior to Sinhala & Tamil New Year Day"),
+    ),
+    lk(
+        "Sinhala & Tamil New Year Day",
+        LK_GAZETTED.named("Sinhala & Tamil New Year Day"),
+    ),
     HolidayRule::fixed_public(
         "May Day (International Workers' Day)",
         "",
         Rule::gregorian(5, 1),
     ),
-    lk("Full Moon Poya Day", lk_adhi_poya),
-    lk("Vesak Full Moon Poya Day", lk_vesak),
-    lk("Day Following Vesak Full Moon Poya Day", lk_after_vesak),
-    lk("Id-Ul-Adha (Hadji Festival Day)", lk_adha),
-    lk("Poson Full Moon Poya Day", lk_poson),
-    lk("Adhi Esala Full Moon Poya Day", lk_adhi_esala),
-    lk("Esala Full Moon Poya Day", lk_esala),
-    lk("Nikini Full Moon Poya Day", lk_nikini),
-    lk("Milad-Un-Nabi (Holy Prophet's Birthday)", lk_milad),
-    lk("Binara Full Moon Poya Day", lk_binara),
-    lk("Vap Full Moon Poya Day", lk_vap),
-    lk("Deepavali Festival Day", lk_deepavali),
-    lk("Il Full Moon Poya Day", lk_il),
-    lk("Unduvap Full Moon Poya Day", lk_unduvap),
+    lk(
+        "Full Moon Poya Day",
+        LK_GAZETTED.named("Full Moon Poya Day"),
+    ),
+    lk(
+        "Vesak Full Moon Poya Day",
+        LK_GAZETTED.named("Vesak Full Moon Poya Day"),
+    ),
+    lk(
+        "Day Following Vesak Full Moon Poya Day",
+        LK_GAZETTED.named("Day Following Vesak Full Moon Poya Day"),
+    ),
+    lk(
+        "Id-Ul-Adha (Hadji Festival Day)",
+        LK_GAZETTED.named("Id-Ul-Adha (Hadji Festival Day)"),
+    ),
+    lk(
+        "Poson Full Moon Poya Day",
+        LK_GAZETTED.named("Poson Full Moon Poya Day"),
+    ),
+    lk(
+        "Adhi Esala Full Moon Poya Day",
+        LK_GAZETTED.named("Adhi Esala Full Moon Poya Day"),
+    ),
+    lk(
+        "Esala Full Moon Poya Day",
+        LK_GAZETTED.named("Esala Full Moon Poya Day"),
+    ),
+    lk(
+        "Nikini Full Moon Poya Day",
+        LK_GAZETTED.named("Nikini Full Moon Poya Day"),
+    ),
+    lk(
+        "Milad-Un-Nabi (Holy Prophet's Birthday)",
+        LK_GAZETTED.named("Milad-Un-Nabi (Holy Prophet's Birthday)"),
+    ),
+    lk(
+        "Binara Full Moon Poya Day",
+        LK_GAZETTED.named("Binara Full Moon Poya Day"),
+    ),
+    lk(
+        "Vap Full Moon Poya Day",
+        LK_GAZETTED.named("Vap Full Moon Poya Day"),
+    ),
+    lk(
+        "Deepavali Festival Day",
+        LK_GAZETTED.named("Deepavali Festival Day"),
+    ),
+    lk(
+        "Il Full Moon Poya Day",
+        LK_GAZETTED.named("Il Full Moon Poya Day"),
+    ),
+    lk(
+        "Unduvap Full Moon Poya Day",
+        LK_GAZETTED.named("Unduvap Full Moon Poya Day"),
+    ),
     HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
     // A day a section 10 order declares: 23 September 2024.
-    lk("Public Holiday", lk_declared),
+    lk("Public Holiday", LK_GAZETTED.named("Public Holiday")),
     // Marked for the banks alone: 16 January and 30 June 2023 and 15 April
     // 2025.
-    lk("Special Bank Holiday", lk_special_bank).of_kind(Kind::Bank),
+    lk(
+        "Special Bank Holiday",
+        LK_GAZETTED.named("Special Bank Holiday"),
+    )
+    .of_kind(Kind::Bank),
 ];
 
 /// Sri Lanka — the public and bank holidays the Minister of Public
@@ -3546,7 +3289,7 @@ const BD_LAST: i64 = 2026;
 /// crate's Indian rules put Buddha Purnima on 12 May 2025, Janmashtami on
 /// 15 August 2025 and Vijaya Dashami on 20 October 2026, a day from each
 /// notification's, and no Bengali almanac was read to fit another.
-static BD_NOTIFIED: &[(i64, u8, u8, &str)] = &[
+static BD_NOTIFIED: Listing = Listing::Named(&[
     (2025, 5, 11, "Buddha Purnima"),
     (2025, 8, 16, "Janmashtami"),
     (2025, 10, 1, "Durga Puja (Navami)"),
@@ -3555,49 +3298,11 @@ static BD_NOTIFIED: &[(i64, u8, u8, &str)] = &[
     (2026, 9, 4, "Janmashtami"),
     (2026, 10, 20, "Durga Puja (Navami)"),
     (2026, 10, 21, "Durga Puja (Bijoya Dashami)"),
-];
-
-/// A lookup into [`BD_NOTIFIED`] for each day it names.
-macro_rules! bd_notified {
-    ($($function:ident => $name:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                let mut out = Days::new();
-                for &(y, month, day, name) in BD_NOTIFIED {
-                    if y == year && name == $name {
-                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                            out.push(fixed);
-                        }
-                    }
-                }
-                out
-            }
-        )*
-    };
-}
-
-bd_notified! {
-    bd_buddha_purnima => "Buddha Purnima",
-    bd_janmashtami => "Janmashtami",
-    bd_navami => "Durga Puja (Navami)",
-    bd_bijoya_dashami => "Durga Puja (Bijoya Dashami)",
-}
+]);
 
 /// A day the notifications date, for the years read.
-const fn bd_notified(
-    name: &'static str,
-    local: &'static str,
-    function: fn(i64) -> Days,
-) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        local,
-        Rule::Tabulated {
-            function,
-            first_year: BD_FIRST,
-            last_year: BD_LAST,
-        },
-    )
+const fn bd_notified(name: &'static str, local: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::listed(entry, BD_FIRST, BD_LAST))
 }
 
 /// A day of the Hijri calendar, which the notifications star as
@@ -3686,14 +3391,14 @@ static BD_RULES: &[HolidayRule] = &[
     bd_notified(
         "Buddha Purnima",
         "বুদ্ধ পূর্ণিমা (বৈশাখী পূর্ণিমা)",
-        bd_buddha_purnima,
+        BD_NOTIFIED.named("Buddha Purnima"),
     )
     .approximate(),
-    bd_notified("Janmashtami", "জন্মাষ্টমী", bd_janmashtami),
+    bd_notified("Janmashtami", "জন্মাষ্টমী", BD_NOTIFIED.named("Janmashtami")),
     bd_notified(
         "Durga Puja (Bijoya Dashami)",
         "দুর্গাপূজা (বিজয়া দশমী)",
-        bd_bijoya_dashami,
+        BD_NOTIFIED.named("Durga Puja (Bijoya Dashami)"),
     ),
     // The executive-order holidays (নির্বাহী আদেশে সরকারি ছুটি).
     HolidayRule::fixed_public(
@@ -3715,7 +3420,11 @@ static BD_RULES: &[HolidayRule] = &[
     bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 2),
     bd_around("Eid-ul-Azha", "ঈদ-উল-আজহা", &BD_EID_AL_ADHA, 3),
     bd_hijri("Ashura", "আশুরা", 1, 10),
-    bd_notified("Durga Puja (Navami)", "দুর্গাপূজা (নবমী)", bd_navami),
+    bd_notified(
+        "Durga Puja (Navami)",
+        "দুর্গাপূজা (নবমী)",
+        BD_NOTIFIED.named("Durga Puja (Navami)"),
+    ),
 ];
 
 /// Bangladesh — the general holidays and the executive-order holidays the
@@ -3781,22 +3490,14 @@ const MM_DEEPAVALI_LAST: i32 = 2025;
 /// 2020, 2023 and 2025 and the first waxing of Tazaungmon in the other
 /// years, so it follows no one Burmese date.
 #[rustfmt::skip]
-static MM_DEEPAVALI_NOTIFIED: &[(i64, u8, u8, &str)] = &[
+static MM_DEEPAVALI_NOTIFIED: Listing = Listing::Named(&[
     (2020, 11, 14, "deepavali"), (2020, 11, 13, "substituted"),
     (2021, 11, 4, "deepavali"),
     (2022, 10, 24, "deepavali"),
     (2023, 11, 12, "deepavali"),
     (2024, 11, 1, "deepavali"),
     (2025, 10, 20, "deepavali"),
-];
-
-fn mm_deepavali(year: i64) -> Days {
-    announced(MM_DEEPAVALI_NOTIFIED, year, "deepavali")
-}
-
-fn mm_deepavali_substituted(year: i64) -> Days {
-    announced(MM_DEEPAVALI_NOTIFIED, year, "substituted")
-}
+]);
 
 /// Deepavali: the notices' day for 2020 to 2025, and outside them the
 /// crate's Dīpāvalī rule, which gives five of those six days — not 2024's —
@@ -3805,11 +3506,11 @@ const MM_DEEPAVALI: [HolidayRule; 3] = {
     let base = HolidayRule::fixed_public("Deepavali", "ဒီပါဝလီ", DIWALI);
     [
         HolidayRule {
-            rule: Rule::Tabulated {
-                function: mm_deepavali,
-                first_year: MM_DEEPAVALI_FIRST as i64,
-                last_year: MM_DEEPAVALI_LAST as i64,
-            },
+            rule: Rule::listed(
+                MM_DEEPAVALI_NOTIFIED.named("deepavali"),
+                MM_DEEPAVALI_FIRST as i64,
+                MM_DEEPAVALI_LAST as i64,
+            ),
             ..base
         }
         .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
@@ -3917,11 +3618,11 @@ static MM_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Deepavali holiday, substituted",
         "ဒီပါဝလီ",
-        Rule::Tabulated {
-            function: mm_deepavali_substituted,
-            first_year: MM_DEEPAVALI_FIRST as i64,
-            last_year: MM_DEEPAVALI_LAST as i64,
-        },
+        Rule::listed(
+            MM_DEEPAVALI_NOTIFIED.named("substituted"),
+            MM_DEEPAVALI_FIRST as i64,
+            MM_DEEPAVALI_LAST as i64,
+        ),
     )
     .years(Some(MM_DEEPAVALI_FIRST), Some(MM_DEEPAVALI_LAST)),
 ];
@@ -5421,26 +5122,13 @@ const MN_READ_LAST: i32 = 2026;
 /// agency, for "Tsagaan Sar holidays: days 1–3" on 18, 19 and 20 February
 /// 2026. The resolution's rest days of 3 to 5 March 2025, to be worked back
 /// within the year, are a transfer, which the table does not carry.
-static MN_TSAGAAN_SAR_READ: &[(i64, u8, u8)] = &[
+static MN_TSAGAAN_SAR_READ: Listing = Listing::Dates(&[
     (2025, 3, 1),
     (2025, 3, 2),
     (2026, 2, 18),
     (2026, 2, 19),
     (2026, 2, 20),
-];
-
-/// The days of [`MN_TSAGAAN_SAR_READ`] in `year`.
-fn mn_tsagaan_sar_read(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day) in MN_TSAGAAN_SAR_READ {
-        if y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
+]);
 
 static MN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Шинэ жил", Rule::gregorian(1, 1)),
@@ -5450,11 +5138,11 @@ static MN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Tsagaan Sar",
         "Цагаан сар",
-        Rule::Tabulated {
-            function: mn_tsagaan_sar_read,
-            first_year: MN_READ_FIRST as i64,
-            last_year: MN_READ_LAST as i64,
-        },
+        Rule::listed(
+            MN_TSAGAAN_SAR_READ.every(),
+            MN_READ_FIRST as i64,
+            MN_READ_LAST as i64,
+        ),
     )
     .years(Some(MN_READ_FIRST), Some(MN_READ_LAST)),
     mn_tsagaan_sar(1).years(None, Some(MN_READ_FIRST - 1)),
@@ -5561,21 +5249,6 @@ pub static MONGOLIA: RuleSet = RuleSet {
               Appendix A.3",
 };
 
-/// The days a table of announced dates names `name` for in `year`: the
-/// lookup behind Cambodia's and Laos's tabulated days.
-fn announced(table: &[(i64, u8, u8, &str)], year: i64, name: &str) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day, entry) in table {
-        if y == year
-            && entry == name
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
-
 // ─────────────────────────────────────────────────────────────────────────
 // Cambodia
 // ─────────────────────────────────────────────────────────────────────────
@@ -5591,7 +5264,7 @@ const KH_LAST: i64 = 2027;
 /// Songkran, Visak Bochea the full moon of Pisak, Pchum Ben the last days of
 /// Photrobot and the Water Festival the full moon of Kadeuk; the Royal
 /// Ploughing Ceremony is the day the palace sets.
-static KH_DECREED: &[(i64, u8, u8, &str)] = &[
+static KH_DECREED: Listing = Listing::Named(&[
     // 2025
     (2025, 4, 14, "Khmer New Year"),
     (2025, 4, 15, "Khmer New Year"),
@@ -5628,43 +5301,11 @@ static KH_DECREED: &[(i64, u8, u8, &str)] = &[
     (2027, 11, 12, "Water Festival"),
     (2027, 11, 13, "Water Festival"),
     (2027, 11, 14, "Water Festival"),
-];
-
-fn kh_new_year(year: i64) -> Days {
-    announced(KH_DECREED, year, "Khmer New Year")
-}
-
-fn kh_visak_bochea(year: i64) -> Days {
-    announced(KH_DECREED, year, "Visak Bochea")
-}
-
-fn kh_royal_ploughing(year: i64) -> Days {
-    announced(KH_DECREED, year, "Royal Ploughing Ceremony")
-}
-
-fn kh_pchum_ben(year: i64) -> Days {
-    announced(KH_DECREED, year, "Pchum Ben")
-}
-
-fn kh_water_festival(year: i64) -> Days {
-    announced(KH_DECREED, year, "Water Festival")
-}
+]);
 
 /// A day the sub-decrees date, for the years read, and a gap in any other.
-const fn kh_decreed(
-    name: &'static str,
-    local: &'static str,
-    function: fn(i64) -> Days,
-) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        local,
-        Rule::Tabulated {
-            function,
-            first_year: KH_FIRST,
-            last_year: KH_LAST,
-        },
-    )
+const fn kh_decreed(name: &'static str, local: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, local, Rule::listed(entry, KH_FIRST, KH_LAST))
 }
 
 /// Article 147 of the Labour Law: weekly time off "shall, in principle, be
@@ -5693,13 +5334,21 @@ static KH_RULES: &[HolidayRule] = &[
         "ទិវាអន្តរជាតិនារី",
         Rule::gregorian(3, 8),
     ),
-    kh_decreed("Khmer New Year", "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ", kh_new_year),
+    kh_decreed(
+        "Khmer New Year",
+        "ពិធីបុណ្យចូលឆ្នាំថ្មី ប្រពៃណីជាតិ",
+        KH_DECREED.named("Khmer New Year"),
+    ),
     HolidayRule::fixed_public(
         "International Labour Day",
         "ទិវាពលកម្មអន្តរជាតិ",
         Rule::gregorian(5, 1),
     ),
-    kh_decreed("Visak Bochea", "ពិធីបុណ្យវិសាខបូជា", kh_visak_bochea),
+    kh_decreed(
+        "Visak Bochea",
+        "ពិធីបុណ្យវិសាខបូជា",
+        KH_DECREED.named("Visak Bochea"),
+    ),
     HolidayRule::fixed_public(
         "King Norodom Sihamoni's Birthday",
         "ព្រះរាជពិធីបុណ្យចម្រើនព្រះជន្ម ព្រះករុណាព្រះបាទសម្តេចព្រះបរមនាថ នរោត្តម សីហមុនី",
@@ -5708,7 +5357,7 @@ static KH_RULES: &[HolidayRule] = &[
     kh_decreed(
         "Royal Ploughing Ceremony",
         "ព្រះរាជពិធីច្រត់ព្រះនង្គ័ល",
-        kh_royal_ploughing,
+        KH_DECREED.named("Royal Ploughing Ceremony"),
     ),
     HolidayRule::fixed_public(
         "Queen Mother Norodom Monineath Sihanouk's Birthday",
@@ -5716,7 +5365,7 @@ static KH_RULES: &[HolidayRule] = &[
         Rule::gregorian(6, 18),
     ),
     HolidayRule::fixed_public("Constitution Day", "ទិវាប្រកាសរដ្ឋធម្មនុញ្ញ", Rule::gregorian(9, 24)),
-    kh_decreed("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", kh_pchum_ben),
+    kh_decreed("Pchum Ben", "ពិធីបុណ្យភ្ជុំបិណ្ឌ", KH_DECREED.named("Pchum Ben")),
     HolidayRule::fixed_public(
         "Commemoration Day of King Father Norodom Sihanouk",
         "ទិវាប្រារព្ធពិធីគោរពព្រះវិញ្ញាណក្ខន្ធ ព្រះករុណាព្រះបាទសម្តេចព្រះ នរោត្តម សីហនុ",
@@ -5731,7 +5380,7 @@ static KH_RULES: &[HolidayRule] = &[
     kh_decreed(
         "Water Festival",
         "ព្រះរាជពិធីបុណ្យអុំទូក បណ្តែតប្រទីប និងសំពះព្រះខែ អកអំបុក",
-        kh_water_festival,
+        KH_DECREED.named("Water Festival"),
     ),
     HolidayRule::fixed_public(
         "Peace Day in Cambodia",
@@ -5800,7 +5449,7 @@ const LA_LAST: i64 = 2026;
 /// ວັນສັງຂານເນົາ and ວັນສັງຂານຂຶ້ນ, which the Songkran moment dates and the
 /// Prime Minister's Office's notice gives each year: four days in 2024, three
 /// in 2025 and 2026.
-static LA_NEW_YEAR: &[(i64, u8, u8, &str)] = &[
+static LA_NEW_YEAR: Listing = Listing::Named(&[
     (2024, 4, 13, "Lao New Year"),
     (2024, 4, 14, "Lao New Year"),
     (2024, 4, 15, "Lao New Year"),
@@ -5811,11 +5460,7 @@ static LA_NEW_YEAR: &[(i64, u8, u8, &str)] = &[
     (2026, 4, 14, "Lao New Year"),
     (2026, 4, 15, "Lao New Year"),
     (2026, 4, 16, "Lao New Year"),
-];
-
-fn la_new_year(year: i64) -> Days {
-    announced(LA_NEW_YEAR, year, "Lao New Year")
-}
+]);
 
 /// Article 3 of the decree: the compensatory day (ວັນພັກຊົດເຊີຍ) is the day
 /// off in place of an official holiday that falls on a Saturday or a Sunday,
@@ -5847,11 +5492,7 @@ static LA_RULES: &[HolidayRule] = &[
     HolidayRule::public(
         "Lao New Year",
         "ບຸນປີໃໝ່ລາວ",
-        Rule::Tabulated {
-            function: la_new_year,
-            first_year: LA_FIRST,
-            last_year: LA_LAST,
-        },
+        Rule::listed(LA_NEW_YEAR.named("Lao New Year"), LA_FIRST, LA_LAST),
     ),
     HolidayRule::public(
         "International Labour Day",
@@ -6161,7 +5802,7 @@ const BT_LAST: i64 = 2026;
 
 /// The days of the lists that are on the Bhutanese calendar, or that the
 /// lists alone date, as the lists for 2025 and 2026 give them.
-static BT_LISTED: &[(i64, u8, u8, &str)] = &[
+static BT_LISTED: Listing = Listing::Named(&[
     // 2025, the Wood Female Snake year
     (2025, 1, 2, "Winter Solstice"),
     (2025, 1, 30, "Traditional Day of Offering"),
@@ -6186,60 +5827,19 @@ static BT_LISTED: &[(i64, u8, u8, &str)] = &[
     (2026, 9, 23, "Blessed Rainy Day"),
     (2026, 10, 21, "Dassain"),
     (2026, 11, 1, "Descending Day of Lord Buddha"),
-];
-
-/// A lookup into [`BT_LISTED`] for each holiday it names: the days of that
-/// name the list for `year` gives.
-macro_rules! bt_listed {
-    ($($function:ident => $name:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                let mut out = Days::new();
-                for &(y, month, day, name) in BT_LISTED {
-                    if y == year && name == $name {
-                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                            out.push(fixed);
-                        }
-                    }
-                }
-                out
-            }
-        )*
-    };
-}
-
-bt_listed! {
-    bt_winter_solstice => "Winter Solstice",
-    bt_offering => "Traditional Day of Offering",
-    bt_losar => "Losar",
-    bt_zhabdrung => "Death Anniversary of Zhabdrung",
-    bt_parinirvana => "Lord Buddha's Parinirvana",
-    bt_guru_rinpoche => "Birth Anniversary of Guru Rinpoche",
-    bt_first_sermon => "First Sermon of Lord Buddha",
-    bt_rainy_day => "Blessed Rainy Day",
-    bt_dassain => "Dassain",
-    bt_descending_day => "Descending Day of Lord Buddha",
-}
+]);
 
 /// A day the lists date, taken from them for the years they cover. Alone,
 /// as for the Winter Solstice, the Blessed Rainy Day and Dassain, every
 /// other year is a gap; beside [`bt_predicted`], it is restricted to the
 /// lists' years and the rule answers the rest.
-const fn bt(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        "",
-        Rule::Tabulated {
-            function,
-            first_year: BT_FIRST,
-            last_year: BT_LAST,
-        },
-    )
+const fn bt(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::listed(entry, BT_FIRST, BT_LAST))
 }
 
 /// [`bt`], restricted to the lists' years.
-const fn bt_read(name: &'static str, function: fn(i64) -> Days) -> HolidayRule {
-    bt(name, function).years(Some(BT_FIRST as i32), Some(BT_LAST as i32))
+const fn bt_read(name: &'static str, entry: ListedEntry) -> HolidayRule {
+    bt(name, entry).years(Some(BT_FIRST as i32), Some(BT_LAST as i32))
 }
 
 /// A day the lists print as a Bhutanese date, predicted on `tibetan-bhutan`
@@ -6297,9 +5897,9 @@ const BT_FIRST_SERMON: &str = "First Sermon of Lord Buddha";
 const BT_DESCENDING_DAY: &str = "Descending Day of Lord Buddha";
 
 static BT_RULES: &[HolidayRule] = &[
-    bt("Winter Solstice", bt_winter_solstice),
+    bt("Winter Solstice", BT_LISTED.named("Winter Solstice")),
     // 1st day of the 12th month.
-    bt_read(BT_OFFERING, bt_offering),
+    bt_read(BT_OFFERING, BT_LISTED.named("Traditional Day of Offering")),
     bt_predicted(BT_OFFERING, BT_TWELFTH, 1, true),
     bt_predicted(BT_OFFERING, BT_TWELFTH, 1, false),
     HolidayRule::fixed_public(
@@ -6318,7 +5918,7 @@ static BT_RULES: &[HolidayRule] = &[
         Rule::gregorian(2, 23),
     ),
     // 1st and 2nd days of the 1st month.
-    bt_read(BT_LOSAR, bt_losar),
+    bt_read(BT_LOSAR, BT_LISTED.named("Losar")),
     bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, true),
     bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 2, true),
     bt_predicted(BT_LOSAR, BT_FIRST_MONTH, 1, false),
@@ -6329,30 +5929,42 @@ static BT_RULES: &[HolidayRule] = &[
         Rule::gregorian(5, 2),
     ),
     // 10th day of the 3rd month.
-    bt_read(BT_ZHABDRUNG, bt_zhabdrung),
+    bt_read(
+        BT_ZHABDRUNG,
+        BT_LISTED.named("Death Anniversary of Zhabdrung"),
+    ),
     bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, true),
     bt_predicted(BT_ZHABDRUNG, BT_THIRD, 10, false),
     // 15th day of the 4th month.
-    bt_read(BT_PARINIRVANA, bt_parinirvana),
+    bt_read(BT_PARINIRVANA, BT_LISTED.named("Lord Buddha's Parinirvana")),
     bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, true),
     bt_predicted(BT_PARINIRVANA, BT_FOURTH, 15, false),
     // 10th day of the 5th month.
-    bt_read(BT_GURU_RINPOCHE, bt_guru_rinpoche),
+    bt_read(
+        BT_GURU_RINPOCHE,
+        BT_LISTED.named("Birth Anniversary of Guru Rinpoche"),
+    ),
     bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, true),
     bt_predicted(BT_GURU_RINPOCHE, BT_FIFTH, 10, false),
     // 4th day of the 6th month.
-    bt_read(BT_FIRST_SERMON, bt_first_sermon),
+    bt_read(
+        BT_FIRST_SERMON,
+        BT_LISTED.named("First Sermon of Lord Buddha"),
+    ),
     bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, true),
     bt_predicted(BT_FIRST_SERMON, BT_SIXTH, 4, false),
-    bt("Blessed Rainy Day", bt_rainy_day),
-    bt("Dassain", bt_dassain),
+    bt("Blessed Rainy Day", BT_LISTED.named("Blessed Rainy Day")),
+    bt("Dassain", BT_LISTED.named("Dassain")),
     HolidayRule::fixed_public(
         "Coronation of His Majesty the King",
         "",
         Rule::gregorian(11, 1),
     ),
     // 22nd day of the 9th month.
-    bt_read(BT_DESCENDING_DAY, bt_descending_day),
+    bt_read(
+        BT_DESCENDING_DAY,
+        BT_LISTED.named("Descending Day of Lord Buddha"),
+    ),
     bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, true),
     bt_predicted(BT_DESCENDING_DAY, BT_NINTH, 22, false),
     HolidayRule::fixed_public(
@@ -6553,17 +6165,9 @@ const fn af_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-fn af_unread(_: i64) -> Days {
-    Days::new()
-}
-
 /// Days the Ministry announces Eid by Eid, in a year whose notice was not
 /// read.
-const AF_ANNOUNCED: Rule = Rule::Tabulated {
-    function: af_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const AF_ANNOUNCED: Rule = Rule::UNREAD;
 
 static AF_RULES: &[HolidayRule] = &[
     af_solar(

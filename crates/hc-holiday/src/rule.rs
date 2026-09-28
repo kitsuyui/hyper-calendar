@@ -8,7 +8,9 @@
 //! The vocabulary is the one `docs/observances.md` specifies, plus five
 //! shapes that fell out of writing the tables and that are still pure
 //! data: [`Rule::WeekdayOnOrAfter`], [`Rule::WeekdayOnOrBefore`],
-//! [`Rule::Offset`], [`Rule::Tabulated`] and [`Rule::Unsettled`].
+//! [`Rule::Offset`], [`Rule::Tabulated`] and [`Rule::Unsettled`]; and one
+//! for the dates a government or an exchange announces year by year,
+//! [`Rule::Listed`], which reads a [`Listing`].
 
 #[cfg(feature = "alloc")]
 use hc_astro::lunar::MoonPhase;
@@ -136,6 +138,146 @@ impl Days {
 impl Default for Days {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+/// A table of announced dates: the days a decree, a gazette, a notice or an
+/// exchange's schedule gives, year by year, for the holidays it names.
+///
+/// A country that publishes its holidays by annual act is a table of this
+/// type and [`Rule::Listed`] entries that read it; nothing else. The four
+/// shapes are the four in which the sources' tables were copied, so that a
+/// table reads as its source does. A row's year is Gregorian, and a row
+/// whose date does not exist is skipped.
+#[derive(Debug, Clone, Copy)]
+pub enum Listing {
+    /// `(year, month, day)`: the days of one holiday.
+    Dates(&'static [(i64, u8, u8)]),
+    /// `(year, month, day, name)`: the days of several, told apart by name.
+    Named(&'static [(i64, u8, u8, &'static str)]),
+    /// `(year, month, day, number)`: the days of several, told apart by a
+    /// number, as an exchange's schedule numbers its closures.
+    Numbered(&'static [(i64, u8, u8, u8)]),
+    /// `(year, first month, first day, last month, last day, name)`: spans
+    /// of days within one year, as an arrangement of days off gives them.
+    Spans(&'static [(i64, u8, u8, u8, u8, &'static str)]),
+}
+
+/// Which rows of a [`Listing`] an entry reads.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ListingKey {
+    /// Every row, for [`Listing::Dates`].
+    Every,
+    /// The rows with this name, for [`Listing::Named`] and
+    /// [`Listing::Spans`].
+    Name(&'static str),
+    /// The rows with this number, for [`Listing::Numbered`].
+    Number(u8),
+}
+
+/// One holiday's rows in a [`Listing`]: what a [`Rule::Listed`] reads.
+#[derive(Debug, Clone, Copy)]
+pub struct ListedEntry {
+    /// The table.
+    pub listing: &'static Listing,
+    /// Which of its rows.
+    pub key: ListingKey,
+}
+
+impl Listing {
+    /// Every row of a [`Listing::Dates`].
+    #[must_use]
+    pub const fn every(&'static self) -> ListedEntry {
+        ListedEntry {
+            listing: self,
+            key: ListingKey::Every,
+        }
+    }
+
+    /// The rows named `name` of a [`Listing::Named`] or [`Listing::Spans`].
+    #[must_use]
+    pub const fn named(&'static self, name: &'static str) -> ListedEntry {
+        ListedEntry {
+            listing: self,
+            key: ListingKey::Name(name),
+        }
+    }
+
+    /// The rows numbered `number` of a [`Listing::Numbered`].
+    #[must_use]
+    pub const fn numbered(&'static self, number: u8) -> ListedEntry {
+        ListedEntry {
+            listing: self,
+            key: ListingKey::Number(number),
+        }
+    }
+
+    /// Whether `key` can select rows of this table: [`ListingKey::Every`]
+    /// for dates, a name for named rows and spans, a number for numbered
+    /// ones.
+    #[must_use]
+    pub const fn accepts(&self, key: ListingKey) -> bool {
+        matches!(
+            (self, key),
+            (Self::Dates(_), ListingKey::Every)
+                | (Self::Named(_) | Self::Spans(_), ListingKey::Name(_))
+                | (Self::Numbered(_), ListingKey::Number(_))
+        )
+    }
+
+    /// The days the rows `key` selects give in `year`, in the table's
+    /// order.
+    #[must_use]
+    pub fn days_in(&self, year: i64, key: ListingKey) -> Days {
+        let mut out = Days::new();
+        let mut day = |y: i64, month: u8, day: u8| {
+            if y == year
+                && let Ok(fixed) = gregorian::to_fixed(y, month, day)
+            {
+                out.push(fixed);
+            }
+        };
+        match (self, key) {
+            (Self::Dates(rows), ListingKey::Every) => {
+                for &(y, month, d) in *rows {
+                    day(y, month, d);
+                }
+            }
+            (Self::Named(rows), ListingKey::Name(name)) => {
+                for &(y, month, d, entry) in *rows {
+                    if entry == name {
+                        day(y, month, d);
+                    }
+                }
+            }
+            (Self::Numbered(rows), ListingKey::Number(number)) => {
+                for &(y, month, d, entry) in *rows {
+                    if entry == number {
+                        day(y, month, d);
+                    }
+                }
+            }
+            (Self::Spans(rows), ListingKey::Name(name)) => {
+                for &(y, first_month, first_day, last_month, last_day, entry) in *rows {
+                    if entry != name || y != year {
+                        continue;
+                    }
+                    let (Ok(first), Ok(last)) = (
+                        gregorian::to_fixed(y, first_month, first_day),
+                        gregorian::to_fixed(y, last_month, last_day),
+                    ) else {
+                        continue;
+                    };
+                    for fixed in first.0..=last.0 {
+                        out.push(Rd(fixed));
+                    }
+                }
+            }
+            // A key of the wrong kind selects nothing; the tables' test
+            // refuses one.
+            _ => {}
+        }
+        out
     }
 }
 
@@ -918,15 +1060,38 @@ pub enum Rule {
     /// Easter is 23 April its Rules move the day onto 1 May, the day of
     /// Philip and James, and do not say which of the two is kept there.
     Unsettled(fn(i64) -> Option<Days>),
-    /// A computed rule backed by a published table, which therefore has a
+    /// The days a table of announced dates gives one holiday, for the
+    /// years `first_year` to `last_year`, and a gap in any other: a
+    /// government's annual decree, a gazette, an exchange's schedule.
+    ///
+    /// A table runs out, and outside the years read it yields nothing,
+    /// which must not look like a year without the day; so the years are
+    /// part of the rule, and a year outside them is reported as a gap. An
+    /// empty [`Listing`] with no years, [`Rule::UNREAD`], is a holiday
+    /// whose dates no source read gives at all.
+    Listed {
+        /// The table and the rows of it this holiday is.
+        entry: ListedEntry,
+        /// The first year the rows answer for.
+        ///
+        /// A table of announced dates lists years a government has
+        /// already reached, and the years are kept as `i16` so that this
+        /// variant is no larger than the vocabulary's others;
+        /// [`Rule::listed`] saturates a wider one.
+        first_year: i16,
+        /// The last.
+        last_year: i16,
+    },
+    /// A computed rule known only for stated years, which therefore has a
     /// last year.
     ///
-    /// [`Rule::Computed`] is a formula and answers for any year. A table
-    /// runs out, and when it does the function returns nothing — which
-    /// looks exactly like a year the holiday does not fall in. New
-    /// Zealand's Matariki is the case: the table here reaches 2035 and the
-    /// Act schedules dates through 2052, so from 2036 a public holiday
-    /// simply stopped appearing.
+    /// [`Rule::Computed`] is a formula and answers for any year. A
+    /// computation over a table runs out with the table, and when it does
+    /// the function returns nothing — which looks exactly like a year the
+    /// holiday does not fall in. Russia's transfers are the case: the days
+    /// off and the weekend days worked are computed from the decree's
+    /// transfers, which are read to a last year. A table read as it is,
+    /// with nothing computed over it, is a [`Rule::Listed`].
     Tabulated {
         /// The table, as a function of the Gregorian year.
         function: fn(i64) -> Days,
@@ -937,7 +1102,46 @@ pub enum Rule {
     },
 }
 
+/// A year as the `i16` a [`Rule::Listed`] keeps, saturated at its ends.
+const fn saturate_year(year: i64) -> i16 {
+    if year < i16::MIN as i64 {
+        i16::MIN
+    } else if year > i16::MAX as i64 {
+        i16::MAX
+    } else {
+        year as i16
+    }
+}
+
+/// The empty table [`Rule::UNREAD`] reads.
+static NOTHING_READ: Listing = Listing::Dates(&[]);
+
 impl Rule {
+    /// A holiday whose dates were not read in any source: every year it is
+    /// asked for is a gap.
+    pub const UNREAD: Self = Self::unlisted(1, 0);
+
+    /// A table read for `first_year` to `last_year` that lists nothing:
+    /// no day in those years, and a gap in any other.
+    #[must_use]
+    pub const fn unlisted(first_year: i64, last_year: i64) -> Self {
+        Self::listed(NOTHING_READ.every(), first_year, last_year)
+    }
+
+    /// The days `entry` gives for `first_year` to `last_year`, and a gap in
+    /// any other year; see [`Rule::Listed`].
+    ///
+    /// A year beyond the range of `i16` is taken as its nearest end, which
+    /// no table of announced dates reaches.
+    #[must_use]
+    pub const fn listed(entry: ListedEntry, first_year: i64, last_year: i64) -> Self {
+        Self::Listed {
+            entry,
+            first_year: saturate_year(first_year),
+            last_year: saturate_year(last_year),
+        }
+    }
+
     /// A fixed Gregorian date.
     #[must_use]
     pub const fn gregorian(month: u8, day: u8) -> Self {
@@ -1038,6 +1242,11 @@ impl Rule {
                 last_year,
                 ..
             } => (*first_year..=*last_year).contains(&year),
+            Self::Listed {
+                first_year,
+                last_year,
+                ..
+            } => (i64::from(*first_year)..=i64::from(*last_year)).contains(&year),
             Self::Unsettled(function) => function(year).is_some(),
             // A shifted rule needs its base in the same year. It also
             // *probes* the neighbouring years, because a shift can cross a
@@ -1297,6 +1506,9 @@ impl Rule {
             Self::Computed(function) => function(year).clamped(first, last),
             Self::Unsettled(function) => function(year).unwrap_or_default().clamped(first, last),
             Self::Tabulated { function, .. } => function(year).clamped(first, last),
+            Self::Listed { entry, .. } => {
+                entry.listing.days_in(year, entry.key).clamped(first, last)
+            }
         }
     }
 }

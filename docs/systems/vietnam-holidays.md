@@ -86,7 +86,7 @@ up on Monday 4 September, as Thông báo 5034/TB-LĐTBXH says.
   1570/TB-LĐTBXH (2024), 6150/TB-BLĐTBXH (2025), and for 2026 Thông báo
   9441/TB-BNV, Công văn 12729/VPCP-KGVX and Công văn 3383/BNV-CVL, which
   says that no swap was made around 30 April. Their Tết days, second
-  National Day days and swaps are `Rule::Tabulated` rules over 2021 to
+  National Day days and swaps are `Rule::Listed` rules over 2021 to
   2026, and a year outside is a gap.
 - **Not carried, and why:**
   - The years before 2021, under the Labour Code of 2012, whose text and
@@ -123,11 +123,12 @@ number them.
 
 ## Code
 
-`crates/hc-holiday/src/countries/asia.rs`: `VnFestival`, `VN_DAYS_OFF` and
-`VN_WORKDAYS` with `vn_days_off`, `vn_workdays` and the `vn_noticed!`
-lookups, `VN_NOTICES_FIRST` and `VN_NOTICES_LAST`, `VN_RULES`,
-`VN_SUBSTITUTION` and the table `VIETNAM`. The engine's part is
-`Rule::Tabulated`, `Kind::Workday` and `HolidayRule::workday`.
+`crates/hc-holiday/src/countries/asia.rs`: the holiday names of the
+module `vn`, the listings `VN_DAYS_OFF` (spans) and `VN_WORKDAYS` (named
+dates) read through `vn_off`, `vn_work` and `vn_noticed`,
+`VN_NOTICES_FIRST` and `VN_NOTICES_LAST`, `VN_RULES`, `VN_SUBSTITUTION`
+and the table `VIETNAM`. The engine's part is `Rule::Listed`,
+`Kind::Workday` and `HolidayRule::workday`.
 
 Anchors, in `crates/hc-holiday/tests/countries.rs`: `vietnam_holidays` and
 `vietnam_keeps_each_years_notices`.

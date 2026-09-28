@@ -160,7 +160,7 @@ prose:
 - **Launder a modern invention.** See the Celtic tree calendar.
 - **Duplicate a neighbour.** Japan's 和風月名 (睦月…師走) are `hc-i18n`'s and stay
   there; the 七曜 as an almanac annotation are `hc-almanac`'s; 中秋の名月 and
-  十三夜 are `hc-seasons`'. Tests forbid the 和風月名 appearing here.
+  十三夜 are `hc-almanac`'s. Tests forbid the 和風月名 appearing here.
 
 ## Accuracy
 

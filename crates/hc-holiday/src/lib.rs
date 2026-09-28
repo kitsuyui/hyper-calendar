@@ -4,11 +4,13 @@
 //! one rule vocabulary; every country and every religious tradition in it is
 //! a table of rule values, and adding a country adds no branch to the
 //! engine. Where a country's law says something the vocabulary has no
-//! shape for — Oman's compensation days, Russia's transfers, the days
-//! Vietnam's notices give — the table carries it as a [`Rule::Computed`]
-//! or [`Rule::Tabulated`] function beside the table, named after the
-//! country it serves, and the engine calls it like any other rule without
-//! knowing whose it is. A caller who wants a company calendar, a school
+//! shape for — Oman's compensation days, Russia's transfers — the table
+//! carries it as a [`Rule::Computed`] or [`Rule::Tabulated`] function beside
+//! the table, named after the country it serves, and the engine calls it
+//! like any other rule without knowing whose it is. The days a decree, a
+//! gazette or an exchange announces year by year — Vietnam's notices,
+//! China's arrangements — are not code at all but a [`Listing`], read by a
+//! [`Rule::Listed`]. A caller who wants a company calendar, a school
 //! year or a fictional setting supplies their own [`RuleSet`] and gets the
 //! same machinery.
 //!
@@ -110,8 +112,9 @@ pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
 #[cfg(feature = "alloc")]
 pub use rule::EvaluationContext;
 pub use rule::{
-    BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, Rule, RuleSet, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, TibetanMonth, WeekendPolicy,
+    BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing,
+    ListingKey, Rule, RuleSet, SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth,
+    WeekendPolicy,
 };
 
 #[cfg(feature = "alloc")]

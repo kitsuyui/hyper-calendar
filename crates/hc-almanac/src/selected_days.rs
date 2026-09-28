@@ -659,63 +659,67 @@ mod tests {
     /// 一粒万倍日 by this table and 2024 holds 62.
     #[test]
     fn the_published_2025_grain_days_match_month_by_month() {
-        let expected: [&[i64]; 12] = [
-            &[7, 10, 19, 22, 31],
-            &[6, 13, 18, 25],
-            &[2, 5, 10, 17, 22, 29],
-            &[3, 4, 13, 16, 25, 28],
-            &[10, 11, 22, 23],
-            &[3, 4, 5, 6, 17, 18, 29, 30],
-            &[12, 15, 24, 27],
-            &[5, 11, 18, 23, 30],
-            &[4, 7, 12, 19, 24],
-            &[1, 6, 16, 19, 28, 31],
-            &[12, 13, 24, 25],
-            &[6, 8, 9, 20, 21],
-        ];
-        const LENGTHS: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        for month in 1..=12u32 {
-            for day in 1..=LENGTHS[(month - 1) as usize] {
-                assert_eq!(
-                    holds(SelectedDay::ICHIRYU_MANBAI, rd_2025(month, day)),
-                    expected[(month - 1) as usize].contains(&day),
-                    "2025-{month:02}-{day:02}"
-                );
+        hc_core::memo::scope(|| {
+            let expected: [&[i64]; 12] = [
+                &[7, 10, 19, 22, 31],
+                &[6, 13, 18, 25],
+                &[2, 5, 10, 17, 22, 29],
+                &[3, 4, 13, 16, 25, 28],
+                &[10, 11, 22, 23],
+                &[3, 4, 5, 6, 17, 18, 29, 30],
+                &[12, 15, 24, 27],
+                &[5, 11, 18, 23, 30],
+                &[4, 7, 12, 19, 24],
+                &[1, 6, 16, 19, 28, 31],
+                &[12, 13, 24, 25],
+                &[6, 8, 9, 20, 21],
+            ];
+            const LENGTHS: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            for month in 1..=12u32 {
+                for day in 1..=LENGTHS[(month - 1) as usize] {
+                    assert_eq!(
+                        holds(SelectedDay::ICHIRYU_MANBAI, rd_2025(month, day)),
+                        expected[(month - 1) as usize].contains(&day),
+                        "2025-{month:02}-{day:02}"
+                    );
+                }
             }
-        }
+        });
     }
 
     /// The 2025 三隣亡, as published by こよみる: twenty-nine days.
     #[test]
     fn the_published_2025_sanrinbo_days_match_month_by_month() {
-        let expected: [&[i64]; 12] = [
-            &[13, 25],
-            &[11, 23],
-            &[10, 22],
-            &[3, 7, 19],
-            &[1, 6, 18, 30],
-            &[14, 26],
-            &[12, 24],
-            &[5, 10, 22],
-            &[3, 18, 30],
-            &[16, 28],
-            &[14, 26],
-            &[11, 23],
-        ];
-        const LENGTHS: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        let mut total = 0;
-        for month in 1..=12u32 {
-            for day in 1..=LENGTHS[(month - 1) as usize] {
-                let holds_today = holds(SelectedDay::SANRINBO, rd_2025(month, day));
-                assert_eq!(
-                    holds_today,
-                    expected[(month - 1) as usize].contains(&day),
-                    "2025-{month:02}-{day:02}"
-                );
-                total += i32::from(holds_today);
+        hc_core::memo::scope(|| {
+            let expected: [&[i64]; 12] = [
+                &[13, 25],
+                &[11, 23],
+                &[10, 22],
+                &[3, 7, 19],
+                &[1, 6, 18, 30],
+                &[14, 26],
+                &[12, 24],
+                &[5, 10, 22],
+                &[3, 18, 30],
+                &[16, 28],
+                &[14, 26],
+                &[11, 23],
+            ];
+            const LENGTHS: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+            let mut total = 0;
+            for month in 1..=12u32 {
+                for day in 1..=LENGTHS[(month - 1) as usize] {
+                    let holds_today = holds(SelectedDay::SANRINBO, rd_2025(month, day));
+                    assert_eq!(
+                        holds_today,
+                        expected[(month - 1) as usize].contains(&day),
+                        "2025-{month:02}-{day:02}"
+                    );
+                    total += i32::from(holds_today);
+                }
             }
-        }
-        assert_eq!(total, 29);
+            assert_eq!(total, 29);
+        });
     }
 
     /// 2025 had a leap sixth month, and its 不成就日 fall on the *sixth
@@ -872,39 +876,43 @@ mod tests {
     /// seven times a Gregorian year and exactly once in any sixty days.
     #[test]
     fn the_single_sexagenary_days_fall_once_in_sixty() {
-        for kind in [
-            SelectedDay::KOSHIN,
-            SelectedDay::KINOENE,
-            SelectedDay::TSUCHINOTO_MI,
-            SelectedDay::EARTH_TABOO_INTERVAL,
-        ] {
-            let count = (0..60)
-                .filter(|offset| holds(kind, NEW_YEAR_2025 + offset))
-                .count();
-            assert_eq!(count, 1, "{}", kind.japanese_name());
-        }
+        hc_core::memo::scope(|| {
+            for kind in [
+                SelectedDay::KOSHIN,
+                SelectedDay::KINOENE,
+                SelectedDay::TSUCHINOTO_MI,
+                SelectedDay::EARTH_TABOO_INTERVAL,
+            ] {
+                let count = (0..60)
+                    .filter(|offset| holds(kind, NEW_YEAR_2025 + offset))
+                    .count();
+                assert_eq!(count, 1, "{}", kind.japanese_name());
+            }
+        });
     }
 
     /// The two 犯土 runs and their 間日 make fifteen consecutive positions,
     /// 庚午 through 甲申, with no gap and no overlap.
     #[test]
     fn the_two_earth_taboos_and_their_interval_day_are_contiguous() {
-        let mut run = 0;
-        for offset in 0..60 {
-            let rd = NEW_YEAR_2025 + offset;
-            let great = holds(SelectedDay::GREAT_EARTH_TABOO, rd);
-            let lesser = holds(SelectedDay::LESSER_EARTH_TABOO, rd);
-            let between = holds(SelectedDay::EARTH_TABOO_INTERVAL, rd);
-            assert!(u8::from(great) + u8::from(lesser) + u8::from(between) <= 1);
-            let position = on(rd).sexagenary().index();
-            assert_eq!(
-                great || lesser || between,
-                (6..=20).contains(&position),
-                "at sexagenary {position}"
-            );
-            run += i32::from(great || lesser || between);
-        }
-        assert_eq!(run, 15);
+        hc_core::memo::scope(|| {
+            let mut run = 0;
+            for offset in 0..60 {
+                let rd = NEW_YEAR_2025 + offset;
+                let great = holds(SelectedDay::GREAT_EARTH_TABOO, rd);
+                let lesser = holds(SelectedDay::LESSER_EARTH_TABOO, rd);
+                let between = holds(SelectedDay::EARTH_TABOO_INTERVAL, rd);
+                assert!(u8::from(great) + u8::from(lesser) + u8::from(between) <= 1);
+                let position = on(rd).sexagenary().index();
+                assert_eq!(
+                    great || lesser || between,
+                    (6..=20).contains(&position),
+                    "at sexagenary {position}"
+                );
+                run += i32::from(great || lesser || between);
+            }
+            assert_eq!(run, 15);
+        });
     }
 
     /// The lesser earth taboo closes on 甲申, which is also the day 十方暮
@@ -922,18 +930,20 @@ mod tests {
 
     #[test]
     fn the_set_of_a_day_agrees_with_the_individual_rules() {
-        for offset in 0..90 {
-            let rd = Rd(NEW_YEAR_2025 + offset);
-            let set = selected_days(rd, Meridian::JAPAN);
-            for kind in SelectedDay::ALL.iter().copied() {
-                assert_eq!(
-                    set.contains(kind),
-                    holds(kind, rd.0),
-                    "{} at RD {}",
-                    kind.japanese_name(),
-                    rd.0
-                );
+        hc_core::memo::scope(|| {
+            for offset in 0..90 {
+                let rd = Rd(NEW_YEAR_2025 + offset);
+                let set = selected_days(rd, Meridian::JAPAN);
+                for kind in SelectedDay::ALL.iter().copied() {
+                    assert_eq!(
+                        set.contains(kind),
+                        holds(kind, rd.0),
+                        "{} at RD {}",
+                        kind.japanese_name(),
+                        rd.0
+                    );
+                }
             }
-        }
+        });
     }
 }

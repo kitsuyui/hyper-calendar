@@ -3,7 +3,7 @@
 //!
 //! A calendar names days. This crate names the *parts of the year* that sit
 //! underneath the naming — the 24 solar terms, the 72 pentads, the Japanese
-//! 雑節, the 六曜 cycle, the Moon's phases, and the four seasons under each
+//! 雑節, the Moon's phases, and the four seasons under each
 //! of the three definitions that disagree about them. None of it is a
 //! calendar; all of it is what a calendar prints in the margins.
 //!
@@ -13,7 +13,6 @@
 //!   and the 1874 Japanese name sets.
 //! * [`zassetsu`] — 雑節: 節分, 彼岸, 社日, 八十八夜, 入梅, 半夏生, 土用 with
 //!   its 丑の日, 二百十日 and 二百二十日, each with its rule as data.
-//! * [`rokuyo`] — 六曜, the six-day cycle Japanese calendars print.
 //! * [`san_fu`] — 三伏 and 數九, the Chinese dog days and the nine nines,
 //!   counted in 庚 days and in nines from the solstices.
 //! * [`meiyu`] — 入梅 and 出梅 of the Chinese almanac, the first 丙 or 壬
@@ -27,8 +26,8 @@
 //! * [`dog_days`] — the European dog days, under each convention that
 //!   dates them.
 //! * [`moon_calendar`] — phase names, 月齢, illuminated fraction, the four
-//!   principal phases of a month, 十五夜 and 十三夜, and the National
-//!   Astronomical Observatory's 伝統的七夕.
+//!   principal phases of a month, and the National Astronomical
+//!   Observatory's 伝統的七夕.
 //! * [`seasons`] — the four seasons, astronomical, meteorological and East
 //!   Asian.
 //! * [`zodiac`] — 黄道十二宮: the ecliptic cut into twelve, tropically
@@ -37,9 +36,6 @@
 //!   Chinese 十二次; and each tropical sign in three decans of 10°.
 //! * [`planetary_hours`] — the twenty-four unequal hours from sunrise, each
 //!   ruled by a planet in the Chaldean order.
-//! * [`lunisolar`] — a minimal month-and-day derivation, kept rather than
-//!   routed through `hc-calendars-lunar` for measured reasons the module
-//!   itself records.
 //!
 //! The solar terms, the pentads, the meridians and the zodiac are written up
 //! in `docs/systems/solar-terms-and-pentads.md` in the repository — the
@@ -92,14 +88,12 @@
 pub mod cold_food;
 pub mod dog_days;
 pub mod hizir_kasim;
-pub mod lunisolar;
 pub mod meiyu;
 pub mod meridian;
 pub mod moon_calendar;
 pub mod pentads;
 pub mod planetary_hours;
 pub mod quarter_days;
-pub mod rokuyo;
 pub mod san_fu;
 pub mod seasons;
 pub mod solar_terms;
@@ -108,12 +102,10 @@ pub mod zodiac;
 
 pub use cold_food::ColdFoodConvention;
 pub use dog_days::DogDaysConvention;
-pub use lunisolar::LunisolarDay;
 pub use meridian::Meridian;
 pub use moon_calendar::PhaseName;
 pub use pentads::{Pentad, PentadPosition, PentadTradition};
 pub use quarter_days::{QuarterDay, QuarterDayTradition};
-pub use rokuyo::Rokuyo;
 pub use seasons::{Hemisphere, Season, SeasonDefinition};
 pub use solar_terms::{SolarTerm, TermKind, TermOrder};
 pub use zassetsu::{Zassetsu, ZassetsuRule};

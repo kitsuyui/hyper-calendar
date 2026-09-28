@@ -25,9 +25,8 @@
 //! **even** indices are the twelve 中気 (*zhongqi*, principal terms, the
 //! multiples of 30°) and the **odd** indices are the twelve 節気 (sectional
 //! terms). The lunisolar leap-month rule is "a month containing no 中気 is a
-//! leap month", so this distinction is not decoration — see
-//! [`crate::lunisolar`], which depends on it, and [`crate::rokuyo`], which is
-//! built on that.
+//! leap month", so this distinction is not decoration: `hc-calendars-lunar`'s
+//! lunisolar calendars count the 中気.
 //!
 //! # The day is not the instant
 //!
