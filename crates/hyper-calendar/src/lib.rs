@@ -94,6 +94,7 @@ pub mod civil;
 pub mod crescent_lines;
 #[cfg(all(feature = "alloc", feature = "deep-time"))]
 pub mod deep_time_lines;
+mod exports;
 #[cfg(all(
     feature = "alloc",
     feature = "indic",
@@ -113,6 +114,8 @@ pub mod hours_lines;
     feature = "format"
 ))]
 pub mod lines;
+#[cfg(all(feature = "alloc", feature = "orbital"))]
+pub mod orbital_lines;
 #[cfg(all(feature = "alloc", feature = "indic"))]
 pub mod panchanga_lines;
 #[cfg(all(feature = "alloc", feature = "planetary"))]

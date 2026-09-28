@@ -1,6 +1,9 @@
 //! The tab-separated lines the WebAssembly module and the C library write
 //! about the holiday tables and the liturgical year, written once.
 //!
+//! * The holidays of a year in one table, and of a day across every table,
+//!   from [`hc_holiday::engine`], and whether a day is a day off; the table
+//!   an identifier names is [`rule_set`]'s.
 //! * The tables themselves, in the order `hc_holiday_codes` lists them,
 //!   with the kind each is, its names, its sources and the country an
 //!   exchange keeps the holidays of, each read from the table's own data
@@ -20,7 +23,7 @@
 //!   [`hc_holiday::orthodox_fasts`]: two reckonings, two identifiers
 //!   (`docs/policy.md` §5), which the caller names.
 
-use alloc::string::String;
+use alloc::string::{String, ToString};
 
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
@@ -225,6 +228,153 @@ pub fn holiday_tables(locale: &str) -> String {
         line.end();
     }
     out
+}
+
+/// The table an identifier names: a country's ISO 3166-1 alpha-2 code, an
+/// exchange's ISO 10383 Market Identifier Code, a tradition's slug or
+/// `un-days`, tried in that order, each matched as `docs/policy.md` §5
+/// says.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a code that names no table.
+pub fn rule_set(code: &str) -> Answer<&'static RuleSet> {
+    countries::by_code(code)
+        .or_else(|| exchanges::by_code(code))
+        .or_else(|| traditions::by_code(code))
+        .or_else(|| international::by_code(code))
+        .ok_or(Refusal::Unknown)
+}
+
+/// The lines of `hc_holiday_codes`: every table's identifier, one per
+/// line, in [`tables`]' order.
+#[must_use]
+pub fn holiday_codes() -> String {
+    let mut out = String::new();
+    for set in tables() {
+        let mut line = Line::new(&mut out);
+        line.cell(set.code);
+        line.end();
+    }
+    out
+}
+
+/// A day as ISO 8601 text, or `?` for one with no Gregorian date, which
+/// no holiday of a year's table falls on.
+fn iso(day: Rd) -> String {
+    crate::civil::Date::from_ordinal(day.0)
+        .map_or_else(|_| String::from("?"), |date| date.to_string())
+}
+
+/// The holidays of a Gregorian year in a table, nationwide or in a
+/// subdivision, one line each: the ISO 8601 date, the name, the local
+/// name, the kind, the confidence, `1` for a substitute day and `0`
+/// otherwise, and the ISO 8601 date the substitute stands in for or
+/// nothing, tab-separated.
+#[must_use]
+pub fn year_lines(table: &RuleSet, region: Option<&str>, year: i64) -> String {
+    let calendar = HolidayCalendar::for_year(table, region, year);
+    let mut out = String::new();
+    for holiday in calendar.all() {
+        let mut line = Line::new(&mut out);
+        line.cell(&iso(holiday.date))
+            .cell(holiday.name)
+            .cell(holiday.local_name)
+            .cell(holiday.kind.id())
+            .cell(holiday.confidence.id())
+            .flag(holiday.is_substitute())
+            .cell_or_empty(holiday.observed_for.map(iso).as_deref());
+        line.end();
+    }
+    out
+}
+
+/// The lines of `hc_holidays_in_year`: [`year_lines`] for the table
+/// `code` names, in the subdivision `region` names, or nationwide for
+/// none.
+///
+/// # Errors
+///
+/// As [`rule_set`].
+pub fn holidays_in_year(code: &str, region: Option<&str>, year: i64) -> Answer<String> {
+    Ok(year_lines(rule_set(code)?, region, year))
+}
+
+/// One table's lines of `hc_holidays_on` for one day: the entries
+/// `calendar` has on the day, then the gaps it reports. Tab-separated:
+/// the table's identifier, its English name, the holiday's English name,
+/// its local name, the kind, the confidence, the instrument the rule
+/// cites, `1` for a substitute day and `0` otherwise, and the fixed day a
+/// substitute stands in for or nothing; a gap has the kind `gap`, an
+/// empty confidence and source, `0` and nothing.
+pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
+    for holiday in calendar.on(day) {
+        let mut line = Line::new(out);
+        line.cell(table.code)
+            .cell(table.english_name)
+            .cell(holiday.name)
+            .cell(holiday.local_name)
+            .cell(holiday.kind.id())
+            .cell(holiday.confidence.id())
+            .cell(holiday.source)
+            .flag(holiday.is_substitute())
+            .value_or_empty(holiday.observed_for.map(|day| day.0));
+        line.end();
+    }
+    // A gap is a holiday the table could not place this year — its
+    // calendar's range ended, or no announcement was read — and it is
+    // reported rather than left out, so that a caller can say so.
+    for gap in calendar.gaps() {
+        let mut line = Line::new(out);
+        line.cell(table.code)
+            .cell(table.english_name)
+            .cell(gap.name)
+            .cell(gap.local_name)
+            .cell("gap")
+            .empties(2)
+            .flag(false)
+            .empty();
+        line.end();
+    }
+}
+
+/// The lines of `hc_holidays_on`: [`push_day_lines`] for every table in
+/// [`tables`]' order, each evaluated nationwide.
+///
+/// One memo serves every table: the astronomy the tables share — the same
+/// tithis, the same new moons — is done once, the answers the context
+/// keeps in it and the solstices and new moons of the lunisolar
+/// conversions in the scope.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day with no Gregorian year.
+pub fn holidays_on(fixed: i64) -> Answer<String> {
+    let day = Rd(fixed);
+    gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
+    let mut out = String::new();
+    let mut context = hc_holiday::EvaluationContext::new();
+    hc_core::memo::scope(|| {
+        for table in tables() {
+            let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
+            push_day_lines(&mut out, table, &calendar, day);
+        }
+    });
+    Ok(out)
+}
+
+/// Whether a fixed day is a day off in the table `code` names, nationwide
+/// or in the subdivision `region` names.
+///
+/// # Errors
+///
+/// As [`rule_set`], and [`Refusal::OutOfRange`] for a day with no
+/// Gregorian year.
+pub fn is_day_off(code: &str, region: Option<&str>, fixed: i64) -> Answer<bool> {
+    let table = rule_set(code)?;
+    let day = Rd(fixed);
+    gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
+    Ok(HolidayCalendar::for_day(table, region, day).is_holiday(day))
 }
 
 /// The line of `hc_lectionary`: the liturgical year a day falls in, named
@@ -917,5 +1067,66 @@ mod tests {
             Ok("Good Friday\tprincipal-holy-day\tPrincipal Holy Day\n")
         );
         assert_eq!(common_worship_lines(i64::MAX), Err(Refusal::OutOfRange));
+    }
+
+    /// A table of one holiday whose names hold a tab and line breaks, as
+    /// data can.
+    fn table_with_separators_in_its_names() -> &'static RuleSet {
+        use hc_holiday::rule::{HolidayRule, Rule, SATURDAY_SUNDAY, SourceDate};
+        static RULES: [HolidayRule; 1] = [HolidayRule::public(
+            "New\tYear's\nDay",
+            "元\r\n日",
+            Rule::FixedGregorian { month: 1, day: 1 },
+        )];
+        static TABLE: RuleSet = RuleSet {
+            code: "XX",
+            english_name: "A\ttest",
+            rules: &RULES,
+            substitution: &[],
+            bridges: &[],
+            includes: &[],
+            weekend: SATURDAY_SUNDAY,
+            sources_checked: SourceDate::new(2026, 9, 28),
+            sources: "invented for the test",
+        };
+        &TABLE
+    }
+
+    /// The names are cells: their tab and line breaks are spaces, and the
+    /// line keeps its seven columns. The year's lines wrote them raw
+    /// before, so a tab in a name shifted every column after it.
+    #[test]
+    fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns() {
+        let text = year_lines(table_with_separators_in_its_names(), None, 2026);
+        assert_eq!(
+            text,
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\n"
+        );
+    }
+
+    /// The lines of a day write the same names as cells, the table's name
+    /// too.
+    #[test]
+    fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns_on_a_day() {
+        let table = table_with_separators_in_its_names();
+        let day = Rd(ymd(2026, 1, 1));
+        let calendar = HolidayCalendar::for_day(table, None, day);
+        let mut out = String::new();
+        push_day_lines(&mut out, table, &calendar, day);
+        assert_eq!(
+            out,
+            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\n"
+        );
+    }
+
+    /// Every table is found by its own code, and a code that names none is
+    /// refused.
+    #[test]
+    fn every_table_is_the_rule_set_its_code_names() {
+        for table in tables() {
+            assert_eq!(rule_set(table.code).map(|set| set.code), Ok(table.code));
+        }
+        assert_eq!(rule_set("ZZ").map(|set| set.code), Err(Refusal::Unknown));
+        assert_eq!(holiday_codes().lines().count(), tables().count());
     }
 }

@@ -455,7 +455,8 @@ that have a document, and the ones that should have one and do not yet.
   caller hands the WebAssembly module or the C library through
   `hc_zone_load`. The table keeps each zone by name for the life of the
   process, and the zone exports read that name's rules from it. It holds
-  only what the caller loaded.
+  only what the caller loaded, and is kept once, in
+  `hyper_calendar::zone_lines`, for both boundaries.
 
 Within a call, `hc_core::memo` caches the results of pure functions in
 thread-local storage. The storage is emptied when the call's scope ends. So

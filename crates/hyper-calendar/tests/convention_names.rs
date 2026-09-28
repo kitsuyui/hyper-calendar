@@ -29,9 +29,14 @@ use hyper_calendar::hc_seasons::meiyu::PlumRainRule;
 use hyper_calendar::hc_seasons::meridian::NamedMeridian;
 use hyper_calendar::hc_seasons::zodiac::SiderealSign;
 
-const FFI_SOURCE: &str = "../hyper-calendar-ffi/src/lib.rs";
+#[path = "support/boundaries.rs"]
+mod boundaries;
+
+/// The C library's exports, by the name of its crate.
+const FFI_SOURCE: &str = "../hyper-calendar-ffi";
 const FFI_README: &str = "../hyper-calendar-ffi/README.md";
-const WASM_SOURCE: &str = "../hyper-calendar-wasm/src/lib.rs";
+/// The WebAssembly module's exports, by the name of its crate.
+const WASM_SOURCE: &str = "../hyper-calendar-wasm";
 const WASM_README: &str = "../hyper-calendar-wasm/README.md";
 const DTS: &str = "../hyper-calendar-wasm/js/hyper-calendar.d.ts";
 const BINDING: &str = "../hyper-calendar-wasm/js/hyper-calendar.js";
@@ -349,9 +354,18 @@ fn problems(listed: &Listed, dts: &str, sources: &[(&str, String)], binding: &st
 #[test]
 fn every_list_of_a_conventions_names_is_its_table() {
     let dts = read(DTS);
+    // Each boundary's rustdoc as a source text: its own exports' and the
+    // facade table's rows it expands.
+    let rustdoc_of = |crate_dir: &str, side| {
+        boundaries::as_source(&boundaries::exports(
+            std::path::Path::new(crate_dir),
+            std::path::Path::new("."),
+            side,
+        ))
+    };
     let sources = [
-        (FFI_SOURCE, read(FFI_SOURCE)),
-        (WASM_SOURCE, read(WASM_SOURCE)),
+        (FFI_SOURCE, rustdoc_of(FFI_SOURCE, boundaries::Side::C)),
+        (WASM_SOURCE, rustdoc_of(WASM_SOURCE, boundaries::Side::Wasm)),
     ];
     let binding = read(BINDING);
     let found: Vec<String> = listed()
