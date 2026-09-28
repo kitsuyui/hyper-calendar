@@ -5,6 +5,12 @@
 //! transition of one zone at an instant, from whichever rules the boundary
 //! crate chose for the name — the rules its day in the zone comes from.
 //!
+//! The zones a caller loads as TZif bytes are kept here too, in the one
+//! piece of state that outlives a call (`docs/policy.md` §13): [`load_zone`]
+//! keeps them, and [`with_zone`] reads a name from them before the built-in
+//! table, for the day, the start of a day, the offset and a radio frame's
+//! summer time alike.
+//!
 //! A line is one row of [`hc_tz::location`]: the zone, the latitude and
 //! longitude of its principal location in decimal degrees, its countries,
 //! the one country `zone.tab` lists it under, the table's comment, and the zone's exemplar city in a locale with the
@@ -231,6 +237,121 @@ pub fn zone_offset(zone: &dyn TimeZone, rules: ZoneRules, unix_seconds: i64) -> 
     line.cell(rules.name());
     line.end();
     Ok(out)
+}
+
+/// The zones a caller has handed the boundary as TZif bytes, by name.
+///
+/// Behind a mutex because a `static` has to be: a WebAssembly instance is
+/// single-threaded, and a C caller may call from several threads. The
+/// bytes are kept and parsed again on every call, which is a few
+/// microseconds against the cost of owning a borrowed parse across the
+/// boundary.
+#[cfg(feature = "std")]
+static LOADED: std::sync::Mutex<alloc::vec::Vec<(String, alloc::vec::Vec<u8>)>> =
+    std::sync::Mutex::new(alloc::vec::Vec::new());
+
+/// Keep TZif bytes under a zone's name, replacing any kept under a name
+/// that matches it. The bytes are copied, and nothing is kept on failure.
+///
+/// # Errors
+///
+/// [`Refusal::Malformed`] for bytes that are not a TZif file.
+#[cfg(feature = "std")]
+pub fn load_zone(name: &str, bytes: &[u8]) -> Answer<()> {
+    hc_tz::TzifTimeZone::parse(name, bytes).map_err(|_| Refusal::Malformed)?;
+    let mut loaded = LOADED
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some(slot) = loaded
+        .iter_mut()
+        .find(|(known, _)| hc_core::catalogue::matches(name, known))
+    {
+        slot.1 = bytes.to_vec();
+    } else {
+        loaded.push((String::from(name), bytes.to_vec()));
+    }
+    Ok(())
+}
+
+/// The zone a name selects — one loaded through [`load_zone`] first,
+/// because a caller that supplied the IANA data for a name wants that and
+/// not the built-in approximation, then the built-in table — handed to
+/// `answer` with which of the two it is. Every export that reads a zone by
+/// name reads it here, so that the day, the offset and a radio frame's
+/// summer time come from the same rules.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a name neither knows.
+#[cfg(feature = "std")]
+pub fn with_zone<R>(name: &str, answer: impl FnOnce(&dyn TimeZone, ZoneRules) -> R) -> Answer<R> {
+    let loaded = LOADED
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    if let Some((known, bytes)) = loaded
+        .iter()
+        .find(|(known, _)| hc_core::catalogue::matches(name, known))
+    {
+        // Validated when it was loaded; a failure here is impossible, and
+        // would be reported as unknown rather than trapped on.
+        let zone = hc_tz::TzifTimeZone::parse(known, bytes).map_err(|_| Refusal::Unknown)?;
+        return Ok(answer(&zone, ZoneRules::Loaded));
+    }
+    drop(loaded);
+    let zone = hc_tz::builtin::zone(name).map_err(|_| Refusal::Unknown)?;
+    Ok(answer(&zone, ZoneRules::Builtin))
+}
+
+/// The fixed day a POSIX timestamp falls on by the wall clock of the zone
+/// a name selects, as [`with_zone`] reads it.
+///
+/// # Errors
+///
+/// As [`with_zone`], and [`Refusal::OutOfRange`] for an instant outside
+/// [`instant_in_zone_range`]'s years.
+#[cfg(feature = "std")]
+pub fn day_in_zone(unix_seconds: i64, name: &str) -> Answer<i64> {
+    with_zone(name, |zone, _| {
+        let instant = instant_in_zone_range(unix_seconds)?;
+        zone.local_at(instant)
+            .map(|local| local.day.0)
+            .map_err(|_| Refusal::OutOfRange)
+    })?
+}
+
+/// The POSIX timestamp at which a fixed day begins by the wall clock of the
+/// zone a name selects: its midnight, or the first instant after a gap
+/// that swallows it, or the earlier of two midnights when the clocks fall
+/// back across it.
+///
+/// # Errors
+///
+/// As [`with_zone`], and [`Refusal::OutOfRange`] for a day outside
+/// [`day_in_zone_range`]'s years.
+#[cfg(feature = "std")]
+pub fn start_in_zone(fixed: i64, name: &str) -> Answer<i64> {
+    use hc_calendar::CivilDateTime;
+    use hc_tz::LocalResolution;
+    with_zone(name, |zone, _| {
+        let day = day_in_zone_range(fixed)?;
+        let instant = match zone.resolve_local(CivilDateTime::midnight(day)) {
+            LocalResolution::Unambiguous(instant) => instant,
+            LocalResolution::Ambiguous { earlier, .. } => earlier,
+            LocalResolution::Nonexistent { after_gap, .. } => after_gap,
+        };
+        Ok(instant.seconds())
+    })?
+}
+
+/// The line of `hc_zone_offset`: [`zone_offset`] for the zone a name
+/// selects, from the rules [`with_zone`] reads.
+///
+/// # Errors
+///
+/// As [`with_zone`] and [`zone_offset`].
+#[cfg(feature = "std")]
+pub fn zone_offset_line(name: &str, unix_seconds: i64) -> Answer<String> {
+    with_zone(name, |zone, rules| zone_offset(zone, rules, unix_seconds))?
 }
 
 #[cfg(test)]

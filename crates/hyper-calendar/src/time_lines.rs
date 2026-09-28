@@ -441,6 +441,27 @@ const fn policy(strict: bool) -> LeapPolicy {
     }
 }
 
+/// Whether the UTC day containing a POSIX timestamp ends with an inserted
+/// leap second: whether `TAI − UTC` at the start of the next day exceeds
+/// its value at the start of this one, with the last published value held
+/// past the table.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a timestamp in a day whose start or whose
+/// end is not an `i64` — the first and last part-days of the range — and
+/// the leap-second table's refusal before 1961.
+pub fn day_has_leap_second(unix_seconds: i64) -> Answer<bool> {
+    let day_start = unix_seconds
+        .div_euclid(86_400)
+        .checked_mul(86_400)
+        .ok_or(Refusal::OutOfRange)?;
+    let next_day = day_start.checked_add(86_400).ok_or(Refusal::OutOfRange)?;
+    let before = unix::tai_minus_utc_at(day_start, LeapPolicy::Extrapolate)?;
+    let after = unix::tai_minus_utc_at(next_day, LeapPolicy::Extrapolate)?;
+    Ok(after > before)
+}
+
 /// The TAI instant of a POSIX timestamp, as whole seconds and attoseconds.
 ///
 /// # Errors

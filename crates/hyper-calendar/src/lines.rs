@@ -421,6 +421,27 @@ pub fn calendar_units(
     Ok(out)
 }
 
+/// The lines of `hc_calendar_units`: [`calendar_units`] for the calendar
+/// `id` names in [`crate::registry`], the unit given by its index as
+/// [`Unit::from_index`] reads it, from fixed day `from` up to `to`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an index that names no unit or an `id` that
+/// names no calendar, and as [`calendar_units`].
+pub fn calendar_units_by_id(
+    id: &str,
+    unit: u32,
+    from: i64,
+    to: i64,
+    locale: &str,
+) -> Answer<String> {
+    let unit = Unit::from_index(unit).ok_or(Refusal::Unknown)?;
+    let registry = crate::registry();
+    let calendar = registry.get_by_name(id).ok_or(Refusal::Unknown)?;
+    calendar_units(calendar, unit, Rd(from), Rd(to), locale)
+}
+
 /// Whether a calendar has each unit, judged from one converted day inside
 /// its range: `(era, year, month, day)`.
 fn has_units(calendar: &dyn DynCalendar, probe: Rd) -> (bool, bool, bool, bool) {

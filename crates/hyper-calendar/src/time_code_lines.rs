@@ -564,6 +564,65 @@ pub fn radio_encode_line_by_zone(
     )
 }
 
+/// The line of `hc_radio_encode`: [`radio_encode_line`]'s for a `summer`
+/// state named outright; or, for one that names a zone after
+/// [`RADIO_SUMMER_ZONE`], [`radio_encode_line_by_zone`]'s with the rules
+/// [`crate::zone_lines::with_zone`] reads for the name, which leaves
+/// `zone_change` and `dst_next` unread.
+///
+/// # Errors
+///
+/// As those two, and [`Refusal::Unknown`] for a name that selects no zone,
+/// or for any name in a build without the `tz` feature.
+pub fn radio_encode(
+    code: &str,
+    unix_seconds: i64,
+    leap: i32,
+    summer: &str,
+    zone_change: bool,
+    dut1_tenths: i32,
+    dst_next: u32,
+) -> Answer<String> {
+    match radio_summer_zone(summer) {
+        Some(zone) => radio_encode_in_zone(code, unix_seconds, leap, zone, dut1_tenths),
+        None => radio_encode_line(
+            code,
+            unix_seconds,
+            leap,
+            summer,
+            zone_change,
+            dut1_tenths,
+            dst_next,
+        ),
+    }
+}
+
+/// [`radio_encode_line_by_zone`] for the zone a name selects.
+#[cfg(all(feature = "tz", feature = "std"))]
+fn radio_encode_in_zone(
+    code: &str,
+    unix_seconds: i64,
+    leap: i32,
+    zone: &str,
+    dut1_tenths: i32,
+) -> Answer<String> {
+    crate::zone_lines::with_zone(zone, |zone, _| {
+        radio_encode_line_by_zone(code, unix_seconds, leap, zone, dut1_tenths)
+    })?
+}
+
+/// A build without `tz` has no zone to read the state from.
+#[cfg(not(all(feature = "tz", feature = "std")))]
+const fn radio_encode_in_zone(
+    _code: &str,
+    _unix_seconds: i64,
+    _leap: i32,
+    _zone: &str,
+    _dut1_tenths: i32,
+) -> Answer<String> {
+    Err(Refusal::Unknown)
+}
+
 /// What `hc_radio_encode`'s `summer` begins with to have the state read
 /// from a zone's rules: `zone:Europe/Berlin`.
 pub const RADIO_SUMMER_ZONE: &str = "zone:";
@@ -1008,7 +1067,7 @@ pub fn civil_from_six_hour_clock(
     minute: u32,
     second: u32,
     night: bool,
-) -> Answer<i64> {
+) -> Answer<u32> {
     let reckoning = six_hour_reckoning(reckoning)?;
     let field = |value: u32| u8::try_from(value).map_err(|_| Refusal::OutOfRange);
     if minute > 59 || second > 59 {
@@ -1023,9 +1082,9 @@ pub fn civil_from_six_hour_clock(
     };
     let civil = reckoning.civil(reading).map_err(|_| Refusal::OutOfRange)?;
     Ok(
-        i64::from(civil.hour()) * 3_600
-            + i64::from(civil.minute()) * 60
-            + i64::from(civil.second()),
+        u32::from(civil.hour()) * 3_600
+            + u32::from(civil.minute()) * 60
+            + u32::from(civil.second()),
     )
 }
 

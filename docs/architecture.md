@@ -127,10 +127,11 @@ boundary crates do.
 - `civil` is a layer shaped like Python's `datetime`: `Date`, `Time`,
   `DateTime` and `TimeDelta` over `Rd`, `CivilTime` and `Duration`.
   [python-parity.md](python-parity.md) maps it row by row.
-- The `*_lines` modules (`lines`, `time_lines`, `holiday_lines`,
-  `season_lines`, `sky_lines`, `astro_lines`, `panchanga_lines`,
-  `reckoning_lines`, `deep_time_lines`, `planetary_lines`,
-  `relativity_lines`) and
+- The `*_lines` modules (`lines`, `time_lines`, `time_code_lines`,
+  `holiday_lines`, `season_lines`, `sky_lines`, `astro_lines`,
+  `hours_lines`, `panchanga_lines`, `hindu_lines`, `crescent_lines`,
+  `almanac_lines`, `reckoning_lines`, `deep_time_lines`, `zone_lines`,
+  `orbital_lines`, `planetary_lines`, `relativity_lines`) and
   `calendar_values` produce the
   answers the two boundary crates return. Each answer about a set of things
   is a set of UTF-8 lines, one per entry, with tab-separated cells in a
@@ -138,15 +139,26 @@ boundary crates do.
   cell. `boundary::Refusal` is the one list of reasons a line-maker
   refuses: a library error becomes a refusal there, once, and each
   boundary spells a refusal as its own error code.
+- `zone_lines` also keeps the one piece of state that outlives a call
+  ([policy §13](policy.md#13-scope)): the zones a caller loads as TZif
+  bytes, which every export that reads a zone by name reads first.
+- `exports!` is the table of the exports both boundaries share, grouped
+  by layer. A row is an export's name, the kind of each argument, the
+  shape of its answer (a line, or a number), the line function that
+  answers, and the rustdoc each boundary gives it.
 
 The two *boundary crates*, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the
 same *layers*, each a Cargo feature: `civil` (the default), `timestamps`,
 `time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`,
 `orbital`, `planetary`, `relativity` and `full`. A page or a host program
-builds only the layers it loads. Each crate's README lists every export
-with the feature it needs. `crates/hyper-calendar/tests/abi.rs` renders
-those tables from the source and fails when they drift.
+builds only the layers it loads. Each layer is a module of each crate,
+which expands that layer's rows of the facade's `exports!` table with the
+crate's own marshalling (`marshal.rs`), and writes out by hand only the
+exports whose shape differs between the two. Each crate's README lists
+every export with the feature it needs. `crates/hyper-calendar/tests/abi.rs`
+renders those tables from the sources and the table, and fails when they
+drift.
 
 A calendar that cannot name a day answers with a line that says so. The
 line carries the stable code and name that `CalendarError` gives every
