@@ -14,8 +14,8 @@ use crate::computus::offsets::{
     HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 /// The British and Irish shift: a bank holiday on a weekend is kept on the
@@ -2843,14 +2843,7 @@ static LV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// the closing day was a day off for the participants alone, under the
 /// Song and Dance Celebration Law rather than this one. The next
 /// celebration is planned for 2028 and its date is not yet set.
-fn lv_song_and_dance_celebration(year: i64) -> Days {
-    let (month, day) = match year {
-        2018 => (7u8, 8u8),
-        2023 => (7, 9),
-        _ => return Days::new(),
-    };
-    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
-}
+static LV_SONG_AND_DANCE_CELEBRATION: Listing = Listing::Dates(&[(2018, 7, 8), (2023, 7, 9)]);
 
 static LV_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Jaungada diena", Rule::gregorian(1, 1)),
@@ -2875,11 +2868,7 @@ static LV_RULES: &[HolidayRule] = &[
     HolidayRule::public(
         "Closing Day of the Nationwide Latvian Song and Dance Celebration",
         "Vispārējo latviešu Dziesmu un deju svētku noslēguma diena",
-        Rule::Tabulated {
-            function: lv_song_and_dance_celebration,
-            first_year: 2018,
-            last_year: 2023,
-        },
+        Rule::listed(LV_SONG_AND_DANCE_CELEBRATION.every(), 2018, 2023),
     )
     .years(Some(2018), None),
     HolidayRule::public(
@@ -3803,20 +3792,12 @@ static BA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// A day of a Brčko Assembly decision, read from `table`, or nothing.
-fn ba_decided(table: &[(i64, u8, u8)], year: i64) -> Days {
-    table
-        .iter()
-        .find(|(decided, _, _)| *decided == year)
-        .and_then(|(_, month, day)| gregorian::to_fixed(year, *month, *day).ok())
-        .map_or_else(Days::new, Days::one)
-}
-
 /// The Assembly's decisions on the non-working days of the religious
 /// holidays, one a year from March or April to the January after, as read
 /// for the decisions of 2017 to 2026. The Assembly picks the day: Easter
 /// Monday in some years, Good Friday in others, and the working day next to
 /// a Christmas that falls at the weekend.
-static BA_BRCKO_CATHOLIC_EASTER: &[(i64, u8, u8)] = &[
+static BA_BRCKO_CATHOLIC_EASTER: Listing = Listing::Dates(&[
     (2017, 4, 17),
     (2018, 4, 2),
     (2019, 4, 22),
@@ -3827,8 +3808,8 @@ static BA_BRCKO_CATHOLIC_EASTER: &[(i64, u8, u8)] = &[
     (2024, 4, 1),
     (2025, 4, 18),
     (2026, 4, 6),
-];
-static BA_BRCKO_ORTHODOX_EASTER: &[(i64, u8, u8)] = &[
+]);
+static BA_BRCKO_ORTHODOX_EASTER: Listing = Listing::Dates(&[
     (2017, 4, 14),
     (2018, 4, 9),
     (2019, 4, 26),
@@ -3839,8 +3820,8 @@ static BA_BRCKO_ORTHODOX_EASTER: &[(i64, u8, u8)] = &[
     (2024, 5, 6),
     (2025, 4, 21),
     (2026, 4, 13),
-];
-static BA_BRCKO_EID_AL_FITR: &[(i64, u8, u8)] = &[
+]);
+static BA_BRCKO_EID_AL_FITR: Listing = Listing::Dates(&[
     (2017, 6, 26),
     (2018, 6, 15),
     (2019, 6, 4),
@@ -3851,8 +3832,8 @@ static BA_BRCKO_EID_AL_FITR: &[(i64, u8, u8)] = &[
     (2024, 4, 10),
     (2025, 3, 31),
     (2026, 3, 20),
-];
-static BA_BRCKO_EID_AL_ADHA: &[(i64, u8, u8)] = &[
+]);
+static BA_BRCKO_EID_AL_ADHA: Listing = Listing::Dates(&[
     (2017, 9, 1),
     (2018, 8, 21),
     (2019, 8, 12),
@@ -3863,8 +3844,8 @@ static BA_BRCKO_EID_AL_ADHA: &[(i64, u8, u8)] = &[
     (2024, 6, 17),
     (2025, 6, 6),
     (2026, 5, 27),
-];
-static BA_BRCKO_CATHOLIC_CHRISTMAS: &[(i64, u8, u8)] = &[
+]);
+static BA_BRCKO_CATHOLIC_CHRISTMAS: Listing = Listing::Dates(&[
     (2017, 12, 25),
     (2018, 12, 25),
     (2019, 12, 25),
@@ -3875,11 +3856,11 @@ static BA_BRCKO_CATHOLIC_CHRISTMAS: &[(i64, u8, u8)] = &[
     (2024, 12, 25),
     (2025, 12, 25),
     (2026, 12, 25),
-];
+]);
 /// The January of each decision is the next year's: the 2016 decision,
 /// which would give January 2017, was not read, and the 2026 decision
 /// gives January 2027.
-static BA_BRCKO_ORTHODOX_CHRISTMAS: &[(i64, u8, u8)] = &[
+static BA_BRCKO_ORTHODOX_CHRISTMAS: Listing = Listing::Dates(&[
     (2018, 1, 8),
     (2019, 1, 7),
     (2020, 1, 7),
@@ -3890,51 +3871,19 @@ static BA_BRCKO_ORTHODOX_CHRISTMAS: &[(i64, u8, u8)] = &[
     (2025, 1, 7),
     (2026, 1, 7),
     (2027, 1, 7),
-];
-
-fn ba_brcko_catholic_easter(year: i64) -> Days {
-    ba_decided(BA_BRCKO_CATHOLIC_EASTER, year)
-}
-
-fn ba_brcko_orthodox_easter(year: i64) -> Days {
-    ba_decided(BA_BRCKO_ORTHODOX_EASTER, year)
-}
-
-fn ba_brcko_eid_al_fitr(year: i64) -> Days {
-    ba_decided(BA_BRCKO_EID_AL_FITR, year)
-}
-
-fn ba_brcko_eid_al_adha(year: i64) -> Days {
-    ba_decided(BA_BRCKO_EID_AL_ADHA, year)
-}
-
-fn ba_brcko_catholic_christmas(year: i64) -> Days {
-    ba_decided(BA_BRCKO_CATHOLIC_CHRISTMAS, year)
-}
-
-fn ba_brcko_orthodox_christmas(year: i64) -> Days {
-    ba_decided(BA_BRCKO_ORTHODOX_CHRISTMAS, year)
-}
+]);
 
 /// A religious holiday's day in Brčko, as the Assembly's decisions give
 /// it for the years read and a gap for every other.
 const fn ba_brcko_decided(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
     first_year: i64,
     last_year: i64,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        local_name,
-        Rule::Tabulated {
-            function,
-            first_year,
-            last_year,
-        },
-    )
-    .in_regions(BA_BRCKO)
+    HolidayRule::fixed_public(name, local_name, Rule::listed(entry, first_year, last_year))
+        .in_regions(BA_BRCKO)
 }
 
 /// 9 January in the years whose announcements were read: the Ministry of
@@ -4102,42 +4051,42 @@ static BA_RULES: &[HolidayRule] = &[
     ba_brcko_decided(
         "Orthodox Christmas",
         "Božić (pravoslavni)",
-        ba_brcko_orthodox_christmas,
+        BA_BRCKO_ORTHODOX_CHRISTMAS.every(),
         2018,
         2027,
     ),
     ba_brcko_decided(
         "Catholic Easter",
         "Uskrs (katolički)",
-        ba_brcko_catholic_easter,
+        BA_BRCKO_CATHOLIC_EASTER.every(),
         2017,
         2026,
     ),
     ba_brcko_decided(
         "Orthodox Easter",
         "Vaskrs (pravoslavni)",
-        ba_brcko_orthodox_easter,
+        BA_BRCKO_ORTHODOX_EASTER.every(),
         2017,
         2026,
     ),
     ba_brcko_decided(
         "Eid al-Fitr",
         "Ramazanski bajram",
-        ba_brcko_eid_al_fitr,
+        BA_BRCKO_EID_AL_FITR.every(),
         2017,
         2026,
     ),
     ba_brcko_decided(
         "Eid al-Adha",
         "Kurban-bajram",
-        ba_brcko_eid_al_adha,
+        BA_BRCKO_EID_AL_ADHA.every(),
         2017,
         2026,
     ),
     ba_brcko_decided(
         "Catholic Christmas",
         "Božić (katolički)",
-        ba_brcko_catholic_christmas,
+        BA_BRCKO_CATHOLIC_CHRISTMAS.every(),
         2017,
         2026,
     ),

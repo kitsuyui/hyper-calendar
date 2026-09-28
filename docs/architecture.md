@@ -102,10 +102,10 @@ gives each crate's other direct dependencies. The workspace manifest,
 | `hc-planetary` | Mars sols, MTC, Darian and Martiana; Titan and Galilean circad calendars | `hc-astro` |
 | `hc-calendars-lunar` | Hijri, Hebrew, Samaritan, Babylonian, Chinese, Korean, Vietnamese, Tibetan and Mongolian, Javanese, the Japanese lunisolar systems | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-equinox` | Solar Hijri, Badíʿ and French Republican by the equinox | `hc-astro`, `hc-calendars-solar` |
-| `hc-seasons` | 24 terms, 72 pentads, 雑節, 六曜, the zodiac | `hc-astro`, `hc-calendars-solar`; `hc-calendars-lunar` behind its own `lunar` feature |
+| `hc-seasons` | 24 terms, 72 pentads, 雑節, moon phases, the zodiac | `hc-astro`, `hc-calendars-solar` |
 | `hc-calendars-regional` | Japanese, Qing and Korean eras, Maya, Aztec, Zapotec and Mixtec years, Pawukon, Burmese, Thai, Khmer and Lao lunar, Olympiads | `hc-calendars-solar`, `hc-calendars-lunar` |
 | `hc-calendars-indic` | Hindu lunisolar and solar calendars, Bikram and Nepal Sambat | `hc-astro`, `hc-calendars-solar`, `hc-seasons` |
-| `hc-almanac` | 暦注; 恵方, 三元九運, 손 없는 날 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
+| `hc-almanac` | 暦注, 六曜, 十五夜 and 十三夜 from the Japanese 旧暦; 恵方, 三元九運, 손 없는 날 | `hc-astro`, `hc-calendars-lunar`, `hc-seasons` |
 | `hc-attributes` | Birthstones and the like | `hc-seasons` |
 | `hc-name-days` | Name-day lists by authority and edition, and a loader for licensed ones | — |
 | `hc-fiscal` | Fiscal and academic years | `hc-calendars-solar`, `hc-calendars-indic` |

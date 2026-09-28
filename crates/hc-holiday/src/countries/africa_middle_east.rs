@@ -20,8 +20,8 @@ use crate::computus::offsets::{
 };
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
-    BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
+    SATURDAY_SUNDAY, SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 /// The Friday–Saturday weekend, as most of the Arab world keeps it, for a
@@ -2463,19 +2463,11 @@ static BF_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: Some(2025),
 }];
 
-fn bf_unread(_year: i64) -> Days {
-    Days::new()
-}
-
 /// The Monday after a Sunday holiday in 2026, the year the new law was
 /// adopted: its promulgation date was not read, so whether the old
 /// article 2 still gave a Sunday's Monday in the first months of 2026 is
 /// not known.
-const BF_2026_MONDAYS: Rule = Rule::Tabulated {
-    function: bf_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const BF_2026_MONDAYS: Rule = Rule::UNREAD;
 
 static BF_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
@@ -2623,18 +2615,10 @@ pub static BURKINA_FASO: RuleSet = RuleSet {
 // Cabo Verde
 // ─────────────────────────────────────────────────────────────────────────
 
-fn cv_unread(_year: i64) -> Days {
-    Days::new()
-}
-
 /// 13 January in the years between law 16/IV/91, which does not have it,
 /// and 2020, the first year a source read calls it a national holiday: the
 /// law that added it was not read.
-const CV_DEMOCRACY_DAY_UNREAD: Rule = Rule::Tabulated {
-    function: cv_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const CV_DEMOCRACY_DAY_UNREAD: Rule = Rule::UNREAD;
 
 static CV_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
@@ -4258,12 +4242,6 @@ static CD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: Some(2025),
 }];
 
-/// Nothing: no communiqué for 2027 or later was read, so a weekend holiday
-/// moved by one is a gap in those years.
-fn cd_unread(_: i64) -> Days {
-    Days::new()
-}
-
 static CD_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
     HolidayRule::public(
@@ -4334,14 +4312,12 @@ static CD_RULES: &[HolidayRule] = &[
     .years(Some(2026), Some(2026)),
     HolidayRule::fixed_public("Parents' Day", "Fête des parents", Rule::gregorian(8, 3))
         .years(Some(2026), Some(2026)),
+    // No communiqué for 2027 or later was read, so a weekend holiday moved
+    // by one is a gap in those years.
     HolidayRule::fixed_public(
         "Weekend holiday moved by communiqué",
         "Jour férié reporté par communiqué",
-        Rule::Tabulated {
-            function: cd_unread,
-            first_year: 1,
-            last_year: 0,
-        },
+        Rule::UNREAD,
     )
     .years(Some(2027), None),
 ];
@@ -4785,16 +4761,9 @@ const fn mg(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule 
 
 /// Nothing: the calendar of the Concertation Nationale, the Ministry's
 /// date for the day of culture and the electoral calendar were not read.
-fn mg_unread(_: i64) -> Days {
-    Days::new()
-}
-
+///
 /// A day a decree names without its date, which another act fixes.
-const MG_UNDATED: Rule = Rule::Tabulated {
-    function: mg_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const MG_UNDATED: Rule = Rule::UNREAD;
 
 static MG_RULES: &[HolidayRule] = &[
     mg("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
@@ -5047,16 +5016,9 @@ pub static MOZAMBIQUE: RuleSet = RuleSet {
 
 /// Nothing: the notices that changed the Schedule between 1996 and 2025
 /// were not read, so those years are a gap for the days they touched.
-fn ls_unread(_: i64) -> Days {
-    Days::new()
-}
-
+///
 /// A day whose date in 1996–2025 depends on a notice not read.
-const LS_UNREAD: Rule = Rule::Tabulated {
-    function: ls_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const LS_UNREAD: Rule = Rule::UNREAD;
 
 /// A day of the 1995 Act's Schedule that the 2026 list still gives on the
 /// same date, carried from the Act's first year.
@@ -5139,16 +5101,9 @@ static TD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 /// Nothing: decree 10-636 of 10 August 2010, which replaced the day of
 /// 11 August that year, was not read.
-fn td_unread(_: i64) -> Days {
-    Days::new()
-}
-
+///
 /// A day whose date depends on a decree not read.
-const TD_UNREAD: Rule = Rule::Tabulated {
-    function: td_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const TD_UNREAD: Rule = Rule::UNREAD;
 
 static TD_RULES: &[HolidayRule] = &[
     // Article 2: off and paid, and moved off a Sunday.
@@ -5336,16 +5291,9 @@ static DJ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
 
 /// Nothing: whether arrêté 80-0931, published in 1981, already governed
 /// 28 June 1980 was not found out.
-fn dj_unread(_: i64) -> Days {
-    Days::new()
-}
-
+///
 /// A day whose date in one year depends on when an arrêté took effect.
-const DJ_UNREAD: Rule = Rule::Tabulated {
-    function: dj_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const DJ_UNREAD: Rule = Rule::UNREAD;
 
 /// A day of arrêté 77-347, carried from 1978, its first full year.
 const fn dj(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
@@ -5676,17 +5624,9 @@ static LR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-fn lr_unread(_: i64) -> Days {
-    Days::new()
-}
-
 /// The year an Act was passed, when the proclamation names the year and not
 /// the day, so that whether the day was kept that year is not known.
-const LR_ACT_YEAR: Rule = Rule::Tabulated {
-    function: lr_unread,
-    first_year: 1,
-    last_year: 0,
-};
+const LR_ACT_YEAR: Rule = Rule::UNREAD;
 
 static LR_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -5788,37 +5728,9 @@ pub static LIBERIA: RuleSet = RuleSet {
 // Days read from announcements
 // ─────────────────────────────────────────────────────────────────────────
 
-/// One function per holiday name, reading the days a `(year, month, day,
-/// name)` table of announcements gives it in a year.
-macro_rules! announced_days {
-    ($table:ident; $($function:ident => $name:literal),* $(,)?) => {
-        $(
-            fn $function(year: i64) -> Days {
-                let mut out = Days::new();
-                for &(y, month, day, name) in $table {
-                    if y == year && name == $name {
-                        if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                            out.push(fixed);
-                        }
-                    }
-                }
-                out
-            }
-        )*
-    };
-}
-
-fn nothing_read(_: i64) -> Days {
-    Days::new()
-}
-
 /// A holiday whose date in a year was not read: every year it is asked
 /// for is a gap.
-const NOT_READ: Rule = Rule::Tabulated {
-    function: nothing_read,
-    first_year: 1,
-    last_year: 0,
-};
+const NOT_READ: Rule = Rule::UNREAD;
 
 /// A holiday whose announcement for `year` was not read: a gap that year.
 const fn unread_in(name: &'static str, local: &'static str, year: i32) -> HolidayRule {
@@ -5830,19 +5742,11 @@ const fn unread_in(name: &'static str, local: &'static str, year: i32) -> Holida
 const fn announced(
     name: &'static str,
     local: &'static str,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
     first: i64,
     last: i64,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(
-        name,
-        local,
-        Rule::Tabulated {
-            function,
-            first_year: first,
-            last_year: last,
-        },
-    )
+    HolidayRule::fixed_public(name, local, Rule::listed(entry, first, last))
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6015,7 +5919,7 @@ const SS_FROM: i32 = 2022;
 
 /// The spans the Ministry sets year by year, as its calendar for 2022 and
 /// its notices for 2025 and 2026 give them.
-static SS_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static SS_ANNOUNCED: Listing = Listing::Named(&[
     // The Public Holidays Calendar 2022, Annex I.
     (2022, 4, 15, "Easter Holiday"),
     (2022, 4, 16, "Easter Holiday"),
@@ -6046,15 +5950,7 @@ static SS_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     (2026, 4, 4, "Easter Holiday"),
     (2026, 4, 5, "Easter Holiday"),
     (2026, 4, 6, "Easter Holiday"),
-];
-
-announced_days! {
-    SS_ANNOUNCED;
-    ss_easter => "Easter Holiday",
-    ss_fitr => "Eid al-Fitr",
-    ss_adha => "Eid al-Adha",
-    ss_christmas => "Christmas Holiday",
-}
+]);
 
 const fn ss_fixed(name: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(name, "", Rule::gregorian(month, day)).years(Some(SS_FROM), None)
@@ -6064,17 +5960,59 @@ static SS_RULES: &[HolidayRule] = &[
     ss_fixed("New Year", 1, 1),
     // Good Friday to Easter Monday in 2022, 2025 and 2026; the notice for
     // 2024 is known by its title only, and 2023's was not found.
-    announced("Easter Holiday", "", ss_easter, 2022, 2022).years(Some(SS_FROM), Some(2024)),
-    announced("Easter Holiday", "", ss_easter, 2025, 2026).years(Some(2025), None),
+    announced(
+        "Easter Holiday",
+        "",
+        SS_ANNOUNCED.named("Easter Holiday"),
+        2022,
+        2022,
+    )
+    .years(Some(SS_FROM), Some(2024)),
+    announced(
+        "Easter Holiday",
+        "",
+        SS_ANNOUNCED.named("Easter Holiday"),
+        2025,
+        2026,
+    )
+    .years(Some(2025), None),
     ss_fixed("International Labour Day", 5, 1),
     ss_fixed("SPLA Day", 5, 16),
     ss_fixed("Independence Day", 7, 9),
     ss_fixed("Martyrs' Day", 7, 30),
     // Four days in 2022 and three in 2025: the Ministry's to say.
-    announced("Eid al-Fitr", "", ss_fitr, 2022, 2022).years(Some(SS_FROM), Some(2024)),
-    announced("Eid al-Fitr", "", ss_fitr, 2025, 2025).years(Some(2025), None),
-    announced("Eid al-Adha", "", ss_adha, 2022, 2022).years(Some(SS_FROM), None),
-    announced("Christmas Holiday", "", ss_christmas, 2022, 2022).years(Some(SS_FROM), None),
+    announced(
+        "Eid al-Fitr",
+        "",
+        SS_ANNOUNCED.named("Eid al-Fitr"),
+        2022,
+        2022,
+    )
+    .years(Some(SS_FROM), Some(2024)),
+    announced(
+        "Eid al-Fitr",
+        "",
+        SS_ANNOUNCED.named("Eid al-Fitr"),
+        2025,
+        2025,
+    )
+    .years(Some(2025), None),
+    announced(
+        "Eid al-Adha",
+        "",
+        SS_ANNOUNCED.named("Eid al-Adha"),
+        2022,
+        2022,
+    )
+    .years(Some(SS_FROM), None),
+    announced(
+        "Christmas Holiday",
+        "",
+        SS_ANNOUNCED.named("Christmas Holiday"),
+        2022,
+        2022,
+    )
+    .years(Some(SS_FROM), None),
 ];
 
 /// South Sudan, from 2022.
@@ -6162,7 +6100,7 @@ static SD_WEEKEND: &[WeekendPolicy] = &[
 
 /// The General Secretariat of the Council of Ministers' announcements read,
 /// December 2025 to August 2026.
-static SD_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static SD_ANNOUNCED: Listing = Listing::Named(&[
     (2025, 12, 25, "Christmas"),
     (2026, 1, 1, "Independence Day"),
     (2026, 3, 19, "Eid al-Fitr"),
@@ -6178,37 +6116,51 @@ static SD_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     (2026, 5, 30, "Eid al-Adha"),
     (2026, 6, 17, "Islamic New Year"),
     (2026, 8, 25, "Prophet's Birthday"),
-];
-
-announced_days! {
-    SD_ANNOUNCED;
-    sd_christmas => "Christmas",
-    sd_independence => "Independence Day",
-    sd_fitr => "Eid al-Fitr",
-    sd_adha => "Eid al-Adha",
-    sd_new_year => "Islamic New Year",
-    sd_mawlid => "Prophet's Birthday",
-}
+]);
 
 static SD_RULES: &[HolidayRule] = &[
     announced(
         "Independence Day",
         "ذكرى أعياد الاستقلال",
-        sd_independence,
+        SD_ANNOUNCED.named("Independence Day"),
         2026,
         2026,
     ),
-    announced("Eid al-Fitr", "عيد الفطر المبارك", sd_fitr, 2026, 2026),
-    announced("Eid al-Adha", "عيد الأضحى المبارك", sd_adha, 2026, 2026),
-    announced("Islamic New Year", "العام الهجري", sd_new_year, 2026, 2026),
+    announced(
+        "Eid al-Fitr",
+        "عيد الفطر المبارك",
+        SD_ANNOUNCED.named("Eid al-Fitr"),
+        2026,
+        2026,
+    ),
+    announced(
+        "Eid al-Adha",
+        "عيد الأضحى المبارك",
+        SD_ANNOUNCED.named("Eid al-Adha"),
+        2026,
+        2026,
+    ),
+    announced(
+        "Islamic New Year",
+        "العام الهجري",
+        SD_ANNOUNCED.named("Islamic New Year"),
+        2026,
+        2026,
+    ),
     announced(
         "Prophet's Birthday",
         "المولد النبوي الشريف",
-        sd_mawlid,
+        SD_ANNOUNCED.named("Prophet's Birthday"),
         2026,
         2026,
     ),
-    announced("Christmas", "عيد الميلاد المجيد", sd_christmas, 2025, 2025),
+    announced(
+        "Christmas",
+        "عيد الميلاد المجيد",
+        SD_ANNOUNCED.named("Christmas"),
+        2025,
+        2025,
+    ),
 ];
 
 /// Sudan: the Council of Ministers' announcements, one holiday at a time.
@@ -6267,18 +6219,12 @@ static GW_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
 }];
 
 /// The Eid days the Ministry of Public Administration declared, as read.
-static GW_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static GW_ANNOUNCED: Listing = Listing::Named(&[
     // Lusa, 5 June 2025: "feriado nacional, no sábado, dia 07".
     (2025, 6, 7, "Tabaski"),
     // ANG, 19 March 2026.
     (2026, 3, 20, "Eid al-Fitr"),
-];
-
-announced_days! {
-    GW_ANNOUNCED;
-    gw_tabaski => "Tabaski",
-    gw_fitr => "Eid al-Fitr",
-}
+]);
 
 const fn gw_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(GW_FROM), None)
@@ -6301,8 +6247,22 @@ static GW_RULES: &[HolidayRule] = &[
         5,
         1,
     ),
-    announced("Eid al-Fitr", "Ramadão", gw_fitr, 2026, 2026).years(Some(GW_FROM), None),
-    announced("Tabaski", "Tabaski", gw_tabaski, 2025, 2025).years(Some(GW_FROM), None),
+    announced(
+        "Eid al-Fitr",
+        "Ramadão",
+        GW_ANNOUNCED.named("Eid al-Fitr"),
+        2026,
+        2026,
+    )
+    .years(Some(GW_FROM), None),
+    announced(
+        "Tabaski",
+        "Tabaski",
+        GW_ANNOUNCED.named("Tabaski"),
+        2025,
+        2025,
+    )
+    .years(Some(GW_FROM), None),
     gw_fixed("Independence Day", "Dia da Independência Nacional", 9, 24),
     gw_fixed("Christmas Day", "Natal", 12, 25),
 ];
@@ -6371,7 +6331,7 @@ static SL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 /// The days the Office of the President's notices in the Gazette declare,
 /// as read.
-static SL_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static SL_ANNOUNCED: Listing = Listing::Named(&[
     // Government Notices 25 and 26 of 2020.
     (2020, 2, 18, "Armed Forces Day"),
     (2020, 3, 9, "International Women's Day"),
@@ -6385,29 +6345,45 @@ static SL_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     // Government Notice 34 of 2023: Saturday 18 February observed on
     // Wednesday 22 February.
     (2023, 2, 22, "Armed Forces Day"),
-];
-
-announced_days! {
-    SL_ANNOUNCED;
-    sl_armed_forces => "Armed Forces Day",
-    sl_women => "International Women's Day",
-    sl_fitr => "Eid al-Fitr",
-    sl_adha => "Eid al-Adha",
-}
+]);
 
 static SL_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    announced("Armed Forces Day", "", sl_armed_forces, 2020, 2023),
+    announced(
+        "Armed Forces Day",
+        "",
+        SL_ANNOUNCED.named("Armed Forces Day"),
+        2020,
+        2023,
+    ),
     // Known for 2021 and 2022 from the search index's snippets alone.
     unread_in("Armed Forces Day", "", 2021),
     unread_in("Armed Forces Day", "", 2022),
-    announced("International Women's Day", "", sl_women, 2020, 2020),
+    announced(
+        "International Women's Day",
+        "",
+        SL_ANNOUNCED.named("International Women's Day"),
+        2020,
+        2020,
+    ),
     HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
     HolidayRule::fixed_public("Independence Day", "", NOT_READ),
     HolidayRule::fixed_public("Labour Day", "", NOT_READ),
-    announced("Eid al-Fitr", "", sl_fitr, 2020, 2020),
-    announced("Eid al-Adha", "", sl_adha, 2022, 2022),
+    announced(
+        "Eid al-Fitr",
+        "",
+        SL_ANNOUNCED.named("Eid al-Fitr"),
+        2020,
+        2020,
+    ),
+    announced(
+        "Eid al-Adha",
+        "",
+        SL_ANNOUNCED.named("Eid al-Adha"),
+        2022,
+        2022,
+    ),
     HolidayRule::fixed_public("Moulid-un-Nabi", "", NOT_READ),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
@@ -6461,7 +6437,7 @@ pub static SIERRA_LEONE: RuleSet = RuleSet {
 /// the holiday's name; a Monday declared for a weekend holiday is listed
 /// under the holiday.
 #[rustfmt::skip]
-static GM_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static GM_ANNOUNCED: Listing = Listing::Named(&[
     (2021, 5, 1, "labour"), (2021, 5, 12, "koriteh"), (2021, 5, 13, "koriteh"),
     (2021, 7, 20, "tobaski"), (2021, 7, 21, "tobaski"), (2021, 8, 16, "assumption"),
     (2021, 8, 19, "ashura"), (2021, 10, 19, "gamo"), (2021, 12, 4, "election"),
@@ -6482,63 +6458,118 @@ static GM_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     (2026, 1, 1, "new_year"), (2026, 3, 19, "koriteh"), (2026, 3, 20, "koriteh"),
     (2026, 4, 3, "good_friday"), (2026, 4, 6, "easter_monday"), (2026, 5, 1, "labour"),
     (2026, 6, 25, "ashura"), (2026, 8, 15, "assumption"), (2026, 8, 26, "gamo"),
-];
-
-announced_days! {
-    GM_ANNOUNCED;
-    gm_new_year => "new_year",
-    gm_independence => "independence",
-    gm_good_friday => "good_friday",
-    gm_easter_monday => "easter_monday",
-    gm_labour => "labour",
-    gm_africa => "africa",
-    gm_koriteh => "koriteh",
-    gm_tobaski => "tobaski",
-    gm_ashura => "ashura",
-    gm_assumption => "assumption",
-    gm_gamo => "gamo",
-    gm_christmas => "christmas",
-    gm_boxing => "boxing",
-    gm_election => "election",
-}
+]);
 
 static GM_RULES: &[HolidayRule] = &[
-    announced("New Year's Day", "", gm_new_year, 2022, 2026),
+    announced(
+        "New Year's Day",
+        "",
+        GM_ANNOUNCED.named("new_year"),
+        2022,
+        2026,
+    ),
     unread_in("New Year's Day", "", 2023),
-    announced("Independence Day", "", gm_independence, 2024, 2025),
-    announced("Good Friday", "", gm_good_friday, 2022, 2026),
+    announced(
+        "Independence Day",
+        "",
+        GM_ANNOUNCED.named("independence"),
+        2024,
+        2025,
+    ),
+    announced(
+        "Good Friday",
+        "",
+        GM_ANNOUNCED.named("good_friday"),
+        2022,
+        2026,
+    ),
     unread_in("Good Friday", "", 2023),
-    announced("Easter Monday", "", gm_easter_monday, 2022, 2026),
+    announced(
+        "Easter Monday",
+        "",
+        GM_ANNOUNCED.named("easter_monday"),
+        2022,
+        2026,
+    ),
     unread_in("Easter Monday", "", 2023),
     // 2 and 3 May 2022 were declared "to mark Labour Day and Eid-ul-Fitr"
     // and are listed under the Eid, so 2022 is a gap here.
-    announced("International Workers' Day", "", gm_labour, 2021, 2026),
+    announced(
+        "International Workers' Day",
+        "",
+        GM_ANNOUNCED.named("labour"),
+        2021,
+        2026,
+    ),
     unread_in("International Workers' Day", "", 2022),
     unread_in("International Workers' Day", "", 2023),
     unread_in("International Workers' Day", "", 2025),
-    announced("Africa Day", "", gm_africa, 2022, 2025),
+    announced("Africa Day", "", GM_ANNOUNCED.named("africa"), 2022, 2025),
     unread_in("Africa Day", "", 2023),
     unread_in("Africa Day", "", 2024),
-    announced("Eid al-Fitr", "Koriteh", gm_koriteh, 2021, 2026),
+    announced(
+        "Eid al-Fitr",
+        "Koriteh",
+        GM_ANNOUNCED.named("koriteh"),
+        2021,
+        2026,
+    ),
     unread_in("Eid al-Fitr", "Koriteh", 2023),
-    announced("Eid al-Adha", "Tobaski", gm_tobaski, 2021, 2025),
+    announced(
+        "Eid al-Adha",
+        "Tobaski",
+        GM_ANNOUNCED.named("tobaski"),
+        2021,
+        2025,
+    ),
     unread_in("Eid al-Adha", "Tobaski", 2023),
     unread_in("Eid al-Adha", "Tobaski", 2024),
-    announced("Ashura", "Tamharit", gm_ashura, 2021, 2026),
+    announced(
+        "Ashura",
+        "Tamharit",
+        GM_ANNOUNCED.named("ashura"),
+        2021,
+        2026,
+    ),
     unread_in("Ashura", "Tamharit", 2023),
     unread_in("Ashura", "Tamharit", 2024),
-    announced("Assumption Day", "Sang Marie", gm_assumption, 2021, 2026),
+    announced(
+        "Assumption Day",
+        "Sang Marie",
+        GM_ANNOUNCED.named("assumption"),
+        2021,
+        2026,
+    ),
     unread_in("Assumption Day", "Sang Marie", 2024),
-    announced("Mawlid al-Nabi", "Gamo", gm_gamo, 2021, 2026),
+    announced(
+        "Mawlid al-Nabi",
+        "Gamo",
+        GM_ANNOUNCED.named("gamo"),
+        2021,
+        2026,
+    ),
     unread_in("Mawlid al-Nabi", "Gamo", 2023),
     unread_in("Mawlid al-Nabi", "Gamo", 2024),
-    announced("Christmas Day", "", gm_christmas, 2021, 2025),
+    announced(
+        "Christmas Day",
+        "",
+        GM_ANNOUNCED.named("christmas"),
+        2021,
+        2025,
+    ),
     unread_in("Christmas Day", "", 2022),
-    announced("Boxing Day", "", gm_boxing, 2021, 2025),
+    announced("Boxing Day", "", GM_ANNOUNCED.named("boxing"), 2021, 2025),
     unread_in("Boxing Day", "", 2022),
     // The presidential election of 4 December 2021 and the National
     // Assembly election of 9 April 2022.
-    announced("Election Day", "", gm_election, 2021, 2022).years(Some(2021), Some(2022)),
+    announced(
+        "Election Day",
+        "",
+        GM_ANNOUNCED.named("election"),
+        2021,
+        2022,
+    )
+    .years(Some(2021), Some(2022)),
 ];
 
 /// The Gambia: the President's declarations, holiday by holiday.
@@ -6604,7 +6635,7 @@ static SZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 }];
 
 /// The days appointed by notice, as read.
-static SZ_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static SZ_ANNOUNCED: Listing = Listing::Named(&[
     // Government Notice 28 of 2005: Monday 2 May "in the place of LABOUR
     // DAY, which falls on a Sunday".
     (2005, 5, 2, "Labour Day"),
@@ -6622,16 +6653,7 @@ static SZ_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     // (secondary).
     (2025, 3, 10, "Lutsango Day"),
     (2026, 3, 16, "Lutsango Day"),
-];
-
-announced_days! {
-    SZ_ANNOUNCED;
-    sz_labour => "Labour Day",
-    sz_umhlanga => "Umhlanga",
-    sz_incwala => "Incwala Day",
-    sz_kings_birthday => "King's Birthday",
-    sz_lutsango => "Lutsango Day",
-}
+]);
 
 static SZ_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -6643,22 +6665,62 @@ static SZ_RULES: &[HolidayRule] = &[
     unread_in("King's Birthday", "", 2001),
     HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19))
         .years(Some(2002), Some(2025)),
-    announced("King's Birthday", "", sz_kings_birthday, 2026, 2026).years(Some(2026), Some(2026)),
+    announced(
+        "King's Birthday",
+        "",
+        SZ_ANNOUNCED.named("King's Birthday"),
+        2026,
+        2026,
+    )
+    .years(Some(2026), Some(2026)),
     HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(Some(2027), None),
     HolidayRule::public("National Flag Day", "", Rule::gregorian(4, 25)),
-    announced("Labour Day", "", sz_labour, 2005, 2005),
+    announced(
+        "Labour Day",
+        "",
+        SZ_ANNOUNCED.named("Labour Day"),
+        2005,
+        2005,
+    ),
     HolidayRule::public("Ascension Day", "", Rule::easter(ASCENSION)),
     HolidayRule::public("Public Holiday of 22 July", "", Rule::gregorian(7, 22))
         .years(None, Some(2024)),
-    announced("Lutsango Day", "", sz_lutsango, 2025, 2026).years(Some(2025), None),
-    announced("Umhlanga", "Umhlanga", sz_umhlanga, 2006, 2006).years(None, Some(2024)),
-    announced("Umhlanga", "Umhlanga", sz_umhlanga, 2025, 2025).years(Some(2025), None),
+    announced(
+        "Lutsango Day",
+        "",
+        SZ_ANNOUNCED.named("Lutsango Day"),
+        2025,
+        2026,
+    )
+    .years(Some(2025), None),
+    announced(
+        "Umhlanga",
+        "Umhlanga",
+        SZ_ANNOUNCED.named("Umhlanga"),
+        2006,
+        2006,
+    )
+    .years(None, Some(2024)),
+    announced(
+        "Umhlanga",
+        "Umhlanga",
+        SZ_ANNOUNCED.named("Umhlanga"),
+        2025,
+        2025,
+    )
+    .years(Some(2025), None),
     HolidayRule::public(
         "Somhlolo (Independence Day)",
         "Somhlolo",
         Rule::gregorian(9, 6),
     ),
-    announced("Incwala Day", "Incwala", sz_incwala, 2007, 2007),
+    announced(
+        "Incwala Day",
+        "Incwala",
+        SZ_ANNOUNCED.named("Incwala Day"),
+        2007,
+        2007,
+    ),
     HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
     HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
 ];
@@ -6727,7 +6789,7 @@ const TG_FROM: i32 = 1987;
 
 /// The days the Ministry of the Civil Service's communiqués and the
 /// Government's portal declare, as read.
-static TG_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static TG_ANNOUNCED: Listing = Listing::Named(&[
     (2024, 1, 2, "Day off"),
     // "célébré le dimanche 27 avril", and Friday 2 May chômé "en raison
     // des commémorations successives".
@@ -6742,17 +6804,7 @@ static TG_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     (2026, 4, 27, "Independence Day"),
     (2026, 5, 1, "Labour Day"),
     (2026, 5, 27, "Tabaski"),
-];
-
-announced_days! {
-    TG_ANNOUNCED;
-    tg_day_off => "Day off",
-    tg_independence => "Independence Day",
-    tg_tabaski => "Tabaski",
-    tg_whit_monday => "Whit Monday",
-    tg_fitr => "Eid al-Fitr",
-    tg_labour => "Labour Day",
-}
+]);
 
 /// A fête légale of the law of 1987 whose date or standing now was not
 /// read: a gap from 1987.
@@ -6767,28 +6819,42 @@ static TG_RULES: &[HolidayRule] = &[
         "Economic Liberation Day",
         "Fête de la libération économique",
     ),
-    announced("Eid al-Fitr", "Fête du Ramadan", tg_fitr, 2026, 2026).years(Some(TG_FROM), None),
+    announced(
+        "Eid al-Fitr",
+        "Fête du Ramadan",
+        TG_ANNOUNCED.named("Eid al-Fitr"),
+        2026,
+        2026,
+    )
+    .years(Some(TG_FROM), None),
     tg_unread("Victory Day", "Fête de la victoire"),
     announced(
         "Independence Day",
         "Fête de l'Indépendance",
-        tg_independence,
+        TG_ANNOUNCED.named("Independence Day"),
         2025,
         2026,
     ),
-    announced("Labour Day", "Fête du travail", tg_labour, 2026, 2026).years(Some(TG_FROM), None),
+    announced(
+        "Labour Day",
+        "Fête du travail",
+        TG_ANNOUNCED.named("Labour Day"),
+        2026,
+        2026,
+    )
+    .years(Some(TG_FROM), None),
     tg_unread("Ascension", "Fête de l'ascension"),
     announced(
         "Whit Monday",
         "Lundi de Pentecôte",
-        tg_whit_monday,
+        TG_ANNOUNCED.named("Whit Monday"),
         2025,
         2025,
     ),
     announced(
         "Tabaski",
         "Fête de la tabaski (Fête du mouton)",
-        tg_tabaski,
+        TG_ANNOUNCED.named("Tabaski"),
         2025,
         2026,
     )
@@ -6802,8 +6868,14 @@ static TG_RULES: &[HolidayRule] = &[
     tg_unread("Christmas", "Noël"),
     // The days "fériée, chômée et payée" the Government declared beside a
     // holiday, in the years read; any other is not carried.
-    announced("Day off", "Journée chômée et payée", tg_day_off, 2024, 2026)
-        .years(Some(2024), Some(2026)),
+    announced(
+        "Day off",
+        "Journée chômée et payée",
+        TG_ANNOUNCED.named("Day off"),
+        2024,
+        2026,
+    )
+    .years(Some(2024), Some(2026)),
 ];
 
 /// Togo: the fêtes légales of 1987 and the Government's communiqués.
@@ -6856,19 +6928,13 @@ pub static TOGO: RuleSet = RuleSet {
 const NE_FROM: i32 = 2023;
 
 /// The days the communiqués date, as read.
-static NE_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static NE_ANNOUNCED: Listing = Listing::Named(&[
     // Kaweru, 1 April 2026 (secondary).
     (2026, 4, 6, "Easter Monday"),
     // Niger Diaspora, 21 May 2026, citing ordonnance 2026-12 (secondary).
     (2026, 5, 27, "Tabaski"),
     (2026, 5, 28, "Tabaski"),
-];
-
-announced_days! {
-    NE_ANNOUNCED;
-    ne_easter_monday => "Easter Monday",
-    ne_tabaski => "Tabaski",
-}
+]);
 
 const fn ne_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(NE_FROM), None)
@@ -6898,7 +6964,7 @@ static NE_RULES: &[HolidayRule] = &[
     announced(
         "Easter Monday",
         "Lundi de Pâques",
-        ne_easter_monday,
+        NE_ANNOUNCED.named("Easter Monday"),
         2026,
         2026,
     )
@@ -6909,7 +6975,14 @@ static NE_RULES: &[HolidayRule] = &[
         .years(Some(NE_FROM), Some(2025)),
     ne_fitr(1),
     ne_fitr(2),
-    announced("Tabaski", "Tabaski", ne_tabaski, 2026, 2026).years(Some(NE_FROM), None),
+    announced(
+        "Tabaski",
+        "Tabaski",
+        NE_ANNOUNCED.named("Tabaski"),
+        2026,
+        2026,
+    )
+    .years(Some(NE_FROM), None),
     // Ordonnance 2024-33 of 22 July 2024.
     ne_fixed(
         "Anniversary of 26 July",
@@ -6991,7 +7064,7 @@ pub static NIGER: RuleSet = RuleSet {
 
 /// The days the Ministry of Labour's communiqués declare, as the press
 /// reproduces them.
-static GA_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
+static GA_ANNOUNCED: Listing = Listing::Named(&[
     (2024, 8, 15, "Assumption"),
     (2024, 8, 16, "Independence Day"),
     (2024, 8, 17, "Independence Day"),
@@ -7004,41 +7077,58 @@ static GA_ANNOUNCED: &[(i64, u8, u8, &str)] = &[
     (2026, 1, 1, "New Year's Day"),
     (2026, 1, 2, "Day off"),
     (2026, 5, 14, "Ascension"),
-];
-
-announced_days! {
-    GA_ANNOUNCED;
-    ga_assumption => "Assumption",
-    ga_independence => "Independence Day",
-    ga_adha => "Eid al-Adha",
-    ga_pentecost => "Pentecost",
-    ga_whit_monday => "Whit Monday",
-    ga_christmas => "Christmas",
-    ga_day_off => "Day off",
-    ga_new_year => "New Year's Day",
-    ga_ascension => "Ascension",
-}
+]);
 
 static GA_RULES: &[HolidayRule] = &[
-    announced("New Year's Day", "Jour de l'an", ga_new_year, 2026, 2026),
+    announced(
+        "New Year's Day",
+        "Jour de l'an",
+        GA_ANNOUNCED.named("New Year's Day"),
+        2026,
+        2026,
+    ),
     HolidayRule::fixed_public("Easter Monday", "Lundi de Pâques", NOT_READ),
     HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ),
-    announced("Ascension", "Ascension", ga_ascension, 2026, 2026),
-    announced("Pentecost", "Pentecôte", ga_pentecost, 2025, 2025),
+    announced(
+        "Ascension",
+        "Ascension",
+        GA_ANNOUNCED.named("Ascension"),
+        2026,
+        2026,
+    ),
+    announced(
+        "Pentecost",
+        "Pentecôte",
+        GA_ANNOUNCED.named("Pentecost"),
+        2025,
+        2025,
+    ),
     announced(
         "Whit Monday",
         "Lundi de Pentecôte",
-        ga_whit_monday,
+        GA_ANNOUNCED.named("Whit Monday"),
         2025,
         2025,
     ),
     HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ),
-    announced("Eid al-Adha", "Aïd el-Kébir", ga_adha, 2025, 2025),
-    announced("Assumption", "Assomption", ga_assumption, 2024, 2024),
+    announced(
+        "Eid al-Adha",
+        "Aïd el-Kébir",
+        GA_ANNOUNCED.named("Eid al-Adha"),
+        2025,
+        2025,
+    ),
+    announced(
+        "Assumption",
+        "Assomption",
+        GA_ANNOUNCED.named("Assumption"),
+        2024,
+        2024,
+    ),
     announced(
         "Independence Day",
         "Fête nationale",
-        ga_independence,
+        GA_ANNOUNCED.named("Independence Day"),
         2024,
         2024,
     ),
@@ -7051,11 +7141,17 @@ static GA_RULES: &[HolidayRule] = &[
     )
     .years(Some(2024), None),
     HolidayRule::fixed_public("All Saints' Day", "Toussaint", NOT_READ),
-    announced("Christmas", "Noël", ga_christmas, 2025, 2025),
+    announced(
+        "Christmas",
+        "Noël",
+        GA_ANNOUNCED.named("Christmas"),
+        2025,
+        2025,
+    ),
     announced(
         "Day off",
         "Jour férié, chômé et récupérable",
-        ga_day_off,
+        GA_ANNOUNCED.named("Day off"),
         2025,
         2026,
     )

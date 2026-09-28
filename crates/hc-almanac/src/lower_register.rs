@@ -1060,25 +1060,27 @@ mod tests {
     /// カレンダー, zired.
     #[test]
     fn the_published_days_of_heavens_pardon_match() {
-        let expected_2024 = [
-            (1, 1),
-            (3, 15),
-            (5, 30),
-            (7, 29),
-            (8, 12),
-            (10, 11),
-            (12, 26),
-        ];
-        for (month, day) in expected_2024 {
-            assert!(
-                holds(LowerRegister::TENSHANICHI, rd_2024(month, day)),
-                "2024-{month:02}-{day:02}"
-            );
-        }
-        let count = (0..366)
-            .filter(|offset| holds(LowerRegister::TENSHANICHI, NEW_YEAR_2024 + offset))
-            .count();
-        assert_eq!(count, expected_2024.len());
+        hc_core::memo::scope(|| {
+            let expected_2024 = [
+                (1, 1),
+                (3, 15),
+                (5, 30),
+                (7, 29),
+                (8, 12),
+                (10, 11),
+                (12, 26),
+            ];
+            for (month, day) in expected_2024 {
+                assert!(
+                    holds(LowerRegister::TENSHANICHI, rd_2024(month, day)),
+                    "2024-{month:02}-{day:02}"
+                );
+            }
+            let count = (0..366)
+                .filter(|offset| holds(LowerRegister::TENSHANICHI, NEW_YEAR_2024 + offset))
+                .count();
+            assert_eq!(count, expected_2024.len());
+        });
     }
 
     /// 立秋 2025 fell on 7 August at 22:52 JST, and 7 August 2025 was 戊申 —
@@ -1105,29 +1107,31 @@ mod tests {
     /// counting the term's own day as the first.
     #[test]
     fn the_published_2026_days_of_going_out_and_perishing_match() {
-        let expected = [
-            (2usize, 3i64),
-            (2, 10),
-            (3, 18),
-            (4, 25),
-            (5, 12),
-            (6, 21),
-            (7, 30),
-            (8, 15),
-            (9, 24),
-            (11, 3),
-            (11, 16),
-            (12, 26),
-        ];
-        for month in 1..=12usize {
-            for day in 1..=DAYS_IN_MONTH[month - 1] {
-                assert_eq!(
-                    holds(LowerRegister::OMONICHI, rd_2026(month, day)),
-                    expected.contains(&(month, day)),
-                    "2026-{month:02}-{day:02}"
-                );
+        hc_core::memo::scope(|| {
+            let expected = [
+                (2usize, 3i64),
+                (2, 10),
+                (3, 18),
+                (4, 25),
+                (5, 12),
+                (6, 21),
+                (7, 30),
+                (8, 15),
+                (9, 24),
+                (11, 3),
+                (11, 16),
+                (12, 26),
+            ];
+            for month in 1..=12usize {
+                for day in 1..=DAYS_IN_MONTH[month - 1] {
+                    assert_eq!(
+                        holds(LowerRegister::OMONICHI, rd_2026(month, day)),
+                        expected.contains(&(month, day)),
+                        "2026-{month:02}-{day:02}"
+                    );
+                }
             }
-        }
+        });
     }
 
     /// Individually published values from 吉日カレンダー for 2024, chosen so
@@ -1176,7 +1180,7 @@ mod tests {
         let lichun = Rd(rd_2024(2, 4));
         let context = DayContext::new(lichun, JAPAN);
         assert_eq!(context.solar_month().number(), 1);
-        assert_eq!(context.lunisolar().month, 12);
+        assert_eq!(context.lunisolar().month.ordinal, 12);
         assert_eq!(context.branch_index(), 10); // 戌
         assert!(holds(LowerRegister::KUROBI, lichun.0));
     }
@@ -1186,14 +1190,16 @@ mod tests {
     /// both — and asserts the identity rather than hiding it.
     #[test]
     fn the_day_of_violence_and_the_day_of_heavens_fire_always_coincide() {
-        for offset in 0..800 {
-            let rd = NEW_YEAR_2024 + offset;
-            assert_eq!(
-                holds(LowerRegister::ROJAKUNICHI, rd),
-                holds(LowerRegister::TENKANICHI, rd),
-                "RD {rd}"
-            );
-        }
+        hc_core::memo::scope(|| {
+            for offset in 0..800 {
+                let rd = NEW_YEAR_2024 + offset;
+                assert_eq!(
+                    holds(LowerRegister::ROJAKUNICHI, rd),
+                    holds(LowerRegister::TENKANICHI, rd),
+                    "RD {rd}"
+                );
+            }
+        });
     }
 
     /// 地火日 is the branch three places past the month's, and so is the
@@ -1202,15 +1208,17 @@ mod tests {
     /// reproduces both.
     #[test]
     fn the_day_of_the_earths_fire_is_always_the_twelfth_direct_of_levelling() {
-        for offset in 0..800 {
-            let rd = Rd(NEW_YEAR_2024 + offset);
-            assert_eq!(
-                holds(LowerRegister::JIKANICHI, rd.0),
-                direct_of(rd, JAPAN) == TwelveDirect::Level,
-                "RD {}",
-                rd.0
-            );
-        }
+        hc_core::memo::scope(|| {
+            for offset in 0..800 {
+                let rd = Rd(NEW_YEAR_2024 + offset);
+                assert_eq!(
+                    holds(LowerRegister::JIKANICHI, rd.0),
+                    direct_of(rd, JAPAN) == TwelveDirect::Level,
+                    "RD {}",
+                    rd.0
+                );
+            }
+        });
     }
 
     /// 大禍日 is always the 冲 of 滅門日 — the opposing branch, six places on.
@@ -1218,20 +1226,23 @@ mod tests {
     /// never do.
     #[test]
     fn the_great_calamity_always_opposes_the_ruin_of_the_house() {
-        for month in 0..12 {
-            assert_eq!(
-                (TAIKANICHI[month][0] + 6) % 12,
-                METSUMONNICHI[month][0],
-                "at 節月 {}",
-                month + 1
-            );
-        }
-        for offset in 0..400 {
-            let rd = NEW_YEAR_2024 + offset;
-            assert!(
-                !(holds(LowerRegister::TAIKANICHI, rd) && holds(LowerRegister::METSUMONNICHI, rd))
-            );
-        }
+        hc_core::memo::scope(|| {
+            for month in 0..12 {
+                assert_eq!(
+                    (TAIKANICHI[month][0] + 6) % 12,
+                    METSUMONNICHI[month][0],
+                    "at 節月 {}",
+                    month + 1
+                );
+            }
+            for offset in 0..400 {
+                let rd = NEW_YEAR_2024 + offset;
+                assert!(
+                    !(holds(LowerRegister::TAIKANICHI, rd)
+                        && holds(LowerRegister::METSUMONNICHI, rd))
+                );
+            }
+        });
     }
 
     /// The 凶会日 table is the 貞享暦 one: seventy entries across the twelve
@@ -1311,62 +1322,64 @@ mod tests {
     /// and no other day of the year.
     #[test]
     fn the_lunisolar_reading_of_the_evil_gathering_matches_the_published_2025_dates() {
-        const NEW_YEAR_2025: i64 = 739_252;
-        let published = [
-            (1usize, 19i64),
-            (2, 14),
-            (3, 11),
-            (4, 5),
-            (4, 9),
-            (4, 21),
-            (4, 25),
-            (4, 26),
-            (4, 27),
-            (4, 29),
-            (5, 2),
-            (5, 14),
-            (5, 26),
-            (6, 6),
-            (6, 18),
-            (6, 29),
-            (8, 5),
-            (8, 6),
-            (8, 16),
-            (8, 18),
-            (9, 13),
-            (10, 7),
-            (10, 13),
-            (10, 19),
-            (11, 1),
-            (11, 18),
-            (11, 19),
-            (11, 25),
-            (11, 26),
-            (11, 28),
-            (12, 9),
-            (12, 10),
-            (12, 14),
-        ];
-        let mut differs = 0;
-        for month in 1..=12usize {
-            for day in 1..=DAYS_IN_MONTH[month - 1] {
-                let rd = NEW_YEAR_2025 + CUMULATIVE_COMMON[month - 1] + day - 1;
-                let context = DayContext::new(Rd(rd), JAPAN);
-                let lunar = rule_applies(KUENICHI_BY_LUNISOLAR_MONTH, &context) == Some(true);
-                assert_eq!(
-                    lunar,
-                    published.contains(&(month, day)),
-                    "2025-{month:02}-{day:02}"
-                );
-                if lunar != holds(LowerRegister::KUENICHI, rd) {
-                    differs += 1;
+        hc_core::memo::scope(|| {
+            const NEW_YEAR_2025: i64 = 739_252;
+            let published = [
+                (1usize, 19i64),
+                (2, 14),
+                (3, 11),
+                (4, 5),
+                (4, 9),
+                (4, 21),
+                (4, 25),
+                (4, 26),
+                (4, 27),
+                (4, 29),
+                (5, 2),
+                (5, 14),
+                (5, 26),
+                (6, 6),
+                (6, 18),
+                (6, 29),
+                (8, 5),
+                (8, 6),
+                (8, 16),
+                (8, 18),
+                (9, 13),
+                (10, 7),
+                (10, 13),
+                (10, 19),
+                (11, 1),
+                (11, 18),
+                (11, 19),
+                (11, 25),
+                (11, 26),
+                (11, 28),
+                (12, 9),
+                (12, 10),
+                (12, 14),
+            ];
+            let mut differs = 0;
+            for month in 1..=12usize {
+                for day in 1..=DAYS_IN_MONTH[month - 1] {
+                    let rd = NEW_YEAR_2025 + CUMULATIVE_COMMON[month - 1] + day - 1;
+                    let context = DayContext::new(Rd(rd), JAPAN);
+                    let lunar = rule_applies(KUENICHI_BY_LUNISOLAR_MONTH, &context) == Some(true);
+                    assert_eq!(
+                        lunar,
+                        published.contains(&(month, day)),
+                        "2025-{month:02}-{day:02}"
+                    );
+                    if lunar != holds(LowerRegister::KUENICHI, rd) {
+                        differs += 1;
+                    }
                 }
             }
-        }
-        // The two readings share the table and differ in the month: the 節月
-        // reading gives thirty days in 2025, twenty-two of them shared, so
-        // nineteen days of the year carry 凶会日 under one reading only.
-        assert_eq!(differs, 19);
+            // The two readings share the table and differ in the month: the 節月
+            // reading gives thirty days in 2025, twenty-two of them shared, so
+            // nineteen days of the year carry 凶会日 under one reading only.
+            assert_eq!(differs, 19);
+        });
     }
 
     /// Every sexagenary list must be sorted, distinct and in range — a
@@ -1442,59 +1455,65 @@ mod tests {
     /// that sexagenary position: every 天赦日 must be 戊寅, 甲午, 戊申 or 甲子.
     #[test]
     fn every_day_of_heavens_pardon_is_one_of_four_sexagenary_positions() {
-        for offset in 0..1_100 {
-            let rd = Rd(NEW_YEAR_2024 + offset);
-            if holds(LowerRegister::TENSHANICHI, rd.0) {
-                let position = DayContext::new(rd, JAPAN).sexagenary().index();
-                assert!(matches!(position, 0 | 14 | 30 | 44), "RD {}", rd.0);
+        hc_core::memo::scope(|| {
+            for offset in 0..1_100 {
+                let rd = Rd(NEW_YEAR_2024 + offset);
+                if holds(LowerRegister::TENSHANICHI, rd.0) {
+                    let position = DayContext::new(rd, JAPAN).sexagenary().index();
+                    assert!(matches!(position, 0 | 14 | 30 | 44), "RD {}", rd.0);
+                }
             }
-        }
+        });
     }
 
     /// 受死日 and 十死日 suppress everything else on the page, and nothing
     /// else does.
     #[test]
     fn only_the_two_death_days_suppress_the_rest_of_the_page() {
-        for note in LowerRegister::ALL.iter().copied() {
-            assert_eq!(
-                note.suppresses_the_rest(),
-                note == LowerRegister::JUSHINICHI || note == LowerRegister::KUROBI
-            );
-        }
-        assert!(lower_register(Rd(rd_2024(2, 4)), JAPAN).contains(LowerRegister::KUROBI));
-        let mut suppressed = 0;
-        let mut untouched = 0;
-        for offset in 0..400 {
-            let set = lower_register(Rd(NEW_YEAR_2024 + offset), JAPAN);
-            let has_death =
-                set.contains(LowerRegister::KUROBI) || set.contains(LowerRegister::JUSHINICHI);
-            let printed = set.as_printed();
-            if has_death {
-                assert_eq!(printed.len(), 1, "a death day must print alone");
-                if set.len() > 1 {
-                    suppressed += 1;
-                }
-            } else {
-                assert_eq!(printed, set, "nothing else suppresses anything");
-                untouched += 1;
+        hc_core::memo::scope(|| {
+            for note in LowerRegister::ALL.iter().copied() {
+                assert_eq!(
+                    note.suppresses_the_rest(),
+                    note == LowerRegister::JUSHINICHI || note == LowerRegister::KUROBI
+                );
             }
-        }
-        assert!(
-            suppressed > 0,
-            "some death day must have suppressed something"
-        );
-        assert!(untouched > 0);
+            assert!(lower_register(Rd(rd_2024(2, 4)), JAPAN).contains(LowerRegister::KUROBI));
+            let mut suppressed = 0;
+            let mut untouched = 0;
+            for offset in 0..400 {
+                let set = lower_register(Rd(NEW_YEAR_2024 + offset), JAPAN);
+                let has_death =
+                    set.contains(LowerRegister::KUROBI) || set.contains(LowerRegister::JUSHINICHI);
+                let printed = set.as_printed();
+                if has_death {
+                    assert_eq!(printed.len(), 1, "a death day must print alone");
+                    if set.len() > 1 {
+                        suppressed += 1;
+                    }
+                } else {
+                    assert_eq!(printed, set, "nothing else suppresses anything");
+                    untouched += 1;
+                }
+            }
+            assert!(
+                suppressed > 0,
+                "some death day must have suppressed something"
+            );
+            assert!(untouched > 0);
+        });
     }
 
     #[test]
     fn the_set_of_a_day_agrees_with_the_individual_rules() {
-        for offset in 0..120 {
-            let rd = Rd(NEW_YEAR_2024 + offset);
-            let set = lower_register(rd, JAPAN);
-            for note in LowerRegister::ALL.iter().copied() {
-                assert_eq!(set.contains(note), holds(note, rd.0), "RD {}", rd.0);
+        hc_core::memo::scope(|| {
+            for offset in 0..120 {
+                let rd = Rd(NEW_YEAR_2024 + offset);
+                let set = lower_register(rd, JAPAN);
+                for note in LowerRegister::ALL.iter().copied() {
+                    assert_eq!(set.contains(note), holds(note, rd.0), "RD {}", rd.0);
+                }
             }
-        }
+        });
     }
 
     /// Seven of the twenty-one are auspicious, and 天赦日 is one of them.

@@ -10,8 +10,8 @@ use crate::computus::offsets::{
 };
 use crate::hindu::{DIWALI, HOLI, NARAKA_CHATURDASHI};
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
+    CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
     WeekendPolicy,
 };
 
@@ -2934,74 +2934,43 @@ const PY_DECREES_FIRST: i64 = 2026;
 const PY_DECREES_LAST: i64 = 2026;
 
 /// The four days Ley 7544/2025 lets an annual decree move, where each
-/// read year's decrees put them: the day's month and day in the law, then
-/// the month and day of that year.
-static PY_DECREED: &[(i64, u8, u8, u8, u8)] = &[
+/// read year's decrees put them: the year, the month and day the decrees
+/// give, and the day, named by its date in the law.
+static PY_DECREED: Listing = Listing::Named(&[
     // 1 March, a Sunday, moved to Monday 2 March.
-    (2026, 3, 1, 3, 2),
+    (2026, 3, 2, "03-01"),
     // 12 June, a Friday, left where it was.
-    (2026, 6, 12, 6, 12),
+    (2026, 6, 12, "06-12"),
     // Decreto 6215: Saturday 20 June to Monday 22 June.
-    (2026, 6, 20, 6, 22),
+    (2026, 6, 22, "06-20"),
     // Decreto 6601: Tuesday 29 September to Monday 28 September.
-    (2026, 9, 29, 9, 28),
-];
+    (2026, 9, 28, "09-29"),
+]);
 
-fn py_decreed(year: i64, month: u8, day: u8) -> Days {
-    for &(y, law_month, law_day, to_month, to_day) in PY_DECREED {
-        if y == year && (law_month, law_day) == (month, day) {
-            return gregorian::to_fixed(y, to_month, to_day)
-                .map_or_else(|_| Days::new(), Days::one);
-        }
-    }
-    Days::new()
+/// The days the read decrees give, in the years they cover.
+const fn py_decrees(entry: ListedEntry) -> Rule {
+    Rule::listed(entry, PY_DECREES_FIRST, PY_DECREES_LAST)
 }
 
-fn py_heroes_day(year: i64) -> Days {
-    py_decreed(year, 3, 1)
-}
-
-fn py_chaco_peace_day(year: i64) -> Days {
-    py_decreed(year, 6, 12)
-}
-
-fn py_constitution_day(year: i64) -> Days {
-    py_decreed(year, 6, 20)
-}
-
-fn py_boqueron_day(year: i64) -> Days {
-    py_decreed(year, 9, 29)
-}
-
-/// Nothing: the decrees of 2001 to 2025 that could move this day were not
-/// read, so a year among them is a gap.
-fn py_unread(_: i64) -> Days {
-    Days::new()
-}
-
-const fn py_decrees(function: fn(i64) -> Days) -> Rule {
-    Rule::Tabulated {
-        function,
-        first_year: PY_DECREES_FIRST,
-        last_year: PY_DECREES_LAST,
-    }
-}
+/// Nothing, in the years whose decrees were read: the decrees of 2001 to
+/// 2025 that could move a day were not read, so a year among them is a gap.
+const PY_UNREAD: Rule = Rule::unlisted(PY_DECREES_FIRST, PY_DECREES_LAST);
 
 /// A day a decree may move: on its date until 2000, and from 2001 where the
 /// read decrees put it, a gap in every other year.
 const fn py_movable(
     name: &'static str,
     local_name: &'static str,
-    function: fn(i64) -> Days,
+    entry: ListedEntry,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, py_decrees(function))
+    HolidayRule::fixed_public(name, local_name, py_decrees(entry))
         .years(Some(PY_UNMOVED_UNTIL + 1), None)
 }
 
 /// A day Ley 1723 let a decree move and Ley 7544 fixed again: the years
 /// 2001 to 2025 are a gap.
 const fn py_moved_until_2025(name: &'static str, local_name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, py_decrees(py_unread))
+    HolidayRule::fixed_public(name, local_name, PY_UNREAD)
         .years(Some(PY_UNMOVED_UNTIL + 1), Some(2025))
 }
 
@@ -3016,7 +2985,7 @@ static PY_RULES: &[HolidayRule] = &[
     py_movable(
         "Heroes' Day",
         "Día de los Héroes de la Patria",
-        py_heroes_day,
+        PY_DECREED.named("03-01"),
     ),
     HolidayRule::fixed_public(
         "Maundy Thursday",
@@ -3041,11 +3010,7 @@ static PY_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Independence Day",
         "Día de la Independencia Nacional",
-        Rule::Tabulated {
-            function: py_unread,
-            first_year: PY_DECREES_FIRST,
-            last_year: PY_DECREES_LAST,
-        },
+        PY_UNREAD,
     )
     .years(Some(2012), Some(2025)),
     HolidayRule::fixed_public(
@@ -3068,12 +3033,12 @@ static PY_RULES: &[HolidayRule] = &[
     py_movable(
         "Chaco Peace Day",
         "Día de la Paz del Chaco",
-        py_chaco_peace_day,
+        PY_DECREED.named("06-12"),
     ),
     py_movable(
         "Constitution Day",
         "Día de la Jura de la Constitución Nacional",
-        py_constitution_day,
+        PY_DECREED.named("06-20"),
     )
     .years(Some(2026), None),
     HolidayRule::fixed_public(
@@ -3098,7 +3063,7 @@ static PY_RULES: &[HolidayRule] = &[
     py_movable(
         "Battle of Boquerón Day",
         "Día de la Batalla de Boquerón",
-        py_boqueron_day,
+        PY_DECREED.named("09-29"),
     ),
     HolidayRule::fixed_public(
         "Virgin of Caacupé Day",
@@ -3201,12 +3166,6 @@ fn hn_morazanic_thursday_friday(year: i64) -> Days {
     out
 }
 
-/// Nothing: Decreto 75-2014, which placed the three October days in 2014,
-/// was not read, so that year is a gap.
-fn hn_unread(_: i64) -> Days {
-    Days::new()
-}
-
 static HN_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
     HolidayRule::fixed_public(
@@ -3243,14 +3202,12 @@ static HN_RULES: &[HolidayRule] = &[
         Rule::gregorian(10, 21),
     )
     .years(None, Some(2013)),
+    // Decreto 75-2014, which placed the three October days in 2014, was
+    // not read, so that year is a gap.
     HolidayRule::fixed_public(
         "Morazanic Week",
         "Semana Morazánica",
-        Rule::Tabulated {
-            function: hn_unread,
-            first_year: 2015,
-            last_year: 2015,
-        },
+        Rule::unlisted(2015, 2015),
     )
     .years(Some(2014), Some(2014)),
     // The private sector's holiday begins at noon on the Wednesday.
@@ -3921,35 +3878,15 @@ const VC_CARNIVAL_LAST: i64 = 2026;
 
 /// Carnival Monday and Tuesday as the Prime Minister's Office lists them;
 /// in 2021 the list moved both to September.
-const VC_CARNIVAL: &[(i64, u8, u8, u8)] = &[
-    (2021, 9, 6, 7),
-    (2022, 7, 4, 5),
-    (2023, 7, 10, 11),
-    (2024, 7, 8, 9),
-    (2025, 7, 7, 8),
-    (2026, 7, 6, 7),
-];
-
-fn vc_carnival(year: i64, tuesday: bool) -> Days {
-    let mut out = Days::new();
-    for &(y, month, monday, next) in VC_CARNIVAL {
-        if y == year {
-            let day = if tuesday { next } else { monday };
-            if let Ok(fixed) = gregorian::to_fixed(y, month, day) {
-                out.push(fixed);
-            }
-        }
-    }
-    out
-}
-
-fn vc_carnival_monday(year: i64) -> Days {
-    vc_carnival(year, false)
-}
-
-fn vc_carnival_tuesday(year: i64) -> Days {
-    vc_carnival(year, true)
-}
+#[rustfmt::skip]
+static VC_CARNIVAL: Listing = Listing::Named(&[
+    (2021, 9, 6, "monday"), (2021, 9, 7, "tuesday"),
+    (2022, 7, 4, "monday"), (2022, 7, 5, "tuesday"),
+    (2023, 7, 10, "monday"), (2023, 7, 11, "tuesday"),
+    (2024, 7, 8, "monday"), (2024, 7, 9, "tuesday"),
+    (2025, 7, 7, "monday"), (2025, 7, 8, "tuesday"),
+    (2026, 7, 6, "monday"), (2026, 7, 7, "tuesday"),
+]);
 
 static VC_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
@@ -3967,20 +3904,20 @@ static VC_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "Carnival Monday",
         "",
-        Rule::Tabulated {
-            function: vc_carnival_monday,
-            first_year: VC_CARNIVAL_FIRST,
-            last_year: VC_CARNIVAL_LAST,
-        },
+        Rule::listed(
+            VC_CARNIVAL.named("monday"),
+            VC_CARNIVAL_FIRST,
+            VC_CARNIVAL_LAST,
+        ),
     ),
     HolidayRule::fixed_public(
         "Carnival Tuesday",
         "",
-        Rule::Tabulated {
-            function: vc_carnival_tuesday,
-            first_year: VC_CARNIVAL_FIRST,
-            last_year: VC_CARNIVAL_LAST,
-        },
+        Rule::listed(
+            VC_CARNIVAL.named("tuesday"),
+            VC_CARNIVAL_FIRST,
+            VC_CARNIVAL_LAST,
+        ),
     ),
     HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
     HolidayRule::public("Independence Day", "", Rule::gregorian(10, 27)),

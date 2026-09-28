@@ -4,18 +4,19 @@
 //! the day's sexagenary position, the 節月 (the month that begins at a
 //! sectional solar term) it falls in, and — for a handful — the lunisolar
 //! month and day. Computing the last two means running the solar-longitude
-//! series and a new-moon search, which is far and away the most expensive
-//! thing this crate does. A printed almanac page carries twenty-odd
-//! annotations for one day, so computing that context once and handing it to
-//! every rule is the difference between one astronomical solve and forty.
+//! series and the solstice and new-moon searches of the 旧暦, which is far
+//! and away the most expensive thing this crate does. A printed almanac
+//! page carries twenty-odd annotations for one day, so computing that
+//! context once and handing it to every rule is the difference between one
+//! astronomical solve and forty.
 //!
 //! [`DayContext`] is that shared context. Every evaluator in the crate takes
 //! one by reference.
 
 use hc_calendar::Rd;
 use hc_calendar::cycle::{Sexagenary, branch_of_solar_term_month, sexagenary_day};
+use hc_calendars_lunar::LunisolarDate;
 use hc_core::math::{floor, normalize_degrees};
-use hc_seasons::lunisolar::{LunisolarDay, lunisolar_day};
 use hc_seasons::solar_terms::SolarTerm;
 use hc_seasons::{Meridian, Moment};
 
@@ -154,15 +155,14 @@ pub struct DayContext {
     meridian: Meridian,
     sexagenary: Sexagenary,
     solar_month: SolarMonth,
-    lunisolar: LunisolarDay,
 }
 
 impl DayContext {
     /// Compute the context for a day at a meridian.
     ///
-    /// This runs one solar-longitude solve and two new-moon searches. It is
-    /// the expensive call in this crate; everything downstream is table
-    /// lookup and modular arithmetic.
+    /// This runs one solar-longitude solve for the 節月. It is the
+    /// expensive call in this crate; everything downstream is table lookup
+    /// and modular arithmetic, except [`DayContext::lunisolar`].
     #[must_use]
     pub fn new(day: Rd, meridian: Meridian) -> Self {
         Self {
@@ -170,7 +170,6 @@ impl DayContext {
             meridian,
             sexagenary: sexagenary_day(day),
             solar_month: solar_month_of(day, meridian),
-            lunisolar: lunisolar_day(day, meridian),
         }
     }
 
@@ -217,18 +216,18 @@ impl DayContext {
         self.day.0 - self.solar_month.start.0
     }
 
-    /// The day's lunisolar month and day.
+    /// The day's lunisolar date, in the calendar the meridian names: the
+    /// Chinese one at [`Meridian::CHINA`] and
+    /// [`Meridian::CHINA_BEFORE_1929`], the Japanese 旧暦 at any other; see
+    /// [`crate::lunisolar`].
     ///
-    /// This is `hc-seasons`' minimal 定気 derivation, which is what 六曜 is
-    /// built on. It decides month by month rather than looking at the whole
-    /// year between two solstices, so its leap months can differ from the
-    /// 天保暦 rule, and when they do a whole month is numbered differently:
-    /// 89 of the 3,653 days of 2024–2033, measured in
-    /// `hc_seasons::lunisolar`. Of the rules here only 不成就日 reads it; the
-    /// 二十七宿 and 六曜 use the same derivation.
+    /// Computed when asked for, not with the context, since most rules never
+    /// read it: the solstice and new-moon searches it runs are done once
+    /// for a day inside a [`hc_core::memo::scope`], which
+    /// [`crate::day_notes()`] opens.
     #[must_use]
-    pub const fn lunisolar(self) -> LunisolarDay {
-        self.lunisolar
+    pub fn lunisolar(self) -> LunisolarDate {
+        crate::lunisolar::lunisolar_date(self.day, self.meridian)
     }
 }
 
@@ -314,55 +313,28 @@ mod tests {
         assert_eq!(context.meridian(), Meridian::JAPAN);
     }
 
-    /// The 旧暦-keyed annotations use `hc-seasons`' minimal derivation rather
-    /// than `hc-calendars-lunar`'s full Chinese calendar, so the crate owes
-    /// the reader a *measurement* of the difference rather than an
-    /// assurance.
-    ///
-    /// Measured over the 3,653 days of 2024–2033 at the Chinese meridian,
-    /// the two disagree on **89 days, 2.4%**, in one contiguous run — the
-    /// minimal rule decides a leap month one month at a time where the full
-    /// one looks across a whole solstice-to-solstice year, so when they
-    /// differ they differ about a whole month's numbering and not about
-    /// single days. These are the days on which 不成就日, 二十七宿 and 六曜
-    /// can come out differently under the two.
-    ///
-    /// The bound asserted here is five per cent. It is a regression guard,
-    /// not a claim: if the figure moves, the README figure must move too.
+    /// The lunisolar date is the calendar the meridian names: the Chinese
+    /// one at the Chinese meridians, the Japanese one at the others.
     #[test]
-    fn the_minimal_lunisolar_derivation_tracks_the_full_chinese_calendar() {
-        use hc_calendar::Calendar;
-        use hc_calendars_lunar::ChineseCalendar;
+    fn the_lunisolar_date_is_the_calendar_the_meridian_names() {
+        use hc_calendar::Calendar as _;
+        use hc_calendars_lunar::{ChineseCalendar, japanese_tenpo};
 
-        let mut disagreements = 0;
-        let mut runs = 0;
-        let mut previous_disagreed = false;
-        let total = 3_653;
-        for offset in 0..total {
-            let day = Rd(738_886 + offset);
-            let minimal = lunisolar_day(day, Meridian::CHINA);
-            let full = ChineseCalendar
-                .from_fixed(day)
-                .expect("the Chinese calendar covers the twenty-first century");
-            let differs = minimal.month != full.month.ordinal
-                || minimal.day != full.day
-                || minimal.leap_month != full.month.leap;
-            if differs {
-                disagreements += 1;
-                if !previous_disagreed {
-                    runs += 1;
+        hc_core::memo::scope(|| {
+            // Every week in release, every month in a debug build.
+            let step = if cfg!(debug_assertions) { 31 } else { 7 };
+            for offset in (0..3_653).step_by(step) {
+                let day = Rd(738_886 + offset);
+                let chinese = ChineseCalendar.from_fixed(day).expect("in range");
+                assert_eq!(DayContext::new(day, Meridian::CHINA).lunisolar(), chinese);
+                let japanese = japanese_tenpo::UNBOUNDED
+                    .from_fixed(day)
+                    .expect("unbounded");
+                for meridian in [Meridian::JAPAN, Meridian::KOREA, Meridian::UNIVERSAL] {
+                    assert_eq!(DayContext::new(day, meridian).lunisolar(), japanese);
                 }
             }
-            previous_disagreed = differs;
-        }
-        assert!(
-            disagreements * 20 < total,
-            "the two lunisolar derivations diverged on {disagreements} of {total} days"
-        );
-        assert!(
-            runs <= 5,
-            "divergence should come in whole-month runs, not scattered days; saw {runs} runs"
-        );
+        });
     }
 
     #[test]

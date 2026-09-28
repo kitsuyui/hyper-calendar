@@ -37,7 +37,9 @@ assert!(notes.lower_register().contains(LowerRegister::TENSHANICHI));
 | `lower_register` | 21 of the 暦注下段 |
 | `selected_days` | 15 選日 |
 | `seven_luminaries` | 七曜 — the planetary association over `hc_calendar::Weekday` |
-| `rokuyo` | 六曜 — re-exported from `hc-seasons`, where it is implemented |
+| `rokuyo` | 六曜 先勝 友引 先負 仏滅 大安 赤口 |
+| `moon_viewing` | 十五夜 and 十三夜, the fifteenth of the eighth and the thirteenth of the ninth lunisolar month |
+| `lunisolar` | the Japanese 旧暦 date the Moon-keyed annotations read, from `hc-calendars-lunar` |
 | `day_notes` | every annotation for one day, from one shared context |
 | `lucky_direction` | 恵方, the year's direction by its stem: 甲, 庚, 丙 or 壬, with the branches and the azimuth |
 | `nine_periods` | 三元九運, the twenty-year periods from 上元一運 in 1864, turning at 立春 |
@@ -131,37 +133,33 @@ can. Where a table could be read two ways, the crate follows the lists:
 | Year count from 立春 | 三元九運 | exact, the 立春 day as the 九星 year has it |
 | Korean lunisolar | 손 없는 날 | `hc-calendars-lunar`'s `dangi`, 1645–2150 |
 | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
-| Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
+| Lunisolar | 六曜, 不成就日, 二十七宿, 十五夜, 十三夜 | the 天保暦's rules continued, `hc-calendars-lunar`'s `japanese_tenpo::UNBOUNDED_PARAMETERS` |
 
 A term instant within about a minute of local midnight can still be assigned
 the wrong *day*, which moves a 節月 boundary and with it every annotation
 keyed to one. The sharpest real case the crate tests is 立秋 2025, which fell at 22:52 JST on 7
 August: the whole of that day is 申月, which is what makes it the autumn 天赦日.
 
-For the lunisolar class the divergence is measured rather than asserted, and
-the measurement lives in `hc_seasons::lunisolar` beside both implementations.
-Over the 3,653 days of 2024–2033, `hc-seasons`' minimal derivation and the
-Japanese 旧暦 disagree on **89 days, 2.4%**, all in one contiguous run from 25
-August to 21 November 2033. They differ about a whole month's numbering, not
-about single days.
+The lunisolar class reads the calendar of `hc-calendars-lunar` the
+meridian names, `lunisolar::Reckoning`: at `Meridian::CHINA` and
+`CHINA_BEFORE_1929` the `chinese` calendar, and at every other meridian
+the Japanese one, the Tenpō rules continued past their 1872 abolition,
+which is what Japanese almanacs have keyed 六曜 to ever since. No
+lunisolar calendar is kept at any other offset, so `Meridian::UNIVERSAL`,
+`INDIA` or a longitude reads the Japanese calendar for these annotations
+and the 節月 at the offset. In 2033–34, where no numbering satisfies the 天保暦 rule, it gives 閏11月,
+the resolution the 日本カレンダー暦文化振興協会 recommended; some published
+calendars print another. Every reading opens a `hc_core::memo::scope`, and
+3,653 consecutive days take 21 to 26 ms inside one in a release build, and
+about 45 µs a day outside one.
 
-The reference matters. The right one is the unbounded Tenpō engine, which is
-the Tenpō rules continued past their 1872 abolition, and is what Japanese
-almanacs have keyed 六曜 to ever since. Japan computes the 旧暦 at 135°E and
-China at 120°E, and that hour moves month boundaries on its own. Comparing the
-derivation read at the Japanese meridian with `hc-calendars-lunar`'s Chinese
-calendar therefore conflates a meridian difference with a method difference,
-and gives 239 days rather than 89. Read at the Chinese meridian, the
-derivation differs from the Chinese calendar on the same 89 days; the test in
-`hc_almanac::context` guards that figure.
-
-This crate uses the minimal derivation deliberately, so that 六曜, 不成就日 and
-二十七宿 agree with one another and with the 六曜 a caller gets from
-`hc-seasons`. Routing through the real calendar makes every annotation pay for
-a new-moon search, which takes the seasons crate's own test suite from seconds
-to over ten minutes, and routing only some of the annotations makes them
-contradict each other. `hc-calendars-lunar` is
-re-exported for callers who want the fuller article.
+Until 2026 these annotations read a simplified derivation `hc-seasons` kept
+for cost. At the Japanese meridian it was wrong on 89 of the 3,653 days of
+2024–2033, all from 25 August to 21 November 2033, and on 268 days in five
+runs over 1900–2100, and at the Chinese meridian on the same 89 and on 329
+in seven runs;
+`docs/systems/zassetsu-and-rokuyo.md` lists them and the published calendar
+they were checked against.
 
 ## Documented gaps
 

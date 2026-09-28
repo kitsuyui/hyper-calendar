@@ -91,7 +91,7 @@ worked [tw-dgpa-office-calendars].
   民族掃墓節 to 2025 and 清明節 from 2026.
 - **The make-up rule** from 2012: the Lunar New Year days made up after,
   and the other holidays from 2015.
-- **The swaps of 2017 to 2025**, from the calendars, as `Rule::Tabulated`
+- **The swaps of 2017 to 2025**, from the calendars, as `Rule::Listed`
   rules; a year before 2017 is a gap.
 - **Not carried, and why:**
   - 兒童節 in 2012, when 4 April was also 清明 and the coincidence rule
@@ -136,9 +136,9 @@ make-up only; the calendars of those years were read for article 3 of the
 
 `crates/hc-holiday/src/countries/asia.rs`: `TW_RULES`, `tw_public` and
 `TW_WEEKEND_MAKE_UP_FROM`, `tw_new_year_day`, `tw_childrens_day`,
-`TW_ADJUSTED_OFF` and `TW_MADE_UP` with `tw_lookup`, `TW_SUBSTITUTION` and
+the listings `TW_ADJUSTED_OFF` and `TW_MADE_UP`, `TW_SUBSTITUTION` and
 the table `TAIWAN`. The engine's part is `SubstituteDirection::NearestWorkingDay`,
-`HolidayRule::substitute_towards`, `Rule::Tabulated` and `Kind::Workday`.
+`HolidayRule::substitute_towards`, `Rule::Listed` and `Kind::Workday`.
 
 Anchors, in `crates/hc-holiday/tests/countries.rs`:
 `taiwan_matches_the_government_office_calendar_from_2017_to_2027`,

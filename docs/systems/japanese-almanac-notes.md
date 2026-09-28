@@ -144,13 +144,16 @@ lower register, 一粒万倍日 and 甲子 among the 選日, 一白 for the day 
 選日** in `SelectedDay::ALL`, each a name, a gloss and an `AlmanacRule`
 value; one function, `rule_applies`, evaluates every rule. The **十二直**,
 the **二十八宿** and **二十七宿**, the **three 九星** with their attributions,
-the **七曜** over `hc_calendar::Weekday`, and **六曜**, which is
-`hc_seasons::rokuyo` re-exported. `day_notes` assembles a day's page.
+the **七曜** over `hc_calendar::Weekday`, **六曜**, and 十五夜 and 十三夜 in
+`moon_viewing`. `day_notes` assembles a day's page.
 
-Every 節月-keyed and 旧暦-keyed note takes a `Meridian`, because Tokyo and
-Beijing put the same term on different days several times a century. The
-旧暦 date is `hc-seasons`' minimal 定気 derivation, so that 六曜, 不成就日
-and the 二十七宿 agree with one another.
+Every 節月-keyed note takes a `Meridian`, because Tokyo and Beijing put the
+same term on different days several times a century. The 旧暦-keyed ones —
+六曜, 不成就日, the 旧暦 凶会日 and the 二十七宿 — read, through
+`hc_almanac::lunisolar`, the calendar of `hc-calendars-lunar` the meridian
+names: the Chinese one at `Meridian::CHINA`, the Japanese 旧暦 at
+`Meridian::JAPAN` and every other offset; see
+[zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md).
 
 **Where publishers differ**, each reading is named in the module
 documentation with its source. Two are registered as readings of their own,
@@ -248,9 +251,11 @@ crate puts it there. A term within about a minute of local midnight can
 still be put on the wrong day, which would move every 節切り note of that
 boundary.
 
-**The 旧暦.** Over 2024 to 2033 `hc-seasons`' derivation differs from the
-Japanese 旧暦 on 89 days, all from 25 August to 21 November 2033; 六曜,
-不成就日, the 二十七宿 and the 旧暦 凶会日 follow it there.
+**The 旧暦** is the 天保暦's rules continued, as
+[zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md) describes, with 閏11月 in
+2033–34. Until 2026 these notes read a simplified derivation in
+`hc-seasons` that differed from it on 89 days of 2024–2033, all from 25
+August to 21 November 2033; that document lists the runs that changed.
 
 ## Sources
 

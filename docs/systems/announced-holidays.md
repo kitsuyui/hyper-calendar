@@ -49,8 +49,9 @@ Each table carries three kinds of day.
    and the fixed days of South Sudan, Guinea-Bissau and Niger are of this
    kind: a caller gets them for any year from the table's first.
 2. **A day whose date, length or existence the instrument decides** is
-   tabulated for the years whose instrument was read. Each such holiday is
-   a `Rule::Tabulated` whose `first_year..=last_year` covers only those
+   listed for the years whose instrument was read. Each such holiday is
+   a `Rule::Listed` reading its rows of the table of announcements, whose
+   `first_year..=last_year` covers only those
    years, or several, one per run of years read, with the years in between
    named as unread. The `announced` and `unread_in` helpers in
    `africa_middle_east.rs` build them.
@@ -90,7 +91,7 @@ checks each step.
 
 ## What is carried
 
-| Table | By rule | Tabulated, for the years read | A gap | Weekend |
+| Table | By rule | Listed, for the years read | A gap | Weekend |
 | --- | --- | --- | --- | --- |
 | Fiji | Good Friday, Easter Saturday, Easter Monday (Cap. 101) | Every other day of the Ministry's lists, 2019–2026 | Those days in any other year | Saturday–Sunday, the days the lists move a holiday off when they move one |
 | Kiribati | Good Friday, Easter Monday (Cap. 81) | Every other day of the orders for 2025 (revised) and 2026, the "in honour of" days included | Those days in any other year | Saturday–Sunday |
@@ -200,7 +201,8 @@ is incomplete in places.
 - `crates/hc-holiday/src/countries/africa_middle_east.rs`: `LIBERIA`,
   `GAMBIA`, `SUDAN`, `TOGO`, `NIGER`, `GABON`, `SIERRA_LEONE`, `ESWATINI`,
   `GUINEA_BISSAU`, `SOUTH_SUDAN`, and the helpers `announced`,
-  `unread_in`, `announced_days!` and `NOT_READ`.
+  `unread_in` and `NOT_READ`, and each country's `Listing` of the
+  announcements read.
 - `crates/hc-holiday/src/countries/asia.rs`: `NORTH_KOREA`.
 - `crates/hc-holiday/tests/countries.rs`:
   `fiji_keeps_the_days_of_the_governments_yearly_lists`,

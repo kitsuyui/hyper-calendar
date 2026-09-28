@@ -76,20 +76,21 @@ third for 1999 to 2007 and from 2014; Qingming as the solar term at the
 Chinese meridian from 2008; 1 May, with 2 and 3 May for 1999 to 2007 and
 2 May from 2025; the fifth of the fifth month and the fifteenth of the
 eighth from 2008; 1 to 3 October. A year before 1999 meets one more rule,
-`CN_UNREAD`, a `Rule::Tabulated` that covers no year at all, so that the
+`CN_UNREAD`, `Rule::UNREAD`, a listing that covers no year at all, so that the
 engine reports the statutory days of that year as a gap instead of
 answering with the 1999 text's days.
 
 Each notice is then two lists. `CN_DAYS_OFF` holds one row per span the
-notice gives off — the festival, the Gregorian year, the first and last
-month and day — and `CN_WORKDAYS` one row per weekend day it works. The
+notice gives off — the Gregorian year, the first and last month and day,
+and the festival — and `CN_WORKDAYS` one row per weekend day it works. The
 spans are entered as the notice prints them, statutory days included:
 the rows are under the festival's own name so that the engine, which
 drops a second entry of the same name on the same day, lists the
 statutory day once. A span that crosses a New Year is split at it and
 each part keyed by its own year; a change notice is entered as the
-changed span, not beside the original. Every row is looked up by
-`Rule::Tabulated` with `first_year` 2008 and `last_year` 2026, so a year
+changed span, not beside the original. Both are `Listing`s, spans and
+named dates, and each festival's rows are read by a `Rule::Listed` with
+`first_year` 2008 and `last_year` 2026, so a year
 outside that range is reported as a gap rather than answered with nothing.
 
 **A working day is an entry.** The weekend days worked are entries of
@@ -278,8 +279,9 @@ them.
 `crates/hc-holiday/src/countries/asia.rs`: the statutory rules in
 `CN_RULES`, bounded below by `CN_STATUTE_FIRST` with `CN_UNREAD` for the
 years before it; the arrangements in `CN_DAYS_OFF` and `CN_WORKDAYS`,
-keyed by `Arranged` and read through `cn_days_off`, `cn_workdays` and
-`cn_tabulated`; the table `CHINA`. The engine's part is `Kind::Workday`
+keyed by the festival names of the module `cn` and read through
+`cn_off`, `cn_work` and `cn_arranged`; the table `CHINA`. `Listing` and
+`Rule::Listed` are in `rule.rs`. The engine's part is `Kind::Workday`
 and `HolidayRule::workday` in `rule.rs`, `is_designated_workday` and
 `is_business_day` in `engine.rs`, and the `is_day_off` filter in
 `evaluate_with_includes`. The exchanges are `SHANGHAI_STOCK_EXCHANGE` and

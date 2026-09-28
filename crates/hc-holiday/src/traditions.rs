@@ -77,7 +77,7 @@ use crate::hindu::{
     NARAKA_CHATURDASHI, NAVARATRI, RAKSHA_BANDHAN, RAMA_NAVAMI, SAMVATSARI, UGADI, VIJAYA_DASHAMI,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    CalendarSystem, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
     TibetanMonth,
 };
 
@@ -685,69 +685,22 @@ const fn badi(name: &'static str, local: &'static str, month: u8, day: u8) -> Ho
 /// otherwise solar calendar, decided against the Tehran meridian, which no
 /// arithmetic in this crate reproduces. The table is the source, and past
 /// its last year the rule reports a gap rather than a guess.
-fn birth_of_the_bab(year: i64) -> Days {
-    let (month, day) = match year {
-        2015 => (11, 13),
-        2016 => (11, 1),
-        2017 => (10, 21),
-        2018 => (11, 9),
-        2019 => (10, 29),
-        2020 => (10, 18),
-        2021 => (11, 6),
-        2022 => (10, 26),
-        2023 => (10, 16),
-        2024 => (11, 2),
-        2025 => (10, 22),
-        2026 => (11, 10),
-        2027 => (10, 30),
-        2028 => (10, 19),
-        2029 => (11, 7),
-        2030 => (10, 28),
-        2031 => (10, 17),
-        2032 => (11, 4),
-        2033 => (10, 24),
-        2034 => (11, 12),
-        2035 => (11, 1),
-        2036 => (10, 20),
-        2037 => (11, 8),
-        2038 => (10, 29),
-        2039 => (10, 19),
-        2040 => (11, 6),
-        2041 => (10, 26),
-        2042 => (10, 15),
-        2043 => (11, 3),
-        2044 => (10, 22),
-        2045 => (11, 10),
-        2046 => (10, 30),
-        2047 => (10, 20),
-        2048 => (11, 7),
-        2049 => (10, 28),
-        2050 => (10, 17),
-        2051 => (11, 5),
-        2052 => (10, 24),
-        2053 => (11, 11),
-        2054 => (11, 1),
-        2055 => (10, 21),
-        2056 => (11, 8),
-        2057 => (10, 29),
-        2058 => (10, 18),
-        2059 => (11, 6),
-        2060 => (10, 25),
-        2061 => (10, 14),
-        2062 => (11, 2),
-        2063 => (10, 23),
-        2064 => (11, 10),
-        _ => return Days::new(),
-    };
-    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
-}
+#[rustfmt::skip]
+static BIRTH_OF_THE_BAB_DAYS: Listing = Listing::Dates(&[
+    (2015, 11, 13), (2016, 11, 1), (2017, 10, 21), (2018, 11, 9), (2019, 10, 29),
+    (2020, 10, 18), (2021, 11, 6), (2022, 10, 26), (2023, 10, 16), (2024, 11, 2),
+    (2025, 10, 22), (2026, 11, 10), (2027, 10, 30), (2028, 10, 19), (2029, 11, 7),
+    (2030, 10, 28), (2031, 10, 17), (2032, 11, 4), (2033, 10, 24), (2034, 11, 12),
+    (2035, 11, 1), (2036, 10, 20), (2037, 11, 8), (2038, 10, 29), (2039, 10, 19),
+    (2040, 11, 6), (2041, 10, 26), (2042, 10, 15), (2043, 11, 3), (2044, 10, 22),
+    (2045, 11, 10), (2046, 10, 30), (2047, 10, 20), (2048, 11, 7), (2049, 10, 28),
+    (2050, 10, 17), (2051, 11, 5), (2052, 10, 24), (2053, 11, 11), (2054, 11, 1),
+    (2055, 10, 21), (2056, 11, 8), (2057, 10, 29), (2058, 10, 18), (2059, 11, 6),
+    (2060, 10, 25), (2061, 10, 14), (2062, 11, 2), (2063, 10, 23), (2064, 11, 10),
+]);
 
 /// The tabulated Birth of the Báb; the Birth of Bahá'u'lláh is the day after.
-const BIRTH_OF_THE_BAB: Rule = Rule::Tabulated {
-    function: birth_of_the_bab,
-    first_year: 2015,
-    last_year: 2064,
-};
+const BIRTH_OF_THE_BAB: Rule = Rule::listed(BIRTH_OF_THE_BAB_DAYS.every(), 2015, 2064);
 
 static BAHAI_RULES: &[HolidayRule] = &[
     badi("Naw-Rúz", "عید نوروز", 1, 1),
@@ -3109,29 +3062,13 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
 /// SGPC" (`dekhoji-nanakshahi-sgpc`, secondary); 2024 PTC News,
 /// 1 November 2024 (`ptcnews-bandi-chhor-2024`); 2025 Babushahi, "as
 /// confirmed by" the SGPC (`babushahi-bandi-chhor-2025`).
-fn sgpc_bandi_chhor(year: i64) -> Days {
-    let (month, day) = match year {
-        2010 => (11, 5),
-        2011 => (10, 26),
-        2012 => (11, 13),
-        2013 => (11, 3),
-        2014 => (10, 23),
-        2015 => (11, 11),
-        2016 => (10, 30),
-        2017 => (10, 19),
-        2018 => (11, 7),
-        2019 => (10, 27),
-        2020 => (11, 14),
-        2021 => (11, 4),
-        2022 => (10, 24),
-        2023 => (11, 12),
-        2024 => (11, 1),
-        2025 => (10, 21),
-        2026 => (11, 8),
-        _ => return Days::new(),
-    };
-    gregorian::to_fixed(year, month, day).map_or_else(|_| Days::new(), Days::one)
-}
+#[rustfmt::skip]
+static SGPC_BANDI_CHHOR: Listing = Listing::Dates(&[
+    (2010, 11, 5), (2011, 10, 26), (2012, 11, 13), (2013, 11, 3), (2014, 10, 23),
+    (2015, 11, 11), (2016, 10, 30), (2017, 10, 19), (2018, 11, 7), (2019, 10, 27),
+    (2020, 11, 14), (2021, 11, 4), (2022, 10, 24), (2023, 11, 12), (2024, 11, 1),
+    (2025, 10, 21), (2026, 11, 8),
+]);
 
 /// The observances the SGPC keeps on the Bikrami calendar, by a rule a
 /// source read states or fits, or as the days it published.
@@ -3152,11 +3089,7 @@ static SIKH_SGPC_RULES: &[HolidayRule] = &[
     feast(
         "Bandi Chhor Divas",
         "",
-        Rule::Tabulated {
-            function: sgpc_bandi_chhor,
-            first_year: 2010,
-            last_year: 2026,
-        },
+        Rule::listed(SGPC_BANDI_CHHOR.every(), 2010, 2026),
     ),
     feast("Parkash of Guru Nanak", "", GURU_NANAK_JAYANTI),
 ];
@@ -3181,7 +3114,7 @@ static SIKH_SGPC_RULES: &[HolidayRule] = &[
 ///   Sikhism's and the sunrise is fitted, to every day the SGPC kept from
 ///   2010 to 2026, so the rule is carried approximate.
 /// - **Bandi Chhor Divas** is the days the SGPC kept, 2010 to 2026
-///   ([`Rule::Tabulated`]), and a gap outside them. They are the days of
+///   ([`Rule::Listed`]), and a gap outside them. They are the days of
 ///   Diwali ([`crate::hindu::DIWALI`]) but in 2024 and 2025, when the SGPC
 ///   kept 1 November and 21 October, a day after it. No source read states
 ///   the SGPC's rule. The day whose sunset the new moon of Kārttika holds,

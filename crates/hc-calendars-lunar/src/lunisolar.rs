@@ -1007,6 +1007,19 @@ impl LunisolarParameters {
         Ok(self.decompose(rd))
     }
 
+    /// The lunisolar year, month and day the rules give a fixed day, with
+    /// no range check.
+    ///
+    /// For parameters with neither an `earliest` nor a `latest` day, such as
+    /// [`crate::japanese_tenpo::UNBOUNDED_PARAMETERS`], this is
+    /// [`LunisolarParameters::from_fixed`]'s answer without the `Result`,
+    /// which such parameters never refuse. For bounded ones it continues the
+    /// rules past the range, which is not a date anyone kept.
+    #[must_use]
+    pub fn from_fixed_unbounded(&self, rd: Rd) -> (i64, Month, u8) {
+        self.decompose(rd)
+    }
+
     /// The fixed day of a lunisolar date.
     ///
     /// # Errors

@@ -78,8 +78,9 @@ impl Holiday {
 /// entries instead of thirteen, with 春節, 端午節 and 中秋節 missing and
 /// everything that remains marked [`Confidence::Exact`].
 ///
-/// A calendar's range is one cause of a gap. A [`Rule::Tabulated`] rule
-/// past the last year its published table covers is another, and a
+/// A calendar's range is one cause of a gap. A [`Rule::Listed`] or
+/// [`Rule::Tabulated`] rule past the last year its published table covers
+/// is another, and a
 /// [`Rule::Unsettled`] rule in a year its source leaves open, as *Common
 /// Worship*'s Rules do for some Easters, is a third.
 ///
@@ -87,6 +88,7 @@ impl Holiday {
 /// holiday silently is a guess — that it did not happen — so the calendar
 /// records each one it could not compute as a gap.
 ///
+/// [`Rule::Listed`]: crate::rule::Rule::Listed
 /// [`Rule::Tabulated`]: crate::rule::Rule::Tabulated
 /// [`Rule::Unsettled`]: crate::rule::Rule::Unsettled
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

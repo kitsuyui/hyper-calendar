@@ -55,8 +55,8 @@
 //! Where another tradition names its moons, it does so over its own
 //! calendar, and mapping those names onto Gregorian months would destroy the
 //! thing being named. Japan's 中秋の名月 and 十三夜 are lunisolar dates and
-//! live in [`hc_seasons::moon_calendar::mid_autumn_moon`] and
-//! [`hc_seasons::moon_calendar::thirteenth_night`], where they belong.
+//! live in `hc-almanac`'s `moon_viewing`, which reads the lunisolar date
+//! they are dated by.
 //! Nothing here duplicates or absorbs them.
 //!
 //! # The Harvest Moon is a rule, not a row

@@ -1,8 +1,9 @@
-# The 雑節 and 六曜, and the minimal lunisolar derivation
+# The 雑節 and 六曜, and the 旧暦 they read
 
-Backs `hc-seasons`: the modules `zassetsu`, `rokuyo` and `lunisolar`, and
-the two moon-viewing nights of `moon_calendar`, which read their dates from
-`lunisolar`.
+Backs `hc-seasons`' module `zassetsu`, and `hc-almanac`'s modules
+`rokuyo`, `moon_viewing` (十五夜 and 十三夜) and `lunisolar`, which reads
+the 旧暦 date all three and 不成就日 and 二十七宿 are keyed to from
+`hc-calendars-lunar`.
 
 The solar terms these days are counted from, the meridian a day is read
 at, and how the instants compare with the 暦要項 are in
@@ -94,16 +95,21 @@ the second 友引, and so on, and a leap month runs as the month before it.
 Within a month the cycle advances a day at a time; at each new moon it
 jumps.
 
-**The lunisolar derivation** is the 中気 rule in its plainest form
-[nao-rekiwiki-chijun]: a month runs from the day of one new moon to the day
-before the next; it is numbered by the 中気 it contains, 雨水 the first
-month, 春分 the second, round to 大寒 the twelfth; a month with no 中気 is a
-leap month and repeats the number before it; new moons and 中気 are
-compared by date, not time.
+**The 旧暦** is `hc-calendars-lunar`'s Japanese Tenpō calendar with its
+1872 bound removed, at `Meridian::JAPAN` and at every offset but the
+Chinese ones; at `Meridian::CHINA` and `CHINA_BEFORE_1929` the annotations
+read the `chinese` calendar instead, the same 時憲暦 rule at Beijing's
+meridian to 1928 and 120°E after [hko-conversion]. `hc_almanac::lunisolar`
+names the two as a `Reckoning`. A month runs from the day of one new moon to the day
+before the next, read at Kyoto's meridian to 1872, Tokyo time for
+1873–1887 and Japan Standard Time from 1888; the months are numbered from
+the one holding the winter solstice, the eleventh, and when thirteen months
+fall between two such months the first with no 中気 is the leap month and
+repeats the number before it.
 
-That rule is not the whole of either calendar. Under 定気 the 中気 are
-closest together near perihelion, and a month can contain two. The 天保暦
-then requires the months containing 冬至, 春分, 夏至 and 秋分 to be the
+That is the 時憲暦 rule, not the whole of the 天保暦's. Under 定気 the 中気
+are closest together near perihelion, and a month can contain two. The
+天保暦 then requires the months containing 冬至, 春分, 夏至 and 秋分 to be the
 eleventh, second, fifth and eighth; the Chinese 時憲暦 rule counts from one
 winter solstice to the next and, when thirteen months fall between, makes
 the first 中気-less month the leap month [nao-topics-2014-2033]. In
@@ -112,13 +118,17 @@ numbering satisfies the 天保暦 rule: this is the 旧暦2033年問題, the fir
 such case since the 天保暦 took effect in 1844, and the Observatory
 tabulates three resolutions — 閏11月 (案1, which the 時憲暦 rule also gives),
 閏7月 (案2) and 閏1月 (案3) — and notes that no public body will choose among
-them [nao-rekiwiki-2033, nao-topics-2014-2033].
+them [nao-rekiwiki-2033, nao-topics-2014-2033]. The 日本カレンダー暦文化振興協会
+recommended 閏11月 in 2015 [wikipedia-ja-kyureki-2033]; the calendar here
+gives it.
 
-`hc-seasons` implements the plain rule, month by month, and when a month
-holds two 中気 it takes the later. `hc-calendars-lunar`'s Japanese Tenpō
-engine, run without its 1872 bound, is the full calculation: months
-numbered from the winter solstice, the first 中気-less month of a
-thirteen-month year the leap month, at the Japanese meridian.
+Until 2026 `hc-seasons` kept a simplified derivation of its own for 六曜
+and the moon-viewing nights: the plain 中気 rule [nao-rekiwiki-chijun],
+month by month, taking the later 中気 when a month held two. It was kept
+for cost, but 3,653 consecutive days of the full calculation take 21 to
+26 ms inside one memo scope against about 10 ms for the simplified one, in
+a release build, and it was wrong where two 中気 fell in one month; see
+Accuracy.
 
 **Worked example: 八十八夜 of 2024.** 立春 fell at 17:27 JST on 4 February
 2024 [nao-rekiyoko-2024]. Counting 4 February as day 1, 29 February is day
@@ -160,26 +170,27 @@ eighth month [wikipedia-ja-rokuyo].
   and neither a setting of the other; `classical_nyubai`, the 壬 rule as
   printed from the 元文五年暦; `classical_hangesho`, the eleventh day from
   夏至. Every function takes a `Meridian`.
-- **`rokuyo`**: `Rokuyo`, the six in cycle order, with Japanese names,
-  romaji and glosses; `Rokuyo::from_lunisolar`, the rule; `rokuyo` for a
-  day at a meridian and `rokuyo_of` for a lunisolar date in hand.
-- **`lunisolar`**: `LunisolarDay`; `lunisolar_day`,
-  `month_start_containing`, `next_month_start`, `new_moon_day_on_or_before`,
-  `month_number`, `principal_term_index`,
-  `month_number_from_principal_index`, `ordinary_date_in_gregorian_year`;
-  and, with the `lunar` feature, `exact_lunisolar_day`, the same day from
-  the full calculation, which nothing routes through.
+- **`hc_almanac::rokuyo`**: `Rokuyo`, the six in cycle order, with
+  Japanese names, romaji and glosses; `Rokuyo::from_lunisolar`, the rule;
+  `rokuyo` for a day at a meridian and `rokuyo_of` for a lunisolar date
+  in hand.
+- **`hc_almanac::lunisolar`**: `Reckoning`, `JapaneseTenpo` or `Chinese`,
+  with `Reckoning::at` for the one a meridian names, `date` for a day's
+  lunisolar date and `day_in_gregorian_year` for the day of a month and
+  day in a Gregorian year, both inside a memo scope; `lunisolar_date` for
+  a day at a meridian.
+- **`hc_almanac::moon_viewing`**: `mid_autumn_moon` and
+  `thirteenth_night`, each for a year at a meridian.
 - **Not carried, deliberately.** The 貞享 reading of 入梅, which took the next
   壬 day when 芒種 was a 壬 day, and the 1844 reading of 半夏生, the 夏至
   instant plus two seventy-seconds of the year: each is superseded, and no
   almanac date from the years they were printed was read to anchor a test.
   平気, and so every pre-1844 placing of these days. 出梅, which the almanacs
   did not print. The Chinese and Korean 雜節; China's 三伏 and 數九 are in
-  `san_fu`. The 天保暦's solstice-and-equinox rule and the 時憲暦's
-  winter-solstice rule in the derivation itself, which would make every
-  六曜 pay for a year's search; the caller who needs them has
-  `hc-calendars-lunar`. A 六曜 before 1873 that any almanac printed: the
-  crate's answers there are the modern rule over the modern lunisolar date.
+  `san_fu`. The 天保暦's solstice-and-equinox rule, which no numbering
+  satisfies in 2033–34. A 六曜 before 1873 that any almanac printed: the
+  answers there are the modern rule over the 天保暦's rules, continued
+  before 1844.
   The other 暦注, which are `hc-almanac`'s.
 
 ## Accuracy
@@ -215,33 +226,50 @@ minutes of noon, so the difference moves nothing here.
 in 2021 and in 1897 and in no year between, as the Observatory's note on
 the 2021 節分 gives [nao-topics-2021-setsubun].
 
-**The lunisolar derivation against the full calculation.** Over the 3,653
-days of 2024–2033 the two give a different month, leap flag or day on 89,
-all in one run from 25 August to 21 November 2033 — the three months
-before the 2033 problem's double-中気 month. The run does not end with the
-window: 59 more days differ, 20 January to 19 March 2034. Over 1950–2049,
-counted once with a scratch program and not by a test, 266 days differ in
-four runs: 25 September to 23 October 1965; 22 December 1984 to 20 March
-1985; and the two of 2033–34. Each run is at a month holding two 中気 — 霜降
-and 小雪 in 1965, 冬至 and 大寒 in 1984, 小雪 and 冬至 and then 大寒 and 雨水 in
-2033–34 — and covers the months the two methods number differently around
-it. The
-Observatory tabulates two of them. For 1984–85 its table has the December
-month as the eleventh; the derivation, taking the later 中気, 大寒, makes it
-the twelfth, and the next two months are one off with it; the full
-calculation agrees with the table [nao-topics-2014-2033]. For 2033–34 the
-full calculation gives 案1; the derivation gives 閏7月, 8, 9, 11, 閏11月,
-1, 閏1月, which is none of the three resolutions and has no tenth month
-[nao-rekiwiki-2033]. Its eighth month is 案2's, so its 中秋の名月 of 2033 is
-案2's 7 October and not 案1's 8 September [nao-topics-2014-2033]. The
-Observatory's table of 2014, with its leap ninth month, is reproduced by
-both [nao-rekiwiki-chijun, nao-topics-2014-2033].
+**The 旧暦 against the Observatory's tables.** The months of 2014, with
+the leap ninth month [nao-rekiwiki-chijun, nao-topics-2014-2033]; of
+1984–85, where the month from 22 December holds both 冬至 and 大寒 and is
+the eleventh [nao-topics-2014-2033]; and of 2033–34 under 案1
+[nao-rekiwiki-2033] are all reproduced.
 
-**六曜** has no published list that was read to compare with: the 暦要項
-does not print it. It is exact given the lunisolar date, and wrong on
-exactly the days above where the derivation is. The lunar new years of
-2015–2026 and the 2023 閏二月, on which the derivation is anchored, and the
-fixed 六曜 of the first of each month [wikipedia-ja-rokuyo] are its tests.
+**What moving off the simplified derivation changed.** Over 1900–2100 at
+the Japanese meridian, the 六曜, the 二十七宿 and the 不成就日 of 268 days
+changed, in five runs, each at a month holding two 中気 and covering the
+months the two methods numbered differently: 25 September to 23 October
+1965 (29 days); 22 December 1984 to 19 February 1985 (60); 25 August to 21
+November 2033 (89, all of the 3,653 days of 2024–2033 that changed); 20
+January to 18 February 2034 (30); and 21 December 2052 to 18 February 2053
+(60). The combinations built on them moved with them, and 十三夜 of 1965,
+which the simplified derivation had no ninth month for, is now 7 October;
+十五夜 of 2033 moved from 7 October, 案2's, to 8 September, 案1's
+[nao-topics-2014-2033].
+
+At the Chinese meridian 329 days of 1900–2100 changed, in seven runs: 17
+November to 16 December 1914, 3 February to 3 March 1916 and 10 November
+to 9 December 1920 (30 each), whose new moons fell a few minutes before
+midnight at Beijing's meridian, which the calendar keeps to 1928, and
+after it at 120°E, where the derivation read them; and the four runs of
+1984–85, 2033, 2034 and 2052–53 above, the same months as at the Japanese
+meridian. The Hong Kong Observatory's conversion tables begin every one
+of those months on the day the calendar does [hko-conversion-tables,
+hko-conversion-tables-moon-keyed].
+
+At an offset with no lunisolar calendar — `Meridian::UNIVERSAL`, `INDIA`,
+a longitude — the simplified derivation read the Moon at that offset, a
+calendar nobody kept, and these annotations now read the Japanese one:
+28,300 days of 1900–2100 changed at `UNIVERSAL`, the facade's default
+meridian.
+
+**Against a published calendar.** Arachne's online calendar
+[arachne-onlinecalendar] prints the 六曜 of October 1965, January 1985,
+September, October and November 2033, February 2034 and January 2053, a
+month of each run; all 212 days are this calendar's. 便利コム's 2033
+calendar prints 案2's instead [benri-com-calendar-2033]: publishers differ
+in 2033, and this follows the one the 暦文化振興協会 recommended.
+
+**六曜** is exact given the lunisolar date. The lunar new years of
+2015–2026, the 2023 閏二月 and the fixed 六曜 of the first of each month
+[wikipedia-ja-rokuyo] are its tests, with the days above.
 
 ## Sources
 
@@ -255,6 +283,10 @@ fixed 六曜 of the first of each month [wikipedia-ja-rokuyo] are its tests.
 | [nao-rekiwiki-2033] | The 旧暦2033年問題, its three resolutions, first since 1844, no public body to decide; the 天保暦 rules applied by analogy | Yes, 2026-09-26 |
 | [nao-topics-2014-2033] | The 天保暦 solstice-and-equinox rule and the 時憲暦 rule; the tables of 2014, 1984–85 and 2033–34; 中秋の名月 of 2033 under 案1 and 案2 | Yes, 2026-09-26 |
 | [nao-faq-kyureki] | No official lunisolar calculation in Japan today | Yes, 2026-09-26 |
+| [wikipedia-ja-kyureki-2033] | The 暦文化振興協会's 2015 recommendation of 閏11月 and its reasons. Secondary: the association's page was opened for its date, its PDFs not read | Yes, 2026-09-28 |
+| [arachne-onlinecalendar] | The 六曜 of the seven months above | Yes, 2026-09-28 |
+| [hko-conversion], [hko-conversion-tables], [hko-conversion-tables-moon-keyed] | The Chinese calendar's meridians; the first days of the months that changed at the Chinese meridian | Yes, 2026-09-25 to 2026-09-28 |
+| [benri-com-calendar-2033] | 案2's 六曜 on four days of 2033 | Yes, 2026-09-28 |
 | [nao-topics-2021-setsubun] | 節分 2021 on 2 February, the first not on the 3rd since 1984 and on the 2nd since 1897 | Yes, 2026-09-26 |
 | [nao-rekiyoko-2024] | The 2024 雑節 and their instants; 立春 17:27, 春分 12:06 and 秋分 21:44 JST | Yes, 2026-09-26 for the 雑節; the terms 2026-09-25 |
 | [nao-rekiyoko-2025] | The 2025 雑節 and their instants | Yes, 2026-09-26 for the 雑節 |
@@ -274,11 +306,12 @@ the National Diet Library and National Archives — were not read.
 
 ## Code
 
-`crates/hc-seasons/src/zassetsu.rs`, `crates/hc-seasons/src/rokuyo.rs`,
-`crates/hc-seasons/src/lunisolar.rs`; `moon_calendar.rs` for 十五夜 and
-十三夜. The solar terms and the meridian are `solar_terms.rs` and
-`meridian.rs`; the day stems are `hc_calendar::cycle::sexagenary_day`; the
-full calculation is `hc-calendars-lunar`'s `japanese_tenpo::UNBOUNDED`.
+`crates/hc-seasons/src/zassetsu.rs`; `crates/hc-almanac/src/rokuyo.rs`,
+`moon_viewing.rs` and `lunisolar.rs`. The solar terms and the meridian are
+`hc-seasons`' `solar_terms.rs` and `meridian.rs`; the day stems are
+`hc_calendar::cycle::sexagenary_day`; the 旧暦 is `hc-calendars-lunar`'s
+`japanese_tenpo::UNBOUNDED_PARAMETERS`, read through
+`LunisolarParameters::from_fixed_unbounded`.
 
 Anchors in `zassetsu`:
 `the_zassetsu_of_2024_to_2027_fall_where_the_rekiyoko_puts_them`,
@@ -293,17 +326,20 @@ Anchors in `zassetsu`:
 `the_classical_and_modern_rainy_season_rules_disagree`,
 `the_two_hangesho_rules_never_differ_by_more_than_a_day`.
 
-In `rokuyo`: `the_first_of_each_month_has_the_rokuyo_the_almanacs_print`,
+In `hc_almanac::rokuyo`:
+`the_first_of_each_month_has_the_rokuyo_the_almanacs_print`,
 `published_rokuyo_dates_come_out_right`,
+`the_changed_months_are_the_ones_a_published_calendar_prints`,
 `the_cycle_advances_daily_and_resets_at_every_new_moon`,
-`a_leap_month_repeats_the_previous_months_rokuyo_sequence`,
-`every_leap_month_reruns_the_previous_months_rokuyo`.
+`a_leap_month_repeats_the_previous_months_rokuyo_sequence`.
 
-In `lunisolar`: `the_lunar_new_year_is_the_first_day_of_the_first_month`,
+In `hc_almanac::lunisolar`:
+`the_lunar_new_year_is_the_first_of_the_first_month`,
 `the_leap_second_month_of_2023_is_found`,
 `the_months_of_2014_are_the_ones_the_observatory_tabulates`,
-`a_month_with_two_principal_terms_is_numbered_after_the_later`,
-`the_months_of_2033_follow_none_of_the_observatorys_resolutions`; with the
-`lunar` feature, `the_difference_from_the_real_calendar_is_counted_not_assumed`,
-which prints the 89 of 3,653 under `--nocapture`, and
-`the_full_calculation_follows_the_observatorys_tables`.
+`the_chinese_meridian_reads_the_months_the_observatory_tabulates`; in
+`hc_almanac::moon_viewing`,
+`the_mid_autumn_moon_falls_where_the_almanacs_put_it`,
+`the_mid_autumn_moon_of_2033_is_the_first_resolutions`; in
+`hc-calendars-lunar`'s `japanese_tenpo`,
+`the_continued_calendar_follows_the_observatorys_tables`.

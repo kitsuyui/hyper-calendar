@@ -25,13 +25,8 @@
 //!
 //! # 十五夜 and 十三夜
 //!
-//! The two moon-viewing nights are lunisolar dates, not astronomical events:
-//! 十五夜 (中秋の名月) is the fifteenth day of the eighth lunisolar month and
-//! 十三夜 the thirteenth of the ninth. Neither is reliably the night of the
-//! actual full moon — a lunation is 29.53 days, so the full moon falls on the
-//! fifteenth day only about half the time, and 中秋の名月 can be a day or two
-//! off. That is not an error in this crate or in the tradition; the
-//! observance is dated by the calendar, not by the sky.
+//! The two moon-viewing nights are lunisolar dates, not astronomical events,
+//! and are `hc-almanac`'s `moon_viewing`, which reads the Japanese 旧暦.
 //!
 //! # 伝統的七夕
 //!
@@ -52,7 +47,6 @@ use hc_astro::new_moon_before;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
 
-use crate::lunisolar::ordinary_date_in_gregorian_year;
 use crate::meridian::Meridian;
 
 /// How many named phases the lunation is divided into for [`PhaseName`].
@@ -391,27 +385,6 @@ pub fn principal_phases_in_month(year: i64, month: u8, meridian: Meridian) -> Mo
         }
     }
     phases
-}
-
-/// 十五夜, the 中秋の名月: the fifteenth day of the eighth lunisolar month.
-///
-/// Returns `None` only if the date somehow falls outside the Gregorian year
-/// asked for, which the eighth month never does in practice.
-///
-/// This is a *calendar* date. The full moon is on the same night only about
-/// half the time; see the module documentation.
-#[must_use]
-pub fn mid_autumn_moon(year: i64, meridian: Meridian) -> Option<Rd> {
-    ordinary_date_in_gregorian_year(year, 8, 15, meridian)
-}
-
-/// 十三夜, the 後の月: the thirteenth day of the ninth lunisolar month.
-///
-/// The companion to 十五夜, about a month later. Viewing one and not the
-/// other was 片見月 and held to be unlucky.
-#[must_use]
-pub fn thirteenth_night(year: i64, meridian: Meridian) -> Option<Rd> {
-    ordinary_date_in_gregorian_year(year, 9, 13, meridian)
 }
 
 /// 処暑, the solar term at 150°, which 伝統的七夕 is counted from.
@@ -770,120 +743,6 @@ mod tests {
             "no February in two centuries lacked a full moon"
         );
         assert!(missing < 12, "{missing} Februaries is too many");
-    }
-
-    /// Published 中秋の名月 dates, JST: these are printed in every Japanese
-    /// calendar and reported in the newspapers each year.
-    #[test]
-    fn the_mid_autumn_moon_falls_where_the_almanacs_put_it() {
-        let expected = [
-            (2020, 10, 1),
-            (2021, 9, 21),
-            (2022, 9, 10),
-            (2023, 9, 29),
-            (2024, 9, 17),
-            (2025, 10, 6),
-        ];
-        for (year, month, day) in expected {
-            assert_eq!(
-                mid_autumn_moon(year, JAPAN),
-                Some(gregorian::to_fixed_saturating(year, month, day)),
-                "中秋の名月 of {year}"
-            );
-        }
-    }
-
-    /// Published 十三夜 dates, JST.
-    #[test]
-    fn the_thirteenth_night_falls_where_the_almanacs_put_it() {
-        let expected = [
-            (2021, 10, 18),
-            (2022, 10, 8),
-            (2023, 10, 27),
-            (2024, 10, 15),
-            (2025, 11, 2),
-        ];
-        for (year, month, day) in expected {
-            assert_eq!(
-                thirteenth_night(year, JAPAN),
-                Some(gregorian::to_fixed_saturating(year, month, day)),
-                "十三夜 of {year}"
-            );
-        }
-    }
-
-    /// 十三夜 comes about a month after 十五夜 — unless a leap eighth month
-    /// falls between them, in which case it comes about two. 1995 had a
-    /// 閏八月 and its two viewing nights were 57 days apart, which is not a
-    /// bug but the calendar working.
-    #[test]
-    fn the_thirteenth_night_follows_the_mid_autumn_moon_by_a_month_or_by_two() {
-        let mut intercalated = 0;
-        for year in 1980..2060 {
-            let fifteenth = mid_autumn_moon(year, JAPAN);
-            let thirteenth = thirteenth_night(year, JAPAN);
-            let (Some(fifteenth), Some(thirteenth)) = (fifteenth, thirteenth) else {
-                panic!("{year} was missing one of the two moon-viewing nights");
-            };
-            let gap = thirteenth.0 - fifteenth.0;
-            if gap > 40 {
-                intercalated += 1;
-                assert!(
-                    (55..=61).contains(&gap),
-                    "{year}: {gap} days, which is neither one month nor two"
-                );
-                // A leap eighth month is the only thing that can do this.
-                let between = crate::lunisolar::lunisolar_day(Rd(fifteenth.0 + 30), JAPAN);
-                assert!(
-                    between.leap_month,
-                    "{year}: the long gap was not a leap month"
-                );
-            } else {
-                assert!(
-                    (26..=31).contains(&gap),
-                    "{year}: {gap} days between the two viewings"
-                );
-            }
-        }
-        assert!(
-            (1..=6).contains(&intercalated),
-            "{intercalated} leap eighth months in eighty years"
-        );
-    }
-
-    /// The tradition dates 十五夜 by the calendar, not by the sky, so it is
-    /// the actual full moon rather less than half the time. Stating that as a
-    /// test stops anyone "fixing" it later.
-    #[test]
-    fn the_mid_autumn_moon_is_often_not_the_full_moon() {
-        let mut exact = 0;
-        let mut total = 0;
-        for year in 1980..2060 {
-            let Some(night) = mid_autumn_moon(year, JAPAN) else {
-                continue;
-            };
-            total += 1;
-            let phases = principal_phases_in_month(
-                hc_calendar::gregorian::ymd(night).0,
-                hc_calendar::gregorian::ymd(night).1,
-                JAPAN,
-            );
-            if phases.full_moon().map(|event| event.day) == Some(night) {
-                exact += 1;
-            }
-            // Whether or not it is exact, the Moon is near enough full to be
-            // worth looking at.
-            assert!(
-                illuminated_fraction(night, JAPAN) > 0.93,
-                "{year}: the harvest moon was only {} lit",
-                illuminated_fraction(night, JAPAN)
-            );
-        }
-        assert!(total > 70);
-        assert!(
-            exact * 2 < total,
-            "{exact} of {total} were the exact full moon, which is suspiciously many"
-        );
     }
 
     #[test]

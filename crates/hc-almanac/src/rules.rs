@@ -106,6 +106,12 @@ pub enum AlmanacRule {
     Undetermined,
 }
 
+/// The zero-based index of the day's lunisolar month in a twelve-entry
+/// table; a leap month takes the row of the month it follows.
+fn lunar_month_index(context: &DayContext) -> usize {
+    usize::from(context.lunisolar().month.ordinal - 1)
+}
+
 /// Whether a rule holds on the day a context describes.
 ///
 /// Answers `None` only for [`AlmanacRule::Undetermined`] — "this crate does
@@ -114,7 +120,6 @@ pub enum AlmanacRule {
 pub fn rule_applies(rule: AlmanacRule, context: &DayContext) -> Option<bool> {
     let sexagenary = context.sexagenary().index();
     let solar_month = context.solar_month().table_index();
-    let lunar_month = usize::from(context.lunisolar().month - 1);
     Some(match rule {
         AlmanacRule::SexagenaryIn(days) => days.contains(&sexagenary),
         AlmanacRule::SexagenaryRun { first, length } => {
@@ -126,12 +131,15 @@ pub fn rule_applies(rule: AlmanacRule, context: &DayContext) -> Option<bool> {
         }
         AlmanacRule::StemBySolarMonth(table) => table[solar_month].contains(&context.stem_index()),
         AlmanacRule::SexagenaryBySolarMonth(table) => table[solar_month].contains(&sexagenary),
-        AlmanacRule::SexagenaryByLunarMonth(table) => table[lunar_month].contains(&sexagenary),
+        AlmanacRule::SexagenaryByLunarMonth(table) => {
+            table[lunar_month_index(context)].contains(&sexagenary)
+        }
         AlmanacRule::DaysIntoSolarMonth(table) => {
             i64::from(table[solar_month]) == context.days_into_solar_month()
         }
         AlmanacRule::LunarDayByLunarMonth(table) => {
-            table[lunar_month].contains(&context.lunisolar().day)
+            let date = context.lunisolar();
+            table[usize::from(date.month.ordinal - 1)].contains(&date.day)
         }
         AlmanacRule::Mansion(mansion) => mansion_of(context.day()) == mansion,
         AlmanacRule::Undetermined => return None,

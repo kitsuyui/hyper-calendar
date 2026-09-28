@@ -59,8 +59,11 @@
 
 use hc_calendar::Rd;
 use hc_calendar::shape::Naming;
+use hc_calendars_lunar::LunisolarDate;
+
 use hc_seasons::Meridian;
-use hc_seasons::lunisolar::lunisolar_day;
+
+use crate::lunisolar::lunisolar_date;
 
 /// How many mansions the almanac cycle has.
 pub const MANSION_COUNT: u8 = 28;
@@ -623,19 +626,25 @@ const MONTH_FIRST_DAY_MANSION: [u8; 12] = [
     9,  // 十二月 虚宿
 ];
 
-/// The 二十七宿 of a day in the 宿曜道 scheme, at a meridian.
+/// The 二十七宿 of a day in the 宿曜道 scheme, in the lunisolar calendar
+/// `meridian` names.
 ///
 /// Unlike the twenty-eight-day cycle this is *not* free-running: it restarts
 /// at every new moon, from the mansion the month is named after, so it needs
-/// a lunisolar date and therefore a meridian.
+/// a lunisolar date, which [`crate::lunisolar`] reads.
 ///
 /// The leap month repeats the number of the month it follows, so a leap
 /// month's mansions run exactly as the preceding month's did.
 #[must_use]
 pub fn mansion27_of(day: Rd, meridian: Meridian) -> Mansion27 {
-    let date = lunisolar_day(day, meridian);
-    let first = MONTH_FIRST_DAY_MANSION[(date.month - 1) as usize];
-    Mansion27::from_index(i64::from(first) + i64::from(date.day) - 1)
+    mansion27_of_date(lunisolar_date(day, meridian))
+}
+
+/// The 二十七宿 of a lunisolar date already in hand.
+#[must_use]
+pub const fn mansion27_of_date(date: LunisolarDate) -> Mansion27 {
+    let first = MONTH_FIRST_DAY_MANSION[(date.month.ordinal - 1) as usize];
+    Mansion27::from_index(first as i64 + date.day as i64 - 1)
 }
 
 #[cfg(test)]
@@ -895,22 +904,24 @@ mod tests {
     /// land on the first of a lunisolar month.
     #[test]
     fn the_twenty_seven_mansion_cycle_restarts_at_every_new_moon() {
-        let mut resets = 0;
-        for offset in 1..380 {
-            let day = Rd(738_886 + offset);
-            let today = mansion27_of(day, Meridian::JAPAN);
-            let yesterday = mansion27_of(Rd(day.0 - 1), Meridian::JAPAN);
-            if today != Mansion27::from_index(i64::from(yesterday.index()) + 1) {
-                resets += 1;
-                assert_eq!(
-                    lunisolar_day(day, Meridian::JAPAN).day,
-                    1,
-                    "RD {} broke the count away from a new moon",
-                    day.0
-                );
+        hc_core::memo::scope(|| {
+            let mut resets = 0;
+            for offset in 1..380 {
+                let day = Rd(738_886 + offset);
+                let today = mansion27_of(day, Meridian::JAPAN);
+                let yesterday = mansion27_of(Rd(day.0 - 1), Meridian::JAPAN);
+                if today != Mansion27::from_index(i64::from(yesterday.index()) + 1) {
+                    resets += 1;
+                    assert_eq!(
+                        lunisolar_date(day, Meridian::JAPAN).day,
+                        1,
+                        "RD {} broke the count away from a new moon",
+                        day.0
+                    );
+                }
             }
-        }
-        assert!(resets > 0, "a free-running cycle would never jump");
+            assert!(resets > 0, "a free-running cycle would never jump");
+        });
     }
 
     /// The twenty-eight-day cycle has no such reset — that is the difference

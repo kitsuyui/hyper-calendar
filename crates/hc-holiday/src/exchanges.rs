@@ -57,8 +57,8 @@ use crate::countries::{
     UNITED_KINGDOM,
 };
 use crate::rule::{
-    CalendarSystem, Days, HolidayRule, Include, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    CalendarSystem, Days, HolidayRule, Include, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
+    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1021,7 +1021,7 @@ const XTAI_LAST: i64 = 2026;
 
 /// The days before the Lunar New Year break on which the market does not
 /// trade and only settles, as each year's schedule lists them.
-static XTAI_SETTLEMENT_ONLY: &[(i64, u8, u8)] = &[
+static XTAI_SETTLEMENT_ONLY: Listing = Listing::Dates(&[
     (2023, 1, 18),
     (2023, 1, 19),
     (2024, 2, 6),
@@ -1030,19 +1030,7 @@ static XTAI_SETTLEMENT_ONLY: &[(i64, u8, u8)] = &[
     (2025, 1, 24),
     (2026, 2, 12),
     (2026, 2, 13),
-];
-
-fn xtai_settlement_only(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day) in XTAI_SETTLEMENT_ONLY {
-        if y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
+]);
 
 static XTAI_RULES: &[HolidayRule] = &[
     // A day off for workers before it was a government holiday in 2026, and
@@ -1052,11 +1040,7 @@ static XTAI_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public(
         "No trading, settlement only",
         "市場無交易，僅辦理結算交割作業",
-        Rule::Tabulated {
-            function: xtai_settlement_only,
-            first_year: XTAI_FIRST,
-            last_year: XTAI_LAST,
-        },
+        Rule::listed(XTAI_SETTLEMENT_ONLY.every(), XTAI_FIRST, XTAI_LAST),
     ),
 ];
 
@@ -1372,20 +1356,8 @@ const MISX_LAST: i64 = 2026;
 
 /// The Saturdays the Government's decrees made working days, on which the
 /// exchange's announcements say trading "проводятся в обычном режиме".
-static MISX_WORKING_SATURDAYS: &[(i64, u8, u8)] =
-    &[(2024, 4, 27), (2024, 11, 2), (2024, 12, 28), (2025, 11, 1)];
-
-fn misx_working_saturdays(year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day) in MISX_WORKING_SATURDAYS {
-        if y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
+static MISX_WORKING_SATURDAYS: Listing =
+    Listing::Dates(&[(2024, 4, 27), (2024, 11, 2), (2024, 12, 28), (2025, 11, 1)]);
 
 /// A day the exchange's announcements for 2023 to 2026 close, in the
 /// years given.
@@ -1477,11 +1449,7 @@ static MISX_RULES: &[HolidayRule] = &[
     HolidayRule::workday(
         "Working day, a working Saturday",
         "Рабочая суббота",
-        Rule::Tabulated {
-            function: misx_working_saturdays,
-            first_year: MISX_FIRST,
-            last_year: MISX_LAST,
-        },
+        Rule::listed(MISX_WORKING_SATURDAYS.every(), MISX_FIRST, MISX_LAST),
     ),
 ];
 
@@ -1538,18 +1506,14 @@ pub static MOSCOW_EXCHANGE: RuleSet = RuleSet {
 
 /// The days the exchange's December schedules close at 12:00, as each
 /// year's schedule lists them.
-static XJSE_EARLY_CLOSES: &[(i64, u8, u8)] = &[
+static XJSE_EARLY_CLOSES: Listing = Listing::Dates(&[
     (2023, 12, 22),
     (2023, 12, 29),
     (2024, 12, 24),
     (2024, 12, 31),
     (2025, 12, 24),
     (2025, 12, 31),
-];
-
-fn xjse_early_closes(year: i64) -> Days {
-    listed_days(XJSE_EARLY_CLOSES, year)
-}
+]);
 
 static XJSE_RULES: &[HolidayRule] = &[
     // Declared under section 2A of the Public Holidays Act, each for its
@@ -1567,11 +1531,7 @@ static XJSE_RULES: &[HolidayRule] = &[
     HolidayRule::observance(
         "Early close, 12:00",
         "",
-        Rule::Tabulated {
-            function: xjse_early_closes,
-            first_year: 2023,
-            last_year: 2025,
-        },
+        Rule::listed(XJSE_EARLY_CLOSES.every(), 2023, 2025),
     ),
 ];
 
@@ -1696,7 +1656,7 @@ const XTAE_LAST: i64 = 2027;
 /// day, which of the rules below). Clearing-only rows on days the market
 /// does not trade anyway are kept as listed.
 #[rustfmt::skip]
-static XTAE_DAYS: &[(i64, u8, u8, u8)] = &[
+static XTAE_DAYS: Listing = Listing::Numbered(&[
     (2024, 3, 24, 0), (2024, 4, 22, 1), (2024, 4, 23, 2), (2024, 4, 28, 3), (2024, 4, 29, 4),
     (2024, 5, 13, 5), (2024, 5, 14, 6), (2024, 6, 11, 7), (2024, 6, 12, 8), (2024, 8, 13, 9),
     (2024, 10, 2, 10), (2024, 10, 3, 11), (2024, 10, 4, 12), (2024, 10, 11, 13), (2024, 10, 16, 15),
@@ -1718,65 +1678,52 @@ static XTAE_DAYS: &[(i64, u8, u8, u8)] = &[
     (2027, 10, 1, 10), (2027, 10, 3, 12), (2027, 10, 8, 20), (2027, 10, 10, 13), (2027, 10, 11, 14),
     (2027, 10, 15, 15), (2027, 10, 22, 17),
     (2027, 4, 26, 21), (2027, 10, 18, 22), (2027, 10, 19, 22), (2027, 10, 20, 22), (2027, 10, 21, 22),
-];
-
-/// The days of one rule in [`XTAE_DAYS`].
-fn xtae_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XTAE_DAYS, year, RULE)
-}
+]);
 
 /// A closure the vacation schedules list.
-const fn xtae_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+const fn xtae_closed(rule: u8, name: &'static str, local_name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
         local_name,
-        Rule::Tabulated {
-            function: xtae_days::<RULE>,
-            first_year: XTAE_FIRST,
-            last_year: XTAE_LAST,
-        },
+        Rule::listed(XTAE_DAYS.numbered(rule), XTAE_FIRST, XTAE_LAST),
     )
 }
 
 static XTAE_RULES: &[HolidayRule] = &[
-    xtae_closed::<0>("Purim", "פורים"),
-    xtae_closed::<1>("Passover Eve", "ערב פסח"),
-    xtae_closed::<2>("Passover", "פסח"),
-    xtae_closed::<3>("Passover II Eve", "ערב שביעי של פסח"),
-    xtae_closed::<4>("Passover II", "שביעי של פסח"),
-    xtae_closed::<5>("Memorial Day", "יום הזיכרון"),
-    xtae_closed::<6>("Independence Day", "יום העצמאות"),
-    xtae_closed::<7>("Shavuot Eve", "ערב שבועות"),
-    xtae_closed::<8>("Shavuot", "שבועות"),
-    xtae_closed::<9>("Tisha B'Av", "תשעה באב"),
-    xtae_closed::<10>("Jewish New Year Eve", "ערב ראש השנה"),
-    xtae_closed::<11>("Jewish New Year I", "ראש השנה"),
-    xtae_closed::<12>("Jewish New Year II", "ראש השנה"),
-    xtae_closed::<13>("Yom Kippur Eve", "ערב יום כיפור"),
-    xtae_closed::<14>("Yom Kippur", "יום כיפור"),
-    xtae_closed::<15>("Sukkot Eve", "ערב סוכות"),
-    xtae_closed::<16>("Sukkot", "סוכות"),
-    xtae_closed::<17>("Simchat Torah Eve", "ערב שמחת תורה"),
-    xtae_closed::<18>("Simchat Torah", "שמחת תורה"),
-    xtae_closed::<19>("Knesset Election Day", "יום הבחירות לכנסת"),
-    xtae_closed::<20>("Friday before a holiday or holiday eve on the Sunday", ""),
+    xtae_closed(0, "Purim", "פורים"),
+    xtae_closed(1, "Passover Eve", "ערב פסח"),
+    xtae_closed(2, "Passover", "פסח"),
+    xtae_closed(3, "Passover II Eve", "ערב שביעי של פסח"),
+    xtae_closed(4, "Passover II", "שביעי של פסח"),
+    xtae_closed(5, "Memorial Day", "יום הזיכרון"),
+    xtae_closed(6, "Independence Day", "יום העצמאות"),
+    xtae_closed(7, "Shavuot Eve", "ערב שבועות"),
+    xtae_closed(8, "Shavuot", "שבועות"),
+    xtae_closed(9, "Tisha B'Av", "תשעה באב"),
+    xtae_closed(10, "Jewish New Year Eve", "ערב ראש השנה"),
+    xtae_closed(11, "Jewish New Year I", "ראש השנה"),
+    xtae_closed(12, "Jewish New Year II", "ראש השנה"),
+    xtae_closed(13, "Yom Kippur Eve", "ערב יום כיפור"),
+    xtae_closed(14, "Yom Kippur", "יום כיפור"),
+    xtae_closed(15, "Sukkot Eve", "ערב סוכות"),
+    xtae_closed(16, "Sukkot", "סוכות"),
+    xtae_closed(17, "Simchat Torah Eve", "ערב שמחת תורה"),
+    xtae_closed(18, "Simchat Torah", "שמחת תורה"),
+    xtae_closed(19, "Knesset Election Day", "יום הבחירות לכנסת"),
+    xtae_closed(
+        20,
+        "Friday before a holiday or holiday eve on the Sunday",
+        "",
+    ),
     HolidayRule::observance(
         "Early close, an interim day of Passover",
         "חול המועד פסח",
-        Rule::Tabulated {
-            function: xtae_days::<21>,
-            first_year: XTAE_FIRST,
-            last_year: XTAE_LAST,
-        },
+        Rule::listed(XTAE_DAYS.numbered(21), XTAE_FIRST, XTAE_LAST),
     ),
     HolidayRule::observance(
         "Early close, an interim day of Sukkot",
         "חול המועד סוכות",
-        Rule::Tabulated {
-            function: xtae_days::<22>,
-            first_year: XTAE_FIRST,
-            last_year: XTAE_LAST,
-        },
+        Rule::listed(XTAE_DAYS.numbered(22), XTAE_FIRST, XTAE_LAST),
     ),
 ];
 
@@ -1850,7 +1797,7 @@ static XSAU_WEEKEND: &[WeekendPolicy] = &[
 /// trading day and the day trading resumes, as (year, month, day, which of
 /// the rules below).
 #[rustfmt::skip]
-static XSAU_DAYS: &[(i64, u8, u8, u8)] = &[
+static XSAU_DAYS: Listing = Listing::Numbered(&[
     (2023, 2, 22, 0), (2023, 4, 18, 1), (2023, 4, 19, 1), (2023, 4, 20, 1), (2023, 4, 23, 1),
     (2023, 4, 24, 1), (2023, 6, 25, 2), (2023, 6, 26, 2), (2023, 6, 27, 2), (2023, 6, 28, 2),
     (2023, 6, 29, 2), (2023, 9, 24, 3),
@@ -1862,31 +1809,22 @@ static XSAU_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 2, 22, 0), (2026, 3, 17, 1), (2026, 3, 18, 1), (2026, 3, 19, 1), (2026, 3, 22, 1),
     (2026, 3, 23, 1), (2026, 5, 24, 2), (2026, 5, 25, 2), (2026, 5, 26, 2), (2026, 5, 27, 2),
     (2026, 5, 28, 2), (2026, 9, 23, 3),
-];
-
-/// The days of one rule in [`XSAU_DAYS`].
-fn xsau_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XSAU_DAYS, year, RULE)
-}
+]);
 
 /// A closure the exchange's announcements list.
-const fn xsau_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+const fn xsau_closed(rule: u8, name: &'static str, local_name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
         local_name,
-        Rule::Tabulated {
-            function: xsau_days::<RULE>,
-            first_year: 2023,
-            last_year: 2026,
-        },
+        Rule::listed(XSAU_DAYS.numbered(rule), 2023, 2026),
     )
 }
 
 static XSAU_RULES: &[HolidayRule] = &[
-    xsau_closed::<0>("Founding Day", "يوم التأسيس"),
-    xsau_closed::<1>("Eid al-Fitr holiday", "إجازة عيد الفطر"),
-    xsau_closed::<2>("Eid al-Adha holiday", "إجازة عيد الأضحى"),
-    xsau_closed::<3>("National Day", "اليوم الوطني"),
+    xsau_closed(0, "Founding Day", "يوم التأسيس"),
+    xsau_closed(1, "Eid al-Fitr holiday", "إجازة عيد الفطر"),
+    xsau_closed(2, "Eid al-Adha holiday", "إجازة عيد الأضحى"),
+    xsau_closed(3, "National Day", "اليوم الوطني"),
 ];
 
 /// The Saudi Exchange, Tadawul.
@@ -1929,7 +1867,7 @@ pub static SAUDI_EXCHANGE: RuleSet = RuleSet {
 /// (year, month, day, which of the rules below): the days closed, and the
 /// eves traded to 13:00 when they are weekdays.
 #[rustfmt::skip]
-static XIST_DAYS: &[(i64, u8, u8, u8)] = &[
+static XIST_DAYS: Listing = Listing::Numbered(&[
     (2019, 6, 4, 0), (2019, 6, 5, 0), (2019, 6, 6, 0), (2019, 6, 3, 2),
     (2019, 8, 11, 1), (2019, 8, 12, 1), (2019, 8, 13, 1), (2019, 8, 14, 1),
     (2020, 5, 24, 0), (2020, 5, 25, 0), (2020, 5, 26, 0),
@@ -1946,20 +1884,11 @@ static XIST_DAYS: &[(i64, u8, u8, u8)] = &[
     (2025, 6, 6, 1), (2025, 6, 7, 1), (2025, 6, 8, 1), (2025, 6, 9, 1), (2025, 6, 5, 3),
     (2026, 3, 20, 0), (2026, 3, 21, 0), (2026, 3, 22, 0), (2026, 3, 19, 2),
     (2026, 5, 27, 1), (2026, 5, 28, 1), (2026, 5, 29, 1), (2026, 5, 30, 1), (2026, 5, 26, 3),
-];
-
-/// The days of one rule in [`XIST_DAYS`].
-fn xist_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XIST_DAYS, year, RULE)
-}
+]);
 
 /// The Bayram days of one rule, over the years the tables carried cover.
-const fn xist_bayram<const RULE: u8>() -> Rule {
-    Rule::Tabulated {
-        function: xist_days::<RULE>,
-        first_year: 2019,
-        last_year: 2026,
-    }
+const fn xist_bayram(rule: u8) -> Rule {
+    Rule::listed(XIST_DAYS.numbered(rule), 2019, 2026)
 }
 
 /// 28 October, the eve of Republic Day, traded to 13:00 when a weekday.
@@ -2001,21 +1930,17 @@ static XIST_RULES: &[HolidayRule] = &[
         "Cumhuriyet Bayramı",
         Rule::gregorian(10, 29),
     ),
-    HolidayRule::fixed_public("Ramadan Feast", "Ramazan Bayramı", xist_bayram::<0>()),
-    HolidayRule::fixed_public(
-        "Feast of the Sacrifice",
-        "Kurban Bayramı",
-        xist_bayram::<1>(),
-    ),
+    HolidayRule::fixed_public("Ramadan Feast", "Ramazan Bayramı", xist_bayram(0)),
+    HolidayRule::fixed_public("Feast of the Sacrifice", "Kurban Bayramı", xist_bayram(1)),
     HolidayRule::observance(
         "Half trading day, the eve of the Ramadan Feast (to 13:00)",
         "Ramazan Bayramı arifesi",
-        xist_bayram::<2>(),
+        xist_bayram(2),
     ),
     HolidayRule::observance(
         "Half trading day, the eve of the Feast of the Sacrifice (to 13:00)",
         "Kurban Bayramı arifesi",
-        xist_bayram::<3>(),
+        xist_bayram(3),
     ),
 ];
 
@@ -2300,7 +2225,7 @@ const XBKK_LAST: i64 = 2027;
 /// The exchange's "SET Holidays" for 2022 to 2027, as (year, month, day,
 /// which of the rules below).
 #[rustfmt::skip]
-static XBKK_DAYS: &[(i64, u8, u8, u8)] = &[
+static XBKK_DAYS: Listing = Listing::Numbered(&[
     (2022, 1, 3, 17), (2022, 2, 16, 1), (2022, 4, 6, 2), (2022, 4, 13, 3), (2022, 4, 14, 3),
     (2022, 4, 15, 3), (2022, 5, 2, 21), (2022, 5, 4, 5), (2022, 5, 16, 23), (2022, 6, 3, 7),
     (2022, 7, 13, 8), (2022, 7, 28, 9), (2022, 7, 29, 16), (2022, 8, 12, 10), (2022, 10, 13, 11),
@@ -2326,93 +2251,99 @@ static XBKK_DAYS: &[(i64, u8, u8, u8)] = &[
     (2027, 4, 15, 3), (2027, 5, 3, 21), (2027, 5, 4, 5), (2027, 5, 20, 6), (2027, 6, 3, 7),
     (2027, 7, 19, 25), (2027, 7, 28, 9), (2027, 8, 12, 10), (2027, 10, 13, 11), (2027, 10, 25, 29),
     (2027, 12, 6, 30), (2027, 12, 10, 14), (2027, 12, 31, 15),
-];
-
-/// The days of one rule in [`XBKK_DAYS`].
-fn xbkk_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XBKK_DAYS, year, RULE)
-}
+]);
 
 /// A closure the exchange's holiday pages list.
-const fn xbkk_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+const fn xbkk_closed(rule: u8, name: &'static str, local_name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
         local_name,
-        Rule::Tabulated {
-            function: xbkk_days::<RULE>,
-            first_year: XBKK_FIRST,
-            last_year: XBKK_LAST,
-        },
+        Rule::listed(XBKK_DAYS.numbered(rule), XBKK_FIRST, XBKK_LAST),
     )
 }
 
 static XBKK_RULES: &[HolidayRule] = &[
-    xbkk_closed::<0>("New Year's Day", "วันขึ้นปีใหม่"),
-    xbkk_closed::<1>("Makha Bucha Day", "วันมาฆบูชา"),
-    xbkk_closed::<2>("Chakri Memorial Day", "วันจักรี"),
-    xbkk_closed::<3>("Songkran Festival", "วันสงกรานต์"),
-    xbkk_closed::<4>("National Labour Day", "วันแรงงานแห่งชาติ"),
-    xbkk_closed::<5>("Coronation Day", "วันฉัตรมงคล"),
-    xbkk_closed::<6>("Visakha Bucha Day", "วันวิสาขบูชา"),
-    xbkk_closed::<7>(
+    xbkk_closed(0, "New Year's Day", "วันขึ้นปีใหม่"),
+    xbkk_closed(1, "Makha Bucha Day", "วันมาฆบูชา"),
+    xbkk_closed(2, "Chakri Memorial Day", "วันจักรี"),
+    xbkk_closed(3, "Songkran Festival", "วันสงกรานต์"),
+    xbkk_closed(4, "National Labour Day", "วันแรงงานแห่งชาติ"),
+    xbkk_closed(5, "Coronation Day", "วันฉัตรมงคล"),
+    xbkk_closed(6, "Visakha Bucha Day", "วันวิสาขบูชา"),
+    xbkk_closed(
+        7,
         "H.M. Queen Suthida's Birthday",
         "วันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
     ),
-    xbkk_closed::<8>("Asarnha Bucha Day", "วันอาสาฬหบูชา"),
-    xbkk_closed::<9>(
+    xbkk_closed(8, "Asarnha Bucha Day", "วันอาสาฬหบูชา"),
+    xbkk_closed(
+        9,
         "H.M. King Maha Vajiralongkorn's Birthday",
         "วันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
     ),
-    xbkk_closed::<10>(
+    xbkk_closed(
+        10,
         "H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
         "วันแม่แห่งชาติ",
     ),
-    xbkk_closed::<11>(
+    xbkk_closed(
+        11,
         "H.M. King Bhumibol Adulyadej The Great Memorial Day",
         "วันนวมินทรมหาราช",
     ),
-    xbkk_closed::<12>("Chulalongkorn Day", "วันปิยมหาราช"),
-    xbkk_closed::<13>(
+    xbkk_closed(12, "Chulalongkorn Day", "วันปิยมหาราช"),
+    xbkk_closed(
+        13,
         "H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
         "วันพ่อแห่งชาติ",
     ),
-    xbkk_closed::<14>("Constitution Day", "วันรัฐธรรมนูญ"),
-    xbkk_closed::<15>("New Year's Eve", "วันสิ้นปี"),
-    xbkk_closed::<16>("Additional special holiday", "วันหยุดทำการเพิ่มเติมเป็นกรณีพิเศษ"),
-    xbkk_closed::<17>("Substitution for New Year's Day", "ชดเชยวันขึ้นปีใหม่"),
-    xbkk_closed::<18>("Substitution for Makha Bucha Day", "ชดเชยวันมาฆบูชา"),
-    xbkk_closed::<19>("Substitution for Chakri Memorial Day", "ชดเชยวันจักรี"),
-    xbkk_closed::<20>("Substitution for Songkran Festival", "ชดเชยวันสงกรานต์"),
-    xbkk_closed::<21>(
+    xbkk_closed(14, "Constitution Day", "วันรัฐธรรมนูญ"),
+    xbkk_closed(15, "New Year's Eve", "วันสิ้นปี"),
+    xbkk_closed(
+        16,
+        "Additional special holiday",
+        "วันหยุดทำการเพิ่มเติมเป็นกรณีพิเศษ",
+    ),
+    xbkk_closed(17, "Substitution for New Year's Day", "ชดเชยวันขึ้นปีใหม่"),
+    xbkk_closed(18, "Substitution for Makha Bucha Day", "ชดเชยวันมาฆบูชา"),
+    xbkk_closed(19, "Substitution for Chakri Memorial Day", "ชดเชยวันจักรี"),
+    xbkk_closed(20, "Substitution for Songkran Festival", "ชดเชยวันสงกรานต์"),
+    xbkk_closed(
+        21,
         "Substitution for National Labour Day",
         "ชดเชยวันแรงงานแห่งชาติ",
     ),
-    xbkk_closed::<22>("Substitution for Coronation Day", "ชดเชยวันฉัตรมงคล"),
-    xbkk_closed::<23>("Substitution for Visakha Bucha Day", "ชดเชยวันวิสาขบูชา"),
-    xbkk_closed::<24>(
+    xbkk_closed(22, "Substitution for Coronation Day", "ชดเชยวันฉัตรมงคล"),
+    xbkk_closed(23, "Substitution for Visakha Bucha Day", "ชดเชยวันวิสาขบูชา"),
+    xbkk_closed(
+        24,
         "Substitution for H.M. Queen Suthida's Birthday",
         "ชดเชยวันเฉลิมพระชนมพรรษา สมเด็จพระนางเจ้าสุทิดา พัชรสุธาพิมลลักษณ พระบรมราชินี",
     ),
-    xbkk_closed::<25>("Substitution for Asarnha Bucha Day", "ชดเชยวันอาสาฬหบูชา"),
-    xbkk_closed::<26>(
+    xbkk_closed(25, "Substitution for Asarnha Bucha Day", "ชดเชยวันอาสาฬหบูชา"),
+    xbkk_closed(
+        26,
         "Substitution for H.M. King Maha Vajiralongkorn's Birthday",
         "ชดเชยวันเฉลิมพระชนมพรรษา พระบาทสมเด็จพระเจ้าอยู่หัว",
     ),
-    xbkk_closed::<27>(
+    xbkk_closed(
+        27,
         "Substitution for H.M. Queen Sirikit The Queen Mother's Birthday and Mother's Day",
         "ชดเชยวันแม่แห่งชาติ",
     ),
-    xbkk_closed::<28>(
+    xbkk_closed(
+        28,
         "Substitution for H.M. King Bhumibol Adulyadej The Great Memorial Day",
         "ชดเชยวันนวมินทรมหาราช",
     ),
-    xbkk_closed::<29>("Substitution for Chulalongkorn Day", "ชดเชยวันปิยมหาราช"),
-    xbkk_closed::<30>(
+    xbkk_closed(29, "Substitution for Chulalongkorn Day", "ชดเชยวันปิยมหาราช"),
+    xbkk_closed(
+        30,
         "Substitution for H.M. King Bhumibol Adulyadej The Great's Birthday, National Day and Father's Day",
         "ชดเชยวันพ่อแห่งชาติ",
     ),
-    xbkk_closed::<31>("Substitution for Constitution Day", "ชดเชยวันรัฐธรรมนูญ"),
-    xbkk_closed::<32>("Substitution for New Year's Eve", "ชดเชยวันสิ้นปี"),
+    xbkk_closed(31, "Substitution for Constitution Day", "ชดเชยวันรัฐธรรมนูญ"),
+    xbkk_closed(32, "Substitution for New Year's Eve", "ชดเชยวันสิ้นปี"),
 ];
 
 /// The Stock Exchange of Thailand.
@@ -2465,7 +2396,7 @@ const XNSE_LAST: i64 = 2026;
 /// holiday is listed on its day whether a weekday or not, since a Muhurat
 /// session is held on it.
 #[rustfmt::skip]
-static XNSE_DAYS: &[(i64, u8, u8, u8)] = &[
+static XNSE_DAYS: Listing = Listing::Numbered(&[
     (2020, 2, 1, 23), (2020, 2, 21, 1), (2020, 3, 10, 2), (2020, 4, 2, 3), (2020, 4, 6, 4),
     (2020, 4, 10, 5), (2020, 4, 14, 6), (2020, 5, 1, 7), (2020, 5, 25, 8), (2020, 10, 2, 13),
     (2020, 11, 14, 15), (2020, 11, 16, 16), (2020, 11, 30, 17), (2020, 12, 25, 18),
@@ -2492,65 +2423,56 @@ static XNSE_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 3, 31, 4), (2026, 4, 3, 5), (2026, 4, 14, 6), (2026, 5, 1, 7), (2026, 5, 28, 9),
     (2026, 6, 26, 10), (2026, 9, 14, 12), (2026, 10, 2, 13), (2026, 10, 20, 14), (2026, 11, 8, 15),
     (2026, 11, 10, 16), (2026, 11, 24, 17), (2026, 12, 25, 18),
-];
-
-/// The days of one rule in [`XNSE_DAYS`].
-fn xnse_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XNSE_DAYS, year, RULE)
-}
+]);
 
 /// The days of one rule, over the years the circulars carried cover.
-const fn xnse_rule<const RULE: u8>() -> Rule {
-    Rule::Tabulated {
-        function: xnse_days::<RULE>,
-        first_year: XNSE_FIRST,
-        last_year: XNSE_LAST,
-    }
+const fn xnse_rule(rule: u8) -> Rule {
+    Rule::listed(XNSE_DAYS.numbered(rule), XNSE_FIRST, XNSE_LAST)
 }
 
 /// A trading holiday the circulars list.
-const fn xnse_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", xnse_rule::<RULE>())
+const fn xnse_closed(rule: u8, name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xnse_rule(rule))
 }
 
 static XNSE_RULES: &[HolidayRule] = &[
-    xnse_closed::<0>("Republic Day"),
-    xnse_closed::<1>("Mahashivratri"),
-    xnse_closed::<2>("Holi"),
-    xnse_closed::<3>("Ram Navami"),
-    xnse_closed::<4>("Mahavir Jayanti"),
-    xnse_closed::<5>("Good Friday"),
-    xnse_closed::<6>("Dr. Baba Saheb Ambedkar Jayanti"),
-    xnse_closed::<7>("Maharashtra Day"),
-    xnse_closed::<8>("Id-Ul-Fitr (Ramzan Id)"),
-    xnse_closed::<9>("Bakri Id"),
-    xnse_closed::<10>("Muharram"),
-    xnse_closed::<11>("Independence Day"),
-    xnse_closed::<12>("Ganesh Chaturthi"),
-    xnse_closed::<13>("Mahatma Gandhi Jayanti"),
-    xnse_closed::<14>("Dussehra"),
-    xnse_closed::<15>("Diwali Laxmi Pujan (Muhurat trading session held)"),
-    xnse_closed::<16>("Diwali Balipratipada"),
-    xnse_closed::<17>("Guru Nanak Jayanti"),
-    xnse_closed::<18>("Christmas"),
-    xnse_closed::<19>("Public holiday under the Negotiable Instruments Act"),
-    xnse_closed::<20>("General election day in Mumbai"),
-    xnse_closed::<21>("Maharashtra Assembly election day"),
-    xnse_closed::<22>("Municipal Corporation election day in Maharashtra"),
+    xnse_closed(0, "Republic Day"),
+    xnse_closed(1, "Mahashivratri"),
+    xnse_closed(2, "Holi"),
+    xnse_closed(3, "Ram Navami"),
+    xnse_closed(4, "Mahavir Jayanti"),
+    xnse_closed(5, "Good Friday"),
+    xnse_closed(6, "Dr. Baba Saheb Ambedkar Jayanti"),
+    xnse_closed(7, "Maharashtra Day"),
+    xnse_closed(8, "Id-Ul-Fitr (Ramzan Id)"),
+    xnse_closed(9, "Bakri Id"),
+    xnse_closed(10, "Muharram"),
+    xnse_closed(11, "Independence Day"),
+    xnse_closed(12, "Ganesh Chaturthi"),
+    xnse_closed(13, "Mahatma Gandhi Jayanti"),
+    xnse_closed(14, "Dussehra"),
+    xnse_closed(15, "Diwali Laxmi Pujan (Muhurat trading session held)"),
+    xnse_closed(16, "Diwali Balipratipada"),
+    xnse_closed(17, "Guru Nanak Jayanti"),
+    xnse_closed(18, "Christmas"),
+    xnse_closed(19, "Public holiday under the Negotiable Instruments Act"),
+    xnse_closed(20, "General election day in Mumbai"),
+    xnse_closed(21, "Maharashtra Assembly election day"),
+    xnse_closed(22, "Municipal Corporation election day in Maharashtra"),
     HolidayRule::workday(
         "Working day, live trading session for the Union Budget",
         "",
-        xnse_rule::<23>(),
+        xnse_rule(23),
     ),
     HolidayRule::workday(
         "Working day, live trading session on a Saturday",
         "",
-        xnse_rule::<24>(),
+        xnse_rule(24),
     ),
     HolidayRule::workday(
         "Working day, special live trading session with a switch to the disaster recovery site",
         "",
-        xnse_rule::<25>(),
+        xnse_rule(25),
     ),
 ];
 
@@ -2644,7 +2566,7 @@ const XSES_LAST: i64 = 2026;
 /// the days it declares for a Sunday holiday, for 2020 to 2026, and the
 /// half days SGX prints, as (year, month, day, which of the rules below).
 #[rustfmt::skip]
-static XSES_DAYS: &[(i64, u8, u8, u8)] = &[
+static XSES_DAYS: Listing = Listing::Numbered(&[
     (2020, 1, 1, 0), (2020, 1, 24, 20), (2020, 1, 27, 12), (2020, 4, 10, 2), (2020, 5, 1, 4),
     (2020, 5, 7, 5), (2020, 5, 25, 13), (2020, 7, 10, 10), (2020, 7, 31, 6), (2020, 8, 10, 17),
     (2020, 12, 24, 21), (2020, 12, 25, 9), (2020, 12, 31, 22),
@@ -2666,55 +2588,46 @@ static XSES_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 1, 1, 0), (2026, 2, 16, 20), (2026, 2, 17, 1), (2026, 2, 18, 1), (2026, 4, 3, 2),
     (2026, 5, 1, 4), (2026, 5, 27, 6), (2026, 6, 1, 15), (2026, 8, 10, 17), (2026, 11, 9, 18),
     (2026, 12, 24, 21), (2026, 12, 25, 9), (2026, 12, 31, 22),
-];
-
-/// The days of one rule in [`XSES_DAYS`].
-fn xses_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XSES_DAYS, year, RULE)
-}
+]);
 
 /// The days of one rule, over the years the lists carried cover.
-const fn xses_rule<const RULE: u8>() -> Rule {
-    Rule::Tabulated {
-        function: xses_days::<RULE>,
-        first_year: XSES_FIRST,
-        last_year: XSES_LAST,
-    }
+const fn xses_rule(rule: u8) -> Rule {
+    Rule::listed(XSES_DAYS.numbered(rule), XSES_FIRST, XSES_LAST)
 }
 
 /// A closure on a day of the Ministry's list.
-const fn xses_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", xses_rule::<RULE>())
+const fn xses_closed(rule: u8, name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xses_rule(rule))
 }
 
 static XSES_RULES: &[HolidayRule] = &[
-    xses_closed::<0>("New Year's Day"),
-    xses_closed::<1>("Chinese New Year"),
-    xses_closed::<2>("Good Friday"),
-    xses_closed::<3>("Hari Raya Puasa"),
-    xses_closed::<4>("Labour Day"),
-    xses_closed::<5>("Vesak Day"),
-    xses_closed::<6>("Hari Raya Haji"),
-    xses_closed::<7>("National Day"),
-    xses_closed::<8>("Deepavali"),
-    xses_closed::<9>("Christmas Day"),
-    xses_closed::<10>("Polling Day"),
-    xses_closed::<11>("New Year's Day holiday, in lieu of the Sunday"),
-    xses_closed::<12>("Chinese New Year holiday, in lieu of the Sunday"),
-    xses_closed::<13>("Hari Raya Puasa holiday, in lieu of the Sunday"),
-    xses_closed::<14>("Labour Day holiday, in lieu of the Sunday"),
-    xses_closed::<15>("Vesak Day holiday, in lieu of the Sunday"),
-    xses_closed::<16>("Hari Raya Haji holiday, in lieu of the Sunday"),
-    xses_closed::<17>("National Day holiday, in lieu of the Sunday"),
-    xses_closed::<18>("Deepavali holiday, in lieu of the Sunday"),
-    xses_closed::<19>("Christmas Day holiday, in lieu of the Sunday"),
+    xses_closed(0, "New Year's Day"),
+    xses_closed(1, "Chinese New Year"),
+    xses_closed(2, "Good Friday"),
+    xses_closed(3, "Hari Raya Puasa"),
+    xses_closed(4, "Labour Day"),
+    xses_closed(5, "Vesak Day"),
+    xses_closed(6, "Hari Raya Haji"),
+    xses_closed(7, "National Day"),
+    xses_closed(8, "Deepavali"),
+    xses_closed(9, "Christmas Day"),
+    xses_closed(10, "Polling Day"),
+    xses_closed(11, "New Year's Day holiday, in lieu of the Sunday"),
+    xses_closed(12, "Chinese New Year holiday, in lieu of the Sunday"),
+    xses_closed(13, "Hari Raya Puasa holiday, in lieu of the Sunday"),
+    xses_closed(14, "Labour Day holiday, in lieu of the Sunday"),
+    xses_closed(15, "Vesak Day holiday, in lieu of the Sunday"),
+    xses_closed(16, "Hari Raya Haji holiday, in lieu of the Sunday"),
+    xses_closed(17, "National Day holiday, in lieu of the Sunday"),
+    xses_closed(18, "Deepavali holiday, in lieu of the Sunday"),
+    xses_closed(19, "Christmas Day holiday, in lieu of the Sunday"),
     HolidayRule::observance(
         "Half trading day, the eve of Chinese New Year",
         "",
-        xses_rule::<20>(),
+        xses_rule(20),
     ),
-    HolidayRule::observance("Half trading day, Christmas Eve", "", xses_rule::<21>()),
-    HolidayRule::observance("Half trading day, New Year's Eve", "", xses_rule::<22>()),
+    HolidayRule::observance("Half trading day, Christmas Eve", "", xses_rule(21)),
+    HolidayRule::observance("Half trading day, New Year's Eve", "", xses_rule(22)),
 ];
 
 /// The Singapore Exchange, for its securities market.
@@ -2773,7 +2686,7 @@ const XKLS_LAST: i64 = 2026;
 /// weekday holidays printed, the days its notes give for a Sunday holiday
 /// and the half days — as (year, month, day, which of the rules below).
 #[rustfmt::skip]
-static XKLS_DAYS: &[(i64, u8, u8, u8)] = &[
+static XKLS_DAYS: Listing = Listing::Numbered(&[
     (2020, 1, 1, 0), (2020, 1, 24, 29), (2020, 1, 27, 17), (2020, 5, 1, 6), (2020, 5, 7, 7),
     (2020, 5, 11, 18), (2020, 5, 25, 5), (2020, 5, 26, 19), (2020, 6, 8, 8), (2020, 7, 31, 9),
     (2020, 8, 20, 10), (2020, 8, 31, 11), (2020, 9, 16, 12), (2020, 10, 29, 13),
@@ -2801,71 +2714,55 @@ static XKLS_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 1, 1, 0), (2026, 2, 2, 26), (2026, 2, 17, 3), (2026, 2, 18, 3), (2026, 3, 20, 16),
     (2026, 3, 23, 19), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 1, 8), (2026, 6, 17, 10),
     (2026, 8, 25, 13), (2026, 8, 31, 11), (2026, 9, 16, 12), (2026, 11, 9, 27), (2026, 12, 25, 15),
-];
-
-/// The days of one rule in [`XKLS_DAYS`].
-fn xkls_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XKLS_DAYS, year, RULE)
-}
+]);
 
 /// The days of one rule, over the years the pages carried cover.
-const fn xkls_rule<const RULE: u8>() -> Rule {
-    Rule::Tabulated {
-        function: xkls_days::<RULE>,
-        first_year: XKLS_FIRST,
-        last_year: XKLS_LAST,
-    }
+const fn xkls_rule(rule: u8) -> Rule {
+    Rule::listed(XKLS_DAYS.numbered(rule), XKLS_FIRST, XKLS_LAST)
 }
 
 /// A closure the exchange's pages give.
-const fn xkls_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, xkls_rule::<RULE>())
+const fn xkls_closed(rule: u8, name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, local_name, xkls_rule(rule))
 }
 
 static XKLS_RULES: &[HolidayRule] = &[
-    xkls_closed::<0>("New Year's Day", "Tahun Baharu"),
-    xkls_closed::<1>("Thaipusam", "Hari Thaipusam"),
-    xkls_closed::<2>("Federal Territory Day", "Hari Wilayah Persekutuan"),
-    xkls_closed::<3>("Chinese New Year", "Tahun Baharu Cina"),
-    xkls_closed::<4>("Nuzul Al-Quran", "Hari Nuzul Al-Quran"),
-    xkls_closed::<5>("Hari Raya Puasa", "Hari Raya Aidilfitri"),
-    xkls_closed::<6>("Workers' Day", "Hari Pekerja"),
-    xkls_closed::<7>("Wesak Day", "Hari Wesak"),
-    xkls_closed::<8>(
+    xkls_closed(0, "New Year's Day", "Tahun Baharu"),
+    xkls_closed(1, "Thaipusam", "Hari Thaipusam"),
+    xkls_closed(2, "Federal Territory Day", "Hari Wilayah Persekutuan"),
+    xkls_closed(3, "Chinese New Year", "Tahun Baharu Cina"),
+    xkls_closed(4, "Nuzul Al-Quran", "Hari Nuzul Al-Quran"),
+    xkls_closed(5, "Hari Raya Puasa", "Hari Raya Aidilfitri"),
+    xkls_closed(6, "Workers' Day", "Hari Pekerja"),
+    xkls_closed(7, "Wesak Day", "Hari Wesak"),
+    xkls_closed(
+        8,
         "Yang di-Pertuan Agong's Birthday",
         "Hari Keputeraan Yang di-Pertuan Agong",
     ),
-    xkls_closed::<9>("Hari Raya Haji", "Hari Raya Aidiladha"),
-    xkls_closed::<10>("Awal Muharram", "Awal Muharam"),
-    xkls_closed::<11>("National Day", "Hari Kebangsaan"),
-    xkls_closed::<12>("Malaysia Day", "Hari Malaysia"),
-    xkls_closed::<13>("Birthday of Prophet Muhammad", "Maulidur Rasul"),
-    xkls_closed::<14>("Deepavali", "Hari Deepavali"),
-    xkls_closed::<15>("Christmas Day", "Hari Krismas"),
-    xkls_closed::<16>("Special public holiday", "Cuti umum khas"),
-    xkls_closed::<17>("Chinese New Year holiday, in lieu", ""),
-    xkls_closed::<18>("Nuzul Al-Quran holiday, in lieu", ""),
-    xkls_closed::<19>("Hari Raya Puasa holiday, in lieu", ""),
-    xkls_closed::<20>("Workers' Day holiday, in lieu", ""),
-    xkls_closed::<21>("Wesak Day holiday, in lieu", ""),
-    xkls_closed::<22>("Hari Raya Haji holiday, in lieu", ""),
-    xkls_closed::<23>("Birthday of Prophet Muhammad holiday, in lieu", ""),
-    xkls_closed::<24>("Christmas Day holiday, in lieu", ""),
-    xkls_closed::<25>("New Year's Day holiday, in lieu", ""),
-    xkls_closed::<26>("Thaipusam holiday, in lieu", ""),
-    xkls_closed::<27>("Deepavali holiday, in lieu", ""),
-    xkls_closed::<28>("National Day holiday, in lieu", ""),
-    HolidayRule::observance(
-        "Half trading day, Chinese New Year Eve",
-        "",
-        xkls_rule::<29>(),
-    ),
-    HolidayRule::observance(
-        "Half trading day, Hari Raya Puasa Eve",
-        "",
-        xkls_rule::<30>(),
-    ),
-    xkls_closed::<31>("Awal Muharram holiday, in lieu", ""),
+    xkls_closed(9, "Hari Raya Haji", "Hari Raya Aidiladha"),
+    xkls_closed(10, "Awal Muharram", "Awal Muharam"),
+    xkls_closed(11, "National Day", "Hari Kebangsaan"),
+    xkls_closed(12, "Malaysia Day", "Hari Malaysia"),
+    xkls_closed(13, "Birthday of Prophet Muhammad", "Maulidur Rasul"),
+    xkls_closed(14, "Deepavali", "Hari Deepavali"),
+    xkls_closed(15, "Christmas Day", "Hari Krismas"),
+    xkls_closed(16, "Special public holiday", "Cuti umum khas"),
+    xkls_closed(17, "Chinese New Year holiday, in lieu", ""),
+    xkls_closed(18, "Nuzul Al-Quran holiday, in lieu", ""),
+    xkls_closed(19, "Hari Raya Puasa holiday, in lieu", ""),
+    xkls_closed(20, "Workers' Day holiday, in lieu", ""),
+    xkls_closed(21, "Wesak Day holiday, in lieu", ""),
+    xkls_closed(22, "Hari Raya Haji holiday, in lieu", ""),
+    xkls_closed(23, "Birthday of Prophet Muhammad holiday, in lieu", ""),
+    xkls_closed(24, "Christmas Day holiday, in lieu", ""),
+    xkls_closed(25, "New Year's Day holiday, in lieu", ""),
+    xkls_closed(26, "Thaipusam holiday, in lieu", ""),
+    xkls_closed(27, "Deepavali holiday, in lieu", ""),
+    xkls_closed(28, "National Day holiday, in lieu", ""),
+    HolidayRule::observance("Half trading day, Chinese New Year Eve", "", xkls_rule(29)),
+    HolidayRule::observance("Half trading day, Hari Raya Puasa Eve", "", xkls_rule(30)),
+    xkls_closed(31, "Awal Muharram holiday, in lieu", ""),
 ];
 
 /// Bursa Malaysia, for its securities market.
@@ -2924,7 +2821,7 @@ const XIDX_LAST: i64 = 2026;
 /// each in its last version read, as (year, month, day, which of the
 /// rules below).
 #[rustfmt::skip]
-static XIDX_DAYS: &[(i64, u8, u8, u8)] = &[
+static XIDX_DAYS: Listing = Listing::Numbered(&[
     (2020, 1, 1, 0), (2020, 3, 25, 3), (2020, 4, 10, 4), (2020, 5, 1, 6), (2020, 5, 7, 7),
     (2020, 5, 21, 8), (2020, 5, 22, 17), (2020, 5, 25, 5), (2020, 6, 1, 9), (2020, 7, 31, 10),
     (2020, 8, 17, 12), (2020, 8, 20, 11), (2020, 8, 21, 21), (2020, 10, 28, 22),
@@ -2954,87 +2851,87 @@ static XIDX_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 5, 1, 6), (2026, 5, 14, 8), (2026, 5, 15, 18), (2026, 5, 27, 10), (2026, 5, 28, 20),
     (2026, 6, 1, 9), (2026, 6, 16, 11), (2026, 8, 17, 12), (2026, 8, 25, 13), (2026, 12, 24, 24),
     (2026, 12, 25, 14), (2026, 12, 31, 26),
-];
-
-/// The days of one rule in [`XIDX_DAYS`].
-fn xidx_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XIDX_DAYS, year, RULE)
-}
+]);
 
 /// A closure the exchange's calendars list.
-const fn xidx_closed<const RULE: u8>(name: &'static str, local_name: &'static str) -> HolidayRule {
+const fn xidx_closed(rule: u8, name: &'static str, local_name: &'static str) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
         local_name,
-        Rule::Tabulated {
-            function: xidx_days::<RULE>,
-            first_year: XIDX_FIRST,
-            last_year: XIDX_LAST,
-        },
+        Rule::listed(XIDX_DAYS.numbered(rule), XIDX_FIRST, XIDX_LAST),
     )
 }
 
-/// No days: the function of a calendar that was not read.
-fn xidx_unread(_year: i64) -> Days {
-    Days::new()
-}
-
 static XIDX_RULES: &[HolidayRule] = &[
-    xidx_closed::<0>("New Year's Day", "Tahun Baru Masehi"),
-    xidx_closed::<1>("Chinese New Year", "Tahun Baru Imlek"),
-    xidx_closed::<2>("Isra Mikraj", "Isra Mikraj Nabi Muhammad SAW"),
-    xidx_closed::<3>("Nyepi, the Saka New Year", "Hari Suci Nyepi"),
-    xidx_closed::<4>("Good Friday", "Wafat Yesus Kristus"),
-    xidx_closed::<5>("Eid al-Fitr", "Idul Fitri"),
-    xidx_closed::<6>("Labour Day", "Hari Buruh Internasional"),
-    xidx_closed::<7>("Vesak Day", "Hari Raya Waisak"),
-    xidx_closed::<8>("Ascension Day", "Kenaikan Yesus Kristus"),
-    xidx_closed::<9>("Pancasila Day", "Hari Lahir Pancasila"),
-    xidx_closed::<10>("Eid al-Adha", "Idul Adha"),
-    xidx_closed::<11>("Islamic New Year", "Tahun Baru Islam"),
-    xidx_closed::<12>("Independence Day", "Proklamasi Kemerdekaan"),
-    xidx_closed::<13>("Prophet Muhammad's Birthday", "Maulid Nabi Muhammad SAW"),
-    xidx_closed::<14>("Christmas Day", "Kelahiran Yesus Kristus"),
-    xidx_closed::<15>(
+    xidx_closed(0, "New Year's Day", "Tahun Baru Masehi"),
+    xidx_closed(1, "Chinese New Year", "Tahun Baru Imlek"),
+    xidx_closed(2, "Isra Mikraj", "Isra Mikraj Nabi Muhammad SAW"),
+    xidx_closed(3, "Nyepi, the Saka New Year", "Hari Suci Nyepi"),
+    xidx_closed(4, "Good Friday", "Wafat Yesus Kristus"),
+    xidx_closed(5, "Eid al-Fitr", "Idul Fitri"),
+    xidx_closed(6, "Labour Day", "Hari Buruh Internasional"),
+    xidx_closed(7, "Vesak Day", "Hari Raya Waisak"),
+    xidx_closed(8, "Ascension Day", "Kenaikan Yesus Kristus"),
+    xidx_closed(9, "Pancasila Day", "Hari Lahir Pancasila"),
+    xidx_closed(10, "Eid al-Adha", "Idul Adha"),
+    xidx_closed(11, "Islamic New Year", "Tahun Baru Islam"),
+    xidx_closed(12, "Independence Day", "Proklamasi Kemerdekaan"),
+    xidx_closed(
+        13,
+        "Prophet Muhammad's Birthday",
+        "Maulid Nabi Muhammad SAW",
+    ),
+    xidx_closed(14, "Christmas Day", "Kelahiran Yesus Kristus"),
+    xidx_closed(
+        15,
         "Joint leave, Chinese New Year",
         "Cuti Bersama Tahun Baru Imlek",
     ),
-    xidx_closed::<16>("Joint leave, Nyepi", "Cuti Bersama Hari Suci Nyepi"),
-    xidx_closed::<17>("Joint leave, Eid al-Fitr", "Cuti Bersama Idul Fitri"),
-    xidx_closed::<18>(
+    xidx_closed(16, "Joint leave, Nyepi", "Cuti Bersama Hari Suci Nyepi"),
+    xidx_closed(17, "Joint leave, Eid al-Fitr", "Cuti Bersama Idul Fitri"),
+    xidx_closed(
+        18,
         "Joint leave, Ascension Day",
         "Cuti Bersama Kenaikan Yesus Kristus",
     ),
-    xidx_closed::<19>("Joint leave, Vesak Day", "Cuti Bersama Hari Raya Waisak"),
-    xidx_closed::<20>("Joint leave, Eid al-Adha", "Cuti Bersama Idul Adha"),
-    xidx_closed::<21>(
+    xidx_closed(
+        19,
+        "Joint leave, Vesak Day",
+        "Cuti Bersama Hari Raya Waisak",
+    ),
+    xidx_closed(20, "Joint leave, Eid al-Adha", "Cuti Bersama Idul Adha"),
+    xidx_closed(
+        21,
         "Joint leave, Islamic New Year",
         "Cuti Bersama Tahun Baru Islam",
     ),
-    xidx_closed::<22>(
+    xidx_closed(
+        22,
         "Joint leave, Prophet Muhammad's Birthday",
         "Cuti Bersama Maulid Nabi Muhammad SAW",
     ),
-    xidx_closed::<23>(
+    xidx_closed(
+        23,
         "Joint leave, Independence Day",
         "Cuti Bersama Proklamasi Kemerdekaan",
     ),
-    xidx_closed::<24>(
+    xidx_closed(
+        24,
         "Joint leave, Christmas",
         "Cuti Bersama Kelahiran Yesus Kristus",
     ),
-    xidx_closed::<25>("Election day", "Hari Pemilihan Umum"),
-    xidx_closed::<26>("Exchange holiday, the last day of the year", "Libur Bursa"),
+    xidx_closed(25, "Election day", "Hari Pemilihan Umum"),
+    xidx_closed(
+        26,
+        "Exchange holiday, the last day of the year",
+        "Libur Bursa",
+    ),
     // The 2023 calendar could not be read: the year is a gap, not a
     // year without closures.
     HolidayRule::fixed_public(
         "Exchange holidays, the calendar for the year not read",
         "Kalender Libur Bursa",
-        Rule::Tabulated {
-            function: xidx_unread,
-            first_year: 1,
-            last_year: 0,
-        },
+        Rule::UNREAD,
     )
     .years(Some(2023), Some(2023)),
 ];
@@ -3090,7 +2987,7 @@ const XPHS_LAST: i64 = 2026;
 /// and, for the rest of 2026, its holiday table, as (year, month, day,
 /// which of the rules below).
 #[rustfmt::skip]
-static XPHS_DAYS: &[(i64, u8, u8, u8)] = &[
+static XPHS_DAYS: Listing = Listing::Numbered(&[
     (2020, 1, 1, 0), (2020, 1, 13, 23), (2020, 2, 25, 2), (2020, 3, 17, 24), (2020, 3, 18, 24),
     (2020, 4, 9, 5), (2020, 4, 9, 3), (2020, 4, 10, 4), (2020, 5, 1, 6), (2020, 5, 25, 7),
     (2020, 6, 12, 8), (2020, 7, 31, 9), (2020, 8, 21, 10), (2020, 8, 31, 11), (2020, 11, 2, 13),
@@ -3120,62 +3017,49 @@ static XPHS_DAYS: &[(i64, u8, u8, u8)] = &[
     (2026, 4, 9, 5), (2026, 5, 1, 6), (2026, 5, 27, 9), (2026, 6, 12, 8), (2026, 8, 21, 10),
     (2026, 8, 31, 11), (2026, 11, 2, 22), (2026, 11, 30, 14), (2026, 12, 8, 15),
     (2026, 12, 24, 16), (2026, 12, 25, 17), (2026, 12, 30, 18), (2026, 12, 31, 19),
-];
-
-/// The days of one rule in [`XPHS_DAYS`].
-fn xphs_days<const RULE: u8>(year: i64) -> Days {
-    ruled_days(XPHS_DAYS, year, RULE)
-}
+]);
 
 /// The days of one rule, over the years the memoranda carried cover.
-const fn xphs_rule<const RULE: u8>() -> Rule {
-    Rule::Tabulated {
-        function: xphs_days::<RULE>,
-        first_year: XPHS_FIRST,
-        last_year: XPHS_LAST,
-    }
+const fn xphs_rule(rule: u8) -> Rule {
+    Rule::listed(XPHS_DAYS.numbered(rule), XPHS_FIRST, XPHS_LAST)
 }
 
 /// A non-trading day the memoranda give.
-const fn xphs_closed<const RULE: u8>(name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", xphs_rule::<RULE>())
+const fn xphs_closed(rule: u8, name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", xphs_rule(rule))
 }
 
 static XPHS_RULES: &[HolidayRule] = &[
-    xphs_closed::<0>("New Year's Day"),
-    xphs_closed::<1>("Chinese New Year"),
-    xphs_closed::<2>("EDSA People Power Revolution Anniversary"),
-    xphs_closed::<3>("Maundy Thursday"),
-    xphs_closed::<4>("Good Friday"),
-    xphs_closed::<5>("Araw ng Kagitingan"),
-    xphs_closed::<6>("Labor Day"),
-    xphs_closed::<7>("Eid'l Fitr"),
-    xphs_closed::<8>("Independence Day"),
-    xphs_closed::<9>("Eid'l Adha"),
-    xphs_closed::<10>("Ninoy Aquino Day"),
-    xphs_closed::<11>("National Heroes Day"),
-    xphs_closed::<12>("All Saints' Day"),
-    xphs_closed::<13>("Special (non-working) day"),
-    xphs_closed::<14>("Bonifacio Day"),
-    xphs_closed::<15>("Feast of the Immaculate Conception of Mary"),
-    xphs_closed::<16>("Christmas Eve"),
-    xphs_closed::<17>("Christmas Day"),
-    xphs_closed::<18>("Rizal Day"),
-    xphs_closed::<19>("Last Day of the Year"),
-    xphs_closed::<20>("Election day"),
-    xphs_closed::<21>("All Saints' Day Eve"),
-    xphs_closed::<22>("All Souls' Day"),
-    xphs_closed::<23>("Trading suspension, the ash emission of Taal Volcano"),
-    xphs_closed::<24>("Trading suspension, the COVID-19 community quarantine"),
-    xphs_closed::<25>("Trading suspension, Typhoon Ulysses"),
-    xphs_closed::<26>("Trading suspension, inclement weather and floods"),
-    xphs_closed::<27>("Trading cancelled, a technical problem"),
-    xphs_closed::<28>("Trading suspension"),
-    HolidayRule::observance(
-        "Half trading day, the Christmas season",
-        "",
-        xphs_rule::<29>(),
-    ),
+    xphs_closed(0, "New Year's Day"),
+    xphs_closed(1, "Chinese New Year"),
+    xphs_closed(2, "EDSA People Power Revolution Anniversary"),
+    xphs_closed(3, "Maundy Thursday"),
+    xphs_closed(4, "Good Friday"),
+    xphs_closed(5, "Araw ng Kagitingan"),
+    xphs_closed(6, "Labor Day"),
+    xphs_closed(7, "Eid'l Fitr"),
+    xphs_closed(8, "Independence Day"),
+    xphs_closed(9, "Eid'l Adha"),
+    xphs_closed(10, "Ninoy Aquino Day"),
+    xphs_closed(11, "National Heroes Day"),
+    xphs_closed(12, "All Saints' Day"),
+    xphs_closed(13, "Special (non-working) day"),
+    xphs_closed(14, "Bonifacio Day"),
+    xphs_closed(15, "Feast of the Immaculate Conception of Mary"),
+    xphs_closed(16, "Christmas Eve"),
+    xphs_closed(17, "Christmas Day"),
+    xphs_closed(18, "Rizal Day"),
+    xphs_closed(19, "Last Day of the Year"),
+    xphs_closed(20, "Election day"),
+    xphs_closed(21, "All Saints' Day Eve"),
+    xphs_closed(22, "All Souls' Day"),
+    xphs_closed(23, "Trading suspension, the ash emission of Taal Volcano"),
+    xphs_closed(24, "Trading suspension, the COVID-19 community quarantine"),
+    xphs_closed(25, "Trading suspension, Typhoon Ulysses"),
+    xphs_closed(26, "Trading suspension, inclement weather and floods"),
+    xphs_closed(27, "Trading cancelled, a technical problem"),
+    xphs_closed(28, "Trading suspension"),
+    HolidayRule::observance("Half trading day, the Christmas season", "", xphs_rule(29)),
 ];
 
 /// The Philippine Stock Exchange.
@@ -3217,34 +3101,6 @@ pub static PHILIPPINE_STOCK_EXCHANGE: RuleSet = RuleSet {
               \"Trading Hours & Holidays\" (pse.com.ph/investing-at-pse/, the holiday posts at \
               pse.com.ph/holiday/), for the 2026 days after August; all retrieved 2026-09-23",
 };
-
-/// The days of `year` in a table of (year, month, day).
-fn listed_days(table: &[(i64, u8, u8)], year: i64) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day) in table {
-        if y == year
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
-
-/// The days of `year` under one rule in a table of (year, month, day,
-/// rule).
-fn ruled_days(table: &[(i64, u8, u8, u8)], year: i64, rule: u8) -> Days {
-    let mut out = Days::new();
-    for &(y, month, day, r) in table {
-        if y == year
-            && r == rule
-            && let Ok(fixed) = gregorian::to_fixed(y, month, day)
-        {
-            out.push(fixed);
-        }
-    }
-    out
-}
 
 /// Every exchange calendar, in Market Identifier Code order.
 pub static ALL: &[&RuleSet] = &[

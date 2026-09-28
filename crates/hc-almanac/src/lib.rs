@@ -27,7 +27,8 @@
 //! | [`days_without_son`] | 손 없는 날 | the Korean lunar day, `dangi` |
 //! | [`vietnamese_days`] | Tam Nương, Nguyệt Kỵ | the Vietnamese lunar day, `vietnamese` |
 //! | [`mod@first_month_counts`] | 几龙治水, 几牛耕田, 几日得辛, 几人分饼 | the day signs of the Chinese 正月 |
-//! | [`rokuyo`] | 六曜 | the lunisolar date — re-exported from `hc-seasons` |
+//! | [`rokuyo`] | 六曜 | the Japanese lunisolar date |
+//! | [`moon_viewing`] | 十五夜, 十三夜 | the Japanese lunisolar date |
 //! | [`mod@day_notes`] | the whole page | all of the above at once |
 //!
 //! # These are traditional rules, and traditions disagree
@@ -59,21 +60,19 @@
 //!
 //! ## Which lunisolar calendar the Moon-keyed rules use
 //!
-//! 六曜, 不成就日 and 二十七宿 need a 旧暦 date. This crate takes it from
-//! `hc_seasons::lunisolar`, the minimal 定気 derivation `hc-seasons` keeps
-//! for 六曜 — not from `hc-calendars-lunar`, whose 天保暦 and Chinese
-//! calendars are the fuller implementations. That is deliberate: the three
-//! annotations must agree with each other and with the 六曜 a caller gets
-//! from `hc-seasons`, and one derivation shared is worth more here than a
-//! better one used inconsistently. `hc-calendars-lunar` is re-exported as
-//! [`hc_calendars_lunar`] for callers who want the fuller article, and
-//! [`crate::context`] carries a test measuring how far the two diverge.
+//! 六曜, 不成就日, the 旧暦 reading of 凶会日, 二十七宿, 十五夜 and 十三夜
+//! need a 旧暦 date. All of them take it from [`lunisolar`], inside a
+//! [`hc_core::memo::scope`], in the [`lunisolar::Reckoning`] the meridian
+//! names: `hc-calendars-lunar`'s `chinese` calendar at [`Meridian::CHINA`]
+//! and [`Meridian::CHINA_BEFORE_1929`], and its Japanese Tenpō calendar
+//! with the 1872 bound removed at every other meridian, so they agree with
+//! one another and with the calendar.
 //!
 //! | Class | Annotations | Exactness |
 //! |---|---|---|
 //! | Pure day count | 干支 rules, 七曜, 二十八宿, 恵方 | exact |
 //! | 節月-keyed | 十二直, 九星, most of 下段 and 選日 | `hc-astro`'s VSOP87 solar series, good to about 1″ |
-//! | Lunisolar | 六曜, 不成就日, 二十七宿 | `hc-seasons`' minimal 定気 derivation |
+//! | Lunisolar | 六曜, 不成就日, 二十七宿, 十五夜, 十三夜 | the 天保暦's rules continued, as `hc-calendars-lunar` computes them |
 //!
 //! A solar-term instant within about a minute of local midnight can be
 //! assigned the wrong day, which moves a 節月 boundary and with it every
@@ -103,7 +102,9 @@ pub mod days_without_son;
 pub mod first_month_counts;
 pub mod lower_register;
 pub mod lucky_direction;
+pub mod lunisolar;
 pub mod mansions;
+pub mod moon_viewing;
 pub mod nine_periods;
 pub mod nine_stars;
 pub mod rokuyo;
@@ -119,7 +120,7 @@ pub use days_without_son::is_day_without_son;
 pub use first_month_counts::{FirstMonthCounts, first_month_counts};
 pub use lower_register::{LowerRegister, LowerRegisterSet, lower_register};
 pub use lucky_direction::{LuckyDirection, lucky_direction_of_year};
-pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of};
+pub use mansions::{Mansion, Mansion27, Quadrant, mansion_of, mansion27_of, mansion27_of_date};
 pub use nine_periods::{Period, period, period_of_year};
 pub use nine_stars::{Dun, NineStar, NineStars, day_star, month_star, nine_stars, year_star};
 pub use rokuyo::Rokuyo;
