@@ -103,6 +103,9 @@ minutes of the printed minute [drik-choghadiya-2025].
 - [drik-choghadiya-2025]: the pages for New Delhi of 1 to 7 January 2025,
   with sunrise, sunset and every part's kind and times. The two sequence
   columns above are these pages. Read 2026-09-28.
+- [drik-choghadiya-hi]: the Hindi edition of the choghadiya page, the
+  kinds' names in Devanagari, उद्वेग to रोग, and the planet that governs
+  each, which `hc_i18n::reckonings` carries under `hi`. Read 2026-09-28.
 
 ## Code
 

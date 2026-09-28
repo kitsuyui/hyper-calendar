@@ -253,9 +253,9 @@ boundary.
 
 **The 旧暦** is the 天保暦's rules continued, as
 [zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md) describes, with 閏11月 in
-2033–34. Until 2026 these notes read a simplified derivation in
-`hc-seasons` that differed from it on 89 days of 2024–2033, all from 25
-August to 21 November 2033; that document lists the runs that changed.
+2033–34. The plain 中気 rule applied month by month differs from it on 89
+days of 2024–2033, all from 25 August to 21 November 2033; that document
+lists the runs over 1900–2100 in which the two differ.
 
 ## Sources
 

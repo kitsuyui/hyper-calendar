@@ -48,7 +48,7 @@ pub const EPOCH_TAI_SECONDS: i128 = 220_924_800 - 221_788_790;
 pub const EPOCH: Instant<Tai> = Instant::from_epoch(Duration::from_secs(EPOCH_TAI_SECONDS));
 
 /// Seconds in a day.
-const DAY: i128 = 86_400;
+const DAY: i128 = hc_core::duration::SECONDS_PER_DAY as i128;
 
 /// Days in the thirteen full months of a year.
 pub const MONTHS_DAYS: i64 = 13 * 28;

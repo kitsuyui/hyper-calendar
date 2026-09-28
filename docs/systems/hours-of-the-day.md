@@ -623,6 +623,10 @@ names no place or latitude; London is the tests' choice.
 - [wikipedia-zh-dian] — Wikipedia (zh), 「點 (時間)」: five points to the
   watch, 24 minutes, 三更两点 as 23:48, the watchman's four strokes. Read
   2026-09-28.
+- [chinanews-wu-geng-2014] — China News Service, 21 November 2014: the
+  five watches, 一更 to 五更, of the fixed reckoning in Simplified
+  characters, which `hc_i18n::reckonings` carries under `zh-Hans`. Read
+  2026-09-28.
 
 ## Code
 

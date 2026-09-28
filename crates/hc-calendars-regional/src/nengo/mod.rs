@@ -354,7 +354,7 @@ pub fn next_in_stream(era: &Nengo, court: Court) -> Option<&'static Nengo> {
         if seen && candidate.start.is_some() {
             return Some(candidate);
         }
-        if candidate.kanji == era.kanji && candidate.court == era.court {
+        if candidate.id == era.id {
             seen = true;
         }
     }

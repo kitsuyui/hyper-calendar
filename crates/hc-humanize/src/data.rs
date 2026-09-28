@@ -12,9 +12,12 @@
 //! `<relative>` and `<relativeTime>` live — and the undirected unit phrases
 //! follow the `<unit type="duration-…">` section of the same file. They are
 //! a subset: CLDR carries roughly 600 locales and this crate carries 32. The
-//! first 21 are hand-checked; the eleven added for the most-spoken languages
-//! were read out of their CLDR 48 files by following CLDR's inheritance, as
-//! the comment above them says, and are checked by the same tests.
+//! first 21 are written by hand; the eleven added for the most-spoken
+//! languages were read out of their CLDR 48 files by following CLDR's
+//! inheritance, as the comment above them says. `tests/cldr48_resolved.rs`
+//! compares a sample of every entry with CLDR 48's own resolution: the
+//! eleven match it, and the values in which the hand-written entries differ
+//! from it are listed there.
 //!
 //! Three kinds of string here are **not** from CLDR, because CLDR has no
 //! field for them, and are ordinary translations kept in the same table so
@@ -3762,10 +3765,20 @@ const ZH_HANT: LocaleData = LocaleData {
 // counts, the `listPattern`s standard, `unit` and `unit-narrow`, the Latin
 // decimal separator, and the long `atTime` date-time pattern (or, where the
 // file states none, its standard one), with CLDR's date `{1}` and time
-// `{0}` put in this crate's order. A category a file states no pattern for
-// is left empty and takes `other`, as CLDR's does; a style that says
-// nothing the wider one does not is left empty and falls to it; a special
-// word root alone gives — root's English *yesterday* — is not carried.
+// `{0}` put in this crate's order. A value the file marks `↑↑↑` is the
+// one CLDR inherits in its place: the parent's, then, where no file states
+// the path, what root's aliases give — a narrow style's the short one's,
+// the short style's the long one's — and, at the end of that chain, the
+// category `other` of the style it ended in (TR35's lateral inheritance).
+// So Urdu's narrow *in 1 hour* is the long style's «{0} گھنٹے میں», not
+// the narrow plural, and `pt-PT` carries the short and narrow phrases
+// `pt_PT.xml` states, «há {0} s», with root's «{0} s» where `pt_PT.xml` and
+// `pt.xml` mark a unit's count. A category no file writes is left empty
+// and takes the style's `other`, as a reader of CLDR's resolved data does;
+// a style that says nothing the wider one does not is left empty and falls
+// to it; a special word root alone gives — root's English *yesterday* — is
+// not carried. `tests/cldr48_resolved.rs` compares a sample of every
+// locale's values with CLDR's own resolution of them.
 //
 // The three kinds of string CLDR has no field for are not translated: the
 // hedges and the weekday phrases are root's language-free ones, and the
@@ -3802,7 +3815,7 @@ const FIL_LONG: StyleData = StyleData {
     day: u_day(
         p1("{0} araw ang nakalipas"),
         p1("sa {0} araw"),
-        p1("{0} na araw"),
+        p2("{0} araw", "{0} na araw"),
         "Araw bago ang kahapon",
         "kahapon",
         "ngayong araw",
@@ -3836,7 +3849,7 @@ const FIL_LONG: StyleData = StyleData {
     year: u(
         p1("{0} taon ang nakalipas"),
         p1("sa {0} taon"),
-        p1("{0} na taon"),
+        p2("{0} taon", "{0} na taon"),
         "nakaraang taon",
         "ngayong taon",
         "susunod na taon",
@@ -3862,14 +3875,14 @@ const FIL_SHORT: StyleData = StyleData {
     ),
     hour: u(
         p1("{0} oras ang nakalipas"),
-        p1("sa {0} (na) oras"),
+        p2("sa {0} oras", "sa {0} (na) oras"),
         p2("{0} oras", "{0} na oras"),
         "",
         "ngayong oras",
         "",
     ),
     day: u_day(
-        p1("{0} (na) araw ang nakalipas"),
+        p2("{0} araw ang nakalipas", "{0} (na) araw ang nakalipas"),
         p2("sa {0} (na) araw", "sa {0} araw"),
         p1("{0} araw"),
         "Araw bago ang kahapon",
@@ -3879,7 +3892,7 @@ const FIL_SHORT: StyleData = StyleData {
         "Samakalawa",
     ),
     week: u(
-        p1("{0} (na) linggo ang nakalipas"),
+        p2("{0} linggo ang nakalipas", "{0} (na) linggo ang nakalipas"),
         p1("sa {0} linggo"),
         p2("{0} linggo", "{0} na linggo"),
         "nakaraang linggo",
@@ -3940,7 +3953,7 @@ const FIL_NARROW: StyleData = StyleData {
     day: u_day(
         p1("{0} araw ang nakalipas"),
         p2("sa {0} araw", "sa {0} araw"),
-        p1("{0} na araw"),
+        p2("{0} araw", "{0} na araw"),
         "Araw bago ang kahapon",
         "kahapon",
         "ngayong araw",
@@ -4952,11 +4965,149 @@ const PT_PT_LONG: StyleData = StyleData {
     ),
 };
 
+const PT_PT_SHORT: StyleData = StyleData {
+    second: u(
+        p2("há {0} s", "há {0} s"),
+        p2("dentro de {0} s", "dentro de {0} s"),
+        p1("{0} s"),
+        "",
+        "agora",
+        "",
+    ),
+    minute: u(
+        p2("há {0} min", "há {0} min"),
+        p2("dentro de {0} min", "dentro de {0} min"),
+        p1("{0} min"),
+        "",
+        "este minuto",
+        "",
+    ),
+    hour: u(
+        p2("há {0} h", "há {0} h"),
+        p2("dentro de {0} h", "dentro de {0} h"),
+        p1("{0} h"),
+        "",
+        "esta hora",
+        "",
+    ),
+    day: u_day(
+        p2("há {0} dia", "há {0} dias"),
+        p2("dentro de {0} dia", "dentro de {0} dias"),
+        p2("{0} dia", "{0} dias"),
+        "anteontem",
+        "ontem",
+        "hoje",
+        "amanhã",
+        "depois de amanhã",
+    ),
+    week: u(
+        p2("há {0} sem.", "há {0} sem."),
+        p2("dentro de {0} sem.", "dentro de {0} sem."),
+        p1("{0} sem."),
+        "semana passada",
+        "esta semana",
+        "próxima semana",
+    ),
+    month: u(
+        p2("há {0} mês", "há {0} meses"),
+        p2("dentro de {0} mês", "dentro de {0} meses"),
+        p2("{0} mês", "{0} meses"),
+        "mês passado",
+        "este mês",
+        "próximo mês",
+    ),
+    quarter: u(
+        p2("há {0} trim.", "há {0} trim."),
+        p2("dentro de {0} trim.", "dentro de {0} trim."),
+        p1("{0} trim."),
+        "trim. passado",
+        "este trim.",
+        "próximo trim.",
+    ),
+    year: u(
+        p2("há {0} ano", "há {0} anos"),
+        p2("dentro de {0} ano", "dentro de {0} anos"),
+        p2("{0} ano", "{0} anos"),
+        "ano passado",
+        "este ano",
+        "próximo ano",
+    ),
+};
+
+const PT_PT_NARROW: StyleData = StyleData {
+    second: u(
+        p2("-{0} s", "-{0} s"),
+        p2("+{0} s", "+{0} s"),
+        p1("{0} s"),
+        "",
+        "agora",
+        "",
+    ),
+    minute: u(
+        p2("-{0} min", "-{0} min"),
+        p2("+{0} min", "+{0} min"),
+        p1("{0} min"),
+        "",
+        "este minuto",
+        "",
+    ),
+    hour: u(
+        p2("-{0} h", "-{0} h"),
+        p2("+{0} h", "+{0} h"),
+        p1("{0} h"),
+        "",
+        "esta hora",
+        "",
+    ),
+    day: u_day(
+        p2("-{0} dia", "-{0} dias"),
+        p2("+{0} dia", "+{0} dias"),
+        p2("{0} dia", "{0} dias"),
+        "anteontem",
+        "ontem",
+        "hoje",
+        "amanhã",
+        "depois de amanhã",
+    ),
+    week: u(
+        p2("-{0} sem.", "-{0} sem."),
+        p2("+{0} sem.", "+{0} sem."),
+        p1("{0} sem."),
+        "semana passada",
+        "esta semana",
+        "próxima semana",
+    ),
+    month: u(
+        p2("-{0} mês", "-{0} meses"),
+        p2("+{0} mês", "+{0} meses"),
+        p2("{0} mês", "{0} meses"),
+        "mês passado",
+        "este mês",
+        "próximo mês",
+    ),
+    quarter: u(
+        p2("-{0} trim.", "-{0} trim."),
+        p2("+{0} trim.", "+{0} trim."),
+        p1("{0} trim."),
+        "trim. passado",
+        "este trim.",
+        "próximo trim.",
+    ),
+    year: u(
+        p2("-{0} ano", "-{0} anos"),
+        p2("+{0} ano", "+{0} anos"),
+        p2("{0} ano", "{0} anos"),
+        "ano passado",
+        "este ano",
+        "próximo ano",
+    ),
+};
+
 const PT_PT: LocaleData = LocaleData {
     tag: "pt-PT",
     long: PT_PT_LONG,
-    short: StyleData::EMPTY,
-    narrow: StyleData::EMPTY,
+    short: PT_PT_SHORT,
+    narrow: PT_PT_NARROW,
     compact: UnitStrings::EMPTY,
     indefinite: UnitStrings::EMPTY,
     list: ListPatterns {
@@ -5622,7 +5773,7 @@ const UR_NARROW: StyleData = StyleData {
     ),
     hour: u(
         p2("{0} گھنٹہ پہلے", "{0} گھنٹے پہلے"),
-        p1("{0} گھنٹوں میں"),
+        p2("{0} گھنٹے میں", "{0} گھنٹوں میں"),
         p2("{0} گھنٹہ", "{0} گھنٹے"),
         "",
         "اس گھنٹے",

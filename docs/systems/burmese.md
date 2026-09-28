@@ -260,8 +260,14 @@ the test `the_sources_worked_example_of_1374_me_is_reproduced` holds.
   နှောင်းတန်ခူးလဆန်း ၂ ရက်», the year, ခုနှစ်, the month and its half, the
   day and ရက်: «၁၃၈၈ ခုနှစ်၊ တော်သလင်းလဆုတ် ၁ ရက်». The full-moon and
   new-moon days are written as the 15th of the waxing half and the last
-  of the waning one, and the prefix နှောင်း, Hnaung, of the late Tagu and
-  Kason is not written.
+  of the waning one. The late Tagu and Kason take နှောင်း, *Late* in
+  English, "Late Tagu waxing 2, 1378 ME"; the two Wasos of a watat year
+  are ပထမဝါဆို and ဒုတိယဝါဆို, First Waso and Second Waso, as Burmese
+  Wikipedia's ဝါဆိုလ and the dates it cites write them («၁၃၈၅ ခုနှစ်၊
+  ဒုတိယဝါဆိုလဆန်း ၄ ရက်», 21 July 2023) and as Yan Naing Aye's tables and
+  calendar code name them [yannaingaye2013, yan9a-mmcal]. So no two days
+  from 1950 to 2050 are written alike in either language, which
+  `crates/hyper-calendar/tests/distinct_dates.rs` checks.
 - **The five eras as data**: `ERAS` holds each era's first and last year,
   its full-moon offset, its NM (−1 for the Metonic rule) and its two
   exception tables, and nothing about an era lives anywhere else.
@@ -358,7 +364,11 @@ measurement.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [yannaingaye2013] | Every constant, the excess-day and Metonic rules, the full-moon formula and its offsets, the little/big decision, tg1, the Thingyan lengths, the five era tables with their exceptions, the 1377 finding, the 1374 example, and the references to Irwin, Kyaing and Toe | Yes, 2026-09-25; the module read it 2026-09-22 |
-| [yan9a-mmcal] | The author's maintained code, whose era tables were checked against the article's | Yes, 2026-09-25: the JavaScript (version 20260909) and C++ (version 20250726) sources |
+| [yan9a-mmcal] | The author's maintained code, whose era tables were checked against the article's; its English month names "First Waso", "Late Tagu" and "Late Kason", and "Second " before the Waso of a watat year | Yes, 2026-09-25: the JavaScript (version 20260909) and C++ (version 20250726) sources; the month names 2026-09-28 |
+| [mywiki-waso] | ပထမဝါဆို and ဒုတိယဝါဆို, the two Wasos of a watat year | Yes, 2026-09-28 |
+| [mywiki-new-year-day] | နှောင်းတန်ခူး and နှောင်းကဆုန်, the days before the New Year | Yes, 2026-09-28 |
+| [mywiki-zin-min-htet] | A government order dated «၁၃၈၅ ခုနှစ်၊ ဒုတိယဝါဆိုလဆန်း ၄ ရက်», 21 July 2023 | Yes, 2026-09-28; the order itself not read |
+| [mora-homepage] | «၁၃၈၈ ခုနှစ်၊ ပထမ ဝါဆိုလပြည့်ကျော်(၁၅)ရက်», 14 July 2026 | Yes, 2026-09-28 |
 | [irwin1909] | The constants and the Makaranta and Thandeikta history, through the two sources above | Not read |
 | [wikipedia-burmese-calendar] | The month names in Burmese script, the 29- and 30-day months, the intercalary day's placement and the rule that it needs the month, the Arakanese and Thai placements, the Makaranta and Thandeikta history with its 1838 and 1853 dates, the Metonic remainder sets, the Calendar Advisory Board, the epoch of 22 March 638 | Yes, 2026-09-25; the module read it 2026-09-22 |
 | [hindu-calendars.md](hindu-calendars.md) | The *Sūrya Siddhānta*'s sidereal year, the same constant | This repository |

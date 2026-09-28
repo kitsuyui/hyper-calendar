@@ -19,12 +19,10 @@
 
 use alloc::string::String;
 
-use hc_astro::riseset::{Location, solar_noon, sunrise};
+use hc_astro::riseset::Location;
 use hc_astro::solar_time::{
-    self, EdoHour, EdoTime, IshaRule, MaghribRule, MidnightRule, MissingSolarEvent, PRAYER_METHODS,
-    Zman,
+    self, EdoHour, EdoTime, IshaRule, MaghribRule, MidnightRule, PRAYER_METHODS, Zman,
 };
-use hc_calendar::fixed::Moment;
 
 use crate::astro_lines::{
     MISSING_COLUMNS, day_in_era, missing_cells, moment_in_era, moment_or_missing,
@@ -35,20 +33,8 @@ use crate::boundary::{Answer, Line, Refusal};
 /// identifier, the instant and the four cells of a missing solar event.
 pub const PRAYER_TIME_COLUMNS: usize = 2 + MISSING_COLUMNS;
 
-/// The times [`prayer_times_lines`] writes, one line each, in this order.
-pub const PRAYER_TIMES: [&str; 8] = [
-    "fajr",
-    "sunrise",
-    "zuhr",
-    "asr-shafii",
-    "asr-hanafi",
-    "maghrib",
-    "isha",
-    "midnight",
-];
-
 /// The lines of `hc_prayer_times`: the Islamic prayer times of a local day
-/// at a place by a method, one line each of [`PRAYER_TIMES`] — *fajr* at
+/// at a place by a method, one line each of [`solar_time::PRAYER_TIMES`] — *fajr* at
 /// the method's angle, sunrise, *ẓuhr* at the Sun's transit, *ʿaṣr* by the
 /// Shafiʿi and by the Hanafi shadow rule, since the method does not choose
 /// between them, *maghrib*, *ʿishāʾ* and the middle of the night that
@@ -71,21 +57,11 @@ pub fn prayer_times_lines(
 ) -> Answer<String> {
     let method = &solar_time::prayer_method(method).ok_or(Refusal::Unknown)?;
     let day = day_in_era(fixed)?;
-    let times: [Result<Moment, MissingSolarEvent>; 8] = [
-        solar_time::fajr(day, place, method),
-        sunrise(day, place).ok_or(MissingSolarEvent::Sunrise(day)),
-        Ok(solar_noon(day, place)),
-        solar_time::asr_shafii(day, place),
-        solar_time::asr_hanafi(day, place),
-        solar_time::maghrib(day, place, method),
-        solar_time::isha(day, place, method, ramadan),
-        solar_time::islamic_midnight(day, place, method),
-    ];
     let mut out = String::new();
-    for (id, time) in PRAYER_TIMES.into_iter().zip(times) {
+    for time in solar_time::PRAYER_TIMES {
         let mut line = Line::new(&mut out);
-        line.cell(id);
-        moment_or_missing(&mut line, time);
+        line.cell(time.id);
+        moment_or_missing(&mut line, (time.at)(day, place, method, ramadan));
         line.end();
     }
     Ok(out)
@@ -131,15 +107,6 @@ pub fn prayer_methods_lines() -> String {
     out
 }
 
-/// The dawns and nightfalls `hc_zmanim` writes after the times in temporal
-/// hours, in this order.
-pub const JEWISH_TWILIGHTS: [&str; 4] = [
-    "dawn-16-1-degrees",
-    "dawn-72-minutes",
-    "nightfall-8-5-degrees",
-    "nightfall-72-minutes",
-];
-
 /// How many columns each line of [`zmanim_lines`] writes.
 pub const ZMAN_COLUMNS: usize = 4 + MISSING_COLUMNS;
 
@@ -149,7 +116,7 @@ pub const ZMAN_COLUMNS: usize = 4 + MISSING_COLUMNS;
 /// [`Zman::ALL`], its identifier, its English name as Hebcal prints it,
 /// its temporal hours from the start of the day, the instant and the four
 /// cells of a missing solar event — then one line for each of
-/// [`JEWISH_TWILIGHTS`], which no reckoning changes, with its identifier,
+/// [`solar_time::JEWISH_TWILIGHTS`], which no reckoning changes, with its identifier,
 /// empty name and hours, the instant and the four cells.
 ///
 /// # Errors
@@ -168,16 +135,10 @@ pub fn zmanim_lines(reckoning: &str, fixed: i64, place: Location) -> Answer<Stri
         moment_or_missing(&mut line, zman(time, day, place));
         line.end();
     }
-    let twilights = [
-        solar_time::jewish_dawn_16_1_degrees(day, place),
-        solar_time::jewish_dawn_72_minutes(day, place),
-        solar_time::jewish_nightfall_8_5_degrees(day, place),
-        solar_time::jewish_nightfall_72_minutes(day, place),
-    ];
-    for (id, time) in JEWISH_TWILIGHTS.into_iter().zip(twilights) {
+    for twilight in solar_time::JEWISH_TWILIGHTS {
         let mut line = Line::new(&mut out);
-        line.cell(id).empties(2);
-        moment_or_missing(&mut line, time);
+        line.cell(twilight.id).empties(2);
+        moment_or_missing(&mut line, (twilight.at)(day, place));
         line.end();
     }
     Ok(out)
@@ -299,8 +260,11 @@ mod tests {
         let day = gregorian::to_fixed(2026, 1, 1).expect("a date");
         let text = prayer_times_lines("Singapore", day.0, singapore, false).expect("in range");
         let rows = rows(&text);
-        assert_eq!(rows.len(), PRAYER_TIMES.len());
-        for (row, id) in rows.iter().zip(PRAYER_TIMES) {
+        assert_eq!(rows.len(), solar_time::PRAYER_TIMES.len());
+        for (row, id) in rows
+            .iter()
+            .zip(solar_time::PRAYER_TIMES.map(|time| time.id))
+        {
             assert_eq!(row.len(), PRAYER_TIME_COLUMNS);
             assert_eq!(row[0], id);
             assert_eq!(row[2..], ["", "", "", ""], "{id} happens");
@@ -316,7 +280,7 @@ mod tests {
             assert!(
                 (earliest..earliest + 2.0).contains(&late),
                 "{}: {late} min",
-                PRAYER_TIMES[index]
+                solar_time::PRAYER_TIMES[index].id
             );
         }
         // The Hanafi ʿaṣr comes after the Shafiʿi, and the night's middle
@@ -392,7 +356,10 @@ mod tests {
         let gra = zmanim_lines("ZMANIM-GRA", day.0, new_york).expect("in range");
         let mga = zmanim_lines("mga-72-minutes", day.0, new_york).expect("in range");
         let (gra, mga) = (rows(&gra), rows(&mga));
-        assert_eq!(gra.len(), Zman::ALL.len() + JEWISH_TWILIGHTS.len());
+        assert_eq!(
+            gra.len(),
+            Zman::ALL.len() + solar_time::JEWISH_TWILIGHTS.len()
+        );
         for row in gra.iter().chain(&mga) {
             assert_eq!(row.len(), ZMAN_COLUMNS);
         }
@@ -509,7 +476,8 @@ mod tests {
             .expect("in range");
         let cells: Vec<&str> = line.trim_end_matches('\n').split('\t').collect();
         assert_eq!(cells, ["", "depression", &day.0.to_string(), "", "26501"]);
-        let noon = crate::astro_lines::unix_from_moment(Moment(day.0 as f64 + 0.4));
+        let noon =
+            crate::astro_lines::unix_from_moment(hc_calendar::fixed::Moment(day.0 as f64 + 0.4));
         let reading = edo_time_line(noon, helsinki).expect("in range");
         let cells: Vec<&str> = reading.trim_end_matches('\n').split('\t').collect();
         assert_eq!(cells[..8], ["", "", "", "", "", "", "", ""]);

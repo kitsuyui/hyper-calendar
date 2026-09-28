@@ -21,7 +21,7 @@ computes.
 | **MTC** | Coordinated Mars Time — mean solar time at the Martian prime meridian, MSD's fractional part in 24 Martian hours |
 | **LMST** | Local Mean Solar Time at a given west longitude |
 | **LTST** | Local True Solar Time, LMST plus the Martian equation of time (which runs from about −51 to +40 minutes, far more than Earth's −14 to +16) |
-| **Mission sol** | The landing-relative sol count each mission uses. All ten surface missions are tabulated: Viking 1 and 2, Mars Pathfinder, Spirit, Opportunity, Phoenix, Curiosity, InSight, Perseverance and Zhurong |
+| **Mission sol** | The landing-relative sol count each mission uses. All ten surface missions are tabulated: Viking 1 and 2, Mars Pathfinder, Spirit, Opportunity, Phoenix, Curiosity, InSight, Perseverance and Zhurong, as `viking-1`, `viking-2`, `mars-pathfinder`, `spirit`, `opportunity`, `phoenix`, `curiosity`, `insight`, `perseverance` and `zhurong`; each counts its sols on the clock its team kept, `local-mean-solar-time` or `local-true-solar-time-at-landing` |
 | **Darian calendar** | Gangale's 24-month calendar for the Martian year, a proposal for Martian civil use |
 | **Martiana calendar** | Gangale's variant of it with Aitken's week: the week never shortened, every month of a quarter beginning on the same sol, a two-year cycle, and a decennial sol outside the week |
 | **Mars year** | The Clancy convention, counting from the 1955 northern spring equinox, used throughout Mars atmospheric science |

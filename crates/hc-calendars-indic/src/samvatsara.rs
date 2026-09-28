@@ -34,7 +34,8 @@ pub const CYCLE: &str = "samvatsara";
 pub const LENGTH: u8 = 60;
 
 /// The sixty names, Prabhava first, as Sewell and Dikshit list them (Table
-/// I, col. 6, and Table XII), without diacritics.
+/// I, col. 6, and Table XII), without diacritics; the 53rd, which the
+/// tables spell "Siddhârtin", in Art. 60's spelling, Siddharthin.
 pub const NAMES: [&str; 60] = [
     "Prabhava",
     "Vibhava",

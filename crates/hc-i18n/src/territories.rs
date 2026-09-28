@@ -3,9 +3,12 @@
 //!
 //! The names are CLDR 48's, the `release-48` tag of
 //! <https://github.com/unicode-org/cldr>, `common/main/<locale>.xml`,
-//! `localeDisplayNames/territories/territory`, read 2026-09-27 for every
-//! locale below: `zh.xml` for `zh-Hans`, `zh_Hant.xml` for `zh-Hant`, and
-//! the file of the same tag for the rest [cldr48-territory-names]. As for
+//! `localeDisplayNames/territories/territory`, read 2026-09-27 for the
+//! locales carried before the most-spoken languages and 2026-09-28 for the
+//! twelve files of those [cldr48-most-spoken]: `zh.xml` for `zh-Hans`,
+//! `zh_Hant.xml` for `zh-Hant`, `pa.xml` for `pa-Guru`, `yue.xml` for
+//! `yue-Hant`, and the file of the same tag for the rest
+//! [cldr48-territory-names]. As for
 //! the calendar names in [`crate::data`], the name of each territory is its
 //! plain value — not its `alt="short"` or `alt="variant"` form, so Hong
 //! Kong is `Hong Kong SAR China` in English and not `Hong Kong` — and only
@@ -99,7 +102,8 @@ pub const REGIONS: &[&str] = &[
 
 /// Where the names come from, for a `source` cell.
 pub const SOURCE: &str = "Unicode CLDR 48, common/main/<locale>.xml, localeDisplayNames/territories \
-     (approved and contributed values), release-48, read 2026-09-27";
+     (approved and contributed values), release-48, read 2026-09-27, and for the twelve \
+     locales of the most-spoken languages 2026-09-28 (cldr48-most-spoken)";
 
 /// One locale's names for the [`REGIONS`].
 #[derive(Debug, Clone, Copy)]

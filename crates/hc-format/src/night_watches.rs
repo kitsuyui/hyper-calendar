@@ -31,6 +31,10 @@ pub struct NightWatch {
 /// The five watches' numbers, as the source writes them.
 pub const WATCH_NAMES: [&str; 5] = ["一更", "二更", "三更", "四更", "五更"];
 
+/// The five watches' identifiers, their numbers in digits, as
+/// `hc_i18n::reckonings` names them.
+pub const WATCH_IDS: [&str; 5] = ["1", "2", "3", "4", "5"];
+
 /// The five watches' Han names.
 pub const HAN_NAMES: [&str; 5] = ["黃昏", "人定", "夜半", "雞鳴", "平旦"];
 
@@ -47,6 +51,12 @@ pub const WATCH_MINUTES: u32 = 120;
 pub const POINT_MINUTES: u32 = 24;
 
 impl NightWatch {
+    /// The watch's identifier, `1` to `5`, one of [`WATCH_IDS`].
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        WATCH_IDS[(self.watch - 1) as usize]
+    }
+
     /// The watch's number, 一更 to 五更.
     #[must_use]
     pub const fn name(self) -> &'static str {

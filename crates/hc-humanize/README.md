@@ -88,12 +88,25 @@ file states no fields, reaches root.
 The relative-time phrases follow the Unicode CLDR `<fields>` section of
 `main/<locale>.xml`, and the undirected unit phrases follow the
 `<unit type="duration-…">` section of the same file. The first 21 locales are
-**hand-checked, not generated**, a subset chosen to cover the plural systems
-that matter; the eleven added for the most-spoken languages (`fil ha mr
-pa-Guru pcm pt-PT sw te ur yue-Hans yue-Hant`) were read out of their CLDR 48
-files by following CLDR's inheritance, in all three styles where the file
+**written by hand, not generated**, a subset chosen to cover the plural
+systems that matter; the eleven added for the most-spoken languages (`fil ha
+mr pa-Guru pcm pt-PT sw te ur yue-Hans yue-Hant`) were read out of their CLDR
+48 files by following CLDR's inheritance, in all three styles where the file
 states them, with the list patterns, the decimal separator and the `atTime`
-pattern of the same file. Nothing here is a copy of CLDR's 600.
+pattern of the same file. A value a file marks `↑↑↑` is the one CLDR
+inherits: the parent file's, then what `root.xml`'s aliases give (narrow
+from short, short from long), and last the style's `other`. Nothing here is
+a copy of CLDR's 600.
+
+`tests/cldr48_resolved.rs` checks a sample of every locale — the hour's and
+the day's past, future and duration patterns in each plural category, and
+the day's words, in all three styles — against CLDR 48's own resolution of
+them, read from the `cldr-json` 48.0.0 packages (`cldr-json-48`). The eleven generated
+locales match it everywhere. The hand-written entries differ from it in 352
+of the sampled values, which the test lists: English's *the day before
+yesterday*, which CLDR's English does not state, German's narrow *{0} Std.*
+where CLDR writes *{0}h*, Traditional Chinese's *{0}天前* where CLDR writes
+*{0} 天前*, and the like.
 
 Three kinds of string are **not** from CLDR, because CLDR has no field for
 them, and are ordinary translations kept in the same table: the approximation

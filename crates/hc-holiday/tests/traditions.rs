@@ -916,6 +916,23 @@ fn the_three_lunar_sikh_days_match_the_sgpc_list() {
             (2020, 11, 30, "Parkash of Guru Nanak"),
         ],
     );
+    // The same table's Hola Mohalla of 2003 to 2008, the day after Holi as
+    // the fitted rule has it. Its 11 March 2009 is Holi itself (Drik
+    // Panchang, New Delhi), where Chet vadi 1 at sunrise is the 12th: the
+    // one year of 2003–2020 the rule does not give.
+    expect(
+        &SIKH_NANAKSHAHI_2003,
+        &[
+            (2003, 3, 19, "Hola Mohalla"),
+            (2004, 3, 7, "Hola Mohalla"),
+            (2005, 3, 26, "Hola Mohalla"),
+            (2006, 3, 15, "Hola Mohalla"),
+            (2007, 3, 4, "Hola Mohalla"),
+            (2008, 3, 22, "Hola Mohalla"),
+            (2009, 3, 12, "Hola Mohalla"),
+        ],
+    );
+    expect_not(&SIKH_NANAKSHAHI_2003, &[(2009, 3, 11, "Hola Mohalla")]);
     // Every day is exact but Hola Mohalla's, whose sunrise is fitted.
     for rule in SIKH_NANAKSHAHI_2003.rules {
         assert_eq!(rule.kind, Kind::Religious, "{}", rule.name);
@@ -988,11 +1005,12 @@ fn the_sgpc_keeps_the_three_movable_days_of_both_versions() {
 #[test]
 fn the_sgpc_days_of_2021_to_2026_are_reproduced() {
     // Hola Mohalla: SikhNet's SGPC lists for 2021 and 2026; dekho-ji for
-    // 2022 and 2023; The Tribune, 26 March 2024; AIR, 15 March 2025.
-    // Vaisakhi: The Tribune's reports of 2010 to 2025 from Amritsar and
-    // Talwandi Sabo, The Week of 17 March 2025 and SikhNet's 2021 and 2026
-    // lists; 13 April in 2017, 2021 and 2025, when the saṅkrānti fell
-    // between midnight and sunrise. Bandi Chhor Divas: the published days,
+    // 2022 and 2023; The Tribune, 27 March 2024; AIR, 15 March 2025.
+    // Vaisakhi: The Tribune's reports of every year from 2010 to 2025 from
+    // Amritsar, Anandpur Sahib and Talwandi Sabo (tribune-baisakhi-2010 to
+    // -2025), The Week of 17 March 2025 and SikhNet's 2021 and 2026 lists;
+    // 13 April in 2017, 2021 and 2025, when the saṅkrānti fell between
+    // midnight and sunrise. Bandi Chhor Divas: the published days,
     // a day after Diwali in 2024 and 2025.
     expect(
         &SIKH_SGPC,
@@ -1008,8 +1026,12 @@ fn the_sgpc_days_of_2021_to_2026_are_reproduced() {
             (2012, 4, 13, "Vaisakhi"),
             (2013, 4, 13, "Vaisakhi"),
             (2014, 4, 14, "Vaisakhi"),
+            (2015, 4, 14, "Vaisakhi"),
+            (2016, 4, 13, "Vaisakhi"),
             (2017, 4, 13, "Vaisakhi"),
+            (2018, 4, 14, "Vaisakhi"),
             (2019, 4, 14, "Vaisakhi"),
+            (2020, 4, 13, "Vaisakhi"),
             (2021, 4, 13, "Vaisakhi"),
             (2022, 4, 14, "Vaisakhi"),
             (2023, 4, 14, "Vaisakhi"),

@@ -34,6 +34,22 @@ pub struct FirstMonthCounts {
 }
 
 impl FirstMonthCounts {
+    /// The counts' identifiers, in the order [`FirstMonthCounts::by_id`]
+    /// gives them: 几龙治水, 几牛耕田, 几日得辛 and 几人分饼, as
+    /// `hc_i18n::reckonings` names them.
+    pub const IDS: [&'static str; 4] = ["dragons", "oxen", "xin", "cakes"];
+
+    /// Each count with its identifier, in the order of [`Self::IDS`].
+    #[must_use]
+    pub const fn by_id(&self) -> [(&'static str, u8); 4] {
+        [
+            (Self::IDS[0], self.dragons),
+            (Self::IDS[1], self.oxen),
+            (Self::IDS[2], self.xin),
+            (Self::IDS[3], self.cakes),
+        ]
+    }
+
     /// The counts of the year whose 正月初一 is `new_year`.
     #[must_use]
     pub const fn from_new_year(new_year: Rd) -> Self {

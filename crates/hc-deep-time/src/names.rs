@@ -194,7 +194,7 @@ pub fn chart_index(interval: &GeologicInterval) -> Option<usize> {
         if *rank == interval.rank {
             return entries
                 .iter()
-                .position(|entry| entry.name == interval.name)
+                .position(|entry| entry.id == interval.id)
                 .map(|position| offset + position);
         }
         offset += entries.len();

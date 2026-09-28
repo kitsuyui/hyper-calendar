@@ -458,11 +458,14 @@ pub fn sunset_line(horizon_id: &str, fixed: i64, place: Location) -> Answer<Stri
     crossing_line(riseset::sunset_with, "sunset", horizon_id, fixed, place)
 }
 
-/// The Julian Date at which fixed day 0 begins.
-const JULIAN_DATE_OF_RD_ZERO: f64 = 1_721_424.5;
+/// The Julian Date at which fixed day 0 begins, 1 721 424.5, from
+/// `hc-calendar`'s day counts.
+const JULIAN_DATE_OF_RD_ZERO: f64 = hc_calendar::fixed::JDN_OF_RD_ZERO as f64 - 0.5;
 
-/// The Julian Date at which the POSIX epoch, 1970-01-01 00:00, falls.
-const JULIAN_DATE_OF_UNIX_EPOCH: f64 = 2_440_587.5;
+/// The Julian Date at which the POSIX epoch, 1970-01-01 00:00, falls,
+/// 2 440 587.5.
+const JULIAN_DATE_OF_UNIX_EPOCH: f64 =
+    (hc_calendar::fixed::JDN_OF_RD_ZERO + hc_calendar::fixed::RD_OF_UNIX_EPOCH) as f64 - 0.5;
 
 /// How many columns [`hjd_tt_line`] writes.
 pub const HJD_TT_COLUMNS: usize = 2;
@@ -656,12 +659,7 @@ pub fn gmt_from_gmat_line(fixed: i64, seconds_of_day: u32, attoseconds: u64) -> 
 mod tests {
     use super::*;
 
-    fn cells(line: &str) -> alloc::vec::Vec<&str> {
-        line.strip_suffix('\n')
-            .expect("a line")
-            .split('\t')
-            .collect()
-    }
+    use crate::boundary::cells;
 
     /// ERFA's `t_era00`, which `hc-astro`'s own test reads:
     /// `eraEra00(2400000.5, 54388.0)` is 0.402 283 724 002 815 810 2 rad,

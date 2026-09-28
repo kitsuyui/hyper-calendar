@@ -193,7 +193,6 @@ The `year-not-written` cases are all cycles that recur:
 The `ambiguous` cases are all texts that name more than one day:
 
 - `stata-week`, a week;
-- `burmese`, a late Tagu written as the early one;
 - `fasli-bombay` and `sur-san`, a doubled 3 June written as the ordinary
   one;
 - `tibetan-bhutan`, a doubled lunar day;

@@ -1715,6 +1715,68 @@ mod tests {
         );
     }
 
+    /// Hausa, Nigerian Pidgin and Filipino in every width and context, as
+    /// CLDR 48 resolves them: September, Sunday and the two eras of each
+    /// `main/<locale>/ca-gregorian.json` of `cldr-json` 48.0.0
+    /// (`cldr-json-48`, read 2026-09-28). Filipino's narrow names are its
+    /// abbreviations, as the file states them; Pidgin's narrow weekday is
+    /// root's placeholder "S" in CLDR, which the entry leaves to the wider
+    /// name (`docs/i18n.md`).
+    #[test]
+    fn hausa_pidgin_and_filipino_name_the_gregorian_calendar_as_cldr_resolves_it() {
+        let gregory = CalendarId("gregory");
+        let widths = [NameWidth::Wide, NameWidth::Abbreviated, NameWidth::Narrow];
+        for (tag, september, sunday, before, after) in [
+            (
+                "ha",
+                ["Satumba", "Sat", "S"],
+                ["Lahadi", "Lah", "L"],
+                ["Kafin haihuwar annab", "K.H", "K.H"],
+                ["Bayan haihuwar annab", "BHAI", "BHAI"],
+            ),
+            (
+                "pcm",
+                ["Sẹptẹ́mba", "Sẹp", "S"],
+                ["Sọ́ndè", "Sọ́n", "Sọ́n"],
+                ["Bifọ́ Kraist", "BK", "BK"],
+                ["Kraist Im Yiẹ", "KIY", "KIY"],
+            ),
+            (
+                "fil",
+                ["Setyembre", "Set", "Set"],
+                ["Linggo", "Lin", "Lin"],
+                ["Before Christ", "BC", "BC"],
+                ["Anno Domini", "AD", "AD"],
+            ),
+        ] {
+            let locale = locale(tag);
+            for (index, width) in widths.into_iter().enumerate() {
+                for context in [NameContext::Format, NameContext::Standalone] {
+                    assert_eq!(
+                        month_name(&locale, gregory, Month::regular(9), width, context),
+                        Some(september[index]),
+                        "{tag} {width:?} {context:?}"
+                    );
+                    assert_eq!(
+                        weekday_name(&locale, Weekday::Sunday, width, context),
+                        Some(sunday[index]),
+                        "{tag} {width:?} {context:?}"
+                    );
+                }
+                assert_eq!(
+                    era_name_by_code(&locale, gregory, "bc", width),
+                    Some(before[index]),
+                    "{tag} {width:?}"
+                );
+                assert_eq!(
+                    era_name_by_code(&locale, gregory, "ad", width),
+                    Some(after[index]),
+                    "{tag} {width:?}"
+                );
+            }
+        }
+    }
+
     #[test]
     fn the_hebrew_intercalary_month_and_leap_year_adar_have_their_own_names() {
         let hebrew = CalendarId("hebrew");

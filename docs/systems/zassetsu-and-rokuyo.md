@@ -122,13 +122,12 @@ them [nao-rekiwiki-2033, nao-topics-2014-2033]. The 日本カレンダー暦文�
 recommended 閏11月 in 2015 [wikipedia-ja-kyureki-2033]; the calendar here
 gives it.
 
-Until 2026 `hc-seasons` kept a simplified derivation of its own for 六曜
-and the moon-viewing nights: the plain 中気 rule [nao-rekiwiki-chijun],
-month by month, taking the later 中気 when a month held two. It was kept
-for cost, but 3,653 consecutive days of the full calculation take 21 to
-26 ms inside one memo scope against about 10 ms for the simplified one, in
-a release build, and it was wrong where two 中気 fell in one month; see
-Accuracy.
+六曜 and the moon-viewing nights read that calendar, not the plain 中気
+rule [nao-rekiwiki-chijun] applied month by month, taking the later 中気
+when a month holds two. The plain rule is cheaper — 3,653 consecutive days
+of the full calculation take 21 to 26 ms inside one memo scope against
+about 10 ms for it, in a release build — and wrong where two 中気 fall in
+one month; Accuracy gives the days.
 
 **Worked example: 八十八夜 of 2024.** 立春 fell at 17:27 JST on 4 February
 2024 [nao-rekiyoko-2024]. Counting 4 February as day 1, 29 February is day
@@ -232,33 +231,35 @@ the leap ninth month [nao-rekiwiki-chijun, nao-topics-2014-2033]; of
 the eleventh [nao-topics-2014-2033]; and of 2033–34 under 案1
 [nao-rekiwiki-2033] are all reproduced.
 
-**What moving off the simplified derivation changed.** Over 1900–2100 at
-the Japanese meridian, the 六曜, the 二十七宿 and the 不成就日 of 268 days
-changed, in five runs, each at a month holding two 中気 and covering the
-months the two methods numbered differently: 25 September to 23 October
-1965 (29 days); 22 December 1984 to 19 February 1985 (60); 25 August to 21
-November 2033 (89, all of the 3,653 days of 2024–2033 that changed); 20
+**Agreement with the published reference, against the plain 中気 rule.**
+Over 1900–2100 at the Japanese meridian, the plain 中気 rule applied month
+by month gives another 六曜, 二十七宿 and 不成就日 than the calendar on 268
+days, in five runs, each at a month holding two 中気 and covering the
+months the two number differently: 25 September to 23 October 1965 (29
+days); 22 December 1984 to 19 February 1985 (60); 25 August to 21 November
+2033 (89, all of the 3,653 days of 2024–2033 on which they differ); 20
 January to 18 February 2034 (30); and 21 December 2052 to 18 February 2053
-(60). The combinations built on them moved with them, and 十三夜 of 1965,
-which the simplified derivation had no ninth month for, is now 7 October;
-十五夜 of 2033 moved from 7 October, 案2's, to 8 September, 案1's
-[nao-topics-2014-2033].
+(60). The combinations built on them differ with them; the plain rule has
+no ninth month in 1965, so no 十三夜, which the calendar puts on 7 October,
+and it puts 十五夜 of 2033 on 7 October, 案2's, where the calendar puts it
+on 8 September, 案1's [nao-topics-2014-2033].
 
-At the Chinese meridian 329 days of 1900–2100 changed, in seven runs: 17
-November to 16 December 1914, 3 February to 3 March 1916 and 10 November
-to 9 December 1920 (30 each), whose new moons fell a few minutes before
-midnight at Beijing's meridian, which the calendar keeps to 1928, and
-after it at 120°E, where the derivation read them; and the four runs of
-1984–85, 2033, 2034 and 2052–53 above, the same months as at the Japanese
-meridian. The Hong Kong Observatory's conversion tables begin every one
-of those months on the day the calendar does [hko-conversion-tables,
-hko-conversion-tables-moon-keyed].
+At the Chinese meridian the two differ on 329 days of 1900–2100, in seven
+runs: 17 November to 16 December 1914, 3 February to 3 March 1916 and 10
+November to 9 December 1920 (30 each), whose new moons fell a few minutes
+before midnight at Beijing's meridian, which the calendar keeps to 1928,
+and after it at 120°E, where the plain rule reads them; and the four runs
+of 1984–85, 2033, 2034 and 2052–53 above, the same months as at the
+Japanese meridian. The Hong Kong Observatory's conversion tables begin
+every one of those months on the day the calendar does
+[hko-conversion-tables, hko-conversion-tables-moon-keyed].
 
 At an offset with no lunisolar calendar — `Meridian::UNIVERSAL`, `INDIA`,
-a longitude — the simplified derivation read the Moon at that offset, a
-calendar nobody kept, and these annotations now read the Japanese one:
-28,300 days of 1900–2100 changed at `UNIVERSAL`, the facade's default
-meridian.
+a longitude — the annotations read the Japanese calendar: every meridian
+but the Chinese gives Japan's answers. The plain rule would read the Moon
+at that offset, a calendar nobody kept, and differs from them on 28,300
+days of 1900–2100 at `UNIVERSAL`, the facade's default meridian, and on
+10,759 at `INDIA`.
 
 **Against a published calendar.** Arachne's online calendar
 [arachne-onlinecalendar] prints the 六曜 of October 1965, January 1985,

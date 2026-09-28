@@ -1,0 +1,768 @@
+ar	long	hour	past	zero=قبل {0} ساعة	one=قبل ساعة واحدة	two=قبل ساعتين	few=قبل {0} ساعات	many=قبل {0} ساعة	other=قبل {0} ساعة
+ar	long	hour	future	zero=خلال {0} ساعة	one=خلال ساعة واحدة	two=خلال ساعتين	few=خلال {0} ساعات	many=خلال {0} ساعة	other=خلال {0} ساعة
+ar	long	hour	count	zero={0} ساعة	one=ساعة	two=ساعتان	few={0} ساعات	many={0} ساعة	other={0} ساعة
+ar	long	hour	relative	-1=	0=الساعة الحالية	1=
+ar	long	day	past	zero=قبل {0} يوم	one=قبل يوم واحد	two=قبل يومين	few=قبل {0} أيام	many=قبل {0} يومًا	other=قبل {0} يوم
+ar	long	day	future	zero=خلال {0} يوم	one=خلال يوم واحد	two=خلال يومين	few=خلال {0} أيام	many=خلال {0} يومًا	other=خلال {0} يوم
+ar	long	day	count	zero={0} يوم	one=يوم	two=يومان	few={0} أيام	many={0} يومًا	other={0} يوم
+ar	long	day	relative	-2=أول أمس	-1=أمس	0=اليوم	1=غدًا	2=بعد الغد
+ar	short	hour	past	zero=قبل {0} ساعة	one=قبل ساعة واحدة	two=قبل ساعتين	few=قبل {0} ساعات	many=قبل {0} ساعة	other=قبل {0} ساعة
+ar	short	hour	future	zero=خلال {0} ساعة	one=خلال ساعة واحدة	two=خلال ساعتين	few=خلال {0} ساعات	many=خلال {0} ساعة	other=خلال {0} ساعة
+ar	short	hour	count	zero={0} س	one={0} س	two={0} س	few={0} س	many={0} س	other={0} س
+ar	short	hour	relative	-1=	0=الساعة الحالية	1=
+ar	short	day	past	zero=قبل {0} يوم	one=قبل يوم واحد	two=قبل يومين	few=قبل {0} أيام	many=قبل {0} يومًا	other=قبل {0} يوم
+ar	short	day	future	zero=خلال {0} يوم	one=خلال يوم واحد	two=خلال يومين	few=خلال {0} أيام	many=خلال {0} يومًا	other=خلال {0} يوم
+ar	short	day	count	zero={0} يوم	one=يوم	two=يومان	few={0} أيام	many={0} يومًا	other={0} يوم
+ar	short	day	relative	-2=أول أمس	-1=أمس	0=اليوم	1=غدًا	2=بعد الغد
+ar	narrow	hour	past	zero=قبل {0} ساعة	one=قبل ساعة واحدة	two=قبل ساعتين	few=قبل {0} ساعات	many=قبل {0} ساعة	other=قبل {0} ساعة
+ar	narrow	hour	future	zero=خلال {0} ساعة	one=خلال ساعة واحدة	two=خلال ساعتين	few=خلال {0} ساعات	many=خلال {0} ساعة	other=خلال {0} ساعة
+ar	narrow	hour	count	zero={0} س	one={0} س	two={0} س	few={0} س	many={0} س	other={0} س
+ar	narrow	hour	relative	-1=	0=الساعة الحالية	1=
+ar	narrow	day	past	zero=قبل {0} يوم	one=قبل يوم واحد	two=قبل يومين	few=قبل {0} أيام	many=قبل {0} يومًا	other=قبل {0} يوم
+ar	narrow	day	future	zero=خلال {0} يوم	one=خلال يوم واحد	two=خلال يومين	few=خلال {0} أيام	many=خلال {0} يومًا	other=خلال {0} يوم
+ar	narrow	day	count	zero={0} ي	one={0} ي	two={0} ي	few={0} ي	many={0} ي	other={0} ي
+ar	narrow	day	relative	-2=أول أمس	-1=أمس	0=اليوم	1=غدًا	2=بعد الغد
+cs	long	hour	past	one=před {0} hodinou	few=před {0} hodinami	many=před {0} hodiny	other=před {0} hodinami
+cs	long	hour	future	one=za {0} hodinu	few=za {0} hodiny	many=za {0} hodiny	other=za {0} hodin
+cs	long	hour	count	one={0} hodina	few={0} hodiny	many={0} hodiny	other={0} hodin
+cs	long	hour	relative	-1=	0=tuto hodinu	1=
+cs	long	day	past	one=před {0} dnem	few=před {0} dny	many=před {0} dne	other=před {0} dny
+cs	long	day	future	one=za {0} den	few=za {0} dny	many=za {0} dne	other=za {0} dní
+cs	long	day	count	one={0} den	few={0} dny	many={0} dne	other={0} dnů
+cs	long	day	relative	-2=předevčírem	-1=včera	0=dnes	1=zítra	2=pozítří
+cs	short	hour	past	one=před {0} h	few=před {0} h	many=před {0} h	other=před {0} h
+cs	short	hour	future	one=za {0} h	few=za {0} h	many=za {0} h	other=za {0} h
+cs	short	hour	count	one={0} h	few={0} h	many={0} h	other={0} h
+cs	short	hour	relative	-1=	0=tuto hodinu	1=
+cs	short	day	past	one=před {0} dnem	few=před {0} dny	many=před {0} dne	other=před {0} dny
+cs	short	day	future	one=za {0} den	few=za {0} dny	many=za {0} dne	other=za {0} dní
+cs	short	day	count	one={0} den	few={0} dny	many={0} dne	other={0} dnů
+cs	short	day	relative	-2=předevčírem	-1=včera	0=dnes	1=zítra	2=pozítří
+cs	narrow	hour	past	one=před {0} h	few=před {0} h	many=před {0} h	other=před {0} h
+cs	narrow	hour	future	one=za {0} h	few=za {0} h	many=za {0} h	other=za {0} h
+cs	narrow	hour	count	one={0} h	few={0} h	many={0} h	other={0} h
+cs	narrow	hour	relative	-1=	0=tuto hodinu	1=
+cs	narrow	day	past	one=před {0} dnem	few=před {0} dny	many=před {0} dne	other=před {0} dny
+cs	narrow	day	future	one=za {0} den	few=za {0} dny	many=za {0} dne	other=za {0} dní
+cs	narrow	day	count	one={0} d.	few={0} d.	many={0} d.	other={0} d.
+cs	narrow	day	relative	-2=předevčírem	-1=včera	0=dnes	1=zítra	2=pozítří
+cy	long	hour	past	zero={0} awr yn ôl	one={0} awr yn ôl	two={0} awr yn ôl	few={0} awr yn ôl	many={0} awr yn ôl	other={0} awr yn ôl
+cy	long	hour	future	zero=ymhen {0} awr	one=ymhen awr	two=ymhen {0} awr	few=ymhen {0} awr	many=ymhen {0} awr	other=ymhen {0} awr
+cy	long	hour	count	zero={0} awr	one={0} awr	two={0} awr	few={0} awr	many={0} awr	other={0} awr
+cy	long	hour	relative	-1=	0=yr awr hon	1=
+cy	long	day	past	zero={0} diwrnod yn ôl	one={0} diwrnod yn ôl	two={0} ddiwrnod yn ôl	few={0} diwrnod yn ôl	many={0} diwrnod yn ôl	other={0} diwrnod yn ôl
+cy	long	day	future	zero=ymhen {0} diwrnod	one=ymhen diwrnod	two=ymhen deuddydd	few=ymhen {0} diwrnod	many=ymhen {0} diwrnod	other=ymhen {0} diwrnod
+cy	long	day	count	zero={0} diwrnod	one={0} diwrnod	two={0} ddiwrnod	few={0} diwrnod	many={0} diwrnod	other={0} diwrnod
+cy	long	day	relative	-2=echdoe	-1=ddoe	0=heddiw	1=yfory	2=drennydd
+cy	short	hour	past	zero={0} awr yn ôl	one=awr yn ôl	two={0} awr yn ôl	few={0} awr yn ôl	many={0} awr yn ôl	other={0} awr yn ôl
+cy	short	hour	future	zero=ymhen {0} awr	one=ymhen awr	two=ymhen {0} awr	few=ymhen {0} awr	many=ymhen {0} awr	other=ymhen {0} awr
+cy	short	hour	count	zero={0} awr	one={0} awr	two={0} awr	few={0} awr	many={0} awr	other={0} awr
+cy	short	hour	relative	-1=	0=yr awr hon	1=
+cy	short	day	past	zero={0} diwrnod yn ôl	one={0} diwrnod yn ôl	two={0} ddiwrnod yn ôl	few={0} diwrnod yn ôl	many={0} diwrnod yn ôl	other={0} diwrnod yn ôl
+cy	short	day	future	zero=ymhen {0} diwrnod	one=ymhen diwrnod	two=ymhen deuddydd	few=ymhen {0} diwrnod	many=ymhen {0} diwrnod	other=ymhen {0} diwrnod
+cy	short	day	count	zero={0} diwrnod	one={0} diwrnod	two={0} ddiwrnod	few={0} diwrnod	many={0} diwrnod	other={0} diwrnod
+cy	short	day	relative	-2=echdoe	-1=ddoe	0=heddiw	1=yfory	2=drennydd
+cy	narrow	hour	past	zero={0} awr yn ôl	one={0} awr yn ôl	two={0} awr yn ôl	few={0} awr yn ôl	many={0} awr yn ôl	other={0} awr yn ôl
+cy	narrow	hour	future	zero=ymhen {0} awr	one=ymhen {0} awr	two=ymhen {0} awr	few=ymhen {0} awr	many=ymhen {0} awr	other=ymhen {0} awr
+cy	narrow	hour	count	zero={0} awr	one={0} awr	two={0} awr	few={0} awr	many={0} awr	other={0} awr
+cy	narrow	hour	relative	-1=	0=yr awr hon	1=
+cy	narrow	day	past	zero={0} diwrnod yn ôl	one={0} diwrnod yn ôl	two={0} ddiwrnod yn ôl	few={0} diwrnod yn ôl	many={0} diwrnod yn ôl	other={0} diwrnod yn ôl
+cy	narrow	day	future	zero=ymhen {0} diwrnod	one=ymhen {0} diwrnod	two=ymhen {0} diwrnod	few=ymhen {0} diwrnod	many=ymhen {0} diwrnod	other=ymhen {0} diwrnod
+cy	narrow	day	count	zero={0}d	one={0}d	two={0}d	few={0}d	many={0}d	other={0}d
+cy	narrow	day	relative	-2=echdoe	-1=ddoe	0=heddiw	1=yfory	2=drennydd
+de	long	hour	past	one=vor {0} Stunde	other=vor {0} Stunden
+de	long	hour	future	one=in {0} Stunde	other=in {0} Stunden
+de	long	hour	count	one={0} Stunde	other={0} Stunden
+de	long	hour	relative	-1=	0=in dieser Stunde	1=
+de	long	day	past	one=vor {0} Tag	other=vor {0} Tagen
+de	long	day	future	one=in {0} Tag	other=in {0} Tagen
+de	long	day	count	one={0} Tag	other={0} Tage
+de	long	day	relative	-2=vorgestern	-1=gestern	0=heute	1=morgen	2=übermorgen
+de	short	hour	past	one=vor {0} Std.	other=vor {0} Std.
+de	short	hour	future	one=in {0} Std.	other=in {0} Std.
+de	short	hour	count	one={0} Std.	other={0} Std.
+de	short	hour	relative	-1=	0=in dieser Stunde	1=
+de	short	day	past	one=vor {0} Tag	other=vor {0} Tagen
+de	short	day	future	one=in {0} Tag	other=in {0} Tagen
+de	short	day	count	one={0} Tg.	other={0} Tg.
+de	short	day	relative	-2=vorgestern	-1=gestern	0=heute	1=morgen	2=übermorgen
+de	narrow	hour	past	one=vor {0} Std.	other=vor {0} Std.
+de	narrow	hour	future	one=in {0} Std.	other=in {0} Std.
+de	narrow	hour	count	one={0}h	other={0}h
+de	narrow	hour	relative	-1=	0=in dieser Stunde	1=
+de	narrow	day	past	one=vor {0} Tag	other=vor {0} Tagen
+de	narrow	day	future	one=in {0} Tag	other=in {0} Tagen
+de	narrow	day	count	one={0} T	other={0} T
+de	narrow	day	relative	-2=vorgestern	-1=gestern	0=heute	1=morgen	2=übermorgen
+en	long	hour	past	one={0} hour ago	other={0} hours ago
+en	long	hour	future	one=in {0} hour	other=in {0} hours
+en	long	hour	count	one={0} hour	other={0} hours
+en	long	hour	relative	-1=	0=this hour	1=
+en	long	day	past	one={0} day ago	other={0} days ago
+en	long	day	future	one=in {0} day	other=in {0} days
+en	long	day	count	one={0} day	other={0} days
+en	long	day	relative	-2=	-1=yesterday	0=today	1=tomorrow	2=
+en	short	hour	past	one={0} hr. ago	other={0} hr. ago
+en	short	hour	future	one=in {0} hr.	other=in {0} hr.
+en	short	hour	count	one={0} hr	other={0} hr
+en	short	hour	relative	-1=	0=this hour	1=
+en	short	day	past	one={0} day ago	other={0} days ago
+en	short	day	future	one=in {0} day	other=in {0} days
+en	short	day	count	one={0} day	other={0} days
+en	short	day	relative	-2=	-1=yesterday	0=today	1=tomorrow	2=
+en	narrow	hour	past	one={0}h ago	other={0}h ago
+en	narrow	hour	future	one=in {0}h	other=in {0}h
+en	narrow	hour	count	one={0}h	other={0}h
+en	narrow	hour	relative	-1=	0=this hour	1=
+en	narrow	day	past	one={0}d ago	other={0}d ago
+en	narrow	day	future	one=in {0}d	other=in {0}d
+en	narrow	day	count	one={0}d	other={0}d
+en	narrow	day	relative	-2=	-1=yesterday	0=today	1=tomorrow	2=
+es	long	hour	past	one=hace {0} hora	many=hace {0} horas	other=hace {0} horas
+es	long	hour	future	one=dentro de {0} hora	many=dentro de {0} horas	other=dentro de {0} horas
+es	long	hour	count	one={0} hora	many={0} horas	other={0} horas
+es	long	hour	relative	-1=	0=esta hora	1=
+es	long	day	past	one=hace {0} día	many=hace {0} días	other=hace {0} días
+es	long	day	future	one=dentro de {0} día	many=dentro de {0} días	other=dentro de {0} días
+es	long	day	count	one={0} día	many={0} días	other={0} días
+es	long	day	relative	-2=anteayer	-1=ayer	0=hoy	1=mañana	2=pasado mañana
+es	short	hour	past	one=hace {0} h	many=hace {0} h	other=hace {0} h
+es	short	hour	future	one=dentro de {0} h	many=dentro de {0} h	other=dentro de {0} h
+es	short	hour	count	one={0} h	many={0} h	other={0} h
+es	short	hour	relative	-1=	0=esta hora	1=
+es	short	day	past	one=hace {0} d	many=hace {0} d	other=hace {0} d
+es	short	day	future	one=dentro de {0} d	many=dentro de {0} d	other=dentro de {0} d
+es	short	day	count	one={0} d	many={0} d	other={0} d
+es	short	day	relative	-2=anteayer	-1=ayer	0=hoy	1=mañana	2=pasado mañana
+es	narrow	hour	past	one=hace {0} h	many=hace {0} h	other=hace {0} h
+es	narrow	hour	future	one=dentro de {0} h	many=dentro de {0} h	other=dentro de {0} h
+es	narrow	hour	count	one={0}h	many={0}h	other={0}h
+es	narrow	hour	relative	-1=	0=esta hora	1=
+es	narrow	day	past	one=hace {0} d	many=hace {0} d	other=hace {0} d
+es	narrow	day	future	one=dentro de {0} d	many=dentro de {0} d	other=dentro de {0} d
+es	narrow	day	count	one={0}d	many={0}d	other={0}d
+es	narrow	day	relative	-2=anteayer	-1=ayer	0=hoy	1=mañana	2=pasado mañana
+fil	long	hour	past	one={0} oras ang nakalipas	other={0} oras ang nakalipas
+fil	long	hour	future	one=sa {0} oras	other=sa {0} oras
+fil	long	hour	count	one={0} oras	other={0} na oras
+fil	long	hour	relative	-1=	0=ngayong oras	1=
+fil	long	day	past	one={0} araw ang nakalipas	other={0} araw ang nakalipas
+fil	long	day	future	one=sa {0} araw	other=sa {0} araw
+fil	long	day	count	one={0} araw	other={0} na araw
+fil	long	day	relative	-2=Araw bago ang kahapon	-1=kahapon	0=ngayong araw	1=bukas	2=Samakalawa
+fil	short	hour	past	one={0} oras ang nakalipas	other={0} oras ang nakalipas
+fil	short	hour	future	one=sa {0} oras	other=sa {0} (na) oras
+fil	short	hour	count	one={0} oras	other={0} na oras
+fil	short	hour	relative	-1=	0=ngayong oras	1=
+fil	short	day	past	one={0} araw ang nakalipas	other={0} (na) araw ang nakalipas
+fil	short	day	future	one=sa {0} (na) araw	other=sa {0} araw
+fil	short	day	count	one={0} araw	other={0} araw
+fil	short	day	relative	-2=Araw bago ang kahapon	-1=kahapon	0=ngayong araw	1=bukas	2=Samakalawa
+fil	narrow	hour	past	one={0} oras ang nakalipas	other={0} oras ang nakalipas
+fil	narrow	hour	future	one=sa {0} oras	other=sa {0} oras
+fil	narrow	hour	count	one={0} oras	other={0} oras
+fil	narrow	hour	relative	-1=	0=ngayong oras	1=
+fil	narrow	day	past	one={0} araw ang nakalipas	other={0} araw ang nakalipas
+fil	narrow	day	future	one=sa {0} araw	other=sa {0} araw
+fil	narrow	day	count	one={0} araw	other={0} na araw
+fil	narrow	day	relative	-2=Araw bago ang kahapon	-1=kahapon	0=ngayong araw	1=bukas	2=Samakalawa
+fr	long	hour	past	one=il y a {0} heure	many=il y a {0} heures	other=il y a {0} heures
+fr	long	hour	future	one=dans {0} heure	many=dans {0} heures	other=dans {0} heures
+fr	long	hour	count	one={0} heure	many={0} heures	other={0} heures
+fr	long	hour	relative	-1=	0=cette heure-ci	1=
+fr	long	day	past	one=il y a {0} jour	many=il y a {0} jours	other=il y a {0} jours
+fr	long	day	future	one=dans {0} jour	many=dans {0} jours	other=dans {0} jours
+fr	long	day	count	one={0} jour	many={0} jours	other={0} jours
+fr	long	day	relative	-2=avant-hier	-1=hier	0=aujourd’hui	1=demain	2=après-demain
+fr	short	hour	past	one=il y a {0} h	many=il y a {0} h	other=il y a {0} h
+fr	short	hour	future	one=dans {0} h	many=dans {0} h	other=dans {0} h
+fr	short	hour	count	one={0} h	many={0} h	other={0} h
+fr	short	hour	relative	-1=	0=cette heure-ci	1=
+fr	short	day	past	one=il y a {0} j	many=il y a {0} j	other=il y a {0} j
+fr	short	day	future	one=dans {0} j	many=dans {0} j	other=dans {0} j
+fr	short	day	count	one={0} j	many={0} j	other={0} j
+fr	short	day	relative	-2=avant-hier	-1=hier	0=aujourd’hui	1=demain	2=après-demain
+fr	narrow	hour	past	one=-{0} h	many=-{0} h	other=-{0} h
+fr	narrow	hour	future	one=+{0} h	many=+{0} h	other=+{0} h
+fr	narrow	hour	count	one={0}h	many={0}h	other={0}h
+fr	narrow	hour	relative	-1=	0=cette heure-ci	1=
+fr	narrow	day	past	one=-{0} j	many=-{0} j	other=-{0} j
+fr	narrow	day	future	one=+{0} j	many=+{0} j	other=+{0} j
+fr	narrow	day	count	one={0}j	many={0}j	other={0}j
+fr	narrow	day	relative	-2=avant-hier	-1=hier	0=aujourd’hui	1=demain	2=après-demain
+ha	long	hour	past	one=awa {0} da ta gabata	other=awanni {0} da suka gabata
+ha	long	hour	future	one=cikin awa {0}	other=cikin awanni {0}
+ha	long	hour	count	one=sa′a {0}	other=sa′o′i {0}
+ha	long	hour	relative	-1=	0=wannan awa	1=
+ha	long	day	past	one=kwana {0} da ya gabata	other=kwanaki {0} da suka gabata
+ha	long	day	future	one=a cikin kwanaki {0}	other=a cikin kwanaki {0}
+ha	long	day	count	one=rana {0}	other=ranaku {0}
+ha	long	day	relative	-2=	-1=jiya	0=yau	1=gobe	2=
+ha	short	hour	past	one=awa {0} da ta gabata	other=awanni {0} da suka gabata
+ha	short	hour	future	one=cikin awa {0}	other=cikin awanni {0}
+ha	short	hour	count	one=s {0}	other=s {0}
+ha	short	hour	relative	-1=	0=wannan awa	1=
+ha	short	day	past	one=kwana {0} da ya gabata	other=kwanaki {0} da suka gabata
+ha	short	day	future	one=a cikin kwanaki {0}	other=a cikin kwanaki {0}
+ha	short	day	count	one=rana {0}	other=Rnk. {0}
+ha	short	day	relative	-2=	-1=jiya	0=yau	1=gobe	2=
+ha	narrow	hour	past	one=awa {0} da ta gabata	other=awanni {0} da suka gabata
+ha	narrow	hour	future	one=cikin awa {0}	other=cikin awanni {0}
+ha	narrow	hour	count	one=s{0}	other=s{0}
+ha	narrow	hour	relative	-1=	0=wannan awa	1=
+ha	narrow	day	past	one=kwana {0} da ya gabata	other=kwanaki {0} da suka gabata
+ha	narrow	day	future	one=a cikin kwanaki {0}	other=a cikin kwanaki {0}
+ha	narrow	day	count	one=r{0}	other=r{0}
+ha	narrow	day	relative	-2=	-1=jiya	0=yau	1=gobe	2=
+hi	long	hour	past	one={0} घंटे पहले	other={0} घंटे पहले
+hi	long	hour	future	one={0} घंटे में	other={0} घंटे में
+hi	long	hour	count	one={0} घंटा	other={0} घंटे
+hi	long	hour	relative	-1=	0=यह घंटा	1=
+hi	long	day	past	one={0} दिन पहले	other={0} दिन पहले
+hi	long	day	future	one={0} दिन में	other={0} दिन में
+hi	long	day	count	one={0} दिन	other={0} दिन
+hi	long	day	relative	-2=परसों	-1=कल	0=आज	1=कल	2=परसों
+hi	short	hour	past	one={0} घं॰ पहले	other={0} घं॰ पहले
+hi	short	hour	future	one={0} घं॰ में	other={0} घं॰ में
+hi	short	hour	count	one={0} घं॰	other={0} घं॰
+hi	short	hour	relative	-1=	0=यह घंटा	1=
+hi	short	day	past	one={0} दिन पहले	other={0} दिन पहले
+hi	short	day	future	one={0} दिन में	other={0} दिन में
+hi	short	day	count	one={0} दिन	other={0} दिन
+hi	short	day	relative	-2=परसों	-1=बीता कल	0=आज	1=आने वाला कल	2=परसों
+hi	narrow	hour	past	one={0} घं॰ पहले	other={0} घं॰ पहले
+hi	narrow	hour	future	one={0} घं॰ में	other={0} घं॰ में
+hi	narrow	hour	count	one={0} घं	other={0} घं
+hi	narrow	hour	relative	-1=	0=यह घंटा	1=
+hi	narrow	day	past	one={0} दिन पहले	other={0} दिन पहले
+hi	narrow	day	future	one={0} दिन में	other={0} दिन में
+hi	narrow	day	count	one={0} दि	other={0} दि
+hi	narrow	day	relative	-2=परसों	-1=बीता कल	0=आज	1=आने वाला कल	2=परसों
+id	long	hour	past	other={0} jam yang lalu
+id	long	hour	future	other=dalam {0} jam
+id	long	hour	count	other={0} jam
+id	long	hour	relative	-1=	0=jam ini	1=
+id	long	day	past	other={0} hari yang lalu
+id	long	day	future	other=dalam {0} hari
+id	long	day	count	other={0} hari
+id	long	day	relative	-2=kemarin dulu	-1=kemarin	0=hari ini	1=besok	2=lusa
+id	short	hour	past	other={0} jam lalu
+id	short	hour	future	other=dalam {0} jam
+id	short	hour	count	other={0} j
+id	short	hour	relative	-1=	0=jam ini	1=
+id	short	day	past	other={0} h lalu
+id	short	day	future	other=dalam {0} h
+id	short	day	count	other={0} hr
+id	short	day	relative	-2=selumbari	-1=kemarin	0=hari ini	1=besok	2=lusa
+id	narrow	hour	past	other={0} jam lalu
+id	narrow	hour	future	other=dlm {0} jam
+id	narrow	hour	count	other={0} j
+id	narrow	hour	relative	-1=	0=jam ini	1=
+id	narrow	day	past	other={0} h lalu
+id	narrow	day	future	other=dalam {0} h
+id	narrow	day	count	other={0} hr
+id	narrow	day	relative	-2=selumbari	-1=kemarin	0=hari ini	1=besok	2=lusa
+it	long	hour	past	one={0} ora fa	many={0} ore fa	other={0} ore fa
+it	long	hour	future	one=tra {0} ora	many=tra {0} ore	other=tra {0} ore
+it	long	hour	count	one={0} ora	many={0} ore	other={0} ore
+it	long	hour	relative	-1=	0=quest’ora	1=
+it	long	day	past	one={0} giorno fa	many={0} giorni fa	other={0} giorni fa
+it	long	day	future	one=tra {0} giorno	many=tra {0} giorni	other=tra {0} giorni
+it	long	day	count	one={0} giorno	many={0} giorni	other={0} giorni
+it	long	day	relative	-2=l’altro ieri	-1=ieri	0=oggi	1=domani	2=dopodomani
+it	short	hour	past	one={0} h fa	many={0} h fa	other={0} h fa
+it	short	hour	future	one=tra {0} h	many=tra {0} h	other=tra {0} h
+it	short	hour	count	one={0} h	many={0} h	other={0} h
+it	short	hour	relative	-1=	0=quest’ora	1=
+it	short	day	past	one={0} g fa	many={0} gg fa	other={0} gg fa
+it	short	day	future	one=tra {0} g	many=tra {0} gg	other=tra {0} gg
+it	short	day	count	one={0} giorno	many={0} giorni	other={0} giorni
+it	short	day	relative	-2=l’altro ieri	-1=ieri	0=oggi	1=domani	2=dopodomani
+it	narrow	hour	past	one={0} h fa	many={0} h fa	other={0} h fa
+it	narrow	hour	future	one=tra {0} h	many=tra {0} h	other=tra {0} h
+it	narrow	hour	count	one={0}h	many={0}h	other={0}h
+it	narrow	hour	relative	-1=	0=quest’ora	1=
+it	narrow	day	past	one={0} g fa	many={0} gg fa	other={0} gg fa
+it	narrow	day	future	one=tra {0} g	many=tra {0} gg	other=tra {0} gg
+it	narrow	day	count	one={0}g	many={0}gg	other={0}gg
+it	narrow	day	relative	-2=l’altro ieri	-1=ieri	0=oggi	1=domani	2=dopodomani
+ja	long	hour	past	other={0} 時間前
+ja	long	hour	future	other={0} 時間後
+ja	long	hour	count	other={0} 時間
+ja	long	hour	relative	-1=	0=1 時間以内	1=
+ja	long	day	past	other={0} 日前
+ja	long	day	future	other={0} 日後
+ja	long	day	count	other={0} 日
+ja	long	day	relative	-2=一昨日	-1=昨日	0=今日	1=明日	2=明後日
+ja	short	hour	past	other={0} 時間前
+ja	short	hour	future	other={0} 時間後
+ja	short	hour	count	other={0} 時間
+ja	short	hour	relative	-1=	0=1 時間以内	1=
+ja	short	day	past	other={0} 日前
+ja	short	day	future	other={0} 日後
+ja	short	day	count	other={0} 日
+ja	short	day	relative	-2=一昨日	-1=昨日	0=今日	1=明日	2=明後日
+ja	narrow	hour	past	other={0}時間前
+ja	narrow	hour	future	other={0}時間後
+ja	narrow	hour	count	other={0}h
+ja	narrow	hour	relative	-1=	0=1 時間以内	1=
+ja	narrow	day	past	other={0}日前
+ja	narrow	day	future	other={0}日後
+ja	narrow	day	count	other={0}d
+ja	narrow	day	relative	-2=一昨日	-1=昨日	0=今日	1=明日	2=明後日
+ko	long	hour	past	other={0}시간 전
+ko	long	hour	future	other={0}시간 후
+ko	long	hour	count	other={0}시간
+ko	long	hour	relative	-1=	0=현재 시간	1=
+ko	long	day	past	other={0}일 전
+ko	long	day	future	other={0}일 후
+ko	long	day	count	other={0}일
+ko	long	day	relative	-2=그저께	-1=어제	0=오늘	1=내일	2=모레
+ko	short	hour	past	other={0}시간 전
+ko	short	hour	future	other={0}시간 후
+ko	short	hour	count	other={0}시간
+ko	short	hour	relative	-1=	0=현재 시간	1=
+ko	short	day	past	other={0}일 전
+ko	short	day	future	other={0}일 후
+ko	short	day	count	other={0}일
+ko	short	day	relative	-2=그저께	-1=어제	0=오늘	1=내일	2=모레
+ko	narrow	hour	past	other={0}시간 전
+ko	narrow	hour	future	other={0}시간 후
+ko	narrow	hour	count	other={0}시간
+ko	narrow	hour	relative	-1=	0=현재 시간	1=
+ko	narrow	day	past	other={0}일 전
+ko	narrow	day	future	other={0}일 후
+ko	narrow	day	count	other={0}일
+ko	narrow	day	relative	-2=그저께	-1=어제	0=오늘	1=내일	2=모레
+mr	long	hour	past	one={0} तासापूर्वी	other={0} तासांपूर्वी
+mr	long	hour	future	one={0} तासामध्ये	other={0} तासांमध्ये
+mr	long	hour	count	one={0} तास	other={0} तास
+mr	long	hour	relative	-1=	0=तासात	1=
+mr	long	day	past	one={0} दिवसापूर्वी	other={0} दिवसांपूर्वी
+mr	long	day	future	one=येत्या {0} दिवसामध्ये	other=येत्या {0} दिवसांमध्ये
+mr	long	day	count	one={0} दिवस	other={0} दिवस
+mr	long	day	relative	-2=	-1=काल	0=आज	1=उद्या	2=
+mr	short	hour	past	one={0} तासापूर्वी	other={0} तासांपूर्वी
+mr	short	hour	future	one={0} तासामध्ये	other={0} तासांमध्ये
+mr	short	hour	count	one={0} ता	other={0} ता
+mr	short	hour	relative	-1=	0=तासात	1=
+mr	short	day	past	one={0} दिवसापूर्वी	other={0} दिवसांपूर्वी
+mr	short	day	future	one={0} दिवसामध्ये	other=येत्या {0} दिवसांमध्ये
+mr	short	day	count	one={0} दिवस	other={0} दिवस
+mr	short	day	relative	-2=	-1=काल	0=आज	1=उद्या	2=
+mr	narrow	hour	past	one={0} तासापूर्वी	other={0} तासांपूर्वी
+mr	narrow	hour	future	one=येत्या {0} तासामध्ये	other=येत्या {0} तासांमध्ये
+mr	narrow	hour	count	one={0}ता	other={0}ता
+mr	narrow	hour	relative	-1=	0=तासात	1=
+mr	narrow	day	past	one={0} दिवसापूर्वी	other={0} दिवसांपूर्वी
+mr	narrow	day	future	one={0} दिवसामध्ये	other={0} दिवसांमध्ये
+mr	narrow	day	count	one={0}दि	other={0}दि
+mr	narrow	day	relative	-2=	-1=काल	0=आज	1=उद्या	2=
+nl	long	hour	past	one={0} uur geleden	other={0} uur geleden
+nl	long	hour	future	one=over {0} uur	other=over {0} uur
+nl	long	hour	count	one={0} uur	other={0} uur
+nl	long	hour	relative	-1=	0=binnen een uur	1=
+nl	long	day	past	one={0} dag geleden	other={0} dagen geleden
+nl	long	day	future	one=over {0} dag	other=over {0} dagen
+nl	long	day	count	one={0} dag	other={0} dagen
+nl	long	day	relative	-2=eergisteren	-1=gisteren	0=vandaag	1=morgen	2=overmorgen
+nl	short	hour	past	one={0} uur geleden	other={0} uur geleden
+nl	short	hour	future	one=over {0} uur	other=over {0} uur
+nl	short	hour	count	one={0} uur	other={0} uur
+nl	short	hour	relative	-1=	0=binnen een uur	1=
+nl	short	day	past	one={0} dag geleden	other={0} dgn geleden
+nl	short	day	future	one=over {0} dag	other=over {0} dgn
+nl	short	day	count	one={0} dag	other={0} dagen
+nl	short	day	relative	-2=eergisteren	-1=gisteren	0=vandaag	1=morgen	2=overmorgen
+nl	narrow	hour	past	one={0} uur geleden	other={0} uur geleden
+nl	narrow	hour	future	one=over {0} uur	other=over {0} uur
+nl	narrow	hour	count	one={0} u	other={0} u
+nl	narrow	hour	relative	-1=	0=binnen een uur	1=
+nl	narrow	day	past	one={0} dag geleden	other={0} dgn geleden
+nl	narrow	day	future	one=over {0} dag	other=over {0} dgn
+nl	narrow	day	count	one={0} d	other={0} d
+nl	narrow	day	relative	-2=eergisteren	-1=gisteren	0=vandaag	1=morgen	2=overmorgen
+pa-Guru	long	hour	past	one={0} ਘੰਟਾ ਪਹਿਲਾਂ	other={0} ਘੰਟੇ ਪਹਿਲਾਂ
+pa-Guru	long	hour	future	one={0} ਘੰਟੇ ਵਿੱਚ	other={0} ਘੰਟਿਆਂ ਵਿੱਚ
+pa-Guru	long	hour	count	one={0} ਘੰਟਾ	other={0} ਘੰਟੇ
+pa-Guru	long	hour	relative	-1=	0=ਇਸ ਘੰਟੇ	1=
+pa-Guru	long	day	past	one={0} ਦਿਨ ਪਹਿਲਾਂ	other={0} ਦਿਨ ਪਹਿਲਾਂ
+pa-Guru	long	day	future	one={0} ਦਿਨ ਵਿੱਚ	other={0} ਦਿਨਾਂ ਵਿੱਚ
+pa-Guru	long	day	count	one={0} ਦਿਨ	other={0} ਦਿਨ
+pa-Guru	long	day	relative	-2=	-1=ਬੀਤਿਆ ਕੱਲ੍ਹ	0=ਅੱਜ	1=ਭਲਕੇ	2=
+pa-Guru	short	hour	past	one={0} ਘੰਟਾ ਪਹਿਲਾਂ	other={0} ਘੰਟੇ ਪਹਿਲਾਂ
+pa-Guru	short	hour	future	one={0} ਘੰਟੇ ਵਿੱਚ	other={0} ਘੰਟਿਆਂ ਵਿੱਚ
+pa-Guru	short	hour	count	one={0} ਘੰਟਾ	other={0} ਘੰਟੇ
+pa-Guru	short	hour	relative	-1=	0=ਇਸ ਘੰਟੇ	1=
+pa-Guru	short	day	past	one={0} ਦਿਨ ਪਹਿਲਾਂ	other={0} ਦਿਨ ਪਹਿਲਾਂ
+pa-Guru	short	day	future	one={0} ਦਿਨ ਵਿੱਚ	other={0} ਦਿਨਾਂ ਵਿੱਚ
+pa-Guru	short	day	count	one={0} ਦਿਨ	other={0} ਦਿਨ
+pa-Guru	short	day	relative	-2=	-1=ਬੀਤਿਆ ਕੱਲ੍ਹ	0=ਅੱਜ	1=ਭਲਕੇ	2=
+pa-Guru	narrow	hour	past	one={0} ਘੰਟਾ ਪਹਿਲਾਂ	other={0} ਘੰਟੇ ਪਹਿਲਾਂ
+pa-Guru	narrow	hour	future	one={0} ਘੰਟੇ ਵਿੱਚ	other={0} ਘੰਟਿਆਂ ਵਿੱਚ
+pa-Guru	narrow	hour	count	one={0} ਘੰਟਾ	other={0} ਘੰਟੇ
+pa-Guru	narrow	hour	relative	-1=	0=ਇਸ ਘੰਟੇ	1=
+pa-Guru	narrow	day	past	one={0} ਦਿਨ ਪਹਿਲਾਂ	other={0} ਦਿਨ ਪਹਿਲਾਂ
+pa-Guru	narrow	day	future	one={0} ਦਿਨ ਵਿੱਚ	other={0} ਦਿਨਾਂ ਵਿੱਚ
+pa-Guru	narrow	day	count	one={0} ਦਿਨ	other={0} ਦਿਨ
+pa-Guru	narrow	day	relative	-2=	-1=ਬੀਤਿਆ ਕੱਲ੍ਹ	0=ਅੱਜ	1=ਭਲਕੇ	2=
+pcm	long	hour	past	one={0} áwa wé dọ́n pas	other={0} áwa wé dọ́n pas
+pcm	long	hour	future	one=Fọ {0} áwa wé de kọm	other=Fọ {0} áwa wé de kọm
+pcm	long	hour	count	one={0} Áwa	other={0} Áwa
+pcm	long	hour	relative	-1=	0=Dís áwa	1=
+pcm	long	day	past	one={0} dè wé dọ́n pas	other={0} dè wé dọ́n pas
+pcm	long	day	future	one=Fọ {0}dè wé de kọm	other=Fọ {0}dè wé de kọm
+pcm	long	day	count	one={0} Dè	other={0} Dè
+pcm	long	day	relative	-2=	-1=Yẹ́stadè	0=Todè	1=Tumọ́ro	2=
+pcm	short	hour	past	one={0} áwa wé dọ́n pas	other={0} áwa wé dọ́n pas
+pcm	short	hour	future	one=Fọ {0} áwa wé de kọm	other=Fọ {0} áwa wé de kọm
+pcm	short	hour	count	one={0} Áwa	other={0} Áwa
+pcm	short	hour	relative	-1=	0=Dís áwa	1=
+pcm	short	day	past	one={0} dè wé dọ́n pas	other={0} dè wé dọ́n pas
+pcm	short	day	future	one=Fọ {0}dè wé de kọm	other=Fọ {0}dè wé de kọm
+pcm	short	day	count	one={0} dè	other={0} dez
+pcm	short	day	relative	-2=	-1=Yẹ́stadè	0=Todè	1=Tumọ́ro	2=
+pcm	narrow	hour	past	one=Fọ {0} áwa wé de kọm	other=Fọ {0} áwa wé de kọm
+pcm	narrow	hour	future	one=Fọ {0} áwa wé de kọm	other=Fọ {0} áwa wé de kọm
+pcm	narrow	hour	count	one={0}Áwa	other={0}Áwa
+pcm	narrow	hour	relative	-1=	0=Dís áwa	1=
+pcm	narrow	day	past	one={0} dè wé dọ́n pas	other={0} dè wé dọ́n pas
+pcm	narrow	day	future	one=Fọ {0}dè wé de kọm	other=Fọ {0}dè wé de kọm
+pcm	narrow	day	count	one={0}Dè	other={0}Dè
+pcm	narrow	day	relative	-2=	-1=Yẹ́stadè	0=Todè	1=Tumọ́ro	2=
+pl	long	hour	past	one={0} godzinę temu	few={0} godziny temu	many={0} godzin temu	other={0} godziny temu
+pl	long	hour	future	one=za {0} godzinę	few=za {0} godziny	many=za {0} godzin	other=za {0} godziny
+pl	long	hour	count	one={0} godzina	few={0} godziny	many={0} godzin	other={0} godziny
+pl	long	hour	relative	-1=	0=ta godzina	1=
+pl	long	day	past	one={0} dzień temu	few={0} dni temu	many={0} dni temu	other={0} dnia temu
+pl	long	day	future	one=za {0} dzień	few=za {0} dni	many=za {0} dni	other=za {0} dnia
+pl	long	day	count	one={0} dzień	few={0} dni	many={0} dni	other={0} dnia
+pl	long	day	relative	-2=przedwczoraj	-1=wczoraj	0=dzisiaj	1=jutro	2=pojutrze
+pl	short	hour	past	one={0} godz. temu	few={0} godz. temu	many={0} godz. temu	other={0} godz. temu
+pl	short	hour	future	one=za {0} godz.	few=za {0} godz.	many=za {0} godz.	other=za {0} godz.
+pl	short	hour	count	one={0} godz.	few={0} godz.	many={0} godz.	other={0} godz.
+pl	short	hour	relative	-1=	0=ta godzina	1=
+pl	short	day	past	one={0} dzień temu	few={0} dni temu	many={0} dni temu	other={0} dnia temu
+pl	short	day	future	one=za {0} dzień	few=za {0} dni	many=za {0} dni	other=za {0} dnia
+pl	short	day	count	one={0} dzień	few={0} dni	many={0} dni	other={0} dnia
+pl	short	day	relative	-2=przedwczoraj	-1=wczoraj	0=dzisiaj	1=jutro	2=pojutrze
+pl	narrow	hour	past	one={0} g. temu	few={0} g. temu	many={0} g. temu	other={0} g. temu
+pl	narrow	hour	future	one=za {0} g.	few=za {0} g.	many=za {0} g.	other=za {0} g.
+pl	narrow	hour	count	one={0} h	few={0} h	many={0} h	other={0} h
+pl	narrow	hour	relative	-1=	0=ta godzina	1=
+pl	narrow	day	past	one={0} dzień temu	few={0} dni temu	many={0} dni temu	other={0} dnia temu
+pl	narrow	day	future	one=za {0} dzień	few=za {0} dni	many=za {0} dni	other=za {0} dnia
+pl	narrow	day	count	one={0} d.	few={0} d.	many={0} d.	other={0} d.
+pl	narrow	day	relative	-2=przedwczoraj	-1=wcz.	0=dziś	1=jutro	2=pojutrze
+pt	long	hour	past	one=há {0} hora	many=há {0} horas	other=há {0} horas
+pt	long	hour	future	one=em {0} hora	many=em {0} horas	other=em {0} horas
+pt	long	hour	count	one={0} hora	many={0} horas	other={0} horas
+pt	long	hour	relative	-1=	0=esta hora	1=
+pt	long	day	past	one=há {0} dia	many=há {0} dias	other=há {0} dias
+pt	long	day	future	one=em {0} dia	many=em {0} dias	other=em {0} dias
+pt	long	day	count	one={0} dia	many={0} dias	other={0} dias
+pt	long	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+pt	short	hour	past	one=há {0} h	many=há {0} h	other=há {0} h
+pt	short	hour	future	one=em {0} h	many=em {0} h	other=em {0} h
+pt	short	hour	count	one={0} h	many={0} h	other={0} h
+pt	short	hour	relative	-1=	0=esta hora	1=
+pt	short	day	past	one=há {0} dia	many=há {0} dias	other=há {0} dias
+pt	short	day	future	one=em {0} dia	many=em {0} dias	other=em {0} dias
+pt	short	day	count	one={0} dia	many={0} dias	other={0} dias
+pt	short	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+pt	narrow	hour	past	one=há {0} h	many=há {0} h	other=há {0} h
+pt	narrow	hour	future	one=em {0} h	many=em {0} h	other=em {0} h
+pt	narrow	hour	count	one={0} h	many={0} h	other={0} h
+pt	narrow	hour	relative	-1=	0=esta hora	1=
+pt	narrow	day	past	one=há {0} dia	many=há {0} dias	other=há {0} dias
+pt	narrow	day	future	one=em {0} dia	many=em {0} dias	other=em {0} dias
+pt	narrow	day	count	one={0} dia	many={0} dias	other={0} dias
+pt	narrow	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+pt-PT	long	hour	past	one=há {0} hora	many=há {0} horas	other=há {0} horas
+pt-PT	long	hour	future	one=dentro de {0} hora	many=dentro de {0} horas	other=dentro de {0} horas
+pt-PT	long	hour	count	one={0} hora	many={0} horas	other={0} horas
+pt-PT	long	hour	relative	-1=	0=esta hora	1=
+pt-PT	long	day	past	one=há {0} dia	many=há {0} dias	other=há {0} dias
+pt-PT	long	day	future	one=dentro de {0} dia	many=dentro de {0} dias	other=dentro de {0} dias
+pt-PT	long	day	count	one={0} dia	many={0} dias	other={0} dias
+pt-PT	long	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+pt-PT	short	hour	past	one=há {0} h	many=há {0} h	other=há {0} h
+pt-PT	short	hour	future	one=dentro de {0} h	many=dentro de {0} h	other=dentro de {0} h
+pt-PT	short	hour	count	one={0} h	many={0} h	other={0} h
+pt-PT	short	hour	relative	-1=	0=esta hora	1=
+pt-PT	short	day	past	one=há {0} dia	many=há {0} dias	other=há {0} dias
+pt-PT	short	day	future	one=dentro de {0} dia	many=dentro de {0} dias	other=dentro de {0} dias
+pt-PT	short	day	count	one={0} dia	many={0} dias	other={0} dias
+pt-PT	short	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+pt-PT	narrow	hour	past	one=-{0} h	many=-{0} h	other=-{0} h
+pt-PT	narrow	hour	future	one=+{0} h	many=+{0} h	other=+{0} h
+pt-PT	narrow	hour	count	one={0} h	many={0} h	other={0} h
+pt-PT	narrow	hour	relative	-1=	0=esta hora	1=
+pt-PT	narrow	day	past	one=-{0} dia	many=-{0} dias	other=-{0} dias
+pt-PT	narrow	day	future	one=+{0} dia	many=+{0} dias	other=+{0} dias
+pt-PT	narrow	day	count	one={0} dia	many={0} dias	other={0} dias
+pt-PT	narrow	day	relative	-2=anteontem	-1=ontem	0=hoje	1=amanhã	2=depois de amanhã
+ru	long	hour	past	one={0} час назад	few={0} часа назад	many={0} часов назад	other={0} часа назад
+ru	long	hour	future	one=через {0} час	few=через {0} часа	many=через {0} часов	other=через {0} часа
+ru	long	hour	count	one={0} час	few={0} часа	many={0} часов	other={0} часа
+ru	long	hour	relative	-1=	0=в этот час	1=
+ru	long	day	past	one={0} день назад	few={0} дня назад	many={0} дней назад	other={0} дня назад
+ru	long	day	future	one=через {0} день	few=через {0} дня	many=через {0} дней	other=через {0} дня
+ru	long	day	count	one={0} день	few={0} дня	many={0} дней	other={0} дня
+ru	long	day	relative	-2=позавчера	-1=вчера	0=сегодня	1=завтра	2=послезавтра
+ru	short	hour	past	one={0} ч назад	few={0} ч назад	many={0} ч назад	other={0} ч назад
+ru	short	hour	future	one=через {0} ч	few=через {0} ч	many=через {0} ч	other=через {0} ч
+ru	short	hour	count	one={0} ч	few={0} ч	many={0} ч	other={0} ч
+ru	short	hour	relative	-1=	0=в этот час	1=
+ru	short	day	past	one={0} дн. назад	few={0} дн. назад	many={0} дн. назад	other={0} дн. назад
+ru	short	day	future	one=через {0} дн.	few=через {0} дн.	many=через {0} дн.	other=через {0} дн.
+ru	short	day	count	one={0} дн.	few={0} дн.	many={0} дн.	other={0} дн.
+ru	short	day	relative	-2=позавчера	-1=вчера	0=сегодня	1=завтра	2=послезавтра
+ru	narrow	hour	past	one=-{0} ч	few=-{0} ч	many=-{0} ч	other=-{0} ч
+ru	narrow	hour	future	one=+{0} ч	few=+{0} ч	many=+{0} ч	other=+{0} ч
+ru	narrow	hour	count	one={0} ч	few={0} ч	many={0} ч	other={0} ч
+ru	narrow	hour	relative	-1=	0=в этот час	1=
+ru	narrow	day	past	one=-{0} дн.	few=-{0} дн.	many=-{0} дн.	other=-{0} дн.
+ru	narrow	day	future	one=+{0} дн.	few=+{0} дн.	many=+{0} дн.	other=+{0} дн.
+ru	narrow	day	count	one={0} д.	few={0} д.	many={0} д.	other={0} д.
+ru	narrow	day	relative	-2=позавчера	-1=вчера	0=сегодня	1=завтра	2=послезавтра
+sw	long	hour	past	one=saa {0} iliyopita	other=saa {0} zilizopita
+sw	long	hour	future	one=baada ya saa {0}	other=baada ya saa {0}
+sw	long	hour	count	one=saa {0}	other=saa {0}
+sw	long	hour	relative	-1=	0=saa hii	1=
+sw	long	day	past	one=siku {0} iliyopita	other=siku {0} zilizopita
+sw	long	day	future	one=baada ya siku {0}	other=baada ya siku {0}
+sw	long	day	count	one=siku {0}	other=siku {0}
+sw	long	day	relative	-2=juzi	-1=jana	0=leo	1=kesho	2=kesho kutwa
+sw	short	hour	past	one=saa {0} iliyopita	other=saa {0} zilizopita
+sw	short	hour	future	one=baada ya saa {0}	other=baada ya saa {0}
+sw	short	hour	count	one=saa {0}	other=saa {0}
+sw	short	hour	relative	-1=	0=saa hii	1=
+sw	short	day	past	one=siku {0} iliyopita	other=siku {0} zilizopita
+sw	short	day	future	one=baada ya siku {0}	other=baada ya siku {0}
+sw	short	day	count	one=siku {0}	other=siku {0}
+sw	short	day	relative	-2=juzi	-1=jana	0=leo	1=kesho	2=kesho kutwa
+sw	narrow	hour	past	one=Saa {0} iliyopita	other=Saa {0} zilizopita
+sw	narrow	hour	future	one=baada ya saa {0}	other=baada ya saa {0}
+sw	narrow	hour	count	one=saa {0}	other=saa {0}
+sw	narrow	hour	relative	-1=	0=saa hii	1=
+sw	narrow	day	past	one=siku {0} iliyopita	other=siku {0} zilizopita
+sw	narrow	day	future	one=baada ya siku {0}	other=baada ya siku {0}
+sw	narrow	day	count	one=siku {0}	other=siku {0}
+sw	narrow	day	relative	-2=juzi	-1=jana	0=leo	1=kesho	2=kesho kutwa
+te	long	hour	past	one={0} గంట క్రితం	other={0} గంటల క్రితం
+te	long	hour	future	one={0} గంటలో	other={0} గంటల్లో
+te	long	hour	count	one={0} గంట	other={0} గంటలు
+te	long	hour	relative	-1=	0=ఈ గంట	1=
+te	long	day	past	one={0} రోజు క్రితం	other={0} రోజుల క్రితం
+te	long	day	future	one={0} రోజులో	other={0} రోజుల్లో
+te	long	day	count	one={0} రోజు	other={0} రోజులు
+te	long	day	relative	-2=మొన్న	-1=నిన్న	0=ఈ రోజు	1=రేపు	2=ఎల్లుండి
+te	short	hour	past	one={0} గం. క్రితం	other={0} గం. క్రితం
+te	short	hour	future	one={0} గం.లో	other={0} గం.లో
+te	short	hour	count	one={0} గం.	other={0} గం.
+te	short	hour	relative	-1=	0=ఈ గంట	1=
+te	short	day	past	one={0} రోజు క్రితం	other={0} రోజుల క్రితం
+te	short	day	future	one={0} రోజులో	other={0} రోజుల్లో
+te	short	day	count	one={0} రోజు	other={0} రోజులు
+te	short	day	relative	-2=మొన్న	-1=నిన్న	0=ఈ రోజు	1=రేపు	2=ఎల్లుండి
+te	narrow	hour	past	one={0} గం. క్రితం	other={0} గం. క్రితం
+te	narrow	hour	future	one={0} గం.లో	other={0} గం.లో
+te	narrow	hour	count	one={0}గం	other={0}గం
+te	narrow	hour	relative	-1=	0=ఈ గంట	1=
+te	narrow	day	past	one={0} రోజు క్రితం	other={0} రోజుల క్రితం
+te	narrow	day	future	one={0} రోజులో	other={0} రోజుల్లో
+te	narrow	day	count	one={0}రో	other={0}రో
+te	narrow	day	relative	-2=మొన్న	-1=నిన్న	0=ఈ రోజు	1=రేపు	2=ఎల్లుండి
+th	long	hour	past	other={0} ชั่วโมงที่ผ่านมา
+th	long	hour	future	other=ในอีก {0} ชั่วโมง
+th	long	hour	count	other={0} ชั่วโมง
+th	long	hour	relative	-1=	0=ชั่วโมงนี้	1=
+th	long	day	past	other={0} วันที่ผ่านมา
+th	long	day	future	other=ในอีก {0} วัน
+th	long	day	count	other={0} วัน
+th	long	day	relative	-2=เมื่อวานซืน	-1=เมื่อวาน	0=วันนี้	1=พรุ่งนี้	2=มะรืนนี้
+th	short	hour	past	other={0} ชม. ที่แล้ว
+th	short	hour	future	other=ใน {0} ชม.
+th	short	hour	count	other={0} ชม.
+th	short	hour	relative	-1=	0=ชั่วโมงนี้	1=
+th	short	day	past	other={0} วันที่แล้ว
+th	short	day	future	other=ใน {0} วัน
+th	short	day	count	other={0} วัน
+th	short	day	relative	-2=เมื่อวานซืน	-1=เมื่อวาน	0=วันนี้	1=พรุ่งนี้	2=มะรืนนี้
+th	narrow	hour	past	other={0} ชม. ที่แล้ว
+th	narrow	hour	future	other=ใน {0} ชม.
+th	narrow	hour	count	other={0}ชม.
+th	narrow	hour	relative	-1=	0=ชั่วโมงนี้	1=
+th	narrow	day	past	other={0} วันที่แล้ว
+th	narrow	day	future	other=ใน {0} วัน
+th	narrow	day	count	other={0}วัน
+th	narrow	day	relative	-2=เมื่อวานซืน	-1=เมื่อวาน	0=วันนี้	1=พรุ่งนี้	2=มะรืนนี้
+tr	long	hour	past	one={0} saat önce	other={0} saat önce
+tr	long	hour	future	one={0} saat sonra	other={0} saat sonra
+tr	long	hour	count	one={0} saat	other={0} saat
+tr	long	hour	relative	-1=	0=bu saat	1=
+tr	long	day	past	one={0} gün önce	other={0} gün önce
+tr	long	day	future	one={0} gün sonra	other={0} gün sonra
+tr	long	day	count	one={0} gün	other={0} gün
+tr	long	day	relative	-2=evvelsi gün	-1=dün	0=bugün	1=yarın	2=öbür gün
+tr	short	hour	past	one={0} sa. önce	other={0} sa. önce
+tr	short	hour	future	one={0} sa. sonra	other={0} sa. sonra
+tr	short	hour	count	one={0} sa.	other={0} sa.
+tr	short	hour	relative	-1=	0=bu saat	1=
+tr	short	day	past	one={0} gün önce	other={0} gün önce
+tr	short	day	future	one={0} gün sonra	other={0} gün sonra
+tr	short	day	count	one={0} gün	other={0} gün
+tr	short	day	relative	-2=evvelsi gün	-1=dün	0=bugün	1=yarın	2=öbür gün
+tr	narrow	hour	past	one={0} sa. önce	other={0} sa. önce
+tr	narrow	hour	future	one={0} sa. sonra	other={0} sa. sonra
+tr	narrow	hour	count	one={0} sa	other={0}s
+tr	narrow	hour	relative	-1=	0=bu saat	1=
+tr	narrow	day	past	one={0} gün önce	other={0} gün önce
+tr	narrow	day	future	one={0} gün sonra	other={0} gün sonra
+tr	narrow	day	count	one={0}g	other={0}g
+tr	narrow	day	relative	-2=evvelsi gün	-1=dün	0=bugün	1=yarın	2=öbür gün
+ur	long	hour	past	one={0} گھنٹہ پہلے	other={0} گھنٹے پہلے
+ur	long	hour	future	one={0} گھنٹے میں	other={0} گھنٹے میں
+ur	long	hour	count	one={0} گھنٹہ	other={0} گھنٹے
+ur	long	hour	relative	-1=	0=اس گھنٹے	1=
+ur	long	day	past	one={0} دن پہلے	other={0} دنوں پہلے
+ur	long	day	future	one={0} دن میں	other={0} دنوں میں
+ur	long	day	count	one={0} دن	other={0} دن
+ur	long	day	relative	-2=گزشتہ پرسوں	-1=گزشتہ کل	0=آج	1=آئندہ کل	2=آنے والا پرسوں
+ur	short	hour	past	one={0} گھنٹے پہلے	other={0} گھنٹے پہلے
+ur	short	hour	future	one={0} گھنٹے میں	other={0} گھنٹے میں
+ur	short	hour	count	one={0} گھنٹہ	other={0} گھنٹے
+ur	short	hour	relative	-1=	0=اس گھنٹے	1=
+ur	short	day	past	one={0} دن پہلے	other={0} دن پہلے
+ur	short	day	future	one={0} دن میں	other={0} دنوں میں
+ur	short	day	count	one={0} دن	other={0} دن
+ur	short	day	relative	-2=گزشتہ پرسوں	-1=گزشتہ کل	0=آج	1=آئندہ کل	2=آنے والا پرسوں
+ur	narrow	hour	past	one={0} گھنٹہ پہلے	other={0} گھنٹے پہلے
+ur	narrow	hour	future	one={0} گھنٹے میں	other={0} گھنٹوں میں
+ur	narrow	hour	count	one={0} گھنٹہ	other={0} گھنٹے
+ur	narrow	hour	relative	-1=	0=اس گھنٹے	1=
+ur	narrow	day	past	one={0} دن پہلے	other={0} دن پہلے
+ur	narrow	day	future	one={0} دن میں	other={0} دنوں میں
+ur	narrow	day	count	one={0} دن	other={0} دن
+ur	narrow	day	relative	-2=گزشتہ پرسوں	-1=گزشتہ کل	0=آج	1=آئندہ کل	2=آنے والا پرسوں
+vi	long	hour	past	other={0} giờ trước
+vi	long	hour	future	other=sau {0} giờ nữa
+vi	long	hour	count	other={0} giờ
+vi	long	hour	relative	-1=	0=giờ này	1=
+vi	long	day	past	other={0} ngày trước
+vi	long	day	future	other=sau {0} ngày nữa
+vi	long	day	count	other={0} ngày
+vi	long	day	relative	-2=Hôm kia	-1=Hôm qua	0=Hôm nay	1=Ngày mai	2=Ngày kia
+vi	short	hour	past	other={0} giờ trước
+vi	short	hour	future	other=sau {0} giờ nữa
+vi	short	hour	count	other={0} giờ
+vi	short	hour	relative	-1=	0=giờ này	1=
+vi	short	day	past	other={0} ngày trước
+vi	short	day	future	other=sau {0} ngày nữa
+vi	short	day	count	other={0} ngày
+vi	short	day	relative	-2=Hôm kia	-1=hôm qua	0=hôm nay	1=ngày mai	2=Ngày kia
+vi	narrow	hour	past	other={0} giờ trước
+vi	narrow	hour	future	other=sau {0} giờ nữa
+vi	narrow	hour	count	other={0} giờ
+vi	narrow	hour	relative	-1=	0=giờ này	1=
+vi	narrow	day	past	other={0} ngày trước
+vi	narrow	day	future	other=sau {0} ngày nữa
+vi	narrow	day	count	other={0} ngày
+vi	narrow	day	relative	-2=Hôm kia	-1=hôm qua	0=hôm nay	1=ngày mai	2=Ngày kia
+yue-Hans	long	hour	past	other={0} 小时前
+yue-Hans	long	hour	future	other={0} 小时后
+yue-Hans	long	hour	count	other={0} 小时
+yue-Hans	long	hour	relative	-1=	0=呢个小时	1=
+yue-Hans	long	day	past	other={0} 日前
+yue-Hans	long	day	future	other={0} 日后
+yue-Hans	long	day	count	other={0} 天
+yue-Hans	long	day	relative	-2=前天	-1=寻日	0=今日	1=听日	2=后天
+yue-Hans	short	hour	past	other={0} 小时前
+yue-Hans	short	hour	future	other={0} 小时后
+yue-Hans	short	hour	count	other={0} 小时
+yue-Hans	short	hour	relative	-1=	0=呢个小时	1=
+yue-Hans	short	day	past	other={0} 日前
+yue-Hans	short	day	future	other={0} 日后
+yue-Hans	short	day	count	other={0} 天
+yue-Hans	short	day	relative	-2=前天	-1=寻日	0=今日	1=听日	2=后天
+yue-Hans	narrow	hour	past	other={0} 小时前
+yue-Hans	narrow	hour	future	other={0} 小时后
+yue-Hans	narrow	hour	count	other={0} 小时
+yue-Hans	narrow	hour	relative	-1=	0=呢个小时	1=
+yue-Hans	narrow	day	past	other={0} 日前
+yue-Hans	narrow	day	future	other={0} 日后
+yue-Hans	narrow	day	count	other={0} 天
+yue-Hans	narrow	day	relative	-2=前天	-1=寻日	0=今日	1=听日	2=后天
+yue-Hant	long	hour	past	other={0} 小時前
+yue-Hant	long	hour	future	other={0} 小時後
+yue-Hant	long	hour	count	other={0} 小時
+yue-Hant	long	hour	relative	-1=	0=呢個小時	1=
+yue-Hant	long	day	past	other={0} 日前
+yue-Hant	long	day	future	other={0} 日後
+yue-Hant	long	day	count	other={0} 天
+yue-Hant	long	day	relative	-2=前天	-1=尋日	0=今日	1=聽日	2=後天
+yue-Hant	short	hour	past	other={0} 小時前
+yue-Hant	short	hour	future	other={0} 小時後
+yue-Hant	short	hour	count	other={0} 小時
+yue-Hant	short	hour	relative	-1=	0=呢個小時	1=
+yue-Hant	short	day	past	other={0} 日前
+yue-Hant	short	day	future	other={0} 日後
+yue-Hant	short	day	count	other={0} 天
+yue-Hant	short	day	relative	-2=前天	-1=尋日	0=今日	1=聽日	2=後天
+yue-Hant	narrow	hour	past	other={0} 小時前
+yue-Hant	narrow	hour	future	other={0} 小時後
+yue-Hant	narrow	hour	count	other={0} 小時
+yue-Hant	narrow	hour	relative	-1=	0=呢個小時	1=
+yue-Hant	narrow	day	past	other={0} 日前
+yue-Hant	narrow	day	future	other={0} 日後
+yue-Hant	narrow	day	count	other={0} 天
+yue-Hant	narrow	day	relative	-2=前天	-1=尋日	0=今日	1=聽日	2=後天
+zh	long	hour	past	other={0}小时前
+zh	long	hour	future	other={0}小时后
+zh	long	hour	count	other={0}小时
+zh	long	hour	relative	-1=	0=这一时间 / 此时	1=
+zh	long	day	past	other={0}天前
+zh	long	day	future	other={0}天后
+zh	long	day	count	other={0}天
+zh	long	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=后天
+zh	short	hour	past	other={0}小时前
+zh	short	hour	future	other={0}小时后
+zh	short	hour	count	other={0}小时
+zh	short	hour	relative	-1=	0=这一时间 / 此时	1=
+zh	short	day	past	other={0}天前
+zh	short	day	future	other={0}天后
+zh	short	day	count	other={0}天
+zh	short	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=后天
+zh	narrow	hour	past	other={0}小时前
+zh	narrow	hour	future	other={0}小时后
+zh	narrow	hour	count	other={0}小时
+zh	narrow	hour	relative	-1=	0=这一时间 / 此时	1=
+zh	narrow	day	past	other={0}天前
+zh	narrow	day	future	other={0}天后
+zh	narrow	day	count	other={0}天
+zh	narrow	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=后天
+zh-Hant	long	hour	past	other={0} 小時前
+zh-Hant	long	hour	future	other={0} 小時後
+zh-Hant	long	hour	count	other={0} 小時
+zh-Hant	long	hour	relative	-1=	0=這一小時	1=
+zh-Hant	long	day	past	other={0} 天前
+zh-Hant	long	day	future	other={0} 天後
+zh-Hant	long	day	count	other={0} 天
+zh-Hant	long	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=後天
+zh-Hant	short	hour	past	other={0} 小時前
+zh-Hant	short	hour	future	other={0} 小時後
+zh-Hant	short	hour	count	other={0} 小時
+zh-Hant	short	hour	relative	-1=	0=這一小時	1=
+zh-Hant	short	day	past	other={0} 天前
+zh-Hant	short	day	future	other={0} 天後
+zh-Hant	short	day	count	other={0} 天
+zh-Hant	short	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=後天
+zh-Hant	narrow	hour	past	other={0} 小時前
+zh-Hant	narrow	hour	future	other={0} 小時後
+zh-Hant	narrow	hour	count	other={0} 小時
+zh-Hant	narrow	hour	relative	-1=	0=這一小時	1=
+zh-Hant	narrow	day	past	other={0} 天前
+zh-Hant	narrow	day	future	other={0} 天後
+zh-Hant	narrow	day	count	other={0} 天
+zh-Hant	narrow	day	relative	-2=前天	-1=昨天	0=今天	1=明天	2=後天

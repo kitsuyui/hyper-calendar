@@ -38,23 +38,6 @@ pub const GRAVITATING_BODY_COLUMNS: usize = 5;
 const SPECIAL_SOURCE: &str = "hc-relativity special::lorentz_factor_from_speed and \
      special::proper_time_of; SPEED_OF_LIGHT is exact by the 2019 SI";
 
-/// The name `hc-relativity` gives the constant that holds a body's `GM`.
-///
-/// The table carries the values, not the names; this is the one place
-/// the two are paired, and a test holds every pairing to the value.
-#[must_use]
-pub fn gm_constant_name(body: &GravitatingBody) -> &'static str {
-    match body.id {
-        "sun" => "GM_SUN",
-        "earth" => "GM_EARTH",
-        "moon" => "GM_MOON",
-        "mars" => "GM_MARS",
-        "jupiter" => "GM_JUPITER",
-        "sagittarius-a-star" => "GM_SAGITTARIUS_A_STAR",
-        _ => "",
-    }
-}
-
 /// A clock moving at a constant speed while `coordinate_seconds` pass in
 /// the frame it moves through, as one line: `β`, the Lorentz factor `γ`,
 /// the proper time the moving clock records in seconds, its rate `dτ/dt =
@@ -125,7 +108,7 @@ pub fn gravitational_dilation_line(given: &str, radius_metres: f64) -> Answer<St
     let horizon = schwarzschild_radius(body.gm).map_err(|_| Refusal::OutOfRange)?;
     let offset = -(horizon / radius_metres) / (1.0 + factor);
     let micros = rate_offset_to_micros_per_day(offset).map_err(|_| Refusal::OutOfRange)?;
-    let name = gm_constant_name(&body);
+    let name = body.gm_constant;
     let mut out = String::new();
     let mut line = Line::new(&mut out);
     line.cell(body.id)
@@ -151,7 +134,7 @@ pub fn gravitating_bodies_lines() -> String {
         line.cell(body.id)
             .cell(body.english_name)
             .value(body.gm)
-            .cell(gm_constant_name(body))
+            .cell(body.gm_constant)
             .cell(body.source);
         line.end();
     }
@@ -166,7 +149,7 @@ mod tests {
         GM_SUN, GPS_ORBIT_RADIUS,
     };
 
-    /// The value of the constant [`gm_constant_name`] names, for the test
+    /// The value of the constant a body's `gm_constant` names, for the test
     /// that holds the pairing.
     fn gm_constant_value(name: &str) -> Option<f64> {
         match name {
@@ -274,7 +257,7 @@ mod tests {
     #[test]
     fn every_body_names_the_constant_that_holds_its_gm() {
         for body in GRAVITATING_BODIES {
-            let name = gm_constant_name(body);
+            let name = body.gm_constant;
             assert_eq!(gm_constant_value(name), Some(body.gm), "{}", body.id);
         }
     }

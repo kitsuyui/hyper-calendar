@@ -12,8 +12,8 @@
 //! for the dates a government or an exchange announces year by year,
 //! [`Rule::Listed`], which reads a [`Listing`].
 
-#[cfg(feature = "alloc")]
 use hc_astro::lunar::MoonPhase;
+#[cfg(feature = "alloc")]
 use hc_astro::riseset::Location;
 use hc_calendar::Calendar as _;
 use hc_calendar::fixed::Moment;

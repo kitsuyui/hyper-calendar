@@ -38,7 +38,8 @@ easy mistake, and `crates/hyper-calendar/tests/facade.rs` rejects it. Cross-crat
 unification means a consumer who enables `full` pays the full compile time.
 
 CI compensates by building `--all-features`, the facade and every `hc-*`
-crate with `--no-default-features --features alloc,libm`, and the WebAssembly
+crate with `--no-default-features --features alloc,libm`, every `hc-*` crate
+for a target with no `std` with and without `alloc`, and the WebAssembly
 and cdylib targets on every pull request, so a broken feature combination is
 caught immediately.
 

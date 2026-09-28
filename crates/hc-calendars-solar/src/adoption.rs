@@ -65,6 +65,9 @@ pub enum Scope {
 }
 
 impl Scope {
+    /// Every scope, in the order of the enum.
+    pub const ALL: [Self; 3] = [Self::Civil, Self::Ecclesiastical, Self::Partial];
+
     /// The word a line carries: `civil`, `ecclesiastical` or `partial`.
     #[must_use]
     pub const fn as_str(self) -> &'static str {

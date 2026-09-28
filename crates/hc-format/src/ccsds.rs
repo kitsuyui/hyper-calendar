@@ -357,18 +357,30 @@ pub enum AsciiPrecision {
 }
 
 impl AsciiPrecision {
+    /// The word for each kind of precision, as a line writes it: `hour`,
+    /// `minute`, `second`, and `fraction` for any number of digits.
+    pub const KINDS: [&'static str; 4] = ["hour", "minute", "second", "fraction"];
+
+    /// The word for this precision's kind, one of [`Self::KINDS`]; a
+    /// fraction's digits are [`AsciiPrecision::Fraction`]'s value.
+    #[must_use]
+    pub const fn kind(self) -> &'static str {
+        match self {
+            Self::Hour => Self::KINDS[0],
+            Self::Minute => Self::KINDS[1],
+            Self::Second => Self::KINDS[2],
+            Self::Fraction(_) => Self::KINDS[3],
+        }
+    }
+
     /// The precision a name selects, by [`hc_core::catalogue::matches`]:
     /// `hour`, `minute` or `second`, or the digits of the fraction, `1` to
     /// `18`, with white space around them allowed.
     #[must_use]
     pub fn by_name(name: &str) -> Option<Self> {
         let name = name.trim();
-        for (id, precision) in [
-            ("hour", Self::Hour),
-            ("minute", Self::Minute),
-            ("second", Self::Second),
-        ] {
-            if hc_core::catalogue::matches(name, id) {
+        for precision in [Self::Hour, Self::Minute, Self::Second] {
+            if hc_core::catalogue::matches(name, precision.kind()) {
                 return Some(precision);
             }
         }

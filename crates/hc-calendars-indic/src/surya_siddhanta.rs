@@ -65,6 +65,11 @@ use hc_seasons::zodiac::SiderealSign;
 
 use crate::places::UJJAIN;
 
+/// The identifier a caller gives for the Siddhānta's sky where the true sky
+/// is named by an ayanāṃśa: the boundary's `hc_hindu_lunar_date` takes
+/// `lahiri` or another ayanāṃśa of the true sky, or this.
+pub const SKY: &str = "surya-siddhanta";
+
 /// The sidereal year: 1 577 917 828 days in a *mahāyuga* of 4 320 000
 /// years, 365.258 756 days.
 pub const SIDEREAL_YEAR: f64 = 1_577_917_828.0 / 4_320_000.0;

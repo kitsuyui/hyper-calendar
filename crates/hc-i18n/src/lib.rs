@@ -26,7 +26,8 @@
 //! * [`locale`] — BCP 47 tags with the `-u-ca`/`-nu`/`-fw`/`-hc` keys, and
 //!   the CLDR inheritance chain as an iterator.
 //! * [`numbering`] — digit shapes and Han numerals, rendered and parsed.
-//! * [`plural`] — CLDR cardinal plural categories for 30 languages.
+//! * [`plural`] — CLDR cardinal plural categories for 53 languages and
+//!   European Portuguese.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
 //!   vocabulary, keyed by locale, calendar, width and context, and the
 //!   templates a locale writes a date with.
@@ -58,9 +59,11 @@
 //! This is a *calendar* internationalisation crate, not a general one. It
 //! carries no collation, no message formatting, no number grouping or
 //! currency, no compact-notation plural operands (`c`/`e`), and no
-//! transliteration. Its data is a hand-checked subset of CLDR, not a
-//! generated copy of it; see the crate README for the exact provenance and
-//! for what "a hand-checked subset" leaves out.
+//! transliteration. Its data is a subset of CLDR, not a copy of it: the
+//! entries carried before the most-spoken languages are hand-checked, and
+//! those of the twelve locales added for them are generated from their CLDR
+//! 48 files by CLDR's inheritance; see the crate README for the exact
+//! provenance and for what the subset leaves out.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

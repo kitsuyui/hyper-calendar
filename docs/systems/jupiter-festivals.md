@@ -225,6 +225,12 @@ VSOP87's series for Jupiter, is the missing piece.
   7 July 2027, as the district announces it. Read 2026-09-28.
 - [jpl-approximate-positions]: the Keplerian elements of Standish and
   Williams, tried and not used. Read 2026-09-28.
+- [webdunia-kumbh-2027]: the four sites' Hindi names, हरिद्वार,
+  प्रयागराज, नासिक and उज्जैन, which `hc_i18n::reckonings` carries under
+  `hi`. Read 2026-09-28.
+- [amarujala-pushkar-kumbh-2025]: the rivers of the Pushkar Kumbh by sign in
+  Hindi, ten of the twelve, nine of which `hc_i18n::reckonings` carries
+  under `hi` (its कोवरी for Kaveri is not carried). Read 2026-09-28.
 
 ## Code
 

@@ -116,11 +116,26 @@ pub enum ValueNames {
         locales: &'static [(&'static str, &'static [&'static str])],
     },
     /// A flag, 0 or 1, named by the words [`FLAG_WORDS`] gives the locale,
-    /// else English's *no* and *yes*: whether the Burmese month is a late
-    /// one, whether a day is outside the week. A flag whose calendar has
-    /// words of its own for the two states, the Burmese half's *waxing*
-    /// and *waning*, is named by those instead.
+    /// else English's *no* and *yes*: whether a day is outside the week,
+    /// whether an Icelandic summer has its extra week. A flag whose
+    /// calendar has words of its own for the two states, the Burmese half's
+    /// *waxing* and *waning*, is named by those instead.
     Flag,
+    /// A flag that a date writes as a word when it is set and leaves
+    /// unwritten when it is not: the Burmese late month, *Late* Tagu,
+    /// နှောင်းတန်ခူး. Inside a date — [`NameContext::Format`] — the set
+    /// flag is `own`, or the word of the first entry of `locales` whose tag
+    /// is in the locale's fallback chain, with whatever space the language
+    /// puts after it, and the clear flag is nothing. On its own —
+    /// [`NameContext::Standalone`], as a day's extra fields are listed —
+    /// it is a [`ValueNames::Flag`].
+    Marker {
+        /// The word in the calendar's own orthography.
+        own: &'static str,
+        /// Each language's word, by the tag of its table in
+        /// [`crate::data::LOCALES`].
+        locales: &'static [(&'static str, &'static str)],
+    },
 }
 
 /// The words a flag's two values are read as, 0 first, by the tag of the
@@ -183,7 +198,23 @@ pub fn write_value_name(
     };
     let name = match named.names {
         ValueNames::Own(_) | ValueNames::Localized { .. } => own_name(locale, named, index),
-        ValueNames::Flag => {
+        ValueNames::Marker { own, locales } if context == NameContext::Format => match index {
+            0 => Some(""),
+            1 => Some(
+                locale
+                    .fallback()
+                    .find_map(|candidate| {
+                        let tag = candidate.rendered()?;
+                        locales
+                            .iter()
+                            .find(|(name, _)| *name == tag.as_str())
+                            .map(|(_, word)| *word)
+                    })
+                    .unwrap_or(own),
+            ),
+            _ => None,
+        },
+        ValueNames::Flag | ValueNames::Marker { .. } => {
             let words = locale
                 .fallback()
                 .find_map(|candidate| {
@@ -497,13 +528,29 @@ pub static VALUES: &[FieldValues] = &[
             locales: &[("en", &["waxing", "waning"])],
         },
     },
-    // The flags, read as *no* and *yes*: whether a Burmese month is the
-    // late Tagu or Kason, whether an Icelandic summer has its extra week,
-    // whether a day of the three perennial calendars is outside the week,
-    // whether an imperial-year day is before the count's adoption on
-    // 1 January 1873, and whether a day of the continuous week is its common rest
-    // day. The Burmese half is named by its own words above.
-    flag(&[CalendarId("burmese")], "late"),
+    // The late Tagu and Kason of the Burmese year, which a date writes as
+    // နှောင်း before the month, «၁၃၇၈ ခုနှစ်၊ နှောင်းတန်ခူးလဆန်း ၂ ရက်»
+    // (wikipedia-burmese-calendar, 29 March 2017), a term Burmese Wikipedia's
+    // နှစ်ဆန်းတစ်ရက်နေ့ gives for both months, «နှောင်းတန်ခူး သို့မဟုတ်
+    // နှောင်းကဆုန်» (read 2026-09-28), and English as *Late*: "Late Tagu"
+    // and "Late Kason" are the month names of Yan Naing Aye's own calendar
+    // code (yan9a/mmcal, `ceMmDateTime.js`, read 2026-09-28), whose
+    // blog glosses *Hnaung Tagu* as "Late Tagu" (yannaingaye2013).
+    FieldValues {
+        calendars: &[CalendarId("burmese")],
+        field: "late",
+        first: 0,
+        names: ValueNames::Marker {
+            own: "နှောင်း",
+            locales: &[("en", "Late ")],
+        },
+    },
+    // The flags, read as *no* and *yes*: whether an Icelandic summer has
+    // its extra week, whether a day of the three perennial calendars is
+    // outside the week, whether an imperial-year day is before the count's
+    // adoption on 1 January 1873, and whether a day of the continuous week
+    // is its common rest day. The Burmese half is named by its own words
+    // above.
     flag(
         &[CalendarId("icelandic"), CalendarId("icelandic-julian")],
         "sumarauki",
@@ -545,8 +592,9 @@ pub static VALUES: &[FieldValues] = &[
 /// the example of 1752) and a "Barhaspatya samvatsara" (Art. 54) of "the
 /// northern cycle" (the example of 1822), as
 /// `docs/systems/hindu-calendars.md` names them, `indiction` the
-/// Byzantine cycle as `hc_calendars_solar::byzantine` does. No other language's table is carried yet: no source in another
-/// language naming these fields was read.
+/// Byzantine cycle as `hc_calendars_solar::byzantine` does. No other
+/// language's table is carried yet: no source in another language naming
+/// these fields was read.
 pub static TABLES: &[FieldNames] = &[FieldNames {
     tag: "en",
     names: &[

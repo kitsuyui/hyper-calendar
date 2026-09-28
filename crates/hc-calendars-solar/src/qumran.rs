@@ -211,7 +211,7 @@ pub const fn cycle_year(year: i64) -> u8 {
 pub const fn course(rd: Rd) -> u8 {
     let first_week = Weekday::Sunday.on_or_before(EPOCH).0;
     let weeks = (Weekday::Sunday.on_or_before(rd).0 - first_week).div_euclid(7);
-    ((GAMUL as i64 - 1 + weeks).rem_euclid(24) + 1) as u8
+    hc_core::math::amod(GAMUL as i64 + weeks, 24) as u8
 }
 
 /// The course that enters on the afternoon of `rd`, if it is a Sabbath, by

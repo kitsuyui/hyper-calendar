@@ -753,7 +753,6 @@ mod tests {
         )
     }
 
-    /// Each figure's frame, both ways: 22 June 2003 is day 173.
     /// Each format's fields are its layout's, and its frame is its finest
     /// field: A 0.1 s and tenths, D an hour and hours.
     #[test]
@@ -779,6 +778,7 @@ mod tests {
         assert_eq!(IrigFormat::B.carriers(), &[0, 2, 3, 4, 5]);
     }
 
+    /// Each figure's frame, both ways: 22 June 2003 is day 173.
     #[test]
     fn the_standards_figures() {
         let cases = [

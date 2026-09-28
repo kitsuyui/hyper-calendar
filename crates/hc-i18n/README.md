@@ -83,8 +83,11 @@ there. The table is checked for sortedness and uniqueness by a test.
 ## Reference data and accuracy
 
 * **Vocabulary** follows Unicode CLDR 48 (`common/main/<locale>.xml`, the
-  `calendars` sections, tag `release-48`). It is **hand-checked, not
-  generated**: a subset chosen for calendar work. Each entry's
+  `calendars` sections, tag `release-48`): a subset chosen for calendar
+  work. The entries carried before the most-spoken languages are
+  **hand-checked**; the twelve added for those languages are **generated**
+  from their files by following CLDR's inheritance, as the section on them
+  below says. Each entry's
   `LocaleData::sources` names the file it follows; the language's own file
   and CLDR's default values are carried, not the regional files (Arabic is
   `ar.xml`'s يناير…, not the Levantine كانون الثاني… of `ar_SY.xml`). It will
@@ -218,9 +221,11 @@ what their sources cover and no more:
 | `ps` Pashto | `persian-afghan`, `persian`, `persian-arithmetic` | CLDR 48 `ps.xml`, less the narrow weekdays and stand-alone narrow months, which resolve to root's Latin letters and numerals | the twelve Solar Hijri months وری … کب (CLDR `persian`, which keys them to its one Solar Hijri calendar and so to all three here), in CLDR's spelling where Wikipedia's "Solar Hijri calendar" has ګ, ي and ك in four | the Solar Hijri era in Pashto: CLDR's `ps` inherits root's; date templates, which `ps.xml` inherits |
 | `mid` Mandaic | `mandaean` | none: CLDR has no `mid`, so it inherits | the seven weekdays in Mandaic script (Wikipedia, "Mandaean calendar") | the months: that page prints the twelve zodiacal names but no Mandaic Parwanaia, and the calendar's month cycle has thirteen positions; day periods, eras |
 
-Twelve of the locales carry the languages of Ethnologue's thirty
-most-spoken that the others did not, and European Portuguese
-(`docs/i18n.md` lists the thirty and why Egyptian Arabic and Wu are not
+Ten of the locales carry the languages of Ethnologue's thirty most-spoken
+that the others did not, Cantonese in both scripts and Western Punjabi in
+Shahmukhi among them; two more are Punjabi in Gurmukhi, whose Eastern
+Punjabi is not among the thirty, and European Portuguese (`docs/i18n.md`
+lists the thirty and why Egyptian Arabic and Wu are not
 among them). Each is its CLDR 48 file, read by following CLDR's own
 inheritance: every group of names the file states at a release level, with
 its widths resolved through `root.xml`'s aliases, and the file's templates,
@@ -239,7 +244,7 @@ relative-time phrases.
 | `sw` Swahili | `sw.xml` | none | — |
 | `te` Telugu | `te.xml` | the Minguo eras; the Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Śaka era | the Hijri months, whose format names the file leaves to root's Latin ones |
 | `ur` Urdu | `ur.xml` | the Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Hijri and Śaka eras | — |
-| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Chinese and Dangi months and zodiac | the Persian, Coptic and Ethiopic months, which the files number (1月 …) |
+| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the English era, `Anno Martyrum1743年1月17日` |
 
 Plural languages: `am ar bn bo cs cy da de en es fa fi fil fr ga ha he hi id it
 ja jv kab ko lt lv ml mr my nah ne nl pa pcm pl ps pt pt-PT ro ru sl sv sw syr

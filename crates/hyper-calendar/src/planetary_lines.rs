@@ -33,15 +33,12 @@
 
 use alloc::string::String;
 
-use hc_calendar::Calendar;
-use hc_core::catalogue::matches;
 use hc_core::math::floor;
 use hc_core::unix::{self, LeapPolicy};
 use hc_core::{ATTOS_PER_SEC, Instant, Tai, UnixTime};
 use hc_planetary::bodies::{self, Body, BodyKind, EpochBasis};
-use hc_planetary::circad;
 use hc_planetary::clock::BodyClock;
-use hc_planetary::mars::martiana::MartianaCalendar;
+use hc_planetary::dated::DatedCalendar;
 use hc_planetary::mars::missions::{self, MISSIONS, Mission};
 use hc_planetary::mars::{DarianCalendar, MarsMoment, darian, martiana};
 use hc_planetary::moon::COORDINATED_LUNAR_TIME_STATUS;
@@ -367,8 +364,8 @@ pub fn body_time_line(
 /// day count the date is numbered by, the fraction of that day elapsed,
 /// `1` for a leap year, and the source.
 ///
-/// `calendar` is a circad calendar of [`circad::all`], by [`circad::by_id`],
-/// or `martiana`, [`MartianaCalendar`]'s identifier. For
+/// `calendar` is one of [`hc_planetary::dated::ALL`], by
+/// [`hc_planetary::dated::by_id`]: a circad calendar or `martiana`. For
 /// Titan's and the Galilean moons' calendars a day is a *circad*, a fixed
 /// fraction of the moon's solar day, the week has eight circads, and the
 /// count is the circad number from the calendar's epoch, as
@@ -384,18 +381,13 @@ pub fn body_time_line(
 /// instant: the span is Mars24's, ±100 years of J2000.0, for these
 /// calendars too, whose calibrations are of 2002.
 pub fn circad_date_line(calendar: &str, unix_seconds: f64) -> Answer<String> {
-    let martiana_id = MartianaCalendar.meta().id.0;
-    let circad = if matches(calendar, martiana_id) {
-        None
-    } else {
-        Some(circad::by_id(calendar).ok_or(Refusal::Unknown)?)
-    };
+    let dated = hc_planetary::dated::by_id(calendar).ok_or(Refusal::Unknown)?;
     let instant = instant(unix_seconds)?;
     let mut out = String::new();
     let mut line = Line::new(&mut out);
-    line.cell(circad.map_or(martiana_id, |calendar| calendar.rule().id));
-    match circad {
-        None => {
+    line.cell(dated.id());
+    match dated {
+        DatedCalendar::Martiana => {
             let msd = MarsMoment::from_tai(instant).mars_sol_date();
             let sol = darian::sol_from_mars_sol_date(msd);
             let date = martiana::date_from_sol(sol).map_err(|_| Refusal::OutOfRange)?;
@@ -411,7 +403,7 @@ pub fn circad_date_line(calendar: &str, unix_seconds: f64) -> Answer<String> {
                 .flag(martiana::is_leap_year(date.year))
                 .cell(MARTIANA_SOURCE);
         }
-        Some(calendar) => {
+        DatedCalendar::Circad(calendar) => {
             let rule = calendar.rule();
             let (count, fraction) = calendar.circad_and_fraction_at(instant);
             let date = calendar
@@ -646,8 +638,7 @@ mod tests {
     /// Darian one of the same instant, and 2128, past the span, is refused.
     #[test]
     fn every_circad_calendar_answers() {
-        let ids = circad::all().map(|calendar| calendar.rule().id);
-        for id in ids.into_iter().chain(["martiana"]) {
+        for id in hc_planetary::dated::ALL.map(|calendar| calendar.id()) {
             let line = circad_date_line(id, 1_700_000_000.0).expect("in the span");
             assert_eq!(cells(&line).len(), CIRCAD_DATE_COLUMNS, "{id}");
         }

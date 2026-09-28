@@ -672,11 +672,12 @@ mod tests {
             // last of the year before: the days a wrong opening would move.
             // Each is an ingress search in Bombay and in the Sūr-san, six
             // hundred years of them, so a debug build, which the coverage
-            // job runs instrumented, takes every fifth year and the first
-            // and the last (`crate::sweep_years`); the year that opens a day
+            // job runs instrumented, takes every seventh year and the first
+            // and the last (`crate::sweep_years`), seven being prime to the
+            // Gregorian leap years' 4 and 400; the year that opens a day
             // later has a test of its own above.
             let mut openings = alloc::vec::Vec::new();
-            for year in crate::sweep_years(calendar.min_year(), calendar.max_year(), 5) {
+            for year in crate::sweep_years(calendar.min_year(), calendar.max_year(), 7) {
                 let Ok(opening) = calendar.new_year(year) else {
                     // Madras's first year, whose first day the source
                     // leaves open.
