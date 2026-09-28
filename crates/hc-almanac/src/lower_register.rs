@@ -77,8 +77,11 @@
 use hc_calendar::Rd;
 use hc_seasons::Meridian;
 
+use hc_calendar::cycle::{FivePhase, Sexagenary};
+
 use crate::context::DayContext;
 use crate::mansions::Mansion;
+use crate::nayin::Nayin;
 use crate::rules::{AlmanacRule, rule_applies};
 
 /// 大明日 — 25 sexagenary days.
@@ -132,9 +135,9 @@ static KAMIYOSHINICHI: [u8; 33] = [
 /// * 乙未, 丙辰, 戊辰, 辛丑, 壬辰 — the National Diet Library's list, whose
 ///   own prose names 戊辰 and 丙戌 as examples.
 ///
-/// The first set is carried because the publishers read here print it. No
-/// printed date anchors any of the three, so the other two are named rather
-/// than registered.
+/// The first set is the one this entry holds, because the publishers read
+/// here print it; all three are [`GraveDays`] readings of their own, and
+/// こよみる's 2025 dates for each phase anchor the first.
 ///
 /// **Whether it applies to everyone.** The older rule is per-person, by the
 /// 納音 of one's birth year: Japanese Wikipedia says 「その日取りは人によって
@@ -142,8 +145,9 @@ static KAMIYOSHINICHI: [u8; 33] = [
 /// 乙未の日」, and 歳事暦 and こよみる give the same per-person rule.
 /// こよみのページ records that modern practice dropped the distinction —
 /// 「近年は区別をしなくなっている」 — and computes it for everyone. This
-/// crate does the same. A caller who wants the per-person form must filter
-/// by 納音 itself; the crate does not model 納音.
+/// entry does the same. Each set is a [`GraveDays`] reading, and
+/// [`GraveDays::applies_to_person`] gives the per-person form by the 納音
+/// of a birth year.
 static GOMUNICHI: [u8; 5] = [1, 4, 7, 22, 28];
 
 /// 母倉日, by 節月, as earthly branches.
@@ -819,8 +823,7 @@ impl LowerRegister {
     ///   Wikipedia and 歳事暦 that some commercial almanacs print it so; and
     ///   こよみる gives both, about 30 days a year against two or three.
     ///
-    /// A caller who wants the birth-year form keeps a day only when
-    /// [`crate::SolarMonth::branch_index`] equals the birth year's branch.
+    /// [`three_evil_day_for`] gives the birth-year form.
     pub const THREE_EVIL_DAYS: [Self; 3] =
         [Self::TAIKANICHI, Self::ROJAKUNICHI, Self::METSUMONNICHI];
 
@@ -897,6 +900,134 @@ impl LowerRegister {
 /// Japanese Wikipedia 暦注下段's prose ascribes to the 貞享暦 onward.
 /// Evaluate it with [`rule_applies`].
 pub const KUENICHI_BY_LUNISOLAR_MONTH: AlmanacRule = AlmanacRule::SexagenaryByLunarMonth(&KUENICHI);
+
+/// 五墓日 by one reading: the day each 納音 phase takes, and whether the
+/// reading says the day is for a person of that phase alone.
+///
+/// Three readings are in print, one day for each phase, and each is an
+/// entry here. [`LowerRegister::GOMUNICHI`], the entry a day's register
+/// holds, computes the first for everyone, as こよみのページ does; the
+/// entries let a caller ask for any reading, for everyone or for one
+/// person by the 納音 of their birth year ([`crate::nayin`]).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct GraveDays {
+    /// The identifier, e.g. `"gomunichi-wikipedia"`.
+    pub id: &'static str,
+    /// The sexagenary positions of the five days, in [`FivePhase::ALL`]
+    /// order: wood, fire, earth, metal, water.
+    pub days: &'static [u8; 5],
+    /// Whether the reading gives each day to a person of its phase. The
+    /// National Diet Library lists the five without saying whose each is,
+    /// so its days are in the order of their stems' phases and its
+    /// [`GraveDays::day_for`] is `None`.
+    pub per_person: bool,
+    /// Who prints it.
+    pub source: &'static str,
+}
+
+/// Japanese Wikipedia's, こよみる's and 歳事暦's days, by phase.
+static GRAVE_DAYS_WIKIPEDIA: [u8; 5] = [1, 22, 4, 7, 28];
+/// 精選版日本国語大辞典's: 乙未 and 辛丑 where the first has 乙丑 and 辛未.
+static GRAVE_DAYS_NIKKOKU: [u8; 5] = [31, 22, 4, 37, 28];
+/// The National Diet Library's list, 戊辰, 壬辰, 丙辰, 辛丑, 乙未, in the
+/// order of its stems' phases.
+static GRAVE_DAYS_NDL: [u8; 5] = [31, 52, 4, 37, 28];
+
+hc_core::catalogue! {
+    type: GraveDays,
+    id: |reading| reading.id,
+    provenance: |reading| reading.source,
+    tests: grave_day_reading_tests,
+    associated;
+
+    /// The three readings, the one [`LowerRegister::GOMUNICHI`] computes
+    /// first.
+    pub const ALL;
+    /// The reading with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// 乙丑 for wood, 丙戌 for fire, 戊辰 for earth, 辛未 for metal and
+        /// 壬辰 for water, each for a person of that phase: Japanese
+        /// Wikipedia 暦注下段, こよみる and 歳事暦.
+        pub const WIKIPEDIA = Self {
+            id: "gomunichi-wikipedia",
+            days: &GRAVE_DAYS_WIKIPEDIA,
+            per_person: true,
+            source: "Japanese Wikipedia 暦注下段; こよみる 「五墓日」; 歳事暦 「暦の吉凶 下段」",
+        };
+        /// 乙未 for wood, 丙戌 for fire, 戊辰 for earth, 辛丑 for metal and
+        /// 壬辰 for water: 精選版日本国語大辞典, 「木性の人は乙未の日」.
+        pub const NIKKOKU = Self {
+            id: "gomunichi-nikkoku",
+            days: &GRAVE_DAYS_NIKKOKU,
+            per_person: true,
+            source: "精選版日本国語大辞典, 「五墓日」, via コトバンク",
+        };
+        /// 戊辰, 壬辰, 丙辰, 辛丑 and 乙未, for nobody in particular: the
+        /// National Diet Library's 「日本の暦」.
+        pub const NDL = Self {
+            id: "gomunichi-ndl",
+            days: &GRAVE_DAYS_NDL,
+            per_person: false,
+            source: "National Diet Library, 「日本の暦」, 吉凶を表す言葉③下段",
+        };
+    }
+}
+
+impl GraveDays {
+    /// The reading's five days as a rule for everyone, for [`rule_applies`].
+    #[must_use]
+    pub const fn rule(self) -> AlmanacRule {
+        AlmanacRule::SexagenaryIn(self.days)
+    }
+
+    /// The day a person of a 納音 phase keeps; `None` for a reading that
+    /// does not give one day to each phase.
+    #[must_use]
+    pub const fn day_for(self, phase: FivePhase) -> Option<Sexagenary> {
+        if self.per_person {
+            Some(Sexagenary::from_index(
+                self.days[phase.index() as usize] as i64,
+            ))
+        } else {
+            None
+        }
+    }
+
+    /// Whether a day is 五墓日 for a person born in a year whose 干支 is
+    /// `birth_year`, by the 納音 of that year; `None` for a reading that
+    /// gives no day to one person.
+    #[must_use]
+    pub fn applies_to_person(self, context: &DayContext, birth_year: Sexagenary) -> Option<bool> {
+        let day = self.day_for(Nayin::of(birth_year).phase())?;
+        Some(context.sexagenary().index() == day.index())
+    }
+}
+
+/// Whether one of the three 悪日 falls on a day for a person born in a
+/// year whose 干支 is `birth_year`: the entry's rule holds, and the day's
+/// 節月 has the birth year's branch, as every table read gives it.
+///
+/// `None` for an entry that is not one of [`LowerRegister::THREE_EVIL_DAYS`].
+/// Japanese Wikipedia's example: someone born in a 巳 year keeps 大禍 on
+/// 申, 狼藉 on 酉 and 滅門 on 寅 days, in 巳月 only.
+#[must_use]
+pub fn three_evil_day_for(
+    note: LowerRegister,
+    context: &DayContext,
+    birth_year: Sexagenary,
+) -> Option<bool> {
+    let index = note.index()?;
+    if !LowerRegister::THREE_EVIL_DAYS
+        .iter()
+        .any(|evil| evil.index() == Some(index))
+    {
+        return None;
+    }
+    let holds = note.applies_to(context)?;
+    Some(holds && context.solar_month().branch_index() == birth_year.branch_index())
+}
 
 /// Every 暦注下段 in force on a day, as a bit set.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -1530,6 +1661,132 @@ mod tests {
         assert_eq!(LowerRegister::THREE_EVIL_DAYS.len(), 3);
         for note in LowerRegister::THREE_EVIL_DAYS {
             assert!(!note.is_auspicious());
+        }
+    }
+
+    /// こよみる's 2025 五墓日 for each 納音 phase, with a birth year of
+    /// each from its table (`koyomil-gomunichi`, read 2026-09-29): wood,
+    /// born 1928; metal, 1925; water, 1922; fire, 2024; earth, 1930. Each
+    /// list is every day of 2025 the reading gives that person.
+    #[test]
+    fn the_published_2025_grave_days_of_each_phase_match() {
+        let new_year_2025 = NEW_YEAR_2024 + 366;
+        let date = |month: usize, day: i64| new_year_2025 + CUMULATIVE_COMMON[month - 1] + day - 1;
+        let cases: [(i64, &[(usize, i64)]); 5] = [
+            (
+                1928,
+                &[(2, 25), (4, 26), (6, 25), (8, 24), (10, 23), (12, 22)],
+            ),
+            (
+                1925,
+                &[(1, 2), (3, 3), (5, 2), (7, 1), (8, 30), (10, 29), (12, 28)],
+            ),
+            (
+                1922,
+                &[(1, 23), (3, 24), (5, 23), (7, 22), (9, 20), (11, 19)],
+            ),
+            (
+                2024,
+                &[(1, 17), (3, 18), (5, 17), (7, 16), (9, 14), (11, 13)],
+            ),
+            (
+                1930,
+                &[(2, 28), (4, 29), (6, 28), (8, 27), (10, 26), (12, 25)],
+            ),
+        ];
+        hc_core::memo::scope(|| {
+            for (born, expected) in cases {
+                let birth = hc_calendar::cycle::sexagenary_year_from_gregorian_year(born);
+                let found: Vec<i64> = (0..365)
+                    .map(|offset| new_year_2025 + offset)
+                    .filter(|rd| {
+                        GraveDays::WIKIPEDIA
+                            .applies_to_person(&DayContext::new(Rd(*rd), JAPAN), birth)
+                            == Some(true)
+                    })
+                    .collect();
+                let expected: Vec<i64> = expected.iter().map(|(m, d)| date(*m, *d)).collect();
+                assert_eq!(found, expected, "born {born}");
+            }
+        });
+    }
+
+    /// The readings differ in the wood and metal days, the Library's also
+    /// in the fire day; each for everyone is the union of its five, and
+    /// the register's entry is the first.
+    #[test]
+    fn the_three_grave_day_readings_differ_where_their_sources_do() {
+        use hc_calendar::cycle::FivePhase;
+        assert_eq!(GraveDays::ALL[0], GraveDays::WIKIPEDIA);
+        assert_eq!(
+            LowerRegister::GOMUNICHI.rule(),
+            AlmanacRule::SexagenaryIn(&GOMUNICHI)
+        );
+        let mut first = *GraveDays::WIKIPEDIA.days;
+        first.sort_unstable();
+        assert_eq!(first, GOMUNICHI);
+        let wood = |reading: GraveDays| reading.day_for(FivePhase::Wood).map(|s| s.index());
+        assert_eq!(wood(GraveDays::WIKIPEDIA), Some(1)); // 乙丑
+        assert_eq!(wood(GraveDays::NIKKOKU), Some(31)); // 乙未
+        assert_eq!(wood(GraveDays::NDL), None);
+        assert_eq!(
+            GraveDays::NIKKOKU
+                .day_for(FivePhase::Metal)
+                .map(|s| s.index()),
+            Some(37)
+        );
+        assert!(GraveDays::NDL.days.contains(&52)); // 丙辰
+        let context = DayContext::new(Rd(NEW_YEAR_2024), JAPAN);
+        assert_eq!(
+            GraveDays::NDL.applies_to_person(&context, Sexagenary::from_index(0)),
+            None
+        );
+    }
+
+    /// Japanese Wikipedia: someone born in a 巳 year keeps 大禍 on 申, 狼藉
+    /// on 酉 and 滅門 on 寅 days, in 巳月 only. 巳月 2025 opened at 立夏 on
+    /// 5 May; 15 May 2025 was a 申 day, 16 May a 酉 day and 9 May a 寅 day.
+    #[test]
+    fn the_three_evil_days_by_birth_year_keep_the_birth_years_month() {
+        let new_year_2025 = NEW_YEAR_2024 + 366;
+        let may =
+            |day: i64| DayContext::new(Rd(new_year_2025 + CUMULATIVE_COMMON[4] + day - 1), JAPAN);
+        let snake = hc_calendar::cycle::sexagenary_year_from_gregorian_year(2025);
+        let horse = hc_calendar::cycle::sexagenary_year_from_gregorian_year(2026);
+        assert_eq!(snake.branch_index(), 5);
+        assert_eq!(may(15).solar_month().branch_index(), 5);
+        assert_eq!(may(15).branch_index(), 8); // 申
+        assert_eq!(may(16).branch_index(), 9); // 酉
+        assert_eq!(may(9).branch_index(), 2); // 寅
+        assert_eq!(
+            three_evil_day_for(LowerRegister::TAIKANICHI, &may(15), snake),
+            Some(true)
+        );
+        assert_eq!(
+            three_evil_day_for(LowerRegister::TAIKANICHI, &may(15), horse),
+            Some(false)
+        );
+        assert_eq!(
+            three_evil_day_for(LowerRegister::ROJAKUNICHI, &may(16), snake),
+            Some(true)
+        );
+        assert_eq!(
+            three_evil_day_for(LowerRegister::METSUMONNICHI, &may(9), snake),
+            Some(true)
+        );
+        assert_eq!(
+            three_evil_day_for(LowerRegister::TAIKANICHI, &may(16), snake),
+            Some(false)
+        );
+        assert_eq!(
+            three_evil_day_for(LowerRegister::TENSHANICHI, &may(15), snake),
+            None
+        );
+        // In a 申 year's month, 申月, the same person keeps none.
+        let august = DayContext::new(Rd(739_470 + 4), JAPAN);
+        assert_eq!(august.solar_month().branch_index(), 8);
+        for note in LowerRegister::THREE_EVIL_DAYS {
+            assert_eq!(three_evil_day_for(note, &august, snake), Some(false));
         }
     }
 }

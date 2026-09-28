@@ -629,15 +629,16 @@ fn the_afghan_months_are_named_in_dari_pashto_and_english() {
 #[test]
 fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
     use hyper_calendar::hc_almanac::mansions::namings;
+    use hyper_calendar::hc_almanac::nayin::namings as nayin_namings;
     use hyper_calendar::hc_almanac::{
-        Combination, LowerRegister, Mansion, NineStar, Rokuyo, SelectedDay, TwelveDirect,
+        Combination, LowerRegister, Mansion, Nayin, NineStar, Rokuyo, SelectedDay, TwelveDirect,
     };
     use hyper_calendar::hc_i18n::almanac::{
-        self, COMBINATION, CYCLES, ENGLISH, JAPANESE, LOWER_REGISTER, MANSION, NINE_STAR, ROKUYO,
-        SELECTED_DAY, TWELVE_DIRECT, Term, VOCABULARIES,
+        self, CHINESE_SIMPLIFIED, COMBINATION, CYCLES, ENGLISH, JAPANESE, LOWER_REGISTER, MANSION,
+        NAYIN, NINE_STAR, ROKUYO, SELECTED_DAY, TWELVE_DIRECT, Term, VOCABULARIES,
     };
 
-    let cycles: [(&str, Vec<&str>, Vec<&str>); 4] = [
+    let cycles: [(&str, Vec<&str>, Vec<&str>); 5] = [
         (
             ROKUYO,
             Rokuyo::ALL.iter().map(|r| r.japanese_name()).collect(),
@@ -663,6 +664,11 @@ fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
                 .map(|d| d.japanese_name())
                 .collect(),
             TwelveDirect::ALL.iter().map(|d| d.romaji()).collect(),
+        ),
+        (
+            NAYIN,
+            Nayin::all().iter().map(|n| n.japanese_name()).collect(),
+            Nayin::all().iter().map(|n| n.romaji()).collect(),
         ),
     ];
     for (kind, japanese, english) in &cycles {
@@ -710,7 +716,15 @@ fn the_almanac_vocabulary_names_what_hc_almanac_computes() {
             );
         }
     }
-    assert_eq!(almanac::VOCABULARIES.len(), 2);
+    // Chinese names the 納音 alone, as hc-almanac's Chinese naming does.
+    assert_eq!(CHINESE_SIMPLIFIED.cycles.len(), 1);
+    for nayin in Nayin::all() {
+        assert_eq!(
+            CHINESE_SIMPLIFIED.name_of(NAYIN, Term::Position(usize::from(nayin.index()))),
+            Some(nayin.name(&nayin_namings::CHINESE))
+        );
+    }
+    assert_eq!(almanac::VOCABULARIES.len(), 3);
 }
 
 /// `hc-i18n`'s vocabulary of the other reckonings and the crates that

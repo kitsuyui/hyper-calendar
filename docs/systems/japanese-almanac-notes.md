@@ -1,8 +1,9 @@
-# The Japanese almanac notes: 暦注, 選日, 十二直, 二十八宿, 九星, 六曜 and 七曜
+# The Japanese almanac notes: 暦注, 選日, 十二直, 二十八宿, 九星, 六曜, 七曜, 納音 and 臘日
 
 Backs `hc-almanac`: the modules `lower_register`, `selected_days`,
-`twelve_directs`, `mansions`, `nine_stars`, `rokuyo`, `seven_luminaries`,
-`rules`, `context` and `day_notes`.
+`twelve_directs`, `mansions`, `mansion_undertakings`, `nine_stars`,
+`rokuyo`, `seven_luminaries`, `nayin`, `rounichi`, `rules`, `context` and
+`day_notes`.
 
 ## What it is
 
@@ -35,7 +36,11 @@ The notes this library carries, and what each is in the world:
 - **二十八宿**, the 28 lunar lodges. As a 暦注 they have been assigned, from
   the 貞享暦 on, as a continuous count of days, years and months; before it
   Japan used the 二十七宿 of 宿曜道, which restart every month
-  [nao-rekiwiki-28shuku].
+  [nao-rekiwiki-28shuku]. Commercial almanacs print for each what its day
+  favours and forbids — 角宿 good for cutting cloth and raising a
+  ridgepole, bad for funerals [saijigoyomi-28shuku,
+  linderabell-28shuku] — and neither the Observatory nor the Library
+  publishes such a list.
 - **九星**, the nine stars 一白水星 to 九紫火星 of the 後天定位盤, counted by
   year, by 節月 and by day [wikipedia-ja-kyusei].
 - **六曜**, 先勝 to 赤口, keyed to the 旧暦 date; widespread from the end of
@@ -45,6 +50,14 @@ The notes this library carries, and what each is in the world:
 - **七曜**, the Sun, the Moon and the five planets that name the days of
   the week, brought to Japan with the 宿曜経 and used with the 二十七宿 for
   divination before they were a week [nao-rekiwiki-youbi-namae].
+- **納音**, the sixty 干支 in thirty pairs, each given a phase and a
+  qualifying name, 甲子・乙丑 海中金 to 壬戌・癸亥 大海水; a person's 納音 is
+  their birth year's, and fortune-telling reads it [wikipedia-ja-nacchin,
+  kotobank-nacchin]. The per-person 五墓日 turn on it.
+- **臘日**, one of the 選日: the Chinese year-end sacrifice to the gods and
+  the ancestors together, which did not reach Japan as a custom and
+  survives as a note whose day is reckoned several ways and which many
+  almanacs leave out [wikipedia-ja-rounichi].
 
 Because nobody official publishes these rules, they reach a reader through
 publishers, and publishers copy one another. Japanese Wikipedia's 暦注下段
@@ -108,6 +121,29 @@ the sectional term (往亡日), a run of the sixty (八専, 十方暮, 天一天
 list of 旧暦 days per 旧暦 month (不成就日) [ndl-koyomi-gedan,
 ndl-koyomi-sonota, koyomi8-rekichu-3].
 
+**納音** pairs the sixty in order: position *n* of the sixty, 甲子 being 0,
+has the 納音 ⌊*n*/2⌋, and the phase is the last character of its name
+(海中**金**) [wikipedia-ja-nacchin, sanming-tonghui-nayin]. It is not the
+stem's phase: 甲 is wood and 甲子 is metal.
+
+**Two notes are given per person.** 五墓日 is one day of the sixty for each
+納音 phase: the day whose stem has that phase and whose branch is one of
+the earth branches 丑辰未戌 [wikipedia-ja-rekichu-gedan, koyomil-gomunichi].
+The 三箇の悪日 are one 節月 per person, the one whose branch is the birth
+year's; a 巳-year person keeps 大禍 on 申, 狼藉 on 酉 and 滅門 on 寅 days
+in 巳月 [wikipedia-ja-rekichu-gedan, ndl-koyomi-gedan]. Many commercial
+almanacs print both for everyone [koyomi8-rekichu-3].
+
+**臘日** is reckoned five ways in the sources read: the second 辰 day
+after 小寒, the 辰 day nearest 大寒, the first 戌 day after 大寒
+[wikipedia-ja-rounichi, koyomil-rounichi, jpnculture-rounichi], the
+ninth of the twelfth lunar month [koyomil-rounichi, jpnculture-rounichi],
+and, in Qin and Han China, the third 戌 day after 冬至: 「腊，冬至后三戌
+腊祭百神」 [wikipedia-zh-laba]. 辰 and 戌 are earth branches, and earth
+overcomes the water of winter [wikipedia-ja-rounichi]. こよみる calls
+the 辰 nearest 大寒 the current mainstream, and the 神社暦's
+[koyomil-rounichi]; 西野神社 prints it [nishinojinja-senjitsu].
+
 ### A worked example: 21 December 2025
 
 1. **干支.** 1 January 2024 was 甲子. 21 December 2025 is 720 days later,
@@ -135,8 +171,38 @@ ndl-koyomi-sonota, koyomi8-rekichu-3].
    the 21st is 十一月二日: 11 + 2 = 13, and 13 mod 6 = 1, **赤口**. The day
    before, 十一月一日, is 12 mod 6 = 0, 大安, as 十一月 must open.
 
+10. **納音.** 甲子 is position 0, so the 納音 is the first, **海中金**.
+
 `day_notes` returns exactly this: 建, 虚, the Sun, 天恩日 and 天赦日 in the
-lower register, 一粒万倍日 and 甲子 among the 選日, 一白 for the day and 赤口.
+lower register, 一粒万倍日 and 甲子 among the 選日, 一白 for the day and 赤口;
+`hc_almanac_day` writes the 納音 beside the 干支.
+
+### A worked example: 臘日 in the winter of 2026
+
+1 January 2024 was 甲子, branch 子; 1 January 2026 is 731 days later, and
+731 mod 12 = 11, so its branch is 亥, and 辰, five branches on, falls on
+6, 18 and 30 January; 戌, eleven on, on 12 and 24 January.
+
+1. **小寒** fell on 5 January 2026, a 卯 day, not a 辰 one, so the first
+   辰 after it is 6 January and the **second 辰 after 小寒** is
+   **18 January**.
+2. **大寒** fell on 20 January; the 辰 days round it are 18 January, two
+   days before, and 30 January, ten after: the **辰 nearest 大寒** is
+   **18 January** too.
+3. The **first 戌 after 大寒** is **24 January**.
+4. The twelfth lunar month began on 19 January, so its **ninth** is
+   **27 January**.
+
+こよみる prints exactly these three days for 2026 [koyomil-rounichi].
+
+### A worked example: 五墓日 for someone born in 1925
+
+1925 is 乙丑, position 1, so its 納音 is 海中金 and its phase metal. By the
+publishers' reading, metal's 五墓日 is 辛未, position 7. 1 January 2025
+was 庚午, position 6, so 2 January 2025 was 辛未, and the day comes round
+every sixty days: 3 March, 2 May, 1 July, 30 August, 29 October and
+28 December — the seven days こよみる lists for a metal person in 2025
+[koyomil-gomunichi].
 
 ## What is carried
 
@@ -155,14 +221,27 @@ names: the Chinese one at `Meridian::CHINA`, the Japanese 旧暦 at
 `Meridian::JAPAN` and every other offset; see
 [zassetsu-and-rokuyo.md](zassetsu-and-rokuyo.md).
 
+The **納音** in `nayin`: `Nayin`, its pair, its phase, and its names in
+Japanese, in kana, in Hepburn and as 『三命通會』 heads them, and the day's
+納音 as a line of `hc_almanac_day`. The **per-mansion lists** in
+`mansion_undertakings`: 歳事暦's and うまずたゆまず's, each an
+`UndertakingList` of 大吉, 吉, 凶 and 大凶 items and a remark for each of
+the 28, in Japanese as printed, with no function for "the" list. **臘日**
+in `rounichi`, one `RounichiRule` per reckoning, none a default.
+
 **Where publishers differ**, each reading is named in the module
-documentation with its source. Two are registered as readings of their own,
-because a source states each and a published list tests it:
+documentation with its source. These are registered as readings of their
+own, because a source states each:
 
 | Note | Readings | Carried as |
 | --- | --- | --- |
 | 凶会日, which month | 節月 (歳事暦, うまずたゆまず, Japanese Wikipedia's table); 旧暦 month (こよみる, Japanese Wikipedia's prose) | `LowerRegister::KUENICHI` is the 節月 reading and is what a day's register holds; `lower_register::KUENICHI_BY_LUNISOLAR_MONTH` is the 旧暦 reading, a named rule outside the register so that a page does not print the note twice |
 | 九星, a solstice on 癸巳 | The switch is the preceding 甲子 (こよみのページ); the following 甲子 (the base of Japanese Wikipedia's 閏 list) | `SwitchReading::MIZUNOTO_MI_BACK`, used by `day_star`, and `SwitchReading::MIZUNOTO_MI_FORWARD`; `day_star_by` takes either |
+| 五墓日, which days | 乙丑, 丙戌, 戊辰, 辛未, 壬辰 (Japanese Wikipedia, こよみる, 歳事暦); 乙未 and 辛丑 for wood and metal (精選版日本国語大辞典); 乙未, 丙辰, 戊辰, 辛丑, 壬辰 (the National Diet Library) | `GraveDays::WIKIPEDIA`, which `LowerRegister::GOMUNICHI` holds; `GraveDays::NIKKOKU`; `GraveDays::NDL` |
+| 五墓日, for whom | Everyone, as こよみのページ computes it; only a person whose birth-year 納音 has the day's phase (Japanese Wikipedia, 精選版日本国語大辞典, 歳事暦, こよみる) | `GraveDays::rule` for everyone, which the register holds; `GraveDays::applies_to_person` by a birth year, for the two readings that give one day to each phase — the Library's does not |
+| 三箇の悪日 | Every row, for everyone, as many commercial almanacs print it; one 節月 per person, the one whose branch is their birth year's (the National Diet Library and every other table read) | the three `LowerRegister` entries for everyone; `lower_register::three_evil_day_for` by a birth year |
+| 臘日 | Five reckonings, listed above | `RounichiRule::SECOND_DRAGON_AFTER_MINOR_COLD`, `DRAGON_NEAREST_MAJOR_COLD`, `FIRST_DOG_AFTER_MAJOR_COLD`, `LUNAR_TWELFTH_NINTH`, `THIRD_DOG_AFTER_WINTER_SOLSTICE` |
+| The undertakings of each mansion | 歳事暦; うまずたゆまず | `UndertakingList::SAIJIGOYOMI`, `UndertakingList::LINDERABELL` |
 
 The others are named and not registered, because no printed date tests the
 alternative:
@@ -170,20 +249,32 @@ alternative:
 | Note | Carried | Named, not carried |
 | --- | --- | --- |
 | 大明日 | The 25-day list of Japanese Wikipedia, こよみる and 歳事暦 | The 21-day list (Japanese Wikipedia, こよみる) and the 19-day list (こよみる) |
-| 五墓日, which days | 乙丑, 丙戌, 戊辰, 辛未, 壬辰 (Japanese Wikipedia, こよみる, 歳事暦) | 乙未 and 辛丑 for the wood and metal days (精選版日本国語大辞典); 乙未, 丙辰, 辛丑 (the National Diet Library's list) |
-| 五墓日, for whom | Everyone, as こよみのページ computes it | Only a person whose birth-year 納音 matches (Japanese Wikipedia, 精選版日本国語大辞典, 歳事暦, こよみる) |
-| 三箇の悪日 | Every row, for everyone, as many commercial almanacs print it | One 節月 per person, the one whose branch is their birth year's (the National Diet Library and every other table read) |
+| 臘日 | Five reckonings | Japanese Wikipedia's 「丑節9日」, which does not say whether 小寒's own day is the first; こよみる and 日本文化研究ブログ write the fourth reckoning as the lunar 12月9日 instead |
+| The undertakings of each mansion | 歳事暦's and うまずたゆまず's lists | 神仏.ネット's, which writes each mansion as sentences, not lists, and differs in substance: splitting them would be this library's reading |
 | 凶会日, which table | The 貞享暦 table, seventy days | The 宣明暦 table, with twelve more |
 | 一粒万倍日 | The union of the National Diet Library's two methods, which it says are now used together | Either method alone |
 | 九星 閏 | Last sixty days of a 240-day period, reversing at the 甲午 | A 閏 wherever a 甲午 falls within a day of a solstice, which Japanese Wikipedia says needs adjustments it does not describe |
 
 **Not carried at all**: the 神吉日 suppression rule, which no source can
-state; the per-mansion lists of undertakings, on which publishers diverge;
-納音, so neither per-person form above can be computed; 臘日; the mansion the
-Moon is actually in. The crate README lists these gaps.
+state; and the mansion the Moon is actually in. The crate README lists
+these gaps.
+
+**Where a 臘日 rule does not say**, it answers `None`: "after" a term
+does not say whether the term's own day counts, so a rule counting after
+小寒, 大寒 or 冬至 declines a winter whose term day bears its sign, and
+the nearest-辰 rule declines one whose 辰 days lie six days either side
+of 大寒. At the Japanese meridian that is 15, 18, 18 and 15 winters of
+1901–2100 for the second-辰, nearest-辰, first-戌 and third-戌 rules. The
+Han rule reads the astronomical 冬至; Qin and Han kept a calendar of their
+own, and the one dated 臘 the source quotes, a 戊戌 in the twelfth month
+of 秦二世元年 [wikipedia-zh-laba], is not the day the rule gives for
+that winter with the true solstice, 24 January 209 BCE (proleptic
+Gregorian), a 丙戌: a 戊戌 is the next 戌 day after it. The rule is
+carried as the source states it; no 臘 of those centuries is answered as
+the one kept.
 
 **At the boundaries.** `hc_almanac_day` writes a day's page, one note a
-line, from `day_notes`: the sexagenary day, 十二直, 二十八宿 and 二十七宿,
+line, from `day_notes`: the sexagenary day and its 納音, 十二直, 二十八宿 and 二十七宿,
 the three 九星, 六曜, and every lower-register note, 選日 and combination
 that falls, each with the Japanese name, the Hepburn reading, the verdict
 and, for the lower register, whether 受死日 or 十死日 suppresses it in
@@ -194,8 +285,10 @@ Library's 六曜, 下段 and その他 [ndl-koyomi-rokuyo, ndl-koyomi-gedan,
 ndl-koyomi-sonota] — which agree but for 狼藉日, written 狼籍日 on the
 Library's page — and English, which writes the notes in their
 romanisation, as English Wikipedia's "Rokuyō" does [wikipedia-rokuyo],
-and the mansions by the asterisms' English names [wikipedia-twenty-eight-mansions].
-No other language's names were read, so none is carried. The worked
+and the mansions by the asterisms' English names [wikipedia-twenty-eight-mansions];
+and, for the 納音 alone, Chinese, as 『三命通會』 heads them in
+Wikisource's simplified transcription [sanming-tonghui-nayin]. No other
+language's names were read, so none is carried. The worked
 example's day is the export's anchor too: arachne.jp's 2025 calendar
 prints 赤口, 一粒万倍 and 天赦日 against 21 December 2025
 [arachne-taian-2025-12], and マイナビニュース names 甲子 and 天恩日 on it as
@@ -211,6 +304,20 @@ and the 旧暦 derivation.
 
 **Tables against independent statements.**
 
+- The 納音: Japanese Wikipedia's thirty rows and 『三命通會』's thirty
+  section headings name the same pairs with the same phases
+  (`the_pairs_are_the_tables`,
+  `the_phase_is_the_last_character_in_both_namings`), and こよみる's
+  table of birth years gives the phase of fourteen years from 1921 to
+  1998 as the crate does (`the_published_birth_years_have_their_phases`).
+- The per-mansion lists: 歳事暦's and うまずたゆまず's agree mansion by
+  mansion but for order, spelling, a particle or a comma, and 觜宿, which
+  歳事暦 alone says to avoid for 衣類の着初め
+  (`the_two_lists_differ_only_where_the_documentation_says`). Both say
+  that 鬼宿 is best for everything but marriage and give 牛宿 nothing to
+  avoid, as `Mansion::undisputed_note` has it. They are one witness, not
+  two; no printed almanac was compared.
+
 - The 凶会日 table is the National Diet Library's table less eleven
   entries: its 81 hold all seventy, and ten of the eleven extras are among
   the twelve Japanese Wikipedia brackets as struck by the 貞享暦. The
@@ -224,6 +331,14 @@ and the 旧暦 derivation.
   ten years of consecutive days there are exactly 120 repeats and no skip.
 
 **Against published date lists.**
+
+- 五墓日 by 納音: every day of 2025 こよみる lists for each of the five
+  phases, 31 in all, with a birth year of each from its own table, and no
+  other day (`the_published_2025_grave_days_of_each_phase_match`).
+- 臘日: こよみる's candidates for 2024 to 2027 by its four reckonings,
+  sixteen days, among them the one day of 2025 on which the first two
+  agree (`the_published_candidates_of_2024_to_2027_match`). The Han
+  reckoning has no dated modern example.
 
 - 凶会日 by 旧暦 month: all 33 days こよみる prints for 2025, four of them in
   the leap sixth month, and no other day
@@ -293,6 +408,19 @@ lists the runs over 1900–2100 in which the two differ.
 | [wikipedia-twenty-eight-mansions] | The asterisms' English names, Horn to Chariot | Yes, 2026-09-27 |
 | [arachne-taian-2025-12] | 赤口, 一粒万倍 and 天赦日 on 21 December 2025 | Yes, 2026-09-27 |
 | [mynavi-2025-12-21] | 一粒万倍日, 天赦日, 甲子 and 天恩日 on 21 December 2025 | Yes, 2026-09-27 |
+| [wikipedia-ja-nacchin] | The thirty 納音, their readings and pairs | Yes, 2026-09-29 |
+| [sanming-tonghui-nayin] | 『三命通會』 卷一's thirty section headings, as Wikisource transcribes them | Yes, 2026-09-29 |
+| [kotobank-nacchin] | 精選版日本国語大辞典's 納音: 甲子・乙丑 海中金, 丙寅・丁卯 爐中火 | Yes, 2026-09-29 |
+| [koyomil-gomunichi] | Again: 五墓日 by 納音 phase, the birth years of each phase from 1921, and the 2025 dates of each | Yes, 2026-09-29 |
+| [wikipedia-ja-rekichu-gedan], [ndl-koyomi-gedan], [kotobank-gomunichi] | Again: 五墓日 by phase (the Library's without one); the three 悪日 by birth year and the 巳-year example | Yes, 2026-09-29 |
+| [wikipedia-ja-rounichi] | 臘日: the 臘祭, the four Japanese reckonings, 「丑節9日」, the earth branches | Yes, 2026-09-29 |
+| [koyomil-rounichi] | 臘日: four reckonings with the lunar 12月9日, the 神社暦's, 臘八 not the 選日, the candidates of 2024–2027 | Yes, 2026-09-29 |
+| [jpnculture-rounichi] | 臘日: the same four reckonings | Yes, 2026-09-29 |
+| [nishinojinja-senjitsu] | 臘日 as 「大寒に近い辰の日」 | Yes, 2026-09-29 |
+| [wikipedia-zh-laba] | The Qin and Han 臘 on the third 戌 after 冬至, 『説文解字』 quoted; 秦二世元年十二月戊戌 | Yes, 2026-09-29; the 『説文解字』 itself not read |
+| [saijigoyomi-28shuku] | 歳事暦's list of each mansion's undertakings | Yes, 2026-09-29 |
+| [linderabell-28shuku] | うまずたゆまず's list | Yes, 2026-09-29 |
+| [shintobukkyo-28shuku] | 神仏.ネット's entries, as sentences; not carried | Yes, 2026-09-29 |
 | [okada-akune1993] | The rule tables at the root of Japanese Wikipedia's and こよみのページ's | Not read; its record from CiNii Books, 2026-09-26 |
 | [okada-kyureki-dokuhon] | Named by こよみのページ as a basis of its rules | Not read |
 
@@ -305,9 +433,10 @@ document.
 
 `crates/hc-almanac/src/`: `context.rs` (the 節月 and the shared day
 context), `rules.rs` (`AlmanacRule` and `rule_applies`),
-`lower_register.rs`, `selected_days.rs`, `twelve_directs.rs`,
-`mansions.rs`, `nine_stars.rs`, `rokuyo.rs`, `seven_luminaries.rs` and
-`day_notes.rs`.
+`lower_register.rs` (with `GraveDays` and `three_evil_day_for`),
+`selected_days.rs`, `twelve_directs.rs`, `mansions.rs`,
+`mansion_undertakings.rs`, `nine_stars.rs`, `rokuyo.rs`,
+`seven_luminaries.rs`, `nayin.rs`, `rounichi.rs` and `day_notes.rs`.
 
 Anchors:
 `the_ndl_evil_gathering_table_is_the_jokyo_table_and_eleven_more`,
@@ -315,7 +444,18 @@ Anchors:
 `the_published_days_of_heavens_pardon_match`,
 `a_solar_term_that_arrives_at_ten_at_night_still_opens_its_month_that_day`,
 `the_published_2026_days_of_going_out_and_perishing_match`,
-`the_published_2024_lower_register_entries_match` (lower register);
+`the_published_2024_lower_register_entries_match`,
+`the_published_2025_grave_days_of_each_phase_match`,
+`the_three_grave_day_readings_differ_where_their_sources_do`,
+`the_three_evil_days_by_birth_year_keep_the_birth_years_month` (lower
+register);
+`the_pairs_are_the_tables`, `the_phase_is_the_last_character_in_both_namings`,
+`the_published_birth_years_have_their_phases` (納音);
+`the_published_candidates_of_2024_to_2027_match`,
+`every_day_bears_its_sign_and_every_refusal_has_its_reason`,
+`the_lunar_rule_is_the_ninth_of_the_twelfth_month` (臘日);
+`the_two_lists_differ_only_where_the_documentation_says`,
+`the_lists_agree_with_the_undisputed_notes` (the per-mansion lists);
 `the_grain_table_is_the_union_of_the_two_ndl_methods`,
 `the_published_2025_grain_days_match_month_by_month`,
 `the_published_2025_sanrinbo_days_match_month_by_month`,

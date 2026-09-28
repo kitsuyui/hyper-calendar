@@ -491,6 +491,7 @@ export interface AlmanacCycles {
 /** What an `hc_almanac_day` line is about. */
 export type AlmanacKind =
   | "sexagenary"
+  | "nayin"
   | "twelve-direct"
   | "mansion"
   | "mansion-27"

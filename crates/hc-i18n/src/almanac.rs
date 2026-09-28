@@ -1,5 +1,5 @@
 //! What a locale calls the annotations of the Japanese almanac, as data:
-//! 六曜, 二十八宿, 九星, 十二直, the 暦注下段, the 選日 and the modern
+//! 六曜, 二十八宿, 九星, 十二直, 納音, the 暦注下段, the 選日 and the modern
 //! combinations of them, for the lines `hc_almanac_day` writes.
 //!
 //! The annotations are `hc-almanac`'s, which computes them and gives each
@@ -24,7 +24,8 @@
 //!   `hc-almanac`'s 狼藉 is kept. The combinations are the names
 //!   `hc-almanac` gives the marketing categories it labels as commerce.
 //! * **`en`**: English writes these Japanese terms in their Hepburn
-//!   romanisation, as English Wikipedia's "Rokuyō" names the six days
+//!   romanisation — 納音 included, as `hc-almanac` reads them from
+//!   Japanese Wikipedia's kana — as English Wikipedia's "Rokuyō" names the six days
 //!   Senshō, Tomobiki, Senbu, Butsumetsu, Taian and Shakkō
 //!   [wikipedia-rokuyo] and as CLDR's English names the Japanese eras; the forms
 //!   are `hc-almanac`'s readings as it writes them, lower case. The
@@ -34,9 +35,14 @@
 //!   naming carries. The
 //!   combinations have no reading in `hc-almanac` and no English name.
 //!
-//! No other locale has a table. Chinese and Korean almanacs name some of
-//! the same cycles, but no source for their names was read, and nothing
-//! here is translated. The sexagenary day is not here either: [`crate::names`]
+//! * **`zh-Hans`**: the 納音 alone, as 『三命通會』 卷一 heads its sections
+//!   in Wikisource's simplified transcription (炉中火, 路旁土, 石榴木),
+//!   read 2026-09-29 [sanming-tonghui-nayin], which `hc-almanac`'s
+//!   Chinese naming carries.
+//!
+//! No other locale has a table, and Chinese has none for the other
+//! cycles. Chinese and Korean almanacs name some of them, but no source
+//! for their names was read, and nothing here is translated. The sexagenary day is not here either: [`crate::names`]
 //! writes it in each locale's reading.
 //!
 //! # Locales
@@ -61,6 +67,8 @@ pub const MANSION: &str = "mansion";
 pub const NINE_STAR: &str = "nine-star";
 /// 十二直, a cycle of twelve from 建.
 pub const TWELVE_DIRECT: &str = "twelve-direct";
+/// 納音, a cycle of thirty from 海中金, one for each pair of the sixty.
+pub const NAYIN: &str = "nayin";
 /// The 暦注下段, by identifier.
 pub const LOWER_REGISTER: &str = "lower-register";
 /// The 選日, by identifier.
@@ -74,6 +82,7 @@ pub const CYCLES: &[(&str, usize)] = &[
     (MANSION, 28),
     (NINE_STAR, 9),
     (TWELVE_DIRECT, 12),
+    (NAYIN, 30),
 ];
 
 /// The tables whose terms are addressed by identifier.
@@ -81,8 +90,8 @@ pub const TABLES: &[&str] = &[LOWER_REGISTER, SELECTED_DAY, COMBINATION];
 
 /// Where the names come from, for a `source` cell.
 pub const SOURCE: &str = "hc-almanac's names, compared with NAOJ 暦Wiki (十二直, 星宿) and NDL 「日本の暦」 \
-     (六曜, 下段, その他), read 2026-09-27; English as English Wikipedia's Rokuyō and Twenty-Eight \
-     Mansions write them";
+     (六曜, 下段, その他), read 2026-09-27; 納音 from Japanese Wikipedia and 『三命通會』, read \
+     2026-09-29; English as English Wikipedia's Rokuyō and Twenty-Eight Mansions write them";
 
 /// One term of the almanac: a position in a cycle, from zero, or an
 /// identifier in a table.
@@ -181,7 +190,7 @@ pub fn name_or_fallback(
 }
 
 /// Every table, in tag order.
-pub static VOCABULARIES: &[AlmanacNames] = &[ENGLISH, JAPANESE];
+pub static VOCABULARIES: &[AlmanacNames] = &[ENGLISH, JAPANESE, CHINESE_SIMPLIFIED];
 
 /// English: the Hepburn readings, and the asterisms' English names.
 pub const ENGLISH: AlmanacNames = AlmanacNames {
@@ -250,6 +259,41 @@ pub const ENGLISH: AlmanacNames = AlmanacNames {
             &[
                 "tatsu", "nozoku", "mitsu", "taira", "sadan", "toru", "yaburu", "ayabu", "naru",
                 "osan", "hiraku", "tozu",
+            ],
+        ),
+        (
+            NAYIN,
+            &[
+                "kaichūkin",
+                "rochūka",
+                "tairinboku",
+                "robōdo",
+                "jinbōkin",
+                "santōka",
+                "kankasui",
+                "jōtōdo",
+                "hakurōkin",
+                "yōryūboku",
+                "seisensui",
+                "okujōdo",
+                "hekirekika",
+                "shōhakuboku",
+                "chōryūsui",
+                "sachūkin",
+                "sangeka",
+                "heichiboku",
+                "hekijōdo",
+                "kinpakukin",
+                "fukutōka",
+                "tengasui",
+                "taiekido",
+                "saisenkin",
+                "sōshakumoku",
+                "daikeisui",
+                "sachūdo",
+                "tenjōka",
+                "zakuroboku",
+                "taikaisui",
             ],
         ),
     ],
@@ -325,6 +369,41 @@ pub const JAPANESE: AlmanacNames = AlmanacNames {
                 "建", "除", "満", "平", "定", "執", "破", "危", "成", "納", "開", "閉",
             ],
         ),
+        (
+            NAYIN,
+            &[
+                "海中金",
+                "爐中火",
+                "大林木",
+                "路傍土",
+                "釼鋒金",
+                "山頭火",
+                "澗下水",
+                "城頭土",
+                "白鑞金",
+                "楊柳木",
+                "井泉水",
+                "屋上土",
+                "霹靂火",
+                "松柏木",
+                "長流水",
+                "沙中金",
+                "山下火",
+                "平地木",
+                "壁上土",
+                "金箔金",
+                "覆燈火",
+                "天河水",
+                "大駅土",
+                "釵釧金",
+                "桑柘木",
+                "大溪水",
+                "沙中土",
+                "天上火",
+                "柘榴木",
+                "大海水",
+            ],
+        ),
     ],
     terms: &[
         (LOWER_REGISTER, "daimyonichi", "大明日"),
@@ -384,6 +463,47 @@ pub const JAPANESE: AlmanacNames = AlmanacNames {
             "一粒万倍日＋三隣亡",
         ),
     ],
+};
+
+/// Chinese, simplified: the 納音 as 『三命通會』 names them.
+pub const CHINESE_SIMPLIFIED: AlmanacNames = AlmanacNames {
+    tag: "zh-Hans",
+    cycles: &[(
+        NAYIN,
+        &[
+            "海中金",
+            "炉中火",
+            "大林木",
+            "路旁土",
+            "剑锋金",
+            "山头火",
+            "涧下水",
+            "城头土",
+            "白蜡金",
+            "杨柳木",
+            "井泉水",
+            "屋上土",
+            "霹雳火",
+            "松柏木",
+            "长流水",
+            "砂中金",
+            "山下火",
+            "平地木",
+            "壁上土",
+            "金泊金",
+            "覆灯火",
+            "天河水",
+            "大驿土",
+            "钗钏金",
+            "桑柘木",
+            "大溪水",
+            "砂中土",
+            "天上火",
+            "石榴木",
+            "大海水",
+        ],
+    )],
+    terms: &[],
 };
 
 #[cfg(test)]

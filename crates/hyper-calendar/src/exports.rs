@@ -1870,12 +1870,13 @@ macro_rules! exports {
             ///
             /// `meridian` is as for `hc_almanac_cycles`, and sets where the solar
             /// terms and the new moons fall. The lines, in the order a printed
-            /// almanac page gives them: the sexagenary day, 十二直, 二十八宿,
-            /// 二十七宿, the year's, the month's and the day's 九星, 六曜, then each
-            /// 暦注下段, 選日 and combination of them that falls. Tab-separated: the
-            /// kind (`sexagenary`, `twelve-direct`, `mansion`, `mansion-27`,
-            /// `year-star`, `month-star`, `day-star`, `rokuyo`, `lower-register`,
-            /// `selected-day`, `combination`); the identifier, the 1-based position
+            /// almanac page gives them: the sexagenary day, its 納音, 十二直,
+            /// 二十八宿, 二十七宿, the year's, the month's and the day's 九星, 六曜,
+            /// then each 暦注下段, 選日 and combination of them that falls.
+            /// Tab-separated: the kind (`sexagenary`, `nayin`, `twelve-direct`,
+            /// `mansion`, `mansion-27`, `year-star`, `month-star`, `day-star`,
+            /// `rokuyo`, `lower-register`, `selected-day`, `combination`); the
+            /// identifier, the 1-based position
             /// in the cycle or the entry's own (`tenshanichi`); the name in the
             /// locale and the tag of the data that named it, the locale's where it
             /// has one, else English's, else Japanese's, Japanese first under

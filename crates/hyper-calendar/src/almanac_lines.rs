@@ -20,7 +20,7 @@
 //! [`almanac_day_lines`] writes the rest of what [`hc_almanac::day_notes()`]
 //! gives a day, one annotation a line, each named in a locale from
 //! [`hc_i18n::almanac`], or for the sexagenary day from `hc-i18n`'s
-//! readings of the cycle: the 干支, 十二直, 二十八宿 and 二十七宿, the
+//! readings of the cycle: the 干支 and its 納音, 十二直, 二十八宿 and 二十七宿, the
 //! year's, month's and day's 九星, 六曜, and every 暦注下段, 選日 and
 //! modern combination that falls on the day. It computes nothing
 //! `hc-almanac` does not; 七曜 is left out because it is the weekday,
@@ -30,7 +30,7 @@ use alloc::string::String;
 
 use hc_almanac::mansions::{Fortune, namings};
 use hc_almanac::{
-    Combination, LowerRegister, NineStar, SelectedDay, day_notes, is_day_without_son,
+    Combination, LowerRegister, Nayin, NineStar, SelectedDay, day_notes, is_day_without_son,
     lucky_direction_of_year, nine_periods,
 };
 use hc_calendar::cycle::readings::JAPANESE_KUN;
@@ -160,14 +160,14 @@ fn push_star(out: &mut String, kind: &str, star: NineStar, locale: Option<&Local
 /// The lines of `hc_almanac_day`: every almanac annotation
 /// [`hc_almanac::day_notes()`] gives a day at a meridian, one a line, in the
 /// order a printed almanac page gives them — the sexagenary day
-/// (`sexagenary`), 十二直 (`twelve-direct`), 二十八宿 (`mansion`), 二十七宿
+/// (`sexagenary`) and its 納音 (`nayin`), 十二直 (`twelve-direct`), 二十八宿 (`mansion`), 二十七宿
 /// (`mansion-27`), the year's, the month's and the day's 九星 (`year-star`,
 /// `month-star`, `day-star`), 六曜 (`rokuyo`), then each 暦注下段
 /// (`lower-register`), 選日 (`selected-day`) and combination
 /// (`combination`) that falls, in `hc-almanac`'s listing order.
 ///
 /// Each line: the kind; the identifier, the term's 1-based position in its
-/// cycle (甲子 1, 建 1, 角 1, 一白水星 1, 先勝 1) or an entry's
+/// cycle (甲子 1, 海中金 1, 建 1, 角 1, 一白水星 1, 先勝 1) or an entry's
 /// `hc-almanac` identifier (`tenshanichi`); its name in the locale and the
 /// tag of the data that named it, by [`vocabulary::name_or_fallback`]'s
 /// rule — the locale's where it has one, else English's, else Japanese's,
@@ -225,6 +225,25 @@ pub fn almanac_day_lines(fixed: i64, meridian_name: &str, locale: &str) -> Answe
         .value(format_args!("{kun_stem} {kun_branch}"))
         .empties(2);
     line.end();
+
+    let nayin = Nayin::of(sexagenary);
+    let position = usize::from(nayin.index());
+    push_row(
+        &mut out,
+        &Row {
+            kind: "nayin",
+            id: &ordinal(position),
+            named: vocabulary::name_or_fallback(
+                locale,
+                vocabulary::NAYIN,
+                Term::Position(position),
+            ),
+            japanese: nayin.japanese_name(),
+            reading: nayin.romaji(),
+            auspicious: None,
+            printed: None,
+        },
+    );
 
     let direct = notes.twelve_direct();
     let position = usize::from(direct.index());
@@ -448,9 +467,10 @@ mod tests {
     /// well in マイナビニュース's article of the day (`mynavi-2025-12-21`),
     /// so the 天赦日＋一粒万倍日 combination; the day's star 一白, as
     /// `hc_almanac::day_notes` has it at the 甲子 the 九星 count reverses
-    /// on. Named in Japanese under `ja` and `native`, in English's Hepburn
-    /// readings under `en` and under `de`, which has no table, and the
-    /// combination, which English does not name, in Japanese.
+    /// on; 甲子's 納音 海中金, which 『三命通會』 names so too, under
+    /// `zh-Hans`. Named in Japanese under `ja` and `native`, in English's
+    /// Hepburn readings under `en` and under `de`, which has no table, and
+    /// the combination, which English does not name, in Japanese.
     #[test]
     fn the_twenty_first_of_december_2025_is_written_as_the_almanacs_print_it() {
         let day = gregorian::to_fixed(2025, 12, 21).expect("a date").0;
@@ -460,6 +480,7 @@ mod tests {
             kinds,
             [
                 "sexagenary",
+                "nayin",
                 "twelve-direct",
                 "mansion",
                 "mansion-27",
@@ -486,7 +507,11 @@ mod tests {
             row(&rows, "day-star")[..4],
             ["day-star", "1", "一白水星", "ja"]
         );
-        let ids: Vec<&str> = rows[8..].iter().map(|row| row[1].as_str()).collect();
+        assert_eq!(
+            row(&rows, "nayin"),
+            ["nayin", "1", "海中金", "ja", "海中金", "kaichūkin", "", ""]
+        );
+        let ids: Vec<&str> = rows[9..].iter().map(|row| row[1].as_str()).collect();
         assert_eq!(
             ids,
             [
@@ -498,7 +523,7 @@ mod tests {
             ]
         );
         assert_eq!(
-            rows[9],
+            rows[10],
             [
                 "lower-register",
                 "tenshanichi",
@@ -514,8 +539,13 @@ mod tests {
         assert_eq!(day_rows(day, "ja-JP"), rows);
         let english = day_rows(day, "en");
         assert_eq!(english[0][2..4], ["jia-zi", "en"]);
-        assert_eq!(english[7][2..4], ["shakkō", "en"]);
-        assert_eq!(english[12][2..4], ["天赦日＋一粒万倍日", "ja"]);
+        assert_eq!(english[1][2..4], ["kaichūkin", "en"]);
+        assert_eq!(english[8][2..4], ["shakkō", "en"]);
+        assert_eq!(english[13][2..4], ["天赦日＋一粒万倍日", "ja"]);
+        assert_eq!(
+            row(&day_rows(day, "zh-Hans"), "nayin")[..6],
+            ["nayin", "1", "海中金", "zh-Hans", "海中金", "kaichūkin"]
+        );
         assert_eq!(day_rows(day, "de"), english);
         for (english, japanese) in english.iter().zip(&rows) {
             assert_eq!(english[..2], japanese[..2]);

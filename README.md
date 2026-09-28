@@ -102,7 +102,7 @@ includes the crate.
 | [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing eras, Maya, Aztec, Zapotec and Mixtec years, Burmese, Thai, Khmer and Lao lunar, Balinese Pawukon, Olympiads | `regional` |
 | [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time, sundial and temporal hours, Edo hours, zmanim, Islamic prayer times | `astro` |
 | [`hc-seasons`](crates/hc-seasons) | The 24 solar terms, the 72 pentads, 雑節, 六曜, the zodiac, the seasons | `seasons` |
-| [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days; 恵方, 三元九運, 손 없는 날 | `almanac` |
+| [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days, 納音, 臘日; 恵方 and the 八将神, 三元九運, 손 없는 날 | `almanac` |
 | [`hc-fiscal`](crates/hc-fiscal) | Fiscal, tax and academic years | `fiscal` |
 | [`hc-attributes`](crates/hc-attributes) | Birthstones, birth flowers, moon names, traditional month names | `attributes` |
 | [`hc-name-days`](crates/hc-name-days) | Name-day lists by authority and edition, and a loader for licensed lists | `name-days` |

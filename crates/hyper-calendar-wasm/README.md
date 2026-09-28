@@ -2570,8 +2570,8 @@ meridian not read is `HC_ERR_UNKNOWN`.
 `hc_almanac_day(fixed, meridian_ptr, meridian_len, locale_ptr, locale_len,
 buffer, capacity)` needs the `calendars` feature and writes the rest of
 what `hc-almanac` gives a day, one annotation a line, in the order a
-printed almanac page gives them: the sexagenary day, 十二直, 二十八宿 and
-the 二十七宿 of 宿曜道, the year's, the month's and the day's 九星, 六曜,
+printed almanac page gives them: the sexagenary day and its 納音, 十二直,
+二十八宿 and the 二十七宿 of 宿曜道, the year's, the month's and the day's 九星, 六曜,
 then each of the 暦注下段, the 選日 and the modern combinations of them
 that falls on the day, in `hc-almanac`'s listing order. `meridian` is read
 as above and sets where the solar terms and the new moons fall; the
@@ -2582,8 +2582,8 @@ and the identifier in column 2:
 
 | # | Column | Holds |
 | --- | --- | --- |
-| 1 | kind | `sexagenary`, `twelve-direct`, `mansion`, `mansion-27`, `year-star`, `month-star`, `day-star`, `rokuyo`, `lower-register`, `selected-day` or `combination` |
-| 2 | id | for a cycle, the term's 1-based position in it: 甲子 1 to 癸亥 60, 建 1 to 閉 12, 角 1 to 軫 28 (and to 27 without 牛), 一白水星 1 to 九紫火星 9, 先勝 1 to 赤口 6; for a table entry its `hc-almanac` identifier, lower-case kebab: `tenshanichi`, `ichiryu-manbai`, `pardon-and-grain` |
+| 1 | kind | `sexagenary`, `nayin`, `twelve-direct`, `mansion`, `mansion-27`, `year-star`, `month-star`, `day-star`, `rokuyo`, `lower-register`, `selected-day` or `combination` |
+| 2 | id | for a cycle, the term's 1-based position in it: 甲子 1 to 癸亥 60, 海中金 1 to 大海水 30, 建 1 to 閉 12, 角 1 to 軫 28 (and to 27 without 牛), 一白水星 1 to 九紫火星 9, 先勝 1 to 赤口 6; for a table entry its `hc-almanac` identifier, lower-case kebab: `tenshanichi`, `ichiryu-manbai`, `pardon-and-grain` |
 | 3 | name | the name in the locale, from `hc-i18n`: the locale's own where its data has one, else English's, else Japanese's; under `native`, the almanac's own language, Japanese first. The sexagenary day is in the locale's reading of the cycle by the same rule: 甲子, `jia-zi`, 갑자 |
 | 4 | locale used | the tag of the data that named column 3: `ja`, `en`, or for the sexagenary day any locale with a reading of the cycle, `zh-Hant`, `ko`, `vi` |
 | 5 | japanese | the name the Japanese almanac prints, whatever the locale |
@@ -2595,7 +2595,8 @@ Japanese names every term, `ja` as the almanacs print it. English writes
 the terms in the romanisation of column 6, as English writes 六曜, and the
 mansions by the asterisms' English names, Horn to Chariot; the
 combinations are commerce, and have no English name, so under `en` they
-are Japanese with `ja` in column 4. No other locale has names for the
+are Japanese with `ja` in column 4. `zh-Hans` names the 納音 alone, as
+『三命通會』 heads them: 炉中火, 路旁土. No other locale has names for the
 almanac: Chinese and Korean almanacs name some of the same cycles, but no
 source for them was read, and none is translated, so every other locale
 writes English's. On 21 December 2025, a 甲子, the almanacs print 赤口 with
