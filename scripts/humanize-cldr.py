@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate crates/hc-humanize/src/data/cldr48.rs from Unicode CLDR 48.
 
-Every one of the 32 locales hc-humanize carries takes its relative-time
+Every one of the 39 locales hc-humanize carries takes its relative-time
 phrases, its duration patterns, its list patterns, its decimal separator
 and its relative date-time pattern (UTS #35 Part 4's `relative`
 `dateTimeFormat`) from its CLDR 48 file, resolved as CLDR resolves it, and
@@ -56,11 +56,15 @@ BASE = 'https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/'
 # different file than the entry holds: `pa` is Gurmukhi, `yue` Traditional.
 LOCALES = [
     ('ar', ['ar']),
+    ('ar-EG', ['ar_EG', 'ar']),
     ('cs', ['cs']),
     ('cy', ['cy']),
     ('de', ['de']),
     ('en', ['en']),
+    ('en-001', ['en_001', 'en']),
+    ('en-GB', ['en_GB', 'en_001', 'en']),
     ('es', ['es']),
+    ('es-419', ['es_419', 'es']),
     ('fil', ['fil']),
     ('fr', ['fr']),
     ('ha', ['ha']),
@@ -69,6 +73,7 @@ LOCALES = [
     ('it', ['it']),
     ('ja', ['ja']),
     ('ko', ['ko']),
+    ('mn', ['mn']),
     ('mr', ['mr']),
     ('nl', ['nl']),
     ('pa-Guru', ['pa']),
@@ -82,11 +87,13 @@ LOCALES = [
     ('th', ['th']),
     ('tr', ['tr']),
     ('ur', ['ur']),
+    ('ur-IN', ['ur_IN', 'ur']),
     ('vi', ['vi']),
     ('yue-Hans', ['yue_Hans']),
     ('yue-Hant', ['yue']),
     ('zh', ['zh']),
     ('zh-Hant', ['zh_Hant']),
+    ('zh-Hant-HK', ['zh_Hant_HK', 'zh_Hant']),
 ]
 
 # The digits hc-i18n writes a locale's numbers in where they are not CLDR's
@@ -492,7 +499,10 @@ def generate():
             if otag != tag:
                 continue
             assert key in data, f'{tag} {key}: no such value'
-            assert data[key] != value, f'{tag} {key}: the override is CLDR\'s own value'
+            # An `(r)` row records a value where this resolution, UTS #35's,
+            # and cldr-json's differ, and states the value both carry.
+            assert data[key] != value or reason.startswith('(r)'), \
+                f'{tag} {key}: the override is CLDR\'s own value'
             data[key] = value
             notes.append((key, reason))
         for key, value in data.items():

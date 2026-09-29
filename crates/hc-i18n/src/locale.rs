@@ -517,12 +517,16 @@ impl Locale {
 
     /// The next locale up the CLDR inheritance chain, or `None` from root.
     ///
-    /// Extensions go first — they are a request, not an identity — then the
-    /// identity subtags are truncated from the right, which is the rule of
-    /// UTS #35 version 48.2, Part 1, "Truncation" (`uts35-v48`). CLDR 48's
-    /// `parentLocales` exceptions are not applied. The one that touches a
-    /// locale carried here, `zh_Hant` to root, would skip only a bare `zh`,
-    /// and there is no bare `zh` entry to skip.
+    /// Extensions go first — they are a request, not an identity — then a
+    /// variant. Then CLDR 48's `parentLocales` decide where they name the
+    /// locale ([`crate::data::PARENT_LOCALES`], `supplementalData.xml`):
+    /// `en-GB` → `en-001`, `es-MX` → `es-419`, `zh-Hant-MO` → `zh-Hant-HK`,
+    /// `pt-AO` → `pt-PT`, and `zh-Hant`, `yue-Hans` and `pa-Arab` straight to
+    /// root, so that Traditional Chinese never inherits Simplified. Every
+    /// other tag is truncated from the right, which is the rule of UTS #35
+    /// version 48.2, Part 1, "Truncation" (`uts35-v48`). The table's
+    /// `nonlikelyScript` rule, root for any tag whose script is not its
+    /// language's likely one, is applied only to the tags it lists.
     #[must_use]
     pub fn parent(&self) -> Option<Self> {
         if self.has_extensions() {
@@ -532,6 +536,11 @@ impl Locale {
         if next.variant.is_some() {
             next.variant = None;
             return Some(next);
+        }
+        if (next.region.is_some() || next.script.is_some())
+            && let Some(parent) = next.cldr_parent()
+        {
+            return Some(parent);
         }
         if next.region.is_some() {
             next.region = None;
@@ -545,6 +554,17 @@ impl Locale {
             return None;
         }
         Some(Self::ROOT)
+    }
+
+    /// The parent CLDR 48's `parentLocales` give this locale, if they name
+    /// it.
+    fn cldr_parent(&self) -> Option<Self> {
+        let rendered = self.rendered()?;
+        let table = crate::data::PARENT_LOCALES;
+        let index = table
+            .binary_search_by(|(child, _)| (*child).cmp(rendered.as_str()))
+            .ok()?;
+        Self::parse(table[index].1).ok()
     }
 
     /// The fallback chain, starting with this locale and ending at root.
@@ -849,14 +869,51 @@ mod tests {
             chain("ja-JP-u-ca-japanese"),
             ["ja-JP-u-ca-japanese", "ja-JP", "ja", "und"]
         );
-        assert_eq!(chain("zh-Hant-TW"), ["zh-Hant-TW", "zh-Hant", "zh", "und"]);
-        assert_eq!(chain("zh-TW"), ["zh-Hant-TW", "zh-Hant", "zh", "und"]);
-        assert_eq!(chain("zh-HK"), ["zh-Hant-HK", "zh-Hant", "zh", "und"]);
+        // CLDR 48's `parentLocales` take Traditional Chinese to root, not
+        // to the Simplified `zh`, and Macao to Hong Kong.
+        assert_eq!(chain("zh-Hant-TW"), ["zh-Hant-TW", "zh-Hant", "und"]);
+        assert_eq!(chain("zh-TW"), ["zh-Hant-TW", "zh-Hant", "und"]);
+        assert_eq!(chain("zh-HK"), ["zh-Hant-HK", "zh-Hant", "und"]);
+        assert_eq!(
+            chain("zh-MO"),
+            ["zh-Hant-MO", "zh-Hant-HK", "zh-Hant", "und"]
+        );
         assert_eq!(chain("zh-CN"), ["zh-Hans-CN", "zh-Hans", "zh", "und"]);
         assert_eq!(chain("zh"), ["zh-Hans", "zh", "und"]);
         assert_eq!(chain("zh-Latn"), ["zh-Latn", "zh", "und"]);
         assert_eq!(chain("en"), ["en", "und"]);
         assert_eq!(chain("und"), ["und"]);
+    }
+
+    #[test]
+    fn the_fallback_chain_follows_cldr_parent_locales() {
+        assert_eq!(chain("en-GB"), ["en-GB", "en-001", "en", "und"]);
+        assert_eq!(chain("en-AU"), ["en-AU", "en-001", "en", "und"]);
+        assert_eq!(chain("en-AT"), ["en-AT", "en-150", "en-001", "en", "und"]);
+        assert_eq!(chain("en-US"), ["en-US", "en", "und"]);
+        assert_eq!(chain("es-MX"), ["es-MX", "es-419", "es", "und"]);
+        assert_eq!(chain("es-ES"), ["es-ES", "es", "und"]);
+        assert_eq!(chain("pt-AO"), ["pt-AO", "pt-PT", "pt", "und"]);
+        assert_eq!(chain("pa-Arab-PK"), ["pa-Arab-PK", "pa-Arab", "und"]);
+        assert_eq!(chain("yue-Hans"), ["yue-Hans", "und"]);
+        assert_eq!(
+            chain("hi-Latn"),
+            ["hi-Latn", "en-IN", "en-001", "en", "und"]
+        );
+        assert_eq!(
+            chain("en-GB-u-hc-h23"),
+            ["en-GB-u-hc-h23", "en-GB", "en-001", "en", "und"]
+        );
+    }
+
+    #[test]
+    fn the_parent_locale_table_is_sorted_for_its_search() {
+        let table = crate::data::PARENT_LOCALES;
+        assert!(table.windows(2).all(|pair| pair[0].0 < pair[1].0));
+        for (child, parent) in table {
+            assert!(Locale::parse(child).is_ok(), "{child}");
+            assert!(Locale::parse(parent).is_ok(), "{parent}");
+        }
     }
 
     #[test]

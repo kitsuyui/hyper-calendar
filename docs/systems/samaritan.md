@@ -102,8 +102,10 @@ the sacrifice fell on Wednesday 6 May, as published.
 - **Not carried.** The priesthood's own computation, which was not
   read; Shavuot, whose counting rule the community's festival page gives
   — fifty days from the day after the Sabbath in the seven days of
-  Unleavened Bread — but for which no dated Shavuot was read; the
-  Samaritan script.
+  Unleavened Bread — but for which no dated Shavuot was read; the month
+  names in the Samaritan script, which no source read prints (Wikipedia's
+  "Samaritan script" gives the alphabet, not the calendar's words; the
+  community's own printed calendar would).
 
 ## Accuracy
 

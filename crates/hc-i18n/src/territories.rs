@@ -41,7 +41,9 @@
 //! # What is carried, and what is not
 //!
 //! Every locale `hc-i18n` carries whose CLDR file names at least one of the
-//! regions at a release level has a table: 47 of the 53. Most name all 195.
+//! regions at a release level has a table: 47 of the 65, the regional and
+//! added locales of 2026-09-29 (`en-GB`, `mn` and the rest) not yet among
+//! them, so that they reach their parents' tables. Most name all 195.
 //! Two are smaller on purpose, because their files are: Punjabi in the
 //! Arabic script (`pa-Arab`, `pa_Arab.xml`) names Pakistan alone, and
 //! European Portuguese (`pt-PT`, `pt_PT.xml`) the 38 regions its file names

@@ -395,5 +395,5 @@ fn the_units_the_calendars_and_the_locales_are_lines_too() {
         .collect();
     assert_eq!(rows.len(), hc::hc_i18n::data::LOCALES.len());
     assert!(rows.iter().all(|row| row.len() == 7), "{rows:?}");
-    assert_eq!(rows[0][0], "am");
+    assert_eq!(rows[0][0], "aeb-Latn");
 }

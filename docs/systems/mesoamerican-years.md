@@ -255,10 +255,14 @@ last month, and begins the next year six days after it, after the five
 - **Not carried:** Milbrath's placing of the Aztec bearer on the first of
   Izcalli, the 341st day, rather than Caso's 360th [milbrath2022]; under it
   the Mixtec year would begin elsewhere, and it is not a second calendar
-  here because no source read gives the Mixtec year that way. The Mixtec
-  names of the day-signs, which Caso lists [caso1967] and Rodríguez Cano
-  studies [rodriguezcano2008], are not carried: the bearers are named in
-  Nahuatl, as Caso names them.
+  here because no source read gives the Mixtec year that way. The bearers
+  are named in Nahuatl, as Caso names them, and in Mixtec in `hc-i18n`'s
+  `mix` locale, Huiyo, Si, Cuau and Sayu for the Reed, the Flint, the House
+  and the Rabbit: the first of the forms Wikipedia's "Mesoamerican
+  calendars" gives after Caso 1956 and Wauchope 1965
+  [wikipedia-mesoamerican-calendars], a secondary source; Caso's list
+  [caso1967] and Rodríguez Cano's study [rodriguezcano2008] were not read
+  for them.
 
 ### The years still planned
 

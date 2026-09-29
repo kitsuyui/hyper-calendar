@@ -838,10 +838,11 @@ fn a_repeated_unit_is_named_where_a_source_names_it() {
         Err(DateRefusal::NoSuchDate(_))
     ));
     // 1 of the intercalary Bachhalā of 1111 NS, 16 April 1991, and of the
-    // ordinary one after it: Analā, अनला in Wikipedia's table of months.
+    // ordinary one after it: Analā, अनला in Wikipedia's table of months;
+    // the era नेसं as Nepali Wikipedia abbreviates it.
     for (day, en, ne) in [
-        (726_937, "Analā 1, 1111 NS", "११११ NS अनला १"),
-        (726_967, "Bachhalā 1, 1111 NS", "११११ NS बछला १"),
+        (726_937, "Analā 1, 1111 NS", "११११ नेसं अनला १"),
+        (726_967, "Bachhalā 1, 1111 NS", "११११ नेसं बछला १"),
     ] {
         assert_eq!(text("nepal-sambat", day, "en"), en);
         assert_eq!(text("nepal-sambat", day, "ne"), ne);

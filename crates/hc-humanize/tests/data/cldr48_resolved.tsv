@@ -98,6 +98,106 @@ ar	list.standard.2={0} و{1}	list.standard.start={0} و{1}	list.standard.middle=
 ar	list.unit.2={0} و{1}	list.unit.start={0}، و{1}	list.unit.middle={0}، و{1}	list.unit.end={0}، و{1}
 ar	list.narrow.2={0} و{1}	list.narrow.start={0} و{1}	list.narrow.middle={0} و{1}	list.narrow.end={0} و{1}
 ar	decimal=٫	at={0} في {1}
+ar-EG	long.second.past.zero=قبل {0} ثانية	long.second.past.one=قبل ثانية واحدة	long.second.past.two=قبل ثانيتين	long.second.past.few=قبل {0} ثوانِ	long.second.past.many=قبل {0} ثانية	long.second.past.other=قبل {0} ثانية
+ar-EG	long.second.future.zero=خلال {0} ثانية	long.second.future.one=خلال ثانية واحدة	long.second.future.two=خلال ثانيتين	long.second.future.few=خلال {0} ثوانٍ	long.second.future.many=خلال {0} ثانية	long.second.future.other=خلال {0} ثانية
+ar-EG	long.second.count.zero={0} ثانية	long.second.count.one=ثانية	long.second.count.two=ثانيتان	long.second.count.few={0} ثوان	long.second.count.many={0} ثانية	long.second.count.other={0} ثانية
+ar-EG	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=الآن	long.second.relative.1=	long.second.relative.2=
+ar-EG	long.minute.past.zero=قبل {0} دقيقة	long.minute.past.one=قبل دقيقة واحدة	long.minute.past.two=قبل دقيقتين	long.minute.past.few=قبل {0} دقائق	long.minute.past.many=قبل {0} دقيقة	long.minute.past.other=قبل {0} دقيقة
+ar-EG	long.minute.future.zero=خلال {0} دقيقة	long.minute.future.one=خلال دقيقة واحدة	long.minute.future.two=خلال دقيقتين	long.minute.future.few=خلال {0} دقائق	long.minute.future.many=خلال {0} دقيقة	long.minute.future.other=خلال {0} دقيقة
+ar-EG	long.minute.count.zero={0} دقيقة	long.minute.count.one=دقيقة	long.minute.count.two=دقيقتان	long.minute.count.few={0} دقائق	long.minute.count.many={0} دقيقة	long.minute.count.other={0} دقيقة
+ar-EG	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=هذه الدقيقة	long.minute.relative.1=	long.minute.relative.2=
+ar-EG	long.hour.past.zero=قبل {0} ساعة	long.hour.past.one=قبل ساعة واحدة	long.hour.past.two=قبل ساعتين	long.hour.past.few=قبل {0} ساعات	long.hour.past.many=قبل {0} ساعة	long.hour.past.other=قبل {0} ساعة
+ar-EG	long.hour.future.zero=خلال {0} ساعة	long.hour.future.one=خلال ساعة واحدة	long.hour.future.two=خلال ساعتين	long.hour.future.few=خلال {0} ساعات	long.hour.future.many=خلال {0} ساعة	long.hour.future.other=خلال {0} ساعة
+ar-EG	long.hour.count.zero={0} ساعة	long.hour.count.one=ساعة	long.hour.count.two=ساعتان	long.hour.count.few={0} ساعات	long.hour.count.many={0} ساعة	long.hour.count.other={0} ساعة
+ar-EG	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=الساعة الحالية	long.hour.relative.1=	long.hour.relative.2=
+ar-EG	long.day.past.zero=قبل {0} يوم	long.day.past.one=قبل يوم واحد	long.day.past.two=قبل يومين	long.day.past.few=قبل {0} أيام	long.day.past.many=قبل {0} يومًا	long.day.past.other=قبل {0} يوم
+ar-EG	long.day.future.zero=خلال {0} يوم	long.day.future.one=خلال يوم واحد	long.day.future.two=خلال يومين	long.day.future.few=خلال {0} أيام	long.day.future.many=خلال {0} يومًا	long.day.future.other=خلال {0} يوم
+ar-EG	long.day.count.zero={0} يوم	long.day.count.one=يوم	long.day.count.two=يومان	long.day.count.few={0} أيام	long.day.count.many={0} يومًا	long.day.count.other={0} يوم
+ar-EG	long.day.relative.-2=أول أمس	long.day.relative.-1=أمس	long.day.relative.0=اليوم	long.day.relative.1=غدًا	long.day.relative.2=بعد الغد
+ar-EG	long.week.past.zero=قبل {0} أسبوع	long.week.past.one=قبل أسبوع واحد	long.week.past.two=قبل أسبوعين	long.week.past.few=قبل {0} أسابيع	long.week.past.many=قبل {0} أسبوعًا	long.week.past.other=قبل {0} أسبوع
+ar-EG	long.week.future.zero=خلال {0} أسبوع	long.week.future.one=خلال أسبوع واحد	long.week.future.two=خلال أسبوعين	long.week.future.few=خلال {0} أسابيع	long.week.future.many=خلال {0} أسبوعًا	long.week.future.other=خلال {0} أسبوع
+ar-EG	long.week.count.zero={0} أسبوع	long.week.count.one=أسبوع	long.week.count.two=أسبوعان	long.week.count.few={0} أسابيع	long.week.count.many={0} أسبوعًا	long.week.count.other={0} أسبوع
+ar-EG	long.week.relative.-2=	long.week.relative.-1=الأسبوع الماضي	long.week.relative.0=هذا الأسبوع	long.week.relative.1=الأسبوع القادم	long.week.relative.2=
+ar-EG	long.month.past.zero=قبل {0} شهر	long.month.past.one=قبل شهر واحد	long.month.past.two=قبل شهرين	long.month.past.few=قبل {0} أشهر	long.month.past.many=قبل {0} شهرًا	long.month.past.other=قبل {0} شهر
+ar-EG	long.month.future.zero=خلال {0} شهر	long.month.future.one=خلال شهر واحد	long.month.future.two=خلال شهرين	long.month.future.few=خلال {0} أشهر	long.month.future.many=خلال {0} شهرًا	long.month.future.other=خلال {0} شهر
+ar-EG	long.month.count.zero={0} شهر	long.month.count.one=شهر	long.month.count.two=شهران	long.month.count.few={0} أشهر	long.month.count.many={0} شهرًا	long.month.count.other={0} شهر
+ar-EG	long.month.relative.-2=	long.month.relative.-1=الشهر الماضي	long.month.relative.0=هذا الشهر	long.month.relative.1=الشهر القادم	long.month.relative.2=
+ar-EG	long.quarter.past.zero=قبل {0} ربع سنة	long.quarter.past.one=قبل ربع سنة واحد	long.quarter.past.two=قبل ربعي سنة	long.quarter.past.few=قبل {0} أرباع سنة	long.quarter.past.many=قبل {0} ربع سنة	long.quarter.past.other=قبل {0} ربع سنة
+ar-EG	long.quarter.future.zero=خلال {0} ربع سنة	long.quarter.future.one=خلال ربع سنة واحد	long.quarter.future.two=خلال ربعي سنة	long.quarter.future.few=خلال {0} أرباع سنة	long.quarter.future.many=خلال {0} ربع سنة	long.quarter.future.other=خلال {0} ربع سنة
+ar-EG	long.quarter.count.zero={0} ربع سنوي	long.quarter.count.one=ربع سنوي	long.quarter.count.two=ربعان سنويان	long.quarter.count.few={0} أرباع سنوية	long.quarter.count.many={0} ربعًا سنويًا	long.quarter.count.other={0} ربع سنوي
+ar-EG	long.quarter.relative.-2=	long.quarter.relative.-1=الربع الأخير	long.quarter.relative.0=هذا الربع	long.quarter.relative.1=الربع القادم	long.quarter.relative.2=
+ar-EG	long.year.past.zero=قبل {0} سنة	long.year.past.one=قبل سنة واحدة	long.year.past.two=قبل سنتين	long.year.past.few=قبل {0} سنوات	long.year.past.many=قبل {0} سنة	long.year.past.other=قبل {0} سنة
+ar-EG	long.year.future.zero=خلال {0} سنة	long.year.future.one=خلال سنة واحدة	long.year.future.two=خلال سنتين	long.year.future.few=خلال {0} سنوات	long.year.future.many=خلال {0} سنة	long.year.future.other=خلال {0} سنة
+ar-EG	long.year.count.zero={0} سنة	long.year.count.one=سنة	long.year.count.two=سنتان	long.year.count.few={0} سنوات	long.year.count.many={0} سنة	long.year.count.other={0} سنة
+ar-EG	long.year.relative.-2=	long.year.relative.-1=السنة الماضية	long.year.relative.0=السنة الحالية	long.year.relative.1=السنة القادمة	long.year.relative.2=
+ar-EG	short.second.past.zero=قبل {0} ثانية	short.second.past.one=قبل ثانية واحدة	short.second.past.two=قبل ثانيتين	short.second.past.few=قبل {0} ثوانٍ	short.second.past.many=قبل {0} ثانية	short.second.past.other=قبل {0} ثانية
+ar-EG	short.second.future.zero=خلال {0} ثانية	short.second.future.one=خلال ثانية واحدة	short.second.future.two=خلال ثانيتين	short.second.future.few=خلال {0} ثوانٍ	short.second.future.many=خلال {0} ثانية	short.second.future.other=خلال {0} ثانية
+ar-EG	short.second.count.zero={0} ث	short.second.count.one={0} ث	short.second.count.two={0} ث	short.second.count.few={0} ث	short.second.count.many={0} ث	short.second.count.other={0} ث
+ar-EG	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=الآن	short.second.relative.1=	short.second.relative.2=
+ar-EG	short.minute.past.zero=قبل {0} دقيقة	short.minute.past.one=قبل دقيقة واحدة	short.minute.past.two=قبل دقيقتين	short.minute.past.few=قبل {0} دقائق	short.minute.past.many=قبل {0} دقيقة	short.minute.past.other=قبل {0} دقيقة
+ar-EG	short.minute.future.zero=خلال {0} دقيقة	short.minute.future.one=خلال دقيقة واحدة	short.minute.future.two=خلال دقيقتين	short.minute.future.few=خلال {0} دقائق	short.minute.future.many=خلال {0} دقيقة	short.minute.future.other=خلال {0} دقيقة
+ar-EG	short.minute.count.zero={0} د	short.minute.count.one={0} د	short.minute.count.two={0} د	short.minute.count.few={0} د	short.minute.count.many={0} د	short.minute.count.other={0} د
+ar-EG	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=هذه الدقيقة	short.minute.relative.1=	short.minute.relative.2=
+ar-EG	short.hour.past.zero=قبل {0} ساعة	short.hour.past.one=قبل ساعة واحدة	short.hour.past.two=قبل ساعتين	short.hour.past.few=قبل {0} ساعات	short.hour.past.many=قبل {0} ساعة	short.hour.past.other=قبل {0} ساعة
+ar-EG	short.hour.future.zero=خلال {0} ساعة	short.hour.future.one=خلال ساعة واحدة	short.hour.future.two=خلال ساعتين	short.hour.future.few=خلال {0} ساعات	short.hour.future.many=خلال {0} ساعة	short.hour.future.other=خلال {0} ساعة
+ar-EG	short.hour.count.zero={0} س	short.hour.count.one={0} س	short.hour.count.two={0} س	short.hour.count.few={0} س	short.hour.count.many={0} س	short.hour.count.other={0} س
+ar-EG	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=الساعة الحالية	short.hour.relative.1=	short.hour.relative.2=
+ar-EG	short.day.past.zero=قبل {0} يوم	short.day.past.one=قبل يوم واحد	short.day.past.two=قبل يومين	short.day.past.few=قبل {0} أيام	short.day.past.many=قبل {0} يومًا	short.day.past.other=قبل {0} يوم
+ar-EG	short.day.future.zero=خلال {0} يوم	short.day.future.one=خلال يوم واحد	short.day.future.two=خلال يومين	short.day.future.few=خلال {0} أيام	short.day.future.many=خلال {0} يومًا	short.day.future.other=خلال {0} يوم
+ar-EG	short.day.count.zero={0} يوم	short.day.count.one=يوم	short.day.count.two=يومان	short.day.count.few={0} أيام	short.day.count.many={0} يومًا	short.day.count.other={0} يوم
+ar-EG	short.day.relative.-2=أول أمس	short.day.relative.-1=أمس	short.day.relative.0=اليوم	short.day.relative.1=غدًا	short.day.relative.2=بعد الغد
+ar-EG	short.week.past.zero=قبل {0} أسبوع	short.week.past.one=قبل أسبوع واحد	short.week.past.two=قبل أسبوعين	short.week.past.few=قبل {0} أسابيع	short.week.past.many=قبل {0} أسبوعًا	short.week.past.other=قبل {0} أسبوع
+ar-EG	short.week.future.zero=خلال {0} أسبوع	short.week.future.one=خلال أسبوع واحد	short.week.future.two=خلال {0} أسبوعين	short.week.future.few=خلال {0} أسابيع	short.week.future.many=خلال {0} أسبوعًا	short.week.future.other=خلال {0} أسبوع
+ar-EG	short.week.count.zero={0} أسبوع	short.week.count.one=أسبوع	short.week.count.two=أسبوعان	short.week.count.few={0} أسابيع	short.week.count.many={0} أسبوعًا	short.week.count.other={0} أسبوع
+ar-EG	short.week.relative.-2=	short.week.relative.-1=الأسبوع الماضي	short.week.relative.0=هذا الأسبوع	short.week.relative.1=الأسبوع القادم	short.week.relative.2=
+ar-EG	short.month.past.zero=قبل {0} شهر	short.month.past.one=قبل شهر واحد	short.month.past.two=قبل شهرين	short.month.past.few=خلال {0} أشهر	short.month.past.many=قبل {0} شهرًا	short.month.past.other=قبل {0} شهر
+ar-EG	short.month.future.zero=خلال {0} شهر	short.month.future.one=خلال شهر واحد	short.month.future.two=خلال شهرين	short.month.future.few=خلال {0} أشهر	short.month.future.many=خلال {0} شهرًا	short.month.future.other=خلال {0} شهر
+ar-EG	short.month.count.zero={0} شهر	short.month.count.one=شهر	short.month.count.two=شهران	short.month.count.few={0} أشهر	short.month.count.many={0} شهرًا	short.month.count.other={0} شهر
+ar-EG	short.month.relative.-2=	short.month.relative.-1=الشهر الماضي	short.month.relative.0=هذا الشهر	short.month.relative.1=الشهر القادم	short.month.relative.2=
+ar-EG	short.quarter.past.zero=قبل {0} ربع سنة	short.quarter.past.one=قبل ربع سنة واحد	short.quarter.past.two=قبل ربعي سنة	short.quarter.past.few=قبل {0} أرباع سنة	short.quarter.past.many=قبل {0} ربع سنة	short.quarter.past.other=قبل {0} ربع سنة
+ar-EG	short.quarter.future.zero=خلال {0} ربع سنة	short.quarter.future.one=خلال ربع سنة واحد	short.quarter.future.two=خلال ربعي سنة	short.quarter.future.few=خلال {0} أرباع سنة	short.quarter.future.many=خلال {0} ربع سنة	short.quarter.future.other=خلال {0} ربع سنة
+ar-EG	short.quarter.count.zero={0} ربع	short.quarter.count.one=ربع	short.quarter.count.two=ربعان	short.quarter.count.few={0} أرباع	short.quarter.count.many={0} ربعًا	short.quarter.count.other={0} ربع
+ar-EG	short.quarter.relative.-2=	short.quarter.relative.-1=الربع الأخير	short.quarter.relative.0=هذا الربع	short.quarter.relative.1=الربع القادم	short.quarter.relative.2=
+ar-EG	short.year.past.zero=قبل {0} سنة	short.year.past.one=قبل سنة واحدة	short.year.past.two=قبل سنتين	short.year.past.few=قبل {0} سنوات	short.year.past.many=قبل {0} سنة	short.year.past.other=قبل {0} سنة
+ar-EG	short.year.future.zero=خلال {0} سنة	short.year.future.one=خلال سنة واحدة	short.year.future.two=خلال سنتين	short.year.future.few=خلال {0} سنوات	short.year.future.many=خلال {0} سنة	short.year.future.other=خلال {0} سنة
+ar-EG	short.year.count.zero={0} سنة	short.year.count.one=سنة واحدة	short.year.count.two=سنتان	short.year.count.few={0} سنوات	short.year.count.many={0} سنة	short.year.count.other={0} سنة
+ar-EG	short.year.relative.-2=	short.year.relative.-1=السنة الماضية	short.year.relative.0=السنة الحالية	short.year.relative.1=السنة القادمة	short.year.relative.2=
+ar-EG	narrow.second.past.zero=قبل {0} ثانية	narrow.second.past.one=قبل ثانية واحدة	narrow.second.past.two=قبل ثانيتين	narrow.second.past.few=قبل {0} ثوانٍ	narrow.second.past.many=قبل {0} ثانية	narrow.second.past.other=قبل {0} ثانية
+ar-EG	narrow.second.future.zero=خلال {0} ثانية	narrow.second.future.one=خلال ثانية واحدة	narrow.second.future.two=خلال ثانيتين	narrow.second.future.few=خلال {0} ثوانٍ	narrow.second.future.many=خلال {0} ثانية	narrow.second.future.other=خلال {0} ثانية
+ar-EG	narrow.second.count.zero={0} ث	narrow.second.count.one={0} ث	narrow.second.count.two={0} ث	narrow.second.count.few={0} ث	narrow.second.count.many={0} ث	narrow.second.count.other={0} ث
+ar-EG	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=الآن	narrow.second.relative.1=	narrow.second.relative.2=
+ar-EG	narrow.minute.past.zero=قبل {0} دقيقة	narrow.minute.past.one=قبل دقيقة واحدة	narrow.minute.past.two=قبل دقيقتين	narrow.minute.past.few=قبل {0} دقائق	narrow.minute.past.many=قبل {0} دقيقة	narrow.minute.past.other=قبل {0} دقيقة
+ar-EG	narrow.minute.future.zero=خلال {0} دقيقة	narrow.minute.future.one=خلال دقيقة واحدة	narrow.minute.future.two=خلال دقيقتين	narrow.minute.future.few=خلال {0} دقائق	narrow.minute.future.many=خلال {0} دقيقة	narrow.minute.future.other=خلال {0} دقيقة
+ar-EG	narrow.minute.count.zero={0} د	narrow.minute.count.one={0} د	narrow.minute.count.two={0} د	narrow.minute.count.few={0} د	narrow.minute.count.many={0} د	narrow.minute.count.other={0} د
+ar-EG	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=هذه الدقيقة	narrow.minute.relative.1=	narrow.minute.relative.2=
+ar-EG	narrow.hour.past.zero=قبل {0} ساعة	narrow.hour.past.one=قبل ساعة واحدة	narrow.hour.past.two=قبل ساعتين	narrow.hour.past.few=قبل {0} ساعات	narrow.hour.past.many=قبل {0} ساعة	narrow.hour.past.other=قبل {0} ساعة
+ar-EG	narrow.hour.future.zero=خلال {0} ساعة	narrow.hour.future.one=خلال ساعة واحدة	narrow.hour.future.two=خلال ساعتين	narrow.hour.future.few=خلال {0} ساعات	narrow.hour.future.many=خلال {0} ساعة	narrow.hour.future.other=خلال {0} ساعة
+ar-EG	narrow.hour.count.zero={0} س	narrow.hour.count.one={0} س	narrow.hour.count.two={0} س	narrow.hour.count.few={0} س	narrow.hour.count.many={0} س	narrow.hour.count.other={0} س
+ar-EG	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=الساعة الحالية	narrow.hour.relative.1=	narrow.hour.relative.2=
+ar-EG	narrow.day.past.zero=قبل {0} يوم	narrow.day.past.one=قبل يوم واحد	narrow.day.past.two=قبل يومين	narrow.day.past.few=قبل {0} أيام	narrow.day.past.many=قبل {0} يومًا	narrow.day.past.other=قبل {0} يوم
+ar-EG	narrow.day.future.zero=خلال {0} يوم	narrow.day.future.one=خلال يوم واحد	narrow.day.future.two=خلال يومين	narrow.day.future.few=خلال {0} أيام	narrow.day.future.many=خلال {0} يومًا	narrow.day.future.other=خلال {0} يوم
+ar-EG	narrow.day.count.zero={0} ي	narrow.day.count.one={0} ي	narrow.day.count.two={0} ي	narrow.day.count.few={0} ي	narrow.day.count.many={0} ي	narrow.day.count.other={0} ي
+ar-EG	narrow.day.relative.-2=أول أمس	narrow.day.relative.-1=أمس	narrow.day.relative.0=اليوم	narrow.day.relative.1=غدًا	narrow.day.relative.2=بعد الغد
+ar-EG	narrow.week.past.zero=قبل {0} أسبوع	narrow.week.past.one=قبل أسبوع واحد	narrow.week.past.two=قبل أسبوعين	narrow.week.past.few=قبل {0} أسابيع	narrow.week.past.many=قبل {0} أسبوعًا	narrow.week.past.other=قبل {0} أسبوع
+ar-EG	narrow.week.future.zero=خلال {0} أسبوع	narrow.week.future.one=خلال أسبوع واحد	narrow.week.future.two=خلال أسبوعين	narrow.week.future.few=خلال {0} أسابيع	narrow.week.future.many=خلال {0} أسبوعًا	narrow.week.future.other=خلال {0} أسبوع
+ar-EG	narrow.week.count.zero={0} أ	narrow.week.count.one={0} أ	narrow.week.count.two={0} أ	narrow.week.count.few={0} أ	narrow.week.count.many={0} أ	narrow.week.count.other={0} أ
+ar-EG	narrow.week.relative.-2=	narrow.week.relative.-1=الأسبوع الماضي	narrow.week.relative.0=هذا الأسبوع	narrow.week.relative.1=الأسبوع القادم	narrow.week.relative.2=
+ar-EG	narrow.month.past.zero=قبل {0} شهر	narrow.month.past.one=قبل شهر واحد	narrow.month.past.two=قبل شهرين	narrow.month.past.few=قبل {0} أشهر	narrow.month.past.many=قبل {0} شهرًا	narrow.month.past.other=قبل {0} شهر
+ar-EG	narrow.month.future.zero=خلال {0} شهر	narrow.month.future.one=خلال شهر واحد	narrow.month.future.two=خلال شهرين	narrow.month.future.few=خلال {0} أشهر	narrow.month.future.many=خلال {0} شهرًا	narrow.month.future.other=خلال {0} شهر
+ar-EG	narrow.month.count.zero={0} شهر	narrow.month.count.one=شهر	narrow.month.count.two=شهران	narrow.month.count.few={0} أشهر	narrow.month.count.many={0} شهرًا	narrow.month.count.other={0} شهر
+ar-EG	narrow.month.relative.-2=	narrow.month.relative.-1=الشهر الماضي	narrow.month.relative.0=هذا الشهر	narrow.month.relative.1=الشهر القادم	narrow.month.relative.2=
+ar-EG	narrow.quarter.past.zero=قبل {0} ربع سنة	narrow.quarter.past.one=قبل ربع سنة واحد	narrow.quarter.past.two=قبل ربعي سنة	narrow.quarter.past.few=قبل {0} أرباع سنة	narrow.quarter.past.many=قبل {0} ربع سنة	narrow.quarter.past.other=قبل {0} ربع سنة
+ar-EG	narrow.quarter.future.zero=خلال {0} ربع سنة	narrow.quarter.future.one=خلال ربع سنة واحد	narrow.quarter.future.two=خلال ربعي سنة	narrow.quarter.future.few=خلال {0} أرباع سنة	narrow.quarter.future.many=خلال {0} ربع سنة	narrow.quarter.future.other=خلال {0} ربع سنة
+ar-EG	narrow.quarter.count.zero={0} ربع	narrow.quarter.count.one=ربع	narrow.quarter.count.two=ربعان	narrow.quarter.count.few={0} أرباع	narrow.quarter.count.many={0} ربعًا	narrow.quarter.count.other={0} ربع
+ar-EG	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=الربع الأخير	narrow.quarter.relative.0=هذا الربع	narrow.quarter.relative.1=الربع القادم	narrow.quarter.relative.2=
+ar-EG	narrow.year.past.zero=قبل {0} سنة	narrow.year.past.one=قبل سنة واحدة	narrow.year.past.two=قبل سنتين	narrow.year.past.few=قبل {0} سنوات	narrow.year.past.many=قبل {0} سنة	narrow.year.past.other=قبل {0} سنة
+ar-EG	narrow.year.future.zero=خلال {0} سنة	narrow.year.future.one=خلال سنة واحدة	narrow.year.future.two=خلال سنتين	narrow.year.future.few=خلال {0} سنوات	narrow.year.future.many=خلال {0} سنة	narrow.year.future.other=خلال {0} سنة
+ar-EG	narrow.year.count.zero={0} سنة	narrow.year.count.one={0} سنة	narrow.year.count.two={0} سنة	narrow.year.count.few={0} سنة	narrow.year.count.many={0} سنة	narrow.year.count.other={0} سنة
+ar-EG	narrow.year.relative.-2=	narrow.year.relative.-1=السنة الماضية	narrow.year.relative.0=السنة الحالية	narrow.year.relative.1=السنة القادمة	narrow.year.relative.2=
+ar-EG	list.standard.2={0} و{1}	list.standard.start={0} و{1}	list.standard.middle={0} و{1}	list.standard.end={0} و{1}
+ar-EG	list.unit.2={0} و{1}	list.unit.start={0}، و{1}	list.unit.middle={0}، و{1}	list.unit.end={0}، و{1}
+ar-EG	list.narrow.2={0} و{1}	list.narrow.start={0} و{1}	list.narrow.middle={0} و{1}	list.narrow.end={0} و{1}
+ar-EG	decimal=٫	at={0} في {1}
 cs	long.second.past.one=před {0} sekundou	long.second.past.few=před {0} sekundami	long.second.past.many=před {0} sekundy	long.second.past.other=před {0} sekundami
 cs	long.second.future.one=za {0} sekundu	long.second.future.few=za {0} sekundy	long.second.future.many=za {0} sekundy	long.second.future.other=za {0} sekund
 cs	long.second.count.one={0} sekunda	long.second.count.few={0} sekundy	long.second.count.many={0} sekundy	long.second.count.other={0} sekund
@@ -498,6 +598,206 @@ en	list.standard.2={0} and {1}	list.standard.start={0}, {1}	list.standard.middle
 en	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
 en	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 en	decimal=.	at={0} at {1}
+en-001	long.second.past.one={0} second ago	long.second.past.other={0} seconds ago
+en-001	long.second.future.one=in {0} second	long.second.future.other=in {0} seconds
+en-001	long.second.count.one={0} second	long.second.count.other={0} seconds
+en-001	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=now	long.second.relative.1=	long.second.relative.2=
+en-001	long.minute.past.one={0} minute ago	long.minute.past.other={0} minutes ago
+en-001	long.minute.future.one=in {0} minute	long.minute.future.other=in {0} minutes
+en-001	long.minute.count.one={0} minute	long.minute.count.other={0} minutes
+en-001	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=this minute	long.minute.relative.1=	long.minute.relative.2=
+en-001	long.hour.past.one={0} hour ago	long.hour.past.other={0} hours ago
+en-001	long.hour.future.one=in {0} hour	long.hour.future.other=in {0} hours
+en-001	long.hour.count.one={0} hour	long.hour.count.other={0} hours
+en-001	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=this hour	long.hour.relative.1=	long.hour.relative.2=
+en-001	long.day.past.one={0} day ago	long.day.past.other={0} days ago
+en-001	long.day.future.one=in {0} day	long.day.future.other=in {0} days
+en-001	long.day.count.one={0} day	long.day.count.other={0} days
+en-001	long.day.relative.-2=	long.day.relative.-1=yesterday	long.day.relative.0=today	long.day.relative.1=tomorrow	long.day.relative.2=
+en-001	long.week.past.one={0} week ago	long.week.past.other={0} weeks ago
+en-001	long.week.future.one=in {0} week	long.week.future.other=in {0} weeks
+en-001	long.week.count.one={0} week	long.week.count.other={0} weeks
+en-001	long.week.relative.-2=	long.week.relative.-1=last week	long.week.relative.0=this week	long.week.relative.1=next week	long.week.relative.2=
+en-001	long.month.past.one={0} month ago	long.month.past.other={0} months ago
+en-001	long.month.future.one=in {0} month	long.month.future.other=in {0} months
+en-001	long.month.count.one={0} month	long.month.count.other={0} months
+en-001	long.month.relative.-2=	long.month.relative.-1=last month	long.month.relative.0=this month	long.month.relative.1=next month	long.month.relative.2=
+en-001	long.quarter.past.one={0} quarter ago	long.quarter.past.other={0} quarters ago
+en-001	long.quarter.future.one=in {0} quarter	long.quarter.future.other=in {0} quarters
+en-001	long.quarter.count.one={0} quarter	long.quarter.count.other={0} quarters
+en-001	long.quarter.relative.-2=	long.quarter.relative.-1=last quarter	long.quarter.relative.0=this quarter	long.quarter.relative.1=next quarter	long.quarter.relative.2=
+en-001	long.year.past.one={0} year ago	long.year.past.other={0} years ago
+en-001	long.year.future.one=in {0} year	long.year.future.other=in {0} years
+en-001	long.year.count.one={0} year	long.year.count.other={0} years
+en-001	long.year.relative.-2=	long.year.relative.-1=last year	long.year.relative.0=this year	long.year.relative.1=next year	long.year.relative.2=
+en-001	short.second.past.one={0} sec ago	short.second.past.other={0} sec ago
+en-001	short.second.future.one=in {0} sec	short.second.future.other=in {0} sec
+en-001	short.second.count.one={0} sec	short.second.count.other={0} secs
+en-001	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=now	short.second.relative.1=	short.second.relative.2=
+en-001	short.minute.past.one={0} min ago	short.minute.past.other={0} min ago
+en-001	short.minute.future.one=in {0} min	short.minute.future.other=in {0} min
+en-001	short.minute.count.one={0} min	short.minute.count.other={0} mins
+en-001	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=this minute	short.minute.relative.1=	short.minute.relative.2=
+en-001	short.hour.past.one={0} hr ago	short.hour.past.other={0} hr ago
+en-001	short.hour.future.one=in {0} hr	short.hour.future.other=in {0} hr
+en-001	short.hour.count.one={0} hr	short.hour.count.other={0} hrs
+en-001	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=this hour	short.hour.relative.1=	short.hour.relative.2=
+en-001	short.day.past.one={0} day ago	short.day.past.other={0} days ago
+en-001	short.day.future.one=in {0} day	short.day.future.other=in {0} days
+en-001	short.day.count.one={0} day	short.day.count.other={0} days
+en-001	short.day.relative.-2=	short.day.relative.-1=yesterday	short.day.relative.0=today	short.day.relative.1=tomorrow	short.day.relative.2=
+en-001	short.week.past.one={0} wk ago	short.week.past.other={0} wk ago
+en-001	short.week.future.one=in {0} wk	short.week.future.other=in {0} wk
+en-001	short.week.count.one={0} wk	short.week.count.other={0} wks
+en-001	short.week.relative.-2=	short.week.relative.-1=last wk	short.week.relative.0=this wk	short.week.relative.1=next wk	short.week.relative.2=
+en-001	short.month.past.one={0} mo ago	short.month.past.other={0} mo ago
+en-001	short.month.future.one=in {0} mo	short.month.future.other=in {0} mo
+en-001	short.month.count.one={0} mth	short.month.count.other={0} mths
+en-001	short.month.relative.-2=	short.month.relative.-1=last mo	short.month.relative.0=this mo	short.month.relative.1=next mo	short.month.relative.2=
+en-001	short.quarter.past.one={0} qtr ago	short.quarter.past.other={0} qtr ago
+en-001	short.quarter.future.one=in {0} qtr	short.quarter.future.other=in {0} qtr
+en-001	short.quarter.count.one={0} qtr	short.quarter.count.other={0} qtrs
+en-001	short.quarter.relative.-2=	short.quarter.relative.-1=last qtr.	short.quarter.relative.0=this qtr.	short.quarter.relative.1=next qtr.	short.quarter.relative.2=
+en-001	short.year.past.one={0} yr ago	short.year.past.other={0} yr ago
+en-001	short.year.future.one=in {0} yr	short.year.future.other=in {0} yr
+en-001	short.year.count.one={0} yr	short.year.count.other={0} yrs
+en-001	short.year.relative.-2=	short.year.relative.-1=last yr	short.year.relative.0=this yr	short.year.relative.1=next yr	short.year.relative.2=
+en-001	narrow.second.past.one={0} sec ago	narrow.second.past.other={0} sec ago
+en-001	narrow.second.future.one=in {0} sec	narrow.second.future.other=in {0} sec
+en-001	narrow.second.count.one={0}s	narrow.second.count.other={0}s
+en-001	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=now	narrow.second.relative.1=	narrow.second.relative.2=
+en-001	narrow.minute.past.one={0} min ago	narrow.minute.past.other={0} min ago
+en-001	narrow.minute.future.one=in {0} min	narrow.minute.future.other=in {0} min
+en-001	narrow.minute.count.one={0}m	narrow.minute.count.other={0}m
+en-001	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=this minute	narrow.minute.relative.1=	narrow.minute.relative.2=
+en-001	narrow.hour.past.one={0} hr ago	narrow.hour.past.other={0} hr ago
+en-001	narrow.hour.future.one=in {0} hr	narrow.hour.future.other=in {0} hr
+en-001	narrow.hour.count.one={0}h	narrow.hour.count.other={0}h
+en-001	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=this hour	narrow.hour.relative.1=	narrow.hour.relative.2=
+en-001	narrow.day.past.one={0} day ago	narrow.day.past.other={0} days ago
+en-001	narrow.day.future.one=in {0} day	narrow.day.future.other=in {0} days
+en-001	narrow.day.count.one={0}d	narrow.day.count.other={0}d
+en-001	narrow.day.relative.-2=	narrow.day.relative.-1=yesterday	narrow.day.relative.0=today	narrow.day.relative.1=tomorrow	narrow.day.relative.2=
+en-001	narrow.week.past.one={0} wk ago	narrow.week.past.other={0} wk ago
+en-001	narrow.week.future.one=in {0} wk	narrow.week.future.other=in {0} wk
+en-001	narrow.week.count.one={0}w	narrow.week.count.other={0}w
+en-001	narrow.week.relative.-2=	narrow.week.relative.-1=last wk	narrow.week.relative.0=this wk	narrow.week.relative.1=next wk	narrow.week.relative.2=
+en-001	narrow.month.past.one={0} mo ago	narrow.month.past.other={0} mo ago
+en-001	narrow.month.future.one=in {0} mo	narrow.month.future.other=in {0} mo
+en-001	narrow.month.count.one={0}m	narrow.month.count.other={0}m
+en-001	narrow.month.relative.-2=	narrow.month.relative.-1=last mo	narrow.month.relative.0=this mo	narrow.month.relative.1=next mo	narrow.month.relative.2=
+en-001	narrow.quarter.past.one={0} qtr ago	narrow.quarter.past.other={0} qtr ago
+en-001	narrow.quarter.future.one=in {0} qtr	narrow.quarter.future.other=in {0} qtr
+en-001	narrow.quarter.count.one={0}q	narrow.quarter.count.other={0}q
+en-001	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=last qtr.	narrow.quarter.relative.0=this qtr.	narrow.quarter.relative.1=next qtr.	narrow.quarter.relative.2=
+en-001	narrow.year.past.one={0} yr ago	narrow.year.past.other={0} yr ago
+en-001	narrow.year.future.one=in {0} yr	narrow.year.future.other=in {0} yr
+en-001	narrow.year.count.one={0}y	narrow.year.count.other={0}y
+en-001	narrow.year.relative.-2=	narrow.year.relative.-1=last yr	narrow.year.relative.0=this yr	narrow.year.relative.1=next yr	narrow.year.relative.2=
+en-001	list.standard.2={0} and {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} and {1}
+en-001	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+en-001	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+en-001	decimal=.	at={0} at {1}
+en-GB	long.second.past.one={0} second ago	long.second.past.other={0} seconds ago
+en-GB	long.second.future.one=in {0} second	long.second.future.other=in {0} seconds
+en-GB	long.second.count.one={0} second	long.second.count.other={0} seconds
+en-GB	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=now	long.second.relative.1=	long.second.relative.2=
+en-GB	long.minute.past.one={0} minute ago	long.minute.past.other={0} minutes ago
+en-GB	long.minute.future.one=in {0} minute	long.minute.future.other=in {0} minutes
+en-GB	long.minute.count.one={0} minute	long.minute.count.other={0} minutes
+en-GB	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=this minute	long.minute.relative.1=	long.minute.relative.2=
+en-GB	long.hour.past.one={0} hour ago	long.hour.past.other={0} hours ago
+en-GB	long.hour.future.one=in {0} hour	long.hour.future.other=in {0} hours
+en-GB	long.hour.count.one={0} hour	long.hour.count.other={0} hours
+en-GB	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=this hour	long.hour.relative.1=	long.hour.relative.2=
+en-GB	long.day.past.one={0} day ago	long.day.past.other={0} days ago
+en-GB	long.day.future.one=in {0} day	long.day.future.other=in {0} days
+en-GB	long.day.count.one={0} day	long.day.count.other={0} days
+en-GB	long.day.relative.-2=	long.day.relative.-1=yesterday	long.day.relative.0=today	long.day.relative.1=tomorrow	long.day.relative.2=
+en-GB	long.week.past.one={0} week ago	long.week.past.other={0} weeks ago
+en-GB	long.week.future.one=in {0} week	long.week.future.other=in {0} weeks
+en-GB	long.week.count.one={0} week	long.week.count.other={0} weeks
+en-GB	long.week.relative.-2=	long.week.relative.-1=last week	long.week.relative.0=this week	long.week.relative.1=next week	long.week.relative.2=
+en-GB	long.month.past.one={0} month ago	long.month.past.other={0} months ago
+en-GB	long.month.future.one=in {0} month	long.month.future.other=in {0} months
+en-GB	long.month.count.one={0} month	long.month.count.other={0} months
+en-GB	long.month.relative.-2=	long.month.relative.-1=last month	long.month.relative.0=this month	long.month.relative.1=next month	long.month.relative.2=
+en-GB	long.quarter.past.one={0} quarter ago	long.quarter.past.other={0} quarters ago
+en-GB	long.quarter.future.one=in {0} quarter	long.quarter.future.other=in {0} quarters
+en-GB	long.quarter.count.one={0} quarter	long.quarter.count.other={0} quarters
+en-GB	long.quarter.relative.-2=	long.quarter.relative.-1=last quarter	long.quarter.relative.0=this quarter	long.quarter.relative.1=next quarter	long.quarter.relative.2=
+en-GB	long.year.past.one={0} year ago	long.year.past.other={0} years ago
+en-GB	long.year.future.one=in {0} year	long.year.future.other=in {0} years
+en-GB	long.year.count.one={0} year	long.year.count.other={0} years
+en-GB	long.year.relative.-2=	long.year.relative.-1=last year	long.year.relative.0=this year	long.year.relative.1=next year	long.year.relative.2=
+en-GB	short.second.past.one={0} sec ago	short.second.past.other={0} sec ago
+en-GB	short.second.future.one=in {0} sec	short.second.future.other=in {0} sec
+en-GB	short.second.count.one={0} sec	short.second.count.other={0} secs
+en-GB	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=now	short.second.relative.1=	short.second.relative.2=
+en-GB	short.minute.past.one={0} min ago	short.minute.past.other={0} min ago
+en-GB	short.minute.future.one=in {0} min	short.minute.future.other=in {0} min
+en-GB	short.minute.count.one={0} min	short.minute.count.other={0} mins
+en-GB	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=this minute	short.minute.relative.1=	short.minute.relative.2=
+en-GB	short.hour.past.one={0} hr ago	short.hour.past.other={0} hr ago
+en-GB	short.hour.future.one=in {0} hr	short.hour.future.other=in {0} hr
+en-GB	short.hour.count.one={0} hr	short.hour.count.other={0} hrs
+en-GB	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=this hour	short.hour.relative.1=	short.hour.relative.2=
+en-GB	short.day.past.one={0} day ago	short.day.past.other={0} days ago
+en-GB	short.day.future.one=in {0} day	short.day.future.other=in {0} days
+en-GB	short.day.count.one={0} day	short.day.count.other={0} days
+en-GB	short.day.relative.-2=	short.day.relative.-1=yesterday	short.day.relative.0=today	short.day.relative.1=tomorrow	short.day.relative.2=
+en-GB	short.week.past.one={0} wk ago	short.week.past.other={0} wk ago
+en-GB	short.week.future.one=in {0} wk	short.week.future.other=in {0} wk
+en-GB	short.week.count.one={0} wk	short.week.count.other={0} wks
+en-GB	short.week.relative.-2=	short.week.relative.-1=last wk	short.week.relative.0=this wk	short.week.relative.1=next wk	short.week.relative.2=
+en-GB	short.month.past.one={0} mo ago	short.month.past.other={0} mo ago
+en-GB	short.month.future.one=in {0} mo	short.month.future.other=in {0} mo
+en-GB	short.month.count.one={0} mth	short.month.count.other={0} mths
+en-GB	short.month.relative.-2=	short.month.relative.-1=last mo	short.month.relative.0=this mo	short.month.relative.1=next mo	short.month.relative.2=
+en-GB	short.quarter.past.one={0} qtr ago	short.quarter.past.other={0} qtr ago
+en-GB	short.quarter.future.one=in {0} qtr	short.quarter.future.other=in {0} qtr
+en-GB	short.quarter.count.one={0} qtr	short.quarter.count.other={0} qtrs
+en-GB	short.quarter.relative.-2=	short.quarter.relative.-1=last qtr.	short.quarter.relative.0=this qtr.	short.quarter.relative.1=next qtr.	short.quarter.relative.2=
+en-GB	short.year.past.one={0} yr ago	short.year.past.other={0} yr ago
+en-GB	short.year.future.one=in {0} yr	short.year.future.other=in {0} yr
+en-GB	short.year.count.one={0} yr	short.year.count.other={0} yrs
+en-GB	short.year.relative.-2=	short.year.relative.-1=last yr	short.year.relative.0=this yr	short.year.relative.1=next yr	short.year.relative.2=
+en-GB	narrow.second.past.one={0} sec ago	narrow.second.past.other={0} sec ago
+en-GB	narrow.second.future.one=in {0} sec	narrow.second.future.other=in {0} sec
+en-GB	narrow.second.count.one={0}s	narrow.second.count.other={0}s
+en-GB	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=now	narrow.second.relative.1=	narrow.second.relative.2=
+en-GB	narrow.minute.past.one={0} min ago	narrow.minute.past.other={0} min ago
+en-GB	narrow.minute.future.one=in {0} min	narrow.minute.future.other=in {0} min
+en-GB	narrow.minute.count.one={0}m	narrow.minute.count.other={0}m
+en-GB	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=this minute	narrow.minute.relative.1=	narrow.minute.relative.2=
+en-GB	narrow.hour.past.one={0} hr ago	narrow.hour.past.other={0} hr ago
+en-GB	narrow.hour.future.one=in {0} hr	narrow.hour.future.other=in {0} hr
+en-GB	narrow.hour.count.one={0}h	narrow.hour.count.other={0}h
+en-GB	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=this hour	narrow.hour.relative.1=	narrow.hour.relative.2=
+en-GB	narrow.day.past.one={0} day ago	narrow.day.past.other={0} days ago
+en-GB	narrow.day.future.one=in {0} day	narrow.day.future.other=in {0} days
+en-GB	narrow.day.count.one={0}d	narrow.day.count.other={0}d
+en-GB	narrow.day.relative.-2=	narrow.day.relative.-1=yesterday	narrow.day.relative.0=today	narrow.day.relative.1=tomorrow	narrow.day.relative.2=
+en-GB	narrow.week.past.one={0} wk ago	narrow.week.past.other={0} wk ago
+en-GB	narrow.week.future.one=in {0} wk	narrow.week.future.other=in {0} wk
+en-GB	narrow.week.count.one={0}w	narrow.week.count.other={0}w
+en-GB	narrow.week.relative.-2=	narrow.week.relative.-1=last wk	narrow.week.relative.0=this wk	narrow.week.relative.1=next wk	narrow.week.relative.2=
+en-GB	narrow.month.past.one={0} mo ago	narrow.month.past.other={0} mo ago
+en-GB	narrow.month.future.one=in {0} mo	narrow.month.future.other=in {0} mo
+en-GB	narrow.month.count.one={0}m	narrow.month.count.other={0}m
+en-GB	narrow.month.relative.-2=	narrow.month.relative.-1=last mo	narrow.month.relative.0=this mo	narrow.month.relative.1=next mo	narrow.month.relative.2=
+en-GB	narrow.quarter.past.one={0} qtr ago	narrow.quarter.past.other={0} qtr ago
+en-GB	narrow.quarter.future.one=in {0} qtr	narrow.quarter.future.other=in {0} qtr
+en-GB	narrow.quarter.count.one={0}q	narrow.quarter.count.other={0}q
+en-GB	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=last qtr.	narrow.quarter.relative.0=this qtr.	narrow.quarter.relative.1=next qtr.	narrow.quarter.relative.2=
+en-GB	narrow.year.past.one={0} yr ago	narrow.year.past.other={0} yr ago
+en-GB	narrow.year.future.one=in {0} yr	narrow.year.future.other=in {0} yr
+en-GB	narrow.year.count.one={0}y	narrow.year.count.other={0}y
+en-GB	narrow.year.relative.-2=	narrow.year.relative.-1=last yr	narrow.year.relative.0=this yr	narrow.year.relative.1=next yr	narrow.year.relative.2=
+en-GB	list.standard.2={0} and {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} and {1}
+en-GB	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+en-GB	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+en-GB	decimal=.	at={0} at {1}
 es	long.second.past.one=hace {0} segundo	long.second.past.many=hace {0} segundos	long.second.past.other=hace {0} segundos
 es	long.second.future.one=dentro de {0} segundo	long.second.future.many=dentro de {0} segundos	long.second.future.other=dentro de {0} segundos
 es	long.second.count.one={0} segundo	long.second.count.many={0} segundos	long.second.count.other={0} segundos
@@ -598,6 +898,106 @@ es	list.standard.2={0} y {1}	list.standard.start={0}, {1}	list.standard.middle={
 es	list.unit.2={0} y {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} y {1}
 es	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 es	decimal=,	at={0}, {1}
+es-419	long.second.past.one=hace {0} segundo	long.second.past.many=hace {0} segundos	long.second.past.other=hace {0} segundos
+es-419	long.second.future.one=dentro de {0} segundo	long.second.future.many=dentro de {0} segundos	long.second.future.other=dentro de {0} segundos
+es-419	long.second.count.one={0} segundo	long.second.count.many={0} segundos	long.second.count.other={0} segundos
+es-419	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=ahora	long.second.relative.1=	long.second.relative.2=
+es-419	long.minute.past.one=hace {0} minuto	long.minute.past.many=hace {0} minutos	long.minute.past.other=hace {0} minutos
+es-419	long.minute.future.one=dentro de {0} minuto	long.minute.future.many=dentro de {0} minutos	long.minute.future.other=dentro de {0} minutos
+es-419	long.minute.count.one={0} minuto	long.minute.count.many={0} minutos	long.minute.count.other={0} minutos
+es-419	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=este minuto	long.minute.relative.1=	long.minute.relative.2=
+es-419	long.hour.past.one=hace {0} hora	long.hour.past.many=hace {0} horas	long.hour.past.other=hace {0} horas
+es-419	long.hour.future.one=dentro de {0} hora	long.hour.future.many=dentro de {0} horas	long.hour.future.other=dentro de {0} horas
+es-419	long.hour.count.one={0} hora	long.hour.count.many={0} horas	long.hour.count.other={0} horas
+es-419	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=esta hora	long.hour.relative.1=	long.hour.relative.2=
+es-419	long.day.past.one=hace {0} día	long.day.past.many=hace {0} días	long.day.past.other=hace {0} días
+es-419	long.day.future.one=dentro de {0} día	long.day.future.many=dentro de {0} días	long.day.future.other=dentro de {0} días
+es-419	long.day.count.one={0} día	long.day.count.many={0} días	long.day.count.other={0} días
+es-419	long.day.relative.-2=anteayer	long.day.relative.-1=ayer	long.day.relative.0=hoy	long.day.relative.1=mañana	long.day.relative.2=pasado mañana
+es-419	long.week.past.one=hace {0} semana	long.week.past.many=hace {0} semanas	long.week.past.other=hace {0} semanas
+es-419	long.week.future.one=dentro de {0} semana	long.week.future.many=dentro de {0} semanas	long.week.future.other=dentro de {0} semanas
+es-419	long.week.count.one={0} semana	long.week.count.many={0} semanas	long.week.count.other={0} semanas
+es-419	long.week.relative.-2=	long.week.relative.-1=la semana pasada	long.week.relative.0=esta semana	long.week.relative.1=la próxima semana	long.week.relative.2=
+es-419	long.month.past.one=hace {0} mes	long.month.past.many=hace {0} meses	long.month.past.other=hace {0} meses
+es-419	long.month.future.one=dentro de {0} mes	long.month.future.many=dentro de {0} meses	long.month.future.other=dentro de {0} meses
+es-419	long.month.count.one={0} mes	long.month.count.many={0} meses	long.month.count.other={0} meses
+es-419	long.month.relative.-2=	long.month.relative.-1=el mes pasado	long.month.relative.0=este mes	long.month.relative.1=el próximo mes	long.month.relative.2=
+es-419	long.quarter.past.one=hace {0} trimestre	long.quarter.past.many=hace {0} trimestres	long.quarter.past.other=hace {0} trimestres
+es-419	long.quarter.future.one=dentro de {0} trimestre	long.quarter.future.many=dentro de {0} trimestres	long.quarter.future.other=dentro de {0} trimestres
+es-419	long.quarter.count.one={0} trimestre	long.quarter.count.many={0} trimestres	long.quarter.count.other={0} trimestres
+es-419	long.quarter.relative.-2=	long.quarter.relative.-1=el trimestre pasado	long.quarter.relative.0=este trimestre	long.quarter.relative.1=el próximo trimestre	long.quarter.relative.2=
+es-419	long.year.past.one=hace {0} año	long.year.past.many=hace {0} años	long.year.past.other=hace {0} años
+es-419	long.year.future.one=dentro de {0} año	long.year.future.many=dentro de {0} años	long.year.future.other=dentro de {0} años
+es-419	long.year.count.one={0} año	long.year.count.many={0} años	long.year.count.other={0} años
+es-419	long.year.relative.-2=	long.year.relative.-1=el año pasado	long.year.relative.0=este año	long.year.relative.1=el próximo año	long.year.relative.2=
+es-419	short.second.past.one=hace {0} s	short.second.past.many=hace {0} s	short.second.past.other=hace {0} s
+es-419	short.second.future.one=dentro de {0} s	short.second.future.many=dentro de {0} s	short.second.future.other=dentro de {0} s
+es-419	short.second.count.one={0} s	short.second.count.many={0} s	short.second.count.other={0} s
+es-419	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=ahora	short.second.relative.1=	short.second.relative.2=
+es-419	short.minute.past.one=hace {0} min	short.minute.past.many=hace {0} min	short.minute.past.other=hace {0} min
+es-419	short.minute.future.one=dentro de {0} min	short.minute.future.many=dentro de {0} min	short.minute.future.other=dentro de {0} min
+es-419	short.minute.count.one={0} min	short.minute.count.many={0} min	short.minute.count.other={0} min
+es-419	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=este minuto	short.minute.relative.1=	short.minute.relative.2=
+es-419	short.hour.past.one=hace {0} h	short.hour.past.many=hace {0} h	short.hour.past.other=hace {0} h
+es-419	short.hour.future.one=dentro de {0} h	short.hour.future.many=dentro de {0} h	short.hour.future.other=dentro de {0} h
+es-419	short.hour.count.one={0} h	short.hour.count.many={0} h	short.hour.count.other={0} h
+es-419	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=esta hora	short.hour.relative.1=	short.hour.relative.2=
+es-419	short.day.past.one=hace {0} día	short.day.past.many=hace {0} días	short.day.past.other=hace {0} días
+es-419	short.day.future.one=dentro de {0} día	short.day.future.many=dentro de {0} días	short.day.future.other=dentro de {0} días
+es-419	short.day.count.one={0} d.	short.day.count.many={0} dd.	short.day.count.other={0} dd.
+es-419	short.day.relative.-2=anteayer	short.day.relative.-1=ayer	short.day.relative.0=hoy	short.day.relative.1=mañana	short.day.relative.2=pasado mañana
+es-419	short.week.past.one=hace {0} sem.	short.week.past.many=hace {0} sem.	short.week.past.other=hace {0} sem.
+es-419	short.week.future.one=dentro de {0} sem.	short.week.future.many=dentro de {0} sem.	short.week.future.other=dentro de {0} sem.
+es-419	short.week.count.one={0} sem.	short.week.count.many={0} sems.	short.week.count.other={0} sems.
+es-419	short.week.relative.-2=	short.week.relative.-1=sem. pas.	short.week.relative.0=esta sem.	short.week.relative.1=próx. sem.	short.week.relative.2=
+es-419	short.month.past.one=hace {0} m	short.month.past.many=hace {0} m	short.month.past.other=hace {0} m
+es-419	short.month.future.one=dentro de {0} m	short.month.future.many=dentro de {0} m	short.month.future.other=dentro de {0} m
+es-419	short.month.count.one={0} m.	short.month.count.many={0} mm.	short.month.count.other={0} mm.
+es-419	short.month.relative.-2=	short.month.relative.-1=el mes pasado	short.month.relative.0=este mes	short.month.relative.1=el próximo mes	short.month.relative.2=
+es-419	short.quarter.past.one=hace {0} trim.	short.quarter.past.many=hace {0} trim.	short.quarter.past.other=hace {0} trim.
+es-419	short.quarter.future.one=dentro de {0} trim.	short.quarter.future.many=dentro de {0} trim.	short.quarter.future.other=dentro de {0} trim.
+es-419	short.quarter.count.one={0} trim.	short.quarter.count.many={0} trim.	short.quarter.count.other={0} trim.
+es-419	short.quarter.relative.-2=	short.quarter.relative.-1=el trimestre pasado	short.quarter.relative.0=este trimestre	short.quarter.relative.1=el próximo trimestre	short.quarter.relative.2=
+es-419	short.year.past.one=hace {0} a	short.year.past.many=hace {0} a	short.year.past.other=hace {0} a
+es-419	short.year.future.one=dentro de {0} a	short.year.future.many=dentro de {0} a	short.year.future.other=dentro de {0} a
+es-419	short.year.count.one={0} a.	short.year.count.many={0} aa.	short.year.count.other={0} aa.
+es-419	short.year.relative.-2=	short.year.relative.-1=el año pasado	short.year.relative.0=este año	short.year.relative.1=el próximo año	short.year.relative.2=
+es-419	narrow.second.past.one=hace {0} s	narrow.second.past.many=hace {0} s	narrow.second.past.other=hace {0} s
+es-419	narrow.second.future.one=dentro de {0} s	narrow.second.future.many=dentro de {0} s	narrow.second.future.other=dentro de {0} s
+es-419	narrow.second.count.one={0}s	narrow.second.count.many={0}s	narrow.second.count.other={0}s
+es-419	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=ahora	narrow.second.relative.1=	narrow.second.relative.2=
+es-419	narrow.minute.past.one=hace {0} min	narrow.minute.past.many=hace {0} min	narrow.minute.past.other=hace {0} min
+es-419	narrow.minute.future.one=dentro de {0} min	narrow.minute.future.many=dentro de {0} min	narrow.minute.future.other=dentro de {0} min
+es-419	narrow.minute.count.one={0}min	narrow.minute.count.many={0}min	narrow.minute.count.other={0}min
+es-419	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=este minuto	narrow.minute.relative.1=	narrow.minute.relative.2=
+es-419	narrow.hour.past.one=hace {0} h	narrow.hour.past.many=hace {0} h	narrow.hour.past.other=hace {0} h
+es-419	narrow.hour.future.one=dentro de {0} h	narrow.hour.future.many=dentro de {0} h	narrow.hour.future.other=dentro de {0} h
+es-419	narrow.hour.count.one={0}h	narrow.hour.count.many={0}h	narrow.hour.count.other={0}h
+es-419	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=esta hora	narrow.hour.relative.1=	narrow.hour.relative.2=
+es-419	narrow.day.past.one=hace {0} día	narrow.day.past.many=hace {0} días	narrow.day.past.other=hace {0} días
+es-419	narrow.day.future.one=dentro de {0} día	narrow.day.future.many=dentro de {0} días	narrow.day.future.other=dentro de {0} días
+es-419	narrow.day.count.one={0}d.	narrow.day.count.many={0}dd.	narrow.day.count.other={0}dd.
+es-419	narrow.day.relative.-2=anteayer	narrow.day.relative.-1=ayer	narrow.day.relative.0=hoy	narrow.day.relative.1=mañana	narrow.day.relative.2=pasado mañana
+es-419	narrow.week.past.one=hace {0} sem.	narrow.week.past.many=hace {0} sem.	narrow.week.past.other=hace {0} sem.
+es-419	narrow.week.future.one=dentro de {0} sem.	narrow.week.future.many=dentro de {0} sem.	narrow.week.future.other=dentro de {0} sem.
+es-419	narrow.week.count.one={0}sem.	narrow.week.count.many={0}sems.	narrow.week.count.other={0}sems.
+es-419	narrow.week.relative.-2=	narrow.week.relative.-1=sem. pas.	narrow.week.relative.0=esta sem.	narrow.week.relative.1=próx. sem.	narrow.week.relative.2=
+es-419	narrow.month.past.one=hace {0} m	narrow.month.past.many=hace {0} m	narrow.month.past.other=hace {0} m
+es-419	narrow.month.future.one=dentro de {0} m	narrow.month.future.many=dentro de {0} m	narrow.month.future.other=dentro de {0} m
+es-419	narrow.month.count.one={0}m.	narrow.month.count.many={0}mm.	narrow.month.count.other={0}mm.
+es-419	narrow.month.relative.-2=	narrow.month.relative.-1=el mes pasado	narrow.month.relative.0=este mes	narrow.month.relative.1=el próximo mes	narrow.month.relative.2=
+es-419	narrow.quarter.past.one=hace {0} trim.	narrow.quarter.past.many=hace {0} trim.	narrow.quarter.past.other=hace {0} trim.
+es-419	narrow.quarter.future.one=dentro de {0} trim.	narrow.quarter.future.many=dentro de {0} trim.	narrow.quarter.future.other=dentro de {0} trim.
+es-419	narrow.quarter.count.one={0}trim	narrow.quarter.count.many={0}trim	narrow.quarter.count.other={0}trim
+es-419	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=el trimestre pasado	narrow.quarter.relative.0=este trimestre	narrow.quarter.relative.1=el próximo trimestre	narrow.quarter.relative.2=
+es-419	narrow.year.past.one=hace {0} a	narrow.year.past.many=hace {0} a	narrow.year.past.other=hace {0} a
+es-419	narrow.year.future.one=dentro de {0} a	narrow.year.future.many=dentro de {0} a	narrow.year.future.other=dentro de {0} a
+es-419	narrow.year.count.one={0}a.	narrow.year.count.many={0}aa.	narrow.year.count.other={0}aa.
+es-419	narrow.year.relative.-2=	narrow.year.relative.-1=el año pasado	narrow.year.relative.0=este año	narrow.year.relative.1=el próximo año	narrow.year.relative.2=
+es-419	list.standard.2={0} y {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} y {1}
+es-419	list.unit.2={0} y {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} y {1}
+es-419	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+es-419	decimal=.	at={0}, {1}
 fil	long.second.past.one={0} segundo ang nakalipas	long.second.past.other={0} segundo ang nakalipas
 fil	long.second.future.one=sa {0} segundo	long.second.future.other=sa {0} segundo
 fil	long.second.count.one={0} segundo	long.second.count.other={0} na segundo
@@ -1398,6 +1798,106 @@ ko	list.standard.2={0} 및 {1}	list.standard.start={0}, {1}	list.standard.middle
 ko	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
 ko	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 ko	decimal=.	at={0} {1}
+mn	long.second.past.one={0} секундын өмнө	long.second.past.other={0} секундын өмнө
+mn	long.second.future.one={0} секундын дараа	long.second.future.other={0} секундын дараа
+mn	long.second.count.one={0} секунд	long.second.count.other={0} секунд
+mn	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=одоо	long.second.relative.1=	long.second.relative.2=
+mn	long.minute.past.one={0} минутын өмнө	long.minute.past.other={0} минутын өмнө
+mn	long.minute.future.one={0} минутын дараа	long.minute.future.other={0} минутын дараа
+mn	long.minute.count.one={0} минут	long.minute.count.other={0} минут
+mn	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=энэ минут	long.minute.relative.1=	long.minute.relative.2=
+mn	long.hour.past.one={0} цагийн өмнө	long.hour.past.other={0} цагийн өмнө
+mn	long.hour.future.one={0} цагийн дараа	long.hour.future.other={0} цагийн дараа
+mn	long.hour.count.one={0} цаг	long.hour.count.other={0} цаг
+mn	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=энэ цаг	long.hour.relative.1=	long.hour.relative.2=
+mn	long.day.past.one={0} өдрийн өмнө	long.day.past.other={0} өдрийн өмнө
+mn	long.day.future.one={0} өдрийн дараа	long.day.future.other={0} өдрийн дараа
+mn	long.day.count.one={0} хоног	long.day.count.other={0} хоног
+mn	long.day.relative.-2=уржигдар	long.day.relative.-1=өчигдөр	long.day.relative.0=өнөөдөр	long.day.relative.1=маргааш	long.day.relative.2=нөгөөдөр
+mn	long.week.past.one={0} долоо хоногийн өмнө	long.week.past.other={0} долоо хоногийн өмнө
+mn	long.week.future.one={0} долоо хоногийн дараа	long.week.future.other={0} долоо хоногийн дараа
+mn	long.week.count.one={0} долоо хоног	long.week.count.other={0} долоо хоног
+mn	long.week.relative.-2=	long.week.relative.-1=өнгөрсөн долоо хоног	long.week.relative.0=энэ долоо хоног	long.week.relative.1=ирэх долоо хоног	long.week.relative.2=
+mn	long.month.past.one={0} сарын өмнө	long.month.past.other={0} сарын өмнө
+mn	long.month.future.one={0} сарын дараа	long.month.future.other={0} сарын дараа
+mn	long.month.count.one={0} сар	long.month.count.other={0} сар
+mn	long.month.relative.-2=	long.month.relative.-1=өнгөрсөн сар	long.month.relative.0=энэ сар	long.month.relative.1=ирэх сар	long.month.relative.2=
+mn	long.quarter.past.one={0} улирлын өмнө	long.quarter.past.other={0} улирлын өмнө
+mn	long.quarter.future.one={0} улирлын дараа	long.quarter.future.other={0} улирлын дараа
+mn	long.quarter.count.one={0} улирал	long.quarter.count.other={0} улирал
+mn	long.quarter.relative.-2=	long.quarter.relative.-1=өнгөрсөн улирал	long.quarter.relative.0=энэ улирал	long.quarter.relative.1=дараагийн улирал	long.quarter.relative.2=
+mn	long.year.past.one={0} жилийн өмнө	long.year.past.other={0} жилийн өмнө
+mn	long.year.future.one={0} жилийн дараа	long.year.future.other={0} жилийн дараа
+mn	long.year.count.one={0} жил	long.year.count.other={0} жил
+mn	long.year.relative.-2=	long.year.relative.-1=өнгөрсөн жил	long.year.relative.0=энэ жил	long.year.relative.1=ирэх жил	long.year.relative.2=
+mn	short.second.past.one={0} сек өмнө	short.second.past.other={0} сек өмнө
+mn	short.second.future.one={0} сек дараа	short.second.future.other={0} сек дараа
+mn	short.second.count.one={0} сек	short.second.count.other={0} сек
+mn	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=одоо	short.second.relative.1=	short.second.relative.2=
+mn	short.minute.past.one={0} мин өмнө	short.minute.past.other={0} мин өмнө
+mn	short.minute.future.one={0} мин дараа	short.minute.future.other={0} мин дараа
+mn	short.minute.count.one={0} мин	short.minute.count.other={0} мин
+mn	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=энэ минут	short.minute.relative.1=	short.minute.relative.2=
+mn	short.hour.past.one={0} ц өмнө	short.hour.past.other={0} ц өмнө
+mn	short.hour.future.one={0} ц дараа	short.hour.future.other={0} ц дараа
+mn	short.hour.count.one={0} цаг	short.hour.count.other={0} цаг
+mn	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=энэ цаг	short.hour.relative.1=	short.hour.relative.2=
+mn	short.day.past.one={0} өдрийн өмнө	short.day.past.other={0} өдрийн өмнө
+mn	short.day.future.one={0} өдрийн дараа	short.day.future.other={0} өдрийн дараа
+mn	short.day.count.one={0} хоног	short.day.count.other={0} хоног
+mn	short.day.relative.-2=уржигдар	short.day.relative.-1=өчигдөр	short.day.relative.0=өнөөдөр	short.day.relative.1=маргааш	short.day.relative.2=нөгөөдөр
+mn	short.week.past.one={0} 7 хоногийн өмнө	short.week.past.other={0} 7 хоногийн өмнө
+mn	short.week.future.one={0} 7 хоногийн дараа	short.week.future.other={0} 7 хоногийн дараа
+mn	short.week.count.one={0} д.х	short.week.count.other={0} д.х
+mn	short.week.relative.-2=	short.week.relative.-1=өнгөрсөн 7 хоног	short.week.relative.0=энэ 7 хоног	short.week.relative.1=ирэх 7 хоног	short.week.relative.2=
+mn	short.month.past.one={0} сарын өмнө	short.month.past.other={0} сарын өмнө
+mn	short.month.future.one={0} сарын дараа	short.month.future.other={0} сарын дараа
+mn	short.month.count.one={0} сар	short.month.count.other={0} сар
+mn	short.month.relative.-2=	short.month.relative.-1=өнгөрсөн сар	short.month.relative.0=энэ сар	short.month.relative.1=ирэх сар	short.month.relative.2=
+mn	short.quarter.past.one={0} улирлын өмнө	short.quarter.past.other={0} улирлын өмнө
+mn	short.quarter.future.one={0} улирлын дараа	short.quarter.future.other={0} улирлын дараа
+mn	short.quarter.count.one={0} улирал	short.quarter.count.other={0} улирал
+mn	short.quarter.relative.-2=	short.quarter.relative.-1=өнгөрсөн улирал	short.quarter.relative.0=энэ улирал	short.quarter.relative.1=дараагийн улирал	short.quarter.relative.2=
+mn	short.year.past.one={0} жилийн өмнө	short.year.past.other={0} жилийн өмнө
+mn	short.year.future.one={0} жилийн дараа	short.year.future.other={0} жилийн дараа
+mn	short.year.count.one={0} жил	short.year.count.other={0} жил
+mn	short.year.relative.-2=	short.year.relative.-1=өнгөрсөн жил	short.year.relative.0=энэ жил	short.year.relative.1=ирэх жил	short.year.relative.2=
+mn	narrow.second.past.one={0} сек өмнө	narrow.second.past.other={0} сек өмнө
+mn	narrow.second.future.one={0} сек дараа	narrow.second.future.other={0} сек дараа
+mn	narrow.second.count.one={0} сек	narrow.second.count.other={0} сек
+mn	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=одоо	narrow.second.relative.1=	narrow.second.relative.2=
+mn	narrow.minute.past.one={0} мин өмнө	narrow.minute.past.other={0} мин өмнө
+mn	narrow.minute.future.one={0} мин дараа	narrow.minute.future.other={0} мин дараа
+mn	narrow.minute.count.one={0} мин	narrow.minute.count.other={0} мин
+mn	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=энэ минут	narrow.minute.relative.1=	narrow.minute.relative.2=
+mn	narrow.hour.past.one={0} ц өмнө	narrow.hour.past.other={0} ц өмнө
+mn	narrow.hour.future.one={0} ц дараа	narrow.hour.future.other={0} ц дараа
+mn	narrow.hour.count.one={0} ц	narrow.hour.count.other={0} ц
+mn	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=энэ цаг	narrow.hour.relative.1=	narrow.hour.relative.2=
+mn	narrow.day.past.one={0} өдрийн өмнө	narrow.day.past.other={0} өдрийн өмнө
+mn	narrow.day.future.one={0} өдрийн дараа	narrow.day.future.other={0} өдрийн дараа
+mn	narrow.day.count.one={0} хоног	narrow.day.count.other={0} хоног
+mn	narrow.day.relative.-2=уржигдар	narrow.day.relative.-1=өчигдөр	narrow.day.relative.0=өнөөдөр	narrow.day.relative.1=маргааш	narrow.day.relative.2=нөгөөдөр
+mn	narrow.week.past.one={0} 7 хоногийн өмнө	narrow.week.past.other={0} 7 хоногийн өмнө
+mn	narrow.week.future.one={0} 7 хоногийн дараа	narrow.week.future.other={0} 7 хоногийн дараа
+mn	narrow.week.count.one={0} д.х	narrow.week.count.other={0} д.х
+mn	narrow.week.relative.-2=	narrow.week.relative.-1=өнгөрсөн 7 хоног	narrow.week.relative.0=энэ 7 хоног	narrow.week.relative.1=ирэх 7 хоног	narrow.week.relative.2=
+mn	narrow.month.past.one={0} сарын өмнө	narrow.month.past.other={0} сарын өмнө
+mn	narrow.month.future.one={0} сарын дараа	narrow.month.future.other={0} сарын дараа
+mn	narrow.month.count.one={0}с	narrow.month.count.other={0}с
+mn	narrow.month.relative.-2=	narrow.month.relative.-1=өнгөрсөн сар	narrow.month.relative.0=энэ сар	narrow.month.relative.1=ирэх сар	narrow.month.relative.2=
+mn	narrow.quarter.past.one={0} улирлын өмнө	narrow.quarter.past.other={0} улирлын өмнө
+mn	narrow.quarter.future.one={0} улирлын дараа	narrow.quarter.future.other={0} улирлын дараа
+mn	narrow.quarter.count.one={0} улирал	narrow.quarter.count.other={0} улирал
+mn	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=өнгөрсөн улирал	narrow.quarter.relative.0=энэ улирал	narrow.quarter.relative.1=дараагийн улирал	narrow.quarter.relative.2=
+mn	narrow.year.past.one={0} жилийн өмнө	narrow.year.past.other={0} жилийн өмнө
+mn	narrow.year.future.one={0} жилийн дараа	narrow.year.future.other={0} жилийн дараа
+mn	narrow.year.count.one={0}ж	narrow.year.count.other={0}ж
+mn	narrow.year.relative.-2=	narrow.year.relative.-1=өнгөрсөн жил	narrow.year.relative.0=энэ жил	narrow.year.relative.1=ирэх жил	narrow.year.relative.2=
+mn	list.standard.2={0}, {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0}, {1}
+mn	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
+mn	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+mn	decimal=.	at={0} {1}
 mr	long.second.past.one={0} सेकंदापूर्वी	long.second.past.other={0} सेकंदांपूर्वी
 mr	long.second.future.one={0} सेकंदामध्ये	long.second.future.other={0} सेकंदांमध्ये
 mr	long.second.count.one={0} सेकंद	long.second.count.other={0} सेकंद
@@ -2698,6 +3198,106 @@ ur	list.standard.2={0} اور {1}	list.standard.start={0}، {1}	list.standard.mi
 ur	list.unit.2={0}، {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}، اور {1}
 ur	list.narrow.2={0} اور {1}	list.narrow.start={0}، {1}	list.narrow.middle={0}، {1}	list.narrow.end={0}، اور {1}
 ur	decimal=.	at={0} کو {1}
+ur-IN	long.second.past.one={0} سیکنڈ قبل	long.second.past.other={0} سیکنڈ قبل
+ur-IN	long.second.future.one={0} سیکنڈ میں	long.second.future.other={0} سیکنڈ میں
+ur-IN	long.second.count.one={0} سیکنڈ	long.second.count.other={0} سیکنڈ
+ur-IN	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=اب	long.second.relative.1=	long.second.relative.2=
+ur-IN	long.minute.past.one={0} منٹ قبل	long.minute.past.other={0} منٹ قبل
+ur-IN	long.minute.future.one={0} منٹ میں	long.minute.future.other={0} منٹ میں
+ur-IN	long.minute.count.one={0} منٹ	long.minute.count.other={0} منٹ
+ur-IN	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=اس منٹ	long.minute.relative.1=	long.minute.relative.2=
+ur-IN	long.hour.past.one={0} گھنٹہ پہلے	long.hour.past.other={0} گھنٹے پہلے
+ur-IN	long.hour.future.one={0} گھنٹے میں	long.hour.future.other={0} گھنٹے میں
+ur-IN	long.hour.count.one={0} گھنٹہ	long.hour.count.other={0} گھنٹے
+ur-IN	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=اس گھنٹے	long.hour.relative.1=	long.hour.relative.2=
+ur-IN	long.day.past.one={0} دن پہلے	long.day.past.other={0} دنوں پہلے
+ur-IN	long.day.future.one={0} دن میں	long.day.future.other={0} دنوں میں
+ur-IN	long.day.count.one={0} دن	long.day.count.other={0} دن
+ur-IN	long.day.relative.-2=گزشتہ پرسوں	long.day.relative.-1=گزشتہ کل	long.day.relative.0=آج	long.day.relative.1=آئندہ کل	long.day.relative.2=آنے والا پرسوں
+ur-IN	long.week.past.one={0} ہفتہ قبل	long.week.past.other={0} ہفتے قبل
+ur-IN	long.week.future.one={0} ہفتہ میں	long.week.future.other={0} ہفتوں میں
+ur-IN	long.week.count.one={0} ہفتہ	long.week.count.other={0} ہفتے
+ur-IN	long.week.relative.-2=	long.week.relative.-1=گزشتہ ہفتہ	long.week.relative.0=اس ہفتہ	long.week.relative.1=اگلے ہفتہ	long.week.relative.2=
+ur-IN	long.month.past.one={0} ماہ قبل	long.month.past.other={0} ماہ قبل
+ur-IN	long.month.future.one={0} ماہ میں	long.month.future.other={0} ماہ میں
+ur-IN	long.month.count.one={0} مہینہ	long.month.count.other={0} مہینے
+ur-IN	long.month.relative.-2=	long.month.relative.-1=گزشتہ ماہ	long.month.relative.0=اس ماہ	long.month.relative.1=اگلے ماہ	long.month.relative.2=
+ur-IN	long.quarter.past.one={0} سہ ماہی پہلے	long.quarter.past.other={0} سہ ماہی پہلے
+ur-IN	long.quarter.future.one={0} سہ ماہی میں	long.quarter.future.other={0} سہ ماہی میں
+ur-IN	long.quarter.count.one={0} کوارٹر	long.quarter.count.other={0} کوارٹرز
+ur-IN	long.quarter.relative.-2=	long.quarter.relative.-1=گزشتہ سہ ماہی	long.quarter.relative.0=اس سہ ماہی	long.quarter.relative.1=اگلے سہ ماہی	long.quarter.relative.2=
+ur-IN	long.year.past.one={0} سال پہلے	long.year.past.other={0} سال پہلے
+ur-IN	long.year.future.one={0} سال میں	long.year.future.other={0} سالوں میں
+ur-IN	long.year.count.one={0} سال	long.year.count.other={0} سال
+ur-IN	long.year.relative.-2=	long.year.relative.-1=گزشتہ سال	long.year.relative.0=اس سال	long.year.relative.1=اگلے سال	long.year.relative.2=
+ur-IN	short.second.past.one={0} سیکنڈ قبل	short.second.past.other={0} سیکنڈ قبل
+ur-IN	short.second.future.one={0} سیکنڈ میں	short.second.future.other={0} سیکنڈ میں
+ur-IN	short.second.count.one={0} سیکنڈ	short.second.count.other={0} سیکنڈ
+ur-IN	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=اب	short.second.relative.1=	short.second.relative.2=
+ur-IN	short.minute.past.one={0} منٹ قبل	short.minute.past.other={0} منٹ قبل
+ur-IN	short.minute.future.one={0} منٹ میں	short.minute.future.other={0} منٹ میں
+ur-IN	short.minute.count.one={0} منٹ	short.minute.count.other={0} منٹ
+ur-IN	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=اس منٹ	short.minute.relative.1=	short.minute.relative.2=
+ur-IN	short.hour.past.one={0} گھنٹے قبل	short.hour.past.other={0} گھنٹے قبل
+ur-IN	short.hour.future.one={0} گھنٹے میں	short.hour.future.other={0} گھنٹے میں
+ur-IN	short.hour.count.one={0} گھنٹہ	short.hour.count.other={0} گھنٹے
+ur-IN	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=اس گھنٹے	short.hour.relative.1=	short.hour.relative.2=
+ur-IN	short.day.past.one={0} دن پہلے	short.day.past.other={0} دن پہلے
+ur-IN	short.day.future.one={0} دنوں میں	short.day.future.other={0} دنوں میں
+ur-IN	short.day.count.one={0} دن	short.day.count.other={0} دن
+ur-IN	short.day.relative.-2=گزشتہ پرسوں	short.day.relative.-1=گزشتہ کل	short.day.relative.0=آج	short.day.relative.1=آئندہ کل	short.day.relative.2=آنے والا پرسوں
+ur-IN	short.week.past.one={0} ہفتے قبل	short.week.past.other={0} ہفتے قبل
+ur-IN	short.week.future.one={0} ہفتے میں	short.week.future.other={0} ہفتے میں
+ur-IN	short.week.count.one={0} ہفتہ	short.week.count.other={0} ہفتے
+ur-IN	short.week.relative.-2=	short.week.relative.-1=پچھلے ہفتہ	short.week.relative.0=اس ہفتہ	short.week.relative.1=اگلے ہفتہ	short.week.relative.2=
+ur-IN	short.month.past.one={0} ماہ قبل	short.month.past.other={0} ماہ قبل
+ur-IN	short.month.future.one={0} ماہ میں	short.month.future.other={0} ماہ میں
+ur-IN	short.month.count.one={0} مہینہ	short.month.count.other={0} مہینے
+ur-IN	short.month.relative.-2=	short.month.relative.-1=پچھلے مہینہ	short.month.relative.0=اس مہینہ	short.month.relative.1=اگلے مہینہ	short.month.relative.2=
+ur-IN	short.quarter.past.one={0} سہ ماہی قبل	short.quarter.past.other={0} سہ ماہی قبل
+ur-IN	short.quarter.future.one={0} سہ ماہی میں	short.quarter.future.other={0} سہ ماہی میں
+ur-IN	short.quarter.count.one={0} کوارٹر	short.quarter.count.other={0} کوارٹرز
+ur-IN	short.quarter.relative.-2=	short.quarter.relative.-1=گزشتہ سہ ماہی	short.quarter.relative.0=اس سہ ماہی	short.quarter.relative.1=اگلے سہ ماہی	short.quarter.relative.2=
+ur-IN	short.year.past.one={0} سال پہلے	short.year.past.other={0} سالوں پہلے
+ur-IN	short.year.future.one={0} سال میں	short.year.future.other={0} سالوں میں
+ur-IN	short.year.count.one={0} سال	short.year.count.other={0} سال
+ur-IN	short.year.relative.-2=	short.year.relative.-1=گزشتہ سال	short.year.relative.0=اس سال	short.year.relative.1=اگلے سال	short.year.relative.2=
+ur-IN	narrow.second.past.one={0} سیکنڈ قبل	narrow.second.past.other={0} سیکنڈ قبل
+ur-IN	narrow.second.future.one={0} سیکنڈ میں	narrow.second.future.other={0} سیکنڈ میں
+ur-IN	narrow.second.count.one={0} سیکنڈ	narrow.second.count.other={0} سیکنڈ
+ur-IN	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=اب	narrow.second.relative.1=	narrow.second.relative.2=
+ur-IN	narrow.minute.past.one={0} منٹ قبل	narrow.minute.past.other={0} منٹ قبل
+ur-IN	narrow.minute.future.one={0} منٹ میں	narrow.minute.future.other={0} منٹ میں
+ur-IN	narrow.minute.count.one={0} منٹ	narrow.minute.count.other={0} منٹ
+ur-IN	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=اس منٹ	narrow.minute.relative.1=	narrow.minute.relative.2=
+ur-IN	narrow.hour.past.one={0} گھنٹہ قبل	narrow.hour.past.other={0} گھنٹے قبل
+ur-IN	narrow.hour.future.one={0} گھنٹے میں	narrow.hour.future.other={0} گھنٹوں میں
+ur-IN	narrow.hour.count.one={0} گھنٹہ	narrow.hour.count.other={0} گھنٹے
+ur-IN	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=اس گھنٹے	narrow.hour.relative.1=	narrow.hour.relative.2=
+ur-IN	narrow.day.past.one={0} دن قبل	narrow.day.past.other={0} دن قبل
+ur-IN	narrow.day.future.one={0} دنوں میں	narrow.day.future.other={0} دنوں میں
+ur-IN	narrow.day.count.one={0} دن	narrow.day.count.other={0} دن
+ur-IN	narrow.day.relative.-2=گزشتہ پرسوں	narrow.day.relative.-1=گزشتہ کل	narrow.day.relative.0=آج	narrow.day.relative.1=آئندہ کل	narrow.day.relative.2=آنے والا پرسوں
+ur-IN	narrow.week.past.one={0} ہفتہ قبل	narrow.week.past.other={0} ہفتے قبل
+ur-IN	narrow.week.future.one={0} ہفتہ میں	narrow.week.future.other={0} ہفتے میں
+ur-IN	narrow.week.count.one={0} ہفتہ	narrow.week.count.other={0} ہفتے
+ur-IN	narrow.week.relative.-2=	narrow.week.relative.-1=پچھلے ہفتہ	narrow.week.relative.0=اس ہفتہ	narrow.week.relative.1=اگلے ہفتہ	narrow.week.relative.2=
+ur-IN	narrow.month.past.one={0} ماہ قبل	narrow.month.past.other={0} ماہ قبل
+ur-IN	narrow.month.future.one={0} ماہ میں	narrow.month.future.other={0} ماہ میں
+ur-IN	narrow.month.count.one={0} مہینہ	narrow.month.count.other={0} مہینے
+ur-IN	narrow.month.relative.-2=	narrow.month.relative.-1=گزشتہ ماہ	narrow.month.relative.0=اس ماہ	narrow.month.relative.1=اگلے ماہ	narrow.month.relative.2=
+ur-IN	narrow.quarter.past.one={0} سہ ماہی پہلے	narrow.quarter.past.other={0} سہ ماہی پہلے
+ur-IN	narrow.quarter.future.one={0} سہ ماہی میں	narrow.quarter.future.other={0} سہ ماہی میں
+ur-IN	narrow.quarter.count.one={0}q	narrow.quarter.count.other={0}q
+ur-IN	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=گزشتہ سہ ماہی	narrow.quarter.relative.0=اس سہ ماہی	narrow.quarter.relative.1=اگلے سہ ماہی	narrow.quarter.relative.2=
+ur-IN	narrow.year.past.one={0} سال پہلے	narrow.year.past.other={0} سالوں پہلے
+ur-IN	narrow.year.future.one={0} سال میں	narrow.year.future.other={0} سالوں میں
+ur-IN	narrow.year.count.one={0} سال	narrow.year.count.other={0} سال
+ur-IN	narrow.year.relative.-2=	narrow.year.relative.-1=گزشتہ سال	narrow.year.relative.0=اس سال	narrow.year.relative.1=اگلے سال	narrow.year.relative.2=
+ur-IN	list.standard.2={0} اور {1}	list.standard.start={0}، {1}	list.standard.middle={0}، {1}	list.standard.end={0}، اور {1}
+ur-IN	list.unit.2={0}، {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}، اور {1}
+ur-IN	list.narrow.2={0} اور {1}	list.narrow.start={0}، {1}	list.narrow.middle={0}، {1}	list.narrow.end={0}، اور {1}
+ur-IN	decimal=٫	at={0} کو {1}
 vi	long.second.past.other={0} giây trước
 vi	long.second.future.other=sau {0} giây nữa
 vi	long.second.count.other={0} giây
@@ -3198,3 +3798,103 @@ zh-Hant	list.standard.2={0}和{1}	list.standard.start={0}、{1}	list.standard.mi
 zh-Hant	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
 zh-Hant	list.narrow.2={0}{1}	list.narrow.start={0}{1}	list.narrow.middle={0}{1}	list.narrow.end={0}{1}
 zh-Hant	decimal=.	at={0}{1}
+zh-Hant-HK	long.second.past.other={0} 秒前
+zh-Hant-HK	long.second.future.other={0} 秒後
+zh-Hant-HK	long.second.count.other={0} 秒
+zh-Hant-HK	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=現在	long.second.relative.1=	long.second.relative.2=
+zh-Hant-HK	long.minute.past.other={0} 分鐘前
+zh-Hant-HK	long.minute.future.other={0} 分鐘後
+zh-Hant-HK	long.minute.count.other={0} 分鐘
+zh-Hant-HK	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=這分鐘	long.minute.relative.1=	long.minute.relative.2=
+zh-Hant-HK	long.hour.past.other={0} 小時前
+zh-Hant-HK	long.hour.future.other={0} 小時後
+zh-Hant-HK	long.hour.count.other={0} 小時
+zh-Hant-HK	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=這個小時	long.hour.relative.1=	long.hour.relative.2=
+zh-Hant-HK	long.day.past.other={0} 日前
+zh-Hant-HK	long.day.future.other={0} 日後
+zh-Hant-HK	long.day.count.other={0} 日
+zh-Hant-HK	long.day.relative.-2=前日	long.day.relative.-1=昨日	long.day.relative.0=今日	long.day.relative.1=明日	long.day.relative.2=後日
+zh-Hant-HK	long.week.past.other={0} 星期前
+zh-Hant-HK	long.week.future.other={0} 星期後
+zh-Hant-HK	long.week.count.other={0} 星期
+zh-Hant-HK	long.week.relative.-2=	long.week.relative.-1=上星期	long.week.relative.0=本星期	long.week.relative.1=下星期	long.week.relative.2=
+zh-Hant-HK	long.month.past.other={0} 個月前
+zh-Hant-HK	long.month.future.other={0} 個月後
+zh-Hant-HK	long.month.count.other={0} 個月
+zh-Hant-HK	long.month.relative.-2=	long.month.relative.-1=上個月	long.month.relative.0=本月	long.month.relative.1=下個月	long.month.relative.2=
+zh-Hant-HK	long.quarter.past.other={0} 季前
+zh-Hant-HK	long.quarter.future.other={0} 季後
+zh-Hant-HK	long.quarter.count.other={0} 刻
+zh-Hant-HK	long.quarter.relative.-2=	long.quarter.relative.-1=上一季	long.quarter.relative.0=今季	long.quarter.relative.1=下一季	long.quarter.relative.2=
+zh-Hant-HK	long.year.past.other={0} 年前
+zh-Hant-HK	long.year.future.other={0} 年後
+zh-Hant-HK	long.year.count.other={0} 年
+zh-Hant-HK	long.year.relative.-2=	long.year.relative.-1=上年	long.year.relative.0=今年	long.year.relative.1=下年	long.year.relative.2=
+zh-Hant-HK	short.second.past.other={0} 秒前
+zh-Hant-HK	short.second.future.other={0} 秒後
+zh-Hant-HK	short.second.count.other={0} 秒
+zh-Hant-HK	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=現在	short.second.relative.1=	short.second.relative.2=
+zh-Hant-HK	short.minute.past.other={0} 分鐘前
+zh-Hant-HK	short.minute.future.other={0} 分鐘後
+zh-Hant-HK	short.minute.count.other={0} 分鐘
+zh-Hant-HK	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=這分鐘	short.minute.relative.1=	short.minute.relative.2=
+zh-Hant-HK	short.hour.past.other={0} 小時前
+zh-Hant-HK	short.hour.future.other={0} 小時後
+zh-Hant-HK	short.hour.count.other={0} 小時
+zh-Hant-HK	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=這個小時	short.hour.relative.1=	short.hour.relative.2=
+zh-Hant-HK	short.day.past.other={0} 日前
+zh-Hant-HK	short.day.future.other={0} 日後
+zh-Hant-HK	short.day.count.other={0} 日
+zh-Hant-HK	short.day.relative.-2=前日	short.day.relative.-1=昨日	short.day.relative.0=今日	short.day.relative.1=明日	short.day.relative.2=後日
+zh-Hant-HK	short.week.past.other={0} 星期前
+zh-Hant-HK	short.week.future.other={0} 星期後
+zh-Hant-HK	short.week.count.other={0} 星期
+zh-Hant-HK	short.week.relative.-2=	short.week.relative.-1=上星期	short.week.relative.0=本星期	short.week.relative.1=下星期	short.week.relative.2=
+zh-Hant-HK	short.month.past.other={0} 個月前
+zh-Hant-HK	short.month.future.other={0} 個月後
+zh-Hant-HK	short.month.count.other={0} 個月
+zh-Hant-HK	short.month.relative.-2=	short.month.relative.-1=上個月	short.month.relative.0=本月	short.month.relative.1=下個月	short.month.relative.2=
+zh-Hant-HK	short.quarter.past.other={0} 季前
+zh-Hant-HK	short.quarter.future.other={0} 季後
+zh-Hant-HK	short.quarter.count.other={0} 刻
+zh-Hant-HK	short.quarter.relative.-2=	short.quarter.relative.-1=上季	short.quarter.relative.0=今季	short.quarter.relative.1=下季	short.quarter.relative.2=
+zh-Hant-HK	short.year.past.other={0} 年前
+zh-Hant-HK	short.year.future.other={0} 年後
+zh-Hant-HK	short.year.count.other={0} 年
+zh-Hant-HK	short.year.relative.-2=	short.year.relative.-1=上年	short.year.relative.0=今年	short.year.relative.1=下年	short.year.relative.2=
+zh-Hant-HK	narrow.second.past.other={0}秒前
+zh-Hant-HK	narrow.second.future.other={0}秒後
+zh-Hant-HK	narrow.second.count.other={0}秒
+zh-Hant-HK	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=現在	narrow.second.relative.1=	narrow.second.relative.2=
+zh-Hant-HK	narrow.minute.past.other={0}分前
+zh-Hant-HK	narrow.minute.future.other={0}分後
+zh-Hant-HK	narrow.minute.count.other={0}分
+zh-Hant-HK	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=這分鐘	narrow.minute.relative.1=	narrow.minute.relative.2=
+zh-Hant-HK	narrow.hour.past.other={0}小時前
+zh-Hant-HK	narrow.hour.future.other={0}小時後
+zh-Hant-HK	narrow.hour.count.other={0}小時
+zh-Hant-HK	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=這個小時	narrow.hour.relative.1=	narrow.hour.relative.2=
+zh-Hant-HK	narrow.day.past.other={0}日前
+zh-Hant-HK	narrow.day.future.other={0}日後
+zh-Hant-HK	narrow.day.count.other={0}日
+zh-Hant-HK	narrow.day.relative.-2=前日	narrow.day.relative.-1=昨日	narrow.day.relative.0=今日	narrow.day.relative.1=明日	narrow.day.relative.2=後日
+zh-Hant-HK	narrow.week.past.other={0}星期前
+zh-Hant-HK	narrow.week.future.other={0}星期後
+zh-Hant-HK	narrow.week.count.other={0}週
+zh-Hant-HK	narrow.week.relative.-2=	narrow.week.relative.-1=上星期	narrow.week.relative.0=本星期	narrow.week.relative.1=下星期	narrow.week.relative.2=
+zh-Hant-HK	narrow.month.past.other={0}個月前
+zh-Hant-HK	narrow.month.future.other={0}個月後
+zh-Hant-HK	narrow.month.count.other={0}個月
+zh-Hant-HK	narrow.month.relative.-2=	narrow.month.relative.-1=上個月	narrow.month.relative.0=本月	narrow.month.relative.1=下個月	narrow.month.relative.2=
+zh-Hant-HK	narrow.quarter.past.other=-{0}Q
+zh-Hant-HK	narrow.quarter.future.other=+{0}Q
+zh-Hant-HK	narrow.quarter.count.other={0}刻
+zh-Hant-HK	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=上季	narrow.quarter.relative.0=今季	narrow.quarter.relative.1=下季	narrow.quarter.relative.2=
+zh-Hant-HK	narrow.year.past.other={0}年前
+zh-Hant-HK	narrow.year.future.other={0}年後
+zh-Hant-HK	narrow.year.count.other={0}年
+zh-Hant-HK	narrow.year.relative.-2=	narrow.year.relative.-1=上年	narrow.year.relative.0=今年	narrow.year.relative.1=下年	narrow.year.relative.2=
+zh-Hant-HK	list.standard.2={0}及{1}	list.standard.start={0}、{1}	list.standard.middle={0}、{1}	list.standard.end={0}及{1}
+zh-Hant-HK	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
+zh-Hant-HK	list.narrow.2={0}{1}	list.narrow.start={0}{1}	list.narrow.middle={0}{1}	list.narrow.end={0}{1}
+zh-Hant-HK	decimal=.	at={0}{1}

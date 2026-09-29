@@ -35,6 +35,17 @@ exemplar-cities = []
 # `localized-exemplar-cities` feature turns it on, and a build that shows
 # zones in English does not carry it.
 localized-exemplar-cities = ["exemplar-cities"]
+# CLDR 48's time zone data for the zone names of UTS #35 (the
+# `zone_names` module): each zone's metazones, the golden, preferred and
+# primary zones, the BCP 47 zone identifiers, the languages' likely
+# regions, and English's metazone and zone names. About 60 kB; the
+# exemplar cities and the territory names are the other half of a zone's
+# location name, so it turns them on. `hc-format`'s `zone-names` feature
+# turns it on.
+zone-names = ["exemplar-cities", "territories"]
+# The metazone and zone names of every other carried locale. About 600 kB of
+# text, so a feature of its own: `hc-format`'s `localized-zone-names`.
+localized-zone-names = ["zone-names", "localized-exemplar-cities"]
 # CLDR 48's names of every territory and every ISO 3166-2 subdivision it
 # names, in every carried locale (the `place_names` module). Some 2.8 MB,
 # 2.6 MB of it the subdivisions, so a feature of its own that nothing else

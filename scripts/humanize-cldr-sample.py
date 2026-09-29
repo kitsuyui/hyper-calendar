@@ -47,12 +47,14 @@ CDN = 'https://cdn.jsdelivr.net/npm/'
 
 # Each carried tag and the cldr-json locale that holds it.
 TAGS = [
-    ('ar', 'ar'), ('cs', 'cs'), ('cy', 'cy'), ('de', 'de'), ('en', 'en'), ('es', 'es'),
+    ('ar', 'ar'), ('ar-EG', 'ar-EG'), ('cs', 'cs'), ('cy', 'cy'), ('de', 'de'), ('en', 'en'),
+    ('en-001', 'en-001'), ('en-GB', 'en-GB'), ('es', 'es'), ('es-419', 'es-419'),
     ('fil', 'fil'), ('fr', 'fr'), ('ha', 'ha'), ('hi', 'hi'), ('id', 'id'), ('it', 'it'),
-    ('ja', 'ja'), ('ko', 'ko'), ('mr', 'mr'), ('nl', 'nl'), ('pa-Guru', 'pa'), ('pcm', 'pcm'),
-    ('pl', 'pl'), ('pt', 'pt'), ('pt-PT', 'pt-PT'), ('ru', 'ru'), ('sw', 'sw'), ('te', 'te'),
-    ('th', 'th'), ('tr', 'tr'), ('ur', 'ur'), ('vi', 'vi'), ('yue-Hans', 'yue-Hans'),
-    ('yue-Hant', 'yue'), ('zh', 'zh'), ('zh-Hant', 'zh-Hant'),
+    ('ja', 'ja'), ('ko', 'ko'), ('mn', 'mn'), ('mr', 'mr'), ('nl', 'nl'), ('pa-Guru', 'pa'),
+    ('pcm', 'pcm'), ('pl', 'pl'), ('pt', 'pt'), ('pt-PT', 'pt-PT'), ('ru', 'ru'), ('sw', 'sw'),
+    ('te', 'te'), ('th', 'th'), ('tr', 'tr'), ('ur', 'ur'), ('ur-IN', 'ur-IN'), ('vi', 'vi'),
+    ('yue-Hans', 'yue-Hans'), ('yue-Hant', 'yue'), ('zh', 'zh'), ('zh-Hant', 'zh-Hant'),
+    ('zh-Hant-HK', 'zh-Hant-HK'),
 ]
 # The locales whose numbers hc-i18n writes in CLDR's `native` system rather
 # than the default one; the test holds hc-i18n to it.

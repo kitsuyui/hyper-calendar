@@ -134,7 +134,8 @@ England's, Scotland's and Wales's, which are approved.
   in the carried locales other than English, 121 655 are provisional, 109
   approved (England's, Scotland's and Wales's in each file that names
   them) and one contributed. Nearly every territory name is approved.
-  Forty-seven of the 53 carried locales have a table: 47 name territories
+  Forty-seven of the 65 carried locales have a table (the regional and
+  added entries of `docs/i18n.md` not yet): 47 name territories
   and 39 name subdivisions, `fil` and `zh-Hant` only England, Scotland and
   Wales. Tibetan, Kabyle, Punjabi in the Arabic script, Nigerian Pidgin,
   European Portuguese (whose three values are the marker), Sanskrit,

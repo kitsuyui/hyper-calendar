@@ -618,7 +618,7 @@ describe("calendars and locales", () => {
       assert.equal(cells.length, COLUMNS.locales.length, JSON.stringify(cells));
     }
     const rows = hc.locales();
-    assert.equal(rows.length, 53, `${rows.length} locales`);
+    assert.equal(rows.length, 65, `${rows.length} locales`);
     assert.deepEqual(rows.map((row) => row.tag), [...rows.map((row) => row.tag)].sort(), "tag order");
     const ja = rows.find((row) => row.tag === "ja");
     assert.ok(ja);

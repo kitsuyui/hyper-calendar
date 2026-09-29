@@ -5,12 +5,33 @@
 //! pad with zeros, `^` to upper-case a name, an explicit field width, and
 //! `%:z` for a colon-separated offset.
 //!
+//! # The modifiers
+//!
+//! POSIX's `%E` and `%O` (IEEE Std 1003.1-2024, `strftime`, "Modified
+//! Conversion Specifiers"; XBD 7.3.5, `LC_TIME`) ask for "an alternative
+//! format or specification", and where the locale has none "the behavior
+//! shall be as if the unmodified conversion specification were used":
+//!
+//! * `%EC`, `%Ey` and `%EY` write the era, the year and both of the
+//!   calendar [`FormatContext::era_calendar`] names, or that the locale's
+//!   `-u-ca-` key names where it is the Buddhist or the Minguo calendar:
+//!   `th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569. `%Ex` writes that
+//!   calendar's date and `%Ec` the date and `%X`; `%EX` is `%X`.
+//! * `%Ob` and `%OB` write the month's stand-alone name, what POSIX's
+//!   `alt_mon` "shall be used to denote": the nominative case where a
+//!   language has one, Russian's *сентябрь* for the genitive *сентября*.
+//! * `%Od`, `%Oe`, `%OH`, `%OI`, `%Om`, `%OM`, `%OS`, `%Ou`, `%OU`, `%OV`,
+//!   `%Ow`, `%OW` and `%Oy` write the number in the locale's alternative
+//!   digits, POSIX's `alt_digits`: CLDR 48's `native` numbering system
+//!   where it is not the locale's usual one, else its `traditional` one
+//!   (Devanagari for `hi`, Han numerals for `ja`, Hebrew for `he`). A
+//!   positional system pads with its own zero; an algorithmic one is not
+//!   padded.
+//!
+//! When parsing, `%E` and `%O` read as the unmodified conversion does.
+//!
 //! # Deliberate gaps
 //!
-//! * `%E…` and `%O…`, the POSIX locale-alternative modifiers, are not
-//!   implemented: they name era and numbering-system alternatives that
-//!   `hc-i18n` exposes directly and that no caller has ever wanted spelled
-//!   this way.
 //! * `%U` and `%W` fix a date when parsing only together with a year and a
 //!   weekday (`%a`, `%A`, `%u` or `%w`), which is Python's rule; on their
 //!   own they are read and discarded, because a week number without a
@@ -29,8 +50,8 @@
 
 use core::fmt;
 
-use hc_i18n::Locale;
 use hc_i18n::names::{DayPeriod, NameContext, NameWidth};
+use hc_i18n::{Locale, NumberingSystem};
 use hc_tz::OffsetStyle;
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
@@ -56,12 +77,24 @@ enum Pad {
     Zero,
 }
 
+/// POSIX's modifier characters, before the conversion: `%E` for the
+/// locale's alternative era, `%O` for its alternative digits and month
+/// names.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Modifier {
+    E,
+    O,
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 struct Spec {
     pad: Option<Pad>,
     width: Option<usize>,
     upper: bool,
     colon: bool,
+    modifier: Option<Modifier>,
+    /// The digits a `%O` number is written in.
+    digits: Option<&'static NumberingSystem>,
 }
 
 impl Spec {
@@ -146,11 +179,28 @@ fn expand<W: fmt::Write>(
             spec.colon = true;
             index += 1;
         }
+        spec.modifier = match bytes.get(index) {
+            Some(b'E') => Some(Modifier::E),
+            Some(b'O') => Some(Modifier::O),
+            _ => None,
+        };
+        if spec.modifier.is_some() {
+            index += 1;
+        }
         let Some(&conversion) = bytes.get(index) else {
             return Err(FormatError::UnknownField('%'));
         };
         index += 1;
-        write_conversion(out, char::from(conversion), spec, context, fields, depth)?;
+        let conversion = char::from(conversion);
+        match spec.modifier {
+            Some(Modifier::E) => {
+                write_era_conversion(out, conversion, spec, context, fields, depth)?
+            }
+            Some(Modifier::O) => {
+                write_alternative_conversion(out, conversion, spec, context, fields, depth)?
+            }
+            None => write_conversion(out, conversion, spec, context, fields, depth)?,
+        }
     }
     Ok(())
 }
@@ -279,6 +329,120 @@ fn write_conversion<W: fmt::Write>(
     }
 }
 
+/// The calendar `%E` writes its era in: the context's, else the one the
+/// locale's `-u-ca-` key names, where it is the Buddhist or the Minguo.
+fn era_calendar<'a>(context: &FormatContext<'a>) -> Option<&'a dyn hc_calendar::DynCalendar> {
+    use hc_calendar::DynAdapter;
+    static BUDDHIST: DynAdapter<hc_calendars_solar::buddhist::BuddhistCalendar> =
+        DynAdapter::new(hc_calendars_solar::buddhist::BuddhistCalendar);
+    static MINGUO: DynAdapter<hc_calendars_solar::minguo::MinguoCalendar> =
+        DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);
+    if let Some(calendar) = context.era_calendar {
+        return Some(calendar);
+    }
+    match context.locale?.calendar()? {
+        "buddhist" => Some(&BUDDHIST),
+        "roc" => Some(&MINGUO),
+        _ => None,
+    }
+}
+
+/// `%Ec`, `%EC`, `%Ex`, `%EX`, `%Ey` and `%EY`: POSIX's alternative era.
+/// With a calendar to write it in, `%EC` is its era, `%Ey` its year,
+/// `%EY` both as the locale writes a year, `%Ex` its whole date and `%Ec`
+/// that date and `%X`; a locale has no alternative time, so `%EX` is
+/// `%X`. Where there is no such calendar, POSIX says "the behavior shall be
+/// as if the unmodified conversion specification were used".
+fn write_era_conversion<W: fmt::Write>(
+    out: &mut W,
+    conversion: char,
+    spec: Spec,
+    context: &FormatContext<'_>,
+    fields: &Fields,
+    depth: u8,
+) -> FormatResult<()> {
+    use hc_calendar::units::Unit;
+    if !matches!(conversion, 'c' | 'C' | 'x' | 'X' | 'y' | 'Y') {
+        return Err(FormatError::UnknownField('E'));
+    }
+    let unmodified = Spec {
+        modifier: None,
+        ..spec
+    };
+    let Some(calendar) = era_calendar(context).filter(|_| conversion != 'X') else {
+        return write_conversion(out, conversion, unmodified, context, fields, depth);
+    };
+    let locale = context
+        .locale
+        .copied()
+        .unwrap_or_else(hc_i18n::names::english);
+    let date = calendar
+        .fixed_to_fields(context.date_time.day)
+        .map_err(|_| FormatError::Unrepresentable("the date in the era's calendar"))?;
+    match conversion {
+        'C' => crate::label::write_label(calendar, &date, Unit::Era, &locale, out)?,
+        'y' => number(out, date.year, unmodified, 1, Pad::None)?,
+        'Y' => crate::label::write_label(calendar, &date, Unit::Year, &locale, out)?,
+        'x' => crate::label::write_date(calendar, &date, &locale, out)?,
+        _ => {
+            crate::label::write_date(calendar, &date, &locale, out)?;
+            out.write_char(' ')?;
+            write_conversion(out, 'X', unmodified, context, fields, depth)?;
+        }
+    }
+    Ok(())
+}
+
+/// `%Ob`, `%OB` and the numbers `%Od` … `%Oy`: POSIX's alternative month
+/// names, which "denote the nominative case" — CLDR's stand-alone names —
+/// and its alternative digits, the locale's
+/// [`NumberingSystem::alternative_for_locale`]. A locale with neither
+/// writes the unmodified conversion.
+fn write_alternative_conversion<W: fmt::Write>(
+    out: &mut W,
+    conversion: char,
+    spec: Spec,
+    context: &FormatContext<'_>,
+    fields: &Fields,
+    depth: u8,
+) -> FormatResult<()> {
+    let unmodified = Spec {
+        modifier: None,
+        ..spec
+    };
+    match conversion {
+        'b' | 'B' => {
+            let width = if conversion == 'b' {
+                NameWidth::Abbreviated
+            } else {
+                NameWidth::Wide
+            };
+            text(
+                out,
+                month_name(context.locale, fields.month, width, NameContext::Standalone),
+                spec,
+            )
+        }
+        'd' | 'e' | 'H' | 'I' | 'm' | 'M' | 'S' | 'u' | 'U' | 'V' | 'w' | 'W' | 'y' => {
+            let digits = context
+                .locale
+                .and_then(NumberingSystem::alternative_for_locale);
+            write_conversion(
+                out,
+                conversion,
+                Spec {
+                    digits,
+                    ..unmodified
+                },
+                context,
+                fields,
+                depth,
+            )
+        }
+        _ => Err(FormatError::UnknownField('O')),
+    }
+}
+
 /// Write the leading `digits` digits of a sub-second remainder, truncated.
 fn write_fraction<W: fmt::Write>(out: &mut W, attos: u64, digits: usize) -> FormatResult<()> {
     let digits = digits.clamp(1, 18);
@@ -349,6 +513,9 @@ fn number<W: fmt::Write>(
     default_width: usize,
     default_pad: Pad,
 ) -> FormatResult<()> {
+    if let Some(system) = spec.digits {
+        return alternative_number(out, value, spec, default_width, default_pad, system);
+    }
     let width = spec.width_or(default_width);
     let pad = spec.pad_or(default_pad);
     let mut digits = [0u8; 20];
@@ -384,6 +551,71 @@ fn number<W: fmt::Write>(
         out.write_char(char::from(digit))?;
     }
     Ok(())
+}
+
+/// A number in a `%O` conversion's digits: a positional system's padded as
+/// the conversion pads, with its own zero; an algorithmic one's spelled
+/// out and unpadded, since it has no digit to pad with.
+fn alternative_number<W: fmt::Write>(
+    out: &mut W,
+    value: i64,
+    spec: Spec,
+    default_width: usize,
+    default_pad: Pad,
+    system: &'static NumberingSystem,
+) -> FormatResult<()> {
+    let Some(digits) = system.digits() else {
+        return system
+            .write_integer(value, out)
+            .map_err(|_| FormatError::Unrepresentable("the number in the locale's numerals"));
+    };
+    let mut latin = LatinDigits::default();
+    number(
+        &mut latin,
+        value,
+        Spec {
+            digits: None,
+            ..spec
+        },
+        default_width,
+        default_pad,
+    )?;
+    for character in latin.bytes[..latin.length]
+        .iter()
+        .map(|byte| char::from(*byte))
+    {
+        match character.to_digit(10) {
+            Some(digit) => out.write_char(digits[digit as usize])?,
+            None => out.write_char(character)?,
+        }
+    }
+    Ok(())
+}
+
+/// The ASCII text of a number, a sign, padding and digits, before its
+/// digits are replaced.
+struct LatinDigits {
+    bytes: [u8; 40],
+    length: usize,
+}
+
+impl Default for LatinDigits {
+    fn default() -> Self {
+        Self {
+            bytes: [0; 40],
+            length: 0,
+        }
+    }
+}
+
+impl fmt::Write for LatinDigits {
+    fn write_str(&mut self, text: &str) -> fmt::Result {
+        let end = self.length + text.len();
+        let slot = self.bytes.get_mut(self.length..end).ok_or(fmt::Error)?;
+        slot.copy_from_slice(text.as_bytes());
+        self.length = end;
+        Ok(())
+    }
 }
 
 // --- parsing ---------------------------------------------------------------
@@ -461,6 +693,12 @@ fn consume(
             .get(width_start..index)
             .and_then(|text| text.parse::<usize>().ok());
         if bytes.get(index) == Some(&b':') {
+            index += 1;
+        }
+        // POSIX's `%E` and `%O` read as the unmodified conversion does: the
+        // month names already take the stand-alone forms, and the era and
+        // the alternative digits are not read back.
+        if matches!(bytes.get(index), Some(b'E' | b'O')) {
             index += 1;
         }
         let Some(&conversion) = bytes.get(index) else {
@@ -623,7 +861,7 @@ pub(crate) fn starts_with_ignore_case(haystack: &[u8], needle: &str) -> bool {
 }
 
 /// Match the longest candidate name, so that `September` wins over `Sep`.
-fn match_longest<const N: usize>(
+pub(crate) fn match_longest<const N: usize>(
     scanner: &mut Scanner<'_>,
     count: usize,
     candidates: impl Fn(usize) -> [&'static str; N],
@@ -739,6 +977,79 @@ mod tests {
         let mut out = String::new();
         format(&mut out, pattern, &context()).unwrap();
         out
+    }
+
+    fn render_in(pattern: &str, tag: &str) -> String {
+        let locale = Locale::parse(tag).unwrap();
+        let mut out = String::new();
+        format(&mut out, pattern, &context().with_locale(&locale)).unwrap();
+        out
+    }
+
+    /// POSIX's `%E`: the Thai Buddhist Era of `th-u-ca-buddhist`, 2026 as
+    /// พ.ศ. 2569, and the Minguo era, 2026 as 民國115年; and the unmodified
+    /// conversion where the locale names no such calendar.
+    #[test]
+    fn the_era_modifier_writes_the_locales_alternative_era() {
+        assert_eq!(
+            render_in("%EC|%Ey|%EY", "th-u-ca-buddhist"),
+            "พุทธศักราช|2569|พ.ศ. 2569"
+        );
+        assert_eq!(
+            render_in("%EC|%Ey|%EY", "zh-TW-u-ca-roc"),
+            "民國|115|民國115年"
+        );
+        assert_eq!(
+            render_in("%EC|%Ey|%EY|%Ex|%EX", "en"),
+            "20|26|2026|09/21/26|14:30:05"
+        );
+        assert_eq!(render("%EY"), "2026");
+        let minguo = hc_calendar::DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);
+        let chinese = Locale::parse("zh-Hant").unwrap();
+        let mut out = String::new();
+        format(
+            &mut out,
+            "%EY",
+            &context().with_locale(&chinese).with_era_calendar(&minguo),
+        )
+        .unwrap();
+        assert_eq!(out, "民國115年");
+    }
+
+    /// POSIX's `%O`: the stand-alone month, Russian's nominative
+    /// *сентябрь* for the genitive *сентября*; and the alternative digits,
+    /// Devanagari for Hindi, Han numerals for Japanese, Hebrew numerals for
+    /// Hebrew, none for English.
+    #[test]
+    fn the_alternative_modifier_writes_the_locales_alternatives() {
+        assert_eq!(render_in("%B|%OB", "ru"), "сентября|сентябрь");
+        assert_eq!(render_in("%Od|%OH|%OM", "hi"), "२१|१४|३०");
+        assert_eq!(render_in("%Od|%OH", "ja"), "二十一|十四");
+        assert_eq!(render_in("%Od", "he"), "כ״א");
+        assert_eq!(render_in("%Od|%OH", "en"), "21|14");
+        assert_eq!(render("%Od"), "21");
+        // A positional system pads with its own zero.
+        let early = FormatContext::new(CivilDateTime::new(
+            Rd(739_864),
+            CivilTime::hms(4, 5, 0).unwrap(),
+        ));
+        let hindi = Locale::parse("hi").unwrap();
+        let mut out = String::new();
+        format(&mut out, "%Od|%Oe|%OH", &early.with_locale(&hindi)).unwrap();
+        assert_eq!(out, "०५| ५|०४");
+        // A modifier no conversion takes is refused, as POSIX leaves it
+        // undefined.
+        let mut out = String::new();
+        assert_eq!(
+            format(&mut out, "%Ea", &context()).unwrap_err(),
+            FormatError::UnknownField('E')
+        );
+        // `strptime` reads a modified conversion as the unmodified one.
+        let parsed = parse("%EY-%Om-%Od", "2026-09-21").unwrap();
+        assert_eq!(
+            (parsed.year, parsed.month, parsed.day),
+            (Some(2026), Some(9), Some(21))
+        );
     }
 
     #[test]

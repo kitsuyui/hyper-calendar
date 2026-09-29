@@ -50,6 +50,9 @@
 //! * [`holiday_names`] — what a locale calls a day of a holiday table
 //!   beside the table's own names, where a source in the language prints
 //!   it: the Coptic names of the Coptic Orthodox feasts.
+//! * [`day_periods`] — the day periods beyond am and pm, midnight, noon and
+//!   the flexible *in the morning* and *at night*, with each language's
+//!   rules for when they begin.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -60,6 +63,9 @@
 //!   `localized-exemplar-cities` those of every other carried locale.
 //! * `place_names` — with the `place-names` feature, CLDR's names of every
 //!   territory and ISO 3166-2 subdivision, in every carried locale.
+//! * [`zone_names`] — each locale's time zone formats, and with the
+//!   `zone-names` feature CLDR's metazones and English's zone names, with
+//!   `localized-zone-names` every other carried locale's.
 //!
 //! # Scope
 //!
@@ -83,6 +89,7 @@ pub mod almanac;
 pub mod casing;
 pub mod data;
 pub mod dated;
+pub mod day_periods;
 pub mod direction;
 pub mod error;
 #[cfg(feature = "exemplar-cities")]
@@ -101,6 +108,7 @@ pub mod plural;
 pub mod reckonings;
 #[cfg(feature = "territories")]
 pub mod territories;
+pub mod zone_names;
 
 mod util;
 

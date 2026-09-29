@@ -630,8 +630,27 @@ mod tests {
         assert_eq!(say(&numeric("zh-Hant"), -3, TimeUnit::Week), "3 週前");
         // Traditional by the region's likely script, not Simplified.
         assert_eq!(say(&numeric("zh-TW"), -3, TimeUnit::Week), "3 週前");
-        assert_eq!(say(&numeric("zh-HK"), -3, TimeUnit::Week), "3 週前");
+        // Hong Kong's own file writes 星期 (CLDR 48 `zh_Hant_HK.xml`).
+        assert_eq!(say(&numeric("zh-HK"), -3, TimeUnit::Week), "3 星期前");
         assert_eq!(say(&numeric("zh-CN"), -3, TimeUnit::Week), "3周前");
+    }
+
+    /// The regional entries against their CLDR 48 files: `en_001.xml`'s
+    /// short month has no full stop where `en.xml`'s has one, `es_419.xml`
+    /// writes the short day in full, and the Indian and Egyptian files
+    /// write their numbers in their own digits.
+    #[test]
+    fn a_regional_file_answers_in_its_own_words() {
+        let short = |tag: &str| numeric(tag).with_style(RelativeStyle::Short);
+        assert_eq!(say(&short("en-GB"), -3, TimeUnit::Month), "3 mo ago");
+        assert_eq!(say(&short("en-AU"), -3, TimeUnit::Month), "3 mo ago");
+        assert_eq!(say(&short("en"), -3, TimeUnit::Month), "3 mo. ago");
+        assert_eq!(say(&short("es-MX"), -3, TimeUnit::Day), "hace 3 días");
+        assert_eq!(say(&short("es"), -3, TimeUnit::Day), "hace 3 d");
+        assert_eq!(say(&numeric("ur-IN"), -3, TimeUnit::Day), "۳ دنوں پہلے");
+        assert_eq!(say(&numeric("ur"), -3, TimeUnit::Day), "3 دنوں پہلے");
+        assert_eq!(say(&numeric("mn"), -3, TimeUnit::Hour), "3 цагийн өмнө");
+        assert_eq!(say(&auto("mn"), -1, TimeUnit::Day), "өчигдөр");
     }
 
     // --- accessors and helpers -------------------------------------------
