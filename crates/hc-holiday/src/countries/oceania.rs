@@ -8,7 +8,7 @@ use crate::computus::offsets::{
 };
 use crate::rule::{
     HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy,
+    Subdivisions, SubstituteDirection, SubstitutionPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -145,6 +145,7 @@ pub static AUSTRALIA: RuleSet = RuleSet {
               not modelled; nor are the show days, the Royal Queensland Show's among them, \
               which s 4(5)(a) of the Queensland Act lets the Minister appoint for the City of \
               Brisbane only; nor the part-day holidays of Christmas Eve",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -228,6 +229,7 @@ pub static NEW_ZEALAND: RuleSet = RuleSet {
               Employment New Zealand's list for 2026 and 2027 and its \"Previous years: \
               Public holidays and anniversary dates\" for 2010 to 2025, retrieved \
               2026-09-29, as src/countries/new_zealand.rs gives them",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -293,6 +295,7 @@ pub static MICRONESIA: RuleSet = RuleSet {
     sources: "Code of the Federated States of Micronesia (2014), title 1, chapter 6, \
               sections 601 to 603, and Public Laws 13-38, 16-27 and 21-209, as the FSM \
               Legal Information System publishes them (fsmlaw.org), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -345,6 +348,7 @@ pub static MARSHALL_ISLANDS: RuleSet = RuleSet {
               (rmiparliament.org, 1988-0016_2.pdf) as the Internet Archive holds it, \
               captured 2025-04-04, the Nitijela's site refusing this session's requests; \
               retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -465,6 +469,7 @@ pub static NAURU: RuleSet = RuleSet {
               (G.N. 1350/2022), No. 14 of 15 January 2024 and No. 7 of 9 January 2026 \
               (G.N. 28/2026), the public-holiday lists for 2023, 2024 and 2026 \
               (ronlaw.gov.nr), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -516,6 +521,7 @@ pub static PALAU: RuleSet = RuleSet {
     sources: "Palau National Code Annotated, title 1, sections 701 and 702 (Supp. 12), \
               PacLII's copy (pncgpt1409.pdf) as the Internet Archive holds it, captured \
               2025-12-06, PacLII refusing this session's requests; retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -581,6 +587,7 @@ pub static PAPUA_NEW_GUINEA: RuleSet = RuleSet {
               refusing this session's requests; retrieved 2026-09-23. Independence Day \
               and the Sovereign's Birthday are reported as gaps, and the other gazetted days \
               are not modelled",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -641,6 +648,7 @@ pub static SOLOMON_ISLANDS: RuleSet = RuleSet {
               quotes it; the Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23; \
               the same Island Sun report for the provincial days of 2026, retrieved \
               2026-09-29",
+    subdivisions: Subdivisions::Read(&["SB-CT"]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -749,6 +757,7 @@ pub static TONGA: RuleSet = RuleSet {
               endnotes (ago.gov.to); Prime Minister's Office media releases \"Tonga Public \
               Holidays for 2024\" (12 October 2023) and \"Tonga Public Holidays for 2026\" \
               (17 November 2025), in English and Tongan (pmo.gov.to), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -819,6 +828,7 @@ pub static TUVALU: RuleSet = RuleSet {
     sources: "Public Holidays Act, Cap. 4.50, 2022 Revised Edition, and Cap. 22.10, 2008 \
               Revised Edition, section 2 and Schedule (tuvalu-legislation.tv), retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -881,6 +891,7 @@ pub static VANUATU: RuleSet = RuleSet {
               \"Holidays\" (gov.vu); Department of Labour, Industrial Relations Unit, \
               \"Public Holiday Brochure\" (dol.gov.vu); retrieved 2026-09-23; the \
               Government's list again for the provincial days, retrieved 2026-09-29",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -968,6 +979,7 @@ pub static SAMOA: RuleSet = RuleSet {
     sources: "Public Holidays Act 2008, section 2, revised to 31 December 2023 \
               (ag.gov.ws); Ministry of Commerce, Industry and Labour, \"Public holidays \
               calendar\" for 2025 to 2027 (mcil.gov.ws), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1125,6 +1137,7 @@ pub static FIJI: RuleSet = RuleSet {
               2023-05-04, 2024-04-18, 2025-09-09 and 2026-04-11, the 2026 list also at \
               fiji.gov.fj/public-holidays captured 2026-08-12, fiji.gov.fj refusing this \
               session's requests; retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1278,4 +1291,5 @@ pub static KIRIBATI: RuleSet = RuleSet {
               for 2025 (revised) and 2026, dated 18 December 2025 (PH_2025_revised_181225.pdf, \
               PH_2026_181225.pdf, president.gov.ki, Gazettes & Instruments), the 2026 list \
               also from the Public Service Office (pso.gov.ki); retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };

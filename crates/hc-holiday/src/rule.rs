@@ -1183,10 +1183,21 @@ const fn saturate_year(year: i64) -> i16 {
 /// The empty table [`Rule::UNREAD`] reads.
 static NOTHING_READ: Listing = Listing::Dates(&[]);
 
+/// No day in any year: what [`Rule::NO_DAY`] computes.
+const fn no_days(_year: i64) -> Days {
+    Days::new()
+}
+
 impl Rule {
     /// A holiday whose dates were not read in any source: every year it is
     /// asked for is a gap.
     pub const UNREAD: Self = Self::unlisted(1, 0);
+
+    /// A day a source read does not keep: no day in any year, and no gap.
+    /// With [`HolidayRule::read_from`] it says that a subdivision's text
+    /// read leaves a nationwide day out, and that the earlier texts, not
+    /// read, are a gap.
+    pub const NO_DAY: Self = Self::Computed(no_days);
 
     /// A table read for `first_year` to `last_year` that lists nothing:
     /// no day in those years, and a gap in any other.
@@ -2652,9 +2663,27 @@ pub const SATURDAY_SUNDAY: &[WeekendPolicy] = &[WeekendPolicy {
 /// One holiday, as a value.
 ///
 /// A `HolidayRule` is inert. It says what the holiday is called, what shape
-/// it has, which years it existed in, which subdivisions it applies to and
-/// whether the country's substitution law reaches it — and nothing about how
-/// to evaluate any of that.
+/// it has, which years it existed in, which years its sources answer for,
+/// which subdivisions it applies to and whether the country's substitution
+/// law reaches it — and nothing about how to evaluate any of that.
+///
+/// # The years before a rule's first
+///
+/// Two different things can stop a rule in an early year, and the rule
+/// keeps them apart (ADR 0013):
+///
+/// - **Its establishment**, `valid_from`: the first year the day existed,
+///   as the instrument that set it says — the rule's own `source`, or the
+///   table's `sources`. Before it the day is absent, which is an answer:
+///   the day was not kept.
+/// - **Its earliest supported year**, `read_from`: the first year the
+///   sources read answer for. Before it, and not before an establishment,
+///   the engine reports a [`Gap`](crate::engine::Gap), because saying the
+///   day was not kept would be a guess.
+///
+/// A rule that knows its establishment and was read back to it needs only
+/// [`HolidayRule::years`]; one read from a later year than it was set, or
+/// whose establishment no source read gives, adds [`HolidayRule::read_from`].
 #[derive(Debug, Clone, Copy)]
 pub struct HolidayRule {
     /// The English name.
@@ -2668,13 +2697,24 @@ pub struct HolidayRule {
     pub kind: Kind,
     /// How firm the computed date is.
     pub confidence: Confidence,
-    /// The first Gregorian year the holiday existed in, if it was created.
+    /// The first Gregorian year the holiday existed in, if it was created:
+    /// its establishment, which the rule's `source` or the table's
+    /// `sources` gives. Before it the holiday is absent.
     pub valid_from: Option<i32>,
     /// The last Gregorian year the holiday existed in, if it was abolished.
     pub valid_until: Option<i32>,
+    /// The first Gregorian year the sources read answer for, when that is
+    /// later than `valid_from` or `valid_from` is not known. Every year
+    /// before it that `valid_from` does not rule out is a gap, which the
+    /// engine reports itself.
+    pub read_from: Option<i32>,
     /// The subdivisions it applies to, as ISO 3166-2 codes. Empty means
     /// nationwide.
     pub regions: &'static [&'static str],
+    /// The subdivisions a nationwide rule does not apply in, as ISO 3166-2
+    /// codes: a federal day a province's own law does not keep. Asked for
+    /// no region, the rule applies; asked for one of these, it does not.
+    pub except_regions: &'static [&'static str],
     /// The groups of people it is given to alone. Empty means everyone.
     /// Independent of `regions`: a rule scoped to both applies to the
     /// group in the subdivision.
@@ -2720,7 +2760,9 @@ impl HolidayRule {
             confidence: Confidence::Exact,
             valid_from: None,
             valid_until: None,
+            read_from: None,
             regions: &[],
+            except_regions: &[],
             groups: &[],
             substitute_from: Some(i32::MIN),
             substitute_trigger: None,
@@ -2764,7 +2806,10 @@ impl HolidayRule {
         }
     }
 
-    /// The same rule, restricted to a span of Gregorian years.
+    /// The same rule, restricted to a span of Gregorian years: the year it
+    /// was established and the year it was abolished. Outside them the
+    /// holiday is absent; see [`HolidayRule::read_from`] for years the
+    /// sources do not reach.
     #[must_use]
     pub const fn years(self, from: Option<i32>, until: Option<i32>) -> Self {
         Self {
@@ -2774,10 +2819,36 @@ impl HolidayRule {
         }
     }
 
+    /// The same rule, answered only from `first`, the first year its
+    /// sources were read for: every earlier year its establishment does not
+    /// rule out is a gap.
+    ///
+    /// A day read in the law in force, with no source for the year it was
+    /// set, is `read_from` the year of that law, with no `years`; a day
+    /// whose establishment is known, and whose early years were not read,
+    /// has both.
+    #[must_use]
+    pub const fn read_from(self, first: i32) -> Self {
+        Self {
+            read_from: Some(first),
+            ..self
+        }
+    }
+
     /// The same rule, restricted to a set of subdivisions.
     #[must_use]
     pub const fn in_regions(self, regions: &'static [&'static str]) -> Self {
         Self { regions, ..self }
+    }
+
+    /// The same rule, not applying in a set of subdivisions: a nationwide
+    /// day those subdivisions' own law does not keep.
+    #[must_use]
+    pub const fn except_in(self, regions: &'static [&'static str]) -> Self {
+        Self {
+            except_regions: regions,
+            ..self
+        }
     }
 
     /// The same rule, given to a set of groups alone.
@@ -2835,14 +2906,33 @@ impl HolidayRule {
         year_in_range(year, self.valid_from, self.valid_until)
     }
 
+    /// Whether `year` is one the holiday may have existed in and its
+    /// sources were not read for: a year before `read_from` and not before
+    /// `valid_from`. The engine reports such a year as a gap.
+    #[must_use]
+    pub const fn is_unread_in(&self, year: i64) -> bool {
+        match self.read_from {
+            Some(first) => year < first as i64 && self.applies_in(year),
+            None => false,
+        }
+    }
+
     /// Whether the holiday applies in `region`.
     ///
     /// `None` asks for the nationwide set: only rules with no subdivision
-    /// scoping qualify. `Some(code)` adds the rules scoped to that code,
+    /// scoping qualify. `Some(code)` takes away the rules that except that
+    /// code, and adds the rules scoped to it,
     /// matched as every identifier is (`hc_core::catalogue::matches`), so
     /// `jp-13` and ` JP-13 ` find what `JP-13` does.
     #[must_use]
     pub fn applies_in_region(&self, region: Option<&str>) -> bool {
+        if region.is_some_and(|code| {
+            self.except_regions
+                .iter()
+                .any(|excepted| hc_core::catalogue::matches(code, excepted))
+        }) {
+            return false;
+        }
         if self.regions.is_empty() {
             return true;
         }
@@ -3022,6 +3112,31 @@ impl Include {
     }
 }
 
+/// Which subdivisions a table was read for: what a region asked of it
+/// means.
+///
+/// A country's table answers for a subdivision only where its sources were
+/// read for that subdivision. A region asked for that they were not read
+/// for keeps the nationwide days, and the engine reports a gap for the
+/// subdivision's own, [`UNREAD_SUBDIVISION`], rather than let the
+/// nationwide days pass for the subdivision's whole list (ADR 0013).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Subdivisions {
+    /// The table is not a country's — an exchange's, a tradition's, a set
+    /// of observances — and has no subdivisions: a region asked of it adds
+    /// nothing and is no gap.
+    Undivided,
+    /// A country's table. The subdivisions read are the ones its rules are
+    /// scoped to or excepted from, and these, read and found to keep no
+    /// day of their own beyond the nationwide ones. Any other region is a
+    /// gap.
+    Read(&'static [&'static str]),
+}
+
+/// The name of the gap the engine reports for a subdivision whose own days
+/// no source read gives; see [`Subdivisions`].
+pub const UNREAD_SUBDIVISION: &str = "The subdivision's own days";
+
 /// A named table of holiday rules, with the policies that modify them.
 ///
 /// One country is one of these; so is one religious tradition. The evaluator
@@ -3057,6 +3172,8 @@ pub struct RuleSet {
     pub sources_checked: SourceDate,
     /// The statute, gazette or official calendar the table came from.
     pub sources: &'static str,
+    /// Which subdivisions the sources were read for.
+    pub subdivisions: Subdivisions,
 }
 
 impl RuleSet {
@@ -3089,12 +3206,28 @@ impl RuleSet {
     pub fn region_codes(&self) -> impl Iterator<Item = &'static str> + '_ {
         self.rules
             .iter()
-            .flat_map(|rule| rule.regions.iter().copied())
+            .flat_map(|rule| rule.regions.iter().chain(rule.except_regions).copied())
     }
 
-    /// Every subdivision code the table's rules are scoped to, once each,
-    /// in code order: what a caller may pass as the region of this table
-    /// and get more than the nationwide days.
+    /// Whether the table's sources were read for `region`, a subdivision's
+    /// ISO 3166-2 code matched as every identifier is: always for a table
+    /// with no subdivisions, and for a country's, whether a rule is scoped
+    /// to it or excepted from it or [`Subdivisions::Read`] lists it.
+    #[must_use]
+    pub fn reads_region(&self, region: &str) -> bool {
+        match self.subdivisions {
+            Subdivisions::Undivided => true,
+            Subdivisions::Read(listed) => listed
+                .iter()
+                .copied()
+                .chain(self.region_codes())
+                .any(|code| hc_core::catalogue::matches(region, code)),
+        }
+    }
+
+    /// Every subdivision code the table's rules are scoped to or excepted
+    /// from, once each, in code order: what a caller may pass as the region
+    /// of this table and get other than the nationwide days.
     #[cfg(feature = "alloc")]
     #[must_use]
     pub fn regions(&self) -> alloc::vec::Vec<&'static str> {

@@ -2407,8 +2407,12 @@ macro_rules! exports {
             /// group whose own entry it is — `group` as the table writes it,
             /// `women`, on an entry the calendar for everyone does not have — or
             /// nothing. `region` and `group` match in either case, and either may
-            /// be empty. A null `buffer` returns the length the text needs, so a
-            /// caller can allocate exactly. The string arguments fail as for
+            /// be empty. After the entries, one line per gap of the year, as
+            /// `hc_holidays_on` writes them: an empty date, the name, the local
+            /// name, the kind `gap`, an empty confidence, `0`, nothing, and the
+            /// subdivision and the group whose own gap it is. A null `buffer`
+            /// returns the length the text needs, so a caller can allocate
+            /// exactly. The string arguments fail as for
             /// `hc_holiday_is_day_off`.
         }
         fn hc_holidays_in_year(
@@ -2553,9 +2557,10 @@ macro_rules! exports {
             /// the RCL's Proper for a Sunday after Trinity Sunday, else empty, the
             /// Roman Sunday in Ordinary Time, and the week of Ordinary Time on the
             /// universal calendar and on one that keeps the Epiphany on a Sunday.
-            /// A day outside the liturgical years 1583 to 4099 is
-            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
-            /// terminator, into `written`.
+            /// A day before 1 January 1970, when *Mysterii Paschalis* put the
+            /// Roman calendar of 1969 into effect, or after the liturgical year
+            /// 4099, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
         }
         wasm {
             /// The lectionary cycles of a fixed day, as one UTF-8 line, returning
@@ -2569,9 +2574,10 @@ macro_rules! exports {
             /// empty; the Roman number of a Sunday in Ordinary Time, 2 to 34, else
             /// empty; and the week of Ordinary Time, 1 to 34, on the universal
             /// calendar and on one that keeps the Epiphany on a Sunday, else empty.
-            /// A day outside the liturgical years 1583 to 4099 is
-            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
-            /// needs.
+            /// A day before 1 January 1970, when *Mysterii Paschalis* put the
+            /// Roman calendar of 1969 into effect, or after the liturgical year
+            /// 4099, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+            /// length the text needs.
         }
         fn hc_lectionary(fixed: i64) -> line = $crate::holiday_lines::lectionary_line;
 

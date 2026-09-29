@@ -350,7 +350,9 @@ inherits the `chinese` calendar's model, as that README describes.
   only one whose solar longitude Janson describes; its astrological
   attributes beyond element, colour and animal — trigrams, numbers,
   lunar-day animals, earth-lords — are not yet carried. The festivals are
-  data here; `hc-holiday` does not use them yet.
+  data here, and `hc-holiday`'s `buddhist-tibetan-berzin` and
+  `buddhist-tibetan-henning` tables date their days by `berzin_day` and
+  `henning_almanac_day`.
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not
   the function you want; `hc_calendar::cycle::month_pillar` takes the

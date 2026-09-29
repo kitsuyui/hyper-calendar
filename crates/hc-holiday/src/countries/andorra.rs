@@ -10,7 +10,7 @@
 //! are not carried: they need a scope finer than a parish.
 
 use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY, SHROVE_MONDAY, WHIT_MONDAY};
-use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions};
 
 /// The comuns' instruments read, 2024 to 2026, one for each parish.
 const CANILLO: &str = "Comú de Canillo, avisos pel qual es fa públic el calendari de dies festius \
@@ -24,11 +24,15 @@ const SANT_JULIA: &str = "Comú de Sant Julià de Lòria, decrets pel qual es fi
 const ANDORRA_LA_VELLA: &str = "Comú d'Andorra la Vella, edictes pel qual es fa públic el calendari \
      de dies festius de la parròquia, of 15 November 2023, 19 November 2024 and 25 November \
      2025, BOPA";
+const ENCAMP: &str = "Comú d'Encamp, avisos of 15 December 2023, 25 November 2024 and 21 November \
+     2025, BOPA: no day in the whole parish, the festa del poble and Sant Roc being Encamp \
+     village's and Sant Pere Pas de la Casa's";
 const ESCALDES: &str = "Comú d'Escaldes-Engordany, decrets pel qual es fixen els dies festius \
      parroquials, of 5 January 2024, 30 December 2024 and 22 December 2025, BOPA";
 
 /// The parishes, by ISO 3166-2 code.
 const AD_CANILLO: &[&str] = &["AD-02"];
+const AD_ENCAMP: &[&str] = &["AD-03"];
 const AD_LA_MASSANA: &[&str] = &["AD-04"];
 const AD_ORDINO: &[&str] = &["AD-05"];
 const AD_SANT_JULIA: &[&str] = &["AD-06"];
@@ -241,6 +245,15 @@ static AD_RULES: &[HolidayRule] = &[
         AD_ESCALDES,
         ESCALDES,
     ),
+    // Encamp's instruments for 2024 to 2026 keep no day in the whole
+    // parish; the other years' were not read.
+    HolidayRule::fixed_public(
+        "Parish days",
+        "Festes parroquials",
+        Rule::unlisted(2024, 2026),
+    )
+    .in_regions(AD_ENCAMP)
+    .cited(ENCAMP),
 ];
 
 /// Andorra.
@@ -275,4 +288,5 @@ pub static ANDORRA: RuleSet = RuleSet {
               decrets 487/2023, 409/2024 and 340/2025 approving the calendars of 2024 to 2026, \
               article 3, and each comú's instruments for those years, in the BOPA's HTML \
               (bopa.ad), retrieved 2026-09-29, each cited on its entries",
+    subdivisions: Subdivisions::Read(&[]),
 };

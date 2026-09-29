@@ -28,7 +28,7 @@ use hc_calendars_solar::gregorian;
 use crate::group::Group;
 use crate::rule::{
     Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, Scope, SubstituteDirection,
-    SubstitutionPolicy, Window,
+    SubstitutionPolicy, UNREAD_SUBDIVISION, Window,
 };
 
 /// One holiday on one day.
@@ -85,7 +85,10 @@ impl Holiday {
 /// [`Rule::Tabulated`] rule past the last year its published table covers
 /// is another, and a
 /// [`Rule::Unsettled`] rule in a year its source leaves open, as *Common
-/// Worship*'s Rules do for some Easters, is a third.
+/// Worship*'s Rules do for some Easters, is a third. A year before a rule's
+/// [`HolidayRule::read_from`], the first its sources were read for, is a
+/// fourth, and a subdivision the table's sources were not read for, with
+/// the name [`UNREAD_SUBDIVISION`], a fifth (ADR 0013).
 ///
 /// Policy §4 says the library refuses rather than guesses. Omitting a
 /// holiday silently is a guess — that it did not happen — so the calendar
@@ -94,6 +97,8 @@ impl Holiday {
 /// [`Rule::Listed`]: crate::rule::Rule::Listed
 /// [`Rule::Tabulated`]: crate::rule::Rule::Tabulated
 /// [`Rule::Unsettled`]: crate::rule::Rule::Unsettled
+/// [`HolidayRule::read_from`]: crate::rule::HolidayRule::read_from
+/// [`UNREAD_SUBDIVISION`]: crate::rule::UNREAD_SUBDIVISION
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Gap {
     /// The Gregorian year that could not be answered.
@@ -102,6 +107,10 @@ pub struct Gap {
     pub name: &'static str,
     /// Its name in the local language, or `""`.
     pub local_name: &'static str,
+    /// The instrument the rule cites, which for a year before its
+    /// `read_from` says what was and was not read; `""` where the table's
+    /// `sources` speaks for it.
+    pub source: &'static str,
 }
 
 /// An evaluated rule set over a span of years.
@@ -639,20 +648,40 @@ fn evaluate(
     };
     let mut base: Vec<Occurrence> = Vec::new();
     let mut gaps: Vec<Gap> = Vec::new();
+    // A subdivision the table was not read for keeps the nationwide days,
+    // and its own are a gap in every year asked for.
+    if let Some(region) = scope.region
+        && !rules.reads_region(region)
+    {
+        for year in first_year..=last_year {
+            gaps.push(Gap {
+                year,
+                name: UNREAD_SUBDIVISION,
+                local_name: "",
+                source: "",
+            });
+        }
+    }
     for year in first_reached..=last_reached {
         for rule in rules.rules {
+            // Outside its establishment and abolition the day did not
+            // exist, which is an answer; every other year is either
+            // answered or reported.
             if !rule.applies_in(year) || !rule.applies_in_scope(scope) {
                 continue;
             }
             // Only the years actually asked for are reported as gaps; the
             // slack on each side exists to catch a substitution crossing
-            // New Year, and its absence is not a hole in the answer.
-            if !rule.rule.is_resolvable_with(year, context) {
+            // New Year, and its absence is not a hole in the answer. A year
+            // the rule's sources were not read for is a gap whatever its
+            // shape could compute.
+            if rule.is_unread_in(year) || !rule.rule.is_resolvable_with(year, context) {
                 if (first_year..=last_year).contains(&year) {
                     gaps.push(Gap {
                         year,
                         name: rule.name,
                         local_name: rule.local_name,
+                        source: rule.source,
                     });
                 }
                 continue;
@@ -901,7 +930,7 @@ fn substitute_day(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::rule::{Rule, SourceDate, WeekendPolicy};
+    use crate::rule::{Rule, SourceDate, Subdivisions, WeekendPolicy};
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).expect("valid Gregorian date")
@@ -935,6 +964,7 @@ mod tests {
         weekend: crate::rule::SATURDAY_SUNDAY,
         sources_checked: SourceDate::new(2026, 9, 21),
         sources: "invented for the test suite",
+        subdivisions: Subdivisions::Undivided,
     };
 
     static FRIDAY_SATURDAY: [WeekendPolicy; 1] = [WeekendPolicy {

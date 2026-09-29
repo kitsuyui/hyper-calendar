@@ -38,7 +38,10 @@ that parish's own, Sant Joan on 24 June and the Festa Major of 1 to
   comú's instruments for 2024, 2025 and 2026 date them: one `Listing` for
   the six parishes that have such days, read by a rule per day for those
   three years. Any other year is a gap until its instrument is read, the
-  years before 2024 included: the comuns fixed days then too.
+  years before 2024 included: the comuns fixed days then too. Encamp, whose
+  instruments for those years keep no day in the whole parish, has a rule
+  of no day for 2024–2026 (`Rule::unlisted`), and is a gap in any other
+  year like the rest.
 - **Not yet carried, and why:** the days a comú keeps in one village,
   quarter or veïnat, which need a scope finer than a parish: all of
   Encamp's (Encamp village's festa del poble and Sant Roc, and Sant Pere
@@ -54,7 +57,7 @@ gives three.
 | Code | Parish | Days carried | Instrument | First year, and the years before | Not carried |
 | --- | --- | --- | --- | --- | --- |
 | AD-02 | Canillo | Sant Roc, 16 August | Comú de Canillo, avisos of 30 November 2023, 10 October 2024 and 4 December 2025 | 2024; earlier years: gap | the veïnats' days: Sant Pere and El Tarter (29 June), Soldeu, Canillo, Ransol, Aldosa and Els Plans (25 July), Sant Bartomeu de Soldeu (24 August), and from 2026 Prats, El Forn and El Vilar |
-| AD-03 | Encamp | none in the whole parish | Comú d'Encamp, avisos of 15 December 2023, 25 November 2024 and 21 November 2025 | | the festa del poble d'Encamp (three days in June) and Sant Roc, in Encamp village only; Sant Pere, in Pas de la Casa only |
+| AD-03 | Encamp | none in the whole parish | Comú d'Encamp, avisos of 15 December 2023, 25 November 2024 and 21 November 2025 | 2024–2026; any other year: gap | the festa del poble d'Encamp (three days in June) and Sant Roc, in Encamp village only; Sant Pere, in Pas de la Casa only |
 | AD-04 | La Massana | Sant Antoni, 17 January | Comú de la Massana, decrets of 30 November 2023, 13 November 2024 and 13 November 2025 | 2024; earlier years: gap | the villages' festes majors: Sispony, Pal, Anyós, La Massana, Erts, L'Aldosa, Arinsal |
 | AD-05 | Ordino | St. Pere, 29 June | Comú d'Ordino, decrets of 22 December 2023, 28 November 2024 and 27 November 2025 | 2024; earlier years: gap | the villages' days: Ordino, Sornàs, Ansalonga, La Cortinada, Llorts |
 | AD-06 | Sant Julià de Lòria | Sant Julià, 7 January; Diada de Canòlich (25 May 2024, 31 May 2025, 30 May 2026); Monday and Tuesday of the Festa Major (29–30 July 2024, 28–29 July 2025, 27–28 July 2026) | Comú de Sant Julià de Lòria, decrets of 6 December 2023, 12 December 2024 and 11 December 2025 | 2024; earlier years: gap | the shops' closure on Canòlich, by edicte |

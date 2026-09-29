@@ -119,12 +119,12 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | lines | `hc_calendars` | every `today` |
 | a line | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERROR_UNKNOWN` |
 | a line | `hc_asian_day` | `fixed` 1 360 (23 September AD 4) through 3 652 398, the last day of the Asian year 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
-| lines | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes no lines |
+| lines | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes no lines |
 | 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holidays_on`, `hc_common_worship_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERROR_NO_DATA` |
 | a line | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem`, 577 814 through 1 497 129 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`, and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_lectionary` | `fixed` 719 163 through 1 497 096, 1 January 1970, when the Roman calendar of 1969 went into effect, to the liturgical year 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_plum_rains` | `year` −1000 through 3000, the days of 芒种 and 小暑 in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a rule or meridian it does not name `HC_ERROR_UNKNOWN` |
@@ -759,8 +759,11 @@ reporting the length it needs through `written` like every other text
 function here. The region is the subdivision whose own entry the line is:
 asked for `JP` in `JP-13`, the lines are Japan's nationwide days and
 Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A region matches in
-either case, and one the table scopes no rule to gives the nationwide
-days. The group is the group of people whose own entry the line is, in the
+either case, and one the table's sources were not read for gives the
+nationwide days and a gap line for its own. After the entries come the
+year's gaps, as `hc_holidays_on` writes them: an empty date and
+confidence, the kind `gap`, and the region and group whose own gap it is.
+The group is the group of people whose own entry the line is, in the
 same way: asked for `CN` and `women`, the lines are China's days for
 everyone and the half day of 8 March, and only that line carries `women`.
 

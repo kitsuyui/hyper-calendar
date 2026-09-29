@@ -230,24 +230,25 @@ mod cite {
                                  institutions";
 }
 
-/// A fixed day of one republic, from `first`.
+/// A fixed day of one republic. Its years are the call's: `.years` from
+/// the act that set it, and `.read_from` the first year of the act read
+/// where the day is older, the years between a gap.
 const fn fixed(
     name: &'static str,
     local_name: &'static str,
     month: u8,
     day: u8,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, local_name, Rule::gregorian(month, day))
-        .years(Some(first), None)
         .in_regions(region)
         .cited(source)
 }
 
-/// A day of one republic as its acts from `first` to `last` set it, a gap
-/// in a later year and absent before `first`.
+/// A day of one republic as its acts from `first` to `last` set it, and
+/// a gap in any other year from the act that established it, which the
+/// call gives with `.years`; with none, every earlier year is a gap.
 const fn listed(
     name: &'static str,
     local_name: &'static str,
@@ -262,41 +263,8 @@ const fn listed(
         local_name,
         Rule::listed(RU_REPUBLIC_DAYS.named(key), first as i64, last),
     )
-    .years(Some(first), None)
     .in_regions(region)
     .cited(source)
-}
-
-/// The years from `first` to `last` of a republic's day whose acts were
-/// not read: a gap in each.
-const fn unread(
-    name: &'static str,
-    local_name: &'static str,
-    first: i32,
-    last: i32,
-    region: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, Rule::UNREAD)
-        .years(Some(first), Some(last))
-        .in_regions(region)
-        .cited(source)
-}
-
-/// Every year before `first` of a republic's day whose acts before it
-/// were not read, and whose first year no instrument read gives: a gap in
-/// each.
-const fn unread_before(
-    name: &'static str,
-    local_name: &'static str,
-    first: i32,
-    region: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, Rule::UNREAD)
-        .years(None, Some(first - 1))
-        .in_regions(region)
-        .cited(source)
 }
 
 /// The gap a republic's law leaves in a year one of its days off falls on
@@ -397,10 +365,11 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         "День образования Республики Адыгея",
         10,
         5,
-        2014,
         AD,
         cite::AD,
-    ),
+    )
+    .years(Some(1995), None)
+    .read_from(2014),
     listed(
         "Uraza Bayram",
         "Ураза-Байрам",
@@ -409,16 +378,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         AD,
         cite::AD,
-    ),
-    unread(
-        "Day of the Formation of the Republic of Adygea",
-        "День образования Республики Адыгея",
-        1995,
-        2013,
-        AD,
-        cite::AD,
-    ),
-    unread("Uraza Bayram", "Ураза-Байрам", 1995, 2023, AD, cite::AD),
+    )
+    .years(Some(1995), None),
     listed(
         "Kurban Bayram",
         "Курбан-Байрам",
@@ -427,8 +388,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         AD,
         cite::AD,
-    ),
-    unread("Kurban Bayram", "Курбан-Байрам", 2021, 2023, AD, cite::AD),
+    )
+    .years(Some(2021), None),
     listed(
         "Radonitsa",
         "День поминовения усопших (Радоница)",
@@ -437,15 +398,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         AD,
         cite::AD,
-    ),
-    unread(
-        "Radonitsa",
-        "День поминовения усопших (Радоница)",
-        2021,
-        2023,
-        AD,
-        cite::AD,
-    ),
+    )
+    .years(Some(2021), None),
     HolidayRule::fixed_public(
         "Day off transferred by the Head",
         "Перенесённый выходной день",
@@ -472,29 +426,23 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         AL,
         cite::AL,
-    ),
-    unread("Chaga Bayram", "Чага-Байрам", 2013, 2023, AL, cite::AL),
+    )
+    .years(Some(2013), None),
     fixed(
         "Day of the Formation of the Altai Republic",
         "День образования Республики Алтай",
         7,
         3,
-        2026,
         AL,
         cite::AL,
     )
+    .years(Some(2026), None)
     .of_kind(Kind::Government),
     moved_day(al_moved, 2013, None, AL, cite::AL),
     // ── Bashkortostan ───────────────────────────────────────────────────
-    fixed(
-        "Republic Day",
-        "День Республики",
-        10,
-        11,
-        2011,
-        BA,
-        cite::BA,
-    ),
+    fixed("Republic Day", "День Республики", 10, 11, BA, cite::BA)
+        .years(Some(1992), None)
+        .read_from(2011),
     listed(
         "Uraza Bayram",
         "Ураза-байрам",
@@ -503,9 +451,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         BA,
         cite::BA,
-    ),
-    unread("Republic Day", "День Республики", 1992, 2010, BA, cite::BA),
-    unread("Uraza Bayram", "Ураза-байрам", 1992, 2023, BA, cite::BA),
+    )
+    .years(Some(1992), None),
     listed(
         "Kurban Bayram",
         "Курбан-байрам",
@@ -514,8 +461,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         BA,
         cite::BA,
-    ),
-    unread("Kurban Bayram", "Курбан-байрам", 1992, 2023, BA, cite::BA),
+    )
+    .years(Some(1992), None),
     moved_day(ba_moved, 2011, None, BA, cite::BA),
     // ── Chechnya ────────────────────────────────────────────────────────
     fixed(
@@ -523,19 +470,11 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         "День Конституции Чеченской Республики",
         3,
         23,
-        2004,
         CE,
         cite::CE_23_MARCH,
-    ),
-    fixed(
-        "Day of Peace",
-        "День мира",
-        4,
-        16,
-        2010,
-        CE,
-        cite::CE_16_APRIL,
-    ),
+    )
+    .years(Some(2004), None),
+    fixed("Day of Peace", "День мира", 4, 16, CE, cite::CE_16_APRIL).years(Some(2010), None),
     listed(
         "Uraza Bayram",
         "Ураза-Байрам",
@@ -554,20 +493,18 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         CE,
         cite::CE,
     ),
-    unread_before("Uraza Bayram", "Ураза-Байрам", 2024, CE, cite::CE),
-    unread_before("Kurban Bayram", "Курбан-Байрам", 2024, CE, cite::CE),
     // ── Chuvashia ───────────────────────────────────────────────────────
-    fixed("Republic Day", "День Республики", 6, 24, 2000, CU, cite::CU),
+    fixed("Republic Day", "День Республики", 6, 24, CU, cite::CU).years(Some(2000), None),
     // ── Dagestan ────────────────────────────────────────────────────────
     fixed(
         "Constitution Day of the Republic of Dagestan",
         "День Конституции Республики Дагестан",
         7,
         26,
-        1995,
         DA,
         cite::DA_CONSTITUTION,
-    ),
+    )
+    .years(Some(1995), None),
     listed(
         "Uraza Bayram",
         "Ураза-Байрам",
@@ -576,8 +513,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         DA,
         cite::DA,
-    ),
-    unread("Uraza Bayram", "Ураза-Байрам", 1991, 2023, DA, cite::DA),
+    )
+    .years(Some(1991), None),
     listed(
         "Kurban Bayram",
         "Курбан-Байрам",
@@ -586,15 +523,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         DA,
         cite::DA_KURBAN,
-    ),
-    unread(
-        "Kurban Bayram",
-        "Курбан-Байрам",
-        2000,
-        2023,
-        DA,
-        cite::DA_KURBAN,
-    ),
+    )
+    .years(Some(2000), None),
     listed(
         "Day of Unity of the Peoples of Dagestan",
         "День единства народов Дагестана",
@@ -603,15 +533,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         DA,
         cite::DA,
-    ),
-    unread(
-        "Day of Unity of the Peoples of Dagestan",
-        "День единства народов Дагестана",
-        2011,
-        2025,
-        DA,
-        cite::DA,
-    ),
+    )
+    .years(Some(2011), None),
     // ── Ingushetia ──────────────────────────────────────────────────────
     listed(
         "Eid al-Fitr",
@@ -631,52 +554,36 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         IN,
         cite::IN,
     ),
-    unread_before("Eid al-Fitr", "Мархаш", 2024, IN, cite::IN),
-    unread_before("Eid al-Adha", "Гӏурба", 2024, IN, cite::IN),
     // ── Kabardino-Balkaria ──────────────────────────────────────────────
     fixed(
         "Day of the Revival of the Balkar People",
         "День возрождения балкарского народа",
         3,
         28,
-        1995,
         KB,
         cite::KB_28_MARCH,
-    ),
-    unread(
-        "Day of the Revival of the Balkar People",
-        "День возрождения балкарского народа",
-        1994,
-        1994,
-        KB,
-        cite::KB_28_MARCH,
-    ),
+    )
+    .years(Some(1994), None)
+    .read_from(1995),
     fixed(
         "Day of Statehood of the Kabardino-Balkarian Republic",
         "День государственности Кабардино-Балкарской Республики (День республики)",
         9,
         1,
-        1998,
         KB,
         cite::KB_1_SEPTEMBER,
-    ),
-    unread(
-        "Day of Statehood of the Kabardino-Balkarian Republic",
-        "День государственности Кабардино-Балкарской Республики (День республики)",
-        1997,
-        1997,
-        KB,
-        cite::KB_1_SEPTEMBER,
-    ),
+    )
+    .years(Some(1997), None)
+    .read_from(1998),
     fixed(
         "Day of the Adyghe (Circassians)",
         "День адыгов (черкесов)",
         9,
         20,
-        2014,
         KB,
         cite::KB_20_SEPTEMBER,
-    ),
+    )
+    .years(Some(2014), None),
     listed(
         "Kurban Bayram",
         "Курбан-Байрам",
@@ -686,7 +593,11 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         KB,
         cite::KB,
     ),
-    unread("Kurban Bayram", "Курбан-Байрам", 2025, 2025, KB, cite::KB),
+    HolidayRule::fixed_public("Kurban Bayram", "Курбан-Байрам", Rule::NO_DAY)
+        .years(Some(2025), Some(2025))
+        .read_from(2026)
+        .in_regions(KB)
+        .cited(cite::KB),
     listed(
         "Uraza Bayram",
         "Ураза-Байрам",
@@ -696,7 +607,6 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         KB,
         cite::KB,
     ),
-    unread("Uraza Bayram", "Ураза-Байрам", 2024, 2024, KB, cite::KB),
     listed(
         "Radonitsa",
         "Радоница",
@@ -706,20 +616,16 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         KB,
         cite::KB,
     ),
-    unread_before("Kurban Bayram", "Курбан-Байрам", 2024, KB, cite::KB),
-    unread_before("Uraza Bayram", "Ураза-Байрам", 2024, KB, cite::KB),
-    unread_before("Radonitsa", "Радоница", 2024, KB, cite::KB),
-    unread("Radonitsa", "Радоница", 2024, 2025, KB, cite::KB),
     // ── Kalmykia ────────────────────────────────────────────────────────
     fixed(
         "Day of the Republic of Kalmykia",
         "День Республики Калмыкия",
         7,
         5,
-        2020,
         KL,
         cite::KL,
-    ),
+    )
+    .years(Some(2020), None),
     listed(
         "Tsagan Sar",
         "Цаган Сар",
@@ -728,8 +634,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         KL,
         cite::KL,
-    ),
-    unread("Tsagan Sar", "Цаган Сар", 2005, 2023, KL, cite::KL),
+    )
+    .years(Some(2005), None),
     listed(
         "Buddha Shakyamuni's Birthday",
         "День рождения Будды Шакьямуни",
@@ -738,17 +644,9 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         KL,
         cite::KL,
-    ),
-    unread(
-        "Buddha Shakyamuni's Birthday",
-        "День рождения Будды Шакьямуни",
-        2005,
-        2023,
-        KL,
-        cite::KL,
-    ),
-    listed("Zul", "Зул", "kl-zul", 2024, 2025, KL, cite::KL),
-    unread("Zul", "Зул", 2005, 2023, KL, cite::KL),
+    )
+    .years(Some(2005), None),
+    listed("Zul", "Зул", "kl-zul", 2024, 2025, KL, cite::KL).years(Some(2005), None),
     moved_day(kl_moved, 2020, None, KL, cite::KL),
     // ── Karachay-Cherkessia ─────────────────────────────────────────────
     fixed(
@@ -756,18 +654,11 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         "День возрождения карачаевского народа",
         5,
         3,
-        2002,
         KC,
         cite::KC_3_MAY,
-    ),
-    unread(
-        "Day of the Revival of the Karachay People",
-        "День возрождения карачаевского народа",
-        2001,
-        2001,
-        KC,
-        cite::KC_3_MAY,
-    ),
+    )
+    .years(Some(2001), None)
+    .read_from(2002),
     listed(
         "Uraza Bayram",
         "Ураза-Байрам",
@@ -786,18 +677,16 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         KC,
         cite::KC,
     ),
-    unread_before("Uraza Bayram", "Ураза-Байрам", 2026, KC, cite::KC),
-    unread_before("Kurban Bayram", "Курбан-Байрам", 2026, KC, cite::KC),
     // ── Komi ────────────────────────────────────────────────────────────
     fixed(
         "Day of the Republic of Komi",
         "День Республики Коми",
         8,
         22,
-        2014,
         KO,
         cite::KO,
     )
+    .years(Some(2014), None)
     .of_kind(Kind::Government),
     // ── Sakha (Yakutia) ─────────────────────────────────────────────────
     fixed(
@@ -805,20 +694,20 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         "День Республики Саха (Якутия)",
         4,
         27,
-        2019,
         SA,
         cite::SA,
     )
+    .years(Some(2019), None)
     .of_kind(Kind::Government),
     fixed(
         "Ysyakh",
         "День национального праздника «Ысыах»",
         6,
         21,
-        2018,
         SA,
         cite::SA,
     )
+    .years(Some(2018), None)
     .of_kind(Kind::Government),
     moved_day(sa_moved, 2018, None, SA, cite::SA),
     // ── North Ossetia–Alania ────────────────────────────────────────────
@@ -830,42 +719,34 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         SE,
         cite::SE,
-    ),
-    unread(
-        "Uastyrdzhi",
-        "Уастырджи (Джеоргуыба)",
-        2018,
-        2023,
-        SE,
-        cite::SE,
-    ),
-    unread(
-        "Uastyrdzhi",
-        "Уастырджи (Джеоргуыба)",
-        2025,
-        2025,
-        SE,
-        cite::SE,
-    ),
+    )
+    .years(Some(2018), None),
+    HolidayRule::fixed_public("Uastyrdzhi", "Уастырджи (Джеоргуыба)", Rule::NO_DAY)
+        .years(Some(2025), Some(2025))
+        .read_from(2026)
+        .in_regions(SE)
+        .cited(cite::SE),
     // ── Tatarstan ───────────────────────────────────────────────────────
     fixed(
         "Day of the Republic of Tatarstan",
         "День Республики Татарстан",
         8,
         30,
-        2004,
         TA,
         cite::TA,
-    ),
+    )
+    .years(Some(1992), None)
+    .read_from(2004),
     fixed(
         "Constitution Day of the Republic of Tatarstan",
         "День Конституции Республики Татарстан",
         11,
         6,
-        2003,
         TA,
         cite::TA,
-    ),
+    )
+    .years(Some(1992), None)
+    .read_from(2003),
     listed(
         "Uraza Bayram",
         "Ураза-байрам",
@@ -874,8 +755,8 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         TA,
         cite::TA,
-    ),
-    unread("Uraza Bayram", "Ураза-байрам", 2011, 2023, TA, cite::TA),
+    )
+    .years(Some(2011), None),
     listed(
         "Kurban Bayram",
         "Курбан-байрам",
@@ -884,48 +765,20 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         2026,
         TA,
         cite::TA,
-    ),
-    unread(
-        "Day of the Republic of Tatarstan",
-        "День Республики Татарстан",
-        1992,
-        2003,
-        TA,
-        cite::TA,
-    ),
-    unread(
-        "Constitution Day of the Republic of Tatarstan",
-        "День Конституции Республики Татарстан",
-        1992,
-        2002,
-        TA,
-        cite::TA,
-    ),
-    unread("Kurban Bayram", "Курбан-байрам", 1992, 2023, TA, cite::TA),
+    )
+    .years(Some(1992), None),
     // Until 67-ЗРТ of 2016 a day off on the weekend moved to the next
     // working day; from 2017 no further day is given.
     moved_day(ta_moved, 2004, Some(2016), TA, cite::TA),
     // ── Tuva ────────────────────────────────────────────────────────────
-    fixed("Republic Day", "День Республики", 8, 15, 2013, TY, cite::TY),
-    fixed(
-        "Constitution Day",
-        "День Конституции",
-        5,
-        6,
-        2013,
-        TY,
-        cite::TY,
-    )
-    .years(Some(2013), Some(2025)),
-    fixed(
-        "Constitution Day",
-        "День Конституции",
-        5,
-        6,
-        2027,
-        TY,
-        cite::TY,
-    ),
+    fixed("Republic Day", "День Республики", 8, 15, TY, cite::TY)
+        .years(Some(1999), None)
+        .read_from(2013),
+    fixed("Constitution Day", "День Конституции", 5, 6, TY, cite::TY)
+        .years(Some(1999), None)
+        .read_from(2013)
+        .years(Some(2013), Some(2025)),
+    fixed("Constitution Day", "День Конституции", 5, 6, TY, cite::TY).years(Some(2027), None),
     listed(
         "Constitution Day",
         "День Конституции",
@@ -935,20 +788,10 @@ pub(super) static RU_REPUBLIC_RULES: &[HolidayRule] = &[
         TY,
         cite::TY,
     )
+    .years(Some(2026), None)
     .years(Some(2026), Some(2026)),
-    unread("Republic Day", "День Республики", 1999, 2012, TY, cite::TY),
-    unread(
-        "Constitution Day",
-        "День Конституции",
-        1999,
-        2012,
-        TY,
-        cite::TY,
-    ),
-    listed("Shagaa", "Шагаа", "ty-shagaa", 2024, 2026, TY, cite::TY),
-    unread("Shagaa", "Шагаа", 1999, 2023, TY, cite::TY),
-    listed("Naadym", "Наадым", "ty-naadym", 2024, 2026, TY, cite::TY),
-    unread("Naadym", "Наадым", 1999, 2023, TY, cite::TY),
+    listed("Shagaa", "Шагаа", "ty-shagaa", 2024, 2026, TY, cite::TY).years(Some(1999), None),
+    listed("Naadym", "Наадым", "ty-naadym", 2024, 2026, TY, cite::TY).years(Some(1999), None),
     moved_day(ty_moved, 2013, None, TY, cite::TY),
 ];
 

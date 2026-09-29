@@ -36,7 +36,7 @@ const DAYS: &[(&str, &str, i64, MonthDay, MonthDay)] = &[
     ("CA-NB", "Family Day", 2018, (2, 19), (2, 16)),
     ("CA-NS", "Nova Scotia Heritage Day", 2015, (2, 16), (2, 16)),
     ("CA-ON", "Family Day", 2008, (2, 18), (2, 16)),
-    ("CA-PE", "Islander Day", 2009, (2, 16), (2, 16)),
+    ("CA-PE", "Islander Day", 2009, (2, 9), (2, 16)),
     ("CA-SK", "Family Day", 2007, (2, 19), (2, 16)),
     (
         "CA-NT",
@@ -127,4 +127,158 @@ fn ontario_and_manitoba_keep_no_august_holiday() {
     // New Brunswick had no Family Day before 2018.
     let calendar = HolidayCalendar::for_year(&CANADA, Some("CA-NB"), 2017);
     assert!(calendar.is_business_day(ymd(2017, 2, 20)));
+}
+
+#[test]
+fn prince_edward_island_kept_islander_day_on_the_second_monday_in_2009_only() {
+    let date = |year| {
+        own_in_year("CA-PE", year)
+            .into_iter()
+            .find(|holiday| holiday.name == "Islander Day")
+            .map(|holiday| holiday.date)
+    };
+    assert_eq!(date(2008), None);
+    assert_eq!(date(2009), Some(ymd(2009, 2, 9)));
+    assert_eq!(date(2010), Some(ymd(2010, 2, 15)));
+    assert_eq!(date(2011), Some(ymd(2011, 2, 21)));
+}
+
+/// The names of the days off a calendar has in a year.
+fn days_off(region: Option<&str>, year: i64) -> Vec<&'static str> {
+    HolidayCalendar::for_year(&CANADA, region, year)
+        .in_year(year)
+        .into_iter()
+        .filter(|holiday| holiday.is_day_off() && !holiday.is_substitute())
+        .map(|holiday| holiday.name)
+        .collect()
+}
+
+/// The names of a calendar's gaps in a year.
+fn gap_names(region: &str, year: i64) -> Vec<&'static str> {
+    HolidayCalendar::for_year(&CANADA, Some(region), year)
+        .gaps()
+        .iter()
+        .map(|gap| gap.name)
+        .collect()
+}
+
+const FEDERAL: [&str; 10] = [
+    "New Year's Day",
+    "Good Friday",
+    "Victoria Day",
+    "Canada Day",
+    "Labour Day",
+    "National Day for Truth and Reconciliation",
+    "Thanksgiving",
+    "Remembrance Day",
+    "Christmas Day",
+    "Boxing Day",
+];
+
+#[test]
+fn asked_for_no_region_the_table_gives_the_federal_days() {
+    let days = days_off(None, 2026);
+    for name in FEDERAL {
+        assert!(days.contains(&name), "{name}");
+    }
+    assert!(HolidayCalendar::for_year(&CANADA, None, 2026).is_complete());
+}
+
+#[test]
+fn a_province_keeps_only_the_federal_days_its_text_read_lists() {
+    // (region, the federal days its list of 2026 leaves out)
+    let left_out: &[(&str, &[&str])] = &[
+        (
+            "CA-AB",
+            &["National Day for Truth and Reconciliation", "Boxing Day"],
+        ),
+        ("CA-BC", &["Boxing Day"]),
+        (
+            "CA-MB",
+            &[
+                "Remembrance Day",
+                "Boxing Day",
+                "National Day for Truth and Reconciliation",
+            ],
+        ),
+        (
+            "CA-NL",
+            &[
+                "Victoria Day",
+                "Canada Day",
+                "National Day for Truth and Reconciliation",
+                "Thanksgiving",
+                "Boxing Day",
+            ],
+        ),
+        ("CA-NB", &["Victoria Day", "Thanksgiving"]),
+        ("CA-NS", &["Victoria Day", "Thanksgiving"]),
+        ("CA-PE", &["Victoria Day", "Thanksgiving"]),
+        (
+            "CA-NU",
+            &["National Day for Truth and Reconciliation", "Boxing Day"],
+        ),
+        (
+            "CA-ON",
+            &[
+                "Remembrance Day",
+                "National Day for Truth and Reconciliation",
+            ],
+        ),
+        (
+            "CA-SK",
+            &["National Day for Truth and Reconciliation", "Boxing Day"],
+        ),
+    ];
+    for &(region, out) in left_out {
+        let days = days_off(Some(region), 2026);
+        for name in FEDERAL {
+            assert_eq!(
+                days.contains(&name),
+                !out.contains(&name),
+                "{region} {name}"
+            );
+        }
+        // The text read is of 2026: the years before are a gap for each day
+        // it leaves out, and the Truth and Reconciliation day, first kept in
+        // 2021, is no gap in 2020.
+        let gaps = gap_names(region, 2025);
+        for name in out.iter().filter(|name| **name != "Canada Day") {
+            assert!(
+                gaps.iter().any(|gap| gap.contains(name)),
+                "{region} {name}: {gaps:?}"
+            );
+        }
+        assert!(
+            !gap_names(region, 2020).contains(&"National Day for Truth and Reconciliation"),
+            "{region}"
+        );
+    }
+    // Newfoundland and Labrador's 1 July is its Memorial Day; British
+    // Columbia and Manitoba keep the day of 30 September under their own
+    // lists.
+    let nl = HolidayCalendar::for_year(&CANADA, Some("CA-NL"), 2026);
+    let july = nl.on(ymd(2026, 7, 1));
+    assert_eq!(july.len(), 1);
+    assert_eq!(july[0].name, "Memorial Day");
+    assert!(nl.is_holiday(ymd(2026, 11, 11)));
+    for region in ["CA-BC", "CA-MB"] {
+        let calendar = HolidayCalendar::for_year(&CANADA, Some(region), 2026);
+        assert!(calendar.is_holiday(ymd(2026, 9, 30)), "{region}");
+        assert!(
+            gap_names(region, 2022)
+                .iter()
+                .any(|name| name.contains("Truth and Reconciliation"))
+        );
+        assert!(
+            !gap_names(region, 2020)
+                .iter()
+                .any(|name| name.contains("Truth and Reconciliation"))
+        );
+    }
+    // Ontario keeps Boxing Day; Quebec, whose list was not read, keeps every
+    // federal day as the table has it.
+    assert!(days_off(Some("CA-ON"), 2026).contains(&"Boxing Day"));
+    let quebec = days_off(Some("CA-QC"), 2026);
+    assert!(FEDERAL.iter().all(|name| quebec.contains(name)));
 }

@@ -27,7 +27,8 @@
 //! Kalendar has a day the modern one does not — King Charles the Martyr
 //! (30 January), Charles II's Nativity and Return (29 May), the Papists'
 //! Conspiracy (5 November) and St Blasius (3 February) — its own wording
-//! is both names. St Mary Magdalen, on 21 July in the 1662 transcription
+//! is both names. The first three are the state services, which the
+//! Queen's warrant of 17 January 1859 removed: they end in 1858. St Mary Magdalen, on 21 July in the 1662 transcription
 //! and 22 July in the modern one, is a gap: the two disagree.
 //!
 //! The Prayer Book gives no rule for a holy day that falls on a Sunday; the
@@ -35,14 +36,66 @@
 //! 1662 text and are not carried, and nor is a leap-year day for St
 //! Matthias, which the Kalendar keeps on 24 February. The vigils, fasts and
 //! Ember Days are the `ember-bcp1662` table's and the Kalendar's lessons are
-//! not carried. The table begins in 1753, the first year wholly on the
-//! Gregorian calendar; the Julian years from 1662 are not carried.
+//! not carried. The table answers from 1753, the first year wholly on the
+//! Gregorian calendar: the years from 1662 to 1752 were kept on the Julian
+//! calendar, which the table does not compute, and each is a gap; before
+//! 1662, the book's year, it has no day.
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{ASCENSION, EASTER_SUNDAY, PENTECOST, TRINITY_SUNDAY};
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
+
+/// The year of the book: before it the calendar is absent.
+const BOOK_YEAR: i32 = 1662;
+
+/// The first year wholly on the Gregorian calendar, 1753. The years of the
+/// book before it, 1662 to 1752, were kept on the Julian calendar, whose
+/// days the table does not compute, and each is a gap.
+const FIRST_GREGORIAN_YEAR: i32 = 1753;
+
+/// The three state services the Queen's warrant of 17 January 1859 removed
+/// from the book, "the prayers" for 30 January, 29 May and 5 November
+/// (Wikipedia, "Anniversary Days Observance Act 1859", which cites The
+/// London Gazette of 18 January 1859; the warrant and the Act not read):
+/// kept to 1858.
+const STATE_SERVICES: &[&str] = &[
+    "K. Charles Mart.",
+    "CH. II. Nat. et Ret.",
+    "Papists Conspiracy",
+];
+
+/// The last year a day was kept: 1858 for a state service, and for every
+/// other day none.
+const fn last_year(title: &str) -> Option<i32> {
+    let mut index = 0;
+    while index < STATE_SERVICES.len() {
+        if const_str_eq(STATE_SERVICES[index], title) {
+            return Some(1858);
+        }
+        index += 1;
+    }
+    None
+}
+
+/// Whether two strings are equal, in a `const fn`.
+const fn const_str_eq(a: &str, b: &str) -> bool {
+    let (a, b) = (a.as_bytes(), b.as_bytes());
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut index = 0;
+    while index < a.len() {
+        if a[index] != b[index] {
+            return false;
+        }
+        index += 1;
+    }
+    true
+}
 
 /// How the Kalendar prints a day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -94,7 +147,8 @@ macro_rules! prayer_book {
         static RULES: &[HolidayRule] = &[$(
             HolidayRule::observance($title, $old, $rule)
                 .of_kind(Kind::Religious)
-                .years(Some(1753), None)
+                .years(Some(BOOK_YEAR), last_year($title))
+                .read_from(FIRST_GREGORIAN_YEAR)
         ),*];
     };
 }
@@ -206,8 +260,8 @@ prayer_book! {
 }
 
 /// The calendar of the Book of Common Prayer of 1662 as a rule set: every
-/// red-letter and black-letter day a [`Kind::Religious`] observance, from
-/// 1753.
+/// red-letter and black-letter day a [`Kind::Religious`] observance,
+/// answered from 1753, the years from 1662 a gap.
 pub static BOOK_OF_COMMON_PRAYER_1662: RuleSet = RuleSet {
     code: "bcp-1662",
     english_name: "Book of Common Prayer (1662)",
@@ -227,6 +281,7 @@ pub static BOOK_OF_COMMON_PRAYER_1662: RuleSet = RuleSet {
               secondary; the Calendar (New Style) Act 1750's tables for the Gregorian computus \
               (calendar-new-style-act-1750); all retrieved 2026-09-29. The Church of England's \
               Kalendar and Tables, PDFs, were not read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 #[cfg(test)]
@@ -304,10 +359,63 @@ mod tests {
                 .iter()
                 .any(|gap| gap.name == "St. Mary Magdalen")
         );
+        // 1752 was Julian to 2 September: the book's years to 1752 are gaps,
+        // one for each day, and before 1662 the book did not exist.
+        let julian =
+            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 1752);
         assert!(
-            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 1752)
+            julian
                 .on(gregorian::to_fixed(1752, 12, 25).unwrap())
                 .is_empty()
+        );
+        assert_eq!(julian.gaps().len(), CELEBRATIONS.len());
+        assert_eq!(
+            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 1662)
+                .gaps()
+                .len(),
+            CELEBRATIONS.len()
+        );
+        assert!(
+            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 1661)
+                .is_complete()
+        );
+        assert!(
+            crate::engine::holidays_in_year(&BOOK_OF_COMMON_PRAYER_1662, None, 1661).is_empty()
+        );
+    }
+
+    /// The Queen's warrant of 17 January 1859 removed the three state
+    /// services: 1858 keeps them, 1859 does not.
+    #[test]
+    fn the_state_services_end_in_1858() {
+        for (month, day, title) in [
+            (1, 30, "K. Charles Mart."),
+            (5, 29, "CH. II. Nat. et Ret."),
+            (11, 5, "Papists Conspiracy"),
+        ] {
+            let on = |year| {
+                crate::engine::holidays_on(
+                    &BOOK_OF_COMMON_PRAYER_1662,
+                    None,
+                    gregorian::to_fixed(year, month, day).unwrap(),
+                )
+                .iter()
+                .any(|holiday| holiday.name == title)
+            };
+            assert!(on(1753), "{title}");
+            assert!(on(1858), "{title}");
+            assert!(!on(1859), "{title}");
+            assert!(!on(2026), "{title}");
+        }
+        // Every other day of the Kalendar goes on.
+        assert!(
+            crate::engine::holidays_on(
+                &BOOK_OF_COMMON_PRAYER_1662,
+                None,
+                gregorian::to_fixed(1859, 2, 3).unwrap()
+            )
+            .iter()
+            .any(|holiday| holiday.name.starts_with("Blasius"))
         );
     }
 }

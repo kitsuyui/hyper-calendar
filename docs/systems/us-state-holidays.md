@@ -53,7 +53,8 @@ Thanksgiving, which § 110.117 has, is `Kind::Government`.
 - **The federal holidays**, nationwide, as the table carried them before
   this document, with Inauguration Day in `US-DC`.
 - **The days each state's code lists beyond them**, scoped to its code,
-  in the table below: 147 rules in 45 states and the District.
+  in the table below: 147 rules in 45 states and the District, and
+  California's Good Friday afternoon, a half day.
   - `Kind::Government` where the code, or the personnel law read beside
     it, closes the state's offices or makes the day a paid holiday for its
     employees, or where the code makes the day a legal holiday and says
@@ -71,20 +72,28 @@ Thanksgiving, which § 110.117 has, is `Kind::Government`.
   Florida's Pascua Florida Day, the District); the years before are
   absent. Otherwise it is the year of the version read, the last
   amendment's where the history gives one and the copy's date where it does
-  not, and the years before are a gap, reported by a `Rule::UNREAD` rule of
-  the day's name: the day is usually older (Texas's days were recodified in
+  not, and the years before are a gap, which the engine reports for the
+  rule read from that year (`HolidayRule::read_from`): the day is usually older (Texas's days were recodified in
   1993, Hawaii's are of the 1890s), and the texts that would show it were
   not read. The table's "First year" column says which.
 - **Not yet carried, and why:**
   - the days the table's last column names: days whose date a governor
     chooses or an election law not read sets, days for a county or a
-    parish, half days, optional days, and days on the federal date under a
-    state name;
+    parish, optional days, and days on the federal date under a state
+    name;
+  - the Saturday afternoon half holidays of Michigan, New York,
+    Pennsylvania and Tennessee: a rule gives at most sixteen days a year,
+    and these are every Saturday's afternoon. California's "Good Friday
+    from 12 noon until 3 p.m." (§ 6700(a)(19)) is carried, as
+    `Kind::HalfDay`, from 2026, a gap before;
   - the states' weekend moves: many codes keep a Saturday day on the
     Friday and a Sunday day on the Monday, but the engine substitutes only
     days off, and a state's day is not one; the code's rule is noted;
   - New Hampshire and Oklahoma, whose codes could not be read, and Georgia,
-    whose extra state holiday the Governor chooses each year;
+    whose extra state holiday the Governor chooses each year: asked for,
+    each keeps the federal days and reports its own as a gap. Wyoming,
+    whose code adds no day, is listed among the subdivisions read and is
+    complete;
   - the commemorative days of the states whose holidays are carried, some
     two hundred in the chapters met.
 
@@ -103,7 +112,7 @@ carried as `Kind::Observance`; the others are `Kind::Government`.
 | US-AK | Alaska | Seward's Day, the last Monday of March; Alaska Day, 18 October | Alaska Stat. § 44.12.010 [us-ak-code] | legal holidays | 2025; earlier years: gap | the designated days of article 2 of chapter 44.12, of which Wickersham Day and one more were read, the rest not enumerated |
 | US-AZ | Arizona | Mothers' Day, the second Sunday of May; Native American Day, the Sunday on or after 2 June; Fathers' Day, the third Sunday of June; American Family Day, the first Sunday of August; Constitution Commemoration Day, the Sunday on or before 17 September | A.R.S. §§ 1-301 and 1-302 [us-az-code] | holidays; § 1-302 closes public offices and courts | 2026; earlier years: gap | National Navajo Code Talkers Day, which § 1-301 makes a holiday and § 1-313 says is not one; the days of observance of §§ 1-304 to 1-321 |
 | US-AR | Arkansas | Christmas Eve, 24 December | Ark. Code Ann. § 1-5-101 [us-ar-code] | a paid holiday for state employees | 2024; earlier years: gap | the memorial days of § 1-5-106, which the section says are not legal holidays, Good Friday and Lee's day among them, and the designated days of §§ 1-5-107 to 1-5-122; the employee's birthday |
-| US-CA | California | Farmworkers Day, 31 March; Lincoln Day, 12 February (observance); Genocide Remembrance Day, 24 April (observance); Admission Day, 9 September (observance); Native American Day, the fourth Friday of September (observance); Day after Thanksgiving, the Friday after Thanksgiving | Cal. Gov. Code §§ 6700, 6712 and 19853 [us-ca-code] | § 6700 holidays; the Government days are paid holidays of § 19853, the observances elective or unpaid | Genocide Remembrance Day: established 2023 (AB 1801, Stats. 2022, ch. 761); the others: 1999, 2026; earlier years: gap | Lunar New Year, dated by the new moons after the solstice; Diwali, "the 15th day of the month of Kartik", whose reckoning the section does not name; Good Friday from noon to three; the proclamation days of §§ 6708 to 6736 |
+| US-CA | California | Farmworkers Day, 31 March; Lincoln Day, 12 February (observance); Genocide Remembrance Day, 24 April (observance); Admission Day, 9 September (observance); Native American Day, the fourth Friday of September (observance); Day after Thanksgiving, the Friday after Thanksgiving; Good Friday from 12 noon until 3 p.m. (half day) | Cal. Gov. Code §§ 6700, 6712 and 19853 [us-ca-code] | § 6700 holidays; the Government days are paid holidays of § 19853, the observances elective or unpaid | Genocide Remembrance Day: established 2023 (AB 1801, Stats. 2022, ch. 761); the others: 1999, 2026; earlier years: gap | Lunar New Year, dated by the new moons after the solstice; Diwali, "the 15th day of the month of Kartik", whose reckoning the section does not name; the proclamation days of §§ 6708 to 6736 |
 | US-CO | Colorado | Frances Xavier Cabrini Day, the first Monday of October | C.R.S. § 24-11-101, as amended by HB20-1031 [us-co-code] | a legal holiday | Frances Xavier Cabrini Day: established 2020 (HB20-1031) | the days of observance of §§ 24-11-104 to 24-11-118, Colorado Day among them |
 | US-CT | Connecticut | Lincoln Day, 12 February | Conn. Gen. Stat. § 1-4 [us-ct-code] | a legal holiday | 2026; earlier years: gap | days the Governor or the President appoints |
 | US-DE | Delaware | Good Friday, Good Friday; Friday after Thanksgiving, the Friday after Thanksgiving; General Election Day, the Tuesday after the first Monday of November, even years | 1 Del. C. § 501 [us-de-code] | legal holidays | 2026; earlier years: gap | Return Day, the afternoon of the second day after the general election, in Sussex County only; the two floating holidays |
@@ -187,7 +196,8 @@ What a reader should know:
 
 `crates/hc-holiday/src/countries/united_states.rs`: the federal rules
 first in `US_RULES`, then the states', built by `state` and
-`state_observance`, and the gaps before them by `earlier_years_unread`, with `FRIDAY_AFTER_THANKSGIVING`, `ELECTION_DAY`,
+`state_observance`, each with `.years` from its session law or
+`.read_from` the year of its text, with `FRIDAY_AFTER_THANKSGIVING`, `ELECTION_DAY`,
 `even_year_election_day`, `presidential_election_day` and Utah's
 `TO_PRECEDING_OR_NEXT_MONDAY`; one region and one citation constant per
 state, `US_AK` and `US_AK_LAW` to `US_WV` and `US_WV_LAW`. The

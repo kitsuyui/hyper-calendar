@@ -118,10 +118,14 @@ Pentecost, 26 weeks before it, so 25 May begins week 8, and 7 June is the 10th S
   the Epiphany on the Sunday between 2 and 8 January, as the Liturgy
   Office's table does. A Sunday a solemnity or feast takes the place of
   keeps its number; which is celebrated is the ordo's.
-- **Range** the liturgical years 1583 to 4099, whose Easter the Gregorian
-  computus (the rule for the date of Easter) gives. The Roman Lectionary
-  is of 1969 and the RCL begins with Advent 1992 [cct-rcl, §8]; a letter
-  for an earlier year is the rule applied backwards.
+- **Range**: from the reform each cycle belongs to, to the liturgical year
+  4099, the last whose Easter the Gregorian computus (the rule for the date
+  of Easter) gives. The Sunday and weekday cycles and Ordinary Time are
+  the Roman reform's, whose calendar and general norms *Mysterii Paschalis*
+  put "into effect on January 1, 1970" [mysterii-paschalis]; before that
+  day they are `None`. The RCL's Propers begin with Advent 1992 [cct-rcl,
+  §8], and before it `rcl_proper` is `None`. `liturgical_year` and
+  `first_sunday_of_advent` name and date a year and answer from 1583.
 - **Not carried.**
   - *The readings*, which are the Holy See's and the Consultation on
     Common Texts' texts under their own copyright.
@@ -142,10 +146,10 @@ Pentecost, 26 weeks before it, so 25 May begins week 8, and 7 June is the 10th S
 | The Sunday and weekday cycles of 2020–2030, at Easter, and the change at Advent 2025 [liturgyoffice-moveable] | `the_liturgy_office_cycles_of_2020_to_2030` | 11 of 11 |
 | The worked example: 2026 is A and II, 7 June 2026 Proper 5, 22 November Proper 29 | `the_worked_example_of_2025_to_2026` | yes |
 | Proper 29 on the Sunday 20–26 November, 1990–2040 [cct-rcl] | `proper_29_is_the_sunday_between_20_and_26_november` | all |
-| The Sunday after Trinity is Proper 3 when Easter is 22 March, as in 1818 [cct-rcl]; never below 3 or above 8 in 1583–2500 | `an_easter_on_22_march_makes_the_sunday_after_trinity_proper_3` | yes |
+| The Sunday after Trinity is Proper 3 when Easter is 22 March, as in 2285 [cct-rcl]; never below 3 or above 8 in 1993–2500 | `an_easter_on_22_march_makes_the_sunday_after_trinity_proper_3` | yes |
 | The Propers fall in the Liturgy Office's windows of Ordinary 8–34, 2000–2060 [liturgyoffice-sundays] | `the_propers_match_the_roman_sundays_in_ordinary_time_windows` | all |
 | The weeks of Ordinary Time of 2020–2060: the number before Lent, the day it ends, the day it resumes and its number [liturgyoffice-moveable] | `the_liturgy_office_weeks_of_ordinary_time_2020_to_2060` | 163 of 164; the table's 4 weeks before Lent in 2035 is 5, as it prints for 2046, a year of the same days |
-| Every Sunday in Ordinary Time, 1583–2600, in its window of dates [liturgyoffice-sundays] | `every_sunday_in_ordinary_time_is_in_the_liturgy_office_window` | all |
+| Every Sunday in Ordinary Time, 1970–2600, in its window of dates [liturgyoffice-sundays] | `every_sunday_in_ordinary_time_is_in_the_liturgy_office_window` | all |
 | The two reckonings of the weeks differ only on a Monday that is the Baptism on one of them, as 9 January 2023 | `the_two_epiphany_reckonings_differ_only_on_a_monday_baptism` | yes |
 
 ## Sources
@@ -157,6 +161,7 @@ Pentecost, 26 weeks before it, so 25 May begins week 8, and 7 June is the 10th S
 | [liturgyoffice-sundays] | The date windows of the Roman Sundays in Ordinary Time, and the Baptism on a Monday when the Epiphany is transferred to 7 or 8 January | Yes, 2026-09-26 and 2026-09-29 |
 | [wikipedia-lectionary] | The three-year and two-year cycles, odd years Cycle I | Yes, 2026-09-26 (secondary) |
 | [wikipedia-ordo-lectionum-missae] | The Lectionary's editions of 1969 and 1981 | Yes, 2026-09-26 (secondary) |
+| [mysterii-paschalis] | The calendar of 1969 and the general norms, "into effect on January 1, 1970": the first day of the Roman cycles | Yes, 2026-09-29, the Holy See's English text |
 
 The *Ordo Lectionum Missae*'s own introduction, its *praenotanda*, which
 states the cycles for the Roman Rite, was not read.

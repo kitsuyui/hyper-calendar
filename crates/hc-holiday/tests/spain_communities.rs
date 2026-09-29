@@ -146,10 +146,32 @@ fn the_years_whose_resolution_was_not_read_are_gaps() {
     };
     assert!(!ceuta_gap(2015));
     assert!(ceuta_gap(2012));
-    // The nationwide days are rules and have no gap.
-    assert!(HolidayCalendar::for_year(&SPAIN, None, 2012).is_complete());
-    assert!(HolidayCalendar::for_year(&SPAIN, None, 2016).is_complete());
-    assert!(HolidayCalendar::for_year(&SPAIN, None, 2030).is_complete());
+    // The nationwide days are rules of article 45 as read, in force from
+    // 8 November 1989: complete in a year a resolution read shows every
+    // community keeping Epiphany, and Epiphany a gap in any other.
+    let gaps = |year| {
+        HolidayCalendar::for_year(&SPAIN, None, year)
+            .gaps()
+            .iter()
+            .map(|gap| gap.name)
+            .collect::<Vec<_>>()
+    };
+    for year in [2013, 2015, 2018, 2026] {
+        assert!(gaps(year).is_empty(), "{year}");
+    }
+    for year in [1990, 2012, 2016, 2017, 2027, 2030] {
+        assert_eq!(gaps(year), ["Epiphany"], "{year}");
+    }
+    // Before 1990 every nationwide day is a gap: the text of 1983 and the
+    // amendment of 1985 were not read.
+    assert_eq!(gaps(1989).len(), 10);
+    assert_eq!(gaps(1982).len(), 10);
+    let christmas = |year| {
+        HolidayCalendar::for_year(&SPAIN, None, year)
+            .is_holiday(gregorian::to_fixed(year, 12, 25).unwrap_or(Rd(0)))
+    };
+    assert!(christmas(1990));
+    assert!(!christmas(1989));
 }
 
 #[test]

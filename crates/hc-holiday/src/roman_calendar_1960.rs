@@ -16,7 +16,7 @@
 //! | Class | Count | Examples |
 //! | --- | --- | --- |
 //! | I class | 53 | Christmas, Easter, the Sundays of Advent and Lent, St Joseph, All Souls' Day |
-//! | II class | 86 | the Holy Family, the Purification, the apostles, the vigils of the Ascension and of the Assumption, the Sundays after Epiphany, Easter and Pentecost, the ferias of 17 to 23 December |
+//! | II class | 95 | the Holy Family, the Purification, the apostles, the vigils of the Ascension and of the Assumption, the Sundays after Epiphany, Easter and Pentecost, the ferias of 17 to 23 December, the Ember Days of Advent, Lent and September |
 //! | III class | 181 | St Hilary, St Agnes, the Holy Name of Mary |
 //! | Commemoration | 106 | St Telesphorus, St George, Our Lady of Mount Carmel |
 //!
@@ -55,10 +55,24 @@
 //! of the Sorrowing Virgin on 28 February in a leap year, and All Souls' Day
 //! on 3 November when 2 November is a Sunday (no. 96b).
 //!
+//! The Ember Days of Advent, Lent and September are ferias of the II class,
+//! place 18 of the Table with the greater ferias of Advent: the Wednesday,
+//! Friday and Saturday after the Third Sunday of Advent, the First Sunday
+//! of Lent and the third Sunday of September within the month (Wikipedia,
+//! "General Roman Calendar of 1960" and "Ember days", retrieved
+//! 2026-09-29; divinumofficium.com's "Rubrics 1960" kalendar for February,
+//! May, September and December 2027). An Ember Day of Advent from 17 to
+//! 23 December is that day's feria under the Ember title. Those of
+//! Pentecost are days within its octave, of the I class, and keep the
+//! octave's titles here.
+//!
+//! The calendar is carried from [`FIRST_YEAR`], 1961, the year the Code of
+//! Rubrics came into force; before it the table has no day and [`ordo`]
+//! and [`office_on`] answer `None`.
+//!
 //! # What this is not
 //!
-//! The Ember Days, whose weeks the text read names but does not date, and
-//! so the privileged commemoration of those of September; the concurrence
+//! The concurrence
 //! of vespers (nos. 103–105); the commemorations excluded by the identity
 //! of a saint or a mystery (no. 112a, d) beyond the feasts of the Lord; and
 //! the particular calendars of nations, dioceses and orders, whose places
@@ -87,7 +101,20 @@ use crate::computus::{
         SACRED_HEART, SEPTUAGESIMA, TRINITY_SUNDAY,
     },
 };
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
+
+/// The first year the rubrics of 1960 were in force: the Code of Rubrics
+/// promulgated by *Rubricarum instructum* was "effective January 1, 1961"
+/// (Wikipedia, "Rubricarum instructum", retrieved 2026-09-29). Before it
+/// the calendar and its ordo are absent.
+pub const FIRST_YEAR: i64 = 1961;
+
+/// The instrument that established the calendar, cited by its every rule.
+const RUBRICARUM_INSTRUCTUM: &str = "John XXIII, motu proprio Rubricarum instructum, 25 July 1960, \
+     the Code of Rubrics effective 1 January 1961 (Wikipedia, \"Rubricarum instructum\", \
+     retrieved 2026-09-29)";
 
 /// The class of a liturgical day under the rubrics of 1960 (nos. 10–35).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -296,13 +323,55 @@ fn resumed_sunday_after_epiphany(year: i64, m: i64) -> Days {
 }
 
 /// A feria of Advent of the II class, `day` December, 17 to 23, when it is
-/// not a Sunday (no. 24).
+/// not a Sunday (no. 24) nor one of the Ember Days of Advent, which are
+/// ferias of the same class under their own title.
 fn greater_feria_of_advent(year: i64, day: u8) -> Days {
     match gregorian::to_fixed(year, 12, day) {
-        Ok(rd) if Weekday::from_rd(rd) != Weekday::Sunday => Days::one(rd),
+        Ok(rd)
+            if Weekday::from_rd(rd) != Weekday::Sunday
+                && !EMBER_DAYS_OF_ADVENT
+                    .iter()
+                    .any(|ember| ember.days_in_year(year).as_slice().contains(&rd)) =>
+        {
+            Days::one(rd)
+        }
         _ => Days::new(),
     }
 }
+
+/// The Third Sunday of Advent, the Sunday the Ember Days of Advent follow.
+static THIRD_SUNDAY_OF_ADVENT: Rule = advent(3);
+/// The Third Sunday of September "actually within the calendar month",
+/// the Sunday John XXIII's rubrics make the September Ember Days follow
+/// (Wikipedia, "Ember days", retrieved 2026-09-29).
+static THIRD_SUNDAY_OF_SEPTEMBER: Rule = Rule::nth(9, 3, Weekday::Sunday);
+
+/// The Wednesday, Friday and Saturday after `sunday`.
+macro_rules! ember_week {
+    ($sunday:expr) => {
+        [
+            Rule::Offset {
+                base: &$sunday,
+                days: 3,
+            },
+            Rule::Offset {
+                base: &$sunday,
+                days: 5,
+            },
+            Rule::Offset {
+                base: &$sunday,
+                days: 6,
+            },
+        ]
+    };
+}
+
+/// The Ember Days of Advent: the Wednesday, Friday and Saturday after the
+/// Third Sunday of Advent.
+static EMBER_DAYS_OF_ADVENT: [Rule; 3] = ember_week!(THIRD_SUNDAY_OF_ADVENT);
+/// The Ember Days of September: the Wednesday, Friday and Saturday after
+/// the third Sunday of September.
+static EMBER_DAYS_OF_SEPTEMBER: [Rule; 3] = ember_week!(THIRD_SUNDAY_OF_SEPTEMBER);
 
 /// The rules of the Sundays and ferias the Proper of Time adds, each a
 /// `fn(i64) -> Days` for [`Rule::Computed`].
@@ -368,7 +437,10 @@ macro_rules! calendar_1960 {
         ),*];
 
         static RULES: &[HolidayRule] = &[$(
-            HolidayRule::observance($title, "", $rule).of_kind(Kind::Religious)
+            HolidayRule::observance($title, "", $rule)
+                .of_kind(Kind::Religious)
+                .years(Some(FIRST_YEAR as i32), None)
+                .cited(RUBRICARUM_INSTRUCTUM)
         ),*];
     };
 }
@@ -738,6 +810,11 @@ calendar_1960! {
     "Feria of Advent, 21 December", Second, Rule::Computed(feria_21);
     "Feria of Advent, 22 December", Second, Rule::Computed(feria_22);
     "Feria of Advent, 23 December", Second, Rule::Computed(feria_23);
+    // The Ember Days of Advent, Lent and September, ferias of the II class;
+    // those of Pentecost are days within its octave, of the I class.
+    "Ember Wednesday of Advent", Second, EMBER_DAYS_OF_ADVENT[0];
+    "Ember Friday of Advent", Second, EMBER_DAYS_OF_ADVENT[1];
+    "Ember Saturday of Advent", Second, EMBER_DAYS_OF_ADVENT[2];
     "Sunday within the octave of Christmas", Second, Rule::Computed(sunday_within_the_octave_of_christmas);
     "Second Sunday after Epiphany", Second, Rule::Computed(second_sunday_after_epiphany);
     "Third Sunday after Epiphany", Second, Rule::Computed(third_sunday_after_epiphany);
@@ -749,6 +826,9 @@ calendar_1960! {
     "Quinquagesima Sunday", Second, Rule::easter(-49);
     "Ash Wednesday", First, Rule::easter(ASH_WEDNESDAY);
     "First Sunday of Lent", First, Rule::easter(-42);
+    "Ember Wednesday of Lent", Second, Rule::easter(-39);
+    "Ember Friday of Lent", Second, Rule::easter(-37);
+    "Ember Saturday of Lent", Second, Rule::easter(-36);
     "Second Sunday of Lent", First, Rule::easter(-35);
     "Third Sunday of Lent", First, Rule::easter(-28);
     "Fourth Sunday of Lent", First, Rule::easter(-21);
@@ -786,6 +866,9 @@ calendar_1960! {
     "Feast of Blessed Trinity", First, Rule::easter(TRINITY_SUNDAY);
     "Feast of Corpus Christi", First, Rule::easter(CORPUS_CHRISTI);
     "Feast of the Sacred Heart", First, Rule::easter(SACRED_HEART);
+    "Ember Wednesday of September", Second, EMBER_DAYS_OF_SEPTEMBER[0];
+    "Ember Friday of September", Second, EMBER_DAYS_OF_SEPTEMBER[1];
+    "Ember Saturday of September", Second, EMBER_DAYS_OF_SEPTEMBER[2];
     "Second Sunday after Pentecost", Second, Rule::Computed(pentecost_2);
     "Third Sunday after Pentecost", Second, Rule::Computed(pentecost_3);
     "Fourth Sunday after Pentecost", Second, Rule::Computed(pentecost_4);
@@ -836,6 +919,7 @@ pub static GENERAL_ROMAN_CALENDAR_1960: RuleSet = RuleSet {
               re-read in the same text layer 2026-09-29; checked against \
               Wikipedia, \"General Roman Calendar of 1960\" (wikipedia-grc-1960), retrieved \
               2026-09-27. The Latin in Acta Apostolicae Sedis 52 (1960) was not read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The days the calendar lists on a day, in its order, before precedence.
@@ -1004,6 +1088,15 @@ const PLACES: &[(u8, &[&str])] = &[
             "Feria of Advent, 21 December",
             "Feria of Advent, 22 December",
             "Feria of Advent, 23 December",
+            "Ember Wednesday of Advent",
+            "Ember Friday of Advent",
+            "Ember Saturday of Advent",
+            "Ember Wednesday of Lent",
+            "Ember Friday of Lent",
+            "Ember Saturday of Lent",
+            "Ember Wednesday of September",
+            "Ember Friday of September",
+            "Ember Saturday of September",
         ],
     ),
     (22, &["Feria of Lent", "Feria of Passiontide"]),
@@ -1090,6 +1183,7 @@ fn is_of_the_season(celebration: &Celebration) -> bool {
         || title.contains("within the octave")
         || title.contains("of Holy Week")
         || title.starts_with("Feria")
+        || title.starts_with("Ember")
         || title == "Ash Wednesday"
         || title == "Saturday Office of our Lady"
 }
@@ -1103,8 +1197,8 @@ fn is_transferable(celebration: &Celebration) -> bool {
 
 /// Whether the commemoration of an impeded day is privileged (no. 109): a
 /// Sunday, a day of the I class, a day within the octave of Christmas,
-/// and the ferias of Advent, Lent and Passiontide. The Ember Days of
-/// September are privileged too, and are not carried.
+/// the ferias of Advent, Lent and Passiontide, and the Ember Days, place 18
+/// with the greater ferias of Advent.
 fn is_privileged(celebration: &Celebration) -> bool {
     celebration.title.contains("Sunday")
         || celebration.class == Class::First
@@ -1198,10 +1292,14 @@ const SEASON_INDEX: usize = usize::MAX / 2;
 /// commemorations the day allows (nos. 106–114). `docs/systems/roman-
 /// calendar-1960.md` says what is and is not applied.
 ///
-/// Returns `None` outside 1583 to 4099, the years whose Easter the
-/// Gregorian computus gives.
+/// Returns `None` before [`FIRST_YEAR`], when the rubrics were not yet in
+/// force, and after 4099, the last year whose Easter the Gregorian computus
+/// gives.
 #[must_use]
 pub fn ordo(year: i64) -> Option<Vec<Office>> {
+    if year < FIRST_YEAR {
+        return None;
+    }
     let easter = computus::gregorian_easter(year)?;
     let first = gregorian::to_fixed(year, 1, 1).ok()?;
     let last = gregorian::to_fixed(year, 12, 31).ok()?;
@@ -1820,15 +1918,127 @@ mod tests {
         assert_eq!(lent.office.title, "First Sunday of Lent");
         assert!(lent.commemorations.is_empty());
         assert_eq!(lent.omitted.len(), 2);
-        // Outside the computus's years there is no ordo.
+        // Before the rubrics came into force, and outside the computus's
+        // years, there is no ordo.
         assert!(ordo(1582).is_none());
+        assert!(ordo(1583).is_none());
+        assert!(ordo(1960).is_none());
+        assert!(ordo(1961).is_some());
         assert!(office_on(ymd(4100, 1, 1)).is_none());
+    }
+
+    /// divinumofficium.com's "Rubrics 1960" kalendar: "Feria Quarta
+    /// Quattuor Temporum Septembris", II classis, on 22 September 2027, and
+    /// the Friday and Saturday on the 24th and 25th; those of Lent on 17, 19
+    /// and 20 February 2027 and of Advent on 15, 17 and 18 December 2027.
+    #[test]
+    fn the_ember_days_of_1960_are_ferias_of_the_second_class() {
+        for (month, day, title) in [
+            (2, 17, "Ember Wednesday of Lent"),
+            (2, 19, "Ember Friday of Lent"),
+            (2, 20, "Ember Saturday of Lent"),
+            (9, 22, "Ember Wednesday of September"),
+            (9, 24, "Ember Friday of September"),
+            (9, 25, "Ember Saturday of September"),
+            (12, 15, "Ember Wednesday of Advent"),
+            (12, 17, "Ember Friday of Advent"),
+            (12, 18, "Ember Saturday of Advent"),
+        ] {
+            let kept = office(2027, month, day);
+            assert_eq!(kept.office.title, title, "2027-{month}-{day}");
+            assert_eq!(kept.office.class, Class::Second);
+            assert_eq!(precedence(kept.office), Some(18));
+        }
+        // St Thomas of Villanova, of the III class, is commemorated on the
+        // Wednesday; the greater feria of 17 December is the Ember Friday.
+        let wednesday = office(2027, 9, 22);
+        assert!(
+            wednesday
+                .commemorations
+                .iter()
+                .any(|c| c.title.starts_with("S. Thomas of Villanova"))
+        );
+        assert!(
+            celebrations_on(ymd(2027, 12, 17))
+                .iter()
+                .all(|c| c.title != "Feria of Advent, 17 December")
+        );
+        // propria.org's ordo for 2026 (`propria-ordo`): "Ember Wednesday of
+        // Advent", class 2, on 17 December 2025, and the Friday and Saturday
+        // on the 19th and 20th; "Ember Wednesday in September" with St
+        // Linus commemorated on 23 September 2026, and the Saturday with Sts
+        // Cyprian and Justina on the 26th.
+        for (year, month, day, title) in [
+            (2025, 12, 17, "Ember Wednesday of Advent"),
+            (2025, 12, 19, "Ember Friday of Advent"),
+            (2025, 12, 20, "Ember Saturday of Advent"),
+            (2026, 9, 25, "Ember Friday of September"),
+        ] {
+            assert_eq!(office(year, month, day).office.title, title);
+        }
+        let linus = office(2026, 9, 23);
+        assert_eq!(linus.office.title, "Ember Wednesday of September");
+        assert_eq!(
+            linus
+                .commemorations
+                .iter()
+                .map(|c| c.title)
+                .collect::<Vec<_>>(),
+            ["S. Linus, Pope, M."]
+        );
+        let saturday = office(2026, 9, 26);
+        assert_eq!(saturday.office.title, "Ember Saturday of September");
+        assert!(
+            saturday
+                .commemorations
+                .iter()
+                .any(|c| c.title == "SS. Cyprian and Justina, V., MM.")
+        );
+        // The earliest September week, 14 September a Saturday (2024): the
+        // 18th, 20th and 21st.
+        assert_eq!(
+            office(2024, 9, 18).office.title,
+            "Ember Wednesday of September"
+        );
+        // St Matthew, of the II class, goes before the Ember Saturday on
+        // 21 September 2024 (no. 91: place 16 before 18), which is
+        // commemorated, a privileged commemoration.
+        let matthew = office(2024, 9, 21);
+        assert_eq!(matthew.office.title, "S. Matthew, Ap. and Evang.");
+        assert!(
+            matthew
+                .commemorations
+                .iter()
+                .any(|c| c.title == "Ember Saturday of September")
+        );
+        // The latest, 14 September a Sunday (2025): the 24th, 26th and 27th.
+        assert_eq!(
+            office(2025, 9, 24).office.title,
+            "Ember Wednesday of September"
+        );
+        assert_eq!(
+            office(2025, 9, 27).office.title,
+            "Ember Saturday of September"
+        );
+    }
+
+    #[test]
+    fn the_calendar_of_1960_begins_in_1961() {
+        let days = |year| crate::engine::holidays_in_year(&GENERAL_ROMAN_CALENDAR_1960, None, year);
+        assert!(days(1960).is_empty());
+        assert!(!days(1961).is_empty());
+        assert!(
+            crate::engine::HolidayCalendar::for_year(&GENERAL_ROMAN_CALENDAR_1960, None, 1900)
+                .is_complete()
+        );
+        assert!(office_on(ymd(1960, 12, 31)).is_none());
+        assert!(office_on(ymd(1961, 1, 1)).is_some());
     }
 
     #[test]
     fn the_classes_are_counted_as_the_module_states() {
         assert_eq!(count(Class::First), 53);
-        assert_eq!(count(Class::Second), 86);
+        assert_eq!(count(Class::Second), 95);
         assert_eq!(count(Class::Third), 181);
         assert_eq!(count(Class::Commemoration), 106);
     }
@@ -1846,6 +2056,7 @@ mod tests {
                 && !title.contains("within the octave")
                 && !title.contains("day within")
                 && !title.starts_with("Feria")
+                && !title.starts_with("Ember")
                 && title != "Ash Wednesday"
         };
         let first: Vec<&str> = CELEBRATIONS

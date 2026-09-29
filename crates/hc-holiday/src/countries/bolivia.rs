@@ -19,14 +19,18 @@ use hc_calendar::Weekday;
 
 use crate::computus::offsets::{CORPUS_CHRISTI, GOOD_FRIDAY, SHROVE_MONDAY, SHROVE_TUESDAY};
 use crate::rule::{
-    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
+    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
     SubstitutionPolicy,
 };
 
 /// The departments, by ISO 3166-2 code.
+const BO_BENI: &[&str] = &["BO-B"];
+const BO_COCHABAMBA: &[&str] = &["BO-C"];
+const BO_CHUQUISACA: &[&str] = &["BO-H"];
 const BO_LA_PAZ: &[&str] = &["BO-L"];
 const BO_ORURO: &[&str] = &["BO-O"];
 const BO_PANDO: &[&str] = &["BO-N"];
+const BO_POTOSI: &[&str] = &["BO-P"];
 const BO_SANTA_CRUZ: &[&str] = &["BO-S"];
 const BO_TARIJA: &[&str] = &["BO-T"];
 
@@ -49,37 +53,40 @@ const TARIJA_DECREE: &str = "Decreto Supremo 4219 of 14 April 2020, artículo ú
      departamental de Tarija\", the efeméride \"que se celebra el 15 de abril de cada año\" \
      (lexivox.org/norms/BO-DS-N4219.xhtml), retrieved 2026-09-29";
 
-/// The years before a department's day's first year, as a gap: the
-/// instrument read presupposes the day rather than setting it.
-const fn earlier_years_unread(
-    name: &'static str,
-    local_name: &'static str,
-    first: i32,
-    region: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::UNREAD)
-        .years(None, Some(first - 1))
-        .in_regions(region)
-        .cited(source)
-}
-
-/// A department's day, from `first`, with the suspension of public and
-/// private activity in the department, moved off a Sunday from 2024.
+/// A department's day, with the suspension of public and private activity
+/// in the department, moved off a Sunday from 2024. Its years are the
+/// call's: `.years` where the instrument read sets the day, `.read_from`
+/// where it presupposes it, the years before being a gap.
 const fn departmental(
     name: &'static str,
     local_name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::public(name, local_name, rule)
-        .years(Some(first), None)
         .in_regions(region)
-        .substituted_from(if first > 2024 { first } else { 2024 })
+        .substituted_from(2024)
         .cited(source)
 }
+
+/// A department's efeméride that no instrument read dates: Decreto Supremo
+/// 21060, art. 67, makes it a holiday, so every year is a gap.
+const fn undated(
+    name: &'static str,
+    local_name: &'static str,
+    region: &'static [&'static str],
+) -> HolidayRule {
+    HolidayRule::public(name, local_name, Rule::UNREAD)
+        .in_regions(region)
+        .cited(UNDATED)
+}
+
+/// Why an efeméride is [`undated`].
+const UNDATED: &str = "Decreto Supremo 21060 of 29 August 1985, art. 67, as the preambles of \
+     Decreto Presidencial 205 (2009) and Decreto Supremo 4219 (2020) quote it: the department's \
+     efeméride is a holiday; no instrument read dates it, the Ministry of Labour's yearly \
+     notices being PDF, not read";
 
 /// Decreto Supremo 2750 (2016), art. 3: the Monday after a national
 /// holiday that falls on a Sunday is a holiday, except for the Carnival
@@ -141,17 +148,10 @@ static BO_RULES: &[HolidayRule] = &[
         "La Paz Departmental Day",
         "Feriado departamental de La Paz",
         Rule::gregorian(7, 16),
-        2009,
         BO_LA_PAZ,
         LA_PAZ_DECREE,
-    ),
-    earlier_years_unread(
-        "La Paz Departmental Day",
-        "Feriado departamental de La Paz",
-        2009,
-        BO_LA_PAZ,
-        LA_PAZ_DECREE,
-    ),
+    )
+    .read_from(2009),
     HolidayRule::fixed_public(
         "Bicentenary of the La Paz Revolution",
         "Feriado departamental por el Bicentenario de la Gesta Libertaria",
@@ -168,60 +168,87 @@ static BO_RULES: &[HolidayRule] = &[
     .years(Some(2013), Some(2013))
     .in_regions(BO_ORURO)
     .cited(ORURO_DECREE),
-    earlier_years_unread(
-        "Oruro Departmental Day",
-        "Efeméride Departamental de Oruro",
-        2013,
-        BO_ORURO,
-        ORURO_DECREE,
-    ),
+    // Oruro's 10 February, moved to 6 February in 2013 alone: the 10 February
+    // rule stops before 2013 as a gap, the decree of that year presupposing
+    // the day.
     departmental(
         "Oruro Departmental Day",
         "Efeméride Departamental de Oruro",
         Rule::gregorian(2, 10),
-        2014,
         BO_ORURO,
         ORURO_DECREE,
-    ),
+    )
+    .years(None, Some(2012))
+    .read_from(2013),
+    departmental(
+        "Oruro Departmental Day",
+        "Efeméride Departamental de Oruro",
+        Rule::gregorian(2, 10),
+        BO_ORURO,
+        ORURO_DECREE,
+    )
+    .years(Some(2014), None),
     departmental(
         "Tarija Departmental Day",
         "Efeméride del departamento de Tarija",
         Rule::gregorian(4, 15),
-        2020,
         BO_TARIJA,
         TARIJA_DECREE,
-    ),
-    earlier_years_unread(
-        "Tarija Departmental Day",
-        "Efeméride del departamento de Tarija",
-        2020,
-        BO_TARIJA,
-        TARIJA_DECREE,
-    ),
+    )
+    .read_from(2020),
     departmental(
         "Battle of Bahía",
         "Batalla de Bahía",
         Rule::gregorian(10, 11),
-        2025,
         BO_PANDO,
         PANDO_LAW,
-    ),
+    )
+    .years(Some(2025), None)
+    .substituted_from(2025),
     HolidayRule::observance(
         "Departmental Autonomy Day",
         "Día Departamental de la Autonomía",
         Rule::gregorian(5, 4),
     )
-    .years(Some(2011), None)
     .in_regions(BO_SANTA_CRUZ)
-    .cited(SANTA_CRUZ_LAW),
+    .cited(SANTA_CRUZ_LAW)
     // The law of 2010 repeals a departmental decree of 29 April 2009, not
-    // read, which may have set the day before it.
-    earlier_years_unread(
-        "Departmental Autonomy Day",
-        "Día Departamental de la Autonomía",
-        2011,
+    // read, which may have set the day before it: the years before are a
+    // gap.
+    .read_from(2011),
+    // The efemérides no instrument read dates, every year a gap: Beni's
+    // 18 November, Cochabamba's 14 September, Chuquisaca's 25 May, Potosí's
+    // 10 November, and Santa Cruz's and Pando's 24 September, as the
+    // Ministry's notices and the press give them.
+    undated(
+        "Beni Departmental Day",
+        "Efeméride del departamento del Beni",
+        BO_BENI,
+    ),
+    undated(
+        "Cochabamba Departmental Day",
+        "Efeméride del departamento de Cochabamba",
+        BO_COCHABAMBA,
+    ),
+    undated(
+        "Chuquisaca Departmental Day",
+        "Efeméride del departamento de Chuquisaca",
+        BO_CHUQUISACA,
+    ),
+    undated(
+        "Potosí Departmental Day",
+        "Efeméride del departamento de Potosí",
+        BO_POTOSI,
+    ),
+    undated(
+        "Santa Cruz Departmental Day",
+        "Efeméride del departamento de Santa Cruz",
         BO_SANTA_CRUZ,
-        SANTA_CRUZ_LAW,
+    ),
+    undated(
+        "Pando Departmental Day",
+        "Efeméride del departamento de Pando",
+        BO_PANDO,
     ),
 ];
 
@@ -253,4 +280,5 @@ pub static BOLIVIA: RuleSet = RuleSet {
               day, for the English names; the departments' days from the instruments cited on \
               their entries, retrieved 2026-09-29, as docs/systems/bolivia-holidays.md lists \
               them",
+    subdivisions: Subdivisions::Read(&[]),
 };

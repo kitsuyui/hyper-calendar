@@ -17,12 +17,17 @@
 //! [`Kind::Observance`]. Neither counts as a day off for business days.
 //! A day is carried from the session law that set it where the section's
 //! history names one, and absent before; otherwise from the year of the text
-//! read, the years before it a gap (`earlier_years_unread`), since the day
+//! read, the years before it a gap (`HolidayRule::read_from`), since the day
 //! is usually older than the copy.
 //! The codes' own weekend moves are not carried: the engine substitutes
 //! only days off, and a state's day is not one. Days whose date the code leaves
-//! to a governor, an election law not read or a local body, days for part
-//! of a state, and half days are not carried.
+//! to a governor, an election law not read or a local body, and days for
+//! part of a state, are not yet carried: no source read dates them, or the
+//! table has no scope finer than a state. California's Good Friday from noon
+//! to three is a [`Kind::HalfDay`]; the Saturday afternoon half holidays of
+//! Michigan, New York, Pennsylvania and Tennessee are not yet carried, since
+//! a rule gives at most [`Days::CAPACITY`] days a year and those are every
+//! Saturday's afternoon.
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
@@ -30,7 +35,7 @@ use hc_calendars_solar::gregorian;
 use crate::computus::offsets::{GOOD_FRIDAY, SHROVE_TUESDAY};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    SubstituteDirection, SubstitutionPolicy,
+    Subdivisions, SubstituteDirection, SubstitutionPolicy,
 };
 
 /// The District of Columbia and the counties around it, the only place
@@ -107,49 +112,30 @@ static TO_PRECEDING_OR_NEXT_MONDAY: &[(Weekday, i16)] = &[
 ];
 
 /// A state's day that closes its offices or is a paid holiday for its
-/// employees, from `first`, in the state `region`.
+/// employees, in the state `region`. Its years are the call's: `.years`
+/// from the session law that set it, or `.read_from` the year of the text
+/// read, the years before a gap.
 const fn state(
     name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, "", rule)
         .of_kind(Kind::Government)
-        .years(Some(first), None)
         .in_regions(region)
         .cited(source)
 }
 
 /// A state's legal holiday that closes nothing, or its designated day of
-/// observance, from `first`, in the state `region`.
+/// observance, in the state `region`, with its years as [`state`]'s.
 const fn state_observance(
     name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::observance(name, "", rule)
-        .years(Some(first), None)
-        .in_regions(region)
-        .cited(source)
-}
-
-/// The years before a state's day's first year, from `from` (all of them
-/// when `None`), as a gap: the text read is the version in force and not
-/// the act that set the day, so whether the day was kept in those years is
-/// not known, and saying it was not would be a guess.
-const fn earlier_years_unread(
-    name: &'static str,
-    from: Option<i32>,
-    first: i32,
-    region: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::observance(name, "", Rule::UNREAD)
-        .years(from, Some(first - 1))
         .in_regions(region)
         .cited(source)
 }
@@ -338,54 +324,36 @@ static US_RULES: &[HolidayRule] = &[
     state(
         "Seward's Day",
         Rule::last(3, Weekday::Monday),
-        2025,
         US_AK,
         US_AK_LAW,
-    ),
-    earlier_years_unread("Seward's Day", None, 2025, US_AK, US_AK_LAW),
-    state(
-        "Alaska Day",
-        Rule::gregorian(10, 18),
-        2025,
-        US_AK,
-        US_AK_LAW,
-    ),
-    earlier_years_unread("Alaska Day", None, 2025, US_AK, US_AK_LAW),
+    )
+    .read_from(2025),
+    state("Alaska Day", Rule::gregorian(10, 18), US_AK, US_AK_LAW).read_from(2025),
     // Alabama.
     state(
         "Confederate Memorial Day",
         Rule::nth(4, 4, Weekday::Monday),
-        2025,
         US_AL,
         US_AL_LAW,
-    ),
-    earlier_years_unread("Confederate Memorial Day", None, 2025, US_AL, US_AL_LAW),
+    )
+    .read_from(2025),
     state(
         "Jefferson Davis' Birthday",
         Rule::nth(6, 1, Weekday::Monday),
-        2025,
         US_AL,
         US_AL_LAW,
-    ),
-    earlier_years_unread("Jefferson Davis' Birthday", None, 2025, US_AL, US_AL_LAW),
+    )
+    .read_from(2025),
     // Arkansas.
-    state(
-        "Christmas Eve",
-        Rule::gregorian(12, 24),
-        2024,
-        US_AR,
-        US_AR_LAW,
-    ),
-    earlier_years_unread("Christmas Eve", None, 2024, US_AR, US_AR_LAW),
+    state("Christmas Eve", Rule::gregorian(12, 24), US_AR, US_AR_LAW).read_from(2024),
     // Arizona.
     state(
         "Mothers' Day",
         Rule::nth(5, 2, Weekday::Sunday),
-        2026,
         US_AZ,
         US_AZ_LAW,
-    ),
-    earlier_years_unread("Mothers' Day", None, 2026, US_AZ, US_AZ_LAW),
+    )
+    .read_from(2026),
     state(
         "Native American Day",
         Rule::WeekdayOnOrAfter {
@@ -393,27 +361,24 @@ static US_RULES: &[HolidayRule] = &[
             day: 2,
             weekday: Weekday::Sunday,
         },
-        2026,
         US_AZ,
         US_AZ_LAW,
-    ),
-    earlier_years_unread("Native American Day", None, 2026, US_AZ, US_AZ_LAW),
+    )
+    .read_from(2026),
     state(
         "Fathers' Day",
         Rule::nth(6, 3, Weekday::Sunday),
-        2026,
         US_AZ,
         US_AZ_LAW,
-    ),
-    earlier_years_unread("Fathers' Day", None, 2026, US_AZ, US_AZ_LAW),
+    )
+    .read_from(2026),
     state(
         "American Family Day",
         Rule::nth(8, 1, Weekday::Sunday),
-        2026,
         US_AZ,
         US_AZ_LAW,
-    ),
-    earlier_years_unread("American Family Day", None, 2026, US_AZ, US_AZ_LAW),
+    )
+    .read_from(2026),
     state(
         "Constitution Commemoration Day",
         Rule::WeekdayOnOrBefore {
@@ -421,357 +386,249 @@ static US_RULES: &[HolidayRule] = &[
             day: 17,
             weekday: Weekday::Sunday,
         },
-        2026,
         US_AZ,
         US_AZ_LAW,
-    ),
-    earlier_years_unread(
-        "Constitution Commemoration Day",
-        None,
-        2026,
-        US_AZ,
-        US_AZ_LAW,
-    ),
+    )
+    .read_from(2026),
     // California.
-    state(
-        "Farmworkers Day",
-        Rule::gregorian(3, 31),
-        2026,
-        US_CA,
-        US_CA_LAW,
-    ),
-    earlier_years_unread("Farmworkers Day", None, 2026, US_CA, US_CA_LAW),
-    state_observance(
-        "Lincoln Day",
-        Rule::gregorian(2, 12),
-        2026,
-        US_CA,
-        US_CA_LAW,
-    ),
-    earlier_years_unread("Lincoln Day", None, 2026, US_CA, US_CA_LAW),
+    state("Farmworkers Day", Rule::gregorian(3, 31), US_CA, US_CA_LAW).read_from(2026),
+    state_observance("Lincoln Day", Rule::gregorian(2, 12), US_CA, US_CA_LAW).read_from(2026),
     state_observance(
         "Genocide Remembrance Day",
         Rule::gregorian(4, 24),
-        2023,
         US_CA,
         US_CA_LAW,
-    ),
-    state_observance(
-        "Admission Day",
-        Rule::gregorian(9, 9),
-        2026,
-        US_CA,
-        US_CA_LAW,
-    ),
-    earlier_years_unread("Admission Day", None, 2026, US_CA, US_CA_LAW),
+    )
+    .years(Some(2023), None),
+    state_observance("Admission Day", Rule::gregorian(9, 9), US_CA, US_CA_LAW).read_from(2026),
     state_observance(
         "Native American Day",
         Rule::nth(9, 4, Weekday::Friday),
-        1999,
         US_CA,
         US_CA_LAW,
-    ),
-    earlier_years_unread("Native American Day", None, 1999, US_CA, US_CA_LAW),
+    )
+    .read_from(1999),
     state(
         "Day after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2026,
         US_CA,
         US_CA_LAW,
-    ),
-    earlier_years_unread("Day after Thanksgiving", None, 2026, US_CA, US_CA_LAW),
+    )
+    .read_from(2026),
+    // § 6700(a)(19): "Good Friday from 12 noon until 3 p.m.", a holiday for
+    // part of the day.
+    state_observance(
+        "Good Friday, from noon until 3 p.m.",
+        Rule::easter(GOOD_FRIDAY),
+        US_CA,
+        US_CA_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2026),
     // Colorado.
     state(
         "Frances Xavier Cabrini Day",
         Rule::nth(10, 1, Weekday::Monday),
-        2020,
         US_CO,
         US_CO_LAW,
-    ),
+    )
+    .years(Some(2020), None),
     // Connecticut.
-    state(
-        "Lincoln Day",
-        Rule::gregorian(2, 12),
-        2026,
-        US_CT,
-        US_CT_LAW,
-    ),
-    earlier_years_unread("Lincoln Day", None, 2026, US_CT, US_CT_LAW),
+    state("Lincoln Day", Rule::gregorian(2, 12), US_CT, US_CT_LAW).read_from(2026),
     // The District of Columbia.
     state(
         "District of Columbia Emancipation Day",
         Rule::gregorian(4, 16),
-        2005,
         US_DC,
         US_DC_LAW,
-    ),
+    )
+    .years(Some(2005), None),
     // Delaware.
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_DE,
-        US_DE_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_DE, US_DE_LAW),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_DE, US_DE_LAW).read_from(2026),
     state(
         "Friday after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2026,
         US_DE,
         US_DE_LAW,
-    ),
-    earlier_years_unread("Friday after Thanksgiving", None, 2026, US_DE, US_DE_LAW),
+    )
+    .read_from(2026),
     state(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2026,
         US_DE,
         US_DE_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2026, US_DE, US_DE_LAW),
+    )
+    .read_from(2026),
     // Florida.
     state_observance(
         "Birthday of Martin Luther King, Jr.",
         Rule::gregorian(1, 15),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread(
-        "Birthday of Martin Luther King, Jr.",
-        None,
-        2026,
-        US_FL,
-        US_FL_LAW,
-    ),
+    )
+    .read_from(2026),
     state_observance(
         "Birthday of Robert E. Lee",
         Rule::gregorian(1, 19),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Birthday of Robert E. Lee", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
     state_observance(
         "Susan B. Anthony's Birthday",
         Rule::gregorian(2, 15),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Susan B. Anthony's Birthday", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
     state_observance(
         "Tuskegee Airmen Commemoration Day",
         Rule::nth(3, 4, Weekday::Thursday),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread(
-        "Tuskegee Airmen Commemoration Day",
-        None,
-        2026,
-        US_FL,
-        US_FL_LAW,
-    ),
-    state_observance(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_FL,
-        US_FL_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
+    state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_FL, US_FL_LAW).read_from(2026),
     state_observance(
         "Pascua Florida Day",
         Rule::gregorian(4, 2),
-        1953,
         US_FL,
         US_FL_LAW,
-    ),
+    )
+    .years(Some(1953), None),
     state_observance(
         "Confederate Memorial Day",
         Rule::gregorian(4, 26),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Confederate Memorial Day", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
     state_observance(
         "Birthday of Jefferson Davis",
         Rule::gregorian(6, 3),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Birthday of Jefferson Davis", None, 2026, US_FL, US_FL_LAW),
-    state_observance("Flag Day", Rule::gregorian(6, 14), 2026, US_FL, US_FL_LAW),
-    earlier_years_unread("Flag Day", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
+    state_observance("Flag Day", Rule::gregorian(6, 14), US_FL, US_FL_LAW).read_from(2026),
     state_observance(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2026,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2026, US_FL, US_FL_LAW),
+    )
+    .read_from(2026),
     state(
         "Friday after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2022,
         US_FL,
         US_FL_LAW,
-    ),
-    earlier_years_unread("Friday after Thanksgiving", None, 2022, US_FL, US_FL_LAW),
+    )
+    .read_from(2022),
     // Hawaii.
     state(
         "Prince Jonah Kuhio Kalanianaole Day",
         Rule::gregorian(3, 26),
-        2001,
         US_HI,
         US_HI_LAW,
-    ),
-    earlier_years_unread(
-        "Prince Jonah Kuhio Kalanianaole Day",
-        None,
-        2001,
-        US_HI,
-        US_HI_LAW,
-    ),
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2001,
-        US_HI,
-        US_HI_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2001, US_HI, US_HI_LAW),
+    )
+    .read_from(2001),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_HI, US_HI_LAW).read_from(2001),
     state(
         "King Kamehameha I Day",
         Rule::gregorian(6, 11),
-        2001,
         US_HI,
         US_HI_LAW,
-    ),
-    earlier_years_unread("King Kamehameha I Day", None, 2001, US_HI, US_HI_LAW),
+    )
+    .read_from(2001),
     state(
         "Statehood Day",
         Rule::nth(8, 3, Weekday::Friday),
-        2001,
         US_HI,
         US_HI_LAW,
-    ),
-    earlier_years_unread("Statehood Day", None, 2001, US_HI, US_HI_LAW),
+    )
+    .read_from(2001),
     state(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2001,
         US_HI,
         US_HI_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2001, US_HI, US_HI_LAW),
+    )
+    .read_from(2001),
     // Iowa.
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        1993,
         US_IA,
         US_IA_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 1993, US_IA, US_IA_LAW),
+    )
+    .read_from(1993),
     state(
         "Friday after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2008,
         US_IA,
         US_IA_LAW,
-    ),
-    earlier_years_unread("Friday after Thanksgiving", None, 2008, US_IA, US_IA_LAW),
+    )
+    .read_from(2008),
     // Idaho.
     state_observance(
         "Constitutional Commemorative Day",
         Rule::gregorian(9, 17),
-        1989,
         US_ID,
         US_ID_LAW,
-    ),
-    state_observance(
-        "Children's Day",
-        Rule::gregorian(4, 30),
-        2003,
-        US_ID,
-        US_ID_LAW,
-    ),
-    state_observance("Idaho Day", Rule::gregorian(3, 4), 2014, US_ID, US_ID_LAW),
+    )
+    .years(Some(1989), None),
+    state_observance("Children's Day", Rule::gregorian(4, 30), US_ID, US_ID_LAW)
+        .years(Some(2003), None),
+    state_observance("Idaho Day", Rule::gregorian(3, 4), US_ID, US_ID_LAW).years(Some(2014), None),
     // Illinois.
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2022,
         US_IL,
         US_IL_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2022, US_IL, US_IL_LAW),
+    )
+    .read_from(2022),
     state_observance(
         "Casimir Pulaski's Birthday",
         Rule::nth(3, 1, Weekday::Monday),
-        2022,
         US_IL,
         US_IL_LAW,
-    ),
-    earlier_years_unread("Casimir Pulaski's Birthday", None, 2022, US_IL, US_IL_LAW),
-    state_observance(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2022,
-        US_IL,
-        US_IL_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2022, US_IL, US_IL_LAW),
+    )
+    .read_from(2022),
+    state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_IL, US_IL_LAW).read_from(2022),
     state_observance(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2022,
         US_IL,
         US_IL_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2022, US_IL, US_IL_LAW),
+    )
+    .read_from(2022),
     // Indiana.
     state(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2026,
         US_IN,
         US_IN_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2026, US_IN, US_IN_LAW),
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_IN,
-        US_IN_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_IN, US_IN_LAW),
-    state("Election Day", ELECTION_DAY, 2026, US_IN, US_IN_LAW),
-    earlier_years_unread("Election Day", None, 2026, US_IN, US_IN_LAW),
+    )
+    .read_from(2026),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_IN, US_IN_LAW).read_from(2026),
+    state("Election Day", ELECTION_DAY, US_IN, US_IN_LAW).read_from(2026),
     // Kansas.
     state_observance(
         "General Pulaski's Memorial Day",
         Rule::gregorian(10, 11),
-        1935,
         US_KS,
         US_KS_LAW,
-    ),
+    )
+    .years(Some(1935), None),
     state_observance(
         "Family Day",
         Rule::WeekdayOnOrAfter {
@@ -779,765 +636,520 @@ static US_RULES: &[HolidayRule] = &[
             day: 25,
             weekday: Weekday::Sunday,
         },
-        1971,
         US_KS,
         US_KS_LAW,
-    ),
+    )
+    .years(Some(1971), None),
     state_observance(
         "Pearl Harbor Remembrance Day",
         Rule::gregorian(12, 7),
-        1988,
         US_KS,
         US_KS_LAW,
-    ),
+    )
+    .years(Some(1988), None),
     state_observance(
         "Dwight D. Eisenhower Day",
         Rule::gregorian(10, 14),
-        1999,
         US_KS,
         US_KS_LAW,
-    ),
+    )
+    .years(Some(1999), None),
     state_observance(
         "Native American Day",
         Rule::nth(9, 4, Weekday::Saturday),
-        2013,
         US_KS,
         US_KS_LAW,
-    ),
-    earlier_years_unread("Native American Day", Some(1945), 2013, US_KS, US_KS_LAW),
+    )
+    .years(Some(1945), None)
+    .read_from(2013),
     state_observance(
         "National Day of the Cowboy",
         Rule::nth(7, 4, Weekday::Saturday),
-        2014,
         US_KS,
         US_KS_LAW,
-    ),
+    )
+    .years(Some(2014), None),
     // Kentucky.
     state_observance(
         "Robert E. Lee Day",
         Rule::gregorian(1, 19),
-        2025,
         US_KY,
         US_KY_LAW,
-    ),
-    earlier_years_unread("Robert E. Lee Day", None, 2025, US_KY, US_KY_LAW),
+    )
+    .read_from(2025),
     state_observance(
         "Franklin D. Roosevelt Day",
         Rule::gregorian(1, 30),
-        2025,
         US_KY,
         US_KY_LAW,
-    ),
-    earlier_years_unread("Franklin D. Roosevelt Day", None, 2025, US_KY, US_KY_LAW),
+    )
+    .read_from(2025),
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2025,
         US_KY,
         US_KY_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2025, US_KY, US_KY_LAW),
+    )
+    .read_from(2025),
     state_observance(
         "Confederate Memorial Day and Jefferson Davis Day",
         Rule::gregorian(6, 3),
-        2025,
         US_KY,
         US_KY_LAW,
-    ),
-    earlier_years_unread(
-        "Confederate Memorial Day and Jefferson Davis Day",
-        None,
-        2025,
-        US_KY,
-        US_KY_LAW,
-    ),
+    )
+    .read_from(2025),
     state(
         "Presidential Election Day",
         Rule::Computed(presidential_election_day),
-        2025,
         US_KY,
         US_KY_LAW,
-    ),
-    earlier_years_unread("Presidential Election Day", None, 2025, US_KY, US_KY_LAW),
+    )
+    .read_from(2025),
     // Louisiana.
     state_observance(
         "Battle of New Orleans",
         Rule::gregorian(1, 8),
-        2026,
         US_LA,
         US_LA_LAW,
-    ),
-    earlier_years_unread("Battle of New Orleans", None, 2026, US_LA, US_LA_LAW),
-    state(
-        "Mardi Gras",
-        Rule::easter(SHROVE_TUESDAY),
-        2026,
-        US_LA,
-        US_LA_LAW,
-    ),
-    earlier_years_unread("Mardi Gras", None, 2026, US_LA, US_LA_LAW),
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_LA,
-        US_LA_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_LA, US_LA_LAW),
-    state_observance(
-        "Huey P. Long Day",
-        Rule::gregorian(8, 30),
-        2026,
-        US_LA,
-        US_LA_LAW,
-    ),
-    earlier_years_unread("Huey P. Long Day", None, 2026, US_LA, US_LA_LAW),
-    state_observance(
-        "All Saints' Day",
-        Rule::gregorian(11, 1),
-        2026,
-        US_LA,
-        US_LA_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", None, 2026, US_LA, US_LA_LAW),
+    )
+    .read_from(2026),
+    state("Mardi Gras", Rule::easter(SHROVE_TUESDAY), US_LA, US_LA_LAW).read_from(2026),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_LA, US_LA_LAW).read_from(2026),
+    state_observance("Huey P. Long Day", Rule::gregorian(8, 30), US_LA, US_LA_LAW).read_from(2026),
+    state_observance("All Saints' Day", Rule::gregorian(11, 1), US_LA, US_LA_LAW).read_from(2026),
     // Massachusetts.
     state(
         "Patriots' Day",
         Rule::nth(4, 3, Weekday::Monday),
-        2025,
         US_MA,
         US_MA_LAW,
-    ),
-    earlier_years_unread("Patriots' Day", None, 2025, US_MA, US_MA_LAW),
+    )
+    .read_from(2025),
     // Maryland.
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2026,
         US_MD,
         US_MD_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2026, US_MD, US_MD_LAW),
-    state_observance(
-        "Maryland Day",
-        Rule::gregorian(3, 25),
-        2026,
-        US_MD,
-        US_MD_LAW,
-    ),
-    earlier_years_unread("Maryland Day", None, 2026, US_MD, US_MD_LAW),
-    state_observance(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_MD,
-        US_MD_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_MD, US_MD_LAW),
-    state_observance(
-        "Defenders' Day",
-        Rule::gregorian(9, 12),
-        2026,
-        US_MD,
-        US_MD_LAW,
-    ),
-    earlier_years_unread("Defenders' Day", None, 2026, US_MD, US_MD_LAW),
+    )
+    .read_from(2026),
+    state_observance("Maryland Day", Rule::gregorian(3, 25), US_MD, US_MD_LAW).read_from(2026),
+    state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_MD, US_MD_LAW).read_from(2026),
+    state_observance("Defenders' Day", Rule::gregorian(9, 12), US_MD, US_MD_LAW).read_from(2026),
     state(
         "American Indian Heritage Day",
         FRIDAY_AFTER_THANKSGIVING,
-        2026,
         US_MD,
         US_MD_LAW,
-    ),
-    earlier_years_unread("American Indian Heritage Day", None, 2026, US_MD, US_MD_LAW),
+    )
+    .read_from(2026),
     state(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2026,
         US_MD,
         US_MD_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2026, US_MD, US_MD_LAW),
+    )
+    .read_from(2026),
     // Maine.
     state(
         "Patriot's Day",
         Rule::nth(4, 3, Weekday::Monday),
-        2026,
         US_ME,
         US_ME_LAW,
-    ),
-    earlier_years_unread("Patriot's Day", None, 2026, US_ME, US_ME_LAW),
+    )
+    .read_from(2026),
     // Michigan.
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2025,
         US_MI,
         US_MI_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2025, US_MI, US_MI_LAW),
+    )
+    .read_from(2025),
     // Minnesota.
     state(
         "Friday after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2025,
         US_MN,
         US_MN_LAW,
-    ),
-    earlier_years_unread("Friday after Thanksgiving", None, 2025, US_MN, US_MN_LAW),
+    )
+    .read_from(2025),
     // Missouri.
-    state(
-        "Lincoln Day",
-        Rule::gregorian(2, 12),
-        2022,
-        US_MO,
-        US_MO_LAW,
-    ),
-    earlier_years_unread("Lincoln Day", None, 2022, US_MO, US_MO_LAW),
-    state("Truman Day", Rule::gregorian(5, 8), 2022, US_MO, US_MO_LAW),
-    earlier_years_unread("Truman Day", None, 2022, US_MO, US_MO_LAW),
+    state("Lincoln Day", Rule::gregorian(2, 12), US_MO, US_MO_LAW).read_from(2022),
+    state("Truman Day", Rule::gregorian(5, 8), US_MO, US_MO_LAW).read_from(2022),
     // Mississippi.
     state(
         "Confederate Memorial Day",
         Rule::last(4, Weekday::Monday),
-        2025,
         US_MS,
         US_MS_LAW,
-    ),
-    earlier_years_unread("Confederate Memorial Day", None, 2025, US_MS, US_MS_LAW),
+    )
+    .read_from(2025),
     // Montana.
     state(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2025,
         US_MT,
         US_MT_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2025, US_MT, US_MT_LAW),
+    )
+    .read_from(2025),
     // North Carolina.
     state_observance(
         "Robert E. Lee's Birthday",
         Rule::gregorian(1, 19),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("Robert E. Lee's Birthday", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     state_observance(
         "Greek Independence Day",
         Rule::gregorian(3, 25),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("Greek Independence Day", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     state_observance(
         "Anniversary of the Halifax Resolves",
         Rule::gregorian(4, 12),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread(
-        "Anniversary of the Halifax Resolves",
-        None,
-        2023,
-        US_NC,
-        US_NC_LAW,
-    ),
+    )
+    .read_from(2023),
     state_observance(
         "Confederate Memorial Day",
         Rule::gregorian(5, 10),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("Confederate Memorial Day", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     state_observance(
         "Anniversary of the Mecklenburg Declaration of Independence",
         Rule::gregorian(5, 20),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread(
-        "Anniversary of the Mecklenburg Declaration of Independence",
-        None,
-        2023,
-        US_NC,
-        US_NC_LAW,
-    ),
-    state_observance(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2023,
-        US_NC,
-        US_NC_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
+    state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_NC, US_NC_LAW).read_from(2023),
     state_observance(
         "First Responders Day",
         Rule::gregorian(9, 11),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("First Responders Day", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     state_observance(
         "Yom Kippur",
         Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("Yom Kippur", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     state_observance(
         "Election Day",
         Rule::Computed(even_year_election_day),
-        2023,
         US_NC,
         US_NC_LAW,
-    ),
-    earlier_years_unread("Election Day", None, 2023, US_NC, US_NC_LAW),
+    )
+    .read_from(2023),
     // North Dakota.
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2024,
-        US_ND,
-        US_ND_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2024, US_ND, US_ND_LAW),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_ND, US_ND_LAW).read_from(2024),
     // Nebraska.
     state(
         "Arbor Day",
         Rule::last(4, Weekday::Friday),
-        2024,
         US_NE,
         US_NE_LAW,
-    ),
-    earlier_years_unread("Arbor Day", None, 2024, US_NE, US_NE_LAW),
+    )
+    .read_from(2024),
     state(
         "Day after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2024,
         US_NE,
         US_NE_LAW,
-    ),
-    earlier_years_unread("Day after Thanksgiving", None, 2024, US_NE, US_NE_LAW),
+    )
+    .read_from(2024),
     // New Jersey.
     state_observance(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2024,
         US_NJ,
         US_NJ_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2024, US_NJ, US_NJ_LAW),
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2024,
-        US_NJ,
-        US_NJ_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2024, US_NJ, US_NJ_LAW),
+    )
+    .read_from(2024),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_NJ, US_NJ_LAW).read_from(2024),
     state(
         "Juneteenth Day",
         Rule::nth(6, 3, Weekday::Friday),
-        2024,
         US_NJ,
         US_NJ_LAW,
-    ),
-    earlier_years_unread("Juneteenth Day", None, 2024, US_NJ, US_NJ_LAW),
-    state("General Election Day", ELECTION_DAY, 2024, US_NJ, US_NJ_LAW),
-    earlier_years_unread("General Election Day", None, 2024, US_NJ, US_NJ_LAW),
+    )
+    .read_from(2024),
+    state("General Election Day", ELECTION_DAY, US_NJ, US_NJ_LAW).read_from(2024),
     // New Mexico.
     state_observance(
         "American Indian Day",
         Rule::nth(2, 1, Weekday::Friday),
-        2024,
         US_NM,
         US_NM_LAW,
-    ),
-    earlier_years_unread("American Indian Day", None, 2024, US_NM, US_NM_LAW),
+    )
+    .read_from(2024),
     state_observance(
         "Guadalupe Hidalgo Treaty Day",
         Rule::gregorian(2, 2),
-        2024,
         US_NM,
         US_NM_LAW,
-    ),
-    earlier_years_unread("Guadalupe Hidalgo Treaty Day", None, 2024, US_NM, US_NM_LAW),
+    )
+    .read_from(2024),
     state_observance(
         "African-American Day",
         Rule::nth(2, 2, Weekday::Friday),
-        2024,
         US_NM,
         US_NM_LAW,
-    ),
-    earlier_years_unread("African-American Day", None, 2024, US_NM, US_NM_LAW),
+    )
+    .read_from(2024),
     state_observance(
         "Arbor Day",
         Rule::nth(3, 2, Weekday::Friday),
-        2024,
         US_NM,
         US_NM_LAW,
-    ),
-    earlier_years_unread("Arbor Day", None, 2024, US_NM, US_NM_LAW),
-    state_observance("Bataan Day", Rule::gregorian(4, 9), 2024, US_NM, US_NM_LAW),
-    earlier_years_unread("Bataan Day", None, 2024, US_NM, US_NM_LAW),
-    state_observance(
-        "Ernie Pyle Day",
-        Rule::gregorian(8, 3),
-        2024,
-        US_NM,
-        US_NM_LAW,
-    ),
-    earlier_years_unread("Ernie Pyle Day", None, 2024, US_NM, US_NM_LAW),
+    )
+    .read_from(2024),
+    state_observance("Bataan Day", Rule::gregorian(4, 9), US_NM, US_NM_LAW).read_from(2024),
+    state_observance("Ernie Pyle Day", Rule::gregorian(8, 3), US_NM, US_NM_LAW).read_from(2024),
     // Nevada.
     state(
         "Nevada Day",
         Rule::last(10, Weekday::Friday),
-        2025,
         US_NV,
         US_NV_LAW,
-    ),
-    earlier_years_unread("Nevada Day", None, 2025, US_NV, US_NV_LAW),
-    state(
-        "Family Day",
-        FRIDAY_AFTER_THANKSGIVING,
-        2025,
-        US_NV,
-        US_NV_LAW,
-    ),
-    earlier_years_unread("Family Day", None, 2025, US_NV, US_NV_LAW),
+    )
+    .read_from(2025),
+    state("Family Day", FRIDAY_AFTER_THANKSGIVING, US_NV, US_NV_LAW).read_from(2025),
     // New York.
     state(
         "Lincoln's Birthday",
         Rule::gregorian(2, 12),
-        2020,
         US_NY,
         US_NY_LAW,
-    ),
-    earlier_years_unread("Lincoln's Birthday", None, 2020, US_NY, US_NY_LAW),
+    )
+    .read_from(2020),
     state(
         "Flag Day",
         Rule::nth(6, 2, Weekday::Sunday),
-        2020,
         US_NY,
         US_NY_LAW,
-    ),
-    earlier_years_unread("Flag Day", None, 2020, US_NY, US_NY_LAW),
-    state("General Election Day", ELECTION_DAY, 2020, US_NY, US_NY_LAW),
-    earlier_years_unread("General Election Day", None, 2020, US_NY, US_NY_LAW),
+    )
+    .read_from(2020),
+    state("General Election Day", ELECTION_DAY, US_NY, US_NY_LAW).read_from(2020),
     // Oregon.
     state_observance(
         "Oregon Statehood Day",
         Rule::gregorian(2, 14),
-        2015,
         US_OR,
         US_OR_LAW,
-    ),
+    )
+    .years(Some(2015), None),
     // Pennsylvania.
-    state_observance(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2026,
-        US_PA,
-        US_PA_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2026, US_PA, US_PA_LAW),
-    state_observance("Flag Day", Rule::gregorian(6, 14), 2026, US_PA, US_PA_LAW),
-    earlier_years_unread("Flag Day", None, 2026, US_PA, US_PA_LAW),
-    state_observance("Election Day", ELECTION_DAY, 2026, US_PA, US_PA_LAW),
-    earlier_years_unread("Election Day", None, 2026, US_PA, US_PA_LAW),
+    state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_PA, US_PA_LAW).read_from(2026),
+    state_observance("Flag Day", Rule::gregorian(6, 14), US_PA, US_PA_LAW).read_from(2026),
+    state_observance("Election Day", ELECTION_DAY, US_PA, US_PA_LAW).read_from(2026),
     // Rhode Island.
     state(
         "Rhode Island Independence Day",
         Rule::gregorian(5, 4),
-        2026,
         US_RI,
         US_RI_LAW,
-    ),
-    earlier_years_unread(
-        "Rhode Island Independence Day",
-        None,
-        2026,
-        US_RI,
-        US_RI_LAW,
-    ),
+    )
+    .read_from(2026),
     state(
         "Victory Day",
         Rule::nth(8, 2, Weekday::Monday),
-        2026,
         US_RI,
         US_RI_LAW,
-    ),
-    earlier_years_unread("Victory Day", None, 2026, US_RI, US_RI_LAW),
+    )
+    .read_from(2026),
     state(
         "Election Day",
         Rule::Computed(even_year_election_day),
-        2026,
         US_RI,
         US_RI_LAW,
-    ),
-    earlier_years_unread("Election Day", None, 2026, US_RI, US_RI_LAW),
+    )
+    .read_from(2026),
     // South Carolina.
     state(
         "Confederate Memorial Day",
         Rule::gregorian(5, 10),
-        2010,
         US_SC,
         US_SC_LAW,
-    ),
-    earlier_years_unread("Confederate Memorial Day", None, 2010, US_SC, US_SC_LAW),
+    )
+    .read_from(2010),
     state(
         "Day after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2009,
         US_SC,
         US_SC_LAW,
-    ),
-    earlier_years_unread("Day after Thanksgiving", None, 2009, US_SC, US_SC_LAW),
-    state(
-        "Christmas Eve",
-        Rule::gregorian(12, 24),
-        2009,
-        US_SC,
-        US_SC_LAW,
-    ),
-    earlier_years_unread("Christmas Eve", None, 2009, US_SC, US_SC_LAW),
-    state(
-        "26 December",
-        Rule::gregorian(12, 26),
-        2009,
-        US_SC,
-        US_SC_LAW,
-    ),
-    earlier_years_unread("26 December", None, 2009, US_SC, US_SC_LAW),
+    )
+    .read_from(2009),
+    state("Christmas Eve", Rule::gregorian(12, 24), US_SC, US_SC_LAW).read_from(2009),
+    state("26 December", Rule::gregorian(12, 26), US_SC, US_SC_LAW).read_from(2009),
     // South Dakota.
     state_observance(
         "South Dakota Statehood Day",
         Rule::gregorian(11, 2),
-        2001,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2001), None),
     state_observance(
         "Little Big Horn Recognition Day",
         Rule::gregorian(6, 25),
-        1994,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(1994), None),
     state_observance(
         "Wounded Knee Day",
         Rule::gregorian(12, 29),
-        1994,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(1994), None),
     state_observance(
         "Bill of Rights Day",
         Rule::gregorian(12, 15),
-        1998,
         US_SD,
         US_SD_LAW,
-    ),
-    state_observance(
-        "Joe Foss Day",
-        Rule::gregorian(4, 17),
-        2004,
-        US_SD,
-        US_SD_LAW,
-    ),
+    )
+    .years(Some(1998), None),
+    state_observance("Joe Foss Day", Rule::gregorian(4, 17), US_SD, US_SD_LAW)
+        .years(Some(2004), None),
     state_observance(
         "Purple Heart Recognition Day",
         Rule::gregorian(8, 7),
-        2013,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2013), None),
     state_observance(
         "Welcome Home Vietnam Veterans Day",
         Rule::gregorian(3, 30),
-        2013,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2013), None),
     state_observance(
         "Day of the American Cowboy",
         Rule::nth(7, 4, Weekday::Saturday),
-        2014,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2014), None),
     state_observance(
         "Peter Norbeck Day",
         Rule::gregorian(8, 27),
-        2018,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2018), None),
     state_observance(
         "Medal of Honor Recognition Day",
         Rule::gregorian(3, 25),
-        2024,
         US_SD,
         US_SD_LAW,
-    ),
+    )
+    .years(Some(2024), None),
     // Tennessee.
-    state(
-        "Good Friday",
-        Rule::easter(GOOD_FRIDAY),
-        2024,
-        US_TN,
-        US_TN_LAW,
-    ),
-    earlier_years_unread("Good Friday", None, 2024, US_TN, US_TN_LAW),
+    state("Good Friday", Rule::easter(GOOD_FRIDAY), US_TN, US_TN_LAW).read_from(2024),
     // Texas.
     state(
         "Confederate Heroes Day",
         Rule::gregorian(1, 19),
-        2025,
         US_TX,
         US_TX_LAW,
-    ),
-    earlier_years_unread("Confederate Heroes Day", None, 2025, US_TX, US_TX_LAW),
+    )
+    .read_from(2025),
     state(
         "Texas Independence Day",
         Rule::gregorian(3, 2),
-        2025,
         US_TX,
         US_TX_LAW,
-    ),
-    earlier_years_unread("Texas Independence Day", None, 2025, US_TX, US_TX_LAW),
-    state(
-        "San Jacinto Day",
-        Rule::gregorian(4, 21),
-        2025,
-        US_TX,
-        US_TX_LAW,
-    ),
-    earlier_years_unread("San Jacinto Day", None, 2025, US_TX, US_TX_LAW),
+    )
+    .read_from(2025),
+    state("San Jacinto Day", Rule::gregorian(4, 21), US_TX, US_TX_LAW).read_from(2025),
     state(
         "Lyndon Baines Johnson Day",
         Rule::gregorian(8, 27),
-        2025,
         US_TX,
         US_TX_LAW,
-    ),
-    earlier_years_unread("Lyndon Baines Johnson Day", None, 2025, US_TX, US_TX_LAW),
+    )
+    .read_from(2025),
     state(
         "Friday after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2025,
         US_TX,
         US_TX_LAW,
-    ),
-    earlier_years_unread("Friday after Thanksgiving", None, 2025, US_TX, US_TX_LAW),
-    state(
-        "24 December",
-        Rule::gregorian(12, 24),
-        2025,
-        US_TX,
-        US_TX_LAW,
-    ),
-    earlier_years_unread("24 December", None, 2025, US_TX, US_TX_LAW),
-    state(
-        "26 December",
-        Rule::gregorian(12, 26),
-        2025,
-        US_TX,
-        US_TX_LAW,
-    ),
-    earlier_years_unread("26 December", None, 2025, US_TX, US_TX_LAW),
+    )
+    .read_from(2025),
+    state("24 December", Rule::gregorian(12, 24), US_TX, US_TX_LAW).read_from(2025),
+    state("26 December", Rule::gregorian(12, 26), US_TX, US_TX_LAW).read_from(2025),
     // Utah.
-    state(
-        "Pioneer Day",
-        Rule::gregorian(7, 24),
-        2025,
-        US_UT,
-        US_UT_LAW,
-    ),
-    earlier_years_unread("Pioneer Day", None, 2025, US_UT, US_UT_LAW),
+    state("Pioneer Day", Rule::gregorian(7, 24), US_UT, US_UT_LAW).read_from(2025),
     state(
         "Juneteenth National Freedom Day",
         Rule::moved_by_weekday(&JUNE_19, TO_PRECEDING_OR_NEXT_MONDAY),
-        2025,
         US_UT,
         US_UT_LAW,
-    ),
-    earlier_years_unread(
-        "Juneteenth National Freedom Day",
-        None,
-        2025,
-        US_UT,
-        US_UT_LAW,
-    ),
+    )
+    .read_from(2025),
     // Virginia.
-    state("Election Day", ELECTION_DAY, 2020, US_VA, US_VA_LAW),
+    state("Election Day", ELECTION_DAY, US_VA, US_VA_LAW).years(Some(2020), None),
     state(
         "Day after Thanksgiving",
         FRIDAY_AFTER_THANKSGIVING,
-        2020,
         US_VA,
         US_VA_LAW,
-    ),
-    earlier_years_unread("Day after Thanksgiving", None, 2020, US_VA, US_VA_LAW),
+    )
+    .read_from(2020),
     // Vermont.
     state(
         "Town Meeting Day",
         Rule::nth(3, 1, Weekday::Tuesday),
-        2024,
         US_VT,
         US_VT_LAW,
-    ),
-    earlier_years_unread("Town Meeting Day", None, 2024, US_VT, US_VT_LAW),
+    )
+    .read_from(2024),
     state(
         "Bennington Battle Day",
         Rule::gregorian(8, 16),
-        2024,
         US_VT,
         US_VT_LAW,
-    ),
-    earlier_years_unread("Bennington Battle Day", None, 2024, US_VT, US_VT_LAW),
+    )
+    .read_from(2024),
     // Washington.
     state(
         "Native American Heritage Day",
         FRIDAY_AFTER_THANKSGIVING,
-        2014,
         US_WA,
         US_WA_LAW,
-    ),
-    earlier_years_unread("Native American Heritage Day", None, 2014, US_WA, US_WA_LAW),
+    )
+    .read_from(2014),
     // Wisconsin.
     state(
         "General Election Day",
         Rule::Computed(even_year_election_day),
-        2025,
         US_WI,
         US_WI_LAW,
-    ),
-    earlier_years_unread("General Election Day", None, 2025, US_WI, US_WI_LAW),
+    )
+    .read_from(2025),
     // West Virginia.
     state(
         "West Virginia Day",
         Rule::gregorian(6, 20),
-        2026,
         US_WV,
         US_WV_LAW,
-    ),
-    earlier_years_unread("West Virginia Day", None, 2026, US_WV, US_WV_LAW),
-    state(
-        "Lincoln's Day",
-        FRIDAY_AFTER_THANKSGIVING,
-        2026,
-        US_WV,
-        US_WV_LAW,
-    ),
-    earlier_years_unread("Lincoln's Day", None, 2026, US_WV, US_WV_LAW),
+    )
+    .read_from(2026),
+    state("Lincoln's Day", FRIDAY_AFTER_THANKSGIVING, US_WV, US_WV_LAW).read_from(2026),
 ];
 
 /// A day an executive order closed the executive departments and excused
@@ -1588,4 +1200,5 @@ pub static UNITED_STATES: RuleSet = RuleSet {
               closures, are not carried. The states' own days from their codes, each cited on \
               its entries, read 2026-09-29, as docs/systems/us-state-holidays.md lists them; \
               New Hampshire's, Oklahoma's and Georgia's not carried",
+    subdivisions: Subdivisions::Read(&["US-WY"]),
 };

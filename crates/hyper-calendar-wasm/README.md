@@ -114,12 +114,12 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_parse_date` | no `i64` input: every text, a text that is not one day saying so in its line; a calendar the registry does not carry is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_asian_day` | `fixed` 1 360 (23 September AD 4) through 3 652 398, the last day of the Asian year 9999; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries for writes nothing |
+| a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes nothing |
 | a byte length | `hc_holidays_on`, `hc_common_worship_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERR_NO_DATA` |
 | a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_lectionary` | `fixed` 577 780 through 1 497 096, the liturgical years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_lectionary` | `fixed` 719 163 through 1 497 096, 1 January 1970, when the Roman calendar of 1969 went into effect, to the liturgical year 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
 | a byte length | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -468,7 +468,7 @@ one job a layer.
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 120,941 | 118 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 110,654 | 108 KiB |
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,312,396 | 1.25 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,857,650 | 1.77 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,986,915 | 1.89 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,399 | 89 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 98,914 | 97 KiB |
@@ -477,7 +477,7 @@ one job a layer.
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,732 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,910,708 | 2.78 MiB |
-| `full` | all of the above | everything | 6,494,635 | 6.19 MiB |
+| `full` | all of the above | everything | 6,623,900 | 6.32 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -2180,12 +2180,18 @@ group — and, called with a null buffer, returns the length the text needs
 so the caller can allocate exactly. The region is the subdivision whose own entry the
 line is: asked for `JP` in the region `JP-13`, the lines are Japan's
 nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
-region matches in either case, and one the table scopes no rule to gives
-the nationwide days. The group is the group of people whose own entry the
+region matches in either case, and one the table's sources were not read
+for gives the nationwide days and a gap line for its own. The group is the group of people whose own entry the
 line is, in the same way: asked for `CN` for the group `women`, the lines
 are China's days for everyone and the half day of 8 March, and only that
 line carries `women`. A kind is `public`, `bank`, `religious`,
-`observance`, `school`, `workday`, `government` or `half-day`.
+`observance`, `school`, `workday`, `government` or `half-day`. After the
+entries come the year's gaps, as `hc_holidays_on` writes them: an empty
+date and confidence, the kind `gap`, and the region and group whose own
+gap it is — a holiday whose calendar's range ended, whose announcement was
+not read, whose sources were not read for the year, or the days of a
+subdivision not read. `CN` for `women` in 1998, before the statute's text
+read, is everyone's days and a gap line for the half day of 8 March.
 
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
@@ -2380,8 +2386,10 @@ readings. Every cycle turns at the First Sunday of Advent, and a liturgical
 year is named by the civil year of its Easter, so the year that began on
 30 November 2025 is 2026, Year A of the Sunday cycle and Year II of the
 weekdays, and Christ the King, 22 November 2026, is Proper 29 and the
-34th Sunday in Ordinary Time. A day
-outside the liturgical years 1583 to 4099 is `HC_ERR_OUT_OF_RANGE`.
+34th Sunday in Ordinary Time. A day before 1 January 1970, when
+*Mysterii Paschalis* put the Roman calendar of 1969 and its cycles into
+effect, or after the liturgical year 4099, is `HC_ERR_OUT_OF_RANGE`; the
+RCL's Proper is empty before Advent 1992.
 
 | # | Column | Holds |
 | --- | --- | --- |

@@ -21,7 +21,8 @@ use crate::computus::offsets::{
 use crate::hindu::{DIWALI, GANESH_CHATURTHI, MAHA_SHIVARATRI, UGADI};
 use crate::rule::{
     BridgePolicy, CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
-    SATURDAY_SUNDAY, SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
+    WeekendPolicy,
 };
 
 /// The Friday–Saturday weekend, as most of the Arab world keeps it, for a
@@ -276,6 +277,7 @@ pub static ISRAEL: RuleSet = RuleSet {
               does not model: it names days, not evenings. Friday is a \
               working day in law, shortened to seven hours, so the weekend \
               here is Saturday alone",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -413,6 +415,7 @@ pub static IRAN: RuleSet = RuleSet {
               names as the official calendar prints them. APPROXIMATE BY \
               NATURE for the lunar dates: Iran declares them on its own \
               sighting, and the tabular civil calendar here is a prediction",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 /// Saudi Arabia moved the Government's weekend from Thursday–Friday to
@@ -525,6 +528,7 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
               from the Saudi Press Agency (spa.gov.sa/en/bee255bdbb), and its number, A/185, \
               from Al Eqtisadiah (secondary); all retrieved 2026-09-26. The Umm al-Qurā table \
               covers 1300–1600 AH only, so this calendar answers for roughly 1882–2174 CE",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -665,6 +669,7 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
               Day); Gulf News and The National on the Friday–Saturday weekend from 1 September \
               2006; all retrieved 2026-09-26. The Islamic dates are announced each year by the \
               UAE Moon-Sighting Committee, and the tabular calendar here predicts them",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -765,6 +770,7 @@ pub static TURKEY: RuleSet = RuleSet {
               Türkiye's Islamic dates come from the Diyanet's precomputed calendar rather than \
               from sighting, so they are firmer than most; the tabular computation here can \
               still differ by a day, which is why they stay flagged approximate",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -861,6 +867,7 @@ pub static EGYPT: RuleSet = RuleSet {
               holidays, not read; for the Government sector, the Prime Minister's per-occasion \
               decrees, not read. Egypt routinely moves a mid-week holiday to the nearest \
               Thursday by Cabinet decision, which is an annual act and is not modelled",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -930,6 +937,7 @@ pub static NIGERIA: RuleSet = RuleSet {
               Holidays (Amendment) Act 2019 for Democracy Day on 12 June, not read; the \
               Minister of Interior's annual declarations, not read. The Islamic dates are \
               declared on sighting",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static ZA_RULES: &[HolidayRule] = &[
@@ -964,6 +972,7 @@ pub static SOUTH_AFRICA: RuleSet = RuleSet {
               2026-09-26; section 2A, inserted by Act 48 of 1995, not read. Days declared \
               under section 2A — election days and the occasional national day of mourning — \
               are one-offs by proclamation and are not modelled",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1033,6 +1042,7 @@ pub static KENYA: RuleSet = RuleSet {
               sections 2 to 4 and the Schedule; Wikipedia, \"Public holidays in \
               Kenya\", retrieved 2026-09-22, for the present name of the \
               10 October holiday",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1125,6 +1135,7 @@ pub static MOROCCO: RuleSet = RuleSet {
               \"Fêtes et jours fériés au Maroc\", retrieved 2026-09-22, which also \
               gives the royal decisions of 3 May 2023 (Yennayer) and 4 November \
               2025 (Fête de l'Unité)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1223,6 +1234,7 @@ pub static ETHIOPIA: RuleSet = RuleSet {
               -of-public-holidays/, retrieved 2026-09-26; Wikipedia, \"Public holidays in Ethiopia\", \
               retrieved 2026-09-22, for the Amharic names and the Gregorian dates with their \
               leap-year alternatives, which the Ethiopian dates here reproduce",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1306,6 +1318,7 @@ pub static GHANA: RuleSet = RuleSet {
               2025 (gna.org.gh, retrieved 2026-09-22), for the 2019 list and the \
               2025 changes; Ghanaian Times, on Parliament's passage of the \
               amendment on 25 June 2025",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1373,6 +1386,7 @@ pub static BAHRAIN: RuleSet = RuleSet {
               retrieved the same day, for the names; Gulf News (3 September 2006) on the \
               public sector's Friday and Saturday weekend from 2 September 2006, retrieved \
               2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1486,6 +1500,7 @@ pub static JORDAN: RuleSet = RuleSet {
               retrieved the same day, for the 2026 dates; Wikipedia, \"Public holidays in \
               Jordan\", for the English names; Al Wakeel News on the Friday and Saturday \
               weekend from January 2000, retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1537,6 +1552,7 @@ pub static KUWAIT: RuleSet = RuleSet {
               الرسمية في الكويت\", retrieved the same day, for the names; Arab News \
               (28 May 2007, arabnews.com/node/298933) on the Cabinet's weekend decision, \
               retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1668,6 +1684,7 @@ pub static LEBANON: RuleSet = RuleSet {
               Poland's 2026 list, retrieved the same day; Wikipedia, \"Public \
               holidays in Lebanon\", for the English names and Armenian \
               Christmas's 2003 start",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1761,6 +1778,7 @@ pub static TANZANIA: RuleSet = RuleSet {
               \"Public holidays in Tanzania\", retrieved the same day, for the Swahili \
               names and the presidential days; sikukuu.co.tz, a private aggregator \
               (secondary), for the 2026 list, the Government's gazette notices not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1808,6 +1826,7 @@ pub static UGANDA: RuleSet = RuleSet {
               retrieved 2026-09-22, for the 2026 list and the Eids' single days; \
               Wikipedia, \"Public holidays in Uganda\" and \"Archbishop Janani Luwum \
               Day\", retrieved the same day, for the list and the years",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1876,6 +1895,7 @@ pub static ZAMBIA: RuleSet = RuleSet {
               day; Lusaka Times, 28 April 2022, for Kenneth Kaunda Day's first \
               observance; HONO's 2026 list, a private aggregator (secondary), for the \
               in-lieu Mondays, the Government's gazette notices not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1947,6 +1967,7 @@ pub static ZIMBABWE: RuleSet = RuleSet {
               Zimbabwe, retrieved 2026-09-22, for the 2026 list; ZimLII and Veritas \
               Zimbabwe for section 2's Sunday proviso; Wikipedia, \"Robert Gabriel \
               Mugabe National Youth Day\", retrieved the same day, for 2018",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2076,6 +2097,7 @@ pub static ALGERIA: RuleSet = RuleSet {
               and \"Yennayer\", and France 24 (22 July 2009) and the BBC (14 August 2009) \
               for the weekend, retrieved 2026-09-26; ordonnance no. 76-77 of 11 August \
               1976 on the weekly rest, known by its title in NATLEX and not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2174,6 +2196,7 @@ pub static TUNISIA: RuleSet = RuleSet {
               2026-09-22; Wikipedia (fr), \"Fêtes et jours fériés en Tunisie\", for the \
               Arabic names and the chronology of decrees 61-144, 64-13, 65-410, 87-1447, \
               90-1826 and 2011-317; Kapitalis on the 2021 decree",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2253,6 +2276,7 @@ pub static SENEGAL: RuleSet = RuleSet {
               n° 2013-06 du 11 décembre 2013; mourides.com (18 December 2011) and \
               Seneweb on the Magal decree and its first application; Wikipedia, \
               \"Public holidays in Senegal\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2344,6 +2368,7 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
               \"Fêtes et jours fériés en Côte d'Ivoire\", for the two lendemain days and \
               the sighting practice, and Wikipedia, \"Public holidays in Ivory Coast\", \
               for 1996",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2446,6 +2471,7 @@ pub static BENIN: RuleSet = RuleSet {
               documenthèque (sgg.gouv.bj/doc/loi-90-019, loi-97-031, loi-2024-32), \
               retrieved 2026-09-23; Wikipedia (fr), \"Fêtes et jours fériés au Bénin\", \
               as a cross-check",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2609,6 +2635,7 @@ pub static BURKINA_FASO: RuleSet = RuleSet {
               Transition, \"Nouvelle loi sur les jours fériés : ce qui va changer\" \
               (an.bf/545), leFaso.net and Sidwaya on the law adopted on 9 January 2026, \
               whose own text was not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2690,6 +2717,7 @@ pub static CABO_VERDE: RuleSet = RuleSet {
               retrieved 2026-09-23; for 13 January, Vatican News, \"Cabo Verde comemora 13 \
               de Janeiro\" (January 2020), and the list of national holidays of the \
               Consulate-General in the Netherlands (conscv.nl)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2778,6 +2806,7 @@ pub static GUINEA: RuleSet = RuleSet {
               connus\", 3 November 2022) and Africa Guinée reproduce it, the decree's own \
               text not read, retrieved 2026-09-23; Kalenews on the decree's number and \
               Labour Code article 222.6",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2848,6 +2877,7 @@ pub static MALI: RuleSet = RuleSet {
               Ministry of Labour's communiqués on the Maouloud of 2025 and 2026 as Bamada \
               reports them; Studio Tamani, \"Mali : le 14 janvier désormais dédié à la \
               souveraineté\", on the decree of 2023",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3022,6 +3052,7 @@ pub static OMAN: RuleSet = RuleSet {
               (20 April 2020) on Renaissance Day's end; Gulf News (7 April 2013) and \
               Al Riyadh on the weekend from 1 May 2013, retrieved 2026-09-26; Wikipedia, \
               \"Public holidays in Oman\"",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3106,6 +3137,7 @@ pub static QATAR: RuleSet = RuleSet {
               Day; Wikipedia, \"National Day (Qatar)\" and \"Public holidays in Qatar\", \
               for 2007 and 2009; Arab News (21 July 2003, arabnews.com/node/234601) on the \
               Friday and Saturday weekend from 1 August 2003, retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3244,6 +3276,7 @@ pub static IRAQ: RuleSet = RuleSet {
               2026-09-22; Shafaq News (May 2024) on the vote; Vatican News (December 2020) \
               and Channel 8 (December 2024) on Christmas; Wikipedia, \"Public holidays in \
               Iraq\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3336,6 +3369,7 @@ pub static BOTSWANA: RuleSet = RuleSet {
               \"Public holidays in Botswana\", for the names; Office Holidays, \"National \
               Holidays in Botswana in 2023\", a private aggregator (secondary), for the \
               days kept in 2023, the Government Gazette's notices not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3407,6 +3441,7 @@ pub static NAMIBIA: RuleSet = RuleSet {
               Assistance Centre's annotated statutes (lac.org.na), retrieved 2026-09-22; \
               Government Gazette No. 8373 of 28 May 2024, Proclamation No. 19; Wikipedia, \
               \"Public holidays in Namibia\"",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3527,6 +3562,7 @@ pub static MAURITIUS: RuleSet = RuleSet {
               \"Culture of Mauritius\"; General Notices No. 814 of 2016 and No. 737 of 2017, the public \
               holidays of 2017 and 2018 (pmo.govmu.org), through web.archive.org, \
               retrieved 2026-09-27, for Divali on 19 October 2017 and 7 November 2018",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3588,6 +3624,7 @@ pub static MALAWI: RuleSet = RuleSet {
     sources: "Public Holidays Act, Cap. 18:05, sections 2 to 4 and the Schedule, from the \
               NATLEX copy (MWI90377), retrieved 2026-09-22; Nyasa Times on the Christmas, \
               Boxing and New Year's holidays; Wikipedia, \"Public holidays in Malawi\"",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3703,6 +3740,7 @@ pub static SYRIA: RuleSet = RuleSet {
               (25 December 2003) on the Council of Ministers' decision adding Saturday to \
               the weekly holiday from February 2004; Wikipedia, \"Public holidays in \
               Syria\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3970,6 +4008,7 @@ pub static PALESTINE: RuleSet = RuleSet {
               official holidays (maqam.najah.edu); the Arabic Wikipedia, \"قائمة العطل \
               الرسمية في فلسطين\", for the older list. The yearly decisions in the Official \
               Gazette (mjr.ogb.gov.ps) could not be retrieved",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4052,6 +4091,7 @@ pub static LIBYA: RuleSet = RuleSet {
               2021 to 2026; Al-Dustour (3 January 2006) on the Government's Friday and \
               Saturday weekend; Wikipedia, \"Public holidays in Libya\", for the English \
               names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4172,6 +4212,7 @@ pub static YEMEN: RuleSet = RuleSet {
               resolution No. 179 of 2013 and the Friday and Saturday weekend; Al Khaleej \
               (18 August 2013) on the change applied from 17 August, retrieved \
               2026-09-26; Wikipedia, \"Public holidays in Yemen\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4242,6 +4283,7 @@ pub static CAMEROON: RuleSet = RuleSet {
               collection (minfopra.gov.cm) as the Internet Archive holds it, retrieved \
               2026-09-23; Camerlex, \"Les jours fériés\", on the regime as loi n° 76/8 \
               du 8 juillet 1976 amended it; NATLEX for the amending law's title",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4300,6 +4342,7 @@ pub static CONGO: RuleSet = RuleSet {
               général du Gouvernement (sgg.cg), retrieved 2026-09-23; arrêté n° 976 du \
               30 avril 2025, Journal officiel 2025 no. 19, on the same site; Wikipedia, \
               \"Public holidays in the Republic of the Congo\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4439,6 +4482,7 @@ pub static DR_CONGO: RuleSet = RuleSet {
               Actualite.cd (5 January 2026) on communiqués 010 and 011 of December 2025 \
               and (13 January 2026) on ordinance 23-042 being in force; Radio Okapi (15 July \
               2024) on GENOCOST",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4636,6 +4680,7 @@ pub static ANGOLA: RuleSet = RuleSet {
               lex.ao for the latter's publication in the Diário da República, I Série \
               n.º 147; Novo Jornal on the 2018 vote; the Ministério da Administração do \
               Território's \"Efemérides\" page on the laws in force",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4735,6 +4780,7 @@ pub static RWANDA: RuleSet = RuleSet {
               holds it, allAfrica refusing this session's requests, for the Ministry's statement \
               on 27 December 2022 and 3 January 2023; the High Commission in Tanzania's list for \
               2025 (rwandaintanzania.gov.rw) for Umuganura on 1 August",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4823,6 +4869,7 @@ pub static BURUNDI: RuleSet = RuleSet {
               Archive holds it, the page now answering 404, retrieved 2026-09-23; the Embassy \
               of Burundi in Algiers, \"Jours fériés\" (ambabualgerie.mae.gov.bi), retrieved the \
               same day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4935,6 +4982,7 @@ pub static MADAGASCAR: RuleSet = RuleSet {
               des jours fériés, chômés et payés au titre de l'année, and décret n° 2025-415 du \
               15 avril 2025, from the Centre National de Législation (cnlegis.gov.mg), retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5009,6 +5057,7 @@ pub static SEYCHELLES: RuleSet = RuleSet {
               \"Assembly approves repeal of June 5 as a public holiday, supports Easter \
               Monday\", both 13 April 2017, for Act 3 of 2017; the Central Bank of Seychelles, \
               \"Public Holidays\" for 2026 (cbs.sc); S.I. 2 of 2026 (gazette.sc)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5084,6 +5133,7 @@ pub static MOZAMBIQUE: RuleSet = RuleSet {
               retrieved 2026-09-23; CTA, \"Feriados em Moçambique: Entre a Oportunidade \
               Económica e a Desorganização Produtiva\" (cta.org.mz, May 2025), for the table \
               under Lei n.º 23/2007",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5157,6 +5207,7 @@ pub static LESOTHO: RuleSet = RuleSet {
               LesothoLII refusing this session's requests; the Embassy of the Kingdom of Lesotho \
               in Washington, \"Public Holidays\" for 2026 (lesothoemb-usa.gov.ls), retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5273,6 +5324,7 @@ pub static CHAD: RuleSet = RuleSet {
               payé\" (7 March 2019), for décret n° 273/PR/MFPTDS/2019, the decree's own text not \
               read; Le Pays (7 March 2025) on its application; NATLEX's abstract of décret n° 56 of \
               1969 on the weekly rest; Alwihda Info on the Minister's communiqué for 11 August 2015",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5348,6 +5400,7 @@ pub static MAURITANIA: RuleSet = RuleSet {
               \"Mauritanie : Le repos hebdomadaire s'aligne sur l'international\" (15 September \
               2014), and Le360 (6 October 2014) on the Council of Ministers' decree of \
               11 September 2014 changing the weekly rest from 1 October 2014",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5454,6 +5507,7 @@ pub static DJIBOUTI: RuleSet = RuleSet {
               (journalofficiel.dj), retrieved 2026-09-23; loi n° 133/AN/05/5ème L portant Code du \
               Travail, articles 97 and 98, and arrêté n° 2019-193/PR/MTRA on the weekly rest, \
               from the same, retrieved the same day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5573,6 +5627,7 @@ pub static COMOROS: RuleSet = RuleSet {
     sources: "Décret n° 25-147/PR du 19 décembre 2025 fixant la liste des jours fériés, chômés \
               et payés en Union des Comores, articles 1 to 6, from Munganyo, the Union's legal \
               portal (munganyo.km/decrees/526), retrieved 2026-09-25",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5671,6 +5726,7 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
               del Estado (boe.gob.gq), retrieved 2026-09-25; Revista Real Equatorial Guinea, \
               \"Declarados festivos los días 27 de diciembre 2021 y 3 de enero 2022\" \
               (25 December 2021), on the Ministry of Labour's application of article 4",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5798,6 +5854,7 @@ pub static LIBERIA: RuleSet = RuleSet {
               Labour's printing (liberiahrjobs.com copy); Embassy of the Republic of Liberia \
               in Japan, \"National Holidays to Be Observed\" (liberianembassyjp.org), for \
               Christmas; the Patriotic and Cultural Observances Law not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5983,6 +6040,7 @@ pub static SOMALIA: RuleSet = RuleSet {
               (molsa.gov.so), for the civil-service rule not carried; all retrieved \
               2026-09-26. The Hijri dates are declared on the sighting, and the tabular \
               calendar here predicts them",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6147,6 +6205,7 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
               Civil Service Act, 2011, section 54 (docs.southsudanngoforum.org), retrieved \
               2026-09-26, which names no weekend; the Labour Act's section 2 and Appendix B and \
               the list of circulars re-read 2026-09-27",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6272,6 +6331,7 @@ pub static SUDAN: RuleSet = RuleSet {
               Tribune, \"Sudan adopts two-day week end as of January 26\", 6 January 2008, as \
               the Internet Archive holds it (captured 2019-11-19), for the weekend (secondary), \
               the Cabinet's decision not found",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6385,6 +6445,7 @@ pub static GUINEA_BISSAU: RuleSet = RuleSet {
               Prosecutor summarises them (dcjri.ministeriopublico.pt/faq/\
               periodo-normal-de-trabalho, secondary), retrieved 2026-09-26, the law's own scan \
               on the same site not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6503,6 +6564,7 @@ pub static SIERRA_LEONE: RuleSet = RuleSet {
               2022, 517 (published 12 January 2023) and 34 of 2023 from archive.gazettes.africa; \
               the Employment Act, 2023 (sierralii.gov.sl), which names no weekly rest day; all \
               retrieved 2026-09-26. No notice after March 2023 was found",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6681,6 +6743,7 @@ pub static GAMBIA: RuleSet = RuleSet {
               August 2026, retrieved 2026-09-26; the Constitution of 1997, section 76, on \
               constituteproject.org. The 2021 Easter declaration misdates Easter Monday and is \
               not carried",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6844,6 +6907,7 @@ pub static ESWATINI: RuleSet = RuleSet {
               (40years.gov.sz, captured 2026-08-07); the Eswatini Observer, 4 September 2025, \
               and Eswatini Positive News, 23 February 2025 and 4 March 2026, for Umhlanga 2025, \
               the weekend and Lutsango Day (secondary); all retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6994,6 +7058,7 @@ pub static TOGO: RuleSet = RuleSet {
               December 2023, 1 May 2025, 31 December 2025 and 19 March 2026 \
               (republiquetogolaise.tg); Togo Top News, 5 June 2025 (secondary); all retrieved \
               2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -7132,6 +7197,7 @@ pub static NIGER: RuleSet = RuleSet {
               2017-682/PRN/MET/PS du 10 août 2017 portant partie réglementaire du Code du \
               Travail, articles 135 and 184, from FAOLEX's copy (faolex.fao.org, \
               Ner184162.pdf), both retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -7287,4 +7353,5 @@ pub static GABON: RuleSet = RuleSet {
               Journal officiel de la République gabonaise n° 139, 16 to 23 November 2021, from \
               NATLEX's copy (natlex.ilo.org, GAB-109996.pdf), retrieved 2026-09-26, for the \
               weekend",
+    subdivisions: Subdivisions::Read(&[]),
 };

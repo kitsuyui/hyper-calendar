@@ -118,7 +118,17 @@ Not carried:
 - *A holiday on a Sunday*, which the Reserve Bank does not list.
 - *A day at one office of several*, as the worked example's.
 - *The years before 2019*, and before 2023 in Andhra Pradesh: the
-  Reserve Bank's lists for them were not read, and are reported gaps.
+  Reserve Bank's lists for them were not read, and are reported gaps, back
+  to the year the state was formed — Telangana 2014 (the Andhra Pradesh
+  Reorganisation Act, 2014, commenced 2 June 2014), Gujarat and
+  Maharashtra 1960 (the Bombay Reorganisation Act, 1960, in effect 1 May
+  1960), Kerala and Andhra Pradesh 1956 (the States Reorganisation Act,
+  1956, effective 1 November 1956) — or for the older states to 1882, the
+  Negotiable Instruments Act, 1881, having commenced on 1 March 1882
+  (Wikipedia's pages on each Act and "Maharashtra Day", secondary, read
+  2026-09-29). Before that year the lists are absent. The states and
+  union territories not carried keep the national days and report their
+  own as a gap.
 
 ## Accuracy
 
@@ -139,7 +149,8 @@ state keeps that festival.
 ## Code
 
 `crates/hc-holiday/src/countries/india.rs`: `STATE_DAYS`, built by `nia` for
-each day and `not_read` for each state's gap, joined to the nationwide rules
+each day and `lists_read` for each state's years, a gap outside those read
+from the state's formation, joined to the nationwide rules
 of `asia.rs` by `rule::joined` into the `RULES` that `INDIA`
 evaluates.
 

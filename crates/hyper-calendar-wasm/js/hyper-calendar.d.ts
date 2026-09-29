@@ -960,12 +960,14 @@ export type Confidence = "exact" | "approximate";
 
 /** One line of `hc_holidays_in_year`. */
 export interface HolidayInYear {
-  /** The ISO 8601 date. */
-  date: string;
+  /** The ISO 8601 date, or `null` on a gap. */
+  date: string | null;
   name: string;
   localName: string | null;
-  kind: HolidayKind;
-  confidence: Confidence;
+  /** `gap` is a holiday the table could not place in the year: its calendar's range ended, no announcement was read, the year is before the first its sources were read for, or the subdivision was not read. */
+  kind: HolidayKind | "gap";
+  /** `null` on a gap. */
+  confidence: Confidence | null;
   /** Whether this is a substitute day. */
   substitute: boolean;
   /** The ISO 8601 date a substitute stands in for, or `null`. */
@@ -2206,7 +2208,7 @@ export class HyperCalendar {
   holidaysOn(fixed: number | bigint): HolidayOn[];
   /** `hc_holiday_tables`: every table, in `holidayCodes()` order; `und` unless given. */
   holidayTables(locale?: string): HolidayTable[];
-  /** `hc_lectionary`; outside the liturgical years 1583 to 4099 is `out-of-range`. */
+  /** `hc_lectionary`; before 1 January 1970 or after the liturgical year 4099 is `out-of-range`. */
   lectionary(fixed: number | bigint): Lectionary;
   /** `hc_astronomical_easter`; outside 1583 to 2150 is `out-of-range`. */
   astronomicalEaster(year: number | bigint): number;

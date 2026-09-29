@@ -89,20 +89,8 @@ const fn cn_group_day(
     HolidayRule::fixed_public(name, local_name, Rule::gregorian(month, day))
         .of_kind(kind)
         .for_groups(groups)
-        .years(Some(CN_STATUTE_FIRST), None)
+        .read_from(CN_STATUTE_FIRST)
         .cited(item)
-}
-
-/// A day of Article 3 before 1999: a gap.
-const fn cn_group_unread(
-    name: &'static str,
-    local_name: &'static str,
-    groups: &'static [crate::group::Group],
-) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, Rule::UNREAD)
-        .for_groups(groups)
-        .years(None, Some(CN_STATUTE_FIRST - 1))
-        .cited("全国年节及纪念日放假办法, 第三条: the texts before 1999 not read")
 }
 
 /// The days of Article 3, in its order.
@@ -145,39 +133,28 @@ pub(super) static CN_SCOPED_RULES: &[HolidayRule] = &[
     ),
     // The 1949 text and the 1999 revision were not read: whether the four
     // days were given before 1999, and how, is a gap.
-    cn_group_unread("Women's Day", "妇女节", &[WOMEN]),
-    cn_group_unread("Youth Day", "青年节", &[YOUTH]),
-    cn_group_unread("Children's Day", "儿童节", &[CHILDREN]),
-    cn_group_unread("Army Day", "中国人民解放军建军纪念日", &[MILITARY]),
 ];
 
 /// The first year of Article 5's text read: the 2007 decision's, in force
 /// 1 January 2008.
 const CN_ARTICLE_5_FIRST: i32 = 2008;
 
-/// A commemoration of Article 5 on a fixed date, from `first`.
+/// A commemoration of Article 5 on a fixed date: from the decision that
+/// set it where one was read, and else answered from 2008, the first year
+/// of Article 5's text read, the years before a gap.
 const fn cn_commemoration(
     name: &'static str,
     local_name: &'static str,
     month: u8,
     day: u8,
-    first: i32,
     source: &'static str,
 ) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::gregorian(month, day))
-        .years(Some(first), None)
-        .cited(source)
-}
-
-/// A commemoration of Article 5 before 2008: a gap.
-const fn cn_commemoration_unread(name: &'static str, local_name: &'static str) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::UNREAD)
-        .years(None, Some(CN_ARTICLE_5_FIRST - 1))
-        .cited("全国年节及纪念日放假办法, 第五条: the texts before 2008 not read")
+    HolidayRule::observance(name, local_name, Rule::gregorian(month, day)).cited(source)
 }
 
 /// Article 5's words, cited by each of its days.
-const CN_ARTICLE_5: &str = "全国年节及纪念日放假办法, 第五条: 均不放假";
+const CN_ARTICLE_5: &str =
+    "全国年节及纪念日放假办法, 第五条: 均不放假; the texts before 2008 not read";
 
 /// The commemorations of Article 5, in its order.
 pub(super) static CN_COMMEMORATIONS: &[HolidayRule] = &[
@@ -186,82 +163,60 @@ pub(super) static CN_COMMEMORATIONS: &[HolidayRule] = &[
         "二七纪念日",
         2,
         7,
-        CN_ARTICLE_5_FIRST,
         CN_ARTICLE_5,
-    ),
-    cn_commemoration(
-        "May 30th Memorial Day",
-        "五卅纪念日",
-        5,
-        30,
-        CN_ARTICLE_5_FIRST,
-        CN_ARTICLE_5,
-    ),
+    )
+    .read_from(CN_ARTICLE_5_FIRST),
+    cn_commemoration("May 30th Memorial Day", "五卅纪念日", 5, 30, CN_ARTICLE_5)
+        .read_from(CN_ARTICLE_5_FIRST),
     cn_commemoration(
         "July 7th Memorial Day of the War of Resistance",
         "七七抗战纪念日",
         7,
         7,
-        CN_ARTICLE_5_FIRST,
         CN_ARTICLE_5,
-    ),
+    )
+    .read_from(CN_ARTICLE_5_FIRST),
     cn_commemoration(
         "Victory Day of the War of Resistance",
         "九三抗战胜利纪念日",
         9,
         3,
-        CN_ARTICLE_5_FIRST,
         CN_ARTICLE_5,
-    ),
+    )
+    .read_from(CN_ARTICLE_5_FIRST),
     cn_commemoration(
         "September 18th Memorial Day",
         "九一八纪念日",
         9,
         18,
-        CN_ARTICLE_5_FIRST,
         CN_ARTICLE_5,
-    ),
+    )
+    .read_from(CN_ARTICLE_5_FIRST),
     cn_commemoration(
         "Teachers' Day",
         "教师节",
         9,
         10,
-        1985,
         "全国人民代表大会常务委员会关于教师节的决定, 21 January 1985: 每年9月10日为教师节",
-    ),
-    cn_commemoration(
-        "Nurses' Day",
-        "护士节",
-        5,
-        12,
-        CN_ARTICLE_5_FIRST,
-        CN_ARTICLE_5,
-    ),
+    )
+    .years(Some(1985), None),
+    cn_commemoration("Nurses' Day", "护士节", 5, 12, CN_ARTICLE_5).read_from(CN_ARTICLE_5_FIRST),
     cn_commemoration(
         "Journalists' Day",
         "记者节",
         11,
         8,
-        2000,
         "国务院, 批复中国记协《关于确定\"记者节\"具体日期的请示》, 2000: 11月8日",
-    ),
+    )
+    .years(Some(2000), None),
     cn_commemoration(
         "Arbor Day",
         "植树节",
         3,
         12,
-        1979,
         "全国人民代表大会常务委员会关于植树节的决议, 23 February 1979: 3月12日",
-    ),
-    cn_commemoration_unread("February 7th Memorial Day", "二七纪念日"),
-    cn_commemoration_unread("May 30th Memorial Day", "五卅纪念日"),
-    cn_commemoration_unread(
-        "July 7th Memorial Day of the War of Resistance",
-        "七七抗战纪念日",
-    ),
-    cn_commemoration_unread("Victory Day of the War of Resistance", "九三抗战胜利纪念日"),
-    cn_commemoration_unread("September 18th Memorial Day", "九一八纪念日"),
-    cn_commemoration_unread("Nurses' Day", "护士节"),
+    )
+    .years(Some(1979), None),
 ];
 
 /// The days off the autonomous regions' notices give for their minority
@@ -342,22 +297,6 @@ const fn cn_region_day(
     .cited(source)
 }
 
-/// A year whose notice was not read, of a region whose standing instrument
-/// was: a gap.
-const fn cn_region_unread(
-    name: &'static str,
-    local_name: &'static str,
-    first: i32,
-    last: i32,
-    regions: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, Rule::UNREAD)
-        .years(Some(first), Some(last))
-        .in_regions(regions)
-        .cited(source)
-}
-
 /// 广西's instrument.
 const GX_MEASURES: &str = "广西壮族自治区少数民族习惯节日放假办法 (广西壮族自治区人民政府令第98号, 2014), 第二条: \
                            壮族三月三, 本自治区内全体公民放假2天";
@@ -381,14 +320,13 @@ pub(super) static CN_REGION_RULES: &[HolidayRule] = &[
         &["CN-GX"],
         GX_MEASURES,
     ),
-    cn_region_unread(
-        "Sanyuesan",
-        "壮族三月三",
-        2025,
-        2025,
-        &["CN-GX"],
-        GX_MEASURES,
-    ),
+    // 2025, inside the years listed, is a year whose notice was not read:
+    // a gap.
+    HolidayRule::fixed_public("Sanyuesan", "壮族三月三", Rule::NO_DAY)
+        .years(Some(2025), Some(2025))
+        .read_from(2026)
+        .in_regions(&["CN-GX"])
+        .cited(GX_MEASURES),
     // The 办法 of 1999 and the years before it were not read: every year
     // before 2023 is a gap.
     cn_region_day(

@@ -4,7 +4,7 @@ use hc_calendar::Weekday;
 
 use crate::computus::offsets::GOOD_FRIDAY;
 use crate::rule::{
-    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
+    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
     SubstitutionPolicy,
 };
 
@@ -14,6 +14,7 @@ const CA_AB: &[&str] = &["CA-AB"];
 const CA_BC: &[&str] = &["CA-BC"];
 const CA_MB: &[&str] = &["CA-MB"];
 const CA_NB: &[&str] = &["CA-NB"];
+const CA_NL: &[&str] = &["CA-NL"];
 const CA_NS: &[&str] = &["CA-NS"];
 const CA_NT: &[&str] = &["CA-NT"];
 const CA_NU: &[&str] = &["CA-NU"];
@@ -32,6 +33,14 @@ const BC_FAMILY_DAY: &str = "Family Day Act, SBC 2012, c 24, and Family Day Regu
      retrieved 2026-09-29";
 const BC_DAY: &str = "British Columbia Day Act, RSBC 1996, c 34, s 1, and Employment Standards Act, \
      RSBC 1996, c 113, s 1, current to 2026-09-22 (bclaws.gov.bc.ca), retrieved 2026-09-29";
+const BC_LIST: &str = "Employment Standards Act, RSBC 1996, c 113, s 1 \"statutory holiday\": \
+     New Year's Day, Family Day, Good Friday, Victoria Day, Canada Day, British Columbia Day, \
+     Labour Day, National Day for Truth and Reconciliation, Thanksgiving Day, Remembrance Day and \
+     Christmas Day, current to 2026-09-22 (bclaws.gov.bc.ca), retrieved 2026-09-29";
+const MB_LIST: &str = "The Employment Standards Code, C.C.S.M. c. E110, s 21(1) \"general holiday\": \
+     New Year's Day, Louis Riel Day, Good Friday, Victoria Day, July 1, Labour Day, Orange Shirt \
+     Day (National Day for Truth and Reconciliation), Thanksgiving Day and Christmas Day, current \
+     to 2026-09-25 (web2.gov.mb.ca), retrieved 2026-09-29";
 const MB_SOURCE: &str = "The Employment Standards Code, C.C.S.M. c. E110, s 21(1)(a.1), added by The \
      Statutory Holidays Act (Various Acts Amended), S.M. 2007, c. 18, in force 8 November 2007 \
      (web2.gov.mb.ca), retrieved 2026-09-29";
@@ -41,6 +50,9 @@ const NB_FAMILY_DAY: &str = "An Act Respecting Family Day (Bill 67, 58th Legisla
 const NB_DAY: &str = "Employment Standards Act, SNB 1982, c E-7.2, s 1, known from a search excerpt of \
      CanLII's copy and the date from canada-holidays.ca (secondary; the Act's sites refused the \
      connection), retrieved 2026-09-29";
+const NL_SOURCE: &str = "Labour Standards Act, RSNL 1990, c L-2, s 14(1) \"public holiday\": New \
+     Year's Day, Good Friday, Remembrance Day, Memorial Day, Labour Day and Christmas Day, s 14 as \
+     1977 c52 and 2001 c33 left it (assembly.nl.ca, amended to 2024 c35), retrieved 2026-09-29";
 const NS_SOURCE: &str = "Nova Scotia, \"Changes to the Labour Standards Code\" \
      (novascotia.ca/lae/employmentrights, secondary: the Code and the 2013 Act were not \
      reachable), retrieved 2026-09-29: in force 1 January 2015";
@@ -66,62 +78,75 @@ const YT_SOURCE: &str = "Employment Standards Act, RSY 2002, c 72, not read (the
      refused the connection); the days from canada-holidays.ca and Wikipedia (secondary), \
      retrieved 2026-09-29";
 
-/// A province's general holiday, from `first`, in `region`: a day off
-/// under its employment-standards law, moved off a weekend as the federal
-/// ones are.
+/// A province's general holiday in `region`: a day off under its
+/// employment-standards law, moved off a weekend as the federal ones are.
+/// Its years are the call's: `.years` from the year a source gives as its
+/// first, or `.read_from` the year read where none does.
 const fn provincial(
     name: &'static str,
     local_name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::public(name, local_name, rule)
-        .years(Some(first), None)
         .in_regions(region)
         .cited(source)
 }
 
-/// A province's general holiday on a fixed date, from `first`, left where
+/// A province's general holiday on a fixed date, in `region`, left where
 /// it falls: no provincial weekend rule for it was read.
 const fn provincial_fixed(
     name: &'static str,
     local_name: &'static str,
     month: u8,
     day: u8,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, local_name, Rule::gregorian(month, day))
-        .years(Some(first), None)
         .in_regions(region)
         .cited(source)
 }
 
-/// The years before a day's first year, as a gap: the source read gives the
-/// day as it stands and not the year it was set, so whether it was kept
-/// before is not known.
-const fn earlier_years_unread(
+/// A federal day that `region`'s law, in the text read in 2026, does not
+/// keep: the federal rule excepts the region, and this says what the
+/// earlier texts, not read, did — a gap in each year before 2026.
+const fn not_kept(
     name: &'static str,
     local_name: &'static str,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::UNREAD)
-        .years(None, Some(first - 1))
+    HolidayRule::observance(name, local_name, Rule::NO_DAY)
         .in_regions(region)
         .cited(source)
+        .read_from(READ)
 }
+
+/// The year the provinces' laws were read, and the first year answered
+/// for a day no source read dates.
+const READ: i32 = 2026;
 
 /// The third Monday of February, the provinces' February day.
 const THIRD_MONDAY_OF_FEBRUARY: Rule = Rule::nth(2, 3, Weekday::Monday);
 /// The first Monday of August, the provinces' August day.
 const FIRST_MONDAY_OF_AUGUST: Rule = Rule::nth(8, 1, Weekday::Monday);
 
+// The provinces whose lists, in the texts read, leave out a federal day
+// (docs/systems/canada-holidays.md). Newfoundland and Labrador's 1 July is
+// its own Memorial Day.
+const NO_VICTORIA_DAY: &[&str] = &["CA-NB", "CA-NL", "CA-NS", "CA-PE"];
+const NO_CANADA_DAY: &[&str] = &["CA-NL"];
+const NO_TRUTH_AND_RECONCILIATION: &[&str] = &[
+    "CA-AB", "CA-BC", "CA-MB", "CA-NL", "CA-NU", "CA-ON", "CA-SK",
+];
+const NO_THANKSGIVING: &[&str] = &["CA-NB", "CA-NL", "CA-NS", "CA-PE"];
+const NO_REMEMBRANCE_DAY: &[&str] = &["CA-MB", "CA-ON"];
+const NO_BOXING_DAY: &[&str] = &["CA-AB", "CA-BC", "CA-MB", "CA-NL", "CA-NU", "CA-SK"];
+
 static CA_RULES: &[HolidayRule] = &[
+    // ── The federal days, of federally regulated employers ──────────────
     HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
     HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
     // Victoria Day is the Monday preceding 25 May.
@@ -133,8 +158,10 @@ static CA_RULES: &[HolidayRule] = &[
             day: 24,
             weekday: Weekday::Monday,
         },
-    ),
-    HolidayRule::public("Canada Day", "Fête du Canada", Rule::gregorian(7, 1)),
+    )
+    .except_in(NO_VICTORIA_DAY),
+    HolidayRule::public("Canada Day", "Fête du Canada", Rule::gregorian(7, 1))
+        .except_in(NO_CANADA_DAY),
     HolidayRule::public(
         "Labour Day",
         "Fête du Travail",
@@ -145,179 +172,239 @@ static CA_RULES: &[HolidayRule] = &[
         "Journée nationale de la vérité et de la réconciliation",
         Rule::gregorian(9, 30),
     )
-    .years(Some(2021), None),
+    .years(Some(2021), None)
+    .except_in(NO_TRUTH_AND_RECONCILIATION),
     HolidayRule::public(
         "Thanksgiving",
         "Action de grâce",
         Rule::nth(10, 2, Weekday::Monday),
-    ),
+    )
+    .except_in(NO_THANKSGIVING),
     HolidayRule::public(
         "Remembrance Day",
         "Jour du Souvenir",
         Rule::gregorian(11, 11),
-    ),
+    )
+    .except_in(NO_REMEMBRANCE_DAY),
     HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Lendemain de Noël", Rule::gregorian(12, 26)),
-    // ── The provinces' and territories' own days ─────────────────────────
-    // The February day.
-    provincial(
-        "Family Day",
+    HolidayRule::public("Boxing Day", "Lendemain de Noël", Rule::gregorian(12, 26))
+        .except_in(NO_BOXING_DAY),
+    // ── The federal days a province's text read leaves out ─────────────
+    not_kept("Victoria Day", "Fête de la Reine", CA_NB, NB_DAY),
+    not_kept("Victoria Day", "", CA_NL, NL_SOURCE),
+    not_kept("Victoria Day", "", CA_NS, NS_SOURCE),
+    not_kept("Victoria Day", "", CA_PE, PE_SOURCE),
+    not_kept(
+        "National Day for Truth and Reconciliation",
         "",
-        THIRD_MONDAY_OF_FEBRUARY,
-        1990,
         CA_AB,
         AB_SOURCE,
-    ),
-    HolidayRule::public("Family Day", "", Rule::nth(2, 2, Weekday::Monday))
-        .years(Some(2013), Some(2018))
-        .in_regions(CA_BC)
-        .cited(BC_FAMILY_DAY),
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_NL,
+        NL_SOURCE,
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_NU,
+        NU_SOURCE,
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_ON,
+        ON_SOURCE,
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_SK,
+        SK_SOURCE,
+    )
+    .years(Some(2021), None),
+    not_kept("Thanksgiving", "Action de grâce", CA_NB, NB_DAY),
+    not_kept("Thanksgiving", "", CA_NL, NL_SOURCE),
+    not_kept("Thanksgiving", "", CA_NS, NS_SOURCE),
+    not_kept("Thanksgiving", "", CA_PE, PE_SOURCE),
+    not_kept("Remembrance Day", "jour du Souvenir", CA_MB, MB_LIST),
+    not_kept("Remembrance Day", "", CA_ON, ON_SOURCE),
+    not_kept("Boxing Day", "", CA_AB, AB_SOURCE),
+    not_kept("Boxing Day", "", CA_BC, BC_LIST),
+    not_kept("Boxing Day", "", CA_MB, MB_LIST),
+    not_kept("Boxing Day", "", CA_NL, NL_SOURCE),
+    not_kept("Boxing Day", "", CA_NU, NU_SOURCE),
+    not_kept("Boxing Day", "", CA_SK, SK_SOURCE),
+    // British Columbia's and Manitoba's lists keep the federal day of
+    // 2021; the texts read do not say from which year.
+    provincial(
+        "National Day for Truth and Reconciliation",
+        "",
+        Rule::gregorian(9, 30),
+        CA_BC,
+        BC_LIST,
+    )
+    .years(Some(2021), None)
+    .read_from(READ),
+    provincial(
+        "Orange Shirt Day (National Day for Truth and Reconciliation)",
+        "Journée du chandail orange (Journée nationale de la vérité et de la réconciliation)",
+        Rule::gregorian(9, 30),
+        CA_MB,
+        MB_LIST,
+    )
+    .years(Some(2021), None)
+    .read_from(READ),
+    // ── The provinces' and territories' own days ─────────────────────────
+    // The February day.
+    provincial("Family Day", "", THIRD_MONDAY_OF_FEBRUARY, CA_AB, AB_SOURCE)
+        .years(Some(1990), None),
+    provincial(
+        "Family Day",
+        "",
+        Rule::nth(2, 2, Weekday::Monday),
+        CA_BC,
+        BC_FAMILY_DAY,
+    )
+    .years(Some(2013), Some(2018)),
     provincial(
         "Family Day",
         "",
         THIRD_MONDAY_OF_FEBRUARY,
-        2019,
         CA_BC,
         BC_FAMILY_DAY,
-    ),
+    )
+    .years(Some(2019), None),
     provincial(
         "Louis Riel Day",
         "jour de Louis Riel",
         THIRD_MONDAY_OF_FEBRUARY,
-        2008,
         CA_MB,
         MB_SOURCE,
-    ),
+    )
+    .years(Some(2008), None),
     provincial(
         "Family Day",
         "jour de la Famille",
         THIRD_MONDAY_OF_FEBRUARY,
-        2018,
         CA_NB,
         NB_FAMILY_DAY,
-    ),
+    )
+    .years(Some(2018), None),
     provincial(
         "Nova Scotia Heritage Day",
         "",
         THIRD_MONDAY_OF_FEBRUARY,
-        2015,
         CA_NS,
         NS_SOURCE,
-    ),
+    )
+    .years(Some(2015), None),
+    provincial("Family Day", "", THIRD_MONDAY_OF_FEBRUARY, CA_ON, ON_SOURCE)
+        .years(Some(2008), None),
+    // Islander Day was first kept on the second Monday of February 2009,
+    // and moved to the third from 2010.
     provincial(
-        "Family Day",
+        "Islander Day",
         "",
-        THIRD_MONDAY_OF_FEBRUARY,
-        2008,
-        CA_ON,
-        ON_SOURCE,
-    ),
+        Rule::nth(2, 2, Weekday::Monday),
+        CA_PE,
+        PE_SOURCE,
+    )
+    .years(Some(2009), Some(2009)),
     provincial(
         "Islander Day",
         "",
         THIRD_MONDAY_OF_FEBRUARY,
-        2009,
         CA_PE,
         PE_SOURCE,
-    ),
-    provincial(
-        "Family Day",
-        "",
-        THIRD_MONDAY_OF_FEBRUARY,
-        2007,
-        CA_SK,
-        SK_SOURCE,
-    ),
+    )
+    .years(Some(2010), None),
+    provincial("Family Day", "", THIRD_MONDAY_OF_FEBRUARY, CA_SK, SK_SOURCE)
+        .years(Some(2007), None),
     // The June and July days.
     provincial_fixed(
         "National Indigenous Peoples Day",
         "",
         6,
         21,
-        2001,
         CA_NT,
         NT_SOURCE,
-    ),
+    )
+    .years(Some(2001), None),
     provincial_fixed(
         "National Indigenous Peoples Day",
         "",
         6,
         21,
-        2017,
         CA_YT,
         YT_SOURCE,
-    ),
+    )
+    .years(Some(2017), None),
     provincial(
         "Saint-Jean-Baptiste Day",
         "Fête nationale du Québec",
         Rule::gregorian(6, 24),
-        2026,
         CA_QC,
         QC_SOURCE,
-    ),
-    earlier_years_unread(
-        "Saint-Jean-Baptiste Day",
-        "Fête nationale du Québec",
-        2026,
-        CA_QC,
-        QC_SOURCE,
-    ),
-    provincial_fixed("Nunavut Day", "", 7, 9, 2001, CA_NU, NU_SOURCE),
+    )
+    .read_from(READ),
+    provincial_fixed("Memorial Day", "", 7, 1, CA_NL, NL_SOURCE).read_from(READ),
+    provincial_fixed("Nunavut Day", "", 7, 9, CA_NU, NU_SOURCE).years(Some(2001), None),
     // The August days.
     provincial(
         "British Columbia Day",
         "",
         FIRST_MONDAY_OF_AUGUST,
-        2026,
         CA_BC,
         BC_DAY,
-    ),
-    earlier_years_unread("British Columbia Day", "", 2026, CA_BC, BC_DAY),
+    )
+    .read_from(READ),
     provincial(
         "New Brunswick Day",
         "",
         FIRST_MONDAY_OF_AUGUST,
-        2026,
         CA_NB,
         NB_DAY,
-    ),
-    earlier_years_unread("New Brunswick Day", "", 2026, CA_NB, NB_DAY),
+    )
+    .read_from(READ),
     provincial(
         "Civic Holiday",
         "",
         FIRST_MONDAY_OF_AUGUST,
-        2026,
         CA_NT,
         NT_SOURCE,
-    ),
-    earlier_years_unread("Civic Holiday", "", 2026, CA_NT, NT_SOURCE),
+    )
+    .read_from(READ),
     provincial(
         "Civic Holiday",
         "",
         FIRST_MONDAY_OF_AUGUST,
-        2026,
         CA_NU,
         NU_SOURCE,
-    ),
-    earlier_years_unread("Civic Holiday", "", 2026, CA_NU, NU_SOURCE),
+    )
+    .read_from(READ),
     provincial(
         "Saskatchewan Day",
         "",
         FIRST_MONDAY_OF_AUGUST,
-        2026,
         CA_SK,
         SK_SOURCE,
-    ),
-    earlier_years_unread("Saskatchewan Day", "", 2026, CA_SK, SK_SOURCE),
+    )
+    .read_from(READ),
     provincial(
         "Discovery Day",
         "",
         Rule::nth(8, 3, Weekday::Monday),
-        2026,
         CA_YT,
         YT_SOURCE,
-    ),
-    earlier_years_unread("Discovery Day", "", 2026, CA_YT, YT_SOURCE),
+    )
+    .read_from(READ),
 ];
 
 static CA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
@@ -334,14 +421,16 @@ static CA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 ///
 /// The provinces' days are written up in `docs/systems/canada-holidays.md`
 /// in the repository, with every province and territory and what was read
-/// for each. A province's general holiday binds the employers its
-/// employment-standards law covers, so it is a day off,
-/// [`Kind::Public`](crate::rule::Kind::Public), in its region. A day is
-/// carried from the year a source read gives as its first, and absent
+/// for each. Asked for no region, the table answers for the federally
+/// regulated employers the Code covers. Asked for a province, it answers
+/// for the employers its employment-standards law covers: the federal days
+/// less the ones the province's text read leaves out, and the province's
+/// own, each a day off, [`Kind::Public`](crate::rule::Kind::Public). A day
+/// is carried from the year a source read gives as its first, and absent
 /// before; where no source gives one, from 2026, the year read, and the
-/// years before are a gap; several sources are secondary, the
-/// provinces' statute sites being closed to the reading or publishing PDF
-/// only.
+/// years before are a gap, as a federal day a province leaves out is before
+/// 2026. Several sources are secondary, the provinces' statute sites being
+/// closed to the reading or publishing PDF only.
 pub static CANADA: RuleSet = RuleSet {
     code: "CA",
     english_name: "Canada",
@@ -356,7 +445,8 @@ pub static CANADA: RuleSet = RuleSet {
               (laws-lois.justice.gc.ca), retrieved 2026-09-26; the Holidays Act moves only a \
               Sunday Canada Day, and the Code's s. 195 on a holiday falling on a non-working \
               day was not read; the provinces' and territories' days each cited on its entries, \
-              read 2026-09-29, as docs/systems/canada-holidays.md lists them. The national days \
-              are the federal ones, and a province that does not keep one, as Ontario does not \
-              keep Remembrance Day, is not modelled",
+              read 2026-09-29, as docs/systems/canada-holidays.md lists them. The days asked \
+              for no region are the federal ones, and a province's are the federal ones its \
+              text read keeps, as Ontario's keeps no Remembrance Day, and its own",
+    subdivisions: Subdivisions::Read(&[]),
 };

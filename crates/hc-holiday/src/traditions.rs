@@ -85,7 +85,7 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    TibetanDayRule, TibetanMonth, joined,
+    Subdivisions, TibetanDayRule, TibetanMonth, joined,
 };
 
 /// 清明, the fifth solar term.
@@ -169,6 +169,7 @@ pub static CHRISTIAN_WESTERN: RuleSet = RuleSet {
               Year and the General Roman Calendar, as `roman_calendar` cites them \
               (`roman-calendar-norms`); the movable feasts are offsets from the \
               Gregorian computus and nothing else",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -256,6 +257,7 @@ pub static CHRISTIAN_ORTHODOX: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ORTHODOX_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Orthodox Christianity on the Revised Julian calendar: the fixed feasts
@@ -292,6 +294,7 @@ pub static CHRISTIAN_ORTHODOX_REVISED_JULIAN: RuleSet = RuleSet {
               Church's announcement of 6 February 2023 (ugcc.ua); all retrieved 2026-09-26. \
               Milanković's own account in Astronomische Nachrichten no. 5279 (1924) was not \
               read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -405,6 +408,7 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
               Akademie der Wissenschaften, 1979), and Aymro Wondmagegnehu and Joachim \
               Motovu (eds.), The Ethiopian Orthodox Church (Addis Ababa: The Ethiopian \
               Orthodox Mission, 1970), were not read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -504,6 +508,7 @@ pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
               (lacopts.org), retrieved 2026-09-22, for the fixed dates; the \
               movable cycle as offsets from the Julian-computus Pascha the \
               church shares",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -570,6 +575,7 @@ pub static ISLAMIC: RuleSet = RuleSet {
               Arba'in on 14 August 2025, 3 August 2026 and 24 July 2027, Umm \
               al-Qurā's 20 Safar (`islamic-umalqura`), as checks, and 18 Dhu \
               al-Hijjah",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -703,6 +709,7 @@ pub static JEWISH: RuleSet = RuleSet {
               Prayer for Rain Based on the Civil Calendar?\", Chabad.org, retrieved \
               2026-09-26, for the dates of Sh'ela to 2100; Hebcal, \"Ta'anit Esther\", \
               retrieved 2026-09-26, for the fast's dates of 2024–2031 as a check",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -830,6 +837,7 @@ pub static BAHAI: RuleSet = RuleSet {
               of 10 July 2014, for the lunar rule; Days of Remembrance, Bahá'í \
               Reference Library, Persian edition, for the names, with the \
               community's usual terms for the days it does not head",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -893,6 +901,7 @@ pub static HINDU: RuleSet = RuleSet {
               for 2026 and 2027, 8 November 2026 and 28 October 2027 \
               (`dopt-holidays-2025-2027`), and the Deepavali of the governments \
               `hindu::NARAKA_CHATURDASHI` names",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -965,6 +974,7 @@ pub static WHEEL_OF_THE_YEAR: RuleSet = RuleSet {
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, for the eight \
               festivals, their dates in each hemisphere and the cycle's \
               mid-twentieth-century origin. Secondary: no body defines the Wheel of the Year for all who keep it, so there is no primary to replace it",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Wheel of the Year, as kept in the southern hemisphere: the same
@@ -981,6 +991,7 @@ pub static WHEEL_OF_THE_YEAR_SOUTH: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Wheel of the Year\", retrieved 2026-09-22, southern-hemisphere \
               column. Secondary: no body defines the Wheel of the Year for all who keep it, so there is no primary to replace it",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1070,6 +1081,7 @@ pub static BUDDHIST_THAI: RuleSet = RuleSet {
               37/2569 for 2023-2027, from which `thai-lunar`'s year types are \
               read (docs/systems/thai-lunar.md; bot-fiholiday and the bot-* keys \
               in references.bib), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1114,6 +1126,7 @@ pub static BUDDHIST_EAST_ASIAN: RuleSet = RuleSet {
               15 February as the date most keep; the Japanese Wikipedia, \
               \"涅槃会\", for 15 March in some temples. A temple's or a school's \
               own calendar would be the primary",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1289,6 +1302,7 @@ pub static CHINESE_FOLK: RuleSet = RuleSet {
               三月上旬的巳日; Wikipedia (zh), \"寒食节\", for 清明前一日 after the \
               時憲曆 of 1645 (`wikipedia-zh-hanshi`), all retrieved 2026-09-26 \
               (secondary)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1325,6 +1339,7 @@ macro_rules! xiaonian {
             weekend: SATURDAY_SUNDAY,
             sources_checked: SourceDate::new(2026, 9, 26),
             sources: XIAONIAN_SOURCES,
+            subdivisions: Subdivisions::Undivided,
         };
     };
 }
@@ -1443,6 +1458,7 @@ pub static TAOIST: RuleSet = RuleSet {
               https://news.tvbs.com.tw/life/2836258 (`tvbs-mazu-2025`), for \
               \"媽祖生日日期落在農曆3月23日即是國曆4月20日\", re-read 2026-09-27. A \
               temple's own calendar would be the primary",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1523,6 +1539,7 @@ pub static KOREAN_FOLK: RuleSet = RuleSet {
               Science Institute's 월력요항 notices for 2024, 2025 and 2026 (kasi.re.kr), \
               for 한식, 단오 and 칠석 in those years (`kasi-wollyeok`); all retrieved \
               2026-09-26",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1578,6 +1595,7 @@ pub static VIETNAMESE_FOLK: RuleSet = RuleSet {
               2025, and VietNamNet, 28 September 2025 (`vietnamnet-trung-thu-2025`), for \
               Trung Thu on 6 October 2025, as checks; all retrieved 2026-09-26, the two \
               checks re-read 2026-09-27 at the URLs their entries give",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1623,6 +1641,7 @@ pub static GOSEKKU: RuleSet = RuleSet {
     sources: "Wikipedia (ja), \"節句\", retrieved 2026-09-26, for the five, their \
               names and dates, and their abolition by 太政官第1号布告 of 4 January 1873 \
               (the notice itself not read; secondary)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1812,6 +1831,7 @@ pub static OBON_JULY: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// お盆 a month late, 月遅れ盆: 13 to 16 August, as most of Japan keeps it,
@@ -1828,6 +1848,7 @@ pub static OBON_AUGUST: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static OBON_LUNAR_RULES: &[HolidayRule] = &[
@@ -1865,6 +1886,7 @@ pub static OBON_LUNAR: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: OBON_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static TORI_NO_ICHI_RULES: &[HolidayRule] = &[
@@ -1896,6 +1918,7 @@ pub static TORI_NO_ICHI: RuleSet = RuleSet {
               for the 酉 days of November and the third 酉 when the first is on 1 to 6 \
               November; 鷲神社 (Asakusa), 「今年の酉の市」 and 「年間祭事」, retrieved \
               2026-09-27 (`otorisama-kotoshi`), for 7 and 19 November 2026, 二の酉まで",
+    subdivisions: Subdivisions::Undivided,
 };
 
 static HATSUUMA_RULES: &[HolidayRule] = &[
@@ -1935,6 +1958,7 @@ pub static HATSUUMA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: HATSUUMA_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static HATSUUMA_LUNAR_RULES: &[HolidayRule] =
@@ -1955,6 +1979,7 @@ pub static HATSUUMA_LUNAR: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: HATSUUMA_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Where the two 亥の子 tables come from.
@@ -1987,6 +2012,7 @@ pub static INOKO: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: INOKO_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static INOKO_NOVEMBER_RULES: &[HolidayRule] =
@@ -2007,6 +2033,7 @@ pub static INOKO_NOVEMBER: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: INOKO_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Where the two 十日夜 tables come from.
@@ -2036,6 +2063,7 @@ pub static TOKANYA: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: TOKANYA_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static TOKANYA_NOVEMBER_RULES: &[HolidayRule] =
@@ -2056,6 +2084,7 @@ pub static TOKANYA_NOVEMBER: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: TOKANYA_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2189,6 +2218,7 @@ pub static BUDDHIST_TIBETAN: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: BUDDHIST_TIBETAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The days of [`BUDDHIST_TIBETAN`], kept where a number is skipped or
@@ -2210,6 +2240,7 @@ pub static BUDDHIST_TIBETAN_BERZIN: RuleSet = RuleSet {
               (arXiv:1401.6285, `janson2014`), §11, for Berzin's rule, which Janson has \
               \"not checked against published calendars\"; the day as \
               `hc_calendars_regional::tibetan_almanac::berzin_day` gives it",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// A festival Henning's almanacs mark, in the regular month of its number
@@ -2281,6 +2312,7 @@ pub static BUDDHIST_TIBETAN_HENNING: RuleSet = RuleSet {
               and its English words, the two months of 2024 and the unmarked Birth of the \
               Buddha of 1990; the days as `tibetan-lochen` and \
               `hc_calendars_regional::tibetan_almanac::henning_almanac_day` give them",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2398,6 +2430,7 @@ pub static BUDDHIST_UPOSATHA_THAI: RuleSet = RuleSet {
               `thaipbs-wanphra-2568`), which credits กรมการศาสนา, for the days of 2025 \
               as checks; all retrieved 2026-09-26; the month lengths from the year \
               types of `thai-lunar` (docs/systems/thai-lunar.md)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2465,6 +2498,7 @@ pub static PLOUGH_DAYS: RuleSet = RuleSet {
               2026-09-26; Liz Gwedhan, \"13th January: Plough Monday\", 12 January \
               2025, https://lizgwedhan.substack.com/p/13th-january-plough-monday, \
               retrieved 2026-09-27, as the dated check of a Monday Twelfth-day",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2524,6 +2558,7 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
               Nowruz was a Wednesday, \
               https://www.eventbrite.com/e/chahar-shanbe-suri-tickets-853218709127, \
               retrieved 2026-09-27, as a weak check",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2576,6 +2611,7 @@ pub static IRANIAN_FESTIVALS: RuleSet = RuleSet {
               Nowruz); Wikipedia (fa), \"جشن سده\", for the evening of 10 Bahman, and \
               \"جشن‌های زرتشتی\", for Mehregan on 16 Mehr of the Iranian calendar; all \
               secondary, retrieved 2026-09-29",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// A feast of the Zoroastrians of Iran on day `day` of month `month` of
@@ -2639,6 +2675,7 @@ pub static ZOROASTRIAN_IRANIAN: RuleSet = RuleSet {
               (1384 SH) and Mobed Ardeshir Azargoshasb, The Religious Ceremonies and \
               Customs of the Zoroastrians (1372 SH), not read; retrieved 2026-09-29; the \
               civil Nowruz as `persian` computes it",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2718,6 +2755,7 @@ pub static TENRIKYO: RuleSet = RuleSet {
               2020\" and \"Oyasama's 219th Birthday Joyfully Celebrated\" (2017) \
               (`tenrikyo-online-services`), for the services of 26 January 2025, \
               26 October 2020 and 18 April 2017 as checks; all retrieved 2026-09-27",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2795,6 +2833,7 @@ pub static UNLUCKY_FRIDAYS: RuleSet = RuleSet {
               (`reingold2018code`), `unlucky-fridays` and `unlucky-fridays-in-range`, \
               read 2026-09-27 at commit 9afc1f3277b839db1a70c2350d6c708ac83df78f, and \
               run for 2000–2030 as the check",
+    subdivisions: Subdivisions::Undivided,
 };
 
 static SACRED_WEDNESDAYS_RULES: &[HolidayRule] = &[HolidayRule::observance(
@@ -2837,6 +2876,7 @@ pub static SACRED_WEDNESDAYS: RuleSet = RuleSet {
               9afc1f3277b839db1a70c2350d6c708ac83df78f, and run for 2000–2030 as the \
               check; the day of the month read on `hindu-lunar-surya-siddhanta`, the \
               book's own calendar (docs/systems/hindu-calendars.md)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3006,6 +3046,7 @@ pub static CHURCH_OF_THE_EAST: RuleSet = RuleSet {
               2026–2029 as checks and the Syriac names; Wikipedia, \"Ancient Church of the \
               East\" (secondary), for the Gregorian calendar from 1964; all retrieved \
               2026-09-27",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3113,6 +3154,7 @@ pub static JAIN: RuleSet = RuleSet {
               retrieved 2026-09-22, for the Jain observance; the Rashtriya \
               Panchang for Mahāvīra Jayantī and Akṣaya Tṛtīyā, as `hindu` \
               states. All secondary; a Śvetāmbara or Digambara pañcāṅga, which would be the primary, was not read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3170,6 +3212,7 @@ pub static SHINTO: RuleSet = RuleSet {
               period; \"七五三\", for 15 November since the Meiji reform; \
               \"初詣\", for the New Year visit; \"宮中祭祀\" (`wikipedia-ja-kyuchu-saishi`), for 大祓 on \
               30 June and 31 December. All secondary: no shrine's or the Association of Shinto Shrines' calendar was read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// A rite of the imperial court on a fixed Gregorian date.
@@ -3282,6 +3325,7 @@ pub static KYUCHU_SAISHI: RuleSet = RuleSet {
               三殿御拝 of 11 February, which \
               the Agency's list of the principal rites does not include, and \"天皇誕生日\", \
               retrieved 2026-09-22, for 23 February from 2020",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3394,6 +3438,7 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
               not read); The Tribune (15 April 2019; 14 March 2015, Perneet Singh; \
               24 May 2015) and Asia Samachar (2 October 2022) for the adoption, the \
               2010 amendments and who keeps the 2003 version, retrieved 2026-09-26",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Bandi Chhor Divas as the SGPC kept it, the days read, 2010 to 2026.
@@ -3501,6 +3546,7 @@ pub static SIKH_SGPC: RuleSet = RuleSet {
               (tribune-bandi-chhor-2025) and Babushahi (babushahi-bandi-chhor-2025, \
               secondary, a search summary) for Bandi Chhor Divas of 2022 to 2025; all \
               retrieved 2026-09-28",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3635,6 +3681,7 @@ pub static ZOROASTRIAN_FASLI: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Zoroastrian feasts as the Shahanshahi Parsis, the majority, keep
@@ -3651,6 +3698,7 @@ pub static ZOROASTRIAN_SHAHANSHAHI: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Zoroastrian feasts as the Kadmi Parsis and the Zoroastrians of Yazd
@@ -3666,6 +3714,7 @@ pub static ZOROASTRIAN_QADIMI: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 22),
     sources: ZOROASTRIAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3803,6 +3852,7 @@ pub static EMBER_BCP1662: RuleSet = RuleSet {
               `bcp1662-vigils`), retrieved 2026-09-26; Wikipedia, \"Ember days\", \
               retrieved 2026-09-26, for the reading of the September and December weeks \
               (secondary)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Third Sunday of Advent, the Sunday between 11 and 17 December: two
@@ -3912,6 +3962,7 @@ pub static EMBER_COMMON_WORSHIP: RuleSet = RuleSet {
               worship-texts-and-resources/common-worship/churchs-year/rules, `cw-rules`), \
               retrieved 2026-09-26. The Third Sunday of Advent is two weeks after the First, \
               whose window is the Consultation on Common Texts' (`cct-rcl`)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Greater Litanies: 25 April, or the Tuesday after Easter when Easter
@@ -3973,6 +4024,7 @@ pub static ROGATION_ROMAN_1960: RuleSet = RuleSet {
               cdn.restorethe54.com/media/pdf/the-new-rubrics-of-the-roman-missal-and-breviary-1960.pdf, \
               retrieved 2026-09-26 (`rubrics-1960`); Wikipedia, \"Rogation days\", \
               retrieved 2026-09-26, which pointed to no. 80",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4056,6 +4108,7 @@ pub static SAMARITAN: RuleSet = RuleSet {
               the fourteenth of the First Month as `hc_calendars_lunar::samaritan` dates \
               it, checked against the Israelite Samaritan Information Institute's dates \
               (`samaritan-institute-calendar`)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4152,6 +4205,7 @@ pub static MANDAEAN: RuleSet = RuleSet {
               (`drower1937`), retrieved 2026-09-26, with the month names in her forms; \
               Wikipedia, \"Mandaean calendar\", retrieved 2026-09-26, for the 2024 dates \
               as a check (secondary)",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4209,6 +4263,7 @@ pub static QUMRAN: RuleSet = RuleSet {
               texts\" (`wikipedia-qumran-calendrical-texts`), retrieved 2026-09-29, for 4Q326's \
               Feast of Unleavened Bread on the fourth day of the week and the Barley Festival \
               on the 26th, secondary",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4348,6 +4403,7 @@ pub static BALINESE_PAWUKON_DAYS: RuleSet = RuleSet {
               `wikipedia-id-kajeng-kliwon`), for Tumpek Wariga and the fifteen-day round, \
               all secondary, retrieved 2026-09-29; the Pawukon as \
               `hc_calendars_regional::balinese_pawukon` computes it",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4494,6 +4550,7 @@ pub static NAME_DAYS_GREEK_MOVABLE: RuleSet = RuleSet {
               \"about\" page for All Saints' names; Wikipedia (el), \"Άγιος Γεώργιος\", for \
               St George on the Monday of Bright Week when 23 April falls before \
               Pascha; all retrieved 2026-09-29, secondary",
+    subdivisions: Subdivisions::Undivided,
 };
 
 static NAME_DAYS_BULGARIAN_MOVABLE_RULES: &[HolidayRule] = &[
@@ -4532,6 +4589,7 @@ pub static NAME_DAYS_BULGARIAN_MOVABLE: RuleSet = RuleSet {
     sources: "Wikipedia (bg), \"Имен ден\" (`bgwiki-imen-den`), \"Подвижни имени дни в \
               България\": each feast's rule and names, and its table of the days of \
               2010–2023, secondary, retrieved 2026-09-29",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4639,6 +4697,7 @@ pub static YAZIDI: RuleSet = RuleSet {
               for the mobile feasts of pp. 157–158, 2026-09-29, with the names in his \
               forms; Serêsal as `hc_calendars_solar::yazidi` computes it; the mobile \
               feasts on the tabular Hijri calendar",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4789,6 +4848,7 @@ pub static CHRISTIAN_ARMENIAN: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ARMENIAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The Armenian Apostolic Church as the Armenian Patriarchate of Jerusalem
@@ -4808,6 +4868,7 @@ pub static CHRISTIAN_ARMENIAN_JERUSALEM: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 26),
     sources: ARMENIAN_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Every tradition table in the crate.

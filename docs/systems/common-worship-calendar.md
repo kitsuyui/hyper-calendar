@@ -131,11 +131,16 @@ Full Fact, quoting the Church, reported St George's Day 2025 on Monday
   and Advent Sunday by its Rules to know when the Moveable Feasts begin,
   and the Kalendar's 70 black-letter days, each with its 1662 wording
   beside the modern; from 1753, on the Gregorian computus the Calendar
-  (New Style) Act 1750 gave the book. The Kalendar of 1662 has four days
-  the modern one does not — King Charles the Martyr, Charles II's Nativity
-  and Return, the Papists' Conspiracy and St Blasius — and they are
-  carried as it prints them; St Mary Magdalen, on 21 July in the 1662
-  transcription and 22 July in the modern, is a gap.
+  (New Style) Act 1750 gave the book. The years from 1662 to 1752 were
+  kept on the Julian calendar, which the table does not compute, and each
+  is a gap for every day; before 1662 the table has none. The Kalendar of
+  1662 has four days the modern one does not — King Charles the Martyr,
+  Charles II's Nativity and Return, the Papists' Conspiracy and St
+  Blasius — and they are carried as it prints them. The first three are
+  the state services, which the Queen's warrant of 17 January 1859
+  removed [wikipedia-anniversary-days-1859]: they are carried to 1858.
+  St Mary Magdalen, on 21 July in the 1662 transcription and 22 July in
+  the modern, is a gap.
 
 Not carried:
 
@@ -182,6 +187,7 @@ rest on the rules and one press report.
 | [fullfact-st-george-2025] | St George's Day 2025 | Yes, 2026-09-27 (press) |
 | [wikisource-bcp-1892] | The 1662 Table of Feasts, the Tables and Rules for the Moveable Feasts, the Kalendar of January | Yes, 2026-09-29 (a transcription of the 1892 facsimile) |
 | [howell-bcp-kalendar] | The 1662 and the modern Kalendars, month by month | Yes, 2026-09-29 (a transcription) |
+| [wikipedia-anniversary-days-1859] | The warrant of 17 January 1859 removing the three state services | Yes, 2026-09-29 (secondary; the warrant and the Act not read) |
 
 The Church of England's own Kalendar and Tables of the Prayer Book are
 PDFs and were not read; the justus.anglican.org transcription refused the

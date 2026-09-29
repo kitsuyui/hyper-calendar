@@ -447,6 +447,44 @@ One residue, stated because it is small and real: a rule shifted from
 another day — 除夕 is 春節 minus one — can still be missed when its base
 falls in an out-of-range year *and* within the shift of a year boundary.
 
+### A year the sources do not reach, and a subdivision they were not read for
+
+A rule's years are two facts, kept apart ([ADR 0013](../../docs/adr/0013-a-year-the-sources-do-not-reach-is-a-gap.md)):
+
+- **Its establishment**, `HolidayRule::years`: the year the day was set,
+  as the rule's `source` or the table's `sources` gives it. Before it the
+  day is absent, which is an answer. Ontario's Family Day, added for 2008,
+  has no day and no gap in 2007.
+- **Its earliest supported year**, `HolidayRule::read_from`: the first year
+  the sources read answer for. Every earlier year its establishment does
+  not rule out is a gap, which the engine reports with the rule's name and
+  source. New Zealand's anniversary days, from Employment New Zealand's
+  list of 2010 onwards, are gaps in 2009.
+
+The engine never leaves a rule out of a year silently: a year outside a
+rule's establishment and abolition is a day not kept, and every other year
+is answered or reported. No table writes a gap rule of its own for the
+years before its first.
+
+A subdivision is answered only where the table's sources were read for it.
+`RuleSet::subdivisions` is `Subdivisions::Undivided` for a table with none,
+an exchange's or a tradition's, and `Subdivisions::Read` for a country's:
+the subdivisions its rules are scoped to or excepted from are read, and so
+are the ones the list names, read and found to keep no day of their own —
+Japan's twenty-six prefectures with no ordinance, Wyoming, Honiara. Any
+other region keeps the nationwide days, and its own are a gap named
+`UNREAD_SUBDIVISION` in each year asked for: New Hampshire, whose code was
+not read, or a Mexican state other than Jalisco.
+
+A nationwide rule a subdivision's own law does not keep excepts it,
+`HolidayRule::except_in`: asked for no region, `CANADA` gives the federal
+days of the Canada Labour Code, and asked for `CA-ON` it gives them less
+Remembrance Day and the National Day for Truth and Reconciliation, which
+Ontario's Act does not list, with Ontario's own Family Day. `Rule::NO_DAY`
+with `read_from` says that the text read leaves a day out and that the
+texts before it were not read: Ontario's Remembrance Day is a gap before
+2026, the year its Act was read.
+
 ## What is approximate, and why
 
 | Entry | Why |
@@ -467,7 +505,12 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   in their regions for 2019 to 2026 (Andhra Pradesh from 2023), from the
   Reserve Bank of India's lists for its regional offices, the states'
   notifications, gazette PDFs, not having been read; the years before and
-  2027 are gaps. The other states and union territories
+  2027 are gaps, back to the year the state was formed — Telangana 2014
+  (the Andhra Pradesh Reorganisation Act, 2014), Gujarat and Maharashtra
+  1960 (the Bombay Reorganisation Act, 1960), Kerala and Andhra Pradesh
+  1956 (the States Reorganisation Act, 1956) — or to 1882, when the
+  Negotiable Instruments Act, 1881, came into force; before that the lists
+  are absent. The other states and union territories
   are not yet carried, and the Reserve Bank's list has most of them
   ([india-state-holidays.md](../../docs/systems/india-state-holidays.md)).
   Singapore's and Malaysia's Deepavali is the same

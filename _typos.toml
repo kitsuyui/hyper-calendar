@@ -627,3 +627,6 @@ Nativ = "Nativ"
 # house, and "Milad-i- Sherif", its spelling of Milad-i-Sharif.
 Lok = "Lok"
 Sherif = "Sherif"
+# Latin "classis", the class divinumofficium.com prints on each day of its
+# 1960 kalendar ("II. classis"), quoted in the 1960 calendar's docs.
+classis = "classis"

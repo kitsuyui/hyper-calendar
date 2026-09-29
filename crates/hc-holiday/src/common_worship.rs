@@ -57,7 +57,9 @@ use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, EASTER_SUNDAY, GOOD_FRIDAY, MAUNDY_THURSDAY, PENTECOST,
     TRINITY_SUNDAY,
 };
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
 
 /// The rank of a celebration, as the Rules list them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -351,6 +353,7 @@ pub static COMMON_WORSHIP: RuleSet = RuleSet {
               retrieved 2026-09-27; Charlotte Green, \"When is St George's Day?\", \
               Full Fact, 23 April 2025 (`fullfact-st-george-2025`), for St George's Day \
               on Monday 28 April 2025, as a check",
+    subdivisions: Subdivisions::Undivided,
 };
 
 #[cfg(test)]

@@ -620,3 +620,66 @@ fn a_rest_day_the_law_does_not_make_equal_to_sunday_is_no_day_off() {
     let lucerne = HolidayCalendar::for_year(&SWITZERLAND, Some("CH-LU"), 2026);
     assert!(lucerne.is_business_day(ymd(2026, 12, 8)));
 }
+
+#[test]
+fn solothurn_keeps_1_may_from_noon_as_a_half_day() {
+    let day = |year| {
+        HolidayCalendar::for_year(&SWITZERLAND, Some("CH-SO"), year)
+            .on(gregorian::to_fixed(year, 5, 1).unwrap_or(Rd(0)))
+    };
+    let may = day(2026);
+    assert_eq!(may.len(), 1);
+    assert_eq!(may[0].kind, Kind::HalfDay);
+    assert_eq!(may[0].local_name, "1. Mai (ab 12 Uhr)");
+    assert!(!may[0].is_day_off());
+    // 1 May 2026, a Friday, is a business day in Solothurn, as a half day is.
+    let calendar = HolidayCalendar::for_year(&SWITZERLAND, Some("CH-SO"), 2026);
+    assert!(calendar.is_business_day(gregorian::to_fixed(2026, 5, 1).unwrap_or(Rd(0))));
+    // Before the law of 2016, a gap; in Bern, no half day.
+    assert!(day(2015).is_empty());
+    assert!(
+        HolidayCalendar::for_year(&SWITZERLAND, Some("CH-SO"), 2015)
+            .gaps()
+            .iter()
+            .any(|gap| gap.local_name == "1. Mai (ab 12 Uhr)")
+    );
+    assert!(
+        HolidayCalendar::for_year(&SWITZERLAND, Some("CH-BE"), 2026)
+            .all()
+            .iter()
+            .all(|holiday| holiday.kind != Kind::HalfDay)
+    );
+}
+
+#[test]
+fn the_days_every_canton_keeps_rest_on_each_canton_s_law() {
+    let names = |region: Option<&str>, year| {
+        HolidayCalendar::for_year(&SWITZERLAND, region, year)
+            .gaps()
+            .iter()
+            .map(|gap| gap.name)
+            .collect::<Vec<_>>()
+    };
+    // Nationwide the three days are every canton's, and Jura's, Schwyz's
+    // and Zurich's laws rest on sources read in 2026: before it, gaps.
+    for name in ["New Year's Day", "Ascension", "Christmas Day"] {
+        assert!(names(None, 2025).contains(&name), "{name}");
+        assert!(!names(None, 2026).contains(&name), "{name}");
+        // Bern's law of 1997 answers from 1998; Geneva's from 1991.
+        assert!(!names(Some("CH-BE"), 1998).contains(&name), "{name}");
+        assert!(names(Some("CH-BE"), 1997).contains(&name), "{name}");
+        assert!(!names(Some("CH-GE"), 1991).contains(&name), "{name}");
+    }
+    // 1 August is equal to Sunday by the Arbeitsgesetz's Art. 20a, in force
+    // from 1 August 2000; the Verordnung of 1994 was not read.
+    assert!(names(None, 1999).contains(&"Swiss National Day"));
+    assert!(!names(None, 2000).contains(&"Swiss National Day"));
+    let august = |year| {
+        HolidayCalendar::for_year(&SWITZERLAND, None, year)
+            .is_holiday(gregorian::to_fixed(year, 8, 1).unwrap_or(Rd(0)))
+    };
+    assert!(august(2000));
+    assert!(!august(1999));
+    // A New Year's Day in 1800 is no answer, but a gap.
+    assert!(names(None, 1800).contains(&"New Year's Day"));
+}

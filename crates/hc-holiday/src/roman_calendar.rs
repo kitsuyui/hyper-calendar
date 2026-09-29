@@ -59,7 +59,9 @@ use alloc::vec::Vec;
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
 
 /// The rank of a celebration, as the Universal Norms on the Liturgical
 /// Year give them (nos. 10–14).
@@ -476,6 +478,7 @@ pub static GENERAL_ROMAN_CALENDAR: RuleSet = RuleSet {
               (29/19), 7 October 2019 (404/19), 18 May 2020 (229/20), 25 January 2021 (40/21), \
               26 January 2021 (35/21), 24 December 2024 (703/24) and 9 November 2025 (760/25), \
               from vatican.va and cultodivino.va, retrieved 2026-09-23 and 2026-09-26",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The celebrations the calendar lists on a day, in its order: every one

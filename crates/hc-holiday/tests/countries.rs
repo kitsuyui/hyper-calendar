@@ -186,12 +186,18 @@ fn canada_federal_and_provincial_holidays() {
         &[
             (2024, 2, 19, "Family Day"),
             (2024, 5, 20, "Victoria Day"),
-            (2024, 9, 30, "National Day for Truth and Reconciliation"),
             (2024, 10, 14, "Thanksgiving"),
             (2025, 2, 17, "Family Day"),
             (2025, 5, 19, "Victoria Day"),
         ],
     );
+    // The federal day of 30 September, which Ontario's Act does not keep.
+    expect(
+        "CA",
+        None,
+        &[(2024, 9, 30, "National Day for Truth and Reconciliation")],
+    );
+    expect_working("CA", Some("CA-ON"), &[(2026, 9, 30)]);
     expect(
         "CA",
         Some("CA-QC"),
@@ -556,9 +562,16 @@ fn the_low_countries_and_the_alps() {
         None,
         &[
             (2024, 8, 1, "Swiss National Day"),
-            (2025, 5, 29, "Ascension"),
-            (2025, 12, 25, "Christmas Day"),
+            (2026, 5, 14, "Ascension"),
+            (2026, 12, 25, "Christmas Day"),
         ],
+    );
+    // Before 2026, whose texts are the first read for every canton, the
+    // days every canton keeps are a canton's.
+    expect(
+        "CH",
+        Some("CH-BE"),
+        &[(2025, 5, 29, "Ascension"), (2025, 12, 25, "Christmas Day")],
     );
     expect_working("CH", None, &[(1990, 8, 1), (2025, 4, 18), (2025, 12, 26)]);
     expect(

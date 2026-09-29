@@ -58,7 +58,7 @@ use crate::countries::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Include, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -219,6 +219,7 @@ pub static NEW_YORK_STOCK_EXCHANGE: RuleSet = RuleSet {
               Juneteenth's first observance as a market holiday on 20 June 2022; the Wikipedia \
               pages retrieved 2026-09-22 and secondary, the exchange's own notices of the \
               closures not having been found",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Nasdaq.
@@ -247,6 +248,7 @@ pub static NASDAQ: RuleSet = RuleSet {
               state funeral of George H. W. Bush\" (`wikipedia-bush-funeral`), for 5 December \
               2018; the Wikipedia pages retrieved 2026-09-23 and secondary, Nasdaq's own trader \
               alerts for the closures not having been found",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -334,6 +336,7 @@ pub static AUSTRALIAN_SECURITIES_EXCHANGE: RuleSet = RuleSet {
     sources: "ASX, \"Trading calendar\" (asx.com.au/markets/market-resources/trading-hours-calendar/cash-market-trading-hours/trading-calendar), \
               retrieved 2026-09-23, for the closed days, the early closes and the weekend rule \
               of 2026 and 2027",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -378,6 +381,7 @@ pub static LONDON_STOCK_EXCHANGE: RuleSet = RuleSet {
               (londonstockexchange.com/equities-trading/business-days), retrieved 2026-09-23: \
               the statement of which holidays the Exchange recognises, and its table of bank \
               holidays and half days from August 2026 to January 2029",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -424,6 +428,7 @@ pub static SIX_SWISS_EXCHANGE: RuleSet = RuleSet {
               (six-group.com/en/market-data/news-tools/trading-currency-holiday-calendar.html), \
               retrieved 2026-09-23: the market holidays of the Swiss Stock Exchange for 2026 and \
               2027",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -462,6 +467,7 @@ pub static FRANKFURT_STOCK_EXCHANGE: RuleSet = RuleSet {
               (cashmarket.deutsche-boerse.com/cash-en/trading/trading-calendar-and-trading-hours), \
               retrieved 2026-09-23, for the non-trading days to 2032 and the public holidays \
               traded on",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -534,6 +540,7 @@ pub static TORONTO_STOCK_EXCHANGE: RuleSet = RuleSet {
     sources: "TMX Group, \"Calendar\" (tsx.com/en/trading/calendars-and-trading-hours/calendar), \
               retrieved 2026-09-23, for the closed days and the Christmas Eve close of 2025 \
               and 2026",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -631,6 +638,7 @@ const fn euronext_core(code: &'static str, english_name: &'static str) -> RuleSe
         weekend: SATURDAY_SUNDAY,
         sources_checked: SourceDate::new(2026, 9, 23),
         sources: EURONEXT_SOURCES,
+        subdivisions: Subdivisions::Undivided,
     }
 }
 
@@ -713,6 +721,7 @@ pub static EURONEXT_DUBLIN: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static XMIL_RULES: &[HolidayRule] = &[
@@ -740,6 +749,7 @@ pub static EURONEXT_MILAN: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static XOSL_RULES: &[HolidayRule] = &[
@@ -777,6 +787,7 @@ pub static EURONEXT_OSLO: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: EURONEXT_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -870,6 +881,7 @@ pub static B3: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "B3, \"Trading calendar\" (b3.com.br/en_us/solutions/platforms/puma-trading-system/for-members-and-traders/trading-calendar/holidays/), \
               retrieved 2026-09-23, the market calendars for 2021 to 2026",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -939,6 +951,7 @@ pub static HONG_KONG_EXCHANGES: RuleSet = RuleSet {
     sources: "HKEX, \"HKEX Calendar\" (hkex.com.hk/News/HKEX-Calendar), retrieved 2026-09-23: \
               the calendar feed's \"Hong Kong Market is closed\" and \"Half-Day Trading Day\" \
               entries from October 2025 to October 2027",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -969,6 +982,7 @@ pub static TOKYO_STOCK_EXCHANGE: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "JPX, \"Trading calendar\" (jpx.co.jp/english/corporate/about-jpx/calendar/index.html), \
               retrieved 2026-09-23, the non-business days of 2026 and 2027",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1008,6 +1022,7 @@ pub static SHANGHAI_STOCK_EXCHANGE: RuleSet = RuleSet {
               (sse.com.cn/disclosure/dealinstruc/closed/list/), retrieved 2026-09-23, with \
               上证公告〔2019〕20号 on that year's Labour Day and 上证公告〔2020〕6号 on that \
               year's Spring Festival",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1064,6 +1079,7 @@ pub static TAIWAN_STOCK_EXCHANGE: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: "臺灣證券交易所, 市場開休市日期 (twse.com.tw/zh/trading/holiday.html), retrieved \
               2026-09-23, the schedules for 2023 to 2026",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1107,6 +1123,7 @@ pub static KOREA_EXCHANGE: RuleSet = RuleSet {
     sources: "KRX, \"Market Closing(Holiday)\" \
               (global.krx.co.kr/contents/GLB/05/0501/0501110000/GLB0501110000.jsp), retrieved \
               2026-09-23, the closed days of each year from 2009 to 2030",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1172,6 +1189,7 @@ pub static NASDAQ_COPENHAGEN: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// 5 January, a half day in Stockholm when it is a weekday.
@@ -1252,6 +1270,7 @@ pub static NASDAQ_STOCKHOLM: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static XHEL_RULES: &[HolidayRule] = &[
@@ -1290,6 +1309,7 @@ pub static NASDAQ_HELSINKI: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 static XICE_RULES: &[HolidayRule] = &[
@@ -1343,6 +1363,7 @@ pub static NASDAQ_ICELAND: RuleSet = RuleSet {
     weekend: SATURDAY_SUNDAY,
     sources_checked: SourceDate::new(2026, 9, 23),
     sources: NORDIC_SOURCES,
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1498,6 +1519,7 @@ pub static MOSCOW_EXCHANGE: RuleSet = RuleSet {
               moex.com/n96571, 30 December 2025, for the holiday weekend sessions); and \
               the exchange's «Торговый календарь» for the equity market \
               (moex.com/ru/tradingcalendar), for 2025 and 2026; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1568,6 +1590,7 @@ pub static JOHANNESBURG_STOCK_EXCHANGE: RuleSet = RuleSet {
               15 December 2023, 29 May 2024 and 4 November 2026; JSE Service Hotlines 159/2023, \
               150/2024 and 130/2025, the December schedules, for the early closes; all \
               retrieved 2026-09-23, read in a browser, the site refusing automated access",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1620,6 +1643,7 @@ pub static BOLSA_MEXICANA_DE_VALORES: RuleSet = RuleSet {
               27 December 2024 (web.archive.org copies of dof.gob.mx) and of 10 December 2025 \
               (the copy the Asociación de Bancos de México hosts, abm.org.mx); all retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1765,6 +1789,7 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
               retrieved 2026-09-23, read in a browser; Solactive's announcement of \
               8 January 2026 (solactive.com/announcements/56778), retrieved 2026-09-26, for \
               no session on Sunday 4 January",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1857,6 +1882,7 @@ pub static SAUDI_EXCHANGE: RuleSet = RuleSet {
               7534, 7648, 7856, 8077, 8106, 8220, 8407, 8691, 8703, 8815, 8998, 9259, 9258, 9364 \
               and 9568); all retrieved 2026-09-23, read in a browser, the site refusing \
               automated access",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1971,6 +1997,7 @@ pub static BORSA_ISTANBUL: RuleSet = RuleSet {
               and the Turkish page borsaistanbul.com/resmi-tatil-gunleri), the tables for 2019 to \
               2026, with the \"Equity Market Holiday Schedule\" files for those years; retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2010,6 +2037,7 @@ pub static WARSAW_STOCK_EXCHANGE: RuleSet = RuleSet {
               English gpw.pl/session-details), for 2025 to 2027, read in a browser; the same \
               pages in web.archive.org copies of 2019 to 2023, for 2019 to 2024; retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2056,6 +2084,7 @@ pub static WIENER_BOERSE: RuleSet = RuleSet {
               \"Börsenfeiertage\" files for 2026 and 2027 (wienerborse.at/uploads/u/cms/files/\
               handel/boersenfeiertage-2026-de.pdf and -2027-de.pdf), with web.archive.org copies \
               of the files for 2019 to 2025; retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2122,6 +2151,7 @@ pub static BOLSA_DE_MADRID: RuleSet = RuleSet {
               \"Calendario de 2026 en los mercados financieros españoles\" and \"Calendario 2023 \
               en los mercados de valores españoles\" (bolsasymercados.es/es/sala-de-comunicacion/\
               notas-de-prensa/); retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2174,6 +2204,7 @@ pub static NZX: RuleSet = RuleSet {
               announcement of the closure of 26 September 2022 (nzx.com/announcements/398794); \
               NZX, \"Trading hours\" (nzx.com/learning/help-reference/trading-hours), for \
               \"public holidays will be mondayised\"; retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2211,6 +2242,7 @@ pub static SHENZHEN_STOCK_EXCHANGE: RuleSet = RuleSet {
               (t20190418_566376) and 关于延长2020年春节休市安排的通知 of 27 January 2020 \
               (t20200127_573917); retrieved 2026-09-25 over http, the site's https refusing \
               the connection",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2378,6 +2410,7 @@ pub static STOCK_EXCHANGE_OF_THAILAND: RuleSet = RuleSet {
               access; the exchange's holiday API for 2022 and 2023 in web.archive.org copies \
               of 10 January and 20 June 2023 (set.or.th/api/set/holiday/year/YYYY?lang=en), \
               for the lists as first published",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2520,6 +2553,7 @@ pub static NATIONAL_STOCK_EXCHANGE_OF_INDIA: RuleSet = RuleSet {
               NSE/MSD/60677 and 61893 for the special live sessions of 2 March and 18 May 2024; \
               NSE/CMTR/46230, 50050, 54023, 59124, 64628 and 70319 for the Muhurat sessions of \
               2020 to 2025; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// BSE, the Bombay Stock Exchange, for its Equity segment.
@@ -2551,6 +2585,7 @@ pub static BSE: RuleSet = RuleSet {
               and 20240214-20 and 20240507-18 for the special live sessions of 2 March and 18 \
               May 2024; 20201102-18, 20211021-32, 20221011-41, 20231027-40, 20241019-1 and \
               20250922-21 for the Muhurat sessions of 2020 to 2025; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2671,6 +2706,7 @@ pub static SINGAPORE_EXCHANGE: RuleSet = RuleSet {
               2019, 24 June 2020, 6 April and 21 October 2021, 8 April and 29 September 2022, \
               24 May 2023, 5 August 2024, 16 June 2025) and \"Public Holiday on Polling Day\" of \
               24 June 2020, 22 August 2023 and 15 April 2025; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2806,6 +2842,7 @@ pub static BURSA_MALAYSIA: RuleSet = RuleSet {
               refusing automated access; its media notifications \"Closure of Bursa Malaysia\" \
               of 7 May, 28 May and 24 June 2025 and 11 February, 13 and 18 March and 27 April \
               2026, in web.archive.org copies; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2972,6 +3009,7 @@ pub static INDONESIA_STOCK_EXCHANGE: RuleSet = RuleSet {
               Peng-00171/BEI.POP/09-2025 of 23 September 2025 for 2026, as reposted by IDXCarbon \
               (idxcarbon.co.id/document/share/109, 143 and 158), the exchange's carbon market; \
               all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3100,6 +3138,7 @@ pub static PHILIPPINE_STOCK_EXCHANGE: RuleSet = RuleSet {
               the half days, CN-2022-0001 and 0035, CN-2023-0008, CN-2024-0038 and 0045; PSE, \
               \"Trading Hours & Holidays\" (pse.com.ph/investing-at-pse/, the holiday posts at \
               pse.com.ph/holiday/), for the 2026 days after August; all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Every exchange calendar, in Market Identifier Code order.
