@@ -25,8 +25,8 @@ use crate::hindu::{
 };
 use crate::rule::{
     CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet,
-    SATURDAY_SUNDAY, SourceDate, SubstituteDirection, SubstitutionPolicy, TibetanMonth,
-    WeekendPolicy, WhenTwice,
+    SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy,
+    TibetanMonth, WeekendPolicy, WhenTwice,
 };
 use crate::traditions::{
     THAI_ASALHA_BUCHA, THAI_KHAO_PHANSA, THAI_MAKHA_BUCHA, THAI_VISAKHA_BUCHA,
@@ -631,6 +631,7 @@ pub static CHINA: RuleSet = RuleSet {
               citizens; the autonomous regions' days from 广西's 令第98号 \
               (2014) and notices of 2024 and 2026, 新疆's 令第174号 (2011) and \
               notices of 2023 to 2026, and 宁夏's notices of 2023 to 2026",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -863,6 +864,7 @@ pub static TAIWAN: RuleSet = RuleSet {
               for the adjusted days and the Saturdays worked; the 條例's article 6 again on \
               2026-09-29 for the services' days. The system is written up in \
               docs/systems/taiwan-holidays.md",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1229,6 +1231,7 @@ pub static SOUTH_KOREA: RuleSet = RuleSet {
               Seollal and Chuseok are dated in the `dangi` \
               calendar, computed at the Seoul meridian, which puts them a \
               day away from the Chinese dates a few times a century",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1454,6 +1457,7 @@ pub static INDIA: RuleSet = RuleSet {
               Instruments Act\" for each regional office, 2025 and 2026 \
               (rbi.org.in/Scripts/HolidayMatrixDisplay.aspx), retrieved 2026-09-29, as \
               src/countries/india.rs gives them",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1541,6 +1545,7 @@ pub static THAILAND: RuleSet = RuleSet {
               retrieved 2026-09-23; outside those years they are gaps. The \
               Royal Ploughing Ceremony, whose date the palace fixes each \
               year, is not modelled",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1760,6 +1765,7 @@ pub static VIETNAM: RuleSet = RuleSet {
               issued, and no swap around 24 November 2026 had been \
               decided. The system is written up in \
               docs/systems/vietnam-holidays.md",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2011,6 +2017,7 @@ pub static INDONESIA: RuleSet = RuleSet {
               8/2024 on the holidays, not read. The later amendments \
               for 2020 and 2023, reported to change only the cuti bersama, were not \
               read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2128,6 +2135,7 @@ pub static SINGAPORE: RuleSet = RuleSet {
               archivesonline), retrieved 2026-09-27 — 18 October 2017, 6 November \
               2018 and 28 October 2027 are each a day before Lakṣmī Pūjā. Carried \
               approximate, as the Ministry announces the day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 /// The Prime Minister's Department's "Jadual Hari Kelepasan Am
@@ -2301,6 +2309,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
               kabinet.gov.my refusing the requests and the lists being PDFs. Nor is the \
               Friday–Saturday weekend of Johor, Kedah, Kelantan and Terengganu, which a \
               weekend policy, having no region, cannot scope",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 /// The President's proclamations of Eid'l Fitr and Eid'l Adha as regular
@@ -2672,6 +2681,7 @@ pub static PHILIPPINES: RuleSet = RuleSet {
               web.archive.org), the Presidential Communications Office and the \
               Philippine News Agency (pna.gov.ph), retrieved 2026-09-26; outside \
               them the tabular computation, approximate",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2902,6 +2912,7 @@ pub static NEPAL: RuleSet = RuleSet {
               weekend: the cabinet decision of 5 April 2026, effective \
               Chaitra 23, 2082 BS (6 April 2026), as quoted by New \
               Spotlight, retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3226,6 +3237,7 @@ pub static SRI_LANKA: RuleSet = RuleSet {
               text read names 1 May 2026 after the decision, so it is carried as 'Full \
               Moon Poya Day' with no month's name. Holiday names are the gazettes' English \
               ones, their spellings unified where they vary from year to year",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3292,6 +3304,7 @@ pub static PAKISTAN: RuleSet = RuleSet {
               Day\", retrieved 2026-09-22, for the withdrawal of 2015 and the restoration of \
               2022. The Christian holidays of 25 and 26 December for Christians only are not \
               carried",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3499,6 +3512,7 @@ pub static BANGLADESH: RuleSet = RuleSet {
               5 August July Mass Uprising Day with a general holiday, as Prothom Alo \
               reported it the same day, retrieved 2026-09-23; ISO 3166-2:BD for the \
               three hill districts",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3686,6 +3700,7 @@ pub static MYANMAR: RuleSet = RuleSet {
               (presoffministry.gov.mm/en/news/14906), retrieved 2026-09-26; the Thingyan \
               moments from Yan Naing Aye's arithmetic as `hc-calendars-regional::burmese` \
               carries it",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3932,6 +3947,7 @@ pub static HONG_KONG: RuleSet = RuleSet {
               reasoning; the Chinese Wikipedia, \"香港節日與公眾假期\", retrieved the same day, for the \
               1968, 1983, 1997 and 1999 changes (secondary). The system is written up in \
               docs/systems/hong-kong-holidays.md",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4092,6 +4108,7 @@ pub static MACAU: RuleSet = RuleSet {
               and the dates; the Chinese Wikipedia, \"澳門政府假期\", retrieved the \
               same day, for the 1999 and 2000 additions, the 2019 start of the \
               compensatory days and the eves",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4271,6 +4288,7 @@ pub static ARMENIA: RuleSet = RuleSet {
               reproducing the Law on Holidays and Remembrance Days; the Armenian \
               Weekly, 28 January 2026, and OC Media for the 27 January amendment; \
               yerevan.am, \"Holidays and memorial days\", for the law's title",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4428,6 +4446,7 @@ pub static AZERBAIJAN: RuleSet = RuleSet {
               amendment and the years; Wikipedia, \"Public holidays in Azerbaijan\", \
               for the English names; APA and Modern.az, for the non-working days of \
               March 2026",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4515,6 +4534,7 @@ pub static GEORGIA: RuleSet = RuleSet {
               English by the Legislative Herald of Georgia, matsne.gov.ge, retrieved \
               2026-09-22; Wikipedia, \"Public holidays in Georgia (country)\", \
               retrieved the same day, for the Georgian names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4647,6 +4667,7 @@ pub static KAZAKHSTAN: RuleSet = RuleSet {
               amendments; Wikipedia, \"Public holidays in Kazakhstan\", for the Kazakh \
               names; pro1c.kz and Tengrinews for the 2022 and 2026 changes; \
               Inform.kz for Republic Day's removal in April 2009",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4734,6 +4755,7 @@ pub static UZBEKISTAN: RuleSet = RuleSet {
               2026 Navruz transfer under Presidential Decree No. 106 of 17 March 2026; \
               Wikipedia (ru), \"Праздники Узбекистана\", for the Uzbek names and 1997, and \
               Wikipedia, \"Victory Day (9 May)\", for 1999",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4904,6 +4926,7 @@ pub static KYRGYZSTAN: RuleSet = RuleSet {
               17 April 2024 and 8 April 2025 (mlsp.gov.kg); K-News on the law of \
               22 November 2017 and Kaktus on the law of 6 April 2016; Wikipedia, \"Public \
               holidays in Kyrgyzstan\", for the Kyrgyz names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4991,6 +5014,7 @@ pub static TAJIKISTAN: RuleSet = RuleSet {
               (No. 1329 of 23 July 2016), article 89, from the Tax Committee's copy \
               (andoz.tj); Vecherka on the 2017 removal of 1 May; Wikipedia (ru), \
               \"Праздники Таджикистана\", for the Tajik names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5109,6 +5133,7 @@ pub static TURKMENISTAN: RuleSet = RuleSet {
               (22 May 2026) on turkmenistan.gov.tm, and oilgas.gov.tm's 2025 list; \
               Wikipedia, \"State Flag and Constitution Day (Turkmenistan)\", and Wikipedia \
               (ru), \"День независимости Туркменистана\", for 1995, 2017 and 2018",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5277,6 +5302,7 @@ pub static MONGOLIA: RuleSet = RuleSet {
               iKon.mn (1 February 2022) for 2022, retrieved 2026-09-26; the months by \
               season from Janson, \"Tibetan calendar mathematics\" (arXiv:1401.6285), \
               Appendix A.3",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5539,6 +5565,7 @@ pub static CAMBODIA: RuleSet = RuleSet {
               Council for the Development of Cambodia's summary of articles 146 and \
               147 of the Labour Law (cdc.gov.kh), retrieved 2026-09-23; the lunar days \
               on `khmer`, whose sources docs/systems/khmer-chhankitek.md gives",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5640,6 +5667,7 @@ pub static LAOS: RuleSet = RuleSet {
               Vientiane Times reports of the Prime Minister's Office's announcements for \
               2024 (2 January 2024) and 2025 (30 December 2024), vientianetimes.org.la — \
               all retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5757,6 +5785,7 @@ pub static BRUNEI: RuleSet = RuleSet {
               retrieved 2026-09-23, with the Malay names; the Public Works Department's \
               Peraturan-Peraturan Asas Perkhidmatan Awam, Bahagian I, Waktu Bekerja \
               (pwd.gov.bn), for the working week, retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -5894,6 +5923,7 @@ pub static TIMOR_LESTE: RuleSet = RuleSet {
               FAOLEX, with the Portuguese names; the Government's press releases of the \
               holidays for 2011, 2020 and 2022 to 2026 (timor-leste.gov.tl) — all \
               retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6151,6 +6181,7 @@ pub static BHUTAN: RuleSet = RuleSet {
               Solstice's 250° and its days of 2001 to 2020; the \
               Ministry's notification of 7 September 2021, \"Change of dates for Thimphu \
               Dromche and Tshechu\" (moha.gov.bt/?p=3949), retrieved 2026-09-29",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6241,6 +6272,7 @@ pub static MALDIVES: RuleSet = RuleSet {
               JSON/holidays.json); Ministry of Economic Development and Trade, gazette notice \
               (IUL)101-AS/1/2024/34 of 27 March 2024 (gazette.gov.mv), for the working week; \
               retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6354,6 +6386,7 @@ pub static AFGHANISTAN: RuleSet = RuleSet {
               Bakhtar, 21 May 2026, on that Ministry's notices for Arafah and Eid al-Adha; Khaama \
               Press, 10 April 2024, on its Eid al-Fitr notice; all retrieved 2026-09-26. See \
               docs/systems/afghanistan-holidays.md",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -6477,4 +6510,5 @@ pub static NORTH_KOREA: RuleSet = RuleSet {
               태양절 and 광명성절 (secondary, retrieved 2026-09-27); the Socialist Labour Law of 1978 as amended to 30 June 2015, article 64, \
               in Daye Gang's English translation on Law and North Korea \
               (lawandnorthkorea.com), as the Internet Archive holds it (captured 2023-04-08)",
+    subdivisions: Subdivisions::Read(&[]),
 };

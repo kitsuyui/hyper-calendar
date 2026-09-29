@@ -170,7 +170,7 @@ The season of Septuagesima, the three Sundays before Lent, is kept in
 `Kind::Religious` observance:
 
 - every day the calendar prints, month by month, with its class: 53 of the
-  I class, 86 of the II, 181 of the III and 106 commemorations, counting
+  I class, 95 of the II, 181 of the III and 106 commemorations, counting
   the movable feasts and the Proper of Time below. A commemoration made on
   a feast's day is an entry of its own, after the feast. The titles are
   the English translation's, with its abbreviations: Bp. (bishop),
@@ -186,6 +186,19 @@ The season of Septuagesima, the three Sundays before Lent, is kept in
   the Ascension, the Second to Twenty-third after Pentecost, the Third to
   Sixth after Epiphany resumed, and the Twenty-fourth and last, in the
   places no. 18 gives them;
+- **the Ember Days** of Advent, Lent and September, ferias of the II class
+  in place 18 of the Table with the greater ferias of Advent
+  [wikipedia-grc-1960]: the Wednesday, Friday and Saturday after the Third
+  Sunday of Advent, the First Sunday of Lent, and the third Sunday of
+  September within the month, John XXIII's rule [wikipedia-ember-days]. An
+  Ember Day of Advent from 17 to 23 December is that day's greater feria,
+  under the Ember title. Those of Pentecost are days within its octave, of
+  the I class, and keep the octave's titles. A feast of the II class on an
+  Ember Day goes first and the Ember Day is commemorated, a privileged
+  commemoration: St Matthew on Ember Saturday, 21 September 2024;
+- **the years**: from 1961, the year the Code of Rubrics came into force,
+  "effective January 1, 1961" [wikipedia-rubricarum-instructum]. Before it
+  the table has no day and `ordo` and `office_on` answer `None`;
 - `SEASON`, the days that are every weekday of a season: the ferias of
   Lent and Passiontide and of Advent to 16 December (III class), the
   second to fourth days within the octave of Christmas (II class), and the
@@ -197,11 +210,6 @@ The season of Septuagesima, the three Sundays before Lent, is kept in
 
 Not carried:
 
-- **The Ember Days.** The text read names them but does not state how the
-  weeks are dated, as the `rogation-roman-1960` table says. So an Ember
-  Day is the feria of its season here, of the III or IV class instead of
-  the II, and the privileged commemoration of the Ember Days of
-  September is not made.
 - **The Table of Occurrence** as a grid, which is not legible in the text
   read; the numbered rubrics' outcomes are carried instead.
 - **Concurrence** (nos. 103–105), which arranges vespers between two
@@ -229,7 +237,14 @@ feasts agree in number with the Table of Liturgical Days.
 **The ordo** was checked against propria.org's "Catholic Ordo" for the
 liturgical years 2019 to 2026 [propria-ordo], which prints each day's Mass,
 its class and its commemorations (read 2026-09-29): 2,936 days of Advent
-2018 to November 2026, the Ember Days, which are not carried, set aside.
+2018 to November 2026, the Ember Days set aside; they were carried after
+this count, and the Ember Days of Advent 2025 and September 2026 in the
+ordo for 2026 agree, with St Linus and Sts Cyprian and Justina
+commemorated. divinumofficium.com's "Rubrics 1960" kalendar for 2027 gives
+"Feria Quarta Quattuor Temporum Septembris", II classis, on 22 September,
+and the Friday and Saturday on the 24th and 25th, the Ember Days of Lent
+on 17, 19 and 20 February and of Advent on 15, 17 and 18 December, as the
+table does [divinumofficium-1960].
 On 2,856 the class of the office and the number of commemorations agree,
 and so do the transfers of those years: St Joseph from the Fourth
 Sunday of Lent to Monday 20 March 2023, the Annunciation from Monday of
@@ -282,6 +297,16 @@ title is the one carried.
   52 (1960), not read.
 - [liturgyoffice-calendar] and the decrees `roman_calendar` cites, for
   the 1969 calendar in the comparison above.
+- [wikipedia-rubricarum-instructum]: the Code of Rubrics effective
+  1 January 1961, the table's first year. Read 2026-09-29 (secondary).
+- [wikipedia-ember-days]: John XXIII's September Ember week, after the
+  third Sunday within the month, and the Advent and Lent weeks. Read
+  2026-09-29 (secondary). The rubrics' own no. on the Ember Days was not
+  re-read here, the scan being a PDF.
+- [divinumofficium-1960]: the Ember Days of February, May, September and
+  December 2027, the check on the rule. Read 2026-09-29.
+- [propria-ordo], the ordo for 2026, re-read 2026-09-29 for the Ember
+  Days of Advent 2025 and September 2026.
 
 ## Code
 

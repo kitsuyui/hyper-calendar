@@ -81,7 +81,9 @@ fn every_parish_day_falls_where_its_comu_put_it() {
 fn the_parish_days_are_a_gap_outside_the_instruments_read() {
     // 2023's and 2027's instruments were not read; 2025's was, and its
     // parish days are all there.
-    for region in ["AD-02", "AD-04", "AD-05", "AD-06", "AD-07", "AD-08"] {
+    for region in [
+        "AD-02", "AD-03", "AD-04", "AD-05", "AD-06", "AD-07", "AD-08",
+    ] {
         assert!(!HolidayCalendar::for_year(&ANDORRA, Some(region), 2023).is_complete());
         assert!(HolidayCalendar::for_year(&ANDORRA, Some(region), 2025).is_complete());
         assert!(!HolidayCalendar::for_year(&ANDORRA, Some(region), 2027).is_complete());
@@ -181,6 +183,46 @@ fn before_its_instrument_a_departmental_day_is_absent_or_a_gap() {
     assert!(gaps("BO-L", 2008).contains(&"Feriado departamental de La Paz"));
     assert!(gaps("BO-O", 2012).contains(&"Efeméride Departamental de Oruro"));
     assert!(HolidayCalendar::for_year(&BOLIVIA, None, 2008).is_complete());
+    // Oruro's day is no gap in 2013, the decree's year, nor after it.
+    assert!(!gaps("BO-O", 2013).contains(&"Efeméride Departamental de Oruro"));
+    assert!(!gaps("BO-O", 2014).contains(&"Efeméride Departamental de Oruro"));
+    // Santa Cruz's Autonomy Day is a gap before its law of 2010.
+    assert!(gaps("BO-S", 2010).contains(&"Día Departamental de la Autonomía"));
+    assert!(!gaps("BO-S", 2011).contains(&"Día Departamental de la Autonomía"));
+}
+
+#[test]
+fn a_department_whose_efemeride_no_instrument_read_dates_is_a_gap() {
+    let gaps = |region, year| {
+        HolidayCalendar::for_year(&BOLIVIA, Some(region), year)
+            .gaps()
+            .iter()
+            .map(|gap| gap.name)
+            .collect::<Vec<_>>()
+    };
+    for (region, name) in [
+        ("BO-B", "Beni Departmental Day"),
+        ("BO-C", "Cochabamba Departmental Day"),
+        ("BO-H", "Chuquisaca Departmental Day"),
+        ("BO-P", "Potosí Departmental Day"),
+        ("BO-S", "Santa Cruz Departmental Day"),
+        ("BO-N", "Pando Departmental Day"),
+    ] {
+        for year in [2000, 2024, 2025, 2026] {
+            assert_eq!(
+                gaps(region, year)
+                    .iter()
+                    .filter(|gap| **gap == name)
+                    .count(),
+                1,
+                "{region} {year}"
+            );
+        }
+    }
+    // Every department is one the table was read for, and the nationwide
+    // calendar has no gap.
+    assert_eq!(BOLIVIA.regions().len(), 9);
+    assert!(HolidayCalendar::for_year(&BOLIVIA, None, 2026).is_complete());
 }
 
 #[test]

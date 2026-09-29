@@ -8,8 +8,8 @@
 //! Sanma Day on 24 September, Torba Day on 2 October, Tafea Day on
 //! 8 October and Malampa Day on 10 October. The list as read dates Good
 //! Friday on 10 April, Easter Monday on 13 April and Ascension on 21 May,
-//! which is 2020, so the days are carried from 2020; no earlier list, and
-//! no provincial council's resolution, was read. They are days off in
+//! which is 2020, so the days are carried from 2020, the years before a
+//! gap: no earlier list, and no provincial council's resolution, was read. They are days off in
 //! their province, as the list gives them, and none moves off a Sunday:
 //! section 3's Sunday rule is the Act's, for the Act's own holidays. The
 //! names are the list's.
@@ -22,7 +22,8 @@ use crate::rule::joined;
 /// The year of the Government's list read.
 const FIRST: i32 = 2020;
 
-/// A province's day on a fixed date, in `region`, from the list's year.
+/// A province's day on a fixed date, in `region`, answered from the
+/// list's year, the years before a gap.
 const fn provincial(
     name: &'static str,
     month: u8,
@@ -30,7 +31,7 @@ const fn provincial(
     region: &'static [&'static str],
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, "", Rule::gregorian(month, day))
-        .years(Some(FIRST), None)
+        .read_from(FIRST)
         .in_regions(region)
 }
 

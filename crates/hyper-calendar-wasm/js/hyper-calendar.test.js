@@ -948,6 +948,23 @@ describe("holidays", () => {
     const year = hc.holidaysInYear("CN", "", 2026, "women");
     assert.deepEqual(year.filter((day) => day.group).map((day) => day.date), ["2026-03-08"]);
     assert.ok(!hc.holidaysInYear("CN", "", 2026).some((day) => day.localName === "妇女节"));
+    // Before 1999, the first year of the statute's text read, the half day
+    // is a gap row: no date, no confidence, the kind "gap", the group.
+    const before = hc.holidaysInYear("CN", "", 1998, "women").filter((day) => day.kind === "gap");
+    assert.deepEqual(before.find((day) => day.localName === "妇女节"), {
+      date: null,
+      name: "Women's Day",
+      localName: "妇女节",
+      kind: "gap",
+      confidence: null,
+      substitute: false,
+      observedFor: null,
+      region: null,
+      group: "women",
+    });
+    // A state whose code was not read is a gap row with its region.
+    const hampshire = hc.holidaysInYear("US", "US-NH", 2026).filter((day) => day.kind === "gap");
+    assert.deepEqual(hampshire.map((day) => [day.name, day.region]), [["The subdivision's own days", "US-NH"]]);
     const childrensDay = hc.gregorianToFixed(2026, 6, 1);
     assert.equal(hc.holidayIsDayOff("CN", "", childrensDay, "children"), true);
     assert.equal(hc.holidayIsDayOff("CN", "", childrensDay), false);

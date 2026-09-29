@@ -14,7 +14,9 @@
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
 
 /// The presidential handover day, Ley Federal del Trabajo art. 74 VI.
 ///
@@ -42,21 +44,12 @@ const JALISCO_LAW: &str = "Ley para los Servidores Públicos del Estado de Jalis
      21593/LVII/06 (Periódico Oficial El Estado de Jalisco, 2 December 2006): días de descanso \
      obligatorio";
 
-/// The years before 2007 for one of Jalisco's days, a gap: the law of 1984
-/// was not read as it stood before its reform of 2006.
-const fn jalisco_before_2007(name: &'static str, local_name: &'static str) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::UNREAD)
-        .years(None, Some(2006))
-        .in_regions(JALISCO)
-        .cited(JALISCO_LAW)
-}
-
 /// A day of rest Jalisco's law adds for its public servants, in the text
 /// read, in force from its reform of December 2006.
 const fn jalisco(name: &'static str, local_name: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(name, local_name, Rule::gregorian(month, day))
         .of_kind(Kind::Government)
-        .years(Some(2007), None)
+        .read_from(2007)
         .in_regions(JALISCO)
         .cited(JALISCO_LAW)
 }
@@ -115,13 +108,9 @@ static MX_RULES: &[HolidayRule] = &[
     // ── The states' own days ────────────────────────────────────────────
     // Article 38 names these by their dates alone.
     jalisco("5 May", "5 de mayo", 5, 5),
-    jalisco_before_2007("5 May", "5 de mayo"),
     jalisco("28 September", "28 de septiembre", 9, 28),
-    jalisco_before_2007("28 September", "28 de septiembre"),
     jalisco("12 October", "12 de octubre", 10, 12),
-    jalisco_before_2007("12 October", "12 de octubre"),
     jalisco("2 November", "2 de noviembre", 11, 2),
-    jalisco_before_2007("2 November", "2 de noviembre"),
 ];
 
 /// Mexico.
@@ -146,4 +135,5 @@ pub static MEXICO: RuleSet = RuleSet {
               list of reforms ends in December 2009, retrieved 2026-09-29; the other states' \
               laws, published as PDF or Word files, not read, as \
               docs/systems/mexico-holidays.md lists them",
+    subdivisions: Subdivisions::Read(&[]),
 };

@@ -250,7 +250,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 | Code | Country | Rules | Substitution | Weekend rule | Sources checked |
 | --- | --- | --- | --- | --- | --- |
-| `AD` | Andorra | 27 | none | stated | 2026-09-29 |
+| `AD` | Andorra | 28 | none | stated | 2026-09-29 |
 | `AE` | United Arab Emirates | 19 | none | stated | 2026-09-26 |
 | `AF` | Afghanistan | 13 | none | stated | 2026-09-26 |
 | `AG` | Antigua and Barbuda | 14 | yes | stated | 2026-09-23 |
@@ -271,21 +271,21 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BI` | Burundi | 14 | none | stated | 2026-09-23 |
 | `BJ` | Benin | 18 | none | stated | 2026-09-23 |
 | `BN` | Brunei | 15 | yes | stated | 2026-09-23 |
-| `BO` | Bolivia | 22 | yes | stated | 2026-09-29 |
+| `BO` | Bolivia | 25 | yes | stated | 2026-09-29 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
 | `BT` | Bhutan | 51 | none | stated | 2026-09-29 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
-| `CA` | Canada | 36 | yes | stated | 2026-09-29 |
+| `CA` | Canada | 54 | yes | stated | 2026-09-29 |
 | `CD` | Democratic Republic of the Congo | 17 | yes | stated | 2026-09-23 |
 | `CG` | Republic of the Congo | 9 | none | stated | 2026-09-23 |
-| `CH` | Switzerland | 290 | none | stated | 2026-09-29 |
+| `CH` | Switzerland | 228 | none | stated | 2026-09-29 |
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-26 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
-| `CN` | China | 65 | none | stated | 2026-09-29 |
+| `CN` | China | 55 | none | stated | 2026-09-29 |
 | `CO` | Colombia | 18 | none | stated | 2026-09-22 |
 | `CR` | Costa Rica | 13 | none | stated | 2026-09-22 |
 | `CU` | Cuba | 10 | yes | stated | 2026-09-22 |
@@ -327,14 +327,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 39 | none | stated | 2026-09-27 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 14 | none | stated | 2026-09-28 |
-| `IN` | India | 2040 | none | stated | 2026-09-29 |
+| `IN` | India | 2027 | none | stated | 2026-09-29 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |
 | `IT` | Italy | 20 | none | stated | 2026-09-26 |
 | `JM` | Jamaica | 11 | yes | stated | 2026-09-22 |
 | `JO` | Jordan | 25 | none | stated | 2026-09-26 |
-| `JP` | Japan | 64 | yes | stated | 2026-09-28 |
+| `JP` | Japan | 66 | yes | stated | 2026-09-28 |
 | `KE` | Kenya | 13 | yes | stated | 2026-09-22 |
 | `KG` | Kyrgyzstan | 30 | yes | stated | 2026-09-22 |
 | `KH` | Cambodia | 54 | none | stated | 2026-09-29 |
@@ -372,7 +372,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `MU` | Mauritius | 16 | none | stated | 2026-09-27 |
 | `MV` | Maldives | 19 | none | stated | 2026-09-23 |
 | `MW` | Malawi | 13 | yes | stated | 2026-09-22 |
-| `MX` | Mexico | 19 | none | stated | 2026-09-29 |
+| `MX` | Mexico | 15 | none | stated | 2026-09-29 |
 | `MY` | Malaysia | 34 | yes | stated | 2026-09-27 |
 | `MZ` | Mozambique | 9 | none | stated | 2026-09-23 |
 | `NA` | Namibia | 14 | yes | stated | 2026-09-22 |
@@ -381,7 +381,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `NI` | Nicaragua | 11 | none | stated | 2026-09-23 |
 | `NL` | Netherlands | 10 | none | stated | 2026-09-26 |
 | `NO` | Norway | 12 | none | stated | 2026-09-26 |
-| `NP` | Nepal | 44 | none | stated | 2026-09-29 |
+| `NP` | Nepal | 38 | none | stated | 2026-09-29 |
 | `NR` | Nauru | 21 | yes | stated | 2026-09-23 |
 | `NZ` | New Zealand | 25 | yes | stated | 2026-09-29 |
 | `OM` | Oman | 20 | yes | stated | 2026-09-22 |
@@ -398,7 +398,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `QA` | Qatar | 16 | none | stated | 2026-09-22 |
 | `RO` | Romania | 17 | none | stated | 2026-09-22 |
 | `RS` | Serbia | 26 | yes | stated | 2026-09-22 |
-| `RU` | Russia | 114 | none | stated | 2026-09-29 |
+| `RU` | Russia | 77 | none | stated | 2026-09-29 |
 | `RW` | Rwanda | 17 | yes | stated | 2026-09-23 |
 | `SA` | Saudi Arabia | 10 | none | stated | 2026-09-26 |
 | `SB` | Solomon Islands | 17 | yes | stated | 2026-09-29 |
@@ -432,7 +432,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |
-| `US` | United States | 294 | yes | stated | 2026-09-29 |
+| `US` | United States | 172 | yes | stated | 2026-09-29 |
 | `UY` | Uruguay | 23 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |
@@ -502,7 +502,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `qumran-festivals` | Qumran festivals | 8 |
 | `rogation-roman-1960` | Rogation Days (Roman Rite, Code of Rubrics of 1960) | 4 |
 | `roman-general` | General Roman Calendar | 232 |
-| `roman-general-1960` | General Roman Calendar of 1960 | 426 |
+| `roman-general-1960` | General Roman Calendar of 1960 | 435 |
 | `sacred-wednesdays` | Wednesdays on the eighth lunar day | 1 |
 | `samaritan` | Samaritan festivals | 6 |
 | `shinto` | Shinto | 5 |

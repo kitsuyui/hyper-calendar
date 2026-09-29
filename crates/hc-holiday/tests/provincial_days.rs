@@ -61,6 +61,16 @@ fn vanuatu_keeps_each_provincial_day_in_its_province_from_2020() {
             assert_eq!(days[0].regions, [region]);
         }
         assert!(own_days(&VANUATU, region, 2019).is_empty(), "{region}");
+        // No list before 2020's was read: 2019 is a gap, 2020 is not.
+        let names = |year| {
+            HolidayCalendar::for_year(&VANUATU, Some(region), year)
+                .gaps()
+                .iter()
+                .map(|gap| gap.name)
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(names(2019), [name], "{region}");
+        assert!(names(2020).is_empty(), "{region}");
     }
     // Shefa Day 2026 is a Thursday: a day off in Shefa, a working day in
     // Sanma and nationwide.
@@ -96,10 +106,11 @@ fn solomon_islands_keeps_the_provincial_days_of_2026() {
         assert_eq!(days[0].date, ymd(2026, month, day), "{region}");
         assert_eq!(days[0].kind, Kind::Public);
         assert_eq!(days[0].regions, [region]);
-        // Before the notice read, nothing, and no gap.
+        // Before the notice read, nothing, and a gap: the notices before
+        // 2026's were not read.
         let before = HolidayCalendar::for_year(&SOLOMON_ISLANDS, Some(region), 2025);
         assert!(own_days(&SOLOMON_ISLANDS, region, 2025).is_empty());
-        assert!(before.is_complete(), "{region}");
+        assert_eq!(before.gaps().len(), 1, "{region}");
         // After it, a gap: the days are appointed each year.
         let after = HolidayCalendar::for_year(&SOLOMON_ISLANDS, Some(region), 2027);
         assert_eq!(after.gaps().len(), 1, "{region}");

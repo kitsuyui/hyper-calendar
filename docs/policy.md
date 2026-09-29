@@ -110,6 +110,12 @@ Some questions have no answer, and the API says so instead of inventing one:
   documented range. Its README says what it can and cannot be trusted for.
 - **Local time that does not exist.** When a DST transition skips an hour,
   `hc-tz` returns `Nonexistent` rather than silently shifting.
+- **A holiday before the sources read.** A holiday rule is absent only
+  before the year a source says it was established, or after it was
+  abolished. A year before the first its sources were read for, and a
+  subdivision they were not read for, is a gap that the engine reports,
+  not a year or a place without the day
+  ([ADR 0013](adr/0013-a-year-the-sources-do-not-reach-is-a-gap.md)).
 
 ## 5. Competing conventions get names, not parameters
 

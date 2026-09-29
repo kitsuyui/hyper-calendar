@@ -331,10 +331,24 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 /// own entry it is — the group asked for, as the table writes its
 /// identifier, on an entry the calendar for everyone does not have — or
 /// nothing, tab-separated.
+///
+/// Then the gaps: a holiday the table could not place in the year — its
+/// calendar's range ended, no announcement was read, the year is before
+/// the first its sources were read for, or the subdivision was not read —
+/// one line each, as `hc_holidays_on` writes them: an empty date, the
+/// name, the local name, the kind `gap`, an empty confidence, `0`, nothing,
+/// and the subdivision and the group whose own gap it is, as for an entry.
 #[must_use]
 pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
     let calendar = HolidayCalendar::for_year_scoped(table, scope, year);
-    let own_region = table_region(table, scope.region);
+    // A subdivision the table was not read for has no code of the table's
+    // own to write, and its gap is written with the code as asked.
+    let own_region: Option<&str> = table_region(table, scope.region).or_else(|| {
+        scope
+            .region
+            .map(str::trim)
+            .filter(|region| !table.reads_region(region))
+    });
     let own_group = table_group(table, scope.group);
     // The calendar without the region, and the calendar without the group:
     // an entry the one lacks is the region's own, the other's the group's.
@@ -357,6 +371,24 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
             .cell(holiday.confidence.id())
             .flag(holiday.is_substitute())
             .cell_or_empty(holiday.observed_for.map(iso).as_deref())
+            .cell_or_empty(regional)
+            .cell_or_empty(grouped);
+        line.end();
+    }
+    let own_gap = |parent: Option<&HolidayCalendar<'_>>, gap: &Gap, code| {
+        parent.and_then(|parent| (!parent.gaps().contains(gap)).then_some(code))
+    };
+    for gap in calendar.gaps() {
+        let regional = own_gap(without_region.as_ref(), gap, own_region).flatten();
+        let grouped = own_gap(without_group.as_ref(), gap, own_group).flatten();
+        let mut line = Line::new(&mut out);
+        line.empty()
+            .cell(gap.name)
+            .cell(gap.local_name)
+            .cell("gap")
+            .empty()
+            .flag(false)
+            .empty()
             .cell_or_empty(regional)
             .cell_or_empty(grouped);
         line.end();
@@ -387,7 +419,8 @@ pub fn holidays_in_year(
 /// the rule cites, `1` for a substitute day and `0` otherwise, the fixed
 /// day a substitute stands in for or nothing, the subdivision and the
 /// group, which are nothing here; a gap has the kind `gap`, an empty
-/// confidence and source, `0` and nothing.
+/// confidence, the instrument its rule cites, which for a year before its
+/// sources were read says what was read, `0` and nothing.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
     push_entry_lines(
         out,
@@ -482,7 +515,8 @@ fn push_entry_lines(
             .cell(gap.name)
             .cell(gap.local_name)
             .cell("gap")
-            .empties(2)
+            .empty()
+            .cell(gap.source)
             .flag(false)
             .empty()
             .cell_or_empty(scope.region)
@@ -582,8 +616,9 @@ pub fn is_day_off(
 ///
 /// # Errors
 ///
-/// [`Refusal::OutOfRange`] outside the liturgical years 1583 to 4099,
-/// whose Easter the Gregorian computus gives.
+/// [`Refusal::OutOfRange`] before
+/// [`lectionary::ROMAN_REFORM_IN_EFFECT`], 1 January 1970, and after the
+/// liturgical year 4099, the last whose Easter the Gregorian computus gives.
 pub fn lectionary_line(fixed: i64) -> Answer<String> {
     let day = Rd(fixed);
     let year = lectionary::liturgical_year(day).ok_or(Refusal::OutOfRange)?;
@@ -1358,7 +1393,7 @@ mod tests {
     /// A table of one holiday whose names hold a tab and line breaks, as
     /// data can.
     fn table_with_separators_in_its_names() -> &'static RuleSet {
-        use hc_holiday::rule::{HolidayRule, Rule, SATURDAY_SUNDAY, SourceDate};
+        use hc_holiday::rule::{HolidayRule, Rule, SATURDAY_SUNDAY, SourceDate, Subdivisions};
         static RULES: [HolidayRule; 1] = [HolidayRule::public(
             "New\tYear's\nDay",
             "元\r\n日",
@@ -1374,6 +1409,7 @@ mod tests {
             weekend: SATURDAY_SUNDAY,
             sources_checked: SourceDate::new(2026, 9, 28),
             sources: "invented for the test",
+            subdivisions: Subdivisions::Undivided,
         };
         &TABLE
     }
@@ -1402,6 +1438,48 @@ mod tests {
         assert_eq!(
             out,
             "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\n"
+        );
+    }
+
+    /// The year's lines end with its gaps, as the day's lines write them:
+    /// China's statute text read begins in 1999, so the half day of women
+    /// in 1998 is a gap line with the group; a state whose code was not
+    /// read is a gap line with its region.
+    #[test]
+    fn the_year_s_lines_write_its_gaps() {
+        let women = holidays_in_year("CN", None, Some("women"), 1998).unwrap_or_default();
+        assert!(
+            women
+                .lines()
+                .any(|line| line == "\tWomen's Day\t妇女节\tgap\t\t0\t\t\twomen"),
+            "{women}"
+        );
+        // Everyone's lines of 1998 do not carry the group's gap.
+        let everyone = holidays_in_year("CN", None, None, 1998).unwrap_or_default();
+        assert!(!everyone.lines().any(|line| line.contains("Women's Day")));
+        let hampshire = holidays_in_year("US", Some("US-NH"), None, 2026).unwrap_or_default();
+        assert!(
+            hampshire
+                .lines()
+                .any(|line| line == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t"),
+            "{hampshire}"
+        );
+        // Every line keeps its nine columns.
+        for line in women.lines().chain(hampshire.lines()) {
+            assert_eq!(line.split('\t').count(), 9, "{line}");
+        }
+        // A day's gap line carries the rule's source.
+        let day = hc_holiday::rule::Scope::group("women");
+        let table = rule_set("CN").unwrap_or(&countries::CHINA);
+        let march = Rd(ymd(1998, 3, 8));
+        let grouped = HolidayCalendar::for_day_scoped(table, day, march);
+        let everyone = HolidayCalendar::for_day(table, None, march);
+        let mut out = String::new();
+        push_scoped_day_lines(&mut out, table, day, &grouped, &[&everyone], march);
+        assert!(
+            out.lines()
+                .any(|line| line.contains("\tgap\t\t全国年节及纪念日放假办法")),
+            "{out}"
         );
     }
 

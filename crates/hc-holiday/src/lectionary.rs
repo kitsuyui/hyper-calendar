@@ -31,15 +31,32 @@
 //! after the Epiphany, which the RCL's calendar prints as Propers 1 to 3
 //! for churches that use them there, are not numbered here.
 //!
-//! The cycles are arithmetic and answer for the liturgical years whose
-//! Easter the Gregorian computus gives, 1583 to 4099. The Roman Lectionary dates from 1969 and
-//! the RCL from Advent 1992 (§8), so a letter for an earlier year is the
-//! rule applied backwards, not a lectionary anyone read from.
+//! The cycles are arithmetic, and answer from the day the reform they
+//! belong to went into effect to the last liturgical year whose Easter the
+//! Gregorian computus gives, 4099. The Sunday and weekday cycles and
+//! Ordinary Time are the Roman reform's: Paul VI's *Mysterii Paschalis* of
+//! 14 February 1969 approved the new calendar and "the general norms
+//! concerning the arrangement of the liturgical year", which "will go into
+//! effect on January 1, 1970" (vatican.va, retrieved 2026-09-29), so
+//! before [`ROMAN_REFORM_IN_EFFECT`] they are `None`. The RCL's Propers
+//! begin with Advent 1992 (`cct-rcl`, §8), and before it
+//! [`rcl_proper`] is `None`. [`liturgical_year`] and
+//! [`first_sunday_of_advent`] name and date a year and are not the
+//! reform's.
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::computus::{self, COMPUTUS_LAST_YEAR, GREGORIAN_COMPUTUS_FIRST_YEAR};
+
+/// The day the Roman calendar of 1969 and its general norms went into
+/// effect, 1 January 1970 (Paul VI, *Mysterii Paschalis*, 14 February
+/// 1969): the first day of Ordinary Time and of the Roman cycles.
+pub const ROMAN_REFORM_IN_EFFECT: Rd = Rd(719_163);
+
+/// The year whose First Sunday of Advent began the Revised Common
+/// Lectionary's use, 1992 (`cct-rcl`, §8).
+pub const RCL_FIRST_ADVENT_YEAR: i64 = 1992;
 
 /// The year of the three-year Sunday cycle, which the Roman Lectionary and
 /// the Revised Common Lectionary share.
@@ -135,6 +152,9 @@ pub fn liturgical_year(day: Rd) -> Option<i64> {
 /// ```
 #[must_use]
 pub fn sunday_cycle(day: Rd) -> Option<SundayCycle> {
+    if day < ROMAN_REFORM_IN_EFFECT {
+        return None;
+    }
     // The Advent year is the liturgical year less one; Year A begins in an
     // Advent year divisible by three.
     Some(match (liturgical_year(day)? - 1).rem_euclid(3) {
@@ -148,6 +168,9 @@ pub fn sunday_cycle(day: Rd) -> Option<SundayCycle> {
 /// odd-numbered liturgical year, Year II in an even one.
 #[must_use]
 pub fn roman_weekday_cycle(day: Rd) -> Option<WeekdayCycle> {
+    if day < ROMAN_REFORM_IN_EFFECT {
+        return None;
+    }
     Some(if liturgical_year(day)?.rem_euclid(2) == 1 {
         WeekdayCycle::I
     } else {
@@ -178,11 +201,13 @@ const TRINITY_SUNDAY: i64 = computus::offsets::TRINITY_SUNDAY as i64;
 /// five.
 ///
 /// Returns `None` for a day that is not a Sunday, for a Sunday outside
-/// the season after Trinity Sunday, and outside the Gregorian computus's
-/// years.
+/// the season after Trinity Sunday, before Advent 1992 and outside the
+/// Gregorian computus's years.
 #[must_use]
 pub fn rcl_proper(day: Rd) -> Option<u8> {
-    if Weekday::from_rd(day) != Weekday::Sunday {
+    if Weekday::from_rd(day) != Weekday::Sunday
+        || day < first_sunday_of_advent(RCL_FIRST_ADVENT_YEAR)?
+    {
         return None;
     }
     let year = gregorian::year_from_fixed(day).ok()?;
@@ -251,8 +276,8 @@ impl OrdinaryTime {
 /// here: which celebration is kept is the ordo's question.
 ///
 /// Returns `None` for a day that is not a Sunday, for a Sunday outside
-/// Ordinary Time (the Baptism of the Lord among them) and outside the
-/// Gregorian computus's years.
+/// Ordinary Time (the Baptism of the Lord among them), before
+/// [`ROMAN_REFORM_IN_EFFECT`] and outside the Gregorian computus's years.
 ///
 /// ```
 /// use hc_holiday::lectionary::sunday_in_ordinary_time;
@@ -267,7 +292,7 @@ impl OrdinaryTime {
 /// ```
 #[must_use]
 pub fn sunday_in_ordinary_time(day: Rd) -> Option<u8> {
-    if Weekday::from_rd(day) != Weekday::Sunday {
+    if Weekday::from_rd(day) != Weekday::Sunday || day < ROMAN_REFORM_IN_EFFECT {
         return None;
     }
     let time = OrdinaryTime::of(gregorian::year_from_fixed(day).ok()?)?;
@@ -294,8 +319,8 @@ pub fn sunday_in_ordinary_time(day: Rd) -> Option<u8> {
 /// `liturgyoffice-moveable`). The week after Pentecost is therefore
 /// not always one more than the week before Lent.
 ///
-/// Returns `None` for a day outside Ordinary Time and outside the
-/// Gregorian computus's years. [`week_of_ordinary_time_epiphany_on_sunday`]
+/// Returns `None` for a day outside Ordinary Time, before
+/// [`ROMAN_REFORM_IN_EFFECT`] and outside the Gregorian computus's years. [`week_of_ordinary_time_epiphany_on_sunday`]
 /// is the reckoning of the conferences that keep the Epiphany on a Sunday.
 #[must_use]
 pub fn week_of_ordinary_time(day: Rd) -> Option<u8> {
@@ -334,6 +359,9 @@ pub fn week_of_ordinary_time_epiphany_on_sunday(day: Rd) -> Option<u8> {
 /// The week of Ordinary Time of a day, given the day of the Baptism of the
 /// Lord in a year.
 fn week_of_ordinary_time_from(day: Rd, baptism: impl Fn(i64) -> Option<Rd>) -> Option<u8> {
+    if day < ROMAN_REFORM_IN_EFFECT {
+        return None;
+    }
     let year = gregorian::year_from_fixed(day).ok()?;
     let time = OrdinaryTime::of(year)?;
     if day > baptism(year)? && day < time.ash_wednesday {
@@ -445,7 +473,10 @@ mod tests {
 
     #[test]
     fn proper_29_is_the_sunday_between_20_and_26_november() {
-        for year in 1990..=2040 {
+        // The RCL begins with Advent 1992: its first Proper 29 is 1993's,
+        // and 22 November 1992 has none.
+        assert_eq!(rcl_proper(greg(1992, 11, 22)), None);
+        for year in 1993..=2040 {
             let last = Weekday::Sunday.on_or_after(greg(year, 11, 20));
             assert_eq!(rcl_proper(last), Some(29), "{year}");
             assert_eq!(rcl_proper(Rd(last.0 + 7)), None, "{year}: Advent");
@@ -455,13 +486,15 @@ mod tests {
 
     #[test]
     fn an_easter_on_22_march_makes_the_sunday_after_trinity_proper_3() {
-        // 1818 had the earliest Easter, 22 March (Meeus); Trinity Sunday was
-        // 17 May and the Sunday after it 24 May.
-        assert_eq!(computus::gregorian_easter(1818), Some(greg(1818, 3, 22)));
-        assert_eq!(rcl_proper(greg(1818, 5, 17)), None);
-        assert_eq!(rcl_proper(greg(1818, 5, 24)), Some(3));
+        // 2285 has the earliest Easter, 22 March, as 1818 had (Meeus), and
+        // the first since the RCL began; Trinity Sunday is 17 May and the
+        // Sunday after it 24 May. In 1818 the RCL was not yet in use.
+        assert_eq!(computus::gregorian_easter(2285), Some(greg(2285, 3, 22)));
+        assert_eq!(rcl_proper(greg(2285, 5, 17)), None);
+        assert_eq!(rcl_proper(greg(2285, 5, 24)), Some(3));
+        assert_eq!(rcl_proper(greg(1818, 5, 24)), None);
         // In no year is a Proper lower than 3.
-        for year in 1583..=2500 {
+        for year in 1993..=2500 {
             let trinity = computus::gregorian_easter(year).expect("in range").0 + TRINITY_SUNDAY;
             let first = rcl_proper(Rd(trinity + 7)).expect("a Proper");
             assert!((3..=8).contains(&first), "{year}: Proper {first}");
@@ -498,7 +531,22 @@ mod tests {
         assert_eq!(rcl_proper(greg(2026, 7, 1)), None);
         assert_eq!(first_sunday_of_advent(1581), None);
         assert_eq!(sunday_cycle(greg(1582, 11, 27)), None);
-        assert_eq!(sunday_cycle(greg(1583, 6, 1)), Some(SundayCycle::B));
+        // The Roman cycles begin on 1 January 1970, when Mysterii Paschalis
+        // put the calendar of 1969 into effect: the liturgical year 1970,
+        // whose Advent year 1969 leaves 1 over three, is Year B.
+        assert_eq!(ROMAN_REFORM_IN_EFFECT, greg(1970, 1, 1));
+        assert_eq!(sunday_cycle(greg(1583, 6, 1)), None);
+        assert_eq!(sunday_cycle(greg(1969, 12, 31)), None);
+        assert_eq!(sunday_cycle(greg(1970, 1, 1)), Some(SundayCycle::B));
+        assert_eq!(roman_weekday_cycle(greg(1969, 12, 31)), None);
+        assert_eq!(
+            roman_weekday_cycle(greg(1970, 1, 1)),
+            Some(WeekdayCycle::II)
+        );
+        assert_eq!(week_of_ordinary_time(greg(1969, 6, 10)), None);
+        assert!(week_of_ordinary_time(greg(1970, 6, 10)).is_some());
+        assert_eq!(sunday_in_ordinary_time(greg(1969, 11, 23)), None);
+        assert_eq!(sunday_in_ordinary_time(greg(1970, 11, 22)), Some(34));
         assert_eq!(sunday_cycle(greg(4099, 6, 1)), Some(SundayCycle::A));
         assert_eq!(sunday_cycle(greg(4099, 12, 25)), None);
     }
@@ -596,7 +644,7 @@ mod tests {
     /// 22–28 May to the 34th on 20–26 November.
     #[test]
     fn every_sunday_in_ordinary_time_is_in_the_liturgy_office_window() {
-        for year in 1583..=2600 {
+        for year in 1970..=2600 {
             let mut sunday = Weekday::Sunday.on_or_after(greg(year, 1, 1));
             while gregorian::year_from_fixed(sunday).unwrap() == year {
                 if let Some(n) = sunday_in_ordinary_time(sunday) {

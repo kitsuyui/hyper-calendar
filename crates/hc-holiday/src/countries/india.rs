@@ -128,45 +128,54 @@ const fn nia(
         .cited(source)
 }
 
-/// The years before `first`, the first year of `region`'s lists carried, a
-/// gap for it: the Reserve Bank's form gives no earlier list whole, and the
-/// state's own notifications were not read.
-const fn not_read_before(
+/// The years of `region`'s lists: none of its days in the years `first`
+/// to [`LAST`], whose lists are its [`nia`] rules, and a gap in any other
+/// year from `established` — before `first`, because the Reserve Bank's
+/// form gives no earlier list whole and the state's own notifications were
+/// not read, and after [`LAST`], because the days are declared year by
+/// year. Before `established` the holidays are absent: the state did not
+/// exist, or the Act was not yet in force ([`NI_ACT_IN_FORCE`], and the
+/// reorganisation years of [`STATES_REORGANISATION`],
+/// [`BOMBAY_REORGANISATION`] and [`ANDHRA_PRADESH_REORGANISATION`]).
+const fn lists_read(
     first: i32,
+    established: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::fixed_public(
         "Holidays under the Negotiable Instruments Act",
         "",
-        Rule::UNREAD,
+        Rule::unlisted(first as i64, LAST as i64),
     )
     .of_kind(Kind::Bank)
-    .years(None, Some(first - 1))
+    .years(Some(established), None)
     .in_regions(region)
     .cited(source)
 }
 
-/// The years after the last list read, a gap for `region`: its days are
-/// declared year by year.
-const fn not_read(region: &'static [&'static str], source: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(
-        "Holidays under the Negotiable Instruments Act",
-        "",
-        Rule::unlisted(FIRST as i64, LAST as i64),
-    )
-    .of_kind(Kind::Bank)
-    .years(Some(FIRST), None)
-    .in_regions(region)
-    .cited(source)
-}
+/// The Negotiable Instruments Act, 1881, commenced 1 March 1882
+/// (Wikipedia, "Negotiable Instruments Act, 1881", secondary, retrieved
+/// 2026-09-29): the first year a state's holidays under it can fall in.
+const NI_ACT_IN_FORCE: i32 = 1882;
+/// The States Reorganisation Act, 1956, effective 1 November 1956, which
+/// formed Kerala and Andhra Pradesh (Wikipedia, "States Reorganisation Act,
+/// 1956", secondary, retrieved 2026-09-29).
+const STATES_REORGANISATION: i32 = 1956;
+/// The Bombay Reorganisation Act, 1960, in effect 1 May 1960, which divided
+/// Bombay State into Gujarat and Maharashtra (Wikipedia, "Maharashtra Day",
+/// secondary, retrieved 2026-09-29).
+const BOMBAY_REORGANISATION: i32 = 1960;
+/// The Andhra Pradesh Reorganisation Act, 2014, commenced 2 June 2014,
+/// which formed Telangana (Wikipedia, "Andhra Pradesh Reorganisation Act,
+/// 2014", secondary, retrieved 2026-09-29).
+const ANDHRA_PRADESH_REORGANISATION: i32 = 2014;
 
 /// Every state day carried, state by state, each state's in date order.
 #[rustfmt::skip]
 pub static STATE_DAYS: &[HolidayRule] = &[
     // Uttar Pradesh: Lucknow and Kanpur.
-    not_read_before(2019, UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
-    not_read(UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
     nia(2019, 1, 26, "Republic Day", UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
     nia(2019, 3, 20, "Holika Dahan", UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
@@ -349,8 +358,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
     nia(2026, 12, 25, "Christmas", UTTAR_PRADESH, UTTAR_PRADESH_SOURCE),
     // Maharashtra: Mumbai and Belapur and Nagpur.
-    not_read_before(2019, MAHARASHTRA, MAHARASHTRA_SOURCE),
-    not_read(MAHARASHTRA, MAHARASHTRA_SOURCE),
+    lists_read(FIRST, BOMBAY_REORGANISATION, MAHARASHTRA, MAHARASHTRA_SOURCE),
     nia(2019, 1, 26, "Republic Day", MAHARASHTRA, MAHARASHTRA_SOURCE),
     nia(2019, 2, 19, "Chhatrapati Shivaji Maharaj Jayanti/Guru Ravidas’s Birthday", MAHARASHTRA, MAHARASHTRA_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", MAHARASHTRA, MAHARASHTRA_SOURCE),
@@ -523,8 +531,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", MAHARASHTRA, MAHARASHTRA_SOURCE),
     nia(2026, 12, 25, "Christmas", MAHARASHTRA, MAHARASHTRA_SOURCE),
     // Bihar: Patna.
-    not_read_before(2019, BIHAR, BIHAR_SOURCE),
-    not_read(BIHAR, BIHAR_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, BIHAR, BIHAR_SOURCE),
     nia(2019, 1, 26, "Republic Day", BIHAR, BIHAR_SOURCE),
     nia(2019, 3, 21, "Holi (Second Day)/Dhuleti/Birthday of Md. Hazarat Ali/Dol Jatra/Dhulandi/Holi (Jammu Province only)", BIHAR, BIHAR_SOURCE),
     nia(2019, 3, 22, "Holi/Bihar Divas/Yaosang 2nd Day/Dol Jatra", BIHAR, BIHAR_SOURCE),
@@ -677,8 +684,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 16, "Chhath Puja/Surya Shashti Dala Chhath (Prath Arghya)", BIHAR, BIHAR_SOURCE),
     nia(2026, 12, 25, "Christmas", BIHAR, BIHAR_SOURCE),
     // West Bengal: Kolkata.
-    not_read_before(2019, WEST_BENGAL, WEST_BENGAL_SOURCE),
-    not_read(WEST_BENGAL, WEST_BENGAL_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, WEST_BENGAL, WEST_BENGAL_SOURCE),
     nia(2019, 1, 12, "Birthday of Swami Vivekananda", WEST_BENGAL, WEST_BENGAL_SOURCE),
     nia(2019, 1, 23, "Netaji's Birthday", WEST_BENGAL, WEST_BENGAL_SOURCE),
     nia(2019, 1, 26, "Republic Day", WEST_BENGAL, WEST_BENGAL_SOURCE),
@@ -863,8 +869,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", WEST_BENGAL, WEST_BENGAL_SOURCE),
     nia(2026, 12, 25, "Christmas", WEST_BENGAL, WEST_BENGAL_SOURCE),
     // Madhya Pradesh: Bhopal.
-    not_read_before(2019, MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
-    not_read(MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
     nia(2019, 1, 26, "Republic Day", MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
     nia(2019, 3, 21, "Holi (Second Day)/Dhuleti/Birthday of Md. Hazarat Ali/Dol Jatra/Dhulandi/Holi (Jammu Province only)", MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
@@ -1008,8 +1013,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
     nia(2026, 12, 25, "Christmas", MADHYA_PRADESH, MADHYA_PRADESH_SOURCE),
     // Tamil Nadu: Chennai.
-    not_read_before(2019, TAMIL_NADU, TAMIL_NADU_SOURCE),
-    not_read(TAMIL_NADU, TAMIL_NADU_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, TAMIL_NADU, TAMIL_NADU_SOURCE),
     nia(2019, 1, 1, "New Year’s Day", TAMIL_NADU, TAMIL_NADU_SOURCE),
     nia(2019, 1, 15, "Uttarayaana Punya kaala Makara Sankranti Festival/Pongal/Maghe Sankranti/Magh Bihu & Tusu Puja", TAMIL_NADU, TAMIL_NADU_SOURCE),
     nia(2019, 1, 16, "Thiruvalluvar Day", TAMIL_NADU, TAMIL_NADU_SOURCE),
@@ -1177,8 +1181,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 10, 20, "Dasara/Dusshera (Vijaya Dashmi) (Aaso sud-10)/Mahanavami, Ayudhapooja/Durga Puja", TAMIL_NADU, TAMIL_NADU_SOURCE),
     nia(2026, 12, 25, "Christmas", TAMIL_NADU, TAMIL_NADU_SOURCE),
     // Rajasthan: Jaipur.
-    not_read_before(2019, RAJASTHAN, RAJASTHAN_SOURCE),
-    not_read(RAJASTHAN, RAJASTHAN_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, RAJASTHAN, RAJASTHAN_SOURCE),
     nia(2019, 1, 26, "Republic Day", RAJASTHAN, RAJASTHAN_SOURCE),
     nia(2019, 3, 21, "Holi (Second Day)/Dhuleti/Birthday of Md. Hazarat Ali/Dol Jatra/Dhulandi/Holi (Jammu Province only)", RAJASTHAN, RAJASTHAN_SOURCE),
     nia(2019, 4, 1, "Annual closing of Accounts of Commercial and Co-operative Banks", RAJASTHAN, RAJASTHAN_SOURCE),
@@ -1308,8 +1311,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", RAJASTHAN, RAJASTHAN_SOURCE),
     nia(2026, 12, 25, "Christmas", RAJASTHAN, RAJASTHAN_SOURCE),
     // Karnataka: Bengaluru.
-    not_read_before(2019, KARNATAKA, KARNATAKA_SOURCE),
-    not_read(KARNATAKA, KARNATAKA_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, KARNATAKA, KARNATAKA_SOURCE),
     nia(2019, 1, 15, "Uttarayaana Punya kaala Makara Sankranti Festival/Pongal/Maghe Sankranti/Magh Bihu & Tusu Puja", KARNATAKA, KARNATAKA_SOURCE),
     nia(2019, 1, 22, "Demise of Dr. Shri Shri Shri Shivakumara Mahaswamiji", KARNATAKA, KARNATAKA_SOURCE),
     nia(2019, 1, 26, "Republic Day", KARNATAKA, KARNATAKA_SOURCE),
@@ -1482,8 +1484,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 27, "Kanakadasa Jayanthi", KARNATAKA, KARNATAKA_SOURCE),
     nia(2026, 12, 25, "Christmas", KARNATAKA, KARNATAKA_SOURCE),
     // Gujarat: Ahmedabad.
-    not_read_before(2019, GUJARAT, GUJARAT_SOURCE),
-    not_read(GUJARAT, GUJARAT_SOURCE),
+    lists_read(FIRST, BOMBAY_REORGANISATION, GUJARAT, GUJARAT_SOURCE),
     nia(2019, 1, 14, "Makar Sankranti", GUJARAT, GUJARAT_SOURCE),
     nia(2019, 1, 26, "Republic Day", GUJARAT, GUJARAT_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", GUJARAT, GUJARAT_SOURCE),
@@ -1632,8 +1633,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 10, "Diwali (Bali Pratipada)/Deepawali (Govardhan Puja)/Laxmi Puja/Vikram Samvant New Year Day", GUJARAT, GUJARAT_SOURCE),
     nia(2026, 12, 25, "Christmas", GUJARAT, GUJARAT_SOURCE),
     // Andhra Pradesh: Vijayawada.
-    not_read_before(2023, ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
-    not_read(ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
+    lists_read(2023, STATES_REORGANISATION, ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
     nia(2023, 1, 26, "Republic Day/Saraswati Puja (Shree Panchami)", ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
     nia(2023, 2, 18, "Mahashivratri (Maha Vad-14)/Sivarathri", ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
     nia(2023, 4, 1, "To enable Banks to close their yearly accounts", ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
@@ -1705,8 +1705,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 10, 20, "Dasara/Dusshera (Vijaya Dashmi) (Aaso sud-10)/Mahanavami, Ayudhapooja/Durga Puja", ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
     nia(2026, 12, 25, "Christmas", ANDHRA_PRADESH, ANDHRA_PRADESH_SOURCE),
     // Odisha: Bhubaneswar.
-    not_read_before(2019, ODISHA, ODISHA_SOURCE),
-    not_read(ODISHA, ODISHA_SOURCE),
+    lists_read(FIRST, NI_ACT_IN_FORCE, ODISHA, ODISHA_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", ODISHA, ODISHA_SOURCE),
     nia(2019, 3, 22, "Holi/Bihar Divas/Yaosang 2nd Day/Dol Jatra", ODISHA, ODISHA_SOURCE),
     nia(2019, 4, 1, "Annual closing of Accounts of Commercial and Co-operative Banks", ODISHA, ODISHA_SOURCE),
@@ -1861,8 +1860,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", ODISHA, ODISHA_SOURCE),
     nia(2026, 12, 25, "Christmas", ODISHA, ODISHA_SOURCE),
     // Telangana: Hyderabad.
-    not_read_before(2019, TELANGANA, TELANGANA_SOURCE),
-    not_read(TELANGANA, TELANGANA_SOURCE),
+    lists_read(FIRST, ANDHRA_PRADESH_REORGANISATION, TELANGANA, TELANGANA_SOURCE),
     nia(2019, 1, 15, "Uttarayaana Punya kaala Makara Sankranti Festival/Pongal/Maghe Sankranti/Magh Bihu & Tusu Puja", TELANGANA, TELANGANA_SOURCE),
     nia(2019, 1, 26, "Republic Day", TELANGANA, TELANGANA_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", TELANGANA, TELANGANA_SOURCE),
@@ -2027,8 +2025,7 @@ pub static STATE_DAYS: &[HolidayRule] = &[
     nia(2026, 11, 24, "Guru Nanak Jayanti/Karthika Purnima/Rahas Purnima", TELANGANA, TELANGANA_SOURCE),
     nia(2026, 12, 25, "Christmas", TELANGANA, TELANGANA_SOURCE),
     // Kerala: Thiruvananthapuram and Kochi.
-    not_read_before(2019, KERALA, KERALA_SOURCE),
-    not_read(KERALA, KERALA_SOURCE),
+    lists_read(FIRST, STATES_REORGANISATION, KERALA, KERALA_SOURCE),
     nia(2019, 1, 26, "Republic Day", KERALA, KERALA_SOURCE),
     nia(2019, 3, 4, "Mahashivratri", KERALA, KERALA_SOURCE),
     nia(2019, 4, 1, "Annual closing of Accounts of Commercial and Co-operative Banks", KERALA, KERALA_SOURCE),

@@ -215,10 +215,12 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   read, with his English words; `berzin_day` and `henning_almanac_day`.
   Janson refers to the list of holidays in Henning's book, Appendix II,
   which was not read: whether it holds more is not known here, and the
-  seven are what is carried. They are data in this crate. `hc-holiday`'s
-  `buddhist-tibetan` has four of them from the Tibetan Nuns Project and
-  reports a skipped or repeated date as a gap; wiring either rule and the
-  other three festivals there is a follow-up for that crate.
+  seven are what is carried. They are data in this crate. `hc-holiday`
+  uses both rules: its `buddhist-tibetan-berzin` table dates a skipped or
+  repeated festival by `berzin_day`, and `buddhist-tibetan-henning` dates
+  the festivals as Henning's almanacs mark them, both months of a doubled
+  one among them, by `henning_almanac_day`; `buddhist-tibetan`, from the
+  Tibetan Nuns Project, reports a skipped or repeated date as a gap.
 - **Not carried**: the planets under the Tsurphu, Bhutanese and Mongolian
   epochs, whose epoch values Henning's "Epoch data" gives but whose mean
   solar longitude Janson describes only for the Phugpa, citing Henning's

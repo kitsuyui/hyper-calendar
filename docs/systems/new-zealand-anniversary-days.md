@@ -48,9 +48,13 @@ Easter Tuesday.
 
 ## What is carried
 
-Each province's rule, as a rule of `NEW_ZEALAND` scoped to its region, from
-2010, the first year of the list read. None moves off a weekend, the
-Monday and Friday rules keeping each off it. Every day is `Kind::Public`.
+Each province's rule, as a rule of `NEW_ZEALAND` scoped to its region, read
+from 2010, the first year of the list read: each year before is a gap, as
+no list or council's resolution for it was read, and the days are older.
+None moves off a weekend, the Monday and Friday rules keeping each off it.
+Every day is `Kind::Public`. A region the table gives no day, as Northland,
+keeps the nationwide days and reports its own as a gap, since no source
+read says which province's day it keeps.
 
 | Region | Province | Day | Rule | First year |
 | --- | --- | --- | --- | --- |

@@ -27,6 +27,11 @@ beyond that they differ.
   Nenewe, Abiy Tsom, Tsome Hawaryat, Tsome Filseta and the Wednesdays and
   Fridays, Tsome Dihnet [ethiopianorthodox-org-calendar].
 
+The family has three more churches whose fasts are not yet carried: the
+Syriac Orthodox Church, the Malankara Orthodox Syrian Church of India, and
+the Eritrean Orthodox Tewahedo Church, whose fasts follow the Ethiopian
+Church's Ethiopic calendar. No source for any of their fasts was read.
+
 The Coptic and Ethiopian churches keep Easter by the Alexandrian computus,
 which is the Julian Pascha.
 
@@ -134,8 +139,8 @@ Pascha 12 April.
 - **`coptic-fasts`**: the Holy Fifty, the Nativity on 7 January and
   Theophany, fast-free; the Nativity Fast, Jonah's Fast, Great Lent, the
   Apostles' Fast, the Virgin's Fast and the Paramoun of Theophany.
-- **`ethiopian-fasts`**: the fifty days, Genna and Timkat, fast-free; Tsome
-  Nebiyat, the Gahad of Timkat, Tsome Nenewe, Abiy Tsom, Tsome Hawaryat
+- **`ethiopian-fasts`**: the fifty days, Genna on 7 January and Timkat,
+  fast-free; Tsome Nebiyat from 15 Hidar to 6 January, the Gahad of Timkat, Tsome Nenewe, Abiy Tsom, Tsome Hawaryat
   and Tsome Filseta.
 - **Years**: 1583 to 4099 on the three Gregorian reckonings, as the
   Gregorian computus and the year numbers of the Coptic and Ethiopic
@@ -145,6 +150,10 @@ Pascha 12 April.
 
 Not carried:
 
+- **The fasts of the Syriac Orthodox, Malankara Orthodox Syrian and
+  Eritrean Orthodox Tewahedo churches**, and their years: not yet carried,
+  no source for them having been read. The Eritrean fasts are not assumed
+  to be the Ethiopian table's.
 - **What may be eaten**, which differs by day and by degree of fast, and
   the Coptic Nativity Fast's three added days as a separate fast.
 - **The Armenian days of no fast within the five tabernacle feasts.** A
@@ -203,6 +212,15 @@ lists', and the rule is carried.
   says the Nativity is 28 Koiak in those years. Both give the days
   carried. The `coptic-orthodox` feast table dates the Nativity 29 Koiak,
   8 January in those years.
+- *Genna after an Ethiopic leap year.* The calendar page dates Genna
+  29 Tahsas and Tsome Nebiyat to 28 Tahsas [ethiopianorthodox-org-calendar],
+  which after a leap year are 8 and 7 January; Genna is listed on
+  7 January with no leap-year date [wikipedia-public-holidays-ethiopia],
+  as the Coptic Nativity is kept, and the `ethiopian-orthodox` feast table,
+  which gives the calendrical date, notes Lalibela as the reported
+  exception. The fast carried ends on 6 January and Genna is 7 January
+  every year, so that the fast never falls on the day Genna is kept; the
+  calendrical reading would be a reckoning of its own.
 - *The Coptic Paramoun before a Friday feast*, two days in Wikipedia's
   account, is in no primary source read, and is not carried.
 

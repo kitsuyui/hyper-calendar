@@ -1420,3 +1420,35 @@ fn utah_keeps_juneteenth_on_a_monday() {
         assert_eq!(found[0].date, ymd(year, 6, day), "{year}");
     }
 }
+
+#[test]
+fn california_keeps_good_friday_from_noon_until_three_as_a_half_day() {
+    // Good Friday 2026 is 3 April.
+    let day = gregorian::to_fixed(2026, 4, 3).unwrap_or(Rd(0));
+    let calendar = HolidayCalendar::for_year(&UNITED_STATES, Some("US-CA"), 2026);
+    let entries = calendar.on(day);
+    assert!(
+        entries
+            .iter()
+            .any(|holiday| holiday.kind == Kind::HalfDay && holiday.regions == ["US-CA"])
+    );
+    assert!(calendar.is_business_day(day));
+    assert!(
+        HolidayCalendar::for_year(&UNITED_STATES, None, 2026)
+            .on(day)
+            .iter()
+            .all(|holiday| holiday.kind != Kind::HalfDay)
+    );
+}
+
+#[test]
+fn a_state_whose_code_was_not_read_is_a_gap_and_wyoming_is_not() {
+    use hc_holiday::rule::UNREAD_SUBDIVISION;
+    for region in ["US-NH", "US-OK", "US-GA"] {
+        let calendar = HolidayCalendar::for_year(&UNITED_STATES, Some(region), 2026);
+        let names: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        assert_eq!(names, [UNREAD_SUBDIVISION], "{region}");
+    }
+    // Wyoming's code was read and adds no day: complete, the federal days.
+    assert!(HolidayCalendar::for_year(&UNITED_STATES, Some("US-WY"), 2026).is_complete());
+}

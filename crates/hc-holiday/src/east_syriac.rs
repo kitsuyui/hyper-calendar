@@ -32,7 +32,9 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::computus::offsets::{ASCENSION, EASTER_SUNDAY, PALM_SUNDAY, PENTECOST};
-use crate::rule::{Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, joined};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, joined,
+};
 use crate::traditions::CHURCH_OF_THE_EAST_RULES;
 
 /// A day of the Church of the East, from 1965, as `church-of-the-east`'s.
@@ -448,6 +450,7 @@ pub static CHALDEAN: RuleSet = RuleSet {
               the Sundays they name; Chaldean News, \"A Historic Easter\" (31 March 2025, \
               chaldean-news-easter-2025), secondary, for the calendar aligned with Rome's; all \
               retrieved 2026-09-29",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// The season of Denha: "The Sunday between January 2 and 6; otherwise
@@ -544,6 +547,7 @@ pub static SYRO_MALABAR: RuleSet = RuleSet {
               Raymond de Souza, \"Syro-Malabar calendar elevates summer feasts\" \
               (fatherdesouza-syro-malabar-2020), secondary, for the Transfiguration on 6 August; \
               all retrieved 2026-09-29",
+    subdivisions: Subdivisions::Undivided,
 };
 
 #[cfg(test)]

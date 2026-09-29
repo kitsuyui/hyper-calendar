@@ -13,10 +13,10 @@
 //! 15 August with 14 August observed, and Western on 7 December. The day
 //! kept is the one observed.
 //!
-//! The days are appointed each year, so 2026 is the only year carried: a
-//! later year reports them as a gap, and the years before it, whose
-//! notices were not read, do not carry them. Honiara, the Capital
-//! Territory, is given no day. The names are the crate's.
+//! The days are appointed each year, so 2026 is the only year carried:
+//! every other year, whose notice was not read, reports them as a gap.
+//! Honiara, the Capital Territory, is given no day, and the table lists it
+//! among the subdivisions read. The names are the crate's.
 
 use crate::rule::{HolidayRule, Listing, Rule};
 
@@ -47,7 +47,6 @@ const fn provincial(name: &'static str, region: &'static [&'static str]) -> Holi
         "",
         Rule::listed(APPOINTED.named(region[0]), YEAR, YEAR),
     )
-    .years(Some(YEAR as i32), None)
     .in_regions(region)
 }
 

@@ -975,11 +975,11 @@ function gregorianAdoption(cells) {
 function holidayInYear(cells) {
   const [date, name, localName, kind, confidence, substitute, observedFor, region, group] = cells;
   return {
-    date,
+    date: optional(date),
     name,
     localName: optional(localName),
-    kind: /** @type {import("./hyper-calendar.d.ts").HolidayKind} */ (kind),
-    confidence: /** @type {import("./hyper-calendar.d.ts").Confidence} */ (confidence),
+    kind: /** @type {import("./hyper-calendar.d.ts").HolidayKind | "gap"} */ (kind),
+    confidence: /** @type {import("./hyper-calendar.d.ts").Confidence | null} */ (optional(confidence)),
     substitute: flag(substitute, "substitute"),
     observedFor: optional(observedFor),
     region: optional(region),

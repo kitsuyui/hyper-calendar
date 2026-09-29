@@ -112,6 +112,12 @@ The two churches agree in Lent and part in the other three seasons.
   and the Rogation Days, fifteen days a year.
 - **`rogation-roman-1960`**: the Greater Litanies, moved off Easter
   Sunday and Monday, and the Lesser Litanies.
+- **The Roman Ember Days of 1960** are days of the `roman-general-1960`
+  table and of its ordo, not of a table of their own: ferias of the II
+  class after the Third Sunday of Advent, the First Sunday of Lent and the
+  third Sunday of September within the month, John XXIII's rule
+  [wikipedia-ember-days; wikipedia-grc-1960], and those of Pentecost the
+  octave's days; `docs/systems/roman-calendar-1960.md` says more.
 - **Every entry is religious and none is a day off.** They are computed
   on the Gregorian computus, so they cover the years it gives, 1583–4099.
 
@@ -123,9 +129,6 @@ Not carried:
   them on other days than this table's.
 - **The Prayer Book's vigils**, and its note moving a vigil off a Sunday.
   They are the eves of feasts, not Ember or Rogation Days.
-- **The Roman Ember Days of 1960.** The rubrics read name them, but the
-  text read does not give the rule for the September week. Wikipedia
-  gives John XXIII's change, which the library does not carry.
 - **The Lesser Litanies moved by a local Ordinary.** No. 87 allows it,
   and the choice is local.
 - **The Episcopal Church's set**, "the Wednesday, Friday, and Saturday

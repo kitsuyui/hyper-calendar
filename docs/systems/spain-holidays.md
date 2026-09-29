@@ -65,11 +65,15 @@ Barcelona, and Monday 6 April the reverse. A calendar asked for `ES-MD` in
 
 - **The nationwide days**, as rules with no region: New Year's Day,
   Epiphany, Good Friday, Labour Day, the Assumption, the National Day, All
-  Saints' Day, Constitution Day (from 1983), the Immaculate Conception and
-  Christmas Day. Epiphany is a day of article 45.1 d) that a community may
-  replace, but every community kept it in every resolution read, so it is
-  carried nationwide; a year in which one replaced it would have to move
-  it to the communities.
+  Saints' Day, Constitution Day, the Immaculate Conception and Christmas
+  Day, from 1990. The text of article 45 read is the version of Real
+  Decreto 1346/1989, "en vigor a partir del 08/11/1989"; the versions of
+  1983 and of Real Decreto 2403/1985 were not read, so every year before
+  1990 is a gap for each day [es-rd-2001-1983]. Epiphany is a day of
+  article 45.1 d) that a community may replace, and every community kept
+  it in every resolution read: it is nationwide in 2013–2015 and
+  2018–2026, the years whose resolution was read, and a gap in every
+  other year.
 - **Each community's other days**, scoped to its ISO 3166-2 code, as the
   resolutions list them: its own days (`***`), the replaceable national
   days it kept (`**`, Maundy Thursday in seventeen of the nineteen, St
@@ -170,7 +174,8 @@ resolutions quote it and was not read.
 ## Code
 
 `crates/hc-holiday/src/countries/spain.rs`: the nationwide rules first in
-`RULES`, then each community's, built by `early` (the resolutions of
+`RULES`, built by `national`, read from `ARTICLE_45_READ`, with Epiphany
+by `epiphany_where_read`, then each community's, built by `early` (the resolutions of
 2013–2015) and `late` (2018–2026, with 2016 and 2017 a gap); one
 `Listing` per community, `ANDALUSIA_DAYS` to `VALENCIA_DAYS`; and the
 table `SPAIN`. The exchange `XMAD` in `exchanges.rs` keeps its own list.

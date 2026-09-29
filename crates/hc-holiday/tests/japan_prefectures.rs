@@ -252,7 +252,32 @@ fn okinawa_s_memorial_day_is_a_gap_before_its_holiday_ordinance() {
 
 #[test]
 fn the_table_names_every_prefecture_with_a_day_of_its_own() {
+    // The prefectures with a day carried, and Akita and Ehime, whose day's
+    // instrument was not found and is a gap.
     let mut regions: Vec<&str> = DAYS.iter().map(|row| row.region).collect();
+    regions.extend(["JP-05", "JP-38"]);
     regions.sort_unstable();
+    regions.dedup();
     assert_eq!(JAPAN.regions(), regions);
+}
+
+#[test]
+fn every_prefecture_is_read_and_two_days_are_gaps() {
+    let gaps = |region| {
+        HolidayCalendar::for_year(&JAPAN, Some(region), 2026)
+            .gaps()
+            .iter()
+            .map(|gap| gap.local_name)
+            .collect::<Vec<_>>()
+    };
+    // No ordinance found in Aomori or Osaka: complete, the nationwide days.
+    for region in ["JP-02", "JP-27", "JP-45"] {
+        assert!(gaps(region).is_empty(), "{region}");
+    }
+    assert_eq!(gaps("JP-05"), ["県の記念日"]);
+    assert_eq!(gaps("JP-38"), ["県政発足記念日"]);
+    // A code that is no prefecture's is a subdivision not read.
+    let unknown = HolidayCalendar::for_year(&JAPAN, Some("JP-48"), 2026);
+    assert_eq!(unknown.gaps().len(), 1);
+    assert_eq!(unknown.gaps()[0].name, hc_holiday::rule::UNREAD_SUBDIVISION);
 }

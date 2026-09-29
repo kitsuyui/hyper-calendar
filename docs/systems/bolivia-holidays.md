@@ -27,7 +27,8 @@ bicentenary of La Paz's revolution of 1809, a departmental holiday "por
 única vez", and added that "queda vigente el feriado departamental de La
 Paz del día 16 de julio" [bo-dp-205]. So `BOLIVIA` asked for `BO-L` gives
 15 and 16 July 2009, and 16 July every year after, days off in the
-department; asked for `BO-C`, Cochabamba, it gives neither. Oruro's
+department; asked for `BO-C`, Cochabamba, it gives neither, and reports
+Cochabamba's own efeméride as a gap. Oruro's
 10 February falls on a Sunday in 2030, and from 2024 the Sunday rule
 reaches it: `BO-O` in 2030 gives Monday 11 February as its substitute.
 
@@ -46,7 +47,11 @@ reaches it: `BO-O` in 2030 gives Monday 11 February as its substitute.
   the law repealing a departmental decree of 2009 that was not read.
 - **Not yet carried, and why:** the days no instrument read dates. Their
   dates are known from the Ministry of Labour's notices and the press, but
-  the instruments that create them were not read:
+  the instruments that create them were not read. Decreto Supremo 21060,
+  art. 67, makes each a holiday, so each department's efeméride is a gap
+  in every year, `Rule::UNREAD` scoped to the department (Beni,
+  Cochabamba, Chuquisaca, Potosí, and Santa Cruz's and Pando's
+  24 September):
   - Chuquisaca's 25 May;
   - Cochabamba's 14 September (Decreto Ley 7317 of 1965, cited) and
     14 August (a departmental law of 2019–2020, cited);
@@ -63,14 +68,14 @@ reaches it: `BO-O` in 2030 gives Monday 11 February as its substitute.
 
 | Code | Department | Day carried | Instrument | First year, and the years before | Not carried |
 | --- | --- | --- | --- | --- | --- |
-| BO-B | Beni | none | | | 18 November, 10 November |
-| BO-C | Cochabamba | none | | | 14 September, 14 August |
-| BO-H | Chuquisaca | none | | | 25 May |
+| BO-B | Beni | none; its efeméride a gap every year | | | 18 November, 10 November |
+| BO-C | Cochabamba | none; its efeméride a gap every year | | | 14 September, 14 August |
+| BO-H | Chuquisaca | none; its efeméride a gap every year | | | 25 May |
 | BO-L | La Paz | 16 July; 15 July 2009 once | Decreto Presidencial 205 of 13 July 2009 [bo-dp-205] | 2009; earlier years: gap | |
-| BO-N | Pando | Battle of Bahía, 11 October | Ley 1606 of 13 November 2024 [bo-l-1606] | established 2025 (Ley 1606 of 2024) | 24 September |
+| BO-N | Pando | Battle of Bahía, 11 October | Ley 1606 of 13 November 2024 [bo-l-1606] | established 2025 (Ley 1606 of 2024) | 24 September, a gap every year |
 | BO-O | Oruro | 10 February; 6 February in 2013 | Decreto Supremo 1484 of 6 February 2013 [bo-ds-1484] | 2013; earlier years: gap | |
-| BO-P | Potosí | none | | | 10 November |
-| BO-S | Santa Cruz | Día Departamental de la Autonomía, 4 May, an observance | Ley Departamental 21 of 23 September 2010 [bo-scz-ld-21] | 2011; earlier years: gap | 24 September |
+| BO-P | Potosí | none; its efeméride a gap every year | | | 10 November |
+| BO-S | Santa Cruz | Día Departamental de la Autonomía, 4 May, an observance | Ley Departamental 21 of 23 September 2010 [bo-scz-ld-21] | 2011; earlier years: gap | 24 September, a gap every year |
 | BO-T | Tarija | 15 April | Decreto Supremo 4219 of 14 April 2020 [bo-ds-4219] | 2020; earlier years: gap | the Gran Chaco's 12 August |
 
 ## Accuracy

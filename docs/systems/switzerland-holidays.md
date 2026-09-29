@@ -36,19 +36,29 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
 
 ## What is carried
 
-- **Nationwide**: 1 August from 1994, the year of the Verordnung über den
-  Bundesfeiertag, and New Year's Day, Ascension and Christmas Day, which
-  every canton's law read keeps.
+- **Nationwide**: 1 August, equal to Sunday by the Arbeitsgesetz's
+  Art. 20a, inserted by the Act of 20 March 1998 and in force from
+  1 August 2000 [ch-arg-20a]; the years before are a gap, the Verordnung
+  of 30 May 1994 über den Bundesfeiertag not having been read. And New
+  Year's Day, Ascension and Christmas Day, which every canton's law read
+  keeps: nationwide from 2026, the first year Jura's, Schwyz's and
+  Zurich's laws, read only as they stand, answer for, a gap before; and in
+  each canton from the first year its own text read gives, a gap before
+  (the three days are the canton's rules there, `KEPT_EVERYWHERE`). So
+  asked for no canton, 25 December 2025 is a gap; asked for Bern, whose
+  law is in force from 1 May 1997, it is Christmas Day from 1998.
 - **Each canton's other days**, scoped to its code, from the first year the
   text read was in force on the day, and the years before a gap: every law
   read replaced an older one that was not read, and the day is usually
   older than the law (Vaud's 2 January and Whit Monday, added in 2007, are
-  absent in 2006 and 2007, whose text was read). A day the law makes
+  absent in 2006 and 2007, whose text was read, and a gap before 2006). A day the law makes
   equal to Sunday or declares a public holiday is `Kind::Public`, a public
-  rest day it does not make equal to Sunday `Kind::Observance`. 143 rules. Before this
+  rest day it does not make equal to Sunday `Kind::Observance`. 143 rules, and Solothurn's half day. Before this
   document the table carried Good Friday, Easter Monday, Whit Monday and
   St Stephen's Day nationwide, from a secondary source; they are now the
   cantons' days, in the cantons whose laws keep them.
+- **Half days**: Solothurn's 1 May "ab 12 Uhr", equal to Sunday from noon
+  (§ 46 Abs. 1 a), as `Kind::HalfDay` from 2016, a gap before.
 - **Conditional days**: Appenzell Ausserrhoden's 26 December, not kept when
   Christmas is a Monday or a Friday; Neuchâtel's 2 January and 26 December,
   kept only when 1 January or Christmas is a Sunday; Appenzell
@@ -61,8 +71,7 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   Zurich's from the Canton's page on its holidays, each from 2026, the year
   read; before 2026 those cantons' days are a gap.
 - **Not yet carried, and why:** the days a law keeps in part of a canton,
-  which need a scope finer than a canton; half days (Solothurn's 1 May from
-  noon); days a commune declares; and the days the last column of the table
+  which need a scope finer than a canton; days a commune declares; and the days the last column of the table
   names. The communes' own days are local and out of this document.
 
 ### The twenty-six
@@ -91,7 +100,7 @@ version read are in the entry. "Rest day" marks a day carried as
 | CH-OW | Obwalden | Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); Immaculate Conception (Mariä Empfängnis); St Nicholas of Flüe (Bruderklausenfest) (rest day) | [ch-ow-law] | equal to Sunday; a public rest day | 2007, 2008; earlier years: gap | Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
 | CH-SH | Schaffhausen | Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (Stephanstag) | [ch-sh-law] | equal to Sunday (§ 7) | 2011; earlier years: gap |  |
 | CH-SZ | Schwyz | St Joseph's Day (Josefstag); Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); Epiphany (Heilige Drei Könige) (rest day); Easter Monday (Ostermontag) (rest day); Whit Monday (Pfingstmontag) (rest day); Immaculate Conception (Mariä Empfängnis) (rest day); St Stephen's Day (Stephanstag) (rest day) | [ch-sz-law] | equal to Sunday ("A"), public rest days ("B"), by the secondary source | 2026; earlier years: gap |  |
-| CH-SO | Solothurn | Good Friday (Karfreitag) | [ch-so-law] | equal to Sunday (§ 46) | 2016; earlier years: gap | 1 May from noon; Corpus Christi, the Assumption and All Saints', kept except in the Bucheggberg district; Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
+| CH-SO | Solothurn | Good Friday (Karfreitag); 1 May from noon, "der 1. Mai (ab 12 Uhr)", a half day | [ch-so-law] | equal to Sunday (§ 46) | 2016; earlier years: gap | Corpus Christi, the Assumption and All Saints', kept except in the Bucheggberg district; Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
 | CH-SG | St. Gallen | Good Friday (Karfreitag); Easter Monday (Ostermontag); Whit Monday (Pfingstmontag); All Saints' Day (Allerheiligen); St Stephen's Day (Stefanstag) | [ch-sg-law] | equal to Sunday | 2004, 2005; earlier years: gap |  |
 | CH-TG | Thurgau | Berchtold's Day (2. Januar); Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (26. Dezember) | [ch-tg-law] | public rest days, equal to Sunday under the version of 2003 | 2003; earlier years: gap |  |
 | CH-TI | Ticino | Epiphany (Epifania); Easter Monday (Lunedì di Pasqua); Assumption (Assunzione); All Saints' Day (Ognissanti); St Stephen's Day (Santo Stefano); St Joseph's Day (San Giuseppe) (rest day); Labour Day (1° Maggio) (rest day); Whit Monday (Lunedì di Pentecoste) (rest day); Corpus Christi (Corpus Domini) (rest day); Saints Peter and Paul (SS. Pietro e Paolo) (rest day); Immaculate Conception (Immacolata) (rest day) | [ch-ti-law] | parificati alle domeniche (LALL art. 6); giorni festivi ufficiali non parificati | 2010, 2011, 2012; earlier years: gap | Good Friday, which neither law keeps |
@@ -138,8 +147,10 @@ business days. What a reader should know:
 ## Code
 
 `crates/hc-holiday/src/countries/switzerland.rs`: the four nationwide
-rules first in `CH_RULES`, then each canton's, built by `canton` and
-`canton_rest_day`, the gaps before them by `earlier_years_unread`, with `GENEVA_FAST`, `FEDERAL_FAST_MONDAY` and the
+rules first in `CH_OWN_RULES`, then each canton's, built by `canton` and
+`canton_rest_day` with `read_from` the first year of the text read, and
+`KEPT_EVERYWHERE`, the three days every canton keeps, nationwide and in
+each canton, joined into `CH_RULES`; with `GENEVA_FAST`, `FEDERAL_FAST_MONDAY` and the
 functions of the conditional days; one region and one citation constant
 per canton, `CH_AG` and `CH_AG_LAW` to `CH_ZH` and `CH_ZH_LAW`. The
 exchange `XSWX` keeps its own list. Anchors: the tests in

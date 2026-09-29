@@ -20,7 +20,10 @@
 //!   resolution read, as rules with no region: New Year's Day, Epiphany,
 //!   Good Friday, Labour Day, the Assumption, the National Day, All
 //!   Saints' Day, Constitution Day, the Immaculate Conception and
-//!   Christmas Day.
+//!   Christmas Day, from 1990, the first whole year of the text of
+//!   article 45 read, the years before a gap. Epiphany, which a community
+//!   may replace, is nationwide only in the years whose resolution was
+//!   read, and a gap in every other.
 //! * **Each community's other days**, scoped to its ISO 3166-2 code, as
 //!   the resolutions list them: its own day, the national days it chose to
 //!   keep that it may replace (Maundy Thursday most of all), and the
@@ -42,7 +45,9 @@
 //! provincial and regional bulletins publish.
 
 use crate::computus::offsets::GOOD_FRIDAY;
-use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
+};
 
 /// The resolutions read for 2013 to 2015.
 const EARLY_RESOLUTIONS: &str = "Resoluciones de la Dirección General de Empleo de 30 de octubre \
@@ -96,39 +101,74 @@ const fn late(
     .cited(LATE_RESOLUTIONS)
 }
 
+/// The text of article 45 read, the version of Real Decreto 1346/1989, in
+/// force from 8 November 1989: the first whole year it answers for. The
+/// versions of 1983 and 1985 were not read.
+const ARTICLE_45_READ: i32 = 1990;
+
+/// Article 45 as read, cited by each nationwide day.
+const ARTICLE_45: &str = "Real Decreto 2001/1983, art. 45.1, in the version of Real Decreto \
+     1346/1989, en vigor a partir del 08/11/1989 (BOE-A-1983-20906, texto consolidado), \
+     retrieved 2026-09-29; the versions of 1983 and of Real Decreto 2403/1985 not read";
+
+/// Epiphany, 6 January, where a resolution read shows every community
+/// keeping it — 2013 to 2015 and 2018 to 2026 — and else `None`: a day of
+/// article 45.1 d), which a community may replace, is nationwide only in the
+/// years whose resolution says it is.
+fn epiphany_where_read(year: i64) -> Option<Days> {
+    if !(2013..=2015).contains(&year) && !(2018..=2026).contains(&year) {
+        return None;
+    }
+    Some(EPIPHANY.days_in_year(year))
+}
+
+/// 6 January.
+static EPIPHANY: Rule = Rule::gregorian(1, 6);
+
+/// A nationwide day of article 45, in the text read.
+const fn national(name: &'static str, local_name: &'static str, rule: Rule) -> HolidayRule {
+    HolidayRule::public(name, local_name, rule)
+        .read_from(ARTICLE_45_READ)
+        .cited(ARTICLE_45)
+}
+
 static RULES: &[HolidayRule] = &[
     // ── The nationwide days, article 45 ─────────────────────────────────
-    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Epifanía del Señor", Rule::gregorian(1, 6)),
-    HolidayRule::public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Labour Day", "Fiesta del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::public(
+    national("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+    national(
+        "Epiphany",
+        "Epifanía del Señor",
+        Rule::Unsettled(epiphany_where_read),
+    )
+    .cited(LATE_RESOLUTIONS),
+    national("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+    national("Labour Day", "Fiesta del Trabajo", Rule::gregorian(5, 1)),
+    national(
         "Assumption",
         "Asunción de la Virgen",
         Rule::gregorian(8, 15),
     ),
-    HolidayRule::public(
+    national(
         "National Day",
         "Fiesta Nacional de España",
         Rule::gregorian(10, 12),
     ),
-    HolidayRule::public(
+    national(
         "All Saints' Day",
         "Todos los Santos",
         Rule::gregorian(11, 1),
     ),
-    HolidayRule::public(
+    national(
         "Constitution Day",
         "Día de la Constitución",
         Rule::gregorian(12, 6),
-    )
-    .years(Some(1983), None),
-    HolidayRule::public(
+    ),
+    national(
         "Immaculate Conception",
         "Inmaculada Concepción",
         Rule::gregorian(12, 8),
     ),
-    HolidayRule::public(
+    national(
         "Christmas Day",
         "Natividad del Señor",
         Rule::gregorian(12, 25),
@@ -2056,6 +2096,7 @@ pub static SPAIN: RuleSet = RuleSet {
               los Trabajadores (Real Decreto Legislativo 2/2015), art. 37.2, as the resolutions \
               quote it, not read. The communities' days are the resolutions' and every other \
               year is a gap; the municipalities' local days are not carried",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 const ANDALUSIA: &[&str] = &["ES-AN"];

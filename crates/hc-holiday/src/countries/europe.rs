@@ -15,7 +15,7 @@ use crate::computus::offsets::{
 };
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
+    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, WeekendPolicy,
 };
 
 /// The British and Irish shift: a bank holiday on a weekend is kept on the
@@ -180,6 +180,7 @@ pub static UNITED_KINGDOM: RuleSet = RuleSet {
               Scotland, as the Privy Council Office publishes it \
               (privycouncil.independent.gov.uk/wp-content/uploads/2026/02/\
               Scotland-Bank-Holiday-Proclamation.pdf), retrieved 2026-09-27",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -265,6 +266,7 @@ pub static IRELAND: RuleSet = RuleSet {
               Commemoration) Regulations 2022 (S.I. No. 50 of 2022), not read, the \
               Irish Statute Book refusing access; Wikipedia, \"Public holidays in \
               Ireland\", retrieved 2026-09-26, for the Friday exception",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -336,6 +338,7 @@ pub static FRANCE: RuleSet = RuleSet {
               Bas-Rhin and Haut-Rhin \
               (legifrance.gouv.fr/codes/article_lc/LEGIARTI000006902635), both retrieved \
               2026-09-26; loi n° 81-893 du 2 octobre 1981 for 8 May, not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -483,6 +486,7 @@ pub static GERMANY: RuleSet = RuleSet {
               Himmelfahrt is listed for Saarland only; in Bavaria it applies in predominantly \
               Catholic municipalities, which is a parish-level distinction this crate does not \
               model",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -596,6 +600,7 @@ pub static ITALY: RuleSet = RuleSet {
               without naming one, and D.P.R. 792/1985 names only Rome's 29 June, a day of the \
               comune di Roma, which no ISO 3166-2 code scopes (IT-RM is the metropolitan city); \
               both on Normattiva, retrieved 2026-09-29. None is carried",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static PT_RULES: &[HolidayRule] = &[
@@ -682,6 +687,7 @@ pub static PORTUGAL: RuleSet = RuleSet {
               (pgdlisboa.pt), retrieved 2026-09-26, the Diário da República's consolidated \
               page not readable; Lei n.º 23/2012, de 25 de junho, for the 2013 to 2015 \
               suspension, not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -754,6 +760,7 @@ pub static NETHERLANDS: RuleSet = RuleSet {
               Netherlands gives no statutory right to a day off on these days: Goede Vrijdag \
               and Bevrijdingsdag are a paid day off only by collective agreement, so they are \
               recorded as observances",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static BE_RULES: &[HolidayRule] = &[
@@ -801,6 +808,7 @@ pub static BELGIUM: RuleSet = RuleSet {
               Emploi, Travail et Concertation sociale, \"Jours fériés\" (emploi.belgique.be), \
               for the replacement day, both retrieved 2026-09-26; the loi du 4 janvier 1974 \
               itself not read",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static AT_RULES: &[HolidayRule] = &[
@@ -853,6 +861,7 @@ pub static AUSTRIA: RuleSet = RuleSet {
               Feiertagsruhegesetz 1957, BGBl. Nr. 153/1957 as amended by BGBl. Nr. 264/1967, \
               § 1 in the version in force from 26 July 1967 (RIS NOR12094414), for 26 October \
               as a day of rest from 1967; both retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -936,6 +945,7 @@ pub static SWEDEN: RuleSet = RuleSet {
               retrieved 2026-09-26. Midsummer Eve, Christmas Eve and New Year's Eve are not \
               allmänna helgdagar but are de facto closed days, so they are recorded as bank \
               holidays",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static NO_RULES: &[HolidayRule] = &[
@@ -983,6 +993,7 @@ pub static NORWAY: RuleSet = RuleSet {
               LOV-2021-05-07-34, and lov om 1. og 17. mai som høgtidsdager (LOV-1947-04-26-1), \
               § 1, on Lovdata (lovdata.no/dokument/NL/lov/1995-02-24-12 and 1947-04-26-1), \
               retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static DK_RULES: &[HolidayRule] = &[
@@ -1032,6 +1043,7 @@ pub static DENMARK: RuleSet = RuleSet {
               result and jurabibliotek.ai (secondary), its text not read, retrieved \
               2026-09-26; the statute listing the other helligdage not read. Grundlovsdag is \
               not a public holiday and is recorded as an observance",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static FI_RULES: &[HolidayRule] = &[
@@ -1106,6 +1118,7 @@ pub static FINLAND: RuleSet = RuleSet {
               read; the church holidays of kirkkolaki (1054/1993), 4 luku 3 §, as the Finnish \
               Wikipedia, \"Pyhäpäivä\", gives them (secondary), retrieved 2026-09-26. \
               Midsummer Eve and Christmas Eve are not statutory but are universally closed",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1178,6 +1191,7 @@ pub static POLAND: RuleSet = RuleSet {
               and the ustawa z dnia 6 grudnia 2024 r. (Dz.U. 2024 poz. 1965), Christmas Eve \
               from 2025, read through the Sejm's ELI service \
               (api.sejm.gov.pl/eli/acts/DU/1951/28 and DU/2024/1965), retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static CZ_RULES: &[HolidayRule] = &[
@@ -1243,6 +1257,7 @@ pub static CZECHIA: RuleSet = RuleSet {
               dnech a o dnech pracovního klidu, §§ 1 and 2, as amended by zákon č. 359/2015 \
               Sb. adding Good Friday, on Zákony pro lidi (zakonyprolidi.cz/cs/2000-245, the \
               version of 13 May 2026), retrieved 2026-09-26",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 static GR_RULES: &[HolidayRule] = &[
@@ -1307,6 +1322,7 @@ pub static GREECE: RuleSet = RuleSet {
               February 2026, secondary) for Clean Monday, Good Friday and Whit Monday as \
               public-sector days off. Easter follows the Julian computus, the fixed feasts the \
               civil calendar",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1364,6 +1380,7 @@ pub static HUNGARY: RuleSet = RuleSet {
               holidays in Hungary\", retrieved 2026-09-22. The annual \
               rearrangement of working days around holidays is by decree and \
               is not carried",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1455,6 +1472,7 @@ pub static ROMANIA: RuleSet = RuleSet {
               220/2016 (Children's Day), Legea 88/2018 (Good Friday) and the \
               2023 amendment adding Epiphany and Saint John from 2024; \
               Wikipedia, \"Public holidays in Romania\", retrieved 2026-09-22",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1748,6 +1766,7 @@ pub static RUSSIA: RuleSet = RuleSet {
               resolutions on Garant and ConsultantPlus's reference list of \
               the regions' non-working days, read 2026-09-29, for the \
               republics' own days",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1960,6 +1979,7 @@ pub static UKRAINE: RuleSet = RuleSet {
               retrieved 2026-09-26. That 8 March 2022 stayed a day off is \
               from a secondary source, ibuhgalter.net (26 March 2022), \
               retrieved the same day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2043,6 +2063,7 @@ pub static CROATIA: RuleSet = RuleSet {
               the same name, NN 33/1996 as amended by NN 96/2001, consolidated in NN 136/2002, \
               on narodne-novine.nn.hr, retrieved 2026-09-26; Wikipedia, \"Public holidays in \
               Croatia\", retrieved 2026-09-22, with its note on the 2020 change",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2214,6 +2235,7 @@ pub static SLOVAKIA: RuleSet = RuleSet {
               2026-09-26; Wikipedia, \"Public holidays in Slovakia\", retrieved \
               2026-09-22, for the years 1 September and 17 November became working days, \
               which the consolidated text does not date",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2297,6 +2319,7 @@ pub static SLOVENIA: RuleSet = RuleSet {
               2026-09-26; Wikipedia, \"Public holidays in Slovenia\", retrieved 2026-09-22, \
               for the years each day became work-free and the 2012 and 2017 changes to 2 \
               January",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2396,6 +2419,7 @@ pub static ICELAND: RuleSet = RuleSet {
               (althingi.is/lagas/nuna/1971088.html and 1997032.html), retrieved \
               2026-09-26; Wikipedia, \"First day of summer (Iceland)\", retrieved \
               2026-09-22, for the Thursday rule, which the acts do not state",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2499,6 +2523,7 @@ pub static BULGARIA: RuleSet = RuleSet {
               weekend rule; the Bulgarian Wikipedia, \"Официални празници в \
               България\", retrieved the same day, for Labour Code art. 154(2) as \
               amended by SG 105/2016, in force 1 January 2017, and the names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2610,6 +2635,7 @@ pub static CYPRUS: RuleSet = RuleSet {
               Administration and Personnel Department was found); Central Bank of Cyprus, \
               \"Bank holidays to be observed in Cyprus during 2026\", dated 7 June 2024, for \
               the 2026 dates",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2733,6 +2759,7 @@ pub static ESTONIA: RuleSet = RuleSet {
               marks by the Estonian Wikipedia, \"Pühade ja tähtpäevade seadus\", \
               retrieved 2026-09-22; Wikipedia, \"Public holidays in Estonia\", \
               retrieved the same day, for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2990,6 +3017,7 @@ pub static LATVIA: RuleSet = RuleSet {
               latviešu Dziesmu un Deju svētki\" for the closing dates of 2018 \
               and 2023; Wikipedia, \"Public holidays in Latvia\", for the \
               English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3091,6 +3119,7 @@ pub static LITHUANIA: RuleSet = RuleSet {
               6 July and 15 August (1991) and 2 November (2020); \
               nedarbodienos.lt for Father's Day (2009); 15min.lt, 9 December \
               2010, for Christmas Eve",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3198,6 +3227,7 @@ pub static ALBANIA: RuleSet = RuleSet {
               festazyrtare.al, retrieved the same day, for Law 7651 of 21 December \
               1992 and the 2026 dates; Shqiptarja.com, 11 January 2024, for \
               Alphabet Day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3362,6 +3392,7 @@ pub static MONTENEGRO: RuleSet = RuleSet {
               Montenegro\", retrieved the same day, for the religious holidays and \
               the names; Danas, 29 December 2021, for Njegoš Day's vote, and CdM \
               for its two days",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3524,6 +3555,7 @@ pub static NORTH_MACEDONIA: RuleSet = RuleSet {
               the definition of Духовден; Wikipedia, \"Public holidays in North \
               Macedonia\", retrieved the same day, for the community days, the \
               2007 additions and the names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3677,6 +3709,7 @@ pub static SERBIA: RuleSet = RuleSet {
               у Србији\", and Wikipedia, \"Public holidays in Serbia\", both \
               retrieved the same day, for the names, the 2012 start of Armistice \
               Day and the 2020 start of 15 September",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4075,6 +4108,7 @@ pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
               Assembly's decisions on non-working days for 2017 to 2026 from its register \
               (skupstinabd.ba); RFE/RL, January 2021, for the absence of a state law; all \
               retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4176,6 +4210,7 @@ pub static BELARUS: RuleSet = RuleSet {
               same day, for the years of 2 January, Radunitsa and Independence Day \
               and the Radunitsa dates; Wikipedia, \"Public holidays in Belarus\", \
               for the Belarusian names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4235,6 +4270,7 @@ pub static LUXEMBOURG: RuleSet = RuleSet {
               2019; the French Wikipedia, \"Jours fériés au Luxembourg\", and \
               Wikipedia, \"Public holidays in Luxembourg\", both retrieved the same \
               day, for the names, Good Friday and the compensatory day",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4306,6 +4342,7 @@ pub static MALTA: RuleSet = RuleSet {
               retrieved 2026-09-22, for the Act and its amendments; Wikipedia, \
               \"Public holidays in Malta\", retrieved the same day, for the two lists \
               and the Maltese names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4405,6 +4442,7 @@ pub static MOLDOVA: RuleSet = RuleSet {
               Moldova and Timpul for Europe Day from 2017; Wikipedia, \"Public \
               holidays in Moldova\", retrieved the same day, for Christmas by the new \
               style from 2009 and the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4483,6 +4521,7 @@ pub static LIECHTENSTEIN: RuleSet = RuleSet {
               \"Feiertage in Liechtenstein\", for the bank days and the two \
               collective-agreement days, and Wikipedia, \"Public holidays in \
               Liechtenstein\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4562,6 +4601,7 @@ pub static MONACO: RuleSet = RuleSet {
               Government (gouv.mc) and the Prince's Palace on the Fête du Prince of \
               19 November since 1952; Wikipedia, \"Public holidays in Monaco\", for the \
               English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4666,6 +4706,7 @@ pub static SAN_MARINO: RuleSet = RuleSet {
               calendars for 2025 and 2026 (bcsm.sm); San Marino RTV (4 June 2026) on the \
               days the 1990 law dropped; Wikipedia, \"Public holidays in San Marino\", \
               for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -4875,6 +4916,7 @@ pub static VATICAN_CITY: RuleSet = RuleSet {
               Scavi's closure days for 2014, 2022 and 2023 (scavi.va, by the Internet \
               Archive); AgenSIR, 17 September 2025, for Leo XIV's name day; all retrieved \
               2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 /// Sunday alone: the regulations' "day of weekly rest, which coincides

@@ -56,7 +56,7 @@ use hc_calendar::Weekday;
 use hc_seasons::{Meridian, SolarTerm};
 
 use crate::rule::{
-    BridgePolicy, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
+    BridgePolicy, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
     SubstituteDirection, SubstitutionPolicy,
 };
 
@@ -514,6 +514,18 @@ static RULES: &[HolidayRule] = &[
             "沖縄県慰霊の日を定める条例 (昭和49年沖縄県条例第42号); a 県の休日 of \
              沖縄県の休日を定める条例 (平成3年沖縄県条例第15号) Article 1",
         ),
+    // Two prefectures keep a day whose instrument was not found: a gap in
+    // every year, rather than the prefecture's want of a day.
+    HolidayRule::observance("Akita Prefecture Day", "県の記念日", Rule::UNREAD)
+        .in_regions(&["JP-05"])
+        .cited("秋田県, the prefecture's page on 県の記念日 (29 August, set in 1965): instrument not found"),
+    HolidayRule::observance(
+        "Ehime Prefectural Government Day",
+        "県政発足記念日",
+        Rule::UNREAD,
+    )
+    .in_regions(&["JP-38"])
+    .cited("愛媛県, 県政発足記念日 (20 February), kept with a governor's award since 1973: instrument not found"),
 ];
 
 /// A prefecture's own day on a fixed date, from `first` onwards, in the
@@ -613,4 +625,11 @@ pub static JAPAN: RuleSet = RuleSet {
               taken from the 官報; the prefectures' own days from each prefecture's \
               ordinance, 休日条例 and school rules in its 例規集, read 2026-09-28, as \
               docs/systems/japan-holidays.md lists them",
+    // The prefectures whose 休日条例 and 例規集 were read and give no day of
+    // their own.
+    subdivisions: Subdivisions::Read(&[
+        "JP-02", "JP-03", "JP-04", "JP-06", "JP-14", "JP-15", "JP-17", "JP-20", "JP-21", "JP-25",
+        "JP-26", "JP-27", "JP-28", "JP-29", "JP-32", "JP-33", "JP-34", "JP-35", "JP-36", "JP-39",
+        "JP-40", "JP-41", "JP-42", "JP-43", "JP-44", "JP-45",
+    ]),
 };

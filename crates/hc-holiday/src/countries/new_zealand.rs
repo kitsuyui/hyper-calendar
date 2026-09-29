@@ -22,8 +22,8 @@
 //! * Southland's Easter Tuesday from 2012.
 //!
 //! Each rule gives every day of the list, 2010 to 2027, and the years
-//! before 2010 are not carried: no list or council's resolution for them
-//! was read. The days are public holidays and do not move off a weekend,
+//! before 2010 are a gap: no list or council's resolution for them was
+//! read. The days are public holidays and do not move off a weekend,
 //! the Monday and Friday rules keeping them off it in any case.
 //!
 //! Two things the list gives are not carried. South Canterbury observes
@@ -33,7 +33,8 @@
 //! Bay of Plenty, Gisborne, Manawatū-Whanganui and Tasman — are given no
 //! anniversary day, since the list names provinces, which "are not
 //! determined by present-day districts or regions", and no source read
-//! says which province's day each region keeps. Employment New Zealand also
+//! says which province's day each region keeps: asked for one of them, the
+//! table reports the region's own days as a gap. Employment New Zealand also
 //! says that Westland's day "varies throughout Westland, but Greymouth
 //! observes the official day", and that for Otago "there is no easily
 //! determined single day of local observance"; the rules are the days it
@@ -71,14 +72,15 @@ static SOUTHLAND: Rule = Rule::gregorian(1, 17);
 static LABOUR_DAY: Rule = Rule::nth(10, 4, Weekday::Monday);
 static FIRST_TUESDAY_OF_NOVEMBER: Rule = Rule::nth(11, 1, Weekday::Tuesday);
 
-/// An anniversary day, from the first year of the list, in `region`.
+/// An anniversary day in `region`, answered from the first year of the
+/// list, the years before a gap.
 const fn anniversary(
     name: &'static str,
     rule: Rule,
     region: &'static [&'static str],
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, "", rule)
-        .years(Some(FIRST), None)
+        .read_from(FIRST)
         .in_regions(region)
 }
 
@@ -115,7 +117,7 @@ pub static ANNIVERSARY_DAYS: &[HolidayRule] = &[
         Rule::moved_by_weekday(&SOUTHLAND, NEAREST_MONDAY),
         &["NZ-STL"],
     )
-    .years(Some(FIRST), Some(2011)),
+    .years(None, Some(2011)),
     anniversary(
         "Southland Anniversary Day",
         Rule::easter(EASTER_TUESDAY),

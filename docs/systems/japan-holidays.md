@@ -243,9 +243,12 @@ Wednesday 6 May, which the old wording could not have reached.
   - The 年末年始 closure of government offices, 29 December to 3 January
     under the 行政機関の休日に関する法律, which is not a 国民の祝日; the
     exchange carries its own version of it.
-  - The prefectural days found without a readable instrument, and the
-    days prefectures set that are not their own day; see the next
-    section.
+  - The prefectural days found without a readable instrument, Akita's
+    県の記念日 and Ehime's 県政発足記念日, which are gaps in every year, and
+    the days prefectures set that are not their own day; see the next
+    section. The prefectures where no ordinance was found are listed among
+    the table's subdivisions read, and asked for, answer with the
+    national days and no gap.
   - The 暦要項's tabulated equinox dates as such: the crate computes the
     same quantity the Observatory computes, and the published dates are
     the check, not the source.

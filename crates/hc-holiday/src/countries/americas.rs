@@ -11,8 +11,8 @@ use crate::computus::offsets::{
 use crate::hindu::{DIWALI, HOLI, NARAKA_CHATURDASHI};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, ListedEntry, Listing, Rule, RuleSet, SATURDAY_SUNDAY,
-    SourceDate, SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY, TO_FOLLOWING_MONDAY,
-    WeekendPolicy,
+    SourceDate, Subdivisions, SubstituteDirection, SubstitutionPolicy, TO_ADJACENT_MONDAY,
+    TO_FOLLOWING_MONDAY, WeekendPolicy,
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -98,6 +98,7 @@ pub static BRAZIL: RuleSet = RuleSet {
               unreachable. Good Friday is carried nationwide although the federal law makes it \
               the municipalities' to declare. Carnival and Corpus Christi are pontos \
               facultativos, recorded here as bank holidays",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -336,6 +337,7 @@ pub static ARGENTINA: RuleSet = RuleSet {
               the tourist holidays; Wikipedia (es), \"Día del Veterano y de \
               los Caídos en la Guerra de Malvinas\" and \"Martín Miguel de \
               Güemes\", retrieved 2026-09-22, for Ley 25.370 and Ley 27.258",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -440,6 +442,7 @@ pub static COLOMBIA: RuleSet = RuleSet {
               normativo, retrieved 2026-09-22), for the list and the Monday \
               rule; Wikipedia (es), \"Anexo:Días festivos en Colombia\", \
               retrieved 2026-09-22, for the 2026 dates the tests check",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -534,6 +537,7 @@ pub static PERU: RuleSet = RuleSet {
               the Spanish Wikipedia, \"Anexo:Días festivos en Perú\" (secondary), retrieved \
               2026-09-22, which tabulates the 2026 holidays under the decree and marks the \
               irrenunciable ones",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -785,6 +789,7 @@ pub static CHILE: RuleSet = RuleSet {
               and 20.663 as feriadoschilenos.cl lists them, not read; Wikipedia, \"Public \
               holidays in Chile\", and the Spanish Wikipedia, \"Anexo:Días feriados en \
               Chile\", retrieved 2026-09-22, for the years before 2000",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -990,6 +995,7 @@ pub static ECUADOR: RuleSet = RuleSet {
               2017 dates; the Spanish Wikipedia, \"Anexo:Días festivos en \
               Ecuador\", retrieved 2026-09-22, for the moved dates of 2023 to 2025; \
               El Universo's official 2026 calendar for 2 and 3 November 2026",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1140,6 +1146,7 @@ pub static URUGUAY: RuleSet = RuleSet {
               retrieved 2026-09-26; the Spanish Wikipedia, \"Días feriados de \
               Uruguay\", retrieved 2026-09-22, for Carnival and Tourism Week; Wikipedia, \
               \"Public holidays in Uruguay\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1278,6 +1285,7 @@ pub static COSTA_RICA: RuleSet = RuleSet {
               Nación on the 2020 and 2021 Mondays and by Wikipedia, \"Public \
               holidays in Costa Rica\", retrieved 2026-09-22, for every year's \
               moved dates; Ley 10396 (2023) for 15 August 2024",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1412,6 +1420,7 @@ pub static DOMINICAN_REPUBLIC: RuleSet = RuleSet {
               2024 and 2026 on presidencia.gob.do, retrieved 2026-09-22, for the \
               observed dates and the 2024 exception; Wikipedia, \"Public holidays in \
               the Dominican Republic\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1538,6 +1547,7 @@ pub static GUATEMALA: RuleSet = RuleSet {
               and Prensa Libre on the Constitutional Court's ruling of 17 March 2020, for the \
               moves and their years; Prensa Libre, 13 August 2026, for the Assumption as \
               Guatemala City's festivity outside the law",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1641,6 +1651,7 @@ pub static PANAMA: RuleSet = RuleSet {
               14 February 2000 on article 47; Ley 291 of 2022 for 20 December, per \
               the Ministry of Labour and TVN; Wikipedia, \"Public holidays in \
               Panama\", retrieved 2026-09-22, for the list and the names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1723,6 +1734,7 @@ pub static JAMAICA: RuleSet = RuleSet {
               Emancipation Day holiday in Jamaica\" (2023) and \"Legal Scoop: When a \
               public holiday falls on a Saturday\" (2020); Wikipedia, \"Labour Day\", \
               \"Heroes' Day\" and \"Public holidays in Jamaica\"",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1818,6 +1830,7 @@ pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
               (secondary), and the title of Legal Notice No. 135 of 2018 appointing \
               Tuesday 6 November 2018, in the Judiciary's list of legal notices \
               (ttlawcourts.org), the notice itself not read; both retrieved 2026-09-27",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1882,6 +1895,7 @@ pub static BARBADOS: RuleSet = RuleSet {
               2022 and 2026, retrieved 2026-09-22, for the observed days and Kadooment \
               Day's name; Wikipedia, \"Errol Barrow Day\" and \"Order of National \
               Heroes\" (Barbados), for 1989 and 1998",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1955,6 +1969,7 @@ pub static BAHAMAS: RuleSet = RuleSet {
               Bahamas on Monday 12 January 2026; the Tribune, \"National Heroes Day \
               formally established\" (12 October 2013); Wikipedia, \"Public holidays in \
               the Bahamas\" and \"Discovery Day\"",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2052,6 +2067,7 @@ pub static CUBA: RuleSet = RuleSet {
               Justice's 2014 edition (minjus.gob.cu), retrieved 2026-09-22; ACI Prensa on \
               the Good Fridays of 2012 and 2013; Wikipedia, \"Public holidays in Cuba\", \
               for the English names and 1998",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2173,6 +2189,7 @@ pub static BELIZE: RuleSet = RuleSet {
               and the First and Second Schedules of the Holidays Act, Chapter 289, \
               retrieved 2026-09-22; the San Pedro Sun (4 January 2021) on the 2021 list; \
               Wikipedia, \"Public holidays in Belize\", for the Act's rules",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2253,6 +2270,7 @@ pub static GUYANA: RuleSet = RuleSet {
               2004 designation; Wikipedia, \"Public holidays in Guyana\", for the names; the Ministry of Public Security's \"National Holidays 2017\" and \"National \
               Holidays 2018\" (mops.gov.gy), through web.archive.org, retrieved \
               2026-09-27, for Deepavali",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2363,6 +2381,7 @@ pub static HAITI: RuleSet = RuleSet {
               23 mai 1989, and \"Le premier novembre nécessite-t-il un arrêté \
               présidentiel ?\" for article 275-1 of the 1987 Constitution; Wikipedia, \
               \"Public holidays in Haiti\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2461,6 +2480,7 @@ pub static VENEZUELA: RuleSet = RuleSet {
               NotiIndígena reproduces it; LabLabor (12 August 2022) and El Universal \
               (8 July 2022) on the reform bill; Wikipedia, \"Public holidays in \
               Venezuela\", for the names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2679,6 +2699,7 @@ pub static PARAGUAY: RuleSet = RuleSet {
               ABC Color on Decreto 6601 (20 August 2026), Decreto 6280 (29 June 2026), \
               the 1 March 2026 move (16 February 2026), the 2025 additional days and the \
               2026 list (21 September 2026)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2800,6 +2821,7 @@ pub static HONDURAS: RuleSet = RuleSet {
               September 2020, from the Tribunal Superior de Cuentas (tsc.gob.hn); Infobae \
               (25 August 2026) and La Prensa on the COHEP's dates for 2025 and 2026; \
               Wikipedia, \"Public holidays in Honduras\", for the names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2897,6 +2919,7 @@ pub static EL_SALVADOR: RuleSet = RuleSet {
               (asamblea.gob.sv), retrieved 2026-09-23; the Corte Suprema de Justicia's \
               note on the días de asueto (26 May 2021); Wikipedia, \"Public holidays in \
               El Salvador\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -2972,6 +2995,7 @@ pub static NICARAGUA: RuleSet = RuleSet {
               to 68, from the Asamblea Nacional's Normas Jurídicas de Nicaragua \
               (legislacion.asamblea.gob.ni), retrieved 2026-09-23; Wikipedia, \"Public \
               holidays in Nicaragua\", for the English names",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3107,6 +3131,7 @@ pub static ANTIGUA_AND_BARBUDA: RuleSet = RuleSet {
               Holidays (Amendment) Acts No. 8 of 2005, No. 8 of 2014 and No. 23 of 2019 \
               (laws.gov.ag), retrieved 2026-09-23, for the Schedules; the Government of \
               Antigua and Barbuda, \"National Holidays\" (ab.gov.ag)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3177,6 +3202,7 @@ pub static DOMINICA: RuleSet = RuleSet {
               it, retrieved 2026-09-23, for sections 2, 5 and 9 and the Schedule; the \
               Government of Dominica's public holiday lists for 2021 to 2026 \
               (dominica.gov.dm, \"Public Holidays\"), retrieved 2026-09-23",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3269,6 +3295,7 @@ pub static GRENADA: RuleSet = RuleSet {
               19 October permanent holiday for debate and approval\" (18 November 2024) and \
               \"Education and awareness as Grenada legislates 1 August as Emancipation Day\" \
               (July 2025)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3331,6 +3358,7 @@ pub static SAINT_KITTS_AND_NEVIS: RuleSet = RuleSet {
               St. Kitts and Nevis Law Commission publishes it (lawcommission.gov.kn), \
               retrieved 2026-09-23, for sections 2 and 5 and the Schedule; SKNIS, \"St. \
               Kitts and Nevis Public Holidays Announcement\" (7 December 2022)",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3397,6 +3425,7 @@ pub static SAINT_LUCIA: RuleSet = RuleSet {
               April 2026), retrieved 2026-09-23; \"Saint Lucia's List of Public Holidays for \
               the Year 2025\", Office of the Cabinet Secretary, 28 August 2024, as the St. \
               Lucia Chamber of Commerce publishes it",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3496,6 +3525,7 @@ pub static SAINT_VINCENT_AND_THE_GRENADINES: RuleSet = RuleSet {
     sources: "Office of the Prime Minister, \"Public Holidays\" (pmoffice.gov.vc), the 2026 \
               list retrieved 2026-09-23 and the lists for 2019 and 2021 to 2025 through the \
               Internet Archive's copies of that page",
+    subdivisions: Subdivisions::Read(&[]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -3609,4 +3639,5 @@ pub static SURINAME: RuleSet = RuleSet {
               2024 and 2026, Divali 2021, 2022 and 2023, Ied-ul-Fitr 2023 and 2024, Ied-ul-\
               Adha 2023, Chinese New Year 2021, 2023 and 2024, and Javanese New Year 2023; Waterkant (waterkant.net) of 15 October 2017 and 27 October 2018 for \
               Divali in those years (secondary), retrieved 2026-09-27",
+    subdivisions: Subdivisions::Read(&[]),
 };

@@ -245,14 +245,35 @@ fn every_anniversary_day_of_the_list_is_reproduced() {
 }
 
 #[test]
-fn no_anniversary_day_is_carried_before_the_list_begins() {
+fn before_the_list_begins_an_anniversary_day_is_a_gap() {
     for region in [
         "NZ-AUK", "NZ-TKI", "NZ-HKB", "NZ-WGN", "NZ-MBH", "NZ-NSN", "NZ-CAN", "NZ-WTC", "NZ-OTA",
         "NZ-STL", "NZ-CIT",
     ] {
         assert!(own_days(region, 2009).is_empty(), "{region}");
+        let gaps = HolidayCalendar::for_year(&NEW_ZEALAND, Some(region), 2009);
+        assert_eq!(gaps.gaps().len(), 1, "{region}");
+        assert!(
+            gaps.gaps()[0].name.ends_with("Anniversary Day")
+                || gaps.gaps()[0].name.contains("Show Day")
+        );
         assert_eq!(own_days(region, 2010).len(), 1, "{region}");
+        assert!(HolidayCalendar::for_year(&NEW_ZEALAND, Some(region), 2010).is_complete());
         assert_eq!(own_days(region, 2040).len(), 1, "{region}");
+    }
+    // Nationwide, no anniversary day, and no gap for one.
+    assert!(HolidayCalendar::for_year(&NEW_ZEALAND, None, 2009).is_complete());
+}
+
+#[test]
+fn a_region_that_bears_no_province_s_name_is_a_gap() {
+    // No source read says which province's day these regions keep.
+    for region in ["NZ-NTL", "NZ-WKO", "NZ-BOP", "NZ-GIS", "NZ-MWT", "NZ-TAS"] {
+        let calendar = HolidayCalendar::for_year(&NEW_ZEALAND, Some(region), 2026);
+        let names: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+        assert_eq!(names, [hc_holiday::rule::UNREAD_SUBDIVISION], "{region}");
+        // The nationwide days are still there.
+        assert!(calendar.is_holiday(ymd(2026, 12, 25)), "{region}");
     }
 }
 

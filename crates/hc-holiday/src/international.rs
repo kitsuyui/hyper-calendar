@@ -40,7 +40,7 @@ use hc_seasons::Meridian;
 
 use hc_astro::lunar::MoonPhase;
 
-use crate::rule::{HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions};
 
 /// An international day: an observance, nowhere a day off, citing the
 /// instrument that set it.
@@ -1132,6 +1132,7 @@ pub static UNITED_NATIONS: RuleSet = RuleSet {
               un.org/en/observances/list-days-weeks, retrieved 2026-09-22, \
               and each rule-based day's own page; every entry cites its \
               resolution or designating body in its `source`",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// A week of observance: every day from `from` to `to`, an observance
@@ -1259,6 +1260,7 @@ pub static UNITED_NATIONS_WEEKS: RuleSet = RuleSet {
               (A/RES/43/61), World Space Week (A/RES/54/68), Disarmament Week (A/RES/S-10/2) \
               and the Global Media and Information Literacy Week (A/RES/75/267), \
               retrieved 2026-09-29; the resolutions themselves, PDFs, were not read",
+    subdivisions: Subdivisions::Undivided,
 };
 
 /// Every international table in the crate.

@@ -42,10 +42,12 @@ A Vanuatu provincial day is its fixed date every year: Shefa Day is
 
 Every day below, as a rule of the country's table scoped to its province,
 of `Kind::Public`. Solomon Islands' days are the notice's for 2026 alone:
-a later year reports each as a gap, since the days are appointed each
-year, and the years before the notice read are not carried. Vanuatu's are
-carried from 2020, the year the Government's list read gives, its Good
-Friday being 10 April and its Ascension 21 May; no earlier list was read.
+every other year reports each as a gap, since the days are appointed each
+year and no other year's notice was read; Honiara, which the notice gives
+no day, is listed among the subdivisions read. Vanuatu's are read from
+2020, the year the Government's list read gives, its Good Friday being
+10 April and its Ascension 21 May; no earlier list was read, and each year
+before is a gap.
 Neither country's days move off a weekend: Solomon Islands' notice gives
 the observed day itself, and Vanuatu's section 3 Sunday rule is for the
 Act's own holidays.

@@ -111,21 +111,15 @@ const fn np_listed(
     )
 }
 
-/// The years before the first notice read of a day the notices give on a
-/// rule: a gap in each.
-const fn np_unread_before(name: &'static str, local_name: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, local_name, Rule::UNREAD)
-        .years(None, Some(NP_NOTICES_FIRST - 1))
-}
-
-/// A day the notices date in the Bikram Sambat, the same in all four.
+/// A day the notices date in the Bikram Sambat, the same in all four,
+/// answered from the first notice read, the years before a gap.
 const fn np_bs(name: &'static str, local_name: &'static str, month: u8, day: u8) -> HolidayRule {
     HolidayRule::fixed_public(
         name,
         local_name,
         Rule::in_calendar(CalendarSystem::BIKRAM_SAMBAT, month, day),
     )
-    .years(Some(NP_NOTICES_FIRST), None)
+    .read_from(NP_NOTICES_FIRST)
 }
 
 /// The days of the notices' sections 2.2, 3, 4, 6.2, 7.2 and 8, in that
@@ -139,6 +133,11 @@ pub(super) static NP_SECTION_RULES: &[HolidayRule] = &[
         .years(Some(2026), None)
         .for_groups(&[DURA])
         .cited("गृह मन्त्रालय, २०८३ सालको सार्वजनिक विदा, 2.2 (ग): देशभरका दुरा समुदायका लागि मात्र"),
+    // Not in the notices read before 2083 BS, and a gap before those.
+    HolidayRule::fixed_public("Dura Mhaipru Nakuma", "दुरा म्हैप्रु नकुमा", Rule::NO_DAY)
+        .years(None, Some(2025))
+        .read_from(NP_NOTICES_FIRST)
+        .for_groups(&[DURA]),
     np_listed("Haritalika Teej", "हरितालिका (तीज) व्रत", "teej", 2023, 2026)
         .for_groups(&[WOMEN])
         .cited("गृह मन्त्रालय, सार्वजनिक बिदा सम्बन्धी सूचना, 3 (क): महिला कर्मचारीका लागि मात्र"),
@@ -161,7 +160,7 @@ pub(super) static NP_SECTION_RULES: &[HolidayRule] = &[
         "अन्तर्राष्ट्रिय अपाङ्गता दिवस",
         Rule::gregorian(12, 3),
     )
-    .years(Some(NP_NOTICES_FIRST), None)
+    .read_from(NP_NOTICES_FIRST)
     .for_groups(&[PERSONS_WITH_DISABILITIES])
     .cited(
         "गृह मन्त्रालय, सार्वजनिक बिदा सम्बन्धी सूचना, 6.2: अपाङ्गता भएका नेपालभित्रका सम्पूर्ण कर्मचारीको लागि",
@@ -171,12 +170,12 @@ pub(super) static NP_SECTION_RULES: &[HolidayRule] = &[
         .cited("गृह मन्त्रालय, सार्वजनिक बिदा सम्बन्धी सूचना, 7.2 (क): किराँत धर्मावलम्बी"),
     HolidayRule::fixed_public("Prophet Muhammad's Birthday", "मोहम्मद जयन्ती", NP_MAWLID)
         .approximate()
-        .years(Some(NP_NOTICES_FIRST), None)
+        .read_from(NP_NOTICES_FIRST)
         .for_groups(&[MUSLIMS])
         .cited("गृह मन्त्रालय, सार्वजनिक बिदा सम्बन्धी सूचना, 7.2 (ख): नेपाली मुस्लिम धर्मावलम्बी"),
     HolidayRule::fixed_public("Guru Nanak Jayanti", "गुरु नानक जयन्ती", GURU_NANAK_JAYANTI)
         .approximate()
-        .years(Some(NP_NOTICES_FIRST), None)
+        .read_from(NP_NOTICES_FIRST)
         .for_groups(&[SIKHS])
         .cited("गृह मन्त्रालय, सार्वजनिक बिदा सम्बन्धी सूचना, 7.2 (ग): नेपाली सिख धर्मावलम्बी"),
     np_bs(
@@ -199,29 +198,9 @@ pub(super) static NP_SECTION_RULES: &[HolidayRule] = &[
     .cited("गृह मन्त्रालय, २०८३ सालको सार्वजनिक विदा, 8 (ग): कार्यालय खुल्ने प्रकृतिका दिवस"),
 ];
 
-/// The years before the first notice read of the days above that are not
-/// read from a listing, each a gap for the group it is given to.
-pub(super) static NP_UNREAD_RULES: &[HolidayRule] = &[
-    np_unread_before("Dura Mhaipru Nakuma", "दुरा म्हैप्रु नकुमा").for_groups(&[DURA]),
-    np_unread_before(
-        "International Day of Persons with Disabilities",
-        "अन्तर्राष्ट्रिय अपाङ्गता दिवस",
-    )
-    .for_groups(&[PERSONS_WITH_DISABILITIES]),
-    np_unread_before("Falgunanda Jayanti", "फाल्गुनन्द जयन्ती").for_groups(&[KIRAT]),
-    np_unread_before("Prophet Muhammad's Birthday", "मोहम्मद जयन्ती").for_groups(&[MUSLIMS]),
-    np_unread_before("Guru Nanak Jayanti", "गुरु नानक जयन्ती").for_groups(&[SIKHS]),
-    np_unread_before(
-        "National Day for the Elimination of Caste Discrimination and Untouchability",
-        "जातीय भेदभाव तथा छुवाछुत उन्मूलन राष्ट्रिय दिवस",
-    ),
-    np_unread_before("Civil Service Day", "निजामती सेवा दिवस"),
-];
-
 /// How many rules [`NEPAL`](super::NEPAL) has in all.
-const NP_ALL_LEN: usize = NP_RULES.len() + NP_SECTION_RULES.len() + NP_UNREAD_RULES.len();
+const NP_ALL_LEN: usize = NP_RULES.len() + NP_SECTION_RULES.len();
 
 /// Every rule of [`NEPAL`](super::NEPAL): section 2.1's of `asia.rs`, then
 /// the other sections' here.
-pub(super) static NP_ALL_RULES: [HolidayRule; NP_ALL_LEN] =
-    joined(&[NP_RULES, NP_SECTION_RULES, NP_UNREAD_RULES]);
+pub(super) static NP_ALL_RULES: [HolidayRule; NP_ALL_LEN] = joined(&[NP_RULES, NP_SECTION_RULES]);

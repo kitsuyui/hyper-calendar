@@ -15,9 +15,9 @@
 //! gap: the laws read replaced older ones, which were not read. Vaud's
 //! 2 January and Whit Monday, which its amendment of 2007 added, are absent
 //! in 2006 and 2007, whose text was read. A day equal to Sunday
-//! is [`Kind::Public`](crate::rule::Kind::Public); a public rest day the law does not make equal to
+//! is [`Kind::Public`]; a public rest day the law does not make equal to
 //! Sunday, as Lucerne's 8 December or Ticino's giorni festivi "non
-//! parificati", is [`Kind::Observance`](crate::rule::Kind::Observance). Only days the law keeps in the
+//! parificati", is [`Kind::Observance`]. Only days the law keeps in the
 //! whole canton are carried: the days Aargau keeps in some districts,
 //! Fribourg in its Catholic or Reformed communes, Solothurn outside the
 //! Bucheggberg and Appenzell Innerrhoden in its inner part need a scope
@@ -31,7 +31,9 @@ use hc_calendars_solar::gregorian;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, GOOD_FRIDAY, WHIT_MONDAY,
 };
-use crate::rule::{Days, HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate};
+use crate::rule::{
+    Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, joined,
+};
 
 /// The Jeûne genevois, "le jeudi qui suit le premier dimanche du mois de
 /// septembre": the first Thursday on or after 5 September.
@@ -120,49 +122,32 @@ fn nafels_pilgrimage(year: i64) -> Days {
     Days::one(thursday)
 }
 
-/// A day a canton's law makes equal to Sunday, from `first`.
+/// A day a canton's law makes equal to Sunday. Its years are the call's:
+/// `.years` from the year a law read established it, or `.read_from` the
+/// commencement of the law read, where the day is older than it and an
+/// earlier law, not read, kept it or did not.
 const fn canton(
     name: &'static str,
     local_name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::fixed_public(name, local_name, rule)
-        .years(Some(first), None)
         .in_regions(region)
         .cited(source)
 }
 
 /// A public rest day of a canton's law that the law does not make equal
-/// to Sunday, from `first`.
+/// to Sunday, with its years as [`canton`]'s.
 const fn canton_rest_day(
     name: &'static str,
     local_name: &'static str,
     rule: Rule,
-    first: i32,
     region: &'static [&'static str],
     source: &'static str,
 ) -> HolidayRule {
     HolidayRule::observance(name, local_name, rule)
-        .years(Some(first), None)
-        .in_regions(region)
-        .cited(source)
-}
-
-/// The years to `last` before a canton's day, as a gap: the law read is the
-/// one in force from its commencement, and the day is older than it — an
-/// earlier law, not read, kept it or did not.
-const fn earlier_years_unread(
-    name: &'static str,
-    local_name: &'static str,
-    last: i32,
-    region: &'static [&'static str],
-    source: &'static str,
-) -> HolidayRule {
-    HolidayRule::observance(name, local_name, Rule::UNREAD)
-        .years(None, Some(last))
         .in_regions(region)
         .cited(source)
 }
@@ -221,1454 +206,1302 @@ const CH_ZG_LAW: &str = "Gesetz über Ruhetage und Ladenöffnung, BGS 942.31, §
 const CH_ZH: &[&str] = &["CH-ZH"];
 const CH_ZH_LAW: &str = "the Canton's page \"Feiertage\" (secondary, official), for the Ruhetags- und Ladenöffnungsgesetz vom 26. Juni 2000, LS 822.4, § 1, published as PDF only and not read (https://www.zh.ch/de/wirtschaft-arbeit/arbeitsbedingungen/arbeitsssicherheit-gesundheitsschutz/arbeits-ruhezeiten/feiertage.html), retrieved 2026-09-29";
 
-static CH_RULES: &[HolidayRule] = &[
-    // ── Kept in every canton ────────────────────────────────────────────
-    HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1)),
-    HolidayRule::public("Ascension", "Auffahrt", Rule::easter(ASCENSION)),
+/// Every canton, by ISO 3166-2 code.
+const CANTONS: &[&str] = &[
+    "CH-AG", "CH-AI", "CH-AR", "CH-BE", "CH-BL", "CH-BS", "CH-FR", "CH-GE", "CH-GL", "CH-GR",
+    "CH-JU", "CH-LU", "CH-NE", "CH-NW", "CH-OW", "CH-SG", "CH-SH", "CH-SO", "CH-SZ", "CH-TG",
+    "CH-TI", "CH-UR", "CH-VD", "CH-VS", "CH-ZG", "CH-ZH",
+];
+
+/// The first year every canton's text read answers for: Jura's, Schwyz's
+/// and Zurich's rest on sources read in 2026.
+const EVERY_CANTON_READ: i32 = 2026;
+
+/// The three days every canton's law read keeps — New Year's Day,
+/// Ascension and Christmas Day — in each canton, from the latest first
+/// year its text read gives for any of its days, the years before a gap;
+/// and nationwide, where the days are every canton's, from
+/// [`EVERY_CANTON_READ`].
+macro_rules! every_canton_keeps {
+    ($(($region:expr, $law:expr, $first:expr)),* $(,)?) => {
+        [
+            HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1))
+                .except_in(CANTONS)
+                .read_from(EVERY_CANTON_READ),
+            HolidayRule::public("Ascension", "Auffahrt", Rule::easter(ASCENSION))
+                .except_in(CANTONS)
+                .read_from(EVERY_CANTON_READ),
+            HolidayRule::public("Christmas Day", "Weihnachtstag", Rule::gregorian(12, 25))
+                .except_in(CANTONS)
+                .read_from(EVERY_CANTON_READ),
+            $(
+                canton("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1), $region, $law)
+                    .read_from($first),
+                canton("Ascension", "Auffahrt", Rule::easter(ASCENSION), $region, $law)
+                    .read_from($first),
+                canton("Christmas Day", "Weihnachtstag", Rule::gregorian(12, 25), $region, $law)
+                    .read_from($first),
+            )*
+        ]
+    };
+}
+
+/// The days of [`every_canton_keeps`].
+const KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
+    (CH_AG, CH_AG_LAW, 2013),
+    (CH_AI, CH_AI_LAW, 2011),
+    (CH_AR, CH_AR_LAW, 1967),
+    (CH_BE, CH_BE_LAW, 1998),
+    (CH_BL, CH_BL_LAW, 2011),
+    (CH_BS, CH_BS_LAW, 1994),
+    (CH_FR, CH_FR_LAW, 2011),
+    (CH_GE, CH_GE_LAW, 1991),
+    (CH_GL, CH_GL_LAW, 2013),
+    (CH_GR, CH_GR_LAW, 2006),
+    (CH_JU, CH_JU_LAW, 2026),
+    (CH_LU, CH_LU_LAW, 1998),
+    (CH_NE, CH_NE_LAW, 2010),
+    (CH_NW, CH_NW_LAW, 2006),
+    (CH_OW, CH_OW_LAW, 2008),
+    (CH_SG, CH_SG_LAW, 2005),
+    (CH_SH, CH_SH_LAW, 2011),
+    (CH_SO, CH_SO_LAW, 2016),
+    (CH_SZ, CH_SZ_LAW, 2026),
+    (CH_TG, CH_TG_LAW, 2003),
+    (CH_TI, CH_TI_LAW, 2012),
+    (CH_UR, CH_UR_LAW, 2003),
+    (CH_VD, CH_VD_LAW, 2006),
+    (CH_VS, CH_VS_LAW, 2017),
+    (CH_ZG, CH_ZG_LAW, 2004),
+    (CH_ZH, CH_ZH_LAW, 2026),
+];
+
+/// The Arbeitsgesetz's Art. 20a, in force from 1 August 2000.
+const ARG_20A: &str = "Arbeitsgesetz (SR 822.11), Art. 20a Abs. 1, \"Der Bundesfeiertag ist den \
+     Sonntagen gleichgestellt\", inserted by Ziff. I des BG vom 20. März 1998, in Kraft seit \
+     1. Aug. 2000 (AS 2000 1569), Fedlex, consolidation of 1 September 2023, retrieved 2026-09-29; \
+     the Verordnung vom 30. Mai 1994 über den Bundesfeiertag, not read, for the years before";
+
+/// Every rule but [`KEPT_EVERYWHERE`].
+const CH_OWN_RULES: &[HolidayRule] = &[
+    // ── The federal day ──────────────────────────────────────────────────
+    // A holiday from the Verordnung of 1994, not read; equal to Sunday by
+    // the Arbeitsgesetz from 2000, read.
     HolidayRule::public("Swiss National Day", "Bundesfeier", Rule::gregorian(8, 1))
-        .years(Some(1994), None),
-    HolidayRule::public("Christmas Day", "Weihnachtstag", Rule::gregorian(12, 25)),
+        .read_from(2000)
+        .cited(ARG_20A),
     // ── Each canton's other days ────────────────────────────────────────
     // Aargau.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2013,
         CH_AG,
         CH_AG_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2012, CH_AG, CH_AG_LAW),
+    )
+    .read_from(2013),
     // Appenzell Innerrhoden.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2011,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2010, CH_AI, CH_AI_LAW),
+    )
+    .read_from(2011),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2011,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2010, CH_AI, CH_AI_LAW),
+    )
+    .read_from(2011),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2011,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2010, CH_AI, CH_AI_LAW),
+    )
+    .read_from(2011),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2011,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2010, CH_AI, CH_AI_LAW),
+    )
+    .read_from(2011),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::Unsettled(appenzell_innerrhoden_st_stephen),
-        2011,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2010, CH_AI, CH_AI_LAW),
+    )
+    .read_from(2011),
     canton_rest_day(
         "Assumption",
         "Maria Himmelfahrt",
         Rule::gregorian(8, 15),
-        1982,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("Assumption", "Maria Himmelfahrt", 1981, CH_AI, CH_AI_LAW),
+    )
+    .read_from(1982),
     canton_rest_day(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        1982,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 1981, CH_AI, CH_AI_LAW),
+    )
+    .read_from(1982),
     canton_rest_day(
         "Immaculate Conception",
         "Maria Empfängnis",
         Rule::gregorian(12, 8),
-        1982,
         CH_AI,
         CH_AI_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Maria Empfängnis",
-        1981,
-        CH_AI,
-        CH_AI_LAW,
-    ),
+    )
+    .read_from(1982),
     // Appenzell Ausserrhoden.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        1966,
         CH_AR,
         CH_AR_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 1965, CH_AR, CH_AR_LAW),
+    )
+    .read_from(1966),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        1966,
         CH_AR,
         CH_AR_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 1965, CH_AR, CH_AR_LAW),
+    )
+    .read_from(1966),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        1966,
         CH_AR,
         CH_AR_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 1965, CH_AR, CH_AR_LAW),
+    )
+    .read_from(1966),
     canton(
         "St Stephen's Day",
         "zweiter Weihnachtstag",
         Rule::Computed(appenzell_ausserrhoden_st_stephen),
-        1967,
         CH_AR,
         CH_AR_LAW,
-    ),
-    earlier_years_unread(
-        "St Stephen's Day",
-        "zweiter Weihnachtstag",
-        1966,
-        CH_AR,
-        CH_AR_LAW,
-    ),
+    )
+    .read_from(1967),
     // Bern.
     canton(
         "Berchtold's Day",
         "der 2. Januar",
         Rule::gregorian(1, 2),
-        1998,
         CH_BE,
         CH_BE_LAW,
-    ),
-    earlier_years_unread("Berchtold's Day", "der 2. Januar", 1997, CH_BE, CH_BE_LAW),
+    )
+    .read_from(1998),
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        1998,
         CH_BE,
         CH_BE_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 1997, CH_BE, CH_BE_LAW),
+    )
+    .read_from(1998),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        1998,
         CH_BE,
         CH_BE_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 1997, CH_BE, CH_BE_LAW),
+    )
+    .read_from(1998),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        1997,
         CH_BE,
         CH_BE_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 1996, CH_BE, CH_BE_LAW),
+    )
+    .read_from(1997),
     canton(
         "St Stephen's Day",
         "der 26. Dezember",
         Rule::gregorian(12, 26),
-        1997,
         CH_BE,
         CH_BE_LAW,
-    ),
-    earlier_years_unread(
-        "St Stephen's Day",
-        "der 26. Dezember",
-        1996,
-        CH_BE,
-        CH_BE_LAW,
-    ),
+    )
+    .read_from(1997),
     // Basel-Landschaft.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2011,
         CH_BL,
         CH_BL_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2010, CH_BL, CH_BL_LAW),
+    )
+    .read_from(2011),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2011,
         CH_BL,
         CH_BL_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2010, CH_BL, CH_BL_LAW),
+    )
+    .read_from(2011),
     canton(
         "Labour Day",
         "1. Mai",
         Rule::gregorian(5, 1),
-        2011,
         CH_BL,
         CH_BL_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1. Mai", 2010, CH_BL, CH_BL_LAW),
+    )
+    .read_from(2011),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2011,
         CH_BL,
         CH_BL_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2010, CH_BL, CH_BL_LAW),
+    )
+    .read_from(2011),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        2011,
         CH_BL,
         CH_BL_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2010, CH_BL, CH_BL_LAW),
+    )
+    .read_from(2011),
     // Basel-Stadt.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        1994,
         CH_BS,
         CH_BS_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 1993, CH_BS, CH_BS_LAW),
+    )
+    .read_from(1994),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        1994,
         CH_BS,
         CH_BS_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 1993, CH_BS, CH_BS_LAW),
+    )
+    .read_from(1994),
     canton(
         "Labour Day",
         "1. Mai",
         Rule::gregorian(5, 1),
-        1994,
         CH_BS,
         CH_BS_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1. Mai", 1993, CH_BS, CH_BS_LAW),
+    )
+    .read_from(1994),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        1994,
         CH_BS,
         CH_BS_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 1993, CH_BS, CH_BS_LAW),
+    )
+    .read_from(1994),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        1994,
         CH_BS,
         CH_BS_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 1993, CH_BS, CH_BS_LAW),
+    )
+    .read_from(1994),
     // Fribourg.
     canton(
         "Good Friday",
         "Vendredi-Saint",
         Rule::easter(GOOD_FRIDAY),
-        2011,
         CH_FR,
         CH_FR_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Vendredi-Saint", 2010, CH_FR, CH_FR_LAW),
+    )
+    .read_from(2011),
     // Geneva.
     canton(
         "Good Friday",
         "Vendredi saint",
         Rule::easter(GOOD_FRIDAY),
-        1991,
         CH_GE,
         CH_GE_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Vendredi saint", 1990, CH_GE, CH_GE_LAW),
+    )
+    .read_from(1991),
     canton(
         "Easter Monday",
         "Lundi de Pâques",
         Rule::easter(EASTER_MONDAY),
-        1991,
         CH_GE,
         CH_GE_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Lundi de Pâques", 1990, CH_GE, CH_GE_LAW),
+    )
+    .read_from(1991),
     canton(
         "Whit Monday",
         "Lundi de Pentecôte",
         Rule::easter(WHIT_MONDAY),
-        1991,
         CH_GE,
         CH_GE_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Lundi de Pentecôte", 1990, CH_GE, CH_GE_LAW),
+    )
+    .read_from(1991),
     canton(
         "Geneva Fast",
         "Jeûne genevois",
         GENEVA_FAST,
-        1991,
         CH_GE,
         CH_GE_LAW,
-    ),
-    earlier_years_unread("Geneva Fast", "Jeûne genevois", 1990, CH_GE, CH_GE_LAW),
+    )
+    .read_from(1991),
     canton(
         "Restoration of the Republic",
         "31 Décembre, anniversaire de la restauration de la République",
         Rule::gregorian(12, 31),
-        1991,
         CH_GE,
         CH_GE_LAW,
-    ),
-    earlier_years_unread(
-        "Restoration of the Republic",
-        "31 Décembre, anniversaire de la restauration de la République",
-        1990,
-        CH_GE,
-        CH_GE_LAW,
-    ),
+    )
+    .read_from(1991),
     // Glarus.
     canton(
         "Näfels Pilgrimage",
         "Fahrtsfest",
         Rule::Computed(nafels_pilgrimage),
-        2013,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("Näfels Pilgrimage", "Fahrtsfest", 2012, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2013),
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2013,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2012, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2013),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2013,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2012, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2013),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2012,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2011, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2012),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2012,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2011, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2012),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        2012,
         CH_GL,
         CH_GL_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2011, CH_GL, CH_GL_LAW),
+    )
+    .read_from(2012),
     // Graubünden.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2006,
         CH_GR,
         CH_GR_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2005, CH_GR, CH_GR_LAW),
+    )
+    .read_from(2006),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2006,
         CH_GR,
         CH_GR_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2005, CH_GR, CH_GR_LAW),
+    )
+    .read_from(2006),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2006,
         CH_GR,
         CH_GR_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2005, CH_GR, CH_GR_LAW),
+    )
+    .read_from(2006),
     canton(
         "St Stephen's Day",
         "Stefanstag",
         Rule::gregorian(12, 26),
-        2006,
         CH_GR,
         CH_GR_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stefanstag", 2005, CH_GR, CH_GR_LAW),
+    )
+    .read_from(2006),
     // Jura.
     canton(
         "Good Friday",
         "Vendredi-Saint",
         Rule::easter(GOOD_FRIDAY),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Vendredi-Saint", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton(
         "Easter Monday",
         "Lundi de Pâques",
         Rule::easter(EASTER_MONDAY),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Lundi de Pâques", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton(
         "Labour Day",
         "1er mai",
         Rule::gregorian(5, 1),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1er mai", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton(
         "Whit Monday",
         "Lundi de Pentecôte",
         Rule::easter(WHIT_MONDAY),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Lundi de Pentecôte", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton(
         "Corpus Christi",
         "Fête-Dieu",
         Rule::easter(CORPUS_CHRISTI),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fête-Dieu", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Berchtold's Day",
         "2 janvier",
         Rule::gregorian(1, 2),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Berchtold's Day", "2 janvier", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Assumption",
         "Assomption",
         Rule::gregorian(8, 15),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("Assumption", "Assomption", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "All Saints' Day",
         "Toussaint",
         Rule::gregorian(11, 1),
-        2026,
         CH_JU,
         CH_JU_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Toussaint", 2025, CH_JU, CH_JU_LAW),
+    )
+    .read_from(2026),
     // Lucerne.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        1998,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 1997, CH_LU, CH_LU_LAW),
+    )
+    .read_from(1998),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        1998,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 1997, CH_LU, CH_LU_LAW),
+    )
+    .read_from(1998),
     canton(
         "Assumption",
         "Mariä Himmelfahrt",
         Rule::gregorian(8, 15),
-        1997,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread("Assumption", "Mariä Himmelfahrt", 1996, CH_LU, CH_LU_LAW),
+    )
+    .read_from(1997),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        1997,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 1996, CH_LU, CH_LU_LAW),
+    )
+    .read_from(1997),
     canton(
         "St Stephen's Day",
         "Stefanstag",
         Rule::gregorian(12, 26),
-        1997,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stefanstag", 1996, CH_LU, CH_LU_LAW),
+    )
+    .read_from(1997),
     canton_rest_day(
         "Immaculate Conception",
         "Mariä Empfängnis",
         Rule::gregorian(12, 8),
-        1997,
         CH_LU,
         CH_LU_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        1996,
-        CH_LU,
-        CH_LU_LAW,
-    ),
+    )
+    .read_from(1997),
     // Neuchâtel.
     canton(
         "2 January",
         "le 2 janvier",
         Rule::Computed(neuchatel_second_january),
-        2010,
         CH_NE,
         CH_NE_LAW,
-    ),
-    earlier_years_unread("2 January", "le 2 janvier", 2009, CH_NE, CH_NE_LAW),
+    )
+    .read_from(2010),
     canton(
         "1 March",
         "le 1er mars",
         Rule::gregorian(3, 1),
-        2010,
         CH_NE,
         CH_NE_LAW,
-    ),
-    earlier_years_unread("1 March", "le 1er mars", 2009, CH_NE, CH_NE_LAW),
+    )
+    .read_from(2010),
     canton(
         "Labour Day",
         "le 1er mai",
         Rule::gregorian(5, 1),
-        2010,
         CH_NE,
         CH_NE_LAW,
-    ),
-    earlier_years_unread("Labour Day", "le 1er mai", 2009, CH_NE, CH_NE_LAW),
+    )
+    .read_from(2010),
     canton(
         "Good Friday",
         "Vendredi Saint",
         Rule::easter(GOOD_FRIDAY),
-        2010,
         CH_NE,
         CH_NE_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Vendredi Saint", 2009, CH_NE, CH_NE_LAW),
+    )
+    .read_from(2010),
     canton(
         "St Stephen's Day",
         "le 26 décembre",
         Rule::Computed(neuchatel_st_stephen),
-        2010,
         CH_NE,
         CH_NE_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "le 26 décembre", 2009, CH_NE, CH_NE_LAW),
+    )
+    .read_from(2010),
     // Nidwalden.
     canton_rest_day(
         "St Joseph's Day",
         "Josefstag",
         Rule::gregorian(3, 19),
-        2006,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread("St Joseph's Day", "Josefstag", 2005, CH_NW, CH_NW_LAW),
+    )
+    .read_from(2006),
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2006,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2005, CH_NW, CH_NW_LAW),
+    )
+    .read_from(2006),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2006,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2005, CH_NW, CH_NW_LAW),
+    )
+    .read_from(2006),
     canton(
         "Assumption",
         "Maria Himmelfahrt",
         Rule::gregorian(8, 15),
-        2006,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread("Assumption", "Maria Himmelfahrt", 2005, CH_NW, CH_NW_LAW),
+    )
+    .read_from(2006),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2005,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2004, CH_NW, CH_NW_LAW),
+    )
+    .read_from(2005),
     canton(
         "Immaculate Conception",
         "Maria Empfängnis",
         Rule::gregorian(12, 8),
-        2005,
         CH_NW,
         CH_NW_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Maria Empfängnis",
-        2004,
-        CH_NW,
-        CH_NW_LAW,
-    ),
+    )
+    .read_from(2005),
     // Obwalden.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2008,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2007, CH_OW, CH_OW_LAW),
+    )
+    .read_from(2008),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2008,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2007, CH_OW, CH_OW_LAW),
+    )
+    .read_from(2008),
     canton(
         "Assumption",
         "Mariä Himmelfahrt",
         Rule::gregorian(8, 15),
-        2007,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread("Assumption", "Mariä Himmelfahrt", 2006, CH_OW, CH_OW_LAW),
+    )
+    .read_from(2007),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2007,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2006, CH_OW, CH_OW_LAW),
+    )
+    .read_from(2007),
     canton(
         "Immaculate Conception",
         "Mariä Empfängnis",
         Rule::gregorian(12, 8),
-        2007,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        2006,
-        CH_OW,
-        CH_OW_LAW,
-    ),
+    )
+    .read_from(2007),
     canton_rest_day(
         "St Nicholas of Flüe",
         "Bruderklausenfest",
         Rule::gregorian(9, 25),
-        2007,
         CH_OW,
         CH_OW_LAW,
-    ),
-    earlier_years_unread(
-        "St Nicholas of Flüe",
-        "Bruderklausenfest",
-        2006,
-        CH_OW,
-        CH_OW_LAW,
-    ),
+    )
+    .read_from(2007),
     // St. Gallen.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2005,
         CH_SG,
         CH_SG_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2004, CH_SG, CH_SG_LAW),
+    )
+    .read_from(2005),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2005,
         CH_SG,
         CH_SG_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2004, CH_SG, CH_SG_LAW),
+    )
+    .read_from(2005),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2005,
         CH_SG,
         CH_SG_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2004, CH_SG, CH_SG_LAW),
+    )
+    .read_from(2005),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2004,
         CH_SG,
         CH_SG_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2003, CH_SG, CH_SG_LAW),
+    )
+    .read_from(2004),
     canton(
         "St Stephen's Day",
         "Stefanstag",
         Rule::gregorian(12, 26),
-        2004,
         CH_SG,
         CH_SG_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stefanstag", 2003, CH_SG, CH_SG_LAW),
+    )
+    .read_from(2004),
     // Schaffhausen.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2011,
         CH_SH,
         CH_SH_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2010, CH_SH, CH_SH_LAW),
+    )
+    .read_from(2011),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2011,
         CH_SH,
         CH_SH_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2010, CH_SH, CH_SH_LAW),
+    )
+    .read_from(2011),
     canton(
         "Labour Day",
         "1. Mai",
         Rule::gregorian(5, 1),
-        2011,
         CH_SH,
         CH_SH_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1. Mai", 2010, CH_SH, CH_SH_LAW),
+    )
+    .read_from(2011),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2011,
         CH_SH,
         CH_SH_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2010, CH_SH, CH_SH_LAW),
+    )
+    .read_from(2011),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        2011,
         CH_SH,
         CH_SH_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2010, CH_SH, CH_SH_LAW),
+    )
+    .read_from(2011),
     // Solothurn.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2016,
         CH_SO,
         CH_SO_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2015, CH_SO, CH_SO_LAW),
+    )
+    .read_from(2016),
+    // § 46 Abs. 1 a): "der 1. Mai (ab 12 Uhr)", equal to Sunday from noon.
+    canton(
+        "Labour Day, from noon",
+        "1. Mai (ab 12 Uhr)",
+        Rule::gregorian(5, 1),
+        CH_SO,
+        CH_SO_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2016),
     // Schwyz.
     canton(
         "St Joseph's Day",
         "Josefstag",
         Rule::gregorian(3, 19),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("St Joseph's Day", "Josefstag", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton(
         "Assumption",
         "Mariä Himmelfahrt",
         Rule::gregorian(8, 15),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Assumption", "Mariä Himmelfahrt", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Epiphany",
         "Heilige Drei Könige",
         Rule::gregorian(1, 6),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Epiphany", "Heilige Drei Könige", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     canton_rest_day(
         "Immaculate Conception",
         "Mariä Empfängnis",
         Rule::gregorian(12, 8),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        2025,
-        CH_SZ,
-        CH_SZ_LAW,
-    ),
+    )
+    .read_from(2026),
     canton_rest_day(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        2026,
         CH_SZ,
         CH_SZ_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2025, CH_SZ, CH_SZ_LAW),
+    )
+    .read_from(2026),
     // Thurgau.
     canton(
         "Berchtold's Day",
         "2. Januar",
         Rule::gregorian(1, 2),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("Berchtold's Day", "2. Januar", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     canton(
         "Labour Day",
         "1. Mai",
         Rule::gregorian(5, 1),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1. Mai", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     canton(
         "St Stephen's Day",
         "26. Dezember",
         Rule::gregorian(12, 26),
-        2003,
         CH_TG,
         CH_TG_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "26. Dezember", 2002, CH_TG, CH_TG_LAW),
+    )
+    .read_from(2003),
     // Ticino.
     canton(
         "Epiphany",
         "Epifania",
         Rule::gregorian(1, 6),
-        2012,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("Epiphany", "Epifania", 2011, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2012),
     canton(
         "Easter Monday",
         "Lunedì di Pasqua",
         Rule::easter(EASTER_MONDAY),
-        2012,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Lunedì di Pasqua", 2011, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2012),
     canton(
         "Assumption",
         "Assunzione",
         Rule::gregorian(8, 15),
-        2011,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("Assumption", "Assunzione", 2010, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2011),
     canton(
         "All Saints' Day",
         "Ognissanti",
         Rule::gregorian(11, 1),
-        2011,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Ognissanti", 2010, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2011),
     canton(
         "St Stephen's Day",
         "Santo Stefano",
         Rule::gregorian(12, 26),
-        2011,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Santo Stefano", 2010, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2011),
     canton_rest_day(
         "St Joseph's Day",
         "San Giuseppe",
         Rule::gregorian(3, 19),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("St Joseph's Day", "San Giuseppe", 2009, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2010),
     canton_rest_day(
         "Labour Day",
         "1° Maggio",
         Rule::gregorian(5, 1),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1° Maggio", 2009, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2010),
     canton_rest_day(
         "Whit Monday",
         "Lunedì di Pentecoste",
         Rule::easter(WHIT_MONDAY),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread(
-        "Whit Monday",
-        "Lunedì di Pentecoste",
-        2009,
-        CH_TI,
-        CH_TI_LAW,
-    ),
+    )
+    .read_from(2010),
     canton_rest_day(
         "Corpus Christi",
         "Corpus Domini",
         Rule::easter(CORPUS_CHRISTI),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Corpus Domini", 2009, CH_TI, CH_TI_LAW),
+    )
+    .read_from(2010),
     canton_rest_day(
         "Saints Peter and Paul",
         "SS. Pietro e Paolo",
         Rule::gregorian(6, 29),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread(
-        "Saints Peter and Paul",
-        "SS. Pietro e Paolo",
-        2009,
-        CH_TI,
-        CH_TI_LAW,
-    ),
+    )
+    .read_from(2010),
     canton_rest_day(
         "Immaculate Conception",
         "Immacolata",
         Rule::gregorian(12, 8),
-        2010,
         CH_TI,
         CH_TI_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Immacolata",
-        2009,
-        CH_TI,
-        CH_TI_LAW,
-    ),
+    )
+    .read_from(2010),
     // Uri.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2002,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2001, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2002),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2002,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2001, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2002),
     canton(
         "Assumption",
         "Mariä Himmelfahrt",
         Rule::gregorian(8, 15),
-        2002,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Assumption", "Mariä Himmelfahrt", 2001, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2002),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2002,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2001, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2002),
     canton(
         "Immaculate Conception",
         "Mariä Empfängnis",
         Rule::gregorian(12, 8),
-        2002,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        2001,
-        CH_UR,
-        CH_UR_LAW,
-    ),
+    )
+    .read_from(2002),
     canton_rest_day(
         "Epiphany",
         "Dreikönigen",
         Rule::gregorian(1, 6),
-        2003,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Epiphany", "Dreikönigen", 2002, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2003),
     canton_rest_day(
         "St Joseph's Day",
         "Sankt-Josefs-Tag",
         Rule::gregorian(3, 19),
-        2003,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread(
-        "St Joseph's Day",
-        "Sankt-Josefs-Tag",
-        2002,
-        CH_UR,
-        CH_UR_LAW,
-    ),
+    )
+    .read_from(2003),
     canton_rest_day(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2003,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2002, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2003),
     canton_rest_day(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2003,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2002, CH_UR, CH_UR_LAW),
+    )
+    .read_from(2003),
     canton_rest_day(
         "St Stephen's Day",
         "Sankt-Stefans-Tag",
         Rule::gregorian(12, 26),
-        2003,
         CH_UR,
         CH_UR_LAW,
-    ),
-    earlier_years_unread(
-        "St Stephen's Day",
-        "Sankt-Stefans-Tag",
-        2002,
-        CH_UR,
-        CH_UR_LAW,
-    ),
+    )
+    .read_from(2003),
     // Vaud.
     canton(
         "Good Friday",
         "le Vendredi-Saint",
         Rule::easter(GOOD_FRIDAY),
-        2006,
         CH_VD,
         CH_VD_LAW,
-    ),
-    earlier_years_unread("Good Friday", "le Vendredi-Saint", 2005, CH_VD, CH_VD_LAW),
+    )
+    .read_from(2006),
     canton(
         "Easter Monday",
         "le lundi de Pâques",
         Rule::easter(EASTER_MONDAY),
-        2006,
         CH_VD,
         CH_VD_LAW,
-    ),
-    earlier_years_unread(
-        "Easter Monday",
-        "le lundi de Pâques",
-        2005,
-        CH_VD,
-        CH_VD_LAW,
-    ),
+    )
+    .read_from(2006),
     canton(
         "Federal Fast Monday",
         "le lundi du Jeûne fédéral",
         FEDERAL_FAST_MONDAY,
-        2006,
         CH_VD,
         CH_VD_LAW,
-    ),
-    earlier_years_unread(
-        "Federal Fast Monday",
-        "le lundi du Jeûne fédéral",
-        2005,
-        CH_VD,
-        CH_VD_LAW,
-    ),
+    )
+    .read_from(2006),
     canton(
         "Berchtold's Day",
         "le 2 janvier",
         Rule::gregorian(1, 2),
-        2008,
         CH_VD,
         CH_VD_LAW,
-    ),
-    earlier_years_unread("Berchtold's Day", "le 2 janvier", 2005, CH_VD, CH_VD_LAW),
+    )
+    .years(Some(2008), None),
+    // The law read in its text of 2006, before the amendment of 2007, keeps
+    // neither this day nor Whit Monday; the law before it was not read.
+    canton(
+        "Berchtold's Day",
+        "le 2 janvier",
+        Rule::NO_DAY,
+        CH_VD,
+        CH_VD_LAW,
+    )
+    .years(None, Some(2007))
+    .read_from(2006),
     canton(
         "Whit Monday",
         "le lundi de Pentecôte",
         Rule::easter(WHIT_MONDAY),
-        2008,
         CH_VD,
         CH_VD_LAW,
-    ),
-    earlier_years_unread(
+    )
+    .years(Some(2008), None),
+    canton(
         "Whit Monday",
         "le lundi de Pentecôte",
-        2005,
+        Rule::NO_DAY,
         CH_VD,
         CH_VD_LAW,
-    ),
+    )
+    .years(None, Some(2007))
+    .read_from(2006),
     // Valais.
     canton(
         "St Joseph's Day",
         "Saint-Joseph",
         Rule::gregorian(3, 19),
-        2017,
         CH_VS,
         CH_VS_LAW,
-    ),
-    earlier_years_unread("St Joseph's Day", "Saint-Joseph", 2016, CH_VS, CH_VS_LAW),
+    )
+    .read_from(2017),
     canton(
         "Corpus Christi",
         "Fête-Dieu",
         Rule::easter(CORPUS_CHRISTI),
-        2017,
         CH_VS,
         CH_VS_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fête-Dieu", 2016, CH_VS, CH_VS_LAW),
+    )
+    .read_from(2017),
     canton(
         "Assumption",
         "Assomption",
         Rule::gregorian(8, 15),
-        2017,
         CH_VS,
         CH_VS_LAW,
-    ),
-    earlier_years_unread("Assumption", "Assomption", 2016, CH_VS, CH_VS_LAW),
+    )
+    .read_from(2017),
     canton(
         "All Saints' Day",
         "Toussaint",
         Rule::gregorian(11, 1),
-        2016,
         CH_VS,
         CH_VS_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Toussaint", 2015, CH_VS, CH_VS_LAW),
+    )
+    .read_from(2016),
     canton(
         "Immaculate Conception",
         "Immaculée Conception",
         Rule::gregorian(12, 8),
-        2016,
         CH_VS,
         CH_VS_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Immaculée Conception",
-        2015,
-        CH_VS,
-        CH_VS_LAW,
-    ),
+    )
+    .read_from(2016),
     // Zug.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2004,
         CH_ZG,
         CH_ZG_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2003, CH_ZG, CH_ZG_LAW),
+    )
+    .read_from(2004),
     canton(
         "Corpus Christi",
         "Fronleichnam",
         Rule::easter(CORPUS_CHRISTI),
-        2004,
         CH_ZG,
         CH_ZG_LAW,
-    ),
-    earlier_years_unread("Corpus Christi", "Fronleichnam", 2003, CH_ZG, CH_ZG_LAW),
+    )
+    .read_from(2004),
     canton(
         "Assumption",
         "Maria Himmelfahrt",
         Rule::gregorian(8, 15),
-        2004,
         CH_ZG,
         CH_ZG_LAW,
-    ),
-    earlier_years_unread("Assumption", "Maria Himmelfahrt", 2003, CH_ZG, CH_ZG_LAW),
+    )
+    .read_from(2004),
     canton(
         "All Saints' Day",
         "Allerheiligen",
         Rule::gregorian(11, 1),
-        2004,
         CH_ZG,
         CH_ZG_LAW,
-    ),
-    earlier_years_unread("All Saints' Day", "Allerheiligen", 2003, CH_ZG, CH_ZG_LAW),
+    )
+    .read_from(2004),
     canton(
         "Immaculate Conception",
         "Maria Empfängnis",
         Rule::gregorian(12, 8),
-        2004,
         CH_ZG,
         CH_ZG_LAW,
-    ),
-    earlier_years_unread(
-        "Immaculate Conception",
-        "Maria Empfängnis",
-        2003,
-        CH_ZG,
-        CH_ZG_LAW,
-    ),
+    )
+    .read_from(2004),
     // Zurich.
     canton(
         "Good Friday",
         "Karfreitag",
         Rule::easter(GOOD_FRIDAY),
-        2026,
         CH_ZH,
         CH_ZH_LAW,
-    ),
-    earlier_years_unread("Good Friday", "Karfreitag", 2025, CH_ZH, CH_ZH_LAW),
+    )
+    .read_from(2026),
     canton(
         "Easter Monday",
         "Ostermontag",
         Rule::easter(EASTER_MONDAY),
-        2026,
         CH_ZH,
         CH_ZH_LAW,
-    ),
-    earlier_years_unread("Easter Monday", "Ostermontag", 2025, CH_ZH, CH_ZH_LAW),
+    )
+    .read_from(2026),
     canton(
         "Labour Day",
         "1. Mai",
         Rule::gregorian(5, 1),
-        2026,
         CH_ZH,
         CH_ZH_LAW,
-    ),
-    earlier_years_unread("Labour Day", "1. Mai", 2025, CH_ZH, CH_ZH_LAW),
+    )
+    .read_from(2026),
     canton(
         "Whit Monday",
         "Pfingstmontag",
         Rule::easter(WHIT_MONDAY),
-        2026,
         CH_ZH,
         CH_ZH_LAW,
-    ),
-    earlier_years_unread("Whit Monday", "Pfingstmontag", 2025, CH_ZH, CH_ZH_LAW),
+    )
+    .read_from(2026),
     canton(
         "St Stephen's Day",
         "Stephanstag",
         Rule::gregorian(12, 26),
-        2026,
         CH_ZH,
         CH_ZH_LAW,
-    ),
-    earlier_years_unread("St Stephen's Day", "Stephanstag", 2025, CH_ZH, CH_ZH_LAW),
+    )
+    .read_from(2026),
 ];
+
+/// The table's rules: [`CH_OWN_RULES`] and [`KEPT_EVERYWHERE`].
+static CH_RULES: [HolidayRule; CH_OWN_RULES.len() + KEPT_EVERYWHERE.len()] =
+    joined(&[CH_OWN_RULES, &KEPT_EVERYWHERE]);
 
 /// Switzerland.
 pub static SWITZERLAND: RuleSet = RuleSet {
     code: "CH",
     english_name: "Switzerland",
-    rules: CH_RULES,
+    rules: &CH_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
@@ -1681,4 +1514,5 @@ pub static SWITZERLAND: RuleSet = RuleSet {
               collections, and for Jura, Schwyz and Zurich, whose laws are PDF only, the \
               German Wikipedia's \"Feiertage in der Schweiz\" and the Canton of Zurich's page \
               (secondary), as docs/systems/switzerland-holidays.md lists them",
+    subdivisions: Subdivisions::Read(&[]),
 };

@@ -327,6 +327,19 @@ pub static COPTIC: &[Period] = &[
 // ─────────────────────────────────────────────────────────────────────────
 
 /// The church's calendar page, as `source` strings cite it.
+/// Where Genna's kept date comes from.
+const GENNA_KEPT: &str = "Wikipedia, \"Public holidays in Ethiopia\", Genna on 7 January, where \
+     Meskel has 28 September \"(leap year)\" beside its 27th, retrieved 2026-09-29 (secondary)";
+
+/// A day of the Gregorian calendar, as the kept Genna is.
+const fn gregorian(month: u8, day: u8) -> Bound {
+    Bound::InCalendar {
+        calendar: CalendarSystem::GREGORIAN,
+        month,
+        day,
+    }
+}
+
 const ETHIOPIAN_ORTHODOX_ORG: &str =
     "ethiopianorthodox.org, the calendar page (ethiopianorthodox-org-calendar)";
 /// Mahibere Kidusan's reckoning of the fasts of 2011 E.C.
@@ -356,13 +369,16 @@ pub static ETHIOPIAN: &[Period] = &[
         from_pascha(49),
         ETHIOPIAN_ORTHODOX_ORG,
     ),
+    // Genna as it is kept, on 7 January every year, as the Coptic Nativity
+    // is: 29 Tahsas, the calendrical date, is 8 January after an Ethiopic
+    // leap year.
     period(
         "genna",
         "Genna",
         PeriodKind::FastFree,
-        ethiopic(4, 29),
-        ethiopic(4, 29),
-        ETHIOPIAN_ORTHODOX_ORG,
+        gregorian(1, 7),
+        gregorian(1, 7),
+        GENNA_KEPT,
     ),
     period(
         "timkat",
@@ -377,7 +393,7 @@ pub static ETHIOPIAN: &[Period] = &[
         "Tsome Nebiyat (the Fast of the Prophets)",
         PeriodKind::Fast,
         ethiopic(3, 15),
-        ethiopic(4, 28),
+        gregorian(1, 6),
         ETHIOPIAN_ORTHODOX_ORG,
     ),
     period(
@@ -669,5 +685,34 @@ mod tests {
             Some("gahad-of-timkat")
         );
         assert_eq!(in_period(ethiopian, ymd(2022, 1, 19)), Some("timkat"));
+    }
+
+    /// After the Ethiopic leap year 2015 E.C., 29 Tahsas, Genna's
+    /// calendrical date, is 8 January 2024; Genna is kept on the 7th, and
+    /// the fast ends on the 6th, as the Coptic Nativity Fast does: the
+    /// fast does not reach the day Genna is kept.
+    #[test]
+    fn the_ethiopian_nativity_fast_ends_the_day_before_genna_is_kept() {
+        let ethiopian = &Reckoning::ETHIOPIAN;
+        for (year, first) in [
+            (2023, ymd(2023, 11, 25)),
+            (2027, ymd(2027, 11, 25)),
+            (2024, ymd(2024, 11, 24)),
+        ] {
+            assert_eq!(
+                span_of(ethiopian, "tsome-nebiyat", year),
+                (first, ymd(year + 1, 1, 6)),
+                "{year}"
+            );
+            assert_eq!(in_period(ethiopian, ymd(year + 1, 1, 7)), Some("genna"));
+            assert!(
+                !status(ethiopian, ymd(year + 1, 1, 7))
+                    .unwrap()
+                    .is_fast_day()
+            );
+        }
+        // Monday 8 January 2024 is in no period and no fast day.
+        assert_eq!(in_period(ethiopian, ymd(2024, 1, 8)), None);
+        assert!(!status(ethiopian, ymd(2024, 1, 8)).unwrap().is_fast_day());
     }
 }

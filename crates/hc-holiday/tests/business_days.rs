@@ -9,7 +9,7 @@ use hc_calendars_solar::gregorian;
 use hc_holiday::countries;
 use hc_holiday::engine::HolidayCalendar;
 use hc_holiday::rule::{
-    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, SubstituteDirection,
+    HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
     SubstitutionPolicy, WeekendPolicy,
 };
 
@@ -253,6 +253,7 @@ fn a_caller_can_supply_their_own_rule_set_and_get_the_same_engine() {
         weekend: &WEEKEND,
         sources_checked: SourceDate::new(2026, 9, 21),
         sources: "the staff handbook",
+        subdivisions: Subdivisions::Undivided,
     };
     let company = HolidayCalendar::new(&COMPANY, None, 2025, 2025);
     assert!(!company.is_business_day(ymd(2025, 3, 12)));
@@ -279,6 +280,7 @@ fn the_default_weekend_is_saturday_and_sunday_when_a_table_says_nothing() {
         weekend: &[],
         sources_checked: SourceDate::new(2026, 9, 21),
         sources: "nothing at all",
+        subdivisions: Subdivisions::Undivided,
     };
     let calendar = HolidayCalendar::new(&SILENT, None, 2025, 2025);
     assert!(calendar.is_weekend(ymd(2025, 3, 8)));
