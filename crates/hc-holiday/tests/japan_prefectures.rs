@@ -254,11 +254,135 @@ fn okinawa_s_memorial_day_is_a_gap_before_its_holiday_ordinance() {
 fn the_table_names_every_prefecture_with_a_day_of_its_own() {
     // The prefectures with a day carried, and Akita and Ehime, whose day's
     // instrument was not found and is a gap.
-    let mut regions: Vec<&str> = DAYS.iter().map(|row| row.region).collect();
-    regions.extend(["JP-05", "JP-38"]);
+    let mut regions: Vec<&str> = DAYS
+        .iter()
+        .chain(OTHER_DAYS)
+        .map(|row| row.region)
+        .collect();
+    regions.extend(["JP-05", "JP-06", "JP-13", "JP-38"]);
     regions.sort_unstable();
     regions.dedup();
-    assert_eq!(JAPAN.regions(), regions);
+    // The municipalities' codes are the other file's.
+    let prefectures: Vec<&str> = JAPAN
+        .regions()
+        .into_iter()
+        .filter(|code| hc_holiday::rule::region_parent(code).is_none())
+        .collect();
+    assert_eq!(prefectures, regions);
+}
+
+/// The prefectures' other days, each set by an ordinance or another
+/// instrument of the prefecture's own, with the first year it was in force
+/// on the day: 施行 before it, or the next year (竹島の日 2005-03-25 against
+/// 22 February, みやぎ鎮魂の日 2013-04-01 against 11 March, 新潟 2022-12-27,
+/// 飛騨・美濃じまんの日 2007-10-01). None closes anything.
+const OTHER_DAYS: &[Day] = &[
+    day("JP-32", "竹島の日", 2, 22, 2006, Kind::Observance),
+    day("JP-22", "富士山の日", 2, 23, 2010, Kind::Observance),
+    day("JP-19", "富士山の日", 2, 23, 2012, Kind::Observance),
+    day("JP-13", "東京都平和の日", 3, 10, 1991, Kind::Observance),
+    day(
+        "JP-03",
+        "東日本大震災津波を語り継ぐ日",
+        3,
+        11,
+        2021,
+        Kind::Observance,
+    ),
+    day("JP-04", "みやぎ鎮魂の日", 3, 11, 2014, Kind::Observance),
+    day("JP-04", "みやぎ県民防災の日", 6, 12, 2009, Kind::Observance),
+    day("JP-03", "平泉世界遺産の日", 6, 29, 2014, Kind::Observance),
+    day("JP-25", "びわ湖の日", 7, 1, 1996, Kind::Observance),
+    day(
+        "JP-21",
+        "飛騨・美濃じまんの日",
+        8,
+        21,
+        2008,
+        Kind::Observance,
+    ),
+    day("JP-47", "しまくとぅばの日", 9, 18, 2006, Kind::Observance),
+    day("JP-47", "琉球歴史文化の日", 11, 1, 2021, Kind::Observance),
+    // The education days, all on 1 November.
+    day("JP-03", "いわて教育の日", 11, 1, 2005, Kind::Observance),
+    day("JP-04", "みやぎ教育の日", 11, 1, 2005, Kind::Observance),
+    day("JP-07", "ふくしま教育の日", 11, 1, 2003, Kind::Observance),
+    day("JP-08", "いばらき教育の日", 11, 1, 2004, Kind::Observance),
+    day("JP-11", "彩の国教育の日", 11, 1, 2003, Kind::Observance),
+    day("JP-15", "新潟県教育の日", 11, 1, 2023, Kind::Observance),
+    day("JP-17", "いしかわ教育の日", 11, 1, 2005, Kind::Observance),
+    day("JP-25", "滋賀教育の日", 11, 1, 2006, Kind::Observance),
+    day("JP-29", "奈良県教育の日", 11, 1, 2003, Kind::Observance),
+    day("JP-32", "しまね教育の日", 11, 1, 2002, Kind::Observance),
+    day("JP-33", "おかやま教育の日", 11, 1, 2001, Kind::Observance),
+    day("JP-34", "ひろしま教育の日", 11, 1, 2001, Kind::Observance),
+    day("JP-36", "とくしま教育の日", 11, 1, 2004, Kind::Observance),
+    day("JP-44", "おおいた教育の日", 11, 1, 2005, Kind::Observance),
+];
+
+/// A region's own entries on a day with a local name.
+fn named(region: &str, year: i64, month: u8, day: u8, name: &str) -> Vec<Holiday> {
+    own_entries(Some(region), year, month, day)
+        .into_iter()
+        .filter(|holiday| holiday.local_name == name)
+        .collect()
+}
+
+#[test]
+fn every_other_prefectural_day_is_kept_from_its_first_year_and_not_before() {
+    for row in OTHER_DAYS {
+        for year in [row.first, 2026] {
+            let found = named(row.region, year, row.month, row.day, row.local_name);
+            assert_eq!(found.len(), 1, "{} {} {year}", row.region, row.local_name);
+            assert_eq!(found[0].kind, row.kind);
+            assert_eq!(found[0].regions, [row.region]);
+            assert!(!found[0].source.is_empty());
+            assert!(!found[0].kind.is_day_off());
+        }
+        let before = row.first - 1;
+        assert!(
+            named(row.region, before, row.month, row.day, row.local_name).is_empty(),
+            "{} {} {before}",
+            row.region,
+            row.local_name
+        );
+    }
+    // 竹島の日 is Shimane's alone, and 富士山の日 the two prefectures'.
+    assert!(named("JP-31", 2026, 2, 22, "竹島の日").is_empty());
+    assert!(own_entries(None, 2026, 2, 22).is_empty());
+    assert!(named("JP-14", 2026, 2, 23, "富士山の日").is_empty());
+}
+
+#[test]
+fn tokyo_s_and_yamagata_s_education_days_are_saturdays() {
+    // 東京都教育の日, the first Saturday of November: 7 November 2026, and
+    // 1 November 2025 was itself a Saturday.
+    assert_eq!(named("JP-13", 2026, 11, 7, "東京都教育の日").len(), 1);
+    assert_eq!(named("JP-13", 2025, 11, 1, "東京都教育の日").len(), 1);
+    assert!(named("JP-13", 2003, 11, 1, "東京都教育の日").is_empty());
+    // やまがた教育の日, the second Saturday, 14 November 2026; the 要綱's
+    // year was not read, so 2025 is a gap.
+    assert_eq!(named("JP-06", 2026, 11, 14, "やまがた教育の日").len(), 1);
+    let gaps: Vec<_> = HolidayCalendar::for_year(&JAPAN, Some("JP-06"), 2025)
+        .gaps()
+        .iter()
+        .map(|gap| gap.local_name)
+        .collect();
+    assert_eq!(gaps, ["やまがた教育の日"]);
+}
+
+#[test]
+fn aichi_s_school_holiday_is_a_gap_in_every_year_from_2023() {
+    let gaps = |year| {
+        HolidayCalendar::for_year(&JAPAN, Some("JP-23"), year)
+            .gaps()
+            .iter()
+            .map(|gap| gap.local_name)
+            .collect::<Vec<_>>()
+    };
+    assert!(gaps(2022).is_empty());
+    assert_eq!(gaps(2023), ["あいち県民の日学校ホリデー"]);
+    assert_eq!(gaps(2026), ["あいち県民の日学校ホリデー"]);
 }
 
 #[test]

@@ -2708,12 +2708,14 @@ pub struct HolidayRule {
     /// before it that `valid_from` does not rule out is a gap, which the
     /// engine reports itself.
     pub read_from: Option<i32>,
-    /// The subdivisions it applies to, as ISO 3166-2 codes. Empty means
-    /// nationwide.
+    /// The subdivisions it applies to, as ISO 3166-2 codes, or a
+    /// municipality's code under its subdivision's, such as `JP-14-130`
+    /// (see [`region_parent`]). Empty means nationwide.
     pub regions: &'static [&'static str],
     /// The subdivisions a nationwide rule does not apply in, as ISO 3166-2
     /// codes: a federal day a province's own law does not keep. Asked for
-    /// no region, the rule applies; asked for one of these, it does not.
+    /// no region, the rule applies; asked for one of these, or a
+    /// municipality within one, it does not.
     pub except_regions: &'static [&'static str],
     /// The groups of people it is given to alone. Empty means everyone.
     /// Independent of `regions`: a rule scoped to both applies to the
@@ -2923,13 +2925,16 @@ impl HolidayRule {
     /// scoping qualify. `Some(code)` takes away the rules that except that
     /// code, and adds the rules scoped to it,
     /// matched as every identifier is (`hc_core::catalogue::matches`), so
-    /// `jp-13` and ` JP-13 ` find what `JP-13` does.
+    /// `jp-13` and ` JP-13 ` find what `JP-13` does. A municipality's code
+    /// is within its subdivision's ([`region_within`]): `JP-14-130` has
+    /// the rules scoped to `JP-14` as well as its own, and loses those
+    /// excepted from it (ADR 0014).
     #[must_use]
     pub fn applies_in_region(&self, region: Option<&str>) -> bool {
         if region.is_some_and(|code| {
             self.except_regions
                 .iter()
-                .any(|excepted| hc_core::catalogue::matches(code, excepted))
+                .any(|excepted| region_within(code, excepted))
         }) {
             return false;
         }
@@ -2939,7 +2944,7 @@ impl HolidayRule {
         region.is_some_and(|code| {
             self.regions
                 .iter()
-                .any(|scoped| hc_core::catalogue::matches(code, scoped))
+                .any(|scoped| region_within(code, scoped))
         })
     }
 
@@ -3002,6 +3007,33 @@ impl SourceDate {
     }
 }
 
+/// The region a municipality's code is under: `JP-14` for `JP-14-130`,
+/// and `None` for an ISO 3166-2 code, which has no region above it but
+/// the country.
+///
+/// An ISO 3166-2 code is the country's alpha-2 code, a hyphen and up to
+/// three letters or digits, and has no second hyphen. A municipality's
+/// code is its subdivision's, a hyphen, and the municipality's code within
+/// that subdivision in the country's own standard: for Japan the
+/// three-digit 市区町村コード of JIS X 0402, the 全国地方公共団体コード
+/// without the prefecture's two digits and the check digit, so that
+/// 川崎市, 14130 with check digit 5, is `JP-14-130` (ADR 0014).
+#[must_use]
+pub fn region_parent(code: &str) -> Option<&str> {
+    let code = code.trim();
+    let (parent, _) = code.rsplit_once('-')?;
+    parent.contains('-').then_some(parent)
+}
+
+/// Whether the region `code` is `scoped` or lies within it: the same code,
+/// matched as every identifier is, or a municipality of that subdivision
+/// ([`region_parent`]).
+#[must_use]
+pub fn region_within(code: &str, scoped: &str) -> bool {
+    hc_core::catalogue::matches(code, scoped)
+        || region_parent(code).is_some_and(|parent| region_within(parent, scoped))
+}
+
 /// Whom a calendar is evaluated for: a subdivision, a group of people,
 /// both or neither.
 ///
@@ -3013,7 +3045,8 @@ impl SourceDate {
 /// union of every group's (ADR 0011).
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
 pub struct Scope<'a> {
-    /// A subdivision's ISO 3166-2 code, or `None` for the nationwide days.
+    /// A subdivision's ISO 3166-2 code, or a municipality's code under it
+    /// ([`region_parent`]), or `None` for the nationwide days.
     pub region: Option<&'a str>,
     /// A [`Group`]'s identifier, or `None` for everyone's days.
     pub group: Option<&'a str>,
@@ -3212,16 +3245,21 @@ impl RuleSet {
     /// Whether the table's sources were read for `region`, a subdivision's
     /// ISO 3166-2 code matched as every identifier is: always for a table
     /// with no subdivisions, and for a country's, whether a rule is scoped
-    /// to it or excepted from it or [`Subdivisions::Read`] lists it.
+    /// to it or excepted from it or [`Subdivisions::Read`] lists it. A
+    /// municipality's code is read when it is so and its subdivision is
+    /// read too: a prefecture read says nothing of its cities (ADR 0014).
     #[must_use]
     pub fn reads_region(&self, region: &str) -> bool {
         match self.subdivisions {
             Subdivisions::Undivided => true,
-            Subdivisions::Read(listed) => listed
-                .iter()
-                .copied()
-                .chain(self.region_codes())
-                .any(|code| hc_core::catalogue::matches(region, code)),
+            Subdivisions::Read(listed) => {
+                listed
+                    .iter()
+                    .copied()
+                    .chain(self.region_codes())
+                    .any(|code| hc_core::catalogue::matches(region, code))
+                    && region_parent(region).is_none_or(|parent| self.reads_region(parent))
+            }
         }
     }
 

@@ -2617,6 +2617,17 @@ country. So:
   one country's nationwide days keeps the lines whose column 10 is
   empty; one that wants Tokyo keeps those and the ones that say `JP-13`.
 
+A municipality is a region too, within its subdivision: its code is the
+subdivision's, a hyphen and its code within the subdivision in the
+country's own standard (ADR 0014), so 川崎市 is `JP-14-130`, from its
+JIS X 0402 code 14130. Asked for it, a table answers for the nationwide
+days, Kanagawa's and Kawasaki's own; `hc_holiday_tables` lists it among
+the regions; `hc_holidays_on` writes its own lines with its code, less
+what its prefecture has; and a year's line carries the widest region
+whose own entry it is, the prefecture's code for the prefecture's day. A
+city no rule names and no list gives keeps its prefecture's days, and its
+own are a gap.
+
 A group of people is asked for in the same way, by the `group` argument,
 and is independent of the region. Some statutes give a day to a group
 alone: China's Article 3 gives women half of 8 March, youth of fourteen and

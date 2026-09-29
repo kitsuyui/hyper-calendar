@@ -921,12 +921,18 @@ describe("holidays", () => {
     }]);
     assert.ok(tokyo[0].source?.includes("昭和27年東京都条例第75号"));
     const year = hc.holidaysInYear("JP", "JP-13", 2026);
-    assert.deepEqual(year.filter((day) => day.region).map((day) => day.date), ["2026-10-01"]);
+    assert.deepEqual(year.filter((day) => day.region).map((day) => day.date), ["2026-03-10", "2026-10-01", "2026-11-07"]);
+    // A city is a region within its prefecture: Saitama's 県民の日 carries
+    // the prefecture's code, the city's own day the city's.
+    const saitama = hc.holidaysInYear("JP", "JP-11-100", 2026).filter((day) => day.region);
+    assert.ok(saitama.some((day) => day.date === "2026-05-01" && day.region === "JP-11-100"));
+    assert.ok(saitama.some((day) => day.date === "2026-11-14" && day.region === "JP-11"));
     assert.ok(!hc.holidaysInYear("JP", "", 2026).some((day) => day.localName === "都民の日"));
     assert.ok(!hc.holidayCodes().includes("JP-13"));
     const japan = hc.holidayTables("en").find((table) => table.code === "JP");
     assert.ok(japan?.regions.includes("JP-13"));
     assert.ok(japan?.regions.includes("JP-47"));
+    assert.ok(japan?.regions.includes("JP-14-100"));
     assert.deepEqual(hc.holidayTables("en").find((table) => table.code === "XNYS")?.regions, []);
   });
 

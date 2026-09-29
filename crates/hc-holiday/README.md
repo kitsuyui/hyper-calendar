@@ -135,6 +135,19 @@ otherwise. None is a day off for business-day arithmetic. The system
 document has the survey of all forty-seven prefectures, the ones with no
 such day among them.
 
+**The prefectures' other days** are rules of the same kind: Shimane's
+竹島の日, the 富士山の日 of Shizuoka and Yamanashi, Shiga's びわ湖の日, the
+education days that sixteen prefectures set by an instrument of their
+own, the memorial days of Iwate, Miyagi and Tokyo, and Okinawa's and
+Gifu's days, all observances. **The designated cities' days** are scoped
+to a city's code under its prefecture's
+([ADR 0014](../../docs/adr/0014-a-municipality-is-a-region-within-its-subdivision.md)):
+さいたま市民の日 (`JP-11-100`, 1 May, a school day off from 2021), 横浜's
+開港記念日 (`JP-14-100`, 2 June), 川崎's 市制記念日, 広島's 平和記念日
+(`JP-34-100`, 6 August, `Kind::Government`, the city's offices closed from
+1947), and the days of 千葉, 静岡, 浜松, 名古屋, 京都, 堺, 神戸, 岡山, 熊本
+and 長崎. A city not yet read has its prefecture's days and a gap.
+
 **春分の日 and 秋分の日 are computed, not tabulated.** The statute defines them
 as the day of the equinox; the National Astronomical Observatory of Japan
 computes the instant in JST and the Cabinet Office prints the resulting date
@@ -476,6 +489,17 @@ other region keeps the nationwide days, and its own are a gap named
 `UNREAD_SUBDIVISION` in each year asked for: New Hampshire, whose code was
 not read, or a Mexican state other than Jalisco.
 
+A municipality is a region within its subdivision
+([ADR 0014](../../docs/adr/0014-a-municipality-is-a-region-within-its-subdivision.md)):
+its code is the subdivision's ISO 3166-2 code, a hyphen, and its code
+within the subdivision in the country's own standard, for Japan the
+three-digit 市区町村コード of JIS X 0402, so that 川崎市 is `JP-14-130`.
+Asked for it, a table has the nationwide days, the subdivision's and the
+municipality's own; asked for the subdivision, none of the municipality's.
+`region_parent` and `region_within` are the two helpers. A municipality is
+read where a rule names it or the list gives it, and its subdivision is
+read too; any other keeps its subdivision's days and a gap for its own.
+
 A nationwide rule a subdivision's own law does not keep excepts it,
 `HolidayRule::except_in`: asked for no region, `CANADA` gives the federal
 days of the Canada Labour Code, and asked for `CA-ON` it gives them less
@@ -588,7 +612,8 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   *Länder*, Australian states and territories, Canadian provinces, UK
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
   Herzegovina, Bangladesh's hill districts and the Japanese prefectures
-  that set a day of their own by ordinance are in, and so are New Zealand's
+  that set a day by ordinance are in, with Japan's twenty designated
+  cities and 長崎, each a region within its prefecture, and so are New Zealand's
   provincial anniversary days, twenty-eight of India's states and union
   territories, the
   provinces of Solomon Islands and Vanuatu, Thimphu, China's autonomous

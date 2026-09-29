@@ -26,3 +26,4 @@ record's status was last checked against the code on that date.
 | [0011](0011-a-day-for-one-group-is-a-scoped-rule.md) | A day for one group of people is a rule scoped to the group | Accepted |
 | [0012](0012-a-half-day-off-is-its-own-kind.md) | A half day off is its own kind | Accepted |
 | [0013](0013-a-year-the-sources-do-not-reach-is-a-gap.md) | A year the sources do not reach is a gap, and so is a subdivision they were not read for | Accepted |
+| [0014](0014-a-municipality-is-a-region-within-its-subdivision.md) | A municipality is a region within its subdivision | Accepted |

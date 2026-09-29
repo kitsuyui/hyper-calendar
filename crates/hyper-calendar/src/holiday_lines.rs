@@ -32,7 +32,7 @@ use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
 use hc_holiday::roman_calendar_1960;
-use hc_holiday::rule::{RuleSet, Scope};
+use hc_holiday::rule::{RuleSet, Scope, region_parent};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
     traditions,
@@ -392,12 +392,32 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
         own_region.map(|_| HolidayCalendar::for_year_scoped(table, scope.nationwide(), year));
     let without_group =
         own_group.map(|_| HolidayCalendar::for_year_scoped(table, scope.for_everyone(), year));
+    // A municipality's entry that its subdivision has too is the
+    // subdivision's own: the region column names the widest region above
+    // the one asked for whose calendar has it.
+    let above: alloc::vec::Vec<(&str, HolidayCalendar<'_>)> = own_region
+        .into_iter()
+        .flat_map(ancestors)
+        .map(|parent| {
+            let code = table_region(table, Some(parent)).unwrap_or(parent);
+            let calendar = HolidayCalendar::for_year_scoped(
+                table,
+                Scope::new(Some(parent), scope.group),
+                year,
+            );
+            (code, calendar)
+        })
+        .collect();
     let own = |parent: Option<&HolidayCalendar<'_>>, holiday: &Holiday, code| {
         parent.and_then(|parent| (!parent.all().contains(holiday)).then_some(code))
     };
     let mut out = String::new();
     for holiday in calendar.all() {
-        let regional = own(without_region.as_ref(), holiday, own_region).flatten();
+        let regional = widest(
+            own(without_region.as_ref(), holiday, own_region).flatten(),
+            &above,
+            |calendar| calendar.all().contains(holiday),
+        );
         let grouped = own(without_group.as_ref(), holiday, own_group).flatten();
         let mut line = Line::new(&mut out);
         line.cell(&iso(holiday.date))
@@ -415,7 +435,11 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
         parent.and_then(|parent| (!parent.gaps().contains(gap)).then_some(code))
     };
     for gap in calendar.gaps() {
-        let regional = own_gap(without_region.as_ref(), gap, own_region).flatten();
+        let regional = widest(
+            own_gap(without_region.as_ref(), gap, own_region).flatten(),
+            &above,
+            |calendar| calendar.gaps().contains(gap),
+        );
         let grouped = own_gap(without_group.as_ref(), gap, own_group).flatten();
         let mut line = Line::new(&mut out);
         line.empty()
@@ -430,6 +454,24 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
         line.end();
     }
     out
+}
+
+/// The region column of a line of [`year_lines`] asked for a
+/// municipality: `code`, the region asked for, unless a region above it,
+/// of `above`, nearest first, `has` the entry too, and then the widest
+/// that does.
+fn widest<'c>(
+    code: Option<&'c str>,
+    above: &[(&'c str, HolidayCalendar<'_>)],
+    has: impl Fn(&HolidayCalendar<'_>) -> bool,
+) -> Option<&'c str> {
+    code.map(|code| {
+        above
+            .iter()
+            .rev()
+            .find(|(_, calendar)| has(calendar))
+            .map_or(code, |(parent, _)| *parent)
+    })
 }
 
 /// The lines of `hc_holidays_in_year`: [`year_lines`] for the table
@@ -472,7 +514,8 @@ pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalen
 /// One subdivision's lines of `hc_holidays_on` for one day: the entries
 /// and gaps `regional`, the table evaluated in `region`, has on the day
 /// that `nationwide` does not, each with `region` in the subdivision's
-/// column.
+/// column. For a municipality, less what its subdivisions have too
+/// (`hc_holiday::rule::region_parent`), which are their own lines.
 pub fn push_region_day_lines(
     out: &mut String,
     table: &RuleSet,
@@ -481,14 +524,18 @@ pub fn push_region_day_lines(
     nationwide: &HolidayCalendar<'_>,
     day: Rd,
 ) {
-    push_scoped_day_lines(
-        out,
-        table,
-        Scope::region(region),
-        regional,
-        &[nationwide],
-        day,
-    );
+    let above: alloc::vec::Vec<HolidayCalendar<'_>> = ancestors(region)
+        .map(|parent| HolidayCalendar::for_day(table, Some(parent), day))
+        .collect();
+    let mut parents: alloc::vec::Vec<&HolidayCalendar<'_>> = alloc::vec![nationwide];
+    parents.extend(above.iter());
+    push_scoped_day_lines(out, table, Scope::region(region), regional, &parents, day);
+}
+
+/// The regions a municipality's code lies within, nearest first: `JP-14`
+/// for `JP-14-130`, and nothing for an ISO 3166-2 code.
+fn ancestors(region: &str) -> impl Iterator<Item = &str> {
+    core::iter::successors(region_parent(region), |code| region_parent(code))
 }
 
 /// One scope's lines of `hc_holidays_on` for one day: the entries and gaps
@@ -1113,6 +1160,52 @@ mod tests {
 
     fn ymd(year: i64, month: u8, day: u8) -> i64 {
         gregorian::to_fixed(year, month, day).expect("a date").0
+    }
+
+    /// A municipality's lines (ADR 0014): asked for さいたま市, a year's
+    /// line of Saitama's 県民の日 carries the prefecture's code and the
+    /// city's own day the city's; `hc_holidays_on` writes the prefecture's
+    /// day once, under `JP-11`, and the city's under `JP-11-100`. (14
+    /// November 2026 is also Yamagata's education day, a second Saturday.)
+    #[test]
+    fn a_city_s_lines_name_the_widest_region_whose_entry_each_is() {
+        let lines = holidays_in_year("JP", Some("jp-11-100"), None, 2026).expect("JP");
+        let region_of = |date: &str, name: &str| {
+            lines
+                .lines()
+                .map(|line| line.split('\t').collect::<Vec<_>>())
+                .find(|cells| cells[0] == date && cells[2] == name)
+                .map(|cells| String::from(cells[7]))
+        };
+        assert_eq!(
+            region_of("2026-11-14", "県民の日").as_deref(),
+            Some("JP-11")
+        );
+        assert_eq!(
+            region_of("2026-05-01", "さいたま市民の日").as_deref(),
+            Some("JP-11-100")
+        );
+        assert_eq!(region_of("2026-01-01", "元日").as_deref(), Some(""));
+        let on = |month, day| {
+            holidays_on(ymd(2026, month, day))
+                .expect("in range")
+                .lines()
+                .filter(|line| line.starts_with("JP\t"))
+                .map(|line| line.split('\t').collect::<Vec<_>>())
+                .filter(|cells| cells[4] != "gap" && cells[9].starts_with("JP-11"))
+                .map(|cells| (String::from(cells[3]), String::from(cells[9])))
+                .collect::<Vec<_>>()
+        };
+        let saitama = |name: &str, region: &str| (String::from(name), String::from(region));
+        assert_eq!(on(11, 14), [saitama("県民の日", "JP-11")]);
+        assert_eq!(on(5, 1), [saitama("さいたま市民の日", "JP-11-100")]);
+        // An unread town's gap is written with its code as asked.
+        let town = holidays_in_year("JP", Some("JP-14-204"), None, 2026).expect("JP");
+        assert!(
+            town.lines()
+                .any(|line| line.contains("\tgap\t") && line.ends_with("JP-14-204\t")),
+            "{town}"
+        );
     }
 
     /// The worked example of `docs/systems/orthodox-fasts.md`, from the
