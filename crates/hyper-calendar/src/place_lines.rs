@@ -154,7 +154,8 @@ mod tests {
 
     /// Every subdivision a holiday table's rules are scoped to, column 9
     /// of `hc_holiday_tables`, and every country with a table, is a place
-    /// named in Japanese or in English and in use today, but one. CLDR 48's
+    /// named in Japanese or in English and in use today, but one; a
+    /// municipality's code is not a CLDR place, and is left out. CLDR 48's
     /// validity data holds `gbeaw`, England and Wales, as deprecated. The
     /// department of Guatemala is `gt01`, which `en.xml` names Guatemala,
     /// not the deprecated `gtgu`.
@@ -166,7 +167,11 @@ mod tests {
         let mut deprecated = alloc::vec::Vec::new();
         for line in tables.lines() {
             let cells: alloc::vec::Vec<&str> = line.split('\t').collect();
-            let regions = cells[8].split(';').filter(|code| !code.is_empty());
+            // A municipality's code (ADR 0014) has no CLDR name; its
+            // subdivision's is held to the rule.
+            let regions = cells[8]
+                .split(';')
+                .filter(|code| !code.is_empty() && hc_holiday::rule::region_parent(code).is_none());
             let country = (cells[1] == "country").then_some(cells[0]);
             for code in regions.chain(country) {
                 codes += 1;

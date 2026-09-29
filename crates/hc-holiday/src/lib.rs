@@ -125,7 +125,7 @@ pub use rule::EvaluationContext;
 pub use rule::{
     BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing,
     ListingKey, Rule, RuleSet, Scope, SourceDate, SubstituteDirection, SubstitutionPolicy,
-    TibetanDayRule, TibetanMonth, WeekendPolicy,
+    TibetanDayRule, TibetanMonth, WeekendPolicy, region_parent, region_within,
 };
 
 #[cfg(feature = "alloc")]

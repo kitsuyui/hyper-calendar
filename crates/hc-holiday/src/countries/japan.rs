@@ -12,8 +12,9 @@
 //! This is the crate's worked example, and the claim it makes is a strong
 //! one: every Japanese public holiday from the enactment of the 祝日法
 //! (昭和23年法律第178号, in force 20 July 1948) to today, with every
-//! amendment, expressed entirely as rule values. The only function in this
-//! file is a `const fn` that builds a prefectural rule value. The 振替休日, the 国民の休日, ハッピーマンデー, the imperial
+//! amendment, expressed entirely as rule values. The only functions in
+//! this file are two `const fn`s that build a prefectural or a municipal
+//! rule value. The 振替休日, the 国民の休日, ハッピーマンデー, the imperial
 //! one-offs and the two Olympic years are all data: a holiday whose date or
 //! name changed is one rule per date, each bounded to its years.
 //!
@@ -51,6 +52,17 @@
 //! document's section on the prefectures gives all forty-seven, with the
 //! ones that have no such day, and what was read for each. The English
 //! names are this crate's translations.
+//!
+//! # The prefectures' other days and the cities' days
+//!
+//! After them come the other days a prefecture set by an instrument of its
+//! own — 竹島の日, 富士山の日, びわ湖の日, the education days and the rest,
+//! all observances — and the days of the twenty 政令指定都市 and 長崎市,
+//! each scoped to the city's code under its prefecture's, `JP-14-100` for
+//! 横浜市, the prefecture's ISO 3166-2 code and the city's three-digit
+//! 市区町村コード of JIS X 0402 (ADR 0014). A city is read where a rule
+//! names it or [`Subdivisions::Read`] lists it; any other keeps its
+//! prefecture's days and reports its own as a gap.
 
 use hc_calendar::Weekday;
 use hc_seasons::{Meridian, SolarTerm};
@@ -464,6 +476,22 @@ static RULES: &[HolidayRule] = &[
     // the board of education sets each year, not 27 November itself.
     prefectural("Aichi Citizens' Day", "あいち県民の日", 11, 27, 2023, AICHI)
         .cited("あいち県民の日条例 (令和4年愛知県条例第50号)"),
+    // Each school, or each municipal board of education, chooses its day
+    // among candidates the prefecture's board announces, and the days
+    // chosen are published only as PDF lists: a gap in every year.
+    HolidayRule::observance(
+        "Aichi Citizens' Day school holiday",
+        "あいち県民の日学校ホリデー",
+        Rule::UNREAD,
+    )
+    .of_kind(Kind::School)
+    .years(Some(2023), None)
+    .in_regions(AICHI)
+    .cited(
+        "愛知県立高等学校学則 (昭和39年愛知県教育委員会規則第2号) Article 4 item 3: one day of \
+         21–27 November the board sets; the days each school keeps are in the board's PDF \
+         lists, not read",
+    ),
     prefectural("Mie Citizens' Day", "県民の日", 4, 18, 1976, MIE)
         .cited("県民の日条例 (昭和51年三重県条例第2号)"),
     prefectural(
@@ -514,6 +542,127 @@ static RULES: &[HolidayRule] = &[
             "沖縄県慰霊の日を定める条例 (昭和49年沖縄県条例第42号); a 県の休日 of \
              沖縄県の休日を定める条例 (平成3年沖縄県条例第15号) Article 1",
         ),
+    // ── The municipalities' days ───────────────────────────────────────
+    // Each scoped to the city's code under its prefecture's (ADR 0014):
+    // the prefecture's code and the three-digit 市区町村コード of
+    // JIS X 0402. The twenty 政令指定都市 were read, and 長崎市 for its
+    // day beside 広島市's.
+    municipal("Saitama City Citizens' Day", "さいたま市民の日", 5, 1, 2021, SAITAMA_CITY)
+        .of_kind(Kind::School)
+        .cited(
+            "さいたま市民の日条例 (令和3年さいたま市条例第1号) Article 2; a 休業日 of \
+             さいたま市立小・中学校管理規則 (平成13年さいたま市教育委員会規則第14号) Article 3, \
+             as amended by 令和3年さいたま市教育委員会規則第3号, in force 1 April 2021",
+        ),
+    municipal("Chiba City Citizens' Day", "千葉市の市民の日", 10, 18, 1996, CHIBA_CITY)
+        .cited("千葉市の市民の日 (平成7年千葉市告示第373号)"),
+    // The day rested on the city assembly's resolutions before the
+    // ordinance of 2025, which were not read; the school rule has listed
+    // it since the article's last amendment, of January 2021.
+    HolidayRule::observance(
+        "Yokohama Port Opening Day",
+        "開港記念日",
+        Rule::FixedGregorian { month: 6, day: 2 },
+    )
+    .of_kind(Kind::School)
+    .read_from(2021)
+    .in_regions(YOKOHAMA)
+    .cited(
+        "横浜市開港記念日条例 (令和7年横浜市条例第21号) Article 2; a 休業日 of \
+         横浜市立学校の管理運営に関する規則 (昭和59年横浜市教育委員会規則第4号) Article 4, \
+         as the article reads since 令和3年横浜市教育委員会規則第1号, in force January 2021",
+    ),
+    municipal("Kawasaki City Foundation Day", "市制記念日", 7, 1, 1937, KAWASAKI)
+        .years(Some(1937), Some(2025))
+        .cited("市制記念日 (昭和12年川崎市告示第163号)"),
+    municipal("Kawasaki City Foundation Day", "市制記念日", 7, 1, 2026, KAWASAKI)
+        .of_kind(Kind::School)
+        .cited(
+            "市制記念日 (昭和12年川崎市告示第163号); a 休業日 of \
+             川崎市立小学校及び中学校の管理運営に関する規則 (昭和35年川崎市教育委員会規則第5号) \
+             Article 3, as the rule read in force in 2026, the earliest copy read",
+        ),
+    // The award ordinance names the day without its date, which only the
+    // notice of the city's creation, effective 20 November 1954, implies.
+    HolidayRule::observance(
+        "Sagamihara City Foundation Day",
+        "市制施行記念日",
+        Rule::UNREAD,
+    )
+    .in_regions(SAGAMIHARA)
+    .cited(
+        "相模原市表彰条例 (昭和35年相模原市条例第18号) Article 10: awards on the 市制施行記念日, \
+         whose date no instrument read gives",
+    ),
+    municipal("Shizuoka Tea Day", "お茶の日", 11, 1, 2010, SHIZUOKA_CITY).cited(
+        "静岡市めざせ茶どころ日本一条例 (平成20年静岡市条例第160号) Article 9; the date by \
+         平成22年静岡市告示第106号",
+    ),
+    // The ordinance of 1997 opens the city's facilities on a day it names;
+    // what set the day before it was not found.
+    HolidayRule::observance(
+        "Hamamatsu City Foundation Day",
+        "市制記念日",
+        Rule::FixedGregorian { month: 7, day: 1 },
+    )
+    .read_from(1997)
+    .in_regions(HAMAMATSU)
+    .cited(
+        "市制記念日及び県民の日における浜松市公の施設の開放に関する条例 \
+         (平成9年浜松市条例第62号) Articles 1 and 2, fees waived",
+    ),
+    municipal("Nagoya Peace Day", "なごや平和の日", 5, 14, 2024, NAGOYA)
+        .cited("なごや平和の日を定める条例 (令和6年名古屋市条例第36号) Article 2"),
+    municipal("Kyoto Charter Day", "憲章の日", 2, 5, 2012, KYOTO_CITY).cited(
+        "子どもを共に育む京都市民憲章の実践の推進に関する条例 (平成23年京都市条例第72号) Article 16",
+    ),
+    HolidayRule::observance(
+        "Kyoto Traditional Industries Day",
+        "伝統産業の日",
+        Rule::SolarTerm {
+            term: SolarTerm::SPRING_EQUINOX,
+            meridian: Meridian::JAPAN,
+        },
+    )
+    .years(Some(2006), None)
+    .in_regions(KYOTO_CITY)
+    .cited("京都市伝統産業活性化推進条例 (平成17年京都市条例第21号) Article 15: 春分の日"),
+    municipal("Kyoto Food Safety Day", "食の安全安心推進の日", 8, 1, 2011, KYOTO_CITY).cited(
+        "京都市食品等の安全性及び安心な食生活の確保に関する条例 (平成22年京都市条例第59号) \
+         Article 15, in force 1 October 2010",
+    ),
+    municipal("Kyoto City Self-Government Day", "京都市自治記念日", 10, 15, 1958, KYOTO_CITY)
+        .cited("京都市自治記念日について (昭和33年9月3日京都市公告)"),
+    // The award ordinance of 1971 names the day; what set it was not found.
+    HolidayRule::observance(
+        "Sakai City Office Foundation Day",
+        "開庁記念日",
+        Rule::FixedGregorian { month: 7, day: 26 },
+    )
+    .read_from(1971)
+    .in_regions(SAKAI)
+    .cited("堺市有功章条例 (昭和46年堺市条例第7号) Article 4: 開庁記念日(7月26日), the day of its awards"),
+    municipal("Kobe Citizens' Disaster Prevention Day", "市民防災の日", 1, 17, 1998, KOBE)
+        .cited("神戸市民の安全の推進に関する条例 (平成10年神戸市条例第49号) Article 24"),
+    municipal("Okayama City Citizens' Day", "岡山市民の日", 6, 1, 2012, OKAYAMA_CITY).cited(
+        "岡山市, the mayor's decision of 22 March 2012, as the city's page gives it; \
+         岡山市事務分掌規則 assigns its work to a division; no 告示 found",
+    ),
+    // A day the city's offices close: by 広島市役所事務休停日条例 from 1947
+    // to 2021, and by the 休日条例 from 1991.
+    municipal("Hiroshima Peace Memorial Day", "平和記念日", 8, 6, 1947, HIROSHIMA_CITY)
+        .of_kind(Kind::Government)
+        .cited(
+            "広島市役所事務休停日条例 (昭和22年広島市条例第14号, repealed 2021); a 市の休日 of \
+             広島市の休日を定める条例 (平成3年広島市条例第49号) Article 1 item 4; \
+             広島市平和推進基本条例 (令和3年広島市条例第50号) Article 6",
+        ),
+    municipal("Nagasaki Peace Day", "ながさき平和の日", 8, 9, 1995, NAGASAKI_CITY)
+        .cited("ながさき平和の日条例 (平成7年長崎市条例第2号)"),
+    municipal("Kumamoto Earthquake Day", "熊本地震の日", 4, 16, 2023, KUMAMOTO_CITY)
+        .cited("熊本市防災基本条例 (令和4年熊本市条例第33号) Article 16"),
+    municipal("Kumamoto Citizens' Health Day", "市民健康の日", 10, 1, 1986, KUMAMOTO_CITY)
+        .cited("熊本市市民健康の日を定める条例 (昭和61年熊本市条例第12号)"),
     // Two prefectures keep a day whose instrument was not found: a gap in
     // every year, rather than the prefecture's want of a day.
     HolidayRule::observance("Akita Prefecture Day", "県の記念日", Rule::UNREAD)
@@ -526,6 +675,78 @@ static RULES: &[HolidayRule] = &[
     )
     .in_regions(&["JP-38"])
     .cited("愛媛県, 県政発足記念日 (20 February), kept with a governor's award since 1973: instrument not found"),
+    // ── The prefectures' other days ─────────────────────────────────────
+    // Days a prefecture set by ordinance, or by another instrument of its
+    // own, that are not the prefecture's own day: none closes anything.
+    // Days set by an ordinance whose purpose is the day, or by an article of
+    // a broader one.
+    prefectural("Takeshima Day", "竹島の日", 2, 22, 2006, SHIMANE).cited("竹島の日を定める条例 (平成17年島根県条例第36号) Article 2"),
+    prefectural("Mount Fuji Day", "富士山の日", 2, 23, 2010, SHIZUOKA).cited("静岡県富士山の日条例 (平成21年静岡県条例第72号) Article 2"),
+    prefectural("Mount Fuji Day", "富士山の日", 2, 23, 2012, YAMANASHI).cited("山梨県富士山の日条例 (平成23年山梨県条例第55号) Article 2"),
+    prefectural("Lake Biwa Day", "びわ湖の日", 7, 1, 1996, SHIGA).cited("滋賀県環境基本条例 (平成8年滋賀県条例第18号) Article 8"),
+    prefectural("Tokyo Peace Day", "東京都平和の日", 3, 10, 1991, TOKYO).cited("東京都平和の日条例 (平成2年東京都条例第90号) Article 1; Article 2, commemorative events"),
+    prefectural("Day to Hand Down the Great East Japan Earthquake and Tsunami", "東日本大震災津波を語り継ぐ日", 3, 11, 2021, IWATE).cited("東日本大震災津波を語り継ぐ日条例 (令和3年岩手県条例第1号) Article 1"),
+    prefectural("Miyagi Day of Remembrance", "みやぎ鎮魂の日", 3, 11, 2014, MIYAGI).cited("みやぎ鎮魂の日を定める条例 (平成25年宮城県条例第18号) Article 2"),
+    prefectural("Miyagi Citizens' Disaster Prevention Day", "みやぎ県民防災の日", 6, 12, 2009, MIYAGI).cited("震災対策推進条例 (平成20年宮城県条例第62号) Article 26"),
+    prefectural("Hiraizumi World Heritage Day", "平泉世界遺産の日", 6, 29, 2014, IWATE).cited("平泉世界遺産の日条例 (平成26年岩手県条例第17号) Article 2"),
+    prefectural("Hida-Mino Pride Day", "飛騨・美濃じまんの日", 8, 21, 2008, GIFU).cited("みんなでつくろう観光王国飛騨・美濃条例 (平成19年岐阜県条例第39号) Article 15"),
+    prefectural("Shimakutuba Day", "しまくとぅばの日", 9, 18, 2006, OKINAWA).cited("しまくとぅばの日に関する条例 (平成18年沖縄県条例第35号) Article 2"),
+    prefectural("Ryukyu History and Culture Day", "琉球歴史文化の日", 11, 1, 2021, OKINAWA).cited("琉球歴史文化の日条例 (令和3年沖縄県条例第13号) Article 2; Article 5, fees waived"),
+    // The education days, 1 November in every prefecture that fixes one by
+    // an instrument, except Tokyo's and Yamagata's Saturdays.
+    prefectural("Iwate Education Day", "いわて教育の日", 11, 1, 2005, IWATE)
+        .cited("いわて教育の日に関する条例 (平成17年岩手県条例第41号) Article 2; いわて教育週間 1–7 November"),
+    prefectural("Miyagi Education Day", "みやぎ教育の日", 11, 1, 2005, MIYAGI)
+        .cited("みやぎ教育の日を定める条例 (平成17年宮城県条例第90号) Article 2; みやぎ教育月間 November"),
+    prefectural("Fukushima Education Day", "ふくしま教育の日", 11, 1, 2003, FUKUSHIMA)
+        .cited("ふくしま教育の日条例 (平成15年福島県条例第50号) Article 2; ふくしま教育週間 1–7 November, with some fees of the prefecture's museums waived"),
+    prefectural("Ibaraki Education Day", "いばらき教育の日", 11, 1, 2004, IBARAKI)
+        .cited("いばらき教育の日を定める条例 (平成16年茨城県条例第35号) Article 2; いばらき教育月間 November"),
+    prefectural("Saitama Education Day", "彩の国教育の日", 11, 1, 2003, SAITAMA)
+        .cited("彩の国教育の日を定める要綱 (平成15年県・教育委員会告示第1号) Article 2; 彩の国教育週間 1–7 November"),
+    prefectural("Niigata Education Day", "新潟県教育の日", 11, 1, 2023, NIIGATA)
+        .cited("新潟県教育の日に関する条例 (令和4年新潟県条例第49号) Article 2; 新潟県教育月間 November"),
+    prefectural("Ishikawa Education Day", "いしかわ教育の日", 11, 1, 2005, ISHIKAWA)
+        .cited("いしかわ教育の日を定める条例 (平成17年石川県条例第32号) Article 2; いしかわ教育ウィーク 1–7 November"),
+    prefectural("Shiga Education Day", "滋賀教育の日", 11, 1, 2006, SHIGA)
+        .cited("「滋賀 教育の日」を定める要綱 (1 June 2006), as the prefecture's board of education's page gives it; the 要綱 itself not read"),
+    prefectural("Nara Education Day", "奈良県教育の日", 11, 1, 2003, NARA)
+        .cited("奈良県教育委員会告示第6号 (1 July 2003), as the prefecture's page gives it; the 告示 itself not read; 奈良県教育週間 1–7 November"),
+    prefectural("Shimane Education Day", "しまね教育の日", 11, 1, 2002, SHIMANE)
+        .cited("しまね教育の日を定める条例 (平成14年島根県条例第66号) Article 2; しまね教育ウィーク 1–7 November"),
+    prefectural("Okayama Education Day", "おかやま教育の日", 11, 1, 2001, OKAYAMA)
+        .cited("おかやま教育の日を定める条例 (平成13年岡山県条例第58号) Article 2; おかやま教育週間 1–7 November"),
+    prefectural("Hiroshima Education Day", "ひろしま教育の日", 11, 1, 2001, HIROSHIMA)
+        .cited("ひろしま教育の日を定める条例 (平成13年広島県条例第40号) Article 2; ひろしま教育ウィーク 1–7 November"),
+    prefectural("Tokushima Education Day", "とくしま教育の日", 11, 1, 2004, TOKUSHIMA)
+        .cited("とくしま教育の日を定める条例 (平成16年徳島県条例第35号) Article 2; とくしま教育週間 1–7 November"),
+    prefectural("Oita Education Day", "おおいた教育の日", 11, 1, 2005, OITA)
+        .cited("おおいた教育の日条例 (平成17年大分県条例第30号) Article 2; おおいた教育週間 1–7 November"),
+    // Decided by the metropolitan board of education in February 2004 and
+    // announced in the 東京都公報, by the board's page.
+    HolidayRule::observance(
+        "Tokyo Education Day",
+        "東京都教育の日",
+        Rule::nth(11, 1, Weekday::Saturday),
+    )
+    .years(Some(2004), None)
+    .in_regions(TOKYO)
+    .cited(
+        "東京都教育委員会, 「東京都教育の日」, decided February 2004 and announced in the \
+         東京都公報, as the board's page gives it: 毎年11月の第1土曜日",
+    ),
+    // The 要綱's year is not on the page read.
+    HolidayRule::observance(
+        "Yamagata Education Day",
+        "やまがた教育の日",
+        Rule::nth(11, 2, Weekday::Saturday),
+    )
+    .read_from(2026)
+    .in_regions(YAMAGATA)
+    .cited(
+        "やまがた教育の日を定める要綱 of 山形県教育委員会, as the board's page gives it: \
+         11月第2土曜日; the 要綱 and its year not read",
+    ),
 ];
 
 /// A prefecture's own day on a fixed date, from `first` onwards, in the
@@ -543,8 +764,43 @@ const fn prefectural(
         .in_regions(region)
 }
 
-// The prefectures with a day of their own, by ISO 3166-2 code.
+/// A municipality's day on a fixed date, from `first` onwards: an
+/// observance, as a prefecture's is.
+const fn municipal(
+    name: &'static str,
+    local_name: &'static str,
+    month: u8,
+    day: u8,
+    first: i32,
+    region: &'static [&'static str],
+) -> HolidayRule {
+    prefectural(name, local_name, month, day, first, region)
+}
+
+// The municipalities with a day carried, by the prefecture's ISO 3166-2
+// code and the city's JIS X 0402 code within it.
+const SAITAMA_CITY: &[&str] = &["JP-11-100"];
+const CHIBA_CITY: &[&str] = &["JP-12-100"];
+const YOKOHAMA: &[&str] = &["JP-14-100"];
+const KAWASAKI: &[&str] = &["JP-14-130"];
+const SAGAMIHARA: &[&str] = &["JP-14-150"];
+const SHIZUOKA_CITY: &[&str] = &["JP-22-100"];
+const HAMAMATSU: &[&str] = &["JP-22-130"];
+const NAGOYA: &[&str] = &["JP-23-100"];
+const KYOTO_CITY: &[&str] = &["JP-26-100"];
+const SAKAI: &[&str] = &["JP-27-140"];
+const KOBE: &[&str] = &["JP-28-100"];
+const OKAYAMA_CITY: &[&str] = &["JP-33-100"];
+const HIROSHIMA_CITY: &[&str] = &["JP-34-100"];
+const NAGASAKI_CITY: &[&str] = &["JP-42-201"];
+const KUMAMOTO_CITY: &[&str] = &["JP-43-100"];
+
+// The prefectures with a day of their own or another day carried, by
+// ISO 3166-2 code.
 const HOKKAIDO: &[&str] = &["JP-01"];
+const IWATE: &[&str] = &["JP-03"];
+const MIYAGI: &[&str] = &["JP-04"];
+const YAMAGATA: &[&str] = &["JP-06"];
 const FUKUSHIMA: &[&str] = &["JP-07"];
 const IBARAKI: &[&str] = &["JP-08"];
 const TOCHIGI: &[&str] = &["JP-09"];
@@ -552,15 +808,25 @@ const GUNMA: &[&str] = &["JP-10"];
 const SAITAMA: &[&str] = &["JP-11"];
 const CHIBA: &[&str] = &["JP-12"];
 const TOKYO: &[&str] = &["JP-13"];
+const NIIGATA: &[&str] = &["JP-15"];
 const TOYAMA: &[&str] = &["JP-16"];
+const ISHIKAWA: &[&str] = &["JP-17"];
 const FUKUI: &[&str] = &["JP-18"];
 const YAMANASHI: &[&str] = &["JP-19"];
+const GIFU: &[&str] = &["JP-21"];
 const SHIZUOKA: &[&str] = &["JP-22"];
 const AICHI: &[&str] = &["JP-23"];
 const MIE: &[&str] = &["JP-24"];
+const SHIGA: &[&str] = &["JP-25"];
+const NARA: &[&str] = &["JP-29"];
 const WAKAYAMA: &[&str] = &["JP-30"];
 const TOTTORI: &[&str] = &["JP-31"];
+const SHIMANE: &[&str] = &["JP-32"];
+const OKAYAMA: &[&str] = &["JP-33"];
+const HIROSHIMA: &[&str] = &["JP-34"];
+const TOKUSHIMA: &[&str] = &["JP-36"];
 const KAGAWA: &[&str] = &["JP-37"];
+const OITA: &[&str] = &["JP-44"];
 const KAGOSHIMA: &[&str] = &["JP-46"];
 const OKINAWA: &[&str] = &["JP-47"];
 
@@ -613,7 +879,7 @@ pub static JAPAN: RuleSet = RuleSet {
     bridges: BRIDGES,
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 28),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "国民の祝日に関する法律 (昭和23年法律第178号), as last amended by \
               平成30年法律第57号 (in force 1 January 2020), with the amending acts its \
               supplementary provisions list, 平成29年法律第63号 among them, on e-Gov \
@@ -623,13 +889,44 @@ pub static JAPAN: RuleSet = RuleSet {
               令和2年法律第68号, as docs/systems/japan-holidays.md cites them; \
               内閣府「国民の祝日について」; the equinox days are computed, not \
               taken from the 官報; the prefectures' own days from each prefecture's \
-              ordinance, 休日条例 and school rules in its 例規集, read 2026-09-28, as \
+              ordinance, 休日条例 and school rules in its 例規集, read 2026-09-28, and \
+              the prefectures' other days and the designated cities' days from their \
+              例規集 or the 条例Webアーカイブ's copies of them, read 2026-09-29, as \
               docs/systems/japan-holidays.md lists them",
     // The prefectures whose 休日条例 and 例規集 were read and give no day of
-    // their own.
+    // their own, and the designated cities read that give none.
     subdivisions: Subdivisions::Read(&[
-        "JP-02", "JP-03", "JP-04", "JP-06", "JP-14", "JP-15", "JP-17", "JP-20", "JP-21", "JP-25",
-        "JP-26", "JP-27", "JP-28", "JP-29", "JP-32", "JP-33", "JP-34", "JP-35", "JP-36", "JP-39",
-        "JP-40", "JP-41", "JP-42", "JP-43", "JP-44", "JP-45",
+        "JP-02",
+        "JP-03",
+        "JP-04",
+        "JP-06",
+        "JP-14",
+        "JP-15",
+        "JP-17",
+        "JP-20",
+        "JP-21",
+        "JP-25",
+        "JP-26",
+        "JP-27",
+        "JP-28",
+        "JP-29",
+        "JP-32",
+        "JP-33",
+        "JP-34",
+        "JP-35",
+        "JP-36",
+        "JP-39",
+        "JP-40",
+        "JP-41",
+        "JP-42",
+        "JP-43",
+        "JP-44",
+        "JP-45",
+        "JP-01-100",
+        "JP-04-100",
+        "JP-15-100",
+        "JP-27-100",
+        "JP-40-100",
+        "JP-40-130",
     ]),
 };

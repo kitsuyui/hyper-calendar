@@ -77,7 +77,10 @@ Rules then pass through **observance modifiers**, which are themselves data:
   carried of them, and why, each document says: a day kept in part of a
   canton or a parish needs a scope finer than ISO 3166-2, and the days of a
   state, community or department whose instrument was not read are not
-  guessed.
+  guessed. A municipality is a region within its subdivision, its code
+  the subdivision's and its own within it
+  ([ADR 0014](adr/0014-a-municipality-is-a-region-within-its-subdivision.md)):
+  the Japanese designated cities are carried so.
 - `Kind` — public holiday, bank holiday, school holiday, observance without a
   day off, religious day of obligation, a weekend day made a working day
   (China's 调休上班), a day off for the government that sets it alone
@@ -253,7 +256,7 @@ partial.
 
 | Country | Note |
 | --- | --- |
-| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; and the prefectures' own days by ordinance, each scoped to its ISO 3166-2 code — eighteen 県民の日 and their like, and Okinawa's 慰霊の日, a 県の休日 (`Kind::Government`) — from a survey of all forty-seven prefectures' ordinances, 休日条例 and school rules; the law, its amendments, the prefectures and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md). The prefectures' other days set by ordinance are not yet carried |
+| Japan 🇯🇵 | Complete from 1948 (祝日法) to the present with every amendment, the 振替休日 and 国民の休日 as policies and the equinox days computed; and the prefectures' own days by ordinance, each scoped to its ISO 3166-2 code — eighteen 県民の日 and their like, and Okinawa's 慰霊の日, a 県の休日 (`Kind::Government`) — from a survey of all forty-seven prefectures' ordinances, 休日条例 and school rules; the law, its amendments, the prefectures and how the table was checked are in [systems/japan-holidays.md](systems/japan-holidays.md). Also the prefectures' other days (竹島の日, 富士山の日, びわ湖の日, sixteen education days, the memorial days), and the days of the twenty 政令指定都市 and 長崎市, each scoped to the city's code under its prefecture's, `JP-14-100` for 横浜市 (ADR 0014). Not yet carried: the other municipalities' days, which are gaps; the education days councils declared; Aichi's school holiday day by day (PDF only) |
 | United States 🇺🇸 | Federal holidays with the Saturday/Sunday observed rule, the Uniform Monday Holiday Act, Veterans Day's 1971–77 detour, Juneteenth from 2021, Inauguration Day for the capital region, and every full-day closure by executive order from 2018 — the two state-funeral days and the Christmas closures, 24 and 26 December 2025 among them; the closures before 2018 not carried; and the states' own days, 147 rules in 45 states and the District of Columbia from their codes, each from the session law that set it, or else from the year of the text read with the years before a gap: [systems/us-state-holidays.md](systems/us-state-holidays.md), which names the days and the states (New Hampshire, Oklahoma, Georgia) not yet carried, each a gap when asked for; California's Good Friday afternoon a half day |
 | United Kingdom 🇬🇧 | England and Wales, Scotland and Northern Ireland as separate regions, with the royal one-offs, Scotland's World Cup bank holiday of 15 June 2026, and the three jubilee moves of the Spring Bank Holiday |
 | Ireland 🇮🇪 | Including St Brigid's Day and its conditional rule and the one-off of 18 March 2022; a holiday on the weekend moves nothing, as section 21 of the 1997 Act gives a benefit and not a next working day |

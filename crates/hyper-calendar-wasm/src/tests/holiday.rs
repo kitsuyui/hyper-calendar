@@ -390,7 +390,11 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
         .collect();
     assert_eq!(
         own,
-        ["2026-10-01\tTokyo Citizens' Day\t都民の日\tschool\texact\t0\t\tJP-13\t"]
+        [
+            "2026-03-10\tTokyo Peace Day\t東京都平和の日\tobservance\texact\t0\t\tJP-13\t",
+            "2026-10-01\tTokyo Citizens' Day\t都民の日\tschool\texact\t0\t\tJP-13\t",
+            "2026-11-07\tTokyo Education Day\t東京都教育の日\tobservance\texact\t0\t\tJP-13\t",
+        ]
     );
     assert!(year.contains("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\n"));
     let nationwide = read_lines(|buffer, capacity| unsafe {
