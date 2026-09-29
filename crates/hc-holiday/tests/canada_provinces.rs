@@ -52,7 +52,34 @@ const DAYS: &[(&str, &str, i64, MonthDay, MonthDay)] = &[
         (6, 21),
         (6, 21),
     ),
-    ("CA-QC", "Saint-Jean-Baptiste Day", 2026, (6, 24), (6, 24)),
+    // Loi sur la fête nationale, 1978, c. 5: carried from 1979.
+    ("CA-QC", "Saint-Jean-Baptiste Day", 1979, (6, 24), (6, 24)),
+    // Décret 1322-2002: the Monday before 25 May, from 2003.
+    ("CA-QC", "National Patriots' Day", 2003, (5, 19), (5, 18)),
+    // The provinces and territories that added the federal day by their
+    // own acts: Prince Edward Island and the Northwest Territories from
+    // 2022, Yukon from 2023.
+    (
+        "CA-PE",
+        "National Day for Truth and Reconciliation",
+        2022,
+        (9, 30),
+        (9, 30),
+    ),
+    (
+        "CA-NT",
+        "National Day for Truth and Reconciliation",
+        2022,
+        (9, 30),
+        (9, 30),
+    ),
+    (
+        "CA-YT",
+        "National Day for Truth and Reconciliation",
+        2023,
+        (9, 30),
+        (9, 30),
+    ),
     ("CA-NU", "Nunavut Day", 2001, (7, 9), (7, 9)),
     ("CA-BC", "British Columbia Day", 2026, (8, 3), (8, 3)),
     ("CA-NB", "New Brunswick Day", 2026, (8, 3), (8, 3)),
@@ -96,10 +123,12 @@ fn before_its_first_year_a_day_is_absent_if_a_source_sets_it_and_a_gap_if_not() 
             .collect::<Vec<_>>()
     };
     // Ontario's Family Day was added by 2007, c. 16, in force for 2008:
-    // 2007 is absent. Quebec's Fête nationale is carried from the source
-    // read, of 2026, and no source read gives its first year: 2025 is a gap.
+    // 2007 is absent. Quebec's Fête nationale is carried from 1979, the
+    // first year of its Act of 1978, whose first 24 June the text does not
+    // give: 1978 is a gap.
     assert!(!gaps("CA-ON", 2007).contains(&"Family Day"));
-    assert!(gaps("CA-QC", 2025).contains(&"Saint-Jean-Baptiste Day"));
+    assert!(gaps("CA-QC", 1978).contains(&"Saint-Jean-Baptiste Day"));
+    assert!(!gaps("CA-QC", 1979).contains(&"Saint-Jean-Baptiste Day"));
     assert!(gaps("CA-YT", 2025).contains(&"Discovery Day"));
     assert!(HolidayCalendar::for_year(&CANADA, None, 2025).is_complete());
 }
@@ -211,9 +240,38 @@ fn a_province_keeps_only_the_federal_days_its_text_read_lists() {
                 "Boxing Day",
             ],
         ),
-        ("CA-NB", &["Victoria Day", "Thanksgiving"]),
-        ("CA-NS", &["Victoria Day", "Thanksgiving"]),
-        ("CA-PE", &["Victoria Day", "Thanksgiving"]),
+        (
+            "CA-NB",
+            &[
+                "Victoria Day",
+                "National Day for Truth and Reconciliation",
+                "Thanksgiving",
+                "Boxing Day",
+            ],
+        ),
+        (
+            "CA-NS",
+            &[
+                "Victoria Day",
+                "National Day for Truth and Reconciliation",
+                "Thanksgiving",
+                "Remembrance Day",
+                "Boxing Day",
+            ],
+        ),
+        ("CA-PE", &["Victoria Day", "Thanksgiving", "Boxing Day"]),
+        (
+            "CA-QC",
+            &[
+                "Good Friday",
+                "Victoria Day",
+                "National Day for Truth and Reconciliation",
+                "Remembrance Day",
+                "Boxing Day",
+            ],
+        ),
+        ("CA-NT", &["Boxing Day"]),
+        ("CA-YT", &["Boxing Day"]),
         (
             "CA-NU",
             &["National Day for Truth and Reconciliation", "Boxing Day"],
@@ -242,8 +300,14 @@ fn a_province_keeps_only_the_federal_days_its_text_read_lists() {
         // The text read is of 2026: the years before are a gap for each day
         // it leaves out, and the Truth and Reconciliation day, first kept in
         // 2021, is no gap in 2020.
+        // Yukon's text read is in force from 2023, and Quebec's Monday before
+        // 25 May is named from 2003: no gap for those in 2025.
         let gaps = gap_names(region, 2025);
-        for name in out.iter().filter(|name| **name != "Canada Day") {
+        for name in out.iter().filter(|name| {
+            **name != "Canada Day"
+                && !(region == "CA-YT" && **name == "Boxing Day")
+                && !(region == "CA-QC" && **name == "Victoria Day")
+        }) {
             assert!(
                 gaps.iter().any(|gap| gap.contains(name)),
                 "{region} {name}: {gaps:?}"
@@ -276,9 +340,31 @@ fn a_province_keeps_only_the_federal_days_its_text_read_lists() {
                 .any(|name| name.contains("Truth and Reconciliation"))
         );
     }
-    // Ontario keeps Boxing Day; Quebec, whose list was not read, keeps every
-    // federal day as the table has it.
+    // Ontario keeps Boxing Day.
     assert!(days_off(Some("CA-ON"), 2026).contains(&"Boxing Day"));
-    let quebec = days_off(Some("CA-QC"), 2026);
-    assert!(FEDERAL.iter().all(|name| quebec.contains(name)));
+    // Quebec's article 60 keeps Victoria Day's Monday as the Journée
+    // nationale des patriotes, Monday 18 May 2026, and gives Good Friday or
+    // Easter Monday at the employer's choice: both observances, business
+    // days in the table. Before 2003 the Monday is a gap.
+    let quebec = HolidayCalendar::for_year(&CANADA, Some("CA-QC"), 2026);
+    assert!(quebec.is_holiday(ymd(2026, 5, 18)));
+    for day in [ymd(2026, 4, 3), ymd(2026, 4, 6)] {
+        assert!(quebec.is_business_day(day));
+        assert!(
+            quebec
+                .on(day)
+                .iter()
+                .any(|holiday| holiday.kind == Kind::Observance
+                    && holiday.local_name
+                        == "Vendredi saint ou lundi de Pâques, au choix de l'employeur")
+        );
+    }
+    assert!(gap_names("CA-QC", 2002).contains(&"Victoria Day"));
+    // Nova Scotia's Remembrance Day rests on an Act not read: a gap every
+    // year, and no day off.
+    assert!(gap_names("CA-NS", 2026).contains(&"Remembrance Day"));
+    // The Northwest Territories kept the day of 30 September for the public
+    // service alone in 2021, and Yukon's act came in November 2022.
+    assert!(!HolidayCalendar::for_year(&CANADA, Some("CA-NT"), 2021).is_holiday(ymd(2021, 9, 30)));
+    assert!(!HolidayCalendar::for_year(&CANADA, Some("CA-YT"), 2022).is_holiday(ymd(2022, 9, 30)));
 }

@@ -607,7 +607,10 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   Lao Women's Union's day and Bangladesh's optional holidays are not yet,
   as above. A half day off is `Kind::HalfDay`, which business-day
   arithmetic counts as a working day
-  ([ADR 0012](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0012-a-half-day-off-is-its-own-kind.md)).
+  ([ADR 0012](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0012-a-half-day-off-is-its-own-kind.md)). A rule yields at most
+  53 days a year (`Days::CAPACITY`), every Saturday of a year that has 53:
+  the Saturday half holidays of Michigan, New Jersey, New York,
+  Pennsylvania and Tennessee are each one rule.
 * **Subdivisions** are modelled only where a statute names them. German
   *Länder*, Australian states and territories, Canadian provinces, UK
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
@@ -622,7 +625,7 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   Inauguration Day in the District of Columbia, Chișinău, Guatemala City,
   San Salvador, Managua and Chile's Arica and Parinacota. The Swiss
   cantons, the Spanish autonomous communities, the US states and the
-  District, Andorra's parishes, four Bolivian departments and Mexico's
+  District, Andorra's parishes, the Bolivian departments and Mexico's
   Jalisco are in too, each written up in its system document under
   `docs/systems/`, which says what is not yet carried and why: the days a
   law keeps in part of a canton or parish, the states and departments

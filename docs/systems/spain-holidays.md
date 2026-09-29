@@ -71,7 +71,7 @@ Barcelona, and Monday 6 April the reverse. A calendar asked for `ES-MD` in
   1983 and of Real Decreto 2403/1985 were not read, so every year before
   1990 is a gap for each day [es-rd-2001-1983]. Epiphany is a day of
   article 45.1 d) that a community may replace, and every community kept
-  it in every resolution read: it is nationwide in 2013–2015 and
+  it in every resolution read: it is nationwide in 1994, 2013–2015 and
   2018–2026, the years whose resolution was read, and a gap in every
   other year.
 - **Each community's other days**, scoped to its ISO 3166-2 code, as the
@@ -79,14 +79,21 @@ Barcelona, and Monday 6 April the reverse. A calendar asked for `ES-MD` in
   days it kept (`**`, Maundy Thursday in seventeen of the nineteen, St
   Joseph's or St James's Day in some), and the Monday rests it kept. Each
   is a `Rule::Listed` entry over a `Listing` of the community's rows, for
-  the years whose resolution was read in the BOE's HTML text: 2013 to 2015
-  and 2018 to 2026. All are `Kind::Public`: the resolutions list fiestas
+  the years whose resolution was read in the BOE's HTML text: 1994 (for
+  the seventeen communities; Ceuta and Melilla, not yet autonomous cities,
+  have no column), 2013 to 2015 and 2018 to 2026. All are `Kind::Public`: the resolutions list fiestas
   laborales, and a recoverable one is still a day off.
 - **Gaps.** The resolutions for 2016 and 2017 publish the annex as an
   image [es-fiestas-2016-2017], which was not read, so those years are a
-  gap for every community day, and so is every year after 2026 and every
-  year before 2013, whose resolutions the BOE also holds and which were not
-  read. A day a read resolution does not list is absent in that year.
+  gap for every community day, and so is every year after 2026. Of the
+  resolutions before 2013, found in the BOE for every year from 1990 to
+  2012 [es-fiestas-1990-2012], only those for 1994 and 1995 give the annex
+  as text: 1994's is carried, and 1995's lists each community's dates
+  without their names, which are not carried. For 1995 to 2012 each of
+  the seventeen reports one gap, "The community's days of 1995 to 2012";
+  the years before 1994, and before 2013 in Ceuta and Melilla, are a gap
+  for every community day. A day a read resolution does not list is
+  absent in that year.
 - **Not yet carried, and why:**
   - the islands' own days in the Canaries (one per island, by the
     community's decree, which the resolutions quote in a note) and the
@@ -94,8 +101,9 @@ Barcelona, and Monday 6 April the reverse. A calendar asked for `ES-MD` in
     ISO 3166-2 subdivision, and the table has no finer scope;
   - the municipalities' two local days of article 46, published in each
     community's or province's bulletin, of which none was read;
-  - the resolutions before 2013, which the BOE also holds, and the images
-    of 2016 and 2017.
+  - the resolutions of 1990 to 1993 and 1996 to 2012, whose annexes the
+    BOE's text omits or gives as an image or PDF, the dates of 1995,
+    without their names, and the images of 2016 and 2017.
 
 ### The nineteen communities
 
@@ -105,8 +113,10 @@ a year missing inside a run is one in which the day fell on a Sunday and
 was not listed, or was replaced. "Mondays" counts the Monday rests
 (article 45.2) the community kept across the twelve years. The instrument
 for every row is the year's resolution [es-fiestas-2013] …
-[es-fiestas-2026]. The first year carried is 2013 for all nineteen, and
-earlier years: gap.
+[es-fiestas-2026], and for 1994 [es-fiestas-1994]. The table's years are
+those of 2013 to 2026; 1994's are listed after it. The first year carried
+is 1994 for the seventeen communities and 2013 for Ceuta and Melilla, the
+years before a gap, and 1995 to 2012 a gap.
 
 | Code | Community | Own days | Kept | Mondays |
 | --- | --- | --- | --- | --- |
@@ -130,7 +140,38 @@ earlier years: gap.
 | ES-RI | La Rioja | Día de La Rioja, 9 June (all years but 2024, when the Monday was listed); Lunes de Pascua (2013–2015, 2019–2026) | Jueves Santo (all years) | 7 |
 | ES-VC | Comunitat Valenciana | Día de la Comunitat Valenciana, 9 October (all years but 2022); Lunes de Pascua (all years); San Juan (2019–2026); Lunes de Fallas (2013) | San José (all years but 2023); Jueves Santo (2022 only) | 1 |
 
-"All years" means all twelve read. The Eid days of Ceuta and Melilla are
+"All years" means all twelve read of 2013 to 2026.
+
+The resolution for 1994 [es-fiestas-1994] marks each day "Nal." or "X"
+and has seventeen columns. Besides the nationwide days, Epiphany among
+them, it gives the communities these:
+
+| Code | Days of 1994 |
+| --- | --- |
+| ES-AN | Día de Andalucía, 28 February; Jueves Santo, 31 March; Monday rests of 2 May and 26 December |
+| ES-AR | Jueves Santo; Día de Aragón, 23 April; Santiago Apóstol, 25 July; Monday rest of 26 December |
+| ES-AS | Jueves Santo; Día de Asturias, 8 September; Monday rests of 2 May and 26 December |
+| ES-CB | Santiago Apóstol; Día de las Instituciones, 28 July; Nuestra Señora Bien Aparecida, 15 September; Monday rest of 26 December |
+| ES-CL | San José, 19 March; Jueves Santo; Fiesta de la Comunidad Autónoma de Castilla y León, 23 April; Santiago Apóstol |
+| ES-CM | San José; Jueves Santo; Día de la Región de Castilla-La Mancha, 31 May; Monday rest of 2 May |
+| ES-CN | Día de Canarias, 30 May; Santiago Apóstol; Monday rests of 2 May and 26 December |
+| ES-CT | Lunes de Pascua, 4 April; Lunes de Pascua Granada, 23 May; San Juan, 24 June; San Esteban, 26 December |
+| ES-EX | Jueves Santo; Día de Extremadura, 8 September; Monday rests of 2 May and 26 December |
+| ES-GA | San José; Jueves Santo; Día de las Letras Gallegas, 17 May; Santiago Apóstol |
+| ES-IB | Jueves Santo; Santiago Apóstol; Segunda fiesta de Navidad, 26 December; "En sustitución del día 25 de diciembre", 27 December |
+| ES-MC | San José; Jueves Santo; Día de la Región, 9 June; Monday rest of 2 May |
+| ES-MD | Jueves Santo; Santiago Apóstol; Monday rests of 2 May and 26 December |
+| ES-NC | San José; Jueves Santo; Lunes de Pascua; Santiago Apóstol |
+| ES-PV | San José; Jueves Santo; Lunes de Pascua; Santiago Apóstol |
+| ES-RI | Jueves Santo; Lunes de Pascua; Día de La Rioja, 9 June; Santiago Apóstol |
+| ES-VC | San José; Jueves Santo; Lunes de Pascua; Segundo día de Navidad, 26 December |
+
+Each has twelve days in 1994, the Canaries too, and the names are carried
+under the spellings of the later years where the day is the same (Día de
+Aragón as San Jorge/Día de Aragón, Día de la Región as Día de la Región de
+Murcia); Balearic Islands' and Valencia's second days of Christmas keep
+their own names. The "X" mark does not tell a kept national day from the
+community's own. The Eid days of Ceuta and Melilla are
 listed on the dates each resolution gives; they are not computed.
 
 ## Accuracy
@@ -167,6 +208,8 @@ León") is split between them.
 | [es-fiestas-2013] … [es-fiestas-2026] | Each year's annex: every community's days and marks, and the notes | Yes, 2026-09-29, the BOE's HTML text, for 2013–2015 and 2018–2026 |
 | [es-fiestas-2018] | The 2018 resolution's two corrections | Yes, 2026-09-29 |
 | [es-fiestas-2016-2017] | The 2016 and 2017 resolutions, whose annexes are images | The text read, the annexes not |
+| [es-fiestas-1994] | The 1994 annex, with its correction | Yes, 2026-09-29, the BOE's HTML text |
+| [es-fiestas-1990-2012] | The resolutions of 1990 to 2012 and what their text gives of the annex | Yes, 2026-09-29, the BOE's HTML text; the images and PDF not |
 
 The Estatuto de los Trabajadores, article 37.2, is cited as the
 resolutions quote it and was not read.
@@ -176,7 +219,9 @@ resolutions quote it and was not read.
 `crates/hc-holiday/src/countries/spain.rs`: the nationwide rules first in
 `RULES`, built by `national`, read from `ARTICLE_45_READ`, with Epiphany
 by `epiphany_where_read`, then each community's, built by `early` (the resolutions of
-2013–2015) and `late` (2018–2026, with 2016 and 2017 a gap); one
+1994 and 2013–2015, with `UNREAD_1995_TO_2012` the gap between),
+`early_city` (Ceuta's and Melilla's, 2013–2015) and `late` (2018–2026,
+with 2016 and 2017 a gap); one
 `Listing` per community, `ANDALUSIA_DAYS` to `VALENCIA_DAYS`; and the
 table `SPAIN`. The exchange `XMAD` in `exchanges.rs` keeps its own list.
 

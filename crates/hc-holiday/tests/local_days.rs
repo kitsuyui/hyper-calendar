@@ -192,7 +192,7 @@ fn before_its_instrument_a_departmental_day_is_absent_or_a_gap() {
 }
 
 #[test]
-fn a_department_whose_efemeride_no_instrument_read_dates_is_a_gap() {
+fn the_efemerides_dated_before_1985_are_carried_from_decreto_supremo_21060() {
     let gaps = |region, year| {
         HolidayCalendar::for_year(&BOLIVIA, Some(region), year)
             .gaps()
@@ -200,29 +200,68 @@ fn a_department_whose_efemeride_no_instrument_read_dates_is_a_gap() {
             .map(|gap| gap.name)
             .collect::<Vec<_>>()
     };
-    for (region, name) in [
-        ("BO-B", "Beni Departmental Day"),
-        ("BO-C", "Cochabamba Departmental Day"),
-        ("BO-H", "Chuquisaca Departmental Day"),
-        ("BO-P", "Potosí Departmental Day"),
-        ("BO-S", "Santa Cruz Departmental Day"),
-        ("BO-N", "Pando Departmental Day"),
+    // The one-year declarations of 1942 to 1969 date each efeméride;
+    // Decreto Supremo 21060 of 29 August 1985 makes it a holiday, carried
+    // from 1986, 1985 a gap. Chuquisaca's 25 May and Cochabamba's
+    // 14 September were Sundays in 1986, before the Sunday rule.
+    for (region, name, month, day) in [
+        ("BO-H", "Chuquisaca Departmental Day", 5, 25),
+        ("BO-C", "Cochabamba Departmental Day", 9, 14),
+        ("BO-P", "Potosí Departmental Day", 11, 10),
+        ("BO-S", "Santa Cruz Departmental Day", 9, 24),
+        ("BO-N", "Pando Departmental Day", 9, 24),
+        ("BO-B", "Beni Departmental Day", 11, 18),
     ] {
-        for year in [2000, 2024, 2025, 2026] {
-            assert_eq!(
-                gaps(region, year)
-                    .iter()
-                    .filter(|gap| **gap == name)
-                    .count(),
-                1,
-                "{region} {year}"
-            );
+        for year in [1986, 2026] {
+            let found = own_on(&BOLIVIA, region, year, month, day);
+            assert_eq!(found.len(), 1, "{region} {year}: {found:?}");
+            assert_eq!(found[0].name, name);
+            assert_eq!(found[0].kind, Kind::Public);
+            assert_eq!(found[0].regions, [region]);
+            assert!(!gaps(region, year).contains(&name), "{region} {year}");
         }
+        assert!(own_on(&BOLIVIA, region, 1985, month, day).is_empty());
+        assert!(gaps(region, 1985).contains(&name), "{region}");
+    }
+    // Santa Cruz's day is not La Paz's.
+    assert!(own_on(&BOLIVIA, "BO-L", 2026, 9, 24).is_empty());
+    // Pando keeps its 24 September and, from 2025, the Battle of Bahía.
+    assert_eq!(own_on(&BOLIVIA, "BO-N", 2026, 10, 11).len(), 1);
+    // The days that departmental laws not read add are gaps from their
+    // years: Cochabamba's 14 August from 2019, Beni's 10 November from 2010.
+    for (region, name, first) in [
+        ("BO-C", "Cochabamba's 14 August", 2019),
+        ("BO-B", "Beni's 10 November", 2010),
+    ] {
+        assert!(!gaps(region, first - 1).contains(&name), "{region}");
+        assert!(gaps(region, first).contains(&name), "{region}");
+        assert!(gaps(region, 2026).contains(&name), "{region}");
+    }
+    // A department with no law unread is complete in 2026.
+    for region in ["BO-H", "BO-P", "BO-S", "BO-N"] {
+        assert!(
+            HolidayCalendar::for_year(&BOLIVIA, Some(region), 2026).is_complete(),
+            "{region}"
+        );
     }
     // Every department is one the table was read for, and the nationwide
     // calendar has no gap.
     assert_eq!(BOLIVIA.regions().len(), 9);
     assert!(HolidayCalendar::for_year(&BOLIVIA, None, 2026).is_complete());
+}
+
+#[test]
+fn a_sunday_efemeride_dated_before_1985_moves_to_monday_from_2024() {
+    // Potosí's 10 November 2024 and Chuquisaca's 25 May 2025 were Sundays.
+    for (region, year, month, day) in [("BO-P", 2024, 11, 11), ("BO-H", 2025, 5, 26)] {
+        assert!(
+            HolidayCalendar::for_year(&BOLIVIA, Some(region), year)
+                .on(ymd(year, month, day))
+                .iter()
+                .any(Holiday::is_substitute),
+            "{region} {year}"
+        );
+    }
 }
 
 #[test]

@@ -273,17 +273,17 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BI` | Burundi | 14 | none | stated | 2026-09-23 |
 | `BJ` | Benin | 18 | none | stated | 2026-09-23 |
 | `BN` | Brunei | 15 | yes | stated | 2026-09-23 |
-| `BO` | Bolivia | 25 | yes | stated | 2026-09-29 |
+| `BO` | Bolivia | 27 | yes | stated | 2026-09-29 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
 | `BT` | Bhutan | 51 | none | stated | 2026-09-29 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |
-| `CA` | Canada | 54 | yes | stated | 2026-09-29 |
+| `CA` | Canada | 72 | yes | stated | 2026-09-29 |
 | `CD` | Democratic Republic of the Congo | 17 | yes | stated | 2026-09-23 |
 | `CG` | Republic of the Congo | 9 | none | stated | 2026-09-23 |
-| `CH` | Switzerland | 228 | none | stated | 2026-09-29 |
+| `CH` | Switzerland | 229 | none | stated | 2026-09-29 |
 | `CI` | Côte d'Ivoire | 14 | yes | stated | 2026-09-22 |
 | `CL` | Chile | 28 | none | stated | 2026-09-26 |
 | `CM` | Cameroon | 10 | yes | stated | 2026-09-23 |
@@ -303,7 +303,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `EC` | Ecuador | 19 | none | stated | 2026-09-22 |
 | `EE` | Estonia | 26 | none | stated | 2026-09-22 |
 | `EG` | Egypt | 15 | none | stated | 2026-09-26 |
-| `ES` | Spain | 370 | none | stated | 2026-09-29 |
+| `ES` | Spain | 393 | none | stated | 2026-09-29 |
 | `ET` | Ethiopia | 15 | none | stated | 2026-09-26 |
 | `FI` | Finland | 15 | none | stated | 2026-09-26 |
 | `FJ` | Fiji | 12 | none | stated | 2026-09-23 |
@@ -434,7 +434,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `TZ` | Tanzania | 17 | yes | stated | 2026-09-22 |
 | `UA` | Ukraine | 27 | yes | stated | 2026-09-26 |
 | `UG` | Uganda | 14 | none | stated | 2026-09-22 |
-| `US` | United States | 172 | yes | stated | 2026-09-29 |
+| `US` | United States | 1504 | yes | stated | 2026-09-29 |
 | `UY` | Uruguay | 23 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |

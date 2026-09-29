@@ -45,6 +45,13 @@ extend-exclude = [
 extend-ignore-re = ["[Ss]haʿot", "Puẹ́rto"]
 
 [default.extend-words]
+# Surnames in US states' commemorative days: Alaska's Anthony J. Dimond
+# Day, and Varian Fry Day.
+dimond = "dimond"
+varian = "varian"
+# French "employeur", in Quebec's "au choix de l'employeur" (Loi sur les
+# normes du travail, art. 60), quoted in hc-holiday's Canada table.
+employeur = "employeur"
 # French "origines", in the title "Les origines du calendrier amazigh"
 # that Wikipedia's "Berber calendar" cites, quoted in hc-i18n's data.
 origines = "origines"
