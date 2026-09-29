@@ -61,7 +61,10 @@ match only if the calendar agrees with all of it.
      number in the reader's other numbering systems, 九月.
    - **Days and extra fields:** the locale's day names, named cycle values
      (the Pawukon's days, a Tamil year name) and the sexagenary pairs.
-   - **Numbers:** read in the locale's digits and in Latin digits, in a
+   - **Numbers:** read in the locale's digits and in Latin digits, in the
+     locale's alternative positional digits, CLDR's `native` system where
+     it is not the usual one (`ar`'s Arabic-Indic ٢٠٢٦ beside its Latin
+     2026, `hi`'s Devanagari), in a
      locale written in Han characters also as Han numerals and positional
      Han digits, and in any system a template names, `{year:hebr}`. A
      numeral counts only if the system writes that value the same way, so
@@ -182,7 +185,8 @@ all.
     U+2018 ‘ as another, so *Man’en*, as CLDR's root writes the era, reads
     as typed, *Man'en*. CLDR 48's `supplemental/characters.xml` has no
     fallback for these, only the geresh's.
-- Latin digits in a locale with its own. In a locale written in Han
+- Latin digits in a locale with its own, and a locale's alternative
+  positional digits beside its usual ones. In a locale written in Han
   characters, Han numerals, positional Han digits, 元 for the first year
   of an era, and the Chinese day names 初一 … 三十 for a lunisolar
   calendar whose data names none.

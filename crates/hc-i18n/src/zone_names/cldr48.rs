@@ -7,7 +7,8 @@
 //! `supplemental/likelySubtags.xml`, as the script's documentation says.
 //! A metazone's line holds its long generic, standard and daylight names and
 //! its short ones, separated by `|`, an empty field where the
-//! locale states none, trailing empty fields left out.
+//! locale states none, `~` where its file writes CLDR's empty override
+//! over a name it would inherit, trailing empty fields left out.
 
 use super::ZoneFormats;
 #[cfg(feature = "zone-names")]
@@ -4308,14 +4309,14 @@ const EN_001: &str = concat!(
     "\n",
     "\n",
     "\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
+    "|||~|~|~\n",
     "\n",
     "\n",
     "\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
+    "|||~|~|~\n",
+    "|||~|~|~\n",
+    "|||~|~|~\n",
+    "|||~|~|~\n",
     "\n",
     "\n",
     "\n",
@@ -4325,7 +4326,7 @@ const EN_001: &str = concat!(
     "\n",
     "\n",
     "\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
+    "|||~|~|~\n",
     "\n",
     "\n",
     "\n",
@@ -4383,8 +4384,8 @@ const EN_001: &str = concat!(
     "\n",
     "\n",
     "\n",
-    "||||∅∅∅\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
+    "||||~\n",
+    "|||~|~|~\n",
     "\n",
     "\n",
     "\n",
@@ -4962,16 +4963,16 @@ const ES_419: &str = concat!(
     "\n",
     "hora de la Isla de Pascua|hora estándar de Isla de Pascua|hora de verano de la Isla de Pascua\n",
     "\n",
-    "|||∅∅∅|∅∅∅|∅∅∅\n",
-    "hora de Europa del Este|hora estándar de Europa del Este|hora de verano de Europa del Este|∅∅∅|∅∅∅|∅∅∅\n",
+    "|||~|~|~\n",
+    "hora de Europa del Este|hora estándar de Europa del Este|hora de verano de Europa del Este|~|~|~\n",
     "|horario del lejano este de Europa\n",
-    "hora de Europa del Oeste|hora estándar de Europa del Oeste|hora de verano de Europa del Oeste|∅∅∅|∅∅∅|∅∅∅\n",
+    "hora de Europa del Oeste|hora estándar de Europa del Oeste|hora de verano de Europa del Oeste|~|~|~\n",
     "hora de las Islas Malvinas|hora estándar de las Islas Malvinas|hora de verano de las Islas Malvinas\n",
     "\n",
     "\n",
     "|hora de las Tierras Australes y Antárticas Francesas\n",
     "\n",
-    "||||∅∅∅\n",
+    "||||~\n",
     "\n",
     "\n",
     "\n",
@@ -6824,7 +6825,7 @@ const JA: &str = concat!(
     "\n",
     "イルクーツク時間|イルクーツク標準時|イルクーツク夏時間\n",
     "イスラエル時間|イスラエル標準時|イスラエル夏時間\n",
-    "日本時間|日本標準時|日本夏時間|∅∅∅|JST|JDT\n",
+    "日本時間|日本標準時|日本夏時間||JST|JDT\n",
     "ペトロパブロフスク・カムチャツキー時間|ペトロパブロフスク・カムチャツキー標準時|ペトロパブロフスク・カムチャツキー夏時間\n",
     "\n",
     "|カザフスタン時間\n",
@@ -9569,7 +9570,7 @@ const PT_ZONES: &[(&str, &str)] = &[
 /// `pt-PT`: a line per metazone of [`METAZONES`].
 #[cfg(feature = "localized-zone-names")]
 const PT_PT: &str = concat!(
-    "Hora do Acre|Hora padrão do Acre|Hora de verão do Acre|∅∅∅|∅∅∅|∅∅∅\n",
+    "Hora do Acre|Hora padrão do Acre|Hora de verão do Acre|~|~|~\n",
     "|Hora do Afeganistão\n",
     "|Hora da África Central\n",
     "|Hora da África Oriental\n",
@@ -9580,7 +9581,7 @@ const PT_PT: &str = concat!(
     "Hora do Alasca|Hora padrão do Alasca|Hora de verão do Alasca\n",
     "\n",
     "Hora de Almaty|Hora padrão de Almaty|Hora de verão de Almaty\n",
-    "Hora do Amazonas|Hora padrão do Amazonas|Hora de verão do Amazonas|∅∅∅|∅∅∅|∅∅∅\n",
+    "Hora do Amazonas|Hora padrão do Amazonas|Hora de verão do Amazonas|~|~|~\n",
     "Hora central norte-americana|Hora padrão central norte-americana|Hora de verão central norte-americana\n",
     "Hora oriental norte-americana|Hora padrão oriental norte-americana|Hora de verão oriental norte-americana\n",
     "Hora de montanha norte-americana|Hora padrão de montanha norte-americana|Hora de verão de montanha norte-americana\n",
@@ -9607,7 +9608,7 @@ const PT_PT: &str = concat!(
     "|Hora do Butão\n",
     "|Hora da Bolívia\n",
     "\n",
-    "Hora de Brasília|Hora padrão de Brasília|Hora de verão de Brasília|∅∅∅|∅∅∅|∅∅∅\n",
+    "Hora de Brasília|Hora padrão de Brasília|Hora de verão de Brasília|~|~|~\n",
     "\n",
     "|Hora do Brunei\n",
     "Hora de Cabo Verde|Hora padrão de Cabo Verde|Hora de verão de Cabo Verde\n",

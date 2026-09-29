@@ -138,6 +138,39 @@ fn bhutan_keeps_thimphu_s_festivals_in_thimphu() {
     }
 }
 
+/// The Ministry's notification of 7 September 2021 moved Thimphu Dromche
+/// and Tshechu to dates its page gives only in an image, which was not
+/// read: 2021 is a gap for both in Thimphu, and not a prediction, while
+/// 2020 and 2022 are predicted and nothing changes outside Thimphu.
+#[test]
+fn bhutan_reports_thimphu_s_moved_festivals_of_2021_as_a_gap() {
+    let calendar = HolidayCalendar::for_year(&BHUTAN, Some("BT-15"), 2021);
+    let mut gaps: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
+    gaps.sort_unstable();
+    gaps.dedup();
+    assert!(gaps.contains(&"Thimphu Drubchoe"), "{gaps:?}");
+    assert!(gaps.contains(&"Thimphu Tshechu"), "{gaps:?}");
+    assert!(own_days(&BHUTAN, "BT-15", 2021).is_empty());
+    // The years around it are predicted, a day the Bhutanese calendar
+    // skips a gap as before (2022's).
+    for year in [2020, 2022] {
+        let days = own_days(&BHUTAN, "BT-15", year);
+        assert!(days.len() >= 3, "{year} {days:?}");
+        assert!(
+            days.iter()
+                .all(|holiday| holiday.confidence == Confidence::Approximate),
+            "{year}"
+        );
+    }
+    let nationwide = HolidayCalendar::for_year(&BHUTAN, None, 2021);
+    assert!(
+        !nationwide
+            .gaps()
+            .iter()
+            .any(|gap| gap.name.starts_with("Thimphu"))
+    );
+}
+
 #[test]
 fn bhutan_predicts_thimphu_s_festivals_on_the_bhutanese_calendar() {
     // Outside the lists, the 6th and the 10th to 12th of the 8th month,

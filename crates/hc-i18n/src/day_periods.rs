@@ -16,7 +16,10 @@
 //! `scripts/day-periods-cldr.py` generates the data from the format rule
 //! set of `supplemental/dayPeriods.xml` and each carried locale's format
 //! names in `common/main/<file>.xml` [cldr48-day-periods]; am and pm are
-//! the entries' own, [`crate::names::day_period_name`].
+//! the entries' own, [`crate::names::day_period_name`]. A language's rules
+//! are found by truncating the locale's tag, as the file keys them by
+//! language. `docs/systems/zone-names.md` works the rules and names
+//! through with examples.
 
 use crate::locale::Locale;
 use crate::names::NameWidth;
@@ -92,16 +95,27 @@ impl FlexibleDayPeriod {
 /// A language's rules: (period, from, before), in minutes after midnight.
 type Rules = &'static [(FlexibleDayPeriod, u16, u16)];
 
-/// The format rule set of the first locale in `locale`'s fallback chain
-/// that has one, by the language CLDR lists it under.
+/// The format rule set of `locale`: the one `dayPeriods.xml` lists under
+/// its tag, else under the tag truncated from the right, a subtag at a
+/// time, to its language.
+///
+/// The rule sets are keyed by language, as the plural rules are (`zh`,
+/// `yue`, `pa`), with a few by language and script or region (`hi_Latn`,
+/// `es_CO`), so they are looked up by truncation, UTS #35 Part 1's rule,
+/// and not along the names' fallback chain: `parentLocales` send
+/// `zh-Hant` and `yue-Hans` straight to root, which would leave them with
+/// am and pm alone, while their files name 午夜, 清晨 and 晚上 for the
+/// periods of `zh`'s rules. ICU4C's `DayPeriodRules::getInstance` walks
+/// the same truncation (`icu-zone-format-sources`).
 fn rules(locale: &Locale) -> Option<Rules> {
-    locale.fallback().find_map(|candidate| {
-        let rendered = candidate.rendered()?;
-        cldr48::RULES
-            .iter()
-            .find(|(tag, _)| *tag == rendered.as_str())
-            .map(|(_, rows)| *rows)
-    })
+    let rendered = locale.without_extensions().rendered()?;
+    let mut tag = rendered.as_str();
+    loop {
+        if let Some((_, rows)) = cldr48::RULES.iter().find(|(key, _)| *key == tag) {
+            return Some(*rows);
+        }
+        tag = &tag[..tag.rfind('-')?];
+    }
 }
 
 /// Whether `locale`'s language has a word for this fixed period, midnight
@@ -220,6 +234,69 @@ mod tests {
         assert!(has_fixed_period(&english, FlexibleDayPeriod::Noon));
         assert!(!has_fixed_period(&locale("de"), FlexibleDayPeriod::Noon));
         assert!(has_fixed_period(&locale("de"), FlexibleDayPeriod::Midnight));
+    }
+
+    /// `dayPeriods.xml` keys its rules by language: Traditional Chinese
+    /// takes `zh`'s, midnight at 00:00, `night1` (凌晨) from 00:00,
+    /// `morning1` (清晨) from 05:00 and `evening1` (晚上) from 19:00, and `yue-Hans` takes `yue`'s, although neither
+    /// reaches `zh` or `yue` through `parentLocales`. `hi-Latn` has rules
+    /// of its own, `hi_Latn` in the file: `morning1` from 04:00 and
+    /// `night1` from 20:00.
+    #[test]
+    fn the_rules_are_found_by_truncating_the_tag() {
+        for tag in ["zh-Hant", "zh-TW", "zh-Hant-HK", "zh-Hant-MO"] {
+            let chinese = locale(tag);
+            assert!(
+                has_fixed_period(&chinese, FlexibleDayPeriod::Midnight),
+                "{tag}"
+            );
+            assert_eq!(
+                flexible_period(&chinese, 6 * 60),
+                Some(FlexibleDayPeriod::Morning1),
+                "{tag}"
+            );
+            assert_eq!(
+                flexible_period(&chinese, 20 * 60),
+                Some(FlexibleDayPeriod::Evening1),
+                "{tag}"
+            );
+            assert_eq!(
+                flexible_period(&chinese, 3 * 60),
+                Some(FlexibleDayPeriod::Night1),
+                "{tag}"
+            );
+        }
+        assert_eq!(
+            period_name(
+                &locale("zh-Hant"),
+                FlexibleDayPeriod::Morning1,
+                NameWidth::Wide
+            ),
+            Some("清晨")
+        );
+        assert_eq!(
+            period_name(
+                &locale("zh-TW"),
+                FlexibleDayPeriod::Midnight,
+                NameWidth::Wide
+            ),
+            Some("午夜")
+        );
+        assert_eq!(
+            flexible_period(&locale("yue-Hans"), 20 * 60),
+            flexible_period(&locale("yue"), 20 * 60)
+        );
+        assert!(flexible_period(&locale("yue-Hans"), 20 * 60).is_some());
+        let hinglish = locale("hi-Latn");
+        assert_eq!(
+            flexible_period(&hinglish, 3 * 60 + 59),
+            Some(FlexibleDayPeriod::Night1)
+        );
+        assert_eq!(
+            flexible_period(&hinglish, 4 * 60),
+            Some(FlexibleDayPeriod::Morning1)
+        );
+        assert_eq!(flexible_period(&locale("und"), 600), None);
     }
 
     #[test]

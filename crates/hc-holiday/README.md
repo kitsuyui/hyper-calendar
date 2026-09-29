@@ -507,7 +507,8 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   are its Ministry's lists for 2025 and 2026, and gaps in other years; its
   Winter Solstice is the lists' day in those years and, in the others, the
   day the Bhutanese mean Sun reaches 250°, a prediction. Thimphu Drubchoe and Thimphu Tshechu, for Thimphu only, are carried
-  in `BT-15` as the lunar days are; the other districts' tshechus, whose
+  in `BT-15` as the lunar days are, 2021, when the Ministry moved them to
+  dates not read, a gap; the other districts' tshechus, whose
   days each Dzongkhag Administration confirms, are not yet carried, as no
   confirmation was read.
 * **Cambodia** carries the days off of the Royal Government's sub-decrees

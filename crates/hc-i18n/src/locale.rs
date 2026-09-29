@@ -522,11 +522,13 @@ impl Locale {
     /// locale ([`crate::data::PARENT_LOCALES`], `supplementalData.xml`):
     /// `en-GB` → `en-001`, `es-MX` → `es-419`, `zh-Hant-MO` → `zh-Hant-HK`,
     /// `pt-AO` → `pt-PT`, and `zh-Hant`, `yue-Hans` and `pa-Arab` straight to
-    /// root, so that Traditional Chinese never inherits Simplified. Every
+    /// root, so that Traditional Chinese never inherits Simplified; and,
+    /// for three bare languages, `ht` → `fr-HT` and `nb` and `nn` → `no`. Every
     /// other tag is truncated from the right, which is the rule of UTS #35
     /// version 48.2, Part 1, "Truncation" (`uts35-v48`). The table's
     /// `nonlikelyScript` rule, root for any tag whose script is not its
     /// language's likely one, is applied only to the tags it lists.
+    /// `docs/systems/locale-fallback.md` works the chain through.
     #[must_use]
     pub fn parent(&self) -> Option<Self> {
         if self.has_extensions() {
@@ -537,7 +539,7 @@ impl Locale {
             next.variant = None;
             return Some(next);
         }
-        if (next.region.is_some() || next.script.is_some())
+        if next.language.as_str() != "und"
             && let Some(parent) = next.cldr_parent()
         {
             return Some(parent);
@@ -572,8 +574,8 @@ impl Locale {
     /// A tag whose language this crate carries only per script, and which
     /// names no script, first takes the script CLDR's likely subtags give
     /// it (see [`LIKELY_SCRIPTS`]): `zh-TW` walks `zh-Hant-TW`, `zh-Hant`,
-    /// `zh`, `und`, and a bare `zh` walks `zh-Hans`, `zh`, `und`. Every
-    /// other tag starts with itself.
+    /// `und`, since `parentLocales` send `zh-Hant` to root, and a bare `zh`
+    /// walks `zh-Hans`, `zh`, `und`. Every other tag starts with itself.
     #[must_use]
     pub fn fallback(&self) -> Fallback {
         Fallback {
@@ -904,6 +906,12 @@ mod tests {
             chain("en-GB-u-hc-h23"),
             ["en-GB-u-hc-h23", "en-GB", "en-001", "en", "und"]
         );
+        // The three bare languages `parentLocales` name: Haitian Creole
+        // inherits Haitian French, and both Norwegian written standards
+        // inherit `no`.
+        assert_eq!(chain("ht"), ["ht", "fr-HT", "fr", "und"]);
+        assert_eq!(chain("nb"), ["nb", "no", "und"]);
+        assert_eq!(chain("nn-NO"), ["nn-NO", "nn", "no", "und"]);
     }
 
     #[test]

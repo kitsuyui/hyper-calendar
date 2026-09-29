@@ -209,9 +209,12 @@ fn the_hebrew_and_hijri_calendars_are_labelled_as_their_sources_write_them() {
     let ramadan = day(2024, 3, 11);
     assert_eq!(label_on(hijri, ramadan, Unit::Year, "en"), "1445 AH");
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "en"), "Ramadan");
-    assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar"), "١٤٤٥ هـ");
+    // `ar.xml` writes Latin digits; `ar_EG.xml` and `ar_SA.xml`
+    // Arabic-Indic ones.
+    assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar"), "1445 هـ");
+    assert_eq!(label_on(hijri, ramadan, Unit::Year, "ar-SA"), "١٤٤٥ هـ");
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "ar"), "رمضان");
-    assert_eq!(date_on(hijri, ramadan, "ar"), "١ رمضان ١٤٤٥ هـ");
+    assert_eq!(date_on(hijri, ramadan, "ar-EG"), "١ رمضان ١٤٤٥ هـ");
     // Japanese names neither, so a Japanese request is answered in
     // English, not in Arabic.
     assert_eq!(label_on(hijri, ramadan, Unit::Month, "ja"), "Ramadan");
@@ -372,9 +375,9 @@ fn the_gregorian_years_a_bounded_calendar_and_the_long_count_walk() {
     assert_eq!(baktun_end.fields.extra.get("baktun"), Some(13));
     // Nobody names the Long Count; its label is its own notation, the
     // five places joined by dots, in every locale.
-    for tag in ["en", "ja", "ar"] {
+    for tag in ["en", "ja", "ar", "ar-EG"] {
         let text = label::date(long_count, &baktun_end.fields, &locale(tag));
-        let expected = if tag == "ar" {
+        let expected = if tag == "ar-EG" {
             "١٣.٠.٠.٠.٠"
         } else {
             "13.0.0.0.0"

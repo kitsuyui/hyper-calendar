@@ -9,10 +9,12 @@
 //! 17 September and 21–23 September 2026 — and predicted in the other
 //! years on `tibetan-bhutan`, marked approximate, as the lists' national
 //! days are ([`super::asia`]'s Bhutan table): the Ministry settles each
-//! year, and its notification of 7 September 2021, "Change of dates for
-//! Thimphu Dromche and Tshechu", moved these two, the new dates not being
-//! on its page. A year in which one of the days is skipped or repeated is
-//! a gap.
+//! year. Its notification of 7 September 2021, "Change of dates for
+//! Thimphu Dromche and Tshechu" (`moha-bt-notification-2021`), moved these
+//! two, and its page gives the new dates only in
+//! an image, which was not read; so 2021 is a gap for both, not a
+//! prediction. A year in which one of the days is skipped or repeated is
+//! a gap too.
 //!
 //! The other districts' tshechus are not carried: the lists say only that
 //! their days are "confirmed by the respective Dzongkhag Administration",
@@ -86,16 +88,45 @@ static LISTED: Listing = Listing::Named(&[
     (2026, 9, 23, TSHECHU),
 ]);
 
+/// The year the Ministry's notification of 7 September 2021 moved both
+/// festivals to dates not read.
+const MOVED: i32 = 2021;
+
+/// A prediction before the lists, in Thimphu, the years before [`MOVED`]
+/// (`early`) or those between it and the lists.
+const fn thimphu_before(name: &'static str, day: u8, early: bool) -> HolidayRule {
+    let rule = bt_predicted(name, EIGHTH, day, true).in_regions(THIMPHU);
+    if early {
+        rule.years(None, Some(MOVED - 1))
+    } else {
+        rule.years(Some(MOVED + 1), Some(super::asia::BT_FIRST as i32 - 1))
+    }
+}
+
+/// A festival in [`MOVED`], a gap.
+const fn thimphu_moved(name: &'static str) -> HolidayRule {
+    HolidayRule::fixed_public(name, "", Rule::UNREAD)
+        .years(Some(MOVED), Some(MOVED))
+        .in_regions(THIMPHU)
+}
+
 /// The days for Thimphu alone: the lists' days in their years, the
-/// predictions on `tibetan-bhutan` before and after.
+/// predictions on `tibetan-bhutan` before and after, and a gap in the
+/// year the Ministry moved them.
 pub static THIMPHU_DAYS: &[HolidayRule] = &[
     bt_read(DRUBCHOE, LISTED.named(DRUBCHOE)).in_regions(THIMPHU),
-    bt_predicted(DRUBCHOE, EIGHTH, 6, true).in_regions(THIMPHU),
+    thimphu_before(DRUBCHOE, 6, true),
+    thimphu_before(DRUBCHOE, 6, false),
+    thimphu_moved(DRUBCHOE),
     bt_predicted(DRUBCHOE, EIGHTH, 6, false).in_regions(THIMPHU),
     bt_read(TSHECHU, LISTED.named(TSHECHU)).in_regions(THIMPHU),
-    bt_predicted(TSHECHU, EIGHTH, 10, true).in_regions(THIMPHU),
-    bt_predicted(TSHECHU, EIGHTH, 11, true).in_regions(THIMPHU),
-    bt_predicted(TSHECHU, EIGHTH, 12, true).in_regions(THIMPHU),
+    thimphu_before(TSHECHU, 10, true),
+    thimphu_before(TSHECHU, 11, true),
+    thimphu_before(TSHECHU, 12, true),
+    thimphu_before(TSHECHU, 10, false),
+    thimphu_before(TSHECHU, 11, false),
+    thimphu_before(TSHECHU, 12, false),
+    thimphu_moved(TSHECHU),
     bt_predicted(TSHECHU, EIGHTH, 10, false).in_regions(THIMPHU),
     bt_predicted(TSHECHU, EIGHTH, 11, false).in_regions(THIMPHU),
     bt_predicted(TSHECHU, EIGHTH, 12, false).in_regions(THIMPHU),

@@ -38,7 +38,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cldr_xml import ENTRIES, carried, lit, path, resolve, rustfmt, write_or_check, xml  # noqa: E402
+from cldr_xml import (ENTRIES, NO_VALUE, carried, lit, path, resolve, rustfmt,  # noqa: E402
+                      write_or_check, xml)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/zone_names/cldr48.rs')
@@ -46,6 +47,9 @@ READ = '2026-09-29'
 FORMS = [('long', 'generic'), ('long', 'standard'), ('long', 'daylight'),
          ('short', 'generic'), ('short', 'standard'), ('short', 'daylight')]
 SEPARATOR = '|'
+# A field whose locale writes CLDR's empty override `∅∅∅` over a name its
+# lookup would inherit: the lookup stops there, with no name.
+NONE = '~'
 
 
 def tzn(*rest):
@@ -128,7 +132,9 @@ def likely_regions():
 
 
 def entry_formats(tag, chain, regional):
-    return {name: carried(chain, regional, at) or '' for name, at in FORMATS}
+    values = {name: carried(chain, regional, at) for name, at in FORMATS}
+    assert NO_VALUE not in values.values(), (tag, values)
+    return {name: value or '' for name, value in values.items()}
 
 
 def root_formats():
@@ -139,7 +145,10 @@ def names_of(chain, regional, base):
     forms = []
     for length, kind in FORMS:
         value = carried(chain, regional, base + ((length, ()), (kind, ())))
-        assert value is None or SEPARATOR not in value, value
+        if value is NO_VALUE:
+            forms.append(NONE)
+            continue
+        assert value is None or (SEPARATOR not in value and value != NONE), value
         forms.append(value or '')
     return forms
 
@@ -296,7 +305,8 @@ def generate():
 //! `supplemental/likelySubtags.xml`, as the script's documentation says.
 //! A metazone's line holds its long generic, standard and daylight names and
 //! its short ones, separated by `{SEPARATOR}`, an empty field where the
-//! locale states none, trailing empty fields left out.
+//! locale states none, `{NONE}` where its file writes CLDR's empty override
+//! over a name it would inherit, trailing empty fields left out.
 
 use super::ZoneFormats;
 #[cfg(feature = "zone-names")]

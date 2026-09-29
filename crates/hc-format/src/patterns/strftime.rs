@@ -458,15 +458,14 @@ fn write_fraction<W: fmt::Write>(out: &mut W, attos: u64, digits: usize) -> Form
 fn write_offset<W: fmt::Write>(out: &mut W, zone: ZoneInfo, colon: bool) -> FormatResult<()> {
     // An offset with seconds keeps them, as Python writes `+053730`: the
     // minute form would state a different offset.
-    let with_seconds = zone
-        .offset()
-        .is_some_and(|offset| offset.abs_seconds() != 0);
-    let style = match (colon, with_seconds) {
-        (true, false) => OffsetStyle::Extended,
-        (true, true) => OffsetStyle::ExtendedSeconds,
-        (false, false) => OffsetStyle::Basic,
-        (false, true) => OffsetStyle::BasicSeconds,
-    };
+    let style = zone.offset().map_or(
+        if colon {
+            OffsetStyle::Extended
+        } else {
+            OffsetStyle::Basic
+        },
+        |offset| crate::patterns::exact_offset_style(offset, colon),
+    );
     match zone {
         // `strftime` has no designator for "no zone", and glibc writes
         // nothing; writing `+0000` instead would be an assertion the value

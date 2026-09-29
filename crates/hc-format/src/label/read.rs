@@ -7,7 +7,8 @@
 //! placeholder tries what the renderer could have written there: every
 //! name of every era, month, day and named extra value the locale's chain
 //! holds, at every width and in both contexts, and numbers in the
-//! locale's digits or in Latin ones. Every complete match is turned into
+//! locale's digits, its alternative positional digits (`ar`'s Arabic-Indic
+//! beside its Latin, CLDR's `native` system) or Latin ones. Every complete match is turned into
 //! fields, converted to a fixed day and back, and kept only if the
 //! calendar's own fields for that day agree with everything the text
 //! said. One day is the answer; two are [`DateRefusal::Ambiguous`].
@@ -700,9 +701,10 @@ struct Reader<'a> {
     unfilled_error: Cell<Option<CalendarError>>,
     probe: OnceCell<Probe>,
     memo: Memos,
-    /// The numbering systems numbers are read in: the locale's, Latin,
-    /// for a locale written in Han characters its Han numerals and its
-    /// positional Han digits, and any a template names, `{year:hebr}`.
+    /// The numbering systems numbers are read in: the locale's, Latin, the
+    /// locale's alternative positional digits, for a locale written in Han
+    /// characters its Han numerals and its positional Han digits, and any
+    /// a template names, `{year:hebr}`.
     systems: [Option<&'static NumberingSystem>; 6],
     /// The one era the reader knows the calendar by, where it knows one
     /// and no other, found the first time a text writes none.
@@ -785,6 +787,10 @@ impl<'a> Reader<'a> {
         for id in [Some("latn"), han, han.map(|_| "hanidec")] {
             add(id.and_then(NumberingSystem::from_id));
         }
+        // `ar` writes Latin digits, as `ar.xml` does, and is read in its
+        // native Arabic-Indic ones too, as `ar-EG` and `ar-SA` write them.
+        add(NumberingSystem::alternative_for_locale(locale)
+            .filter(|system| system.digits().is_some()));
         for level in renderer.chain.levels() {
             for template in [
                 level.era,
@@ -2202,7 +2208,11 @@ mod tests {
             ("ja", "2026年9月28日"),
             ("ja", "二〇二六年九月二十八日"),
             ("zh-Hant", "2026年9月28日"),
+            ("ar", "28 سبتمبر 2026"),
+            // `ar` writes Latin digits and reads its native ones too.
             ("ar", "٢٨ سبتمبر ٢٠٢٦"),
+            ("ar-EG", "٢٨ سبتمبر ٢٠٢٦"),
+            ("hi", "२८ सितंबर २०२६"),
             ("fa", "۲۸ سپتامبر ۲۰۲۶"),
         ] {
             assert_eq!(read(tag, text), Ok(739_887), "{tag} {text}");

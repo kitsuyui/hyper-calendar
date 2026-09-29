@@ -133,6 +133,7 @@ def values(path, element):
         draft = node.get('draft', draft)
         if node.tag == element:
             text = (node.text or '').strip()
+            assert text != '∅∅∅', ("CLDR's empty override ∅∅∅ at a path this script reads: it has no encoding for it yet (scripts/cldr_xml.py's resolve stops the lookup there)", path, node.get('type'))
             if node.get('alt') is None and draft in ACCEPTED and text and text != MARK:
                 assert node.get('type') not in out, (path, node.get('type'))
                 assert '\t' not in text and '\n' not in text, (path, text)

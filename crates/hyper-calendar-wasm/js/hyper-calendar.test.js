@@ -359,6 +359,8 @@ describe("describeDay", () => {
     assert.deepEqual(naming("yerm"), ["noon", "start"]);
     assert.deepEqual(naming("tibetan"), ["local-time 05:00:00", "start"]);
     assert.deepEqual(naming("hindu-lunar"), ["sunrise", "start"]);
+    // The medieval Icelandic day, from sunrise in summer and dawn in winter.
+    assert.deepEqual(naming("icelandic-medieval"), ["daybreak", "start"]);
     // The Hebrew and Islamic evening is already the next date.
     assert.deepEqual(naming("hebrew"), ["sunset", "end"]);
     assert.deepEqual(naming("islamic-umalqura"), ["sunset", "end"]);

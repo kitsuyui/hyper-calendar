@@ -610,7 +610,7 @@ mod tests {
         assert_eq!(text, "9:00");
         text.clear();
         write_clock_time(
-            &locale("ar"),
+            &locale("ar-EG"),
             CivilTime::hms(9, 5, 0).expect("a valid time"),
             &mut text,
         )

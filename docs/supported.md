@@ -274,7 +274,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BO` | Bolivia | 22 | yes | stated | 2026-09-29 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
-| `BT` | Bhutan | 45 | none | stated | 2026-09-29 |
+| `BT` | Bhutan | 51 | none | stated | 2026-09-29 |
 | `BW` | Botswana | 14 | yes | stated | 2026-09-22 |
 | `BY` | Belarus | 16 | none | stated | 2026-09-22 |
 | `BZ` | Belize | 16 | yes | stated | 2026-09-22 |

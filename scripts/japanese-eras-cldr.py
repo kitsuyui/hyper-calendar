@@ -114,6 +114,7 @@ def eras(name, width):
         for era in group.findall('era'):
             if era.get('alt') or era.get('draft') not in RELEASE or era.text == MARK:
                 continue
+            assert era.text != '∅∅∅', ("CLDR's empty override ∅∅∅ at a path this script reads: it has no encoding for it yet (scripts/cldr_xml.py's resolve stops the lookup there)", name, width)
             stated[int(era.get('type'))] = era.text
     return stated
 

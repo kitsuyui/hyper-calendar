@@ -279,28 +279,44 @@ mod names {
     }
 
     /// The specific non-location name: the zone's own, else its
-    /// metazone's at the instant, by UTS #35's type fallback; `None` where
-    /// the context does not say whether the reading is daylight time.
+    /// metazone's at the instant; `None` where the context does not say
+    /// whether the reading is daylight time.
+    ///
+    /// A standard reading takes UTS #35's type fallback: where the names
+    /// have no daylight one, the generic name, else the standard one. A
+    /// daylight reading takes a daylight name or none, and so falls to the localized
+    /// GMT format: the fallback's premise, that "the metazone doesn't
+    /// require daylight support", does not hold of a zone keeping daylight
+    /// time, and its standard name would state another offset. So
+    /// `Europe/London` in summer is *British Summer Time* in `zzzz`, from
+    /// the zone's own name, and *GMT+1* in `z` in `en`, whose `GMT`
+    /// metazone has no daylight name, rather than *GMT*. ICU4J's
+    /// `TimeZoneFormat.formatSpecific` asks for the daylight name alone
+    /// there too (`icu-zone-format-sources`).
     pub(super) fn specific(context: &FormatContext<'_>, long: bool) -> Option<&'static str> {
-        let kind = match context.zone_daylight? {
-            true => NameType::Daylight,
-            false => NameType::Standard,
-        };
+        let daylight = context.zone_daylight?;
         let id = zone(context)?;
         let locale = names_locale(context);
         let length = length(long);
-        let own = zone_names::with_type_fallback(
-            |kind| zone_names::own_zone_name(&locale, id.canonical, length, kind),
-            kind,
-        );
-        own.or_else(|| {
-            let metazone = zone_names::metazone_at(id.canonical, utc_minutes(context))?;
-            zone_names::with_type_fallback(
-                |kind| zone_names::metazone_name(&locale, metazone, length, kind),
-                kind,
+        let metazone = || zone_names::metazone_at(id.canonical, utc_minutes(context));
+        let found = if daylight {
+            zone_names::own_zone_name(&locale, id.canonical, length, NameType::Daylight).or_else(
+                || zone_names::metazone_name(&locale, metazone()?, length, NameType::Daylight),
             )
-        })
-        .map(|found| found.name)
+        } else {
+            zone_names::with_type_fallback(
+                |kind| zone_names::own_zone_name(&locale, id.canonical, length, kind),
+                NameType::Standard,
+            )
+            .or_else(|| {
+                let metazone = metazone()?;
+                zone_names::with_type_fallback(
+                    |kind| zone_names::metazone_name(&locale, metazone, length, kind),
+                    NameType::Standard,
+                )
+            })
+        };
+        found.map(|found| found.name)
     }
 
     /// The generic non-location name, written where there is one: the

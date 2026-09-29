@@ -13,8 +13,10 @@ into memory, nothing saved):
 
 * `common/supplemental/dayPeriods.xml`, the format rule set (the one with
   no `type`, which UTS #35 Part 4 uses "in conjunction with times"): for
-  each carried language, its periods and the times they cover, `at` for
-  the fixed midnight and noon, `from` and `before` for the others;
+  each rule set of a carried language, the language's own and those the
+  file keys by its script or region (`hi_Latn`, `es_CO`), its periods and
+  the times they cover, `at` for the fixed midnight and noon, `from` and
+  `before` for the others;
 * `common/main/<file>.xml`, `calendar type="gregorian"`, the format
   context's names of the periods other than am and pm (which `hc-i18n`'s
   entries already carry), in the abbreviated, wide and narrow widths,
@@ -26,7 +28,8 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cldr_xml import ENTRIES, carried, lit, path, rustfmt, write_or_check, xml  # noqa: E402
+from cldr_xml import (ENTRIES, NO_VALUE, carried, lit, path, rustfmt,  # noqa: E402
+                      write_or_check, xml)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/day_periods/cldr48.rs')
@@ -46,7 +49,10 @@ def minutes(clock):
 
 def rules():
     root = xml('supplemental/dayPeriods.xml')
-    wanted = {tag.split('-')[0] for tag, _, _ in ENTRIES} | {tag for tag, _, _ in ENTRIES}
+    # Every rule set of a carried language: the language's own, and those
+    # keyed by its script or region (`hi_Latn`, `es_CO`), which
+    # `hc_i18n::day_periods` finds by truncating a tag.
+    languages = {tag.split('-')[0] for tag, _, _ in ENTRIES}
     out = {}
     for ruleset in root.findall('dayPeriodRuleSet'):
         if ruleset.get('type'):
@@ -54,7 +60,7 @@ def rules():
         for group in ruleset.findall('dayPeriodRules'):
             for locale in group.get('locales').split():
                 tag = locale.replace('_', '-')
-                if tag not in wanted:
+                if tag.split('-')[0] not in languages:
                     continue
                 rows = []
                 for rule in group.findall('dayPeriodRule'):
@@ -77,7 +83,10 @@ def names(chain, regional):
         for width in WIDTHS:
             at = path('dates', 'calendars', 'calendar[gregorian]', 'dayPeriods',
                       'dayPeriodContext[format]', f'dayPeriodWidth[{width}]', f'dayPeriod[{kind}]')
-            value = carried(chain, regional, at) or ''
+            value = carried(chain, regional, at)
+            # No carried file writes the empty override over a day period.
+            assert value is not NO_VALUE, (chain, kind, width)
+            value = value or ''
             assert '|' not in value
             cells.append(value)
         lines.append('|'.join(cells).rstrip('|'))

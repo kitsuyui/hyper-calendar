@@ -352,8 +352,9 @@ mod tests {
 
     #[test]
     fn arabic_uses_all_six_categories() {
-        // zero, one, two, few (3–10), many (11–99), other (100).
-        let ar = numeric("ar");
+        // zero, one, two, few (3–10), many (11–99), other (100), in the
+        // Arabic-Indic digits of `ar-EG`.
+        let ar = numeric("ar-EG");
         assert_eq!(say(&ar, 0, TimeUnit::Day), "خلال ٠ يوم");
         assert_eq!(say(&ar, -1, TimeUnit::Day), "قبل يوم واحد");
         assert_eq!(say(&ar, -2, TimeUnit::Day), "قبل يومين");
@@ -366,7 +367,7 @@ mod tests {
     fn the_arabic_dual_names_its_number_in_the_noun() {
         // يومين and ساعتين carry the "two" themselves, so their patterns
         // have no placeholder at all and no digit is printed.
-        let ar = numeric("ar");
+        let ar = numeric("ar-EG");
         assert!(!say(&ar, -2, TimeUnit::Hour).contains('٢'));
         assert_eq!(say(&ar, -2, TimeUnit::Hour), "قبل ساعتين");
     }
@@ -545,14 +546,22 @@ mod tests {
 
     #[test]
     fn the_digits_come_from_the_locales_numbering_system() {
-        // Arabic defaults to arab digits, so "13" is ١٣ and not 13.
-        let phrase = say(&numeric("ar"), -13, TimeUnit::Hour);
+        // Egyptian Arabic defaults to arab digits, so "13" is ١٣ and not 13;
+        // `ar.xml` inherits root's latn.
+        let phrase = say(&numeric("ar-EG"), -13, TimeUnit::Hour);
         assert!(phrase.contains("١٣"), "{phrase}");
         assert!(!phrase.contains("13"));
+        assert!(say(&numeric("ar"), -13, TimeUnit::Hour).contains("13"));
         // And an explicit -u-nu- overrides it.
-        let latin =
-            RelativeTimeFormatter::new(locale("ar").with_numbering_system("latn").expect("valid"));
+        let latin = RelativeTimeFormatter::new(
+            locale("ar-EG")
+                .with_numbering_system("latn")
+                .expect("valid"),
+        );
         assert!(say(&latin, -13, TimeUnit::Hour).contains("13"));
+        let native =
+            RelativeTimeFormatter::new(locale("ar").with_numbering_system("arab").expect("valid"));
+        assert!(say(&native, -13, TimeUnit::Hour).contains("١٣"));
     }
 
     #[test]

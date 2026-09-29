@@ -816,7 +816,7 @@ export interface DescribedDay {
   error: { code: number; name: string } | null;
   /** The standing, or `null` on a refusal. */
   standing: Standing | null;
-  /** Where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS`. */
+  /** Where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise`, `daybreak` (sunrise in summer and dawn in winter, `icelandic-medieval`'s) or `local-time HH:MM:SS`. */
   dayBoundary: string;
   /** The date as the locale writes it — 令和8年9月21日, 癸卯年闰二月初一 — or `null` on a refusal. */
   formatted: string | null;

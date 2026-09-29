@@ -319,15 +319,35 @@ impl NumberingSystem {
 
     /// The system a locale asks for.
     ///
-    /// `-u-nu-` wins; then the locale's own default from [`crate::data`];
+    /// `-u-nu-` wins; then the default of the first tag in the locale's
+    /// fallback chain that has one: a regional file's that CLDR 48 gives
+    /// another system than its language's ([`crate::data::DEFAULT_NUMBERING`],
+    /// `ar-SA`'s `arab` beside `ar`'s `latn`), else a carried entry's own;
     /// then `latn`.
     #[must_use]
     pub fn for_locale(locale: &Locale) -> &'static Self {
         locale
             .numbering_system()
             .and_then(Self::from_id)
-            .or_else(|| Self::from_id(crate::names::locale_data(locale).numbering))
+            .or_else(|| Self::default_for(locale))
             .unwrap_or(&LATN)
+    }
+
+    fn default_for(locale: &Locale) -> Option<&'static Self> {
+        let table = crate::data::DEFAULT_NUMBERING;
+        for candidate in locale.fallback() {
+            let Some(rendered) = candidate.rendered() else {
+                continue;
+            };
+            let tag = rendered.as_str();
+            if let Ok(index) = table.binary_search_by(|(row, _)| (*row).cmp(tag)) {
+                return Self::from_id(table[index].1);
+            }
+            if let Some(data) = crate::data::LOCALES.iter().find(|data| data.tag == tag) {
+                return Self::from_id(data.numbering);
+            }
+        }
+        Self::from_id(crate::names::locale_data(locale).numbering)
     }
 
     /// The system a locale writes as its alternative to its usual digits:
@@ -701,6 +721,41 @@ mod tests {
             .unwrap()
             .parse_integer(text)
             .unwrap()
+    }
+
+    fn system_of(tag: &str) -> &'static str {
+        NumberingSystem::for_locale(&Locale::parse(tag).unwrap()).id()
+    }
+
+    /// CLDR 48: `ar.xml` inherits root's `latn`, and `ar_EG.xml`,
+    /// `ar_SA.xml` and nineteen more regional files write `arab`, while
+    /// `ar_MA.xml` and `ar_AE.xml` inherit `ar`'s. A `-u-nu-` request wins.
+    #[test]
+    fn a_regional_file_s_numbering_system_is_its_own() {
+        assert_eq!(system_of("ar"), "latn");
+        assert_eq!(system_of("ar-EG"), "arab");
+        assert_eq!(system_of("ar-SA"), "arab");
+        assert_eq!(system_of("ar-SA-u-ca-islamic-umalqura"), "arab");
+        assert_eq!(system_of("ar-MA"), "latn");
+        assert_eq!(system_of("ar-AE"), "latn");
+        assert_eq!(system_of("ar-SA-u-nu-latn"), "latn");
+        assert_eq!(system_of("ur-IN"), "arabext");
+        assert_eq!(system_of("fa"), "arabext");
+        assert_eq!(system_of("mid"), "latn");
+    }
+
+    /// Every carried entry with a CLDR file states the system its files
+    /// resolve to, and the table stays sorted for its search.
+    #[test]
+    fn the_entries_numbering_systems_are_cldr_s() {
+        let table = crate::data::DEFAULT_NUMBERING;
+        assert!(table.windows(2).all(|pair| pair[0].0 < pair[1].0));
+        for (tag, system) in table {
+            assert!(NumberingSystem::from_id(system).is_some(), "{tag} {system}");
+            if let Some(data) = crate::data::LOCALES.iter().find(|data| data.tag == *tag) {
+                assert_eq!(data.numbering, *system, "{tag}");
+            }
+        }
     }
 
     #[test]

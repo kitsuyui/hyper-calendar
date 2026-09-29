@@ -42,6 +42,13 @@ default numbering system; and its first day of the week, the region's
 regional entry takes its script, direction, casing and capitalisation from
 its parent entry.
 
+Each carried entry's default numbering system is also carried beside the
+entries, resolved from its files, with every regional file of a carried
+language that resolves to another system than the entry its tag falls back
+to: `ar_SA.xml` writes `arab` where `ar.xml` inherits root's `latn`. The
+regional files are those `supplementalData.xml`'s `territoryInfo` lists the
+language for (`ar_SA`, `ar_MA`, …) that the release has, read like the rest.
+
 `parentLocales` (the default component) is carried whole, as (child,
 parent) pairs, for `hc_i18n::locale::Locale::parent`: `en-GB` → `en-001`,
 `es-MX` → `es-419`, `zh-Hant-MO` → `zh-Hant-HK`, `pt-AO` → `pt-PT`, and the
@@ -54,7 +61,8 @@ import sys
 import textwrap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cldr_xml import lit, path, resolve, rustfmt, stated, write_or_check, xml  # noqa: E402
+from cldr_xml import (exists, lit, path, resolve, rustfmt, stated,  # noqa: E402
+                      write_or_check, xml)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_locales.rs')
@@ -416,6 +424,47 @@ def parent_locales():
     return sorted(out)
 
 
+def cldr_chain(name):
+    """A file's inheritance chain, root left out: the file, then the parent
+    `parentLocales` names, else its truncated name, keeping the files the
+    release has."""
+    parents = dict(parent_locales())
+    chain = []
+    while name and name != 'root':
+        if exists(f'main/{name}.xml'):
+            chain.append(name)
+        name = parents.get(name) or (name.rsplit('_', 1)[0] if '_' in name else None)
+    return chain
+
+
+def default_numbering():
+    """(tag, numbering system): every carried entry's default system, and
+    every regional file of a carried language whose system differs from
+    that of the entry its tag falls back to, sorted by tag."""
+    from cldr_xml import ENTRIES
+    at = path('numbers', 'defaultNumberingSystem')
+    entries = {chain[0]: tag for tag, chain, _ in ENTRIES}
+    rows = {tag: resolve(chain, at)[0] or 'latn' for tag, chain, _ in ENTRIES}
+    languages = {chain[0].split('_')[0] for _, chain, _ in ENTRIES}
+    candidates = set()
+    for territory in supplemental().iter('territory'):
+        for population in territory.findall('languagePopulation'):
+            language = population.get('type')
+            if language.split('_')[0] in languages:
+                candidates.add(f"{language}_{territory.get('type')}")
+    for name in sorted(candidates - set(entries)):
+        if not exists(f'main/{name}.xml'):
+            continue
+        chain = cldr_chain(name)
+        entry = next((entries[f] for f in chain if f in entries), None)
+        if entry is None:
+            continue
+        value = resolve(chain, at)[0] or 'latn'
+        if value != rows[entry]:
+            rows[name.replace('_', '-')] = value
+    return sorted(rows.items())
+
+
 def first_day(region):
     """`weekData/firstDay` for a region, the world's (`001`) where CLDR lists
     the region under no day."""
@@ -677,6 +726,15 @@ def generate():
         out.append(f'    ({lit(child)}, {lit(parent)}),')
     out.append('];')
     dump += [f'parent\t{c}\t{p}' for c, p in parents]
+    out.append('')
+    out.append('/// CLDR 48\'s `numbers/defaultNumberingSystem`, resolved: each carried')
+    out.append('/// entry\'s, and each regional file\'s whose system is not that of the entry')
+    out.append('/// its tag falls back to (`ar-SA`\'s `arab` beside `ar`\'s `latn`), sorted by tag.')
+    out.append('pub static DEFAULT_NUMBERING: &[(&str, &str)] = &[')
+    for tag, system in default_numbering():
+        out.append(f'    ({lit(tag)}, {lit(system)}),')
+        dump.append(f'default-numbering\t{tag}\t{system}')
+    out.append('];')
     out.append('')
     out.append('/// Each carried locale\'s other numbering systems, CLDR 48\'s')
     out.append('/// `numbers/otherNumberingSystems`, resolved: (tag, `native`, `traditional`),')

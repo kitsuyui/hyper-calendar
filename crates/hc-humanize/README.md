@@ -186,9 +186,6 @@ and quarter means are exact integers too. A day is the nominal 86 400 s.
   *Lást wik*) are capitalised in every style, and their files write those
   words nowhere in lower case, so there is no value of the file's own to
   keep ([`docs/i18n.md`](../../docs/i18n.md)).
-- **No `en-001` or `en-GB` entry yet.** `en-GB` and `en-AU` reach `en`, and
-  write its serial comma and *3 mo. ago*, where CLDR's `en_001.xml`, their
-  parent, writes `{0} and {1}` and *3 mo ago*.
 - **The half-unit idioms are the long style's.** A short or narrow half
   hour is the decimal, *1.5 hr*.
 - **`ar`, `hi` and `th` state no compact suffixes**, so `DurationStyle::Compact`

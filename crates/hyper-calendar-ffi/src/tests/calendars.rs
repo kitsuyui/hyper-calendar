@@ -221,6 +221,24 @@ fn one_day_in_every_calendar_decodes_column_by_column() {
     // Neither Japanese nor Turkish names the Rumi calendar, so it
     // is rendered in English, and says so.
     assert_eq!(rumi[15..17], ["", "en"]);
+    // Column 15, where the day begins, is one of the words the
+    // documentation lists, and column 18 names the civil day by it:
+    // `daybreak` is the medieval Icelandic day's, named by its start.
+    for row in &rows {
+        let boundary = row[14];
+        assert!(
+            ["midnight", "noon", "sunset", "sunrise", "daybreak"].contains(&boundary)
+                || boundary.starts_with("local-time "),
+            "{row:?}"
+        );
+        assert_eq!(row[17].is_empty(), boundary == "midnight", "{row:?}");
+    }
+    let icelandic = rows
+        .iter()
+        .find(|row| row[0] == "icelandic-medieval")
+        .expect("icelandic-medieval");
+    assert_eq!(icelandic[14], "daybreak");
+    assert_eq!(icelandic[17], "start");
     // A null locale is `und`.
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_describe_day(739_880, core::ptr::null(), buffer, capacity, written)
