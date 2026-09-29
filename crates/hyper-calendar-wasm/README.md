@@ -120,7 +120,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_holidays_on`, `hc_common_worship_on`, `hc_holidays_on_in` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_roman_1960_office_on` | `fixed` 577 814 through 1 497 129, the Gregorian years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERR_NO_DATA` |
-| a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `armenian-fasts-fifty-days`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_lectionary` | `fixed` 719 163 through 1 497 096, 1 January 1970, when the Roman calendar of 1969 went into effect, to the liturgical year 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -2571,8 +2571,10 @@ read, is everyone's days and a gap line for the half day of 8 March.
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
 code, region or group that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a code
-that names no table is `HC_ERR_UNKNOWN`. An empty region is no region, and
-an empty group is everyone.
+that names no table, or a group that names no group of
+`hc_holiday_groups`, is `HC_ERR_UNKNOWN`. An empty region is no region, and
+an empty group is everyone, as is a group the table gives no day to
+alone.
 
 ```js
 hc.holidaysInYear("JP", "", 2026);
@@ -2690,7 +2692,7 @@ Vietnamese tables and the functions that date the Japanese 旧暦 days would
 otherwise search for again for every date they convert. Measured on
 2026-09-29 in the `release-compact` profile with
 [`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
-one 2026 day across all 310 tables and their subdivisions takes about
+one 2026 day across all 311 tables and their subdivisions takes about
 31 ms natively on 1 January, the costliest, and 22 ms on 25 September,
 against 0.21 s for every table's whole year; in WebAssembly under Node 22,
 measured with `scripts/wasm-calendar-timing.mjs`, 63 ms and 48 ms. The
@@ -2909,7 +2911,8 @@ dates read in the Julian calendar, `orthodox-fasts`, or in the Revised
 Julian, `orthodox-fasts-revised-julian`, both keeping Pascha by the Julian
 computus. The Armenian scheme is `armenian-fasts`, on the Gregorian
 calendar and computus Etchmiadzin keeps, or `armenian-fasts-jerusalem`,
-on the Julian; the Coptic and Ethiopian are `coptic-fasts` and
+on the Julian, or `armenian-fasts-fifty-days`, with the weekly fasts
+lifted to Pentecost as arak29's page has them; the Coptic and Ethiopian are `coptic-fasts` and
 `ethiopian-fasts`, dated in their own calendars with the Julian Pascha
 (`hc-holiday`'s `oriental_fasts`). In any case; anything else is
 `HC_ERR_UNKNOWN`. It writes one line:

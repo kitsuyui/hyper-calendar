@@ -3977,12 +3977,17 @@ static PS_RULES: &[HolidayRule] = &[
 /// Easter Sunday, 25 December — are not repeated. The fourth gives the
 /// Samaritan employees their feasts, eight of them over ten days, which are
 /// [`Kind::Religious`] too and carried as the table dates them for 2025, a
-/// gap in any other year: the Council sets them each year, and they do not
-/// follow `samaritan`, the modern calculation of the Samaritan calendar,
-/// in spring — the table's Passover of 13 and 14 April and last day of
-/// 20 April are each a day after its 12 April and 19 April — while the
-/// autumn days, 22 September, 1 October, 6 October and 13 October, are
-/// its own. Wikipedia's older copy of the list has neither the Easter
+/// gap in any other year: the Council sets them each year. Its autumn
+/// days, 22 September, 1 October, 6 October and 13 October, are those of
+/// `samaritan`, the modern calculation of the Samaritan calendar. Its
+/// spring days are not: the Passover of 13 and 14 April and last day of
+/// 20 April are each a day after the calculation's 12 and 19 April, and
+/// two after the community's own, the sacrifice having been held on
+/// Friday 11 April. They fall on the first working days after the
+/// community's Friday and Saturday feasts, the Government's weekend, which
+/// the table does not say it moves; its Shavuot
+/// on 1 June is the community's year's, not the calculation's
+/// (`docs/systems/samaritan.md`). Wikipedia's older copy of the list has neither the Easter
 /// for all nor the eve of Eid al-Fitr, and the year either was added is
 /// not known, so both are carried without a first year, as is every
 /// other day. The weekend is Friday and Saturday, as the Centre states
@@ -4001,7 +4006,9 @@ pub static PALESTINE: RuleSet = RuleSet {
     sources: "Palestinian National Information Centre (WAFA), \"العطل الرسمية في فلسطين\" \
               (info.wafa.ps/pages/details/29601), retrieved 2026-09-23, for the Council of \
               Ministers' 2025 tables, the fourth, the Samaritan employees', re-read \
-              2026-09-29, and the working week; the Council's announcements for \
+              2026-09-29 (wafa-official-holidays), and the working week; AFP's report \
+              of the Samaritan sacrifice of Friday 11 April 2025 (Arab News, \
+              arabnews-samaritan-passover-2025), retrieved 2026-09-29; the Council's announcements for \
               2026 reported by Al-Dahriyeh Municipality (Easter, 12 April), the National \
               Press Agency (Eid al-Fitr, 19 to 22 March) and An-Najah News (the Hijri New \
               Year, 16 June); Cabinet Decision No. 16 of 2003 on the paid religious and \

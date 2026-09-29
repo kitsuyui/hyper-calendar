@@ -1,8 +1,8 @@
 # The *Common Worship* calendar: ranks and transfers
 
 Backs `hc-holiday`'s `common_worship` module and its tradition table
-`common-worship`, and the `book_of_common_prayer` module and its table
-`bcp-1662`.
+`common-worship`, and the `book_of_common_prayer` module and its tables
+`bcp-1662` and `bcp-1662-1871`.
 
 ## What it is
 
@@ -139,8 +139,16 @@ Full Fact, quoting the Church, reported St George's Day 2025 on Monday
   Blasius — and they are carried as it prints them. The first three are
   the state services, which the Queen's warrant of 17 January 1859
   removed [wikipedia-anniversary-days-1859]: they are carried to 1858.
-  St Mary Magdalen, on 21 July in the 1662 transcription and 22 July in
-  the modern, is a gap.
+  St Mary Magdalen is on 21 July, "12. Kl." of August, as the 1662
+  Kalendar dates her.
+- **`bcp-1662-1871`**: the Calendar with the New Lectionary, introduced
+  in 1871 [howell-bcp-kalendar], a revision of the Kalendar and so a
+  reading of its own (`docs/policy.md` §5, §10): the same red-letter and
+  moveable days and the black-letter days both Kalendars have, named as
+  it names them, with St Mary Magdalen on 22 July, and without St Blasius
+  and the three state services, which it does not print; from 1871. The
+  Prayer Book (Tables of Lessons) Act 1871, which would date its
+  commencement exactly, was not read.
 
 Not carried:
 
@@ -167,6 +175,7 @@ Not carried:
 | The Annunciation of 2024 and 2008, St Joseph of 2008, Philip and James of 2008 and St Andrew of 2025, from the rules | the same | yes |
 | St Mark on Monday 25 April and St George on Tuesday 26 April 2022, as the Church's *Daily Prayer* keeps St George [cofe-daily-prayer-2022] | `the_years_the_common_worship_rules_leave_open_are_gaps` | yes |
 | The open years of 1962, 2000, 2011 and 2038 reported as gaps | the same | yes |
+| St Mary Magdalen on 21 July in the 1662 Kalendar and on 22 July in the Calendar of 1871, St Blasius in the 1662 Kalendar alone [howell-bcp-kalendar] | `the_moveable_feasts_of_2026`, `the_calendar_of_1871_is_a_reading_of_its_own` | yes |
 | 1900–2100: no Festival shares its day with another celebration, none is kept on a Sunday of Advent, Lent or Eastertide or in Easter Week, and every celebration is kept once a year or reported as a gap | `no_festival_is_kept_where_the_common_worship_rules_forbid_it` | yes |
 
 The *Daily Prayer* pages of May 2026 and of the years before were no
@@ -186,7 +195,7 @@ rest on the rules and one press report.
 | [cofe-daily-prayer-2022] | St George on Tuesday 26 April 2022 | Yes, 2026-09-27, through web.archive.org |
 | [fullfact-st-george-2025] | St George's Day 2025 | Yes, 2026-09-27 (press) |
 | [wikisource-bcp-1892] | The 1662 Table of Feasts, the Tables and Rules for the Moveable Feasts, the Kalendar of January | Yes, 2026-09-29 (a transcription of the 1892 facsimile) |
-| [howell-bcp-kalendar] | The 1662 and the modern Kalendars, month by month | Yes, 2026-09-29 (a transcription) |
+| [howell-bcp-kalendar] | The 1662 Kalendar and the Calendar with the New Lectionary of 1871, month by month | Yes, 2026-09-29 (a transcription) |
 | [wikipedia-anniversary-days-1859] | The warrant of 17 January 1859 removing the three state services | Yes, 2026-09-29 (secondary; the warrant and the Act not read) |
 
 The Church of England's own Kalendar and Tables of the Prayer Book are
@@ -205,5 +214,7 @@ WebAssembly and C export `hc_common_worship_on` writes the rank of each
 celebration kept on a day, from `hyper_calendar::holiday_lines`; the
 celebrations and the gaps are lines of `hc_holidays_on`.
 `crates/hc-holiday/src/book_of_common_prayer.rs`: `CELEBRATIONS`, `Letter`
-and `BOOK_OF_COMMON_PRAYER_1662`, anchored by
-`the_table_of_feasts_is_carried_in_red` and `the_moveable_feasts_of_2026`.
+and `BOOK_OF_COMMON_PRAYER_1662` and `BOOK_OF_COMMON_PRAYER_1871`,
+anchored by `the_table_of_feasts_is_carried_in_red`,
+`the_moveable_feasts_of_2026` and
+`the_calendar_of_1871_is_a_reading_of_its_own`.

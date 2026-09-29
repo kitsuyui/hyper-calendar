@@ -490,6 +490,37 @@ mod tests {
     }
 
     #[test]
+    fn the_rule_puts_the_passovers_of_2025_and_2026_a_day_after_the_community() {
+        // Published: the sheep slaughtered "Friday", 11 April 2025 (AFP,
+        // `arabnews-samaritan-passover-2025`), and the sacrifice "scheduled
+        // for April 30" 2026 (`zohar-samaritan-passover-2026`). The
+        // conjunctions of 29 March 2025 and 17 April 2026 came after
+        // apparent noon at Gerizim, about 13:15 and 14:14, so the rule
+        // begins each First Month a day later. Held as known disagreements.
+        for (year, published) in [
+            (3_663, gregorian::to_fixed_saturating(2025, 4, 11)),
+            (3_664, gregorian::to_fixed_saturating(2026, 4, 30)),
+        ] {
+            assert_eq!(passover_sacrifice(year), Ok(Rd(published.0 + 1)), "{year}");
+            assert_eq!(from_fixed(published), Ok(first_month(year, 13)), "{year}");
+        }
+    }
+
+    #[test]
+    fn the_passover_of_2010_is_the_rules_own_although_its_conjunction_was_after_noon() {
+        // Published: "today, April 28, 2010" (`jenkins-samaritan-passover-2010`).
+        // The conjunction of 14 April 2010 came at about 14:50 apparent at
+        // Gerizim, later in the afternoon than those of 2016, 2025 and 2026,
+        // and the community kept the day the rule gives. Some moment between
+        // about 14:14 and 14:50 apparent would part the four years, but no
+        // source read states one, and none is carried.
+        assert_eq!(
+            passover_sacrifice(3_648),
+            Ok(gregorian::to_fixed_saturating(2010, 4, 28))
+        );
+    }
+
+    #[test]
     fn the_first_month_of_2020_waited_for_the_conjunction_after_noon_on_24_march() {
         // The conjunction of 24 March 2020 came at about 09:28 UT, before
         // apparent noon at Gerizim on Julian 11 March, so it could not open

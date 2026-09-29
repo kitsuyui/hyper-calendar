@@ -126,7 +126,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a count | `hc_holiday_business_days_between` | `from_fixed` and `to_fixed` −3 652 424 999 through 3 652 424 634, at most a hundred years apart; any other is `HC_ERROR_OUT_OF_RANGE`, and a code that names no table `HC_ERROR_UNKNOWN` |
 | lines | `hc_roman_1960_office_on` | `fixed` 577 814 through 1 497 129, the Gregorian years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERROR_NO_DATA` |
-| a line | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `armenian-fasts-fifty-days`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_lectionary` | `fixed` 719 163 through 1 497 096, 1 January 1970, when the Roman calendar of 1969 went into effect, to the liturgical year 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -891,8 +891,10 @@ everyone and the half day of 8 March, and only that line carries `women`.
 The string arguments fail the same way in both, and the same way as in the
 WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code`,
 `region` or `group` that is not UTF-8 is `HC_ERROR_NOT_UTF8`, and a `code`
-that names no table is `HC_ERROR_UNKNOWN`. A null or empty `region` is no
-region, and a null or empty `group` is everyone.
+that names no table, or a `group` that names no group of
+`hc_holiday_groups`, is `HC_ERROR_UNKNOWN`. A null or empty `region` is no
+region, and a null or empty `group` is everyone, as is a group the table
+gives no day to alone.
 
 ```c
 #include <stdint.h>
@@ -1016,9 +1018,11 @@ line ending in what it abstains from, `nothing`, `meat` or `fast`;
 `reckoning` is `orthodox-fasts`, the fixed dates in the Julian calendar,
 or `orthodox-fasts-revised-julian`, in the Revised Julian; `armenian-fasts`
 or `armenian-fasts-jerusalem`, the Armenian fasts on the Gregorian or the
-Julian calendar; or `coptic-fasts` or `ethiopian-fasts`; and a year
-outside 326 to 4099, 1583 to 4099 on `armenian-fasts`, `coptic-fasts` and
-`ethiopian-fasts`, is `HC_ERROR_OUT_OF_RANGE`.
+Julian calendar, or `armenian-fasts-fifty-days`, with the weekly fasts
+lifted to Pentecost; or `coptic-fasts` or `ethiopian-fasts`; and a year
+outside 326 to 4099, 1583 to 4099 on `armenian-fasts`,
+`armenian-fasts-fifty-days`, `coptic-fasts` and `ethiopian-fasts`, is
+`HC_ERROR_OUT_OF_RANGE`.
 
 ## Almanac
 

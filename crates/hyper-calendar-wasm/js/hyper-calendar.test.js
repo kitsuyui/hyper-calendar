@@ -968,6 +968,11 @@ describe("holidays", () => {
     const childrensDay = hc.gregorianToFixed(2026, 6, 1);
     assert.equal(hc.holidayIsDayOff("CN", "", childrensDay, "children"), true);
     assert.equal(hc.holidayIsDayOff("CN", "", childrensDay), false);
+    // A group the table gives no day to alone has everyone's days; a name
+    // that is no group is refused.
+    assert.equal(hc.holidayIsDayOff("CN", "", childrensDay, "police"), false);
+    refused(() => hc.holidayIsDayOff("CN", "", childrensDay, "childrens"), "unknown");
+    refused(() => hc.holidaysInYear("CN", "", 2026, "childrens"), "unknown");
     const china = hc.holidayTables("zh-CN").find((table) => table.code === "CN");
     assert.deepEqual(china?.groups, ["children", "military", "women", "youth"]);
     assert.deepEqual(china?.groupNames, ["少年儿童", "现役军人", "妇女", "青年"]);

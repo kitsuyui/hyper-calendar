@@ -28,9 +28,9 @@ assert_eq!(holidays[13].local_name, "国民の休日");
 | `traditions` | the cross-cutting religious cycles |
 | `lectionary` | the lectionary cycles: the Sunday and weekday years, the RCL's Propers, and the Roman Sundays and weeks in Ordinary Time |
 | `orthodox_fasts` | the Eastern Orthodox fasts: whether a day is a fast day, a day of the Meatfast that excludes only meat, or neither, and the span of each season, on the Julian (`orthodox-fasts`) and the Revised Julian (`orthodox-fasts-revised-julian`) fixed dates |
-| `oriental_fasts` | the Armenian (`armenian-fasts`, `armenian-fasts-jerusalem`), Coptic (`coptic-fasts`) and Ethiopian (`ethiopian-fasts`) fasts, each church's own periods, read by `orthodox_fasts` |
+| `oriental_fasts` | the Armenian (`armenian-fasts`, `armenian-fasts-jerusalem`, `armenian-fasts-fifty-days`), Coptic (`coptic-fasts`) and Ethiopian (`ethiopian-fasts`) fasts, each church's own periods, read by `orthodox_fasts` |
 | `east_syriac` | the Church of the East's Fridays of commemoration and saints' days, and the Chaldean (`chaldean`) and Syro-Malabar (`syro-malabar`) years |
-| `book_of_common_prayer` | the Book of Common Prayer of 1662's calendar (`bcp-1662`): the Table of Feasts and the Kalendar's black-letter days |
+| `book_of_common_prayer` | the Book of Common Prayer of 1662's calendar (`bcp-1662`): the Table of Feasts and the Kalendar's black-letter days; and its Calendar of 1871 (`bcp-1662-1871`) |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the Proper of Time's days of the I and II class, with its class, and the ordo, each day's office with precedence, transfers and commemorations applied |
 | `international` | the United Nations international days and weeks, each citing its resolution |
@@ -181,7 +181,7 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Seventy-one traditions.** Western Christianity on the Gregorian computus,
+**Seventy-two traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
 with the class of every day and the office of each with its precedence
@@ -194,7 +194,7 @@ commemoration and saints' days (`church-of-the-east`), and its sister
 churches' years, the Chaldean (`chaldean`) and the Syro-Malabar
 (`syro-malabar`), with the Cross on 14 September; the calendar of the Book
 of Common Prayer of 1662, its Table of Feasts in red letter and its
-Kalendar's black-letter days (`bcp-1662`), Orthodox Christianity with its fixed feasts on the
+Kalendar's black-letter days (`bcp-1662`, and its Calendar of 1871, `bcp-1662-1871`), Orthodox Christianity with its fixed feasts on the
 Julian calendar and, as a second table, on the Revised Julian, the
 Ethiopian Orthodox Tewahedo and the Coptic Orthodox Churches, the Armenian
 Apostolic Church on the Gregorian calendar of Etchmiadzin
@@ -496,7 +496,7 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
 | Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days, Traditional Day of Offering and Winter Solstice, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
 | Cambodia's Visak Bochea, Royal Ploughing Ceremony, Pchum Ben and Water Festival | the day the sub-decrees give on `khmer`, outside the years read (2021, 2022, 2024–2027); the Royal Government lists them each year, and the palace sets the Ploughing Ceremony |
 
-## Deliberate gaps
+## Not yet carried
 
 * **India** carries the three national holidays and the gazetted list, with
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
@@ -602,11 +602,12 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   `docs/systems/`, which says what is not yet carried and why: the days a
   law keeps in part of a canton or parish, the states and departments
   whose instruments were not read, the years whose resolutions were not
-  read. Italy's patron-saint days are the comuni's, a scope below ISO
-  3166-2, and are not carried. Malaysia's states are not yet carried: the
+  read. Italy's patron-saint days are the comuni's and are not yet
+  carried: a rule's scope is at its finest an ISO 3166-2 subdivision, and
+  no comune's statute was read. Malaysia's states are not yet carried: the
   Prime Minister's Department's yearly lists, which give every state's
-  days, are PDFs and were not read, and kabinet.gov.my refused this
-  session's requests.
+  days, are PDFs, have been read for the federal days only, and
+  kabinet.gov.my refuses requests for them.
 
 ## Business days
 

@@ -3215,10 +3215,12 @@ macro_rules! exports {
             /// subdivision's ISO 3166-2 code, and `group`, which may be null, the
             /// identifier of a group of people the table gives days to alone
             /// (`women`, `children`; column 10 of `hc_holiday_tables`). A null
-            /// `group` asks for everyone's days. Writes 1 or 0 to `out_is_day_off`.
+            /// `group` asks for everyone's days, and so does a group the table
+            /// gives no day to alone. Writes 1 or 0 to `out_is_day_off`.
             /// A null `code` or `out_is_day_off` is `HC_ERROR_NULL_POINTER`, a
             /// string that is not UTF-8 `HC_ERROR_NOT_UTF8`, and a code that names
-            /// no table `HC_ERROR_UNKNOWN`.
+            /// no table, or a `group` that names no group of `hc_holiday_groups`,
+            /// `HC_ERROR_UNKNOWN`.
         }
         wasm {
             /// Whether a fixed day is a day off in a holiday table: 1, 0, or an
@@ -3230,9 +3232,11 @@ macro_rules! exports {
             /// 3166-2 code, and `group`, which may be empty, the identifier of a
             /// group of people the table gives days to alone (`women`,
             /// `children`; column 10 of `hc_holiday_tables`); an empty `group`
-            /// asks for everyone's days. A null pointer with a non-zero length is
+            /// asks for everyone's days, and so does a group the table gives no day
+            /// to alone. A null pointer with a non-zero length is
             /// `HC_ERR_NULL_POINTER`, text that is not UTF-8 `HC_ERR_NOT_UTF8`, and a
-            /// code that names no table `HC_ERR_UNKNOWN`.
+            /// code that names no table, or a `group` that names no group of
+            /// `hc_holiday_groups`, `HC_ERR_UNKNOWN`.
         }
         fn hc_holiday_is_day_off(
             code: name(code_len),
@@ -3695,15 +3699,17 @@ macro_rules! exports {
             /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
             /// `reckoning` is `orthodox-fasts`, `orthodox-fasts-revised-julian`,
-            /// `armenian-fasts`, `armenian-fasts-jerusalem`, `coptic-fasts` or
-            /// `ethiopian-fasts`, in any case; anything else is `HC_ERROR_UNKNOWN`, and null
+            /// `armenian-fasts`, `armenian-fasts-jerusalem`,
+            /// `armenian-fasts-fifty-days`, `coptic-fasts` or `ethiopian-fasts`,
+            /// in any case; anything else is `HC_ERROR_UNKNOWN`, and null
             /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: `1` or
             /// `0` for a fast day, `period`, `weekly-fast` or `none`, the period's
             /// identifier, English name and kind (`fast`, `fast-free` or
             /// `meat-excluded`), and what the day abstains from, `nothing`, `meat` or
             /// `fast`. A day outside the years
             /// 326 to 4099 of the reckoning's calendar, 1583 to 4099 for
-            /// `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`, is
+            /// `armenian-fasts`, `armenian-fasts-fifty-days`, `coptic-fasts` and
+            /// `ethiopian-fasts`, is
             /// `HC_ERROR_OUT_OF_RANGE`.
             /// Writes the required length, including the terminator, into
             /// `written`.
@@ -3717,8 +3723,9 @@ macro_rules! exports {
             /// Revised Julian calendar, both keeping Pascha by the Julian
             /// computus; `armenian-fasts`, the Armenian fasts on the Gregorian
             /// calendar and computus, or `armenian-fasts-jerusalem`, on the
-            /// Julian; `coptic-fasts` or `ethiopian-fasts`, dated in the Coptic
-            /// and Ethiopic calendars with the Julian Pascha; in any case;
+            /// Julian, or `armenian-fasts-fifty-days`, with the weekly fasts
+            /// lifted to Pentecost; `coptic-fasts` or `ethiopian-fasts`, dated in
+            /// the Coptic and Ethiopic calendars with the Julian Pascha; in any case;
             /// anything else is `HC_ERR_UNKNOWN`. Tab-separated: `1` if the day is
             /// a fast day, else `0`; `period`, `weekly-fast` for a Wednesday or
             /// Friday in no period, or `none`; for a period its identifier, its
@@ -3726,7 +3733,7 @@ macro_rules! exports {
             /// `fast-free` or `meat-excluded`, else empty; and what the day abstains
             /// from, `nothing`, `meat` or `fast`, which tells a day of the Meatfast
             /// from an ordinary one. A day outside the years 326 to 4099 of the
-            /// reckoning's calendar, 1583 to 4099 for the three on the Gregorian
+            /// reckoning's calendar, 1583 to 4099 for the four on the Gregorian
             /// calendar, is `HC_ERR_OUT_OF_RANGE`. A null `buffer`
             /// returns the length the text needs.
         }

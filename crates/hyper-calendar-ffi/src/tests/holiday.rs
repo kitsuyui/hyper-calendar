@@ -262,6 +262,47 @@ fn a_group_is_a_scope_of_its_country_s_table() {
             .any(|line| line == "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen"),
         "{year}"
     );
+    let unknown = c"childrens";
+    assert_eq!(
+        unsafe {
+            hc_holiday_is_day_off(
+                cn.as_ptr(),
+                core::ptr::null(),
+                unknown.as_ptr(),
+                day,
+                &mut answer,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    let mut written = 0;
+    assert_eq!(
+        unsafe {
+            hc_holidays_in_year(
+                cn.as_ptr(),
+                core::ptr::null(),
+                unknown.as_ptr(),
+                2026,
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    let police = c"police";
+    assert_eq!(
+        unsafe {
+            hc_holiday_is_day_off(
+                cn.as_ptr(),
+                core::ptr::null(),
+                police.as_ptr(),
+                day,
+                &mut answer,
+            )
+        },
+        HC_OK
+    );
     let not_utf8 = c"\xff";
     assert_eq!(
         unsafe {

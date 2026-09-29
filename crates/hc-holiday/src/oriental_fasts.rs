@@ -15,18 +15,21 @@
 //! | Reckoning | Its fasts | Its fast-free days |
 //! | --- | --- | --- |
 //! | `armenian-fasts`, `armenian-fasts-jerusalem` | Great Lent, 48 days; the Fast of the Catechumens; eight weeks of fasting, Monday to Friday, before the feasts; the six days before Theophany | the forty days after Easter; the octave of Theophany |
-//! | `coptic-fasts` | the Nativity Fast from 16 Hatour; Jonah's Fast; Great Lent, 55 days; the Apostles' Fast to 4 Epip; the Virgin's Fast, 1–15 Mesori; the Paramoun of Theophany | the Holy Fifty; the Nativity and Theophany |
-//! | `ethiopian-fasts` | Tsome Nebiyat from 15 Hidar; Tsome Nenewe; Abiy Tsom, 55 days; Tsome Hawaryat to 4 Hamle; Tsome Filseta, 1–15 Nehase; the Gahad of Timkat | the fifty days; Genna and Timkat |
+//! | `coptic-fasts` | the Nativity Fast from 16 Hatour to the eve of the Nativity; Jonah's Fast; Great Lent, 55 days; the Apostles' Fast to 4 Epip; the Virgin's Fast, 1–15 Mesori; the Paramoun of Theophany | the Holy Fifty; the Nativity and Theophany |
+//! | `ethiopian-fasts` | Tsome Nebiyat from 15 Hidar to the eve of Genna; Tsome Nenewe; Abiy Tsom, 55 days; Tsome Hawaryat to 4 Hamle; Tsome Filseta, 1–15 Nehase; the Gahad of Timkat | the fifty days; Genna and Timkat |
 //!
 //! The two Armenian reckonings differ only in the calendar and the
 //! computus: the Gregorian ones Etchmiadzin adopted in 1923, and the Julian
 //! the Patriarchate of Jerusalem keeps (`docs/policy.md` §5), as the tables
 //! `christian-armenian` and `christian-armenian-jerusalem` do for the
 //! feasts. The Coptic and Ethiopian fasts are dated in their own calendars,
-//! and Easter in both is the Alexandrian computus's, the Julian Pascha.
+//! but for the Nativity and Genna, which both churches keep on 25 December
+//! of the Julian calendar, 7 January from 1900 to 2099; Easter in both is
+//! the Alexandrian computus's, the Julian Pascha.
 //!
-//! What the days may be eaten is not carried: only whether a day is a fast
-//! day, as in `orthodox_fasts`.
+//! What may be eaten on a fast day is not yet carried: it differs by church,
+//! day and degree of fast, and no scheme of degrees beyond whether a day is
+//! a fast day has been written from the sources, as in `orthodox_fasts`.
 
 use crate::orthodox_fasts::{Bound, Period, PeriodKind};
 use crate::rule::CalendarSystem;
@@ -46,6 +49,16 @@ const fn nearest(month: u8, day: u8, days: i16) -> Bound {
 const fn coptic(month: u8, day: u8) -> Bound {
     Bound::InCalendar {
         calendar: CalendarSystem::COPTIC,
+        month,
+        day,
+    }
+}
+
+/// A day of the Julian calendar, as the Nativity the Coptic and Ethiopian
+/// churches keep is: 25 December Julian, 7 January from 1900 to 2099.
+const fn julian(month: u8, day: u8) -> Bound {
+    Bound::InCalendar {
+        calendar: CalendarSystem::JULIAN,
         month,
         day,
     }
@@ -85,6 +98,8 @@ const fn period(
 /// the eves of 2020–2030, as `source` strings cite them.
 const GEORGIA: &str =
     "Armenian Diocese of Georgia (armenianchurch.ge, armenian-church-georgia-fasts)";
+/// Arak29's page of the fasting days.
+const ARAK29: &str = "Arak29, \"Fasting Days\" (arak29.org/sharakan/fasting-days/, arak29-fasts)";
 /// The Sydney parish's page of the fasting days.
 const SYDNEY: &str = "Armenian Apostolic Church of Holy Resurrection, Sydney, \"Days of \
     Abstinence / Fasting Days\" (armenian-church-sydney-fasts)";
@@ -101,18 +116,13 @@ pub const ARMENIAN_SOURCES: &str = "Armenian Diocese of Georgia, the pages of th
     \"Fasting or Abstinence Days\" (westernprelacy-fasts), for those days, 30 December to \
     4 January; the Mother See of Holy Etchmiadzin's liturgical calendar of 2026 \
     (armenianchurch.org, armenian-mother-see-calendar-2026), for the Fast of the Catechumens and \
-    Great Lent of 2026; all retrieved 2026-09-29";
+    Great Lent of 2026; Arak29, \"Fasting Days\" (arak29.org/sharakan/fasting-days/, \
+    arak29-fasts), for the fifty days after Easter of armenian-fasts-fifty-days; all retrieved \
+    2026-09-29";
 
-/// The Armenian fasts, for both reckonings: the fast-free days first.
-pub static ARMENIAN: &[Period] = &[
-    period(
-        "easter-to-ascension",
-        "The forty days after Easter",
-        PeriodKind::FastFree,
-        from_pascha(0),
-        from_pascha(39),
-        SYDNEY,
-    ),
+/// The Armenian fasts from the octave of Theophany on, which every Armenian
+/// reckoning shares: the fast-free octave first, then the fasts.
+const ARMENIAN_SEASONS: [Period; 12] = [
     period(
         "theophany-octave",
         "The octave of Theophany",
@@ -212,6 +222,42 @@ pub static ARMENIAN: &[Period] = &[
     ),
 ];
 
+/// The Armenian periods behind a reckoning's own fast-free days after
+/// Easter.
+const fn armenian(after_easter: Period) -> [Period; 13] {
+    let mut periods = [after_easter; 13];
+    let mut index = 0;
+    while index < ARMENIAN_SEASONS.len() {
+        periods[index + 1] = ARMENIAN_SEASONS[index];
+        index += 1;
+    }
+    periods
+}
+
+/// The Armenian fasts of `armenian-fasts` and `armenian-fasts-jerusalem`:
+/// the forty days after Easter fast-free, as the Sydney parish and the
+/// Western Prelacy keep them.
+pub static ARMENIAN: &[Period] = &armenian(period(
+    "easter-to-ascension",
+    "The forty days after Easter",
+    PeriodKind::FastFree,
+    from_pascha(0),
+    from_pascha(39),
+    SYDNEY,
+));
+
+/// The Armenian fasts of `armenian-fasts-fifty-days`: arak29's "fifty days
+/// following Easter" fast-free, to Pentecost, and every other period as
+/// [`ARMENIAN`]'s.
+pub static ARMENIAN_FIFTY_DAYS: &[Period] = &armenian(period(
+    "easter-to-pentecost",
+    "The fifty days after Easter",
+    PeriodKind::FastFree,
+    from_pascha(0),
+    from_pascha(49),
+    ARAK29,
+));
+
 // ─────────────────────────────────────────────────────────────────────────
 // The Coptic Orthodox Church
 // ─────────────────────────────────────────────────────────────────────────
@@ -224,10 +270,12 @@ pub const COPTIC_SOURCES: &str = "St-Takla.org (the Church of St Takla Haymanot,
     the fasts of the first and second degree (st-takla-fasts), for each fast's length and days, \
     the Wednesdays and Fridays and their exemptions; its rites of the Nativity Fast, for the \
     Nativity on 7 January, 28 Koiak in a Gregorian leap year (st-takla-nativity-fast), and of \
-    the Paramoun, for its days before a Sunday or Monday feast (st-takla-paramoun); \
+    the Paramoun, for its days before a Sunday or Monday feast (st-takla-paramoun); Fr. John \
+    Ramzy, \"The Glorious Feast of Nativity: 7 January? 29 Kiahk? 25 December?\" (suscopts.org, \
+    ramzy-nativity-2004), for the Nativity on 25 December of the Julian calendar; \
     CopticChurch.net, \"Introduction to the Coptic Church\" (copticchurch-net-fasts), for the \
     Apostles' Fast from the day after Pentecost to 5 Epip; checked against the Coptic Orthodox \
-    Metropolis of the Southern United States's fasts and feasts of 2023-2028 (suscopts-fasts); \
+    Metropolis of the Southern United States's fasts and feasts of 2000-2100 (suscopts-fasts); \
     all retrieved 2026-09-29";
 
 /// The Coptic fasts: the fast-free days first.
@@ -244,17 +292,10 @@ pub static COPTIC: &[Period] = &[
         "nativity-feast",
         "The Nativity",
         PeriodKind::FastFree,
-        Bound::InCalendar {
-            calendar: CalendarSystem::GREGORIAN,
-            month: 1,
-            day: 7,
-        },
-        Bound::InCalendar {
-            calendar: CalendarSystem::GREGORIAN,
-            month: 1,
-            day: 7,
-        },
-        "St-Takla.org, the rite of the Nativity Fast (st-takla-nativity-fast)",
+        julian(12, 25),
+        julian(12, 25),
+        "St-Takla.org, the rite of the Nativity Fast (st-takla-nativity-fast); Fr. John \
+         Ramzy for the Metropolis of the Southern United States (ramzy-nativity-2004)",
     ),
     period(
         "theophany-feast",
@@ -269,11 +310,7 @@ pub static COPTIC: &[Period] = &[
         "The Nativity Fast",
         PeriodKind::Fast,
         coptic(3, 16),
-        Bound::InCalendar {
-            calendar: CalendarSystem::GREGORIAN,
-            month: 1,
-            day: 6,
-        },
+        julian(12, 24),
         ST_TAKLA,
     ),
     period(
@@ -326,20 +363,13 @@ pub static COPTIC: &[Period] = &[
 // The Ethiopian Orthodox Tewahedo Church
 // ─────────────────────────────────────────────────────────────────────────
 
+/// Where Genna's date comes from.
+const GENNA: &str = "Keraneyo Medhane Alem, \"Beliefs and Origins - Order of Calendar\" \
+     (eotc-ma-calendar), Genna on 29 Tahsas and on 28 Tahsas in a leap year; ethiopianorthodox.org, \
+     the calendar page (ethiopianorthodox-org-calendar), Genna coinciding with the Eastern \
+     Orthodox Christmas";
+
 /// The church's calendar page, as `source` strings cite it.
-/// Where Genna's kept date comes from.
-const GENNA_KEPT: &str = "Wikipedia, \"Public holidays in Ethiopia\", Genna on 7 January, where \
-     Meskel has 28 September \"(leap year)\" beside its 27th, retrieved 2026-09-29 (secondary)";
-
-/// A day of the Gregorian calendar, as the kept Genna is.
-const fn gregorian(month: u8, day: u8) -> Bound {
-    Bound::InCalendar {
-        calendar: CalendarSystem::GREGORIAN,
-        month,
-        day,
-    }
-}
-
 const ETHIOPIAN_ORTHODOX_ORG: &str =
     "ethiopianorthodox.org, the calendar page (ethiopianorthodox-org-calendar)";
 /// Mahibere Kidusan's reckoning of the fasts of 2011 E.C.
@@ -356,8 +386,10 @@ pub const ETHIOPIAN_SOURCES: &str = "ethiopianorthodox.org, the calendar page \
     Nenewe and Tsome Filseta from 1 Nehase, and its articles on Tsome Hawaryat to 5 Hamle and \
     Tsome Filseta of 1-15 Nehase (eotcmk-hawaryat-2023, eotcmk-filseta-2016); Keraneyo Medhane \
     Alem, \"The Order of Fasts\" (eotc-ma-fasts), for Tsome Hawaryat from the day after \
-    Paraclete and the Wednesdays and Fridays lifted on Genna and Timkat; all retrieved \
-    2026-09-29";
+    Paraclete and the Wednesdays and Fridays lifted on Genna and Timkat, and \"Beliefs and \
+    Origins - Order of Calendar\" (eotc-ma-calendar), for Genna on 28 Tahsas in a leap year, \
+    25 December of the Julian calendar, the date the calendar page says Genna shares with the \
+    Eastern Orthodox; all retrieved 2026-09-29";
 
 /// The Ethiopian fasts: the fast-free days first.
 pub static ETHIOPIAN: &[Period] = &[
@@ -369,16 +401,15 @@ pub static ETHIOPIAN: &[Period] = &[
         from_pascha(49),
         ETHIOPIAN_ORTHODOX_ORG,
     ),
-    // Genna as it is kept, on 7 January every year, as the Coptic Nativity
-    // is: 29 Tahsas, the calendrical date, is 8 January after an Ethiopic
-    // leap year.
+    // Genna on 25 December Julian, as the Coptic Nativity is: 29 Tahsas,
+    // and 28 Tahsas when 29 Tahsas is 8 January, after an Ethiopic leap year.
     period(
         "genna",
         "Genna",
         PeriodKind::FastFree,
-        gregorian(1, 7),
-        gregorian(1, 7),
-        GENNA_KEPT,
+        julian(12, 25),
+        julian(12, 25),
+        GENNA,
     ),
     period(
         "timkat",
@@ -393,7 +424,7 @@ pub static ETHIOPIAN: &[Period] = &[
         "Tsome Nebiyat (the Fast of the Prophets)",
         PeriodKind::Fast,
         ethiopic(3, 15),
-        gregorian(1, 6),
+        julian(12, 24),
         ETHIOPIAN_ORTHODOX_ORG,
     ),
     period(
@@ -580,6 +611,29 @@ mod tests {
         assert!(!status(armenian, ymd(2027, 1, 8)).unwrap().is_fast_day());
     }
 
+    /// arak29's "fifty days following Easter": in 2026, Easter 5 April and
+    /// Pentecost 24 May, Wednesday 20 May and Friday 22 May, after the
+    /// Ascension on 14 May, are fast days on `armenian-fasts` and not on
+    /// `armenian-fasts-fifty-days`; every other period is the same, the
+    /// Fast of Elijah from 25 May on both.
+    #[test]
+    fn the_fifty_days_lift_the_weekly_fasts_to_pentecost() {
+        let forty = &Reckoning::ARMENIAN;
+        let fifty = &Reckoning::ARMENIAN_FIFTY_DAYS;
+        for day in [ymd(2026, 5, 20), ymd(2026, 5, 22)] {
+            assert!(status(forty, day).unwrap().is_fast_day());
+            assert_eq!(in_period(fifty, day), Some("easter-to-pentecost"));
+            assert!(!status(fifty, day).unwrap().is_fast_day());
+        }
+        assert_eq!(
+            span_of(fifty, "elijah-fast", 2026),
+            (ymd(2026, 5, 25), ymd(2026, 5, 29))
+        );
+        for (i, period) in forty.periods.iter().enumerate().skip(1) {
+            assert_eq!(fifty.periods[i], *period);
+        }
+    }
+
     /// The Coptic Metropolis of the Southern United States's fasts of
     /// 2023–2028 (`suscopts-fasts`): Jonah's, the Great Fast's first day,
     /// the Apostles', the Virgin's and the Nativity's, first and last day.
@@ -619,6 +673,43 @@ mod tests {
                 "{year}"
             );
         }
+    }
+
+    /// The Metropolis's Nativity Fast of every year of 2000–2099
+    /// (`suscopts-fasts`): from 16 Hatour, 25 November, or 26 in a year
+    /// before a Gregorian leap year, to 6 January, the eve of 25 December
+    /// Julian. Three of its rows are slips of the page's own — 2006's ends
+    /// the day it begins, 2037's ends in January 2037, and 2083's begins on
+    /// 25 November, where 16 Hatour is the 26th. Its row of 2100 runs from
+    /// 25 November to 6 January 2101, a day early at each end: the
+    /// Gregorian calendar drops 29 February 2100 and the Coptic and Julian
+    /// do not, so 16 Hatour is 26 November and 24 December Julian 7 January.
+    #[test]
+    fn the_coptic_nativity_fast_ends_on_the_eve_of_the_julian_christmas() {
+        let coptic = &Reckoning::COPTIC;
+        for year in 2000..=2099 {
+            let first = ymd(year, 11, if year % 4 == 3 { 26 } else { 25 });
+            assert_eq!(
+                span_of(coptic, "nativity-fast", year),
+                (first, ymd(year + 1, 1, 6)),
+                "{year}"
+            );
+            assert_eq!(
+                in_period(coptic, ymd(year + 1, 1, 7)),
+                Some("nativity-feast"),
+                "{year}"
+            );
+        }
+        // 29 Koiak, 8 January 2024 and 2028, is no fast day and in no
+        // period; after 2100 the Nativity is 8 January.
+        for year in [2024, 2028] {
+            assert_eq!(in_period(coptic, ymd(year, 1, 8)), None);
+        }
+        assert_eq!(
+            span_of(coptic, "nativity-fast", 2100),
+            (ymd(2100, 11, 26), ymd(2101, 1, 7))
+        );
+        assert_eq!(in_period(coptic, ymd(2101, 1, 8)), Some("nativity-feast"));
     }
 
     #[test]
@@ -687,10 +778,10 @@ mod tests {
         assert_eq!(in_period(ethiopian, ymd(2022, 1, 19)), Some("timkat"));
     }
 
-    /// After the Ethiopic leap year 2015 E.C., 29 Tahsas, Genna's
-    /// calendrical date, is 8 January 2024; Genna is kept on the 7th, and
-    /// the fast ends on the 6th, as the Coptic Nativity Fast does: the
-    /// fast does not reach the day Genna is kept.
+    /// After the Ethiopic leap year 2015 E.C., 29 Tahsas is 8 January 2024;
+    /// Genna is kept on 28 Tahsas, the 7th, 25 December Julian
+    /// (`eotc-ma-calendar`), and the fast ends on the 6th, as the Coptic
+    /// Nativity Fast does: the fast does not reach the day Genna is kept.
     #[test]
     fn the_ethiopian_nativity_fast_ends_the_day_before_genna_is_kept() {
         let ethiopian = &Reckoning::ETHIOPIAN;

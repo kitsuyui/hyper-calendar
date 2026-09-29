@@ -167,6 +167,52 @@ fn the_coptic_year_is_dated_in_the_coptic_calendar_and_on_the_alexandrian_pascha
     );
 }
 
+/// The Nativity on 25 December Julian: St-Takla's 7 January, 28 Koiak in
+/// the Gregorian leap years (`st-takla-nativity-fast`), and the first day
+/// of the Metropolis of the Southern United States's Nativity in every year
+/// of 2000–2100 it lists (`suscopts-fasts`), not 29 Koiak, 8 January 2024;
+/// Fr. John Ramzy's 8 January after 2100 (`ramzy-nativity-2004`).
+#[test]
+fn the_coptic_nativity_is_kept_on_the_julian_christmas() {
+    let nativity = |year: i64| {
+        HolidayCalendar::for_year(&COPTIC_ORTHODOX, None, year)
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Nativity (Christmas)")
+            .map(|holiday| holiday.date)
+            .collect::<Vec<_>>()
+    };
+    for year in 2000..=2100 {
+        assert_eq!(nativity(year), [ymd(year, 1, 7)], "{year}");
+    }
+    assert_eq!(nativity(2101), [ymd(2101, 1, 8)]);
+    // 1850: 25 December 1849 Julian is 6 January.
+    assert_eq!(nativity(1850), [ymd(1850, 1, 6)]);
+    // Theophany, 11 Tobi, still moves with the Coptic calendar: 20 January
+    // 2024, as the Metropolis dates it.
+    expect(&COPTIC_ORTHODOX, &[(2024, 1, 20, "Theophany (Epiphany)")]);
+}
+
+/// Genna on 25 December Julian, 28 Tahsas after an Ethiopic leap year
+/// (`eotc-ma-calendar`): 7 January 2024, when 29 Tahsas is the 8th.
+#[test]
+fn genna_is_kept_on_the_julian_christmas() {
+    expect(
+        &ETHIOPIAN_ORTHODOX,
+        &[
+            (2024, 1, 7, "Genna (Christmas)"),
+            (2026, 1, 7, "Genna (Christmas)"),
+            (2028, 1, 7, "Genna (Christmas)"),
+            (2024, 1, 20, "Timkat (Epiphany)"),
+        ],
+    );
+    assert!(
+        HolidayCalendar::for_year(&ETHIOPIAN_ORTHODOX, None, 2024)
+            .on(ymd(2024, 1, 8))
+            .is_empty()
+    );
+}
+
 #[test]
 fn the_ethiopian_movable_cycle_is_the_julian_computus_under_its_own_names() {
     // Bahire Hasab and the Julian Paschalion are one Alexandrian computus,
@@ -1292,6 +1338,23 @@ fn taanit_esther_is_the_day_before_purim_or_the_thursday_before() {
         ],
     );
     expect_not(&JEWISH, &[(2024, 3, 23, "Ta'anit Esther")]);
+}
+
+#[test]
+fn taanit_bechorot_is_the_eve_of_passover_or_the_thursday_before() {
+    // Shulchan Arukh, Orach Chayim 470:1-2: the firstborn fast on the eve
+    // of Passover, and when it is a Sabbath "some say" on the Thursday, as
+    // the Rema says to keep it. 14 Nisan 5786 is Wednesday 1 April 2026;
+    // 14 Nisan 5781 was Saturday 27 March 2021.
+    expect(
+        &JEWISH,
+        &[
+            (2026, 4, 1, "Ta'anit Bechorot"),
+            (2021, 3, 25, "Ta'anit Bechorot"),
+        ],
+    );
+    expect_not(&JEWISH, &[(2021, 3, 27, "Ta'anit Bechorot")]);
+    expect(&JEWISH, &[(2021, 3, 28, "Passover")]);
 }
 
 #[test]
@@ -3292,6 +3355,26 @@ fn the_folk_day_tables_answer_their_first_and_last_years() {
         &[(1844, 8, 26, "Unkē (welcoming the ancestors)")],
     );
     expect(&traditions::TOKANYA, &[(2146, 11, 13, "Tōkanya")]);
+}
+
+/// The days around Galungan, by English Wikipedia's offsets
+/// (`wikipedia-galungan`), from its Galungan of 17 June 2026 and Kuningan of
+/// 27 June; and those of 25 September 2024 across no year's end.
+#[test]
+fn the_days_around_galungan_are_its_offsets() {
+    let set = traditions::by_code("balinese-pawukon-days").expect("registered");
+    expect(
+        set,
+        &[
+            (2026, 6, 14, "Penyekeban"),
+            (2026, 6, 15, "Penyajaan"),
+            (2026, 6, 16, "Penampahan"),
+            (2026, 6, 18, "Manis Galungan"),
+            (2026, 6, 28, "Manis Kuningan"),
+            (2024, 9, 24, "Penampahan"),
+            (2024, 10, 6, "Manis Kuningan"),
+        ],
+    );
 }
 
 #[test]

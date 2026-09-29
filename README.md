@@ -32,7 +32,7 @@ authority when a count here is out of date.
 | --- | ---: | --- |
 | Calendars in the registry, each with its own identifier | 222 | [supported.md § Calendars](docs/supported.md#calendars) |
 | National holiday tables: 190 of the 193 UN member states, plus Hong Kong, Macau, Palestine, Taiwan and the Holy See | 195 | [supported.md § Holidays by country](docs/supported.md#holidays-by-country) |
-| Religious and cultural tradition tables | 71 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
+| Religious and cultural tradition tables | 72 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
 | International observance tables (the 236 UN international days, and the ten UN international weeks) | 2 | [supported.md § International observances](docs/supported.md#international-observances) |
 | Exchange trading calendars, keyed by ISO 10383 Market Identifier Code | 42 | [supported.md § Exchange calendars](docs/supported.md#exchange-calendars) |
 | Locales with their own vocabulary, besides the root | 65 | [docs/i18n.md](docs/i18n.md) and the [`hc-i18n` README](crates/hc-i18n) |

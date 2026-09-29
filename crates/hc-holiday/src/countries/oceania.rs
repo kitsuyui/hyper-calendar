@@ -876,7 +876,8 @@ pub(super) static VU_RULES: &[HolidayRule] = &[
 /// the days off are the same either way. The six provincial days those
 /// two list are not in the Act; they are carried in their provinces from
 /// the Government's list ([`super::vanuatu`]). The days the President
-/// declares under section 2 are not carried.
+/// declares under section 2 are not yet carried: each is declared by a
+/// notice of its own, and no notice was read.
 pub static VANUATU: RuleSet = RuleSet {
     code: "VU",
     english_name: "Vanuatu",

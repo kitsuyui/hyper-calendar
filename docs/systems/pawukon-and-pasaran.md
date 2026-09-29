@@ -178,15 +178,16 @@ names.
   Wikipedia's eighteen pairs of 2018–2028 and the Tumpek and Kajeng
   Kliwon of 2000–2030 to the book's `positions-in-range`, computed from
   the anchor independently of the weeks' formulas.
+- **The days around Galungan**, as English Wikipedia's table gives them
+  by their distance from it [wikipedia-galungan]: Penyekeban three days
+  before, Penyajaan two, Penampahan one, Manis Galungan the day after, and
+  Manis Kuningan the day after Kuningan, in `balinese-pawukon-days`, each
+  under the table's name. No dated one was read, so they rest on
+  Galungan's dates and the offsets.
 - **Kuningan and Tumpek Kuningan** are one day, Saniscara Kliwon of the
   *wuku* Kuningan, and `hc-holiday`'s `balinese-pawukon-days` lists it
   under both names, each as its source names it.
 - **Not yet carried**, and why:
-  - the days around Galungan, which English Wikipedia's table gives by
-    their distance from it — Penyekeban three days before, Penyajaan two,
-    Penampahan one, Manis Galungan the day after and Manis Kuningan the
-    day after Kuningan [wikipedia-galungan]: they are fixed offsets that
-    `hc-holiday`'s table does not yet list, a follow-up there;
   - the other named coincidences, each Tumpek's other names, Tumpek
     Kandang among them, and the urip and meanings of the ten-day week's
     own days and the rest of the divination: no source read tabulates

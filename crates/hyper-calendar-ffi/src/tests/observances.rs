@@ -110,6 +110,28 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         hc_lectionary(day, buffer, capacity, written)
     });
     assert_eq!(line, "2026\tA\tII\t\t\t\t\n");
+    // Christ the King, 22 November 2026: Proper 29, the 34th Sunday and
+    // week of Ordinary Time on either calendar, as the module writes it.
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2026, 11, 22, &mut day) },
+        HC_OK
+    );
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_lectionary(day, buffer, capacity, written)
+    });
+    assert_eq!(line, "2026\tA\tII\t29\t34\t34\t34\n");
+    // Before 1 January 1970, the reform's first day, and after 4099.
+    let mut written = 0;
+    for (year, month, date) in [(1969, 12, 31), (4100, 1, 1)] {
+        assert_eq!(
+            unsafe { hc_gregorian_to_fixed(year, month, date, &mut day) },
+            HC_OK
+        );
+        assert_eq!(
+            unsafe { hc_lectionary(day, core::ptr::null_mut(), 0, &mut written) },
+            HC_ERROR_OUT_OF_RANGE
+        );
+    }
     let mut easter = 0i64;
     assert_eq!(unsafe { hc_astronomical_easter(2001, &mut easter) }, HC_OK);
     let mut expected = 0i64;
