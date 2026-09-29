@@ -122,7 +122,7 @@ fn the_subdivisions_no_source_was_read_for_are_gaps() {
         (&countries::NEPAL, "NP-P1"),
         (&countries::BOLIVIA, "BO-X"),
         (&countries::CHINA, "CN-BJ"),
-        (&countries::INDIA, "IN-DL"),
+        (&countries::INDIA, "IN-PB"),
         (&countries::FRANCE, "FR-75"),
     ] {
         assert!(
