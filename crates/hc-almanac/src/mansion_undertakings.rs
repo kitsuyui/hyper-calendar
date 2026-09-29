@@ -37,9 +37,10 @@
 //! (`the_two_lists_differ_only_where_the_documentation_says`). A third
 //! page read, 神仏.ネット's 「28宿(二十八宿)の意味とは」, writes its
 //! entries as sentences, not lists, and differs in substance (it calls
-//! 昴宿 a 吉祥の宿 good for everything but cutting cloth); it is not
-//! carried, because turning its sentences into lists would be this
-//! crate's reading rather than the publisher's.
+//! 昴宿 a 吉祥の宿 good for everything but cutting cloth). It is not yet
+//! carried, because its entries are prose sentences under that site's
+//! copyright, and a list of undertakings drawn from them would be this
+//! crate's reading of them rather than the publisher's list.
 
 use crate::mansions::Mansion;
 

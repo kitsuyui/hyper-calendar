@@ -135,7 +135,7 @@ colonial almanacs on KASI's site give their times in Beijing time until
 here, so the statement rests on KASI's data, not on the almanacs.
 
 KASI's reading is carried beside `dangi` as a parameter set,
-`dangi::KASI_PARAMETERS` (id `dangi-kasi`, not registered). It drops the
+`dangi::KASI_PARAMETERS`, and registered as `dangi-kasi` (`dangi::DangiKasiCalendar`), because the two readings disagree and nothing read says which Hanseong printed (docs/policy.md §5). It drops the
 Qing almanac's first days of 八月 1653 and 十二月 1841 for the rules' days,
 begins 十二月 of 1653 on 19 January 1654 as KASI does, and puts 處暑 of 1653
 on 22 August, a day before the rules' 05:43 on the 23rd: KASI gives no term
@@ -569,18 +569,18 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     year of 2012 [wikipedia-en-east-asian-age-reckoning]; the module
     reproduces it (Chinese New Year 2012 is 23 January). The age turns at
     正月初一 because that is `chinese-age`'s rule.
-  - `reckoned_age_at_lichun`, the same count turning on the day of 立春
-    (`lichun-age`), which 果壳's account of 虚岁 gives as the custom of some
+  - `reckoned_age_at_lichun`, the same count turning on the day of 立春,
+    which 果壳's account of 虚岁 gives as the custom of some
     places, 「在有的地方，长虚岁的节点是立春」 [guokr-xusui, a popular
     secondary source]; `lichun_day` gives the day. A child born on 1 June
     2009 is two from 4 February 2010, the 立春 the *South China Morning
     Post* gives [scmp-double-spring-2009], ten days before the New Year
     count makes it two.
   - `reckoned_age_at_new_year_day`, one at birth and one more each
-    1 January (`new-year-day-age`): the Korean age, "(Current Year − Birth
+    1 January: the Korean age, "(Current Year − Birth
     Year) + 1", with a child born on 31 December two the next day
     [wikipedia-en-east-asian-age-reckoning], and the modern 虚岁 of Korea
-    [wikipedia-zh-xusui]; and `year_age`, from nothing (`year-age`), the
+    [wikipedia-zh-xusui]; and `year_age`, from nothing, the
     "year age" of some South Korean laws and the modern 虚岁 of Vietnam and
     parts of China.
   - `marriage_augury` and `MarriageAugury`, the year classed by where 立春,
@@ -605,11 +605,13 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     began on 10 February 2024 is a Widow Year [scmp-widow-year-2024], and
     the one that began on 26 January 2009 holds two 立春, 4 February 2009
     and 4 February 2010 [scmp-double-spring-2009]; both are reproduced.
-- **The Vietnamese zodiac** (`vietnamese-zodiac`), the cat for the rabbit
+- **The Vietnamese zodiac**, the cat for the rabbit
   and the water buffalo for the ox [wikipedia-en-vietnamese-zodiac,
   wikipedia-en-vietnamese-calendar], is `hc_calendar::cycle::VIETNAMESE_ZODIAC_ANIMALS`
   and `Sexagenary::vietnamese_zodiac_animal`; `zodiac_animal` stays the
-  Chinese set (`chinese-zodiac`). Wikipedia's example, a book dated
+  Chinese set. Nothing selects an age count or a zodiac by a string, so
+  each is named by its function and has no string identifier (policy §5).
+  Wikipedia's example, a book dated
   辛卯年, Tân Mão, 1831, is a year of the cat
   (`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`); the `vi` locale of
   `hc-i18n` already writes the animals Trâu and Mèo.
@@ -647,7 +649,7 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
 | Every double-bright year runs more than 366 days and every widow year fewer than 365, over the Chinese years beginning 1653–2142; all four auguries occur | All | `a_year_with_two_lichun_has_thirteen_months_and_one_with_none_twelve` |
 | The double spring of 丁酉 2017, 立春 on 正月初七 and 臘月十九, and 戊戌's only 立春 on its 除夕 [wikipedia-zh-shuangchun] | Reproduced | `the_year_of_the_rooster_2017_had_two_lichun_and_the_dog_year_after_it_one_at_its_end` |
 | The four age counts: 立春 on 4 February 2010 [scmp-double-spring-2009], a birth on 31 December two the next day and one on 1 January one that day [wikipedia-en-east-asian-age-reckoning, wikipedia-zh-xusui] | Reproduced | `the_age_counts_turn_at_their_own_boundaries` |
-| `dangi-kasi` against the 321 days of 1653–1911 queried from KASI [kasi-lunisolar-conversion] | All 321; the test holds the twelve on either side of its departures and of 1906 | `the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not` |
+| `dangi-kasi` against the 321 days of 1653–1911 queried from KASI [kasi-lunisolar-conversion] | All 321; the test holds the twelve on either side of its departures and of 1906 | `the_kasi_reading_follows_kasi_where_the_qing_almanac_does_not`; every day of its range round-trips and from 1912 is `dangi`'s, `the_kasi_reading_is_registered_and_round_trips` |
 | The almanac's term days of 1645–1733 [liu-chinese-calendar-computation] | The three term days of 1651, 1661 and 1727; 88 major terms a day from the rules, which move no month beyond the five carried | `the_almanac_term_days_give_the_three_days_the_leap_months_turn_on`, `the_almanac_term_days_move_no_month_but_the_five_carried` |
 | Chinese New Year 1988 = 17 February and 1985 = 20 February, with the 12th month of 1985 beginning 21 January | Reproduced [hko-conversion-tables] | `seollal_1988_fell_a_day_after_chinese_new_year`, `tet_1985_fell_a_whole_month_before_chinese_new_year` |
 | Seollal 1988 = 18 February and Seollal 2024 = 10 February, Dangi 4357 | Reproduced; both days are KASI's [kasi-lunisolar-conversion] | `seollal_1988_fell_a_day_after_chinese_new_year`, `seollal_2024_was_the_tenth_of_february_and_the_year_is_dangi_4357` |
@@ -783,7 +785,7 @@ conversions, and `CHINESE_EPOCH`. `chinese.rs`, `dangi.rs` and
 `reckoned_age_at_lichun`, `lichun_day`, `reckoned_age_at_new_year_day`,
 `year_age`, `marriage_augury`, `MarriageAugury` with `chinese_names` and
 `AuguryName`, in `dangi` also `KASI_CORRECTIONS`, `KASI_TERM_CORRECTIONS`,
-`KASI_PARAMETERS` and `KASI_ENGINE`, and in `vietnamese` also
+`KASI_PARAMETERS`, `KASI_ENGINE` and `DangiKasiCalendar`, and in `vietnamese` also
 `SOUTHERN_MERIDIANS` and `SOUTHERN_PARAMETERS`.
 
 Anchors: in `lunisolar`, `the_meridian_table_is_read_in_order`,

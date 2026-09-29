@@ -48,8 +48,8 @@
 //! [`hebrew`] and [`tibetan`] stand alone because their rules genuinely are
 //! their own, though [`tibetan`] is itself one engine under four versions'
 //! data — the Phugpa, the Tsurphu, the Bhutanese and the Mongolian — and
-//! two conventions of its true date, `tibetan-lochen` and
-//! `tibetan-tsurphu-karana`; so does
+//! two conventions of its true date, registered as `tibetan-lochen`,
+//! `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen`; so does
 //! [`javanese`], whose months are the tabular Hijri months but whose years
 //! run in eight-year *windu* and 120-year *kurup*, three reckonings of one
 //! rule; so does [`babylonian`], a nineteen-year cycle of intercalations
@@ -189,7 +189,7 @@ pub mod yerm;
 pub use archetypes::{ArchetypesCalendar, ArchetypesDate};
 pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
-pub use dangi::{DangiCalendar, DangiDate};
+pub use dangi::{DangiCalendar, DangiDate, DangiKasiCalendar};
 pub use hebrew::{HebrewCalendar, HebrewDate};
 pub use hebrew_observational::ObservationalHebrewCalendar;
 pub use islamic_astronomical::IslamicAstronomicalCalendar;
@@ -255,6 +255,7 @@ mod registration {
 
         crate::ChineseCalendar,
         crate::DangiCalendar,
+        crate::DangiKasiCalendar,
         crate::VietnameseCalendar,
         crate::JapaneseTenpoCalendar,
         crate::KanseiCalendar,
@@ -272,6 +273,7 @@ mod registration {
         crate::tibetan::MONGOLIAN,
         crate::tibetan::TIBETAN_LOCHEN,
         crate::tibetan::TIBETAN_TSURPHU_KARANA,
+        crate::tibetan::TIBETAN_BHUTAN_LOCHEN,
         crate::javanese::JAVANESE,
         crate::javanese::JAVANESE_YOGYAKARTA,
         crate::javanese::JAVANESE_ABOGE,
@@ -302,7 +304,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 35);
+        assert_eq!(registry.len(), 37);
     }
 
     #[test]
@@ -365,6 +367,7 @@ mod registration_tests {
                 tibetan::MONGOLIAN,
                 tibetan::TIBETAN_LOCHEN,
                 tibetan::TIBETAN_TSURPHU_KARANA,
+                tibetan::TIBETAN_BHUTAN_LOCHEN,
             ] {
                 assert_eq!(
                     DynAdapter::new(calendar).is_leap_year(1_900 + year),

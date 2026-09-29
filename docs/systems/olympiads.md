@@ -109,6 +109,8 @@ in the III Olympiad, and by the 2004 definition in the IV, whose first year
 | `olympiad::ioc_olympiad`, `olympiad::ioc_olympiad_years` | the same | The modern Olympiad of a Gregorian year, and the years of an Olympiad, under the 2004 definition | 1896 onward |
 | `olympiad::IOC_GAMES_NOT_CELEBRATED` | the same | The VI, XII and XIII | As recorded to the Games of the XXXIII Olympiad |
 | `olympiad::ioc_olympiad_before_2004`, `olympiad::IOC_OPENINGS` | the same | The modern Olympiad of a day under Rule 10 before 2004, and the 28 openings it runs between; `None` from 10 June to 21 November 1956 | 6 April 1896 to 31 August 2004 |
+| `olympiad::SUMMER_GAMES`, `olympiad::summer_games` | the same | Every Games of the Olympiad, with its number, year, host, whether it was held and its opening and closing ceremonies: the VI, XII and XIII not held, the XXXII of 2020 held in 2021, the XXXIV and XXXV scheduled for 2028 and 2032 | I (1896) to XXXV (2032) |
+| `olympiad::WINTER_GAMES`, `olympiad::winter_games` | the same | Every Olympic Winter Games, with its own count: the Games of 1940 and 1944 not held and not numbered, V in 1948 after IV in 1936, every two years between the Summer Games from 1994; the XXVI and XXVII scheduled for 2030 and 2034 | I (1924) to XXVII (2034) |
 
 **The fields.** A date's `year` is the astronomical Julian year and its
 month and day are Julian; the extra fields `olympiad` and
@@ -142,6 +144,7 @@ conventions.
 | The two published functions are inverses | `the_two_functions_are_inverses` | Holds, 776 BC to AD 3000 |
 | The modern Olympiads: I in 1896, VI in 1916–1919, XI in 1936, XIV in 1948, XXXII for 2020 and 2021 | `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered` | Holds |
 | The calendar is the Julian calendar with the count beside it, and refuses before 776 BC and disagreeing fields | `the_calendar_is_the_julian_calendar_with_the_olympiad_beside_it`, `the_calendar_refuses_before_776_bc_and_disagreeing_fields` | Holds |
+| Every Games of the Olympiad and Winter Games Olympedia lists, 1896–2032 and 1924–2034, with their ceremonies; the Summer numbers the Olympiads of their years, the Winter count without gaps, and Olympedia's openings of 1908–2004 the days Rule 10's Olympiads begin on but 1956's | `the_games_are_olympedias_editions` | Holds |
 | Before 2004: the I from 6 April 1896, the II from 14 May 1900, the IV from 13 July 1908, the VI from 6 July 1916, the XIV from 29 July 1948, 1956 refused from 10 June to 21 November, the XXVIII from 13 August 2004 to 31 August 2004; every Games opened in its Olympiad's first year by the 2004 count | `the_olympiads_before_2004_run_from_opening_to_opening` | Holds |
 
 ## Sources
@@ -152,7 +155,7 @@ conventions.
 | [wikipedia-olympiad] | The formula 780 − 4*N* BC, the summer start, Jerome's example, Timaeus and the *Chronicon Paschale*; the modern count from 1 January 1896, the Games not celebrated, the 2020 Games | Yes, 2026-09-26 |
 | [olympedia-olympiad] | The Charter's two definitions, before and after 1 September 2004 | Yes, 2026-09-26 |
 | [ioc-charter-2000] | Rule 10, the Olympiad before 2004 and its Games not celebrated; Rule 69, the Opening Ceremony | Yes, 2026-09-29, the olympic.org HTML of the edition in force from 11 September 2000 in the Wayback Machine; the 1991, 1996 and 2003 editions are PDFs and were not read |
-| [olympedia-editions] | The opening ceremony of every Games of 1896–2004, and the competition dates; 1896's two calendars, 1900 without ceremonies, Stockholm 1956 | Yes, 2026-09-29, secondary |
+| [olympedia-editions] | The opening ceremony of every Games of 1896–2004, and the competition dates; 1896's two calendars, 1900 without ceremonies, Stockholm 1956; every Games of the Olympiad to 2032 and Winter Games to 2034, with their ceremonies | Yes, 2026-09-29, secondary |
 | [olympics-com-games] | The IOC's Games pages: 1900's "No official opening", 1956's two cities, and the dates the ceremonies are checked against | Yes, 2026-09-29, in the Wayback Machine's copies of 2024, the live site refusing the connection; its start days are the first day of competition for 1900–1928 and are UTC days, a day early for Melbourne, Tokyo and Seoul |
 | [grumel-eras-historical] | The Olympiads as a historical era, from "the beginning of July 776 b.c." | Yes, 2026-09-26; the epoch's wording re-read 2026-09-27 |
 
@@ -164,4 +167,5 @@ conventions.
 `the_modern_olympiads_count_from_1896_with_the_lost_games_numbered`,
 `the_calendar_is_the_julian_calendar_with_the_olympiad_beside_it`,
 `the_calendar_refuses_before_776_bc_and_disagreeing_fields`,
-`the_olympiads_before_2004_run_from_opening_to_opening`.
+`the_olympiads_before_2004_run_from_opening_to_opening`,
+`the_games_are_olympedias_editions`.

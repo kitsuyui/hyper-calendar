@@ -32,8 +32,7 @@ that parish's own, Sant Joan on 24 June and the Festa Major of 1 to
 
 ## What is carried
 
-- **The national days** of the Government's calendar, nationwide, as the
-  table carried them before this document.
+- **The national days** of the Government's calendar, nationwide.
 - **Each parish's days kept in the whole parish**, `Kind::Public`, as the
   comú's instruments for 2024, 2025 and 2026 date them: one `Listing` for
   the six parishes that have such days, read by a rule per day for those
@@ -54,7 +53,7 @@ Read on 2026-09-29 in the BOPA's HTML files. The dates are those of the
 instruments for 2024, 2025 and 2026, the same each year unless the row
 gives three.
 
-| Code | Parish | Days carried | Instrument | First year, and the years before | Not carried |
+| Code | Parish | Days carried | Instrument | First year, and the years before | Not yet carried: a village is below ISO 3166-2, the finest scope the engine takes |
 | --- | --- | --- | --- | --- | --- |
 | AD-02 | Canillo | Sant Roc, 16 August | Comú de Canillo, avisos of 30 November 2023, 10 October 2024 and 4 December 2025 | 2024; earlier years: gap | the veïnats' days: Sant Pere and El Tarter (29 June), Soldeu, Canillo, Ransol, Aldosa and Els Plans (25 July), Sant Bartomeu de Soldeu (24 August), and from 2026 Prats, El Forn and El Vilar |
 | AD-03 | Encamp | none in the whole parish | Comú d'Encamp, avisos of 15 December 2023, 25 November 2024 and 21 November 2025 | 2024–2026; any other year: gap | the festa del poble d'Encamp (three days in June) and Sant Roc, in Encamp village only; Sant Pere, in Pas de la Casa only |

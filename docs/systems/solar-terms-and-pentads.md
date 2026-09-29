@@ -250,9 +250,12 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   the 1874 略本暦 printed, in the shinjitai of the 暦Wiki's 宝暦暦以降
   column, name for name; `JOKYO`, Shibukawa's 本朝七十二候 of 1685 as the
   暦Wiki's 貞享暦 column gives it; and `SENMYO`, the Chinese list as Japan
-  kept it before 1685, the 宣明暦以前 column, with the variants the page puts
-  in parentheses kept as it prints them (桐始華(花), 菊有黄華(花),
-  虎(武)始交, 鴻雁来(北)). `HORYAKU` is `JAPANESE` under the 宝暦暦's name,
+  kept it before 1685, the 宣明暦以前 column, read by the main characters
+  and with the variants the page puts in parentheses — 桐始華(花),
+  菊有黄華(花), 虎(武)始交 — kept apart as its `alternates`, 桐始花,
+  菊有黄花 and 武始交; 鴻雁来(北) at 雨水次候 is read 鴻雁北, as the 集解
+  that `CHINESE` follows there reads it, with 鴻雁来 the alternate, because
+  鴻雁来 is also 白露初候's name and a name must identify its pentad. `HORYAKU` is `JAPANESE` under the 宝暦暦's name,
   the 宝暦暦以降 column being the list the 略本暦 printed; its two
   parenthesised variants, 虹蔵(蟄)不見 and 東風解凍(氷), are read by their
   main characters as `JAPANESE` writes them. Each has 72 names and 72
@@ -288,8 +291,14 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
 - **`zodiac::drekkana`**: `Drekkana`, the 36 thirds of the sidereal signs
   from the first of Meṣa, with `sign`, `part`, `start_longitude_degrees`,
   `lord_sign` and `lord`, the lord of the sign, the fifth or the ninth
-  [biruni-wright1934, §451]; `drekkana_at_moment` and
-  `degrees_into_drekkana` for the Sun under an ayanāṃśa.
+  [biruni-wright1934, §451], the scheme of Parāśara that Varāhamihira
+  follows [wikipedia-drekkana]; `drekkana_at_moment` and
+  `degrees_into_drekkana` for the Sun under an ayanāṃśa. Somanātha's
+  scheme and the *parivṛtti-traya* are named by the same article and not
+  yet carried: it does not say from which sign Somanātha's lords of the
+  last twenty-four drekkāṇas begin, and it gives the *parivṛtti-traya* only
+  as "the scheme followed while erecting the Navamsa Chart", unstated;
+  S. Krishna Iyengar, whom it cites, was not read.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
   date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI`,
   `REINGOLD_DERSHOWITZ` and `FAGAN_BRADLEY` as data, a table of them by
@@ -325,19 +334,24 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   Gregorian year, which holds throughout that era; `sidereal::ingress_moment`
   assumes one saṅkrānti per Gregorian year, which for the Lahiri anchor holds
   from about 1100 CE.
-- **Not carried, deliberately.** 平気: the equal division in time that
-  every Japanese calendar before 1844 and every Chinese one before 1645
-  printed; a term or pentad date for those years must come from the
-  calendar's own system (see [japanese-lunisolar.md](japanese-lunisolar.md)).
-  Regional pentad lists other than the four above — the Korean 칠십이후 and
-  the variants between almanacs — since no source for them was read; the
-  catalogue takes another entry when one is. The Javanese *pranata mangsa*, whose two
-  available tables disagree by a day throughout and neither of which adds
-  up, as the roadmap in [calendars.md](../calendars.md) records. Any
-  calendar: the Indian solar calendars that count days and years over the
-  rāśi are `hc-calendars-indic`'s, and the lunisolar calendars that the 中気
-  intercalate are `hc-calendars-lunar`'s. Any body but the Sun: no Moon
-  sign, no ascendant, no chart. Constellation boundaries. Holidays.
+- **Not yet carried.** 平気, the equal division in time that every
+  Japanese calendar before 1844 and every Chinese one before 1645 printed:
+  `hc-calendars-lunar`'s `japanese_historical` computes the 恒気 terms of
+  each Japanese system for its own months, but the term and pentad
+  functions here do not yet take them, so a term or pentad date for those
+  years comes from the calendar's own system (see
+  [japanese-lunisolar.md](japanese-lunisolar.md)). Regional pentad lists
+  other than the four above — the Korean 칠십이후 and the variants between
+  almanacs — since no source for them was read; the catalogue takes another
+  entry when one is. The Javanese *pranata mangsa*, whose two available
+  tables disagree by a day throughout and neither of which adds up, as the
+  roadmap in [calendars.md](../calendars.md) records. Any body but the Sun —
+  a Moon sign, an ascendant, a chart — and the constellation boundaries,
+  which no module computes yet.
+- **In other crates.** The Indian solar calendars that count days and years
+  over the rāśi are `hc-calendars-indic`'s, the lunisolar calendars that the
+  中気 intercalate are `hc-calendars-lunar`'s, and holidays are
+  `hc-holiday`'s.
 
 ## Accuracy
 
@@ -451,6 +465,7 @@ they were settled.
 | [crc1955] | The Lahiri ayanāṃśa as the national standard, 23°15′ on 21 March 1956; the 82°30′E meridian | Yes, 2026-09-25, for the Hindu document |
 | [imd-astronomical-ephemeris] | The saṅkrānti computed at the Indian meridian | Yes, 2026-09-25, for the Hindu document |
 | [ptolemy-tetrabiblos] | I.11, the solstitial, equinoctial, solid and bicorporeal signs; I.17, the houses, Leo to the Sun and Cancer to the Moon and the five pairs; I.18, the four triangles; I.23, the "proper face", which is not a decan | Yes, 2026-09-25, in Robbins's translation on LacusCurtius; I.23 on 2026-09-27 in Skyscript's transcription of the same translation |
+| [wikipedia-drekkana] | Parāśara's scheme of the drekkāṇa lords and Varāhamihira's following it; Somanātha's and the *parivṛtti-traya*, named | Yes, 2026-09-29, secondary |
 | [biruni-wright1934] | §449, the faces and their lords in the Chaldean order, and the table; §451, the Hindu *drekkāṇa*, the rule of their lords and the table of the lords of the faces and of the *darījān* | Yes, 2026-09-27, in the Internet Archive's text of the scan; §451 and its table again 2026-09-29 |
 | [unicode-misc-symbols] | U+2648 ARIES to U+2653 PISCES | Yes, 2026-09-25 |
 

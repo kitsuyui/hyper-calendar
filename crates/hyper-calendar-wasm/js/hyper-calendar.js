@@ -3125,7 +3125,9 @@ export class HyperCalendar {
 
   /**
    * Every holiday on one fixed day across every table, in the order
-   * {@link holidayCodes} lists them, each evaluated nationwide.
+   * {@link holidayCodes} lists them: each table's nationwide lines, then
+   * its subdivisions' and groups' own lines, which name the region or the
+   * group they belong to.
    *
    * @param {number | bigint} fixed
    * @returns {import("./hyper-calendar.d.ts").HolidayOn[]}

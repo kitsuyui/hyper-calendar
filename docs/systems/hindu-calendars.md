@@ -446,10 +446,15 @@ The table is Āryabhaṭa's — 225, 449, 671, 890, 1105, 1315, 1520, 1719,
 3372, 3409, 3431, 3438 [wikipedia-aryabhata-sine-table] — and Reingold
 and Dershowitz reproduce its rounding with a correction of 0.215 whose
 sign flips at 1716 [reingold2018code, `hindu-sine-table`]; the library
-holds the twenty-four values in a test. This zodiac is sidereal by
-construction and has no ayanāṃśa, and its zero point is not any modern
-one's: the Meṣa saṅkrānti of 2024 by the Siddhānta falls 139 minutes after
-the Lahiri one. The *mean* positions are counted from the Kali Yuga epoch,
+holds the twenty-four values in a test. This zodiac is sidereal, and its
+zero point is not any modern ayanāṃśa's: the Meṣa saṅkrānti of 2024 by the Siddhānta falls 139 minutes after
+the Lahiri one. The Siddhānta gives its own ayana, the distance of that
+zero point from the equinox: "The circle of Asterisms librates 600 times
+in a great Yuga", 27° either way, and the *bhuja* of the libration "multiplied
+by 3 and divided by 10 gives the degrees &c. called the Ayana" [sastri1861,
+III.9–10]; the library computes it only for the tropical Sun of the
+Siddhānta's sunrise, as Reingold and Dershowitz do
+[reingold2018code, `hindu-tropical-longitude`]. The *mean* positions are counted from the Kali Yuga epoch,
 Friday 18 February 3102 BCE (Julian), the fixed day −1 132 959
 [reingold2018code, `hindu-epoch`], where the book counts from a creation
 1 955 880 000 sidereal years earlier; the two are the same to the
@@ -967,7 +972,8 @@ weeks.
   The twelve-year cycle of the mean-sign system (Art. 63, Table XII):
   `TWELVE_YEAR_NAMES`, Chaitra to Phalguna as Table XII spells them;
   `twelve_year_of`, the twelve-year name Table XII couples with a
-  sixty-year one; `mean_sign_of`, Jupiter's mean sign beside it; and
+  sixty-year one; `mean_sign_of`, Jupiter's mean sign beside it, each
+  `None` for a number that names no sixty-year year; and
   `twelve_year_in_progress_at`, the twelve-year name in progress at a
   moment by a rule.
 - **`hindu-old-solar`** and **`hindu-old-lunar`**, as
@@ -1014,6 +1020,45 @@ weeks.
 - **Computed, not tabulated.** Everything is computed from the sky or
   from the Siddhānta's arithmetic; the only tables are the tests'. The
   ayanāṃśa anchors and the precession series are `hc-seasons`'s.
+- **The yoga and the karaṇa**, as functions in `panchanga`, not as
+  calendars: `yoga_at` and `yoga_of_day` give the yoga, 1 to 27, at a
+  moment or a day's sunrise for any ayanāṃśa, and `yoga_span` when it
+  began and ends; `karana_at`, `karana_of_day` and `karana_span` the same
+  for the half-tithi, 1 to 60, and `karana_name` its name, 0 to 10, as
+  Reingold and Dershowitz's `karana` maps it [reingold2018code], `None` for
+  a number that is no half of a month. `karana_name_surya_siddhanta` names
+  the fixed four in the *Sūrya Siddhānta*'s order, Śakuni, Nāga,
+  Catuṣpada, Kiṃstughna from the second half of kṛṣṇa 14 (II.67)
+  [sastri1861], where `karana_name` has the western order Sewell and
+  Dikshit follow, Catuṣpada before Nāga: two conventions, two functions. The
+  names are Drik Panchang's, in English and in its Hindi edition's
+  Devanagari [drik-day-panchang-2025]. On the *Sūrya Siddhānta*'s Sun and
+  Moon, `surya_siddhanta::yoga_longitude`, `yoga_at`, `yoga_of_day` and
+  `yoga_span`, and `karana_at`, `karana_of_day` and `karana_span`, the day
+  read at the Siddhānta's own sunrise; the names are the same tables'.
+- **The amṛta siddhi yoga**, Art. 39's auspicious yoga, in
+  `amrita_siddhi`: `NAKSHATRA_BY_WEEKDAY`, the seven pairs, `nakshatra_of`
+  a weekday, and `amrita_siddhi`, the part of a day, sunrise to the next
+  sunrise at a place, that the Moon spends in the weekday's nakṣatra by
+  an ayanāṃśa, or none, and `MissingSolarEvent` where the Sun does not
+  rise that day or the next, rather than a stand-in hour; `NAME` and
+  `NAME_DEVANAGARI`, as Drik Panchang
+  prints it. *Not carried*: the other yogas of the kind Art. 39 describes,
+  of a weekday with a nakṣatra or a tithi, which it does not name — the
+  *sarvārtha siddhi*, *ravi* and *tripuṣkara* yogas, and the
+  inauspicious *āḍal* and *viḍāl*, that Drik Panchang's day pages print
+  [drik-day-panchang-2025]: Prokerala's page for the *sarvārtha siddhi
+  yoga* was read [prokerala-sarvartha-siddhi], but no text of their rules
+  was, and they are not done yet; and the twenty-eight weekday-and-nakṣatra
+  yogas of Śrīpati's *Jyotiṣa Ratnamāla*, which Wikipedia describes beside
+  the astronomical ones [wikipedia-nityayoga], whose table was not read.
+- **The ñāṭṭuvēla names**: `nakshatra::NAMES_MALAYALAM`, the twenty-seven
+  in Malayalam, `malayalam_name`, and `NJATTUVELA`, the word a
+  ñāṭṭuvēla's name ends in; the Sun's stay itself is
+  `solar_nakshatra_at` and `solar_nakshatra_span`.
+- **The book's ayanāṃśa and sunset**: `hc-seasons`'s
+  `Ayanamsa::REINGOLD_DERSHOWITZ` and `hindu_solar::SankrantiRule::BeforeCentreSets`,
+  above.
 - **Not carried, and why:**
   - *Regional almanacs' own readings*: a calendar read at another place
     or with another ayanāṃśa is a `new` away, but no local almanac's
@@ -1048,39 +1093,18 @@ weeks.
   - *The Kollam, Bengali and Tamil calendars of other places*: the
     registered four are all read at the Central Station, as the almanac
     computes them, and not at Chennai, Thiruvananthapuram or Kolkata.
-
-- **The yoga and the karaṇa**, as functions in `panchanga`, not as
-  calendars: `yoga_at` and `yoga_of_day` give the yoga, 1 to 27, at a
-  moment or a day's sunrise for any ayanāṃśa, and `yoga_span` when it
-  began and ends; `karana_at`, `karana_of_day` and `karana_span` the same
-  for the half-tithi, 1 to 60, and `karana_name` its name, 0 to 10, as
-  Reingold and Dershowitz's `karana` maps it [reingold2018code]. The
-  names are Drik Panchang's, in English and in its Hindi edition's
-  Devanagari [drik-day-panchang-2025]. On the *Sūrya Siddhānta*'s Sun and
-  Moon, `surya_siddhanta::yoga_longitude`, `yoga_at`, `yoga_of_day` and
-  `yoga_span`, and `karana_at`, `karana_of_day` and `karana_span`, the day
-  read at the Siddhānta's own sunrise; the names are the same tables'.
-- **The amṛta siddhi yoga**, Art. 39's auspicious yoga, in
-  `amrita_siddhi`: `NAKSHATRA_BY_WEEKDAY`, the seven pairs, `nakshatra_of`
-  a weekday, and `amrita_siddhi`, the part of a day, sunrise to the next
-  sunrise at a place, that the Moon spends in the weekday's nakṣatra by
-  an ayanāṃśa, or none; `NAME` and `NAME_DEVANAGARI`, as Drik Panchang
-  prints it. *Not carried*: the other yogas of the kind Art. 39 describes,
-  of a weekday with a nakṣatra or a tithi, which it does not name — the
-  *sarvārtha siddhi*, *ravi* and *tripuṣkara* yogas, and the
-  inauspicious *āḍal* and *viḍāl*, that Drik Panchang's day pages print
-  [drik-day-panchang-2025]: Prokerala's page for the *sarvārtha siddhi
-  yoga* was read [prokerala-sarvartha-siddhi], but no text of their rules
-  was, and they are not done yet; and the twenty-eight weekday-and-nakṣatra
-  yogas of Śrīpati's *Jyotiṣa Ratnamāla*, which Wikipedia describes beside
-  the astronomical ones [wikipedia-nityayoga], whose table was not read.
-- **The ñāṭṭuvēla names**: `nakshatra::NAMES_MALAYALAM`, the twenty-seven
-  in Malayalam, `malayalam_name`, and `NJATTUVELA`, the word a
-  ñāṭṭuvēla's name ends in; the Sun's stay itself is
-  `solar_nakshatra_at` and `solar_nakshatra_span`.
-- **The book's ayanāṃśa and sunset**: `hc-seasons`'s
-  `Ayanamsa::REINGOLD_DERSHOWITZ` and `hindu_solar::SankrantiRule::BeforeCentreSets`,
-  above.
+  - *Four more of Reingold and Dershowitz's functions*, read in
+    `calendar.l` [reingold2018code]: `hindu-lunar-station`, the nakṣatra
+    of the Siddhānta's Moon at its sunrise; `hindu-sunset`, the
+    Siddhānta's sunset; `hindu-standard-from-sundial`, a sundial's
+    temporal hours as local time between those sunrises and sunsets; and
+    `jovian-year`, the sixty-year name by the *Ārya Siddhānta*'s mean
+    Jupiter from the Kali day count. They are not yet carried, because
+    no published value was read to anchor them (docs/policy.md §7): the
+    book's tables were not read, and its code cannot be run here.
+  - *The Graha-parivritti*, a cycle of ninety years that Sewell and
+    Dikshit describe [sewell1896]: not yet carried, because the passage,
+    its epoch and its worked years were not read for this document.
 
 ## Accuracy
 
@@ -1260,6 +1284,7 @@ for 2024 and 2025 give the times the tests hold.
 | [crc1955] | The Committee, its dates and members; the Central Station; tithis by modern computation; the lunar month named after the solar month of its new moon, adhika and śuddha; the 13°20′ nakṣatra divisions and the Sun's entries; the ayanāṃśa of 23°15′ on 21 March 1956; the solar-month conventions left to the pandits; the list of almanacs; Annexure VI, the questionnaire and the replies of the four almanacs that compute by the *Sūrya Siddhānta* (replies 5, 43, 47, 48, pp. 24, 30, 31), and the *bīja* the calendar makers apply to the Siddhāntas' Moon (p. 3); the General Rules for Religious Festivals and Naraka Caturdaśī's four ghaṭikās before sunrise | Yes, 2026-09-25, in the Internet Archive's OCR text; Annexure VI and p. 3 on 2026-09-27, and the festival rules the same day, in the same text as saved |
 | [wikipedia-indian-national-calendar] | The civil calendar's adoption on 22 March 1957 and the Śaka offset | Yes, 2026-09-25 |
 | [sewell1896] | The four regional rules and their names; kṣaya and adhika tithis; the naming of adhika and kṣaya months; the intervals between expunged months; the sixty-year cycle, its northern and southern reckonings and the southern rule, and the worked examples of 1752, 1803–04 and 1822; the northern cycle's length and expunction, the name coupled with the year, the three rules with their examples, the list of expunged names and Table I's reckoning; the yoga and its lengths (Art. 9, p. 3), the karaṇa (Art. 10), the karaṇa names and the *Sūrya Siddhānta*'s other order of the fixed four (Art. 40 and its note) and the names of each half-tithi (Table VIII, cols. 4 and 5); the pañcāṅga extract of Art. 30 (Poona, 31 August to 29 September 1894), its yogas and karaṇas with their ends and its note on how it was computed; the auspicious yogas and the amṛta siddhi yoga of Hasta on a Sunday (Art. 39); the twelve-year cycle of Jupiter and its two kinds (Art. 63), and Table XII with its two notes | Yes, 2026-09-25, in the Internet Archive's OCR text; Arts. 28, 32, 45, 48 and 50; Arts. 53–62 and the worked examples that name Angiras, Rudhirodgarin and Chitrabhanu on 2026-09-26, and Arts. 54–60, 75 and 120 again that day for the northern cycle; Arts. 9, 10 and 40 and the Art. 40 note on 2026-09-26, and Art. 9's lengths and Table VIII, cols. 4 and 5, on 2026-09-27. The sixty names are read off the OCR of Table I, col. 6, and Table XII, where the diacritics are lost; Art. 60's list off the OCR of its table; Arts. 30, 39, 63, 115 and 120 and Table XII again on 2026-09-29, in the same OCR text, whose table figures are garbled on some days, which the tests leave out |
+| [sastri1861] | The *Sūrya Siddhānta*'s ayana, III.9–10, and its order of the fixed karaṇas, II.67 | Yes, 2026-09-29, in Wikisource's transcription |
 | [burgess1860] | The *Sūrya Siddhānta*'s revolutions of Jupiter, from which Sewell and Dikshit's numbers come | Not read; the module takes Sewell and Dikshit's numbers as they give them |
 | [prokerala-telugu-calendar] | The Telugu year from Chaitra named Krodhi (Śaka 1946, from 9 April 2024, and its Phālguna to 29 March 2025), Viswavasu (1947, from 30 March 2025) and Parabhava (1948, from 20 March 2026) | Yes, 2026-09-26; the Telugu script on the pages was not relied on |
 | [hrishikesh-panchang-2081] | Vikrama 2081, Śaka 1946, "पिङ्गल नामाब्दः" | The almanac's title as Exotic India lists it, 2026-09-26; the almanac itself not read |

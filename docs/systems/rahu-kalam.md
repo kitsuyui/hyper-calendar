@@ -118,12 +118,22 @@ minutes; the seventh begins 6 × 54.33 = 326 minutes after sunset, at
 
 - `muhurta::muhurta`: a muhūrta of the day or of the night, `Muhurta`
   with a `Half`, on a local day at a place, in Universal Time;
+  `Muhurta::day` and `Muhurta::night` take its number, 1 to 15, and give
+  `None` for any other;
   `abhijit`, the eighth of the day or `None` on a Wednesday; and
   `dur_muhurtam`, the one or two of `DUR_MUHURTAM` for the weekday. Each
   returns `MissingSolarEvent` where the Sun does not rise or set. The
   names, `ABHIJIT_NAME` and `DUR_MUHURTAM_NAME`, are the English pages',
   and `ABHIJIT_NAME_DEVANAGARI` and `DUR_MUHURTAM_NAME_DEVANAGARI` the Hindi
   edition's labels, अभिजित मुहूर्त and दुर्मुहूर्त [drik-day-panchang-2025].
+  `WIKIPEDIA_NAMES` and `Muhurta::wikipedia_name` name all thirty, fifteen
+  of the day from Rudra and fifteen of the night from Girīśa, as English
+  Wikipedia's "Muhurta" tabulates them in transliteration
+  [wikipedia-muhurta]; the article asks for citations for the table and
+  names no text, so they are a secondary source's names, and its
+  Devanagari column, which disagrees with its own transliteration twice,
+  is not carried. It names the eighth of the day Vidhi, where Drik
+  Panchang has Abhijit.
 
 Not carried: the other methods Drik Panchang names (*Month Rahu*, *Khanda
 Rahu*, *Vaar Rahu*, *Muhurta Rahu*), whose rules were not read, and the
@@ -154,6 +164,8 @@ with the temple table's times for all three periods on all seven weekdays
 
 ## Sources
 
+- [wikipedia-muhurta]: the thirty muhūrtas' names. Read 2026-09-29;
+  secondary, the table marked as needing citations.
 - [wikipedia-rahukaalam]: the division into eight, Rāhu kālam's part for
   each weekday, and the fixed 06:00 to 18:00 day with its times. Read
   2026-09-27. It cites Grimes (1996) and Dalal (2010), not read.
@@ -184,6 +196,8 @@ with the temple table's times for all three periods on all seven weekdays
 `there_is_no_kalam_where_the_sun_does_not_rise`; and
 `crates/hc-calendars-indic/src/muhurta.rs`, whose tests are
 `the_muhurtas_of_january_2025_are_where_drik_panchang_prints_them`,
+`the_muhurtas_are_named_as_wikipedia_tabulates_them`,
+`a_number_outside_one_to_fifteen_names_no_muhurta`,
 `abhijit_straddles_the_middle_of_the_day`,
 `every_weekday_has_a_dur_muhurtam_and_only_tuesdays_is_at_night` and
 `there_is_no_muhurta_where_the_sun_does_not_rise`. No boundary export

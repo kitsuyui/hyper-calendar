@@ -13,7 +13,10 @@
 //! sun contacts the observer's meridian\], the sun is in Aries", Qoṭb-al-Dīn
 //! Širāzī writes (Karamati, "Khayyam, Omar xv. As astronomer", *Encyclopaedia
 //! Iranica*, 2014, `karamati2014`, read 2026-09-29). No source read names a
-//! standard meridian; Isfahan, the Seljuk capital, is "the place of
+//! standard meridian, and none names a second one, so the meridian is not
+//! a choice between conventions (docs/policy.md §5) and the calendar has
+//! one name; a source naming another would make each its own. Isfahan, the
+//! Seljuk capital, is "the place of
 //! observations" in Ṭabarī's *Zīj-e mofrad* (Karamati), and English
 //! Wikipedia says that "Khayyam ... positioned Isfahan as the prime
 //! meridian", citing Amanat (2017), not read (`wikipedia-jalali-calendar`,
@@ -71,9 +74,17 @@ pub const MIN_YEAR: i64 = 1;
 pub const MAX_YEAR: i64 = crate::persian::MAX_YEAR - SOLAR_HIJRI_OFFSET;
 
 /// How close, in minutes, an equinox may fall to Isfahan's apparent noon
-/// before the year is decided by the model, as for
-/// [`crate::persian_apparent_noon::TOLERANCE_MINUTES`].
-pub const TOLERANCE_MINUTES: f64 = 1.0;
+/// before the year is decided by the model.
+///
+/// In the calendar's own centuries the error is ΔT's, not the Sun's: the
+/// equinox is placed in Terrestrial Time to seconds, but Isfahan's noon is
+/// in Universal Time, and over 1079–1400 the two ΔT models `hc-astro`
+/// carries, `espenak-meeus-2006` and `morrison-stephenson-2021`, differ by
+/// up to 190 s, more than three minutes, where the modern calendar's
+/// minute is its sunrise and noon to seconds. Four minutes covers that
+/// spread and the Sun's own error with it. Two of Ṭūsī's 295 years fall
+/// inside it, 196 and 295.
+pub const TOLERANCE_MINUTES: f64 = 4.0;
 
 /// The rule: the Sun's transit at Isfahan.
 const RULE: Noon = Noon::Apparent(ISFAHAN);
@@ -383,12 +394,10 @@ mod tests {
             .count();
         assert_eq!(long, 72);
         assert!(is_leap_year(2).unwrap());
-        assert_eq!(
-            (1..=jalali_tusi::MAX_YEAR)
-                .filter(|year| new_year_margin(*year).unwrap().abs() < TOLERANCE_MINUTES)
-                .count(),
-            0
-        );
+        let close: Vec<i64> = (1..=jalali_tusi::MAX_YEAR)
+            .filter(|year| new_year_margin(*year).unwrap().abs() < TOLERANCE_MINUTES)
+            .collect();
+        assert_eq!(close, [196, 295]);
         assert!(new_year_margin(1_013).unwrap().abs() < TOLERANCE_MINUTES);
         for year in [1, 100, 500, 900, MAX_YEAR] {
             let margin = new_year_margin(year).unwrap();
@@ -438,18 +447,65 @@ mod tests {
 
     #[test]
     fn every_day_round_trips_in_both() {
-        for calendar in AstronomicalJalaliCalendar::ALL {
-            let start = earliest().0;
-            let days: std::vec::Vec<i64> = (start..start + 4 * 366)
-                .chain((start..latest().0).step_by(if cfg!(debug_assertions) { 4_999 } else { 97 }))
+        // `jalali`: every day of the range in a release build, spread over
+        // the machine's threads, a day costing about a third of a
+        // millisecond of astronomy; the fields, which cost as much again,
+        // on every 19th day and in the first four years. A debug build
+        // takes the first four years, every 4 999th day, and the Nowruz of
+        // every seventh year, a stride prime to the four- and
+        // thirty-three-year patterns of the long years, and of the last,
+        // with the day before each. `jalali-natanz` has `jalali`'s years
+        // with the extra days moved, so it rests on that sweep: every
+        // Nowruz and the day before it in a release build, the debug
+        // build's days in both, and every 97th day (docs/policy.md §7).
+        let start = earliest().0;
+        let nowruz = |years: &mut dyn Iterator<Item = i64>| -> std::vec::Vec<i64> {
+            years
+                .flat_map(|year| {
+                    let day = new_year(year).unwrap().0;
+                    [day - 1, day]
+                })
+                .collect()
+        };
+        let debug_days = || -> std::vec::Vec<i64> {
+            (start..start + 4 * 366)
+                .chain((start..latest().0).step_by(4_999))
+                .chain(nowruz(
+                    &mut (MIN_YEAR..=MAX_YEAR).step_by(7).chain([MAX_YEAR]),
+                ))
                 .chain([latest().0])
-                .collect();
-            for rd in days {
+                .filter(|rd| (start..=latest().0).contains(rd))
+                .collect()
+        };
+        let every_day: std::vec::Vec<i64> = if cfg!(debug_assertions) {
+            debug_days()
+        } else {
+            (start..=latest().0).collect()
+        };
+        let sampled: std::vec::Vec<i64> = if cfg!(debug_assertions) {
+            debug_days()
+        } else {
+            (start..=latest().0)
+                .step_by(97)
+                .chain(nowruz(&mut (MIN_YEAR..=MAX_YEAR)))
+                .chain([latest().0])
+                .filter(|rd| (start..=latest().0).contains(rd))
+                .collect()
+        };
+        for calendar in AstronomicalJalaliCalendar::ALL {
+            let days = if calendar == AstronomicalJalaliCalendar::JALALI {
+                &every_day
+            } else {
+                &sampled
+            };
+            crate::check_days(days, |rd| {
                 let date = calendar.from_fixed(Rd(rd)).unwrap();
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "{rd}");
-                let fields = calendar.to_fields(date).unwrap();
-                assert_eq!(calendar.from_fields(&fields), Ok(date));
-            }
+                if cfg!(debug_assertions) || rd < start + 4 * 366 || (rd - start) % 19 == 0 {
+                    let fields = calendar.to_fields(date).unwrap();
+                    assert_eq!(calendar.from_fields(&fields), Ok(date));
+                }
+            });
             assert_eq!(
                 calendar.from_fixed(Rd(earliest().0 - 1)),
                 Err(CalendarError::BeforeEpoch)

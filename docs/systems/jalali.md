@@ -45,7 +45,8 @@ kept it into the twentieth century [panaino1990iv].
 in a long year. Among the Zoroastrian communities that kept the calendar,
 "the 5 or 6 epagomenal days follow the month of Esfandārmoḏ", the twelfth,
 "or, in some villages in the district of Naṭanz, the month of Bahman"
-[panaino1990iv]. This library places them after the twelfth month.
+[panaino1990iv]. `jalali-tusi` and `jalali` place them after the twelfth
+month, and `jalali-natanz` after Bahman, the eleventh.
 
 **The long years.** Ṭūsī's table puts "an extra day ... every four years,
 and after seven such quadrennia the extra day was added to a period of
@@ -92,7 +93,10 @@ as the prime meridian", citing Amanat (2017), not read
 [wikipedia-jalali-calendar]. `jalali` takes the Sun's transit at Isfahan,
 51.670° E [wikipedia-isfahan]: Nowrūz is the day of the March equinox if the
 equinox falls before Isfahan's apparent noon, and the day after otherwise,
-the rule `persian-apparent-noon` applies at Tehran. Twelve months of thirty
+the rule `persian-apparent-noon` applies at Tehran. No source read names a
+second meridian either, so Isfahan is not one convention among others
+under policy §5, and `jalali` keeps its one name; a source that named
+another would give each its own. Twelve months of thirty
 days follow, then the extra days, five or six as the next Nowrūz falls.
 Year *y* is the Solar Hijri year *y* + 457, Persian Wikipedia making 1
 Jalālī "۴۵۸ هجری خورشیدی" [fawiki-gahshomari-jalali].
@@ -161,9 +165,20 @@ The arithmetic is exact. What it matches is the published description of
 | Every day of the table round-trips | `every_day_of_the_table_round_trips` | 107 747 days |
 | The years after the table are refused | `the_years_after_the_table_are_refused` | Holds |
 | `jalali`: Nowrūz 1 is Friday 15 March 1079 (Julian), `jalali-tusi`'s epoch, 367 minutes before the noon | `the_epoch_is_friday_the_fifteenth_of_march_1079` (`crates/hc-calendars-equinox/src/jalali.rs`) | Holds |
-| … against Ṭūsī's table over its 295 years: the same Nowrūz in 285, a day later in 10, never earlier; 72 long years in both, year 2 among them; no year within the minute's tolerance, the first such year being 1013 | `nowruz_follows_the_equinox_and_the_table_is_close_to_the_sky` | Holds |
+| … against Ṭūsī's table over its 295 years: the same Nowrūz in 285, a day later in 10, never earlier; 72 long years in both, year 2 among them; two years, 196 and 295, within the four minutes' tolerance of ΔT's error in those centuries (see below) | `nowruz_follows_the_equinox_and_the_table_is_close_to_the_sky` | Holds |
 | `jalali-natanz`: Farvardīn to Bahman as in `jalali`, the extra days from day 331, Esfandārmoḏ after them | `the_extra_days_close_the_year_or_follow_bahman` | Holds |
-| Both round-trip four years from the epoch and a sample of the range | `every_day_round_trips_in_both` | Holds |
+| `jalali` round-trips every day of its range in a release build, and `jalali-natanz`, on the same years, every Nowruz, the day before it and every 97th day; a debug build samples both | `every_day_round_trips_in_both` | Holds |
+
+**The error in the calendar's centuries.** The equinox is placed in
+Terrestrial Time to seconds, but the noon it is compared with is in
+Universal Time, and the difference, ΔT, is a fit to the historical record
+there: over 1079–1400 the two models `hc-astro` carries,
+`espenak-meeus-2006` and `morrison-stephenson-2021`, give ΔT from 1 178 s
+and 1 300 s in 1079 to 353 s and 522 s in 1379, and differ by up to 190 s,
+measured on 2026-09-29. `TOLERANCE_MINUTES` is therefore four minutes, not
+the minute of the modern calendars, and `new_year_margin` says how close
+each year was: two of the table's years, 196 and 295, are within it, and
+the model decides them.
 
 The Hejrī side of the epoch, 9 Ramaḍān 471, is `islamic-civil`'s to check
 and is not tested here: the solar crate does not depend on the lunar one.

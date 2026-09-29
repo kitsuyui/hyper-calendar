@@ -149,9 +149,8 @@ that these instruments give. The engine carries both — a half day is
 `Kind::HalfDay` ([ADR 0012](../adr/0012-a-half-day-off-is-its-own-kind.md))
 and a community's day a rule given to its group
 ([ADR 0011](../adr/0011-a-day-for-one-group-is-a-scoped-rule.md)) — but
-the thirteen tables' instruments were not read again for those items when
-the scopes were added, so which of them has such a day is not recorded
-here.
+the thirteen tables' instruments have not been read for those items, so
+which of them has such a day is not recorded here.
 
 ## Accuracy
 

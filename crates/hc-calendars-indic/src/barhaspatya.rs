@@ -310,10 +310,18 @@ pub const TWELVE_YEAR_NAMES: [&str; 12] = [
 /// moment" (Art. 63), so the twelve-year name in progress is this of the
 /// sixty-year name in progress by a [`MeanSignRule`]; Table XII's N.B. i
 /// holds it only for the name "of the mean-sign (Northern) 60-year cycle",
-/// not the southern one. A `position` outside 1 to 60 is clamped.
+/// not the southern one. `None` for a `position` outside 1 to 60, which
+/// names no year.
 #[must_use]
-pub const fn twelve_year_of(position: u8) -> u8 {
-    let position = clamp_position(position);
+pub const fn twelve_year_of(position: u8) -> Option<u8> {
+    if position < 1 || position > LENGTH {
+        return None;
+    }
+    Some(twelve_year_of_named(position))
+}
+
+/// [`twelve_year_of`] for a position already known to be 1 to 60.
+const fn twelve_year_of_named(position: u8) -> u8 {
     (position - 1 + 4) % 12 + 1
 }
 
@@ -321,15 +329,14 @@ pub const fn twelve_year_of(position: u8) -> u8 {
 /// sixty-year cycle is current, 1 for Prabhava through 60 for Kṣaya:
 /// Table XII's third column, Kumbha for Prabhava and one sign on for each
 /// name. His apparent sign "is either the same, as or the next preceding,
-/// or the next succeeding" (Table XII, N.B. ii). A `position` outside 1 to
-/// 60 is clamped.
+/// or the next succeeding" (Table XII, N.B. ii). `None` for a `position`
+/// outside 1 to 60.
 #[must_use]
-pub const fn mean_sign_of(position: u8) -> SiderealSign {
-    let position = clamp_position(position);
-    match SiderealSign::from_index((position - 1 + 10) % 12) {
-        Some(sign) => sign,
-        None => SiderealSign::MESHA,
+pub const fn mean_sign_of(position: u8) -> Option<SiderealSign> {
+    if position < 1 || position > LENGTH {
+        return None;
     }
+    SiderealSign::from_index((position - 1 + 10) % 12)
 }
 
 /// The position, 1 to 12, of the twelve-year cycle's saṃvatsara in
@@ -337,18 +344,7 @@ pub const fn mean_sign_of(position: u8) -> SiderealSign {
 /// [`in_progress_at`] gives.
 #[must_use]
 pub fn twelve_year_in_progress_at(rule: MeanSignRule, moment: Moment) -> u8 {
-    twelve_year_of(in_progress_at(rule, moment))
-}
-
-/// `position` into 1 to 60.
-const fn clamp_position(position: u8) -> u8 {
-    if position < 1 {
-        1
-    } else if position > LENGTH {
-        LENGTH
-    } else {
-        position
-    }
+    twelve_year_of_named(in_progress_at(rule, moment))
 }
 
 /// The apparent Meṣa saṅkrānti of the *Sūrya Siddhānta* at or before a
@@ -863,21 +859,29 @@ mod tests {
         ];
         for position in 1..=LENGTH {
             let index = usize::from(position - 1);
-            assert_eq!(twelve_year_of(position), twelve[index], "{position}");
-            assert_eq!(mean_sign_of(position).id(), signs[index % 12], "{position}");
+            assert_eq!(twelve_year_of(position), Some(twelve[index]), "{position}");
+            assert_eq!(
+                mean_sign_of(position).map(|sign| sign.id()),
+                Some(signs[index % 12]),
+                "{position}"
+            );
         }
         // Prabhava is Śrāvaṇa with Jupiter in mean Kumbha; Kṣaya Āṣāḍha
         // in Makara.
         assert_eq!(
-            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(1) - 1)],
+            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(1).expect("Prabhava") - 1)],
             "Sravana"
         );
         assert_eq!(
-            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(60) - 1)],
+            TWELVE_YEAR_NAMES[usize::from(twelve_year_of(60).expect("Kshaya") - 1)],
             "Ashadha"
         );
-        assert_eq!(twelve_year_of(0), twelve_year_of(1));
-        assert_eq!(twelve_year_of(61), twelve_year_of(60));
+        // No sixty-year name is 0 or 61, so neither has a twelve-year name
+        // or a mean sign.
+        assert_eq!(twelve_year_of(0), None);
+        assert_eq!(twelve_year_of(61), None);
+        assert!(mean_sign_of(0).is_none());
+        assert!(mean_sign_of(61).is_none());
     }
 
     #[test]

@@ -46,11 +46,13 @@ others exist.
 | `tibetan::MONGOLIAN` | `mongolian` | arithmetic (New Genden) | 1000–3000 |
 | `tibetan::TIBETAN_LOCHEN` | `tibetan-lochen` | arithmetic (Phugpa, Lochen's anomaly) | 1000–3000 |
 | `tibetan::TIBETAN_TSURPHU_KARANA` | `tibetan-tsurphu-karana` | arithmetic (Tsurphu, *karaṇa* Sun) | 1000–3000 |
+| `tibetan::TIBETAN_BHUTAN_LOCHEN` | `tibetan-bhutan-lochen` | arithmetic (Bhutanese, Lochen's anomaly) | 1000–3000 |
 | `javanese::JAVANESE` | `javanese` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_YOGYAKARTA` | `javanese-yogyakarta` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `javanese::JAVANESE_ABOGE` | `javanese-aboge` | arithmetic | 1555–2346 AJ (1633–2401 CE) |
 | `chinese` | `chinese` | astronomical | 1645–2150 CE |
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
+| `dangi::DangiKasiCalendar` | `dangi-kasi` | astronomical, with KASI's months of 1653 and 1841 | 1653–2150 CE |
 | `vietnamese` | `vietnamese` | astronomical | 1645–2150 CE |
 | `japanese_historical::senmyo` | `japanese-senmyo` | historical | 862-02-03 (Julian) to 1685-02-03 |
 | `japanese_historical::jokyo` | `japanese-jokyo` | historical | 1685-02-04 to 1755-02-10 |
@@ -285,11 +287,11 @@ MONTSAME's of 2020 and 2026; the Bhutanese matches every day of the
 Ministry of Home Affairs' calendars for 2025 and 2026, and disagrees with
 the government's Losar of 2003 by a day, as Janson reports.
 
-`tibetan-lochen` and `tibetan-tsurphu-karana` are two conventions of the
-true date on the same engine: the Phugpa under Minling Lochen's exact
-anomaly increment, 3 781⁄105 840 for the almanacs' 1⁄28, and the Tsurphu
-under the *karaṇa* solar equation, with Lochen's increment — the calendars
-of Henning's computed almanacs, every skipped and repeated day of whose
+`tibetan-lochen`, `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen` are
+two conventions of the true date on the same engine: the Phugpa and the
+Bhutanese under Minling Lochen's exact anomaly increment, 3 781⁄105 840 for
+the almanacs' 1⁄28, and the Tsurphu under the *karaṇa* solar equation, with
+Lochen's increment — the calendars of Henning's computed almanacs, every skipped and repeated day of whose
 2013 they reproduce, with Janson's moved days of 1900–2099 and his *karaṇa*
 example of 13/6/2013 ([`docs/systems/tibetan-variants.md`](../../docs/systems/tibetan-variants.md)).
 The engine's quantities — the exact `Ratio`, the mean motions, the tables,
@@ -438,7 +440,7 @@ terms, 1667–1669 refused; 88 of their major terms fall a day from the rules
 and, applied, move no month but the five already carried. Korea kept that
 almanac, so `dangi` is the Chinese calendar until 1912; KASI's own reading,
 which leaves it in four months of 1653 and 1841, is
-`dangi::KASI_PARAMETERS` (`dangi-kasi`), from 1653, and matches every one of
+`dangi-kasi`, a calendar of its own name from 1653, and matches every one of
 the 321 days of 1653–1911 queried from KASI. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
@@ -448,11 +450,12 @@ not established here, so dates in that gap are what the rules give, not what
 was proclaimed in Hanseong or Huế.
 
 Beside the calendars, `chinese` counts ages four ways, each its own
-convention: `reckoned_age` at 正月初一 (`chinese-age`), `reckoned_age_at_lichun`
-at 立春 (`lichun-age`, a local custom a popular account names), and in
-Gregorian years `reckoned_age_at_new_year_day`, one at birth and one more
-each 1 January, the Korean 세는 나이 (`new-year-day-age`), and `year_age`, from
-nothing (`year-age`). `marriage_augury` gives each year's class and
+convention and each a function, which is its only name, as nothing
+selects a count by a string: `reckoned_age` at 正月初一, the book's
+`chinese-age`, `reckoned_age_at_lichun` at 立春, a local custom a popular
+account names, and in Gregorian years `reckoned_age_at_new_year_day`, one
+at birth and one more each 1 January, the Korean 세는 나이, and `year_age`,
+from nothing. `marriage_augury` gives each year's class and
 `MarriageAugury::chinese_names` the Chinese names the sources give two of the
 four, 無春年, 寡婦年 and 盲年 for a year without 立春 and 雙春兼閏月 or 双春年
 for one with two. The Vietnamese zodiac, with the water buffalo and the cat,

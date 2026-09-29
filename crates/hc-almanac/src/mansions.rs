@@ -22,9 +22,10 @@
 //! what 鬼宿日 is computed from. If you want the mansion the Moon is
 //! actually in, that is an astronomical question: take
 //! [`hc_astro::lunar_longitude`] and find which mansion's arc of right
-//! ascension it falls in. This crate deliberately does not do that, because
-//! the mansion boundaries are unequal, historically revised, and a matter of
-//! which star catalogue you use — it is a `hc-astro` problem, not a 暦注 one.
+//! ascension it falls in. This crate does not yet carry that, because the
+//! mansion boundaries are unequal, historically revised, and a matter of
+//! which star catalogue you use, and no catalogue of them is read or
+//! carried.
 //!
 //! # The 二十七宿
 //!

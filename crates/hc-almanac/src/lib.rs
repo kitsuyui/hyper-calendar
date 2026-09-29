@@ -25,7 +25,7 @@
 //! | [`mod@selected_days`] | 選日 | the sexagenary day, the 節月, the Moon |
 //! | [`seven_luminaries`] | 七曜 | the seven-day week |
 //! | [`lucky_direction`] | 恵方 | the year's heavenly stem |
-//! | [`direction_deities`] | 八将神, 金神, 大金神, 姫金神 | the year's branch or stem |
+//! | [`direction_deities`] | 八将神, 金神, 大金神, 姫金神; the 遊行 of 大将軍 and 金神, one rule per reading, and 金神's 間日 | the year's branch or stem; the day's 干支, the season and the 土用 |
 //! | [`rounichi`] | 臘日, one rule per reckoning | 小寒, 大寒 or 冬至 and the day's branch; the lunar date |
 //! | [`nine_periods`] | 三元九運 | twenty-year periods from 1864, turning at 立春 |
 //! | [`days_without_son`] | 손 없는 날 | the Korean lunar day, `dangi` |
@@ -125,7 +125,7 @@ pub mod vietnamese_days;
 pub use context::{DayContext, SolarMonth, solar_month_of};
 pub use day_notes::{Combination, CombinationSet, DayNotes, day_notes};
 pub use days_without_son::is_day_without_son;
-pub use direction_deities::{BranchDirection, General};
+pub use direction_deities::{BranchDirection, General, WanderingRule};
 pub use first_month_counts::{FirstMonthCounts, first_month_counts};
 pub use lower_register::{GraveDays, LowerRegister, LowerRegisterSet, lower_register};
 pub use lucky_direction::{LuckyDirection, lucky_direction_of_year};

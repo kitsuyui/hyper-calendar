@@ -292,7 +292,11 @@ pub struct Reign {
 /// The reigns by which the years from SE −314 to SE 160 are labelled,
 /// transcribed from van Gent's converter of Parker and Dubberstein's table
 /// (`babycal_dat.js`, `babylon_ruler_name` and `babylon_ruler_year`, and
-/// the offsets of `babycal.js`; read 2026-09-29), in order. A year belongs
+/// the offsets of `babycal.js`; read 2026-09-29), in order. The scripts
+/// state no licence, and the converter's page reads "© R.H. van Gent 2011,
+/// 2015" (read 2026-09-29), so their code is read and not copied
+/// (docs/policy.md §9): what is transcribed is the table's facts, each
+/// reign's name and first year, which are Parker and Dubberstein's. A year belongs
 /// wholly to the reign the converter names for it: the regnal year runs
 /// from 1 Nisannu, and the year in which one king died and the next came to
 /// the throne is the old king's last. The converter has no Labashi-Marduk,

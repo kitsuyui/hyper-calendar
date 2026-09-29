@@ -616,14 +616,36 @@ const fn shmuel_tekufah_minutes(year: i64, tekufah: Tekufah) -> i64 {
 /// hours, the night beginning at six in the evening of mean time (Simmons,
 /// *Sinai* 111, secondary); Hebrew Wikipedia's "ארבע התקופות" computes
 /// its dated table the same way, in Jerusalem mean time. Simmons's own
-/// clock times, thirteen minutes later, are another reading of the hour
-/// and are not this one.
+/// clock times, thirteen minutes later, are another reading of the hour,
+/// [`shmuel_tekufah_simmons`].
 ///
 /// [`birkat_hachama_on_or_after`] is the day after the *tekufat Nisan*
 /// that begins the 28-year cycle.
 #[must_use]
 pub fn shmuel_tekufah(year: i64, tekufah: Tekufah) -> Moment {
     let minutes = shmuel_tekufah_minutes(year, tekufah);
+    Moment(minutes.div_euclid(1_440) as f64 + minutes.rem_euclid(1_440) as f64 / 1_440.0)
+}
+
+/// Minutes by which Simmons's reading of Shmuel's hours runs after the
+/// mean-time one: the equation of time on the day of the first *tekufah*,
+/// about 23 February by the Gregorian calendar, "on this day midday by the
+/// local clock is 12:13", so "13 minutes" are allowed (Simmons, *Sinai*
+/// 111, `simmons-sinai-111`, read in daat.ac.il's copy 2026-09-29).
+pub const SIMMONS_NOON_MINUTES: i64 = 13;
+
+/// The moment of a *tekufah* of Shmuel's reckoning as Simmons reads its
+/// hours, in Jerusalem mean solar time: [`shmuel_tekufah`], the hours
+/// counted from the true midday of the first *tekufah*'s day and not from
+/// mean midday, so [`SIMMONS_NOON_MINUTES`] later. His *tekufat Tishrei*
+/// 5752 is at 20:52 in Israel standard time, Jerusalem's mean time less
+/// the "21 minutes" he gives for the two clocks. The two readings are two
+/// conventions of one reckoning (docs/policy.md §5); the *tekufah*'s
+/// Hebrew day, [`shmuel_tekufah_day`], is the same in both, since the hour
+/// of the reckoning is.
+#[must_use]
+pub fn shmuel_tekufah_simmons(year: i64, tekufah: Tekufah) -> Moment {
+    let minutes = shmuel_tekufah_minutes(year, tekufah) + SIMMONS_NOON_MINUTES;
     Moment(minutes.div_euclid(1_440) as f64 + minutes.rem_euclid(1_440) as f64 / 1_440.0)
 }
 
@@ -1280,6 +1302,27 @@ mod tests {
         let moment = shmuel_tekufah(5_786, Tishrei);
         assert_eq!(moment.day(), gregorian::to_fixed_saturating(2025, 10, 7));
         assert!((moment.0 - moment.day().0 as f64 - 0.375).abs() < 1e-9);
+    }
+
+    /// Simmons, *Sinai* 111: *tekufat Tishrei* 5752 at 20:52 in Israel
+    /// standard time, his hours 13 minutes after the mean-time ones and
+    /// his clocks 21 minutes apart.
+    #[test]
+    fn simmonss_tekufot_run_thirteen_minutes_later() {
+        use Tekufah::*;
+        let mean = shmuel_tekufah(5_752, Tishrei);
+        let simmons = shmuel_tekufah_simmons(5_752, Tishrei);
+        assert_eq!(mean.day(), gregorian::to_fixed_saturating(1991, 10, 7));
+        assert!(((simmons.0 - mean.0) * 1_440.0 - 13.0).abs() < 1e-6);
+        let israel_minutes = (simmons.0 - simmons.day().0 as f64) * 1_440.0 - 21.0;
+        assert!((israel_minutes - (20.0 * 60.0 + 52.0)).abs() < 1e-6);
+        for year in [5_700, 5_769, 5_786] {
+            for tekufah in Tekufah::ALL {
+                let apart =
+                    shmuel_tekufah_simmons(year, tekufah).0 - shmuel_tekufah(year, tekufah).0;
+                assert!((apart * 1_440.0 - 13.0).abs() < 1e-6);
+            }
+        }
     }
 
     /// The prayer for rain outside the Land of Israel from the sixtieth

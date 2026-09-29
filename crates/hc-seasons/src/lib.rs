@@ -73,8 +73,9 @@
 //! The underlying solar longitude is `hc-astro`'s VSOP87 series, good to
 //! about 1″, and an event within about a minute of local midnight can still
 //! be given the wrong *day*. That is measured rather than asserted: the
-//! integration tests compare against the 240 equinox days Japan published
-//! for 1980–2099, and the document states the rate and the minute-by-minute
+//! integration tests compare against the 102 equinox days Japan published
+//! for 1980–2030 and a circulating formula's 138 for 2031–2099, a
+//! prediction and not a publication, and the document states the rate and the minute-by-minute
 //! comparison with the 暦要項.
 //!
 //! The Moon is better — conjunctions land within about a minute — so the

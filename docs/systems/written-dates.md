@@ -319,16 +319,16 @@ January 1 CE, 15 October 1582, 15 June 1900, 1 January 1970, 1 January and
 days the test's `MORE_DAYS` lists for it, the doubled days below and four
 Hebrew New Years whose years end in a letter with its geresh.
 
-In a release build the sweep reads 211 calendars × 55 locale settings, on
-1 729 calendar-days, which is 95 095 texts:
+In a release build the sweep reads 222 calendars × 67 locale settings, on
+1 829 calendar-days, which is 122 543 texts:
 
 | Outcome | Texts |
 | --- | ---: |
-| Read back as the day written | 83 725 |
-| `year-not-written`: cycles that recur, see below | 6 538 |
-| `missing-field`: the 819-day count's station is not written | 1 155 |
-| `two-digit-year`: years 0–99, on the calendars' first days | 1 092 |
-| `ambiguous`: see below | 2 585 |
+| Read back as the day written | 108 186 |
+| `year-not-written`: cycles that recur, see below | 8 002 |
+| `missing-field`: the 819-day count's station is not written | 1 407 |
+| `two-digit-year`: years 0–99, on the calendars' first days | 1 598 |
+| `ambiguous`: see below | 3 350 |
 | Read as a wrong day | 0 |
 
 Counted 2026-09-29 by a program that repeats the release sweep.
@@ -348,9 +348,10 @@ The `year-not-written` cases are all cycles that recur:
   Round counts;
 - the year bearers of `mixtec-year` and `zapotec-yza`;
 - the sexagenary day;
-- the sexagenary year of `chinese`, `dangi` and `vietnamese` in `ja`,
-  which writes the year by it alone, and of `dangi` in `zh-Hant`,
-  `yue-Hant` and `yue-Hans`, whose CLDR files write it so.
+- the sexagenary year of `chinese`, `dangi`, `dangi-kasi` and `vietnamese`
+  in `ja`, which writes the year by it alone, and of `dangi` and
+  `dangi-kasi` in `zh-Hant`, `yue-Hant` and `yue-Hans`, whose CLDR files
+  write it so.
 
 The `ambiguous` cases are all texts that name more than one day. Apart
 from `stata-week`, whose date is a week, they are calendars that give two
@@ -363,7 +364,8 @@ days one date and whose sources write no mark that tells them apart:
   ([indian-eras.md](indian-eras.md)). No source writes a date in it, so
   none marks the second day, and the text is refused;
 - `tibetan`, `tibetan-tsurphu`, `tibetan-bhutan`, `mongolian`,
-  `tibetan-lochen` and `tibetan-tsurphu-karana`, a doubled lunar day.
+  `tibetan-lochen`, `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen`, a
+  doubled lunar day.
   Janson says the first of two days with the same number "is regarded as a leap day, and denoted 'Extra' in the almanacs"
   [janson2014, §6], and gives no date written with it. Henning's archive
   of the Bhutanese calendar writes the two days as two entries of one

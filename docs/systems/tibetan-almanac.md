@@ -107,6 +107,32 @@ element after the year's, and the Tsurphu's, month 1 the Tiger and the
 elements running on from month to month and year to year, "(Y − 2 +
 ⌊(M − 1)/2⌋) amod 5", which is the Chinese rule and the Mongolian one.
 
+**The astrological attributes** [janson2014, Appendix E]. The
+Chinese-style system gives a lunar day an animal, an element, one of the
+eight trigrams (*spar kha*) and one of the nine numbers (*sme ba*): the
+animal is (*D* + 6*M* + 8) amod 12 from the Mouse, so that an odd month
+begins with the Tiger and an even one with the Monkey (E.9); the element
+is the month's advanced by the day, "(x + D) amod 5"; the trigram is
+(*D* + 6*A* + 6) amod 8 and the number (*D* + 3*A*) amod 9, *A* the
+month's animal from the Mouse as 1 (E.10, E.11), so that a Tiger month
+begins with *li* and with 1, white. A leap month has its regular month's.
+The calendar day has its trigram, (JD + 2) amod 8, and its number,
+(−JD) amod 9, one less each day, which Janson reports Henning's book
+computing as "10 − ((JD + 1) amod 9)" (Remark 36). In the Indian system
+the weekday and the lunar mansion each have one of four elements, earth,
+fire, water and wind, and the day has the pair, whose ten combinations
+Henning's book names ("see [7, p. 204]"). Henning's almanacs print, after
+the mansion, the two elements, weekday first; on the second line, after
+the *karaṇa*, the lunar day's animal, trigram and number; and after the
+solar day's element and animal, one of the twenty-eight Chinese
+mansions and, in the Phugpa and Bhutanese, a number. No text read states
+those last two: the mansions run in a cycle of twenty-eight days, *Jiao*
+where JD is 17 mod 28, the same count as the Japanese almanac's
+二十八宿, and the number runs one more each day, (JD − 1) amod 9, the
+other way from Janson's rule, and turns at neither solstice in the years
+read. That is two conventions of one attribute, and each is a function
+(docs/policy.md §5): `janson_day_number` and `henning_almanac_day_number`.
+
 **Mongolia** [janson2014, Appendix A.3]. The months are named as the
 beginning, middle and end of the four seasons from the first spring
 month, and "often the element is replaced by the corresponding colour"
@@ -130,8 +156,11 @@ day that mean date falls in.
 holiday is on the preceding day. If the date appears twice, the holiday is
 on the first of these", adding "I have not checked them against published
 calendars" [janson2014, §11]. Henning's almanacs do otherwise: a festival
-on a repeated date is marked on the second of the two days, and one on a
-skipped date is not marked at all. The two are `berzin_day` and
+on a repeated date is marked on the second of the two days, one on a
+skipped date is not marked at all, and one in a doubled month is marked in
+both months, as his almanac for 2024 marks the Turning of the Wheel of the
+Dharma on 10 July, the 4th of the leap month 6, and on 8 August, the 4th
+of month 6. The two are `berzin_day` and
 `henning_almanac_day`, two functions for two conventions (docs/policy.md
 §5).
 
@@ -155,6 +184,12 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
    half-day is 2, the first changing *karaṇa*, Vava, *gdab pa*.
 5. *The mean Sun* at the end of the lunar day is 0.792 50 of a circle, 9
    signs 15° 17′: 9;15,17.
+6. *The attributes.* Monday is the Moon's day, water, and Dhaniṣṭhā a
+   water mansion: "Water-Water". Month 1 of the Phugpa is the Dragon,
+   *A* = 5, so lunar day 1 is (1 + 6 + 8) amod 12 = 3, the Tiger;
+   (1 + 30 + 6) amod 8 = 5, *kham*; and (1 + 15) amod 9 = 7: "Tiger, kham
+   7". JD 2 456 335 is 7 mod 28, the eighth mansion after *Jiao*, *Bi*, and
+   (2 456 335 − 1) amod 9 = 9: "Bi 9". Janson's rule gives the day 8.
 
 **Worked example: Mars on 6 January 2011**, Henning's "MARS sgos zhag =
 525 - 20;12,3,2,100 - myur: 19;37,33,2,26" [kalacakra-org-software].
@@ -210,6 +245,18 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   шинийн 15" for a leap month's 15th, on pages that could not be read.
 - **Bhutan**: `bhutanese_weekday`; `bhutanese_winter_solstice`, the
   instant and so the day.
+- **The attributes of a day** [janson2014, Appendix E]:
+  `lunar_day_attributes`, the lunar day's animal, element, trigram and
+  number under `MonthCycle::Phugpa` or `MonthCycle::Tsurphu`, `None` for a
+  month or day out of range; `day_trigram`; `janson_day_number` and
+  `henning_almanac_day_number`, the two counts of the calendar day's
+  number; `chinese_mansion` and `CHINESE_MANSIONS`, in Henning's spelling,
+  three *Wei* and two *Bi* among them as he prints them; `element_pair`,
+  the weekday's and the mansion's elements, with `INDIAN_ELEMENTS`,
+  `WEEKDAY_ELEMENTS` from Janson's table of the weekdays and
+  `MANSION_ELEMENTS` as Henning's almanacs print them, Janson referring to
+  Henning's book for the list; `TRIGRAMS` and `NINE_NUMBERS` with Janson's
+  attributes of each.
 - **Festivals**: `HENNING_FESTIVALS`, the seven fixed-date festivals
   Henning's computed Phugpa almanacs mark in every year of 1960–2045 as
   read, with his English words; `berzin_day` and `henning_almanac_day`.
@@ -221,15 +268,24 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   the festivals as Henning's almanacs mark them, both months of a doubled
   one among them, by `henning_almanac_day`; `buddhist-tibetan`, from the
   Tibetan Nuns Project, reports a skipped or repeated date as a gap.
-- **Not carried**: the planets under the Tsurphu, Bhutanese and Mongolian
-  epochs, whose epoch values Henning's "Epoch data" gives but whose mean
-  solar longitude Janson describes only for the Phugpa, citing Henning's
-  pp. 341, not read; the *karaṇa* Moon an almanac prints beside the
-  *siddhānta* one; the trigrams, numbers, lunar-day animals, *svarodaya*
-  emblems, earth-lords and Chinese solar-day mansions of Henning's almanacs
-  and Janson's Appendix E, which are astrological attributes this module
-  does not yet carry; the Bhutanese holidays as a table, which
-  `hc-holiday`'s `BHUTAN` holds.
+- **Not yet carried**: the planets under the Tsurphu, Bhutanese and
+  Mongolian epochs, whose epoch values Henning's "Epoch data" gives but
+  whose mean solar longitude Janson describes only for the Phugpa, citing
+  Henning's pp. 341, not read; the *karaṇa* Moon an almanac prints beside
+  the *siddhānta* one; the attributes of years and months that Janson
+  gives with their tables — the power, life, body, fortune and spirit
+  elements (E.2, Tables 18–23), the central, life and power numbers
+  (E.3–E.5) and the Tsurphu month's number (E.8) — which no almanac read
+  prints, Table 23 being the anchor they would be tested against; the
+  Tsurphu calendars' count of the day's number from the solstices
+  (Janson's Remark 37), which no page read prints; the names of the ten
+  element pairs, in Henning's book, not read; the *svarodaya* emblems and
+  the earth-lords, for which no source read gives a rule, Janson's
+  Appendix E naming neither and Henning's book being unread; and the
+  marks the Tsurphu almanacs print under some days, *zin phung*, *klu
+  bzlog*, *klu thebs*, *yan kwong*, *nyi nag* and *ngan pa dgu 'dzom*, for
+  which no source read gives a rule. The Bhutanese holidays as a table are
+  `hc-holiday`'s `BHUTAN`.
 
 ## Accuracy
 
@@ -238,7 +294,7 @@ every day of Henning's computed Phugpa almanacs for the years beginning in
 2012, 2013, 2014 and 2025 (1 448 days), his Tsurphu almanacs for 2012–2014
 (1 093) and his Bhutanese almanac for 2019 (384), and compared each column
 with `almanac_day` under `tibetan-lochen`, `tibetan-tsurphu-karana` and
-the Bhutanese under the exact increment:
+`tibetan-bhutan-lochen`:
 
 | | Phugpa | Tsurphu | Bhutanese |
 | --- | ---: | ---: | ---: |
@@ -261,6 +317,27 @@ Bhutanese 2019 to within one *pala* and every name exactly;
 Tsurphu page works through. Under the almanacs' 1⁄28 instead, 1 112 of the
 Phugpa days differ in some printed place, by up to a day, and 19 November
 2025 in date.
+
+**The attributes.** A program read every day of Henning's computed Phugpa
+almanacs for 1960–2045 (31 391 days), his Bhutanese almanacs for 2000–2020
+(7 677) and his Tsurphu almanacs for 2012–2014 (1 093) on 2026-09-29, and
+compared the two elements, the Chinese mansion, the number after it and
+the lunar day's animal, trigram and number — 40 783 lunar days, the
+skipped ones' "Omitted" lines among them — with `element_pair`,
+`chinese_mansion`, `henning_almanac_day_number` and
+`lunar_day_attributes`, under `MonthCycle::Phugpa` for the Phugpa and
+Bhutanese and `MonthCycle::Tsurphu` for the Tsurphu. Every one agreed; the
+number after the mansion rose by one on every day of the Phugpa years,
+through every solstice. `the_attributes_are_those_hennings_almanacs_print`
+holds month 1 of the Phugpa 2013, of the Tsurphu 2013 and of the Bhutanese
+2019, an omitted day and the doubled month 6 of 2024;
+`the_lunar_day_attributes_follow_jansons_rules` Janson's statements of the
+months' first trigrams and numbers; `the_calendar_days_numbers_run_both_ways`
+Janson's rule against his report of Henning's book; and
+`crates/hyper-calendar/tests/mansion_cycles.rs` the Chinese mansion
+against `hc-almanac`'s 二十八宿 on every day of 1000–3000. The lunar day's
+element, the calendar day's trigram and Janson's number are printed by no
+almanac read and rest on his rules.
 
 **The planets.** Henning's Mars of 6 January 2011 is reproduced to the
 printed *pala* in the particular day and the true slow longitude, and a
@@ -328,8 +405,8 @@ only [mn-resolution-2025-109], which is neither rule
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [janson2014] | The five components and the columns, §10; the holiday rule, §11; the years, §4 and Appendix B; Mongolia, Appendix A.3; Bhutan, Appendix A.4; the planets, Appendix D; the cycles, Appendix E | Yes, 2026-09-29, from the TeX source |
-| [kalacakra-org-archive] | Henning's computed Phugpa, Tsurphu and Bhutanese almanacs, `tdata/pl_*.txt`, `ts_*.txt`, `bh_*.txt`: every column, the festivals, the solstice | Yes, 2026-09-29, over plain HTTP: Phugpa 1960–2045, Tsurphu 2012–2014, Bhutanese 2000–2020 |
+| [janson2014] | The five components and the columns, §10; the holiday rule, §11; the years, §4 and Appendix B; Mongolia, Appendix A.3; Bhutan, Appendix A.4; the planets, Appendix D; the cycles and the attributes, Appendix E; the weekdays' elements, §9 | Yes, 2026-09-29, from the TeX source; §9's table and Appendix E again the same day in ar5iv's HTML rendering |
+| [kalacakra-org-archive] | Henning's computed Phugpa, Tsurphu and Bhutanese almanacs, `tdata/pl_*.txt`, `ts_*.txt`, `bh_*.txt`: every column, the attributes, the festivals, the solstice | Yes, 2026-09-29, over plain HTTP: Phugpa 1960–2045, Tsurphu 2012–2014, Bhutanese 2000–2020 |
 | [kalacakra-org-software] | "Open source Tibetan calendar software": the planets' worked example, the search example; "Open source Tsurphu calendar software": the Tsurphu day and the *karaṇa* Sun, the mansions' names | Yes, 2026-09-29 |
 | [kalacakra-org] | "The Bhutanese calendar", "Bhutan calendars": the weekday, the solstice's 18;45; "Epoch data" | Yes, 2026-09-29 |
 | [gantumur-mongolian-calendar] | The months' Mongolian names, илүү, the colour words | Yes, 2026-09-29; a computed calendar over Janson, secondary |
@@ -348,12 +425,16 @@ only [mn-resolution-2025-109], which is neither rule
 `rab_byung_name`, `royal_year`; `Symbol`, `year_symbol`, `MonthCycle`,
 `month_symbol`, `day_symbol`, `COLOURS`, `MONGOLIAN_COLOURS`; `Season`,
 `mongolian_month`, `MONGOLIAN_MONTH_NAMES`, `MONGOLIAN_LEAP_WORD`;
-`bhutanese_weekday`, `bhutanese_winter_solstice`; `Festival`,
+`bhutanese_weekday`, `bhutanese_winter_solstice`; `Trigram`, `TRIGRAMS`,
+`NineNumber`, `NINE_NUMBERS`, `LunarDayAttributes`, `lunar_day_attributes`,
+`day_trigram`, `janson_day_number`, `henning_almanac_day_number`,
+`CHINESE_MANSIONS`, `chinese_mansion`, `INDIAN_ELEMENTS`,
+`WEEKDAY_ELEMENTS`, `MANSION_ELEMENTS`, `element_pair`; `Festival`,
 `HENNING_FESTIVALS`, `berzin_day`, `henning_almanac_day`. The quantities
 come from `crates/hc-calendars-lunar/src/tibetan.rs`: `Ratio`, `M2`, `S2`,
 `table`, `true_sun`, and `TibetanCalendar::mean_date`, `mean_sun`,
-`karana_mean_sun`, `true_date`, `end_day`, `lunar_day_span`, `locate`
-and `with_anomaly_step` ([tibetan-variants.md](tibetan-variants.md)).
+`karana_mean_sun`, `true_date`, `end_day`, `lunar_day_span` and `locate`,
+under the registered calendars ([tibetan-variants.md](tibetan-variants.md)).
 Anchors: `the_columns_are_those_of_hennings_almanacs`,
 `the_tsurphu_programs_worked_day_is_reproduced`,
 `the_karanas_follow_the_half_days`, `marss_place_is_hennings_worked_one`,
@@ -364,4 +445,8 @@ Anchors: `the_columns_are_those_of_hennings_almanacs`,
 `the_bhutanese_weekday_is_one_ahead`,
 `the_bhutanese_winter_solstice_is_the_mean_suns_250_degrees`,
 `a_festival_on_a_skipped_or_repeated_date_follows_each_rule`,
-`the_name_tables_are_distinct`.
+`the_attributes_are_those_hennings_almanacs_print`,
+`the_lunar_day_attributes_follow_jansons_rules`,
+`the_calendar_days_numbers_run_both_ways`,
+`the_name_tables_are_distinct`; and
+`crates/hyper-calendar/tests/mansion_cycles.rs`.

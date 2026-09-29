@@ -353,6 +353,580 @@ impl Calendar for OlympiadCalendar {
     }
 }
 
+// --- The Games themselves ----------------------------------------------------
+
+/// Whether an edition of the Games was held.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum GamesStatus {
+    /// Celebrated, on the days given.
+    Celebrated,
+    /// Awarded and not held: the wars of 1916, 1940 and 1944.
+    NotHeld,
+    /// Awarded and not yet held, with no ceremony dated.
+    Scheduled,
+}
+
+/// An edition of the modern Games as Olympedia's list of editions gives it
+/// (`olympedia-editions`, retrieved 2026-09-29): its number, year, host
+/// city as Olympedia spells it, whether it was held, and the days of its
+/// opening and closing ceremonies, `None` where Olympedia dates none.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Games {
+    /// The number, I as 1: for the Games of the Olympiad the Olympiad's
+    /// own, which a Games not held keeps; for the Winter Games their own
+    /// count, which the two not held did not take, and so `None`.
+    pub number: Option<u8>,
+    /// The year the Games were awarded to, 2020 for the Tokyo Games held in
+    /// 2021.
+    pub year: i64,
+    /// The host city, as Olympedia spells it.
+    pub host: &'static str,
+    /// Whether they were held.
+    pub status: GamesStatus,
+    /// The day of the opening ceremony.
+    pub opening: Option<Rd>,
+    /// The day of the closing ceremony.
+    pub closing: Option<Rd>,
+}
+
+const fn day(year: i64, month: u8, day: u8) -> Rd {
+    hc_calendar::gregorian::to_fixed_saturating(year, month, day)
+}
+
+const fn games(
+    number: Option<u8>,
+    year: i64,
+    host: &'static str,
+    status: GamesStatus,
+    opening: Option<Rd>,
+    closing: Option<Rd>,
+) -> Games {
+    Games {
+        number,
+        year,
+        host,
+        status,
+        opening,
+        closing,
+    }
+}
+
+/// The Games of the Olympiad, the Summer Games, I in 1896 to the XXXV
+/// scheduled for 2032, as Olympedia lists them: the VI, XII and XIII not
+/// held; the II of 1900 with no ceremony, and the III of 1904 with an
+/// opening and no closing; the XXXII of 2020 held in 2021; the XXXIV and
+/// XXXV scheduled. The number is the Olympiad's, which [`ioc_olympiad`]
+/// gives the year.
+pub const SUMMER_GAMES: [Games; 35] = [
+    games(
+        Some(1),
+        1896,
+        "Athina",
+        GamesStatus::Celebrated,
+        Some(day(1896, 4, 6)),
+        Some(day(1896, 4, 15)),
+    ),
+    games(Some(2), 1900, "Paris", GamesStatus::Celebrated, None, None),
+    games(
+        Some(3),
+        1904,
+        "St. Louis",
+        GamesStatus::Celebrated,
+        Some(day(1904, 5, 14)),
+        None,
+    ),
+    games(
+        Some(4),
+        1908,
+        "London",
+        GamesStatus::Celebrated,
+        Some(day(1908, 7, 13)),
+        Some(day(1908, 7, 25)),
+    ),
+    games(
+        Some(5),
+        1912,
+        "Stockholm",
+        GamesStatus::Celebrated,
+        Some(day(1912, 7, 6)),
+        Some(day(1912, 7, 15)),
+    ),
+    games(Some(6), 1916, "Berlin", GamesStatus::NotHeld, None, None),
+    games(
+        Some(7),
+        1920,
+        "Antwerpen",
+        GamesStatus::Celebrated,
+        Some(day(1920, 8, 14)),
+        Some(day(1920, 8, 30)),
+    ),
+    games(
+        Some(8),
+        1924,
+        "Paris",
+        GamesStatus::Celebrated,
+        Some(day(1924, 7, 5)),
+        Some(day(1924, 7, 27)),
+    ),
+    games(
+        Some(9),
+        1928,
+        "Amsterdam",
+        GamesStatus::Celebrated,
+        Some(day(1928, 7, 28)),
+        Some(day(1928, 8, 12)),
+    ),
+    games(
+        Some(10),
+        1932,
+        "Los Angeles",
+        GamesStatus::Celebrated,
+        Some(day(1932, 7, 30)),
+        Some(day(1932, 8, 14)),
+    ),
+    games(
+        Some(11),
+        1936,
+        "Berlin",
+        GamesStatus::Celebrated,
+        Some(day(1936, 8, 1)),
+        Some(day(1936, 8, 16)),
+    ),
+    games(Some(12), 1940, "Helsinki", GamesStatus::NotHeld, None, None),
+    games(Some(13), 1944, "London", GamesStatus::NotHeld, None, None),
+    games(
+        Some(14),
+        1948,
+        "London",
+        GamesStatus::Celebrated,
+        Some(day(1948, 7, 29)),
+        Some(day(1948, 8, 14)),
+    ),
+    games(
+        Some(15),
+        1952,
+        "Helsinki",
+        GamesStatus::Celebrated,
+        Some(day(1952, 7, 19)),
+        Some(day(1952, 8, 3)),
+    ),
+    games(
+        Some(16),
+        1956,
+        "Melbourne",
+        GamesStatus::Celebrated,
+        Some(day(1956, 11, 22)),
+        Some(day(1956, 12, 8)),
+    ),
+    games(
+        Some(17),
+        1960,
+        "Roma",
+        GamesStatus::Celebrated,
+        Some(day(1960, 8, 25)),
+        Some(day(1960, 9, 11)),
+    ),
+    games(
+        Some(18),
+        1964,
+        "Tokyo",
+        GamesStatus::Celebrated,
+        Some(day(1964, 10, 10)),
+        Some(day(1964, 10, 24)),
+    ),
+    games(
+        Some(19),
+        1968,
+        "Ciudad de México",
+        GamesStatus::Celebrated,
+        Some(day(1968, 10, 12)),
+        Some(day(1968, 10, 27)),
+    ),
+    games(
+        Some(20),
+        1972,
+        "München",
+        GamesStatus::Celebrated,
+        Some(day(1972, 8, 26)),
+        Some(day(1972, 9, 11)),
+    ),
+    games(
+        Some(21),
+        1976,
+        "Montréal",
+        GamesStatus::Celebrated,
+        Some(day(1976, 7, 17)),
+        Some(day(1976, 8, 1)),
+    ),
+    games(
+        Some(22),
+        1980,
+        "Moskva",
+        GamesStatus::Celebrated,
+        Some(day(1980, 7, 19)),
+        Some(day(1980, 8, 3)),
+    ),
+    games(
+        Some(23),
+        1984,
+        "Los Angeles",
+        GamesStatus::Celebrated,
+        Some(day(1984, 7, 28)),
+        Some(day(1984, 8, 12)),
+    ),
+    games(
+        Some(24),
+        1988,
+        "Seoul",
+        GamesStatus::Celebrated,
+        Some(day(1988, 9, 17)),
+        Some(day(1988, 10, 2)),
+    ),
+    games(
+        Some(25),
+        1992,
+        "Barcelona",
+        GamesStatus::Celebrated,
+        Some(day(1992, 7, 25)),
+        Some(day(1992, 8, 9)),
+    ),
+    games(
+        Some(26),
+        1996,
+        "Atlanta",
+        GamesStatus::Celebrated,
+        Some(day(1996, 7, 19)),
+        Some(day(1996, 8, 4)),
+    ),
+    games(
+        Some(27),
+        2000,
+        "Sydney",
+        GamesStatus::Celebrated,
+        Some(day(2000, 9, 15)),
+        Some(day(2000, 10, 1)),
+    ),
+    games(
+        Some(28),
+        2004,
+        "Athina",
+        GamesStatus::Celebrated,
+        Some(day(2004, 8, 13)),
+        Some(day(2004, 8, 29)),
+    ),
+    games(
+        Some(29),
+        2008,
+        "Beijing",
+        GamesStatus::Celebrated,
+        Some(day(2008, 8, 8)),
+        Some(day(2008, 8, 24)),
+    ),
+    games(
+        Some(30),
+        2012,
+        "London",
+        GamesStatus::Celebrated,
+        Some(day(2012, 7, 27)),
+        Some(day(2012, 8, 12)),
+    ),
+    games(
+        Some(31),
+        2016,
+        "Rio de Janeiro",
+        GamesStatus::Celebrated,
+        Some(day(2016, 8, 5)),
+        Some(day(2016, 8, 21)),
+    ),
+    games(
+        Some(32),
+        2020,
+        "Tokyo",
+        GamesStatus::Celebrated,
+        Some(day(2021, 7, 23)),
+        Some(day(2021, 8, 8)),
+    ),
+    games(
+        Some(33),
+        2024,
+        "Paris",
+        GamesStatus::Celebrated,
+        Some(day(2024, 7, 26)),
+        Some(day(2024, 8, 11)),
+    ),
+    games(
+        Some(34),
+        2028,
+        "Los Angeles",
+        GamesStatus::Scheduled,
+        None,
+        None,
+    ),
+    games(
+        Some(35),
+        2032,
+        "Brisbane",
+        GamesStatus::Scheduled,
+        None,
+        None,
+    ),
+];
+
+/// The Olympic Winter Games, I at Chamonix in 1924 to the XXVII scheduled
+/// for 2034, as Olympedia lists them: those of 1940 and 1944, not held,
+/// without a number, and the count running on from IV in 1936 to V in
+/// 1948; every two years between the Summer Games from 1994.
+pub const WINTER_GAMES: [Games; 29] = [
+    games(
+        Some(1),
+        1924,
+        "Chamonix",
+        GamesStatus::Celebrated,
+        Some(day(1924, 1, 24)),
+        Some(day(1924, 2, 5)),
+    ),
+    games(
+        Some(2),
+        1928,
+        "Sankt Moritz",
+        GamesStatus::Celebrated,
+        Some(day(1928, 2, 11)),
+        Some(day(1928, 2, 17)),
+    ),
+    games(
+        Some(3),
+        1932,
+        "Lake Placid",
+        GamesStatus::Celebrated,
+        Some(day(1932, 2, 4)),
+        Some(day(1932, 2, 13)),
+    ),
+    games(
+        Some(4),
+        1936,
+        "Garmisch-Partenkirchen",
+        GamesStatus::Celebrated,
+        Some(day(1936, 2, 6)),
+        Some(day(1936, 2, 16)),
+    ),
+    games(
+        None,
+        1940,
+        "Garmisch-Partenkirchen",
+        GamesStatus::NotHeld,
+        None,
+        None,
+    ),
+    games(
+        None,
+        1944,
+        "Cortina d'Ampezzo",
+        GamesStatus::NotHeld,
+        None,
+        None,
+    ),
+    games(
+        Some(5),
+        1948,
+        "Sankt Moritz",
+        GamesStatus::Celebrated,
+        Some(day(1948, 1, 30)),
+        Some(day(1948, 2, 8)),
+    ),
+    games(
+        Some(6),
+        1952,
+        "Oslo",
+        GamesStatus::Celebrated,
+        Some(day(1952, 2, 15)),
+        Some(day(1952, 2, 25)),
+    ),
+    games(
+        Some(7),
+        1956,
+        "Cortina d'Ampezzo",
+        GamesStatus::Celebrated,
+        Some(day(1956, 1, 26)),
+        Some(day(1956, 2, 5)),
+    ),
+    games(
+        Some(8),
+        1960,
+        "Squaw Valley",
+        GamesStatus::Celebrated,
+        Some(day(1960, 2, 18)),
+        Some(day(1960, 2, 28)),
+    ),
+    games(
+        Some(9),
+        1964,
+        "Innsbruck",
+        GamesStatus::Celebrated,
+        Some(day(1964, 1, 29)),
+        Some(day(1964, 2, 9)),
+    ),
+    games(
+        Some(10),
+        1968,
+        "Grenoble",
+        GamesStatus::Celebrated,
+        Some(day(1968, 2, 6)),
+        Some(day(1968, 2, 18)),
+    ),
+    games(
+        Some(11),
+        1972,
+        "Sapporo",
+        GamesStatus::Celebrated,
+        Some(day(1972, 2, 3)),
+        Some(day(1972, 2, 13)),
+    ),
+    games(
+        Some(12),
+        1976,
+        "Innsbruck",
+        GamesStatus::Celebrated,
+        Some(day(1976, 2, 4)),
+        Some(day(1976, 2, 15)),
+    ),
+    games(
+        Some(13),
+        1980,
+        "Lake Placid",
+        GamesStatus::Celebrated,
+        Some(day(1980, 2, 13)),
+        Some(day(1980, 2, 24)),
+    ),
+    games(
+        Some(14),
+        1984,
+        "Sarajevo",
+        GamesStatus::Celebrated,
+        Some(day(1984, 2, 8)),
+        Some(day(1984, 2, 19)),
+    ),
+    games(
+        Some(15),
+        1988,
+        "Calgary",
+        GamesStatus::Celebrated,
+        Some(day(1988, 2, 13)),
+        Some(day(1988, 2, 28)),
+    ),
+    games(
+        Some(16),
+        1992,
+        "Albertville",
+        GamesStatus::Celebrated,
+        Some(day(1992, 2, 8)),
+        Some(day(1992, 2, 23)),
+    ),
+    games(
+        Some(17),
+        1994,
+        "Lillehammer",
+        GamesStatus::Celebrated,
+        Some(day(1994, 2, 12)),
+        Some(day(1994, 2, 27)),
+    ),
+    games(
+        Some(18),
+        1998,
+        "Nagano",
+        GamesStatus::Celebrated,
+        Some(day(1998, 2, 7)),
+        Some(day(1998, 2, 22)),
+    ),
+    games(
+        Some(19),
+        2002,
+        "Salt Lake City",
+        GamesStatus::Celebrated,
+        Some(day(2002, 2, 8)),
+        Some(day(2002, 2, 24)),
+    ),
+    games(
+        Some(20),
+        2006,
+        "Torino",
+        GamesStatus::Celebrated,
+        Some(day(2006, 2, 10)),
+        Some(day(2006, 2, 26)),
+    ),
+    games(
+        Some(21),
+        2010,
+        "Vancouver",
+        GamesStatus::Celebrated,
+        Some(day(2010, 2, 12)),
+        Some(day(2010, 2, 28)),
+    ),
+    games(
+        Some(22),
+        2014,
+        "Sochi",
+        GamesStatus::Celebrated,
+        Some(day(2014, 2, 7)),
+        Some(day(2014, 2, 23)),
+    ),
+    games(
+        Some(23),
+        2018,
+        "PyeongChang",
+        GamesStatus::Celebrated,
+        Some(day(2018, 2, 9)),
+        Some(day(2018, 2, 25)),
+    ),
+    games(
+        Some(24),
+        2022,
+        "Beijing",
+        GamesStatus::Celebrated,
+        Some(day(2022, 2, 4)),
+        Some(day(2022, 2, 20)),
+    ),
+    games(
+        Some(25),
+        2026,
+        "Milano-Cortina d'Ampezzo",
+        GamesStatus::Celebrated,
+        Some(day(2026, 2, 6)),
+        Some(day(2026, 2, 22)),
+    ),
+    games(
+        Some(26),
+        2030,
+        "French Alps",
+        GamesStatus::Scheduled,
+        None,
+        None,
+    ),
+    games(
+        Some(27),
+        2034,
+        "Salt Lake City, Utah",
+        GamesStatus::Scheduled,
+        None,
+        None,
+    ),
+];
+
+/// The Games of the Olympiad numbered `number`, I as 1.
+#[must_use]
+pub fn summer_games(number: u8) -> Option<&'static Games> {
+    SUMMER_GAMES
+        .iter()
+        .find(|games| games.number == Some(number))
+}
+
+/// The Olympic Winter Games numbered `number`, I as 1.
+#[must_use]
+pub fn winter_games(number: u8) -> Option<&'static Games> {
+    WINTER_GAMES
+        .iter()
+        .find(|games| games.number == Some(number))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -515,5 +1089,85 @@ mod tests {
             calendar.from_fields(&DateFields::ymd(-800, 1, 1)),
             Err(CalendarError::YearOutOfRange)
         );
+    }
+
+    /// Olympedia's editions (`olympedia-editions`, retrieved 2026-09-29):
+    /// the XXXII's ceremonies in 2021, Milano-Cortina's XXV of 2026, the
+    /// count of the Winter Games over the war years, and the numbers the
+    /// Summer Games share with the Olympiads.
+    #[test]
+    fn the_games_are_olympedias_editions() {
+        let tokyo = summer_games(32).expect("listed");
+        assert_eq!((tokyo.year, tokyo.host), (2020, "Tokyo"));
+        assert_eq!(tokyo.opening, Some(day(2021, 7, 23)));
+        assert_eq!(tokyo.closing, Some(day(2021, 8, 8)));
+        assert_eq!(
+            summer_games(33).and_then(|g| g.opening),
+            Some(day(2024, 7, 26))
+        );
+        assert_eq!(
+            summer_games(35).map(|g| (g.year, g.status)),
+            Some((2032, GamesStatus::Scheduled))
+        );
+        assert_eq!(
+            summer_games(6).map(|g| g.status),
+            Some(GamesStatus::NotHeld)
+        );
+        assert_eq!(summer_games(2).and_then(|g| g.opening), None);
+        let chamonix = winter_games(1).expect("listed");
+        assert_eq!(
+            (chamonix.year, chamonix.opening),
+            (1924, Some(day(1924, 1, 24)))
+        );
+        assert_eq!(winter_games(4).map(|g| g.year), Some(1936));
+        assert_eq!(winter_games(5).map(|g| g.year), Some(1948));
+        let milano = winter_games(25).expect("listed");
+        assert_eq!(
+            (milano.year, milano.opening, milano.closing),
+            (2026, Some(day(2026, 2, 6)), Some(day(2026, 2, 22)))
+        );
+        assert_eq!(
+            winter_games(27).map(|g| (g.year, g.status)),
+            Some((2034, GamesStatus::Scheduled))
+        );
+        assert_eq!(
+            WINTER_GAMES.iter().filter(|g| g.number.is_none()).count(),
+            2
+        );
+        // The Summer Games' numbers are the Olympiads of their years; the
+        // Winter Games' run on without gaps.
+        for games in SUMMER_GAMES {
+            assert_eq!(
+                games.number.map(i64::from),
+                ioc_olympiad(games.year),
+                "{}",
+                games.year
+            );
+        }
+        let numbered: Vec<u8> = WINTER_GAMES.iter().filter_map(|g| g.number).collect();
+        assert_eq!(numbered, (1..=27).collect::<Vec<u8>>());
+        // Where both date the Games of 1908–2004, their openings are the
+        // days Rule 10's Olympiads begin on, but 1956's, Melbourne's 22
+        // November, which Rule 10 leaves undecided against Stockholm's
+        // 10 June.
+        for opening in IOC_OPENINGS {
+            let games = summer_games(opening.olympiad as u8).expect("listed");
+            if let (Some(day), None, true) =
+                (games.opening, opening.doubtful_until, games.year >= 1908)
+            {
+                assert_eq!(day, opening.from, "{}", games.year);
+            }
+        }
+        for table in [&SUMMER_GAMES[..], &WINTER_GAMES[..]] {
+            for games in table {
+                match games.status {
+                    GamesStatus::Celebrated => {}
+                    _ => assert_eq!((games.opening, games.closing), (None, None)),
+                }
+                if let (Some(open), Some(close)) = (games.opening, games.closing) {
+                    assert!(open < close, "{}", games.year);
+                }
+            }
+        }
     }
 }

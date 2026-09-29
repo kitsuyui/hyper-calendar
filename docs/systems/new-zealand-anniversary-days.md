@@ -61,7 +61,7 @@ read says which province's day it keeps.
 | NZ-AUK | Auckland | Auckland Anniversary Day, 29 January | the Monday nearest | 2010 |
 | NZ-BOP | Bay of Plenty | not carried: no province of that name, and no source read says which province's day the region keeps | | |
 | NZ-CAN | Canterbury | Canterbury Anniversary Day, Christchurch Show Day | the second Friday after the first Tuesday of November | 2010 |
-| NZ-CAN | South Canterbury | Dominion Day, the fourth Monday of September: not carried, as no region code names South Canterbury | | |
+| NZ-CAN | South Canterbury | Dominion Day, the fourth Monday of September: not yet carried, because no ISO 3166-2 code names South Canterbury and a code is the finest scope the engine takes | | |
 | NZ-CIT | Chatham Islands | Chatham Islands Anniversary Day, 30 November | the Monday nearest | 2010 |
 | NZ-GIS | Gisborne | not carried, as for Bay of Plenty | | |
 | NZ-HKB | Hawke's Bay | Hawke's Bay Anniversary Day, 1 November | the Friday before Labour Day | 2010 |

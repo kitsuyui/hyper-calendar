@@ -721,22 +721,42 @@ mod tests {
         );
         let fourth = chinese::new_year(1912 + YEAR_OFFSET).expect("in range");
         assert_eq!(written(fourth), Ok("宣統4年1月1日".into()));
-        // The two readings agree to the abdication.
-        for rd in (EARLIEST.0..=LATEST.0).step_by(997) {
+        // The two readings agree to the abdication, and the court's years
+        // round-trip: every day in a release build; in a debug build every
+        // 37th and each lunar New Year with the day before it, where the
+        // era year turns (docs/policy.md §7).
+        let new_years: Vec<i64> = (1_645..=1_924)
+            .map(|year| {
+                chinese::PARAMETERS
+                    .to_fixed(year + YEAR_OFFSET, Month::regular(1), 1)
+                    .unwrap()
+                    .0
+            })
+            .collect();
+        let days: Vec<i64> =
+            crate::sweep_days(EARLIEST.0, LATEST.0, 37, new_years.iter().copied()).collect();
+        crate::check_days(&days, |rd| {
             assert_eq!(
                 calendar.from_fixed(Rd(rd)),
-                ChineseRegnalCalendar.from_fixed(Rd(rd))
+                ChineseRegnalCalendar.from_fixed(Rd(rd)),
+                "rd {rd}"
             );
-        }
-        // And the court's years round-trip.
+        });
         let xuantong = by_id("xuantong").expect("in the table");
-        for rd in (LATEST.0..=COURT_LATEST.0).step_by(13) {
+        let court: Vec<i64> = crate::sweep_days(
+            LATEST.0,
+            COURT_LATEST.0,
+            37,
+            new_years.iter().copied().chain([COURT_LATEST.0]),
+        )
+        .collect();
+        crate::check_days(&court, |rd| {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
             assert_eq!(date.era, xuantong);
-            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
             let fields = calendar.to_fields(date).expect("describable");
-            assert_eq!(calendar.from_fields(&fields), Ok(date));
-        }
+            assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");
+        });
         let seventeenth = ChineseRegnalDate {
             era: xuantong,
             year: 17,

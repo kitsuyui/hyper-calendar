@@ -18,6 +18,20 @@
 //! [`SiderealSign::ruling_planet`], the classical scheme; the test holds
 //! all 36 lords to his table.
 //!
+//! This is the scheme of Parāśara, whom Varāhamihira follows (*Bṛhat
+//! Jātaka* ch. XXVII, cited through English Wikipedia's "Drekkana",
+//! `wikipedia-drekkana`, read 2026-09-29, the book itself not read), and
+//! the one scheme carried. The same article names two others: Somanātha's,
+//! in the *Kalpa Latā*, whose first twelve drekkāṇas, Meṣa to Karka, take
+//! the lords of the twelve signs in order from Meṣa, "and similarly for the
+//! rest"; and the
+//! *parivṛtti-traya* of Jaimini's *Vṛddha Kārikās*, "as per the scheme
+//! followed while erecting the Navamsa Chart". Neither is carried yet: the
+//! article, citing S. Krishna Iyengar (not read), does not say from which
+//! sign the lords of Somanātha's other twenty-four begin, nor state the
+//! navāṃśa scheme it refers to, and each would be a scheme of its own name
+//! (docs/policy.md §5).
+//!
 //! The thirds are the same arcs as [`super::decans`]'s faces, but of the
 //! sidereal signs, since the rāśi of Indian astronomy are sidereal; a
 //! drekkāṇa at an instant therefore depends on the ayanāṃśa, as the sign

@@ -273,12 +273,27 @@ mod tests {
     #[test]
     fn every_day_round_trips_and_the_errors_are_the_right_ones() {
         let calendar = MasonicMarchCalendar;
-        for rd in day(1996, 1, 1).0..day(2005, 1, 1).0 {
+        // A whole 400-year cycle of the Gregorian days under it, day by
+        // day, in either build: the calendar repeats with that cycle, so no
+        // month or year boundary escapes; and the range's two ends.
+        for rd in day(1600, 3, 1).0..day(2000, 3, 1).0 {
             let date = calendar.from_fixed(Rd(rd)).unwrap();
             assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
             let fields = calendar.to_fields(date).unwrap();
             assert_eq!(calendar.from_fields(&fields), Ok(date));
         }
+        let (first, last) = (
+            calendar.meta().earliest.unwrap(),
+            calendar.meta().latest.unwrap(),
+        );
+        for rd in [first, last] {
+            let date = calendar.from_fixed(rd).unwrap();
+            assert_eq!(calendar.to_fixed(date), Ok(rd));
+        }
+        assert_eq!(
+            from_fixed(Rd(last.0 + 1)),
+            Err(CalendarError::AfterSupportedRange)
+        );
         // 6019's twelfth month is February 2020, of 29 days.
         assert!(is_leap_year(6_019));
         assert!(!is_leap_year(6_020));

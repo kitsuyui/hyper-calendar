@@ -43,9 +43,9 @@
 //! almanac on the 18th; and the twelfth month of 1841, which KASI begins on
 //! 12 January 1842, the rules' day, and the Qing almanac on the 11th.
 //! Nothing read says what Hanseong printed in those months, so this
-//! calendar stays the Qing one; KASI's reading is the parameter set
-//! [`KASI_PARAMETERS`], `dangi-kasi`, which follows it in all four, and
-//! `docs/systems/east-asian-lunisolar.md` has the measurement.
+//! calendar stays the Qing one; KASI's reading is a calendar of its own
+//! name, [`DangiKasiCalendar`], `dangi-kasi`, which follows KASI in all
+//! four, and `docs/systems/east-asian-lunisolar.md` has the measurement.
 //!
 //! # Year numbering
 //!
@@ -226,10 +226,10 @@ pub static KASI_TERM_CORRECTIONS: [MajorTermCorrection; 6] = [
 ///
 /// `dangi` is the Qing almanac before 1912 throughout, because KASI's data
 /// follow it in every month but four, and nothing read says what Hanseong
-/// printed in those four; this reading follows KASI in them too. It is not
-/// registered: KASI's data are a modern reconstruction, and its departures
-/// are carried for a caller who wants to reproduce them, as
-/// [`KASI_CORRECTIONS`] and [`KASI_TERM_CORRECTIONS`] list.
+/// printed in those four; this reading follows KASI in them too. The two
+/// disagree, so each is registered under its own name (docs/policy.md §5):
+/// this one is [`DangiKasiCalendar`], `dangi-kasi`, and its departures are
+/// [`KASI_CORRECTIONS`] and [`KASI_TERM_CORRECTIONS`].
 ///
 /// It begins with 1653, the first year Joseon kept the Shíxiàn rules
 /// ([`KASI_EARLIEST`]). Before it KASI's data are Korea's older calendar,
@@ -258,54 +258,85 @@ pub const KASI_ENGINE: LunisolarCalendar = LunisolarCalendar::new(&KASI_PARAMETE
 /// representation is shared.
 pub type DangiDate = LunisolarDate;
 
-/// The Korean lunisolar calendar.
-#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
-pub struct DangiCalendar;
+/// A Korean lunisolar calendar: a unit type delegating to one configured
+/// engine, so that `dangi` and `dangi-kasi` are one implementation over two
+/// parameter sets.
+macro_rules! korean_calendar {
+    ($(#[$doc:meta])* $name:ident, $engine:expr, $parameters:expr, $usage:expr) => {
+        $(#[$doc])*
+        #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+        pub struct $name;
 
-impl Calendar for DangiCalendar {
-    type Date = DangiDate;
+        impl Calendar for $name {
+            type Date = DangiDate;
 
-    /// In use from the Shíxiàn rules of 1645, which Joseon adopted in 1653 —
-    /// a day in that gap is what the rules give, not what Hanseong proclaimed
-    /// — civil until the end of 1895, and the calendar of Seollal and Chuseok
-    /// since.
-    fn usage(&self) -> hc_calendar::Usage {
-        hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE).civil_until(LAST_CIVIL)
-    }
+            fn usage(&self) -> hc_calendar::Usage {
+                $usage
+            }
 
-    fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
-        hc_calendar::shape::LUNISOLAR_TWELVE
-    }
+            fn cycles(&self) -> &'static [hc_calendar::shape::CycleShape] {
+                hc_calendar::shape::LUNISOLAR_TWELVE
+            }
 
-    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
-        PARAMETERS.is_leap_year(year)
-    }
+            fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+                $parameters.is_leap_year(year)
+            }
 
-    fn meta(&self) -> CalendarMeta {
-        ENGINE.meta()
-    }
+            fn meta(&self) -> CalendarMeta {
+                $engine.meta()
+            }
 
-    /// The engine's one-new-moon rule, not the trait's day-by-day walk.
-    fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
-        ENGINE.days_in_month(fields)
-    }
+            /// The engine's one-new-moon rule, not the trait's day-by-day walk.
+            fn days_in_month(&self, fields: &DateFields) -> CalendarResult<u16> {
+                $engine.days_in_month(fields)
+            }
 
-    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        ENGINE.to_fixed(date)
-    }
+            fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+                $engine.to_fixed(date)
+            }
 
-    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
-        ENGINE.from_fixed(rd)
-    }
+            fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+                $engine.from_fixed(rd)
+            }
 
-    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
-        ENGINE.to_fields(date)
-    }
+            fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+                $engine.to_fields(date)
+            }
 
-    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
-        ENGINE.from_fields(fields)
-    }
+            fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+                $engine.from_fields(fields)
+            }
+        }
+    };
 }
+
+korean_calendar!(
+    /// The Korean lunisolar calendar, `dangi`: in use from the Shíxiàn
+    /// rules of 1645, which Joseon adopted in 1653 — a day in that gap is
+    /// what the rules give, not what Hanseong proclaimed — civil until the
+    /// end of 1895, and the calendar of Seollal and Chuseok since.
+    DangiCalendar,
+    ENGINE,
+    PARAMETERS,
+    hc_calendar::Usage::since(EARLIEST, USAGE_SOURCE).civil_until(LAST_CIVIL)
+);
+
+/// Where the period of use of `dangi-kasi` comes from.
+pub const KASI_USAGE_SOURCE: &str = "The Korean calendar as the Korea Astronomy and Space Science \
+    Institute's conversion data give it [kasi-lunisolar-conversion], from Joseon's adoption of the \
+    Shíxiàn rules in 1653 [wikipedia-ko-siheollyeok]; civil until Korea adopted the Gregorian \
+    calendar on 1 January 1896 [kowiki-geonyang] and kept since for Seollal and Chuseok, as \
+    `dangi`";
+
+korean_calendar!(
+    /// The Korean lunisolar calendar as KASI publishes it, `dangi-kasi`
+    /// ([`KASI_PARAMETERS`]): `dangi` but in the four months of 1653 and
+    /// 1841 where KASI's data leave the Qing almanac, from 1653.
+    DangiKasiCalendar,
+    KASI_ENGINE,
+    KASI_PARAMETERS,
+    hc_calendar::Usage::since(KASI_EARLIEST, KASI_USAGE_SOURCE).civil_until(LAST_CIVIL)
+);
 
 /// The fixed day of Seollal — the Korean new year — of `year`.
 ///
@@ -732,6 +763,53 @@ mod tests {
             let rd = Rd(rd);
             let date = calendar.from_fixed(rd).expect("in range");
             assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
+        }
+    }
+
+    /// `dangi-kasi` is registered under its own name and round-trips every
+    /// day of its range in a release build; a debug build takes every
+    /// sixty-first day and every new year, every day one of its
+    /// corrections moves, and the day before each. From 1912 it is `dangi`
+    /// day for day, which a sample of the modern years holds.
+    #[test]
+    fn the_kasi_reading_is_registered_and_round_trips() {
+        let calendar = DangiKasiCalendar;
+        assert_eq!(calendar.meta().id, ID_KASI);
+        assert_eq!(calendar.meta().native_locales, &["ko"]);
+        assert_eq!(calendar.usage().from, Some(KASI_EARLIEST));
+        assert!(!calendar.usage().source.is_empty());
+        let years = (4_286 + YEAR_OFFSET..=4_789 + YEAR_OFFSET)
+            .filter_map(|year| KASI_PARAMETERS.new_year(year).ok());
+        let corrections = KASI_CORRECTIONS
+            .iter()
+            .flat_map(|c| [c.computed, c.promulgated])
+            .chain(
+                KASI_TERM_CORRECTIONS
+                    .iter()
+                    .flat_map(|c| [c.computed, c.promulgated]),
+            );
+        let boundaries: Vec<i64> = years
+            .chain(corrections)
+            .map(|rd| rd.0)
+            .chain([LATEST.0 + 1])
+            .collect();
+        let mut days: Vec<i64> =
+            crate::sweep_days(KASI_EARLIEST.0, LATEST.0, 61, boundaries.iter().copied()).collect();
+        days.sort_unstable();
+        days.dedup();
+        assert!(days.contains(&KASI_EARLIEST.0) && days.contains(&LATEST.0));
+        crate::check_days(&days, |rd| {
+            let rd = Rd(rd);
+            let date = calendar.from_fixed(rd).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(rd), "RD {rd}");
+        });
+        let modern = gregorian::to_fixed_saturating(1912, 1, 1).0;
+        for rd in (modern..=LATEST.0).step_by(crate::sweep_stride(1) * 97) {
+            assert_eq!(
+                calendar.from_fixed(Rd(rd)),
+                DangiCalendar.from_fixed(Rd(rd)),
+                "RD {rd}"
+            );
         }
     }
 

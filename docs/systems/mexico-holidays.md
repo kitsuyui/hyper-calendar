@@ -34,8 +34,7 @@ the day as `Kind::Government`, and the day remains a business day.
 
 ## What is carried
 
-- **The federal days** of article 74, nationwide, as the table carried
-  them before this document.
+- **The federal days** of article 74, nationwide.
 - **Jalisco's four days** (`MX-JAL`), `Kind::Government`, from 2007: the
   text read is article 38 as reformed by Decreto 21593/LVII/06, published
   on 2 December 2006, and the years before it are a gap: the law is of

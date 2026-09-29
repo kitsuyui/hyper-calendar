@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-220 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+222 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 186 of 220 have months and 186 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 188 of 222 have months and 188 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -57,6 +57,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `cnes-julian-day` | CNES Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `coptic` | Coptic | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0284-08-29 | +1000304-03-12 | no | no | midnight | — | month ×13, weekday ×7 | yes |
 | `dangi` | Dangi (Korean lunisolar) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `dangi-kasi` | Dangi (Korean lunisolar, as KASI publishes it) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1653-01-29 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `dee` | Dee (eleven-day correction) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999997-01-27 | +9999997-12-03 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `dee-cecil` | Dee–Cecil | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999997-01-28 | +9999997-12-04 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `discordian` | Discordian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -1165-01-01 | 9999-12-31 | no | no | midnight | — | month ×5, erisian-day ×5 | yes |
@@ -228,6 +229,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `thai-lunar` | Thai lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1991-12-07 | 2028-05-23 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `tibetan` | Tibetan (Phugpa) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-16 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `tibetan-bhutan` | Tibetan (Bhutanese) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-17 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
+| `tibetan-bhutan-lochen` | Tibetan (Bhutanese, Lochen's anomaly) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-17 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `tibetan-lochen` | Tibetan (Phugpa, Lochen's anomaly) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-16 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `tibetan-tsurphu` | Tibetan (Tsurphu) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-16 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `tibetan-tsurphu-karana` | Tibetan (Tsurphu, karaṇa Sun) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-17 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |

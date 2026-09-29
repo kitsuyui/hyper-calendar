@@ -246,7 +246,8 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   list in Wikipedia's article, which cites no source for it
   [wikipedia-birkat-hachamah].
 - **Shmuel's four *tekufot***, in the same module: `shmuel_tekufah`, the
-  moment in Jerusalem mean time, and `shmuel_tekufah_day`, the Hebrew day
+  moment in Jerusalem mean time, `shmuel_tekufah_simmons`, the same moment
+  as Simmons reads its hours, and `shmuel_tekufah_day`, the Hebrew day
   and the clock, of *tekufat* Tishrei, Tevet, Nisan and Tammuz
   (`Tekufah`) of a Hebrew year. Shmuel's year is "365 days and 1/4 of a
   day", and "between the start of each of the successive seasons of the
@@ -265,10 +266,15 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   2009; 5786 is 17 years later, 17 × 365¼ = 6 209¼ days, so Nisan 5786 is
   at midnight beginning 8 April 2026, and Tishrei 5786, two seasons
   earlier, 182 days and 15 hours before that, at nine in the morning of
-  7 October 2025, the third hour of the day, as the table has it. Simmons's
-  own clock times run thirteen minutes later, from the mean noon of the
-  first *tekufah*'s day [simmons-sinai-111]; that is another reading of the
-  hour and is not carried. The day the prayer for rain begins outside the
+  7 October 2025, the third hour of the day, as the table has it. Simmons
+  counts the hours from the true midday of the first *tekufah*'s day,
+  about 23 February, when "midday by the local clock is 12:13", so his
+  times run thirteen minutes later: *tekufat Tishrei* 5752 "on the night of
+  30 Tishrei (7 October) at 20:52 in Jerusalem", in Israel's clock, which
+  is 21 minutes behind Jerusalem's mean time [simmons-sinai-111]. The two
+  readings come from two authorities and are two functions,
+  `shmuel_tekufah` and `shmuel_tekufah_simmons`; the Hebrew day of a
+  *tekufah* is the same in both. The day the prayer for rain begins outside the
   Land of Israel, the sixtieth from *tekufat Tishrei*, is not a function
   here; a test holds the *tekufot* to its published dates.
 - **Anniversaries**, in the same module: `yahrzeit` and `birthday`, the
@@ -428,8 +434,9 @@ the Nisan-first internal one. Anchors:
 hachama, `yahrzeit`, `birthday`, `sabbatical_cycle_year` and
 `is_sabbatical_year` functions are in the same module, the sabbatical
 year tested by `the_sabbatical_years_are_the_published_ones`, Shmuel's
-*tekufot* (`shmuel_tekufah`, `shmuel_tekufah_day`) by
-`shmuels_tekufot_are_maimonides_and_the_tables` and
+*tekufot* (`shmuel_tekufah`, `shmuel_tekufah_simmons`, `shmuel_tekufah_day`) by
+`shmuels_tekufot_are_maimonides_and_the_tables`,
+`simmonss_tekufot_run_thirteen_minutes_later` and
 `the_sixtieth_day_of_tekufat_tishrei_is_the_diaspora_s_prayer_for_rain`, the
 anniversaries tested by `the_adar_anniversaries_agree_with_hebcals_calculator`, `a_yahrzeit_in_adar_follows_the_books_rules`,
 `a_birthday_in_adar_follows_the_books_rules` and

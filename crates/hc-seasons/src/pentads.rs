@@ -2,7 +2,7 @@
 //!
 //! The system is written up in `docs/systems/solar-terms-and-pentads.md` in
 //! the repository: the 候 as thirds of a term, the 時訓解 list and its
-//! Japanese revisions, what the two name sets carried here are and where
+//! Japanese revisions, what the four name sets carried here are and where
 //! they depart from the texts read, and the sources, keyed in
 //! `docs/references.bib`. This page summarises it and states the code's own
 //! facts.
@@ -11,7 +11,7 @@
 //! the pentad boundaries are the multiples of 5° of apparent solar longitude.
 //! One shared algorithm, exactly as for the terms; what changes is the data.
 //!
-//! # Two name sets, and why conflating them is the usual mistake
+//! # Four name sets, and why conflating them is the usual mistake
 //!
 //! The pentads are named after what is supposed to be happening in nature,
 //! and what is happening in nature depends on where you are. The classical
@@ -21,17 +21,20 @@
 //! today shares only 21 of its 72 names with the Chinese one, the one in
 //! traditional characters and the other in shinjitai.
 //!
-//! Both sets are shipped here, selected by [`PentadTradition`]. Neither is
-//! the default, because a library that picked one would be asserting
-//! something about its caller that it cannot know.
+//! Both sets are shipped here, with the two older Japanese lists: the
+//! Chinese list as Japan kept it before 1685 and Shibukawa Harumi's of the
+//! 貞享暦 — four in all, selected by [`PentadTradition`]. None is the
+//! default, because a library that picked one would be asserting something
+//! about its caller that it cannot know.
 //!
 //! # What this module does not claim
 //!
 //! The 5° division is the modern 定気 one: a pentad is an arc of the
 //! ecliptic, so its length in days varies from about 4.9 near perihelion to
 //! about 5.2 near aphelion. The older almanacs divided the year equally *in
-//! time* (平気), which gives different dates; this module does not implement
-//! it, and the document says which almanacs those were.
+//! time* (平気), which gives different dates; this module does not yet take
+//! the 恒気 terms `hc-calendars-lunar` computes for the Japanese systems,
+//! and the document says which almanacs those were.
 
 use hc_astro::solar::{seasonal_event, solar_longitude, solar_longitude_after};
 use hc_calendar::Rd;
@@ -77,6 +80,12 @@ pub struct PentadTradition {
     pub glosses: &'static [&'static str],
     /// Which text the set comes from.
     pub authority: &'static str,
+    /// The alternate readings the text prints beside a name, by the name's
+    /// place in [`Self::names`]: the name with the alternate character put
+    /// for the one it follows in parentheses, as the 暦Wiki's 宣明暦以前
+    /// column prints 虎(武)始交. Empty where the text prints none that this
+    /// set carries.
+    pub alternates: &'static [(u8, &'static str)],
 }
 
 /// Where a pentad sits inside its solar term.
@@ -362,6 +371,7 @@ hc_core::catalogue! {
                 "the hawk turns into a dove",
             ],
             authority: "逸周書·時訓解, in traditional characters (Wikisource), with nine readings from 吳澄's 月令七十二候集解 (Wikisource), marked entry by entry",
+            alternates: &[],
         };
 
         /// The Japanese set as the 略本暦 printed it from 1874: the 宝暦暦
@@ -568,6 +578,7 @@ hc_core::catalogue! {
                 "the caterpillars become butterflies",
             ],
             authority: "The 宝暦暦 revision as the 1874 略本暦 printed it, in the 宝暦暦以降 column of the National Astronomical Observatory of Japan's 暦Wiki",
+            alternates: &[],
         };
 
         /// Shibukawa Harumi's 本朝七十二候 of the 貞享暦, 1685, as the
@@ -775,13 +786,16 @@ hc_core::catalogue! {
                 "the caterpillars become butterflies",
             ],
             authority: "Shibukawa Harumi's 本朝七十二候 of the 貞享暦 (1685), in the 貞享暦 column of the National Astronomical Observatory of Japan's 暦Wiki",
+            alternates: &[],
         };
 
         /// The Chinese list as Japan kept it before 1685, in the 宣明暦以前
         /// column of the National Astronomical Observatory of Japan's
-        /// 暦Wiki (`nao-rekiwiki-72ko`): shinjitai, the variants the page
-        /// puts in parentheses kept as it prints them — 桐始華(花),
-        /// 菊有黄華(花), 虎(武)始交, 鴻雁来(北) — and readings of its own where
+        /// 暦Wiki (`nao-rekiwiki-72ko`): shinjitai, the names read by their
+        /// main characters and the variants the page puts in parentheses —
+        /// 桐始華(花), 菊有黄華(花), 虎(武)始交 — kept apart as
+        /// [`PentadTradition::alternates`], but 鴻雁来(北), whose main reading
+        /// is also 白露初候's and whose 鴻雁北 is the name, and readings of its own where
         /// it departs from the 時訓解 of [`CHINESE`], such as 小暑至 for
         /// 麥秋至, 雷乃収声 for 雷始收聲 and 鷙鳥厲疾 for 鷙鳥厲. The glosses
         /// are [`CHINESE`]'s, position by position, but for 小暑至's.
@@ -794,7 +808,7 @@ hc_core::catalogue! {
                 "雷乃発声",
                 "始電",
                 // 清明 (15°)
-                "桐始華(花)",
+                "桐始華",
                 "田鼠化為鴽",
                 "虹始見",
                 // 穀雨 (30°)
@@ -844,7 +858,7 @@ hc_core::catalogue! {
                 // 寒露 (195°)
                 "鴻雁来賓",
                 "雀入大水為蛤",
-                "菊有黄華(花)",
+                "菊有黄華",
                 // 霜降 (210°)
                 "豺乃祭獣",
                 "草木黄落",
@@ -859,7 +873,7 @@ hc_core::catalogue! {
                 "閉塞而成冬",
                 // 大雪 (255°)
                 "鶡鳥不鳴",
-                "虎(武)始交",
+                "虎始交",
                 "茘挺出",
                 // 冬至 (270°)
                 "蚯蚓結",
@@ -879,7 +893,7 @@ hc_core::catalogue! {
                 "魚上氷",
                 // 雨水 (330°)
                 "獺祭魚",
-                "鴻雁来(北)",
+                "鴻雁北",
                 "草木萌動",
                 // 啓蟄 (345°)
                 "桃始華",
@@ -985,6 +999,13 @@ hc_core::catalogue! {
                 "the hawk turns into a dove",
             ],
             authority: "The Chinese list as Japan kept it before the 貞享暦, in the 宣明暦以前 column of the National Astronomical Observatory of Japan's 暦Wiki",
+            // 清明初候, 寒露末候, 大雪次候 and 雨水次候, the positions of
+            // `names` from 春分初候. The page prints 鴻雁来(北) at 雨水次候,
+            // whose main reading is 白露初候's name too; 鴻雁北, the reading
+            // of the 集解 that [`CHINESE`] follows there, is the name, so
+            // that a name still identifies its pentad, and 鴻雁来 the
+            // alternate.
+            alternates: &[(3, "桐始花"), (41, "菊有黄花"), (52, "武始交"), (67, "鴻雁来")],
         };
     }
 }
@@ -1106,6 +1127,17 @@ impl Pentad {
     #[must_use]
     pub const fn english_name(self, tradition: PentadTradition) -> &'static str {
         tradition.glosses[self.0 as usize]
+    }
+
+    /// The alternate reading the tradition's text prints beside this
+    /// pentad's name, if it prints one ([`PentadTradition::alternates`]).
+    #[must_use]
+    pub fn alternate_name(self, tradition: PentadTradition) -> Option<&'static str> {
+        tradition
+            .alternates
+            .iter()
+            .find(|(position, _)| *position == self.0)
+            .map(|(_, name)| *name)
     }
 
     /// Whether the two traditions give this pentad the same name, the
@@ -1484,6 +1516,16 @@ mod tests {
                 .filter(|pentad| pentad.name(a) == pentad.name(b))
                 .count()
         };
+        // The page's parenthesised variants are alternates, not the names.
+        let tiger = Pentad::from_index(TermOrder::SpringEquinoxFirst, 52).unwrap();
+        assert_eq!(tiger.name(SENMYO), "虎始交");
+        assert_eq!(tiger.alternate_name(SENMYO), Some("武始交"));
+        assert_eq!(at(1).alternate_name(SENMYO), None);
+        assert!(SENMYO.alternates.len() == 4 && JOKYO.alternates.is_empty());
+        for (position, _) in SENMYO.alternates {
+            assert!(!SENMYO.names[usize::from(*position)].contains('('));
+        }
+        assert!(SENMYO.names.iter().all(|name| !name.contains('(')));
         assert_eq!(shared(JOKYO, JAPANESE), 48);
         assert_eq!(shared(JOKYO, SENMYO), 20);
     }

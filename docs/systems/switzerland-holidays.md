@@ -53,10 +53,10 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   older than the law (Vaud's 2 January and Whit Monday, added in 2007, are
   absent in 2006 and 2007, whose text was read, and a gap before 2006). A day the law makes
   equal to Sunday or declares a public holiday is `Kind::Public`, a public
-  rest day it does not make equal to Sunday `Kind::Observance`. 143 rules, and Solothurn's half day. Before this
-  document the table carried Good Friday, Easter Monday, Whit Monday and
-  St Stephen's Day nationwide, from a secondary source; they are now the
-  cantons' days, in the cantons whose laws keep them.
+  rest day it does not make equal to Sunday `Kind::Observance`. 143 rules, and Solothurn's half day.
+  Good Friday, Easter Monday, Whit Monday and St Stephen's Day are the
+  cantons' days, carried in the cantons whose laws keep them, and are not
+  nationwide.
 - **Half days**: Solothurn's 1 May "ab 12 Uhr", equal to Sunday from noon
   (§ 46 Abs. 1 a), as `Kind::HalfDay` from 2016, a gap before.
 - **Conditional days**: Appenzell Ausserrhoden's 26 December, not kept when
@@ -72,7 +72,9 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   read; before 2026 those cantons' days are a gap.
 - **Not yet carried, and why:** the days a law keeps in part of a canton,
   which need a scope finer than a canton; days a commune declares; and the days the last column of the table
-  names. The communes' own days are local and out of this document.
+  names. The communes' own days are not yet carried: a commune is below
+  ISO 3166-2, the finest scope the engine takes, and no commune's
+  instrument was read.
 
 ### The twenty-six
 

@@ -72,17 +72,21 @@ fn lines_at(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
     line.end();
     let half = karana_at(moment);
     let (began, ends) = karana_span(moment);
-    let name = usize::from(karana_name(half));
-    let mut line = Line::new(&mut out);
-    line.cell("karana")
-        .value(half)
-        .cell(KARANA_NAMES[name])
-        .cell(KARANA_NAMES_DEVANAGARI[name])
-        .value(unix_from_moment(began))
-        .value(unix_from_moment(ends))
-        .value(read_at)
-        .empties(2);
-    line.end();
+    // `karana_at` gives a half of the month, 1 to 60, which always has a
+    // name.
+    if let Some(name) = karana_name(half) {
+        let name = usize::from(name);
+        let mut line = Line::new(&mut out);
+        line.cell("karana")
+            .value(half)
+            .cell(KARANA_NAMES[name])
+            .cell(KARANA_NAMES_DEVANAGARI[name])
+            .value(unix_from_moment(began))
+            .value(unix_from_moment(ends))
+            .value(read_at)
+            .empties(2);
+        line.end();
+    }
     out
 }
 

@@ -92,8 +92,10 @@ pub const ZODIAC_ANIMALS: [&str; 12] = [
 /// English: [`ZODIAC_ANIMALS`] with the water buffalo for the ox at 丑 and
 /// the cat for the rabbit at 卯, as Wikipedia's "Vietnamese zodiac" and
 /// "Vietnamese calendar" give them (`wikipedia-en-vietnamese-zodiac`,
-/// `wikipedia-en-vietnamese-calendar`). A convention of its own under the
-/// identifier `vietnamese-zodiac`; the Chinese set is `chinese-zodiac`.
+/// `wikipedia-en-vietnamese-calendar`). A convention of its own, whose
+/// name is this table's and [`Sexagenary::vietnamese_zodiac_animal`]'s:
+/// nothing selects a zodiac by a string, so neither set has a string
+/// identifier (docs/policy.md §5); the Chinese set is [`ZODIAC_ANIMALS`].
 pub const VIETNAMESE_ZODIAC_ANIMALS: [&str; 12] = [
     "rat", "buffalo", "tiger", "cat", "dragon", "snake", "horse", "goat", "monkey", "rooster",
     "dog", "pig",

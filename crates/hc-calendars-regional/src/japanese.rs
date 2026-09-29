@@ -1328,6 +1328,36 @@ mod tests {
         }
     }
 
+    /// `japanese-kaigen-toji` names every day as the proclaimed stream does
+    /// and differs from it only in accepting the ending era's date on the
+    /// two changeover days, so its sweep holds the two to each other: every
+    /// day of the range in a release build; in a debug build every 97th,
+    /// each era's first day and the day before it, and the range's ends
+    /// (docs/policy.md §7). Every day that converts round-trips.
+    #[test]
+    fn the_kaigen_toji_reading_is_the_proclaimed_one_on_every_day() {
+        let calendar = JapaneseCalendar::KAIGEN_TOJI;
+        let boundaries: Vec<i64> = nengo::stream(Court::Unified)
+            .filter_map(|era| era.start)
+            .map(|start| start.0)
+            .chain([LATEST.0 + 1])
+            .collect();
+        let days: Vec<i64> =
+            crate::sweep_days(EARLIEST.0, LATEST.0, 97, boundaries.iter().copied()).collect();
+        assert!(days.contains(&EARLIEST.0) && days.contains(&LATEST.0));
+        crate::check_days(&days, |rd| {
+            let date = calendar.from_fixed(Rd(rd));
+            assert_eq!(
+                date,
+                JapaneseCalendar::PROCLAIMED.from_fixed(Rd(rd)),
+                "rd {rd}"
+            );
+            if let Ok(date) = date {
+                assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
+            }
+        });
+    }
+
     #[test]
     fn the_southern_calendar_follows_meitoku_from_the_reunion() {
         let union = nengo::NANBOKUCHO_END;

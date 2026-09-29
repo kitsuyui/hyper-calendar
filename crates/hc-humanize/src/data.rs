@@ -14,9 +14,9 @@
 //! file's list patterns, decimal separator and long `relative` date-time
 //! pattern, which UTS #35 Part 4 gives a relative date joined to a time.
 //! They are a subset: CLDR carries roughly 600 locales and this crate
-//! carries 32.
+//! carries 39.
 //!
-//! Every one of the 32 takes that part from its CLDR 48 file, generated:
+//! Every one of the 39 takes that part from its CLDR 48 file, generated:
 //! `scripts/humanize-cldr.py` resolves each value as CLDR resolves it and
 //! writes `data/cldr48.rs`, applying the documented overrides of
 //! `data/cldr48_overrides.tsv`, each a value of CLDR's that a source argues

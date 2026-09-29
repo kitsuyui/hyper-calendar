@@ -113,7 +113,7 @@ aliases give (narrow from short, short from long), and last the style's
 `other` — and writes `src/data/cldr48.rs`. Nothing here is a copy of
 CLDR's 600.
 
-The generator then applies one list, `src/data/cldr48_overrides.tsv`, 41
+The generator then applies one list, `src/data/cldr48_overrides.tsv`, 52
 values, each a value of CLDR's that a source argues against, with its
 reason, which the generated file repeats above the value and
 [`docs/i18n.md`](../../docs/i18n.md) lists: Traditional Chinese's duration

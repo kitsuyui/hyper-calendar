@@ -31,7 +31,8 @@
 //! has Anurādhā only from late in the day, after Viśākhā ends. So
 //! [`amrita_siddhi`] is the overlap of the two, or `None`.
 
-use hc_astro::riseset::Location;
+use hc_astro::riseset::{Location, sunrise};
+use hc_astro::solar_time::MissingSolarEvent;
 use hc_calendar::fixed::Moment;
 use hc_calendar::{Rd, Weekday};
 use hc_seasons::zodiac::Ayanamsa;
@@ -40,7 +41,6 @@ use crate::kalam::Span;
 use crate::nakshatra::{
     ANURADHA, ASHVINI, HASTA, MRIGASHIRSHA, PUSHYA, REVATI, ROHINI, nakshatra_span,
 };
-use crate::tithi::sunrise_of;
 
 /// The nakṣatra of the amṛta siddhi yoga for each weekday, Sunday first,
 /// 1 for Aśvinī through 27 for Revatī.
@@ -71,18 +71,28 @@ pub const fn nakshatra_of(weekday: Weekday) -> u8 {
 /// The amṛta siddhi yoga of a local day, sunrise to the next sunrise at the
 /// place: the part of it the Moon spends in the weekday's nakṣatra, in
 /// Universal Time, or `None` when it spends none.
-#[must_use]
-pub fn amrita_siddhi(day: Rd, location: Location, ayanamsa: Ayanamsa) -> Option<Span> {
-    let rise = sunrise_of(day, location);
-    let next = sunrise_of(Rd(day.0 + 1), location);
+///
+/// # Errors
+///
+/// [`MissingSolarEvent::Sunrise`] where the Sun does not rise on the day or
+/// the next, so that the day has no bounds: the yoga is not placed by a
+/// stand-in hour.
+pub fn amrita_siddhi(
+    day: Rd,
+    location: Location,
+    ayanamsa: Ayanamsa,
+) -> Result<Option<Span>, MissingSolarEvent> {
+    let rise = sunrise(day, location).ok_or(MissingSolarEvent::Sunrise(day))?;
+    let following = Rd(day.0 + 1);
+    let next = sunrise(following, location).ok_or(MissingSolarEvent::Sunrise(following))?;
     let nakshatra = nakshatra_of(Weekday::from_rd(day));
     let (entry, exit) = nakshatra_span(nakshatra, rise, ayanamsa);
     let start = entry.0.max(rise.0);
     let end = exit.0.min(next.0);
-    (start < end).then_some(Span {
+    Ok((start < end).then_some(Span {
         start: Moment(start),
         end: Moment(end),
-    })
+    }))
 }
 
 #[cfg(test)]
@@ -118,7 +128,7 @@ mod tests {
         ];
         for date in 1..=31 {
             let day = gregorian::to_fixed(2025, 1, date).expect("a date");
-            let yoga = amrita_siddhi(day, NEW_DELHI, Ayanamsa::LAHIRI);
+            let yoga = amrita_siddhi(day, NEW_DELHI, Ayanamsa::LAHIRI).expect("a sunrise");
             match printed
                 .iter()
                 .find(|(printed_day, _, _)| *printed_day == date)
@@ -146,7 +156,11 @@ mod tests {
         let first = gregorian::to_fixed(1894, 8, 31).expect("a date");
         let days: alloc::vec::Vec<(u8, u8)> = (0..30)
             .map(|offset| Rd(first.0 + offset))
-            .filter(|day| amrita_siddhi(*day, POONA, Ayanamsa::LAHIRI).is_some())
+            .filter(|day| {
+                amrita_siddhi(*day, POONA, Ayanamsa::LAHIRI)
+                    .expect("a sunrise")
+                    .is_some()
+            })
             .map(|day| {
                 let (_, month, date) = gregorian::from_fixed(day).expect("a date");
                 (month, date)
@@ -162,11 +176,23 @@ mod tests {
         let first = gregorian::to_fixed(2025, 1, 1).expect("a date");
         for offset in 0..366 {
             let day = Rd(first.0 + offset);
-            if let Some(span) = amrita_siddhi(day, NEW_DELHI, Ayanamsa::LAHIRI) {
-                assert!(span.start.0 >= sunrise_of(day, NEW_DELHI).0);
-                assert!(span.end.0 <= sunrise_of(Rd(day.0 + 1), NEW_DELHI).0);
+            if let Some(span) = amrita_siddhi(day, NEW_DELHI, Ayanamsa::LAHIRI).expect("a sunrise")
+            {
+                assert!(span.start.0 >= sunrise(day, NEW_DELHI).expect("a sunrise").0);
+                assert!(span.end.0 <= sunrise(Rd(day.0 + 1), NEW_DELHI).expect("a sunrise").0);
                 assert!(span.start.0 < span.end.0);
             }
         }
+    }
+
+    #[test]
+    fn a_day_without_a_sunrise_has_no_yoga_placed() {
+        // Tromsø has no sunrise from late November to mid January.
+        let tromso = Location::new(69.6496, 18.9560, 0.0);
+        let midwinter = gregorian::to_fixed(2024, 12, 21).expect("a date");
+        assert_eq!(
+            amrita_siddhi(midwinter, tromso, Ayanamsa::LAHIRI),
+            Err(MissingSolarEvent::Sunrise(midwinter))
+        );
     }
 }

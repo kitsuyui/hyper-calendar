@@ -304,10 +304,14 @@ gap in the middle, which is not what the identifier claims to be.
     followed by 25 December 1590 [wikipedia-adoption-list,
     dewiki-gregorianischer-kalender] — and the other territories of the
     Empire, Catholic and Protestant, each on its own day; Mount Athos,
-    which never changed. The table is deliberately fourteen rows, the ones
-    a reader of European and Russian sources meets; every other polity is
-    a fixed day away through `with_cutover`, and a row of the regional
-    table is added when a source for it has been read.
+    which never changed. Fourteen of them have a reform calendar of their
+    own, the ones a reader of European and Russian sources meets first;
+    the regional table's other rows, Lorraine and Transylvania among them,
+    do not yet have one, and until they do a date there is reached through
+    `with_cutover`, a constructed calendar with no name in the registry.
+    Each is a calendar of its own under policy §5, not yet registered; a
+    row of the regional table is added when a source for it has been
+    read.
   - **Bukovina**, which Romanian Wikipedia says took the Gregorian
     calendar in 1773, uncited [rowiki-calendarul-gregorian]: no source
     read gives the days, and none of the other Wikipedias read, nor their

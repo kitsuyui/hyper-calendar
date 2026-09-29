@@ -126,7 +126,8 @@ They are feasts on the Julian computus, so they sit beside
   held to the Bulgarian Wikipedia's table of 2010–2023 [bgwiki-imen-den].
 
 Each names the feast and the principal names the source prints, not the
-whole lists, which are the custom this crate does not carry.
+whole lists: the lists are the custom of each name's bearers, which no
+source read tabulates in full, and they are not yet carried.
 `gaps::GREECE` and `gaps::BULGARIA` still record the fixed lists.
 
 ## What is carried
