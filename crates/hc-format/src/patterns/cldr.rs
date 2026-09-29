@@ -940,6 +940,60 @@ mod tests {
         assert_eq!(render_in("V|vvvv", &kolkata), "inccu|India Standard Time");
     }
 
+    /// UTS #35 Part 4's last type fallback, whose example is "Mountain
+    /// Standard Time" for Phoenix: where the offset and the daylight offset do not
+    /// change within 184 days either side of the instant, the generic name
+    /// is written as the standard one. Phoenix keeps MST all year (`MST7`);
+    /// Denver changes on 8 March 2026, 52 days after 2026-01-15 (`Rd`
+    /// 739 631), so its generic name stands; Tokyo keeps JST (`JST-9`).
+    /// With no rules in the context, the generic name stands too.
+    #[cfg(feature = "zone-names")]
+    #[test]
+    fn a_zone_that_keeps_one_offset_for_184_days_takes_its_standard_name() {
+        use hc_tz::PosixTimeZone;
+        let english = Locale::parse("en").unwrap();
+        let phoenix = PosixTimeZone::parse("America/Phoenix", "MST7").unwrap();
+        let denver = PosixTimeZone::parse("America/Denver", "MST7MDT,M3.2.0,M11.1.0").unwrap();
+        let tokyo = PosixTimeZone::parse("Asia/Tokyo", "JST-9").unwrap();
+        let winter = |zone, offset| zoned(739_631, 12, offset, zone, false).with_locale(&english);
+        assert_eq!(
+            render_in("vvvv|v|VVVV", &winter("America/Phoenix", -7)),
+            "Mountain Time (Phoenix)|MT (Phoenix)|Phoenix Time"
+        );
+        assert_eq!(
+            render_in(
+                "vvvv|v|VVVV",
+                &winter("America/Phoenix", -7).with_zone_rules(&phoenix)
+            ),
+            "Mountain Standard Time|MST|Phoenix Time"
+        );
+        assert_eq!(
+            render_in(
+                "vvvv|v",
+                &winter("America/Denver", -7).with_zone_rules(&denver)
+            ),
+            "Mountain Time|MT"
+        );
+        let summer = zoned(739_798, 12, -6, "America/Denver", true)
+            .with_locale(&english)
+            .with_zone_rules(&denver);
+        assert_eq!(
+            render_in("vvvv|zzzz", &summer),
+            "Mountain Time|Mountain Daylight Time"
+        );
+        assert_eq!(render_in("vvvv", &winter("Asia/Tokyo", 9)), "Japan Time");
+        assert_eq!(
+            render_in("vvvv", &winter("Asia/Tokyo", 9).with_zone_rules(&tokyo)),
+            "Japan Standard Time"
+        );
+        // Denver on 2026-09-16 (`Rd` 739 875): the change of 1 November is 46 days
+        // ahead, so the generic name stands however the flag reads.
+        let september = zoned(739_875, 12, -7, "America/Denver", false)
+            .with_locale(&english)
+            .with_zone_rules(&denver);
+        assert_eq!(render_in("vvvv", &september), "Mountain Time");
+    }
+
     #[test]
     fn a_zone_field_falls_back_where_its_names_are_unavailable() {
         // No daylight flag, so no specific name; and with no zone at all,

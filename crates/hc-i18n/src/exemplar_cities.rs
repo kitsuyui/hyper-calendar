@@ -8,7 +8,7 @@
 //! <https://github.com/unicode-org/cldr>, read 2026-09-27
 //! [cldr48-exemplar-cities], and for the twelve locales of the most-spoken
 //! languages 2026-09-28 [cldr48-most-spoken], at CLDR's release levels, `approved` and
-//! `contributed`, as the territory names in `territories` are; a
+//! `contributed`, as the holiday tables' territory names are; a
 //! `provisional` or `unconfirmed` value is left out. The system document
 //! `docs/systems/zone-locations.md` explains the lookup with examples.
 //!

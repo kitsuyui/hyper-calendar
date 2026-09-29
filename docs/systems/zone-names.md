@@ -122,7 +122,38 @@ applies the fallback to a standard reading and not to a daylight one.
 
 ICU4J's `TimeZoneFormat.formatSpecific` asks for the daylight name alone
 for a daylight reading too [icu-zone-format-sources]; it is a comparison,
-not the source of the rule. `en-GB` has *BST* from `en_GB.xml`, and
+not the source of the rule.
+
+The last type fallback reads the zone's rules: "Otherwise if the generic
+type is needed, but not available, and the offset and daylight offset do
+not change within 184 day +/- interval around the exact formatted time,
+use the standard type", with the example "Mountain Standard Time" for
+Phoenix [uts35-dates-48]. `America_Mountain` has a generic name, *Mountain Time*,
+so the example applies the rule where the text's "not available" would
+not; the library follows the example, and so covers both. `America/Phoenix`
+at 2026-01-15 12:00 −07:00, in English, `vvvv`:
+
+1. The zone has no generic name of its own; its metazone is
+   `America_Mountain`.
+2. The reading is standard time, and the caller's rules, `MST7`, change
+   neither the offset nor the daylight flag from 2025-07-15 to 2026-07-18,
+   184 days either side. The zone is steady.
+3. So the standard name, the zone's own (none) else the metazone's:
+   *Mountain Standard Time*, unqualified, where the generic path would
+   write *Mountain Time (Phoenix)*, Phoenix not being the metazone's
+   preferred zone. `v` is *MST*.
+
+`America/Denver` the same day is not steady, since its rules change on
+8 March, 52 days on, so it stays *Mountain Time*; `Asia/Tokyo`, `JST-9`,
+is steady, and its `vvvv` is *Japan Standard Time*. The daylight flag
+stands for the daylight offset, which a zone's rules do not state apart
+from the offset. Where the standard name is the generic name's text, the
+generic path is kept, with its qualifier. A context without the zone's
+rules keeps the generic name: `hc-format`'s `FormatContext` takes them with
+`with_zone_rules`, and `hc_zone_name` and `hc_format_pattern` pass the
+zone's. ICU4J's `TimeZoneGenericNames` writes the standard name for a zone
+that keeps no daylight time within 184 days [icu4j-generic-names], a
+comparison again. `en-GB` has *BST* from `en_GB.xml`, and
 `Europe/Dublin` is the same case: its own long daylight name in English is
 *Irish Standard Time*, for the summer, so CLDR's names read Irish summer
 time as daylight time, as the host's TZif does (macOS's tzdata 2026c gives
@@ -160,7 +191,9 @@ its `B` the period *mittags*, from 12:00 before 13:00. Japanese's 夜中,
   each carried language's likely subtags give it, and English's metazone
   and zone names with root's (`Etc/UTC`'s *UTC*). It turns on the
   exemplar cities and the territory names, which a location is written
-  with.
+  with: every territory CLDR names, from `hc-i18n`'s `place_names`
+  (`docs/systems/place-names.md`), its short form first, at the release
+  levels, so that `America/Puerto_Rico` is *Puerto Rico Time*.
 - **With `localized-zone-names`:** every other carried locale's names, 49
   tables with English's, some 600 kB of text. A language entry carries what its file
   states at the `approved` and `contributed` levels, a regional entry what
@@ -177,14 +210,12 @@ its `B` the period *mittags*, from 12:00 before 13:00. Japanese's 夜中,
   those keyed by its script or region among them, and the format names of
   midnight, noon and the flexible periods in the abbreviated, wide and
   narrow widths, resolved through `root.xml`.
-- **In the pattern fields:** `z`, `O`, `v`, `V`, `b` and `B` as above;
+- **In the pattern fields:** `z`, `O`, `v`, `V`, `b` and `B` as above,
+  the 184-day type fallback among them where the context holds the zone's
+  rules;
   `z` takes a name the caller gave the context first, as it always has;
   `ZZZZ` is `OOOO`; and `Z`, `X` and `x` in every width, as above.
 - **Not carried.**
-  - The last of UTS #35's type fallbacks: a generic name needed where only
-    the standard exists and "the offset and daylight offset do not change
-    within 184 day +/- interval around the exact formatted time". It needs
-    the zone's rules, which a pattern's context does not hold.
   - The `nonlikelyScript` parent rule beyond the tags the table lists, as
     for the other locale data.
   - Parsing a zone name back to a zone, which `hc-format` refuses for `z`,
@@ -206,6 +237,7 @@ examples:
 | 日本標準時 and 東京; Mitteleuropäische Sommerzeit and MESZ | `ja.xml`, `de.xml` | `the_zone_names_are_the_locales` | agrees |
 | noon, midnight, in the afternoon, at night; Mitternacht and mittags; 夜中 at 01:00 | `dayPeriods.xml`, `en.xml`, `de.xml`, `ja.xml` | `the_extended_day_periods_follow_each_languages_rules` | agrees |
 | GMT+1 and British Summer Time for London in July, GMT+1 and Irish Standard Time for Dublin, BST in `en-GB` | `en.xml`, `en_GB.xml`, `metaZones.xml` | `the_zone_fields_write_tr_35s_examples`, `the_zone_names_are_the_locales` | agrees |
+| Mountain Standard Time and MST for Phoenix with rules that keep MST, Mountain Time for Denver in January, Japan Standard Time for Tokyo; the generic names where the context has no rules | [uts35-dates-48], "Type Fallback" | `a_zone_that_keeps_one_offset_for_184_days_takes_its_standard_name` (`hc-format`) | agrees |
 | `+0530`, `-075258`, `-07:52:58`, `Z` for the ISO fields | [uts35-dates-48], the symbol table's examples | `the_iso_zone_fields_write_minutes_and_seconds_where_tr_35_does` | every example |
 | No name where a file writes `∅∅∅`: `en-001`'s, `en-GB`'s, `en-AU`'s and `en-IN`'s short Pacific names, `es-419`'s short Eastern European ones, `pt-PT`'s for Brasília, `ja`'s short generic Japan name | `en_001.xml`, `es_419.xml`, `pt_PT.xml`, `ja.xml` | `the_empty_override_stops_the_lookup_with_no_name` (`hc-i18n`) | agrees |
 | `zh`'s rules for `zh-Hant`, `zh-TW`, `zh-Hant-HK` and `zh-Hant-MO`, `yue`'s for `yue-Hans`, `hi_Latn`'s own | `dayPeriods.xml` | `the_rules_are_found_by_truncating_the_tag` (`hc-i18n`) | agrees |
@@ -218,6 +250,7 @@ examples:
 | [uts35-dates-48] | "Using Time Zone Names" and its "Type Fallback", the Date Field Symbol Table's `z`, `v`, `V`, `O`, `Z`, `X`, `x`, `b`, `B`, `U`, `r`, `g`, and "Day Period Rule Sets" | Yes, 2026-09-29 |
 | [uts35-v48] | "Inheritance Marker", "Empty Override", "Lateral Inheritance", "Parent Locales" | Yes, 2026-09-29 |
 | [icu-zone-format-sources] | ICU4J's `TimeZoneFormat.formatSpecific` and ICU4C's `DayPeriodRules::getInstance`, a comparison for the daylight name and the truncation, not a source of either rule | Yes, 2026-09-29 |
+| [icu4j-generic-names] | ICU4J's `TimeZoneGenericNames.formatGenericNonLocationName`, a comparison for the 184-day rule | Yes, 2026-09-29 |
 | [cldr48-zone-names] | `common/main/<file>.xml` `timeZoneNames`, `supplemental/metaZones.xml`, `bcp47/timezone.xml`, `supplemental/likelySubtags.xml` | Yes, 2026-09-29, by `scripts/zone-names-cldr.py` |
 | [cldr48-day-periods] | `supplemental/dayPeriods.xml` and the carried files' day period names | Yes, 2026-09-29, by `scripts/day-periods-cldr.py` |
 
@@ -227,7 +260,8 @@ examples:
   `zone_names/cldr48.rs` (`scripts/zone-names-cldr.py`, `--check`).
 - `crates/hc-i18n/src/day_periods.rs` and the generated
   `day_periods/cldr48.rs` (`scripts/day-periods-cldr.py`, `--check`).
-- `crates/hc-format/src/patterns/zone.rs`, the composition; the fields in
+- `crates/hc-format/src/patterns/zone.rs`, the composition, the 184-day
+  check (`steady`) among it; the fields in
   `patterns/cldr.rs`, the ISO offsets' shared writer in `patterns.rs`
   (`exact_offset_style`, which `strftime`'s `%z` uses too).
 - `scripts/cldr_xml.py`, the resolution the generators share, the empty

@@ -2,10 +2,13 @@
 
 Backs `hc-i18n::place_names` and `hyper_calendar::place_lines`, and
 through them the exports `hc_territories`, `hc_subdivisions` and
-`hc_place_name` of the `places` layer. No calendar identifier is
-registered: a place name labels a code that another export writes, such
-as a subdivision in column 9 of `hc_holiday_tables` or a country in
-columns 4 and 5 of `hc_zones`.
+`hc_place_name` of the `places` layer. It is also the one source of a
+country's name elsewhere: the holiday tables' names of their countries
+(columns 3 and 8 of `hc_holiday_tables`) and the country in a zone's
+location name (`VVVV`, *Italy Time*, in `hc_zone_name`) are read from its
+territory half. No calendar identifier is registered: a place name labels
+a code that another export writes, such as a subdivision in column 9 of
+`hc_holiday_tables` or a country in columns 4 and 5 of `hc_zones`.
 
 ## What it is
 
@@ -62,7 +65,20 @@ of ↑↑↑, or is completely absent". And before root, an implementation may
 try fallback locales from language matching; the example's list for
 `nb-NO` ends in English, `[nn da sv en]`, looked up in turn "returning the
 first value that is not found in root" [uts35-v48, Part 1, Inheritance
-and Validity].
+and Validity]. Those locales come from *language matching*: "The language
+matching data can be used to get the closest fallback locales (of those
+supported) to a given locale", as French is "the best fallback" for a
+Breton reader, and "The locales in the fallback list are not used
+recursively" [uts35-v48-matching].
+
+A territory may have alternative names beside its plain one, each an
+`alt` attribute: `short` (*Hong Kong* beside *Hong Kong SAR China*),
+`variant` (*Czech Republic* beside *Czechia*), and for the British Indian
+Ocean Territory `biot` and `chagos`. "If a variant value is absent for a
+particular locale, the normal value is used" [uts35-v48-matching, Attribute
+alt]. And `supplemental/subdivisions.xml` says which subdivisions lie in
+which: `GB` contains England, Northern Ireland, Scotland and Wales, and
+England contains Kent [cldr48-subdivision-containment].
 
 ## How it works
 
@@ -88,15 +104,25 @@ The name of a place in a locale, `JP-13` under `ja-JP`:
    `subdivisions/ja.xml` has `<subdivision type="jp13"
    draft="provisional">東京都</subdivision>`, so the answer is 東京都, `ja`,
    `provisional`. Otherwise the lookup goes on to the table's CLDR parent,
-   where the parent is a carried locale too. Only `pt-PT` has one: its
-   parent is `pt`, and `subdivisions/pt_PT.xml` writes its three values as
-   `↑↑↑`, so `JP-13` under `pt-PT` is `pt.xml`'s Tóquio, answered by `pt`.
-3. **English.** A place no table of the chain names is named as `en.xml`
+   where the parent is a carried locale too. `pt-PT`'s is `pt`, and
+   `subdivisions/pt_PT.xml` writes its three values as `↑↑↑`, so `JP-13`
+   under `pt-PT` is `pt.xml`'s Tóquio, answered by `pt`. The regional
+   tables `en-001`, `es-419`, `ur-IN` and `zh-Hant-HK` have their
+   language's table as parent, and `en-GB`, whose file names nothing,
+   reaches `en-001` by the locale's own chain: `KN` under `en-GB` is
+   `en_001.xml`'s *St Kitts & Nevis*, where `en.xml` has *St. Kitts &
+   Nevis*.
+3. **The language-matching fallbacks.** The first table lists the tables
+   language matching makes its fallbacks, nearest first, and each is read
+   with its own parents, a table already read left out: Tibetan's is
+   Simplified Chinese, so `JP-13` under `bo`, which `subdivisions/bo.xml`
+   does not name, is `zh.xml`'s 東京都, answered by `zh-Hans`. Below.
+4. **English.** A place no table of the chain names is named as `en.xml`
    names it, answered by `en`. `zh_Hant`'s parent is root, and
    `subdivisions/zh_Hant.xml` names only England, Scotland and Wales, so
    `JP-13` under `zh-TW` is `Tokyo`, answered by `en`, although `zh.xml`
    has 東京都.
-4. **Nothing.** A place English does not name either has no name, and the
+5. **Nothing.** A place English does not name either has no name, and the
    caller holds its code, which is CLDR's own last resort. `FR-75`, which
    CLDR 48 holds as deprecated beside the regular `FR-75C` that `en.xml`
    names Paris, is named by Hausa alone among the carried locales
@@ -105,6 +131,86 @@ The name of a place in a locale, `JP-13` under `ja-JP`:
 A locale whose file names a place with English's own spelling answers
 under its own tag: `US-CA` under `es` is `California`, answered by `es`,
 because `subdivisions/es.xml` names it so.
+
+A caller may ask for CLDR's release levels only, `approved` and
+`contributed`: a provisional value is then passed over as if its file had
+none, and the lookup goes on. Kabyle's `IO` is provisional in `kab.xml`,
+so at those levels it is English's *British Indian Ocean Territory*. The
+holiday tables and the zone names ask so, as they ask for every other
+CLDR value they carry.
+
+### A fallback locale
+
+TR35's distance between two locales, for Tibetan and Simplified Chinese:
+
+1. **Maximize.** `likelySubtags.xml` makes `bo` `bo_Tibt_CN` and `zh`
+   `zh_Hans_CN` [cldr48-language-matching].
+2. **The language.** `bo` and `zh` differ; the first rule of
+   `languageInfo.xml`'s `written_new` list that matches is `desired="bo"
+   supported="zh" distance="20" oneway="true"`: 20.
+3. **The script.** `Tibt` and `Hans` differ; `desired="bo_Tibt"
+   supported="zh_Hans" distance="10"`: 10.
+4. **The region.** `CN` and `CN` are the same: 0. The distance is 30.
+
+TR35 leaves the threshold to the implementation, "typically set to greater
+than a default region difference, and less than a default script
+difference" [uts35-v48-matching]: the defaults are `*_*_*`, 4, and `*_*`,
+50, and a carried locale less than 50 away is a fallback. So Simplified
+Chinese is Tibetan's, and Traditional Chinese's is not, since `zh_Hant`
+against `zh_Hans` meets no rule but `*_*`, 50; `zh-Hant`'s is `zh-Hant-HK`
+(`zh_Hant_*`, 5). A rule that is not `oneway` matches either way. A
+matching variable's regions, `$americas` for `019`, are expanded through
+`territoryContainment`, groupings and the regions they contain included, so
+that `419` is one of them. Each list ends before English, which the lookup
+takes last in any case, as TR35's example list ends in `en`. The lists,
+from `scripts/place-names-cldr.py --fallbacks`:
+
+| Table | Fallbacks (distance) |
+| --- | --- |
+| `bo` | `zh-Hans` (30) |
+| `en` | `en-001` (5) |
+| `es` | `es-419` (5) |
+| `jv` | `id` (20) |
+| `mn` | `ru` (34) |
+| `mr`, `sa` | `hi` (30) |
+| `pt` | `pt-PT` (5) |
+| `ur` | `ur-IN` (4) |
+| `yue-Hans` | `zh-Hans` (10) |
+| `yue-Hant` | `zh-Hant-HK` (10), `zh-Hant` (14) |
+| `zh-Hant` | `zh-Hant-HK` (5) |
+
+Many languages are 30 from English and 44 in all (`am` ⇒ `en`, `am_Ethi`
+⇒ `en_Latn`, and the region default), which English's place at the end
+already covers. The list is the first table's, the one the requested
+locale's chain reaches: `zh-TW` takes `zh-Hant`'s.
+
+### An alternative form
+
+`HK`'s short name under `es-419`: the lookup reads the same tables as for
+the plain name, in runs, a locale's own table and its parents first, then
+each fallback's, then English's. In a run, the first table that gives the
+form answers, a parent's among them, as CLDR resolves each path apart:
+`es_419.xml` gives no short `HK`, but `es.xml`, its parent, does. `GB`'s
+short name under `es-419` is `es_419.xml`'s own *R. U.*, where `es.xml`
+has *RU*. `pt_PT.xml` gives `GB` the short name `GB` beside a plain name it
+inherits from `pt.xml`, and writes `PS`'s short name as `↑↑↑`, which
+inherits `pt.xml`'s *Palestina*. The first run whose tables give the plain
+name but not the form ends the lookup with no form, since the plain name
+stands for it there: `bo.xml` names `GB` and gives it no short form, so
+Tibetan has none, rather than English's *UK*. A locale with no table,
+Yucatec Maya's, reaches English's run, and *UK*.
+
+### Which lies in which
+
+`subdivisions.xml` lists each code in a group: `<subgroup type="GB"
+contains="gbeng gbnir gbsct gbwls"/>`, and `gbeng`'s group contains
+`gbken`. So Kent, `GB-KEN`, is within `GB-ENG`, and `GB-ENG` within `GB`;
+`JP-13` is within `JP`. The file lists 5 046 codes, 3 590 directly within
+a country and 1 456 within another subdivision; 19 of them are deprecated
+codes no carried locale names (`usgu`, Guam, and French and Dutch overseas
+codes among them), which are left out, so that every regular subdivision,
+5 027, is within something. A deprecated code the file does not list, such
+as `FR-75`, is within nothing.
 
 ### A table
 
@@ -129,48 +235,72 @@ England's, Scotland's and Wales's, which are approved.
   code carries its status: `regular`, `deprecated`, `macroregion` (`001`,
   `419`, `EU`), `special` (`XA`, `XB`) or `unknown` (`ZZ`).
 - **The names**, from CLDR 48 at the draft levels `approved`,
-  `contributed` and `provisional`, the plain value of each (no `alt`
-  form), with the level each was read at. Of the 121 765 subdivision names
-  in the carried locales other than English, 121 655 are provisional, 109
-  approved (England's, Scotland's and Wales's in each file that names
-  them) and one contributed. Nearly every territory name is approved.
-  Forty-seven of the 65 carried locales have a table (the regional and
-  added entries of `docs/i18n.md` not yet): 47 name territories
-  and 39 name subdivisions, `fil` and `zh-Hant` only England, Scotland and
-  Wales. Tibetan, Kabyle, Punjabi in the Arabic script, Nigerian Pidgin,
-  European Portuguese (whose three values are the marker), Sanskrit,
-  Syriac and Standard Moroccan Tamazight name no subdivision; Coptic's every
-  value is unconfirmed; Balinese, Middle Egyptian, Nahuatl, Yucatec Maya
-  and Zapotec have no CLDR file. Their places are named in English.
-- **Sizes**, measured on 2026-09-28. The names are 2 576 858 bytes of
-  subdivision text (127 164 names, English's 5 399 included) and 221 116
-  of territory text (12 636 names), with the line feeds; storing a name
+  `contributed` and `provisional`, the plain value of each, with the level
+  each was read at. Of the 122 577 subdivision names in the carried
+  locales other than English, 122 464 are provisional, 112 approved
+  (England's, Scotland's and Wales's in each file that names them) and
+  one contributed. Of the 13 306 territory names, 13 297
+  are approved, five contributed and four provisional. Fifty-three of the
+  65 carried locales have a table, every one of which names territories,
+  and 40 name subdivisions, `fil` and `zh-Hant` only England, Scotland and
+  Wales. The regional tables (`en-001`, `es-419`, `pt-PT`, `ur-IN`,
+  `zh-Hant-HK`) name only what their files state apart from their
+  parents'; `en_GB.xml` and `ar_EG.xml` state no territory name of their
+  own, so `en-GB` and `ar-EG` have none and reach `en-001` and `ar`.
+  Tibetan, Kabyle, Punjabi in the Arabic script, Nigerian Pidgin, Sanskrit,
+  Tachelhit in the Latin script, Syriac and Standard Moroccan Tamazight
+  name no subdivision, nor do the regional tables; Coptic's every value is
+  unconfirmed, and so is every one of Riffian's (`rif.xml`); Balinese,
+  Middle Egyptian, Mixtec, Nahuatl, Tunisian and Libyan Arabic in the Latin
+  script, Yucatec Maya and Zapotec have no CLDR file. Their places are named
+  in English, or in a fallback's language where language matching gives
+  one.
+- **The alternative forms**, 581 of them, at the same levels: 214 `short`,
+  329 `variant`, 36 `chagos` and 2 `biot` (English's and Syriac's). All
+  are approved but one, contributed. A form written as the marker `↑↑↑` is
+  absent, so that the lookup goes on to the table's parent. CLDR gives no
+  subdivision an `alt` form, and the generator stops on one.
+- **The containment** of 5 027 subdivisions: every regular one, 3 571
+  directly within its country and 1 456 within another subdivision.
+- **The fallbacks** of the eleven tables in the table above.
+- **Two halves.** The territories, their names and forms, and each
+  table's parent and fallbacks, are `hc-i18n`'s `territories` feature,
+  which the facade's `holiday` feature and `hc-format`'s `zone-names` turn
+  on: the holiday tables and the zone names read a country's name from it.
+  The subdivisions, their names and their containment are the
+  `place-names` feature on top, which only the `places` layer turns on.
+- **Sizes**, measured on 2026-09-29. The names are 2 594 289 bytes of
+  subdivision text (127 976 names, English's 5 399 included) and 232 003
+  of territory text (13 306 names), with the line feeds; storing a name
   equal to English's as an empty line keeps 22 725 subdivision names and
-  1 617 territory names out. The bits are 25 867 and 1 730 bytes, the
-  codes 33 018 and 885. The `places` layer of the WebAssembly module is
-  2 905 669 bytes, 830 575 gzipped (`gzip -9`) and 619 938 with Brotli
-  (`-q 11`); every other layer is unchanged, and `full` grows by it.
-  Sharing a string across locales was measured and is not done: a line
-  that pointed to another table's identical name for the same code would
-  save 78 429 bytes of the text (2.8 %), and 31 879 of it gzipped, but
-  nothing once the text is compressed as LZMA compresses it (594 548 bytes
-  against 595 456 with the pointers), since such a compressor finds the
-  repeats itself.
-- **Not carried.** The `alt="short"` and `alt="variant"` territory names:
-  `hc_holiday_tables` gives the short names of its 195 countries from
-  `hc-i18n`'s `territories` module, and this data does not repeat them yet.
-  The `unconfirmed` values. The fallback locales that language matching
-  would add between a locale and English, such as Simplified Chinese for
-  Traditional: TR35 allows them, and only English is taken so far. The
-  locales CLDR has and `hc-i18n` does not carry, among them CLDR's regional
-  English (`en_GB`, `en_001`). CLDR's subdivision containment
-  (`supplemental/subdivisions.xml`), which says which subdivisions lie in
-  which. A replacement for a deprecated code: `supplementalMetadata.xml`'s
-  `subdivisionAlias` gives one for 147 deprecated codes, none of which a
-  carried file names; the aliases of the 476 that are named are commented
-  out, with the replacement `al?` and the like [cldr48-validity]. ISO
-  3166-2 itself, which was not read: a code ISO lists that CLDR 48 does
-  not is not carried.
+  1 618 territory names out. The bits are 26 551 and 1 948 bytes, the
+  codes 33 018 and 885, the containment 5 824 bytes of pairs and 688 of
+  bits. On 2026-09-29 the `places` layer of the WebAssembly module is
+  2 960 517 bytes, 857 904 gzipped (`gzip -9`) and 635 341 with Brotli
+  (`-q 11`). Dropping the old `territories` module's second copy of the
+  countries and carrying the 295 territories with their forms in its
+  place moved the `holiday` layer from 2 043 473 to 2 159 659 bytes
+  (+5.7 %) and `zone-names` from 1 522 408 to 1 639 641 (+7.7 %, the 184-day
+  rule of `docs/systems/zone-names.md` among it), and `full`, which carried
+  both copies, from 7 637 697 to 7 545 624 (−1.2 %).
+  Sharing a string across locales was measured on 2026-09-28 and is not
+  done: a line that pointed to another table's identical name for the
+  same code would save 78 429 bytes of the text (2.8 %), and 31 879 of it
+  gzipped, but nothing once the text is compressed as LZMA compresses it
+  (594 548 bytes against 595 456 with the pointers), since such a
+  compressor finds the repeats itself.
+- **Not carried.** The `unconfirmed` values. The locales CLDR has and
+  `hc-i18n` does not carry, and the regional files beyond the six regional
+  entries `docs/i18n.md` lists. The `nonlikelyScript` parent rule beyond
+  the tags `parentLocales` lists, as for the other locale data: a tag such
+  as `ja-Latn` walks to `ja`, not root. A replacement for a deprecated
+  code: `supplementalMetadata.xml`'s `subdivisionAlias` gives one for 147
+  deprecated codes, none of which a carried file names; the aliases of the
+  476 that are named are commented out, with the replacement `al?` and the
+  like [cldr48-validity]. The containment of territories
+  (`territoryContainment`, which says `JP` is in `030`, Eastern Asia): read
+  only to expand the matching variables. ISO 3166-2 itself, which was not
+  read: a code ISO lists that CLDR 48 does not is not carried.
 
 ### Beside the holiday tables and the zones
 
@@ -189,17 +319,27 @@ departments (Wikipedia, "ISO 3166-2:GT", the change of 2021-11-25 on the
 Online Browsing Platform, retrieved 2026-09-29). No CLDR alias links the
 two codes, so a caller holding the old one must map it.
 
-The countries a holiday table's line names in column 3 come from
-`hc-i18n`'s smaller `territories` module, which the `holiday` feature
-carries: the 195 countries with a table, at the `approved` and
-`contributed` levels only. Where it names a country, this data names it
-the same, which a test checks; this data also names the other territories,
-and the provisional names the smaller module leaves out (Kabyle's and
-Tamazight's name for the British Indian Ocean Territory).
+The name a holiday table's line gives its country in column 3, and the
+short name in column 8, are this data's, at the release levels: the
+territory half is the one source, and `hc-i18n` keeps no second list of
+countries. Until 2026-09-29 a smaller module, `territories`, carried the
+195 countries with a table at those levels, from a one-off script; its
+every name was this data's from the same table, which a test checked, and
+the unified lookup gives the same names but where the new tables and the
+fallbacks answer: `mn` and `shi-Latn`, which had no table, name their
+countries; `en-GB`, `es-MX`, `zh-HK` and `ur-IN` take their regional
+file's names (*St Kitts & Nevis*, *Rumania*, 阿拉伯聯合酋長國); Tibetan and
+Sanskrit take Simplified Chinese's and Hindi's where their files name
+nothing, before English; and `pt-PT`'s short name for `GB` is `pt_PT.xml`'s
+`GB`, and for `PS` the *Palestina* its marker inherits.
 
 `hc_zones` gives each zone's countries by ISO 3166-1 code, and this data
-names those. A zone's exemplar city (column 7) is a different CLDR data
-set, `timeZoneNames`, described in [zone-locations.md](zone-locations.md):
+names those, as it names the country in a zone's location name, where the
+country's short form comes first, as UTS #35 has it: *Puerto Rico Time*
+for `America/Puerto_Rico` and *Faroe Islands Time* for `Atlantic/Faroe`,
+which read *PR Time* and *FO Time* while the smaller module named only the
+195. A zone's exemplar city (column 7) is a different CLDR data set,
+`timeZoneNames`, described in [zone-locations.md](zone-locations.md):
 Tokyo the city of `Asia/Tokyo` is not the subdivision `JP-13`, though
 their names agree in some languages.
 
@@ -220,6 +360,18 @@ their names agree in some languages.
   in one pass and one code at a time, and get the same answers; and the
   tables' parents, read from `parentLocales`, agree with the chains
   `hc-i18n`'s `Locale::fallback` walks.
+- **The fallbacks are a reading of TR35.** The distance is TR35's
+  algorithm on CLDR's rules; the threshold, 50, is this library's choice
+  within the range TR35 gives, and ending each list at English is its
+  reading of the example list. A fallback puts a name in another language
+  before English's: Tibetan's missing names are Chinese, Sanskrit's Hindi.
+  That is what CLDR's matching data says a reader of the one understands
+  best; a caller that wants English instead asks for `en`.
+- **The unification changed no holiday name but where it should.** Before
+  the old `territories` module was dropped, every one of its names for
+  the 195 countries, in every carried locale and ten other tags, was
+  compared with this lookup at the release levels: they differed only
+  where a new table or a fallback answers, as the section above lists.
 - **The generator is checked against CLDR.**
   `python3 scripts/place-names-cldr.py --check` reads the release again
   and fails when the generated file differs.
@@ -228,7 +380,18 @@ their names agree in some languages.
   Californie in `fr` and California, under `es`, in `es`; `JP-13` under
   `zh-TW`, Swedish and `native` falls back to English, under `pt-PT` to
   `pt`; `FR-75` has no name in `ja`; `BH` is Barém in `pt-PT` and Barein
-  in `pt`.
+  in `pt`. `JP` is Япон in `mn` and lyaban in `shi-Latn`; `KN` is St Kitts
+  & Nevis in `en-GB`, `RO` Rumania in `es-MX`, `AE` 阿拉伯聯合酋長國 in
+  `zh-HK`. `HK`'s short form is Hong Kong in `en`, 香港 in `ja`, Hongkong
+  in `de-AT`; `GB`'s is R. U. in `es-419`, `GB` in `pt-PT` and none in
+  `bo`; `PS`'s is Palestina in `pt-PT`, from `pt`; `IO`'s `biot` and
+  `chagos` forms are English's. `AD` is 安道尔 in `bo`, from `zh-Hans`, and
+  एंडोरा in `sa`, from `hi`; `JP-13` in `bo` is 東京都 from `zh-Hans`, and
+  Kent in `mn` Кент from `ru`. Kabyle's provisional `IO` gives way to
+  English's at the release levels. Kent is within England, England within
+  `GB`, whose four are England, Northern Ireland, Scotland and Wales; Japan
+  has 47; `FR-75` is within nothing. In the holiday tables, Tibetan's
+  `FR` is 法国, from `zh-Hans`.
 
 ## Sources
 
@@ -241,6 +404,14 @@ their names agree in some languages.
   for each code's status, and `supplemental/supplementalMetadata.xml`'s
   `territoryAlias` and `subdivisionAlias`. Read.
 - [cldr48-supplemental] — `supplementalData.xml`'s `parentLocales`. Read.
+- [cldr48-language-matching] — `supplemental/languageInfo.xml`'s
+  `languageMatching`, `likelySubtags.xml` and `supplementalData.xml`'s
+  `territoryContainment`, for the fallbacks. Read, 2026-09-29.
+- [cldr48-subdivision-containment] — `supplemental/subdivisions.xml`.
+  Read, 2026-09-29.
+- [uts35-v48-matching] — Part 1: Language Matching (the fallback locales,
+  the distance, the variables and the threshold) and Attribute alt. Read,
+  2026-09-29.
 - [uts35-v48] — Part 1: Subdivision Codes, Attribute draft, Inheritance
   and Validity (the lookup, the marker `↑↑↑`, the identifier as the last
   resort and the fallback locales before root), and Parent Locales. Read.
@@ -251,18 +422,28 @@ their names agree in some languages.
 ## Code
 
 - `scripts/place-names-cldr.py` — reads the files above and writes
-  `crates/hc-i18n/src/place_names/cldr48.rs`; `--check`, `--dump` and
-  `--stats`.
+  `crates/hc-i18n/src/place_names/cldr48.rs`; `--check`, `--dump`,
+  `--stats` and `--fallbacks`.
 - `crates/hc-i18n/src/place_names.rs` — the lists, the tables and the
-  lookup, behind the `place-names` feature; the tests
+  lookup, the territory half behind the `territories` feature and the
+  subdivisions behind `place-names`; the tests
   `tokyo_is_tokyo_to_in_japanese_and_tokyo_in_english`,
   `a_german_and_an_american_subdivision_in_two_locales`,
   `a_name_falls_back_along_cldrs_chain_then_to_english`,
   `territories_follow_the_same_chain`,
   `a_deprecated_code_only_one_locale_names`,
   `a_pass_and_a_lookup_agree`, `every_table_is_consistent`,
-  `a_tables_parent_is_the_next_table_of_its_chain` and
-  `the_holiday_territory_names_are_these`.
+  `a_tables_parent_is_the_next_table_of_its_chain`,
+  `mongolian_and_tachelhit_in_the_latin_script_name_the_territories`,
+  `the_regional_files_name_what_differs_from_their_parents`,
+  `an_alt_form_is_resolved_as_cldr_resolves_a_path`,
+  `the_release_levels_pass_over_a_provisional_name`,
+  `language_matching_gives_fallbacks_before_english`,
+  `a_subdivision_falls_back_by_language_matching_too` and
+  `subdivisions_lie_within_what_cldr_says`.
+- `crates/hyper-calendar/src/holiday_lines.rs` and
+  `crates/hc-format/src/patterns/zone.rs` — the holiday tables' and the
+  zone names' use of the territory half, at the release levels.
 - `crates/hyper-calendar/src/place_lines.rs` — the lines of the three
   exports; the tests `a_line_is_six_cells` and
   `every_place_a_holiday_table_names_has_a_line`.

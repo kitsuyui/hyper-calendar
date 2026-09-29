@@ -8,7 +8,7 @@
 //!   with the kind each is, its names, its sources and the country an
 //!   exchange keeps the holidays of, each read from the table's own data
 //!   but for a country's name in a locale, which is CLDR's, from
-//!   [`hc_i18n::territories`].
+//!   [`hc_i18n::place_names`].
 //! * The lectionary cycles of a day, and the astronomical Easter of a year
 //!   and the paschal full moon it is the Sunday after,
 //!   from [`hc_holiday::lectionary`] and [`hc_holiday::computus`].
@@ -38,7 +38,7 @@ use hc_holiday::{
     traditions,
 };
 use hc_i18n::Locale;
-use hc_i18n::territories::{self, TerritoryName};
+use hc_i18n::place_names::{self, Alt, Draft};
 
 use crate::boundary::{Answer, Line, Refusal};
 
@@ -145,50 +145,68 @@ fn requested_locale(tag: &str) -> Option<Locale> {
     }
 }
 
+/// A table's name in a locale, and the tag of the data that answered.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct TableName {
+    /// What the locale calls the table.
+    pub name: &'static str,
+    /// The tag of the data that answered: `de` for a request for `de-AT`,
+    /// `en` for a table CLDR does not name.
+    pub tag: &'static str,
+}
+
+/// The draft levels a country's name is taken at: CLDR's release levels,
+/// `approved` and `contributed`, as for the calendar names.
+const RELEASED: Draft = Draft::Contributed;
+
 /// What a table is called in a locale, and the tag of the data that
-/// answered: a country's CLDR name where the locale's fallback chain has
-/// one, else its name in CLDR's `en`, answered by `en`, so that `en` stands
-/// for one name of a country whichever locale was asked. Every other kind
-/// is named by the table's English name, answered by `en` — CLDR names no
-/// exchange, tradition or set of observances, and nothing here invents a
-/// name for one.
+/// answered: a country's CLDR name by [`hc_i18n::place_names`]' lookup —
+/// the locale's tables, their language-matching fallbacks, then CLDR's
+/// `en`, answered by `en`, so that `en` stands for one name of a country
+/// whichever locale was asked. Every other kind is named by the table's
+/// English name, answered by `en` — CLDR names no exchange, tradition or
+/// set of observances, and nothing here invents a name for one.
 #[must_use]
-pub fn table_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> TerritoryName {
-    cldr_name(set, kind, locale).unwrap_or(TerritoryName {
+pub fn table_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> TableName {
+    cldr_name(set, kind, locale).unwrap_or(TableName {
         name: set.english_name,
         tag: "en",
     })
 }
 
-/// A country's CLDR name in a locale, where the locale's fallback chain
-/// has one, and else in CLDR's `en`: what [`table_name`] answers for every
-/// country CLDR names, which is all of them. Under `native`, which names
-/// no locale, the `en` one.
-fn cldr_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> Option<TerritoryName> {
+/// A country's CLDR name in a locale, at the release levels: what
+/// [`table_name`] answers for every country CLDR names, which is all of
+/// them. Under `native`, which names no locale, the `en` one.
+fn cldr_name(set: &RuleSet, kind: TableKind, locale: Option<&Locale>) -> Option<TableName> {
     if kind != TableKind::Country {
         return None;
     }
-    locale
-        .and_then(|locale| territories::territory_name(locale, set.code))
-        .or_else(|| {
-            let english = Locale::parse("en").ok()?;
-            territories::territory_name(&english, set.code)
-        })
+    let found = place_names::territory(set.code)?.name_at(locale, RELEASED)?;
+    Some(TableName {
+        name: found.name,
+        tag: found.tag,
+    })
 }
 
 /// A country's CLDR `alt="short"` name, from the same locale's data as the
 /// name [`table_name`] gives it — `Hong Kong` for `HK` under `en`, `香港`
 /// under `ja` — where that name is CLDR's and the data has a short one;
-/// see [`territories::short_name`]. A country named from CLDR's `en` by
-/// fallback has `en`'s short name; nothing for any other kind of table,
-/// whose English name is its own and not CLDR's.
+/// see [`place_names::Place::alternative_in`]. A country named from CLDR's
+/// `en` by fallback has `en`'s short name; nothing for any other kind of
+/// table, whose English name is its own and not CLDR's.
 #[must_use]
 pub fn short_table_name(
     set: &RuleSet,
     kind: TableKind,
     locale: Option<&Locale>,
 ) -> Option<&'static str> {
-    cldr_name(set, kind, locale).and_then(|named| territories::short_name(named.tag, set.code))
+    if kind != TableKind::Country {
+        return None;
+    }
+    let place = place_names::territory(set.code)?;
+    place
+        .alternative_in(locale, Alt::Short, RELEASED)
+        .map(|found| found.name)
 }
 
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
@@ -1406,11 +1424,14 @@ mod tests {
         assert_eq!(japanese["christian-western"][4], "en");
     }
 
-    /// Kabyle's `HK` is unconfirmed in CLDR 48 `kab.xml`, Tibetan's `FR`
-    /// likewise in `bo.xml`, and every Coptic value is: each falls back to
-    /// CLDR's English name, answered by `en`, beside the names the same
-    /// locales do carry — the same name and short name `en` itself gives,
-    /// not the table's own English name where the two differ.
+    /// Kabyle's `HK` is unconfirmed in CLDR 48 `kab.xml`, and every Coptic
+    /// value is: each falls back to CLDR's English name, answered by `en`,
+    /// beside the names the same locales do carry — the same name and short
+    /// name `en` itself gives, not the table's own English name where the
+    /// two differ. Tibetan's `FR` is unconfirmed in `bo.xml` too, but
+    /// language matching gives Tibetan Simplified Chinese as its fallback
+    /// before English (`languageInfo.xml`, `bo` ⇒ `zh`), so `zh.xml`'s 法国
+    /// answers.
     #[test]
     fn a_country_the_locale_does_not_name_falls_back_to_cldr_english() {
         let english = rows_in("en");
@@ -1422,7 +1443,7 @@ mod tests {
         assert_eq!(kabyle["HK"][7], "Hong Kong");
         assert_eq!(kabyle["JP"][2..5], ["Jappu", "Japan", "kab"]);
         let tibetan = rows_in("bo");
-        assert_eq!(tibetan["FR"][2..5], ["France", "France", "en"]);
+        assert_eq!(tibetan["FR"][2..5], ["法国", "France", "zh-Hans"]);
         assert_eq!(tibetan["JP"][4], "bo");
         for tag in ["cop", "native", "und", "not a tag"] {
             let rows = rows_in(tag);
@@ -1450,17 +1471,17 @@ mod tests {
     /// for, and CLDR's English names them all.
     #[test]
     fn every_country_and_every_exchanges_country_is_a_territory() {
-        let english = territories::table("en").expect("English");
         for (set, kind) in tables_with_kinds() {
             let code = match kind {
                 TableKind::Country => Some(set.code),
                 _ => country_of(set, kind),
             };
             if let Some(code) = code {
-                assert!(english.name_of(code).is_some(), "{code}");
+                let place = place_names::territory(code).expect("a territory");
+                assert_eq!(place.status(), place_names::Status::Regular, "{code}");
+                assert!(place.english_name().is_some(), "{code}");
             }
         }
-        assert_eq!(countries::ALL.len(), territories::REGIONS.len());
     }
 
     /// The names a page shows, column 3, are distinct within a kind in

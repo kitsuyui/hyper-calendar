@@ -69,7 +69,16 @@ use crate::locale::Locale;
 
 mod cldr48;
 
-use cldr48::{SUBDIVISION_CODES, SUBDIVISION_STATUS, TABLES, TERRITORY_CODES, TERRITORY_STATUS};
+#[cfg(feature = "place-names")]
+use cldr48::{SUBDIVISION_CODES, SUBDIVISION_IN_COUNTRY, SUBDIVISION_STATUS, SUBDIVISION_WITHIN};
+use cldr48::{TABLES, TERRITORY_CODES, TERRITORY_STATUS};
+
+/// Without the `place-names` feature no subdivision is carried: the list
+/// is empty.
+#[cfg(not(feature = "place-names"))]
+const SUBDIVISION_CODES: &str = "";
+#[cfg(not(feature = "place-names"))]
+const SUBDIVISION_STATUS: &[u8] = &[];
 
 /// Where the names come from, for a `source` cell.
 pub const SOURCE: &str = "Unicode CLDR 48, common/main/<locale>.xml localeDisplayNames/territories \
@@ -153,13 +162,18 @@ impl Kind {
     const fn names(self, table: &'static Table) -> &'static Names {
         match self {
             Self::Territory => &table.territories,
+            #[cfg(feature = "place-names")]
             Self::Subdivision => &table.subdivisions,
+            #[cfg(not(feature = "place-names"))]
+            Self::Subdivision => &Names::EMPTY,
         }
     }
 }
 
-/// How far CLDR's vetting went for a value: its `draft` attribute.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+/// How far CLDR's vetting went for a value: its `draft` attribute. The
+/// levels are ordered from the most vetted, so that `draft <= loosest`
+/// says a value is at `loosest` or better.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Draft {
     /// "fully approved by the technical committee".
     Approved,
@@ -179,6 +193,45 @@ impl Draft {
             Self::Contributed => "contributed",
             Self::Provisional => "provisional",
         }
+    }
+}
+
+/// An alternative form of a territory's name: the `alt` attribute of
+/// `localeDisplayNames/territories/territory`. TR35 Part 1, "Attribute alt":
+/// a variant "may be used in its place in certain circumstances. If a
+/// variant value is absent for a particular locale, the normal value is
+/// used." CLDR 48's files give these four.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Alt {
+    /// `short`: `Hong Kong` for `HK`, `UK` for `GB`, `US` for `US`.
+    Short,
+    /// `variant`: `Czech Republic` for `CZ`, `Ivory Coast` for `CI`.
+    Variant,
+    /// `biot`: `British Indian Ocean Territory` for `IO`.
+    Biot,
+    /// `chagos`: `Chagos Archipelago` for `IO`.
+    Chagos,
+}
+
+impl Alt {
+    /// Every form, in the order the generated tables sort them.
+    pub const ALL: [Self; 4] = [Self::Short, Self::Variant, Self::Biot, Self::Chagos];
+
+    /// The attribute's value: `short`, `variant`, `biot` or `chagos`.
+    #[must_use]
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Short => "short",
+            Self::Variant => "variant",
+            Self::Biot => "biot",
+            Self::Chagos => "chagos",
+        }
+    }
+
+    /// The form an attribute value names, in any case.
+    #[must_use]
+    pub fn parse(name: &str) -> Option<Self> {
+        Self::ALL.into_iter().find(|alt| matches(name, alt.name()))
     }
 }
 
@@ -290,8 +343,25 @@ struct Table {
     /// The table of the locale's CLDR parent, where that is a table:
     /// `pt` for `pt-PT`.
     parent: Option<&'static str>,
+    /// The tables language matching gives the locale as fallbacks, nearest
+    /// first, English left out: `zh-Hans` for `bo`.
+    fallbacks: &'static [&'static str],
     territories: Names,
+    /// The territories' `alt` forms, by index, in index order.
+    alternatives: &'static [(u16, Alt, &'static str, Draft)],
+    #[cfg(feature = "place-names")]
     subdivisions: Names,
+}
+
+impl Table {
+    /// The `alt` form of the territory at `index`, if the table's files
+    /// give one.
+    fn alternative(&self, index: usize, alt: Alt) -> Option<(&'static str, Draft)> {
+        self.alternatives
+            .iter()
+            .find(|(at, form, _, _)| usize::from(*at) == index && *form == alt)
+            .map(|(_, _, name, draft)| (*name, *draft))
+    }
 }
 
 /// The table for a data tag.
@@ -370,9 +440,107 @@ impl Place {
     /// locale nor English names it.
     #[must_use]
     pub fn name_in(self, locale: Option<&Locale>) -> Option<PlaceName> {
-        named(Places::from(self), locale)
+        self.name_at(locale, Draft::Provisional)
+    }
+
+    /// [`Self::name_in`] with only the values at `loosest` or better: a
+    /// value below it is passed over, as if its file had none, and the
+    /// lookup goes on. `Draft::Contributed` keeps CLDR's release levels,
+    /// which the holiday tables name countries at.
+    #[must_use]
+    pub fn name_at(self, locale: Option<&Locale>, loosest: Draft) -> Option<PlaceName> {
+        named_at(Places::from(self), locale, loosest)
             .next()
             .and_then(|named| named.name)
+    }
+
+    /// The `alt` form of a territory's name in `locale`, at `loosest` or
+    /// better: `Hong Kong` for `HK` in `en`, where [`Self::name_in`] is
+    /// `Hong Kong SAR China`; `香港` in `ja`. `None` for a subdivision,
+    /// which CLDR gives no `alt` form.
+    ///
+    /// The form is looked up as CLDR resolves a path: along the same tables
+    /// as the plain name, a locale's own run of tables — the locale and its
+    /// CLDR parents — then each fallback's run, then English's. In each
+    /// run the first table that gives the form answers, a parent's among
+    /// them. The first run whose tables give the plain name but not the
+    /// form ends the lookup with `None`, since "if a variant value is
+    /// absent for a particular locale, the normal value is used" (TR35
+    /// Part 1, "Attribute alt"), and the caller has that from
+    /// [`Self::name_at`]: most territories have no short name, and a locale
+    /// that names one does not take English's short name for it.
+    #[must_use]
+    pub fn alternative_in(
+        self,
+        locale: Option<&Locale>,
+        alt: Alt,
+        loosest: Draft,
+    ) -> Option<PlaceName> {
+        if self.kind != Kind::Territory {
+            return None;
+        }
+        let english = table(ENGLISH).map(|english| (english, u8::MAX));
+        let mut run = None;
+        let mut named = false;
+        for (table, at) in chain(locale).into_iter().flatten().chain(english) {
+            if run != Some(at) {
+                if named {
+                    return None;
+                }
+                run = Some(at);
+            }
+            if let Some((name, draft)) = table.alternative(self.index, alt)
+                && draft <= loosest
+            {
+                return Some(PlaceName {
+                    name,
+                    tag: table.tag,
+                    draft,
+                });
+            }
+            let names = &table.territories;
+            named |= names.names(self.index) && names.draft_at(self.index) <= loosest;
+        }
+        None
+    }
+
+    /// The place a subdivision lies directly within, as CLDR's
+    /// `supplemental/subdivisions.xml` has it: `GB-ENG` for `GB-KEN`
+    /// (Kent), `GB` for `GB-ENG`. `None` for a territory, and for a
+    /// subdivision the file does not list, every one of them deprecated.
+    #[cfg(feature = "place-names")]
+    #[must_use]
+    pub fn container(self) -> Option<Self> {
+        if self.kind != Kind::Subdivision {
+            return None;
+        }
+        if let Ok(found) =
+            SUBDIVISION_WITHIN.binary_search_by_key(&self.index, |(child, _)| usize::from(*child))
+        {
+            return Some(Self {
+                kind: Kind::Subdivision,
+                index: usize::from(SUBDIVISION_WITHIN[found].1),
+            });
+        }
+        let listed = SUBDIVISION_IN_COUNTRY
+            .get(self.index / 8)
+            .is_some_and(|byte| byte & (1 << (self.index % 8)) != 0);
+        if listed {
+            territory(self.country())
+        } else {
+            None
+        }
+    }
+
+    /// The subdivisions [`Self::container`] puts directly within this
+    /// place, in code order: `GB-ENG`, `GB-NIR`, `GB-SCT` and `GB-WLS`
+    /// within `GB`.
+    #[cfg(feature = "place-names")]
+    pub fn contained(self) -> impl Iterator<Item = Self> {
+        subdivisions_of(self.country())
+            .into_iter()
+            .flatten()
+            .filter(move |place| place.container() == Some(self))
     }
 }
 
@@ -493,24 +661,40 @@ pub fn place(code: &str) -> Option<Place> {
     territory(code).or_else(|| subdivision(code))
 }
 
-/// The most tables a chain can hold: a table and its parents. A test holds
-/// every chain to it.
-const MAX_CHAIN: usize = 4;
+/// The most tables a lookup can read before English: a table, its
+/// parents, and its fallbacks with theirs. A test holds every chain to it.
+const MAX_CHAIN: usize = 6;
 
-/// The tables a locale's lookup reads before English: the first table of
-/// its fallback chain, then that table's parents.
-fn chain(locale: Option<&Locale>) -> [Option<&'static Table>; MAX_CHAIN] {
+/// The tables a locale's lookup reads before English, each with the run it
+/// is in: the first table of the locale's fallback chain and that table's
+/// parents, run 0; then each of the first table's language-matching
+/// fallbacks and its parents, runs 1, 2 and so on, a table already read
+/// left out. TR35: "The locales in the fallback list are not used
+/// recursively", so a fallback's own fallbacks are not read.
+fn chain(locale: Option<&Locale>) -> [Option<(&'static Table, u8)>; MAX_CHAIN] {
     let mut out = [None; MAX_CHAIN];
-    let first = locale.and_then(|locale| {
+    let Some(first) = locale.and_then(|locale| {
         locale
             .fallback()
             .find_map(|candidate| table(candidate.rendered()?.as_str()))
-    });
-    let mut next = first;
-    for slot in &mut out {
-        let Some(found) = next else { break };
-        *slot = Some(found);
-        next = found.parent.and_then(table);
+    }) else {
+        return out;
+    };
+    let starts = core::iter::once(Some(first)).chain(first.fallbacks.iter().map(|tag| table(tag)));
+    let mut len = 0;
+    for (run, start) in (0_u8..).zip(starts) {
+        let mut next = start;
+        while let Some(found) = next {
+            let seen = out[..len]
+                .iter()
+                .flatten()
+                .any(|(known, _)| known.tag == found.tag);
+            if !seen && let Some(slot) = out.get_mut(len) {
+                *slot = Some((found, run));
+                len += 1;
+            }
+            next = found.parent.and_then(table);
+        }
     }
     out
 }
@@ -562,6 +746,7 @@ pub struct Named {
     places: Places,
     chain: [Option<(&'static str, Cursor)>; MAX_CHAIN],
     english: Option<Cursor>,
+    loosest: Draft,
 }
 
 impl Iterator for Named {
@@ -570,12 +755,14 @@ impl Iterator for Named {
     fn next(&mut self) -> Option<NamedPlace> {
         let place = self.places.next()?;
         let index = place.index;
+        let loosest = self.loosest;
         let english = self.english.as_mut().and_then(|cursor| cursor.step(index));
         let mut found = None;
         for (tag, cursor) in self.chain.iter_mut().flatten() {
             let line = cursor.step(index);
             if found.is_none()
                 && let Some(line) = line
+                && cursor.names.draft_at(index) <= loosest
             {
                 found = Some((*tag, cursor.names, line));
             }
@@ -590,11 +777,11 @@ impl Iterator for Named {
                 })
             }
             None => english.and_then(|name| {
-                let names = place.kind.names(table(ENGLISH)?);
-                Some(PlaceName {
+                let draft = place.kind.names(table(ENGLISH)?).draft_at(index);
+                (draft <= loosest).then_some(PlaceName {
                     name,
                     tag: ENGLISH,
-                    draft: names.draft_at(index),
+                    draft,
                 })
             }),
         };
@@ -614,17 +801,25 @@ impl Iterator for Named {
 /// documentation gives; `None` for `locale` asks for English.
 #[must_use]
 pub fn named(places: Places, locale: Option<&Locale>) -> Named {
+    named_at(places, locale, Draft::Provisional)
+}
+
+/// [`named`] with only the values at `loosest` or better, as
+/// [`Place::name_at`] takes them.
+#[must_use]
+pub fn named_at(places: Places, locale: Option<&Locale>, loosest: Draft) -> Named {
     let start = places.indices.start;
     let kind = places.kind;
     let tables = chain(locale);
     let mut cursors: [Option<(&'static str, Cursor)>; MAX_CHAIN] = Default::default();
-    for (slot, table) in cursors.iter_mut().zip(tables) {
-        *slot = table.map(|table| (table.tag, Cursor::at(kind.names(table), start)));
+    for (slot, link) in cursors.iter_mut().zip(tables) {
+        *slot = link.map(|(table, _)| (table.tag, Cursor::at(kind.names(table), start)));
     }
     Named {
         places,
         chain: cursors,
         english: table(ENGLISH).map(|english| Cursor::at(kind.names(english), start)),
+        loosest,
     }
 }
 
@@ -646,6 +841,7 @@ mod tests {
     /// CLDR 48 `subdivisions/ja.xml`: `<subdivision type="jp13"
     /// draft="provisional">東京都</subdivision>`; `subdivisions/en.xml`:
     /// `jp13` `Tokyo`, approved.
+    #[cfg(feature = "place-names")]
     #[test]
     fn tokyo_is_tokyo_to_in_japanese_and_tokyo_in_english() {
         let tokyo = subdivision("JP-13").expect("JP-13");
@@ -664,6 +860,7 @@ mod tests {
     /// `subdivisions/de.xml` `debe` Bayern and `usca` Kalifornien, `fr.xml`
     /// Bavière and Californie, `es.xml` `usca` California, English's own
     /// spelling, so answered by `es`; all provisional. `en.xml` Bavaria.
+    #[cfg(feature = "place-names")]
     #[test]
     fn a_german_and_an_american_subdivision_in_two_locales() {
         assert_eq!(name("DE-BY", "de"), Some(("Bayern", "de", "provisional")));
@@ -693,6 +890,7 @@ mod tests {
     /// `pt_PT.xml` names no subdivision of its own, so `pt.xml`'s Tóquio;
     /// Swedish has no table; Coptic's every value is unconfirmed; and
     /// `native`, no locale, asks for English.
+    #[cfg(feature = "place-names")]
     #[test]
     fn a_name_falls_back_along_cldrs_chain_then_to_english() {
         assert_eq!(name("JP-13", "zh-TW"), Some(("Tokyo", "en", "approved")));
@@ -714,8 +912,8 @@ mod tests {
         assert_eq!(tokyo.map(|found| found.tag), Some(ENGLISH));
     }
 
-    /// `pt_PT.xml`'s `BH` Barém where `pt.xml` has Barein, as the
-    /// `territories` module's test has it; `ja.xml` `001` 世界.
+    /// `pt_PT.xml`'s `BH` Barém where `pt.xml` has Barein; `ja.xml` `001`
+    /// 世界.
     #[test]
     fn territories_follow_the_same_chain() {
         assert_eq!(name("JP", "ja"), Some(("日本", "ja", "approved")));
@@ -733,6 +931,7 @@ mod tests {
 
     /// `fr75` is deprecated in CLDR 48's validity data, beside the regular
     /// `fr75c` Paris, and only `subdivisions/ha.xml` names it: Pariis.
+    #[cfg(feature = "place-names")]
     #[test]
     fn a_deprecated_code_only_one_locale_names() {
         let paris = subdivision("FR-75").expect("FR-75");
@@ -743,6 +942,7 @@ mod tests {
         assert_eq!(name("FR-75C", "ja"), Some(("パリ", "ja", "provisional")));
     }
 
+    #[cfg(feature = "place-names")]
     #[test]
     fn codes_match_in_any_case_and_padded() {
         for code in ["JP-13", "jp-13", " Jp-13 "] {
@@ -769,6 +969,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "place-names")]
     #[test]
     fn the_lists_are_in_code_order_and_iso_shaped() {
         assert_eq!(Kind::Territory.len(), 295);
@@ -801,6 +1002,7 @@ mod tests {
         assert_eq!(SUBDIVISION_STATUS.len(), Kind::Subdivision.len());
     }
 
+    #[cfg(feature = "place-names")]
     #[test]
     fn every_regular_subdivision_has_an_english_name() {
         let mut deprecated = 0;
@@ -821,6 +1023,7 @@ mod tests {
         assert!(named(territories(), None).all(|named| named.english.is_some()));
     }
 
+    #[cfg(feature = "place-names")]
     #[test]
     fn a_country_has_the_subdivisions_its_code_begins() {
         let japan = subdivisions_of("jp").expect("JP");
@@ -874,7 +1077,7 @@ mod tests {
                     .any(|entry| entry.tag == table.tag)
             );
             let chain = chain(Some(&locale(table.tag)));
-            assert_eq!(chain[0].map(|found| found.tag), Some(table.tag));
+            assert_eq!(chain[0].map(|found| found.0.tag), Some(table.tag));
             assert!(chain[MAX_CHAIN - 1].is_none(), "{}", table.tag);
             for kind in [Kind::Territory, Kind::Subdivision] {
                 let names = kind.names(table);
@@ -930,22 +1133,205 @@ mod tests {
         assert_eq!(table("pt-PT").and_then(|found| found.parent), Some("pt"));
     }
 
-    /// The names the `territories` module carries for the holiday tables,
-    /// CLDR's approved and contributed values of the 195 regions, are this
-    /// module's names from the same table.
-    #[cfg(feature = "territories")]
+    fn alternative(code: &str, tag: &str, alt: Alt) -> Option<(&'static str, &'static str)> {
+        territory(code)
+            .expect("a territory")
+            .alternative_in(Some(&locale(tag)), alt, Draft::Contributed)
+            .map(|found| (found.name, found.tag))
+    }
+
+    /// `mn.xml` `JP` Япон and `shi_Latn.xml` `JP` lyaban, both approved:
+    /// the two tables the survey found missing (`shi_Latn`'s parent is
+    /// root, by `parentLocales`' `nonlikelyScript` list).
     #[test]
-    fn the_holiday_territory_names_are_these() {
-        for older in crate::territories::TABLES {
-            for code in crate::territories::REGIONS {
-                let Some(expected) = older.name_of(code) else {
-                    continue;
-                };
-                let found = territory(code)
-                    .expect("a territory")
-                    .name_in(Some(&locale(older.tag)))
-                    .expect("a name");
-                assert_eq!((found.name, found.tag), (expected, older.tag), "{code}");
+    fn mongolian_and_tachelhit_in_the_latin_script_name_the_territories() {
+        assert_eq!(name("JP", "mn"), Some(("Япон", "mn", "approved")));
+        assert_eq!(
+            name("JP", "shi-Latn"),
+            Some(("lyaban", "shi-Latn", "approved"))
+        );
+        assert_eq!(
+            name("JP", "shi-Latn-MA").map(|found| found.1),
+            Some("shi-Latn")
+        );
+        assert!(table("mn").is_some() && table("shi-Latn").is_some());
+    }
+
+    /// The regional files name what differs from their parents: `en_001.xml`
+    /// `KN` St Kitts & Nevis, which `en-GB` and `en-AU` reach through
+    /// `parentLocales`; `es_419.xml` `RO` Rumania for `es-MX`; `zh_Hant_HK.xml`
+    /// `AE` 阿拉伯聯合酋長國, and `JP` from `zh_Hant.xml`.
+    #[test]
+    fn the_regional_files_name_what_differs_from_their_parents() {
+        assert_eq!(
+            name("KN", "en"),
+            Some(("St. Kitts & Nevis", "en", "approved"))
+        );
+        for tag in ["en-001", "en-GB", "en-AU"] {
+            assert_eq!(
+                name("KN", tag),
+                Some(("St Kitts & Nevis", "en-001", "approved")),
+                "{tag}"
+            );
+        }
+        assert_eq!(name("RO", "es-MX"), Some(("Rumania", "es-419", "approved")));
+        assert_eq!(name("RO", "es"), Some(("Rumanía", "es", "approved")));
+        assert_eq!(
+            name("AE", "zh-HK"),
+            Some(("阿拉伯聯合酋長國", "zh-Hant-HK", "approved"))
+        );
+        assert_eq!(
+            name("JP", "zh-Hant-HK"),
+            Some(("日本", "zh-Hant", "approved"))
+        );
+    }
+
+    /// `en.xml`: `HK` short Hong Kong, `CZ` variant Czech Republic, `IO`
+    /// biot and chagos; `ja.xml` `HK` short 香港; `de.xml` Hongkong for
+    /// `de-AT`. `es_419.xml`'s `GB` short R. U. over `es.xml`'s RU;
+    /// `pt_PT.xml`'s `GB` short `GB`, beside a plain name it inherits, and
+    /// its `PS` short `↑↑↑`, which inherits `pt.xml`'s Palestina. `bo.xml`
+    /// names `GB` and gives no short form, so the answer is none rather than
+    /// English's UK; Yucatec Maya has no file, so English answers.
+    #[test]
+    fn an_alt_form_is_resolved_as_cldr_resolves_a_path() {
+        assert_eq!(
+            alternative("HK", "en", Alt::Short),
+            Some(("Hong Kong", "en"))
+        );
+        assert_eq!(
+            alternative("CZ", "en", Alt::Variant),
+            Some(("Czech Republic", "en"))
+        );
+        assert_eq!(
+            alternative("IO", "en", Alt::Biot),
+            Some(("British Indian Ocean Territory", "en"))
+        );
+        assert_eq!(
+            alternative("IO", "en", Alt::Chagos),
+            Some(("Chagos Archipelago", "en"))
+        );
+        assert_eq!(alternative("HK", "ja", Alt::Short), Some(("香港", "ja")));
+        assert_eq!(
+            alternative("HK", "de-AT", Alt::Short),
+            Some(("Hongkong", "de"))
+        );
+        assert_eq!(alternative("GB", "es", Alt::Short), Some(("RU", "es")));
+        assert_eq!(
+            alternative("GB", "es-419", Alt::Short),
+            Some(("R. U.", "es-419"))
+        );
+        assert_eq!(
+            alternative("GB", "pt-PT", Alt::Short),
+            Some(("GB", "pt-PT"))
+        );
+        assert_eq!(name("GB", "pt-PT"), Some(("Reino Unido", "pt", "approved")));
+        assert_eq!(
+            alternative("PS", "pt-PT", Alt::Short),
+            Some(("Palestina", "pt"))
+        );
+        assert_eq!(alternative("GB", "bo", Alt::Short), None);
+        assert_eq!(alternative("GB", "yua", Alt::Short), Some(("UK", "en")));
+        assert_eq!(alternative("JP", "en", Alt::Short), None);
+        assert_eq!(Alt::parse(" SHORT "), Some(Alt::Short));
+        assert_eq!(
+            Alt::ALL.map(Alt::name),
+            ["short", "variant", "biot", "chagos"]
+        );
+    }
+
+    /// Kabyle's `IO` is provisional in `kab.xml`, so at the release levels
+    /// the lookup goes on to English.
+    #[test]
+    fn the_release_levels_pass_over_a_provisional_name() {
+        let io = territory("IO").expect("IO");
+        let kab = locale("kab");
+        let found = io.name_in(Some(&kab)).expect("a name");
+        assert_eq!(
+            (found.name, found.tag, found.draft),
+            ("Akal Aglizi deg Ugaraw Ahendi", "kab", Draft::Provisional)
+        );
+        let released = io.name_at(Some(&kab), Draft::Contributed).expect("a name");
+        assert_eq!(
+            (released.name, released.tag),
+            ("British Indian Ocean Territory", "en")
+        );
+        assert!(Draft::Approved < Draft::Contributed && Draft::Contributed < Draft::Provisional);
+    }
+
+    /// `languageInfo.xml`: `bo` ⇒ `zh` 20 and `bo_Tibt` ⇒ `zh_Hans` 10, so
+    /// Tibetan's fallback is Simplified Chinese (distance 30); `sa` ⇒ `hi`
+    /// 30; `mn` ⇒ `ru` 30 and the regions MN and RU 4; `yue` ⇒ `zh` 10, and
+    /// HK against TW the region default 4; `zh_Hant` against `zh_Hans` is
+    /// the script default, 50, which is not below the threshold.
+    #[test]
+    fn language_matching_gives_fallbacks_before_english() {
+        let fallbacks = |tag: &str| table(tag).map(|found| found.fallbacks);
+        assert_eq!(fallbacks("bo"), Some(&["zh-Hans"][..]));
+        assert_eq!(fallbacks("sa"), Some(&["hi"][..]));
+        assert_eq!(fallbacks("mn"), Some(&["ru"][..]));
+        assert_eq!(fallbacks("yue-Hant"), Some(&["zh-Hant-HK", "zh-Hant"][..]));
+        assert_eq!(fallbacks("zh-Hant"), Some(&["zh-Hant-HK"][..]));
+        assert_eq!(fallbacks("ja"), Some(&[][..]));
+        assert_eq!(name("US", "bo"), Some(("ཨ་མེ་རི་ཀ།", "bo", "approved")));
+        assert_eq!(name("AD", "bo"), Some(("安道尔", "zh-Hans", "approved")));
+        assert_eq!(name("AD", "sa"), Some(("एंडोरा", "hi", "approved")));
+        for table in TABLES {
+            for tag in table.fallbacks {
+                assert!(super::table(tag).is_some(), "{} {tag}", table.tag);
+                assert_ne!(*tag, ENGLISH);
+            }
+        }
+    }
+
+    /// Subdivision names follow the fallbacks too: `JP-13` under `bo` is
+    /// `zh.xml`'s 東京都, and Kent, which `subdivisions/mn.xml` does not
+    /// name, is `ru.xml`'s Кент under `mn`.
+    #[cfg(feature = "place-names")]
+    #[test]
+    fn a_subdivision_falls_back_by_language_matching_too() {
+        assert_eq!(
+            name("JP-13", "bo"),
+            Some(("東京都", "zh-Hans", "provisional"))
+        );
+        assert_eq!(name("GB-KEN", "mn"), Some(("Кент", "ru", "provisional")));
+        assert_eq!(name("GB-ENG", "mn"), Some(("Англи", "mn", "approved")));
+    }
+
+    /// `subdivisions.xml`: `GB` contains `gbeng gbnir gbsct gbwls`, and
+    /// `gbeng` contains `gbken`; `JP` contains `jp13`. The deprecated
+    /// `fr75` is not listed.
+    #[cfg(feature = "place-names")]
+    #[test]
+    fn subdivisions_lie_within_what_cldr_says() {
+        let code = |place: Option<Place>| place.map(Place::code);
+        assert_eq!(
+            code(subdivision("GB-KEN").and_then(Place::container)),
+            Some("GB-ENG")
+        );
+        assert_eq!(
+            code(subdivision("GB-ENG").and_then(Place::container)),
+            Some("GB")
+        );
+        assert_eq!(
+            code(subdivision("JP-13").and_then(Place::container)),
+            Some("JP")
+        );
+        assert_eq!(code(subdivision("FR-75").and_then(Place::container)), None);
+        assert_eq!(code(territory("GB").and_then(Place::container)), None);
+        let within: Vec<&str> = territory("GB")
+            .expect("GB")
+            .contained()
+            .map(Place::code)
+            .collect();
+        assert_eq!(within, ["GB-ENG", "GB-NIR", "GB-SCT", "GB-WLS"]);
+        assert_eq!(territory("JP").expect("JP").contained().count(), 47);
+        let listed = subdivisions().filter(|place| place.container().is_some());
+        assert_eq!(listed.count(), 5027);
+        for place in subdivisions() {
+            if let Some(container) = place.container() {
+                assert_eq!(container.country(), place.country(), "{}", place.code());
+                assert_ne!(place.status(), Status::Deprecated, "{}", place.code());
             }
         }
     }

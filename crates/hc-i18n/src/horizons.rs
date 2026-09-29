@@ -42,7 +42,7 @@
 //! # Locales
 //!
 //! [`horizon_name`] walks [`Locale::fallback`] and takes the first table in
-//! the chain that names the horizon, as [`crate::territories`] does:
+//! the chain that names the horizon, as the calendar names do:
 //! `zh-TW` finds `zh-Hant`, `fr-CA` finds `fr`.
 
 use crate::locale::Locale;

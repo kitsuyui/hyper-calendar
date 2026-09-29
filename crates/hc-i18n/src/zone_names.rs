@@ -453,7 +453,10 @@ pub fn own_zone_name(
 /// UTS #35's *type fallback*, over the three names of one length: where
 /// the daylight name does not exist, "the metazone doesn't require
 /// daylight support", and every type takes the generic name, else the
-/// standard one; where it exists, a type is its own name or nothing.
+/// standard one; where it exists, a type is its own name or nothing. The
+/// last fallback, the standard name for a generic one where the offset
+/// does not change within 184 days, needs the zone's rules, and is
+/// `hc-format`'s, which a pattern's context gives them to.
 #[cfg(feature = "zone-names")]
 #[must_use]
 pub fn with_type_fallback(

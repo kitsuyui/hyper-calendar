@@ -19,11 +19,11 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc"]
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm"]
-# CLDR 48's names for the 195 regions the workspace keeps holiday tables
-# for, in every carried locale CLDR names them in (the `territories`
-# module). About 135 kB of text, so off unless a caller names
-# territories: the facade's `holiday` feature turns it on, and a build that
-# only renders dates does not carry it.
+# CLDR 48's names of the 295 territories `en.xml` names, with their `alt`
+# forms, in every carried locale CLDR names them in (the territory half of
+# the `place_names` module). About 230 kB of text, so off unless a caller
+# names territories: the facade's `holiday` feature and `zone-names` turn it
+# on, and a build that only renders dates does not carry it.
 territories = []
 # CLDR 48's English exemplar cities for the 418 zones hc-tz locates, from
 # en.xml and root.xml, and UTS #35's name derived from a zone's identifier
@@ -46,12 +46,12 @@ zone-names = ["exemplar-cities", "territories"]
 # The metazone and zone names of every other carried locale. About 600 kB of
 # text, so a feature of its own: `hc-format`'s `localized-zone-names`.
 localized-zone-names = ["zone-names", "localized-exemplar-cities"]
-# CLDR 48's names of every territory and every ISO 3166-2 subdivision it
-# names, in every carried locale (the `place_names` module). Some 2.8 MB,
-# 2.6 MB of it the subdivisions, so a feature of its own that nothing else
-# turns on: the facade's `place-names` feature, and the `places` layer of
-# the WebAssembly module and the C library.
-place-names = []
+# CLDR 48's names of every ISO 3166-2 subdivision it names, in every
+# carried locale, and which lies in which (the subdivision half of the
+# `place_names` module). Some 2.6 MB, so a feature of its own that nothing
+# else turns on: the facade's `place-names` feature, and the `places` layer
+# of the WebAssembly module and the C library.
+place-names = ["territories"]
 
 [dependencies]
 hc-core = { workspace = true }

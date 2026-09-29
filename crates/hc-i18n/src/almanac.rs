@@ -48,7 +48,7 @@
 //! # Locales
 //!
 //! [`almanac_name`] walks [`Locale::fallback`] and takes the first table in
-//! the chain that names the term, as [`crate::territories`] does, and
+//! the chain that names the term, as the calendar names do, and
 //! [`name_or_fallback`] adds the rule every line writer follows: a locale
 //! with no name for a term has it from English, and a term English does
 //! not name from Japanese, the almanac's own language, which names every

@@ -546,9 +546,9 @@ not cover.
 3. Test at least five specific dates across at least two different years,
    including one that exercises the substitution rule — or, where the country
    has none, one that proves a weekend holiday stays where it falls.
-4. Add its code to `hc_i18n::territories::REGIONS`, with CLDR's name for it in
-   each locale table that has one. A test in the facade's `holiday_lines`
-   holds `REGIONS` to `countries::ALL`.
+4. Nothing to add for its name: `hc_i18n::place_names` carries every
+   territory CLDR names, and a test in the facade's `holiday_lines` holds
+   every country of `countries::ALL` to a regular territory English names.
 5. Regenerate `docs/supported.md` with
    `UPDATE_SUPPORTED=1 cargo test -p hyper-calendar --all-features --test supported`,
    and move the country's row in this file to **Done** or **Partial**.

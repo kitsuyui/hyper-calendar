@@ -245,7 +245,7 @@ Each row names a concern that is easy to get wrong and the crate that owns it.
 | Off-Earth clocks | `hc-planetary` | Mars sols, MSD, MTC, Darian, Martiana; circad calendars for Titan and the Galilean moons |
 | Relativity | `hc-relativity` | Special and gravitational time dilation; worldlines integrated to proper time |
 | Ambiguous local time | `hc-tz` | A three-way `LocalResolution`, never a silent pick |
-| Localisation | `hc-i18n` | Static data plus a fallback chain; country names behind the `territories` feature, which only the facade's `holiday` feature turns on |
+| Localisation | `hc-i18n` | Static data plus a fallback chain; country names behind the `territories` feature, which the facade's `holiday` feature and the zone names turn on, and subdivision names behind `place-names` |
 | Holidays, observances, exchanges | `hc-holiday` | One rule engine; every country, tradition and exchange is a table ([ADR 0008](adr/0008-exchange-calendars-are-rule-sets.md), [ADR 0009](adr/0009-a-working-day-is-an-entry.md)) |
 
 ## Further reading
