@@ -16,8 +16,8 @@ nothing else in the workspace hard-codes a localised string.
 | Module | What it does |
 |---|---|
 | `locale` | `language[-Script][-REGION][-variant]` plus the `-u-ca`, `-u-nu`, `-u-fw` and `-u-hc` keys; parse, render, and the CLDR inheritance chain as an iterator |
-| `numbering` | 9 positional digit systems (`latn`, `arab`, `arabext`, `deva`, `beng`, `thai`, `mymr`, `hanidec`, `fullwide`) 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`) and Hebrew numerals (`hebr`, by CLDR's rules, 1 to 9 999), rendered and parsed back |
-| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 53 languages and `pt-PT` |
+| `numbering` | 15 positional digit systems (`latn`, `fullwide`, `arab`, `arabext`, `deva`, `beng`, `guru`, `java`, `mlym`, `mymr`, `tamldec`, `telu`, `thai`, `tibt`, `hanidec`), 4 algorithmic Han styles (`jpan`, `jpanfin`, `hans`, `hant`), Hebrew numerals (`hebr`, by CLDR's rules, 1 to 9 999) and Greek alphabetic numerals (`grek`, `greklow`, by CLDR's `%greek-upper` and `%greek-lower`), rendered and parsed back |
+| `plural` | CLDR cardinal categories and the full operand set (`n i v w f t`) for 55 languages and `pt-PT` |
 | `names` | Months, weekdays, day periods, eras, quarters and the sexagenary cycle, keyed by (locale, calendar, width, context); each locale's names for the calendars, and the templates by which `hc-format` writes a year with its era, a day and a date |
 | `notation` | The notations a calendar's sources write its dates in whatever the language — the Long Count's `13.0.13.17.8`, the ISO week date `2026-W39-7` — as a level of templates between a calendar's entries and a locale's general ones, each citing its source |
 | `fields` | What a calendar's extra fields are called — an English label for every field a registered calendar sets, in its system document's words — and which cycle names each one's values, for the `{extra:FIELD}` placeholder and the lines that list a day's extra fields |

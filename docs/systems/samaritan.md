@@ -114,21 +114,49 @@ the sacrifice fell on Wednesday 6 May, as published.
 | The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `samaritan`, the months relabelled from where the year turns to the month of Passover | [reingold2018code] | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 9 of the 9 in 1900–2100; the 24 before refused |
 | The Passover sacrifice on 10 April 2017, 29 April 2018, 18 April 2019 and 6 May 2020 | [samaritan-institute-calendar] | `the_published_passover_sacrifices_of_2017_to_2020` | all four |
 | The Passover sacrifice on 20 April 2016 | [samaritan-institute-calendar] | `the_rule_puts_the_passover_of_2016_a_day_after_the_community` | **one day late**: 21 April |
+| The Passover sacrifice on Friday 11 April 2025, and the one scheduled for 30 April 2026 | [arabnews-samaritan-passover-2025; zohar-samaritan-passover-2026] | `the_rule_puts_the_passovers_of_2025_and_2026_a_day_after_the_community` | **one day late**: 12 April and 1 May |
+| The Passover sacrifice on 28 April 2010 | [jenkins-samaritan-passover-2010] (secondary) | `the_passover_of_2010_is_the_rules_own_although_its_conjunction_was_after_noon` | yes |
+| The Palestinian Council of Ministers' days off for the Samaritan employees of 2025: Passover on 13–14 April, its last day on 20 April, Shavuot on Sunday 1 June; the Seventh Month on 22 September, Atonement on 1–2 October, Sukkot on 6 October and the end of the festivals on 13 October | [wafa-official-holidays] | the `PS` table's tests in `hc-holiday` | the autumn days the rule's own; the spring days neither the rule's nor the community's; see below |
 | The Sixth Month on 11 September 2026, the Seventh on 11 October, the Day of Atonement on 20 October, Sukkot on 25 October, the Eighth and Ninth Months on 9 November and 9 December | [samaritans-net-calendar] | `the_months_of_autumn_2026_are_the_published_ones` | all six |
 | Year 3656 begins at the Sixth Month of 2017 | [samaritan-institute-calendar] | `year_3656_began_at_the_sixth_month_of_2017` | yes |
 | The epoch is 1 March −1638 Gregorian | [reingold2018errata] | `the_epoch_is_the_first_of_march_1638_bce_gregorian` | yes |
 
-**The disagreement of 2016.** The conjunction of 7 April 2016 came at
-about 11:24 UT, 13:43 apparent at Gerizim, well past noon, so the rule
-begins the month on the 8th; the community kept the sacrifice on the 20th,
-which puts the month's first day on the 7th. It is not a matter of
-minutes, so it is a difference of rule, not of ephemeris. Every published
-date read would also follow from a month beginning on the day of the
-conjunction when it falls before sunset — the rule and that alternative
-part only in 2016 among them, and the one published month of 2026 with a
-conjunction after noon (10 October, about 18:11 apparent) is after sunset
-too — but no source read states such a rule, and the library does not
-invent one.
+**The disagreements of 2016, 2025 and 2026.** The conjunction of 7 April
+2016 came at about 11:24 UT, 13:43 apparent at Gerizim, well past noon,
+so the rule begins the month on the 8th; the community kept the sacrifice
+on the 20th, which puts the month's first day on the 7th. The conjunctions
+of 29 March 2025 and 17 April 2026, about 13:15 and 14:14 apparent, part
+the rule from the community in the same way: AFP's report of the sheep
+slaughtered "Friday", 11 April 2025 [arabnews-samaritan-passover-2025],
+and the sacrifice of 2026 "scheduled for April 30"
+[zohar-samaritan-passover-2026], against the rule's 12 April and 1 May.
+None is a matter of minutes, so it is a difference of rule, not of
+ephemeris. The conjunction of 14 April 2010 came later, about 14:50
+apparent, and the community kept the rule's own day, 28 April
+[jenkins-samaritan-passover-2010]. Every published date read would follow
+from a month beginning on the day of the conjunction when it falls before
+some moment between about 14:14 and 14:50 apparent — the autumn month of
+2026, whose conjunction came about 18:11, too — but no source read states
+such a rule, four years do not fix the moment, and the library does not
+invent one. The priesthood's calculation, which would, was not read; a
+reading of its own is registered when it is.
+
+**The Council of Ministers' table.** The Palestinian Council of Ministers
+gives the Samaritan employees of the Government their feasts each year
+[wafa-official-holidays]. Its autumn days of 2025 are the rule's own; its
+spring days, Passover on 13 and 14 April and its last day on 20 April, are
+each a day after the rule's 12 and 19 April and two after the community's
+11 and 18 April. They are not a third calendar. Its Shavuot, "عيد
+المعراج/الحصاد" on Sunday 1 June, is fifty days from the Sunday after the
+Sabbath of 12 April, which falls in the community's seven days of
+Unleavened Bread, 12 to 18 April, and not in the rule's, 13 to 19 April,
+whose Shavuot would be 8 June: the Council's year is the community's. Its
+Passover days are the first working days after the community's Friday
+11 and Saturday 12 April, and after Friday 18 April, the Government's
+weekend being Friday and Saturday; the table does not say that it moves
+them, and its Christian tables of the same year keep Good Friday and Holy
+Saturday on the weekend. So the `PS` table carries the Council's days as
+it lists them, for 2025, and the other years are gaps.
 
 **Passover on 7 April.** The community's page says its sages "fixed the
 date of Passover in the calendar so that it will not be earlier than
@@ -155,6 +183,10 @@ apparent noon at Gerizim is decided by that model.
 | [reingold2018errata] | The epoch's Gregorian form, 1 March −1638 | Yes, 2026-09-26 |
 | [samaritan-institute-calendar] | The computer calculation of Avraham b. Pinchas; the nineteen-year cycle and the month's difference from the Jewish festivals; the Passover sacrifices of 2016–2020; "not earlier than April 8"; Tsedaka on year 3656 | Yes, 2026-09-26 |
 | [samaritans-net-calendar] | The day from sunset; the year moving on at the sixth month; the numbered months; the festivals of autumn 2026 | Yes, 2026-09-26 |
+| [arabnews-samaritan-passover-2025] | AFP's report of the sacrifice of Friday 11 April 2025 | Yes, 2026-09-29 |
+| [zohar-samaritan-passover-2026] | The sacrifice of 2026 scheduled for 30 April and held on 10 April | Yes, 2026-09-29 |
+| [jenkins-samaritan-passover-2010] | The Passover of 28 April 2010 | Yes, 2026-09-29 (a travel blog) |
+| [wafa-official-holidays] | The Council of Ministers' days off for the Samaritan employees of 2025 | Yes, 2026-09-29 |
 
 ## Code
 
@@ -163,6 +195,8 @@ apparent noon at Gerizim is decided by that model.
 `passover_sacrifice`, `is_leap_year`). Anchors:
 `the_published_passover_sacrifices_of_2017_to_2020`,
 `the_rule_puts_the_passover_of_2016_a_day_after_the_community`,
+`the_rule_puts_the_passovers_of_2025_and_2026_a_day_after_the_community`,
+`the_passover_of_2010_is_the_rules_own_although_its_conjunction_was_after_noon`,
 `the_first_month_of_2020_waited_for_the_conjunction_after_noon_on_24_march`,
 `the_months_of_autumn_2026_are_the_published_ones`,
 `year_3656_began_at_the_sixth_month_of_2017`,

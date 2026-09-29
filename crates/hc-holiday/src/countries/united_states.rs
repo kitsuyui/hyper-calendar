@@ -19,8 +19,9 @@
 //! history names one, and absent before; otherwise from the year of the text
 //! read, the years before it a gap (`HolidayRule::read_from`), since the day
 //! is usually older than the copy.
-//! The codes' own weekend moves are not carried: the engine substitutes
-//! only days off, and a state's day is not one. Days whose date the code leaves
+//! The codes' own weekend moves are not yet carried: the engine substitutes
+//! only days off, a state's day is not one, and a substitution of the other
+//! kinds has not been written. Days whose date the code leaves
 //! to a governor, an election law not read or a local body, and days for
 //! part of a state, are not yet carried: no source read dates them, or the
 //! table has no scope finer than a state. California's Good Friday from noon

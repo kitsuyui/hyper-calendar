@@ -2304,9 +2304,8 @@ pub static MALAYSIA: RuleSet = RuleSet {
               through web.archive.org on 2026-09-27. Carried approximate, as the \
               gazette announces the day. The states' own days, which the same lists \
               give — Thaipusam among them, whose rule is `hindu::THAIPUSAM` — are not \
-              yet carried: the lists were read for the federal days, and could not be \
-              read again when the other countries' subdivision days were added, \
-              kabinet.gov.my refusing the requests and the lists being PDFs. Nor is the \
+              yet carried: the lists, PDFs, have been read for the federal days only, \
+              and kabinet.gov.my refuses requests for them. Nor is the \
               Friday–Saturday weekend of Johor, Kedah, Kelantan and Terengganu, which a \
               weekend policy, having no region, cannot scope",
     subdivisions: Subdivisions::Read(&[]),

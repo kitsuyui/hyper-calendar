@@ -507,6 +507,27 @@ fn a_group_is_a_scope_of_its_country_s_table() {
     };
     assert_eq!(off(children), 1);
     assert_eq!(off(b""), 0);
+    // A known group with no day of its own in the table has everyone's
+    // days; a name that is no group is refused.
+    assert_eq!(off(b"police"), 0);
+    assert_eq!(off(b"childrens"), HC_ERR_UNKNOWN);
+    let unknown = b"childrens";
+    assert_eq!(
+        unsafe {
+            hc_holidays_in_year(
+                cn.as_ptr(),
+                2,
+                core::ptr::null(),
+                0,
+                unknown.as_ptr(),
+                unknown.len(),
+                2026,
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_UNKNOWN
+    );
     let tables = read_lines(|buffer, capacity| unsafe {
         hc_holiday_tables("zh-CN".as_ptr(), 5, buffer, capacity)
     });

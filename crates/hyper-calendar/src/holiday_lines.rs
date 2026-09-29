@@ -311,6 +311,23 @@ fn table_group(table: &RuleSet, group: Option<&str>) -> Option<&'static str> {
         .find(|id| hc_core::catalogue::matches(group, id))
 }
 
+/// The scope a caller asks for: `region` as given, and `group`, which must
+/// name a group of [`hc_holiday::group::GROUPS`] when it is not blank. A
+/// known group the table gives no day to alone has everyone's days; a
+/// name that is no group is refused rather than answered as if it were
+/// everyone.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a `group` that names no group.
+fn requested_scope<'a>(region: Option<&'a str>, group: Option<&'a str>) -> Answer<Scope<'a>> {
+    let group = group.filter(|group| !group.trim().is_empty());
+    if let Some(group) = group {
+        hc_holiday::group::by_id(group).ok_or(Refusal::Unknown)?;
+    }
+    Ok(Scope::new(region, group))
+}
+
 /// The subdivision code of `table` that `region` names, as the table
 /// writes it: `JP-13` for `jp-13`. `None` when the table scopes no rule to
 /// it, which leaves the caller with the nationwide days.
@@ -403,14 +420,16 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
 ///
 /// # Errors
 ///
-/// As [`rule_set`].
+/// As [`rule_set`], and [`Refusal::Unknown`] for a `group` that names no
+/// group of [`hc_holiday::group::GROUPS`].
 pub fn holidays_in_year(
     code: &str,
     region: Option<&str>,
     group: Option<&str>,
     year: i64,
 ) -> Answer<String> {
-    Ok(year_lines(rule_set(code)?, Scope::new(region, group), year))
+    let table = rule_set(code)?;
+    Ok(year_lines(table, requested_scope(region, group)?, year))
 }
 
 /// One table's nationwide lines of `hc_holidays_on` for one day: the
@@ -593,8 +612,9 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
 ///
 /// # Errors
 ///
-/// As [`rule_set`], and [`Refusal::OutOfRange`] for a day with no
-/// Gregorian year.
+/// As [`rule_set`]; [`Refusal::Unknown`] for a `group` that names no group
+/// of [`hc_holiday::group::GROUPS`]; and [`Refusal::OutOfRange`] for a day
+/// with no Gregorian year.
 pub fn is_day_off(
     code: &str,
     region: Option<&str>,
@@ -604,7 +624,8 @@ pub fn is_day_off(
     let table = rule_set(code)?;
     let day = Rd(fixed);
     gregorian::year_from_fixed(day).map_err(|_| Refusal::OutOfRange)?;
-    Ok(HolidayCalendar::for_day_scoped(table, Scope::new(region, group), day).is_holiday(day))
+    let scope = requested_scope(region, group)?;
+    Ok(HolidayCalendar::for_day_scoped(table, scope, day).is_holiday(day))
 }
 
 /// The most business days [`add_business_days`] walks: a hundred years'
@@ -624,8 +645,8 @@ fn year_of(fixed: i64) -> Answer<i64> {
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a code that names no table;
-/// [`Refusal::OutOfRange`] for a day with no Gregorian year, a count past
+/// [`Refusal::Unknown`] for a code that names no table or a `group` that
+/// names no group; [`Refusal::OutOfRange`] for a day with no Gregorian year, a count past
 /// [`MAX_BUSINESS_DAYS`] either way, or a walk that leaves the years the
 /// tables evaluate.
 pub fn add_business_days(
@@ -636,6 +657,7 @@ pub fn add_business_days(
     count: i64,
 ) -> Answer<i64> {
     let table = rule_set(code)?;
+    let scope = requested_scope(region, group)?;
     let year = year_of(fixed)?;
     if count.unsigned_abs() > MAX_BUSINESS_DAYS.unsigned_abs() {
         return Err(Refusal::OutOfRange);
@@ -648,7 +670,7 @@ pub fn add_business_days(
     } else {
         (year, year + reach)
     };
-    let calendar = HolidayCalendar::scoped(table, Scope::new(region, group), first, last);
+    let calendar = HolidayCalendar::scoped(table, scope, first, last);
     calendar
         .add_business_days(Rd(fixed), count)
         .map(|day| day.0)
@@ -662,8 +684,8 @@ pub fn add_business_days(
 ///
 /// # Errors
 ///
-/// [`Refusal::Unknown`] for a code that names no table, and
-/// [`Refusal::OutOfRange`] for a day with no Gregorian year or two days
+/// [`Refusal::Unknown`] for a code that names no table or a `group` that
+/// names no group, and [`Refusal::OutOfRange`] for a day with no Gregorian year or two days
 /// more than a hundred years apart.
 pub fn business_days_between(
     code: &str,
@@ -673,12 +695,13 @@ pub fn business_days_between(
     to_fixed: i64,
 ) -> Answer<i64> {
     let table = rule_set(code)?;
+    let scope = requested_scope(region, group)?;
     let (from, to) = (year_of(from_fixed)?, year_of(to_fixed)?);
     let (first, last) = (from.min(to), from.max(to));
     if last - first > 100 {
         return Err(Refusal::OutOfRange);
     }
-    HolidayCalendar::scoped(table, Scope::new(region, group), first, last)
+    HolidayCalendar::scoped(table, scope, first, last)
         .business_days_between(Rd(from_fixed), Rd(to_fixed))
         .ok_or(Refusal::OutOfRange)
 }
@@ -960,8 +983,9 @@ pub fn roman_1960_office_lines(fixed: i64) -> Answer<String> {
 
 /// The reckoning of the fasts an identifier names, one of
 /// [`Reckoning::ALL`] — `orthodox-fasts`, `orthodox-fasts-revised-julian`,
-/// `armenian-fasts`, `armenian-fasts-jerusalem`, `coptic-fasts` or
-/// `ethiopian-fasts` — by [`Reckoning::by_id`].
+/// `armenian-fasts`, `armenian-fasts-jerusalem`,
+/// `armenian-fasts-fifty-days`, `coptic-fasts` or `ethiopian-fasts` — by
+/// [`Reckoning::by_id`].
 ///
 /// # Errors
 ///

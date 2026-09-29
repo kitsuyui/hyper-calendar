@@ -91,22 +91,27 @@ fn a_feast_can_now_be_dated_in_the_ethiopic_calendar() {
         "expected Genna in 2024, got {names:?}"
     );
 
-    // Genna is 29 Tahsas. In an ordinary year that is 7 January; in
+    // Timkat is 11 Tirr. In an ordinary year that is 19 January; in
     // Ethiopic 2016, which is a leap year, the whole year sits a day later
-    // and it is the 8th. The arithmetic is cross-checked by Enkutatash
+    // and it is the 20th. The arithmetic is cross-checked by Enkutatash
     // below, whose 12 September 2023 is widely reported.
-    //
-    // The *observance* is a separate fact and the table does not claim it:
-    // Genna is kept on 7 January across most of Ethiopia even in those
-    // years, with Lalibela the reported exception. See the table's own
-    // documentation — a calendrical date and a kept date coming apart is
-    // something to state, not to quietly resolve.
+    let timkat = calendar
+        .all()
+        .iter()
+        .find(|day| day.name.contains("Timkat"))
+        .expect("Timkat is in the table");
+    assert_eq!(gregorian::from_fixed(timkat.date), Ok((2024, 1, 20)));
+
+    // Genna is the one fixed feast not on its Ethiopic date every year: it
+    // is 25 December Julian, 28 Tahsas that year (`eotc-ma-calendar`), and
+    // so 7 January, where 29 Tahsas is the 8th. See the table's own
+    // documentation.
     let genna = calendar
         .all()
         .iter()
         .find(|day| day.name.contains("Genna"))
         .expect("Genna is in the table");
-    assert_eq!(gregorian::from_fixed(genna.date), Ok((2024, 1, 8)));
+    assert_eq!(gregorian::from_fixed(genna.date), Ok((2024, 1, 7)));
 
     // Enkutatash is 1 Meskerem: 11 September, or the 12th in the same leap
     // years. Ethiopic 2017 begins on 11 September 2024.

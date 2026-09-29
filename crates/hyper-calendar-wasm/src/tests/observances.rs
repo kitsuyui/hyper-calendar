@@ -129,6 +129,16 @@ fn the_lectionary_and_the_astronomical_easter_cross_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
     assert_eq!(
+        unsafe {
+            hc_lectionary(
+                hc_gregorian_to_fixed(1969, 12, 31),
+                core::ptr::null_mut(),
+                0,
+            )
+        },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
         hc_astronomical_easter(2001),
         hc_gregorian_to_fixed(2001, 4, 15)
     );

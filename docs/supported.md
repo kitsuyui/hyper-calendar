@@ -450,13 +450,14 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Religious and cultural traditions
 
-71 tables, feature `holiday`.
+72 tables, feature `holiday`.
 
 | Code | Tradition | Observances |
 | --- | --- | --- |
 | `bahai` | Bahá'í Faith | 15 |
-| `balinese-pawukon-days` | Balinese Hinduism (Pawukon holy days) | 10 |
+| `balinese-pawukon-days` | Balinese Hinduism (Pawukon holy days) | 15 |
 | `bcp-1662` | Book of Common Prayer (1662) | 103 |
+| `bcp-1662-1871` | Book of Common Prayer (1662), Calendar of 1871 | 99 |
 | `buddhist-east-asian` | Buddhism (East Asian) | 4 |
 | `buddhist-thai` | Buddhism (Thai Theravāda) | 4 |
 | `buddhist-tibetan` | Buddhism (Tibetan) | 23 |
@@ -491,7 +492,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `iranian-festivals` | Iranian festivals | 4 |
 | `islamic` | Islam | 13 |
 | `jain` | Jainism | 23 |
-| `jewish` | Judaism | 21 |
+| `jewish` | Judaism | 22 |
 | `korean-folk` | Korean folk days | 11 |
 | `kyuchu-saishi` | Imperial court rites (宮中祭祀) | 60 |
 | `mandaean` | Mandaean feasts | 20 |

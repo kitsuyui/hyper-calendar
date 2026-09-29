@@ -24,13 +24,14 @@
 //! | `orthodox-fasts` | the Julian calendar |
 //! | `orthodox-fasts-revised-julian` | the Revised Julian calendar |
 //!
-//! The same machinery reads four more reckonings, each with its own
+//! The same machinery reads five more reckonings, each with its own
 //! periods from [`crate::oriental_fasts`]: `armenian-fasts` and
 //! `armenian-fasts-jerusalem`, on the Gregorian and the Julian calendar
-//! and computus, `coptic-fasts` and `ethiopian-fasts`, whose bounds are
-//! dates of the Coptic and Ethiopic calendars ([`Bound::InCalendar`]), of
-//! the Sunday nearest a date ([`Bound::FromSundayNearest`]) and of a
-//! Paramoun ([`Bound::Paramoun`]).
+//! and computus, `armenian-fasts-fifty-days`, whose weekly fasts are lifted
+//! to Pentecost rather than to the Ascension, `coptic-fasts` and
+//! `ethiopian-fasts`, whose bounds are dates of the Coptic, Ethiopic and
+//! Julian calendars ([`Bound::InCalendar`]), of the Sunday nearest a date
+//! ([`Bound::FromSundayNearest`]) and of a Paramoun ([`Bound::Paramoun`]).
 //!
 //! What a day abstains from is carried to one degree, [`Abstinence`]:
 //! nothing, meat, or the fast. The week before Great Lent is the one
@@ -66,7 +67,10 @@ pub struct Reckoning {
     pub fixed: CalendarSystem,
     /// Easter Sunday of a year, by the computus the church keeps.
     pub pascha: fn(i64) -> Option<Rd>,
-    /// The first and last years the computus gives an Easter for.
+    /// The first and last years the reckoning answers for: the years its
+    /// computus gives an Easter for and, where a bound is a Gregorian date,
+    /// as the Coptic and Ethiopian Nativity on 7 January is, the Gregorian
+    /// calendar's years, from 1583.
     pub years: (i64, i64),
     /// The periods, in the order a day is tested against them: the
     /// fast-free ones first, since they lift the weekly fasts.
@@ -97,7 +101,7 @@ hc_core::catalogue! {
     tests: reckoning_catalogue_tests,
     associated;
 
-    /// The two reckonings.
+    /// The seven reckonings.
     pub const ALL;
     /// The reckoning with this identifier.
     pub fn by_id;
@@ -147,6 +151,20 @@ hc_core::catalogue! {
             pascha: orthodox_easter,
             years: (JULIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
             periods: oriental_fasts::ARMENIAN,
+            sources: oriental_fasts::ARMENIAN_SOURCES,
+        };
+        /// The Armenian fasts with the weekly fasts lifted for the fifty
+        /// days after Easter, to Pentecost, as arak29's page of the fasting
+        /// days has them, where [`Self::ARMENIAN`] lifts them for the forty
+        /// to the Ascension; on the Gregorian calendar and computus:
+        /// [`oriental_fasts::ARMENIAN_FIFTY_DAYS`].
+        pub const ARMENIAN_FIFTY_DAYS = Self {
+            id: "armenian-fasts-fifty-days",
+            english_name: "Armenian Apostolic fasts (fifty fast-free days after Easter)",
+            fixed: CalendarSystem::GREGORIAN,
+            pascha: gregorian_easter,
+            years: (GREGORIAN_COMPUTUS_FIRST_YEAR, COMPUTUS_LAST_YEAR),
+            periods: oriental_fasts::ARMENIAN_FIFTY_DAYS,
             sources: oriental_fasts::ARMENIAN_SOURCES,
         };
         /// The Coptic Orthodox Church's fasts, dated in the Coptic

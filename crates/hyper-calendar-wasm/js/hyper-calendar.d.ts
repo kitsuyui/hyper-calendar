@@ -709,6 +709,7 @@ export type OrthodoxFastReckoning =
   | "orthodox-fasts-revised-julian"
   | "armenian-fasts"
   | "armenian-fasts-jerusalem"
+  | "armenian-fasts-fifty-days"
   | "coptic-fasts"
   | "ethiopian-fasts";
 
@@ -2737,7 +2738,7 @@ export class HyperCalendar {
   /** `hc_night_watch`: `null` from 05:00 to 18:59. */
   nightWatch(secondsOfDay: number, locale?: string): NightWatch | null;
 
-  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table is `unknown`. */
+  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table, or a group naming no group of `holidayGroups`, is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint, group?: string): boolean;
   /** `hc_holiday_add_business_days`: a day moved by business days of a table. */
   holidayAddBusinessDays(code: string, region: string, fixed: number | bigint, count: number | bigint, group?: string): number;

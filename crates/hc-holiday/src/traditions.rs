@@ -327,7 +327,13 @@ const REKBE_KAHNAT: i16 = 24;
 static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
     ethiopic_feast("Enkutatash (New Year)", "እንቁጣጣሽ", 1, 1),
     ethiopic_feast("Meskel (Finding of the True Cross)", "መስቀል", 1, 17),
-    ethiopic_feast("Genna (Christmas)", "ገና", 4, 29),
+    // Genna on 25 December of the Julian calendar, as the Coptic Nativity:
+    // 29 Tahsas, and 28 Tahsas after an Ethiopic leap year (eotc-ma-calendar).
+    feast(
+        "Genna (Christmas)",
+        "ገና",
+        Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
+    ),
     ethiopic_feast("Timkat (Epiphany)", "ጥምቀት", 5, 11),
     ethiopic_feast("Debre Tabor (Transfiguration)", "ደብረ ታቦር", 12, 13),
     // The movable cycle of Bahire Hasab, as offsets from Tinsae.
@@ -360,7 +366,7 @@ static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
 
 /// The feasts of the Ethiopian Orthodox Tewahedo Church.
 ///
-/// The fixed ones are ordinary dates — 29 Tahsas, 11 Tirr — in the calendar
+/// The fixed ones are ordinary dates — 11 Tirr, 17 Meskerem — in the calendar
 /// the church actually keeps, and they are written down there, because
 /// [`CalendarSystem`] is open to any calendar the registry names. A closed
 /// list of calendars would have left two poor choices: approximate them in
@@ -375,19 +381,22 @@ static ETHIOPIAN_ORTHODOX_RULES: &[HolidayRule] = &[
 /// days, and the test anchors check three years of them. What is not here
 /// is a second implementation of the same Sunday under another name.
 ///
-/// # Calendrical date and kept date
+/// # Genna
 ///
-/// These are the dates in the Ethiopic calendar. In a leap year the whole
-/// Ethiopic year sits a day later against the Gregorian one, so 29 Tahsas
-/// falls on 8 January rather than the 7th — and yet Genna is reported as
-/// kept on 7 January across most of Ethiopia even then, with Lalibela the
-/// exception. Enkutatash moves as the arithmetic says, to 12 September.
-///
-/// The table gives the calendrical date, because that is what "dated in the
-/// Ethiopic calendar" means and it is the part that can be computed. Where a
-/// feast is pinned to a Gregorian date by practice instead, that is a
-/// different fact about a different thing, and one this crate would need a
-/// source per country to state. Saying so is better than quietly choosing.
+/// The fixed feasts are dates in the Ethiopic calendar, all but Genna. After
+/// an Ethiopic leap year the whole Ethiopic year sits a day later against
+/// the Gregorian one, so 29 Tahsas falls on 8 January rather than the 7th,
+/// and Enkutatash moves as the arithmetic says, to 12 September. Genna does
+/// not: Keraneyo Medhane Alem's order of the calendar keeps it on "Tahisas
+/// 29 E.C." and "on leap year on Tahisas 28 E.C", and the church's calendar
+/// page says it "coincides with the date of this observance in the Eastern
+/// Orthodox dispensation", 25 December of the Julian calendar, which is the
+/// rule the table carries: 7 January from 1900 to 2099, as the Coptic
+/// Nativity is. A tour operator's page says Genna is on 8 January in those
+/// years "only in Lalibela, the rest of the country is always celebrating
+/// Genna on January 7th"; Lalibela's day is not yet carried, as no church
+/// source for it was read. Ethiopia's public holiday, the `ET` table's, is the
+/// Proclamation's 29 Tahsas.
 pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     code: "ethiopian-orthodox",
     english_name: "Ethiopian Orthodox Tewahedo",
@@ -396,12 +405,18 @@ pub static ETHIOPIAN_ORTHODOX: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The calendar page of ethiopianorthodox.org (ethiopianorthodox.org/english/\
               calendar.html, \"©2003 Ethiopian Orthodox Tewahedo Church\"), retrieved \
-              2026-09-26, for Genna on 29 Tahsas, Timkat on 11 Tirr and Meskel on \
-              17 Meskerem, the Fast of Nineveh in the third week before the Great Lent \
-              of 56 days, and Easter reckoned by the Alexandrian rule; Enkutatash on \
+              2026-09-26, for Timkat on 11 Tirr and Meskel on 17 Meskerem, Genna \
+              coinciding with the Eastern Orthodox Christmas, the Fast of Nineveh in \
+              the third week before the Great Lent of 56 days, and Easter reckoned by \
+              the Alexandrian rule; Keraneyo Medhane Alem Ethiopian Orthodox Tewahedo \
+              Church, \"Beliefs and Origins - Order of Calendar\" (eotc-ma.com, \
+              eotc-ma-calendar), retrieved 2026-09-29, for Genna on 28 Tahsas after a \
+              leap year; Boundless Ethiopia, \"Genna (Christmas)\" \
+              (boundless-ethiopia-genna), retrieved 2026-09-29, a tour operator's page, \
+              for Lalibela's 8 January; Enkutatash on \
               1 Meskerem and Debre Tabor on 13 Nehasse, and the tewsak of Mid-Lent and \
               Mid-Pentecost, are not from a document read here. The scholarly account, \
               O. Neugebauer, Ethiopic Astronomy and Computus (Vienna: Österreichische \
@@ -431,7 +446,14 @@ const THOMAS_SUNDAY: i16 = 7;
 static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
     coptic_feast("Nayrouz (New Year)", "عيد النيروز", 1, 1),
     coptic_feast("Feast of the Cross", "عيد الصليب", 1, 17),
-    coptic_feast("Nativity (Christmas)", "عيد الميلاد المجيد", 4, 29),
+    // The Nativity on 25 December of the Julian calendar: 29 Koiak, and
+    // 28 Koiak in the Coptic year after a Coptic leap year, 7 January from
+    // 1900 to 2099 (st-takla-nativity-fast; ramzy-nativity-2004).
+    feast(
+        "Nativity (Christmas)",
+        "عيد الميلاد المجيد",
+        Rule::in_calendar(CalendarSystem::JULIAN, 12, 25),
+    ),
     coptic_feast("Circumcision of the Lord", "عيد الختان", 5, 6),
     coptic_feast("Theophany (Epiphany)", "عيد الغطاس", 5, 11),
     coptic_feast("Wedding at Cana", "عرس قانا الجليل", 5, 13),
@@ -491,6 +513,19 @@ static COPTIC_ORTHODOX_RULES: &[HolidayRule] = &[
 /// the Fast of Nineveh to Pentecost as offsets from the Julian-computus
 /// Easter, which is the Alexandrian one.
 ///
+/// The Nativity is the one fixed feast not kept on its Coptic date every
+/// year. St-Takla's rite of the Nativity Fast has the fast end "في 29 كيهك أي
+/// 7 يناير", on 29 Koiak, that is 7 January, and on 28 Koiak "في السنوات
+/// الميلادية الكبيسة", in the Gregorian leap years; the Metropolis of the Southern
+/// United States's calendar keeps it on 7 January in every year of
+/// 2000–2100 it lists; Fr. John Ramzy's article for the Metropolis gives
+/// the reason, 25 December of the Julian calendar, which "will become
+/// 8 January after the year 2100". So the feast is 25 December Julian, and
+/// in 2024 and 2028, when 29 Koiak is 8 January, it is 7 January, 28 Koiak.
+/// The Metropolis's calendar gives the feast two days in its Gregorian leap
+/// years, 7 and 8 January 2024; the second day is not yet carried, as no
+/// source read states the rule behind it.
+///
 /// The Arabic names are the ones the church's own publications use. The
 /// Coptic-language names of seven feasts, where a source prints them, are
 /// `hc-i18n`'s `holiday_names` table for `cop`; no source read prints the
@@ -503,11 +538,16 @@ pub static COPTIC_ORTHODOX: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The Feasts of the Church, Coptic Orthodox Diocese of Los Angeles \
-              (lacopts.org), retrieved 2026-09-22, for the fixed dates; the \
-              movable cycle as offsets from the Julian-computus Pascha the \
-              church shares",
+              (lacopts.org), retrieved 2026-09-22, for the fixed dates; St-Takla.org, \
+              the rite of the Nativity Fast (st-takla-nativity-fast), the Coptic \
+              Orthodox Metropolis of the Southern United States's fasts and feasts of \
+              2000-2100 (suscopts-fasts) and Fr. John Ramzy, \"The Glorious Feast of \
+              Nativity: 7 January? 29 Kiahk? 25 December?\" (suscopts.org, \
+              ramzy-nativity-2004), retrieved 2026-09-29, for the Nativity on \
+              25 December of the Julian calendar; the movable cycle as offsets from \
+              the Julian-computus Pascha the church shares",
     subdivisions: Subdivisions::Undivided,
 };
 
@@ -607,6 +647,15 @@ const PURIM_EVE: Rule = Rule::Offset {
 /// Orach Chayim 686:2).
 const TAANIT_ESTHER: Rule = Rule::moved_by_weekday(&PURIM_EVE, &[(Weekday::Saturday, -2)]);
 
+/// 14 Nisan, the eve of Passover.
+const NISAN_14: Rule = Rule::in_calendar(CalendarSystem::HEBREW, 7, 14);
+
+/// Ta'anit Bechorot, the fast of the firstborn on the eve of Passover, or
+/// the Thursday before when the eve is a Sabbath: "יש אומרי' שמתעני'
+/// הבכורו' ביום ה'", some say the firstborn fast on the Thursday, the
+/// opinion the Rema says to follow (*Shulchan Arukh*, Orach Chayim 470:1–2).
+const TAANIT_BECHOROT: Rule = Rule::moved_by_weekday(&NISAN_14, &[(Weekday::Saturday, -2)]);
+
 /// The move of the four fasts of the destruction off the Sabbath: "All four
 /// fasts, if they fall on Shabbos, are pushed to after Shabbos" (*Shulchan
 /// Arukh*, Orach Chayim 550:3), to the Sunday.
@@ -642,6 +691,7 @@ static JEWISH_RULES: &[HolidayRule] = &[
     feast("Ta'anit Esther", "תענית אסתר", TAANIT_ESTHER),
     hebrew_day("Purim", "פורים", 6, 14),
     hebrew_day("Shushan Purim", "שושן פורים", 6, 15),
+    feast("Ta'anit Bechorot", "תענית בכורות", TAANIT_BECHOROT),
     hebrew_day("Passover", "פסח", 7, 15),
     hebrew_day("Seventh Day of Passover", "שביעי של פסח", 7, 21),
     hebrew_day("Lag BaOmer", "ל\"ג בעומר", 8, 18),
@@ -674,7 +724,12 @@ static JEWISH_RULES: &[HolidayRule] = &[
 /// of Tevet never falls on a Sabbath in the fixed calendar, which a test
 /// checks. Ta'anit Esther moves back instead:
 /// "if Purim falls on Sunday, we start the fast on Thursday" (686:2), as
-/// Reingold and Dershowitz's `ta-anit-esther` gives it.
+/// Reingold and Dershowitz's `ta-anit-esther` gives it. So does Ta'anit
+/// Bechorot, the firstborn's fast on the eve of Passover (470:1): when the
+/// eve is a Sabbath, "some say" it is kept on the Thursday and "some say"
+/// not at all (470:2), and the Rema's gloss says to keep the first, which is
+/// carried: 25 March 2021, 14 Nisan being Saturday the 27th. The second
+/// opinion, no fast in those years, is not yet a table of its own.
 ///
 /// *Sh'ela*, the day the prayer for rain begins outside the Land of Israel,
 /// is "60 days after the onset of tekufat Tishrei", the autumn *tekufah* of
@@ -696,14 +751,14 @@ pub static JEWISH: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "The arithmetic Hebrew calendar as `hc-calendars-lunar` \
               implements it, following Dershowitz and Reingold, \
               Calendrical Calculations, chapter 8; Ta'anit Esther, Tisha B'Av and \
               Sh'ela as `ta-anit-esther`, `tishah-be-av` and `sh-ela` in their \
               calendar.l (`reingold2018code`), read 2026-09-26 and, for Tisha B'Av, \
-              2026-09-29; Shulchan Arukh, Orach Chayim 550:3 and 686:2, for the \
-              moves of the minor fasts off the Sabbath, read on Sefaria in the Hebrew \
+              2026-09-29; Shulchan Arukh, Orach Chayim 470:1-2, 550:3 and 686:2, for \
+              Ta'anit Bechorot and the moves of the minor fasts off the Sabbath, read on Sefaria in the Hebrew \
               of the Lemberg 1893 edition and the Sefaria Community Translation \
               (`sefaria-shulchan-arukh-oc`), retrieved 2026-09-29; Yehuda Shurpin, \"Why Is the \
               Prayer for Rain Based on the Civil Calendar?\", Chabad.org, retrieved \
@@ -4052,6 +4107,7 @@ const fn samaritan(
         local,
         Rule::in_calendar(CalendarSystem::SAMARITAN, month, day),
     )
+    .approximate()
 }
 
 /// The first and last days of the Feast of Unleavened Bread, 15 and 21 of
@@ -4065,7 +4121,8 @@ static SAMARITAN_RULES: &[HolidayRule] = &[
         "Feast of Unleavened Bread",
         "חג המצות",
         Rule::span(&UNLEAVENED_BREAD_FIRST, &UNLEAVENED_BREAD_LAST),
-    ),
+    )
+    .approximate(),
     samaritan("Festival of the Seventh Month", "", 7, 1),
     samaritan("Day of Atonement", "יום הכפורים", 7, 10),
     samaritan("Festival of Sukkot (Tabernacles)", "סוכות", 7, 15),
@@ -4081,16 +4138,20 @@ static SAMARITAN_RULES: &[HolidayRule] = &[
 /// the community's calendar and festival pages give them. They are dated
 /// on `samaritan`, Reingold and Dershowitz's modern calculation, not the
 /// priesthood's own, which is not published; its accuracy — the published
-/// Passovers of 2017–2020 and autumn 2026 agree, and 2016's is a day late —
-/// is [`hc_calendars_lunar::samaritan`]'s, and outside its years, autumn
-/// 1900 to autumn 2100, every festival is a reported gap. A Samaritan day
+/// Passovers of 2010 and 2017–2020 and autumn 2026 agree, and 2016's,
+/// 2025's and 2026's are a day late — is [`hc_calendars_lunar::samaritan`]'s,
+/// so every festival is approximate, and outside its years, autumn 1900 to
+/// autumn 2100, every festival is a reported gap. A Samaritan day
 /// begins at the preceding sunset, so each festival begins on the evening
 /// before the date given.
 ///
-/// Shavuot is not carried. The community's page on it gives a counting
+/// Shavuot is not yet carried. The community's page on it gives a counting
 /// rule — fifty days from the day after the Sabbath that falls in the
-/// seven days of Unleavened Bread, so always a Sunday — but no dated
-/// Shavuot was read to check the rule against.
+/// seven days of Unleavened Bread, so always a Sunday — and the one dated
+/// Shavuot read, the Palestinian Council of Ministers' Sunday 1 June 2025,
+/// follows from it on the community's year, whose Unleavened Bread ran from
+/// 12 April, and not on `samaritan`'s, which puts it on 8 June; on this
+/// calendar the rule would miss the one date there is to check it against.
 pub static SAMARITAN: RuleSet = RuleSet {
     code: "samaritan",
     english_name: "Samaritan festivals",
@@ -4318,6 +4379,16 @@ fn kuningan(year: i64) -> Days {
     })
 }
 
+/// Galungan and Kuningan as rules, the bases of the days around them.
+static GALUNGAN: Rule = Rule::Computed(galungan);
+static KUNINGAN: Rule = Rule::Computed(kuningan);
+
+/// A day a number of days from Galungan or Kuningan, as English
+/// Wikipedia's table of the days around Galungan gives it.
+const fn around(name: &'static str, base: &'static Rule, days: i16) -> HolidayRule {
+    HolidayRule::observance(name, name, Rule::Offset { base, days })
+}
+
 /// A Tumpek, Saniscara Kliwon, of the *wuku* numbered `W`: six to the
 /// Pawukon, 35 days apart, from the second *wuku*, Landep.
 fn tumpek<const W: u8>(year: i64) -> Days {
@@ -4354,8 +4425,13 @@ const fn pawukon_day(
 }
 
 static BALINESE_PAWUKON_DAYS_RULES: &[HolidayRule] = &[
+    around("Penyekeban", &GALUNGAN, -3),
+    around("Penyajaan", &GALUNGAN, -2),
+    around("Penampahan", &GALUNGAN, -1),
     feast("Galungan", "Galungan", Rule::Computed(galungan)),
+    around("Manis Galungan", &GALUNGAN, 1),
     feast("Kuningan", "Kuningan", Rule::Computed(kuningan)),
+    around("Manis Kuningan", &KUNINGAN, 1),
     pawukon_day("Tumpek Landep", "Tumpek Landep", tumpek::<2>),
     pawukon_day("Tumpek Wariga", "Tumpek Wariga", tumpek::<7>),
     pawukon_day("Tumpek Kuningan", "Tumpek Kuningan", tumpek::<12>),
@@ -4383,8 +4459,11 @@ static BALINESE_PAWUKON_DAYS_RULES: &[HolidayRule] = &[
 /// of each 15-day subcycle"; the Tumpek of the *wuku* Wariga is Tumpek
 /// Uduh, "Saniscara Kliwon Wariga, 25 days before Galungan". Each Tumpek's
 /// other names — Tumpek Kandang for Uye's, Tumpek Pengatag for Wariga's —
-/// and the days around Galungan (Penampahan, Manis Galungan and the rest)
-/// are not carried. See `docs/systems/pawukon-and-pasaran.md`.
+/// are not yet carried, as no source read tabulates them. The days around
+/// Galungan are, as English Wikipedia's table gives them by their distance
+/// from it: Penyekeban three days before, Penyajaan two, Penampahan one,
+/// Manis Galungan the day after and Manis Kuningan the day after Kuningan,
+/// observances. See `docs/systems/pawukon-and-pasaran.md`.
 pub static BALINESE_PAWUKON_DAYS: RuleSet = RuleSet {
     code: "balinese-pawukon-days",
     english_name: "Balinese Hinduism (Pawukon holy days)",
@@ -4396,8 +4475,8 @@ pub static BALINESE_PAWUKON_DAYS: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Edward M. Reingold and Nachum Dershowitz, calendar-code2, `calendar.l` \
               (`reingold2018code`), `tumpek` and `kajeng-keliwon`, read 2026-09-29; \
-              Wikipedia, \"Galungan\" (`wikipedia-galungan`), for Buda Keliwon Dunggulan \
-              and the dates of Galungan and Kuningan, 2018–2028; Wikipedia, \"Kuningan \
+              Wikipedia, \"Galungan\" (`wikipedia-galungan`), for Buda Keliwon Dunggulan, \
+              the dates of Galungan and Kuningan, 2018–2028, and the days around them; Wikipedia, \"Kuningan \
               (Bali)\", for Saniscara Kliwon Wuku Kuningan; Wikipedia (id), \"Tumpek Uduh\" \
               and \"Kajeng Kliwon\" (`wikipedia-id-tumpek-uduh`, \
               `wikipedia-id-kajeng-kliwon`), for Tumpek Wariga and the fifteen-day round, \
@@ -4944,6 +5023,7 @@ pub static ALL: &[&RuleSet] = &[
     &crate::east_syriac::SYRO_MALABAR,
     &crate::common_worship::COMMON_WORSHIP,
     &crate::book_of_common_prayer::BOOK_OF_COMMON_PRAYER_1662,
+    &crate::book_of_common_prayer::BOOK_OF_COMMON_PRAYER_1871,
 ];
 
 /// The table for a tradition's identifier, by

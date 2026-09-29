@@ -28,8 +28,15 @@
 //! (30 January), Charles II's Nativity and Return (29 May), the Papists'
 //! Conspiracy (5 November) and St Blasius (3 February) — its own wording
 //! is both names. The first three are the state services, which the
-//! Queen's warrant of 17 January 1859 removed: they end in 1858. St Mary Magdalen, on 21 July in the 1662 transcription
-//! and 22 July in the modern one, is a gap: the two disagree.
+//! Queen's warrant of 17 January 1859 removed: they end in 1858. St Mary
+//! Magdalen is on 21 July, "12. Kl." of August, in the 1662 Kalendar.
+//!
+//! The Calendar with the New Lectionary, introduced in 1871, is the
+//! modern Kalendar Howell transcribes, and the rule set `bcp-1662-1871`
+//! (`docs/policy.md` §5 and §10: an authority's revision is a reading of
+//! its own): the same days from 1871, named as it names them, with St Mary
+//! Magdalen on 22 July and without the three state services and St
+//! Blasius.
 //!
 //! The Prayer Book gives no rule for a holy day that falls on a Sunday; the
 //! "Rules to Order the Service" that a later Prayer Book prints are not its
@@ -121,11 +128,14 @@ pub struct Celebration {
     pub rule: Rule,
 }
 
-/// St Mary Magdalen, whose day the two transcriptions put on 21 and
-/// 22 July: a gap every year.
-const fn mary_magdalen(_: i64) -> Option<Days> {
-    None
-}
+/// The year the Calendar with the New Lectionary was introduced, as
+/// Howell's transcription heads it: before it, `bcp-1662-1871` has no day.
+/// The state services were gone by then, and the Calendar has none.
+const NEW_LECTIONARY_YEAR: i32 = 1871;
+
+/// St Blasius, whom the 1662 Kalendar has and the Calendar of 1871 does
+/// not.
+const BLASIUS: &str = "Blasius an Armen. B. & M.";
 
 /// Advent Sunday: the Sunday nearest St Andrew, 27 November to 3 December.
 fn advent_sunday(year: i64) -> Days {
@@ -135,13 +145,23 @@ fn advent_sunday(year: i64) -> Days {
     )
 }
 
-/// The calendar, written once and read twice.
+/// The calendar, written once and read three times: the days of both
+/// Kalendars, then those of the 1662 Kalendar alone and those of the
+/// Calendar of 1871 alone.
 macro_rules! prayer_book {
-    ($(($title:expr, $old:expr, $letter:ident, $rule:expr));* $(;)?) => {
-        /// Every day of the calendar: the red-letter days, the moveable
-        /// feasts, then the black-letter days in the Kalendar's order.
+    (
+        $(($title:expr, $old:expr, $letter:ident, $rule:expr));* ;
+        only_1662: $(($title_a:expr, $old_a:expr, $letter_a:ident, $rule_a:expr));* ;
+        only_1871: $(($title_b:expr, $rule_b:expr));* $(;)?
+    ) => {
+        /// Every day of the 1662 book's calendar: the red-letter days, the
+        /// moveable feasts, the black-letter days both Kalendars have in the
+        /// Kalendar's order, then the four the Calendar of 1871 does not
+        /// have and St Mary Magdalen.
         pub static CELEBRATIONS: &[Celebration] = &[$(
             Celebration { title: $title, title_1662: $old, letter: Letter::$letter, rule: $rule }
+        ),* , $(
+            Celebration { title: $title_a, title_1662: $old_a, letter: Letter::$letter_a, rule: $rule_a }
         ),*];
 
         static RULES: &[HolidayRule] = &[$(
@@ -149,6 +169,21 @@ macro_rules! prayer_book {
                 .of_kind(Kind::Religious)
                 .years(Some(BOOK_YEAR), last_year($title))
                 .read_from(FIRST_GREGORIAN_YEAR)
+        ),* , $(
+            HolidayRule::observance($title_a, $old_a, $rule_a)
+                .of_kind(Kind::Religious)
+                .years(Some(BOOK_YEAR), last_year($title_a))
+                .read_from(FIRST_GREGORIAN_YEAR)
+        ),*];
+
+        static RULES_1871: &[HolidayRule] = &[$(
+            HolidayRule::observance($title, $title, $rule)
+                .of_kind(Kind::Religious)
+                .years(Some(NEW_LECTIONARY_YEAR), last_year($title))
+        ),* , $(
+            HolidayRule::observance($title_b, $title_b, $rule_b)
+                .of_kind(Kind::Religious)
+                .years(Some(NEW_LECTIONARY_YEAR), None)
         ),*];
     };
 }
@@ -193,8 +228,6 @@ prayer_book! {
     ("Fabian, Bp. & M.", "Fabian B. of Rome & Mart.", Black, Rule::gregorian(1, 20));
     ("Agnes, V. & M.", "Agnes Rom. Virg. & Mart.", Black, Rule::gregorian(1, 21));
     ("Vincent, Mart.", "Vincent Span. Deac. & M.", Black, Rule::gregorian(1, 22));
-    ("K. Charles Mart.", "K. Charles Mart.", Black, Rule::gregorian(1, 30));
-    ("Blasius an Armen. B. & M.", "Blasius an Armen. B. & M.", Black, Rule::gregorian(2, 3));
     ("Agatha, V. & M.", "Agatha, a Sicilian V. & M.", Black, Rule::gregorian(2, 5));
     ("Valentine, Bishop", "Valentine Bish. & M.", Black, Rule::gregorian(2, 14));
     ("David, Archbp.", "David Arch-B. of Menevia", Black, Rule::gregorian(3, 1));
@@ -212,7 +245,6 @@ prayer_book! {
     ("Dunstan, Archbp.", "Dunstan Arch.B. of Cant.", Black, Rule::gregorian(5, 19));
     ("Augustine, Archbp.", "Aug: ye. first Arch B. of Cant.", Black, Rule::gregorian(5, 26));
     ("Ven. Bede, Presb.", "Ven. Bede pr.", Black, Rule::gregorian(5, 27));
-    ("CH. II. Nat. et Ret.", "CH. II. Nat. et Ret.", Black, Rule::gregorian(5, 29));
     ("Nicomede, M.", "Nicomede Rom. Pr. & M.", Black, Rule::gregorian(6, 1));
     ("Boniface, Bishop.", "Boniface B. of Mentz & M.", Black, Rule::gregorian(6, 5));
     ("St. Alban, Mart.", "S. Alban M.", Black, Rule::gregorian(6, 17));
@@ -241,7 +273,6 @@ prayer_book! {
     ("Trans. K. Edw.", "Transl. of K. Edward Conf.", Black, Rule::gregorian(10, 13));
     ("Etheldreda, V.", "Ethelrede Virg.", Black, Rule::gregorian(10, 17));
     ("Crispin, Martyr", "Crispine Mart.", Black, Rule::gregorian(10, 25));
-    ("Papists Conspiracy", "Papists Conspiracy", Black, Rule::gregorian(11, 5));
     ("Leonard, Conf.", "Leonard Confess.", Black, Rule::gregorian(11, 6));
     ("St. Martin, Bp.", "S. Martin B. & Conf:", Black, Rule::gregorian(11, 11));
     ("Britius, Bishop", "Britius Bishop", Black, Rule::gregorian(11, 13));
@@ -256,8 +287,36 @@ prayer_book! {
     ("Lucy, Vir. & M.", "Lucie Virg. & M.", Black, Rule::gregorian(12, 13));
     ("O Sapientia", "O Sapientia", Black, Rule::gregorian(12, 16));
     ("Silvester, Bishop", "Silvester B. of Rome.", Black, Rule::gregorian(12, 31));
-    ("St. Mary Magdalen", "S. Marie Magdalen.", Black, Rule::Unsettled(mary_magdalen));
+    only_1662:
+    ("K. Charles Mart.", "K. Charles Mart.", Black, Rule::gregorian(1, 30));
+    ("CH. II. Nat. et Ret.", "CH. II. Nat. et Ret.", Black, Rule::gregorian(5, 29));
+    ("Papists Conspiracy", "Papists Conspiracy", Black, Rule::gregorian(11, 5));
+    (BLASIUS, BLASIUS, Black, Rule::gregorian(2, 3));
+    ("St. Mary Magdalen", "S. Marie Magdalen.", Black, Rule::gregorian(7, 21));
+    only_1871:
+    ("St. Mary Magdalen", Rule::gregorian(7, 22));
 }
+
+/// The Book of Common Prayer's Calendar with the New Lectionary of 1871 as
+/// a rule set: the days of both Kalendars and St Mary Magdalen on 22 July,
+/// each named as that Calendar names it, from 1871.
+pub static BOOK_OF_COMMON_PRAYER_1871: RuleSet = RuleSet {
+    code: "bcp-1662-1871",
+    english_name: "Book of Common Prayer (1662), Calendar of 1871",
+    rules: RULES_1871,
+    substitution: &[],
+    bridges: &[],
+    includes: &[],
+    weekend: SATURDAY_SUNDAY,
+    sources_checked: SourceDate::new(2026, 9, 29),
+    sources: "The Book of Common Prayer: \"The Calendar, with the Table of Lessons (The New \
+              Lectionary, introduced in 1871.)\" in Lynda Howell's transcription \
+              (eskimo.com/~lhowell/bcp1662/info/cal_1871/, howell-bcp-kalendar), secondary, \
+              for the black-letter days and St Mary Magdalen on 22 July; the Table of Feasts \
+              and the Rules for the Moveable Feasts as for bcp-1662; all retrieved 2026-09-29. \
+              The Prayer Book (Tables of Lessons) Act 1871 was not read",
+    subdivisions: Subdivisions::Undivided,
+};
 
 /// The calendar of the Book of Common Prayer of 1662 as a rule set: every
 /// red-letter and black-letter day a [`Kind::Religious`] observance,
@@ -322,7 +381,7 @@ mod tests {
             24
         );
         // Seventy black-letter days, with the four only the 1662 Kalendar
-        // has and St Mary Magdalen, a gap.
+        // has and St Mary Magdalen.
         assert_eq!(
             CELEBRATIONS
                 .iter()
@@ -351,13 +410,11 @@ mod tests {
         assert_eq!(titles_on(2026, 12, 16), ["O Sapientia"]);
         // St Matthias stays on 24 February in a leap year.
         assert_eq!(titles_on(2028, 2, 24), ["Saint Matthias the Apostle"]);
-        let calendar =
-            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 2026);
+        // St Mary Magdalen: 21 July in the 1662 Kalendar, "12. Kl.".
+        assert_eq!(titles_on(2026, 7, 21), ["St. Mary Magdalen"]);
         assert!(
-            calendar
-                .gaps()
-                .iter()
-                .any(|gap| gap.name == "St. Mary Magdalen")
+            crate::engine::HolidayCalendar::for_year(&BOOK_OF_COMMON_PRAYER_1662, None, 2026)
+                .is_complete()
         );
         // 1752 was Julian to 2 September: the book's years to 1752 are gaps,
         // one for each day, and before 1662 the book did not exist.
@@ -417,5 +474,29 @@ mod tests {
             .iter()
             .any(|holiday| holiday.name.starts_with("Blasius"))
         );
+    }
+
+    /// The Calendar of 1871 (`howell-bcp-kalendar`): St Mary Magdalen on
+    /// 22 July, where the 1662 Kalendar has the 21st; no St Blasius and no
+    /// state service; every other day the 1662 book's, from 1871.
+    #[test]
+    fn the_calendar_of_1871_is_a_reading_of_its_own() {
+        let names = |set: &RuleSet, year: i64, month: u8, day: u8| {
+            crate::engine::holidays_on(set, None, gregorian::to_fixed(year, month, day).unwrap())
+                .iter()
+                .map(|holiday| holiday.name)
+                .collect::<alloc::vec::Vec<_>>()
+        };
+        let (old, new) = (&BOOK_OF_COMMON_PRAYER_1662, &BOOK_OF_COMMON_PRAYER_1871);
+        assert_eq!(names(new, 2026, 7, 22), ["St. Mary Magdalen"]);
+        assert!(names(new, 2026, 7, 21).is_empty());
+        assert!(names(old, 2026, 7, 22).is_empty());
+        assert!(names(new, 2026, 2, 3).is_empty());
+        assert!(!names(old, 2026, 2, 3).is_empty());
+        assert_eq!(names(new, 2026, 11, 29), ["Advent Sunday"]);
+        assert_eq!(names(new, 2026, 12, 16), ["O Sapientia"]);
+        assert!(names(new, 1870, 12, 25).is_empty());
+        assert!(crate::engine::HolidayCalendar::for_year(new, None, 1871).is_complete());
+        assert_eq!(RULES_1871.len(), CELEBRATIONS.len() - 4);
     }
 }
