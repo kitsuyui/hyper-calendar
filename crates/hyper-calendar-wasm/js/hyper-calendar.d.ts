@@ -70,7 +70,10 @@ export type Feature =
   | "sky"
   | "orbital"
   | "planetary"
-  | "relativity";
+  | "relativity"
+  | "places"
+  | "humanize"
+  | "zone-names";
 
 /** A binary CCSDS code `hc_ccsds_decode` reads. */
 export type CcsdsCodeName = "cuc" | "cds" | "ccs";
@@ -368,6 +371,16 @@ export interface BarhaspatyaName {
   localeUsed: string;
 }
 
+/** The one line of `hc_barhaspatya_year_at`. */
+export interface BarhaspatyaNameAt extends BarhaspatyaName {
+  /** The twelve-year cycle's saṃvatsara Table XII couples with it, 1 for Chaitra to 12 for Phālguna. */
+  twelveYear: number;
+  /** Its name as the table spells it, `Asvina`. */
+  twelveYearName: string;
+  /** The sign of Jupiter's mean longitude while the name is current. */
+  meanSign: SiderealSignId;
+}
+
 /** The one line of `hc_barhaspatya_year`. */
 export interface BarhaspatyaYear extends BarhaspatyaName {
   /** The name the rule expunges in that solar year, or `null`. */
@@ -435,6 +448,13 @@ export interface IrigFormatInfo {
   carriers: number[];
   /** The coded expressions it permits. */
   expressions: number[];
+}
+
+/** The line of `hc_irig_frame_start`. */
+export interface IrigFrameStart {
+  secondsOfDay: number;
+  hundredths: number;
+  frameMicroseconds: number;
 }
 
 /** What `irigEncode` puts in a frame besides the second. */
@@ -526,6 +546,162 @@ export interface AlmanacAnnotation {
   /** For the 暦注下段, whether an almanac prints the entry; `null` for every other kind. */
   printed: boolean | null;
 }
+
+/** A god of `hc_almanac_directions`: the 八将神, then 金神, 大金神 and 姫金神. */
+export type AlmanacGodId =
+  | "taisai"
+  | "daishogun"
+  | "daion"
+  | "saikyo"
+  | "saiha"
+  | "saisetsu"
+  | "oban"
+  | "hyobi"
+  | "konjin"
+  | "dai-konjin"
+  | "hime-konjin"
+  | WanderingRuleId
+  | "konjin-rest-day";
+
+/** A reading of the 遊行 of 大将軍 or 金神. */
+export type WanderingRuleId = "daishogun-iinippon" | "konjin-wikipedia-begun-in-season" | "konjin-wikipedia-days-in-season";
+
+/** One line of `hc_almanac_directions`. */
+export interface AlmanacDirection {
+  id: AlmanacGodId;
+  /** The god's name, 太歳神. */
+  name: string;
+  /** The Hepburn reading the National Diet Library gives; `null` for the three 金神. */
+  reading: string | null;
+  /** The direction as an earthly branch, 午, or 中央 for a god gone to the middle of the house; `null` for a god at home. */
+  branch: string | null;
+  /** The branch's azimuth in degrees clockwise from north; `null` with it or for 中央. */
+  azimuth: number | null;
+  /**
+   * What the Library says the god forbids or favours, in English; `null` for the 金神. On a
+   * 遊行 line, `home` or `gone`, `null` where the rule does not say.
+   */
+  meaning: string | null;
+  /** The 干支 year in force on the day, turning at 立春: 丙午. */
+  year: string;
+  /** The branch's number, 1 for 子 to 12 for 亥; `null` with `azimuth`. */
+  branchNumber: number | null;
+}
+
+/** A reckoning of 臘日 `hc_rounichi` takes. */
+export type RounichiRule =
+  | "second-dragon-after-minor-cold"
+  | "second-dragon-from-minor-cold"
+  | "dragon-nearest-major-cold-earlier"
+  | "dragon-nearest-major-cold-later"
+  | "first-dog-after-major-cold"
+  | "first-dog-from-major-cold"
+  | "lunar-twelfth-ninth"
+  | "ox-month-ninth-from-minor-cold"
+  | "ox-month-ninth-after-minor-cold"
+  | "third-dog-after-winter-solstice"
+  | "third-dog-from-winter-solstice";
+
+/** A publisher's list of the undertakings of each 二十八宿. */
+export type UndertakingListId = "saijigoyomi" | "linderabell";
+
+/** A grade of `hc_mansion_undertakings`: 大吉, 吉, 凶, 大凶, or the list's remark. */
+export type UndertakingGrade = "best" | "favoured" | "avoided" | "worst" | "note";
+
+/** One line of `hc_mansion_undertakings`. */
+export interface MansionUndertaking {
+  /** The mansion's number, 1 for 角 to 28 for 軫. */
+  mansion: number;
+  /** The mansion's name, 角. */
+  mansionName: string;
+  grade: UndertakingGrade;
+  /** The undertaking, or the remark, as the publisher prints it. */
+  undertaking: string;
+}
+
+/** The kind of a line of `hc_almanac_person_days`. */
+export type AlmanacPersonKind = "grave-day" | "three-evil-day";
+
+/** One line of `hc_almanac_person_days`. */
+export interface AlmanacPersonDay {
+  kind: AlmanacPersonKind;
+  /** The reading's identifier, `gomunichi-wikipedia`, or the entry's, `taikanichi`. */
+  id: string;
+  /** The entry's name, 五墓日 or 大禍日. */
+  name: string;
+  /** The 干支 of the person's grave day, 乙丑, or the branch of the 節月 of their evil days, 巳. */
+  keeps: string;
+  /** Whether the day is that entry for the person. */
+  applies: boolean;
+}
+
+/** A version of the Tibetan calendar, by its registry identifier. */
+export type TibetanCalendarId =
+  | "tibetan"
+  | "tibetan-tsurphu"
+  | "tibetan-bhutan"
+  | "mongolian"
+  | "tibetan-lochen"
+  | "tibetan-tsurphu-karana"
+  | "tibetan-bhutan-lochen";
+
+/** The kind of a line of `hc_tibetan_almanac_day`. */
+export type TibetanAlmanacKind =
+  | "weekday"
+  | "mansion"
+  | "yoga"
+  | "karana"
+  | "half-day"
+  | "sun"
+  | "mean-sun"
+  | "rahu"
+  | "rab-byung"
+  | "royal-year"
+  | "year-symbol"
+  | "month-symbol"
+  | "day-symbol";
+
+/** One line of `hc_tibetan_almanac_day`. */
+export interface TibetanAlmanacEntry {
+  kind: TibetanAlmanacKind;
+  /** The component's number, the half-day, the rab byung position, the royal year or the animal's number. */
+  id: number | null;
+  /** The Sanskrit or English name, or for a symbol the element and animal, `Water-Snake`. */
+  name: string | null;
+  /** The Tibetan name in Wylie; `null` for a symbol. */
+  tibetan: string | null;
+  /** The almanac's reading, `2;11,24`, or for a symbol the gender. */
+  reading: string | null;
+  /** The reading as a decimal, or for a symbol the element's colour. */
+  value: string | null;
+}
+
+/** A planet of the Phugpa almanac. */
+export type TibetanPlanetId = "mercury" | "venus" | "mars" | "jupiter" | "saturn";
+
+/** One line of `hc_tibetan_planets`. */
+export interface TibetanPlanet {
+  planet: TibetanPlanetId;
+  particularDay: number;
+  /** The longitudes in lunar mansions as the almanac reads them, `23;4,36`. */
+  meanHeliocentric: string;
+  trueSlow: string;
+  fast: string;
+  meanHeliocentricValue: number;
+  trueSlowValue: number;
+  fastValue: number;
+}
+
+/** The line of `hc_bhutanese_winter_solstice`. */
+export interface BhutaneseWinterSolstice {
+  fixed: number;
+  /** The weekday and time the almanac prints, `2;51,38`. */
+  reading: string;
+  julianDate: number;
+}
+
+/** A rule for the day a festival on a skipped or repeated date is kept. */
+export type TibetanFestivalRule = "berzin" | "henning-almanac";
 
 /** A reckoning of the Orthodox fasts. */
 export type OrthodoxFastReckoning =
@@ -672,6 +848,7 @@ export const COLUMNS: {
   readonly excel1900Day: ReadonlyArray<string>;
   readonly panchanga: ReadonlyArray<string>;
   readonly marriageAugury: ReadonlyArray<string>;
+  readonly chineseAlmanacSolarTerms: ReadonlyArray<string>;
   readonly holidayTables: ReadonlyArray<string>;
   readonly lectionary: ReadonlyArray<string>;
   readonly zones: ReadonlyArray<string>;
@@ -687,6 +864,10 @@ export const COLUMNS: {
   readonly gravitationalDilation: ReadonlyArray<string>;
   readonly gravitatingBodies: ReadonlyArray<string>;
   readonly places: ReadonlyArray<string>;
+  readonly relativeTime: ReadonlyArray<string>;
+  readonly relativeDayAt: ReadonlyArray<string>;
+  readonly duration: ReadonlyArray<string>;
+  readonly zoneName: ReadonlyArray<string>;
   readonly utcFromTai: ReadonlyArray<string>;
   readonly tai64PosixPlus10: ReadonlyArray<string>;
   readonly uuidTimestamp: ReadonlyArray<string>;
@@ -704,6 +885,7 @@ export const COLUMNS: {
   readonly suryaSiddhanta: ReadonlyArray<string>;
   readonly crescent: ReadonlyArray<string>;
   readonly decan: ReadonlyArray<string>;
+  readonly drekkana: ReadonlyArray<string>;
   readonly hjdTt: ReadonlyArray<string>;
   readonly hjdUtc: ReadonlyArray<string>;
   readonly ttBipm: ReadonlyArray<string>;
@@ -711,14 +893,31 @@ export const COLUMNS: {
   readonly asianDay: ReadonlyArray<string>;
   readonly holyYear: ReadonlyArray<string>;
   readonly commonWorship: ReadonlyArray<string>;
+  readonly roman1960Office: ReadonlyArray<string>;
+  readonly holidayGroups: ReadonlyArray<string>;
+  readonly dayPeriod: ReadonlyArray<string>;
+  readonly numberingSystems: ReadonlyArray<string>;
+  readonly calendarEras: ReadonlyArray<string>;
   readonly ccsdsDecode: ReadonlyArray<string>;
   readonly ccsdsAscii: ReadonlyArray<string>;
   readonly radioDecode: ReadonlyArray<string>;
   readonly unixFromDotnetTicks: ReadonlyArray<string>;
   readonly sixHourClock: ReadonlyArray<string>;
+  readonly frenchDecimalTime: ReadonlyArray<string>;
+  readonly civilFromFrenchDecimalTime: ReadonlyArray<string>;
+  readonly babylonianRegnalYear: ReadonlyArray<string>;
+  readonly equinoxMargin: ReadonlyArray<string>;
+  readonly shmuelTekufah: ReadonlyArray<string>;
+  readonly dayName: ReadonlyArray<string>;
   readonly kalam: ReadonlyArray<string>;
   readonly almanacCycles: ReadonlyArray<string>;
   readonly almanacDay: ReadonlyArray<string>;
+  readonly almanacDirections: ReadonlyArray<string>;
+  readonly mansionUndertakings: ReadonlyArray<string>;
+  readonly almanacPersonDays: ReadonlyArray<string>;
+  readonly tibetanAlmanacDay: ReadonlyArray<string>;
+  readonly tibetanPlanets: ReadonlyArray<string>;
+  readonly bhutaneseWinterSolstice: ReadonlyArray<string>;
   readonly orthodoxFast: ReadonlyArray<string>;
   readonly orthodoxFastSeasons: ReadonlyArray<string>;
   readonly prayerTimes: ReadonlyArray<string>;
@@ -733,9 +932,13 @@ export const COLUMNS: {
   readonly nightWatch: ReadonlyArray<string>;
   readonly barhaspatyaYear: ReadonlyArray<string>;
   readonly barhaspatyaYearAt: ReadonlyArray<string>;
+  readonly muhurtas: ReadonlyArray<string>;
+  readonly amritaSiddhi: ReadonlyArray<string>;
+  readonly nakshatra: ReadonlyArray<string>;
   readonly planetaryHour: ReadonlyArray<string>;
   readonly gmat: ReadonlyArray<string>;
   readonly irigDecode: ReadonlyArray<string>;
+  readonly irigFrameStart: ReadonlyArray<string>;
   readonly irigFormats: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
@@ -1359,6 +1562,78 @@ export interface PlaceName {
   status: PlaceStatus;
 }
 
+/** How wide a relative phrase is: *3 days ago*, *3 d. ago*, *3d ago*. */
+export type RelativeStyle = "long" | "short" | "narrow";
+
+/** How a duration is phrased: in words, abbreviated, narrow, or as bare suffixes, *2h30m*. */
+export type DurationStyle = "long" | "short" | "narrow" | "compact";
+
+/** The unit a relative phrase is counted in, CLDR's field name. */
+export type HumanizeUnit = "second" | "minute" | "hour" | "day" | "week" | "month" | "quarter" | "year";
+
+/** The line of `hc_relative_time` and `hc_relative_day`. */
+export interface RelativeTime {
+  /** The phrase: *3 hours ago*, *in 2 days*, *yesterday*. */
+  phrase: string;
+  /** The unit it is counted in. */
+  unit: HumanizeUnit;
+  /** The signed count, negative in the past. */
+  count: number;
+  /** The tag of the `hc-humanize` data the locale resolved to. */
+  localeUsed: string;
+}
+
+/** The line of `hc_relative_day_at`. */
+export interface RelativeDayAt extends RelativeTime {
+  /** The time of day as it was written into the phrase, `15:05`. */
+  time: string;
+}
+
+/** The line of `hc_duration`. */
+export interface HumanizedDuration {
+  /** The phrase: *2 hours and 30 minutes*, *2h30m*. */
+  phrase: string;
+  /** Whether the span was negative; the phrase is of its length. */
+  negative: boolean;
+  /** The tag of the `hc-humanize` data the locale resolved to. */
+  localeUsed: string;
+}
+
+/** A CLDR pattern field that writes a time zone's name. */
+export type ZoneNameField =
+  | "z"
+  | "zz"
+  | "zzz"
+  | "zzzz"
+  | "O"
+  | "OOOO"
+  | "v"
+  | "vvvv"
+  | "V"
+  | "VV"
+  | "VVV"
+  | "VVVV";
+
+/** The line of `hc_format_pattern`. */
+export interface FormattedInZone {
+  text: string;
+  syntax: "cldr" | "strftime";
+  zone: string;
+  offset: number;
+  daylight: boolean;
+}
+
+/** The line of `hc_zone_name`. */
+export interface ZoneName {
+  /** The name, *Pacific Daylight Time*, or its fallback. */
+  name: string;
+  field: ZoneNameField;
+  zone: string;
+  /** Seconds east of UTC at the instant. */
+  offset: number;
+  daylight: boolean;
+}
+
 /** A TAI64 label's format. */
 export type Tai64Format = "tai64" | "tai64n" | "tai64na";
 
@@ -1566,10 +1841,49 @@ export interface PanchangaLimb {
   ends: number;
   /** The instant read: the one asked for, or the sunrise. */
   readAt: number;
-  /** The yoga's ayanamsa, as `panchangaAt` takes it; `null` for the karaṇa. */
-  ayanamsa: Ayanamsa | null;
-  /** Its full name, `Lahiri (Chitrapaksha)`; `null` for the karaṇa. */
+  /** The yoga's sky, as `panchangaAt` takes it; `null` for the karaṇa on the true sky. */
+  ayanamsa: Ayanamsa | "surya-siddhanta" | null;
+  /** Its full name, `Lahiri (Chitrapaksha)` or `Sūrya Siddhānta`; `null` with it. */
   ayanamsaName: string | null;
+}
+
+/** One line of `hc_muhurtas`. */
+export interface Muhurta {
+  half: "day" | "night";
+  /** 1 to 15 within the half. */
+  number: number;
+  /** POSIX seconds, rounded down; `null` where the Sun does not rise or set. */
+  start: number | null;
+  end: number | null;
+  /** What the pañcāṅga prints it as, or `null`. */
+  mark: "abhijit" | "dur-muhurtam" | null;
+  missing: MissingSolarEvent | null;
+}
+
+/** The line of `hc_amrita_siddhi`. */
+export interface AmritaSiddhi {
+  /** `Amrita Siddhi Yoga`. */
+  name: string;
+  devanagari: string;
+  /** The nakṣatra the weekday pairs with, 1 for Aśvinī to 27 for Revatī. */
+  nakshatra: number;
+  /** POSIX seconds, rounded down; `null` on a day the yoga does not fall. */
+  start: number | null;
+  end: number | null;
+  falls: boolean;
+  ayanamsa: Ayanamsa;
+}
+
+/** The line of `hc_nakshatra_at` and `hc_nakshatra_of_day`. */
+export interface NakshatraStay {
+  /** 1 for Aśvinī through 27 for Revatī. */
+  nakshatra: number;
+  /** POSIX seconds, rounded down. */
+  entered: number;
+  leaves: number;
+  readAt: number;
+  ayanamsa: Ayanamsa;
+  ayanamsaName: string;
 }
 
 /** The published code's names for where 立春 falls in a Chinese year. */
@@ -1582,6 +1896,156 @@ export interface MarriageAugury {
   lichunAtStart: boolean;
   /** Whether another 立春 comes before the next New Year. */
   lichunAtEnd: boolean;
+  /** The Chinese names the sources give the kind of year; none for `blind` and `bright`. */
+  chineseNames: AuguryName[];
+}
+
+/** A Chinese name of a kind of year, as a source writes it. */
+export interface AuguryName {
+  name: string;
+  locale: "zh-Hant" | "zh-Hans";
+  /** `north` or `south` where the source says where it is used. */
+  region: string | null;
+}
+
+/** The line of `hc_french_decimal_time`. */
+export interface FrenchDecimalTime {
+  /** 0 to 9. */
+  hour: number;
+  /** 0 to 99. */
+  minute: number;
+  /** 0 to 99. */
+  second: number;
+  /** The rest of the decimal second, in attoseconds of ordinary time. */
+  attoseconds: bigint;
+}
+
+/** The line of `hc_civil_from_french_decimal_time`. */
+export interface TimeOfDay {
+  /** Whole seconds after midnight. */
+  secondsOfDay: number;
+  attoseconds: bigint;
+}
+
+/** The line of `hc_babylonian_regnal_year`. */
+export interface RegnalYear {
+  king: string;
+  year: number;
+}
+
+/** A calendar whose new year an equinox decides at a moment of the day. */
+export type EquinoxCalendar =
+  | "persian"
+  | "persian-apparent-noon"
+  | "jalali"
+  | "bahai-astronomical"
+  | "french-republican-equinox";
+
+/** The line of `hc_equinox_new_year_margin`. */
+export interface EquinoxMargin {
+  /** Positive when the equinox fell before the deciding moment. */
+  minutes: number;
+  calendar: EquinoxCalendar;
+}
+
+/** One of the four seasons of Shmuel's year. */
+export type Tekufah = "tishrei" | "tevet" | "nisan" | "tammuz";
+
+/** The line of `hc_shmuel_tekufah`. */
+export interface ShmuelTekufah {
+  /** The fixed day whose Hebrew day it falls in. */
+  fixed: number;
+  /** Minutes of Jerusalem mean time since that civil midnight or the one before. */
+  minutes: number;
+  tekufah: Tekufah;
+}
+
+/** The line of `hc_day_name`. */
+export interface DayName {
+  name: string;
+  /** The naming's identifier: `fr-fabre-1793`, `fr`, `en`, `hy` or `hy-Latn`. */
+  naming: string;
+  namingName: string;
+  authority: string;
+}
+
+/** A count of a person's age `hc_chinese_age` takes. */
+export type AgeConvention = "chinese-age" | "lichun-age" | "new-year-day-age" | "year-age";
+
+/** One line of `hc_chinese_almanac_solar_terms`. */
+export interface AlmanacSolarTerm {
+  /** 1 for 小寒 to 24 for 冬至. */
+  position: number;
+  /** The name in traditional Chinese. */
+  name: string;
+  fixed: number;
+}
+
+/** The part a liturgical day plays in the 1960 ordo of a day. */
+export type Roman1960Role = "office" | "commemoration" | "transferred" | "omitted";
+
+/** A class of the 1960 rubrics. */
+export type Roman1960Class = "first" | "second" | "third" | "fourth" | "commemoration";
+
+/** One line of `hc_roman_1960_office_on`. */
+export interface Roman1960Office {
+  role: Roman1960Role;
+  title: string;
+  class: Roman1960Class;
+  /** `I class`. */
+  className: string;
+  /** On the office's line, the day a feast of the I class transferred here was impeded on. */
+  transferredFrom: number | null;
+}
+
+/** One line of `hc_holiday_groups`. */
+export interface HolidayGroup {
+  /** The identifier `hc_holidays_on`'s group column writes: `women`. */
+  group: string;
+  /** Its name in the locale, where an instrument in the language names it. */
+  name: string | null;
+  localeUsed: string | null;
+  englishName: string;
+}
+
+/** One line of `hc_holidays_on_in`. */
+export interface HolidayOnIn extends HolidayOn {
+  /** What the locale calls the day, where a source in the language names it. */
+  nameInLocale: string | null;
+  nameLocale: string | null;
+}
+
+/** The line of `hc_day_period`. */
+export interface DayPeriodReading {
+  half: "am" | "pm";
+  /** The locale's abbreviated name for the half, *PM*. */
+  halfName: string | null;
+  /** `midnight`, `noon`, or `morning1` to `night2`; `null` where the language has no rules. */
+  period: string | null;
+  abbreviated: string | null;
+  wide: string | null;
+  narrow: string | null;
+  localeUsed: string;
+}
+
+/** One line of `hc_numbering_systems`. */
+export interface NumberingSystemInfo {
+  /** The CLDR identifier: `latn`, `hebr`, `grek`. */
+  system: string;
+  algorithmic: boolean;
+  /** A positional system's ten digits, zero first. */
+  digits: string | null;
+}
+
+/** One line of `hc_calendar_eras`. */
+export interface CalendarEra {
+  /** The era's code: `reiwa`, `ce`. */
+  code: string;
+  wide: string | null;
+  abbreviated: string | null;
+  narrow: string | null;
+  calendar: string;
+  localeUsed: string;
 }
 
 /** What a holiday table is, by the list it is in. */
@@ -1852,6 +2316,24 @@ export interface Decan {
   degreesIntoDecan: number;
 }
 
+/** The one line of `hc_drekkana_at`. */
+export interface Drekkana {
+  /** The sidereal sign, 1 for Meṣa through 12 for Mīna. */
+  sign: number;
+  /** Its Sanskrit name, `Meṣa`. */
+  signName: string;
+  /** Which of the sign's three 10° drekkāṇas, 1 to 3. */
+  drekkana: number;
+  /** The ruler of the sign the drekkāṇa is given to. */
+  lord: DecanRuler;
+  lordName: string;
+  /** From 0 up to 10. */
+  degreesIntoDrekkana: number;
+  /** The sign the drekkāṇa is given to: the sign itself, the fifth or the ninth. */
+  lordSign: SiderealSignId;
+  ayanamsa: Ayanamsa;
+}
+
 /** The one line of `hc_hjd_tt`. */
 export interface HeliocentricJulianDate {
   hjd: number;
@@ -2077,6 +2559,8 @@ export class HyperCalendar {
   irigEncode(signal: string, fixed: number | bigint, secondsOfDay: number, options?: IrigEncodeOptions): string;
   /** `hc_irig_formats`: the six formats, A first. */
   irigFormats(): IrigFormatInfo[];
+  /** `hc_irig_frame_start`: the start of the frame that holds a reading. */
+  irigFrameStart(signal: string, secondsOfDay: number, hundredths?: number): IrigFrameStart;
   /** `hc_dotnet_ticks_from_unix`: the ticks, which need not fit a number. */
   dotnetTicksFromUnix(unixSeconds: number | bigint, attoseconds?: number | bigint): bigint;
   /** `hc_unix_from_dotnet_ticks`. */
@@ -2085,6 +2569,20 @@ export class HyperCalendar {
   sixHourClock(reckoning: SixHourReckoning, secondsOfDay: number): SixHourReading;
   /** `hc_civil_from_six_hour_clock`: seconds after civil midnight. */
   civilFromSixHourClock(reckoning: SixHourReckoning, hour: number, minute: number, second: number, night: boolean): number;
+  /** `hc_french_decimal_time`: the decimal time of a time of the civil clock. */
+  frenchDecimalTime(secondsOfDay: number, attoseconds?: number | bigint): FrenchDecimalTime;
+  /** `hc_civil_from_french_decimal_time`: the civil time of a decimal time. */
+  civilFromFrenchDecimalTime(hour: number, minute: number, second: number, attoseconds?: number | bigint): TimeOfDay;
+  /** `hc_ioc_olympiad_on`: the modern Olympiad of a day, by the Charter in force on it. */
+  iocOlympiadOn(fixed: number | bigint): number;
+  /** `hc_babylonian_regnal_year`: the king and regnal year of a Seleucid year. */
+  babylonianRegnalYear(seleucidYear: number | bigint): RegnalYear;
+  /** `hc_equinox_new_year_margin`: how close an equinox came to the moment that decides a new year. */
+  equinoxNewYearMargin(calendar: EquinoxCalendar, year: number | bigint): EquinoxMargin;
+  /** `hc_shmuel_tekufah`: a tekufah of Shmuel's reckoning. */
+  shmuelTekufah(hebrewYear: number | bigint, tekufah: Tekufah): ShmuelTekufah;
+  /** `hc_day_name`: a day's name by one of its calendar's namings. */
+  dayName(calendar: string, naming: string, fixed: number | bigint): DayName;
 
   /**
    * `hc_describe_day`: the day in every registered calendar, in registry
@@ -2118,9 +2616,23 @@ export class HyperCalendar {
   /** `hc_gregorian_adoption`: the steps by which a country adopted the Gregorian calendar, by ISO 3166-1 alpha-2 code; none for a code the module does not know. */
   gregorianAdoption(region: string): GregorianAdoption[];
   /** `hc_panchanga_at`: the yoga's line, then the karaṇa's; an ayanamsa nobody knows is `unknown`. */
-  panchangaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): PanchangaLimb[];
+  panchangaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa | "surya-siddhanta"): PanchangaLimb[];
   /** `hc_panchanga_of_day`: read at the day's sunrise at the place; no sunrise is `no-data`. */
-  panchangaOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: Ayanamsa): PanchangaLimb[];
+  panchangaOfDay(
+    fixed: number | bigint,
+    latitude: number,
+    longitude: number,
+    elevation: number,
+    ayanamsa: Ayanamsa | "surya-siddhanta",
+  ): PanchangaLimb[];
+  /** `hc_muhurtas`: the thirty muhūrtas of a day, Abhijit and Dur Muhurtam marked. */
+  muhurtas(fixed: number | bigint, latitude: number, longitude: number, elevation: number): Muhurta[];
+  /** `hc_amrita_siddhi`: the amṛta siddhi yoga of a day at a place. */
+  amritaSiddhi(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: Ayanamsa): AmritaSiddhi;
+  /** `hc_nakshatra_at`: the nakṣatra the Moon is in at an instant. */
+  nakshatraAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): NakshatraStay;
+  /** `hc_nakshatra_of_day`: the nakṣatra a day carries at a place, read at its sunrise. */
+  nakshatraOfDay(fixed: number | bigint, latitude: number, longitude: number, elevation: number, ayanamsa: Ayanamsa): NakshatraStay;
   /**
    * `hc_hindu_lunar_date`: `sky` an ayanamsa or `surya-siddhanta`. A
    * place beyond 65° of latitude, or off the globe, is `out-of-range` on
@@ -2145,7 +2657,7 @@ export class HyperCalendar {
   /** `hc_barhaspatya_year`: an expired Śaka year, −3178 to 6821. */
   barhaspatyaYear(rule: BarhaspatyaRule, saka: number | bigint, locale?: string): BarhaspatyaYear;
   /** `hc_barhaspatya_year_at`: the name in progress at an instant. */
-  barhaspatyaYearAt(rule: BarhaspatyaRule, unixSeconds: number | bigint, locale?: string): BarhaspatyaName;
+  barhaspatyaYearAt(rule: BarhaspatyaRule, unixSeconds: number | bigint, locale?: string): BarhaspatyaNameAt;
   /** `hc_crescent_visible`: on the evening that begins the day. */
   crescentVisible(criterion: CrescentCriterion, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): CrescentVisibility;
   /** `hc_ioc_olympiad`; a year before 1896 is `out-of-range`. */
@@ -2158,6 +2670,10 @@ export class HyperCalendar {
   chineseReckonedAge(birthFixed: number | bigint, onFixed: number | bigint): number;
   /** `hc_chinese_marriage_augury`: by the Chinese calendar's year count, 4661 from 10 February 2024. */
   chineseMarriageAugury(chineseYear: number | bigint): MarriageAugury;
+  /** `hc_chinese_age`: a person's age on a day by a count. */
+  chineseAge(convention: AgeConvention, birthFixed: number | bigint, onFixed: number | bigint): number;
+  /** `hc_chinese_almanac_solar_terms`: the Qing almanac's term days of a year. */
+  chineseAlmanacSolarTerms(year: number | bigint): AlmanacSolarTerm[];
   /** `hc_naming_period_on`: a calendar the registry does not carry is `unknown`. */
   namingPeriodOn(calendar: string, fixed: number | bigint, locale: string): NamingPeriodOn;
   /** `hc_hebrew_sabbatical_cycle_year`: 7 is *shemittah*. */
@@ -2177,6 +2693,29 @@ export class HyperCalendar {
   almanacCycles(fixed: number | bigint, meridian?: string): AlmanacCycles;
   /** `hc_almanac_day`: the solar terms and new moons at `meridian`; `und` unless a locale is given. */
   almanacDay(fixed: number | bigint, meridian?: string, locale?: string): AlmanacAnnotation[];
+  /** `hc_almanac_directions`: the 八将神 and the 金神 of the year in force on a day. */
+  almanacDirections(fixed: number | bigint, meridian?: string): AlmanacDirection[];
+  /** `hc_rounichi`: the fixed day of 臘日 in the winter ending in `year`. */
+  rounichi(rule: RounichiRule, year: number | bigint, meridian?: string): number;
+  /** `hc_mansion_undertakings`: what a publisher's list says the day's 二十八宿 favours and forbids. */
+  mansionUndertakings(list: UndertakingListId, fixed: number | bigint): MansionUndertaking[];
+  /** `hc_almanac_person_days`: a person's own 五墓日 and 三箇の悪日 on a day. */
+  almanacPersonDays(fixed: number | bigint, birthYear: number | bigint, meridian?: string): AlmanacPersonDay[];
+  /** `hc_tibetan_almanac_day`: what a version's almanac prints for a day. */
+  tibetanAlmanacDay(calendar: TibetanCalendarId, fixed: number | bigint): TibetanAlmanacEntry[];
+  /** `hc_tibetan_planets`: the Phugpa planets at the end of a day. */
+  tibetanPlanets(fixed: number | bigint): TibetanPlanet[];
+  /** `hc_bhutanese_winter_solstice`: the Bhutanese winter solstice of a Gregorian year. */
+  bhutaneseWinterSolstice(year: number | bigint): BhutaneseWinterSolstice;
+  /** `hc_tibetan_festival_day`: the day a festival on a Tibetan date is kept, by a rule. */
+  tibetanFestivalDay(
+    rule: TibetanFestivalRule,
+    calendar: TibetanCalendarId,
+    year: number | bigint,
+    month: number,
+    leap: boolean,
+    day: number,
+  ): number;
   /** `hc_choghadiya`: sixteen lines, the day's eight then the night's. */
   choghadiya(fixed: number | bigint, latitude: number, longitude: number, elevation?: number, locale?: string): ChoghadiyaPart[];
   /** `hc_panchak`: the weekday of the opening on a clock `offsetSeconds` ahead of UTC, 0 unless given. */
@@ -2200,6 +2739,16 @@ export class HyperCalendar {
 
   /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint, group?: string): boolean;
+  /** `hc_holiday_add_business_days`: a day moved by business days of a table. */
+  holidayAddBusinessDays(code: string, region: string, fixed: number | bigint, count: number | bigint, group?: string): number;
+  /** `hc_holiday_business_days_between`: the business days of a table in a half-open interval. */
+  holidayBusinessDaysBetween(
+    code: string,
+    region: string,
+    fromFixed: number | bigint,
+    toFixed: number | bigint,
+    group?: string,
+  ): number;
   /** `hc_holidays_in_year`; `region` may be empty, and `group` left out or empty for everyone. */
   holidaysInYear(code: string, region: string, year: number | bigint, group?: string): HolidayInYear[];
   /** `hc_holiday_codes`: countries, then exchanges, traditions and the international sets. */
@@ -2218,6 +2767,22 @@ export class HyperCalendar {
   holyYearOn(fixed: number | bigint): HolyYear | null;
   /** `hc_common_worship_on`: empty on a day that keeps none. */
   commonWorshipOn(fixed: number | bigint): CommonWorshipCelebration[];
+  /** `hc_holiday_groups`: every group a holiday may be given to alone, named in a locale. */
+  holidayGroups(locale?: string): HolidayGroup[];
+  /** `hc_holidays_on_in`: `holidaysOn`'s entries with the day's name in a locale. */
+  holidaysOnIn(fixed: number | bigint, locale?: string): HolidayOnIn[];
+  /** `hc_day_period`: the day periods of a time of day in a locale. */
+  dayPeriod(secondsOfDay: number, locale?: string): DayPeriodReading;
+  /** `hc_format_number`: an integer in a numbering system. */
+  formatNumber(system: string, value: number | bigint): string;
+  /** `hc_parse_number`: an integer read back out of a numbering system. */
+  parseNumber(system: string, text: string): number;
+  /** `hc_numbering_systems`: every numbering system `formatNumber` writes. */
+  numberingSystems(): NumberingSystemInfo[];
+  /** `hc_calendar_eras`: a calendar's eras named in a locale. */
+  calendarEras(calendar: string, locale?: string): CalendarEra[];
+  /** `hc_roman_1960_office_on`: the 1960 ordo of a day. */
+  roman1960OfficeOn(fixed: number | bigint): Roman1960Office[];
   /** `hc_orthodox_fast_on`: a day outside the years 326 to 4099, or 1583 to 4099 on the Gregorian reckonings, is `out-of-range`. */
   orthodoxFastOn(reckoning: OrthodoxFastReckoning, fixed: number | bigint): OrthodoxFastDay;
   /** `hc_orthodox_fast_seasons`: the scheme's periods, twelve for the Eastern Orthodox, in the order a day is tested against them. */
@@ -2277,6 +2842,8 @@ export class HyperCalendar {
   moonPhasesBetween(fromUnix: number | bigint, toUnix: number | bigint): SkyEvent[];
   /** `hc_decan_at`. */
   decanAt(unixSeconds: number | bigint): Decan;
+  /** `hc_drekkana_at`: the drekkāṇa the Sun is in, in an ayanamsa's zodiac. */
+  drekkanaAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): Drekkana;
   /** `hc_earth_rotation_angle`: degrees, at UT1 counted as POSIX seconds are; outside −1000 through 3000 is `out-of-range`. */
   earthRotationAngle(ut1UnixSeconds: number): number;
   /** `hc_gmst_iau2006`: degrees. */
@@ -2351,6 +2918,37 @@ export class HyperCalendar {
   subdivisions(country: string, locale?: string): PlaceName[];
   /** `hc_place_name`: one territory or subdivision in ISO form; another code, `jp13` among them, is `unknown`. */
   placeName(code: string, locale?: string): PlaceName;
+  /** `hc_relative_time`: how `thenUnix` reads from `nowUnix`, *3 hours ago*. */
+  relativeTime(
+    thenUnix: number | bigint,
+    nowUnix: number | bigint,
+    style?: RelativeStyle,
+    automatic?: boolean,
+    locale?: string,
+  ): RelativeTime;
+  /** `hc_relative_day`: which calendar day `thenFixed` is, seen from `nowFixed`, *yesterday*. */
+  relativeDay(
+    thenFixed: number | bigint,
+    nowFixed: number | bigint,
+    style?: RelativeStyle,
+    automatic?: boolean,
+    locale?: string,
+  ): RelativeTime;
+  /** `hc_relative_day_at`: the same with a time of day, *yesterday at 15:05*. */
+  relativeDayAt(
+    thenFixed: number | bigint,
+    nowFixed: number | bigint,
+    secondsOfDay: number,
+    style?: RelativeStyle,
+    automatic?: boolean,
+    locale?: string,
+  ): RelativeDayAt;
+  /** `hc_duration`: a span of seconds in days, hours, minutes and seconds. */
+  duration(seconds: number | bigint, style?: DurationStyle, maxComponents?: number, locale?: string): HumanizedDuration;
+  /** `hc_zone_name`: a zone's name at an instant, as a CLDR field writes it. */
+  zoneName(zone: string, unixSeconds: number | bigint, locale?: string, field?: ZoneNameField): ZoneName;
+  /** `hc_format_pattern`: an instant formatted in a zone by a CLDR or strftime pattern. */
+  formatPattern(zone: string, unixSeconds: number | bigint, locale: string, syntax: "cldr" | "strftime", pattern: string): FormattedInZone;
 }
 
 /**

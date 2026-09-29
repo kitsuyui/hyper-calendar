@@ -427,6 +427,26 @@ impl RelativeStyle {
     /// Every style, widest first.
     pub const ALL: [Self; 3] = [Self::Long, Self::Short, Self::Narrow];
 
+    /// The style's identifier, CLDR's name for its width: `long`, `short`
+    /// or `narrow`, the words `Intl.RelativeTimeFormat` takes for `style`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Long => "long",
+            Self::Short => "short",
+            Self::Narrow => "narrow",
+        }
+    }
+
+    /// The style an identifier names, in any case, by
+    /// [`hc_core::catalogue::matches`]; `None` for any other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|style| hc_core::catalogue::matches(id, style.id()))
+    }
+
     /// The style to try when this one has no data.
     ///
     /// Narrow degrades to short and short to long, which is CLDR's own
@@ -455,6 +475,25 @@ impl RelativeStyle {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// Every style is found by its identifier in any case, and nothing
+    /// else is a style.
+    #[test]
+    fn every_style_is_found_by_its_identifier() {
+        for style in RelativeStyle::ALL {
+            assert_eq!(RelativeStyle::by_id(style.id()), Some(style));
+            assert_eq!(
+                RelativeStyle::by_id(&style.id().to_ascii_uppercase()),
+                Some(style)
+            );
+        }
+        assert_eq!(
+            RelativeStyle::by_id(" Narrow "),
+            Some(RelativeStyle::Narrow)
+        );
+        assert_eq!(RelativeStyle::by_id("compact"), None);
+        assert_eq!(RelativeStyle::by_id(""), None);
+    }
 
     const RUSSIAN_DAY: PluralForms = PluralForms {
         zero: "",

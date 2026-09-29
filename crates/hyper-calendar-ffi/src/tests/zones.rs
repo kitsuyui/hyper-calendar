@@ -48,7 +48,7 @@ fn the_lines_are_the_modules_and_links_answer_with_their_rows() {
         HC_ERROR_NULL_POINTER
     );
     let tokyo = line(c"Asia/Tokyo", c"ja");
-    let expected = if cfg!(feature = "calendars") {
+    let expected = if cfg!(any(feature = "calendars", feature = "zone-names")) {
         "\t東京\tja\n"
     } else {
         "\tTokyo\ten\n"

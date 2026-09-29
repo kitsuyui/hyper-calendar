@@ -53,7 +53,7 @@ deep-time = ["hc/deep-time"]
 # The day by a time zone's wall clock, from seventeen built-in zones and
 # any zone a caller loads as TZif bytes; and where each zone is, from
 # tzdata's zone1970.tab, zone.tab and backward, with its exemplar city in
-# English, or in the locale when the build has `calendars` too.
+# English, or in the locale when the build has `calendars` or `zone-names` too.
 tz = ["civil", "hc/tz"]
 # The sky: where the Sun and Moon are at an instant, the decan the Sun is
 # in, and the solar terms and the moon phases within a span; the Earth's
@@ -78,8 +78,19 @@ relativity = ["hc/relativity"]
 # from CLDR 48: some 2.8 MB of names in 45 languages, so a layer of its own
 # that a caller loads only to show place names.
 places = ["hc/place-names"]
+# Human-readable time from hc-humanize: how one instant reads from
+# another, "3 hours ago"; which calendar day a day is, seen from another,
+# "yesterday at 15:05"; and how long a span is, "2 hours and 30 minutes";
+# in every locale hc-humanize carries. A layer of its own, since no other
+# layer needs hc-humanize's phrases.
+humanize = ["civil", "hc/humanize"]
+# Time zone names: a zone's name at an instant in a locale, as the CLDR
+# pattern fields z, O, v and V write it, from CLDR 48's metazones and zone
+# names in every locale hc-i18n carries. Some 600 kB of names, so a layer
+# of its own beside `tz`, which it builds on.
+zone-names = ["tz", "hc/localized-zone-names"]
 # Every layer.
-full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "places", "hc/full"]
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "places", "humanize", "zone-names", "hc/full"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.

@@ -200,6 +200,22 @@ impl General {
         Self::Hyobi,
     ];
 
+    /// A stable identifier, the reading without its macrons and without
+    /// the suffix 神 is read with, e.g. `"daishogun"`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Taisai => "taisai",
+            Self::Daishogun => "daishogun",
+            Self::Daion => "daion",
+            Self::Saikyo => "saikyo",
+            Self::Saiha => "saiha",
+            Self::Saisetsu => "saisetsu",
+            Self::Oban => "oban",
+            Self::Hyobi => "hyobi",
+        }
+    }
+
     /// The name, e.g. `"大将軍"`.
     #[must_use]
     pub const fn japanese_name(self) -> &'static str {
@@ -680,6 +696,27 @@ mod tests {
 
     /// The Library's statements: 太歳 on the year's branch (子 years
     /// north), 歳破 opposite it, 豹尾 opposite 黄幡.
+    /// Each general's identifier is its reading, less its macrons and the
+    /// 神 it is read with, and no two are the same.
+    #[test]
+    fn every_general_has_its_own_identifier() {
+        for god in General::ALL {
+            let reading = god
+                .romaji()
+                .replace('ō', "o")
+                .trim_end_matches("jin")
+                .to_owned();
+            assert_eq!(god.id(), reading, "{}", god.japanese_name());
+            assert_eq!(
+                General::ALL
+                    .iter()
+                    .filter(|other| other.id() == god.id())
+                    .count(),
+                1
+            );
+        }
+    }
+
     #[test]
     fn the_library_s_relations_hold() {
         for branch in 0..12 {

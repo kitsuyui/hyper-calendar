@@ -44,7 +44,9 @@ fn the_error_floor_is_far_below_any_real_day_number() {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 fn read_lines(call: impl Fn(*mut u8, usize) -> i64) -> String {
     let needed = call(core::ptr::null_mut(), 0);
@@ -116,6 +118,12 @@ mod relativity;
 #[cfg(feature = "places")]
 mod places;
 
+#[cfg(feature = "humanize")]
+mod humanize;
+
+#[cfg(feature = "zone-names")]
+mod zone_names;
+
 #[cfg(feature = "time-codes")]
 mod time_codes;
 
@@ -133,6 +141,15 @@ mod hours;
 
 #[cfg(feature = "calendars")]
 mod reckonings;
+
+#[cfg(feature = "calendars")]
+mod almanac_notes;
+
+#[cfg(feature = "calendars")]
+mod tibetan_almanac;
+
+#[cfg(all(feature = "calendars", feature = "sky"))]
+mod hindu_limbs;
 
 #[cfg(feature = "sky")]
 mod sky_reckonings;

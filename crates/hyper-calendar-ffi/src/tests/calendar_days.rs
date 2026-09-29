@@ -322,7 +322,10 @@ fn the_chinese_reckonings_cross_the_boundary() {
     let line = read_lines(|buffer, capacity, written| unsafe {
         hc_chinese_marriage_augury(4_646, buffer, capacity, written)
     });
-    assert_eq!(line, "double-bright\t1\t1\n");
+    assert_eq!(
+        line,
+        "double-bright\t1\t1\t雙春兼閏月;双春年\tzh-Hant;zh-Hans\t;\n"
+    );
 }
 
 /// The book's ayanāṃśa, `reingold-dershowitz`, crosses the boundary by its

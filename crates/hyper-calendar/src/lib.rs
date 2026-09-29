@@ -108,6 +108,15 @@ pub mod hindu_lines;
 pub mod holiday_lines;
 #[cfg(all(feature = "alloc", feature = "astro"))]
 pub mod hours_lines;
+#[cfg(all(feature = "alloc", feature = "humanize"))]
+pub mod humanize_lines;
+#[cfg(all(
+    feature = "alloc",
+    feature = "civil",
+    feature = "i18n",
+    feature = "format"
+))]
+pub mod i18n_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "civil",
@@ -136,6 +145,8 @@ pub mod relativity_lines;
 pub mod season_lines;
 #[cfg(all(feature = "alloc", feature = "seasons"))]
 pub mod sky_lines;
+#[cfg(all(feature = "alloc", feature = "regional"))]
+pub mod tibetan_lines;
 #[cfg(all(feature = "alloc", feature = "civil", feature = "format"))]
 pub mod time_code_lines;
 #[cfg(all(feature = "alloc", feature = "civil"))]

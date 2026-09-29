@@ -328,10 +328,16 @@ test("the new reckonings read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.kumbh], columnsAfter("### The Kumbh Mela"));
   assert.deepEqual([...COLUMNS.pushkaram], columnsAfter("### Pushkaram"));
   assert.deepEqual([...COLUMNS.barhaspatyaYear], columnsAfter("### The northern year's name"));
-  // The name at an instant is stated in prose: columns 1, 2 and 5 above.
-  assert.match(README, /writes one line of three\s+cells, columns 1, 2 and 5 above/);
+  // The name at an instant is stated in prose: columns 1, 2 and 5 above,
+  // and three more.
+  assert.match(README, /writes one line of three\s+cells, columns 1, 2 and 5 above, and three more/);
   const year = COLUMNS.barhaspatyaYear;
-  assert.deepEqual([...COLUMNS.barhaspatyaYearAt], [year[0], year[1], year[4]]);
+  assert.deepEqual([...COLUMNS.barhaspatyaYearAt].slice(0, 3), [year[0], year[1], year[4]]);
+  assert.equal(COLUMNS.barhaspatyaYearAt.length, 6);
+  assert.deepEqual([...COLUMNS.nakshatra], columnsAfter("### The nakṣatra"));
+  assert.deepEqual([...COLUMNS.muhurtas], columnsAfter("### The muhūrtas"));
+  assert.deepEqual([...COLUMNS.amritaSiddhi], columnsAfter("### Amṛta siddhi"));
+  assert.deepEqual([...COLUMNS.drekkana], columnsAfter("### Drekkāṇas"));
   assert.deepEqual([...COLUMNS.folkDay], columnsAfter("### Folk days"));
   assert.deepEqual([...COLUMNS.nightWatch], columnsAfter("### The night watches"));
   assert.deepEqual([...COLUMNS.planetaryHour], columnsAfter("### Planetary hours"));
@@ -353,6 +359,31 @@ test("the new reckonings read the README's columns in order", () => {
 
 test("the place names read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.places], columnsAfter("## Place names"));
+});
+
+test("the humanized times read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.equinoxMargin], columnsAfter("### Equinox new-year margins"));
+  assert.deepEqual([...COLUMNS.irigFrameStart], columnsAfter("### The start of an IRIG frame"));
+  assert.deepEqual([...COLUMNS.dayPeriod], columnsAfter("### Day periods"));
+  assert.deepEqual([...COLUMNS.numberingSystems], columnsAfter("### Numbering systems"));
+  assert.deepEqual([...COLUMNS.calendarEras], columnsAfter("### A calendar's eras"));
+  assert.deepEqual([...COLUMNS.holidayGroups], columnsAfter("### Groups and names in a locale"));
+  assert.deepEqual([...COLUMNS.zoneName], columnsAfter("### A zone's name"));
+  assert.deepEqual([...COLUMNS.roman1960Office], columnsAfter("### The 1960 office"));
+  assert.deepEqual([...COLUMNS.frenchDecimalTime], columnsAfter("### French Republican decimal time"));
+  assert.deepEqual([...COLUMNS.babylonianRegnalYear], columnsAfter("### Babylonian regnal years"));
+  assert.deepEqual([...COLUMNS.shmuelTekufah], columnsAfter("### Shmuel's tekufot"));
+  assert.deepEqual([...COLUMNS.dayName], columnsAfter("### Named days"));
+  assert.deepEqual([...COLUMNS.chineseAlmanacSolarTerms], columnsAfter("### The Qing almanac's solar terms"));
+  assert.deepEqual([...COLUMNS.tibetanAlmanacDay], columnsAfter("### The Tibetan almanac"));
+  assert.deepEqual([...COLUMNS.tibetanPlanets], columnsAfter("### The Tibetan planets"));
+  assert.deepEqual([...COLUMNS.bhutaneseWinterSolstice], columnsAfter("### The Bhutanese winter solstice"));
+  assert.deepEqual([...COLUMNS.almanacDirections], columnsAfter("### The year's directions"));
+  assert.deepEqual([...COLUMNS.mansionUndertakings], columnsAfter("### The undertakings of each 二十八宿"));
+  assert.deepEqual([...COLUMNS.almanacPersonDays], columnsAfter("### A person's own days"));
+  assert.deepEqual([...COLUMNS.relativeTime], columnsAfter("### Relative time"));
+  assert.deepEqual([...COLUMNS.relativeDayAt], columnsAfter("### A relative day at a time"));
+  assert.deepEqual([...COLUMNS.duration], columnsAfter("### Durations"));
 });
 
 test("the relativity lines read the README's columns in order", () => {

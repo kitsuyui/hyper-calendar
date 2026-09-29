@@ -31,6 +31,7 @@ use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
 use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
+use hc_holiday::roman_calendar_1960;
 use hc_holiday::rule::{RuleSet, Scope};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
@@ -606,6 +607,82 @@ pub fn is_day_off(
     Ok(HolidayCalendar::for_day_scoped(table, Scope::new(region, group), day).is_holiday(day))
 }
 
+/// The most business days [`add_business_days`] walks: a hundred years'
+/// worth, so that the evaluation it needs stays bounded.
+pub const MAX_BUSINESS_DAYS: i64 = 36_500;
+
+/// A day's Gregorian year, as the tables evaluate it.
+fn year_of(fixed: i64) -> Answer<i64> {
+    gregorian::year_from_fixed(Rd(fixed)).map_err(|_| Refusal::OutOfRange)
+}
+
+/// A fixed day moved by `count` business days of a table in a scope, as
+/// [`HolidayCalendar::add_business_days`] counts them: a business day is
+/// neither a holiday of the scope nor a weekend day the table does not make
+/// a working day; the starting day is never counted, and a count of zero
+/// returns the day.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a code that names no table;
+/// [`Refusal::OutOfRange`] for a day with no Gregorian year, a count past
+/// [`MAX_BUSINESS_DAYS`] either way, or a walk that leaves the years the
+/// tables evaluate.
+pub fn add_business_days(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    fixed: i64,
+    count: i64,
+) -> Answer<i64> {
+    let table = rule_set(code)?;
+    let year = year_of(fixed)?;
+    if count.unsigned_abs() > MAX_BUSINESS_DAYS.unsigned_abs() {
+        return Err(Refusal::OutOfRange);
+    }
+    // A year holds more than a hundred business days in every table, so
+    // the walk stays within `count / 100 + 1` years of the start.
+    let reach = count.abs() / 100 + 1;
+    let (first, last) = if count < 0 {
+        (year - reach, year)
+    } else {
+        (year, year + reach)
+    };
+    let calendar = HolidayCalendar::scoped(table, Scope::new(region, group), first, last);
+    calendar
+        .add_business_days(Rd(fixed), count)
+        .map(|day| day.0)
+        .ok_or(Refusal::OutOfRange)
+}
+
+/// The number of business days of a table in a scope in the half-open
+/// interval from `from_fixed` up to but not including `to_fixed`, as
+/// [`HolidayCalendar::business_days_between`] counts them; negative when
+/// `to_fixed` is before `from_fixed`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a code that names no table, and
+/// [`Refusal::OutOfRange`] for a day with no Gregorian year or two days
+/// more than a hundred years apart.
+pub fn business_days_between(
+    code: &str,
+    region: Option<&str>,
+    group: Option<&str>,
+    from_fixed: i64,
+    to_fixed: i64,
+) -> Answer<i64> {
+    let table = rule_set(code)?;
+    let (from, to) = (year_of(from_fixed)?, year_of(to_fixed)?);
+    let (first, last) = (from.min(to), from.max(to));
+    if last - first > 100 {
+        return Err(Refusal::OutOfRange);
+    }
+    HolidayCalendar::scoped(table, Scope::new(region, group), first, last)
+        .business_days_between(Rd(from_fixed), Rd(to_fixed))
+        .ok_or(Refusal::OutOfRange)
+}
+
 /// The line of `hc_lectionary`: the liturgical year a day falls in, named
 /// by the civil year of its Easter; the Sunday cycle, `A`, `B` or `C`; the
 /// Roman weekday cycle, `I` or `II`; the Revised Common Lectionary's
@@ -765,6 +842,118 @@ pub fn common_worship_lines(fixed: i64) -> Answer<String> {
             .cell(rank_id(celebration.rank))
             .cell(celebration.rank.english_name());
         line.end();
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`holiday_groups_lines`] writes.
+pub const HOLIDAY_GROUP_COLUMNS: usize = 4;
+
+/// The lines of `hc_holiday_groups`: every group of people a holiday may
+/// be given to alone, [`hc_holiday::group::GROUPS`], in its order — the
+/// identifier, which `hc_holidays_on`'s group column writes; the name in a
+/// locale, by [`hc_i18n::holiday_groups::group_name`], from an instrument
+/// in the language, else empty; the tag that named it; and the English
+/// name.
+#[must_use]
+pub fn holiday_groups_lines(tag: &str) -> String {
+    let locale = Locale::parse(tag).unwrap_or(Locale::ROOT);
+    let mut out = String::new();
+    for group in hc_holiday::group::GROUPS {
+        let named = hc_i18n::holiday_groups::group_name(&locale, group.id);
+        let mut line = Line::new(&mut out);
+        line.cell(group.id)
+            .cell_or_empty(named.map(|named| named.name))
+            .cell_or_empty(named.map(|named| named.tag))
+            .cell(group.english_name);
+        line.end();
+    }
+    out
+}
+
+/// The lines of `hc_holidays_on_in`: [`holidays_on`]'s lines, each with
+/// two more cells — the day's name in a locale, by
+/// [`hc_i18n::holiday_names::holiday_name`], where a source in the
+/// language names that day of that table, and the tag that named it, both
+/// empty where none does.
+///
+/// # Errors
+///
+/// As [`holidays_on`].
+pub fn holidays_on_in_lines(fixed: i64, tag: &str) -> Answer<String> {
+    let locale = Locale::parse(tag).unwrap_or(Locale::ROOT);
+    let lines = holidays_on(fixed)?;
+    let mut out = String::with_capacity(lines.len());
+    for line in lines.lines() {
+        let mut cells = line.split('\t');
+        let table = cells.next().unwrap_or("");
+        let english = cells.nth(1).unwrap_or("");
+        let named = hc_i18n::holiday_names::holiday_name(&locale, table, english);
+        out.push_str(line);
+        // The line's last cell goes on as an empty first cell of the rest,
+        // so that the two more are each after a tab.
+        let mut rest = Line::new(&mut out);
+        rest.cell("")
+            .cell_or_empty(named.map(|named| named.name))
+            .cell_or_empty(named.map(|named| named.tag));
+        rest.end();
+    }
+    Ok(out)
+}
+
+/// A class of the 1960 rubrics as the word a line carries: `first`,
+/// `second`, `third`, `fourth` or `commemoration`.
+const fn class_id(class: roman_calendar_1960::Class) -> &'static str {
+    use roman_calendar_1960::Class;
+    match class {
+        Class::First => "first",
+        Class::Second => "second",
+        Class::Third => "third",
+        Class::Fourth => "fourth",
+        Class::Commemoration => "commemoration",
+    }
+}
+
+/// How many columns each line of [`roman_1960_office_lines`] writes.
+pub const ROMAN_1960_COLUMNS: usize = 5;
+
+/// The lines of `hc_roman_1960_office_on`: what the Roman calendar of the
+/// 1960 rubrics does on a day, [`roman_calendar_1960::office_on`] — first
+/// the office kept (`office`), then each commemoration made, in order
+/// (`commemoration`), each feast of the I class impeded here and
+/// transferred (`transferred`), and each day the calendar lists here that
+/// is neither kept, commemorated nor transferred (`omitted`). Each line:
+/// that role; the title as the translation prints it; the class,
+/// `first`, `second`, `third`, `fourth` or `commemoration`, and its English
+/// name; and, on the office's line, the fixed day a feast of the I class
+/// transferred here was impeded on, else empty.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a day outside the years 1583 to 4099,
+/// whose Easter the Gregorian computus gives.
+pub fn roman_1960_office_lines(fixed: i64) -> Answer<String> {
+    let office = roman_calendar_1960::office_on(Rd(fixed)).ok_or(Refusal::OutOfRange)?;
+    let mut out = String::new();
+    let mut push =
+        |role: &str, celebration: &roman_calendar_1960::Celebration, from: Option<Rd>| {
+            let mut line = Line::new(&mut out);
+            line.cell(role)
+                .cell(celebration.title)
+                .cell(class_id(celebration.class))
+                .cell(celebration.class.english_name())
+                .value_or_empty(from.map(|day| day.0));
+            line.end();
+        };
+    push("office", office.office, office.transferred_from);
+    for celebration in &office.commemorations {
+        push("commemoration", celebration, None);
+    }
+    for celebration in &office.transferred {
+        push("transferred", celebration, None);
+    }
+    for celebration in &office.omitted {
+        push("omitted", celebration, None);
     }
     Ok(out)
 }
@@ -1492,5 +1681,94 @@ mod tests {
         }
         assert_eq!(rule_set("ZZ").map(|set| set.code), Err(Refusal::Unknown));
         assert_eq!(holiday_codes().lines().count(), tables().count());
+    }
+
+    /// `hc-holiday`'s example: 25 March 1962 was the Third Sunday of Lent,
+    /// and the Annunciation, impeded, went to Monday 26 March.
+    #[test]
+    fn the_1960_office_is_the_rubrics() {
+        let sunday = gregorian::to_fixed(1962, 3, 25).expect("a date").0;
+        let text = roman_1960_office_lines(sunday).expect("in range");
+        let rows: alloc::vec::Vec<alloc::vec::Vec<&str>> = text
+            .lines()
+            .map(|line| line.split('\t').collect())
+            .collect();
+        assert!(rows.iter().all(|row| row.len() == ROMAN_1960_COLUMNS));
+        assert_eq!(rows[0][..3], ["office", "Third Sunday of Lent", "first"]);
+        assert!(rows.iter().any(|row| row[0] == "transferred"
+            && row[1] == "The Annunciation of the Blessed Virgin Mary"));
+        let monday = roman_1960_office_lines(sunday + 1).expect("in range");
+        assert!(monday.starts_with(&alloc::format!(
+            "office\tThe Annunciation of the Blessed Virgin Mary\tfirst\tI class\t{sunday}\n"
+        )));
+        assert_eq!(roman_1960_office_lines(0), Err(Refusal::OutOfRange));
+    }
+
+    /// Wikipedia's "Nayrouz" gives the Bohairic name of the new year,
+    /// ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ (`wikipedia-nayrouz`), which `hc-i18n` carries
+    /// for `cop`; 11 September 2025 was 1 Thout 1742. The groups are
+    /// `hc-holiday`'s, China's women first.
+    #[test]
+    fn a_day_is_named_in_the_locale_and_the_groups_are_listed() {
+        let day = gregorian::to_fixed(2025, 9, 11).expect("a date").0;
+        let text = holidays_on_in_lines(day, "cop").expect("in range");
+        let plain = holidays_on(day).expect("in range");
+        assert_eq!(text.lines().count(), plain.lines().count());
+        let nayrouz = text
+            .lines()
+            .find(|line| line.starts_with("coptic-orthodox\t"))
+            .expect("Nayrouz");
+        assert!(nayrouz.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop"), "{nayrouz}");
+        // A gap line keeps the rule's source, as `hc_holidays_on` writes it,
+        // and gains the two cells: China's women's half day of 1998, before
+        // the statute text read begins.
+        let march = gregorian::to_fixed(1998, 3, 8).expect("a date").0;
+        let text = holidays_on_in_lines(march, "zh-Hans").expect("in range");
+        let gap = text
+            .lines()
+            .find(|line| line.starts_with("CN\t") && line.contains("\tWomen's Day\t"))
+            .expect("a gap line");
+        assert!(gap.contains("全国年节及纪念日放假办法"), "{gap}");
+        assert_eq!(gap.split('\t').count(), 13, "{gap}");
+        let groups = holiday_groups_lines("en");
+        assert!(groups.starts_with("women\t"));
+        assert!(
+            groups
+                .lines()
+                .all(|line| line.split('\t').count() == HOLIDAY_GROUP_COLUMNS)
+        );
+    }
+
+    /// Japan's Golden Week of 2026 as the `JP` table has it: 29 April
+    /// (昭和の日), 3 to 5 May and the substitute holiday of 6 May, so five
+    /// business days after Tuesday 28 April is Monday 11 May, and the
+    /// fortnight from 27 April holds six.
+    #[test]
+    fn business_days_skip_the_holidays() {
+        let day = |month, day| gregorian::to_fixed(2026, month, day).expect("a date").0;
+        assert_eq!(
+            add_business_days("JP", None, None, day(4, 28), 5),
+            Ok(day(5, 11))
+        );
+        assert_eq!(
+            add_business_days("JP", None, None, day(5, 11), -5),
+            Ok(day(4, 28))
+        );
+        assert_eq!(
+            add_business_days("JP", None, None, day(4, 28), 0),
+            Ok(day(4, 28))
+        );
+        assert_eq!(
+            business_days_between("JP", None, None, day(4, 27), day(5, 11)),
+            Ok(6)
+        );
+        assert_eq!(
+            add_business_days("XX", None, None, day(4, 28), 1),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            add_business_days("JP", None, None, day(4, 28), MAX_BUSINESS_DAYS + 1),
+            Err(Refusal::OutOfRange)
+        );
     }
 }

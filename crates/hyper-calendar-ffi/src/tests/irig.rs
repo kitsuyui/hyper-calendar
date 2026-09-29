@@ -56,3 +56,12 @@ fn the_formats_are_listed() {
     assert_eq!(text.lines().count(), 6);
     assert!(text.starts_with("A\t1000\t100\t100000\tdays hours minutes seconds tenths\t18\t"));
 }
+
+/// Table 3-2: A's frame is a tenth of a second.
+#[test]
+fn a_reading_rounds_down_to_its_frame() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_irig_frame_start(c"A000".as_ptr(), 3_725, 57, buffer, capacity, written)
+    });
+    assert_eq!(text, "3725\t50\t100000\n");
+}

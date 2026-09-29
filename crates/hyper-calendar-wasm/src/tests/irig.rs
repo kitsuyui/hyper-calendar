@@ -78,3 +78,13 @@ fn the_formats_are_listed() {
     ));
     assert!(text.contains("\nD\t60000000\t60\t3600000000\tdays hours\t9\t"));
 }
+
+/// Table 3-2: D's frame is an hour.
+#[test]
+fn a_reading_rounds_down_to_its_frame() {
+    let signal = "D001";
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_irig_frame_start(signal.as_ptr(), signal.len(), 3_725, 57, buffer, capacity)
+    });
+    assert_eq!(text, "3600\t0\t3600000000\n");
+}

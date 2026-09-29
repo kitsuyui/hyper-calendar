@@ -238,7 +238,7 @@ fn the_chinese_reckonings_cross_the_boundary() {
     let text = read_lines(|buffer, capacity| unsafe {
         hc_chinese_marriage_augury(4_661, buffer, capacity)
     });
-    assert_eq!(text, "widow\t0\t0\n");
+    assert!(text.starts_with("widow\t0\t0\t無春年;寡婦年;盲年;"));
     assert_eq!(
         unsafe { hc_chinese_marriage_augury(i64::MAX, core::ptr::null_mut(), 0) },
         HC_ERR_OUT_OF_RANGE

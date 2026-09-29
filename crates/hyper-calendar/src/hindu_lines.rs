@@ -31,7 +31,7 @@ use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::fixed::Moment;
 use hc_calendar::{Calendar, CalendarId, DynAdapter, DynCalendar, Rd};
 use hc_calendars_indic::barhaspatya::{self, MeanSignRule};
-use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
+use hc_calendars_indic::surya_siddhanta;
 use hc_calendars_indic::{
     HinduLunarCalendar, HinduLunarDate, HinduPurnimantaCalendar, SiddhantaLunarCalendar,
 };
@@ -45,17 +45,8 @@ use crate::lines::{era_label_or_empty, locale_for, locale_used, month_label_or_e
 use crate::panchanga_lines::ayanamsa;
 use hc_core::catalogue::matches;
 
-/// The name of the *Sūrya Siddhānta*'s sky, beside the ayanāṃśa names of
-/// the true one.
-pub use hc_calendars_indic::surya_siddhanta::SKY as SURYA_SIDDHANTA;
-
-/// The first fixed day the Siddhānta's exports answer for: Chaitra śukla 1
-/// of Kali Yuga 1 on `hindu-lunar-surya-siddhanta`, 13 January 3101 BCE.
-pub const SIDDHANTA_FIRST_DAY: i64 = -1_132_604;
-
-/// The last fixed day the Siddhānta's exports answer for, the last of Kali
-/// Yuga 10 000 on the same calendar, 15 June 6900.
-pub const SIDDHANTA_LAST_DAY: i64 = 2_519_974;
+pub use crate::panchanga_lines::{SIDDHANTA_FIRST_DAY, SIDDHANTA_LAST_DAY, SURYA_SIDDHANTA};
+use crate::panchanga_lines::{siddhanta_day, sunrise_place};
 
 /// How many columns [`hindu_lunar_date_line`] writes.
 pub const HINDU_LUNAR_DATE_COLUMNS: usize = 12;
@@ -72,20 +63,6 @@ const VIKRAMA_VOCABULARY: [CalendarId; 2] = [
     CalendarId("hindu-solar-vikrami"),
 ];
 
-/// A fixed day the Siddhānta's exports answer for.
-///
-/// # Errors
-///
-/// [`Refusal::OutOfRange`] outside [`SIDDHANTA_FIRST_DAY`] to
-/// [`SIDDHANTA_LAST_DAY`].
-fn siddhanta_day(fixed: i64) -> Answer<Rd> {
-    if (SIDDHANTA_FIRST_DAY..=SIDDHANTA_LAST_DAY).contains(&fixed) {
-        Ok(Rd(fixed))
-    } else {
-        Err(Refusal::OutOfRange)
-    }
-}
-
 /// A Universal Time instant on a day the Siddhānta's exports answer for.
 ///
 /// # Errors
@@ -93,22 +70,6 @@ fn siddhanta_day(fixed: i64) -> Answer<Rd> {
 /// [`Refusal::OutOfRange`] on any other day.
 fn siddhanta_moment(universal_unix: i64) -> Answer<Moment> {
     moment_on_day(universal_unix, siddhanta_day)
-}
-
-/// A place where the Sun rises every day, on either sky: within
-/// [`MAX_SUNRISE_LATITUDE`] of the equator. A lunisolar month begins at the
-/// first sunrise after a conjunction, so a place with even one day of the
-/// year without a sunrise has months that cannot be read there.
-///
-/// # Errors
-///
-/// [`Refusal::OutOfRange`] beyond it.
-fn sunrise_place(place: Location) -> Answer<Location> {
-    if place.latitude_degrees.abs() <= MAX_SUNRISE_LATITUDE {
-        Ok(place)
-    } else {
-        Err(Refusal::OutOfRange)
-    }
 }
 
 /// The line of a date and the sunrise it was read at, with its labels in
@@ -201,7 +162,7 @@ fn date_line(
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a sky not named. [`Refusal::OutOfRange`] on
-/// either sky for a place beyond [`MAX_SUNRISE_LATITUDE`], where some day
+/// either sky for a place beyond [`MAX_SUNRISE_LATITUDE`](surya_siddhanta::MAX_SUNRISE_LATITUDE), where some day
 /// of the year has no sunrise; on the true sky for a day outside Śaka 1622
 /// through 2221, Chaitra śukla 1 in March 1700 to the eve of the one in
 /// March 2300, and on the Siddhānta's for a day outside
@@ -278,7 +239,7 @@ pub fn surya_siddhanta_line(universal_unix: i64) -> Answer<String> {
 /// # Errors
 ///
 /// [`Refusal::OutOfRange`] for a day outside [`SIDDHANTA_FIRST_DAY`] to
-/// [`SIDDHANTA_LAST_DAY`] or a place beyond [`MAX_SUNRISE_LATITUDE`].
+/// [`SIDDHANTA_LAST_DAY`] or a place beyond [`MAX_SUNRISE_LATITUDE`](surya_siddhanta::MAX_SUNRISE_LATITUDE).
 pub fn surya_siddhanta_sunrise_line(fixed: i64, place: Location) -> Answer<String> {
     let day = siddhanta_day(fixed)?;
     let place = sunrise_place(place)?;
@@ -378,7 +339,7 @@ pub fn barhaspatya_year_line(rule: &str, saka: i64, locale: &str) -> Answer<Stri
 }
 
 /// How many columns [`barhaspatya_year_at_line`] writes.
-pub const BARHASPATYA_AT_COLUMNS: usize = 3;
+pub const BARHASPATYA_AT_COLUMNS: usize = 6;
 
 /// The line of `hc_barhaspatya_year_at`: the name of the northern cycle in
 /// progress at a Universal Time instant by a rule
@@ -388,7 +349,13 @@ pub const BARHASPATYA_AT_COLUMNS: usize = 3;
 /// give as correct within two ghaṭikās where the saṅkrānti is known.
 ///
 /// The cells: the position, 1 to 60; its name in the locale, as
-/// [`barhaspatya_year_line`] names it; and the locale used, as there.
+/// [`barhaspatya_year_line`] names it; the locale used, as there; then the
+/// twelve-year cycle's saṃvatsara Table XII couples with it,
+/// [`barhaspatya::twelve_year_of`], by its position, 1 for Chaitra
+/// through 12 for Phālguna, and its name as the table spells it,
+/// [`barhaspatya::TWELVE_YEAR_NAMES`]; and the sign Jupiter's mean
+/// longitude stands in while the name is current,
+/// [`barhaspatya::mean_sign_of`], by its identifier.
 ///
 /// # Errors
 ///
@@ -401,11 +368,21 @@ pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -
     let calendar = DynAdapter::new(HinduPurnimantaCalendar::RASHTRIYA);
     let locale = locale_for(&calendar, locale);
     let position = barhaspatya::in_progress_at(rule, moment);
+    // `in_progress_at` gives a position of 1 to 60, which always has both.
+    let (Some(twelve), Some(sign)) = (
+        barhaspatya::twelve_year_of(position),
+        barhaspatya::mean_sign_of(position),
+    ) else {
+        return Err(Refusal::OutOfRange);
+    };
     let mut out = String::new();
     let mut line = Line::new(&mut out);
     line.value(position);
     samvatsara_name(&mut line, &calendar, &locale, position);
-    line.cell(locale_used(&locale));
+    line.cell(locale_used(&locale))
+        .value(twelve)
+        .cell(barhaspatya::TWELVE_YEAR_NAMES[usize::from(twelve - 1)])
+        .cell(sign.id());
     line.end();
     Ok(out)
 }
@@ -684,6 +661,9 @@ mod tests {
     /// rule with the *bīja* about two hours later; the rule without it has
     /// Siddharthi from 15 March 2025, in progress at Chaitra śukla 1, 30
     /// March 2025 (`drikpanchang-day-2024-2026`, `shivshakti-samvat-2082`).
+    /// Sewell and Dikshit's Table XII couples Pingala with Āśvina of the
+    /// twelve-year cycle and Kālayukta with Kārttika, and puts Jupiter's
+    /// mean place in Meṣa and Vṛṣabha for them (`sewell1896`).
     #[test]
     fn the_name_in_progress_follows_the_rule_within_the_year() {
         let at = |rule: &str, unix: i64| {
@@ -695,7 +675,11 @@ mod tests {
         let pingala_ends = ist_unix(2024, 4, 29, 14 * 60 + 14);
         assert_eq!(
             at("surya-siddhanta-bija", pingala_ends + 115 * 60),
-            ["51", "Pingala", "en"]
+            ["51", "Pingala", "en", "7", "Asvina", "mesha"]
+        );
+        assert_eq!(
+            at("surya-siddhanta-bija", pingala_ends + 144 * 60)[3..],
+            ["8", "Karttika", "vrishabha"]
         );
         assert_eq!(at("surya-siddhanta-bija", pingala_ends + 144 * 60)[0], "52");
         assert_eq!(at("surya-siddhanta", ist_unix(2025, 3, 30, 360))[0], "53");

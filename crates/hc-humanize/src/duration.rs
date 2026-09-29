@@ -59,6 +59,31 @@ pub enum DurationStyle {
 }
 
 impl DurationStyle {
+    /// Every style, in the order of the enum.
+    pub const ALL: [Self; 4] = [Self::Long, Self::Short, Self::Narrow, Self::Compact];
+
+    /// The style's identifier: `long`, `short` and `narrow`, the words
+    /// `Intl.DurationFormat` takes for `style`, and `compact` for the bare
+    /// suffixes.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Long => "long",
+            Self::Short => "short",
+            Self::Narrow => "narrow",
+            Self::Compact => "compact",
+        }
+    }
+
+    /// The style an identifier names, in any case, by
+    /// [`hc_core::catalogue::matches`]; `None` for any other text.
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|style| hc_core::catalogue::matches(id, style.id()))
+    }
+
     /// The pattern style this phrasing draws its unit phrases from.
     ///
     /// The compact form draws on no pattern style at all — it uses the bare
@@ -335,6 +360,24 @@ mod tests {
     use super::*;
     use crate::unit_choice::{RoundingPolicy, Thresholds, choose};
     use hc_i18n::Locale;
+
+    /// Every style is found by its identifier in any case, and nothing
+    /// else is a style.
+    #[test]
+    fn every_style_is_found_by_its_identifier() {
+        for style in DurationStyle::ALL {
+            assert_eq!(DurationStyle::by_id(style.id()), Some(style));
+            assert_eq!(
+                DurationStyle::by_id(&style.id().to_ascii_uppercase()),
+                Some(style)
+            );
+        }
+        assert_eq!(
+            DurationStyle::by_id(" Compact "),
+            Some(DurationStyle::Compact)
+        );
+        assert_eq!(DurationStyle::by_id("wide"), None);
+    }
 
     fn locale(tag: &str) -> Locale {
         tag.parse().expect("well-formed tag")
