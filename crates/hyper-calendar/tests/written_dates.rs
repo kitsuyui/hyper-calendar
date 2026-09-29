@@ -9,7 +9,12 @@
 //! which the coverage job runs instrumented, reads every sample day in
 //! the calendar's own language, and every other locale on one of the
 //! days, staggered, so that every calendar is still read in every locale
-//! (policy §7).
+//! (policy §7). A release build also reads the first day of every era, its
+//! eve and the first day of every month over four years in every locale,
+//! some 850 000 texts, which `scripts/release-shards.sh` runs in a shard of
+//! its own; a debug build reads every era's first day in the calendar's
+//! own language. Under coverage, calendars that share an era table are
+//! read once, because the reader's paths are the same.
 //! `docs/systems/written-dates.md` explains the reader and each refusal.
 
 #![cfg(all(
@@ -25,7 +30,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use hyper_calendar::hc_calendar::{CalendarMeta, DateFields, Rd, Weekday};
+use hyper_calendar::hc_calendar::{CalendarMeta, DateFields, DynCalendar, Rd, Weekday};
 use hyper_calendar::hc_format::label::{self, DateRefusal};
 use hyper_calendar::hc_i18n::Locale;
 use hyper_calendar::hc_i18n::data::LOCALES;
@@ -391,27 +396,14 @@ fn every_calendar_reads_back_the_dates_it_writes() {
                         continue;
                     }
                     paired.insert((meta.id.0, at));
-                    let locale = label::locale_for(calendar, requested.as_ref());
-                    let text = label::date(calendar, &fields, &locale);
                     read += 1;
-                    match label::parse_date(calendar, &locale, &text) {
-                        Ok(parsed) if parsed.fixed == *day => {}
-                        Ok(parsed) => {
-                            faults.insert(format!(
-                                "{} {locale} {text:?}: read as {} for {}",
-                                meta.id.0, parsed.fixed.0, day.0
-                            ));
+                    match read_back(&meta, calendar, *day, &fields, requested, &expected) {
+                        ReadBack::Day => {}
+                        ReadBack::Listed(refusal) => {
+                            met.insert((meta.id.0, refusal));
                         }
-                        Err(DateRefusal::TwoDigitYear) if fields.year.abs() < 100 => {}
-                        Err(refusal) => {
-                            if expected.contains_key(&(meta.id.0, refusal.name())) {
-                                met.insert((meta.id.0, refusal.name()));
-                            } else {
-                                faults.insert(format!(
-                                    "{} {locale} {} {text:?}: {refusal}",
-                                    meta.id.0, day.0
-                                ));
-                            }
+                        ReadBack::Wrong(fault) | ReadBack::Unlisted(_, fault) => {
+                            faults.insert(fault);
                         }
                     }
                 }
@@ -432,6 +424,334 @@ fn every_calendar_reads_back_the_dates_it_writes() {
             stale.is_empty(),
             "refusals the sweep no longer meets: {stale:?}"
         );
+    }
+}
+
+/// What reading back a written date gave.
+enum ReadBack {
+    /// The day it was written for, or a two-digit year refused.
+    Day,
+    /// A refusal [`REFUSALS`] lists for the calendar.
+    Listed(&'static str),
+    /// Another refusal, with the text and why.
+    Unlisted(DateRefusal, String),
+    /// Another day, with the text and the day.
+    Wrong(String),
+}
+
+/// Write `fields`, the calendar's own for `day`, in the locale `requested`
+/// resolves to, and read the text back.
+fn read_back(
+    meta: &CalendarMeta,
+    calendar: &dyn DynCalendar,
+    day: Rd,
+    fields: &DateFields,
+    requested: &Option<Locale>,
+    expected: &BTreeMap<(&str, &str), &str>,
+) -> ReadBack {
+    let locale = label::locale_for(calendar, requested.as_ref());
+    let text = label::date(calendar, fields, &locale);
+    match label::parse_date(calendar, &locale, &text) {
+        Ok(parsed) if parsed.fixed == day => ReadBack::Day,
+        Ok(parsed) => ReadBack::Wrong(format!(
+            "{} {locale} {text:?}: read as {} for {}",
+            meta.id.0, parsed.fixed.0, day.0
+        )),
+        Err(DateRefusal::TwoDigitYear) if fields.year.abs() < 100 => ReadBack::Day,
+        Err(refusal) if expected.contains_key(&(meta.id.0, refusal.name())) => {
+            ReadBack::Listed(refusal.name())
+        }
+        Err(refusal) => ReadBack::Unlisted(
+            refusal,
+            format!("{} {locale} {} {text:?}: {refusal}", meta.id.0, day.0),
+        ),
+    }
+}
+
+/// Whether the era of `day` is known and not `era`.
+fn era_differs(calendar: &dyn DynCalendar, day: i64, era: Option<&str>) -> bool {
+    calendar
+        .fixed_to_fields(Rd(day))
+        .is_ok_and(|fields| fields.era != era)
+}
+
+/// How [`era_first_days`] looks for the days an era changes on.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum EraSearch {
+    /// Whether the calendar has eras from 2 001 days spread over its
+    /// range, then a week at a time over a range of up to 20 000 000 days,
+    /// which no era of the registry is shorter than, and in 100 000 steps
+    /// over a longer one, whose eras are the two either side of a year 1.
+    Weekly,
+    /// Whether it has eras from nine days, then in 5 000 steps over the
+    /// range and never less than a year. A step that passes over a whole
+    /// era still finds it, since an era's first day is the first day not
+    /// in the era before: only an era that came back within one step would
+    /// be missed, and the release build holds this search to the weekly
+    /// one on every calendar.
+    Coarse,
+}
+
+/// The first days of a calendar's eras: its first day, and every day
+/// whose era is not the one of the day before. A calendar whose era is
+/// the same on every day [`EraSearch`] looks at, and which names no era of
+/// its own, has only its first. The others are stepped through, and each
+/// step whose ends differ in era is halved down to the day.
+fn era_first_days(calendar: &dyn DynCalendar, meta: &CalendarMeta, search: EraSearch) -> Vec<Rd> {
+    let first = meta.earliest.map_or(-1_000_000, |day| day.0);
+    let last = meta.latest.map_or(1_000_000, |day| day.0);
+    let mut days = vec![Rd(first)];
+    let span = last - first;
+    let era_of = |day: i64| calendar.fixed_to_fields(Rd(day)).ok().map(|f| f.era);
+    let probes = match search {
+        EraSearch::Weekly => 2_000,
+        EraSearch::Coarse => 8,
+    };
+    let seen: BTreeSet<_> = (0..=probes)
+        .filter_map(|step| era_of(first + span * step / probes))
+        .collect();
+    if seen.len() < 2 && calendar.era_code(1).is_none() {
+        return days;
+    }
+    let step = match search {
+        EraSearch::Weekly if span <= 20_000_000 => 7,
+        EraSearch::Weekly => span / 100_000,
+        EraSearch::Coarse => (span / 5_000).max(365),
+    };
+    let mut at = first;
+    let mut era = era_of(at).flatten();
+    while at < last {
+        let next = (at + step).min(last);
+        if era_differs(calendar, next, era) {
+            let (mut low, mut high) = (at, next);
+            while high - low > 1 {
+                let middle = low + (high - low) / 2;
+                if era_differs(calendar, middle, era) {
+                    high = middle;
+                } else {
+                    low = middle;
+                }
+            }
+            days.push(Rd(high));
+            era = era_of(high).flatten();
+            at = high;
+        } else {
+            at = next;
+        }
+    }
+    days
+}
+
+/// The first day of every month over four years from 1 January 2026, or
+/// from the calendar's sample day where it does not reach 2026: each day
+/// with a month whose year or month is not the day before's. A day count
+/// has no months, and its first day is its era's.
+fn month_first_days(calendar: &dyn DynCalendar, meta: &CalendarMeta) -> Vec<Rd> {
+    let start = meta.sample_day(Rd(739_617)).0;
+    let key = |day: i64| {
+        calendar
+            .fixed_to_fields(Rd(day))
+            .ok()
+            .map(|fields| (fields.era, fields.year, fields.month))
+    };
+    let mut before = key(start - 1);
+    let mut days = Vec::new();
+    for day in start..start + 1_461 {
+        if !meta.supports(Rd(day)) {
+            continue;
+        }
+        let now = key(day);
+        if now.is_some_and(|(_, _, month)| month.is_some()) && now != before {
+            days.push(Rd(day));
+        }
+        before = now;
+    }
+    days
+}
+
+/// Whether two days are the same day of a month and of its leap
+/// repetition, which a locale with no word for the leap month writes
+/// alike.
+fn month_and_its_leap(calendar: &dyn DynCalendar, first: Rd, second: Rd) -> bool {
+    let (Ok(first), Ok(second)) = (
+        calendar.fixed_to_fields(first),
+        calendar.fixed_to_fields(second),
+    ) else {
+        return false;
+    };
+    match (first.month, second.month) {
+        (Some(one), Some(other)) => {
+            one.ordinal == other.ordinal
+                && one.leap != other.leap
+                && (first.era, first.year, first.day) == (second.era, second.year, second.day)
+        }
+        _ => false,
+    }
+}
+
+/// The era table a calendar answers for itself, `DynCalendar::era_code`:
+/// the 248 nengō of the Japanese calendars, the reigns of the Chinese and
+/// Korean regnal ones. Empty for a calendar whose eras are the locale
+/// data's alone.
+fn era_table(calendar: &dyn DynCalendar) -> Vec<&'static str> {
+    (0..).map_while(|index| calendar.era_code(index)).collect()
+}
+
+/// The first day of every era of every calendar and, in a release build,
+/// the day before it, and the first day of every month over four years ([`era_first_days`],
+/// [`month_first_days`]), written and read back as the day, or refused as
+/// the sweep allows, or, in a Japanese calendar, a leap month that a
+/// locale with no word for it writes as the ordinary month, and so reads
+/// as two days (docs/systems/written-dates.md).
+///
+/// A release build writes every one of those days in every locale
+/// setting, finds the eras [`EraSearch::Weekly`], and holds
+/// [`EraSearch::Coarse`] to the same days. A debug build, which the
+/// coverage job runs instrumented, writes the eras' first days, found
+/// [`EraSearch::Coarse`], in the calendar's own language alone, with no
+/// eves and no month days (policy §7). Under coverage, calendars that
+/// share an era table ([`era_table`]) are read once, the first registered
+/// of them, because the reader's paths are the same: the seven Japanese
+/// calendars' 1 400 or so era days in Japanese would be most of its time. The calendars are spread over the
+/// machine's threads, and kept on one in an instrumented build
+/// (`hc_core::sweep::INSTRUMENTED`).
+#[test]
+fn the_first_day_of_every_era_and_month_reads_back() {
+    use std::sync::Mutex;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    let full = !cfg!(debug_assertions);
+    let expected: BTreeMap<(&str, &str), &str> = REFUSALS
+        .iter()
+        .map(|(calendar, refusal, why)| ((*calendar, *refusal), *why))
+        .collect();
+    let registry = hyper_calendar::registry();
+    let calendars = registry.len();
+    // Under coverage, the calendars whose era table an earlier one shares.
+    let mut tables: BTreeSet<Vec<&str>> = BTreeSet::new();
+    let skipped: BTreeSet<&str> = registry
+        .metas()
+        .filter(|meta| {
+            let table = era_table(registry.get(meta.id).expect("registered"));
+            hyper_calendar::hc_core::sweep::INSTRUMENTED
+                && !table.is_empty()
+                && !tables.insert(table)
+        })
+        .map(|meta| meta.id.0)
+        .collect();
+    let next = AtomicUsize::new(0);
+    // Era days, month days, texts, leap months read as two days, faults.
+    let tally = Mutex::new((
+        0_usize,
+        0_usize,
+        0_usize,
+        0_usize,
+        BTreeSet::<String>::new(),
+    ));
+    let threads = if hyper_calendar::hc_core::sweep::INSTRUMENTED {
+        1
+    } else {
+        std::thread::available_parallelism().map_or(1, usize::from)
+    };
+    std::thread::scope(|scope| {
+        for _ in 0..threads.min(calendars) {
+            scope.spawn(|| {
+                let registry = hyper_calendar::registry();
+                let metas: Vec<CalendarMeta> = registry.metas().collect();
+                let locales: Vec<Option<Locale>> = if full {
+                    LOCALES
+                        .iter()
+                        .filter_map(|data| data.tag.parse().ok())
+                        .map(Some)
+                        .chain([Some(Locale::ROOT), None])
+                        .collect()
+                } else {
+                    vec![None]
+                };
+                loop {
+                    let index = next.fetch_add(1, Ordering::Relaxed);
+                    let Some(meta) = metas.get(index) else {
+                        break;
+                    };
+                    if skipped.contains(meta.id.0) {
+                        continue;
+                    }
+                    let calendar = registry.get(meta.id).expect("registered");
+                    let (mut texts, mut leap, mut faults) = (0, 0, BTreeSet::new());
+                    let (eras, months) = hyper_calendar::hc_core::memo::scope(|| {
+                        let coarse = era_first_days(calendar, meta, EraSearch::Coarse);
+                        if !full {
+                            return (coarse, Vec::new());
+                        }
+                        let weekly = era_first_days(calendar, meta, EraSearch::Weekly);
+                        if weekly != coarse {
+                            faults.insert(format!(
+                                "{}: the coarse search finds {} era days, the weekly {}",
+                                meta.id.0,
+                                coarse.len(),
+                                weekly.len()
+                            ));
+                        }
+                        (weekly, month_first_days(calendar, meta))
+                    });
+                    let eves = eras
+                        .iter()
+                        .skip(1)
+                        .map(|day| Rd(day.0 - 1))
+                        .filter(|day| full && meta.supports(*day));
+                    let mut days: Vec<Rd> =
+                        eras.iter().chain(&months).copied().chain(eves).collect();
+                    days.sort_unstable();
+                    days.dedup();
+                    for day in days {
+                        hyper_calendar::hc_core::memo::scope(|| {
+                            let Ok(fields) = calendar.fixed_to_fields(day) else {
+                                return;
+                            };
+                            for requested in &locales {
+                                texts += 1;
+                                match read_back(meta, calendar, day, &fields, requested, &expected)
+                                {
+                                    ReadBack::Day | ReadBack::Listed(_) => {}
+                                    ReadBack::Unlisted(
+                                        DateRefusal::Ambiguous { first, second },
+                                        _,
+                                    ) if meta.id.0.starts_with("japanese")
+                                        && month_and_its_leap(calendar, first, second) =>
+                                    {
+                                        leap += 1;
+                                    }
+                                    ReadBack::Unlisted(_, fault) | ReadBack::Wrong(fault) => {
+                                        faults.insert(fault);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    let mut tally = tally.lock().expect("no thread panicked");
+                    tally.0 += eras.len();
+                    tally.1 += months.len();
+                    tally.2 += texts;
+                    tally.3 += leap;
+                    tally.4.extend(faults);
+                }
+            });
+        }
+    });
+    let (eras, months, texts, leap, faults) = tally.into_inner().expect("no thread panicked");
+    println!(
+        "{eras} era days, {months} month days, {texts} texts, {leap} leap months read as two days"
+    );
+    assert!(
+        faults.is_empty(),
+        "{} unread dates: {faults:#?}",
+        faults.len()
+    );
+    if full {
+        assert!(texts > 400_000, "{texts}");
+    } else if skipped.is_empty() {
+        assert!(eras > 1_000, "{eras}");
+    } else {
+        assert!(eras > 300, "{eras}");
     }
 }
 
@@ -666,6 +986,26 @@ fn written_dates_read_as_their_days() {
         read("japanese", "ru", "28 сентября 8 г. Рэйва").map(|(day, _)| day),
         Ok(TODAY)
     );
+    // Hindi writes the Japanese date era first, by `hi.xml`'s `generic`
+    // long date "G d MMMM y": रेइवा 28 सितंबर 8, and the first day of 令和,
+    // 1 May 2019, रेइवा 1 मई 1.
+    let hi: Locale = "hi".parse().expect("a tag");
+    let reiwa = day_of("gregory", DateFields::ymd(2019, 5, 1));
+    for (day, text) in [(TODAY, "रेइवा 28 सितंबर 8"), (reiwa, "रेइवा 1 मई 1")]
+    {
+        let fields = japanese.fixed_to_fields(day).expect("in range");
+        assert_eq!(label::date(japanese, &fields, &hi), text);
+        assert_eq!(
+            read("japanese", "hi", text).map(|(day, _)| day),
+            Ok(day),
+            "{text}"
+        );
+    }
+    // The era after the year is not the locale's pattern.
+    assert!(matches!(
+        read("japanese", "hi", "28 सितंबर 8 रेइवा"),
+        Err(DateRefusal::NotRecognised { .. })
+    ));
     let roc = registry.get_by_name("roc").expect("registered");
     let fields = roc.fixed_to_fields(TODAY).expect("in range");
     for (tag, text) in [
@@ -1031,8 +1371,11 @@ fn a_date_may_leave_out_an_only_era_and_not_its_year() {
 /// The Chinese calendar's year by the related Gregorian year and its stem
 /// and branch, as CLDR 48's `zh.xml`, `zh_Hant.xml`, `yue.xml` and
 /// `yue_Hans.xml` write it, "rU年", and `ko.xml`, "r년(U년)"; the two must
-/// agree, or the text is refused as contradicting itself. The Dangi date in
-/// `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml` is their own, "U年MMMd日".
+/// agree, or the text is refused as contradicting itself. The Cantonese
+/// long date, "U (r) 年MMMd", puts the related year after the stem and
+/// branch. The Dangi
+/// date in `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml` is their own,
+/// "U年MMMd日".
 #[test]
 fn the_chinese_year_is_read_by_its_related_gregorian_year() {
     let registry = hyper_calendar::registry();
@@ -1043,8 +1386,8 @@ fn the_chinese_year_is_read_by_its_related_gregorian_year() {
         for (tag, text) in [
             ("zh-Hans", "2026丙午年八月十八"),
             ("zh-Hant", "2026丙午年八月十八"),
-            ("yue-Hans", "2026丙午年八月十八"),
-            ("yue-Hant", "2026丙午年八月十八"),
+            ("yue-Hans", "丙午 (2026) 年八月十八"),
+            ("yue-Hant", "丙午 (2026) 年八月十八"),
             ("ko", "2026년(병오년) 8월 18일"),
         ]
         .into_iter()
@@ -1058,13 +1401,32 @@ fn the_chinese_year_is_read_by_its_related_gregorian_year() {
                 "{id} {tag}"
             );
         }
+        // The Cantonese date with its spaces left out reads too; the
+        // Mandarin order, 2026丙午年八月十八, is not the locale's pattern.
+        if !own_dangi {
+            for tag in ["yue-Hans", "yue-Hant"] {
+                assert_eq!(
+                    read(id, tag, "丙午(2026)年八月十八").map(|(day, _)| day),
+                    Ok(TODAY),
+                    "{id} {tag}"
+                );
+                assert!(
+                    matches!(
+                        read(id, tag, "2026丙午年八月十八"),
+                        Err(DateRefusal::NotRecognised { .. })
+                    ),
+                    "{id} {tag}"
+                );
+            }
+        }
         for (tag, text) in [
             ("zh-Hans", "2025丙午年八月十八"),
             ("zh-Hant", "2026乙巳年八月十八"),
+            ("yue-Hant", "丙午 (2025) 年八月十八"),
             ("ko", "2026년(을사년) 8월 18일"),
         ]
         .into_iter()
-        .filter(|(tag, _)| !own_dangi || *tag != "zh-Hant")
+        .filter(|(tag, _)| !own_dangi || !tag.ends_with("Hant"))
         {
             assert_eq!(
                 read(id, tag, text),
@@ -1121,6 +1483,67 @@ fn the_chinese_year_is_read_by_its_related_gregorian_year() {
         read("chinese", "zh-Hans", "2023癸卯年闰二月初一").map(|(day, _)| day),
         Ok(leap)
     );
+}
+
+/// The Mongolian calendar in Mongolian, by the month names of Gantumur's
+/// calendar and its leap word, илүү, before сар, inside `mn.xml`'s
+/// Gregorian long date (docs/systems/tibetan-almanac.md): Tsagaan Sar on
+/// 18 February 2026, as MONTSAME dates it; the constitution of 1992, in
+/// force on day 9 of the first spring month, 12 February 1992; and the
+/// leap twelfth month of 2024, a month before the regular one
+/// (docs/systems/tibetan-variants.md).
+#[test]
+fn mongolian_dates_are_written_in_mongolian() {
+    use hyper_calendar::hc_calendar::units::Unit;
+    use hyper_calendar::hc_calendars_regional::tibetan_almanac::{
+        MONGOLIAN_LEAP_WORD, MONGOLIAN_MONTH_NAMES,
+    };
+    let registry = hyper_calendar::registry();
+    let mongolian = registry.get_by_name("mongolian").expect("registered");
+    let mn: Locale = "mn".parse().expect("a tag");
+    assert_eq!(label::locale_for(mongolian, None), mn);
+    for (day, text) in [
+        (
+            day_of("gregory", DateFields::ymd(2026, 2, 18)),
+            "2026 оны хаврын тэргүүн сарын 1",
+        ),
+        (
+            day_of("gregory", DateFields::ymd(1992, 2, 12)),
+            "1992 оны хаврын тэргүүн сарын 9",
+        ),
+    ] {
+        let fields = mongolian.fixed_to_fields(day).expect("in range");
+        assert_eq!(label::date(mongolian, &fields, &mn), text);
+        assert_eq!(read("mongolian", "mn", text).map(|(read, _)| read), Ok(day));
+    }
+    let leap = DateFields {
+        month: Some(hyper_calendar::hc_calendar::Month::leap(12)),
+        ..DateFields::ymd(2024, 12, 1)
+    };
+    let leap_day = mongolian.fields_to_fixed(&leap).expect("a leap month");
+    let regular = day_of("mongolian", DateFields::ymd(2024, 12, 1));
+    assert!(leap_day < regular);
+    assert_eq!(
+        label::label(mongolian, &leap, Unit::Month, &mn),
+        "Өвлийн сүүл илүү сар"
+    );
+    for (day, text) in [
+        (leap_day, "2024 оны өвлийн сүүл илүү сарын 1"),
+        (regular, "2024 оны өвлийн сүүл сарын 1"),
+    ] {
+        let fields = mongolian.fixed_to_fields(day).expect("in range");
+        assert_eq!(label::date(mongolian, &fields, &mn), text);
+        assert_eq!(read("mongolian", "mn", text).map(|(read, _)| read), Ok(day));
+    }
+    // The names are the almanac module's, which cites the calendar.
+    for (ordinal, name) in (1..=12).zip(MONGOLIAN_MONTH_NAMES) {
+        let fields = DateFields::ymd(2026, ordinal, 1);
+        assert_eq!(
+            label::label(mongolian, &fields, Unit::Month, &mn),
+            format!("{name} сар")
+        );
+    }
+    assert_eq!(MONGOLIAN_LEAP_WORD, "илүү");
 }
 
 /// Each refusal, on a text that earns it.

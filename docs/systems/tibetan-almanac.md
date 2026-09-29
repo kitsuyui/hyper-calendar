@@ -239,10 +239,17 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   place in it; `MONGOLIAN_MONTH_NAMES`, "Хаврын тэргүүн" to "Өвлийн сүүл",
   and `MONGOLIAN_LEAP_WORD`, илүү, as Gantumur's calendar writes them,
   "Зуны эхэн илүү сар" for a leap first summer month. That calendar is a
-  program over Janson's arithmetic, a secondary source. No `mn` locale is
-  carried in `hc-i18n`, so no Mongolian date is written with the words;
-  search results show Mongolian broadcasters writing "зуны эхэн илүү сарын
-  шинийн 15" for a leap month's 15th, on pages that could not be read.
+  program over Janson's arithmetic, a secondary source. `hc-i18n`'s `mn`
+  entry writes `mongolian`'s months and dates with the same words
+  (`data::MN_MONGOLIAN`): the month on its own as the calendar heads it,
+  *Өвлийн сүүл илүү сар*, and a date in `mn.xml`'s Gregorian long date,
+  *2026 оны хаврын тэргүүн сарын 1* for Tsagaan Sar, 18 February 2026, and
+  *2024 оны өвлийн сүүл илүү сарын 1* in the leap twelfth month of 2024
+  ([written-dates.md](written-dates.md)). No source read writes a whole
+  lunar date, so its shape is the library's. Search results show Mongolian
+  broadcasters writing "зуны эхэн илүү сарын шинийн 15" for a leap month's
+  15th, on pages that could not be read; the *шинийн*, "of the new", that
+  such a date puts before the day is not written.
 - **Bhutan**: `bhutanese_weekday`; `bhutanese_winter_solstice`, the
   instant and so the day.
 - **The attributes of a day** [janson2014, Appendix E]:

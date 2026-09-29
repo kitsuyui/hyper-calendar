@@ -1083,7 +1083,7 @@ pub const MONGOLIAN_MONTH_NAMES: [&str; 12] = [
 
 /// The word for a leap month in Gantumur's Mongolian calendar, which heads
 /// a leap month "Зуны эхэн илүү сар", the leap first summer month
-/// (secondary). No `mn` locale is carried, so no date is written with it.
+/// (secondary). `hc-i18n`'s `mn` entry writes a leap month with it.
 pub const MONGOLIAN_LEAP_WORD: &str = "илүү";
 
 // --- Bhutan ---------------------------------------------------------------------

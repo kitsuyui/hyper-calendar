@@ -1987,8 +1987,13 @@ impl<'a> Reader<'a> {
         let own = self.to_fields(fixed)?;
         if !self.agrees(&own, fields, read, year, true) {
             // A year the text states, with its month and day, and an extra
-            // field beside them that the day does not have.
-            if year && self.agrees_in(&own, fields, read, year, true, false) {
+            // field beside them that the day does not have; not through a
+            // template the renderer would pass over for the day, as a day
+            // the calendar lacks is not.
+            if year
+                && self.agrees_in(&own, fields, read, year, true, false)
+                && self.chosen(&own, read)
+            {
                 self.field_mismatch.set(true);
             }
             return Ok(());

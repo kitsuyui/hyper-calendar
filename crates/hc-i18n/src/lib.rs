@@ -26,7 +26,7 @@
 //! * [`locale`] — BCP 47 tags with the `-u-ca`/`-nu`/`-fw`/`-hc` keys, and
 //!   the CLDR inheritance chain as an iterator.
 //! * [`numbering`] — digit shapes and Han numerals, rendered and parsed.
-//! * [`plural`] — CLDR cardinal plural categories for 53 languages and
+//! * [`plural`] — CLDR cardinal plural categories for 55 languages and
 //!   European Portuguese.
 //! * [`names`] — month, weekday, day-period, era, quarter and sexagenary
 //!   vocabulary, keyed by locale, calendar, width and context, and the

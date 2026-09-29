@@ -212,7 +212,9 @@ nl pa-Arab pa-Guru pcm pl ps pt pt-PT rif ru sa shi-Latn sw syr ta te th tr ur
 ur-IN vi yua yue-Hans yue-Hant zap zgh zh-Hans zh-Hant zh-Hant-HK`, plus the
 `und` root. The regional entries `en-001`, `en-GB`, `es-419`, `zh-Hant-HK`,
 `ur-IN` and `ar-EG`, and the languages `mn` and `shi-Latn`, are generated
-by `scripts/locales-cldr.py` (`--check`) into `src/data/cldr48_locales.rs`
+by `scripts/locales-cldr.py` (`--check`) into `src/data/cldr48_locales.rs`,
+with `mn`'s months of the `mongolian` calendar, which no CLDR file has,
+hand-written in `src/data.rs` from Gantumur's calendar,
 with CLDR 48's `parentLocales`, which `Locale::parent` follows, and
 the default numbering systems (`data::DEFAULT_NUMBERING`): each entry's,
 and each regional file's that differs from its language's, so that `ar`
@@ -298,7 +300,7 @@ relative-time phrases.
 | `sw` Swahili | `sw.xml` | none | — |
 | `te` Telugu | `te.xml` | the Minguo eras; the Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Śaka era | the Hijri months, whose format names the file leaves to root's Latin ones |
 | `ur` Urdu | `ur.xml` | the Minguo eras; the Hijri, Hebrew, Coptic, Ethiopic, Persian and Indian national months; the Hijri and Śaka eras | — |
-| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the calendar's own or the English era, apart from the year as the files' `generic` calendar, to which `root.xml` aliases these calendars' date formats, writes it ("G y年"): `Anno Martyrum 1743年1月17日` |
+| `yue-Hans`, `yue-Hant` Cantonese | `yue_Hans.xml`, `yue.xml` | the Buddhist, Japanese, Minguo and Persian eras; the Hijri, Hebrew and Indian national months and eras; the Persian, Coptic and Ethiopic months, which the files number, 1月 to 12月 or 13月; the Chinese and Dangi months and zodiac, and the Chinese date as the files' long date writes it, `丙午 (2026) 年八月十八` | the Coptic and Ethiopic eras, which the files do not state, so that those dates write the calendar's own or the English era, apart from the year as the files' `generic` calendar, to which `root.xml` aliases these calendars' date formats, writes it ("G y年"): `Anno Martyrum 1743年1月17日` |
 
 Plural languages: `am ar bn bo cs cy da de en es fa fi fil fr ga ha he hi id it
 ja jv kab ko lt lv ml mn mr my nah ne nl pa pcm pl ps pt pt-PT ro ru shi sl sv

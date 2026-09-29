@@ -17,7 +17,12 @@
 #
 # So indic, lunar and hc-astro each have a shard, `rest` runs every other
 # test binary cargo builds, and the doctests, and lunar's binary is split in two by
-# libtest's name filters. Its sweeps keep every core busy, so a shard's time
+# libtest's name filters. One integration-test binary has a shard too:
+# hyper-calendar's `written_dates`, whose release build writes and reads
+# back the first day of every era, its eve and the first day of every month
+# of every calendar in every locale, some 850 000 texts, 790 CPU-s on a
+# fourteen-core desktop on 29 September 2026, which in `rest` would make it
+# the longest shard. Its sweeps keep every core busy, so a shard's time
 # is its CPU time over the cores, and the split is by CPU time. On a
 # fourteen-core desktop the same build's heaviest tests took, alone, 572
 # CPU-s for `islamic_global`'s every-day sweep, 400 for `babylonian`'s, 248
@@ -27,7 +32,8 @@
 # other test of the binary: 797 and 770 CPU-s there, about half each.
 #
 # A shard names a package's unit-test binary, or the tests of it whose
-# names contain a pattern, and `rest` is the complement, so every test runs
+# names contain a pattern, or an integration-test binary by its name, and
+# `rest` is the complement, so every test runs
 # in exactly one shard. A new crate, test file or doctest lands in `rest`
 # with nothing to update here, a new test of a split binary in whichever
 # half its name puts it in, and a shard whose binary cargo no longer builds
@@ -64,6 +70,10 @@ packages="hc-calendars-indic hc-calendars-lunar hc-astro"
 # the package's shard runs the others, with `--skip` for each.
 splits="hc-calendars-lunar-islamic hc-calendars-lunar islamic_"
 
+# The integration-test binaries taken out of `rest`, one per line: the
+# shard and the test target's name. A shard runs the whole binary.
+test_binaries="hyper-calendar-written-dates written_dates"
+
 tab=$(printf '\t')
 scratch=$(mktemp -d "${TMPDIR:-/tmp}/release-shards.XXXXXX")
 trap 'rm -rf "$scratch"' EXIT
@@ -74,7 +84,13 @@ shard_names() {
         echo "$package"
         echo "$splits" | awk -v package="$package" '$2 == package { print $1 }'
     done
+    echo "$test_binaries" | awk '{ print $1 }'
     echo rest
+}
+
+# The test target `shard` runs, where it is an integration-test binary's.
+test_target_of() {
+    echo "$test_binaries" | awk -v shard="$1" '$1 == shard { print $2 }'
 }
 
 # The package whose binary `shard` runs, or `rest`.
@@ -83,6 +99,7 @@ package_of() {
         *" $1 "*) echo "$1"; return ;;
     esac
     found=$(echo "$splits" | awk -v shard="$1" '$1 == shard { print $2 }')
+    [ -n "$found" ] || found=$(echo "$test_binaries" | awk -v shard="$1" '$1 == shard { print $1 }')
     echo "${found:-rest}"
 }
 
@@ -101,13 +118,16 @@ filters_of() {
 binaries() {
     cargo test --release --workspace --all-features --no-run \
         --message-format=json-render-diagnostics "$@" > "$scratch/messages.json"
-    jq -r --arg packages "$packages" '
+    jq -r --arg packages "$packages" --arg tests "$test_binaries" '
         ($packages | split(" ")) as $named
+        | ($tests | split("\n") | map(split(" "))) as $integration
         | select(.reason == "compiler-artifact" and .profile.test and .executable != null)
         | .target as $target
         | ([$named[] | select(
                 (gsub("-"; "_")) == $target.name
                 and ($target.kind | any(. == "test" or . == "bin" or . == "example") | not))]
+            + [$integration[] | select(
+                .[1] == $target.name and ($target.kind | any(. == "test"))) | .[0]]
             | first // "rest") as $owner
         | [$owner, (.manifest_path | sub("/Cargo.toml$"; "")), .executable]
         | @tsv' "$scratch/messages.json" | sort
@@ -188,18 +208,26 @@ run() {
     shard=$1
     package=$(package_of "$shard")
     start=$(date +%s)
+    target=$(test_target_of "$shard")
     if [ "$package" = rest ]; then
         binaries > "$scratch/plan"
+    elif [ -n "$target" ]; then
+        binaries --test "$target" > "$scratch/plan"
     else
         binaries --lib > "$scratch/plan"
     fi
     echo "Built in $(($(date +%s) - start)) s; $(getconf _NPROCESSORS_ONLN) cores"
     for named in $packages; do
+        [ -z "$target" ] || break
         if ! cut -f1 "$scratch/plan" | grep -qx "$named"; then
             echo "$named builds no unit-test binary; remove it from scripts/release-shards.sh" >&2
             exit 1
         fi
     done
+    if [ -n "$target" ] && ! cut -f1 "$scratch/plan" | grep -qx "$shard"; then
+        echo "no test binary $target; remove it from scripts/release-shards.sh" >&2
+        exit 1
+    fi
     filters=$(filters_of "$shard")
     failed=""
     while IFS="$tab" read -r owner dir executable; do
