@@ -263,7 +263,9 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("mongolian"),
     CalendarId("tibetan-lochen"),
     CalendarId("tibetan-tsurphu-karana"),
+    CalendarId("tibetan-bhutan-lochen"),
     CalendarId("dangi"),
+    CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-tenpo"),
     CalendarId("japanese-kansei"),
@@ -282,6 +284,7 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
 const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("dangi"),
+    CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
 ];
 
@@ -290,8 +293,8 @@ const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
 const CHINESE_AND_VIETNAMESE_CALENDARS: &[CalendarId] =
     &[CalendarId("chinese"), CalendarId("vietnamese")];
 
-/// The Dangi on its own.
-const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi")];
+/// The Dangi on its own, in both readings of its months before 1912.
+const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi"), CalendarId("dangi-kasi")];
 
 /// The Chinese regnal calendar on its own: the months of the Chinese
 /// family, the year of the reign.
@@ -2791,13 +2794,16 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // related Gregorian year and the year's stem and branch: Eighth Month
     // 17, 2026(bing-wu). A date without the two, which no registered
     // calendar gives, keeps the year number of the entries below.
-    CalendarNames::empty(&[CalendarId("chinese"), CalendarId("dangi")]).with_templates(
-        DateTemplates {
-            year: "{extra:related-gregorian-year}({sexagenary})",
-            date: "{month} {day}, {year}",
-            ..DateTemplates::NONE
-        },
-    ),
+    CalendarNames::empty(&[
+        CalendarId("chinese"),
+        CalendarId("dangi"),
+        CalendarId("dangi-kasi"),
+    ])
+    .with_templates(DateTemplates {
+        year: "{extra:related-gregorian-year}({sexagenary})",
+        date: "{month} {day}, {year}",
+        ..DateTemplates::NONE
+    }),
     // The months as CLDR 48 `en.xml` names the `chinese` calendar's, "First
     // Month" to "Twelfth Month". The file states no `monthPatterns`, so
     // CLDR's English leap month is root's pattern "{0}bis", "Sixth

@@ -166,6 +166,55 @@ mod tests {
         );
     }
 
+    /// The two are the civil calendars renamed, so they rest on those
+    /// calendars' sweeps; their own check is every year's boundary, 1 Thoth
+    /// and the epagomenal day before it, and the range's two ends
+    /// (docs/policy.md §7): every year in a release build, every seventh
+    /// and the last in a debug one.
+    #[test]
+    fn every_year_boundary_and_both_ends_are_the_civil_calendars() {
+        fn walk<C: Calendar + Copy>(
+            ptolemy: PtolemaicDayCalendar<C>,
+            civil: C,
+            thoth: impl Fn(i64) -> Rd,
+            max_year: i64,
+        ) where
+            PtolemaicDayCalendar<C>: Calendar<Date = C::Date>,
+            C::Date: PartialEq + core::fmt::Debug,
+        {
+            let years = (1..=max_year)
+                .step_by(crate::sweep_stride(7))
+                .chain([max_year]);
+            let first = ptolemy.meta().earliest.unwrap();
+            let last = ptolemy.meta().latest.unwrap();
+            for year in years {
+                let day = thoth(year);
+                for rd in [Rd(day.0 - 1), day, first, last] {
+                    if rd < first || rd > last {
+                        continue;
+                    }
+                    let date = ptolemy.from_fixed(rd).unwrap();
+                    assert_eq!(Ok(date), civil.from_fixed(rd), "rd {rd:?}");
+                    assert_eq!(ptolemy.to_fixed(date), Ok(rd), "rd {rd:?}");
+                }
+            }
+            assert!(ptolemy.from_fixed(Rd(first.0 - 1)).is_err());
+            assert!(ptolemy.from_fixed(Rd(last.0 + 1)).is_err());
+        }
+        walk(
+            EGYPTIAN_PTOLEMY,
+            EgyptianCalendar,
+            |year| egyptian::to_fixed(year, 1, 1).unwrap(),
+            egyptian::MAX_YEAR,
+        );
+        walk(
+            PHILIP_ERA_PTOLEMY,
+            PhilipEraCalendar,
+            |year| philip_era::to_fixed(year, 1, 1).unwrap(),
+            philip_era::MAX_YEAR,
+        );
+    }
+
     #[test]
     fn the_dates_are_the_civil_calendars() {
         for rd in (egyptian::EPOCH.0..egyptian::EPOCH.0 + 400_000).step_by(97) {

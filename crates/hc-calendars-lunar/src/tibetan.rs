@@ -29,7 +29,7 @@
 //! epoch, the index at which a leap month is inserted, whether a leap month
 //! takes the number of the month after it or before it, and the three epoch
 //! values of the mean date, the mean sun and the moon's anomaly. A [`TibetanCalendar`] is
-//! those values, and the four registered calendars are four of them:
+//! those values, and the four versions are four of them:
 //!
 //! * [`TIBETAN`], `tibetan`: the Phugpa, from the epoch of 806.
 //! * [`TIBETAN_TSURPHU`], `tibetan-tsurphu`: the Karma Kagyu's Tsurphu,
@@ -43,7 +43,8 @@
 //!
 //! Two published calendars change the true date of a version, and so, now
 //! and then, the calendar day a lunar day ends in; each is registered under
-//! its own name (docs/policy.md §5):
+//! its own name on each version it is published for (docs/policy.md §5), so
+//! that seven calendars are registered in all:
 //!
 //! * [`TIBETAN_LOCHEN`], `tibetan-lochen`: the Phugpa under Minling Lochen
 //!   Dharmashri's exact anomaly increment, `a2 = (1 + a1)/30 = 3 781/105 840`
@@ -55,6 +56,10 @@
 //!   *karaṇa* Sun ([`Sun::Karana`]), as "some Tsurphu almanacs" and
 //!   Henning's Tsurphu almanacs do, with Lochen's increment as his have it
 //!   (Janson, Appendices A.2 and A.5). About five days a year move.
+//! * [`TIBETAN_BHUTAN_LOCHEN`], `tibetan-bhutan-lochen`: the Bhutanese under
+//!   Lochen's increment, the calendar of Henning's computed Bhutanese
+//!   almanacs; it and `tibetan-bhutan` differ on 10 December 2001,
+//!   10 April 2004 and 22–23 April 2020 in 1990–2030.
 //!
 //! # For the almanac
 //!
@@ -397,8 +402,10 @@ pub enum LeapNumbering {
 /// version's epoch and leap-month rule.
 ///
 /// The versions differ only in the values held here (Janson, Appendix A);
-/// the four registered are [`TIBETAN`], [`TIBETAN_TSURPHU`],
-/// [`TIBETAN_BHUTAN`] and [`MONGOLIAN`].
+/// the four versions are [`TIBETAN`], [`TIBETAN_TSURPHU`], [`TIBETAN_BHUTAN`]
+/// and [`MONGOLIAN`], and [`TIBETAN_LOCHEN`], [`TIBETAN_TSURPHU_KARANA`] and
+/// [`TIBETAN_BHUTAN_LOCHEN`] are the conventions of the true date registered
+/// beside them.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TibetanCalendar {
     id: CalendarId,
@@ -451,13 +458,14 @@ pub const MONGOLIAN_USAGE_SOURCE: &str = "Janson 2014, Appendix A.3 [janson2014]
 /// and every description's metadata ask for; any other calendar computes
 /// them. `tests::the_named_ranges_are_the_computed_ones` computes these
 /// again.
-const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 6] = [
+const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 7] = [
     (TIBETAN, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_TSURPHU, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_BHUTAN, Rd(364_892), Rd(1_095_803)),
     (MONGOLIAN, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_LOCHEN, Rd(364_892), Rd(1_095_802)),
     (TIBETAN_TSURPHU_KARANA, Rd(364_892), Rd(1_095_803)),
+    (TIBETAN_BHUTAN_LOCHEN, Rd(364_892), Rd(1_095_803)),
 ];
 
 /// Where the period of use of `tibetan-lochen` comes from.
@@ -578,6 +586,25 @@ pub const TIBETAN_LOCHEN: TibetanCalendar = TibetanCalendar {
     ..TIBETAN
 };
 
+/// Where the period of use of `tibetan-bhutan-lochen` comes from.
+pub const BHUTAN_LOCHEN_USAGE_SOURCE: &str = "Janson 2014, (7.24) and Remark 14 [janson2014]: \
+    Minling Lochen's anomaly increment, which Henning uses in his computed calendars; Henning's \
+    computed Bhutanese almanacs, the Traditional Tibetan calendar archive [kalacakra-org-archive], \
+    take it on the Bhutanese version; the Ministry of Home Affairs' calendars [moha-bt-calendar-2026] \
+    agree with it and with `tibetan-bhutan` on every day of 2025 and 2026; no beginning is dated";
+
+/// `tibetan-bhutan-lochen`: the Bhutanese under Minling Lochen's exact
+/// anomaly increment, the calendar of Henning's computed Bhutanese
+/// almanacs.
+pub const TIBETAN_BHUTAN_LOCHEN: TibetanCalendar = TibetanCalendar {
+    id: CalendarId("tibetan-bhutan-lochen"),
+    english_name: "Tibetan (Bhutanese, Lochen's anomaly)",
+    anomaly_step: AnomalyStep::Lochen,
+    first_year: None,
+    usage_source: BHUTAN_LOCHEN_USAGE_SOURCE,
+    ..TIBETAN_BHUTAN
+};
+
 /// `tibetan-tsurphu-karana`: the Tsurphu whose true date takes the
 /// *karaṇa* solar equation, under Lochen's increment: the calendar of
 /// Henning's computed Tsurphu almanacs.
@@ -623,18 +650,6 @@ impl TibetanCalendar {
     #[must_use]
     pub const fn anomaly_step(&self) -> AnomalyStep {
         self.anomaly_step
-    }
-
-    /// The same version under another anomaly increment. The result keeps
-    /// the version's identifier and is not a registered calendar: it is
-    /// for reading an almanac computed so, such as Henning's Bhutanese
-    /// ones; the registered convention is [`TIBETAN_LOCHEN`].
-    #[must_use]
-    pub const fn with_anomaly_step(self, anomaly_step: AnomalyStep) -> Self {
-        Self {
-            anomaly_step,
-            ..self
-        }
     }
 
     /// The Sun whose equation corrects the true date.
@@ -1023,7 +1038,8 @@ pub const ANIMALS: [&str; 12] = [
 /// The name of a year in the sixty-year cycle: its element, whether it is
 /// male or female, and its animal. 2007 is Fire, female, Pig. Every version
 /// names its years so (Janson, Section 4 and Appendix A); Mongolians often
-/// give the element as a colour, which is not carried.
+/// give the element as a colour, which `hc-calendars-regional`'s
+/// `tibetan_almanac::COLOURS` carries.
 #[must_use]
 pub fn year_name(year: i64) -> (&'static str, bool, &'static str) {
     // The Tibetan year shares the Chinese sexagenary year's position.
@@ -1173,6 +1189,13 @@ mod tests {
     }
 
     const VERSIONS: [TibetanCalendar; 4] = [TIBETAN, TIBETAN_TSURPHU, MONGOLIAN, TIBETAN_BHUTAN];
+
+    /// The conventions of the true date registered beside the versions.
+    const CONVENTIONS: [TibetanCalendar; 3] = [
+        TIBETAN_LOCHEN,
+        TIBETAN_TSURPHU_KARANA,
+        TIBETAN_BHUTAN_LOCHEN,
+    ];
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed_saturating(year, month, day)
@@ -1561,8 +1584,10 @@ mod tests {
         // coverage job runs instrumented, takes every 319th day, a stride
         // prime to 7 and to 30 so that every weekday and every day of the
         // month is visited, and every New Year with the day before it, where
-        // the year's months turn (docs/policy.md §7).
-        for calendar in VERSIONS {
+        // the year's months turn (docs/policy.md §7). The three conventions
+        // of the true date are walked the same way: each moves some days of
+        // its version, so none rests on the version's sweep.
+        for calendar in VERSIONS.into_iter().chain(CONVENTIONS) {
             let id = calendar.meta().id;
             let (first, last) = (calendar.earliest().0, calendar.latest().0);
             let new_years: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
@@ -2040,29 +2065,32 @@ mod tests {
 
     #[test]
     fn the_conventions_are_registered_and_round_trip() {
-        for calendar in [TIBETAN_LOCHEN, TIBETAN_TSURPHU_KARANA] {
-            let first = calendar.earliest().0;
-            let last = calendar.latest().0;
-            for rd in (first..=last).step_by(crate::sweep_stride(97) * 13) {
-                let rd = Rd(rd);
-                let date = calendar.date_from_fixed(rd).expect("in range");
-                assert_eq!(calendar.date_to_fixed(date), Ok(rd), "{rd:?}");
-            }
+        // Each round-trips every day in `every_day_of_the_range_round_trips`.
+        for calendar in CONVENTIONS {
             assert_eq!(calendar.usage().from, None);
             assert!(!calendar.usage().source.is_empty());
-            assert_eq!(calendar.meta().native_locales, &["bo"]);
+            assert_eq!(calendar.anomaly_step(), AnomalyStep::Lochen);
         }
+        assert_eq!(TIBETAN_LOCHEN.meta().native_locales, &["bo"]);
+        assert_eq!(TIBETAN_TSURPHU_KARANA.meta().native_locales, &["bo"]);
+        assert_eq!(TIBETAN_BHUTAN_LOCHEN.meta().native_locales, &["dz"]);
         assert_eq!(TIBETAN_LOCHEN.meta().id.0, "tibetan-lochen");
         assert_eq!(TIBETAN_TSURPHU_KARANA.meta().id.0, "tibetan-tsurphu-karana");
+        assert_eq!(TIBETAN_BHUTAN_LOCHEN.meta().id.0, "tibetan-bhutan-lochen");
         assert_eq!(TIBETAN.karana_months(), None);
         assert_eq!(TIBETAN_TSURPHU.karana_months(), Some(12_938));
         assert!(TIBETAN.karana_mean_sun(1, 0).is_none());
+        // The Bhutanese under Lochen's increment keeps every other value of
+        // the Bhutanese.
         assert_eq!(
-            TIBETAN_BHUTAN
-                .with_anomaly_step(AnomalyStep::Lochen)
-                .anomaly_step(),
-            AnomalyStep::Lochen
+            TIBETAN_BHUTAN_LOCHEN.leap_numbering(),
+            TIBETAN_BHUTAN.leap_numbering()
         );
+        assert_eq!(
+            TIBETAN_BHUTAN_LOCHEN.epoch_year(),
+            TIBETAN_BHUTAN.epoch_year()
+        );
+        assert_eq!(TIBETAN_BHUTAN.anomaly_step(), AnomalyStep::Almanac);
     }
 
     /// Janson's Remark 14: the exact increment moves "on the average, one
@@ -2113,10 +2141,7 @@ mod tests {
             );
         }
         for rd in [greg(2020, 4, 22), greg(2020, 4, 23)] {
-            let date = TIBETAN_BHUTAN
-                .with_anomaly_step(AnomalyStep::Lochen)
-                .date_from_fixed(rd)
-                .expect("in range");
+            let date = TIBETAN_BHUTAN_LOCHEN.date_from_fixed(rd).expect("in range");
             assert_eq!((date.month, date.day), (Month::regular(2), 30));
             assert_ne!(TIBETAN_BHUTAN.date_from_fixed(rd), Ok(date));
         }

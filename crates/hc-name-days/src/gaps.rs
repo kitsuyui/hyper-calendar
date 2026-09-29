@@ -375,7 +375,7 @@ mod tests {
     }
 
     #[test]
-    fn the_orthodox_countries_record_the_movable_rules_they_do_not_yet_carry() {
+    fn the_orthodox_countries_record_the_movable_rules_they_carry() {
         assert!(GREECE.explanation.contains("Pascha + 56"));
         assert!(GREECE.explanation.contains("name-days-greek-movable"));
         assert!(BULGARIA.explanation.contains("name-days-bulgarian-movable"));

@@ -36,6 +36,9 @@
 //! half-tithi's number, 1 to 60, to the name's, 0 to 10: 0 for the first,
 //! the number less 50 above 57, and otherwise the number less one taken
 //! round 1 to 7 (`reingold2018code`, `karana`), which [`karana_name`] is.
+//! The two orders of the fixed four are two conventions (docs/policy.md
+//! §5), so the *Sūrya Siddhānta*'s own, Nāga before Catuṣpada (II.67,
+//! `sastri1861`), is a function of its own, [`karana_name_surya_siddhanta`].
 //! The elongation needs no zodiac, so the karaṇa, like the tithi, does not
 //! depend on the ayanāṃśa.
 //!
@@ -220,24 +223,37 @@ pub fn karana_at(moment: Moment) -> u8 {
     (half as u8).min(KARANAS_PER_MONTH - 1) + 1
 }
 
-/// The name, 0 to 10, of the half-tithi `position`, 1 to 60: an index into
-/// [`KARANA_NAMES`]. Reingold and Dershowitz's `karana`; a `position`
-/// outside 1 to 60 is clamped.
+/// The name, 0 to 10, of the half-tithi `position`, 1 to 60, in the order
+/// of western India that Sewell and Dikshit follow, Śakuni, Catuṣpada, Nāga
+/// for halves 58 to 60: an index into [`KARANA_NAMES`]. Reingold and
+/// Dershowitz's `karana`. `None` for a `position` outside 1 to 60, which is
+/// no half of a month.
 #[must_use]
-pub const fn karana_name(position: u8) -> u8 {
-    let position = if position < 1 {
-        1
-    } else if position > KARANAS_PER_MONTH {
-        KARANAS_PER_MONTH
-    } else {
-        position
-    };
-    if position == 1 {
-        0
+pub const fn karana_name(position: u8) -> Option<u8> {
+    if position < 1 || position > KARANAS_PER_MONTH {
+        None
+    } else if position == 1 {
+        Some(0)
     } else if position > 57 {
-        position - 50
+        Some(position - 50)
     } else {
-        (position - 2) % 7 + 1
+        Some((position - 2) % 7 + 1)
+    }
+}
+
+/// The name, 0 to 10, of the half-tithi `position`, 1 to 60, in the
+/// *Sūrya Siddhānta*'s order of the four fixed karaṇas, "S'akuni, Nága,
+/// Chatushpada and Kinstughna" from the second half of kṛṣṇa 14 (II.67, in
+/// Bapu Deva Sastri's translation, `sastri1861`), which Sewell and Dikshit
+/// note beside the western order (`sewell1896`, Art. 10): Nāga for half 59
+/// and Catuṣpada for half 60, and otherwise [`karana_name`]. `None` for a
+/// `position` outside 1 to 60.
+#[must_use]
+pub const fn karana_name_surya_siddhanta(position: u8) -> Option<u8> {
+    match position {
+        59 => Some(10),
+        60 => Some(9),
+        _ => karana_name(position),
     }
 }
 
@@ -431,7 +447,7 @@ mod tests {
         for (name, month, day, hour, minute) in DRIK_KARANAS {
             let printed = ist(month, day, hour, minute);
             let before = Moment(printed.0 - 10.0 / 1440.0);
-            assert_eq!(karana_name(karana_at(before)), name, "{month}-{day}");
+            assert_eq!(karana_name(karana_at(before)), Some(name), "{month}-{day}");
             let (_, exit) = karana_span(before);
             offsets.push((exit.0 - printed.0) * 1440.0);
         }
@@ -450,7 +466,7 @@ mod tests {
         let yoga = yoga_of_day(day, CENTRAL_STATION, Ayanamsa::LAHIRI);
         assert_eq!(YOGA_NAMES[usize::from(yoga - 1)], "Vyaghata");
         assert_eq!(YOGA_NAMES_DEVANAGARI[usize::from(yoga - 1)], "व्याघात");
-        let karana = karana_name(karana_of_day(day, CENTRAL_STATION));
+        let karana = karana_name(karana_of_day(day, CENTRAL_STATION)).expect("a half");
         assert_eq!(KARANA_NAMES[usize::from(karana)], "Balava");
         assert_eq!(KARANA_NAMES_DEVANAGARI[usize::from(karana)], "बालव");
     }
@@ -461,7 +477,7 @@ mod tests {
         // first and second halves of each tithi. Śukla 1 is Kiṃstughna and
         // Bava, śukla 2 Bālava and Kaulava, kṛṣṇa 14 Viṣṭi and Śakuni,
         // amāvāsyā Catuṣpada and Nāga.
-        let name = |position: u8| KARANA_NAMES[usize::from(karana_name(position))];
+        let name = |position: u8| KARANA_NAMES[usize::from(karana_name(position).expect("a half"))];
         for (tithi, first, second) in [
             (1, "Kinstughna", "Bava"),
             (2, "Balava", "Kaulava"),
@@ -487,8 +503,31 @@ mod tests {
                 "{position}"
             );
         }
-        assert_eq!(karana_name(0), 0);
-        assert_eq!(karana_name(61), 10);
+        assert_eq!(karana_name(0), None);
+        assert_eq!(karana_name(61), None);
+    }
+
+    #[test]
+    fn the_surya_siddhanta_orders_naga_before_catushpada() {
+        // Sūrya Siddhānta II.67: "S'akuni, Nága, Chatushpada and
+        // Kinstughna" from the latter half of kṛṣṇa 14; the other
+        // fifty-seven halves are named as in the western order.
+        let name = |position: u8| {
+            KARANA_NAMES[usize::from(karana_name_surya_siddhanta(position).expect("a half"))]
+        };
+        assert_eq!(
+            [name(58), name(59), name(60), name(1)],
+            ["Shakuni", "Nagava", "Chatushpada", "Kinstughna"]
+        );
+        for position in 1..=58 {
+            assert_eq!(
+                karana_name_surya_siddhanta(position),
+                karana_name(position),
+                "{position}"
+            );
+        }
+        assert_eq!(karana_name_surya_siddhanta(0), None);
+        assert_eq!(karana_name_surya_siddhanta(61), None);
     }
 
     #[test]

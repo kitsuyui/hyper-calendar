@@ -347,11 +347,16 @@ inherits the `chinese` calendar's model, as that README describes.
   a field; the reasons are in
   [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).
 * The Tibetan almanac's planets only under the Phugpa epoch of 1927, the
-  only one whose solar longitude Janson describes; its astrological
-  attributes beyond element, colour and animal — trigrams, numbers,
-  lunar-day animals, earth-lords — are not yet carried. The festivals are
-  data here, and `hc-holiday`'s `buddhist-tibetan-berzin` and
-  `buddhist-tibetan-henning` tables date their days by `berzin_day` and
+  only one whose solar longitude Janson describes. Of its astrological
+  attributes the day's are carried — the lunar day's animal, element,
+  trigram and number, the calendar day's trigram and its number by Janson
+  and by Henning's almanacs, the Chinese mansion and the pair of elements
+  — and the years' and months' elements and numbers are not yet, nor the
+  earth-lords, the *svarodaya* emblems and the Tsurphu's marked days, for
+  which no source read gives a rule
+  ([`docs/systems/tibetan-almanac.md`](../../docs/systems/tibetan-almanac.md)).
+  The festivals are data here, and `hc-holiday`'s `buddhist-tibetan-berzin`
+  and `buddhist-tibetan-henning` tables date their days by `berzin_day` and
   `henning_almanac_day`.
 * The sexagenary **month** pillar follows the lunar month, not the solar
   terms. If you are casting a chart rather than reading a date, it is not

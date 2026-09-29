@@ -149,6 +149,39 @@ Before 立春 on 4 February it is still the 巳 year, whose 大将軍 is on 卯
 as well [iinippon-daishogun]. 丙 years put 金神 in 子, 丑, 寅, 卯, 午 and 未;
 大金神 is on 卯 and 姫金神 on 酉.
 
+**遊行 and 間日.** 大将軍 and 金神 leave their directions for five days at
+a time, their 遊行; the directions they leave may then be crossed, and
+the one they go to may not [wikipedia-ja-konjin, iinippon-daishogun].
+いい日本再発見 sends 大将軍 east for five days from 甲子, south from 丙子,
+to the middle of the house from 戊子, west from 庚子 and north from 壬子.
+It heads the rows 春, 夏, 秋, 冬 and 土用, but its list of 2026 keeps
+every row in every sixty days, so the heads name the phase of each
+direction, not a season [iinippon-daishogun]. Japanese Wikipedia's 大将軍
+page puts the same runs in the four 土用 instead, without the middle
+[wikipedia-ja-daishogun], and 古文書ネット heads them by season and dates
+them for 2026 without saying what bounds its seasons [komonjyo-hasshojin].
+
+Japanese Wikipedia sends 金神 all year for five days from 甲寅 to 午, from
+丙寅 to 酉, from 戊寅 to the middle of the house, from 庚寅 to 子 and from
+壬寅 to 卯; and in each season, bounded from its 立 term to the day before
+its 土用, from 乙卯 to 卯 in spring, from 丙午 to 「牛」 — read 午, the
+branch of 丙午, as each other seasonal row goes to its own day's branch —
+in summer, from 辛酉 to 酉 in autumn and from 壬子 to 子 in winter. Its
+間日, on which 金神's direction may be crossed, are the 丑 days of spring,
+申 of summer, 未 of autumn and 酉 of winter [wikipedia-ja-konjin].
+古文書ネット gives the same year-round runs by compass point, and its
+seasonal ones by lunar month, with 「辛申」, which is no 干支, for autumn
+[komonjyo-konjin].
+
+**Worked example.** 1 January 2026 is 乙亥, position 11, so 9 February is
+甲寅 and 10 February 乙卯, both after 立春 on 4 February and before the
+spring 土用 of 17 April. 金神 goes to 午 from 9 February and, in spring,
+to 卯 from 10 February: on 10–13 February two runs send it two ways, and
+the table does not say which holds; on 14 February, 己未, only the 卯 run
+is left. In 2026 大将軍 stands on 卯; 2 January is 丙子, so by
+いい日本再発見's rule it is south on 2–6 January, and its list prints
+「1月：2日～6日「南」」.
+
 ### 三元九運
 
 Twenty years make a period, 運, three periods an era, 元, of sixty years,
@@ -237,7 +270,24 @@ In `hc-almanac`:
   readings and what the Library says each forbids, and `General::direction`
   by the year's branch; `konjin_branches` by the year's stem; `dai_konjin`
   and `hime_konjin` by its branch; each a `BranchDirection`, with its
-  azimuth; and `year_pillar`, the year's 干支 turning at 立春.
+  azimuth; and `year_pillar`, the year's 干支 turning at 立春. The 遊行,
+  one `WanderingRule` per source's reading ([policy.md](../policy.md)
+  §5), none a default: `daishogun-iinippon`, いい日本再発見's 大将軍; and
+  `konjin-wikipedia-begun-in-season` and `konjin-wikipedia-days-in-season`,
+  Japanese Wikipedia's 金神, which differ only where a seasonal run
+  crosses its season's end, the first giving a run begun in its season
+  all five days and the second only the days the season holds.
+  `WanderingRule::whereabouts_on` gives `Whereabouts::Home` or
+  `Whereabouts::Gone` with a `Place`, a direction or the middle of the
+  house, and `None` on a day two of Japanese Wikipedia's runs send 金神
+  two ways, which it does not reconcile: a spring 乙卯 run shares four
+  days with a 甲寅 run, a summer 丙午 run one with a 壬寅 run, and a winter
+  壬子 run three with a 甲寅 run. `WanderingRule::stands_in` says whether
+  the god stands in a direction on a day. `konjin_rest_day` is Japanese
+  Wikipedia's 間日, its seasons bounded as its table bounds them, so that
+  no day of a 土用 is one; it is a day of its own, since the page does not
+  say how a 間日 and a 遊行 on the same day combine. The seasons and 土用
+  are `hc_seasons::zassetsu::doyo`'s.
 - `nine_periods`: `Period`, its number, era, star, years, and the ruler's
   name as the source writes it; `period_of_year`, and `period`, which turns
   at 立春 at a meridian through `nine_stars::nine_star_year`.
@@ -254,7 +304,7 @@ In `hc-seasons`:
 - `meiyu`: `ru_mei_bing`, `ru_mei_ren` and `chu_mei_wei`, one function per
   rule ([policy.md](../policy.md) §5), with the terms at a meridian.
 
-Not carried:
+Not yet carried:
 
 - **The places that light the 送り火 on the 15th**, keep ウークイ on the 16th,
   or keep お盆 on 1 August or on the weekend nearest the 15th; the Miyako and
@@ -269,21 +319,30 @@ Not carried:
   year by its number. The customs read use the Gregorian year: 恵方参り on
   New Year's Day, and the 恵方巻 of 節分, the eve of 立春, facing the year
   that has already begun [allabout-eho-2026, jre-eho-2026].
-- **The days the 方位神 leave their directions**: 大将軍's and 金神's 遊行
-  and 金神's 間日, which Japanese Wikipedia, 古文書ネット and いい日本再発見
-  tabulate and disagree on the seasons of — Japanese Wikipedia's 金神
-  seasons run from 立春 to the 土用, 古文書ネット's by lunar month
-  [wikipedia-ja-konjin, komonjyo-konjin, iinippon-daishogun]; no source
-  read settles which. 土公神, which the Library says moves with the
-  seasons, with no table read [ndl-koyomi-hoijin]; and the other gods
-  歳事暦 names, 歳禄神 among them, with no table read [saijigoyomi-hoi].
+- **Japanese Wikipedia's 大将軍 遊行**, because it puts each run in a
+  土用, and a 土用 of seventeen to nineteen days holds the run's first
+  干支 in about three years in ten; the page does not say what happens in
+  a 土用 that holds none, nor whether a run begun near its end runs past
+  it [wikipedia-ja-daishogun].
+- **古文書ネット's seasonal 遊行**, because its pages do not bound the
+  seasons of 大将軍, and date 30 August–3 September 2026, 旧7月18–22日 and
+  after 立秋, under 夏, which neither lunar months nor the 節月 put in
+  summer; and because its 金神 seasons are lunar months with no word on
+  the leap months, and its autumn 金神 run opens on 「辛申」, which is no
+  干支 [komonjyo-hasshojin, komonjyo-konjin].
+- **A dated 金神 遊行 or 間日**, because no source read dates one; and
+  寒河江八幡宮's lists of the 大将軍 遊行, which いい日本再発見 cites, because
+  they are PDF files, which were not read [sagae-hachimangu-kigan].
+- **土公神**, which the Library says moves with the seasons, because no
+  table was read [ndl-koyomi-hoijin]; and the other gods 歳事暦 names,
+  歳禄神 among them, because no table was read [saijigoyomi-hoi].
 - **いい日本再発見's 歳刑神**, whose row runs 卯 辰 巳 午 未 申 辰 酉 戌 亥 子
   丑 — one branch on each year but at 午 — where Japanese Wikipedia's is the
   三刑; 古文書ネット's 2026 agrees with Japanese Wikipedia, and every other
   row of the three tables agrees [iinippon-daishogun, komonjyo-hasshojin].
-  It is taken for a copying slip.
-- **The 大三元 of 540 years**, whose epoch the source does not give; and
-  anything the source says about where the ruling star stands.
+  It is not yet carried, because it is taken for a copying slip.
+- **The 大三元 of 540 years**, because the source does not give its epoch;
+  and anything the source says about where the ruling star stands.
 - **Where *son* is on the other days**: the source gives no table.
 - **A third list of bad days.** The same VTC article quotes a second
   speaker calling the Tam Nương days Nguyệt Kỵ when counted in the West
@@ -321,6 +380,23 @@ checked against dated lists:
   The 八将神 table and いい日本再発見's agree on seven gods; both the Library's
   and Japanese Wikipedia's descend from the almanacs, and no almanac was
   read.
+- `daishogun-iinippon` gives every day of いい日本再発見's list of the 大将軍
+  遊行 of 2026, to the place it prints, but for three runs printed as
+  beginning early: 21–30 October south, where the 丙子 is 29 October and
+  the rule has 21 October the last day of a 甲子 run to the east (the list
+  also leaves out 31 October, a day of that run); 21–26 November west,
+  where the 庚子 is the 22nd; and 21–31 December south, where the 丙子 is
+  the 28th. Every other day the rule sends 大将軍 anywhere but east is
+  printed; the runs to the east, where it stands all year, are not. Every
+  day of 古文書ネット's 2026 list is a day of the rule, to the same place.
+  The prose's autumn row, 庚子～丙辰, is seventeen days; the list keeps
+  five, 庚子 to 甲辰, as the rule does.
+- The 金神 rules and the 間日 have no dated example in any source read.
+  They are checked against the table on days of 2025 and 2026 worked out
+  from it: each year-round run, the overlaps of 2026 that answer `None`,
+  the spring 乙卯 of 16 April 2025 and the autumn 辛酉 of 19 October 2025
+  on the eve of a 土用, where the two readings part, and a 間日 of each
+  season of 2026 with a 丑 day of the spring 土用 that is none.
 - `nine_periods` gives the source's nine periods and 立春 2024.
 - `days_without_son` gives all sixty-eight days of 2026 in superkts.com's
   list, on the lunar dates it prints beside them.
@@ -379,13 +455,26 @@ almanacs, and no printed almanac was read.
 - [wikipedia-ja-hasshojin] — Wikipedia (ja), 「八将神」: the table of the
   eight by the year's branch. Read 2026-09-29.
 - [wikipedia-ja-konjin] — Wikipedia (ja), 「金神」: 金神 by the year's stem,
-  its 遊行 and 間日, 大金神 and 姫金神. Read 2026-09-29.
-- [komonjyo-hasshojin], [komonjyo-konjin] — 古文書ネット, 「八将神とは」 and
-  「金神（こんじん）とは」: the directions of 2026 and 2025, and 金神's
-  遊行; it cites 伊東和彦『暦を知る事典』 (2006), not read. Read
+  its year-round and seasonal 遊行 with the seasons bounded by 立 terms
+  and 土用, the summer direction written 「牛」, its 間日, 大金神 and 姫金神.
+  Read 2026-09-29.
+- [wikipedia-ja-daishogun] — Wikipedia (ja), 「大将軍 (方位神)」: the
+  directions by the year's branch, and the 遊行 in the four 土用. Read
   2026-09-29.
+- [komonjyo-hasshojin], [komonjyo-konjin] — 古文書ネット, 「八将神とは」 and
+  「金神（こんじん）とは」: the directions of 2026 and 2025; 大将軍's 遊行
+  by season with its days of 2026 and their lunar dates; 金神's 遊行,
+  year-round and by lunar month. They cite 伊東和彦『暦を知る事典』
+  (2006), 広瀬秀雄『暦』 (1993) and 川口謙二・池田孝・池田政弘『こよみ事典』
+  (1977), not read. Read 2026-09-29.
 - [iinippon-daishogun] — いい日本再発見, 「大将軍（方位神）とは？」: a table
-  of the eight, 節区切り, and 大将軍 in 2026. Read 2026-09-29.
+  of the eight, 節区切り, 大将軍 in 2026, its 遊行 rows and its list of the
+  遊行 of 2026 month by month. It cites 岡田芳朗・阿久根末忠『現代こよみ読み
+  解き事典』 and 岡田芳朗『旧暦読本』, not read, and 寒河江八幡宮's
+  大将軍遊行日. Read 2026-09-29.
+- [sagae-hachimangu-kigan] — 寒河江八幡宮, 「御祈願について」: links to its
+  lists of the 大将軍 遊行 of this year and the last, which are PDF files
+  and were not read. The page read 2026-09-29.
 - [saijigoyomi-hoi] — 歳事暦, 「暦の吉凶 方位神」: 金神, 大金神 and 姫金神
   described, and the other gods named. Read 2026-09-29.
 - [allabout-eho-2026], [jre-eho-2026] — the directions of 2026–2030. Read
@@ -442,7 +531,14 @@ almanacs, and no printed almanac was read.
 (`the_eight_generals_are_the_published_table`,
 `the_library_s_relations_hold`, `the_published_directions_of_2026_match`,
 `the_konjin_rows_and_2025_match`,
-`the_great_and_princess_konjin_are_the_published_table`),
+`the_great_and_princess_konjin_are_the_published_table`,
+`the_published_daishogun_days_of_2026_match`,
+`the_other_published_daishogun_days_of_2026_are_among_the_rule_s`,
+`the_konjin_table_sends_the_god_where_it_says`,
+`the_two_readings_part_where_a_run_crosses_into_the_doyo`,
+`the_konjin_stands_in_its_own_directions_or_where_it_has_gone`,
+`the_konjin_rest_days_are_the_season_s_branch`,
+`a_year_the_calendar_does_not_reach_is_refused`),
 `crates/hc-almanac/src/nine_periods.rs`
 (`the_nine_periods_of_1864_to_2043_are_the_sources`,
 `a_period_turns_at_the_beginning_of_spring`,

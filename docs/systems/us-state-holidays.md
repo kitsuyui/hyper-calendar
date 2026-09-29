@@ -50,8 +50,7 @@ Thanksgiving, which § 110.117 has, is `Kind::Government`.
 
 ## What is carried
 
-- **The federal holidays**, nationwide, as the table carried them before
-  this document, with Inauguration Day in `US-DC`.
+- **The federal holidays**, nationwide, with Inauguration Day in `US-DC`.
 - **The days each state's code lists beyond them**, scoped to its code,
   in the table below: 147 rules in 45 states and the District, and
   California's Good Friday afternoon, a half day.

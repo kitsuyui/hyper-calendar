@@ -1758,6 +1758,14 @@ describe("the pañcāṅga and the anniversaries", () => {
   const vyaghataEnds = Date.UTC(2025, 0, 1, 11, 37) / 1000;
   const balavaEnds = Date.UTC(2025, 0, 1, 9, 25) / 1000;
 
+  test("the book's ayanamsa crosses the boundary by its identifier", () => {
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const [yoga, karana] = hc.panchangaOfDay(day, 23.183_333, 82.5, 0, "reingold-dershowitz");
+    assert.equal(yoga.ayanamsa, "reingold-dershowitz");
+    assert.equal(yoga.name, "Vyaghata");
+    assert.equal(karana.name, "Balava");
+  });
+
   test("1 January 2025 carries Vyaghata and Balava", () => {
     const day = hc.gregorianToFixed(2025, 1, 1);
     const [yoga, karana, ...rest] = hc.panchangaOfDay(day, 23.183_333, 82.5, 0, "Lahiri");

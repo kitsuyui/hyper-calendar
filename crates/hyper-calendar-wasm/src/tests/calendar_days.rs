@@ -244,3 +244,56 @@ fn the_chinese_reckonings_cross_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The book's ayanāṃśa, `reingold-dershowitz`, crosses the boundary by its
+/// identifier, and the yoga it gives is the module's under it; the karaṇa,
+/// which no ayanāṃśa moves, is Balava as under Lahiri.
+#[test]
+fn the_books_ayanamsa_crosses_the_boundary() {
+    use hc::hc_astro::riseset::Location;
+    use hc::hc_calendars_indic::panchanga::{YOGA_NAMES, yoga_of_day};
+    use hc::hc_seasons::zodiac::Ayanamsa;
+    let day = hc_gregorian_to_fixed(2025, 1, 1);
+    let id = "reingold-dershowitz";
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_panchanga_of_day(
+            day,
+            23.183_333,
+            82.5,
+            0.0,
+            id.as_ptr(),
+            id.len(),
+            buffer,
+            capacity,
+        )
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    let ayanamsa = Ayanamsa::REINGOLD_DERSHOWITZ;
+    let yoga = yoga_of_day(
+        hc::hc_calendar::Rd(day),
+        Location::new(23.183_333, 82.5, 0.0),
+        ayanamsa,
+    );
+    assert_eq!(rows[0][1], yoga.to_string());
+    assert_eq!(rows[0][2], YOGA_NAMES[usize::from(yoga - 1)]);
+    assert_eq!(rows[0][7..], [id, ayanamsa.name()]);
+    assert_eq!(rows[1][2], "Balava");
+}
+
+/// 21 December 2025 is 甲子, whose 納音 is 海中金 (`wikipedia-ja-nacchin`):
+/// the almanac's second line.
+#[test]
+fn the_nayin_line_crosses_the_boundary() {
+    let day = hc_gregorian_to_fixed(2025, 12, 21);
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_almanac_day(day, "japan".as_ptr(), 5, "ja".as_ptr(), 2, buffer, capacity)
+    });
+    let second = text.lines().nth(1).expect("two lines");
+    assert!(
+        second.starts_with("nayin\t1\t海中金\tja\t海中金\tkaichūkin"),
+        "{second}"
+    );
+}

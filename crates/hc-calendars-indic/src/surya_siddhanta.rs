@@ -5,11 +5,16 @@
 //! The Siddhānta moves a mean Sun uniformly round a sidereal zodiac and
 //! corrects it by an epicycle whose size shrinks with the anomaly, and it
 //! reads its sines from a table of twenty-four values at steps of 225
-//! minutes of arc, interpolating between them. Its zodiac is sidereal by
-//! construction, so there is no ayanamsa: the zero point is where the
-//! model puts it, and it is not the zero point of any modern ayanāṃśa.
-//! Its saṅkrāntis therefore fall hours from the modern ones — the Meṣa
-//! saṅkrānti of 2024 two hours and nineteen minutes after the Lahiri one.
+//! minutes of arc, interpolating between them. Its zodiac is sidereal, and
+//! its zero point is where the model puts it, not the zero point of any
+//! modern ayanāṃśa, so its saṅkrāntis fall hours from the modern ones — the
+//! Meṣa saṅkrānti of 2024 two hours and nineteen minutes after the Lahiri
+//! one. The Siddhānta states its own ayana, the distance of that zero point
+//! from the equinox: the asterisms librate 27° either way, 600 times in a
+//! Mahāyuga, and the ayana is the *bhuja* of the libration times 3⁄10
+//! (III.9–10, in Bapu Deva Sastri's translation, `sastri1861`). The module
+//! computes it, as Reingold and Dershowitz's `hindu-tropical-longitude`
+//! does, only for the tropical Sun its sunrise needs.
 //!
 //! # Whose arithmetic
 //!
@@ -46,9 +51,12 @@
 //! anomaly stands at three quarters.
 //!
 //! The yoga and the karaṇa follow from the same two bodies as the tithi
-//! does ([`yoga_at`], [`karana_at`]): Reingold and Dershowitz's `yoga` and
-//! `karana` (`reingold2018code`), the day read at the Siddhānta's own
-//! sunrise. The tests hold them to the pañcāṅga extract of Sewell and
+//! does. [`yoga_at`] and [`karana_at`] are Reingold and Dershowitz's
+//! `yoga` and `karana` (`reingold2018code`), which read the moment they are
+//! given — the fixed date itself, when they are given a day. A pañcāṅga
+//! names a day by the limb current at its sunrise, so [`yoga_of_day`] and
+//! [`karana_of_day`] read the day at the Siddhānta's own sunrise instead,
+//! which is this module's reading and not the book's. The tests hold them to the pañcāṅga extract of Sewell and
 //! Dikshit's Art. 30 (`sewell1896`), Poona, September 1894, which was
 //! computed by the *Grahalāghava* and so checks the arithmetic, not the
 //! model: every legible yoga end within 1.6 ghaṭikās of the printed one.
@@ -619,7 +627,11 @@ mod tests {
         for (offset, name, ghatika, pala) in EXTRACT_KARANAS {
             let day = Rd(first.0 + offset);
             let half = karana_of_day(day, POONA);
-            assert_eq!(crate::panchanga::karana_name(half), name, "day {offset}");
+            assert_eq!(
+                crate::panchanga::karana_name(half),
+                Some(name),
+                "day {offset}"
+            );
             let (_, ends) = karana_span(sunrise(day, POONA));
             let printed = f64::from(ghatika) + f64::from(pala) / 60.0;
             worst = worst.max((ghatikas(day, ends) - printed).abs());

@@ -123,8 +123,10 @@ documentation warns against reading a birth animal from it.
 half a minute of solar motion — so an event within about a minute of local
 midnight can still be assigned the wrong *day*. The document measures that
 two ways. Against the 春分の日 and 秋分の日 the National Astronomical
-Observatory of Japan publishes, `tests/japanese_equinox_days.rs` finds **0
-disagreements in 240 days** of 1980–2099, and shows that computing the same
+Observatory of Japan publishes for 1980–2030, 102 days, and against a
+circulating floor formula for 2031–2099, a prediction and not a publication,
+`tests/japanese_equinox_days.rs` finds **0 disagreements in 240 days**, and
+shows that computing the same
 holiday in Universal Time instead of JST would get 88 of them wrong, which is
 what the `Meridian` argument exists to prevent. Against the 暦要項's times
 for 2024–2026, `tests/rekiyoko_solar_terms.rs` finds every one of the 72

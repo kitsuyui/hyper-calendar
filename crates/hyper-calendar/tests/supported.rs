@@ -561,3 +561,35 @@ fn the_committed_index_matches_the_code() {
          --all-features --test supported\nand read the diff before committing it."
     );
 }
+
+/// The count the repository README's coverage table gives in the row that
+/// begins with `what`.
+fn readme_count(what: &str) -> usize {
+    let readme = include_str!("../../../README.md");
+    let row = readme
+        .lines()
+        .find(|line| line.starts_with(&format!("| {what}")))
+        .unwrap_or_else(|| panic!("the README has a row for {what:?}"));
+    row.split('|')
+        .nth(2)
+        .and_then(|cell| cell.trim().parse().ok())
+        .unwrap_or_else(|| panic!("the row {row:?} has a count"))
+}
+
+/// The README's coverage rows that this index also counts say what the
+/// index says, so that the README cannot drift from the code either.
+#[test]
+fn the_readme_coverage_rows_match_the_index() {
+    assert_eq!(
+        readme_count("Calendars in the registry"),
+        hyper_calendar::registry().len()
+    );
+    assert_eq!(
+        readme_count("Exactly defined units of time"),
+        hyper_calendar::hc_units::unit::ALL.len()
+    );
+    assert_eq!(
+        readme_count("Readings of the sexagenary cycle"),
+        hyper_calendar::hc_calendar::cycle::readings::ALL.len()
+    );
+}

@@ -30,14 +30,14 @@ authority when a count here is out of date.
 
 | What | Count | Where it is listed |
 | --- | ---: | --- |
-| Calendars in the registry, each with its own identifier | 220 | [supported.md § Calendars](docs/supported.md#calendars) |
+| Calendars in the registry, each with its own identifier | 222 | [supported.md § Calendars](docs/supported.md#calendars) |
 | National holiday tables: 190 of the 193 UN member states, plus Hong Kong, Macau, Palestine, Taiwan and the Holy See | 195 | [supported.md § Holidays by country](docs/supported.md#holidays-by-country) |
 | Religious and cultural tradition tables | 71 | [supported.md § Religious and cultural traditions](docs/supported.md#religious-and-cultural-traditions) |
 | International observance tables (the 236 UN international days, and the ten UN international weeks) | 2 | [supported.md § International observances](docs/supported.md#international-observances) |
 | Exchange trading calendars, keyed by ISO 10383 Market Identifier Code | 42 | [supported.md § Exchange calendars](docs/supported.md#exchange-calendars) |
 | Locales with their own vocabulary, besides the root | 65 | [docs/i18n.md](docs/i18n.md) and the [`hc-i18n` README](crates/hc-i18n) |
 | Exactly defined units of time | 53 | [supported.md § Units](docs/supported.md#exactly-defined-units-of-time) |
-| Readings of the sexagenary cycle, the sixty stem-branch pairs | 9 | [supported.md § Readings](docs/supported.md#readings-of-the-sexagenary-cycle) |
+| Readings of the sexagenary cycle, the sixty stem-branch pairs | 10 | [supported.md § Readings](docs/supported.md#readings-of-the-sexagenary-cycle) |
 | Uniform time scales: TAI, TT, TCG, TDB, TCB, GPS, Galileo, BeiDou and NavIC time | 9 | [docs/time-scales.md](docs/time-scales.md) |
 
 Beyond those tables, the library carries:
@@ -173,7 +173,7 @@ assert_eq!((fields.era, fields.year), (Some("reiwa"), 8));
 // Every registered calendar at once. A calendar that was not in use on the
 // day returns an error for it rather than being left out.
 let described = calendars.describe_day(day);
-assert_eq!(described.len(), 220);
+assert_eq!(described.len(), 222);
 # Ok::<(), hyper_calendar::CalendarError>(())
 ```
 

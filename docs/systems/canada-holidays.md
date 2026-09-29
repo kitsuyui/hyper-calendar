@@ -66,13 +66,13 @@ municipal and customary day in Ontario, not a statutory one, and
   the years before absent; and where no source gives one, read from 2026,
   the years before a gap (`HolidayRule::read_from`). The table below says
   which.
-- **Corrections made by this reading.** The table carried Family Day on
-  the third Monday of February in Alberta, New Brunswick, Ontario and
-  Saskatchewan from 2008; New Brunswick's is from 2018, the year its Act
-  came into force, and Alberta's (1990) and Saskatchewan's (2007) are
-  earlier. It carried a Civic Holiday on the first Monday of August in
-  Ontario and Manitoba, whose laws have none, and in five others, whose
-  days are now carried under their own names.
+- **Family Day and the August Monday.** Family Day, the third Monday of
+  February, is carried from the year each province's law begins it:
+  Alberta's from 1990, Saskatchewan's from 2007 and New Brunswick's from
+  2018, the year its Act came into force. Ontario and Manitoba have no
+  Civic Holiday on the first Monday of August in their laws, and none is
+  carried there; the five provinces and territories that keep a day on
+  that Monday have it under the name their laws give it.
 - **Not yet carried, and why:**
   - the federal days Quebec, Yukon and the Northwest Territories do not
     keep, whose lists were not read, and whether New Brunswick, Nova

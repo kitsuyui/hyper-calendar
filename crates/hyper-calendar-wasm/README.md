@@ -1580,7 +1580,7 @@ for `hc_describe_day`.
 
 ### What the calls cost
 
-A description of a day is one conversion in each of the 220 calendars,
+A description of a day is one conversion in each of the 222 calendars,
 and a few dozen of them search the sky to convert: the Hindu lunar
 calendar and the seven built on it for conjunctions and saṅkrāntis at
 sunrise, the observational Hebrew and Hijri calendars for crescents
@@ -2232,7 +2232,7 @@ country. So:
   an empty region answer for the nationwide days alone, not the union of
   every prefecture's. Asked for `JP` in `JP-13`, they answer for Tokyo:
   the nationwide days and Tokyo's own, and a year's line of Tokyo's own
-  day carries `JP-13` in its last column.
+  day carries `JP-13` in column 8 of its 9, the group being the last.
 - `hc_holidays_on` takes no region. It writes every table's nationwide
   lines, and after them each subdivision's own lines, still under the
   country's table code — 都民の日 is a line of `JP`, not of a table
@@ -2318,12 +2318,11 @@ otherwise search for again for every date they convert. Measured on
 one 2026 day across all 310 tables and their subdivisions takes about
 31 ms natively on 1 January, the costliest, and 22 ms on 25 September,
 against 0.21 s for every table's whole year; in WebAssembly under Node 22,
-measured with `scripts/wasm-calendar-timing.mjs`, 63 ms and 48 ms. On
-2026-09-28, with 298 tables, the subdivisions' lines were about 3 ms and
-2 ms of the WebAssembly times, and under 1 % of the native ones, against
-the same build without them measured the same day. Before the call opened
-the scope, the same days took 54 ms and 36 ms natively and 133 ms and
-88 ms in WebAssembly.
+measured with `scripts/wasm-calendar-timing.mjs`, 63 ms and 48 ms. The
+subdivisions' lines are a small part of that: measured on 2026-09-28, when
+there were 298 tables, against the same build without them, they took
+about 3 ms and 2 ms of the WebAssembly times and under 1 % of the native
+ones.
 
 ### The tables
 

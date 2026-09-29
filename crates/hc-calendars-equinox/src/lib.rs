@@ -1,7 +1,7 @@
 //! Solar calendars defined by an equinox observed at a place, for
 //! `hyper-calendar`.
 //!
-//! Three calendars begin their year on the day an equinox falls, judged by
+//! Four calendars begin their year on the day an equinox falls, judged by
 //! a clock at a named place, and no counting rule reproduces that exactly;
 //! the first of them is carried three times, as Iran and as Afghanistan
 //! name its months and under the second reading of its noon:
@@ -69,7 +69,7 @@
 //! # Why a crate of its own
 //!
 //! `hc-calendars-solar` draws its line at counting: nothing there asks
-//! where the Sun is, so nothing there pays for the astronomy. These three
+//! where the Sun is, so nothing there pays for the astronomy. These four
 //! do ask, and they are solar, so they are neither that crate's nor
 //! `hc-calendars-lunar`'s. Selecting them is the `equinox` feature of
 //! `hyper-calendar`.
@@ -80,6 +80,10 @@
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
+
+// `check_days`: run a check on each day of a sweep, spread over the
+// machine's threads (`hc_core::sweep`).
+hc_core::check_days_in_parallel!();
 
 pub mod bahai;
 pub mod french_republican;

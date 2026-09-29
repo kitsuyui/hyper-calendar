@@ -87,7 +87,9 @@ The published record, not the model checking itself:
 Exact beyond the astronomy. `hc-astro` places an equinox to within seconds,
 and the deciding clock to what it can be placed to — a standard-time noon
 exactly, an apparent midnight to seconds, a sunset to a minute or two and
-to the horizon the almanac assumed. Each module states its
+to the horizon the almanac assumed — and, for the Jalālī calendar of the
+11th to 14th centuries, ΔT, which the two models carried place up to 190 s
+apart there, so its tolerance is four minutes. Each module states its
 `TOLERANCE_MINUTES` from those parts, and a year whose equinox falls that
 close to its deciding instant is decided here by a model where the country
 or the community decided by an ephemeris. Each module's `new_year_margin`

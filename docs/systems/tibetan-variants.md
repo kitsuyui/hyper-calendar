@@ -1,8 +1,8 @@
 # The Tibetan calendar's other versions: Tsurphu, Bhutanese and Mongolian
 
-Backs the identifiers `tibetan-tsurphu`, `tibetan-bhutan` and `mongolian`
-and `tibetan-lochen` and `tibetan-tsurphu-karana`, two conventions of the
-true date, in `hc-calendars-lunar`. The arithmetic they share with the Phugpa
+Backs the identifiers `tibetan-tsurphu`, `tibetan-bhutan` and `mongolian`,
+and `tibetan-lochen`, `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen`,
+two conventions of the true date, in `hc-calendars-lunar`. The arithmetic they share with the Phugpa
 calendar, `tibetan` — the lunar day, the rule that skips and repeats
 calendar days, the mean motions, the tables and the day that begins at
 dawn — is written up in [tibetan-phugpa.md](tibetan-phugpa.md) and not
@@ -123,12 +123,12 @@ calendar day a lunar day ends in:
 The Phugpa under Lochen's anomaly is `tibetan-lochen`, the calendar of
 Henning's Phugpa almanacs; the Tsurphu under the *karaṇa* Sun, with
 Lochen's anomaly as Henning's almanacs have it, is `tibetan-tsurphu-karana`.
-The Bhutanese under Lochen's anomaly, Henning's Bhutanese almanacs, is not
-registered: it and `tibetan-bhutan` agree on every day of 2025 and 2026,
-which the Ministry's calendars print, so no official date tells them apart
-(they differ on 10 December 2001, 10 April 2004 and 22–23 April 2020 in
-1990–2030), and the arithmetic reaches it, unregistered, as
-`TIBETAN_BHUTAN.with_anomaly_step(AnomalyStep::Lochen)`.
+The Bhutanese under Lochen's anomaly, the calendar of Henning's Bhutanese
+almanacs, is `tibetan-bhutan-lochen`. It and `tibetan-bhutan` agree on every
+day of 2025 and 2026, which the Ministry's calendars print, so no official
+date read tells them apart; they differ on 10 December 2001, 10 April 2004
+and 22–23 April 2020 in 1990–2030, and his almanac for 2020 prints
+22 and 23 April both as the 30th of month 2, as the exact increment gives.
 
 ## How it works
 
@@ -265,18 +265,20 @@ month sorts after the regular month of the same number.
   and a leap month takes ཟླ་ཤོལ་ before its name, Henning's *zla shol*
   for "an extra, or intercalary, month" [kalacakra-org]; the word's place
   in a date is this library's ([written-dates.md](written-dates.md)).
-- **The two conventions**: `tibetan-lochen` ("Tibetan (Phugpa, Lochen's
-  anomaly)") and `tibetan-tsurphu-karana` ("Tibetan (Tsurphu, karaṇa
-  Sun)"), `TibetanCalendar` values beside the four versions, the Phugpa's
-  and the Tsurphu's data under `AnomalyStep::Lochen` and, for the second,
-  `Sun::Karana`. Same fields, extra day, range, dawn boundary and native
-  locale `bo` as the Phugpa, and the Tibetan locale's month names;
-  undated usage, the sources dating neither. The engine's quantities —
+- **The two conventions**, as three calendars: `tibetan-lochen` ("Tibetan
+  (Phugpa, Lochen's anomaly)"), `tibetan-bhutan-lochen` ("Tibetan
+  (Bhutanese, Lochen's anomaly)") and `tibetan-tsurphu-karana` ("Tibetan
+  (Tsurphu, karaṇa Sun)"), `TibetanCalendar` values beside the four
+  versions, the Phugpa's, the Bhutanese and the Tsurphu's data under
+  `AnomalyStep::Lochen` and, for the last, `Sun::Karana`. Same fields,
+  extra day, range, dawn boundary and native locale as their version —
+  `bo`, and `dz` for the Bhutanese — and their version's month names;
+  undated usage, the sources dating none. The engine's quantities —
   `Ratio`, the mean motions, `table`, `true_sun`, and the methods
   `mean_date`, `mean_sun`, `karana_mean_sun`, `anomaly`, `true_date`,
-  `end_day`, `lunar_day_span` and `locate` — are public for the almanac,
-  and `with_anomaly_step` gives an unregistered version under the other
-  increment.
+  `end_day`, `lunar_day_span` and `locate` — are public for the almanac;
+  every version under another increment is one of the registered
+  calendars, so none is reached without a name.
 - **The Tsurphu almanac's *karaṇa* Sun**, the solar longitude it prints,
   and its Moon on the first of two days with one number, as
   [tibetan-almanac.md](tibetan-almanac.md) describes.

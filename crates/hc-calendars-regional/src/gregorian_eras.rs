@@ -453,7 +453,9 @@ mod tests {
     #[test]
     fn every_day_round_trips_through_both_calendars_and_their_fields() {
         for calendar in GregorianEraCalendar::ALL {
-            for rd in (calendar.0.earliest().0..=calendar.0.latest.0).step_by(3) {
+            // Every day, in either build: the eras are short and each day
+            // one Gregorian conversion.
+            for rd in calendar.0.earliest().0..=calendar.0.latest.0 {
                 let date = calendar.from_fixed(Rd(rd)).expect("in range");
                 assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)));
                 let fields = calendar.to_fields(date).expect("describable");

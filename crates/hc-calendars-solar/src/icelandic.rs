@@ -1112,7 +1112,23 @@ mod tests {
                 let fields = calendar.to_fields(date).unwrap();
                 assert_eq!(calendar.from_fields(&fields), Ok(date));
             }
-            for rd in (rule.earliest().0..=rule.latest().0).step_by(9_973) {
+            // The whole range: every day in a release build; in a debug
+            // build every 9 973rd day and each year's first day, the
+            // Thursday that opens summer, with the day before it
+            // (docs/policy.md §7).
+            let summers: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
+                (MIN_YEAR..=MAX_YEAR + 1)
+                    .map(|year| rule.summer_raw(year).0)
+                    .collect()
+            } else {
+                alloc::vec::Vec::new()
+            };
+            for rd in crate::sweep_days(
+                rule.earliest().0,
+                rule.latest().0,
+                9_973,
+                summers.iter().copied(),
+            ) {
                 let (year, month, day) = rule.from_fixed(Rd(rd)).unwrap();
                 assert_eq!(
                     rule.to_fixed(year, month, day),

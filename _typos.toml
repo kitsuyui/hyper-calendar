@@ -630,3 +630,7 @@ Sherif = "Sherif"
 # Latin "classis", the class divinumofficium.com prints on each day of its
 # 1960 kalendar ("II. classis"), quoted in the 1960 calendar's docs.
 classis = "classis"
+# The Tibetan nine numbers, sme ba, in Wylie, as Janson's Appendix E names
+# them, in crates/hc-calendars-regional/src/tibetan_almanac.rs and
+# docs/systems/tibetan-almanac.md.
+sme = "sme"

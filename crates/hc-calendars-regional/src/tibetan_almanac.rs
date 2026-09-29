@@ -5,9 +5,10 @@
 //! falls when its date is skipped or repeated.
 //!
 //! The system is written up in the repository in
-//! `docs/systems/tibetan-phugpa.md` and `docs/systems/tibetan-variants.md`,
-//! with the days of Henning's computed almanacs this module was checked
-//! against; this page states the code's own facts.
+//! `docs/systems/tibetan-almanac.md`, with the days of Henning's computed
+//! almanacs this module was checked against; the date itself is in
+//! `docs/systems/tibetan-phugpa.md` and `docs/systems/tibetan-variants.md`.
+//! This page states the code's own facts.
 //!
 //! # The day's columns
 //!
@@ -43,11 +44,23 @@
 //! them, was not read. The twenty-seventh mansion's place is Abhijit's, *gro
 //! zhin*, where Indian lists have Śravaṇa: Henning's almanacs print it so.
 //!
+//! # The attributes of a day
+//!
+//! Janson's Appendix E gives a lunar day an animal, an element, a trigram
+//! and a number ([`lunar_day_attributes`]), and a calendar day a trigram
+//! ([`day_trigram`]) and a number ([`janson_day_number`]); the Indian
+//! system gives it the elements of its weekday and mansion
+//! ([`element_pair`]). Henning's almanacs print the pair, the lunar day's
+//! animal, trigram and number, and beside the solar day a Chinese mansion
+//! ([`chinese_mansion`]) and a number that runs the other way from
+//! Janson's ([`henning_almanac_day_number`]).
+//!
 //! # Sources
 //!
 //! * `janson2014`: Svante Janson, "Tibetan calendar mathematics",
 //!   arXiv:1401.6285, read from its TeX source 2026-09-29: Sections 4, 9,
-//!   10 and 11, Appendices A.2–A.5, B, D and E.
+//!   10 and 11, Appendices A.2–A.5, B, D and E; Section 9's table of the
+//!   weekdays and Appendix E again the same day, in ar5iv's HTML rendering.
 //! * `kalacakra-org`: Edward Henning's computed Phugpa, Tsurphu and
 //!   Bhutanese almanacs (`tdata/pl_*.txt`, `ts_*.txt`, `bh_*.txt`), "Open
 //!   source Tibetan calendar software", "Open source Tsurphu calendar
@@ -727,6 +740,285 @@ pub const fn day_symbol(rd: Rd) -> Symbol {
     }
 }
 
+// --- The astrological attributes of a day ------------------------------------
+
+/// One of the eight trigrams (*spar kha*), with the attributes Janson's
+/// table of the trigrams gives it (Appendix E, Table 15).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Trigram {
+    /// The Tibetan name, as Janson and Henning's almanacs print it: `li`.
+    pub tibetan: &'static str,
+    /// The Chinese name in Pinyin: `lí`.
+    pub chinese: &'static str,
+    /// The direction: `S`.
+    pub direction: &'static str,
+    /// The attribute Janson calls its element: `fire`.
+    pub element: &'static str,
+}
+
+/// The eight trigrams in Janson's order, the King Wen or Later Heaven one,
+/// *li* first, which his formulas number 1 to 8 (Appendix E, Table 15).
+pub const TRIGRAMS: [Trigram; 8] = [
+    Trigram {
+        tibetan: "li",
+        chinese: "lí",
+        direction: "S",
+        element: "fire",
+    },
+    Trigram {
+        tibetan: "khon",
+        chinese: "kūn",
+        direction: "SW",
+        element: "earth",
+    },
+    Trigram {
+        tibetan: "dwa",
+        chinese: "duì",
+        direction: "W",
+        element: "iron",
+    },
+    Trigram {
+        tibetan: "khen",
+        chinese: "qián",
+        direction: "NW",
+        element: "sky",
+    },
+    Trigram {
+        tibetan: "kham",
+        chinese: "kǎn",
+        direction: "N",
+        element: "water",
+    },
+    Trigram {
+        tibetan: "gin",
+        chinese: "gèn",
+        direction: "NE",
+        element: "mountain",
+    },
+    Trigram {
+        tibetan: "zin",
+        chinese: "zhèn",
+        direction: "E",
+        element: "wood",
+    },
+    Trigram {
+        tibetan: "zon",
+        chinese: "xùn",
+        direction: "SE",
+        element: "wind",
+    },
+];
+
+/// One of the nine numbers (*sme ba*), 1 to 9, with the colour, element
+/// and direction Janson's table of the numbers gives it (Appendix E,
+/// Table 16).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct NineNumber {
+    /// The colour: `white` for 1.
+    pub colour: &'static str,
+    /// The element: `iron` for 1.
+    pub element: &'static str,
+    /// The direction in the magic square: `N` for 1.
+    pub direction: &'static str,
+}
+
+/// The nine numbers, 1 first (Janson, Appendix E, Table 16).
+pub const NINE_NUMBERS: [NineNumber; 9] = [
+    NineNumber {
+        colour: "white",
+        element: "iron",
+        direction: "N",
+    },
+    NineNumber {
+        colour: "black",
+        element: "water",
+        direction: "SW",
+    },
+    NineNumber {
+        colour: "blue",
+        element: "water",
+        direction: "E",
+    },
+    NineNumber {
+        colour: "green",
+        element: "wood",
+        direction: "SE",
+    },
+    NineNumber {
+        colour: "yellow",
+        element: "earth",
+        direction: "Centre",
+    },
+    NineNumber {
+        colour: "white",
+        element: "iron",
+        direction: "NW",
+    },
+    NineNumber {
+        colour: "red",
+        element: "fire",
+        direction: "W",
+    },
+    NineNumber {
+        colour: "white",
+        element: "iron",
+        direction: "NE",
+    },
+    NineNumber {
+        colour: "red",
+        element: "fire",
+        direction: "S",
+    },
+];
+
+/// What the Chinese-style system gives a lunar day (Janson, Appendix E,
+/// attributes for lunar days), as indexes: the animal into
+/// [`hc_calendars_lunar::tibetan::ANIMALS`], the element into
+/// [`hc_calendars_lunar::tibetan::ELEMENTS`], the trigram into
+/// [`TRIGRAMS`]; the number is itself, 1 to 9, and names [`NINE_NUMBERS`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct LunarDayAttributes {
+    /// The animal, 0 for the Mouse.
+    pub animal: u8,
+    /// The element, 0 for Wood.
+    pub element: u8,
+    /// The trigram, 0 for *li*.
+    pub trigram: u8,
+    /// The number, 1 to 9.
+    pub number: u8,
+}
+
+/// The animal, element, trigram and number of lunar day `day` (1 to 30) of
+/// month `month` (1 to 12) of `year`, by Janson's rules (Appendix E,
+/// attributes for lunar days): the animal `(D + 6M + 8) amod 12`, an odd
+/// month beginning with the Tiger and an even one with the Monkey (E.9);
+/// the element the month's, under `cycle`, advanced by `D` (`(x + D) amod
+/// 5`); the trigram `(D + 6A + 6) amod 8` and the number `(D + 3A) amod 9`,
+/// `A` the month's animal from the Mouse as 1 (E.10, E.11), so that a Tiger
+/// month begins with *li* and 1. A leap month has its regular month's
+/// attributes, as its symbol does.
+///
+/// Henning's almanacs print the animal, trigram and number on the calendar
+/// day a lunar day ends in, and for a skipped one after the month, "26.
+/// Omitted: Rabbit gin 5"; the first of two days with one number, in which
+/// no lunar day ends, has none. They do not print the element, which rests
+/// on Janson's rule alone.
+///
+/// `None` for a month outside 1 to 12 or a day outside 1 to 30.
+#[must_use]
+pub const fn lunar_day_attributes(
+    cycle: MonthCycle,
+    year: i64,
+    month: u8,
+    day: u8,
+) -> Option<LunarDayAttributes> {
+    if month < 1 || month > 12 || day < 1 || day > 30 {
+        return None;
+    }
+    let symbol = month_symbol(cycle, year, month);
+    let d = day as u16;
+    let m = month as u16;
+    // Janson numbers the animals from the Mouse as 1.
+    let a = symbol.animal as u16 + 1;
+    Some(LunarDayAttributes {
+        animal: ((d + 6 * m + 8 - 1) % 12) as u8,
+        element: ((symbol.element as u16 + d) % 5) as u8,
+        trigram: ((d + 6 * a + 6 - 1) % 8) as u8,
+        number: ((d + 3 * a - 1) % 9 + 1) as u8,
+    })
+}
+
+/// The calendar day's trigram, `(JD + 2) amod 8` (Janson, Appendix E,
+/// attributes for calendar days), as an index into [`TRIGRAMS`]. No almanac
+/// read prints it, so it rests on Janson's rule alone.
+#[must_use]
+pub const fn day_trigram(rd: Rd) -> u8 {
+    (rd.to_julian_day_number() + 1).rem_euclid(8) as u8
+}
+
+/// The calendar day's number, 1 to 9, by Janson's rule, `(−JD) amod 9`,
+/// one less each day (Appendix E, attributes for calendar days); he reports
+/// Henning's book as computing the same, "10 − ((JD + 1) amod 9)" (Remark
+/// 36). Henning's computed almanacs print another count,
+/// [`henning_almanac_day_number`]: the two are two conventions, and each is
+/// a function (docs/policy.md §5).
+#[must_use]
+pub const fn janson_day_number(rd: Rd) -> u8 {
+    ((-rd.to_julian_day_number() - 1).rem_euclid(9) + 1) as u8
+}
+
+/// The number, 1 to 9, Henning's computed Phugpa and Bhutanese almanacs
+/// print after a calendar day's Chinese mansion, "Solar: Earth-Monkey. Bi
+/// 9" for 11 February 2013: `(JD − 1) amod 9`, one more each day, without a
+/// turn at either solstice in the years read. No text read states it, and
+/// it runs the other way from Janson's rule ([`janson_day_number`]); this
+/// is the library's reading of the pages. The Tsurphu almanacs print none,
+/// Janson reporting that Tsurphu calendars count the numbers from the
+/// solstices (Remark 37), which is not carried.
+#[must_use]
+pub const fn henning_almanac_day_number(rd: Rd) -> u8 {
+    ((rd.to_julian_day_number() - 2).rem_euclid(9) + 1) as u8
+}
+
+/// The twenty-eight Chinese lunar mansions a Henning almanac names a
+/// calendar day by, from *Jiao*, in his spelling: three are *Wei* and two
+/// *Bi*, as he prints them.
+pub const CHINESE_MANSIONS: [&str; 28] = [
+    "Jiao", "Kang", "Di", "Fang", "Xin", "Wei", "Ji", "Dou", "Niu", "Nu", "Xu", "Wei", "Shi", "Bi",
+    "Kui", "Lou", "Wei", "Mao", "Bi", "Zui", "Can", "Jing", "Gui", "Liu", "Xing", "Zhang", "Yi",
+    "Zhen",
+];
+
+/// The calendar day's Chinese mansion, as an index into
+/// [`CHINESE_MANSIONS`]: a cycle of twenty-eight days, *Jiao* on a day
+/// whose Julian Day Number is 17 mod 28, as Henning's Phugpa, Tsurphu and
+/// Bhutanese almanacs print it on every day read. No text read states the
+/// rule. It is the same count as the Japanese almanac's 二十八宿,
+/// `hc-almanac`'s `mansions::mansion_of`, which the facade's tests hold.
+#[must_use]
+pub const fn chinese_mansion(rd: Rd) -> u8 {
+    (rd.to_julian_day_number() - 17).rem_euclid(28) as u8
+}
+
+/// The four elements of the Indian system, as Henning's almanacs print
+/// them: an index of [`WEEKDAY_ELEMENTS`] and [`MANSION_ELEMENTS`] names
+/// one of these.
+pub const INDIAN_ELEMENTS: [&str; 4] = ["Earth", "Fire", "Water", "Wind"];
+
+/// The element of each weekday, from Saturday, as an index into
+/// [`INDIAN_ELEMENTS`] (Janson, Section 9, the table of the days of the
+/// week): Saturn's earth, the Sun's fire, the Moon's water, Mars' fire,
+/// Mercury's water, Jupiter's wind and Venus' earth.
+pub const WEEKDAY_ELEMENTS: [u8; 7] = [0, 1, 2, 1, 2, 3, 0];
+
+/// The element of each lunar mansion of [`MANSIONS`], as an index into
+/// [`INDIAN_ELEMENTS`]. Janson refers to Henning's book for the list,
+/// which was not read; these are the elements Henning's almanacs print
+/// after the mansion, each the same on every one of the 40 161 days of
+/// his Phugpa, Bhutanese and Tsurphu almanacs read.
+pub const MANSION_ELEMENTS: [u8; 27] = [
+    3, 1, 1, 0, 3, 2, 3, 1, 2, 1, 1, 3, 3, 3, 3, 1, 0, 0, 2, 2, 0, 0, 2, 0, 1, 2, 2,
+];
+
+/// The day's two elements, the weekday's and the mansion's (Janson,
+/// Appendix E, elemental *yoga*), as indexes into [`INDIAN_ELEMENTS`], in
+/// the order Henning's almanacs print them: "mon gre. Water-Water" for
+/// Monday 11 February 2013. The weekday is the one the almanac names the
+/// day by, so a Bhutanese almanac's is [`bhutanese_weekday`]. Janson
+/// regards the pair as unordered and names ten combinations after
+/// Henning's book, whose names were not read and are not carried. `None`
+/// for a weekday past 6 or a mansion past 26.
+#[must_use]
+pub const fn element_pair(weekday: u8, mansion: u8) -> Option<(u8, u8)> {
+    if weekday > 6 || mansion > 26 {
+        return None;
+    }
+    Some((
+        WEEKDAY_ELEMENTS[weekday as usize],
+        MANSION_ELEMENTS[mansion as usize],
+    ))
+}
+
 // --- Mongolia ----------------------------------------------------------------
 
 /// A season of the Mongolian month names.
@@ -921,8 +1213,12 @@ pub fn berzin_day(
 /// The day Henning's computed almanacs mark a festival on `day` of `month`
 /// of `year`: the day itself; the second of the two days when the number is
 /// repeated; and no day when it is skipped — his Birth of the Buddha is not
-/// marked in 1966, 1975 or 1990, whose 7th of month 4 is skipped. The rule
-/// is this library's reading of his pages, which state none.
+/// marked in 1966, 1975 or 1990, whose 7th of month 4 is skipped. In a year
+/// whose month is doubled his almanacs mark the festival in both months:
+/// the Turning of the Wheel of 2024 on 10 July, the 4th of the leap month
+/// 6, and on 8 August, the 4th of month 6, so a caller asks for each
+/// [`Month`], the leap one and the regular one. The rule is this library's
+/// reading of his pages, which state none.
 ///
 /// # Errors
 ///
@@ -965,11 +1261,11 @@ fn span(
 mod tests {
     use super::*;
     use hc_calendars_lunar::tibetan::{
-        AnomalyStep, TIBETAN_BHUTAN, TIBETAN_LOCHEN, TIBETAN_TSURPHU_KARANA,
+        TIBETAN_BHUTAN, TIBETAN_BHUTAN_LOCHEN, TIBETAN_LOCHEN, TIBETAN_TSURPHU_KARANA,
     };
 
     /// Henning's Bhutanese almanacs: the Bhutanese under Lochen's anomaly.
-    const HENNING_BHUTAN: TibetanCalendar = TIBETAN_BHUTAN.with_anomaly_step(AnomalyStep::Lochen);
+    const HENNING_BHUTAN: TibetanCalendar = TIBETAN_BHUTAN_LOCHEN;
     use hc_calendar::gregorian;
     use hc_calendars_lunar::tibetan::{ANIMALS, ELEMENTS};
 
@@ -3034,6 +3330,12 @@ mod tests {
             henning_almanac_day(&reckoning, 2024, leap_six, 4),
             Ok(Some(greg(2024, 7, 10)))
         );
+        // The month is doubled, and the almanac marks the festival in the
+        // regular month 6 too, on 8 August (`tdata/pl_2024.txt`).
+        assert_eq!(
+            henning_almanac_day(&reckoning, 2024, Month::regular(6), 4),
+            Ok(Some(greg(2024, 8, 8)))
+        );
         // 1990: the 7th of month 4, the Birth of the Buddha, is skipped.
         // Berzin's rule keeps it on the 6th, 30 May; Henning's almanac
         // marks no day.
@@ -3082,5 +3384,402 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// A calendar day of Henning's almanacs with the attributes they print
+    /// for it: the Gregorian date, the weekday the almanac names it by,
+    /// the mansion in Tibetan, the two elements, the Chinese mansion and,
+    /// in the Phugpa and Bhutanese, the number after it; then the lunar
+    /// day's month, day, animal, trigram and number, `None` on the first of
+    /// two days with one number, which prints none.
+    type AttributeRow = (
+        (i64, u8, u8),
+        &'static str,
+        &'static str,
+        (&'static str, &'static str),
+        (&'static str, Option<u8>),
+        Option<(u8, u8, &'static str, &'static str, u8)>,
+    );
+
+    // Transcribed from `tdata/pl_2013.txt`, month 1, and `tdata/bh_2019.txt`,
+    // month 1 [kalacakra-org], read 2026-09-29.
+    const PHUGPA_2013_ATTRIBUTES: &[AttributeRow] = &[
+        (
+            (2013, 2, 11),
+            "Mon",
+            "mon gre",
+            ("Water", "Water"),
+            ("Bi", Some(9)),
+            Some((1, 1, "Tiger", "kham", 7)),
+        ),
+        (
+            (2013, 2, 12),
+            "Tue",
+            "mon gru",
+            ("Fire", "Earth"),
+            ("Zui", Some(1)),
+            Some((1, 2, "Rabbit", "gin", 8)),
+        ),
+        (
+            (2013, 2, 13),
+            "Wed",
+            "khrums stod",
+            ("Water", "Fire"),
+            ("Can", Some(2)),
+            Some((1, 3, "Dragon", "zin", 9)),
+        ),
+        (
+            (2013, 2, 14),
+            "Thu",
+            "khrums smad",
+            ("Wind", "Water"),
+            ("Jing", Some(3)),
+            Some((1, 4, "Snake", "zon", 1)),
+        ),
+        (
+            (2013, 2, 15),
+            "Fri",
+            "nam gru",
+            ("Earth", "Water"),
+            ("Gui", Some(4)),
+            Some((1, 5, "Horse", "li", 2)),
+        ),
+        (
+            (2013, 2, 16),
+            "Sat",
+            "tha skar",
+            ("Earth", "Wind"),
+            ("Liu", Some(5)),
+            Some((1, 6, "Sheep", "khon", 3)),
+        ),
+        (
+            (2013, 2, 17),
+            "Sun",
+            "bra nye",
+            ("Fire", "Fire"),
+            ("Xing", Some(6)),
+            Some((1, 7, "Monkey", "dwa", 4)),
+        ),
+        (
+            (2013, 2, 18),
+            "Mon",
+            "bra nye",
+            ("Water", "Fire"),
+            ("Zhang", Some(7)),
+            Some((1, 8, "Bird", "khen", 5)),
+        ),
+        (
+            (2013, 2, 19),
+            "Tue",
+            "smin drug",
+            ("Fire", "Fire"),
+            ("Yi", Some(8)),
+            Some((1, 9, "Dog", "kham", 6)),
+        ),
+        (
+            (2013, 2, 20),
+            "Wed",
+            "snar ma",
+            ("Water", "Earth"),
+            ("Zhen", Some(9)),
+            Some((1, 10, "Pig", "gin", 7)),
+        ),
+        (
+            (2013, 2, 21),
+            "Thu",
+            "mgo",
+            ("Wind", "Wind"),
+            ("Jiao", Some(1)),
+            Some((1, 11, "Mouse", "zin", 8)),
+        ),
+        (
+            (2013, 2, 22),
+            "Fri",
+            "lag",
+            ("Earth", "Water"),
+            ("Kang", Some(2)),
+            Some((1, 12, "Ox", "zon", 9)),
+        ),
+        (
+            (2013, 2, 23),
+            "Sat",
+            "nabs so",
+            ("Earth", "Wind"),
+            ("Di", Some(3)),
+            Some((1, 13, "Tiger", "li", 1)),
+        ),
+        (
+            (2013, 2, 24),
+            "Sun",
+            "rgyal",
+            ("Fire", "Fire"),
+            ("Fang", Some(4)),
+            Some((1, 14, "Rabbit", "khon", 2)),
+        ),
+        (
+            (2013, 2, 25),
+            "Mon",
+            "skag",
+            ("Water", "Water"),
+            ("Xin", Some(5)),
+            Some((1, 15, "Dragon", "dwa", 3)),
+        ),
+        (
+            (2013, 2, 26),
+            "Tue",
+            "mchu",
+            ("Fire", "Fire"),
+            ("Wei", Some(6)),
+            Some((1, 16, "Snake", "khen", 4)),
+        ),
+        (
+            (2013, 2, 27),
+            "Wed",
+            "gre",
+            ("Water", "Fire"),
+            ("Ji", Some(7)),
+            Some((1, 17, "Horse", "kham", 5)),
+        ),
+        (
+            (2013, 2, 28),
+            "Thu",
+            "dbo",
+            ("Wind", "Wind"),
+            ("Dou", Some(8)),
+            Some((1, 18, "Sheep", "gin", 6)),
+        ),
+        // The Bhutanese almanac names 5 February 2019, a Tuesday, Wednesday.
+        (
+            (2019, 2, 5),
+            "Wed",
+            "gro zhin",
+            ("Water", "Earth"),
+            ("Zui", Some(7)),
+            Some((1, 1, "Tiger", "kham", 7)),
+        ),
+        (
+            (2019, 2, 6),
+            "Thu",
+            "mon gre",
+            ("Wind", "Water"),
+            ("Can", Some(8)),
+            Some((1, 2, "Rabbit", "gin", 8)),
+        ),
+        (
+            (2019, 2, 7),
+            "Fri",
+            "mon gru",
+            ("Earth", "Earth"),
+            ("Jing", Some(9)),
+            Some((1, 3, "Dragon", "zin", 9)),
+        ),
+        (
+            (2019, 2, 8),
+            "Sat",
+            "khrums stod",
+            ("Earth", "Fire"),
+            ("Gui", Some(1)),
+            None,
+        ),
+        (
+            (2019, 2, 9),
+            "Sun",
+            "khrums smad",
+            ("Fire", "Water"),
+            ("Liu", Some(2)),
+            Some((1, 4, "Snake", "zon", 1)),
+        ),
+    ];
+
+    // `tdata/ts_2013.txt`, month 1, the Tsurphu's Tiger month, whose
+    // Chinese mansion carries no number.
+    const TSURPHU_2013_ATTRIBUTES: &[AttributeRow] = &[
+        (
+            (2013, 2, 11),
+            "Mon",
+            "mon gru",
+            ("Water", "Earth"),
+            ("Bi", None),
+            Some((1, 1, "Tiger", "li", 1)),
+        ),
+        (
+            (2013, 2, 12),
+            "Tue",
+            "khrums stod",
+            ("Fire", "Fire"),
+            ("Zui", None),
+            Some((1, 2, "Rabbit", "khon", 2)),
+        ),
+        (
+            (2013, 2, 13),
+            "Wed",
+            "khrums smad",
+            ("Water", "Water"),
+            ("Can", None),
+            Some((1, 3, "Dragon", "dwa", 3)),
+        ),
+        (
+            (2013, 2, 14),
+            "Thu",
+            "nam gru",
+            ("Wind", "Water"),
+            ("Jing", None),
+            Some((1, 4, "Snake", "khen", 4)),
+        ),
+        (
+            (2013, 2, 15),
+            "Fri",
+            "tha skar",
+            ("Earth", "Wind"),
+            ("Gui", None),
+            Some((1, 5, "Horse", "kham", 5)),
+        ),
+        (
+            (2013, 2, 16),
+            "Sat",
+            "tha skar",
+            ("Earth", "Wind"),
+            ("Liu", None),
+            Some((1, 6, "Sheep", "gin", 6)),
+        ),
+        (
+            (2013, 2, 17),
+            "Sun",
+            "bra nye",
+            ("Fire", "Fire"),
+            ("Xing", None),
+            Some((1, 7, "Monkey", "zin", 7)),
+        ),
+    ];
+
+    fn check_attributes(rows: &[AttributeRow], cycle: MonthCycle, year: i64) {
+        let weekdays = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
+        for &((y, m, d), weekday, mansion, (first, second), (chinese, number), lunar) in rows {
+            let rd = greg(y, m, d);
+            let weekday = weekdays
+                .iter()
+                .position(|w| *w == weekday)
+                .expect("a weekday") as u8;
+            let mansion = MANSIONS
+                .iter()
+                .position(|(_, tibetan)| *tibetan == mansion)
+                .expect("a mansion") as u8;
+            let (w, n) = element_pair(weekday, mansion).expect("in range");
+            assert_eq!(
+                (
+                    INDIAN_ELEMENTS[usize::from(w)],
+                    INDIAN_ELEMENTS[usize::from(n)]
+                ),
+                (first, second),
+                "{rd:?}"
+            );
+            assert_eq!(
+                CHINESE_MANSIONS[usize::from(chinese_mansion(rd))],
+                chinese,
+                "{rd:?}"
+            );
+            if let Some(number) = number {
+                assert_eq!(henning_almanac_day_number(rd), number, "{rd:?}");
+            }
+            if let Some((month, day, animal, trigram, number)) = lunar {
+                let attributes = lunar_day_attributes(cycle, year, month, day).expect("in range");
+                assert_eq!(ANIMALS[usize::from(attributes.animal)], animal, "{rd:?}");
+                assert_eq!(
+                    TRIGRAMS[usize::from(attributes.trigram)].tibetan,
+                    trigram,
+                    "{rd:?}"
+                );
+                assert_eq!(attributes.number, number, "{rd:?}");
+            }
+        }
+    }
+
+    #[test]
+    fn the_attributes_are_those_hennings_almanacs_print() {
+        check_attributes(&PHUGPA_2013_ATTRIBUTES[..18], MonthCycle::Phugpa, 2013);
+        check_attributes(&PHUGPA_2013_ATTRIBUTES[18..], MonthCycle::Phugpa, 2019);
+        check_attributes(TSURPHU_2013_ATTRIBUTES, MonthCycle::Tsurphu, 2013);
+        // The Bhutanese almanac's weekday is the Bhutanese one.
+        assert_eq!(bhutanese_weekday(greg(2019, 2, 5)), 4);
+        // A skipped lunar day's line, "26. Omitted: Rabbit gin 5", in month
+        // 1 of 2013; and the doubled month 6 of 2024, whose 4th is "Pig,
+        // gin 7" on 10 July and on 8 August (`tdata/pl_2024.txt`).
+        let omitted = lunar_day_attributes(MonthCycle::Phugpa, 2013, 1, 26).expect("in range");
+        assert_eq!(
+            (
+                ANIMALS[usize::from(omitted.animal)],
+                TRIGRAMS[usize::from(omitted.trigram)].tibetan,
+                omitted.number
+            ),
+            ("Rabbit", "gin", 5)
+        );
+        let doubled = lunar_day_attributes(MonthCycle::Phugpa, 2024, 6, 4).expect("in range");
+        assert_eq!(
+            (
+                ANIMALS[usize::from(doubled.animal)],
+                TRIGRAMS[usize::from(doubled.trigram)].tibetan,
+                doubled.number
+            ),
+            ("Pig", "gin", 7)
+        );
+    }
+
+    #[test]
+    fn the_lunar_day_attributes_follow_jansons_rules() {
+        // Janson, Appendix E: "months Tiger, Horse, Dog begin with Li;
+        // Rabbit, Sheep, Pig begin with Zin; Mouse, Dragon, Monkey begin
+        // with Kham; Ox, Snake, Bird begin with Dwa", and "Tiger, Snake,
+        // Monkey, Pig begin with 1 (white); Mouse, Rabbit, Horse, Bird
+        // begin with 4 (green); Ox, Dragon, Sheep, Dog begin with 7 (red)".
+        let trigrams = [
+            "kham", "dwa", "li", "zin", "kham", "dwa", "li", "zin", "kham", "dwa", "li", "zin",
+        ];
+        let numbers = [4, 7, 1, 4, 7, 1, 4, 7, 1, 4, 7, 1];
+        for month in 1..=12 {
+            let animal = month_symbol(MonthCycle::Tsurphu, 2013, month).animal;
+            let first =
+                lunar_day_attributes(MonthCycle::Tsurphu, 2013, month, 1).expect("in range");
+            assert_eq!(
+                TRIGRAMS[usize::from(first.trigram)].tibetan,
+                trigrams[usize::from(animal)]
+            );
+            assert_eq!(first.number, numbers[usize::from(animal)]);
+            // An odd month begins with the Tiger, an even one with the
+            // Monkey, and the element is the month's advanced by the day.
+            assert_eq!(first.animal, if month % 2 == 1 { 2 } else { 8 });
+            let symbol = month_symbol(MonthCycle::Tsurphu, 2013, month);
+            assert_eq!(first.element, (symbol.element + 1) % 5);
+        }
+        assert_eq!(NINE_NUMBERS[0].colour, "white");
+        assert_eq!(NINE_NUMBERS[3].colour, "green");
+        assert_eq!(NINE_NUMBERS[6].colour, "red");
+        assert_eq!(lunar_day_attributes(MonthCycle::Phugpa, 2013, 0, 1), None);
+        assert_eq!(lunar_day_attributes(MonthCycle::Phugpa, 2013, 13, 1), None);
+        assert_eq!(lunar_day_attributes(MonthCycle::Phugpa, 2013, 1, 0), None);
+        assert_eq!(lunar_day_attributes(MonthCycle::Phugpa, 2013, 1, 31), None);
+        assert_eq!(element_pair(7, 0), None);
+        assert_eq!(element_pair(0, 27), None);
+    }
+
+    #[test]
+    fn the_calendar_days_numbers_run_both_ways() {
+        // Janson's (−JD) amod 9 and his report of Henning's book, "10 −
+        // ((JD + 1) amod 9)" (Remark 36), are one rule, one less each day;
+        // Henning's almanacs print one more each day.
+        for jdn in 2_456_300..2_456_400_i64 {
+            let rd = Rd::from_julian_day_number(jdn);
+            let book = 10 - ((jdn + 1 - 1).rem_euclid(9) + 1);
+            assert_eq!(i64::from(janson_day_number(rd)), book);
+            let next = Rd::from_julian_day_number(jdn + 1);
+            assert_eq!(janson_day_number(next) % 9 + 1, janson_day_number(rd));
+            assert_eq!(
+                henning_almanac_day_number(rd) % 9 + 1,
+                henning_almanac_day_number(next)
+            );
+            assert_eq!(day_trigram(next), (day_trigram(rd) + 1) % 8);
+        }
+        // 11 February 2013 is 9 in the almanac and 8 by Janson's rule.
+        assert_eq!(henning_almanac_day_number(greg(2013, 2, 11)), 9);
+        assert_eq!(janson_day_number(greg(2013, 2, 11)), 8);
     }
 }

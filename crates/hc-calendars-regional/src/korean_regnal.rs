@@ -544,9 +544,13 @@ mod tests {
             .filter(|&rd| calendar.from_fixed(Rd(rd)) != KoreanRegnalCalendar.from_fixed(Rd(rd)))
             .count();
         assert_eq!(parted, 225);
-        for rd in (EARLIEST.0..=LATEST.0).step_by(7) {
+        // Every day round-trips, in either build: the range is fourteen
+        // years of Gregorian days.
+        for rd in EARLIEST.0..=LATEST.0 {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
             let fields = calendar.to_fields(date).expect("describable");
+            assert_eq!(fields.era, Some(date.era.id));
             assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");
         }
     }

@@ -57,32 +57,108 @@ pub enum Half {
     Night,
 }
 
-/// A muhūrta of a day: which half, and which of its fifteen, 1 to 15.
+/// A muhūrta of a day: which half, and which of its fifteen, 1 to 15. The
+/// constructors refuse any other number, so every value names a muhūrta.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Muhurta {
-    /// The day or the night after it.
-    pub half: Half,
-    /// Which fifteenth, counted from the half's start, 1 to 15.
-    pub number: u8,
+    half: Half,
+    number: u8,
 }
 
 impl Muhurta {
-    /// The `number`th muhūrta of the daylight.
+    /// The `number`th muhūrta of the daylight, or `None` for a `number`
+    /// outside 1 to 15, which names none.
     #[must_use]
-    pub const fn day(number: u8) -> Self {
-        Self {
-            half: Half::Day,
-            number,
+    pub const fn day(number: u8) -> Option<Self> {
+        Self::of(Half::Day, number)
+    }
+
+    /// The `number`th muhūrta of the night, or `None` for a `number`
+    /// outside 1 to 15.
+    #[must_use]
+    pub const fn night(number: u8) -> Option<Self> {
+        Self::of(Half::Night, number)
+    }
+
+    /// Abhijit, the [`ABHIJIT`]th muhūrta of the daylight.
+    pub const ABHIJIT: Self = Self {
+        half: Half::Day,
+        number: ABHIJIT,
+    };
+
+    const fn of(half: Half, number: u8) -> Option<Self> {
+        if number < 1 || number > MUHURTAS_PER_HALF {
+            None
+        } else {
+            Some(Self { half, number })
         }
     }
 
-    /// The `number`th muhūrta of the night.
+    /// The day or the night after it.
     #[must_use]
-    pub const fn night(number: u8) -> Self {
-        Self {
-            half: Half::Night,
-            number,
-        }
+    pub const fn half(&self) -> Half {
+        self.half
+    }
+
+    /// Which fifteenth, counted from the half's start, 1 to 15.
+    #[must_use]
+    pub const fn number(&self) -> u8 {
+        self.number
+    }
+}
+
+/// The thirty muhūrtas' names, the fifteen of the day from sunrise and
+/// then the fifteen of the night from sunset, as English Wikipedia's
+/// "Muhurta" tabulates them (`wikipedia-muhurta`, read 2026-09-29), in its
+/// transliteration: Rudra first, Bhaga the fifteenth, Girīśa at sunset and
+/// Samudra last. The article marks the table as needing citations and
+/// names no text for it, so these are a secondary source's names; its
+/// Devanagari column, which differs from its own transliteration in two
+/// places (सतमुखी for Sutamukhī, क्ण्ड for Kaṇḍa), is not carried. Drik
+/// Panchang names the eighth of the day Abhijit ([`ABHIJIT_NAME`]), where
+/// this table has Vidhi: two names of one muhūrta from two sources.
+pub const WIKIPEDIA_NAMES: [&str; 30] = [
+    "Rudra",
+    "Āhi",
+    "Mitra",
+    "Pitṝ",
+    "Vasu",
+    "Vārāha",
+    "Viśvedevā",
+    "Vidhi",
+    "Sutamukhī",
+    "Puruhūta",
+    "Vāhinī",
+    "Naktanakarā",
+    "Varuṇa",
+    "Aryaman",
+    "Bhaga",
+    "Girīśa",
+    "Ajapāda",
+    "Ahir-Budhnya",
+    "Puṣya",
+    "Aśvinī",
+    "Yama",
+    "Agni",
+    "Vidhātṛ",
+    "Kaṇḍa",
+    "Aditi",
+    "Jīva/Amṛta",
+    "Viṣṇu",
+    "Dyumadgadyuti",
+    "Brahma",
+    "Samudra",
+];
+
+impl Muhurta {
+    /// The muhūrta's name in [`WIKIPEDIA_NAMES`].
+    #[must_use]
+    pub const fn wikipedia_name(&self) -> &'static str {
+        let offset = match self.half {
+            Half::Day => 0,
+            Half::Night => MUHURTAS_PER_HALF,
+        };
+        WIKIPEDIA_NAMES[(offset + self.number - 1) as usize]
     }
 }
 
@@ -99,18 +175,17 @@ pub const DUR_MUHURTAM_NAME_DEVANAGARI: &str = "दुर्मुहूर्�
 /// Dur Muhurtam's muhūrtas for each weekday, Sunday first: one or two, the
 /// second `None` where there is one.
 pub const DUR_MUHURTAM: [[Option<Muhurta>; 2]; 7] = [
-    [Some(Muhurta::day(14)), None],
-    [Some(Muhurta::day(9)), Some(Muhurta::day(12))],
-    [Some(Muhurta::day(4)), Some(Muhurta::night(7))],
-    [Some(Muhurta::day(8)), None],
-    [Some(Muhurta::day(6)), Some(Muhurta::day(12))],
-    [Some(Muhurta::day(4)), Some(Muhurta::day(9))],
-    [Some(Muhurta::day(1)), Some(Muhurta::day(2))],
+    [Muhurta::day(14), None],
+    [Muhurta::day(9), Muhurta::day(12)],
+    [Muhurta::day(4), Muhurta::night(7)],
+    [Muhurta::day(8), None],
+    [Muhurta::day(6), Muhurta::day(12)],
+    [Muhurta::day(4), Muhurta::day(9)],
+    [Muhurta::day(1), Muhurta::day(2)],
 ];
 
 /// Where a muhūrta of a local day falls, in Universal Time: the daylight or
-/// the night after it cut into fifteen. A `number` outside 1 to 15 is
-/// clamped.
+/// the night after it cut into fifteen.
 ///
 /// # Errors
 ///
@@ -127,7 +202,7 @@ pub fn muhurta(muhurta: Muhurta, day: Rd, location: Location) -> Result<Span, Mi
             (set.0, next_rise.0)
         }
     };
-    let number = muhurta.number.clamp(1, MUHURTAS_PER_HALF);
+    let number = muhurta.number;
     let length = (end - start) / f64::from(MUHURTAS_PER_HALF);
     let first = start + f64::from(number - 1) * length;
     Ok(Span {
@@ -143,7 +218,7 @@ pub fn muhurta(muhurta: Muhurta, day: Rd, location: Location) -> Result<Span, Mi
 ///
 /// [`MissingSolarEvent`] where the Sun does not rise or set on the day.
 pub fn abhijit(day: Rd, location: Location) -> Result<Option<Span>, MissingSolarEvent> {
-    let span = muhurta(Muhurta::day(ABHIJIT), day, location)?;
+    let span = muhurta(Muhurta::ABHIJIT, day, location)?;
     Ok((Weekday::from_rd(day) != Weekday::Wednesday).then_some(span))
 }
 
@@ -274,16 +349,16 @@ mod tests {
         // Abhijit starts 24 minutes before midday and ends 24 after.
         let day = gregorian::to_fixed(2025, 3, 20).expect("a date");
         let equator = Location::new(0.0, 0.0, 0.0);
-        let span = muhurta(Muhurta::day(ABHIJIT), day, equator).expect("a day");
+        let span = muhurta(Muhurta::ABHIJIT, day, equator).expect("a day");
         let rise = sunrise(day, equator).expect("a sunrise").0;
         let set = sunset(day, equator).expect("a sunset").0;
         let middle = (rise + set) / 2.0;
         assert!(((middle - span.start.0) * 1_440.0 - 24.2).abs() < 0.5);
         assert!(((span.end.0 - middle) * 1_440.0 - 24.2).abs() < 0.5);
         // Fifteen muhūrtas tile the day and fifteen the night.
-        let last = muhurta(Muhurta::day(15), day, equator).expect("a day");
+        let last = muhurta(Muhurta::day(15).expect("the 15th"), day, equator).expect("a day");
         assert!((last.end.0 - set).abs() < 1e-9);
-        let dawn = muhurta(Muhurta::night(15), day, equator).expect("a night");
+        let dawn = muhurta(Muhurta::night(15).expect("the 15th"), day, equator).expect("a night");
         let next = sunrise(Rd(day.0 + 1), equator).expect("a sunrise").0;
         assert!((dawn.end.0 - next).abs() < 1e-9);
     }
@@ -296,13 +371,39 @@ mod tests {
             let night = [first, second]
                 .iter()
                 .flatten()
-                .any(|which| which.half == Half::Night);
+                .any(|which| which.half() == Half::Night);
             assert_eq!(night, weekday == Weekday::Tuesday, "{weekday:?}");
         }
         // Wednesday's is the eighth, the Abhijit it has none of.
         assert_eq!(
             DUR_MUHURTAM[Weekday::Wednesday.sunday_first_number() as usize][0],
-            Some(Muhurta::day(ABHIJIT))
+            Some(Muhurta::ABHIJIT)
+        );
+    }
+
+    #[test]
+    fn the_muhurtas_are_named_as_wikipedia_tabulates_them() {
+        let name = |muhurta: Option<Muhurta>| muhurta.expect("in range").wikipedia_name();
+        assert_eq!(name(Muhurta::day(1)), "Rudra");
+        assert_eq!(Muhurta::ABHIJIT.wikipedia_name(), "Vidhi");
+        assert_eq!(name(Muhurta::day(15)), "Bhaga");
+        assert_eq!(name(Muhurta::night(1)), "Girīśa");
+        assert_eq!(name(Muhurta::night(14)), "Brahma");
+        assert_eq!(name(Muhurta::night(15)), "Samudra");
+        for (index, name) in WIKIPEDIA_NAMES.iter().enumerate() {
+            assert!(!WIKIPEDIA_NAMES[..index].contains(name), "{name}");
+        }
+    }
+
+    #[test]
+    fn a_number_outside_one_to_fifteen_names_no_muhurta() {
+        assert_eq!(Muhurta::day(0), None);
+        assert_eq!(Muhurta::day(16), None);
+        assert_eq!(Muhurta::night(99), None);
+        assert_eq!(Muhurta::day(1).map(|first| first.number()), Some(1));
+        assert_eq!(
+            Muhurta::night(15).map(|last| last.half()),
+            Some(Half::Night)
         );
     }
 

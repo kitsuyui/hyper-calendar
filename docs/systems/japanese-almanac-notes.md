@@ -134,12 +134,13 @@ year's; a 巳-year person keeps 大禍 on 申, 狼藉 on 酉 and 滅門 on 寅 d
 in 巳月 [wikipedia-ja-rekichu-gedan, ndl-koyomi-gedan]. Many commercial
 almanacs print both for everyone [koyomi8-rekichu-3].
 
-**臘日** is reckoned five ways in the sources read: the second 辰 day
+**臘日** is reckoned six ways in the sources read: the second 辰 day
 after 小寒, the 辰 day nearest 大寒, the first 戌 day after 大寒
 [wikipedia-ja-rounichi, koyomil-rounichi, jpnculture-rounichi], the
 ninth of the twelfth lunar month [koyomil-rounichi, jpnculture-rounichi],
-and, in Qin and Han China, the third 戌 day after 冬至: 「腊，冬至后三戌
-腊祭百神」 [wikipedia-zh-laba]. 辰 and 戌 are earth branches, and earth
+「丑節9日」, the ninth day of the 節月 丑月, which 小寒 opens
+[wikipedia-ja-rounichi], and, in Qin and Han China, the third 戌 day
+after 冬至: 「腊，冬至后三戌腊祭百神」 [wikipedia-zh-laba]. 辰 and 戌 are earth branches, and earth
 overcomes the water of winter [wikipedia-ja-rounichi]. こよみる calls
 the 辰 nearest 大寒 the current mainstream, and the 神社暦's
 [koyomil-rounichi]; 西野神社 prints it [nishinojinja-senjitsu].
@@ -192,8 +193,13 @@ lower register, 一粒万倍日 and 甲子 among the 選日, 一白 for the day 
 3. The **first 戌 after 大寒** is **24 January**.
 4. The twelfth lunar month began on 19 January, so its **ninth** is
    **27 January**.
+5. **丑節9日** is **13 January** if 小寒's own day, 5 January, is the first
+   of 丑月, and **14 January** if the first is the day after.
 
-こよみる prints exactly these three days for 2026 [koyomil-rounichi].
+こよみる prints exactly the three days of steps 1–4 for 2026
+[koyomil-rounichi]; it does not give 丑節9日. No term day of 2026 bears
+its rule's sign and 大寒 is not six days from a 辰 day each side, so each
+rule of steps 1–3 answers the same day by both of its readings.
 
 ### A worked example: 五墓日 for someone born in 1925
 
@@ -227,7 +233,8 @@ Japanese, in kana, in Hepburn and as 『三命通會』 heads them, and the day'
 `mansion_undertakings`: 歳事暦's and うまずたゆまず's, each an
 `UndertakingList` of 大吉, 吉, 凶 and 大凶 items and a remark for each of
 the 28, in Japanese as printed, with no function for "the" list. **臘日**
-in `rounichi`, one `RounichiRule` per reckoning, none a default.
+in `rounichi`, one `RounichiRule` per reading of each reckoning, none a
+default.
 
 **Where publishers differ**, each reading is named in the module
 documentation with its source. These are registered as readings of their
@@ -240,35 +247,45 @@ own, because a source states each:
 | 五墓日, which days | 乙丑, 丙戌, 戊辰, 辛未, 壬辰 (Japanese Wikipedia, こよみる, 歳事暦); 乙未 and 辛丑 for wood and metal (精選版日本国語大辞典); 乙未, 丙辰, 戊辰, 辛丑, 壬辰 (the National Diet Library) | `GraveDays::WIKIPEDIA`, which `LowerRegister::GOMUNICHI` holds; `GraveDays::NIKKOKU`; `GraveDays::NDL` |
 | 五墓日, for whom | Everyone, as こよみのページ computes it; only a person whose birth-year 納音 has the day's phase (Japanese Wikipedia, 精選版日本国語大辞典, 歳事暦, こよみる) | `GraveDays::rule` for everyone, which the register holds; `GraveDays::applies_to_person` by a birth year, for the two readings that give one day to each phase — the Library's does not |
 | 三箇の悪日 | Every row, for everyone, as many commercial almanacs print it; one 節月 per person, the one whose branch is their birth year's (the National Diet Library and every other table read) | the three `LowerRegister` entries for everyone; `lower_register::three_evil_day_for` by a birth year |
-| 臘日 | Five reckonings, listed above | `RounichiRule::SECOND_DRAGON_AFTER_MINOR_COLD`, `DRAGON_NEAREST_MAJOR_COLD`, `FIRST_DOG_AFTER_MAJOR_COLD`, `LUNAR_TWELFTH_NINTH`, `THIRD_DOG_AFTER_WINTER_SOLSTICE` |
+| 臘日 | Six reckonings, listed above | `RounichiRule::SECOND_DRAGON_AFTER_MINOR_COLD`, `SECOND_DRAGON_FROM_MINOR_COLD`, `DRAGON_NEAREST_MAJOR_COLD_EARLIER`, `DRAGON_NEAREST_MAJOR_COLD_LATER`, `FIRST_DOG_AFTER_MAJOR_COLD`, `FIRST_DOG_FROM_MAJOR_COLD`, `LUNAR_TWELFTH_NINTH`, `OX_MONTH_NINTH_FROM_MINOR_COLD`, `OX_MONTH_NINTH_AFTER_MINOR_COLD`, `THIRD_DOG_AFTER_WINTER_SOLSTICE`, `THIRD_DOG_FROM_WINTER_SOLSTICE` |
+| 臘日, "after" a term | The term's own day not counted; counted, so that a term day bearing the sign is the first | the `-after-` rule and the `-from-` rule of each of the second-辰, first-戌 and third-戌 reckonings |
+| 臘日, the nearest 辰 | Of two 辰 days six days either side of 大寒, the earlier; the later | `DRAGON_NEAREST_MAJOR_COLD_EARLIER`, `DRAGON_NEAREST_MAJOR_COLD_LATER` |
+| 臘日, 「丑節9日」 | 小寒's own day the first of 丑月; the day after it the first | `OX_MONTH_NINTH_FROM_MINOR_COLD`, `OX_MONTH_NINTH_AFTER_MINOR_COLD` |
 | The undertakings of each mansion | 歳事暦; うまずたゆまず | `UndertakingList::SAIJIGOYOMI`, `UndertakingList::LINDERABELL` |
 
-The others are named and not registered, because no printed date tests the
-alternative:
+The others are named and not yet registered, each for the reason its row
+gives:
 
-| Note | Carried | Named, not carried |
+| Note | Carried | Named, not yet carried |
 | --- | --- | --- |
-| 大明日 | The 25-day list of Japanese Wikipedia, こよみる and 歳事暦 | The 21-day list (Japanese Wikipedia, こよみる) and the 19-day list (こよみる) |
-| 臘日 | Five reckonings | Japanese Wikipedia's 「丑節9日」, which does not say whether 小寒's own day is the first; こよみる and 日本文化研究ブログ write the fourth reckoning as the lunar 12月9日 instead |
-| The undertakings of each mansion | 歳事暦's and うまずたゆまず's lists | 神仏.ネット's, which writes each mansion as sentences, not lists, and differs in substance: splitting them would be this library's reading |
-| 凶会日, which table | The 貞享暦 table, seventy days | The 宣明暦 table, with twelve more |
-| 一粒万倍日 | The union of the National Diet Library's two methods, which it says are now used together | Either method alone |
-| 九星 閏 | Last sixty days of a 240-day period, reversing at the 甲午 | A 閏 wherever a 甲午 falls within a day of a solstice, which Japanese Wikipedia says needs adjustments it does not describe |
+| 大明日 | The 25-day list of Japanese Wikipedia, こよみる and 歳事暦 | The 21-day list (Japanese Wikipedia, こよみる) and the 19-day list (こよみる), because no printed date tests them |
+| The undertakings of each mansion | 歳事暦's and うまずたゆまず's lists | 神仏.ネット's, because its entries are prose sentences under that site's copyright, not lists, and a list of undertakings drawn from them would be this library's reading of them, not the site's |
+| 凶会日, which table | The 貞享暦 table, seventy days | The 宣明暦 table, with twelve more, because no printed date tests it |
+| 一粒万倍日 | The union of the National Diet Library's two methods, which it says are now used together | Either method alone, because no printed date tests it |
+| 九星 閏 | Last sixty days of a 240-day period, reversing at the 甲午 | A 閏 wherever a 甲午 falls within a day of a solstice, because Japanese Wikipedia says it needs adjustments it does not describe |
 
-**Not carried at all**: the 神吉日 suppression rule, which no source can
-state; and the mansion the Moon is actually in. The crate README lists
-these gaps.
+**Not yet carried at all**: the 神吉日 suppression rule, because no source
+read states it; and the mansion the Moon is actually in, because the
+mansions' boundaries depend on a star catalogue, and none is read or
+carried. The
+crate README lists these gaps.
 
-**Where a 臘日 rule does not say**, it answers `None`: "after" a term
-does not say whether the term's own day counts, so a rule counting after
-小寒, 大寒 or 冬至 declines a winter whose term day bears its sign, and
-the nearest-辰 rule declines one whose 辰 days lie six days either side
-of 大寒. At the Japanese meridian that is 15, 18, 18 and 15 winters of
-1901–2100 for the second-辰, nearest-辰, first-戌 and third-戌 rules. The
+**Where a 臘日 rule's wording admits two readings**, each is a rule:
+a rule counting after 小寒, 大寒 or 冬至 has an `-after-` rule, which does
+not count the term's own day, and a `-from-` rule, which counts it when it
+bears the sign; the nearest-辰 rule has an `-earlier` and a `-later` rule
+for a winter whose 辰 days lie six days either side of 大寒; and
+「丑節9日」 has a rule that counts 小寒's own day as the first of 丑月 and
+one that counts from the day after. At the Japanese meridian the two
+readings differ in 15, 18, 18 and 15 winters of 1901–2100 for the
+second-辰, nearest-辰, first-戌 and third-戌 rules, and agree in every
+other; the two readings of 丑節9日 are always a day apart. The lunar rule
+answers `None` where no ordinary twelfth month lies next to 大寒, which
+no winter of 1901–2100 does. The
 Han rule reads the astronomical 冬至; Qin and Han kept a calendar of their
 own, and the one dated 臘 the source quotes, a 戊戌 in the twelfth month
-of 秦二世元年 [wikipedia-zh-laba], is not the day the rule gives for
-that winter with the true solstice, 24 January 209 BCE (proleptic
+of 秦二世元年 [wikipedia-zh-laba], is not the day either reading of the
+rule gives for that winter with the true solstice, 24 January 209 BCE (proleptic
 Gregorian), a 丙戌: a 戊戌 is the next 戌 day after it. The rule is
 carried as the source states it; no 臘 of those centuries is answered as
 the one kept.
@@ -337,8 +354,17 @@ and the 旧暦 derivation.
   other day (`the_published_2025_grave_days_of_each_phase_match`).
 - 臘日: こよみる's candidates for 2024 to 2027 by its four reckonings,
   sixteen days, among them the one day of 2025 on which the first two
-  agree (`the_published_candidates_of_2024_to_2027_match`). The Han
-  reckoning has no dated modern example.
+  agree, each by both readings of its rule
+  (`the_published_candidates_of_2024_to_2027_match`). No source read
+  dates a winter in which the two readings of a rule part, so those
+  winters are checked against the wording alone: the two readings of
+  "after" part only where the term day bears the sign, and the counted
+  reading then answers the term day
+  (`the_two_readings_of_after_differ_only_on_a_term_day_of_the_sign`);
+  the two nearest-辰 readings part only on a tie
+  (`the_nearest_dragon_readings_differ_only_on_a_tie`). 「丑節9日」 and
+  the Han reckoning have no dated modern example; the 丑節9日 of 2026 is
+  worked out from 小寒 (`the_ninth_of_the_ox_month_is_counted_both_ways`).
 
 - 凶会日 by 旧暦 month: all 33 days こよみる prints for 2025, four of them in
   the leap sixth month, and no other day
@@ -397,7 +423,7 @@ lists the runs over 1900–2100 in which the two differ.
 | [koyomi8-kyusei-hyo] | The 定気 節切り year; the 閏 procedure, called its own | Yes, 2026-09-26 |
 | [koyomil-kuenichi] | The five readings of 凶会日 in use; its own, the 貞享暦 by 旧暦 month; the 2025 dates | Yes, 2026-09-26 |
 | [koyomil-daimyonichi] | The 25-, 21- and 19-day 大明日 | Yes, 2026-09-26 |
-| [koyomil-gomunichi] | 五墓日 by 納音 | Yes, 2026-09-26 |
+| [koyomil-gomunichi] | 五墓日 by 納音 phase, the birth years of each phase from 1921, and the 2025 dates of each | Yes, 2026-09-26 and 2026-09-29 |
 | [koyomil-taikanichi] | The three 悪日 by birth year and for everyone | Yes, 2026-09-26 |
 | [saijigoyomi-gedan] | The 貞享暦 凶会日 headed 節切り; 五墓日 by 納音; the three 悪日; the 25-day 大明日 | Yes, 2026-09-26 |
 | [linderabell-kuenichi] | The 貞享暦 凶会日 「節切りの月毎」 | Yes, 2026-09-26 |
@@ -411,16 +437,15 @@ lists the runs over 1900–2100 in which the two differ.
 | [wikipedia-ja-nacchin] | The thirty 納音, their readings and pairs | Yes, 2026-09-29 |
 | [sanming-tonghui-nayin] | 『三命通會』 卷一's thirty section headings, as Wikisource transcribes them | Yes, 2026-09-29 |
 | [kotobank-nacchin] | 精選版日本国語大辞典's 納音: 甲子・乙丑 海中金, 丙寅・丁卯 爐中火 | Yes, 2026-09-29 |
-| [koyomil-gomunichi] | Again: 五墓日 by 納音 phase, the birth years of each phase from 1921, and the 2025 dates of each | Yes, 2026-09-29 |
 | [wikipedia-ja-rekichu-gedan], [ndl-koyomi-gedan], [kotobank-gomunichi] | Again: 五墓日 by phase (the Library's without one); the three 悪日 by birth year and the 巳-year example | Yes, 2026-09-29 |
-| [wikipedia-ja-rounichi] | 臘日: the 臘祭, the four Japanese reckonings, 「丑節9日」, the earth branches | Yes, 2026-09-29 |
+| [wikipedia-ja-rounichi] | 臘日: the 臘祭, the four Japanese reckonings, 「丑節9日」 with no word on which day of 丑月 is the first, the earth branches | Yes, 2026-09-29 |
 | [koyomil-rounichi] | 臘日: four reckonings with the lunar 12月9日, the 神社暦's, 臘八 not the 選日, the candidates of 2024–2027 | Yes, 2026-09-29 |
 | [jpnculture-rounichi] | 臘日: the same four reckonings | Yes, 2026-09-29 |
 | [nishinojinja-senjitsu] | 臘日 as 「大寒に近い辰の日」 | Yes, 2026-09-29 |
 | [wikipedia-zh-laba] | The Qin and Han 臘 on the third 戌 after 冬至, 『説文解字』 quoted; 秦二世元年十二月戊戌 | Yes, 2026-09-29; the 『説文解字』 itself not read |
 | [saijigoyomi-28shuku] | 歳事暦's list of each mansion's undertakings | Yes, 2026-09-29 |
 | [linderabell-28shuku] | うまずたゆまず's list | Yes, 2026-09-29 |
-| [shintobukkyo-28shuku] | 神仏.ネット's entries, as sentences; not carried | Yes, 2026-09-29 |
+| [shintobukkyo-28shuku] | 神仏.ネット's entries, as prose sentences; not yet carried, for the reason under What is carried | Yes, 2026-09-29 |
 | [okada-akune1993] | The rule tables at the root of Japanese Wikipedia's and こよみのページ's | Not read; its record from CiNii Books, 2026-09-26 |
 | [okada-kyureki-dokuhon] | Named by こよみのページ as a basis of its rules | Not read |
 
@@ -452,7 +477,9 @@ register);
 `the_pairs_are_the_tables`, `the_phase_is_the_last_character_in_both_namings`,
 `the_published_birth_years_have_their_phases` (納音);
 `the_published_candidates_of_2024_to_2027_match`,
-`every_day_bears_its_sign_and_every_refusal_has_its_reason`,
+`the_two_readings_of_after_differ_only_on_a_term_day_of_the_sign`,
+`the_nearest_dragon_readings_differ_only_on_a_tie`,
+`the_ninth_of_the_ox_month_is_counted_both_ways`,
 `the_lunar_rule_is_the_ninth_of_the_twelfth_month` (臘日);
 `the_two_lists_differ_only_where_the_documentation_says`,
 `the_lists_agree_with_the_undisputed_notes` (the per-mansion lists);

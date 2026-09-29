@@ -132,6 +132,11 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "the sexagenary year recurs every 60 years",
     ),
     (
+        "dangi-kasi",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
         "vietnamese",
         "year-not-written",
         "the sexagenary year recurs every 60 years",
@@ -191,6 +196,11 @@ const REFUSALS: &[(&str, &str, &str)] = &[
     ),
     (
         "tibetan-lochen",
+        "ambiguous",
+        "a doubled lunar day is written as the ordinary one",
+    ),
+    (
+        "tibetan-bhutan-lochen",
         "ambiguous",
         "a doubled lunar day is written as the ordinary one",
     ),
@@ -270,6 +280,11 @@ const MORE_DAYS: &[(&str, &[i64], &str)] = &[
     ("tibetan-bhutan", &[726_514, 726_515], "a doubled lunar day"),
     ("mongolian", &[726_514, 726_515], "a doubled lunar day"),
     ("tibetan-lochen", &[726_482, 726_483], "a doubled lunar day"),
+    (
+        "tibetan-bhutan-lochen",
+        &[726_514, 726_515],
+        "a doubled lunar day",
+    ),
     (
         "tibetan-tsurphu-karana",
         &[726_514, 726_515],

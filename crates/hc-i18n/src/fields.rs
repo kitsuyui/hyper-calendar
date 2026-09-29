@@ -394,6 +394,7 @@ const ISO_WEEKDAY_CALENDARS: &[CalendarId] = &[
 const LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("chinese"),
     CalendarId("dangi"),
+    CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
     CalendarId("japanese-senmyo"),
     CalendarId("japanese-jokyo"),

@@ -651,7 +651,7 @@ pub fn lichun_day(year: i64) -> CalendarResult<Rd> {
 
 /// A person's age counted from 立春 rather than from the New Year, on a
 /// fixed day: one at birth and one more on each day 立春 falls on after
-/// the day of birth (`lichun-age`). `Ok(None)` for a day before the birth.
+/// the day of birth. `Ok(None)` for a day before the birth.
 ///
 /// 果壳's account of 虚岁 gives the count as one more at 正月初一 and adds
 /// that in some places the age turns at 立春 instead:
@@ -685,7 +685,7 @@ pub fn reckoned_age_at_lichun(birth: Rd, on: Rd) -> CalendarResult<Option<u32>> 
 }
 
 /// A person's age counted in Gregorian years, one at birth and one more
-/// each 1 January (`new-year-day-age`): the Korean 세는 나이, and the
+/// each 1 January: the Korean 세는 나이, and the
 /// modern 虚岁 of Korea (`wikipedia-zh-xusui`). `None` for a day before
 /// the birth.
 ///
@@ -700,7 +700,7 @@ pub fn reckoned_age_at_new_year_day(birth: Rd, on: Rd) -> Option<u32> {
 }
 
 /// A person's age counted in Gregorian years from nothing at birth, one
-/// more each 1 January (`year-age`): the Korean 연 나이 some South Korean
+/// more each 1 January: the Korean 연 나이 some South Korean
 /// laws use, "the difference between one's birth year and the current
 /// year" (`wikipedia-en-east-asian-age-reckoning`), and the modern 虚岁
 /// of Vietnam and parts of China, which starts at nothing
