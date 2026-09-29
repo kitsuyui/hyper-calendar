@@ -98,7 +98,7 @@ describe("load", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
       "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
-      "planetary", "relativity", "places",
+      "planetary", "relativity", "places", "humanize", "zone-names",
     ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
@@ -1817,8 +1817,10 @@ describe("the pañcāṅga and the anniversaries", () => {
     refused(() => hc.chineseReckonedAge(birth, birth - 1), "no-data");
     // The South China Morning Post: 2024's Dragon year is a widow year, and
     // the year from 26 January 2009 holds two 立春.
-    assert.deepEqual(hc.chineseMarriageAugury(4_661), { augury: "widow", lichunAtStart: false, lichunAtEnd: false });
-    assert.deepEqual(hc.chineseMarriageAugury(4_646), { augury: "double-bright", lichunAtStart: true, lichunAtEnd: true });
+    const widow = hc.chineseMarriageAugury(4_661);
+    assert.deepEqual([widow.augury, widow.lichunAtStart, widow.lichunAtEnd], ["widow", false, false]);
+    const double = hc.chineseMarriageAugury(4_646);
+    assert.deepEqual([double.augury, double.lichunAtStart, double.lichunAtEnd], ["double-bright", true, true]);
     refused(() => hc.chineseMarriageAugury(2n ** 63n - 1n), "out-of-range");
   });
 });
@@ -2896,5 +2898,289 @@ describe("places", () => {
     assert.deepEqual(hc.subdivisions("AQ"), []);
     refused(() => hc.subdivisions("JPN"), "unknown");
     refused(() => hc.placeName("jp13"), "unknown");
+  });
+});
+
+describe("humanize", () => {
+  test("an instant reads as CLDR's English and Russian phrase it", () => {
+    const now = 1_700_000_000;
+    assert.deepEqual(hc.relativeTime(now - 3 * 3_600 - 59, now, "long", false, "en"), {
+      phrase: "3 hours ago", unit: "hour", count: -3, localeUsed: "en",
+    });
+    assert.equal(hc.relativeTime(now + 2 * 86_400, now, "long", false, "en").phrase, "in 2 days");
+    assert.equal(hc.relativeTime(now - 86_400, now, "long", true, "en").phrase, "yesterday");
+    assert.equal(hc.relativeTime(now - 86_400, now, "long", false, "ru").phrase, "1 день назад");
+    assert.equal(hc.relativeTime(now - 86_400, now).phrase, "-1 d");
+    refused(() => hc.relativeTime(now, now, /** @type {any} */ ("wide")), "unknown");
+    refused(() => hc.relativeTime(-(2n ** 63n), 1n), "out-of-range");
+  });
+
+  test("a day is counted by the calendar, and a time joins it by the locale's pattern", () => {
+    const today = hc.gregorianToFixed(2026, 9, 29);
+    assert.deepEqual(hc.relativeDay(today - 1, today, "long", true, "en"), {
+      phrase: "yesterday", unit: "day", count: -1, localeUsed: "en",
+    });
+    assert.equal(hc.relativeDay(today, today, "long", true, "ja").phrase, "今日");
+    assert.deepEqual(hc.relativeDayAt(today - 1, today, 15 * 3_600 + 5 * 60, "long", true, "en"), {
+      phrase: "yesterday at 15:05", unit: "day", count: -1, time: "15:05", localeUsed: "en",
+    });
+    refused(() => hc.relativeDayAt(today, today, 86_400), "out-of-range");
+  });
+
+  test("a duration is phrased in its units", () => {
+    assert.deepEqual(hc.duration(9_000, "long", 0, "en"), {
+      phrase: "2 hours and 30 minutes", negative: false, localeUsed: "en",
+    });
+    assert.equal(hc.duration(9_000, "compact", 0, "en").phrase, "2h30m");
+    assert.equal(hc.duration(86_400 + 9_007, "long", 1, "en").phrase, "1 day");
+    assert.equal(hc.duration(-9_000, "long", 0, "en").negative, true);
+    refused(() => hc.duration(1, /** @type {any} */ ("wide")), "unknown");
+  });
+});
+
+describe("the almanac's directions, 臘日, undertakings and a person's own days", () => {
+  test("the gods stand where 古文書ネット's tables put them", () => {
+    const gods = hc.almanacDirections(hc.gregorianToFixed(2026, 9, 29), "japan");
+    assert.deepEqual(gods[0], {
+      id: "taisai", name: "太歳神", reading: "taisaijin", branch: "午", azimuth: 180,
+      meaning: "facing it everything goes well, but do not fell trees", year: "丙午", branchNumber: 7,
+    });
+    assert.equal(gods.find((god) => god.id === "saiha")?.branch, "子");
+    const konjin = hc.almanacDirections(hc.gregorianToFixed(2025, 6, 1), "japan").filter((god) => god.id === "konjin");
+    assert.deepEqual(konjin.map((god) => god.branch), ["辰", "巳"]);
+    assert.equal(konjin[0].reading, null);
+  });
+
+  test("臘日 is こよみる's day of 2026, and an unsettled winter is refused", () => {
+    assert.equal(hc.rounichi("dragon-nearest-major-cold-earlier", 2026, "japan"), hc.gregorianToFixed(2026, 1, 18));
+    assert.equal(hc.rounichi("first-dog-after-major-cold", 2026, "japan"), hc.gregorianToFixed(2026, 1, 24));
+    refused(() => hc.rounichi(/** @type {any} */ ("rounichi"), 2026), "unknown");
+    refused(() => hc.rounichi("dragon-nearest-major-cold-earlier", -1000), "out-of-range");
+  });
+
+  test("the undertakings are the publisher's, and a person's days are their birth year's", () => {
+    const kaku = hc.mansionUndertakings("saijigoyomi", hc.gregorianToFixed(2026, 1, 8));
+    assert.deepEqual(kaku[0], { mansion: 1, mansionName: "角", grade: "favoured", undertaking: "衣類裁断" });
+    assert.deepEqual(kaku.filter((row) => row.grade === "avoided").map((row) => row.undertaking), ["葬式", "納骨"]);
+    const wood = hc.almanacPersonDays(hc.gregorianToFixed(2025, 2, 25), 1928, "japan");
+    assert.deepEqual(wood[0], { kind: "grave-day", id: "gomunichi-wikipedia", name: "五墓日", keeps: "乙丑", applies: true });
+    const snake = hc.almanacPersonDays(hc.gregorianToFixed(2025, 5, 15), 2025, "japan");
+    assert.equal(snake.find((row) => row.id === "taikanichi")?.applies, true);
+  });
+});
+
+describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the Siddhānta's pañcāṅga", () => {
+  const delhi = [28 + 38 / 60 + 8 / 3600, 77 + 13 / 60 + 28 / 3600, 0];
+
+  test("Wednesday 1 January 2025 has no Abhijit and its eighth muhūrta as Dur Muhurtam", () => {
+    const day = hc.gregorianToFixed(2025, 1, 1);
+    const muhurtas = hc.muhurtas(day, ...delhi);
+    assert.equal(muhurtas.length, 30);
+    assert.deepEqual(muhurtas.filter((m) => m.mark !== null).map((m) => [m.half, m.number, m.mark]), [
+      ["day", 8, "dur-muhurtam"],
+    ]);
+    const thursday = hc.muhurtas(day + 1, ...delhi).filter((m) => m.mark !== null);
+    assert.deepEqual(thursday.map((m) => [m.number, m.mark]), [[6, "dur-muhurtam"], [8, "abhijit"], [12, "dur-muhurtam"]]);
+    assert.equal(hc.muhurtas(day, 78, 15, 0)[0].missing?.event, "sunrise");
+  });
+
+  test("amṛta siddhi falls on Tuesday 7 January 2025 in Aśvinī, and the Moon is there", () => {
+    const yoga = hc.amritaSiddhi(hc.gregorianToFixed(2025, 1, 7), ...delhi, "lahiri");
+    assert.equal(yoga.falls, true);
+    assert.equal(yoga.nakshatra, 1);
+    assert.equal(hc.amritaSiddhi(hc.gregorianToFixed(2025, 1, 8), ...delhi, "lahiri").start, null);
+    const stay = hc.nakshatraAt(/** @type {number} */ (yoga.start) + 60, "lahiri");
+    assert.equal(stay.nakshatra, 1);
+    assert.equal(hc.nakshatraOfDay(hc.gregorianToFixed(2025, 1, 7), ...delhi, "lahiri").ayanamsa, "lahiri");
+    refused(() => hc.nakshatraAt(0, /** @type {any} */ ("tropical")), "unknown");
+  });
+
+  test("the drekkāṇa is a third of the sidereal sign, and its lord rules the sign it is given to", () => {
+    const drekkana = hc.drekkanaAt(1_700_000_000, "lahiri");
+    assert.ok(drekkana.drekkana >= 1 && drekkana.drekkana <= 3);
+    assert.ok(drekkana.degreesIntoDrekkana >= 0 && drekkana.degreesIntoDrekkana < 10);
+    assert.equal(drekkana.ayanamsa, "lahiri");
+    refused(() => hc.drekkanaAt(0, /** @type {any} */ ("")), "unknown");
+  });
+
+  test("the Siddhānta's pañcāṅga names its sky on both lines, and the twelve-year name rides with the sixty", () => {
+    const limbs = hc.panchangaAt(1_700_000_000, "surya-siddhanta");
+    assert.deepEqual(limbs.map((limb) => limb.ayanamsa), ["surya-siddhanta", "surya-siddhanta"]);
+    assert.equal(limbs[1].ayanamsaName, "Sūrya Siddhānta");
+    assert.equal(hc.panchangaAt(1_700_000_000, "lahiri")[1].ayanamsa, null);
+    const at = hc.barhaspatyaYearAt("surya-siddhanta-bija", Date.UTC(2024, 3, 29, 10, 40) / 1000);
+    assert.deepEqual([at.position, at.twelveYear, at.twelveYearName, at.meanSign], [51, 7, "Asvina", "mesha"]);
+  });
+});
+
+describe("the Tibetan almanac", () => {
+  test("Henning's Tsurphu almanac's first day of 2013 is written as he prints it", () => {
+    const entries = hc.tibetanAlmanacDay("tibetan-tsurphu-karana", hc.gregorianToFixed(2013, 2, 11));
+    assert.deepEqual(entries[0], {
+      kind: "weekday", id: 3, name: "Monday", tibetan: "zla ba", reading: "2;11,24", value: entries[0].value,
+    });
+    assert.deepEqual([entries[1].name, entries[1].tibetan], ["Shatabhishaj", "mon gru"]);
+    assert.equal(entries.find((entry) => entry.kind === "year-symbol")?.name, "Water-Snake");
+    refused(() => hc.tibetanAlmanacDay(/** @type {any} */ ("tibetan-x"), 0), "unknown");
+  });
+
+  test("the planets, the Bhutanese solstice and a skipped festival", () => {
+    const mars = hc.tibetanPlanets(hc.gregorianToFixed(2011, 1, 6)).find((planet) => planet.planet === "mars");
+    assert.equal(mars?.particularDay, 525);
+    assert.deepEqual(hc.bhutaneseWinterSolstice(2001).reading, "2;51,38");
+    assert.equal(hc.bhutaneseWinterSolstice(2001).fixed, hc.gregorianToFixed(2001, 1, 1));
+    refused(() => hc.tibetanFestivalDay("henning-almanac", "tibetan-lochen", 1990, 4, false, 7), "no-data");
+    assert.equal(typeof hc.tibetanFestivalDay("berzin", "tibetan-lochen", 1990, 4, false, 7), "number");
+  });
+});
+
+describe("the East Asian ages, almanac terms and augury names", () => {
+  test("each age count is its source's", () => {
+    const birth = hc.gregorianToFixed(2000, 6, 1);
+    assert.equal(hc.chineseAge("chinese-age", birth, hc.gregorianToFixed(2012, 1, 23)), 13);
+    const spring = hc.gregorianToFixed(2009, 6, 1);
+    assert.equal(hc.chineseAge("lichun-age", spring, hc.gregorianToFixed(2010, 2, 3)), 1);
+    assert.equal(hc.chineseAge("lichun-age", spring, hc.gregorianToFixed(2010, 2, 4)), 2);
+    const eve = hc.gregorianToFixed(2023, 12, 31);
+    assert.equal(hc.chineseAge("new-year-day-age", eve, eve + 1), 2);
+    assert.equal(hc.chineseAge("year-age", eve, eve + 1), 1);
+    refused(() => hc.chineseAge("year-age", eve, eve - 1), "no-data");
+    refused(() => hc.chineseAge(/** @type {any} */ ("korean-age"), eve, eve), "unknown");
+  });
+
+  test("the almanac's terms run from 小寒, and a widow year has its Chinese names", () => {
+    const terms = hc.chineseAlmanacSolarTerms(1700);
+    assert.equal(terms.length, 24);
+    assert.deepEqual([terms[0].position, terms[0].name, terms[23].name], [1, "小寒", "冬至"]);
+    refused(() => hc.chineseAlmanacSolarTerms(1668), "no-data");
+    const widow = hc.chineseMarriageAugury(4661);
+    assert.deepEqual(widow.chineseNames[0], { name: "無春年", locale: "zh-Hant", region: null });
+    assert.deepEqual(widow.chineseNames[1], { name: "寡婦年", locale: "zh-Hant", region: "north" });
+    assert.deepEqual(hc.chineseMarriageAugury(4646).chineseNames.map((name) => name.name), ["雙春兼閏月", "双春年"]);
+  });
+});
+
+describe("decimal time, the Olympiad of a day, regnal years, tekufot and named days", () => {
+  test("noon is five decimal hours, and 23:59:60 has no place", () => {
+    assert.deepEqual(hc.frenchDecimalTime(43_200), { hour: 5, minute: 0, second: 0, attoseconds: 0n });
+    refused(() => hc.frenchDecimalTime(86_400), "no-data");
+    assert.deepEqual(hc.civilFromFrenchDecimalTime(5, 0, 0), { secondsOfDay: 43_200, attoseconds: 0n });
+    refused(() => hc.civilFromFrenchDecimalTime(10, 0, 0), "out-of-range");
+  });
+
+  test("the Olympiad of a day, a Seleucid king, a tekufah and a day's name", () => {
+    assert.equal(hc.iocOlympiadOn(hc.gregorianToFixed(1900, 1, 1)), 1);
+    refused(() => hc.iocOlympiadOn(hc.gregorianToFixed(1956, 8, 1)), "no-data");
+    assert.equal(hc.iocOlympiadOn(hc.gregorianToFixed(2026, 9, 29)), 33);
+    assert.deepEqual(hc.babylonianRegnalYear(1), { king: "Seleucus I Nicator", year: 1 });
+    const tishrei = hc.shmuelTekufah(5786, "tishrei");
+    assert.equal(tishrei.fixed, hc.gregorianToFixed(2025, 10, 7));
+    refused(() => hc.shmuelTekufah(5786, /** @type {any} */ ("adar")), "unknown");
+    const raisin = hc.dayName("french-republican-arithmetic", "fr", hc.gregorianToFixed(1793, 9, 22));
+    assert.deepEqual([raisin.name, raisin.naming], ["Raisin", "fr"]);
+    refused(() => hc.dayName("gregory", "fr", 0), "unknown");
+  });
+});
+
+describe("the 1960 office", () => {
+  test("the Annunciation of 1962 is transferred from the Third Sunday of Lent", () => {
+    const sunday = hc.gregorianToFixed(1962, 3, 25);
+    const lines = hc.roman1960OfficeOn(sunday);
+    assert.deepEqual([lines[0].role, lines[0].title, lines[0].class], ["office", "Third Sunday of Lent", "first"]);
+    assert.ok(lines.some((line) => line.role === "transferred"));
+    const monday = hc.roman1960OfficeOn(sunday + 1)[0];
+    assert.deepEqual([monday.title, monday.transferredFrom], ["The Annunciation of the Blessed Virgin Mary", sunday]);
+    refused(() => hc.roman1960OfficeOn(0), "out-of-range");
+  });
+});
+
+describe("zone names", () => {
+  test("Tokyo is Japan Standard Time, 日本標準時 under ja, and a field not known is refused", () => {
+    assert.deepEqual(hc.zoneName("Asia/Tokyo", 1_784_000_000, "en", "zzzz"), {
+      name: "Japan Standard Time", field: "zzzz", zone: "Asia/Tokyo", offset: 32_400, daylight: false,
+    });
+    assert.equal(hc.zoneName("Asia/Tokyo", 1_784_000_000, "ja").name, "日本標準時");
+    assert.equal(hc.zoneName("Europe/Berlin", 1_784_000_000, "de", "zzzz").name, "Mitteleuropäische Sommerzeit");
+    refused(() => hc.zoneName("Asia/Tokyo", 0, "en", /** @type {any} */ ("OO")), "unknown");
+  });
+});
+
+describe("day periods, numbering systems, eras, groups and holiday names in a locale", () => {
+  test("15:00 is in the afternoon, 5786 is Hebrew and back, and 令和 is a Japanese era", () => {
+    const afternoon = hc.dayPeriod(15 * 3600, "en");
+    assert.deepEqual([afternoon.half, afternoon.halfName, afternoon.period, afternoon.wide],
+      ["pm", "PM", "afternoon1", "in the afternoon"]);
+    const hebrew = hc.formatNumber("hebr", 5786);
+    assert.equal(hc.parseNumber("hebr", hebrew), 5786);
+    assert.equal(hc.parseNumber("grek", hc.formatNumber("grek", 2026)), 2026);
+    refused(() => hc.formatNumber("klingon", 1), "unknown");
+    refused(() => hc.parseNumber("latn", "x"), "malformed");
+    assert.ok(hc.numberingSystems().some((row) => row.system === "latn" && row.digits === "0123456789"));
+    assert.ok(hc.calendarEras("japanese", "ja").some((era) => era.code === "reiwa" && era.wide === "令和"));
+    refused(() => hc.calendarEras("no-such", "ja"), "unknown");
+  });
+
+  test("the groups are listed, and Nayrouz has its Coptic name", () => {
+    assert.equal(hc.holidayGroups("en")[0].group, "women");
+    const nayrouz = hc.holidaysOnIn(hc.gregorianToFixed(2025, 9, 11), "cop").find((day) => day.table === "coptic-orthodox");
+    assert.deepEqual([nayrouz?.nameInLocale, nayrouz?.nameLocale], ["ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ", "cop"]);
+  });
+});
+
+describe("the start of an IRIG frame", () => {
+  test("a reading rounds down to its frame, which irigEncode takes", () => {
+    assert.deepEqual(hc.irigFrameStart("D001", 3725, 57), { secondsOfDay: 3600, hundredths: 0, frameMicroseconds: 3_600_000_000 });
+    assert.deepEqual(hc.irigFrameStart("A000", 3725, 57), { secondsOfDay: 3725, hundredths: 50, frameMicroseconds: 100_000 });
+    const start = hc.irigFrameStart("B124", 76_722, 40);
+    assert.equal(typeof hc.irigEncode("B124", 731_388, start.secondsOfDay), "string");
+    refused(() => hc.irigFrameStart("Z000", 0), "unknown");
+  });
+});
+
+describe("the new exports' i64 arguments", () => {
+  test("a number past the safe range is unsafe-integer, as for every other export", () => {
+    for (const call of [
+      () => hc.relativeTime(2 ** 60, 0),
+      () => hc.chineseAge("year-age", 2 ** 53, 0),
+      () => hc.tibetanFestivalDay("berzin", "tibetan", 2 ** 60, 1, false, 1),
+      () => hc.rounichi("dragon-nearest-major-cold-earlier", -(2 ** 60)),
+      () => hc.formatNumber("latn", 2 ** 53),
+      () => hc.zoneName("Asia/Tokyo", 2 ** 60),
+    ]) {
+      const error = refused(call, "unsafe-integer");
+      assert.ok(error instanceof HcError);
+    }
+    assert.equal(hc.formatNumber("latn", 2n ** 53n + 1n), "9007199254740993");
+  });
+});
+
+describe("business days", () => {
+  test("Japan's Golden Week of 2026 is skipped", () => {
+    const tuesday = hc.gregorianToFixed(2026, 4, 28);
+    assert.equal(hc.holidayAddBusinessDays("JP", "", tuesday, 5), hc.gregorianToFixed(2026, 5, 11));
+    assert.equal(hc.holidayAddBusinessDays("JP", "", hc.gregorianToFixed(2026, 5, 11), -5), tuesday);
+    assert.equal(hc.holidayBusinessDaysBetween("JP", "", tuesday - 1, hc.gregorianToFixed(2026, 5, 11)), 6);
+    refused(() => hc.holidayAddBusinessDays("XX", "", tuesday, 1), "unknown");
+    refused(() => hc.holidayAddBusinessDays("JP", "", tuesday, 36_501), "out-of-range");
+  });
+});
+
+describe("equinox new-year margins", () => {
+  test("183 BE is a fifth of a minute after the Tehran sunset", () => {
+    const margin = hc.equinoxNewYearMargin("bahai-astronomical", 183);
+    assert.ok(margin.minutes < 0 && margin.minutes > -0.2, String(margin.minutes));
+    refused(() => hc.equinoxNewYearMargin(/** @type {any} */ ("gregory"), 2026), "unknown");
+  });
+});
+
+describe("formatting by pattern", () => {
+  test("Tokyo at the new year of 2026 by CLDR's and POSIX's patterns", () => {
+    const instant = 1_767_225_600;
+    assert.equal(hc.formatPattern("Asia/Tokyo", instant, "en", "cldr", "yyyy-MM-dd HH:mm zzzz").text,
+      "2026-01-01 09:00 Japan Standard Time");
+    assert.equal(hc.formatPattern("Asia/Tokyo", instant, "en", "strftime", "%Y-%m-%d %H:%M %Z").text,
+      "2026-01-01 09:00 JST");
+    refused(() => hc.formatPattern("Asia/Tokyo", instant, "en", /** @type {any} */ ("java"), "yyyy"), "unknown");
+    refused(() => hc.formatPattern("Asia/Tokyo", instant, "en", "cldr", "'unclosed"), "malformed");
   });
 });

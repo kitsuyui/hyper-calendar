@@ -30,7 +30,9 @@ fn querying_the_version_works_in_both_passes() {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> String {
     let mut written = 0usize;
@@ -69,7 +71,9 @@ fn read_lines(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> Stri
     feature = "sky",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 fn measured(call: impl Fn(*mut c_char, usize, *mut usize) -> HcStatus) -> HcStatus {
     let mut written = 0usize;
@@ -126,6 +130,12 @@ mod relativity;
 #[cfg(feature = "places")]
 mod places;
 
+#[cfg(feature = "humanize")]
+mod humanize;
+
+#[cfg(feature = "zone-names")]
+mod zone_names;
+
 #[cfg(feature = "time-codes")]
 mod time_codes;
 
@@ -143,6 +153,15 @@ mod hours;
 
 #[cfg(feature = "calendars")]
 mod reckonings;
+
+#[cfg(feature = "calendars")]
+mod almanac_notes;
+
+#[cfg(feature = "calendars")]
+mod tibetan_almanac;
+
+#[cfg(all(feature = "calendars", feature = "sky"))]
+mod hindu_limbs;
 
 #[cfg(feature = "sky")]
 mod sky_reckonings;

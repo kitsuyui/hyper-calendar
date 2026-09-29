@@ -31,6 +31,7 @@ use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::math::floor;
 use hc_seasons::solar_terms::{DEGREES_PER_TERM, SolarTerm, TermOrder};
 use hc_seasons::zodiac::decans::{decan_at_moment, degrees_into_decan};
+use hc_seasons::zodiac::drekkana::{degrees_into_drekkana, drekkana_at_moment};
 
 #[cfg(doc)]
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR};
@@ -266,6 +267,45 @@ pub fn decan_line(unix: i64) -> Answer<String> {
         .cell(ruler.id)
         .cell(ruler.english_name())
         .value(degrees_into_decan(moment));
+    line.end();
+    Ok(out)
+}
+
+/// How many columns [`drekkana_line`] writes.
+pub const DREKKANA_COLUMNS: usize = 8;
+
+/// The line of `hc_drekkana_at`: the Hindu third of a sidereal sign the
+/// Sun is in at an instant, in the zodiac of an ayanāṃśa, beside
+/// [`decan_line`]'s tropical decan — the sidereal sign, 1 for Meṣa through
+/// 12 for Mīna, and its Sanskrit name; which of its three drekkāṇas, 1 to
+/// 3; the drekkāṇa's lord, the planet that rules the sign it is given to,
+/// as its identifier and its English name; how far into the drekkāṇa the
+/// Sun is, in degrees from 0 up to 10; the lord's sign by its identifier,
+/// the sign itself, the fifth or the ninth from it; and the ayanāṃśa's
+/// identifier.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa
+/// [`hc_seasons::zodiac::Ayanamsa::by_id`] does not name, and
+/// [`Refusal::OutOfRange`] outside
+/// [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
+pub fn drekkana_line(unix: i64, ayanamsa: &str) -> Answer<String> {
+    let ayanamsa = hc_seasons::zodiac::Ayanamsa::by_id(ayanamsa).ok_or(Refusal::Unknown)?;
+    let moment = moment_in_era(unix)?;
+    let drekkana = drekkana_at_moment(moment, ayanamsa);
+    let sign = drekkana.sign();
+    let lord = drekkana.lord();
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(sign.index() + 1)
+        .cell(sign.sanskrit_name())
+        .value(drekkana.part())
+        .cell(lord.id)
+        .cell(lord.english_name())
+        .value(degrees_into_drekkana(moment, ayanamsa))
+        .cell(drekkana.lord_sign().id())
+        .cell(ayanamsa.id());
     line.end();
     Ok(out)
 }

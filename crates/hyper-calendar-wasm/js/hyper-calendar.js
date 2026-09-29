@@ -89,11 +89,14 @@ export const METHODS = Object.freeze([
   { method: "radioEncode", export: "hc_radio_encode", feature: "time-codes" },
   { method: "irigDecode", export: "hc_irig_decode", feature: "time-codes" },
   { method: "irigEncode", export: "hc_irig_encode", feature: "time-codes" },
+  { method: "irigFrameStart", export: "hc_irig_frame_start", feature: "time-codes" },
   { method: "irigFormats", export: "hc_irig_formats", feature: "time-codes" },
   { method: "dotnetTicksFromUnix", export: "hc_dotnet_ticks_from_unix", feature: "timestamps" },
   { method: "unixFromDotnetTicks", export: "hc_unix_from_dotnet_ticks", feature: "timestamps" },
   { method: "sixHourClock", export: "hc_six_hour_clock", feature: "timestamps" },
   { method: "civilFromSixHourClock", export: "hc_civil_from_six_hour_clock", feature: "timestamps" },
+  { method: "frenchDecimalTime", export: "hc_french_decimal_time", feature: "timestamps" },
+  { method: "civilFromFrenchDecimalTime", export: "hc_civil_from_french_decimal_time", feature: "timestamps" },
   { method: "describeDay", export: "hc_describe_day", feature: "calendars" },
   { method: "dayExtras", export: "hc_day_extras", feature: "calendars" },
   { method: "calendarUnits", export: "hc_calendar_units", feature: "calendars" },
@@ -102,6 +105,11 @@ export const METHODS = Object.freeze([
   { method: "calendarList", export: "hc_calendar_list", feature: "calendars" },
   { method: "locales", export: "hc_locales", feature: "calendars" },
   { method: "firstDayOfWeek", export: "hc_first_day_of_week", feature: "calendars" },
+  { method: "dayPeriod", export: "hc_day_period", feature: "calendars" },
+  { method: "formatNumber", export: "hc_format_number", feature: "calendars" },
+  { method: "parseNumber", export: "hc_parse_number", feature: "calendars" },
+  { method: "numberingSystems", export: "hc_numbering_systems", feature: "calendars" },
+  { method: "calendarEras", export: "hc_calendar_eras", feature: "calendars" },
   { method: "gregorianAdoption", export: "hc_gregorian_adoption", feature: "calendars" },
   { method: "namingPeriodOn", export: "hc_naming_period_on", feature: "calendars" },
   { method: "panchangaAt", export: "hc_panchanga_at", feature: "calendars" },
@@ -111,17 +119,36 @@ export const METHODS = Object.freeze([
   { method: "suryaSiddhantaSunrise", export: "hc_surya_siddhanta_sunrise", feature: "calendars" },
   { method: "barhaspatyaYear", export: "hc_barhaspatya_year", feature: "calendars" },
   { method: "barhaspatyaYearAt", export: "hc_barhaspatya_year_at", feature: "calendars" },
+  { method: "muhurtas", export: "hc_muhurtas", feature: "calendars" },
+  { method: "amritaSiddhi", export: "hc_amrita_siddhi", feature: "calendars" },
+  { method: "nakshatraAt", export: "hc_nakshatra_at", feature: "calendars" },
+  { method: "nakshatraOfDay", export: "hc_nakshatra_of_day", feature: "calendars" },
   { method: "crescentVisible", export: "hc_crescent_visible", feature: "calendars" },
   { method: "iocOlympiad", export: "hc_ioc_olympiad", feature: "calendars" },
+  { method: "iocOlympiadOn", export: "hc_ioc_olympiad_on", feature: "calendars" },
+  { method: "babylonianRegnalYear", export: "hc_babylonian_regnal_year", feature: "calendars" },
+  { method: "equinoxNewYearMargin", export: "hc_equinox_new_year_margin", feature: "calendars" },
+  { method: "shmuelTekufah", export: "hc_shmuel_tekufah", feature: "calendars" },
+  { method: "dayName", export: "hc_day_name", feature: "calendars" },
   { method: "hebrewYahrzeit", export: "hc_hebrew_yahrzeit", feature: "calendars" },
   { method: "hebrewBirthday", export: "hc_hebrew_birthday", feature: "calendars" },
   { method: "chineseReckonedAge", export: "hc_chinese_reckoned_age", feature: "calendars" },
   { method: "chineseMarriageAugury", export: "hc_chinese_marriage_augury", feature: "calendars" },
+  { method: "chineseAge", export: "hc_chinese_age", feature: "calendars" },
+  { method: "chineseAlmanacSolarTerms", export: "hc_chinese_almanac_solar_terms", feature: "calendars" },
   { method: "hebrewSabbaticalCycleYear", export: "hc_hebrew_sabbatical_cycle_year", feature: "calendars" },
   { method: "asianDay", export: "hc_asian_day", feature: "calendars" },
   { method: "kalam", export: "hc_kalam", feature: "calendars" },
   { method: "almanacCycles", export: "hc_almanac_cycles", feature: "calendars" },
   { method: "almanacDay", export: "hc_almanac_day", feature: "calendars" },
+  { method: "almanacDirections", export: "hc_almanac_directions", feature: "calendars" },
+  { method: "rounichi", export: "hc_rounichi", feature: "calendars" },
+  { method: "mansionUndertakings", export: "hc_mansion_undertakings", feature: "calendars" },
+  { method: "almanacPersonDays", export: "hc_almanac_person_days", feature: "calendars" },
+  { method: "tibetanAlmanacDay", export: "hc_tibetan_almanac_day", feature: "calendars" },
+  { method: "tibetanPlanets", export: "hc_tibetan_planets", feature: "calendars" },
+  { method: "bhutaneseWinterSolstice", export: "hc_bhutanese_winter_solstice", feature: "calendars" },
+  { method: "tibetanFestivalDay", export: "hc_tibetan_festival_day", feature: "calendars" },
   { method: "choghadiya", export: "hc_choghadiya", feature: "calendars" },
   { method: "panchak", export: "hc_panchak", feature: "calendars" },
   { method: "kumbh", export: "hc_kumbh", feature: "calendars" },
@@ -129,15 +156,20 @@ export const METHODS = Object.freeze([
   { method: "folkDay", export: "hc_folk_day", feature: "calendars" },
   { method: "nightWatch", export: "hc_night_watch", feature: "calendars" },
   { method: "holidayIsDayOff", export: "hc_holiday_is_day_off", feature: "holiday" },
+  { method: "holidayAddBusinessDays", export: "hc_holiday_add_business_days", feature: "holiday" },
+  { method: "holidayBusinessDaysBetween", export: "hc_holiday_business_days_between", feature: "holiday" },
   { method: "holidaysInYear", export: "hc_holidays_in_year", feature: "holiday" },
   { method: "holidayCodes", export: "hc_holiday_codes", feature: "holiday" },
   { method: "holidaysOn", export: "hc_holidays_on", feature: "holiday" },
   { method: "holidayTables", export: "hc_holiday_tables", feature: "holiday" },
+  { method: "holidayGroups", export: "hc_holiday_groups", feature: "holiday" },
+  { method: "holidaysOnIn", export: "hc_holidays_on_in", feature: "holiday" },
   { method: "lectionary", export: "hc_lectionary", feature: "holiday" },
   { method: "astronomicalEaster", export: "hc_astronomical_easter", feature: "holiday" },
   { method: "astronomicalPaschalFullMoon", export: "hc_astronomical_paschal_full_moon", feature: "holiday" },
   { method: "holyYearOn", export: "hc_holy_year_on", feature: "holiday" },
   { method: "commonWorshipOn", export: "hc_common_worship_on", feature: "holiday" },
+  { method: "roman1960OfficeOn", export: "hc_roman_1960_office_on", feature: "holiday" },
   { method: "orthodoxFastOn", export: "hc_orthodox_fast_on", feature: "holiday" },
   { method: "orthodoxFastSeasons", export: "hc_orthodox_fast_seasons", feature: "holiday" },
   { method: "termInEffect", export: "hc_term_in_effect", feature: "seasons" },
@@ -160,6 +192,7 @@ export const METHODS = Object.freeze([
   { method: "solarTermsBetween", export: "hc_solar_terms_between", feature: "sky" },
   { method: "moonPhasesBetween", export: "hc_moon_phases_between", feature: "sky" },
   { method: "decanAt", export: "hc_decan_at", feature: "sky" },
+  { method: "drekkanaAt", export: "hc_drekkana_at", feature: "sky" },
   { method: "earthRotationAngle", export: "hc_earth_rotation_angle", feature: "sky" },
   { method: "gmstIau2006", export: "hc_gmst_iau2006", feature: "sky" },
   { method: "gmstIau1982", export: "hc_gmst_iau1982", feature: "sky" },
@@ -194,6 +227,12 @@ export const METHODS = Object.freeze([
   { method: "territories", export: "hc_territories", feature: "places" },
   { method: "subdivisions", export: "hc_subdivisions", feature: "places" },
   { method: "placeName", export: "hc_place_name", feature: "places" },
+  { method: "relativeTime", export: "hc_relative_time", feature: "humanize" },
+  { method: "relativeDay", export: "hc_relative_day", feature: "humanize" },
+  { method: "relativeDayAt", export: "hc_relative_day_at", feature: "humanize" },
+  { method: "duration", export: "hc_duration", feature: "humanize" },
+  { method: "zoneName", export: "hc_zone_name", feature: "zone-names" },
+  { method: "formatPattern", export: "hc_format_pattern", feature: "zone-names" },
 ].map(Object.freeze));
 
 /** The columns of `hc_describe_day`, which `hc_parse_date` writes before the fixed day. */
@@ -276,7 +315,10 @@ export const COLUMNS = Object.freeze({
     "limb", "number", "name", "devanagari", "began", "ends", "read at", "ayanamsa",
     "ayanamsa name",
   ]),
-  marriageAugury: Object.freeze(["augury", "lichun at start", "lichun at end"]),
+  marriageAugury: Object.freeze([
+    "augury", "lichun at start", "lichun at end", "chinese names", "name scripts", "name regions",
+  ]),
+  chineseAlmanacSolarTerms: Object.freeze(["position", "name", "fixed"]),
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
     "regions", "groups", "group names",
@@ -325,6 +367,10 @@ export const COLUMNS = Object.freeze({
   ]),
   gravitatingBodies: Object.freeze(["id", "name", "gm", "gm constant", "source"]),
   places: Object.freeze(["code", "name", "english name", "locale used", "draft", "status"]),
+  relativeTime: Object.freeze(["phrase", "unit", "count", "locale used"]),
+  relativeDayAt: Object.freeze(["phrase", "unit", "count", "time", "locale used"]),
+  duration: Object.freeze(["phrase", "negative", "locale used"]),
+  zoneName: Object.freeze(["name", "field", "zone", "offset", "daylight"]),
   utcFromTai: Object.freeze(["unix seconds", "leap second"]),
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
   uuidTimestamp: Object.freeze(["version", "timestamp", "unix seconds", "attoseconds"]),
@@ -352,6 +398,9 @@ export const COLUMNS = Object.freeze({
     "visible", "evaluated at", "elongation", "arc of light", "altitude", "arc of vision", "width",
   ]),
   decan: Object.freeze(["sign", "sign name", "decan", "ruler", "ruler name", "degrees into decan"]),
+  drekkana: Object.freeze([
+    "sign", "sign name", "drekkana", "lord", "lord name", "degrees into drekkana", "lord sign", "ayanamsa",
+  ]),
   hjdTt: Object.freeze(["hjd", "correction"]),
   hjdUtc: Object.freeze(["hjd", "correction", "tt minus utc"]),
   ttBipm: Object.freeze([
@@ -367,6 +416,11 @@ export const COLUMNS = Object.freeze({
     "dioceses close",
   ]),
   commonWorship: Object.freeze(["title", "rank", "rank name"]),
+  roman1960Office: Object.freeze(["role", "title", "class", "class name", "transferred from"]),
+  holidayGroups: Object.freeze(["group", "name", "locale used", "english name"]),
+  dayPeriod: Object.freeze(["half", "half name", "period", "abbreviated", "wide", "narrow", "locale used"]),
+  numberingSystems: Object.freeze(["system", "algorithmic", "digits"]),
+  calendarEras: Object.freeze(["code", "wide", "abbreviated", "narrow", "calendar", "locale used"]),
   ccsdsDecode: Object.freeze([
     "code", "tai seconds", "tai attoseconds", "unix seconds", "leap second", "utc attoseconds",
   ]),
@@ -380,6 +434,12 @@ export const COLUMNS = Object.freeze({
   ]),
   unixFromDotnetTicks: Object.freeze(["unix seconds", "attoseconds"]),
   sixHourClock: Object.freeze(["hour", "minute", "second", "half", "period", "period english"]),
+  frenchDecimalTime: Object.freeze(["hour", "minute", "second", "attoseconds"]),
+  civilFromFrenchDecimalTime: Object.freeze(["seconds of day", "attoseconds"]),
+  babylonianRegnalYear: Object.freeze(["king", "regnal year"]),
+  equinoxMargin: Object.freeze(["minutes", "calendar"]),
+  shmuelTekufah: Object.freeze(["fixed", "minutes", "tekufah"]),
+  dayName: Object.freeze(["name", "naming", "naming name", "authority"]),
   kalam: Object.freeze([
     "id", "english name", "name", "locale used", "part", "clock", "start", "end", "missing",
     "missing day", "depression", "depression arcseconds",
@@ -391,6 +451,17 @@ export const COLUMNS = Object.freeze({
   almanacDay: Object.freeze([
     "kind", "id", "name", "locale used", "japanese", "reading", "auspicious", "printed",
   ]),
+  almanacDirections: Object.freeze([
+    "id", "name", "reading", "branch", "azimuth", "meaning", "year", "branch number",
+  ]),
+  mansionUndertakings: Object.freeze(["mansion", "mansion name", "grade", "undertaking"]),
+  almanacPersonDays: Object.freeze(["kind", "id", "name", "keeps", "applies"]),
+  tibetanAlmanacDay: Object.freeze(["kind", "id", "name", "tibetan", "reading", "value"]),
+  tibetanPlanets: Object.freeze([
+    "planet", "particular day", "mean heliocentric", "true slow", "fast",
+    "mean heliocentric value", "true slow value", "fast value",
+  ]),
+  bhutaneseWinterSolstice: Object.freeze(["fixed", "reading", "julian date"]),
   orthodoxFast: Object.freeze(["fast day", "status", "period", "period name", "kind", "abstinence"]),
   orthodoxFastSeasons: Object.freeze(["id", "english name", "kind", "first", "last"]),
   prayerTimes: Object.freeze([
@@ -424,7 +495,14 @@ export const COLUMNS = Object.freeze({
   folkDay: Object.freeze(["kind", "id", "name", "locale used", "count"]),
   nightWatch: Object.freeze(["watch", "points", "name", "locale used", "han name", "branch"]),
   barhaspatyaYear: Object.freeze(["position", "name", "expunged", "expunged name", "locale used"]),
-  barhaspatyaYearAt: Object.freeze(["position", "name", "locale used"]),
+  barhaspatyaYearAt: Object.freeze([
+    "position", "name", "locale used", "twelve-year position", "twelve-year name", "mean sign",
+  ]),
+  muhurtas: Object.freeze([
+    "half", "number", "start", "end", "mark", "missing", "missing day", "depression", "depression arcseconds",
+  ]),
+  amritaSiddhi: Object.freeze(["name", "devanagari", "nakshatra", "start", "end", "falls", "ayanamsa"]),
+  nakshatra: Object.freeze(["nakshatra", "entered", "leaves", "read at", "ayanamsa", "ayanamsa name"]),
   planetaryHour: Object.freeze([
     "day", "hour", "ruler", "name", "locale used", "daytime", "start", "end", "missing",
     "missing day", "depression", "depression arcseconds",
@@ -434,6 +512,7 @@ export const COLUMNS = Object.freeze({
     "fixed", "day of year", "hour", "minute", "second", "hundredths", "year", "control",
     "straight binary seconds",
   ]),
+  irigFrameStart: Object.freeze(["seconds of day", "hundredths", "frame micros"]),
   irigFormats: Object.freeze([
     "format", "index count microseconds", "index counts", "frame microseconds", "fields",
     "control bits", "modulations", "carriers", "expressions",
@@ -1272,7 +1351,7 @@ function panchangaLimb(cells) {
     began: integer(began, "began"),
     ends: integer(ends, "ends"),
     readAt: integer(readAt, "read at"),
-    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa | null} */ (optional(ayanamsa)),
+    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa | "surya-siddhanta" | null} */ (optional(ayanamsa)),
     ayanamsaName: optional(ayanamsaName),
   };
 }
@@ -1284,11 +1363,20 @@ function panchangaLimb(cells) {
  * @returns {import("./hyper-calendar.d.ts").MarriageAugury}
  */
 function marriageAugury(cells) {
-  const [augury, atStart, atEnd] = cells;
+  const [augury, atStart, atEnd, names, scripts, regions] = cells;
+  const scriptList = scripts.split(";");
+  const regionList = regions.split(";");
   return {
     augury: /** @type {import("./hyper-calendar.d.ts").MarriageAuguryName} */ (augury),
     lichunAtStart: flag(atStart, "lichun at start"),
     lichunAtEnd: flag(atEnd, "lichun at end"),
+    chineseNames: names === ""
+      ? []
+      : names.split(";").map((name, index) => ({
+        name,
+        locale: /** @type {"zh-Hant" | "zh-Hans"} */ (scriptList[index]),
+        region: optional(regionList[index] ?? ""),
+      })),
   };
 }
 
@@ -1699,6 +1787,81 @@ function decanLine(cells) {
 }
 
 /**
+ * The one line of `hc_drekkana_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Drekkana}
+ */
+function drekkanaLine(cells) {
+  const [sign, signName, drekkana, lord, lordName, degrees, lordSign, ayanamsa] = cells;
+  return {
+    sign: integer(sign, "sign"),
+    signName,
+    drekkana: integer(drekkana, "drekkana"),
+    lord: /** @type {import("./hyper-calendar.d.ts").DecanRuler} */ (lord),
+    lordName,
+    degreesIntoDrekkana: decimal(degrees, "degrees into drekkana"),
+    lordSign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (lordSign),
+    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsa),
+  };
+}
+
+/**
+ * One line of `hc_muhurtas`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Muhurta}
+ */
+function muhurtaLine(cells) {
+  const [half, number, start, end, mark, missing, missingDay, depression, arcseconds] = cells;
+  return {
+    half: /** @type {"day" | "night"} */ (half),
+    number: integer(number, "number"),
+    start: optionalInteger(start, "start"),
+    end: optionalInteger(end, "end"),
+    mark: /** @type {"abhijit" | "dur-muhurtam" | null} */ (optional(mark)),
+    missing: missingSolarEvent(missing, missingDay, depression, arcseconds),
+  };
+}
+
+/**
+ * The line of `hc_amrita_siddhi`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AmritaSiddhi}
+ */
+function amritaSiddhiLine(cells) {
+  const [name, devanagari, nakshatra, start, end, falls, ayanamsa] = cells;
+  return {
+    name,
+    devanagari,
+    nakshatra: integer(nakshatra, "nakshatra"),
+    start: optionalInteger(start, "start"),
+    end: optionalInteger(end, "end"),
+    falls: flag(falls, "falls"),
+    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsa),
+  };
+}
+
+/**
+ * The line of `hc_nakshatra_at` and `hc_nakshatra_of_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NakshatraStay}
+ */
+function nakshatraLine(cells) {
+  const [nakshatra, entered, leaves, readAt, ayanamsa, ayanamsaName] = cells;
+  return {
+    nakshatra: integer(nakshatra, "nakshatra"),
+    entered: integer(entered, "entered"),
+    leaves: integer(leaves, "leaves"),
+    readAt: integer(readAt, "read at"),
+    ayanamsa: /** @type {import("./hyper-calendar.d.ts").Ayanamsa} */ (ayanamsa),
+    ayanamsaName,
+  };
+}
+
+/**
  * The one line of `hc_hjd_tt` or `hc_hjd_utc`.
  *
  * @param {string[]} cells
@@ -1989,6 +2152,44 @@ function placeName(cells) {
   };
 }
 
+/**
+ * One line of `hc_relative_time` and `hc_relative_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").RelativeTime}
+ */
+function relativeTime(cells) {
+  const [phrase, unit, count, localeUsed] = cells;
+  return {
+    phrase,
+    unit: /** @type {import("./hyper-calendar.d.ts").HumanizeUnit} */ (unit),
+    count: integer(count, "count"),
+    localeUsed,
+  };
+}
+
+/**
+ * The line of `hc_relative_day_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").RelativeDayAt}
+ */
+function relativeDayAt(cells) {
+  const [phrase, unit, count, time, localeUsed] = cells;
+  return { ...relativeTime([phrase, unit, count, localeUsed]), time };
+}
+
+/**
+ * The line of `hc_duration`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HumanizedDuration}
+ */
+function humanizedDuration(cells) {
+  const [phrase, negative, localeUsed] = cells;
+  return { phrase, negative: flag(negative, "negative"), localeUsed };
+}
+
 /** The capacity a text read starts with unless `load` was told otherwise. */
 /**
  * The five cells of an instant a CCSDS line writes: TAI and its UTC label.
@@ -2149,6 +2350,97 @@ function almanacAnnotation(cells) {
     reading: optional(reading),
     auspicious: auspicious === "" ? null : flag(auspicious, "auspicious"),
     printed: printed === "" ? null : flag(printed, "printed"),
+  };
+}
+
+/**
+ * One line of `hc_almanac_directions`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AlmanacDirection}
+ */
+function almanacDirection(cells) {
+  const [id, name, reading, branch, azimuth, meaning, year, branchNumber] = cells;
+  return {
+    id: /** @type {import("./hyper-calendar.d.ts").AlmanacGodId} */ (id),
+    name,
+    reading: optional(reading),
+    branch: optional(branch),
+    azimuth: optionalInteger(azimuth, "azimuth"),
+    meaning: optional(meaning),
+    year,
+    branchNumber: optionalInteger(branchNumber, "branch number"),
+  };
+}
+
+/**
+ * One line of `hc_mansion_undertakings`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MansionUndertaking}
+ */
+function mansionUndertaking(cells) {
+  const [mansion, mansionName, grade, undertaking] = cells;
+  return {
+    mansion: integer(mansion, "mansion"),
+    mansionName,
+    grade: /** @type {import("./hyper-calendar.d.ts").UndertakingGrade} */ (grade),
+    undertaking,
+  };
+}
+
+/**
+ * One line of `hc_almanac_person_days`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AlmanacPersonDay}
+ */
+function almanacPersonDay(cells) {
+  const [kind, id, name, keeps, applies] = cells;
+  return {
+    kind: /** @type {import("./hyper-calendar.d.ts").AlmanacPersonKind} */ (kind),
+    id,
+    name,
+    keeps,
+    applies: flag(applies, "applies"),
+  };
+}
+
+/**
+ * One line of `hc_tibetan_almanac_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TibetanAlmanacEntry}
+ */
+function tibetanAlmanacEntry(cells) {
+  const [kind, id, name, tibetan, reading, value] = cells;
+  return {
+    kind: /** @type {import("./hyper-calendar.d.ts").TibetanAlmanacKind} */ (kind),
+    id: optionalInteger(id, "id"),
+    name: optional(name),
+    tibetan: optional(tibetan),
+    reading: optional(reading),
+    value: optional(value),
+  };
+}
+
+/**
+ * One line of `hc_tibetan_planets`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TibetanPlanet}
+ */
+function tibetanPlanet(cells) {
+  const [planet, particularDay, meanHeliocentric, trueSlow, fast, meanValue, slowValue, fastValue] = cells;
+  return {
+    planet: /** @type {import("./hyper-calendar.d.ts").TibetanPlanetId} */ (planet),
+    particularDay: integer(particularDay, "particular day"),
+    meanHeliocentric,
+    trueSlow,
+    fast,
+    meanHeliocentricValue: decimal(meanValue, "mean heliocentric value"),
+    trueSlowValue: decimal(slowValue, "true slow value"),
+    fastValue: decimal(fastValue, "fast value"),
   };
 }
 
@@ -3052,6 +3344,101 @@ export class HyperCalendar {
   }
 
   /**
+   * The day periods of a time of the civil clock in a locale: am or pm,
+   * and the flexible period, *in the afternoon*, by CLDR 48's rules.
+   *
+   * @param {number} secondsOfDay
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").DayPeriodReading}
+   */
+  dayPeriod(secondsOfDay, locale = "und") {
+    const fn = this.#export("hc_day_period");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_day_period", (buffer, capacity) => fn(seconds, pointer, len, buffer, capacity), true));
+    const [half, halfName, period, abbreviated, wide, narrow, localeUsed] =
+      this.#oneLine("hc_day_period", text, COLUMNS.dayPeriod);
+    return {
+      half: /** @type {"am" | "pm"} */ (half),
+      halfName: optional(halfName),
+      period: optional(period),
+      abbreviated: optional(abbreviated),
+      wide: optional(wide),
+      narrow: optional(narrow),
+      localeUsed,
+    };
+  }
+
+  /**
+   * An integer written in a CLDR numbering system: `hebr`, `grek`,
+   * `arab`, `hanidec` and the rest `numberingSystems()` lists.
+   *
+   * @param {string} system
+   * @param {number | bigint} value
+   * @returns {string}
+   */
+  formatNumber(system, value) {
+    const fn = this.#export("hc_format_number");
+    const number = toI64(value, "value");
+    const text = this.#withText(system, "system", (pointer, len) =>
+      this.#text("hc_format_number", (buffer, capacity) => fn(pointer, len, number, buffer, capacity), true));
+    return this.#oneLine("hc_format_number", text, ["text", "system"])[0];
+  }
+
+  /**
+   * An integer read back out of a numbering system's notation.
+   *
+   * @param {string} system
+   * @param {string} text
+   * @returns {number}
+   */
+  parseNumber(system, text) {
+    const fn = this.#export("hc_parse_number");
+    return this.#withText(system, "system", (systemPointer, systemLen) =>
+      this.#withText(text, "text", (textPointer, textLen) =>
+        toNumber(fn(systemPointer, systemLen, textPointer, textLen), "hc_parse_number")));
+  }
+
+  /**
+   * Every numbering system `formatNumber` writes.
+   *
+   * @returns {import("./hyper-calendar.d.ts").NumberingSystemInfo[]}
+   */
+  numberingSystems() {
+    const fn = this.#export("hc_numbering_systems");
+    const text = this.#text("hc_numbering_systems", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(text, COLUMNS.numberingSystems, "hc_numbering_systems").map(([system, algorithmic, digits]) => ({
+      system,
+      algorithmic: flag(algorithmic, "algorithmic"),
+      digits: optional(digits),
+    }));
+  }
+
+  /**
+   * The eras a calendar is described with, named in a locale.
+   *
+   * @param {string} calendar
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").CalendarEra[]}
+   */
+  calendarEras(calendar, locale = "und") {
+    const fn = this.#export("hc_calendar_eras");
+    const text = this.#withText(calendar, "calendar", (calendarPointer, calendarLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_calendar_eras", (buffer, capacity) =>
+          fn(calendarPointer, calendarLen, localePointer, localeLen, buffer, capacity), true)));
+    return rows(text, COLUMNS.calendarEras, "hc_calendar_eras").map(
+      ([code, wide, abbreviated, narrow, calendarId, localeUsed]) => ({
+        code,
+        wide: optional(wide),
+        abbreviated: optional(abbreviated),
+        narrow: optional(narrow),
+        calendar: calendarId,
+        localeUsed,
+      }));
+  }
+
+  /**
    * The steps by which a country adopted the Gregorian calendar, oldest
    * first. `region` is an ISO 3166-1 alpha-2 code, in either case; a code
    * the module does not know answers with no steps.
@@ -3088,6 +3475,55 @@ export class HyperCalendar {
             fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, day),
             "hc_holiday_is_day_off",
           ) === 1)));
+  }
+
+  /**
+   * A fixed day moved by `count` business days of a holiday table, in a
+   * subdivision and for a group as `holidayIsDayOff` scopes it; the
+   * starting day is never counted.
+   *
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fixed
+   * @param {number | bigint} count
+   * @param {string} [group]
+   * @returns {number}
+   */
+  holidayAddBusinessDays(code, region, fixed, count, group = "") {
+    const fn = this.#export("hc_holiday_add_business_days");
+    const day = toI64(fixed, "fixed");
+    const steps = toI64(count, "count");
+    return this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(region, "region", (regionPointer, regionLen) =>
+        this.#withText(group, "group", (groupPointer, groupLen) =>
+          toNumber(
+            fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, day, steps),
+            "hc_holiday_add_business_days",
+          ))));
+  }
+
+  /**
+   * The number of business days of a holiday table from one fixed day up
+   * to but not including another, in a subdivision and for a group.
+   *
+   * @param {string} code
+   * @param {string} region
+   * @param {number | bigint} fromFixed
+   * @param {number | bigint} toFixed
+   * @param {string} [group]
+   * @returns {number}
+   */
+  holidayBusinessDaysBetween(code, region, fromFixed, toFixed, group = "") {
+    const fn = this.#export("hc_holiday_business_days_between");
+    const from = toI64(fromFixed, "fromFixed");
+    const to = toI64(toFixed, "toFixed");
+    return this.#withText(code, "code", (codePointer, codeLen) =>
+      this.#withText(region, "region", (regionPointer, regionLen) =>
+        this.#withText(group, "group", (groupPointer, groupLen) =>
+          toNumber(
+            fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, from, to),
+            "hc_holiday_business_days_between",
+          ))));
   }
 
   /**
@@ -3492,6 +3928,22 @@ export class HyperCalendar {
     const instant = toI64(unixSeconds, "unixSeconds");
     const text = this.#text("hc_decan_at", (buffer, capacity) => fn(instant, buffer, capacity), true);
     return decanLine(this.#oneLine("hc_decan_at", text, COLUMNS.decan));
+  }
+
+  /**
+   * The drekkāṇa, the Hindu third of a sidereal sign, the Sun is in at a
+   * POSIX instant, in an ayanamsa's zodiac, with its lord.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").Drekkana}
+   */
+  drekkanaAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_drekkana_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_drekkana_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    return drekkanaLine(this.#oneLine("hc_drekkana_at", text, COLUMNS.drekkana));
   }
 
   /**
@@ -3939,10 +4391,11 @@ export class HyperCalendar {
   /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
    * Universal Time, the yoga reckoned with an ayanamsa: `lahiri`, `raman`,
-   * `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`.
+   * `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`; or both on
+   * the *Sūrya Siddhānta*'s sky, `surya-siddhanta`.
    *
    * @param {number | bigint} unixSeconds
-   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa | "surya-siddhanta"} ayanamsa
    * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
    */
   panchangaAt(unixSeconds, ayanamsa) {
@@ -3961,7 +4414,7 @@ export class HyperCalendar {
    * @param {number} latitude
    * @param {number} longitude
    * @param {number} elevation
-   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa | "surya-siddhanta"} ayanamsa
    * @returns {import("./hyper-calendar.d.ts").PanchangaLimb[]}
    */
   panchangaOfDay(fixed, latitude, longitude, elevation, ayanamsa) {
@@ -3972,6 +4425,82 @@ export class HyperCalendar {
       this.#text("hc_panchanga_of_day", (buffer, capacity) =>
         fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.panchanga, "hc_panchanga_of_day").map(panchangaLimb);
+  }
+
+  /**
+   * The thirty muhūrtas of a day at a place, the daylight's fifteen and
+   * the night's, with Abhijit and Dur Muhurtam marked as a pañcāṅga
+   * prints them.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @returns {import("./hyper-calendar.d.ts").Muhurta[]}
+   */
+  muhurtas(fixed, latitude, longitude, elevation) {
+    const fn = this.#export("hc_muhurtas");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#text("hc_muhurtas", (buffer, capacity) => fn(day, lat, lon, elev, buffer, capacity), true);
+    return rows(text, COLUMNS.muhurtas, "hc_muhurtas").map(muhurtaLine);
+  }
+
+  /**
+   * The *amṛta siddhi yoga* of a day at a place: the part of the day the
+   * Moon spends in the nakṣatra its weekday pairs with, if any.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").AmritaSiddhi}
+   */
+  amritaSiddhi(fixed, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_amrita_siddhi");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_amrita_siddhi", (buffer, capacity) => fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return amritaSiddhiLine(this.#oneLine("hc_amrita_siddhi", text, COLUMNS.amritaSiddhi));
+  }
+
+  /**
+   * The nakṣatra the Moon is in at a POSIX instant, in an ayanamsa's
+   * zodiac, with when it entered and when it leaves.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").NakshatraStay}
+   */
+  nakshatraAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_nakshatra_at");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_nakshatra_at", (buffer, capacity) => fn(instant, pointer, len, buffer, capacity), true));
+    return nakshatraLine(this.#oneLine("hc_nakshatra_at", text, COLUMNS.nakshatra));
+  }
+
+  /**
+   * The nakṣatra a day carries at a place, read at its sunrise; a day
+   * without one there is `no-data`.
+   *
+   * @param {number | bigint} fixed
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} elevation
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").NakshatraStay}
+   */
+  nakshatraOfDay(fixed, latitude, longitude, elevation, ayanamsa) {
+    const fn = this.#export("hc_nakshatra_of_day");
+    const day = toI64(fixed, "fixed");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (pointer, len) =>
+      this.#text("hc_nakshatra_of_day", (buffer, capacity) =>
+        fn(day, lat, lon, elev, pointer, len, buffer, capacity), true));
+    return nakshatraLine(this.#oneLine("hc_nakshatra_of_day", text, COLUMNS.nakshatra));
   }
 
   /**
@@ -4064,8 +4593,16 @@ export class HyperCalendar {
       this.#withText(locale, "locale", (localePointer, localeLen) =>
         this.#text("hc_barhaspatya_year_at", (buffer, capacity) =>
           fn(rulePointer, ruleLen, seconds, localePointer, localeLen, buffer, capacity), true)));
-    const [position, name, localeUsed] = this.#oneLine("hc_barhaspatya_year_at", text, COLUMNS.barhaspatyaYearAt);
-    return { position: integer(position, "position"), name, localeUsed };
+    const [position, name, localeUsed, twelve, twelveName, meanSign] =
+      this.#oneLine("hc_barhaspatya_year_at", text, COLUMNS.barhaspatyaYearAt);
+    return {
+      position: integer(position, "position"),
+      name,
+      localeUsed,
+      twelveYear: integer(twelve, "twelve-year position"),
+      twelveYearName: twelveName,
+      meanSign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (meanSign),
+    };
   }
 
 
@@ -4101,6 +4638,95 @@ export class HyperCalendar {
    */
   iocOlympiad(gregorianYear) {
     return toNumber(this.#export("hc_ioc_olympiad")(toI64(gregorianYear, "gregorianYear")), "hc_ioc_olympiad");
+  }
+
+  /**
+   * The modern Olympiad a fixed day belongs to, by the Charter in force
+   * on it: before September 2004 from one opening to the next, then by
+   * the Gregorian year. A day of June to November 1956 is `no-data`.
+   *
+   * @param {number | bigint} fixed
+   * @returns {number}
+   */
+  iocOlympiadOn(fixed) {
+    return toNumber(this.#export("hc_ioc_olympiad_on")(toI64(fixed, "fixed")), "hc_ioc_olympiad_on");
+  }
+
+  /**
+   * The king and regnal year labelling a Seleucid year, SE −314 to 160.
+   *
+   * @param {number | bigint} seleucidYear
+   * @returns {import("./hyper-calendar.d.ts").RegnalYear}
+   */
+  babylonianRegnalYear(seleucidYear) {
+    const fn = this.#export("hc_babylonian_regnal_year");
+    const year = toI64(seleucidYear, "seleucidYear");
+    const text = this.#text("hc_babylonian_regnal_year", (buffer, capacity) => fn(year, buffer, capacity), true);
+    const [king, regnal] = this.#oneLine("hc_babylonian_regnal_year", text, COLUMNS.babylonianRegnalYear);
+    return { king, year: integer(regnal, "regnal year") };
+  }
+
+  /**
+   * How far the equinox that begins a year fell from the moment that
+   * decides the new year of `persian`, `persian-apparent-noon`, `jalali`,
+   * `bahai-astronomical` or `french-republican-equinox`, in minutes.
+   *
+   * @param {import("./hyper-calendar.d.ts").EquinoxCalendar} calendar
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").EquinoxMargin}
+   */
+  equinoxNewYearMargin(calendar, year) {
+    const fn = this.#export("hc_equinox_new_year_margin");
+    const y = toI64(year, "year");
+    const text = this.#withText(calendar, "calendar", (pointer, len) =>
+      this.#text("hc_equinox_new_year_margin", (buffer, capacity) => fn(pointer, len, y, buffer, capacity), true));
+    const [minutes, id] = this.#oneLine("hc_equinox_new_year_margin", text, COLUMNS.equinoxMargin);
+    return {
+      minutes: decimal(minutes, "minutes"),
+      calendar: /** @type {import("./hyper-calendar.d.ts").EquinoxCalendar} */ (id),
+    };
+  }
+
+  /**
+   * A *tekufah* of Shmuel's reckoning in a Hebrew year: `tishrei`,
+   * `tevet`, `nisan` or `tammuz`.
+   *
+   * @param {number | bigint} hebrewYear
+   * @param {import("./hyper-calendar.d.ts").Tekufah} tekufah
+   * @returns {import("./hyper-calendar.d.ts").ShmuelTekufah}
+   */
+  shmuelTekufah(hebrewYear, tekufah) {
+    const fn = this.#export("hc_shmuel_tekufah");
+    const year = toI64(hebrewYear, "hebrewYear");
+    const text = this.#withText(tekufah, "tekufah", (pointer, len) =>
+      this.#text("hc_shmuel_tekufah", (buffer, capacity) => fn(year, pointer, len, buffer, capacity), true));
+    const [fixed, minutes, id] = this.#oneLine("hc_shmuel_tekufah", text, COLUMNS.shmuelTekufah);
+    return {
+      fixed: integer(fixed, "fixed"),
+      minutes: integer(minutes, "minutes"),
+      tekufah: /** @type {import("./hyper-calendar.d.ts").Tekufah} */ (id),
+    };
+  }
+
+  /**
+   * A fixed day's name in a calendar whose days are named, by one of its
+   * namings: the French Republican `fr-fabre-1793`, `fr` and `en`, the
+   * Armenian `hy` and `hy-Latn`.
+   *
+   * @param {string} calendar
+   * @param {string} naming
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").DayName}
+   */
+  dayName(calendar, naming, fixed) {
+    const fn = this.#export("hc_day_name");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(calendar, "calendar", (calendarPointer, calendarLen) =>
+      this.#withText(naming, "naming", (namingPointer, namingLen) =>
+        this.#text("hc_day_name", (buffer, capacity) =>
+          fn(calendarPointer, calendarLen, namingPointer, namingLen, day, buffer, capacity), true)));
+    const [name, namingId, namingName, authority] = this.#oneLine("hc_day_name", text, COLUMNS.dayName);
+    return { name, naming: namingId, namingName, authority };
   }
 
   /**
@@ -4156,6 +4782,40 @@ export class HyperCalendar {
     const year = toI64(chineseYear, "chineseYear");
     const text = this.#text("hc_chinese_marriage_augury", (buffer, capacity) => fn(year, buffer, capacity), true);
     return marriageAugury(this.#oneLine("hc_chinese_marriage_augury", text, COLUMNS.marriageAugury));
+  }
+
+  /**
+   * A person's age on a day by a count: `chinese-age`, one at birth and
+   * one more each Chinese New Year; `lichun-age`, one more each 立春;
+   * `new-year-day-age`, one more each 1 January; or `year-age`, from
+   * nothing, one more each 1 January.
+   *
+   * @param {import("./hyper-calendar.d.ts").AgeConvention} convention
+   * @param {number | bigint} birthFixed
+   * @param {number | bigint} onFixed
+   * @returns {number}
+   */
+  chineseAge(convention, birthFixed, onFixed) {
+    const fn = this.#export("hc_chinese_age");
+    const birth = toI64(birthFixed, "birthFixed");
+    const on = toI64(onFixed, "onFixed");
+    return this.#withText(convention, "convention", (pointer, len) =>
+      toNumber(fn(pointer, len, birth, on), "hc_chinese_age"));
+  }
+
+  /**
+   * The twenty-four solar terms the Qing almanac printed in a Gregorian
+   * year of 1645–1733, 小寒 first.
+   *
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").AlmanacSolarTerm[]}
+   */
+  chineseAlmanacSolarTerms(year) {
+    const fn = this.#export("hc_chinese_almanac_solar_terms");
+    const y = toI64(year, "year");
+    const text = this.#text("hc_chinese_almanac_solar_terms", (buffer, capacity) => fn(y, buffer, capacity), true);
+    return rows(text, COLUMNS.chineseAlmanacSolarTerms, "hc_chinese_almanac_solar_terms").map(
+      ([position, name, fixed]) => ({ position: integer(position, "position"), name, fixed: integer(fixed, "fixed") }));
   }
 
   /**
@@ -4220,6 +4880,46 @@ export class HyperCalendar {
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_holiday_tables", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
     return rows(text, COLUMNS.holidayTables, "hc_holiday_tables").map(holidayTable);
+  }
+
+  /**
+   * Every group of people a holiday may be given to alone, named in a
+   * locale where an instrument in the language names it.
+   *
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").HolidayGroup[]}
+   */
+  holidayGroups(locale = "und") {
+    const fn = this.#export("hc_holiday_groups");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_holiday_groups", (buffer, capacity) => fn(pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.holidayGroups, "hc_holiday_groups").map(([group, name, localeUsed, englishName]) => ({
+      group,
+      name: optional(name),
+      localeUsed: optional(localeUsed),
+      englishName,
+    }));
+  }
+
+  /**
+   * `holidaysOn`'s entries, each with the day's name in a locale where a
+   * source in the language names it.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").HolidayOnIn[]}
+   */
+  holidaysOnIn(fixed, locale = "und") {
+    const fn = this.#export("hc_holidays_on_in");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(locale, "locale", (pointer, len) =>
+      this.#text("hc_holidays_on_in", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
+    const columns = [...COLUMNS.holidaysOn, "name in locale", "name locale"];
+    return rows(text, columns, "hc_holidays_on_in").map((cells) => ({
+      ...holidayOn(cells.slice(0, COLUMNS.holidaysOn.length)),
+      nameInLocale: optional(cells[COLUMNS.holidaysOn.length]),
+      nameLocale: optional(cells[COLUMNS.holidaysOn.length + 1]),
+    }));
   }
 
   /**
@@ -4288,6 +4988,26 @@ export class HyperCalendar {
     const day = toI64(fixed, "fixed");
     const text = this.#text("hc_common_worship_on", (buffer, capacity) => fn(day, buffer, capacity), true);
     return rows(text, COLUMNS.commonWorship, "hc_common_worship_on").map(commonWorshipCelebration);
+  }
+
+  /**
+   * What the Roman calendar of the 1960 rubrics does on a day: the office
+   * kept, its commemorations, and the feasts transferred or omitted.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").Roman1960Office[]}
+   */
+  roman1960OfficeOn(fixed) {
+    const fn = this.#export("hc_roman_1960_office_on");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_roman_1960_office_on", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return rows(text, COLUMNS.roman1960Office, "hc_roman_1960_office_on").map(([role, title, cls, className, from]) => ({
+      role: /** @type {import("./hyper-calendar.d.ts").Roman1960Role} */ (role),
+      title,
+      class: /** @type {import("./hyper-calendar.d.ts").Roman1960Class} */ (cls),
+      className,
+      transferredFrom: optionalInteger(from, "transferred from"),
+    }));
   }
 
   /**
@@ -4730,6 +5450,166 @@ export class HyperCalendar {
   }
 
   /**
+   * How one instant reads from another in a locale, *3 hours ago* or *in
+   * 2 days*: the phrase, the unit the conversational thresholds count it
+   * in and the signed count, truncated. `style` is `long`, `short` or
+   * `narrow`; `automatic` writes the language's own word for an offset
+   * where it has one, *yesterday*, as `Intl.RelativeTimeFormat`'s
+   * `numeric: "auto"` does. The root locale `und` writes CLDR's root
+   * phrases, `-1 d`.
+   *
+   * @param {number | bigint} thenUnix
+   * @param {number | bigint} nowUnix
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {boolean} [automatic]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").RelativeTime}
+   */
+  relativeTime(thenUnix, nowUnix, style = "long", automatic = false, locale = "und") {
+    const fn = this.#export("hc_relative_time");
+    const then = toI64(thenUnix, "thenUnix");
+    const now = toI64(nowUnix, "nowUnix");
+    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_relative_time", (buffer, capacity) =>
+          fn(then, now, stylePointer, styleLen, automatic ? 1 : 0, localePointer, localeLen, buffer, capacity), true)));
+    return relativeTime(this.#oneLine("hc_relative_time", text, COLUMNS.relativeTime));
+  }
+
+  /**
+   * Which calendar day one fixed day is, seen from another, in a locale:
+   * *3 days ago*, and with `automatic` *yesterday* and *today*. The
+   * offset is the difference of the day numbers, never a span divided.
+   * `style`, `automatic` and `locale` are as for {@link relativeTime}.
+   *
+   * @param {number | bigint} thenFixed
+   * @param {number | bigint} nowFixed
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {boolean} [automatic]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").RelativeTime}
+   */
+  relativeDay(thenFixed, nowFixed, style = "long", automatic = false, locale = "und") {
+    const fn = this.#export("hc_relative_day");
+    const then = toI64(thenFixed, "thenFixed");
+    const now = toI64(nowFixed, "nowFixed");
+    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_relative_day", (buffer, capacity) =>
+          fn(then, now, stylePointer, styleLen, automatic ? 1 : 0, localePointer, localeLen, buffer, capacity), true)));
+    return relativeTime(this.#oneLine("hc_relative_day", text, COLUMNS.relativeTime));
+  }
+
+  /**
+   * {@link relativeDay}'s phrase with a time of day, *yesterday at 15:05*,
+   * the time `secondsOfDay` after midnight written `H:MM` in the locale's
+   * digits and joined by the locale's pattern.
+   *
+   * @param {number | bigint} thenFixed
+   * @param {number | bigint} nowFixed
+   * @param {number} secondsOfDay
+   * @param {import("./hyper-calendar.d.ts").RelativeStyle} [style]
+   * @param {boolean} [automatic]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").RelativeDayAt}
+   */
+  relativeDayAt(thenFixed, nowFixed, secondsOfDay, style = "long", automatic = false, locale = "und") {
+    const fn = this.#export("hc_relative_day_at");
+    const then = toI64(thenFixed, "thenFixed");
+    const now = toI64(nowFixed, "nowFixed");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_relative_day_at", (buffer, capacity) =>
+          fn(then, now, seconds, stylePointer, styleLen, automatic ? 1 : 0, localePointer, localeLen, buffer, capacity),
+          true)));
+    return relativeDayAt(this.#oneLine("hc_relative_day_at", text, COLUMNS.relativeDayAt));
+  }
+
+  /**
+   * A span of seconds phrased in days, hours, minutes and seconds, *2
+   * hours and 30 minutes*: `style` is `long`, `short`, `narrow` or
+   * `compact` (*2h30m*), and at most `maxComponents` units are written,
+   * the largest first, `0` for every one.
+   *
+   * @param {number | bigint} seconds
+   * @param {import("./hyper-calendar.d.ts").DurationStyle} [style]
+   * @param {number} [maxComponents]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").HumanizedDuration}
+   */
+  duration(seconds, style = "long", maxComponents = 0, locale = "und") {
+    const fn = this.#export("hc_duration");
+    const span = toI64(seconds, "seconds");
+    const most = toU32(maxComponents, "maxComponents");
+    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#text("hc_duration", (buffer, capacity) =>
+          fn(span, stylePointer, styleLen, most, localePointer, localeLen, buffer, capacity), true)));
+    return humanizedDuration(this.#oneLine("hc_duration", text, COLUMNS.duration));
+  }
+
+  /**
+   * A time zone's name at a POSIX instant in a locale, as a CLDR pattern
+   * field writes it: `z` to `zzzz`, `O`, `OOOO`, `v`, `vvvv`, `V` to
+   * `VVVV`.
+   *
+   * @param {string} zone
+   * @param {number | bigint} unixSeconds
+   * @param {string} [locale]
+   * @param {import("./hyper-calendar.d.ts").ZoneNameField} [field]
+   * @returns {import("./hyper-calendar.d.ts").ZoneName}
+   */
+  zoneName(zone, unixSeconds, locale = "und", field = "zzzz") {
+    const fn = this.#export("hc_zone_name");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(zone, "zone", (zonePointer, zoneLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#withText(field, "field", (fieldPointer, fieldLen) =>
+          this.#text("hc_zone_name", (buffer, capacity) =>
+            fn(zonePointer, zoneLen, instant, localePointer, localeLen, fieldPointer, fieldLen, buffer, capacity), true))));
+    const [name, fieldCell, zoneCell, offset, daylight] = this.#oneLine("hc_zone_name", text, COLUMNS.zoneName);
+    return {
+      name,
+      field: /** @type {import("./hyper-calendar.d.ts").ZoneNameField} */ (fieldCell),
+      zone: zoneCell,
+      offset: integer(offset, "offset"),
+      daylight: flag(daylight, "daylight"),
+    };
+  }
+
+  /**
+   * An instant formatted in a zone and a locale by a `cldr` or a
+   * `strftime` pattern.
+   *
+   * @param {string} zone
+   * @param {number | bigint} unixSeconds
+   * @param {string} locale
+   * @param {"cldr" | "strftime"} syntax
+   * @param {string} pattern
+   * @returns {import("./hyper-calendar.d.ts").FormattedInZone}
+   */
+  formatPattern(zone, unixSeconds, locale, syntax, pattern) {
+    const fn = this.#export("hc_format_pattern");
+    const instant = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(zone, "zone", (zonePointer, zoneLen) =>
+      this.#withText(locale, "locale", (localePointer, localeLen) =>
+        this.#withText(syntax, "syntax", (syntaxPointer, syntaxLen) =>
+          this.#withText(pattern, "pattern", (patternPointer, patternLen) =>
+            this.#text("hc_format_pattern", (buffer, capacity) =>
+              fn(zonePointer, zoneLen, instant, localePointer, localeLen, syntaxPointer, syntaxLen, patternPointer,
+                patternLen, buffer, capacity), true)))));
+    const [formatted, syntaxCell, zoneCell, offset, daylight] = this.#oneLine("hc_format_pattern", text, COLUMNS.zoneName);
+    return {
+      text: formatted,
+      syntax: /** @type {"cldr" | "strftime"} */ (syntaxCell),
+      zone: zoneCell,
+      offset: integer(offset, "offset"),
+      daylight: flag(daylight, "daylight"),
+    };
+  }
+
+  /**
    * A binary CCSDS time code read from hexadecimal, P-field first.
    *
    * @param {string} hex
@@ -4891,6 +5771,28 @@ export class HyperCalendar {
   }
 
   /**
+   * The start of the IRIG frame that holds a reading of the civil clock,
+   * the reading `irigEncode` takes, with the frame's length.
+   *
+   * @param {string} signal
+   * @param {number} secondsOfDay
+   * @param {number} [hundredths]
+   * @returns {import("./hyper-calendar.d.ts").IrigFrameStart}
+   */
+  irigFrameStart(signal, secondsOfDay, hundredths = 0) {
+    const fn = this.#export("hc_irig_frame_start");
+    const [seconds, cents] = [toU32(secondsOfDay, "secondsOfDay"), toU32(hundredths, "hundredths")];
+    const text = this.#withText(signal, "signal", (pointer, len) =>
+      this.#text("hc_irig_frame_start", (buffer, capacity) => fn(pointer, len, seconds, cents, buffer, capacity), true));
+    const [start, startHundredths, frame] = this.#oneLine("hc_irig_frame_start", text, COLUMNS.irigFrameStart);
+    return {
+      secondsOfDay: integer(start, "seconds of day"),
+      hundredths: integer(startHundredths, "hundredths"),
+      frameMicroseconds: integer(frame, "frame micros"),
+    };
+  }
+
+  /**
    * Every IRIG format, with its frame's length, its rate, its fields and
    * the designations Table 4-1 permits it: a reading `irigEncode` writes a
    * frame at is a multiple of `frameMicroseconds` from midnight.
@@ -4966,6 +5868,48 @@ export class HyperCalendar {
   }
 
   /**
+   * The French Republican decimal time of a time of the civil clock: ten
+   * decimal hours to the day, a hundred minutes to the hour and a hundred
+   * seconds of 0.864 s to the minute. 23:59:60 is `no-data`.
+   *
+   * @param {number} secondsOfDay
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").FrenchDecimalTime}
+   */
+  frenchDecimalTime(secondsOfDay, attoseconds = 0) {
+    const fn = this.#export("hc_french_decimal_time");
+    const seconds = toU32(secondsOfDay, "secondsOfDay");
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_french_decimal_time", (buffer, capacity) => fn(seconds, attos, buffer, capacity), true);
+    const [hour, minute, second, rest] = this.#oneLine("hc_french_decimal_time", text, COLUMNS.frenchDecimalTime);
+    return {
+      hour: integer(hour, "hour"),
+      minute: integer(minute, "minute"),
+      second: integer(second, "second"),
+      attoseconds: bigInteger(rest, "attoseconds"),
+    };
+  }
+
+  /**
+   * The civil time of day of a French Republican decimal time, exactly.
+   *
+   * @param {number} hour
+   * @param {number} minute
+   * @param {number} second
+   * @param {number | bigint} [attoseconds]
+   * @returns {import("./hyper-calendar.d.ts").TimeOfDay}
+   */
+  civilFromFrenchDecimalTime(hour, minute, second, attoseconds = 0) {
+    const fn = this.#export("hc_civil_from_french_decimal_time");
+    const [h, m, s] = [toU32(hour, "hour"), toU32(minute, "minute"), toU32(second, "second")];
+    const attos = toU64(attoseconds, "attoseconds");
+    const text = this.#text("hc_civil_from_french_decimal_time", (buffer, capacity) =>
+      fn(h, m, s, attos, buffer, capacity), true);
+    const [seconds, rest] = this.#oneLine("hc_civil_from_french_decimal_time", text, COLUMNS.civilFromFrenchDecimalTime);
+    return { secondsOfDay: integer(seconds, "seconds of day"), attoseconds: bigInteger(rest, "attoseconds") };
+  }
+
+  /**
    * Rāhu kālam, Yamaganda and Gulika kālam on a day, each named in a locale.
    *
    * @param {import("./hyper-calendar.d.ts").KalamConvention} convention
@@ -5019,6 +5963,149 @@ export class HyperCalendar {
         this.#text("hc_almanac_day", (buffer, capacity) =>
           fn(day, meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)));
     return rows(text, COLUMNS.almanacDay, "hc_almanac_day").map(almanacAnnotation);
+  }
+
+  /**
+   * Where the 八将神 and the 金神 stand in the 干支 year in force on a day,
+   * the year turning at 立春 at the meridian: one entry per god and
+   * direction, 金神 once for each branch the year's stem gives it.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").AlmanacDirection[]}
+   */
+  almanacDirections(fixed, meridian = "") {
+    const fn = this.#export("hc_almanac_directions");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(meridian, "meridian", (pointer, len) =>
+      this.#text("hc_almanac_directions", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.almanacDirections, "hc_almanac_directions").map(almanacDirection);
+  }
+
+  /**
+   * The fixed day of 臘日 in the winter that ends in a Gregorian year, by a
+   * reckoning: `second-dragon-after-minor-cold`,
+   * `second-dragon-from-minor-cold`, `dragon-nearest-major-cold-earlier`,
+   * `dragon-nearest-major-cold-later`, `first-dog-after-major-cold`,
+   * `first-dog-from-major-cold`, `lunar-twelfth-ninth`,
+   * `ox-month-ninth-from-minor-cold`, `ox-month-ninth-after-minor-cold`,
+   * `third-dog-after-winter-solstice` or `third-dog-from-winter-solstice`.
+   * A winter whose lunar year the calendar does not reach is `no-data`.
+   *
+   * @param {import("./hyper-calendar.d.ts").RounichiRule} rule
+   * @param {number | bigint} year
+   * @param {string} [meridian]
+   * @returns {number}
+   */
+  rounichi(rule, year, meridian = "") {
+    const fn = this.#export("hc_rounichi");
+    const y = toI64(year, "year");
+    return this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+      this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+        toNumber(fn(rulePointer, ruleLen, y, meridianPointer, meridianLen), "hc_rounichi")));
+  }
+
+  /**
+   * What a publisher's list, `saijigoyomi` or `linderabell`, says the
+   * 二十八宿 of a day favours and forbids, in the publisher's order.
+   *
+   * @param {import("./hyper-calendar.d.ts").UndertakingListId} list
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").MansionUndertaking[]}
+   */
+  mansionUndertakings(list, fixed) {
+    const fn = this.#export("hc_mansion_undertakings");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(list, "list", (pointer, len) =>
+      this.#text("hc_mansion_undertakings", (buffer, capacity) => fn(pointer, len, day, buffer, capacity), true));
+    return rows(text, COLUMNS.mansionUndertakings, "hc_mansion_undertakings").map(mansionUndertaking);
+  }
+
+  /**
+   * Whether a day is one of a person's own 五墓日 or 三箇の悪日, by the
+   * Gregorian year whose 干支 is their birth year's.
+   *
+   * @param {number | bigint} fixed
+   * @param {number | bigint} birthYear
+   * @param {string} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").AlmanacPersonDay[]}
+   */
+  almanacPersonDays(fixed, birthYear, meridian = "") {
+    const fn = this.#export("hc_almanac_person_days");
+    const day = toI64(fixed, "fixed");
+    const born = toI64(birthYear, "birthYear");
+    const text = this.#withText(meridian, "meridian", (pointer, len) =>
+      this.#text("hc_almanac_person_days", (buffer, capacity) => fn(day, born, pointer, len, buffer, capacity), true));
+    return rows(text, COLUMNS.almanacPersonDays, "hc_almanac_person_days").map(almanacPersonDay);
+  }
+
+  /**
+   * What the Tibetan almanac of a version prints for a day, one entry a
+   * column: the five components, the Sun, Rāhu, the years' names and the
+   * elements and animals, the readings as the almanac writes them.
+   *
+   * @param {import("./hyper-calendar.d.ts").TibetanCalendarId} calendar
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").TibetanAlmanacEntry[]}
+   */
+  tibetanAlmanacDay(calendar, fixed) {
+    const fn = this.#export("hc_tibetan_almanac_day");
+    const day = toI64(fixed, "fixed");
+    const text = this.#withText(calendar, "calendar", (pointer, len) =>
+      this.#text("hc_tibetan_almanac_day", (buffer, capacity) => fn(pointer, len, day, buffer, capacity), true));
+    return rows(text, COLUMNS.tibetanAlmanacDay, "hc_tibetan_almanac_day").map(tibetanAlmanacEntry);
+  }
+
+  /**
+   * Where the Phugpa almanac places the five planets at the end of a day.
+   *
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").TibetanPlanet[]}
+   */
+  tibetanPlanets(fixed) {
+    const fn = this.#export("hc_tibetan_planets");
+    const day = toI64(fixed, "fixed");
+    const text = this.#text("hc_tibetan_planets", (buffer, capacity) => fn(day, buffer, capacity), true);
+    return rows(text, COLUMNS.tibetanPlanets, "hc_tibetan_planets").map(tibetanPlanet);
+  }
+
+  /**
+   * The Bhutanese calendar's winter solstice of a Gregorian year: the day,
+   * the weekday and time the almanac prints, and the local Julian Date.
+   *
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").BhutaneseWinterSolstice}
+   */
+  bhutaneseWinterSolstice(year) {
+    const fn = this.#export("hc_bhutanese_winter_solstice");
+    const y = toI64(year, "year");
+    const text = this.#text("hc_bhutanese_winter_solstice", (buffer, capacity) => fn(y, buffer, capacity), true);
+    const [fixed, reading, julianDate] =
+      this.#oneLine("hc_bhutanese_winter_solstice", text, COLUMNS.bhutaneseWinterSolstice);
+    return { fixed: integer(fixed, "fixed"), reading, julianDate: decimal(julianDate, "julian date") };
+  }
+
+  /**
+   * The fixed day a festival on a Tibetan date is kept on, by a rule for
+   * a skipped or repeated number: `berzin` or `henning-almanac`. A skipped
+   * number under `henning-almanac` is `no-data`.
+   *
+   * @param {import("./hyper-calendar.d.ts").TibetanFestivalRule} rule
+   * @param {import("./hyper-calendar.d.ts").TibetanCalendarId} calendar
+   * @param {number | bigint} year
+   * @param {number} month
+   * @param {boolean} leap
+   * @param {number} day
+   * @returns {number}
+   */
+  tibetanFestivalDay(rule, calendar, year, month, leap, day) {
+    const fn = this.#export("hc_tibetan_festival_day");
+    const y = toI64(year, "year");
+    const m = toU32(month, "month");
+    const d = toU32(day, "day");
+    return this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+      this.#withText(calendar, "calendar", (calendarPointer, calendarLen) =>
+        toNumber(fn(rulePointer, ruleLen, calendarPointer, calendarLen, y, m, leap ? 1 : 0, d), "hc_tibetan_festival_day")));
   }
 
   /**

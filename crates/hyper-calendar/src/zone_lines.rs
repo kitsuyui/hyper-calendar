@@ -354,6 +354,154 @@ pub fn zone_offset_line(name: &str, unix_seconds: i64) -> Answer<String> {
     with_zone(name, |zone, rules| zone_offset(zone, rules, unix_seconds))?
 }
 
+/// How many columns [`zone_name_line`] writes.
+#[cfg(feature = "zone-names")]
+pub const ZONE_NAME_COLUMNS: usize = 5;
+
+/// Whether a field is one of the CLDR time zone fields UTS #35 Part 4
+/// defines a name for: `z` to `zzzz`, `O` and `OOOO`, `v` and `vvvv`, and
+/// `V` to `VVVV`. `hc-format` reads `OO` as `O` and `vv` as `v`; the
+/// specification does not define them, so they are refused here.
+#[cfg(feature = "zone-names")]
+fn zone_field(field: &str) -> Answer<&str> {
+    let first = field.chars().next().ok_or(Refusal::Unknown)?;
+    let length = field.len();
+    let lengths: &[usize] = match first {
+        'z' | 'V' => &[1, 2, 3, 4],
+        'O' | 'v' => &[1, 4],
+        _ => &[],
+    };
+    if lengths.contains(&length) && field.chars().all(|letter| letter == first) {
+        Ok(field)
+    } else {
+        Err(Refusal::Unknown)
+    }
+}
+
+/// A zone's reading at an instant, formatted by `write` with the context
+/// `hc-format`'s patterns take — the local civil reading, the offset, the
+/// zone's identifier and its daylight flag, in a locale, and with
+/// `abbreviated` the rules' abbreviation, which `strftime`'s `%Z` writes
+/// and which would stand in front of CLDR's own names —
+/// as the line's first cell, with `label`, the zone, the offset and the
+/// daylight flag after it.
+#[cfg(all(feature = "std", feature = "zone-names"))]
+fn zoned_line(
+    name: &str,
+    unix_seconds: i64,
+    locale: &str,
+    label: &str,
+    abbreviated: bool,
+    write: impl Fn(&mut String, &hc_format::patterns::FormatContext<'_>) -> Answer<()>,
+) -> Answer<String> {
+    use hc_format::patterns::FormatContext;
+    use hc_format::value::ZoneInfo;
+    let instant = instant_in_zone_range(unix_seconds)?;
+    let locale = hc_i18n::Locale::parse(locale).unwrap_or(hc_i18n::Locale::ROOT);
+    with_zone(name, |zone, _| {
+        let offset = zone.offset_at(instant);
+        let daylight = zone.is_dst_at(instant);
+        let local = unix_seconds + i64::from(offset.seconds());
+        let day = Rd::from_unix_days(local.div_euclid(86_400));
+        let second = local.rem_euclid(86_400);
+        let time = hc_calendar::CivilTime::hms(
+            (second / 3_600) as u8,
+            (second / 60 % 60) as u8,
+            (second % 60) as u8,
+        )
+        .map_err(|_| Refusal::OutOfRange)?;
+        let mut context = FormatContext::new(hc_calendar::CivilDateTime::new(day, time))
+            .with_zone(ZoneInfo::Offset(offset))
+            .with_zone_id(name)
+            .with_daylight(daylight)
+            .with_locale(&locale);
+        let abbreviation = named_abbreviation(zone.abbreviation_at(instant));
+        if abbreviated && !abbreviation.is_empty() {
+            context = context.with_zone_abbreviation(abbreviation);
+        }
+        let mut text = String::new();
+        write(&mut text, &context)?;
+        let mut out = String::new();
+        let mut line = Line::new(&mut out);
+        line.cell(&text)
+            .cell(label)
+            .cell(name)
+            .value(offset.seconds())
+            .flag(daylight);
+        line.end();
+        Ok(out)
+    })?
+}
+
+/// The line of `hc_zone_name`: a zone's name at an instant in a locale,
+/// as the CLDR pattern field `field` writes it — `z` to `zzz` the short
+/// specific name, *PDT*; `zzzz` the long, *Pacific Daylight Time*; `O` and
+/// `OOOO` the localized GMT format; `v` and `vvvv` the generic names,
+/// *PT*, *Pacific Time*; `V` the short zone identifier, `VV` the zone,
+/// `VVV` its exemplar city and `VVVV` its generic location — each with the
+/// fallbacks of UTS #35 Part 4 that `hc-format`'s `patterns::zone`
+/// follows. The cells: the name; the field; the zone as given; its offset
+/// at the instant, in seconds east of UTC; and `1` for its daylight time,
+/// else `0`. A tag that does not parse is the root locale.
+///
+/// # Errors
+///
+/// As [`with_zone`] and [`instant_in_zone_range`], and
+/// [`Refusal::Unknown`] for a field that is not one of those.
+#[cfg(all(feature = "std", feature = "zone-names"))]
+pub fn zone_name_line(name: &str, unix_seconds: i64, locale: &str, field: &str) -> Answer<String> {
+    let field = zone_field(field)?;
+    zoned_line(name, unix_seconds, locale, field, false, |text, context| {
+        hc_format::patterns::cldr::format(text, field, context).map_err(|_| Refusal::Unknown)
+    })
+}
+
+/// The line of `hc_format_pattern`: an instant formatted in a zone and a
+/// locale by a pattern — a CLDR pattern of UTS #35 Part 4 under `cldr`,
+/// `yyyy-MM-dd HH:mm zzzz`, or a POSIX `strftime` pattern under
+/// `strftime`, `%Y-%m-%d %H:%M %Z` — by `hc-format`'s `patterns`, in the
+/// cells of [`zone_name_line`], the syntax in place of the field.
+///
+/// # Errors
+///
+/// As [`with_zone`] and [`instant_in_zone_range`]; [`Refusal::Unknown`]
+/// for a syntax that is neither, and [`Refusal::Malformed`] for a pattern
+/// `hc-format` does not read: an unclosed quote, a field or conversion it
+/// does not write.
+#[cfg(all(feature = "std", feature = "zone-names"))]
+pub fn format_pattern_line(
+    name: &str,
+    unix_seconds: i64,
+    locale: &str,
+    syntax: &str,
+    pattern: &str,
+) -> Answer<String> {
+    use hc_core::catalogue::matches;
+    use hc_format::patterns::{cldr, strftime};
+    let (label, cldr_syntax) = if matches(syntax, "cldr") {
+        ("cldr", true)
+    } else if matches(syntax, "strftime") {
+        ("strftime", false)
+    } else {
+        return Err(Refusal::Unknown);
+    };
+    zoned_line(
+        name,
+        unix_seconds,
+        locale,
+        label,
+        !cldr_syntax,
+        |text, context| {
+            let written = if cldr_syntax {
+                cldr::format(text, pattern, context)
+            } else {
+                strftime::format(text, pattern, context)
+            };
+            written.map_err(|_| Refusal::Malformed)
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -533,6 +681,74 @@ mod tests {
         assert_eq!(
             cells(&zone_location("Asia/Tokyo", "ja").expect("Tokyo"))[6..],
             ["Tokyo", "en"]
+        );
+    }
+
+    /// UTS #35's worked names, as `hc-format` holds them: Los Angeles in
+    /// July is *PDT*, *Pacific Daylight Time* and *Pacific Time*; Tokyo is
+    /// 日本標準時 under `ja`.
+    #[cfg(all(feature = "std", feature = "zone-names"))]
+    #[test]
+    fn a_zones_name_is_the_fields() {
+        let july = 1_784_000_000;
+        let name = |zone, locale, field| {
+            zone_name_line(zone, july, locale, field).map(|line| cells(&line)[0].to_owned())
+        };
+        assert_eq!(
+            name("America/Los_Angeles", "en", "zzzz").as_deref(),
+            Ok("Pacific Daylight Time")
+        );
+        assert_eq!(name("America/Los_Angeles", "en", "z").as_deref(), Ok("PDT"));
+        assert_eq!(
+            name("America/Los_Angeles", "en", "vvvv").as_deref(),
+            Ok("Pacific Time")
+        );
+        assert_eq!(
+            name("Asia/Tokyo", "ja", "zzzz").as_deref(),
+            Ok("日本標準時")
+        );
+        let line = zone_name_line("America/Los_Angeles", july, "en", "z").expect("named");
+        assert_eq!(
+            cells(&line)[1..],
+            ["z", "America/Los_Angeles", "-25200", "1"]
+        );
+        assert_eq!(name("Asia/Tokyo", "ja", "x"), Err(Refusal::Unknown));
+        assert_eq!(name("Asia/Tokyo", "ja", "zzzzz"), Err(Refusal::Unknown));
+        assert_eq!(name("Asia/Tokyo", "ja", "OO"), Err(Refusal::Unknown));
+        assert_eq!(name("Asia/Tokyo", "ja", "vvv"), Err(Refusal::Unknown));
+        assert_eq!(name("Mars/Olympus", "ja", "z"), Err(Refusal::Unknown));
+    }
+
+    /// UTS #35's and POSIX's patterns over one instant: Tokyo at 00:00 UTC
+    /// on 1 January 2026 is 09:00 JST.
+    #[cfg(all(feature = "std", feature = "zone-names"))]
+    #[test]
+    fn a_pattern_formats_the_zones_reading() {
+        let instant = 1_767_225_600;
+        let cldr =
+            format_pattern_line("Asia/Tokyo", instant, "en", "cldr", "yyyy-MM-dd HH:mm zzzz")
+                .expect("formatted");
+        assert_eq!(
+            cells(&cldr),
+            [
+                "2026-01-01 09:00 Japan Standard Time",
+                "cldr",
+                "Asia/Tokyo",
+                "32400",
+                "0"
+            ]
+        );
+        let posix =
+            format_pattern_line("Asia/Tokyo", instant, "en", "strftime", "%Y-%m-%d %H:%M %Z")
+                .expect("formatted");
+        assert_eq!(cells(&posix)[0], "2026-01-01 09:00 JST");
+        assert_eq!(
+            format_pattern_line("Asia/Tokyo", instant, "en", "java", "yyyy"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            format_pattern_line("Asia/Tokyo", instant, "en", "cldr", "'unclosed"),
+            Err(Refusal::Malformed)
         );
     }
 }

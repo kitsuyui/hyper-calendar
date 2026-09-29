@@ -713,6 +713,56 @@ pub fn year_age(birth: Rd, on: Rd) -> Option<u32> {
     u32::try_from(gregorian::year_from_fixed(on) - gregorian::year_from_fixed(birth)).ok()
 }
 
+/// A count of a person's age, by the identifier a caller selects it by
+/// (policy §5): the function that gives the age on a day of a person born
+/// on another, `Ok(None)` for a day before the birth.
+#[derive(Debug, Clone, Copy)]
+pub struct AgeConvention {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The age on the second day of a person born on the first.
+    pub age: fn(Rd, Rd) -> CalendarResult<Option<u32>>,
+}
+
+/// [`reckoned_age`], from a birth given as a fixed day.
+fn chinese_age(birth: Rd, on: Rd) -> CalendarResult<Option<u32>> {
+    reckoned_age(ChineseCalendar.from_fixed(birth)?, on)
+}
+
+/// [`reckoned_age_at_new_year_day`], as an [`AgeConvention`]'s function.
+fn new_year_day_age(birth: Rd, on: Rd) -> CalendarResult<Option<u32>> {
+    Ok(reckoned_age_at_new_year_day(birth, on))
+}
+
+/// [`year_age`], as an [`AgeConvention`]'s function.
+fn year_age_convention(birth: Rd, on: Rd) -> CalendarResult<Option<u32>> {
+    Ok(year_age(birth, on))
+}
+
+hc_core::catalogue! {
+    type: AgeConvention,
+    id: |convention| convention.id,
+    tests: age_convention_catalogue_tests,
+    associated;
+
+    /// The four counts, in the order of the functions above.
+    pub const ALL;
+    /// The count with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// [`reckoned_age`]: one at birth, one more at each Chinese New Year.
+        pub const CHINESE_AGE = Self { id: "chinese-age", age: chinese_age };
+        /// [`reckoned_age_at_lichun`]: one at birth, one more at each 立春.
+        pub const LICHUN_AGE = Self { id: "lichun-age", age: reckoned_age_at_lichun };
+        /// [`reckoned_age_at_new_year_day`]: one at birth, one more each
+        /// 1 January.
+        pub const NEW_YEAR_DAY_AGE = Self { id: "new-year-day-age", age: new_year_day_age };
+        /// [`year_age`]: nothing at birth, one more each 1 January.
+        pub const YEAR_AGE = Self { id: "year-age", age: year_age_convention };
+    }
+}
+
 /// Where 立春 (*lìchūn*, the Beginning of Spring) falls in a Chinese year,
 /// the ground of the marriage auguries of the almanacs: none in the year,
 /// once near its end, once near its start, or at both

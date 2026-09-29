@@ -149,3 +149,59 @@ fn the_astronomical_paschal_full_moon_crosses_through_an_out_parameter() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+/// 25 March 1962 kept the Third Sunday of Lent (`hc-holiday`'s
+/// `roman_calendar_1960`).
+#[test]
+fn the_1960_office_crosses() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_roman_1960_office_on(716_324, buffer, capacity, written)
+    });
+    assert!(text.starts_with("office\tThird Sunday of Lent\tfirst\t"));
+}
+
+/// China's women, 妇女 under `zh-Hans`; Nayrouz of 2025 in Coptic.
+#[test]
+fn the_groups_and_the_named_days_cross() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_holiday_groups(c"zh-Hans".as_ptr(), buffer, capacity, written)
+    });
+    assert!(text.starts_with("women\t妇女\tzh-Hans\twomen\n"));
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_holidays_on_in(739_505, c"cop".as_ptr(), buffer, capacity, written)
+    });
+    assert!(
+        text.lines()
+            .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop"))
+    );
+}
+
+/// Five business days after Tuesday 28 April 2026 in Japan is Monday
+/// 11 May, Golden Week's holidays skipped, as the `JP` table has them.
+#[test]
+fn business_days_cross() {
+    let mut day = 0i64;
+    let status = unsafe {
+        hc_holiday_add_business_days(
+            c"JP".as_ptr(),
+            core::ptr::null(),
+            core::ptr::null(),
+            739_734,
+            5,
+            &mut day,
+        )
+    };
+    assert_eq!((status, day), (HC_OK, 739_747));
+    let mut count = 0i64;
+    let status = unsafe {
+        hc_holiday_business_days_between(
+            c"JP".as_ptr(),
+            core::ptr::null(),
+            core::ptr::null(),
+            739_733,
+            739_747,
+            &mut count,
+        )
+    };
+    assert_eq!((status, count), (HC_OK, 6));
+}

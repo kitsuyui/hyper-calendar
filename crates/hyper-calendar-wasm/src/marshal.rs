@@ -25,7 +25,9 @@ use crate::{
     feature = "deep-time",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const u8, len: usize) -> Result<&'a str, i64> {
     if pointer.is_null() {
@@ -105,7 +107,9 @@ pub(crate) unsafe fn emit(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn emit_or_measure(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
     if buffer.is_null() {
@@ -147,7 +151,9 @@ pub(crate) const fn sentinel(refusal: hc::boundary::Refusal) -> i64 {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn emit_answer(
     answer: hc::boundary::Answer<String>,
@@ -223,7 +229,9 @@ macro_rules! w_read {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 macro_rules! w_safety {
     (name, $arg:ident, $len:ident) => {

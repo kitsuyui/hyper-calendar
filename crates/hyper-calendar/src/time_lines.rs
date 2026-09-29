@@ -45,6 +45,7 @@ use alloc::vec::Vec;
 use core::fmt::Write;
 
 use hc_calendar::Rd;
+use hc_calendars_solar::french_republican::DecimalTime;
 use hc_calendars_solar::spreadsheet::{self, Excel1900Day};
 use hc_core::epoch::MJD_OF_UNIX_EPOCH;
 use hc_core::epoch_notation::EpochKind;
@@ -1101,6 +1102,70 @@ pub fn tt_bipm_line(
     }))
 }
 
+/// The line of `hc_french_decimal_time`: the decimal time of article XI of
+/// the decree of 4 frimaire an II at `seconds_of_day` after midnight and
+/// `attoseconds` more, [`DecimalTime::from_civil`] — the decimal hour, 0
+/// to 9, minute and second, 0 to 99, and the rest of the decimal second in
+/// attoseconds of ordinary time.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for `seconds_of_day` past 86 400 or attoseconds
+/// from 10¹⁸, and [`Refusal::NoData`] for 86 400, 23:59:60, a leap second
+/// the ten decimal hours have no place for.
+pub fn french_decimal_time_line(seconds_of_day: u32, attoseconds: u64) -> Answer<String> {
+    if seconds_of_day > 86_400 || attoseconds >= 1_000_000_000_000_000_000 {
+        return Err(Refusal::OutOfRange);
+    }
+    let seconds = seconds_of_day.min(86_399);
+    let time = hc_calendar::CivilTime::new(
+        (seconds / 3_600) as u8,
+        (seconds / 60 % 60) as u8,
+        (seconds % 60 + seconds_of_day - seconds) as u8,
+        attoseconds,
+    )
+    .map_err(Refusal::from)?;
+    let decimal = DecimalTime::from_civil(time).ok_or(Refusal::NoData)?;
+    Ok(line(|line| {
+        line.value(decimal.hour)
+            .value(decimal.minute)
+            .value(decimal.second)
+            .value(decimal.subsec_attos);
+    }))
+}
+
+/// The line of `hc_civil_from_french_decimal_time`: the ordinary time of
+/// day of a decimal time, [`DecimalTime::to_civil`], as whole seconds after
+/// midnight and attoseconds.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for an hour past 9, a minute or second past 99,
+/// or attoseconds of a decimal second, 0.864 s, or more.
+pub fn civil_from_french_decimal_time_line(
+    hour: u32,
+    minute: u32,
+    second: u32,
+    attoseconds: u64,
+) -> Answer<String> {
+    let part = |value: u32| u8::try_from(value).map_err(|_| Refusal::OutOfRange);
+    let decimal = DecimalTime {
+        hour: part(hour)?,
+        minute: part(minute)?,
+        second: part(second)?,
+        subsec_attos: attoseconds,
+    };
+    let time = decimal.to_civil().map_err(|_| Refusal::OutOfRange)?;
+    Ok(line(|line| {
+        line.value(
+            u32::from(time.hour()) * 3_600
+                + u32::from(time.minute()) * 60
+                + u32::from(time.second()),
+        )
+        .value(time.subsec_attos());
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -1629,5 +1694,28 @@ mod tests {
             Ok(i64::MAX)
         );
         assert_eq!(tai_from_unix(i64::MAX - 36, false), Err(Refusal::Overflow));
+    }
+
+    /// Article XI's decimal time: noon is 5 decimal hours, and 23:59:60 has
+    /// no place; decree of 4 frimaire an II (`decret-4-frimaire-an-ii`).
+    #[test]
+    fn the_decimal_time_is_the_decrees() {
+        assert_eq!(
+            french_decimal_time_line(43_200, 0).as_deref(),
+            Ok("5\t0\t0\t0\n")
+        );
+        assert_eq!(french_decimal_time_line(86_400, 0), Err(Refusal::NoData));
+        assert_eq!(
+            french_decimal_time_line(86_401, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            civil_from_french_decimal_time_line(5, 0, 0, 0).as_deref(),
+            Ok("43200\t0\n")
+        );
+        assert_eq!(
+            civil_from_french_decimal_time_line(10, 0, 0, 0),
+            Err(Refusal::OutOfRange)
+        );
     }
 }

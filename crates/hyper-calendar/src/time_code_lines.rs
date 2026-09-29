@@ -809,6 +809,41 @@ fn irig_code(signal: &str) -> Answer<IrigCode> {
     IrigCode::from_signal(signal).map_err(|_| Refusal::Unknown)
 }
 
+/// How many columns [`irig_frame_start_line`] writes.
+pub const IRIG_FRAME_START_COLUMNS: usize = 3;
+
+/// The line of `hc_irig_frame_start`: the reading at which the frame of an
+/// IRIG code that holds a reading of the civil clock begins, the one
+/// `hc_irig_encode` takes — the last multiple of the format's frame length
+/// from midnight at or before `seconds_of_day` and `hundredths` — as whole
+/// seconds after midnight and hundredths, then the frame's length in
+/// microseconds, Table 3-2's. 86 400 is 23:59:60, a frame of its own in a
+/// format whose frame is a second or less, and within the day's last frame
+/// in one whose frame is longer.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a signal designation Table 4-1 does not
+/// permit, and [`Refusal::OutOfRange`] for seconds past 86 400 or
+/// hundredths past 99.
+pub fn irig_frame_start_line(signal: &str, seconds_of_day: u32, hundredths: u32) -> Answer<String> {
+    let code = irig_code(signal)?;
+    if seconds_of_day > 86_400 || hundredths > 99 {
+        return Err(Refusal::OutOfRange);
+    }
+    let frame = code.format().frame_micros();
+    let mut micros = u64::from(seconds_of_day) * 1_000_000 + u64::from(hundredths) * 10_000;
+    if seconds_of_day == 86_400 && frame > 1_000_000 {
+        micros = 86_399_990_000;
+    }
+    let start = micros - micros % frame;
+    Ok(line(|line| {
+        line.value(start / 1_000_000)
+            .value(start % 1_000_000 / 10_000)
+            .value(frame);
+    }))
+}
+
 /// How many columns each line of [`irig_formats_lines`] writes.
 pub const IRIG_FORMATS_COLUMNS: usize = 9;
 
@@ -1713,5 +1748,40 @@ mod tests {
             back,
             alloc::format!("{leap_day}\t366\t23\t59\t60\t0\t16\t\t86400\n")
         );
+    }
+
+    /// Table 3-2's frames: B's is a second, D's an hour, A's a tenth of a
+    /// second; a reading within one starts at its boundary, which
+    /// `hc_irig_encode` then takes.
+    #[test]
+    fn a_reading_rounds_down_to_its_frame() {
+        assert_eq!(
+            irig_frame_start_line("B000", 3_725, 57).as_deref(),
+            Ok("3725\t0\t1000000\n")
+        );
+        assert_eq!(
+            irig_frame_start_line("D001", 3_725, 57).as_deref(),
+            Ok("3600\t0\t3600000000\n")
+        );
+        assert_eq!(
+            irig_frame_start_line("A000", 3_725, 57).as_deref(),
+            Ok("3725\t50\t100000\n")
+        );
+        assert_eq!(
+            irig_frame_start_line("B000", 86_400, 0).as_deref(),
+            Ok("86400\t0\t1000000\n")
+        );
+        assert_eq!(
+            irig_frame_start_line("D001", 86_400, 0).as_deref(),
+            Ok("82800\t0\t3600000000\n")
+        );
+        assert_eq!(
+            irig_frame_start_line("B000", 86_401, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(irig_frame_start_line("Z000", 0, 0), Err(Refusal::Unknown));
+        let start = irig_frame_start_line("D001", 3_725, 57).expect("a frame");
+        let seconds: u32 = cells(&start)[0].parse().expect("seconds");
+        assert!(irig_encode_line("D001", 739_888, seconds, 0, 0).is_ok());
     }
 }

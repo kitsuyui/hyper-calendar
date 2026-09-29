@@ -468,6 +468,29 @@ const NAMED_RANGES: [(TibetanCalendar, Rd, Rd); 7] = [
     (TIBETAN_BHUTAN_LOCHEN, Rd(364_892), Rd(1_095_803)),
 ];
 
+/// Every version of the calendar this module carries, in the order the
+/// registry lists them: `tibetan`, `tibetan-tsurphu`, `tibetan-bhutan`,
+/// `mongolian`, `tibetan-lochen`, `tibetan-tsurphu-karana` and
+/// `tibetan-bhutan-lochen`.
+pub const CALENDARS: [TibetanCalendar; 7] = [
+    TIBETAN,
+    TIBETAN_TSURPHU,
+    TIBETAN_BHUTAN,
+    MONGOLIAN,
+    TIBETAN_LOCHEN,
+    TIBETAN_TSURPHU_KARANA,
+    TIBETAN_BHUTAN_LOCHEN,
+];
+
+/// The version of [`CALENDARS`] with this registry identifier, by
+/// [`hc_core::catalogue::matches`].
+#[must_use]
+pub fn by_id(id: &str) -> Option<TibetanCalendar> {
+    CALENDARS
+        .into_iter()
+        .find(|calendar| hc_core::catalogue::matches(id, calendar.id.0))
+}
+
 /// Where the period of use of `tibetan-lochen` comes from.
 pub const LOCHEN_USAGE_SOURCE: &str = "Janson 2014, (7.24) and Remark 14 [janson2014]: the anomaly increment \
     proposed by Minling Lochen Dharmashri (1654–1717) and used by Henning in his computed calendars, \
@@ -2305,5 +2328,19 @@ mod tests {
         assert_eq!(Ratio::new(6, -8).denominator(), 4);
         assert!(Ratio::new(1, 3).lt(Ratio::new(1, 2)));
         assert!((Ratio::new(1, 4).to_f64() - 0.25).abs() < 1e-12);
+    }
+
+    /// [`CALENDARS`] is the table of named ranges, in its order, and each
+    /// version is found by its identifier in any case.
+    #[test]
+    fn every_version_is_found_by_its_identifier() {
+        for (calendar, (named, _, _)) in CALENDARS.iter().zip(NAMED_RANGES.iter()) {
+            assert_eq!(calendar.id, named.id);
+            assert_eq!(
+                by_id(&calendar.id.0.to_ascii_uppercase()).map(|c| c.id),
+                Some(calendar.id)
+            );
+        }
+        assert!(by_id("tibetan-x").is_none());
     }
 }

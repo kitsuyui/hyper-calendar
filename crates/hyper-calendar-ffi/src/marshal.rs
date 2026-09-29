@@ -47,7 +47,9 @@ pub(crate) unsafe fn write_text(
     feature = "deep-time",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
     if pointer.is_null() {
@@ -76,7 +78,9 @@ pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>,
     feature = "sky",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn name<'a>(pointer: *const c_char) -> Result<&'a str, HcStatus> {
     // SAFETY: forwarded to the caller's contract above.
@@ -131,7 +135,9 @@ pub(crate) const fn status(refusal: hc::boundary::Refusal) -> HcStatus {
     feature = "orbital",
     feature = "planetary",
     feature = "relativity",
-    feature = "places"
+    feature = "places",
+    feature = "humanize",
+    feature = "zone-names"
 ))]
 pub(crate) unsafe fn write_answer(
     answer: hc::boundary::Answer<String>,

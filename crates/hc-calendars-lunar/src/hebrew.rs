@@ -564,6 +564,26 @@ impl Tekufah {
     /// The four in the order a Hebrew year meets them.
     pub const ALL: [Self; 4] = [Self::Tishrei, Self::Tevet, Self::Nisan, Self::Tammuz];
 
+    /// The identifier, the month's name in lower case: `tishrei`, `tevet`,
+    /// `nisan` or `tammuz`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Tishrei => "tishrei",
+            Self::Tevet => "tevet",
+            Self::Nisan => "nisan",
+            Self::Tammuz => "tammuz",
+        }
+    }
+
+    /// The *tekufah* with this identifier, by [`hc_core::catalogue::matches`].
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|tekufah| hc_core::catalogue::matches(id, tekufah.id()))
+    }
+
     /// Minutes from this *tekufah* of a Hebrew year to the same year's
     /// *tekufat Nisan*, which is the reckoning's anchor: a season is 91
     /// days and 7½ hours.
@@ -1680,5 +1700,16 @@ mod tests {
         assert!(birthday(bad, 5790).is_err());
         let good = HebrewDate::new(5780, Month::regular(1), 1).expect("Rosh Hashanah");
         assert!(yahrzeit(good, MAX_YEAR + 1).is_err());
+    }
+
+    #[test]
+    fn every_tekufah_is_found_by_its_identifier() {
+        for tekufah in Tekufah::ALL {
+            assert_eq!(
+                Tekufah::by_id(&tekufah.id().to_ascii_uppercase()),
+                Some(tekufah)
+            );
+        }
+        assert_eq!(Tekufah::by_id("adar"), None);
     }
 }

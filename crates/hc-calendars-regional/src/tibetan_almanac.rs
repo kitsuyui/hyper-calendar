@@ -393,6 +393,19 @@ impl Planet {
     /// The planet's constants: the multiplier of the general day, the
     /// modulus `R`, the epoch value `pd0`, the birth-sign, the equation
     /// table and the final correction table (Janson, the tables of Appendix D).
+    /// The planet's identifier, its English name in lower case:
+    /// `mercury`, `venus`, `mars`, `jupiter` or `saturn`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Mercury => "mercury",
+            Self::Venus => "venus",
+            Self::Mars => "mars",
+            Self::Jupiter => "jupiter",
+            Self::Saturn => "saturn",
+        }
+    }
+
     const fn constants(self) -> PlanetConstants {
         match self {
             Self::Mercury => PlanetConstants {
@@ -1235,6 +1248,48 @@ pub fn henning_almanac_day(
     } else {
         Some(Rd::from_julian_day_number(end))
     })
+}
+
+/// A rule for the day a festival on a skipped or repeated date is kept, by
+/// the identifier a caller selects it by (policy §5).
+#[derive(Debug, Clone, Copy)]
+pub struct FestivalRule {
+    /// A stable identifier, lowercase and hyphenated.
+    pub id: &'static str,
+    /// The day the rule keeps `day` of `month` of `year` on, or `None`
+    /// where it keeps none.
+    pub day: fn(&TibetanCalendar, i64, Month, u8) -> CalendarResult<Option<Rd>>,
+}
+
+/// [`berzin_day`], as a [`FestivalRule`]'s function.
+fn berzin_rule(
+    calendar: &TibetanCalendar,
+    year: i64,
+    month: Month,
+    day: u8,
+) -> CalendarResult<Option<Rd>> {
+    berzin_day(calendar, year, month, day).map(Some)
+}
+
+hc_core::catalogue! {
+    type: FestivalRule,
+    id: |rule| rule.id,
+    tests: festival_rule_catalogue_tests,
+    associated;
+
+    /// The two rules, Berzin's first.
+    pub const ALL;
+    /// The rule with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// [`berzin_day`]: the day before a skipped number, the first of a
+        /// repeated one.
+        pub const BERZIN = Self { id: "berzin", day: berzin_rule };
+        /// [`henning_almanac_day`]: the second of a repeated number, and no
+        /// day for a skipped one.
+        pub const HENNING_ALMANAC = Self { id: "henning-almanac", day: henning_almanac_day };
+    }
 }
 
 /// The end days of the lunar day before `day` of `month` of `year` and of

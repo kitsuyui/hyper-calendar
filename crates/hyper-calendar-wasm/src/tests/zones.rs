@@ -79,7 +79,7 @@ fn links_answer_with_their_rows_and_utc_is_unknown() {
 fn the_city_is_in_the_locale_where_the_build_carries_it() {
     let tokyo = line("Asia/Tokyo", "ja-JP");
     let cells: Vec<&str> = tokyo.trim_end().split('\t').collect();
-    if cfg!(feature = "calendars") {
+    if cfg!(any(feature = "calendars", feature = "zone-names")) {
         assert_eq!(cells[6..], ["東京", "ja"]);
     } else {
         assert_eq!(cells[6..], ["Tokyo", "en"]);

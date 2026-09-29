@@ -142,7 +142,8 @@ boundary crates do.
   `holiday_lines`, `season_lines`, `sky_lines`, `astro_lines`,
   `hours_lines`, `panchanga_lines`, `hindu_lines`, `crescent_lines`,
   `almanac_lines`, `reckoning_lines`, `deep_time_lines`, `zone_lines`,
-  `orbital_lines`, `planetary_lines`, `relativity_lines`, `place_lines`) and
+  `orbital_lines`, `planetary_lines`, `relativity_lines`, `place_lines`,
+  `humanize_lines`) and
   `calendar_values` produce the
   answers the two boundary crates return. Each answer about a set of things
   is a set of UTF-8 lines, one per entry, with tab-separated cells in a
@@ -162,7 +163,7 @@ The two *boundary crates*, `hyper-calendar-wasm` and `hyper-calendar-ffi`,
 marshal those answers across a WebAssembly or C interface. They expose the
 same *layers*, each a Cargo feature: `civil` (the default), `timestamps`,
 `time-codes`, `calendars`, `holiday`, `seasons`, `deep-time`, `tz`, `sky`,
-`orbital`, `planetary`, `relativity`, `places` and `full`. A page or a host program
+`orbital`, `planetary`, `relativity`, `places`, `humanize`, `zone-names` and `full`. A page or a host program
 builds only the layers it loads. Each layer is a module of each crate,
 which expands that layer's rows of the facade's `exports!` table with the
 crate's own marshalling (`marshal.rs`), and writes out by hand only the

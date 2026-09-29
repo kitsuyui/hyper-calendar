@@ -77,6 +77,8 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_utc_from_tai` | every `tai_seconds`; under `strict`, as for `hc_tai_from_unix` |
 | 1 or 0 | `hc_day_has_leap_second` | `unix_seconds` −9 223 372 036 854 720 000 through 9 223 372 036 854 719 999, the whole days of the `i64` range; the part-days at its two ends begin or end where no `i64` reaches, and are `HC_ERR_OUT_OF_RANGE` |
 | 1 or 0 | `hc_holiday_is_day_off` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
+| a fixed day | `hc_holiday_add_business_days` | `fixed` −3 652 424 999 through 3 652 424 634 and `count` −36 500 through 36 500, a walk that stays in the years −9 999 999 to 9 999 999; any other is `HC_ERR_OUT_OF_RANGE`, and a code that names no table `HC_ERR_UNKNOWN` |
+| a count | `hc_holiday_business_days_between` | `from_fixed` and `to_fixed` −3 652 424 999 through 3 652 424 634, at most a hundred years apart; any other is `HC_ERR_OUT_OF_RANGE`, and a code that names no table `HC_ERR_UNKNOWN` |
 | a weekday, 1 through 7 | `hc_first_day_of_week` | every locale tag |
 | a full week, 0 through 4 294 967 295 | `hc_gnss_resolve_week` | every broadcast week that fits the field and every `reference_tai_seconds`, one before week zero counting as week zero; a broadcast week that does not fit, or an answer past week 4 294 967 295, is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_tai64_encode` | `tai_seconds` −4 611 686 018 427 387 904 through 4 611 686 018 427 387 903, the seconds of the labels below 2⁶³, and attoseconds below 10¹⁸; any other is `HC_ERR_OUT_OF_RANGE` |
@@ -115,38 +117,59 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_parse_date` | no `i64` input: every text, a text that is not one day saying so in its line; a calendar the registry does not carry is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_asian_day` | `fixed` 1 360 (23 September AD 4) through 3 652 398, the last day of the Asian year 9999; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes nothing |
-| a byte length | `hc_holidays_on`, `hc_common_worship_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_holidays_on`, `hc_common_worship_on`, `hc_holidays_on_in` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_roman_1960_office_on` | `fixed` 577 814 through 1 497 129, the Gregorian years 1583 to 4099; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERR_NO_DATA` |
 | a byte length | `hc_orthodox_fast_on` | `fixed` 118 705 through 1 497 157 on `orthodox-fasts` and `armenian-fasts-jerusalem` and 118 705 through 1 497 128 on `orthodox-fasts-revised-julian`, the years 326 to 4099 of each reckoning's calendar, whose Pascha the Julian computus gives; 577 814 through 1 497 129, the Gregorian years 1583 to 4099, on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_orthodox_fast_seasons` | `year` 326 through 4099, or 1583 through 4099 on `armenian-fasts`, `coptic-fasts` and `ethiopian-fasts`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_lectionary` | `fixed` 719 163 through 1 497 096, 1 January 1970, when the Roman calendar of 1969 went into effect, to the liturgical year 4099; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_panchanga_of_day`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, on the true sky, and −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERR_NO_DATA` |
 | a byte length | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_surya_siddhanta_at`, `hc_barhaspatya_year_at` | `unix_seconds` −159 992 668 800 through 155 590 156 799, the days of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_barhaspatya_year` | `saka` −3178 through 6821, the expired Śaka years of Kali Yuga 1 to 10 000; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_sky_at`, `hc_decan_at`, `hc_solar_time`, `hc_panchanga_at`, `hc_edo_time`, `hc_panchak`, `hc_planetary_hour` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_sky_at`, `hc_decan_at`, `hc_drekkana_at`, `hc_nakshatra_at`, `hc_solar_time`, `hc_edo_time`, `hc_panchak`, `hc_planetary_hour` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000, on the true sky, and −159 992 668 800 through 155 590 156 799, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_pushkaram` | `entry_unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_kumbh` | `year` −1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes nothing, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERR_OUT_OF_RANGE` |
+| an age | `hc_chinese_age` | `birth_fixed` and `on_fixed` 600 460 through 785 271, the Chinese calendar's range, under `chinese-age` and `lichun-age`, and −3 652 424 999 through 3 652 424 634 under the others, a birth before or on the day asked; a day before the birth is `HC_ERR_NO_DATA`, and a day outside the range `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_chinese_almanac_solar_terms` | `year` 1645 through 1733 but 1667 to 1669; any other is `HC_ERR_NO_DATA` |
 | an Olympiad, from 1 | `hc_ioc_olympiad` | `gregorian_year` from 1896, whose Olympiads run to 2 305 843 009 213 693 478 for the last `i64` year; an earlier year is `HC_ERR_OUT_OF_RANGE` |
+| an Olympiad, from 1 | `hc_ioc_olympiad_on` | `fixed` from 692 231, the opening of 6 April 1896, through 3 652 424 634; an earlier day is `HC_ERR_OUT_OF_RANGE`, and one from 10 June to 21 November 1956 `HC_ERR_NO_DATA` |
+| a byte length | `hc_babylonian_regnal_year` | `seleucid_year` −314 through 160; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_equinox_new_year_margin` | `year` in the calendar's own range, the years whose first days `hc_calendars` lists it for; any other is `HC_ERR_OUT_OF_RANGE`, and a calendar not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_shmuel_tekufah` | `hebrew_year` 1 through 9999; any other is `HC_ERR_OUT_OF_RANGE`, and a *tekufah* not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_day_name` | every `fixed` the calendar converts; a day it refuses is `HC_ERR_OUT_OF_RANGE`, and one the naming does not name `HC_ERR_NO_DATA` |
+| a byte length | `hc_format_number` | every `value` the system writes: from 1 for the Hebrew numerals, every `i64` for a positional system; any other is `HC_ERR_OUT_OF_RANGE`, and a system not named `HC_ERR_UNKNOWN` |
+| an integer | `hc_parse_number` | no `i64` input: text in the system's notation, whose value is above `HC_ERR_FLOOR`; any other is `HC_ERR_MALFORMED` or `HC_ERR_OUT_OF_RANGE`, and a system not named `HC_ERR_UNKNOWN` |
 | a place in the cycle, 1 through 7 | `hc_hebrew_sabbatical_cycle_year` | `hebrew_year` 1 through 9999; any other is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_hebrew_yahrzeit`, `hc_hebrew_birthday` | `death_fixed` and `birth_fixed` −1 373 427 through 2 278 650 and `hebrew_year` 1 through 9999, the Hebrew years 1 through 9999, and the anniversary lies among those days; any other is `HC_ERR_OUT_OF_RANGE` |
 | an age, from 1 | `hc_chinese_reckoned_age` | `birth_fixed` and `on_fixed` 600 460 through 785 271, the days of the Chinese calendar's range, 1645 through 2150, a birth before or on the day asked; a day before the birth is `HC_ERR_NO_DATA`, and a day outside the range `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_easter` | `year` 1583 through 2150, Easter falling between the fixed days 577 913 and 785 015; any other year is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other year is `HC_ERR_OUT_OF_RANGE` |
 | a fixed day | `hc_plum_rains` | `year` −1000 through 3000, the days of 芒种 and 小暑 in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a rule or meridian it does not name `HC_ERR_UNKNOWN` |
+| a fixed day | `hc_rounichi` | `year` −999 through 3000, whose winter the era of `hc_term_in_effect` holds; any other is `HC_ERR_OUT_OF_RANGE`, a winter the reckoning does not settle `HC_ERR_NO_DATA`, and a rule or meridian it does not name `HC_ERR_UNKNOWN` |
+| a byte length | `hc_almanac_person_days` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and every `birth_year`; any other day is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_tibetan_almanac_day`, `hc_tibetan_planets` | `fixed` 364 892 through 1 095 802, the Tibetan years 1000 to 3000, and through 1 095 803 on `tibetan-bhutan`, `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen`; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_bhutanese_winter_solstice` | `year` 1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a fixed day | `hc_tibetan_festival_day` | `year` 1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE`, a month or day the year does not have `HC_ERR_INVALID_DATE`, and a skipped number under `henning-almanac` `HC_ERR_NO_DATA` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERR_UNKNOWN` |
 | 0 | `hc_zone_load` | any name and bytes; bytes that are not TZif are `HC_ERR_MALFORMED` |
 | a byte length | `hc_zone_offset` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_fixed_from_unix_in_zone`; any other is `HC_ERR_OUT_OF_RANGE`, and a name neither the loaded zones nor the built-in table knows `HC_ERR_UNKNOWN` |
+| a byte length | `hc_zone_name`, `hc_format_pattern` | `unix_seconds` −315 631 497 830 400 through 315 507 195 014 399, the instants of `hc_zone_offset`; any other is `HC_ERR_OUT_OF_RANGE`, and a zone or a field not known `HC_ERR_UNKNOWN` |
 | a byte length | `hc_mars_time`, `hc_body_time` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT); any other, or an instant or longitude not finite, is `HC_ERR_OUT_OF_RANGE`, and for `hc_body_time` a body `hc_bodies` does not list `HC_ERR_UNKNOWN` and the Sun `HC_ERR_NO_DATA` |
 | a byte length | `hc_zones`, `hc_zone_location` | no `i64` input: every locale tag, and for `hc_zone_location` every name `zone1970.tab`, `zone.tab` or `backward` places; a name they do not, such as `UTC`, is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_territories`, `hc_subdivisions`, `hc_place_name` | no `i64` input: every locale tag, every territory's code as `country`, and for `hc_place_name` every code of a territory or, in ISO form, of a subdivision CLDR 48 names; any other is `HC_ERR_UNKNOWN` |
+| a byte length | `hc_relative_time` | every `then_unix` and `now_unix` less than an `i64` of seconds apart; two further apart are `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_relative_day`, `hc_relative_day_at` | every `then_fixed` and `now_fixed` less than an `i64` of days apart, and for `hc_relative_day_at` seconds of the day below 86 400; any other is `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_duration` | every `seconds`; a style not named is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
-| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -287,11 +310,13 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `epochFromTt(notation, ttSeconds, attoseconds)`, `ttFromEpoch(notation, year)` | `hc_epoch_from_tt`, `hc_tt_from_epoch` | an `Epoch`; an `EpochInstant` |
 | `ttBipm(series, taiSeconds, attoseconds, strict)` | `hc_tt_bipm` | a `TtBipmReading` |
 | `dotnetTicksFromUnix(unixSeconds, attoseconds)`, `unixFromDotnetTicks(ticks)` | `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks` | ticks as a `bigint`; a `DotnetReading` |
+| `frenchDecimalTime(secondsOfDay, attoseconds)`, `civilFromFrenchDecimalTime(hour, minute, second, attoseconds)` | `hc_french_decimal_time`, `hc_civil_from_french_decimal_time` | a `FrenchDecimalTime`; a `TimeOfDay` |
 | `sixHourClock(reckoning, secondsOfDay)`, `civilFromSixHourClock(reckoning, hour, minute, second, night)` | `hc_six_hour_clock`, `hc_civil_from_six_hour_clock` | a `SixHourReading`; seconds of the civil day |
 | `ccsdsDecode(hex, strict)`, `ccsdsEncode(taiSeconds, attoseconds, pField, strict)` | `hc_ccsds_decode`, `hc_ccsds_encode` | a `CcsdsCode`; a hexadecimal string |
 | `ccsdsAsciiParse(code, strict)`, `ccsdsAsciiFormat(taiSeconds, attoseconds, variation, precision, terminator, strict)` | `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format` | a `CcsdsAsciiCode`; a string |
 | `radioDecode(code, frame, century)`, `radioEncode(code, unixSeconds, options)` | `hc_radio_decode`, `hc_radio_encode` | a `RadioMinute`; a frame string |
 | `irigDecode(signal, frame, year)`, `irigEncode(signal, fixed, secondsOfDay, options)`, `irigFormats()` | `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats` | an `IrigReading`; a frame string; `IrigFormatInfo[]` |
+| `irigFrameStart(signal, secondsOfDay, hundredths)` | `hc_irig_frame_start` | an `IrigFrameStart` |
 | `describeDay(fixed, locale)` | `hc_describe_day` | `DescribedDay[]`, one per calendar |
 | `parseDate(calendar, locale, text)` | `hc_parse_date` | a `ParsedDate`: a `DescribedDay` and its `fixed` day |
 | `dayExtras(fixed, locale, id)` | `hc_day_extras` | `DayExtra[]`, one per extra field |
@@ -300,13 +325,18 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `calendarList(locale)` | `hc_calendar_list` | `CalendarListEntry[]`, one per calendar |
 | `locales()` | `hc_locales` | `LocaleEntry[]`, one per locale |
 | `firstDayOfWeek(locale)` | `hc_first_day_of_week` | a number, Monday = 1 through Sunday = 7 |
+| `dayPeriod(secondsOfDay, locale)`, `formatNumber(system, value)`, `parseNumber(system, text)`, `numberingSystems()`, `calendarEras(calendar, locale)` | `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras` | a `DayPeriodReading`; a string; a number; `NumberingSystemInfo[]`; `CalendarEra[]` |
 | `gregorianAdoption(region)` | `hc_gregorian_adoption` | `GregorianAdoption[]`, one per step |
 | `namingPeriodOn(calendar, fixed, locale)` | `hc_naming_period_on` | a `NamingPeriodOn` |
 | `panchangaAt(unixSeconds, ayanamsa)`, `panchangaOfDay(fixed, latitude, longitude, elevation, ayanamsa)` | `hc_panchanga_at`, `hc_panchanga_of_day` | `PanchangaLimb[]`, the yoga's and the karaṇa's |
 | `hinduLunarDate(sky, fixed, latitude, longitude, elevation, locale)`, `suryaSiddhantaAt(unixSeconds)`, `suryaSiddhantaSunrise(fixed, latitude, longitude)` | `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise` | a `HinduLunarDate`; a `SuryaSiddhantaSky`; a number |
-| `barhaspatyaYear(rule, saka, locale)`, `barhaspatyaYearAt(rule, unixSeconds, locale)` | `hc_barhaspatya_year`, `hc_barhaspatya_year_at` | a `BarhaspatyaYear`; a `BarhaspatyaName` |
+| `barhaspatyaYear(rule, saka, locale)`, `barhaspatyaYearAt(rule, unixSeconds, locale)` | `hc_barhaspatya_year`, `hc_barhaspatya_year_at` | a `BarhaspatyaYear`; a `BarhaspatyaNameAt` |
+| `muhurtas(fixed, latitude, longitude, elevation)`, `amritaSiddhi(fixed, latitude, longitude, elevation, ayanamsa)`, `nakshatraAt(unixSeconds, ayanamsa)`, `nakshatraOfDay(fixed, latitude, longitude, elevation, ayanamsa)` | `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day` | `Muhurta[]`; an `AmritaSiddhi`; a `NakshatraStay`; a `NakshatraStay` |
 | `crescentVisible(criterion, fixed, latitude, longitude, elevation)` | `hc_crescent_visible` | a `CrescentVisibility` |
+| `equinoxNewYearMargin(calendar, year)` | `hc_equinox_new_year_margin` | an `EquinoxMargin` |
+| `iocOlympiadOn(fixed)`, `babylonianRegnalYear(seleucidYear)`, `shmuelTekufah(hebrewYear, tekufah)`, `dayName(calendar, naming, fixed)` | `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_shmuel_tekufah`, `hc_day_name` | a number; a `RegnalYear`; a `ShmuelTekufah`; a `DayName` |
 | `iocOlympiad(gregorianYear)`, `hebrewYahrzeit(deathFixed, hebrewYear)`, `hebrewBirthday(birthFixed, hebrewYear)`, `chineseReckonedAge(birthFixed, onFixed)` | `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_chinese_reckoned_age` | a number |
+| `chineseAge(convention, birthFixed, onFixed)`, `chineseAlmanacSolarTerms(year)` | `hc_chinese_age`, `hc_chinese_almanac_solar_terms` | a number; `AlmanacSolarTerm[]` |
 | `chineseMarriageAugury(chineseYear)` | `hc_chinese_marriage_augury` | a `MarriageAugury` |
 | `hebrewSabbaticalCycleYear(hebrewYear)` | `hc_hebrew_sabbatical_cycle_year` | a number, 1 through 7 |
 | `asianDay(fixed)` | `hc_asian_day` | an `AsianDay` |
@@ -315,14 +345,18 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `panchak(naming, unixSeconds, ayanamsa, offsetSeconds, locale)` | `hc_panchak` | a `PanchakWindow` |
 | `kumbh(yoga, year, ayanamsa, jupiter, locale)`, `pushkaram(sign, entryUnixSeconds, latitude, longitude, elevation, meridian, locale)` | `hc_kumbh`, `hc_pushkaram` | a `KumbhOccasion`; `PushkaramDays[]`, one per river |
 | `almanacCycles(fixed, meridian)`, `almanacDay(fixed, meridian, locale)` | `hc_almanac_cycles`, `hc_almanac_day` | an `AlmanacCycles`; `AlmanacAnnotation[]`, one per annotation |
+| `almanacDirections(fixed, meridian)`, `rounichi(rule, year, meridian)`, `mansionUndertakings(list, fixed)`, `almanacPersonDays(fixed, birthYear, meridian)` | `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days` | `AlmanacDirection[]`; a fixed day; `MansionUndertaking[]`; `AlmanacPersonDay[]` |
+| `tibetanAlmanacDay(calendar, fixed)`, `tibetanPlanets(fixed)`, `bhutaneseWinterSolstice(year)`, `tibetanFestivalDay(rule, calendar, year, month, leap, day)` | `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day` | `TibetanAlmanacEntry[]`; `TibetanPlanet[]`; a `BhutaneseWinterSolstice`; a fixed day |
 | `folkDay(fixed, meridian, locale)`, `nightWatch(secondsOfDay, locale)` | `hc_folk_day`, `hc_night_watch` | `FolkDay[]`, one per reckoning; a `NightWatch` or `null` |
 | `holidayIsDayOff(code, region, fixed, group)` | `hc_holiday_is_day_off` | a boolean |
+| `holidayAddBusinessDays(code, region, fixed, count, group)`, `holidayBusinessDaysBetween(code, region, fromFixed, toFixed, group)` | `hc_holiday_add_business_days`, `hc_holiday_business_days_between` | a fixed day; a number |
 | `holidaysInYear(code, region, year, group)` | `hc_holidays_in_year` | `HolidayInYear[]` |
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
 | `holidaysOn(fixed)` | `hc_holidays_on` | `HolidayOn[]` |
 | `holidayTables(locale)` | `hc_holiday_tables` | `HolidayTable[]` |
+| `holidayGroups(locale)`, `holidaysOnIn(fixed, locale)` | `hc_holiday_groups`, `hc_holidays_on_in` | `HolidayGroup[]`; `HolidayOnIn[]` |
 | `lectionary(fixed)`, `astronomicalEaster(year)`, `astronomicalPaschalFullMoon(year)` | `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon` | a `Lectionary`; a fixed day number |
-| `holyYearOn(fixed)`, `commonWorshipOn(fixed)` | `hc_holy_year_on`, `hc_common_worship_on` | a `HolyYear` or `null`; `CommonWorshipCelebration[]` |
+| `holyYearOn(fixed)`, `commonWorshipOn(fixed)`, `roman1960OfficeOn(fixed)` | `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on` | a `HolyYear` or `null`; `CommonWorshipCelebration[]`; `Roman1960Office[]` |
 | `orthodoxFastOn(reckoning, fixed)`, `orthodoxFastSeasons(reckoning, year)` | `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | an `OrthodoxFastDay`; `OrthodoxFastSeason[]` |
 | `termInEffect(fixed, meridian)`, `pentadInEffect(fixed, meridian)` | `hc_term_in_effect`, `hc_pentad_in_effect` | a `TermInEffect` |
 | `coldFoodDay(convention, year)` | `hc_cold_food_day` | a fixed day number |
@@ -333,9 +367,10 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `loadZone(name, tzif)` | `hc_zone_load` | nothing |
 | `zones(locale)`, `zoneLocation(zone, locale)` | `hc_zones`, `hc_zone_location` | `ZoneLocation[]`; a `ZoneLocation` |
 | `zoneOffset(zone, unixSeconds)` | `hc_zone_offset` | a `ZoneOffset` |
+| `zoneName(zone, unixSeconds, locale, field)`, `formatPattern(zone, unixSeconds, locale, syntax, pattern)` | `hc_zone_name`, `hc_format_pattern` | a `ZoneName`; a `FormattedInZone` |
 | `skyAt(unixSeconds)` | `hc_sky_at` | a `Sky` |
 | `solarTermsBetween(fromUnix, toUnix)`, `moonPhasesBetween(fromUnix, toUnix)` | `hc_solar_terms_between`, `hc_moon_phases_between` | `SkyEvent[]` |
-| `decanAt(unixSeconds)` | `hc_decan_at` | a `Decan` |
+| `decanAt(unixSeconds)`, `drekkanaAt(unixSeconds, ayanamsa)` | `hc_decan_at`, `hc_drekkana_at` | a `Decan`; a `Drekkana` |
 | `earthRotationAngle(ut1UnixSeconds)`, `gmstIau2006(ut1UnixSeconds)`, `gmstIau1982(ut1UnixSeconds)`, `ut2MinusUt1(ut1UnixSeconds)` | `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1` | a number |
 | `solarTime(clock, unixSeconds, latitude, longitude, elevation)`, `solarEvent(event, fixed, latitude, longitude, elevation)` | `hc_solar_time`, `hc_solar_event` | a `SolarTime`; a `SolarEvent` |
 | `horizons(locale)`, `sunrise(horizon, fixed, latitude, longitude, elevation)`, `sunset(horizon, fixed, latitude, longitude, elevation)` | `hc_horizons`, `hc_sunrise`, `hc_sunset` | `Horizon[]`; a `SolarCrossing` |
@@ -351,6 +386,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `circadDate(calendar, unixSeconds)` | `hc_circad_date` | a `CircadDate` |
 | `properTime(speedMetresPerSecond, coordinateSeconds)`, `gravitationalDilation(body, radiusMetres)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
 | `territories(locale)`, `subdivisions(country, locale)`, `placeName(code, locale)` | `hc_territories`, `hc_subdivisions`, `hc_place_name` | `PlaceName[]`; `PlaceName[]`; a `PlaceName` |
+| `relativeTime(thenUnix, nowUnix, style, automatic, locale)`, `relativeDay(thenFixed, nowFixed, style, automatic, locale)`, `relativeDayAt(thenFixed, nowFixed, secondsOfDay, style, automatic, locale)`, `duration(seconds, style, maxComponents, locale)` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration` | a `RelativeTime`; a `RelativeTime`; a `RelativeDayAt`; a `HumanizedDuration` |
 
 Each method does what a page would otherwise write by hand:
 
@@ -422,8 +458,8 @@ the module's bytes inside it as base64, decoded with `atob` and bound by a
 `load(options)` that takes no source and fetches nothing. It is one
 self-contained ES module; `hyper-calendar.embedded.d.ts` types it. It is
 generated, not committed — CI uploads it with the layered builds below —
-and it is 7.52 MiB (7,887,035 bytes) for the `full` layer of 2026-09-28,
-base64 being four thirds of the module; the `places` layer is half of it.
+and it is 9.97 MiB (10,453,093 bytes) for the `full` layer of 2026-09-29,
+base64 being four thirds of the module; the `places` layer is two fifths of it.
 
 ### tzdata beside the module
 
@@ -465,19 +501,21 @@ one job a layer.
 | Feature | Exports | Brings in | Bytes | Size |
 | --- | --- | --- | ---: | ---: |
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 36,682 | 36 KiB |
-| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 120,941 | 118 KiB |
-| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 110,654 | 108 KiB |
-| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,312,396 | 1.25 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,986,915 | 1.89 MiB |
-| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,399 | 89 KiB |
+| `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 123,090 | 120 KiB |
+| `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 111,209 | 109 KiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,426,511 | 1.36 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,043,473 | 1.95 MiB |
+| `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,415 | 89 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
-| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 98,914 | 97 KiB |
-| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 160,538 | 157 KiB |
+| `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 99,022 | 97 KiB |
+| `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 163,419 | 160 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,650 | 63 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,732 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
-| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,910,708 | 2.78 MiB |
-| `full` | all of the above | everything | 6,623,900 | 6.32 MiB |
+| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,910,757 | 2.78 MiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries | `hc-humanize`, `hc-i18n` | 647,438 | 632 KiB |
+| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,522,408 | 1.45 MiB |
+| `full` | all of the above | everything | 7,637,697 | 7.28 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -490,7 +528,7 @@ scripts/wasm-layers.sh
 
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
-fourteen files, the embedded module and `tzdata/` as one workflow artifact.
+sixteen files, the embedded module and `tzdata/` as one workflow artifact.
 CI then runs [`scripts/wasm-size-check.sh`](../../scripts/wasm-size-check.sh),
 which fails when any layer is more than 5% larger or smaller than the table
 above: a layer that grows by accident is caught, and a change that moves a
@@ -523,7 +561,7 @@ not pass CI.
 
 ### Exports
 
-152 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+191 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -570,6 +608,8 @@ not pass CI.
 | `hc_unix_from_dotnet_ticks(ticks: i64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The reading a count of .NET ticks names, as one UTF-8 line, returning the byte length written. |
 | `hc_six_hour_clock(reckoning: *const u8, reckoning_len: usize, seconds_of_day: u32, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | A time of the civil day on a six-hour clock, as one UTF-8 line, returning the byte length written. |
 | `hc_civil_from_six_hour_clock(reckoning: *const u8, reckoning_len: usize, hour: u32, minute: u32, second: u32, night: i32) -> i64` | `timestamps` | The civil time of day of a six-hour reading, as seconds after midnight, 0 through 86 399, or an error sentinel. |
+| `hc_french_decimal_time(seconds_of_day: u32, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The French Republican decimal time of a time of the civil clock, as one UTF-8 line, returning the byte length written. |
+| `hc_civil_from_french_decimal_time(hour: u32, minute: u32, second: u32, attoseconds: u64, buffer: *mut u8, capacity: usize) -> i64` | `timestamps` | The civil time of day of a French Republican decimal time, as one UTF-8 line, returning the byte length written. |
 | `hc_ccsds_decode(hex: *const u8, hex_len: usize, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | A binary CCSDS time code read, as one UTF-8 line, returning the byte length written. |
 | `hc_ccsds_encode(tai_seconds: i64, attoseconds: u64, p_field: *const u8, p_field_len: usize, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | The binary CCSDS time code of a TAI instant in the format a P-field names, as one UTF-8 line, returning the byte length written. |
 | `hc_ccsds_ascii_parse(code: *const u8, code_len: usize, strict: i32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | A CCSDS ASCII time code, A or B, read, as one UTF-8 line, returning the byte length written. |
@@ -578,6 +618,7 @@ not pass CI.
 | `hc_radio_encode(code: *const u8, code_len: usize, unix_seconds: i64, leap: i32, summer: *const u8, summer_len: usize, zone_change: i32, dut1_tenths: i32, dst_next: u32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | The frame of a long-wave radio time code for a minute, as one UTF-8 line, returning the byte length written. |
 | `hc_irig_decode(signal: *const u8, signal_len: usize, frame: *const u8, frame_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | One frame of an IRIG serial time code read, as one UTF-8 line, returning the byte length written. |
 | `hc_irig_encode(signal: *const u8, signal_len: usize, fixed: i64, seconds_of_day: u32, hundredths: u32, control: u32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | The frame of an IRIG serial time code whose reference bit falls at a reading of the civil clock, as one UTF-8 line, returning the byte length written. |
+| `hc_irig_frame_start(signal: *const u8, signal_len: usize, seconds_of_day: u32, hundredths: u32, buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | The reading at which the frame of an IRIG code that holds a reading of the civil clock begins, with the frame's length, as one UTF-8 line, returning the byte length written. |
 | `hc_irig_formats(buffer: *mut u8, capacity: usize) -> i64` | `time-codes` | Every IRIG format `hc_irig_decode` and `hc_irig_encode` read, with its frame's length, its rate and its fields, as UTF-8 lines, returning the byte length written. |
 | `hc_describe_day(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | One fixed day in every registered calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_day_extras(fixed: i64, id: *const u8, id_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The extra fields of one fixed day, as UTF-8 lines, returning the byte length written. |
@@ -587,6 +628,11 @@ not pass CI.
 | `hc_calendar_list(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every registered calendar by name alone, as UTF-8 lines, returning the byte length written. |
 | `hc_locales(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every locale the module carries, as UTF-8 lines, returning the byte length written. |
 | `hc_first_day_of_week(locale: *const u8, locale_len: usize) -> i64` | `calendars` | The ISO weekday of the first day of the week in a locale, Monday = 1 through Sunday = 7, or an error sentinel. |
+| `hc_day_period(seconds_of_day: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The day periods of a time of the civil clock in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_format_number(system: *const u8, system_len: usize, value: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | An integer written in a numbering system, as one UTF-8 line, returning the byte length written. |
+| `hc_parse_number(system: *const u8, system_len: usize, text: *const u8, text_len: usize) -> i64` | `calendars` | An integer read back out of a numbering system's notation, or an error sentinel. |
+| `hc_numbering_systems(buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Every numbering system `hc_format_number` writes, as UTF-8 lines, returning the byte length written. |
+| `hc_calendar_eras(calendar: *const u8, calendar_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The eras a calendar is described with, named in a locale, as UTF-8 lines, returning the byte length written. |
 | `hc_gregorian_adoption(region: *const u8, region_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The steps by which a country adopted the Gregorian calendar, as UTF-8 lines, returning the byte length written. |
 | `hc_naming_period_on(calendar: *const u8, calendar_len: usize, fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Which month and weekday names a locale writes for a calendar on a fixed day, where a government renamed them for a period, as one UTF-8 line, returning the byte length written. |
 | `hc_panchanga_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The yoga and the karaṇa in progress at a POSIX timestamp, as two UTF-8 lines, returning the byte length written. |
@@ -596,17 +642,36 @@ not pass CI.
 | `hc_surya_siddhanta_sunrise(fixed: i64, latitude: f64, longitude: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The *Sūrya Siddhānta*'s sunrise on a fixed day at a place, as one UTF-8 line, returning the byte length written. |
 | `hc_crescent_visible(criterion: *const u8, criterion_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Whether the young crescent should have been visible on the evening that begins a fixed day, from a place, by a named criterion, as one UTF-8 line, returning the byte length written. |
 | `hc_ioc_olympiad(gregorian_year: i64) -> i64` | `calendars` | The number of the modern Olympiad a Gregorian year belongs to, or an error sentinel. |
+| `hc_ioc_olympiad_on(fixed: i64) -> i64` | `calendars` | The modern Olympiad a fixed day belongs to, by the Olympic Charter in force on that day, or an error sentinel. |
+| `hc_babylonian_regnal_year(seleucid_year: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The king and regnal year labelling a Seleucid year, as one UTF-8 line, returning the byte length written. |
+| `hc_equinox_new_year_margin(calendar: *const u8, calendar_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | How far the equinox that begins a year of a calendar fell from the moment of the day that decides its new year, as one UTF-8 line, returning the byte length written. |
+| `hc_shmuel_tekufah(hebrew_year: i64, tekufah: *const u8, tekufah_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | A *tekufah* of Shmuel's reckoning in a Hebrew year, as one UTF-8 line, returning the byte length written. |
+| `hc_day_name(calendar: *const u8, calendar_len: usize, naming: *const u8, naming_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | A fixed day's name in a calendar whose days are named, by one of its namings, as one UTF-8 line, returning the byte length written. |
 | `hc_hebrew_yahrzeit(death_fixed: i64, hebrew_year: i64) -> i64` | `calendars` | The fixed day of the yahrzeit in a Hebrew year of a death on the Hebrew date a fixed day names, or an error sentinel. |
 | `hc_hebrew_birthday(birth_fixed: i64, hebrew_year: i64) -> i64` | `calendars` | The fixed day of the birthday in a Hebrew year of a birth on the Hebrew date a fixed day names, or an error sentinel. |
 | `hc_chinese_reckoned_age(birth_fixed: i64, on_fixed: i64) -> i64` | `calendars` | A person's age as the Chinese count reckons it on a fixed day, or an error sentinel. |
 | `hc_chinese_marriage_augury(chinese_year: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The marriage augury of a Chinese year, as one UTF-8 line, returning the byte length written. |
+| `hc_chinese_age(convention: *const u8, convention_len: usize, birth_fixed: i64, on_fixed: i64) -> i64` | `calendars` | A person's age on a fixed day by a named count, born on another, or an error sentinel. |
+| `hc_chinese_almanac_solar_terms(year: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The days of the twenty-four solar terms the Qing almanac printed in a Gregorian year, as UTF-8 lines, returning the byte length written. |
 | `hc_hebrew_sabbatical_cycle_year(hebrew_year: i64) -> i64` | `calendars` | The place of a Hebrew year in the seven-year sabbatical cycle, 1 through 7, or an error sentinel. |
 | `hc_asian_day(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | A fixed day in the calendar of the Roman province of Asia as the calendar writes it, unnumbered days included, as one UTF-8 line, returning the byte length written. |
 | `hc_barhaspatya_year(rule: *const u8, rule_len: usize, saka: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The name of the northern sixty-year cycle, the Bārhaspatya saṃvatsara, a named rule couples with a Śaka year, and the name it expunges that year, as one UTF-8 line, returning the byte length written. |
 | `hc_barhaspatya_year_at(rule: *const u8, rule_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The name of the northern sixty-year cycle in progress at a POSIX timestamp by a named rule, as one UTF-8 line, returning the byte length written. |
 | `hc_kalam(convention: *const u8, convention_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Rāhu kālam, Yamaganda and Gulika kālam on a fixed day, as three UTF-8 lines, each named in a locale, returning the byte length written. |
+| `hc_muhurtas(fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The thirty muhūrtas of a fixed day at a place, with Abhijit and Dur Muhurtam marked, as UTF-8 lines, returning the byte length written. |
+| `hc_amrita_siddhi(fixed: i64, latitude: f64, longitude: f64, elevation: f64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The *amṛta siddhi yoga* of a fixed day at a place, as one UTF-8 line, returning the byte length written. |
+| `hc_nakshatra_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The nakṣatra the Moon is in at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
+| `hc_nakshatra_of_day(fixed: i64, latitude: f64, longitude: f64, elevation: f64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The nakṣatra a fixed day carries at a place, the one the Moon is in at its sunrise, as one UTF-8 line, returning the byte length written. |
 | `hc_almanac_cycles(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The almanac's cycles of a fixed day, 恵方, 三元九運 and 손 없는 날, as one UTF-8 line, returning the byte length written. |
 | `hc_almanac_day(fixed: i64, meridian: *const u8, meridian_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The almanac's annotations of a fixed day, 干支 to the 選日, as UTF-8 lines, one an annotation, each named in a locale, returning the byte length written. |
+| `hc_almanac_directions(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Where the 八将神 and the 金神 stand in the year in force on a fixed day, as UTF-8 lines, one a god and a direction, returning the byte length written. |
+| `hc_rounichi(rule: *const u8, rule_len: usize, year: i64, meridian: *const u8, meridian_len: usize) -> i64` | `calendars` | The fixed day of 臘日 in the winter that ends in a Gregorian year, by a named reckoning, at a meridian, or an error sentinel. |
+| `hc_mansion_undertakings(list: *const u8, list_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | What one publisher's list says the 二十八宿 of a fixed day favours and forbids, as UTF-8 lines, one an undertaking, returning the byte length written. |
+| `hc_almanac_person_days(fixed: i64, birth_year: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Whether a fixed day is one of a person's own 五墓日 or 三箇の悪日, by the year they were born in, as UTF-8 lines, one an entry, returning the byte length written. |
+| `hc_tibetan_almanac_day(calendar: *const u8, calendar_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | What the Tibetan almanac of a version prints for a fixed day, the five components and the columns after them, as UTF-8 lines, one a column, returning the byte length written. |
+| `hc_tibetan_planets(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | Where the Phugpa almanac places the five planets at the end of a fixed day, as UTF-8 lines, one a planet, returning the byte length written. |
+| `hc_bhutanese_winter_solstice(year: i64, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The Bhutanese calendar's winter solstice of a Gregorian year, as one UTF-8 line, returning the byte length written. |
+| `hc_tibetan_festival_day(rule: *const u8, rule_len: usize, calendar: *const u8, calendar_len: usize, year: i64, month: u32, leap: i32, day: u32) -> i64` | `calendars` | The fixed day a festival on a Tibetan date is kept on, by a named rule for a skipped or repeated number, or an error sentinel. |
 | `hc_choghadiya(fixed: i64, latitude: f64, longitude: f64, elevation: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The sixteen choghadiya of a fixed day at a place, as UTF-8 lines, each named in a locale, returning the byte length written. |
 | `hc_panchak(naming: *const u8, naming_len: usize, unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, offset_seconds: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | The Panchak window in progress at a POSIX timestamp, or the next one, and its kind under a naming table, as one UTF-8 line, returning the byte length written. |
 | `hc_kumbh(yoga: *const u8, yoga_len: usize, year: i64, ayanamsa: *const u8, ayanamsa_len: usize, jupiter: *const u8, jupiter_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `calendars` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter's sign, which the caller gives, meets it, as one UTF-8 line, returning the byte length written. |
@@ -618,15 +683,20 @@ not pass CI.
 | `hc_cold_food_day(convention: *const u8, convention_len: usize, year: i64) -> i64` | `seasons` | The fixed day of 寒食, the Cold Food Day, of a Gregorian year under a named reckoning, or an error sentinel. |
 | `hc_plum_rains(rule: *const u8, rule_len: usize, year: i64, meridian: *const u8, meridian_len: usize) -> i64` | `seasons` | The fixed day of 入梅 or 出梅, the beginning or the end of the plum rains, of a Gregorian year by a named rule of the Chinese almanac, with the solar term it counts from at a meridian, or an error sentinel. |
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
+| `hc_holiday_add_business_days(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64, count: i64) -> i64` | `holiday` | A fixed day moved by a number of business days of a holiday table, in a subdivision and for a group, or an error sentinel. |
+| `hc_holiday_business_days_between(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, from_fixed: i64, to_fixed: i64) -> i64` | `holiday` | The number of business days of a holiday table, in a subdivision and for a group, from one fixed day up to but not including another, or an error sentinel. |
 | `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The identifier of every holiday table, one per line, returning the byte length written. |
 | `hc_holidays_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday on one fixed day across every table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_tables(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday table with its kind, names and sources, as UTF-8 lines, returning the byte length written. |
+| `hc_holiday_groups(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every group of people a holiday may be given to alone, named in a locale, as UTF-8 lines, returning the byte length written. |
+| `hc_holidays_on_in(fixed: i64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | `hc_holidays_on`'s lines, each with the day's name in a locale and the tag that named it, as UTF-8 lines, returning the byte length written. |
 | `hc_lectionary(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The lectionary cycles of a fixed day, as one UTF-8 line, returning the byte length written. |
 | `hc_astronomical_easter(year: i64) -> i64` | `holiday` | The fixed day of Easter Sunday of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
 | `hc_astronomical_paschal_full_moon(year: i64) -> i64` | `holiday` | The fixed day of the paschal full moon of a Gregorian year by the astronomical reckoning at the meridian of Jerusalem, or an error sentinel. |
 | `hc_holy_year_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The Holy Year of the Catholic Church a fixed day falls in, if any, as one UTF-8 line, returning the byte length written. |
 | `hc_common_worship_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The rank of every *Common Worship* celebration kept on a fixed day, as UTF-8 lines, returning the byte length written. |
+| `hc_roman_1960_office_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | What the Roman calendar of the 1960 rubrics does on a fixed day, the office kept, its commemorations and the days transferred or omitted, as UTF-8 lines, returning the byte length written. |
 | `hc_orthodox_fast_on(reckoning: *const u8, reckoning_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | What a fixed day is in the fasting scheme of a reckoning, as one UTF-8 line, returning the byte length written. |
 | `hc_orthodox_fast_seasons(reckoning: *const u8, reckoning_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The fasting seasons and fast-free weeks of a year of a reckoning, as UTF-8 lines, returning the byte length written. |
 | `hc_geologic_intervals(rank: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every interval of one rank of the geologic time scale, as UTF-8 lines, returning the byte length written. |
@@ -649,6 +719,7 @@ not pass CI.
 | `hc_solar_terms_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every solar term whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
 | `hc_moon_phases_between(from_unix: i64, to_unix: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every new moon, first quarter, full moon and last quarter whose instant falls in `[from_unix, to_unix)`, as UTF-8 lines, returning the byte length written. |
 | `hc_decan_at(unix_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The decan the Sun is in at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
+| `hc_drekkana_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The drekkāṇa, the Hindu third of a sidereal sign, the Sun is in at a POSIX timestamp, as one UTF-8 line, returning the byte length written. |
 | `hc_horizons(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Every named horizon a rising or a setting can be measured against, as UTF-8 lines, returning the byte length written. |
 | `hc_sunrise(horizon: *const u8, horizon_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Sunrise on a fixed day at a place against a named horizon, as one UTF-8 line, returning the byte length written. |
 | `hc_sunset(horizon: *const u8, horizon_len: usize, fixed: i64, latitude: f64, longitude: f64, elevation: f64, buffer: *mut u8, capacity: usize) -> i64` | `sky` | Sunset on a fixed day at a place against a named horizon, as one UTF-8 line, returning the byte length written. |
@@ -679,6 +750,12 @@ not pass CI.
 | `hc_territories(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | Every territory CLDR 48 names, with its name in a locale, as UTF-8 lines, returning the byte length written. |
 | `hc_subdivisions(country: *const u8, country_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | The ISO 3166-2 subdivisions of a country CLDR 48 names, with their names in a locale, as UTF-8 lines, returning the byte length written. |
 | `hc_place_name(code: *const u8, code_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | One territory or subdivision, as the UTF-8 line `hc_territories` or `hc_subdivisions` writes for it, returning the byte length written. |
+| `hc_relative_time(then_unix: i64, now_unix: i64, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | How one POSIX instant reads from another, *3 hours ago* or *in 2 days*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_relative_day(then_fixed: i64, now_fixed: i64, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, *yesterday* or *3 days ago*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_relative_day_at(then_fixed: i64, now_fixed: i64, seconds_of_day: u32, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, with a time of day, *yesterday at 15:05*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_duration(seconds: i64, style: *const u8, style_len: usize, max_components: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A span of seconds phrased in days, hours, minutes and seconds, *2 hours and 30 minutes*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_zone_name(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, field: *const u8, field_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one UTF-8 line, returning the byte length written. |
+| `hc_format_pattern(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one UTF-8 line, returning the byte length written. |
 
 ### Error sentinels
 
@@ -1277,6 +1354,24 @@ B's line is `B`, `10000`, `100`, `1000000`, `days hours minutes seconds`,
 `18`, `0 1 2`, `0 2 3 4 5`, `0 1 2 3 4 5 6 7`. The radio codes need no such
 list: every frame of every code is one minute, beginning on the minute.
 
+### The start of an IRIG frame
+
+`hc_irig_frame_start(signal_ptr, signal_len, seconds_of_day, hundredths,
+buffer, capacity)`, in the same feature, rounds a reading of the civil
+clock down to the start of the frame that holds it, the reading
+`hc_irig_encode` takes, so that a page keeps no frame lengths of its own:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | seconds of day | the start of the frame, whole seconds after midnight |
+| 2 | hundredths | its hundredths of a second |
+| 3 | frame micros | the frame's length in microseconds, Table 3-2's: 1 000 000 for B, 3 600 000 000 for D |
+
+01:02:05.57 is the frame of 01:02:05 in B000, of 01:00:00 in D001 and of
+01:02:05.50 in A000. 86 400, 23:59:60, is a frame of its own where the
+frame is a second or less and falls in the day's last frame where it is
+longer.
+
 ### .NET ticks
 
 `hc_dotnet_ticks_from_unix(unix_seconds, attoseconds)` answers .NET's
@@ -1318,6 +1413,31 @@ reading, `night` non-zero for the night half; an hour outside 1 to 12 or a
 minute or second above 59 is `HC_ERR_OUT_OF_RANGE`. 8 am is 2 o'clock of
 the Ethiopian day, and 7:00 pm *saa moja usiku*, the first hour of the
 Swahili night.
+
+### French Republican decimal time
+
+`hc_french_decimal_time(seconds_of_day, attoseconds, buffer, capacity)`,
+in the `timestamps` feature, writes the decimal time of article XI of the
+decree of 4 frimaire an II, from `hc-calendars-solar`'s
+`french_republican::DecimalTime`: ten decimal hours from midnight to
+midnight, a hundred decimal minutes to the hour and a hundred decimal
+seconds, 0.864 s each, to the minute, all exact; noon is 5 hours. It was
+compulsory in public acts from 22 September 1794 until the law of 7 April
+1795 suspended it. 86 400, 23:59:60, is a leap second the ten hours have
+no place for, and is `HC_ERR_NO_DATA`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | hour | the decimal hour, 0 to 9 |
+| 2 | minute | the decimal minute, 0 to 99 |
+| 3 | second | the decimal second, 0 to 99 |
+| 4 | attoseconds | the rest of the decimal second, in attoseconds of ordinary time |
+
+`hc_civil_from_french_decimal_time(hour, minute, second, attoseconds,
+buffer, capacity)` is the inverse, one line of two cells, the whole
+seconds after midnight and the attoseconds; an hour past 9, a minute or
+second past 99, or attoseconds of a decimal second or more is
+`HC_ERR_OUT_OF_RANGE`.
 
 ## Every calendar
 
@@ -1660,6 +1780,68 @@ begins on the world's Monday. It answers an `i64`, as every export that can
 return a sentinel does, and fails only as a text argument does:
 `HC_ERR_NULL_POINTER` or `HC_ERR_NOT_UTF8`.
 
+### Day periods
+
+`hc_day_period(seconds_of_day, locale_ptr, locale_len, buffer, capacity)`,
+in the same feature, writes the day periods of a time of the civil clock
+in a locale, from CLDR 48's `dayPeriods` rules and names, as `hc-format`'s
+`B` and `b` fields read them (`docs/systems/zone-names.md` has the day
+periods beside the zone names): the half of the day, and the flexible
+period the locale's rules give the minute, *in the afternoon*.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | half | `am` or `pm` |
+| 2 | half name | the locale's abbreviated name for it in a date's format context, *PM* |
+| 3 | period | `midnight` or `noon` at 00:00:00 or 12:00:00 where the language has a word for it, else the flexible period of its rules, `morning1` to `night2`; empty where the language has no rules |
+| 4 | abbreviated | the period's abbreviated name |
+| 5 | wide | its wide name |
+| 6 | narrow | its narrow name |
+| 7 | locale used | the tag of the locale data that answered |
+
+At 15:00 English writes `pm`, *PM*, `afternoon1`, *in the afternoon*.
+`seconds_of_day` from 86 400 is `HC_ERR_OUT_OF_RANGE`.
+
+### Numbering systems
+
+`hc_format_number(system_ptr, system_len, value, buffer, capacity)` writes
+an integer in a CLDR numbering system, from `hc-i18n`'s `numbering`: a
+positional one's digits, `arab`'s ٢٠٢٦; the Hebrew numerals of `hebr`,
+ה׳תשפ״ו for 5786; the Greek of `grek` and `greklow`, with the keraia; the
+Han styles. One line of two cells, the text and the system's identifier.
+`hc_parse_number(system_ptr, system_len, text_ptr, text_len)` reads one
+back, `HC_ERR_MALFORMED` for text that is not a number in the system, and
+`hc_numbering_systems(buffer, capacity)` lists every system, one line
+each:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | system | the CLDR identifier: `latn`, `hebr`, `grek` |
+| 2 | algorithmic | `1` for a system that spells numbers out, `0` for a positional one |
+| 3 | digits | a positional system's ten digits, zero first; empty for an algorithmic one |
+
+A system not listed is `HC_ERR_UNKNOWN`, and a value a system cannot
+write, a Hebrew numeral of nothing among them, `HC_ERR_OUT_OF_RANGE`.
+
+### A calendar's eras
+
+`hc_calendar_eras(calendar_ptr, calendar_len, locale_ptr, locale_len,
+buffer, capacity)` writes the eras a calendar is described with, in the
+order the locale data lists them, each named in the locale, as
+`hc_describe_day` names a date's era:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | code | the era's code, as a date's era field writes it: `reiwa`, `ce` |
+| 2 | wide | its wide name in the locale, 令和 under `ja`; empty where the locale's chain has none |
+| 3 | abbreviated | its abbreviated name |
+| 4 | narrow | its narrow name |
+| 5 | calendar | the calendar's identifier |
+| 6 | locale used | the tag of the locale data that answered |
+
+A calendar the registry does not carry is `HC_ERR_UNKNOWN`, and one whose
+eras no locale data lists `HC_ERR_NO_DATA`.
+
 ## Gregorian adoption
 
 `hc_gregorian_adoption(region_ptr, region_len, buffer, capacity)` needs the
@@ -1730,7 +1912,14 @@ longitudes, so it needs an ayanāṃśa, and moves with it twice over:
 `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti`,
 `reingold-dershowitz` or `fagan-bradley`, in any case, and anything else, the empty string and a
 full name such as `Lahiri (Chitrapaksha)` included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
-needs none. The instants answer for the sky layer's era, below, and a
+needs none. The sky may instead be `surya-siddhanta`: the *Sūrya
+Siddhānta*'s Sun and Moon, as `hindu-lunar-surya-siddhanta` and
+`hc_surya_siddhanta_at` read them, whose yoga and karaṇa are the book's
+own and differ from the true sky's by up to a limb; `hc_panchanga_of_day`
+then reads the day at the book's own sunrise, and both lines name the sky
+in columns 8 and 9, `surya-siddhanta` and `Sūrya Siddhānta`. On that sky
+the instants answer for the days of Kali Yuga 1 to 10 000 and a place must
+lie within 65° of the equator. On the true sky the instants answer for the sky layer's era, below, and a
 place is a latitude and a longitude in degrees, north and east positive,
 and an elevation in metres; one off the globe is `HC_ERR_OUT_OF_RANGE`.
 Each call writes two lines, the yoga's and then the karaṇa's:
@@ -1744,12 +1933,85 @@ Each call writes two lines, the yoga's and then the karaṇa's:
 | 5 | began | the instant it began, as POSIX seconds, rounded down |
 | 6 | ends | the instant it ends |
 | 7 | read at | the instant it was read at: the one asked for, or the sunrise |
-| 8 | ayanamsa | the ayanāṃśa the yoga was reckoned with, by the identifier `ayanamsa` takes: `lahiri`; empty for the karaṇa |
-| 9 | ayanamsa name | its full name: `Lahiri (Chitrapaksha)`; empty for the karaṇa |
+| 8 | ayanamsa | the sky the yoga was reckoned on, by the identifier `ayanamsa` takes: `lahiri`, or `surya-siddhanta` on both lines; empty for the karaṇa on the true sky |
+| 9 | ayanamsa name | its full name: `Lahiri (Chitrapaksha)`, `Sūrya Siddhānta`; empty with column 8 |
 
 For 1 January 2025 at 23°11′ N, 82°30′ E, the yoga at sunrise is
 Vyaghata, ending within a minute and a half of the 17:07 IST Drik Panchang
 prints, and the karaṇa Balava, ending within two minutes after its 14:55.
+
+### The nakṣatra
+
+`hc_nakshatra_at(unix_seconds, ayanamsa_ptr, ayanamsa_len, buffer,
+capacity)` and `hc_nakshatra_of_day(fixed, latitude, longitude, elevation,
+ayanamsa_ptr, ayanamsa_len, buffer, capacity)`, in the same feature, write
+the nakṣatra, the pañcāṅga's limb of the Moon, from `hc-calendars-indic`'s
+`nakshatra`: the arc of 13°20′ of the Moon's sidereal longitude in the
+ayanāṃśa's zodiac, at an instant or at a day's sunrise at a place, with the
+sky and the place as for the yoga. One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | nakshatra | 1 for Aśvinī through 27 for Revatī |
+| 2 | entered | the instant the Moon entered it, as POSIX seconds, rounded down |
+| 3 | leaves | the instant it leaves |
+| 4 | read at | the instant read: the one asked for, or the sunrise |
+| 5 | ayanamsa | the ayanāṃśa, by its identifier |
+| 6 | ayanamsa name | its full name |
+
+### The muhūrtas
+
+`hc_muhurtas(fixed, latitude, longitude, elevation, buffer, capacity)`, in
+the same feature, writes the thirty muhūrtas of a day, from
+`hc-calendars-indic`'s `muhurta`: the daylight, sunrise to sunset, and the
+night after it, sunset to the next sunrise, each cut into fifteen, with the
+two a pañcāṅga prints by them marked. Abhijit is the eighth of the
+daylight, and Drik Panchang gives none on a Wednesday; Dur Muhurtam is one
+or two by the weekday, the muhūrtas Drik Panchang's New Delhi pages of
+January 2025 put it in, since no statement of the rule was read. One line
+per muhūrta, the day's first, then the four cells of a missing solar event
+as `hc_kalam` writes them:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | half | `day` or `night` |
+| 2 | number | 1 to 15 within the half |
+| 3 | start | the instant it begins, as POSIX seconds, rounded down; empty where the Sun does not rise or set |
+| 4 | end | the instant it ends; empty as column 3 |
+| 5 | mark | `abhijit`, `dur-muhurtam`, or empty |
+| 6 | missing | the solar event the day lacks, `sunrise` or `sunset`; empty where it has both |
+| 7 | missing day | the fixed day it is missing on |
+| 8 | depression | empty: a muhūrta needs no depression |
+| 9 | depression arcseconds | empty, as column 8 |
+
+On Wednesday 1 January 2025 at New Delhi no muhūrta is Abhijit and the
+eighth of the day is Dur Muhurtam; on Thursday the sixth and the twelfth
+are Dur Muhurtam and the eighth is Abhijit.
+
+### Amṛta siddhi
+
+`hc_amrita_siddhi(fixed, latitude, longitude, elevation, ayanamsa_ptr,
+ayanamsa_len, buffer, capacity)`, in the same feature, writes the *amṛta
+siddhi yoga* of a day at a place, from `hc-calendars-indic`'s
+`amrita_siddhi`: the auspicious conjunction of the weekday with one
+nakṣatra — Hasta on Sunday, Mṛgaśīrṣa on Monday, Aśvinī on Tuesday,
+Anurādhā on Wednesday, Puṣya on Thursday, Revatī on Friday, Rohiṇī on
+Saturday, Prokerala's pairs, of which Sewell and Dikshit give Sunday's — for
+the part of the day, sunrise to the next sunrise, the Moon spends in it.
+One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | name | `Amrita Siddhi Yoga`, as Drik Panchang prints it |
+| 2 | devanagari | अमृत सिद्धि योग |
+| 3 | nakshatra | the weekday's nakṣatra, 1 to 27 |
+| 4 | start | the instant the yoga begins, as POSIX seconds, rounded down; empty on a day it does not fall |
+| 5 | end | the instant it ends; empty as column 4 |
+| 6 | falls | `1` if the yoga falls on the day, else `0` |
+| 7 | ayanamsa | the ayanāṃśa, by its identifier |
+
+Drik Panchang prints it on Tuesday 7 January 2025 from the Moon's entry
+into Aśvinī, and on no day from 8 to 10 January.
 
 ### Rāhu kālam, Yamaganda and Gulika kālam
 
@@ -2042,7 +2304,12 @@ by the same rules: the name current at the last apparent Meṣa saṅkrānti
 of the *Sūrya Siddhānta* runs to the day the rule ends it, and the names
 after it from then on, which Sewell and Dikshit give as correct within
 two ghaṭikās where the saṅkrānti is known. It writes one line of three
-cells, columns 1, 2 and 5 above. Drik Panchang ends Pingala at 14:14 IST
+cells, columns 1, 2 and 5 above, and three more: the saṃvatsara of the
+twelve-year cycle that Sewell and Dikshit's Table XII couples with the
+name, by its position, 1 for Chaitra to 12 for Phālguna, and its name as
+the table spells it, `Asvina` for Pingala; and the sign of Jupiter's mean
+longitude while the name is current, by its identifier, `mesha` for
+Pingala. Drik Panchang ends Pingala at 14:14 IST
 on 29 April 2024, and the rule with the *bīja* about two hours later.
 The instant answers for the days of Kali Yuga 1 to 10 000, as for
 `hc_surya_siddhanta_at`.
@@ -2122,7 +2389,87 @@ are the book's and not a ruling. A day or a year outside the Hebrew years
 answers the number of the modern Olympiad a year belongs to, 1 for
 1896–1899, by the Olympic Charter's definition, whether or not its Games
 were held: 2020 and 2021 are both the XXXII. A year before 1896 is
-`HC_ERR_OUT_OF_RANGE`.
+`HC_ERR_OUT_OF_RANGE`. That is the Charter's definition of 2004; before it,
+an Olympiad ran from the opening of one Games to the opening of the next,
+and `hc_ioc_olympiad_on(fixed)` answers a day by the definition in force
+on it, from `hc-calendars-regional`'s `olympiad::ioc_olympiad_before_2004`
+and Olympedia's opening dates, and from 1 September 2004 by the year. A
+day from 10 June to 21 November 1956 is the XV Olympiad if the Melbourne
+Games opened the XVI and the XVI if the Stockholm equestrian Games did, on
+which no source read rules, and is `HC_ERR_NO_DATA`.
+
+### Babylonian regnal years
+
+`hc_babylonian_regnal_year(seleucid_year, buffer, capacity)`, in the
+`calendars` feature, writes the king and the regnal year labelling a
+Seleucid year, as van Gent's converter of Parker and Dubberstein's table
+labels it, from `hc-calendars-lunar`'s `babylonian::regnal_year`: SE −314
+is 1 Interregnum, the accession year of Nabopolassar, SE −313 is 1
+Nabopolassar and SE 1 is 1 Seleucus I Nicator. A year outside SE −314 to
+160, 152/151 BCE, is `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | king | the king, in English, or `Interregnum` |
+| 2 | regnal year | the year of the reign |
+
+### Equinox new-year margins
+
+`hc_equinox_new_year_margin(calendar_ptr, calendar_len, year, buffer,
+capacity)`, in the same feature, writes how far the equinox that begins a
+year fell from the moment of the day that decides the new year, in
+minutes, from each calendar's `new_year_margin` in `hc-calendars-equinox`:
+`persian`, the nearer noon of Iran Standard Time; `persian-apparent-noon`
+and `jalali`, the nearer apparent noon at Tehran and at Isfahan;
+`bahai-astronomical`, the Tehran sunset; and `french-republican-equinox`,
+the nearer Paris apparent midnight. A margin within the few minutes the
+astronomy is good to marks a year the calendar decides by a model; 183 BE,
+2026, is under a fifth of a minute on the wrong side of the sunset.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | minutes | the margin in minutes, positive when the equinox fell before the moment; always positive for `french-republican-equinox`, whose size alone matters |
+| 2 | calendar | the calendar's identifier |
+
+### Shmuel's tekufot
+
+`hc_shmuel_tekufah(hebrew_year, tekufah_ptr, tekufah_len, buffer,
+capacity)`, in the same feature, writes a *tekufah* of Shmuel's reckoning,
+from `hc-calendars-lunar`'s `hebrew::shmuel_tekufah_day`: a year of 365¼
+days in four seasons of 91 days and 7½ hours, as Maimonides gives it, in
+Jerusalem mean time, the first *tekufat Nisan* at the beginning of the
+fourth day. `tekufah` is `tishrei`, `tevet`, `nisan` or `tammuz`; the
+year's Tishrei and Tevet come before its Nisan, so Tishrei 5786 is 7
+October 2025. A year outside 1 to 9999 is `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | fixed | the fixed day whose Hebrew day it falls in: the civil day, or the next from six in the evening, when the reckoning's night begins |
+| 2 | minutes | the minutes of Jerusalem mean time since that civil midnight, or the one before for a *tekufah* of the evening |
+| 3 | tekufah | the *tekufah*'s identifier |
+
+### Named days
+
+`hc_day_name(calendar_ptr, calendar_len, naming_ptr, naming_len, fixed,
+buffer, capacity)`, in the same feature, writes a fixed day's name in a
+calendar whose days are named, by one of its namings: the French
+Republican calendars' `fr-fabre-1793`, the table annexed to Fabre
+d'Églantine's report of 3 brumaire an II, `fr`, the list the calendar came
+to use, and `en`, English Wikipedia's gloss of it, from
+`hc-calendars-solar`'s `french_republican_days`; the Armenian calendar's
+`hy`, its thirty day names and five epagomenal ones in Armenian, and
+`hy-Latn`, the thirty in English Wikipedia's romanisation, from
+`hc-calendars-solar`'s `armenian`. The first day of An II, 22 September
+1793, is Raisin in `fr`. A calendar whose days are not named, or a naming
+it does not have, is `HC_ERR_UNKNOWN`; an epagomenal day in `hy-Latn`,
+which has none, is `HC_ERR_NO_DATA`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | name | the day's name: `Raisin`, Արեգ |
+| 2 | naming | the naming's identifier |
+| 3 | naming name | the naming's name in English |
+| 4 | authority | where the names come from |
 
 `hc_hebrew_sabbatical_cycle_year(hebrew_year)` answers a Hebrew year's
 place in the seven-year sabbatical cycle, 1 through 7, the seventh being
@@ -2158,6 +2505,34 @@ calendar's range is `HC_ERR_OUT_OF_RANGE`.
 | 1 | augury | `widow`, `blind`, `bright` or `double-bright` |
 | 2 | lichun at start | `1` when the year's first 立春 comes after its New Year, else `0` |
 | 3 | lichun at end | `1` when another 立春 comes before the next New Year, else `0` |
+| 4 | chinese names | the Chinese names the sources read give that kind of year, separated by `;`: 無春年, 寡婦年 and 盲年, with their simplified forms, for a widow year (Wikipedia, 「立春」), 雙春兼閏月 (the Hong Kong Observatory) and 双春年 for a double-bright one; empty for `blind` and `bright`, which no source read names. The Chinese 盲年 is the code's `widow`, not its `blind` |
+| 5 | name scripts | the script of each name, in the same order: `zh-Hant` or `zh-Hans` |
+| 6 | name regions | where each name is used, in the same order, `north` or `south`, or empty where the source does not say |
+
+`hc_chinese_age(convention_ptr, convention_len, birth_fixed, on_fixed)`,
+in the same feature, returns a person's age on `on_fixed`, born on
+`birth_fixed`, by one of four counts, each its own name: `chinese-age`,
+one at birth and one more at each Chinese New Year, as
+`hc_chinese_reckoned_age`; `lichun-age`, one more at each 立春, which 果壳
+gives as the custom of some places; `new-year-day-age`, one at birth and
+one more each 1 January, the Korean 세는 나이; and `year-age`, nothing at
+birth and one more each 1 January, the Korean 연 나이. A child born on 1
+June 2009 is one until 3 February 2010 and two from 立春 on the 4th by
+`lichun-age`. A day before the birth is `HC_ERR_NO_DATA`.
+
+### The Qing almanac's solar terms
+
+`hc_chinese_almanac_solar_terms(year, buffer, capacity)` writes the days of
+the twenty-four solar terms the Qing almanac printed in a Gregorian year
+of 1645–1733, from Liu's transcription, whose term days often stand a day
+from the modern ones; the Dàtǒng years 1667–1669 and every other year are
+`HC_ERR_NO_DATA`. One line per term, 小寒 first:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | position | 1 for 小寒 to 24 for 冬至 |
+| 2 | name | the term's name in traditional Chinese |
+| 3 | fixed | the fixed day the almanac printed it on |
 
 ## Holidays
 
@@ -2377,6 +2752,46 @@ from CLDR's English by fallback has English's short name.
 | 10 | groups | the identifiers of the groups of people the table's rules give days to alone, `;`-separated in identifier order, the groups `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond everyone's days; empty for a table with none |
 | 11 | group names | those groups' names in the locale, in the same order: `hc-i18n`'s where it names the group in a language of the locale's chain, 妇女 for `women` under `zh-CN`, else the English name |
 
+### Business days
+
+`hc_holiday_add_business_days(code_ptr, code_len, region_ptr, region_len,
+group_ptr, group_len, fixed, count)` returns a fixed day moved by `count`
+business days of a table, and `hc_holiday_business_days_between(code_ptr,
+code_len, region_ptr, region_len, group_ptr, group_len, from_fixed,
+to_fixed)` the number of business days from one day up to but not
+including another, from `hc-holiday`'s `HolidayCalendar`. `region` and
+`group` scope the table as for `hc_holiday_is_day_off`, so that a group's
+own days, China's half day for women among them, are days off for that
+group alone (ADR 0012). A business day is neither a holiday of the scope
+nor a weekend day the table does not make a working day, as China's
+调休上班 are. A positive count moves forward and a negative one back; the
+starting day is never counted, and 0 returns it. The interval of the
+second is half-open, so that two counts add. In Japan's Golden Week of
+2026, five business days after Tuesday 28 April is Monday 11 May. A count
+past 36 500, or two days more than a hundred years apart, is
+`HC_ERR_OUT_OF_RANGE`.
+
+### Groups and names in a locale
+
+`hc_holiday_groups(locale_ptr, locale_len, buffer, capacity)` writes every
+group of people a holiday may be given to alone, in `hc-holiday`'s order,
+named in the locale where an instrument in the language names it, from
+`hc-i18n`'s `holiday_groups`:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | group | the identifier `hc_holidays_on`'s group column writes: `women` |
+| 2 | name | its name in the locale, 妇女 under `zh-Hans`; empty where none names it |
+| 3 | locale used | the tag that named it |
+| 4 | english name | the English name |
+
+`hc_holidays_on_in(fixed, locale_ptr, locale_len, buffer, capacity)` writes
+`hc_holidays_on`'s lines, each with two more cells: what the locale calls
+that day of that table where a source in the language names it, from
+`hc-i18n`'s `holiday_names` — the Bohairic Coptic names of seven Coptic
+Orthodox feasts under `cop`, ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ for Nayrouz — else
+empty, and the tag that named it.
+
 ### The liturgical year
 
 `hc_lectionary(fixed, buffer, capacity)` writes the lectionary cycles a
@@ -2457,6 +2872,31 @@ nothing on a day that keeps none.
 
 St George's Day was kept on Monday 28 April 2025, Easter being 20 April,
 as a Festival. A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
+
+### The 1960 office
+
+`hc_roman_1960_office_on(fixed, buffer, capacity)`, in the same feature,
+writes what the Roman calendar of the 1960 rubrics does on a day, from
+`hc-holiday`'s `roman_calendar_1960`: the office kept, by the table of
+precedence of no. 91, then each commemoration made (nos. 106–114), each
+feast of the I class impeded and transferred (nos. 95–99), and each day
+the calendar lists here that is neither kept, commemorated nor
+transferred. `hc_holidays_on` gives the days of the `roman-1960` table
+without their precedence; this gives the ordo of one day.
+`docs/systems/roman-calendar-1960.md` says what is and is not applied.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | role | `office`, `commemoration`, `transferred` or `omitted` |
+| 2 | title | the title as the translation prints it |
+| 3 | class | `first`, `second`, `third`, `fourth` or `commemoration` |
+| 4 | class name | the class's English name: `I class` |
+| 5 | transferred from | on the office's line, the fixed day a feast of the I class transferred here was impeded on; else empty |
+
+25 March 1962 was the Third Sunday of Lent, which kept the office; the
+Annunciation, a feast of the I class, was transferred, and on Monday 26
+March its line names the Sunday as the day it came from. A day outside the
+years 1583 to 4099 is `HC_ERR_OUT_OF_RANGE`.
 
 ### The Orthodox fasts
 
@@ -2622,6 +3062,194 @@ writes English's. On 21 December 2025, a 甲子, the almanacs print 赤口 with
 `rokuyo 6 赤口 ja 赤口 shakkō` and `combination pardon-and-grain
 天赦日＋一粒万倍日 ja`. The day answers for the years −1000 to 3000; a
 meridian not read is `HC_ERR_UNKNOWN`.
+
+### The year's directions
+
+`hc_almanac_directions(fixed, meridian_ptr, meridian_len, buffer,
+capacity)`, in the `calendars` feature, writes where the 方位神 stand in
+the 干支 year in force on a day, the year turning at 立春 at the meridian,
+from `hc-almanac`'s `direction_deities`: the eight 八将神 by the year's
+branch, 太歳神 to 豹尾神, then 金神 once for each branch the year's stem
+gives it, then 大金神 and 姫金神 by the branch. The UI of an almanac page
+draws them as the year's chart; `hc_almanac_cycles` gives 恵方, the
+direction of 歳徳神, beside them.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | `taisai`, `daishogun`, `daion`, `saikyo`, `saiha`, `saisetsu`, `oban`, `hyobi`, then `konjin`, `dai-konjin` and `hime-konjin` |
+| 2 | name | the god's name: 太歳神, 大将軍, 金神 |
+| 3 | reading | its Hepburn reading as the National Diet Library gives it, `taisaijin`; empty for the three 金神, whose readings `hc-almanac` does not carry |
+| 4 | branch | the direction as an earthly branch, 午 |
+| 5 | azimuth | the branch's azimuth in degrees clockwise from north, 180 |
+| 6 | meaning | what the Library says the god forbids or favours, in English; empty for the 金神 |
+| 7 | year | the 干支 year in force on the day, 丙午 |
+| 8 | branch number | the branch's number, 1 for 子 to 12 for 亥 |
+
+After them comes a line for each reading of their 遊行, the five days at a
+time 大将軍 and 金神 leave their directions, each a rule of its own from
+`hc-almanac`'s `direction_deities::WanderingRule`: `daishogun-iinippon`,
+いい日本再発見's list, and `konjin-wikipedia-begun-in-season` and
+`konjin-wikipedia-days-in-season`, the two readings of Japanese Wikipedia's
+table. Such a line has the rule's identifier in column 1, the god's name
+in column 2, the place gone to in columns 4, 5 and 8 — 中央, the middle of
+the house, with columns 5 and 8 empty, all three empty when the god is at
+home — and `home` or `gone` in column 6, empty where the rule does not
+say. On 金神の間日, the days its direction may be crossed, a last line
+`konjin-rest-day` follows.
+
+2026 is a 丙午 year from 立春 on 4 February: 太歳神 stands on 午 and 歳破神
+opposite it on 子, and 歳刑神 on 午 as Japanese Wikipedia's table has it,
+which 古文書ネット confirms; in 2025, 乙巳, 金神 stood on 辰 and 巳. A
+meridian not read is `HC_ERR_UNKNOWN`, and a day outside the years −1000
+to 3000 `HC_ERR_OUT_OF_RANGE`.
+
+### 臘日
+
+`hc_rounichi(rule_ptr, rule_len, year, meridian_ptr, meridian_len)`, in
+the `calendars` feature, returns the fixed day of 臘日 in the winter that
+ends in Gregorian `year`, in January or early February, by one of
+`hc-almanac`'s reckonings, each reading of an ambiguous wording a rule of
+its own: `second-dragon-after-minor-cold` and
+`second-dragon-from-minor-cold`, the second 辰 day after 小寒;
+`dragon-nearest-major-cold-earlier` and `dragon-nearest-major-cold-later`,
+the 辰 day nearest 大寒, which こよみる calls the current mainstream and the
+神社暦's; `first-dog-after-major-cold` and `first-dog-from-major-cold`, the
+first 戌 day after 大寒; `lunar-twelfth-ninth`, the ninth of the twelfth
+lunar month; `ox-month-ninth-from-minor-cold` and
+`ox-month-ninth-after-minor-cold`, Japanese Wikipedia's 「丑節9日」; and
+`third-dog-after-winter-solstice` and `third-dog-from-winter-solstice`, the
+Qin and Han third 戌 day after 冬至. An `-after-` rule does not count the
+term's own day and a `-from-` rule counts it; `-earlier` and `-later` take
+one or the other of two 辰 days six days either side of 大寒. Many almanacs
+leave 臘日 out, and none is a default. A winter whose lunar year the
+calendar does not reach is `HC_ERR_NO_DATA`. こよみる's candidates of 2026
+are 18 January by the second 辰 and the nearest 辰 and 24 January by the
+first 戌.
+
+### The undertakings of each 二十八宿
+
+`hc_mansion_undertakings(list_ptr, list_len, fixed, buffer, capacity)`, in
+the `calendars` feature, writes what one publisher's list says the day's
+二十八宿 favours and forbids, as the publisher prints it, from
+`hc-almanac`'s `mansion_undertakings`: `saijigoyomi`, 歳事暦's 「暦の吉凶
+二十八宿」, or `linderabell`, うまずたゆまず's 「二十八宿」. No national body
+publishes such a list, so there is no default; the two differ only in 觜宿.
+The mansion is the almanac's 28-day cycle, `hc_almanac_day`'s `mansion`
+line. One line per undertaking, in the publisher's order:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | mansion | the mansion's number, 1 for 角 to 28 for 軫 |
+| 2 | mansion name | its name, 角 |
+| 3 | grade | `best` (大吉), `favoured` (吉), `avoided` (凶), `worst` (大凶), or `note` for the list's remark about the day as a whole |
+| 4 | undertaking | the undertaking or the remark, in Japanese as printed: 衣類裁断, 葬式 |
+
+8 January 2026 is 角宿, for which 歳事暦 favours 衣類裁断 first and avoids
+葬式 and 納骨.
+
+### A person's own days
+
+`hc_almanac_person_days(fixed, birth_year, meridian_ptr, meridian_len,
+buffer, capacity)`, in the `calendars` feature, says whether a day is one
+of the 暦注下段 that fall on a person by the year they were born in:
+五墓日 by each reading that gives one day to each 納音 phase,
+`gomunichi-wikipedia` (Japanese Wikipedia, こよみる and 歳事暦) and
+`gomunichi-nikkoku` (精選版日本国語大辞典), and the three 悪日, 大禍日,
+狼藉日 and 滅門日, which fall on a person only in the 節月 whose branch is
+their birth year's. `hc_almanac_day` writes the same entries for
+everyone. `birth_year` is the Gregorian year whose 干支 is the birth
+year's, as the tables read count it: a person whose year is reckoned from
+立春 and who was born before it passes the year before.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `grave-day` or `three-evil-day` |
+| 2 | id | the reading's identifier, `gomunichi-wikipedia`, or the entry's, `taikanichi`, `rojakunichi`, `metsumonnichi` |
+| 3 | name | the entry's name, 五墓日 or 大禍日 |
+| 4 | keeps | the 干支 of the person's grave day, 乙丑 for the wood phase, or the branch of the 節月 their evil days fall in, 巳 |
+| 5 | applies | `1` if the day is that entry for the person, else `0` |
+
+こよみる gives 25 February 2025 as a 五墓日 of a person born in 1928, of the
+wood phase; Japanese Wikipedia's person born in a 巳 year keeps 大禍日 on
+申 days of 巳月, and 15 May 2025 was one.
+
+### The Tibetan almanac
+
+`hc_tibetan_almanac_day(calendar_ptr, calendar_len, fixed, buffer,
+capacity)`, in the `calendars` feature, writes what a version's almanac
+prints beside the date, from `hc-calendars-regional`'s `tibetan_almanac`
+(Janson's "Tibetan calendar mathematics", Section 10, checked against
+Henning's computed almanacs): the five components (*lnga-bsdus*) — the
+weekday, the lunar day, the lunar mansion, the *yoga* and the *karaṇa* —
+and the columns after them, one a line. `calendar` is `tibetan`,
+`tibetan-tsurphu`, `tibetan-bhutan`, `mongolian`, `tibetan-lochen`,
+`tibetan-tsurphu-karana` or `tibetan-bhutan-lochen`; the Tsurphu versions
+read the *karaṇa* Sun.
+`hc_describe_day` gives the date itself.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `weekday`, `mansion`, `yoga`, `karana`, `half-day`, `sun`, `mean-sun`, `rahu` (on `tibetan` and `tibetan-lochen`, the versions from the epoch of 806, alone), `rab-byung`, `royal-year`, `year-symbol`, `month-symbol` (where Janson gives the version's rule, all but `tibetan-bhutan`) and `day-symbol` |
+| 2 | id | the weekday, 1 for Saturday to 7 for Friday; the mansion or yoga, 1 to 27; the karaṇa, 1 to 11; the half-day of the month at daybreak, 1 to 60; the rab byung position, 1 for Prabhava; the royal year, counted from 127 BCE; for a symbol, the animal, 1 for the Mouse to 12 for the Pig; empty for the longitudes |
+| 3 | name | the Sanskrit name, or the English weekday, as Henning's almanacs print them, `Shatabhishaj`; for a symbol the element and animal, `Water-Snake` |
+| 4 | tibetan | the Tibetan name in Wylie, `mon gru`; empty for a symbol |
+| 5 | reading | the almanac's reading, the whole part and two sexagesimal places: the true weekday, the end of the lunar day in days after Saturday's dawn, empty on the first of two days with one number; the Moon at daybreak and the yoga longitude, in mansions; the true Sun and Rāhu in mansions, the mean Sun in signs; for a symbol, `male` or `female` |
+| 6 | value | the reading as a decimal; for a symbol, the element's colour, `black` |
+
+Henning's Tsurphu almanac prints 11 February 2013, its first day, as
+Monday, Shatabhishaj/mon gru, Parigha/yongs 'joms and Vava/gdab pa, with
+the true weekday 2;11,24 and the yoga's 18;26,38, and
+`tibetan-tsurphu-karana` writes the same. A day outside the version's
+range, the Tibetan years 1000 to 3000, is `HC_ERR_OUT_OF_RANGE`.
+
+### The Tibetan planets
+
+`hc_tibetan_planets(fixed, buffer, capacity)` writes where the Phugpa
+almanac places the five planets at the end of a day, from Henning's epoch
+of 1927 (Janson, Appendix D), one a line: the planet, `mercury`, `venus`,
+`mars`, `jupiter` or `saturn`; its particular day; its mean heliocentric,
+true slow and fast longitudes in mansions as the almanac reads them; and
+the same three as decimals. Henning's worked example of 6 January 2011
+gives Mars the particular day 525.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | planet | `mercury`, `venus`, `mars`, `jupiter` or `saturn` |
+| 2 | particular day | its day in the planet's heliocentric cycle (*sgos zhag*) |
+| 3 | mean heliocentric | the mean heliocentric longitude, in mansions |
+| 4 | true slow | the true slow longitude (*dal dag*) |
+| 5 | fast | the fast, geocentric, longitude (*myur ba*) |
+| 6 | mean heliocentric value | column 3 as a decimal |
+| 7 | true slow value | column 4 as a decimal |
+| 8 | fast value | column 5 as a decimal |
+
+### The Bhutanese winter solstice
+
+`hc_bhutanese_winter_solstice(year, buffer, capacity)` writes the
+Bhutanese calendar's winter solstice of a Gregorian year, the instant its
+mean Sun reaches 250° (Janson, Appendix A.4), which falls in the first
+days of January:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | fixed | the fixed day it falls on |
+| 2 | reading | the weekday and time the almanac prints, days after Saturday's dawn, nāḍī and pala: `2;51,38` for 2001 |
+| 3 | julian date | the local Julian Date, as a decimal |
+
+### Tibetan festivals on a skipped or repeated date
+
+`hc_tibetan_festival_day(rule_ptr, rule_len, calendar_ptr, calendar_len,
+year, month, leap, day)` returns the fixed day a festival on a Tibetan date
+is kept on when the number is skipped or repeated, by a rule for the date
+alone: `berzin`, the day before a skipped number and the first of a
+repeated one, as Janson reports it from Berzin, unchecked against
+published calendars; or `henning-almanac`, the second of a repeated number
+and no day for a skipped one, as Henning's computed almanacs mark their
+festivals. The holiday tables `buddhist-tibetan-berzin` and
+`buddhist-tibetan-henning` of `hc_holidays_on` choose between the same two
+by their code. Henning's almanacs do not mark the Birth of the Buddha in
+1990, whose 7th of month 4 is skipped, so that year's day under
+`henning-almanac` is `HC_ERR_NO_DATA`.
 
 ### Folk days
 
@@ -2932,6 +3560,52 @@ const today = hc.fixedFromUnix(Math.floor(Date.now() / 1000));
 const sunrise = hc.sunrise("usno", today, place.latitude, place.longitude, 0);
 ```
 
+### A zone's name
+
+`hc_zone_name(zone_ptr, zone_len, unix_seconds, locale_ptr, locale_len,
+field_ptr, field_len, buffer, capacity)` needs the `zone-names` feature, a
+layer of its own for its 600 kB of names, and writes a zone's name at an
+instant in a locale, as the CLDR pattern field `field` writes it, from
+CLDR 48's metazones and zone names in every locale `hc-i18n` carries, by
+the fallbacks of UTS #35 Part 4 that `hc-format` follows
+(`docs/systems/zone-names.md`): `z` to `zzz`, the short specific name,
+*PDT*, else the short localized GMT format; `zzzz`, the long, *Pacific
+Daylight Time*; `O` and `OOOO`, the localized GMT format, *GMT-7* and
+*GMT-07:00*; `v` and `vvvv`, the generic names, *PT* and *Pacific Time*,
+else the generic location; `V`, the short zone identifier, `uslax`; `VV`,
+the zone as given; `VVV`, its exemplar city, *Los Angeles*; and `VVVV`,
+its generic location, *Los Angeles Time*. The offset and the daylight
+flag are the zone's own, loaded or built in, as `hc_zone_offset` reads
+them. A field of another letter or length, `OO` among them, is
+`HC_ERR_UNKNOWN`, and so is a zone neither the loaded zones nor the
+built-in table knows. A locale whose data has no name falls back as
+CLDR's inheritance does, then to English's; one that does not parse is the
+root locale, which writes the GMT format.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | name | the name, or its fallback |
+| 2 | field | the field as given |
+| 3 | zone | the zone as given |
+| 4 | offset | its offset at the instant, seconds east of UTC |
+| 5 | daylight | `1` for its daylight time, else `0` |
+
+Tokyo is *Japan Standard Time* under `en` and 日本標準時 under `ja`.
+
+### Formatting by pattern
+
+`hc_format_pattern(zone_ptr, zone_len, unix_seconds, locale_ptr,
+locale_len, syntax_ptr, syntax_len, pattern_ptr, pattern_len, buffer,
+capacity)`, in the same feature, formats an instant in a zone and a locale
+by a pattern of `hc-format`'s `patterns`: `cldr`, a pattern of UTS #35
+Part 4, whose zone fields are `hc_zone_name`'s; or `strftime`, a POSIX
+pattern, whose `%Z` is the rules' abbreviation. The line is
+`hc_zone_name`'s, the text in column 1 and the syntax in column 2. Tokyo
+at 00:00 UTC on 1 January 2026 is `2026-01-01 09:00 Japan Standard Time`
+by `yyyy-MM-dd HH:mm zzzz` and `2026-01-01 09:00 JST` by `%Y-%m-%d %H:%M
+%Z`. A pattern `hc-format` does not read is `HC_ERR_MALFORMED`, and a
+syntax that is neither `HC_ERR_UNKNOWN`.
+
 ## The sky
 
 `hc_sky_at`, `hc_solar_terms_between` and `hc_moon_phases_between` need the
@@ -3029,6 +3703,27 @@ astrological claim. It writes one line:
 An hour after the September equinox of 2026, which the NAOJ puts at
 00:05 UTC on the 23rd, the Sun is 0.04° into the first face of Libra, the
 Moon's.
+
+### Drekkāṇas
+
+`hc_drekkana_at(unix_seconds, ayanamsa_ptr, ayanamsa_len, buffer,
+capacity)`, in the same feature, is `hc_decan_at`'s sidereal twin, from
+`hc-seasons`'s `zodiac::drekkana`: the Hindu thirds of the sidereal signs
+in the ayanāṃśa's zodiac, each given to the sign itself, the fifth from it
+or the ninth, and ruled by that sign's lord, as al-Bīrūnī's table of
+section 451 has them. `ayanamsa` is as for `hc_panchanga_at`'s true sky.
+One line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | sign | the sidereal sign, 1 for Meṣa through 12 for Mīna |
+| 2 | sign name | its Sanskrit name, `Meṣa` |
+| 3 | drekkana | which of its three drekkāṇas, 1 to 3 |
+| 4 | lord | the drekkāṇa's lord, as `hc_decan_at`'s ruler is written |
+| 5 | lord name | the lord's English name |
+| 6 | degrees into drekkana | how far into the drekkāṇa the Sun is, from 0 up to 10 degrees |
+| 7 | lord sign | the sign the drekkāṇa is given to, by its identifier: `mesha` |
+| 8 | ayanamsa | the ayanāṃśa, by its identifier |
 
 ## The Earth's rotation
 
@@ -3810,6 +4505,92 @@ table.regions.map((code) => names.get(code));     // ["北海道", "福島県", 
 hc.placeName("DE-BY", "de");
 // { code: "DE-BY", name: "Bayern", englishName: "Bavaria", localeUsed: "de",
 //   draft: "provisional", status: "regular" }
+```
+
+## Human-readable time
+
+The `humanize` feature phrases time as a person reads it, from
+`hc-humanize`, in every locale it carries, with CLDR 48's plural rules:
+*3 hours ago*, *yesterday at 15:05*, *2 hours and 30 minutes*. The crate
+does not read a clock, so every export takes both ends from the caller,
+and it knows no time zone, so a relative day takes the two fixed days a
+page has already read off its own clock — `hc_fixed_from_unix_in_zone`
+gives them. `style` is `long`, `short` or `narrow`, CLDR's widths, and
+for a duration `compact` as well. A locale that does not parse, and the
+empty one, is the root locale, whose phrases are CLDR's `root.xml`'s,
+`-1 d`, not English's; the binding's methods default to it, so a page
+passes the reader's locale.
+
+### Relative time
+
+`hc_relative_time(then_unix, now_unix, style_ptr, style_len, automatic,
+locale_ptr, locale_len, buffer, capacity)` writes how the instant
+`then_unix` reads from `now_unix`, both POSIX seconds, and
+`hc_relative_day(then_fixed, now_fixed, style_ptr, style_len, automatic,
+locale_ptr, locale_len, buffer, capacity)` which calendar day `then_fixed`
+is, seen from `now_fixed`. The instant's unit is the one `hc-humanize`'s
+conversational thresholds choose, the count truncated, so 90 minutes ago
+is *1 hour ago*; a month and a year of a span are the Gregorian means. A
+day's offset is the difference of the two day numbers, never a span
+divided: 23:30 on one day and 00:30 on the next are *yesterday*, not *an
+hour ago*; days are counted up to a week, and then weeks, months and
+years. `automatic` non-zero writes the language's own word for an offset
+where it has one — *yesterday*, *today*, *now* — as
+`Intl.RelativeTimeFormat`'s `numeric: "auto"` does; zero writes the
+numeric pattern, *1 day ago*. Both write one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | phrase | the phrase: *3 hours ago*, *in 2 days*, *yesterday*, 今日 under `ja` |
+| 2 | unit | the unit it is counted in, CLDR's field name: `second`, `minute`, `hour`, `day`, `week`, `month` or `year` |
+| 3 | count | the signed count, negative in the past |
+| 4 | locale used | the tag of the `hc-humanize` data the locale resolved to |
+
+### A relative day at a time
+
+`hc_relative_day_at(then_fixed, now_fixed, seconds_of_day, style_ptr,
+style_len, automatic, locale_ptr, locale_len, buffer, capacity)` adds a
+time of day to `hc_relative_day`'s phrase, joined by the locale's pattern
+for a relative day with a time, CLDR's: *yesterday at 15:05*, `es` *ayer,
+15:05*, `ja` *昨日の 15:05*. The time is `seconds_of_day` after midnight
+on a 24-hour clock as `H:MM` in the locale's digits, the seconds dropped;
+it has no hour cycle and no day period. One from 86 400 is
+`HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | phrase | the day phrase and the time joined: *yesterday at 15:05* |
+| 2 | unit | the day phrase's unit, as for `hc_relative_day` |
+| 3 | count | the day phrase's signed count |
+| 4 | time | the time as it was written into the phrase, `15:05` |
+| 5 | locale used | the tag of the `hc-humanize` data the locale resolved to |
+
+### Durations
+
+`hc_duration(seconds, style_ptr, style_len, max_components, locale_ptr,
+locale_len, buffer, capacity)` phrases a span of seconds in days, hours,
+minutes and seconds: `long` joins the unit phrases with the locale's list
+pattern, *2 hours and 30 minutes*; `short` and `narrow` write the
+abbreviated and narrow phrases; `compact` runs the bare suffixes
+together, *2h30m*, which in a locale with no compact convention are the
+root's Latin ones. A unit the span does not reach is left out, and at
+most `max_components` units are written, the largest first, the rest of
+the span dropped rather than rounded; 0 writes every unit. A span of
+nothing is *0 seconds*.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | phrase | the phrase, of the span's length |
+| 2 | negative | `1` if `seconds` was negative, else `0` |
+| 3 | locale used | the tag of the `hc-humanize` data the locale resolved to |
+
+```js
+const now = Math.floor(Date.now() / 1000);
+hc.relativeTime(now - 3 * 3600, now, "long", false, "en").phrase;   // "3 hours ago"
+const today = hc.fixedFromUnix(now);
+hc.relativeDayAt(today - 1, today, 15 * 3600 + 5 * 60, "long", true, "en").phrase;
+// "yesterday at 15:05"
+hc.duration(9000, "long", 0, "de").phrase;                          // "2 Stunden und 30 Minuten"
 ```
 
 ## What is not here

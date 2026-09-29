@@ -155,3 +155,19 @@ fn the_astronomical_paschal_full_moon_crosses_the_boundary() {
     assert_eq!(hc_astronomical_paschal_full_moon(1582), HC_ERR_OUT_OF_RANGE);
     assert_eq!(hc_astronomical_paschal_full_moon(2151), HC_ERR_OUT_OF_RANGE);
 }
+
+/// 26 March 1962 kept the Annunciation, transferred from the Third Sunday
+/// of Lent (`hc-holiday`'s `roman_calendar_1960`).
+#[test]
+fn the_1960_office_crosses() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_roman_1960_office_on(716_325, buffer, capacity)
+    });
+    assert!(text.starts_with(
+        "office\tThe Annunciation of the Blessed Virgin Mary\tfirst\tI class\t716324\n"
+    ));
+    assert_eq!(
+        unsafe { hc_roman_1960_office_on(0, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+}

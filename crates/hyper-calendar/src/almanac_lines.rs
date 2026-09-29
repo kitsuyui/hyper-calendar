@@ -28,19 +28,27 @@
 
 use alloc::string::String;
 
+use hc_almanac::direction_deities::{
+    Place, WanderingRule, Whereabouts, dai_konjin, hime_konjin, konjin_branches, konjin_rest_day,
+    year_pillar,
+};
+use hc_almanac::lower_register::three_evil_day_for;
+use hc_almanac::mansion_undertakings::UndertakingList;
 use hc_almanac::mansions::{Fortune, namings};
 use hc_almanac::{
-    Combination, LowerRegister, Nayin, NineStar, SelectedDay, day_notes, is_day_without_son,
-    lucky_direction_of_year, nine_periods,
+    BranchDirection, Combination, DayContext, General, GraveDays, LowerRegister, Nayin, NineStar,
+    RounichiRule, SelectedDay, day_notes, is_day_without_son, lucky_direction_of_year, mansion_of,
+    nine_periods,
 };
 use hc_calendar::cycle::readings::JAPANESE_KUN;
+use hc_calendar::cycle::sexagenary_year_from_gregorian_year;
 use hc_calendar::gregorian::year_from_fixed;
 use hc_i18n::Locale;
 use hc_i18n::almanac::{self as vocabulary, AlmanacName, Term};
 use hc_i18n::names::sexagenary_data;
 
-use crate::astro_lines::day_in_era;
-use crate::boundary::{Answer, Line};
+use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, day_in_era};
+use crate::boundary::{Answer, Line, Refusal};
 use crate::season_lines::meridian;
 
 /// How many columns [`almanac_cycles_line`] writes.
@@ -396,6 +404,293 @@ fn push_combination(out: &mut String, entry: Combination, locale: Option<&Locale
     );
 }
 
+/// How many columns each line of [`almanac_directions_lines`] writes.
+pub const ALMANAC_DIRECTION_COLUMNS: usize = 8;
+
+/// One line of the directions: the god's identifier, name and reading,
+/// the direction's branch and azimuth, what the god forbids or favours,
+/// and the year's 干支.
+fn push_direction(
+    out: &mut String,
+    id: &str,
+    japanese: &str,
+    reading: &str,
+    direction: BranchDirection,
+    meaning: &str,
+    year: &str,
+) {
+    let mut line = Line::new(out);
+    line.cell(id)
+        .cell(japanese)
+        .cell(reading)
+        .cell(direction.japanese_name())
+        .value(direction.azimuth_degrees())
+        .cell(meaning)
+        .cell(year)
+        .value(direction.branch_index() + 1);
+    line.end();
+}
+
+/// The lines of `hc_almanac_directions`: where the 方位神 stand in the year
+/// in force on a day, the year turning at 立春 at a meridian
+/// ([`year_pillar`]) — the 八将神 in [`General::ALL`]'s order, then 金神 in
+/// each branch the year's stem gives it, then 大金神 and 姫金神.
+///
+/// Each line: the god's identifier (`taisai` to `hyobi`, then `konjin`,
+/// `dai-konjin` and `hime-konjin`); its name, 太歳神; its Hepburn reading
+/// as the National Diet Library gives it, empty for the three 金神, whose
+/// readings `hc-almanac` does not carry; the direction as its branch, 午,
+/// and the branch's azimuth in degrees clockwise from north; what the
+/// Library says the god forbids or favours, in English, empty for the
+/// 金神; the year's 干支, 丙午; and the branch's number, 1 for 子 to 12
+/// for 亥.
+///
+/// Then the 遊行 of the day, one line per reading of [`WanderingRule::ALL`]
+/// (`daishogun-iinippon`, `konjin-wikipedia-begun-in-season`,
+/// `konjin-wikipedia-days-in-season`): the rule's identifier; the god's
+/// name, 大将軍 or 金神; an empty reading; the place the god has gone to,
+/// a branch with its azimuth and number, or 中央 for the middle of the
+/// house with those two empty, all three empty when it is at home; `home`
+/// or `gone` in place of the meaning, empty where the rule does not say;
+/// and the year's 干支. Last, on a day that is 金神の間日 by
+/// [`konjin_rest_day`], a line `konjin-rest-day`, 金神の間日, with the other
+/// cells empty but the year's 干支.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
+/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+pub fn almanac_directions_lines(fixed: i64, meridian_name: &str) -> Answer<String> {
+    let meridian = meridian(meridian_name)?;
+    let day = day_in_era(fixed)?;
+    let year = year_pillar(day, meridian);
+    let (stem, branch) = hc_calendar::cycle::readings::HAN.pair(year);
+    let pillar = alloc::format!("{stem}{branch}");
+    let mut out = String::new();
+    for god in General::ALL {
+        push_direction(
+            &mut out,
+            god.id(),
+            god.japanese_name(),
+            god.romaji(),
+            god.direction_in(year),
+            god.meaning(),
+            &pillar,
+        );
+    }
+    for &branch in konjin_branches(year.stem_index()) {
+        push_direction(
+            &mut out,
+            "konjin",
+            "金神",
+            "",
+            BranchDirection::of_branch(branch),
+            "",
+            &pillar,
+        );
+    }
+    let year_branch = year.branch_index();
+    push_direction(
+        &mut out,
+        "dai-konjin",
+        "大金神",
+        "",
+        dai_konjin(year_branch),
+        "",
+        &pillar,
+    );
+    push_direction(
+        &mut out,
+        "hime-konjin",
+        "姫金神",
+        "",
+        hime_konjin(year_branch),
+        "",
+        &pillar,
+    );
+    for rule in WanderingRule::ALL {
+        let whereabouts = rule.whereabouts_on(day, meridian);
+        let mut line = Line::new(&mut out);
+        line.cell(rule.id).cell(rule.god.japanese_name()).empty();
+        match whereabouts {
+            Some(Whereabouts::Gone(Place::Direction(direction))) => {
+                line.cell(direction.japanese_name())
+                    .value(direction.azimuth_degrees())
+                    .cell("gone")
+                    .cell(&pillar)
+                    .value(direction.branch_index() + 1);
+            }
+            Some(Whereabouts::Gone(Place::Centre)) => {
+                line.cell(Place::Centre.japanese_name())
+                    .empty()
+                    .cell("gone")
+                    .cell(&pillar)
+                    .empty();
+            }
+            Some(Whereabouts::Home) => {
+                line.empties(2).cell("home").cell(&pillar).empty();
+            }
+            None => {
+                line.empties(3).cell(&pillar).empty();
+            }
+        }
+        line.end();
+    }
+    if konjin_rest_day(day, meridian) == Some(true) {
+        let mut line = Line::new(&mut out);
+        line.cell("konjin-rest-day")
+            .cell("金神の間日")
+            .empties(4)
+            .cell(&pillar)
+            .empty();
+        line.end();
+    }
+    Ok(out)
+}
+
+/// The fixed day of 臘日 in the winter that ends in Gregorian `year`, by a
+/// reckoning of [`RounichiRule::ALL`] selected by its identifier —
+/// `second-dragon-after-minor-cold`, `second-dragon-from-minor-cold`,
+/// `dragon-nearest-major-cold-earlier`, `dragon-nearest-major-cold-later`,
+/// `first-dog-after-major-cold`, `first-dog-from-major-cold`,
+/// `lunar-twelfth-ninth`, `ox-month-ninth-from-minor-cold`,
+/// `ox-month-ninth-after-minor-cold`, `third-dog-after-winter-solstice` or
+/// `third-dog-from-winter-solstice` — with its solar terms at a meridian
+/// [`meridian`] reads.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a rule or a meridian not named;
+/// [`Refusal::OutOfRange`] for a year outside −999 to 3000, whose winter
+/// the sky layer's era does not hold; and [`Refusal::NoData`] for a
+/// winter the rule does not settle, as `hc-almanac`'s `rounichi` sets out:
+/// a term day that bears the branch counted after it, two 辰 days equally
+/// near 大寒, or a lunar year outside the lunisolar calendar's range.
+pub fn rounichi_day(rule: &str, year: i64, meridian_name: &str) -> Answer<i64> {
+    let rule = RounichiRule::by_id(rule).ok_or(Refusal::Unknown)?;
+    let meridian = meridian(meridian_name)?;
+    if !(EARLIEST_YEAR + 1..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    rule.day_of_year(year, meridian)
+        .map(|day| day.0)
+        .ok_or(Refusal::NoData)
+}
+
+/// How many columns each line of [`mansion_undertakings_lines`] writes.
+pub const UNDERTAKING_COLUMNS: usize = 4;
+
+/// The lines of `hc_mansion_undertakings`: what one publisher's list of
+/// [`UndertakingList::ALL`], `saijigoyomi` or `linderabell`, selected by
+/// its identifier, says of the 二十八宿 of a day, [`mansion_of`] — one line
+/// per undertaking, in the publisher's order, 大吉 (`best`), 吉
+/// (`favoured`), 凶 (`avoided`) and 大凶 (`worst`), then the list's remark
+/// about the day as a whole (`note`) where it makes one.
+///
+/// Each line: the mansion's number, 1 for 角 to 28 for 軫; its name, 角;
+/// the grade; and the undertaking, or the remark, as the publisher prints
+/// it, in Japanese.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a list not named, and
+/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+pub fn mansion_undertakings_lines(list: &str, fixed: i64) -> Answer<String> {
+    let list = UndertakingList::by_id(list).ok_or(Refusal::Unknown)?;
+    let day = day_in_era(fixed)?;
+    let mansion = mansion_of(day);
+    let entry = list.of(mansion);
+    let mut out = String::new();
+    let grades: [(&str, &[&str]); 4] = [
+        ("best", entry.best),
+        ("favoured", entry.favoured),
+        ("avoided", entry.avoided),
+        ("worst", entry.worst),
+    ];
+    let notes: &[&str] = if entry.note.is_empty() {
+        &[]
+    } else {
+        core::slice::from_ref(&entry.note)
+    };
+    for (grade, items) in grades.into_iter().chain([("note", notes)]) {
+        for item in items {
+            let mut line = Line::new(&mut out);
+            line.value(mansion.index() + 1)
+                .cell(mansion.japanese_name())
+                .cell(grade)
+                .cell(item);
+            line.end();
+        }
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`almanac_person_lines`] writes.
+pub const ALMANAC_PERSON_COLUMNS: usize = 5;
+
+/// The lines of `hc_almanac_person_days`: the 暦注下段 whose day is a
+/// person's own, by the 干支 of the year they were born in, on a day at a
+/// meridian — each reading of 五墓日 of [`GraveDays::ALL`] that gives one
+/// day to each person (`gomunichi-wikipedia`, `gomunichi-nikkoku`), by the
+/// 納音 phase of the birth year, then the three 悪日, 大禍日, 狼藉日 and
+/// 滅門日, by [`three_evil_day_for`], in the 節月 of the birth year's
+/// branch.
+///
+/// Each line: the kind, `grave-day` or `three-evil-day`; the identifier,
+/// the reading's or the entry's (`taikanichi`); the entry's name, 五墓日 or
+/// 大禍日; what the person keeps, the 干支 of the day of their grave-day
+/// reading (乙丑), or the branch of the 節月 an evil day of theirs falls in
+/// (巳); and `1` if the day is that entry for the person, else `0`.
+///
+/// `birth_year` is the Gregorian year whose 干支 is the person's birth
+/// year's, as the tables read count it: a person born before 立春 whose
+/// year is reckoned from 立春 passes the year before.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
+/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+pub fn almanac_person_lines(fixed: i64, birth_year: i64, meridian_name: &str) -> Answer<String> {
+    let meridian = meridian(meridian_name)?;
+    let day = day_in_era(fixed)?;
+    // The cycle repeats every sixty years, so the year is reduced first,
+    // which keeps the arithmetic in range for every `i64`.
+    let birth = sexagenary_year_from_gregorian_year(birth_year.rem_euclid(60));
+    let context = DayContext::new(day, meridian);
+    let phase = Nayin::of(birth).phase();
+    let mut out = String::new();
+    for reading in GraveDays::ALL {
+        let (Some(keeps), Some(applies)) = (
+            reading.day_for(phase),
+            reading.applies_to_person(&context, birth),
+        ) else {
+            continue;
+        };
+        let (stem, branch) = hc_calendar::cycle::readings::HAN.pair(keeps);
+        let mut line = Line::new(&mut out);
+        line.cell("grave-day")
+            .cell(reading.id)
+            .cell(LowerRegister::GOMUNICHI.japanese_name())
+            .value(format_args!("{stem}{branch}"))
+            .flag(applies);
+        line.end();
+    }
+    let birth_branch = BranchDirection::of_branch(birth.branch_index());
+    for entry in LowerRegister::THREE_EVIL_DAYS {
+        let Some(applies) = three_evil_day_for(entry, &context, birth) else {
+            continue;
+        };
+        let mut line = Line::new(&mut out);
+        line.cell("three-evil-day")
+            .cell(entry.id)
+            .cell(entry.japanese_name())
+            .cell(birth_branch.japanese_name())
+            .flag(applies);
+        line.end();
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -610,5 +905,150 @@ mod tests {
             almanac_cycles_line(i64::MIN, "china"),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    fn lines(text: &str) -> Vec<Vec<&str>> {
+        text.lines()
+            .map(|line| line.split('\t').collect())
+            .collect()
+    }
+
+    /// 古文書ネット's 2026, a 午 year: 太歳神 on 午, 歳破神 opposite on 子,
+    /// and 歳刑神 on 午 as Japanese Wikipedia's table has it
+    /// (`komonjyo-hasshojin`); its 2025, 乙巳, has 金神 on 辰 and 巳
+    /// (`komonjyo-konjin`).
+    #[test]
+    fn the_gods_stand_where_the_published_tables_put_them() {
+        let text =
+            almanac_directions_lines(gregorian::to_fixed(2026, 9, 29).expect("a date").0, "japan")
+                .expect("in range");
+        let rows = lines(&text);
+        assert!(
+            rows.iter()
+                .all(|row| row.len() == ALMANAC_DIRECTION_COLUMNS)
+        );
+        assert_eq!(
+            rows[0],
+            [
+                "taisai",
+                "太歳神",
+                "taisaijin",
+                "午",
+                "180",
+                "facing it everything goes well, but do not fell trees",
+                "丙午",
+                "7"
+            ]
+        );
+        let at = |id: &str| rows.iter().find(|row| row[0] == id).map(|row| row[3]);
+        assert_eq!(at("saiha"), Some("子"));
+        assert_eq!(at("saikyo"), Some("午"));
+        let text =
+            almanac_directions_lines(gregorian::to_fixed(2025, 6, 1).expect("a date").0, "japan")
+                .expect("in range");
+        let konjin: Vec<&str> = lines(&text)
+            .iter()
+            .filter(|row| row[0] == "konjin")
+            .map(|row| row[3])
+            .collect();
+        assert_eq!(konjin, ["辰", "巳"]);
+        // いい日本再発見's rule (`iinippon-daishogun`): from a 丙子 day 大将軍
+        // goes south for five days; the directions line says so.
+        let bing_zi = (gregorian::to_fixed(2026, 1, 1).expect("a date").0..)
+            .find(|day| hc_calendar::cycle::sexagenary_day(hc_calendar::Rd(*day)).index() == 12)
+            .expect("a 丙子 day");
+        let text = almanac_directions_lines(bing_zi, "japan").expect("in range");
+        assert!(
+            text.lines()
+                .any(|line| line.starts_with("daishogun-iinippon\t大将軍\t\t午\t180\tgone\t")),
+            "{text}"
+        );
+        assert!(
+            text.lines()
+                .all(|line| line.split('\t').count() == ALMANAC_DIRECTION_COLUMNS)
+        );
+        assert_eq!(almanac_directions_lines(0, "mars"), Err(Refusal::Unknown));
+        assert_eq!(
+            almanac_directions_lines(i64::MAX, "japan"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// こよみる's 臘日 of 2026 (`koyomil-rounichi`): 18 January by the 辰
+    /// nearest 大寒, 24 January by the first 戌 after it.
+    #[test]
+    fn rounichi_is_the_published_day() {
+        let day = |month, day| gregorian::to_fixed(2026, month, day).expect("a date").0;
+        assert_eq!(
+            rounichi_day("dragon-nearest-major-cold-earlier", 2026, "japan"),
+            Ok(day(1, 18))
+        );
+        assert_eq!(
+            rounichi_day("First-Dog-After-Major-Cold", 2026, "japan"),
+            Ok(day(1, 24))
+        );
+        assert_eq!(
+            rounichi_day("rounichi", 2026, "japan"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            rounichi_day("dragon-nearest-major-cold-earlier", -1000, "japan"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// 2026-01-01 is 井宿 (こよミる, as `hc-almanac` holds it), so 8 January
+    /// is 角宿, for which 歳事暦 favours 衣類裁断 first and avoids 葬式 and 納骨.
+    #[test]
+    fn the_undertakings_are_the_publishers() {
+        let text = mansion_undertakings_lines(
+            "saijigoyomi",
+            gregorian::to_fixed(2026, 1, 8).expect("a date").0,
+        )
+        .expect("in range");
+        let rows = lines(&text);
+        assert!(rows.iter().all(|row| row.len() == UNDERTAKING_COLUMNS));
+        assert_eq!(rows[0], ["1", "角", "favoured", "衣類裁断"]);
+        let avoided: Vec<&str> = rows
+            .iter()
+            .filter(|row| row[2] == "avoided")
+            .map(|row| row[3])
+            .collect();
+        assert_eq!(avoided, ["葬式", "納骨"]);
+        assert_eq!(
+            mansion_undertakings_lines("almanac", 739_888),
+            Err(Refusal::Unknown)
+        );
+    }
+
+    /// こよみる's 2025 五墓日 of a person born in 1928, of the wood phase:
+    /// 25 February is one (`koyomil-gomunichi`); Japanese Wikipedia's person
+    /// born in a 巳 year keeps 大禍日 on 15 May 2025, a 申 day of 巳月.
+    #[test]
+    fn a_persons_days_are_their_birth_years() {
+        let day = |month, day| gregorian::to_fixed(2025, month, day).expect("a date").0;
+        let text = almanac_person_lines(day(2, 25), 1928, "japan").expect("in range");
+        let rows = lines(&text);
+        assert!(rows.iter().all(|row| row.len() == ALMANAC_PERSON_COLUMNS));
+        assert_eq!(
+            rows[0],
+            ["grave-day", "gomunichi-wikipedia", "五墓日", "乙丑", "1"]
+        );
+        assert_eq!(rows.len(), 5);
+        let text = almanac_person_lines(day(5, 15), 2025, "japan").expect("in range");
+        let evil: Vec<Vec<&str>> = lines(&text)
+            .into_iter()
+            .filter(|row| row[0] == "three-evil-day")
+            .collect();
+        assert_eq!(
+            evil[0],
+            ["three-evil-day", "taikanichi", "大禍日", "巳", "1"]
+        );
+        assert_eq!(evil[1][4], "0");
+        assert_eq!(
+            almanac_person_lines(day(5, 15), 2025 - 60 * 1_000, "japan"),
+            Ok(text)
+        );
+        assert!(almanac_person_lines(day(5, 15), i64::MIN, "japan").is_ok());
     }
 }

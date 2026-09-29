@@ -33,6 +33,9 @@
 
 use std::collections::BTreeSet;
 
+use hyper_calendar::hc_almanac::RounichiRule;
+use hyper_calendar::hc_almanac::direction_deities::WanderingRule;
+use hyper_calendar::hc_almanac::mansion_undertakings::UndertakingList;
 use hyper_calendar::hc_astro::HORIZONS;
 use hyper_calendar::hc_astro::solar_time::{SolarClock, SolarEvent, ZMANIM_RECKONINGS};
 use hyper_calendar::hc_calendar::Unit;
@@ -40,7 +43,10 @@ use hyper_calendar::hc_calendars_indic::barhaspatya;
 use hyper_calendar::hc_calendars_indic::kalam::KalamConvention;
 use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
 use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
+use hyper_calendar::hc_calendars_lunar::chinese::AgeConvention;
+use hyper_calendar::hc_calendars_lunar::hebrew::Tekufah;
 use hyper_calendar::hc_calendars_lunar::islamic_observational::NamedCriterion;
+use hyper_calendar::hc_calendars_regional::tibetan_almanac::FestivalRule;
 use hyper_calendar::hc_calendars_solar::adoption::Scope;
 use hyper_calendar::hc_core::epoch;
 use hyper_calendar::hc_core::epoch_notation::EpochKind;
@@ -54,6 +60,7 @@ use hyper_calendar::hc_format::radio::wwvb::DstState;
 use hyper_calendar::hc_format::radio::{Code as RadioCode, LeapNotice};
 use hyper_calendar::hc_holiday::orthodox_fasts;
 use hyper_calendar::hc_holiday::rule::{Confidence, Kind};
+use hyper_calendar::hc_humanize::{DurationStyle, RelativeStyle};
 use hyper_calendar::hc_planetary::mars::missions::{MISSIONS, SolConvention};
 use hyper_calendar::hc_planetary::{bodies, dated};
 use hyper_calendar::hc_relativity::constants::GRAVITATING_BODIES;
@@ -563,6 +570,96 @@ fn listed() -> Vec<Listed> {
             fields: &[],
         },
         Listed {
+            what: "臘日 reckonings",
+            ids: RounichiRule::ALL.iter().map(|rule| rule.id).collect(),
+            dts: "RounichiRule",
+            exports: &[(FFI_SOURCE, "hc_rounichi"), (WASM_SOURCE, "hc_rounichi")],
+            paragraphs: &[(WASM_README, "`hc_rounichi(rule_ptr")],
+            methods: &["rounichi"],
+            fields: &[],
+        },
+        Listed {
+            what: "遊行 readings",
+            ids: WanderingRule::ALL.iter().map(|rule| rule.id).collect(),
+            dts: "WanderingRuleId",
+            exports: &[
+                (FFI_SOURCE, "hc_almanac_directions"),
+                (WASM_SOURCE, "hc_almanac_directions"),
+            ],
+            paragraphs: &[(WASM_README, "a line for each reading of their 遊行")],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "undertaking lists",
+            ids: UndertakingList::ALL.iter().map(|list| list.id).collect(),
+            dts: "UndertakingListId",
+            exports: &[
+                (FFI_SOURCE, "hc_mansion_undertakings"),
+                (WASM_SOURCE, "hc_mansion_undertakings"),
+            ],
+            paragraphs: &[],
+            methods: &["mansionUndertakings"],
+            fields: &[],
+        },
+        Listed {
+            what: "Tibetan festival rules",
+            ids: FestivalRule::ALL.iter().map(|rule| rule.id).collect(),
+            dts: "TibetanFestivalRule",
+            exports: &[
+                (FFI_SOURCE, "hc_tibetan_festival_day"),
+                (WASM_SOURCE, "hc_tibetan_festival_day"),
+            ],
+            paragraphs: &[],
+            methods: &["tibetanFestivalDay"],
+            fields: &[],
+        },
+        Listed {
+            what: "age counts",
+            ids: AgeConvention::ALL.iter().map(|count| count.id).collect(),
+            dts: "AgeConvention",
+            exports: &[
+                (FFI_SOURCE, "hc_chinese_age"),
+                (WASM_SOURCE, "hc_chinese_age"),
+            ],
+            paragraphs: &[(WASM_README, "`hc_chinese_age(convention_ptr")],
+            methods: &["chineseAge"],
+            fields: &[],
+        },
+        Listed {
+            what: "tekufot",
+            ids: Tekufah::ALL.iter().map(|tekufah| tekufah.id()).collect(),
+            dts: "Tekufah",
+            exports: &[
+                (FFI_SOURCE, "hc_shmuel_tekufah"),
+                (WASM_SOURCE, "hc_shmuel_tekufah"),
+            ],
+            paragraphs: &[],
+            methods: &["shmuelTekufah"],
+            fields: &[("ShmuelTekufah", "tekufah")],
+        },
+        Listed {
+            what: "relative styles",
+            ids: RelativeStyle::ALL.iter().map(|style| style.id()).collect(),
+            dts: "RelativeStyle",
+            exports: &[
+                (FFI_SOURCE, "hc_relative_time"),
+                (WASM_SOURCE, "hc_relative_time"),
+            ],
+            paragraphs: &[],
+            methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "duration styles",
+            ids: DurationStyle::ALL.iter().map(|style| style.id()).collect(),
+            dts: "DurationStyle",
+            exports: &[(FFI_SOURCE, "hc_duration"), (WASM_SOURCE, "hc_duration")],
+            paragraphs: &[],
+            methods: &["duration"],
+            fields: &[],
+        },
+        Listed {
             what: "geologic ranks",
             ids: GeologicRank::ALL
                 .iter()
@@ -618,7 +715,9 @@ fn binding_array(binding: &str, name: &str) -> Vec<String> {
 /// geologic time scale, which are divisions, not ways of reckoning one;
 /// and the words a line or a frame is read in — a radio frame's
 /// summer-time state and leap notice, a holiday's kind and confidence, a
-/// CCSDS ASCII code's precision, an adoption's scope.
+/// CCSDS ASCII code's precision, an adoption's scope — and the widths a
+/// phrase of `hc-humanize` is written at, which are CLDR's; and the four
+/// *tekufot*, the seasons of one year.
 const NOT_CONVENTIONS: &[&str] = &[
     "bodies",
     "gravitating bodies",
@@ -631,6 +730,9 @@ const NOT_CONVENTIONS: &[&str] = &[
     "adoption scopes",
     "calendar units",
     "geologic ranks",
+    "relative styles",
+    "duration styles",
+    "tekufot",
 ];
 
 /// The rows and paragraphs of the roadmaps, each one line: a table row is
