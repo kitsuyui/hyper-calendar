@@ -1177,10 +1177,11 @@ mod tests {
         ] {
             assert_eq!(render(&gregorian(), &day, tag)[4], expected, "{tag}");
         }
-        // `yue.xml`'s Chinese months, 閏 its leap prefix, and the Han days.
+        // `yue.xml`'s Chinese months, 閏 its leap prefix, and the Han days,
+        // in its long date, "U (r) 年MMMd".
         assert_eq!(
             render(&DynAdapter::new(Toy), &guimao(), "yue")[4],
-            "2023癸卯年閏二月初一"
+            "癸卯 (2023) 年閏二月初一"
         );
     }
 

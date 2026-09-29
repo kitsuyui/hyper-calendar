@@ -750,6 +750,17 @@ const RU_GENERIC_TEMPLATES: DateTemplates = DateTemplates {
     ..DateTemplates::NONE
 };
 
+/// The Japanese date in Hindi, the era first. CLDR 48 `hi.xml` states no
+/// date patterns for `calendar type="japanese"`, so root's aliases give it
+/// the file's `generic` ones: the long date "G d MMMM y" and `Gy` "G y",
+/// which the file inherits from root's `generic` (`cldr48-generic-dates-hi`)
+/// — रेइवा 28 सितंबर 8, and the year alone रेइवा 8.
+const HI_JAPANESE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "{era} {year}",
+    date: "{era} {day} {month} {year:1}",
+    ..DateTemplates::NONE
+};
+
 /// `ar.xml` and `fa.xml`: `Gy` is "y G", `yMMMMd` is "d MMMM y".
 const AR_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
 const FA_TEMPLATES: DateTemplates = DAY_MONTH_YEAR_TEMPLATES;
@@ -811,15 +822,27 @@ const UR_TEMPLATES: DateTemplates = DateTemplates {
 /// calendars": 初一 … 三十) — 2023癸卯年闰二月初一, 2026丙午年八月十八. The
 /// same characters serve both scripts, and `yue.xml` and `yue_Hans.xml`
 /// state the same `y` item; their long date, "U (r) 年MMMd", which puts
-/// the related year after the cyclic one, is not carried. A date the
-/// renderer gives no related year is written by its stem and branch alone,
-/// 癸卯年, as the files' "U年MMMd" item writes it.
+/// the related year after the cyclic one, is [`YUE_CHINESE_TEMPLATES`]. A
+/// date the renderer gives no related year is written by its stem and
+/// branch alone, 癸卯年, as the files' "U年MMMd" item writes it.
 const CHINESE_TEMPLATES: DateTemplates = DateTemplates {
     year: "{extra:related-gregorian-year}{sexagenary}年",
     day: "{day}",
     date: "{year}{month}{day}",
     day_names: HANIDAYS,
     ..DateTemplates::NONE
+};
+
+/// The Chinese calendar's date in Cantonese. CLDR 48 `yue.xml` and
+/// `yue_Hans.xml`, `calendar type="chinese"`, state the long and medium
+/// dates "U (r) 年MMMd", with `numbers="d=hanidays"`: the stem and branch,
+/// then the related Gregorian year in parentheses between spaces, then 年,
+/// the month and the Han day name — 丙午 (2026) 年八月十八. Their `y` item
+/// is "rU年", so the year on its own stays [`CHINESE_TEMPLATES`]'s,
+/// 2026丙午年.
+const YUE_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
+    date: "{sexagenary} ({extra:related-gregorian-year}) 年{month}{day}",
+    ..CHINESE_TEMPLATES
 };
 
 /// The Dangi date in Traditional Chinese and Cantonese. CLDR 48
@@ -883,6 +906,69 @@ const KO_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
     date: "{year} {month} {day}",
     ..DateTemplates::NONE
 };
+
+/// The Mongolian calendar in Mongolian, beside CLDR 48 `mn.xml`, which
+/// has no calendar of its own for it. The months are the beginning, middle
+/// and end of the four seasons, as Gantumur's Mongolian calendar names them
+/// (`gantumur-mongolian-calendar`, a program over Janson's arithmetic, a
+/// secondary source): its month headings, "Хаврын тэргүүн" to "Өвлийн
+/// сүүл" before сар, for the stand-alone names, and in lower case, as its
+/// month menu writes them, inside a date, as `mn.xml` writes its Gregorian
+/// months. A leap month takes илүү between the name and сар, as the
+/// calendar heads one, "Зуны эхэн илүү сар". The date is `mn.xml`'s
+/// Gregorian long date, "y 'оны' MMMM'ын' d", with сар written by the
+/// template rather than the name: 2026 оны намрын дунд сарын 17. No source
+/// read writes a whole Mongolian lunar date, so the date, and its year by
+/// the Gregorian year the lunar year begins in, as the calendar numbers its
+/// years, are this library's.
+pub(super) const MN_MONGOLIAN: CalendarNames = calendar_entry(
+    &[CalendarId("mongolian")],
+    &[month_cycle(ContextualNames {
+        format: widths(
+            &[
+                "хаврын тэргүүн",
+                "хаврын дунд",
+                "хаврын сүүл",
+                "зуны эхэн",
+                "зуны дунд",
+                "зуны сүүл",
+                "намрын эхэн",
+                "намрын дунд",
+                "намрын сүүл",
+                "өвлийн эхэн",
+                "өвлийн дунд",
+                "өвлийн сүүл",
+            ],
+            &[],
+            &[],
+        ),
+        standalone: widths(
+            &[
+                "Хаврын тэргүүн",
+                "Хаврын дунд",
+                "Хаврын сүүл",
+                "Зуны эхэн",
+                "Зуны дунд",
+                "Зуны сүүл",
+                "Намрын эхэн",
+                "Намрын дунд",
+                "Намрын сүүл",
+                "Өвлийн эхэн",
+                "Өвлийн дунд",
+                "Өвлийн сүүл",
+            ],
+            &[],
+            &[],
+        ),
+    })],
+    EraNames::EMPTY,
+)
+.with_leap_month_suffix(" илүү")
+.with_templates(DateTemplates {
+    month: "{month} сар",
+    date: "{year} оны {month} сарын {day}",
+    ..DateTemplates::NONE
+});
 
 // --- calendar display names ----------------------------------------------
 //
@@ -4164,8 +4250,10 @@ const HI_VIKRAMI_MONTHS: &[&str] = &[
 
 const HI_CALENDARS: &[CalendarNames] = &[
     // The Japanese eras as CLDR 48 `hi.xml`, `calendar type="japanese"`,
-    // `eraAbbr`, states them: 236 eras, मान-ईन (1860–1861) for 万延.
-    calendar_entry(JAPANESE_CALENDARS, &[], japanese_eras::HI),
+    // `eraAbbr`, states them: 236 eras, मान-ईन (1860–1861) for 万延; the
+    // date era first, as `HI_JAPANESE_TEMPLATES` states.
+    calendar_entry(JAPANESE_CALENDARS, &[], japanese_eras::HI)
+        .with_templates(HI_JAPANESE_TEMPLATES),
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
             &[
@@ -9283,7 +9371,7 @@ const YUE_HANS_CALENDARS: &[CalendarNames] = &[
         )))],
         "闰",
     )
-    .with_templates(CHINESE_TEMPLATES),
+    .with_templates(YUE_CHINESE_TEMPLATES),
     lunisolar(
         CHINESE_REGNAL_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(
@@ -9535,7 +9623,7 @@ const YUE_HANT_CALENDARS: &[CalendarNames] = &[
         )))],
         "閏",
     )
-    .with_templates(CHINESE_TEMPLATES),
+    .with_templates(YUE_CHINESE_TEMPLATES),
     lunisolar(
         CHINESE_REGNAL_CALENDARS,
         &[month_cycle(ContextualNames::same(widths(

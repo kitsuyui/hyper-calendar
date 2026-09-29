@@ -305,10 +305,10 @@ month sorts after the regular month of the same number.
   A.3], with the Mongolian words of Gantumur's calendar
   ([tibetan-almanac.md](tibetan-almanac.md)).
 - **Not carried**: the *karaṇa* calculation and the yellow calculation, as
-  above. The Mongolian leap month's word, илүү, which Gantumur's calendar
-  writes in a month's heading, is data in `tibetan_almanac` but writes no
-  date, as `hc-i18n` carries no `mn` locale; the months of `mongolian`
-  are written in the English and Tibetan numbered names.
+  above. The months of `mongolian` are written in `mn` by Gantumur's
+  names, with илүү for a leap month, *Зуны эхэн илүү сар*, as
+  [tibetan-almanac.md](tibetan-almanac.md) describes, and in the English
+  and Tibetan numbered names elsewhere.
 
 ## Accuracy
 

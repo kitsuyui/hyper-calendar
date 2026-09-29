@@ -319,6 +319,22 @@ mod tests {
         assert_eq!(say(&numeric("pa-PK"), -3, TimeUnit::Day), "-۳ d");
     }
 
+    /// Nigerian Pidgin's futures as the overrides of `cldr48_overrides.tsv`
+    /// keep them: a space after the number, and *wé de kọm* after the
+    /// seconds, as `pcm.xml` writes its minutes and hours; the past and the
+    /// capitalised relative words are the file's.
+    #[test]
+    fn nigerian_pidgin_futures_have_the_files_own_shape() {
+        let pcm = numeric("pcm");
+        assert_eq!(say(&pcm, 3, TimeUnit::Month), "Fọ 3 mọnt wé de kọm");
+        assert_eq!(say(&pcm, 3, TimeUnit::Week), "Fọ 3 wik wé de kọm");
+        assert_eq!(say(&pcm, 1, TimeUnit::Day), "Fọ 1 dè wé de kọm");
+        assert_eq!(say(&pcm, 30, TimeUnit::Second), "Fọ 30 sẹ́kọn wé de kọm");
+        assert_eq!(say(&pcm, 5, TimeUnit::Minute), "Fọ 5 mínit wé de kọm");
+        assert_eq!(say(&pcm, -3, TimeUnit::Month), "3 mọnt wé dọ́n pas");
+        assert_eq!(say(&auto("pcm"), 1, TimeUnit::Day), "Tumọ́ro");
+    }
+
     #[test]
     fn russian_teens_are_many_even_though_their_last_digit_says_otherwise() {
         let ru = numeric("ru");

@@ -92,6 +92,12 @@ LANGUAGE = {
 # Latin-derived names (`gast1992`), and Wikipedia's "Berber calendar" prints
 # Shilha's, innayr … dujambir, among them.
 BERBER = {'shi-Latn'}
+# The calendar entries of a language that no CLDR file states, hand-written
+# in src/data.rs from the source their comment names, which the language's
+# entry carries after CLDR's: the constant, and what it carries.
+HAND_WRITTEN = {
+    'mn': [('super::MN_MONGOLIAN', "the Mongolian calendar's months, from Gantumur's calendar")],
+}
 # The chains CLDR files the hc-i18n entries of src/data.rs follow, for the
 # era names those entries already carry, which a regional entry compares
 # against its parent's.
@@ -589,6 +595,11 @@ def entry(tag, chain, parent, region):
                          f'{lit(leap[:-3])}).with_templates({chinese_templates})')
         carried.append(f'the {PROSE[calendar]} months')
 
+    hand = []
+    for constant, what in HAND_WRITTEN.get(tag, []):
+        calendars.append(constant)
+        hand.append(what)
+
     weekdays = own_group(tag, chain, 'gregorian', 'days', 7, language)
     weekdays_rs = contextual('days', weekdays) if weekdays else None
     periods = own_group(tag, chain, 'gregorian', 'dayperiods', 2, language)
@@ -613,6 +624,9 @@ def entry(tag, chain, parent, region):
     text = (f'CLDR 48 {files}. '
             + ('It carries ' + listed + '.' if carried else
                'Its files state no group of names apart from its parent\'s.'))
+    if hand:
+        text += (' Hand-written in `src/data.rs` beside them: ' + ', '.join(hand)
+                 + '.')
     if not language:
         text += (f' Every other group is the parent entry\'s, `{parent_tag(parent)}`, as CLDR\'s '
                  'inheritance gives it.')

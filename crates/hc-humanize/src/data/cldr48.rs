@@ -6196,9 +6196,13 @@ pub(super) const PA_GURU: LocaleData = LocaleData {
 // --- pcm: `pcm.xml`, `root.xml` ----------------------------------------------
 
 const PCM_LONG: StyleData = StyleData {
+    // Override `long.second.future.one`, `long.second.future.other`: (c) CLDR's `pcm` future for
+    // seconds is Fọ {0} Sẹ́kọn, without the wé de kọm every other unit's future ends in, and with
+    // the noun capitalised; the file's past writes {0} sẹ́kọn wé dọ́n pas and its future for
+    // minutes Fọ {0} mínit wé de kọm, as kept here.
     second: u(
         p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
+        p2("Fọ {0} sẹ́kọn wé de kọm", "Fọ {0} sẹ́kọn wé de kọm"),
         p1("{0} Sẹ́kọn"),
         "",
         "nau",
@@ -6220,25 +6224,35 @@ const PCM_LONG: StyleData = StyleData {
         "Dís áwa",
         "",
     ),
+    // Override `long.day.future.one`, `long.day.future.other`: (c) CLDR's `pcm` future for days is
+    // Fọ {0}dè wé de kọm, with no space between the number and the noun; the file's future for
+    // minutes, hours, quarters and years and its past for every unit put one there, as kept here.
     day: u(
         p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
+        p2("Fọ {0} dè wé de kọm", "Fọ {0} dè wé de kọm"),
         p2("{0} Dè", "{0} Dè"),
         "Yẹ́stadè",
         "Todè",
         "Tumọ́ro",
     ),
+    // Override `long.week.future.one`, `long.week.future.other`: (c) CLDR's `pcm` future for weeks
+    // is Fọ {0}wik wé de kọm, with no space between the number and the noun; the file's future for
+    // minutes, hours, quarters and years and its past for every unit put one there, as kept here.
     week: u(
         p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
+        p2("Fọ {0} wik wé de kọm", "Fọ {0} wik wé de kọm"),
         p2("{0} Wik", "{0} Wik"),
         "Lást wik",
         "Dís wik",
         "Nẹ́st wik",
     ),
+    // Override `long.month.future.one`, `long.month.future.other`: (c) CLDR's `pcm` future for
+    // months is Fọ {0}mọnt wé de kọm, with no space between the number and the noun; the file's
+    // future for minutes, hours, quarters and years and its past for every unit put one there, as
+    // kept here.
     month: u(
         p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
+        p2("Fọ {0} mọnt wé de kọm", "Fọ {0} mọnt wé de kọm"),
         p1("{0} Mọnt"),
         "Lást mọnt",
         "Dís mọnt",
@@ -6263,9 +6277,13 @@ const PCM_LONG: StyleData = StyleData {
 };
 
 const PCM_SHORT: StyleData = StyleData {
+    // Override `short.second.future.one`, `short.second.future.other`: (c) CLDR's `pcm` future for
+    // seconds is Fọ {0} Sẹ́kọn, without the wé de kọm every other unit's future ends in, and with
+    // the noun capitalised; the file's past writes {0} sẹ́kọn wé dọ́n pas and its future for
+    // minutes Fọ {0} mínit wé de kọm, as kept here.
     second: u(
         p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
+        p2("Fọ {0} sẹ́kọn wé de kọm", "Fọ {0} sẹ́kọn wé de kọm"),
         p1("{0} Sẹ́kọn"),
         "",
         "nau",
@@ -6287,25 +6305,36 @@ const PCM_SHORT: StyleData = StyleData {
         "Dís áwa",
         "",
     ),
+    // Override `short.day.future.one`, `short.day.future.other`: (c) CLDR's `pcm` future for days
+    // is Fọ {0}dè wé de kọm, with no space between the number and the noun; the file's future for
+    // minutes, hours, quarters and years and its past for every unit put one there, as kept here.
     day: u(
         p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
+        p2("Fọ {0} dè wé de kọm", "Fọ {0} dè wé de kọm"),
         p2("{0} dè", "{0} dez"),
         "Yẹ́stadè",
         "Todè",
         "Tumọ́ro",
     ),
+    // Override `short.week.future.one`, `short.week.future.other`: (c) CLDR's `pcm` future for
+    // weeks is Fọ {0}wik wé de kọm, with no space between the number and the noun; the file's
+    // future for minutes, hours, quarters and years and its past for every unit put one there, as
+    // kept here.
     week: u(
         p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
+        p2("Fọ {0} wik wé de kọm", "Fọ {0} wik wé de kọm"),
         p2("{0} Wik", "Wik {0}"),
         "Lást wik",
         "Dís wik",
         "Nẹ́st wik",
     ),
+    // Override `short.month.future.one`, `short.month.future.other`: (c) CLDR's `pcm` future for
+    // months is Fọ {0}mọnt wé de kọm, with no space between the number and the noun; the file's
+    // future for minutes, hours, quarters and years and its past for every unit put one there, as
+    // kept here.
     month: u(
         p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
+        p2("Fọ {0} mọnt wé de kọm", "Fọ {0} mọnt wé de kọm"),
         p1("{0} Mọnt"),
         "Lást mọnt",
         "Dís mọnt",
@@ -6330,9 +6359,13 @@ const PCM_SHORT: StyleData = StyleData {
 };
 
 const PCM_NARROW: StyleData = StyleData {
+    // Override `narrow.second.future.one`, `narrow.second.future.other`: (c) CLDR's `pcm` future
+    // for seconds is Fọ {0} Sẹ́kọn, without the wé de kọm every other unit's future ends in, and
+    // with the noun capitalised; the file's past writes {0} sẹ́kọn wé dọ́n pas and its future for
+    // minutes Fọ {0} mínit wé de kọm, as kept here.
     second: u(
         p1("{0} sẹ́kọn wé dọ́n pas"),
-        p1("Fọ {0} Sẹ́kọn"),
+        p2("Fọ {0} sẹ́kọn wé de kọm", "Fọ {0} sẹ́kọn wé de kọm"),
         p2("{0}Sẹ́kọn", "{0}Sẹ́kọn"),
         "",
         "nau",
@@ -6357,25 +6390,37 @@ const PCM_NARROW: StyleData = StyleData {
         "Dís áwa",
         "",
     ),
+    // Override `narrow.day.future.one`, `narrow.day.future.other`: (c) CLDR's `pcm` future for
+    // days is Fọ {0}dè wé de kọm, with no space between the number and the noun; the file's future
+    // for minutes, hours, quarters and years and its past for every unit put one there, as kept
+    // here.
     day: u(
         p1("{0} dè wé dọ́n pas"),
-        p1("Fọ {0}dè wé de kọm"),
+        p2("Fọ {0} dè wé de kọm", "Fọ {0} dè wé de kọm"),
         p2("{0}Dè", "{0}Dè"),
         "Yẹ́stadè",
         "Todè",
         "Tumọ́ro",
     ),
+    // Override `narrow.week.future.one`, `narrow.week.future.other`: (c) CLDR's `pcm` future for
+    // weeks is Fọ {0}wik wé de kọm, with no space between the number and the noun; the file's
+    // future for minutes, hours, quarters and years and its past for every unit put one there, as
+    // kept here.
     week: u(
         p1("{0} wik wé dọ́n pas"),
-        p1("Fọ {0}wik wé de kọm"),
+        p2("Fọ {0} wik wé de kọm", "Fọ {0} wik wé de kọm"),
         p2("{0}Wik", "{0}Wik"),
         "Lást wik",
         "Dís wik",
         "Nẹ́st wik",
     ),
+    // Override `narrow.month.future.one`, `narrow.month.future.other`: (c) CLDR's `pcm` future for
+    // months is Fọ {0}mọnt wé de kọm, with no space between the number and the noun; the file's
+    // future for minutes, hours, quarters and years and its past for every unit put one there, as
+    // kept here.
     month: u(
         p1("{0} mọnt wé dọ́n pas"),
-        p1("Fọ {0}mọnt wé de kọm"),
+        p2("Fọ {0} mọnt wé de kọm", "Fọ {0} mọnt wé de kọm"),
         p2("{0}Mọnt", "{0}Mọnt"),
         "Lást mọnt",
         "Dís mọnt",

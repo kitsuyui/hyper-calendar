@@ -113,7 +113,7 @@ aliases give (narrow from short, short from long), and last the style's
 `other` — and writes `src/data/cldr48.rs`. Nothing here is a copy of
 CLDR's 600.
 
-The generator then applies one list, `src/data/cldr48_overrides.tsv`, 52
+The generator then applies one list, `src/data/cldr48_overrides.tsv`, 76
 values, each a value of CLDR's that a source argues against, with its
 reason, which the generated file repeats above the value and
 [`docs/i18n.md`](../../docs/i18n.md) lists: Traditional Chinese's duration
@@ -123,8 +123,9 @@ file is lower-case, in the Vietnamese long day words, one Indonesian and
 one Filipino word and two Swahili past patterns; a narrow month or year
 that is also the narrow minute or hour, in English, Japanese, Dutch and
 Hausa; a Turkish narrow hour; a past with the future's wording, in Arabic
-and Nigerian Pidgin; an Arabic dual with a numeral; and, in Welsh, a
-misspelt duration quarter and a misplaced full stop.
+and Nigerian Pidgin; Nigerian Pidgin futures with no space after the
+number, and one without its *wé de kọm*; an Arabic dual with a numeral;
+and, in Welsh, a misspelt duration quarter and a misplaced full stop.
 
 `tests/cldr48_resolved.rs` checks every value the crate takes from CLDR —
 the past, future and duration patterns of all eight units in each plural

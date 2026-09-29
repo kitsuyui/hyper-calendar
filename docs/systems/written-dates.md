@@ -155,7 +155,10 @@ not count at all. ۶ مهر read by the default template as the year 6 without
 a day is such a case.
 
 The field mismatch is reported only where the text writes the year, or
-fields that count it. Two fields that contradict each other name no day,
+fields that count it, and only through the templates the renderer would
+take for the day: 2026丙午年八月十八 in Cantonese matches the year's own
+template inside the locale's plain date, which a Chinese date never
+takes, and is `not-recognised` rather than a contradiction. Two fields that contradict each other name no day,
 and the reader does not choose which one to believe. A year the text does
 not write is instead tried on two probe years, and those years' fields do
 not match what the text wrote. That is `year-not-written`, not a
@@ -207,7 +210,13 @@ all.
   `yue.xml` and `yue_Hans.xml`, "rU年", and of `ko.xml`, "r년(U년)", and
   the long date of the first two, "rU年MMMd" [cldr48-calendar-dates].
   They read 2026丙午年八月十八 and 2026년(병오년) 8월 18일. The two must
-  agree, or the text is refused as `field-mismatch`. English writes the
+  agree, or the text is refused as `field-mismatch`. The Cantonese files'
+  long date puts the related year after the stem and branch, in
+  parentheses between spaces, "U (r) 年MMMd" with `numbers="d=hanidays"`
+  [cldr48-calendar-dates]: 丙午 (2026) 年八月十八, read with the spaces or
+  without them, 丙午(2026)年八月十八. Their year on its own is still the
+  `y` item's, 2026丙午年, and the Mandarin order in a Cantonese date is
+  not the locale's pattern: `not-recognised`. English writes the
   year so already, *Eighth Month 18, 2026(bing-wu)*. The Dangi date in
   `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml` is those files' own
   `calendar type="dangi"`, whose long date "U年MMMd日" writes the stem and
@@ -215,6 +224,29 @@ all.
   CLDR 48 has no `vietnamese` calendar in any of these files, so the
   Vietnamese date takes the Chinese calendar's templates by this library's
   choice: the calendar shares the Chinese months and sexagenary count.
+- The Japanese era calendars in Hindi, era first. `hi.xml` states no
+  date patterns for `calendar type="japanese"`, and `root.xml` aliases
+  them to the file's `generic` ones, whose long date is "G d MMMM y"
+  [cldr48-generic-dates-hi]: रेइवा 28 सितंबर 8, and रेइवा 1 मई 1 for
+  1 May 2019. The era is written at the date's level, `{era}`, and the
+  year by its number alone, `{year:1}`, as the Thai Minguo date writes
+  its era. The era after the year, 28 सितंबर 8 रेइवा, is not the
+  locale's pattern.
+- The Mongolian calendar in Mongolian, which CLDR does not have: the
+  months as Gantumur's calendar names them, the beginning, middle and end
+  of each season, in lower case inside a date as its month menu writes
+  them, and a leap month with илүү before сар, as the calendar heads one,
+  "Зуны эхэн илүү сар" [gantumur-mongolian-calendar]; inside `mn.xml`'s
+  Gregorian long date, "y 'оны' MMMM'ын' d", with сар written by the
+  template: *2026 оны хаврын тэргүүн сарын 1*, Tsagaan Sar on 18 February
+  2026, and *2024 оны өвлийн сүүл илүү сарын 1*, the leap twelfth month
+  of 2024. The calendar writes a date only as "цагаан сарын шинийн нэгэн",
+  the white month's new first, with the year by its element and animal,
+  so the shape of the whole date, the year by its number and the day by
+  its digits without *шинийн*, are this library's
+  ([tibetan-almanac.md](tibetan-almanac.md)). The native locale of
+  `mongolian` is `mn`, so `hc_describe_day`'s `native` column writes it
+  so.
 - A weekday before or after the date, which must be the day's.
 - A leap month as the locale writes it, with the word the renderer puts
   before or after it (`hc_i18n::names::leap_month_prefix` and
@@ -304,9 +336,7 @@ Not carried:
 - Times of day and zones.
 - The Chinese calendar's year in Japanese, which CLDR 48 `ja.xml` writes
   by its stem and branch alone, "U年", and the Korean long date, "U년 MMM
-  d일", which does the same: `year-not-written`. The Cantonese long date,
-  "U (r) 年MMMd", which puts the related year after the cyclic one, is not
-  written or read.
+  d일", which does the same: `year-not-written`.
 - Hebrew numerals with dots over the letters, or with לפ״ק after the year.
 
 ## Accuracy
@@ -333,14 +363,38 @@ In a release build the sweep reads 222 calendars × 67 locale settings, on
 
 Counted 2026-09-29 by a program that repeats the release sweep.
 
-A second count, of 2026-09-29, writes and reads the first day of every
-era of every calendar in every locale setting, found where the era of a
-day changes, and the first day of every month over four years from 2026:
-1 456 era days and 8 771 month days, 562 375 texts. Every text that does
-not read back is one of the refusals listed below, or a Japanese era
-calendar's leap month in a locale with no word for it, which that locale
-writes as the ordinary month (the ambiguity above). A romanisation two eras
-share would be a third kind, which is why it is not written.
+A second sweep, `the_first_day_of_every_era_and_month_reads_back`, writes
+and reads the first day of every era of every calendar and, in a release
+build, the day before it, in every locale setting, and the first day of
+every month over four years from 1 January 2026, or from the calendar's
+sample day where it does not reach 2026. An era's first day is found where
+the era of a day changes: the calendar is stepped through a week at a
+time, or in 100 000 steps over a range longer than 20 000 000 days, and
+each step whose ends differ is halved down to the day; a calendar whose
+era is the same on 2 000 days across its range, and which names no era of
+its own, has only its first day. On 2026-09-29 that was 1 679 era days
+and 9 623 month days, 854 652 texts, in 80 s and 790 CPU-s on a
+fourteen-core desktop, spread over its threads;
+`scripts/release-shards.sh` gives the test binary a shard of its own.
+Every text that does not read back is one of the refusals listed below,
+or one of the 3 933 texts of a Japanese era calendar's month in a year
+that repeats it, in a locale with no word for the leap month, which writes
+both months alike and reads as both (the ambiguity above). A romanisation
+two eras share would be a third kind, which is why it is not written.
+
+A debug build writes the same era days in the calendar's own language
+alone, with no eves and no month days: 1 679 texts. Under coverage,
+calendars that share an era table are read once, because the reader's
+paths are the same: the first registered of the seven Japanese calendars,
+of the two Chinese regnal and the two Korean regnal ones, of the three
+Javanese and of the two Jalali, which leaves 434 texts, on one thread
+under instrumentation. It finds the era days in
+steps of a 5 000th of the range and at least a year, with nine probe days
+for whether the calendar has eras at all. A step that passes over a whole
+era still finds it, since the era's first day is the first day not in the
+era before; only an era that came back within one step would be missed.
+The release build finds the eras both ways and fails unless they are the
+same days on every calendar.
 
 The `year-not-written` cases are all cycles that recur:
 
@@ -408,6 +462,7 @@ about 12 700 texts, some thirty seconds. The anchors are the dates of
 this document and of the calendars' own system documents, all read in
 either build:
 
+- रेइवा 28 सितंबर 8 and रेइवा 1 मई 1, the Japanese date in Hindi;
 - 令和元年5月1日, and 令和1年5月1日, 平成1年1月8日 and 明治1年9月8日; 嘉永三年一月一日,
   in an era `ja`'s CLDR file names; 明治元年9月8日, 23 October 1868
   ([japanese-eras.md](japanese-eras.md)); 万延元年3月3日 and 万延元年閏3月3日,
@@ -429,6 +484,12 @@ either build:
 - 2026丙午年八月十八 and 2026년(병오년) 8월 18일 in each of the three calendars,
   丙午年八月18日 for the Dangi in Traditional Chinese and Cantonese,
   2023癸卯年闰二月初一 for 22 March 2023, and 2025丙午年八月十八 refused;
+  丙午 (2026) 年八月十八 in Cantonese, and 丙午 (2025) 年八月十八 refused;
+- *2026 оны хаврын тэргүүн сарын 1*, Tsagaan Sar, MONTSAME's 18 February
+  2026 [montsame-tsagaan-sar-2026]; *1992 оны хаврын тэргүүн сарын 9*, the
+  constitution's day, 12 February 1992; and the leap and the regular
+  twelfth month of 2024, *2024 оны өвлийн сүүл илүү сарын 1* and *2024 оны
+  өвлийн сүүл сарын 1*, with the month alone *Өвлийн сүүл илүү сар*;
 - *St. Tib's Day, 3190 YOLD*, *Analā 1, 1111 NS* and ເດືອນແປດຫລັງ ຂຶ້ນ 15
   ຄ່ຳ ປີ 1388, each read as its own day.
 
@@ -449,7 +510,10 @@ either build:
 | [janson2014] | The first of a doubled date "denoted 'Extra' in the almanacs", §6; no Tibetan word for the leap month in dates | Yes, 2026-09-28, the ar5iv rendering of the arXiv text |
 | [gb-t-15835-2011] | §4.2.1: Han numerals for 历史朝代纪年 and 农历月日, 清咸丰十年九月二十日 | Yes, 2026-09-28, a reproduction of the standard's text |
 | [wikipedia-zh-kangxi] | 康熙六十一年十一月十三日 and 康熙元年, in both renderings | Yes, 2026-09-28 |
-| [cldr48-calendar-dates] | `he.xml`'s four Hebrew-calendar date patterns with `numbers="hebr"`; the `chinese` calendar's `y` items and long dates in `zh.xml`, `zh_Hant.xml`, `yue.xml`, `yue_Hans.xml`, `ja.xml` and `ko.xml`, which `dangi` inherits in `zh.xml`, `ja.xml` and `ko.xml`; the `dangi` calendar of `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml`, "U年MMMd日" | Yes, 2026-09-28, those elements |
+| [cldr48-calendar-dates] | `he.xml`'s four Hebrew-calendar date patterns with `numbers="hebr"`; the `chinese` calendar's `y` items and long dates in `zh.xml`, `zh_Hant.xml`, `yue.xml`, `yue_Hans.xml`, `ja.xml` and `ko.xml`, which `dangi` inherits in `zh.xml`, `ja.xml` and `ko.xml`, the Cantonese "U (r) 年MMMd" with `numbers="d=hanidays"`; the `dangi` calendar of `zh_Hant.xml`, `yue.xml` and `yue_Hans.xml`, "U年MMMd日" | Yes, 2026-09-28, those elements; `yue.xml`'s `chinese` date formats again 2026-09-29 |
+| [cldr48-generic-dates-hi] | `hi.xml`'s `generic` long date "G d MMMM y", to which `root.xml` aliases the Japanese calendar's date formats | Yes, 2026-09-29 |
+| [gantumur-mongolian-calendar] | The Mongolian months' names, the leap month's heading "… илүү сар", the month menu in lower case, and the one date the calendar writes, "цагаан сарын шинийн нэгэн" | Yes, 2026-09-29, the page and `calendar_mn.js`; a secondary source |
+| [montsame-tsagaan-sar-2026] | Tsagaan Sar on 18 February 2026 | As [tibetan-variants.md](tibetan-variants.md) records |
 | [principia-discordia-p34] | St. Tib's Day, "inserted between the 59th and 60th days of the Season of Chaos" | Yes, 2026-09-28, a transcription of the page |
 | [wikipedia-nepal-sambat] | Analā, अनला, "The intercalary month" of the table of months | Yes, 2026-09-28, the wikitext's table |
 | [nepal-panchang-committee-2081] | A doubled tithi written on both days, and the weekday compulsory beside it | Yes, 2026-09-28, a reproduction of the notice's text |
