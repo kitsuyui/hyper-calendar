@@ -329,7 +329,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ID` | Indonesia | 39 | none | stated | 2026-09-27 |
 | `IE` | Ireland | 11 | none | stated | 2026-09-26 |
 | `IL` | Israel | 14 | none | stated | 2026-09-28 |
-| `IN` | India | 2027 | none | stated | 2026-09-29 |
+| `IN` | India | 944 | none | stated | 2026-09-29 |
 | `IQ` | Iraq | 32 | none | stated | 2026-09-22 |
 | `IR` | Iran | 27 | none | stated | 2026-09-22 |
 | `IS` | Iceland | 16 | none | stated | 2026-09-26 |

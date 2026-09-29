@@ -500,18 +500,24 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
 
 * **India** carries the three national holidays and the gazetted list, with
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
-  Diwali and Guru Nanak's Birthday computed on `hindu-lunar`. The thirteen
-  largest states' holidays under the Negotiable Instruments Act are carried
-  in their regions for 2019 to 2026 (Andhra Pradesh from 2023), from the
-  Reserve Bank of India's lists for its regional offices, the states'
-  notifications, gazette PDFs, not having been read; the years before and
-  2027 are gaps, back to the year the state was formed — Telangana 2014
-  (the Andhra Pradesh Reorganisation Act, 2014), Gujarat and Maharashtra
-  1960 (the Bombay Reorganisation Act, 1960), Kerala and Andhra Pradesh
-  1956 (the States Reorganisation Act, 1956) — or to 1882, when the
-  Negotiable Instruments Act, 1881, came into force; before that the lists
-  are absent. The other states and union territories
-  are not yet carried, and the Reserve Bank's list has most of them
+  Diwali and Guru Nanak's Birthday computed on `hindu-lunar`. The holidays
+  under the Negotiable Instruments Act of the twenty-eight states and union
+  territories with a Reserve Bank of India office of their own, Chandigarh
+  apart, are carried
+  in their regions for 2019 to 2026 (Andhra Pradesh, Arunachal Pradesh and
+  Nagaland from 2023), from the Reserve Bank's lists for its regional
+  offices, the states' notifications, gazette PDFs, not having been read.
+  The list gives one description a date for all the offices; a state's
+  name is that description split at its slashes, less the parts the list
+  itself shows the state not keeping, and for Maharashtra in 2026 the parts
+  its own list names. The years before and 2027 are gaps, back to the year the state was
+  formed — Telangana 2014, Chhattisgarh, Jharkhand and Uttarakhand 2000,
+  Sikkim 1975, Meghalaya, Mizoram and Arunachal Pradesh 1971, Nagaland 1963,
+  Goa 1961, Gujarat and Maharashtra 1960, Kerala and Andhra Pradesh 1956 —
+  or to 1882, when the Negotiable Instruments Act, 1881, came into force;
+  before that the lists are absent. Chandigarh's office, whose list may be
+  the union territory's, Punjab's or Haryana's, and the union territories
+  with no office are not yet carried
   ([india-state-holidays.md](../../docs/systems/india-state-holidays.md)).
   Singapore's and Malaysia's Deepavali is the same
   Dīpāvalī rule. Indonesia's Nyepi is dated by the Balinese Śaka lunisolar
@@ -583,7 +589,8 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   jurisdictions, French Alsace-Moselle, the three units of Bosnia and
   Herzegovina, Bangladesh's hill districts and the Japanese prefectures
   that set a day of their own by ordinance are in, and so are New Zealand's
-  provincial anniversary days, India's thirteen largest states, the
+  provincial anniversary days, twenty-eight of India's states and union
+  territories, the
   provinces of Solomon Islands and Vanuatu, Thimphu, China's autonomous
   regions of Guangxi, Xinjiang and Ningxia for the years of their notices
   read, fifteen of Russia's republics, and a few single places:

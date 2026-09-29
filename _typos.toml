@@ -637,3 +637,6 @@ sme = "sme"
 # Mo Mo Thant, author of a history of the Shwegyin order cited as not read
 # in docs/systems/burmese.md (momothant2002).
 Thant = "Thant"
+# U SoSo Tham, the Khasi poet whose death anniversary the Reserve Bank of
+# India lists at Shillong, in hc-holiday's India state days.
+Tham = "Tham"

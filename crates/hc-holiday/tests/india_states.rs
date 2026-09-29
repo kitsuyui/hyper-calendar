@@ -26,11 +26,16 @@ fn own_on(region: Option<&str>, year: i64, month: u8, day: u8) -> Vec<Holiday> {
         .collect()
 }
 
-/// The thirteen states carried.
+/// The twenty-eight states and union territories carried.
 const STATES: &[&str] = &[
     "IN-UP", "IN-MH", "IN-BR", "IN-WB", "IN-MP", "IN-TN", "IN-RJ", "IN-KA", "IN-GJ", "IN-AP",
-    "IN-OD", "IN-TS", "IN-KL",
+    "IN-OD", "IN-TS", "IN-KL", "IN-AS", "IN-JH", "IN-DL", "IN-JK", "IN-UK", "IN-CG", "IN-HP",
+    "IN-TR", "IN-ML", "IN-MN", "IN-NL", "IN-GA", "IN-AR", "IN-MZ", "IN-SK",
 ];
+
+/// The states whose offices' lists begin in 2023: Vijayawada, Itanagar
+/// and Kohima.
+const FROM_2023: &[&str] = &["IN-AP", "IN-AR", "IN-NL"];
 
 #[test]
 fn a_state_keeps_the_days_the_reserve_bank_lists_for_it() {
@@ -64,12 +69,31 @@ fn a_state_keeps_the_days_the_reserve_bank_lists_for_it() {
             16,
             "Chhath Puja/Surya Shashti Dala Chhath (Prath Arghya)",
         ),
+        ("IN-MH", 2026, 5, 1, "Maharashtra Din/Buddha Pournima"),
+        (
+            "IN-AS",
+            2022,
+            4,
+            15,
+            "Bengali New Year’s Day (Nababarsha)/Himachal Day/Vishu/Bohag Bihu",
+        ),
+        ("IN-SK", 2026, 12, 10, "Losoong / Namsoong"),
+        ("IN-GA", 2025, 12, 3, "Feast of St. Francis Xavier"),
+        ("IN-MZ", 2025, 2, 20, "Statehood Day/State Day"),
+        ("IN-JK", 2026, 3, 13, "Jumat-ul-Vida"),
+        (
+            "IN-NL",
+            2025,
+            12,
+            1,
+            "State Inauguration Day/Indigenous Faith Day",
+        ),
     ] {
         let found = own_on(Some(region), year, month, day);
         assert_eq!(found.len(), 1, "{region} {year}-{month}-{day}: {found:?}");
         assert_eq!(found[0].name, name);
         assert_eq!(found[0].kind, Kind::Bank);
-        assert_eq!(found[0].regions, [region]);
+        assert!(found[0].regions.contains(&region), "{region}");
         assert!(found[0].source.contains("Reserve Bank of India"));
         let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
         assert!(!calendar.is_business_day(ymd(year, month, day)), "{region}");
@@ -99,8 +123,11 @@ const GAP: &str = "Holidays under the Negotiable Instruments Act";
 #[test]
 fn the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after() {
     for region in STATES {
-        // Vijayawada's list for Andhra Pradesh begins in 2023.
-        let first = if *region == "IN-AP" { 2023 } else { 2019 };
+        let first = if FROM_2023.contains(region) {
+            2023
+        } else {
+            2019
+        };
         let before = HolidayCalendar::for_year(&INDIA, Some(region), first - 1);
         assert!(
             before
@@ -118,7 +145,9 @@ fn the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after() {
                 .iter()
                 .filter(|holiday| !holiday.regions.is_empty())
                 .count();
-            assert!(own >= 10, "{region} {year}: {own}");
+            // Delhi's 2022 list has twelve days, some of them nationwide
+            // ones of the same name.
+            assert!(own >= 9, "{region} {year}: {own}");
             assert!(
                 !calendar.gaps().iter().any(|gap| gap.name == GAP),
                 "{region} {year}"
@@ -139,13 +168,22 @@ fn the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after() {
 }
 
 #[test]
-fn no_state_day_falls_on_a_sunday() {
-    // The Reserve Bank lists no Sunday, when the banks are closed anyway.
+fn no_state_day_falls_on_a_sunday_but_the_one_the_list_has() {
+    // The Reserve Bank lists no Sunday, when the banks are closed anyway,
+    // but for Shillong's Beh Dienkhlam of 14 July 2019.
+    let listed = ymd(2019, 7, 14);
+    assert_eq!(
+        own_on(Some("IN-ML"), 2019, 7, 14)
+            .iter()
+            .map(|holiday| holiday.name)
+            .collect::<Vec<_>>(),
+        ["Beh Dienkhlam"]
+    );
     for region in STATES {
         for year in 2019..=2026 {
             let calendar = HolidayCalendar::for_year(&INDIA, Some(region), year);
             for holiday in calendar.in_year(year) {
-                if !holiday.regions.is_empty() {
+                if !holiday.regions.is_empty() && holiday.date != listed {
                     assert_ne!(
                         hc_calendar::Weekday::from_rd(holiday.date),
                         hc_calendar::Weekday::Sunday,
@@ -156,4 +194,33 @@ fn no_state_day_falls_on_a_sunday() {
             }
         }
     }
+}
+
+#[test]
+fn a_name_keeps_the_parts_the_list_does_not_show_another_state_s() {
+    // One description for all the offices, split at its slashes: the
+    // parts the list shows a state not keeping are not its name.
+    let name = |region: &str, year: i64, month: u8, day: u8| -> String {
+        let found = own_on(Some(region), year, month, day);
+        assert_eq!(found.len(), 1, "{region} {year}-{month}-{day}: {found:?}");
+        found[0].name.to_string()
+    };
+    // Guwahati lists no Good Friday but 2022's, whose description Assam's
+    // Bohag Bihu shares.
+    assert!(!name("IN-AS", 2022, 4, 15).contains("Good Friday"));
+    assert!(name("IN-MP", 2022, 4, 15).starts_with("Good Friday/"));
+    // Maharashtra's own list for 2026 names Maharashtra Din and Buddha
+    // Pournima on 1 May, not the other states' May Day and Raghunath Murmu.
+    assert!(!name("IN-MH", 2026, 5, 1).contains("Murmu"));
+    // A part the list does not show as another's stays: Karnataka's
+    // Kannada Rajyothsava shares its description with Uttarakhand's
+    // Igas-Bagwal, and so does the rule.
+    let found = own_on(Some("IN-UK"), 2025, 11, 1);
+    assert_eq!(found.len(), 1, "{found:?}");
+    assert_eq!(found[0].name, "Kannada Rajyothsava/Igas-Bagwal");
+    assert!(
+        found[0].regions.contains(&"IN-KA"),
+        "{:?}",
+        found[0].regions
+    );
 }
