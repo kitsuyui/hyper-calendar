@@ -23,7 +23,7 @@
 
 use hc_calendar::fixed::Moment;
 use hc_core::math::{
-    RAD_TO_DEG, acos, asin, atan2, cos_deg, modulo, normalize_degrees, poly, round, sin_deg,
+    RAD_TO_DEG, acos, asin, atan2, cos_deg, normalize_degrees, poly, round, sin_deg,
 };
 
 use crate::earth::{Equatorial, equatorial_from_ecliptic, true_obliquity_at_centuries};
@@ -398,7 +398,7 @@ pub fn lunar_position(moment: Moment) -> Equatorial {
 /// sky, which also involves the Moon's latitude.
 #[must_use]
 pub fn lunar_phase(moment: Moment) -> f64 {
-    modulo(lunar_longitude(moment) - solar_longitude(moment), 360.0)
+    normalize_degrees(lunar_longitude(moment) - solar_longitude(moment))
 }
 
 /// The fraction of the Moon's disc that is illuminated, from 0 at new moon
@@ -766,7 +766,7 @@ pub fn moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment {
 /// [`moon_phase_at_or_after`], searched for.
 fn computed_moon_phase_at_or_after(phase_degrees: f64, moment: Moment) -> Moment {
     let rate = MEAN_SYNODIC_MONTH / 360.0;
-    let to_go = modulo(phase_degrees - lunar_phase(moment), 360.0);
+    let to_go = normalize_degrees(phase_degrees - lunar_phase(moment));
     let estimate = moment.0 + rate * to_go;
     invert_angular(
         lunar_phase,
@@ -1026,7 +1026,7 @@ mod tests {
         for step in 0..120 {
             let a = lunar_longitude(Moment(start + f64::from(step)));
             let b = lunar_longitude(Moment(start + f64::from(step) + 1.0));
-            let advance = modulo(b - a, 360.0);
+            let advance = normalize_degrees(b - a);
             assert!(
                 (11.5..15.5).contains(&advance),
                 "the Moon advanced {advance} degrees on day {step}"

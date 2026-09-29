@@ -806,6 +806,49 @@ mod tests {
     }
 
     #[test]
+    fn the_shwegyin_congregations_fall_on_their_burmese_dates() {
+        // Burmese Wikipedia, ရွှေကျင်ဂိုဏ်း (revision 1041879): the second
+        // congregation on «၁၂၈၅ ခုနှစ်၊ ပထမဝါဆိုလဆန်း ၈ ရက်», 20 June 1923,
+        // and the third on «၁၂၈၉ ခုနှစ်၊ တပေါင်းလဆန်း ၁၅ ရက် (တနင်္လာနေ့)»,
+        // Monday 5 March 1928.
+        let second = BurmeseDate {
+            year: 1285,
+            month: Month::leap(4),
+            late: false,
+            day: 8,
+        };
+        assert_eq!(to_fixed(second), Ok(greg(1923, 6, 20)));
+        let third = BurmeseDate {
+            year: 1289,
+            month: Month::regular(12),
+            late: false,
+            day: 15,
+        };
+        assert_eq!(to_fixed(third), Ok(greg(1928, 3, 5)));
+        assert_eq!(
+            hc_calendar::Weekday::from_rd(greg(1928, 3, 5)),
+            hc_calendar::Weekday::Monday
+        );
+        // The first congregation, «၁၂၈၂ ခုနှစ်၊ ပထမဝါဆိုလဆန်း ၈ ရက်», is
+        // given the same Western day, 20 June, in 1920. The module puts that
+        // Burmese day on 23 June 1920 and 20 June on First Waso waxing 5;
+        // the new moon of 16 June 1920 allows no waxing 8 on the 20th.
+        // docs/systems/burmese.md says why the module's day is kept.
+        let first = BurmeseDate {
+            year: 1282,
+            month: Month::leap(4),
+            late: false,
+            day: 8,
+        };
+        assert_eq!(to_fixed(first), Ok(greg(1920, 6, 23)));
+        let twentieth = from_fixed(greg(1920, 6, 20)).expect("in range");
+        assert_eq!(
+            (twentieth.year, twentieth.month, twentieth.day),
+            (1282, Month::leap(4), 5)
+        );
+    }
+
+    #[test]
     fn impossible_dates_are_refused() {
         // 1386 ME has no First Waso; 1385 has one.
         let first_waso = BurmeseDate {

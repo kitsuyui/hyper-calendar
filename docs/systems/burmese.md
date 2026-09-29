@@ -353,6 +353,31 @@ holidays", 9 July 2024) gives no dates, and the Ministry's holiday pages
 return no list [moip-public-holidays]. The evidence is the reports of the
 days kept, not the gazette.
 
+**Unresolved disagreement: First Waso 1282 ME.** The Burmese Wikipedia
+article on the Shwegyin Nikaya, ရွှေကျင်ဂိုဏ်း, dates three of the order's
+congregations twice, in Burmese and Western form [mywiki-shwegyin]. Two
+agree with the module to the day: «၁၂၈၅ ခုနှစ်၊ ပထမဝါဆိုလဆန်း ၈ ရက်»,
+First Waso waxing 8, 1285 ME, is 20 June 1923, and «၁၂၈၉ ခုနှစ်၊
+တပေါင်းလဆန်း ၁၅ ရက် (တနင်္လာနေ့)», Tabaung waxing 15, 1289 ME, a Monday,
+is 5 March 1928. The first, «၁၂၈၂ ခုနှစ်၊ ပထမဝါဆိုလဆန်း ၈ ရက်», First
+Waso waxing 8, 1282 ME, is given as 20 June 1920, where the module has
+23 June 1920 and makes 20 June First Waso waxing 5. The module's day is
+kept, for three reasons. The astronomical new moon fell on 16 June 1920,
+about 13:40 UT (`hc-astro`'s `new_moon_at_or_after`), so First Waso began
+on 16 June and its eighth waxing day cannot be the 20th. The article gives
+the 1920 and the 1923 meetings the same Burmese day and the same Western
+day, 20 June: three years apart, the two Western days are 1 095 days
+apart, but three Burmese years with one watat year among them, 1282 ME's
+385 days and two common years of 354, bring the same Burmese day round
+after 1 092 or 1 093 days, never 1 095, so one of the two pairs is wrong;
+the 1923 pair is the one the module reproduces. And no exception of the source's British era names
+1282 ME [yannaingaye2013]. The likeliest reading is that the 1920 row's
+Western date was copied from the 1923 row, but the article cites no source
+for either, and Mo Mo Thant's history of the order [momothant2002] was
+not read. The module's 1282 is a big
+watat year with Second Waso's full moon on 30 July 1920
+(`the_shwegyin_congregations_fall_on_their_burmese_dates`).
+
 **What the source measured.** Against timeanddate.com's astronomical full
 moons for the seventeen watat years 1350–1396 ME, the source reports an
 average difference of 1.4 hours between its computed full-moon time and
@@ -369,6 +394,8 @@ measurement.
 | [mywiki-new-year-day] | နှောင်းတန်ခူး and နှောင်းကဆုန်, the days before the New Year | Yes, 2026-09-28 |
 | [mywiki-zin-min-htet] | A government order dated «၁၃၈၅ ခုနှစ်၊ ဒုတိယဝါဆိုလဆန်း ၄ ရက်», 21 July 2023 | Yes, 2026-09-28; the order itself not read |
 | [mora-homepage] | «၁၃၈၈ ခုနှစ်၊ ပထမ ဝါဆိုလပြည့်ကျော်(၁၅)ရက်», 14 July 2026 | Yes, 2026-09-28 |
+| [mywiki-shwegyin] | Three congregations dated in both calendars: 1285 ME First Waso waxing 8 = 20 June 1923 and 1289 ME Tabaung waxing 15 = Monday 5 March 1928, as the module has them; 1282 ME First Waso waxing 8 = 20 June 1920, where the module has 23 June | Yes, revision 1041879 (3 July 2026), 2026-09-29 |
+| [momothant2002] | A history of the Shwegyin order that might date its congregations | Not read; the listing on Google Books only |
 | [irwin1909] | The constants and the Makaranta and Thandeikta history, through the two sources above | Not read |
 | [wikipedia-burmese-calendar] | The month names in Burmese script, the 29- and 30-day months, the intercalary day's placement and the rule that it needs the month, the Arakanese and Thai placements, the Makaranta and Thandeikta history with its 1838 and 1853 dates, the Metonic remainder sets, the Calendar Advisory Board, the epoch of 22 March 638 | Yes, 2026-09-25; the module read it 2026-09-22 |
 | [hindu-calendars.md](hindu-calendars.md) | The *Sūrya Siddhānta*'s sidereal year, the same constant | This repository |
@@ -392,6 +419,7 @@ of `EraRule`, and the functions `watat`, `year_info`, `new_year_day`,
 `the_sources_worked_example_of_1374_me_is_reproduced`,
 `the_exceptions_of_the_record_are_applied`,
 `the_full_moons_of_1386_me_fall_where_the_published_calendar_puts_them`,
+`the_shwegyin_congregations_fall_on_their_burmese_dates`,
 `every_day_of_three_decades_round_trips`, `impossible_dates_are_refused`,
 `the_thingyan_of_1386_me_ran_from_13_to_17_april_2024`. Myanmar's holidays
 on the calendar are in `crates/hc-holiday`, `MM` in `countries/asia.rs`,

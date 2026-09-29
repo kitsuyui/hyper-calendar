@@ -53,7 +53,7 @@ pub mod missions;
 
 use core::fmt;
 
-use hc_core::math::{cos_deg, floor, fract, modulo, signed_degrees, sin_deg};
+use hc_core::math::{cos_deg, floor, fract, normalize_degrees, signed_degrees, sin_deg};
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
 use crate::util::{instant_from_j2000_offset, j2000_offset_days};
@@ -266,7 +266,7 @@ impl MarsSeason {
     /// The season containing an areocentric solar longitude.
     #[must_use]
     pub fn from_solar_longitude(degrees: f64) -> Self {
-        match (modulo(degrees, 360.0) / 90.0) as u8 {
+        match (normalize_degrees(degrees) / 90.0) as u8 {
             0 => Self::NorthernSpring,
             1 => Self::NorthernSummer,
             2 => Self::NorthernAutumn,
@@ -374,7 +374,7 @@ impl MarsMoment {
     /// Mars's mean anomaly in degrees. Mars24 equation B-1.
     #[must_use]
     pub fn mean_anomaly(self) -> f64 {
-        modulo(19.3871 + 0.524_020_73 * self.j2000_offset_days, 360.0)
+        normalize_degrees(19.3871 + 0.524_020_73 * self.j2000_offset_days)
     }
 
     /// The angle of the fictitious mean Sun in degrees. Mars24 equation B-2.
@@ -384,7 +384,7 @@ impl MarsMoment {
     /// real one.
     #[must_use]
     pub fn angle_of_fictitious_mean_sun(self) -> f64 {
-        modulo(270.3871 + 0.524_038_496 * self.j2000_offset_days, 360.0)
+        normalize_degrees(270.3871 + 0.524_038_496 * self.j2000_offset_days)
     }
 
     /// The sum of the seven perturbation terms, in degrees. Mars24 equation
@@ -423,10 +423,7 @@ impl MarsMoment {
     /// eccentric, equal steps in `Ls` are not equal steps in time.
     #[must_use]
     pub fn solar_longitude(self) -> f64 {
-        modulo(
-            self.angle_of_fictitious_mean_sun() + self.equation_of_centre(),
-            360.0,
-        )
+        normalize_degrees(self.angle_of_fictitious_mean_sun() + self.equation_of_centre())
     }
 
     /// The season this moment falls in.
@@ -613,7 +610,7 @@ impl Site {
     /// West longitude in degrees, in `[0, 360)`.
     #[must_use]
     pub fn west_longitude_degrees(&self) -> f64 {
-        modulo(-self.east_longitude_degrees, 360.0)
+        normalize_degrees(-self.east_longitude_degrees)
     }
 
     /// Local mean solar time here at a Martian moment.
@@ -928,7 +925,7 @@ mod tests {
         let mut msd = 60_000.5;
         while msd < 60_000.0 + MARS_TROPICAL_YEAR_SOLS {
             let current = MarsMoment::from_mars_sol_date(msd).solar_longitude();
-            let step = modulo(current - previous, 360.0);
+            let step = normalize_degrees(current - previous);
             assert!(step > 0.0 && step < 1.0, "step {step} at {msd}");
             previous = current;
             msd += 0.5;

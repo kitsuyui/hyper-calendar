@@ -228,7 +228,7 @@ pub fn fract(x: f64) -> f64 {
 #[inline]
 #[must_use]
 pub fn signed_degrees(degrees: f64) -> f64 {
-    let wrapped = modulo(degrees, 360.0);
+    let wrapped = normalize_degrees(degrees);
     if wrapped > 180.0 {
         wrapped - 360.0
     } else {

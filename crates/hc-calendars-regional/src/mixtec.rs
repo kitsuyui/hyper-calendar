@@ -8,7 +8,12 @@
 //! `jimenezmoreno1940`, not read). The months are the Aztec ones, day for
 //! day from Izcalli to Panquetzaliztli, and the five nemontemi come at the
 //! end of the Mixtec year, after Panquetzaliztli, so the Mixtec Atemoztli
-//! and Tititl run five days behind the Aztec ones. A year is named by the
+//! and Tititl run five days behind the Aztec ones. Caso does not place the
+//! Mixtec nemontemi in one sentence: that they follow Panquetzaliztli is
+//! this library's reading of two of his statements on p. 78, that the
+//! months of all peoples agreed but for the nemontemi, "que iban al fin del
+//! año", and that Panquetzaliztli was the "último de su año que principiaba
+//! por *Atemoztli*". A year is named by the
 //! day of the 260-day count on its last day of its last month, the 20th of
 //! Panquetzaliztli, the 360th day: "el año de 1568 se llamó en el
 //! Calendario popoloca-mixteco *10 Tecpatl* … por que el día *10 Tecpatl*

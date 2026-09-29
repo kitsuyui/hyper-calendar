@@ -39,7 +39,7 @@
 //! written up in `docs/systems/mars-timekeeping.md`.
 
 use hc_core::TimeResult;
-use hc_core::math::{floor, modulo};
+use hc_core::math::{floor, normalize_degrees};
 use hc_core::{Instant, Tai};
 
 use crate::util::utc_unix_seconds;
@@ -109,13 +109,13 @@ impl Mission {
     /// The landing site's west longitude in degrees, in `[0, 360)`.
     #[must_use]
     pub fn site_west_longitude_degrees(&self) -> f64 {
-        modulo(-self.site_east_longitude_degrees, 360.0)
+        normalize_degrees(-self.site_east_longitude_degrees)
     }
 
     /// The clock meridian's west longitude in degrees, in `[0, 360)`.
     #[must_use]
     pub fn clock_west_longitude_degrees(&self) -> f64 {
-        modulo(-self.clock_east_longitude_degrees, 360.0)
+        normalize_degrees(-self.clock_east_longitude_degrees)
     }
 
     /// The landing instant as a TAI reading.

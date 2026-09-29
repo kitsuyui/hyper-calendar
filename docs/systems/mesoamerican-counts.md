@@ -166,6 +166,51 @@ scholars hold, that no Mesoamerican calendar had a leap day, and this
 library carries the uncorrected 365-day year [wikipedia-aztec-calendar,
 azteccalendar].
 
+**Caso's own dates against the carried count.** Caso's book states the
+same anchor: every Indian author who gives the day Tenochtitlan fell calls
+it 1 Coatl, all but two sources call it 13 August, "esta correlación es
+completamente firme", and the city fell "en el segundo día del mes
+Xocotlhuetzi" [caso1967, p. 49]. So the carried constant is Caso's in his
+own words, not only as Reingold and Dershowitz attribute it, and his other
+Julian dates can be read against it.
+
+- *1520 and 1540–1543.* The last day of Etzalcualiztli fell on 12 June
+  1520 and, after the five leap days the Aztecs did not count, on 7 June
+  1540; the correspondence "no varió desde el 1° de marzo de 1540, hasta
+  el 28 de febrero de 1544" [caso1967, p. 252]. His table of the Tarascan
+  year for 1540–1543 gives the Aztec months beside the Tarascan ones, and
+  every one the carried count computes falls on his day: Hueytozoztli from
+  9 April, Etzalcualiztli from 19 May, Xocotlhuetzi from 7 August, Tititl
+  to 13 January, the nemontemi from 14 January, and Tozoztontli ending on
+  8 April, as his note says. The table's January to April rows are true
+  for 1541 to 1544, the years after his leap day of 1540; read as January
+  1540 they would be a day off, as his range says they must be. The
+  table prints Izcalli to Tozoztontli one row below the Tarascan months
+  they overlap; his note that these Aztec months begin five days after
+  the Tarascan ones, and his sentence that Izcalli "corresponde"
+  to Tzitacuarénscuaro, put them where the carried count does.
+- *1477.* "El 13 de febrero de 1477 fue el día 13 Malinalli, o 1 Acatl,
+  9° del mes Izcalli", in the year 11 Calli, which the Tenochca had begun
+  "con el día 3 Cuetzpallin, 1° de Izcalli el día 5 de febrero de ese año"
+  [caso1967, p. 78]. The carried count agrees with the year's name and
+  with the pairing of 3 Cuetzpalin and 1 Izcalli, but puts that day on
+  4 February 1477 (Julian), one day earlier, and 13 February on 12 Acatl,
+  10 Izcalli. The page does not agree with itself either: eight days after
+  3 Cuetzpallin is 11 Malinalli, not 13 Malinalli. The day is that of a
+  solar eclipse, and Weitzel, whom Caso quotes, read Caso's system as
+  ending the year 10 Tecpatl "ten days before the solar eclipse of
+  February 13, 1477" [caso1967, notes to chapter 2], which is 3 February,
+  so that the next year begins on 4 February, the carried count's day.
+  Where p. 78's 13 Malinalli and 5 February come from is not settled
+  here.
+
+These are not a second Caso correlation. The anchor he states on p. 49 is
+the carried one; his 1520 and 1540–1543 dates fall on it day for day; and
+the one page that departs from it, p. 78, departs from its own day names
+too. Policy §5 gives a competing convention its own identifier, and the
+book does not state one. His correlation tables for 1116 to 1687 at the
+end of the book, which would test every year, were not read.
+
 **Worked example: Chiapa de Corzo Stela 2.** The stela reads 7.16.3.2.13
 [wikipedia-long-count, wikipedia-chiapa-de-corzo].
 
@@ -346,6 +391,8 @@ anchor. The tests hold these published readings:
 | 21 September 2026 = 13.0.13.17.2 | [azteccalendar] | `a_published_modern_long_count_matches` |
 | 13 August 1521 (Julian) = 1 Coatl, 2 Xocotlhuetzi | [reingold2018code] | `the_correlation_is_the_fall_of_tenochtitlan`, `tenochtitlan_fell_on_one_coatl_two_xocotlhuetzi` |
 | 21 September 2026 = 8 Ehecatl, 14 Tititl | [azteccalendar] | `a_published_modern_date_matches` |
+| The last day of Etzalcualiztli on 12 June 1520 and 7 June 1540 (Julian); the Aztec months of the table for 1540–1543, their January rows in 1541 to 1544 | [caso1967, p. 252] | `caso_s_julian_dates_for_1520_and_1540_fall_on_the_carried_months` |
+| The year 11 Calli begun on 3 Cuetzpallin, 1 Izcalli, which Caso dates 5 February 1477 and the carried count 4 February | [caso1967, p. 78] | `caso_s_1477_names_agree_but_his_julian_date_is_a_day_later` |
 | The 819-day base is 1 Caban 5 Cumku, three days before 0.0.0.0.0, an eastern station | [vanlaningham-819], [macleod2012] | `the_base_is_one_caban_five_cumku_an_eastern_station` |
 | The Temple of the Cross's 12.19.13.4.0 8 Ahau 18 Zec and Pakal's birth 9.8.9.13.0 both 20 days after a south station, 1 Ahau, under either constant | [lounsbury1976] | `the_temple_of_the_cross_stands_twenty_days_after_a_south_station` |
 | JDN 2 450 765 under 584 285 is 801 days past a western, black station, 1 Cauac 7 Mol | [vanlaningham-819] | `van_laningham_s_worked_example_under_584_285` |
@@ -400,6 +447,7 @@ and Dershowitz tabulate it.
 | [macleod2012] | The base 1 Kaban before the era base as an eastern station; Palenque and Yaxchilan as the sites with most 819-day records | Yes, 2026-09-26 |
 | [berlin1961] | The colour-direction scheme | Not read; cited by the three above |
 | [thompson1943] | The identification of the cycle | Not read; cited by [lounsbury1976] and [vanlaningham-819] |
+| [caso1967] | The anchor in Caso's words: 1 Coatl, 13 August 1521, the second day of Xocotlhuetzi (p. 49); the last day of Etzalcualiztli in 1520 and 1540 and the table for 1540–1543 (p. 252); the year 11 Calli and 5 February 1477 (p. 78); Weitzel's reading of the year 10 Tecpatl against the eclipse (notes to chapter 2) | Yes, the Internet Archive's scan, 2026-09-29: pp. 49, 78 and 252 in the page images, the notes by the OCR text |
 | [caso1971] | The Aztec anchor as Reingold and Dershowitz attribute it | Not read directly; the bibliographic details from the publisher's listing |
 | [wikipedia-aztec-calendar] | The day-signs; Sahagún's and Durán's first months; the four year bearers Tochtli, Acatl, Tecpatl, Calli; the *xiuhmolpilli*; 13 August 1521 = 1 Coatl; Caso as the basis of later reconstructions; the leap-day dispute; the reconstructions of Tena, Ochoa and Medina | Yes, 2026-09-25; re-read 2026-09-26 for the three reconstructions |
 | [wikipedia-xiuhpohualli] | The eighteen *veintenas* and the nemontemi; the disagreement over the year's first month; the vague year | Yes, 2026-09-25 |
@@ -455,6 +503,8 @@ needs a correction the uncorrected 365-day year here does not make.
 `the_correlation_is_the_fall_of_tenochtitlan`,
 `tenochtitlan_fell_on_one_coatl_two_xocotlhuetzi`,
 `a_published_modern_date_matches`,
+`caso_s_julian_dates_for_1520_and_1540_fall_on_the_carried_months`,
+`caso_s_1477_names_agree_but_his_julian_date_is_a_day_later`,
 `the_base_is_one_caban_five_cumku_an_eastern_station`,
 `the_temple_of_the_cross_stands_twenty_days_after_a_south_station`,
 `van_laningham_s_worked_example_under_584_285`,
