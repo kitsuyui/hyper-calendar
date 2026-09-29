@@ -70,7 +70,7 @@ fn the_hindu_new_year_of_saka_1947_on_both_skies() {
     let text =
         read_lines(|buffer, capacity| unsafe { hc_surya_siddhanta_at(sunrise, buffer, capacity) });
     let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
-    assert_eq!(cells[3..], ["1", "12"]);
+    assert_eq!(cells[3..], ["1", "12", "mina", "Mīna"]);
     let null = core::ptr::null_mut();
     assert_eq!(
         unsafe {

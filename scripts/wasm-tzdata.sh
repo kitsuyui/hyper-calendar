@@ -13,7 +13,7 @@
 #     scripts/wasm-tzdata.sh [<output directory>]
 #
 # The output is <target>/tzdata by default, <target> being CARGO_TARGET_DIR
-# or ./target. The zones listed below are the module's built-in seventeen,
+# or ./target. The zones listed below are the module's built-in eighteen,
 # the ones `crates/hc-tz/src/builtin.rs` declares; the tests in
 # crates/hyper-calendar-wasm/js hold the two lists to each other.
 set -eu
@@ -22,7 +22,7 @@ cd "$(dirname "$0")/.."
 
 zoneinfo=${ZONEINFO:-/usr/share/zoneinfo}
 out=${1:-${CARGO_TARGET_DIR:-target}/tzdata}
-zones="UTC Africa/Cairo America/Los_Angeles America/New_York America/Sao_Paulo Asia/Kathmandu Asia/Kolkata Asia/Seoul Asia/Shanghai Asia/Tokyo Australia/Lord_Howe Australia/Sydney Europe/Berlin Europe/London Europe/Moscow Europe/Paris Pacific/Auckland"
+zones="UTC Africa/Cairo America/Denver America/Los_Angeles America/New_York America/Sao_Paulo Asia/Kathmandu Asia/Kolkata Asia/Seoul Asia/Shanghai Asia/Tokyo Australia/Lord_Howe Australia/Sydney Europe/Berlin Europe/London Europe/Moscow Europe/Paris Pacific/Auckland"
 
 if [ -f "$zoneinfo/+VERSION" ]; then
     version=$(tr -d '[:space:]' < "$zoneinfo/+VERSION")

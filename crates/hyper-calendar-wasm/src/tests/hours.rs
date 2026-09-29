@@ -60,6 +60,26 @@ fn new_york_zmanim_cross_the_boundary() {
     let at: i64 = first[3].parse().expect("an instant");
     let printed = hc_unix_from_fixed(day) + (9 * 60 + 40 + 5 * 60) * 60;
     assert!((at - printed).abs() < 60, "{}", at - printed);
+    // Hebcal's sunrise 7:20 and sunset 16:40: an hour of 46⅔ minutes.
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_temporal_hour(
+            reckoning.as_ptr(),
+            reckoning.len(),
+            day,
+            40.71427,
+            -74.00597,
+            0.0,
+            buffer,
+            capacity,
+        )
+    });
+    let seconds: f64 = text
+        .split('\t')
+        .nth(1)
+        .expect("a cell")
+        .parse()
+        .expect("a length");
+    assert!((seconds - 2_800.0).abs() < 20.0, "{seconds}");
 }
 
 /// Kyoto, 20 March 2020: 夜明 at 5:28:47 JST (こよみのページ), and

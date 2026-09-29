@@ -124,21 +124,85 @@ pub const CCSDS_DECODE_COLUMNS: usize = 6;
 /// knows, a Level 3 or 4 code, which only its agency can read, 23:59:60
 /// past the leap-second table, and under `strict` an instant outside it.
 pub fn ccsds_decode_line(hex: &str, strict: bool) -> Answer<String> {
+    ccsds_decode(hex, strict, None)
+}
+
+/// The epoch a Level 2 CUC or CDS code counts from, which "it is
+/// necessary to obtain … from an external source" (CCSDS 301.0-B-4 §1.3,
+/// `ccsds-301-0-b-4`): for CUC the TAI instant of count 0, and for CDS the
+/// UTC day of day 0, as a day of the POSIX day count.
+#[derive(Debug, Clone, Copy)]
+struct AgencyEpoch {
+    tai: Instant<Tai>,
+    unix_day: i64,
+}
+
+/// The TAI seconds of the years 1 to 9999 counted from 1970, the instants
+/// a caller's CUC epoch may be.
+const EPOCH_TAI_SECONDS: core::ops::RangeInclusive<i64> = -62_135_596_800..=253_402_300_799;
+
+/// The POSIX days of the years 1 to 9999, the days a caller's CDS epoch
+/// may be.
+const EPOCH_UNIX_DAYS: core::ops::RangeInclusive<i64> = -719_162..=2_932_896;
+
+impl AgencyEpoch {
+    /// A caller's epoch, each part in its range.
+    fn new(tai_seconds: i64, attoseconds: u64, unix_day: i64) -> Answer<Self> {
+        if !EPOCH_TAI_SECONDS.contains(&tai_seconds) || !EPOCH_UNIX_DAYS.contains(&unix_day) {
+            return Err(Refusal::OutOfRange);
+        }
+        Ok(Self {
+            tai: tai_instant(tai_seconds, attoseconds)?,
+            unix_day,
+        })
+    }
+}
+
+/// The line of `hc_ccsds_decode_from_epoch`: as [`ccsds_decode_line`],
+/// with a Level 2 code read from the caller's epoch — a CUC code as a
+/// count of TAI seconds from the instant `epoch_tai_seconds` and
+/// `epoch_attoseconds`, a CDS code as a count of UTC days from the POSIX
+/// day `epoch_unix_day` (1950 January 1, the agency epoch the standard's
+/// annex B3.2 names, is −7 305). A Level 1 code counts from 1958 January
+/// 1 as it says, whatever the epoch.
+///
+/// # Errors
+///
+/// As [`ccsds_decode_line`], but a Level 2 code is read;
+/// [`Refusal::OutOfRange`] for an epoch outside the years 1 to 9999 or
+/// attoseconds from 10¹⁸.
+pub fn ccsds_decode_from_epoch_line(
+    hex: &str,
+    epoch_tai_seconds: i64,
+    epoch_attoseconds: u64,
+    epoch_unix_day: i64,
+    strict: bool,
+) -> Answer<String> {
+    let epoch = AgencyEpoch::new(epoch_tai_seconds, epoch_attoseconds, epoch_unix_day)?;
+    ccsds_decode(hex, strict, Some(epoch))
+}
+
+/// [`ccsds_decode_line`] and [`ccsds_decode_from_epoch_line`]: a Level 2
+/// code is read from `epoch`, or refused without one.
+fn ccsds_decode(hex: &str, strict: bool, epoch: Option<AgencyEpoch>) -> Answer<String> {
     let (octets, len) = code_octets(hex)?;
     let code = ccsds::decode(&octets[..len]).map_err(code_refusal)?;
     let (name, (tai, utc)) = match code {
         CcsdsCode::Cuc(time) => {
-            if time.format().epoch != EpochLevel::Recommended {
-                return Err(Refusal::NoData);
-            }
-            let tai = time.to_tai()?;
+            let tai = match (time.format().epoch, epoch) {
+                (EpochLevel::Recommended, _) => time.to_tai()?,
+                (EpochLevel::AgencyDefined, Some(epoch)) => time.after(epoch.tai)?,
+                (EpochLevel::AgencyDefined, None) => return Err(Refusal::NoData),
+            };
             ("cuc", (tai, unix::utc_from_tai(tai, policy(strict))?))
         }
         CcsdsCode::Cds(time) => {
-            if time.format().epoch != EpochLevel::Recommended {
-                return Err(Refusal::NoData);
+            let utc = match (time.format().epoch, epoch) {
+                (EpochLevel::Recommended, _) => time.to_utc(),
+                (EpochLevel::AgencyDefined, Some(epoch)) => time.to_utc_from_epoch(epoch.unix_day),
+                (EpochLevel::AgencyDefined, None) => return Err(Refusal::NoData),
             }
-            let utc = time.to_utc().map_err(|error| code_refusal(error.into()))?;
+            .map_err(|error| code_refusal(error.into()))?;
             ("cds", with_tai(utc, strict)?)
         }
         CcsdsCode::Ccs(time) => (
@@ -181,6 +245,44 @@ pub fn ccsds_encode_line(
     p_field: &str,
     strict: bool,
 ) -> Answer<String> {
+    ccsds_encode(tai_seconds, attoseconds, p_field, strict, None)
+}
+
+/// The line of `hc_ccsds_encode_from_epoch`: as [`ccsds_encode_line`],
+/// with a Level 2 format counted from the caller's epoch, as
+/// [`ccsds_decode_from_epoch_line`] reads it: a CUC code as the TAI
+/// seconds since `epoch_tai_seconds` and `epoch_attoseconds`, a CDS code
+/// as the UTC days since the POSIX day `epoch_unix_day`. A Level 1 format
+/// counts from 1958 January 1, whatever the epoch.
+///
+/// # Errors
+///
+/// As [`ccsds_encode_line`], but a Level 2 format is written;
+/// [`Refusal::OutOfRange`] for an epoch outside the years 1 to 9999, and
+/// an instant before the epoch or past the format's last count from it.
+#[allow(clippy::too_many_arguments)]
+pub fn ccsds_encode_from_epoch_line(
+    tai_seconds: i64,
+    attoseconds: u64,
+    p_field: &str,
+    epoch_tai_seconds: i64,
+    epoch_attoseconds: u64,
+    epoch_unix_day: i64,
+    strict: bool,
+) -> Answer<String> {
+    let epoch = AgencyEpoch::new(epoch_tai_seconds, epoch_attoseconds, epoch_unix_day)?;
+    ccsds_encode(tai_seconds, attoseconds, p_field, strict, Some(epoch))
+}
+
+/// [`ccsds_encode_line`] and [`ccsds_encode_from_epoch_line`]: a Level 2
+/// format is counted from `epoch`, or refused without one.
+fn ccsds_encode(
+    tai_seconds: i64,
+    attoseconds: u64,
+    p_field: &str,
+    strict: bool,
+    epoch: Option<AgencyEpoch>,
+) -> Answer<String> {
     let instant = tai_instant(tai_seconds, attoseconds)?;
     let (octets, len) = code_octets(p_field)?;
     let (preamble, used) = Preamble::decode(&octets[..len]).map_err(|_| Refusal::Malformed)?;
@@ -192,18 +294,25 @@ pub fn ccsds_encode_line(
         other => other,
     };
     let code = match preamble {
-        Preamble::Cuc(format) => {
-            if format.epoch != EpochLevel::Recommended {
-                return Err(Refusal::NoData);
+        Preamble::Cuc(format) => match (format.epoch, epoch) {
+            (EpochLevel::Recommended, _) => CucTime::from_tai(format, instant)?,
+            (EpochLevel::AgencyDefined, Some(epoch)) => {
+                let span = instant
+                    .duration_since(epoch.tai)
+                    .map_err(|_| Refusal::OutOfRange)?;
+                CucTime::from_since_epoch(format, span)?
             }
-            CucTime::from_tai(format, instant)?.encode(true)?
+            (EpochLevel::AgencyDefined, None) => return Err(Refusal::NoData),
         }
+        .encode(true)?,
         Preamble::Cds(format) => {
-            if format.epoch != EpochLevel::Recommended {
-                return Err(Refusal::NoData);
-            }
+            let epoch_day = match (format.epoch, epoch) {
+                (EpochLevel::Recommended, _) => hc_core::ccsds::CDS_EPOCH_UNIX_DAY,
+                (EpochLevel::AgencyDefined, Some(epoch)) => epoch.unix_day,
+                (EpochLevel::AgencyDefined, None) => return Err(Refusal::NoData),
+            };
             let utc = unix::utc_from_tai(instant, policy(strict))?;
-            CdsTime::from_utc(format, utc)
+            CdsTime::from_utc_with_epoch(format, utc, epoch_day)
                 .map_err(|error| range(error.into()))?
                 .encode(true)?
         }
@@ -379,7 +488,8 @@ struct Decoded {
 /// [`Refusal::Malformed`] for a frame that is not the code's — a wrong
 /// length, symbol, BCD digit or parity, or a date that does not exist;
 /// [`Refusal::NoData`] for JJY's call-sign frame of minutes 15 and 45,
-/// which carries no year.
+/// which carries no year, and which [`jjy_call_sign_decode_line`] reads in
+/// a year the caller names.
 pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<String> {
     let code = radio_code(code)?;
     let century = century(century_start)?;
@@ -476,6 +586,108 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
             .value_or_empty(decoded.zone_change.map(u8::from))
             .value_or_empty(decoded.dut1_tenths)
             .value_or_empty(decoded.dst_next);
+    }))
+}
+
+/// How many columns [`jjy_call_sign_decode_line`] writes.
+pub const JJY_CALL_SIGN_COLUMNS: usize = 7;
+
+/// The line of `hc_jjy_call_sign_decode`: JJY's call-sign frame of minute
+/// 15 or 45, a string of `0`, `1` and `M`, read in the Gregorian year
+/// `year`, which the frame does not carry — the POSIX second of its first
+/// marker; that minute's fixed day, hour and minute in JST; and the
+/// notice of a planned stop NICT sends in it (`nict-jjy-timecode`),
+/// ST1–ST3 as a number, 0 no stop planned, 1 within seven days, 2 within
+/// three to six, 3 within two, 4 within 24 hours, 5 within 12 and 6
+/// within 2; ST4, `1` for a stop by day only (昼間のみ), else `0`; and
+/// ST5–ST6 as a number, 0 no stop planned, 1 seven days or more or not
+/// known, 2 two to six days, 3 less than two.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a year outside 1 to 9999;
+/// [`Refusal::Malformed`] for a frame that is not JJY's call-sign frame —
+/// an ordinary minute's, which `hc_radio_decode` reads, one that is not a
+/// frame of the code, an ST1–ST3 of `111`, or a day the year does not have.
+pub fn jjy_call_sign_decode_line(frame: &str, year: i64) -> Answer<String> {
+    if !(1..=9_999).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let (symbols, len) = frame_symbols::<MAX_FRAME>(frame, true)?;
+    let frame = JjyFrame::decode(&symbols[..len]).map_err(frame_refusal)?;
+    let JjyContent::CallSign {
+        stop_start,
+        daytime_only,
+        stop_span,
+    } = frame.content
+    else {
+        return Err(Refusal::Malformed);
+    };
+    let reading = frame.reading_in_year(year).map_err(frame_refusal)?;
+    let unix = reading.day.to_unix_days() * 86_400
+        + i64::from(reading.time.hour()) * 3_600
+        + i64::from(reading.time.minute()) * 60
+        - 9 * 3_600;
+    Ok(line(|line| {
+        line.value(unix)
+            .value(reading.day.0)
+            .value(reading.time.hour())
+            .value(reading.time.minute())
+            .value(stop_start)
+            .flag(daytime_only)
+            .value(stop_span);
+    }))
+}
+
+/// The line of `hc_jjy_call_sign_encode`: JJY's call-sign frame for the
+/// minute that begins at `unix_seconds`, minute 15 or 45 of an hour of
+/// JST, with the notice of a planned stop — `stop_start` ST1–ST3, 0 to 6,
+/// `daytime_only` ST4 and `stop_span` ST5–ST6, 0 to 3, as
+/// [`jjy_call_sign_decode_line`] reads them — as a string of `0`, `1` and
+/// `M`.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a second that does not begin minute 15 or
+/// 45 of an hour of JST in the years 1 to 9999, a `stop_start` above 6 or
+/// a `stop_span` above 3.
+pub fn jjy_call_sign_encode_line(
+    unix_seconds: i64,
+    stop_start: u32,
+    daytime_only: bool,
+    stop_span: u32,
+) -> Answer<String> {
+    if !RADIO_UNIX_RANGE.contains(&unix_seconds) || unix_seconds.rem_euclid(60) != 0 {
+        return Err(Refusal::OutOfRange);
+    }
+    let local = unix_seconds + 9 * 3_600;
+    let minutes = local.rem_euclid(86_400) / 60;
+    if minutes % 30 != 15 {
+        return Err(Refusal::OutOfRange);
+    }
+    let stop_start = u8::try_from(stop_start).map_err(|_| Refusal::OutOfRange)?;
+    let stop_span = u8::try_from(stop_span).map_err(|_| Refusal::OutOfRange)?;
+    let time = CivilTime::hms((minutes / 60) as u8, (minutes % 60) as u8, 0)
+        .map_err(|_| Refusal::OutOfRange)?;
+    let reading = CivilDateTime::new(Rd::from_unix_days(local.div_euclid(86_400)), time);
+    let mut frame =
+        JjyFrame::for_minute(reading, LeapNotice::None).map_err(|_| Refusal::OutOfRange)?;
+    frame.content = JjyContent::CallSign {
+        stop_start,
+        daytime_only,
+        stop_span,
+    };
+    let symbols = frame.encode().map_err(|_| Refusal::OutOfRange)?;
+    let mut text = String::new();
+    for symbol in symbols.as_slice() {
+        text.push(match symbol {
+            Symbol::Zero => '0',
+            Symbol::One => '1',
+            Symbol::Marker => 'M',
+        });
+    }
+    Ok(line(|line| {
+        line.cell(&text);
     }))
 }
 
@@ -1228,6 +1440,63 @@ mod tests {
         );
     }
 
+    /// Annex B3.2: "The difference between the epochs 1958 January 1 and
+    /// 1950 January 1 is exactly 2922.0 days." The standard's instant,
+    /// 1988-01-18T17:20:43.123456 UTC, TAI second 569 524 867, is CDS day
+    /// 10 974 at Level 1, `412ade…`, and day 13 896 from the 1950 agency
+    /// epoch at Level 2, P-field `0100 1001`; a Level 2 CUC code counted
+    /// from 1958 January 1 TAI, the Level 1 epoch, is the Level 1 count.
+    #[test]
+    fn a_level_2_code_counts_from_the_callers_epoch() {
+        let epoch_1950 = -7_305;
+        let epoch_1958_tai = -378_691_200;
+        let tai = 569_524_867;
+        let micros = 123_456_000_000_000_000;
+        let level_2 = ccsds_encode_from_epoch_line(tai, micros, "49", 0, 0, epoch_1950, true)
+            .expect("in the day segment");
+        assert_eq!(level_2, "49364803b8ce7301c8\n");
+        let read = ccsds_decode_from_epoch_line("49364803b8ce7301c8", 0, 0, epoch_1950, true)
+            .expect("a code");
+        assert_eq!(
+            read.replacen("cds", "", 1),
+            ccsds_decode_line("412ade03b8ce7301c8", true)
+                .expect("a code")
+                .replacen("cds", "", 1)
+        );
+        assert_eq!(cells(&read)[1..3], ["569524867", "123456000000000000"]);
+        // A Level 1 code reads as it says, whatever the epoch.
+        assert_eq!(
+            ccsds_decode_from_epoch_line("412ade03b8ce7301c8", 0, 0, epoch_1950, true),
+            ccsds_decode_line("412ade03b8ce7301c8", true)
+        );
+        // CUC: 2000-01-01T00:00:00 UTC is 1 325 376 032 s from 1958 TAI,
+        // at Level 2 from that epoch as at Level 1.
+        let cuc = ccsds_encode_from_epoch_line(946_684_832, 0, "2c", epoch_1958_tai, 0, 0, true)
+            .expect("fits");
+        assert_eq!(cuc, "2c4effa220\n");
+        let read =
+            ccsds_decode_from_epoch_line("2c4effa220", epoch_1958_tai, 0, 0, true).expect("a code");
+        assert_eq!(read, ccsds_decode_line("1c4effa220", true).expect("a code"));
+        // From an epoch of that instant, the count is 0.
+        assert_eq!(
+            ccsds_encode_from_epoch_line(946_684_832, 0, "2c", 946_684_832, 0, 0, true),
+            Ok(String::from("2c00000000\n"))
+        );
+        // Before the epoch, and an epoch outside the years 1 to 9999.
+        assert_eq!(
+            ccsds_encode_from_epoch_line(946_684_831, 0, "2c", 946_684_832, 0, 0, true),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            ccsds_decode_from_epoch_line("2c4effa220", 0, 0, 2_932_897, true),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            ccsds_decode_from_epoch_line("2c4effa220", -62_135_596_801, 0, 0, true),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
     #[test]
     fn the_ascii_codes_are_the_standards_example() {
         let line = ccsds_ascii_parse_line("1988-01-18T17:20:43.123456Z", true).expect("code A");
@@ -1424,6 +1693,56 @@ mod tests {
         assert_eq!(
             radio_decode_line("jjy", call_sign.trim_end(), 2000),
             Err(Refusal::NoData)
+        );
+    }
+
+    /// NICT's second figure, the call-sign frame of 17:15 JST on 1 April
+    /// 2004, no stop planned, read in the year it does not carry; and the
+    /// same minute with a stop notice NICT's table defines
+    /// (`nict-jjy-timecode`): ST1–ST3 `100`, within 24 hours; ST4 `1`,
+    /// 昼間のみ; ST5–ST6 `10`, two to six days.
+    #[test]
+    fn jjy_call_sign_frames_cross_in_a_named_year() {
+        let unix = 1_080_807_300;
+        let plain = jjy_call_sign_encode_line(unix, 0, false, 0).expect("minute 15");
+        assert_eq!(
+            plain,
+            radio_encode_line("jjy", unix, 0, "", false, 0, 0).expect("a frame")
+        );
+        let read = jjy_call_sign_decode_line(plain.trim_end(), 2004).expect("read");
+        assert_eq!(
+            cells(&read),
+            ["1080807300", "731672", "17", "15", "0", "0", "0"]
+        );
+        assert_eq!(cells(&read).len(), JJY_CALL_SIGN_COLUMNS);
+        let notice = jjy_call_sign_encode_line(unix, 4, true, 2).expect("minute 15");
+        assert_eq!(&notice[50..56], "100110");
+        let read = jjy_call_sign_decode_line(notice.trim_end(), 2004).expect("read");
+        assert_eq!(cells(&read)[4..], ["4", "1", "2"]);
+        // Day 92 is 1 April in 2004, a leap year, and 2 April in 2003.
+        let read = jjy_call_sign_decode_line(plain.trim_end(), 2003).expect("read");
+        assert_eq!(cells(&read)[1], "731307");
+        // The refusals: not minute 15 or 45, a notice NICT does not
+        // define, an ordinary frame, a year outside 1 to 9999.
+        assert_eq!(
+            jjy_call_sign_encode_line(unix + 60, 0, false, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            jjy_call_sign_encode_line(unix, 7, false, 0),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            jjy_call_sign_encode_line(unix, 0, false, 4),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            jjy_call_sign_decode_line(NICT, 2004),
+            Err(Refusal::Malformed)
+        );
+        assert_eq!(
+            jjy_call_sign_decode_line(plain.trim_end(), 0),
+            Err(Refusal::OutOfRange)
         );
     }
 

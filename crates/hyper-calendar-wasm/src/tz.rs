@@ -12,7 +12,7 @@ use crate::marshal::{self, sentinel};
 
 /// Give the module a zone's TZif data under an IANA name, returning 0.
 ///
-/// The built-in table carries seventeen zones and only their current
+/// The built-in table carries eighteen zones and only their current
 /// rules; a page that wants another zone, or a zone's history, fetches
 /// the IANA file (`/usr/share/zoneinfo/Europe/Rome` on most systems)
 /// and hands its bytes here once, after which the two `_in_zone`

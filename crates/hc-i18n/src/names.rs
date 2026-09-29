@@ -887,6 +887,7 @@ impl LocaleData {
             .iter()
             .find(|entry| entry.calendar == id)
             .map(|entry| entry.name)
+            .or_else(|| crate::calendar_names::sourced_calendar_name(self.tag, id))
     }
 }
 

@@ -32,7 +32,15 @@ fn the_lines_are_the_modules() {
     // Japanese Wikipedia's person born in a 巳 year keeps 大禍日 on 15 May
     // 2025, a 申 day of 巳月.
     let text = read_lines(|buffer, capacity, written| unsafe {
-        hc_almanac_person_days(739_386, 2025, c"japan".as_ptr(), buffer, capacity, written)
+        // Born on 1 March 2025, after 立春.
+        hc_almanac_person_days(
+            739_386,
+            739_311,
+            c"japan".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
     });
     assert!(
         text.lines()

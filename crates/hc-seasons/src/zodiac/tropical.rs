@@ -583,6 +583,14 @@ impl TropicalSign {
         namings::ENGLISH.names[self.0 as usize]
     }
 
+    /// The sign's identifier, the lower-case ASCII form of its English
+    /// name: `aries`, `taurus`, `gemini`, `cancer`, `leo`, `virgo`, `libra`,
+    /// `scorpio`, `sagittarius`, `capricorn`, `aquarius` and `pisces`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        TROPICAL_SIGN_IDS[self.0 as usize]
+    }
+
     /// The name in Latin, e.g. `"Capricornus"`.
     ///
     /// Differs from [`Self::english_name`] for exactly two signs: Scorpius
@@ -900,6 +908,22 @@ impl Iterator for SignsInYear {
 }
 
 impl ExactSizeIterator for SignsInYear {}
+
+/// The identifier of each sign, Aries first.
+const TROPICAL_SIGN_IDS: [&str; SIGNS_PER_ZODIAC] = [
+    "aries",
+    "taurus",
+    "gemini",
+    "cancer",
+    "leo",
+    "virgo",
+    "libra",
+    "scorpio",
+    "sagittarius",
+    "capricorn",
+    "aquarius",
+    "pisces",
+];
 
 #[cfg(test)]
 mod tests {

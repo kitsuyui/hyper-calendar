@@ -42,6 +42,37 @@ fn the_standards_example_crosses_the_boundary() {
         text,
         "cds\t569524867\t123456000000000000\t569524843\t0\t123456000000000000\n"
     );
+    // The same instant at Level 2 from annex B3.2's 1950 epoch.
+    let level_2 = "49364803b8ce7301c8";
+    let from_1950 = read_lines(|buffer, capacity| unsafe {
+        hc_ccsds_decode_from_epoch(
+            level_2.as_ptr(),
+            level_2.len(),
+            0,
+            0,
+            -7_305,
+            1,
+            buffer,
+            capacity,
+        )
+    });
+    assert_eq!(from_1950, text);
+    let p_field = "49";
+    let code = read_lines(|buffer, capacity| unsafe {
+        hc_ccsds_encode_from_epoch(
+            569_524_867,
+            123_456_000_000_000_000,
+            p_field.as_ptr(),
+            p_field.len(),
+            0,
+            0,
+            -7_305,
+            1,
+            buffer,
+            capacity,
+        )
+    });
+    assert_eq!(code.trim_end(), level_2);
     let p_field = "41";
     let text = read_lines(|buffer, capacity| unsafe {
         hc_ccsds_encode(
@@ -135,6 +166,31 @@ fn a_jjy_frame_crosses_the_boundary() {
                 0,
             )
         },
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
+/// NICT's second figure, the call-sign frame of 17:15 JST on 1 April
+/// 2004, read in 2004, and written with a stop notice NICT's table defines
+/// (`nict-jjy-timecode`).
+#[test]
+fn a_jjy_call_sign_frame_crosses_the_boundary() {
+    let frame = read_lines(|buffer, capacity| unsafe {
+        hc_jjy_call_sign_encode(1_080_807_300, 4, 1, 2, buffer, capacity)
+    });
+    let frame = frame.trim_end();
+    assert_eq!(&frame[50..56], "100110");
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_jjy_call_sign_decode(frame.as_ptr(), frame.len(), 2004, buffer, capacity)
+    });
+    assert_eq!(text, "1080807300\t731672\t17\t15\t4\t1\t2\n");
+    let null = core::ptr::null_mut();
+    assert_eq!(
+        unsafe { hc_jjy_call_sign_decode(frame.as_ptr(), frame.len(), 0, null, 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_jjy_call_sign_encode(1_080_807_900, 0, 0, 0, null, 0) },
         HC_ERR_OUT_OF_RANGE
     );
 }

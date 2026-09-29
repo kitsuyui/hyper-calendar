@@ -237,4 +237,10 @@ this document.
 The WebAssembly and C exports `hc_ccsds_decode`, `hc_ccsds_encode`,
 `hc_ccsds_ascii_parse` and `hc_ccsds_ascii_format` read and write the
 Level 1 binary codes as hexadecimal and the ASCII codes, every instant as
-TAI and as its UTC label, from `hyper_calendar::time_code_lines`.
+TAI and as its UTC label, from `hyper_calendar::time_code_lines`;
+`hc_ccsds_decode_from_epoch` and `hc_ccsds_encode_from_epoch` read and
+write a Level 2 CUC or CDS code from the caller's epoch, a TAI instant for
+CUC and a POSIX day for CDS, anchored by
+`a_level_2_code_counts_from_the_callers_epoch`: annex B3.2's 1950 epoch,
+POSIX day −7 305, gives the worked example as CDS day 13 896,
+`49 3648 03B8CE73 01C8`.

@@ -670,9 +670,11 @@ names no place or latitude; London is the tests' choice.
 `the_second_point_of_the_third_watch_is_struck_at_23_48` and
 `the_night_runs_from_seven_in_the_evening_to_five_in_the_morning`.
 
-The WebAssembly and C exports `hc_zmanim`, `hc_edo_time`,
-`hc_unix_from_edo_time`, `hc_six_hour_clock` and
-`hc_civil_from_six_hour_clock` write the Jewish times, the Edo hours and
+The WebAssembly and C exports `hc_zmanim`, `hc_temporal_hour`,
+`hc_edo_time`, `hc_unix_from_edo_time`, `hc_six_hour_clock` and
+`hc_civil_from_six_hour_clock` write the Jewish times, the length of the
+temporal hour each reckoning counts them in (anchored by
+`the_temporal_hours_are_the_ones_hebcal_counts_in`), the Edo hours and
 the six-hour readings, and `hc_solar_event` the Japanese dawn and dusk, from
 `hyper_calendar`'s `hours_lines`, `astro_lines` and `time_code_lines`.
 

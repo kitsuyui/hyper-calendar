@@ -276,7 +276,17 @@ constants named; only the 216 years and the 97 minutes are also quoted.
   `shmuel_tekufah` and `shmuel_tekufah_simmons`; the Hebrew day of a
   *tekufah* is the same in both. The day the prayer for rain begins outside the
   Land of Israel, the sixtieth from *tekufat Tishrei*, is not a function
-  here; a test holds the *tekufot* to its published dates.
+  here; a test holds the *tekufot* to its published dates. The
+  reckoning's Hebrew day turns at its own nightfall,
+  `SHMUEL_NIGHTFALL_MINUTES`, six equal hours before midnight, since
+  Maimonides counts the day as "twelve [hours] of daylight and twelve
+  [hours] of night" [maimonides-kiddush-hachodesh, 6:2] and not at the
+  Sun's setting, which the calendar's own days follow: the anchor at that
+  nightfall is "the beginning of the night of the fourth day" though the
+  Sun set at Jerusalem after it. `shmuel_tekufah_after_nightfall` says
+  whether a *tekufah* falls between that nightfall and midnight, and the
+  export `hc_shmuel_tekufah` writes it beside the Hebrew day and the civil
+  day.
 - **Anniversaries**, in the same module: `yahrzeit` and `birthday`, the
   day in a later year that keeps a Hebrew date, by Reingold and
   Dershowitz's `yahrzeit` and `hebrew-birthday` [reingold2018code]. A

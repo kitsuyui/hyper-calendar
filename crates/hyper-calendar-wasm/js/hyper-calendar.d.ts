@@ -90,6 +90,18 @@ export interface CcsdsInstant {
   };
 }
 
+/**
+ * The epoch a Level 2 CCSDS code counts from; each part absent is 0. A
+ * Level 1 code counts from 1958 January 1, whatever the epoch.
+ */
+export interface CcsdsEpoch {
+  /** A CUC code's count 0, as TAI seconds from 1970-01-01 00:00:00 TAI. */
+  taiSeconds?: number | bigint;
+  attoseconds?: number | bigint;
+  /** A CDS code's day 0, as a POSIX day: −7305 for 1950 January 1. */
+  unixDay?: number | bigint;
+}
+
 /** The one line of `hc_ccsds_decode`. */
 export interface CcsdsCode extends CcsdsInstant {
   code: CcsdsCodeName;
@@ -140,6 +152,30 @@ export interface RadioMinute {
   dstNext: number | null;
 }
 
+/** The line of `hc_jjy_call_sign_decode`: a call-sign frame's minute and stop notice. */
+export interface JjyCallSign {
+  /** The POSIX second of the frame's first marker. */
+  unixSeconds: number;
+  /** The minute's fixed day in JST. */
+  fixed: number;
+  hour: number;
+  /** 15 or 45. */
+  minute: number;
+  /** ST1–ST3: 0 no stop planned, 1 within seven days, 2 within three to six, 3 within two, 4 within 24 hours, 5 within 12, 6 within 2. */
+  stopStart: number;
+  /** ST4: a stop by day only. */
+  daytimeOnly: boolean;
+  /** ST5–ST6: 0 no stop planned, 1 seven days or more or not known, 2 two to six days, 3 less than two. */
+  stopSpan: number;
+}
+
+/** The stop notice `jjyCallSignEncode` writes; each absent is 0 or false. */
+export interface JjyStopNotice {
+  stopStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
+  daytimeOnly?: boolean;
+  stopSpan?: 0 | 1 | 2 | 3;
+}
+
 /** What `radioEncode` puts in a frame besides the minute. */
 export interface RadioEncodeOptions {
   /** 1 for a second inserted, −1 for one omitted (`jjy` and `wwvb-pm` only), 0 for none. */
@@ -147,10 +183,10 @@ export interface RadioEncodeOptions {
   /**
    * DCF77's zone, required for `dcf77`; WWVB's summer-time state, required for
    * both WWVB codes; absent for `jjy`. Or `zone:` and a zone's name,
-   * `zone:Europe/Berlin` or `zone:America/New_York`, in a module built with
+   * `zone:Europe/Berlin` or `zone:America/Denver`, in a module built with
    * `tz` too, to read the state, and DCF77's A1, from the rules
-   * `fixedFromUnixInZone` reads for that name; a zone the built-in table lacks,
-   * such as `America/Denver`, once `loadZone` has its TZif file.
+   * `fixedFromUnixInZone` reads for that name; a zone the built-in table
+   * lacks once `loadZone` has its TZif file.
    */
   summer?: RadioSummer | `zone:${string}`;
   /** DCF77's A1; ignored when `summer` names a zone. */
@@ -286,6 +322,19 @@ export type SiderealSignId =
   | "mesha" | "vrishabha" | "mithuna" | "karka" | "simha" | "kanya"
   | "tula" | "vrishchika" | "dhanus" | "makara" | "kumbha" | "mina";
 
+/** A tropical sign, by the lower case of its English name. */
+export type TropicalSignId =
+  | "aries" | "taurus" | "gemini" | "cancer" | "leo" | "virgo"
+  | "libra" | "scorpio" | "sagittarius" | "capricorn" | "aquarius" | "pisces";
+
+/** A nakṣatra, by the lower-case ASCII form of its name, words joined by a hyphen. */
+export type NakshatraId =
+  | "ashvini" | "bharani" | "krittika" | "rohini" | "mrigashirsha" | "ardra"
+  | "punarvasu" | "pushya" | "ashlesha" | "magha" | "purva-phalguni" | "uttara-phalguni"
+  | "hasta" | "chitra" | "svati" | "vishakha" | "anuradha" | "jyeshtha" | "mula"
+  | "purva-ashadha" | "uttara-ashadha" | "shravana" | "dhanishtha" | "shatabhisha"
+  | "purva-bhadrapada" | "uttara-bhadrapada" | "revati";
+
 /** A condition of the Kumbh Mela, the Mela Adhikari's seven. */
 export type KumbhYoga =
   | "kumbh-haridwar"
@@ -305,9 +354,11 @@ export interface KumbhOccasion {
   localeUsed: string;
   /** In English, as the source gives it. */
   river: string;
-  /** The sign Jupiter must be in, and the Sun. */
+  /** The sign Jupiter must be in, and the Sun, each with its Sanskrit name, `Vṛṣabha`. */
   jupiter: SiderealSignId;
+  jupiterName: string;
   sun: SiderealSignId;
+  sunName: string;
   atNewMoon: boolean;
   /** The Sun's entry into its sign and into the next, or the new moon twice; `null` when no new moon falls in the stay. */
   from: number | null;
@@ -325,6 +376,8 @@ export interface PushkaramDays {
   /** In English, where the source names one. */
   region: string | null;
   sign: SiderealSignId;
+  /** Its Sanskrit name, `Siṃha`. */
+  signName: string;
   /** Fixed days; `null` where the Sun does not set on the day of the entry. */
   first: number | null;
   last: number | null;
@@ -377,8 +430,9 @@ export interface BarhaspatyaNameAt extends BarhaspatyaName {
   twelveYear: number;
   /** Its name as the table spells it, `Asvina`. */
   twelveYearName: string;
-  /** The sign of Jupiter's mean longitude while the name is current. */
+  /** The sign of Jupiter's mean longitude while the name is current, and its Sanskrit name, `Meṣa`. */
   meanSign: SiderealSignId;
+  meanSignName: string;
 }
 
 /** The one line of `hc_barhaspatya_year`. */
@@ -797,6 +851,14 @@ export interface Zman {
   missing: MissingSolarEvent | null;
 }
 
+/** The one line of `hc_temporal_hour`. */
+export interface TemporalHour {
+  reckoning: ZmanimReckoning;
+  /** The hour's length in seconds; `null` where the day's start or end does not happen. */
+  seconds: number | null;
+  missing: MissingSolarEvent | null;
+}
+
 /** The one line of `hc_edo_time`; every field but `missing` is `null` when a dawn or dusk does not happen. */
 export interface EdoTime {
   /** The fixed day whose 明け六つ began the reading's day. */
@@ -902,6 +964,7 @@ export const COLUMNS: {
   readonly ccsdsDecode: ReadonlyArray<string>;
   readonly ccsdsAscii: ReadonlyArray<string>;
   readonly radioDecode: ReadonlyArray<string>;
+  readonly jjyCallSign: ReadonlyArray<string>;
   readonly unixFromDotnetTicks: ReadonlyArray<string>;
   readonly sixHourClock: ReadonlyArray<string>;
   readonly frenchDecimalTime: ReadonlyArray<string>;
@@ -924,6 +987,7 @@ export const COLUMNS: {
   readonly prayerTimes: ReadonlyArray<string>;
   readonly prayerMethods: ReadonlyArray<string>;
   readonly zmanim: ReadonlyArray<string>;
+  readonly temporalHour: ReadonlyArray<string>;
   readonly edoTime: ReadonlyArray<string>;
   readonly choghadiya: ReadonlyArray<string>;
   readonly panchak: ReadonlyArray<string>;
@@ -1853,6 +1917,12 @@ export interface Muhurta {
   half: "day" | "night";
   /** 1 to 15 within the half. */
   number: number;
+  /**
+   * Its name as English Wikipedia's "Muhurta" tabulates them, `Rudra` to
+   * `Bhaga` by day and `Girīśa` to `Samudra` by night; the article marks
+   * the table as needing citations.
+   */
+  name: string;
   /** POSIX seconds, rounded down; `null` where the Sun does not rise or set. */
   start: number | null;
   end: number | null;
@@ -1868,6 +1938,9 @@ export interface AmritaSiddhi {
   devanagari: string;
   /** The nakṣatra the weekday pairs with, 1 for Aśvinī to 27 for Revatī. */
   nakshatra: number;
+  nakshatraId: NakshatraId;
+  /** Its name in IAST, `Aśvinī`. */
+  nakshatraName: string;
   /** POSIX seconds, rounded down; `null` on a day the yoga does not fall. */
   start: number | null;
   end: number | null;
@@ -1879,6 +1952,9 @@ export interface AmritaSiddhi {
 export interface NakshatraStay {
   /** 1 for Aśvinī through 27 for Revatī. */
   nakshatra: number;
+  nakshatraId: NakshatraId;
+  /** Its name in IAST, `Aśvinī`. */
+  nakshatraName: string;
   /** POSIX seconds, rounded down. */
   entered: number;
   leaves: number;
@@ -1956,9 +2032,13 @@ export type Tekufah = "tishrei" | "tevet" | "nisan" | "tammuz";
 export interface ShmuelTekufah {
   /** The fixed day whose Hebrew day it falls in. */
   fixed: number;
-  /** Minutes of Jerusalem mean time since that civil midnight or the one before. */
+  /** Minutes of Jerusalem mean time since the midnight of `civil`. */
   minutes: number;
   tekufah: Tekufah;
+  /** After the reckoning's nightfall, 18:00 of Jerusalem mean time, and before midnight: `fixed` is the next civil day. */
+  afterNightfall: boolean;
+  /** The fixed day of Jerusalem mean time the moment falls on. */
+  civil: number;
 }
 
 /** The line of `hc_day_name`. */
@@ -2264,6 +2344,9 @@ export interface SuryaSiddhantaSky {
   tithi: number;
   /** 1 for Meṣa through 12 for Mīna. */
   sign: number;
+  signId: SiderealSignId;
+  /** Its Sanskrit name, `Mīna`. */
+  signName: string;
 }
 
 /**
@@ -2307,6 +2390,8 @@ export type DecanRuler = "saturn" | "jupiter" | "mars" | "sun" | "venus" | "merc
 export interface Decan {
   /** The tropical sign, 1 for Aries through 12 for Pisces. */
   sign: number;
+  signId: TropicalSignId;
+  /** Its English name, `Aries`. */
   signName: string;
   /** Which of the sign's three 10° faces, 1 to 3. */
   decan: number;
@@ -2321,6 +2406,7 @@ export interface Decan {
 export interface Drekkana {
   /** The sidereal sign, 1 for Meṣa through 12 for Mīna. */
   sign: number;
+  signId: SiderealSignId;
   /** Its Sanskrit name, `Meṣa`. */
   signName: string;
   /** Which of the sign's three 10° drekkāṇas, 1 to 3. */
@@ -2332,6 +2418,8 @@ export interface Drekkana {
   degreesIntoDrekkana: number;
   /** The sign the drekkāṇa is given to: the sign itself, the fifth or the ninth. */
   lordSign: SiderealSignId;
+  /** Its Sanskrit name. */
+  lordSignName: string;
   ayanamsa: Ayanamsa;
 }
 
@@ -2531,10 +2619,20 @@ export class HyperCalendar {
    * TAI − 32.184 s in µs, tab-separated; an instant outside it is `no-data`.
    */
   ttBipm(series: string, taiSeconds: number | bigint, attoseconds?: number | bigint, strict?: boolean): TtBipmReading;
-  /** `hc_ccsds_decode`: a Level 2, 3 or 4 code is `no-data`, octets that are not a code `malformed`. */
+  /** `hc_ccsds_decode`: a Level 2, 3 or 4 code is `no-data` (`ccsdsDecodeFromEpoch` reads a Level 2 one), octets that are not a code `malformed`. */
   ccsdsDecode(hex: string, strict?: boolean): CcsdsCode;
   /** `hc_ccsds_encode`: the code in lower-case hexadecimal, P-field first. */
   ccsdsEncode(taiSeconds: number | bigint, attoseconds: number | bigint, pField: string, strict?: boolean): string;
+  /** `hc_ccsds_decode_from_epoch`: a Level 2 code read from the caller's epoch; an epoch outside the years 1 to 9999 is `out-of-range`. */
+  ccsdsDecodeFromEpoch(hex: string, epoch: CcsdsEpoch, strict?: boolean): CcsdsCode;
+  /** `hc_ccsds_encode_from_epoch`: a Level 2 format counted from the caller's epoch. */
+  ccsdsEncodeFromEpoch(
+    taiSeconds: number | bigint,
+    attoseconds: number | bigint,
+    pField: string,
+    epoch: CcsdsEpoch,
+    strict?: boolean,
+  ): string;
   /** `hc_ccsds_ascii_parse`. */
   ccsdsAsciiParse(code: string, strict?: boolean): CcsdsAsciiCode;
   /** `hc_ccsds_ascii_format`: `precision` `hour`, `minute`, `second` or `1` to `18`; `terminator` unless `false`. */
@@ -2546,10 +2644,14 @@ export class HyperCalendar {
     terminator?: boolean,
     strict?: boolean,
   ): string;
-  /** `hc_radio_decode`: JJY's call-sign frame is `no-data`. */
+  /** `hc_radio_decode`: JJY's call-sign frame is `no-data`; `jjyCallSignDecode` reads it. */
   radioDecode(code: RadioCode, frame: string, century: number | bigint): RadioMinute;
   /** `hc_radio_encode`: a frame of `0`, `1` and `M`. */
   radioEncode(code: RadioCode, unixSeconds: number | bigint, options?: RadioEncodeOptions): string;
+  /** `hc_jjy_call_sign_decode`: an ordinary minute's frame is `malformed`. */
+  jjyCallSignDecode(frame: string, year: number | bigint): JjyCallSign;
+  /** `hc_jjy_call_sign_encode`: a minute but 15 or 45 of JST is `out-of-range`. */
+  jjyCallSignEncode(unixSeconds: number | bigint, notice?: JjyStopNotice): string;
   /**
    * `hc_irig_decode`: a designation Table 4-1 does not permit is `unknown`,
    * a frame that is not the code's `malformed`; the year's two digits are
@@ -2701,7 +2803,7 @@ export class HyperCalendar {
   /** `hc_mansion_undertakings`: what a publisher's list says the day's 二十八宿 favours and forbids. */
   mansionUndertakings(list: UndertakingListId, fixed: number | bigint): MansionUndertaking[];
   /** `hc_almanac_person_days`: a person's own 五墓日 and 三箇の悪日 on a day. */
-  almanacPersonDays(fixed: number | bigint, birthYear: number | bigint, meridian?: string): AlmanacPersonDay[];
+  almanacPersonDays(fixed: number | bigint, birthFixed: number | bigint, meridian?: string): AlmanacPersonDay[];
   /** `hc_tibetan_almanac_day`: what a version's almanac prints for a day. */
   tibetanAlmanacDay(calendar: TibetanCalendarId, fixed: number | bigint): TibetanAlmanacEntry[];
   /** `hc_tibetan_planets`: the Phugpa planets at the end of a day. */
@@ -2877,6 +2979,8 @@ export class HyperCalendar {
   prayerMethods(): PrayerMethod[];
   /** `hc_zmanim`: nine lines, the five times in temporal hours, then the dawns and nightfalls. */
   zmanim(reckoning: ZmanimReckoning, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): Zman[];
+  /** `hc_temporal_hour`: the length of the temporal hour a reckoning counts its times in. */
+  temporalHour(reckoning: ZmanimReckoning, fixed: number | bigint, latitude: number, longitude: number, elevation?: number): TemporalHour;
   /** `hc_edo_time`: by the 寛政暦's 明け六つ and 暮れ六つ. */
   edoTime(unixSeconds: number | bigint, latitude: number, longitude: number, elevation?: number): EdoTime;
   /** `hc_unix_from_edo_time`: `hour` 0 to 11 from 明け六つ, `fraction` 0 up to 1. */

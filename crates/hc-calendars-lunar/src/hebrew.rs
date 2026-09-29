@@ -669,10 +669,32 @@ pub fn shmuel_tekufah_simmons(year: i64, tekufah: Tekufah) -> Moment {
     Moment(minutes.div_euclid(1_440) as f64 + minutes.rem_euclid(1_440) as f64 / 1_440.0)
 }
 
+/// Nightfall in the reckoning's day, as minutes of Jerusalem mean time
+/// after midnight: the start of its twelve hours of night, six hours before
+/// midnight. Maimonides counts "day and night" as one twenty-four-hour
+/// composite, "twelve \[hours\] of daylight and twelve \[hours\] of night"
+/// (*Hilkhot Kiddush HaChodesh* 6:2), and puts every *tekufat Nisan* "at
+/// nightfall, at midnight, at daybreak, or at noon", the first "at the
+/// beginning of the fourth day" (9:4), so the reckoning's Hebrew day turns
+/// here and not at the sun's setting on the day: its nightfall on 7 April
+/// 2009, the anchor of the count, is "the beginning of
+/// the night of the fourth day" (*Hilkhot Berakhot* 10:18) though the Sun
+/// set at Jerusalem later that evening.
+pub const SHMUEL_NIGHTFALL_MINUTES: i64 = 18 * 60;
+
+/// Whether a *tekufah* of Shmuel's reckoning falls after the reckoning's
+/// nightfall, [`SHMUEL_NIGHTFALL_MINUTES`], and before midnight: in the
+/// night that begins the next civil day's Hebrew day, as *tekufat Nisan*
+/// of 4930 does, "on the night of the fifth day at midnight" (9:5).
+#[must_use]
+pub const fn shmuel_tekufah_after_nightfall(year: i64, tekufah: Tekufah) -> bool {
+    shmuel_tekufah_minutes(year, tekufah).rem_euclid(1_440) >= SHMUEL_NIGHTFALL_MINUTES
+}
+
 /// The fixed day whose Hebrew day a *tekufah* of Shmuel's reckoning falls
-/// in: the civil day of the moment, or the next one from six in the
-/// evening, when the reckoning's night begins, together with the minutes
-/// of Jerusalem mean time since that civil midnight.
+/// in: the civil day of the moment, or the next one from the reckoning's
+/// nightfall, [`SHMUEL_NIGHTFALL_MINUTES`], together with the minutes of
+/// Jerusalem mean time since that civil midnight.
 ///
 /// Maimonides' own example: *tekufat Nisan* of 4930 "on the night of the
 /// fifth day at midnight", and "on the eighth of Nisan" (9:5–9:7).
@@ -681,7 +703,7 @@ pub const fn shmuel_tekufah_day(year: i64, tekufah: Tekufah) -> (Rd, i64) {
     let minutes = shmuel_tekufah_minutes(year, tekufah);
     let civil = minutes.div_euclid(1_440);
     let clock = minutes.rem_euclid(1_440);
-    if clock >= 18 * 60 {
+    if clock >= SHMUEL_NIGHTFALL_MINUTES {
         (Rd(civil + 1), clock)
     } else {
         (Rd(civil), clock)

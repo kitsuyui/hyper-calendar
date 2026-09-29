@@ -148,7 +148,10 @@ modifiers (IEEE Std 1003.1-2024, "Modified Conversion Specifiers",
 [posix-strftime-2024]): `%EC`, `%Ey`, `%EY`, `%Ex` and `%Ec` write the era,
 year and date of the calendar `FormatContext::era_calendar` names, or of
 the Buddhist or Minguo calendar a locale's `-u-ca-` key names
-(`th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569), `%EX` is `%X`, and a locale
+(`th-u-ca-buddhist` writes `%EY` as พ.ศ. 2569; the Japanese eras, in
+`hc-calendars-regional`, which this crate does not depend on, are given
+by the caller, as the facade's `hc_format_pattern` does for
+`-u-ca-japanese`), `%EX` is `%X`, and a locale
 with no such calendar writes the unmodified conversion, as POSIX says;
 `%Ob` and `%OB` write the stand-alone month, POSIX's nominative
 `alt_mon` (Russian's *сентябрь* for *сентября*); and `%Od` … `%Oy` write the

@@ -42,6 +42,24 @@ fn the_hours_cross_the_c_boundary() {
         )
     });
     assert_eq!(text.lines().count(), 9);
+    // The hour those times are counted in: Hebcal's 72-minute dawn 6:08
+    // to its latest Shema 9:04 is three hours of 58⅔ minutes.
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_temporal_hour(
+            c"mga-72-minutes".as_ptr(),
+            739_252,
+            40.71427,
+            -74.00597,
+            0.0,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    let cells: Vec<&str> = text.trim_end().split('\t').collect();
+    assert_eq!(cells[0], "mga-72-minutes");
+    let seconds: f64 = cells[1].parse().expect("a length");
+    assert!((seconds - 3_520.0).abs() < 20.0, "{seconds}");
     let kyoto = (35.0 + 36.0 / 3_600.0, 135.7417);
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_unix_from_edo_time(

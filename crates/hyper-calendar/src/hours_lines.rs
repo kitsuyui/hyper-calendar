@@ -6,7 +6,8 @@
 //!   themselves with their parameters and sources.
 //! * The Jewish times in temporal hours, [`Zman::ALL`], by one of the
 //!   three reckonings of the day [`hc_astro::solar_time`] carries, with the
-//!   dawns and nightfalls beside them.
+//!   dawns and nightfalls beside them, and the length of the temporal hour
+//!   each reckoning counts them in.
 //! * The Edo 不定時法 reading of an instant at a place, and its inverse, by
 //!   the 寛政暦's 明け六つ and 暮れ六つ.
 //!
@@ -141,6 +142,40 @@ pub fn zmanim_lines(reckoning: &str, fixed: i64, place: Location) -> Answer<Stri
         moment_or_missing(&mut line, (twilight.at)(day, place));
         line.end();
     }
+    Ok(out)
+}
+
+/// How many columns [`temporal_hour_line`] writes.
+pub const TEMPORAL_HOUR_COLUMNS: usize = 2 + MISSING_COLUMNS;
+
+/// The line of `hc_temporal_hour`: the length of a temporal hour, a
+/// twelfth of the day a reckoning of [`solar_time::ZMANIM_RECKONINGS`]
+/// counts from its start to its end, on a local day at a place — the
+/// reckoning's identifier, the length in seconds, and the four cells of a
+/// missing solar event, the length empty where the day's start or end does
+/// not happen. It is the hour [`zmanim_lines`] counts its times in.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a reckoning not named, and
+/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
+pub fn temporal_hour_line(reckoning: &str, fixed: i64, place: Location) -> Answer<String> {
+    let reckoning = solar_time::zmanim_reckoning(reckoning).ok_or(Refusal::Unknown)?;
+    let day = day_in_era(fixed)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(reckoning.id);
+    match (reckoning.temporal_hour)(day, place) {
+        Ok(fraction) => {
+            line.value(fraction * 86_400.0);
+            missing_cells(&mut line, None);
+        }
+        Err(missing) => {
+            line.empty();
+            missing_cells(&mut line, Some(missing));
+        }
+    }
+    line.end();
     Ok(out)
 }
 
@@ -482,5 +517,54 @@ mod tests {
         let cells: Vec<&str> = reading.trim_end_matches('\n').split('\t').collect();
         assert_eq!(cells[..8], ["", "", "", "", "", "", "", ""]);
         assert_eq!(cells[8], "depression");
+    }
+
+    /// Hebcal's times for New York City on 1 January 2025
+    /// (`hebcal-zmanim-api`): sunrise 7:20 and sunset 16:40, a GRA hour
+    /// of 46⅔ minutes; the 72-minute dawn 6:08 and the latest Shema by it
+    /// 9:04, three hours of 58⅔ minutes; the 16.1° dawn 5:52 and the
+    /// latest Shema by it 8:56, three of 61⅓. Hebcal prints whole minutes,
+    /// so each hour is within 20 seconds of the printed times' own.
+    #[test]
+    fn the_temporal_hours_are_the_ones_hebcal_counts_in() {
+        let place = location(40.71427, -74.00597, 0.0).expect("on the globe");
+        let day = gregorian::to_fixed(2025, 1, 1).expect("a date").0;
+        for (reckoning, minutes) in [
+            (
+                "zmanim-gra",
+                (16.0 * 60.0 + 40.0 - (7.0 * 60.0 + 20.0)) / 12.0,
+            ),
+            (
+                "mga-72-minutes",
+                (9.0 * 60.0 + 4.0 - (6.0 * 60.0 + 8.0)) / 3.0,
+            ),
+            (
+                "mga-16-1-degrees",
+                (8.0 * 60.0 + 56.0 - (5.0 * 60.0 + 52.0)) / 3.0,
+            ),
+        ] {
+            let text = temporal_hour_line(reckoning, day, place).expect("in range");
+            let row = &rows(&text)[0];
+            assert_eq!(row.len(), TEMPORAL_HOUR_COLUMNS);
+            assert_eq!(row[0], reckoning);
+            let seconds: f64 = row[1].parse().expect("a length");
+            assert!(
+                (seconds - minutes * 60.0).abs() < 20.0,
+                "{reckoning}: {seconds} s against {minutes} min"
+            );
+            assert!(row[2..].iter().all(|cell| cell.is_empty()));
+        }
+        // London on 21 June 2025 has no 16.1° dawn, which Hebcal prints
+        // none of either.
+        let london = location(51.50853, -0.12574, 0.0).expect("on the globe");
+        let june = gregorian::to_fixed(2025, 6, 21).expect("a date").0;
+        let text = temporal_hour_line("mga-16-1-degrees", june, london).expect("in range");
+        let row = &rows(&text)[0];
+        assert_eq!(row[1], "");
+        assert_eq!(row[2], "depression");
+        assert_eq!(
+            temporal_hour_line("rabbeinu-tam", day, place),
+            Err(Refusal::Unknown)
+        );
     }
 }

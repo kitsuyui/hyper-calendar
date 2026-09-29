@@ -55,7 +55,15 @@ fn the_undertakings_and_a_persons_days_are_the_facades() {
     assert_eq!(text.lines().next(), Some("1\t角\tfavoured\t衣類裁断"));
     // こよみる's 2025 五墓日 of a person born in 1928: 25 February.
     let text = read_lines(|buffer, capacity| unsafe {
-        hc_almanac_person_days(739_307, 1928, JAPAN.as_ptr(), JAPAN.len(), buffer, capacity)
+        // Born on 1 June 1928.
+        hc_almanac_person_days(
+            739_307,
+            703_974,
+            JAPAN.as_ptr(),
+            JAPAN.len(),
+            buffer,
+            capacity,
+        )
     });
     assert_eq!(
         text.lines().next(),
@@ -101,7 +109,9 @@ fn the_reckonings_of_the_calendars_cross() {
     let text = read_lines(|buffer, capacity| unsafe {
         hc_shmuel_tekufah(5_769, tekufah.as_ptr(), tekufah.len(), buffer, capacity)
     });
-    assert!(text.ends_with("\tnisan\n"));
+    // At the reckoning's nightfall on Tuesday 7 April 2009, 733 504: the
+    // Hebrew day of Wednesday, after nightfall.
+    assert_eq!(text, "733505\t1080\tnisan\t1\t733504\n");
 }
 
 /// Article XI's noon, five decimal hours.

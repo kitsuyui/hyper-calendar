@@ -87,6 +87,7 @@
 extern crate alloc;
 
 pub mod almanac;
+pub mod calendar_names;
 pub mod casing;
 pub mod data;
 pub mod dated;

@@ -55,7 +55,7 @@ fn the_indic_reckonings_cross_the_c_boundary() {
             written,
         )
     });
-    assert_eq!((first(&text)[1], first(&text)[10]), ("prayag", ""));
+    assert_eq!((first(&text)[1], first(&text)[12]), ("prayag", ""));
     // 07:07 IST on 14 July 2015 is 01:37 UTC.
     let entry = 1_436_837_820;
     let text = read_lines(|buffer, capacity, written| unsafe {
@@ -73,7 +73,7 @@ fn the_indic_reckonings_cross_the_c_boundary() {
         )
     });
     assert_eq!(first(&text)[..2], ["pushkaram-godavari", "Godavari"]);
-    assert_eq!(first(&text)[5..7], ["735793", "735804"]);
+    assert_eq!(first(&text)[4..8], ["simha", "Siṃha", "735793", "735804"]);
     assert_eq!(
         measured(|buffer, capacity, written| unsafe {
             hc_pushkaram(

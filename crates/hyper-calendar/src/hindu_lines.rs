@@ -211,7 +211,7 @@ pub fn hindu_lunar_date_line(
 /// Universal Time instant, as the Sun's and the Moon's sidereal longitudes
 /// in degrees, the Moon's elongation from the Sun in degrees, 0 to 360, the
 /// tithi in progress (1 through 30) and the sign the Sun is in (1 for Meṣa
-/// through 12 for Mīna).
+/// through 12 for Mīna), with its identifier and its Sanskrit name.
 ///
 /// # Errors
 ///
@@ -220,13 +220,17 @@ pub fn hindu_lunar_date_line(
 pub fn surya_siddhanta_line(universal_unix: i64) -> Answer<String> {
     let moment = siddhanta_moment(universal_unix)?;
     let sun = surya_siddhanta::solar_longitude(moment);
+    let index = floor(sun / 30.0) as u8 % 12;
+    let sign = hc_seasons::zodiac::SiderealSign::from_index(index).ok_or(Refusal::OutOfRange)?;
     let mut out = String::new();
     let mut line = Line::new(&mut out);
     line.value(sun)
         .value(surya_siddhanta::lunar_longitude(moment))
         .value(surya_siddhanta::lunar_phase(moment))
         .value(surya_siddhanta::tithi_at(moment))
-        .value(floor(sun / 30.0) as u8 % 12 + 1);
+        .value(index + 1)
+        .cell(sign.id())
+        .cell(sign.sanskrit_name());
     line.end();
     Ok(out)
 }
@@ -339,7 +343,7 @@ pub fn barhaspatya_year_line(rule: &str, saka: i64, locale: &str) -> Answer<Stri
 }
 
 /// How many columns [`barhaspatya_year_at_line`] writes.
-pub const BARHASPATYA_AT_COLUMNS: usize = 6;
+pub const BARHASPATYA_AT_COLUMNS: usize = 7;
 
 /// The line of `hc_barhaspatya_year_at`: the name of the northern cycle in
 /// progress at a Universal Time instant by a rule
@@ -355,7 +359,7 @@ pub const BARHASPATYA_AT_COLUMNS: usize = 6;
 /// through 12 for Phālguna, and its name as the table spells it,
 /// [`barhaspatya::TWELVE_YEAR_NAMES`]; and the sign Jupiter's mean
 /// longitude stands in while the name is current,
-/// [`barhaspatya::mean_sign_of`], by its identifier.
+/// [`barhaspatya::mean_sign_of`], by its identifier and its Sanskrit name.
 ///
 /// # Errors
 ///
@@ -382,7 +386,8 @@ pub fn barhaspatya_year_at_line(rule: &str, universal_unix: i64, locale: &str) -
     line.cell(locale_used(&locale))
         .value(twelve)
         .cell(barhaspatya::TWELVE_YEAR_NAMES[usize::from(twelve - 1)])
-        .cell(sign.id());
+        .cell(sign.id())
+        .cell(sign.sanskrit_name());
     line.end();
     Ok(out)
 }
@@ -607,7 +612,7 @@ mod tests {
         assert!((number(0) - 345.28).abs() < 0.01, "{}", cells[0]);
         assert!((number(1) - 352.87).abs() < 0.01, "{}", cells[1]);
         assert!((number(2) - 7.58).abs() < 0.01, "{}", cells[2]);
-        assert_eq!(cells[3..], ["1", "12"]);
+        assert_eq!(cells[3..], ["1", "12", "mina", "Mīna"]);
     }
 
     /// The POSIX second of a reading in Indian Standard Time.
@@ -675,11 +680,11 @@ mod tests {
         let pingala_ends = ist_unix(2024, 4, 29, 14 * 60 + 14);
         assert_eq!(
             at("surya-siddhanta-bija", pingala_ends + 115 * 60),
-            ["51", "Pingala", "en", "7", "Asvina", "mesha"]
+            ["51", "Pingala", "en", "7", "Asvina", "mesha", "Meṣa"]
         );
         assert_eq!(
             at("surya-siddhanta-bija", pingala_ends + 144 * 60)[3..],
-            ["8", "Karttika", "vrishabha"]
+            ["8", "Karttika", "vrishabha", "Vṛṣabha"]
         );
         assert_eq!(at("surya-siddhanta-bija", pingala_ends + 144 * 60)[0], "52");
         assert_eq!(at("surya-siddhanta", ist_unix(2025, 3, 30, 360))[0], "53");

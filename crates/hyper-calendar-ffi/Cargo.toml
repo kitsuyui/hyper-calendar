@@ -50,7 +50,7 @@ seasons = ["civil", "hc/seasons"]
 # Cosmic, geologic and archaeological time, the earliest evidence of life,
 # of Homo sapiens and of writing, and the events of the far future.
 deep-time = ["hc/deep-time"]
-# The day by a time zone's wall clock, from seventeen built-in zones and
+# The day by a time zone's wall clock, from eighteen built-in zones and
 # any zone a caller loads as TZif bytes; and where each zone is, from
 # tzdata's zone1970.tab, zone.tab and backward, with its exemplar city in
 # English, or in the locale when the build has `calendars` or `zone-names` too.
@@ -89,8 +89,13 @@ humanize = ["civil", "hc/humanize"]
 # names in every locale hc-i18n carries. Some 600 kB of names, so a layer
 # of its own beside `tz`, which it builds on.
 zone-names = ["tz", "hc/localized-zone-names"]
-# Every layer.
-full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "places", "humanize", "zone-names", "hc/full"]
+# Every layer, and nothing else: each layer names the facade features its
+# exports need, so `full` needs none of its own. The facade's `full` would
+# add `units`, `fiscal`, `attributes`, `name-days` and `uncertainty`'s
+# re-exports, which no export reads, so it is not here. `places` is a
+# layer like the others and is in; a program that needs no place names
+# builds the layers it calls instead.
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "places", "humanize", "zone-names"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.

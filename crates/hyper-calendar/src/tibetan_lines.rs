@@ -224,12 +224,21 @@ pub fn planet_lines(fixed: i64) -> Answer<String> {
 /// whole days, nāḍī and pala, `2;51,38`; and the local Julian Date as a
 /// decimal.
 ///
+/// The mean Sun's year is 365.270 645 days, so the day drifts a day later
+/// every 35½ years against the Gregorian calendar, from 24 December in
+/// 1700 to 30 January in 3000, and a year of 365 days can hold none.
+///
 /// # Errors
 ///
-/// [`Refusal::OutOfRange`] for a year outside 1000 to 3000.
+/// [`Refusal::OutOfRange`] for a year outside 1000 to 3000, and
+/// [`Refusal::NoData`] for one the mean Sun reaches 250° on no day of,
+/// 1923, 1927 … 1957.
 pub fn bhutanese_winter_solstice_line(year: i64) -> Answer<String> {
-    let instant = almanac::bhutanese_winter_solstice(&TIBETAN_BHUTAN, year)
-        .map_err(|_| Refusal::OutOfRange)?;
+    let instant =
+        almanac::bhutanese_winter_solstice(&TIBETAN_BHUTAN, year).map_err(|error| match error {
+            hc_calendar::CalendarError::DayOutOfRange => Refusal::NoData,
+            _ => Refusal::OutOfRange,
+        })?;
     let day = Rd::from_julian_day_number(instant.floor() as i64);
     let shifted = instant.add(Ratio::int(2));
     let weekday = shifted.sub(Ratio::int(shifted.floor().div_euclid(7) * 7));
@@ -348,6 +357,15 @@ mod tests {
             bhutanese_winter_solstice_line(3_001),
             Err(Refusal::OutOfRange)
         );
+        // The drift of the mean Sun's year: 24 December in 1700, none in
+        // 1923, the year between the December solstices and the January
+        // ones.
+        let cells = |year| {
+            bhutanese_winter_solstice_line(year)
+                .map(|line| String::from(crate::boundary::cells(&line)[0]))
+        };
+        assert_eq!(cells(1_700), Ok(alloc::format!("{}", greg(1700, 12, 24))));
+        assert_eq!(cells(1_923), Err(Refusal::NoData));
     }
 
     /// Henning's almanacs do not mark the Birth of the Buddha in 1990,
