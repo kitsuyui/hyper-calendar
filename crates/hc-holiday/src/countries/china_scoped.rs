@@ -51,6 +51,24 @@
 //! reached. Inner Mongolia's notice for 2024 lists the national days alone,
 //! and no festival of its own was found.
 //!
+//! # Article 5: the commemorations without a day off
+//!
+//! Article 5 names days that 均不放假, give no one a day off:
+//! "二七纪念日、五卅纪念日、七七抗战纪念日、九三抗战胜利纪念日、九一八纪念日、
+//! 教师节、护士节、记者节、植树节等其他节日、纪念日". Each is a
+//! [`Kind::Observance`] of [`CHINA`](super::CHINA), which business-day
+//! arithmetic ignores:
+//!
+//! | Day | Date | From |
+//! | --- | --- | --- |
+//! | 二七纪念日, 五卅纪念日, 七七抗战纪念日, 九三抗战胜利纪念日, 九一八纪念日 | 7 February, 30 May, 7 July, 3 September, 18 September, the dates their names are | 2008, the first year of the text read, the 2007 decision's, which the 2013 and 2024 texts keep word for word; a gap before |
+//! | 植树节 | 12 March, by the 全国人大常委会关于植树节的决议 of 23 February 1979 | 1979 |
+//! | 教师节 | 10 September, by the 全国人大常委会关于教师节的决定 of 21 January 1985 | 1985 |
+//! | 记者节 | 8 November, the day the State Council approved in 2000 at the 中国记协's request | 2000 |
+//! | 护士节 | 12 May, "5月12日是国际护士节", as the National Health Commission's notices put it | 2008, as the commemorations; a gap before, no founding instrument read |
+//!
+//! The "其他" days the article leaves unnamed are not carried.
+//!
 //! [`Group`]: crate::group::Group
 
 use crate::group::{CHILDREN, MILITARY, WOMEN, YOUTH};
@@ -131,6 +149,119 @@ pub(super) static CN_SCOPED_RULES: &[HolidayRule] = &[
     cn_group_unread("Youth Day", "青年节", &[YOUTH]),
     cn_group_unread("Children's Day", "儿童节", &[CHILDREN]),
     cn_group_unread("Army Day", "中国人民解放军建军纪念日", &[MILITARY]),
+];
+
+/// The first year of Article 5's text read: the 2007 decision's, in force
+/// 1 January 2008.
+const CN_ARTICLE_5_FIRST: i32 = 2008;
+
+/// A commemoration of Article 5 on a fixed date, from `first`.
+const fn cn_commemoration(
+    name: &'static str,
+    local_name: &'static str,
+    month: u8,
+    day: u8,
+    first: i32,
+    source: &'static str,
+) -> HolidayRule {
+    HolidayRule::observance(name, local_name, Rule::gregorian(month, day))
+        .years(Some(first), None)
+        .cited(source)
+}
+
+/// A commemoration of Article 5 before 2008: a gap.
+const fn cn_commemoration_unread(name: &'static str, local_name: &'static str) -> HolidayRule {
+    HolidayRule::observance(name, local_name, Rule::UNREAD)
+        .years(None, Some(CN_ARTICLE_5_FIRST - 1))
+        .cited("全国年节及纪念日放假办法, 第五条: the texts before 2008 not read")
+}
+
+/// Article 5's words, cited by each of its days.
+const CN_ARTICLE_5: &str = "全国年节及纪念日放假办法, 第五条: 均不放假";
+
+/// The commemorations of Article 5, in its order.
+pub(super) static CN_COMMEMORATIONS: &[HolidayRule] = &[
+    cn_commemoration(
+        "February 7th Memorial Day",
+        "二七纪念日",
+        2,
+        7,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "May 30th Memorial Day",
+        "五卅纪念日",
+        5,
+        30,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "July 7th Memorial Day of the War of Resistance",
+        "七七抗战纪念日",
+        7,
+        7,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "Victory Day of the War of Resistance",
+        "九三抗战胜利纪念日",
+        9,
+        3,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "September 18th Memorial Day",
+        "九一八纪念日",
+        9,
+        18,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "Teachers' Day",
+        "教师节",
+        9,
+        10,
+        1985,
+        "全国人民代表大会常务委员会关于教师节的决定, 21 January 1985: 每年9月10日为教师节",
+    ),
+    cn_commemoration(
+        "Nurses' Day",
+        "护士节",
+        5,
+        12,
+        CN_ARTICLE_5_FIRST,
+        CN_ARTICLE_5,
+    ),
+    cn_commemoration(
+        "Journalists' Day",
+        "记者节",
+        11,
+        8,
+        2000,
+        "国务院, 批复中国记协《关于确定\"记者节\"具体日期的请示》, 2000: 11月8日",
+    ),
+    cn_commemoration(
+        "Arbor Day",
+        "植树节",
+        3,
+        12,
+        1979,
+        "全国人民代表大会常务委员会关于植树节的决议, 23 February 1979: 3月12日",
+    ),
+    cn_commemoration_unread("February 7th Memorial Day", "二七纪念日"),
+    cn_commemoration_unread("May 30th Memorial Day", "五卅纪念日"),
+    cn_commemoration_unread(
+        "July 7th Memorial Day of the War of Resistance",
+        "七七抗战纪念日",
+    ),
+    cn_commemoration_unread("Victory Day of the War of Resistance", "九三抗战胜利纪念日"),
+    cn_commemoration_unread("September 18th Memorial Day", "九一八纪念日"),
+    cn_commemoration_unread("Nurses' Day", "护士节"),
 ];
 
 /// The days off the autonomous regions' notices give for their minority
@@ -301,9 +432,14 @@ pub(super) static CN_REGION_RULES: &[HolidayRule] = &[
 ];
 
 /// How many rules [`CHINA`](super::CHINA) has in all.
-const CN_ALL_LEN: usize = CN_RULES.len() + CN_SCOPED_RULES.len() + CN_REGION_RULES.len();
+const CN_ALL_LEN: usize =
+    CN_RULES.len() + CN_SCOPED_RULES.len() + CN_REGION_RULES.len() + CN_COMMEMORATIONS.len();
 
 /// Every rule of [`CHINA`](super::CHINA): the nationwide ones of `asia.rs`,
 /// then the scoped ones here.
-pub(super) static CN_ALL_RULES: [HolidayRule; CN_ALL_LEN] =
-    joined(&[CN_RULES, CN_SCOPED_RULES, CN_REGION_RULES]);
+pub(super) static CN_ALL_RULES: [HolidayRule; CN_ALL_LEN] = joined(&[
+    CN_RULES,
+    CN_SCOPED_RULES,
+    CN_REGION_RULES,
+    CN_COMMEMORATIONS,
+]);

@@ -33,7 +33,7 @@ assert_eq!(holidays[13].local_name, "国民の休日");
 | `book_of_common_prayer` | the Book of Common Prayer of 1662's calendar (`bcp-1662`): the Table of Feasts and the Kalendar's black-letter days |
 | `roman_calendar` | the General Roman Calendar: every celebration with its rank, and the decrees since 2002 |
 | `roman_calendar_1960` | the General Roman Calendar of 1960, the 1962 Missal's: every day of the calendar and the Proper of Time's days of the I and II class, with its class, and the ordo, each day's office with precedence, transfers and commemorations applied |
-| `international` | the United Nations international days, each citing its resolution |
+| `international` | the United Nations international days and weeks, each citing its resolution |
 | `exchanges` | 42 exchange calendars: New York, Nasdaq, Toronto, Mexico City, São Paulo, London, Frankfurt, Zurich, Vienna, Madrid, Warsaw, Moscow, Istanbul, Euronext's seven markets, Nasdaq's four Nordic markets, Johannesburg, Tel Aviv, Riyadh, Tokyo, Seoul, Shanghai, Shenzhen, Taipei, Hong Kong, Mumbai's NSE and BSE, Bangkok, Singapore, Kuala Lumpur, Jakarta, Manila, Sydney, NZX |
 | `countries` | 195 national tables |
 
@@ -181,7 +181,7 @@ Emirates, the United Kingdom (three bank-holiday jurisdictions), the United
 States, Uruguay, Uzbekistan, Vanuatu, Vatican City, Venezuela, Vietnam, Yemen,
 Zambia, Zimbabwe.
 
-**Sixty-three traditions.** Western Christianity on the Gregorian computus,
+**Seventy-one traditions.** Western Christianity on the Gregorian computus,
 the General Roman Calendar with the rank of every celebration
 (`roman_calendar`), the General Roman Calendar of 1960, the 1962 Missal's,
 with the class of every day and the office of each with its precedence
@@ -202,9 +202,15 @@ Apostolic Church on the Gregorian calendar of Etchmiadzin
 (`christian-armenian-jerusalem`), the Ember and Rogation Days of the 1662
 Prayer Book (`ember-bcp1662`) and of *Common Worship*'s traditional weeks
 (`ember-common-worship`) and the Rogation Days of the Roman rubrics of 1960
-(`rogation-roman-1960`), Islam, Judaism with Ta'anit Esther and Sh'ela, the
-Samaritan festivals on `samaritan`, the Mandaean feasts and *mbattal* days
-on `mandaean`, the Yazidi feasts on the Eastern calendar, the Bahá'í Faith,
+(`rogation-roman-1960`), Islam, Judaism with Ta'anit Esther and Sh'ela and
+the minor fasts moved off the Sabbath as the *Shulchan Arukh* moves them, the
+festivals of the Qumran scrolls' 364-day year on `qumran`
+(`qumran-festivals`), the Samaritan festivals on `samaritan`, the Mandaean feasts and *mbattal* days
+on `mandaean`, the Yazidi feasts on the Eastern and the Islamic calendar, Galungan,
+Kuningan, the Tumpek and Kajeng Kliwon on the Balinese Pawukon
+(`balinese-pawukon-days`), the movable Orthodox name days of Greece and
+Bulgaria on the Julian computus (`name-days-greek-movable`,
+`name-days-bulgarian-movable`), the Bahá'í Faith,
 Hinduism, Jainism (Paryuṣaṇa and Daśa Lakṣaṇa counted back from their last
 days), Sikhism on the Nanakshahi calendar of 2003 (`sikh-nanakshahi-2003`)
 and the SGPC's Bikrami days whose rule or days were read (`sikh-sgpc`),
@@ -212,8 +218,10 @@ Buddhism as Thailand dates its four holy days on `thai-lunar`
 (`buddhist-thai`) and its uposatha days, แรม 14 or 15 ค่ำ by the month's
 length (`buddhist-uposatha-thai`), as Japan and the Chinese calendar date the
 East Asian days (`buddhist-east-asian`) and as the Tibetan calendar dates the
-*düchen* (`buddhist-tibetan`), a skipped or doubled day or month reported as
-a gap, Chinese folk tradition with 人日, 上巳 and 寒食, the Little New Year in
+*düchen* and the festivals Henning's almanacs mark, a skipped or doubled day
+or month reported as a gap (`buddhist-tibetan`), kept by Berzin's rule
+(`buddhist-tibetan-berzin`) or as Henning's almanacs mark them
+(`buddhist-tibetan-henning`), Chinese folk tradition with 人日, 上巳 and 寒食, the Little New Year in
 five regional tables (`chinese-xiaonian-north`, `-south`, `-jiangnan`,
 `-nanjing`, `-southwest`), Taoism's three Yuan and Mazu's days (`taoist`),
 the Korean folk days on `dangi` with 한식 105 days after 동지
@@ -224,9 +232,11 @@ reckonings (`obon-july`, `obon-august`, `obon-lunar`), 酉の市
 `inoko-november`) and 十日夜 (`tokanya`, `tokanya-november`), each on the
 Gregorian calendar or the 旧暦, Shinto with the
 imperial court rites beside it, the Wheel of the Year in both hemispheres,
-the Zoroastrian schedule of feasts on each of its three reckonings, Plough
+the Zoroastrian schedule of feasts on each of its three reckonings and
+the name-day feasts of the Zoroastrians of Iran (`zoroastrian-iranian`), Plough
 Monday, Plough Sunday and Distaff Day (`plough-days`), Chaharshanbe Suri
 on `persian`, the eve of the year's last Wednesday (`chaharshanbe-suri`),
+Tirgan, Mehregan, Yalda and Sadeh on their civil dates (`iranian-festivals`),
 the services of Tenrikyo's Church Headquarters (`tenrikyo`), and two of
 Reingold and Dershowitz's coincidences of a weekday and a date: Friday the
 13th (`unlucky-fridays`) and the Wednesdays on the eighth day of a
@@ -441,11 +451,11 @@ falls in an out-of-range year *and* within the shift of a year boundary.
 
 | Entry | Why |
 | --- | --- |
-| Every Hijri-dated holiday, in seventy-one countries and the Islamic tradition table | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2012–2026 |
+| Every Hijri-dated holiday, in seventy-one countries and the Islamic and Yazidi tradition tables | the observed date is a sighting decision, per country. Indonesia's, Singapore's and Malaysia's are the published lists' for 2020–2026 and exact, and for 2027 the lists' announcements; the Philippines' the proclamations' for 2012–2026 |
 | Vesak in Indonesia, Singapore and Malaysia outside 2020–2027 | the full moon of the fourth Chinese month, which is Singapore's date in every year of 2020–2027 and misses the others' in some: Malaysia's Wesak Day 2023 was 4 May, a month before it, and Indonesia's Waisak a day or two after it in 2022–2024. Inside those years it is the lists' date. Thailand's four Buddhist days, and the `buddhist-thai` table's, are exact on `thai-lunar` for 1992–2027 and gaps outside |
 | Nepal's festivals — Buddha Jayanti, Dashain, Tihar and the rest | each is a tithi read at Kathmandu, and the part of the day it must hold is fitted to the notices of 2080–2083 BS, which it reproduces, rather than quoted from the almanac |
 | Bangladesh's Buddha Purnima | the notifications' own dates for 2025 and 2026, which they star as depending on the moon |
-| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days and Traditional Day of Offering, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
+| Mongolia's Tsagaan Sar, Buddha's Birthday and Chinggis Khaan Day; Bhutan's Losar, Buddhist days, Traditional Day of Offering and Winter Solstice, and Thimphu's Drubchoe and Tshechu | the day the law or the Ministry's list states on the Tibetan calendar, `mongolian` or `tibetan-bhutan`, outside the years read (Tsagaan Sar 2025–2026, Bhutan's lists 2025–2026); the Government or the Ministry settles each year, and Bhutan's calendar of 2003 had Losar a day before the arithmetic |
 | Cambodia's Visak Bochea, Royal Ploughing Ceremony, Pchum Ben and Water Festival | the day the sub-decrees give on `khmer`, outside the years read (2021, 2022, 2024–2027); the Royal Government lists them each year, and the palace sets the Ploughing Ceremony |
 
 ## Deliberate gaps
@@ -454,9 +464,10 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   Holi, Ram Navami, Mahavir Jayanti, Buddha Purnima, Janmashtami, Dussehra,
   Diwali and Guru Nanak's Birthday computed on `hindu-lunar`. The thirteen
   largest states' holidays under the Negotiable Instruments Act are carried
-  in their regions for 2025 and 2026, from the Reserve Bank of India's lists
-  for its regional offices, the states' notifications, gazette PDFs, not
-  having been read; 2027 is a gap. The other states and union territories
+  in their regions for 2019 to 2026 (Andhra Pradesh from 2023), from the
+  Reserve Bank of India's lists for its regional offices, the states'
+  notifications, gazette PDFs, not having been read; the years before and
+  2027 are gaps. The other states and union territories
   are not yet carried, and the Reserve Bank's list has most of them
   ([india-state-holidays.md](../../docs/systems/india-state-holidays.md)).
   Singapore's and Malaysia's Deepavali is the same
@@ -492,9 +503,10 @@ falls in an out-of-range year *and* within the shift of a year boundary.
   calendar skips or repeats the day's number, the sources read do not say
   where the holiday goes — three days off were reported for Mongolia's 2022,
   its third number skipped, and two were counted in 2025, its first
-  skipped — so that year is a gap. Bhutan's Winter Solstice, Blessed Rainy Day
-  and Dassain are its Ministry's lists for 2025 and 2026, and gaps in other
-  years. Thimphu Drubchoe and Thimphu Tshechu, for Thimphu only, are carried
+  skipped — so that year is a gap. Bhutan's Blessed Rainy Day and Dassain
+  are its Ministry's lists for 2025 and 2026, and gaps in other years; its
+  Winter Solstice is the lists' day in those years and, in the others, the
+  day the Bhutanese mean Sun reaches 250°, a prediction. Thimphu Drubchoe and Thimphu Tshechu, for Thimphu only, are carried
   in `BT-15` as the lunar days are; the other districts' tshechus, whose
   days each Dzongkhag Administration confirms, are not yet carried, as no
   confirmation was read.

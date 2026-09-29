@@ -468,7 +468,7 @@ one job a layer.
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 120,941 | 118 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 110,654 | 108 KiB |
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,312,396 | 1.25 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,611,392 | 1.54 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 1,857,650 | 1.77 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,399 | 89 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 98,914 | 97 KiB |
@@ -477,7 +477,7 @@ one job a layer.
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,732 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,910,708 | 2.78 MiB |
-| `full` | all of the above | everything | 6,248,928 | 5.96 MiB |
+| `full` | all of the above | everything | 6,494,635 | 6.19 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -2307,16 +2307,15 @@ convert; the scope keeps the winter solstices and new moons that every
 conversion of a lunisolar date searches for, which the Chinese, Korean and
 Vietnamese tables and the functions that date the Japanese 旧暦 days would
 otherwise search for again for every date they convert. Measured on
-2026-09-28 in the `release-compact` profile with
+2026-09-29 in the `release-compact` profile with
 [`examples/holidays_on_timing.rs`](../hyper-calendar/examples/holidays_on_timing.rs),
-one 2026 day across all 301 tables and their subdivisions (298 when it was
-measured) takes about
-25 ms natively on 1 January, the costliest, and 19 ms on 25 September,
-against 0.20 s for every table's whole year; in WebAssembly under Node 22,
-measured with `scripts/wasm-calendar-timing.mjs`, 60 ms and 47 ms. The
-subdivisions' lines are about 3 ms and 2 ms of that in WebAssembly, and
-under 1 % natively, against the same build without them measured the same
-day. Before the call opened
+one 2026 day across all 310 tables and their subdivisions takes about
+31 ms natively on 1 January, the costliest, and 22 ms on 25 September,
+against 0.21 s for every table's whole year; in WebAssembly under Node 22,
+measured with `scripts/wasm-calendar-timing.mjs`, 63 ms and 48 ms. On
+2026-09-28, with 298 tables, the subdivisions' lines were about 3 ms and
+2 ms of the WebAssembly times, and under 1 % of the native ones, against
+the same build without them measured the same day. Before the call opened
 the scope, the same days took 54 ms and 36 ms natively and 133 ms and
 88 ms in WebAssembly.
 
@@ -3795,7 +3794,7 @@ and is not carried.
 | 3 | english name | CLDR's English name, `en.xml`'s; empty for the 104 deprecated subdivisions it does not name |
 | 4 | locale used | the tag of the data that named column 2: `ja`, `pt` for a name `pt-PT` inherits, or `en`; empty with column 2 |
 | 5 | draft | that value's CLDR draft level: `approved`, `contributed` or `provisional`; empty with column 2 |
-| 6 | status | the code's status in CLDR's validity data: `regular`; `deprecated` for a subdivision CLDR keeps from an earlier ISO list, 476 of them, and for two codes the holiday tables use, `GB-EAW` and `GT-GU`; `macroregion`, `special` or `unknown` for a territory that is not a country |
+| 6 | status | the code's status in CLDR's validity data: `regular`; `deprecated` for a subdivision CLDR keeps from an earlier ISO list, 476 of them, and for one code the holiday tables use, `GB-EAW`; `macroregion`, `special` or `unknown` for a territory that is not a country |
 
 ```js
 const table = hc.holidayTables("ja").find((row) => row.code === "JP");

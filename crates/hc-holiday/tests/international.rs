@@ -97,3 +97,76 @@ fn the_set_is_reachable_by_its_code() {
     assert!(international::by_code("un-days").is_some());
     assert!(international::by_code("nonexistent").is_none());
 }
+
+/// A week's name, and the month and day of its first and its last day.
+type Week = (&'static str, (u8, u8), (u8, u8));
+
+#[test]
+fn the_weeks_are_every_day_of_the_weeks_the_list_prints() {
+    use hc_holiday::international::UNITED_NATIONS_WEEKS;
+    // The United Nations' list, retrieved 2026-09-29, with the dates it
+    // prints for each week.
+    let weeks: &[Week] = &[
+        ("World Interfaith Harmony Week", (2, 1), (2, 7)),
+        (
+            "Week of Solidarity with the Peoples Struggling against Racism and Racial Discrimination",
+            (3, 21),
+            (3, 27),
+        ),
+        ("World Immunization Week", (4, 24), (4, 30)),
+        (
+            "Week of Solidarity with the Peoples of Non-Self-Governing Territories",
+            (5, 25),
+            (5, 31),
+        ),
+        ("World Breastfeeding Week", (8, 1), (8, 7)),
+        ("World Space Week", (10, 4), (10, 10)),
+        ("Disarmament Week", (10, 24), (10, 30)),
+        (
+            "Global Media and Information Literacy Week",
+            (10, 24),
+            (10, 31),
+        ),
+        ("International Week of Science and Peace", (11, 9), (11, 15)),
+        (
+            "World Antimicrobial Resistance Awareness Week",
+            (11, 18),
+            (11, 24),
+        ),
+    ];
+    let calendar = HolidayCalendar::for_year(&UNITED_NATIONS_WEEKS, None, 2026);
+    for (name, (first_month, first_day), (last_month, last_day)) in weeks {
+        let days: Vec<Rd> = calendar
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == *name)
+            .map(|holiday| holiday.date)
+            .collect();
+        let expected: Vec<Rd> = (ymd(2026, *first_month, *first_day).0
+            ..=ymd(2026, *last_month, *last_day).0)
+            .map(Rd)
+            .collect();
+        assert_eq!(days, expected, "{name}");
+    }
+    // The week of Science and Peace moves with 11 November: in 2025, a
+    // Tuesday, it is Monday 10 to Sunday 16 November.
+    let science = |year: i64| -> Vec<Rd> {
+        HolidayCalendar::for_year(&UNITED_NATIONS_WEEKS, None, year)
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "International Week of Science and Peace")
+            .map(|holiday| holiday.date)
+            .collect()
+    };
+    assert_eq!(science(2025).first(), Some(&ymd(2025, 11, 10)));
+    assert_eq!(science(2025).last(), Some(&ymd(2025, 11, 16)));
+    for rule in UNITED_NATIONS_WEEKS.rules {
+        assert_eq!(rule.kind, Kind::Observance, "{}", rule.name);
+        assert!(!rule.source.is_empty(), "{}", rule.name);
+    }
+    assert!(international::by_code("un-weeks").is_some());
+    for holiday in calendar.all() {
+        assert_eq!(holiday.confidence, Confidence::Exact);
+        assert!(calendar.is_business_day(holiday.date) || calendar.is_weekend(holiday.date));
+    }
+}

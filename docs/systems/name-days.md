@@ -107,13 +107,27 @@ in 2025 are `lv-traditional-2023` and `lv-traditional-2026`, each with its
 validity span, and `in_force(country, year)` returns every list in force in a
 year — several at once, since Latvia keeps two.
 
-**The movable Orthodox name days are not yet carried.** They are rules on the
-Julian computus — Thomas Sunday (Pascha + 7) for Θωμάς and Θωμαΐς, All Saints
-(Pascha + 56) for names with no saint of their own, St George moved to Easter
-Monday when 23 April falls before Pascha; Bulgaria's Цветница, Великден,
-Тодоровден and Спасовден — and belong beside `hc_holiday::computus` rather than
-duplicated here [elwiki-eortologio] [bg-patriarshia-calendar]. `gaps::GREECE`
-and `gaps::BULGARIA` record the rules until they arrive.
+**The movable Orthodox name days are rules, and `hc-holiday` carries them.**
+They are feasts on the Julian computus, so they sit beside
+`hc_holiday::computus` rather than in a list here, as two tradition tables:
+
+- `name-days-greek-movable`: the movable feasts eortologio.gr's table of
+  "Ορθόδοξες κινητές γιορτές" gives names for, from the Saturday of St
+  Theodore (Pascha − 43) through Thomas Sunday (Pascha + 7) to All Saints
+  (Pascha + 56), when "the names that have no known feast day" are kept;
+  St George on 23 April and St Mark on 25 April, "1 day" and "2 days" after
+  Pascha when Pascha falls after 23 April, as the Greek Wikipedia's St
+  George also has it; Chloe on the first Sunday after 13 February; and the
+  Sunday of the Forefathers on 11 December or the Sunday after
+  [eortologio-pasxa] [elwiki-agios-georgios].
+- `name-days-bulgarian-movable`: Тодоровден (Pascha − 43), Лазаровден (− 8),
+  Цветница (− 7), Великден, Bright Friday (+ 5), Томина неделя (+ 7),
+  Спасовден (+ 39), Всички светии (+ 56) and All Bulgarian Saints (+ 63),
+  held to the Bulgarian Wikipedia's table of 2010–2023 [bgwiki-imen-den].
+
+Each names the feast and the principal names the source prints, not the
+whole lists, which are the custom this crate does not carry.
+`gaps::GREECE` and `gaps::BULGARIA` still record the fixed lists.
 
 ## What is carried
 
@@ -203,6 +217,9 @@ carries the later file.
 | [huwiki-nevnap], [dawiki-navnedag], [stat-ee-nimepaevad], [ltwiki-vardadienis], [plwiki-imieniny] | Hungary, Denmark, Estonia, Lithuania, Poland | no, via the research report |
 | [huwiki-februar-24] | the worked example: the Hungarian names of 24, 25, 28 and 29 February and the leap-year shift | yes, 2026-09-26 |
 | [bg-patriarshia-calendar], [elwiki-eortologio], [ruwiki-imeniny] | the Orthodox countries and the movable rules | no, via the research report |
+| [eortologio-pasxa] | the Greek movable feasts, their days from Pascha and their names; St George, St Mark, Chloe and the Forefathers | yes, 2026-09-29 |
+| [elwiki-agios-georgios] | St George on the Monday of Bright Week when 23 April falls before Pascha | yes, 2026-09-29 |
+| [bgwiki-imen-den] | the Bulgarian movable name days, their rules and their days of 2010–2023 | yes, 2026-09-29 |
 | [frwiki-fleuristes], [ktabkbih-imendanski], [dewiki-namenstage] | France, Croatia, Germany and Austria | no, via the research report |
 
 "Via the research report" means the page was read during the survey of

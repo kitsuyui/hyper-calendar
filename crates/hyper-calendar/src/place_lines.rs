@@ -154,11 +154,10 @@ mod tests {
 
     /// Every subdivision a holiday table's rules are scoped to, column 9
     /// of `hc_holiday_tables`, and every country with a table, is a place
-    /// named in Japanese or in English and in use today, but two. CLDR 48's
-    /// validity data holds `gbeaw`, England and Wales, as deprecated, and
-    /// `gtgu`, the department of Guatemala, as deprecated too, beside
-    /// a regular `gt01` that `en.xml` names Guatemala; English does not name
-    /// `gtgu`, and among the carried locales only `fr.xml` does.
+    /// named in Japanese or in English and in use today, but one. CLDR 48's
+    /// validity data holds `gbeaw`, England and Wales, as deprecated. The
+    /// department of Guatemala is `gt01`, which `en.xml` names Guatemala,
+    /// not the deprecated `gtgu`.
     #[cfg(feature = "holiday")]
     #[test]
     fn every_place_a_holiday_table_names_has_a_line() {
@@ -180,9 +179,6 @@ mod tests {
             }
         }
         assert!(codes > 195, "{codes}");
-        assert_eq!(
-            deprecated,
-            ["GB-EAW deprecated England and Wales", "GT-GU deprecated "]
-        );
+        assert_eq!(deprecated, ["GB-EAW deprecated England and Wales"]);
     }
 }

@@ -86,8 +86,18 @@ holiday on such a number is kept is not settled by the sources read:
   July 2024, the first of two fourth days, follows Berzin's rule
   [tnp-losar]. Both are functions of `hc-calendars-regional`'s
   `tibetan_almanac`, `berzin_day` and `henning_almanac_day`
-  ([tibetan-almanac.md](tibetan-almanac.md)); this crate does not yet use
-  either.
+  ([tibetan-almanac.md](tibetan-almanac.md)).
+
+Each is a named convention of `Rule::TibetanDay`, its `when`
+(`hc_holiday::TibetanDayRule`): `Unsettled`, a gap; `Berzin`, the day
+`berzin_day` gives; and `HenningAlmanac`, the day `henning_almanac_day`
+gives, or none for a skipped number, which is an answer and not a gap.
+Henning's almanacs settle the month as well: in a year that doubles the
+month they mark the festival in both, the almanac for 2024 marking the
+Turning of the Wheel on 10 July, in the leap month 6, and on 8 August, in
+the regular one [kalacakra-org-archive]. The tables are three, one per
+convention: `buddhist-tibetan`, `buddhist-tibetan-berzin` and
+`buddhist-tibetan-henning`.
 - In 2022 the third day of the first spring month was skipped. iKon.mn
   reported, from an unnamed source, three days off from 2 February, the
   Government having not yet discussed it [ikon-tsagaan-sar-2022].
@@ -98,10 +108,12 @@ holiday on such a number is kept is not settled by the sources read:
   have put the first day on Friday 28 February, the *bituun*, which the
   resolution does not.
 
-No Bhutanese list read falls on a skipped or repeated day. So a Gregorian
-year in which a holiday's number is skipped or repeated is not answered:
-`Rule::TibetanDay` reports it as a gap, and the days of the holiday that
-are not affected are still given. For deciding which Gregorian year that
+No Bhutanese list read falls on a skipped or repeated day, and neither
+Mongolia's law nor its resolutions state a rule. So in the countries'
+tables a Gregorian year in which a holiday's number is skipped or repeated
+is not answered: `Rule::TibetanDay` with `TibetanDayRule::Unsettled`
+reports it as a gap, and the days of the holiday that are not affected are
+still given. For deciding which Gregorian year that
 is, a skipped day lies on the calendar day its lunar day ends in, the day
 before the next number's.
 
@@ -141,6 +153,7 @@ Government's calendar of 2003 disagreed with the arithmetic (below).
 | Descending Day of Lord Buddha | 22nd of month 9 | 2025, 2026 | every other year |
 | Thimphu Drubchoe, in `BT-15` | 6th of month 8 | 2025, 2026 | every other year |
 | Thimphu Tshechu, three days, in `BT-15` | 10th to 12th of month 8 | 2025, 2026 | every other year |
+| Winter Solstice | the day the Bhutanese mean Sun reaches 250° | 2025, 2026 | every other year, by `bhutanese_winter_solstice` |
 
 The Mongolian years are those of the laws that added the days. Chinggis
 Khaan Day's law of 8 November 2012 came before that year's day, which
@@ -151,23 +164,24 @@ Not carried:
 
 - the rest days of 3–5 March 2025, a transfer to be worked back, like the
   Government's other transfers;
-- the Winter Solstice and the Blessed Rainy Day, which both lists put on
-  2 January and 23 September on different Bhutanese days. Janson defines
-  the solstice as the day the mean solar longitude of the Bhutanese
-  calendar reaches 250°, after Henning's program, and says it "will be
-  3 January for the first time in 2020" [janson2014, Appendix A.4]. The
-  instant the mean Sun reaches 250°, by Janson's rule for the almanac's
-  special days, gives Henning's almanacs' days and times of 2001–2020 and
-  both lists' 2 January; it is `hc-calendars-regional`'s
+- the Blessed Rainy Day, which both lists put on 23 September on
+  different Bhutanese days, so it is solar; no rule was read for it. The
+  Winter Solstice, on 2 January in both lists, is carried: Janson defines
+  it as the day the mean solar longitude of the Bhutanese calendar reaches
+  250°, after Henning's program, and says it "will be 3 January for the
+  first time in 2020" [janson2014, Appendix A.4]. The instant the mean Sun
+  reaches 250°, by Janson's rule for the almanac's special days, gives
+  Henning's almanacs' days and times of 2001–2020 and both lists'
+  2 January; it is `hc-calendars-regional`'s
   `tibetan_almanac::bhutanese_winter_solstice`
-  ([tibetan-almanac.md](tibetan-almanac.md)), and wiring it here is a
-  follow-up. No rule was read for the Rainy Day;
+  ([tibetan-almanac.md](tibetan-almanac.md)), and the table predicts the
+  day with it outside the lists' years, marked approximate;
 - Dassain, Vijaya Dashami. The crate's Indian rule, Āśvina śukla 10 in the
   afternoon, puts it on 20 October 2026, a day before the list. A sunrise
   or midday tithi at Kathmandu or at the Indian station gives both lists'
   days, 2 October 2025 and 21 October 2026, but no source read says which
   convention the Ministry follows, and two years cannot choose it;
-- the three, then, are taken from the lists, and another year is a gap.
+- those two, then, are taken from the lists, and another year is a gap.
 
 ### Bhutan's districts
 
@@ -243,12 +257,33 @@ in 15 years — Tsagaan Sar in 11 — and of the Bhutanese in 23
 `bhutan_predicts_its_bhutanese_calendar_days_beyond_the_lists`).
 
 **The *düchen*** (`the_tibetan_duchen_are_the_tibetan_nuns_projects_2024_dates`,
-`a_skipped_or_repeated_tibetan_day_is_a_gap_and_not_a_guess`). Losar,
+`a_skipped_or_repeated_tibetan_day_is_a_gap_and_not_a_guess`,
+`the_festivals_henning_marks_are_on_the_phugpa_days`). Losar,
 Saga Dawa Düchen, the Universal Prayer Day and Lhabab Düchen of 2024 are
 the Tibetan Nuns Project's 10 February, 23 May, 22 June and 22 November;
 its Chökhor Düchen of 9 July is the leap-month day above, and 2024 reports
 it as a gap and gives neither 9 July nor 8 August. Over 2000–2100 one of
-the five is a gap 27 times, in 26 years.
+the five is a gap 27 times, in 26 years. The four festivals Henning's
+almanacs mark that the list does not — the Demonstration of Miracles on
+the first fifteen days of the year, the Revelation of the Kalacakra Tantra
+on 3/15, the Birth of the Buddha on 4/7 and the entry into the womb on
+6/15 — fall on the almanacs' days of 2024 to 2026: 23 April and 14 May
+2024, 28 February, 12 May, 2 June and 9 August 2025, 18 February, 1 May,
+23 May and 29 July 2026.
+
+**Berzin's rule** (`berzin_s_rule_keeps_a_skipped_day_on_the_day_before_and_a_repeated_one_on_the_first`).
+Over 2000–2050 every day `buddhist-tibetan` gives, `buddhist-tibetan-berzin`
+gives too, and every gap of a skipped or repeated number is answered; the
+gaps left are the years that double the month, 2024's sixth among them.
+The Birth of the Buddha of 1990, whose 7th is skipped, is 30 May, the 6th.
+
+**Henning's almanacs** (`henning_s_almanac_marks_both_months_and_no_skipped_day`).
+`buddhist-tibetan-henning`, on `tibetan-lochen`, gives every festival of
+the almanacs for 1990 and 2024 to 2026 on the almanacs' day: in 2024 the
+Turning of the Wheel on 10 July, the second of two fourth days of the leap
+month 6, and on 8 August, and the entry into the womb on 21 July and
+19 August; in 1990 no Birth of the Buddha. It reports no gap in any year
+of 1960–2045.
 
 ## Sources
 
@@ -262,19 +297,23 @@ the five is a gap 27 times, in 26 years.
 | [moha-bt-notification-2021] | That the Ministry changed the dates of Thimphu Drubchoe and Tshechu in 2021 | Yes, 2026-09-29; the notification's dates are not on the page |
 | [tnp-losar] | The *düchen* of 2024 and their lunar dates, Chökhor Düchen in the leap month 6 | Yes, 2026-09-26 |
 | [janson2014] | The months by season, holidays not in leap months, the New Year in a leap month, Berzin's rule for skipped and repeated dates, the Bhutanese holidays and Winter Solstice, Losar 2003 | Yes, from the TeX source |
-| [kalacakra-org] | Henning's Bhutanese program and holiday list | Not reachable on 2026-09-26 for this document; read over plain HTTP 2026-09-29 for [tibetan-almanac.md](tibetan-almanac.md), which gives the solstice's 18;45 |
-| [kalacakra-org-archive] | Henning's computed almanacs: where a festival on a skipped or repeated date is marked | Yes, 2026-09-29, Phugpa 1960–2045 |
+| [kalacakra-org] | Henning's Bhutanese program and holiday list | Read over plain HTTP 2026-09-29, for [tibetan-almanac.md](tibetan-almanac.md), which gives the solstice's 18;45 |
+| [kalacakra-org-archive] | Henning's computed almanacs: where a festival on a skipped or repeated date is marked; the festivals, their English words and their days in 1990 and 2024–2026, both months of 2024 | Yes, 2026-09-29, Phugpa 1960–2045, and again 2026-09-29 for 1990 and 2024–2026 |
 | Berzin, *Tibetan Astro Science* (1986) | The rule for skipped and repeated dates | Not read; cited through Janson |
 
 ## Code
 
-- `crates/hc-holiday/src/rule.rs`: `Rule::TibetanDay`, `TibetanMonth`,
+- `crates/hc-holiday/src/rule.rs`: `Rule::TibetanDay`, `TibetanDayRule`, `TibetanMonth`,
   `CalendarSystem::MONGOLIAN`, `CalendarSystem::TIBETAN_BHUTAN`, and the
   unit test `a_tibetan_day_is_a_gap_where_its_number_is_skipped_or_repeated`.
 - `crates/hc-holiday/src/countries/asia.rs`: `MONGOLIA` and `BHUTAN`;
   `crates/hc-holiday/src/countries/bhutan.rs`: `THIMPHU_DAYS`, joined to
   `BHUTAN`'s nationwide rules.
-- `crates/hc-holiday/src/traditions.rs`: `BUDDHIST_TIBETAN`, on `tibetan`.
+- `crates/hc-holiday/src/traditions.rs`: `BUDDHIST_TIBETAN` and
+  `BUDDHIST_TIBETAN_BERZIN`, on `tibetan`, and `BUDDHIST_TIBETAN_HENNING`,
+  on `tibetan-lochen`.
+- `crates/hc-holiday/src/countries/bhutan.rs`: `winter_solstice`, the
+  Winter Solstice outside the lists.
 - `crates/hc-holiday/tests/countries.rs`, `tests/traditions.rs` and
   `tests/provincial_days.rs`: the tests named above, and
   `bhutan_keeps_thimphu_s_festivals_in_thimphu`.

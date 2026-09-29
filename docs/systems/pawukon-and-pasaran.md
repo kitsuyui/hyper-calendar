@@ -166,10 +166,21 @@ names.
   Dershowitz give it; fixed day 0 for the wetonan, which is the same
   five-day cycle's Legi. The two are written separately in the code and a
   test holds them to each other.
-- **Not carried**: the Pawukon's holy days and named coincidences —
-  Galungan, Kuningan, Tumpek, Kajeng Kliwon, which Reingold and Dershowitz
-  compute as `tumpek` and `kajeng-keliwon` [reingold2018code] — since they
-  are observances, the province of `hc-holiday`; the urip and meanings of
+- **The holy days**, in `hc-holiday`'s table `balinese-pawukon-days`:
+  Galungan on Buda Kliwon Dungulan and Kuningan on Saniscara Kliwon
+  Kuningan, ten days later [wikipedia-galungan, wikipedia-kuningan-bali];
+  the six Tumpek, every Saniscara Kliwon, named by their *wuku*, as
+  Reingold and Dershowitz's `tumpek` computes them, "the 14th day of
+  Pawukon and every 35th subsequent day", Tumpek Wariga being Tumpek Uduh
+  [reingold2018code, wikipedia-id-tumpek-uduh]; and Kajeng Kliwon, every
+  fifteen days, their `kajeng-keliwon` [reingold2018code,
+  wikipedia-id-kajeng-kliwon]. A test holds Galungan and Kuningan to
+  Wikipedia's eighteen pairs of 2018–2028 and the Tumpek and Kajeng
+  Kliwon of 2000–2030 to the book's `positions-in-range`, computed from
+  the anchor independently of the weeks' formulas.
+- **Not carried**: the other named coincidences and the days around
+  Galungan — Penampahan, Manis Galungan and the rest — and each Tumpek's
+  other names, Tumpek Kandang among them; the urip and meanings of
   the ten-day week's own days and the rest of the divination; the *krama*
   pasaran names; any year count, Balinese or Javanese. The Javanese lunar
   calendar the pasaran belongs to is written up in
@@ -186,6 +197,8 @@ approximation. What the tests check against a source outside the code:
 | The 33 sample dates of *Calendrical Calculations*, 586 BCE to 2094, as its published code computes them [reingold2018code, `dates.l`]: `balinese-pawukon`, Luang and the nine weeks, the book's ten-day week 0 to 9 against this one's 1 to 10 | `every_sample_date_agrees_or_is_refused_or_is_a_known_difference` (`crates/hyper-calendar/tests/rd_sample_dates.rs`) | 33 of 33 |
 | Five Galungan dates 210 days apart, 28 February 2024 to 17 June 2026, are Buda Kliwon Dungulan, day 73 | `galungan_always_falls_on_buda_kliwon_dungulan` | Holds |
 | Galungan, 17 June 2026, is on every week as the published reading gives it, the ten-day week Manuh | `galungan_is_manuh_in_the_ten_day_week` | Holds |
+| Galungan and Kuningan, eighteen pairs 30 May 2018 to 18 March 2028 [wikipedia-galungan] | `galungan_and_kuningan_are_wikipedias_dates` (`crates/hc-holiday/tests/traditions.rs`) | 18 of 18 |
+| Every Tumpek and Kajeng Kliwon of 2000–2030 is the book's `positions-in-range` 13 of 35 and 8 of 15 [reingold2018code] | `tumpek_and_kajeng_kliwon_are_the_books_positions_in_the_pawukon` | all |
 | 5 January 2021, Wikipedia's worked day, is day 184 and on every week as the article gives it, the ten-day week Dewa | `wikipedias_worked_day_comes_out_on_all_ten_weeks` | Holds |
 | The first and sixth days of the cycle are Sri and Manuh in the ten-day week, as the article works them | `the_first_and_sixth_days_are_sri_and_manuh` | Holds |
 | The seven-day week is the Gregorian weekday, Redite Sunday, over 500 days | `the_seven_day_week_never_slipped_against_the_gregorian_one` | Holds |
@@ -212,7 +225,7 @@ code carries no names.
 | Key | Used for | Read |
 | --- | --- | --- |
 | [reingold2018] | The Pawukon's arithmetic as a whole, §10.6 per the module | Not read directly; the published code was |
-| [reingold2018code] | `bali-epoch`, `bali-day-from-fixed`, the ten `bali-…-from-fixed` functions, `bali-week-from-fixed`, `bali-on-or-before`, `kajeng-keliwon`, `tumpek` | Yes, 2026-09-26 |
+| [reingold2018code] | `bali-epoch`, `bali-day-from-fixed`, the ten `bali-…-from-fixed` functions, `bali-week-from-fixed`, `bali-on-or-before`, `kajeng-keliwon`, `tumpek`, `positions-in-range` | Yes, 2026-09-26, and `tumpek`, `kajeng-keliwon` and `positions-in-range` again 2026-09-29 |
 | [wikipedia-pawukon] | The ten weeks and their names, the padding of the four-, eight- and nine-day weeks, the urip and the ten-day rule, the anchor's Julian date, the 5 January 2021 example, the table of all 210 days | Yes, 2026-09-26; the article cites no source |
 | [idntimes-galungan-2018] | Galungan as Buda Kliwon Dungulan, and all ten week names of that day | Yes, 2026-09-26; it cites no source |
 | [detik-galungan-2026] | Galungan on 17 June 2026, from the Ministry of Religious Affairs' circular | Yes, 2026-09-26 |
@@ -222,6 +235,10 @@ code carries no names.
 | [wikipedia-javanese-calendar] | The pasaran's names and *krama* names, the wetonan, Selasa Wage, Jumat Legi of 17 August 1945 as taught in schools | Yes, 2026-09-26 |
 | [idwiki-weton] | The neptu of both weeks, the weton's uses, the 35-day *selapan* | Yes, 2026-09-26; it names the *Primbon Betaljemur Adammakna*, not read |
 | [idwiki-proklamasi] | 17 August 1945 a Friday | Yes, 2026-09-26; it gives no pasaran |
+| [wikipedia-galungan] | Galungan on Buda Keliwon Dunggulan, Kuningan ten days after, the dates of 2018–2028 | Yes, 2026-09-29; it cites balilocalguide.com, not read |
+| [wikipedia-kuningan-bali] | Kuningan on Saniscara Kliwon Wuku Kuningan | Yes, 2026-09-29 |
+| [wikipedia-id-tumpek-uduh] | Tumpek Wariga, Saniscara Kliwon Wariga, 25 days before Galungan | Yes, 2026-09-29 |
+| [wikipedia-id-kajeng-kliwon] | Kajeng Kliwon every fifteen days | Yes, 2026-09-29 |
 | The other four Galungan dates in the test, 2024 and 2025 | The test's other rows | Not re-read; they follow from 2026 by multiples of 210 days |
 
 The seven-day week's Monday is Coma in the module's name table, a spelling
@@ -237,7 +254,10 @@ were read by the module's author on 2026-09-26 and not re-read here.
 ## Code
 
 `crates/hc-calendars-regional/src/balinese_pawukon.rs` and
-`crates/hc-calendars-regional/src/javanese_pasaran.rs`. Anchors:
+`crates/hc-calendars-regional/src/javanese_pasaran.rs`; the holy days,
+`hc-holiday`'s `traditions::BALINESE_PAWUKON_DAYS`, anchored by
+`galungan_and_kuningan_are_wikipedias_dates` and
+`tumpek_and_kajeng_kliwon_are_the_books_positions_in_the_pawukon`. Anchors:
 `galungan_always_falls_on_buda_kliwon_dungulan`,
 `the_seven_day_week_never_slipped_against_the_gregorian_one`,
 `the_epoch_is_julian_day_one_hundred_and_forty_six`,

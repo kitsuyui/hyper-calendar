@@ -45,58 +45,63 @@ offices in Maharashtra: Mumbai, Belapur and Nagpur.
 
 ## What is carried
 
-The thirteen largest states, for 2025 and 2026: each day as above, as a
-rule of `INDIA` for its year, scoped to its state and of `Kind::Bank`. The
-years before 2025 are not carried; 2027, which the Reserve Bank had not
-published, and every later year is a gap, reported once per state as
-"Holidays under the Negotiable Instruments Act". A day the nationwide table
+The thirteen largest states, for 2019 to 2026: each day as above, as a
+rule of `INDIA` for its year, scoped to its state and of `Kind::Bank`.
+Andhra Pradesh's are from 2023, the first year the Reserve Bank's office
+at Vijayawada has a list. Every year before a state's first, and 2027,
+which the Reserve Bank had not published, and every later year, is a gap,
+reported once per state as "Holidays under the Negotiable Instruments Act":
+the days are declared year by year, so a year whose list was not read has
+none that can be given, and must not look like a year without them. A day the nationwide table
 also has, as Republic Day, is both the nationwide entry and the state's.
 
 An election day at a state's one office is left out, since the list does
 not say how far in the state it runs: the Legislative Assembly polls of
-Tamil Nadu (23 April 2026) and West Bengal (29 April 2026), and "Elections
-in the jurisdiction of Jaipur Municipal Corporation" (11 September 2026).
+Tamil Nadu (23 April 2026) and West Bengal (29 April 2026), "Elections
+in the jurisdiction of Jaipur Municipal Corporation" (11 September 2026),
+and the general elections of 2019 and 2024 at the offices of Bengaluru,
+Ahmedabad, Hyderabad, Bhopal, Chennai, Jaipur and Vijayawada.
 Where a state has several offices, an election day at every one of them is
 carried.
 
-| Code | State or union territory | Reserve Bank office | Days carried, 2025 and 2026 |
+| Code | State or union territory | Reserve Bank office | Days carried, 2019 to 2026 |
 | --- | --- | --- | --- |
 | IN-AN | Andaman and Nicobar Islands | none | not carried: no office |
-| IN-AP | Andhra Pradesh | Vijayawada | 16 and 20 |
+| IN-AP | Andhra Pradesh | Vijayawada | —, —, —, —, 14, 20, 16, 20 |
 | IN-AR | Arunachal Pradesh | Itanagar | not yet carried |
 | IN-AS | Assam | Guwahati | not yet carried |
-| IN-BR | Bihar | Patna | 18 and 20 |
+| IN-BR | Bihar | Patna | 18, 19, 21, 16, 19, 20, 18, 20 |
 | IN-CG | Chhattisgarh | Raipur | not yet carried |
 | IN-CH | Chandigarh | Chandigarh | not yet carried: whose days the office's list gives — the union territory's, Punjab's or Haryana's, all three governments sitting in the city — was not established |
 | IN-DH | Dadra and Nagar Haveli and Daman and Diu | none | not carried: no office |
 | IN-DL | Delhi | New Delhi | not yet carried |
 | IN-GA | Goa | Panaji | not yet carried |
-| IN-GJ | Gujarat | Ahmedabad | 19 and 19 |
+| IN-GJ | Gujarat | Ahmedabad | 19, 20, 18, 17, 18, 17, 19, 19 |
 | IN-HP | Himachal Pradesh | Shimla | not yet carried |
 | IN-HR | Haryana | none of its own (Chandigarh) | not carried, as for IN-CH |
 | IN-JH | Jharkhand | Ranchi | not yet carried |
 | IN-JK | Jammu and Kashmir | Jammu, Srinagar | not yet carried |
-| IN-KA | Karnataka | Bengaluru | 21 and 22 |
-| IN-KL | Kerala | Thiruvananthapuram, Kochi | 16 and 22 |
+| IN-KA | Karnataka | Bengaluru | 25, 20, 22, 18, 20, 23, 21, 22 |
+| IN-KL | Kerala | Thiruvananthapuram, Kochi | 17, 16, 21, 17, 19, 18, 16, 22 |
 | IN-LA | Ladakh | none | not carried: no office |
 | IN-LD | Lakshadweep | none | not carried: no office |
-| IN-MH | Maharashtra | Mumbai, Belapur, Nagpur | 18 and 22 |
+| IN-MH | Maharashtra | Mumbai, Belapur, Nagpur | 23, 21, 23, 19, 23, 22, 18, 22 |
 | IN-ML | Meghalaya | Shillong | not yet carried |
 | IN-MN | Manipur | Imphal | not yet carried |
-| IN-MP | Madhya Pradesh | Bhopal | 18 and 21 |
+| IN-MP | Madhya Pradesh | Bhopal | 16, 18, 16, 16, 18, 19, 18, 21 |
 | IN-MZ | Mizoram | Aizawl | not yet carried |
 | IN-NL | Nagaland | Kohima | not yet carried |
-| IN-OD | Odisha | Bhubaneswar | 21 and 20 |
+| IN-OD | Odisha | Bhubaneswar | 17, 18, 16, 18, 19, 24, 21, 20 |
 | IN-PB | Punjab | none of its own (Chandigarh) | not carried, as for IN-CH |
 | IN-PY | Puducherry | none | not carried: no office |
-| IN-RJ | Rajasthan | Jaipur | 17 and 16 |
+| IN-RJ | Rajasthan | Jaipur | 15, 15, 16, 15, 17, 17, 17, 16 |
 | IN-SK | Sikkim | Gangtok | not yet carried |
-| IN-TN | Tamil Nadu | Chennai | 20 and 22 |
+| IN-TN | Tamil Nadu | Chennai | 20, 20, 22, 18, 22, 22, 20, 22 |
 | IN-TR | Tripura | Agartala | not yet carried |
-| IN-TS | Telangana | Hyderabad | 18 and 20 |
+| IN-TS | Telangana | Hyderabad | 20, 22, 22, 17, 22, 22, 18, 20 |
 | IN-UK | Uttarakhand | Dehradun | not yet carried |
-| IN-UP | Uttar Pradesh | Lucknow, Kanpur | 23 and 25 |
-| IN-WB | West Bengal | Kolkata | 25 and 27 |
+| IN-UP | Uttar Pradesh | Lucknow, Kanpur | 21, 21, 23, 20, 24, 24, 23, 25 |
+| IN-WB | West Bengal | Kolkata | 21, 21, 23, 17, 25, 24, 25, 27 |
 
 "Not yet carried" means the Reserve Bank's list for the office was read
 for 2019 to 2026 and the state's days are waiting on the same treatment;
@@ -112,9 +117,8 @@ Not carried:
   the notifications give and which were not read.
 - *A holiday on a Sunday*, which the Reserve Bank does not list.
 - *A day at one office of several*, as the worked example's.
-- *The years before 2025* in the thirteen states: the lists back to 2019
-  were read, and carrying them is a matter of size, not of a missing
-  source.
+- *The years before 2019*, and before 2023 in Andhra Pradesh: the
+  Reserve Bank's lists for them were not read, and are reported gaps.
 
 ## Accuracy
 
@@ -129,7 +133,7 @@ state keeps that festival.
 
 | Key | Used for | Read |
 | --- | --- | --- |
-| [rbi-ni-act-holidays] | Every day carried, its description, the offices | Yes, 2026-09-29, each office's list for 2019 to 2026 through the page's form |
+| [rbi-ni-act-holidays] | Every day carried, its description, the offices | Yes, 2026-09-29, each office's list for 2019 to 2026 through the page's form, and 2019 to 2024 again the same day, every row the same |
 | `hc-holiday`'s India table | The DoPT's nationwide list, beside which the states' days stand | This repository |
 
 ## Code
@@ -142,5 +146,5 @@ evaluates.
 Anchors: `crates/hc-holiday/tests/india_states.rs`,
 `a_state_keeps_the_days_the_reserve_bank_lists_for_it`,
 `a_state_s_day_is_its_own`,
-`the_states_are_carried_for_2025_and_2026_and_are_a_gap_after` and
+`the_states_are_carried_for_2019_to_2026_and_are_a_gap_before_and_after` and
 `no_state_day_falls_on_a_sunday`.

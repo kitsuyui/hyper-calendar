@@ -31,7 +31,7 @@
 //! | [`oriental_fasts`] | the Armenian, Coptic and Ethiopian fasts, each church's own scheme, as reckonings of [`orthodox_fasts`] |
 //! | [`east_syriac`] | the Church of the East's Fridays and saints' days, and the Chaldean and Syro-Malabar years |
 //! | [`book_of_common_prayer`] | the calendar of the Book of Common Prayer of 1662, red-letter and black-letter days |
-//! | [`international`] | the United Nations international days, each citing its resolution |
+//! | [`international`] | the United Nations international days and weeks, each citing its resolution |
 //! | [`countries`] | the national tables |
 //! | [`exchanges`] | the trading calendars of stock exchanges |
 //!
@@ -125,7 +125,7 @@ pub use rule::EvaluationContext;
 pub use rule::{
     BridgePolicy, CalendarSystem, Confidence, Days, HolidayRule, Kind, ListedEntry, Listing,
     ListingKey, Rule, RuleSet, Scope, SourceDate, SubstituteDirection, SubstitutionPolicy,
-    TibetanMonth, WeekendPolicy,
+    TibetanDayRule, TibetanMonth, WeekendPolicy,
 };
 
 #[cfg(feature = "alloc")]

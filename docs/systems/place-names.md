@@ -179,14 +179,15 @@ are scoped to, `JP-01;JP-07;…;JP-47` for the nineteen prefectures with
 days of their own, and `hc_holidays_on` writes the one an entry is for in
 its column 10. Every such code has a line here, and every
 country with a table has a territory line; a test in `place_lines` holds
-the lists to each other. Two of the codes the tables use are `deprecated`
+the lists to each other. One of the codes the tables use is `deprecated`
 in CLDR 48: `GB-EAW`, England and Wales, which English and most carried
-locales still name, and `GT-GU`, the department of Guatemala, to which
-the table scopes Guatemala City's festivity, and which only `fr.xml` names
-among the carried locales (département de Guatemala). CLDR 48 holds
-`GT-01`, which `en.xml` names Guatemala, as regular; no alias links the
-two. A page shows `GT-GU` by its code until the holiday table's code is
-revisited.
+locales still name. Guatemala City's festivity is scoped to the department
+of Guatemala as `GT-01`, which `en.xml` names Guatemala and CLDR 48 holds
+as regular; its old code, `GT-GU`, is deprecated, and ISO 3166-2 replaced
+it with `GT-01` on 25 November 2021, when it renumbered all twenty-two
+departments (Wikipedia, "ISO 3166-2:GT", the change of 2021-11-25 on the
+Online Browsing Platform, retrieved 2026-09-29). No CLDR alias links the
+two codes, so a caller holding the old one must map it.
 
 The countries a holiday table's line names in column 3 come from
 `hc-i18n`'s smaller `territories` module, which the `holiday` feature

@@ -225,6 +225,34 @@ fn the_section_8_days_are_kept_with_the_offices_open() {
     assert!(named(&before, "जेनजी सहिद दिवस").is_empty());
 }
 
+/// Martyrs' Day, Māgha 16: the notice for 2080 BS lists it in section 8,
+/// a day with the offices open (Māgha 16, 2080 = Tuesday 30 January
+/// 2024), and those for 2081 to 2083 in section 6.1, a day off for
+/// everyone (29 January 2025, 30 January 2026, 30 January 2027), as Nagarik
+/// News's list of 2080 and Nepal Press's of 2081 print it too.
+#[test]
+fn martyrs_day_was_kept_with_the_offices_open_in_2080_bs_alone() {
+    let calendar = HolidayCalendar::for_year(&NEPAL, None, 2024);
+    let own = named(&calendar, "सहिद दिवस");
+    assert_eq!(
+        own.iter().map(|holiday| holiday.date).collect::<Vec<_>>(),
+        [ymd(2024, 1, 30)]
+    );
+    assert_eq!(own[0].kind, Kind::Observance);
+    assert!(calendar.is_business_day(ymd(2024, 1, 30)));
+    for (year, month, day) in [(2025, 1, 29), (2026, 1, 30), (2027, 1, 30)] {
+        let calendar = HolidayCalendar::for_year(&NEPAL, None, year);
+        let own = named(&calendar, "सहिद दिवस");
+        assert_eq!(
+            own.iter().map(|holiday| holiday.date).collect::<Vec<_>>(),
+            [ymd(year, month, day)],
+            "{year}"
+        );
+        assert_eq!(own[0].kind, Kind::Public, "{year}");
+        assert!(calendar.is_holiday(ymd(year, month, day)), "{year}");
+    }
+}
+
 #[test]
 fn the_table_lists_nepal_s_groups() {
     let ids: Vec<&str> = NEPAL.groups().iter().map(|group| group.id).collect();

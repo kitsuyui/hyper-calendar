@@ -1469,7 +1469,7 @@ static GT_RULES: &[HolidayRule] = &[
         "Día de la Asunción",
         Rule::gregorian(8, 15),
     )
-    .in_regions(&["GT-GU"]),
+    .in_regions(&["GT-01"]),
     HolidayRule::fixed_public(
         "Independence Day",
         "Día de la Independencia",
@@ -1510,7 +1510,9 @@ static GT_RULES: &[HolidayRule] = &[
 ///
 /// Article 127 of the Código de Trabajo: the days of paid rest, with
 /// Christmas Eve and New Year's Eve from noon as [`Kind::Bank`] half days
-/// and the Assumption as Guatemala City's own festivity, `GT-GU`. The Law
+/// and the Assumption as Guatemala City's own festivity, in the
+/// department of Guatemala, `GT-01`, the code ISO 3166-2 gave it on
+/// 25 November 2021 in place of `GT-GU`. The Law
 /// Promoting Internal Tourism as reformed by Decreto 19-2018, in force
 /// from 18 October 2018, moves Army Day to the Monday before from a
 /// Tuesday or Wednesday and the Monday after from any later day, and did
