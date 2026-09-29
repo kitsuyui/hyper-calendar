@@ -242,8 +242,10 @@ fn write_city<W: Write>(out: &mut W, context: &FormatContext<'_>) -> FormatResul
 mod names {
     use core::fmt::Write;
 
+    use hc_core::UnixTime;
     use hc_i18n::Locale;
     use hc_i18n::exemplar_cities;
+    use hc_i18n::place_names::{self, Alt, Draft};
     use hc_i18n::zone_names::{self, NameLength, NameType, ZoneId, ZoneName};
 
     use super::{names_locale, zone_formats};
@@ -276,6 +278,47 @@ mod names {
 
     fn zone(context: &FormatContext<'_>) -> Option<ZoneId> {
         context.zone_id.and_then(zone_names::zone_id)
+    }
+
+    /// UTS #35's 184 days: "184 is the smallest number that is at least 6
+    /// months AND the smallest number that is more than 1/2 year
+    /// (Gregorian)".
+    const STEADY_SECONDS: i64 = 184 * 86_400;
+
+    /// Whether the reading is standard time and the zone's rules change
+    /// neither the offset nor the daylight flag within 184 days either side
+    /// of it: the condition of UTS #35's last type fallback, "the offset and
+    /// daylight offset do not change within 184 day +/- interval around the
+    /// exact formatted time". The flag stands for the daylight offset, which
+    /// the rules do not state apart from the offset. `false` where the
+    /// context holds no rules or does not say the reading is standard time.
+    fn steady(context: &FormatContext<'_>) -> bool {
+        let Some(rules) = context.zone_rules else {
+            return false;
+        };
+        if context.zone_daylight != Some(false) {
+            return false;
+        }
+        let at = utc_minutes(context) * 60 + i64::from(context.date_time.time.second());
+        let (Some(start), Some(end)) = (
+            at.checked_sub(STEADY_SECONDS),
+            at.checked_add(STEADY_SECONDS),
+        ) else {
+            return false;
+        };
+        let reading = |seconds: UnixTime| (rules.offset_at(seconds), rules.is_dst_at(seconds));
+        let first = reading(UnixTime::from_seconds(start));
+        let mut from = UnixTime::from_seconds(start);
+        while let Some(next) = rules.next_transition(from) {
+            if next.seconds() > end {
+                break;
+            }
+            if reading(next) != first {
+                return false;
+            }
+            from = next;
+        }
+        true
     }
 
     /// The specific non-location name: the zone's own, else its
@@ -324,6 +367,17 @@ mod names {
     /// zone's country or city where the zone is not the metazone's
     /// preferred zone for the locale's country (*Pacific Time (Canada)*
     /// for Vancouver in `en`).
+    ///
+    /// Before the metazone's generic name, UTS #35's last type fallback:
+    /// where the zone is [`steady`], the standard name, the zone's own or
+    /// else its metazone's, unqualified, as the rule's example has it:
+    /// "Mountain Standard Time" for Phoenix. The rule's text asks for it where "the generic
+    /// type is needed, but not available", and its example applies it where
+    /// the generic name exists, as `America_Mountain`'s *Mountain Time*
+    /// does; both are covered. Where the standard name is the generic
+    /// name's text, the generic path is kept, with its qualifier. ICU4J's
+    /// `TimeZoneGenericNames` does the same for a zone that keeps no
+    /// daylight time within 184 days (`icu4j-generic-names`).
     pub(super) fn generic<W: Write>(
         out: &mut W,
         context: &FormatContext<'_>,
@@ -344,10 +398,24 @@ mod names {
         let Some(metazone) = zone_names::metazone_at(id.canonical, utc_minutes(context)) else {
             return Ok(false);
         };
-        let Some(ZoneName { name, .. }) = zone_names::with_type_fallback(
+        let generic = zone_names::with_type_fallback(
             |kind| zone_names::metazone_name(&locale, metazone, length, kind),
             NameType::Generic,
-        ) else {
+        );
+        if steady(context) {
+            let standard =
+                zone_names::own_zone_name(&locale, id.canonical, length, NameType::Standard)
+                    .or_else(|| {
+                        zone_names::metazone_name(&locale, metazone, length, NameType::Standard)
+                    });
+            if let Some(standard) = standard
+                && generic.is_none_or(|generic| generic.name != standard.name)
+            {
+                out.write_str(standard.name)?;
+                return Ok(true);
+            }
+        }
+        let Some(ZoneName { name, .. }) = generic else {
             return Ok(false);
         };
         let country = locale
@@ -431,15 +499,19 @@ mod names {
     }
 
     /// A country by its short name, else its name, else its code, as UTS
-    /// #35's composition has it.
+    /// #35's composition has it: "continue with short country name, if it
+    /// exists, otherwise the country name", and "if the localized country
+    /// name is not available, use the code". The names are CLDR's at its
+    /// release levels, `approved` and `contributed`, as the zone names are.
     fn write_country<W: Write>(out: &mut W, locale: &Locale, region: &str) -> FormatResult<()> {
-        match hc_i18n::territories::territory_name(locale, region) {
-            Some(found) => {
-                let short = hc_i18n::territories::short_name(found.tag, region);
-                out.write_str(short.unwrap_or(found.name))?;
-            }
-            None => out.write_str(region)?,
-        }
+        let place = place_names::territory(region);
+        let level = Draft::Contributed;
+        let found = place.and_then(|place| {
+            place
+                .alternative_in(Some(locale), Alt::Short, level)
+                .or_else(|| place.name_at(Some(locale), level))
+        });
+        out.write_str(found.map_or(region, |found| found.name))?;
         Ok(())
     }
 

@@ -135,6 +135,13 @@ pub struct FormatContext<'a> {
     /// name (`z`, *Pacific Daylight Time*) needs; `None` where it is not
     /// known. Supply it from [`hc_tz::TimeZone::is_dst_at`].
     pub zone_daylight: Option<bool>,
+    /// The zone's rules, which UTS #35's last type fallback reads: a
+    /// generic name (`v`, `vvvv`) is written as the standard one where the
+    /// offset and the daylight flag do not change within 184 days either
+    /// side of the instant, so that `America/Phoenix` is *Mountain Standard
+    /// Time* and not *Mountain Time*. `None` where the caller has no rules,
+    /// and the generic name stands.
+    pub zone_rules: Option<&'a dyn hc_tz::TimeZone>,
     /// The locale whose vocabulary to use, or `None` for POSIX `C`.
     pub locale: Option<&'a Locale>,
     /// The calendar whose era `strftime`'s `%E` conversions write, POSIX's
@@ -155,6 +162,7 @@ impl fmt::Debug for FormatContext<'_> {
             .field("zone_name", &self.zone_name)
             .field("zone_id", &self.zone_id)
             .field("zone_daylight", &self.zone_daylight)
+            .field("zone_rules", &self.zone_rules.map(hc_tz::TimeZone::name))
             .field("locale", &self.locale)
             .field(
                 "era_calendar",
@@ -175,6 +183,7 @@ impl<'a> FormatContext<'a> {
             zone_name: None,
             zone_id: None,
             zone_daylight: None,
+            zone_rules: None,
             locale: None,
             era_calendar: None,
         }
@@ -219,6 +228,14 @@ impl<'a> FormatContext<'a> {
     #[must_use]
     pub const fn with_daylight(mut self, daylight: bool) -> Self {
         self.zone_daylight = Some(daylight);
+        self
+    }
+
+    /// The same context, with the zone's rules, from which a generic name
+    /// learns whether the zone keeps one offset around the instant.
+    #[must_use]
+    pub const fn with_zone_rules(mut self, rules: &'a dyn hc_tz::TimeZone) -> Self {
+        self.zone_rules = Some(rules);
         self
     }
 

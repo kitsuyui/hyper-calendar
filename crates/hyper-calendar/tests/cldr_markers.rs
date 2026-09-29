@@ -29,10 +29,9 @@ const GENERATED: [&str; 8] = [
 ];
 
 /// Tables kept by hand from CLDR's files: their data, before the tests.
-const KEPT: [&str; 3] = [
+const KEPT: [&str; 2] = [
     "crates/hc-i18n/src/data.rs",
     "crates/hc-i18n/src/exemplar_cities.rs",
-    "crates/hc-i18n/src/territories.rs",
 ];
 
 const MARKERS: [&str; 2] = ["∅∅∅", "↑↑↑"];

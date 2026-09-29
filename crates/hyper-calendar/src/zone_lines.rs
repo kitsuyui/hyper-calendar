@@ -380,7 +380,8 @@ fn zone_field(field: &str) -> Answer<&str> {
 
 /// A zone's reading at an instant, formatted by `write` with the context
 /// `hc-format`'s patterns take — the local civil reading, the offset, the
-/// zone's identifier and its daylight flag, in a locale, and with
+/// zone's identifier, its daylight flag and its rules (for UTS #35's
+/// 184-day type fallback of the generic names), in a locale, and with
 /// `abbreviated` the rules' abbreviation, which `strftime`'s `%Z` writes
 /// and which would stand in front of CLDR's own names —
 /// as the line's first cell, with `label`, the zone, the offset and the
@@ -414,6 +415,7 @@ fn zoned_line(
             .with_zone(ZoneInfo::Offset(offset))
             .with_zone_id(name)
             .with_daylight(daylight)
+            .with_zone_rules(zone)
             .with_locale(&locale);
         let abbreviation = named_abbreviation(zone.abbreviation_at(instant));
         if abbreviated && !abbreviation.is_empty() {

@@ -11499,3 +11499,33 @@
   note         = {Posted 28 April 2010: ``The Samaritans celebrate passover today, April 28, 2010''. A travel blog, secondary. Read 2026-09-29}
 }
 
+% --- Place names: alt forms, containment, language matching; zone names' 184-day rule (docs/systems/place-names.md, docs/systems/zone-names.md) ---
+
+@misc{uts35-v48-matching,
+  author       = {Davis, Mark and others},
+  title        = {Unicode Technical Standard \#35: Unicode Locale Data Markup Language ({LDML}), Version 48.2, Part 1: ``Language Matching'' and ``Attribute alt''},
+  howpublished = {\url{https://www.unicode.org/reports/tr35/tr35.html}},
+  year         = {2026},
+  note         = {``Language Matching can also be used to get fallback data elements'', the lookup of the fallback locales before root (``nb-NO has the fallback values [nn da sv en]'', ``not used recursively''), the matching distance (maximize by the likely subtags, then the language, the script and the region, the first matching rule each, \texttt{oneway}), matching variables and their macroregion expansion, and the threshold ``typically set to greater than a default region difference, and less than a default script difference''. ``Attribute alt'': ``If a variant value is absent for a particular locale, the normal value is used''; the variant names \texttt{variant}, \texttt{short} and others. Read 2026-09-29}
+}
+
+@misc{cldr48-language-matching,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/supplemental/languageInfo.xml}, \texttt{likelySubtags.xml} and \texttt{supplementalData.xml}'s \texttt{territoryContainment}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/tree/release-48/common/supplemental}},
+  note         = {The \texttt{written\_new} \texttt{languageMatches}: \texttt{bo} ⇒ \texttt{zh} 20 and \texttt{bo\_Tibt} ⇒ \texttt{zh\_Hans} 10, \texttt{sa} and \texttt{mr} ⇒ \texttt{hi} 30, \texttt{mn} ⇒ \texttt{ru} 30, \texttt{jv} ⇒ \texttt{id} 20, \texttt{yue} ⇒ \texttt{zh} 10, the defaults \texttt{*} 80, \texttt{*\_*} 50 and \texttt{*\_*\_*} 4, and the variables \texttt{\$enUS}, \texttt{\$cnsar}, \texttt{\$americas} (\texttt{019}) and \texttt{\$maghreb}; each carried locale's likely subtags; the regions \texttt{019} and \texttt{419} contain. Tag release-48, read 2026-09-29 by \texttt{scripts/place-names-cldr.py}}
+}
+
+@misc{cldr48-subdivision-containment,
+  author       = {{Unicode Consortium}},
+  title        = {Unicode {CLDR} 48, \texttt{common/supplemental/subdivisions.xml}},
+  howpublished = {\url{https://github.com/unicode-org/cldr/blob/release-48/common/supplemental/subdivisions.xml}},
+  note         = {\texttt{subdivisionContainment}: which subdivisions each country and each subdivision contains, 3 590 directly within a country and 1 456 within another subdivision, \texttt{gbeng} within \texttt{GB} and \texttt{gbken} within \texttt{gbeng}; 19 of the codes it lists are deprecated and named by no carried locale (\texttt{usgu}, \texttt{frbl}). Tag release-48, read 2026-09-29}
+}
+
+@misc{icu4j-generic-names,
+  author       = {{Unicode, Inc.}},
+  title        = {ICU4J \texttt{TimeZoneGenericNames}},
+  howpublished = {\url{https://github.com/unicode-org/icu/blob/main/icu4j/main/core/src/main/java/com/ibm/icu/impl/TimeZoneGenericNames.java}},
+  note         = {The \texttt{main} branch. \texttt{formatGenericNonLocationName}: a zone's own generic name first; else, where the zone keeps no daylight saving within \texttt{DST\_CHECK\_RANGE}, 184 days, of the instant, its standard name, unless that is the metazone's generic name's text; else the metazone's generic name, with a partial location. A comparison with another implementation, not a source of the rule. Read 2026-09-29}
+}

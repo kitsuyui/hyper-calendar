@@ -56,13 +56,14 @@
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
-//! * `territories` — with the `territories` feature, CLDR's names for the
-//!   regions the workspace keeps holiday tables for.
 //! * `exemplar_cities` — with the `exemplar-cities` feature, CLDR's
 //!   English exemplar cities for the zones `hc-tz` locates, and with
 //!   `localized-exemplar-cities` those of every other carried locale.
-//! * `place_names` — with the `place-names` feature, CLDR's names of every
-//!   territory and ISO 3166-2 subdivision, in every carried locale.
+//! * `place_names` — with the `territories` feature, CLDR's names of every
+//!   territory in every carried locale, with their `alt` forms, which the
+//!   holiday tables and the zone names name countries by; with
+//!   `place-names`, those of every ISO 3166-2 subdivision too, and which
+//!   lies in which.
 //! * [`zone_names`] — each locale's time zone formats, and with the
 //!   `zone-names` feature CLDR's metazones and English's zone names, with
 //!   `localized-zone-names` every other carried locale's.
@@ -102,12 +103,10 @@ pub mod locale;
 pub mod names;
 pub mod notation;
 pub mod numbering;
-#[cfg(feature = "place-names")]
+#[cfg(feature = "territories")]
 pub mod place_names;
 pub mod plural;
 pub mod reckonings;
-#[cfg(feature = "territories")]
-pub mod territories;
 pub mod zone_names;
 
 mod util;
