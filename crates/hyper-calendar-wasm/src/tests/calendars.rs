@@ -255,6 +255,13 @@ fn a_converted_day_decodes_column_by_column() {
         (tibetan[14].as_str(), tibetan[17].as_str()),
         ("local-time 05:00:00", "start")
     );
+    // The medieval Icelandic day begins at daybreak, sunrise in summer
+    // and dawn in winter, and is named by the day it begins on.
+    let icelandic = row(&rows, "icelandic-medieval");
+    assert_eq!(
+        (icelandic[14].as_str(), icelandic[17].as_str()),
+        ("daybreak", "start")
+    );
     let rows = describe("en");
     assert_eq!(row(&rows, "gregory")[7], "September");
     assert_eq!(row(&rows, "gregory")[15..17], ["September 21, 2026", "en"]);

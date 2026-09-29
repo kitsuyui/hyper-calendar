@@ -387,6 +387,8 @@ fn offset_of(zone: ZoneInfo) -> Option<UtcOffset> {
     zone.offset()
 }
 
+/// `Z`…`ZZZZZ`: UTS #35 Part 4 makes `Z`…`ZZZ` the same as `xxxx`,
+/// `ZZZZ` the long localized GMT format and `ZZZZZ` the same as `XXXXX`.
 fn write_zone_offset<W: fmt::Write>(
     out: &mut W,
     context: &FormatContext<'_>,
@@ -394,18 +396,20 @@ fn write_zone_offset<W: fmt::Write>(
 ) -> FormatResult<()> {
     let zone = context.zone;
     match count {
-        1..=3 => {
-            let Some(offset) = offset_of(zone) else {
-                return Err(FormatError::Unrepresentable("a zone field with no zone"));
-            };
-            out.write_str(offset.format(OffsetStyle::Basic).as_str())?;
-            Ok(())
-        }
+        1..=3 => write_iso_offset(out, zone, 4, false),
         4 => zone::write_localized_gmt(out, context.locale, zone, true),
-        _ => write_iso_offset(out, zone, 3, true),
+        _ => write_iso_offset(out, zone, 5, true),
     }
 }
 
+/// `X`…`XXXXX` and `x`…`xxxxx`, by UTS #35 Part 4 (version 48.2, the
+/// Date Field Symbol Table): one letter the basic form with the hours and
+/// the minutes where they are not zero (`+05`, `+0530`), two the basic form
+/// with both (`+0530`), three the extended form (`+05:30`), four the basic
+/// form and five the extended one with the seconds where the offset has
+/// them (`-045602`, `-04:56:02`). The capital letters write `Z` for a zero
+/// offset. The one- to three-letter forms have no seconds field, and an
+/// offset's seconds are dropped there.
 fn write_iso_offset<W: fmt::Write>(
     out: &mut W,
     zone: ZoneInfo,
@@ -420,11 +424,11 @@ fn write_iso_offset<W: fmt::Write>(
         return Ok(());
     }
     let style = match count {
-        1 => OffsetStyle::Hours,
-        2 => OffsetStyle::Basic,
-        4 => OffsetStyle::BasicSeconds,
-        5 => OffsetStyle::ExtendedSeconds,
-        _ => OffsetStyle::Extended,
+        1 if offset.abs_minutes() == 0 => OffsetStyle::Hours,
+        1 | 2 => OffsetStyle::Basic,
+        3 => OffsetStyle::Extended,
+        4 => crate::patterns::exact_offset_style(offset, false),
+        _ => crate::patterns::exact_offset_style(offset, true),
     };
     out.write_str(offset.format(style).as_str())?;
     Ok(())
@@ -788,6 +792,54 @@ mod tests {
         );
     }
 
+    /// UTS #35 Part 4's table: `X` and `x` write the minutes where they
+    /// are not zero (`+0530`); `XXXX`, `XXXXX`, `Z` and `ZZZZZ` write
+    /// "hours, minutes and optional seconds", so `+0900` and `+09:00`, and
+    /// the table's own `-075258` and `-07:52:58` for an offset with seconds.
+    #[test]
+    fn the_iso_zone_fields_write_minutes_and_seconds_where_tr_35_does() {
+        let at = |seconds: i32| {
+            context().with_zone(ZoneInfo::Offset(UtcOffset::from_seconds(seconds).unwrap()))
+        };
+        let write = |seconds: i32, pattern: &str| {
+            let mut out = String::new();
+            format(&mut out, pattern, &at(seconds)).unwrap();
+            out
+        };
+        let fields = "X|x|XX|XXX|XXXX|XXXXX|xxxx|xxxxx|Z|ZZZZZ";
+        assert_eq!(
+            write(5 * 3600 + 30 * 60, fields),
+            "+0530|+0530|+0530|+05:30|+0530|+05:30|+0530|+05:30|+0530|+05:30"
+        );
+        assert_eq!(
+            write(9 * 3600, fields),
+            "+09|+09|+0900|+09:00|+0900|+09:00|+0900|+09:00|+0900|+09:00"
+        );
+        assert_eq!(
+            write(-(7 * 3600 + 52 * 60 + 58), fields),
+            "-0752|-0752|-0752|-07:52|-075258|-07:52:58|-075258|-07:52:58|-075258|-07:52:58"
+        );
+        assert_eq!(
+            write(0, "X|XXXX|XXXXX|x|xxxx|xxxxx|Z|ZZZZZ"),
+            "Z|Z|Z|+00|+0000|+00:00|+0000|Z"
+        );
+        // Each shape reads back as the offset it states.
+        for (pattern, text, seconds) in [
+            ("X", "+0530", 5 * 3600 + 30 * 60),
+            ("X", "+09", 9 * 3600),
+            ("XXXX", "-075258", -(7 * 3600 + 52 * 60 + 58)),
+            ("ZZZZZ", "-07:52:58", -(7 * 3600 + 52 * 60 + 58)),
+            ("Z", "+0900", 9 * 3600),
+        ] {
+            let zone = parse(pattern, text).unwrap().zone;
+            assert_eq!(
+                zone,
+                Some(ZoneInfo::Offset(UtcOffset::from_seconds(seconds).unwrap())),
+                "{pattern} {text}"
+            );
+        }
+    }
+
     #[test]
     fn the_x_fields_write_zulu_for_utc_and_the_lowercase_ones_do_not() {
         let utc = context().with_zone(ZoneInfo::Zulu);
@@ -871,6 +923,18 @@ mod tests {
         assert_eq!(render_in("zzzz", &london), "British Summer Time");
         let london = zoned(739_631, 12, 0, "Europe/London", false).with_locale(&english);
         assert_eq!(render_in("zzzz|z", &london), "Greenwich Mean Time|GMT");
+        // In summer, at UTC+1, `en.xml` has no short daylight name for
+        // London or its `GMT` metazone, which has no daylight names at all:
+        // the specific name falls to the localized GMT format rather than
+        // take the standard *GMT*, which would state another offset.
+        // Dublin's own long daylight name is `en.xml`'s *Irish Standard
+        // Time*, the summer's, as CLDR reads Irish summer time as daylight.
+        let london = zoned(739_798, 12, 1, "Europe/London", true).with_locale(&english);
+        assert_eq!(render_in("z|zzzz", &london), "GMT+1|British Summer Time");
+        let dublin = zoned(739_798, 12, 1, "Europe/Dublin", true).with_locale(&english);
+        assert_eq!(render_in("z|zzzz", &dublin), "GMT+1|Irish Standard Time");
+        let dublin = zoned(739_631, 12, 0, "Europe/Dublin", false).with_locale(&english);
+        assert_eq!(render_in("z|zzzz", &dublin), "GMT|Greenwich Mean Time");
         // The IANA name reaches CLDR's identifier, Asia/Calcutta.
         let kolkata = at("Asia/Kolkata", 5);
         assert_eq!(render_in("V|vvvv", &kolkata), "inccu|India Standard Time");
@@ -892,8 +956,7 @@ mod tests {
 
     #[test]
     fn the_localized_gmt_format_is_the_locales() {
-        // `fr.xml`: "UTC{0}" and "+HH:mm;−HH:mm", a minus sign;
-        // `ar.xml` in its Arabic-Indic digits.
+        // `fr.xml`: "UTC{0}" and "+HH:mm;−HH:mm", a minus sign.
         let french = Locale::parse("fr").unwrap();
         let paris = context()
             .with_zone(ZoneInfo::Offset(UtcOffset::from_hms(-3, -30, 0).unwrap()))
@@ -918,6 +981,14 @@ mod tests {
             render_in("zzzz|z", &berlin),
             "Mitteleuropäische Sommerzeit|MESZ"
         );
+        // `en_GB.xml` gives London's short daylight name, *BST*, which
+        // `en.xml` does not; `ar-EG` writes the offset in its digits.
+        let british = Locale::parse("en-GB").unwrap();
+        let london = zoned(739_798, 12, 1, "Europe/London", true).with_locale(&british);
+        assert_eq!(render_in("z", &london), "BST");
+        let egyptian = Locale::parse("ar-EG").unwrap();
+        let london = zoned(739_798, 12, 1, "Europe/London", true).with_locale(&egyptian);
+        assert_eq!(render_in("z", &london), "غرينتش+١");
     }
 
     /// `g`, the Julian day number of the local date: 2 440 588 for

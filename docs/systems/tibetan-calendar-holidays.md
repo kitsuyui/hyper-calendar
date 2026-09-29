@@ -151,8 +151,8 @@ Government's calendar of 2003 disagreed with the arithmetic (below).
 | Birth Anniversary of Guru Rinpoche | 10th of month 5 | 2025, 2026 | every other year |
 | First Sermon of Lord Buddha | 4th of month 6 | 2025, 2026 | every other year |
 | Descending Day of Lord Buddha | 22nd of month 9 | 2025, 2026 | every other year |
-| Thimphu Drubchoe, in `BT-15` | 6th of month 8 | 2025, 2026 | every other year |
-| Thimphu Tshechu, three days, in `BT-15` | 10th to 12th of month 8 | 2025, 2026 | every other year |
+| Thimphu Drubchoe, in `BT-15` | 6th of month 8 | 2025, 2026 | every other year but 2021, a gap |
+| Thimphu Tshechu, three days, in `BT-15` | 10th to 12th of month 8 | 2025, 2026 | every other year but 2021, a gap |
 | Winter Solstice | the day the Bhutanese mean Sun reaches 250° | 2025, 2026 | every other year, by `bhutanese_winter_solstice` |
 
 The Mongolian years are those of the laws that added the days. Chinggis
@@ -193,8 +193,9 @@ dates as the national days have theirs: Thimphu Drubchoe on 28 September
 Thimphu district, `BT-15`, as the national lunar days are: the lists' days
 in their years, and elsewhere the prediction on `tibetan-bhutan`, marked
 approximate. The Ministry changed the dates of both in 2021 by a
-notification whose page gives no dates [moha-bt-notification-2021], which
-is why a prediction is only that. Of the other districts' tshechus the
+notification whose page gives the new dates only in an image, which was
+not read [moha-bt-notification-2021]: 2021 is a gap for both, not a
+prediction, and the change is why a prediction in any year is only that. Of the other districts' tshechus the
 lists say that their days are "confirmed by the respective Dzongkhag
 Administration".
 
@@ -204,7 +205,7 @@ Administration".
 | BT-12 | Chukha | as Paro | | not carried |
 | BT-13 | Haa | as Paro | | not carried |
 | BT-14 | Samtse | as Paro | | not carried |
-| BT-15 | Thimphu | Thimphu Drubchoe, 6th of month 8; Thimphu Tshechu, 10th–12th of month 8 | the Ministry's lists for 2025 and 2026 | 2025 read; predicted before and after |
+| BT-15 | Thimphu | Thimphu Drubchoe, 6th of month 8; Thimphu Tshechu, 10th–12th of month 8 | the Ministry's lists for 2025 and 2026 | 2025 read; predicted before and after, 2021 a gap |
 | BT-21 | Tsirang | as Paro | | not carried |
 | BT-22 | Dagana | as Paro | | not carried |
 | BT-23 | Punakha | as Paro | | not carried |
@@ -229,7 +230,9 @@ Administration's confirmation is the source still to be read.
 **The Bhutanese lists** (`the_bhutanese_calendar_rule_reproduces_both_lists`).
 The rule for each of the eight days gives exactly the list's day in 2025
 and in 2026, and so does the rule for each of Thimphu's four
-(`bhutan_predicts_thimphu_s_festivals_on_the_bhutanese_calendar`). Every day of the Ministry's two calendars is the arithmetic's
+(`bhutan_predicts_thimphu_s_festivals_on_the_bhutanese_calendar`), and
+2021 is a gap for both in Thimphu alone
+(`bhutan_reports_thimphu_s_moved_festivals_of_2021_as_a_gap`). Every day of the Ministry's two calendars is the arithmetic's
 ([tibetan-variants.md](tibetan-variants.md)), so this is a check that the
 dates read from the Dzongkha lists are the ones the rule states.
 

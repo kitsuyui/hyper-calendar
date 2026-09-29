@@ -616,9 +616,10 @@ pub(super) static SB_RULES: &[HolidayRule] = &[
 /// Schedule's days and section 2's Sunday rule, with the names the
 /// Ministry of Home Affairs' notices use. The Schedule's "day appointed
 /// for the celebration of the Anniversary of the Birthday of the
-/// Sovereign" is appointed each year — the notices for 2018 and 2020
-/// gave the second Saturday of June, and the 2026 gazette as reported
-/// gave none — and is not carried. The notices also keep a Saturday
+/// Sovereign" is appointed each year — the notices for 2018 and 2020, PDFs
+/// that were not read, gave the second Saturday of June as a search
+/// engine's extract of the 2018 one quotes it, and the 2026 gazette as
+/// reported gave none — and is not carried. The notices also keep a Saturday
 /// holiday on the Friday before, which the Act does not say, and that is
 /// not modelled. The provincial days are appointed each year under
 /// section 6; those of 2026 are carried in their provinces
@@ -634,9 +635,10 @@ pub static SOLOMON_ISLANDS: RuleSet = RuleSet {
     sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Public Holidays Act (Cap. 151), 1996 edition, PacLII's consolidation \
               (pha163) as the Internet Archive holds it, captured 2024-12-22, PacLII \
-              refusing this session's requests; Ministry of Home Affairs, Public Notices \
-              1/2017 and 1/2019 for 2018 and 2020 (mehrd.gov.sb, solomons.gov.sb); the \
-              Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23; \
+              refusing this session's requests; the Ministry of Home Affairs' Public \
+              Notices 1/2017 and 1/2019 for 2018 and 2020 (mehrd.gov.sb, solomons.gov.sb) \
+              are PDFs, not read, their Sovereign's Birthday as a search engine's extract \
+              quotes it; the Island Sun, 13 January 2026, on the 2026 gazette; retrieved 2026-09-23; \
               the same Island Sun report for the provincial days of 2026, retrieved \
               2026-09-29",
 };

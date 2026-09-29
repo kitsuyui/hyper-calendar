@@ -371,6 +371,22 @@ impl Fields {
     }
 }
 
+/// The ISO 8601 style that states an offset exactly: the extended or the
+/// basic form, with seconds where the offset has them. A local mean time
+/// such as −04:56:02 would otherwise be written as a different offset.
+/// UTS #35 Part 4's `xxxx`, `xxxxx`, `XXXX`, `XXXXX`, `Z` and `ZZZZZ` take
+/// "hours, minutes and optional seconds", and `strftime`'s `%z` keeps the
+/// seconds as Python does.
+pub(crate) fn exact_offset_style(offset: hc_tz::UtcOffset, extended: bool) -> hc_tz::OffsetStyle {
+    use hc_tz::OffsetStyle;
+    match (extended, offset.abs_seconds() != 0) {
+        (true, false) => OffsetStyle::Extended,
+        (true, true) => OffsetStyle::ExtendedSeconds,
+        (false, false) => OffsetStyle::Basic,
+        (false, true) => OffsetStyle::BasicSeconds,
+    }
+}
+
 // --- vocabulary ------------------------------------------------------------
 
 /// The month name, from the locale when there is one.

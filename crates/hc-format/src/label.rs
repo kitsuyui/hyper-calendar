@@ -1144,7 +1144,9 @@ mod tests {
         );
         assert_eq!(render(&gregorian(), &day, "ru")[4], "21 сентября 2026 г.");
         assert_eq!(render(&gregorian(), &day, "ko")[4], "2026년 9월 21일");
-        assert_eq!(render(&gregorian(), &day, "ar")[1], "٢٠٢٦");
+        // `ar.xml` writes Latin digits, `ar_EG.xml` Arabic-Indic ones.
+        assert_eq!(render(&gregorian(), &day, "ar")[1], "2026");
+        assert_eq!(render(&gregorian(), &day, "ar-EG")[1], "٢٠٢٦");
         // A locale without templates gets the fields in order.
         assert_eq!(render(&gregorian(), &day, "am")[4], "2026 ሴፕቴምበር 21");
         // And one with no data at all, the root's names.

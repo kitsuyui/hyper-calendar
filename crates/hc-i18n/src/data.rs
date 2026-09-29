@@ -13,9 +13,13 @@
 //! Each entry's [`LocaleData::sources`] names the file it follows; on
 //! 2026-09-26 the Gregorian months and weekdays of the 35 entries that
 //! follow CLDR were compared with those files. An entry carries its
-//! language's own file and CLDR's default (non-`alt`) values: regional
-//! files are not carried, so Arabic has `ar.xml`'s يناير… and not the
-//! كانون الثاني… of `ar_SY.xml` and the other Levantine files. Where an
+//! language's own file and CLDR's default (non-`alt`) values. The regional
+//! files carried are the regional entries `scripts/locales-cldr.py`
+//! generates (`en-001`, `en-GB`, `es-419`, `zh-Hant-HK`, `ur-IN`, `ar-EG`,
+//! in `cldr48_locales.rs`) and `pt-PT` below; the others' names are not
+//! yet carried, so Arabic has `ar.xml`'s يناير… and not the كانون الثاني…
+//! of `ar_SY.xml` and the other Levantine files, though every regional
+//! file's default numbering system is ([`DEFAULT_NUMBERING`]). Where an
 //! entry departs from its file, its comment says so. Fields a locale does
 //! not state are left empty on purpose, because an empty field inherits,
 //! and inheriting is more correct than copying.
@@ -23,16 +27,18 @@
 //! The twelve entries for the languages of the thirty most-spoken the
 //! others did not carry — Filipino, Hausa, Marathi, Punjabi in both of its
 //! scripts, Nigerian Pidgin, Swahili, Telugu, Urdu, Cantonese in both of its
-//! scripts — and European Portuguese, the one regional file carried, were
+//! scripts — and European Portuguese, a regional file, were
 //! read out of their CLDR 48 files, read 2026-09-28, by following CLDR's
 //! own inheritance, not chosen by hand, and carry every calendar the file
 //! names; the comment above them states the rule.
 //!
 //! What that means in practice:
 //!
-//! * A locale entry covers months, weekdays, day periods, eras and — for
-//!   some locales — quarters. Finer CLDR day periods, date patterns,
-//!   interval patterns and relative-time strings are not here.
+//! * A locale entry covers months, weekdays, am and pm, eras and — for
+//!   some locales — quarters. CLDR's other day periods (midnight, noon and
+//!   the flexible ones) are [`crate::day_periods`]'s, generated from
+//!   `dayPeriods.xml` and the files' names; the relative-time strings are
+//!   `hc-humanize`'s; date patterns and interval patterns are not carried.
 //! * Non-Gregorian vocabulary is carried for the calendars where the names
 //!   genuinely differ: Hijri months in Arabic and English, Hebrew months in
 //!   Hebrew and English, Babylonian months in English, the Chinese
@@ -77,7 +83,7 @@ use hc_calendar::{CalendarId, Weekday};
 mod cldr48_locales;
 mod japanese_eras;
 
-pub use cldr48_locales::{OTHER_NUMBERING, PARENT_LOCALES};
+pub use cldr48_locales::{DEFAULT_NUMBERING, OTHER_NUMBERING, PARENT_LOCALES};
 
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
@@ -1863,7 +1869,11 @@ const AR: LocaleData = LocaleData {
     templates: AR_TEMPLATES,
     calendar_names: AR_CALENDAR_NAMES,
     direction: Direction::RightToLeft,
-    numbering: "arab",
+    // `ar.xml` writes the inheritance marker for its default numbering
+    // system, which so resolves to root's `latn`; `ar_EG.xml`, `ar_SA.xml`
+    // and nineteen more regional files write `arab`
+    // (`crate::data::DEFAULT_NUMBERING`).
+    numbering: "latn",
     first_day_of_week: Weekday::Saturday,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,

@@ -12,18 +12,40 @@ The resolution, for one value at one path, is UTS #35's (Part 1,
 the inheritance marker `↑↑↑`, which "conformant implementations" read as the
 element being absent; where no file states the path, the longest prefix
 `root.xml` aliases is rewritten through the alias and looked up again from the
-child.
+child. The empty override `∅∅∅` (Part 1, "Empty Override") is the other
+reserved value: it says that the locale "is to have no value for a path, even
+if the parent locale has a value for that path", so the lookup stops there
+with no value, and a formatter takes the field's own fallback, as UTS #35
+Part 4's zone names fall back to the localized GMT format. `resolve` gives
+no value there, and `carried` gives `NO_VALUE` where the entry must say so
+to stop its lookup from inheriting a value.
 """
 import http.client
 import os
 import re
 import subprocess
+import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 
 BASE = 'https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/'
 RELEASE = {None, 'approved', 'contributed'}
 MARK = '↑↑↑'
+EMPTY = '∅∅∅'
+
+
+class _NoValue:
+    """What `carried` gives where an entry's files write the empty override
+    over a value its lookup would otherwise inherit."""
+
+    def __repr__(self):
+        return 'NO_VALUE'
+
+    def __bool__(self):
+        return True
+
+
+NO_VALUE = _NoValue()
 DISTINGUISHING = {'type', 'alt', 'id', 'count', 'key', 'yeartype', 'numberSystem', 'scope',
                   'menu', 'case', 'gender'}
 
@@ -46,10 +68,30 @@ def fetch(path):
             with urllib.request.urlopen(BASE + path, timeout=60) as response:
                 _texts[path] = response.read()
                 break
+        except urllib.error.HTTPError as error:
+            if error.code == 404 or attempt == 3:
+                raise
         except (OSError, http.client.HTTPException):
             if attempt == 3:
                 raise
     return _texts[path]
+
+
+def exists(path):
+    """Whether `common/<path>` is a file of the release: a 404 is an
+    answer, not a failure to retry."""
+    if path in _texts:
+        return True
+    local = os.environ.get('CLDR_DIR')
+    if local and os.path.exists(os.path.join(local, 'common', path)):
+        return True
+    try:
+        fetch(path)
+    except urllib.error.HTTPError as error:
+        if error.code == 404:
+            return False
+        raise
+    return True
 
 
 def xml(path):
@@ -120,13 +162,17 @@ def path(*parts):
 
 def resolve(chain, at, depth=0):
     """(value, file): the value CLDR resolves `at` to through the chain
-    (child first, root left out) and root's aliases, or (None, None)."""
+    (child first, root left out) and root's aliases; (None, file) where
+    that file writes the empty override `∅∅∅`, which stops the lookup
+    with no value; (None, None) where no file gives one."""
     for name in chain + ['root']:
         leaves, _ = load(name)
         if at in leaves:
             value, draft = leaves[at]
             if draft not in RELEASE or value == MARK:
                 continue
+            if value == EMPTY:
+                return None, name
             return value, name
     _, aliases = load('root')
     for n in range(len(at), 0, -1):
@@ -203,8 +249,16 @@ ENTRIES = [
 def carried(chain, regional, at):
     """The value an entry carries at `at`: for a language, the resolved value
     where its own file states the path; for a regional entry, the resolved
-    value where it differs from its parent's. None otherwise."""
+    value where it differs from its parent's. `NO_VALUE` where a file of the
+    entry's own writes the empty override and the entry's parent (root, for
+    a language) resolves a value it would otherwise inherit; None
+    otherwise."""
     value, name = resolve(chain, at)
+    if value is None and name is not None and name != 'root':
+        own = chain[:1] if regional else chain
+        if name not in own:
+            return None
+        return NO_VALUE if resolve(chain[1:] if regional else [], at)[0] is not None else None
     if value is None or name == 'root':
         return None
     if regional:

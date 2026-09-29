@@ -147,6 +147,8 @@ crates, modules, functions or holiday tables.
 | The earliest evidence of life, of *Homo sapiens* and of writing: the published claims, each dated in the shape its source gives — an age, a minimum, a range — with the disputes named, and the Japanese names of the deep-time tables by identifier | [earliest-evidence.md](earliest-evidence.md) | `hc-deep-time`: `evidence`, `names::entry_name` |
 | Written dates read back: the templates walked in reverse, every name at every width, native digits, Han and Hebrew numerals and 元年, an era or a year left out, and the refusals — an ambiguous text, a two-digit year, a year named only by a cycle or not at all, a weekday or a field that is not the day's | [written-dates.md](written-dates.md) | `hc-format`: `label::parse_date`; `hc_parse_date`; `DynCalendar::era_code` |
 | Hebrew numerals: CLDR's rules for the letters, 15 and 16, the thousands and the millennium a date leaves out, and the marks as typed | [hebrew-numerals.md](hebrew-numerals.md) | `hc-i18n`: `numbering`'s `hebr`, `numbering::same_typed_mark`, `names::DateTemplates::omitted_thousands` |
+| Greek numerals: CLDR's rules for the letters, the thousands and the myriads, and the three spellings of 6 read back, the digamma, the stigma and στ | [greek-numerals.md](greek-numerals.md) | `hc-i18n`: `numbering`'s `grek` and `greklow` |
+| Locale fallback: UTS #35's truncation, CLDR's `parentLocales` and likely scripts, the lookups keyed by language instead, and each regional file's default numbering system | [locale-fallback.md](locale-fallback.md) | `hc-i18n`: `Locale::parent`, `Locale::fallback`, `data::PARENT_LOCALES`, `data::DEFAULT_NUMBERING`, `NumberingSystem::for_locale` |
 
 ## Systems that need a document
 

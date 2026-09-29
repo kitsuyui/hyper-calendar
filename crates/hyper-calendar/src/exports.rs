@@ -842,7 +842,9 @@ macro_rules! exports {
             /// calendar's extra fields as `name=value` pairs joined by `;`, the error
             /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
             /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
-            /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
+            /// `sunset`, `sunrise`, `daybreak` — sunrise in summer and dawn in
+            /// winter, as the medieval Icelandic day — or `local-time HH:MM:SS`),
+            /// the date as the locale
             /// writes it (令和8年9月21日, 2023癸卯年闰二月初一), the locale used, and
             /// which civil day names a day that does not begin at midnight (`start`
             /// for the one it begins on, `end` for the one it ends on, empty for
@@ -871,7 +873,9 @@ macro_rules! exports {
             /// calendar's extra fields as `name=value` pairs joined by `;`, the error
             /// code, the error name, the standing (`in-use`, `proleptic`, `extended`
             /// or `unrecorded`), where the calendar's day begins (`midnight`, `noon`,
-            /// `sunset`, `sunrise` or `local-time HH:MM:SS`), the date as the locale
+            /// `sunset`, `sunrise`, `daybreak` — sunrise in summer and dawn in
+            /// winter, as the medieval Icelandic day — or `local-time HH:MM:SS`),
+            /// the date as the locale
             /// writes it (令和8年9月21日, 2023癸卯年闰二月初一), the locale used, and
             /// which civil day names a day that does not begin at midnight (`start`
             /// for the one it begins on, `end` for the one it ends on, empty for

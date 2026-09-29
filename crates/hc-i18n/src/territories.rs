@@ -40,10 +40,14 @@
 //!
 //! # What is carried, and what is not
 //!
-//! Every locale `hc-i18n` carries whose CLDR file names at least one of the
-//! regions at a release level has a table: 47 of the 65, the regional and
-//! added locales of 2026-09-29 (`en-GB`, `mn` and the rest) not yet among
-//! them, so that they reach their parents' tables. Most name all 195.
+//! 47 of the 65 locales `hc-i18n` carries have a table. Most name all 195.
+//! The regional entries (`en-001`, `en-GB`, `es-419`, `zh-Hant-HK`,
+//! `ur-IN`, `ar-EG`) have none of their own and reach their parents'
+//! tables through the fallback chain. Mongolian (`mn`) and Tachelhit in the
+//! Latin script (`shi-Latn`) have no table yet, although their CLDR 48
+//! files name the regions at a release level (read 2026-09-29); their
+//! parent is root, so they name none until their tables are added.
+//! Riffian's (`rif.xml`) names are all below the release levels.
 //! Two are smaller on purpose, because their files are: Punjabi in the
 //! Arabic script (`pa-Arab`, `pa_Arab.xml`) names Pakistan alone, and
 //! European Portuguese (`pt-PT`, `pt_PT.xml`) the 38 regions its file names

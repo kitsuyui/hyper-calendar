@@ -597,9 +597,16 @@ mod tests {
                 "{tag} should use a comma"
             );
         }
-        // Arabic writes its own decimal separator, U+066B.
+        // Arabic-Indic digits have their own decimal separator, U+066B, which
+        // `ar-EG` writes; `ar`'s digits are Latin, and so is its separator.
         assert!(
-            formatter("ar")
+            formatter("ar-EG")
+                .format_amount(amount)
+                .expect("a phrase")
+                .contains('\u{66b}')
+        );
+        assert!(
+            !formatter("ar")
                 .format_amount(amount)
                 .expect("a phrase")
                 .contains('\u{66b}')

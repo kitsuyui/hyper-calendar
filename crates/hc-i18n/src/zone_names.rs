@@ -35,8 +35,13 @@
 //! (`approved` or `contributed`), and a regional entry (`en-GB`, `pt-PT`)
 //! those its files resolve apart from its parent's, so that the lookup,
 //! which walks the locale's fallback chain, inherits the rest as CLDR's
-//! inheritance does. `docs/systems/zone-names.md` explains the
-//! composition with worked examples.
+//! inheritance does. Where a file writes CLDR's empty override `∅∅∅` over
+//! a name its parent has — `en_001.xml` over `en.xml`'s *PT*, UTS #35
+//! version 48.2, Part 1, "Empty Override": "no value for a path, even if
+//! the parent locale has a value" — the table says so, and the lookup stops
+//! there with no name, so that a formatter takes the field's fallback.
+//! `docs/systems/zone-names.md` explains the composition with worked
+//! examples.
 
 #[cfg(feature = "zone-names")]
 use crate::locale::Locale;
@@ -191,17 +196,43 @@ const fn field(length: NameLength, kind: NameType) -> usize {
     }
 }
 
+/// What a table's field says: nothing, so that the lookup goes on to the
+/// next table; a name; or that the locale has none, CLDR's empty override,
+/// which the generated tables write `~`.
 #[cfg(feature = "zone-names")]
-fn pick(forms: &'static str, length: NameLength, kind: NameType) -> Option<&'static str> {
-    forms
-        .split('|')
-        .nth(field(length, kind))
-        .filter(|name| !name.is_empty())
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Cell {
+    Unstated,
+    Name(&'static str),
+    NoName,
+}
+
+#[cfg(feature = "zone-names")]
+impl Cell {
+    const NO_NAME: &'static str = "~";
+
+    fn name(self) -> Option<&'static str> {
+        match self {
+            Self::Name(name) => Some(name),
+            Self::Unstated | Self::NoName => None,
+        }
+    }
+}
+
+#[cfg(feature = "zone-names")]
+fn pick(forms: &'static str, length: NameLength, kind: NameType) -> Cell {
+    match forms.split('|').nth(field(length, kind)) {
+        None | Some("") => Cell::Unstated,
+        Some(Cell::NO_NAME) => Cell::NoName,
+        Some(name) => Cell::Name(name),
+    }
 }
 
 #[cfg(feature = "zone-names")]
 impl ZoneNameTable {
-    /// The table's name of the metazone at `index` in [`metazones`].
+    /// The table's name of the metazone at `index` in [`metazones`];
+    /// `None` where the table states none, or states that the locale has
+    /// none.
     #[must_use]
     pub fn metazone(
         &self,
@@ -209,17 +240,28 @@ impl ZoneNameTable {
         length: NameLength,
         kind: NameType,
     ) -> Option<&'static str> {
-        pick(self.metazones.split('\n').nth(index)?, length, kind)
+        self.metazone_cell(index, length, kind).name()
     }
 
-    /// The table's own name of a zone, by CLDR's identifier for it.
+    /// The table's own name of a zone, by CLDR's identifier for it; `None`
+    /// as for [`ZoneNameTable::metazone`].
     #[must_use]
     pub fn zone(&self, zone: &str, length: NameLength, kind: NameType) -> Option<&'static str> {
-        let (_, forms) = self
-            .zones
+        self.zone_cell(zone, length, kind).name()
+    }
+
+    fn metazone_cell(&self, index: usize, length: NameLength, kind: NameType) -> Cell {
+        self.metazones
+            .split('\n')
+            .nth(index)
+            .map_or(Cell::Unstated, |forms| pick(forms, length, kind))
+    }
+
+    fn zone_cell(&self, zone: &str, length: NameLength, kind: NameType) -> Cell {
+        self.zones
             .iter()
-            .find(|(candidate, _)| *candidate == zone)?;
-        pick(forms, length, kind)
+            .find(|(candidate, _)| *candidate == zone)
+            .map_or(Cell::Unstated, |(_, forms)| pick(forms, length, kind))
     }
 }
 
@@ -353,19 +395,32 @@ pub fn table(tag: &str) -> Option<&'static ZoneNameTable> {
     }
 }
 
+/// The name the first table in the chain that states the field gives,
+/// or `None` where that table states that the locale has none.
 #[cfg(feature = "zone-names")]
 fn first_in_chain(
     locale: &Locale,
-    get: impl Fn(&'static ZoneNameTable) -> Option<&'static str>,
+    get: impl Fn(&'static ZoneNameTable) -> Cell,
 ) -> Option<ZoneName> {
-    locale.fallback().find_map(|candidate| {
-        let rendered = candidate.rendered()?;
-        let table = table(rendered.as_str())?;
-        get(table).map(|name| ZoneName {
-            name,
-            tag: table.tag,
-        })
-    })
+    for candidate in locale.fallback() {
+        let Some(rendered) = candidate.rendered() else {
+            continue;
+        };
+        let Some(table) = table(rendered.as_str()) else {
+            continue;
+        };
+        match get(table) {
+            Cell::Unstated => {}
+            Cell::NoName => return None,
+            Cell::Name(name) => {
+                return Some(ZoneName {
+                    name,
+                    tag: table.tag,
+                });
+            }
+        }
+    }
+    None
 }
 
 /// What a locale calls a metazone, in one length and type exactly, from
@@ -379,7 +434,7 @@ pub fn metazone_name(
     kind: NameType,
 ) -> Option<ZoneName> {
     let index = cldr48::METAZONES.binary_search(&metazone).ok()?;
-    first_in_chain(locale, |table| table.metazone(index, length, kind))
+    first_in_chain(locale, |table| table.metazone_cell(index, length, kind))
 }
 
 /// What a locale calls a zone of its own, by CLDR's identifier for it, in
@@ -392,7 +447,7 @@ pub fn own_zone_name(
     length: NameLength,
     kind: NameType,
 ) -> Option<ZoneName> {
-    first_in_chain(locale, |table| table.zone(canonical, length, kind))
+    first_in_chain(locale, |table| table.zone_cell(canonical, length, kind))
 }
 
 /// UTS #35's *type fallback*, over the three names of one length: where
@@ -572,6 +627,45 @@ mod tests {
                 NameLength::Short,
                 NameType::Daylight
             ),
+            None
+        );
+    }
+
+    /// CLDR's empty override: `en_001.xml` writes `∅∅∅` for the short
+    /// names of `America_Pacific`, which `en.xml` gives as *PT*, *PST* and
+    /// *PDT*; `es_419.xml` for `Europe_Eastern`'s short names, which
+    /// `es.xml` gives as *EET* and *EEST*; `pt_PT.xml` for `Brasilia`'s; and
+    /// `ja.xml` for `Japan`'s short generic name beside its *JST* and *JDT*.
+    /// The lookup stops at the file that says so, with no name, rather than
+    /// inherit the parent's or print the marker.
+    #[test]
+    fn the_empty_override_stops_the_lookup_with_no_name() {
+        let name = |tag: &str, metazone, kind| {
+            metazone_name(&locale(tag), metazone, NameLength::Short, kind).map(|found| found.name)
+        };
+        assert_eq!(name("en", "America_Pacific", NameType::Generic), Some("PT"));
+        assert_eq!(
+            name("en", "America_Pacific", NameType::Daylight),
+            Some("PDT")
+        );
+        for tag in ["en-001", "en-GB", "en-AU", "en-IN"] {
+            for kind in [NameType::Generic, NameType::Standard, NameType::Daylight] {
+                assert_eq!(name(tag, "America_Pacific", kind), None, "{tag} {kind:?}");
+            }
+        }
+        assert_eq!(
+            name("es", "Europe_Eastern", NameType::Standard),
+            Some("EET")
+        );
+        assert_eq!(name("es-419", "Europe_Eastern", NameType::Standard), None);
+        assert_eq!(name("es-MX", "Europe_Eastern", NameType::Standard), None);
+        assert_eq!(name("pt-PT", "Brasilia", NameType::Standard), None);
+        assert_eq!(name("ja", "Japan", NameType::Generic), None);
+        assert_eq!(name("ja", "Japan", NameType::Standard), Some("JST"));
+        let table = table("en-001").unwrap();
+        let pacific = metazones().binary_search(&"America_Pacific").unwrap();
+        assert_eq!(
+            table.metazone(pacific, NameLength::Short, NameType::Generic),
             None
         );
     }

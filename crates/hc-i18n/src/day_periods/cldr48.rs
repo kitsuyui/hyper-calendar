@@ -91,6 +91,15 @@ pub(super) static RULES: &[(&str, Rules)] = &[
         ],
     ),
     (
+        "es-CO",
+        &[
+            (FlexibleDayPeriod::Noon, 720, 720),
+            (FlexibleDayPeriod::Morning2, 0, 720),
+            (FlexibleDayPeriod::Evening1, 720, 1200),
+            (FlexibleDayPeriod::Night1, 1200, 1440),
+        ],
+    ),
+    (
         "fa",
         &[
             (FlexibleDayPeriod::Morning1, 60, 240),
@@ -140,6 +149,17 @@ pub(super) static RULES: &[(&str, Rules)] = &[
         "hi",
         &[
             (FlexibleDayPeriod::Midnight, 0, 0),
+            (FlexibleDayPeriod::Morning1, 240, 720),
+            (FlexibleDayPeriod::Afternoon1, 720, 960),
+            (FlexibleDayPeriod::Evening1, 960, 1200),
+            (FlexibleDayPeriod::Night1, 1200, 240),
+        ],
+    ),
+    (
+        "hi-Latn",
+        &[
+            (FlexibleDayPeriod::Midnight, 0, 0),
+            (FlexibleDayPeriod::Noon, 720, 720),
             (FlexibleDayPeriod::Morning1, 240, 720),
             (FlexibleDayPeriod::Afternoon1, 720, 960),
             (FlexibleDayPeriod::Evening1, 960, 1200),

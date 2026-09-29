@@ -633,7 +633,7 @@ pub(super) const AR: LocaleData = LocaleData {
     },
     approximate: LANGUAGE_FREE_HEDGES,
     weekday: LANGUAGE_FREE_WEEKDAYS,
-    decimal_separator: "٫",
+    decimal_separator: ".",
     at_pattern: "{0} في {1}",
 };
 

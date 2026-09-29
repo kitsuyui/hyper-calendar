@@ -1355,7 +1355,7 @@ zero length is `und` too.
 | 12 | error code | empty when the day converted; otherwise the refusal's code |
 | 13 | error name | empty when the day converted; otherwise its name |
 | 14 | standing | `in-use`, `proleptic`, `extended` or `unrecorded`; empty on a refusal |
-| 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise` or `local-time HH:MM:SS` |
+| 15 | day boundary | where the calendar's day begins: `midnight`, `noon`, `sunset`, `sunrise`, `daybreak` (sunrise in summer and dawn in winter, `icelandic-medieval`'s) or `local-time HH:MM:SS` |
 | 16 | formatted | the date as the locale writes it — 令和8年9月21日, 2023癸卯年闰二月初一, `September 21, 2026`, `13.0.13.17.8` — from `hc_format::label`: text for a reader, which holds an extra field only where the calendar's sources write the date with it and never a `name=value` pair, a field's identifier or an era's code; empty on a refusal |
 | 17 | locale used | the tag of the locale data that answered: `ja`, `he`, `und` |
 | 18 | day named by | which civil day names a day that does not begin at midnight: `start` for the one it begins on (the Julian Day, the Tibetan and Hindu days), `end` for the one it ends on (the Hebrew and Islamic days, whose evening is already the next date); empty for a midnight start |

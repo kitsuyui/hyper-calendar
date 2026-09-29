@@ -16,7 +16,15 @@
 //!
 //! Reading back accepts the numeral sign as the rules write it, as the
 //! Greek keraia ʹ (U+0374), as the modifier prime ʹ (U+02B9) it decomposes
-//! to, or as an apostrophe, and no sign at all.
+//! to, or as an apostrophe, and no sign at all. It accepts 6 in the two
+//! later spellings besides the rules' digamma: the stigma ϛ (U+03DB, Ϛ
+//! U+03DA in capitals), the στ ligature the numeral merged with in
+//! Byzantine writing, and the two letters στ (ΣΤ) themselves, which, as
+//! Wikipedia's "Stigma (letter)" and "Greek numerals" have it
+//! (`wikipedia-greek-stigma`), are "often used in lieu of ϛʹ itself to write
+//! the number 6" in Greece today. The pair is unambiguous: σ (200) before
+//! τ (300) spells no other number. `docs/systems/greek-numerals.md` gives
+//! the rules with a worked example.
 
 use core::fmt::{self, Write};
 
@@ -31,6 +39,10 @@ pub(super) struct Letters {
     myriad: char,
     /// Four myriad letters, for runs of one to four.
     marks: &'static str,
+    /// The stigma, read as 6.
+    stigma: char,
+    /// The two letters read as 6: σ and τ.
+    sigma_tau: [char; 2],
 }
 
 /// Capitals: `%%greek-numeral-majuscules`.
@@ -40,6 +52,8 @@ pub(super) static UPPER: Letters = Letters {
     hundreds: ['Ρ', 'Σ', 'Τ', 'Υ', 'Φ', 'Χ', 'Ψ', 'Ω', 'Ϡ'],
     myriad: 'Μ',
     marks: "ΜΜΜΜ",
+    stigma: 'Ϛ',
+    sigma_tau: ['Σ', 'Τ'],
 };
 
 /// Small letters: `%%greek-numeral-minuscules`.
@@ -49,6 +63,8 @@ pub(super) static LOWER: Letters = Letters {
     hundreds: ['ρ', 'σ', 'τ', 'υ', 'φ', 'χ', 'ψ', 'ω', 'ϡ'],
     myriad: 'μ',
     marks: "μμμμ",
+    stigma: 'ϛ',
+    sigma_tau: ['σ', 'τ'],
 };
 
 /// GREEK LOWER NUMERAL SIGN, before the thousands.
@@ -126,7 +142,7 @@ pub(super) fn writes_char(letters: &Letters, character: char) -> bool {
     letters.units.contains(&character)
         || letters.tens.contains(&character)
         || letters.hundreds.contains(&character)
-        || [THOUSANDS, ZERO, MINUS, ' '].contains(&character)
+        || [THOUSANDS, ZERO, MINUS, ' ', letters.stigma].contains(&character)
         || SIGNS.contains(&character)
 }
 
@@ -185,11 +201,37 @@ fn small(letters: &Letters, text: &str) -> Option<u64> {
             .position(|letter| *letter == character)
             .map(|index| index as u64 + 1)
     };
+    // A unit: its letter, the stigma, or σ and τ together, all three 6.
+    let unit = |chars: &mut core::iter::Peekable<core::str::Chars<'_>>| {
+        let first = *chars.peek()?;
+        if first == letters.stigma {
+            chars.next();
+            return Some(6);
+        }
+        if first == letters.sigma_tau[0] {
+            let mut ahead = chars.clone();
+            ahead.next();
+            if ahead.next() == Some(letters.sigma_tau[1]) {
+                chars.next();
+                chars.next();
+                return Some(6);
+            }
+        }
+        let found = position(&letters.units, first)?;
+        chars.next();
+        Some(found)
+    };
+    let sigma_tau_next = |chars: &core::iter::Peekable<core::str::Chars<'_>>| {
+        let mut ahead = chars.clone();
+        ahead.next() == Some(letters.sigma_tau[0]) && ahead.next() == Some(letters.sigma_tau[1])
+    };
     if chars.peek() == Some(&THOUSANDS) {
         chars.next();
-        value += position(&letters.units, chars.next()?)? * 1_000;
+        value += unit(&mut chars)? * 1_000;
     }
-    if let Some(found) = chars.peek().and_then(|c| position(&letters.hundreds, *c)) {
+    if !sigma_tau_next(&chars)
+        && let Some(found) = chars.peek().and_then(|c| position(&letters.hundreds, *c))
+    {
         value += found * 100;
         chars.next();
     }
@@ -197,9 +239,8 @@ fn small(letters: &Letters, text: &str) -> Option<u64> {
         value += found * 10;
         chars.next();
     }
-    if let Some(found) = chars.peek().and_then(|c| position(&letters.units, *c)) {
-        value += found;
-        chars.next();
+    if chars.peek().is_some() {
+        value += unit(&mut chars)?;
     }
     (chars.next().is_none() && value > 0).then_some(value)
 }
@@ -251,5 +292,31 @@ mod tests {
         assert_eq!(parse(&LOWER, "͵βκϝʹ"), Ok(2026));
         assert_eq!(parse(&LOWER, "͵βκϝ"), Ok(2026));
         assert_eq!(parse(&LOWER, "κ͵β"), Err(I18nError::InvalidNumber));
+    }
+
+    /// The stigma and σ τ for 6, as Greek writes it today: ϛʹ and στʹ
+    /// ("Stigma (letter)"), 2026 as ͵βκϛʹ or ͵βκστʹ; 206 as σϛ or σστ, the
+    /// hundreds' σ read apart from the pair after it.
+    #[test]
+    fn six_reads_as_the_stigma_and_as_sigma_tau() {
+        assert_eq!(parse(&LOWER, "ϛʹ"), Ok(6));
+        assert_eq!(parse(&LOWER, "στʹ"), Ok(6));
+        assert_eq!(parse(&UPPER, "ΣΤʹ"), Ok(6));
+        assert_eq!(parse(&UPPER, "Ϛʹ"), Ok(6));
+        assert_eq!(parse(&LOWER, "͵βκϛʹ"), Ok(2026));
+        assert_eq!(parse(&LOWER, "͵βκϛ"), Ok(2026));
+        assert_eq!(parse(&LOWER, "͵βκστʹ"), Ok(2026));
+        assert_eq!(parse(&LOWER, "ιϛ´"), Ok(16));
+        assert_eq!(parse(&LOWER, "σϛ"), Ok(206));
+        assert_eq!(parse(&LOWER, "σστ"), Ok(206));
+        assert_eq!(parse(&LOWER, "͵ϛ"), Ok(6_000));
+        assert_eq!(parse(&LOWER, "͵στ"), Ok(6_000));
+        assert_eq!(parse(&LOWER, "ϛμ ͵βκϛ"), Ok(62_026));
+        // A pair out of place is no number, and the writer keeps the
+        // digamma the rules give.
+        assert_eq!(parse(&LOWER, "στα"), Err(I18nError::InvalidNumber));
+        assert_eq!(parse(&LOWER, "ϛϛ"), Err(I18nError::InvalidNumber));
+        assert_eq!(parse(&LOWER, "ϛι"), Err(I18nError::InvalidNumber));
+        assert_eq!(lower(6), "ϝ´");
     }
 }

@@ -2,7 +2,8 @@
 
 Backs `hc-i18n::zone_names` and `hc-i18n::day_periods`, and through them
 the CLDR pattern fields `z`, `O`, `v`, `V`, `b` and `B` of
-`hc-format::patterns::cldr`. No calendar identifier is registered: these
+`hc-format::patterns::cldr`, with the offset fields `Z`, `X` and `x`
+beside them. No calendar identifier is registered: these
 are the words a date's time and zone are written in.
 
 ## What it is
@@ -35,6 +36,22 @@ Where a zone has no name, a *location* names it: the locale's
 its country's only zone or its *primary zone* (`primaryZones`,
 `Asia/Shanghai` for China), and around its exemplar city otherwise:
 *Italy Time*, *Buenos Aires Time*.
+
+The offset fields write the offset in ISO 8601's shapes instead of a
+locale's: the Date Field Symbol Table makes `X` and `x` "the ISO8601 basic
+format with hours field and optional minutes field" (`+05`, `+0530`), `XX`
+and `xx` the basic form and `XXX` and `xxx` the extended one with hours and
+minutes, `XXXX`, `xxxx` and `Z` to `ZZZ` the basic form "with hours,
+minutes and optional seconds" (`-0800`, `-075258`), and `XXXXX`, `xxxxx`
+and `ZZZZZ` the extended one (`-08:00`, `-07:52:58`); the capitals write
+`Z` for a zero offset, and `ZZZZ` is the long localized GMT format.
+
+A locale's data may also say that it has no value. UTS #35 Part 1,
+"Empty Override" [uts35-v48], reserves `∅∅∅` "to indicate that a child
+locale is to have no value for a path, even if the parent locale has a
+value for that path". `en_001.xml` writes it for the short Pacific names,
+which `en.xml` gives as *PT*, *PST* and *PDT*, and `ja.xml` for the short
+generic name of `Japan` beside its *JST* and *JDT*.
 
 The same Part's "Day Period Rule Sets" name the times of a day beyond am
 and pm. Midnight and noon are fixed, 00:00 and 12:00, and "all locales must
@@ -82,12 +99,44 @@ Where a name is missing, each field falls back as UTS #35's list says: `z`
 to the short localized GMT format, `zzzz` to the long, `v` and `vvvv` to
 the location and then the localized GMT format, `V` to `unk`, `VVV` to
 the unknown zone's city (*Unknown Location*), `VVVV` to the long localized
-GMT format. *Type fallback* fills a type a metazone lacks: where it has no
-daylight name, it "doesn't require daylight support", and every type takes
-its generic name, else its standard one, so Greenwich's `vvvv` is
-*Greenwich Mean Time*.
+GMT format. A name a locale's file writes as the empty override is
+missing in that way: the lookup stops at that file, with no name, and
+does not go on to the parent's. So `en-GB`'s `z` for Los Angeles in July
+is *GMT-7*, not *PDT* and not `∅∅∅`.
+
+*Type fallback* fills a type a metazone lacks: where it has no daylight
+name, it "doesn't require daylight support", and every type takes its
+generic name, else its standard one, so Greenwich's `vvvv` is *Greenwich
+Mean Time*. The premise does not hold of a zone that is keeping daylight
+time, and its standard name would state another offset, so the library
+applies the fallback to a standard reading and not to a daylight one.
+`Europe/London` at 2026-07-01 12:00 +01:00, in English:
+
+1. The reading is daylight time. The zone's own long daylight name is
+   *British Summer Time*, so `zzzz` is that.
+2. `en.xml` gives London no short name of its own, and the zone's metazone
+   since 1971, `GMT`, has only standard names, *Greenwich Mean Time* and
+   *GMT*. There is no short daylight name.
+3. So `z` falls to the short localized GMT format: *GMT+1*. The standard
+   *GMT* would say UTC+0.
+
+ICU4J's `TimeZoneFormat.formatSpecific` asks for the daylight name alone
+for a daylight reading too [icu-zone-format-sources]; it is a comparison,
+not the source of the rule. `en-GB` has *BST* from `en_GB.xml`, and
+`Europe/Dublin` is the same case: its own long daylight name in English is
+*Irish Standard Time*, for the summer, so CLDR's names read Irish summer
+time as daylight time, as the host's TZif does (macOS's tzdata 2026c gives
+`isdst=1` from 29 March 2026); a caller whose zone data reports the
+reverse gives the reverse flag.
 
 ### A time of day
+
+The rule sets are keyed by language, a few by language and script or
+region (`hi_Latn`, `es_CO`), and a locale's is found by truncating its tag:
+`zh-Hant-HK`, `zh-Hant`, `zh`. That is not the names' chain, since
+`parentLocales` send `zh-Hant` and `yue-Hans` straight to root. ICU4C's
+`DayPeriodRules::getInstance` truncates in the same way
+[icu-zone-format-sources].
 
 `B` at 15:30 in English: `dayPeriods.xml`'s English rules put 15:30 in
 `afternoon1`, from 12:00 before 18:00, whose format name is *in the
@@ -95,7 +144,8 @@ afternoon*. At 12:00:00 exactly English has *noon*, so `b` and `B` both
 write it; German's rules have no noon, so its `b` writes the pm name and
 its `B` the period *mittags*, from 12:00 before 13:00. Japanese's 夜中,
 `night2`, runs from 23:00 across midnight before 04:00, so `B` at 01:00 is
-夜中.
+夜中. `B` at 20:00 in `zh-Hant`: `zh`'s rules put it in `evening1`, from
+19:00, and `zh_Hant.xml` names that 晚上.
 
 ## What is carried
 
@@ -111,18 +161,25 @@ its `B` the period *mittags*, from 12:00 before 13:00. Japanese's 夜中,
   and zone names with root's (`Etc/UTC`'s *UTC*). It turns on the
   exemplar cities and the territory names, which a location is written
   with.
-- **With `localized-zone-names`:** every other carried locale's names, 55
-  tables, some 600 kB of text. A language entry carries what its file
+- **With `localized-zone-names`:** every other carried locale's names, 49
+  tables with English's, some 600 kB of text. A language entry carries what its file
   states at the `approved` and `contributed` levels, a regional entry what
   its files resolve apart from its parent's, as the regional locales of
   `docs/i18n.md` are read, so that `en-GB` has *CET* and *CEST*, which
-  `en_GB.xml` gives and `en.xml` does not.
-- **Day periods**, always: each carried language's format rule set and the
-  format names of midnight, noon and the flexible periods in the
-  abbreviated, wide and narrow widths, resolved through `root.xml`.
+  `en_GB.xml` gives and `en.xml` does not. A name a file writes as the
+  empty override is carried as `~`, "no name", where the entry would
+  otherwise inherit its parent's: 41 names in `en-001`, `es-419` and
+  `pt-PT`. `ja.xml`'s one, whose parent is root with no name there, is
+  left empty; `scripts/cldr_xml.py` resolves it for
+  every generator, and `tests/cldr_markers.rs` fails on either marker in
+  any file a generator writes.
+- **Day periods**, always: every format rule set of a carried language,
+  those keyed by its script or region among them, and the format names of
+  midnight, noon and the flexible periods in the abbreviated, wide and
+  narrow widths, resolved through `root.xml`.
 - **In the pattern fields:** `z`, `O`, `v`, `V`, `b` and `B` as above;
   `z` takes a name the caller gave the context first, as it always has;
-  and `ZZZZ` is `OOOO`.
+  `ZZZZ` is `OOOO`; and `Z`, `X` and `x` in every width, as above.
 - **Not carried.**
   - The last of UTS #35's type fallbacks: a generic name needed where only
     the standard exists and "the offset and daylight offset do not change
@@ -148,13 +205,19 @@ examples:
 | British Summer Time and Greenwich Mean Time for London; India Standard Time for `Asia/Kolkata` | `en.xml` | the same | agrees |
 | 日本標準時 and 東京; Mitteleuropäische Sommerzeit and MESZ | `ja.xml`, `de.xml` | `the_zone_names_are_the_locales` | agrees |
 | noon, midnight, in the afternoon, at night; Mitternacht and mittags; 夜中 at 01:00 | `dayPeriods.xml`, `en.xml`, `de.xml`, `ja.xml` | `the_extended_day_periods_follow_each_languages_rules` | agrees |
+| GMT+1 and British Summer Time for London in July, GMT+1 and Irish Standard Time for Dublin, BST in `en-GB` | `en.xml`, `en_GB.xml`, `metaZones.xml` | `the_zone_fields_write_tr_35s_examples`, `the_zone_names_are_the_locales` | agrees |
+| `+0530`, `-075258`, `-07:52:58`, `Z` for the ISO fields | [uts35-dates-48], the symbol table's examples | `the_iso_zone_fields_write_minutes_and_seconds_where_tr_35_does` | every example |
+| No name where a file writes `∅∅∅`: `en-001`'s, `en-GB`'s, `en-AU`'s and `en-IN`'s short Pacific names, `es-419`'s short Eastern European ones, `pt-PT`'s for Brasília, `ja`'s short generic Japan name | `en_001.xml`, `es_419.xml`, `pt_PT.xml`, `ja.xml` | `the_empty_override_stops_the_lookup_with_no_name` (`hc-i18n`) | agrees |
+| `zh`'s rules for `zh-Hant`, `zh-TW`, `zh-Hant-HK` and `zh-Hant-MO`, `yue`'s for `yue-Hans`, `hi_Latn`'s own | `dayPeriods.xml` | `the_rules_are_found_by_truncating_the_tag` (`hc-i18n`) | agrees |
+| Every zone field and day period in every carried locale written, none a marker | the generated tables | `tests/cldr_names_sweep.rs` (`hc-format`) | every locale |
 
 ## Sources
 
 | Key | What it gives | Read |
 | --- | --- | --- |
-| [uts35-dates-48] | "Using Time Zone Names", the Date Field Symbol Table's `z`, `v`, `V`, `O`, `b`, `B`, `U`, `r`, `g`, and "Day Period Rule Sets" | Yes, 2026-09-29 |
-| [uts35-v48] | "Inheritance Marker", "Lateral Inheritance", "Parent Locales" | Yes, 2026-09-29 |
+| [uts35-dates-48] | "Using Time Zone Names" and its "Type Fallback", the Date Field Symbol Table's `z`, `v`, `V`, `O`, `Z`, `X`, `x`, `b`, `B`, `U`, `r`, `g`, and "Day Period Rule Sets" | Yes, 2026-09-29 |
+| [uts35-v48] | "Inheritance Marker", "Empty Override", "Lateral Inheritance", "Parent Locales" | Yes, 2026-09-29 |
+| [icu-zone-format-sources] | ICU4J's `TimeZoneFormat.formatSpecific` and ICU4C's `DayPeriodRules::getInstance`, a comparison for the daylight name and the truncation, not a source of either rule | Yes, 2026-09-29 |
 | [cldr48-zone-names] | `common/main/<file>.xml` `timeZoneNames`, `supplemental/metaZones.xml`, `bcp47/timezone.xml`, `supplemental/likelySubtags.xml` | Yes, 2026-09-29, by `scripts/zone-names-cldr.py` |
 | [cldr48-day-periods] | `supplemental/dayPeriods.xml` and the carried files' day period names | Yes, 2026-09-29, by `scripts/day-periods-cldr.py` |
 
@@ -165,4 +228,7 @@ examples:
 - `crates/hc-i18n/src/day_periods.rs` and the generated
   `day_periods/cldr48.rs` (`scripts/day-periods-cldr.py`, `--check`).
 - `crates/hc-format/src/patterns/zone.rs`, the composition; the fields in
-  `patterns/cldr.rs`.
+  `patterns/cldr.rs`, the ISO offsets' shared writer in `patterns.rs`
+  (`exact_offset_style`, which `strftime`'s `%z` uses too).
+- `scripts/cldr_xml.py`, the resolution the generators share, the empty
+  override among it; `crates/hyper-calendar/tests/cldr_markers.rs`.

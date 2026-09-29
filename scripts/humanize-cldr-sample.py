@@ -12,7 +12,8 @@ CLDR, in every one of its locales, with CLDR 48's own resolution of it:
 * the standard, unit and narrow unit list patterns (`2`, `start`,
   `middle` and `end`);
 * the decimal separator of the digits hc-i18n writes the locale's numbers
-  in: CLDR's default numbering system, but Arabic's `native` one, `arab`;
+  in: CLDR's default numbering system, `latn` for `ar` and `arab` for
+  `ar-EG`;
 * the long `relative` date-time pattern (UTS #35 Part 4, "Element
   dateTimeFormat"), written in the crate's order: CLDR's `{1}` is the date
   and `{0}` the time, the crate's `{0}` is the day phrase and `{1}` the
@@ -57,8 +58,9 @@ TAGS = [
     ('zh-Hant-HK', 'zh-Hant-HK'),
 ]
 # The locales whose numbers hc-i18n writes in CLDR's `native` system rather
-# than the default one; the test holds hc-i18n to it.
-NATIVE_DIGITS = {'ar'}
+# than the default one: none, since hc-i18n writes each locale's default;
+# the test holds hc-i18n to it.
+NATIVE_DIGITS = set()
 UNITS = ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year']
 STYLES = [('long', ''), ('short', '-short'), ('narrow', '-narrow')]
 ORDER = ['zero', 'one', 'two', 'few', 'many', 'other']

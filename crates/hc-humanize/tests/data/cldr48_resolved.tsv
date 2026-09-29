@@ -97,7 +97,7 @@ ar	narrow.year.relative.-2=	narrow.year.relative.-1=السنة الماضية	na
 ar	list.standard.2={0} و{1}	list.standard.start={0} و{1}	list.standard.middle={0} و{1}	list.standard.end={0} و{1}
 ar	list.unit.2={0} و{1}	list.unit.start={0}، و{1}	list.unit.middle={0}، و{1}	list.unit.end={0}، و{1}
 ar	list.narrow.2={0} و{1}	list.narrow.start={0} و{1}	list.narrow.middle={0} و{1}	list.narrow.end={0} و{1}
-ar	decimal=٫	at={0} في {1}
+ar	decimal=.	at={0} في {1}
 ar-EG	long.second.past.zero=قبل {0} ثانية	long.second.past.one=قبل ثانية واحدة	long.second.past.two=قبل ثانيتين	long.second.past.few=قبل {0} ثوانِ	long.second.past.many=قبل {0} ثانية	long.second.past.other=قبل {0} ثانية
 ar-EG	long.second.future.zero=خلال {0} ثانية	long.second.future.one=خلال ثانية واحدة	long.second.future.two=خلال ثانيتين	long.second.future.few=خلال {0} ثوانٍ	long.second.future.many=خلال {0} ثانية	long.second.future.other=خلال {0} ثانية
 ar-EG	long.second.count.zero={0} ثانية	long.second.count.one=ثانية	long.second.count.two=ثانيتان	long.second.count.few={0} ثوان	long.second.count.many={0} ثانية	long.second.count.other={0} ثانية

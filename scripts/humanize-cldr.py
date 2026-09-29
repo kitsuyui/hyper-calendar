@@ -97,10 +97,11 @@ LOCALES = [
 ]
 
 # The digits hc-i18n writes a locale's numbers in where they are not CLDR's
-# default system (`hc_i18n::data`, `numbering`): Arabic's `native` digits,
-# ٠ to ٩, where CLDR 48's default for `ar` is `latn`. The decimal separator
-# is that system's, ٫. tests/cldr48_resolved.rs holds hc-i18n to this.
-NUMBERING = {'ar': 'arab'}
+# default system (`hc_i18n::data`, `numbering`): none, since hc-i18n writes
+# each entry's CLDR default (`hc_i18n::data::DEFAULT_NUMBERING`), `ar`'s
+# `latn` and `ar-EG`'s `arab`. tests/cldr48_resolved.rs holds hc-i18n to
+# this.
+NUMBERING = {}
 
 UNITS = ['second', 'minute', 'hour', 'day', 'week', 'month', 'quarter', 'year']
 CATS = ['zero', 'one', 'two', 'few', 'many', 'other']
@@ -207,6 +208,7 @@ def resolve(chain, at, depth=0, marked=False, lateral=True):
             if value == MARK:
                 marked = marked or name != 'root'
                 continue
+            assert value != '∅∅∅', ("CLDR's empty override ∅∅∅ at a path this script reads: it has no encoding for it yet (scripts/cldr_xml.py's resolve stops the lookup there)", name, at)
             return value, name, marked
     _, aliases = load('root')
     for n in range(len(at), 0, -1):
