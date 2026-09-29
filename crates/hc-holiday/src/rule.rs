@@ -53,8 +53,11 @@ use crate::computus::{Computus, easter};
 /// anniversary in a Gregorian year twice — 1 Muḥarram fell on both
 /// 1 January and 21 December of 2008 — and a [`Rule::Span`] yields every
 /// day of a festival that runs a week, so the answer is a small list rather
-/// than an `Option`. Sixteen slots hold two week-long spans, one each side
-/// of a New Year, and keep the type `Copy` and allocation-free.
+/// than an `Option`. And a day of the week can be a holiday in itself, as
+/// the Saturday afternoon half holiday of several of the United States'
+/// codes is: every Saturday, 52 or 53 a year. Fifty-three slots hold every
+/// Saturday of a year, and two week-long spans, one each side of a New Year,
+/// many times over, and keep the type `Copy` and allocation-free.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Days {
     days: [Rd; Days::CAPACITY],
@@ -62,8 +65,9 @@ pub struct Days {
 }
 
 impl Days {
-    /// How many days a single rule may yield in one Gregorian year.
-    pub const CAPACITY: usize = 16;
+    /// How many days a single rule may yield in one Gregorian year: the
+    /// most times a day of the week comes in one, 53.
+    pub const CAPACITY: usize = 53;
 
     /// An empty list.
     #[must_use]
@@ -86,9 +90,9 @@ impl Days {
     /// Append a day, silently ignoring anything past [`Days::CAPACITY`].
     ///
     /// Overflow is dropped rather than reported because no rule in the
-    /// vocabulary can produce a seventeenth day: an anniversary lands in a
-    /// Gregorian year at most twice, and a span is refused beyond
-    /// [`Rule::MAX_SPAN`] days.
+    /// vocabulary can produce a fifty-fourth day: an anniversary lands in a
+    /// Gregorian year at most twice, a span is refused beyond
+    /// [`Rule::MAX_SPAN`] days, and a weekday comes at most 53 times.
     pub const fn push(&mut self, day: Rd) {
         if (self.len as usize) < Self::CAPACITY {
             self.days[self.len as usize] = day;
@@ -3515,6 +3519,34 @@ mod tests {
             days.push(Rd(offset));
         }
         assert_eq!(days.len(), Days::CAPACITY);
+    }
+
+    /// Every Saturday of 2022, which began and ended on one: 53 days, the
+    /// most a weekday comes in a year, all kept.
+    #[test]
+    fn days_holds_every_saturday_of_a_year() {
+        fn saturdays(year: i64) -> Days {
+            let mut days = Days::new();
+            let Ok(first) = gregorian::to_fixed(year, 1, 1) else {
+                return days;
+            };
+            let Ok(last) = gregorian::to_fixed(year, 12, 31) else {
+                return days;
+            };
+            let mut day = Weekday::Saturday.on_or_after(first);
+            while day <= last {
+                days.push(day);
+                day = Rd(day.0 + 7);
+            }
+            days
+        }
+        let rule = Rule::Computed(saturdays);
+        let days = rule.days_in_year(2022);
+        assert_eq!(days.len(), 53);
+        assert_eq!(days.len(), Days::CAPACITY);
+        assert_eq!(days.as_slice()[0], ymd(2022, 1, 1));
+        assert_eq!(days.as_slice()[52], ymd(2022, 12, 31));
+        assert_eq!(rule.days_in_year(2026).len(), 52);
     }
 
     #[test]

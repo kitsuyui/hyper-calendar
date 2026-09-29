@@ -29,10 +29,12 @@
 //!   keep that it may replace (Maundy Thursday most of all), and the
 //!   Monday rests it kept. They are [`Rule::Listed`] entries over a
 //!   [`Listing`] per community, for the years whose resolution was read in
-//!   the BOE's HTML text: 2013 to 2015 and 2018 to 2026. The resolutions
+//!   the BOE's HTML text: 1994 (seventeen communities, before Ceuta and
+//!   Melilla had a column), 2013 to 2015 and 2018 to 2026. The resolutions
 //!   for 2016 and 2017 publish their annex only as an image, so those
-//!   years are a gap, and so is every year after 2026 and every year before
-//!   2013, whose resolutions were not read. Every such day is a day off, [`Kind::Public`](crate::rule::Kind::Public):
+//!   years are a gap, and so is every year after 2026, every year from
+//!   1995 to 2012, whose annexes are images, PDF or dates without names,
+//!   and every year before 1994. Every such day is a day off, [`Kind::Public`](crate::rule::Kind::Public):
 //!   the resolutions list fiestas laborales, "retribuidas y no
 //!   recuperables" (a community that has a thirteenth day makes one of
 //!   them recuperable, which is still a day off).
@@ -49,8 +51,11 @@ use crate::rule::{
     Days, HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
 };
 
-/// The resolutions read for 2013 to 2015.
-const EARLY_RESOLUTIONS: &str = "Resoluciones de la Dirección General de Empleo de 30 de octubre \
+/// The resolutions read for 1994 and for 2013 to 2015.
+const EARLY_RESOLUTIONS: &str = "Resolución de la Dirección General de Trabajo de 4 de noviembre \
+     de 1993 (BOE-A-1993-27313, corregida por BOE-A-1993-27514), por la que se publica la \
+     relación de fiestas laborales para el año 1994, anexo; and Resoluciones de la Dirección \
+     General de Empleo de 30 de octubre \
      de 2012 (BOE-A-2012-13644), 8 de noviembre de 2013 (BOE-A-2013-12147) y 17 de octubre de \
      2014 (BOE-A-2014-10823), por las que se publica la relación de fiestas laborales para los \
      años 2013, 2014 y 2015, anexo";
@@ -65,9 +70,29 @@ const LATE_RESOLUTIONS: &str = "Resoluciones de la Dirección General de Empleo 
      (BOE-A-2025-21667), por las que se publica la relación de fiestas laborales para los años \
      2018 a 2026, anexo";
 
-/// A community's day in the resolutions for 2013 to 2015, and a gap
-/// before: the resolutions before 2013 were not read.
+/// A community's day in the resolutions for 1994 and for 2013 to 2015, and
+/// a gap before 1994. The years 1995 to 2012 are in the listing's range but
+/// have no entries: [`UNREAD_1995_TO_2012`] makes them a gap for the
+/// community.
 const fn early(
+    name: &'static str,
+    local_name: &'static str,
+    days: &'static Listing,
+    region: &'static [&'static str],
+) -> HolidayRule {
+    HolidayRule::fixed_public(
+        name,
+        local_name,
+        Rule::listed(days.named(local_name), 1994, 2015),
+    )
+    .years(None, Some(2015))
+    .in_regions(region)
+    .cited(EARLY_RESOLUTIONS)
+}
+
+/// A day of Ceuta or Melilla in the resolutions for 2013 to 2015, and a gap
+/// before: the resolution for 1994 has no column for either city.
+const fn early_city(
     name: &'static str,
     local_name: &'static str,
     days: &'static Listing,
@@ -82,6 +107,31 @@ const fn early(
     .in_regions(region)
     .cited(EARLY_RESOLUTIONS)
 }
+
+/// The seventeen communities of the resolution for 1994, the cities of
+/// Ceuta and Melilla not among them.
+const COMMUNITIES_OF_1994: &[&str] = &[
+    "ES-AN", "ES-AR", "ES-AS", "ES-CB", "ES-CL", "ES-CM", "ES-CN", "ES-CT", "ES-EX", "ES-GA",
+    "ES-IB", "ES-MC", "ES-MD", "ES-NC", "ES-PV", "ES-RI", "ES-VC",
+];
+
+/// The years 1995 to 2012 for the seventeen, a gap: the resolution for
+/// 1995 lists the communities' dates without their names, and those of
+/// 1996 to 2012 publish the annex as an image or PDF, or omit it.
+const UNREAD_1995_TO_2012: HolidayRule = HolidayRule::public(
+    "The community's days of 1995 to 2012",
+    "Fiestas de la comunidad, 1995 a 2012",
+    Rule::UNREAD,
+)
+.years(Some(1995), Some(2012))
+.in_regions(COMMUNITIES_OF_1994)
+.cited(UNREAD_RESOLUTIONS);
+
+/// The resolutions of 1995 to 2012, found and not read as text.
+const UNREAD_RESOLUTIONS: &str = "Resoluciones de la Dirección General de Trabajo por las que se \
+     publica la relación de fiestas laborales para los años 1995 a 2012: for 1995 \
+     (BOE-A-1994-27473) an annex of dates without names, and for 1996 to 2012 an annex omitted \
+     from the HTML text or published as an image or PDF, not read; retrieved 2026-09-29";
 
 /// A community's day in the resolutions for 2018 to 2026, and a gap in
 /// 2016 and 2017, whose annexes are images, and after 2026.
@@ -112,11 +162,11 @@ const ARTICLE_45: &str = "Real Decreto 2001/1983, art. 45.1, in the version of R
      retrieved 2026-09-29; the versions of 1983 and of Real Decreto 2403/1985 not read";
 
 /// Epiphany, 6 January, where a resolution read shows every community
-/// keeping it — 2013 to 2015 and 2018 to 2026 — and else `None`: a day of
+/// keeping it — 1994, 2013 to 2015 and 2018 to 2026 — and else `None`: a day of
 /// article 45.1 d), which a community may replace, is nationwide only in the
 /// years whose resolution says it is.
 fn epiphany_where_read(year: i64) -> Option<Days> {
-    if !(2013..=2015).contains(&year) && !(2018..=2026).contains(&year) {
+    if year != 1994 && !(2013..=2015).contains(&year) && !(2018..=2026).contains(&year) {
         return None;
     }
     Some(EPIPHANY.days_in_year(year))
@@ -133,6 +183,7 @@ const fn national(name: &'static str, local_name: &'static str, rule: Rule) -> H
 }
 
 static RULES: &[HolidayRule] = &[
+    UNREAD_1995_TO_2012,
     // ── The nationwide days, article 45 ─────────────────────────────────
     national("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
     national(
@@ -320,6 +371,8 @@ static RULES: &[HolidayRule] = &[
         ANDALUSIA,
     ),
     // Aragon
+    early("St James's Day", "Santiago Apóstol", &ARAGON_DAYS, ARAGON),
+    late("St James's Day", "Santiago Apóstol", &ARAGON_DAYS, ARAGON),
     early(
         "Monday after New Year's Day",
         "Lunes siguiente a Año Nuevo",
@@ -615,6 +668,42 @@ static RULES: &[HolidayRule] = &[
     ),
     // the Balearic Islands
     early(
+        "St James's Day",
+        "Santiago Apóstol",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    late(
+        "St James's Day",
+        "Santiago Apóstol",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    early(
+        "Second Day of Christmas",
+        "Segunda fiesta de Navidad",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    late(
+        "Second Day of Christmas",
+        "Segunda fiesta de Navidad",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    early(
+        "In place of 25 December",
+        "En sustitución del día 25 de diciembre",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    late(
+        "In place of 25 December",
+        "En sustitución del día 25 de diciembre",
+        &BALEARIC_ISLANDS_DAYS,
+        BALEARIC_ISLANDS,
+    ),
+    early(
         "Day of the Balearic Islands",
         "Día de les Illes Balears",
         &BALEARIC_ISLANDS_DAYS,
@@ -784,6 +873,30 @@ static RULES: &[HolidayRule] = &[
         BASQUE_COUNTRY,
     ),
     // the Canary Islands
+    early(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &CANARY_ISLANDS_DAYS,
+        CANARY_ISLANDS,
+    ),
+    late(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &CANARY_ISLANDS_DAYS,
+        CANARY_ISLANDS,
+    ),
+    early(
+        "St James's Day",
+        "Santiago Apóstol",
+        &CANARY_ISLANDS_DAYS,
+        CANARY_ISLANDS,
+    ),
+    late(
+        "St James's Day",
+        "Santiago Apóstol",
+        &CANARY_ISLANDS_DAYS,
+        CANARY_ISLANDS,
+    ),
     early(
         "Monday after Epiphany",
         "Lunes siguiente a la Epifanía del Señor",
@@ -1003,6 +1116,18 @@ static RULES: &[HolidayRule] = &[
     ),
     // Castile and León
     early(
+        "St Joseph's Day",
+        "San José",
+        &CASTILE_AND_LEON_DAYS,
+        CASTILE_AND_LEON,
+    ),
+    late(
+        "St Joseph's Day",
+        "San José",
+        &CASTILE_AND_LEON_DAYS,
+        CASTILE_AND_LEON,
+    ),
+    early(
         "Monday after New Year's Day",
         "Lunes siguiente a Año Nuevo",
         &CASTILE_AND_LEON_DAYS,
@@ -1159,6 +1284,18 @@ static RULES: &[HolidayRule] = &[
         CASTILE_AND_LEON,
     ),
     // Castilla-La Mancha
+    early(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &CASTILLA_LA_MANCHA_DAYS,
+        CASTILLA_LA_MANCHA,
+    ),
+    late(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &CASTILLA_LA_MANCHA_DAYS,
+        CASTILLA_LA_MANCHA,
+    ),
     early(
         "Monday after Epiphany",
         "Lunes siguiente a la Epifanía del Señor",
@@ -1319,7 +1456,7 @@ static RULES: &[HolidayRule] = &[
         CATALONIA,
     ),
     // Ceuta
-    early(
+    early_city(
         "Monday after Epiphany",
         "Lunes siguiente a la Epifanía del Señor",
         &CEUTA_DAYS,
@@ -1331,9 +1468,9 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early("Maundy Thursday", "Jueves Santo", &CEUTA_DAYS, CEUTA),
+    early_city("Maundy Thursday", "Jueves Santo", &CEUTA_DAYS, CEUTA),
     late("Maundy Thursday", "Jueves Santo", &CEUTA_DAYS, CEUTA),
-    early(
+    early_city(
         "Eid al-Adha",
         "Fiesta del Sacrificio-Eidul Adha",
         &CEUTA_DAYS,
@@ -1345,7 +1482,7 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early(
+    early_city(
         "Our Lady of Africa",
         "Nuestra Señora de África",
         &CEUTA_DAYS,
@@ -1357,9 +1494,9 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early("Day of Ceuta", "Día de Ceuta", &CEUTA_DAYS, CEUTA),
+    early_city("Day of Ceuta", "Día de Ceuta", &CEUTA_DAYS, CEUTA),
     late("Day of Ceuta", "Día de Ceuta", &CEUTA_DAYS, CEUTA),
-    early(
+    early_city(
         "Monday after the National Day of Spain",
         "Lunes siguiente a la Fiesta Nacional de España",
         &CEUTA_DAYS,
@@ -1371,7 +1508,7 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early(
+    early_city(
         "Monday after All Saints' Day",
         "Lunes siguiente a Todos los Santos",
         &CEUTA_DAYS,
@@ -1383,7 +1520,7 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early(
+    early_city(
         "Monday after Constitution Day",
         "Lunes siguiente al Día de la Constitución Española",
         &CEUTA_DAYS,
@@ -1395,7 +1532,7 @@ static RULES: &[HolidayRule] = &[
         &CEUTA_DAYS,
         CEUTA,
     ),
-    early(
+    early_city(
         "Monday after the Immaculate Conception",
         "Lunes siguiente a la Inmaculada Concepción",
         &CEUTA_DAYS,
@@ -1408,6 +1545,18 @@ static RULES: &[HolidayRule] = &[
         CEUTA,
     ),
     // the Community of Madrid
+    early(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &MADRID_DAYS,
+        MADRID,
+    ),
+    late(
+        "Monday after Labour Day",
+        "Lunes siguiente a la Fiesta del Trabajo",
+        &MADRID_DAYS,
+        MADRID,
+    ),
     early(
         "Monday after Epiphany",
         "Lunes siguiente a la Epifanía del Señor",
@@ -1749,6 +1898,18 @@ static RULES: &[HolidayRule] = &[
         GALICIA,
     ),
     // La Rioja
+    early(
+        "St James's Day",
+        "Santiago Apóstol",
+        &LA_RIOJA_DAYS,
+        LA_RIOJA,
+    ),
+    late(
+        "St James's Day",
+        "Santiago Apóstol",
+        &LA_RIOJA_DAYS,
+        LA_RIOJA,
+    ),
     early("Maundy Thursday", "Jueves Santo", &LA_RIOJA_DAYS, LA_RIOJA),
     late("Maundy Thursday", "Jueves Santo", &LA_RIOJA_DAYS, LA_RIOJA),
     early("Easter Monday", "Lunes de Pascua", &LA_RIOJA_DAYS, LA_RIOJA),
@@ -1814,7 +1975,7 @@ static RULES: &[HolidayRule] = &[
         LA_RIOJA,
     ),
     // Melilla
-    early(
+    early_city(
         "Monday after Epiphany",
         "Lunes siguiente a la Epifanía del Señor",
         &MELILLA_DAYS,
@@ -1826,7 +1987,7 @@ static RULES: &[HolidayRule] = &[
         &MELILLA_DAYS,
         MELILLA,
     ),
-    early(
+    early_city(
         "Statute of Autonomy of Melilla Day",
         "Estatuto de Autonomía de la Ciudad de Melilla",
         &MELILLA_DAYS,
@@ -1838,13 +1999,13 @@ static RULES: &[HolidayRule] = &[
         &MELILLA_DAYS,
         MELILLA,
     ),
-    early("St Joseph's Day", "San José", &MELILLA_DAYS, MELILLA),
+    early_city("St Joseph's Day", "San José", &MELILLA_DAYS, MELILLA),
     late("St Joseph's Day", "San José", &MELILLA_DAYS, MELILLA),
-    early("Eid al-Fitr", "Fiesta del Eid Fitr", &MELILLA_DAYS, MELILLA),
+    early_city("Eid al-Fitr", "Fiesta del Eid Fitr", &MELILLA_DAYS, MELILLA),
     late("Eid al-Fitr", "Fiesta del Eid Fitr", &MELILLA_DAYS, MELILLA),
-    early("Maundy Thursday", "Jueves Santo", &MELILLA_DAYS, MELILLA),
+    early_city("Maundy Thursday", "Jueves Santo", &MELILLA_DAYS, MELILLA),
     late("Maundy Thursday", "Jueves Santo", &MELILLA_DAYS, MELILLA),
-    early(
+    early_city(
         "Eid al-Adha",
         "Fiesta del Sacrificio-Aid Al Adha",
         &MELILLA_DAYS,
@@ -1856,7 +2017,7 @@ static RULES: &[HolidayRule] = &[
         &MELILLA_DAYS,
         MELILLA,
     ),
-    early(
+    early_city(
         "Monday after Constitution Day",
         "Lunes siguiente al Día de la Constitución Española",
         &MELILLA_DAYS,
@@ -1868,7 +2029,7 @@ static RULES: &[HolidayRule] = &[
         &MELILLA_DAYS,
         MELILLA,
     ),
-    early(
+    early_city(
         "Monday after the Immaculate Conception",
         "Lunes siguiente a la Inmaculada Concepción",
         &MELILLA_DAYS,
@@ -1880,7 +2041,7 @@ static RULES: &[HolidayRule] = &[
         &MELILLA_DAYS,
         MELILLA,
     ),
-    early(
+    early_city(
         "Monday after Christmas Day",
         "Lunes siguiente a la Natividad del Señor",
         &MELILLA_DAYS,
@@ -2039,6 +2200,18 @@ static RULES: &[HolidayRule] = &[
         MURCIA,
     ),
     // the Valencian Community
+    early(
+        "Second Day of Christmas",
+        "Segundo día de Navidad",
+        &VALENCIA_DAYS,
+        VALENCIA,
+    ),
+    late(
+        "Second Day of Christmas",
+        "Segundo día de Navidad",
+        &VALENCIA_DAYS,
+        VALENCIA,
+    ),
     early("Fallas Monday", "Lunes de Fallas", &VALENCIA_DAYS, VALENCIA),
     late("Fallas Monday", "Lunes de Fallas", &VALENCIA_DAYS, VALENCIA),
     early("St Joseph's Day", "San José", &VALENCIA_DAYS, VALENCIA),
@@ -2121,6 +2294,10 @@ const VALENCIA: &[&str] = &["ES-VC"];
 
 /// The days of Andalusia (ES-AN) in the resolutions read.
 static ANDALUSIA_DAYS: Listing = Listing::Named(&[
+    (1994, 2, 28, "Día de Andalucía"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 2, 28, "Día de Andalucía"),
     (2013, 3, 28, "Jueves Santo"),
@@ -2191,6 +2368,10 @@ static ANDALUSIA_DAYS: Listing = Listing::Named(&[
 
 /// The days of Aragon (ES-AR) in the resolutions read.
 static ARAGON_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 23, "San Jorge/Día de Aragón"),
+    (1994, 7, 25, "Santiago Apóstol"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 23, "San Jorge/Día de Aragón"),
@@ -2261,6 +2442,10 @@ static ARAGON_DAYS: Listing = Listing::Named(&[
 
 /// The days of Asturias (ES-AS) in the resolutions read.
 static ASTURIAS_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 9, 8, "Día de Asturias"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 9, 9, "Lunes siguiente al Día de Asturias"),
@@ -2331,6 +2516,10 @@ static ASTURIAS_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Balearic Islands (ES-IB) in the resolutions read.
 static BALEARIC_ISLANDS_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 7, 25, "Santiago Apóstol"),
+    (1994, 12, 26, "Segunda fiesta de Navidad"),
+    (1994, 12, 27, "En sustitución del día 25 de diciembre"),
     (2013, 3, 1, "Día de les Illes Balears"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 1, "Lunes de Pascua"),
@@ -2387,6 +2576,10 @@ static BALEARIC_ISLANDS_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Basque Country (ES-PV) in the resolutions read.
 static BASQUE_COUNTRY_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 4, "Lunes de Pascua"),
+    (1994, 7, 25, "Santiago Apóstol"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 1, "Lunes de Pascua"),
     (2013, 7, 25, "Santiago Apóstol"),
@@ -2432,6 +2625,10 @@ static BASQUE_COUNTRY_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Canary Islands (ES-CN) in the resolutions read.
 static CANARY_ISLANDS_DAYS: Listing = Listing::Named(&[
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 5, 30, "Día de Canarias"),
+    (1994, 7, 25, "Santiago Apóstol"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 5, 30, "Día de Canarias"),
@@ -2471,6 +2668,10 @@ static CANARY_ISLANDS_DAYS: Listing = Listing::Named(&[
 
 /// The days of Cantabria (ES-CB) in the resolutions read.
 static CANTABRIA_DAYS: Listing = Listing::Named(&[
+    (1994, 7, 25, "Santiago Apóstol"),
+    (1994, 7, 28, "Día de las Instituciones de Cantabria"),
+    (1994, 9, 15, "La Bien Aparecida"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 1, "Lunes de Pascua"),
@@ -2521,6 +2722,10 @@ static CANTABRIA_DAYS: Listing = Listing::Named(&[
 
 /// The days of Castile and León (ES-CL) in the resolutions read.
 static CASTILE_AND_LEON_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 23, "Fiesta de Castilla y León"),
+    (1994, 7, 25, "Santiago Apóstol"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 23, "Fiesta de Castilla y León"),
@@ -2591,6 +2796,10 @@ static CASTILE_AND_LEON_DAYS: Listing = Listing::Named(&[
 
 /// The days of Castilla-La Mancha (ES-CM) in the resolutions read.
 static CASTILLA_LA_MANCHA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 5, 31, "Día de Castilla-La Mancha"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 5, 30, "Corpus Christi"),
@@ -2641,6 +2850,10 @@ static CASTILLA_LA_MANCHA_DAYS: Listing = Listing::Named(&[
 
 /// The days of Catalonia (ES-CT) in the resolutions read.
 static CATALONIA_DAYS: Listing = Listing::Named(&[
+    (1994, 4, 4, "Lunes de Pascua"),
+    (1994, 5, 23, "Lunes de Pascua Granada"),
+    (1994, 6, 24, "San Juan"),
+    (1994, 12, 26, "San Esteban"),
     (2013, 4, 1, "Lunes de Pascua"),
     (2013, 6, 24, "San Juan"),
     (2013, 9, 11, "Fiesta Nacional de Cataluña"),
@@ -2752,6 +2965,10 @@ static CEUTA_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Community of Madrid (ES-MD) in the resolutions read.
 static MADRID_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 7, 25, "Santiago Apóstol"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 18, "Traslado de San José"),
     (2013, 3, 28, "Jueves Santo"),
@@ -2812,6 +3029,10 @@ static MADRID_DAYS: Listing = Listing::Named(&[
 
 /// The days of Extremadura (ES-EX) in the resolutions read.
 static EXTREMADURA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 9, 8, "Día de Extremadura"),
+    (1994, 12, 26, "Lunes siguiente a la Natividad del Señor"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 9, 9, "Lunes siguiente al Día de Extremadura"),
@@ -2882,6 +3103,10 @@ static EXTREMADURA_DAYS: Listing = Listing::Named(&[
 
 /// The days of Galicia (ES-GA) in the resolutions read.
 static GALICIA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 17, "Día de las Letras Gallegas"),
+    (1994, 7, 25, "Santiago Apóstol/Día Nacional de Galicia"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 5, 17, "Día de las Letras Gallegas"),
     (2013, 6, 24, "San Juan"),
@@ -2928,6 +3153,10 @@ static GALICIA_DAYS: Listing = Listing::Named(&[
 
 /// The days of La Rioja (ES-RI) in the resolutions read.
 static LA_RIOJA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 4, "Lunes de Pascua"),
+    (1994, 6, 9, "Día de La Rioja"),
+    (1994, 7, 25, "Santiago Apóstol"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 1, "Lunes de Pascua"),
     (2013, 6, 10, "Día de La Rioja"),
@@ -3048,6 +3277,10 @@ static MELILLA_DAYS: Listing = Listing::Named(&[
 
 /// The days of Navarre (ES-NC) in the resolutions read.
 static NAVARRE_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 4, "Lunes de Pascua"),
+    (1994, 7, 25, "Santiago Apóstol"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 28, "Jueves Santo"),
     (2013, 4, 1, "Lunes de Pascua"),
@@ -3098,6 +3331,10 @@ static NAVARRE_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Region of Murcia (ES-MC) in the resolutions read.
 static MURCIA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    (1994, 6, 9, "Día de la Región de Murcia"),
     (2013, 1, 7, "Lunes siguiente a la Epifanía del Señor"),
     (2013, 3, 19, "San José"),
     (2013, 3, 28, "Jueves Santo"),
@@ -3159,6 +3396,10 @@ static MURCIA_DAYS: Listing = Listing::Named(&[
 
 /// The days of the Valencian Community (ES-VC) in the resolutions read.
 static VALENCIA_DAYS: Listing = Listing::Named(&[
+    (1994, 3, 19, "San José"),
+    (1994, 3, 31, "Jueves Santo"),
+    (1994, 4, 4, "Lunes de Pascua"),
+    (1994, 12, 26, "Segundo día de Navidad"),
     (2013, 3, 18, "Lunes de Fallas"),
     (2013, 3, 19, "San José"),
     (2013, 4, 1, "Lunes de Pascua"),

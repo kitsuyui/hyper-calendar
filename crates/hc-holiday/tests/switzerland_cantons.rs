@@ -135,6 +135,11 @@ const ANCHORS: &[(&str, &str, i64, u8, u8, Kind)] = &[
     ("CH-JU", "2 janvier", 2026, 1, 2, Kind::Observance),
     ("CH-JU", "Assomption", 2026, 8, 15, Kind::Observance),
     ("CH-JU", "Toussaint", 2026, 11, 1, Kind::Observance),
+    // RSJU 555.1, in force 1 January 2023: art. 3 lit. b "le 23 juin", a
+    // jour férié officiel that art. 4 does not equate with Sunday.
+    ("CH-JU", "le 23 juin", 2026, 6, 23, Kind::Observance),
+    ("CH-JU", "le 23 juin", 2023, 6, 23, Kind::Observance),
+    ("CH-JU", "Vendredi-Saint", 2023, 4, 7, Kind::Public),
     ("CH-LU", "Karfreitag", 1998, 4, 10, Kind::Public),
     ("CH-LU", "Karfreitag", 2026, 4, 3, Kind::Public),
     ("CH-LU", "Fronleichnam", 1998, 6, 11, Kind::Public),
@@ -209,6 +214,10 @@ const ANCHORS: &[(&str, &str, i64, u8, u8, Kind)] = &[
     ("CH-SZ", "Pfingstmontag", 2026, 5, 25, Kind::Observance),
     ("CH-SZ", "Mariä Empfängnis", 2026, 12, 8, Kind::Observance),
     ("CH-SZ", "Stephanstag", 2026, 12, 26, Kind::Observance),
+    // SRSZ 545.110, § 2, its lists unchanged since 1 January 2002.
+    ("CH-SZ", "Josefstag", 2002, 3, 19, Kind::Public),
+    ("CH-SZ", "Karfreitag", 2002, 3, 29, Kind::Public),
+    ("CH-SZ", "Stephanstag", 2002, 12, 26, Kind::Observance),
     ("CH-TG", "2. Januar", 2003, 1, 2, Kind::Public),
     ("CH-TG", "2. Januar", 2026, 1, 2, Kind::Public),
     ("CH-TG", "Karfreitag", 2003, 4, 18, Kind::Public),
@@ -326,6 +335,10 @@ const ANCHORS: &[(&str, &str, i64, u8, u8, Kind)] = &[
     ("CH-ZH", "1. Mai", 2026, 5, 1, Kind::Public),
     ("CH-ZH", "Pfingstmontag", 2026, 5, 25, Kind::Public),
     ("CH-ZH", "Stephanstag", 2026, 12, 26, Kind::Public),
+    // LS 822.4, § 1, in force from 1 December 2000.
+    ("CH-ZH", "Stephanstag", 2000, 12, 26, Kind::Public),
+    ("CH-ZH", "Karfreitag", 2001, 4, 13, Kind::Public),
+    ("CH-ZH", "1. Mai", 2001, 5, 1, Kind::Public),
 ];
 
 /// `(region, local name, first year carried, last year of the gap before
@@ -380,14 +393,15 @@ const FIRST_YEARS: &[(&str, &str, i64, i64)] = &[
     ("CH-GR", "Ostermontag", 2006, 2005),
     ("CH-GR", "Pfingstmontag", 2006, 2005),
     ("CH-GR", "Stefanstag", 2006, 2005),
-    ("CH-JU", "Vendredi-Saint", 2026, 2025),
-    ("CH-JU", "Lundi de Pâques", 2026, 2025),
-    ("CH-JU", "1er mai", 2026, 2025),
-    ("CH-JU", "Lundi de Pentecôte", 2026, 2025),
-    ("CH-JU", "Fête-Dieu", 2026, 2025),
-    ("CH-JU", "2 janvier", 2026, 2025),
-    ("CH-JU", "Assomption", 2026, 2025),
-    ("CH-JU", "Toussaint", 2026, 2025),
+    ("CH-JU", "Vendredi-Saint", 2023, 2022),
+    ("CH-JU", "Lundi de Pâques", 2023, 2022),
+    ("CH-JU", "1er mai", 2023, 2022),
+    ("CH-JU", "Lundi de Pentecôte", 2023, 2022),
+    ("CH-JU", "Fête-Dieu", 2023, 2022),
+    ("CH-JU", "2 janvier", 2023, 2022),
+    ("CH-JU", "Assomption", 2023, 2022),
+    ("CH-JU", "Toussaint", 2023, 2022),
+    ("CH-JU", "le 23 juin", 2023, 2022),
     ("CH-LU", "Karfreitag", 1998, 1997),
     ("CH-LU", "Fronleichnam", 1998, 1997),
     ("CH-LU", "Mariä Himmelfahrt", 1997, 1996),
@@ -422,16 +436,16 @@ const FIRST_YEARS: &[(&str, &str, i64, i64)] = &[
     ("CH-SH", "Pfingstmontag", 2011, 2010),
     ("CH-SH", "Stephanstag", 2011, 2010),
     ("CH-SO", "Karfreitag", 2016, 2015),
-    ("CH-SZ", "Josefstag", 2026, 2025),
-    ("CH-SZ", "Karfreitag", 2026, 2025),
-    ("CH-SZ", "Fronleichnam", 2026, 2025),
-    ("CH-SZ", "Mariä Himmelfahrt", 2026, 2025),
-    ("CH-SZ", "Allerheiligen", 2026, 2025),
-    ("CH-SZ", "Heilige Drei Könige", 2026, 2025),
-    ("CH-SZ", "Ostermontag", 2026, 2025),
-    ("CH-SZ", "Pfingstmontag", 2026, 2025),
-    ("CH-SZ", "Mariä Empfängnis", 2026, 2025),
-    ("CH-SZ", "Stephanstag", 2026, 2025),
+    ("CH-SZ", "Josefstag", 2002, 2001),
+    ("CH-SZ", "Karfreitag", 2002, 2001),
+    ("CH-SZ", "Fronleichnam", 2002, 2001),
+    ("CH-SZ", "Mariä Himmelfahrt", 2002, 2001),
+    ("CH-SZ", "Allerheiligen", 2002, 2001),
+    ("CH-SZ", "Heilige Drei Könige", 2002, 2001),
+    ("CH-SZ", "Ostermontag", 2002, 2001),
+    ("CH-SZ", "Pfingstmontag", 2002, 2001),
+    ("CH-SZ", "Mariä Empfängnis", 2002, 2001),
+    ("CH-SZ", "Stephanstag", 2002, 2001),
     ("CH-TG", "2. Januar", 2003, 2002),
     ("CH-TG", "Karfreitag", 2003, 2002),
     ("CH-TG", "Ostermontag", 2003, 2002),
@@ -474,11 +488,11 @@ const FIRST_YEARS: &[(&str, &str, i64, i64)] = &[
     ("CH-ZG", "Maria Himmelfahrt", 2004, 2003),
     ("CH-ZG", "Allerheiligen", 2004, 2003),
     ("CH-ZG", "Maria Empfängnis", 2004, 2003),
-    ("CH-ZH", "Karfreitag", 2026, 2025),
-    ("CH-ZH", "Ostermontag", 2026, 2025),
-    ("CH-ZH", "1. Mai", 2026, 2025),
-    ("CH-ZH", "Pfingstmontag", 2026, 2025),
-    ("CH-ZH", "Stephanstag", 2026, 2025),
+    ("CH-ZH", "Karfreitag", 2001, 2000),
+    ("CH-ZH", "Ostermontag", 2001, 2000),
+    ("CH-ZH", "1. Mai", 2001, 2000),
+    ("CH-ZH", "Pfingstmontag", 2001, 2000),
+    ("CH-ZH", "Stephanstag", 2000, 1999),
 ];
 
 #[test]
@@ -660,11 +674,11 @@ fn the_days_every_canton_keeps_rest_on_each_canton_s_law() {
             .map(|gap| gap.name)
             .collect::<Vec<_>>()
     };
-    // Nationwide the three days are every canton's, and Jura's, Schwyz's
-    // and Zurich's laws rest on sources read in 2026: before it, gaps.
+    // Nationwide the three days are every canton's, and Jura's law, the
+    // latest read, is in force from 2023: before it, gaps.
     for name in ["New Year's Day", "Ascension", "Christmas Day"] {
-        assert!(names(None, 2025).contains(&name), "{name}");
-        assert!(!names(None, 2026).contains(&name), "{name}");
+        assert!(names(None, 2022).contains(&name), "{name}");
+        assert!(!names(None, 2023).contains(&name), "{name}");
         // Bern's law of 1997 answers from 1998; Geneva's from 1991.
         assert!(!names(Some("CH-BE"), 1998).contains(&name), "{name}");
         assert!(names(Some("CH-BE"), 1997).contains(&name), "{name}");

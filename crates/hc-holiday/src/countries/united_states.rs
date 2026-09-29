@@ -25,18 +25,20 @@
 //! to a governor, an election law not read or a local body, and days for
 //! part of a state, are not yet carried: no source read dates them, or the
 //! table has no scope finer than a state. California's Good Friday from noon
-//! to three is a [`Kind::HalfDay`]; the Saturday afternoon half holidays of
-//! Michigan, New York, Pennsylvania and Tennessee are not yet carried, since
-//! a rule gives at most [`Days::CAPACITY`] days a year and those are every
-//! Saturday's afternoon.
+//! to three is a [`Kind::HalfDay`], and so are the Saturday afternoon half
+//! holidays of Michigan, New York, Ohio, Pennsylvania and Tennessee, and New
+//! Jersey's Saturday, a business day until noon: every Saturday of the year,
+//! or every one that is not a holiday.
 
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
+mod commemorative;
+
 use crate::computus::offsets::{GOOD_FRIDAY, SHROVE_TUESDAY};
 use crate::rule::{
     CalendarSystem, Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate,
-    Subdivisions, SubstituteDirection, SubstitutionPolicy,
+    Subdivisions, SubstituteDirection, SubstitutionPolicy, joined,
 };
 
 /// The District of Columbia and the counties around it, the only place
@@ -112,6 +114,54 @@ static TO_PRECEDING_OR_NEXT_MONDAY: &[(Weekday, i16)] = &[
     (Weekday::Sunday, 1),
 ];
 
+/// The Saturdays of `year` whose month and day are not in `except`.
+fn saturdays_except(year: i64, except: &[(u8, u8)]) -> Days {
+    let mut days = Days::new();
+    let (Ok(first), Ok(last)) = (
+        gregorian::to_fixed(year, 1, 1),
+        gregorian::to_fixed(year, 12, 31),
+    ) else {
+        return days;
+    };
+    // The first Saturday on or after 1 January, then every seventh day.
+    let mut day = Weekday::Saturday.on_or_after(first).0;
+    while day <= last.0 {
+        let date = hc_calendar::Rd(day);
+        let keep = gregorian::from_fixed(date)
+            .map(|(_, month, dom)| !except.contains(&(month, dom)))
+            .unwrap_or(false);
+        if keep {
+            days.push(date);
+        }
+        day += 7;
+    }
+    days
+}
+
+/// Every Saturday: Michigan's, Ohio's and Pennsylvania's afternoons, and
+/// New Jersey's Saturday, whose codes make no exception.
+fn every_saturday(year: i64) -> Days {
+    saturdays_except(year, &[])
+}
+
+/// New York's half-holiday, "noon to midnight of each Saturday which is not
+/// a public holiday": every Saturday but the fixed dates of § 24, the only
+/// public holidays that can fall on one (Flag Day is a Sunday, the others
+/// are Mondays, a Thursday and a Tuesday).
+fn new_york_half_holidays(year: i64) -> Days {
+    saturdays_except(
+        year,
+        &[(1, 1), (2, 12), (6, 19), (7, 4), (11, 11), (12, 25)],
+    )
+}
+
+/// Tennessee's half-holiday, noon to midnight "of each Saturday which is not
+/// a holiday": every Saturday but the fixed dates of § 15-1-101, the only
+/// holidays of its list that can fall on one.
+fn tennessee_half_holidays(year: i64) -> Days {
+    saturdays_except(year, &[(1, 1), (6, 19), (7, 4), (11, 11), (12, 25)])
+}
+
 /// A state's day that closes its offices or is a paid holiday for its
 /// employees, in the state `region`. Its years are the call's: `.years`
 /// from the session law that set it, or `.read_from` the year of the text
@@ -151,6 +201,7 @@ const US_AR: &[&str] = &["US-AR"];
 const US_AR_LAW: &str = "Ark. Code Ann. § 1-5-101, FindLaw's copy current as of 28 March 2024 (secondary) (https://codes.findlaw.com/ar/title-1-general-provisions/ar-code-sect-1-5-101/), retrieved 2026-09-29";
 const US_AZ: &[&str] = &["US-AZ"];
 const US_AZ_LAW: &str = "A.R.S. §§ 1-301 and 1-302, the Legislature's site, which shows no history (https://www.azleg.gov/ars/1/00301.htm), retrieved 2026-09-29";
+const US_AZ_1_313: &str = "A.R.S. § 1-313, the Legislature's site, which shows no history (https://www.azleg.gov/ars/1/00313.htm), retrieved 2026-09-29";
 const US_CA: &[&str] = &["US-CA"];
 const US_CA_LAW: &str = "Cal. Gov. Code §§ 6700, 6712 and 19853, California Legislative Information (https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=GOV&sectionNum=6700), retrieved 2026-09-29";
 const US_CO: &[&str] = &["US-CO"];
@@ -163,6 +214,7 @@ const US_DE: &[&str] = &["US-DE"];
 const US_DE_LAW: &str = "1 Del. C. § 501, the General Assembly's site (https://delcode.delaware.gov/title1/c005/index.html), retrieved 2026-09-29";
 const US_FL: &[&str] = &["US-FL"];
 const US_FL_LAW: &str = "Fla. Stat. §§ 683.01, 683.06 and 110.117 (2026), the Legislature's site (https://www.leg.state.fl.us/statutes/index.cfm?App_mode=Display_Statute&URL=0600-0699/0683/0683.html), retrieved 2026-09-29";
+const US_GA_LAW: &str = "O.C.G.A. § 1-4-1, FindLaw's copy current as of 28 March 2024 (secondary) (https://codes.findlaw.com/ga/title-1-general-provisions/ga-code-sect-1-4-1/), retrieved 2026-09-29";
 const US_HI: &[&str] = &["US-HI"];
 const US_HI_LAW: &str = "Haw. Rev. Stat. §§ 8-1 and 8-2, the Legislature's data site (https://data.capitol.hawaii.gov/hrscurrent/Vol01_Ch0001-0042F/HRS0008/), retrieved 2026-09-29";
 const US_IA: &[&str] = &["US-IA"];
@@ -209,6 +261,8 @@ const US_NV: &[&str] = &["US-NV"];
 const US_NV_LAW: &str = "NRS 236.015, FindLaw's copy current as of 1 January 2025 (secondary) (https://codes.findlaw.com/nv/title-19-miscellaneous-matters-related-to-government-and-public-affairs/nv-rev-st-236-015/), retrieved 2026-09-29";
 const US_NY: &[&str] = &["US-NY"];
 const US_NY_LAW: &str = "N.Y. Gen. Constr. Law § 24, the Senate's site, the section as revised 16 October 2020 (https://www.nysenate.gov/legislation/laws/GCN/24), retrieved 2026-09-29";
+const US_OH: &[&str] = &["US-OH"];
+const US_OH_LAW: &str = "Ohio Rev. Code §§ 5.20 and 5.30, effective 1 October 1953, the Internet Archive's capture of 16 December 2025 of the official chapter page (https://codes.ohio.gov/ohio-revised-code/chapter-5), retrieved 2026-09-29";
 const US_OR: &[&str] = &["US-OR"];
 const US_OR_LAW: &str = "ORS 187.278, Oregon.Public.Law's copy (secondary) (https://oregon.public.law/statutes/ors_187.278), retrieved 2026-09-29";
 const US_PA: &[&str] = &["US-PA"];
@@ -236,7 +290,7 @@ const US_WI_LAW: &str = "Wis. Stat. § 995.20, FindLaw's copy current as of 1 Ja
 const US_WV: &[&str] = &["US-WV"];
 const US_WV_LAW: &str = "W. Va. Code § 2-2-1, the Legislature's site, as amended in 2026 (https://code.wvlegislature.gov/2-2-1/), retrieved 2026-09-29";
 
-static US_RULES: &[HolidayRule] = &[
+const US_RULES: &[HolidayRule] = &[
     HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)).years(Some(1871), None),
     HolidayRule::public(
         "Birthday of Martin Luther King, Jr.",
@@ -378,6 +432,30 @@ static US_RULES: &[HolidayRule] = &[
         Rule::nth(8, 1, Weekday::Sunday),
         US_AZ,
         US_AZ_LAW,
+    )
+    .read_from(2026),
+    // § 1-301(A)(11) makes 14 August, "National Navajo Code Talkers Day", a
+    // holiday, kept by subsection E on the Sunday following when it is not a
+    // Sunday; § 1-313 says that 14 August "shall be observed as Navajo code
+    // talkers' day" and that the day "is not a legal holiday". Both are
+    // carried: the holiday of § 1-301 on its Sunday, and the day of
+    // § 1-313 on 14 August as an observance.
+    state(
+        "National Navajo Code Talkers Day",
+        Rule::WeekdayOnOrAfter {
+            month: 8,
+            day: 14,
+            weekday: Weekday::Sunday,
+        },
+        US_AZ,
+        US_AZ_LAW,
+    )
+    .read_from(2026),
+    state_observance(
+        "Navajo code talkers' day",
+        Rule::gregorian(8, 14),
+        US_AZ,
+        US_AZ_1_313,
     )
     .read_from(2026),
     state(
@@ -533,6 +611,13 @@ static US_RULES: &[HolidayRule] = &[
         US_FL_LAW,
     )
     .read_from(2022),
+    // Georgia: O.C.G.A. § 1-4-1 leaves one state holiday to the Governor,
+    // who picks it each year; no proclamation was read, so every year is a
+    // gap. The state's commemorative days are carried.
+    HolidayRule::fixed_public("State holiday chosen by the Governor", "", Rule::UNREAD)
+        .of_kind(Kind::Government)
+        .in_regions(&["US-GA"])
+        .cited(US_GA_LAW),
     // Hawaii.
     state(
         "Prince Jonah Kuhio Kalanianaole Day",
@@ -767,6 +852,16 @@ static US_RULES: &[HolidayRule] = &[
         US_MI_LAW,
     )
     .read_from(2025),
+    // MCL 435.101: "Every Saturday from 12 noon until 12 midnight", a
+    // half-holiday for instruments and the holding of courts.
+    state_observance(
+        "Saturday half-holiday",
+        Rule::Computed(every_saturday),
+        US_MI,
+        US_MI_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2025),
     // Minnesota.
     state(
         "Friday after Thanksgiving",
@@ -886,6 +981,16 @@ static US_RULES: &[HolidayRule] = &[
     )
     .read_from(2024),
     state("General Election Day", ELECTION_DAY, US_NJ, US_NJ_LAW).read_from(2024),
+    // N.J.S.A. 36:1-1: "every Saturday" is a public holiday for instruments,
+    // but "until 12 o'clock noon, be deemed a secular or business day".
+    state_observance(
+        "Every Saturday",
+        Rule::Computed(every_saturday),
+        US_NJ,
+        US_NJ_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2024),
     // New Mexico.
     state_observance(
         "American Indian Day",
@@ -942,6 +1047,34 @@ static US_RULES: &[HolidayRule] = &[
     )
     .read_from(2020),
     state("General Election Day", ELECTION_DAY, US_NY, US_NY_LAW).read_from(2020),
+    state_observance(
+        "Half-holiday",
+        Rule::Computed(new_york_half_holidays),
+        US_NY,
+        US_NY_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2020),
+    // Ohio: R.C. 5.20, election day "between the hours of twelve noon ...
+    // and five-thirty p.m." a legal holiday, and R.C. 5.30, "Every Saturday
+    // afternoon is a legal holiday, beginning at twelve noon", both in force
+    // from 1 October 1953.
+    state_observance(
+        "Election day, from noon to 5:30 p.m.",
+        ELECTION_DAY,
+        US_OH,
+        US_OH_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(1954),
+    state_observance(
+        "Saturday afternoon",
+        Rule::Computed(every_saturday),
+        US_OH,
+        US_OH_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(1954),
     // Oregon.
     state_observance(
         "Oregon Statehood Day",
@@ -954,6 +1087,16 @@ static US_RULES: &[HolidayRule] = &[
     state_observance("Good Friday", Rule::easter(GOOD_FRIDAY), US_PA, US_PA_LAW).read_from(2026),
     state_observance("Flag Day", Rule::gregorian(6, 14), US_PA, US_PA_LAW).read_from(2026),
     state_observance("Election Day", ELECTION_DAY, US_PA, US_PA_LAW).read_from(2026),
+    // 44 P.S. § 11: "every Saturday, after twelve o'clock noon until twelve
+    // o'clock midnight", a half holiday for instruments.
+    state_observance(
+        "Saturday half holiday",
+        Rule::Computed(every_saturday),
+        US_PA,
+        US_PA_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2026),
     // Rhode Island.
     state(
         "Rhode Island Independence Day",
@@ -1061,6 +1204,16 @@ static US_RULES: &[HolidayRule] = &[
     .years(Some(2024), None),
     // Tennessee.
     state("Good Friday", Rule::easter(GOOD_FRIDAY), US_TN, US_TN_LAW).read_from(2024),
+    // § 15-1-101: on the half-holiday "all public offices of this state may
+    // be closed", but need not be.
+    state_observance(
+        "Saturday half-holiday",
+        Rule::Computed(tennessee_half_holidays),
+        US_TN,
+        US_TN_LAW,
+    )
+    .of_kind(Kind::HalfDay)
+    .read_from(2024),
     // Texas.
     state(
         "Confederate Heroes Day",
@@ -1177,11 +1330,15 @@ static US_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
+/// The table's rules: [`US_RULES`] and the states' commemorative days.
+static US_ALL_RULES: [HolidayRule; US_RULES.len() + commemorative::DAYS.len()] =
+    joined(&[US_RULES, commemorative::DAYS]);
+
 /// The United States: the federal holidays of 5 U.S.C. § 6103.
 pub static UNITED_STATES: RuleSet = RuleSet {
     code: "US",
     english_name: "United States",
-    rules: US_RULES,
+    rules: &US_ALL_RULES,
     substitution: US_SUBSTITUTION,
     bridges: &[],
     includes: &[],

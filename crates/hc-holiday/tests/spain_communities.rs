@@ -217,3 +217,57 @@ fn the_monday_rest_of_a_sunday_holiday_is_each_community_s_choice() {
 fn the_table_names_every_community() {
     assert_eq!(SPAIN.regions(), COMMUNITIES);
 }
+
+#[test]
+fn the_resolution_for_1994_is_read_and_1995_to_2012_are_gaps() {
+    // BOE-A-1993-27313, with the correction of BOE-A-1993-27514 in its
+    // annex: seventeen communities, no column for Ceuta or Melilla.
+    for &(region, month, day, local_name) in &[
+        ("ES-AN", 2, 28, "Día de Andalucía"),
+        ("ES-AR", 4, 23, "San Jorge/Día de Aragón"),
+        ("ES-CT", 12, 26, "San Esteban"),
+        ("ES-IB", 12, 27, "En sustitución del día 25 de diciembre"),
+        ("ES-VC", 12, 26, "Segundo día de Navidad"),
+        ("ES-CB", 9, 15, "La Bien Aparecida"),
+        ("ES-MD", 5, 2, "Lunes siguiente a la Fiesta del Trabajo"),
+    ] {
+        let found = own_entries(Some(region), 1994, month, day);
+        assert_eq!(found.len(), 1, "{region}: {found:?}");
+        assert_eq!(found[0].local_name, local_name, "{region}");
+        assert_eq!(found[0].kind, Kind::Public, "{region}");
+        assert!(found[0].source.contains("BOE-A-1993-27313"), "{region}");
+    }
+    // Maundy Thursday, 31 March 1994, in fourteen of the seventeen: not in
+    // Cantabria, the Canaries or Catalonia.
+    let maundy: Vec<&str> = COMMUNITIES
+        .iter()
+        .copied()
+        .filter(|region| {
+            own_entries(Some(region), 1994, 3, 31)
+                .iter()
+                .any(|holiday| holiday.local_name == "Jueves Santo")
+        })
+        .collect();
+    assert_eq!(maundy.len(), 14, "{maundy:?}");
+    for region in ["ES-CB", "ES-CN", "ES-CT", "ES-CE", "ES-ML"] {
+        assert!(!maundy.contains(&region), "{region}");
+    }
+    for &region in COMMUNITIES {
+        let complete = |year| HolidayCalendar::for_year(&SPAIN, Some(region), year).is_complete();
+        let city = region == "ES-CE" || region == "ES-ML";
+        assert_eq!(complete(1994), !city, "{region}");
+        for year in [1993, 1995, 2004, 2012] {
+            assert!(!complete(year), "{region} {year}");
+        }
+        // The years 1995 to 2012 carry no community day.
+        assert!(
+            HolidayCalendar::for_year(&SPAIN, Some(region), 1995)
+                .in_year(1995)
+                .iter()
+                .all(|holiday| holiday.regions.is_empty()),
+            "{region}"
+        );
+    }
+    // Every community kept Epiphany in 1994: nationwide, and no gap.
+    assert!(HolidayCalendar::for_year(&SPAIN, None, 1994).is_complete());
+}

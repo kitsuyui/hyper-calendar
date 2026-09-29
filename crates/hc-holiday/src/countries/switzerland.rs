@@ -21,9 +21,9 @@
 //! whole canton are carried: the days Aargau keeps in some districts,
 //! Fribourg in its Catholic or Reformed communes, Solothurn outside the
 //! Bucheggberg and Appenzell Innerrhoden in its inner part need a scope
-//! finer than a canton. Jura, Schwyz and Zurich publish their laws as PDF
-//! only, and their days are carried from secondary sources from 2026, the
-//! year they were read, the years before a gap.
+//! finer than a canton. Jura, Schwyz and Zurich publish their current laws
+//! as PDF only; their texts were read in LexFind's copies, and Zurich's of
+//! 2000 to 2004 also in ZH-Lex's HTML.
 
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
@@ -174,7 +174,7 @@ const CH_GL_LAW: &str = "Gesetz über die öffentlichen Ruhetage, GS IX B/21/1, 
 const CH_GR: &[&str] = &["CH-GR"];
 const CH_GR_LAW: &str = "Einführungsgesetz zum Arbeitsgesetz, BR 530.100, Art. 7, unchanged since 1 February 2006 (https://www.gr-lex.gr.ch/app/de/texts_of_law/530.100), retrieved 2026-09-29";
 const CH_JU: &[&str] = &["CH-JU"];
-const CH_JU_LAW: &str = "Wikipedia, \"Feiertage in der Schweiz\" (secondary): the Loi sur les jours fériés officiels, RSJU 555.1, and its décret RSJU 555.10 are published as PDF only and were not read (https://de.wikipedia.org/wiki/Feiertage_in_der_Schweiz), retrieved 2026-09-29";
+const CH_JU_LAW: &str = "Loi sur les jours fériés officiels et le repos dominical du 31 août 2022, RSJU 555.1, arts. 3 and 4, in force from 1 January 2023, LexFind's text of the official publication (secondary; RSJU publishes the law as PDF only) (https://www.lexfind.ch/api/fe/de/texts-of-law/compare?id1=224661&id2=224661), retrieved 2026-09-29";
 const CH_LU: &[&str] = &["CH-LU"];
 const CH_LU_LAW: &str = "Gesetz über den Ruhetag und die Ladenöffnung, SRL Nr. 855, §§ 1 and 1a, § 1a in force from 1 June 1997 (https://srl.lu.ch/app/de/texts_of_law/855), retrieved 2026-09-29";
 const CH_NE: &[&str] = &["CH-NE"];
@@ -190,7 +190,7 @@ const CH_SH_LAW: &str = "Verordnung zum Arbeitsgesetz und zum Bundesgesetz über
 const CH_SO: &[&str] = &["CH-SO"];
 const CH_SO_LAW: &str = "Gesetz über Wirtschaft und Arbeit (WAG), BGS 940.11, § 46, unchanged since 1 January 2016 (https://bgs.so.ch/app/de/texts_of_law/940.11), retrieved 2026-09-29";
 const CH_SZ: &[&str] = &["CH-SZ"];
-const CH_SZ_LAW: &str = "Wikipedia, \"Feiertage in der Schweiz\" (secondary): the Ruhetagsgesetz, SRSZ 545.110, is published as PDF only and was not read (https://de.wikipedia.org/wiki/Feiertage_in_der_Schweiz), retrieved 2026-09-29";
+const CH_SZ_LAW: &str = "Ruhetagsgesetz vom 21. November 2001, SRSZ 545.110, § 2, in the version in force from 1 July 2018, its lists of days unchanged since 1 January 2002, LexFind's text of the official publication (secondary; the Canton publishes the law as PDF only) (https://www.lexfind.ch/api/fe/de/texts-of-law/compare?id1=85104&id2=85104), retrieved 2026-09-29";
 const CH_TG: &[&str] = &["CH-TG"];
 const CH_TG_LAW: &str = "Gesetz über die öffentlichen Ruhetage, RB 822.9, § 1, in its version in force from 1 January 2003 to 31 December 2025 and the Ruhetagsgesetz of 5 February 2025 in force from 1 January 2026 (https://www.rechtsbuch.tg.ch/app/de/texts_of_law/822.9), retrieved 2026-09-29";
 const CH_TI: &[&str] = &["CH-TI"];
@@ -204,7 +204,7 @@ const CH_VS_LAW: &str = "Ordonnance cantonale sur le travail (OcTr), RS 822.100,
 const CH_ZG: &[&str] = &["CH-ZG"];
 const CH_ZG_LAW: &str = "Gesetz über Ruhetage und Ladenöffnung, BGS 942.31, § 1, unchanged since 1 January 2004 (https://bgs.zg.ch/app/de/texts_of_law/942.31), retrieved 2026-09-29";
 const CH_ZH: &[&str] = &["CH-ZH"];
-const CH_ZH_LAW: &str = "the Canton's page \"Feiertage\" (secondary, official), for the Ruhetags- und Ladenöffnungsgesetz vom 26. Juni 2000, LS 822.4, § 1, published as PDF only and not read (https://www.zh.ch/de/wirtschaft-arbeit/arbeitsbedingungen/arbeitsssicherheit-gesundheitsschutz/arbeits-ruhezeiten/feiertage.html), retrieved 2026-09-29";
+const CH_ZH_LAW: &str = "Ruhetags- und Ladenöffnungsgesetz vom 26. Juni 2000, LS 822.4, § 1, in force from 1 December 2000: the version to 30 April 2004 in ZH-Lex's HTML text (https://www.notes.zh.ch/appl/zhlex_r.nsf/WebRT/C1256C610039641BC1256036003AF0BE), and the version of 1 May 2004, § 1 unchanged, in LexFind's text (secondary), retrieved 2026-09-29";
 
 /// Every canton, by ISO 3166-2 code.
 const CANTONS: &[&str] = &[
@@ -213,9 +213,9 @@ const CANTONS: &[&str] = &[
     "CH-TI", "CH-UR", "CH-VD", "CH-VS", "CH-ZG", "CH-ZH",
 ];
 
-/// The first year every canton's text read answers for: Jura's, Schwyz's
-/// and Zurich's rest on sources read in 2026.
-const EVERY_CANTON_READ: i32 = 2026;
+/// The first year every canton's text read answers for: Jura's law of
+/// 2022, in force from 1 January 2023, is the latest.
+const EVERY_CANTON_READ: i32 = 2023;
 
 /// The three days every canton's law read keeps — New Year's Day,
 /// Ascension and Christmas Day — in each canton, from the latest first
@@ -258,7 +258,7 @@ const KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
     (CH_GE, CH_GE_LAW, 1991),
     (CH_GL, CH_GL_LAW, 2013),
     (CH_GR, CH_GR_LAW, 2006),
-    (CH_JU, CH_JU_LAW, 2026),
+    (CH_JU, CH_JU_LAW, 2023),
     (CH_LU, CH_LU_LAW, 1998),
     (CH_NE, CH_NE_LAW, 2010),
     (CH_NW, CH_NW_LAW, 2006),
@@ -266,14 +266,14 @@ const KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
     (CH_SG, CH_SG_LAW, 2005),
     (CH_SH, CH_SH_LAW, 2011),
     (CH_SO, CH_SO_LAW, 2016),
-    (CH_SZ, CH_SZ_LAW, 2026),
+    (CH_SZ, CH_SZ_LAW, 2002),
     (CH_TG, CH_TG_LAW, 2003),
     (CH_TI, CH_TI_LAW, 2012),
     (CH_UR, CH_UR_LAW, 2003),
     (CH_VD, CH_VD_LAW, 2006),
     (CH_VS, CH_VS_LAW, 2017),
     (CH_ZG, CH_ZG_LAW, 2004),
-    (CH_ZH, CH_ZH_LAW, 2026),
+    (CH_ZH, CH_ZH_LAW, 2001),
 ];
 
 /// The Arbeitsgesetz's Art. 20a, in force from 1 August 2000.
@@ -661,7 +661,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton(
         "Easter Monday",
         "Lundi de Pâques",
@@ -669,7 +669,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton(
         "Labour Day",
         "1er mai",
@@ -677,7 +677,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton(
         "Whit Monday",
         "Lundi de Pentecôte",
@@ -685,7 +685,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton(
         "Corpus Christi",
         "Fête-Dieu",
@@ -693,7 +693,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton_rest_day(
         "Berchtold's Day",
         "2 janvier",
@@ -701,7 +701,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton_rest_day(
         "Assumption",
         "Assomption",
@@ -709,7 +709,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
     canton_rest_day(
         "All Saints' Day",
         "Toussaint",
@@ -717,7 +717,17 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_JU,
         CH_JU_LAW,
     )
-    .read_from(2026),
+    .read_from(2023),
+    // Art. 3 lit. b names the day only as "le 23 juin", and Art. 4 does not
+    // equate it with Sunday.
+    canton_rest_day(
+        "23 June",
+        "le 23 juin",
+        Rule::gregorian(6, 23),
+        CH_JU,
+        CH_JU_LAW,
+    )
+    .read_from(2023),
     // Lucerne.
     canton(
         "Good Friday",
@@ -1015,7 +1025,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton(
         "Good Friday",
         "Karfreitag",
@@ -1023,7 +1033,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton(
         "Corpus Christi",
         "Fronleichnam",
@@ -1031,7 +1041,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton(
         "Assumption",
         "Mariä Himmelfahrt",
@@ -1039,7 +1049,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton(
         "All Saints' Day",
         "Allerheiligen",
@@ -1047,7 +1057,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton_rest_day(
         "Epiphany",
         "Heilige Drei Könige",
@@ -1055,7 +1065,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton_rest_day(
         "Easter Monday",
         "Ostermontag",
@@ -1063,7 +1073,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton_rest_day(
         "Whit Monday",
         "Pfingstmontag",
@@ -1071,7 +1081,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton_rest_day(
         "Immaculate Conception",
         "Mariä Empfängnis",
@@ -1079,7 +1089,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     canton_rest_day(
         "St Stephen's Day",
         "Stephanstag",
@@ -1087,7 +1097,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_SZ,
         CH_SZ_LAW,
     )
-    .read_from(2026),
+    .read_from(2002),
     // Thurgau.
     canton(
         "Berchtold's Day",
@@ -1458,7 +1468,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_ZH,
         CH_ZH_LAW,
     )
-    .read_from(2026),
+    .read_from(2001),
     canton(
         "Easter Monday",
         "Ostermontag",
@@ -1466,7 +1476,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_ZH,
         CH_ZH_LAW,
     )
-    .read_from(2026),
+    .read_from(2001),
     canton(
         "Labour Day",
         "1. Mai",
@@ -1474,7 +1484,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_ZH,
         CH_ZH_LAW,
     )
-    .read_from(2026),
+    .read_from(2001),
     canton(
         "Whit Monday",
         "Pfingstmontag",
@@ -1482,7 +1492,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_ZH,
         CH_ZH_LAW,
     )
-    .read_from(2026),
+    .read_from(2001),
     canton(
         "St Stephen's Day",
         "Stephanstag",
@@ -1490,7 +1500,7 @@ const CH_OWN_RULES: &[HolidayRule] = &[
         CH_ZH,
         CH_ZH_LAW,
     )
-    .read_from(2026),
+    .read_from(2000),
 ];
 
 /// The table's rules: [`CH_OWN_RULES`] and [`KEPT_EVERYWHERE`].

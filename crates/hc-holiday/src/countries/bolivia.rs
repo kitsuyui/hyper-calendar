@@ -10,10 +10,13 @@
 //! where it sets it, as Pando's law of 2024 does — scoped
 //! to the department's ISO 3166-2 code, and moves a Sunday one to the Monday
 //! from 2024, the first year Decreto Supremo 5019's extension of the Sunday
-//! rule reaches. Only four departments' days are dated by an instrument
-//! read; the others, and Santa Cruz's 24 September, rest on the Ministry of
-//! Labour's yearly notices, published as PDF and not read, and are not yet
-//! carried.
+//! rule reaches. Where the only instruments read that date a department's
+//! efeméride are the one-year declarations made before 1985 — Chuquisaca's,
+//! Cochabamba's, Potosí's, Santa Cruz's, Pando's and Beni's — the day is
+//! carried from 1986, the first whole year of Decreto Supremo 21060, which
+//! made the efeméride a holiday every year, on the date those declarations
+//! give, the years before a gap. Cochabamba's 14 August and Beni's
+//! 10 November, which departmental laws not read add, are gaps.
 
 use hc_calendar::Weekday;
 
@@ -53,6 +56,46 @@ const TARIJA_DECREE: &str = "Decreto Supremo 4219 of 14 April 2020, artículo ú
      departamental de Tarija\", the efeméride \"que se celebra el 15 de abril de cada año\" \
      (lexivox.org/norms/BO-DS-N4219.xhtml), retrieved 2026-09-29";
 
+/// The first whole year of Decreto Supremo 21060 of 29 August 1985, whose
+/// article 67 makes each department's efeméride a holiday.
+const DS_21060_FIRST_YEAR: i32 = 1986;
+
+/// The instruments that date the efemérides before 1985, each for its own
+/// year, quoted as read in the raw HTML of lexivox's and derechoteca's copies
+/// (both secondary).
+const CHUQUISACA_DECREES: &str = "Decreto Supremo 1186 of 24 May 1948: \"Declárase feriado el día 25 \
+     de los corrientes en el Departamento de Chuquisaca\" (derechoteca.com), and Decreto Supremo \
+     8772 of 1969, which keeps the day on Monday 26 May 1969 because \"el aniversario de la \
+     efemérides del citado departamento coincide con un día domingo\" \
+     (lexivox.org/norms/BO-DS-8772.xhtml); with Decreto Supremo 21060, art. 67, as \
+     the preambles of Decreto Presidencial 205 and Decreto Supremo 4219 quote it; retrieved \
+     2026-09-29";
+const COCHABAMBA_LAWS: &str = "Ley de 14 de septiembre de 1950: \"declárase civil feriado ... los \
+     días 14 y 15 del presente mes, en el Departamento de Cochabamba\" \
+     (lexivox.org/norms/BO-L-19500914-1.xhtml); Decreto Supremo 27723 of 13 September 2004: \
+     \"el Departamento de Cochabamba celebra sus efemérides el 14 de septiembre\" \
+     (lexivox.org/norms/BO-DS-27723.xhtml); with Decreto Supremo 21060, art. 67; retrieved \
+     2026-09-29";
+const POTOSI_DECREES: &str = "Ley de 20 de octubre de 1909: \"decláranse cívicos feriados los días \
+     14 y 24 de Septiembre y 10 de Noviembre de 1910\" (lexivox.org/norms/BO-L-19091020-2.xhtml), \
+     and Decretos Supremos 1797 of 1949 and 3870 of 1954: \"el día 10 de noviembre\" in the \
+     Department of Potosí (derechoteca.com); with Decreto Supremo 21060, art. 67; retrieved \
+     2026-09-29";
+const SANTA_CRUZ_DECREES: &str = "Decreto Supremo 8933 of 23 September 1969: \"Declaráse feriado con \
+     suspensión de actividades públicas y privadas el día miércoles 24 de septiembre de 1969 para \
+     el departamento de Santa Cruz\" (lexivox.org/norms/BO-DS-8933.xhtml), and the Ley de 21 de \
+     septiembre de 1950 (lexivox.org/norms/BO-L-19500921-1.xhtml); with Decreto Supremo 21060, \
+     art. 67; retrieved 2026-09-29";
+const PANDO_DECREES: &str = "Decreto Supremo 8934 of 23 September 1969: \"el día miércoles 24 de \
+     septiembre de 1969, para el departamento de Pando\" (lexivox.org/norms/BO-DS-8934.xhtml), \
+     and the Ley de 21 de septiembre de 1950 (lexivox.org/norms/BO-L-19500921-1.xhtml); with \
+     Decreto Supremo 21060, art. 67; retrieved 2026-09-29";
+const BENI_DECREES: &str = "Decreto Supremo 4774 of 17 November 1957: \"En homenaje a la efemérides \
+     beniana, se declara civil feriado el día 18 del presente mes\" (derechoteca.com), and the Ley \
+     de 17 de noviembre de 1942 for the centenary, 18 November 1942 \
+     (lexivox.org/norms/BO-L-19421117-1.xhtml); with Decreto Supremo 21060, art. 67; retrieved \
+     2026-09-29";
+
 /// A department's day, with the suspension of public and private activity
 /// in the department, moved off a Sunday from 2024. Its years are the
 /// call's: `.years` where the instrument read sets the day, `.read_from`
@@ -70,8 +113,8 @@ const fn departmental(
         .cited(source)
 }
 
-/// A department's efeméride that no instrument read dates: Decreto Supremo
-/// 21060, art. 67, makes it a holiday, so every year is a gap.
+/// A department's day whose instrument was not read: every year of its
+/// `.years` is a gap.
 const fn undated(
     name: &'static str,
     local_name: &'static str,
@@ -83,10 +126,9 @@ const fn undated(
 }
 
 /// Why an efeméride is [`undated`].
-const UNDATED: &str = "Decreto Supremo 21060 of 29 August 1985, art. 67, as the preambles of \
-     Decreto Presidencial 205 (2009) and Decreto Supremo 4219 (2020) quote it: the department's \
-     efeméride is a holiday; no instrument read dates it, the Ministry of Labour's yearly \
-     notices being PDF, not read";
+const UNDATED: &str = "A departmental law not read: Cochabamba's Ley Departamental 946 of 2019 \
+     or 2020, found in no form, and Beni's Ley Departamental 003 of 2010, published as PDF, as \
+     the press quotes them; the Ministry of Labour's yearly notices, PDF, not read";
 
 /// Decreto Supremo 2750 (2016), art. 3: the Monday after a national
 /// holiday that falls on a Sunday is a holiday, except for the Carnival
@@ -216,40 +258,71 @@ static BO_RULES: &[HolidayRule] = &[
     // read, which may have set the day before it: the years before are a
     // gap.
     .read_from(2011),
-    // The efemérides no instrument read dates, every year a gap: Beni's
-    // 18 November, Cochabamba's 14 September, Chuquisaca's 25 May, Potosí's
-    // 10 November, and Santa Cruz's and Pando's 24 September, as the
-    // Ministry's notices and the press give them.
-    undated(
-        "Beni Departmental Day",
-        "Efeméride del departamento del Beni",
-        BO_BENI,
-    ),
-    undated(
-        "Cochabamba Departmental Day",
-        "Efeméride del departamento de Cochabamba",
-        BO_COCHABAMBA,
-    ),
-    undated(
+    // The efemérides the one-year declarations before 1985 date, from the
+    // first whole year of Decreto Supremo 21060, the years before a gap.
+    departmental(
         "Chuquisaca Departmental Day",
         "Efeméride del departamento de Chuquisaca",
+        Rule::gregorian(5, 25),
         BO_CHUQUISACA,
-    ),
-    undated(
+        CHUQUISACA_DECREES,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    departmental(
+        "Cochabamba Departmental Day",
+        "Efeméride del departamento de Cochabamba",
+        Rule::gregorian(9, 14),
+        BO_COCHABAMBA,
+        COCHABAMBA_LAWS,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    departmental(
         "Potosí Departmental Day",
         "Efeméride del departamento de Potosí",
+        Rule::gregorian(11, 10),
         BO_POTOSI,
-    ),
-    undated(
+        POTOSI_DECREES,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    departmental(
         "Santa Cruz Departmental Day",
         "Efeméride del departamento de Santa Cruz",
+        Rule::gregorian(9, 24),
         BO_SANTA_CRUZ,
-    ),
-    undated(
+        SANTA_CRUZ_DECREES,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    departmental(
         "Pando Departmental Day",
         "Efeméride del departamento de Pando",
+        Rule::gregorian(9, 24),
         BO_PANDO,
-    ),
+        PANDO_DECREES,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    departmental(
+        "Beni Departmental Day",
+        "Efeméride del departamento del Beni",
+        Rule::gregorian(11, 18),
+        BO_BENI,
+        BENI_DECREES,
+    )
+    .read_from(DS_21060_FIRST_YEAR),
+    // The days departmental laws not read add, every year of them a gap:
+    // Cochabamba's 14 August, by a law of 2019 or 2020, and Beni's
+    // 10 November, by a law of 2010, as the press quotes them.
+    undated(
+        "Cochabamba's 14 August",
+        "14 de agosto, feriado departamental de Cochabamba",
+        BO_COCHABAMBA,
+    )
+    .years(Some(2019), None),
+    undated(
+        "Beni's 10 November",
+        "10 de noviembre, feriado departamental del Beni",
+        BO_BENI,
+    )
+    .years(Some(2010), None),
 ];
 
 /// Bolivia.

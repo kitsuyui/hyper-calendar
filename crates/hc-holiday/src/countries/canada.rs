@@ -2,7 +2,7 @@
 
 use hc_calendar::Weekday;
 
-use crate::computus::offsets::GOOD_FRIDAY;
+use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY};
 use crate::rule::{
     HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
     SubstitutionPolicy,
@@ -47,36 +47,61 @@ const MB_SOURCE: &str = "The Employment Standards Code, C.C.S.M. c. E110, s 21(1
 const NB_FAMILY_DAY: &str = "An Act Respecting Family Day (Bill 67, 58th Legislature), amending the \
      Employment Standards Act, SNB 1982, c E-7.2, s 1, in force 1 January 2018 (legnb.ca), \
      retrieved 2026-09-29";
-const NB_DAY: &str = "Employment Standards Act, SNB 1982, c E-7.2, s 1, known from a search excerpt of \
-     CanLII's copy and the date from canada-holidays.ca (secondary; the Act's sites refused the \
-     connection), retrieved 2026-09-29";
+const NB_DAY: &str = "Employment Standards Act, SNB 1982, c E-7.2, s 1 \"public holiday\": New \
+     Year's Day, Family Day, Good Friday, Canada Day, New Brunswick Day, Labour Day, Remembrance \
+     Day and Christmas Day, consolidated to 12 June 2026, the Internet Archive's capture of \
+     laws.gnb.ca (the site refused the connection), retrieved 2026-09-29; the date from \
+     canada-holidays.ca (secondary)";
 const NL_SOURCE: &str = "Labour Standards Act, RSNL 1990, c L-2, s 14(1) \"public holiday\": New \
      Year's Day, Good Friday, Remembrance Day, Memorial Day, Labour Day and Christmas Day, s 14 as \
      1977 c52 and 2001 c33 left it (assembly.nl.ca, amended to 2024 c35), retrieved 2026-09-29";
-const NS_SOURCE: &str = "Nova Scotia, \"Changes to the Labour Standards Code\" \
-     (novascotia.ca/lae/employmentrights, secondary: the Code and the 2013 Act were not \
-     reachable), retrieved 2026-09-29: in force 1 January 2015";
-const NT_SOURCE: &str = "Employment Standards Act, SNWT 2007, c 13, s 1, not read (PDF only); the days \
-     from canada-holidays.ca and Wikipedia, \"National Indigenous Peoples Day\" (secondary), \
-     retrieved 2026-09-29";
+const NS_SOURCE: &str = "Labour Standards Code, RSNS 1989, c 246, s 2(ga) \"general holiday\": New \
+     Year's Day, Good Friday, Canada Day, Labour Day, Christmas Day and the third Monday in \
+     February, CanLII's copy current to 1 February 2022 in the Internet Archive's capture \
+     (secondary), and Nova Scotia's \"Holiday and Retail Closing Day Charts\" for 2025 and 2026 \
+     (novascotia.ca/lae/employmentrights), retrieved 2026-09-29; Heritage Day in force 1 January \
+     2015, from \"Changes to the Labour Standards Code\" (novascotia.ca)";
+const NT_SOURCE: &str = "Employment Standards Act, SNWT 2007, c 13, s 22, not read (PDF only); the \
+     Department of Education, Culture and Employment's \"Frequently Asked Questions\" \
+     (ece.gov.nt.ca), whose 11 statutory holidays are the federal days but Boxing Day, \"National \
+     Aboriginal Day\" and the \"First Monday in August\", and the Government's news release of \
+     13 July 2022 for the National Day for Truth and Reconciliation from 2022, retrieved \
+     2026-09-29; National Indigenous Peoples Day's date and first year from Wikipedia \
+     (secondary)";
 const NU_SOURCE: &str = "Nunavut Labour Standards Compliance Office, Fact Sheet 10, \"General \
      Holidays\" (nu-lsco.ca, secondary: the Labour Standards Act was not reachable), retrieved \
      2026-09-29; Nunavut Day's date and first year from Wikipedia, \"Nunavut Day\" (secondary)";
 const ON_SOURCE: &str = "Employment Standards Act, 2000, S.O. 2000, c. 41, s 1(1) \"public holiday\", \
      Family Day added by 2007, c. 16, Sched. A, s 1, in force 3 December 2007 (ontario.ca/laws), \
      retrieved 2026-09-29";
-const PE_SOURCE: &str = "Employment Standards Act, RSPEI 1988, c E-6.2, not read (PDF, and the site's \
-     browser check); the day from Wikipedia, \"Family Day (Canada)\", and canada-holidays.ca \
-     (secondary), retrieved 2026-09-29";
-const QC_SOURCE: &str = "Loi sur la fête nationale, RLRQ c F-1.1, not read (LégisQuébec did not \
-     answer); the day from canada-holidays.ca (secondary), retrieved 2026-09-29";
+const PE_SOURCE: &str = "Employment Standards Act, RSPEI 1988, c E-6.2, s 6(1) \"paid holiday\": New \
+     Year's Day, Islander Day, Good Friday, Canada Day, Labour Day, National Day for Truth and \
+     Reconciliation, Remembrance Day and Christmas Day, CanLII's copy current to 1 June 2022 in \
+     the Internet Archive's capture (secondary), and the Government's page \"Paid Holidays\" of \
+     6 June 2024, retrieved 2026-09-29; Islander Day's first year from Wikipedia (secondary)";
+const QC_SOURCE: &str = "Loi sur la fête nationale, RLRQ c F-1.1, arts. 1 and 2 (1978, c. 5), \
+     \"À jour au 11 décembre 2025\", the Internet Archive's capture of LégisQuébec (the site \
+     refused the connection), retrieved 2026-09-29";
 const SK_SOURCE: &str = "Government of Saskatchewan, \"List of Saskatchewan Public Holidays\" \
      (saskatchewan.ca, secondary: The Saskatchewan Employment Act, SS 2013, c S-15.1, is PDF \
      only), retrieved 2026-09-29; Family Day's first year from Wikipedia, \"Family Day \
      (Canada)\" (secondary)";
-const YT_SOURCE: &str = "Employment Standards Act, RSY 2002, c 72, not read (the Territory's sites \
-     refused the connection); the days from canada-holidays.ca and Wikipedia (secondary), \
+const QC_LNT: &str = "Loi sur les normes du travail, RLRQ c N-1.1, art. 60, \"À jour au 11 \
+     décembre 2025\": 1 January, \"le Vendredi saint ou le lundi de Pâques, au choix de \
+     l'employeur\", \"le lundi qui précède le 25 mai\", 1 July, the first Monday of September, the \
+     second Monday of October and 25 December, the Internet Archive's capture of LégisQuébec, \
      retrieved 2026-09-29";
+const QC_PATRIOTES: &str = "Loi sur les normes du travail, RLRQ c N-1.1, art. 60(3), and the \
+     Premier's communiqué of 24 November 2002, \"Congé férié à l'occasion de la Journée nationale \
+     des Patriotes\", for Décret 1322-2002 (PDF, not read): the day \"sera dorénavant célébrée le \
+     lundi précédant immédiatement le 25 mai\", the Monday already off as the Fête de Dollard, the \
+     Internet Archive's capture of premier-ministre.gouv.qc.ca, retrieved 2026-09-29";
+const YT_SOURCE: &str = "Employment Standards Act, RSY 2002, c 72, s 1 \"general holiday\", in force \
+     since 20 April 2023, CanLII's copy in the Internet Archive's capture (secondary), National \
+     Indigenous Peoples Day added by SY 2017, c 1 and the National Day for Truth and \
+     Reconciliation by SY 2022, c 18, assented 24 November 2022; and the Government's page \"Find \
+     a Yukon statutory holiday\" of 29 January 2026, for the dates and the days that are not \
+     holidays, Boxing Day among them, retrieved 2026-09-29";
 
 /// A province's general holiday in `region`: a day off under its
 /// employment-standards law, moved off a weekend as the federal ones are.
@@ -136,19 +161,25 @@ const FIRST_MONDAY_OF_AUGUST: Rule = Rule::nth(8, 1, Weekday::Monday);
 // The provinces whose lists, in the texts read, leave out a federal day
 // (docs/systems/canada-holidays.md). Newfoundland and Labrador's 1 July is
 // its own Memorial Day.
-const NO_VICTORIA_DAY: &[&str] = &["CA-NB", "CA-NL", "CA-NS", "CA-PE"];
+const NO_GOOD_FRIDAY: &[&str] = &["CA-QC"];
+const NO_VICTORIA_DAY: &[&str] = &["CA-NB", "CA-NL", "CA-NS", "CA-PE", "CA-QC"];
 const NO_CANADA_DAY: &[&str] = &["CA-NL"];
 const NO_TRUTH_AND_RECONCILIATION: &[&str] = &[
-    "CA-AB", "CA-BC", "CA-MB", "CA-NL", "CA-NU", "CA-ON", "CA-SK",
+    "CA-AB", "CA-BC", "CA-MB", "CA-NB", "CA-NL", "CA-NS", "CA-NT", "CA-NU", "CA-ON", "CA-PE",
+    "CA-QC", "CA-SK", "CA-YT",
 ];
 const NO_THANKSGIVING: &[&str] = &["CA-NB", "CA-NL", "CA-NS", "CA-PE"];
-const NO_REMEMBRANCE_DAY: &[&str] = &["CA-MB", "CA-ON"];
-const NO_BOXING_DAY: &[&str] = &["CA-AB", "CA-BC", "CA-MB", "CA-NL", "CA-NU", "CA-SK"];
+const NO_REMEMBRANCE_DAY: &[&str] = &["CA-MB", "CA-NS", "CA-ON", "CA-QC"];
+const NO_BOXING_DAY: &[&str] = &[
+    "CA-AB", "CA-BC", "CA-MB", "CA-NB", "CA-NL", "CA-NS", "CA-NT", "CA-NU", "CA-PE", "CA-QC",
+    "CA-SK", "CA-YT",
+];
 
 static CA_RULES: &[HolidayRule] = &[
     // ── The federal days, of federally regulated employers ──────────────
     HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
+    HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY))
+        .except_in(NO_GOOD_FRIDAY),
     // Victoria Day is the Monday preceding 25 May.
     HolidayRule::public(
         "Victoria Day",
@@ -194,6 +225,10 @@ static CA_RULES: &[HolidayRule] = &[
     not_kept("Victoria Day", "", CA_NL, NL_SOURCE),
     not_kept("Victoria Day", "", CA_NS, NS_SOURCE),
     not_kept("Victoria Day", "", CA_PE, PE_SOURCE),
+    // Quebec keeps Victoria Day's Monday as "le lundi qui précède le 25 mai",
+    // named the Journée nationale des patriotes from 2003; since when
+    // article 60 has had the Monday was not read.
+    not_kept("Victoria Day", "Fête de la Reine", CA_QC, QC_LNT).read_from(2003),
     not_kept(
         "National Day for Truth and Reconciliation",
         "",
@@ -229,18 +264,52 @@ static CA_RULES: &[HolidayRule] = &[
         SK_SOURCE,
     )
     .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_NB,
+        NB_DAY,
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "",
+        CA_NS,
+        NS_SOURCE,
+    )
+    .years(Some(2021), None),
+    not_kept(
+        "National Day for Truth and Reconciliation",
+        "Journée nationale de la vérité et de la réconciliation",
+        CA_QC,
+        QC_LNT,
+    )
+    .years(Some(2021), None),
     not_kept("Thanksgiving", "Action de grâce", CA_NB, NB_DAY),
     not_kept("Thanksgiving", "", CA_NL, NL_SOURCE),
     not_kept("Thanksgiving", "", CA_NS, NS_SOURCE),
     not_kept("Thanksgiving", "", CA_PE, PE_SOURCE),
     not_kept("Remembrance Day", "jour du Souvenir", CA_MB, MB_LIST),
     not_kept("Remembrance Day", "", CA_ON, ON_SOURCE),
+    not_kept("Remembrance Day", "Jour du Souvenir", CA_QC, QC_LNT),
+    // Nova Scotia's Code does not keep it; its Remembrance Day Act, not
+    // read, may give some employees the day: every year a gap.
+    HolidayRule::public("Remembrance Day", "", Rule::UNREAD)
+        .in_regions(CA_NS)
+        .cited(NS_SOURCE),
     not_kept("Boxing Day", "", CA_AB, AB_SOURCE),
     not_kept("Boxing Day", "", CA_BC, BC_LIST),
     not_kept("Boxing Day", "", CA_MB, MB_LIST),
     not_kept("Boxing Day", "", CA_NL, NL_SOURCE),
     not_kept("Boxing Day", "", CA_NU, NU_SOURCE),
     not_kept("Boxing Day", "", CA_SK, SK_SOURCE),
+    not_kept("Boxing Day", "", CA_NB, NB_DAY),
+    not_kept("Boxing Day", "", CA_NS, NS_SOURCE),
+    not_kept("Boxing Day", "", CA_NT, NT_SOURCE),
+    not_kept("Boxing Day", "", CA_PE, PE_SOURCE),
+    not_kept("Boxing Day", "Lendemain de Noël", CA_QC, QC_LNT),
+    // Yukon's list read is the text in force from 20 April 2023.
+    not_kept("Boxing Day", "", CA_YT, YT_SOURCE).read_from(2023),
     // British Columbia's and Manitoba's lists keep the federal day of
     // 2021; the texts read do not say from which year.
     provincial(
@@ -261,6 +330,66 @@ static CA_RULES: &[HolidayRule] = &[
     )
     .years(Some(2021), None)
     .read_from(READ),
+    // The territories and Prince Edward Island added the federal day by
+    // their own acts: Prince Edward Island by SPEI 2021, c 33, assented
+    // 17 November 2021 and in the text current to 1 June 2022; the
+    // Northwest Territories from 2022, the public service alone having it in
+    // 2021; Yukon by SY 2022, c 18, assented 24 November 2022.
+    provincial(
+        "National Day for Truth and Reconciliation",
+        "",
+        Rule::gregorian(9, 30),
+        CA_PE,
+        PE_SOURCE,
+    )
+    .years(Some(2022), None),
+    provincial(
+        "National Day for Truth and Reconciliation",
+        "",
+        Rule::gregorian(9, 30),
+        CA_NT,
+        NT_SOURCE,
+    )
+    .years(Some(2022), None),
+    provincial(
+        "National Day for Truth and Reconciliation",
+        "",
+        Rule::gregorian(9, 30),
+        CA_YT,
+        YT_SOURCE,
+    )
+    .years(Some(2023), None),
+    // Quebec's article 60 gives Good Friday or Easter Monday, "au choix de
+    // l'employeur": each is a day off only where the employer chose it, so
+    // both are observances.
+    HolidayRule::observance(
+        "Good Friday or Easter Monday, at the employer's choice",
+        "Vendredi saint ou lundi de Pâques, au choix de l'employeur",
+        Rule::easter(GOOD_FRIDAY),
+    )
+    .in_regions(CA_QC)
+    .cited(QC_LNT)
+    .read_from(READ),
+    HolidayRule::observance(
+        "Good Friday or Easter Monday, at the employer's choice",
+        "Vendredi saint ou lundi de Pâques, au choix de l'employeur",
+        Rule::easter(EASTER_MONDAY),
+    )
+    .in_regions(CA_QC)
+    .cited(QC_LNT)
+    .read_from(READ),
+    provincial(
+        "National Patriots' Day",
+        "Journée nationale des patriotes",
+        Rule::WeekdayOnOrBefore {
+            month: 5,
+            day: 24,
+            weekday: Weekday::Monday,
+        },
+        CA_QC,
+        QC_PATRIOTES,
+    )
+    .years(Some(2003), None),
     // ── The provinces' and territories' own days ─────────────────────────
     // The February day.
     provincial("Family Day", "", THIRD_MONDAY_OF_FEBRUARY, CA_AB, AB_SOURCE)
@@ -353,7 +482,7 @@ static CA_RULES: &[HolidayRule] = &[
         CA_QC,
         QC_SOURCE,
     )
-    .read_from(READ),
+    .read_from(1979),
     provincial_fixed("Memorial Day", "", 7, 1, CA_NL, NL_SOURCE).read_from(READ),
     provincial_fixed("Nunavut Day", "", 7, 9, CA_NU, NU_SOURCE).years(Some(2001), None),
     // The August days.

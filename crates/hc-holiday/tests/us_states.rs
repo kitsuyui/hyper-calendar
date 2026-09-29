@@ -70,6 +70,24 @@ const ANCHORS: &[(&str, &str, i64, u8, u8, Kind)] = &[
     ("US-AZ", "Native American Day", 2026, 6, 7, Kind::Government),
     ("US-AZ", "Fathers' Day", 2026, 6, 21, Kind::Government),
     ("US-AZ", "American Family Day", 2026, 8, 2, Kind::Government),
+    // § 1-301(A)(11) and (E): Friday 14 August 2026, kept on Sunday the
+    // 16th; § 1-313: 14 August itself, "not a legal holiday".
+    (
+        "US-AZ",
+        "National Navajo Code Talkers Day",
+        2026,
+        8,
+        16,
+        Kind::Government,
+    ),
+    (
+        "US-AZ",
+        "Navajo code talkers' day",
+        2026,
+        8,
+        14,
+        Kind::Observance,
+    ),
     (
         "US-AZ",
         "Constitution Commemoration Day",
@@ -1291,6 +1309,15 @@ const FIRST_YEARS: &[(&str, &str, i64, bool)] = &[
     ("US-WV", "West Virginia Day", 2026, false),
     ("US-WV", "Lincoln's Day", 2026, false),
     ("US-WI", "General Election Day", 2025, false),
+    ("US-AZ", "National Navajo Code Talkers Day", 2026, false),
+    ("US-AZ", "Navajo code talkers' day", 2026, false),
+    ("US-MI", "Saturday half-holiday", 2025, false),
+    ("US-NJ", "Every Saturday", 2024, false),
+    ("US-NY", "Half-holiday", 2020, false),
+    ("US-PA", "Saturday half holiday", 2026, false),
+    ("US-TN", "Saturday half-holiday", 2024, false),
+    ("US-OH", "Saturday afternoon", 1954, false),
+    ("US-OH", "Election day, from noon to 5:30 p.m.", 1954, false),
 ];
 
 #[test]
@@ -1444,11 +1471,109 @@ fn california_keeps_good_friday_from_noon_until_three_as_a_half_day() {
 #[test]
 fn a_state_whose_code_was_not_read_is_a_gap_and_wyoming_is_not() {
     use hc_holiday::rule::UNREAD_SUBDIVISION;
-    for region in ["US-NH", "US-OK", "US-GA"] {
+    for region in ["US-NH", "US-OK"] {
         let calendar = HolidayCalendar::for_year(&UNITED_STATES, Some(region), 2026);
         let names: Vec<&str> = calendar.gaps().iter().map(|gap| gap.name).collect();
         assert_eq!(names, [UNREAD_SUBDIVISION], "{region}");
     }
+    // Georgia's commemorative days are carried; the state holiday its
+    // Governor chooses each year is a gap.
+    let georgia = HolidayCalendar::for_year(&UNITED_STATES, Some("US-GA"), 2026);
+    let names: Vec<&str> = georgia.gaps().iter().map(|gap| gap.name).collect();
+    assert_eq!(names, ["State holiday chosen by the Governor"]);
     // Wyoming's code was read and adds no day: complete, the federal days.
     assert!(HolidayCalendar::for_year(&UNITED_STATES, Some("US-WY"), 2026).is_complete());
+}
+
+/// A state's Saturday half holidays in a year: `(dates, every one a
+/// Saturday and a half day in the state)`.
+fn saturday_half_holidays(region: &str, name: &str, year: i64) -> Vec<Rd> {
+    own_in_year(region, year)
+        .into_iter()
+        .filter(|holiday| holiday.name == name)
+        .map(|holiday| {
+            assert_eq!(holiday.kind, Kind::HalfDay, "{region} {name}");
+            assert_eq!(holiday.regions, [region], "{region} {name}");
+            assert_eq!(
+                hc_calendar::Weekday::from_rd(holiday.date),
+                hc_calendar::Weekday::Saturday,
+                "{region} {name}"
+            );
+            holiday.date
+        })
+        .collect()
+}
+
+#[test]
+fn the_saturday_half_holidays_are_every_saturday_or_every_one_not_a_holiday() {
+    // MCL 435.101 and 44 P.S. § 11: every Saturday, 52 in 2026, from
+    // 3 January to 26 December, and 53 in 2033, which begins and ends on one.
+    for (region, name) in [
+        ("US-MI", "Saturday half-holiday"),
+        ("US-PA", "Saturday half holiday"),
+    ] {
+        let days = saturday_half_holidays(region, name, 2026);
+        assert_eq!(days.len(), 52, "{region}");
+        assert_eq!(days.first(), Some(&ymd(2026, 1, 3)), "{region}");
+        assert_eq!(days.last(), Some(&ymd(2026, 12, 26)), "{region}");
+        assert!(days.contains(&ymd(2026, 7, 4)), "{region}");
+    }
+    let michigan_2033 = saturday_half_holidays("US-MI", "Saturday half-holiday", 2033);
+    assert_eq!(michigan_2033.len(), 53);
+    assert_eq!(michigan_2033.first(), Some(&ymd(2033, 1, 1)));
+    assert_eq!(michigan_2033.last(), Some(&ymd(2033, 12, 31)));
+    // R.C. 5.30: "Every Saturday afternoon", 52 in 2026; and R.C. 5.20's
+    // election day afternoon, Tuesday 3 November 2026.
+    assert_eq!(
+        saturday_half_holidays("US-OH", "Saturday afternoon", 2026).len(),
+        52
+    );
+    let ohio_election: Vec<Holiday> = own_in_year("US-OH", 2026)
+        .into_iter()
+        .filter(|holiday| holiday.name == "Election day, from noon to 5:30 p.m.")
+        .collect();
+    assert_eq!(ohio_election.len(), 1);
+    assert_eq!(ohio_election[0].date, ymd(2026, 11, 3));
+    assert_eq!(ohio_election[0].kind, Kind::HalfDay);
+    // N.J.S.A. 36:1-1: "every Saturday", 52 in 2024, from 6 January.
+    let new_jersey = saturday_half_holidays("US-NJ", "Every Saturday", 2024);
+    assert_eq!(new_jersey.len(), 52);
+    assert_eq!(new_jersey.first(), Some(&ymd(2024, 1, 6)));
+    // New York's § 24 and Tennessee's § 15-1-101: each Saturday "which is
+    // not a public holiday" / "not a holiday". Saturday 4 July 2026 is
+    // Independence Day in both, so each has 51 in 2026.
+    for (region, name) in [
+        ("US-NY", "Half-holiday"),
+        ("US-TN", "Saturday half-holiday"),
+    ] {
+        let days = saturday_half_holidays(region, name, 2026);
+        assert_eq!(days.len(), 51, "{region}");
+        assert!(!days.contains(&ymd(2026, 7, 4)), "{region}");
+        assert!(days.contains(&ymd(2026, 7, 11)), "{region}");
+    }
+    // In 2022 New York's 1 January and Lincoln's Birthday, 12 February,
+    // were Saturdays; Tennessee keeps no 12 February, so its half-holiday
+    // falls then.
+    let new_york_2022 = saturday_half_holidays("US-NY", "Half-holiday", 2022);
+    assert_eq!(new_york_2022.len(), 51);
+    assert!(!new_york_2022.contains(&ymd(2022, 1, 1)));
+    assert!(!new_york_2022.contains(&ymd(2022, 2, 12)));
+    let tennessee_2024 = saturday_half_holidays("US-TN", "Saturday half-holiday", 2024);
+    assert_eq!(tennessee_2024.len(), 52);
+    // A half day is no day off, and no other state has one on a Saturday.
+    let michigan = HolidayCalendar::for_year(&UNITED_STATES, Some("US-MI"), 2026);
+    assert!(
+        michigan
+            .on(ymd(2026, 1, 3))
+            .iter()
+            .all(|holiday| !holiday.kind.is_day_off())
+    );
+    for region in [None, Some("US-TX"), Some("US-CA")] {
+        assert!(
+            HolidayCalendar::for_year(&UNITED_STATES, region, 2026)
+                .on(ymd(2026, 1, 3))
+                .is_empty(),
+            "{region:?}"
+        );
+    }
 }

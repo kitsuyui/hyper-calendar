@@ -41,11 +41,11 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   1 August 2000 [ch-arg-20a]; the years before are a gap, the Verordnung
   of 30 May 1994 über den Bundesfeiertag not having been read. And New
   Year's Day, Ascension and Christmas Day, which every canton's law read
-  keeps: nationwide from 2026, the first year Jura's, Schwyz's and
-  Zurich's laws, read only as they stand, answer for, a gap before; and in
+  keeps: nationwide from 2023, the first year of Jura's law of 2022, the
+  latest of the cantons' texts read, a gap before; and in
   each canton from the first year its own text read gives, a gap before
   (the three days are the canton's rules there, `KEPT_EVERYWHERE`). So
-  asked for no canton, 25 December 2025 is a gap; asked for Bern, whose
+  asked for no canton, 25 December 2022 is a gap; asked for Bern, whose
   law is in force from 1 May 1997, it is Christmas Day from 1998.
 - **Each canton's other days**, scoped to its code, from the first year the
   text read was in force on the day, and the years before a gap: every law
@@ -53,7 +53,7 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   older than the law (Vaud's 2 January and Whit Monday, added in 2007, are
   absent in 2006 and 2007, whose text was read, and a gap before 2006). A day the law makes
   equal to Sunday or declares a public holiday is `Kind::Public`, a public
-  rest day it does not make equal to Sunday `Kind::Observance`. 143 rules, and Solothurn's half day.
+  rest day it does not make equal to Sunday `Kind::Observance`. 144 rules, and Solothurn's half day.
   Good Friday, Easter Monday, Whit Monday and St Stephen's Day are the
   cantons' days, carried in the cantons whose laws keep them, and are not
   nationwide.
@@ -66,10 +66,17 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   list read differently, a gap in the years in question; Glarus's
   Fahrtsfest, the first Thursday of April or the Thursday after when that
   falls in Holy Week; Geneva's Jeûne genevois; Vaud's lundi du Jeûne fédéral.
-- **Secondary**: Jura, Schwyz and Zurich publish their laws as PDF only.
-  Jura's and Schwyz's days are carried from the German Wikipedia's table,
-  Zurich's from the Canton's page on its holidays, each from 2026, the year
-  read; before 2026 those cantons' days are a gap.
+- **Read in a copy**: Jura, Schwyz and Zurich publish their current laws
+  as PDF only. Their texts were read in LexFind's copies, the official
+  wording as LexFind extracts it from the cantons' publications, marked
+  secondary in the entries, and Zurich's version of 2000 to 2004, whose
+  § 1 is the current one's, also in ZH-Lex's own HTML. Jura's days are
+  carried from 2023, Schwyz's from 2002 and Zurich's from 2001 (St
+  Stephen's Day from 2000), the years before a gap. Jura's earlier law, of
+  1978, and Zurich's, of 1971, were read too but are not carried: which of
+  Jura's days were equal to Sunday from 1979 to 2022 a decree of 1979 set,
+  which was not found, and the text of Zurich's law of 1971 read does not
+  give the date it came into force.
 - **Not yet carried, and why:** the days a law keeps in part of a canton,
   which need a scope finer than a canton; days a commune declares; and the days the last column of the table
   names. The communes' own days are not yet carried: a commune is below
@@ -95,13 +102,13 @@ version read are in the entry. "Rest day" marks a day carried as
 | CH-GE | Geneva | Good Friday (Vendredi saint); Easter Monday (Lundi de Pâques); Whit Monday (Lundi de Pentecôte); Geneva Fast (Jeûne genevois); Restoration of the Republic (31 Décembre, anniversaire de la restauration de la République) | [ch-ge-law] | declared public holidays | 1991; earlier years: gap | St Stephen's Day, which the law does not keep |
 | CH-GL | Glarus | Näfels Pilgrimage (Fahrtsfest); Good Friday (Karfreitag); Easter Monday (Ostermontag); Whit Monday (Pfingstmontag); All Saints' Day (Allerheiligen); St Stephen's Day (Stephanstag) | [ch-gl-law] | equal to Sunday (Art. 2 Abs. 5) | 2012, 2013; earlier years: gap |  |
 | CH-GR | Graubünden | Good Friday (Karfreitag); Easter Monday (Ostermontag); Whit Monday (Pfingstmontag); St Stephen's Day (Stefanstag) | [ch-gr-law] | equal to Sunday | 2006; earlier years: gap | the communes' confessional days |
-| CH-JU | Jura | Good Friday (Vendredi-Saint); Easter Monday (Lundi de Pâques); Labour Day (1er mai); Whit Monday (Lundi de Pentecôte); Corpus Christi (Fête-Dieu); Berchtold's Day (2 janvier) (rest day); Assumption (Assomption) (rest day); All Saints' Day (Toussaint) (rest day) | [ch-ju-law] | equal to Sunday ("A"), public rest days ("B"), by the secondary source | 2026; earlier years: gap | 23 June, the Fête de l'Indépendance, whose status the source does not settle |
+| CH-JU | Jura | Good Friday (Vendredi-Saint); Easter Monday (Lundi de Pâques); Labour Day (1er mai); Whit Monday (Lundi de Pentecôte); Corpus Christi (Fête-Dieu); Berchtold's Day (2 janvier) (rest day); Assumption (Assomption) (rest day); All Saints' Day (Toussaint) (rest day); 23 June (le 23 juin) (rest day) | [ch-ju-law-2022] | equal to Sunday (art. 4); jours fériés officiels not equated with Sunday (art. 3 lit. b) | 2023; earlier years: gap |  |
 | CH-LU | Lucerne | Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); St Stephen's Day (Stefanstag); Immaculate Conception (Mariä Empfängnis) (rest day) | [ch-lu-law] | equal to Sunday (§ 1a); a public rest day | 1997, 1998; earlier years: gap | St Joseph's Day and the patronal feasts, kept only where a commune declares them |
 | CH-NE | Neuchâtel | 2 January (le 2 janvier); 1 March (le 1er mars); Labour Day (le 1er mai); Good Friday (Vendredi Saint); St Stephen's Day (le 26 décembre) | [ch-ne-law] | equal to Sunday | 2010; earlier years: gap | Corpus Christi in Le Landeron (RSN 941.020); Easter Monday and Whit Monday, which the law does not keep |
 | CH-NW | Nidwalden | St Joseph's Day (Josefstag) (rest day); Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Maria Himmelfahrt); All Saints' Day (Allerheiligen); Immaculate Conception (Maria Empfängnis) | [ch-nw-law] | equal to Sunday; a public rest day | 2005, 2006; earlier years: gap | Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
 | CH-OW | Obwalden | Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); Immaculate Conception (Mariä Empfängnis); St Nicholas of Flüe (Bruderklausenfest) (rest day) | [ch-ow-law] | equal to Sunday; a public rest day | 2007, 2008; earlier years: gap | Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
 | CH-SH | Schaffhausen | Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (Stephanstag) | [ch-sh-law] | equal to Sunday (§ 7) | 2011; earlier years: gap |  |
-| CH-SZ | Schwyz | St Joseph's Day (Josefstag); Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); Epiphany (Heilige Drei Könige) (rest day); Easter Monday (Ostermontag) (rest day); Whit Monday (Pfingstmontag) (rest day); Immaculate Conception (Mariä Empfängnis) (rest day); St Stephen's Day (Stephanstag) (rest day) | [ch-sz-law] | equal to Sunday ("A"), public rest days ("B"), by the secondary source | 2026; earlier years: gap |  |
+| CH-SZ | Schwyz | St Joseph's Day (Josefstag); Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Mariä Himmelfahrt); All Saints' Day (Allerheiligen); Epiphany (Heilige Drei Könige) (rest day); Easter Monday (Ostermontag) (rest day); Whit Monday (Pfingstmontag) (rest day); Immaculate Conception (Mariä Empfängnis) (rest day); St Stephen's Day (Stephanstag) (rest day) | [ch-sz-law-2001] | equal to Sunday (§ 2 Abs. 2); public rest days (§ 2 Abs. 1) | 2002; earlier years: gap | the days the communes' voters declare (§ 2 Abs. 1 Ziff. 4) |
 | CH-SO | Solothurn | Good Friday (Karfreitag); 1 May from noon, "der 1. Mai (ab 12 Uhr)", a half day | [ch-so-law] | equal to Sunday (§ 46) | 2016; earlier years: gap | Corpus Christi, the Assumption and All Saints', kept except in the Bucheggberg district; Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
 | CH-SG | St. Gallen | Good Friday (Karfreitag); Easter Monday (Ostermontag); Whit Monday (Pfingstmontag); All Saints' Day (Allerheiligen); St Stephen's Day (Stefanstag) | [ch-sg-law] | equal to Sunday | 2004, 2005; earlier years: gap |  |
 | CH-TG | Thurgau | Berchtold's Day (2. Januar); Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (26. Dezember) | [ch-tg-law] | public rest days, equal to Sunday under the version of 2003 | 2003; earlier years: gap |  |
@@ -110,11 +117,11 @@ version read are in the entry. "Rest day" marks a day carried as
 | CH-VS | Valais | St Joseph's Day (Saint-Joseph); Corpus Christi (Fête-Dieu); Assumption (Assomption); All Saints' Day (Toussaint); Immaculate Conception (Immaculée Conception) | [ch-vs-law] | assimilés aux dimanches | 2016, 2017; earlier years: gap | Good Friday, Easter Monday, Whit Monday and St Stephen's Day, which the ordinance does not keep |
 | CH-VD | Vaud | Good Friday (le Vendredi-Saint); Easter Monday (le lundi de Pâques); Federal Fast Monday (le lundi du Jeûne fédéral); Berchtold's Day (le 2 janvier); Whit Monday (le lundi de Pentecôte) | [ch-vd-law] | assimilés aux dimanches | 2006; 2 January and Whit Monday from 2008, absent in 2006 and 2007 (added by the modification of 2007); earlier years: gap | St Stephen's Day, which the law does not keep |
 | CH-ZG | Zug | Good Friday (Karfreitag); Corpus Christi (Fronleichnam); Assumption (Maria Himmelfahrt); All Saints' Day (Allerheiligen); Immaculate Conception (Maria Empfängnis) | [ch-zg-law] | equal to Sunday (§ 1) | 2004; earlier years: gap | Easter Monday, Whit Monday and St Stephen's Day, which the law does not keep |
-| CH-ZH | Zurich | Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (Stephanstag) | [ch-zh-law] | equal to Sunday, by the Canton's page | 2026; earlier years: gap |  |
+| CH-ZH | Zurich | Good Friday (Karfreitag); Easter Monday (Ostermontag); Labour Day (1. Mai); Whit Monday (Pfingstmontag); St Stephen's Day (Stephanstag) | [ch-zh-law-2000] | equal to Sunday (§ 1 Abs. 3) | 2001, St Stephen's Day 2000; earlier years: gap |  |
 
 ## Accuracy
 
-`crates/hc-holiday/tests/switzerland_cantons.rs` holds each of the 143
+`crates/hc-holiday/tests/switzerland_cantons.rs` holds each of the 144
 rules to its law: the day's date in its first year and in 2026, worked out
 by a script apart from the crate; its kind and its canton; nothing the
 year before, and a gap there, save Vaud's additions of 2007, absent in
@@ -144,7 +151,9 @@ business days. What a reader should know:
 | Key | Used for | Read |
 | --- | --- | --- |
 | [ch-arg-20a] | Art. 20a Abs. 1: 1 August, and the cantons' eight days | Yes, 2026-09-29, Fedlex |
-| [ch-ag-law] … [ch-zh-law] | Each canton's days, their effect and the version in force | Yes, 2026-09-29; Jura, Schwyz and Zurich in secondary sources, their laws being PDF only |
+| [ch-ag-law] … [ch-zg-law] | Each canton's days, their effect and the version in force | Yes, 2026-09-29 |
+| [ch-ju-law-2022], [ch-sz-law-2001], [ch-zh-law-2000] | Jura's, Schwyz's and Zurich's days, their effect and the version in force | Yes, 2026-09-29, in LexFind's copies of the official texts, and Zurich's of 2000 in ZH-Lex's HTML |
+| [ch-ju-law], [ch-sz-law], [ch-zh-law] | The secondary sources these three cantons' days were first carried from | Yes, 2026-09-29; superseded by the laws |
 
 ## Code
 
