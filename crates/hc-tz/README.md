@@ -87,7 +87,7 @@ name under each — everything a caller needs to explain the problem to a user.
   be tested against a fixture, a loader cannot. Zone names are validated
   before being joined onto a path, because a name is usually data from outside
   the program.
-* **`builtin`** — seventeen zones as POSIX strings, for targets with no zone
+* **`builtin`** — eighteen zones as POSIX strings, for targets with no zone
   database.
 * **`location`** — where each zone is: the principal location the IANA
   database gives each of its 312 zones in `zone1970.tab`, the 106 links
@@ -144,7 +144,7 @@ name under each — everything a caller needs to explain the problem to a user.
 
 ## Deliberate omissions
 
-* **No zone database is compiled in.** Seventeen POSIX strings are not a
+* **No zone database is compiled in.** Eighteen POSIX strings are not a
   database; a real one is megabytes and belongs on disk or in a separate data
   crate. The zone locations are compiled in, about 22 kB of text, because
   they say where a zone is, not what its clocks read.

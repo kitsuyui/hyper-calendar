@@ -90,7 +90,7 @@ fn panchak_and_the_jupiter_festivals_cross_the_boundary() {
         )
     });
     let row = &rows(&text)[0];
-    assert_eq!((row[1], row[2], row[10]), ("prayag", "Prayag", "1"));
+    assert_eq!((row[1], row[2], row[12]), ("prayag", "Prayag", "1"));
 
     let (sign, meridian) = ("simha", "india");
     let entry = hc_unix_from_fixed(hc_gregorian_to_fixed(2015, 7, 14)) + (7 * 60 + 7 - 330) * 60;
@@ -116,13 +116,14 @@ fn panchak_and_the_jupiter_festivals_cross_the_boundary() {
         hc_gregorian_to_fixed(2015, 7, 25).to_string(),
     );
     assert_eq!(
-        row[..7],
+        row[..8],
         [
             "pushkaram-godavari",
             "Godavari",
             "en",
             "",
             "simha",
+            "Siṃha",
             &first,
             &last
         ]

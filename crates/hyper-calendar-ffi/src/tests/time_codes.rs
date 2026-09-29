@@ -36,6 +36,35 @@ fn the_codes_cross_the_c_boundary() {
         hc_ccsds_decode(c"412ade03b8ce7301c8".as_ptr(), 1, buffer, capacity, written)
     });
     assert!(text.starts_with("cds\t569524867\t"), "{text}");
+    // At Level 2 from annex B3.2's 1950 epoch, and a CUC code from 1958 TAI.
+    let from_1950 = read_lines(|buffer, capacity, written| unsafe {
+        hc_ccsds_decode_from_epoch(
+            c"49364803b8ce7301c8".as_ptr(),
+            0,
+            0,
+            -7_305,
+            1,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(from_1950, text);
+    let cuc = read_lines(|buffer, capacity, written| unsafe {
+        hc_ccsds_encode_from_epoch(
+            946_684_832,
+            0,
+            c"2c".as_ptr(),
+            -378_691_200,
+            0,
+            0,
+            1,
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(cuc, "2c4effa220\n");
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_ccsds_encode(946_684_832, 0, c"1c".as_ptr(), 1, buffer, capacity, written)
     });
@@ -95,6 +124,33 @@ fn the_codes_cross_the_c_boundary() {
                 core::ptr::null(),
                 frame.as_ptr(),
                 2000,
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+}
+
+/// NICT's second figure, the call-sign frame of 17:15 JST on 1 April
+/// 2004, read in 2004 (`nict-jjy-timecode`).
+#[test]
+fn a_jjy_call_sign_frame_crosses_the_boundary() {
+    let frame = read_lines(|buffer, capacity, written| unsafe {
+        hc_jjy_call_sign_encode(1_080_807_300, 0, 0, 0, buffer, capacity, written)
+    });
+    let frame = std::ffi::CString::new(frame.trim_end()).expect("no NUL");
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_jjy_call_sign_decode(frame.as_ptr(), 2004, buffer, capacity, written)
+    });
+    assert_eq!(text, "1080807300\t731672\t17\t15\t0\t0\t0\n");
+    let mut written = 0;
+    assert_eq!(
+        unsafe {
+            hc_jjy_call_sign_decode(
+                core::ptr::null(),
+                2004,
                 core::ptr::null_mut(),
                 0,
                 &mut written,

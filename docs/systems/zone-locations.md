@@ -175,7 +175,7 @@ The root name of step 2 is `root.xml`'s value, else the derived name.
   and every Coptic and Kabyle value is unconfirmed. European Portuguese
   keeps the 83 names `pt_PT.xml` gives of its own and inherits the rest
   from `pt`, its parent, rather than from root.
-- **Not carried.** The zones' rules, beyond `hc-tz`'s seventeen built-in
+- **Not carried.** The zones' rules, beyond `hc-tz`'s eighteen built-in
   zones: `hc_zone_location` says where a zone is, not what its clocks
   read. The `provisional` and `unconfirmed` exemplar cities. The
   exemplar cities of the regional and added locales of `docs/i18n.md`

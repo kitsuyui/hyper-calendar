@@ -378,6 +378,30 @@ fn zone_field(field: &str) -> Answer<&str> {
     }
 }
 
+/// The calendar `strftime`'s `%E` writes its era in that `hc-format`
+/// cannot reach itself: the Japanese eras, the unified stream of
+/// `hc-calendars-regional`, for a locale whose `-u-ca-` key is `japanese`,
+/// CLDR's identifier for them, in a build with `regional`. `hc-format`
+/// finds the Buddhist and Minguo calendars on its own; any other key, and
+/// a build without `regional`, leaves `%E` to it.
+#[cfg(all(feature = "std", feature = "zone-names"))]
+fn era_calendar(locale: &hc_i18n::Locale) -> Option<&'static dyn hc_calendar::DynCalendar> {
+    #[cfg(feature = "regional")]
+    {
+        use hc_calendars_regional::japanese::JapaneseCalendar;
+        static JAPANESE: hc_calendar::DynAdapter<JapaneseCalendar> =
+            hc_calendar::DynAdapter::new(JapaneseCalendar::UNIFIED);
+        if locale
+            .calendar()
+            .is_some_and(|key| hc_core::catalogue::matches(key, "japanese"))
+        {
+            return Some(&JAPANESE);
+        }
+    }
+    let _ = locale;
+    None
+}
+
 /// A zone's reading at an instant, formatted by `write` with the context
 /// `hc-format`'s patterns take — the local civil reading, the offset, the
 /// zone's identifier, its daylight flag and its rules (for UTS #35's
@@ -417,6 +441,9 @@ fn zoned_line(
             .with_daylight(daylight)
             .with_zone_rules(zone)
             .with_locale(&locale);
+        if let Some(calendar) = era_calendar(&locale) {
+            context = context.with_era_calendar(calendar);
+        }
         let abbreviation = named_abbreviation(zone.abbreviation_at(instant));
         if abbreviated && !abbreviation.is_empty() {
             context = context.with_zone_abbreviation(abbreviation);
@@ -744,6 +771,26 @@ mod tests {
             format_pattern_line("Asia/Tokyo", instant, "en", "strftime", "%Y-%m-%d %H:%M %Z")
                 .expect("formatted");
         assert_eq!(cells(&posix)[0], "2026-01-01 09:00 JST");
+        // POSIX's `%E` in the Japanese eras, which the locale's `-u-ca-`
+        // key names: 平成 ends on 30 April 2019 and 令和 begins on 1 May
+        // (`wikipedia-ja-gengo-list`), 15:00 UTC being midnight in Tokyo.
+        #[cfg(feature = "regional")]
+        {
+            let era = |unix: i64, locale: &str| {
+                let line =
+                    format_pattern_line("Asia/Tokyo", unix, locale, "strftime", "%EC|%Ey|%EY")
+                        .expect("formatted");
+                String::from(cells(&line)[0])
+            };
+            assert_eq!(era(1_556_636_399, "ja-u-ca-japanese"), "平成|31|平成31年");
+            assert_eq!(era(1_556_636_400, "ja-u-ca-japanese"), "令和|1|令和元年");
+            // 29 September 2026 in Tokyo.
+            assert_eq!(era(1_790_607_600, "ja-u-ca-japanese"), "令和|8|令和8年");
+            assert_eq!(era(1_790_607_600, "en-u-ca-japanese"), "Reiwa|8|8 Reiwa");
+            // Without the key there is no alternative era, and `%E` is the
+            // unmodified conversion.
+            assert_eq!(era(1_790_607_600, "ja"), "20|26|2026");
+        }
         assert_eq!(
             format_pattern_line("Asia/Tokyo", instant, "en", "java", "yyyy"),
             Err(Refusal::Unknown)

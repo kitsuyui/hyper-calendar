@@ -643,7 +643,15 @@ Spica — and Revatī last [wikipedia-nakshatra]: Aśvinī, Bharaṇī, Kṛttik
 Rohiṇī, Mṛgaśīrṣa, Ārdrā, Punarvasu, Puṣya, Āśleṣā, Maghā,
 Pūrva Phalgunī, Uttara Phalgunī, Hasta, Citrā, Svātī, Viśākhā,
 Anurādhā, Jyeṣṭhā, Mūla, Pūrvāṣāḍhā, Uttarāṣāḍhā, Śravaṇa, Dhaniṣṭhā,
-Śatabhiṣā, Pūrva Bhādrapadā, Uttara Bhādrapadā, Revatī. The Moon crosses
+Śatabhiṣā, Pūrva Bhādrapadā, Uttara Bhādrapadā, Revatī. The article's
+two tables spell some of them differently from each other and from this
+list (Mṛgaśiras and Mṛgaśīrṣā, Pūrvāṣāḍha and Pūrva Aṣāḍhā, Śatabhiṣaj);
+this list is the one spelling the library carries, as
+`nakshatra::NAKSHATRA_NAMES`, with the ASCII identifiers
+`nakshatra::NAKSHATRA_IDS` (`ashvini` … `revati`), which every boundary
+line that names a nakṣatra writes beside its number, as every line that
+names a sidereal sign writes its identifier (`kanya`) beside its Sanskrit
+name (`Kanyā`). The Moon crosses
 one in about a day, so a nakṣatra, like a tithi, is held at one or two
 sunrises or now and then at none; the Sun takes about thirteen and a
 half days, a little more near aphelion, and the almanacs print its

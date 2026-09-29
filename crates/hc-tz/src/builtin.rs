@@ -3,7 +3,7 @@
 //! # What this table is for
 //!
 //! It answers "what time is it in Tokyo" on a device with no zone database:
-//! an embedded target, a WebAssembly module, a static binary. Seventeen
+//! an embedded target, a WebAssembly module, a static binary. Eighteen
 //! zones and a few hundred bytes of text cover most of the world's
 //! population.
 //!
@@ -46,7 +46,9 @@ pub struct BuiltinZone {
 /// Nepal for the half and quarter hours, Lord Howe Island for a half-hour
 /// daylight shift, Sydney and Auckland for southern-hemisphere rules that
 /// straddle the new year, Cairo for a rule anchored to the last Thursday of a
-/// month at 24:00. Those are the entries that catch bugs.
+/// month at 24:00. Those are the entries that catch bugs. Denver is here
+/// for WWVB, whose station keeps its clock: a frame's summer-time bits
+/// read from `zone:America/Denver` need no TZif file.
 pub const ZONES: &[BuiltinZone] = &[
     BuiltinZone {
         id: "UTC",
@@ -55,6 +57,10 @@ pub const ZONES: &[BuiltinZone] = &[
     BuiltinZone {
         id: "Africa/Cairo",
         posix: "EET-2EEST,M4.5.5/0,M10.5.4/24",
+    },
+    BuiltinZone {
+        id: "America/Denver",
+        posix: "MST7MDT,M3.2.0,M11.1.0",
     },
     BuiltinZone {
         id: "America/Los_Angeles",
@@ -168,7 +174,7 @@ mod tests {
     /// it is checked here rather than trusted.
     #[test]
     fn the_builtin_zone_count_is_the_one_the_readme_states() {
-        assert_eq!(ZONES.len(), 17);
+        assert_eq!(ZONES.len(), 18);
     }
 
     use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
@@ -239,6 +245,23 @@ mod tests {
         let sydney = zone("Australia/Sydney").unwrap();
         assert!(sydney.is_dst_at(midwinter));
         assert!(!sydney.is_dst_at(midsummer));
+        // Denver, the United States' rule since 2007 (`iana-tzdb-2026d`,
+        // `northamerica`: "Rule US 2007 max - Mar Sun>=8 2:00 1:00 D" and
+        // "Nov Sun>=1 2:00 0 S"): MDT from 2 AM MST on 8 March 2026, 09:00
+        // UTC, to 2 AM MDT on 1 November, 08:00 UTC.
+        let denver = zone("America/Denver").unwrap();
+        let march_8 = instant(2026, 3, 8, 9).seconds();
+        assert!(!denver.is_dst_at(UnixTime::from_seconds(march_8 - 1)));
+        assert_eq!(
+            denver.offset_at(UnixTime::from_seconds(march_8)).seconds(),
+            -6 * 3_600
+        );
+        let november_1 = instant(2026, 11, 1, 8).seconds();
+        assert!(denver.is_dst_at(UnixTime::from_seconds(november_1 - 1)));
+        assert_eq!(
+            denver.abbreviation_at(UnixTime::from_seconds(november_1)),
+            Some("MST")
+        );
         // Northern hemisphere, the other way round.
         let new_york = zone("America/New_York").unwrap();
         assert!(!new_york.is_dst_at(midwinter));
@@ -282,6 +305,7 @@ mod tests {
             ("Europe/London", 0.0),
             ("America/New_York", -5.0),
             ("America/Los_Angeles", -8.0),
+            ("America/Denver", -7.0),
             ("America/Sao_Paulo", -3.0),
             ("Africa/Cairo", 2.0),
             ("Australia/Sydney", 11.0),

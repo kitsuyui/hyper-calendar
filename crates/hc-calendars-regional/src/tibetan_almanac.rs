@@ -1103,10 +1103,22 @@ pub const fn bhutanese_weekday(rd: Rd) -> u8 {
 /// Date whose integer part is the day, found with Janson's rule of Section 10 for the special days, the
 /// lunar day `d` at which the mean Sun has a given value.
 ///
+/// The mean Sun's year is the calendar's, `m1 / s1` = 6 714 405 / 18 382
+/// days, 365.270 645, longer than the Gregorian calendar's 365.2425 by
+/// 0.028 145 days, so the solstice comes a day later every 35½ years:
+/// Janson's first 3 January is 2020, and 319 years before it the day is
+/// nine days earlier, 24 December 1700. Its Gregorian year is the one it
+/// falls in, so before the 1920s it is the December one of the winter
+/// that year ends in, and after the 1950s the January one of the winter
+/// it begins; a year of 365 days between two solstices 365.27 days apart
+/// can hold none, and ten do, 1923, 1927, 1931, 1935, 1938, 1942, 1946,
+/// 1949, 1953 and 1957.
+///
 /// # Errors
 ///
 /// [`CalendarError::YearOutOfRange`] outside the Bhutanese calendar's
-/// range.
+/// range, and [`CalendarError::DayOutOfRange`] for a year the mean Sun
+/// reaches 250° on no day of.
 pub fn bhutanese_winter_solstice(calendar: &TibetanCalendar, year: i64) -> CalendarResult<Ratio> {
     if !(hc_calendars_lunar::tibetan::MIN_YEAR..=hc_calendars_lunar::tibetan::MAX_YEAR)
         .contains(&year)
@@ -3366,6 +3378,31 @@ mod tests {
             Rd::from_julian_day_number(instant.floor() as i64) == greg(year, 1, 3)
         });
         assert_eq!(first_third, Some(2020));
+        // The mean Sun's year, 365.270 645 days, drifts against the
+        // Gregorian calendar's by a day in 35½ years: nine days earlier in
+        // 1700, 24 December, and 27 days later by 3000.
+        let year = tibetan::M1.mul(Ratio::new(
+            tibetan::S1.denominator(),
+            tibetan::S1.numerator(),
+        ));
+        assert_eq!(year, Ratio::new(6_714_405, 18_382));
+        let day = |year| {
+            bhutanese_winter_solstice(&TIBETAN_BHUTAN, year)
+                .map(|instant| Rd::from_julian_day_number(instant.floor() as i64))
+        };
+        assert_eq!(day(1700), Ok(greg(1700, 12, 24)));
+        assert_eq!(day(1900), Ok(greg(1900, 12, 30)));
+        assert_eq!(day(2100), Ok(greg(2100, 1, 4)));
+        assert_eq!(day(3000), Ok(greg(3000, 1, 30)));
+        // The years that hold none, between the December solstices and
+        // the January ones.
+        let none: Vec<i64> = (1000..=3000)
+            .filter(|&year| day(year) == Err(CalendarError::DayOutOfRange))
+            .collect();
+        assert_eq!(
+            none,
+            [1923, 1927, 1931, 1935, 1938, 1942, 1946, 1949, 1953, 1957]
+        );
         assert!(bhutanese_winter_solstice(&TIBETAN_BHUTAN, 3_001).is_err());
     }
 

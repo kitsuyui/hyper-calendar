@@ -13,7 +13,10 @@ fn the_decan_line_is_the_modules() {
         text,
         hc::sky_lines::decan_line(instant).expect("in the era")
     );
-    assert!(text.starts_with("7\tLibra\t1\tmoon\tMoon\t"), "{text}");
+    assert!(
+        text.starts_with("7\tlibra\tLibra\t1\tmoon\tMoon\t"),
+        "{text}"
+    );
     let decan = |unix_seconds: i64| {
         measured(|buffer, capacity, written| unsafe {
             hc_decan_at(unix_seconds, buffer, capacity, written)

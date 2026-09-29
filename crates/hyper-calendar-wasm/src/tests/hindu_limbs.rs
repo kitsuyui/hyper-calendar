@@ -23,7 +23,7 @@ fn the_lines_are_the_facades() {
         .filter(|line| line.contains("\tdur-muhurtam\t") || line.contains("\tabhijit\t"))
         .collect();
     assert_eq!(marked.len(), 1);
-    assert!(marked[0].starts_with("day\t8\t"));
+    assert!(marked[0].starts_with("day\t8\tVidhi\t"));
     let lahiri = "lahiri";
     let text = read_lines(|buffer, capacity| unsafe {
         hc_amrita_siddhi(
@@ -56,7 +56,7 @@ fn the_lines_are_the_facades() {
             capacity,
         )
     });
-    assert_eq!(text.split('\t').count(), 6);
+    assert_eq!(text.split('\t').count(), 8);
     let unknown = unsafe { hc_drekkana_at(0, "x".as_ptr(), 1, core::ptr::null_mut(), 0) };
     assert_eq!(unknown, HC_ERR_UNKNOWN);
 }

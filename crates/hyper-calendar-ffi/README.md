@@ -108,10 +108,14 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_tt_bipm` | `tai_seconds` from 0 h UTC on the first sample's date through the last's, which the caller's series sets, and attoseconds below 10¹⁸; an instant outside the series, or an empty series, is `HC_ERROR_NO_DATA`, and more attoseconds are `HC_ERROR_OUT_OF_RANGE` |
 | TT seconds | `hc_tt_from_epoch` | every finite year whose instant is within an `int64_t` of seconds of 1970 TT, about 2.9 × 10¹¹ years either side; beyond is `HC_ERROR_OVERFLOW`, and a year not finite `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_ccsds_encode`, `hc_ccsds_ascii_format` | `tai_seconds` of an instant the format can hold, and attoseconds below 10¹⁸: for CUC from 1958-01-01 00:00:00 TAI, `tai_seconds` −378 691 200, to the format's last count; for CDS from 1958-01-01 UTC to the end of the day segment's last day; for CCS and the ASCII codes the years 1 to 9999; any other is `HC_ERROR_OUT_OF_RANGE`, and under `strict` an instant outside the leap-second table `HC_ERROR_NO_DATA` |
+| a line | `hc_ccsds_decode_from_epoch` | `epoch_tai_seconds` −62 135 596 800 through 253 402 300 799 and `epoch_unix_day` −719 162 through 2 932 896, the instants and the days of the years 1 to 9999, and `epoch_attoseconds` below 10¹⁸; any other is `HC_ERROR_OUT_OF_RANGE`, and a code as for `hc_ccsds_decode` |
+| a line | `hc_ccsds_encode_from_epoch` | `epoch_tai_seconds` and `epoch_unix_day` as for `hc_ccsds_decode_from_epoch`, and `tai_seconds` of an instant the format can hold: at Level 2 from the epoch to the format's last count, at Level 1 as for `hc_ccsds_encode`; any other is `HC_ERROR_OUT_OF_RANGE`, and under `strict` an instant outside the leap-second table `HC_ERROR_NO_DATA` |
 | a line | `hc_radio_decode` | `century` a multiple of 100 from 0 through 9 900; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_irig_decode` | `year` 1 through 9999, whose century a code with the year's two digits reads them in; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_irig_encode` | `fixed` 1 through 3 652 059, the days of the years 1 to 9999, with whole seconds up to 86 400, 23:59:60, and hundredths up to 99; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_radio_encode` | `unix_seconds` a whole minute from −62 135 596 800 (0001-01-01 00:00) through 253 402 300 740 (9999-12-31 23:59); any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_jjy_call_sign_decode` | `year` 1 through 9999, the year the frame's day of the year is read in; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_jjy_call_sign_encode` | `unix_seconds` a whole minute from −62 135 596 800 (0001-01-01 00:00) through 253 402 300 740 (9999-12-31 23:59) that is minute 15 or 45 of an hour of JST; any other is `HC_ERROR_OUT_OF_RANGE` |
 | ticks | `hc_dotnet_ticks_from_unix` | `unix_seconds` −62 135 596 800 through 253 402 300 799, 0001-01-01 to the end of 9999-12-31, and attoseconds below 10¹⁸, which write the ticks 0 through 3 155 378 975 999 999 999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_unix_from_dotnet_ticks` | `ticks` 0 through 3 155 378 975 999 999 999, the range of `DateTime`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_describe_day` | every `fixed`; a calendar that refuses the day says so in its own line |
@@ -133,12 +137,12 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a fixed day | `hc_astronomical_paschal_full_moon` | `year` 1583 through 2150, the years of `hc_astronomical_easter`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a fixed day | `hc_plum_rains` | `year` −1000 through 3000, the days of 芒种 and 小暑 in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a rule or meridian it does not name `HC_ERROR_UNKNOWN` |
 | a fixed day | `hc_rounichi` | `year` −999 through 3000, whose winter the era of `hc_term_in_effect` holds; any other is `HC_ERROR_OUT_OF_RANGE`, a winter the reckoning does not settle `HC_ERROR_NO_DATA`, and a rule or meridian it does not name `HC_ERROR_UNKNOWN` |
-| lines | `hc_almanac_person_days` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, and every `birth_year`; any other day is `HC_ERROR_OUT_OF_RANGE` |
+| lines | `hc_almanac_person_days` | `fixed` and `birth_fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_tibetan_almanac_day`, `hc_tibetan_planets` | `fixed` 364 892 through 1 095 802, the Tibetan years 1000 to 3000, and through 1 095 803 on `tibetan-bhutan`, `tibetan-tsurphu-karana` and `tibetan-bhutan-lochen`; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line | `hc_bhutanese_winter_solstice` | `year` 1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_bhutanese_winter_solstice` | `year` 1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, and one that holds no solstice, 1923, 1927, 1931, 1935, 1938, 1942, 1946, 1949, 1953 and 1957, `HC_ERROR_NO_DATA` |
 | a fixed day | `hc_tibetan_festival_day` | `year` 1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE`, a month or day the year does not have `HC_ERROR_INVALID_DATE`, and a skipped number under `henning-almanac` `HC_ERROR_NO_DATA` |
 | a fixed day | `hc_cold_food_day` | `year` −999 through 3000 under every reckoning, the years whose winter solstice before and whose April are both in the era of `hc_term_in_effect`; any other is `HC_ERROR_OUT_OF_RANGE`, and a reckoning it does not name `HC_ERROR_UNKNOWN` |
-| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line or lines | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_solar_event`, `hc_sunrise`, `hc_sunset`, `hc_crescent_visible`, `hc_kalam`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_of_day`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_mansion_undertakings`, `hc_prayer_times`, `hc_zmanim`, `hc_temporal_hour`, `hc_unix_from_edo_time`, `hc_choghadiya`, `hc_folk_day`, `hc_planetary_hours_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_panchanga_of_day` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000, on the true sky, and −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_hindu_lunar_date` | `fixed` in the Śaka years 1622 through 2221 on the true sky, from Chaitra śukla 1 in March 1700 to the eve of the one in March 2300, whose days move with the place and the ayanāṃśa (620 627 through 839 773 at the Central Station with Lahiri's); on `surya-siddhanta`, −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE`, as is a place beyond 65° of latitude; on the true sky, a day whose sunrise at the place the model does not find is `HC_ERROR_NO_DATA` |
 | a line | `hc_surya_siddhanta_sunrise` | `fixed` −1 132 604 through 2 519 974, Kali Yuga 1 to 10 000; any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -301,7 +305,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-187 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+192 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -348,10 +352,14 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_civil_from_french_decimal_time(uint32_t hour, uint32_t minute, uint32_t second, uint64_t attoseconds, char *buffer, size_t capacity, size_t *written);` | `timestamps` | The civil time of day of a French Republican decimal time, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_decode(const char *hex, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | A binary CCSDS time code read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_encode(int64_t tai_seconds, uint64_t attoseconds, const char *p_field, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The binary CCSDS time code of a TAI instant in the format a P-field names, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ccsds_decode_from_epoch(const char *hex, int64_t epoch_tai_seconds, uint64_t epoch_attoseconds, int64_t epoch_unix_day, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | A binary CCSDS time code read, a Level 2 code from the caller's epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_ccsds_encode_from_epoch(int64_t tai_seconds, uint64_t attoseconds, const char *p_field, int64_t epoch_tai_seconds, uint64_t epoch_attoseconds, int64_t epoch_unix_day, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The binary CCSDS time code of a TAI instant in the format a P-field names, a Level 2 format from the caller's epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_ascii_parse(const char *code, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | A CCSDS ASCII time code, A or B, read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_ccsds_ascii_format(int64_t tai_seconds, uint64_t attoseconds, const char *variation, const char *precision, int terminator, int strict, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The CCSDS ASCII time code of a TAI instant's UTC label, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_radio_decode(const char *code, const char *frame, int64_t century, char *buffer, size_t capacity, size_t *written);` | `time-codes` | One minute's frame of a long-wave radio time code read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_radio_encode(const char *code, int64_t unix_seconds, int leap, const char *summer, int zone_change, int dut1_tenths, uint32_t dst_next, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The frame of a long-wave radio time code for a minute, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_jjy_call_sign_decode(const char *frame, int64_t year, char *buffer, size_t capacity, size_t *written);` | `time-codes` | JJY's call-sign frame of minute 15 or 45 read in a year the caller names, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_jjy_call_sign_encode(int64_t unix_seconds, uint32_t stop_start, int daytime_only, uint32_t stop_span, char *buffer, size_t capacity, size_t *written);` | `time-codes` | JJY's call-sign frame for minute 15 or 45 with a notice of a planned stop, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_irig_decode(const char *signal, const char *frame, int64_t year, char *buffer, size_t capacity, size_t *written);` | `time-codes` | One frame of an IRIG serial time code read, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_irig_encode(const char *signal, int64_t fixed, uint32_t seconds_of_day, uint32_t hundredths, uint32_t control, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The frame of an IRIG serial time code whose reference bit falls at a reading of the civil clock, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_irig_frame_start(const char *signal, uint32_t seconds_of_day, uint32_t hundredths, char *buffer, size_t capacity, size_t *written);` | `time-codes` | The reading at which the frame of an IRIG code that holds a reading of the civil clock begins, with the frame's length, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -403,7 +411,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_almanac_directions(int64_t fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `calendars` | Where the 八将神 and the 金神 stand in the year in force on a fixed day, as NUL-terminated UTF-8 lines in a caller-owned buffer, one a god and a direction. |
 | `HcStatus hc_rounichi(const char *rule, int64_t year, const char *meridian, int64_t *out_fixed);` | `calendars` | The fixed day of 臘日 in the winter that ends in a Gregorian year, by a named reckoning, at a meridian. |
 | `HcStatus hc_mansion_undertakings(const char *list, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | What one publisher's list says the 二十八宿 of a fixed day favours and forbids, as NUL-terminated UTF-8 lines in a caller-owned buffer, one an undertaking. |
-| `HcStatus hc_almanac_person_days(int64_t fixed, int64_t birth_year, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `calendars` | Whether a fixed day is one of a person's own 五墓日 or 三箇の悪日, by the year they were born in, as NUL-terminated UTF-8 lines in a caller-owned buffer, one an entry. |
+| `HcStatus hc_almanac_person_days(int64_t fixed, int64_t birth_fixed, const char *meridian, char *buffer, size_t capacity, size_t *written);` | `calendars` | Whether a fixed day is one of a person's own 五墓日 or 三箇の悪日, by the day they were born on, as NUL-terminated UTF-8 lines in a caller-owned buffer, one an entry. |
 | `HcStatus hc_tibetan_almanac_day(const char *calendar, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | What the Tibetan almanac of a version prints for a fixed day, the five components and the columns after them, as NUL-terminated UTF-8 lines in a caller-owned buffer, one a column. |
 | `HcStatus hc_tibetan_planets(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `calendars` | Where the Phugpa almanac places the five planets at the end of a fixed day, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_bhutanese_winter_solstice(int64_t year, char *buffer, size_t capacity, size_t *written);` | `calendars` | The Bhutanese calendar's winter solstice of a Gregorian year, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
@@ -468,6 +476,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_prayer_times(const char *method, int64_t fixed, double latitude, double longitude, double elevation, int ramadan, char *buffer, size_t capacity, size_t *written);` | `sky` | The Islamic prayer times of a fixed day at a place by a named method, as eight NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_prayer_methods(char *buffer, size_t capacity, size_t *written);` | `sky` | Every prayer-time method `hc_prayer_times` reads, with its parameters and source, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_zmanim(const char *reckoning, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The Jewish times of a fixed day at a place by a reckoning, with the dawns and nightfalls, as nine NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_temporal_hour(const char *reckoning, int64_t fixed, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The length of a temporal hour of a fixed day at a place by a reckoning of the Jewish day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_edo_time(int64_t unix_seconds, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The Edo 不定時法 reading of a POSIX timestamp at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_unix_from_edo_time(int64_t fixed, uint32_t hour, double fraction, double latitude, double longitude, double elevation, char *buffer, size_t capacity, size_t *written);` | `sky` | The instant of an Edo 不定時法 reading at a place, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_planetary_hour(int64_t unix_seconds, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `sky` | The planetary hour at a POSIX timestamp and a place, as one NUL-terminated UTF-8 line, its ruler named in a locale, in a caller-owned buffer. |
@@ -574,21 +583,32 @@ the format a P-field names; `hc_ccsds_ascii_parse(code, strict, buffer,
 capacity, written)` and `hc_ccsds_ascii_format(tai_seconds, attoseconds,
 variation, precision, terminator, strict, buffer, capacity, written)` read
 and write the ASCII codes A and B. A Level 2, 3 or 4 code, whose epoch or
-content only its agency knows, is `HC_ERROR_NO_DATA`.
+content only its agency knows, is `HC_ERROR_NO_DATA`; a Level 2 code's
+epoch can instead come from the caller, and
+`hc_ccsds_decode_from_epoch(hex, epoch_tai_seconds, epoch_attoseconds,
+epoch_unix_day, strict, buffer, capacity, written)` and
+`hc_ccsds_encode_from_epoch(tai_seconds, attoseconds, p_field,
+epoch_tai_seconds, epoch_attoseconds, epoch_unix_day, strict, buffer,
+capacity, written)` read and write it from a CUC epoch instant and a CDS
+epoch day, as the module's README says.
 `hc_radio_decode(code, frame, century, buffer, capacity, written)` reads
 one minute's frame of `jjy`, `dcf77`, `wwvb-am` or `wwvb-pm` from a
 string of `0`, `1` and `M`, and `hc_radio_encode(code, unix_seconds, leap,
 summer, zone_change, dut1_tenths, dst_next, buffer, capacity, written)`
 writes one; a null `summer` is the empty string `jjy` takes. In a library
 built with `tz` too, a `summer` of `zone:` and a zone's name,
-`zone:Europe/Berlin` or `zone:America/New_York` (or another zone once
-`hc_zone_load` has its TZif file, as `America/Denver` needs), reads the
+`zone:Europe/Berlin` or `zone:America/Denver` (or a zone the built-in
+table lacks once `hc_zone_load` has its TZif file), reads the
 state — and
 DCF77's A1, in place of `zone_change`, and the phase code's `dst_next`,
 in place of the caller's — from the rules
 `hc_fixed_from_unix_in_zone` reads for that name, as the WebAssembly
 module's README explains under "Radio time codes"; without `tz` it is
-`HC_ERROR_UNKNOWN`.
+`HC_ERROR_UNKNOWN`. `hc_jjy_call_sign_decode(frame, year, buffer,
+capacity, written)` reads JJY's call-sign frame of minute 15 or 45 in a
+year the caller names, with its notice of a planned stop, and
+`hc_jjy_call_sign_encode(unix_seconds, stop_start, daytime_only,
+stop_span, buffer, capacity, written)` writes one, the module's lines.
 `hc_irig_decode(signal, frame, year, buffer, capacity, written)` reads one
 frame of an IRIG serial time code, A, B, D, E, G or H, named by its
 IRIG 200-16 signal designation such as `B124`, from a string of `0`, `1`
@@ -730,7 +750,8 @@ latitude, longitude, elevation, ayanamsa, buffer, capacity, written)` write
 the module's line of the nakṣatra the Moon is in, at an instant or at the
 day's sunrise; `hc_muhurtas(fixed, latitude, longitude, elevation, buffer,
 capacity, written)` its thirty lines of the day's and the night's
-muhūrtas, with Abhijit and Dur Muhurtam marked; and
+muhūrtas, each named as English Wikipedia tabulates them, with Abhijit
+and Dur Muhurtam marked; and
 `hc_amrita_siddhi(fixed, latitude, longitude, elevation, ayanamsa, buffer,
 capacity, written)` its line of the *amṛta siddhi yoga*. `hc_ioc_olympiad(gregorian_year,
 out_olympiad)`, `hc_hebrew_yahrzeit(death_fixed, hebrew_year, out_fixed)`
@@ -776,10 +797,10 @@ out_fixed)`, the fixed day of 臘日 in the winter that ends in `year` by a
 named reckoning, `HC_ERROR_NO_DATA` for a winter it does not settle;
 `hc_mansion_undertakings(list, fixed, buffer, capacity, written)`, what
 the publisher's list `saijigoyomi` or `linderabell` says the day's 二十八宿
-favours and forbids; and `hc_almanac_person_days(fixed, birth_year,
+favours and forbids; and `hc_almanac_person_days(fixed, birth_fixed,
 meridian, buffer, capacity, written)`, whether the day is one of a
-person's own 五墓日 or 三箇の悪日 by the Gregorian year whose 干支 is their
-birth year's. `hc_tibetan_almanac_day(calendar, fixed, buffer, capacity,
+person's own 五墓日 or 三箇の悪日 by the 干支 year, turning at 立春, of the
+day they were born on. `hc_tibetan_almanac_day(calendar, fixed, buffer, capacity,
 written)`, `hc_tibetan_planets(fixed, buffer, capacity, written)`,
 `hc_bhutanese_winter_solstice(year, buffer, capacity, written)` and
 `hc_tibetan_festival_day(rule, calendar, year, month, leap, day,
@@ -1090,7 +1111,7 @@ and convert by a zone's wall clock rather than UTC: the day an instant falls
 on, and the instant a day begins — its local midnight, the first instant
 after a gap that swallows it, or the earlier of two midnights when the
 clocks go back across it. `zone` is a NUL-terminated IANA name. The library
-carries the seventeen zones of `hc-tz`'s built-in table with their current
+carries the eighteen zones of `hc-tz`'s built-in table with their current
 rules only, listed in the WebAssembly module's README; for any other zone,
 or a zone's history, `hc_zone_load(name, tzif, tzif_len)` takes the zone's
 TZif file once and the conversions answer for that name from then on, a
@@ -1133,7 +1154,9 @@ writes it: `z` to `zzzz`, `O` and `OOOO`, `v` and `vvvv`, `V` to `VVVV`,
 from CLDR 48's metazones and names. Another field is `HC_ERROR_UNKNOWN`.
 `hc_format_pattern(zone, unix_seconds, locale, syntax, pattern, buffer,
 capacity, written)`, in the same feature, formats the instant in the zone
-by a `cldr` or a `strftime` pattern, in the same line.
+by a `cldr` or a `strftime` pattern, in the same line; `%E` writes the
+Japanese eras for a locale whose `-u-ca-` key is `japanese` in a library
+built with `calendars` too, as the module's README says.
 
 ## The sky
 
@@ -1184,7 +1207,10 @@ prayer times of a day by a method `hc_prayer_methods(buffer, capacity,
 written)` lists with its parameters; `hc_zmanim(reckoning, fixed,
 latitude, longitude, elevation, buffer, capacity, written)` its nine lines
 of the Jewish times in temporal hours by `zmanim-gra`, `mga-72-minutes` or
-`mga-16-1-degrees`, with the dawns and nightfalls; and
+`mga-16-1-degrees`, with the dawns and nightfalls;
+`hc_temporal_hour(reckoning, fixed, latitude, longitude, elevation, buffer,
+capacity, written)` its line of the length of the temporal hour those
+times are counted in; and
 `hc_edo_time(unix_seconds, latitude, longitude, elevation, buffer,
 capacity, written)` and `hc_unix_from_edo_time(fixed, hour, fraction,
 latitude, longitude, elevation, buffer, capacity, written)` the Edo
@@ -1353,8 +1379,5 @@ and not an Earth day, though `hc_circad_date` dates an instant in them;
 `hc-almanac` 七曜, which is the weekday, and the English glosses of its
 annotations; a
 whole UUID with its clock sequence and node, where
-`hc_uuid_timestamp_encode` writes the time fields only; CCSDS codes whose
-epoch is an agency's, which `hc_ccsds_decode` and `hc_ccsds_encode` refuse
-with `HC_ERROR_NO_DATA`; the radio frames' notices that name no minute,
-JJY's call-sign frames among them; and the length of a temporal hour of the
-Jewish day, of which `hc_zmanim` writes only the times.
+`hc_uuid_timestamp_encode` writes the time fields only; and the radio
+frames' notices that name no minute other than JJY's stop notice.

@@ -212,7 +212,7 @@ pub fn panchak_line(
 }
 
 /// How many columns [`kumbh_line`] writes.
-pub const KUMBH_COLUMNS: usize = 11;
+pub const KUMBH_COLUMNS: usize = 13;
 
 /// The line of `hc_kumbh`: when in a Gregorian year the Sun, and the Moon
 /// where the condition asks for it, stand as a condition of the Kumbh
@@ -231,7 +231,8 @@ pub const KUMBH_COLUMNS: usize = 11;
 /// case of the site's English name (`haridwar`, `prayag`, `nashik`,
 /// `ujjain`), and the site's name in the locale and the tag that named it;
 /// the river the site stands on, in English as the source gives it; the
-/// signs Jupiter and the Sun must be in; `1` when the Moon must be with the
+/// signs Jupiter and the Sun must be in, each by its identifier and its
+/// Sanskrit name; `1` when the Moon must be with the
 /// Sun at the new moon as well, else `0`; the occasion's first and last
 /// moments — the Sun's entry into its sign and into the next, or the new
 /// moon twice — as whole POSIX seconds of Universal Time, rounded down,
@@ -271,7 +272,9 @@ pub fn kumbh_line(
     reckoning_name(&mut line, locale, KUMBH_SITE, &site);
     line.cell(yoga.river)
         .cell(yoga.jupiter.id())
+        .cell(yoga.jupiter.sanskrit_name())
         .cell(yoga.sun.id())
+        .cell(yoga.sun.sanskrit_name())
         .flag(yoga.at_new_moon);
     let occasion = yoga.occasion(year, ayanamsa);
     if let Some(occasion) = occasion {
@@ -289,7 +292,7 @@ pub fn kumbh_line(
 }
 
 /// How many columns each line of [`pushkaram_lines`] writes.
-pub const PUSHKARAM_COLUMNS: usize = 7 + MISSING_COLUMNS;
+pub const PUSHKARAM_COLUMNS: usize = 8 + MISSING_COLUMNS;
 
 /// The lines of `hc_pushkaram`: the twelve days of the *Ādi Pushkaram* of
 /// each river of a sidereal sign, for Jupiter's entry into the sign at a
@@ -307,7 +310,8 @@ pub const PUSHKARAM_COLUMNS: usize = 7 + MISSING_COLUMNS;
 /// Each line: the river's identifier, `pushkaram-ganga` to
 /// `pushkaram-pranahita`; its name in the locale and the tag that named
 /// it; the region the source keeps it in for the sign, in English, empty
-/// where it names none; the sign's identifier; the first and last days, as
+/// where it names none; the sign's identifier and Sanskrit name; the first
+/// and last days, as
 /// fixed days; then the four cells of a missing solar event, which name
 /// the sunset where the Sun does not set on the day of the entry and the
 /// two days are empty.
@@ -332,7 +336,9 @@ pub fn pushkaram_lines(
         let mut line = Line::new(&mut out);
         line.cell(river.id);
         reckoning_name(&mut line, locale, PUSHKARAM_RIVER, river.id);
-        line.cell(river.region).cell(sign.id());
+        line.cell(river.region)
+            .cell(sign.id())
+            .cell(sign.sanskrit_name());
         match span {
             Ok(days) => {
                 line.value(days.first.0).value(days.last.0);
@@ -738,7 +744,7 @@ mod tests {
             .expect("in range");
         let cells = rows(&line, KUMBH_COLUMNS).remove(0);
         assert_eq!(
-            cells[..8],
+            cells[..10],
             [
                 "kumbh-prayag-vrishabha",
                 "prayag",
@@ -746,29 +752,31 @@ mod tests {
                 "en",
                 "Ganga and Yamuna",
                 "vrishabha",
+                "Vṛṣabha",
                 "makara",
+                "Makara",
                 "0"
             ]
         );
-        let from: i64 = cells[8].parse().expect("an instant");
-        let to: i64 = cells[9].parse().expect("an instant");
+        let from: i64 = cells[10].parse().expect("an instant");
+        let to: i64 = cells[11].parse().expect("an instant");
         assert!(ist(2025, 1, 14, 6, 0) < from && from < ist(2025, 1, 14, 12, 0));
         assert!(ist(2025, 2, 12, 0, 0) < to && to < ist(2025, 2, 13, 0, 0));
-        assert_eq!(cells[10], "1");
+        assert_eq!(cells[12], "1");
         let other =
             kumbh_line("kumbh-prayag-vrishabha", 2025, "lahiri", "MESHA", "en").expect("in range");
-        assert_eq!(rows(&other, KUMBH_COLUMNS)[0][10], "0");
+        assert_eq!(rows(&other, KUMBH_COLUMNS)[0][12], "0");
         let unknown =
             kumbh_line("kumbh-prayag-vrishabha", 2025, "lahiri", "", "en").expect("in range");
         assert_eq!(
-            rows(&unknown, KUMBH_COLUMNS)[0][8..],
-            [cells[8], cells[9], ""]
+            rows(&unknown, KUMBH_COLUMNS)[0][10..],
+            [cells[10], cells[11], ""]
         );
         // A new-moon condition's first and last moments are the new moon.
         let tula = kumbh_line("kumbh-ujjain-tula", 2017, "lahiri", "tula", "en").expect("in range");
         let tula = rows(&tula, KUMBH_COLUMNS).remove(0);
-        assert_eq!((tula[7], tula[10]), ("1", "1"));
-        assert_eq!(tula[8], tula[9]);
+        assert_eq!((tula[9], tula[12]), ("1", "1"));
+        assert_eq!(tula[10], tula[11]);
         assert_eq!(
             kumbh_line("kumbh", 2025, "lahiri", "", "en"),
             Err(Refusal::Unknown)
@@ -794,18 +802,19 @@ mod tests {
         let row = rows(&text, PUSHKARAM_COLUMNS).remove(0);
         let (first, last) = (ymd(2015, 7, 14).to_string(), ymd(2015, 7, 25).to_string());
         assert_eq!(
-            row[..7],
+            row[..8],
             [
                 "pushkaram-godavari",
                 "Godavari",
                 "en",
                 "",
                 "simha",
+                "Siṃha",
                 &first,
                 &last
             ]
         );
-        assert_eq!(row[7..], ["", "", "", ""]);
+        assert_eq!(row[8..], ["", "", "", ""]);
         let scorpion =
             pushkaram_lines("vrishchika", entry, NEW_DELHI, "india", "en").expect("in range");
         let ids: Vec<(&str, &str)> = rows(&scorpion, PUSHKARAM_COLUMNS)
@@ -822,7 +831,7 @@ mod tests {
         let polar = Location::new(89.0, 0.0, 0.0);
         let dark = pushkaram_lines("simha", ist(2015, 12, 21, 12, 0), polar, "india", "en")
             .expect("in range");
-        assert_eq!(rows(&dark, PUSHKARAM_COLUMNS)[0][5..8], ["", "", "sunset"]);
+        assert_eq!(rows(&dark, PUSHKARAM_COLUMNS)[0][6..9], ["", "", "sunset"]);
         assert_eq!(
             pushkaram_lines("leo", entry, NEW_DELHI, "india", "en"),
             Err(Refusal::Unknown)

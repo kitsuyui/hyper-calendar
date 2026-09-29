@@ -14,7 +14,7 @@ use crate::{HC_ERROR_NULL_POINTER, HC_OK, HcStatus};
 
 /// Give the library a zone's TZif data under an IANA name.
 ///
-/// The built-in table carries seventeen zones and only their current
+/// The built-in table carries eighteen zones and only their current
 /// rules; a caller that wants another zone, or a zone's history, reads
 /// the IANA file and hands its bytes here once, after which the two
 /// `_in_zone` entry points, `hc_zone_offset` and `hc_radio_encode`'s

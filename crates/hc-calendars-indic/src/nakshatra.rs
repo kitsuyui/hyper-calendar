@@ -83,6 +83,95 @@ pub const UTTARA_BHADRAPADA: u8 = 26;
 /// Revatī, the last.
 pub const REVATI: u8 = 27;
 
+/// The identifier of each nakṣatra, Aśvinī first: the lower-case ASCII
+/// form of its name, words joined by a hyphen, as the constants above
+/// spell it.
+pub const NAKSHATRA_IDS: [&str; NAKSHATRAS_PER_REVOLUTION as usize] = [
+    "ashvini",
+    "bharani",
+    "krittika",
+    "rohini",
+    "mrigashirsha",
+    "ardra",
+    "punarvasu",
+    "pushya",
+    "ashlesha",
+    "magha",
+    "purva-phalguni",
+    "uttara-phalguni",
+    "hasta",
+    "chitra",
+    "svati",
+    "vishakha",
+    "anuradha",
+    "jyeshtha",
+    "mula",
+    "purva-ashadha",
+    "uttara-ashadha",
+    "shravana",
+    "dhanishtha",
+    "shatabhisha",
+    "purva-bhadrapada",
+    "uttara-bhadrapada",
+    "revati",
+];
+
+/// The name of each nakṣatra in IAST, Aśvinī first, as English
+/// Wikipedia's "Nakshatra" lists the twenty-seven (`wikipedia-nakshatra`,
+/// read 2026-09-25; `docs/systems/hindu-calendars.md`). The article's two
+/// tables spell some of them differently from each other (Mṛgaśiras and
+/// Mṛgaśīrṣā, Pūrvāṣāḍha and Pūrva Aṣāḍhā); this is the one spelling the
+/// library reads.
+pub const NAKSHATRA_NAMES: [&str; NAKSHATRAS_PER_REVOLUTION as usize] = [
+    "Aśvinī",
+    "Bharaṇī",
+    "Kṛttikā",
+    "Rohiṇī",
+    "Mṛgaśīrṣa",
+    "Ārdrā",
+    "Punarvasu",
+    "Puṣya",
+    "Āśleṣā",
+    "Maghā",
+    "Pūrva Phalgunī",
+    "Uttara Phalgunī",
+    "Hasta",
+    "Citrā",
+    "Svātī",
+    "Viśākhā",
+    "Anurādhā",
+    "Jyeṣṭhā",
+    "Mūla",
+    "Pūrvāṣāḍhā",
+    "Uttarāṣāḍhā",
+    "Śravaṇa",
+    "Dhaniṣṭhā",
+    "Śatabhiṣā",
+    "Pūrva Bhādrapadā",
+    "Uttara Bhādrapadā",
+    "Revatī",
+];
+
+/// The identifier of nakṣatra `number`, 1 for Aśvinī through 27 for
+/// Revatī, from [`NAKSHATRA_IDS`]; `None` for any other number.
+#[must_use]
+pub const fn nakshatra_id(number: u8) -> Option<&'static str> {
+    if number < ASHVINI || number > REVATI {
+        return None;
+    }
+    Some(NAKSHATRA_IDS[(number - 1) as usize])
+}
+
+/// The name of nakṣatra `number` from [`NAKSHATRA_NAMES`]; `None` outside
+/// 1 through 27.
+#[must_use]
+pub const fn nakshatra_name(number: u8) -> Option<&'static str> {
+    if number < ASHVINI || number > REVATI {
+        return None;
+    }
+    Some(NAKSHATRA_NAMES[(number - 1) as usize])
+}
+
 /// The Moon's sidereal longitude at a moment, in degrees from the
 /// ayanāṃśa's zero point: its apparent longitude less the ayanāṃśa.
 #[must_use]
@@ -268,6 +357,27 @@ pub const fn malayalam_name(nakshatra: u8) -> &'static str {
 mod tests {
     use super::*;
     use hc_calendars_solar::gregorian;
+
+    /// Each identifier is its name folded to ASCII, and the constants
+    /// name the same places: Puṣya is 8, Śravaṇa 22, Revatī 27.
+    #[test]
+    fn every_nakshatra_has_an_identifier_and_a_name() {
+        let mut ids = NAKSHATRA_IDS.to_vec();
+        ids.sort_unstable();
+        ids.dedup();
+        assert_eq!(ids.len(), 27);
+        assert!(NAKSHATRA_IDS.iter().all(|id| {
+            id.bytes()
+                .all(|byte| byte.is_ascii_lowercase() || byte == b'-')
+        }));
+        assert_eq!(nakshatra_id(PUSHYA), Some("pushya"));
+        assert_eq!(nakshatra_name(PUSHYA), Some("Puṣya"));
+        assert_eq!(nakshatra_name(SHRAVANA), Some("Śravaṇa"));
+        assert_eq!(nakshatra_id(REVATI), Some("revati"));
+        assert_eq!(nakshatra_name(ASHVINI), Some("Aśvinī"));
+        assert_eq!(nakshatra_id(0), None);
+        assert_eq!(nakshatra_name(28), None);
+    }
 
     fn at(year: i64, month: u8, day: u8, hour: f64, minute: f64) -> Moment {
         let day = gregorian::to_fixed(year, month, day).unwrap();

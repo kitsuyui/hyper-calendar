@@ -248,6 +248,19 @@ month sorts after the regular month of the same number.
 
 ## What is carried
 
+- **Names in other languages**, where a source in the language names
+  the calendar: `tibetan-tsurphu` as the school the Chinese Wikipedia's
+  藏曆 names, 楚尔派 and 楚爾派, and in Tibetan script མཚུར་ལུགས
+  [wikipedia-zh-tibetan-calendar]; `mongolian` as モンゴル暦
+  [wikipedia-ja-mongolian-calendar], 蒙古历 and 蒙古曆
+  [wikipedia-zh-mongolian-calendar] and Билгийн тоолол
+  [wikipedia-mn-mongolian-calendar]; the Phugpa `tibetan` as the Tibetan
+  calendar itself, 藏历, 藏曆, チベット暦 [wikipedia-ja-tibetan-calendar]
+  and བོད་ཀྱི་ལོ་ཐོ [wikipedia-bo-tibetan-calendar], the reckoning the
+  official almanacs follow. No source read names the Bhutanese, the
+  Lochen or the karaṇa variants in these languages, and they keep their
+  English names (`hc_i18n::calendar_names`).
+
 - **Identifiers** `tibetan-tsurphu` ("Tibetan (Tsurphu)"),
   `tibetan-bhutan` ("Tibetan (Bhutanese)") and `mongolian` ("Mongolian
   (Tögs buyant)"), each a `TibetanCalendar` value over the one engine that
@@ -420,6 +433,9 @@ Ministry's 730 days — falls on a day the conventions move.
 | [mn-resolution-2025-109] | Tsagaan Sar 2025, its first day omitted | Yes, 2026-09-26, on legalinfo.mn |
 | [montsame-tsagaan-sar-2020], [montsame-tsagaan-sar-2026] | Tsagaan Sar 2020 and 2026 | Yes, 2026-09-26 |
 | [kagyuoffice-losar-2014] | The Tsurluk Losar of 2014 | Yes, 2026-09-26 |
+| [wikipedia-zh-tibetan-calendar] | 藏历 and 藏曆; 浦派, the official almanacs', and 楚尔派 or 楚爾派, མཚུར་ལུགས, the Tsurphu school | Yes, 2026-09-29, zh-Hans and zh-TW variants |
+| [wikipedia-ja-tibetan-calendar], [wikipedia-bo-tibetan-calendar] | チベット暦; བོད་ཀྱི་ལོ་ཐོ, the Tibetan article's title | Yes, 2026-09-29 |
+| [wikipedia-ja-mongolian-calendar], [wikipedia-zh-mongolian-calendar], [wikipedia-mn-mongolian-calendar] | モンゴル暦; 蒙古历 and 蒙古曆; Билгийн тоолол, the traditional reckoning | Yes, 2026-09-29 |
 | [henning2007] | The Phugpa and Tsurphu histories, pp. 337–342 on the Tsurphu epochs | Not read; cited through Janson |
 | Berzin, *Tibetan Astro Science* (1986) | The New Genden's date, 1786, and its users | Not read; cited through Janson |
 | Sanders and Bat-Iredüi, *Colloquial Mongolian* (1999) | The constitution's date | Not read; cited through Janson |

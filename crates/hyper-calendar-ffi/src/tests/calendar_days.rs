@@ -70,7 +70,7 @@ fn the_hindu_and_crescent_lines_are_the_modules() {
     let line = read_lines(|buffer, capacity, written| unsafe {
         hc_surya_siddhanta_at(sunrise, buffer, capacity, written)
     });
-    assert!(line.ends_with("\t1\t12\n"), "{line:?}");
+    assert!(line.ends_with("\t1\t12\tmina\tMīna\n"), "{line:?}");
     let line = read_lines(|buffer, capacity, written| unsafe {
         hc_crescent_visible(
             c"saudi-rule".as_ptr(),

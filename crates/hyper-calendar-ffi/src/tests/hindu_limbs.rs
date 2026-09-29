@@ -20,8 +20,8 @@ fn the_lines_are_the_modules() {
     let marks: Vec<(&str, &str)> = text
         .lines()
         .map(|line| line.split('\t').collect::<Vec<_>>())
-        .filter(|cells| !cells[4].is_empty())
-        .map(|cells| (cells[1], cells[4]))
+        .filter(|cells| !cells[5].is_empty())
+        .map(|cells| (cells[1], cells[5]))
         .collect();
     assert_eq!(
         marks,
@@ -34,7 +34,7 @@ fn the_lines_are_the_modules() {
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_drekkana_at(1_700_000_000, c"lahiri".as_ptr(), buffer, capacity, written)
     });
-    assert_eq!(text.split('\t').count(), 8);
+    assert_eq!(text.split('\t').count(), 10);
     assert!(text.ends_with("\tlahiri\n"));
     let text = read_lines(|buffer, capacity, written| unsafe {
         hc_panchanga_of_day(
@@ -61,7 +61,7 @@ fn the_lines_are_the_modules() {
             written,
         )
     });
-    assert_eq!(text.split('\t').count(), 6);
+    assert_eq!(text.split('\t').count(), 8);
     assert_eq!(
         measured(|buffer, capacity, written| unsafe {
             hc_amrita_siddhi(

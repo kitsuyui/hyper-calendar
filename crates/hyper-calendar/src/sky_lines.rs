@@ -45,7 +45,7 @@ pub const SKY_COLUMNS: usize = 12;
 pub const EVENT_COLUMNS: usize = 4;
 
 /// How many columns [`decan_line`] writes.
-pub const DECAN_COLUMNS: usize = 6;
+pub const DECAN_COLUMNS: usize = 7;
 
 /// The longest span [`term_lines`] and [`phase_lines`] accept, in seconds:
 /// 400 Julian years, about 4 950 lunations and 9 600 solar terms.
@@ -244,7 +244,8 @@ pub fn phase_lines(from: i64, to: i64) -> Answer<String> {
 }
 
 /// The line of `hc_decan_at`: the tropical sign the Sun is in at an
-/// instant, 1 for Aries through 12 for Pisces, and its English name; which
+/// instant, 1 for Aries through 12 for Pisces, its identifier (`aries`)
+/// and its English name; which
 /// of the sign's three decans it is in, 1 to 3; the decan's ruler by
 /// al-Bīrūnī's table, as its identifier and its English name; and how far
 /// into the decan the Sun is, in degrees from 0 up to 10. The sign and the
@@ -262,6 +263,7 @@ pub fn decan_line(unix: i64) -> Answer<String> {
     let mut out = String::new();
     let mut line = Line::new(&mut out);
     line.value(sign.index() + 1)
+        .cell(sign.id())
         .cell(sign.english_name())
         .value(decan.part())
         .cell(ruler.id)
@@ -272,16 +274,17 @@ pub fn decan_line(unix: i64) -> Answer<String> {
 }
 
 /// How many columns [`drekkana_line`] writes.
-pub const DREKKANA_COLUMNS: usize = 8;
+pub const DREKKANA_COLUMNS: usize = 10;
 
 /// The line of `hc_drekkana_at`: the Hindu third of a sidereal sign the
 /// Sun is in at an instant, in the zodiac of an ayanāṃśa, beside
 /// [`decan_line`]'s tropical decan — the sidereal sign, 1 for Meṣa through
-/// 12 for Mīna, and its Sanskrit name; which of its three drekkāṇas, 1 to
+/// 12 for Mīna, its identifier (`kanya`) and its Sanskrit name (`Kanyā`); which of its three drekkāṇas, 1 to
 /// 3; the drekkāṇa's lord, the planet that rules the sign it is given to,
 /// as its identifier and its English name; how far into the drekkāṇa the
-/// Sun is, in degrees from 0 up to 10; the lord's sign by its identifier,
-/// the sign itself, the fifth or the ninth from it; and the ayanāṃśa's
+/// Sun is, in degrees from 0 up to 10; the lord's sign, the sign itself,
+/// the fifth or the ninth from it, by its identifier and its Sanskrit
+/// name; and the ayanāṃśa's
 /// identifier.
 ///
 /// # Errors
@@ -298,13 +301,16 @@ pub fn drekkana_line(unix: i64, ayanamsa: &str) -> Answer<String> {
     let lord = drekkana.lord();
     let mut out = String::new();
     let mut line = Line::new(&mut out);
+    let lord_sign = drekkana.lord_sign();
     line.value(sign.index() + 1)
+        .cell(sign.id())
         .cell(sign.sanskrit_name())
         .value(drekkana.part())
         .cell(lord.id)
         .cell(lord.english_name())
         .value(degrees_into_drekkana(moment, ayanamsa))
-        .cell(drekkana.lord_sign().id())
+        .cell(lord_sign.id())
+        .cell(lord_sign.sanskrit_name())
         .cell(ayanamsa.id());
     line.end();
     Ok(out)
@@ -480,12 +486,12 @@ mod tests {
         let after = decan_line(at(2026, 9, 23, 1, 5)).expect("in the era");
         let after: Vec<&str> = after.trim_end_matches('\n').split('\t').collect();
         assert_eq!(after.len(), DECAN_COLUMNS);
-        assert_eq!(after[..5], ["7", "Libra", "1", "moon", "Moon"]);
-        let into: f64 = after[5].parse().expect("degrees");
+        assert_eq!(after[..6], ["7", "libra", "Libra", "1", "moon", "Moon"]);
+        let into: f64 = after[6].parse().expect("degrees");
         assert!((0.0..0.1).contains(&into), "{into}");
         let before = decan_line(at(2026, 9, 22, 23, 5)).expect("in the era");
         assert!(
-            before.starts_with("6\tVirgo\t3\tmercury\tMercury\t9.9"),
+            before.starts_with("6\tvirgo\tVirgo\t3\tmercury\tMercury\t9.9"),
             "{before}"
         );
         assert_eq!(decan_line(i64::MAX), Err(Refusal::OutOfRange));

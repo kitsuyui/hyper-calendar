@@ -289,6 +289,7 @@ test("the time codes and clock readings read the README's columns in order", () 
   assert.deepEqual([...COLUMNS.ccsdsAscii], columnsOfTableStarting("variation"));
   assert.match(README, /writes one line of\s+one cell, the code of an instant in the format a P-field names/);
   assert.deepEqual([...COLUMNS.radioDecode], columnsAfter("### Radio time codes"));
+  assert.deepEqual([...COLUMNS.jjyCallSign], columnsAfter("### JJY's call-sign frames"));
   assert.match(README, /writes one line\s+of two cells, the whole seconds from 1970-01-01 00:00 and\s+the attoseconds/);
   assert.deepEqual([...COLUMNS.sixHourClock], columnsAfter("### Six-hour clocks"));
 });
@@ -318,6 +319,7 @@ test("the prayer times, the zmanim and the Edo hours read the README's columns i
   }
   assert.deepEqual([...COLUMNS.prayerMethods], methodColumns);
   assert.deepEqual([...COLUMNS.zmanim], columnsAfter("### Zmanim"));
+  assert.deepEqual([...COLUMNS.temporalHour], columnsAfter("### The temporal hour"));
   assert.deepEqual([...COLUMNS.edoTime], columnsAfter("### The Edo hours"));
   assert.match(README, /give one line in the shape of `hc_solar_event`'s/);
 });
@@ -329,11 +331,11 @@ test("the new reckonings read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.pushkaram], columnsAfter("### Pushkaram"));
   assert.deepEqual([...COLUMNS.barhaspatyaYear], columnsAfter("### The northern year's name"));
   // The name at an instant is stated in prose: columns 1, 2 and 5 above,
-  // and three more.
-  assert.match(README, /writes one line of three\s+cells, columns 1, 2 and 5 above, and three more/);
+  // and four more.
+  assert.match(README, /writes one line of three\s+cells, columns 1, 2 and 5 above, and four more/);
   const year = COLUMNS.barhaspatyaYear;
   assert.deepEqual([...COLUMNS.barhaspatyaYearAt].slice(0, 3), [year[0], year[1], year[4]]);
-  assert.equal(COLUMNS.barhaspatyaYearAt.length, 6);
+  assert.equal(COLUMNS.barhaspatyaYearAt.length, 7);
   assert.deepEqual([...COLUMNS.nakshatra], columnsAfter("### The nakṣatra"));
   assert.deepEqual([...COLUMNS.muhurtas], columnsAfter("### The muhūrtas"));
   assert.deepEqual([...COLUMNS.amritaSiddhi], columnsAfter("### Amṛta siddhi"));

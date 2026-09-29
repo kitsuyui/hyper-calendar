@@ -42,7 +42,13 @@ and the position markers P1–P5 and P0 are seconds 9, 19, 29, 39, 49 and 59.
 At minutes 15 and 45 the frame carries the call sign instead: seconds 40–48
 are the call sign in Morse, 50–52 announce a stop of the transmitter
 (ST1–ST3) and 53–55 its length (ST4–ST6), and 38 and 56–58 are 0. Those
-frames carry no year, weekday or leap-second bits.
+frames carry no year, weekday or leap-second bits. NICT's table of the
+notice (停波予告): ST1–ST3 `000` no stop planned, `001` within seven days,
+`010` within three to six, `011` within two, `100` within 24 hours, `101`
+within 12 and `110` within 2, `111` undefined; ST4 `1` by day only
+(昼間のみ) and `0` all day or none planned; ST5–ST6 `00` no stop planned,
+`01` seven days or more or not known, `10` two to six days and `11` less
+than two.
 
 A leap second is inserted or omitted before 09:00 JST on the first day of a
 month. In an inserted one P0 falls at second 60 and second 59 is a binary 0;
@@ -334,4 +340,7 @@ Anchors: `nicts_example_frame`, `sp_432s_frame`,
 
 The WebAssembly and C exports `hc_radio_decode` and `hc_radio_encode`
 read and write a frame as a string of `0`, `1` and `M`, from
-`hyper_calendar::time_code_lines`.
+`hyper_calendar::time_code_lines`; `hc_jjy_call_sign_decode` and
+`hc_jjy_call_sign_encode` read JJY's call-sign frame in a year the caller
+names and write it with a stop notice, anchored by
+`jjy_call_sign_frames_cross_in_a_named_year`.

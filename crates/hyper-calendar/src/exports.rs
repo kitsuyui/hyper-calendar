@@ -567,8 +567,9 @@ macro_rules! exports {
             /// scale is from the leap-second table, and `strict` non-zero refuses
             /// an instant outside it with `HC_ERR_NO_DATA`, as does 23:59:60 past
             /// it. Text that is not a code, or fields out of their range, is
-            /// `HC_ERR_MALFORMED`; a Level 2 code, whose epoch is its agency's, or
-            /// a Level 3 or 4 code is `HC_ERR_NO_DATA`. A null `buffer` returns the
+            /// `HC_ERR_MALFORMED`; a Level 2 code, whose epoch is its agency's and
+            /// which `hc_ccsds_decode_from_epoch` reads from the caller's, or a
+            /// Level 3 or 4 code is `HC_ERR_NO_DATA`. A null `buffer` returns the
             /// length the text needs.
         }
         fn hc_ccsds_decode(hex: name(hex_len), strict: flag) -> line =
@@ -597,7 +598,8 @@ macro_rules! exports {
             /// instant outside it with `HC_ERR_NO_DATA`. The finer part of the
             /// second is floored to the format's resolution. A `p_field` that is
             /// not one P-field is `HC_ERR_MALFORMED`, and a Level 2, 3 or 4 format
-            /// `HC_ERR_NO_DATA`; attoseconds from 10¹⁸, or an instant the format
+            /// `HC_ERR_NO_DATA`, a Level 2 one being `hc_ccsds_encode_from_epoch`'s;
+            /// attoseconds from 10¹⁸, or an instant the format
             /// cannot count — before 1958, past its last count, or outside the
             /// years 1 to 9999 — are `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
             /// the length the text needs.
@@ -609,6 +611,77 @@ macro_rules! exports {
             strict: flag,
         ) -> line =
             $crate::time_code_lines::ccsds_encode_line;
+
+        c {
+            /// A binary CCSDS time code read, a Level 2 code from the caller's
+            /// epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The arguments and the line are the WebAssembly module's, the line
+            /// `hc_ccsds_decode`'s. An epoch outside the years 1 to 9999 is
+            /// `HC_ERROR_OUT_OF_RANGE`; the rest fail as for `hc_ccsds_decode`,
+            /// but for a Level 2 code, which is read. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// A binary CCSDS time code read, a Level 2 code from the caller's
+            /// epoch, as one UTF-8 line, returning the byte length written.
+            ///
+            /// The line is `hc_ccsds_decode`'s. A Level 2 code's epoch is "obtained
+            /// from an external source" (CCSDS 301.0-B-4 §1.3): a CUC code counts
+            /// TAI seconds from the instant `epoch_tai_seconds` and
+            /// `epoch_attoseconds`, and a CDS code UTC days from the POSIX day
+            /// `epoch_unix_day`, −7 305 for 1950 January 1; a Level 1 code counts
+            /// from 1958 January 1, whatever the epoch. An epoch outside the years
+            /// 1 to 9999, or attoseconds from 10¹⁸, is `HC_ERR_OUT_OF_RANGE`; the
+            /// rest fail as for `hc_ccsds_decode`, but for a Level 2 code, which is
+            /// read. A null `buffer` returns the length the text needs.
+        }
+        fn hc_ccsds_decode_from_epoch(
+            hex: name(hex_len),
+            epoch_tai_seconds: i64,
+            epoch_attoseconds: u64,
+            epoch_unix_day: i64,
+            strict: flag,
+        ) -> line =
+            $crate::time_code_lines::ccsds_decode_from_epoch_line;
+
+        c {
+            /// The binary CCSDS time code of a TAI instant in the format a P-field
+            /// names, a Level 2 format from the caller's epoch, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The arguments and the line are the WebAssembly module's, the line
+            /// `hc_ccsds_encode`'s. An epoch outside the years 1 to 9999, or an
+            /// instant before it, is `HC_ERROR_OUT_OF_RANGE`; the rest fail as for
+            /// `hc_ccsds_encode`, but for a Level 2 format, which is written.
+            /// Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// The binary CCSDS time code of a TAI instant in the format a P-field
+            /// names, a Level 2 format from the caller's epoch, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The line is `hc_ccsds_encode`'s, and the epoch is as for
+            /// `hc_ccsds_decode_from_epoch`: a CUC code counts the TAI seconds
+            /// since `epoch_tai_seconds` and `epoch_attoseconds`, a CDS code the
+            /// UTC days since the POSIX day `epoch_unix_day`, and a Level 1 format
+            /// counts from 1958 January 1, whatever the epoch. An epoch outside the
+            /// years 1 to 9999, attoseconds from 10¹⁸, an instant before the epoch
+            /// or past the format's last count from it are `HC_ERR_OUT_OF_RANGE`;
+            /// the rest fail as for `hc_ccsds_encode`, but for a Level 2 format,
+            /// which is written. A null `buffer` returns the length the text needs.
+        }
+        fn hc_ccsds_encode_from_epoch(
+            tai_seconds: i64,
+            attoseconds: u64,
+            p_field: name(p_field_len),
+            epoch_tai_seconds: i64,
+            epoch_attoseconds: u64,
+            epoch_unix_day: i64,
+            strict: flag,
+        ) -> line =
+            $crate::time_code_lines::ccsds_encode_from_epoch_line;
 
         c {
             /// A CCSDS ASCII time code, A or B, read, as one NUL-terminated UTF-8
@@ -683,7 +756,8 @@ macro_rules! exports {
             /// `HC_ERROR_NULL_POINTER`. `century` is a multiple of 100 from 0 to
             /// 9900; any other is `HC_ERROR_OUT_OF_RANGE`. The line is the
             /// WebAssembly module's. A frame that is not the code's is
-            /// `HC_ERROR_MALFORMED`, and JJY's call-sign frame `HC_ERROR_NO_DATA`.
+            /// `HC_ERROR_MALFORMED`, and JJY's call-sign frame, which
+            /// `hc_jjy_call_sign_decode` reads, `HC_ERROR_NO_DATA`.
             /// Writes the required length, including the terminator, into
             /// `written`.
         }
@@ -708,7 +782,8 @@ macro_rules! exports {
             /// and the phase code's six-bit `dst_next` word for `wwvb-pm`. A frame
             /// that is not the code's — a wrong length, symbol, BCD digit or
             /// parity, or a date that does not exist — is `HC_ERR_MALFORMED`, and
-            /// JJY's call-sign frame, which carries no year, `HC_ERR_NO_DATA`. A
+            /// JJY's call-sign frame, which carries no year, `HC_ERR_NO_DATA`:
+            /// `hc_jjy_call_sign_decode` reads it in a year the caller names. A
             /// null `buffer` returns the length the text needs.
         }
         fn hc_radio_decode(code: name(code_len), frame: name(frame_len), century: i64) -> line =
@@ -742,9 +817,9 @@ macro_rules! exports {
             /// `summer` is DCF77's zone, `cet` or `cest`, or WWVB's summer-time
             /// state, `standard`, `begins-today`, `in-effect` or `ends-today`, and
             /// empty for `jjy`; another is `HC_ERR_UNKNOWN`. Or it is `zone:` and a
-            /// zone's name, `zone:Europe/Berlin` for DCF77 or `zone:America/New_York`
-            /// for WWVB (a zone the built-in table lacks, such as `America/Denver`,
-            /// once `hc_zone_load` has its file), in a module built with `tz` too:
+            /// zone's name, `zone:Europe/Berlin` for DCF77 or `zone:America/Denver`,
+            /// the station's, for WWVB (a zone the built-in table lacks once
+            /// `hc_zone_load` has its file), in a module built with `tz` too:
             /// the state is then read from the rules `hc_fixed_from_unix_in_zone`
             /// reads for the name —
             /// for `dcf77` Z1 Z2 from the offset and flag at the minute and A1 from
@@ -773,6 +848,66 @@ macro_rules! exports {
             dst_next: u32,
         ) -> line =
             $crate::time_code_lines::radio_encode;
+
+        c {
+            /// JJY's call-sign frame of minute 15 or 45 read in a year the caller
+            /// names, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `frame` is as for `hc_radio_decode`, and null is
+            /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: the
+            /// minute and the stop notice. A `year` outside 1 to 9999 is
+            /// `HC_ERROR_OUT_OF_RANGE`, and a frame that is not a call-sign frame
+            /// `HC_ERROR_MALFORMED`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// JJY's call-sign frame of minute 15 or 45 read in a year the caller
+            /// names, as one UTF-8 line, returning the byte length written.
+            ///
+            /// `frame` is one character a second, `0`, `1` and `M`, as for
+            /// `hc_radio_decode`; the frame carries no year, and `year`, 1 to 9999,
+            /// is the Gregorian year its day of the year is read in; any other is
+            /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the POSIX second of its first
+            /// marker; that minute's fixed day, hour and minute in JST; and NICT's
+            /// notice of a planned stop, ST1–ST3 as 0 to 6, ST4 as `1` for a stop
+            /// by day only or `0`, and ST5–ST6 as 0 to 3. An ordinary minute's
+            /// frame, which `hc_radio_decode` reads, a frame that is not JJY's, an
+            /// ST1–ST3 of `111` and a day the year does not have are
+            /// `HC_ERR_MALFORMED`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_jjy_call_sign_decode(frame: name(frame_len), year: i64) -> line =
+            $crate::time_code_lines::jjy_call_sign_decode_line;
+
+        c {
+            /// JJY's call-sign frame for minute 15 or 45 with a notice of a planned
+            /// stop, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The arguments and the line are the WebAssembly module's. Another
+            /// minute, a `stop_start` above 6 or a `stop_span` above 3 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// JJY's call-sign frame for minute 15 or 45 with a notice of a planned
+            /// stop, as one UTF-8 line, returning the byte length written.
+            ///
+            /// `unix_seconds` begins minute 15 or 45 of an hour of JST, a whole
+            /// minute of the years 1 to 9999; `stop_start` is ST1–ST3, 0 for no
+            /// stop planned to 6 for one within 2 hours; `daytime_only` non-zero
+            /// sets ST4, a stop by day only; `stop_span` is ST5–ST6, 0 to 3. The
+            /// line is one cell, the frame, as `hc_radio_encode` writes one. Any
+            /// other minute, a `stop_start` above 6 or a `stop_span` above 3 is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_jjy_call_sign_encode(
+            unix_seconds: i64,
+            stop_start: u32,
+            daytime_only: flag,
+            stop_span: u32,
+        ) -> line =
+            $crate::time_code_lines::jjy_call_sign_encode_line;
 
         c {
             /// One frame of an IRIG serial time code read, as one NUL-terminated
@@ -1645,7 +1780,8 @@ macro_rules! exports {
             /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
             /// The line is the WebAssembly module's: the Sun's and the Moon's
-            /// sidereal longitudes, the elongation, the tithi and the Sun's sign.
+            /// sidereal longitudes, the elongation, the tithi and the Sun's sign by
+            /// number, identifier and Sanskrit name.
             /// An instant outside the days of Kali Yuga 1 to 10 000 is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
             /// terminator, into `written`.
@@ -1657,7 +1793,8 @@ macro_rules! exports {
             /// Tab-separated: the Sun's and the Moon's sidereal longitudes in
             /// degrees, the Moon's elongation from the Sun in degrees, 0 to 360,
             /// the tithi in progress (1 through 30) and the sign the Sun is in (1
-            /// for Meṣa through 12 for Mīna). The instant is read as Universal
+            /// for Meṣa through 12 for Mīna), its identifier, `mina`, and its
+            /// Sanskrit name, `Mīna`. The instant is read as Universal
             /// Time. An instant outside the days of Kali Yuga 1 to 10 000, 3101 BCE
             /// to 6900 CE, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
             /// length the text needs.
@@ -1858,9 +1995,12 @@ macro_rules! exports {
             /// as Maimonides gives it, in Jerusalem mean time. `tekufah` is
             /// `tishrei`, `tevet`, `nisan` or `tammuz`, in any case; anything else
             /// is `HC_ERR_UNKNOWN`. Tab-separated: the fixed day whose Hebrew day it
-            /// falls in, the next civil day from six in the evening; the minutes of
-            /// Jerusalem mean time since that civil midnight or the one before; and
-            /// the *tekufah*'s identifier. A year outside 1 to 9999 is
+            /// falls in, the next civil day from the reckoning's nightfall, the
+            /// start of its twelve hours of night, 18:00 of that mean time; the
+            /// minutes of Jerusalem mean time since the midnight of the moment's
+            /// civil day; the *tekufah*'s identifier; `1` when the moment is after
+            /// that nightfall and before midnight, else `0`; and the moment's civil
+            /// day, a fixed day. A year outside 1 to 9999 is
             /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
             /// needs.
         }
@@ -2175,7 +2315,7 @@ macro_rules! exports {
             /// couples with it, by its position, 1 for Chaitra to 12 for Phālguna,
             /// and its name as the table spells it, `Asvina`; and the sign Jupiter's
             /// mean longitude stands in while the name is current, by its
-            /// identifier, `mesha`. The locale
+            /// identifier and its Sanskrit name, `mesha` and `Meṣa`. The locale
             /// argument fails as
             /// `hc_parse_iso_date` does. An instant outside the days of Kali Yuga 1
             /// to 10 000, as for `hc_surya_siddhanta_at`, is `HC_ERR_OUT_OF_RANGE`.
@@ -2250,8 +2390,8 @@ macro_rules! exports {
             /// buffer.
             ///
             /// The lines are the WebAssembly module's: the half, the number, the
-            /// start and the end, the mark, and the four cells of a missing solar
-            /// event. A place off the globe, or a day outside the years −1000 to
+            /// name, the start and the end, the mark, and the four cells of a
+            /// missing solar event. A place off the globe, or a day outside the years −1000 to
             /// 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
             /// including the terminator, into `written`.
         }
@@ -2262,13 +2402,14 @@ macro_rules! exports {
             /// The daylight, sunrise to sunset, and the night after it, sunset to
             /// the next sunrise, are each cut into fifteen equal muhūrtas, and each
             /// is a line, the day's first. Tab-separated: the half, `day` or
-            /// `night`; the muhūrta's number in it, 1 to 15; its start and its end
-            /// as whole POSIX seconds of Universal Time, rounded down; what the
-            /// pañcāṅga prints it as — `abhijit` for the eighth of the daylight on
-            /// a day but a Wednesday, `dur-muhurtam` for the weekday's one or two,
-            /// Drik Panchang's, else empty; and the four cells of a missing solar
-            /// event, as `hc_kalam` writes them, where the Sun does not rise or set
-            /// and the start and end are empty. The place is the latitude and
+            /// `night`; the muhūrta's number in it, 1 to 15; its name as English
+            /// Wikipedia's "Muhurta" tabulates them, `Rudra` to `Samudra`; its
+            /// start and its end as whole POSIX seconds of Universal Time, rounded
+            /// down; what the pañcāṅga prints it as — `abhijit` for the eighth of
+            /// the daylight on a day but a Wednesday, `dur-muhurtam` for the
+            /// weekday's one or two, Drik Panchang's, else empty; and the four
+            /// cells of a missing solar event, as `hc_kalam` writes them, where the
+            /// Sun does not rise or set and the start and end are empty. The place is the latitude and
             /// longitude in degrees, north and east positive, and the elevation in
             /// metres. A place off the globe, or a day outside the years −1000 to
             /// 3000, is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
@@ -2285,7 +2426,8 @@ macro_rules! exports {
             /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
             /// The line is the WebAssembly module's: the yoga's name in English and
-            /// in Devanagari, the weekday's nakṣatra, the start and the end, whether
+            /// in Devanagari, the weekday's nakṣatra by number, identifier and name,
+            /// the start and the end, whether
             /// it falls on the day, and the ayanāṃśa. `ayanamsa` is as for
             /// `hc_nakshatra_at`. A place off the globe, or a day outside the years
             /// −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required
@@ -2301,7 +2443,8 @@ macro_rules! exports {
             /// Anurādhā on Wednesday, Puṣya on Thursday, Revatī on Friday and
             /// Rohiṇī on Saturday. Tab-separated: its name as Drik Panchang prints
             /// it in English and in Devanagari; that nakṣatra, 1 for Aśvinī to 27
-            /// for Revatī; the start and the end of the part as whole POSIX seconds
+            /// for Revatī, its identifier and its name, as for `hc_nakshatra_at`;
+            /// the start and the end of the part as whole POSIX seconds
             /// of Universal Time, rounded down, both empty on a day the Moon spends
             /// none of in it; `1` if the yoga falls on the day and `0` if not; and
             /// the ayanāṃśa's identifier. `ayanamsa` is as for `hc_nakshatra_at`,
@@ -2326,8 +2469,9 @@ macro_rules! exports {
             /// The nakṣatra the Moon is in at a POSIX timestamp, as one
             /// NUL-terminated UTF-8 line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the nakṣatra, when the Moon
-            /// entered it and leaves it, the instant read, and the ayanāṃśa by
+            /// The line is the WebAssembly module's: the nakṣatra by number,
+            /// identifier and name, when the Moon entered it and leaves it, the
+            /// instant read, and the ayanāṃśa by
             /// identifier and full name. `ayanamsa` is `lahiri`, `raman`,
             /// `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`, in any
             /// case; anything else is `HC_ERROR_UNKNOWN`, and null
@@ -2341,7 +2485,8 @@ macro_rules! exports {
             ///
             /// Tab-separated: the nakṣatra, 1 for Aśvinī through 27 for Revatī, the
             /// arc of 13°20′ of the Moon's sidereal longitude in the zodiac of the
-            /// ayanāṃśa; the instants the Moon entered it and leaves it and the
+            /// ayanāṃśa, its identifier, `ashvini`, and its name, `Aśvinī`; the
+            /// instants the Moon entered it and leaves it and the
             /// instant read, as whole POSIX seconds of Universal Time, rounded
             /// down; and the ayanāṃśa by its identifier and its full name.
             /// `ayanamsa` is `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`
@@ -2600,21 +2745,21 @@ macro_rules! exports {
 
         c {
             /// Whether a fixed day is one of a person's own 五墓日 or 三箇の悪日, by
-            /// the year they were born in, as NUL-terminated UTF-8 lines in a
+            /// the day they were born on, as NUL-terminated UTF-8 lines in a
             /// caller-owned buffer, one an entry.
             ///
             /// The lines are the WebAssembly module's: the kind, the identifier,
             /// the entry's name, what the person keeps and whether the day is it.
-            /// `birth_year` is the Gregorian year whose 干支 is the birth year's.
-            /// `meridian` is as for `hc_almanac_cycles`; null is
+            /// `birth_fixed` is the fixed day of the birth, whose 干支 year, turning
+            /// at 立春, is read at `meridian`. `meridian` is as for `hc_almanac_cycles`; null is
             /// `HC_ERROR_NULL_POINTER` and a meridian not read `HC_ERROR_UNKNOWN`.
-            /// A day outside the years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`.
-            /// Writes the required length, including the terminator, into
-            /// `written`.
+            /// A day or a birth outside the years −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
         }
         wasm {
             /// Whether a fixed day is one of a person's own 五墓日 or 三箇の悪日, by
-            /// the year they were born in, as UTF-8 lines, one an entry, returning
+            /// the day they were born on, as UTF-8 lines, one an entry, returning
             /// the byte length written.
             ///
             /// One line for each reading of 五墓日 that gives each person a day of
@@ -2626,17 +2771,18 @@ macro_rules! exports {
             /// identifier (`taikanichi`); the entry's name, 五墓日 or 大禍日; what the
             /// person keeps, the 干支 of their grave day, 乙丑, or the branch of the
             /// 節月 their evil days fall in, 巳; and `1` if the day is that entry
-            /// for the person, else `0`. `birth_year` is the Gregorian year whose
-            /// 干支 is the person's birth year's, as the tables read count it; a
-            /// person whose year is reckoned from 立春 and who was born before it
-            /// passes the year before. `meridian` is as for `hc_almanac_cycles`; a
-            /// meridian not read is `HC_ERR_UNKNOWN`, and a day outside the years
-            /// −1000 to 3000 `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+            /// for the person, else `0`. `birth_fixed` is the fixed day the person
+            /// was born on, and their year is the 干支 year in force on it at
+            /// `meridian`, turning at 立春, as the almanac counts a person's year: a
+            /// birth on 1 February 1928, before that year's 立春, is of 丁卯.
+            /// `meridian` is as for `hc_almanac_cycles`; a meridian not read is
+            /// `HC_ERR_UNKNOWN`, and a day or a birth outside the years −1000 to
+            /// 3000 `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
             /// length the text needs.
         }
         fn hc_almanac_person_days(
             fixed: i64,
-            birth_year: i64,
+            birth_fixed: i64,
             meridian: name(meridian_len),
         ) -> line =
             $crate::almanac_lines::almanac_person_lines;
@@ -2714,19 +2860,24 @@ macro_rules! exports {
             ///
             /// The line is the WebAssembly module's: the fixed day, the weekday and
             /// time as the almanac prints it, and the local Julian Date. A year
-            /// outside 1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required
-            /// length, including the terminator, into `written`.
+            /// outside 1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`, and one that holds
+            /// no solstice `HC_ERROR_NO_DATA`. Writes the required length,
+            /// including the terminator, into `written`.
         }
         wasm {
             /// The Bhutanese calendar's winter solstice of a Gregorian year, as one
             /// UTF-8 line, returning the byte length written.
             ///
-            /// The instant its mean Sun reaches 250°, which falls in the first days
-            /// of January. Tab-separated: the fixed day it falls on; the weekday and
-            /// time the almanac prints, days after Saturday's dawn, nāḍī and pala,
-            /// `2;51,38`; and the local Julian Date as a decimal. A year outside
-            /// 1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
-            /// length the text needs.
+            /// The instant its mean Sun reaches 250° in the year, which falls in the
+            /// first days of January today; the mean Sun's year is 365.270 645
+            /// days, so the day drifts a day later every 35½ years, and a year of
+            /// 365 days can hold none: the December one of 24 December 1700, none
+            /// in 1923, 1927 … 1957, the January one after. Tab-separated: the
+            /// fixed day it falls on; the weekday and time the almanac prints,
+            /// days after Saturday's dawn, nāḍī and pala, `2;51,38`; and the local
+            /// Julian Date as a decimal. A year outside 1000 to 3000 is
+            /// `HC_ERR_OUT_OF_RANGE`, and one that holds no solstice
+            /// `HC_ERR_NO_DATA`. A null `buffer` returns the length the text needs.
         }
         fn hc_bhutanese_winter_solstice(year: i64) -> line =
             $crate::tibetan_lines::bhutanese_winter_solstice_line;
@@ -2907,7 +3058,8 @@ macro_rules! exports {
             /// site's identifier (`haridwar`, `prayag`, `nashik`, `ujjain`), its
             /// name in the locale and the tag that named it; the river the site
             /// stands on, in English as the source gives it; the signs Jupiter and
-            /// the Sun must be in; `1` when the Moon must be with the Sun at the
+            /// the Sun must be in, each by its identifier and its Sanskrit name,
+            /// `vrishabha` and `Vṛṣabha`; `1` when the Moon must be with the Sun at the
             /// new moon, else `0`; the occasion's first and last moments, the Sun's
             /// entry into its sign and into the next or the new moon twice, as
             /// whole POSIX seconds of Universal Time, rounded down, empty when the
@@ -2940,7 +3092,8 @@ macro_rules! exports {
             /// is as for `hc_term_in_effect`; null for it or the sign is
             /// `HC_ERROR_NULL_POINTER`, and a name not known `HC_ERROR_UNKNOWN`.
             /// The lines are the WebAssembly module's: the river, its name in the
-            /// `locale` and the tag that named it, its region, the sign, the first
+            /// `locale` and the tag that named it, its region, the sign by
+            /// identifier and name, the first
             /// and last days, and the four cells of a missing solar event. A place
             /// off the globe, or a timestamp outside the years −1000 to 3000, is
             /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
@@ -2964,7 +3117,7 @@ macro_rules! exports {
             /// river's identifier, `pushkaram-ganga` to `pushkaram-pranahita`; its
             /// name in the locale and the tag that named it; the region the source
             /// keeps it in for the sign, in English, empty where it names none; the
-            /// sign's identifier; the first and last days as fixed days; and the
+            /// sign's identifier and Sanskrit name, `simha` and `Siṃha`; the first and last days as fixed days; and the
             /// four cells of `hc_solar_event` naming a missing solar event, the two
             /// days being empty instead where the Sun does not set on the day of
             /// the entry. The locale argument fails as `hc_parse_iso_date` does. A
@@ -4262,8 +4415,8 @@ macro_rules! exports {
             /// The decan the Sun is in at a POSIX timestamp, as one NUL-terminated
             /// UTF-8 line in a caller-owned buffer.
             ///
-            /// The line is the WebAssembly module's: the tropical sign's number and
-            /// English name, the decan within it, 1 to 3, its ruler's identifier and
+            /// The line is the WebAssembly module's: the tropical sign's number,
+            /// identifier and English name, the decan within it, 1 to 3, its ruler's identifier and
             /// English name, and the degrees into the decan. An instant outside the
             /// years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required
             /// length, including the terminator, into `written`.
@@ -4273,7 +4426,7 @@ macro_rules! exports {
             /// returning the byte length written.
             ///
             /// Tab-separated: the tropical sign, 1 for Aries through 12 for Pisces,
-            /// and its English name; which of the sign's three 10° decans, or
+            /// its identifier, `aries`, and its English name, `Aries`; which of the sign's three 10° decans, or
             /// faces, the Sun is in, 1 to 3; the decan's ruler by al-Bīrūnī's
             /// table, the Chaldean order from Mars at the first face of Aries, as
             /// its identifier (`saturn`, `jupiter`, `mars`, `sun`, `venus`,
@@ -4291,9 +4444,10 @@ macro_rules! exports {
             /// POSIX timestamp, as one NUL-terminated UTF-8 line in a caller-owned
             /// buffer.
             ///
-            /// The line is the WebAssembly module's: the sidereal sign's number and
-            /// Sanskrit name, the drekkāṇa within it, its lord's identifier and
-            /// English name, the degrees into it, the lord's sign and the ayanāṃśa.
+            /// The line is the WebAssembly module's: the sidereal sign's number,
+            /// identifier and Sanskrit name, the drekkāṇa within it, its lord's
+            /// identifier and English name, the degrees into it, the lord's sign by
+            /// identifier and Sanskrit name, and the ayanāṃśa.
             /// `ayanamsa` is `lahiri`, `raman`, `krishnamurti`,
             /// `reingold-dershowitz` or `fagan-bradley`, in any case; anything else
             /// is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. An instant
@@ -4306,13 +4460,14 @@ macro_rules! exports {
             /// written.
             ///
             /// `hc_decan_at`'s sidereal twin. Tab-separated: the sidereal sign, 1
-            /// for Meṣa through 12 for Mīna, in the zodiac of the ayanāṃśa, and its
-            /// Sanskrit name; which of its three 10° drekkāṇas the Sun is in, 1 to
+            /// for Meṣa through 12 for Mīna, in the zodiac of the ayanāṃśa, its
+            /// identifier, `kanya`, and its Sanskrit name, `Kanyā`; which of its three 10° drekkāṇas the Sun is in, 1 to
             /// 3; the drekkāṇa's lord, the ruler of the sign it is given to — the
             /// sign itself, the fifth from it or the ninth, as al-Bīrūnī tabulates
             /// them — as its identifier and its English name; how far into the
             /// drekkāṇa the Sun is, in degrees from 0 up to 10; that sign by its
-            /// identifier, `mesha`; and the ayanāṃśa's identifier. `ayanamsa` is
+            /// identifier and its Sanskrit name, `mesha` and `Meṣa`; and the
+            /// ayanāṃśa's identifier. `ayanamsa` is
             /// `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz` or
             /// `fagan-bradley`, in any case; anything else, the empty string
             /// included, is `HC_ERR_UNKNOWN`. The instant is read as Universal
@@ -4764,6 +4919,49 @@ macro_rules! exports {
             |reckoning, fixed, latitude, longitude, elevation| {
                 $crate::astro_lines::location(latitude, longitude, elevation)
                     .and_then(|place| $crate::hours_lines::zmanim_lines(reckoning, fixed, place))
+            };
+
+        c {
+            /// The length of a temporal hour of a fixed day at a place by a
+            /// reckoning of the Jewish day, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// `reckoning` is as for `hc_zmanim`; anything else is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. The line is
+            /// the WebAssembly module's: the reckoning, the length in seconds, and
+            /// the four cells of a missing solar event. A place off the globe, or a
+            /// day outside the years −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`.
+            /// Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// The length of a temporal hour of a fixed day at a place by a
+            /// reckoning of the Jewish day, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// A temporal hour is a twelfth of the day the reckoning counts:
+            /// `zmanim-gra` sunrise to sunset, `mga-72-minutes` and
+            /// `mga-16-1-degrees` the Magen Avraham's dawn to nightfall, as for
+            /// `hc_zmanim`, whose times are counted in it; anything else is
+            /// `HC_ERR_UNKNOWN`. The day and the place are as for
+            /// `hc_solar_event`. Tab-separated: the reckoning's identifier; the
+            /// length in seconds, a decimal; and the four cells of `hc_solar_event`
+            /// naming a missing solar event, the length being empty where the
+            /// day's start or end does not happen. A place off the globe, or a day
+            /// outside the years −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_temporal_hour(
+            reckoning: name(reckoning_len),
+            fixed: i64,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+        ) -> line =
+            |reckoning, fixed, latitude, longitude, elevation| {
+                $crate::astro_lines::location(latitude, longitude, elevation).and_then(|place| {
+                    $crate::hours_lines::temporal_hour_line(reckoning, fixed, place)
+                })
             };
 
         c {
@@ -5649,7 +5847,10 @@ macro_rules! exports {
             /// POSIX pattern, `%Y-%m-%d %H:%M %Z`, whose `%Z` is the rules'
             /// abbreviation; in any case, and another is `HC_ERR_UNKNOWN`. The
             /// reading is the zone's local one at the instant, from its loaded or
-            /// built-in rules, in the locale's vocabulary and digits. Tab-separated:
+            /// built-in rules, in the locale's vocabulary and digits; `%E` writes
+            /// the era of the calendar the locale's `-u-ca-` key names, the
+            /// Buddhist or the Minguo, or in a module built with `calendars` too
+            /// the Japanese eras for `japanese`. Tab-separated:
             /// the text; the syntax; the zone as given; its offset at the instant,
             /// seconds east of UTC; and `1` for its daylight time, else `0`. A
             /// pattern `hc-format` does not read — an unclosed quote, a field or a

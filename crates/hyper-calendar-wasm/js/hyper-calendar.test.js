@@ -1337,7 +1337,11 @@ describe("a zone's offset", () => {
       const { offsetSeconds } = line("America/Denver", unix);
       assert.equal(fresh.fixedFromUnixInZone(unix, "America/Denver"), fresh.fixedFromUnix(unix + offsetSeconds));
     }
-    refused(() => hc.zoneOffset("America/Denver", 0), "unknown");
+    // Unloaded, Denver is the built-in table's, with the same current rules.
+    assert.deepEqual(hc.zoneOffset("America/Denver", 1_772_960_400), {
+      offsetSeconds: -21_600, dst: true, abbreviation: "MDT",
+      nextTransition: 1_793_520_000, nextOffsetSeconds: -25_200, rules: "builtin",
+    });
   });
 
   test("a zone without summer time has no next transition", () => {
@@ -2070,7 +2074,7 @@ describe("the Hindu date and the crescent", () => {
     assert.ok(Math.abs(sunrise - Date.UTC(2025, 2, 30, 1, 1) / 1000) < 60, `${sunrise}`);
     const sky = hc.suryaSiddhantaAt(sunrise);
     assert.equal(sky.tithi, 1);
-    assert.equal(sky.sign, 12);
+    assert.deepEqual([sky.sign, sky.signId, sky.signName], [12, "mina", "Mīna"]);
     assert.ok(Math.abs(sky.elongation - 7.58) < 0.01, JSON.stringify(sky));
     refused(() => hc.hinduLunarDate("", day, 23.15, 75.768_333), "unknown");
     refused(() => hc.hinduLunarDate("lahiri", hc.gregorianToFixed(2024, 12, 21), 80, 20), "out-of-range");
@@ -2382,8 +2386,8 @@ describe("the decans and the Heliocentric Julian Date", () => {
   test("an hour after the NAOJ's 秋分 of 2026 the Sun is in the Moon's face of Libra", () => {
     const decan = hc.decanAt(Date.UTC(2026, 8, 23, 1, 5) / 1000);
     assert.deepEqual(
-      [decan.sign, decan.signName, decan.decan, decan.ruler, decan.rulerName],
-      [7, "Libra", 1, "moon", "Moon"],
+      [decan.sign, decan.signId, decan.signName, decan.decan, decan.ruler, decan.rulerName],
+      [7, "libra", "Libra", 1, "moon", "Moon"],
     );
     assert.ok(decan.degreesIntoDecan > 0 && decan.degreesIntoDecan < 0.1, `${decan.degreesIntoDecan}`);
     assert.equal(hc.decanAt(Date.UTC(2026, 8, 22, 23, 5) / 1000).ruler, "mercury");
@@ -2514,6 +2518,15 @@ describe("time codes and clock readings", () => {
     assert.equal(leap.utc.leapSecond, true);
     assert.equal(leap.tai.seconds, 1_483_228_836n);
     refused(() => hc.ccsdsDecode("2c4effa220"), "no-data");
+    // Annex B3.2's 1950 epoch, 2 922 days before 1958: the same instant at
+    // Level 2 is day 13 896, P-field 0x49.
+    const level2 = hc.ccsdsEncodeFromEpoch(569_524_867, 123_456_000_000_000_000n, "49", { unixDay: -7_305 }, true);
+    assert.equal(level2, "49364803b8ce7301c8");
+    assert.deepEqual(hc.ccsdsDecodeFromEpoch(level2, { unixDay: -7_305 }, true), {
+      ...hc.ccsdsDecode("412ade03b8ce7301c8", true),
+    });
+    assert.deepEqual(hc.ccsdsDecodeFromEpoch("2c4effa220", { taiSeconds: -378_691_200 }), hc.ccsdsDecode("1c4effa220"));
+    refused(() => hc.ccsdsDecodeFromEpoch("2c4effa220", { unixDay: 2_932_897 }), "out-of-range");
     refused(() => hc.ccsdsDecode("zz"), "malformed");
     assert.equal(COLUMNS.ccsdsDecode.length, 6);
   });
@@ -2556,6 +2569,19 @@ describe("time codes and clock readings", () => {
     refused(() => hc.radioDecode("jjy", nict, 2001), "out-of-range");
     refused(() => hc.radioDecode("jjy", nict.slice(1), 2000), "malformed");
     refused(() => hc.radioDecode("jjy", hc.radioEncode("jjy", 1_080_807_300), 2000), "no-data");
+    // NICT's second figure, 17:15 JST on 1 April 2004, read in the year it lacks.
+    const callSign = hc.jjyCallSignEncode(1_080_807_300);
+    assert.equal(callSign, hc.radioEncode("jjy", 1_080_807_300));
+    assert.deepEqual(hc.jjyCallSignDecode(callSign, 2004), {
+      unixSeconds: 1_080_807_300, fixed: 731_672, hour: 17, minute: 15,
+      stopStart: 0, daytimeOnly: false, stopSpan: 0,
+    });
+    // A stop within 24 hours, by day only, for two to six days.
+    const notice = hc.jjyCallSignEncode(1_080_807_300, { stopStart: 4, daytimeOnly: true, stopSpan: 2 });
+    assert.equal(notice.slice(50, 56), "100110");
+    assert.deepEqual(hc.jjyCallSignDecode(notice, 2004).stopStart, 4);
+    refused(() => hc.jjyCallSignDecode(nict, 2004), "malformed");
+    refused(() => hc.jjyCallSignEncode(1_080_807_900), "out-of-range");
     refused(() => hc.radioEncode("dcf77", 1_790_512_200, { summer: "cest", leap: -1 }), "out-of-range");
   });
 
@@ -2710,6 +2736,14 @@ describe("the hours of prayer and the Edo hours", () => {
     assert.ok(Math.abs(minutes - (9 * 60 + 40)) < 1, `${minutes}`);
     assert.deepEqual([zmanim[5].id, zmanim[5].englishName, zmanim[5].hours], ["dawn-16-1-degrees", null, null]);
     refused(() => hc.zmanim(/** @type {any} */ ("rabbeinu-tam"), day, 0, 0), "unknown");
+    // Hebcal's sunrise 7:20 and sunset 16:40: a GRA hour of 46⅔ minutes.
+    const hour = hc.temporalHour("zmanim-gra", day, 40.71427, -74.00597);
+    assert.equal(hour.reckoning, "zmanim-gra");
+    assert.ok(Math.abs(/** @type {number} */ (hour.seconds) - 2_800) < 20, `${hour.seconds}`);
+    assert.equal(hour.missing, null);
+    const london = hc.temporalHour("mga-16-1-degrees", hc.gregorianToFixed(2025, 6, 21), 51.50853, -0.12574);
+    assert.deepEqual([london.seconds, london.missing?.event], [null, "depression"]);
+    refused(() => hc.temporalHour(/** @type {any} */ ("rabbeinu-tam"), day, 0, 0), "unknown");
   });
 
   test("Kyoto's equinox dawn begins 明六つ, and the Japanese dusk is named to the arcsecond", () => {
@@ -2777,8 +2811,9 @@ describe("the reckonings of #243 to #246", () => {
     // wikipedia-kumbh-mela: the Maha Kumbh of 2025, the Sun in Makara, Jupiter in Vṛṣabha.
     const kumbh = hc.kumbh("kumbh-prayag-vrishabha", 2025, "lahiri", "vrishabha");
     assert.deepEqual(
-      [kumbh.site, kumbh.siteName, kumbh.river, kumbh.jupiter, kumbh.sun, kumbh.atNewMoon, kumbh.holds],
-      ["prayag", "Prayag", "Ganga and Yamuna", "vrishabha", "makara", false, true],
+      [kumbh.site, kumbh.siteName, kumbh.river, kumbh.jupiter, kumbh.jupiterName, kumbh.sun, kumbh.sunName,
+        kumbh.atNewMoon, kumbh.holds],
+      ["prayag", "Prayag", "Ganga and Yamuna", "vrishabha", "Vṛṣabha", "makara", "Makara", false, true],
     );
     const unknown = hc.kumbh("kumbh-prayag-vrishabha", 2025, "lahiri");
     assert.deepEqual([unknown.from, unknown.to, unknown.holds], [kumbh.from, kumbh.to, null]);
@@ -2788,8 +2823,10 @@ describe("the reckonings of #243 to #246", () => {
     const entry = hc.unixFromFixed(hc.gregorianToFixed(2015, 7, 14)) + (7 * 60 + 7) * 60 - 19_800;
     const [godavari] = hc.pushkaram("simha", entry, delhi[0], delhi[1], 0, "india");
     assert.deepEqual(
-      [godavari.id, godavari.name, godavari.region, godavari.sign, godavari.first, godavari.last, godavari.missing],
-      ["pushkaram-godavari", "Godavari", null, "simha", hc.gregorianToFixed(2015, 7, 14), hc.gregorianToFixed(2015, 7, 25), null],
+      [godavari.id, godavari.name, godavari.region, godavari.sign, godavari.signName, godavari.first, godavari.last,
+        godavari.missing],
+      ["pushkaram-godavari", "Godavari", null, "simha", "Siṃha", hc.gregorianToFixed(2015, 7, 14),
+        hc.gregorianToFixed(2015, 7, 25), null],
     );
     assert.deepEqual(hc.pushkaram("vrishchika", entry, delhi[0], delhi[1], 0, "india").map((river) => river.region),
       ["Maharashtra, Karnataka, Telangana", "Tamil Nadu"]);
@@ -2973,9 +3010,12 @@ describe("the almanac's directions, 臘日, undertakings and a person's own days
     const kaku = hc.mansionUndertakings("saijigoyomi", hc.gregorianToFixed(2026, 1, 8));
     assert.deepEqual(kaku[0], { mansion: 1, mansionName: "角", grade: "favoured", undertaking: "衣類裁断" });
     assert.deepEqual(kaku.filter((row) => row.grade === "avoided").map((row) => row.undertaking), ["葬式", "納骨"]);
-    const wood = hc.almanacPersonDays(hc.gregorianToFixed(2025, 2, 25), 1928, "japan");
+    const wood = hc.almanacPersonDays(hc.gregorianToFixed(2025, 2, 25), hc.gregorianToFixed(1928, 6, 1), "japan");
     assert.deepEqual(wood[0], { kind: "grave-day", id: "gomunichi-wikipedia", name: "五墓日", keeps: "乙丑", applies: true });
-    const snake = hc.almanacPersonDays(hc.gregorianToFixed(2025, 5, 15), 2025, "japan");
+    // Born before 1928's 立春, the person is of 丁卯, 1927's year.
+    const fire = hc.almanacPersonDays(hc.gregorianToFixed(2025, 2, 25), hc.gregorianToFixed(1928, 2, 1), "japan");
+    assert.notEqual(fire[0].keeps, "乙丑");
+    const snake = hc.almanacPersonDays(hc.gregorianToFixed(2025, 5, 15), hc.gregorianToFixed(2025, 3, 1), "japan");
     assert.equal(snake.find((row) => row.id === "taikanichi")?.applies, true);
   });
 });
@@ -2990,6 +3030,7 @@ describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the
     assert.deepEqual(muhurtas.filter((m) => m.mark !== null).map((m) => [m.half, m.number, m.mark]), [
       ["day", 8, "dur-muhurtam"],
     ]);
+    assert.deepEqual([0, 7, 15, 29].map((index) => muhurtas[index].name), ["Rudra", "Vidhi", "Girīśa", "Samudra"]);
     const thursday = hc.muhurtas(day + 1, ...delhi).filter((m) => m.mark !== null);
     assert.deepEqual(thursday.map((m) => [m.number, m.mark]), [[6, "dur-muhurtam"], [8, "abhijit"], [12, "dur-muhurtam"]]);
     assert.equal(hc.muhurtas(day, 78, 15, 0)[0].missing?.event, "sunrise");
@@ -2998,10 +3039,10 @@ describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the
   test("amṛta siddhi falls on Tuesday 7 January 2025 in Aśvinī, and the Moon is there", () => {
     const yoga = hc.amritaSiddhi(hc.gregorianToFixed(2025, 1, 7), ...delhi, "lahiri");
     assert.equal(yoga.falls, true);
-    assert.equal(yoga.nakshatra, 1);
+    assert.deepEqual([yoga.nakshatra, yoga.nakshatraId, yoga.nakshatraName], [1, "ashvini", "Aśvinī"]);
     assert.equal(hc.amritaSiddhi(hc.gregorianToFixed(2025, 1, 8), ...delhi, "lahiri").start, null);
     const stay = hc.nakshatraAt(/** @type {number} */ (yoga.start) + 60, "lahiri");
-    assert.equal(stay.nakshatra, 1);
+    assert.deepEqual([stay.nakshatra, stay.nakshatraId, stay.nakshatraName], [1, "ashvini", "Aśvinī"]);
     assert.equal(hc.nakshatraOfDay(hc.gregorianToFixed(2025, 1, 7), ...delhi, "lahiri").ayanamsa, "lahiri");
     refused(() => hc.nakshatraAt(0, /** @type {any} */ ("tropical")), "unknown");
   });
@@ -3011,6 +3052,10 @@ describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the
     assert.ok(drekkana.drekkana >= 1 && drekkana.drekkana <= 3);
     assert.ok(drekkana.degreesIntoDrekkana >= 0 && drekkana.degreesIntoDrekkana < 10);
     assert.equal(drekkana.ayanamsa, "lahiri");
+    // Every sign is named the same way: an identifier and its Sanskrit name.
+    assert.equal(drekkana.signName.normalize("NFD").replace(/[^a-zA-Z]/g, "").toLowerCase().slice(0, 2),
+      drekkana.signId.slice(0, 2));
+    assert.ok(drekkana.lordSignName.length > 0);
     refused(() => hc.drekkanaAt(0, /** @type {any} */ ("")), "unknown");
   });
 
@@ -3020,7 +3065,8 @@ describe("the muhūrtas, amṛta siddhi, the nakṣatra, the drekkāṇa and the
     assert.equal(limbs[1].ayanamsaName, "Sūrya Siddhānta");
     assert.equal(hc.panchangaAt(1_700_000_000, "lahiri")[1].ayanamsa, null);
     const at = hc.barhaspatyaYearAt("surya-siddhanta-bija", Date.UTC(2024, 3, 29, 10, 40) / 1000);
-    assert.deepEqual([at.position, at.twelveYear, at.twelveYearName, at.meanSign], [51, 7, "Asvina", "mesha"]);
+    assert.deepEqual([at.position, at.twelveYear, at.twelveYearName, at.meanSign, at.meanSignName],
+      [51, 7, "Asvina", "mesha", "Meṣa"]);
   });
 });
 
@@ -3086,6 +3132,11 @@ describe("decimal time, the Olympiad of a day, regnal years, tekufot and named d
     assert.deepEqual(hc.babylonianRegnalYear(1), { king: "Seleucus I Nicator", year: 1 });
     const tishrei = hc.shmuelTekufah(5786, "tishrei");
     assert.equal(tishrei.fixed, hc.gregorianToFixed(2025, 10, 7));
+    // 5769's Nisan at the reckoning's nightfall on Tuesday 7 April 2009, Wednesday's Hebrew day.
+    assert.deepEqual(hc.shmuelTekufah(5769, "nisan"), {
+      fixed: hc.gregorianToFixed(2009, 4, 8), minutes: 1080, tekufah: "nisan", afterNightfall: true,
+      civil: hc.gregorianToFixed(2009, 4, 7),
+    });
     refused(() => hc.shmuelTekufah(5786, /** @type {any} */ ("adar")), "unknown");
     const raisin = hc.dayName("french-republican-arithmetic", "fr", hc.gregorianToFixed(1793, 9, 22));
     assert.deepEqual([raisin.name, raisin.naming], ["Raisin", "fr"]);
@@ -3193,5 +3244,10 @@ describe("formatting by pattern", () => {
       "2026-01-01 09:00 JST");
     refused(() => hc.formatPattern("Asia/Tokyo", instant, "en", /** @type {any} */ ("java"), "yyyy"), "unknown");
     refused(() => hc.formatPattern("Asia/Tokyo", instant, "en", "cldr", "'unclosed"), "malformed");
+    // `%E` in the Japanese eras: 令和 begins on 1 May 2019, 15:00 UTC the day before.
+    const era = (/** @type {number} */ unix) =>
+      hc.formatPattern("Asia/Tokyo", unix, "ja-u-ca-japanese", "strftime", "%EC|%Ey|%EY").text;
+    assert.equal(era(1_556_636_399), "平成|31|平成31年");
+    assert.equal(era(1_556_636_400), "令和|1|令和元年");
   });
 });

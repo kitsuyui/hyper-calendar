@@ -41,7 +41,6 @@ use hc_almanac::{
     nine_periods,
 };
 use hc_calendar::cycle::readings::JAPANESE_KUN;
-use hc_calendar::cycle::sexagenary_year_from_gregorian_year;
 use hc_calendar::gregorian::year_from_fixed;
 use hc_i18n::Locale;
 use hc_i18n::almanac::{self as vocabulary, AlmanacName, Term};
@@ -642,20 +641,22 @@ pub const ALMANAC_PERSON_COLUMNS: usize = 5;
 /// reading (乙丑), or the branch of the 節月 an evil day of theirs falls in
 /// (巳); and `1` if the day is that entry for the person, else `0`.
 ///
-/// `birth_year` is the Gregorian year whose 干支 is the person's birth
-/// year's, as the tables read count it: a person born before 立春 whose
-/// year is reckoned from 立春 passes the year before.
+/// The birth year is the 干支 year in force on `birth_fixed` at the
+/// meridian, turning at 立春 ([`year_pillar`]): こよみる reads the evil days
+/// of a person born between 1 January and 節分 by the year before
+/// (`koyomil-taikanichi`), and says 五墓日 is best read so too
+/// (`koyomil-gomunichi`). A person born on 1 February 1928, before that
+/// year's 立春, is of 丁卯, 1927's year.
 ///
 /// # Errors
 ///
 /// [`Refusal::Unknown`] for a meridian [`meridian`] does not read, and
-/// [`Refusal::OutOfRange`] for a day outside the sky layer's era.
-pub fn almanac_person_lines(fixed: i64, birth_year: i64, meridian_name: &str) -> Answer<String> {
+/// [`Refusal::OutOfRange`] for a day or a birth outside the sky layer's
+/// era.
+pub fn almanac_person_lines(fixed: i64, birth_fixed: i64, meridian_name: &str) -> Answer<String> {
     let meridian = meridian(meridian_name)?;
     let day = day_in_era(fixed)?;
-    // The cycle repeats every sixty years, so the year is reduced first,
-    // which keeps the arithmetic in range for every `i64`.
-    let birth = sexagenary_year_from_gregorian_year(birth_year.rem_euclid(60));
+    let birth = year_pillar(day_in_era(birth_fixed)?, meridian);
     let context = DayContext::new(day, meridian);
     let phase = Nayin::of(birth).phase();
     let mut out = String::new();
@@ -1023,11 +1024,15 @@ mod tests {
 
     /// こよみる's 2025 五墓日 of a person born in 1928, of the wood phase:
     /// 25 February is one (`koyomil-gomunichi`); Japanese Wikipedia's person
-    /// born in a 巳 year keeps 大禍日 on 15 May 2025, a 申 day of 巳月.
+    /// born in a 巳 year keeps 大禍日 on 15 May 2025, a 申 day of 巳月. The
+    /// birth year turns at 立春, 5 February in 1928 and 3 February in 2025
+    /// at Japan's meridian, so a person born on 1 February 1928 is of 丁卯,
+    /// 1927's year, and of the fire phase.
     #[test]
     fn a_persons_days_are_their_birth_years() {
-        let day = |month, day| gregorian::to_fixed(2025, month, day).expect("a date").0;
-        let text = almanac_person_lines(day(2, 25), 1928, "japan").expect("in range");
+        let date = |year, month, day| gregorian::to_fixed(year, month, day).expect("a date").0;
+        let day = |month, day| date(2025, month, day);
+        let text = almanac_person_lines(day(2, 25), date(1928, 6, 1), "japan").expect("in range");
         let rows = lines(&text);
         assert!(rows.iter().all(|row| row.len() == ALMANAC_PERSON_COLUMNS));
         assert_eq!(
@@ -1035,7 +1040,21 @@ mod tests {
             ["grave-day", "gomunichi-wikipedia", "五墓日", "乙丑", "1"]
         );
         assert_eq!(rows.len(), 5);
-        let text = almanac_person_lines(day(5, 15), 2025, "japan").expect("in range");
+        assert_eq!(
+            almanac_person_lines(day(2, 25), date(1928, 2, 5), "japan"),
+            Ok(text.clone())
+        );
+        let before = almanac_person_lines(day(2, 25), date(1928, 2, 1), "japan").expect("in range");
+        assert_eq!(
+            Ok(before.clone()),
+            almanac_person_lines(day(2, 25), date(1927, 6, 1), "japan")
+        );
+        assert_ne!(lines(&before)[0][3], "乙丑");
+        assert_eq!(
+            almanac_person_lines(day(2, 25), date(1928, 2, 4), "japan"),
+            Ok(before)
+        );
+        let text = almanac_person_lines(day(5, 15), day(3, 1), "japan").expect("in range");
         let evil: Vec<Vec<&str>> = lines(&text)
             .into_iter()
             .filter(|row| row[0] == "three-evil-day")
@@ -1045,10 +1064,14 @@ mod tests {
             ["three-evil-day", "taikanichi", "大禍日", "巳", "1"]
         );
         assert_eq!(evil[1][4], "0");
+        // A birth sixty years before is of the same 干支.
         assert_eq!(
-            almanac_person_lines(day(5, 15), 2025 - 60 * 1_000, "japan"),
+            almanac_person_lines(day(5, 15), date(1965, 3, 1), "japan"),
             Ok(text)
         );
-        assert!(almanac_person_lines(day(5, 15), i64::MIN, "japan").is_ok());
+        assert_eq!(
+            almanac_person_lines(day(5, 15), i64::MIN, "japan"),
+            Err(Refusal::OutOfRange)
+        );
     }
 }

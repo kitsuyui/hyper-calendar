@@ -7,7 +7,10 @@ use super::read_lines;
 fn the_sun_enters_the_moons_face_of_libra_at_the_equinox() {
     let instant = at(2026, 9, 23, 1, 5);
     let text = read_lines(|buffer, capacity| unsafe { hc_decan_at(instant, buffer, capacity) });
-    assert!(text.starts_with("7\tLibra\t1\tmoon\tMoon\t0.0"), "{text}");
+    assert!(
+        text.starts_with("7\tlibra\tLibra\t1\tmoon\tMoon\t0.0"),
+        "{text}"
+    );
     let decan = |unix_seconds: i64| unsafe { hc_decan_at(unix_seconds, core::ptr::null_mut(), 0) };
     assert_eq!(decan(i64::MIN), HC_ERR_OUT_OF_RANGE);
     // The years −1000 to 3000, and a second either side.

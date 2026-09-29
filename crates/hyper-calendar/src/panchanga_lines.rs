@@ -23,7 +23,7 @@ use alloc::string::String;
 use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_calendars_indic::nakshatra::{nakshatra_at, nakshatra_span};
+use hc_calendars_indic::nakshatra::{nakshatra_at, nakshatra_id, nakshatra_name, nakshatra_span};
 use hc_calendars_indic::panchanga::{
     KARANA_NAMES, KARANA_NAMES_DEVANAGARI, YOGA_NAMES, YOGA_NAMES_DEVANAGARI, karana_at,
     karana_name, karana_name_surya_siddhanta, karana_span, yoga_at, yoga_span,
@@ -232,18 +232,19 @@ pub fn panchanga_of_day_lines(fixed: i64, place: Location, ayanamsa_name: &str) 
 }
 
 /// How many columns each line of [`nakshatra_at_lines`] writes.
-pub const NAKSHATRA_COLUMNS: usize = 6;
+pub const NAKSHATRA_COLUMNS: usize = 8;
 
 /// The line of the nakṣatra in progress at a moment, read at `read_at`:
-/// its number, when the Moon entered it and when it leaves, the instant
-/// read, and the ayanāṃśa by identifier and full name.
+/// its number, identifier and name, when the Moon entered it and when it
+/// leaves, the instant read, and the ayanāṃśa by identifier and full name.
 fn nakshatra_line(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
     let number = nakshatra_at(moment, ayanamsa);
     let (entered, leaves) = nakshatra_span(number, moment, ayanamsa);
     let mut out = String::new();
     let mut line = Line::new(&mut out);
-    line.value(number)
-        .value(unix_from_moment(entered))
+    line.value(number);
+    nakshatra_cells(&mut line, number);
+    line.value(unix_from_moment(entered))
         .value(unix_from_moment(leaves))
         .value(read_at)
         .cell(ayanamsa.id())
@@ -252,9 +253,18 @@ fn nakshatra_line(moment: Moment, read_at: i64, ayanamsa: Ayanamsa) -> String {
     out
 }
 
+/// A nakṣatra's identifier and name, [`nakshatra_id`] and
+/// [`nakshatra_name`], the two cells every line that names one writes
+/// after its number: `pushya` and `Puṣya`.
+pub(crate) fn nakshatra_cells(line: &mut Line<'_>, number: u8) {
+    line.cell(nakshatra_id(number).unwrap_or(""))
+        .cell(nakshatra_name(number).unwrap_or(""));
+}
+
 /// The line of `hc_nakshatra_at`: the nakṣatra the Moon is in at a
 /// Universal Time instant, 1 for Aśvinī through 27 for Revatī, in the
-/// zodiac of an ayanāṃśa — its number, the instants the Moon entered it
+/// zodiac of an ayanāṃśa — its number, its identifier and name (`ashvini`,
+/// `Aśvinī`), the instants the Moon entered it
 /// and leaves it and the instant read, as whole POSIX seconds rounded
 /// down, and the ayanāṃśa by identifier and full name.
 ///
@@ -286,12 +296,12 @@ pub fn nakshatra_of_day_lines(fixed: i64, place: Location, ayanamsa_name: &str) 
 }
 
 /// How many columns [`amrita_siddhi_line`] writes.
-pub const AMRITA_SIDDHI_COLUMNS: usize = 7;
+pub const AMRITA_SIDDHI_COLUMNS: usize = 9;
 
 /// The line of `hc_amrita_siddhi`: the *amṛta siddhi yoga* of a day at a
 /// place, [`amrita_siddhi::amrita_siddhi`] — its name as Drik Panchang
 /// prints it in English and in Devanagari, the nakṣatra the weekday pairs
-/// with, 1 to 27, the start and the end of the part of the day, sunrise to
+/// with, 1 to 27, its identifier and name, the start and the end of the part of the day, sunrise to
 /// the next sunrise, that the Moon spends in it, as whole POSIX seconds
 /// rounded down, both empty on a day it spends none, `1` if the yoga falls
 /// on the day and `0` if not, and the ayanāṃśa's identifier.
@@ -308,12 +318,12 @@ pub fn amrita_siddhi_line(fixed: i64, place: Location, ayanamsa_name: &str) -> A
     let span = amrita_siddhi::amrita_siddhi(day, place, ayanamsa).map_err(|_| Refusal::NoData)?;
     let mut out = String::new();
     let mut line = Line::new(&mut out);
+    let nakshatra = amrita_siddhi::nakshatra_of(hc_calendar::Weekday::from_rd(day));
     line.cell(amrita_siddhi::NAME)
         .cell(amrita_siddhi::NAME_DEVANAGARI)
-        .value(amrita_siddhi::nakshatra_of(hc_calendar::Weekday::from_rd(
-            day,
-        )))
-        .value_or_empty(span.map(|span| unix_from_moment(span.start)))
+        .value(nakshatra);
+    nakshatra_cells(&mut line, nakshatra);
+    line.value_or_empty(span.map(|span| unix_from_moment(span.start)))
         .value_or_empty(span.map(|span| unix_from_moment(span.end)))
         .flag(span.is_some())
         .cell(ayanamsa.id());
@@ -322,12 +332,13 @@ pub fn amrita_siddhi_line(fixed: i64, place: Location, ayanamsa_name: &str) -> A
 }
 
 /// How many columns each line of [`muhurtas_lines`] writes.
-pub const MUHURTA_COLUMNS: usize = 5 + MISSING_COLUMNS;
+pub const MUHURTA_COLUMNS: usize = 6 + MISSING_COLUMNS;
 
 /// The lines of `hc_muhurtas`: the thirty muhūrtas of a day at a place,
 /// the fifteen of the daylight and the fifteen of the night after it, in
 /// order, [`muhurta::muhurta`] — the half (`day` or `night`), the
-/// muhūrta's number in it, 1 to 15, its start and its end as whole POSIX
+/// muhūrta's number in it, 1 to 15, its name in
+/// [`muhurta::WIKIPEDIA_NAMES`], its start and its end as whole POSIX
 /// seconds rounded down, what the pañcāṅga prints it as (`abhijit` for the
 /// eighth of the daylight on a day but a Wednesday, `dur-muhurtam` for the
 /// weekday's ones in [`muhurta::DUR_MUHURTAM`], else empty), and the four
@@ -363,7 +374,7 @@ pub fn muhurtas_lines(fixed: i64, place: Location) -> Answer<String> {
                 ""
             };
             let mut line = Line::new(&mut out);
-            line.cell(name).value(number);
+            line.cell(name).value(number).cell(which.wikipedia_name());
             match muhurta::muhurta(which, day, place) {
                 Ok(span) => {
                     line.value(unix_from_moment(span.start))
@@ -588,12 +599,27 @@ mod tests {
         assert!(rows.iter().all(|row| row.len() == MUHURTA_COLUMNS));
         let marked: Vec<(&str, &str, &str)> = rows
             .iter()
-            .filter(|row| !row[4].is_empty())
-            .map(|row| (row[0], row[1], row[4]))
+            .filter(|row| !row[5].is_empty())
+            .map(|row| (row[0], row[1], row[5]))
             .collect();
         assert_eq!(marked, [("day", "8", "dur-muhurtam")]);
+        // Wikipedia's names: Rudra first, Vidhi the eighth of the day,
+        // Girīśa at sunset and Samudra last (`wikipedia-muhurta`).
+        let names: Vec<(&str, &str, &str)> = [0, 7, 15, 29]
+            .iter()
+            .map(|&index| (rows[index][0], rows[index][1], rows[index][2]))
+            .collect();
+        assert_eq!(
+            names,
+            [
+                ("day", "1", "Rudra"),
+                ("day", "8", "Vidhi"),
+                ("night", "1", "Girīśa"),
+                ("night", "15", "Samudra")
+            ]
+        );
         for pair in rows.windows(2) {
-            assert_eq!(pair[0][3], pair[1][2]);
+            assert_eq!(pair[0][4], pair[1][3]);
         }
         // Thursday 2 January: Abhijit is the eighth, and Dur Muhurtam the
         // sixth and the twelfth.
@@ -602,7 +628,7 @@ mod tests {
             .lines()
             .filter_map(|line| {
                 let cells: Vec<&str> = line.split('\t').collect();
-                (!cells[4].is_empty()).then(|| alloc::format!("{} {}", cells[1], cells[4]))
+                (!cells[5].is_empty()).then(|| alloc::format!("{} {}", cells[1], cells[5]))
             })
             .collect();
         assert_eq!(marked, ["6 dur-muhurtam", "8 abhijit", "12 dur-muhurtam"]);
@@ -610,7 +636,7 @@ mod tests {
         let text = muhurtas_lines(day(2025, 1, 1), polar).expect("in range");
         assert!(
             text.lines()
-                .all(|line| line.split('\t').nth(5) == Some("sunrise"))
+                .all(|line| line.split('\t').nth(6) == Some("sunrise"))
         );
     }
 
@@ -622,10 +648,23 @@ mod tests {
         let line = amrita_siddhi_line(day(2025, 1, 7), NEW_DELHI, "lahiri").expect("in range");
         let cells = crate::boundary::cells(&line);
         assert_eq!(cells.len(), AMRITA_SIDDHI_COLUMNS);
-        assert_eq!(cells[..3], ["Amrita Siddhi Yoga", "अमृत सिद्धि योग", "1"]);
-        assert_eq!(cells[5..], ["1", "lahiri"]);
+        assert_eq!(
+            cells[..5],
+            [
+                "Amrita Siddhi Yoga",
+                "अमृत सिद्धि योग",
+                "1",
+                "ashvini",
+                "Aśvinī"
+            ]
+        );
+        assert_eq!(cells[7..], ["1", "lahiri"]);
         let none = amrita_siddhi_line(day(2025, 1, 8), NEW_DELHI, "lahiri").expect("in range");
-        assert_eq!(crate::boundary::cells(&none)[3..6], ["", "", "0"]);
+        // Wednesday's nakṣatra is Anurādhā.
+        assert_eq!(
+            crate::boundary::cells(&none)[2..8],
+            ["17", "anuradha", "Anurādhā", "", "", "0"]
+        );
         assert_eq!(
             amrita_siddhi_line(day(2025, 1, 7), NEW_DELHI, "tropical"),
             Err(Refusal::Unknown)
@@ -637,13 +676,13 @@ mod tests {
     #[test]
     fn the_nakshatra_is_the_moons() {
         let line = amrita_siddhi_line(day(2025, 1, 7), NEW_DELHI, "lahiri").expect("in range");
-        let start: i64 = crate::boundary::cells(&line)[3].parse().expect("a start");
+        let start: i64 = crate::boundary::cells(&line)[5].parse().expect("a start");
         let at = nakshatra_at_lines(start + 60, "lahiri").expect("in range");
         let cells = crate::boundary::cells(&at);
         assert_eq!(cells.len(), NAKSHATRA_COLUMNS);
-        assert_eq!(cells[0], "1");
-        assert!((cells[1].parse::<i64>().expect("an entry") - start).abs() <= 1);
-        assert_eq!(cells[4], "lahiri");
+        assert_eq!(cells[..3], ["1", "ashvini", "Aśvinī"]);
+        assert!((cells[3].parse::<i64>().expect("an entry") - start).abs() <= 1);
+        assert_eq!(cells[6], "lahiri");
         assert!(nakshatra_of_day_lines(day(2025, 1, 7), NEW_DELHI, "lahiri").is_ok());
     }
 

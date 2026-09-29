@@ -389,6 +389,25 @@ that day's lunar day, 0;37 after daybreak, is 8;9,46, 249° 46′, not yet
 6;43,26, where its own mean Sun that day is 8;8,25, 248° 25′, and the rule
 gives 2 January 2021 at 0;16,24. Both are recorded here, not carried.
 
+**The drift of the Bhutanese solstice.** The mean Sun's year is the
+calendar's, *m*₁ / *s*₁ = (167 025 / 5 656) / (65 / 804) = 6 714 405 /
+18 382 days, 365.270 645, where the Gregorian calendar's is 365.2425: the
+solstice comes 0.028 145 days later each Gregorian year, a day every 35½
+years, 2.8 days a century. *Worked example*: Janson's first 3 January is
+2020; 319 years × 0.028 145 = 8.98 days earlier, the solstice of the
+winter 1700 ends in falls on 24 December 1700, as the rule gives it, and
+it is 30 December in 1900, 4 January in 2100 and 30 January in 3000
+(`the_bhutanese_winter_solstice_is_the_mean_suns_250_degrees`). So the
+December date of a year before the 1920s is no error: it is the same
+reckoning's solstice, drifted, of the winter that year ends in. The
+solstice of a Gregorian year is the one that falls in it, and while the
+day crosses 1 January, between 1923 and 1957, a year of 365 days between
+two solstices 365.27 days apart holds none: 1923, 1927, 1931, 1935, 1938,
+1942, 1946, 1949, 1953 and 1957, which `hc_bhutanese_winter_solstice`
+refuses with `HC_ERR_NO_DATA` and in which the Bhutan table predicts no
+Winter Solstice holiday. No source read says how the almanac labels the
+solstice of such a winter.
+
 **Festivals** (`a_festival_on_a_skipped_or_repeated_date_follows_each_rule`).
 In 2024 the 4th of the leap month 6 is repeated, on 9 and 10 July: the
 Tibetan Nuns Project kept Chökhor Düchen on 9 July [tnp-losar], as Berzin's

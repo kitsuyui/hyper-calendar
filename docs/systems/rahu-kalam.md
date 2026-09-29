@@ -200,8 +200,10 @@ with the temple table's times for all three periods on all seven weekdays
 `a_number_outside_one_to_fifteen_names_no_muhurta`,
 `abhijit_straddles_the_middle_of_the_day`,
 `every_weekday_has_a_dur_muhurtam_and_only_tuesdays_is_at_night` and
-`there_is_no_muhurta_where_the_sun_does_not_rise`. No boundary export
-writes the muhūrtas yet.
+`there_is_no_muhurta_where_the_sun_does_not_rise`. The WebAssembly and C
+export `hc_muhurtas` writes the thirty of a day, from
+`hyper_calendar::panchanga_lines`, each with its name in
+`WIKIPEDIA_NAMES` and the pañcāṅga's mark.
 
 The WebAssembly and C export `hc_kalam` writes the three periods of a day
 by either convention, from `hyper_calendar::panchanga_lines`, each named

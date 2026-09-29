@@ -132,7 +132,12 @@ the earth branches 丑辰未戌 [wikipedia-ja-rekichu-gedan, koyomil-gomunichi].
 The 三箇の悪日 are one 節月 per person, the one whose branch is the birth
 year's; a 巳-year person keeps 大禍 on 申, 狼藉 on 酉 and 滅門 on 寅 days
 in 巳月 [wikipedia-ja-rekichu-gedan, ndl-koyomi-gedan]. Many commercial
-almanacs print both for everyone [koyomi8-rekichu-3].
+almanacs print both for everyone [koyomi8-rekichu-3]. The birth year is
+the 節切り one, turning at 立春: a person born between 1 January and 節分
+is read by the year before, which こよみる states for the three 悪日
+[koyomil-taikanichi] and advises for 五墓日, whose table it gives by the
+civil year [koyomil-gomunichi]. `hc_almanac_person_days` takes the day of
+birth and reads its year so.
 
 **臘日** is reckoned six ways in the sources read: the second 辰 day
 after 小寒, the 辰 day nearest 大寒, the first 戌 day after 大寒
@@ -423,8 +428,8 @@ lists the runs over 1900–2100 in which the two differ.
 | [koyomi8-kyusei-hyo] | The 定気 節切り year; the 閏 procedure, called its own | Yes, 2026-09-26 |
 | [koyomil-kuenichi] | The five readings of 凶会日 in use; its own, the 貞享暦 by 旧暦 month; the 2025 dates | Yes, 2026-09-26 |
 | [koyomil-daimyonichi] | The 25-, 21- and 19-day 大明日 | Yes, 2026-09-26 |
-| [koyomil-gomunichi] | 五墓日 by 納音 phase, the birth years of each phase from 1921, and the 2025 dates of each | Yes, 2026-09-26 and 2026-09-29 |
-| [koyomil-taikanichi] | The three 悪日 by birth year and for everyone | Yes, 2026-09-26 |
+| [koyomil-gomunichi] | 五墓日 by 納音 phase, the birth years of each phase from 1921, and the 2025 dates of each; its advice to read a birth before 節分 by the year before | Yes, 2026-09-26 and 2026-09-29 |
+| [koyomil-taikanichi] | The three 悪日 by birth year and for everyone; a birth before 節分 read by the year before | Yes, 2026-09-26 and 2026-09-29 |
 | [saijigoyomi-gedan] | The 貞享暦 凶会日 headed 節切り; 五墓日 by 納音; the three 悪日; the 25-day 大明日 | Yes, 2026-09-26 |
 | [linderabell-kuenichi] | The 貞享暦 凶会日 「節切りの月毎」 | Yes, 2026-09-26 |
 | [kotobank-gomunichi] | 精選版日本国語大辞典's 五墓日 | Yes, 2026-09-26 |

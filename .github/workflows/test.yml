@@ -184,7 +184,7 @@ jobs:
       # The binding with the full layer's bytes inside it, for a page opened
       # from disk.
       - run: node scripts/wasm-embed.mjs
-      # The TZif files of the seventeen built-in zones, from the runner's
+      # The TZif files of the eighteen built-in zones, from the runner's
       # tzdata package, with the database release in VERSION.
       - run: scripts/wasm-tzdata.sh
       - run: cat target/tzdata/VERSION

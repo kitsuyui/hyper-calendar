@@ -180,10 +180,14 @@ pub fn almanac_solar_terms_lines(year: i64) -> Answer<String> {
 
 /// The line of `hc_shmuel_tekufah`: a *tekufah* of Shmuel's reckoning in
 /// Hebrew year `year`, [`hebrew::shmuel_tekufah_day`] — the fixed day whose
-/// Hebrew day it falls in, the next civil day from six in the evening, and
-/// the minutes of Jerusalem mean time since that civil day's midnight or
-/// the one before, as the reckoning's clock reads them. The *tekufah* is
-/// `tishrei`, `tevet`, `nisan` or `tammuz`.
+/// Hebrew day it falls in, the next civil day from the reckoning's
+/// nightfall ([`hebrew::SHMUEL_NIGHTFALL_MINUTES`], Maimonides' twelve
+/// hours of night before midnight), and the minutes of Jerusalem mean time
+/// since the midnight of the moment's civil day, as the reckoning's clock
+/// reads them; the *tekufah*, `tishrei`, `tevet`, `nisan` or `tammuz`; `1`
+/// when the moment is after that nightfall, so that its Hebrew day is the
+/// next civil day's, else `0`; and the moment's civil day, the fixed day of
+/// Jerusalem mean time it falls on.
 ///
 /// # Errors
 ///
@@ -195,8 +199,13 @@ pub fn shmuel_tekufah_line(year: i64, tekufah: &str) -> Answer<String> {
         return Err(Refusal::OutOfRange);
     }
     let (day, minutes) = hebrew::shmuel_tekufah_day(year, tekufah);
+    let after_nightfall = hebrew::shmuel_tekufah_after_nightfall(year, tekufah);
     Ok(line(|line| {
-        line.value(day.0).value(minutes).cell(tekufah.id());
+        line.value(day.0)
+            .value(minutes)
+            .cell(tekufah.id())
+            .flag(after_nightfall)
+            .value(day.0 - i64::from(after_nightfall));
     }))
 }
 
@@ -612,7 +621,32 @@ mod tests {
     fn shmuels_tekufah_is_on_its_day() {
         let line = shmuel_tekufah_line(5_786, "Tishrei").expect("in range");
         assert!(line.starts_with(&alloc::format!("{}\t", gregorian(2025, 10, 7))));
-        assert!(line.ends_with("\ttishrei\n"));
+        assert!(line.contains("\ttishrei\t"));
+        // 4930's Nisan at midnight of the night of Thursday: after the
+        // reckoning's nightfall, on Thursday's Hebrew day, the civil day
+        // before.
+        let nisan = shmuel_tekufah_line(4_930, "nisan").expect("in range");
+        let cells: alloc::vec::Vec<&str> = nisan.trim_end().split('\t').collect();
+        assert_eq!(cells[1..4], ["0", "nisan", "0"]);
+        assert_eq!(cells[0], cells[4]);
+        // The anchor, 5769's Nisan at the reckoning's nightfall on Tuesday
+        // 7 April 2009, "the beginning of the night of the fourth day"
+        // (Hilkhot Berakhot 10:18): Wednesday's Hebrew day, though the Sun
+        // set at Jerusalem after it.
+        let anchor = shmuel_tekufah_line(5_769, "nisan").expect("in range");
+        let (tuesday, wednesday) = (gregorian(2009, 4, 7), gregorian(2009, 4, 8));
+        assert_eq!(
+            anchor,
+            alloc::format!("{wednesday}\t1080\tnisan\t1\t{tuesday}\n")
+        );
+        #[cfg(feature = "lunar")]
+        {
+            let jerusalem = hc_astro::riseset::Location::new(31.78, 35.24, 0.0);
+            let sunset =
+                hc_astro::riseset::sunset(hc_calendar::Rd(tuesday), jerusalem).expect("a sunset");
+            let mean_time = (sunset.0 - tuesday as f64 + 35.24 / 360.0) * 1_440.0;
+            assert!(mean_time > 1_080.0, "{mean_time}");
+        }
         assert_eq!(shmuel_tekufah_line(5_786, "adar"), Err(Refusal::Unknown));
         assert_eq!(shmuel_tekufah_line(0, "nisan"), Err(Refusal::OutOfRange));
     }
