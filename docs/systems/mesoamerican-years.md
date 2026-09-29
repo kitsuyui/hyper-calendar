@@ -149,7 +149,12 @@ agreed day for day, "con la única excepción que provenía de la colocación
 de los *nemontemi*, que iban al fin del año"; the Mixtec year began with
 Atemoztli; and the day that names a year is the "último del último mes".
 So the Mixtec year runs Atemoztli, Tititl, Izcalli and on to
-Panquetzaliztli, and then the five nemontemi. From Izcalli to
+Panquetzaliztli, and then the five nemontemi. Caso does not say in one
+sentence where the Mixtec nemontemi fall; their place after
+Panquetzaliztli is this library's reading of two of his statements, that
+the nemontemi went at the end of each year and that Panquetzaliztli was
+the last month of the Mixtec year ("último de su año que principiaba por
+*Atemoztli*", in the example below). From Izcalli to
 Panquetzaliztli its months are the Aztec ones day for day; its Atemoztli
 and Tititl run five days behind the Aztec ones, because the Aztec
 nemontemi come between Tititl and Izcalli and the Mixtec ones before

@@ -14,7 +14,7 @@
 
 use hc_calendar::fixed::Moment;
 
-use hc_core::math::{modulo, normalize_degrees};
+use hc_core::math::normalize_degrees;
 
 /// How close a bisection has to get before it stops, in days.
 ///
@@ -44,7 +44,7 @@ where
     let mut steps = 0;
     while high - low > BISECTION_TOLERANCE_DAYS && steps < MAXIMUM_STEPS {
         let middle = low + (high - low) / 2.0;
-        if modulo(f(Moment(middle)) - target, 360.0) < 180.0 {
+        if normalize_degrees(f(Moment(middle)) - target) < 180.0 {
             high = middle;
         } else {
             low = middle;
@@ -156,14 +156,14 @@ mod tests {
     #[test]
     fn angular_inversion_finds_a_target_on_a_rising_ramp() {
         // A toy angle that gains one degree per day and wraps at 360.
-        let angle = |moment: Moment| modulo(moment.0, 360.0);
+        let angle = |moment: Moment| normalize_degrees(moment.0);
         let found = invert_angular(angle, 100.0, Moment(0.0), Moment(200.0));
         assert!((found.0 - 100.0).abs() < 1e-6, "found {}", found.0);
     }
 
     #[test]
     fn angular_inversion_crosses_the_wrap_point_without_flinching() {
-        let angle = |moment: Moment| modulo(moment.0, 360.0);
+        let angle = |moment: Moment| normalize_degrees(moment.0);
         let found = invert_angular(angle, 5.0, Moment(350.0), Moment(370.0));
         assert!((found.0 - 365.0).abs() < 1e-6, "found {}", found.0);
     }
@@ -200,7 +200,7 @@ mod tests {
     fn a_growing_angle_is_found_where_it_crosses_the_target() {
         // Thirteen degrees a day, starting at 350°: 10° is reached after
         // twenty degrees, across the wrap, and 350° again a revolution on.
-        let angle = |moment: Moment| modulo(350.0 + 13.0 * moment.0, 360.0);
+        let angle = |moment: Moment| normalize_degrees(350.0 + 13.0 * moment.0);
         let found = next_angle_crossing(angle, 10.0, Moment(0.0), 0.5);
         assert!((found.0 - 20.0 / 13.0).abs() < 1e-9, "found {}", found.0);
         let found = next_angle_crossing(angle, 350.0, Moment(0.1), 0.5);
@@ -209,7 +209,7 @@ mod tests {
 
     #[test]
     fn a_reversed_bracket_terminates_instead_of_spinning() {
-        let angle = |moment: Moment| modulo(moment.0, 360.0);
+        let angle = |moment: Moment| normalize_degrees(moment.0);
         let found = invert_angular(angle, 100.0, Moment(200.0), Moment(0.0));
         assert!(found.0.is_finite());
     }

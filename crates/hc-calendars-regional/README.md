@@ -42,7 +42,7 @@ such counts, and are here as regional calendars.
 | `aztec-tonalpohualli` | 260 days |
 | `aztec-xiuhpohualli` | 365 days |
 | `zapotec-yza` | 365 days: eighteen months of twenty and a *quicholla* of five, the years named by the day they begin on |
-| `mixtec-year` | 365 days: the Aztec months from Atemoztli, the five nemontemi after Panquetzaliztli, the years named by their 360th day, as Caso reconstructs them |
+| `mixtec-year` | 365 days: the Aztec months from Atemoztli, the five nemontemi after Panquetzaliztli (this library's reading of Caso), the years named by their 360th day, as Caso reconstructs them |
 | `balinese-pawukon` | Thirty *wuku* and ten concurrent week cycles over 210 days |
 | `javanese-pasaran` | The 5-day market week and the 35-day *wetonan* |
 | `akan` | The Akan 6-day week and the 42-day *Adaduanan*, with the four *dabɔne* |
@@ -187,9 +187,12 @@ Year in it, and dates are written in Lao digits, «ເດືອນຫ້າ ຂ�
   the long count beside it. No other constant can be chosen.
 * **Aztec**: the fall of Tenochtitlan, **13 August 1521 Julian**, dated
   *1 Coatl*, 2 Xocotlhuetzi — Caso's correlation as *Calendrical
-  Calculations* tabulates it — over an uncorrected 365-day year. The
-  reconstructions of Tena, Ochoa and Medina are not registered; the module
-  says why.
+  Calculations* tabulates it and as Caso states it (1967, p. 49) — over an
+  uncorrected 365-day year. Caso's Julian dates for 1520 and 1540–1543
+  fall on it day for day; his 5 February 1477 is a day later, on a page
+  that also disagrees with its own day names, and is not a second
+  correlation. The reconstructions of Tena,
+  Ochoa and Medina are not registered; the module says why.
 
 The history of the constants, the worked readings and the sources are in
 [`docs/systems/mesoamerican-counts.md`](../../docs/systems/mesoamerican-counts.md).

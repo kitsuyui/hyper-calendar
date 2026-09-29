@@ -76,7 +76,7 @@ use hc_astro::riseset::Location;
 use hc_astro::search::bisect_until;
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
-use hc_core::math::{abs, ceil, floor, fract, modulo, round, sin_deg};
+use hc_core::math::{abs, ceil, floor, fract, normalize_degrees, round, sin_deg};
 use hc_seasons::zodiac::SiderealSign;
 
 use crate::places::UJJAIN;
@@ -186,7 +186,7 @@ fn true_position(mean: f64, anomaly: f64, size: f64, change: f64) -> f64 {
     let contraction = abs(offset) * change * size;
     let equation = arcsin(offset * (size - contraction));
     let longitude = lambda - equation;
-    modulo(longitude, 360.0)
+    normalize_degrees(longitude)
 }
 
 /// Ujjain's local time, the book's clock, at a moment in Universal Time.
@@ -229,7 +229,7 @@ pub fn lunar_longitude(moment: Moment) -> f64 {
 #[must_use]
 pub fn lunar_phase(moment: Moment) -> f64 {
     let phase = lunar_longitude(moment) - solar_longitude(moment);
-    modulo(phase, 360.0)
+    normalize_degrees(phase)
 }
 
 /// The number, 1 to 30, of the tithi in progress at a moment in Universal
@@ -267,7 +267,7 @@ pub fn conjunction_at_or_after(moment: Moment) -> Moment {
 /// yoga counts.
 #[must_use]
 pub fn yoga_longitude(moment: Moment) -> f64 {
-    modulo(solar_longitude(moment) + lunar_longitude(moment), 360.0)
+    normalize_degrees(solar_longitude(moment) + lunar_longitude(moment))
 }
 
 /// The yoga in progress at a moment by the Siddhānta's Sun and Moon, 1 for
@@ -343,7 +343,7 @@ fn tropical_longitude(date: f64) -> f64 {
     let days = floor(date) - EPOCH;
     let precession = 27.0 - abs(108.0 * wrap(600.0 / 1_577_917_828.0 * days - 0.25, -0.5, 0.5));
     let longitude = solar_longitude_local(date) - precession;
-    modulo(longitude, 360.0)
+    normalize_degrees(longitude)
 }
 
 /// The tabulated speed of rising of the sign the Sun stands in on a day
@@ -426,7 +426,7 @@ pub fn ingress_after(sign: SiderealSign, moment: Moment) -> Moment {
     // How far the Sun still has to go, in degrees, from where it stands.
     let ahead = |at: f64| {
         let gap = target - solar_longitude(Moment(at));
-        modulo(gap, 360.0)
+        normalize_degrees(gap)
     };
     // Carrying the Sun from where it stands at the mean rate misplaces the
     // entry by however much the equation of centre changes on the way,

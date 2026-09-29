@@ -202,7 +202,7 @@ pub fn solar_longitude_after(target_degrees: f64, moment: Moment) -> Moment {
 /// [`solar_longitude_after`], searched for.
 fn computed_solar_longitude_after(target_degrees: f64, moment: Moment) -> Moment {
     let rate = MEAN_TROPICAL_YEAR / 360.0;
-    let to_go = modulo(target_degrees - solar_longitude(moment), 360.0);
+    let to_go = normalize_degrees(target_degrees - solar_longitude(moment));
     let estimate = moment.0 + rate * to_go;
     invert_angular(
         solar_longitude,
@@ -396,7 +396,7 @@ mod tests {
         let mut previous = solar_longitude(Moment(start));
         for step in 1..73 {
             let current = solar_longitude(Moment(start + f64::from(step) * 5.0));
-            let advance = modulo(current - previous, 360.0);
+            let advance = normalize_degrees(current - previous);
             assert!(
                 (4.5..5.5).contains(&advance),
                 "advance of {advance} degrees at step {step}"
@@ -439,7 +439,7 @@ mod tests {
         let mut moment =
             solar_longitude_after(longitude, Moment(gregorian::new_year(2024).0 as f64));
         for _ in 0..24 {
-            longitude = modulo(longitude + 15.0, 360.0);
+            longitude = normalize_degrees(longitude + 15.0);
             let next = solar_longitude_after(longitude, moment);
             let gap = next.0 - moment.0;
             assert!(
@@ -455,7 +455,8 @@ mod tests {
         let start = solar_longitude_after(315.0, Moment(gregorian::new_year(2024).0 as f64));
         let mut moment = start;
         for step in 1..=24 {
-            moment = solar_longitude_after(modulo(315.0 + f64::from(step) * 15.0, 360.0), moment);
+            moment =
+                solar_longitude_after(normalize_degrees(315.0 + f64::from(step) * 15.0), moment);
         }
         let span = moment.0 - start.0;
         assert!((span - MEAN_TROPICAL_YEAR).abs() < 0.5, "span was {span}");

@@ -6,7 +6,9 @@
 //! year of eighteen twenty-day months plus five unlucky days — under
 //! Nahuatl names and an anchor of their own: [`CORRELATION`], the fall of
 //! Tenochtitlan on 13 August 1521 (Julian) as *1 Coatl*, 2 Xocotlhuetzi,
-//! which is Caso's correlation as Reingold and Dershowitz tabulate it.
+//! which is Caso's correlation as Reingold and Dershowitz tabulate it and
+//! as Caso states it (*Los calendarios prehispánicos*, 1967, p. 49,
+//! `caso1967`).
 //! There is no Aztec long count, so both calendars are cycles and both
 //! carry a round number, for the reasons the crate documentation gives.
 //! The year is the uncorrected 365 days and drifts a day against the
@@ -462,6 +464,62 @@ mod tests {
                 .to_string(),
             "14 Tititl"
         );
+    }
+
+    fn xiuh_on(year: i64, month: u8, day: u8) -> XiuhpohualliPosition {
+        AztecXiuhpohualliCalendar
+            .from_fixed(julian::to_fixed(year, month, day).expect("valid Julian date"))
+            .expect("any day")
+            .position
+    }
+
+    fn tonal_on(year: i64, month: u8, day: u8) -> TonalpohualliPosition {
+        AztecTonalpohualliCalendar
+            .from_fixed(julian::to_fixed(year, month, day).expect("valid Julian date"))
+            .expect("any day")
+            .position
+    }
+
+    #[test]
+    fn caso_s_julian_dates_for_1520_and_1540_fall_on_the_carried_months() {
+        // Caso 1967, p. 252: the last day of Etzalcualiztli was 12 June
+        // 1520 and, five uncounted leap days later, 7 June 1540 (Julian).
+        assert_eq!(xiuh_on(1520, 6, 12), XiuhpohualliPosition::new(7, 20));
+        assert_eq!(xiuh_on(1540, 6, 7), XiuhpohualliPosition::new(7, 20));
+        // The Aztec column of his table for 1540-1543 (p. 252).
+        assert_eq!(xiuh_on(1540, 4, 9), XiuhpohualliPosition::new(5, 1));
+        assert_eq!(xiuh_on(1540, 5, 19), XiuhpohualliPosition::new(7, 1));
+        assert_eq!(xiuh_on(1540, 8, 7), XiuhpohualliPosition::new(11, 1));
+        assert_eq!(xiuh_on(1540, 12, 24), XiuhpohualliPosition::new(17, 20));
+        assert_eq!(xiuh_on(1541, 1, 13), XiuhpohualliPosition::new(18, 20));
+        assert_eq!(xiuh_on(1541, 1, 14), XiuhpohualliPosition::new(19, 1));
+        // "El mes azteca Tozoztontli, termina el 8 de abril."
+        assert_eq!(xiuh_on(1541, 4, 8), XiuhpohualliPosition::new(4, 20));
+        // The correspondence "no varió desde el 1° de marzo de 1540, hasta
+        // el 28 de febrero de 1544", so the table's January rows hold from
+        // 1541 to 1544, and not in January 1540, before that leap day.
+        for year in 1541..=1544 {
+            assert_eq!(xiuh_on(year, 1, 14), XiuhpohualliPosition::new(19, 1));
+        }
+        assert_eq!(xiuh_on(1540, 1, 14), XiuhpohualliPosition::new(18, 20));
+    }
+
+    #[test]
+    fn caso_s_1477_names_agree_but_his_julian_date_is_a_day_later() {
+        // Caso 1967, p. 78: the Tenochca year 11 Calli began with the day
+        // 3 Cuetzpallin, the first of Izcalli, which he dates 5 February
+        // 1477. The carried count, his anchor of p. 49, gives the same pair
+        // of names one Julian day earlier, on 4 February; see
+        // docs/systems/mesoamerican-counts.md.
+        assert_eq!(xiuh_on(1477, 2, 4), XiuhpohualliPosition::new(1, 1));
+        assert_eq!(tonal_on(1477, 2, 4), TonalpohualliPosition::new(3, 4));
+        assert_eq!(xiuh_on(1477, 2, 5), XiuhpohualliPosition::new(1, 2));
+        // The year is named by its last day, 20 Tititl, the 360th: 11 Calli.
+        let first = julian::to_fixed(1477, 2, 4).expect("valid Julian date");
+        let naming = AztecTonalpohualliCalendar
+            .from_fixed(Rd(first.0 + 359))
+            .expect("any day");
+        assert_eq!(naming.position.to_string(), "11 Calli");
     }
 
     #[test]

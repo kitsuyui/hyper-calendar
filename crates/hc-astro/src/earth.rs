@@ -535,7 +535,7 @@ mod tests {
         let at_epoch = earth_rotation_angle(J2000);
         assert!((at_epoch - 0.779_057_273_264_0 * 360.0).abs() < 1e-9);
         let next = earth_rotation_angle(Moment(J2000.0 + 1.0));
-        let advance = hc_core::math::modulo(next - at_epoch, 360.0);
+        let advance = normalize_degrees(next - at_epoch);
         assert!((advance - 0.002_737_811_911_354_48 * 360.0).abs() < 1e-9);
     }
 
@@ -618,7 +618,7 @@ mod tests {
     fn sidereal_time_advances_by_a_full_turn_plus_a_degree_each_day() {
         let a = mean_sidereal_time_iau1982(Moment(730_000.0));
         let b = mean_sidereal_time_iau1982(Moment(730_001.0));
-        let advance = hc_core::math::modulo(b - a, 360.0);
+        let advance = normalize_degrees(b - a);
         assert!((advance - 0.985_647).abs() < 1e-4, "advance was {advance}");
     }
 

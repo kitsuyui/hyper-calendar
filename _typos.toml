@@ -634,3 +634,6 @@ classis = "classis"
 # them, in crates/hc-calendars-regional/src/tibetan_almanac.rs and
 # docs/systems/tibetan-almanac.md.
 sme = "sme"
+# Mo Mo Thant, author of a history of the Shwegyin order cited as not read
+# in docs/systems/burmese.md (momothant2002).
+Thant = "Thant"
