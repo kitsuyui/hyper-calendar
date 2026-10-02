@@ -225,14 +225,16 @@ fn no_prefectural_day_is_a_day_off_for_business_days() {
 }
 
 #[test]
-fn okinawa_s_memorial_day_is_a_gap_before_its_holiday_ordinance() {
-    // 沖縄県慰霊の日を定める条例 came into force on 21 October 1974, so
-    // 1974 has no 慰霊の日; for 1975–1990 no instrument read says what the
-    // day was for the prefecture's offices, and each year is a gap.
-    let before = HolidayCalendar::for_year(&JAPAN, Some("JP-47"), 1974);
+fn okinawa_s_memorial_day_is_a_gap_from_the_reversion_to_its_holiday_ordinance() {
+    // The prefecture was restored on 15 May 1972. 沖縄県慰霊の日を定める条例
+    // came into force on 21 October 1974, so 1972–1974 have no 慰霊の日 a
+    // source read gives, and for 1975–1990 no instrument read says what the
+    // day was for the prefecture's offices: each year is a gap. Before
+    // 1972 the islands were not a prefecture, and the day is absent.
+    let before = HolidayCalendar::for_year(&JAPAN, Some("JP-47"), 1971);
     assert!(before.is_complete());
-    assert!(own_entries(Some("JP-47"), 1974, 6, 23).is_empty());
-    for year in [1975, 1990] {
+    assert!(own_entries(Some("JP-47"), 1971, 6, 23).is_empty());
+    for year in [1972, 1973, 1974, 1975, 1990] {
         let calendar = HolidayCalendar::for_year(&JAPAN, Some("JP-47"), year);
         assert!(own_entries(Some("JP-47"), year, 6, 23).is_empty(), "{year}");
         let gaps: Vec<_> = calendar
@@ -247,6 +249,63 @@ fn okinawa_s_memorial_day_is_a_gap_before_its_holiday_ordinance() {
     assert_eq!(
         own_entries(Some("JP-47"), 1991, 6, 23)[0].kind,
         Kind::Government
+    );
+}
+
+#[test]
+fn a_prefecture_read_for_no_day_is_a_gap_before_its_holiday_ordinance() {
+    // The 休日条例 of each prefecture below, 公布 in 1989 (February to July),
+    // read in the 条例Webアーカイブ's copies, which the 例規集 of the
+    // prefecture confirm where they could be read (docs/systems/
+    // japan-holidays.md). The ordinances in force now give the prefecture no
+    // day beyond the national ones; the regime before the 休日条例 was not
+    // read, so the years before 1989 are a gap and not a year without a day.
+    for (region, ordinance) in [
+        ("JP-02", "青森県の休日に関する条例, 1989-03-23"),
+        ("JP-03", "岩手県の休日に関する条例, 1989-03-11"),
+        ("JP-04", "宮城県の休日を定める条例, 1989-02-28"),
+        ("JP-27", "大阪府の休日に関する条例, 1989-03-27"),
+        ("JP-40", "福岡県の休日を定める条例, 1989-07-11"),
+        ("JP-42", "長崎県の休日を定める条例, 1989-07-18"),
+    ] {
+        for year in [1948, 1975, 1988] {
+            let calendar = HolidayCalendar::for_year(&JAPAN, Some(region), year);
+            let gaps: Vec<_> = calendar.gaps().iter().map(|gap| gap.year).collect();
+            assert_eq!(gaps, [year], "{region} {year}: {ordinance}");
+        }
+        for year in [1989, 2000, 2026] {
+            let calendar = HolidayCalendar::for_year(&JAPAN, Some(region), year);
+            assert!(calendar.is_complete(), "{region} {year}: {ordinance}");
+        }
+    }
+    // A prefecture with a day of its own is not made a gap by the rule:
+    // Tokyo's 都民の日 is absent before 1952 and an answer after it.
+    assert!(HolidayCalendar::for_year(&JAPAN, Some("JP-13"), 1948).is_complete());
+}
+
+#[test]
+fn the_prefectural_schools_of_chiba_city_close_on_the_prefecture_s_day_and_its_own_do_not() {
+    // 千葉県民の日, 15 June, is a 休業日 of the prefectural high schools
+    // (県立高等学校管理規則 Article 7) and not of 千葉市立小学校及び中学校管理規則
+    // Article 19-2, as amended to 令和7年教委規則第5号 (read 2026-10-03), which
+    // lists none; so in 千葉市 (JP-12-100) the day is an observance, and in
+    // the prefecture's other cities it is a school day closed.
+    let school = |region: &str, year: i64| {
+        own_entries(Some(region), year, 6, 15)
+            .iter()
+            .any(|holiday| holiday.kind == Kind::School)
+    };
+    assert!(school("JP-12", 2026));
+    assert!(!school("JP-12-100", 2026));
+    let city = own_entries(Some("JP-12-100"), 2026, 6, 15);
+    assert_eq!(city.len(), 1);
+    assert_eq!(city[0].kind, Kind::Observance);
+    // 千葉市's own 市民の日 is 18 October, as it was.
+    assert_eq!(own_entries(Some("JP-12-100"), 2026, 10, 18).len(), 1);
+    // The years 1984–2015 were an observance everywhere.
+    assert_eq!(
+        own_entries(Some("JP-12-100"), 2010, 6, 15)[0].kind,
+        Kind::Observance
     );
 }
 

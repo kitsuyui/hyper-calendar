@@ -15,8 +15,12 @@
 //!
 //! The rules are the *dharmaśāstra* conventions the *Rashtriya Panchang*
 //! follows in its "Principal Festivals and Anniversaries" list, and every
-//! rule here reproduces that list for Śaka 1945 and 1946 (2023–2025) —
-//! `tests/traditions.rs` is the check. The Smārta reckoning of Janmāṣṭamī
+//! rule here reproduces that list for the days `tests/traditions.rs`
+//! checks, which are the festivals of Śaka 1945 and 1946 up to April 2025
+//! (2023 to 10 April 2025); the list for the rest of 2025 was not read.
+//! Rakṣā Bandhana, which is kept when Bhadra is over, is checked instead
+//! against Drik Panchang's pages for seventy-six years
+//! (`tests/raksha_bandhan.rs`). The Smārta reckoning of Janmāṣṭamī
 //! is the one listed; the Vaiṣṇava one, a day later when the two differ,
 //! is not carried as a rule. The central government's holiday lists keep
 //! it — on 16 August 2025 and 25 August 2027, a day after [`JANMASHTAMI`],
@@ -100,8 +104,51 @@ pub const BUDDHA_PURNIMA: Rule = tithi(2, 15, Prevalence::Midday, WhenTwice::Ear
 /// Guru Pūrṇimā: the full moon of Āṣāḍha, at midday.
 pub const GURU_PURNIMA: Rule = tithi(4, 15, Prevalence::Midday, WhenTwice::Earlier);
 
-/// Rakṣā Bandhana: the full moon of Śrāvaṇa, in the afternoon.
-pub const RAKSHA_BANDHAN: Rule = tithi(5, 15, Prevalence::Afternoon, WhenTwice::Earlier);
+/// Rakṣā Bandhana: the full moon of Śrāvaṇa, kept when Bhadra is over.
+///
+/// The rite is for the afternoon, *aparāhṇa*, or failing that the evening,
+/// *pradoṣa*, of the day the full-moon tithi holds, "when there is no
+/// Bhadra Karan", and Bhadra, the karaṇa Viṣṭi, covers the first half of
+/// the full-moon tithi always: "Bhadra prevails during first half of
+/// Purnima Tithi. Hence one should wait for Bhadra to get over", Drik
+/// Panchang says (`drik-raksha-bandhan`, read 2026-10-03), and Sewell and
+/// Dikshit's Table VIII puts Viṣṭi on the first half of śukla 15
+/// (`sewell1896`). So the rule is [`Rule::TithiAfterBhadra`], which does
+/// not look at one instant of the afternoon but at the second half of the
+/// tithi, the part Bhadra does not cover, from the moment the Moon is 174°
+/// from the Sun to the full moon:
+///
+/// 1. The day is the civil day, midnight to midnight, on which that half
+///    begins: the afternoon of 19 August 2024 for Bhadra that ends at
+///    13:30; the 9th of August 2025, for Bhadra that ended at 01:52, though
+///    the afternoon of the 8th held the full moon; the evening of
+///    30 August 2023, for Bhadra that ends at 21:01.
+/// 2. Unless the tithi still holds six *ghaṭikā*s (2 hours 24 minutes)
+///    after the next sunrise, in which case that day is the day: 28 August
+///    2026, for Bhadra that ended at 21:32 on the 27th and a tithi that ran
+///    to 09:48 on the 28th, 4 hours after the sunrise. The six *ghaṭikā*s
+///    are what one page of a jyotiṣī gives, "after six Ghadiyas (2 hours 24
+///    minutes) from sunrise" (`onlinejyotish-rakhi-2024`, secondary); the
+///    classical texts, *Dharmasindhu* and *Nirṇayasindhu*, which Drik
+///    Panchang and others name for the rule, were not read.
+///
+/// The rule reproduces Drik Panchang's day for New Delhi in 75 of the 76
+/// years 1995 to 2070 it was read for, and the central government's lists
+/// of 2025 and 2026 (9 and 28 August; see the India table). It parts from
+/// the page in 2036 alone: Bhadra ends at 19:00 on 6 August and the tithi
+/// at 08:18 on the 7th, 2 hours 35 minutes after New Delhi's sunrise, where
+/// the page gives the 6th, and 2 hours 46 after the Central Station's, past
+/// six *ghaṭikā*s, where the rule gives the 7th. The afternoon rule this
+/// replaces parted from the page in 14 of the 76, among them 2025 to 2028,
+/// a day early. `tests/raksha_bandhan.rs` has all of them.
+///
+/// Holikā Dahana is the other day the lists keep out of Bhadra; see
+/// [`HOLIKA_DAHAN`].
+pub const RAKSHA_BANDHAN: Rule = Rule::TithiAfterBhadra {
+    month: 5,
+    tithi: 15,
+    calendar: &CALENDAR,
+};
 
 /// Kṛṣṇa Janmāṣṭamī, Smārta: Śrāvaṇa kṛṣṇa 8 at midnight.
 pub const JANMASHTAMI: Rule = tithi(5, 23, Prevalence::Midnight, WhenTwice::Later);
@@ -181,6 +228,27 @@ pub const THAIPUSAM: Rule = Rule::Nakshatra {
 };
 
 /// Holikā Dahana: the full moon of Phālguna, in the evening.
+///
+/// Holikā Dahana is the other day the almanacs keep out of Bhadra, and this
+/// rule does not: it takes the day the full-moon tithi holds the evening,
+/// whether or not Bhadra covers it. Drik Panchang's "Holika Dahan" pages
+/// for New Delhi (`drik-holika-dahan`, read 2026-10-03) give the day for
+/// 2015 to 2036 and agree with the rule in 19 of those 22 years. They
+/// give the day after it in 2016, 2023 and 2026, 23 March, 7 March and
+/// 3 March, where the rule gives the 22nd, the 6th and the 2nd. The Holī
+/// of those years, 24 March 2016, 8 March 2023 and 4 March 2026, which
+/// the pages and, for 2023 and 2026, the central government's lists (the
+/// India table) give, is the day after Holikā Dahana, so [`HOLI`] is a day
+/// early in them. In all three Bhadra, which begins in the afternoon of the
+/// first day with the tithi, ends after midnight, and the page lights the
+/// fire on the next evening. Its rule for that case, "Holika Dahan should
+/// be done in Bhadra and preferably during Bhadra Punchha" between Pradosh
+/// and midnight, and otherwise in Pradosh, needs the place of Bhadra's
+/// Punchha, which no source read gives: the page prints it and does not
+/// define it. Nor does anything the page says tell those years from 2027
+/// and 2036, when Bhadra also ends after midnight, and it keeps the first
+/// day. The rule is left as it was until a source for Punchha is read
+/// (audit 10 a5).
 pub static HOLIKA_DAHAN: Rule = tithi(12, 15, Prevalence::Evening, WhenTwice::Earlier);
 
 /// Holī, the day of colours: the day after Holikā Dahana.

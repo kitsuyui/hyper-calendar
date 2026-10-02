@@ -116,6 +116,10 @@ until each government made its 休日条例; 平成3年法律第24号 added para
 3 on 2 April 1991, and Okinawa's 休日条例 (平成3年沖縄県条例第15号) followed
 on 24 May 1991 with 23 June in it, in force from 26 May [jp-pref-47,
 jp-local-autonomy-act, okinawa-archives-irei]. The 1961 and 1965 acts themselves were not read.
+What the prefecture kept in 1972, 1973 and 1974, between the reversion
+(15 May 1972) and the ordinance, no instrument read says, so those years
+are a gap with 1975–1990, as `Rule::UNREAD` carries them (audit 10 a7); before 1972 the islands were not a
+prefecture of Japan.
 
 **The prefectures' other days.** Beside its own day, a prefecture sets
 days for a cause by ordinance, in the same pattern: an article of purpose,
@@ -196,10 +200,11 @@ kind changed is two rules, one for each span, as a holiday whose date
 changed is. `is_day_off` is false for all
 three, so business-day arithmetic is the same in every prefecture. A
 calendar built for `JAPAN` with no region has none of them; one built in
-`JP-13` has the nationwide days and 都民の日. Okinawa's rule for 1975–1990
-is `Rule::UNREAD`: the ordinance set the day from 1975, but no instrument
-read says what it was for the prefecture's offices before the 休日条例, so
-those years are a gap rather than a guess (policy §4). The other days
+`JP-13` has the nationwide days and 都民の日. Okinawa's rule for 1972–1990
+is `Rule::UNREAD`: the ordinance set the day from 1975, and the prefecture
+was restored in 1972, but no instrument read says what the day was for
+the prefecture's offices before the 休日条例, so those years are a gap
+rather than a guess (policy §4). The other days
 are observances of the same shape, 東京 and 山形's education days
 `Rule::NthWeekday` Saturdays, and 山形's `read_from` 2026, the year of the
 page read, since its 要綱's year is not known. Aichi's school holiday is
@@ -332,8 +337,11 @@ Wednesday 6 May, which the old wording could not have reached.
     県の記念日 and Ehime's 県政発足記念日, which are gaps in every year, and
     Aichi's school holiday, whose days are in PDF lists; see the tables.
     The prefectures where no ordinance was found are listed among the
-    table's subdivisions read, and asked for, answer with the national
-    days and no gap.
+    table's subdivisions read, from the year of their 休日条例, 1989, and
+    asked for, answer with the national days and no gap from then; the
+    years before are a gap, since the ordinances read are those in force
+    now and the regime before the 休日条例 was not read (see the
+    paragraph after the table of prefectures).
   - Not yet carried: the days listed under "Not yet carried" after the
     tables, and every municipality's days beyond the twenty designated
     cities and 長崎, which no survey has read yet. Asked for, such a city
@@ -410,11 +418,67 @@ prefecture's own was found by the search described after the table.
 | JP-44 | 大分県 | no ordinance found † | | | | | |
 | JP-45 | 宮崎県 | no ordinance found | | | | | |
 | JP-46 | 鹿児島県 | 県民の日 (Kagoshima Citizens' Day), 14 July | 鹿児島県県民の日を定める条例, 平成30年鹿児島県条例第45号, in force 2018-12-25 [jp-pref-46] | events, fees waived | not listed | 2019 | observance |
-| JP-47 | 沖縄県 | 慰霊の日 (Okinawa Memorial Day), 23 June | 沖縄県慰霊の日を定める条例, 昭和49年沖縄県条例第42号, in force 1974-10-21; 沖縄県の休日を定める条例, 平成3年沖縄県条例第15号, Article 1 item 4, in force 1991-05-26 [jp-pref-47] | a 県の休日: the prefecture's offices closed | 休業日 | 1991 as a 県の休日; 1975–1990 a gap | government |
+| JP-47 | 沖縄県 | 慰霊の日 (Okinawa Memorial Day), 23 June | 沖縄県慰霊の日を定める条例, 昭和49年沖縄県条例第42号, in force 1974-10-21; 沖縄県の休日を定める条例, 平成3年沖縄県条例第15号, Article 1 item 4, in force 1991-05-26 [jp-pref-47] | a 県の休日: the prefecture's offices closed | 休業日 | 1991 as a 県の休日; 1972–1990 a gap (the prefecture was restored on 15 May 1972; before it the islands were the 琉球政府's) | government |
 
 The two amendments found change neither a date nor a name: 平成19年静岡県条例
 第42号 reworded Shizuoka's Article 3, and 栃木県 amended its fee article in
 1995 and 2005. No other carried ordinance shows an amendment.
+
+**The years the prefectures with no day were read for.** The
+ordinances read are the ones in force now, and the 例規集 does not show a
+day a prefecture set and later repealed. Each prefecture's 休日条例 of
+1989 began the regime the 例規集 shows, so a prefecture with no day of its
+own is answered from the year of its 休日条例 and is a gap before it
+(`Subdivisions::ReadFrom`, ADR 0013; audit 10 a4). The 公布 dates, from the
+archive's copies of the 例規集, which give each ordinance's number and
+promulgation date, read 2026-10-03: the archive's certificate had expired,
+so they were read over that connection without the certificate's check,
+through a parser and never saved, and these dates were not checked against
+each prefecture's own page, as the others, which agree with every official
+page also read, were:
+
+| Region | 休日条例 | 公布 |
+| --- | --- | --- |
+| JP-02 青森県 | 青森県の休日に関する条例, 平成元年条例第3号 | 1989-03-23 |
+| JP-03 岩手県 | 岩手県の休日に関する条例, 平成元年条例第1号 | 1989-03-11 |
+| JP-04 宮城県 | 宮城県の休日を定める条例, 平成元年条例第10号 | 1989-02-28 |
+| JP-06 山形県 | 山形県の休日を定める条例, 平成元年条例第10号 | 1989-03-22 |
+| JP-14 神奈川県 | 神奈川県の休日を定める条例, 平成元年条例第12号 | 1989-03-28 |
+| JP-15 新潟県 | 新潟県の休日を定める条例, 平成元年条例第5号 | 1989-03-24 |
+| JP-17 石川県 | 石川県の休日を定める条例, 平成元年条例第16号 | 1989-03-24 |
+| JP-20 長野県 | 長野県の休日を定める条例, 平成元年条例第5号 | 1989-03-27 |
+| JP-21 岐阜県 | 岐阜県の休日を定める条例, 平成元年条例第5号 | 1989-03-28 |
+| JP-25 滋賀県 | 滋賀県の休日を定める条例, 平成元年条例第10号 | 1989-03-30 |
+| JP-26 京都府 | 京都府の休日を定める条例, 平成元年条例第4号 | 1989-03-30 |
+| JP-27 大阪府 | 大阪府の休日に関する条例, 平成元年条例第2号 | 1989-03-27 |
+| JP-28 兵庫県 | 兵庫県の休日を定める条例, 平成元年条例第15号 | 1989-03-28 |
+| JP-29 奈良県 | 奈良県の休日を定める条例, 平成元年条例第32号 | 1989-03-31 |
+| JP-32 島根県 | 島根県の休日を定める条例, 平成元年条例第9号 | 1989-03-25 |
+| JP-33 岡山県 | 岡山県の休日を定める条例, 平成元年条例第2号 | 1989-03-28 |
+| JP-34 広島県 | 広島県の休日を定める条例, 平成元年条例第2号 | 1989-03-27 |
+| JP-35 山口県 | 山口県の休日に関する条例, 平成元年条例第16号 | 1989-07-04 |
+| JP-36 徳島県 | 徳島県の休日を定める条例, 平成元年条例第3号 | 1989-03-23 |
+| JP-39 高知県 | 高知県の休日を定める条例, 平成元年条例第2号 | 1989-03-24 |
+| JP-40 福岡県 | 福岡県の休日を定める条例, 平成元年条例第23号 | 1989-07-11 |
+| JP-41 佐賀県 | 佐賀県の休日に関する条例, 平成元年条例第29号 | 1989-07-08 |
+| JP-42 長崎県 | 長崎県の休日を定める条例, 平成元年条例第43号 | 1989-07-18 |
+| JP-43 熊本県 | 熊本県の休日を定める条例, 平成元年条例第10号 | 1989-03-25 |
+| JP-44 大分県 | 大分県の休日を定める条例, 平成元年条例第21号 | 1989-07-10 |
+| JP-45 宮崎県 | 宮崎県の休日を定める条例, 平成元年条例第22号 | 1989-07-08 |
+| JP-01-100 札幌市 | 札幌市の休日を定める条例, 平成2年条例第23号 | 1990-06-15 |
+| JP-04-100 仙台市 | 仙台市の休日を定める条例, 平成元年条例第61号 | 1989-09-22 |
+| JP-15-100 新潟市 | 新潟市の休日を定める条例, 平成元年条例第35号 | 1989-10-09 |
+| JP-27-100 大阪市 | 大阪市の休日を定める条例, 平成3年条例第42号 | 1991-12-24, in force 1992-04-01 |
+| JP-40-100 北九州市 | 北九州市の休日を定める条例, 平成3年条例第2号 | 1991-03-25 |
+| JP-40-130 福岡市 | 福岡市の休日を定める条例, 平成2年条例第52号 | 1990-12-22 |
+
+The year is the year of the 公布; the 施行 dates were not read, and a
+prefecture whose ordinance came into force in the next year is answered
+a year early. The years before it, back to 1948, are a gap. 岩手 and
+宮城, which have the earthquake memorial days of their own, are read
+from 1989 all the same. A prefecture with a day of its own is not made a
+gap by this: it is answered in every year from its own rule's, and
+absent before it, as the ordinance says.
 
 **How "no ordinance found" was searched.** Where the 例規集 is a static
 index (Aomori, Iwate, Akita, Yamagata, Ibaraki, Tochigi, Shiga, Kyoto,
@@ -495,7 +559,7 @@ is the city's own schools.
 | JP-01-100 | 札幌市 | no instrument found; four of the index's pages searched | | | | |
 | JP-04-100 | 仙台市 | no instrument found | | | | |
 | JP-11-100 | さいたま市 | さいたま市民の日, 1 May | さいたま市民の日条例, 令和3年さいたま市条例第1号, 2021-03-11; fees waived | 休業日 from 2021-04-01 | 2021 | school |
-| JP-12-100 | 千葉市 | 千葉市の市民の日, 18 October | 平成7年千葉市告示第373号, 1995-12-18 | not listed | 1996 | observance |
+| JP-12-100 | 千葉市 | 千葉市の市民の日, 18 October; the prefecture's 県民の日, 15 June, as an observance only | 平成7年千葉市告示第373号, 1995-12-18 | not listed; 千葉市立小学校及び中学校管理規則 Article 19-2 (as amended to 令和7年教委規則第5号, read 2026-10-03) lists no 県民の日 [jp-chiba-city-school-rule], and a page on the city's schools says it moves the day to the autumn break | 1996 | observance |
 | JP-14-100 | 横浜市 | 開港記念日, 2 June | 横浜市開港記念日条例, 令和7年横浜市条例第21号, 2025-03-31; before it the city assembly's resolutions, not read | 休業日; the article as amended in January 2021 | read from 2021 | school |
 | JP-14-130 | 川崎市 | 市制記念日, 1 July | 昭和12年川崎市告示第163号, 1937-06-25 | 休業日, in the text of 2026, the earliest copy read | 1937 | observance to 2025, school from 2026 |
 | JP-14-150 | 相模原市 | 市制施行記念日, named in 相模原市表彰条例 Article 10 without a date | | not listed | | gap |
@@ -600,7 +664,9 @@ year and in 2026, absent the year before it began, its kind and its
 instrument; 都民の日 in `JP-13` and in no other region nor nationwide;
 Chiba's and Tochigi's 15 June each in its own prefecture; the region
 matched in either case; no prefectural day a day off; Okinawa's gap for
-1975–1990 and nothing in 1974; each of the other days in its first year
+1972–1990 and nothing in 1971; the prefectures and cities read for no day a
+gap before their 休日条例 of 1989 and later; 千葉市's 15 June an observance
+and the prefecture's a school day; each of the other days in its first year
 and 2026 and not the year before, 東京's and 山形's Saturdays, and Aichi's
 gap from 2023. The cities are pinned in
 `crates/hc-holiday/tests/japan_municipalities.rs`: each day in its first
@@ -669,11 +735,12 @@ What the tests cannot check, and a reader should know:
 | [jp-bank-act-order] | 銀行法施行令 Article 5: a bank's holidays are the national ones | Yes, 2026-09-28, the e-Gov law API |
 | [jp-pref-holiday-ordinances] | The forty-seven 休日条例: their numbers, commencement and the days each lists | Yes, 2026-09-28, in each 例規集 or the archive's copy |
 | [jp-pref-01] … [jp-pref-47] | Each prefecture's ordinance: the date, the first year, what it does; the school rule that lists the day | Yes, 2026-09-28; the entries' notes say where each was read |
-| [doshisha-jorei-archive] | The copies of the 例規集 that answer only a form | Yes, 2026-09-28, through its search interface |
+| [doshisha-jorei-archive] | The copies of the 例規集 that answer only a form | Yes, 2026-09-28, through its search interface; the numbers and 公布 dates of the 休日条例 of 26 prefectures and six cities, 2026-10-03, through its search API (certificate expired; read without its check, through a parser, not saved) |
 | [okinawa-archives-irei] | 慰霊の日 under the 琉球政府: 22 June from 1961, 23 June from 1965 | Yes, 2026-09-28; the two acts themselves not read |
 | [jp-pref-ordinance-days] | The prefectures' other days: 竹島の日, 富士山の日, びわ湖の日, the memorial days and the rest; the second search for Akita's and Ehime's instruments | Yes, 2026-09-29, the archive's copies and two 例規集 |
 | [jp-pref-education-days] | The eleven education-day ordinances, Saitama's 告示, and the four boards' pages | Yes, 2026-09-29; 山形's, 滋賀's and 奈良's instruments themselves not read |
 | [jp-aichi-school-holiday] | The 学則's item and the board's candidate days | Yes, 2026-09-29; the lists of the days chosen are PDF, not read |
+| [jp-chiba-city-school-rule] | 千葉市立小学校及び中学校管理規則 Article 19-2: the 休業日 of the city's schools, which list no 県民の日; the rule's number and its latest amendment, 令和7年教委規則第5号 | Yes, 2026-10-03, on 千葉市's 例規集 (g-reiki.net) |
 | [jp-city-designated] | The twenty designated cities' and 長崎's days, 休日条例 and school rules | Yes, 2026-09-29, each 例規集 or the archive's copy |
 | [jis-x0402-cities] | The cities' 全国地方公共団体コード | Yes, 2026-09-29, Wikipedia; JIS X 0402 itself not read |
 

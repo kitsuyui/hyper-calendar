@@ -2260,7 +2260,8 @@ export interface HolidayTable {
   /**
    * The ISO 3166-2 codes of the subdivisions the table's sources were read for, in code order:
    * `regions` and those read and found to keep no day of their own. A region outside it keeps
-   * the nationwide days and has a gap for its own. Empty for a table with no subdivisions.
+   * the nationwide days and has a gap for its own, and so does one in it for a year before the first its
+   * sources were read for (`JP-27` before 1989). Empty for a table with no subdivisions.
    */
   readSubdivisions: string[];
   /**
@@ -2976,7 +2977,7 @@ export class HyperCalendar {
   /** `hc_night_watch`: `null` from 05:00 to 18:59. */
   nightWatch(secondsOfDay: number, locale?: string): NightWatch | null;
 
-  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table, or a group naming no group of `holidayGroups`, is `unknown`. */
+  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table, a group naming no group of `holidayGroups`, or a region the table's country has no subdivision for, is `unknown`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint, group?: string): boolean;
   /** `hc_holiday_add_business_days`: a day moved by business days of a table. */
   holidayAddBusinessDays(code: string, region: string, fixed: number | bigint, count: number | bigint, group?: string): number;

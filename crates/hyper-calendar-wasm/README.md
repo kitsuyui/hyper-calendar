@@ -2673,8 +2673,11 @@ the identifier and the source — and, called with a null buffer, returns the
 length the text needs so the caller can allocate exactly. The region is the subdivision whose own entry the
 line is: asked for `JP` in the region `JP-13`, the lines are Japan's
 nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
-region matches in either case, and one the table's sources were not read
-for gives the nationwide days and a gap line for its own. The group is the group of people whose own entry the
+region matches in either case. One the table's country has and its
+sources were not read for, or not before a year (`JP-27` before 1989), gives
+the nationwide days and a gap line for its own; a code the country has no
+subdivision for (`US-ZZ`, `JP-99`, `JP garbage`), and any region of a
+tradition's table, is `unknown`. The group is the group of people whose own entry the
 line is, in the same way: asked for `CN` for the group `women`, the lines
 are China's days for everyone and the half day of 8 March, and only that
 line carries `women`. The identifier is the holiday's stable identifier

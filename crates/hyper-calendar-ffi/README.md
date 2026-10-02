@@ -912,8 +912,11 @@ its rule cites — reporting the length it needs through `written` like
 every other text function here. The region is the subdivision whose own entry the line is:
 asked for `JP` in `JP-13`, the lines are Japan's nationwide days and
 Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A region matches in
-either case, and one the table's sources were not read for gives the
-nationwide days and a gap line for its own. After the entries come the
+either case. One the table's country has and its sources were not read
+for, or not before a year (`JP-27` before 1989), gives the nationwide days
+and a gap line for its own; a code the country has no subdivision for
+(`US-ZZ`, `JP-99`, `JP garbage`), and any region of a tradition's table, is
+refused as unknown. After the entries come the
 year's gaps, as `hc_holidays_on` writes them: an empty date and
 confidence, the kind `gap`, and the region and group whose own gap it is.
 The group is the group of people whose own entry the line is, in the

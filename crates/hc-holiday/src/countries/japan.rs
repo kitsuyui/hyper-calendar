@@ -420,11 +420,23 @@ static RULES: &[HolidayRule] = &[
         .cited("県民の日を定める条例 (昭和59年千葉県条例第3号)"),
     prefectural("Chiba Citizens' Day", "県民の日", 6, 15, 2016, CHIBA)
         .of_kind(Kind::School)
+        .except_in(CHIBA_CITY)
         .cited(
-            "県民の日を定める条例 (昭和59年千葉県条例第3号); a 休業日 of \
-             県立高等学校管理規則 (昭和54年千葉県教育委員会規則第1号) Article 7, \
-             as the rule read in force on 6 June 2016, the earliest copy read",
+            "県民の日を定める条例 (昭和59年千葉県条例第3号); a 休業日 of the prefectural \
+             high schools by 県立高等学校管理規則 (昭和54年千葉県教育委員会規則第1号) \
+             Article 7, as the rule read in force on 6 June 2016, the earliest copy read",
         ),
+    // The prefectural high schools of 千葉市 close on the day, but its own
+    // schools do not: 千葉市立小学校及び中学校管理規則 (昭和39年千葉市教育委員会
+    // 規則第1号) Article 19-2, as amended to 令和7年教委規則第5号 (1 September
+    // 2025), lists no 県民の日 among their 休業日, and a page on the schools
+    // says the city moves it to the autumn break. So in the city the day is
+    // the ordinance's observance and not a day the schools close on.
+    prefectural("Chiba Citizens' Day", "県民の日", 6, 15, 2016, CHIBA_CITY).cited(
+        "県民の日を定める条例 (昭和59年千葉県条例第3号); not a 休業日 of 千葉市立小学校及び\
+         中学校管理規則 (昭和39年千葉市教育委員会規則第1号) Article 19-2, as amended to \
+         令和7年教委規則第5号, in force 1 September 2025",
+    ),
     prefectural("Tokyo Citizens' Day", "都民の日", 10, 1, 1952, TOKYO)
         .years(Some(1952), Some(2001))
         .cited("都民の日条例 (昭和27年東京都条例第75号)"),
@@ -530,10 +542,15 @@ static RULES: &[HolidayRule] = &[
     // 慰霊の日 was set by ordinance from 1975, and has been a 県の休日 since
     // the 休日条例 came into force on 26 May 1991. What it was for the
     // prefecture's offices in 1975–1990 no instrument read says, so those
-    // years are a gap rather than a guess.
+    // years are a gap rather than a guess. The prefecture was restored on
+    // 15 May 1972; the 琉球政府 kept the day from 1961 (22 June, 23 June from
+    // 1965) by acts that were not read, and what the prefecture kept in
+    // 1972, 1973 and 1974, before the ordinance came into force on 21 October
+    // 1974, is not said by any instrument read either: those years are a gap
+    // too. Before 1972 the islands were not a prefecture of Japan.
     HolidayRule::observance("Okinawa Memorial Day", "慰霊の日", Rule::UNREAD)
         .of_kind(Kind::Government)
-        .years(Some(1975), Some(1990))
+        .years(Some(1972), Some(1990))
         .in_regions(OKINAWA)
         .cited("沖縄県慰霊の日を定める条例 (昭和49年沖縄県条例第42号)"),
     prefectural("Okinawa Memorial Day", "慰霊の日", 6, 23, 1991, OKINAWA)
@@ -898,39 +915,45 @@ pub static JAPAN: RuleSet = RuleSet {
               例規集 or the 条例Webアーカイブ's copies of them, read 2026-09-29, as \
               docs/systems/japan-holidays.md lists them",
     // The prefectures whose 休日条例 and 例規集 were read and give no day of
-    // their own, and the designated cities read that give none.
-    subdivisions: Subdivisions::Read(&[
-        "JP-02",
-        "JP-03",
-        "JP-04",
-        "JP-06",
-        "JP-14",
-        "JP-15",
-        "JP-17",
-        "JP-20",
-        "JP-21",
-        "JP-25",
-        "JP-26",
-        "JP-27",
-        "JP-28",
-        "JP-29",
-        "JP-32",
-        "JP-33",
-        "JP-34",
-        "JP-35",
-        "JP-36",
-        "JP-39",
-        "JP-40",
-        "JP-41",
-        "JP-42",
-        "JP-43",
-        "JP-44",
-        "JP-45",
-        "JP-01-100",
-        "JP-04-100",
-        "JP-15-100",
-        "JP-27-100",
-        "JP-40-100",
-        "JP-40-130",
+    // their own, and the designated cities read that give none, each from
+    // the year of its 休日条例: the ordinances read are those in force now,
+    // and the regime before the 休日条例 was not read. Prefectures: the
+    // 休日条例 of 1989 (公布 February to July 1989), from the 条例Webアーカイブ
+    // (docs/systems/japan-holidays.md); cities: Sapporo 1990, Sendai 1989,
+    // Niigata 1989, Osaka 1992 (in force 1 April), Kitakyushu 1991 and
+    // Fukuoka 1990.
+    subdivisions: Subdivisions::ReadFrom(&[
+        ("JP-02", 1989),
+        ("JP-03", 1989),
+        ("JP-04", 1989),
+        ("JP-06", 1989),
+        ("JP-14", 1989),
+        ("JP-15", 1989),
+        ("JP-17", 1989),
+        ("JP-20", 1989),
+        ("JP-21", 1989),
+        ("JP-25", 1989),
+        ("JP-26", 1989),
+        ("JP-27", 1989),
+        ("JP-28", 1989),
+        ("JP-29", 1989),
+        ("JP-32", 1989),
+        ("JP-33", 1989),
+        ("JP-34", 1989),
+        ("JP-35", 1989),
+        ("JP-36", 1989),
+        ("JP-39", 1989),
+        ("JP-40", 1989),
+        ("JP-41", 1989),
+        ("JP-42", 1989),
+        ("JP-43", 1989),
+        ("JP-44", 1989),
+        ("JP-45", 1989),
+        ("JP-01-100", 1990),
+        ("JP-04-100", 1989),
+        ("JP-15-100", 1989),
+        ("JP-27-100", 1992),
+        ("JP-40-100", 1991),
+        ("JP-40-130", 1990),
     ]),
 };

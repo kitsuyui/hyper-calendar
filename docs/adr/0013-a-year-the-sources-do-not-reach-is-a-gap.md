@@ -52,6 +52,27 @@ A rule carries both facts, and the engine reports the difference.
   found to have no days of their own, are answered; any other region keeps
   the nationwide days and a gap, `UNREAD_SUBDIVISION`, in each year asked
   for.
+- `Subdivisions::ReadFrom(list)` is `Read` with a first year for each
+  listed subdivision: one read in the ordinances in force now, which give
+  it no day of its own and say nothing of the regime before the one they
+  began, is a gap before that year. Japan's twenty-six prefectures and six
+  cities whose 休日条例 gives them none are read from the year of it, 1989
+  to 1992 (audit 10 a4). A region a rule is scoped to and `ReadFrom` does
+  not list is read in every year, and the rule's own years say which it
+  answers for.
+- A rule counted from Easter is resolvable only where `Computus::easter`
+  has an answer: 1583 to 4099 for the Gregorian computus, 326 to 4099 for
+  the Julian. Outside them it is a gap, and so are the `Offset`, `Span`
+  and `MovedByWeekday` rules built on it, as the rules of a calendar's
+  range already were (audit 10 a3).
+- A gap two rules of one table write, with one identifier, is written
+  once a year.
+- The boundary refuses a region the table's country has no subdivision for
+  (`US-ZZ`, `JP-99`, `JP garbage`, `JP-14-130-5`) as unknown, as it
+  refuses a group that is no group. A subdivision that exists and was not
+  read is the gap above; a typo no longer looks like one (audit 10 b25).
+  The shape of a code is `hc_holiday::rule::is_region_code`, the
+  subdivisions are `hc_i18n::place_names`', and the facade joins them.
 - `Rule::NO_DAY` is a day a text read does not keep. With `read_from` and
   a region, it says that the province's text of 2026 leaves a federal day
   out and that the texts before it were not read.

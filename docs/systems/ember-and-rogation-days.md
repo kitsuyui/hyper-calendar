@@ -119,7 +119,16 @@ The two churches agree in Lent and part in the other three seasons.
   [wikipedia-ember-days; wikipedia-grc-1960], and those of Pentecost the
   octave's days; `docs/systems/roman-calendar-1960.md` says more.
 - **Every entry is religious and none is a day off.** They are computed
-  on the Gregorian computus, so they cover the years it gives, 1583–4099.
+  on the Gregorian computus, so they cover the years it gives, 1583–4099,
+  and a year outside it is a gap.
+- **The years.** `ember-bcp1662` is absent before 1662, the year of the
+  book, and a gap from 1662 to 1752, when England kept the Julian
+  calendar, whose Easter and days this table does not compute (as
+  `bcp-1662`'s calendar says of its own years); it answers from 1753.
+  `ember-common-worship` is absent before 2000, a gap in 2000, which holds
+  only the Advent *Common Worship* was launched on, and answers from 2001,
+  as `common-worship` does, on the Rules as the Church now publishes them
+  (audit 10 a2).
 
 Not carried:
 

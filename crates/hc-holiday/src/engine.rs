@@ -650,8 +650,24 @@ fn evaluate_with_includes(
     }
     if !rules.includes.is_empty() {
         holidays.sort_by_key(|holiday| holiday.date);
+        dedup_gaps(&mut gaps);
     }
     (holidays, gaps)
+}
+
+/// Keep the first gap of each year and identifier.
+fn dedup_gaps(gaps: &mut Vec<Gap>) {
+    let mut seen: Vec<(i64, HolidayId)> = Vec::with_capacity(gaps.len());
+    gaps.retain(|gap| {
+        if seen
+            .iter()
+            .any(|&(year, id)| year == gap.year && id == gap.id)
+        {
+            return false;
+        }
+        seen.push((gap.year, gap.id));
+        true
+    });
 }
 
 /// Evaluate a rule set over `first_day..=last_day`, apply every modifier,
@@ -690,10 +706,11 @@ fn evaluate(
     let mut gaps: Vec<Gap> = Vec::new();
     // A subdivision the table was not read for keeps the nationwide days,
     // and its own are a gap in every year asked for.
-    if let Some(region) = scope.region
-        && !rules.reads_region(region)
-    {
+    if let Some(region) = scope.region {
         for year in first_year..=last_year {
+            if rules.reads_region_in(region, year) {
+                continue;
+            }
             gaps.push(Gap {
                 year,
                 id: UNREAD_SUBDIVISION_ID,
@@ -734,7 +751,17 @@ fn evaluate(
             // the rule's sources were not read for is a gap whatever its
             // shape could compute.
             if rule.is_unread_in(year) || !rule.rule.is_resolvable_with(year, context) {
-                if (first_year..=last_year).contains(&year) {
+                // Two rules that share an identifier are one unknown day:
+                // Quebec's table has two rules for "Good Friday or Easter
+                // Monday, at the employer's choice", and a year it could
+                // not answer is one gap, not two. The gaps are written year
+                // by year, so only the tail can share the year.
+                let written = gaps
+                    .iter()
+                    .rev()
+                    .take_while(|gap| gap.year == year)
+                    .any(|gap| gap.id == rule.id());
+                if (first_year..=last_year).contains(&year) && !written {
                     gaps.push(Gap {
                         year,
                         id: rule.id(),
