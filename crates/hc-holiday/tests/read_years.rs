@@ -118,7 +118,7 @@ fn the_subdivisions_no_source_was_read_for_are_gaps() {
         (&countries::MEXICO, "MX-CMX"),
         (&countries::MEXICO, "MX-NLE"),
         (&countries::NEW_ZEALAND, "NZ-NTL"),
-        (&countries::RUSSIA, "RU-ME"),
+        (&countries::RUSSIA, "RU-MO"),
         (&countries::NEPAL, "NP-P1"),
         (&countries::BOLIVIA, "BO-X"),
         (&countries::CHINA, "CN-BJ"),

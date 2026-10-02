@@ -73,6 +73,8 @@ static XNYS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Nearest,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -265,6 +267,8 @@ static XASX_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -481,6 +485,8 @@ static XTSE_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -679,6 +685,8 @@ static XDUB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1657,6 +1665,7 @@ pub static BOLSA_MEXICANA_DE_VALORES: RuleSet = RuleSet {
 static XTAE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2026),
@@ -1664,6 +1673,7 @@ static XTAE_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
         valid_from: Some(2026),
         valid_from_day: Some((1, 4)),
         valid_until: None,
@@ -1804,6 +1814,7 @@ pub static TEL_AVIV_STOCK_EXCHANGE: RuleSet = RuleSet {
 static XSAU_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2013),
@@ -1811,6 +1822,7 @@ static XSAU_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2013),
         valid_from_day: Some((6, 29)),
         valid_until: None,

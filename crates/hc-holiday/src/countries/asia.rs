@@ -833,6 +833,8 @@ static TW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::NearestWorkingDay,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2012),
     valid_until: None,
 }];
@@ -1164,6 +1166,8 @@ static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[
         direction: SubstituteDirection::Forward,
         skip_occupied: false,
         on_collision: false,
+        regions: &[],
+        avoid: &[],
         valid_from: Some(1989),
         valid_until: Some(1990),
     },
@@ -1175,6 +1179,8 @@ static KR_SUBSTITUTION: &[SubstitutionPolicy] = &[
         // third. 5 May 2025 was Children's Day and Buddha's Birthday at
         // once, and 6 May was the 대체공휴일.
         on_collision: true,
+        regions: &[],
+        avoid: &[],
         valid_from: Some(2014),
         valid_until: None,
     },
@@ -1515,6 +1521,8 @@ static TH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1728,6 +1736,8 @@ static VN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -2106,6 +2116,8 @@ static SG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -2267,17 +2279,145 @@ static MY_RULES: &[HolidayRule] = &[
     HolidayRule::public("Christmas Day", "Hari Krismas", Rule::gregorian(12, 25)),
 ];
 
-static MY_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
-    trigger: &[Weekday::Sunday],
-    direction: SubstituteDirection::Forward,
-    skip_occupied: true,
-    on_collision: false,
-    valid_from: None,
-    valid_until: None,
-}];
+/// The weekend of the states whose own law differs, over the years the
+/// sources reach (ADR 0015).
+///
+/// Most of Malaysia keeps Saturday and Sunday, the table's own policy. Four
+/// states have kept Friday: the Holidays Act 1951 defines the weekly
+/// holiday as Sunday or, in the States where Friday is observed, Friday,
+/// and the Unfederated Malay States, Johor, Kedah, Kelantan, Perlis and
+/// Terengganu, kept Friday before independence (Tun Dr Mahathir's memoir,
+/// as a blog quotes it, secondary).
+///
+/// * **Kedah, Kelantan and Terengganu** keep Friday and Saturday. The
+///   sources read reach back to Jakarta Post's report of 25 November 2013
+///   that they are the states that "now have Friday and Saturday as rest
+///   days", and the National Security Council's (MKN) notice of 31 December
+///   2024 says they still are the only ones, the policy running from the
+///   report's day. Before it the weekend law of each state was not read:
+///   those years are a gap, which is also why Perlis, which the report does
+///   not name and which keeps Saturday and Sunday in the sources read,
+///   has no policy of its own from that day.
+/// * **Johor** kept Saturday and Sunday from 1994 until 31 December 2013,
+///   as the Jakarta Post says ("prior to 1994" Johor kept the rest days
+///   that Sultan Ibrahim's decree of 2013 restored); the decree gave it
+///   Friday and Saturday from 1 January 2014 (the Jakarta Post, RTM and
+///   MKN agree); and from 1 January 2025 it keeps Saturday and Sunday again
+///   (the Regent's announcement of 7 October 2024, RTM and MKN). The years
+///   to 1994, in which the report says no more than "prior to 1994", are a
+///   gap, and the years of Saturday and Sunday are the table's own.
+/// * **Perlis** is a gap before the report's day too: the sources read give
+///   no date for its move off Friday, and a blog's account of a Perlis
+///   fatwa of 30 July 2009 asking to keep Friday disagrees with the 1994
+///   the memoir gives.
+static MY_WEEKEND: &[WeekendPolicy] = &[
+    WeekendPolicy {
+        days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: None,
+        valid_until_day: None,
+    },
+    // Johor: the years to 1994 are unread.
+    WeekendPolicy {
+        days: &[],
+        regions: &["MY-01"],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(1994),
+        valid_until_day: None,
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &["MY-01"],
+        valid_from: Some(2014),
+        valid_from_day: None,
+        valid_until: Some(2024),
+        valid_until_day: None,
+    },
+    // Kedah, Kelantan, Terengganu and Perlis: unread before the report's
+    // day, the day after which the three keep Friday and Saturday.
+    WeekendPolicy {
+        days: &[],
+        regions: &["MY-02", "MY-03", "MY-09", "MY-11"],
+        valid_from: None,
+        valid_from_day: None,
+        valid_until: Some(2013),
+        valid_until_day: Some((11, 24)),
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &["MY-02", "MY-03", "MY-11"],
+        valid_from: Some(2013),
+        valid_from_day: Some((11, 25)),
+        valid_until: None,
+        valid_until_day: None,
+    },
+];
+
+/// Holidays Act 1951, section 3: a public holiday that falls on a weekly
+/// holiday is moved to the day after, or the next day that is not itself a
+/// public holiday. Sunday is the weekly holiday, so a Sunday holiday goes
+/// to the Monday.
+///
+/// In the states that keep Friday and Saturday the secondary sources — the
+/// Wikipedia articles on public holidays in Malaysia, English and Malay, and
+/// an education portal's rule for the school calendar, pendidik2u.my — give
+/// the replacement day as the Sunday, since the Saturday is itself off: for
+/// Kedah, and for Johor while it kept Friday and Saturday, a holiday on a
+/// Friday; for Kelantan and Terengganu, a holiday on a Saturday. A Friday
+/// holiday in Kelantan and Terengganu, which the Act would move to the
+/// Saturday, gives no extra day off, and a Saturday holiday in Kedah is
+/// not replaced. The Attorney General's Chambers' text of the Act and the
+/// states' gazettes were not read as HTML, so the rule is carried from the
+/// secondary sources, which agree.
+static MY_SUBSTITUTION: &[SubstitutionPolicy] = &[
+    SubstitutionPolicy {
+        trigger: &[Weekday::Sunday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: true,
+        on_collision: false,
+        regions: &[],
+        avoid: &[],
+        valid_from: None,
+        valid_until: None,
+    },
+    SubstitutionPolicy {
+        trigger: &[Weekday::Friday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: true,
+        on_collision: false,
+        regions: &["MY-01"],
+        avoid: &[Weekday::Saturday],
+        valid_from: Some(2014),
+        valid_until: Some(2024),
+    },
+    SubstitutionPolicy {
+        trigger: &[Weekday::Friday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: true,
+        on_collision: false,
+        regions: &["MY-02"],
+        avoid: &[Weekday::Saturday],
+        valid_from: Some(2014),
+        valid_until: None,
+    },
+    SubstitutionPolicy {
+        trigger: &[Weekday::Saturday],
+        direction: SubstituteDirection::Forward,
+        skip_occupied: true,
+        on_collision: false,
+        regions: &["MY-03", "MY-11"],
+        avoid: &[],
+        valid_from: Some(2014),
+        valid_until: None,
+    },
+];
 
 /// Malaysia, federal holidays only: the states' own days, which the same
-/// yearly lists give, are not yet carried.
+/// yearly lists give, are not yet carried. The weekend of the states that
+/// keep Friday is: see `MY_WEEKEND`.
 pub static MALAYSIA: RuleSet = RuleSet {
     code: "MY",
     english_name: "Malaysia",
@@ -2285,7 +2425,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
     substitution: MY_SUBSTITUTION,
     bridges: &[],
     includes: &[],
-    weekend: SATURDAY_SUNDAY,
+    weekend: MY_WEEKEND,
     sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Holidays Act 1951, schedule; the Prime Minister's Department's \
               \"Jadual Hari Kelepasan Am Persekutuan\" for 2020 to 2027 (kabinet.gov.my, \
@@ -2305,9 +2445,22 @@ pub static MALAYSIA: RuleSet = RuleSet {
               gazette announces the day. The states' own days, which the same lists \
               give — Thaipusam among them, whose rule is `hindu::THAIPUSAM` — are not \
               yet carried: the lists, PDFs, have been read for the federal days only, \
-              and kabinet.gov.my refuses requests for them. Nor is the \
-              Friday–Saturday weekend of Johor, Kedah, Kelantan and Terengganu, which a \
-              weekend policy, having no region, cannot scope",
+              and kabinet.gov.my refuses requests for them. The weekend of the states \
+              that keep Friday, and Johor's changes, are carried from: the Jakarta Post \
+              of 25 November 2013, \"Malaysia's southern state changes weekend to \
+              Friday-Saturday\" (the decree of Sultan Ibrahim of Johor for 1 January 2014, \
+              the three states that already kept Friday and Saturday, and Johor's \
+              Saturday–Sunday weekend since 1994); Radio Televisyen Malaysia (berita.rtm.gov.my) \
+              \"Johor to revert weekend to Saturday and Sunday in 2025\", of 7 October 2024 \
+              (the Regent's announcement, effective 1 January 2025); the National \
+              Security Council's (mkn.gov.my) notice of 31 December 2024 (Johor's weekend from \
+              the next day, and Kedah, Kelantan and Terengganu as the states that keep Friday \
+              and Saturday); and, as secondary sources, the Holidays Act 1951 sections 2 and 3 \
+              as mylaw.my reproduces them, and Wikipedia's \"Public holidays in Malaysia\" and \
+              \"Cuti umum di Malaysia\" and pendidik2u.my's \"Formula Cuti Berganti Negeri \
+              Yang Berbeza\" for the replacement days of those states, all retrieved \
+              2026-10-03; the Attorney General's Chambers' text of the Act, whose host \
+              commonlii.org answers a bot check, was not read",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -2707,6 +2860,7 @@ pub static PHILIPPINES: RuleSet = RuleSet {
 static NP_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Saturday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2026),
@@ -2714,6 +2868,7 @@ static NP_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
         valid_from: Some(2026),
         valid_from_day: Some((4, 6)),
         valid_until: None,
@@ -3316,6 +3471,7 @@ pub static PAKISTAN: RuleSet = RuleSet {
 /// ones on a Friday or a Saturday.
 static BD_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -3385,7 +3541,7 @@ fn bd_jumatul_bida(year: i64) -> Days {
     out
 }
 
-static BD_RULES: &[HolidayRule] = &[
+pub(super) static BD_RULES: &[HolidayRule] = &[
     // The general holidays (সাধারণ ছুটি) on a fixed day.
     HolidayRule::fixed_public(
         "Shaheed Day and International Mother Language Day",
@@ -3490,13 +3646,16 @@ static BD_RULES: &[HolidayRule] = &[
 /// after Eid-ul-Azha, are the pattern both notifications give; another
 /// year's order may give others.
 ///
-/// The optional holidays (ঐচ্ছিক ছুটি) an employee may choose three of are
-/// not carried. Nothing moves off the weekend: the notifications count
-/// the holidays that fall on one and give nothing in their place.
+/// The optional holidays (ঐচ্ছিক ছুটি), of which an employee may enjoy at
+/// most three of their own religion's, are in `bangladesh_optional.rs`,
+/// each a rule given to the group of its faith, for the years of the two
+/// notifications; the cap of three is documented there, not computed.
+/// Nothing moves off the weekend: the notifications count the holidays
+/// that fall on one and give nothing in their place.
 pub static BANGLADESH: RuleSet = RuleSet {
     code: "BD",
     english_name: "Bangladesh",
-    rules: BD_RULES,
+    rules: &super::bangladesh_optional::BD_ALL_RULES,
     substitution: &[],
     bridges: &[],
     includes: &[],
@@ -3510,7 +3669,11 @@ pub static BANGLADESH: RuleSet = RuleSet {
               counts; the Cabinet Division's notification of 2 July 2025 declaring \
               5 August July Mass Uprising Day with a general holiday, as Prothom Alo \
               reported it the same day, retrieved 2026-09-23; ISO 3166-2:BD for the \
-              three hill districts",
+              three hill districts; for the optional holidays (ঐচ্ছিক ছুটি), the same \
+              notifications as the daily newspapers reproduce their lists, read as HTML \
+              because the PDFs on mopa.gov.bd were not opened: bdnews24.com (21 \
+              October 2024), Prothom Alo, Dainik Bangla and BVNews24 for 2025, Ajker \
+              Patrika and Ekhon TV for 2026, retrieved 2026-10-03",
     subdivisions: Subdivisions::Read(&[]),
 };
 
@@ -3717,6 +3880,8 @@ static HK_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3963,6 +4128,8 @@ static MO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2019),
     valid_until: None,
 }];
@@ -4305,6 +4472,8 @@ static AZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2006),
     valid_until: None,
 }];
@@ -4547,6 +4716,8 @@ static KZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -4680,6 +4851,8 @@ static UZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -4769,6 +4942,8 @@ static KG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: Some(2024),
 }];
@@ -4940,6 +5115,8 @@ static TJ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -5028,6 +5205,8 @@ static TM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -5384,6 +5563,7 @@ const KH_WATER_FESTIVAL: [[HolidayRule; 5]; 3] = [
 /// given on Sunday".
 static KH_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -5605,6 +5785,8 @@ static LA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2019),
     valid_until: None,
 }];
@@ -5679,6 +5861,7 @@ pub static LAOS: RuleSet = RuleSet {
 /// on a Saturday.
 static BN_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -5696,6 +5879,8 @@ static BN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -5795,6 +5980,7 @@ pub static BRUNEI: RuleSet = RuleSet {
 /// pode deixar de ser ao domingo" for work that cannot stop.
 static TL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6193,6 +6379,7 @@ pub static BHUTAN: RuleSet = RuleSet {
 /// 2024 puts its hours.
 static MV_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6284,6 +6471,7 @@ pub static MALDIVES: RuleSet = RuleSet {
 /// Thursday and the Saturday.
 static AF_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6396,6 +6584,7 @@ pub static AFGHANISTAN: RuleSet = RuleSet {
 /// of rest".
 static KP_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,

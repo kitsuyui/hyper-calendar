@@ -541,6 +541,8 @@ static CA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];

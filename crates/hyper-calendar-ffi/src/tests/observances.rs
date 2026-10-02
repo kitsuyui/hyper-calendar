@@ -73,13 +73,14 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         .split('\t')
         .collect();
     assert_eq!(japan[..5], ["JP", "country", "Japan", "Japan", "en"]);
-    assert_eq!(japan.len(), 13);
+    assert_eq!(japan.len(), 14);
     assert!(japan[8].split(';').any(|code| code == "JP-13"), "{japan:?}");
     assert_eq!(
         japan[9..11],
         ["", ""],
         "Japan gives no day to a group alone"
     );
+    assert_eq!(japan[13], "6+7///", "and keeps Saturday and Sunday");
     let china: Vec<&str> = english
         .lines()
         .find(|line| line.starts_with("CN\t"))

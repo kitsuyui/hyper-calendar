@@ -1561,6 +1561,8 @@ static PA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1666,6 +1668,8 @@ static JM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1749,6 +1753,8 @@ static TT_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1845,6 +1851,8 @@ static BB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1909,6 +1917,8 @@ static BS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1980,6 +1990,7 @@ pub static BAHAMAS: RuleSet = RuleSet {
 /// dominical" that article 97 moves.
 static CU_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -1994,6 +2005,8 @@ static CU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -2107,6 +2120,8 @@ static BZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -2203,6 +2218,8 @@ static GY_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3011,6 +3028,8 @@ static AG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3146,6 +3165,8 @@ static DM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3217,6 +3238,8 @@ static GD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3310,6 +3333,8 @@ static KN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3372,6 +3397,8 @@ static LC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3440,6 +3467,8 @@ static VC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];

@@ -113,6 +113,8 @@ static AU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -204,6 +206,8 @@ static NZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -243,6 +247,8 @@ static FM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Nearest,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -310,6 +316,8 @@ static MH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Nearest,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -369,6 +377,8 @@ static NR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -483,6 +493,8 @@ static PW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Nearest,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -536,6 +548,8 @@ static PG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -602,6 +616,8 @@ static SB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -680,6 +696,8 @@ static TO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -773,6 +791,8 @@ static TV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -843,6 +863,8 @@ static VU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -910,6 +932,8 @@ static WS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];

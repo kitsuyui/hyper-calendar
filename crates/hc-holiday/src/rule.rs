@@ -2560,6 +2560,17 @@ pub struct SubstitutionPolicy {
     /// Children's Day and Buddha's Birthday at once — produced a day off on
     /// 6 May. Most countries simply let the two coincide.
     pub on_collision: bool,
+    /// The subdivisions the policy is the law of, as ISO 3166-2 codes, and
+    /// the municipalities within them; empty for the whole table. A
+    /// region's own policy is used in the region in place of the table's,
+    /// and the nearest region wins, as for a [`WeekendPolicy`] (ADR 0015).
+    pub regions: &'static [&'static str],
+    /// Weekdays, besides the `trigger`, that a substitute may not land on.
+    /// A day moved off a Friday in a state whose weekend is Friday and
+    /// Saturday goes past the Saturday to the Sunday: its trigger is the
+    /// Friday and the Saturday is avoided. Empty for a law whose weekend is
+    /// its trigger.
+    pub avoid: &'static [Weekday],
     /// The first Gregorian year the policy applies to.
     pub valid_from: Option<i32>,
     /// The last Gregorian year the policy applies to.
@@ -2572,6 +2583,23 @@ impl SubstitutionPolicy {
     pub const fn applies_in(&self, year: i64) -> bool {
         year_in_range(year, self.valid_from, self.valid_until)
     }
+}
+
+/// How near a policy scoped to `scoped` is to `region`, the widest being
+/// `Some(0)` for a policy of the whole table: `None` where the policy is
+/// not the region's, and otherwise the length of the longest code in
+/// `scoped` that `region` is or lies within, so that a municipality's own
+/// policy is nearer than its subdivision's (ADR 0015).
+fn region_nearness(scoped: &[&str], region: Option<&str>) -> Option<usize> {
+    if scoped.is_empty() {
+        return Some(0);
+    }
+    let region = region?;
+    scoped
+        .iter()
+        .filter(|code| region_within(region, code))
+        .map(|code| code.trim().len())
+        .max()
 }
 
 /// A "bridge" rule: a working day trapped between two holidays becomes one.
@@ -2616,8 +2644,16 @@ impl BridgePolicy {
 /// the table that carries it says what its source did not date.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct WeekendPolicy {
-    /// The weekend days.
+    /// The weekend days. Empty where the weekend law of these years was not
+    /// read for the policy's `regions`: the years are a gap, not a weekend
+    /// of no days ([`UNREAD_WEEKEND`]).
     pub days: &'static [Weekday],
+    /// The subdivisions the policy is the weekend of, as ISO 3166-2 codes
+    /// and the municipalities within them; empty for the whole table. A
+    /// region's own policy is used in the region in place of the table's,
+    /// and where a municipality's and its subdivision's both apply the
+    /// nearer wins (ADR 0015).
+    pub regions: &'static [&'static str],
     /// The first Gregorian year the policy applies to.
     pub valid_from: Option<i32>,
     /// The month and day in `valid_from`'s year on which the policy takes
@@ -2631,6 +2667,18 @@ pub struct WeekendPolicy {
 }
 
 impl WeekendPolicy {
+    /// Whether the weekend law of this policy's years was not read.
+    #[must_use]
+    pub const fn is_unread(&self) -> bool {
+        self.days.is_empty()
+    }
+
+    /// Whether some day of `year` is within the policy's years.
+    #[must_use]
+    pub const fn reaches_year(&self, year: i64) -> bool {
+        year_in_range(year, self.valid_from, self.valid_until)
+    }
+
     /// Whether this policy is in force on `day`.
     #[must_use]
     pub fn applies_on(&self, day: Rd) -> bool {
@@ -2659,6 +2707,7 @@ impl WeekendPolicy {
 /// The Saturday–Sunday weekend, with no start or end date.
 pub const SATURDAY_SUNDAY: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Saturday, Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -3198,6 +3247,12 @@ pub enum Subdivisions {
 /// no source read gives; see [`Subdivisions`].
 pub const UNREAD_SUBDIVISION: &str = "The subdivision's own days";
 
+/// The name of the gap the engine reports for a year in which the weekend
+/// law of the region asked for was not read: a [`WeekendPolicy`] whose
+/// `days` are empty. Business-day arithmetic over such a day refuses
+/// (ADR 0015).
+pub const UNREAD_WEEKEND: &str = "The weekend";
+
 /// A named table of holiday rules, with the policies that modify them.
 ///
 /// One country is one of these; so is one religious tradition. The evaluator
@@ -3238,26 +3293,118 @@ pub struct RuleSet {
 }
 
 impl RuleSet {
-    /// The substitution policy in force in `year`, if any.
+    /// The table's own substitution policy in force in `year`, if any: the
+    /// one of the whole table, not of a region. See
+    /// [`RuleSet::substitution_in_region`].
     #[must_use]
     pub fn substitution_in(&self, year: i64) -> Option<&'static SubstitutionPolicy> {
-        self.substitution
-            .iter()
-            .find(|policy| policy.applies_in(year))
+        self.substitution_in_region(year, None)
     }
 
-    /// The weekend days in force on `day`.
+    /// The substitution policy in force in `year` in `region`, if any.
+    ///
+    /// A policy scoped to a region that `region` is or lies within is the
+    /// region's own law and is used in place of the table's, the nearest
+    /// region first. A region with no policy of its own in `year` is
+    /// answered by the table's (ADR 0015).
+    #[must_use]
+    pub fn substitution_in_region(
+        &self,
+        year: i64,
+        region: Option<&str>,
+    ) -> Option<&'static SubstitutionPolicy> {
+        let mut best: Option<(usize, &'static SubstitutionPolicy)> = None;
+        for policy in self.substitution {
+            if !policy.applies_in(year) {
+                continue;
+            }
+            if let Some(nearness) = region_nearness(policy.regions, region)
+                && best.is_none_or(|(held, _)| nearness > held)
+            {
+                best = Some((nearness, policy));
+            }
+        }
+        best.map(|(_, policy)| policy)
+    }
+
+    /// The weekend days in force on `day` for the whole table.
     ///
     /// Asked of a day rather than a year, because a weekend law can change
     /// in the middle of one. Falls back to Saturday–Sunday when the table
     /// states nothing, because a table that states nothing has not made a
-    /// claim.
+    /// claim. See [`RuleSet::weekend_in`] for a region.
     #[must_use]
     pub fn weekend_on(&self, day: Rd) -> &'static [Weekday] {
-        self.weekend
+        self.weekend_in(None, day)
+            .unwrap_or(&[Weekday::Saturday, Weekday::Sunday])
+    }
+
+    /// The weekend days in force on `day` in `region`, or `None` where the
+    /// weekend law of that region on that day was not read.
+    ///
+    /// A [`WeekendPolicy`] scoped to a region that `region` is or lies
+    /// within is the region's own law and is used in place of the table's,
+    /// the nearest region first, as Malaysia's Kedah keeps Friday and
+    /// Saturday where the rest of the country keeps Saturday and Sunday. A
+    /// region with no policy of its own on `day` has the table's. A day no
+    /// policy covers has Saturday–Sunday, because a table that states
+    /// nothing has not made a claim (ADR 0015).
+    #[must_use]
+    pub fn weekend_in(&self, region: Option<&str>, day: Rd) -> Option<&'static [Weekday]> {
+        let mut best: Option<(usize, &'static WeekendPolicy)> = None;
+        for policy in self.weekend {
+            if !policy.applies_on(day) {
+                continue;
+            }
+            if let Some(nearness) = region_nearness(policy.regions, region)
+                && best.is_none_or(|(held, _)| nearness > held)
+            {
+                best = Some((nearness, policy));
+            }
+        }
+        match best {
+            Some((_, policy)) if policy.is_unread() => None,
+            Some((_, policy)) => Some(policy.days),
+            None => Some(&[Weekday::Saturday, Weekday::Sunday]),
+        }
+    }
+
+    /// Whether the weekend law of some day of `year` in `region` was not
+    /// read: a [`WeekendPolicy`] with no days that is the region's and
+    /// reaches the year.
+    #[must_use]
+    pub fn weekend_unread_in(&self, region: Option<&str>, year: i64) -> bool {
+        let candidate = self.weekend.iter().any(|policy| {
+            policy.is_unread()
+                && policy.reaches_year(year)
+                && region_nearness(policy.regions, region).is_some_and(|nearness| nearness > 0)
+        });
+        if !candidate {
+            return false;
+        }
+        let (Ok(first), Ok(next)) = (
+            gregorian::to_fixed(year, 1, 1),
+            gregorian::to_fixed(year + 1, 1, 1),
+        ) else {
+            return false;
+        };
+        (first.0..next.0).any(|day| self.weekend_in(region, Rd(day)).is_none())
+    }
+
+    /// Every subdivision code a weekend policy of the table is scoped to,
+    /// once each, in code order: the regions whose weekend is not the
+    /// table's.
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn weekend_regions(&self) -> alloc::vec::Vec<&'static str> {
+        let mut codes: alloc::vec::Vec<&'static str> = self
+            .weekend
             .iter()
-            .find(|policy| policy.applies_on(day))
-            .map_or(&[Weekday::Saturday, Weekday::Sunday], |policy| policy.days)
+            .flat_map(|policy| policy.regions.iter().copied())
+            .collect();
+        codes.sort_unstable();
+        codes.dedup();
+        codes
     }
 
     /// Every subdivision code mentioned anywhere in the table.

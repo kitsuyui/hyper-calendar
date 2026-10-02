@@ -66,7 +66,8 @@ Modifiers are data too: `SubstitutionPolicy` (which weekdays move a holiday,
 which way, whether the search steps past a day already taken, and whether two
 holidays colliding count), `BridgePolicy` (Japan's 国民の休日),
 `WeekendPolicy` (which days are the weekend, over stated years and, where
-the law changed mid-year, from the day it took effect),
+the law changed mid-year, from the day it took effect, and, where a region
+keeps a weekend of its own, for that region),
 `valid_from` / `valid_until` on every rule, `regions` for subdivision scoping,
 `groups` for the days a statute gives to one group of people alone — China's
 half day for women on 8 March, Nepal's Teej for women employees — and `Kind`
@@ -576,10 +577,16 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   Puja's Navami and Bijoya Dashami, and Buddha Purnima are those
   notifications' dates for 2025 and 2026 — the Indian rules miss each by a
   day in one of the two years — and a later year reports them as gaps. The
-  optional holidays (ঐচ্ছিক ছুটি), which a government servant may take by
-  faith, are not carried yet: they are the notifications' third section,
-  which was not transcribed when the first two were read, and each would be
-  a rule given to the group of its faith.
+  optional holidays (ঐচ্ছিক ছুটি), which an employee may take on
+  application, at most three of the days of their own religion, are rules
+  given to the groups `muslims`, `hindus`, `christians`, `buddhists` and
+  `small-ethnic-groups` for 2025 and 2026, as the newspapers reproduce the
+  notifications' lists, read as HTML because the PDFs were not opened. They
+  are `Kind::Religious` (the small ethnic groups' social festival,
+  `Kind::Observance`), so business-day arithmetic counts them as working
+  days, and the cap of three is a note, not a computation. Shab-e-Meraj and
+  Akheri Chahar Shomba of 2025 are gaps, the reproductions disagreeing. See
+  [`docs/systems/bangladesh-holidays.md`](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/systems/bangladesh-holidays.md).
 * **Mongolia** and **Bhutan** date their lunar days on the Tibetan
   calendar, `mongolian` and `tibetan-bhutan`, with `TibetanDay`. Where the
   calendar skips or repeats the day's number, the sources read do not say
@@ -613,8 +620,9 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
 * **Groups.** China's days for some citizens (women, youth, children,
   active servicemen) are carried from 1999, Nepal's from its notices, and
   Taiwan's services' days as gaps, their authorities' rules not read. The
-  Lao Women's Union's day and Bangladesh's optional holidays are not yet,
-  as above. A half day off is `Kind::HalfDay`, which business-day
+  Lao Women's Union's day is as above, and Bangladesh's optional holidays
+  are given to the groups of the faiths and communities whose sections
+  list them, for 2025 and 2026. A half day off is `Kind::HalfDay`, which business-day
   arithmetic counts as a working day
   ([ADR 0012](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0012-a-half-day-off-is-its-own-kind.md)). A rule yields at most
   53 days a year (`Days::CAPACITY`), every Saturday of a year that has 53:
@@ -630,7 +638,8 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   territories, the
   provinces of Solomon Islands and Vanuatu, Thimphu, China's autonomous
   regions of Guangxi, Xinjiang and Ningxia for the years of their notices
-  read, fifteen of Russia's republics, and a few single places:
+  read, sixteen of Russia's republics (Mari El, Karelia, Khakassia and Udmurtia read and
+  found to keep no day off of their own), and a few single places:
   Inauguration Day in the District of Columbia, Chișinău, Guatemala City,
   San Salvador, Managua and Chile's Arica and Parinacota. The Swiss
   cantons, the Spanish autonomous communities, the US states and the
@@ -641,10 +650,13 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   whose instruments were not read, the years whose resolutions were not
   read. Italy's patron-saint days are the comuni's and are not yet
   carried: a rule's scope is at its finest an ISO 3166-2 subdivision, and
-  no comune's statute was read. Malaysia's states are not yet carried: the
-  Prime Minister's Department's yearly lists, which give every state's
-  days, are PDFs, have been read for the federal days only, and
-  kabinet.gov.my refuses requests for them.
+  no comune's statute was read. Malaysia's states' own days are not yet
+  carried: the Prime Minister's Department's yearly lists, which give every
+  state's days, are PDFs, have been read for the federal days only, and
+  kabinet.gov.my refuses requests for them; the HTML pages that list the
+  states' days are undated snapshots and nothing was carried from them
+  ([regional-weekends.md](../../docs/systems/regional-weekends.md)). The
+  states' weekends are carried: see Business days.
 
 ## Business days
 
@@ -655,7 +667,22 @@ Thursday–Friday held in Saudi Arabia until its royal order took effect on
 kept a one-day Saturday weekend until 6 April 2026; and Brunei rests on
 Friday and Sunday and works the Saturday between. A weekend rule carries the
 day it took effect where the source gives one, so a change in the middle of
-a year changes the arithmetic on that day and not on 1 January. All six are exercised by the test suite. A
+a year changes the arithmetic on that day and not on 1 January. All six are exercised by the test suite.
+
+A region may keep a weekend of its own
+([ADR 0015](../../docs/adr/0015-a-region-may-keep-a-weekend-of-its-own.md),
+[regional-weekends.md](../../docs/systems/regional-weekends.md)): Kedah,
+Kelantan and Terengganu keep Friday and Saturday, as Johor did from 1
+January 2014 to 31 December 2024, and the Government of Sharjah keeps
+Friday, Saturday and Sunday from 1 January 2022. The `region` a caller
+passes selects the region's weekend, `is_weekend`, the business-day
+arithmetic and, through the region's own `SubstitutionPolicy`, the day a
+holiday on the weekend is moved to: a Friday holiday in Kedah goes to the
+Sunday, a Saturday holiday in Kelantan and Terengganu to the Sunday. A
+`WeekendPolicy` with no days says that the weekend law of those years was
+not read, as Johor's to 1994 and the Friday states' before 25 November
+2013: it is the gap `UNREAD_WEEKEND`, and business-day arithmetic over such
+a day answers `None`. A
 few tables rest on one day: Iran and Djibouti the Friday, Israel the
 Saturday, which is its only statutory day of rest, and Cuba, Cambodia,
 Timor-Leste and the Vatican the Sunday.

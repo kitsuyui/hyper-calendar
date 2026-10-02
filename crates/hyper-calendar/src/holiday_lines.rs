@@ -28,7 +28,7 @@ use alloc::string::{String, ToString};
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
-use hc_holiday::engine::UNREAD_SUBDIVISION_ID;
+use hc_holiday::engine::{UNREAD_SUBDIVISION_ID, UNREAD_WEEKEND_ID};
 use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
@@ -44,7 +44,7 @@ use hc_i18n::place_names::{self, Alt, Draft};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 13;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 14;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 7;
@@ -253,7 +253,9 @@ pub fn short_table_name(
 /// found to keep no day of their own — and empty for a table with no
 /// subdivisions and for one whose subdivisions were not read; a region
 /// asked of the table that is not in it keeps the nationwide days and has
-/// a gap for its own.
+/// a gap for its own. Column 14 is [`weekend_cell`]: the table's weekend
+/// laws, each with the days it keeps, the years it is in force and the
+/// regions it is the law of.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = requested_locale(locale);
@@ -284,7 +286,57 @@ pub fn holiday_tables(locale: &str) -> String {
             .collect();
         line.cell(&scoped.join(";"))
             .cell(&set.read_subdivisions().join(";"));
+        line.cell(&weekend_cell(set));
         line.end();
+    }
+    out
+}
+
+/// Column 14 of `hc_holiday_tables`: the weekend laws of a table, one
+/// entry for each of its [`WeekendPolicy`] values, in the table's order and
+/// separated by `;`. A table that states none writes nothing, and its
+/// weekend is Saturday and Sunday ([`RuleSet::weekend_on`]).
+///
+/// An entry is four fields separated by `/`: the weekend days as ISO 8601
+/// weekday numbers joined by `+`, Monday 1 to Sunday 7 (`5+6` for Friday
+/// and Saturday), or `unread` where the weekend law of those years was not
+/// read; the first day it is in force, `YYYY-MM-DD`; the last, `YYYY-MM-DD`;
+/// and the regions it is the weekend of, ISO 3166-2 codes joined by `,`.
+/// A day or the regions left empty is open: no first day, no last day, the
+/// whole table. Where several entries cover a day, the one for the nearest
+/// region wins, and a region with none of its own has the entry with no
+/// regions (ADR 0015).
+///
+/// [`WeekendPolicy`]: hc_holiday::rule::WeekendPolicy
+#[must_use]
+pub fn weekend_cell(set: &RuleSet) -> String {
+    let mut out = String::new();
+    for (index, policy) in set.weekend.iter().enumerate() {
+        if index > 0 {
+            out.push(';');
+        }
+        if policy.is_unread() {
+            out.push_str("unread");
+        } else {
+            for (position, day) in policy.days.iter().enumerate() {
+                if position > 0 {
+                    out.push('+');
+                }
+                out.push_str(&day.iso_number().to_string());
+            }
+        }
+        out.push('/');
+        if let Some(year) = policy.valid_from {
+            let (month, day) = policy.valid_from_day.unwrap_or((1, 1));
+            out.push_str(&alloc::format!("{year:04}-{month:02}-{day:02}"));
+        }
+        out.push('/');
+        if let Some(year) = policy.valid_until {
+            let (month, day) = policy.valid_until_day.unwrap_or((12, 31));
+            out.push_str(&alloc::format!("{year:04}-{month:02}-{day:02}"));
+        }
+        out.push('/');
+        out.push_str(&policy.regions.join(","));
     }
     out
 }
@@ -402,7 +454,8 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 ///
 /// `kinds` keeps the entries of those kinds and the gaps of the rules of
 /// those kinds, and all of them when it is empty; a subdivision not read
-/// is a gap whatever the kinds, because none of its days is known.
+/// is a gap whatever the kinds, because none of its days is known, and so
+/// is a weekend whose law was not read, which every kind's arithmetic needs.
 #[must_use]
 pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) -> String {
     let calendar = HolidayCalendar::for_year_scoped(table, scope, year);
@@ -466,11 +519,9 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) 
     let own_gap = |parent: Option<&HolidayCalendar<'_>>, gap: &Gap, code| {
         parent.and_then(|parent| (!parent.gaps().contains(gap)).then_some(code))
     };
-    for gap in calendar
-        .gaps()
-        .iter()
-        .filter(|gap| gap.id == UNREAD_SUBDIVISION_ID || wanted(gap.kind))
-    {
+    for gap in calendar.gaps().iter().filter(|gap| {
+        gap.id == UNREAD_SUBDIVISION_ID || gap.id == UNREAD_WEEKEND_ID || wanted(gap.kind)
+    }) {
         let regional = widest(
             own_gap(without_region.as_ref(), gap, own_region).flatten(),
             &above,
@@ -1475,6 +1526,62 @@ mod tests {
         assert_eq!(english["JP"][9], "");
         assert_eq!(english["JP"][10], "");
         assert_eq!(rows_in("native")["CN"][10], english["CN"][10]);
+    }
+
+    /// Column 14 lists the weekend laws of a table: the days as ISO 8601
+    /// numbers, the first and last day in force and the regions, with
+    /// `unread` for years whose law was not read (ADR 0015).
+    #[test]
+    fn the_tables_list_their_weekend_laws() {
+        let rows = rows_in("en");
+        assert_eq!(
+            rows["MY"][13],
+            "6+7///;unread//1994-12-31/MY-01;5+6/2014-01-01/2024-12-31/MY-01;\
+             unread//2013-11-24/MY-02,MY-03,MY-09,MY-11;5+6/2013-11-25//MY-02,MY-03,MY-11"
+        );
+        assert_eq!(
+            rows["AE"][13],
+            "4+5//2006-08-31/;5+6/2006-09-01/2021-12-31/;6+7/2022-01-01//;\
+             5+6+7/2022-01-01//AE-SH"
+        );
+        assert_eq!(rows["JP"][13], "6+7///");
+        assert_eq!(rows["SA"][13].split(';').count(), 2);
+        assert_eq!(rows["BD"][13], "5+6///");
+        assert_eq!(rows["BN"][13], "5+7///");
+    }
+
+    /// A year in which a region's weekend law was not read is a gap line of
+    /// the year, named `The weekend`, and a year whose law was read is not
+    /// (ADR 0015); a Friday holiday in Kedah is a line on the Sunday.
+    #[test]
+    fn a_weekend_the_sources_do_not_reach_is_a_gap_line() {
+        let malaysia = rule_set("MY").expect("Malaysia");
+        let early = year_lines(malaysia, Scope::region("MY-02"), &[], 2010);
+        assert!(
+            early.lines().any(|line| line.contains("\tThe weekend\t")),
+            "{early}"
+        );
+        // Its line carries the identifier of the gap, and a kind filter keeps it.
+        let gap: Vec<&str> = early
+            .lines()
+            .filter(|line| line.contains("\tThe weekend\t"))
+            .collect();
+        assert!(
+            gap[0].contains("\tgap\t") && gap[0].ends_with("unread-weekend\t"),
+            "{gap:?}"
+        );
+        let filtered = year_lines(malaysia, Scope::region("MY-02"), &[Kind::Observance], 2010);
+        assert!(filtered.contains("\tThe weekend\t"), "{filtered}");
+        let nationwide = year_lines(malaysia, Scope::EVERYONE, &[], 2010);
+        assert!(!nationwide.contains("The weekend"), "{nationwide}");
+        let later = year_lines(malaysia, Scope::region("MY-02"), &[], 2025);
+        assert!(!later.contains("The weekend"), "{later}");
+        let moved: Vec<&str> = later
+            .lines()
+            .filter(|line| line.starts_with("2025-06-29\t"))
+            .collect();
+        assert_eq!(moved.len(), 1, "{later}");
+        assert!(moved[0].contains("Awal Muharram"), "{moved:?}");
     }
 
     /// A group's own day is a line of the year with the group in the last

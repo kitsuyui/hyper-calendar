@@ -25,6 +25,8 @@ static BRITISH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1750,7 +1752,7 @@ pub static RUSSIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 29),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Трудовой кодекс Российской Федерации, статья 112, as amended \
               (Federal Law 201-ФЗ of 29 December 2004 for the 2005 list, \
               35-ФЗ of 23 April 2012 for 6 and 8 January); the Government's \
@@ -1765,8 +1767,11 @@ pub static RUSSIA: RuleSet = RuleSet {
               not read and are not carried. The republics' laws, decrees and \
               resolutions on Garant and ConsultantPlus's reference list of \
               the regions' non-working days, read 2026-09-29, for the \
-              republics' own days",
-    subdivisions: Subdivisions::Read(&[]),
+              republics' own days; Buryatia's decrees and Mari El's law of \
+              2022, on Garant, read 2026-10-03",
+    // Read, and found to give no day off of their own: Karelia, Khakassia,
+    // Mari El and Udmurtia (see docs/systems/russia-transfers.md).
+    subdivisions: Subdivisions::Read(&["RU-KK", "RU-KR", "RU-ME", "RU-UD"]),
 };
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -1920,6 +1925,8 @@ static UA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: Some(UA_LAST_BEFORE),
 }];
@@ -2435,6 +2442,8 @@ static BG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2017),
     valid_until: None,
 }];
@@ -2775,6 +2784,8 @@ static LV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3134,6 +3145,8 @@ static AL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3243,6 +3256,8 @@ static ME_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3406,6 +3421,8 @@ static MK_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3570,6 +3587,8 @@ static RS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3735,6 +3754,8 @@ static BA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -4535,6 +4556,8 @@ static MC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -4923,6 +4946,7 @@ pub static VATICAN_CITY: RuleSet = RuleSet {
 /// with Sunday".
 static VA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,

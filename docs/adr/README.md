@@ -27,3 +27,4 @@ record's status was last checked against the code on that date.
 | [0012](0012-a-half-day-off-is-its-own-kind.md) | A half day off is its own kind | Accepted |
 | [0013](0013-a-year-the-sources-do-not-reach-is-a-gap.md) | A year the sources do not reach is a gap, and so is a subdivision they were not read for | Accepted |
 | [0014](0014-a-municipality-is-a-region-within-its-subdivision.md) | A municipality is a region within its subdivision | Accepted |
+| [0015](0015-a-region-may-keep-a-weekend-of-its-own.md) | A region may keep a weekend of its own, and a weekend whose law was not read is a gap | Accepted |

@@ -1041,6 +1041,26 @@ describe("holidays", () => {
     assert.deepEqual(china?.groupNames, ["少年儿童", "现役军人", "妇女", "青年"]);
     assert.deepEqual(hc.holidayTables("en").find((table) => table.code === "JP")?.groups, []);
   });
+
+  test("a table's weekend laws are listed, with the regions that keep their own", () => {
+    const tables = hc.holidayTables("en");
+    assert.deepEqual(tables.find((table) => table.code === "JP")?.weekend, [
+      { days: [6, 7], first: null, last: null, regions: [] },
+    ]);
+    const malaysia = tables.find((table) => table.code === "MY")?.weekend ?? [];
+    assert.deepEqual(malaysia[0], { days: [6, 7], first: null, last: null, regions: [] });
+    // Johor's Friday-Saturday years, and the years to 1994 that were not read.
+    assert.deepEqual(malaysia[1], { days: null, first: null, last: "1994-12-31", regions: ["MY-01"] });
+    assert.deepEqual(malaysia[2], { days: [5, 6], first: "2014-01-01", last: "2024-12-31", regions: ["MY-01"] });
+    assert.deepEqual(malaysia[4], {
+      days: [5, 6],
+      first: "2013-11-25",
+      last: null,
+      regions: ["MY-02", "MY-03", "MY-11"],
+    });
+    const emirates = tables.find((table) => table.code === "AE")?.weekend ?? [];
+    assert.deepEqual(emirates.at(-1), { days: [5, 6, 7], first: "2022-01-01", last: null, regions: ["AE-SH"] });
+  });
 });
 
 describe("almanac", () => {

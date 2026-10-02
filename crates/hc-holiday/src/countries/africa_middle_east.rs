@@ -29,6 +29,7 @@ use crate::rule::{
 /// table whose sources give no date it began.
 static FRIDAY_SATURDAY: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday, Weekday::Saturday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -41,6 +42,7 @@ static FRIDAY_SATURDAY: &[WeekendPolicy] = &[WeekendPolicy {
 static BH_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2006),
@@ -48,6 +50,7 @@ static BH_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2006),
         valid_from_day: Some((9, 1)),
         valid_until: None,
@@ -61,6 +64,7 @@ static BH_WEEKEND: &[WeekendPolicy] = &[
 static JO_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(1999),
@@ -68,6 +72,7 @@ static JO_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2000),
         valid_from_day: None,
         valid_until: None,
@@ -81,6 +86,7 @@ static JO_WEEKEND: &[WeekendPolicy] = &[
 static KW_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2007),
@@ -88,6 +94,7 @@ static KW_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2007),
         valid_from_day: Some((9, 1)),
         valid_until: None,
@@ -101,6 +108,7 @@ static KW_WEEKEND: &[WeekendPolicy] = &[
 static QA_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2003),
@@ -108,6 +116,7 @@ static QA_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2003),
         valid_from_day: Some((8, 1)),
         valid_until: None,
@@ -246,6 +255,7 @@ static IL_RULES: &[HolidayRule] = &[
 /// statute.
 static IL_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Saturday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -288,6 +298,7 @@ pub static ISRAEL: RuleSet = RuleSet {
 /// Thursday is a half-day in most offices and is not a weekend day.
 static IR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -427,6 +438,7 @@ pub static IRAN: RuleSet = RuleSet {
 static SA_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2013),
@@ -434,6 +446,7 @@ static SA_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2013),
         valid_from_day: Some((6, 29)),
         valid_until: None,
@@ -539,9 +552,21 @@ pub static SAUDI_ARABIA: RuleSet = RuleSet {
 /// Government and the schools from Friday 1 September 2006, by the Cabinet
 /// decision WAM reported on 16 May 2006; Saturday–Sunday, with a half-day
 /// Friday, from 1 January 2022, as the Government portal states.
+///
+/// The Government of Sharjah's own offices keep Friday, Saturday and
+/// Sunday from 1 January 2022: the Sharjah Executive Council's decision of
+/// December 2021 gave them a four-day week, Monday to Thursday, as Khaleej
+/// Times of 9 December 2021 and the circular Gulf News reported on 28
+/// December 2021 say, and the Government portal's page on the public
+/// sector's working hours, as updated on 12 August 2026, still says that
+/// the employees of the Government of Sharjah work four days a week. It is
+/// the weekend of the emirate's government, not of its private sector,
+/// which the federal Labour Law governs. Before 2022 Sharjah kept the
+/// federal weekend, which the table's policies above give (ADR 0015).
 static AE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2006),
@@ -549,6 +574,7 @@ static AE_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2006),
         valid_from_day: Some((9, 1)),
         valid_until: Some(2021),
@@ -556,6 +582,15 @@ static AE_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
+        valid_from: Some(2022),
+        valid_from_day: None,
+        valid_until: None,
+        valid_until_day: None,
+    },
+    WeekendPolicy {
+        days: &[Weekday::Friday, Weekday::Saturday, Weekday::Sunday],
+        regions: &["AE-SH"],
         valid_from: Some(2022),
         valid_from_day: None,
         valid_until: None,
@@ -667,7 +702,12 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
               Human Resources' circulars No. 03 of 17 March 2025 (Eid al-Fitr), No. 08 of 26 \
               August 2025 (the Prophet's Birthday) and No. 11 of 17 November 2025 (National \
               Day); Gulf News and The National on the Friday–Saturday weekend from 1 September \
-              2006; all retrieved 2026-09-26. The Islamic dates are announced each year by the \
+              2006; all retrieved 2026-09-26; for the Government of Sharjah's Friday–Sunday \
+              weekend from 1 January 2022, which only AE-SH keeps, Khaleej Times of 9 \
+              December 2021 (\"3-day weekend in Sharjah\") and Gulf News of 28 December 2021 \
+              (\"New UAE weekend: Sharjah clarifies timings, shifts for government \
+              departments\"), and the u.ae page on working hours in the public sector, as \
+              updated 12 August 2026, all retrieved 2026-10-03 The Islamic dates are announced each year by the \
               UAE Moon-Sighting Committee, and the tabular calendar here predicts them",
     subdivisions: Subdivisions::Read(&[]),
 };
@@ -907,6 +947,8 @@ static SUNDAY_FORWARD: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -987,6 +1029,8 @@ static KE_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1567,6 +1611,8 @@ static LB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1699,6 +1745,8 @@ static TZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1840,6 +1888,8 @@ static ZM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1911,6 +1961,8 @@ static ZW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -1982,6 +2034,7 @@ pub static ZIMBABWE: RuleSet = RuleSet {
 static DZ_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(1975),
@@ -1989,6 +2042,7 @@ static DZ_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: Some(1976),
         valid_from_day: None,
         valid_until: Some(2009),
@@ -1996,6 +2050,7 @@ static DZ_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2009),
         valid_from_day: Some((8, 14)),
         valid_until: None,
@@ -2210,6 +2265,8 @@ static SN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -2291,6 +2348,8 @@ static CI_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2011),
     valid_until: None,
 }];
@@ -2485,6 +2544,8 @@ static BF_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2016),
     valid_until: Some(2025),
 }];
@@ -2732,6 +2793,8 @@ static GN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2023),
     valid_until: None,
 }];
@@ -2891,6 +2954,7 @@ pub static MALI: RuleSet = RuleSet {
 static OM_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2013),
@@ -2898,6 +2962,7 @@ static OM_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2013),
         valid_from_day: Some((5, 1)),
         valid_until: None,
@@ -2913,6 +2978,8 @@ static OM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2020),
     valid_until: None,
 }];
@@ -3290,6 +3357,8 @@ static BW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -3384,6 +3453,8 @@ static NA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(1991),
     valid_until: None,
 }];
@@ -3577,6 +3648,8 @@ static MW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(1983),
     valid_until: None,
 }];
@@ -3638,6 +3711,7 @@ pub static MALAWI: RuleSet = RuleSet {
 static SY_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2003),
@@ -3645,6 +3719,7 @@ static SY_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2004),
         valid_from_day: None,
         valid_until: None,
@@ -4029,6 +4104,7 @@ pub static PALESTINE: RuleSet = RuleSet {
 static LY_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2005),
@@ -4036,6 +4112,7 @@ static LY_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2006),
         valid_from_day: None,
         valid_until: None,
@@ -4113,6 +4190,7 @@ pub static LIBYA: RuleSet = RuleSet {
 static YE_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Thursday, Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2013),
@@ -4120,6 +4198,7 @@ static YE_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2013),
         valid_from_day: Some((8, 15)),
         valid_until: None,
@@ -4234,6 +4313,8 @@ static CM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(1974),
     valid_until: None,
 }];
@@ -4364,6 +4445,8 @@ static CD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Backward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2014),
     valid_until: Some(2025),
 }];
@@ -4506,6 +4589,8 @@ static AO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2011),
     valid_until: Some(2017),
 }];
@@ -4707,6 +4792,8 @@ static RW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: true,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2017),
     valid_until: None,
 }];
@@ -5004,6 +5091,8 @@ static SC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -5229,6 +5318,8 @@ static TD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(1997),
     valid_until: None,
 }];
@@ -5343,6 +5434,7 @@ pub static CHAD: RuleSet = RuleSet {
 static MR_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2014),
@@ -5350,6 +5442,7 @@ static MR_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
         valid_from: Some(2014),
         valid_from_day: Some((10, 1)),
         valid_until: None,
@@ -5419,6 +5512,7 @@ pub static MAURITANIA: RuleSet = RuleSet {
 /// employees at once on the Friday.
 static DJ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -5650,6 +5744,8 @@ static GQ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2007),
     valid_until: None,
 }];
@@ -5745,6 +5841,7 @@ pub static EQUATORIAL_GUINEA: RuleSet = RuleSet {
 /// include Sunday". Sunday is the one day the Act names.
 static LR_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -5759,6 +5856,8 @@ static LR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2014),
     valid_until: None,
 }];
@@ -5897,6 +5996,7 @@ const fn announced(
 /// "should normally fall on Friday" ("maalinta Jimcaha").
 static SO_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Friday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6226,6 +6326,7 @@ pub static SOUTH_SUDAN: RuleSet = RuleSet {
 static SD_WEEKEND: &[WeekendPolicy] = &[
     WeekendPolicy {
         days: &[Weekday::Friday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: Some(2008),
@@ -6233,6 +6334,7 @@ static SD_WEEKEND: &[WeekendPolicy] = &[
     },
     WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: Some(2008),
         valid_from_day: Some((1, 26)),
         valid_until: None,
@@ -6355,6 +6457,7 @@ const GW_FROM: i32 = 2023;
 /// weekly rest and is not carried.
 static GW_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6469,6 +6572,8 @@ static SL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -6762,6 +6867,7 @@ pub static GAMBIA: RuleSet = RuleSet {
 /// "would not be shifted ... since Saturday is a normal working day".
 static SZ_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -6776,6 +6882,8 @@ static SZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: None,
     valid_until: None,
 }];
@@ -6925,6 +7033,7 @@ pub static ESWATINI: RuleSet = RuleSet {
 /// "a lieu en principe le dimanche".
 static TG_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,
@@ -7313,6 +7422,7 @@ static GA_RULES: &[HolidayRule] = &[
 /// jours autres que le dimanche" and the holidays.
 static GA_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     days: &[Weekday::Sunday],
+    regions: &[],
     valid_from: None,
     valid_from_day: None,
     valid_until: None,

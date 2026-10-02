@@ -33,6 +33,7 @@ pub mod africa_middle_east;
 pub mod americas;
 pub mod andorra;
 pub mod asia;
+mod bangladesh_optional;
 pub mod bhutan;
 pub mod bolivia;
 pub mod canada;

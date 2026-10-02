@@ -1012,7 +1012,7 @@ where a source in the language names it by its identifier, and the tag
 that named it, and then the identifier, which `hc_holidays_on` ends with, so
 that the first eleven cells and the two names keep their places.
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
-table in `hc_holiday_codes` order, in the thirteen columns of the WebAssembly
+table in `hc_holiday_codes` order, in the fourteen columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
 or an exchange where its table records one, the short name, the
@@ -1025,7 +1025,11 @@ read for, `;`-separated in code order. A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
 carries one, and else, as for a null `locale`, by CLDR's English name;
 an exchange, a tradition and a set of observances by the table's English
-name; the tag that answered is in column 5. Column 8 is
+name; the tag that answered is in column 5. Column 14 lists the table's
+weekend laws, `;`-separated, each `days/first/last/regions`: the days as ISO 8601
+weekday numbers joined by `+`, or `unread`, the first and last day in force
+as `YYYY-MM-DD`, and the ISO 3166-2 codes it is the weekend of, as the
+WebAssembly README's table of its fourteen columns describes. Column 8 is
 CLDR 48's `alt="short"` name beside a CLDR name in column 3, from the same
 data (`Hong Kong` under `en`, 香港 under `ja`), and empty elsewhere. `hc_lectionary(fixed, buffer,
 capacity, written)` writes the liturgical year, the Sunday cycle, the
