@@ -408,10 +408,11 @@ a fortnight after it (above). Counted from Prabhava as naught, Pingala is
 50; 50 + 4 leaves 6 on division by twelve, the seventh month from
 Chaitra, Āśvina; 50 + 10 leaves 0, the first sign, Meṣa. Table XII's row
 51 reads "Pingala", "Asvina", "Mesha". Kālayukta, which follows, is
-Kārttika with Jupiter in mean Vṛṣabha. The heliacal kind is not carried:
-it needs Jupiter's heliacal rising by a Siddhānta, and the library
-computes no Siddhānta's Jupiter and no heliacal rising (see "Not carried"
-below).
+Kārttika with Jupiter in mean Vṛṣabha. The heliacal kind is carried on the
+true sky, not by a Siddhānta, in [jupiter-ephemeris.md](jupiter-ephemeris.md):
+the rising at the arc of 11°, and the year named by the nakṣatra that holds it
+as the *Bṛhatsaṃhitā* says; no Siddhānta's Jupiter is computed (see "Not
+carried" below).
 
 **The Tiruvaḷḷuvar year.** Tamil Nadu's official count is the
 Tiruvaḷḷuvar year, the Gregorian year plus 31, gazetted in 1971 and in
@@ -1095,11 +1096,12 @@ weeks.
     Dikshit say some places kept for a time (Art. 57), and the
     *Bṛhatsaṃhitā* rule, whose reading they dispute (Art. 59 d): neither
     has a table or example to hold it to. Nor the twelve-year cycle of
-    Jupiter by its heliacal risings (Art. 63): its years "can only be
-    found by direct calculations according to some Siddhanta", the
-    library computes no Siddhānta's Jupiter and no heliacal rising, and
-    S. B. Dikshit's full account in the *Indian Antiquary*, vol. XVII,
-    was not read. The mean-sign kind is carried.
+    Jupiter by its heliacal risings by a Siddhānta (Art. 63): its years
+    "can only be found by direct calculations according to some
+    Siddhanta", no Siddhānta's Jupiter is computed, and S. B. Dikshit's
+    full account in the *Indian Antiquary*, vol. XVII, was not read. The
+    mean-sign kind is carried, and the risings of the true sky with the
+    names of the *Bṛhatsaṃhitā* are in [jupiter-ephemeris.md](jupiter-ephemeris.md).
   - The Odia Anka is [odia-anka.md](odia-anka.md)'s, and the other eras
     of Sewell and Dikshit's Art. 71 over these months — the Kārttikādi
     Vikrama, the Rājyābhiṣeka Śaka, the Saptarṣi, the Magi San, the

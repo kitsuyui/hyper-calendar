@@ -152,6 +152,9 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | lines | `hc_panchanga_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000, on the true sky, and −159 992 668 800 through 155 590 156 799, Kali Yuga 1 to 10 000, on `surya-siddhanta`; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_pushkaram` | `entry_unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_kumbh` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_jupiter_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| lines | `hc_jupiter_ingresses`, `hc_jupiter_risings` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -278,7 +281,7 @@ follows it (`docs/policy.md` §5). A name no table carries is
 
 The entry points come in layers, each a Cargo feature, the same layers as
 the WebAssembly module's: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`,
-`seasons`, `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity`, `places`,
+`seasons`, `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
 `humanize`, `zone-names` and `full`.
 One pair sits in a different layer: `hc_tai_from_unix` and
 `hc_utc_from_tai` are `civil` here and `timestamps` there.
@@ -305,7 +308,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-192 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+197 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -483,6 +486,11 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_planetary_hours_of_day(int64_t fixed, double latitude, double longitude, double elevation, const char *locale, char *buffer, size_t capacity, size_t *written);` | `sky` | The twenty-four planetary hours of the planetary day that begins at the sunrise of a fixed day at a place, as NUL-terminated UTF-8 lines in `hc_planetary_hour`'s columns, each ruler named in a locale, in a caller-owned buffer. |
 | `HcStatus hc_orbit_at(double years_before_1950, char *buffer, size_t capacity, size_t *written);` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_orbit_series(double from_years_before_1950, double to_years_before_1950, double step_years, char *buffer, size_t capacity, size_t *written);` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_jupiter_at(int64_t unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Where Jupiter is at a POSIX timestamp, tropical and sidereal, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_jupiter_ingresses(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's crossings of the boundaries of the sidereal signs in a span of POSIX seconds, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_jupiter_risings(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_kumbh_by_sky(const char *yoga, int64_t year, const char *ayanamsa, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose sign is computed, meets it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_pushkaram_by_sky(const char *sign, int64_t year, const char *ayanamsa, const char *rule, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign, for Jupiter's entry into it in a Gregorian year, found, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mars_time(double unix_seconds, double east_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_missions(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every surface mission on Mars and the rules of its sol count, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mission_sol(const char *mission, double unix_seconds, int64_t *out_sol);` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock. |
@@ -821,10 +829,11 @@ ayanāṃśa, jupiter, locale, buffer, capacity, written)` its line of when
 the Sun, and the Moon where asked, stand as a Kumbh condition requires in
 a year; and `hc_pushkaram(sign, entry_unix_seconds, latitude, longitude,
 elevation, meridian, locale, buffer, capacity, written)` its lines of the
-twelve days of each river of a sign. The library has no ephemeris of
+twelve days of each river of a sign. Those have no ephemeris of
 Jupiter, so Jupiter's sidereal sign (`jupiter`, null for none) and the
 moment it enters one are the caller's, as the WebAssembly module's README
-explains. `hc_folk_day(fixed, meridian, locale, buffer, capacity,
+explains; the `jupiter` layer's `hc_kumbh_by_sky` and `hc_pushkaram_by_sky`
+compute them. `hc_folk_day(fixed, meridian, locale, buffer, capacity,
 written)` writes the module's lines of a day's folk reckonings — the
 first-month counts, 入梅 and 出梅, Tam Nương and Nguyệt Kỵ, and the Turkish
 year of Hızır and Kasım — and `hc_night_watch(seconds_of_day, locale,
@@ -1257,6 +1266,26 @@ buffer, capacity, written)` and `hc_gmt_from_gmat(...)`, in `sky` too,
 write the module's line of a reading of GMT as Greenwich Mean
 Astronomical Time, GMT − 12 h, and back, for any day of the Gregorian
 years −9 999 999 to 9 999 999.
+
+## Jupiter
+
+`hc_jupiter_at(unix_seconds, ayanamsa, buffer, capacity, written)`,
+`hc_jupiter_ingresses(from_unix_seconds, to_unix_seconds, ayanamsa, buffer,
+capacity, written)`, `hc_jupiter_risings(from_unix_seconds, to_unix_seconds,
+ayanamsa, buffer, capacity, written)`, `hc_kumbh_by_sky(yoga, year,
+ayanamsa, locale, buffer, capacity, written)` and `hc_pushkaram_by_sky(sign,
+year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale,
+buffer, capacity, written)` need the `jupiter` feature and write the lines
+the WebAssembly module's README tabulates, from the complete VSOP87B series
+for Jupiter in `hc-astro` (3 625 terms, 55 kB of tables that no other layer
+carries): where Jupiter is at an instant, tropical and sidereal; its
+crossings of the sidereal boundaries and its heliacal risings in a span, a
+span of at most a hundred Julian years; and `hc_kumbh` and `hc_pushkaram`
+with Jupiter's sign and the moment of its entry found rather than given.
+`rule` is `pushkaram-final-entry` or `pushkaram-first-entry`. A null pointer
+for any name is `HC_ERROR_NULL_POINTER`, a name not known
+`HC_ERROR_UNKNOWN`, and an instant, span or year outside the years −1000 to
+3000 `HC_ERROR_OUT_OF_RANGE`; a `to` not after `from` is an empty answer.
 
 ## The orbit
 

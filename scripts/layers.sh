@@ -10,7 +10,7 @@
 #     scripts/layers.sh           # civil, timestamps, ... one per line
 #     scripts/layers.sh --json    # ["civil","timestamps",...]
 
-layers="civil timestamps time-codes calendars seasons holiday deep-time tz sky orbital planetary relativity places humanize zone-names full"
+layers="civil timestamps time-codes calendars seasons holiday deep-time tz sky orbital jupiter planetary relativity places humanize zone-names full"
 
 if [ "${0##*/}" = layers.sh ]; then
     set -eu

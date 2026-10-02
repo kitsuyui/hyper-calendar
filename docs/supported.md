@@ -667,7 +667,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Facade features
 
-27 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
+28 capability features, read from `crates/hyper-calendar/Cargo.toml`. Every one that names a crate also re-exports it; `tests/facade.rs` is what makes that true rather than hoped.
 
 Besides these, `std` (on by default) chooses the build shape: turn it off for `no_std`, add `alloc` for the parts that need an allocator, and `libm` for floating-point math on targets without it. A build with neither `std` nor `libm` is refused at compile time.
 
@@ -694,9 +694,10 @@ Besides these, `std` (on by default) chooses the build shape: turn it off for `n
 | `i18n` | civil, hc-i18n |
 | `humanize` | i18n, hc-humanize |
 | `holiday` | regional, seasons, equinox, indic, hc-holiday, hc-i18n, hc-i18n/territories |
+| `jupiter` | seasons, indic, almanac, format, i18n, hc-astro/jupiter, hc-seasons/jupiter |
 | `uncertainty` | hc-uncertainty |
 | `deep-time` | uncertainty, hc-deep-time |
 | `orbital` | uncertainty, hc-orbital |
 | `planetary` | astro, hc-planetary |
 | `relativity` | uncertainty, hc-relativity |
-| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, localized-exemplar-cities, place-names, format, zone-names, localized-zone-names, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, relativity |
+| `full` | units, civil, lunar, equinox, indic, regional, astro, seasons, almanac, fiscal, attributes, name-days, tz, localized-exemplar-cities, place-names, format, zone-names, localized-zone-names, i18n, humanize, holiday, uncertainty, deep-time, orbital, planetary, jupiter, relativity |

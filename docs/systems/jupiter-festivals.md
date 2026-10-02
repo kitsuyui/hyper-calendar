@@ -1,9 +1,13 @@
 # The Kumbh Mela and Pushkaram: festivals set by Jupiter's sign
 
-Backs `hc-calendars-indic::kumbh` and `hc-calendars-indic::pushkaram`. No
-calendar identifier is registered. The conditions of the Kumbh Mela are
-`KumbhYoga` entries, one identifier each, and the rivers of Pushkaram are
-`PushkaramRiver` entries ([policy.md](../policy.md) §5 and §10).
+Backs `hc-calendars-indic::kumbh` and `hc-calendars-indic::pushkaram`, and
+their computed forms in the facade's `jupiter_lines` and the `jupiter` layer.
+No calendar identifier is registered. The conditions of the Kumbh Mela are
+`KumbhYoga` entries, one identifier each, the rivers of Pushkaram are
+`PushkaramRiver` entries, and the two readings of which entry of Jupiter
+opens a Pushkaram are `EntryRule`'s `pushkaram-final-entry` and
+`pushkaram-first-entry` ([policy.md](../policy.md) §5 and §10). Jupiter's
+position is [jupiter-ephemeris.md](jupiter-ephemeris.md)'s.
 
 ## What it is
 
@@ -142,10 +146,16 @@ Kurnool district held them [kurnool-tungabhadra-2020].
 - `PushkaramRiver`, the fourteen rivers, with `rivers_of`, and
   `adi_pushkaram`, the twelve days for an entry of Jupiter.
 
-**Jupiter's position is the caller's.** This library has no ephemeris of
-Jupiter, so `in_year` takes Jupiter's sign as a function of the moment and
-`adi_pushkaram` takes the moment of the entry. The tests supply Drik
-Panchang's entry times.
+**Jupiter's sign has two paths.** `hc-calendars-indic`'s `in_year` takes
+Jupiter's sign as a function of the moment and `adi_pushkaram` the moment of
+the entry, so a caller with its own ephemeris gives them, as the tests of that
+crate do with Drik Panchang's entry times. With the `jupiter` feature the
+facade computes them from the VSOP87B series, in its `jupiter_lines`:
+`hc_kumbh_by_sky` is `hc_kumbh` with `jupiter` found at the occasion's first
+moment, and `hc_pushkaram_by_sky` is `hc_pushkaram` with the entry found in a
+Gregorian year, by `hc_seasons::zodiac::jupiter::entry_into`, under one of the
+two `EntryRule`s. `hc_kumbh` and `hc_pushkaram` themselves, in the
+`calendars` layer, still take the caller's.
 
 Not carried:
 
@@ -193,8 +203,89 @@ A low-precision model of Jupiter, the Keplerian elements of Standish and
 Williams on JPL's "Approximate Positions of the Planets" page, was tried
 against Drik Panchang's entries from 2001 to 2030 and put them from
 under an hour to 31 hours out, the worst near a station, where Jupiter moves slowly. That is
-too coarse for a day, so no such model is carried. A full theory, such as
-VSOP87's series for Jupiter, is the missing piece.
+too coarse for a day, so no such model is carried. VSOP87's series for
+Jupiter is.
+
+### With Jupiter computed
+
+**The entries.** From 2001 to 2030, Jupiter's 49 entries into a sign that
+Drik Panchang prints are 49 of the 50 this crate finds (the fiftieth is
+later in 2030, past the table's end), each in the sign and the direction
+Drik Panchang gives. This crate's sidereal longitude of Jupiter at each is on
+the boundary to within 23.9″ to 27.1″, a constant 25″ that is the difference of
+the two Lahiri ayanāṃśas ([jupiter-ephemeris.md](jupiter-ephemeris.md)):
+this crate's Lahiri is 25″ smaller. With 25″ added, every entry is within
+6.9 minutes of Drik Panchang's, 1.7 minutes on average. With this crate's
+own, the forward entries come 40 to 135 minutes earlier and the returns up to
+four and a half hours later, and the Pushkaram days below do not change: the
+entries stand 30 to 80 minutes before Drik Panchang's, no nearer than 2 hours
+to a sunset in any of the nine festivals.
+
+**The Kumbh Mela, 1974 to 2030.** With Jupiter's sign computed, Lahiri:
+
+| Condition | Years it holds |
+| --- | --- |
+| `kumbh-haridwar` | 1974, 1986, 1998, 2010, 2021 |
+| `kumbh-prayag-vrishabha` | 1989, 2001, 2013, 2025 |
+| `kumbh-prayag-mesha` | 1977, 2000, 2012, 2024 |
+| `kumbh-nashik-simha` | 1980, 1991, 1992, 2003, 2004, 2015, 2027 |
+| `kumbh-nashik-karka` | 1979, 1990, 1991, 2002, 2003, 2014, 2026 |
+| `kumbh-ujjain-simha` | 1980, 1992, 2004, 2016, 2028 |
+| `kumbh-ujjain-tula` | 1981, 1982, 1993, 1994, 2005, 2006, 2017, 2029 |
+
+Every year of the table Wikipedia gives from 1974 to 2028 meets a condition
+of its site: Haridwar's 1974, 1986, 1998, 2010 and 2021, Nashik's 1980, 1992,
+2003, 2015 and 2027, Ujjain's 1980, 1992, 2004, 2016 and 2028, and Prayag's
+1989, 2001, 2013 and 2025 by the first condition. **Prayag's 1977 is the
+exception to the first condition**: Jupiter entered Vṛṣabha on 8 July 1976,
+turned back into Meṣa on 8 December and entered Vṛṣabha again on 22 February
+1977, so on 14 January 1977, when the Sun entered Makara, it was in Meṣa: the
+second condition holds, at the new moon of 19 January. That condition holds in
+2000, 2012 and 2024 as well, in none of which a festival was held, so the
+table's 1977 is not a reading of the second condition as a rule, only the one
+year in which the first misses. Nashik's also holds in 1991 and in 2004: Jupiter
+entered Siṃha on 14 August 1991, three days before the Sun, and left on
+11 September 1992, so both Augusts hold; and the Sun entered Siṃha within two
+weeks before Jupiter left it, on 27 August 2004. Nothing in the sources says which of
+two years a festival is held in, and the library does not guess.
+
+**The festivals of 2025 to 2028.**
+
+- *Prayagraj, 2025*, 13 January to 26 February [wikipedia-2025-prayag-maha-kumbh]:
+  the Sun enters Makara on 14 January, with Jupiter in Vṛṣabha; held under the
+  first condition. Jupiter is in Vṛṣabha on 12 February, Magha Purnima.
+- *Nashik, 2027*: the dates the Maharashtra government announced are 29 July and
+  2 August, the first two *Amrit Snan*, and 31 August and 11 and 12 September
+  [indiatv-nashik-kumbh-2027, for the first two; the others as the aggregators
+  print them, not read at a primary source]. Jupiter is in Siṃha from 26 June to
+  26 November 2027 and the Sun enters Siṃha on 17 August: `kumbh-nashik-simha`
+  holds in 2027. The second condition, Jupiter in Karka with the Sun and Moon,
+  does not: at the new moon of 2 August Jupiter is in Siṃha.
+- *Ujjain, 2028*, "between April 9 and May 8" [theweek-simhastha-2028]: the Sun
+  enters Meṣa on 13 April, inside it, with Jupiter in Siṃha, where it stays from
+  28 February to 24 July 2028: `kumbh-ujjain-simha` holds in 2028.
+- *The Godavari Pushkaram of 2027*, 26 June to 7 July [eastgodavari-pushkaralu-2027]:
+  Jupiter enters Siṃha at 04:48 IST on 26 June, 55 minutes before Drik Panchang's
+  05:43, and the twelve days are those.
+
+**Pushkaram, the entries found.** For each of the nine festivals above,
+`hc_pushkaram_by_sky` with `pushkaram-final-entry` finds the entry in the
+year, and the twelve days from it are the published ones: the Godavari 2015,
+Krishna 2016, Kaveri 2017, Brahmaputra 2019, Tungabhadra 2020, Pranahita
+2022, Ganga 2023, Sarasvati 2025 and Godavari 2027, all nine. No year but
+those has an entry into Siṃha between 2016 and 2026. With
+`pushkaram-first-entry` the 2019 Dhanus festival opens on 30 March, where
+Wikipedia's table has 29 March: Jupiter enters at 22:42 IST on the 29th by
+this crate, after that day's sunset, and at 03:09 on the 30th by Drik
+Panchang, so the rule gives the 30th from either. The 2021 Sindhu festival
+opens on 6 April, as the table has it. Neither date is sourced there, and no
+festival read followed them.
+
+**The tropical zodiac** is not a reading of these festivals: at the Sun's
+entry for Prayag 2025, Ujjain 2028 and Nashik 2027 Jupiter's tropical sign is
+not its sidereal one, by the ayanāṃśa of 24°, and no condition of the sources
+holds in the tropical. A Kumbh by the tropical zodiac is not carried, and no
+source read asks for one.
 
 ## Sources
 
@@ -231,6 +322,18 @@ VSOP87's series for Jupiter, is the missing piece.
 - [amarujala-pushkar-kumbh-2025]: the rivers of the Pushkar Kumbh by sign in
   Hindi, ten of the twelve, nine of which `hc_i18n::reckonings` carries
   under `hi` (its कोवरी for Kaveri is not carried). Read 2026-09-28.
+- [wikipedia-kumbh-mela]'s table of years was read again on 2026-10-03, from 1974.
+- [wikipedia-2025-prayag-maha-kumbh]: the Maha Kumbh of 13 January to
+  26 February 2025 and its bathing days. Read 2026-10-03.
+- [theweek-simhastha-2028]: the Ujjain Simhastha, "between April 9 and May 8,
+  2028". Read 2026-10-03; the pages that give 27 March to 27 May, and the
+  Shahi Snan dates of 9 and 23 April and 8 May, are aggregators and not cited.
+- [indiatv-nashik-kumbh-2027]: the Nashik Kumbh's flag hoisting on
+  31 October 2026 and its first two Amrit Snan, 29 July and 2 August 2027, as
+  announced by Maharashtra's Chief Minister. Read 2026-10-03.
+- [jpl-horizons-jupiter], [vsop87b-jup], [vsop87-doc-copy], [drik-guru-asta],
+  [varahamihira-brihat-samhita], [subbarayappa1985]: Jupiter's position and
+  its risings, in [jupiter-ephemeris.md](jupiter-ephemeris.md).
 
 ## Code
 
@@ -244,7 +347,23 @@ that anchor them:
 `two_signs_have_two_rivers` and
 `there_is_no_pushkaram_day_where_the_sun_does_not_set`.
 
+The tests that anchor the computed forms are in
+`crates/hyper-calendar/tests/jupiter_festivals.rs`:
+`the_sidereal_longitude_stands_a_constant_25_arcseconds_off_drik_panchangs`,
+`the_ingresses_agree_with_drik_panchangs_within_seven_minutes_given_the_shift`,
+`every_kumbh_year_of_the_table_meets_a_condition_of_its_site`,
+`the_recent_and_announced_festivals_meet_their_conditions`,
+`the_festivals_whose_dates_were_read_follow_the_final_entry_found_from_the_sky`,
+`the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates` and
+`most_years_hold_no_entry_into_a_sign`; and in `hyper_calendar::jupiter_lines`,
+`the_kumbh_of_2025_is_met_with_jupiter_computed` and
+`the_pushkaram_of_2019_follows_the_final_entry_into_dhanus`.
+
 The WebAssembly and C exports `hc_kumbh` and `hc_pushkaram` write a
 condition's occasion in a year and a sign's rivers' twelve days, from
-`hyper_calendar::reckoning_lines`. With no ephemeris of Jupiter, Jupiter's
-sidereal sign and the moment of its entry are arguments the caller gives.
+`hyper_calendar::reckoning_lines`, in the `calendars` layer. With no
+ephemeris of Jupiter there, Jupiter's sidereal sign and the moment of its
+entry are arguments the caller gives. `hc_kumbh_by_sky` and
+`hc_pushkaram_by_sky`, in the `jupiter` layer, write the same lines with two
+more cells each, from `hyper_calendar::jupiter_lines`, Jupiter found: the
+WebAssembly module's README has their columns.

@@ -39,6 +39,7 @@
 //! | `uncertainty` | [`hc_uncertainty`] | Significant figures, fuzzy dates, EDTF |
 //! | `deep-time` | [`hc_deep_time`] | Planck time to cosmology |
 //! | `orbital` | [`hc_orbital`] | Milankovitch cycles, insolation |
+//! | `jupiter` | [`hc_astro`], [`hc_seasons`] | Jupiter from VSOP87B, its signs, the Kumbh Mela and Pushkaram by the sky |
 //! | `planetary` | [`hc_planetary`] | Mars sols, other bodies |
 //! | `relativity` | [`hc_relativity`] | Time dilation, worldlines |
 //! | `full` | all of the above | |
@@ -117,6 +118,8 @@ pub mod humanize_lines;
     feature = "format"
 ))]
 pub mod i18n_lines;
+#[cfg(all(feature = "alloc", feature = "jupiter"))]
+pub mod jupiter_lines;
 #[cfg(all(
     feature = "alloc",
     feature = "civil",

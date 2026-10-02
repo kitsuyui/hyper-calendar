@@ -65,6 +65,8 @@
 pub mod chinese_twelve;
 pub mod decans;
 pub mod drekkana;
+#[cfg(feature = "jupiter")]
+pub mod jupiter;
 pub mod rashi;
 pub mod sidereal;
 pub mod tropical;

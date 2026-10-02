@@ -187,6 +187,18 @@ test("orbitAt reads the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.orbit], columnsAfter("## The orbit"));
 });
 
+test("the Jupiter lines read the README's columns in order", () => {
+  assert.deepEqual([...COLUMNS.jupiterAt], columnsAfter("### Where Jupiter is"));
+  assert.deepEqual([...COLUMNS.jupiterIngress], columnsAfter("### Jupiter's ingresses"));
+  assert.deepEqual([...COLUMNS.jupiterRising], columnsAfter("### Jupiter's risings"));
+  assert.deepEqual([...COLUMNS.kumbhBySky], columnsAfter("### The Kumbh Mela by the sky"));
+  assert.deepEqual([...COLUMNS.pushkaramBySky], columnsAfter("### Pushkaram by the sky"));
+  // The computed forms add to the caller's: the thirteen cells of `hc_kumbh`, then two; the twelve of
+  // `hc_pushkaram`, then two.
+  assert.deepEqual([...COLUMNS.kumbhBySky.slice(0, COLUMNS.kumbh.length)], [...COLUMNS.kumbh]);
+  assert.deepEqual([...COLUMNS.pushkaramBySky.slice(0, COLUMNS.pushkaram.length)], [...COLUMNS.pushkaram]);
+});
+
 test("orbitSeries reads the epoch, then orbitAt's columns, as the README says", () => {
   assert.deepEqual([...COLUMNS.orbitSeries], ["years before 1950", ...COLUMNS.orbit]);
   assert.match(README, /with the epoch in years before 1950 as a first\s+column before the eleven above/);

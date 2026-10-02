@@ -98,7 +98,7 @@ describe("load", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
       "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
-      "planetary", "relativity", "places", "humanize", "zone-names",
+      "jupiter", "planetary", "relativity", "places", "humanize", "zone-names",
     ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);
@@ -2893,6 +2893,47 @@ describe("the reckonings of #243 to #246", () => {
     );
     assert.deepEqual(hc.pushkaram("vrishchika", entry, delhi[0], delhi[1], 0, "india").map((river) => river.region),
       ["Maharashtra, Karnataka, Telangana", "Tamil Nadu"]);
+  });
+
+  test("Jupiter's opposition, its entries of 2019 and the festivals found from the sky", () => {
+    // jpl-horizons: Jupiter's apparent longitude at 0 h UT on 2024-12-07, the day of its opposition.
+    const opposition = hc.unixFromFixed(hc.gregorianToFixed(2024, 12, 7));
+    const at = hc.jupiterAt(opposition, "lahiri");
+    assert.ok(Math.abs(at.longitude - 76.3751533) < 0.0002, String(at.longitude));
+    assert.deepEqual([at.sign, at.signName, at.retrograde], ["vrishabha", "Vṛṣabha", true]);
+    assert.ok(at.dailyMotion < -0.1 && at.distance > 4.0 && at.distance < 4.2);
+    refused(() => hc.jupiterAt(0, /** @type {any} */ ("no-such")), "unknown");
+    refused(() => hc.jupiterAt(hc.unixFromFixed(hc.gregorianToFixed(3001, 1, 1)), "lahiri"), "out-of-range");
+    // drik-guru-gochar: into Dhanus on 30 March 2019, back to Vṛścika on 22 April, into Dhanus on 5 November.
+    const from = hc.unixFromFixed(hc.gregorianToFixed(2019, 1, 1));
+    const to = hc.unixFromFixed(hc.gregorianToFixed(2020, 1, 1));
+    assert.deepEqual(
+      hc.jupiterIngresses(from, to, "lahiri").map((i) => [i.from, i.to, i.direction]),
+      [["vrishchika", "dhanus", "forward"], ["dhanus", "vrishchika", "retrograde"], ["vrishchika", "dhanus", "forward"]],
+    );
+    assert.deepEqual(hc.jupiterIngresses(from, from, "lahiri"), []);
+    refused(() => hc.jupiterIngresses(from, from + 101 * 31_557_600, "lahiri"), "out-of-range");
+    // drik-guru-asta: Jupiter is lost in the Sun's light from 15 July to 12 August 2026 and rises in Puṣya.
+    const [rising] = hc.jupiterRisings(
+      hc.unixFromFixed(hc.gregorianToFixed(2026, 1, 1)), hc.unixFromFixed(hc.gregorianToFixed(2027, 1, 1)), "lahiri");
+    assert.deepEqual([rising.nakshatraId, rising.nakshatraName, rising.year, rising.yearPosition],
+      ["pushya", "Puṣya", "Pausha", 10]);
+    assert.ok(rising.setting < rising.rising && rising.rising - rising.setting > 26 * 86_400);
+    assert.deepEqual(hc.jupiterRisings(from, from, "lahiri"), []);
+    // wikipedia-kumbh-mela: the Maha Kumbh of 2025.
+    const kumbh = hc.kumbhBySky("kumbh-prayag-vrishabha", 2025, "lahiri", "en");
+    assert.deepEqual([kumbh.site, kumbh.holds, kumbh.jupiterThen], ["prayag", true, "vrishabha"]);
+    assert.ok(kumbh.jupiterLongitudeThen !== null && kumbh.jupiterLongitudeThen > 30 && kumbh.jupiterLongitudeThen < 60);
+    assert.equal(hc.kumbhBySky("kumbh-prayag-vrishabha", 2026, "lahiri").holds, false);
+    // wikipedia-godavari-pushkaram: 14 to 25 July 2015, Jupiter into Siṃha at 07:07 IST by Drik, an hour earlier by the series.
+    const [godavari] = hc.pushkaramBySky("simha", 2015, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1], 0, "india");
+    assert.deepEqual(
+      [godavari.id, godavari.first, godavari.last, godavari.rule],
+      ["pushkaram-godavari", hc.gregorianToFixed(2015, 7, 14), hc.gregorianToFixed(2015, 7, 25), "pushkaram-final-entry"],
+    );
+    assert.ok(Math.abs(godavari.entry - (hc.unixFromFixed(hc.gregorianToFixed(2015, 7, 14)) + (7 * 60 + 7) * 60 - 19_800)) < 7_200);
+    assert.deepEqual(hc.pushkaramBySky("simha", 2019, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1]), []);
+    refused(() => hc.pushkaramBySky("simha", 2015, "lahiri", /** @type {any} */ ("second"), delhi[0], delhi[1]), "unknown");
   });
 
   test("the folk days, the watches and the northern year names are their sources'", () => {
