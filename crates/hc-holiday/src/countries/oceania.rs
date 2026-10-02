@@ -2,6 +2,7 @@
 
 use hc_calendar::Weekday;
 
+use super::read_all;
 use crate::computus::offsets::{
     ASCENSION, EASTER_MONDAY, EASTER_SUNDAY, EASTER_TUESDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     WHIT_MONDAY,
@@ -29,84 +30,120 @@ const AU_JUNE_SOVEREIGN: &[&str] = &["AU-ACT", "AU-NSW", "AU-NT", "AU-SA", "AU-T
 const AU_OCTOBER_LABOUR: &[&str] = &["AU-ACT", "AU-NSW", "AU-SA"];
 const AU_MAY_LABOUR: &[&str] = &["AU-NT", "AU-QLD"];
 
-static AU_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Australia Day", "", Rule::gregorian(1, 26)),
-    HolidayRule::public("Labour Day", "", Rule::nth(3, 1, Weekday::Monday)).in_regions(AU_WA),
-    HolidayRule::public("Labour Day", "", Rule::nth(3, 2, Weekday::Monday)).in_regions(AU_VIC),
-    HolidayRule::public("Eight Hours Day", "", Rule::nth(3, 2, Weekday::Monday)).in_regions(AU_TAS),
-    HolidayRule::public("Canberra Day", "", Rule::nth(3, 2, Weekday::Monday)).in_regions(AU_ACT),
-    HolidayRule::public("Adelaide Cup Day", "", Rule::nth(3, 2, Weekday::Monday)).in_regions(AU_SA),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    // Easter Saturday and Easter Sunday are holidays where they are holidays
-    // at all; no state moves them, because the Monday is already one.
-    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY))
-        .in_regions(AU_EASTER_SATURDAY),
-    HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY))
-        .in_regions(AU_EASTER_SUNDAY),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    // Anzac Day stays on 25 April when it falls on a weekend. New South
-    // Wales adds a day on the Monday after in 2026 and 2027, a trial, by
-    // orders under s 5 of its Public Holidays Act 2010; the other states'
-    // and territories' rules for a weekend Anzac Day were not read and are
-    // not modelled.
-    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), None),
-    HolidayRule::fixed_public(
-        "Anzac Day additional holiday",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 4,
-            day: 26,
-            weekday: Weekday::Monday,
-        },
-    )
-    .in_regions(AU_NSW)
-    .years(Some(2026), Some(2027)),
-    HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
-        .in_regions(AU_MAY_LABOUR),
-    // The first Monday on or after 27 May, as the secondary sources state it;
-    // the ACT's Holidays Act 1958 was not read.
-    HolidayRule::public(
-        "Reconciliation Day",
-        "",
-        Rule::WeekdayOnOrAfter {
-            month: 5,
-            day: 27,
-            weekday: Weekday::Monday,
-        },
-    )
-    .in_regions(AU_ACT)
-    .years(Some(2018), None),
-    HolidayRule::public(
-        "Western Australia Day",
-        "",
-        Rule::nth(6, 1, Weekday::Monday),
-    )
-    .in_regions(AU_WA),
-    HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
-        .in_regions(AU_JUNE_SOVEREIGN),
-    HolidayRule::public("Picnic Day", "", Rule::nth(8, 1, Weekday::Monday)).in_regions(AU_NT),
-    // New South Wales's Bank Holiday: retail bank branches close, and it is
-    // not a public holiday.
-    HolidayRule::fixed_public("Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday))
-        .of_kind(Kind::Bank)
-        .in_regions(AU_NSW),
-    HolidayRule::public(
-        "Sovereign's Birthday",
-        "",
-        Rule::nth(10, 1, Weekday::Monday),
-    )
-    .in_regions(AU_QLD),
-    HolidayRule::public("Labour Day", "", Rule::nth(10, 1, Weekday::Monday))
-        .in_regions(AU_OCTOBER_LABOUR),
-    HolidayRule::public("Melbourne Cup Day", "", Rule::nth(11, 1, Weekday::Tuesday))
-        .in_regions(AU_VIC),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    // South Australia calls 26 December Proclamation Day; everywhere else it
-    // is Boxing Day.
-    HolidayRule::public("Proclamation Day", "", Rule::gregorian(12, 26)).in_regions(AU_SA),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Holidays Act 1983 (Qld)
+/// and the Statutory Holidays Act 2000 (Tas), the two Acts read, the later of
+/// which began in 2000, for the days every state keeps.
+const AU_READ_FROM: i32 = 2000;
+
+/// The first year the sources read answer for, in a day of one state or
+/// territory: the NSW Government's list of 2026 and secondary sources, for
+/// the days of one state or territory whose own Act was not read.
+const AU_SCOPED_READ_FROM: i32 = 2026;
+
+static AU_RULES: &[HolidayRule] = &read_all(
+    AU_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Australia Day", "", Rule::gregorian(1, 26)),
+        HolidayRule::public("Labour Day", "", Rule::nth(3, 1, Weekday::Monday))
+            .in_regions(AU_WA)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Labour Day", "", Rule::nth(3, 2, Weekday::Monday))
+            .in_regions(AU_VIC)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Eight Hours Day", "", Rule::nth(3, 2, Weekday::Monday))
+            .in_regions(AU_TAS)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Canberra Day", "", Rule::nth(3, 2, Weekday::Monday))
+            .in_regions(AU_ACT)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Adelaide Cup Day", "", Rule::nth(3, 2, Weekday::Monday))
+            .in_regions(AU_SA)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        // Easter Saturday and Easter Sunday are holidays where they are holidays
+        // at all; no state moves them, because the Monday is already one.
+        HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY))
+            .in_regions(AU_EASTER_SATURDAY)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY))
+            .in_regions(AU_EASTER_SUNDAY)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        // Anzac Day stays on 25 April when it falls on a weekend. New South
+        // Wales adds a day on the Monday after in 2026 and 2027, a trial, by
+        // orders under s 5 of its Public Holidays Act 2010; the other states'
+        // and territories' rules for a weekend Anzac Day were not read and are
+        // not modelled.
+        HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(1921), None),
+        HolidayRule::fixed_public(
+            "Anzac Day additional holiday",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 4,
+                day: 26,
+                weekday: Weekday::Monday,
+            },
+        )
+        .in_regions(AU_NSW)
+        .years(Some(2026), Some(2027)),
+        HolidayRule::public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
+            .in_regions(AU_MAY_LABOUR)
+            .read_from(AU_SCOPED_READ_FROM),
+        // The first Monday on or after 27 May, as the secondary sources state it;
+        // the ACT's Holidays Act 1958 was not read.
+        HolidayRule::public(
+            "Reconciliation Day",
+            "",
+            Rule::WeekdayOnOrAfter {
+                month: 5,
+                day: 27,
+                weekday: Weekday::Monday,
+            },
+        )
+        .in_regions(AU_ACT)
+        .years(Some(2018), None),
+        HolidayRule::public(
+            "Western Australia Day",
+            "",
+            Rule::nth(6, 1, Weekday::Monday),
+        )
+        .in_regions(AU_WA)
+        .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 2, Weekday::Monday))
+            .in_regions(AU_JUNE_SOVEREIGN)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Picnic Day", "", Rule::nth(8, 1, Weekday::Monday))
+            .in_regions(AU_NT)
+            .read_from(AU_SCOPED_READ_FROM),
+        // New South Wales's Bank Holiday: retail bank branches close, and it is
+        // not a public holiday.
+        HolidayRule::fixed_public("Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday))
+            .of_kind(Kind::Bank)
+            .in_regions(AU_NSW)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public(
+            "Sovereign's Birthday",
+            "",
+            Rule::nth(10, 1, Weekday::Monday),
+        )
+        .in_regions(AU_QLD)
+        .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Labour Day", "", Rule::nth(10, 1, Weekday::Monday))
+            .in_regions(AU_OCTOBER_LABOUR)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Melbourne Cup Day", "", Rule::nth(11, 1, Weekday::Tuesday))
+            .in_regions(AU_VIC)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        // South Australia calls 26 December Proclamation Day; everywhere else it
+        // is Boxing Day.
+        HolidayRule::public("Proclamation Day", "", Rule::gregorian(12, 26))
+            .in_regions(AU_SA)
+            .read_from(AU_SCOPED_READ_FROM),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 static AU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
@@ -176,30 +213,37 @@ static MATARIKI: Listing = Listing::Dates(&[
     (2034, 7, 7), (2035, 6, 29),
 ]);
 
-pub(super) static NZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Day after New Year's Day", "", Rule::gregorian(1, 2)),
-    // Waitangi Day and Anzac Day were mondayised only from 2014.
-    HolidayRule::fixed_public("Waitangi Day", "Te Rā o Waitangi", Rule::gregorian(2, 6))
-        .years(Some(1974), Some(2013)),
-    HolidayRule::public("Waitangi Day", "Te Rā o Waitangi", Rule::gregorian(2, 6))
-        .years(Some(2014), None),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25))
-        .years(Some(1921), Some(2013)),
-    HolidayRule::public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(2014), None),
-    HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 1, Weekday::Monday)),
-    HolidayRule::fixed_public(
-        "Matariki",
-        "Matariki",
-        Rule::listed(MATARIKI.every(), 2022, 2035),
-    )
-    .years(Some(2022), None),
-    HolidayRule::public("Labour Day", "", Rule::nth(10, 4, Weekday::Monday)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: Employment New Zealand's list
+/// of 2010 to 2025, the oldest dated list read; the Acts were not read.
+const NZ_READ_FROM: i32 = 2010;
+
+pub(super) static NZ_RULES: &[HolidayRule] = &read_all(
+    NZ_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Day after New Year's Day", "", Rule::gregorian(1, 2)),
+        // Waitangi Day and Anzac Day were mondayised only from 2014.
+        HolidayRule::fixed_public("Waitangi Day", "Te Rā o Waitangi", Rule::gregorian(2, 6))
+            .years(Some(1974), Some(2013)),
+        HolidayRule::public("Waitangi Day", "Te Rā o Waitangi", Rule::gregorian(2, 6))
+            .years(Some(2014), None),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Anzac Day", "", Rule::gregorian(4, 25))
+            .years(Some(1921), Some(2013)),
+        HolidayRule::public("Anzac Day", "", Rule::gregorian(4, 25)).years(Some(2014), None),
+        HolidayRule::public("Sovereign's Birthday", "", Rule::nth(6, 1, Weekday::Monday)),
+        HolidayRule::fixed_public(
+            "Matariki",
+            "Matariki",
+            Rule::listed(MATARIKI.every(), 2022, 2035),
+        )
+        .years(Some(2022), None),
+        HolidayRule::public("Labour Day", "", Rule::nth(10, 4, Weekday::Monday)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 static NZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Saturday, Weekday::Sunday],
@@ -253,31 +297,38 @@ static FM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static FM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Micronesian Culture and Tradition Day",
-        "",
-        Rule::gregorian(3, 31),
-    )
-    .years(Some(2010), None),
-    HolidayRule::public(
-        "Federated States of Micronesia Day",
-        "",
-        Rule::gregorian(5, 10),
-    ),
-    HolidayRule::public("United Nations Day", "", Rule::gregorian(10, 24)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(11, 3)),
-    HolidayRule::public(
-        "FSM Veterans of Foreign Wars Day",
-        "",
-        Rule::gregorian(11, 11),
-    )
-    .years(Some(2004), Some(2020)),
-    HolidayRule::public("Veterans Day", "", Rule::gregorian(11, 11)).years(Some(2021), None),
-    HolidayRule::public("Presidents Day", "", Rule::gregorian(11, 23)).years(Some(2021), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: the Code of the Federated
+/// States of Micronesia (2014), title 1, chapter 6.
+const FM_READ_FROM: i32 = 2014;
+
+static FM_RULES: &[HolidayRule] = &read_all(
+    FM_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Micronesian Culture and Tradition Day",
+            "",
+            Rule::gregorian(3, 31),
+        )
+        .years(Some(2010), None),
+        HolidayRule::public(
+            "Federated States of Micronesia Day",
+            "",
+            Rule::gregorian(5, 10),
+        ),
+        HolidayRule::public("United Nations Day", "", Rule::gregorian(10, 24)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(11, 3)),
+        HolidayRule::public(
+            "FSM Veterans of Foreign Wars Day",
+            "",
+            Rule::gregorian(11, 11),
+        )
+        .years(Some(2004), Some(2020)),
+        HolidayRule::public("Veterans Day", "", Rule::gregorian(11, 11)).years(Some(2021), None),
+        HolidayRule::public("Presidents Day", "", Rule::gregorian(11, 23)).years(Some(2021), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// The Federated States of Micronesia: the national holidays.
 ///
@@ -322,18 +373,24 @@ static MH_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static MH_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Nuclear Victims Remembrance Day", "", Rule::gregorian(3, 1)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Constitution Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Fisherman's Day", "", Rule::nth(7, 1, Weekday::Friday)),
-    HolidayRule::fixed_public("Dri-jerbal Day", "", Rule::nth(9, 1, Weekday::Friday)),
-    HolidayRule::fixed_public("Manit Day", "", Rule::last(9, Weekday::Friday)),
-    HolidayRule::public("President's Day", "", Rule::gregorian(11, 17)),
-    HolidayRule::fixed_public("Gospel Day", "", Rule::nth(12, 1, Weekday::Friday)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: the Public Holidays Act 1988.
+const MH_READ_FROM: i32 = 1988;
+
+static MH_RULES: &[HolidayRule] = &read_all(
+    MH_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Nuclear Victims Remembrance Day", "", Rule::gregorian(3, 1)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Constitution Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Fisherman's Day", "", Rule::nth(7, 1, Weekday::Friday)),
+        HolidayRule::fixed_public("Dri-jerbal Day", "", Rule::nth(9, 1, Weekday::Friday)),
+        HolidayRule::fixed_public("Manit Day", "", Rule::last(9, Weekday::Friday)),
+        HolidayRule::public("President's Day", "", Rule::gregorian(11, 17)),
+        HolidayRule::fixed_public("Gospel Day", "", Rule::nth(12, 1, Weekday::Friday)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// The Marshall Islands.
 ///
@@ -424,32 +481,39 @@ const NR_HAMMER_DEROBURT_DAY: [HolidayRule; 2] = nr_gazetted(
     NR_DECLARED.named("hammer-deroburt"),
 );
 
-static NR_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(1, 31)),
-    HolidayRule::public("Day following Independence Day", "", Rule::gregorian(2, 1)),
-    NR_WOMEN_DAY[0],
-    NR_WOMEN_DAY[1],
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Easter Tuesday", "", Rule::easter(EASTER_TUESDAY)),
-    HolidayRule::public("Constitution Day", "", Rule::gregorian(5, 17)),
-    nr_gazetted_2026("Eigigu Day", NR_DECLARED.named("eigigu")),
-    nr_gazetted_2026("Remembrance Day", NR_DECLARED.named("remembrance")),
-    NR_RONPHOS_HANDOVER[0],
-    NR_RONPHOS_HANDOVER[1],
-    nr_gazetted_2026(
-        "International Day for Judicial Well-Being",
-        NR_DECLARED.named("judicial-well-being"),
-    ),
-    NR_IBUMIN_EAROENI_DAY[0],
-    NR_IBUMIN_EAROENI_DAY[1],
-    NR_HAMMER_DEROBURT_DAY[0],
-    NR_HAMMER_DEROBURT_DAY[1],
-    HolidayRule::public("Angam Day", "", Rule::gregorian(10, 26)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Government Gazette of 30
+/// December 2022, the list for 2023, the oldest dated list read.
+const NR_READ_FROM: i32 = 2023;
+
+static NR_RULES: &[HolidayRule] = &read_all(
+    NR_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(1, 31)),
+        HolidayRule::public("Day following Independence Day", "", Rule::gregorian(2, 1)),
+        NR_WOMEN_DAY[0],
+        NR_WOMEN_DAY[1],
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Easter Tuesday", "", Rule::easter(EASTER_TUESDAY)),
+        HolidayRule::public("Constitution Day", "", Rule::gregorian(5, 17)),
+        nr_gazetted_2026("Eigigu Day", NR_DECLARED.named("eigigu")),
+        nr_gazetted_2026("Remembrance Day", NR_DECLARED.named("remembrance")),
+        NR_RONPHOS_HANDOVER[0],
+        NR_RONPHOS_HANDOVER[1],
+        nr_gazetted_2026(
+            "International Day for Judicial Well-Being",
+            NR_DECLARED.named("judicial-well-being"),
+        ),
+        NR_IBUMIN_EAROENI_DAY[0],
+        NR_IBUMIN_EAROENI_DAY[1],
+        NR_HAMMER_DEROBURT_DAY[0],
+        NR_HAMMER_DEROBURT_DAY[1],
+        HolidayRule::public("Angam Day", "", Rule::gregorian(10, 26)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Nauru.
 ///
@@ -499,17 +563,24 @@ static PW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static PW_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Youth Day", "", Rule::gregorian(3, 15)),
-    HolidayRule::public("Senior Citizens Day", "", Rule::gregorian(5, 5)),
-    HolidayRule::public("Constitution Day", "", Rule::gregorian(7, 9)),
-    HolidayRule::fixed_public("Labor Day", "", Rule::nth(9, 1, Weekday::Monday)),
-    HolidayRule::public("United Nations Day", "", Rule::gregorian(10, 24)),
-    HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday)),
-    HolidayRule::fixed_public("Family Day", "", Rule::nth(11, 4, Weekday::Friday)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: the Palau National Code
+/// Annotated, Supp. 12, whose date was not read, retrieved 2026-09-23.
+const PW_READ_FROM: i32 = 2026;
+
+static PW_RULES: &[HolidayRule] = &read_all(
+    PW_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Youth Day", "", Rule::gregorian(3, 15)),
+        HolidayRule::public("Senior Citizens Day", "", Rule::gregorian(5, 5)),
+        HolidayRule::public("Constitution Day", "", Rule::gregorian(7, 9)),
+        HolidayRule::fixed_public("Labor Day", "", Rule::nth(9, 1, Weekday::Monday)),
+        HolidayRule::public("United Nations Day", "", Rule::gregorian(10, 24)),
+        HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(11, 4, Weekday::Thursday)),
+        HolidayRule::fixed_public("Family Day", "", Rule::nth(11, 4, Weekday::Friday)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Palau.
 ///
@@ -560,21 +631,28 @@ static PG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// A day the Head of State appoints each year by notice in the Gazette.
 const PG_GAZETTED: Rule = Rule::UNREAD;
 
-static PG_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public(
-        "Papua New Guinea Remembrance Day",
-        "",
-        Rule::gregorian(7, 23),
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-    HolidayRule::fixed_public("Independence Day", "", PG_GAZETTED),
-    HolidayRule::fixed_public("Sovereign's Birthday", "", PG_GAZETTED),
-];
+/// The first year the sources read answer for: the 1982 revised edition of
+/// the Public Holidays Act 1953 (Chapter 321).
+const PG_READ_FROM: i32 = 1982;
+
+static PG_RULES: &[HolidayRule] = &read_all(
+    PG_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public(
+            "Papua New Guinea Remembrance Day",
+            "",
+            Rule::gregorian(7, 23),
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+        HolidayRule::fixed_public("Independence Day", "", PG_GAZETTED),
+        HolidayRule::fixed_public("Sovereign's Birthday", "", PG_GAZETTED),
+    ],
+);
 
 /// Papua New Guinea: the days the Act itself fixes, and no more.
 ///
@@ -622,16 +700,23 @@ static SB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-pub(super) static SB_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 7)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("National Day of Thanksgiving", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the 1996 edition of the Public
+/// Holidays Act (Cap. 151).
+const SB_READ_FROM: i32 = 1996;
+
+pub(super) static SB_RULES: &[HolidayRule] = &read_all(
+    SB_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 7)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("National Day of Thanksgiving", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Solomon Islands.
 ///
@@ -702,47 +787,54 @@ static TO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static TO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "ʻUluaki ʻaho ʻo e taʻu foʻou",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Falaite Lelei", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Monite Toetuʻu",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Anzac Day", "ʻAho ANZAC", Rule::gregorian(4, 25)),
-    HolidayRule::fixed_public(
-        "Emancipation Day",
-        "ʻAho ʻo e Tauʻatāina",
-        Rule::moved_by_weekday(&TO_JUNE_4, TO_TO_MONDAY),
-    ),
-    HolidayRule::public(
-        "Birthday of the Reigning Sovereign",
-        "ʻAho ʻaloʻi ʻo ʻEne ʻAfio ko e Tuʻi ʻo Tonga, ʻoku lolotonga Pule",
-        Rule::gregorian(7, 4),
-    ),
-    HolidayRule::public(
-        "Birthday of the Heir to the Crown",
-        "ʻAho ʻaloʻi ʻo e ʻEa ki he Kalauni ʻo Tonga",
-        Rule::gregorian(9, 17),
-    ),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "ʻAho Konisitutone",
-        Rule::moved_by_weekday(&TO_NOVEMBER_4, TO_TO_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Anniversary of the Coronation of King George Tupou I",
-        "ʻAho Fakamanatu ʻo e Hilifaki kalauni ʻo ʻEne ʻAfio ko Siaosi Tupou I",
-        Rule::moved_by_weekday(&TO_DECEMBER_4, TO_TO_MONDAY),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "ʻAho Kilisimasi", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act,
+/// Chapter 8.11, 2020 Revised Edition.
+const TO_READ_FROM: i32 = 2020;
+
+static TO_RULES: &[HolidayRule] = &read_all(
+    TO_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "ʻUluaki ʻaho ʻo e taʻu foʻou",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Falaite Lelei", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Monite Toetuʻu",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Anzac Day", "ʻAho ANZAC", Rule::gregorian(4, 25)),
+        HolidayRule::fixed_public(
+            "Emancipation Day",
+            "ʻAho ʻo e Tauʻatāina",
+            Rule::moved_by_weekday(&TO_JUNE_4, TO_TO_MONDAY),
+        ),
+        HolidayRule::public(
+            "Birthday of the Reigning Sovereign",
+            "ʻAho ʻaloʻi ʻo ʻEne ʻAfio ko e Tuʻi ʻo Tonga, ʻoku lolotonga Pule",
+            Rule::gregorian(7, 4),
+        ),
+        HolidayRule::public(
+            "Birthday of the Heir to the Crown",
+            "ʻAho ʻaloʻi ʻo e ʻEa ki he Kalauni ʻo Tonga",
+            Rule::gregorian(9, 17),
+        ),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "ʻAho Konisitutone",
+            Rule::moved_by_weekday(&TO_NOVEMBER_4, TO_TO_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Anniversary of the Coronation of King George Tupou I",
+            "ʻAho Fakamanatu ʻo e Hilifaki kalauni ʻo ʻEne ʻAfio ko Siaosi Tupou I",
+            Rule::moved_by_weekday(&TO_DECEMBER_4, TO_TO_MONDAY),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "ʻAho Kilisimasi", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Tonga.
 ///
@@ -799,29 +891,36 @@ static TV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 static TV_MAY_SECOND_SUNDAY: Rule = Rule::nth(5, 2, Weekday::Sunday);
 
-static TV_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public(
-        "Gospel Day",
-        "Te Aso o te Tala Lei",
-        Rule::Offset {
-            base: &TV_MAY_SECOND_SUNDAY,
-            days: 1,
-        },
-    ),
-    HolidayRule::public(
-        "Sovereign's Birthday",
-        "",
-        Rule::nth(6, 2, Weekday::Saturday),
-    ),
-    HolidayRule::fixed_public("National Youth Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("Tuvalu Day", "", Rule::gregorian(10, 1)),
-    HolidayRule::public("Tuvalu Day", "", Rule::gregorian(10, 2)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act, Cap.
+/// 4.50, 2022 Revised Edition.
+const TV_READ_FROM: i32 = 2022;
+
+static TV_RULES: &[HolidayRule] = &read_all(
+    TV_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public(
+            "Gospel Day",
+            "Te Aso o te Tala Lei",
+            Rule::Offset {
+                base: &TV_MAY_SECOND_SUNDAY,
+                days: 1,
+            },
+        ),
+        HolidayRule::public(
+            "Sovereign's Birthday",
+            "",
+            Rule::nth(6, 2, Weekday::Saturday),
+        ),
+        HolidayRule::fixed_public("National Youth Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("Tuvalu Day", "", Rule::gregorian(10, 1)),
+        HolidayRule::public("Tuvalu Day", "", Rule::gregorian(10, 2)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Tuvalu.
 ///
@@ -869,22 +968,29 @@ static VU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-pub(super) static VU_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Lini Day", "", Rule::gregorian(2, 21)),
-    HolidayRule::public("Custom Chief's Day", "", Rule::gregorian(3, 5)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
-    HolidayRule::public("Children's National Day", "", Rule::gregorian(7, 24)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 30)),
-    HolidayRule::public("Assumption Day", "", Rule::gregorian(8, 15)),
-    HolidayRule::public("Constitution Day", "", Rule::gregorian(10, 5)),
-    HolidayRule::public("National Unity Day", "", Rule::gregorian(11, 29)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Family Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act [Cap.
+/// 114], Consolidated Edition 2006.
+const VU_READ_FROM: i32 = 2006;
+
+pub(super) static VU_RULES: &[HolidayRule] = &read_all(
+    VU_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Lini Day", "", Rule::gregorian(2, 21)),
+        HolidayRule::public("Custom Chief's Day", "", Rule::gregorian(3, 5)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+        HolidayRule::public("Children's National Day", "", Rule::gregorian(7, 24)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 30)),
+        HolidayRule::public("Assumption Day", "", Rule::gregorian(8, 15)),
+        HolidayRule::public("Constitution Day", "", Rule::gregorian(10, 5)),
+        HolidayRule::public("National Unity Day", "", Rule::gregorian(11, 29)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Family Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Vanuatu.
 ///
@@ -942,44 +1048,51 @@ static WS_MAY_SECOND_SUNDAY: Rule = Rule::nth(5, 2, Weekday::Sunday);
 static WS_AUGUST_SECOND_SUNDAY: Rule = Rule::nth(8, 2, Weekday::Sunday);
 static WS_OCTOBER_SECOND_SUNDAY: Rule = Rule::nth(10, 2, Weekday::Sunday);
 
-static WS_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Day after New Year's Day", "", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Saturday after Good Friday",
-        "",
-        Rule::easter(HOLY_SATURDAY),
-    ),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public(
-        "Mothers' Day",
-        "",
-        Rule::Offset {
-            base: &WS_MAY_SECOND_SUNDAY,
-            days: 1,
-        },
-    ),
-    HolidayRule::public("Independence Day", "Aso Tutoʻatasi", Rule::gregorian(6, 1)),
-    HolidayRule::fixed_public(
-        "Fathers' Day",
-        "",
-        Rule::Offset {
-            base: &WS_AUGUST_SECOND_SUNDAY,
-            days: 1,
-        },
-    ),
-    HolidayRule::fixed_public(
-        "White Sunday Holiday",
-        "Lotu a Tamaiti",
-        Rule::Offset {
-            base: &WS_OCTOBER_SECOND_SUNDAY,
-            days: 1,
-        },
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act 2008
+/// as revised to 31 December 2023.
+const WS_READ_FROM: i32 = 2023;
+
+static WS_RULES: &[HolidayRule] = &read_all(
+    WS_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Day after New Year's Day", "", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Saturday after Good Friday",
+            "",
+            Rule::easter(HOLY_SATURDAY),
+        ),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public(
+            "Mothers' Day",
+            "",
+            Rule::Offset {
+                base: &WS_MAY_SECOND_SUNDAY,
+                days: 1,
+            },
+        ),
+        HolidayRule::public("Independence Day", "Aso Tutoʻatasi", Rule::gregorian(6, 1)),
+        HolidayRule::fixed_public(
+            "Fathers' Day",
+            "",
+            Rule::Offset {
+                base: &WS_AUGUST_SECOND_SUNDAY,
+                days: 1,
+            },
+        ),
+        HolidayRule::fixed_public(
+            "White Sunday Holiday",
+            "Lotu a Tamaiti",
+            Rule::Offset {
+                base: &WS_OCTOBER_SECOND_SUNDAY,
+                days: 1,
+            },
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Samoa.
 ///
@@ -1098,26 +1211,33 @@ const fn fj(name: &'static str, entry: ListedEntry) -> HolidayRule {
     HolidayRule::fixed_public(name, "", Rule::listed(entry, FJ_FIRST, FJ_LAST))
 }
 
-static FJ_RULES: &[HolidayRule] = &[
-    fj("New Year's Day", FJ_LISTED.named("New Year's Day")),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    fj("Girmit Day", FJ_LISTED.named("Girmit Day")),
-    fj(
-        "Ratu Sir Lala Sukuna Day",
-        FJ_LISTED.named("Ratu Sir Lala Sukuna Day"),
-    ),
-    fj("Constitution Day", FJ_LISTED.named("Constitution Day")),
-    fj(
-        "Prophet Mohammed's Birthday",
-        FJ_LISTED.named("Prophet Mohammed's Birthday"),
-    ),
-    fj("Fiji Day", FJ_LISTED.named("Fiji Day")),
-    fj("Diwali", FJ_LISTED.named("Diwali")),
-    fj("Christmas Day", FJ_LISTED.named("Christmas Day")),
-    fj("Boxing Day", FJ_LISTED.named("Boxing Day")),
-];
+/// The first year the sources read answer for: the Public Holidays Act (Cap.
+/// 101), 1985 edition.
+const FJ_READ_FROM: i32 = 1985;
+
+static FJ_RULES: &[HolidayRule] = &read_all(
+    FJ_READ_FROM,
+    [
+        fj("New Year's Day", FJ_LISTED.named("New Year's Day")),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        fj("Girmit Day", FJ_LISTED.named("Girmit Day")),
+        fj(
+            "Ratu Sir Lala Sukuna Day",
+            FJ_LISTED.named("Ratu Sir Lala Sukuna Day"),
+        ),
+        fj("Constitution Day", FJ_LISTED.named("Constitution Day")),
+        fj(
+            "Prophet Mohammed's Birthday",
+            FJ_LISTED.named("Prophet Mohammed's Birthday"),
+        ),
+        fj("Fiji Day", FJ_LISTED.named("Fiji Day")),
+        fj("Diwali", FJ_LISTED.named("Diwali")),
+        fj("Christmas Day", FJ_LISTED.named("Christmas Day")),
+        fj("Boxing Day", FJ_LISTED.named("Boxing Day")),
+    ],
+);
 
 /// Fiji — the public holidays as the Government's own yearly lists give
 /// them, 2019 to 2026.
@@ -1225,55 +1345,62 @@ const fn ki(name: &'static str, entry: ListedEntry) -> HolidayRule {
     HolidayRule::fixed_public(name, "", Rule::listed(entry, KI_FIRST, KI_LAST))
 }
 
-static KI_RULES: &[HolidayRule] = &[
-    ki("New Year's Day", KI_LISTED.named("New Year's Day")),
-    ki("Kiribati Holiday", KI_LISTED.named("Kiribati Holiday")),
-    ki(
-        "International Women's Day",
-        KI_LISTED.named("International Women's Day"),
-    ),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    ki(
-        "National Health Day",
-        KI_LISTED.named("National Health Day"),
-    ),
-    // Declared by the revised order for 2025 alone.
-    ki(
-        "Special Day in honour of Pope Francis",
-        KI_LISTED.named("Special Day in honour of Pope Francis"),
-    )
-    .years(Some(2025), Some(2025)),
-    ki(
-        "International Labour Day",
-        KI_LISTED.named("International Labour Day"),
-    ),
-    ki(
-        "National Police Day",
-        KI_LISTED.named("National Police Day"),
-    ),
-    ki("Gospel Day", KI_LISTED.named("Gospel Day")),
-    ki("National Day", KI_LISTED.named("National Day")),
-    ki(
-        "Kiribati Culture and Senior Citizens Day",
-        KI_LISTED.named("Kiribati Culture and Senior Citizens Day"),
-    ),
-    ki(
-        "Kiribati Special Day",
-        KI_LISTED.named("Kiribati Special Day"),
-    ),
-    ki(
-        "National Youth and Children's Day",
-        KI_LISTED.named("National Youth and Children's Day"),
-    ),
-    ki(
-        "World Teachers' Day",
-        KI_LISTED.named("World Teachers' Day"),
-    ),
-    ki("Human Rights Day", KI_LISTED.named("Human Rights Day")),
-    ki("Christmas Day", KI_LISTED.named("Christmas Day")),
-    ki("Boxing Day", KI_LISTED.named("Boxing Day")),
-];
+/// The first year the sources read answer for: the Public Holidays Ordinance
+/// (Cap. 81), 1977 revised edition.
+const KI_READ_FROM: i32 = 1977;
+
+static KI_RULES: &[HolidayRule] = &read_all(
+    KI_READ_FROM,
+    [
+        ki("New Year's Day", KI_LISTED.named("New Year's Day")),
+        ki("Kiribati Holiday", KI_LISTED.named("Kiribati Holiday")),
+        ki(
+            "International Women's Day",
+            KI_LISTED.named("International Women's Day"),
+        ),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        ki(
+            "National Health Day",
+            KI_LISTED.named("National Health Day"),
+        ),
+        // Declared by the revised order for 2025 alone.
+        ki(
+            "Special Day in honour of Pope Francis",
+            KI_LISTED.named("Special Day in honour of Pope Francis"),
+        )
+        .years(Some(2025), Some(2025)),
+        ki(
+            "International Labour Day",
+            KI_LISTED.named("International Labour Day"),
+        ),
+        ki(
+            "National Police Day",
+            KI_LISTED.named("National Police Day"),
+        ),
+        ki("Gospel Day", KI_LISTED.named("Gospel Day")),
+        ki("National Day", KI_LISTED.named("National Day")),
+        ki(
+            "Kiribati Culture and Senior Citizens Day",
+            KI_LISTED.named("Kiribati Culture and Senior Citizens Day"),
+        ),
+        ki(
+            "Kiribati Special Day",
+            KI_LISTED.named("Kiribati Special Day"),
+        ),
+        ki(
+            "National Youth and Children's Day",
+            KI_LISTED.named("National Youth and Children's Day"),
+        ),
+        ki(
+            "World Teachers' Day",
+            KI_LISTED.named("World Teachers' Day"),
+        ),
+        ki("Human Rights Day", KI_LISTED.named("Human Rights Day")),
+        ki("Christmas Day", KI_LISTED.named("Christmas Day")),
+        ki("Boxing Day", KI_LISTED.named("Boxing Day")),
+    ],
+);
 
 /// Kiribati — the days the Beretitenti's orders under the Public Holidays
 /// Ordinance declare for 2025 and 2026.

@@ -296,8 +296,8 @@ French suspension of 8 May, Italy's 1977–2000 Republic Day, Portugal's
 Korea's successive extensions of the 대체공휴일, and so on. None of them
 claims to be complete back to its own founding: each is read from the first
 year its sources support, and the years before are gaps, not answers (ADR
-0013). The first year of each table of the Americas and Europe, and why, is
-in [`docs/systems/holiday-first-years.md`](../../docs/systems/holiday-first-years.md).
+0013). The first year of each table of the Americas, Europe, Africa, the Middle East
+and Oceania, and why, is in [`docs/systems/holiday-first-years.md`](../../docs/systems/holiday-first-years.md).
 
 ## Exchange calendars
 

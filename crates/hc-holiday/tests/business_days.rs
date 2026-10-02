@@ -149,15 +149,16 @@ fn a_friday_saturday_weekend_moves_the_arithmetic_by_two_days() {
 
 #[test]
 fn the_gulf_arithmetic_crosses_a_holiday_and_a_friday_saturday_weekend() {
-    // 25 January 2025 (Revolution Day) was a Saturday and 26 January a
-    // Sunday. Egypt does not move a weekend holiday, so the working week
-    // resumes on the Sunday.
-    let egypt = calendar("EG", 2025, 2025);
-    assert!(egypt.is_holiday(ymd(2025, 1, 25)));
-    assert!(!egypt.is_business_day(ymd(2025, 1, 24)));
+    // 25 January 2026 (Revolution Day) is a Sunday, an ordinary working day
+    // in Egypt, so the holiday takes it: from Thursday the 22nd, the next
+    // business day is Monday the 26th. (The table is read from 2026.)
+    let egypt = calendar("EG", 2026, 2026);
+    assert!(egypt.is_holiday(ymd(2026, 1, 25)));
+    assert!(!egypt.is_business_day(ymd(2026, 1, 24)));
+    assert!(!egypt.is_business_day(ymd(2026, 1, 25)));
     assert_eq!(
-        egypt.add_business_days(ymd(2025, 1, 23), 1),
-        Some(ymd(2025, 1, 26))
+        egypt.add_business_days(ymd(2026, 1, 22), 1),
+        Some(ymd(2026, 1, 26))
     );
 }
 
