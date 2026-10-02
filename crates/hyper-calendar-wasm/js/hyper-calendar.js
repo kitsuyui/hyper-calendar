@@ -225,6 +225,7 @@ export const METHODS = Object.freeze([
   { method: "jupiterRisings", export: "hc_jupiter_risings", feature: "jupiter" },
   { method: "kumbhBySky", export: "hc_kumbh_by_sky", feature: "jupiter" },
   { method: "pushkaramBySky", export: "hc_pushkaram_by_sky", feature: "jupiter" },
+  { method: "pushkaramsInYear", export: "hc_pushkarams_in_year", feature: "jupiter" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
   { method: "missions", export: "hc_missions", feature: "planetary" },
   { method: "missionSol", export: "hc_mission_sol", feature: "planetary" },
@@ -522,6 +523,10 @@ export const COLUMNS = Object.freeze({
     "at new moon", "from", "to", "holds", "jupiter then", "jupiter longitude then",
   ]),
   pushkaramBySky: Object.freeze([
+    "id", "name", "locale used", "region", "sign", "sign name", "first", "last", "missing",
+    "missing day", "depression", "depression arcseconds", "entry", "rule",
+  ]),
+  pushkaramsInYear: Object.freeze([
     "id", "name", "locale used", "region", "sign", "sign name", "first", "last", "missing",
     "missing day", "depression", "depression arcseconds", "entry", "rule",
   ]),
@@ -4350,6 +4355,38 @@ export class HyperCalendar {
                 fn(signPointer, signLen, y, ayanamsaPointer, ayanamsaLen, rulePointer, ruleLen, lat, lon, elev,
                   meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true))))));
     return rows(text, COLUMNS.pushkaramBySky, "hc_pushkaram_by_sky").map(pushkaramBySky);
+  }
+
+  /**
+   * {@link pushkaramBySky} for every sign Jupiter enters in a Gregorian year,
+   * in one call: the lines of each sign it enters, one sign after another in
+   * the order of the entries, the same as the sign-by-sign calls give. A year
+   * in which it enters two signs has both; where it enters a sign, turns back
+   * and enters it again, `rule` says which entry counts; an empty list in a
+   * year with none.
+   *
+   * @param {number | bigint} year
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").PushkaramEntryRule} rule
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [meridian]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PushkaramBySky[]}
+   */
+  pushkaramsInYear(year, ayanamsa, rule, latitude, longitude, elevation = 0, meridian = "", locale = "und") {
+    const fn = this.#export("hc_pushkarams_in_year");
+    const y = toI64(year, "year");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+      this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+        this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+          this.#withText(locale, "locale", (localePointer, localeLen) =>
+            this.#text("hc_pushkarams_in_year", (buffer, capacity) =>
+              fn(y, ayanamsaPointer, ayanamsaLen, rulePointer, ruleLen, lat, lon, elev,
+                meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true)))));
+    return rows(text, COLUMNS.pushkaramsInYear, "hc_pushkarams_in_year").map(pushkaramBySky);
   }
 
   /**

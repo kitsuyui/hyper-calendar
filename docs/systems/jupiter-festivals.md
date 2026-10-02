@@ -154,8 +154,21 @@ facade computes them from the VSOP87B series, in its `jupiter_lines`:
 `hc_kumbh_by_sky` is `hc_kumbh` with `jupiter` found at the occasion's first
 moment, and `hc_pushkaram_by_sky` is `hc_pushkaram` with the entry found in a
 Gregorian year, by `hc_seasons::zodiac::jupiter::entry_into`, under one of the
-two `EntryRule`s. `hc_kumbh` and `hc_pushkaram` themselves, in the
-`calendars` layer, still take the caller's.
+two `EntryRule`s. `hc_pushkarams_in_year` is `hc_pushkaram_by_sky` for every
+sign Jupiter enters in the year, by `entries_in`, which walks the ingresses
+once for all twelve signs: the same lines, one sign after another in the
+order of the entries, from one search of the sky where twelve calls make
+twelve ([jupiter-ephemeris.md](jupiter-ephemeris.md#the-search-and-what-it-costs)
+has the timings). A year in which Jupiter enters two signs has both (1999:
+Mīna on 12 January, Meṣa on 26 May); one in which it enters a sign, turns back
+and enters it again has the one entry the rule names (2025: Karka's first
+entry, on 18 October, is the first-entry rule's and the 2026 final entry
+the other's); and a year with none has no line, 8 of the 200 years of 1900
+to 2099 by the final entry and 13 by the first. Every ingress these find is the same instant whatever span or
+export asks for it (jupiter-ephemeris.md says how and what it moved), so
+`hc_jupiter_ingresses`, `hc_pushkaram_by_sky` and `hc_pushkarams_in_year` agree
+on a festival's entry to the second. `hc_kumbh` and `hc_pushkaram`
+themselves, in the `calendars` layer, still take the caller's.
 
 Not carried:
 
@@ -354,10 +367,15 @@ The tests that anchor the computed forms are in
 `every_kumbh_year_of_the_table_meets_a_condition_of_its_site`,
 `the_recent_and_announced_festivals_meet_their_conditions`,
 `the_festivals_whose_dates_were_read_follow_the_final_entry_found_from_the_sky`,
-`the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates` and
+`the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates`,
+`the_year_export_gives_the_festivals_the_sign_export_does`,
+`the_ingress_and_pushkaram_exports_agree_on_an_entry` and
 `most_years_hold_no_entry_into_a_sign`; and in `hyper_calendar::jupiter_lines`,
-`the_kumbh_of_2025_is_met_with_jupiter_computed` and
-`the_pushkaram_of_2019_follows_the_final_entry_into_dhanus`.
+`the_kumbh_of_2025_is_met_with_jupiter_computed`,
+`the_pushkaram_of_2019_follows_the_final_entry_into_dhanus`,
+`a_years_pushkarams_are_those_of_each_sign_by_sky` (for 1971, 1998, 2025 and
+2029, and both rules: the year's lines are those of each sign's call) and
+`a_year_with_two_entries_has_two_signs_in_order`.
 
 The WebAssembly and C exports `hc_kumbh` and `hc_pushkaram` write a
 condition's occasion in a year and a sign's rivers' twelve days, from
@@ -366,4 +384,5 @@ ephemeris of Jupiter there, Jupiter's sidereal sign and the moment of its
 entry are arguments the caller gives. `hc_kumbh_by_sky` and
 `hc_pushkaram_by_sky`, in the `jupiter` layer, write the same lines with two
 more cells each, from `hyper_calendar::jupiter_lines`, Jupiter found: the
-WebAssembly module's README has their columns.
+WebAssembly module's README has their columns. `hc_pushkarams_in_year` writes
+the lines of `hc_pushkaram_by_sky` for each sign of a year at once.

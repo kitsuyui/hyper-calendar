@@ -2954,6 +2954,31 @@ describe("the reckonings of #243 to #246", () => {
     assert.ok(Math.abs(godavari.entry - (hc.unixFromFixed(hc.gregorianToFixed(2015, 7, 14)) + (7 * 60 + 7) * 60 - 19_800)) < 7_200);
     assert.deepEqual(hc.pushkaramBySky("simha", 2019, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1]), []);
     refused(() => hc.pushkaramBySky("simha", 2015, "lahiri", /** @type {any} */ ("second"), delhi[0], delhi[1]), "unknown");
+    // The year's lines are the sign-by-sign lines of each sign entered, in the order of the entries:
+    // wikipedia-pushkaram's Tapti and Brahmaputra festivals of 2019 begin at the final entry into Dhanus,
+    // and Jupiter enters Mīna (12 January) and Meṣa (26 May) in 1999.
+    const dhanus = hc.pushkaramsInYear(2019, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1], 0, "india");
+    assert.deepEqual(dhanus.map((line) => line.id), ["pushkaram-tapti", "pushkaram-brahmaputra"]);
+    assert.deepEqual(dhanus, hc.pushkaramBySky("dhanus", 2019, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1], 0, "india"));
+    const pair = hc.pushkaramsInYear(1999, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1], 0, "india");
+    assert.deepEqual([...new Set(pair.map((line) => line.sign))], ["mina", "mesha"]);
+    assert.ok(pair.every((line, at) => at === 0 || line.entry >= pair[at - 1].entry));
+    for (const sign of /** @type {const} */ (["mina", "mesha"])) {
+      assert.deepEqual(
+        pair.filter((line) => line.sign === sign),
+        hc.pushkaramBySky(sign, 1999, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1], 0, "india"),
+      );
+    }
+    assert.deepEqual(hc.pushkaramsInYear(1971, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1]), []);
+    refused(() => hc.pushkaramsInYear(2015, "lahiri", /** @type {any} */ ("second"), delhi[0], delhi[1]), "unknown");
+    refused(() => hc.pushkaramsInYear(3001, "lahiri", "pushkaram-final-entry", delhi[0], delhi[1]), "out-of-range");
+    // One ingress is one instant whatever span or export it is asked from: Jupiter's final entry into Dhanus in 2019.
+    const entry = dhanus[0].entry;
+    for (const [before, after] of [[2, 1], [37.5, 41], [300, 500], [0.04, 20]]) {
+      const found = hc.jupiterIngresses(entry - Math.round(before * 86_400), entry + Math.round(after * 86_400), "lahiri");
+      const same = found.find((ingress) => ingress.to === "dhanus" && Math.abs(ingress.moment - entry) < 172_800);
+      assert.equal(same?.moment, entry);
+    }
   });
 
   test("the folk days, the watches and the northern year names are their sources'", () => {

@@ -417,6 +417,171 @@ fn the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates() {
     );
 }
 
+/// The lines of `pushkarams_in_year_lines` for a year, as `festival` reads a
+/// sign's: (river, first day, last day, the entry's POSIX second).
+fn festivals_of(year: i64, rule: &str) -> Vec<(String, Rd, Rd, i64)> {
+    use hyper_calendar::jupiter_lines::{PUSHKARAMS_IN_YEAR_COLUMNS, pushkarams_in_year_lines};
+    let text =
+        pushkarams_in_year_lines(year, "lahiri", rule, NEW_DELHI, "india", "en").expect("lines");
+    text.lines()
+        .map(|line| {
+            let cells: Vec<&str> = line.split('\t').collect();
+            assert_eq!(cells.len(), PUSHKARAMS_IN_YEAR_COLUMNS, "{line}");
+            (
+                cells[0].to_owned(),
+                Rd(cells[6].parse().expect("a day")),
+                Rd(cells[7].parse().expect("a day")),
+                cells[PUSHKARAMS_IN_YEAR_COLUMNS - 2]
+                    .parse()
+                    .expect("a second"),
+            )
+        })
+        .collect()
+}
+
+/// The nine festivals whose dates were read, and the two Wikipedia opens at
+/// first entries, are each in the one call that gives their year's lines,
+/// on the same days and at the same second as in the call that gives their
+/// sign's.
+#[test]
+fn the_year_export_gives_the_festivals_the_sign_export_does() {
+    for (river, sign, entry, days) in FESTIVALS {
+        let year = festivals_of(entry[0], "pushkaram-final-entry");
+        let line = year
+            .iter()
+            .find(|(id, ..)| id == river)
+            .unwrap_or_else(|| panic!("{river} {entry:?}: {year:?}"));
+        let (first, last) = (
+            rd(days[0], days[1] as u8, days[2] as u8),
+            rd(days[3], days[4] as u8, days[5] as u8),
+        );
+        assert_eq!((line.1, line.2), (first, last), "{river}");
+        let by_sign = festival(sign, entry[0], "pushkaram-final-entry");
+        assert!(
+            by_sign.iter().all(|line| year.contains(line)),
+            "{river}: {by_sign:?} in {year:?}"
+        );
+    }
+    // The first entry rule's: the Tapti and Brahmaputra festival of 2019 and
+    // the Sindhu festival of 2021, as Wikipedia dates them.
+    let wikipedia = festivals_of(2019, "pushkaram-first-entry");
+    assert!(
+        wikipedia
+            .iter()
+            .any(|(id, first, ..)| id == "pushkaram-tapti" && *first == rd(2019, 3, 30))
+    );
+    let sindhu = festivals_of(2021, "pushkaram-first-entry");
+    assert!(
+        sindhu
+            .iter()
+            .any(|(id, first, ..)| id == "pushkaram-sindhu" && *first == rd(2021, 4, 6))
+    );
+}
+
+/// An ingress is one instant, to the last bit, however the search that finds it
+/// is begun: 1 100 day windows from 1900 to 2100, each asked from its start and
+/// from 3.7 days before it, give 317 ingresses that both find, and they are the
+/// same ingresses to the bit. (Before the search was laid on a grid they
+/// differed in every one, by up to 0.064 s, and by a whole second in eight.)
+#[test]
+fn an_ingress_is_the_same_instant_from_windows_that_start_apart() {
+    let lahiri = Ayanamsa::LAHIRI;
+    let (mut at, mut matched) = (693_596.0, 0);
+    while at < 693_596.0 + 73_000.0 {
+        let until = Moment(at + 1_100.0);
+        let from_here: Vec<_> = jupiter::ingresses(Moment(at), until, lahiri).collect();
+        let from_before: Vec<_> = jupiter::ingresses(Moment(at - 3.7), until, lahiri).collect();
+        for ingress in &from_here {
+            let other = from_before
+                .iter()
+                .find(|other| (other.moment.0 - ingress.moment.0).abs() < 1.0)
+                .unwrap_or_else(|| panic!("{ingress:?} not found from before"));
+            assert_eq!(other, ingress);
+            matched += 1;
+        }
+        at += 1_100.0;
+    }
+    assert!(matched >= 300, "{matched}");
+}
+
+/// The ingress lines of a span, as (the moment's POSIX second, the sign
+/// entered).
+fn ingress_seconds(from: i64, to: i64) -> Vec<(i64, String)> {
+    use hyper_calendar::jupiter_lines::{INGRESS_COLUMNS, ingress_lines};
+    ingress_lines(from, to, "lahiri")
+        .expect("lines")
+        .lines()
+        .map(|line| {
+            let cells: Vec<&str> = line.split('\t').collect();
+            assert_eq!(cells.len(), INGRESS_COLUMNS);
+            (cells[0].parse().expect("a second"), cells[3].to_owned())
+        })
+        .collect()
+}
+
+/// `hc_jupiter_ingresses`, `hc_pushkaram_by_sky` and `hc_pushkarams_in_year`
+/// give the same second for the same entry, from the spans that contain it
+/// and from the years that do: the nine festivals' entries, each asked from
+/// spans that begin days and months before it and end days and months after.
+#[test]
+fn the_ingress_and_pushkaram_exports_agree_on_an_entry() {
+    let unix = |year: i64, month: u8, date: u8| (rd(year, month, date).0 - 719_163) * 86_400;
+    for (river, sign, entry, _) in FESTIVALS {
+        let by_sign = festival(sign, entry[0], "pushkaram-final-entry");
+        let (_, _, _, second) = by_sign
+            .iter()
+            .find(|(id, ..)| id == river)
+            .unwrap_or_else(|| panic!("{river}"));
+        let in_year = festivals_of(entry[0], "pushkaram-final-entry");
+        assert!(in_year.iter().any(|line| line.3 == *second), "{river}");
+        let centre = unix(entry[0], entry[1] as u8, entry[2] as u8);
+        for (before, after) in [
+            (86_400 * 2, 86_400),
+            (86_400 * 37 + 12_345, 86_400 * 41),
+            (86_400 * 300, 86_400 * 500 + 7),
+            (3_000, 86_400 * 20),
+        ] {
+            let found = ingress_seconds(centre - before, centre + after);
+            let it = found
+                .iter()
+                .find(|(s, entered)| entered.as_str() == sign && (s - second).abs() < 86_400 * 2);
+            assert_eq!(
+                it.map(|(s, _)| *s),
+                Some(*second),
+                "{river}: {before} s before and {after} after"
+            );
+        }
+    }
+}
+
+/// A rising and its setting are the same two instants from every span that
+/// holds the rising: Drik Panchang's 2026 asta, asked from spans that begin
+/// in the months before it.
+#[test]
+fn the_risings_are_the_same_instants_from_spans_that_start_apart() {
+    use hyper_calendar::jupiter_lines::rising_lines;
+    let unix = |month: u8, date: u8| (rd(2026, month, date).0 - 719_163) * 86_400;
+    let mut found = Vec::new();
+    for (from, to) in [
+        (unix(1, 1), unix(12, 31)),
+        (unix(1, 1) + 1, unix(9, 1)),
+        (unix(4, 3) + 40_000, unix(8, 20)),
+        (unix(6, 21), unix(8, 14) + 500),
+        (unix(7, 20) + 7, unix(12, 1)),
+    ] {
+        let text = rising_lines(from, to, "lahiri").expect("lines");
+        let lines: Vec<&str> = text.lines().collect();
+        assert_eq!(lines.len(), 1, "{from} {to}: {text}");
+        let cells: Vec<&str> = lines[0].split('\t').collect();
+        found.push((
+            cells[0].to_owned(),
+            cells[1].to_owned(),
+            cells[2].to_owned(),
+        ));
+    }
+    assert!(found.windows(2).all(|pair| pair[0] == pair[1]), "{found:?}");
+}
+
 #[test]
 fn most_years_hold_no_entry_into_a_sign() {
     // Jupiter enters Siṃha once in twelve years, or three times in two.

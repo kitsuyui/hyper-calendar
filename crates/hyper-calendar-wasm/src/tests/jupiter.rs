@@ -191,6 +191,72 @@ fn the_festivals_found_from_the_sky_cross_the_boundary() {
     );
 }
 
+/// `hc_pushkarams_in_year` is `hc_pushkaram_by_sky` for each sign Jupiter
+/// enters in the year, byte for byte: in 2019 Jupiter's final entry into
+/// Dhanus is on 5 November, the Tapti and Brahmaputra festivals' beginning
+/// (`sentinel-brahmaputra-2019`); a year with no entry is zero bytes.
+#[test]
+fn a_years_pushkarams_cross_the_boundary_as_the_sign_by_sign_ones_do() {
+    let (ayanamsa, rule, meridian, locale) = ("lahiri", "pushkaram-final-entry", "india", "en");
+    let in_year = |year: i64, rule: &str, buffer: *mut u8, capacity: usize| unsafe {
+        hc_pushkarams_in_year(
+            year,
+            ayanamsa.as_ptr(),
+            ayanamsa.len(),
+            rule.as_ptr(),
+            rule.len(),
+            28.6356,
+            77.2244,
+            0.0,
+            meridian.as_ptr(),
+            meridian.len(),
+            locale.as_ptr(),
+            locale.len(),
+            buffer,
+            capacity,
+        )
+    };
+    let text = read_lines(|buffer, capacity| in_year(2019, rule, buffer, capacity));
+    let rows = rows(&text);
+    assert_eq!(rows.len(), 2, "{text}");
+    assert!(rows.iter().all(|row| row.len() == 14));
+    assert_eq!(rows[0][0], "pushkaram-tapti");
+    assert_eq!(rows[1][0], "pushkaram-brahmaputra");
+    assert_eq!(rows[0][6], hc_gregorian_to_fixed(2019, 11, 5).to_string());
+    let sign = "dhanus";
+    let by_sign = read_lines(|buffer, capacity| unsafe {
+        hc_pushkaram_by_sky(
+            sign.as_ptr(),
+            sign.len(),
+            2019,
+            ayanamsa.as_ptr(),
+            ayanamsa.len(),
+            rule.as_ptr(),
+            rule.len(),
+            28.6356,
+            77.2244,
+            0.0,
+            meridian.as_ptr(),
+            meridian.len(),
+            locale.as_ptr(),
+            locale.len(),
+            buffer,
+            capacity,
+        )
+    });
+    assert_eq!(text, by_sign);
+    // 1971 has no entry by either rule.
+    assert_eq!(in_year(1971, rule, core::ptr::null_mut(), 0), 0);
+    assert_eq!(
+        in_year(2019, "second", core::ptr::null_mut(), 0),
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(
+        in_year(3001, rule, core::ptr::null_mut(), 0),
+        HC_ERR_OUT_OF_RANGE
+    );
+}
+
 /// Drik Panchang's Guru Asta page for New Delhi (`drik-guru-asta`): Jupiter
 /// is lost in the Sun's light from 15 July to 12 August 2026, and rises in
 /// Puṣya; the year of Jupiter that begins is Pauṣa by the *Bṛhatsaṃhitā*.

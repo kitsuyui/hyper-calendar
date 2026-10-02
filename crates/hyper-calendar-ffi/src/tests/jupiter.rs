@@ -104,6 +104,88 @@ fn the_ingresses_and_the_festivals_found_cross_the_c_boundary() {
 }
 
 #[test]
+fn a_years_pushkarams_cross_the_c_boundary_as_the_sign_by_sign_ones_do() {
+    let in_year = |year: i64, rule: &core::ffi::CStr| {
+        read_lines(|buffer, capacity, written| unsafe {
+            hc_pushkarams_in_year(
+                year,
+                c"lahiri".as_ptr(),
+                rule.as_ptr(),
+                28.6356,
+                77.2244,
+                0.0,
+                c"india".as_ptr(),
+                c"en".as_ptr(),
+                buffer,
+                capacity,
+                written,
+            )
+        })
+    };
+    // 2019: the final entry into Dhanus, on 5 November, is the Tapti and
+    // Brahmaputra festivals' beginning.
+    let text = in_year(2019, c"pushkaram-final-entry");
+    let rows = rows(&text);
+    assert_eq!(rows.len(), 2, "{text}");
+    assert!(rows.iter().all(|row| row.len() == 14));
+    assert_eq!(rows[0][0], "pushkaram-tapti");
+    let by_sign = read_lines(|buffer, capacity, written| unsafe {
+        hc_pushkaram_by_sky(
+            c"dhanus".as_ptr(),
+            2019,
+            c"lahiri".as_ptr(),
+            c"pushkaram-final-entry".as_ptr(),
+            28.6356,
+            77.2244,
+            0.0,
+            c"india".as_ptr(),
+            c"en".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(text, by_sign);
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe {
+            hc_pushkarams_in_year(
+                2019,
+                c"lahiri".as_ptr(),
+                core::ptr::null(),
+                28.6356,
+                77.2244,
+                0.0,
+                c"india".as_ptr(),
+                c"en".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+    assert_eq!(
+        unsafe {
+            hc_pushkarams_in_year(
+                3001,
+                c"lahiri".as_ptr(),
+                c"pushkaram-final-entry".as_ptr(),
+                28.6356,
+                77.2244,
+                0.0,
+                c"india".as_ptr(),
+                c"en".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+}
+
+#[test]
 fn the_rising_of_2026_crosses_the_c_boundary() {
     // 2026-01-01 to 2027-01-01.
     let text = read_lines(|buffer, capacity, written| unsafe {

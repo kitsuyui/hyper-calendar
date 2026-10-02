@@ -5495,6 +5495,63 @@ macro_rules! exports {
                         )
                     })
             };
+
+        c {
+            /// The twelve days of the *Ādi Pushkaram* of each river of every sidereal
+            /// sign Jupiter enters in a Gregorian year, found, as NUL-terminated UTF-8
+            /// lines in a caller-owned buffer.
+            ///
+            /// `ayanamsa`, `rule` and `meridian` are as for `hc_pushkaram_by_sky`; null
+            /// for any is `HC_ERROR_NULL_POINTER`, and a name not known
+            /// `HC_ERROR_UNKNOWN`. The lines are the WebAssembly module's: those of
+            /// `hc_pushkaram_by_sky`, for each sign Jupiter enters that year, in the
+            /// order of the entries, each line carrying its sign. No line in a year
+            /// without an entry by the rule. A place off the globe, or a year outside
+            /// −1000 to 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length,
+            /// including the terminator, into `written`.
+        }
+        wasm {
+            /// The twelve days of the *Ādi Pushkaram* of each river of every sidereal
+            /// sign Jupiter enters in a Gregorian year, found, as UTF-8 lines, each
+            /// river named in a locale, returning the byte length written.
+            ///
+            /// What `hc_pushkaram_by_sky` gives for each sign Jupiter enters that year,
+            /// one sign after another in the order of the entries, in one call and one
+            /// search of the sky where the sign-by-sign form makes twelve: the same
+            /// bytes. One line per river of each sign, the columns of
+            /// `hc_pushkaram_by_sky`, whose sign columns say which sign a line is
+            /// for. A year in which Jupiter enters two signs has the lines of both; one
+            /// in which it enters a sign, turns back and enters it again has the entry
+            /// `rule` names, `pushkaram-final-entry` or `pushkaram-first-entry`, in any
+            /// case, as for `hc_pushkaram_by_sky`. No line, an answer of zero bytes, in
+            /// a year with no entry by the rule. An ayanāṃśa, rule or meridian not known
+            /// is `HC_ERR_UNKNOWN`. The locale argument fails as `hc_parse_iso_date`
+            /// does. A place off the globe, or a year outside −1000 to 3000, is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_pushkarams_in_year(
+            year: i64,
+            ayanamsa: name(ayanamsa_len),
+            rule: name(rule_len),
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+            meridian: name(meridian_len),
+            locale: text(locale_len),
+        ) -> line =
+            |year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| {
+                        $crate::jupiter_lines::pushkarams_in_year_lines(
+                            year,
+                            ayanamsa,
+                            rule,
+                            place,
+                            meridian,
+                            locale,
+                        )
+                    })
+            };
     } };
     ("planetary", $backend:ident) => { $backend! {
         c {

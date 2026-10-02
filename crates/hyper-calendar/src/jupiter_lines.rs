@@ -20,6 +20,8 @@ use hc_calendars_indic::barhaspatya::TWELVE_YEAR_NAMES;
 use hc_calendars_indic::kumbh::KumbhYoga;
 use hc_calendars_indic::nakshatra::DEGREES_PER_NAKSHATRA;
 use hc_calendars_indic::pushkaram::{adi_pushkaram, rivers_of};
+use hc_seasons::meridian::Meridian;
+use hc_seasons::zodiac::SiderealSign;
 use hc_seasons::zodiac::jupiter::{self, EntryRule};
 
 use crate::astro_lines::{EARLIEST_YEAR, LATEST_YEAR, moment_in_era, unix_from_moment};
@@ -210,18 +212,86 @@ pub fn pushkaram_by_sky_lines(
     if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
-    let from = Moment(new_year(year).0 as f64);
-    let until = Moment(new_year(year + 1).0 as f64);
+    let (from, until) = year_span(year);
     let Some(entry) = jupiter::entry_into(sign, from, until, rule, ayanamsa) else {
         return Ok(String::new());
     };
-    let span = adi_pushkaram(entry.moment, place, meridian);
     let mut out = String::new();
+    pushkaram_entry_lines(&mut out, sign, entry, rule, place, meridian, locale);
+    Ok(out)
+}
+
+/// The moments a Gregorian year begins and ends at, as the Pushkaram's
+/// searches take them.
+fn year_span(year: i64) -> (Moment, Moment) {
+    (
+        Moment(new_year(year).0 as f64),
+        Moment(new_year(year + 1).0 as f64),
+    )
+}
+
+/// The lines of one entry of Jupiter into a sign: a line for each river of
+/// the sign, with the entry's moment and the rule's identifier after the
+/// cells of `hc_pushkaram`.
+fn pushkaram_entry_lines(
+    out: &mut String,
+    sign: SiderealSign,
+    entry: jupiter::Ingress,
+    rule: EntryRule,
+    place: Location,
+    meridian: Meridian,
+    locale: &str,
+) {
+    let span = adi_pushkaram(entry.moment, place, meridian);
     for river in rivers_of(sign) {
-        let mut line = Line::new(&mut out);
+        let mut line = Line::new(out);
         pushkaram_river_cells(&mut line, &river, sign, span, locale);
         line.value(unix_from_moment(entry.moment)).cell(rule.id());
         line.end();
+    }
+}
+
+/// How many columns each line of [`pushkarams_in_year_lines`] writes: those
+/// of [`pushkaram_by_sky_lines`].
+pub const PUSHKARAMS_IN_YEAR_COLUMNS: usize = PUSHKARAM_BY_SKY_COLUMNS;
+
+/// The lines of `hc_pushkarams_in_year`: the twelve days of the *Ādi
+/// Pushkaram* of every river of every sidereal sign Jupiter enters in a
+/// Gregorian year, found rather than given, in the order of the entries.
+/// No line in a year in which Jupiter enters no sign by the rule, which is
+/// a few years in twelve.
+///
+/// The lines are those of [`pushkaram_by_sky_lines`] for each sign Jupiter
+/// enters that year, one sign after another, to the byte: the cells, the
+/// rule, and the sign each river's line carries. A year in which Jupiter
+/// enters two signs has the lines of both, and one in which it enters a
+/// sign, turns back out and enters again has one entry into that sign,
+/// the one `rule` names, as [`pushkaram_by_sky_lines`] has. What the
+/// year's lines cost is one search of the sky, not one for each sign: the
+/// ingresses that every sign's search walks are found once.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa, a rule or a meridian not named;
+/// [`Refusal::OutOfRange`] for a year outside the sky layer's era.
+pub fn pushkarams_in_year_lines(
+    year: i64,
+    ayanamsa_name: &str,
+    rule_name: &str,
+    place: Location,
+    meridian_name: &str,
+    locale: &str,
+) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let rule = EntryRule::by_id(rule_name).ok_or(Refusal::Unknown)?;
+    let meridian = meridian(meridian_name)?;
+    if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
+        return Err(Refusal::OutOfRange);
+    }
+    let (from, until) = year_span(year);
+    let mut out = String::new();
+    for entry in jupiter::entries_in(from, until, rule, ayanamsa) {
+        pushkaram_entry_lines(&mut out, entry.to, entry, rule, place, meridian, locale);
     }
     Ok(out)
 }
@@ -509,6 +579,173 @@ mod tests {
         assert_eq!(rows[0][6], first.to_string());
         assert_eq!(rows[0][7], (first + 11).to_string());
         assert_eq!(rows[1][3], "Assam");
+    }
+
+    /// The lines of a year, taken a sign at a time: each sign's lines, in
+    /// the order the signs first appear.
+    fn blocks_of(text: &str) -> Vec<(String, String)> {
+        let mut blocks: Vec<(String, String)> = Vec::new();
+        for line in text.lines() {
+            let sign = cells(line)[4].to_string();
+            match blocks.last_mut() {
+                Some((last, block)) if *last == sign => {
+                    block.push_str(line);
+                    block.push('\n');
+                }
+                _ => blocks.push((sign, format!("{line}\n"))),
+            }
+        }
+        blocks
+    }
+
+    /// `hc_pushkarams_in_year` gives, for a year, what `hc_pushkaram_by_sky`
+    /// gives for each of the twelve signs, and only for the signs that have
+    /// a line. In 1998 Jupiter enters Kumbha (8 January), then Mīna (25 May)
+    /// and turns back into Kumbha (10 September), and enters Mīna again on
+    /// 12 January 1999: the final entry rule finds Kumbha for 1998 and the
+    /// first-entry rule finds both. In 2025 it enters Mithuna (14 May) and
+    /// Karka (18 October), and goes back to Mithuna before it stays in Karka
+    /// from 1 June 2026. In 2029 it enters Tulā on 24 August after turning
+    /// back from it, which is the final entry and not a first one. In 1971 it
+    /// enters no sign. Each is asked of both rules.
+    #[test]
+    fn a_years_pushkarams_are_those_of_each_sign_by_sky() {
+        use hc_seasons::zodiac::SiderealSign;
+        let mut nonempty = 0;
+        let mut empty = 0;
+        for year in [1971, 1998, 2025, 2029] {
+            for rule in ["pushkaram-final-entry", "pushkaram-first-entry"] {
+                let text = pushkarams_in_year_lines(year, "lahiri", rule, NEW_DELHI, "india", "en")
+                    .expect("lines");
+                assert!(
+                    text.lines()
+                        .all(|line| cells(line).len() == PUSHKARAMS_IN_YEAR_COLUMNS),
+                    "{year} {rule}"
+                );
+                let by_year = blocks_of(&text);
+                let by_sky = |sign: &SiderealSign| {
+                    pushkaram_by_sky_lines(
+                        sign.id(),
+                        year,
+                        "lahiri",
+                        rule,
+                        NEW_DELHI,
+                        "india",
+                        "en",
+                    )
+                    .expect("lines")
+                };
+                // Every sign asked, where the year is one that tells
+                // the rules apart or has none; otherwise the signs the
+                // year's lines are for.
+                let every = [
+                    (2025, "pushkaram-first-entry"),
+                    (2029, "pushkaram-final-entry"),
+                ]
+                .contains(&(year, rule));
+                let asked: Vec<SiderealSign> = if every {
+                    SiderealSign::ALL.to_vec()
+                } else {
+                    by_year
+                        .iter()
+                        .filter_map(|(sign, _)| SiderealSign::by_id(sign))
+                        .collect()
+                };
+                let by_sign: Vec<(String, String)> = asked
+                    .iter()
+                    .filter_map(|sign| {
+                        let one = by_sky(sign);
+                        (!one.is_empty()).then(|| (sign.id().to_string(), one))
+                    })
+                    .collect();
+                // The same blocks; the year's are in time order, the signs'
+                // in the zodiac's, so compare as sets.
+                let mut sorted = by_year.clone();
+                sorted.sort();
+                let mut expected = by_sign.clone();
+                expected.sort();
+                assert_eq!(sorted, expected, "{year} {rule}");
+                assert_eq!(
+                    by_year.len(),
+                    by_year
+                        .iter()
+                        .map(|(sign, _)| sign)
+                        .collect::<std::collections::BTreeSet<_>>()
+                        .len(),
+                    "a sign twice in {year} {rule}"
+                );
+                if text.is_empty() {
+                    empty += 1;
+                } else {
+                    nonempty += 1;
+                }
+            }
+        }
+        // 1971 is empty by both rules and 2029 by the first.
+        assert_eq!((nonempty, empty), (5, 3));
+    }
+
+    /// A year in which Jupiter enters two signs has the Pushkaram of both, in
+    /// the order of the entries: in 1999 it enters Mīna on 12 January, for
+    /// the last time, and Meṣa on 26 May.
+    #[test]
+    fn a_year_with_two_entries_has_two_signs_in_order() {
+        let text = pushkarams_in_year_lines(
+            1999,
+            "lahiri",
+            "pushkaram-final-entry",
+            NEW_DELHI,
+            "india",
+            "en",
+        )
+        .expect("lines");
+        let blocks = blocks_of(&text);
+        let signs: Vec<&str> = blocks.iter().map(|(sign, _)| sign.as_str()).collect();
+        assert_eq!(signs, ["mina", "mesha"]);
+        let on = |block: &str, month: u8, day: u8| {
+            let moment: i64 = cells(block.lines().next().expect("a line"))[12]
+                .parse()
+                .expect("a number");
+            let days = (moment / 86_400) + 719_163;
+            days == to_fixed(1999, month, day).expect("a date").0
+        };
+        assert!(on(&blocks[0].1, 1, 12) && on(&blocks[1].1, 5, 26));
+        let moments: Vec<i64> = blocks
+            .iter()
+            .map(|(_, block)| {
+                cells(block.lines().next().expect("a line"))[12]
+                    .parse()
+                    .expect("a number")
+            })
+            .collect();
+        assert!(moments[0] < moments[1]);
+    }
+
+    #[test]
+    fn the_pushkarams_of_a_year_refuse_what_they_cannot() {
+        let ask = |year: i64, rule: &str, meridian: &str, ayanamsa: &str| {
+            pushkarams_in_year_lines(year, ayanamsa, rule, NEW_DELHI, meridian, "en")
+        };
+        assert_eq!(
+            ask(2019, "second", "india", "lahiri"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            ask(2019, "pushkaram-final-entry", "mars", "lahiri"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            ask(2019, "pushkaram-final-entry", "india", "nope"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            ask(-1001, "pushkaram-final-entry", "india", "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            ask(3001, "pushkaram-final-entry", "india", "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
     }
 
     #[test]
