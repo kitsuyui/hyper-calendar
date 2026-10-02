@@ -43,6 +43,7 @@ use core::fmt;
 use hc_calendar::{CivilDateTime, Weekday};
 use hc_calendars_solar::{gregorian, iso_week};
 use hc_i18n::names::{DayPeriod, NameContext, NameWidth};
+use hc_i18n::week::WeekRule;
 use hc_i18n::{Locale, names};
 
 use crate::error::{ValueError, ValueResult};
@@ -133,7 +134,9 @@ pub struct FormatContext<'a> {
     pub zone_id: Option<&'a str>,
     /// Whether the reading is the zone's daylight time, which a specific
     /// name (`z`, *Pacific Daylight Time*) needs; `None` where it is not
-    /// known. Supply it from [`hc_tz::TimeZone::is_dst_at`].
+    /// known. Supply it from [`hc_tz::TimeZone::is_summer_time_at`], not
+    /// `is_dst_at`: tzdata's main format flags Ireland's winter as its
+    /// saving, and CLDR's daylight name is the summer's.
     pub zone_daylight: Option<bool>,
     /// The zone's rules, which UTS #35's last type fallback reads: a
     /// generic name (`v`, `vvvv`) is written as the standard one where the
@@ -333,33 +336,34 @@ impl Fields {
         DayPeriod::from_hour(self.hour)
     }
 
+    /// The fixed day the fields name.
+    #[must_use]
+    pub const fn rd(&self) -> hc_calendar::Rd {
+        hc_calendar::Rd(hc_calendar::gregorian::new_year(self.year).0 + self.day_of_year as i64 - 1)
+    }
+
     /// The week of the year counting from the first Sunday, `strftime`'s
     /// `%U`. Days before that Sunday are in week 0.
+    ///
+    /// It is the week of the year of the rule that starts weeks on Sunday
+    /// and counts a week as the first only when all seven of its days are in
+    /// the year ([`WeekRule`]), with the days that rule gives to the last
+    /// week of the year before put in week 0.
     #[must_use]
     pub const fn week_of_year_sunday(&self) -> u8 {
-        let day_index = self.day_of_year as u32 - 1;
-        let weekday = self.weekday.sunday_first_number() as u32;
-        ((day_index + 7 - weekday) / 7) as u8
+        self.week_of_this_year(WeekRule::new(Weekday::Sunday, 7))
     }
 
     /// The week of the year counting from the first Monday, `strftime`'s
-    /// `%W`.
+    /// `%W`: [`Fields::week_of_year_sunday`]'s rule from Monday.
     #[must_use]
     pub const fn week_of_year_monday(&self) -> u8 {
-        let day_index = self.day_of_year as u32 - 1;
-        let weekday = self.weekday.iso_number() as u32 - 1;
-        ((day_index + 7 - weekday) / 7) as u8
+        self.week_of_this_year(WeekRule::new(Weekday::Monday, 7))
     }
 
-    /// The week of the month, CLDR's `W`, counting from 1.
-    ///
-    /// This uses the ISO rule — weeks begin on Monday and week 1 is the one
-    /// holding the 4th — rather than a locale-dependent one.
-    #[must_use]
-    pub const fn week_of_month(&self) -> u8 {
-        let day_index = self.day as u32 - 1;
-        let weekday = self.weekday.iso_number() as u32 - 1;
-        ((day_index + 7 - weekday) / 7) as u8 + 1
+    const fn week_of_this_year(&self, rule: WeekRule) -> u8 {
+        let (week_year, week) = rule.week_of_year(self.rd());
+        if week_year == self.year { week } else { 0 }
     }
 
     /// Milliseconds elapsed since midnight, CLDR's `A`.
@@ -401,6 +405,29 @@ pub(crate) fn exact_offset_style(offset: hc_tz::UtcOffset, extended: bool) -> hc
         (true, true) => OffsetStyle::ExtendedSeconds,
         (false, false) => OffsetStyle::Basic,
         (false, true) => OffsetStyle::BasicSeconds,
+    }
+}
+
+/// The calendar whose era and year a context writes: the context's, else the
+/// one the locale's `-u-ca-` key names, where it is the Buddhist or the
+/// Minguo, which this crate reaches. `strftime`'s `%E` conversions and the
+/// CLDR fields `G`, `y`, `u` and `U` write in it; the months and days stay
+/// Gregorian, which these calendars share.
+pub(crate) fn era_calendar<'a>(
+    context: &FormatContext<'a>,
+) -> Option<&'a dyn hc_calendar::DynCalendar> {
+    use hc_calendar::DynAdapter;
+    static BUDDHIST: DynAdapter<hc_calendars_solar::buddhist::BuddhistCalendar> =
+        DynAdapter::new(hc_calendars_solar::buddhist::BuddhistCalendar);
+    static MINGUO: DynAdapter<hc_calendars_solar::minguo::MinguoCalendar> =
+        DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);
+    if let Some(calendar) = context.era_calendar {
+        return Some(calendar);
+    }
+    match context.locale?.calendar()? {
+        "buddhist" => Some(&BUDDHIST),
+        "roc" => Some(&MINGUO),
+        _ => None,
     }
 }
 
@@ -586,12 +613,19 @@ pub struct ParsedFields {
     pub day: Option<u8>,
     /// The day of the year, from `%j` or `D`.
     pub day_of_year: Option<u16>,
-    /// The ISO week-numbering year, from `%G` or `Y`.
+    /// The week-numbering year, from `%G` or CLDR `Y`: ISO's, or the year of
+    /// [`ParsedFields::week_rule`].
     pub iso_year: Option<i64>,
-    /// The ISO week, from `%V` or `w`.
+    /// The week, from `%V` or CLDR `w`: ISO's, or the week of
+    /// [`ParsedFields::week_rule`].
     pub iso_week: Option<u8>,
     /// The ISO weekday, from `%u` or `e`.
     pub iso_weekday: Option<u8>,
+    /// The rule the week and the week-numbering year were numbered by, where
+    /// a CLDR pattern read them with a locale: its first day of the week and
+    /// `minDays`. `None` is ISO 8601's, the rule of `%G` and `%V` and of a
+    /// CLDR pattern read with no locale.
+    pub week_rule: Option<hc_i18n::week::WeekRule>,
     /// The hour on a 24-hour clock.
     pub hour: Option<u8>,
     /// The hour on a 12-hour clock, which needs a day period to be useful.
@@ -675,6 +709,12 @@ impl ParsedFields {
         if let (Some(year), Some(week), Some(weekday)) =
             (self.iso_year, self.iso_week, self.iso_weekday)
         {
+            if let Some(rule) = self.week_rule {
+                let weekday = Weekday::from_iso_number(weekday).ok_or(ValueError::Calendar(
+                    hc_calendar::CalendarError::DayOutOfRange,
+                ))?;
+                return Ok(rule.to_fixed(year, week, weekday));
+            }
             return Ok(iso_week::to_fixed(year, week, weekday)?);
         }
         let year = self

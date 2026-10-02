@@ -49,7 +49,7 @@ fn zone_formats(locale: Option<&Locale>) -> ZoneFormats {
 
 /// The ten digits a locale writes its offsets in: its numbering system's
 /// where that is positional, else Latin.
-fn digits(locale: Option<&Locale>) -> [char; 10] {
+pub(super) fn digits(locale: Option<&Locale>) -> [char; 10] {
     const LATIN: [char; 10] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     locale
         .and_then(|locale| hc_i18n::NumberingSystem::for_locale(locale).digits())
@@ -57,13 +57,14 @@ fn digits(locale: Option<&Locale>) -> [char; 10] {
         .unwrap_or(LATIN)
 }
 
-fn write_number<W: Write>(
+/// An unsigned number in `digits`, zero-padded to at least `width` places.
+pub(super) fn write_number<W: Write>(
     out: &mut W,
-    value: u32,
+    value: u64,
     width: usize,
     digits: &[char; 10],
 ) -> fmt::Result {
-    let mut buffer = [0u8; 10];
+    let mut buffer = [0u8; 20];
     let mut length = 0;
     let mut rest = value;
     loop {
@@ -114,23 +115,36 @@ fn write_hour_format<W: Write>(
     let suffix = pattern.get(minutes_at + 2..).unwrap_or("");
     out.write_str(&pattern[..hours_at])?;
     let two = long && hours_end - hours_at >= 2;
-    write_number(out, offset.abs_hours(), if two { 2 } else { 1 }, digits)?;
+    write_number(
+        out,
+        u64::from(offset.abs_hours()),
+        if two { 2 } else { 1 },
+        digits,
+    )?;
     let (minutes, seconds) = (offset.abs_minutes(), offset.abs_seconds());
     if long || minutes != 0 || seconds != 0 {
         out.write_str(separator)?;
-        write_number(out, minutes, 2, digits)?;
+        write_number(out, u64::from(minutes), 2, digits)?;
     }
     if seconds != 0 {
         out.write_str(separator)?;
-        write_number(out, seconds, 2, digits)?;
+        write_number(out, u64::from(seconds), 2, digits)?;
     }
     out.write_str(suffix)
 }
 
 /// The localized GMT format, `O` and `OOOO`: the locale's `gmtFormat`
 /// around its `hourFormat`, in its digits, and its `gmtZeroFormat` for a
-/// zero offset in the short form; with no locale, `root.xml`'s, `GMT+9`
-/// and `GMT+09:00`.
+/// zero offset in both forms; with no locale, `root.xml`'s, `GMT+9` and
+/// `GMT+09:00`, and `GMT` at zero.
+///
+/// UTS #35 Part 4 defines `gmtZeroFormat` as "how GMT/UTC with an offset of
+/// zero should be represented", with no width; its list of long examples
+/// shows `GMT+00:00`, which does not follow that definition. ICU4J's
+/// `TimeZoneFormat` documents the GMT zero format for the long and the
+/// short form alike, and ICU 76.1 (Node's `longOffset`) writes `GMT` at
+/// UTC in `en` and the locale's own word in the others (`غرينتش` in `ar`,
+/// `GMT` in `de` and `ja`): this does the same.
 pub(crate) fn write_localized_gmt<W: Write>(
     out: &mut W,
     locale: Option<&Locale>,
@@ -141,7 +155,7 @@ pub(crate) fn write_localized_gmt<W: Write>(
         return Err(FormatError::Unrepresentable("a zone field with no zone"));
     };
     let formats = zone_formats(locale);
-    if offset.is_utc() && !long {
+    if offset.is_utc() {
         out.write_str(formats.gmt_zero)?;
         return Ok(());
     }

@@ -53,6 +53,7 @@ pub(super) const AR_EG: LocaleData = LocaleData {
     calendar_names: &[],
     numbering: "arab",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     weekdays: ContextualNames::EMPTY,
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
@@ -111,6 +112,7 @@ pub(super) const EN_001: LocaleData = LocaleData {
     calendar_names: &[],
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     weekdays: ContextualNames::EMPTY,
     day_periods: ContextualNames {
         format: widths(&["am", "pm"], &[], &["a", "p"]),
@@ -149,6 +151,7 @@ pub(super) const EN_GB: LocaleData = LocaleData {
     calendar_names: &[],
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     weekdays: ContextualNames::EMPTY,
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
@@ -312,6 +315,7 @@ pub(super) const ES_419: LocaleData = LocaleData {
     calendar_names: ES_419_CALENDAR_NAMES,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     weekdays: ContextualNames::same(weekday_widths(
         &[
             "lunes",
@@ -466,6 +470,7 @@ pub(super) const MN: LocaleData = LocaleData {
     calendar_names: MN_CALENDAR_NAMES,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     weekdays: ContextualNames {
         format: weekday_widths(
             &[
@@ -582,6 +587,7 @@ pub(super) const SHI_LATN: LocaleData = LocaleData {
     calendar_names: &[],
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     weekdays: ContextualNames::same(weekday_widths(
         &[
             "aynas",
@@ -630,6 +636,7 @@ pub(super) const UR_IN: LocaleData = LocaleData {
     calendar_names: &[],
     numbering: "arabext",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     weekdays: ContextualNames::EMPTY,
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
@@ -710,6 +717,7 @@ pub(super) const ZH_HANT_HK: LocaleData = LocaleData {
     calendar_names: ZH_HANT_HK_CALENDAR_NAMES,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     weekdays: ContextualNames::EMPTY,
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
@@ -1000,6 +1008,56 @@ pub static DEFAULT_NUMBERING: &[(&str, &str)] = &[
     ("zh-Hans", "latn"),
     ("zh-Hant", "latn"),
     ("zh-Hant-HK", "latn"),
+];
+
+/// CLDR 48's `weekData/minDays` (`supplementalData.xml`): the regions whose
+/// first week of a year or month needs more than the world's (`001`) one day,
+/// with the count, sorted by region so that a lookup can search it.
+pub static REGION_MIN_DAYS: &[(&str, u8)] = &[
+    ("AD", 4),
+    ("AN", 4),
+    ("AT", 4),
+    ("AX", 4),
+    ("BE", 4),
+    ("BG", 4),
+    ("CH", 4),
+    ("CZ", 4),
+    ("DE", 4),
+    ("DK", 4),
+    ("EE", 4),
+    ("ES", 4),
+    ("FI", 4),
+    ("FJ", 4),
+    ("FO", 4),
+    ("FR", 4),
+    ("GB", 4),
+    ("GF", 4),
+    ("GG", 4),
+    ("GI", 4),
+    ("GP", 4),
+    ("GR", 4),
+    ("HU", 4),
+    ("IE", 4),
+    ("IM", 4),
+    ("IS", 4),
+    ("IT", 4),
+    ("JE", 4),
+    ("LI", 4),
+    ("LT", 4),
+    ("LU", 4),
+    ("MC", 4),
+    ("MQ", 4),
+    ("NL", 4),
+    ("NO", 4),
+    ("PL", 4),
+    ("PT", 4),
+    ("RE", 4),
+    ("RU", 4),
+    ("SE", 4),
+    ("SJ", 4),
+    ("SK", 4),
+    ("SM", 4),
+    ("VA", 4),
 ];
 
 /// Each carried locale's other numbering systems, CLDR 48's

@@ -112,9 +112,14 @@ impl DayPeriod {
 /// One set of names in each width.
 ///
 /// An empty slice means "not stated here"; lookup then tries a wider width
-/// and, failing that, the next locale up the fallback chain. Leaving a width
-/// empty is how a data entry says *the same as the wider one*, which is the
-/// truth for Japanese and Chinese month names.
+/// and, failing that, the next locale up the fallback chain. A width is left
+/// empty where the locale's file gives it as the wider one's, which is the
+/// truth for Japanese and Chinese month names, and where CLDR gives it only
+/// through `root.xml`'s numerals and Latin letters, which no reader of
+/// another script wants. It is *not* left empty where the file states its own
+/// letters: Russian's narrow month И, Swahili's narrow weekday T. The names
+/// of the entries that follow CLDR are generated from its files, so that a
+/// width the file states is carried.
 #[derive(Debug, Clone, Copy)]
 pub struct WidthSet {
     /// Full names.
@@ -791,6 +796,11 @@ pub struct LocaleData {
     pub numbering: &'static str,
     /// The customary first day of the week, where the locale implies one.
     pub first_day_of_week: Weekday,
+    /// The fewest days of a new year or month a week needs for it to count
+    /// as that year's or month's first, CLDR's `weekData/minDays` for the
+    /// region the language is likeliest in: 1 where CLDR gives the world's,
+    /// 4 for the languages of Europe's ISO 8601 weeks.
+    pub min_days: u8,
     /// Which case mappings apply.
     pub casing: CasingStyle,
     /// Whether month and weekday names are written with a capital.
@@ -2892,5 +2902,111 @@ mod tests {
                 .calendar(CalendarId("mayan"))
                 .is_none()
         );
+    }
+
+    /// The Gregorian vocabulary the entries that follow CLDR carry is what
+    /// their CLDR 48 files state (`common/main/<locale>.xml` at `release-48`,
+    /// read 2026-10-03 through `scripts/cldr_xml.py`), narrow and short
+    /// widths, quarters and eras included; Node 22.15's ICU 76.1 gives the
+    /// same where it is cited, for the same month, weekday or era.
+    #[test]
+    fn the_names_are_what_the_cldr_files_state() {
+        use NameContext::{Format, Standalone};
+        use NameWidth::{Abbreviated, Narrow, Short, Wide};
+        let gregory = CalendarId("gregory");
+        let month = |tag: &str, ordinal, width, context| {
+            month_name(
+                &locale(tag),
+                gregory,
+                Month::regular(ordinal),
+                width,
+                context,
+            )
+            .unwrap()
+        };
+        let weekday = |tag: &str, weekday, width, context| {
+            weekday_name(&locale(tag), weekday, width, context).unwrap()
+        };
+        let era = |tag: &str, index, width| era_name(&locale(tag), gregory, index, width).unwrap();
+        let quarter = |tag: &str, number, width, context| {
+            quarter_name(&locale(tag), gregory, number, width, context).unwrap()
+        };
+        // Narrow months and weekdays that the abbreviation or the wide name
+        // used to answer: ICU writes ru's July as И. A narrow weekday only
+        // root states, Swahili's T, stays the abbreviation: root's English
+        // initials are not the language's names.
+        assert_eq!(month("ru", 7, Narrow, Format), "И");
+        assert_eq!(month("ru", 7, Narrow, Standalone), "И");
+        assert_eq!(month("ar", 1, Narrow, Format), "ي");
+        assert_eq!(month("ar-EG", 12, Narrow, Format), "د");
+        assert_eq!(month("pl", 10, Narrow, Format), "p");
+        assert_eq!(month("pl", 1, Abbreviated, Standalone), "sty");
+        assert_eq!(weekday("jv", Weekday::Monday, Narrow, Format), "S");
+        assert_eq!(weekday("kab", Weekday::Monday, Narrow, Format), "R");
+        assert_eq!(weekday("cs", Weekday::Saturday, Narrow, Format), "S");
+        assert_eq!(weekday("ar", Weekday::Monday, Short, Standalone), "إثنين");
+        assert_eq!(
+            weekday("ar", Weekday::Monday, Abbreviated, Format),
+            "الاثنين"
+        );
+        // Eras, wide, abbreviated and narrow (ICU: th BC long ปีก่อนคริสตกาล,
+        // short ก่อน ค.ศ.; vi BC long Trước Chúa Giáng Sinh, narrow CN for AD;
+        // hi AD long ईसवी सन, short ईस्वी; he BC short לפנה״ס, narrow לפני; ko
+        // BC long 기원전, short BC; de narrow v. Chr.; ja narrow BC).
+        assert_eq!(era("th", 0, Wide), "ปีก่อนคริสตกาล");
+        assert_eq!(era("th", 0, Abbreviated), "ก่อน ค.ศ.");
+        assert_eq!(era("vi", 0, Wide), "Trước Chúa Giáng Sinh");
+        assert_eq!(era("vi", 1, Narrow), "CN");
+        assert_eq!(era("hi", 1, Wide), "ईसवी सन");
+        assert_eq!(era("hi", 1, Abbreviated), "ईस्वी");
+        assert_eq!(era("he", 0, Abbreviated), "לפנה״ס");
+        assert_eq!(era("he", 0, Narrow), "לפני");
+        assert_eq!(era("ko", 0, Wide), "기원전");
+        assert_eq!(era("ko", 0, Abbreviated), "BC");
+        assert_eq!(era("ko", 1, Abbreviated), "AD");
+        assert_eq!(era("de", 0, Narrow), "v. Chr.");
+        assert_eq!(era("de", 1, Narrow), "n. Chr.");
+        assert_eq!(era("ja", 0, Narrow), "BC");
+        // Quarters, where `QQQQ` was `Q4`: Arabic, Thai, Persian, Hebrew and
+        // Hindi had none, and English, Czech, Spanish and Korean had
+        // part.
+        assert_eq!(quarter("ar", 4, Wide, Format), "الربع الرابع");
+        assert_eq!(quarter("ar", 4, Narrow, Format), "٤");
+        assert_eq!(quarter("th", 4, Wide, Format), "ไตรมาส 4");
+        assert_eq!(quarter("fa", 4, Wide, Format), "سه\u{200c}ماههٔ چهارم");
+        assert_eq!(quarter("fa", 4, Abbreviated, Format), "س\u{200c}م۴");
+        assert_eq!(quarter("he", 4, Wide, Format), "רבעון 4");
+        assert_eq!(quarter("hi", 4, Wide, Format), "चौथी तिमाही");
+        assert_eq!(quarter("hi", 4, Abbreviated, Format), "ति4");
+        assert_eq!(quarter("en", 4, Narrow, Format), "4");
+        assert_eq!(quarter("cs", 1, Wide, Format), "1. čtvrtletí");
+        assert_eq!(quarter("es", 1, Wide, Format), "1.er trimestre");
+        assert_eq!(quarter("es", 2, Wide, Format), "2.º trimestre");
+        assert_eq!(quarter("ko", 1, Wide, Format), "제 1/4분기");
+    }
+
+    /// A width that only `root.xml` fills with numerals, or fills beside a
+    /// few letters of the locale's own (`ps.xml`'s stand-alone narrow months
+    /// are ج and ف and root's 3 to 12), is not carried, and the abbreviated
+    /// or wide name answers.
+    #[test]
+    fn a_narrow_width_made_of_root_numerals_is_left_to_the_wider_name() {
+        let gregory = CalendarId("gregory");
+        let name = |tag: &str, ordinal, width, context| {
+            month_name(
+                &locale(tag),
+                gregory,
+                Month::regular(ordinal),
+                width,
+                context,
+            )
+            .unwrap()
+        };
+        assert_eq!(
+            name("ps", 3, NameWidth::Narrow, NameContext::Standalone),
+            "مارچ"
+        );
+        // The format narrow months it does state whole are carried.
+        assert_eq!(name("ps", 3, NameWidth::Narrow, NameContext::Format), "م");
     }
 }

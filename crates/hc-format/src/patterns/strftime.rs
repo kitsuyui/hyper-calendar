@@ -329,24 +329,6 @@ fn write_conversion<W: fmt::Write>(
     }
 }
 
-/// The calendar `%E` writes its era in: the context's, else the one the
-/// locale's `-u-ca-` key names, where it is the Buddhist or the Minguo.
-fn era_calendar<'a>(context: &FormatContext<'a>) -> Option<&'a dyn hc_calendar::DynCalendar> {
-    use hc_calendar::DynAdapter;
-    static BUDDHIST: DynAdapter<hc_calendars_solar::buddhist::BuddhistCalendar> =
-        DynAdapter::new(hc_calendars_solar::buddhist::BuddhistCalendar);
-    static MINGUO: DynAdapter<hc_calendars_solar::minguo::MinguoCalendar> =
-        DynAdapter::new(hc_calendars_solar::minguo::MinguoCalendar);
-    if let Some(calendar) = context.era_calendar {
-        return Some(calendar);
-    }
-    match context.locale?.calendar()? {
-        "buddhist" => Some(&BUDDHIST),
-        "roc" => Some(&MINGUO),
-        _ => None,
-    }
-}
-
 /// `%Ec`, `%EC`, `%Ex`, `%EX`, `%Ey` and `%EY`: POSIX's alternative era.
 /// With a calendar to write it in, `%EC` is its era, `%Ey` its year,
 /// `%EY` both as the locale writes a year, `%Ex` its whole date and `%Ec`
@@ -369,7 +351,8 @@ fn write_era_conversion<W: fmt::Write>(
         modifier: None,
         ..spec
     };
-    let Some(calendar) = era_calendar(context).filter(|_| conversion != 'X') else {
+    let Some(calendar) = crate::patterns::era_calendar(context).filter(|_| conversion != 'X')
+    else {
         return write_conversion(out, conversion, unmodified, context, fields, depth);
     };
     let locale = context

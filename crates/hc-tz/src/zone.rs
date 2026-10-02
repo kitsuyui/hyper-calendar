@@ -51,6 +51,25 @@ pub trait TimeZone {
     /// permanent "DST" offset for decades.
     fn is_dst_at(&self, utc: UnixTime) -> bool;
 
+    /// Whether the clocks show the zone's summer reading at an instant:
+    /// the reading with the higher offset of the two the zone keeps within
+    /// a year either side.
+    ///
+    /// [`is_dst_at`](Self::is_dst_at) is tzdata's own flag, and tzdata's
+    /// main format gives Ireland a *negative* saving: `Europe/Dublin` is
+    /// `IST`, UTC+1, all year, with `GMT`, UTC+0, flagged as the saving in
+    /// winter (the `Eire` rules in the tz database's `europe` file; the
+    /// POSIX footer is `IST-1GMT0,M10.5.0,M3.5.0/1`). The names of UTS #35
+    /// Part 4 and CLDR 48 read the other way: `en.xml` names *Irish
+    /// Standard Time* the zone's daylight time, which is the summer's. This
+    /// answers the question those names ask. Where the zone keeps one
+    /// offset there, or one flag, it is the flag; where the flagged
+    /// reading's offset is the lower of the two, as in Dublin's winter, the
+    /// answer is the opposite of the flag.
+    fn is_summer_time_at(&self, utc: UnixTime) -> bool {
+        summer_time_at(self, utc)
+    }
+
     /// The first instant strictly after `utc` at which these rules change
     /// the offset, the daylight flag or the abbreviation, or `None` when
     /// they change none of them again.
@@ -90,6 +109,39 @@ pub trait TimeZone {
     }
 }
 
+/// How far either side of an instant [`TimeZone::is_summer_time_at`] looks
+/// for the zone's other reading, a Gregorian year (366 days).
+const SUMMER_TIME_HORIZON: i64 = 366 * 86_400;
+
+/// [`TimeZone::is_summer_time_at`]: the higher offset of the two flags'
+/// readings within the horizon, and the flag where they do not both occur.
+fn summer_time_at<Z: TimeZone + ?Sized>(zone: &Z, utc: UnixTime) -> bool {
+    let flag = zone.is_dst_at(utc);
+    let offset = zone.offset_at(utc).seconds();
+    let end = utc.seconds().saturating_add(SUMMER_TIME_HORIZON);
+    let mut at = UnixTime::from_seconds(utc.seconds().saturating_sub(SUMMER_TIME_HORIZON));
+    // Against every reading with the other flag, the summer reading is the
+    // one with the higher offset.
+    let mut other_is_lower = false;
+    let mut other_is_higher = false;
+    loop {
+        if zone.is_dst_at(at) != flag {
+            let other = zone.offset_at(at).seconds();
+            other_is_lower |= other < offset;
+            other_is_higher |= other > offset;
+        }
+        match zone.next_transition(at) {
+            Some(next) if next.seconds() <= end => at = next,
+            _ => break,
+        }
+    }
+    match (other_is_lower, other_is_higher) {
+        (true, false) => true,
+        (false, true) => false,
+        _ => flag,
+    }
+}
+
 impl<T: TimeZone + ?Sized> TimeZone for &T {
     fn name(&self) -> &str {
         (**self).name()
@@ -105,6 +157,10 @@ impl<T: TimeZone + ?Sized> TimeZone for &T {
 
     fn is_dst_at(&self, utc: UnixTime) -> bool {
         (**self).is_dst_at(utc)
+    }
+
+    fn is_summer_time_at(&self, utc: UnixTime) -> bool {
+        (**self).is_summer_time_at(utc)
     }
 
     fn next_transition(&self, utc: UnixTime) -> Option<UnixTime> {
@@ -686,6 +742,41 @@ mod tests {
         let by_reference: &Utc = &utc;
         assert_eq!(summarise(by_reference, instant), (0, false, true));
         assert_eq!(TimeZone::name(&&utc), "UTC");
+    }
+
+    /// The tz database's `europe` file, release 2026d (read on the web,
+    /// eggert/tz): "Rule Eire 1996 max - Oct lastSun 1:00u -1:00 -" and
+    /// "Zone Europe/Dublin ... 1:00 Eire IST/GMT" give Dublin a standard
+    /// time of UTC+1 (`IST`) all year and a *negative* saving in winter
+    /// (`GMT`, flagged as the saving); the main format's footer is
+    /// `IST-1GMT0,M10.5.0,M3.5.0/1`. Summer time is the higher offset, in
+    /// July, and not the flagged one.
+    #[test]
+    fn summer_time_is_the_higher_offset_where_the_saving_is_negative() {
+        use crate::posix::PosixTimeZone;
+        let dublin = PosixTimeZone::parse("Europe/Dublin", "IST-1GMT0,M10.5.0,M3.5.0/1").unwrap();
+        // 2026-07-01 12:00 UTC and 2026-01-15 12:00 UTC.
+        let july = UnixTime::from_seconds(1_782_907_200);
+        let january = UnixTime::from_seconds(1_768_478_400);
+        assert_eq!(dublin.offset_at(july).seconds(), 3_600);
+        assert!(!dublin.is_dst_at(july));
+        assert!(dublin.is_summer_time_at(july));
+        assert_eq!(dublin.offset_at(january).seconds(), 0);
+        assert!(dublin.is_dst_at(january));
+        assert!(!dublin.is_summer_time_at(january));
+        // The same two readings in the rearguard footer, where the flag
+        // and the summer agree.
+        let rearguard = PosixTimeZone::parse("Europe/Dublin", "GMT0IST,M3.5.0/1,M10.5.0").unwrap();
+        assert!(rearguard.is_summer_time_at(july) && rearguard.is_dst_at(july));
+        assert!(!rearguard.is_summer_time_at(january) && !rearguard.is_dst_at(january));
+        // An ordinary zone, one with no saving, and one that keeps a single
+        // reading answer with the flag; a reference answers as the zone.
+        let new_york = PosixTimeZone::parse("America/New_York", "EST5EDT,M3.2.0,M11.1.0").unwrap();
+        assert!(new_york.is_summer_time_at(july) && !new_york.is_summer_time_at(january));
+        let fixed = crate::fixed::Utc;
+        assert!(!fixed.is_summer_time_at(july));
+        let by_reference: &dyn TimeZone = &dublin;
+        assert!(by_reference.is_summer_time_at(july));
     }
 
     #[test]

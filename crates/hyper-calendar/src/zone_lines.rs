@@ -425,7 +425,9 @@ fn zoned_line(
     let locale = hc_i18n::Locale::parse(locale).unwrap_or(hc_i18n::Locale::ROOT);
     with_zone(name, |zone, _| {
         let offset = zone.offset_at(instant);
-        let daylight = zone.is_dst_at(instant);
+        // The names' "daylight" is the summer reading, which tzdata's main
+        // format flags the other way round for Ireland.
+        let daylight = zone.is_summer_time_at(instant);
         let local = unix_seconds + i64::from(offset.seconds());
         let day = Rd::from_unix_days(local.div_euclid(86_400));
         let second = local.rem_euclid(86_400);

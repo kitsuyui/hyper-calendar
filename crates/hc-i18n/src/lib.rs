@@ -53,6 +53,8 @@
 //! * [`day_periods`] — the day periods beyond am and pm, midnight, noon and
 //!   the flexible *in the morning* and *at night*, with each language's
 //!   rules for when they begin.
+//! * [`week`] — CLDR's week rules, the first day of the week and `minDays`
+//!   by locale, and the week of the year and of the month of a Gregorian day.
 //! * [`direction`] — script direction and the bidi isolation a formatter
 //!   needs when it embeds a date in text running the other way.
 //! * [`casing`] — the locale-dependent parts of upper/lower/title casing.
@@ -74,9 +76,11 @@
 //! carries no collation, no message formatting, no number grouping or
 //! currency, no compact-notation plural operands (`c`/`e`), and no
 //! transliteration. Its data is a subset of CLDR, not a copy of it: the
-//! entries carried before the most-spoken languages are hand-checked, and
-//! those of the twelve locales added for them are generated from their CLDR
-//! 48 files by CLDR's inheritance; see the crate README for the exact
+//! entries carried before the most-spoken languages are hand-checked, apart
+//! from their Gregorian months, weekdays, quarters and eras, which are
+//! generated into place from their CLDR 48 files, and those of the twelve
+//! locales added for them are generated from their files by CLDR's
+//! inheritance; see the crate README for the exact
 //! provenance and for what the subset leaves out.
 
 #![cfg_attr(not(feature = "std"), no_std)]
@@ -109,6 +113,7 @@ pub mod numbering;
 pub mod place_names;
 pub mod plural;
 pub mod reckonings;
+pub mod week;
 pub mod zone_names;
 
 mod util;

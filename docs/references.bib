@@ -11324,7 +11324,7 @@
   author       = {{Unicode, Inc.}},
   title        = {ICU time zone format and day period sources},
   howpublished = {\url{https://github.com/unicode-org/icu}: \texttt{icu4j/main/core/src/main/java/com/ibm/icu/text/TimeZoneFormat.java}, \texttt{icu4c/source/i18n/dayperiodrules.cpp}, \texttt{icu4c/source/common/uloc.cpp}},
-  note         = {The \texttt{main} branch. \texttt{TimeZoneFormat.formatSpecific} asks for the daylight name alone for a daylight reading and the standard name alone for a standard one, and \texttt{SPECIFIC\_SHORT} falls back to the short localized GMT format; \texttt{DayPeriodRules::getInstance} looks a locale's rule set up by \texttt{ulocimp\_getParent}, which truncates the identifier at its last underscore. A comparison with another implementation, not a source of the rules. Retrieved 2026-09-29}
+  note         = {The \texttt{main} branch. \texttt{TimeZoneFormat.formatSpecific} asks for the daylight name alone for a daylight reading and the standard name alone for a standard one, and \texttt{SPECIFIC\_SHORT} falls back to the short localized GMT format; \texttt{DayPeriodRules::getInstance} looks a locale's rule set up by \texttt{ulocimp\_getParent}, which truncates the identifier at its last underscore. \texttt{formatOffsetLocalizedGMT} and \texttt{formatOffsetShortLocalizedGMT} list the GMT zero format among what the long and the short localized GMT formats are made of. A comparison with another implementation, not a source of the rules. Retrieved 2026-09-29 and 2026-10-03}
 }
 
 @misc{wikipedia-greek-stigma,
@@ -12123,4 +12123,18 @@
   title        = {Decreto Supremo 5521 -- Infoleyes Bolivia},
   howpublished = {Infoleyes (secondary), \url{https://bolivia.infoleyes.com/norma/8569/decreto-supremo-5521}},
   note         = {Gives the decree's date, 13 January 2026, and its articles on the additional holidays and the moves; read as a check of pixilegal.com's text. Read 2026-10-03}
+}
+
+@misc{tz-europe-eire-rules,
+  author       = {{Internet Assigned Numbers Authority}},
+  title        = {Time Zone Database, \texttt{europe}: the \texttt{Eire} rules and \texttt{Europe/Dublin}},
+  howpublished = {\url{https://github.com/eggert/tz/blob/main/europe}},
+  note         = {The main branch, read in the browser: ``Rule Eire 1996 max - Oct lastSun 1:00u -1:00 -'' (a negative saving in winter) and ``Zone Europe/Dublin ... 1:00 Eire IST/GMT'' make UTC+1 the standard time all year, so tzdata's main format flags winter as the saving and the rearguard format flags the summer. Retrieved 2026-10-03}
+}
+
+@misc{icu4j-calendar-week-number,
+  author       = {{Unicode, Inc.}},
+  title        = {ICU4J \texttt{Calendar}: \texttt{WEEK\_OF\_MONTH}, \texttt{WEEK\_OF\_YEAR} and \texttt{weekNumber}},
+  howpublished = {\url{https://github.com/unicode-org/icu/blob/main/icu4j/main/core/src/main/java/com/ibm/icu/util/Calendar.java}},
+  note         = {The \texttt{main} branch. \texttt{weekNumber(desiredDay, dayOfPeriod, dayOfWeek)} counts a period's first week from \texttt{getFirstDayOfWeek()} and \texttt{getMinimalDaysInFirstWeek()} and leaves the days before it at 0, which \texttt{WEEK\_OF\_MONTH} takes; the Javadoc says subclasses define the value of the field before the first week. A comparison with another implementation, not a source of the rule. Retrieved 2026-10-03}
 }

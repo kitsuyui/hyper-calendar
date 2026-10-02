@@ -44,7 +44,9 @@ and `xx` the basic form and `XXX` and `xxx` the extended one with hours and
 minutes, `XXXX`, `xxxx` and `Z` to `ZZZ` the basic form "with hours,
 minutes and optional seconds" (`-0800`, `-075258`), and `XXXXX`, `xxxxx`
 and `ZZZZZ` the extended one (`-08:00`, `-07:52:58`); the capitals write
-`Z` for a zero offset, and `ZZZZ` is the long localized GMT format.
+`Z` for a zero offset, and `ZZZZ` is the long localized GMT format. The
+`Z` to `ZZZ` seconds are the table's own (`xxxx`'s example is `-075258`):
+`-045602` for UTC−4:56:02, and not `-0456`.
 
 A locale's data may also say that it has no value. UTS #35 Part 1,
 "Empty Override" [uts35-v48], reserves `∅∅∅` "to indicate that a child
@@ -93,7 +95,13 @@ each field.
 6. **`V`, `VV`, `VVV`.** `cavan`; the zone as given; *Vancouver*.
 7. **`O`, `OOOO`.** *GMT-7*, *GMT-07:00*. French writes *UTC−7* and
    *UTC−07:00*, its `gmtFormat` being "UTC{0}" and its `hourFormat`
-   "+HH:mm;−HH:mm", with a minus sign; a locale's digits are its own.
+   "+HH:mm;−HH:mm", with a minus sign; a locale's digits are its own. At a
+   zero offset both write the locale's `gmtZeroFormat`, *GMT* (Arabic's
+   *غرينتش*): UTS #35 defines it as "how GMT/UTC with an offset of zero
+   should be represented", ICU4J documents it for the long form and the
+   short one [icu-zone-format-sources], and ICU 76.1 writes it for `OOOO`.
+   The spec's list of long examples shows *GMT+00:00*, which that
+   definition does not give; this follows the definition.
 
 Where a name is missing, each field falls back as UTS #35's list says: `z`
 to the short localized GMT format, `zzzz` to the long, `v` and `vvvv` to
@@ -156,9 +164,19 @@ that keeps no daylight time within 184 days [icu4j-generic-names], a
 comparison again. `en-GB` has *BST* from `en_GB.xml`, and
 `Europe/Dublin` is the same case: its own long daylight name in English is
 *Irish Standard Time*, for the summer, so CLDR's names read Irish summer
-time as daylight time, as the host's TZif does (macOS's tzdata 2026c gives
-`isdst=1` from 29 March 2026); a caller whose zone data reports the
-reverse gives the reverse flag.
+time as daylight time. The tz database's main format says the opposite in
+its flag [tz-europe-eire-rules]: the `europe` file's "Rule Eire 1996 max - Oct lastSun 1:00u
+-1:00 -" and "Zone Europe/Dublin ... 1:00 Eire IST/GMT" make UTC+1 `IST`
+the standard time and winter's UTC+0 `GMT` a negative saving, flagged as
+daylight (the footer is `IST-1GMT0,M10.5.0,M3.5.0/1`), where the rearguard
+format, which the host's TZif is (macOS's tzdata 2026c, `isdst=1` from 29
+March 2026), flags the summer. So the names read
+`hc_tz::TimeZone::is_summer_time_at`, not `is_dst_at`: the reading with the
+higher of the two offsets the zone keeps within a year either side of the
+instant, and the flag where it keeps only one. `hc_zone_name` and
+`hc_format_pattern` pass it, so both formats of the data give *Irish
+Standard Time* in July and *Greenwich Mean Time* in January; `hc_zone_offset`
+still gives the data's own flag, as its line says.
 
 ### A time of day
 
@@ -236,6 +254,8 @@ examples:
 | British Summer Time and Greenwich Mean Time for London; India Standard Time for `Asia/Kolkata` | `en.xml` | the same | agrees |
 | 日本標準時 and 東京; Mitteleuropäische Sommerzeit and MESZ | `ja.xml`, `de.xml` | `the_zone_names_are_the_locales` | agrees |
 | noon, midnight, in the afternoon, at night; Mitternacht and mittags; 夜中 at 01:00 | `dayPeriods.xml`, `en.xml`, `de.xml`, `ja.xml` | `the_extended_day_periods_follow_each_languages_rules` | agrees |
+| `GMT` for `O` and `OOOO` at a zero offset in `en`, `de`, `ja` and `ar` (غرينتش) | ICU 76.1 (Node 22 `longOffset`, read 2026-10-03), ICU4J's `TimeZoneFormat` documentation | `the_localized_gmt_format_writes_a_zero_offset_as_the_zero_format`, `a_locales_zero_format_is_its_own_word` | agrees |
+| Irish Standard Time in July and Greenwich Mean Time in January for Dublin, in the main-format and the rearguard footers | `en.xml`, [tz-europe-eire-rules] | `dublin_in_the_main_format_names_its_summer_as_daylight_time` (`hc-format`), `summer_time_is_the_higher_offset_where_the_saving_is_negative` (`hc-tz`) | agrees |
 | GMT+1 and British Summer Time for London in July, GMT+1 and Irish Standard Time for Dublin, BST in `en-GB` | `en.xml`, `en_GB.xml`, `metaZones.xml` | `the_zone_fields_write_tr_35s_examples`, `the_zone_names_are_the_locales` | agrees |
 | Mountain Standard Time and MST for Phoenix with rules that keep MST, Mountain Time for Denver in January, Japan Standard Time for Tokyo; the generic names where the context has no rules | [uts35-dates-48], "Type Fallback" | `a_zone_that_keeps_one_offset_for_184_days_takes_its_standard_name` (`hc-format`) | agrees |
 | `+0530`, `-075258`, `-07:52:58`, `Z` for the ISO fields | [uts35-dates-48], the symbol table's examples | `the_iso_zone_fields_write_minutes_and_seconds_where_tr_35_does` | every example |
@@ -249,7 +269,8 @@ examples:
 | --- | --- | --- |
 | [uts35-dates-48] | "Using Time Zone Names" and its "Type Fallback", the Date Field Symbol Table's `z`, `v`, `V`, `O`, `Z`, `X`, `x`, `b`, `B`, `U`, `r`, `g`, and "Day Period Rule Sets" | Yes, 2026-09-29 |
 | [uts35-v48] | "Inheritance Marker", "Empty Override", "Lateral Inheritance", "Parent Locales" | Yes, 2026-09-29 |
-| [icu-zone-format-sources] | ICU4J's `TimeZoneFormat.formatSpecific` and ICU4C's `DayPeriodRules::getInstance`, a comparison for the daylight name and the truncation, not a source of either rule | Yes, 2026-09-29 |
+| [icu-zone-format-sources] | ICU4J's `TimeZoneFormat.formatSpecific` and ICU4C's `DayPeriodRules::getInstance`, a comparison for the daylight name and the truncation, not a source of either rule; and the zero offset's format | Yes, 2026-09-29 and 2026-10-03 |
+| [tz-europe-eire-rules] | The `Eire` rules and `Europe/Dublin` of the tz database's `europe` file: a negative winter saving in the main format | Yes, 2026-10-03 |
 | [icu4j-generic-names] | ICU4J's `TimeZoneGenericNames.formatGenericNonLocationName`, a comparison for the 184-day rule | Yes, 2026-09-29 |
 | [cldr48-zone-names] | `common/main/<file>.xml` `timeZoneNames`, `supplemental/metaZones.xml`, `bcp47/timezone.xml`, `supplemental/likelySubtags.xml` | Yes, 2026-09-29, by `scripts/zone-names-cldr.py` |
 | [cldr48-day-periods] | `supplemental/dayPeriods.xml` and the carried files' day period names | Yes, 2026-09-29, by `scripts/day-periods-cldr.py` |
