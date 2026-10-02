@@ -50,7 +50,10 @@
 //! Reingold and Dershowitz's own solar calendar on the Siddhānta, the
 //! Orissa rule with the day closed by the Siddhānta's sunrise at Ujjain, is
 //! registered as `hindu-solar-surya-siddhanta`
-//! ([`crate::hindu_solar_siddhanta`]), held to their sample dates. The
+//! ([`crate::hindu_solar_siddhanta`]), held to their sample dates; their
+//! astronomical solar calendar on the true Sun, the Tamil rule at Ujjain
+//! with the book's own ayanāṃśa and sunset, is [`REINGOLD_DERSHOWITZ`],
+//! `hindu-solar-reingold-dershowitz`, held to the same dates. The
 //! traditional almanacs of the four Indian regions that keep the
 //! Siddhānta's saṅkrāntis would be four more calendars under policy §5,
 //! and they are not registered: no such almanac's month table was read,
@@ -432,8 +435,49 @@ pub const MAGI: HinduSolarCalendar = HinduSolarCalendar {
 /// How far the Magi year is behind the Bengali San.
 pub const MAGI_BEHIND_BENGALI: i64 = 45;
 
-/// Every solar reckoning this crate registers.
-pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI, MAGI];
+/// Reingold and Dershowitz's astronomical Hindu solar calendar,
+/// `astro-hindu-solar-from-fixed` of *Calendrical Calculations*
+/// (`reingold2018code`) with their errata's correction 15, Universal Time,
+/// applied: the true Sun in the sidereal zodiac of the book's own
+/// ayanāṃśa, zero at the *Sūrya Siddhānta*'s Meṣa saṅkrānti of 285 CE
+/// ([`Ayanamsa::REINGOLD_DERSHOWITZ`]); the month begins on the
+/// saṅkrānti's civil day at Ujjain when the saṅkrānti falls before the
+/// Sun's centre reaches the geometric horizon there, the book's
+/// `astro-hindu-sunset`, and the next day otherwise
+/// ([`SankrantiRule::BeforeCentreSets`]); the months are the signs
+/// themselves, Meṣa first, and the year the Śaka year, as the book counts
+/// it. The registered `hindu-solar-reingold-dershowitz`. The book names
+/// neither a sixty-year cycle nor a Tiruvaḷḷuvar year for it, so this
+/// calendar carries neither. It is the Tamil rule read at Ujjain with the
+/// book's two conventions, which together move one of the 372 month
+/// starts of Śaka 1922–1952 from the rule at Ujjain with the Lahiri
+/// ayanāṃśa and the library's sunset
+/// (`the_books_ayanamsa_and_sunset_move_one_month_start_at_ujjain`), and
+/// it gives the book's value on every sample date of its `dates.l` but the
+/// three its errata explain (docs/systems/hindu-calendars.md).
+pub const REINGOLD_DERSHOWITZ: HinduSolarCalendar = HinduSolarCalendar {
+    id: CalendarId("hindu-solar-reingold-dershowitz"),
+    english_name: "Hindu solar (Reingold and Dershowitz)",
+    native_locales: &["sa"],
+    tradition: rashi::SANSKRIT,
+    rule: SankrantiRule::BeforeCentreSets,
+    location: crate::places::UJJAIN,
+    model: SolarModel::Modern(Ayanamsa::REINGOLD_DERSHOWITZ),
+    samvatsara: false,
+    tiruvalluvar: false,
+    ..TAMIL
+};
+
+/// Every solar reckoning this crate registers: the four regional ones,
+/// the Magi San, and the book's astronomical calendar.
+pub const ALL: &[HinduSolarCalendar] = &[
+    TAMIL,
+    MALAYALAM,
+    BENGALI,
+    VIKRAMI,
+    MAGI,
+    REINGOLD_DERSHOWITZ,
+];
 
 /// The earliest and latest days of the reckonings the crate names, as
 /// [`HinduSolarCalendar::earliest`] and [`HinduSolarCalendar::latest`]
@@ -444,13 +488,14 @@ pub const ALL: &[HinduSolarCalendar] = &[TAMIL, MALAYALAM, BENGALI, VIKRAMI, MAG
 /// the reckonings that are registered or named here, and computed for any
 /// other; `tests::the_named_ranges_are_the_computed_ones` computes these
 /// again.
-const NAMED_RANGES: [(HinduSolarCalendar, Rd, Rd); 6] = [
+const NAMED_RANGES: [(HinduSolarCalendar, Rd, Rd); 7] = [
     (TAMIL, Rd(620_647), Rd(839_799)),
     (MALAYALAM, Rd(620_772), Rd(839_924)),
     (BENGALI, Rd(620_647), Rd(839_800)),
     (VIKRAMI, Rd(620_646), Rd(839_799)),
     (MAGI, Rd(620_647), Rd(839_800)),
     (crate::bikram_sambat::RECKONING, Rd(620_646), Rd(839_800)),
+    (REINGOLD_DERSHOWITZ, Rd(620_647), Rd(839_799)),
 ];
 
 impl HinduSolarCalendar {
@@ -754,10 +799,17 @@ impl Calendar for HinduSolarCalendar {
             CycleShape::named(MONTH, rashi::VIKRAMI.months),
             CycleShape::fixed(WEEKDAY, 7),
         ];
+        // The signs themselves, as the book's astronomical calendar and
+        // `hindu-solar-surya-siddhanta` name their months.
+        const SANSKRIT_SHAPE: &[CycleShape] = &[
+            CycleShape::named(MONTH, &crate::hindu_old::SOLAR_MONTHS),
+            CycleShape::fixed(WEEKDAY, 7),
+        ];
         match self.tradition.id {
             "malayalam" => MALAYALAM_SHAPE,
             "bengali" => BENGALI_SHAPE,
             "vikrami" => VIKRAMI_SHAPE,
+            "sanskrit" => SANSKRIT_SHAPE,
             _ => TAMIL_SHAPE,
         }
     }
@@ -1381,5 +1433,30 @@ mod tests {
         }
         assert_eq!(lahiri.month_start(1_922, 11), Ok(Rd(730_528)));
         assert_eq!(book.month_start(1_922, 11), Ok(Rd(730_529)));
+        // The registered `hindu-solar-reingold-dershowitz` is that calendar:
+        // the same 372 month starts and the same dates, under its own name,
+        // with the signs for months and neither the sixty-year cycle nor the
+        // Tiruvaḷḷuvar year.
+        for year in 1_922..=1_952 {
+            for month in 1..=MONTHS_IN_YEAR {
+                assert_eq!(
+                    REINGOLD_DERSHOWITZ.month_start(year, month),
+                    book.month_start(year, month)
+                );
+            }
+        }
+        assert_eq!(REINGOLD_DERSHOWITZ.month_start(1_922, 11), Ok(Rd(730_529)));
+        assert_eq!(
+            Calendar::meta(&REINGOLD_DERSHOWITZ).id.0,
+            "hindu-solar-reingold-dershowitz"
+        );
+        assert_eq!(
+            (
+                REINGOLD_DERSHOWITZ.samvatsara,
+                REINGOLD_DERSHOWITZ.tiruvalluvar
+            ),
+            (false, false)
+        );
+        assert_eq!(Calendar::cycles(&REINGOLD_DERSHOWITZ).len(), 2);
     }
 }

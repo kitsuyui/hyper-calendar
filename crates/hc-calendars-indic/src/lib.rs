@@ -6,7 +6,9 @@
 //!   *Rashtriya Panchang* computes it. Months run new moon to new moon and
 //!   are named for the saṅkrānti they contain, a month without one is
 //!   intercalary, and the day is the tithi at sunrise; the year is named in
-//!   the southern sixty-year cycle, as at Ugādi. `hindu-lunar`.
+//!   the southern sixty-year cycle, as at Ugādi. `hindu-lunar`; and read
+//!   at Ujjain with the ayanāṃśa of Reingold and Dershowitz, their
+//!   astronomical lunisolar calendar, `hindu-lunar-reingold-dershowitz`.
 //! * [`hindu_lunar_siddhanta`] — the same months and tithis on the *Sūrya
 //!   Siddhānta*'s Sun and Moon, read at its sunrise at Ujjain: the modern
 //!   Hindu lunisolar calendar of Reingold and Dershowitz, and the
@@ -21,8 +23,10 @@
 //!   shares under its own years): a month is the Sun's stay in a sidereal
 //!   sign, and each region has its own rule for the day the month begins.
 //!   `hindu-solar-tamil`, `hindu-solar-malayalam`, `hindu-solar-bengali`,
-//!   `hindu-solar-vikrami`; and the Bengali months under the Magi San of
-//!   Chittagong, `magi-san`.
+//!   `hindu-solar-vikrami`; the Bengali months under the Magi San of
+//!   Chittagong, `magi-san`; and the Tamil rule read at Ujjain with the
+//!   ayanāṃśa and sunset of Reingold and Dershowitz, their astronomical
+//!   solar calendar, `hindu-solar-reingold-dershowitz`.
 //! * [`hindu_solar_siddhanta`] — the solar months on the *Sūrya
 //!   Siddhānta*'s Sun, a month beginning on the day whose closing sunrise
 //!   at Ujjain, by the Siddhānta, is the first in the new sign: the modern
@@ -58,7 +62,9 @@
 //!   calendars replaced. `hindu-old-solar`, `hindu-old-lunar`.
 //! * [`nepal_sambat`] — the lunisolar calendar of the Newar people: the
 //!   amānta months under their Newar names, the year opening at Kachhalā,
-//!   the day read at Kathmandu's sunrise. `nepal-sambat`.
+//!   the day read at Kathmandu's sunrise. `nepal-sambat`; and the same
+//!   days written as the almanac committee's notice writes them, by the
+//!   fortnight and the tithi within it, `nepal-sambat-fortnight`.
 //! * [`vira_nirvana`] — the Jain era of Mahāvīra's nirvāṇa over the same
 //!   amānta months, the year opening at Kārtika śukla 1, the day after
 //!   Dīpāvalī, 605 years before the Śaka year. `vira-nirvana-samvat`.
@@ -216,7 +222,7 @@ pub use hindu_old::{
 pub use hindu_purnimanta::HinduPurnimantaCalendar;
 pub use hindu_solar::{HinduSolarCalendar, HinduSolarDate, SankrantiRule, SolarModel};
 pub use hindu_solar_siddhanta::SiddhantaSolarCalendar;
-pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate};
+pub use nepal_sambat::{NepalSambatCalendar, NepalSambatDate, NepalSambatFortnightCalendar};
 pub use odia_anka::{OdiaAnkaCalendar, OdiaAnkaDate};
 pub use tithi::{Paksha, Prevalence};
 pub use vira_nirvana::{ViraNirvanaCalendar, ViraNirvanaDate};
@@ -232,6 +238,7 @@ mod registration {
         pub fn register_all;
 
         crate::HinduLunarCalendar::RASHTRIYA,
+        crate::HinduLunarCalendar::REINGOLD_DERSHOWITZ,
         crate::SiddhantaLunarCalendar::UJJAIN,
         crate::HinduPurnimantaCalendar::RASHTRIYA,
         for calendar in crate::hindu_solar::ALL => [*calendar],
@@ -239,6 +246,7 @@ mod registration {
         crate::OldHinduSolarCalendar,
         crate::OldHinduLunarCalendar,
         crate::NepalSambatCalendar::KATHMANDU,
+        crate::NepalSambatFortnightCalendar::KATHMANDU,
         crate::BikramSambatCalendar,
         crate::ViraNirvanaCalendar::RASHTRIYA,
         crate::OdiaAnkaCalendar::PURI,
@@ -257,7 +265,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 21;
+    const CALENDAR_COUNT: usize = 24;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -265,12 +273,14 @@ mod tests {
     fn all_metas() -> alloc::vec::Vec<hc_calendar::CalendarMeta> {
         let mut metas = alloc::vec![
             HinduLunarCalendar::RASHTRIYA.meta(),
+            HinduLunarCalendar::REINGOLD_DERSHOWITZ.meta(),
             SiddhantaLunarCalendar::UJJAIN.meta(),
             HinduPurnimantaCalendar::RASHTRIYA.meta(),
             SiddhantaSolarCalendar::UJJAIN.meta(),
             OldHinduSolarCalendar.meta(),
             OldHinduLunarCalendar.meta(),
             NepalSambatCalendar::KATHMANDU.meta(),
+            NepalSambatFortnightCalendar::KATHMANDU.meta(),
             BikramSambatCalendar.meta(),
             ViraNirvanaCalendar::RASHTRIYA.meta(),
             OdiaAnkaCalendar::PURI.meta(),

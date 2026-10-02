@@ -609,8 +609,22 @@ rebuilt calendars give the book's value on every sample date but the
 four the errata explain (below). The two calendars are built from these
 parts, `HinduLunarCalendar::new(UJJAIN, Ayanamsa::REINGOLD_DERSHOWITZ)`
 and `TAMIL` at `UJJAIN` with that ayanāṃśa and `BeforeCentreSets`, and
-are not yet registered under identifiers of their own: that is not
-done yet, and would add two calendars to the registry.
+they are registered under names of their own, `hindu-lunar-reingold-dershowitz`
+(`HinduLunarCalendar::REINGOLD_DERSHOWITZ`) and
+`hindu-solar-reingold-dershowitz` (`hindu_solar::REINGOLD_DERSHOWITZ`).
+They are two calendars, each a convention of the book's (policy §5): the
+ayanāṃśa and, for the solar one, the sunset are its own, and the book's
+errata correct its time scale. The place alone is not: Ujjain with
+Lahiri's ayanāṃśa, `HinduLunarCalendar::UJJAIN`, and the Tamil rule at
+Ujjain with Lahiri's and the library's sunset are `hindu-lunar` and
+`hindu-solar-tamil` at another place, a parameter, and stay constants
+and constructed calendars. The solar one names its months by the signs,
+as `hindu-solar-surya-siddhanta` does, and carries neither the
+sixty-year cycle nor the Tiruvaḷḷuvar year: the book gives it neither,
+and they are the Tamil almanac's. The lunisolar one carries the
+sixty-year name as `hindu-lunar` does. Over 2000–2030 the lunisolar one
+agrees with `UJJAIN` on every day, so it parts from `hindu-lunar` on the
+same 302 days the place does.
 
 **Ayanāṃśa.** The sidereal zero point is a convention, fixed by one
 number at one epoch and carried forward and back by precession, about
@@ -863,7 +877,10 @@ weeks.
   `hindu-lunar-from-fixed`]; every calendar of this document that begins
   at sunrise says the same. `RASHTRIYA`, the registered one, reads the
   day at the Central Station's sunrise with the Lahiri ayanāṃśa; `UJJAIN`
-  reads it at Ujjain; `new` takes any place and any ayanāṃśa. The era is
+  reads it at Ujjain; `REINGOLD_DERSHOWITZ`, the registered
+  `hindu-lunar-reingold-dershowitz`, reads it at Ujjain with the book's
+  ayanāṃśa, and takes its own identifier and name as `new` does not (`named`
+  takes them); `new` takes any place and any ayanāṃśa. The era is
   `saka`, and `vikrama-year` is an extra field. `new_year`,
   `leap_month_of`, `has_kshaya_month`, `month_span` and `days_in_year`
   answer the questions a festival rule asks. A kṣaya month is reported as
@@ -1093,8 +1110,6 @@ weeks.
   - *The nakṣatra names in the regional languages other than Malayalam*,
     for which no list was read, and the ñāṭṭuvēla's farming lore, the
     crops and sayings of each, which are not dates.
-  - *The book's astronomical calendars at Ujjain* as identifiers of their
-    own: `hindu-lunar` and `hindu-solar-tamil` at another place, above.
   - *The Siddhānta's pūrṇimānta calendar* and the eras over its months:
     `hindu-lunar-surya-siddhanta` is the amānta form alone, the one the
     book computes.
@@ -1150,11 +1165,13 @@ assert:
 | Every day of Kali Yuga 1–10000 round-trips on the Siddhānta's solar calendar | `hindu_solar_siddhanta::every_day_of_the_range_round_trips` | all in a release build; in a debug one every 37th day and every Meṣa 1 with the day before it |
 | Meṣa 1 of Śaka 1947 on the Siddhānta, worked above: the saṅkrānti at 00:08 UT on 14 April 2025, before that morning's sunrise at 00:51 UT and after the one before | `mesha_1_of_saka_1947_follows_the_siddhantas_sankranti` | all |
 | The Siddhānta's sunrise against the true one as the day's end, the same months otherwise | `the_siddhantas_sunrise_moves_two_month_starts_of_thirty_one_years` | 2 of the 372 month starts of 2000–2030, 16 November 2022 and 15 December 2024, 60 days in all, in a release build |
-| The same dates, the book's astronomical solar calendar, the Tamil rule at Ujjain on the true Sun: `TAMIL` rebuilt at `UJJAIN`, and the registered `hindu-solar-tamil` | the same test | 10 of 13 each; the other three are the reference code's time scale, below |
-| The same dates, the book's astronomical lunisolar calendar at Ujjain: `HinduLunarCalendar::UJJAIN`, and the registered `hindu-lunar` | the same test | 12 of 13 each; the other is the reference code's time scale, below |
-| The same two calendars with the book's own ayanāṃśa, `reingold-dershowitz`, and, for the solar one, its own sunset, `BeforeCentreSets` | the same test | 10 of 13 and 12 of 13, the same dates: the book's conventions move none of them |
+| The same dates, the book's astronomical solar calendar, registered as `hindu-solar-reingold-dershowitz`: the Tamil rule at Ujjain on the true Sun with the book's ayanāṃśa, `reingold-dershowitz`, and its sunset, `BeforeCentreSets`; and, built, `TAMIL` rebuilt at `UJJAIN` with Lahiri's, and the registered `hindu-solar-tamil` | the same test | 10 of 13 each; the other three are the reference code's time scale, below. The book's conventions move none of them |
+| The same dates, the book's astronomical lunisolar calendar, registered as `hindu-lunar-reingold-dershowitz`; and, built, `HinduLunarCalendar::UJJAIN`, and the registered `hindu-lunar` | the same test | 12 of 13 each; the other is the reference code's time scale, below. The book's ayanāṃśa moves none of them |
+| The registered solar calendar is the Tamil rule rebuilt with the book's two conventions: the same 372 month starts of Śaka 1922–1952, signs for months, neither year cycle | `hindu_solar::the_books_ayanamsa_and_sunset_move_one_month_start_at_ujjain` | all 372 |
+| The registered lunisolar calendar against `UJJAIN`: the same date on every day of 2024, and of 2000–2030 in a release build, and 10 of the 366 days of 2024 against `hindu-lunar` | `hindu_lunar::ujjain_and_the_central_station_part_on_one_day_in_forty` | all; the ayanāṃśa moves none of the 11 323 days |
+| The registered lunisolar calendar's own name and its value on RD 764 652, 18 July 2094: Vikrama 2151, month 4, day 5, a leap day, at the sunrise itself | `hindu_lunar::the_books_calendar_is_registered_under_its_own_name_and_the_place_is_not` | all |
 | The book's ayanāṃśa: zero at the Siddhānta's Meṣa saṅkrānti of 285 CE; 23.863 933° on 1 January 2000 and 24.213 224° on 1 January 2025 by the book's `precession`, evaluated from its code | `surya_siddhanta::the_books_ayanamsa_is_zero_at_the_siddhantas_mesha_of_285` | the anchor within a second of the saṅkrānti; both values within 1.3″ |
-| The book's ayanāṃśa and sunset against Lahiri's and the library's at Ujjain | `hindu_solar::the_books_ayanamsa_and_sunset_move_one_month_start_at_ujjain` | each alone and both together move one of the 372 Tamil month starts of Śaka 1922–1952, Māsi of 1922, from 12 to 13 February 2001; the ayanāṃśa none of the 11 323 lunisolar dates of 2000–2030, measured once in a release build and not held by a test |
+| The book's ayanāṃśa and sunset against Lahiri's and the library's at Ujjain | `hindu_solar::the_books_ayanamsa_and_sunset_move_one_month_start_at_ujjain` | each alone and both together move one of the 372 Tamil month starts of Śaka 1922–1952, Māsi of 1922, from 12 to 13 February 2001; the ayanāṃśa none of the 11 323 lunisolar dates of 2000–2030, which the lunisolar test above holds in a release build |
 | The same dates, the book's modern lunisolar calendar on the Siddhānta's Sun and Moon: `hindu-lunar-surya-siddhanta` | the same test, and `hindu_lunar_siddhanta::the_books_sample_dates_are_reproduced_both_ways` | 33 of 33, 586 BCE to 2094, each converting back |
 | Every day of Kali Yuga 1–10000 round-trips on the Siddhānta's lunisolar calendar | `hindu_lunar_siddhanta::every_day_of_the_range_round_trips` | all in a release build, about four minutes of one core spread over the machine's threads; in a debug one every 181st day and every Chaitra śukla 1 with the day before it |
 | Chaitra śukla 1 of Śaka 1947 on the Siddhānta, worked above: the conjunction of 29 March 2025 at 11:18 UT in Mīna, the Meṣa saṅkrānti on 14 April, the sunrise at 01:01 UT, the elongation of 7.58° | `chaitra_sukla_1_of_saka_1947_worked_by_hand` | all |
@@ -1219,6 +1236,23 @@ assert:
   sixteen one earlier too. The module carries the rule as stated and the
   test records the offset; the page image of the list was not read, only
   its OCR text.
+- *The festival day of Ugādi in 2026 and the calendar date.* The festival
+  rule is `hc-holiday`'s, not this crate's: `UGADI` keeps Chaitra śukla 1
+  on the day its tithi holds at sunrise, the earlier of two, and, for a
+  tithi no sunrise carries, on the day it begins in, which is 19 March
+  2026, where the calendar date below is the 20th. No source read states
+  that rule, so the festival rule is not carried as a named rule of its
+  own. Drik Panchang's Ugādi and Gudi Padwa pages for 2026, read for Tokyo
+  on 2026-09-30, give the date 20 March with the pratipadā from 10:22 on
+  the 19th to 08:22 on the 20th, so there it holds the 20th's sunrise,
+  and carry no sentence on how the day is chosen
+  [drikpanchang-gudi-padwa-2026]; for New Delhi, Drik Panchang heads 19
+  March [drikpanchang-day-2024-2026], and its Ugādi page for that city
+  was named by a search and not opened. The almanacs' own texts, the
+  *Dharmasindhu* or the *Nirṇayasindhu*, were not read; summaries of
+  secondary pages that a search returned state the sunrise rule, and
+  were not opened. The question stays open until one of the texts is
+  read.
 - *The first day of Vikrama 2083.* The pratipadā of 2026 begins at
   06:52 on 19 March in New Delhi, after the sunrise of 06:26
   [drikpanchang-day-2024-2026], and by the calendar's reckoning ends
@@ -1297,6 +1331,7 @@ for 2024 and 2025 give the times the tests hold.
 | [prokerala-telugu-calendar] | The Telugu year from Chaitra named Krodhi (Śaka 1946, from 9 April 2024, and its Phālguna to 29 March 2025), Viswavasu (1947, from 30 March 2025) and Parabhava (1948, from 20 March 2026) | Yes, 2026-09-26; the Telugu script on the pages was not relied on |
 | [hrishikesh-panchang-2081] | Vikrama 2081, Śaka 1946, "पिङ्गल नामाब्दः" | The almanac's title as Exotic India lists it, 2026-09-26; the almanac itself not read |
 | [prokerala-hindu-calendar] | The northern names it gives from Vikrama 1995 on, without expunction | Yes, 2026-09-26 |
+| [drikpanchang-gudi-padwa-2026] | The date of Gudi Padwa and Ugādi in 2026 for Tokyo, 20 March, and the pratipadā's beginning and end, 10:22 on 19 March and 08:22 on 20 March; no rule text on the page | Yes, 2026-09-30 |
 | [drikpanchang-day-2024-2026] | The Vikrama year's name and the samvatsara's end for New Delhi on 8 and 9 April 2024, 15 October 2024, 29 and 30 March 2025, 15 October 2025, 18 and 19 March 2026 and 28 September 2026; the tithi of 19 March 2026 | Yes, 2026-09-28 |
 | [webdunia-samvat-2081] | Vikrama 2081 Krodhi, and Kalayukta "पंचांग भेद से" | Yes, 2026-09-28 |
 | [bansalnews-samvat-2081] | Vikrama 2081 Pingala | Yes, 2026-09-28 |

@@ -349,7 +349,7 @@ January 1 CE, 15 October 1582, 15 June 1900, 1 January 1970, 1 January and
 days the test's `MORE_DAYS` lists for it, the doubled days below and four
 Hebrew New Years whose years end in a letter with its geresh.
 
-In a release build the sweep reads 222 calendars × 67 locale settings, on
+In a release build the sweep reads 225 calendars × 67 locale settings, on
 1 829 calendar-days, which is 122 543 texts:
 
 | Outcome | Texts |
@@ -425,18 +425,21 @@ days one date and whose sources write no mark that tells them apart:
   of the Bhutanese calendar writes the two days as two entries of one
   number, each with its Western date, and no mark [kalacakra-org]. No
   source read writes the mark in a date, so the formatter writes none;
-- `hindu-lunar`, `hindu-lunar-surya-siddhanta`, `hindu-lunar-purnimanta`,
+- `hindu-lunar`, `hindu-lunar-reingold-dershowitz`,
+  `hindu-lunar-surya-siddhanta`, `hindu-lunar-purnimanta`,
   `vira-nirvana-samvat`, `vikram-samvat-kartikadi`, `rajyabhisheka-saka`,
   `saptarshi` and `odia-anka`, a tithi that spans two sunrises and names
   both days. Wikipedia names such a tithi "an *adhika* or *ahorātra*
   tithi" [wikipedia-tithi], and *Calendrical Calculations*, whose
   arithmetic the calendars follow, carries the second day as a leap day
   [reingold2018], but no source read writes a mark in a date;
-- `nepal-sambat`, a doubled tithi as in the Hindu calendars. Nepal's
+- `nepal-sambat` and `nepal-sambat-fortnight`, a doubled tithi as in the
+  Hindu calendars. Nepal's
   almanac committee writes the tithi on both days and makes the weekday
-  compulsory to tell them apart [nepal-panchang-committee-2081]. The
-  formatter does not write the weekday, since the rule gives no written
-  form to place it in; a text with the weekday, *Silā 21, 1110 NS,
+  compulsory to tell them apart [nepal-panchang-committee-2081], rule 5;
+  the notice, read in full, gives no example and no order of the words
+  for the weekday. The formatter does not write the weekday, since the
+  rule gives no written form to place it in; a text with the weekday, *Silā 21, 1110 NS,
   Friday*, reads as the one day.
 
 The test lists each of these calendars with its refusal and reason, and

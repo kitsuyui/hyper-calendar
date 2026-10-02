@@ -1774,9 +1774,9 @@ for `hc_describe_day`.
 
 ### What the calls cost
 
-A description of a day is one conversion in each of the 222 calendars,
+A description of a day is one conversion in each of the 225 calendars,
 and a few dozen of them search the sky to convert: the Hindu lunar
-calendar and the seven built on it for conjunctions and saṅkrāntis at
+calendar and the nine built on it for conjunctions and saṅkrāntis at
 sunrise, the observational Hebrew and Hijri calendars for crescents
 evening by evening, the Hindu solar, Faṣlī and equinox calendars for
 ingresses, the Chinese family for new moons and solar terms. Computing

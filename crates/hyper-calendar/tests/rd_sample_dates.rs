@@ -63,7 +63,7 @@ use hyper_calendar::hc_calendar::{
     CalendarError, CalendarId, CalendarRegistry, DateFields, DynAdapter, DynCalendar, Rd,
 };
 use hyper_calendar::hc_calendars_indic::HinduLunarCalendar;
-use hyper_calendar::hc_calendars_indic::hindu_solar::{self, SankrantiRule, SolarModel};
+use hyper_calendar::hc_calendars_indic::hindu_solar::{self, SolarModel};
 use hyper_calendar::hc_calendars_indic::places::UJJAIN;
 use hyper_calendar::hc_calendars_solar::{gregorian, julian};
 use hyper_calendar::hc_format::roman::{Anchor, BissextileStyle, RomanDayName};
@@ -377,11 +377,17 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
         // The book's modern solar calendar, on the Sūrya Siddhānta's Sun and
         // read at its sunrise at Ujjain, in Śaka years.
         registered("hindu-solar", "hindu-solar-surya-siddhanta", ymd),
-        // The book's two astronomical calendars are read at Ujjain, and are
-        // built here rather than registered: they are hindu-solar-tamil and
-        // hindu-lunar at another place, which is a parameter and not a
-        // convention (policy §5), and docs/systems/hindu-calendars.md says
-        // how often the place moves a date.
+        // The book's two astronomical calendars are read at Ujjain with the
+        // book's own ayanāṃśa, zero at the Sūrya Siddhānta's Meṣa saṅkrānti
+        // of 285 CE, and, for the solar one, its own sunset, the Sun's
+        // centre on the geometric horizon (`sidereal-start`,
+        // `astro-hindu-sunset`). Those are conventions of the book's and
+        // the calendars are registered under its name (policy §5). The
+        // Tamil rule and hindu-lunar at Ujjain with Lahiri's ayanāṃśa and
+        // the library's sunset are built here and not registered: the place
+        // alone is a parameter, and docs/systems/hindu-calendars.md says how
+        // often it moves a date.
+        registered("astro-hindu-solar", "hindu-solar-reingold-dershowitz", ymd),
         built(
             "astro-hindu-solar",
             "the Tamil rule at Ujjain with the true Sun and Lahiri's ayanamsa, built",
@@ -392,37 +398,16 @@ fn mappings(registry: &CalendarRegistry) -> Vec<Mapping<'_>> {
             ))),
             ymd,
         ),
-        // The same at Ujjain with the book's own ayanāṃśa, zero at the Sūrya
-        // Siddhānta's Meṣa saṅkrānti of 285 CE, and its own sunset, the
-        // Sun's centre on the geometric horizon (`sidereal-start`,
-        // `astro-hindu-sunset`).
-        built(
-            "astro-hindu-solar",
-            "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
-            Box::new(DynAdapter::new(hindu_solar::HinduSolarCalendar {
-                rule: SankrantiRule::BeforeCentreSets,
-                ..hindu_solar::TAMIL.new(
-                    CalendarId("x-hindu-solar-tamil-book"),
-                    UJJAIN,
-                    SolarModel::Modern(Ayanamsa::REINGOLD_DERSHOWITZ),
-                )
-            })),
-            ymd,
-        ),
         registered("astro-hindu-solar", "hindu-solar-tamil", ymd),
-        built(
+        registered(
             "astro-hindu-lunar",
-            "HinduLunarCalendar::UJJAIN",
-            Box::new(DynAdapter::new(HinduLunarCalendar::UJJAIN)),
+            "hindu-lunar-reingold-dershowitz",
             hindu_lunar,
         ),
         built(
             "astro-hindu-lunar",
-            "the lunisolar calendar at Ujjain with the book's ayanamsa, built",
-            Box::new(DynAdapter::new(HinduLunarCalendar::new(
-                UJJAIN,
-                Ayanamsa::REINGOLD_DERSHOWITZ,
-            ))),
+            "HinduLunarCalendar::UJJAIN",
+            Box::new(DynAdapter::new(HinduLunarCalendar::UJJAIN)),
             hindu_lunar,
         ),
         registered("astro-hindu-lunar", "hindu-lunar", hindu_lunar),
@@ -637,28 +622,28 @@ const KNOWN: &[Known] = &[
     },
     Known {
         column: "astro-hindu-lunar",
-        ours: "the lunisolar calendar at Ujjain with the book's ayanamsa, built",
+        ours: "hindu-lunar-reingold-dershowitz",
         rd: 764_652,
         reason: "as for HinduLunarCalendar::UJJAIN: the book's own ayanāṃśa does not \
                  move it",
     },
     Known {
         column: "astro-hindu-solar",
-        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        ours: "hindu-solar-reingold-dershowitz",
         rd: 664_224,
         reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
                  ayanāṃśa and sunset do not move it",
     },
     Known {
         column: "astro-hindu-solar",
-        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        ours: "hindu-solar-reingold-dershowitz",
         rd: 694_799,
         reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
                  ayanāṃśa and sunset do not move it",
     },
     Known {
         column: "astro-hindu-solar",
-        ours: "the Tamil rule at Ujjain with the book's ayanamsa and sunset, built",
+        ours: "hindu-solar-reingold-dershowitz",
         rd: 744_313,
         reason: "as for the Tamil rule at Ujjain with Lahiri's ayanāṃśa: the book's own \
                  ayanāṃśa and sunset do not move it",
