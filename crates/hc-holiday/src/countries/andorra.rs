@@ -9,6 +9,7 @@
 //! years read, 2024 to 2026, and a gap in any other year. The days a comú keeps in one village or quarter
 //! are not carried: they need a scope finer than a parish.
 
+use super::read_all;
 use crate::computus::offsets::{EASTER_MONDAY, GOOD_FRIDAY, SHROVE_MONDAY, WHIT_MONDAY};
 use crate::rule::{HolidayRule, Listing, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions};
 
@@ -121,140 +122,143 @@ const fn parish(
     .cited(source)
 }
 
-static AD_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Cap d'Any", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Reis", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public("Carnival", "Carnaval", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Dia de la Constitució",
-        Rule::gregorian(3, 14),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Divendres Sant", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Dilluns de Pasqua",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Festa del Treball", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Dilluns de Pentecosta",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assumpció", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public(
-        "Our Lady of Meritxell",
-        "Mare de Déu de Meritxell",
-        Rule::gregorian(9, 8),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Tots Sants", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Immaculada Concepció",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Nadal", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Sant Esteve",
-        Rule::gregorian(12, 26),
-    ), // ── The parishes' own days, as each comú fixes them ─────────────────
-    parish(
-        "Saint Roch",
-        "Sant Roc",
-        "Sant Roc (Canillo)",
-        AD_CANILLO,
-        CANILLO,
-    ),
-    parish(
-        "Saint Anthony",
-        "Sant Antoni",
-        "Sant Antoni",
-        AD_LA_MASSANA,
-        LA_MASSANA,
-    ),
-    parish("Saint Peter", "St. Pere", "St. Pere", AD_ORDINO, ORDINO),
-    parish(
-        "Saint Julian",
-        "Sant Julià, Patró de la Parròquia",
-        "Sant Julià, Patró de la Parròquia",
-        AD_SANT_JULIA,
-        SANT_JULIA,
-    ),
-    parish(
-        "Our Lady of Canòlich",
-        "Diada de Canòlich, Patrona de la Parròquia",
-        "Diada de Canòlich, Patrona de la Parròquia",
-        AD_SANT_JULIA,
-        SANT_JULIA,
-    ),
-    parish(
-        "Festa Major Monday",
-        "Dilluns de Festa Major",
-        "Dilluns de Festa Major",
-        AD_SANT_JULIA,
-        SANT_JULIA,
-    ),
-    parish(
-        "Festa Major Tuesday",
-        "Dimarts de Festa Major",
-        "Dimarts de Festa Major",
-        AD_SANT_JULIA,
-        SANT_JULIA,
-    ),
-    parish(
-        "Village Festival",
-        "Festa del Poble (Sant Joan)",
-        "Festa del Poble (Sant Joan)",
-        AD_ANDORRA_LA_VELLA,
-        ANDORRA_LA_VELLA,
-    ),
-    parish(
-        "Festa Major",
-        "Festa Major",
-        "Festa Major",
-        AD_ANDORRA_LA_VELLA,
-        ANDORRA_LA_VELLA,
-    ),
-    parish(
-        "Saint Michael of Engolasters",
-        "Diada de Sant Miquel d'Engolasters",
-        "Diada de Sant Miquel d'Engolasters",
-        AD_ESCALDES,
-        ESCALDES,
-    ),
-    parish(
-        "Parish Foundation Day",
-        "Diada commemorativa de la creació de la parròquia",
-        "Diada commemorativa de la creació de la parròquia",
-        AD_ESCALDES,
-        ESCALDES,
-    ),
-    parish(
-        "Saint James",
-        "Sant Jaume (Festa Major)",
-        "Sant Jaume (Festa Major)",
-        AD_ESCALDES,
-        ESCALDES,
-    ),
-    parish(
-        "Saint Anne",
-        "Santa Anna (Festa Major)",
-        "Santa Anna (Festa Major)",
-        AD_ESCALDES,
-        ESCALDES,
-    ),
-    // Encamp's instruments for 2024 to 2026 keep no day in the whole
-    // parish; the other years' were not read.
-    HolidayRule::fixed_public(
-        "Parish days",
-        "Festes parroquials",
-        Rule::unlisted(2024, 2026),
-    )
-    .in_regions(AD_ENCAMP)
-    .cited(ENCAMP),
-];
+static AD_RULES: &[HolidayRule] = &read_all(
+    2024,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Cap d'Any", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Epiphany", "Reis", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public("Carnival", "Carnaval", Rule::easter(SHROVE_MONDAY)),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Dia de la Constitució",
+            Rule::gregorian(3, 14),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Divendres Sant", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Dilluns de Pasqua",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Festa del Treball", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Dilluns de Pentecosta",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public("Assumption", "Assumpció", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public(
+            "Our Lady of Meritxell",
+            "Mare de Déu de Meritxell",
+            Rule::gregorian(9, 8),
+        ),
+        HolidayRule::fixed_public("All Saints' Day", "Tots Sants", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Immaculada Concepció",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Nadal", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Sant Esteve",
+            Rule::gregorian(12, 26),
+        ), // ── The parishes' own days, as each comú fixes them ─────────────────
+        parish(
+            "Saint Roch",
+            "Sant Roc",
+            "Sant Roc (Canillo)",
+            AD_CANILLO,
+            CANILLO,
+        ),
+        parish(
+            "Saint Anthony",
+            "Sant Antoni",
+            "Sant Antoni",
+            AD_LA_MASSANA,
+            LA_MASSANA,
+        ),
+        parish("Saint Peter", "St. Pere", "St. Pere", AD_ORDINO, ORDINO),
+        parish(
+            "Saint Julian",
+            "Sant Julià, Patró de la Parròquia",
+            "Sant Julià, Patró de la Parròquia",
+            AD_SANT_JULIA,
+            SANT_JULIA,
+        ),
+        parish(
+            "Our Lady of Canòlich",
+            "Diada de Canòlich, Patrona de la Parròquia",
+            "Diada de Canòlich, Patrona de la Parròquia",
+            AD_SANT_JULIA,
+            SANT_JULIA,
+        ),
+        parish(
+            "Festa Major Monday",
+            "Dilluns de Festa Major",
+            "Dilluns de Festa Major",
+            AD_SANT_JULIA,
+            SANT_JULIA,
+        ),
+        parish(
+            "Festa Major Tuesday",
+            "Dimarts de Festa Major",
+            "Dimarts de Festa Major",
+            AD_SANT_JULIA,
+            SANT_JULIA,
+        ),
+        parish(
+            "Village Festival",
+            "Festa del Poble (Sant Joan)",
+            "Festa del Poble (Sant Joan)",
+            AD_ANDORRA_LA_VELLA,
+            ANDORRA_LA_VELLA,
+        ),
+        parish(
+            "Festa Major",
+            "Festa Major",
+            "Festa Major",
+            AD_ANDORRA_LA_VELLA,
+            ANDORRA_LA_VELLA,
+        ),
+        parish(
+            "Saint Michael of Engolasters",
+            "Diada de Sant Miquel d'Engolasters",
+            "Diada de Sant Miquel d'Engolasters",
+            AD_ESCALDES,
+            ESCALDES,
+        ),
+        parish(
+            "Parish Foundation Day",
+            "Diada commemorativa de la creació de la parròquia",
+            "Diada commemorativa de la creació de la parròquia",
+            AD_ESCALDES,
+            ESCALDES,
+        ),
+        parish(
+            "Saint James",
+            "Sant Jaume (Festa Major)",
+            "Sant Jaume (Festa Major)",
+            AD_ESCALDES,
+            ESCALDES,
+        ),
+        parish(
+            "Saint Anne",
+            "Santa Anna (Festa Major)",
+            "Santa Anna (Festa Major)",
+            AD_ESCALDES,
+            ESCALDES,
+        ),
+        // Encamp's instruments for 2024 to 2026 keep no day in the whole
+        // parish; the other years' were not read.
+        HolidayRule::fixed_public(
+            "Parish days",
+            "Festes parroquials",
+            Rule::unlisted(2024, 2026),
+        )
+        .in_regions(AD_ENCAMP)
+        .cited(ENCAMP),
+    ],
+);
 
 /// Andorra.
 ///
@@ -262,7 +266,9 @@ static AD_RULES: &[HolidayRule] = &[
 /// holidays "of the work calendar", which the Government decrees each
 /// year; the table carries the fourteen national days of the 2026
 /// calendar (Decree 340/2025), the same the calendars of 2024 and 2025
-/// carried: New Year's Day, Epiphany, Carnival on the Monday before
+/// carried, and so reads them from 2024; every earlier year is a gap
+/// (ADR 0013), since Law 31/2018 leaves the days to the yearly decree and
+/// no earlier decree was read: New Year's Day, Epiphany, Carnival on the Monday before
 /// Lent, Constitution Day, Good Friday, Easter Monday, 1 May, Whit
 /// Monday, the Assumption, Our Lady of Meritxell, All Saints, the
 /// Immaculate Conception, Christmas and Saint Stephen. The up to four
@@ -270,6 +276,12 @@ static AD_RULES: &[HolidayRule] = &[
 /// parish, for the years read; the tourism sector's leave to move all but
 /// four of the days by agreement is not carried. Nothing moves off a
 /// Sunday.
+///
+/// Read from 2024: the Government's decrees approving the work calendars of
+/// 2024 to 2026 (Decrets 487/2023, 409/2024 and 340/2025); Law 31/2018 leaves
+/// the days to the yearly decree and no earlier decree was read. Every
+/// earlier year is a gap (ADR 0013); the reasons for every table's first year
+/// are in docs/systems/holiday-first-years.md.
 pub static ANDORRA: RuleSet = RuleSet {
     code: "AD",
     english_name: "Andorra",

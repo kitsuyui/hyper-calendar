@@ -182,7 +182,8 @@ fn before_its_instrument_a_departmental_day_is_absent_or_a_gap() {
     assert!(gaps("BO-T", 2019).contains(&"Efeméride del departamento de Tarija"));
     assert!(gaps("BO-L", 2008).contains(&"Feriado departamental de La Paz"));
     assert!(gaps("BO-O", 2012).contains(&"Efeméride Departamental de Oruro"));
-    assert!(HolidayCalendar::for_year(&BOLIVIA, None, 2008).is_complete());
+    // The nationwide days are read from 2017, so 2008 is a gap for them too.
+    assert!(!HolidayCalendar::for_year(&BOLIVIA, None, 2008).is_complete());
     // Oruro's day is no gap in 2013, the decree's year, nor after it.
     assert!(!gaps("BO-O", 2013).contains(&"Efeméride Departamental de Oruro"));
     assert!(!gaps("BO-O", 2014).contains(&"Efeméride Departamental de Oruro"));

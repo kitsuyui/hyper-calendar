@@ -35,7 +35,15 @@ reaches it: `BO-O` in 2030 gives Monday 11 February as its substitute.
 
 ## What is carried
 
-- **The national days** of Decreto Supremo 2750, nationwide, as before.
+- **The national days** of Decreto Supremo 2750, nationwide, from 2017,
+  its first whole year; every earlier year is a gap. For 2026, Decreto
+  Supremo 5521 of 13 January 2026 moves 22 January to Friday 23 January and
+  Sunday 21 June to Monday 22 June (art. 4) and makes Friday 5 June and
+  Friday 7 August national holidays (art. 3) [bo-ds-5521-pixilegal]
+  [bo-ds-5521-infoleyes]; the table has those four dates, and neither 22
+  January nor 21 June, in 2026. The decrees that move or add days in other
+  years, 2017 to 2025 and 2027 on, were not read: each of those years has a
+  gap, "the year's decree of moved and additional holidays".
 - **Four departments' days**, `Kind::Public`, from the first instrument
   read that dates them, with the Sunday rule from 2024; the years before
   are a gap where that instrument presupposes the day (La Paz, Oruro,
@@ -115,6 +123,7 @@ no text giving its date before was read.
 | [bo-ds-4219] | Tarija's 15 April | Yes, 2026-09-29, lexivox |
 | [bo-l-1606] | Pando's 11 October | Yes, 2026-09-29, lexivox |
 | [bo-scz-ld-21] | Santa Cruz's 4 May | Yes, 2026-09-29, lexivox |
+| [bo-ds-5521-pixilegal], [bo-ds-5521-infoleyes] | The 2026 moves and additions | Yes, 2026-10-03, in the HTML texts of pixilegal.com and Infoleyes (secondary; the Gaceta Oficial's PDF not read) |
 | [bo-ds-5019] | The Sunday rule for the departmental efemérides | Yes, 2026-09-22, lexivox, as the table's `sources` cites it |
 | [bo-chuquisaca-1948-1969], [bo-cochabamba-1950-2004], [bo-potosi-1909-1954], [bo-santa-cruz-pando-1950-1969], [bo-beni-1942-1957] | The dates of the six efemérides carried from 1986 | Yes, 2026-09-29, lexivox and derechoteca |
 

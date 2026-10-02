@@ -4,6 +4,7 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_seasons::{Meridian, SolarTerm};
 
+use super::read_all;
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, SACRED_HEART, SHROVE_MONDAY, SHROVE_TUESDAY, WHIT_MONDAY,
@@ -19,66 +20,75 @@ use crate::rule::{
 // Brazil
 // ─────────────────────────────────────────────────────────────────────────
 
-static BR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "Confraternização Universal",
-        Rule::gregorian(1, 1),
-    ),
-    // Carnival is a ponto facultativo, not a feriado nacional, however
-    // universally the country stops.
-    HolidayRule::observance(
-        "Carnival Monday",
-        "Segunda-feira de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    ),
-    HolidayRule::public(
-        "Carnival Tuesday",
-        "Terça-feira de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Sexta-feira da Paixão",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::observance("Easter Sunday", "Páscoa", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public("Tiradentes", "Tiradentes", Rule::gregorian(4, 21)),
-    HolidayRule::fixed_public("Labour Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Independência do Brasil",
-        Rule::gregorian(9, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Our Lady of Aparecida",
-        "Nossa Senhora Aparecida",
-        Rule::gregorian(10, 12),
-    )
-    .years(Some(1980), None),
-    HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
-    HolidayRule::fixed_public(
-        "Republic Day",
-        "Proclamação da República",
-        Rule::gregorian(11, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Black Awareness Day",
-        "Dia da Consciência Negra",
-        Rule::gregorian(11, 20),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
-];
+static BR_RULES: &[HolidayRule] = &read_all(
+    2003,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "Confraternização Universal",
+            Rule::gregorian(1, 1),
+        ),
+        // Carnival is a ponto facultativo, not a feriado nacional, however
+        // universally the country stops.
+        HolidayRule::observance(
+            "Carnival Monday",
+            "Segunda-feira de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        HolidayRule::public(
+            "Carnival Tuesday",
+            "Terça-feira de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Sexta-feira da Paixão",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::observance("Easter Sunday", "Páscoa", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public("Tiradentes", "Tiradentes", Rule::gregorian(4, 21)),
+        HolidayRule::fixed_public("Labour Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::easter(CORPUS_CHRISTI),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Independência do Brasil",
+            Rule::gregorian(9, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Our Lady of Aparecida",
+            "Nossa Senhora Aparecida",
+            Rule::gregorian(10, 12),
+        )
+        .years(Some(1980), None),
+        HolidayRule::fixed_public("All Souls' Day", "Finados", Rule::gregorian(11, 2)),
+        HolidayRule::fixed_public(
+            "Republic Day",
+            "Proclamação da República",
+            Rule::gregorian(11, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Black Awareness Day",
+            "Dia da Consciência Negra",
+            Rule::gregorian(11, 20),
+        )
+        .years(Some(2024), None),
+        HolidayRule::fixed_public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Brazil.
+///
+/// Read from 2003: Lei nº 662 of 1949, article 1, in the wording of Lei nº
+/// 10.607 of 19 December 2002, from the first whole year after it; the
+/// wording before it was not read. Every earlier year is a gap (ADR 0013);
+/// the reasons for every table's first year are in docs/systems/holiday-
+/// first-years.md.
 pub static BRAZIL: RuleSet = RuleSet {
     code: "BR",
     english_name: "Brazil",
@@ -124,7 +134,7 @@ const fn ar_trasladable(
 /// 27.399 and article 5 of Decreto 1584/2010: not a holiday, and stated as
 /// an observance.
 const fn ar_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::observance(name, local, rule).years(Some(2011), None)
+    HolidayRule::observance(name, local, rule)
 }
 
 static AR_GUEMES: Rule = Rule::gregorian(6, 17);
@@ -132,195 +142,206 @@ static AR_SAN_MARTIN: Rule = Rule::gregorian(8, 17);
 static AR_DIVERSIDAD: Rule = Rule::gregorian(10, 12);
 static AR_SOBERANIA: Rule = Rule::gregorian(11, 20);
 
-static AR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1))
-        .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "Carnival Monday",
-        "Lunes de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "Day of Remembrance for Truth and Justice",
-        "Día Nacional de la Memoria por la Verdad y la Justicia",
-        Rule::gregorian(3, 24),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "Day of the Veterans and Fallen of the Malvinas War",
-        "Día del Veterano y de los Caídos en la Guerra de Malvinas",
-        Rule::gregorian(4, 2),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY))
-        .years(Some(2011), None),
-    HolidayRule::observance(
-        "Holy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1))
-        .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "May Revolution Day",
-        "Día de la Revolución de Mayo",
-        Rule::gregorian(5, 25),
-    )
-    .years(Some(2011), None),
-    // Güemes: a holiday from 2016 by Ley 27.258, carried from 2018, the
-    // first year its rule can be stated from a text the author read.
-    ar_trasladable(
-        "Anniversary of the Passing of General Güemes",
-        "Paso a la Inmortalidad del General Martín Miguel de Güemes",
-        &AR_GUEMES,
-    )
-    .years(Some(2018), None),
-    HolidayRule::fixed_public(
-        "Anniversary of the Passing of General Belgrano",
-        "Paso a la Inmortalidad del General Manuel Belgrano",
-        Rule::gregorian(6, 20),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(7, 9),
-    )
-    .years(Some(2011), None),
-    // The three of Decreto 1584/2010, article 2: the third Monday of
-    // August, the second of October and the fourth of November, 2011–2016;
-    // then the weekday rule of Ley 27.399 from 2018.
-    HolidayRule::public(
-        "Anniversary of the Passing of General San Martín",
-        "Paso a la Inmortalidad del General José de San Martín",
-        Rule::nth(8, 3, Weekday::Monday),
-    )
-    .years(Some(2011), Some(2016)),
-    ar_trasladable(
-        "Anniversary of the Passing of General San Martín",
-        "Paso a la Inmortalidad del General José de San Martín",
-        &AR_SAN_MARTIN,
-    )
-    .years(Some(2018), None),
-    HolidayRule::public(
-        "Day of Respect for Cultural Diversity",
-        "Día del Respeto a la Diversidad Cultural",
-        Rule::nth(10, 2, Weekday::Monday),
-    )
-    .years(Some(2011), Some(2016)),
-    ar_trasladable(
-        "Day of Respect for Cultural Diversity",
-        "Día del Respeto a la Diversidad Cultural",
-        &AR_DIVERSIDAD,
-    )
-    .years(Some(2018), None),
-    HolidayRule::public(
-        "National Sovereignty Day",
-        "Día de la Soberanía Nacional",
-        Rule::nth(11, 4, Weekday::Monday),
-    )
-    .years(Some(2011), Some(2016)),
-    ar_trasladable(
-        "National Sovereignty Day",
-        "Día de la Soberanía Nacional",
-        &AR_SOBERANIA,
-    )
-    .years(Some(2018), None),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Inmaculada Concepción de María",
-        Rule::gregorian(12, 8),
-    )
-    .years(Some(2011), None),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
-        .years(Some(2011), None),
-    // Days the observant may take off: Rosh Hashanah's two days, Yom
-    // Kippur, the first two and last two days of Pesach; the Islamic New
-    // Year, Eid al-Fitr and Eid al-Adha, which Argentina keeps on the
-    // community's announcement and are therefore approximate.
-    ar_religious(
-        "Rosh Hashanah",
-        "Año Nuevo Judío",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
-    ),
-    ar_religious(
-        "Rosh Hashanah",
-        "Año Nuevo Judío",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 2),
-    ),
-    ar_religious(
-        "Yom Kippur",
-        "Día del Perdón",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-    ar_religious(
-        "Passover",
-        "Pascua Judía",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
-    ),
-    ar_religious(
-        "Passover",
-        "Pascua Judía",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
-    ),
-    ar_religious(
-        "Passover",
-        "Pascua Judía",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 21),
-    ),
-    ar_religious(
-        "Passover",
-        "Pascua Judía",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 22),
-    ),
-    ar_religious(
-        "Islamic New Year",
-        "Año Nuevo Musulmán",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 1),
-    )
-    .approximate(),
-    ar_religious(
-        "Eid al-Fitr",
-        "Culminación del Ayuno",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    ar_religious(
-        "Eid al-Adha",
-        "Fiesta del Sacrificio",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-];
+static AR_RULES: &[HolidayRule] = &read_all(
+    2011,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Carnival Monday",
+            "Lunes de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Day of Remembrance for Truth and Justice",
+            "Día Nacional de la Memoria por la Verdad y la Justicia",
+            Rule::gregorian(3, 24),
+        ),
+        HolidayRule::fixed_public(
+            "Day of the Veterans and Fallen of the Malvinas War",
+            "Día del Veterano y de los Caídos en la Guerra de Malvinas",
+            Rule::gregorian(4, 2),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::observance(
+            "Holy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "May Revolution Day",
+            "Día de la Revolución de Mayo",
+            Rule::gregorian(5, 25),
+        ),
+        // Güemes: a holiday from 2016 by Ley 27.258, carried from 2018, the
+        // first year its rule can be stated from a text the author read.
+        ar_trasladable(
+            "Anniversary of the Passing of General Güemes",
+            "Paso a la Inmortalidad del General Martín Miguel de Güemes",
+            &AR_GUEMES,
+        )
+        .years(Some(2016), None)
+        .read_from(2018)
+        .cited(
+            "Ley 27.258 (2016), through Wikipedia (es), \"Martín Miguel de Güemes\"; the dates of \
+         2016 and 2017 not read",
+        ),
+        HolidayRule::fixed_public(
+            "Anniversary of the Passing of General Belgrano",
+            "Paso a la Inmortalidad del General Manuel Belgrano",
+            Rule::gregorian(6, 20),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(7, 9),
+        ),
+        // The three of Decreto 1584/2010, article 2: the third Monday of
+        // August, the second of October and the fourth of November, 2011–2016;
+        // then the weekday rule of Ley 27.399 from 2018.
+        HolidayRule::public(
+            "Anniversary of the Passing of General San Martín",
+            "Paso a la Inmortalidad del General José de San Martín",
+            Rule::nth(8, 3, Weekday::Monday),
+        )
+        .years(None, Some(2016)),
+        ar_trasladable(
+            "Anniversary of the Passing of General San Martín",
+            "Paso a la Inmortalidad del General José de San Martín",
+            &AR_SAN_MARTIN,
+        )
+        .years(Some(2018), None),
+        HolidayRule::public(
+            "Day of Respect for Cultural Diversity",
+            "Día del Respeto a la Diversidad Cultural",
+            Rule::nth(10, 2, Weekday::Monday),
+        )
+        .years(None, Some(2016)),
+        ar_trasladable(
+            "Day of Respect for Cultural Diversity",
+            "Día del Respeto a la Diversidad Cultural",
+            &AR_DIVERSIDAD,
+        )
+        .years(Some(2018), None),
+        HolidayRule::public(
+            "National Sovereignty Day",
+            "Día de la Soberanía Nacional",
+            Rule::nth(11, 4, Weekday::Monday),
+        )
+        .years(None, Some(2016)),
+        ar_trasladable(
+            "National Sovereignty Day",
+            "Día de la Soberanía Nacional",
+            &AR_SOBERANIA,
+        )
+        .years(Some(2018), None),
+        // Decreto 52/2017 set the three weekday holidays of 2017, between the
+        // decree of 2010's rule, to 2016, and Ley 27.399's, from 2018; it was
+        // not read, and the year is a gap.
+        HolidayRule::public(
+            "The weekday holidays of 2017",
+            "Feriados trasladables de 2017",
+            Rule::UNREAD,
+        )
+        .years(Some(2017), Some(2017))
+        .cited("Decreto 52/2017, not read"),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Inmaculada Concepción de María",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+        // Days the observant may take off: Rosh Hashanah's two days, Yom
+        // Kippur, the first two and last two days of Pesach; the Islamic New
+        // Year, Eid al-Fitr and Eid al-Adha, which Argentina keeps on the
+        // community's announcement and are therefore approximate.
+        ar_religious(
+            "Rosh Hashanah",
+            "Año Nuevo Judío",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
+        ),
+        ar_religious(
+            "Rosh Hashanah",
+            "Año Nuevo Judío",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 2),
+        ),
+        ar_religious(
+            "Yom Kippur",
+            "Día del Perdón",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+        ar_religious(
+            "Passover",
+            "Pascua Judía",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+        ),
+        ar_religious(
+            "Passover",
+            "Pascua Judía",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
+        ),
+        ar_religious(
+            "Passover",
+            "Pascua Judía",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 21),
+        ),
+        ar_religious(
+            "Passover",
+            "Pascua Judía",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 22),
+        ),
+        ar_religious(
+            "Islamic New Year",
+            "Año Nuevo Musulmán",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 1, 1),
+        )
+        .approximate(),
+        ar_religious(
+            "Eid al-Fitr",
+            "Culminación del Ayuno",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        ar_religious(
+            "Eid al-Adha",
+            "Fiesta del Sacrificio",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+    ],
+);
 
 /// Argentina.
 ///
-/// The table begins with Decreto 1584/2010, in force from 2011, and states
-/// nothing before: the earlier arrangement, in which Ley 24.445 (1995) put
-/// 20 June, 17 August and 12 October on Mondays, is not carried, nor are
-/// the years the fixed days were created (24 March by Ley 26.085 of 2006,
-/// 2 April by Ley 25.370 of 2000). From 2011 the *inamovibles* stay where
+/// The table is read from Decreto 1584/2010, in force from 2011, and every
+/// earlier year is a gap: the earlier arrangement, in which Ley 24.445
+/// (1995) put 20 June, 17 August and 12 October on Mondays, was not read,
+/// nor were the years the fixed days were created (24 March by Ley 26.085
+/// of 2006, 2 April by Ley 25.370 of 2000). From 2011 the *inamovibles* stay where
 /// they fall, weekend included, and the *trasladables* move: under the
 /// decree, to the third Monday of August, the second of October and the
 /// fourth of November, and under Ley 27.399 (2017) by the weekday rule of
 /// its article 6 — Tuesday and Wednesday to the Monday before, Thursday and
 /// Friday to the Monday after — which the table carries from 2018. The
 /// 2017 dates, set by Decreto 52/2017, and Güemes's day in 2016 and 2017
-/// are left unstated, since the author read neither text.
+/// are gaps, since the author read neither text.
 ///
 /// The *feriados con fines turísticos* — up to three a year, set by the
 /// Executive fifty days ahead on a Monday or Friday — are annual and not
 /// carried. Holy Thursday is a *día no laborable*, an optional day off,
 /// and is stated as an observance, as are the days the observant of the
 /// Jewish and Islamic faiths may take.
+///
+/// Read from 2011: Decreto 1584/2010, in force from 2011; Ley 24.445 (1995)
+/// and the earlier years were not read, and 2017, Güemes's day in 2016 and
+/// 2017 are gaps because Decreto 52/2017 was not read. Every earlier year is
+/// a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static ARGENTINA: RuleSet = RuleSet {
     code: "AR",
     english_name: "Argentina",
@@ -352,12 +373,11 @@ const fn emiliani(name: &'static str, local: &'static str, base: &'static Rule) 
         local,
         Rule::moved_by_weekday(base, TO_FOLLOWING_MONDAY),
     )
-    .years(Some(1984), None)
 }
 
 /// A holiday under article 1 that stays on its date.
 const fn co_fixed(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, rule).years(Some(1984), None)
+    HolidayRule::fixed_public(name, local, rule)
 }
 
 static CO_EPIPHANY: Rule = Rule::gregorian(1, 6);
@@ -371,54 +391,57 @@ static CO_COLUMBUS: Rule = Rule::gregorian(10, 12);
 static CO_ALL_SAINTS: Rule = Rule::gregorian(11, 1);
 static CO_CARTAGENA: Rule = Rule::gregorian(11, 11);
 
-static CO_RULES: &[HolidayRule] = &[
-    co_fixed("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    emiliani("Epiphany", "Día de los Reyes Magos", &CO_EPIPHANY),
-    emiliani("Saint Joseph's Day", "Día de San José", &CO_SAINT_JOSEPH),
-    co_fixed(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    co_fixed("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    co_fixed("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    emiliani("Ascension Day", "Ascensión del Señor", &CO_ASCENSION),
-    emiliani("Corpus Christi", "Corpus Christi", &CO_CORPUS_CHRISTI),
-    emiliani("Sacred Heart", "Sagrado Corazón de Jesús", &CO_SACRED_HEART),
-    emiliani(
-        "Saints Peter and Paul",
-        "San Pedro y San Pablo",
-        &CO_PETER_AND_PAUL,
-    ),
-    co_fixed(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(7, 20),
-    ),
-    co_fixed(
-        "Battle of Boyacá",
-        "Batalla de Boyacá",
-        Rule::gregorian(8, 7),
-    ),
-    emiliani(
-        "Assumption of Mary",
-        "Asunción de la Virgen",
-        &CO_ASSUMPTION,
-    ),
-    emiliani("Columbus Day", "Día de la Raza", &CO_COLUMBUS),
-    emiliani("All Saints' Day", "Día de Todos los Santos", &CO_ALL_SAINTS),
-    emiliani(
-        "Independence of Cartagena",
-        "Independencia de Cartagena",
-        &CO_CARTAGENA,
-    ),
-    co_fixed(
-        "Immaculate Conception",
-        "Inmaculada Concepción",
-        Rule::gregorian(12, 8),
-    ),
-    co_fixed("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static CO_RULES: &[HolidayRule] = &read_all(
+    1984,
+    [
+        co_fixed("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        emiliani("Epiphany", "Día de los Reyes Magos", &CO_EPIPHANY),
+        emiliani("Saint Joseph's Day", "Día de San José", &CO_SAINT_JOSEPH),
+        co_fixed(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        co_fixed("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        co_fixed("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        emiliani("Ascension Day", "Ascensión del Señor", &CO_ASCENSION),
+        emiliani("Corpus Christi", "Corpus Christi", &CO_CORPUS_CHRISTI),
+        emiliani("Sacred Heart", "Sagrado Corazón de Jesús", &CO_SACRED_HEART),
+        emiliani(
+            "Saints Peter and Paul",
+            "San Pedro y San Pablo",
+            &CO_PETER_AND_PAUL,
+        ),
+        co_fixed(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(7, 20),
+        ),
+        co_fixed(
+            "Battle of Boyacá",
+            "Batalla de Boyacá",
+            Rule::gregorian(8, 7),
+        ),
+        emiliani(
+            "Assumption of Mary",
+            "Asunción de la Virgen",
+            &CO_ASSUMPTION,
+        ),
+        emiliani("Columbus Day", "Día de la Raza", &CO_COLUMBUS),
+        emiliani("All Saints' Day", "Día de Todos los Santos", &CO_ALL_SAINTS),
+        emiliani(
+            "Independence of Cartagena",
+            "Independencia de Cartagena",
+            &CO_CARTAGENA,
+        ),
+        co_fixed(
+            "Immaculate Conception",
+            "Inmaculada Concepción",
+            Rule::gregorian(12, 8),
+        ),
+        co_fixed("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Colombia.
 ///
@@ -427,8 +450,12 @@ static CO_RULES: &[HolidayRule] = &[
 /// Heart, Saints Peter and Paul, the Assumption, 12 October, All Saints
 /// and the Independence of Cartagena — "cuando no caigan en día lunes se
 /// trasladarán al lunes siguiente", a Sunday included. The other eight stay
-/// where they fall. The table begins with the law's first full year, 1984,
-/// and states nothing before.
+/// where they fall. The table is read from the law's first full year, 1984;
+/// every earlier year is a gap.
+///
+/// Read from 1984: Ley 51 de 1983, from its first full year. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static COLOMBIA: RuleSet = RuleSet {
     code: "CO",
     english_name: "Colombia",
@@ -449,69 +476,72 @@ pub static COLOMBIA: RuleSet = RuleSet {
 // Peru
 // ─────────────────────────────────────────────────────────────────────────
 
-/// A national holiday as the source lists it for 2026, carried from 2024.
+/// A national holiday as the source lists it for 2026.
 const fn pe(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, rule).years(Some(2024), None)
+    HolidayRule::fixed_public(name, local, rule)
 }
 
-static PE_RULES: &[HolidayRule] = &[
-    pe("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    pe(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    pe("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    pe("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    pe("Flag Day", "Día de la Bandera", Rule::gregorian(6, 7)),
-    pe(
-        "Saints Peter and Paul",
-        "San Pedro y San Pablo",
-        Rule::gregorian(6, 29),
-    ),
-    pe(
-        "Air Force Day",
-        "Día de la Fuerza Aérea",
-        Rule::gregorian(7, 23),
-    ),
-    pe(
-        "Independence Day",
-        "Fiestas Patrias",
-        Rule::gregorian(7, 28),
-    ),
-    pe(
-        "Independence Day",
-        "Fiestas Patrias",
-        Rule::gregorian(7, 29),
-    ),
-    pe("Battle of Junín", "Batalla de Junín", Rule::gregorian(8, 6)),
-    pe(
-        "Saint Rose of Lima",
-        "Santa Rosa de Lima",
-        Rule::gregorian(8, 30),
-    ),
-    pe(
-        "Battle of Angamos",
-        "Combate de Angamos",
-        Rule::gregorian(10, 8),
-    ),
-    pe(
-        "All Saints' Day",
-        "Día de Todos los Santos",
-        Rule::gregorian(11, 1),
-    ),
-    pe(
-        "Immaculate Conception",
-        "Inmaculada Concepción",
-        Rule::gregorian(12, 8),
-    ),
-    pe(
-        "Battle of Ayacucho",
-        "Batalla de Ayacucho",
-        Rule::gregorian(12, 9),
-    ),
-    pe("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static PE_RULES: &[HolidayRule] = &read_all(
+    2026,
+    [
+        pe("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        pe(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        pe("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        pe("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        pe("Flag Day", "Día de la Bandera", Rule::gregorian(6, 7)),
+        pe(
+            "Saints Peter and Paul",
+            "San Pedro y San Pablo",
+            Rule::gregorian(6, 29),
+        ),
+        pe(
+            "Air Force Day",
+            "Día de la Fuerza Aérea",
+            Rule::gregorian(7, 23),
+        ),
+        pe(
+            "Independence Day",
+            "Fiestas Patrias",
+            Rule::gregorian(7, 28),
+        ),
+        pe(
+            "Independence Day",
+            "Fiestas Patrias",
+            Rule::gregorian(7, 29),
+        ),
+        pe("Battle of Junín", "Batalla de Junín", Rule::gregorian(8, 6)),
+        pe(
+            "Saint Rose of Lima",
+            "Santa Rosa de Lima",
+            Rule::gregorian(8, 30),
+        ),
+        pe(
+            "Battle of Angamos",
+            "Combate de Angamos",
+            Rule::gregorian(10, 8),
+        ),
+        pe(
+            "All Saints' Day",
+            "Día de Todos los Santos",
+            Rule::gregorian(11, 1),
+        ),
+        pe(
+            "Immaculate Conception",
+            "Inmaculada Concepción",
+            Rule::gregorian(12, 8),
+        ),
+        pe(
+            "Battle of Ayacucho",
+            "Batalla de Ayacucho",
+            Rule::gregorian(12, 9),
+        ),
+        pe("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Peru.
 ///
@@ -519,10 +549,17 @@ static PE_RULES: &[HolidayRule] = &[
 /// them for 2026, sixteen days including the two of Fiestas Patrias. Four
 /// of them are additions of the 2020s — Flag Day, Air Force Day, the
 /// Battle of Junín and the Battle of Ayacucho — under laws the author could
-/// not read, so the table begins in 2024, the first year all sixteen were
-/// kept, and states nothing before. A holiday on a weekend stays there, and
+/// not read, and the only list read is 2026's, so the table is read from
+/// 2026 and every earlier year is a gap (ADR 0013): the years the amending
+/// laws took effect are not stated by any source read, which says nothing of
+/// them. A holiday on a weekend stays there, and
 /// the *días no laborables* the government declares each year by decree
 /// are not carried.
+///
+/// Read from 2026: the only list read, the Spanish Wikipedia's for 2026
+/// (Decreto Legislativo 713 and its amendments were not read). Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static PERU: RuleSet = RuleSet {
     code: "PE",
     english_name: "Peru",
@@ -589,167 +626,170 @@ fn cl_september_20_friday(year: i64) -> Days {
     cl_when(year, 9, 20, Weekday::Friday)
 }
 
-static CL_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    // Ley 20.983: a Monday 2 January is a holiday.
-    HolidayRule::fixed_public(
-        "Monday after New Year's Day",
-        "Lunes 2 de enero",
-        Rule::Computed(cl_january_2_monday),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día Nacional del Trabajo",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Navy Day",
-        "Día de las Glorias Navales",
-        Rule::gregorian(5, 21),
-    ),
-    HolidayRule::fixed_public(
-        "Battle of Arica Day",
-        "Asalto y Toma del Morro de Arica",
-        Rule::gregorian(6, 7),
-    )
-    .in_regions(&["CL-AP"])
-    .years(Some(2013), None),
-    // Ley 21.357: the day of the June solstice, and 21 June in 2021 by its
-    // transitional article.
-    HolidayRule::fixed_public(
-        "National Indigenous Peoples' Day",
-        "Día Nacional de los Pueblos Indígenas",
-        Rule::gregorian(6, 21),
-    )
-    .years(Some(2021), Some(2021)),
-    HolidayRule::fixed_public(
-        "National Indigenous Peoples' Day",
-        "Día Nacional de los Pueblos Indígenas",
-        Rule::SolarTerm {
-            term: SolarTerm::SUMMER_SOLSTICE,
-            meridian: CHILE_STANDARD_TIME,
-        },
-    )
-    .years(Some(2022), None),
-    // Saints Peter and Paul: abolished in 1968, back from 1986, moved to a
-    // Monday from 2000.
-    HolidayRule::fixed_public(
-        "Saints Peter and Paul",
-        "San Pedro y San Pablo",
-        Rule::gregorian(6, 29),
-    )
-    .years(Some(1986), Some(1999)),
-    HolidayRule::fixed_public(
-        "Saints Peter and Paul",
-        "San Pedro y San Pablo",
-        Rule::moved_by_weekday(&CL_JUNE_29, CL_TO_MONDAY),
-    )
-    .years(Some(2000), None),
-    // Corpus Christi: back from 1987, moved to the Monday before from 2000,
-    // replaced by Our Lady of Mount Carmel from 2007.
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .years(Some(1987), Some(1999)),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::moved_by_weekday(&CL_CORPUS_CHRISTI, CL_TO_MONDAY),
-    )
-    .years(Some(2000), Some(2006)),
-    HolidayRule::fixed_public(
-        "Our Lady of Mount Carmel",
-        "Virgen del Carmen",
-        Rule::gregorian(7, 16),
-    )
-    .years(Some(2007), None),
-    HolidayRule::fixed_public(
-        "Assumption of Mary",
-        "Asunción de la Virgen",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Day of National Liberation",
-        "Día de la Liberación Nacional",
-        Rule::gregorian(9, 11),
-    )
-    .years(Some(1981), Some(1998)),
-    HolidayRule::fixed_public(
-        "National Unity Day",
-        "Día de la Unidad Nacional",
-        Rule::nth(9, 1, Weekday::Monday),
-    )
-    .years(Some(1999), Some(2001)),
-    // Leyes 20.215 and 20.983: a Monday or Friday 17 September and a Friday
-    // 20 September are holidays.
-    HolidayRule::fixed_public(
-        "Monday 17 September",
-        "Lunes 17 de septiembre",
-        Rule::Computed(cl_september_17_monday),
-    )
-    .years(Some(2007), None),
-    HolidayRule::fixed_public(
-        "Friday 17 September",
-        "Viernes 17 de septiembre",
-        Rule::Computed(cl_september_17_friday),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        Rule::gregorian(9, 18),
-    ),
-    HolidayRule::fixed_public(
-        "Army Day",
-        "Día de las Glorias del Ejército",
-        Rule::gregorian(9, 19),
-    ),
-    HolidayRule::fixed_public(
-        "Friday 20 September",
-        "Viernes 20 de septiembre",
-        Rule::Computed(cl_september_20_friday),
-    )
-    .years(Some(2007), None),
-    // 12 October: a holiday from 1922, moved to a Monday and renamed from 2000.
-    HolidayRule::fixed_public(
-        "Discovery of America Anniversary",
-        "Aniversario del Descubrimiento de América",
-        Rule::gregorian(10, 12),
-    )
-    .years(Some(1922), Some(1999)),
-    HolidayRule::fixed_public(
-        "Meeting of Two Worlds Day",
-        "Día del Encuentro de Dos Mundos",
-        Rule::moved_by_weekday(&CL_OCTOBER_12, CL_TO_MONDAY),
-    )
-    .years(Some(2000), None),
-    HolidayRule::fixed_public(
-        "National Day of the Evangelical and Protestant Churches",
-        "Día Nacional de las Iglesias Evangélicas y Protestantes",
-        Rule::moved_by_weekday(&CL_OCTOBER_31, CL_TO_FRIDAY),
-    )
-    .years(Some(2008), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Día de Todos los Santos",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Inmaculada Concepción",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Natividad del Señor",
-        Rule::gregorian(12, 25),
-    ),
-];
+static CL_RULES: &[HolidayRule] = &read_all(
+    1981,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        // Ley 20.983: a Monday 2 January is a holiday.
+        HolidayRule::fixed_public(
+            "Monday after New Year's Day",
+            "Lunes 2 de enero",
+            Rule::Computed(cl_january_2_monday),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día Nacional del Trabajo",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Navy Day",
+            "Día de las Glorias Navales",
+            Rule::gregorian(5, 21),
+        ),
+        HolidayRule::fixed_public(
+            "Battle of Arica Day",
+            "Asalto y Toma del Morro de Arica",
+            Rule::gregorian(6, 7),
+        )
+        .in_regions(&["CL-AP"])
+        .years(Some(2013), None),
+        // Ley 21.357: the day of the June solstice, and 21 June in 2021 by its
+        // transitional article.
+        HolidayRule::fixed_public(
+            "National Indigenous Peoples' Day",
+            "Día Nacional de los Pueblos Indígenas",
+            Rule::gregorian(6, 21),
+        )
+        .years(Some(2021), Some(2021)),
+        HolidayRule::fixed_public(
+            "National Indigenous Peoples' Day",
+            "Día Nacional de los Pueblos Indígenas",
+            Rule::SolarTerm {
+                term: SolarTerm::SUMMER_SOLSTICE,
+                meridian: CHILE_STANDARD_TIME,
+            },
+        )
+        .years(Some(2022), None),
+        // Saints Peter and Paul: abolished in 1968, back from 1986, moved to a
+        // Monday from 2000.
+        HolidayRule::fixed_public(
+            "Saints Peter and Paul",
+            "San Pedro y San Pablo",
+            Rule::gregorian(6, 29),
+        )
+        .years(Some(1986), Some(1999)),
+        HolidayRule::fixed_public(
+            "Saints Peter and Paul",
+            "San Pedro y San Pablo",
+            Rule::moved_by_weekday(&CL_JUNE_29, CL_TO_MONDAY),
+        )
+        .years(Some(2000), None),
+        // Corpus Christi: back from 1987, moved to the Monday before from 2000,
+        // replaced by Our Lady of Mount Carmel from 2007.
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::easter(CORPUS_CHRISTI),
+        )
+        .years(Some(1987), Some(1999)),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::moved_by_weekday(&CL_CORPUS_CHRISTI, CL_TO_MONDAY),
+        )
+        .years(Some(2000), Some(2006)),
+        HolidayRule::fixed_public(
+            "Our Lady of Mount Carmel",
+            "Virgen del Carmen",
+            Rule::gregorian(7, 16),
+        )
+        .years(Some(2007), None),
+        HolidayRule::fixed_public(
+            "Assumption of Mary",
+            "Asunción de la Virgen",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Day of National Liberation",
+            "Día de la Liberación Nacional",
+            Rule::gregorian(9, 11),
+        )
+        .years(Some(1981), Some(1998)),
+        HolidayRule::fixed_public(
+            "National Unity Day",
+            "Día de la Unidad Nacional",
+            Rule::nth(9, 1, Weekday::Monday),
+        )
+        .years(Some(1999), Some(2001)),
+        // Leyes 20.215 and 20.983: a Monday or Friday 17 September and a Friday
+        // 20 September are holidays.
+        HolidayRule::fixed_public(
+            "Monday 17 September",
+            "Lunes 17 de septiembre",
+            Rule::Computed(cl_september_17_monday),
+        )
+        .years(Some(2007), None),
+        HolidayRule::fixed_public(
+            "Friday 17 September",
+            "Viernes 17 de septiembre",
+            Rule::Computed(cl_september_17_friday),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            Rule::gregorian(9, 18),
+        ),
+        HolidayRule::fixed_public(
+            "Army Day",
+            "Día de las Glorias del Ejército",
+            Rule::gregorian(9, 19),
+        ),
+        HolidayRule::fixed_public(
+            "Friday 20 September",
+            "Viernes 20 de septiembre",
+            Rule::Computed(cl_september_20_friday),
+        )
+        .years(Some(2007), None),
+        // 12 October: a holiday from 1922, moved to a Monday and renamed from 2000.
+        HolidayRule::fixed_public(
+            "Discovery of America Anniversary",
+            "Aniversario del Descubrimiento de América",
+            Rule::gregorian(10, 12),
+        )
+        .years(Some(1922), Some(1999)),
+        HolidayRule::fixed_public(
+            "Meeting of Two Worlds Day",
+            "Día del Encuentro de Dos Mundos",
+            Rule::moved_by_weekday(&CL_OCTOBER_12, CL_TO_MONDAY),
+        )
+        .years(Some(2000), None),
+        HolidayRule::fixed_public(
+            "National Day of the Evangelical and Protestant Churches",
+            "Día Nacional de las Iglesias Evangélicas y Protestantes",
+            Rule::moved_by_weekday(&CL_OCTOBER_31, CL_TO_FRIDAY),
+        )
+        .years(Some(2008), None),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Día de Todos los Santos",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Inmaculada Concepción",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Natividad del Señor",
+            Rule::gregorian(12, 25),
+        ),
+    ],
+);
 
 /// Chile.
 ///
@@ -772,6 +812,11 @@ static CL_RULES: &[HolidayRule] = &[
 /// the commune-level holiday of Chillán and Chillán Viejo. New Year's Day,
 /// Labour Day, 18 and 19 September and Christmas are irrenunciable under
 /// Leyes 19.973 and 20.215, which the crate has no field for.
+///
+/// Read from 1981: the first change that the laws read date, the Day of
+/// National Liberation; the older holidays (Ley 2.977 of 1915) are known only
+/// through Wikipedia. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static CHILE: RuleSet = RuleSet {
     code: "CL",
     english_name: "Chile",
@@ -866,103 +911,106 @@ fn ec_november_3(year: i64) -> Days {
     ec_november_pair(year).map_or_else(Days::new, |(_, day)| Days::one(day))
 }
 
-static EC_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1))
+static EC_RULES: &[HolidayRule] = &read_all(
+    2017,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1))
+            .years(None, Some(2016)),
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "Año Nuevo",
+            Rule::moved_by_weekday(&EC_JANUARY_1, EC_WEEKEND_MOVES),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Carnival Monday",
+            "Lunes de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+            .years(None, Some(2016)),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día del Trabajo",
+            Rule::moved_by_weekday(&EC_MAY_1, EC_MOVES),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Battle of Pichincha",
+            "Batalla de Pichincha",
+            Rule::gregorian(5, 24),
+        )
         .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "Año Nuevo",
-        Rule::moved_by_weekday(&EC_JANUARY_1, EC_WEEKEND_MOVES),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Carnival Monday",
-        "Lunes de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+        HolidayRule::fixed_public(
+            "Battle of Pichincha",
+            "Batalla de Pichincha",
+            Rule::moved_by_weekday(&EC_MAY_24, EC_MOVES),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "First Cry of Independence",
+            "Primer Grito de Independencia",
+            Rule::gregorian(8, 10),
+        )
         .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día del Trabajo",
-        Rule::moved_by_weekday(&EC_MAY_1, EC_MOVES),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Battle of Pichincha",
-        "Batalla de Pichincha",
-        Rule::gregorian(5, 24),
-    )
-    .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Battle of Pichincha",
-        "Batalla de Pichincha",
-        Rule::moved_by_weekday(&EC_MAY_24, EC_MOVES),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "First Cry of Independence",
-        "Primer Grito de Independencia",
-        Rule::gregorian(8, 10),
-    )
-    .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "First Cry of Independence",
-        "Primer Grito de Independencia",
-        Rule::moved_by_weekday(&EC_AUGUST_10, EC_MOVES),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Independence of Guayaquil",
-        "Independencia de Guayaquil",
-        Rule::gregorian(10, 9),
-    )
-    .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Independence of Guayaquil",
-        "Independencia de Guayaquil",
-        Rule::moved_by_weekday(&EC_OCTOBER_9, EC_MOVES),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Day of the Dead",
-        "Día de los Difuntos",
-        Rule::gregorian(11, 2),
-    )
-    .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Day of the Dead",
-        "Día de los Difuntos",
-        Rule::Computed(ec_november_2),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Independence of Cuenca",
-        "Independencia de Cuenca",
-        Rule::gregorian(11, 3),
-    )
-    .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Independence of Cuenca",
-        "Independencia de Cuenca",
-        Rule::Computed(ec_november_3),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+        HolidayRule::fixed_public(
+            "First Cry of Independence",
+            "Primer Grito de Independencia",
+            Rule::moved_by_weekday(&EC_AUGUST_10, EC_MOVES),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Independence of Guayaquil",
+            "Independencia de Guayaquil",
+            Rule::gregorian(10, 9),
+        )
         .years(None, Some(2016)),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Navidad",
-        Rule::moved_by_weekday(&EC_DECEMBER_25, EC_WEEKEND_MOVES),
-    )
-    .years(Some(2017), None),
-];
+        HolidayRule::fixed_public(
+            "Independence of Guayaquil",
+            "Independencia de Guayaquil",
+            Rule::moved_by_weekday(&EC_OCTOBER_9, EC_MOVES),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Day of the Dead",
+            "Día de los Difuntos",
+            Rule::gregorian(11, 2),
+        )
+        .years(None, Some(2016)),
+        HolidayRule::fixed_public(
+            "Day of the Dead",
+            "Día de los Difuntos",
+            Rule::Computed(ec_november_2),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Independence of Cuenca",
+            "Independencia de Cuenca",
+            Rule::gregorian(11, 3),
+        )
+        .years(None, Some(2016)),
+        HolidayRule::fixed_public(
+            "Independence of Cuenca",
+            "Independencia de Cuenca",
+            Rule::Computed(ec_november_3),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+            .years(None, Some(2016)),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Navidad",
+            Rule::moved_by_weekday(&EC_DECEMBER_25, EC_WEEKEND_MOVES),
+        )
+        .years(Some(2017), None),
+    ],
+);
 
 /// Ecuador.
 ///
@@ -976,9 +1024,14 @@ static EC_RULES: &[HolidayRule] = &[
 /// that a Saturday 1 January is kept on the Friday before, across the New
 /// Year. The law is silent on 2 and 3 November landing on each other, and
 /// the pair's computed rules do what the Government's calendars of 2023,
-/// 2025 and 2026 did. The table is complete from 2017; before, the dates
-/// are carried fixed and the bridges the Government decreed are not. The
+/// 2025 and 2026 did. The table is read from 2017, and every earlier
+/// year is a gap; the bridges the Government decreed are not carried. The
 /// local holidays of cantons and provinces are not carried.
+///
+/// Read from 2017: the law of Registro Oficial 906 of 20 December 2016, from
+/// 2017; the Código del Trabajo's earlier text was not read. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static ECUADOR: RuleSet = RuleSet {
     code: "EC",
     english_name: "Ecuador",
@@ -1020,96 +1073,99 @@ const fn uy_common(name: &'static str, local: &'static str, rule: Rule) -> Holid
     HolidayRule::fixed_public(name, local, rule).of_kind(Kind::Bank)
 }
 
-static UY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    uy_common("Children's Day", "Día de los Niños", Rule::gregorian(1, 6)),
-    uy_common(
-        "Carnival Monday",
-        "Lunes de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    ),
-    uy_common(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-6)),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-5)),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-4)),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-3)),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-2)),
-    uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-1)),
-    uy_common(
-        "Landing of the Thirty-Three Orientals",
-        "Desembarco de los Treinta y Tres Orientales",
-        Rule::moved_by_weekday(&UY_APRIL_19, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(UY_ORIGINAL_16805.0), None),
-    HolidayRule::fixed_public(
-        "Workers' Day",
-        "Día de los Trabajadores",
-        Rule::gregorian(5, 1),
-    ),
-    uy_common(
-        "Battle of Las Piedras",
-        "Batalla de Las Piedras",
-        Rule::moved_by_weekday(&UY_MAY_18, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(UY_ORIGINAL_16805.0), None),
-    uy_common(
-        "Birth of Artigas",
-        "Natalicio de Artigas",
-        Rule::gregorian(6, 19),
-    )
-    .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
-    uy_common(
-        "Birth of Artigas",
-        "Natalicio de Artigas",
-        Rule::moved_by_weekday(&UY_JUNE_19, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
-    uy_common(
-        "Birth of Artigas",
-        "Natalicio de Artigas",
-        Rule::gregorian(6, 19),
-    )
-    .years(Some(UY_ORIGINAL_16805.1 + 1), None),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Jura de la Constitución",
-        Rule::gregorian(7, 18),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Declaratoria de la Independencia",
-        Rule::gregorian(8, 25),
-    ),
-    uy_common(
-        "Day of the Race",
-        "Día de la Raza",
-        Rule::moved_by_weekday(&UY_OCTOBER_12, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(UY_ORIGINAL_16805.0), None),
-    uy_common(
-        "All Souls' Day",
-        "Día de los Difuntos",
-        Rule::gregorian(11, 2),
-    )
-    .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
-    uy_common(
-        "All Souls' Day",
-        "Día de los Difuntos",
-        Rule::moved_by_weekday(&UY_NOVEMBER_2, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
-    uy_common(
-        "All Souls' Day",
-        "Día de los Difuntos",
-        Rule::gregorian(11, 2),
-    )
-    .years(Some(UY_ORIGINAL_16805.1 + 1), None),
-    HolidayRule::fixed_public("Family Day", "Día de la Familia", Rule::gregorian(12, 25)),
-];
+static UY_RULES: &[HolidayRule] = &read_all(
+    1997,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        uy_common("Children's Day", "Día de los Niños", Rule::gregorian(1, 6)),
+        uy_common(
+            "Carnival Monday",
+            "Lunes de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        uy_common(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-6)),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-5)),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-4)),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-3)),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-2)),
+        uy_common("Tourism Week", "Semana de Turismo", Rule::easter(-1)),
+        uy_common(
+            "Landing of the Thirty-Three Orientals",
+            "Desembarco de los Treinta y Tres Orientales",
+            Rule::moved_by_weekday(&UY_APRIL_19, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(UY_ORIGINAL_16805.0), None),
+        HolidayRule::fixed_public(
+            "Workers' Day",
+            "Día de los Trabajadores",
+            Rule::gregorian(5, 1),
+        ),
+        uy_common(
+            "Battle of Las Piedras",
+            "Batalla de Las Piedras",
+            Rule::moved_by_weekday(&UY_MAY_18, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(UY_ORIGINAL_16805.0), None),
+        uy_common(
+            "Birth of Artigas",
+            "Natalicio de Artigas",
+            Rule::gregorian(6, 19),
+        )
+        .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
+        uy_common(
+            "Birth of Artigas",
+            "Natalicio de Artigas",
+            Rule::moved_by_weekday(&UY_JUNE_19, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
+        uy_common(
+            "Birth of Artigas",
+            "Natalicio de Artigas",
+            Rule::gregorian(6, 19),
+        )
+        .years(Some(UY_ORIGINAL_16805.1 + 1), None),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Jura de la Constitución",
+            Rule::gregorian(7, 18),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Declaratoria de la Independencia",
+            Rule::gregorian(8, 25),
+        ),
+        uy_common(
+            "Day of the Race",
+            "Día de la Raza",
+            Rule::moved_by_weekday(&UY_OCTOBER_12, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(UY_ORIGINAL_16805.0), None),
+        uy_common(
+            "All Souls' Day",
+            "Día de los Difuntos",
+            Rule::gregorian(11, 2),
+        )
+        .years(None, Some(UY_ORIGINAL_16805.0 - 1)),
+        uy_common(
+            "All Souls' Day",
+            "Día de los Difuntos",
+            Rule::moved_by_weekday(&UY_NOVEMBER_2, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(UY_ORIGINAL_16805.0), Some(UY_ORIGINAL_16805.1)),
+        uy_common(
+            "All Souls' Day",
+            "Día de los Difuntos",
+            Rule::gregorian(11, 2),
+        )
+        .years(Some(UY_ORIGINAL_16805.1 + 1), None),
+        HolidayRule::fixed_public("Family Day", "Día de la Familia", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Uruguay.
 ///
@@ -1126,9 +1182,14 @@ static UY_RULES: &[HolidayRule] = &[
 /// and Tourism Week, so that 19 June and 2 November moved too until Ley
 /// 17.414 added them to the exceptions in November 2001. 19 June has been
 /// a holiday since Ley 9.935 of 1940, which is not what 17.414's
-/// "restablecerse" restores: it restores the day's own date. Before 1997
-/// no move is carried; the sector holidays and the one-off days are not
+/// "restablecerse" restores: it restores the day's own date. Every year
+/// before 1997 is a gap; the sector holidays and the one-off days are not
 /// carried either.
+///
+/// Read from 1997: Ley 16.805 of 24 December 1996, from its first whole year;
+/// the years before were not read. Every earlier year is a gap (ADR 0013);
+/// the reasons for every table's first year are in docs/systems/holiday-
+/// first-years.md.
 pub static URUGUAY: RuleSet = RuleSet {
     code: "UY",
     english_name: "Uruguay",
@@ -1198,65 +1259,68 @@ fn cr_army_abolition_day(year: i64) -> Days {
     )
 }
 
-static CR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Juan Santamaría Day",
-        "Día de Juan Santamaría",
-        Rule::Computed(cr_juan_santamaria),
-    ),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día Internacional del Trabajo",
-        Rule::Computed(cr_labour_day),
-    ),
-    HolidayRule::fixed_public(
-        "Annexation of the Party of Nicoya",
-        "Anexión del Partido de Nicoya a Costa Rica",
-        Rule::Computed(cr_nicoya),
-    ),
-    // Unpaid: article 148 makes the day off obligatory and its pay not.
-    HolidayRule::fixed_public(
-        "Feast of Our Lady of the Angels",
-        "Día de la Virgen de los Ángeles",
-        Rule::gregorian(8, 2),
-    ),
-    HolidayRule::fixed_public(
-        "Mother's Day",
-        "Día de la Madre",
-        Rule::Computed(cr_mothers_day),
-    ),
-    HolidayRule::fixed_public(
-        "Day of the Black Person and Afro-Costa Rican Culture",
-        "Día de la Persona Negra y la Cultura Afrocostarricense",
-        Rule::gregorian(8, 31),
-    )
-    .years(Some(2022), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::Computed(cr_independence_day),
-    ),
-    HolidayRule::fixed_public(
-        "Day of the Cultures",
-        "Día de las Culturas",
-        Rule::gregorian(10, 12),
-    )
-    .years(None, Some(2019)),
-    HolidayRule::fixed_public(
-        "Army Abolition Day",
-        "Día de la Abolición del Ejército",
-        Rule::Computed(cr_army_abolition_day),
-    )
-    .years(Some(2020), None),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static CR_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Juan Santamaría Day",
+            "Día de Juan Santamaría",
+            Rule::Computed(cr_juan_santamaria),
+        ),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día Internacional del Trabajo",
+            Rule::Computed(cr_labour_day),
+        ),
+        HolidayRule::fixed_public(
+            "Annexation of the Party of Nicoya",
+            "Anexión del Partido de Nicoya a Costa Rica",
+            Rule::Computed(cr_nicoya),
+        ),
+        // Unpaid: article 148 makes the day off obligatory and its pay not.
+        HolidayRule::fixed_public(
+            "Feast of Our Lady of the Angels",
+            "Día de la Virgen de los Ángeles",
+            Rule::gregorian(8, 2),
+        ),
+        HolidayRule::fixed_public(
+            "Mother's Day",
+            "Día de la Madre",
+            Rule::Computed(cr_mothers_day),
+        ),
+        HolidayRule::fixed_public(
+            "Day of the Black Person and Afro-Costa Rican Culture",
+            "Día de la Persona Negra y la Cultura Afrocostarricense",
+            Rule::gregorian(8, 31),
+        )
+        .years(Some(2022), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::Computed(cr_independence_day),
+        ),
+        HolidayRule::fixed_public(
+            "Day of the Cultures",
+            "Día de las Culturas",
+            Rule::gregorian(10, 12),
+        )
+        .years(None, Some(2019)),
+        HolidayRule::fixed_public(
+            "Army Abolition Day",
+            "Día de la Abolición del Ejército",
+            Rule::Computed(cr_army_abolition_day),
+        )
+        .years(Some(2020), None),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Costa Rica.
 ///
@@ -1270,6 +1334,11 @@ static CR_RULES: &[HolidayRule] = &[
 /// date in every other: Mother's Day stayed on Thursday 15 August 2024 by
 /// Ley 10396, and nothing moves from 2025. A holiday on a weekend stays
 /// there.
+///
+/// Read from 2020: article 148 of the Código de Trabajo as reformed by Ley
+/// 9803 (2020); the text before the reform was not read. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static COSTA_RICA: RuleSet = RuleSet {
     code: "CR",
     english_name: "Costa Rica",
@@ -1319,79 +1388,82 @@ fn do_restoration_day(year: i64) -> Days {
     }
 }
 
-static DO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Día de los Santos Reyes", Rule::gregorian(1, 6))
-        .years(None, Some(1997)),
-    HolidayRule::fixed_public(
-        "Epiphany",
-        "Día de los Santos Reyes",
-        Rule::moved_by_weekday(&DO_JANUARY_6, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(1998), None),
-    HolidayRule::fixed_public(
-        "Our Lady of Altagracia",
-        "Día de Nuestra Señora de la Altagracia",
-        Rule::gregorian(1, 21),
-    ),
-    HolidayRule::fixed_public("Duarte Day", "Día de Duarte", Rule::gregorian(1, 26))
-        .years(None, Some(1997)),
-    HolidayRule::fixed_public(
-        "Duarte Day",
-        "Día de Duarte",
-        Rule::moved_by_weekday(&DO_JANUARY_26, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(1998), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        Rule::gregorian(2, 27),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
-        .years(None, Some(1997)),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día del Trabajo",
-        Rule::moved_by_weekday(&DO_MAY_1, DO_LABOUR_MOVES),
-    )
-    .years(Some(1998), None),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public(
-        "Restoration Day",
-        "Día de la Restauración",
-        Rule::gregorian(8, 16),
-    )
-    .years(None, Some(1996)),
-    HolidayRule::fixed_public(
-        "Restoration Day",
-        "Día de la Restauración",
-        Rule::Computed(do_restoration_day),
-    )
-    .years(Some(1997), None),
-    HolidayRule::fixed_public(
-        "Our Lady of Mercy",
-        "Día de Nuestra Señora de las Mercedes",
-        Rule::gregorian(9, 24),
-    ),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Día de la Constitución",
-        Rule::gregorian(11, 6),
-    )
-    .years(None, Some(1996)),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Día de la Constitución",
-        Rule::moved_by_weekday(&DO_NOVEMBER_6, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(1997), None),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static DO_RULES: &[HolidayRule] = &read_all(
+    1998,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Epiphany", "Día de los Santos Reyes", Rule::gregorian(1, 6))
+            .years(None, Some(1997)),
+        HolidayRule::fixed_public(
+            "Epiphany",
+            "Día de los Santos Reyes",
+            Rule::moved_by_weekday(&DO_JANUARY_6, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(1998), None),
+        HolidayRule::fixed_public(
+            "Our Lady of Altagracia",
+            "Día de Nuestra Señora de la Altagracia",
+            Rule::gregorian(1, 21),
+        ),
+        HolidayRule::fixed_public("Duarte Day", "Día de Duarte", Rule::gregorian(1, 26))
+            .years(None, Some(1997)),
+        HolidayRule::fixed_public(
+            "Duarte Day",
+            "Día de Duarte",
+            Rule::moved_by_weekday(&DO_JANUARY_26, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(1998), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            Rule::gregorian(2, 27),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+            .years(None, Some(1997)),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día del Trabajo",
+            Rule::moved_by_weekday(&DO_MAY_1, DO_LABOUR_MOVES),
+        )
+        .years(Some(1998), None),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public(
+            "Restoration Day",
+            "Día de la Restauración",
+            Rule::gregorian(8, 16),
+        )
+        .years(None, Some(1996)),
+        HolidayRule::fixed_public(
+            "Restoration Day",
+            "Día de la Restauración",
+            Rule::Computed(do_restoration_day),
+        )
+        .years(Some(1997), None),
+        HolidayRule::fixed_public(
+            "Our Lady of Mercy",
+            "Día de Nuestra Señora de las Mercedes",
+            Rule::gregorian(9, 24),
+        ),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Día de la Constitución",
+            Rule::gregorian(11, 6),
+        )
+        .years(None, Some(1996)),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Día de la Constitución",
+            Rule::moved_by_weekday(&DO_NOVEMBER_6, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(1997), None),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Dominican Republic.
 ///
@@ -1403,9 +1475,15 @@ static DO_RULES: &[HolidayRule] = &[
 /// in a year that opens a constitutional period, which every fourth year
 /// does — 2024's Friday 16 August stayed, as the Ministry's list said. A
 /// Sunday 1 May gives the Monday under article 4. The moved rules start
-/// with the law, 16 August and 6 November in 1997 and the rest in 1998,
-/// their dates fixed before. Holy Thursday, which article 3 names among
+/// with the law, 16 August and 6 November in 1997 and the rest in 1998;
+/// the table is read from 1998, the first whole year, and 1997 and the
+/// years before are gaps. Holy Thursday, which article 3 names among
 /// the weekday feasts, is not on the Ministry's lists and is not carried.
+///
+/// Read from 1998: Ley 139-97, in force from 27 June 1997, from its first
+/// whole year; the earlier law was not read. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static DOMINICAN_REPUBLIC: RuleSet = RuleSet {
     code: "DO",
     english_name: "Dominican Republic",
@@ -1443,77 +1521,80 @@ static GT_MAY_1: Rule = Rule::gregorian(5, 1);
 static GT_JUNE_30: Rule = Rule::gregorian(6, 30);
 static GT_OCTOBER_20: Rule = Rule::gregorian(10, 20);
 
-static GT_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
-    // Labour Day and Revolution Day were moved under the 2018 reform until
-    // the Constitutional Court struck them from it in 2020.
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
-        .years(None, Some(2018)),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día del Trabajo",
-        Rule::moved_by_weekday(&GT_MAY_1, GT_TO_MONDAY),
-    )
-    .years(Some(2019), Some(2019)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+static GT_RULES: &[HolidayRule] = &read_all(
+    2018,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+        // Labour Day and Revolution Day were moved under the 2018 reform until
+        // the Constitutional Court struck them from it in 2020.
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+            .years(None, Some(2018)),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día del Trabajo",
+            Rule::moved_by_weekday(&GT_MAY_1, GT_TO_MONDAY),
+        )
+        .years(Some(2019), Some(2019)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1))
+            .years(Some(2020), None),
+        HolidayRule::fixed_public("Army Day", "Día del Ejército", Rule::gregorian(6, 30))
+            .years(None, Some(2018)),
+        HolidayRule::fixed_public(
+            "Army Day",
+            "Día del Ejército",
+            Rule::moved_by_weekday(&GT_JUNE_30, GT_TO_MONDAY),
+        )
+        .years(Some(2019), None),
+        // The festivity of the locality: Guatemala City's is the Assumption.
+        HolidayRule::fixed_public(
+            "Assumption Day",
+            "Día de la Asunción",
+            Rule::gregorian(8, 15),
+        )
+        .in_regions(&["GT-01"]),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(9, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::gregorian(10, 20),
+        )
+        .years(None, Some(2017)),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::moved_by_weekday(&GT_OCTOBER_20, GT_TO_MONDAY),
+        )
+        .years(Some(2018), Some(2019)),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::gregorian(10, 20),
+        )
         .years(Some(2020), None),
-    HolidayRule::fixed_public("Army Day", "Día del Ejército", Rule::gregorian(6, 30))
-        .years(None, Some(2018)),
-    HolidayRule::fixed_public(
-        "Army Day",
-        "Día del Ejército",
-        Rule::moved_by_weekday(&GT_JUNE_30, GT_TO_MONDAY),
-    )
-    .years(Some(2019), None),
-    // The festivity of the locality: Guatemala City's is the Assumption.
-    HolidayRule::fixed_public(
-        "Assumption Day",
-        "Día de la Asunción",
-        Rule::gregorian(8, 15),
-    )
-    .in_regions(&["GT-01"]),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(9, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::gregorian(10, 20),
-    )
-    .years(None, Some(2017)),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::moved_by_weekday(&GT_OCTOBER_20, GT_TO_MONDAY),
-    )
-    .years(Some(2018), Some(2019)),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::gregorian(10, 20),
-    )
-    .years(Some(2020), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Día de Todos los Santos",
-        Rule::gregorian(11, 1),
-    ),
-    // From noon.
-    HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31))
-        .of_kind(Kind::Bank),
-];
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Día de Todos los Santos",
+            Rule::gregorian(11, 1),
+        ),
+        // From noon.
+        HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank),
+    ],
+);
 
 /// Guatemala.
 ///
@@ -1528,8 +1609,14 @@ static GT_RULES: &[HolidayRule] = &[
 /// the same to Revolution Day in 2018 and 2019 and Labour Day in 2019
 /// until the Constitutional Court's ruling of 17 March 2020 struck those
 /// two from it; the festivity of the locality it excludes. The 2010 law's
-/// own moves before the 2018 reform are not carried, and the dates before
-/// 2018 are fixed. Nothing else moves.
+/// own moves before the 2018 reform are not carried, and the years before
+/// 2018 are a gap. Nothing else moves.
+///
+/// Read from 2018: Decreto 19-2018, in force from 18 October 2018, and the
+/// Constitutional Court's ruling of 2020; article 127 of the Código de
+/// Trabajo was not read, so the years before are a gap. Every earlier year is
+/// a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static GUATEMALA: RuleSet = RuleSet {
     code: "GT",
     english_name: "Guatemala",
@@ -1570,63 +1657,66 @@ static PA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 static PA_JANUARY_9: Rule = Rule::gregorian(1, 9);
 static PA_NOVEMBER_28: Rule = Rule::gregorian(11, 28);
 
-static PA_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    // Ley 70 of 2007: Martyrs' Day and Independence Day to the adjacent
-    // Monday from a Tuesday to a Friday.
-    HolidayRule::public("Martyrs' Day", "Día de los Mártires", Rule::gregorian(1, 9))
+static PA_RULES: &[HolidayRule] = &read_all(
+    2008,
+    [
+        HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        // Ley 70 of 2007: Martyrs' Day and Independence Day to the adjacent
+        // Monday from a Tuesday to a Friday.
+        HolidayRule::public("Martyrs' Day", "Día de los Mártires", Rule::gregorian(1, 9))
+            .years(None, Some(2007)),
+        HolidayRule::public(
+            "Martyrs' Day",
+            "Día de los Mártires",
+            Rule::moved_by_weekday(&PA_JANUARY_9, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(2008), None),
+        HolidayRule::public(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Separation Day",
+            "Separación de Panamá de Colombia",
+            Rule::gregorian(11, 3),
+        ),
+        // A day off for public offices and schools, not a fiesta nacional.
+        HolidayRule::observance(
+            "Flag Day",
+            "Día de los Símbolos Patrios",
+            Rule::gregorian(11, 4),
+        ),
+        HolidayRule::public("Colón Day", "Día de Colón", Rule::gregorian(11, 5)),
+        HolidayRule::public(
+            "First Cry of Independence",
+            "Primer Grito de Independencia de la Villa de Los Santos",
+            Rule::gregorian(11, 10),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Independencia de Panamá de España",
+            Rule::gregorian(11, 28),
+        )
         .years(None, Some(2007)),
-    HolidayRule::public(
-        "Martyrs' Day",
-        "Día de los Mártires",
-        Rule::moved_by_weekday(&PA_JANUARY_9, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(2008), None),
-    HolidayRule::public(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Separation Day",
-        "Separación de Panamá de Colombia",
-        Rule::gregorian(11, 3),
-    ),
-    // A day off for public offices and schools, not a fiesta nacional.
-    HolidayRule::observance(
-        "Flag Day",
-        "Día de los Símbolos Patrios",
-        Rule::gregorian(11, 4),
-    ),
-    HolidayRule::public("Colón Day", "Día de Colón", Rule::gregorian(11, 5)),
-    HolidayRule::public(
-        "First Cry of Independence",
-        "Primer Grito de Independencia de la Villa de Los Santos",
-        Rule::gregorian(11, 10),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Independencia de Panamá de España",
-        Rule::gregorian(11, 28),
-    )
-    .years(None, Some(2007)),
-    HolidayRule::public(
-        "Independence Day",
-        "Independencia de Panamá de España",
-        Rule::moved_by_weekday(&PA_NOVEMBER_28, TO_ADJACENT_MONDAY),
-    )
-    .years(Some(2008), None),
-    HolidayRule::public("Mother's Day", "Día de la Madre", Rule::gregorian(12, 8)),
-    HolidayRule::public(
-        "National Mourning Day",
-        "Día de Duelo Nacional",
-        Rule::gregorian(12, 20),
-    )
-    .years(Some(2022), None),
-    HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+        HolidayRule::public(
+            "Independence Day",
+            "Independencia de Panamá de España",
+            Rule::moved_by_weekday(&PA_NOVEMBER_28, TO_ADJACENT_MONDAY),
+        )
+        .years(Some(2008), None),
+        HolidayRule::public("Mother's Day", "Día de la Madre", Rule::gregorian(12, 8)),
+        HolidayRule::public(
+            "National Mourning Day",
+            "Día de Duelo Nacional",
+            Rule::gregorian(12, 20),
+        )
+        .years(Some(2022), None),
+        HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Panama.
 ///
@@ -1639,6 +1729,11 @@ static PA_RULES: &[HolidayRule] = &[
 /// public offices and schools and not a holiday of the article, and is an
 /// observance; the Carnival Monday and the bridges the Government decrees
 /// are not carried.
+///
+/// Read from 2008: the Código de Trabajo, articles 46 and 47, as amended by
+/// Ley 70 of 28 December 2007, from 2008. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static PANAMA: RuleSet = RuleSet {
     code: "PA",
     english_name: "Panama",
@@ -1674,27 +1769,30 @@ static JM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static JM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 23))
-        .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
-        .years(Some(1961), None),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)).years(Some(1997), None),
-    HolidayRule::fixed_public("Independence Day", "", Rule::nth(8, 1, Weekday::Monday))
-        .years(Some(1962), Some(1996)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(8, 6)).years(Some(1997), None),
-    HolidayRule::fixed_public(
-        "National Heroes' Day",
-        "",
-        Rule::nth(10, 3, Weekday::Monday),
-    )
-    .years(Some(1969), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)).substituted_from(2021),
-];
+static JM_RULES: &[HolidayRule] = &read_all(
+    1961,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Ash Wednesday", "", Rule::easter(ASH_WEDNESDAY)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 23))
+            .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
+            .years(Some(1961), None),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)).years(Some(1997), None),
+        HolidayRule::fixed_public("Independence Day", "", Rule::nth(8, 1, Weekday::Monday))
+            .years(Some(1962), Some(1996)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(8, 6)).years(Some(1997), None),
+        HolidayRule::fixed_public(
+            "National Heroes' Day",
+            "",
+            Rule::nth(10, 3, Weekday::Monday),
+        )
+        .years(Some(1969), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)).substituted_from(2021),
+    ],
+);
 
 /// Jamaica.
 ///
@@ -1720,6 +1818,11 @@ static JM_RULES: &[HolidayRule] = &[
 /// restored in 1997, when Independence Day returned from the first Monday
 /// of August, where it had sat since 1962, to 6 August. The special days
 /// the Minister appoints under section 7 are not carried.
+///
+/// Read from 1961: the Schedule of the Holidays (Public General) Act, whose
+/// earliest dated entry is Labour Day of 1961, which replaced Empire Day.
+/// Every earlier year is a gap (ADR 0013); the reasons for every table's
+/// first year are in docs/systems/holiday-first-years.md.
 pub static JAMAICA: RuleSet = RuleSet {
     code: "JM",
     english_name: "Jamaica",
@@ -1759,37 +1862,41 @@ static TT_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static TT_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::observance("Carnival Monday", "", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::observance("Carnival Tuesday", "", Rule::easter(SHROVE_TUESDAY)),
-    HolidayRule::public(
-        "Spiritual Baptist Liberation Shouter Day",
-        "",
-        Rule::gregorian(3, 30),
-    )
-    .years(Some(1996), None),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Indian Arrival Day", "", Rule::gregorian(5, 30)).years(Some(1995), None),
-    HolidayRule::public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(6, 19)),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
-        .years(Some(1985), Some(2023)),
-    HolidayRule::public("African Emancipation Day", "", Rule::gregorian(8, 1))
-        .years(Some(2024), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(8, 31)).years(Some(1962), None),
-    HolidayRule::public("Republic Day", "", Rule::gregorian(9, 24)),
-    HolidayRule::public(
-        "Eid-ul-Fitr",
-        "",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::public("Divali", "", NARAKA_CHATURDASHI).approximate(),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static TT_RULES: &[HolidayRule] = &read_all(
+    1996,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::observance("Carnival Monday", "", Rule::easter(SHROVE_MONDAY)),
+        HolidayRule::observance("Carnival Tuesday", "", Rule::easter(SHROVE_TUESDAY)),
+        HolidayRule::public(
+            "Spiritual Baptist Liberation Shouter Day",
+            "",
+            Rule::gregorian(3, 30),
+        )
+        .years(Some(1996), None),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Indian Arrival Day", "", Rule::gregorian(5, 30))
+            .years(Some(1995), None),
+        HolidayRule::public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(6, 19)),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
+            .years(Some(1985), Some(2023)),
+        HolidayRule::public("African Emancipation Day", "", Rule::gregorian(8, 1))
+            .years(Some(2024), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(8, 31)).years(Some(1962), None),
+        HolidayRule::public("Republic Day", "", Rule::gregorian(9, 24)),
+        HolidayRule::public(
+            "Eid-ul-Fitr",
+            "",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        HolidayRule::public("Divali", "", NARAKA_CHATURDASHI).approximate(),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Trinidad and Tobago.
 ///
@@ -1815,6 +1922,13 @@ static TT_RULES: &[HolidayRule] = &[
 /// order of its words, in 1996. Labour Day and Republic Day carry no
 /// first year, and Whit Monday and Discovery Day, which the newer days
 /// replaced, are not carried.
+///
+/// Read from 1996: the Public Holidays and Festivals Act (Chap. 19:05,
+/// updated to 31 December 2016), from the year of the latest dated entry of
+/// its Schedule, Spiritual Baptist Liberation Shouter Day of 1996; Labour Day
+/// and Republic Day carry no first year. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static TRINIDAD_AND_TOBAGO: RuleSet = RuleSet {
     code: "TT",
     english_name: "Trinidad and Tobago",
@@ -1857,21 +1971,25 @@ static BB_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static BB_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Errol Barrow Day", "", Rule::gregorian(1, 21)).years(Some(1989), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("National Heroes Day", "", Rule::gregorian(4, 28)).years(Some(1998), None),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
-        .substitute_on(&[Weekday::Sunday, Weekday::Monday]),
-    HolidayRule::fixed_public("Kadooment Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(11, 30)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static BB_RULES: &[HolidayRule] = &read_all(
+    1998,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Errol Barrow Day", "", Rule::gregorian(1, 21)).years(Some(1989), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("National Heroes Day", "", Rule::gregorian(4, 28))
+            .years(Some(1998), None),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1))
+            .substitute_on(&[Weekday::Sunday, Weekday::Monday]),
+        HolidayRule::fixed_public("Kadooment Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(11, 30)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Barbados.
 ///
@@ -1888,6 +2006,11 @@ static BB_RULES: &[HolidayRule] = &[
 /// in 1998; the Act's notes cite amendments of 1974, 1978, 1983, 1997 and
 /// 1998 without saying which entry each made, so Emancipation Day and
 /// Kadooment Day carry no first year.
+///
+/// Read from 1998: the Public Holidays Act, Cap. 352 (L.R.O. 1998); the Act's
+/// notes cite amendments of 1974 to 1998 without saying which entry each
+/// made. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static BARBADOS: RuleSet = RuleSet {
     code: "BB",
     english_name: "Barbados",
@@ -1923,28 +2046,32 @@ static BS_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static BS_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Majority Rule Day", "", Rule::gregorian(1, 10)).years(Some(2014), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "", Rule::nth(6, 1, Weekday::Friday))
-        .years(None, Some(2013)),
-    HolidayRule::fixed_public(
-        "Randol Fawkes Labour Day",
-        "",
-        Rule::nth(6, 1, Weekday::Friday),
-    )
-    .years(Some(2014), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 10)).years(Some(1973), None),
-    HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("Discovery Day", "", Rule::gregorian(10, 12)).years(None, Some(2012)),
-    HolidayRule::fixed_public("National Heroes Day", "", Rule::nth(10, 2, Weekday::Monday))
-        .years(Some(2013), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static BS_RULES: &[HolidayRule] = &read_all(
+    1973,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Majority Rule Day", "", Rule::gregorian(1, 10))
+            .years(Some(2014), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "", Rule::nth(6, 1, Weekday::Friday))
+            .years(None, Some(2013)),
+        HolidayRule::fixed_public(
+            "Randol Fawkes Labour Day",
+            "",
+            Rule::nth(6, 1, Weekday::Friday),
+        )
+        .years(Some(2014), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 10)).years(Some(1973), None),
+        HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("Discovery Day", "", Rule::gregorian(10, 12)).years(None, Some(2012)),
+        HolidayRule::fixed_public("National Heroes Day", "", Rule::nth(10, 2, Weekday::Monday))
+            .years(Some(2013), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// The Bahamas.
 ///
@@ -1963,6 +2090,11 @@ static BS_RULES: &[HolidayRule] = &[
 /// Wednesday 10 January as "the day celebrated as Majority Rule Day in
 /// 2024", so none is carried, whatever some lists say of Fridays. The
 /// special days of section 4 are not carried.
+///
+/// Read from 1973: the Public Holidays Act (Ch. 36, L.R.O. 1/2017), whose
+/// Schedule dates no entry before Independence Day of 1973; the other days
+/// are undated. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static BAHAMAS: RuleSet = RuleSet {
     code: "BS",
     english_name: "Bahamas",
@@ -2011,44 +2143,47 @@ static CU_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static CU_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Triumph of the Revolution",
-        "Aniversario de la Revolución",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Victory Day", "Día de la Victoria", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY))
-        .years(Some(2012), None),
-    HolidayRule::public(
-        "International Workers' Day",
-        "Día Internacional de los Trabajadores",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Day before National Rebellion Day",
-        "Víspera del Día de la Rebeldía Nacional",
-        Rule::gregorian(7, 25),
-    ),
-    HolidayRule::fixed_public(
-        "National Rebellion Day",
-        "Día de la Rebeldía Nacional",
-        Rule::gregorian(7, 26),
-    ),
-    HolidayRule::fixed_public(
-        "Day after National Rebellion Day",
-        "Día siguiente al Día de la Rebeldía Nacional",
-        Rule::gregorian(7, 27),
-    ),
-    HolidayRule::public(
-        "Beginning of the Wars of Independence",
-        "Inicio de las Guerras de Independencia",
-        Rule::gregorian(10, 10),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
-        .years(Some(1998), None),
-    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
-];
+static CU_RULES: &[HolidayRule] = &read_all(
+    2015,
+    [
+        HolidayRule::fixed_public(
+            "Triumph of the Revolution",
+            "Aniversario de la Revolución",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Victory Day", "Día de la Victoria", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY))
+            .years(Some(2012), None),
+        HolidayRule::public(
+            "International Workers' Day",
+            "Día Internacional de los Trabajadores",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Day before National Rebellion Day",
+            "Víspera del Día de la Rebeldía Nacional",
+            Rule::gregorian(7, 25),
+        ),
+        HolidayRule::fixed_public(
+            "National Rebellion Day",
+            "Día de la Rebeldía Nacional",
+            Rule::gregorian(7, 26),
+        ),
+        HolidayRule::fixed_public(
+            "Day after National Rebellion Day",
+            "Día siguiente al Día de la Rebeldía Nacional",
+            Rule::gregorian(7, 27),
+        ),
+        HolidayRule::public(
+            "Beginning of the Wars of Independence",
+            "Inicio de las Guerras de Independencia",
+            Rule::gregorian(10, 10),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25))
+            .years(Some(1998), None),
+        HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Cuba.
 ///
@@ -2058,7 +2193,7 @@ static CU_RULES: &[HolidayRule] = &[
 /// and its five holidays, 2 January, 25 and 27 July, 25 and 31 December;
 /// article 100's Good Friday as a day of rest with pay, which the
 /// Government had already granted in 2012 at Pope Benedict XVI's request
-/// and in 2013, so it runs from 2012; and article 97, by which a Sunday
+/// and in 2013, which the table does not carry, being read from 2015; and article 97, by which a Sunday
 /// 1 May or 10 October moves the Sunday rest to the Monday while a Sunday
 /// 1 January or 26 July does not, "being preceded and followed by
 /// holidays" — only those two rules substitute. Christmas was a working
@@ -2067,6 +2202,12 @@ static CU_RULES: &[HolidayRule] = &[
 /// here. Article 98's fifteen official commemorations are working days
 /// and are not carried; nor are the days the Government declares under
 /// article 100.
+///
+/// Read from 2015: Law 116 of 2013, in force from 17 June 2014, from its
+/// first whole year; the Government's grant of Good Friday in 2012 and 2013
+/// is not carried, and 2014 is a gap. Every earlier year is a gap (ADR 0013);
+/// the reasons for every table's first year are in docs/systems/holiday-
+/// first-years.md.
 pub static CUBA: RuleSet = RuleSet {
     code: "CU",
     english_name: "Cuba",
@@ -2126,51 +2267,54 @@ static BZ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static BZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("George Price Day", "", Rule::gregorian(1, 15)).years(Some(2021), None),
-    HolidayRule::fixed_public(
-        "National Heroes and Benefactors Day",
-        "",
-        Rule::moved_by_weekday(&BZ_MARCH_9, BZ_TO_MONDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public(
-        "Labour Day",
-        "",
-        Rule::moved_by_weekday(&BZ_MAY_1, BZ_TUESDAY_WEDNESDAY_BACK),
-    ),
-    HolidayRule::public("Commonwealth Day", "", Rule::gregorian(5, 24)).years(None, Some(2021)),
-    HolidayRule::public(
-        "Emancipation Day",
-        "",
-        Rule::moved_by_weekday(&BZ_AUGUST_1, BZ_TUESDAY_BACK),
-    )
-    .years(Some(2021), None),
-    HolidayRule::public(
-        "St. George's Caye Day",
-        "",
-        Rule::moved_by_weekday(&BZ_SEPTEMBER_10, BZ_TUESDAY_BACK),
-    ),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(9, 21)).years(Some(1981), None),
-    HolidayRule::fixed_public(
-        "Pan American Day",
-        "",
-        Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
-    )
-    .years(None, Some(2021)),
-    HolidayRule::fixed_public(
-        "Indigenous Peoples' Resistance Day",
-        "",
-        Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
-    )
-    .years(Some(2022), None),
-    HolidayRule::public("Garifuna Settlement Day", "", Rule::gregorian(11, 19)),
-    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static BZ_RULES: &[HolidayRule] = &read_all(
+    2020,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("George Price Day", "", Rule::gregorian(1, 15)).years(Some(2021), None),
+        HolidayRule::fixed_public(
+            "National Heroes and Benefactors Day",
+            "",
+            Rule::moved_by_weekday(&BZ_MARCH_9, BZ_TO_MONDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public(
+            "Labour Day",
+            "",
+            Rule::moved_by_weekday(&BZ_MAY_1, BZ_TUESDAY_WEDNESDAY_BACK),
+        ),
+        HolidayRule::public("Commonwealth Day", "", Rule::gregorian(5, 24)).years(None, Some(2021)),
+        HolidayRule::public(
+            "Emancipation Day",
+            "",
+            Rule::moved_by_weekday(&BZ_AUGUST_1, BZ_TUESDAY_BACK),
+        )
+        .years(Some(2021), None),
+        HolidayRule::public(
+            "St. George's Caye Day",
+            "",
+            Rule::moved_by_weekday(&BZ_SEPTEMBER_10, BZ_TUESDAY_BACK),
+        ),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(9, 21)).years(Some(1981), None),
+        HolidayRule::fixed_public(
+            "Pan American Day",
+            "",
+            Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
+        )
+        .years(None, Some(2021)),
+        HolidayRule::fixed_public(
+            "Indigenous Peoples' Resistance Day",
+            "",
+            Rule::moved_by_weekday(&BZ_OCTOBER_12, BZ_TO_MONDAY),
+        )
+        .years(Some(2022), None),
+        HolidayRule::public("Garifuna Settlement Day", "", Rule::gregorian(11, 19)),
+        HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Belize.
 ///
@@ -2190,6 +2334,11 @@ static BZ_RULES: &[HolidayRule] = &[
 /// and Christmas does not move. George Price Day and Emancipation Day
 /// began in 2021, when Commonwealth Day ended; Pan American Day became
 /// Indigenous Peoples' Resistance Day in 2022.
+///
+/// Read from 2020: the Government's notices of 2020 to 2026; the Holidays
+/// Act, Chapter 289, could not be read. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static BELIZE: RuleSet = RuleSet {
     code: "BZ",
     english_name: "Belize",
@@ -2224,33 +2373,36 @@ static GY_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static GY_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Republic Day", "", Rule::gregorian(2, 23)).years(Some(1970), None),
-    HolidayRule::public("Phagwah", "", HOLI).approximate(),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Arrival Day", "", Rule::gregorian(5, 5)).years(Some(2004), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(5, 26)).years(Some(1966), None),
-    HolidayRule::fixed_public("CARICOM Day", "", Rule::nth(7, 1, Weekday::Monday)),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
-    HolidayRule::public(
-        "Youman Nabi",
-        "",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 12),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Eid-ul-Azha",
-        "",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-    HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static GY_RULES: &[HolidayRule] = &read_all(
+    2012,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Republic Day", "", Rule::gregorian(2, 23)).years(Some(1970), None),
+        HolidayRule::public("Phagwah", "", HOLI).approximate(),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Arrival Day", "", Rule::gregorian(5, 5)).years(Some(2004), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(5, 26)).years(Some(1966), None),
+        HolidayRule::fixed_public("CARICOM Day", "", Rule::nth(7, 1, Weekday::Monday)),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
+        HolidayRule::public(
+            "Youman Nabi",
+            "",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 12),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Eid-ul-Azha",
+            "",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+        HolidayRule::public("Deepavali", "", NARAKA_CHATURDASHI).approximate(),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Guyana.
 ///
@@ -2271,6 +2423,11 @@ static GY_RULES: &[HolidayRule] = &[
 /// Holi and Naraka Caturdaśī rules as approximations: the Ministry of
 /// Public Security's lists put Deepavali on 18 October 2017 and
 /// 6 November 2018, each the day before Lakṣmī Pūjā.
+///
+/// Read from 2012: the Public Holidays Act, Chapter 19:07, L.R.O. 1/2012; the
+/// yearly lists were read for 2017, 2018 and 2024 to 2026. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static GUYANA: RuleSet = RuleSet {
     code: "GY",
     english_name: "Guyana",
@@ -2300,71 +2457,74 @@ const fn ht_lundi_gras() -> HolidayRule {
         .of_kind(Kind::Bank)
 }
 
-static HT_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Ancestors' Day", "Jour des Aïeux", Rule::gregorian(1, 2)),
-    ht_lundi_gras().years(None, Some(1988)),
-    ht_lundi_gras().years(Some(2025), None),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "Mardi Gras",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Vendredi Saint", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Labour and Agriculture Day",
-        "Fête du Travail et de l'Agriculture",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Flag and University Day",
-        "Fête du Drapeau et de l'Université",
-        Rule::gregorian(5, 18),
-    ),
-    HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI))
+static HT_RULES: &[HolidayRule] = &read_all(
+    1985,
+    [
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Ancestors' Day", "Jour des Aïeux", Rule::gregorian(1, 2)),
+        ht_lundi_gras().years(None, Some(1988)),
+        ht_lundi_gras().years(Some(2025), None),
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "Mardi Gras",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Vendredi Saint", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Labour and Agriculture Day",
+            "Fête du Travail et de l'Agriculture",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Flag and University Day",
+            "Fête du Drapeau et de l'Université",
+            Rule::gregorian(5, 18),
+        ),
+        HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI))
+            .years(Some(1989), None),
+        HolidayRule::fixed_public(
+            "Bois-Caïman Day",
+            "Jour du Bois-Caïman",
+            Rule::gregorian(8, 14),
+        )
+        .years(Some(2025), None),
+        HolidayRule::fixed_public("Assumption", "Fête de l'Assomption", Rule::gregorian(8, 15))
+            .years(Some(1989), None),
+        HolidayRule::fixed_public(
+            "Dessalines Day",
+            "Jour de Dessalines",
+            Rule::gregorian(9, 20),
+        )
+        .years(Some(2025), None),
+        HolidayRule::fixed_public(
+            "Death of Dessalines",
+            "Commémoration de la mort de Dessalines",
+            Rule::gregorian(10, 17),
+        )
         .years(Some(1989), None),
-    HolidayRule::fixed_public(
-        "Bois-Caïman Day",
-        "Jour du Bois-Caïman",
-        Rule::gregorian(8, 14),
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public("Assumption", "Fête de l'Assomption", Rule::gregorian(8, 15))
-        .years(Some(1989), None),
-    HolidayRule::fixed_public(
-        "Dessalines Day",
-        "Jour de Dessalines",
-        Rule::gregorian(9, 20),
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public(
-        "Death of Dessalines",
-        "Commémoration de la mort de Dessalines",
-        Rule::gregorian(10, 17),
-    )
-    .years(Some(1989), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Fête de la Toussaint",
-        Rule::gregorian(11, 1),
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
-        .of_kind(Kind::Bank)
-        .years(None, Some(1988)),
-    HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
-        .years(Some(1989), None),
-    HolidayRule::fixed_public(
-        "Battle of Vertières Day",
-        "Commémoration de la Bataille de Vertières",
-        Rule::gregorian(11, 18),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-];
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Fête de la Toussaint",
+            Rule::gregorian(11, 1),
+        )
+        .years(Some(2025), None),
+        HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
+            .of_kind(Kind::Bank)
+            .years(None, Some(1988)),
+        HolidayRule::fixed_public("All Souls' Day", "Fête des Morts", Rule::gregorian(11, 2))
+            .years(Some(1989), None),
+        HolidayRule::fixed_public(
+            "Battle of Vertières Day",
+            "Commémoration de la Bataille de Vertières",
+            Rule::gregorian(11, 18),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Haiti.
 ///
@@ -2382,6 +2542,11 @@ static HT_RULES: &[HolidayRule] = &[
 /// in 1988, and the yearly decrees that gave 20 September and 1 November
 /// before 2024 are not carried. No text read moves a holiday off a
 /// Sunday.
+///
+/// Read from 1985: the Code du travail, décret du 24 février 1984, articles
+/// 109 to 111, from its first whole year. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static HAITI: RuleSet = RuleSet {
     code: "HT",
     english_name: "Haiti",
@@ -2405,61 +2570,74 @@ pub static HAITI: RuleSet = RuleSet {
 // Venezuela
 // ─────────────────────────────────────────────────────────────────────────
 
-static VE_RULES: &[HolidayRule] = &[
-    // Article 184(b) of the LOTTT.
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Carnival Monday",
-        "Lunes de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    // Article 184(c): the five days of the Ley de Fiestas Nacionales.
-    HolidayRule::fixed_public(
-        "Declaration of Independence",
-        "Declaración de la Independencia",
-        Rule::gregorian(4, 19),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Battle of Carabobo",
-        "Batalla de Carabobo",
-        Rule::gregorian(6, 24),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(7, 5),
-    ),
-    HolidayRule::fixed_public(
-        "Birthday of Simón Bolívar",
-        "Natalicio del Libertador",
-        Rule::gregorian(7, 24),
-    ),
-    // Decreto 2.028 of 10 October 2002 renamed the day; the date and the
-    // day off are the Ley de Fiestas Nacionales'.
-    HolidayRule::fixed_public("Day of the Race", "Día de la Raza", Rule::gregorian(10, 12))
-        .years(None, Some(2001)),
-    HolidayRule::fixed_public(
-        "Day of Indigenous Resistance",
-        "Día de la Resistencia Indígena",
-        Rule::gregorian(10, 12),
-    )
-    .years(Some(2002), None),
-    HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
-];
+/// The first whole year of the Ley de Fiestas Nacionales, Gaceta Oficial 29.541 of
+/// 22 June 1971, which the five days of article 184(c) are read from.
+const LEY_FIESTAS_FIRST: i32 = 1972;
+
+static VE_RULES: &[HolidayRule] = &read_all(
+    2013,
+    [
+        // Article 184(b) of the LOTTT.
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Carnival Monday",
+            "Lunes de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        // Article 184(c): the five days of the Ley de Fiestas Nacionales.
+        HolidayRule::fixed_public(
+            "Declaration of Independence",
+            "Declaración de la Independencia",
+            Rule::gregorian(4, 19),
+        )
+        .read_from(LEY_FIESTAS_FIRST),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajador", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Battle of Carabobo",
+            "Batalla de Carabobo",
+            Rule::gregorian(6, 24),
+        )
+        .read_from(LEY_FIESTAS_FIRST),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(7, 5),
+        )
+        .read_from(LEY_FIESTAS_FIRST),
+        HolidayRule::fixed_public(
+            "Birthday of Simón Bolívar",
+            "Natalicio del Libertador",
+            Rule::gregorian(7, 24),
+        )
+        .read_from(LEY_FIESTAS_FIRST),
+        // Decreto 2.028 of 10 October 2002 renamed the day; the date and the
+        // day off are the Ley de Fiestas Nacionales'.
+        HolidayRule::fixed_public("Day of the Race", "Día de la Raza", Rule::gregorian(10, 12))
+            .years(None, Some(2001))
+            .read_from(LEY_FIESTAS_FIRST),
+        HolidayRule::fixed_public(
+            "Day of Indigenous Resistance",
+            "Día de la Resistencia Indígena",
+            Rule::gregorian(10, 12),
+        )
+        .years(Some(2002), None)
+        .read_from(LEY_FIESTAS_FIRST),
+        HolidayRule::fixed_public("Christmas Eve", "Nochebuena", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("New Year's Eve", "Fin de Año", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Venezuela.
 ///
@@ -2480,6 +2658,13 @@ static VE_RULES: &[HolidayRule] = &[
 /// carried, and nothing in either law moves a holiday off a weekend.
 /// Article 173 gives two continuous rest days a week without naming them;
 /// the weekend is taken as Saturday and Sunday.
+///
+/// Read from 2013: the Ley Orgánica del Trabajo, los Trabajadores y las
+/// Trabajadoras (Gaceta Oficial Extraordinaria 6.076 of 7 May 2012), from its
+/// first whole year; the five days of the Ley de Fiestas Nacionales (Gaceta
+/// Oficial 29.541 of 22 June 1971) are read from 1972. Every earlier year is
+/// a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static VENEZUELA: RuleSet = RuleSet {
     code: "VE",
     english_name: "Venezuela",
@@ -2553,129 +2738,132 @@ const fn py_moved_until_2025(name: &'static str, local_name: &'static str) -> Ho
         .years(Some(PY_UNMOVED_UNTIL + 1), Some(2025))
 }
 
-static PY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Heroes' Day",
-        "Día de los Héroes de la Patria",
-        Rule::gregorian(3, 1),
-    )
-    .years(None, Some(PY_UNMOVED_UNTIL)),
-    py_movable(
-        "Heroes' Day",
-        "Día de los Héroes de la Patria",
-        PY_DECREED.named("03-01"),
-    ),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día de los Trabajadores",
-        Rule::gregorian(5, 1),
-    )
-    .years(None, Some(PY_UNMOVED_UNTIL)),
-    py_moved_until_2025("Labour Day", "Día de los Trabajadores"),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Día de los Trabajadores",
-        Rule::gregorian(5, 1),
-    )
-    .years(Some(2026), None),
-    // Ley 4531 of November 2011 restored 14 May beside 15 May.
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        PY_UNREAD,
-    )
-    .years(Some(2012), Some(2025)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        Rule::gregorian(5, 14),
-    )
-    .years(Some(2026), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        Rule::gregorian(5, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Chaco Peace Day",
-        "Día de la Paz del Chaco",
-        Rule::gregorian(6, 12),
-    )
-    .years(None, Some(PY_UNMOVED_UNTIL)),
-    py_movable(
-        "Chaco Peace Day",
-        "Día de la Paz del Chaco",
-        PY_DECREED.named("06-12"),
-    ),
-    py_movable(
-        "Constitution Day",
-        "Día de la Jura de la Constitución Nacional",
-        PY_DECREED.named("06-20"),
-    )
-    .years(Some(2026), None),
-    HolidayRule::fixed_public(
-        "Founding of Asunción",
-        "Día de la Fundación de Asunción",
-        Rule::gregorian(8, 15),
-    )
-    .years(None, Some(PY_UNMOVED_UNTIL)),
-    py_moved_until_2025("Founding of Asunción", "Día de la Fundación de Asunción"),
-    HolidayRule::fixed_public(
-        "Founding of Asunción",
-        "Día de la Fundación de Asunción",
-        Rule::gregorian(8, 15),
-    )
-    .years(Some(2026), None),
-    HolidayRule::fixed_public(
-        "Battle of Boquerón Day",
-        "Día de la Batalla de Boquerón",
-        Rule::gregorian(9, 29),
-    )
-    .years(Some(1995), Some(PY_UNMOVED_UNTIL)),
-    py_movable(
-        "Battle of Boquerón Day",
-        "Día de la Batalla de Boquerón",
-        PY_DECREED.named("09-29"),
-    ),
-    HolidayRule::fixed_public(
-        "Virgin of Caacupé Day",
-        "Día de la Virgen de Caacupé",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Día de la Navidad",
-        Rule::gregorian(12, 25),
-    ),
-    // The additional days of article 4 of Ley 7544/2025 that the table has
-    // read of.
-    HolidayRule::fixed_public(
-        "Additional national holiday",
-        "Feriado nacional adicional",
-        Rule::gregorian(9, 5),
-    )
-    .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public(
-        "Additional national holiday",
-        "Feriado nacional adicional",
-        Rule::gregorian(12, 26),
-    )
-    .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public(
-        "Additional national holiday",
-        "Feriado nacional adicional",
-        Rule::gregorian(6, 30),
-    )
-    .years(Some(2026), Some(2026))
-    .cited("Decreto 6280 of 29 June 2026"),
-];
+static PY_RULES: &[HolidayRule] = &read_all(
+    1990,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Heroes' Day",
+            "Día de los Héroes de la Patria",
+            Rule::gregorian(3, 1),
+        )
+        .years(None, Some(PY_UNMOVED_UNTIL)),
+        py_movable(
+            "Heroes' Day",
+            "Día de los Héroes de la Patria",
+            PY_DECREED.named("03-01"),
+        ),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día de los Trabajadores",
+            Rule::gregorian(5, 1),
+        )
+        .years(None, Some(PY_UNMOVED_UNTIL)),
+        py_moved_until_2025("Labour Day", "Día de los Trabajadores"),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Día de los Trabajadores",
+            Rule::gregorian(5, 1),
+        )
+        .years(Some(2026), None),
+        // Ley 4531 of November 2011 restored 14 May beside 15 May.
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            PY_UNREAD,
+        )
+        .years(Some(2012), Some(2025)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            Rule::gregorian(5, 14),
+        )
+        .years(Some(2026), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            Rule::gregorian(5, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Chaco Peace Day",
+            "Día de la Paz del Chaco",
+            Rule::gregorian(6, 12),
+        )
+        .years(None, Some(PY_UNMOVED_UNTIL)),
+        py_movable(
+            "Chaco Peace Day",
+            "Día de la Paz del Chaco",
+            PY_DECREED.named("06-12"),
+        ),
+        py_movable(
+            "Constitution Day",
+            "Día de la Jura de la Constitución Nacional",
+            PY_DECREED.named("06-20"),
+        )
+        .years(Some(2026), None),
+        HolidayRule::fixed_public(
+            "Founding of Asunción",
+            "Día de la Fundación de Asunción",
+            Rule::gregorian(8, 15),
+        )
+        .years(None, Some(PY_UNMOVED_UNTIL)),
+        py_moved_until_2025("Founding of Asunción", "Día de la Fundación de Asunción"),
+        HolidayRule::fixed_public(
+            "Founding of Asunción",
+            "Día de la Fundación de Asunción",
+            Rule::gregorian(8, 15),
+        )
+        .years(Some(2026), None),
+        HolidayRule::fixed_public(
+            "Battle of Boquerón Day",
+            "Día de la Batalla de Boquerón",
+            Rule::gregorian(9, 29),
+        )
+        .years(Some(1995), Some(PY_UNMOVED_UNTIL)),
+        py_movable(
+            "Battle of Boquerón Day",
+            "Día de la Batalla de Boquerón",
+            PY_DECREED.named("09-29"),
+        ),
+        HolidayRule::fixed_public(
+            "Virgin of Caacupé Day",
+            "Día de la Virgen de Caacupé",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Día de la Navidad",
+            Rule::gregorian(12, 25),
+        ),
+        // The additional days of article 4 of Ley 7544/2025 that the table has
+        // read of.
+        HolidayRule::fixed_public(
+            "Additional national holiday",
+            "Feriado nacional adicional",
+            Rule::gregorian(9, 5),
+        )
+        .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public(
+            "Additional national holiday",
+            "Feriado nacional adicional",
+            Rule::gregorian(12, 26),
+        )
+        .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public(
+            "Additional national holiday",
+            "Feriado nacional adicional",
+            Rule::gregorian(6, 30),
+        )
+        .years(Some(2026), Some(2026))
+        .cited("Decreto 6280 of 29 June 2026"),
+    ],
+);
 
 /// Paraguay.
 ///
@@ -2700,6 +2888,10 @@ static PY_RULES: &[HolidayRule] = &[
 /// 26 December 2025 and 30 June 2026. No law read moves a holiday off a
 /// weekend, and the Code's weekly rest is "normally Sunday"; the weekend is
 /// Saturday and Sunday as for the region's other tables.
+///
+/// Read from 1990: Ley 8/90; nothing earlier is stated. Every earlier year is
+/// a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static PARAGUAY: RuleSet = RuleSet {
     code: "PY",
     english_name: "Paraguay",
@@ -2746,64 +2938,67 @@ fn hn_morazanic_thursday_friday(year: i64) -> Days {
     out
 }
 
-static HN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Pan American Day",
-        "Día de las Américas",
-        Rule::gregorian(4, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(9, 15),
-    ),
-    // Article 339's three October days, on their dates until Decreto
-    // 75-2014 moved them.
-    HolidayRule::fixed_public("Soldier's Day", "Día del Soldado", Rule::gregorian(10, 3))
+static HN_RULES: &[HolidayRule] = &read_all(
+    1959,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Pan American Day",
+            "Día de las Américas",
+            Rule::gregorian(4, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(9, 15),
+        ),
+        // Article 339's three October days, on their dates until Decreto
+        // 75-2014 moved them.
+        HolidayRule::fixed_public("Soldier's Day", "Día del Soldado", Rule::gregorian(10, 3))
+            .years(None, Some(2013)),
+        HolidayRule::fixed_public(
+            "Discovery of America Day",
+            "Día del Descubrimiento de América",
+            Rule::gregorian(10, 12),
+        )
         .years(None, Some(2013)),
-    HolidayRule::fixed_public(
-        "Discovery of America Day",
-        "Día del Descubrimiento de América",
-        Rule::gregorian(10, 12),
-    )
-    .years(None, Some(2013)),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "Día de las Fuerzas Armadas",
-        Rule::gregorian(10, 21),
-    )
-    .years(None, Some(2013)),
-    // Decreto 75-2014, which placed the three October days in 2014, was
-    // not read, so that year is a gap.
-    HolidayRule::fixed_public(
-        "Morazanic Week",
-        "Semana Morazánica",
-        Rule::unlisted(2015, 2015),
-    )
-    .years(Some(2014), Some(2014)),
-    // The private sector's holiday begins at noon on the Wednesday.
-    HolidayRule::fixed_public(
-        "Morazanic Week",
-        "Semana Morazánica",
-        Rule::Computed(hn_morazanic_wednesday),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public(
-        "Morazanic Week",
-        "Semana Morazánica",
-        Rule::Computed(hn_morazanic_thursday_friday),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "Día de las Fuerzas Armadas",
+            Rule::gregorian(10, 21),
+        )
+        .years(None, Some(2013)),
+        // Decreto 75-2014, which placed the three October days in 2014, was
+        // not read, so that year is a gap.
+        HolidayRule::fixed_public(
+            "Morazanic Week",
+            "Semana Morazánica",
+            Rule::unlisted(2015, 2015),
+        )
+        .years(Some(2014), Some(2014)),
+        // The private sector's holiday begins at noon on the Wednesday.
+        HolidayRule::fixed_public(
+            "Morazanic Week",
+            "Semana Morazánica",
+            Rule::Computed(hn_morazanic_wednesday),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::fixed_public(
+            "Morazanic Week",
+            "Semana Morazánica",
+            Rule::Computed(hn_morazanic_thursday_friday),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Honduras.
 ///
@@ -2823,6 +3018,11 @@ static HN_RULES: &[HolidayRule] = &[
 /// of October, and its own text was not read, so 2014 is reported as a
 /// gap. The festivity days that article 339's second paragraph
 /// leaves to the employer are not carried.
+///
+/// Read from 1959: the Código del Trabajo, Decreto 189 of 1959, article 339,
+/// in the edu-honduras.info copy, whose date of revision was not found. Every
+/// earlier year is a gap (ADR 0013); the reasons for every table's first year
+/// are in docs/systems/holiday-first-years.md.
 pub static HONDURAS: RuleSet = RuleSet {
     code: "HN",
     english_name: "Honduras",
@@ -2849,58 +3049,61 @@ pub static HONDURAS: RuleSet = RuleSet {
 /// names.
 const SV_SAN_SALVADOR: &[&str] = &["SV-SS"];
 
-static SV_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Mother's Day", "Día de la Madre", Rule::gregorian(5, 10))
-        .years(Some(2016), None)
-        .cited("Decreto Legislativo 339 of 14 April 2016"),
-    HolidayRule::fixed_public("Father's Day", "Día del Padre", Rule::gregorian(6, 17))
-        .years(Some(2013), None)
-        .cited("Decreto Legislativo 208 of 28 November 2012"),
-    HolidayRule::fixed_public(
-        "Central American and Caribbean Games holiday",
-        "Asueto nacional por los XXIV Juegos Centroamericanos y del Caribe",
-        Rule::gregorian(7, 7),
-    )
-    .years(Some(2023), Some(2023))
-    .cited("Decreto Legislativo 776 of 20 June 2023"),
-    HolidayRule::fixed_public(
-        "August Festivities",
-        "Fiestas Agostinas",
-        Rule::gregorian(8, 3),
-    )
-    .in_regions(SV_SAN_SALVADOR),
-    HolidayRule::fixed_public(
-        "August Festivities",
-        "Fiestas Agostinas",
-        Rule::gregorian(8, 5),
-    )
-    .in_regions(SV_SAN_SALVADOR),
-    HolidayRule::fixed_public(
-        "Feast of the Divine Saviour of the World",
-        "Fiesta del Divino Salvador del Mundo",
-        Rule::gregorian(8, 6),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(9, 15),
-    ),
-    HolidayRule::fixed_public(
-        "All Souls' Day",
-        "Día de los Difuntos",
-        Rule::gregorian(11, 2),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static SV_RULES: &[HolidayRule] = &read_all(
+    1995,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "Sábado Santo", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Mother's Day", "Día de la Madre", Rule::gregorian(5, 10))
+            .years(Some(2016), None)
+            .cited("Decreto Legislativo 339 of 14 April 2016"),
+        HolidayRule::fixed_public("Father's Day", "Día del Padre", Rule::gregorian(6, 17))
+            .years(Some(2013), None)
+            .cited("Decreto Legislativo 208 of 28 November 2012"),
+        HolidayRule::fixed_public(
+            "Central American and Caribbean Games holiday",
+            "Asueto nacional por los XXIV Juegos Centroamericanos y del Caribe",
+            Rule::gregorian(7, 7),
+        )
+        .years(Some(2023), Some(2023))
+        .cited("Decreto Legislativo 776 of 20 June 2023"),
+        HolidayRule::fixed_public(
+            "August Festivities",
+            "Fiestas Agostinas",
+            Rule::gregorian(8, 3),
+        )
+        .in_regions(SV_SAN_SALVADOR),
+        HolidayRule::fixed_public(
+            "August Festivities",
+            "Fiestas Agostinas",
+            Rule::gregorian(8, 5),
+        )
+        .in_regions(SV_SAN_SALVADOR),
+        HolidayRule::fixed_public(
+            "Feast of the Divine Saviour of the World",
+            "Fiesta del Divino Salvador del Mundo",
+            Rule::gregorian(8, 6),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(9, 15),
+        ),
+        HolidayRule::fixed_public(
+            "All Souls' Day",
+            "Día de los Difuntos",
+            Rule::gregorian(11, 2),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// El Salvador.
 ///
@@ -2921,6 +3124,11 @@ static SV_RULES: &[HolidayRule] = &[
 /// off for the Central American and Caribbean Games; the other one-off days
 /// the Assembly decrees are not carried. Article 194 pays a holiday that
 /// falls on the weekly rest day and does not move it.
+///
+/// Read from 1995: the Código de Trabajo, article 190, in the text of Decreto
+/// Legislativo 408 of 1995. Every earlier year is a gap (ADR 0013); the
+/// reasons for every table's first year are in docs/systems/holiday-first-
+/// years.md.
 pub static EL_SALVADOR: RuleSet = RuleSet {
     code: "SV",
     english_name: "El Salvador",
@@ -2943,50 +3151,53 @@ pub static EL_SALVADOR: RuleSet = RuleSet {
 // Nicaragua
 // ─────────────────────────────────────────────────────────────────────────
 
-static NI_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Jueves Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::gregorian(7, 19),
-    ),
-    // Article 67: Managua's two days of Santo Domingo.
-    HolidayRule::fixed_public(
-        "Santo Domingo de Guzmán",
-        "Fiestas de Santo Domingo de Guzmán",
-        Rule::gregorian(8, 1),
-    )
-    .in_regions(&["NI-MN"]),
-    HolidayRule::fixed_public(
-        "Santo Domingo de Guzmán",
-        "Fiestas de Santo Domingo de Guzmán",
-        Rule::gregorian(8, 10),
-    )
-    .in_regions(&["NI-MN"]),
-    HolidayRule::fixed_public(
-        "Battle of San Jacinto",
-        "Batalla de San Jacinto",
-        Rule::gregorian(9, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(9, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Día de la Inmaculada Concepción",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+static NI_RULES: &[HolidayRule] = &read_all(
+    1997,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Jueves Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::gregorian(7, 19),
+        ),
+        // Article 67: Managua's two days of Santo Domingo.
+        HolidayRule::fixed_public(
+            "Santo Domingo de Guzmán",
+            "Fiestas de Santo Domingo de Guzmán",
+            Rule::gregorian(8, 1),
+        )
+        .in_regions(&["NI-MN"]),
+        HolidayRule::fixed_public(
+            "Santo Domingo de Guzmán",
+            "Fiestas de Santo Domingo de Guzmán",
+            Rule::gregorian(8, 10),
+        )
+        .in_regions(&["NI-MN"]),
+        HolidayRule::fixed_public(
+            "Battle of San Jacinto",
+            "Batalla de San Jacinto",
+            Rule::gregorian(9, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(9, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Día de la Inmaculada Concepción",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Nicaragua.
 ///
@@ -2999,6 +3210,10 @@ static NI_RULES: &[HolidayRule] = &[
 /// that coincides with the seventh day "será compensado" without naming
 /// a day, so no substitution is carried. The days of asueto the Executive
 /// may declare under article 66 are not carried either.
+///
+/// Read from 1997: Ley 185, La Gaceta 205 of 30 October 1996, from its first
+/// whole year. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static NICARAGUA: RuleSet = RuleSet {
     code: "NI",
     english_name: "Nicaragua",
@@ -3037,79 +3252,82 @@ static AG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// The first Monday in August, the first day of the Carnival holiday.
 static AG_CARNIVAL_MONDAY: Rule = Rule::nth(8, 1, Weekday::Monday);
 
-/// A holiday of the 2005 Schedule, carried from its first full year.
+/// A holiday of the 2005 Schedule, read from its first full year, 2006.
 const fn ag(rule: HolidayRule) -> HolidayRule {
-    rule.years(Some(2006), None)
+    rule
 }
 
-static AG_RULES: &[HolidayRule] = &[
-    ag(HolidayRule::public(
-        "New Year's Day",
-        "",
-        Rule::gregorian(1, 1),
-    )),
-    ag(HolidayRule::fixed_public(
-        "Good Friday",
-        "",
-        Rule::easter(GOOD_FRIDAY),
-    )),
-    ag(HolidayRule::fixed_public(
-        "Easter Monday",
-        "",
-        Rule::easter(EASTER_MONDAY),
-    )),
-    ag(HolidayRule::fixed_public(
-        "Labour Day",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    )),
-    ag(HolidayRule::fixed_public(
-        "Whit Monday",
-        "",
-        Rule::easter(WHIT_MONDAY),
-    )),
-    ag(HolidayRule::fixed_public(
-        "Carnival Monday",
-        "",
-        AG_CARNIVAL_MONDAY,
-    )),
-    ag(HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "",
-        Rule::Offset {
-            base: &AG_CARNIVAL_MONDAY,
-            days: 1,
-        },
-    )),
-    ag(
-        HolidayRule::public("Independence Day", "", Rule::gregorian(11, 1))
-            .substitute_on(&[Weekday::Saturday, Weekday::Sunday]),
-    ),
-    HolidayRule::fixed_public("National Heroes Day", "", Rule::gregorian(12, 9))
-        .years(Some(2006), Some(2013)),
-    HolidayRule::fixed_public(
-        "Sir Vere Cornwall Bird Snr. Day",
-        "",
-        Rule::gregorian(12, 9),
-    )
-    .years(Some(2014), Some(2019)),
-    HolidayRule::public(
-        "Sir Vere Cornwall Bird Snr. Day",
-        "",
-        Rule::gregorian(12, 9),
-    )
-    .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
-    .years(Some(2020), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)).years(Some(2006), Some(2019)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25))
+static AG_RULES: &[HolidayRule] = &read_all(
+    2006,
+    [
+        ag(HolidayRule::public(
+            "New Year's Day",
+            "",
+            Rule::gregorian(1, 1),
+        )),
+        ag(HolidayRule::fixed_public(
+            "Good Friday",
+            "",
+            Rule::easter(GOOD_FRIDAY),
+        )),
+        ag(HolidayRule::fixed_public(
+            "Easter Monday",
+            "",
+            Rule::easter(EASTER_MONDAY),
+        )),
+        ag(HolidayRule::fixed_public(
+            "Labour Day",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        )),
+        ag(HolidayRule::fixed_public(
+            "Whit Monday",
+            "",
+            Rule::easter(WHIT_MONDAY),
+        )),
+        ag(HolidayRule::fixed_public(
+            "Carnival Monday",
+            "",
+            AG_CARNIVAL_MONDAY,
+        )),
+        ag(HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "",
+            Rule::Offset {
+                base: &AG_CARNIVAL_MONDAY,
+                days: 1,
+            },
+        )),
+        ag(
+            HolidayRule::public("Independence Day", "", Rule::gregorian(11, 1))
+                .substitute_on(&[Weekday::Saturday, Weekday::Sunday]),
+        ),
+        HolidayRule::fixed_public("National Heroes Day", "", Rule::gregorian(12, 9))
+            .years(None, Some(2013)),
+        HolidayRule::fixed_public(
+            "Sir Vere Cornwall Bird Snr. Day",
+            "",
+            Rule::gregorian(12, 9),
+        )
+        .years(Some(2014), Some(2019)),
+        HolidayRule::public(
+            "Sir Vere Cornwall Bird Snr. Day",
+            "",
+            Rule::gregorian(12, 9),
+        )
         .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
         .years(Some(2020), None),
-    ag(HolidayRule::public(
-        "Boxing Day",
-        "",
-        Rule::gregorian(12, 26),
-    )),
-];
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)).years(None, Some(2019)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25))
+            .substitute_on(&[Weekday::Saturday, Weekday::Sunday])
+            .years(Some(2020), None),
+        ag(HolidayRule::public(
+            "Boxing Day",
+            "",
+            Rule::gregorian(12, 26),
+        )),
+    ],
+);
 
 /// Antigua and Barbuda.
 ///
@@ -3136,7 +3354,12 @@ static AG_RULES: &[HolidayRule] = &[
 /// the special days of section 5 or the 2019 Schedule's Sundays. The
 /// revised Schedule it replaced, with amendments to 1991, which had
 /// CARICOM Day and neither Carnival Tuesday nor 9 December, is not
-/// carried, and the table states nothing before 2006.
+/// carried, and the table is read from 2006, every earlier year being a gap.
+///
+/// Read from 2006: the Public Holidays (Amendment) Act 2005, published on 15
+/// September 2005, from its first full year; the revised Schedule it replaced
+/// was not carried. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static ANTIGUA_AND_BARBUDA: RuleSet = RuleSet {
     code: "AG",
     english_name: "Antigua and Barbuda",
@@ -3171,25 +3394,27 @@ static DM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static DM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Carnival Monday", "", Rule::easter(SHROVE_MONDAY)),
-    HolidayRule::fixed_public("Carnival Tuesday", "", Rule::easter(SHROVE_TUESDAY)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday))
-        .years(Some(2021), None),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(11, 3)),
-    HolidayRule::public(
-        "National Day of Community Service",
-        "",
-        Rule::gregorian(11, 4),
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static DM_RULES: &[HolidayRule] = &read_all(
+    2021,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Carnival Monday", "", Rule::easter(SHROVE_MONDAY)),
+        HolidayRule::fixed_public("Carnival Tuesday", "", Rule::easter(SHROVE_TUESDAY)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(11, 3)),
+        HolidayRule::public(
+            "National Day of Community Service",
+            "",
+            Rule::gregorian(11, 4),
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Dominica.
 ///
@@ -3209,7 +3434,12 @@ static DM_RULES: &[HolidayRule] = &[
 /// the Sunday holiday's, on the same days. The Schedule's Labour Day is
 /// 1 May, but every list from 2021 keeps it on the first Monday of May,
 /// under an order the author did not find; the table follows the lists
-/// from 2021 and states no Labour Day before. The names are the lists'.
+/// from 2021, every earlier year being a gap. The names are the lists'.
+///
+/// Read from 2021: the Government's lists of 2021 to 2026; the Act's Schedule
+/// of 1990 is undated beyond that and the Labour Day order was not found.
+/// Every earlier year is a gap (ADR 0013); the reasons for every table's
+/// first year are in docs/systems/holiday-first-years.md.
 pub static DOMINICA: RuleSet = RuleSet {
     code: "DM",
     english_name: "Dominica",
@@ -3253,29 +3483,33 @@ static GD_CARNIVAL_TUESDAY: Rule = Rule::Offset {
     days: 1,
 };
 
-static GD_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(2, 7)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::fixed_public("Emancipation Holiday", "", Rule::nth(8, 1, Weekday::Monday))
-        .years(None, Some(2024)),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)).years(Some(2025), None),
-    HolidayRule::fixed_public("Carnival Monday", "", GD_CARNIVAL_MONDAY),
-    // "From noon the day following" until the 2023 amendment.
-    HolidayRule::fixed_public("Carnival Tuesday", "", GD_CARNIVAL_TUESDAY)
-        .of_kind(Kind::Bank)
-        .years(None, Some(2023)),
-    HolidayRule::fixed_public("Carnival Tuesday", "", GD_CARNIVAL_TUESDAY).years(Some(2024), None),
-    HolidayRule::public("National Heroes' Day", "", Rule::gregorian(10, 19))
-        .years(Some(2025), None),
-    HolidayRule::public("Thanksgiving Day", "", Rule::gregorian(10, 25)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static GD_RULES: &[HolidayRule] = &read_all(
+    2017,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(2, 7)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::fixed_public("Emancipation Holiday", "", Rule::nth(8, 1, Weekday::Monday))
+            .years(None, Some(2024)),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)).years(Some(2025), None),
+        HolidayRule::fixed_public("Carnival Monday", "", GD_CARNIVAL_MONDAY),
+        // "From noon the day following" until the 2023 amendment.
+        HolidayRule::fixed_public("Carnival Tuesday", "", GD_CARNIVAL_TUESDAY)
+            .of_kind(Kind::Bank)
+            .years(None, Some(2023)),
+        HolidayRule::fixed_public("Carnival Tuesday", "", GD_CARNIVAL_TUESDAY)
+            .years(Some(2024), None),
+        HolidayRule::public("National Heroes' Day", "", Rule::gregorian(10, 19))
+            .years(Some(2025), None),
+        HolidayRule::public("Thanksgiving Day", "", Rule::gregorian(10, 25)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Grenada.
 ///
@@ -3300,6 +3534,12 @@ static GD_RULES: &[HolidayRule] = &[
 /// list, so the first-Monday holiday ends in 2024.
 /// 19 October was National Heroes' Day by proclamation in 2023 and 2024,
 /// not carried, and by the 2024 Bill and the lists from 2025.
+///
+/// Read from 2017: the Bank Holidays (Amendment) Act No. 2 of 2017, the
+/// latest amendment of the Act as revised to Act 19 of 1999 that was read;
+/// the years between 2000 and 2016 were not read. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static GRENADA: RuleSet = RuleSet {
     code: "GD",
     english_name: "Grenada",
@@ -3339,18 +3579,21 @@ static KN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static KN_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("National Heroes Day", "", Rule::gregorian(9, 16)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(9, 19)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static KN_RULES: &[HolidayRule] = &read_all(
+    2003,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "", Rule::nth(5, 1, Weekday::Monday)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Emancipation Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("National Heroes Day", "", Rule::gregorian(9, 16)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(9, 19)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Saint Kitts and Nevis.
 ///
@@ -3370,6 +3613,11 @@ static KN_RULES: &[HolidayRule] = &[
 /// given" is not carried. Carnival Day on 2 January and Culturama Day in
 /// August are kept by the Governor-General's proclamation each year and
 /// are not carried either, since the author read no proclamation.
+///
+/// Read from 2003: the Public Holidays Act, Cap. 23.23, in the revised
+/// edition to 31 December 2002, from the first year after it. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SAINT_KITTS_AND_NEVIS: RuleSet = RuleSet {
     code: "KN",
     english_name: "Saint Kitts and Nevis",
@@ -3403,22 +3651,25 @@ static LC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static LC_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year's Holiday", "", Rule::gregorian(1, 2)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(2, 22)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
-    HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(10, 1, Weekday::Monday))
-        .approximate(),
-    HolidayRule::public("National Day", "", Rule::gregorian(12, 13)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+static LC_RULES: &[HolidayRule] = &read_all(
+    2005,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year's Holiday", "", Rule::gregorian(1, 2)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(2, 22)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("Corpus Christi", "", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
+        HolidayRule::fixed_public("Thanksgiving Day", "", Rule::nth(10, 1, Weekday::Monday))
+            .approximate(),
+        HolidayRule::public("National Day", "", Rule::gregorian(12, 13)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Saint Lucia.
 ///
@@ -3437,6 +3688,11 @@ static LC_RULES: &[HolidayRule] = &[
 /// names are that list's. Carnival Monday and Tuesday in July, and the
 /// other days the list says "will be by proclamation", are not carried,
 /// and the table says nothing of which amendment brought which day.
+///
+/// Read from 2005: the Bank Holidays Act in the Revised Laws (2023), as
+/// amended to Act 5 of 2004, from the first year after it. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SAINT_LUCIA: RuleSet = RuleSet {
     code: "LC",
     english_name: "Saint Lucia",
@@ -3488,42 +3744,50 @@ static VC_CARNIVAL: Listing = Listing::Named(&[
     (2026, 7, 6, "monday"), (2026, 7, 7, "tuesday"),
 ]);
 
-static VC_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("National Heroes' Day", "", Rule::gregorian(3, 14)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("National Workers' Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Spiritual Baptist Liberation Day",
-        "",
-        Rule::gregorian(5, 21),
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public(
-        "Carnival Monday",
-        "",
-        Rule::listed(
-            VC_CARNIVAL.named("monday"),
-            VC_CARNIVAL_FIRST,
-            VC_CARNIVAL_LAST,
+static VC_RULES: &[HolidayRule] = &read_all(
+    2019,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("National Heroes' Day", "", Rule::gregorian(3, 14)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("National Workers' Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Spiritual Baptist Liberation Day",
+            "",
+            Rule::gregorian(5, 21),
+        )
+        .years(Some(2025), None),
+        // The list for 2020 was not read: every day that year is a gap, since
+        // each fixed day that falls on a Sunday is moved by the list's note.
+        HolidayRule::public("The days of 2020", "", Rule::UNREAD)
+            .years(Some(2020), Some(2020))
+            .cited("the list for 2020, not read"),
+        HolidayRule::fixed_public("Whit Monday", "", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public(
+            "Carnival Monday",
+            "",
+            Rule::listed(
+                VC_CARNIVAL.named("monday"),
+                VC_CARNIVAL_FIRST,
+                VC_CARNIVAL_LAST,
+            ),
         ),
-    ),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "",
-        Rule::listed(
-            VC_CARNIVAL.named("tuesday"),
-            VC_CARNIVAL_FIRST,
-            VC_CARNIVAL_LAST,
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "",
+            Rule::listed(
+                VC_CARNIVAL.named("tuesday"),
+                VC_CARNIVAL_FIRST,
+                VC_CARNIVAL_LAST,
+            ),
         ),
-    ),
-    HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(10, 27)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+        HolidayRule::public("Emancipation Day", "", Rule::gregorian(8, 1)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(10, 27)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Saint Vincent and the Grenadines.
 ///
@@ -3542,6 +3806,11 @@ static VC_RULES: &[HolidayRule] = &[
 /// 2021 list moved them to 6 and 7 September. Spiritual Baptist
 /// Liberation Day on 21 May is in the lists from 2025 and carried from
 /// then. National Workers' Day is 1 May in every list.
+///
+/// Read from 2019: the Prime Minister's Office's list for 2019, the earliest
+/// read; 2020 is a gap because its list was not read. Every earlier year is a
+/// gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SAINT_VINCENT_AND_THE_GRENADINES: RuleSet = RuleSet {
     code: "VC",
     english_name: "Saint Vincent and the Grenadines",
@@ -3571,55 +3840,58 @@ const fn sr_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-static SR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Nieuwjaarsdag", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Chinese New Year",
-        "Chinees Nieuwjaar",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    )
-    .approximate()
-    .years(Some(2021), None),
-    HolidayRule::fixed_public(
-        "Day of Liberation and Renewal",
-        "Dag van Bevrijding en Vernieuwing",
-        Rule::gregorian(2, 25),
-    )
-    .years(Some(2012), Some(2020)),
-    HolidayRule::fixed_public("Holi Phagwa", "Holi-dag", HOLI).approximate(),
-    HolidayRule::fixed_public("Good Friday", "Goede Vrijdag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Tweede Paasdag",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    sr_hijri("Eid al-Fitr", "Ied Ul Fitre", 10, 1),
-    HolidayRule::fixed_public("Labour Day", "Dag van de Arbeid", Rule::gregorian(5, 1)),
-    sr_hijri("Eid al-Adha", "Ied Ul Adha", 12, 10).years(Some(2012), None),
-    HolidayRule::fixed_public("Keti Koti", "Keti Koti Dey", Rule::gregorian(7, 1)),
-    HolidayRule::fixed_public(
-        "Indigenous People's Day",
-        "Dag der Inheemsen",
-        Rule::gregorian(8, 9),
-    )
-    .years(Some(2007), None),
-    HolidayRule::fixed_public(
-        "Day of the Maroons",
-        "Dag der Marrons",
-        Rule::gregorian(10, 10),
-    )
-    .years(Some(2012), None),
-    HolidayRule::fixed_public("Divali", "Divali", DIWALI)
+static SR_RULES: &[HolidayRule] = &read_all(
+    2007,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Nieuwjaarsdag", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Chinese New Year",
+            "Chinees Nieuwjaar",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        )
         .approximate()
+        .years(Some(2021), None),
+        HolidayRule::fixed_public(
+            "Day of Liberation and Renewal",
+            "Dag van Bevrijding en Vernieuwing",
+            Rule::gregorian(2, 25),
+        )
+        .years(Some(2012), Some(2020)),
+        HolidayRule::fixed_public("Holi Phagwa", "Holi-dag", HOLI).approximate(),
+        HolidayRule::fixed_public("Good Friday", "Goede Vrijdag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Tweede Paasdag",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        sr_hijri("Eid al-Fitr", "Ied Ul Fitre", 10, 1),
+        HolidayRule::fixed_public("Labour Day", "Dag van de Arbeid", Rule::gregorian(5, 1)),
+        sr_hijri("Eid al-Adha", "Ied Ul Adha", 12, 10).years(Some(2012), None),
+        HolidayRule::fixed_public("Keti Koti", "Keti Koti Dey", Rule::gregorian(7, 1)),
+        HolidayRule::fixed_public(
+            "Indigenous People's Day",
+            "Dag der Inheemsen",
+            Rule::gregorian(8, 9),
+        )
+        .years(Some(2007), None),
+        HolidayRule::fixed_public(
+            "Day of the Maroons",
+            "Dag der Marrons",
+            Rule::gregorian(10, 10),
+        )
         .years(Some(2012), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Onafhankelijkheidsdag",
-        Rule::gregorian(11, 25),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Eerste Kerstdag", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Boxing Day", "Tweede Kerstdag", Rule::gregorian(12, 26)),
-];
+        HolidayRule::fixed_public("Divali", "Divali", DIWALI)
+            .approximate()
+            .years(Some(2012), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Onafhankelijkheidsdag",
+            Rule::gregorian(11, 25),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Eerste Kerstdag", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Boxing Day", "Tweede Kerstdag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Suriname.
 ///
@@ -3652,6 +3924,10 @@ static SR_RULES: &[HolidayRule] = &[
 /// stayed where they fell. The one-off days the
 /// Government declares — Javanese New Year in 2023, a hundred and seventy
 /// years of Chinese immigration — are not carried.
+///
+/// Read from 2007: S.B. 2007 no. 98, the earliest amendment of the Besluit
+/// Vrije Dagen 1971 read. Every earlier year is a gap (ADR 0013); the reasons
+/// for every table's first year are in docs/systems/holiday-first-years.md.
 pub static SURINAME: RuleSet = RuleSet {
     code: "SR",
     english_name: "Suriname",

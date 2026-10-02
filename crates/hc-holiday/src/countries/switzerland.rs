@@ -217,13 +217,35 @@ const CANTONS: &[&str] = &[
 /// 2022, in force from 1 January 2023, is the latest.
 const EVERY_CANTON_READ: i32 = 2023;
 
+/// The names of New Year's Day, Ascension and Christmas Day that a canton's
+/// law uses, in the language the law was read in. Where the law was read in
+/// German the names are German; where it was read in French or Italian, the
+/// words of its list of holidays; and where the French text was not read,
+/// the English names stand (empty `local_name`), not the German.
+type KeptNames = (&'static str, &'static str, &'static str);
+const DE_NAMES: KeptNames = ("Neujahrstag", "Auffahrt", "Weihnachtstag");
+/// Loi sur les jours fériés (Geneva), art. 1: "1er Janvier", "Ascension",
+/// "Noël".
+const GE_NAMES: KeptNames = ("1er Janvier", "Ascension", "Noël");
+/// Loi sur les jours fériés officiels et le repos dominical (Jura), arts. 3
+/// and 4: "Nouvel-An", "l'Ascension", "Noël".
+const JU_NAMES: KeptNames = ("Nouvel-An", "Ascension", "Noël");
+/// Loi sur le dimanche et les jours fériés (Neuchâtel), art. 3: "le
+/// 1er janvier", "l'Ascension", "le jour de Noël".
+const NE_NAMES: KeptNames = ("1er janvier", "Ascension", "Noël");
+/// LALL (Ticino), art. 6: "Capodanno", "Ascensione", "Natale".
+const TI_NAMES: KeptNames = ("Capodanno", "Ascensione", "Natale");
+/// Fribourg's, Vaud's and Valais's texts of these three days were not read in
+/// French in the form that gives their names.
+const EN_NAMES: KeptNames = ("", "", "");
+
 /// The three days every canton's law read keeps — New Year's Day,
 /// Ascension and Christmas Day — in each canton, from the latest first
 /// year its text read gives for any of its days, the years before a gap;
 /// and nationwide, where the days are every canton's, from
 /// [`EVERY_CANTON_READ`].
 macro_rules! every_canton_keeps {
-    ($(($region:expr, $law:expr, $first:expr)),* $(,)?) => {
+    ($(($region:expr, $law:expr, $first:expr, $names:expr)),* $(,)?) => {
         [
             HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1))
                 .except_in(CANTONS)
@@ -235,11 +257,11 @@ macro_rules! every_canton_keeps {
                 .except_in(CANTONS)
                 .read_from(EVERY_CANTON_READ),
             $(
-                canton("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1), $region, $law)
+                canton("New Year's Day", $names.0, Rule::gregorian(1, 1), $region, $law)
                     .read_from($first),
-                canton("Ascension", "Auffahrt", Rule::easter(ASCENSION), $region, $law)
+                canton("Ascension", $names.1, Rule::easter(ASCENSION), $region, $law)
                     .read_from($first),
-                canton("Christmas Day", "Weihnachtstag", Rule::gregorian(12, 25), $region, $law)
+                canton("Christmas Day", $names.2, Rule::gregorian(12, 25), $region, $law)
                     .read_from($first),
             )*
         ]
@@ -248,32 +270,32 @@ macro_rules! every_canton_keeps {
 
 /// The days of [`every_canton_keeps`].
 static KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
-    (CH_AG, CH_AG_LAW, 2013),
-    (CH_AI, CH_AI_LAW, 2011),
-    (CH_AR, CH_AR_LAW, 1967),
-    (CH_BE, CH_BE_LAW, 1998),
-    (CH_BL, CH_BL_LAW, 2011),
-    (CH_BS, CH_BS_LAW, 1994),
-    (CH_FR, CH_FR_LAW, 2011),
-    (CH_GE, CH_GE_LAW, 1991),
-    (CH_GL, CH_GL_LAW, 2013),
-    (CH_GR, CH_GR_LAW, 2006),
-    (CH_JU, CH_JU_LAW, 2023),
-    (CH_LU, CH_LU_LAW, 1998),
-    (CH_NE, CH_NE_LAW, 2010),
-    (CH_NW, CH_NW_LAW, 2006),
-    (CH_OW, CH_OW_LAW, 2008),
-    (CH_SG, CH_SG_LAW, 2005),
-    (CH_SH, CH_SH_LAW, 2011),
-    (CH_SO, CH_SO_LAW, 2016),
-    (CH_SZ, CH_SZ_LAW, 2002),
-    (CH_TG, CH_TG_LAW, 2003),
-    (CH_TI, CH_TI_LAW, 2012),
-    (CH_UR, CH_UR_LAW, 2003),
-    (CH_VD, CH_VD_LAW, 2006),
-    (CH_VS, CH_VS_LAW, 2017),
-    (CH_ZG, CH_ZG_LAW, 2004),
-    (CH_ZH, CH_ZH_LAW, 2001),
+    (CH_AG, CH_AG_LAW, 2013, DE_NAMES),
+    (CH_AI, CH_AI_LAW, 2011, DE_NAMES),
+    (CH_AR, CH_AR_LAW, 1967, DE_NAMES),
+    (CH_BE, CH_BE_LAW, 1998, DE_NAMES),
+    (CH_BL, CH_BL_LAW, 2011, DE_NAMES),
+    (CH_BS, CH_BS_LAW, 1994, DE_NAMES),
+    (CH_FR, CH_FR_LAW, 2011, EN_NAMES),
+    (CH_GE, CH_GE_LAW, 1991, GE_NAMES),
+    (CH_GL, CH_GL_LAW, 2013, DE_NAMES),
+    (CH_GR, CH_GR_LAW, 2006, DE_NAMES),
+    (CH_JU, CH_JU_LAW, 2023, JU_NAMES),
+    (CH_LU, CH_LU_LAW, 1998, DE_NAMES),
+    (CH_NE, CH_NE_LAW, 2010, NE_NAMES),
+    (CH_NW, CH_NW_LAW, 2006, DE_NAMES),
+    (CH_OW, CH_OW_LAW, 2008, DE_NAMES),
+    (CH_SG, CH_SG_LAW, 2005, DE_NAMES),
+    (CH_SH, CH_SH_LAW, 2011, DE_NAMES),
+    (CH_SO, CH_SO_LAW, 2016, DE_NAMES),
+    (CH_SZ, CH_SZ_LAW, 2002, DE_NAMES),
+    (CH_TG, CH_TG_LAW, 2003, DE_NAMES),
+    (CH_TI, CH_TI_LAW, 2012, TI_NAMES),
+    (CH_UR, CH_UR_LAW, 2003, DE_NAMES),
+    (CH_VD, CH_VD_LAW, 2006, EN_NAMES),
+    (CH_VS, CH_VS_LAW, 2017, EN_NAMES),
+    (CH_ZG, CH_ZG_LAW, 2004, DE_NAMES),
+    (CH_ZH, CH_ZH_LAW, 2001, DE_NAMES),
 ];
 
 /// The Arbeitsgesetz's Art. 20a, in force from 1 August 2000.

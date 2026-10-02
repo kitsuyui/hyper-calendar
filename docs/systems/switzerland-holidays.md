@@ -47,6 +47,16 @@ Day, Ascension, 1 August and Christmas Day, which every canton keeps.
   (the three days are the canton's rules there, `KEPT_EVERYWHERE`). So
   asked for no canton, 25 December 2022 is a gap; asked for Bern, whose
   law is in force from 1 May 1997, it is Christmas Day from 1998.
+- **The local names of those three days** are the cantonal law's own: German
+  in the German cantons; in Geneva art. 1 of the Loi sur les jours fériés
+  ("1er Janvier", "Ascension", "Noël"), in Jura arts. 3 and 4 of its law
+  ("Nouvel-An", "l'Ascension", "Noël"), in Neuchâtel art. 3 ("le 1er
+  janvier", "l'Ascension", "le jour de Noël") and in Ticino art. 6 of the
+  LALL ("Capodanno", "Ascensione", "Natale"), each read in HTML on
+  2026-10-03. The French texts of Fribourg, Vaud and Valais are served as
+  scripted pages that were not read, so those cantons carry no local name
+  for the three and the English name stands, not the German. The nationwide
+  trio keeps the German names.
 - **Each canton's other days**, scoped to its code, from the first year the
   text read was in force on the day, and the years before a gap: every law
   read replaced an older one that was not read, and the day is usually
