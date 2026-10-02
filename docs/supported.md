@@ -115,9 +115,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `islamic-saudi-rule-rd` | Hijri (Saudi rule computed, Calendrical Calculations) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1900-01-01 | 2100-12-31 | yes | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-tbla` | Hijri (tabular, astronomical epoch) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-07-18 | +10323-10-20 | no | no | sunset | end | month ×12, weekday ×7 | yes |
 | `islamic-umalqura` | Hijri (Umm al-Qura) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1882-11-12 | 2174-11-25 | no | no | sunset | end | month ×12, weekday ×7 | yes |
-| `iso8601` | ISO 8601 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999998-02-05 | +9999998-11-26 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `iso8601` | ISO 8601 | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `iso8601-ordinal` | ISO 8601 ordinal date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | day-of-year ×365–366 | — |
-| `iso8601-week` | ISO 8601 week date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999998-02-05 | +9999998-11-26 | no | no | midnight | — | week ×52–53, weekday ×7 | — |
+| `iso8601-week` | ISO 8601 week date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | week ×52–53, weekday ×7 | — |
 | `jalali` | Jalali (astronomical, Isfahan noon) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1079-03-21 | 3001-03-20 | yes | no | midnight | — | month ×13, weekday ×7 | yes |
 | `jalali-natanz` | Jalali (the extra days after Bahman) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1079-03-21 | 3001-03-20 | yes | no | midnight | — | month ×13, weekday ×7 | yes |
 | `jalali-tusi` | Jalali (Tusi's arithmetic) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1079-03-21 | 1374-03-20 | no | no | midnight | — | month ×13, weekday ×7 | yes |
@@ -240,7 +240,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `vietnamese` | Vietnamese lunisolar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `vikram-samvat-kartikadi` | Vikram Samvat (Karttikadi, Gujarat) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `vira-nirvana-samvat` | Vira Nirvana Samvat (Jain) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
-| `week-and-month` | Week and Month (Palmen) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999998-02-05 | +9999998-11-26 | no | no | midnight | — | month ×12, week-of-month ×4–5, weekday ×7 | yes |
+| `week-and-month` | Week and Month (Palmen) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, week-of-month ×4–5, weekday ×7 | yes |
 | `world-calendar` | The World Calendar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `yazidi` | Yazidi | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -4749-02-22 | +995270-09-09 | no | no | midnight | — | day-of-year ×364–371, weekday ×7 | — |
 | `yerm` | Yerm Lunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0622-05-19 | +10931-01-03 | no | no | noon | start | month ×15–17, weekday ×7 | yes |

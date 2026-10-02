@@ -947,7 +947,7 @@ impl TimeDelta {
     /// The whole days in the span, rounding towards negative infinity.
     #[must_use]
     pub const fn whole_days(self) -> i64 {
-        (self.0.whole_seconds().div_euclid(86_400)) as i64
+        self.0.days_and_seconds().0 as i64
     }
 
     /// The underlying exact [`Duration`].

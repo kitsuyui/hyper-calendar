@@ -42,7 +42,7 @@ use hc_calendars_indic::kumbh::KumbhYoga;
 use hc_calendars_indic::panchak::{self, PanchakNaming};
 use hc_calendars_indic::pushkaram::{DaySpan, PushkaramRiver, adi_pushkaram, rivers_of};
 use hc_calendars_lunar::{chinese, vietnamese};
-use hc_core::duration::SECONDS_PER_DAY;
+use hc_core::duration::{SECONDS_PER_DAY, days_and_seconds};
 use hc_format::night_watches::fixed_night_watch;
 use hc_i18n::reckonings::{
     CHOGHADIYA, FIRST_MONTH_COUNT, FOLK_HALF, FOLK_NAMED_DAY, KUMBH_SITE, NIGHT_WATCH, PANCHAK,
@@ -194,7 +194,7 @@ pub fn panchak_line(
         unix_from_moment(window.opens),
         unix_from_moment(window.closes),
     );
-    let local_day = Rd::from_unix_days((opens + offset).div_euclid(SECONDS_PER_DAY));
+    let local_day = Rd::from_unix_days(days_and_seconds(opens + offset).0);
     let weekday = Weekday::from_rd(local_day);
     let mut out = String::new();
     let mut line = Line::new(&mut out);

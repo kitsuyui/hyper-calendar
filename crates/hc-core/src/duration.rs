@@ -19,6 +19,71 @@ pub const SECONDS_PER_DAY: i64 = 86_400;
 /// [`SECONDS_PER_DAY`] as an `f64`, the divisor of a day fraction.
 pub const SECONDS_PER_DAY_F64: f64 = SECONDS_PER_DAY as f64;
 
+/// Split a count of whole seconds since an epoch into whole 86 400-second days
+/// (rounded towards negative infinity) and the second of that day, in
+/// `0..86 400`.
+///
+/// This is the one place the split of a POSIX timestamp into its day and its
+/// time of day is written: `-1` is the last second of day `-1`, not the 86 399th
+/// of day 0 as truncating division gives. It is the inverse of
+/// [`seconds_from_days_and_seconds`].
+///
+/// ```
+/// use hc_core::duration::days_and_seconds;
+///
+/// assert_eq!(days_and_seconds(0), (0, 0));
+/// assert_eq!(days_and_seconds(86_399), (0, 86_399));
+/// assert_eq!(days_and_seconds(-1), (-1, 86_399));
+/// ```
+#[inline]
+#[must_use]
+pub const fn days_and_seconds(seconds: i64) -> (i64, u32) {
+    (
+        seconds.div_euclid(SECONDS_PER_DAY),
+        seconds.rem_euclid(SECONDS_PER_DAY) as u32,
+    )
+}
+
+/// The seconds of a whole number of 86 400-second days, or `None` when they do
+/// not fit an `i64`.
+///
+/// ```
+/// use hc_core::duration::seconds_in_days;
+///
+/// assert_eq!(seconds_in_days(2), Some(172_800));
+/// assert_eq!(seconds_in_days(i64::MAX), None);
+/// ```
+#[inline]
+#[must_use]
+pub const fn seconds_in_days(days: i64) -> Option<i64> {
+    days.checked_mul(SECONDS_PER_DAY)
+}
+
+/// The count of seconds of a day and a second of that day: the inverse of
+/// [`days_and_seconds`], or `None` when it does not fit an `i64`. A second
+/// of day beyond `86 399` is carried into the following days, so `86 400` is
+/// the first second of the next day, and is how a leap second `23:59:60`
+/// reads.
+///
+/// ```
+/// use hc_core::duration::seconds_from_days_and_seconds;
+///
+/// assert_eq!(seconds_from_days_and_seconds(1, 3_600), Some(90_000));
+/// assert_eq!(seconds_from_days_and_seconds(-1, 86_399), Some(-1));
+/// ```
+#[inline]
+#[must_use]
+pub const fn seconds_from_days_and_seconds(days: i64, second_of_day: u32) -> Option<i64> {
+    // The sum can fit where the start of the day does not: the part-day at
+    // the bottom of the range starts below `i64::MIN`.
+    let total = days as i128 * SECONDS_PER_DAY as i128 + second_of_day as i128;
+    if total < i64::MIN as i128 || total > i64::MAX as i128 {
+        None
+    } else {
+        Some(total as i64)
+    }
+}
+
 /// An exact, signed span of SI seconds with attosecond resolution.
 ///
 /// The representation is a *floor* decomposition: `value = secs + attos·10⁻¹⁸`
@@ -207,7 +272,7 @@ impl Duration {
     /// Approximate the span as 86 400-second days in `f64`.
     #[must_use]
     pub fn as_days_f64(self) -> f64 {
-        self.as_secs_f64() / 86_400.0
+        self.as_secs_f64() / SECONDS_PER_DAY_F64
     }
 
     /// Build a span from a `f64` count of seconds.
@@ -425,10 +490,19 @@ impl Duration {
     #[must_use]
     pub const fn days_seconds_attos(self) -> (i128, u32, u64) {
         (
-            self.secs.div_euclid(86_400),
-            self.secs.rem_euclid(86_400) as u32,
+            self.secs.div_euclid(SECONDS_PER_DAY as i128),
+            self.secs.rem_euclid(SECONDS_PER_DAY as i128) as u32,
             self.attos,
         )
+    }
+
+    /// The whole 86 400-second days of the span, rounded towards negative
+    /// infinity, and the whole seconds left in `0..86 400`: the
+    /// [`days_and_seconds`] of its floor second.
+    #[must_use]
+    pub const fn days_and_seconds(self) -> (i128, u32) {
+        let (days, seconds, _) = self.days_seconds_attos();
+        (days, seconds)
     }
 
     /// A [`fmt::Display`] view of the span as Python writes a `timedelta`:
@@ -704,6 +778,53 @@ impl fmt::Display for DaysAndClock {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The split of a POSIX timestamp rounds the day down, so the second of
+    /// the day is never negative, and the join undoes it, in range and at its
+    /// two ends.
+    #[test]
+    fn whole_seconds_split_into_days_and_seconds_and_join_again() {
+        assert_eq!(days_and_seconds(0), (0, 0));
+        assert_eq!(days_and_seconds(86_400), (1, 0));
+        assert_eq!(days_and_seconds(-1), (-1, 86_399));
+        assert_eq!(days_and_seconds(-86_400), (-1, 0));
+        assert_eq!(days_and_seconds(-86_401), (-2, 86_399));
+        // 2016-12-31T23:59:59Z, the second before the last leap second.
+        assert_eq!(days_and_seconds(1_483_228_799), (17_166, 86_399));
+        for seconds in [
+            0,
+            1,
+            -1,
+            86_399,
+            86_400,
+            -86_401,
+            1_483_228_800,
+            i64::MIN,
+            i64::MAX,
+        ] {
+            let (day, second) = days_and_seconds(seconds);
+            assert!(second < 86_400);
+            assert_eq!(seconds_from_days_and_seconds(day, second), Some(seconds));
+        }
+        assert_eq!(seconds_in_days(17_167), Some(1_483_228_800));
+        assert_eq!(seconds_in_days(i64::MIN / 86_400 - 1), None);
+        // A second of the day past 86 399 carries into the next day.
+        assert_eq!(
+            seconds_from_days_and_seconds(17_166, 86_400),
+            Some(1_483_228_800)
+        );
+        assert_eq!(
+            seconds_from_days_and_seconds(i64::MAX / 86_400, 86_399),
+            None
+        );
+        // The method agrees with the free function on the floor second.
+        for duration in [Duration::from_millis(-1), Duration::from_secs(90_061)] {
+            let (days, seconds) = duration.days_and_seconds();
+            let (floor_days, floor_seconds) = days_and_seconds(duration.floor_seconds() as i64);
+            assert_eq!((days, seconds), (i128::from(floor_days), floor_seconds));
+        }
+        assert_eq!(Duration::from_millis(-1).days_and_seconds(), (-1, 86_399));
+    }
     /// The range claims in this module's doc comment, pinned.
     ///
     /// Both limits are easy to misstate by many orders of magnitude, and

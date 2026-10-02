@@ -36,6 +36,7 @@ use hc_calendar::CivilDateTime;
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::{Rd, Weekday, gregorian};
 use hc_core::UnixTime;
+use hc_core::duration::days_and_seconds;
 
 use crate::error::{TzError, TzResult};
 use crate::offset::UtcOffset;
@@ -448,7 +449,7 @@ impl PosixTz {
     /// checked too.
     fn approximate_local_year(&self, seconds: i64) -> i64 {
         let shifted = seconds.saturating_add(i64::from(self.standard_offset.seconds()));
-        gregorian::year_from_fixed(Rd(shifted.div_euclid(86_400) + RD_OF_UNIX_EPOCH))
+        gregorian::year_from_fixed(Rd(days_and_seconds(shifted).0 + RD_OF_UNIX_EPOCH))
     }
 
     /// Whether saving time is in force at an instant.

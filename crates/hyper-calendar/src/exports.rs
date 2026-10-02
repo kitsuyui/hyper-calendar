@@ -109,7 +109,9 @@ macro_rules! exports {
         }
         fn hc_fixed_from_unix(unix_seconds: i64) -> value(out_fixed: i64) =
             |unix_seconds: i64| {
-                Ok($crate::Rd::from_unix_days(unix_seconds.div_euclid(86_400)).get())
+                Ok($crate::Rd::from_unix_days(
+                    $crate::hc_core::duration::days_and_seconds(unix_seconds).0
+                ).get())
             };
 
         c {
@@ -150,7 +152,7 @@ macro_rules! exports {
         fn hc_unix_from_fixed(fixed: i64) -> value(out_unix_seconds: i64) =
             |fixed: i64| {
                 fixed.checked_sub($crate::hc_calendar::fixed::RD_OF_UNIX_EPOCH)
-                    .and_then(|days| days.checked_mul(86_400))
+                    .and_then($crate::hc_core::duration::seconds_in_days)
                     .ok_or($crate::boundary::Refusal::OutOfRange)
             };
     } };

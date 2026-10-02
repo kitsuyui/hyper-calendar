@@ -20,7 +20,7 @@
 
 use core::fmt;
 
-use crate::duration::{ATTOS_PER_SEC, Duration};
+use crate::duration::{ATTOS_PER_SEC, Duration, SECONDS_PER_DAY, days_and_seconds};
 use crate::error::{TimeError, TimeResult};
 use crate::unix::UnixTime;
 
@@ -53,7 +53,8 @@ impl Beat {
     /// The reading at a POSIX time.
     #[must_use]
     pub const fn at(unix: UnixTime) -> Self {
-        let second_of_day = (unix.seconds().rem_euclid(86_400) + BMT_OFFSET_SECONDS) % 86_400;
+        let second_of_day =
+            (days_and_seconds(unix.seconds()).1 as i64 + BMT_OFFSET_SECONDS) % SECONDS_PER_DAY;
         // Below 86 400 000, so the quotient is below 1 000.
         let millis = second_of_day as u64 * 1_000 + unix.subsec_attos() / (ATTOS_PER_SEC / 1_000);
         Self((millis / MILLIS_PER_BEAT) as u16)

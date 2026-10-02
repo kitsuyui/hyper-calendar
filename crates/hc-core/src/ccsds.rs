@@ -27,7 +27,9 @@
 //! without defining its content, this module refuses it with
 //! [`TimeError::OutOfRange`] rather than guessing a meaning.
 
-use crate::duration::{ATTOS_PER_SEC, Duration};
+use crate::duration::{
+    ATTOS_PER_SEC, Duration, SECONDS_PER_DAY, days_and_seconds, seconds_from_days_and_seconds,
+};
 use crate::epoch::CCSDS_CUC;
 use crate::error::{TimeError, TimeResult};
 use crate::leap;
@@ -845,17 +847,13 @@ impl CdsTime {
         let (_, unit) = self.format.submillisecond.limit_and_unit();
         let subsec_attos = u64::from(self.millisecond % 1_000) * 1_000_000_000_000_000
             + u64::from(self.submillisecond) * unit;
-        let day_start = unix_day.checked_mul(86_400).ok_or(TimeError::Overflow)?;
-        if second_of_day == 86_400 {
-            return Ok(UtcInstant {
-                unix_seconds: day_start + 86_400,
-                leap_second: true,
-                subsec_attos,
-            });
-        }
+        // 86 400 is 23:59:60, the second that ends the day and reads as the
+        // first of the next.
+        let unix_seconds = seconds_from_days_and_seconds(unix_day, second_of_day as u32)
+            .ok_or(TimeError::Overflow)?;
         Ok(UtcInstant {
-            unix_seconds: day_start + second_of_day,
-            leap_second: false,
+            unix_seconds,
+            leap_second: second_of_day == SECONDS_PER_DAY,
             subsec_attos,
         })
     }
@@ -886,16 +884,14 @@ impl CdsTime {
         utc: UtcInstant,
         epoch_unix_day: i64,
     ) -> TimeResult<Self> {
+        let (day, second) = days_and_seconds(utc.unix_seconds);
         let (unix_day, second_of_day) = if utc.leap_second {
-            if utc.unix_seconds.rem_euclid(86_400) != 0 {
+            if second != 0 {
                 return Err(TimeError::OutOfRange);
             }
-            (utc.unix_seconds.div_euclid(86_400) - 1, 86_400)
+            (day - 1, SECONDS_PER_DAY)
         } else {
-            (
-                utc.unix_seconds.div_euclid(86_400),
-                utc.unix_seconds.rem_euclid(86_400),
-            )
+            (day, i64::from(second))
         };
         check_second_of_day(unix_day, second_of_day)?;
         let day = u32::try_from(unix_day - epoch_unix_day).map_err(|_| TimeError::OutOfRange)?;
@@ -1037,7 +1033,7 @@ mod tests {
         };
         let leap_days: alloc::vec::Vec<u32> = leap::steps()
             .filter(|(_, delta)| *delta > 0)
-            .map(|(at, _)| (at.div_euclid(86_400) - 1 - CDS_EPOCH_UNIX_DAY) as u32)
+            .map(|(at, _)| (days_and_seconds(at).0 - 1 - CDS_EPOCH_UNIX_DAY) as u32)
             .collect();
         assert_eq!(leap_days.len(), 27);
         assert_eq!(leap_days.last(), Some(&21_549));

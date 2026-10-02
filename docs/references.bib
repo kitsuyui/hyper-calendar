@@ -4204,7 +4204,7 @@
   author       = {{U.S. Naval Observatory}},
   title        = {tai-utc.dat},
   howpublished = {\url{https://maia.usno.navy.mil/ser7/tai-utc.dat}},
-  note         = {TAI - UTC from 1961, piecewise linear to 1972. Read 2026-09-26}
+  note         = {TAI - UTC from 1961, piecewise linear to 1972. Read 2026-09-26; the 1961-1972 rows, with their Julian Dates, read again 2026-10-03}
 }
 
 @misc{cgpm2022-res4,
@@ -12137,4 +12137,20 @@
   title        = {ICU4J \texttt{Calendar}: \texttt{WEEK\_OF\_MONTH}, \texttt{WEEK\_OF\_YEAR} and \texttt{weekNumber}},
   howpublished = {\url{https://github.com/unicode-org/icu/blob/main/icu4j/main/core/src/main/java/com/ibm/icu/util/Calendar.java}},
   note         = {The \texttt{main} branch. \texttt{weekNumber(desiredDay, dayOfPeriod, dayOfWeek)} counts a period's first week from \texttt{getFirstDayOfWeek()} and \texttt{getMinimalDaysInFirstWeek()} and leaves the days before it at 0, which \texttt{WEEK\_OF\_MONTH} takes; the Javadoc says subclasses define the value of the field before the first week. A comparison with another implementation, not a source of the rule. Retrieved 2026-10-03}
+}
+
+% --- hc-core: the 1961-1971 rate era and the ISO week date (docs/time-scales.md) ---
+
+@misc{iers-utc-tai-history,
+  author       = {{International Earth Rotation and Reference Systems Service, Earth Orientation Centre}},
+  title        = {{UTC-TAI.history}: the relationship between {TAI} and {UTC} from 1961},
+  howpublished = {\url{https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history}},
+  note         = {The thirteen segments of 1961 to 1972 with their start dates and the straight line of each, and the whole seconds from 1972-01-01 to 2017-01-01 with the twenty-seven steps of one second. Read as a web page on 2026-10-03; it agrees with the USNO file on every date and coefficient and gives no Julian Dates}
+}
+
+@misc{wikipedia-iso-week-date,
+  author       = {{Wikipedia contributors}},
+  title        = {{ISO} week date},
+  howpublished = {\url{https://en.wikipedia.org/wiki/ISO_week_date}},
+  note         = {The algorithms: the week number from the ordinal date and weekday, $\lfloor (10 + \mathrm{doy} - \mathrm{dow}) / 7 \rfloor$, with the corrections for week 0 and week 53; and the long years from $p(y) = (y + \lfloor y/4 \rfloor - \lfloor y/100 \rfloor + \lfloor y/400 \rfloor) \bmod 7$, 53 weeks when $p(y) = 4$ or $p(y-1) = 3$. A secondary account; ISO 8601 itself was not read. Read 2026-10-03}
 }

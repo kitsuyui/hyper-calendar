@@ -39,7 +39,7 @@ use hc_astro::ut_variants::ut2_minus_ut1;
 use hc_calendar::Rd;
 use hc_calendar::fixed::{Moment, RD_OF_UNIX_EPOCH};
 use hc_calendar::gregorian::new_year;
-use hc_core::duration::{SECONDS_PER_DAY, SECONDS_PER_DAY_F64};
+use hc_core::duration::{SECONDS_PER_DAY_F64, days_and_seconds};
 use hc_core::math::floor;
 use hc_core::scale::TT_MINUS_TAI;
 use hc_core::unix::{LeapPolicy, tai_minus_utc_at};
@@ -89,12 +89,11 @@ pub fn moment_in_era(unix: i64) -> Answer<Moment> {
 /// [`Refusal::OutOfRange`] for a day whose number overflows, and what
 /// `day` answers for the day.
 pub(crate) fn moment_on_day(unix: i64, day: fn(i64) -> Answer<Rd>) -> Answer<Moment> {
-    let fixed = unix
-        .div_euclid(SECONDS_PER_DAY)
+    let (unix_day, seconds) = days_and_seconds(unix);
+    let fixed = unix_day
         .checked_add(RD_OF_UNIX_EPOCH)
         .ok_or(Refusal::OutOfRange)?;
     day(fixed)?;
-    let seconds = unix.rem_euclid(SECONDS_PER_DAY);
     Ok(Moment(fixed as f64 + seconds as f64 / SECONDS_PER_DAY_F64))
 }
 

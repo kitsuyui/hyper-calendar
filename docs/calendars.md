@@ -76,7 +76,7 @@ The base layer. These need no astronomy, so they carry no ephemeris cost.
 | Proleptic Gregorian | `gregory` | `hc-calendars-solar` | Done |
 | Proleptic Julian | `julian` | `hc-calendars-solar` | Done |
 | Julian→Gregorian reform (per country) | `julian-gregorian-<polity>`, 14 of them | `hc-calendars-solar` | Done — fourteen cut-overs, three of them on a document read, Serbia's on its law as a newspaper quotes it and ten on secondary sources, with a regional table of adoptions by country beside them; see [systems/gregorian-reform.md](systems/gregorian-reform.md) |
-| ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done |
+| ISO 8601 week date | `iso8601-week` | `hc-calendars-solar` | Done — the week-numbering year, week and weekday of every day of the Gregorian range, the last one included: 9999999-12-31 is `9999999-W52-5`, whose first three days, 9999999-01-01 to 01-03, are in week 53 of 9999998. The algorithm is Wikipedia's, "ISO week date", read 2026-10-03 (`wikipedia-iso-week-date`); ISO 8601 itself was not read |
 | ISO 8601 ordinal date | `iso8601-ordinal` | `hc-calendars-solar` | Done |
 | Julian Day Number | `julian-day` | `hc-calendars-solar` | Done |
 | Modified Julian Day | `modified-julian-day` | `hc-calendars-solar` | Done |
