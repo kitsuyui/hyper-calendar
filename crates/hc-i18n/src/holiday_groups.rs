@@ -23,6 +23,12 @@
 //!   the name is of the people, without the word.
 //!
 //! Left without a name, and so written in English by the line writers:
+//! Bangladesh's five, `muslims`, `hindus`, `christians`, `buddhists` and
+//! `small-ethnic-groups`, in `bn`. The Ministry of Public Administration's
+//! notifications that name them are in Bengali, but their PDFs were not
+//! opened, and the newspapers that reproduce them spell the Christian
+//! section's name two ways. (`muslims` has a name in `ne`, from Nepal's
+//! notices.) And
 //! Taiwan's five, `police`, `firefighters`, `military`, `coast-guard` and
 //! `indigenous-peoples`, in `zh-Hant`. The 紀念日及節日實施條例 names the
 //! services' days and the authorities that set them off — 消防節及警察節

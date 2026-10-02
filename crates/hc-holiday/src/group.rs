@@ -7,7 +7,8 @@
 //! 紀念日及節日實施條例, Article 6, leaves the day off on Police Day, Fire
 //! Fighters' Day, Armed Forces Day and Coast Guard Day to the authority
 //! of each service; Nepal's Home Ministry gives Teej to women employees
-//! and Gai Jatra to the Newar community. Such a day is a rule of the
+//! and Gai Jatra to the Newar community; Bangladesh's Ministry of Public
+//! Administration lists optional holidays for each faith. Such a day is a rule of the
 //! country's table scoped to a [`Group`], as a subdivision's day is a rule
 //! scoped to its ISO 3166-2 code, and the two scopes are independent: a
 //! rule may name a region, a
@@ -44,7 +45,8 @@ hc_core::catalogue! {
 
     /// Every group a rule is scoped to, in the order of the first table
     /// that names each: China's four, Taiwan's services, then Nepal's
-    /// communities, faiths and employees.
+    /// communities, faiths and employees, then the groups Bangladesh's
+    /// optional holidays are for that Nepal's do not name.
     pub const GROUPS;
 
     /// The group with this identifier.
@@ -87,7 +89,9 @@ hc_core::catalogue! {
         /// The Kirat faithful, किराँत धर्मावलम्बी, to whom the notices give
         /// Falgunanda Jayanti.
         pub const KIRAT = Group { id: "kirat", english_name: "the Kirat faithful" };
-        /// Muslims, to whom the notices give the Prophet's birthday.
+        /// Muslims, to whom Nepal's notices give the Prophet's birthday and
+        /// to whom Bangladesh's give the optional holidays of its Muslim
+        /// section.
         pub const MUSLIMS = Group { id: "muslims", english_name: "Muslims" };
         /// Sikhs, to whom the notices give Guru Nanak Jayanti.
         pub const SIKHS = Group { id: "sikhs", english_name: "Sikhs" };
@@ -96,6 +100,24 @@ hc_core::catalogue! {
         pub const PERSONS_WITH_DISABILITIES = Group {
             id: "persons-with-disabilities",
             english_name: "persons with disabilities",
+        };
+        /// Hindus, for whom Bangladesh's notifications list the optional
+        /// holidays of the Hindu section (হিন্দু পর্ব).
+        pub const HINDUS = Group { id: "hindus", english_name: "Hindus" };
+        /// Buddhists, for whom Bangladesh's notifications list the optional
+        /// holidays of the Buddhist section (বৌদ্ধ পর্ব).
+        pub const BUDDHISTS = Group { id: "buddhists", english_name: "Buddhists" };
+        /// Christians, for whom Bangladesh's notifications list the optional
+        /// holidays of the Christian section (খ্রিষ্টান পর্ব).
+        pub const CHRISTIANS = Group { id: "christians", english_name: "Christians" };
+        /// The employees of the small ethnic groups, ক্ষুদ্র নৃগোষ্ঠী, in
+        /// the Chittagong Hill Tracts and outside them, for whom Bangladesh's
+        /// notifications list Boisabi and the like. The notifications use
+        /// this term, not "indigenous", so the group is not
+        /// [`INDIGENOUS_PEOPLES`], Taiwan's.
+        pub const SMALL_ETHNIC_GROUPS = Group {
+            id: "small-ethnic-groups",
+            english_name: "small ethnic groups",
         };
     }
 }

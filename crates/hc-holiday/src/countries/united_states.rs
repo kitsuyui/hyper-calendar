@@ -1326,6 +1326,8 @@ static US_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Nearest,
     skip_occupied: false,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(1959),
     valid_until: None,
 }];

@@ -268,7 +268,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
 | `BA` | Bosnia and Herzegovina | 40 | yes | stated | 2026-09-23 |
 | `BB` | Barbados | 12 | yes | stated | 2026-09-22 |
-| `BD` | Bangladesh | 28 | none | stated | 2026-09-23 |
+| `BD` | Bangladesh | 56 | none | stated | 2026-09-23 |
 | `BE` | Belgium | 10 | none | stated | 2026-09-26 |
 | `BF` | Burkina Faso | 25 | yes | stated | 2026-09-23 |
 | `BG` | Bulgaria | 15 | yes | stated | 2026-09-22 |
@@ -403,7 +403,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `QA` | Qatar | 16 | none | stated | 2026-09-22 |
 | `RO` | Romania | 17 | none | stated | 2026-09-22 |
 | `RS` | Serbia | 26 | yes | stated | 2026-09-22 |
-| `RU` | Russia | 77 | none | stated | 2026-09-29 |
+| `RU` | Russia | 115 | none | stated | 2026-10-03 |
 | `RW` | Rwanda | 17 | yes | stated | 2026-09-23 |
 | `SA` | Saudi Arabia | 10 | none | stated | 2026-09-26 |
 | `SB` | Solomon Islands | 17 | yes | stated | 2026-09-29 |

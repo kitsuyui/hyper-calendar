@@ -1327,7 +1327,7 @@ export interface HolidayInYear {
    * The holiday's stable identifier within its table, lower-case ASCII and hyphenated:
    * `new-years-day`. The same entry of `hc_holidays_on` and `hc_common_worship_on` carries it,
    * so lines are joined on it and not on the name. Spelling variants of one day share it. A
-   * gap carries its rule's, and `unread-subdivision` for a subdivision not read.
+   * gap carries its rule's, `unread-subdivision` for a subdivision not read, and `unread-weekend` for a year whose weekend law was not read.
    */
   id: string;
   /** The instrument the rule cites, or `null` where the table's own sources speak for it. */
@@ -2259,12 +2259,35 @@ export interface HolidayTable {
    * the nationwide days and has a gap for its own. Empty for a table with no subdivisions.
    */
   readSubdivisions: string[];
+  /**
+   * The table's weekend laws, in the table's order; empty for a table that
+   * states none, whose weekend is Saturday and Sunday. Where several cover a
+   * day, the one for the nearest region wins, and a region with none of its
+   * own has the one with no regions.
+   */
+  weekend: WeekendLaw[];
 }
 
 /** A pair of column 12 of `hc_holiday_tables`: `CN-XJ:women` is `{ region: "CN-XJ", group: "women" }`. */
 export interface HolidayRegionGroup {
   region: string;
   group: string;
+}
+
+/** One weekend law of a holiday table: an entry of column 14 of `hc_holiday_tables`. */
+export interface WeekendLaw {
+  /**
+   * The weekend days as ISO 8601 weekday numbers, Monday 1 to Sunday 7
+   * (`[5, 6]` for Friday and Saturday); `null` where the weekend law of
+   * these years was not read for the regions, which is a gap.
+   */
+  days: number[] | null;
+  /** The first day it is in force, `YYYY-MM-DD`; `null` for no first day. */
+  first: string | null;
+  /** The last day it is in force, `YYYY-MM-DD`; `null` for no last day. */
+  last: string | null;
+  /** The ISO 3166-2 codes of the regions it is the weekend of; empty for the whole table. */
+  regions: string[];
 }
 
 /** Which rules answered for a zone's name. */

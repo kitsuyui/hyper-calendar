@@ -75,7 +75,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 13));
+    assert!(rows.iter().all(|row| row.len() == 14));
     assert_eq!(
         rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
         codes.lines().collect::<Vec<_>>()
@@ -103,7 +103,8 @@ fn every_table_is_described_in_the_order_of_the_codes() {
             "",
             "",
             "",
-            ""
+            "",
+            "6+7///"
         ]
     );
     let japanese = read_lines(|buffer, capacity| unsafe {
@@ -113,7 +114,10 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .find(|line| line.starts_with("HK\t"))
         .expect("HK");
-    assert!(hong_kong.ends_with("\t\t香港\t\t\t\t\t"), "{hong_kong}");
+    assert!(
+        hong_kong.ends_with("\t\t香港\t\t\t\t\t\t6+7///"),
+        "{hong_kong}"
+    );
     assert_eq!(
         unsafe { hc_holiday_tables(core::ptr::null(), 1, core::ptr::null_mut(), 0) },
         HC_ERR_NULL_POINTER

@@ -514,8 +514,8 @@ one job a layer.
 | `civil` *(default)* | Gregorian dates, ISO 8601 text, POSIX time, TAI − UTC and leap seconds | `hc-calendar`, `hc-calendars-solar`, `hc-format` | 36,682 | 36 KiB |
 | `timestamps` | `hc_tai_from_unix`, `hc_utc_from_tai`, `hc_tai64_encode`, `hc_tai64_decode`, `hc_tai64_posix_plus_10_encode`, `hc_tai64_posix_plus_10_decode`, `hc_gnss_week`, `hc_gnss_to_tai`, `hc_gnss_resolve_week`, `hc_glonass_date`, `hc_fixed_from_ole_automation`, `hc_ole_automation_from_fixed`, `hc_excel_1900_day`, `hc_uuid_timestamp`, `hc_ntp_resolve`, `hc_uuid_timestamp_encode`, `hc_ntp_encode`, `hc_fat_decode`, `hc_fat_encode`, `hc_swatch_beat`, `hc_epoch_from_tt`, `hc_tt_from_epoch`, `hc_tt_bipm`, `hc_dotnet_ticks_from_unix`, `hc_unix_from_dotnet_ticks`, `hc_six_hour_clock`, `hc_civil_from_six_hour_clock`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`: POSIX time to and from TAI, TAI64 labels in both conventions, GNSS weeks, GLONASS dates, OLE Automation dates, Excel 1900 serials, UUID timestamps, NTP eras, FAT date and time words, Swatch Internet Time, Julian and Besselian epochs, TT(BIPM) from a caller's series, .NET ticks, and the Ethiopian and Swahili six-hour clocks | nothing beyond `civil`'s crates: `hc-core`'s `tai64`, `gnss`, `uuid`, `ntp`, `internet_time`, `epoch_notation`, `tt_bipm` and `dotnet`, `hc-calendars-solar`'s `spreadsheet`, `hc-format`'s `fat` and `east_african_hours` | 123,090 | 120 KiB |
 | `time-codes` | `hc_ccsds_decode`, `hc_ccsds_encode`, `hc_ccsds_decode_from_epoch`, `hc_ccsds_encode_from_epoch`, `hc_ccsds_ascii_parse`, `hc_ccsds_ascii_format`, `hc_radio_decode`, `hc_radio_encode`, `hc_jjy_call_sign_decode`, `hc_jjy_call_sign_encode`, `hc_irig_decode`, `hc_irig_encode`, `hc_irig_formats`, `hc_irig_frame_start`: the CCSDS time codes, binary and ASCII, the long-wave radio time codes of JJY, DCF77 and WWVB, and the IRIG serial time codes, read and written; a layer of its own so that `timestamps` stays small | nothing beyond `civil`'s crates: `hc-core`'s `ccsds`, `hc-format`'s `ccsds`, `radio` and `irig` | 114,558 | 112 KiB |
-| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,429,405 | 1.36 MiB |
-| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,306,007 | 2.20 MiB |
+| `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,437,434 | 1.37 MiB |
+| `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,420,206 | 2.31 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains` | `hc-seasons`, `hc-astro` | 91,396 | 89 KiB |
 | `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 183,774 | 179 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 99,078 | 97 KiB |
@@ -524,10 +524,10 @@ one job a layer.
 | `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs and its heliacal risings; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 216,294 | 211 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,728 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
-| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,960,517 | 2.82 MiB |
-| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries | `hc-humanize`, `hc-i18n` | 647,430 | 632 KiB |
-| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,639,689 | 1.56 MiB |
-| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 7,764,359 | 7.40 MiB |
+| `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,604 | 2.83 MiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries | `hc-humanize`, `hc-i18n` | 651,206 | 636 KiB |
+| `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,643,480 | 1.57 MiB |
+| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 7,887,481 | 7.52 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -2688,10 +2688,12 @@ country, and an identifier folds case, punctuation, apostrophes and
 diacritics (`Mothers' Day` and `Mother's Day` are `mothers-day`), which a
 rule overrides only where two days of one table would fold together. A gap
 carries its rule's identifier and source, and `unread-subdivision` and no
-source for a subdivision not read. The kind filter, the fourth argument,
+source for a subdivision not read, and `unread-weekend` and no source for a
+year whose weekend law in the region was not read. The kind filter, the fourth argument,
 keeps the entries of the kinds it lists, `;`-separated in any case —
 `public;bank` — and the gaps of the rules of those kinds, and a
-subdivision not read is a gap whatever it lists; empty, it is every kind.
+subdivision not read, and a weekend not read, is a gap whatever it lists;
+empty, it is every kind.
 It is for the tables whose lists are long: the United States' states carry
 about 1,300 observances beside a few public days. A kind is `public`, `bank`, `religious`,
 `observance`, `school`, `workday`, `government` or `half-day`. After the
@@ -2907,6 +2909,24 @@ from CLDR's English by fallback has English's short name.
 | 11 | group names | those groups' names in the locale, in the same order: `hc-i18n`'s where it names the group in a language of the locale's chain, 妇女 for `women` under `zh-CN`, else the English name |
 | 12 | region groups | the pairs of a subdivision and a group that a rule is scoped to both of, `region:group`, `;`-separated in code and then identifier order, the scopes whose own days neither the region alone nor the group alone has; empty for a table with none, which is every table today |
 | 13 | read subdivisions | the ISO 3166-2 codes of the subdivisions the table's sources were read for, `;`-separated in code order: column 9's, and those read and found to keep no day of their own; a region outside the list keeps the nationwide days and has a gap for its own; empty for a table with no subdivisions and for a country whose subdivisions were not read |
+| 14 | weekend | the table's weekend laws, `;`-separated in the table's order, each four fields separated by `/`: the weekend days as ISO 8601 weekday numbers joined by `+` (Monday 1 to Sunday 7, `5+6` for Friday and Saturday) or `unread` for years whose law was not read, the first day in force and the last, `YYYY-MM-DD`, each empty for none, and the ISO 3166-2 codes of the regions it is the weekend of, joined by `,`, empty for the whole table |
+
+Column 14 is the weekend a caller's `region` selects
+([ADR 0015](https://github.com/kitsuyui/hyper-calendar/blob/main/docs/adr/0015-a-region-may-keep-a-weekend-of-its-own.md)).
+Where several entries cover a day the one for the nearest region wins, and
+a region with none of its own has the entry with no regions; a table that
+writes none keeps Saturday and Sunday. `MY` writes `6+7///` for the
+country, `5+6/2013-11-25//MY-02,MY-03,MY-11` for the three states that keep
+Friday and Saturday and `5+6/2014-01-01/2024-12-31/MY-01` for Johor's
+decade, with `unread` entries for the years before `1994-12-31` (Johor)
+and `2013-11-24` (the three and Perlis) whose law was not read; `AE` ends
+with `5+6+7/2022-01-01//AE-SH`, the Government of Sharjah's. The weekend
+changes what `hc_holiday_add_business_days`, `hc_holiday_business_days_between`
+and `hc_holidays_in_year` answer for such a region, and an `unread` day
+refuses the arithmetic with `HC_ERR_OUT_OF_RANGE` and is a gap line,
+named `The weekend`, of the year. The JavaScript binding reads the column
+into `weekend`, a list of `{ days, first, last, regions }` with `days` null
+for `unread`.
 
 ### Business days
 
@@ -2923,9 +2943,13 @@ nor a weekend day the table does not make a working day, as China's
 调休上班 are. A positive count moves forward and a negative one back; the
 starting day is never counted, and 0 returns it. The interval of the
 second is half-open, so that two counts add. In Japan's Golden Week of
-2026, five business days after Tuesday 28 April is Monday 11 May. A count
-past 36 500, or two days more than a hundred years apart, is
-`HC_ERR_OUT_OF_RANGE`.
+2026, five business days after Tuesday 28 April is Monday 11 May. The weekend
+is the `region`'s where it keeps one of its own (column 14 of
+`hc_holiday_tables`): one business day after Thursday 5 March 2026 is Friday
+6 March in `MY` and Sunday 8 March in `MY-02`, Kedah, whose weekend is
+Friday and Saturday. A count past 36 500, or two days more than a hundred
+years apart, or a walk that reaches a day whose weekend law the region's
+sources did not read, is `HC_ERR_OUT_OF_RANGE`.
 
 ### Groups and names in a locale
 

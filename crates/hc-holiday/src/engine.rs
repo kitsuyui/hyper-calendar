@@ -29,12 +29,16 @@ use crate::group::Group;
 use crate::id::HolidayId;
 use crate::rule::{
     Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, Scope, SubstituteDirection,
-    SubstitutionPolicy, UNREAD_SUBDIVISION, Window,
+    SubstitutionPolicy, UNREAD_SUBDIVISION, UNREAD_WEEKEND, WeekendPolicy, Window,
 };
 
 /// The identifier of the gap the engine reports for a subdivision whose
 /// own days no source read gives, [`UNREAD_SUBDIVISION`]'s.
 pub const UNREAD_SUBDIVISION_ID: HolidayId = HolidayId::explicit("unread-subdivision");
+
+/// The identifier of the gap the engine reports for a year whose weekend law
+/// in the region was not read, [`UNREAD_WEEKEND`]'s (ADR 0015).
+pub const UNREAD_WEEKEND_ID: HolidayId = HolidayId::explicit("unread-weekend");
 
 /// One holiday on one day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -461,10 +465,25 @@ impl<'a> HolidayCalendar<'a> {
     }
 
     /// Whether `day` falls on the weekend, under the weekend law in force
-    /// that day.
+    /// that day in the calendar's region.
+    ///
+    /// A region may keep a weekend of its own: Kedah's is Friday and
+    /// Saturday, the rest of Malaysia's Saturday and Sunday (ADR 0015). A
+    /// day on which the region's weekend law was not read is not a weekend
+    /// day here, and [`HolidayCalendar::weekend_is_read`] says so.
     #[must_use]
     pub fn is_weekend(&self, day: Rd) -> bool {
-        self.rules.weekend_on(day).contains(&Weekday::from_rd(day))
+        self.rules
+            .weekend_in(self.scope.region, day)
+            .is_some_and(|days| days.contains(&Weekday::from_rd(day)))
+    }
+
+    /// Whether the weekend law in force on `day` in the calendar's region
+    /// was read. Where it was not, [`HolidayCalendar::is_weekend`] says no
+    /// and the business-day arithmetic refuses.
+    #[must_use]
+    pub fn weekend_is_read(&self, day: Rd) -> bool {
+        self.rules.weekend_in(self.scope.region, day).is_some()
     }
 
     /// Whether `day` is a weekend day the calendar makes a working day — a
@@ -491,7 +510,8 @@ impl<'a> HolidayCalendar<'a> {
     /// day when `count` is non-zero.
     ///
     /// Returns `None` when the walk leaves the evaluated span, because a
-    /// calendar cannot honestly answer for a year it has not evaluated.
+    /// calendar cannot honestly answer for a year it has not evaluated, or
+    /// reaches a day whose weekend law in the region was not read.
     #[must_use]
     pub fn add_business_days(&self, day: Rd, count: i64) -> Option<Rd> {
         if !self.covers(day) {
@@ -505,7 +525,7 @@ impl<'a> HolidayCalendar<'a> {
         let mut cursor = day;
         while remaining > 0 {
             cursor = Rd(cursor.0 + step);
-            if !self.covers(cursor) {
+            if !self.covers(cursor) || !self.weekend_is_read(cursor) {
                 return None;
             }
             if self.is_business_day(cursor) {
@@ -523,7 +543,9 @@ impl<'a> HolidayCalendar<'a> {
     /// count from Monday to Friday. `end` before `start` gives a negative
     /// count.
     ///
-    /// Returns `None` when either end lies outside the evaluated span.
+    /// Returns `None` when either end lies outside the evaluated span, or
+    /// a day of the interval has a weekend law the region's sources did not
+    /// read.
     #[must_use]
     pub fn business_days_between(&self, start: Rd, end: Rd) -> Option<i64> {
         if !self.covers(start) || !self.covers(end) {
@@ -540,6 +562,9 @@ impl<'a> HolidayCalendar<'a> {
         let mut count = 0i64;
         let mut cursor = from;
         while cursor < to {
+            if !self.weekend_is_read(cursor) {
+                return None;
+            }
             if self.is_business_day(cursor) {
                 count += 1;
             }
@@ -679,6 +704,22 @@ fn evaluate(
             });
         }
     }
+    // A year whose weekend law the region's sources did not read is a gap
+    // as well, and a day moved off a weekend in it is only as sure.
+    if rules.weekend.iter().any(WeekendPolicy::is_unread) {
+        for year in first_year..=last_year {
+            if rules.weekend_unread_in(scope.region, year) {
+                gaps.push(Gap {
+                    year,
+                    id: UNREAD_WEEKEND_ID,
+                    name: UNREAD_WEEKEND,
+                    kind: Kind::Public,
+                    local_name: "",
+                    source: "",
+                });
+            }
+        }
+    }
     for year in first_reached..=last_reached {
         for rule in rules.rules {
             // Outside its establishment and abolition the day did not
@@ -756,7 +797,7 @@ fn evaluate(
         if !occurrence.rule.substitutes_in(year) {
             continue;
         }
-        let Some(policy) = rules.substitution_in(year) else {
+        let Some(policy) = rules.substitution_in_region(year, scope.region) else {
             continue;
         };
         let trigger = occurrence.rule.substitute_trigger.unwrap_or(policy.trigger);
@@ -933,7 +974,9 @@ fn substitute_day(
     // against a table that triggers on every weekday.
     for _ in 0..30 {
         cursor = Rd(cursor.0 + step);
-        if trigger.contains(&Weekday::from_rd(cursor)) {
+        if trigger.contains(&Weekday::from_rd(cursor))
+            || policy.avoid.contains(&Weekday::from_rd(cursor))
+        {
             continue;
         }
         if occupied.binary_search(&cursor).is_ok() {
@@ -972,6 +1015,8 @@ mod tests {
         direction: SubstituteDirection::Forward,
         skip_occupied: true,
         on_collision: false,
+        regions: &[],
+        avoid: &[],
         valid_from: None,
         valid_until: None,
     }];
@@ -991,6 +1036,7 @@ mod tests {
 
     static FRIDAY_SATURDAY: [WeekendPolicy; 1] = [WeekendPolicy {
         days: &[Weekday::Friday, Weekday::Saturday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: None,
@@ -1040,6 +1086,8 @@ mod tests {
         direction: SubstituteDirection::NearestWorkingDay,
         skip_occupied: true,
         on_collision: false,
+        regions: &[],
+        avoid: &[],
         valid_from: None,
         valid_until: None,
     }];

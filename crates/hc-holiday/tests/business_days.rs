@@ -230,6 +230,7 @@ fn a_caller_can_supply_their_own_rule_set_and_get_the_same_engine() {
     )];
     static WEEKEND: [WeekendPolicy; 1] = [WeekendPolicy {
         days: &[Weekday::Wednesday, Weekday::Saturday, Weekday::Sunday],
+        regions: &[],
         valid_from: None,
         valid_from_day: None,
         valid_until: None,
@@ -240,6 +241,8 @@ fn a_caller_can_supply_their_own_rule_set_and_get_the_same_engine() {
         direction: SubstituteDirection::Forward,
         skip_occupied: true,
         on_collision: false,
+        regions: &[],
+        avoid: &[],
         valid_from: None,
         valid_until: None,
     }];

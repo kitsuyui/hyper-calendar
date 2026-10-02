@@ -63,7 +63,9 @@ cell, and the same identifier is the tenth cell of the year's line in
 
 A gap carries the identifier of its rule, so that a page can match a gap
 to the entry it replaces in another year; the one gap that is no rule's,
-a subdivision whose sources were not read, is `unread-subdivision`.
+a subdivision whose sources were not read, is `unread-subdivision`, and a
+year whose weekend law in the region was not read is `unread-weekend`
+([ADR 0015](../adr/0015-a-region-may-keep-a-weekend-of-its-own.md)).
 
 ## What is carried
 

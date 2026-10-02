@@ -331,7 +331,7 @@ export const COLUMNS = Object.freeze({
   chineseAlmanacSolarTerms: Object.freeze(["position", "name", "fixed"]),
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
-    "regions", "groups", "group names", "region groups", "read subdivisions",
+    "regions", "groups", "group names", "region groups", "read subdivisions", "weekend",
   ]),
   lectionary: Object.freeze([
     "liturgical year",
@@ -1603,7 +1603,7 @@ function regionGroup(pair) {
 function holidayTable(cells) {
   const [
     code, kind, name, englishName, localeUsed, source, country, shortName, regions, groups, groupNames,
-    regionGroups, readSubdivisions,
+    regionGroups, readSubdivisions, weekend,
   ] = cells;
   return {
     code,
@@ -1619,6 +1619,24 @@ function holidayTable(cells) {
     groupNames: groupNames === "" ? [] : groupNames.split(";"),
     regionGroups: regionGroups === "" ? [] : regionGroups.split(";").map(regionGroup),
     readSubdivisions: readSubdivisions === "" ? [] : readSubdivisions.split(";"),
+    weekend: weekend === "" ? [] : weekend.split(";").map(weekendLaw),
+  };
+}
+
+/**
+ * One weekend law of a holiday table: an entry of column 14 of
+ * `hc_holiday_tables`, `days/first/last/regions`.
+ *
+ * @param {string} entry
+ * @returns {import("./hyper-calendar.d.ts").WeekendLaw}
+ */
+function weekendLaw(entry) {
+  const [days, first, last, regions] = entry.split("/");
+  return {
+    days: days === "unread" ? null : days.split("+").map((day) => Number(day)),
+    first: first === "" ? null : first,
+    last: last === "" ? null : last,
+    regions: regions === "" ? [] : regions.split(","),
   };
 }
 

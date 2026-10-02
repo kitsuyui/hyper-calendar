@@ -116,6 +116,10 @@ Some questions have no answer, and the API says so instead of inventing one:
   subdivision they were not read for, is a gap that the engine reports,
   not a year or a place without the day
   ([ADR 0013](adr/0013-a-year-the-sources-do-not-reach-is-a-gap.md)).
+- **A weekend before the sources read.** A region's weekend law in a year
+  its sources do not reach is a gap too, and business-day arithmetic over
+  it refuses, not a Saturday and a Sunday assumed
+  ([ADR 0015](adr/0015-a-region-may-keep-a-weekend-of-its-own.md)).
 
 ## 5. Competing conventions get names, not parameters
 

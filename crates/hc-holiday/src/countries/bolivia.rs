@@ -139,6 +139,8 @@ static BO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     direction: SubstituteDirection::Forward,
     skip_occupied: true,
     on_collision: false,
+    regions: &[],
+    avoid: &[],
     valid_from: Some(2016),
     valid_until: None,
 }];

@@ -3511,8 +3511,9 @@ macro_rules! exports {
             /// the local name, the kind `gap`, an empty confidence, `0`, nothing,
             /// the subdivision and the group whose own gap it is, the identifier
             /// of the holiday and the instrument its rule cites; a subdivision
-            /// not read is a gap of the identifier `unread-subdivision` whatever
-            /// the `kind`. A null `buffer` returns the length the text needs, so
+            /// not read is a gap of the identifier `unread-subdivision`, and a
+            /// year whose weekend law in the region was not read one of
+            /// `unread-weekend`, whatever the `kind`. A null `buffer` returns the length the text needs, so
             /// a caller can allocate exactly. The string arguments fail as for
             /// `hc_holiday_is_day_off`.
         }
@@ -3622,14 +3623,22 @@ macro_rules! exports {
             /// subdivision and group pairs a rule is scoped to both of,
             /// `region:group`, `;`-separated, or nothing, and the subdivisions the
             /// table's sources were read for, `;`-separated in code order, or
-            /// nothing. A country is
+            /// nothing, and the table's weekend laws (column 14; see below). A
+            /// country is
             /// named by its CLDR 48 territory name
             /// in the `locale` where `hc-i18n` carries one, and else, as for a null
             /// `locale`, by CLDR's English one; every other table by its English
             /// name; the tag that answered is in column 5. Column 8 is CLDR 48's
             /// `alt="short"` name of a country, from the data that named it —
             /// `Hong Kong` for `HK` under `en`, 香港 under `ja` — and empty where
-            /// the data has none and for every table that is not a country. Writes the required
+            /// the data has none and for every table that is not a country. Column
+            /// 14 lists the table's weekend laws, `;`-separated, each four fields
+            /// separated by `/`: the weekend days as ISO 8601 weekday numbers
+            /// joined by `+` (`5+6` for Friday and Saturday), or `unread` for years
+            /// whose law was not read; the first day in force and the last, as
+            /// `YYYY-MM-DD`, each empty for none; and the ISO 3166-2 codes of the
+            /// regions it is the weekend of, joined by `,`, empty for the whole
+            /// table. A table that lists none keeps Saturday and Sunday. Writes the required
             /// length, including the terminator, into `written`.
         }
         wasm {
@@ -3646,19 +3655,27 @@ macro_rules! exports {
             /// the ISO 3166-2 codes of the subdivisions its rules are scoped to,
             /// `;`-separated in code order, else empty; the identifiers of the
             /// groups of people its rules give days to alone, `;`-separated in
-            /// identifier order, else empty; and those groups' names in the locale,
+            /// identifier order, else empty; those groups' names in the locale,
             /// in the same order, each its English name where `hc-i18n` carries
             /// none; the subdivision and group pairs a rule is scoped to both of,
             /// `region:group`, `;`-separated in code and then identifier order, else
-            /// empty; and the subdivisions the table's sources were read for,
-            /// `;`-separated in code order, else empty. A country is named by its
-            /// CLDR 48 territory
+            /// empty; the subdivisions the table's sources were read for,
+            /// `;`-separated in code order, else empty; and the table's weekend
+            /// laws (column 14; see below). A country is named by its CLDR 48
+            /// territory
             /// name in the locale where `hc-i18n` carries one, a country the locale
             /// has no name for by CLDR's English one, and every other table by its
             /// English name; column 5 is the tag that answered. Column 8 is CLDR
             /// 48's `alt="short"` name of a country, from the data that named it —
             /// `Hong Kong` for `HK` under `en`, 香港 under `ja` — and empty where
-            /// the data has none and for every table that is not a country. The locale argument fails as `hc_parse_iso_date`
+            /// the data has none and for every table that is not a country. Column
+            /// 14 lists the table's weekend laws, `;`-separated, each four fields
+            /// separated by `/`: the weekend days as ISO 8601 weekday numbers
+            /// joined by `+` (`5+6` for Friday and Saturday), or `unread` for years
+            /// whose law was not read; the first day in force and the last, as
+            /// `YYYY-MM-DD`, each empty for none; and the ISO 3166-2 codes of the
+            /// regions it is the weekend of, joined by `,`, empty for the whole
+            /// table. A table that lists none keeps Saturday and Sunday. The locale argument fails as `hc_parse_iso_date`
             /// does. A null `buffer` returns the length the text needs.
         }
         fn hc_holiday_tables(locale: text(locale_len)) -> line =
