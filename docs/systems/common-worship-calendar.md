@@ -124,7 +124,11 @@ Full Fact, quoting the Church, reported St George's Day 2025 on Monday
   the rule for the day it is kept on after the required transfers.
 - **`common-worship`**, the same as a rule set, every entry religious and
   none a day off; the open years above are reported as gaps
-  (`Rule::Unsettled`).
+  (`Rule::Unsettled`). Each celebration has an identifier, the kebab-case
+  of its title (`christmas-day`), shared by its `Celebration` and its rule,
+  so that the rank of `hc_common_worship_on` is joined to the entry of
+  `hc_holidays_on` by it and not by the title; see
+  [holiday-ids.md](holiday-ids.md).
 - **`bcp-1662`** (`book_of_common_prayer::CELEBRATIONS`): the Prayer Book's
   24 fixed red-letter days, the Ascension and the Mondays and Tuesdays of
   Easter and Whitsun weeks, with Easter Day, Whitsunday, Trinity Sunday

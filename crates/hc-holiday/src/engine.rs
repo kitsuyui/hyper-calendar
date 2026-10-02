@@ -26,16 +26,24 @@ use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 
 use crate::group::Group;
+use crate::id::HolidayId;
 use crate::rule::{
     Confidence, EvaluationContext, HolidayRule, Kind, RuleSet, Scope, SubstituteDirection,
     SubstitutionPolicy, UNREAD_SUBDIVISION, Window,
 };
+
+/// The identifier of the gap the engine reports for a subdivision whose
+/// own days no source read gives, [`UNREAD_SUBDIVISION`]'s.
+pub const UNREAD_SUBDIVISION_ID: HolidayId = HolidayId::explicit("unread-subdivision");
 
 /// One holiday on one day.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Holiday {
     /// The day it falls on.
     pub date: Rd,
+    /// The holiday's identifier within its table, [`HolidayRule::id`]:
+    /// what a line is joined on, one to a holiday.
+    pub id: HolidayId,
     /// The English name.
     pub name: &'static str,
     /// The name in the local language, or `""`.
@@ -103,8 +111,15 @@ impl Holiday {
 pub struct Gap {
     /// The Gregorian year that could not be answered.
     pub year: i64,
+    /// The holiday's identifier, [`HolidayRule::id`], as its entry would
+    /// carry it; [`UNREAD_SUBDIVISION_ID`] for a subdivision not read.
+    pub id: HolidayId,
     /// The English name of the holiday.
     pub name: &'static str,
+    /// What sort of day the holiday is, as its entry would be, so that a
+    /// caller asking for one kind can keep the gaps of that kind alone;
+    /// `Kind::Public` for a subdivision not read, whose days are unknown.
+    pub kind: Kind,
     /// Its name in the local language, or `""`.
     pub local_name: &'static str,
     /// The instrument the rule cites, which for a year before its
@@ -656,7 +671,9 @@ fn evaluate(
         for year in first_year..=last_year {
             gaps.push(Gap {
                 year,
+                id: UNREAD_SUBDIVISION_ID,
                 name: UNREAD_SUBDIVISION,
+                kind: Kind::Public,
                 local_name: "",
                 source: "",
             });
@@ -679,7 +696,9 @@ fn evaluate(
                 if (first_year..=last_year).contains(&year) {
                     gaps.push(Gap {
                         year,
+                        id: rule.id(),
                         name: rule.name,
+                        kind: rule.kind,
                         local_name: rule.local_name,
                         source: rule.source,
                     });
@@ -695,13 +714,14 @@ fn evaluate(
             }
         }
     }
-    base.sort_by_key(|occurrence| (occurrence.date.0, occurrence.rule.name));
-    base.dedup_by_key(|occurrence| (occurrence.date.0, occurrence.rule.name));
+    base.sort_by_key(|occurrence| (occurrence.date.0, occurrence.rule.name, occurrence.rule.id));
+    base.dedup_by_key(|occurrence| (occurrence.date.0, occurrence.rule.name, occurrence.rule.id));
 
     let mut out: Vec<Holiday> = base
         .iter()
         .map(|occurrence| Holiday {
             date: occurrence.date,
+            id: occurrence.rule.id(),
             name: occurrence.rule.name,
             local_name: occurrence.rule.local_name,
             kind: occurrence.rule.kind,
@@ -758,6 +778,7 @@ fn evaluate(
         }
         substitutes.push(Holiday {
             date: target,
+            id: occurrence.rule.id(),
             name: occurrence.rule.name,
             local_name: occurrence.rule.local_name,
             kind: occurrence.rule.kind,
@@ -812,6 +833,7 @@ fn evaluate(
                 {
                     bridges.push(Holiday {
                         date: candidate,
+                        id: HolidayId::of_name(policy.name),
                         name: policy.name,
                         local_name: policy.local_name,
                         kind: Kind::Public,

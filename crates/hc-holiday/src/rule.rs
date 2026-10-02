@@ -20,6 +20,7 @@ use hc_calendar::fixed::Moment;
 use hc_calendar::{CalendarId, Month, Rd, Weekday};
 
 use crate::group::Group;
+use crate::id::HolidayId;
 use hc_calendars_equinox::persian as solar_hijri;
 use hc_calendars_indic::nakshatra::nakshatra_span;
 use hc_calendars_indic::tithi::{DEGREES_PER_TITHI, TITHIS_PER_MONTH};
@@ -2690,6 +2691,12 @@ pub const SATURDAY_SUNDAY: &[WeekendPolicy] = &[WeekendPolicy {
 /// whose establishment no source read gives, adds [`HolidayRule::read_from`].
 #[derive(Debug, Clone, Copy)]
 pub struct HolidayRule {
+    /// The stable identifier the rule sets, lower-case and hyphenated, or
+    /// `""` for the kebab-case of the English name, which is the common
+    /// case; [`HolidayRule::id`] gives whichever applies. See
+    /// [`crate::id`] for what an identifier is for and when a rule sets
+    /// one.
+    pub id: &'static str,
     /// The English name.
     pub name: &'static str,
     /// The name in the local language and script, or `""` when the English
@@ -2759,6 +2766,7 @@ impl HolidayRule {
     #[must_use]
     pub const fn public(name: &'static str, local_name: &'static str, rule: Rule) -> Self {
         Self {
+            id: "",
             name,
             local_name,
             rule,
@@ -2781,6 +2789,22 @@ impl HolidayRule {
     #[must_use]
     pub const fn cited(self, source: &'static str) -> Self {
         Self { source, ..self }
+    }
+
+    /// The same rule, identified as `id` rather than by the kebab-case of
+    /// its English name: for a day whose name another day of the table
+    /// shares, or a second reading of a day registered as its own
+    /// convention (`docs/policy.md` §5).
+    #[must_use]
+    pub const fn with_id(self, id: &'static str) -> Self {
+        Self { id, ..self }
+    }
+
+    /// The holiday's identifier: the one set with [`HolidayRule::with_id`],
+    /// else the kebab-case of the English name.
+    #[must_use]
+    pub const fn id(&self) -> HolidayId {
+        HolidayId::new(self.id, self.name)
     }
 
     /// The same, but never substituted when it falls on a weekend.
@@ -3274,6 +3298,30 @@ impl RuleSet {
     #[must_use]
     pub fn regions(&self) -> alloc::vec::Vec<&'static str> {
         let mut codes: alloc::vec::Vec<&'static str> = self.region_codes().collect();
+        codes.sort_unstable();
+        codes.dedup();
+        codes
+    }
+
+    /// Every subdivision the table's sources were read for, once each, in
+    /// code order: the codes its rules are scoped to or excepted from and
+    /// the ones [`Subdivisions::Read`] lists as read and found to keep no
+    /// day of their own, each one [`RuleSet::reads_region`] reads. Empty
+    /// for a table with no subdivisions and for a country whose
+    /// subdivisions were not read. A region outside the list, asked for,
+    /// keeps the nationwide days and has a gap for its own (ADR 0013).
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn read_subdivisions(&self) -> alloc::vec::Vec<&'static str> {
+        let Subdivisions::Read(listed) = self.subdivisions else {
+            return alloc::vec::Vec::new();
+        };
+        let mut codes: alloc::vec::Vec<&'static str> = listed
+            .iter()
+            .copied()
+            .chain(self.region_codes())
+            .filter(|code| self.reads_region(code))
+            .collect();
         codes.sort_unstable();
         codes.dedup();
         codes

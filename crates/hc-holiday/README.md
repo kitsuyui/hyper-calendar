@@ -79,6 +79,15 @@ days alone, as asked for no region it answers for the nationwide days
 under its own policies, with its days off merged in and its observances left
 behind.
 
+Every rule has a stable identifier within its table, `HolidayRule::id`:
+the kebab-case of its English name (`New Year's Day` is `new-years-day`,
+`Mothers' Day` and `Mother's Day` are `mothers-day`), or one it sets with
+`with_id` where two days would fold together or two readings of a day are
+registered as conventions. A `Holiday` and a `Gap` carry it, and a gap its
+`Kind`, so that a caller joins entries on the identifier and not on the
+name, and keeps the entries and gaps of the kinds it wants; see
+`docs/systems/holiday-ids.md`.
+
 A rule is `Computed` only where its statute is written as a sentence rather
 than a pattern: Ireland's St Brigid's Day, the Dutch royal day (under two
 monarchs), US Inauguration Day, Mexico's presidential handover, Israel's Yom

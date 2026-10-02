@@ -38,7 +38,7 @@ fn a_celebration_carries_its_rank_and_an_unsettled_one_is_a_gap() {
         read_lines(|buffer, capacity| unsafe { hc_common_worship_on(day, buffer, capacity) });
     assert_eq!(
         text,
-        "George, Martyr, Patron of England\tfestival\tFestival\n"
+        "George, Martyr, Patron of England\tfestival\tFestival\tgeorge-martyr-patron-of-england\n"
     );
     let null = core::ptr::null_mut();
     let ordinary = hc_gregorian_to_fixed(2025, 4, 23);
@@ -75,7 +75,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 11));
+    assert!(rows.iter().all(|row| row.len() == 13));
     assert_eq!(
         rows.iter().map(|row| row[0]).collect::<Vec<_>>(),
         codes.lines().collect::<Vec<_>>()
@@ -101,6 +101,8 @@ fn every_table_is_described_in_the_order_of_the_codes() {
             "Hong Kong",
             "",
             "",
+            "",
+            "",
             ""
         ]
     );
@@ -111,7 +113,7 @@ fn every_table_is_described_in_the_order_of_the_codes() {
         .lines()
         .find(|line| line.starts_with("HK\t"))
         .expect("HK");
-    assert!(hong_kong.ends_with("\t\t香港\t\t\t"), "{hong_kong}");
+    assert!(hong_kong.ends_with("\t\t香港\t\t\t\t\t"), "{hong_kong}");
     assert_eq!(
         unsafe { hc_holiday_tables(core::ptr::null(), 1, core::ptr::null_mut(), 0) },
         HC_ERR_NULL_POINTER

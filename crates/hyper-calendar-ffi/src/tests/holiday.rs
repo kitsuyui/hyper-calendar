@@ -110,6 +110,7 @@ fn holiday_tables_answer_by_identifier() {
                 zz.as_ptr(),
                 core::ptr::null(),
                 core::ptr::null(),
+                core::ptr::null(),
                 2026,
                 core::ptr::null_mut(),
                 0,
@@ -123,6 +124,7 @@ fn holiday_tables_answer_by_identifier() {
         unsafe {
             hc_holidays_in_year(
                 jp.as_ptr(),
+                core::ptr::null(),
                 core::ptr::null(),
                 core::ptr::null(),
                 2026,
@@ -141,6 +143,7 @@ fn holiday_tables_answer_by_identifier() {
                 jp.as_ptr(),
                 core::ptr::null(),
                 core::ptr::null(),
+                core::ptr::null(),
                 2026,
                 buffer.as_mut_ptr(),
                 buffer.len(),
@@ -153,10 +156,15 @@ fn holiday_tables_answer_by_identifier() {
         .to_str()
         .expect("UTF-8");
     assert!(
-        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\n"),
+        text.starts_with(
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
+        ),
         "{text}"
     );
-    assert!(text.contains("\t1\t2026-05-03\t\t\n"), "{text}");
+    assert!(
+        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\n"),
+        "{text}"
+    );
     assert_eq!(
         unsafe { hc_holiday_codes(core::ptr::null_mut(), 0, &mut written) },
         HC_ERROR_BUFFER_TOO_SMALL
@@ -186,7 +194,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 11), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 12), "{rows:?}");
     let substitute = rows
         .iter()
         .find(|row| row[0] == "JP" && row[7] == "1")
@@ -251,6 +259,7 @@ fn a_group_is_a_scope_of_its_country_s_table() {
             cn.as_ptr(),
             core::ptr::null(),
             women.as_ptr(),
+            core::ptr::null(),
             2026,
             buffer,
             capacity,
@@ -258,8 +267,9 @@ fn a_group_is_a_scope_of_its_country_s_table() {
         )
     });
     assert!(
-        year.lines()
-            .any(|line| line == "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen"),
+        year.lines().any(|line| line.starts_with(
+            "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen\twomens-day\t"
+        )),
         "{year}"
     );
     let unknown = c"childrens";
@@ -282,6 +292,7 @@ fn a_group_is_a_scope_of_its_country_s_table() {
                 cn.as_ptr(),
                 core::ptr::null(),
                 unknown.as_ptr(),
+                core::ptr::null(),
                 2026,
                 core::ptr::null_mut(),
                 0,

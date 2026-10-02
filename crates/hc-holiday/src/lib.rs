@@ -95,6 +95,7 @@ pub mod computus;
 pub mod group;
 pub mod hindu;
 pub mod holy_years;
+pub mod id;
 pub mod international;
 pub mod lectionary;
 pub mod oriental_fasts;
@@ -120,6 +121,7 @@ pub mod traditions;
 
 pub use computus::{Computus, easter, gregorian_easter, orthodox_easter};
 pub use group::Group;
+pub use id::HolidayId;
 #[cfg(feature = "alloc")]
 pub use rule::EvaluationContext;
 pub use rule::{

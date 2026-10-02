@@ -287,11 +287,11 @@ export const COLUMNS = Object.freeze({
   ]),
   holidaysInYear: Object.freeze([
     "date", "name", "local name", "kind", "confidence", "substitute", "observed for", "region",
-    "group",
+    "group", "id", "source",
   ]),
   holidaysOn: Object.freeze([
     "table", "table name", "name", "local name", "kind", "confidence", "source",
-    "substitute", "observed for", "region", "group",
+    "substitute", "observed for", "region", "group", "id",
   ]),
   term: Object.freeze([
     "index", "chinese name", "japanese name", "begins", "ends",
@@ -326,7 +326,7 @@ export const COLUMNS = Object.freeze({
   chineseAlmanacSolarTerms: Object.freeze(["position", "name", "fixed"]),
   holidayTables: Object.freeze([
     "code", "kind", "name", "english name", "locale used", "source", "country", "short name",
-    "regions", "groups", "group names",
+    "regions", "groups", "group names", "region groups", "read subdivisions",
   ]),
   lectionary: Object.freeze([
     "liturgical year",
@@ -421,7 +421,7 @@ export const COLUMNS = Object.freeze({
     "state", "title", "kind", "pope", "bull", "given", "opens", "closes", "dioceses open",
     "dioceses close",
   ]),
-  commonWorship: Object.freeze(["title", "rank", "rank name"]),
+  commonWorship: Object.freeze(["title", "rank", "rank name", "id"]),
   roman1960Office: Object.freeze(["role", "title", "class", "class name", "transferred from"]),
   holidayGroups: Object.freeze(["group", "name", "locale used", "english name"]),
   dayPeriod: Object.freeze(["half", "half name", "period", "abbreviated", "wide", "narrow", "locale used"]),
@@ -1070,7 +1070,8 @@ function gregorianAdoption(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayInYear}
  */
 function holidayInYear(cells) {
-  const [date, name, localName, kind, confidence, substitute, observedFor, region, group] = cells;
+  const [date, name, localName, kind, confidence, substitute, observedFor, region, group, id, source] =
+    cells;
   return {
     date: optional(date),
     name,
@@ -1081,6 +1082,8 @@ function holidayInYear(cells) {
     observedFor: optional(observedFor),
     region: optional(region),
     group: optional(group),
+    id,
+    source: optional(source),
   };
 }
 
@@ -1091,7 +1094,7 @@ function holidayInYear(cells) {
  * @returns {import("./hyper-calendar.d.ts").HolidayOn}
  */
 function holidayOn(cells) {
-  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor, region, group] =
+  const [table, tableName, name, localName, kind, confidence, source, substitute, observedFor, region, group, id] =
     cells;
   return {
     table,
@@ -1105,6 +1108,7 @@ function holidayOn(cells) {
     observedFor: optionalInteger(observedFor, "observed for"),
     region: optional(region),
     group: optional(group),
+    id,
   };
 }
 
@@ -1559,14 +1563,27 @@ function circadDate(cells) {
 }
 
 /**
+ * One pair of column 12 of `hc_holiday_tables`: a subdivision and a group, `CN-XJ:women`.
+ *
+ * @param {string} pair
+ * @returns {import("./hyper-calendar.d.ts").HolidayRegionGroup}
+ */
+function regionGroup(pair) {
+  const at = pair.lastIndexOf(":");
+  return { region: pair.slice(0, at), group: pair.slice(at + 1) };
+}
+
+/**
  * One line of `hc_holiday_tables`.
  *
  * @param {string[]} cells
  * @returns {import("./hyper-calendar.d.ts").HolidayTable}
  */
 function holidayTable(cells) {
-  const [code, kind, name, englishName, localeUsed, source, country, shortName, regions, groups, groupNames] =
-    cells;
+  const [
+    code, kind, name, englishName, localeUsed, source, country, shortName, regions, groups, groupNames,
+    regionGroups, readSubdivisions,
+  ] = cells;
   return {
     code,
     kind: /** @type {import("./hyper-calendar.d.ts").HolidayTableKind} */ (kind),
@@ -1579,6 +1596,8 @@ function holidayTable(cells) {
     regions: regions === "" ? [] : regions.split(";"),
     groups: groups === "" ? [] : groups.split(";"),
     groupNames: groupNames === "" ? [] : groupNames.split(";"),
+    regionGroups: regionGroups === "" ? [] : regionGroups.split(";").map(regionGroup),
+    readSubdivisions: readSubdivisions === "" ? [] : readSubdivisions.split(";"),
   };
 }
 
@@ -2005,8 +2024,8 @@ function holyYearLine(cells) {
  * @returns {import("./hyper-calendar.d.ts").CommonWorshipCelebration}
  */
 function commonWorshipCelebration(cells) {
-  const [title, rank, rankName] = cells;
-  return { title, rank: /** @type {import("./hyper-calendar.d.ts").CommonWorshipRank} */ (rank), rankName };
+  const [title, rank, rankName, id] = cells;
+  return { title, rank: /** @type {import("./hyper-calendar.d.ts").CommonWorshipRank} */ (rank), rankName, id };
 }
 
 /**
@@ -3595,22 +3614,28 @@ export class HyperCalendar {
 
   /**
    * The holidays of a Gregorian year in a table, in a subdivision when
-   * `region` is not empty and for a group of people when `group` is given.
+   * `region` is not empty, for a group of people when `group` is given, and
+   * of the kinds `kind` lists, `;`-separated (`"public;bank"`), when it is
+   * given: the entries of those kinds and the gaps of the rules of those
+   * kinds. A kind that is no kind of `HolidayKind` is refused as `unknown`.
    *
    * @param {string} code
    * @param {string} region
    * @param {number | bigint} year
    * @param {string} [group]
+   * @param {string} [kind]
    * @returns {import("./hyper-calendar.d.ts").HolidayInYear[]}
    */
-  holidaysInYear(code, region, year, group = "") {
+  holidaysInYear(code, region, year, group = "", kind = "") {
     const fn = this.#export("hc_holidays_in_year");
     const y = toI64(year, "year");
     const text = this.#withText(code, "code", (codePointer, codeLen) =>
       this.#withText(region, "region", (regionPointer, regionLen) =>
         this.#withText(group, "group", (groupPointer, groupLen) =>
-          this.#text("hc_holidays_in_year", (buffer, capacity) =>
-            fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, y, buffer, capacity), true))));
+          this.#withText(kind, "kind", (kindPointer, kindLen) =>
+            this.#text("hc_holidays_in_year", (buffer, capacity) =>
+              fn(codePointer, codeLen, regionPointer, regionLen, groupPointer, groupLen, kindPointer, kindLen, y,
+                buffer, capacity), true)))));
     return rows(text, COLUMNS.holidaysInYear, "hc_holidays_in_year").map(holidayInYear);
   }
 
@@ -4941,6 +4966,9 @@ export class HyperCalendar {
    * the locale has no name for, in English; `localeUsed` says which.
    * `shortName` is CLDR's `alt="short"` name beside a CLDR name, from the
    * same data — `Hong Kong` under `en`, 香港 under `ja` — where it has one.
+   * `regionGroups` are the subdivision and group pairs a rule is scoped to
+   * both of, and `readSubdivisions` the subdivisions the sources were read
+   * for, which a region outside it is a gap for.
    *
    * @param {string} [locale]
    * @returns {import("./hyper-calendar.d.ts").HolidayTable[]}
@@ -4984,11 +5012,14 @@ export class HyperCalendar {
     const day = toI64(fixed, "fixed");
     const text = this.#withText(locale, "locale", (pointer, len) =>
       this.#text("hc_holidays_on_in", (buffer, capacity) => fn(day, pointer, len, buffer, capacity), true));
-    const columns = [...COLUMNS.holidaysOn, "name in locale", "name locale"];
+    // The eleven columns of `hc_holidays_on` before its identifier, the two
+    // names, and then the identifier, which keeps the names in their places.
+    const before = COLUMNS.holidaysOn.length - 1;
+    const columns = [...COLUMNS.holidaysOn.slice(0, before), "name in locale", "name locale", "id"];
     return rows(text, columns, "hc_holidays_on_in").map((cells) => ({
-      ...holidayOn(cells.slice(0, COLUMNS.holidaysOn.length)),
-      nameInLocale: optional(cells[COLUMNS.holidaysOn.length]),
-      nameLocale: optional(cells[COLUMNS.holidaysOn.length + 1]),
+      ...holidayOn([...cells.slice(0, before), cells[before + 2]]),
+      nameInLocale: optional(cells[before]),
+      nameLocale: optional(cells[before + 1]),
     }));
   }
 

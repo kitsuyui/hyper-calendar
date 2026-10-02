@@ -429,7 +429,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holiday_add_business_days(const char *code, const char *region, const char *group, int64_t fixed, int64_t count, int64_t *out_fixed);` | `holiday` | A fixed day moved by a number of business days of a holiday table, in a subdivision and for a group. |
 | `HcStatus hc_holiday_business_days_between(const char *code, const char *region, const char *group, int64_t from_fixed, int64_t to_fixed, int64_t *out_count);` | `holiday` | The number of business days of a holiday table, in a subdivision and for a group, from one fixed day up to but not including another. |
-| `HcStatus hc_holidays_in_year(const char *code, const char *region, const char *group, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_holidays_in_year(const char *code, const char *region, const char *group, const char *kind, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
 | `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_tables(const char *locale, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday table with its kind, names and sources, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -896,9 +896,10 @@ scope; `hc_holidays_in_year` writes a
 year as tab-separated, NUL-terminated lines — the ISO date, the name, the
 local name, the kind (`public`, `bank`, `religious`, `observance`,
 `school`, `workday`, `government` or `half-day`), the confidence, `1` for a
-substitute day, the date it stands in for, the region and the group —
-reporting the length it needs through `written` like every other text
-function here. The region is the subdivision whose own entry the line is:
+substitute day, the date it stands in for, the region, the group, the
+holiday's identifier within its table (`new-years-day`) and the instrument
+its rule cites — reporting the length it needs through `written` like
+every other text function here. The region is the subdivision whose own entry the line is:
 asked for `JP` in `JP-13`, the lines are Japan's nationwide days and
 Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A region matches in
 either case, and one the table's sources were not read for gives the
@@ -915,7 +916,13 @@ WebAssembly module: a null `code` is `HC_ERROR_NULL_POINTER`, a `code`,
 that names no table, or a `group` that names no group of
 `hc_holiday_groups`, is `HC_ERROR_UNKNOWN`. A null or empty `region` is no
 region, and a null or empty `group` is everyone, as is a group the table
-gives no day to alone.
+gives no day to alone. The fourth argument, `kind`, keeps the entries of the
+kinds it lists, `;`-separated in any case, `public;bank`, and the gaps of
+the rules of those kinds; a subdivision not read is a gap whatever it
+lists, and a null or empty `kind` is every kind. A word that names no kind
+is `HC_ERROR_UNKNOWN`. The United States' states carry about 1,300
+observances, which the filter leaves out for a caller that wants the days
+off.
 
 ```c
 #include <stdint.h>
@@ -978,7 +985,9 @@ confidence, the instrument the rule cites, `1` for a substitute, the fixed
 day it stands in for, the ISO 3166-2 code of the subdivision whose own
 entry it is, `JP-13`, or nothing for a nationwide one, and the identifier
 of the group whose own entry it is, `women`, or nothing for one everyone
-has. A subdivision's lines are only the entries the nationwide calendar
+has, and last the holiday's identifier within its table, `new-years-day`,
+which `hc_holidays_in_year` and `hc_common_worship_on` write for the same
+entry. A subdivision's lines are only the entries the nationwide calendar
 does not have, and a group's the entries the calendar for everyone does
 not, so a nationwide holiday is written once. A `gap` line is a holiday the table
 could not place in the day's year — its calendar's range ended, or the
@@ -989,16 +998,21 @@ answers exactly what the whole year would at about a third of the cost.
 `hc_holiday_groups(locale, buffer, capacity, written)` writes the module's
 lines of every group a holiday may be given to alone, named in the locale,
 and `hc_holidays_on_in(fixed, locale, buffer, capacity, written)`
-`hc_holidays_on`'s lines with two more cells, the day's name in the locale
-where a source in the language names it, and the tag that named it.
+`hc_holidays_on`'s lines with three more cells, the day's name in the locale
+where a source in the language names it by its identifier, and the tag
+that named it, and then the identifier, which `hc_holidays_on` ends with, so
+that the first eleven cells and the two names keep their places.
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
-table in `hc_holiday_codes` order, in the eleven columns of the WebAssembly
+table in `hc_holiday_codes` order, in the thirteen columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
 or an exchange where its table records one, the short name, the
 subdivisions the table's rules are scoped to, `;`-separated, the groups its
 rules give days to alone, `;`-separated, and those groups' names in the
-locale, English where `hc-i18n` names a group in no other language. A country
+locale, English where `hc-i18n` names a group in no other language, the
+pairs of a subdivision and a group a rule is scoped to both of,
+`region:group`, `;`-separated, and the subdivisions the table's sources were
+read for, `;`-separated in code order. A country
 is named by CLDR 48's territory name in the `locale` where `hc-i18n`
 carries one, and else, as for a null `locale`, by CLDR's English name;
 an exchange, a tradition and a set of observances by the table's English
@@ -1026,8 +1040,9 @@ module's lines of the 1960 ordo of a day: the office kept, its
 commemorations, and the feasts transferred or omitted.
 `hc_common_worship_on(fixed, buffer, capacity, written)` writes the rank of
 each *Common Worship* celebration kept on a day, one line each: the title,
-which is its name in `hc_holidays_on`'s `common-worship` table, the rank
-and the rank's English name. The Festivals the Rules leave without a day
+which is its name in `hc_holidays_on`'s `common-worship` table, the rank,
+the rank's English name and the celebration's identifier, which
+`hc_holidays_on` ends its entry with and is what joins the two. The Festivals the Rules leave without a day
 are `gap` lines of `hc_holidays_on`.
 
 `hc_orthodox_fast_on(reckoning, fixed, buffer, capacity, written)` writes
@@ -1316,7 +1331,9 @@ README names each constant's source.
 `hc_subdivisions(country, locale, buffer, capacity, written)` and
 `hc_place_name(code, locale, buffer, capacity, written)` need the
 `places` feature and write the WebAssembly module's lines: one per
-territory or ISO 3166-2 subdivision CLDR 48 names, with its code as ISO
+territory or ISO 3166-2 subdivision CLDR 48 names, and one per municipality
+a holiday table lists (`JP-14-130`, 川崎市, from `hc-i18n`'s
+`municipal_names`, with the status `municipal` and no draft level), with its code as ISO
 writes it (`JP-13` for CLDR's `jp13`), its name in the locale, its English
 name, the tag of the data that named it, that value's CLDR draft level and
 the code's CLDR validity status. A null or empty `country` writes every

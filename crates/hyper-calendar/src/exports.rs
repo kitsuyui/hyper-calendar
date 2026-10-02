@@ -3474,9 +3474,16 @@ macro_rules! exports {
             /// the calendar for no region does not have — or nothing, and the
             /// group whose own entry it is — `group` as the table writes it,
             /// `women`, on an entry the calendar for everyone does not have — or
+            /// nothing; then the holiday's identifier within its table,
+            /// `new-years-day`, which `hc_holidays_on` and `hc_common_worship_on`
+            /// write for the same entry, and the instrument its rule cites, or
             /// nothing. `region` and `group` match in either case, and either may
-            /// be null. Writes the required length, including the terminator, into
-            /// `written`. The string arguments fail as for `hc_holiday_is_day_off`.
+            /// be null. `kind` keeps the entries of the kinds it lists,
+            /// `;`-separated, `public;bank`, and the gaps of the rules of those
+            /// kinds; a null or empty `kind` is every kind, and a word that names
+            /// no kind is `HC_ERROR_UNKNOWN`. Writes the required length,
+            /// including the terminator, into `written`. The string arguments
+            /// fail as for `hc_holiday_is_day_off`.
         }
         wasm {
             /// The holidays of a Gregorian year in a table, as UTF-8 lines,
@@ -3492,19 +3499,28 @@ macro_rules! exports {
             /// the calendar for no region does not have — or nothing, and the
             /// group whose own entry it is — `group` as the table writes it,
             /// `women`, on an entry the calendar for everyone does not have — or
+            /// nothing; then the holiday's identifier within its table,
+            /// `new-years-day`, which `hc_holidays_on` and `hc_common_worship_on`
+            /// write for the same entry, and the instrument its rule cites, or
             /// nothing. `region` and `group` match in either case, and either may
-            /// be empty. After the entries, one line per gap of the year, as
-            /// `hc_holidays_on` writes them: an empty date, the name, the local
-            /// name, the kind `gap`, an empty confidence, `0`, nothing, and the
-            /// subdivision and the group whose own gap it is. A null `buffer`
-            /// returns the length the text needs, so a caller can allocate
-            /// exactly. The string arguments fail as for
+            /// be empty. `kind` keeps the entries of the kinds it lists,
+            /// `;`-separated, `public;bank`, and the gaps of the rules of those
+            /// kinds; an empty `kind` is every kind, and a word that names no
+            /// kind is `HC_ERR_UNKNOWN`. After the entries, one line per gap of
+            /// the year, as `hc_holidays_on` writes them: an empty date, the name,
+            /// the local name, the kind `gap`, an empty confidence, `0`, nothing,
+            /// the subdivision and the group whose own gap it is, the identifier
+            /// of the holiday and the instrument its rule cites; a subdivision
+            /// not read is a gap of the identifier `unread-subdivision` whatever
+            /// the `kind`. A null `buffer` returns the length the text needs, so
+            /// a caller can allocate exactly. The string arguments fail as for
             /// `hc_holiday_is_day_off`.
         }
         fn hc_holidays_in_year(
             code: name(code_len),
             region: opt(region_len),
             group: opt(group_len),
+            kind: opt(kind_len),
             year: i64,
         ) -> line =
             $crate::holiday_lines::holidays_in_year;
@@ -3545,7 +3561,10 @@ macro_rules! exports {
             /// a substitute stands in for or nothing, the subdivision's ISO 3166-2
             /// code, `JP-13`, for an entry the nationwide calendar does not have, or
             /// nothing for a nationwide one, and the group's identifier, `women`,
-            /// for an entry the calendar for everyone does not have, or nothing. A
+            /// for an entry the calendar for everyone does not have, or nothing,
+            /// and last the holiday's identifier within its table,
+            /// `new-years-day`, which `hc_holidays_in_year` and
+            /// `hc_common_worship_on` write for the same entry. A
             /// `gap` line is a holiday the table could
             /// not place in the day's year — its calendar's range ended, or no
             /// announcement was read — with the confidence and source empty, so a
@@ -3572,7 +3591,10 @@ macro_rules! exports {
             /// a substitute stands in for or nothing, the subdivision's ISO 3166-2
             /// code, `JP-13`, for an entry the nationwide calendar does not have, or
             /// nothing for a nationwide one, and the group's identifier, `women`,
-            /// for an entry the calendar for everyone does not have, or nothing. A
+            /// for an entry the calendar for everyone does not have, or nothing,
+            /// and last the holiday's identifier within its table,
+            /// `new-years-day`, which `hc_holidays_in_year` and
+            /// `hc_common_worship_on` write for the same entry. A
             /// `gap` line is a holiday the table could
             /// not place in the day's year — its calendar's range ended, or no
             /// announcement was read — with the confidence and source empty, so a
@@ -3596,7 +3618,11 @@ macro_rules! exports {
             /// code order, or nothing, the identifiers of the groups of people its
             /// rules give days to alone, `;`-separated in identifier order, or
             /// nothing, and those groups' names in the locale, in the same order,
-            /// each its English name where `hc-i18n` carries none. A country is
+            /// each its English name where `hc-i18n` carries none, the
+            /// subdivision and group pairs a rule is scoped to both of,
+            /// `region:group`, `;`-separated, or nothing, and the subdivisions the
+            /// table's sources were read for, `;`-separated in code order, or
+            /// nothing. A country is
             /// named by its CLDR 48 territory name
             /// in the `locale` where `hc-i18n` carries one, and else, as for a null
             /// `locale`, by CLDR's English one; every other table by its English
@@ -3622,7 +3648,11 @@ macro_rules! exports {
             /// groups of people its rules give days to alone, `;`-separated in
             /// identifier order, else empty; and those groups' names in the locale,
             /// in the same order, each its English name where `hc-i18n` carries
-            /// none. A country is named by its CLDR 48 territory
+            /// none; the subdivision and group pairs a rule is scoped to both of,
+            /// `region:group`, `;`-separated in code and then identifier order, else
+            /// empty; and the subdivisions the table's sources were read for,
+            /// `;`-separated in code order, else empty. A country is named by its
+            /// CLDR 48 territory
             /// name in the locale where `hc-i18n` carries one, a country the locale
             /// has no name for by CLDR's English one, and every other table by its
             /// English name; column 5 is the tag that answered. Column 8 is CLDR
@@ -3661,6 +3691,9 @@ macro_rules! exports {
             /// the tag that named it, as NUL-terminated UTF-8 lines in a
             /// caller-owned buffer.
             ///
+            /// The lines are the WebAssembly module's: the eleven columns of
+            /// `hc_holidays_on`, the name, the tag, and the holiday's identifier.
+            ///
             /// `locale` is a NUL-terminated BCP 47 tag, or null for the root locale.
             /// A day with no Gregorian year is `HC_ERROR_OUT_OF_RANGE`. Writes the
             /// required length, including the terminator, into `written`.
@@ -3670,10 +3703,12 @@ macro_rules! exports {
             /// the tag that named it, as UTF-8 lines, returning the byte length
             /// written.
             ///
-            /// The eleven columns of `hc_holidays_on`, then two more: what the
+            /// The eleven columns of `hc_holidays_on`, then three more: what the
             /// locale calls that day of that table, where a source in the language
-            /// names it — the Bohairic Coptic names of the Coptic Orthodox feasts
-            /// under `cop` — else empty; and the tag that named it. The locale
+            /// names it by the holiday's identifier — the Bohairic Coptic names of
+            /// the Coptic Orthodox feasts under `cop` — else empty; the tag that
+            /// named it; and the holiday's identifier, the column `hc_holidays_on`
+            /// ends with, moved after the two so that they keep their places. The locale
             /// argument fails as for `hc_parse_iso_date`. A day with no Gregorian
             /// year is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length
             /// the text needs.
@@ -3793,7 +3828,9 @@ macro_rules! exports {
             ///
             /// The lines are the WebAssembly module's, one per celebration: its
             /// title, which is its name in `hc_holidays_on`'s `common-worship`
-            /// table, the rank's identifier and the rank's English name. A day that
+            /// table, the rank's identifier, the rank's English name and the
+            /// celebration's identifier, which `hc_holidays_on` writes in its last
+            /// column for the same entry. A day that
             /// keeps none writes an empty string, and a day with no Gregorian year
             /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
             /// the terminator, into `written`.
@@ -3806,8 +3843,11 @@ macro_rules! exports {
             /// Church of England's calendar kept on the day after the transfers its
             /// Rules require, tab-separated: the title as the Rules print it, which
             /// is the name `hc_holidays_on` gives it in the `common-worship` table;
-            /// the rank, `principal-feast`, `principal-holy-day` or `festival`; and
-            /// the rank's English name. A day that keeps none writes nothing. The
+            /// the rank, `principal-feast`, `principal-holy-day` or `festival`; the
+            /// rank's English name; and the celebration's identifier,
+            /// `christmas-day`, which is the last column of the entry in
+            /// `hc_holidays_on` and is what joins the two. A day that keeps none
+            /// writes nothing. The
             /// years the Rules leave a Festival without a day are `gap` lines of
             /// `hc_holidays_on`. A day with no Gregorian year is
             /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
@@ -5583,9 +5623,15 @@ macro_rules! exports {
             /// name outside English; and `regular` for a code in use or
             /// `deprecated` for one CLDR keeps from an earlier list. A deprecated
             /// code neither the locale nor English names has columns 2 to 5 empty.
-            /// `country` is a territory's code in any case, and one that is not is
+            /// A municipality the holiday tables list, which CLDR does not name,
+            /// stands in code order after its prefecture, `JP-14-130` after
+            /// `JP-14`, its name from `hc-i18n`'s `municipal_names` — 川崎市 under
+            /// `ja`, `Kawasaki-shi` under `ja-Latn`, `Kawasaki` otherwise — with an
+            /// empty draft level and the status `municipal`. `country` is a
+            /// territory's code in any case, and one that is not is
             /// `HC_ERR_UNKNOWN`; a territory with no subdivision writes nothing,
-            /// and an empty `country` writes all 5 503, country by country. Both
+            /// and an empty `country` writes all 5 503 of CLDR's and the 21
+            /// municipalities, country by country. Both
             /// text arguments fail as for `hc_parse_iso_date`. A null `buffer`
             /// returns the length the text needs.
         }
@@ -5598,7 +5644,8 @@ macro_rules! exports {
             /// caller-owned buffer.
             ///
             /// `code` is a territory's code, `JP` or `001`, or a subdivision's in
-            /// ISO form, `JP-13`, in any case; another, CLDR's own form `jp13`
+            /// ISO form, `JP-13`, or a municipality's under its subdivision's,
+            /// `JP-14-130`, in any case; another, CLDR's own form `jp13`
             /// included, is `HC_ERROR_UNKNOWN`, and a null `code`
             /// `HC_ERROR_NULL_POINTER`. `locale` is as for `hc_territories`. Writes
             /// the required length, including the terminator, into `written`.
@@ -5608,7 +5655,8 @@ macro_rules! exports {
             /// `hc_subdivisions` writes for it, returning the byte length written.
             ///
             /// `code` is a territory's code, `JP` or `001`, or a subdivision's in
-            /// ISO form, `JP-13`, in any case; another, CLDR's own form `jp13`
+            /// ISO form, `JP-13`, or a municipality's under its subdivision's,
+            /// `JP-14-130`, in any case; another, CLDR's own form `jp13`
             /// included, is `HC_ERR_UNKNOWN`. Both text arguments fail as for
             /// `hc_parse_iso_date`. A null `buffer` returns the length the text
             /// needs.

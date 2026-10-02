@@ -45,7 +45,16 @@ fn line(code: &str, locale: &str) -> String {
 #[test]
 fn tokyo_is_tokyo_to_in_japanese() {
     let japan = subdivisions("jp", "ja-JP");
-    assert_eq!(japan.lines().count(), 47);
+    // The 47 prefectures CLDR names and the 21 municipalities the holiday
+    // tables list, which CLDR does not.
+    assert_eq!(japan.lines().count(), 47 + 21);
+    assert_eq!(
+        japan
+            .lines()
+            .filter(|line| line.ends_with("\tmunicipal"))
+            .count(),
+        21
+    );
     assert!(japan.lines().all(|line| line.split('\t').count() == 6));
     assert!(
         japan
@@ -62,7 +71,7 @@ fn tokyo_is_tokyo_to_in_japanese() {
 #[test]
 fn every_subdivision_and_territory_has_a_line() {
     let every = subdivisions("", "de");
-    assert_eq!(every.lines().count(), 5503);
+    assert_eq!(every.lines().count(), 5503 + 21);
     let territories = read_lines(|buffer, capacity| unsafe {
         hc_territories("de".as_ptr(), 2, buffer, capacity)
     });

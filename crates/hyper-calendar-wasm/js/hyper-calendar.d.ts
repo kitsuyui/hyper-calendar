@@ -1244,6 +1244,15 @@ export interface HolidayInYear {
   region: string | null;
   /** The group whose own entry this is, `women`, or `null` for one everyone has. */
   group: string | null;
+  /**
+   * The holiday's stable identifier within its table, lower-case ASCII and hyphenated:
+   * `new-years-day`. The same entry of `hc_holidays_on` and `hc_common_worship_on` carries it,
+   * so lines are joined on it and not on the name. Spelling variants of one day share it. A
+   * gap carries its rule's, and `unread-subdivision` for a subdivision not read.
+   */
+  id: string;
+  /** The instrument the rule cites, or `null` where the table's own sources speak for it. */
+  source: string | null;
 }
 
 /** One line of `hc_holidays_on`: one entry of one table on one day. */
@@ -1267,6 +1276,8 @@ export interface HolidayOn {
   region: string | null;
   /** The group of people whose own entry this is, `women`, or `null` for one everyone has. */
   group: string | null;
+  /** The holiday's stable identifier within its table, `new-years-day`; see {@link HolidayInYear.id}. */
+  id: string;
 }
 
 /** The one line of `hc_term_in_effect` or `hc_pentad_in_effect`. */
@@ -1606,11 +1617,11 @@ export interface GravitatingBody {
 export type PlaceDraft = "approved" | "contributed" | "provisional";
 
 /** A code's status in CLDR's validity data. */
-export type PlaceStatus = "regular" | "deprecated" | "macroregion" | "special" | "unknown";
+export type PlaceStatus = "regular" | "deprecated" | "macroregion" | "special" | "unknown" | "municipal";
 
 /** One line of `hc_territories`, `hc_subdivisions` and `hc_place_name`. */
 export interface PlaceName {
-  /** The code as ISO writes it: `JP`, `001`, or `JP-13` for CLDR's `jp13`. */
+  /** The code as ISO writes it: `JP`, `001`, or `JP-13` for CLDR's `jp13`; or a municipality's under its subdivision's, `JP-14-130`. */
   code: string;
   /**
    * The name in the locale, else in English: 東京都 for `JP-13` under `ja`.
@@ -1623,7 +1634,7 @@ export interface PlaceName {
   localeUsed: string | null;
   /** The draft level of that value; nearly every subdivision name outside English is `provisional`. */
   draft: PlaceDraft | null;
-  /** `regular` for a code in use; `deprecated` for a subdivision CLDR keeps from an earlier ISO list. */
+  /** `regular` for a code in use; `deprecated` for a subdivision CLDR keeps from an earlier ISO list; `municipal` for a municipality, whose names are `hc-i18n`'s and not CLDR's, and whose `draft` is `null`. */
   status: PlaceStatus;
 }
 
@@ -2158,6 +2169,23 @@ export interface HolidayTable {
   groups: string[];
   /** Those groups' names in the locale, in the same order, English where `hc-i18n` carries none: `少年儿童` under `zh-CN`. */
   groupNames: string[];
+  /**
+   * Each subdivision and group a rule is scoped to both of, the scopes whose own days neither
+   * the region alone nor the group alone has. Empty for a table with none.
+   */
+  regionGroups: HolidayRegionGroup[];
+  /**
+   * The ISO 3166-2 codes of the subdivisions the table's sources were read for, in code order:
+   * `regions` and those read and found to keep no day of their own. A region outside it keeps
+   * the nationwide days and has a gap for its own. Empty for a table with no subdivisions.
+   */
+  readSubdivisions: string[];
+}
+
+/** A pair of column 12 of `hc_holiday_tables`: `CN-XJ:women` is `{ region: "CN-XJ", group: "women" }`. */
+export interface HolidayRegionGroup {
+  region: string;
+  group: string;
 }
 
 /** Which rules answered for a zone's name. */
@@ -2507,6 +2535,8 @@ export interface CommonWorshipCelebration {
   title: string;
   rank: CommonWorshipRank;
   rankName: string;
+  /** The celebration's identifier, the `id` of its entry in `hc_holidays_on`: `christmas-day`. */
+  id: string;
 }
 
 /**
@@ -2852,8 +2882,8 @@ export class HyperCalendar {
     toFixed: number | bigint,
     group?: string,
   ): number;
-  /** `hc_holidays_in_year`; `region` may be empty, and `group` left out or empty for everyone. */
-  holidaysInYear(code: string, region: string, year: number | bigint, group?: string): HolidayInYear[];
+  /** `hc_holidays_in_year`; `region` may be empty, `group` left out or empty for everyone, and `kind` left out or empty for every kind, or a `;`-separated list of `HolidayKind`s, `"public;bank"`, which keeps the entries of those kinds and the gaps of their rules. */
+  holidaysInYear(code: string, region: string, year: number | bigint, group?: string, kind?: string): HolidayInYear[];
   /** `hc_holiday_codes`: countries, then exchanges, traditions and the international sets. */
   holidayCodes(): string[];
   /** `hc_holidays_on`: every entry on one day across every table, in `holidayCodes()` order. A day with no Gregorian year is `out-of-range`. */

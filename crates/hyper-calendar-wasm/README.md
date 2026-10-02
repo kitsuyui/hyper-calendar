@@ -356,7 +356,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `folkDay(fixed, meridian, locale)`, `nightWatch(secondsOfDay, locale)` | `hc_folk_day`, `hc_night_watch` | `FolkDay[]`, one per reckoning; a `NightWatch` or `null` |
 | `holidayIsDayOff(code, region, fixed, group)` | `hc_holiday_is_day_off` | a boolean |
 | `holidayAddBusinessDays(code, region, fixed, count, group)`, `holidayBusinessDaysBetween(code, region, fromFixed, toFixed, group)` | `hc_holiday_add_business_days`, `hc_holiday_business_days_between` | a fixed day; a number |
-| `holidaysInYear(code, region, year, group)` | `hc_holidays_in_year` | `HolidayInYear[]` |
+| `holidaysInYear(code, region, year, group, kind)` | `hc_holidays_in_year` | `HolidayInYear[]` |
 | `holidayCodes()` | `hc_holiday_codes` | `string[]` |
 | `holidaysOn(fixed)` | `hc_holidays_on` | `HolidayOn[]` |
 | `holidayTables(locale)` | `hc_holiday_tables` | `HolidayTable[]` |
@@ -702,7 +702,7 @@ not pass CI.
 | `hc_holiday_is_day_off(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64) -> i64` | `holiday` | Whether a fixed day is a day off in a holiday table: 1, 0, or an error sentinel. |
 | `hc_holiday_add_business_days(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, fixed: i64, count: i64) -> i64` | `holiday` | A fixed day moved by a number of business days of a holiday table, in a subdivision and for a group, or an error sentinel. |
 | `hc_holiday_business_days_between(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, from_fixed: i64, to_fixed: i64) -> i64` | `holiday` | The number of business days of a holiday table, in a subdivision and for a group, from one fixed day up to but not including another, or an error sentinel. |
-| `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
+| `hc_holidays_in_year(code: *const u8, code_len: usize, region: *const u8, region_len: usize, group: *const u8, group_len: usize, kind: *const u8, kind_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The holidays of a Gregorian year in a table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_codes(buffer: *mut u8, capacity: usize) -> i64` | `holiday` | The identifier of every holiday table, one per line, returning the byte length written. |
 | `hc_holidays_on(fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday on one fixed day across every table, as UTF-8 lines, returning the byte length written. |
 | `hc_holiday_tables(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `holiday` | Every holiday table with its kind, names and sources, as UTF-8 lines, returning the byte length written. |
@@ -2655,16 +2655,33 @@ Identifier Code (`XNYS`), a tradition's slug (`christian-western`) or
 `un-days`, and `hc_holiday_codes` lists them all. `hc_holiday_is_day_off`
 answers for one day; `hc_holidays_in_year` writes a year as tab-separated
 lines — the ISO date, the name, the local name, the kind, the confidence,
-`1` for a substitute day, the date it stands in for, the region and the
-group — and, called with a null buffer, returns the length the text needs
-so the caller can allocate exactly. The region is the subdivision whose own entry the
+`1` for a substitute day, the date it stands in for, the region, the group,
+the identifier and the source — and, called with a null buffer, returns the
+length the text needs so the caller can allocate exactly. The region is the subdivision whose own entry the
 line is: asked for `JP` in the region `JP-13`, the lines are Japan's
 nationwide days and Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A
 region matches in either case, and one the table's sources were not read
 for gives the nationwide days and a gap line for its own. The group is the group of people whose own entry the
 line is, in the same way: asked for `CN` for the group `women`, the lines
 are China's days for everyone and the half day of 8 March, and only that
-line carries `women`. A kind is `public`, `bank`, `religious`,
+line carries `women`. The identifier is the holiday's stable identifier
+within its table, lower-case ASCII and hyphenated — `new-years-day` — and
+the source is the instrument the rule cites, `A/RES/73/161`, or empty
+where the table's own sources speak for it; the two come last, so that a
+parser that reads the first nine cells reads what it always read. The same
+identifier ends the entry in `hc_holidays_on` and `hc_holidays_on_in`, and
+is the fourth cell of `hc_common_worship_on`, so lines are joined on it
+and not on the name: names differ in spelling between the states of one
+country, and an identifier folds case, punctuation, apostrophes and
+diacritics (`Mothers' Day` and `Mother's Day` are `mothers-day`), which a
+rule overrides only where two days of one table would fold together. A gap
+carries its rule's identifier and source, and `unread-subdivision` and no
+source for a subdivision not read. The kind filter, the fourth argument,
+keeps the entries of the kinds it lists, `;`-separated in any case —
+`public;bank` — and the gaps of the rules of those kinds, and a
+subdivision not read is a gap whatever it lists; empty, it is every kind.
+It is for the tables whose lists are long: the United States' states carry
+about 1,300 observances beside a few public days. A kind is `public`, `bank`, `religious`,
 `observance`, `school`, `workday`, `government` or `half-day`. After the
 entries come the year's gaps, as `hc_holidays_on` writes them: an empty
 date and confidence, the kind `gap`, and the region and group whose own
@@ -2675,16 +2692,19 @@ read, is everyone's days and a gap line for the half day of 8 March.
 
 The string arguments fail the same way in both, and the same way as in the C
 library: a null pointer with a non-zero length is `HC_ERR_NULL_POINTER`, a
-code, region or group that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a code
-that names no table, or a group that names no group of
-`hc_holiday_groups`, is `HC_ERR_UNKNOWN`. An empty region is no region, and
+code, region, group or kind that is not UTF-8 is `HC_ERR_NOT_UTF8`, and a
+code that names no table, a group that names no group of
+`hc_holiday_groups`, or a kind with a word that names no kind, is
+`HC_ERR_UNKNOWN`. An empty region is no region, and
 an empty group is everyone, as is a group the table gives no day to
 alone.
 
 ```js
 hc.holidaysInYear("JP", "", 2026);
 // [{ date: "2026-01-01", name: "New Year's Day", localName: "元日", kind: "public",
-//    confidence: "exact", substitute: false, observedFor: null, region: null, group: null }, ...]
+//    confidence: "exact", substitute: false, observedFor: null, region: null, group: null,
+//    id: "new-years-day", source: null }, ...]
+hc.holidaysInYear("US", "US-TX", 2026, "", "public;bank").every((day) => day.kind !== "observance");  // true
 hc.holidayIsDayOff("XNYS", "", hc.gregorianToFixed(2026, 4, 3));   // true: Good Friday
 hc.holidaysInYear("JP", "JP-13", 2026).find((day) => day.region);
 // { date: "2026-10-01", name: "Tokyo Citizens' Day", localName: "都民の日",
@@ -2714,7 +2734,8 @@ country. So:
   an empty region answer for the nationwide days alone, not the union of
   every prefecture's. Asked for `JP` in `JP-13`, they answer for Tokyo:
   the nationwide days and Tokyo's own, and a year's line of Tokyo's own
-  day carries `JP-13` in column 8 of its 9, the group being the last.
+  day carries `JP-13` in column 8 of its 11, the group being the ninth,
+  and the identifier and the source the last two.
 - `hc_holidays_on` takes no region. It writes every table's nationwide
   lines, and after them each subdivision's own lines, still under the
   country's table code — 都民の日 is a line of `JP`, not of a table
@@ -2789,6 +2810,7 @@ of 8 March is a line of `CN` with `women` in column 11.
 | 9 | observed for | the fixed day a substitute stands in for, or empty |
 | 10 | region | the ISO 3166-2 code of the subdivision whose own entry this is, `JP-13`, or empty for a nationwide one |
 | 11 | group | the identifier of the group of people whose own entry this is, `women`, or empty for one everyone has |
+| 12 | id | the holiday's stable identifier within its table, `new-years-day`, which `hc_holidays_in_year` and `hc_common_worship_on` write for the same entry; a gap's is its rule's, and `unread-subdivision` for a subdivision not read |
 
 A `gap` line is a holiday the table could not place in the day's year — its
 calendar's range ended, or the year's announcement has not been read — with
@@ -2871,6 +2893,8 @@ from CLDR's English by fallback has English's short name.
 | 9 | regions | the ISO 3166-2 codes of the subdivisions the table's rules are scoped to, `;`-separated in code order, the regions `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond the nationwide days; empty for a table with none |
 | 10 | groups | the identifiers of the groups of people the table's rules give days to alone, `;`-separated in identifier order, the groups `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond everyone's days; empty for a table with none |
 | 11 | group names | those groups' names in the locale, in the same order: `hc-i18n`'s where it names the group in a language of the locale's chain, 妇女 for `women` under `zh-CN`, else the English name |
+| 12 | region groups | the pairs of a subdivision and a group that a rule is scoped to both of, `region:group`, `;`-separated in code and then identifier order, the scopes whose own days neither the region alone nor the group alone has; empty for a table with none, which is every table today |
+| 13 | read subdivisions | the ISO 3166-2 codes of the subdivisions the table's sources were read for, `;`-separated in code order: column 9's, and those read and found to keep no day of their own; a region outside the list keeps the nationwide days and has a gap for its own; empty for a table with no subdivisions and for a country whose subdivisions were not read |
 
 ### Business days
 
@@ -2907,10 +2931,13 @@ named in the locale where an instrument in the language names it, from
 
 `hc_holidays_on_in(fixed, locale_ptr, locale_len, buffer, capacity)` writes
 `hc_holidays_on`'s lines, each with two more cells: what the locale calls
-that day of that table where a source in the language names it, from
-`hc-i18n`'s `holiday_names` — the Bohairic Coptic names of seven Coptic
-Orthodox feasts under `cop`, ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ for Nayrouz — else
-empty, and the tag that named it.
+that day of that table where a source in the language names it by the
+holiday's identifier, from `hc-i18n`'s `holiday_names` — the Bohairic
+Coptic names of seven Coptic Orthodox feasts under `cop`, ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ
+for `nayrouz-new-year` — else empty, and the tag that named it. The
+identifier, which `hc_holidays_on` ends with, comes after the two, so that
+the first eleven cells and the two names keep the places they had: the line
+is `hc_holidays_on`'s eleven columns, the name, the tag, and the identifier.
 
 ### The liturgical year
 
@@ -2989,6 +3016,7 @@ nothing on a day that keeps none.
 | 1 | title | the title as the Rules print it, which is the name `hc_holidays_on` gives it |
 | 2 | rank | `principal-feast`, `principal-holy-day` or `festival` |
 | 3 | rank name | the rank's English name |
+| 4 | id | the celebration's identifier, `christmas-day`, the last column of its entry in `hc_holidays_on`: the two are joined on it and not on the title |
 
 St George's Day was kept on Monday 28 April 2025, Easter being 20 April,
 as a Festival. A day with no Gregorian year is `HC_ERR_OUT_OF_RANGE`.
@@ -4644,11 +4672,26 @@ codes. The `places` feature names them, from CLDR 48, in every locale
   `UN`, `QO`, `XA`, `XB` and `ZZ` — in code order;
 - `hc_subdivisions(country_ptr, country_len, locale_ptr, locale_len,
   buffer, capacity)` a line for each ISO 3166-2 subdivision of `country`
-  that a carried locale's CLDR file names, in code order, or for all 5 503
+  that a carried locale's CLDR file names, and each municipality a holiday
+  table lists, in code order, or for all 5 503 and the 21 municipalities
   when `country` is empty; a `country` that is not a territory's code is
   `HC_ERR_UNKNOWN`, and a territory with none, `AQ`, writes nothing;
 - `hc_place_name(code_ptr, code_len, locale_ptr, locale_len, buffer,
-  capacity)` the line of one code, `JP` or `JP-13`.
+  capacity)` the line of one code, `JP`, `JP-13` or `JP-14-130`.
+
+A municipality is a region of a table, within its subdivision (ADR 0014),
+and CLDR names none: `hc_holiday_tables`' column 9 lists `JP-14-130`, 川崎市,
+beside `JP-14`. Their names are `hc-i18n`'s `municipal_names`, from the
+sources the tables cite for the cities — the instruments' and JIS X 0402's
+names in `ja`, the Hepburn romanisation with its suffix in `ja-Latn`,
+`Kawasaki-shi`, and the English name in `en`, `Kawasaki` — for the twenty
+designated cities and 長崎市, which is every municipality any table lists,
+and a test holds the tables to it. `hc_place_name` writes a municipality's
+line in the columns below, and `hc_subdivisions` writes it in code order
+after its prefecture, so that the lookup of column 9 that names the
+prefectures names the cities too. The lookup takes the first of the
+locale's chain that names it, `ja-JP` finding `ja`, and then `en`; the
+draft level is empty, which is CLDR's, and the status is `municipal`.
 
 Codes match as every identifier does (`jp-13` finds `JP-13`), and are
 written as ISO writes them: CLDR's own ids are lower case with no hyphen,
@@ -4670,13 +4713,13 @@ and is not carried.
 | 2 | name | the name in the locale, else English's: 東京都 for `JP-13` under `ja`; empty only for a deprecated subdivision neither names |
 | 3 | english name | CLDR's English name, `en.xml`'s; empty for the 104 deprecated subdivisions it does not name |
 | 4 | locale used | the tag of the data that named column 2: `ja`, `pt` for a name `pt-PT` inherits, or `en`; empty with column 2 |
-| 5 | draft | that value's CLDR draft level: `approved`, `contributed` or `provisional`; empty with column 2 |
-| 6 | status | the code's status in CLDR's validity data: `regular`; `deprecated` for a subdivision CLDR keeps from an earlier ISO list, 476 of them, and for one code the holiday tables use, `GB-EAW`; `macroregion`, `special` or `unknown` for a territory that is not a country |
+| 5 | draft | that value's CLDR draft level: `approved`, `contributed` or `provisional`; empty with column 2, and for a municipality, whose names are not CLDR's |
+| 6 | status | the code's status in CLDR's validity data: `regular`; `deprecated` for a subdivision CLDR keeps from an earlier ISO list, 476 of them, and for one code the holiday tables use, `GB-EAW`; `macroregion`, `special` or `unknown` for a territory that is not a country; and `municipal` for a municipality, which CLDR does not carry |
 
 ```js
 const table = hc.holidayTables("ja").find((row) => row.code === "JP");
 const names = new Map(hc.subdivisions("JP", "ja").map((row) => [row.code, row.name]));
-table.regions.map((code) => names.get(code));     // ["北海道", "福島県", …, "沖縄県"]
+table.regions.map((code) => names.get(code));     // ["北海道", "札幌市", "仙台市", …, "沖縄県"]
 hc.placeName("DE-BY", "de");
 // { code: "DE-BY", name: "Bayern", englishName: "Bavaria", localeUsed: "de",
 //   draft: "provisional", status: "regular" }

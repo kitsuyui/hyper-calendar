@@ -788,7 +788,7 @@ describe("holidays", () => {
       const code = hc.alloc(2);
       new Uint8Array(hc.memory.buffer, code, 2).set([0x4a, 0x50]);
       try {
-        return hc.exports.hc_holidays_in_year(code, 2, 0, 0, 0, 0, 2026n, buffer, capacity);
+        return hc.exports.hc_holidays_in_year(code, 2, 0, 0, 0, 0, 0, 0, 2026n, buffer, capacity);
       } finally {
         hc.free(code, 2);
       }
@@ -808,6 +808,8 @@ describe("holidays", () => {
       observedFor: null,
       region: null,
       group: null,
+      id: "new-years-day",
+      source: null,
     });
     // 3 May 2026 is a Sunday; Constitution Memorial Day is taken on the 6th.
     const substitute = year.find((holiday) => holiday.substitute);
@@ -821,6 +823,8 @@ describe("holidays", () => {
       observedFor: "2026-05-03",
       region: null,
       group: null,
+      id: "constitution-memorial-day",
+      source: null,
     });
     assert.equal(hc.holidaysInYear("JP", "", 2026n).length, year.length);
     // A year before any rule applies is an empty list, not an error.
@@ -848,6 +852,7 @@ describe("holidays", () => {
       observedFor: hc.gregorianToFixed(2026, 5, 3),
       region: null,
       group: null,
+      id: "constitution-memorial-day",
     });
     // The tables come in the order holidayCodes() lists them.
     const codes = hc.holidayCodes();
@@ -878,6 +883,7 @@ describe("holidays", () => {
       observedFor: null,
       region: null,
       group: null,
+      id: "world-braille-day",
     });
   });
 
@@ -897,11 +903,56 @@ describe("holidays", () => {
       observedFor: null,
       region: null,
       group: null,
+      id: "spring-festival",
     });
   });
 
   test("a day with no year is refused", () => {
     refused(() => hc.holidaysOn(2n ** 63n - 1n), "out-of-range");
+  });
+
+  test("a kind filter keeps the entries of those kinds and the gaps of their rules", () => {
+    const state = hc.holidayTables("en").find((table) => table.code === "US").regions.find((region) =>
+      hc.holidaysInYear("US", region, 2026).some((day) => day.kind === "observance"));
+    assert.ok(state, "a state with observances");
+    const every = hc.holidaysInYear("US", state, 2026);
+    const publicDays = hc.holidaysInYear("US", state, 2026, "", "public");
+    assert.ok(publicDays.length < every.length);
+    assert.ok(publicDays.every((day) => day.kind === "public" || day.kind === "gap"));
+    assert.ok(publicDays.some((day) => day.id === "new-years-day"));
+    // A list in any case, an empty filter and a word that is no kind.
+    const both = hc.holidaysInYear("US", state, 2026, "", " PUBLIC ; bank");
+    assert.ok(both.every((day) => ["public", "bank", "gap"].includes(day.kind)));
+    assert.deepEqual(hc.holidaysInYear("US", state, 2026, "", ""), every);
+    refused(() => hc.holidaysInYear("US", "", 2026, "", "public;festival"), "unknown");
+    // A subdivision not read is a gap whatever the kind.
+    const hampshire = hc.holidaysInYear("US", "US-NH", 2026, "", "observance").filter((day) => day.kind === "gap");
+    assert.deepEqual(hampshire.map((day) => day.id), ["unread-subdivision"]);
+    // The United Nations' days cite their resolutions, in the year's lines too.
+    assert.ok(hc.holidaysInYear("un-days", "", 2026).some((day) => day.source?.includes("A/RES")));
+  });
+
+  test("the tables list the pairs of a region and a group and the subdivisions read", () => {
+    const tables = hc.holidayTables("en");
+    const japan = tables.find((table) => table.code === "JP");
+    assert.ok(japan.readSubdivisions.includes("JP-14-130"));
+    for (const region of japan.regions) {
+      assert.ok(japan.readSubdivisions.includes(region), region);
+    }
+    assert.deepEqual(tables.find((table) => table.code === "XNYS").readSubdivisions, []);
+    for (const table of tables) {
+      for (const pair of table.regionGroups) {
+        assert.ok(pair.region && pair.group, JSON.stringify(pair));
+      }
+    }
+  });
+
+  test("a line of hc_holidays_on_in keeps its names where they were and ends with the identifier", () => {
+    const rows = hc.holidaysOnIn(hc.gregorianToFixed(2025, 9, 11), "cop");
+    const nayrouz = rows.find((row) => row.table === "coptic-orthodox");
+    assert.equal(nayrouz.id, "nayrouz-new-year");
+    assert.equal(nayrouz.nameInLocale, "ⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ");
+    assert.equal(nayrouz.nameLocale, "cop");
   });
 
   test("a subdivision's own day is a region of its country's table", () => {
@@ -918,6 +969,7 @@ describe("holidays", () => {
       observedFor: null,
       region: "JP-13",
       group: null,
+      id: "tokyo-citizens-day",
     }]);
     assert.ok(tokyo[0].source?.includes("昭和27年東京都条例第75号"));
     const year = hc.holidaysInYear("JP", "JP-13", 2026);
@@ -950,6 +1002,7 @@ describe("holidays", () => {
       observedFor: null,
       region: null,
       group: "women",
+      id: "womens-day",
     }]);
     const year = hc.holidaysInYear("CN", "", 2026, "women");
     assert.deepEqual(year.filter((day) => day.group).map((day) => day.date), ["2026-03-08"]);
@@ -957,7 +1010,9 @@ describe("holidays", () => {
     // Before 1999, the first year of the statute's text read, the half day
     // is a gap row: no date, no confidence, the kind "gap", the group.
     const before = hc.holidaysInYear("CN", "", 1998, "women").filter((day) => day.kind === "gap");
-    assert.deepEqual(before.find((day) => day.localName === "妇女节"), {
+    const womensGap = before.find((day) => day.localName === "妇女节");
+    assert.ok(womensGap?.source?.includes("全国年节及纪念日放假办法"), womensGap?.source ?? "");
+    assert.deepEqual(womensGap, {
       date: null,
       name: "Women's Day",
       localName: "妇女节",
@@ -967,6 +1022,8 @@ describe("holidays", () => {
       observedFor: null,
       region: null,
       group: "women",
+      id: "womens-day",
+      source: womensGap.source,
     });
     // A state whose code was not read is a gap row with its region.
     const hampshire = hc.holidaysInYear("US", "US-NH", 2026).filter((day) => day.kind === "gap");
@@ -2374,9 +2431,15 @@ describe("Holy Years and the Common Worship ranks", () => {
   test("St George's Day of 2025 is a Festival on the Monday, named as hc_holidays_on names it", () => {
     const day = hc.gregorianToFixed(2025, 4, 28);
     const kept = hc.commonWorshipOn(day);
-    assert.deepEqual(kept, [{ title: "George, Martyr, Patron of England", rank: "festival", rankName: "Festival" }]);
-    const listed = hc.holidaysOn(day).filter((row) => row.table === "common-worship").map((row) => row.name);
-    assert.deepEqual(listed, kept.map((row) => row.title));
+    assert.deepEqual(kept, [{
+      title: "George, Martyr, Patron of England",
+      rank: "festival",
+      rankName: "Festival",
+      id: "george-martyr-patron-of-england",
+    }]);
+    // The two are joined on the identifier, not on the title.
+    const listed = hc.holidaysOn(day).filter((row) => row.table === "common-worship").map((row) => row.id);
+    assert.deepEqual(listed, kept.map((row) => row.id));
     assert.deepEqual(hc.commonWorshipOn(hc.gregorianToFixed(2025, 4, 23)), []);
     assert.equal(hc.commonWorshipOn(hc.gregorianToFixed(2025, 12, 25))[0]?.rank, "principal-feast");
   });
@@ -2915,7 +2978,9 @@ describe("the reckonings of #243 to #246", () => {
 describe("places", () => {
   test("Tokyo is 東京都 in Japanese and Tokyo in English", () => {
     const japan = hc.subdivisions("jp", "ja-JP");
-    assert.equal(japan.length, 47);
+    // The 47 prefectures CLDR names and the 21 municipalities the holiday tables list.
+    assert.equal(japan.length, 47 + 21);
+    assert.equal(japan.filter((row) => row.status === "municipal").length, 21);
     const tokyo = japan.find((row) => row.code === "JP-13");
     assert.deepEqual(tokyo, {
       code: "JP-13", name: "東京都", englishName: "Tokyo", localeUsed: "ja", draft: "provisional", status: "regular",
@@ -2923,6 +2988,28 @@ describe("places", () => {
     assert.deepEqual(hc.placeName("jp-13", "ja"), tokyo);
     assert.equal(hc.placeName("JP-13", "en").name, "Tokyo");
     assert.equal(hc.placeName("JP", "ja").name, "日本");
+  });
+
+  test("a municipality a holiday table lists is named, in Japanese, romanised and in English", () => {
+    const kawasaki = { code: "JP-14-130", name: "川崎市", englishName: "Kawasaki", localeUsed: "ja", draft: null, status: "municipal" };
+    assert.deepEqual(hc.placeName("jp-14-130", "ja"), kawasaki);
+    const latin = hc.placeName("JP-14-130", "ja-Latn");
+    assert.deepEqual([latin.name, latin.localeUsed], ["Kawasaki-shi", "ja-Latn"]);
+    const german = hc.placeName("JP-14-130", "de");
+    assert.deepEqual([german.name, german.localeUsed], ["Kawasaki", "en"]);
+    // In code order after its prefecture, so the lookup that names column 9's prefectures names its cities.
+    const codes = hc.subdivisions("JP", "ja").map((row) => row.code);
+    const at = codes.indexOf("JP-14");
+    assert.deepEqual(codes.slice(at, at + 5), ["JP-14", "JP-14-100", "JP-14-130", "JP-14-150", "JP-15"]);
+    // No listed region lacks a name, under any of the three tags.
+    for (const table of hc.holidayTables("ja")) {
+      for (const code of [...table.regions, ...table.readSubdivisions]) {
+        for (const locale of ["ja", "ja-Latn", "en"]) {
+          assert.ok(hc.placeName(code, locale).name, `${table.code} ${code} ${locale}`);
+        }
+      }
+    }
+    refused(() => hc.placeName("JP-14-999", "ja"), "unknown");
   });
 
   test("a name falls back along CLDR's chain, then to English", () => {
@@ -2942,7 +3029,7 @@ describe("places", () => {
     assert.equal(raw.length, 295);
     assert.ok(raw.every((row) => row.length === COLUMNS.places.length));
     assert.equal(hc.territories("de").find((row) => row.code === "001")?.status, "macroregion");
-    assert.equal(hc.subdivisions("", "en").length, 5503);
+    assert.equal(hc.subdivisions("", "en").length, 5503 + 21);
     assert.deepEqual(hc.subdivisions("AQ"), []);
     refused(() => hc.subdivisions("JPN"), "unknown");
     refused(() => hc.placeName("jp13"), "unknown");
