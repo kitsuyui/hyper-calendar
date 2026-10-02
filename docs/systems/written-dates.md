@@ -349,19 +349,19 @@ January 1 CE, 15 October 1582, 15 June 1900, 1 January 1970, 1 January and
 days the test's `MORE_DAYS` lists for it, the doubled days below and four
 Hebrew New Years whose years end in a letter with its geresh.
 
-In a release build the sweep reads 225 calendars × 67 locale settings, on
-1 829 calendar-days, which is 122 543 texts:
+In a release build the sweep reads 229 calendars × 67 locale settings, on
+1 901 calendar-days, which is 127 367 texts:
 
 | Outcome | Texts |
 | --- | ---: |
-| Read back as the day written | 108 186 |
+| Read back as the day written | 112 206 |
 | `year-not-written`: cycles that recur, see below | 8 002 |
 | `missing-field`: the 819-day count's station is not written | 1 407 |
 | `two-digit-year`: years 0–99, on the calendars' first days | 1 598 |
-| `ambiguous`: see below | 3 350 |
+| `ambiguous`: see below | 4 154 |
 | Read as a wrong day | 0 |
 
-Counted 2026-09-29 by a program that repeats the release sweep.
+Counted 2026-10-03 by a program that repeats the release sweep, which a count of 2026-09-29 (225 calendars, 1 829 calendar-days, 122 543 texts) preceded the Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena calendars of; their eight hundred and four ambiguous texts are the doubled tithis.
 
 A second sweep, `the_first_day_of_every_era_and_month_reads_back`, writes
 and reads the first day of every era of every calendar and, in a release
@@ -372,9 +372,11 @@ the era of a day changes: the calendar is stepped through a week at a
 time, or in 100 000 steps over a range longer than 20 000 000 days, and
 each step whose ends differ is halved down to the day; a calendar whose
 era is the same on 2 000 days across its range, and which names no era of
-its own, has only its first day. On 2026-09-29 that was 1 679 era days
-and 9 623 month days, 854 652 texts, in 80 s and 790 CPU-s on a
-fourteen-core desktop, spread over its threads;
+its own, has only its first day. On 2026-10-03 that was 1 686 era days
+and 10 030 month days, 882 390 texts, in 104 s of wall time on a machine
+whose cores were also running other work (2026-09-29: 1 679 era days and
+9 623 month days, 854 652 texts, in 80 s and 790 CPU-s on a fourteen-core
+desktop), spread over its threads;
 `scripts/release-shards.sh` gives the test binary a shard of its own.
 Every text that does not read back is one of the refusals listed below,
 or one of the 3 933 texts of a Japanese era calendar's month in a year
@@ -383,11 +385,11 @@ both months alike and reads as both (the ambiguity above). A romanisation
 two eras share would be a third kind, which is why it is not written.
 
 A debug build writes the same era days in the calendar's own language
-alone, with no eves and no month days: 1 679 texts. Under coverage,
+alone, with no eves and no month days: 1 686 texts. Under coverage,
 calendars that share an era table are read once, because the reader's
 paths are the same: the first registered of the seven Japanese calendars,
 of the two Chinese regnal and the two Korean regnal ones, of the three
-Javanese and of the two Jalali, which leaves 434 texts, on one thread
+Javanese and of the two Jalali, which leaves 441 texts (434 before the four calendars of 2026-10-03, which share no table and add their seven era days, not run under coverage here), on one thread
 under instrumentation. It finds the era days in
 steps of a 5 000th of the range and at least a year, with nine probe days
 for whether the calendar has eras at all. A step that passes over a whole

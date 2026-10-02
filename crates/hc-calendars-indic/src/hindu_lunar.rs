@@ -87,7 +87,7 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::zodiac::sidereal::{ingress_after, sign_at_moment};
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
-use crate::amanta::{Amanta, Sky};
+use crate::amanta::Sky;
 use crate::places::{CENTRAL_STATION, UJJAIN};
 use crate::tithi::{sunrise_of, tithi_of_day};
 
@@ -96,6 +96,13 @@ pub const ID: CalendarId = CalendarId("hindu-lunar");
 
 /// The English name of the amānta Hindu lunisolar calendar.
 pub const ENGLISH_NAME: &str = "Hindu lunisolar (amanta)";
+
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The identifier and English name of the amānta calendar over an
+    /// ayanāṃśa: [`ID`] and [`ENGLISH_NAME`] for Lahiri's, and the
+    /// convention's for any other.
+    pub(crate) fn identity, "hindu-lunar", "Hindu lunisolar (amanta)"
+}
 
 /// The identifier of Reingold and Dershowitz's astronomical Hindu
 /// lunisolar calendar, [`HinduLunarCalendar::REINGOLD_DERSHOWITZ`].
@@ -227,11 +234,16 @@ impl HinduLunarCalendar {
         Ayanamsa::REINGOLD_DERSHOWITZ,
     );
 
-    /// A calendar judged at any place with any ayanāṃśa, under the
-    /// identifier [`ID`].
+    /// A calendar judged at any place with any ayanāṃśa. Its identifier is
+    /// the convention's, since a sidereal zero point is one (policy §5):
+    /// [`ID`] for the Lahiri ayanāṃśa at any place, as for
+    /// [`Self::UJJAIN`]; `hindu-lunar-raman` for Raman's and so on for each
+    /// named ayanāṃśa of `Ayanamsa::ALL`; `hindu-lunar-other-ayanamsa` for an
+    /// anchor this crate does not name. Only the Lahiri one is registered.
     #[must_use]
     pub const fn new(location: Location, ayanamsa: Ayanamsa) -> Self {
-        Self::named(ID, ENGLISH_NAME, location, ayanamsa)
+        let (id, english_name) = identity(ayanamsa);
+        Self::named(id, english_name, location, ayanamsa)
     }
 
     /// A calendar judged at any place with any ayanāṃśa, registered under
@@ -261,14 +273,9 @@ impl HinduLunarCalendar {
     }
 
     crate::amanta::amanta_methods!();
-
-    /// The label — month number and intercalary flag — of the month after
-    /// the one containing `day`, for the pūrṇimānta renaming; inside a
-    /// [`hc_core::memo::scope`], once a day.
-    pub(crate) fn next_month_label(&self, day: Rd) -> (u8, bool) {
-        Amanta(*self).next_month_label(day)
-    }
 }
+
+crate::amanta::amanta_months!(HinduLunarCalendar);
 
 /// The first conjunction at or after a moment: the instant the Moon's
 /// elongation from the Sun, the quantity the tithi is counted in, returns to
@@ -496,7 +503,7 @@ mod tests {
     #[test]
     fn the_named_ranges_are_the_computed_ones() {
         for (calendar, earliest, latest) in NAMED_RANGES {
-            let engine = Amanta(calendar);
+            let engine = crate::amanta::Amanta(calendar);
             assert_eq!(engine.computed_earliest(), Ok(earliest), "{calendar:?}");
             assert_eq!(engine.computed_latest(), Ok(latest), "{calendar:?}");
         }
@@ -774,6 +781,30 @@ mod tests {
     }
 
     #[test]
+    fn the_books_calendar_round_trips_over_its_whole_range() {
+        // `hindu-lunar-reingold-dershowitz` reads Ujjain's sunrise with the
+        // book's ayanāṃśa: its own computation, not `hindu-lunar` renamed,
+        // so the round trip of the true engine above does not stand for it.
+        // Every eleventh day of the 600 years, and each Chaitra śukla 1 with
+        // the day before it; every fifty-fifth in a debug build
+        // (docs/policy.md §7).
+        let book = HinduLunarCalendar::REINGOLD_DERSHOWITZ;
+        let (first, last) = (book.earliest().unwrap().0, book.latest().unwrap().0);
+        let openings: alloc::vec::Vec<i64> = (MIN_YEAR + 1..=MAX_YEAR)
+            .map(|year| book.new_year(year).unwrap().0)
+            .collect();
+        let days = crate::strided_days(first, last, 11, 5, &openings);
+        crate::check_days(&days, |rd| {
+            let date = book.from_fixed(Rd(rd)).unwrap();
+            assert_eq!(book.to_fixed(date), Ok(Rd(rd)), "rd {rd}: {date:?}");
+        });
+        assert_eq!(
+            book.from_fixed(Rd(first - 1)),
+            Err(CalendarError::BeforeEpoch)
+        );
+    }
+
+    #[test]
     fn the_calendar_impl_round_trips_through_fields() {
         for rd in (ymd(2023, 3, 22).0..ymd(2024, 4, 9).0).step_by(7) {
             let date = RASHTRIYA.from_fixed(Rd(rd)).unwrap();
@@ -939,9 +970,17 @@ mod tests {
         assert_eq!(book.ayanamsa, Ayanamsa::REINGOLD_DERSHOWITZ);
         assert_eq!(book.location, UJJAIN);
         assert_eq!(HinduLunarCalendar::UJJAIN.meta().id, ID);
+        // Raman's is another convention, and another name (§5): the id
+        // `hindu-lunar` is the Lahiri calendar's alone.
         assert_eq!(
             HinduLunarCalendar::new(UJJAIN, Ayanamsa::RAMAN).meta().id,
-            ID
+            CalendarId("hindu-lunar-raman")
+        );
+        assert_eq!(
+            HinduLunarCalendar::new(UJJAIN, Ayanamsa::REINGOLD_DERSHOWITZ)
+                .meta()
+                .id,
+            REINGOLD_DERSHOWITZ_ID
         );
         assert_eq!(RASHTRIYA.meta().english_name, ENGLISH_NAME);
         // The book's `dates.l`: RD 764 652, 18 July 2094, is Vikrama 2151,

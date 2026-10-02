@@ -67,10 +67,19 @@ use hc_calendar::{
     YearKind,
 };
 
+use crate::amanta::AmantaMonths;
 use crate::hindu_lunar::{ERA, HinduLunarCalendar, HinduLunarDate, MONTHS_IN_YEAR};
 
 /// The identifier of the pūrṇimānta Hindu lunisolar calendar.
 pub const ID: CalendarId = CalendarId("hindu-lunar-purnimanta");
+
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The identifier and English name of the pūrṇimānta calendar over the
+    /// amānta one's ayanāṃśa: [`ID`] for Lahiri's, and the convention's for
+    /// any other, as [`crate::hindu_lunar::HinduLunarCalendar::new`] names
+    /// the amānta one.
+    pub(crate) fn identity, "hindu-lunar-purnimanta", "Hindu lunisolar (purnimanta)"
+}
 
 /// The last tithi of the bright fortnight.
 const FULL_MOON: u8 = 15;
@@ -131,18 +140,7 @@ impl HinduPurnimantaCalendar {
     ///
     /// As [`HinduLunarCalendar::to_fixed`], for a date that does not exist.
     pub fn from_amanta(&self, date: HinduLunarDate) -> CalendarResult<HinduLunarDate> {
-        if date.day <= FULL_MOON || date.leap_month {
-            return Ok(date);
-        }
-        // The month after this one, by its saṅkrānti: the next amānta
-        // month's label, made ordinary.
-        let day = self.amanta.to_fixed(date)?;
-        let (month, _) = self.amanta.next_month_label(day);
-        Ok(HinduLunarDate {
-            month,
-            leap_month: false,
-            ..date
-        })
+        purnimanta_of(&self.amanta, date)
     }
 
     /// The amānta date of a pūrṇimānta one.
@@ -151,48 +149,7 @@ impl HinduPurnimantaCalendar {
     ///
     /// As [`HinduLunarCalendar::to_fixed`], for a date that does not exist.
     pub fn to_amanta(&self, date: HinduLunarDate) -> CalendarResult<HinduLunarDate> {
-        if date.day <= FULL_MOON || date.leap_month {
-            return Ok(date);
-        }
-        // The dark half of an ordinary pūrṇimānta month is the dark half of
-        // the amānta month before the first amānta month of that name —
-        // before the intercalary one, if the year has it. That month is the
-        // ordinary month before, of the same Śaka year: Phālguna for
-        // Chaitra, whose dark fortnight ends the old year. It is taken if
-        // the month after it bears this name, which needs nothing past the
-        // month itself, so the last day of the range, a dark fortnight
-        // named for a Chaitra the range does not reach, converts too.
-        let before = HinduLunarDate {
-            month: if date.month == 1 { 12 } else { date.month - 1 },
-            leap_month: false,
-            ..date
-        };
-        if let Ok(day) = self.amanta.to_fixed(before)
-            && self.amanta.next_month_label(day).0 == date.month
-        {
-            return Ok(before);
-        }
-        // A kṣaya month took the name before this one: find the month
-        // before this name's first.
-        let year = if date.month == 1 {
-            date.year + 1
-        } else {
-            date.year
-        };
-        let (month, _) = self.amanta.month_span(year, date.month, false)?;
-        let (first, _) = self
-            .amanta
-            .month_span(year, date.month, true)
-            .unwrap_or((month, month));
-        let first_start = if first < month { first } else { month };
-        let previous = self.amanta.from_fixed(Rd(first_start.0 - 1))?;
-        Ok(HinduLunarDate {
-            year: previous.year,
-            month: previous.month,
-            leap_month: previous.leap_month,
-            day: date.day,
-            leap_day: date.leap_day,
-        })
+        amanta_of(&self.amanta, date)
     }
 
     /// The fixed day of a pūrṇimānta date.
@@ -212,6 +169,85 @@ impl HinduPurnimantaCalendar {
     pub fn from_fixed(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
         self.from_amanta(self.amanta.from_fixed(rd)?)
     }
+}
+
+/// The pūrṇimānta name of an amānta date over any amānta months: the
+/// renaming [`HinduPurnimantaCalendar::from_amanta`] applies to the true
+/// sky, written once so that an era over the *Sūrya Siddhānta*'s months
+/// can use it.
+///
+/// # Errors
+///
+/// As [`AmantaMonths::day_of`], for a date that does not exist.
+pub fn purnimanta_of<L: AmantaMonths>(
+    months: &L,
+    date: HinduLunarDate,
+) -> CalendarResult<HinduLunarDate> {
+    if date.day <= FULL_MOON || date.leap_month {
+        return Ok(date);
+    }
+    // The month after this one, by its saṅkrānti: the next amānta
+    // month's label, made ordinary.
+    let day = months.day_of(date)?;
+    let (month, _) = months.next_month_label(day);
+    Ok(HinduLunarDate {
+        month,
+        leap_month: false,
+        ..date
+    })
+}
+
+/// The amānta date of a pūrṇimānta one over any amānta months, the inverse
+/// of [`purnimanta_of`].
+///
+/// # Errors
+///
+/// As [`AmantaMonths::day_of`], for a date that does not exist.
+pub fn amanta_of<L: AmantaMonths>(
+    months: &L,
+    date: HinduLunarDate,
+) -> CalendarResult<HinduLunarDate> {
+    if date.day <= FULL_MOON || date.leap_month {
+        return Ok(date);
+    }
+    // The dark half of an ordinary pūrṇimānta month is the dark half of
+    // the amānta month before the first amānta month of that name —
+    // before the intercalary one, if the year has it. That month is the
+    // ordinary month before, of the same Śaka year: Phālguna for
+    // Chaitra, whose dark fortnight ends the old year. It is taken if
+    // the month after it bears this name, which needs nothing past the
+    // month itself, so the last day of the range, a dark fortnight
+    // named for a Chaitra the range does not reach, converts too.
+    let before = HinduLunarDate {
+        month: if date.month == 1 { 12 } else { date.month - 1 },
+        leap_month: false,
+        ..date
+    };
+    if let Ok(day) = months.day_of(before)
+        && months.next_month_label(day).0 == date.month
+    {
+        return Ok(before);
+    }
+    // A kṣaya month took the name before this one: find the month
+    // before this name's first.
+    let year = if date.month == 1 {
+        date.year + 1
+    } else {
+        date.year
+    };
+    let (month, _) = months.month_span(year, date.month, false)?;
+    let (first, _) = months
+        .month_span(year, date.month, true)
+        .unwrap_or((month, month));
+    let first_start = if first < month { first } else { month };
+    let previous = months.date_on(Rd(first_start.0 - 1))?;
+    Ok(HinduLunarDate {
+        year: previous.year,
+        month: previous.month,
+        leap_month: previous.leap_month,
+        day: date.day,
+        leap_day: date.leap_day,
+    })
 }
 
 impl Calendar for HinduPurnimantaCalendar {
@@ -248,9 +284,10 @@ impl Calendar for HinduPurnimantaCalendar {
 
     fn meta(&self) -> CalendarMeta {
         let amanta = self.amanta.meta();
+        let (id, english_name) = identity(self.amanta.ayanamsa);
         CalendarMeta {
-            id: ID,
-            english_name: "Hindu lunisolar (purnimanta)",
+            id,
+            english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,

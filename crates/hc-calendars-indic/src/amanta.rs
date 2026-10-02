@@ -582,3 +582,105 @@ macro_rules! amanta_methods {
 }
 
 pub(crate) use amanta_methods;
+
+/// The amānta months a renaming or an era counts over: what the amānta
+/// calendar of [`crate::hindu_lunar`] on the true sky and the one of
+/// [`crate::hindu_lunar_siddhanta`] on the *Sūrya Siddhānta*'s have in
+/// common, so that the pūrṇimānta renaming ([`crate::hindu_purnimanta`]),
+/// the arithmetic of a year that opens at a month and tithi
+/// ([`crate::year_start`]) and the eras of [`crate::lunar_era`] are written
+/// once for both.
+pub trait AmantaMonths: Copy {
+    /// The date of a fixed day, as the calendar's `from_fixed` gives it.
+    ///
+    /// # Errors
+    ///
+    /// Outside the years the calendar converts.
+    fn date_on(&self, rd: Rd) -> CalendarResult<HinduLunarDate>;
+
+    /// The fixed day of a date, as the calendar's `to_fixed` gives it.
+    ///
+    /// # Errors
+    ///
+    /// For a date the calendar does not have.
+    fn day_of(&self, date: HinduLunarDate) -> CalendarResult<Rd>;
+
+    /// The first day of a month and the day after its last.
+    ///
+    /// # Errors
+    ///
+    /// For a month the year does not have.
+    fn month_span(&self, year: i64, month: u8, leap: bool) -> CalendarResult<(Rd, Rd)>;
+
+    /// The intercalary month of a Śaka year, if it has one, as its number
+    /// and its first and last days.
+    ///
+    /// # Errors
+    ///
+    /// Outside the years the calendar converts.
+    fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>>;
+
+    /// The earliest fixed day the calendar converts.
+    ///
+    /// # Errors
+    ///
+    /// Only if the sky cannot place the year, which it can.
+    fn earliest(&self) -> CalendarResult<Rd>;
+
+    /// The latest fixed day the calendar converts.
+    ///
+    /// # Errors
+    ///
+    /// Only if the sky cannot place the year, which it can.
+    fn latest(&self) -> CalendarResult<Rd>;
+
+    /// The first and last Śaka year the calendar converts.
+    fn years(&self) -> (i64, i64);
+
+    /// The month number and intercalary flag of the month after the one
+    /// containing `day`: what the pūrṇimānta renaming names a dark
+    /// fortnight by.
+    fn next_month_label(&self, day: Rd) -> (u8, bool);
+}
+
+/// Implement [`AmantaMonths`] for a calendar type that has a [`Sky`], over
+/// the engine.
+macro_rules! amanta_months {
+    ($ty:ty) => {
+        impl $crate::amanta::AmantaMonths for $ty {
+            fn date_on(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
+                $crate::amanta::Amanta(*self).date_of(rd)
+            }
+
+            fn day_of(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
+                $crate::amanta::Amanta(*self).fixed_of(date)
+            }
+
+            fn month_span(&self, year: i64, month: u8, leap: bool) -> CalendarResult<(Rd, Rd)> {
+                $crate::amanta::Amanta(*self).month_span(year, month, leap)
+            }
+
+            fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
+                $crate::amanta::Amanta(*self).leap_month_of(year)
+            }
+
+            fn earliest(&self) -> CalendarResult<Rd> {
+                $crate::amanta::Amanta(*self).earliest()
+            }
+
+            fn latest(&self) -> CalendarResult<Rd> {
+                $crate::amanta::Amanta(*self).latest()
+            }
+
+            fn years(&self) -> (i64, i64) {
+                $crate::amanta::Sky::years(self)
+            }
+
+            fn next_month_label(&self, day: Rd) -> (u8, bool) {
+                $crate::amanta::Amanta(*self).next_month_label(day)
+            }
+        }
+    };
+}
+
+pub(crate) use amanta_months;

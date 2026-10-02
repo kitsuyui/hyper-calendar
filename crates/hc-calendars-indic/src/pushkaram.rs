@@ -254,6 +254,40 @@ mod tests {
                 (7, 7),
                 "eastgodavari-pushkaralu-2027",
             ),
+            // Vṛścika at 20:39 on 11 October 2018, after sunset in New Delhi
+            // (about 17:50): the Tamraparni festival at Tirunelveli ran
+            // from 12 to 23 October, and Wikipedia's Bhima page gives
+            // the same days for the Bhima.
+            (
+                PushkaramRiver::TAMRAPARNI,
+                2018,
+                (10, 12),
+                (10, 23),
+                "citizenmatters-tamirabarani-2018",
+            ),
+            (
+                PushkaramRiver::BHIMA,
+                2018,
+                (10, 12),
+                (10, 23),
+                "wikipedia-bhima-pushkaram",
+            ),
+            // Vṛṣabha at 13:50 on 1 May 2024.
+            (
+                PushkaramRiver::NARMADA,
+                2024,
+                (5, 1),
+                (5, 12),
+                "wikipedia-narmada-pushkaram",
+            ),
+            // Karka at 02:25 on 2 June 2026, before the day's sunrise.
+            (
+                PushkaramRiver::YAMUNA,
+                2026,
+                (6, 2),
+                (6, 13),
+                "wikipedia-yamuna-pushkaram",
+            ),
         ] {
             let span = adi_pushkaram(entry(year, first.0, river.sign), NEW_DELHI, Meridian::INDIA)
                 .expect("a sunset");

@@ -41,7 +41,7 @@ assert_eq!(
 | `std` (default) | platform floating-point math; implies `alloc` |
 | `alloc` | passed through to the crates below |
 | `libm` | software floating-point math through `hc-core`, for `no_std` targets |
-| `jupiter` | `zodiac::jupiter`: Jupiter's sidereal longitude and sign, its entries into the signs, its heliacal risings, from `hc-astro`'s VSOP87B series (`hc-astro/jupiter`, 55 kB of tables) |
+| `jupiter` | `zodiac::jupiter`: Jupiter's sidereal longitude and sign, its entries into the signs, its stations (*vakri* and *mārgī*), its heliacal risings, from `hc-astro`'s VSOP87B series (`hc-astro/jupiter`, 55 kB of tables) |
 
 | Module | Covers |
 | --- | --- |
@@ -56,7 +56,7 @@ assert_eq!(
 | `dog_days` | the European dog days, one convention per source: *The Old Farmer's Almanac*'s 3 July to 11 August, the *Hundstage* of 23 July to 23 August, and the 1552 and 1559 Prayer Books' 7 July to 5 September in the Julian calendar |
 | `moon_calendar` | phase names, 月齢, illuminated fraction, a month's four principal phases, and the National Astronomical Observatory's 伝統的七夕 |
 | `seasons` | astronomical, meteorological and East Asian seasons |
-| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with the ayanāṃśa, the Indian solar months, and the Chinese 十二次; with the `jupiter` feature `zodiac::jupiter`, Jupiter's sidereal sign and its entries into the signs, the sign the Kumbh Mela and Pushkaram read; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them; `zodiac::drekkana`, the 36 Hindu thirds of the sidereal signs, each ruled by the lord of its sign, of the fifth or of the ninth, as his §451 tabulates them |
+| `zodiac` | 黄道十二宮: the tropical Western signs, the sidereal rāśi with eight named ayanāṃśas, each with its source (three readings of Lahiri's among them: the *Rashtriya Panchang*'s, the Committee's and Drik Panchang's), `zodiac::node`, Rāhu and Ketu by the mean node and their entries into the signs, the Indian solar months, and the Chinese 十二次; with the `jupiter` feature `zodiac::jupiter`, Jupiter's sidereal sign and its entries into the signs, the sign the Kumbh Mela and Pushkaram read; `zodiac::decans`, the 36 faces of 10°, each ruled by a planet in the Chaldean order from Mars at 0° of Aries, as al-Bīrūnī tabulates them; `zodiac::drekkana`, the 36 Hindu thirds of the sidereal signs, each ruled by the lord of its sign, of the fifth or of the ninth, as his §451 tabulates them |
 | `planetary_hours` | The twelve temporal hours of the daylight and twelve of the night, from sunrise, each ruled by a planet in the Chaldean order from the weekday's, as al-Bīrūnī states the rule and Lilly's table for London works it |
 
 ## A day is not an instant

@@ -67,6 +67,7 @@ pub mod decans;
 pub mod drekkana;
 #[cfg(feature = "jupiter")]
 pub mod jupiter;
+pub mod node;
 pub mod rashi;
 pub mod sidereal;
 pub mod tropical;

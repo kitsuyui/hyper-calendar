@@ -750,7 +750,7 @@ The one period carried is Turkmenistan's of 2002 to 2008. A null
 buffer, capacity, written)` need the `calendars` feature and write the
 WebAssembly module's two lines, the yoga's and the karaṇa's, in its nine
 columns, the yoga's ayanāṃśa by the identifier `ayanamsa` takes and by
-its full name; `ayanamsa` is a NUL-terminated identifier, `lahiri`, `raman`,
+its full name; `ayanamsa` is a NUL-terminated identifier, `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`,
 `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`, and a day without a sunrise at the
 place is `HC_ERROR_NO_DATA`. The sky may instead be the *Sūrya Siddhānta*'s,
 `surya-siddhanta`, which both lines then name. `hc_nakshatra_at(unix_seconds,

@@ -654,3 +654,6 @@ womens = "womens"
 # Shab-e-Meraj, the night of the Ascension (27 Rajab), in Bangladesh's optional
 # holidays in hc-holiday's Bangladesh table.
 Meraj = "Meraj"
+# Parana, the breaking of an Ekadashi fast, as Drik Panchang's ISKCON page and
+# its Ekadashi Vrat Vidhi page write it (docs/systems/hindu-calendars.md).
+Parana = "Parana"

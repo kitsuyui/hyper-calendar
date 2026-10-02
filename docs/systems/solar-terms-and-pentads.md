@@ -300,10 +300,12 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   as "the scheme followed while erecting the Navamsa Chart", unstated;
   S. Krishna Iyengar, whom it cites, was not read.
 - **`zodiac::sidereal`**: `Ayanamsa`, an anchor value at an anchor Julian
-  date and nothing else, with `LAHIRI`, `RAMAN`, `KRISHNAMURTI`,
+  date and a recorded source, with `LAHIRI`, `LAHIRI_RASHTRIYA`,
+  `LAHIRI_CRC_1955`, `LAHIRI_DRIK`, `RAMAN`, `KRISHNAMURTI`,
   `REINGOLD_DERSHOWITZ` and `FAGAN_BRADLEY` as data, a table of them by
-  identifier (`lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`,
-  `fagan-bradley`) and `new` for any other;
+  identifier (`lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`,
+  `raman`, `krishnamurti`, `reingold-dershowitz`, `fagan-bradley`) and `new`
+  for any other;
   `degrees_at`;
   `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
   Devanagari: the table once carried had no source, and the Hindi

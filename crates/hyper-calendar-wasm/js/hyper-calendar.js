@@ -4771,7 +4771,7 @@ export class HyperCalendar {
 
   /**
    * The yoga and the karaṇa in progress at a POSIX instant, read as
-   * Universal Time, the yoga reckoned with an ayanamsa: `lahiri`, `raman`,
+   * Universal Time, the yoga reckoned with an ayanamsa: `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`,
    * `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`; or both on
    * the *Sūrya Siddhānta*'s sky, `surya-siddhanta`.
    *

@@ -117,18 +117,27 @@ not read].
 The twelve days begin on the civil day of Jupiter's entry, or on the next
 day when the entry falls after that day's sunset. No source read states
 this. It is the reading that gives every festival whose dates were read,
-from Drik Panchang's entry times [drik-guru-gochar]:
+from Drik Panchang's entry times [drik-guru-gochar]. The 2018 festival
+of the Bhima and the Tamraparni, the second of Vṛścika's rivers, is the case
+of an entry after sunset that falls in the early evening, 20:39 against a
+New Delhi sunset at 17:51; the entry of 1 May 2024 and that of 2 June
+2026 stand before the day's sunset or before dawn, so they put the first
+day on the day of the entry:
 
 | River | Jupiter's entry (IST) | The festival | Source |
 | --- | --- | --- | --- |
 | Godavari | 14 July 2015, 07:07 | 14–25 July 2015 | [wikipedia-godavari-pushkaram] |
 | Krishna | 11 August 2016, 22:24, after sunset | 12–23 August 2016 | [vijayawadapolice-krishna-2016] |
 | Kaveri | 12 September 2017, 08:00 | 12–23 September 2017 | [wikipedia-kaveri-pushkaram] |
+| Tamraparni | 11 October 2018, 20:39, after sunset | 12–23 October 2018 | [citizenmatters-tamirabarani-2018] |
+| Bhima | 11 October 2018, 20:39, after sunset | 12–23 October 2018 | [wikipedia-bhima-pushkaram] |
 | Brahmaputra | 5 November 2019, 06:41, the second entry | 5–16 November 2019 | [sentinel-brahmaputra-2019] |
 | Tungabhadra | 20 November 2020, 14:55, the second entry | 20 November – 1 December 2020 | [kurnool-tungabhadra-2020] |
 | Pranahita | 13 April 2022, 16:57 | 13–24 April 2022 | [hansindia-pranahita-2022] |
 | Ganga | 22 April 2023, 06:12 | from 22 April 2023 | [wikipedia-pushkaram] |
+| Narmada | 1 May 2024, 13:50 | 1–12 May 2024 | [wikipedia-narmada-pushkaram] |
 | Sarasvati | 14 May 2025, 23:20, after sunset | 15–26 May 2025 | [wikipedia-sarasvati-pushkaram] |
+| Yamuna | 2 June 2026, 02:25 | 2–13 June 2026, as scheduled | [wikipedia-yamuna-pushkaram] |
 | Godavari | 26 June 2027, 05:43 | 26 June – 7 July 2027, announced | [eastgodavari-pushkaralu-2027] |
 
 **Worked example.** Jupiter entered Makara on 30 March 2020, went back
@@ -202,8 +211,12 @@ alone. The three alternative conditions hold in other years, and in no
 year a festival was held: Prayag's in 2012 and 2024, Nashik's in 2002,
 2003, 2014 and 2026, Ujjain's in 2005, 2006, 2017 and 2029.
 
-The Pushkaram rule gives all nine festivals in the table above, the
-Godavari's of 2027 as the district announces it. Wikipedia's
+The Pushkaram rule gives all twelve festivals in the table above, thirteen
+rivers' twelve days with the Bhima and the Tamraparni keeping the same
+days: the Godavari's of 2027 as the district announces it, and the Yamuna's
+of 2026 as Wikipedia's infobox schedules it, for which no report of its
+being held was read. Six of the twelve were read in a source that is not a
+Wikipedia page. Wikipedia's
 table gives two other festivals that the rule does not give. Its Dhanus
 festival of 2019, of the Tapti and the Brahmaputra, opens on 29 March, where Jupiter entered
 Dhanus at 03:09 on 30 March. Its Sindhu festival of 2021 opens on
@@ -227,12 +240,15 @@ later in 2030, past the table's end), each in the sign and the direction
 Drik Panchang gives. This crate's sidereal longitude of Jupiter at each is on
 the boundary to within 23.9″ to 27.1″, a constant 25″ that is the difference of
 the two Lahiri ayanāṃśas ([jupiter-ephemeris.md](jupiter-ephemeris.md)):
-this crate's Lahiri is 25″ smaller. With 25″ added, every entry is within
-6.9 minutes of Drik Panchang's, 1.7 minutes on average. With this crate's
+this crate's Lahiri is 25″ smaller. With `lahiri-drik`, the ayanāṃśa Drik's
+pages print, 25.4″ to 25.5″ above it, every entry is within 8.3 minutes of
+Drik Panchang's, 2.0 minutes on average; with 25.0″ added, within 6.9
+minutes, 1.7 on average. With this crate's
 own, the forward entries come 40 to 135 minutes earlier and the returns up to
 four and a half hours later, and the Pushkaram days below do not change: the
-entries stand 30 to 80 minutes before Drik Panchang's, no nearer than 2 hours
-to a sunset in any of the nine festivals.
+entries stand 30 to 80 minutes before Drik Panchang's, no nearer than
+113 minutes to a sunset in any of the twelve festivals (the Bhima and
+Tamraparni entry of 2018, 17:51 sunset and about 19:45).
 
 **The Kumbh Mela, 1974 to 2030.** With Jupiter's sign computed, Lahiri:
 
@@ -281,12 +297,13 @@ two years a festival is held in, and the library does not guess.
   Jupiter enters Siṃha at 04:48 IST on 26 June, 55 minutes before Drik Panchang's
   05:43, and the twelve days are those.
 
-**Pushkaram, the entries found.** For each of the nine festivals above,
+**Pushkaram, the entries found.** For each of the twelve festivals above,
 `hc_pushkaram_by_sky` with `pushkaram-final-entry` finds the entry in the
 year, and the twelve days from it are the published ones: the Godavari 2015,
 Krishna 2016, Kaveri 2017, Brahmaputra 2019, Tungabhadra 2020, Pranahita
-2022, Ganga 2023, Sarasvati 2025 and Godavari 2027, all nine. No year but
-those has an entry into Siṃha between 2016 and 2026. With
+2022, Ganga 2023, Sarasvati 2025, Godavari 2027, Bhima and Tamraparni 2018,
+Narmada 2024 and Yamuna 2026: all twelve festivals, thirteen rivers. No year
+but those has an entry into Siṃha between 2016 and 2026. With
 `pushkaram-first-entry` the 2019 Dhanus festival opens on 30 March, where
 Wikipedia's table has 29 March: Jupiter enters at 22:42 IST on the 29th by
 this crate, after that day's sunset, and at 03:09 on the 30th by Drik
@@ -319,6 +336,13 @@ source read asks for one.
 - [wikipedia-godavari-pushkaram], [wikipedia-kaveri-pushkaram] and
   [wikipedia-sarasvati-pushkaram]: the festivals of 2015, 2017 and 2025.
   Read 2026-09-28.
+- [citizenmatters-tamirabarani-2018]: the Tamraparni Maha Pushkaram of 12 to
+  23 October 2018, in Citizen Matters of 2 November 2018. Read 2026-10-03.
+- [wikipedia-bhima-pushkaram], [wikipedia-narmada-pushkaram] and
+  [wikipedia-yamuna-pushkaram]: the Bhima festival of 12 to 23 October 2018,
+  the Narmada's of 1 to 12 May 2024 and the Yamuna's of 2 to 13 June 2026, the
+  last an infobox's schedule with no citation and no report of its being
+  held. Read 2026-10-03.
 - [vijayawadapolice-krishna-2016]: the Krishna festival of 12 to
   23 August 2016. The Vijayawada police page, read in the Internet
   Archive's copy of 26 January 2025, 2026-09-28.

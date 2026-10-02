@@ -214,6 +214,7 @@ fn the_calendars_in_use_today_say_so() {
         "vira-nirvana-samvat",
         "vikram-samvat-kartikadi",
         "saptarshi",
+        "lakshmana-sena",
         "fasli-madras",
         "thai-lunar",
         "javanese",
@@ -254,6 +255,9 @@ fn the_historical_calendars_are_bounded() {
         "soviet-week",
         "persian-imperial",
         "taiping-tianli",
+        "gupta",
+        "valabhi",
+        "kalachuri",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         let usage = calendar.usage();

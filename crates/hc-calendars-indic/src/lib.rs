@@ -55,6 +55,10 @@
 //!   the conditions of the Kumbh Mela at its four sites, and the river of
 //!   each sign with the twelve days after Jupiter enters it. Jupiter's
 //!   position is the caller's.
+//! * [`vaishnava`] — the Vaiṣṇava reading of a festival's day where it parts
+//!   from the Smārta: Krṣṇa Janmāṣṭamī on the first sunrise at or after
+//!   Ashtami, which reproduces Drik Panchang's ISKCON dates for 2024 to
+//!   2034; the Vaiṣṇava Ekadashi is measured, and not given as a rule.
 //! * [`choghadiya`] — the eighths of the daylight and of the night, each
 //!   named for one of seven kinds by the weekday.
 //! * [`hindu_old`] — the mean-motion solar and lunisolar calendars of the
@@ -194,6 +198,36 @@ fn sweep_days_every(
     days
 }
 
+/// The days of a stride through a whole range, `first` to `last`: every
+/// `stride`th day in a release build, `stride` times `sampled` apart in a
+/// debug one, and in both the first and last day and each day of `openings`
+/// and the day before it, the first and last days of a year.
+///
+/// For a range of 600 years whose every day costs a millisecond: a stride
+/// of 11 is a day in every phase of the week, the tithi and the month.
+#[cfg(all(test, feature = "alloc"))]
+pub(crate) fn strided_days(
+    first: i64,
+    last: i64,
+    stride: usize,
+    sampled: usize,
+    openings: &[i64],
+) -> alloc::vec::Vec<i64> {
+    let mut days: alloc::vec::Vec<i64> = (first..=last)
+        .step_by(stride * sweep_stride(sampled))
+        .chain([first, last])
+        .chain(
+            openings
+                .iter()
+                .flat_map(|&day| [day - 1, day])
+                .filter(|day| (first..=last).contains(day)),
+        )
+        .collect();
+    days.sort_unstable();
+    days.dedup();
+    days
+}
+
 /// The years of a year-by-year sweep over `first..=last` in this crate's
 /// tests, such as the years whose openings [`sweep_days`] is given: every
 /// year in a release build; in a debug build every `sampled`th and the
@@ -224,6 +258,7 @@ hc_core::check_days_in_parallel!();
 
 mod amanta;
 pub mod amrita_siddhi;
+mod ayanamsa_id;
 pub mod barhaspatya;
 pub mod bikram_sambat;
 pub mod choghadiya;
@@ -249,9 +284,11 @@ pub mod pushkaram;
 pub mod samvatsara;
 pub mod surya_siddhanta;
 pub mod tithi;
+pub mod vaishnava;
 pub mod vira_nirvana;
 pub mod year_start;
 
+pub use amanta::AmantaMonths;
 pub use bikram_sambat::{BikramSambatCalendar, BikramSambatDate};
 pub use hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
 pub use hindu_lunar_siddhanta::SiddhantaLunarCalendar;
@@ -304,7 +341,7 @@ mod tests {
     use super::*;
 
     /// The number of calendars this crate registers.
-    const CALENDAR_COUNT: usize = 24;
+    const CALENDAR_COUNT: usize = 28;
 
     /// Every calendar the crate registers, so that neither list can drift
     /// from the registry unnoticed.
@@ -388,6 +425,10 @@ mod tests {
             "vikram-samvat-kartikadi",
             "rajyabhisheka-saka",
             "saptarshi",
+            "gupta",
+            "valabhi",
+            "kalachuri",
+            "lakshmana-sena",
             "magi-san",
             "fasli-madras",
             "fasli-bombay",

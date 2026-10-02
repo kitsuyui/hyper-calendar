@@ -22,14 +22,16 @@ module.
 | Module | Identifier | What it is | Range |
 |---|---|---|---|
 | `hindu_lunar` | `hindu-lunar` | months new moon to new moon, named for the saṅkrānti they contain; the day is the tithi at sunrise; Śaka years from Chaitra śukla 1, each named in the southern sixty-year cycle as the extra `samvatsara`, as at the Telugu and Kannada Ugādi | Śaka 1622–2221: Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
+| | `hindu-lunar-reingold-dershowitz` | the amānta months and tithis read at Ujjain's sunrise with the book's own ayanāṃśa: Reingold and Dershowitz's astronomical Hindu lunisolar calendar | as `hindu-lunar` |
 | `hindu_lunar_siddhanta` | `hindu-lunar-surya-siddhanta` | the same months and tithis on the *Sūrya Siddhānta*'s Sun and Moon, the day read at its own sunrise at Ujjain: Reingold and Dershowitz's modern Hindu lunisolar calendar, and the reckoning of the almanacs that compute by the Siddhānta | Kali Yuga 1–10000 (3101 BCE to 6899 CE) |
 | `hindu_purnimanta` | `hindu-lunar-purnimanta` | the same tithis under the north's names: the dark fortnight first, named for the bright one that follows; the intercalary month inserted whole; each year named in the northern Bārhaspatya cycle, by the *Sūrya Siddhānta* with the *bīja*, as the extra `barhaspatya-samvatsara`, a key apart from the southern `samvatsara` | Śaka 1622–2221: Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
 | `hindu_solar` | `hindu-solar-tamil` | the Sun's stay in each sidereal sign; the month begins on the saṅkrānti's day unless it fell after sunset; Śaka years from Chithirai, each named in the southern sixty-year cycle as the extra `samvatsara`, with the Tiruvaḷḷuvar year, which turns at Thai 1, as the extra `tiruvalluvar-year` | roughly Gregorian 1700–2299: the years opening in 1700 to 2299 |
 | | `hindu-solar-malayalam` | the same months from Chingam; the month begins on the saṅkrānti's day unless it fell after three fifths of the daylight; Kollam era | |
 | | `hindu-solar-bengali` | the same months from Boishakh; the month begins the day after the saṅkrānti's; Bengali San | |
 | | `hindu-solar-vikrami` | the same months from Vaiśākha; the month begins on the sunrise-to-sunrise day of the saṅkrānti; Vikrama Saṃvat — the months of Punjab and Haryana, which Odisha keeps under the years of `odia-anka` | |
-| `hindu_solar_siddhanta` | `hindu-solar-surya-siddhanta` | the months on the *Sūrya Siddhānta*'s Sun, named by their signs; the month begins on the day whose closing sunrise at Ujjain, by the Siddhānta, is the first in the new sign; the Siddhānta's Śaka years: Reingold and Dershowitz's modern Hindu solar calendar | Kali Yuga 1–10000 (3101 BCE to 6899 CE) |
+| | `hindu-solar-reingold-dershowitz` | the Tamil rule on the true Sun read at Ujjain with the book's ayanāṃśa and sunset, months named by the signs, Śaka years: their astronomical Hindu solar calendar | as `hindu-solar-tamil` |
 | | `magi-san` | the Bengali months and days under the Magi San of Chittagong, the Bengali San less 45 | |
+| `hindu_solar_siddhanta` | `hindu-solar-surya-siddhanta` | the months on the *Sūrya Siddhānta*'s Sun, named by their signs; the month begins on the day whose closing sunrise at Ujjain, by the Siddhānta, is the first in the new sign; the Siddhānta's Śaka years: Reingold and Dershowitz's modern Hindu solar calendar | Kali Yuga 1–10000 (3101 BCE to 6899 CE) |
 | `tithi` | — | the lunar day: which tithi is in progress at a moment, and which a civil day carries | |
 | `nakshatra` | — | the Moon's station among the twenty-seven: which is in progress at a moment, and when the Moon enters and leaves one; and the Sun's, the almanacs' Sūrya nakṣatra transits, by which Kerala's ñāṭṭuvēla are counted, with the twenty-seven's Malayalam names, which the ñāṭṭuvēla take | |
 | `panchanga` | — | the yoga, from the sum of the Sun's and Moon's sidereal longitudes, and the karaṇa, the half-tithi: which is in progress at a moment or a sunrise, and when it ends; on the *Sūrya Siddhānta*'s Sun and Moon, `surya_siddhanta`'s `yoga_at` and `karana_at` | |
@@ -40,18 +42,20 @@ module.
 | `panchak` | — | the Moon's passage from 300° to 360° sidereal, the third quarter of Dhaniṣṭhā to the end of Revatī, and its kind by the weekday it opens on, in two tables, `panchak-five-kinds` and `panchak-raj-midweek` (within a minute of Drik Panchang's windows of 2025) | |
 | `kumbh` | — | the seven conditions of Jupiter, the Sun and the Moon under which the Kumbh Mela is held at Haridwar, Prayag, Nashik and Ujjain, and the occasion in a year on which each holds; Jupiter's sign is the caller's | |
 | `pushkaram` | — | the rivers of the twelve signs, and the twelve days of the *Ādi Pushkaram* from Jupiter's entry into a sign, which the caller supplies | |
+| `vaishnava` | — | the Vaiṣṇava reading of a festival's day: Krṣṇa Janmāṣṭamī on the first sunrise of Śrāvaṇa kṛṣṇa at or after Ashtami (Drik Panchang's ISKCON dates, Tokyo, 2024–2034); the Vaiṣṇava Ekadashi measured and not given as a rule | |
 | `hindu_old` | `hindu-old-solar` | the *Ārya Siddhānta*'s mean Sun: twelve months of a twelfth of a 365.258 68-day year, named for the signs; Kali Yuga years | Kali Yuga 0–10000 |
 | | `hindu-old-lunar` | its mean Moon: 29.530 58-day months named for the solar month that begins within them, the intercalary one being the month no solar month begins in, thirty mean tithis a month; Kali Yuga years | Kali Yuga 0–10000 |
-| `hindu_lunar` | `hindu-lunar-reingold-dershowitz` | the amānta months and tithis read at Ujjain's sunrise with the book's own ayanāṃśa: Reingold and Dershowitz's astronomical Hindu lunisolar calendar | as `hindu-lunar` |
-| `hindu_solar` | `hindu-solar-reingold-dershowitz` | the Tamil rule on the true Sun read at Ujjain with the book's ayanāṃśa and sunset, months named by the signs, Śaka years: their astronomical Hindu solar calendar | as `hindu-solar-tamil` |
-| `nepal_sambat` | `nepal-sambat-fortnight` | the same days as `nepal-sambat` written as the Nepal Panchang Nirnayak Bikas Samiti's notice of 2024 writes them: the fortnight, a month's name with *thwa* or *gā* joined to it (कछलाथ्व, कछलागा, …; अनलाथ्व, अनलागा), and the tithi within it, 1–15 and 30 for the new moon; the notice gives no form for the weekday it requires beside a doubled tithi, so none is written | as `nepal-sambat` |
 | `nepal_sambat` | `nepal-sambat` | the Newar lunisolar calendar: the amānta months under their Newar names from Kachhalā (Kārtika), the year opening at Mha Puja, the day read at Kathmandu's sunrise; Nepal Sambat years; the fortnights *thwa* and *gā* and the seven Newar tithi names Wikipedia's table gives | the amānta engine's, Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
+| | `nepal-sambat-fortnight` | the same days as `nepal-sambat` written as the Nepal Panchang Nirnayak Bikas Samiti's notice of 2024 writes them: the fortnight, a month's name with *thwa* or *gā* joined to it (कछलाथ्व, कछलागा, …; अनलाथ्व, अनलागा), and the tithi within it, 1–15 and 30 for the new moon; the notice gives no form for the weekday it requires beside a doubled tithi, so none is written | as `nepal-sambat` |
 | `vira_nirvana` | `vira-nirvana-samvat` | the Jain era of Mahāvīra's nirvāṇa over the amānta months, the year opening at Kārtika śukla 1, the day after Dīpāvalī, 605 years after the Śaka year's Kārtika; the day read at the Central Station's sunrise | the amānta engine's, Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
 | `odia_anka` | `odia-anka` | the regnal years of the Gajapati of Puri, Dibyasingha Deb: the *aṅka* turns at Suniā, nija Bhādrapada śukla 12, over the pūrṇimānta months, and never takes 1, a number ending in 6, or one ending in 0 but 10; an integer mapping from the full year of the reign, with the Amli year beside it — see [`docs/systems/odia-anka.md`](../../docs/systems/odia-anka.md) | Suniā 1970 to 2299 |
 | `lunar_era` | `vikram-samvat-kartikadi` | the Gujarati Vikrama year from Kārttika śukla 1 over the amānta months, numbered from Kārttika — see [`docs/systems/indian-eras.md`](../../docs/systems/indian-eras.md) | the amānta engine's, Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
 | | `rajyabhisheka-saka` | Śivājī's era from Jyeṣṭha śukla 13 over the amānta months, year 1 from the coronation of 1674 | |
 | | `saptarshi` | the Saptarṣi era of Kashmir from Chaitra śukla 1 over the pūrṇimānta months, counted in full from Kali 27 current, with the Laukika year of the dropped hundreds as the extra `laukika-year` | |
-| | — | the year arithmetic of the Gupta, Valabhī and Kalachuri eras, whose inscriptions fall outside the range, as `GUPTA`, `VALABHI`, `KALACHURI` | |
+| | `gupta` | the Gupta era from Chaitra śukla 1 over the *Sūrya Siddhānta*'s pūrṇimānta months, current years, Gupta 1 opening on 26 February 320 (Julian) | Kali Yuga 1–10000 |
+| | `valabhi` | the Valabhī era, the Gupta count thrown back to Kārttika śukla 1, over the Siddhānta's amānta months | Kali Yuga 1–10000 |
+| | `kalachuri` | the Chedi or Kalachuri era from Āśvina śukla 1 over the Siddhānta's pūrṇimānta months, Chedi 1 opening on 5 September 248 (Julian) | Kali Yuga 1–10000 |
+| | `lakshmana-sena` | Kielhorn's reading of the Lakṣmaṇa Sena era of Mithila, Kārttikādi over the Siddhānta's amānta months, in current years (907 in October 2026) | Kali Yuga 1–10000 |
 | `fasli` | `fasli-madras` | the Faṣlī revenue year of Madras from 1 July, over the Gregorian months and days | 13 July 1855 to the year from 1 July 2299 |
 | | `fasli-bombay` | the Faṣlī year of Bombay from the Sun's entry into Mṛgaśira, the sunrise-to-sunrise day at Ujjain of the Lahiri ingress, over the Gregorian months and days, a later opening repeating its day | roughly Gregorian 1700–2299: the years opening in 1700 to 2299 |
 | | `sur-san` | the Maratha Sūr-san: the Bombay days, nine years behind | roughly Gregorian 1700–2299: the years opening in 1700 to 2299 |
@@ -68,7 +72,11 @@ ayanāṃśa. `HinduLunarCalendar::RASHTRIYA` is the registered one: sunrise at
 the Central Station, the Lahiri ayanāṃśa, as the national almanac has it.
 `HinduLunarCalendar::UJJAIN` is the classical reference, and
 `HinduLunarCalendar::new` takes any place and any ayanāṃśa `hc-seasons`
-knows. Ujjain is where Reingold and Dershowitz read their astronomical
+knows, and gives it the identifier of the ayanāṃśa's convention, not the
+place's: `hindu-lunar` for Lahiri's, `hindu-lunar-raman` for Raman's, and
+`hindu-lunar-other-ayanamsa` for an anchor `hc-seasons` does not name (§5;
+the calendars over it carry the same suffix, and only the Lahiri ones are
+registered). Ujjain is where Reingold and Dershowitz read their astronomical
 calendars. Ujjain with the Lahiri ayanāṃśa is a constant and not a
 registered calendar, because the place is its only difference from
 `hindu-lunar` and a place is a parameter: over 2000–2030 the two give

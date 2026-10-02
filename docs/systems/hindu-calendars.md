@@ -634,14 +634,32 @@ number at one epoch and carried forward and back by precession, about
 21 March 1956 [crc1955, p. 8], and one of the opinions appended to its
 report notes that nearly sixty almanacs were already following it, with
 an ayanāṃśa of nearly 23°12′ on 21 March 1954 [crc1955]. `hc-seasons`
-carries four,
-anchored as the Swiss Ephemeris anchors them [swisseph]: Lahiri at
-22.460 148° on JD 2 415 020 (1900), Raman at 21.010 833° and Krishnamurti
-at 21.978 333° on the same day, and Fagan–Bradley at 24.042 044° on
-JD 2 433 282.5 (1950), each carried by the IAU 2006 precession. Reingold
-and Dershowitz define their own, zero at the *Sūrya Siddhānta*'s Meṣa
-saṅkrānti of 285 CE [reingold2018code, `sidereal-start`], which
-`hc-seasons` carries as the fifth, `reingold-dershowitz` (above). Published values of a named
+carries eight, each under a name of its own and with its source
+(`Ayanamsa::source`). Four are anchored as the Swiss Ephemeris anchors
+them [swisseph]: Lahiri at 22.460 148° on JD 2 415 020 (1900), Raman at
+21.010 833° and Krishnamurti at 21.978 333° on the same day, and
+Fagan–Bradley at 24.042 044° on JD 2 433 282.5 (1950), each carried by the
+IAU 2006 precession. Reingold and Dershowitz define their own, zero at the
+*Sūrya Siddhānta*'s Meṣa saṅkrānti of 285 CE [reingold2018code,
+`sidereal-start`], which `hc-seasons` carries as `reingold-dershowitz`
+(above). And three readings of Lahiri's value that can be measured are
+carried apart from the Swiss Ephemeris's, because they differ from it by
+more than a rounding (policy §5):
+
+| Identifier | Anchor | Against `lahiri` on its day | Source |
+| --- | --- | --- | --- |
+| `lahiri-rashtriya` | 24°11′39″ on 22 March 2024, 1 Chaitra of Śaka 1946 | 3.3″ below | the *Rashtriya Panchang*'s printed "Ayanamsa on 1st Chaitra" [rashtriya-panchang-1946]; its 24°12′35″ for 30 March 2025 stands 1.4″ above `lahiri` and 4.6″ off this anchor carried forward |
+| `lahiri-crc-1955` | 23°15′0″ on 21 March 1956 | 17.3″ above | the Committee's report, p. 8 [crc1955] |
+| `lahiri-drik` | 23.863 776° on 1 January 2000, JD 2 451 544.5 | 25.4″ to 25.5″ above on 1 January 2000, 22 March 2024 and 1 January 2025 | Drik Panchang's "Lahiri Ayanamsha" on its day panchang pages [drik-day-panchang-ayanamsha], 24.202 163° and 24.213 067° on the other two days; within 0.7″ of `reingold-dershowitz` |
+
+`lahiri-drik` is the reading under which Drik's Jupiter entries and
+saṅkrāntis fall: with `lahiri` forward entries of Jupiter come 40 to 135
+minutes early, with `lahiri-drik` within 8.3 minutes
+([jupiter-ephemeris.md](jupiter-ephemeris.md)). The method behind any of the
+three printed values was not read; each is a printed figure and an anchor, and
+the tests hold the library to the figures
+(`sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them`).
+Published values of a named
 ayanāṃśa differ by a few tens of arcseconds, and 20″ of solar longitude
 is about eight minutes of the Sun's motion, which is why the nakṣatra
 transits in the accuracy section stand a fixed eight to ten minutes from
@@ -866,6 +884,48 @@ tests
 almanac's *vadi* column, above, shows how the north labels the same
 weeks.
 
+**Rāhu and Ketu.** Hindu astrology puts Rāhu at the Moon's ascending node and
+Ketu opposite it, and reckons their *gocāra*, the transit, by the sign Rāhu
+stands in: it moves backward through the signs, 19.34° a year, a sign in about
+566 days. Drik Panchang prints two readings of each transit, the mean node's
+and the true node's, which stand days to a month apart: 23 September 2020 and
+19 September, 12 April 2022 and 17 March, 30 October 2023 and 29 November,
+18 May 2025 and 29 May, 5 December 2026 and 25 November
+[drik-rahu-transit]. `hc_seasons::zodiac::node` carries the mean node: the
+Moon's mean longitude of the ascending node of the date,
+125.044 547 9° − 1 934.136 289 1° *T* + 0.002 075 4° *T*² + *T*³/467 441 −
+*T*⁴/60 616 000, in Julian centuries *T* from J2000.0 as a program that
+attributes it to Meeus's equation 47.7 prints it [futureboy-sun-frink, Meeus
+not read], less the ayanāṃśa of the date, and the moment it crosses a sign
+boundary. With `lahiri-drik`, the ayanāṃśa Drik prints, the five mean
+transits fall within 2.4 minutes of Drik's times; with the Swiss Ephemeris's
+Lahiri 194 minutes later, which is the same 25″ at the node's 0.053° a day.
+That agreement is also the best measure of `lahiri-drik` itself.
+
+**Smārta and Vaiṣṇava.** A festival is a tithi, and where a tithi does not
+sit on one civil day the sects choose differently. The Smārta reading is the
+one the *Rashtriya Panchang* lists and `hc-holiday` carries as a rule. Drik
+Panchang publishes the Vaiṣṇava one as dates, for ISKCON: Krishna Janmashtami
+for Tokyo from 2024 to 2034, which "according to Vaishnava rules always falls
+on Ashtami or Navami Tithi", with "Ashtami Tithi and Rohini Nakshatra" given
+preference and Saptami never accepted [drik-iskcon-janmashtami]; and the
+Ekadashi fasting days for New Delhi, whose rule is that Vaiṣṇavas "should fast
+only on Ekadashi mixed with Dwadashi", the Ekadashi mixed with Dashami
+being rejected [drik-vidhi-vidhan], by "the same Ekadasi and Parana rules
+as those followed by GCal" [drik-iskcon-ekadashi]. `vaishnava::janmashtami`
+takes the first sunrise of Śrāvaṇa kṛṣṇa at or after Ashtami, which gives all
+eleven of Drik's dates at Tokyo, 2024 to 2034, Navami's day in 2026 where
+Ashtami holds no Tokyo sunrise. It is a reading fitted to those dates: the
+Rohini preference is not modelled, and the place matters, the same rule
+giving 4 September 2026 at New Delhi. The Ekadashi is measured and not given as
+a rule: of the 25 Vaiṣṇava fasting days of 2025, 20 are the day whose sunrise
+carries the Ekadashi tithi, 3 are the day after it (26 March, 7 June and
+16 December), and 2 are the day whose sunrise carries Dvadashi where Ekadashi
+holds no sunrise (22 June and 31 December). A rule by Dashami at dawn, 96
+minutes before sunrise, does not give 16 December, where Ekadashi holds both
+the dawn and the sunrise of the 15th and Drik's list is the 16th, so GCal's
+rules, which were not read, are more than that.
+
 ## What is carried
 
 - **`hindu-lunar`**, the amānta calendar, as `HinduLunarCalendar`, with
@@ -881,7 +941,16 @@ weeks.
   reads it at Ujjain; `REINGOLD_DERSHOWITZ`, the registered
   `hindu-lunar-reingold-dershowitz`, reads it at Ujjain with the book's
   ayanāṃśa, and takes its own identifier and name as `new` does not (`named`
-  takes them); `new` takes any place and any ayanāṃśa. The era is
+  takes them); `new` takes any place and any ayanāṃśa, and names the
+  convention by the ayanāṃśa, not the place: `hindu-lunar` for Lahiri's, so
+  that Ujjain's keeps it, `hindu-lunar-raman` for Raman's and likewise for
+  each of `Ayanamsa::ALL`, `hindu-lunar-other-ayanamsa` for an anchor that
+  is not in it (policy §5: a sidereal zero point is a convention, and a
+  calendar built over Raman's is not `hindu-lunar`). Those are identifiers
+  only, not registered, and the calendars built over an amānta one —
+  pūrṇimānta, Nepal Sambat in both forms, the Vira Nirvana Samvat, the Odia
+  Anka — carry the same suffix, `nepal-sambat-raman`. The solar calendars'
+  `new` takes the identifier from the caller. The era is
   `saka`, and `vikrama-year` is an extra field. `new_year`,
   `leap_month_of`, `has_kshaya_month`, `month_span` and `days_in_year`
   answer the questions a festival rule asks. A kṣaya month is reported as
@@ -1085,7 +1154,29 @@ weeks.
 - **The book's ayanāṃśa and sunset**: `hc-seasons`'s
   `Ayanamsa::REINGOLD_DERSHOWITZ` and `hindu_solar::SankrantiRule::BeforeCentreSets`,
   above.
+- **Rāhu and Ketu, mean**: `hc_seasons::zodiac::node`:
+  `mean_ascending_node_longitude`, `rahu_longitude`, `ketu_longitude`,
+  `rahu_sign`, `ingresses` and `NodeIngress`, the entries of Rāhu into a
+  sign.
+- **The Vaiṣṇava Janmāṣṭamī**: `vaishnava::janmashtami` and `day_of`, the
+  first sunrise of a month at or after a tithi, over any
+  `HinduLunarCalendar`.
 - **Not carried, and why:**
+  - *The true Rāhu*, which Drik Panchang prints beside the mean one:
+    its periodic terms were not read, so a true node is not computed and
+    its transit dates (17 March 2022, 29 November 2023, 29 May 2025, 25
+    November 2026, 19 September 2020) are not reproduced.
+  - *Saturn's transit and the other planets'*, which need the VSOP87B
+    series of each, of which the user's decision of 2026-10-03 allowed one
+    to be saved, Jupiter's: a limit of that decision and not a design
+    ([jupiter-ephemeris.md](jupiter-ephemeris.md)).
+  - *The Vaiṣṇava Ekadashi as a rule*, and the Vaiṣṇava reading of every
+    other tithi where the sects part: Drik Panchang's lists of dates were
+    read, and GCal's rules that they follow, and the *Dharmasindhu*'s,
+    were not. The Ekadashi is measured (above). Registering each reading as
+    a holiday rule under its own identifier (policy §5) is `hc-holiday`'s
+    to do, and `vaishnava::janmashtami` is the rule it would use for
+    Janmāṣṭamī.
   - *Regional almanacs' own readings*: a calendar read at another place
     or with another ayanāṃśa is a `new` away, but no local almanac's
     tables are carried, so none is registered.
@@ -1107,8 +1198,8 @@ weeks.
     Vikrama, the Rājyābhiṣeka Śaka, the Saptarṣi, the Magi San, the
     Faṣlī years — are [indian-eras.md](indian-eras.md)'s.
   - *Festival observance*: which part of the day a tithi must hold, and
-    the Smārta and Vaiṣṇava readings, are `hc-holiday`'s rules, not
-    dates.
+    the Smārta reading, are `hc-holiday`'s rules, not dates; the Vaiṣṇava
+    ones are above.
   - *The nakṣatra names in the regional languages other than Malayalam*,
     for which no list was read, and the ñāṭṭuvēla's farming lore, the
     crops and sayings of each, which are not dates.
@@ -1145,14 +1236,21 @@ assert:
 | Adhika Śrāvaṇa of 1945, 18 July to 16 August 2023; none in 1946; no kṣaya month in either | `saka_1945_has_the_intercalary_sravana_and_1946_none` | all |
 | Seven festivals the almanac dates by the sunrise tithi, Rāma Navamī to Holī | `festivals_the_panchang_dates_by_the_sunrise_tithi_fall_on_their_days` | 7 of 7 |
 | The printed ayanāṃśa, 24°11′39″ and 24°12′35″ | `the_ayanamsa_the_panchang_prints_is_the_one_used` | within 10″ |
+| The three Lahiri readings that were measured, each against its printed figures: Drik's on three days, the *Rashtriya Panchang*'s of 22 March 2024 and the Committee's of 21 March 1956 | `sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them` | all; the Panchang's 2025 print stands 4.6″ off |
+| A calendar over another ayanāṃśa names it: `hindu-lunar-raman` and the rest, and the calendars over it | `ayanamsa_id::every_named_ayanamsa_has_its_identifier`, `the_calendars_over_another_ayanamsa_say_so` | all |
+| The mean Rāhu transits for New Delhi, 2020 to 2026, five, with Drik's ayanāṃśa and with Lahiri's | `node::the_mean_transits_are_drik_panchangs_with_its_ayanamsa` | within 2.4 minutes; 194 minutes later with Lahiri's |
+| The Vaiṣṇava Janmāṣṭamī at Tokyo, 2024 to 2034, Drik's eleven dates | `vaishnava::the_first_sunrise_at_or_after_ashtami_is_the_iskcon_day_in_all_eleven_years` | all |
+| The Vaiṣṇava Ekadashi of 2025, 25 days, against the Smārta day: 20 the same, 3 a day later, 2 where Ekadashi holds no sunrise | `vaishnava::the_vaishnava_ekadashi_list_of_2025_parts_from_the_sunrise_day_on_five_dates` | as measured, not a rule |
 | A new moon after the local sunrise (11 June 2002, 05:17 IST) starts the month a day later; a conjunction within minutes of sunrise (Kathmandu, 1 October 2016) is read where the tithi is | `a_new_moon_after_the_next_local_sunrise_starts_the_month_a_day_later`, `a_month_begins_where_its_first_tithi_does` | both |
 | Every day of the two years round-trips, with 10 to 40 repeated tithis | `a_sample_of_days_round_trips_including_repeated_tithis` | all |
 | Every day of Śaka 1622–2221, March 1700 to March 2300, round-trips on the amānta engine | `hindu_lunar::every_day_of_the_range_round_trips` | all in a release build, about three minutes of one core spread over the machine's threads; in a debug one every 211th day and every Chaitra śukla 1 with the day before it |
+| Every eleventh day of `hindu-lunar-reingold-dershowitz`'s whole range, Śaka 1622–2221, and each Chaitra śukla 1 with its eve, round-trip: the book's ayanāṃśa and sunrise at Ujjain are a computation of their own, which the sweep above, on the Lahiri sky, does not stand for | `hindu_lunar::the_books_calendar_round_trips_over_its_whole_range` | all in a release build; in a debug one every 55th day and each opening and eve |
 | The pūrṇimānta name of every dark fortnight of the two years, 25 *vadi* rows | `hindu_purnimanta::every_dark_fortnight_carries_the_name_the_rashtriya_panchang_gives_it` | 25 of 25 |
 | The first day of every solar month of both years, Tamil, Bengali and Vikrami | `hindu_solar::the_tamil_months_begin_where_the_rashtriya_panchang_says` and the Bengali and Vikrami tests | 24 of 24 each |
 | The first day of every Malayalam month of both years | `the_malayalam_months_begin_where_the_rashtriya_panchang_says_save_medam` | 22 of 24; see below |
 | Bengali San 1430, Kollam 1199, Vikrama 2080 and the Tamil Śaka 1945 open on the almanac's days | `the_eras_begin_where_the_almanac_says` | all |
-| Every day of 2022–2025 round-trips in each of the five solar reckonings, directly and through its fields | `hindu_solar::every_day_of_four_years_round_trips_in_every_reckoning` | all in a release build; in a debug one every eleventh day and each year's first day and eve |
+| Every day of 2022–2025 round-trips in each of the six solar reckonings, the Magi San and `hindu-solar-reingold-dershowitz` among them, directly and through its fields | `hindu_solar::every_day_of_four_years_round_trips_in_every_reckoning` | all in a release build; in a debug one every eleventh day and each year's first day and eve |
+| Every eleventh day of each solar reckoning's whole range, 1700–2299, and each year's first day and eve, round-trip: about 19 900 days of each of the six | `hindu_solar::a_stride_through_the_whole_range_round_trips_in_every_reckoning` | all in a release build; in a debug one every 55th day and every year's first day and eve |
 | The Tiruvaḷḷuvar year 2052 begins on Thai 1, 14 January 2021, as reported that day, three months before the Tamil Śaka year 1943 at Chithirai 1; Chithirai to Margazhi carry the Gregorian year plus 31 and Thai to Panguni one more | `the_tiruvalluvar_year_turns_at_thai_and_the_saka_year_at_chithirai` | all |
 | The southern rule on Sewell and Dikshit's worked examples: Angiras (Śaka 1674, 1752), Rudhirodgarin (1725, 1803–04), Chitrabhanu (1744, 1822) | `samvatsara::sewell_and_dikshits_rule_names_their_own_examples` | all |
 | The Tamil year's name on printed days: Rudhirodgarin on 30 May 1803 and 30 March 1804; Śobhana (Śobhakṛt) on 13 April 2024 and Krodhin from the 14th; Viśvāvasu from 14 April 2025; Parābhava from 14 April 2026 | `the_tamil_years_carry_their_printed_names` | all names; Sewell and Dikshit's two days are a day earlier in the month by the modern Sun, 18 Vaikasi and 19 Panguni for their 19th and 20th |
@@ -1385,6 +1483,12 @@ for 2024 and 2025 give the times the tests hold.
 | [swisseph] | The ayanāṃśa anchors `hc-seasons` carries, and Lahiri as the Spica tradition | Yes, 2026-09-25 |
 | [drik-sun-nakshatra-2025] | The Sun's twenty-seven nakṣatra entries of 2025 for New Delhi | Yes, 2026-09-25; the five entries checked agree with the test's table |
 | [drik-thaipusam-2024], [drik-thaipusam-2025] | Puṣya's beginning and end at Chennai, 25–26 January 2024 and 10–11 February 2025 | Yes, 2026-09-25 |
+| [drik-rahu-transit] | The mean and the true Rāhu transits for New Delhi, 2020, 2022, 2023, 2025 and 2026 | Yes, 2026-10-03 |
+| [futureboy-sun-frink] | The polynomial of the Moon's mean ascending node, which its comment attributes to Meeus's equation 47.7; Meeus not read | Yes, 2026-10-03 |
+| [drik-iskcon-janmashtami] | The ISKCON Janmashtami dates 2024 to 2034 for Tokyo, and the fasting rule | Yes, 2026-10-03 |
+| [drik-iskcon-ekadashi] | The Vaiṣṇava Ekadashi fasting days of 2025 for New Delhi and the GCal rules they follow | Yes, 2026-10-03 |
+| [drik-vidhi-vidhan] | "Vaishnavas should fast only on Ekadashi mixed with Dwadashi" | Yes, 2026-10-03 |
+| [drik-day-panchang-ayanamsha] | The "Lahiri Ayanamsha" Drik prints on 1 January 2000, 22 March 2024 and 1 January 2025 | Yes, 2026-10-03 |
 | [drik-day-panchang-2025] | The yoga and karaṇa of every day of 1 to 30 January 2025 for New Delhi, with their end times, in English and in the Hindi edition; the English and Devanagari names; for 1 to 31 January 2025, Abhijit ("None" on Wednesdays), each Dur Muhurtam, and the Amrita Siddhi Yoga with its times, in English, and the Hindi labels अभिजित मुहूर्त, दुर्मुहूर्त and अमृत सिद्धि योग | Yes, 2026-09-26; the January pages again 2026-09-29 |
 | [wikipedia-nityayoga] | The yoga's definition, the twenty-seven names in order, Wikipedia's copy of Sewell and Dikshit's table of lengths, the other system of twenty-eight | Yes, 2026-09-26 |
 | [wikipedia-karana] | The karaṇa as half a tithi and the table of the sixty halves' names | Yes, 2026-09-26 |

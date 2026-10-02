@@ -90,6 +90,8 @@ impl SiddhantaLunarCalendar {
     crate::amanta::amanta_methods!();
 }
 
+crate::amanta::amanta_months!(SiddhantaLunarCalendar);
+
 /// The earliest and latest days of the registered calendar, as
 /// [`SiddhantaLunarCalendar::earliest`] and
 /// [`SiddhantaLunarCalendar::latest`] compute them;

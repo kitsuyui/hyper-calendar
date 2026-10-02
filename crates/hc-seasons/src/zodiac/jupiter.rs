@@ -15,7 +15,8 @@
 //! date, exactly as [`super::sidereal::sidereal_longitude`] does for the Sun.
 //! Against Drik Panchang's 49 entries from 2001 to 2030 that reading leaves a
 //! difference that is the same to within 1″ for every one, 25″, which is the
-//! difference of the ayanāṃśa's value; leaving the nutation out gives one
+//! difference of the ayanāṃśa's value ([`super::sidereal::Ayanamsa::LAHIRI_DRIK`]
+//! is the value Drik's pages print, 25.4″ to 25.5″ above Lahiri); leaving the nutation out gives one
 //! that wanders by ±17″ with the 18.6-year cycle of the node.
 //!
 //! # The ingresses
@@ -495,6 +496,94 @@ impl Iterator for Entries {
     }
 }
 
+/// Which way Jupiter's apparent longitude turns at a station.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StationKind {
+    /// Jupiter stops moving forward through the signs and begins to move
+    /// back: *vakri*, "it becomes retrograde".
+    Retrograde,
+    /// Jupiter stops moving back and resumes its forward motion: *mārgī*,
+    /// "it becomes direct" (Drik Panchang's "becomes progressive").
+    Direct,
+}
+
+/// A station of Jupiter: the moment its apparent longitude stops changing,
+/// before it turns.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Station {
+    /// The moment, in Universal Time, good to about a second of the model's
+    /// own motion, and to the minutes Drik Panchang's dates agree to.
+    pub moment: Moment,
+    /// Whether Jupiter turns back or resumes.
+    pub kind: StationKind,
+}
+
+/// The stations of Jupiter at or after `from` and before `until`, in order.
+///
+/// A station is where the apparent geocentric longitude in the true equinox
+/// of the date has no rate of change. It is found in the tropical
+/// longitude, not the sidereal one: the ayanāṃśa grows 0.000 14° a day, which
+/// moves the zero of the rate by about 45 minutes at Jupiter's slow turn, and
+/// Drik Panchang's dates agree with the tropical zero to within 6.4 minutes
+/// on 18 stations from 2010 to 2027, where the sidereal one would stand
+/// 45 minutes from them. `docs/systems/jupiter-ephemeris.md` has the
+/// measure.
+#[derive(Debug, Clone, Copy)]
+pub struct Stations {
+    cursor: Moment,
+    until: Moment,
+}
+
+/// The days between the speeds the station search compares: shorter than
+/// the 100 or more days that separate two stations.
+const STATION_STEP_DAYS: f64 = 20.0;
+
+/// The stations of Jupiter from `from` until `until`.
+#[must_use]
+pub fn stations(from: Moment, until: Moment) -> Stations {
+    Stations {
+        cursor: from,
+        until,
+    }
+}
+
+impl Iterator for Stations {
+    type Item = Station;
+
+    fn next(&mut self) -> Option<Station> {
+        let mut speed = jupiter::daily_motion_degrees(self.cursor);
+        while self.cursor.0 < self.until.0 {
+            let end = Moment((self.cursor.0 + STATION_STEP_DAYS).min(self.until.0));
+            let there = jupiter::daily_motion_degrees(end);
+            if (speed < 0.0) == (there < 0.0) {
+                self.cursor = end;
+                speed = there;
+                continue;
+            }
+            let kind = if speed > 0.0 {
+                StationKind::Retrograde
+            } else {
+                StationKind::Direct
+            };
+            let (mut before, mut after) = (self.cursor.0, end.0);
+            while after - before > PRECISION_DAYS {
+                let middle = 0.5 * (before + after);
+                if (jupiter::daily_motion_degrees(Moment(middle)) < 0.0) == (speed < 0.0) {
+                    before = middle;
+                } else {
+                    after = middle;
+                }
+            }
+            self.cursor = Moment(after);
+            return Some(Station {
+                moment: Moment(after),
+                kind,
+            });
+        }
+        None
+    }
+}
+
 /// The arc of visibility Indian astronomy gives Jupiter: it is lost in the
 /// Sun's light, and so sets, when its longitude comes within 11° of the
 /// Sun's, and rises again when it has left that arc. Varāhamihira's
@@ -866,6 +955,84 @@ mod tests {
             assert_eq!(found.rising, reference.rising, "from {start}");
             assert_eq!(found.setting, reference.setting, "from {start}");
         }
+    }
+
+    /// Drik Panchang's "Jupiter becomes Retrograde" and "Jupiter becomes
+    /// Progressive" for New Delhi, 2010 to 2027 (`drik-guru-retrograde`,
+    /// read 2026-10-03, 12-hour times in IST): the year, month, day, hour
+    /// and minute, the retrograde start of each year's page first.
+    #[rustfmt::skip]
+    const DRIK_STATIONS: [(i64, u8, u8, u8, u8, StationKind); 18] = [
+        (2010, 7, 23, 17, 33, StationKind::Retrograde), (2010, 11, 18, 22, 23, StationKind::Direct),
+        (2019, 4, 10, 22, 30, StationKind::Retrograde), (2019, 8, 11, 19, 7, StationKind::Direct),
+        (2020, 5, 14, 20, 1, StationKind::Retrograde), (2020, 9, 13, 6, 10, StationKind::Direct),
+        (2021, 6, 20, 20, 34, StationKind::Retrograde), (2021, 10, 18, 10, 59, StationKind::Direct),
+        (2022, 7, 29, 2, 6, StationKind::Retrograde), (2022, 11, 24, 4, 31, StationKind::Direct),
+        (2023, 9, 4, 19, 39, StationKind::Retrograde), (2023, 12, 31, 8, 9, StationKind::Direct),
+        (2024, 10, 9, 12, 33, StationKind::Retrograde), (2025, 2, 4, 15, 9, StationKind::Direct),
+        (2025, 11, 11, 22, 11, StationKind::Retrograde), (2026, 3, 11, 8, 58, StationKind::Direct),
+        (2026, 12, 13, 6, 25, StationKind::Retrograde), (2027, 4, 13, 7, 40, StationKind::Direct),
+    ];
+
+    /// The stations found are Drik Panchang's, within 7 minutes: 18 of 18,
+    /// in order, each in its direction, with none between them that Drik
+    /// does not print. Three of the dates are the retrogrades of a year's
+    /// page and the next year's.
+    #[test]
+    fn the_stations_are_drik_panchangs_within_seven_minutes() {
+        use hc_calendars_solar::gregorian;
+        let rd = |year: i64, month: u8, day: u8| {
+            gregorian::to_fixed(year, month, day).expect("a date").0 as f64
+        };
+        let mut worst: f64 = 0.0;
+        for pair in DRIK_STATIONS.chunks(2) {
+            let first = pair[0];
+            let from = Moment(rd(first.0, first.1, first.2) - 30.0);
+            let last = pair[1];
+            let until = Moment(rd(last.0, last.1, last.2) + 30.0);
+            let found: Vec<Station> = stations(from, until).collect();
+            assert_eq!(found.len(), 2, "{pair:?}: {found:?}");
+            for (station, row) in found.iter().zip(pair) {
+                assert_eq!(station.kind, row.5, "{row:?}");
+                let drik = rd(row.0, row.1, row.2)
+                    + (f64::from(row.3) + f64::from(row.4) / 60.0 - 5.5) / 24.0;
+                let minutes = (station.moment.0 - drik) * 1_440.0;
+                worst = worst.max(minutes.abs());
+                assert!(minutes.abs() < 7.0, "{row:?}: {minutes} minutes");
+            }
+        }
+        assert!(
+            worst > 3.0,
+            "{worst}: the agreement is not exact, and is stated as it is"
+        );
+    }
+
+    /// At a station the apparent speed is nil and Jupiter's sidereal sign
+    /// is the one it turns in; the retrograde begins after an opposition's
+    /// approach and a direct station follows 118 to 123 days later.
+    #[test]
+    fn a_station_is_where_the_motion_stops_and_the_retrograde_lasts_four_months() {
+        let from = at(2_460_000.5);
+        let found: Vec<Station> = stations(from, Moment(from.0 + 1_500.0)).collect();
+        assert!((6..=8).contains(&found.len()), "{}", found.len());
+        for station in &found {
+            let speed = jupiter::daily_motion_degrees(station.moment);
+            assert!(speed.abs() < 1e-4, "{speed}");
+            let after = jupiter::daily_motion_degrees(Moment(station.moment.0 + 5.0));
+            assert_eq!(after < 0.0, station.kind == StationKind::Retrograde);
+        }
+        for pair in found.windows(2) {
+            assert_ne!(pair[0].kind, pair[1].kind);
+        }
+        for pair in found.chunks(2) {
+            if let [turn, resume] = pair
+                && turn.kind == StationKind::Retrograde
+            {
+                let days = resume.moment.0 - turn.moment.0;
+                assert!((116.0..125.0).contains(&days), "{days}");
+            }
+        }
+        assert_eq!(stations(from, from).count(), 0);
     }
 
     #[test]
