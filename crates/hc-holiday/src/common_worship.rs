@@ -87,6 +87,10 @@ impl Rank {
 /// A celebration of the calendar.
 #[derive(Debug, Clone, Copy)]
 pub struct Celebration {
+    /// Its identifier, the one its rule in the `common-worship` table
+    /// carries ([`HolidayRule::id`]), which a line of `hc_holidays_on` is
+    /// joined on.
+    pub id: &'static str,
     /// Its title, as the Rules print it.
     pub title: &'static str,
     /// Its rank.
@@ -273,61 +277,61 @@ const CHRIST_THE_KING: Rule = Rule::WeekdayOnOrAfter {
 /// The calendar, written once and read twice: as [`CELEBRATIONS`], with
 /// the ranks, and as the rule set the engine evaluates.
 macro_rules! common_worship_calendar {
-    ($($title:literal, $rank:ident, $rule:expr);* $(;)?) => {
+    ($($id:literal, $title:literal, $rank:ident, $rule:expr);* $(;)?) => {
         /// Every Principal Feast, Principal Holy Day and Festival, in the
         /// Rules' order.
         pub static CELEBRATIONS: &[Celebration] = &[$(
-            Celebration { title: $title, rank: Rank::$rank, rule: $rule }
+            Celebration { id: $id, title: $title, rank: Rank::$rank, rule: $rule }
         ),*];
 
         static RULES: &[HolidayRule] = &[$(
-            HolidayRule::observance($title, "", $rule).of_kind(Kind::Religious)
+            HolidayRule::observance($title, "", $rule).of_kind(Kind::Religious).with_id($id)
         ),*];
     };
 }
 
 common_worship_calendar! {
-    "Christmas Day", PrincipalFeast, Rule::gregorian(12, 25);
-    "The Epiphany", PrincipalFeast, Rule::gregorian(1, 6);
-    "The Presentation of Christ in the Temple", PrincipalFeast, Rule::gregorian(2, 2);
-    "The Annunciation of Our Lord to the Blessed Virgin Mary", PrincipalFeast,
+    "christmas-day", "Christmas Day", PrincipalFeast, Rule::gregorian(12, 25);
+    "the-epiphany", "The Epiphany", PrincipalFeast, Rule::gregorian(1, 6);
+    "the-presentation-of-christ-in-the-temple", "The Presentation of Christ in the Temple", PrincipalFeast, Rule::gregorian(2, 2);
+    "the-annunciation-of-our-lord-to-the-blessed-virgin-mary", "The Annunciation of Our Lord to the Blessed Virgin Mary", PrincipalFeast,
         Rule::Computed(annunciation);
-    "Easter Day", PrincipalFeast, Rule::easter(EASTER_SUNDAY);
-    "Ascension Day", PrincipalFeast, Rule::easter(ASCENSION);
-    "Pentecost (Whit Sunday)", PrincipalFeast, Rule::easter(PENTECOST);
-    "Trinity Sunday", PrincipalFeast, Rule::easter(TRINITY_SUNDAY);
-    "All Saints' Day", PrincipalFeast, Rule::gregorian(11, 1);
-    "Ash Wednesday", PrincipalHolyDay, Rule::easter(ASH_WEDNESDAY);
-    "Maundy Thursday", PrincipalHolyDay, Rule::easter(MAUNDY_THURSDAY);
-    "Good Friday", PrincipalHolyDay, Rule::easter(GOOD_FRIDAY);
-    "The Naming and Circumcision of Jesus", Festival, Rule::gregorian(1, 1);
-    "The Baptism of Christ", Festival, BAPTISM_OF_CHRIST;
-    "The Conversion of Paul", Festival, Rule::gregorian(1, 25);
-    "Joseph of Nazareth", Festival, Rule::Computed(joseph);
-    "George, Martyr, Patron of England", Festival, Rule::Unsettled(george);
-    "Mark the Evangelist", Festival, Rule::Unsettled(mark);
-    "Philip and James, Apostles", Festival, Rule::Unsettled(philip_and_james);
-    "Matthias the Apostle", Festival, Rule::Computed(matthias);
-    "The Visit of the Blessed Virgin Mary to Elizabeth", Festival, Rule::Computed(visitation);
-    "Barnabas the Apostle", Festival, Rule::Computed(barnabas);
-    "The Birth of John the Baptist", Festival, Rule::gregorian(6, 24);
-    "Peter and Paul, Apostles", Festival, Rule::gregorian(6, 29);
-    "Thomas the Apostle", Festival, Rule::gregorian(7, 3);
-    "Mary Magdalene", Festival, Rule::gregorian(7, 22);
-    "James the Apostle", Festival, Rule::gregorian(7, 25);
-    "The Transfiguration of Our Lord", Festival, Rule::gregorian(8, 6);
-    "The Blessed Virgin Mary", Festival, Rule::gregorian(8, 15);
-    "Bartholomew the Apostle", Festival, Rule::gregorian(8, 24);
-    "Holy Cross Day", Festival, Rule::gregorian(9, 14);
-    "Matthew, Apostle and Evangelist", Festival, Rule::gregorian(9, 21);
-    "Michael and All Angels", Festival, Rule::gregorian(9, 29);
-    "Luke the Evangelist", Festival, Rule::gregorian(10, 18);
-    "Simon and Jude, Apostles", Festival, Rule::gregorian(10, 28);
-    "Christ the King", Festival, CHRIST_THE_KING;
-    "Andrew the Apostle", Festival, Rule::Computed(andrew);
-    "Stephen, Deacon, First Martyr", Festival, Rule::gregorian(12, 26);
-    "John, Apostle and Evangelist", Festival, Rule::gregorian(12, 27);
-    "The Holy Innocents", Festival, Rule::gregorian(12, 28);
+    "easter-day", "Easter Day", PrincipalFeast, Rule::easter(EASTER_SUNDAY);
+    "ascension-day", "Ascension Day", PrincipalFeast, Rule::easter(ASCENSION);
+    "pentecost-whit-sunday", "Pentecost (Whit Sunday)", PrincipalFeast, Rule::easter(PENTECOST);
+    "trinity-sunday", "Trinity Sunday", PrincipalFeast, Rule::easter(TRINITY_SUNDAY);
+    "all-saints-day", "All Saints' Day", PrincipalFeast, Rule::gregorian(11, 1);
+    "ash-wednesday", "Ash Wednesday", PrincipalHolyDay, Rule::easter(ASH_WEDNESDAY);
+    "maundy-thursday", "Maundy Thursday", PrincipalHolyDay, Rule::easter(MAUNDY_THURSDAY);
+    "good-friday", "Good Friday", PrincipalHolyDay, Rule::easter(GOOD_FRIDAY);
+    "the-naming-and-circumcision-of-jesus", "The Naming and Circumcision of Jesus", Festival, Rule::gregorian(1, 1);
+    "the-baptism-of-christ", "The Baptism of Christ", Festival, BAPTISM_OF_CHRIST;
+    "the-conversion-of-paul", "The Conversion of Paul", Festival, Rule::gregorian(1, 25);
+    "joseph-of-nazareth", "Joseph of Nazareth", Festival, Rule::Computed(joseph);
+    "george-martyr-patron-of-england", "George, Martyr, Patron of England", Festival, Rule::Unsettled(george);
+    "mark-the-evangelist", "Mark the Evangelist", Festival, Rule::Unsettled(mark);
+    "philip-and-james-apostles", "Philip and James, Apostles", Festival, Rule::Unsettled(philip_and_james);
+    "matthias-the-apostle", "Matthias the Apostle", Festival, Rule::Computed(matthias);
+    "the-visit-of-the-blessed-virgin-mary-to-elizabeth", "The Visit of the Blessed Virgin Mary to Elizabeth", Festival, Rule::Computed(visitation);
+    "barnabas-the-apostle", "Barnabas the Apostle", Festival, Rule::Computed(barnabas);
+    "the-birth-of-john-the-baptist", "The Birth of John the Baptist", Festival, Rule::gregorian(6, 24);
+    "peter-and-paul-apostles", "Peter and Paul, Apostles", Festival, Rule::gregorian(6, 29);
+    "thomas-the-apostle", "Thomas the Apostle", Festival, Rule::gregorian(7, 3);
+    "mary-magdalene", "Mary Magdalene", Festival, Rule::gregorian(7, 22);
+    "james-the-apostle", "James the Apostle", Festival, Rule::gregorian(7, 25);
+    "the-transfiguration-of-our-lord", "The Transfiguration of Our Lord", Festival, Rule::gregorian(8, 6);
+    "the-blessed-virgin-mary", "The Blessed Virgin Mary", Festival, Rule::gregorian(8, 15);
+    "bartholomew-the-apostle", "Bartholomew the Apostle", Festival, Rule::gregorian(8, 24);
+    "holy-cross-day", "Holy Cross Day", Festival, Rule::gregorian(9, 14);
+    "matthew-apostle-and-evangelist", "Matthew, Apostle and Evangelist", Festival, Rule::gregorian(9, 21);
+    "michael-and-all-angels", "Michael and All Angels", Festival, Rule::gregorian(9, 29);
+    "luke-the-evangelist", "Luke the Evangelist", Festival, Rule::gregorian(10, 18);
+    "simon-and-jude-apostles", "Simon and Jude, Apostles", Festival, Rule::gregorian(10, 28);
+    "christ-the-king", "Christ the King", Festival, CHRIST_THE_KING;
+    "andrew-the-apostle", "Andrew the Apostle", Festival, Rule::Computed(andrew);
+    "stephen-deacon-first-martyr", "Stephen, Deacon, First Martyr", Festival, Rule::gregorian(12, 26);
+    "john-apostle-and-evangelist", "John, Apostle and Evangelist", Festival, Rule::gregorian(12, 27);
+    "the-holy-innocents", "The Holy Innocents", Festival, Rule::gregorian(12, 28);
 }
 
 /// The *Common Worship* calendar of the Church of England: its Principal
@@ -379,7 +383,18 @@ mod tests {
         for (index, celebration) in CELEBRATIONS.iter().enumerate() {
             for other in &CELEBRATIONS[index + 1..] {
                 assert_ne!(celebration.title, other.title);
+                assert_ne!(celebration.id, other.id);
             }
+        }
+    }
+
+    /// A celebration's identifier is its rule's, so that a line of
+    /// `hc_holidays_on` joins a line of `hc_common_worship_on` on it.
+    #[test]
+    fn every_celebration_is_identified_as_its_rule_is() {
+        for (celebration, rule) in CELEBRATIONS.iter().zip(COMMON_WORSHIP.rules) {
+            assert_eq!(rule.id().to_string(), celebration.id);
+            assert!(rule.id().is(celebration.id));
         }
     }
 }

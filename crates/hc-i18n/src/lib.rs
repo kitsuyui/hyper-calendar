@@ -101,6 +101,7 @@ pub mod holiday_groups;
 pub mod holiday_names;
 pub mod horizons;
 pub mod locale;
+pub mod municipal_names;
 pub mod names;
 pub mod notation;
 pub mod numbering;

@@ -13,10 +13,10 @@ fn every_named_day_is_a_day_of_its_table() {
             .iter()
             .find(|set| set.code == names.table)
             .unwrap_or_else(|| panic!("no table {}", names.table));
-        for (english, _) in names.names {
+        for (id, _) in names.names {
             assert!(
-                table.rules.iter().any(|rule| rule.name == *english),
-                "{}: no day {english}",
+                table.rules.iter().any(|rule| rule.id().is(id)),
+                "{}: no day {id}",
                 names.table
             );
         }

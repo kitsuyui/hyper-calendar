@@ -28,11 +28,12 @@ use alloc::string::{String, ToString};
 use hc_calendar::Rd;
 use hc_calendars_solar::gregorian;
 use hc_holiday::common_worship::{CELEBRATIONS, COMMON_WORSHIP, Rank};
+use hc_holiday::engine::UNREAD_SUBDIVISION_ID;
 use hc_holiday::group::Group;
 use hc_holiday::holy_years::{self, HolyYearOn, Jubilee, JubileeKind, TableDate};
 use hc_holiday::orthodox_fasts::{self, Abstinence, PeriodKind, Reckoning, Status};
 use hc_holiday::roman_calendar_1960;
-use hc_holiday::rule::{RuleSet, Scope, region_parent};
+use hc_holiday::rule::{Kind, RuleSet, Scope, region_parent};
 use hc_holiday::{
     Gap, Holiday, HolidayCalendar, computus, countries, exchanges, international, lectionary,
     traditions,
@@ -43,7 +44,7 @@ use hc_i18n::place_names::{self, Alt, Draft};
 use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns [`holiday_tables`] writes.
-pub const HOLIDAY_TABLES_COLUMNS: usize = 11;
+pub const HOLIDAY_TABLES_COLUMNS: usize = 13;
 
 /// How many columns [`lectionary_line`] writes.
 pub const LECTIONARY_COLUMNS: usize = 7;
@@ -242,7 +243,17 @@ pub fn short_table_name(
 /// gives no day to a group alone. Column 11 names them, in the same order:
 /// each group's name in the locale where `hc-i18n` carries one
 /// ([`group_name`]), 妇女 for `women` under `zh-CN`, and else its English
-/// name.
+/// name. Column 12 is [`RuleSet::region_groups`]: each subdivision and
+/// group a rule is scoped to both of, `region:group`, `;`-separated in
+/// code and then identifier order, `CN-XJ:women`, the scopes whose own
+/// days neither the region alone nor the group alone has; empty for a
+/// table with none. Column 13 is [`RuleSet::read_subdivisions`]: the
+/// ISO 3166-2 codes of the subdivisions the table's sources were read
+/// for, `;`-separated in code order — column 9's and those read and
+/// found to keep no day of their own — and empty for a table with no
+/// subdivisions and for one whose subdivisions were not read; a region
+/// asked of the table that is not in it keeps the nationwide days and has
+/// a gap for its own.
 #[must_use]
 pub fn holiday_tables(locale: &str) -> String {
     let requested = requested_locale(locale);
@@ -266,6 +277,13 @@ pub fn holiday_tables(locale: &str) -> String {
             .map(|group| group_name(group, requested.as_ref()))
             .collect();
         line.cell(&ids.join(";")).cell(&names.join(";"));
+        let scoped: alloc::vec::Vec<String> = set
+            .region_groups()
+            .iter()
+            .map(|(region, group)| alloc::format!("{region}:{}", group.id))
+            .collect();
+        line.cell(&scoped.join(";"))
+            .cell(&set.read_subdivisions().join(";"));
         line.end();
     }
     out
@@ -374,8 +392,19 @@ fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
 /// one line each, as `hc_holidays_on` writes them: an empty date, the
 /// name, the local name, the kind `gap`, an empty confidence, `0`, nothing,
 /// and the subdivision and the group whose own gap it is, as for an entry.
+///
+/// Two cells follow, after the group: the holiday's identifier within its
+/// table ([`hc_holiday::id`]), which a line of `hc_holidays_on` and of
+/// `hc_common_worship_on` carries too, and the instrument its rule cites,
+/// or nothing where the table's `sources` speaks for it; a gap's are its
+/// rule's, and `unread-subdivision` and nothing for a subdivision not
+/// read.
+///
+/// `kinds` keeps the entries of those kinds and the gaps of the rules of
+/// those kinds, and all of them when it is empty; a subdivision not read
+/// is a gap whatever the kinds, because none of its days is known.
 #[must_use]
-pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
+pub fn year_lines(table: &RuleSet, scope: Scope<'_>, kinds: &[Kind], year: i64) -> String {
     let calendar = HolidayCalendar::for_year_scoped(table, scope, year);
     // A subdivision the table was not read for has no code of the table's
     // own to write, and its gap is written with the code as asked.
@@ -411,8 +440,9 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
     let own = |parent: Option<&HolidayCalendar<'_>>, holiday: &Holiday, code| {
         parent.and_then(|parent| (!parent.all().contains(holiday)).then_some(code))
     };
+    let wanted = |kind: Kind| kinds.is_empty() || kinds.contains(&kind);
     let mut out = String::new();
-    for holiday in calendar.all() {
+    for holiday in calendar.all().iter().filter(|holiday| wanted(holiday.kind)) {
         let regional = widest(
             own(without_region.as_ref(), holiday, own_region).flatten(),
             &above,
@@ -428,13 +458,19 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
             .flag(holiday.is_substitute())
             .cell_or_empty(holiday.observed_for.map(iso).as_deref())
             .cell_or_empty(regional)
-            .cell_or_empty(grouped);
+            .cell_or_empty(grouped)
+            .value(holiday.id)
+            .cell(holiday.source);
         line.end();
     }
     let own_gap = |parent: Option<&HolidayCalendar<'_>>, gap: &Gap, code| {
         parent.and_then(|parent| (!parent.gaps().contains(gap)).then_some(code))
     };
-    for gap in calendar.gaps() {
+    for gap in calendar
+        .gaps()
+        .iter()
+        .filter(|gap| gap.id == UNREAD_SUBDIVISION_ID || wanted(gap.kind))
+    {
         let regional = widest(
             own_gap(without_region.as_ref(), gap, own_region).flatten(),
             &above,
@@ -450,7 +486,9 @@ pub fn year_lines(table: &RuleSet, scope: Scope<'_>, year: i64) -> String {
             .flag(false)
             .empty()
             .cell_or_empty(regional)
-            .cell_or_empty(grouped);
+            .cell_or_empty(grouped)
+            .value(gap.id)
+            .cell(gap.source);
         line.end();
     }
     out
@@ -474,22 +512,44 @@ fn widest<'c>(
     })
 }
 
+/// The kinds a caller asks for: `kind` as a `;`-separated list of
+/// [`Kind::id`] words, matched as every identifier is, or nothing for
+/// every kind.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a word that names no kind.
+fn requested_kinds(kind: Option<&str>) -> Answer<alloc::vec::Vec<Kind>> {
+    let mut kinds = alloc::vec::Vec::new();
+    for word in kind.unwrap_or("").split(';') {
+        let word = word.trim();
+        if !word.is_empty() {
+            kinds.push(Kind::by_id(word).ok_or(Refusal::Unknown)?);
+        }
+    }
+    Ok(kinds)
+}
+
 /// The lines of `hc_holidays_in_year`: [`year_lines`] for the table
 /// `code` names, in the subdivision `region` names, or nationwide for
-/// none, and for the group `group` names, or for everyone for none.
+/// none, for the group `group` names, or for everyone for none, and of
+/// the kinds `kind` lists, `public;bank`, or of every kind for none.
 ///
 /// # Errors
 ///
 /// As [`rule_set`], and [`Refusal::Unknown`] for a `group` that names no
-/// group of [`hc_holiday::group::GROUPS`].
+/// group of [`hc_holiday::group::GROUPS`] and a `kind` with a word that
+/// names no [`Kind`].
 pub fn holidays_in_year(
     code: &str,
     region: Option<&str>,
     group: Option<&str>,
+    kind: Option<&str>,
     year: i64,
 ) -> Answer<String> {
     let table = rule_set(code)?;
-    Ok(year_lines(table, requested_scope(region, group)?, year))
+    let scope = requested_scope(region, group)?;
+    Ok(year_lines(table, scope, &requested_kinds(kind)?, year))
 }
 
 /// One table's nationwide lines of `hc_holidays_on` for one day: the
@@ -498,7 +558,8 @@ pub fn holidays_in_year(
 /// English name, its local name, the kind, the confidence, the instrument
 /// the rule cites, `1` for a substitute day and `0` otherwise, the fixed
 /// day a substitute stands in for or nothing, the subdivision and the
-/// group, which are nothing here; a gap has the kind `gap`, an empty
+/// group, which are nothing here, and the holiday's identifier within its
+/// table ([`hc_holiday::id`]); a gap has the kind `gap`, an empty
 /// confidence, the instrument its rule cites, which for a year before its
 /// sources were read says what was read, `0` and nothing.
 pub fn push_day_lines(out: &mut String, table: &RuleSet, calendar: &HolidayCalendar<'_>, day: Rd) {
@@ -587,7 +648,8 @@ fn push_entry_lines(
             .flag(holiday.is_substitute())
             .value_or_empty(holiday.observed_for.map(|day| day.0))
             .cell_or_empty(scope.region)
-            .cell_or_empty(scope.group);
+            .cell_or_empty(scope.group)
+            .value(holiday.id);
         line.end();
     }
     // A gap is a holiday the table could not place this year — its
@@ -605,7 +667,8 @@ fn push_entry_lines(
             .flag(false)
             .empty()
             .cell_or_empty(scope.region)
-            .cell_or_empty(scope.group);
+            .cell_or_empty(scope.group)
+            .value(gap.id);
         line.end();
     }
 }
@@ -834,7 +897,7 @@ pub fn astronomical_paschal_full_moon(year: i64) -> Answer<i64> {
 pub const HOLY_YEAR_COLUMNS: usize = 10;
 
 /// How many columns [`common_worship_lines`] write.
-pub const COMMON_WORSHIP_COLUMNS: usize = 3;
+pub const COMMON_WORSHIP_COLUMNS: usize = 4;
 
 /// The fixed day of a table date, if the date exists.
 fn table_day(date: TableDate) -> Option<i64> {
@@ -908,7 +971,9 @@ const fn rank_id(rank: Rank) -> &'static str {
 /// each: the title as the Rules print it, which is the name
 /// `hc_holidays_on` gives it in the `common-worship` table; the rank's
 /// identifier, `principal-feast`, `principal-holy-day` or `festival`; and
-/// the rank's English name. A day that keeps none writes nothing.
+/// the rank's English name; and the celebration's identifier, the one
+/// `hc_holidays_on` writes in its last column for the same entry, which
+/// is what joins the two. A day that keeps none writes nothing.
 ///
 /// # Errors
 ///
@@ -921,14 +986,15 @@ pub fn common_worship_lines(fixed: i64) -> Answer<String> {
     for holiday in calendar.on(day) {
         let Some(celebration) = CELEBRATIONS
             .iter()
-            .find(|celebration| celebration.title == holiday.name)
+            .find(|celebration| holiday.id.is(celebration.id))
         else {
             continue;
         };
         let mut line = Line::new(&mut out);
         line.cell(celebration.title)
             .cell(rank_id(celebration.rank))
-            .cell(celebration.rank.english_name());
+            .cell(celebration.rank.english_name())
+            .cell(celebration.id);
         line.end();
     }
     Ok(out)
@@ -959,11 +1025,13 @@ pub fn holiday_groups_lines(tag: &str) -> String {
     out
 }
 
-/// The lines of `hc_holidays_on_in`: [`holidays_on`]'s lines, each with
-/// two more cells — the day's name in a locale, by
+/// The lines of `hc_holidays_on_in`: [`holidays_on`]'s lines less their
+/// last cell, with two more cells — the day's name in a locale, by
 /// [`hc_i18n::holiday_names::holiday_name`], where a source in the
-/// language names that day of that table, and the tag that named it, both
-/// empty where none does.
+/// language names that day of that table by its identifier, and the tag
+/// that named it, both empty where none does — and then the identifier,
+/// the cell `hc_holidays_on` ends with, so that the first eleven cells and
+/// the two names keep their places.
 ///
 /// # Errors
 ///
@@ -973,17 +1041,20 @@ pub fn holidays_on_in_lines(fixed: i64, tag: &str) -> Answer<String> {
     let lines = holidays_on(fixed)?;
     let mut out = String::with_capacity(lines.len());
     for line in lines.lines() {
-        let mut cells = line.split('\t');
-        let table = cells.next().unwrap_or("");
-        let english = cells.nth(1).unwrap_or("");
-        let named = hc_i18n::holiday_names::holiday_name(&locale, table, english);
-        out.push_str(line);
+        // The holiday's identifier is the line's last cell, which goes
+        // after the two new ones so that every cell of `hc_holidays_on`
+        // before it, and the two names, keep their places.
+        let (cells, id) = line.rsplit_once('\t').unwrap_or((line, ""));
+        let table = cells.split('\t').next().unwrap_or("");
+        let named = hc_i18n::holiday_names::holiday_name(&locale, table, id);
+        out.push_str(cells);
         // The line's last cell goes on as an empty first cell of the rest,
-        // so that the two more are each after a tab.
+        // so that the three more are each after a tab.
         let mut rest = Line::new(&mut out);
         rest.cell("")
             .cell_or_empty(named.map(|named| named.name))
-            .cell_or_empty(named.map(|named| named.tag));
+            .cell_or_empty(named.map(|named| named.tag))
+            .cell(id);
         rest.end();
     }
     Ok(out)
@@ -1169,7 +1240,7 @@ mod tests {
     /// November 2026 is also Yamagata's education day, a second Saturday.)
     #[test]
     fn a_city_s_lines_name_the_widest_region_whose_entry_each_is() {
-        let lines = holidays_in_year("JP", Some("jp-11-100"), None, 2026).expect("JP");
+        let lines = holidays_in_year("JP", Some("jp-11-100"), None, None, 2026).expect("JP");
         let region_of = |date: &str, name: &str| {
             lines
                 .lines()
@@ -1200,10 +1271,10 @@ mod tests {
         assert_eq!(on(11, 14), [saitama("県民の日", "JP-11")]);
         assert_eq!(on(5, 1), [saitama("さいたま市民の日", "JP-11-100")]);
         // An unread town's gap is written with its code as asked.
-        let town = holidays_in_year("JP", Some("JP-14-204"), None, 2026).expect("JP");
+        let town = holidays_in_year("JP", Some("JP-14-204"), None, None, 2026).expect("JP");
         assert!(
             town.lines()
-                .any(|line| line.contains("\tgap\t") && line.ends_with("JP-14-204\t")),
+                .any(|line| line.contains("\tgap\t") && line.contains("\tJP-14-204\t")),
             "{town}"
         );
     }
@@ -1412,17 +1483,22 @@ mod tests {
     #[test]
     fn a_group_s_own_day_is_marked_with_its_group() {
         let china = rule_set("CN").expect("China");
-        let women = year_lines(china, Scope::group(" WOMEN "), 2026);
+        let women = year_lines(china, Scope::group(" WOMEN "), &[], 2026);
         let own: Vec<&str> = women
             .lines()
-            .filter(|line| line.ends_with("\twomen"))
+            .filter(|line| line.split('\t').nth(8) == Some("women"))
             .collect();
         assert_eq!(
             own,
-            ["2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen"]
+            [concat!(
+                "2026-03-08\tWomen's Day\t妇女节\thalf-day\texact\t0\t\t\twomen\twomens-day\t",
+                "全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天"
+            )]
         );
-        assert!(women.starts_with("2026-01-01\tNew Year's Day\t元旦\tpublic\texact\t0\t\t\t\n"));
-        let everyone = year_lines(china, Scope::EVERYONE, 2026);
+        assert!(women.starts_with(
+            "2026-01-01\tNew Year's Day\t元旦\tpublic\texact\t0\t\t\t\tnew-years-day\t"
+        ));
+        let everyone = year_lines(china, Scope::EVERYONE, &[], 2026);
         assert!(!everyone.contains("妇女节"));
         assert_eq!(
             everyone.lines().count() + 1,
@@ -1443,10 +1519,10 @@ mod tests {
             .collect();
         assert_eq!(women.len(), 1, "{text}");
         assert!(women[0].ends_with(
-            "\thalf-day\texact\t全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t\twomen"
+            "\thalf-day\texact\t全国年节及纪念日放假办法, 第三条 (一): 妇女放假半天\t0\t\t\twomen\twomens-day"
         ));
         assert!(
-            text.lines().all(|line| line.split('\t').count() == 11),
+            text.lines().all(|line| line.split('\t').count() == 12),
             "{text}"
         );
         assert_eq!(
@@ -1703,16 +1779,18 @@ mod tests {
     fn each_celebration_carries_its_rank() {
         assert_eq!(
             common_worship_lines(day(2025, 4, 28)).as_deref(),
-            Ok("George, Martyr, Patron of England\tfestival\tFestival\n")
+            Ok(
+                "George, Martyr, Patron of England\tfestival\tFestival\tgeorge-martyr-patron-of-england\n"
+            )
         );
         assert_eq!(common_worship_lines(day(2025, 4, 23)).as_deref(), Ok(""));
         assert_eq!(
             common_worship_lines(day(2025, 12, 25)).as_deref(),
-            Ok("Christmas Day\tprincipal-feast\tPrincipal Feast\n")
+            Ok("Christmas Day\tprincipal-feast\tPrincipal Feast\tchristmas-day\n")
         );
         assert_eq!(
             common_worship_lines(day(2025, 4, 18)).as_deref(),
-            Ok("Good Friday\tprincipal-holy-day\tPrincipal Holy Day\n")
+            Ok("Good Friday\tprincipal-holy-day\tPrincipal Holy Day\tgood-friday\n")
         );
         assert_eq!(common_worship_lines(i64::MAX), Err(Refusal::OutOfRange));
     }
@@ -1746,10 +1824,15 @@ mod tests {
     /// before, so a tab in a name shifted every column after it.
     #[test]
     fn a_holiday_name_with_a_tab_or_a_line_break_keeps_its_columns() {
-        let text = year_lines(table_with_separators_in_its_names(), Scope::EVERYONE, 2026);
+        let text = year_lines(
+            table_with_separators_in_its_names(),
+            Scope::EVERYONE,
+            &[],
+            2026,
+        );
         assert_eq!(
             text,
-            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\n"
+            "2026-01-01\tNew Year's Day\t元  日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
         );
     }
 
@@ -1764,7 +1847,7 @@ mod tests {
         push_day_lines(&mut out, table, &calendar, day);
         assert_eq!(
             out,
-            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\n"
+            "XX\tA test\tNew Year's Day\t元  日\tpublic\texact\t\t0\t\t\t\tnew-years-day\n"
         );
     }
 
@@ -1774,26 +1857,27 @@ mod tests {
     /// read is a gap line with its region.
     #[test]
     fn the_year_s_lines_write_its_gaps() {
-        let women = holidays_in_year("CN", None, Some("women"), 1998).unwrap_or_default();
+        let women = holidays_in_year("CN", None, Some("women"), None, 1998).unwrap_or_default();
         assert!(
-            women
-                .lines()
-                .any(|line| line == "\tWomen's Day\t妇女节\tgap\t\t0\t\t\twomen"),
+            women.lines().any(|line| line.starts_with(concat!(
+                "\tWomen's Day\t妇女节\tgap\t\t0\t\t\twomen\twomens-day\t",
+                "全国年节及纪念日放假办法"
+            ))),
             "{women}"
         );
         // Everyone's lines of 1998 do not carry the group's gap.
-        let everyone = holidays_in_year("CN", None, None, 1998).unwrap_or_default();
+        let everyone = holidays_in_year("CN", None, None, None, 1998).unwrap_or_default();
         assert!(!everyone.lines().any(|line| line.contains("Women's Day")));
-        let hampshire = holidays_in_year("US", Some("US-NH"), None, 2026).unwrap_or_default();
+        let hampshire = holidays_in_year("US", Some("US-NH"), None, None, 2026).unwrap_or_default();
         assert!(
-            hampshire
-                .lines()
-                .any(|line| line == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t"),
+            hampshire.lines().any(|line| line
+                == "\tThe subdivision's own days\t\tgap\t\t0\t\tUS-NH\t\tunread-subdivision\t"),
             "{hampshire}"
         );
-        // Every line keeps its nine columns.
+        // Every line keeps its nine columns and ends with the identifier and
+        // the source.
         for line in women.lines().chain(hampshire.lines()) {
-            assert_eq!(line.split('\t').count(), 9, "{line}");
+            assert_eq!(line.split('\t').count(), 11, "{line}");
         }
         // A day's gap line carries the rule's source.
         let day = hc_holiday::rule::Scope::group("women");
@@ -1856,7 +1940,10 @@ mod tests {
             .lines()
             .find(|line| line.starts_with("coptic-orthodox\t"))
             .expect("Nayrouz");
-        assert!(nayrouz.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop"), "{nayrouz}");
+        assert!(
+            nayrouz.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year"),
+            "{nayrouz}"
+        );
         // A gap line keeps the rule's source, as `hc_holidays_on` writes it,
         // and gains the two cells: China's women's half day of 1998, before
         // the statute text read begins.
@@ -1867,7 +1954,7 @@ mod tests {
             .find(|line| line.starts_with("CN\t") && line.contains("\tWomen's Day\t"))
             .expect("a gap line");
         assert!(gap.contains("全国年节及纪念日放假办法"), "{gap}");
-        assert_eq!(gap.split('\t').count(), 13, "{gap}");
+        assert_eq!(gap.split('\t').count(), 14, "{gap}");
         let groups = holiday_groups_lines("en");
         assert!(groups.starts_with("women\t"));
         assert!(
@@ -1908,5 +1995,175 @@ mod tests {
             add_business_days("JP", None, None, day(4, 28), MAX_BUSINESS_DAYS + 1),
             Err(Refusal::OutOfRange)
         );
+    }
+
+    /// A line of `hc_common_worship_on` and the entry of `hc_holidays_on`
+    /// it describes carry the same identifier, so that they are joined on
+    /// it and not on the title: every celebration kept in 2025 is the
+    /// entry of the same identifier in the year's lines, and the reverse.
+    #[test]
+    fn a_common_worship_line_joins_its_holidays_on_entry_by_identifier() {
+        let christmas = day(2025, 12, 25);
+        let rank = common_worship_lines(christmas).expect("in range");
+        assert_eq!(
+            rank,
+            "Christmas Day\tprincipal-feast\tPrincipal Feast\tchristmas-day\n"
+        );
+        let on = holidays_on(christmas).expect("in range");
+        assert!(
+            on.lines()
+                .any(|line| line.starts_with("common-worship\t")
+                    && line.ends_with("\tchristmas-day")),
+            "{on}"
+        );
+        let mut kept = alloc::vec::Vec::new();
+        for fixed in day(2025, 1, 1)..=day(2025, 12, 31) {
+            let text = common_worship_lines(fixed).expect("in range");
+            kept.extend(text.lines().map(|line| {
+                let cells: alloc::vec::Vec<&str> = line.split('\t').collect();
+                assert_eq!(cells.len(), COMMON_WORSHIP_COLUMNS, "{line}");
+                String::from(cells[3])
+            }));
+        }
+        let year = holidays_in_year("common-worship", None, None, None, 2025).expect("table");
+        let mut placed: alloc::vec::Vec<String> = year
+            .lines()
+            .map(|line| line.split('\t').collect::<alloc::vec::Vec<_>>())
+            .filter(|cells| !cells[0].is_empty())
+            .map(|cells| String::from(cells[9]))
+            .collect();
+        kept.sort();
+        placed.sort();
+        assert_eq!(kept, placed);
+        assert!(placed.len() >= 40, "{}", placed.len());
+    }
+
+    /// A year's line ends with the holiday's identifier and the instrument
+    /// its rule cites, and a kind filter keeps the entries of those kinds
+    /// and the gaps of the rules of those kinds.
+    #[test]
+    fn a_year_s_lines_carry_an_identifier_and_a_source_and_are_filtered_by_kind() {
+        let kinds = |text: &str| -> alloc::collections::BTreeSet<String> {
+            text.lines()
+                .map(|line| String::from(line.split('\t').nth(3).unwrap_or("")))
+                .collect()
+        };
+        let all = holidays_in_year("US", None, None, None, 2026).expect("US");
+        for line in all.lines() {
+            assert_eq!(line.split('\t').count(), 11, "{line}");
+        }
+        assert!(all.lines().any(|line| line.contains("\tnew-years-day\t")));
+        // A state with observances: the days of its own kinds go and the
+        // public ones stay.
+        let table = rule_set("US").expect("US");
+        let state = table
+            .regions()
+            .into_iter()
+            .find(|region| {
+                let text =
+                    holidays_in_year("US", Some(region), None, None, 2026).unwrap_or_default();
+                kinds(&text).contains("observance")
+            })
+            .expect("a state with observances");
+        let every = holidays_in_year("US", Some(state), None, None, 2026).expect("US");
+        let public = holidays_in_year("US", Some(state), None, Some("public"), 2026).expect("US");
+        assert!(public.lines().count() < every.lines().count());
+        assert!(
+            kinds(&public)
+                .iter()
+                .all(|kind| kind == "public" || kind == "gap"),
+            "{:?}",
+            kinds(&public)
+        );
+        assert!(
+            public
+                .lines()
+                .any(|line| line.contains("\tnew-years-day\t"))
+        );
+        let observances =
+            holidays_in_year("US", Some(state), None, Some("observance"), 2026).expect("US");
+        assert!(
+            kinds(&observances)
+                .iter()
+                .all(|k| k == "observance" || k == "gap")
+        );
+        assert!(observances.lines().count() + public.lines().count() <= every.lines().count() + 4);
+        // A list, in any case, and white space around each word.
+        let both =
+            holidays_in_year("US", Some(state), None, Some(" PUBLIC ; Bank"), 2026).expect("US");
+        assert!(
+            kinds(&both)
+                .iter()
+                .all(|k| ["public", "bank", "gap"].contains(&k.as_str()))
+        );
+        // An empty filter is every kind; a word that is no kind is refused.
+        assert_eq!(
+            holidays_in_year("US", None, None, Some(""), 2026).as_deref(),
+            Ok(all.as_str())
+        );
+        assert_eq!(
+            holidays_in_year("US", None, None, Some("public;festival"), 2026),
+            Err(Refusal::Unknown)
+        );
+        // A subdivision not read is a gap whatever the kind asked for.
+        let hampshire =
+            holidays_in_year("US", Some("US-NH"), None, Some("observance"), 2026).expect("US");
+        assert!(
+            hampshire
+                .lines()
+                .any(|line| line.ends_with("\tunread-subdivision\t")),
+            "{hampshire}"
+        );
+        // An entry cites the instrument its rule does: the United Nations'
+        // days cite their resolutions.
+        let un = holidays_in_year("un-days", None, None, None, 2026).expect("table");
+        assert!(un.lines().any(|line| {
+            line.split('\t')
+                .nth(10)
+                .is_some_and(|s| s.contains("A/RES"))
+        }));
+        let un_public =
+            holidays_in_year("un-days", None, None, Some("public"), 2026).expect("table");
+        assert_eq!(un_public, "");
+    }
+
+    /// Column 12 of `hc_holiday_tables` is the pairs of a subdivision and a
+    /// group a rule is scoped to both of, and column 13 the subdivisions
+    /// the sources were read for.
+    #[test]
+    fn the_tables_say_their_region_groups_and_the_subdivisions_read() {
+        let text = holiday_tables("en");
+        for line in text.lines() {
+            let cells: alloc::vec::Vec<&str> = line.split('\t').collect();
+            assert_eq!(cells.len(), HOLIDAY_TABLES_COLUMNS, "{line}");
+            let table = rule_set(cells[0]).expect("a table");
+            let expected: alloc::vec::Vec<String> = table
+                .region_groups()
+                .iter()
+                .map(|(region, group)| alloc::format!("{region}:{}", group.id))
+                .collect();
+            assert_eq!(cells[11], expected.join(";"), "{}", cells[0]);
+            assert_eq!(
+                cells[12],
+                table.read_subdivisions().join(";"),
+                "{}",
+                cells[0]
+            );
+            // What the rules are scoped to is read.
+            for region in cells[8].split(';').filter(|code| !code.is_empty()) {
+                assert!(cells[12].split(';').any(|read| read == region), "{region}");
+            }
+        }
+        let row = |code: &str| -> alloc::vec::Vec<&str> {
+            text.lines()
+                .map(|line| line.split('\t').collect::<alloc::vec::Vec<_>>())
+                .find(|cells| cells[0] == code)
+                .expect("a row")
+        };
+        // The designated cities are read, as the municipalities of their
+        // prefectures; an exchange has no subdivisions.
+        assert!(row("JP")[12].split(';').any(|code| code == "JP-14-130"));
+        assert_eq!(row("XNYS")[11], "");
+        assert_eq!(row("XNYS")[12], "");
     }
 }

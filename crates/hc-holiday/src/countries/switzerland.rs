@@ -247,7 +247,7 @@ macro_rules! every_canton_keeps {
 }
 
 /// The days of [`every_canton_keeps`].
-const KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
+static KEPT_EVERYWHERE: [HolidayRule; 3 + 3 * 26] = every_canton_keeps![
     (CH_AG, CH_AG_LAW, 2013),
     (CH_AI, CH_AI_LAW, 2011),
     (CH_AR, CH_AR_LAW, 1967),

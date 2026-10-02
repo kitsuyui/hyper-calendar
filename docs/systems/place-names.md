@@ -226,6 +226,27 @@ and English's `California` fills it. A table's usual draft level is stored
 once and the others by index: every name of `ja` is provisional but
 England's, Scotland's and Wales's, which are approved.
 
+### A municipality
+
+CLDR names ISO 3166-2 subdivisions and no smaller place. A holiday table
+scopes a day to a municipality by a code under its subdivision's, the
+subdivision's code, a hyphen and the code within it in the country's own
+standard (ADR 0014): 川崎市 is `JP-14-130`, Kanagawa's `JP-14` and JIS X
+0402's 14130 [jis-x0402-cities]. Column 9 of `hc_holiday_tables` lists such
+a code beside its subdivision, and CLDR has no line for it. The names
+therefore live in a second, small module, `hc-i18n::municipal_names`, in
+the same shape as `holiday_names`: one table per tag, each a list of the
+code and the name, in code order, and a lookup that walks the locale's
+fallback chain and then English. The three tags are `ja`, the name as the
+city's own instruments write it, 川崎市; `ja-Latn`, its Hepburn romanisation
+with the suffix, `Kawasaki-shi`; and `en`, the English name,
+`Kawasaki`. `hc_place_name` writes a municipality's line in the columns of
+every place's, with no draft level, since the level is CLDR's, and the
+status `municipal`; `hc_subdivisions` writes it in code order after its
+subdivision, `JP-14`, `JP-14-100`, `JP-14-130`, `JP-14-150`, `JP-15`, so
+that the lookup that names column 9's prefectures names its cities too. A
+locale no table names, `de` or `zh-Hans`, gets `en`.
+
 ## What is carried
 
 - **The places.** The 295 territories `en.xml` names, and the 5 503
@@ -263,6 +284,22 @@ England's, Scotland's and Wales's, which are approved.
 - **The containment** of 5 027 subdivisions: every regular one, 3 571
   directly within its country and 1 456 within another subdivision.
 - **The fallbacks** of the eleven tables in the table above.
+- **The municipalities**, 21: the twenty designated cities of Japan,
+  `JP-01-100` 札幌市 to `JP-43-100` 熊本市, and 長崎市, `JP-42-201`, the
+  codes the holiday tables of `docs/systems/japan-holidays.md` list, each
+  in three tags. The `ja` names are the names of the instruments the
+  table cites for the cities [jp-city-designated] and of JIS X 0402's list
+  [jis-x0402-cities]. The `en` names are English Wikipedia's list of the
+  designated cities [wikipedia-en-designated-cities] and, for 長崎市, its
+  article's title. The `ja-Latn` names are the Hepburn forms the leads of
+  the English articles print, macrons included, for nineteen
+  [wikipedia-en-city-leads] — `Kyōto-shi`, `Ōsaka-shi`, `Kōbe-shi`,
+  `Kitakyūshū-shi` — and, for 札幌市 and 横浜市, whose leads print none,
+  the Hepburn forms of the readings the Japanese articles print,
+  さっぽろし and よこはまし [wikipedia-ja-city-readings]. A test holds
+  every municipality any table lists, in column 9 or in column 13 of
+  `hc_holiday_tables`, to a name in all three tags: a table that lists a
+  municipality `municipal_names` does not carry fails the build.
 - **Two halves.** The territories, their names and forms, and each
   table's parent and fallbacks, are `hc-i18n`'s `territories` feature,
   which the facade's `holiday` feature and `hc-format`'s `zone-names` turn
@@ -311,7 +348,9 @@ its column 10. Every such code has a line here, and every
 country with a table has a territory line; a test in `place_lines` holds
 the lists to each other. One of the codes the tables use is `deprecated`
 in CLDR 48: `GB-EAW`, England and Wales, which English and most carried
-locales still name. Guatemala City's festivity is scoped to the department
+locales still name. A municipality's code, `JP-14-130`, is not CLDR's and
+has the line of the section "A municipality", status `municipal`; a test
+holds every one a table lists to a name. Guatemala City's festivity is scoped to the department
 of Guatemala as `GT-01`, which `en.xml` names Guatemala and CLDR 48 holds
 as regular; its old code, `GT-GU`, is deprecated, and ISO 3166-2 replaced
 it with `GT-01` on 25 November 2021, when it renumbered all twenty-two
@@ -356,6 +395,13 @@ their names agree in some languages.
   and Japanese (ヤズド州) but 古姆省, Qom, in Cantonese. A page that labels an
   Iranian code should expect such a mismatch until CLDR's planned stable
   codes for Iran arrive.
+- **The municipal names are Wikipedia's and the instruments'**, not
+  CLDR's, and carry no draft level. English Wikipedia is a secondary
+  source; the page fetches were summaries of each page, not its text, so
+  a macron of `ja-Latn` is as the summary gave it. JIS X 0402 itself was
+  not read. Chinese and Korean names, which no source read prints for
+  these cities but as a language link's title, and the kana readings of
+  the other nineteen, are not carried.
 - **The lookup is CLDR's**, measured two ways: the tests read every table
   in one pass and one code at a time, and get the same answers; and the
   tables' parents, read from `parentLocales`, agree with the chains
@@ -409,6 +455,18 @@ their names agree in some languages.
   `territoryContainment`, for the fallbacks. Read, 2026-09-29.
 - [cldr48-subdivision-containment] — `supplemental/subdivisions.xml`.
   Read, 2026-09-29.
+- [jis-x0402-cities] — the cities' 全国地方公共団体コード, which give a
+  municipality its code under its prefecture's. Read, 2026-09-29, in
+  Wikipedia; JIS X 0402 itself not read.
+- [jp-city-designated] — the twenty designated cities' and 長崎市's
+  instruments, which spell each city's name. Read, 2026-09-29, in each
+  例規集 or the archive's copy.
+- [wikipedia-en-designated-cities] — the English names of the twenty
+  designated cities. Read, 2026-10-03.
+- [wikipedia-en-city-leads] — the Hepburn romanisation of 19 cities' names
+  with their suffix. Read, 2026-10-03.
+- [wikipedia-ja-city-readings] — the readings of 札幌市 and 横浜市. Read,
+  2026-10-03.
 - [uts35-v48-matching] — Part 1: Language Matching (the fallback locales,
   the distance, the variables and the threshold) and Attribute alt. Read,
   2026-09-29.
@@ -444,9 +502,15 @@ their names agree in some languages.
 - `crates/hyper-calendar/src/holiday_lines.rs` and
   `crates/hc-format/src/patterns/zone.rs` — the holiday tables' and the
   zone names' use of the territory half, at the release levels.
+- `crates/hc-i18n/src/municipal_names.rs` — the municipalities' names and
+  their lookup; the tests `every_table_names_the_same_codes_in_order`,
+  `kawasaki_is_named_in_japanese_romanised_and_english` and
+  `the_names_are_cities`.
 - `crates/hyper-calendar/src/place_lines.rs` — the lines of the three
-  exports; the tests `a_line_is_six_cells` and
-  `every_place_a_holiday_table_names_has_a_line`.
+  exports; the tests `a_line_is_six_cells`,
+  `every_place_a_holiday_table_names_has_a_line`,
+  `every_municipality_a_holiday_table_lists_has_a_name` and
+  `a_municipality_is_named_and_stands_beside_its_prefecture`.
 - `crates/hyper-calendar-wasm/src/places.rs`,
   `crates/hyper-calendar-ffi/src/places.rs` — the `places` layer of each
   boundary, and their tests `tests/places.rs`; the JavaScript binding's

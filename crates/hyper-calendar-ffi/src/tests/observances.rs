@@ -19,7 +19,7 @@ fn the_holy_year_and_common_worship_lines_are_the_modules() {
     });
     assert_eq!(
         text,
-        "George, Martyr, Patron of England\tfestival\tFestival\n"
+        "George, Martyr, Patron of England\tfestival\tFestival\tgeorge-martyr-patron-of-england\n"
     );
     let mut written = 0usize;
     assert_eq!(
@@ -73,9 +73,13 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         .split('\t')
         .collect();
     assert_eq!(japan[..5], ["JP", "country", "Japan", "Japan", "en"]);
-    assert_eq!(japan.len(), 11);
+    assert_eq!(japan.len(), 13);
     assert!(japan[8].split(';').any(|code| code == "JP-13"), "{japan:?}");
-    assert_eq!(japan[9..], ["", ""], "Japan gives no day to a group alone");
+    assert_eq!(
+        japan[9..11],
+        ["", ""],
+        "Japan gives no day to a group alone"
+    );
     let china: Vec<&str> = english
         .lines()
         .find(|line| line.starts_with("CN\t"))
@@ -83,7 +87,7 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         .split('\t')
         .collect();
     assert_eq!(
-        china[9..],
+        china[9..11],
         [
             "children;military;women;youth",
             "children;military personnel;women;youth"
@@ -194,7 +198,7 @@ fn the_groups_and_the_named_days_cross() {
     });
     assert!(
         text.lines()
-            .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop"))
+            .any(|line| line.ends_with("\tⲡⲓⲭⲗⲟⲙ ⲛ̀ⲧⲉ ϯⲣⲟⲙⲡⲓ\tcop\tnayrouz-new-year"))
     );
 }
 

@@ -117,6 +117,8 @@ fn holiday_tables_answer_by_identifier() {
                 0,
                 core::ptr::null(),
                 0,
+                core::ptr::null(),
+                0,
                 2026,
                 core::ptr::null_mut(),
                 0,
@@ -129,6 +131,8 @@ fn holiday_tables_answer_by_identifier() {
         hc_holidays_in_year(
             jp.as_ptr(),
             2,
+            core::ptr::null(),
+            0,
             core::ptr::null(),
             0,
             core::ptr::null(),
@@ -149,6 +153,8 @@ fn holiday_tables_answer_by_identifier() {
             0,
             core::ptr::null(),
             0,
+            core::ptr::null(),
+            0,
             2026,
             pointer,
             capacity,
@@ -158,10 +164,15 @@ fn holiday_tables_answer_by_identifier() {
     let text = unsafe { core::str::from_utf8(core::slice::from_raw_parts(pointer, capacity)) }
         .expect("UTF-8");
     assert!(
-        text.starts_with("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\n"),
+        text.starts_with(
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
+        ),
         "{text}"
     );
-    assert!(text.contains("\t1\t2026-05-03\t\t\n"), "{text}");
+    assert!(
+        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\n"),
+        "{text}"
+    );
     unsafe { hc_free(pointer, capacity) };
     let codes_len = unsafe { hc_holiday_codes(core::ptr::null_mut(), 0) };
     assert!(codes_len > 0);
@@ -184,7 +195,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 11), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 12), "{rows:?}");
     let japan: Vec<&Vec<&str>> = rows.iter().filter(|row| row[0] == "JP").collect();
     let substitute = japan
         .iter()
@@ -236,7 +247,8 @@ fn a_rule_that_cites_its_instrument_carries_it() {
             "0",
             "",
             "",
-            ""
+            "",
+            "world-braille-day"
         ]
     );
 }
@@ -379,14 +391,18 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
             5,
             core::ptr::null(),
             0,
+            core::ptr::null(),
+            0,
             2026,
             buffer,
             capacity,
         )
     });
-    let own: Vec<&str> = year
+    // The nine cells every line had before the identifier and the source.
+    let own: Vec<String> = year
         .lines()
-        .filter(|line| line.ends_with("\tJP-13\t"))
+        .filter(|line| line.split('\t').nth(7) == Some("JP-13"))
+        .map(|line| line.split('\t').take(9).collect::<Vec<_>>().join("\t"))
         .collect();
     assert_eq!(
         own,
@@ -396,11 +412,17 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
             "2026-11-07\tTokyo Education Day\t東京都教育の日\tobservance\texact\t0\t\tJP-13\t",
         ]
     );
-    assert!(year.contains("2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\n"));
+    assert!(
+        year.contains(
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
+        )
+    );
     let nationwide = read_lines(|buffer, capacity| unsafe {
         hc_holidays_in_year(
             jp.as_ptr(),
             2,
+            core::ptr::null(),
+            0,
             core::ptr::null(),
             0,
             core::ptr::null(),
@@ -419,7 +441,7 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
         .collect();
     assert_eq!(tokyo_lines.len(), 1, "{lines}");
     assert!(tokyo_lines[0].starts_with("JP\tJapan\tTokyo Citizens' Day\t"));
-    assert!(tokyo_lines[0].ends_with("\t0\t\tJP-13\t"));
+    assert!(tokyo_lines[0].ends_with("\t0\t\tJP-13\t\ttokyo-citizens-day"));
     assert_eq!(
         unsafe {
             hc_holiday_is_day_off(jp.as_ptr(), 2, tokyo.as_ptr(), 5, core::ptr::null(), 0, day)
@@ -459,14 +481,17 @@ fn a_group_is_a_scope_of_its_country_s_table() {
             0,
             women.as_ptr(),
             women.len(),
+            core::ptr::null(),
+            0,
             2026,
             buffer,
             capacity,
         )
     });
-    let own: Vec<&str> = year
+    let own: Vec<String> = year
         .lines()
-        .filter(|line| line.ends_with("\twomen"))
+        .filter(|line| line.split('\t').nth(8) == Some("women"))
+        .map(|line| line.split('\t').take(9).collect::<Vec<_>>().join("\t"))
         .collect();
     assert_eq!(
         own,
@@ -476,6 +501,8 @@ fn a_group_is_a_scope_of_its_country_s_table() {
         hc_holidays_in_year(
             cn.as_ptr(),
             2,
+            core::ptr::null(),
+            0,
             core::ptr::null(),
             0,
             core::ptr::null(),
@@ -494,7 +521,7 @@ fn a_group_is_a_scope_of_its_country_s_table() {
         .collect();
     assert_eq!(women_lines.len(), 1, "{lines}");
     assert!(women_lines[0].starts_with("CN\tChina\tWomen's Day\t"));
-    assert!(women_lines[0].ends_with("\t0\t\t\twomen"));
+    assert!(women_lines[0].contains("\t0\t\t\twomen"));
     // Children's Day is a whole day off for children alone.
     let children = b"children";
     let june_1 = hc_gregorian_to_fixed(2026, 6, 1);
@@ -525,6 +552,8 @@ fn a_group_is_a_scope_of_its_country_s_table() {
                 0,
                 unknown.as_ptr(),
                 unknown.len(),
+                core::ptr::null(),
+                0,
                 2026,
                 core::ptr::null_mut(),
                 0,

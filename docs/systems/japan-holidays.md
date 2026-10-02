@@ -230,6 +230,15 @@ resolutions that set it from 1928 were not read. 相模原's 市制施行記念�
 named without a date, is `Rule::UNREAD` in every year. 京都's
 伝統産業の日 is 春分の日, and is `Rule::SolarTerm` as the national day is.
 
+The cities' names are `hc-i18n`'s `municipal_names`, not CLDR's, which
+names no municipality: 川崎市 in `ja`, `Kawasaki-shi` in `ja-Latn` and
+`Kawasaki` in `en`, from the instruments this section reads and JIS X 0402's
+list [jis-x0402-cities], and from English and Japanese Wikipedia for the
+romanised and English forms. `hc_place_name` and `hc_subdivisions` write
+them, and a test holds every municipality a table lists to a name; the
+sources and what is not carried are in
+[place-names.md](place-names.md).
+
 **Worked example: 2 June 2026 in Yokohama.** 2 June is a Tuesday. Built
 for `JAPAN` in `JP-14-100` and 2026, the calendar has one entry on it,
 開港記念日, `Kind::School`, citing 横浜市開港記念日条例 (令和7年横浜市条例第21号)

@@ -647,3 +647,7 @@ Thant = "Thant"
 # U SoSo Tham, the Khasi poet whose death anniversary the Reserve Bank of
 # India lists at Shillong, in hc-holiday's India state days.
 Tham = "Tham"
+# The holiday identifier of "Women's Day" is the kebab-case of its name,
+# `womens-day` (hc-holiday's `id`), and a camel-case variable of it in the
+# JavaScript tests.
+womens = "womens"

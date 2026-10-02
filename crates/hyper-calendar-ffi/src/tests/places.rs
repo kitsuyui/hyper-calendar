@@ -14,7 +14,16 @@ fn the_lines_are_the_modules() {
     let japan = read_lines(|buffer, capacity, written| unsafe {
         hc_subdivisions(c"JP".as_ptr(), c"ja".as_ptr(), buffer, capacity, written)
     });
-    assert_eq!(japan.lines().count(), 47);
+    // The 47 prefectures CLDR names and the 21 municipalities the holiday
+    // tables list, which CLDR does not.
+    assert_eq!(japan.lines().count(), 47 + 21);
+    assert_eq!(
+        japan
+            .lines()
+            .filter(|line| line.ends_with("\tmunicipal"))
+            .count(),
+        21
+    );
     assert!(
         japan
             .lines()
@@ -23,7 +32,7 @@ fn the_lines_are_the_modules() {
     let every = read_lines(|buffer, capacity, written| unsafe {
         hc_subdivisions(core::ptr::null(), c"en".as_ptr(), buffer, capacity, written)
     });
-    assert_eq!(every.lines().count(), 5503);
+    assert_eq!(every.lines().count(), 5503 + 21);
     let territories = read_lines(|buffer, capacity, written| unsafe {
         hc_territories(core::ptr::null(), buffer, capacity, written)
     });
