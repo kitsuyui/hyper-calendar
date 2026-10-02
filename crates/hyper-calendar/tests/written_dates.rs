@@ -220,6 +220,11 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "a tithi that spans two sunrises names both days",
     ),
     (
+        "hindu-lunar-reingold-dershowitz",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
         "hindu-lunar-surya-siddhanta",
         "ambiguous",
         "a tithi that spans two sunrises names both days",
@@ -256,6 +261,11 @@ const REFUSALS: &[(&str, &str, &str)] = &[
     ),
     (
         "nepal-sambat",
+        "ambiguous",
+        "a doubled tithi is written on both days, told apart by a weekday",
+    ),
+    (
+        "nepal-sambat-fortnight",
         "ambiguous",
         "a doubled tithi is written on both days, told apart by a weekday",
     ),
@@ -320,6 +330,16 @@ const MORE_DAYS: &[(&str, &[i64], &str)] = &[
     ("saptarshi", &[726_513, 726_514], "a doubled tithi"),
     ("odia-anka", &[726_513, 726_514], "a doubled tithi"),
     ("nepal-sambat", &[726_513, 726_514], "a doubled tithi"),
+    (
+        "nepal-sambat-fortnight",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
+    (
+        "hindu-lunar-reingold-dershowitz",
+        &[726_513, 726_514],
+        "a doubled tithi",
+    ),
     // 7 June 1993 and 7 June 1994, both 7 June of Faṣlī 1403 and of
     // Sūr-san 1394.
     ("fasli-bombay", &[727_721, 728_086], "a doubled day"),
@@ -1222,6 +1242,29 @@ fn a_repeated_unit_is_named_where_a_source_names_it() {
             first: Rd(726_513),
             second: Rd(726_514)
         })
+    );
+    // The same days in the almanac committee's form: the fortnight and the
+    // tithi within it, Silā gā 6.
+    assert_eq!(
+        text("nepal-sambat-fortnight", 726_514, "en"),
+        "Silā gā 6, 1110 NS"
+    );
+    assert_eq!(
+        text("nepal-sambat-fortnight", 726_514, "ne"),
+        "१११० नेसं सिल्लागा ६"
+    );
+    assert_eq!(
+        read("nepal-sambat-fortnight", "en", "Silā gā 6, 1110 NS"),
+        Err(DateRefusal::Ambiguous {
+            first: Rd(726_513),
+            second: Rd(726_514)
+        })
+    );
+    // Mha Puja, 4 November 2013 (Wikipedia, "Mha Puja"), the first tithi of
+    // the first fortnight: कछलाथ्व १, in the Samiti's spelling.
+    assert_eq!(
+        text("nepal-sambat-fortnight", 735_176, "ne"),
+        "११३४ नेसं कछलाथ्व १"
     );
     for with_weekday in ["Silā 21, 1110 NS, Friday", "Friday, Silā 21, 1110 NS"] {
         assert_eq!(

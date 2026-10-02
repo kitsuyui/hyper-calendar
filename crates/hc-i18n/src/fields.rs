@@ -323,13 +323,14 @@ const fn flag(calendars: &'static [CalendarId], field: &'static str) -> FieldVal
     }
 }
 
-/// The three Hindu calendars that name their year in the southern
+/// The four Hindu calendars that name their year in the southern
 /// sixty-year cycle, `samvatsara`. The pūrṇimānta calendar names it in the
 /// northern, Bārhaspatya, cycle, under `barhaspatya-samvatsara`: the same
 /// sixty names, reckoned differently, thirteen apart in 2026
 /// (`docs/systems/hindu-calendars.md`).
 const SAMVATSARA_CALENDARS: &[CalendarId] = &[
     CalendarId("hindu-lunar"),
+    CalendarId("hindu-lunar-reingold-dershowitz"),
     CalendarId("hindu-lunar-surya-siddhanta"),
     CalendarId("hindu-solar-tamil"),
 ];

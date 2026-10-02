@@ -42,6 +42,9 @@ module.
 | `pushkaram` | — | the rivers of the twelve signs, and the twelve days of the *Ādi Pushkaram* from Jupiter's entry into a sign, which the caller supplies | |
 | `hindu_old` | `hindu-old-solar` | the *Ārya Siddhānta*'s mean Sun: twelve months of a twelfth of a 365.258 68-day year, named for the signs; Kali Yuga years | Kali Yuga 0–10000 |
 | | `hindu-old-lunar` | its mean Moon: 29.530 58-day months named for the solar month that begins within them, the intercalary one being the month no solar month begins in, thirty mean tithis a month; Kali Yuga years | Kali Yuga 0–10000 |
+| `hindu_lunar` | `hindu-lunar-reingold-dershowitz` | the amānta months and tithis read at Ujjain's sunrise with the book's own ayanāṃśa: Reingold and Dershowitz's astronomical Hindu lunisolar calendar | as `hindu-lunar` |
+| `hindu_solar` | `hindu-solar-reingold-dershowitz` | the Tamil rule on the true Sun read at Ujjain with the book's ayanāṃśa and sunset, months named by the signs, Śaka years: their astronomical Hindu solar calendar | as `hindu-solar-tamil` |
+| `nepal_sambat` | `nepal-sambat-fortnight` | the same days as `nepal-sambat` written as the Nepal Panchang Nirnayak Bikas Samiti's notice of 2024 writes them: the fortnight, a month's name with *thwa* or *gā* joined to it (कछलाथ्व, कछलागा, …; अनलाथ्व, अनलागा), and the tithi within it, 1–15 and 30 for the new moon; the notice gives no form for the weekday it requires beside a doubled tithi, so none is written | as `nepal-sambat` |
 | `nepal_sambat` | `nepal-sambat` | the Newar lunisolar calendar: the amānta months under their Newar names from Kachhalā (Kārtika), the year opening at Mha Puja, the day read at Kathmandu's sunrise; Nepal Sambat years; the fortnights *thwa* and *gā* and the seven Newar tithi names Wikipedia's table gives | the amānta engine's, Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
 | `vira_nirvana` | `vira-nirvana-samvat` | the Jain era of Mahāvīra's nirvāṇa over the amānta months, the year opening at Kārtika śukla 1, the day after Dīpāvalī, 605 years after the Śaka year's Kārtika; the day read at the Central Station's sunrise | the amānta engine's, Chaitra śukla 1 in March 1700 to the eve of the one in March 2300 |
 | `odia_anka` | `odia-anka` | the regnal years of the Gajapati of Puri, Dibyasingha Deb: the *aṅka* turns at Suniā, nija Bhādrapada śukla 12, over the pūrṇimānta months, and never takes 1, a number ending in 6, or one ending in 0 but 10; an integer mapping from the full year of the reign, with the Amli year beside it — see [`docs/systems/odia-anka.md`](../../docs/systems/odia-anka.md) | Suniā 1970 to 2299 |
@@ -66,16 +69,21 @@ the Central Station, the Lahiri ayanāṃśa, as the national almanac has it.
 `HinduLunarCalendar::UJJAIN` is the classical reference, and
 `HinduLunarCalendar::new` takes any place and any ayanāṃśa `hc-seasons`
 knows. Ujjain is where Reingold and Dershowitz read their astronomical
-calendars; it is a constant and not a registered calendar, because the
-place is its only difference from `hindu-lunar` and a place is a
-parameter: over 2000–2030 the two give different dates on 302 of 11 323
-days, and the Tamil rule read there moves 5 of 372 month starts. The
-book's own ayanāṃśa, zero at the *Sūrya Siddhānta*'s Meṣa saṅkrānti of
-285 CE, is `hc-seasons`'s `Ayanamsa::REINGOLD_DERSHOWITZ`, and its Tamil
-sunset, the Sun's centre on the geometric horizon, is
-`SankrantiRule::BeforeCentreSets`; with both, the calendars rebuilt at
-Ujjain give the book's value on every sample date but the four its errata
-explain, and they move one more Tamil month start of the 372.
+calendars. Ujjain with the Lahiri ayanāṃśa is a constant and not a
+registered calendar, because the place is its only difference from
+`hindu-lunar` and a place is a parameter: over 2000–2030 the two give
+different dates on 302 of 11 323 days, and the Tamil rule read there moves
+5 of 372 month starts. The book's own ayanāṃśa, zero at the *Sūrya
+Siddhānta*'s Meṣa saṅkrānti of 285 CE, is `hc-seasons`'s
+`Ayanamsa::REINGOLD_DERSHOWITZ`, and its Tamil sunset, the Sun's centre on
+the geometric horizon, is `SankrantiRule::BeforeCentreSets`. Those are
+conventions of the book's, so its two astronomical calendars are
+registered under its name, `hindu-lunar-reingold-dershowitz`
+(`HinduLunarCalendar::REINGOLD_DERSHOWITZ`) and
+`hindu-solar-reingold-dershowitz` (`hindu_solar::REINGOLD_DERSHOWITZ`):
+they give the book's value on every sample date but the four its errata
+explain, the lunisolar one agrees with `UJJAIN` on every day of 2000–2030,
+and the solar one moves one more Tamil month start of the 372.
 `hindu-lunar-surya-siddhanta` is a registered calendar, because its Sun,
 Moon and sunrise are another convention: it gives Reingold and
 Dershowitz's value for all 33 of their sample dates, 586 BCE to 2094, and

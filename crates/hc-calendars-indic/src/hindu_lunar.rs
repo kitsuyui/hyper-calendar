@@ -45,16 +45,24 @@
 //! # Whose sunrise
 //!
 //! Rule 1 needs a place. [`HinduLunarCalendar::RASHTRIYA`], the registered
-//! calendar, reads the day at the Central Station's sunrise as the almanac
-//! does; [`HinduLunarCalendar::UJJAIN`] at Ujjain, as the classical almanacs
-//! do. Both are [`crate::places`] constants, and a caller with a city and a
-//! local panchang can build a third with [`HinduLunarCalendar::new`].
-//! Ujjain is not registered: the place is its only difference, a
-//! parameter, and it moves 302 of the 11 323 dates of 2000–2030. The same
-//! months on the *Sūrya Siddhānta*'s Sun, Moon and sunrise are another
-//! convention, and a registered calendar of their own,
-//! [`crate::hindu_lunar_siddhanta`]; the months' engine the two share is
-//! the crate's `amanta` module.
+//! `hindu-lunar`, reads the day at the Central Station's sunrise as the
+//! almanac does; [`HinduLunarCalendar::UJJAIN`] at Ujjain, as the classical
+//! almanacs do. Both are [`crate::places`] constants, and a caller with a
+//! city and a local panchang can build a third with
+//! [`HinduLunarCalendar::new`]. Ujjain with the Lahiri ayanāṃśa is not
+//! registered: the place is its only difference, a parameter, and it moves
+//! 302 of the 11 323 dates of 2000–2030. Reingold and Dershowitz's
+//! astronomical Hindu lunisolar calendar, `astro-hindu-lunar-from-fixed`
+//! of *Calendrical Calculations* (`reingold2018code`), is the same rules
+//! at Ujjain with the book's own ayanāṃśa, zero at the *Sūrya Siddhānta*'s
+//! Meṣa saṅkrānti of 285 CE (`Ayanamsa::REINGOLD_DERSHOWITZ`), which is a
+//! convention of the book's and so a registered calendar of its own,
+//! [`HinduLunarCalendar::REINGOLD_DERSHOWITZ`], `hindu-lunar-reingold-dershowitz`
+//! (docs/policy.md §5); the ayanāṃśa moves none of those dates, so it and
+//! `UJJAIN` agree on every day of 2000–2030. The same months on the *Sūrya
+//! Siddhānta*'s Sun, Moon and sunrise are another convention, and a
+//! registered calendar of their own, [`crate::hindu_lunar_siddhanta`];
+//! the months' engine the calendars share is the crate's `amanta` module.
 //!
 //! # What is exact and what is not
 //!
@@ -85,6 +93,13 @@ use crate::tithi::{sunrise_of, tithi_of_day};
 
 /// The identifier of the amānta Hindu lunisolar calendar.
 pub const ID: CalendarId = CalendarId("hindu-lunar");
+
+/// The English name of the amānta Hindu lunisolar calendar.
+pub const ENGLISH_NAME: &str = "Hindu lunisolar (amanta)";
+
+/// The identifier of Reingold and Dershowitz's astronomical Hindu
+/// lunisolar calendar, [`HinduLunarCalendar::REINGOLD_DERSHOWITZ`].
+pub const REINGOLD_DERSHOWITZ_ID: CalendarId = CalendarId("hindu-lunar-reingold-dershowitz");
 
 /// The era code of the Śaka era.
 pub const ERA: &str = "saka";
@@ -168,6 +183,12 @@ impl HinduLunarDate {
 /// The amānta Hindu lunisolar calendar, judged at a place with an ayanāṃśa.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HinduLunarCalendar {
+    /// The registry identifier: [`ID`] for the calendar at any place with
+    /// any ayanāṃśa, and a name of its own for a convention registered
+    /// apart, as [`Self::REINGOLD_DERSHOWITZ`] is.
+    pub id: CalendarId,
+    /// The English name.
+    pub english_name: &'static str,
     /// Whose sunrise reads the day.
     pub location: Location,
     /// Which sidereal zero point names the months.
@@ -185,14 +206,49 @@ impl HinduLunarCalendar {
     /// Central Station, Lahiri ayanāṃśa. The registered `hindu-lunar`.
     pub const RASHTRIYA: Self = Self::new(CENTRAL_STATION, Ayanamsa::LAHIRI);
 
-    /// The calendar read at Ujjain, as the classical almanacs and Reingold
-    /// and Dershowitz do, with the Lahiri ayanāṃśa.
+    /// The calendar read at Ujjain, as the classical almanacs do, with the
+    /// Lahiri ayanāṃśa: `hindu-lunar` at another place, not registered.
     pub const UJJAIN: Self = Self::new(UJJAIN, Ayanamsa::LAHIRI);
 
-    /// A calendar judged at any place with any ayanāṃśa.
+    /// Reingold and Dershowitz's astronomical Hindu lunisolar calendar,
+    /// `astro-hindu-lunar-from-fixed` of *Calendrical Calculations*
+    /// (`reingold2018code`) with their errata's correction 15, Universal
+    /// Time, applied: the same rules read at Ujjain's sunrise with the
+    /// book's own ayanāṃśa, zero at the *Sūrya Siddhānta*'s Meṣa saṅkrānti
+    /// of 285 CE. The registered `hindu-lunar-reingold-dershowitz`. It gives
+    /// the book's value on every sample date of the book's `dates.l` but
+    /// the one its errata explain, and over 2000–2030 it agrees with
+    /// [`Self::UJJAIN`] on every day and parts from [`Self::RASHTRIYA`] on
+    /// 302 of 11 323 (docs/systems/hindu-calendars.md).
+    pub const REINGOLD_DERSHOWITZ: Self = Self::named(
+        REINGOLD_DERSHOWITZ_ID,
+        "Hindu lunisolar (amanta, Reingold and Dershowitz)",
+        UJJAIN,
+        Ayanamsa::REINGOLD_DERSHOWITZ,
+    );
+
+    /// A calendar judged at any place with any ayanāṃśa, under the
+    /// identifier [`ID`].
     #[must_use]
     pub const fn new(location: Location, ayanamsa: Ayanamsa) -> Self {
-        Self { location, ayanamsa }
+        Self::named(ID, ENGLISH_NAME, location, ayanamsa)
+    }
+
+    /// A calendar judged at any place with any ayanāṃśa, registered under
+    /// an identifier and an English name of its own.
+    #[must_use]
+    pub const fn named(
+        id: CalendarId,
+        english_name: &'static str,
+        location: Location,
+        ayanamsa: Ayanamsa,
+    ) -> Self {
+        Self {
+            id,
+            english_name,
+            location,
+            ayanamsa,
+        }
     }
 
     /// The position, 1 for Prabhava through 60 for Kṣaya, of a Śaka year's
@@ -306,9 +362,14 @@ impl Sky for HinduLunarCalendar {
 /// calendars that are registered or named here, and computed for any other;
 /// `tests::the_named_ranges_are_the_computed_ones` computes these again.
 /// Kathmandu's is Nepal Sambat's.
-const NAMED_RANGES: [(HinduLunarCalendar, Rd, Rd); 3] = [
+const NAMED_RANGES: [(HinduLunarCalendar, Rd, Rd); 4] = [
     (HinduLunarCalendar::RASHTRIYA, Rd(620_627), Rd(839_773)),
     (HinduLunarCalendar::UJJAIN, Rd(620_627), Rd(839_773)),
+    (
+        HinduLunarCalendar::REINGOLD_DERSHOWITZ,
+        Rd(620_627),
+        Rd(839_773),
+    ),
     (
         HinduLunarCalendar::new(crate::places::KATHMANDU, Ayanamsa::LAHIRI),
         Rd(620_627),
@@ -346,8 +407,8 @@ impl Calendar for HinduLunarCalendar {
 
     fn meta(&self) -> CalendarMeta {
         CalendarMeta {
-            id: ID,
-            english_name: "Hindu lunisolar (amanta)",
+            id: self.id,
+            english_name: self.english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,
@@ -809,24 +870,86 @@ mod tests {
     #[test]
     fn ujjain_and_the_central_station_part_on_one_day_in_forty() {
         // The book's astronomical lunisolar calendar is this one read at
-        // Ujjain; the registered one is read at the Central Station, 6.7°
-        // east, whose sunrise comes about 27 minutes earlier. A tithi that
-        // ends between the two sunrises gives the two places different
-        // dates: 10 of the 366 days of 2024, and in a release build 302 of
-        // the 11 323 days of 2000–2030, 2.7%. That is the whole difference
-        // (docs/systems/hindu-calendars.md), which is why `UJJAIN` is a
-        // constant and not a registered calendar.
-        let count = |first: Rd, last: Rd| {
+        // Ujjain; `hindu-lunar` is read at the Central Station, 6.7° east,
+        // whose sunrise comes about 27 minutes earlier. A tithi that ends
+        // between the two sunrises gives the two places different dates:
+        // 10 of the 366 days of 2024, and in a release build 302 of the
+        // 11 323 days of 2000–2030, 2.7%. That is the whole difference the
+        // place makes (docs/systems/hindu-calendars.md), which is why
+        // `UJJAIN`, the Lahiri ayanāṃśa at Ujjain, is a constant and not a
+        // registered calendar: a place is a parameter. The book's own
+        // ayanāṃśa is a convention, and `REINGOLD_DERSHOWITZ` is
+        // registered; it stands 24.9″ above Lahiri's and moves none of the
+        // same days, so the registered calendar parts from `hindu-lunar` on
+        // exactly the days the place does.
+        let count = |calendar: HinduLunarCalendar, first: Rd, last: Rd| {
             (first.0..=last.0)
                 .filter(|&day| {
-                    HinduLunarCalendar::UJJAIN.from_fixed(Rd(day))
+                    calendar.from_fixed(Rd(day))
                         != HinduLunarCalendar::RASHTRIYA.from_fixed(Rd(day))
                 })
                 .count()
         };
-        assert_eq!(count(ymd(2024, 1, 1), ymd(2024, 12, 31)), 10);
+        let same = |first: Rd, last: Rd| {
+            (first.0..=last.0).all(|day| {
+                HinduLunarCalendar::REINGOLD_DERSHOWITZ.from_fixed(Rd(day))
+                    == HinduLunarCalendar::UJJAIN.from_fixed(Rd(day))
+            })
+        };
+        assert_eq!(
+            count(
+                HinduLunarCalendar::UJJAIN,
+                ymd(2024, 1, 1),
+                ymd(2024, 12, 31)
+            ),
+            10
+        );
+        assert_eq!(
+            count(
+                HinduLunarCalendar::REINGOLD_DERSHOWITZ,
+                ymd(2024, 1, 1),
+                ymd(2024, 12, 31)
+            ),
+            10
+        );
+        assert!(same(ymd(2024, 1, 1), ymd(2024, 12, 31)));
         if !cfg!(debug_assertions) {
-            assert_eq!(count(ymd(2000, 1, 1), ymd(2030, 12, 31)), 302);
+            assert_eq!(
+                count(
+                    HinduLunarCalendar::UJJAIN,
+                    ymd(2000, 1, 1),
+                    ymd(2030, 12, 31)
+                ),
+                302
+            );
+            assert!(same(ymd(2000, 1, 1), ymd(2030, 12, 31)));
         }
+    }
+
+    #[test]
+    fn the_books_calendar_is_registered_under_its_own_name_and_the_place_is_not() {
+        // Policy §5: the book's ayanāṃśa is a convention and gets a name;
+        // Ujjain with Lahiri's is a place, a parameter, and keeps
+        // `hindu-lunar`'s.
+        let book = HinduLunarCalendar::REINGOLD_DERSHOWITZ;
+        assert_eq!(book.meta().id, REINGOLD_DERSHOWITZ_ID);
+        assert_eq!(book.ayanamsa, Ayanamsa::REINGOLD_DERSHOWITZ);
+        assert_eq!(book.location, UJJAIN);
+        assert_eq!(HinduLunarCalendar::UJJAIN.meta().id, ID);
+        assert_eq!(
+            HinduLunarCalendar::new(UJJAIN, Ayanamsa::RAMAN).meta().id,
+            ID
+        );
+        assert_eq!(RASHTRIYA.meta().english_name, ENGLISH_NAME);
+        // The book's `dates.l`: RD 764 652, 18 July 2094, is Vikrama 2151,
+        // month 4, day 6 by the book's code in standard time and day 5, a
+        // leap day, at the sunrise itself (`reingold2018errata`, correction
+        // 15; `crates/hyper-calendar/tests/rd_sample_dates.rs` holds every
+        // sample date). Śaka 2151 − 135 = 2016.
+        let date = book.from_fixed(Rd(764_652)).unwrap();
+        assert_eq!(
+            (date.year, date.month, date.day, date.leap_day),
+            (2_016, 4, 5, true)
+        );
     }
 }

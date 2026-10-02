@@ -3231,6 +3231,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
     CalendarNames {
         calendars: &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-reingold-dershowitz"),
             CalendarId("hindu-lunar-surya-siddhanta"),
         ],
         ..EN_HINDU_LUNISOLAR
@@ -3308,6 +3309,82 @@ const EN_CALENDARS: &[CalendarNames] = &[
         templates: DateTemplates::NONE,
         leap_names: LeapMonthNames {
             intercalary: &same_intercalary_name("Analā"),
+            in_leap_years: &[],
+            leap_day: None,
+        },
+    },
+    // The Nepal Panchang Nirnayak Bikas Samiti's form of Nepal Sambat names
+    // the fortnight, a month's name with *thwa* or *gā* joined to it, and
+    // counts the tithi within it (`nepal-panchang-committee-2081`). The Latin
+    // names here are the months' of the entry above with the fortnights'
+    // Latin words from Wikipedia's "Monthly cycle" (`wikipedia-nepal-sambat`),
+    // which is this library's rendering, not the Samiti's; the Samiti's
+    // Devanagari is in the Nepali entry. An intercalary month's fortnights
+    // are Analā thwa and Analā gā.
+    CalendarNames {
+        calendars: &[CalendarId("nepal-sambat-fortnight")],
+        cycles: &[months(&[
+            "Kachhalā thwa",
+            "Kachhalā gā",
+            "Thinlā thwa",
+            "Thinlā gā",
+            "Pwanhelā thwa",
+            "Pwanhelā gā",
+            "Silā thwa",
+            "Silā gā",
+            "Chilā thwa",
+            "Chilā gā",
+            "Chaulā thwa",
+            "Chaulā gā",
+            "Bachhalā thwa",
+            "Bachhalā gā",
+            "Tachhalā thwa",
+            "Tachhalā gā",
+            "Dilā thwa",
+            "Dilā gā",
+            "Gunlā thwa",
+            "Gunlā gā",
+            "Yanlā thwa",
+            "Yanlā gā",
+            "Kaulā thwa",
+            "Kaulā gā",
+        ])],
+        leap_month_prefix: "",
+        leap_month_suffix: "",
+        eras: EraNames {
+            codes: &["nepal-sambat"],
+            names: widths(&["Nepal Sambat"], &["NS"], &[]),
+            calendars: &[],
+        },
+        quarters: ContextualNames::EMPTY,
+        templates: DateTemplates::NONE,
+        leap_names: LeapMonthNames {
+            intercalary: &[
+                (1, "Analā thwa"),
+                (2, "Analā gā"),
+                (3, "Analā thwa"),
+                (4, "Analā gā"),
+                (5, "Analā thwa"),
+                (6, "Analā gā"),
+                (7, "Analā thwa"),
+                (8, "Analā gā"),
+                (9, "Analā thwa"),
+                (10, "Analā gā"),
+                (11, "Analā thwa"),
+                (12, "Analā gā"),
+                (13, "Analā thwa"),
+                (14, "Analā gā"),
+                (15, "Analā thwa"),
+                (16, "Analā gā"),
+                (17, "Analā thwa"),
+                (18, "Analā gā"),
+                (19, "Analā thwa"),
+                (20, "Analā gā"),
+                (21, "Analā thwa"),
+                (22, "Analā gā"),
+                (23, "Analā thwa"),
+                (24, "Analā gā"),
+            ],
             in_leap_years: &[],
             leap_day: None,
         },
@@ -3588,7 +3665,10 @@ const EN_CALENDARS: &[CalendarNames] = &[
         &["Kali Yuga"],
     ),
     dated(
-        &[CalendarId("hindu-solar-surya-siddhanta")],
+        &[
+            CalendarId("hindu-solar-surya-siddhanta"),
+            CalendarId("hindu-solar-reingold-dershowitz"),
+        ],
         &[],
         &["saka"],
         &["Saka"],
@@ -4298,6 +4378,7 @@ const HI_CALENDARS: &[CalendarNames] = &[
     lunisolar(
         &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-reingold-dershowitz"),
             CalendarId("hindu-lunar-surya-siddhanta"),
             CalendarId("hindu-lunar-purnimanta"),
         ],
@@ -5590,6 +5671,70 @@ const NE_CALENDARS: &[CalendarNames] = &[
         leap_day: None,
     })
     .with_eras(era_names(&["nepal-sambat"], &["नेपाल सम्वत्"], &["नेसं"], &[])),
+    // The Samiti's fortnights as its notice of 16 April 2024 spells them,
+    // rule 7 (`nepal-panchang-committee-2081`), the intercalary
+    // month's अनलाथ्व and अनलागा.
+    lunisolar(
+        &[CalendarId("nepal-sambat-fortnight")],
+        &[months(&[
+            "कछलाथ्व",
+            "कछलागा",
+            "थिंल्लाथ्व",
+            "थिंल्लागा",
+            "पोहेलाथ्व",
+            "पोहेलागा",
+            "सिल्लाथ्व",
+            "सिल्लागा",
+            "चिल्लाथ्व",
+            "चिल्लागा",
+            "चौलाथ्व",
+            "चौलागा",
+            "वछलाथ्व",
+            "वछलागा",
+            "तछलाथ्व",
+            "तछलागा",
+            "दिल्लाथ्व",
+            "दिल्लागा",
+            "गुंलाथ्व",
+            "गुंलागा",
+            "ञँलाथ्व",
+            "ञँलागा",
+            "कौलाथ्व",
+            "कौलागा",
+        ])],
+        "",
+    )
+    .with_leap_names(LeapMonthNames {
+        intercalary: &[
+            (1, "अनलाथ्व"),
+            (2, "अनलागा"),
+            (3, "अनलाथ्व"),
+            (4, "अनलागा"),
+            (5, "अनलाथ्व"),
+            (6, "अनलागा"),
+            (7, "अनलाथ्व"),
+            (8, "अनलागा"),
+            (9, "अनलाथ्व"),
+            (10, "अनलागा"),
+            (11, "अनलाथ्व"),
+            (12, "अनलागा"),
+            (13, "अनलाथ्व"),
+            (14, "अनलागा"),
+            (15, "अनलाथ्व"),
+            (16, "अनलागा"),
+            (17, "अनलाथ्व"),
+            (18, "अनलागा"),
+            (19, "अनलाथ्व"),
+            (20, "अनलागा"),
+            (21, "अनलाथ्व"),
+            (22, "अनलागा"),
+            (23, "अनलाथ्व"),
+            (24, "अनलागा"),
+        ],
+        in_leap_years: &[],
+        leap_day: None,
+    })
+    .with_eras(era_names(&["nepal-sambat"], &["नेपाल सम्वत्"], &["नेसं"], &[])),
 ];
 
 const NE: LocaleData = LocaleData {
@@ -6225,6 +6370,7 @@ const SA_CALENDARS: &[CalendarNames] = &[
     lunisolar(
         &[
             CalendarId("hindu-lunar"),
+            CalendarId("hindu-lunar-reingold-dershowitz"),
             CalendarId("hindu-lunar-surya-siddhanta"),
             CalendarId("hindu-lunar-purnimanta"),
         ],

@@ -163,6 +163,33 @@ name that does not exist that year. The tithis keep their Newar
 fortnights, *thwa* the bright and *gā* the dark, as the day numbers 1–15
 and 16–30.
 
+**The Samiti's written form.** The Nepal Panchang Nirnayak Bikas Samiti's
+notice of 16 April 2024, for Nepal Sambat 1144–1145, writes a date
+another way [nepal-panchang-committee-2081]. Each month runs from the
+first tithi to the new moon (rule 2); the tithi numbers repeat in every
+fifteen days (rule 4); and a date names the *fortnight*, not the month:
+a month's name with *thwa*, the bright half, or *gā*, the dark, joined to
+it — कछलाथ्व and कछलागा, then थिंल्लाथ्व and थिंल्लागा, and so on to कौलाथ्व
+and कौलागा; for an intercalary month अनलाथ्व and अनलागा (rule 7) — and
+the tithi within it, परेवा 1 to पूर्णिमा 15, and the new moon, औंसी, 30
+(rule 8). The notice's list pairs each *gā* with the dark half of the
+pūrṇimānta month that follows (कार्तिक कृष्ण पक्ष is कौलागा, मार्ग कृष्ण
+पक्ष is कछलागा), which are the dark fortnights of the amānta months the
+calendar above has, Kachhalā's dark fortnight being Kachhalā gā. So the
+fortnights are those of the same months, and a day has the same tithi in
+both forms. This is a second convention for writing the same days, and
+policy §5 gives it a name: `nepal-sambat-fortnight`.
+
+Worked example. Mha Puja, 4 November 2013, is Kachhalā 1 of 1134 and, in
+the Samiti's form, कछलाथ्व १: the first fortnight, tithi 1. The day
+before is the new moon of Kaulā, the 24th fortnight, कौलागा ३०, where the
+tithi is written 30 and not 15. A tithi in the dark half is written less
+fifteen, so the 21st tithi of Silā, which two days of February 1990 both
+carry, is सिल्लागा ६ on each. Rule 5 explains why that matters: since a
+tithi may be cut short or doubled, "एउटै तिथि २ दिन लेख्नु पर्ने" — the same
+tithi written on two days — and a skipped tithi leaves no day for it, the
+weekday is compulsory, "बार पनि अनिवार्य लेख्नुपर्छ", to say which day is meant.
+
 **The year count.** Year *N* begins in the autumn of Gregorian year
 *N* + 879: New Year's Day of 1134 was 4 November 2013
 [wikipedia-mha-puja], and the year Lalitpur began dating in, "1140, i.e.
@@ -252,10 +279,28 @@ the conjunction being the return of the Moon's elongation to zero, as
   `NEWAR_TITHI_NAMES` and `newar_tithi_name` [wikipedia-nepal-sambat].
   The table cites the *Journal of Newar Studies*, issue 7, p. 89, which
   was not read.
-- **Range.** Both calendars answer over the amānta and solar engines'
+- **`nepal-sambat-fortnight`**, as `NepalSambatFortnightCalendar`: the
+  same days as `nepal-sambat`, every conversion going through it, in the
+  Samiti's form. The date is the same `NepalSambatDate`; the fields are the
+  fortnight, 1 for Kachhalā thwa through 24 for Kaulā gā, with the leap flag
+  for an Analā fortnight (the 15th and 16th, when Tachhalā is the
+  intercalary month), and the tithi as written, 1–15 in *thwa*, 1–14 and
+  30 in *gā*. `written` and `read` convert between the number of a tithi,
+  1–30, and the written pair; `FORTNIGHTS_DEVANAGARI` and
+  `INTERCALARY_FORTNIGHTS_DEVANAGARI` are the notice's spellings, which
+  differ from the article's names of the months in five of them (a doubled
+  *l* in थिंल्ला, पोहेला, सिल्ला, चिल्ला and दिल्ला, वछला for बछला, ञँला for
+  ञंला). The calendar has English names for the fortnights ("Kachhalā
+  thwa") and Nepali ones from the notice. A repeated tithi is the field
+  `leap_day`, as in `nepal-sambat`.
+  *The weekday beside a doubled tithi*: rule 5 requires it and the notice
+  gives no written form for it — no example and no order of the words — so
+  none is carried, and the date does not write a weekday; the day is the
+  fixed day, which names its weekday without any form.
+- **Range.** All three calendars answer over the amānta and solar engines'
   Gregorian 1700 to 2299: `bikram-sambat` from 9 April 1700 to 18 April
-  2300, `nepal-sambat` from 21 March 1700 to 22 March 2300, and refuse
-  outside.
+  2300, `nepal-sambat` and `nepal-sambat-fortnight` from 21 March 1700 to
+  22 March 2300, and refuse outside.
 - **Gazetted versus computed.** Only the 48 first days are tabulated;
   everything else, including every Bikram Sambat month outside 2080–2083
   and every Nepal Sambat date, is computed from the Siddhānta's
@@ -264,6 +309,15 @@ the conjunction being the return of the Moon's elongation to zero, as
   day is to be read with that one miss in mind; more gazetted years would
   replace the reckoning in them, and are what the roadmap asks for.
 - **Not carried, and why:**
+  - *A weekday written beside a doubled tithi.* Rule 5 of the Samiti's
+    notice makes it compulsory, "बार पनि अनिवार्य लेख्नुपर्छ", and the
+    notice, read in full as a reproduction of its text, gives no written
+    form for it: no example date and no order of the words. The Samiti's
+    eight-page file was not opened, and rule 9's link to the dates of
+    2081–2082, which may carry examples, was not reached. So the
+    formatter writes the tithi on both days and no weekday, and a text
+    that adds the weekday reads as the one day
+    ([written-dates.md](written-dates.md)).
   - *The Samiti's pañcāṅga*, the official almanac the notices rest on:
     not read, and its site was not reachable when this document was
     written. It would settle how Nepal reads a tithi at sunrise and what
@@ -308,6 +362,10 @@ states. The tests assert:
 | Months of 29 to 32 days and years of 365 or 366, 2000–2099 BS | `months_run_twenty_nine_to_thirty_two_days_and_years_365_or_366` | all |
 | Mha Puja of 2013, 2014, 2016 and 2017 — 4 November, 24 October, 31 October, 20 October — is Kachhalā 1 of 1134, 1135, 1137 and 1138, and the day before is Kaulā of the year before | `nepal_sambat::new_years_day_is_mha_puja` | 4 of 4 |
 | The tithis' Newar names: Punhi the fifteenth, Āmai the new moon, Pāru both first days, and Mha Puja of 2013 Kachhalā *thwa* Pāru | `nepal_sambat::the_full_moons_are_punhi_and_the_new_moon_amai` | all |
+| The Samiti's tithi numbers, rules 4 and 8: the bright fortnight 1–15, the dark 1–14 and 30; Kachhalā thwa 1 to Kaulā gā 30 are 24 fortnights; no dark 15 and no bright 30 | `nepal_sambat::the_samitis_fortnights_count_the_tithis_as_its_notice_does` | all |
+| Mha Puja of 2013 is कछलाथ्व १ of 1134 and the day before कौलागा ३० of 1133 | `mha_puja_of_2013_is_kachhala_thwa_1_in_the_fortnight_form` | yes |
+| The fortnight form has the days, the intercalary flag and the repeated tithi of `nepal-sambat`, 1138–1140, and converts back | `the_fortnight_form_is_the_same_days_as_nepal_sambat` | all |
+| An intercalary Tachhalā of 1138 is the 15th and 16th fortnights, Analā | `an_intercalary_month_has_two_fortnights_of_its_own` | yes |
 | 1 July 2020 is in Nepal Sambat 1140, the year Lalitpur began dating in | `the_year_lalitpur_began_dating_in_is_1140` | yes |
 | Each month's full moon falls in one of the two Gregorian months the article's table gives, 1130–1159 | `each_full_moon_falls_in_the_gregorian_months_the_table_gives` | 360 of 360 |
 | Years run 353–355 or 383–385 days, 1100–1199, with at least one intercalary year | `years_run_353_to_355_days_or_383_to_385` | all |
@@ -356,6 +414,7 @@ were re-read in their wikitext, Reingold and Dershowitz's code directly.
 | [np-moha-holidays-2082] | The same for 2082 BS; Khaṇḍa 74, No. 59; Christmas as Pus 10 and Maghe Sankranti as Magh 1, Thursday; the worked example | Yes, 2026-09-25, pp. 3–5 of the scanned PDF |
 | [np-moha-holidays-2083] | The same for 2083 BS; Khaṇḍa 75, No. 67; New Year on a Tuesday | Yes, 2026-09-25, pp. 1–2 of the scanned PDF |
 | [npns-samiti] | The Samiti, its ministry, and its approval of every published calendar | The official site refused the connection on 2026-09-25; the site at nepalpanchanga.com read instead |
+| [nepal-panchang-committee-2081] | The Samiti's notice of 16 April 2024: rule 2, 4 and 5–8 as above; the fortnight names, कछलाथ्व to कौलागा, अनलाथ्व and अनलागा; the tithis 1–15 and 30; that a doubled tithi is written on both days with the weekday compulsory, and no form given for it | A reproduction of the notice's text read 2026-09-28 and again 2026-09-30; its eight-page file not opened, and rule 9's link to the dates of 2081–2082 not opened |
 | [wikipedia-vikram-samvat] | The Rana adoption in 1901 as 1958 VS; the Nepali month names beside the Sanskrit ones; Baisakh first and Chait last | Yes, 2026-09-25 |
 | [wikipedia-nepal-sambat] | The epoch, the Malla use, the 1903 replacement, the revival of 1999, 2011, 2020 and 2023; the table of months and full moons; Analā and Nhanlā; the year lengths; Lalitpur's solar calendar; the "Monthly cycle": *thwa*, *gā*, *milālyā* and the table of the tithis with their Newar names | Yes, 2026-09-25; the "Monthly cycle" in the wikitext 2026-09-29 |
 | [wikipedia-mha-puja] | Mha Puja as Nepal Sambat's New Year's Day during Swanti; the dates of 2013, 2014, 2016 and 2017 | Yes, 2026-09-25; the four dates are the infobox's |
@@ -380,7 +439,8 @@ published ones.
 `crates/hc-calendars-indic/src/bikram_sambat.rs` (`BikramSambatCalendar`,
 `RECKONING`, `GAZETTED`, `MONTHS`, `MONTHS_DEVANAGARI`) and
 `nepal_sambat.rs` (`NepalSambatCalendar`, `NepalSambatDate`,
-`MONTHS_DEVANAGARI`, `MONTHS_NEWA`); the `CivilDay` rule is
+`NepalSambatFortnightCalendar`, `MONTHS_DEVANAGARI`, `MONTHS_NEWA`,
+`FORTNIGHTS_DEVANAGARI`, `INTERCALARY_FORTNIGHTS_DEVANAGARI`); the `CivilDay` rule is
 `hindu_solar.rs`'s, the Sun `surya_siddhanta.rs`'s, Kathmandu
 `places.rs`'s. Anchors: `the_saturdays_are_the_ones_the_notices_list`,
 `the_new_years_days_fall_on_the_weekdays_the_notices_give`,
@@ -388,7 +448,11 @@ published ones.
 `the_reckoning_misses_the_gazette_once_in_forty_eight_months`,
 `the_sankrantis_between_midnight_and_sunrise_are_gazetted_on_their_civil_day`,
 `a_day_the_reckoning_puts_in_magh_is_pus_30_by_the_gazette`,
-`new_years_day_is_mha_puja`, `the_full_moons_are_punhi_and_the_new_moon_amai`, `the_year_lalitpur_began_dating_in_is_1140`,
+`new_years_day_is_mha_puja`, `the_full_moons_are_punhi_and_the_new_moon_amai`,
+`the_samitis_fortnights_count_the_tithis_as_its_notice_does`,
+`mha_puja_of_2013_is_kachhala_thwa_1_in_the_fortnight_form`,
+`the_fortnight_form_is_the_same_days_as_nepal_sambat`,
+`an_intercalary_month_has_two_fortnights_of_its_own`, `the_year_lalitpur_began_dating_in_is_1140`,
 `each_full_moon_falls_in_the_gregorian_months_the_table_gives`,
 `every_day_of_three_years_converts_and_converts_back`. The holiday rules
 that date Nepal's festivals on these calendars are

@@ -38,10 +38,23 @@
 //! year *N* are in Śaka *N* + 801 and Chaulā to Kaulā in Śaka *N* + 802.
 //! [`NepalSambatCalendar::KATHMANDU`], the registered calendar, reads the
 //! day at Kathmandu's sunrise with the Lahiri ayanāṃśa; the almanac of
-//! Nepal's calendar committee was not read, and [`NepalSambatCalendar::new`]
+//! Nepal's calendar committee, whose notice of 2024 is read for its
+//! written form below, was not read, and [`NepalSambatCalendar::new`]
 //! takes another place and ayanāṃśa.
 //!
+//! # The Samiti's form
+//!
+//! The Nepal Panchang Nirnayak Bikas Samiti, the almanac committee,
+//! writes a date by the fortnight, a month's name with *thwa* or *gā*
+//! joined to it, and the tithi within it, 1 to 15 and 30 for the new moon
+//! (`nepal-panchang-committee-2081`, rules 7 and 8): कछलाथ्व १ is Mha Puja.
+//! It is the same day under another written form, a second convention that
+//! policy §5 names, [`NepalSambatFortnightCalendar`],
+//! `nepal-sambat-fortnight`. The notice requires the weekday beside a
+//! doubled tithi (rule 5) and gives no form for it, so none is carried.
+//!
 //! # What is not here
+//!
 //!
 //! The solar Nepal Sambat that Lalitpur Metropolitan City devised from year
 //! 1141, whose months run fixed Gregorian dates from 20 October. The one
@@ -60,7 +73,7 @@
 //! Wikipedia, "Mha Puja", retrieved 2026-09-23, for New Year's Day in 2013,
 //! 2014, 2016 and 2017, which the tests pin.
 
-use hc_calendar::shape::{CycleShape, LUNISOLAR_TWELVE};
+use hc_calendar::shape::{CycleShape, LUNISOLAR_TWELVE, MONTH, WEEKDAY};
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd,
     YearKind,
@@ -126,6 +139,63 @@ pub const MONTHS_NEWA: [&str; 12] = [
 /// writes them in (`wikipedia-nepal-sambat`, "Monthly cycle"): thwa, थ्वः,
 /// 𑐠𑑂𑐰𑑅, and gā, गाः, 𑐐𑐵𑑅.
 pub const FORTNIGHTS: [[&str; 3]; 2] = [["thwa", "थ्वः", "𑐠𑑂𑐰𑑅"], ["gā", "गाः", "𑐐𑐵𑑅"]];
+
+/// The identifier of the fortnight-and-tithi form,
+/// [`NepalSambatFortnightCalendar`].
+pub const FORTNIGHT_ID: CalendarId = CalendarId("nepal-sambat-fortnight");
+
+/// The fortnights in a common year: two to each of the twelve months.
+pub const FORTNIGHTS_IN_YEAR: u8 = 24;
+
+/// The number the Samiti writes for the new moon, *auṃsī*, the last tithi
+/// of the dark fortnight: rule 8, "औंसीलाई ३०" (`nepal-panchang-committee-2081`).
+pub const NEW_MOON_TITHI: u8 = 30;
+
+/// The twenty-four fortnights as the Nepal Panchang Nirnayak Bikas Samiti
+/// names them in rule 7, each a month's name with *thwa* or *gā* joined to
+/// it, Kachhalā thwa first: "कार्तिक शुक्ल पक्षलाई कछलाथ्व, मार्ग कृष्ण पक्षलाई
+/// कछलागा, …, आश्विन शुक्लपक्षलाई कौलाथ्व, कार्तिक कृष्णपक्षलाई कौलागा"
+/// (`nepal-panchang-committee-2081`). The Samiti pairs each *gā* with the
+/// dark fortnight of the *following* pūrṇimānta month — Kachhalā gā is
+/// Mārga kṛṣṇa — which is the same fortnight the amānta Kārtika ends with,
+/// so the fortnights are those of [`MONTHS_DEVANAGARI`]'s months, and
+/// rule 2 of the notice says so: "प्रत्येक महिना परेवा तिथिबाट शुरू भई औंसी
+/// तिथिमा पूर्ण हुन्छ". The spellings are the notice's, which differ from
+/// Wikipedia's table in five months — थिंल्ला, पोहेला, सिल्ला, चिल्ला and
+/// दिल्ला with a doubled *l*, वछला with *va*, ञँला with a candrabindu — and
+/// the notice writes तछलाथ्व once with a visarga, तछलाथ्वः, which is not
+/// kept.
+pub const FORTNIGHTS_DEVANAGARI: [&str; 24] = [
+    "कछलाथ्व",
+    "कछलागा",
+    "थिंल्लाथ्व",
+    "थिंल्लागा",
+    "पोहेलाथ्व",
+    "पोहेलागा",
+    "सिल्लाथ्व",
+    "सिल्लागा",
+    "चिल्लाथ्व",
+    "चिल्लागा",
+    "चौलाथ्व",
+    "चौलागा",
+    "वछलाथ्व",
+    "वछलागा",
+    "तछलाथ्व",
+    "तछलागा",
+    "दिल्लाथ्व",
+    "दिल्लागा",
+    "गुंलाथ्व",
+    "गुंलागा",
+    "ञँलाथ्व",
+    "ञँलागा",
+    "कौलाथ्व",
+    "कौलागा",
+];
+
+/// The two fortnights of an intercalary month, whichever month it
+/// doubles: rule 7 of the notice, the bright fortnight अनलाथ्व and the dark
+/// अनलागा (`nepal-panchang-committee-2081`).
+pub const INTERCALARY_FORTNIGHTS_DEVANAGARI: [&str; 2] = ["अनलाथ्व", "अनलागा"];
 
 /// What a tithi is called, *milālyā*, in Devanagari and Newa letters, as the
 /// same section writes it.
@@ -354,12 +424,187 @@ impl Calendar for NepalSambatCalendar {
     }
 }
 
+/// Nepal Sambat written as the Nepal Panchang Nirnayak Bikas Samiti
+/// writes it: the fortnight, a month's name with *thwa* or *gā* joined to
+/// it, and the tithi counted within the fortnight — 1 to 15 in *thwa*, 1 to
+/// 14 in *gā* and 30 for the new moon — `nepal-sambat-fortnight`.
+///
+/// The same days, tithis and intercalary months as [`NepalSambatCalendar`],
+/// every conversion going through it; only the written form differs, as
+/// the Samiti's notice of 16 April 2024 gives it
+/// (`nepal-panchang-committee-2081`), rule 8: "परेवा लाई १, द्वितीयालाई २, …,
+/// चतुर्दशीलाई १४ पूर्णिमालाई १५ र औंसीलाई ३०", the fortnights
+/// [`FORTNIGHTS_DEVANAGARI`] and [`INTERCALARY_FORTNIGHTS_DEVANAGARI`].
+/// The date is [`NepalSambatDate`], the day its tithi 1–30; the fields
+/// are the fortnight, 1 for Kachhalā thwa through 24 for Kaulā gā, marked
+/// intercalary for Analā, and the tithi as written. Rule 5 of the notice
+/// says a doubled tithi is written on both days and the weekday must be
+/// written to tell them apart, "बार पनि अनिवार्य लेख्नुपर्छ", but gives no
+/// form for it, so the fields carry the repetition as `leap_day` and no
+/// weekday; `docs/systems/nepal-calendars.md` says so.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct NepalSambatFortnightCalendar {
+    /// The calendar whose days these are.
+    pub sambat: NepalSambatCalendar,
+}
+
+impl NepalSambatFortnightCalendar {
+    /// Kathmandu's sunrise, the Lahiri ayanāṃśa: the registered
+    /// `nepal-sambat-fortnight`.
+    pub const KATHMANDU: Self = Self::new(NepalSambatCalendar::KATHMANDU);
+
+    /// The fortnight form over any Nepal Sambat.
+    #[must_use]
+    pub const fn new(sambat: NepalSambatCalendar) -> Self {
+        Self { sambat }
+    }
+
+    /// The fortnight, 1 for Kachhalā thwa through 24 for Kaulā gā, and the
+    /// tithi as the Samiti writes it: the tithi's own number in the bright
+    /// fortnight, fifteen less in the dark, and [`NEW_MOON_TITHI`] for the
+    /// new moon.
+    #[must_use]
+    pub const fn written(date: NepalSambatDate) -> (u8, u8) {
+        let (fortnight, tithi) = if date.day <= FULL_MOON {
+            (2 * date.month - 1, date.day)
+        } else if date.day == NEW_MOON_TITHI {
+            (2 * date.month, NEW_MOON_TITHI)
+        } else {
+            (2 * date.month, date.day - FULL_MOON)
+        };
+        (fortnight, tithi)
+    }
+
+    /// The date of a written fortnight and tithi.
+    ///
+    /// # Errors
+    ///
+    /// [`CalendarError::MonthOutOfRange`] for a fortnight outside 1–24;
+    /// [`CalendarError::DayOutOfRange`] for a tithi outside 1–15 in a
+    /// bright fortnight, or outside 1–14 and 30 in a dark one.
+    pub const fn read(
+        year: i64,
+        fortnight: u8,
+        leap_month: bool,
+        tithi: u8,
+        leap_day: bool,
+    ) -> CalendarResult<NepalSambatDate> {
+        if fortnight == 0 || fortnight > FORTNIGHTS_IN_YEAR {
+            return Err(CalendarError::MonthOutOfRange);
+        }
+        let month = fortnight.div_ceil(2);
+        let day = if fortnight % 2 == 1 {
+            if tithi == 0 || tithi > FULL_MOON {
+                return Err(CalendarError::DayOutOfRange);
+            }
+            tithi
+        } else if tithi == NEW_MOON_TITHI {
+            NEW_MOON_TITHI
+        } else if tithi == 0 || tithi >= FULL_MOON {
+            return Err(CalendarError::DayOutOfRange);
+        } else {
+            tithi + FULL_MOON
+        };
+        Ok(NepalSambatDate {
+            year,
+            month,
+            leap_month,
+            day,
+            leap_day,
+        })
+    }
+}
+
+/// The last tithi of the bright fortnight.
+const FULL_MOON: u8 = 15;
+
+impl Calendar for NepalSambatFortnightCalendar {
+    type Date = NepalSambatDate;
+
+    /// As [`NepalSambatCalendar`]'s; the Samiti's notice of 2024 is the
+    /// earliest statement of this form read, and it does not date the form.
+    fn usage(&self) -> hc_calendar::Usage {
+        self.sambat.usage()
+    }
+
+    /// Twenty-four fortnights with two more in an intercalary year, and the
+    /// seven-day week.
+    fn cycles(&self) -> &'static [CycleShape] {
+        const SHAPE: &[CycleShape] = &[
+            CycleShape::intercalary(
+                MONTH,
+                FORTNIGHTS_IN_YEAR as u16,
+                FORTNIGHTS_IN_YEAR as u16 + 2,
+            ),
+            CycleShape::fixed(WEEKDAY, 7),
+        ];
+        SHAPE
+    }
+
+    /// A year with an Analā: the same years as [`NepalSambatCalendar`]'s.
+    fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
+        self.sambat.is_leap_year(year)
+    }
+
+    /// As [`NepalSambatCalendar`]'s: sunrise, named by the civil day on
+    /// whose sunrise the day begins.
+    fn day_boundary(&self) -> hc_calendar::DayBoundary {
+        self.sambat.day_boundary()
+    }
+
+    fn meta(&self) -> CalendarMeta {
+        CalendarMeta {
+            id: FORTNIGHT_ID,
+            english_name: "Nepal Sambat (fortnight and tithi)",
+            ..self.sambat.meta()
+        }
+    }
+
+    fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
+        self.sambat.to_fixed(date)
+    }
+
+    fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
+        self.sambat.from_fixed(rd)
+    }
+
+    fn to_fields(&self, date: Self::Date) -> CalendarResult<DateFields> {
+        let (fortnight, tithi) = Self::written(date);
+        let month = if date.leap_month {
+            Month::leap(fortnight)
+        } else {
+            Month::regular(fortnight)
+        };
+        let mut fields = DateFields::ymd(date.year, fortnight, tithi).with_era(ERA);
+        fields.month = Some(month);
+        fields.leap_day = date.leap_day;
+        Ok(fields)
+    }
+
+    fn from_fields(&self, fields: &DateFields) -> CalendarResult<Self::Date> {
+        if fields.era.is_some_and(|era| era != ERA) {
+            return Err(CalendarError::UnknownEra);
+        }
+        let month = fields.require_month()?;
+        let date = Self::read(
+            fields.year,
+            month.ordinal,
+            month.leap,
+            fields.require_day()?,
+            fields.leap_day,
+        )?;
+        self.sambat.to_fixed(date)?;
+        Ok(date)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use hc_calendars_solar::gregorian;
 
     const NS: NepalSambatCalendar = NepalSambatCalendar::KATHMANDU;
+    const FORTNIGHT: NepalSambatFortnightCalendar = NepalSambatFortnightCalendar::KATHMANDU;
 
     fn ymd(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed(year, month, day).expect("a date")
@@ -524,5 +769,127 @@ mod tests {
         assert_eq!((date.month, date.day), (1, 1));
         assert_eq!(newar_tithi_name(date.day), Some("Pāru"));
         assert_eq!(FORTNIGHTS[0][0], "thwa");
+    }
+
+    #[test]
+    fn the_samitis_fortnights_count_the_tithis_as_its_notice_does() {
+        // Rule 8 of the notice (`nepal-panchang-committee-2081`): परेवा 1 to
+        // पूर्णिमा 15, and औंसी 30; rule 4: the numbers repeat every fifteen
+        // days. So the bright fortnight is 1–15, the dark 1–14 and 30.
+        let date = |month, day| NepalSambatDate {
+            year: 1134,
+            month,
+            leap_month: false,
+            day,
+            leap_day: false,
+        };
+        for (month, day, fortnight, tithi) in [
+            (1, 1, 1, 1),
+            (1, 15, 1, 15),
+            (1, 16, 2, 1),
+            (1, 29, 2, 14),
+            (1, 30, 2, 30),
+            (12, 1, 23, 1),
+            (12, 30, 24, 30),
+        ] {
+            let d = date(month, day);
+            assert_eq!(NepalSambatFortnightCalendar::written(d), (fortnight, tithi));
+            assert_eq!(
+                NepalSambatFortnightCalendar::read(1134, fortnight, false, tithi, false),
+                Ok(d)
+            );
+        }
+        // No dark fortnight has a 15th, and no bright one a 30th.
+        assert_eq!(
+            NepalSambatFortnightCalendar::read(1134, 2, false, 15, false),
+            Err(CalendarError::DayOutOfRange)
+        );
+        assert_eq!(
+            NepalSambatFortnightCalendar::read(1134, 1, false, 30, false),
+            Err(CalendarError::DayOutOfRange)
+        );
+        assert_eq!(
+            NepalSambatFortnightCalendar::read(1134, 25, false, 1, false),
+            Err(CalendarError::MonthOutOfRange)
+        );
+        assert_eq!(FORTNIGHTS_DEVANAGARI.len(), usize::from(FORTNIGHTS_IN_YEAR));
+        assert_eq!(FORTNIGHTS_DEVANAGARI[0], "कछलाथ्व");
+        assert_eq!(FORTNIGHTS_DEVANAGARI[1], "कछलागा");
+        assert_eq!(FORTNIGHTS_DEVANAGARI[22], "कौलाथ्व");
+        assert_eq!(FORTNIGHTS_DEVANAGARI[23], "कौलागा");
+    }
+
+    #[test]
+    fn mha_puja_of_2013_is_kachhala_thwa_1_in_the_fortnight_form() {
+        // Mha Puja, 4 November 2013, Wikipedia's "Mha Puja": Nepal Sambat
+        // 1134, the first tithi of Kachhalā thwa, कछलाथ्व १.
+        let rd = ymd(2013, 11, 4);
+        let date = FORTNIGHT.from_fixed(rd).expect("in range");
+        let fields = Calendar::to_fields(&FORTNIGHT, date).expect("fields");
+        assert_eq!(
+            (fields.year, fields.month, fields.day),
+            (1134, Some(Month::regular(1)), Some(1))
+        );
+        assert_eq!(FORTNIGHT.meta().id, FORTNIGHT_ID);
+        assert_eq!(Calendar::from_fields(&FORTNIGHT, &fields), Ok(date));
+        // The day before is the new moon of Kaulā of 1133, कौलागा ३०.
+        let eve = FORTNIGHT.from_fixed(Rd(rd.0 - 1)).expect("in range");
+        let eve_fields = Calendar::to_fields(&FORTNIGHT, eve).expect("fields");
+        assert_eq!(
+            (eve_fields.year, eve_fields.month, eve_fields.day),
+            (1133, Some(Month::regular(24)), Some(30))
+        );
+    }
+
+    #[test]
+    fn the_fortnight_form_is_the_same_days_as_nepal_sambat() {
+        // Every day in a release build, every eleventh in a debug one: the
+        // days, the intercalary flag and the repeated tithi are
+        // `nepal-sambat`'s, and the fields convert back. Nepal Sambat 1138
+        // to 1140 hold two intercalary months.
+        for day in (NS.new_year(1138).expect("in range").0..NS.new_year(1141).expect("in range").0)
+            .step_by(crate::sweep_stride(11))
+        {
+            let rd = Rd(day);
+            let date = NS.from_fixed(rd).expect("in range");
+            assert_eq!(FORTNIGHT.from_fixed(rd), Ok(date));
+            let fields = Calendar::to_fields(&FORTNIGHT, date).expect("fields");
+            assert_eq!(fields.leap_day, date.leap_day);
+            assert_eq!(fields.month.map(|month| month.leap), Some(date.leap_month));
+            assert_eq!(
+                Calendar::from_fields(&FORTNIGHT, &fields),
+                Ok(date),
+                "{rd:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn an_intercalary_month_has_two_fortnights_of_its_own() {
+        // Tachhalā of 1138 is intercalary (above): its fortnights are the
+        // 15th and 16th, Analā thwa and Analā gā, with the leap flag set.
+        let first = NS
+            .to_fixed(NepalSambatDate {
+                year: 1138,
+                month: 8,
+                leap_month: true,
+                day: 1,
+                leap_day: false,
+            })
+            .expect("an intercalary Tachhalā");
+        let date = FORTNIGHT.from_fixed(first).expect("in range");
+        let fields = Calendar::to_fields(&FORTNIGHT, date).expect("fields");
+        assert_eq!(fields.month, Some(Month::leap(15)));
+        assert_eq!(fields.day, Some(1));
+        assert_eq!(INTERCALARY_FORTNIGHTS_DEVANAGARI, ["अनलाथ्व", "अनलागा"]);
+        assert_eq!(Calendar::is_leap_year(&FORTNIGHT, 1138), Ok(true));
+        assert_eq!(
+            Calendar::from_fields(&FORTNIGHT, &{
+                let mut wrong = fields;
+                wrong.era = Some("Saka");
+                wrong
+            }),
+            Err(CalendarError::UnknownEra)
+        );
     }
 }
