@@ -5,6 +5,7 @@ use core::fmt;
 use core::ops::{Add, AddAssign, Div, Mul, Neg, Rem, Sub, SubAssign};
 
 use crate::error::{TimeError, TimeResult};
+use crate::wide::U256;
 
 /// Attoseconds in one second: 10^18.
 pub const ATTOS_PER_SEC: u64 = 1_000_000_000_000_000_000;
@@ -537,7 +538,13 @@ impl Duration {
         }
     }
 
-    /// The ratio `self / other` as `f64`.
+    /// The ratio `self / other` as `f64`, correctly rounded.
+    ///
+    /// Both spans are counted in attoseconds and divided as integers, so the
+    /// result is the double nearest the exact quotient, which is what
+    /// Python's `timedelta / timedelta` returns for whole microseconds. A
+    /// span beyond ±2¹²⁷ attoseconds (about 5 × 10¹² years) has no such
+    /// count, and the quotient is taken in `f64` instead.
     ///
     /// # Errors
     ///
@@ -546,20 +553,233 @@ impl Duration {
         if other.is_zero() {
             return Err(TimeError::DivideByZero);
         }
+        if let (Ok(numerator), Ok(denominator)) = (self.total_attos(), other.total_attos()) {
+            return Ok(ratio_of_integers(numerator, denominator));
+        }
         Ok(self.as_secs_f64() / other.as_secs_f64())
     }
 
-    /// Scale the span by a real factor.
+    /// Scale the span by a real factor, exactly.
     ///
-    /// The result is only as accurate as `f64` allows; use
-    /// [`Duration::checked_mul_int`] when the factor is exact.
+    /// The factor is the rational number its double is, and the product is
+    /// rounded once, to the attosecond, half to even. `0.5` of 25 508 964
+    /// 008 398 µs is exactly 12 754 482 004 199 µs; the `f64` route through
+    /// seconds this replaces did not say so.
     ///
     /// # Errors
     ///
-    /// See [`Duration::from_secs_f64`].
+    /// Returns [`TimeError::NotFinite`] for NaN or infinity and
+    /// [`TimeError::Overflow`] when the product is beyond the range.
     pub fn scale_f64(self, factor: f64) -> TimeResult<Self> {
-        Self::from_secs_f64(self.as_secs_f64() * factor)
+        self.scale_f64_nearest(factor, 1)
     }
+
+    /// Scale by a real factor and round the product, half to even, to a
+    /// multiple of `unit_attos` attoseconds: 1 for an exact span,
+    /// 1 000 000 000 000 for Python's `timedelta * float`, which rounds to
+    /// the microsecond.
+    ///
+    /// # Errors
+    ///
+    /// As [`Duration::scale_f64`]; [`TimeError::OutOfRange`] for a zero
+    /// unit.
+    pub fn scale_f64_nearest(self, factor: f64, unit_attos: u64) -> TimeResult<Self> {
+        let (mantissa, exponent, negative) = decompose(factor)?;
+        self.scale_ratio(mantissa, 1, exponent, negative, unit_attos)
+    }
+
+    /// Divide by a real divisor and round the quotient, half to even, to a
+    /// multiple of `unit_attos` attoseconds: Python's `timedelta / float`
+    /// rounds to the microsecond.
+    ///
+    /// # Errors
+    ///
+    /// As [`Duration::scale_f64_nearest`], and [`TimeError::DivideByZero`]
+    /// for a zero divisor.
+    pub fn div_f64_nearest(self, divisor: f64, unit_attos: u64) -> TimeResult<Self> {
+        let (mantissa, exponent, negative) = decompose(divisor)?;
+        if mantissa == 0 {
+            return Err(TimeError::DivideByZero);
+        }
+        self.scale_ratio(1, mantissa, -exponent, negative, unit_attos)
+    }
+
+    /// Divide by an integer and round the quotient, half to even, to a
+    /// multiple of `unit_attos` attoseconds: Python's `timedelta / int`
+    /// rounds to the microsecond.
+    ///
+    /// # Errors
+    ///
+    /// [`TimeError::DivideByZero`] for a zero divisor,
+    /// [`TimeError::OutOfRange`] for a zero unit, and
+    /// [`TimeError::Overflow`] for a result beyond the range.
+    pub fn div_int_nearest(self, divisor: i64, unit_attos: u64) -> TimeResult<Self> {
+        if divisor == 0 {
+            return Err(TimeError::DivideByZero);
+        }
+        self.scale_ratio(1, divisor.unsigned_abs(), 0, divisor < 0, unit_attos)
+    }
+
+    /// The span's size in attoseconds, as 256-bit magnitude, and its sign.
+    fn magnitude_attos(self) -> (U256, bool) {
+        let negative = self.secs < 0;
+        let seconds = U256::from_u128(self.secs.unsigned_abs());
+        // At most 2^127 * 10^18 < 2^187.
+        let scaled = seconds.checked_mul_u64(ATTOS_PER_SEC).unwrap_or(U256::ZERO);
+        let magnitude = if negative {
+            scaled.sub_u64(self.attos)
+        } else {
+            scaled.checked_add_u64(self.attos).unwrap_or(U256::ZERO)
+        };
+        (magnitude, negative)
+    }
+
+    /// The span of `magnitude` attoseconds with the given sign.
+    fn from_magnitude_attos(magnitude: U256, negative: bool) -> TimeResult<Self> {
+        let (seconds, attos) = magnitude.divmod_u128(u128::from(ATTOS_PER_SEC));
+        let seconds = seconds.to_u128().ok_or(TimeError::Overflow)?;
+        let attos = attos as u64;
+        if !negative {
+            let secs = i128::try_from(seconds).map_err(|_| TimeError::Overflow)?;
+            return Ok(Self { secs, attos });
+        }
+        if attos == 0 {
+            // -2^127 is representable.
+            let secs = if seconds == 1 << 127 {
+                i128::MIN
+            } else {
+                -i128::try_from(seconds).map_err(|_| TimeError::Overflow)?
+            };
+            return Ok(Self { secs, attos: 0 });
+        }
+        let secs = -i128::try_from(seconds).map_err(|_| TimeError::Overflow)? - 1;
+        Ok(Self {
+            secs,
+            attos: ATTOS_PER_SEC - attos,
+        })
+    }
+
+    /// `self * numerator / denominator * 2^exponent`, rounded half to even
+    /// to a multiple of `unit_attos` attoseconds, negated when
+    /// `negative_factor`. Exact until the one rounding.
+    fn scale_ratio(
+        self,
+        numerator: u64,
+        denominator: u64,
+        exponent: i32,
+        negative_factor: bool,
+        unit_attos: u64,
+    ) -> TimeResult<Self> {
+        if unit_attos == 0 {
+            return Err(TimeError::OutOfRange);
+        }
+        let (magnitude, negative) = self.magnitude_attos();
+        if magnitude.is_zero() || numerator == 0 {
+            return Ok(Self::ZERO);
+        }
+        let mut product = magnitude
+            .checked_mul_u64(numerator)
+            .ok_or(TimeError::Overflow)?;
+        if exponent > 0 {
+            product = product
+                .checked_shl(exponent.unsigned_abs())
+                .ok_or(TimeError::Overflow)?;
+        }
+        let divisor = u128::from(denominator) * u128::from(unit_attos);
+        let (mut quotient, remainder) = product.divmod_u128(divisor);
+        let round_up = if exponent >= 0 {
+            let twice = remainder * 2;
+            twice > divisor || (twice == divisor && quotient.is_odd())
+        } else {
+            // The exact value is (quotient + remainder / divisor) / 2^shift.
+            let shift = exponent.unsigned_abs();
+            if shift >= 256 {
+                quotient = U256::ZERO;
+                false
+            } else {
+                let low = quotient.low_bits(shift);
+                let half = U256::from_u128(1)
+                    .checked_shl(shift - 1)
+                    .unwrap_or(U256::ZERO);
+                let kept = quotient.shr(shift);
+                quotient = kept;
+                match low.cmp_with(half) {
+                    Ordering::Greater => true,
+                    Ordering::Equal => remainder > 0 || kept.is_odd(),
+                    Ordering::Less => false,
+                }
+            }
+        };
+        if round_up {
+            quotient = quotient.checked_add_one().ok_or(TimeError::Overflow)?;
+        }
+        let attos = quotient
+            .checked_mul_u64(unit_attos)
+            .ok_or(TimeError::Overflow)?;
+        Self::from_magnitude_attos(attos, negative != negative_factor)
+    }
+}
+
+/// A finite double as `(mantissa, exponent, negative)`, the value being
+/// `mantissa * 2^exponent`.
+fn decompose(value: f64) -> TimeResult<(u64, i32, bool)> {
+    if !value.is_finite() {
+        return Err(TimeError::NotFinite);
+    }
+    let bits = value.to_bits();
+    let negative = bits >> 63 == 1;
+    let biased = ((bits >> 52) & 0x7ff) as i32;
+    let fraction = bits & ((1 << 52) - 1);
+    Ok(if biased == 0 {
+        (fraction, -1074, negative)
+    } else {
+        (fraction | (1 << 52), biased - 1075, negative)
+    })
+}
+
+/// `numerator / denominator` as the double nearest the exact quotient, ties
+/// to even.
+fn ratio_of_integers(numerator: i128, denominator: i128) -> f64 {
+    let negative = (numerator < 0) != (denominator < 0);
+    let n = numerator.unsigned_abs();
+    let d = denominator.unsigned_abs();
+    let sign = if negative { -1.0 } else { 1.0 };
+    if n == 0 {
+        return sign * 0.0;
+    }
+    let power_of_two = |exponent: i32| f64::from_bits(((1023 + i64::from(exponent)) as u64) << 52);
+    let quotient = n / d;
+    let mut remainder = n % d;
+    if quotient >> 53 != 0 {
+        let shift = 128 - quotient.leading_zeros() - 53;
+        let lost = quotient & ((1u128 << shift) - 1);
+        let half = 1u128 << (shift - 1);
+        let mut mantissa = (quotient >> shift) as u64;
+        if lost > half || (lost == half && (remainder != 0 || mantissa & 1 == 1)) {
+            mantissa += 1;
+        }
+        return sign * mantissa as f64 * power_of_two(shift as i32);
+    }
+    let mut mantissa = quotient as u64;
+    let mut exponent = 0i32;
+    while mantissa >> 52 == 0 {
+        remainder <<= 1;
+        mantissa <<= 1;
+        if remainder >= d {
+            remainder -= d;
+            mantissa |= 1;
+        }
+        exponent -= 1;
+    }
+    remainder <<= 1;
+    let round_bit = remainder >= d;
+    if round_bit {
+        remainder -= d;
+    }
+    if round_bit && (remainder != 0 || mantissa & 1 == 1) {
+        mantissa += 1;
+    }
+    sign * mantissa as f64 * power_of_two(exponent)
 }
 
 impl Ord for Duration {
@@ -1068,6 +1288,102 @@ mod tests {
     #[should_panic(expected = "duration multiplication overflowed")]
     fn the_multiplication_operator_panics_on_overflow() {
         let _ = Duration::MAX * 2;
+    }
+
+    /// Python's `timedelta * float` multiplies by the float's exact ratio and
+    /// rounds once, half to even (`datetime` documentation, "rounded to the
+    /// nearest multiple of timedelta.resolution using round-half-to-even");
+    /// the expected values are what CPython 3.14 answers for them.
+    #[test]
+    fn scaling_is_exact_and_rounds_once_half_to_even() {
+        let micros = |count: i128| Duration::from_micros(count);
+        let at_micro = |span: Duration, factor: f64| {
+            span.scale_f64_nearest(factor, 1_000_000_000_000).unwrap()
+        };
+        // 25 508 964 008 398 µs × 0.5, which the `f64` route through seconds
+        // left with 7.5e-8 µs of noise.
+        assert_eq!(
+            micros(25_508_964_008_398).scale_f64(0.5),
+            Ok(micros(12_754_482_004_199))
+        );
+        assert_eq!(at_micro(micros(1), 0.5), micros(0)); // 0.5 → 0
+        assert_eq!(at_micro(micros(3), 0.5), micros(2)); // 1.5 → 2
+        assert_eq!(at_micro(micros(5), 0.5), micros(2)); // 2.5 → 2
+        assert_eq!(at_micro(micros(-5), 0.5), micros(-2));
+        assert_eq!(at_micro(micros(1), 0.1), micros(0));
+        assert_eq!(at_micro(micros(10), 0.1), micros(1)); // 0.1 is a hair above
+        assert_eq!(at_micro(micros(1_000_000), 1.1), micros(1_100_000));
+        // At the attosecond the same product keeps its digits.
+        assert_eq!(
+            micros(1).scale_f64(0.1),
+            Ok(Duration::from_attos(100_000_000_000))
+        );
+        assert_eq!(Duration::ZERO.scale_f64(1e300), Ok(Duration::ZERO));
+        assert_eq!(Duration::SECOND.scale_f64(0.0), Ok(Duration::ZERO));
+        assert_eq!(
+            Duration::SECOND.scale_f64(f64::NAN),
+            Err(TimeError::NotFinite)
+        );
+        assert_eq!(Duration::SECOND.scale_f64(1e300), Err(TimeError::Overflow));
+        // Half of MAX is 2^126 − 5×10⁻¹⁹ s, which rounds to 2^126.
+        assert_eq!(
+            Duration::MAX.scale_f64(0.5),
+            Ok(Duration::from_secs(1 << 126))
+        );
+        // A factor too small to reach half an attosecond rounds to zero.
+        assert_eq!(Duration::from_secs(1).scale_f64(1e-300), Ok(Duration::ZERO));
+        assert_eq!(Duration::MIN.scale_f64(-1.0), Err(TimeError::Overflow));
+        assert_eq!(Duration::MIN.scale_f64(1.0), Ok(Duration::MIN));
+    }
+
+    #[test]
+    fn division_by_a_real_or_an_integer_rounds_half_to_even() {
+        let micros = |count: i128| Duration::from_micros(count);
+        let unit = 1_000_000_000_000;
+        // `timedelta(microseconds=7) / 2` is 4 µs, `5 / 2` is 2 µs.
+        assert_eq!(micros(7).div_int_nearest(2, unit), Ok(micros(4)));
+        assert_eq!(micros(5).div_int_nearest(2, unit), Ok(micros(2)));
+        assert_eq!(micros(5).div_int_nearest(-2, unit), Ok(micros(-2)));
+        assert_eq!(micros(10).div_f64_nearest(0.3, unit), Ok(micros(33)));
+        assert_eq!(
+            Duration::SECOND.div_int_nearest(0, unit),
+            Err(TimeError::DivideByZero)
+        );
+        assert_eq!(
+            Duration::SECOND.div_f64_nearest(0.0, unit),
+            Err(TimeError::DivideByZero)
+        );
+        assert_eq!(
+            Duration::SECOND.scale_f64_nearest(1.0, 0),
+            Err(TimeError::OutOfRange)
+        );
+    }
+
+    /// `timedelta / timedelta` is Python's integer true division, correctly
+    /// rounded; the values are what CPython 3.14 answers.
+    #[test]
+    fn the_ratio_of_two_spans_is_the_nearest_double() {
+        let micros = |count: i128| Duration::from_micros(count);
+        assert_eq!(
+            Duration::from_days(1).ratio(micros(3)),
+            Ok(28_800_000_000.0)
+        );
+        assert_eq!(micros(1).ratio(micros(3)), Ok(0.333_333_333_333_333_3));
+        assert_eq!(micros(2).ratio(micros(3)), Ok(0.666_666_666_666_666_6));
+        assert_eq!(
+            micros(1_000_000_000_000_000_000).ratio(micros(3)),
+            Ok(3.333_333_333_333_333e17)
+        );
+        assert_eq!(
+            micros(86_400_000_000_000).ratio(micros(7)),
+            Ok(12_342_857_142_857.143)
+        );
+        assert_eq!(micros(-1).ratio(micros(4)), Ok(-0.25));
+        assert_eq!(Duration::ZERO.ratio(micros(4)), Ok(0.0));
+        assert_eq!(
+            micros(1).ratio(Duration::ZERO),
+            Err(TimeError::DivideByZero)
+        );
     }
 
     #[test]

@@ -174,9 +174,10 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_relative_time` | every `then_unix` and `now_unix` less than an `i64` of seconds apart; two further apart are `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
 | a byte length | `hc_relative_day`, `hc_relative_day_at` | every `then_fixed` and `now_fixed` less than an `i64` of days apart, and for `hc_relative_day_at` seconds of the day below 86 400; any other is `HC_ERR_OUT_OF_RANGE`, and a style not named `HC_ERR_UNKNOWN` |
 | a byte length | `hc_duration` | every `seconds`; a style not named is `HC_ERR_UNKNOWN` |
+| a byte length | `hc_apnumber` | every `value` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
-| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
+| a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
 walks every `i64` export in the source and fails when one has no row
@@ -398,6 +399,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `properTime(speedMetresPerSecond, coordinateSeconds)`, `gravitationalDilation(body, radiusMetres)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
 | `territories(locale)`, `subdivisions(country, locale)`, `placeName(code, locale)` | `hc_territories`, `hc_subdivisions`, `hc_place_name` | `PlaceName[]`; `PlaceName[]`; a `PlaceName` |
 | `relativeTime(thenUnix, nowUnix, style, automatic, locale)`, `relativeDay(thenFixed, nowFixed, style, automatic, locale)`, `relativeDayAt(thenFixed, nowFixed, secondsOfDay, style, automatic, locale)`, `duration(seconds, style, maxComponents, locale)` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration` | a `RelativeTime`; a `RelativeTime`; a `RelativeDayAt`; a `HumanizedDuration` |
+| `apnumber(value)`, `fractional(value)`, `scientific(value, precision)`, `metric(value, unit, precision)`, `naturalSize(value, style, decimals)`, `naturalList(items)`, `intword(digits, decimals)` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword` | a `NaturalText` each |
 
 Each method does what a page would otherwise write by hand:
 
@@ -523,9 +525,9 @@ one job a layer.
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,650 | 63 KiB |
 | `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs and its heliacal risings; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 216,294 | 211 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,728 | 94 KiB |
-| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
+| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 55,847 | 55 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,604 | 2.83 MiB |
-| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries | `hc-humanize`, `hc-i18n` | 651,206 | 636 KiB |
+| `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, and how long a span is, in every locale `hc-humanize` carries; `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`: the number and list functions of Python's `humanize`, in its English | `hc-humanize`, `hc-i18n` | 730,322 | 713 KiB |
 | `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,643,480 | 1.57 MiB |
 | `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 7,887,481 | 7.52 MiB |
 
@@ -579,7 +581,7 @@ not pass CI.
 
 ### Exports
 
-202 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+209 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -783,6 +785,13 @@ not pass CI.
 | `hc_relative_day(then_fixed: i64, now_fixed: i64, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, *yesterday* or *3 days ago*, in a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_relative_day_at(then_fixed: i64, now_fixed: i64, seconds_of_day: u32, style: *const u8, style_len: usize, automatic: i32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Which calendar day one fixed day is, seen from another, with a time of day, *yesterday at 15:05*, in a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_duration(seconds: i64, style: *const u8, style_len: usize, max_components: u32, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A span of seconds phrased in days, hours, minutes and seconds, *2 hours and 30 minutes*, in a locale, as one UTF-8 line, returning the byte length written. |
+| `hc_apnumber(value: i64, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number, negatives included, as its digits, in the English of Python's `humanize` `apnumber`, as one UTF-8 line, returning the byte length written. |
+| `hc_fractional(value: f64, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number as a fraction, *3/10*, *1 3/10*, *-1 3/10*, by Python's `humanize` `fractional`, as one UTF-8 line, returning the byte length written. |
+| `hc_scientific(value: f64, precision: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number in scientific notation, *3.00 x 10⁻¹*, by Python's `humanize` `scientific`, as one UTF-8 line, returning the byte length written. |
+| `hc_metric(value: f64, unit: *const u8, unit_len: usize, precision: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A number with an SI prefix and a unit, *1.50 kV*, *200 MW*, *220 μF*, by Python's `humanize` `metric`, as one UTF-8 line, returning the byte length written. |
+| `hc_naturalsize(value: f64, style: *const u8, style_len: usize, decimals: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, by Python's `humanize` `naturalsize`, as one UTF-8 line, returning the byte length written. |
+| `hc_naturallist(items: *const u8, items_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | Items joined as a list, *one, two and three*, with no comma before the *and*, by Python's `humanize` `natural_list`, as one UTF-8 line, returning the byte length written. |
+| `hc_intword(digits: *const u8, digits_len: usize, decimals: u32, buffer: *mut u8, capacity: usize) -> i64` | `humanize` | An integer of any length as a count with a word, *12.4 thousand*, *1.2 billion*, *1.0 googol*, by Python's `humanize` `intword`, as one UTF-8 line, returning the byte length written. |
 | `hc_zone_name(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, field: *const u8, field_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one UTF-8 line, returning the byte length written. |
 | `hc_format_pattern(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one UTF-8 line, returning the byte length written. |
 
@@ -5051,6 +5060,36 @@ nothing is *0 seconds*.
 | 2 | negative | `1` if `seconds` was negative, else `0` |
 | 3 | locale used | the tag of the `hc-humanize` data the locale resolved to |
 
+### Python humanize's numbers
+
+`hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`,
+`hc_naturalsize`, `hc_naturallist` and `hc_intword` are the number and
+list functions of Python's `humanize` package (4.16, its documentation and
+source read 2026-10-03), in the English it ships: *five*, *1 3/10*, *3.00 x
+10⁻¹*, *1.50 kV*, *3.0 MB* or *2.9 KiB*, *one, two and three*, *12.4
+thousand* up to *1.0 googol*. They are one convention of phrasing and the
+CLDR ones above another (policy §5); this one takes no locale at the
+boundary: `hc-humanize` carries `humanize`'s 35 gettext catalogues
+(`NaturalPhrases::by_catalogue`) and no export takes one yet, so every line
+says `en`, the language of its vocabulary. Each writes one line:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | text | the text |
+| 2 | language | the language of the vocabulary that wrote it, `en`, the only one carried |
+
+`hc_apnumber` spells out `zero` to `nine`. `hc_fractional` writes the
+nearest fraction with a denominator of at most 1000. `hc_scientific` takes
+the digits after the point (2 in Python) and `hc_metric` the significant
+digits (3 in Python), and writes beyond 10³³ and below 10⁻³⁰ as scientific
+notation. `hc_naturalsize` takes `decimal`, `binary` or `gnu`.
+`hc_naturallist` takes its items one to a line. `hc_intword` takes the
+integer as digits, so that a value no `i64` holds can be given; the
+largest it names is the googol, and an integer beyond the largest double is
+`HC_ERR_OUT_OF_RANGE`. A value that is not finite is *NaN*, *+Inf* or
+*-Inf*; `NaN` as a size, which Python's `int` refuses, and text that is not
+an integer, are refused.
+
 ```js
 const now = Math.floor(Date.now() / 1000);
 hc.relativeTime(now - 3 * 3600, now, "long", false, "en").phrase;   // "3 hours ago"
@@ -5058,6 +5097,8 @@ const today = hc.fixedFromUnix(now);
 hc.relativeDayAt(today - 1, today, 15 * 3600 + 5 * 60, "long", true, "en").phrase;
 // "yesterday at 15:05"
 hc.duration(9000, "long", 0, "de").phrase;                          // "2 Stunden und 30 Minuten"
+hc.naturalSize(3000, "binary").text;                                // "2.9 KiB"
+hc.intword(`1${"0".repeat(100)}`).text;                             // "1.0 googol"
 ```
 
 ## What is not here
@@ -5078,9 +5119,21 @@ Neither boundary exposes these parts of the workspace:
   they are not in the registry that `hc_describe_day` and
   `hc_calendar_units` walk, and a fixed day cannot be handed to them; an
   instant can, and `hc_circad_date` answers it.
-- **`hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-attributes` and
-  `hc-units`.** No line format has been designed for them yet; each
-  would be a layer of its own. Of `hc-almanac`, 七曜 is not written, since
+- **Most of `hc-humanize`'s `natural` module, and the rest of its other
+  formatters' options.** The `humanize` layer writes `hc-humanize`'s
+  relative times, relative days and durations in a locale, and `natural`'s
+  number and list functions in English. `natural`'s `naturaldelta`,
+  `naturaltime`, `precisedelta`, `naturalday`, `naturaldate`, `ordinal` and
+  `intcomma`, `intword` of an `i64` (`hc_intword` takes digits), `clamp`
+  (its format is a Python function or format string, which has no shape
+  here), the `approximate` formatter, and the thresholds and rounding that
+  `hc_relative_time` fixes, are not exported yet; no line format has been
+  designed for them. Python's translations of `humanize` are carried by
+  `hc-humanize` and not exported yet: a catalogue argument for the number
+  and list exports, and a vocabulary column for the time ones, are not
+  designed.
+- **`hc-fiscal`, `hc-name-days`, `hc-attributes` and `hc-units`.** No line
+  format has been designed for them yet; each would be a layer of its own. Of `hc-almanac`, 七曜 is not written, since
   it is the weekday; the meanings, glosses and 五行 of its annotations,
   which it gives in English only, are not written either; and of 恵方 not
   the two branches its point lies between, which the point names.

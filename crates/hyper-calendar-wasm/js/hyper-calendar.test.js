@@ -3164,6 +3164,42 @@ describe("humanize", () => {
     assert.equal(hc.duration(-9_000, "long", 0, "en").negative, true);
     refused(() => hc.duration(1, /** @type {any} */ ("wide")), "unknown");
   });
+
+  // The examples of `humanize` 4.16's documentation (number.py, filesize.py,
+  // lists.py), read 2026-10-03.
+  test("the number functions are Python humanize's", () => {
+    assert.deepEqual(hc.apnumber(5), { text: "five", language: "en" });
+    assert.equal(hc.apnumber(10).text, "10");
+    assert.equal(hc.apnumber(-1n).text, "-1");
+    assert.equal(hc.fractional(1.3).text, "1 3/10");
+    assert.equal(hc.fractional(0.3).text, "3/10");
+    assert.equal(hc.fractional(1 / 3).text, "1/3");
+    assert.equal(hc.fractional(Number.NaN).text, "NaN");
+    assert.equal(hc.scientific(0.3).text, "3.00 x 10⁻¹");
+    assert.equal(hc.scientific(-1000).text, "-1.00 x 10³");
+    assert.equal(hc.scientific(1000, 3).text, "1.000 x 10³");
+    assert.equal(hc.metric(1500, "V").text, "1.50 kV");
+    assert.equal(hc.metric(2e8, "W").text, "200 MW");
+    assert.equal(hc.metric(220e-6, "F").text, "220 μF");
+    assert.equal(hc.metric(1e-14, "", 4).text, "10.00 f");
+    assert.equal(hc.metric(1e40).text, "1.00 x 10⁴⁰");
+    assert.equal(hc.naturalSize(3_000_000).text, "3.0 MB");
+    assert.equal(hc.naturalSize(3000, "binary").text, "2.9 KiB");
+    assert.equal(hc.naturalSize(3000, "gnu").text, "2.9K");
+    assert.equal(hc.naturalSize(300, "gnu").text, "300B");
+    assert.equal(hc.naturalList(["one", "two", "three"]).text, "one, two and three");
+    assert.equal(hc.naturalList(["one", "two"]).text, "one and two");
+    assert.equal(hc.naturalList(["one"]).text, "one");
+    assert.equal(hc.naturalList([]).text, "");
+    assert.equal(hc.intword(12_400).text, "12.4 thousand");
+    assert.equal(hc.intword("1234000", 3).text, "1.234 million");
+    assert.equal(hc.intword(8_100_000_000_000_000_000_000_000_000_000_000n).text, "8.1 decillion");
+    assert.equal(hc.intword(`1${"0".repeat(100)}`).text, "1.0 googol");
+    refused(() => hc.intword("12x"), "malformed");
+    refused(() => hc.intword("9".repeat(400)), "out-of-range");
+    refused(() => hc.naturalSize(Number.NaN), "out-of-range");
+    refused(() => hc.naturalSize(1, /** @type {any} */ ("wide")), "unknown");
+  });
 });
 
 describe("the almanac's directions, 臘日, undertakings and a person's own days", () => {

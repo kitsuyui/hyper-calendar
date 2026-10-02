@@ -175,6 +175,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_relative_time` | every `then_unix` and `now_unix` less than an `int64_t` of seconds apart; two further apart are `HC_ERROR_OUT_OF_RANGE`, and a style not named `HC_ERROR_UNKNOWN` |
 | a line | `hc_relative_day`, `hc_relative_day_at` | every `then_fixed` and `now_fixed` less than an `int64_t` of days apart, and for `hc_relative_day_at` seconds of the day below 86 400; any other is `HC_ERROR_OUT_OF_RANGE`, and a style not named `HC_ERROR_UNKNOWN` |
 | a line | `hc_duration` | every `seconds`; a style not named is `HC_ERROR_UNKNOWN` |
+| a line | `hc_apnumber` | every `value` |
 
 A day outside the Gregorian range is `HC_ERROR_OUT_OF_RANGE` from the
 entry points in the third row, and the WebAssembly module's
@@ -308,7 +309,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-198 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+205 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -508,6 +509,13 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_relative_day(int64_t then_fixed, int64_t now_fixed, const char *style, int automatic, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | Which calendar day one fixed day is, seen from another, *yesterday* or *3 days ago*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_relative_day_at(int64_t then_fixed, int64_t now_fixed, uint32_t seconds_of_day, const char *style, int automatic, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | Which calendar day one fixed day is, seen from another, with a time of day, *yesterday at 15:05*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_duration(int64_t seconds, const char *style, uint32_t max_components, const char *locale, char *buffer, size_t capacity, size_t *written);` | `humanize` | A span of seconds phrased in days, hours, minutes and seconds, *2 hours and 30 minutes*, in a locale, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_apnumber(int64_t value, char *buffer, size_t capacity, size_t *written);` | `humanize` | A whole number as the Associated Press writes it, *zero* to *nine* spelled out and every other number as its digits, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_fractional(double value, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number as a fraction, *3/10*, *1 3/10*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_scientific(double value, uint32_t precision, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number in scientific notation, *3.00 x 10⁻¹*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_metric(double value, const char *unit, uint32_t precision, char *buffer, size_t capacity, size_t *written);` | `humanize` | A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturalsize(double value, const char *style, uint32_t decimals, char *buffer, size_t capacity, size_t *written);` | `humanize` | A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_naturallist(const char *items, char *buffer, size_t capacity, size_t *written);` | `humanize` | Items joined as a list, *one, two and three*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_intword(const char *digits, uint32_t decimals, char *buffer, size_t capacity, size_t *written);` | `humanize` | An integer of any length as a count with a word, *12.4 thousand*, *1.0 googol*, in the English of Python's `humanize`, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_zone_name(const char *zone, int64_t unix_seconds, const char *locale, const char *field, char *buffer, size_t capacity, size_t *written);` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_format_pattern(const char *zone, int64_t unix_seconds, const char *locale, const char *syntax, const char *pattern, char *buffer, size_t capacity, size_t *written);` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 
@@ -1402,6 +1410,18 @@ parse, is the root locale, whose phrases are CLDR's `root.xml`'s, `-1 d`.
 well; another is `HC_ERROR_UNKNOWN`. The WebAssembly module's README gives
 the columns.
 
+The same feature has the number and list functions of Python's `humanize`
+package, in its English, one line of the text and the language `en`:
+`hc_apnumber(value, buffer, capacity, written)`,
+`hc_fractional(value, ...)`, `hc_scientific(value, precision, ...)`,
+`hc_metric(value, unit, precision, ...)`,
+`hc_naturalsize(value, style, decimals, ...)` with `style` `decimal`,
+`binary` or `gnu`, `hc_naturallist(items, ...)` with one item to a line, and
+`hc_intword(digits, decimals, ...)`, which takes the integer as digits and
+so reaches *1.0 googol*. Text that is not an integer is
+`HC_ERROR_MALFORMED`; `NaN` as a size, an integer beyond the largest double
+and more than 255 decimals are `HC_ERROR_OUT_OF_RANGE`.
+
 ## Leap seconds, and the `strict` flag
 
 `hc_tai_from_unix`, `hc_tai_minus_utc` and `hc_utc_from_tai` take a `strict`
@@ -1433,7 +1453,8 @@ Neither boundary exposes these parts of the workspace, for the reasons
 that README's "What is not here" gives: `hc-planetary`'s circad and
 Martiana calendars in the registry, whose day number is a circad or a sol
 and not an Earth day, though `hc_circad_date` dates an instant in them;
-`hc-humanize`, `hc-fiscal`, `hc-name-days`, `hc-attributes` and
+most of `hc-humanize`'s `natural` module (the WebAssembly module's README
+lists what is exported), `hc-fiscal`, `hc-name-days`, `hc-attributes` and
 `hc-units`, for which no line format has been designed, and of
 `hc-almanac` 七曜, which is the weekday, and the English glosses of its
 annotations; a

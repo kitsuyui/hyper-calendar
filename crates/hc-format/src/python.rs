@@ -9,28 +9,40 @@
 //!
 //! The rules are those of the Python 3.13 documentation for the `datetime`
 //! module, <https://docs.python.org/3/library/datetime.html>, retrieved
-//! 2026-09-26.
+//! 2026-09-26 and 2026-10-03, and, where the documentation is silent, what
+//! CPython 3.12.14 and 3.14.7 answered when run (`docs/python-parity.md`
+//! lists every difference).
 //!
 //! # What `fromisoformat` accepts
 //!
-//! * Dates `YYYY-MM-DD`, `YYYYMMDD`, `YYYY-Www-D` and `YYYYWwwD`. Not the
-//!   reduced `YYYY-MM` or `YYYY`, not expanded years, not ordinal dates —
-//!   Python refuses all three and so does this.
+//! * Dates `YYYY-MM-DD`, `YYYYMMDD`, `YYYY-Www-D` and `YYYYWwwD`, and a week
+//!   without a day, `YYYY-Www` or `YYYYWww`, which is the week's Monday.
+//!   Not the reduced `YYYY-MM` or `YYYY`, not expanded years, not ordinal
+//!   dates — Python refuses all three and so does this.
 //! * Times `HH`, `HH:MM`, `HH:MM:SS` and their basic forms, with a fraction of
 //!   the second after `.` or `,`, and an optional leading `T` on a time on
 //!   its own. Not a fraction of an hour or a minute.
 //! * Any single character between the date and the time, as Python allows.
-//! * Offsets `Z`, `±HH`, `±HHMM`, `±HH:MM` and the forms with seconds.
+//! * Offsets `Z`, `±HH`, `±HHMM`, `±HH:MM` and the forms with seconds, below
+//!   24 hours as Python's `timezone` requires.
 //!
 //! Two extensions, both because this library can hold what Python cannot:
 //! a fraction keeps up to eighteen digits instead of being truncated to six,
-//! and `23:59:60` is accepted. Offsets with a fraction of a second, which
-//! Python accepts, are refused: `hc_tz::UtcOffset` counts whole seconds.
+//! and `23:59:60` is accepted; year 0 is a date here too. Offsets with a
+//! fraction of a second, which Python accepts, are refused:
+//! `hc_tz::UtcOffset` counts whole seconds. The behaviours of CPython's C
+//! parser that the documentation does not describe — a stray character
+//! before the offset, minutes above 59 in an offset, a fraction after the
+//! hour — are refused.
 //!
 //! # `strptime`
 //!
-//! [`strptime`] is [`crate::patterns::strftime::parse`] with Python's
-//! defaults: a field the text does not name comes from 1900-01-01 00:00:00.
+//! [`strptime`] is CPython's `_strptime`: a pattern is a regular expression
+//! with ordered alternatives, matched with backtracking, and the fields are
+//! resolved by its rules. See the `strptime` module's documentation; a field
+//! the text does not name comes from 1900-01-01 00:00:00.
+
+mod strptime;
 
 use core::fmt;
 
@@ -48,7 +60,9 @@ use crate::value::{DateParts, IsoDate, IsoTime, OffsetDateTime, ZoneInfo};
 /// refuse on its own, are refused after scanning.
 const PROFILE: Strictness = Strictness {
     allow_basic: true,
-    allow_reduced_date: false,
+    // Reduced dates are scanned so that a week without a day can be read
+    // (Python takes it as the Monday); `scan_date` refuses the others.
+    allow_reduced_date: true,
     allow_reduced_time: true,
     allow_expanded_year: false,
     allow_comma_decimal: true,
@@ -168,7 +182,7 @@ pub fn parse_date_time(text: &str) -> ParseResult<OffsetDateTime> {
 ///
 /// As [`strftime::parse`].
 pub fn strptime(text: &str, pattern: &str) -> ParseResult<ParsedFields> {
-    Ok(strftime::parse(pattern, text)?.with_default_date(1_900, 1, 1))
+    strptime::parse(pattern, text)
 }
 
 fn start(text: &str) -> ParseResult<Scanner<'_>> {
@@ -182,13 +196,31 @@ fn start(text: &str) -> ParseResult<Scanner<'_>> {
 fn scan_date(scanner: &mut Scanner<'_>) -> ParseResult<IsoDate> {
     let start = scanner.pos();
     let date = iso8601::scan_date(scanner, &PROFILE)?;
-    if matches!(date.parts, DateParts::Ordinal { .. }) {
-        return Err(Scanner::error_at(
+    match date.parts {
+        DateParts::Ordinal { .. } => Err(Scanner::error_at(
             ErrorKind::Forbidden("an ordinal date"),
             start,
-        ));
+        )),
+        // `YYYY-Www` is a week date ISO 8601 allows and Python reads as the
+        // week's Monday; `YYYY-MM` and `YYYY` it refuses.
+        DateParts::Week {
+            year,
+            week,
+            weekday: None,
+        } => Ok(IsoDate {
+            parts: DateParts::Week {
+                year,
+                week,
+                weekday: Some(1),
+            },
+            ..date
+        }),
+        DateParts::Calendar { day: None, .. } => Err(Scanner::error_at(
+            ErrorKind::Forbidden("a date of reduced accuracy"),
+            start,
+        )),
+        _ => Ok(date),
     }
-    Ok(date)
 }
 
 fn fixed(date: IsoDate, offset: usize) -> ParseResult<Rd> {
@@ -206,7 +238,18 @@ fn scan_time_and_zone(scanner: &mut Scanner<'_>) -> ParseResult<(CivilTime, Zone
         ));
     }
     let clock = civil_time(time).ok_or(Scanner::error_at(ErrorKind::Invalid("time"), start))?;
+    let offset_start = scanner.pos();
     let (zone, _) = iso8601::scan_offset(scanner, &PROFILE)?;
+    // Python's `timezone` takes an offset of less than 24 hours.
+    if zone
+        .offset()
+        .is_some_and(|offset| offset.seconds().unsigned_abs() >= 86_400)
+    {
+        return Err(Scanner::error_at(
+            ErrorKind::OutOfRange("the offset, which must be under 24 hours"),
+            offset_start,
+        ));
+    }
     // Python reads `-00:00` as UTC; it has no "offset unknown".
     let zone = match zone {
         ZoneInfo::UnknownLocalOffset => ZoneInfo::Offset(UtcOffset::UTC),
@@ -387,20 +430,46 @@ mod tests {
     /// (`YYYY-OOO`)."
     #[test]
     fn the_forms_python_refuses_are_refused() {
-        for text in [
-            "2019-12",
-            "2019",
-            "+002019-12-04",
-            "2019-338",
-            "2019338",
-            "2021-W01",
-        ] {
+        for text in ["2019-12", "2019", "+002019-12-04", "2019-338", "2019338"] {
             assert!(parse_date(text).is_err(), "{text}");
             assert!(parse_date_time(text).is_err(), "{text}");
         }
         assert_eq!(
             parse_date("2019-338").unwrap_err().kind(),
             ErrorKind::Forbidden("an ordinal date")
+        );
+    }
+
+    /// "Return a date corresponding to a date_string given in any valid ISO
+    /// 8601 format, with the following exceptions: Reduced precision dates
+    /// are not currently supported (`YYYY-MM`, `YYYY`)." A week without a
+    /// day, `YYYY-Www`, is a valid ISO 8601 date and not an exception, and
+    /// CPython reads it as the week's Monday (the interpreter's answer for
+    /// `2019-W01` is 2018-12-31; the documented `2021-W01-1` is 2021-01-04).
+    #[test]
+    fn a_week_without_a_day_is_its_monday() {
+        assert_eq!(parse_date("2021-W01"), Ok(day(2021, 1, 4)));
+        assert_eq!(parse_date("2021W01"), parse_date("2021-W01-1"));
+        assert_eq!(parse_date("2019-W01"), Ok(day(2018, 12, 31)));
+        assert_eq!(
+            parse_date_time("2019-W01T10:20").unwrap().local,
+            civil((2018, 12, 31), (10, 20, 0), 0)
+        );
+        assert!(parse_date("2019-W54").is_err());
+        assert!(parse_date("2019-W00").is_err());
+    }
+
+    /// Python's `timezone` takes an offset strictly between -24 and +24
+    /// hours (CPython 3.12 and 3.14: "offset must be a timedelta strictly
+    /// between -timedelta(hours=24) and timedelta(hours=24)"), so
+    /// `fromisoformat` refuses `+24:00`; the 23:59 below it is read.
+    #[test]
+    fn an_offset_of_a_day_or_more_is_refused() {
+        assert!(parse_date_time("2019-12-04T10:20:30+24:00").is_err());
+        assert!(parse_time("10:20:30-24:00").is_err());
+        assert_eq!(
+            parse_time("10:20:30+23:59").unwrap().1,
+            offset(23 * 3_600 + 59 * 60)
         );
     }
 
@@ -682,5 +751,172 @@ mod tests {
             .to_offset_date_time()
             .unwrap();
         assert_eq!(ordinal.local.day, day(2026, 4, 10));
+    }
+
+    /// `strptime(text, pattern)` as a reading and a zone, or `None` for a
+    /// refusal of any kind.
+    fn read(text: &str, pattern: &str) -> Option<(CivilDateTime, ZoneInfo)> {
+        let value = strptime(text, pattern).ok()?.to_offset_date_time().ok()?;
+        Some((value.local, value.zone))
+    }
+
+    fn at(date: (i64, u8, u8)) -> CivilDateTime {
+        civil(date, (0, 0, 0), 0)
+    }
+
+    /// The expected values below are the answers of CPython 3.12.14 and
+    /// 3.14.7 to the same text and pattern (their `_strptime` module builds
+    /// the regular expression `strptime` module's rules are written in); the
+    /// documentation (3.13, "strftime() and strptime() Format Codes") states
+    /// the rules they follow. `%Y` is exactly four digits, so a year need
+    /// not be followed by a separator, and a field is read as the shortest
+    /// alternative that lets the rest of the pattern match.
+    #[test]
+    fn strptime_reads_digits_as_cpythons_regular_expression_does() {
+        assert_eq!(read("20191204", "%Y%m%d").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("2019124", "%Y%m%d").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("191204", "%y%m%d").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("19124", "%y%m%d").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("2019-12-4", "%Y-%m-%d").unwrap().0, at((2019, 12, 4)));
+        // A year is four digits, a `%y` two; Python's documentation says the
+        // leading zero of `%y` is optional, the interpreter refuses `9`.
+        assert_eq!(read("19", "%Y"), None);
+        assert_eq!(read("20190", "%Y"), None);
+        assert_eq!(read("9", "%y"), None);
+        // Only `%d` and `%I` take a space for a leading zero.
+        assert_eq!(read(" 4", "%d").unwrap().0, at((1900, 1, 4)));
+        assert_eq!(read(" 1", "%m"), None);
+        assert_eq!(read(" 5", "%M"), None);
+        assert_eq!(read(" 2019-12-04", "%Y-%m-%d"), None);
+        assert_eq!(read("2019-12-04 ", "%Y-%m-%d"), None);
+        assert_eq!(read("2019-12-041", "%Y-%m-%d"), None);
+        // `%y` maps 69..99 to the 1900s and 0..68 to the 2000s.
+        assert_eq!(read("69", "%y").unwrap().0, at((1969, 1, 1)));
+        assert_eq!(read("68", "%y").unwrap().0, at((2068, 1, 1)));
+        // An hour of 24 matches `2`, then leaves `4` over.
+        assert_eq!(read("24", "%H"), None);
+        assert_eq!(
+            read("1:2", "%H:%M").unwrap().0,
+            civil((1900, 1, 1), (1, 2, 0), 0)
+        );
+    }
+
+    /// Whitespace in a pattern is `\s+`: one or more, never none.
+    #[test]
+    fn whitespace_in_a_pattern_matches_one_run_of_whitespace() {
+        assert_eq!(
+            read("2019  12   04", "%Y %m %d").unwrap().0,
+            at((2019, 12, 4))
+        );
+        assert_eq!(read("2019\t12", "%Y %m").unwrap().0, at((2019, 12, 1)));
+        assert_eq!(read("201912 04", "%Y %m %d"), None);
+        assert_eq!(read("2019-12-04", "%Y-%m-%d ").map(|r| r.0), None);
+        assert_eq!(
+            read("2019-12-04  ", "%Y-%m-%d ").unwrap().0,
+            at((2019, 12, 4))
+        );
+        assert_eq!(read("December 04,2019", "%B %d, %Y"), None);
+        assert_eq!(
+            read("December  4, 2019", "%B %d, %Y").unwrap().0,
+            at((2019, 12, 4))
+        );
+        // Matching ignores case, as the documentation says.
+        assert_eq!(
+            read("dEc 04 2019", "%b %d %Y").unwrap().0,
+            at((2019, 12, 4))
+        );
+        assert_eq!(read("Wednesday", "%a"), None);
+        assert_eq!(read("Dec", "%B"), None);
+    }
+
+    #[test]
+    fn the_hour_and_the_day_period_combine_as_cpython_does() {
+        let noon = |text: &str| read(text, "%I %p").unwrap().0.time.hour();
+        assert_eq!(noon("12 AM"), 0);
+        assert_eq!(noon("12 PM"), 12);
+        assert_eq!(noon("1 PM"), 13);
+        assert_eq!(noon("01 pm"), 13);
+        assert_eq!(noon("10 Am"), 10);
+        assert_eq!(read("10AM", "%I %p"), None);
+        assert_eq!(read("13 PM", "%I %p"), None);
+        assert_eq!(read("00 AM", "%I %p"), None);
+        // Without a `%p` the hour is read as AM.
+        assert_eq!(read("12", "%I").unwrap().0.time.hour(), 0);
+    }
+
+    /// `%j` is added to 1 January without a check, so day 366 of a common
+    /// year is the 1st of January that follows; the week of the year and the
+    /// ISO week are counted without a check as well, except that an ISO week
+    /// 53 must exist ("Invalid week: 53").
+    #[test]
+    fn the_day_of_the_year_and_the_week_roll_over_as_cpython_does() {
+        assert_eq!(read("2019-366", "%Y-%j").unwrap().0, at((2020, 1, 1)));
+        assert_eq!(read("2020-366", "%Y-%j").unwrap().0, at((2020, 12, 31)));
+        assert_eq!(read("2019-365", "%Y-%j").unwrap().0, at((2019, 12, 31)));
+        // No year: 1900, which is not a leap year.
+        assert_eq!(read("366", "%j").unwrap().0, at((1901, 1, 1)));
+        assert_eq!(read("367", "%j"), None);
+        assert_eq!(read("2019-48-3", "%Y-%U-%w").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("2019-48-3", "%Y-%W-%w").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("2019-49-3", "%G-%V-%u").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(read("2019-01-1", "%G-%V-%u").unwrap().0, at((2018, 12, 31)));
+        assert_eq!(read("2020-53-3", "%G-%V-%u").unwrap().0, at((2020, 12, 30)));
+        assert_eq!(read("2021-53-3", "%G-%V-%u"), None);
+        assert_eq!(read("2019-49", "%G-%V"), None);
+        assert_eq!(read("2019-49-3", "%Y-%V-%u"), None);
+        assert_eq!(read("2019-49-3 12", "%G-%V-%u %j"), None);
+    }
+
+    #[test]
+    fn the_offset_follows_cpythons_regular_expression() {
+        let zone = |text: &str| read(text, "%z").map(|r| r.1);
+        assert_eq!(zone("+0530"), Some(offset(19_800)));
+        assert_eq!(zone("-0800"), Some(offset(-28_800)));
+        assert_eq!(zone("+05:30"), Some(offset(19_800)));
+        assert_eq!(zone("+05:30:15"), Some(offset(19_815)));
+        assert_eq!(zone("+053015"), Some(offset(19_815)));
+        assert_eq!(zone("-0000"), Some(offset(0)));
+        assert_eq!(zone("Z"), Some(ZoneInfo::Zulu));
+        assert_eq!(zone("z"), None);
+        assert_eq!(zone("+05"), None);
+        assert_eq!(zone("+5"), None);
+        assert_eq!(zone("+05:3"), None);
+        assert_eq!(zone("+0560"), None);
+        // Seconds must use the colon as the minutes did.
+        assert_eq!(zone("+0530:15"), None);
+        assert_eq!(zone("+05:3015"), None);
+        // An offset of a day or more is refused by Python's `timezone`.
+        assert_eq!(zone("+2400"), None);
+        assert_eq!(zone("+2359"), Some(offset(86_340)));
+        // A fraction of a second is Python's, not a whole-second offset.
+        assert_eq!(zone("+05:30:15.123456"), None);
+        // `%Z` takes `UTC` and `GMT`, which set no zone.
+        assert_eq!(read("UTC", "%Z").unwrap().1, ZoneInfo::Unspecified);
+        assert_eq!(read("gmt", "%Z").unwrap().1, ZoneInfo::Unspecified);
+        assert_eq!(read("EST", "%Z"), None);
+    }
+
+    #[test]
+    fn a_pattern_is_checked_as_cpython_compiles_it() {
+        // A directive it does not know, a width or flag, a `%` at the end,
+        // and a directive used twice.
+        for pattern in ["%C", "%e", "%5Y", "%-d", "%Ey", "%", "%Y %Y", "%c %Y"] {
+            assert!(strptime("2019", pattern).is_err(), "{pattern}");
+        }
+        assert_eq!(read("%", "%%").unwrap().0, at((1900, 1, 1)));
+        assert_eq!(
+            read("Wed Dec  4 10:20:30 2019", "%c").unwrap().0,
+            civil((2019, 12, 4), (10, 20, 30), 0)
+        );
+        assert_eq!(read("12/04/19", "%x").unwrap().0, at((2019, 12, 4)));
+        assert_eq!(
+            read("10:20:30", "%X").unwrap().0,
+            civil((1900, 1, 1), (10, 20, 30), 0)
+        );
+        assert_eq!(
+            read("123", "%f").unwrap().0.time.subsec_attos(),
+            123_000_000_000_000_000
+        );
+        assert_eq!(read("1234567", "%f"), None);
     }
 }

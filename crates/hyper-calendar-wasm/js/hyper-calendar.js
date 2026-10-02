@@ -242,6 +242,13 @@ export const METHODS = Object.freeze([
   { method: "relativeDay", export: "hc_relative_day", feature: "humanize" },
   { method: "relativeDayAt", export: "hc_relative_day_at", feature: "humanize" },
   { method: "duration", export: "hc_duration", feature: "humanize" },
+  { method: "apnumber", export: "hc_apnumber", feature: "humanize" },
+  { method: "fractional", export: "hc_fractional", feature: "humanize" },
+  { method: "scientific", export: "hc_scientific", feature: "humanize" },
+  { method: "metric", export: "hc_metric", feature: "humanize" },
+  { method: "naturalSize", export: "hc_naturalsize", feature: "humanize" },
+  { method: "naturalList", export: "hc_naturallist", feature: "humanize" },
+  { method: "intword", export: "hc_intword", feature: "humanize" },
   { method: "zoneName", export: "hc_zone_name", feature: "zone-names" },
   { method: "formatPattern", export: "hc_format_pattern", feature: "zone-names" },
 ].map(Object.freeze));
@@ -381,6 +388,7 @@ export const COLUMNS = Object.freeze({
   relativeTime: Object.freeze(["phrase", "unit", "count", "locale used"]),
   relativeDayAt: Object.freeze(["phrase", "unit", "count", "time", "locale used"]),
   duration: Object.freeze(["phrase", "negative", "locale used"]),
+  naturalText: Object.freeze(["text", "language"]),
   zoneName: Object.freeze(["name", "field", "zone", "offset", "daylight"]),
   utcFromTai: Object.freeze(["unix seconds", "leap second"]),
   tai64PosixPlus10: Object.freeze(["format", "unix seconds", "attoseconds"]),
@@ -2279,6 +2287,18 @@ function relativeDayAt(cells) {
 function humanizedDuration(cells) {
   const [phrase, negative, localeUsed] = cells;
   return { phrase, negative: flag(negative, "negative"), localeUsed };
+}
+
+/**
+ * The line of the `humanize` number functions: the text and the language of
+ * the vocabulary that wrote it.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NaturalText}
+ */
+function naturalText(cells) {
+  const [text, language] = cells;
+  return { text, language };
 }
 
 /** The capacity a text read starts with unless `load` was told otherwise. */
@@ -5937,6 +5957,123 @@ export class HyperCalendar {
         this.#text("hc_duration", (buffer, capacity) =>
           fn(span, stylePointer, styleLen, most, localePointer, localeLen, buffer, capacity), true)));
     return humanizedDuration(this.#oneLine("hc_duration", text, COLUMNS.duration));
+  }
+
+  /**
+   * A whole number as the Associated Press writes it, `humanize`'s
+   * `apnumber`: *zero* to *nine* spelled out, every other number as its
+   * digits.
+   *
+   * @param {number | bigint} value
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  apnumber(value) {
+    const fn = this.#export("hc_apnumber");
+    const v = toI64(value, "value");
+    const text = this.#text("hc_apnumber", (buffer, capacity) => fn(v, buffer, capacity), true);
+    return naturalText(this.#oneLine("hc_apnumber", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * A number as a fraction, `humanize`'s `fractional`: `0.3` is *3/10*,
+   * `1.3` is *1 3/10*, by the nearest fraction with a denominator of at
+   * most 1000.
+   *
+   * @param {number} value
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  fractional(value) {
+    const fn = this.#export("hc_fractional");
+    const v = toF64(value, "value");
+    const text = this.#text("hc_fractional", (buffer, capacity) => fn(v, buffer, capacity), true);
+    return naturalText(this.#oneLine("hc_fractional", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * A number in scientific notation, `humanize`'s `scientific`: *3.00 x
+   * 10⁻¹*, with `precision` digits after the point.
+   *
+   * @param {number} value
+   * @param {number} [precision]
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  scientific(value, precision = 2) {
+    const fn = this.#export("hc_scientific");
+    const v = toF64(value, "value");
+    const digits = toU32(precision, "precision");
+    const text = this.#text("hc_scientific", (buffer, capacity) => fn(v, digits, buffer, capacity), true);
+    return naturalText(this.#oneLine("hc_scientific", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * A number with an SI prefix and a unit, `humanize`'s `metric`: *1.50
+   * kV*, *220 μF*, with `precision` significant digits.
+   *
+   * @param {number} value
+   * @param {string} [unit]
+   * @param {number} [precision]
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  metric(value, unit = "", precision = 3) {
+    const fn = this.#export("hc_metric");
+    const v = toF64(value, "value");
+    const digits = toU32(precision, "precision");
+    const text = this.#withText(unit, "unit", (unitPointer, unitLen) =>
+      this.#text("hc_metric", (buffer, capacity) =>
+        fn(v, unitPointer, unitLen, digits, buffer, capacity), true));
+    return naturalText(this.#oneLine("hc_metric", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * A size in bytes, `humanize`'s `naturalsize`: *3.0 MB* (`decimal`),
+   * *2.9 KiB* (`binary`), *2.9K* (`gnu`).
+   *
+   * @param {number} value
+   * @param {import("./hyper-calendar.d.ts").NaturalSizeStyle} [style]
+   * @param {number} [decimals]
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  naturalSize(value, style = "decimal", decimals = 1) {
+    const fn = this.#export("hc_naturalsize");
+    const v = toF64(value, "value");
+    const digits = toU32(decimals, "decimals");
+    const text = this.#withText(style, "style", (stylePointer, styleLen) =>
+      this.#text("hc_naturalsize", (buffer, capacity) =>
+        fn(v, stylePointer, styleLen, digits, buffer, capacity), true));
+    return naturalText(this.#oneLine("hc_naturalsize", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * Items joined as a list, `humanize`'s `natural_list`: *one, two and
+   * three*, with no comma before the *and*.
+   *
+   * @param {string[]} items
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  naturalList(items) {
+    const fn = this.#export("hc_naturallist");
+    const text = this.#withText(items.join("\n"), "items", (itemsPointer, itemsLen) =>
+      this.#text("hc_naturallist", (buffer, capacity) =>
+        fn(itemsPointer, itemsLen, buffer, capacity), true));
+    return naturalText(this.#oneLine("hc_naturallist", text, COLUMNS.naturalText));
+  }
+
+  /**
+   * An integer of any length as a count with a word, `humanize`'s
+   * `intword`: *12.4 thousand*, *1.2 billion*, *1.0 googol*. `digits` is
+   * an integer written in digits, or a `bigint`.
+   *
+   * @param {string | number | bigint} digits
+   * @param {number} [decimals]
+   * @returns {import("./hyper-calendar.d.ts").NaturalText}
+   */
+  intword(digits, decimals = 1) {
+    const fn = this.#export("hc_intword");
+    const places = toU32(decimals, "decimals");
+    const text = this.#withText(String(digits), "digits", (digitsPointer, digitsLen) =>
+      this.#text("hc_intword", (buffer, capacity) =>
+        fn(digitsPointer, digitsLen, places, buffer, capacity), true));
+    return naturalText(this.#oneLine("hc_intword", text, COLUMNS.naturalText));
   }
 
   /**

@@ -37,6 +37,7 @@
 //! | `fromisoformat`, `isoformat`, `strftime`, `strptime` | `hc_format::python`, `hc_format::patterns::strftime` (feature `format`) |
 //! | `fromtimestamp`, `timestamp`, `astimezone` | `hc_tz` (feature `tz`) |
 //! | `humanize` | `hc_humanize::natural` (feature `humanize`) |
+//! | `time.struct_time`, `calendar` | [`StructTime`], [`calendar`] |
 //!
 //! The whole correspondence, with what is missing and why, is
 //! `docs/python-parity.md`.
@@ -52,8 +53,14 @@
 //! Spans are exact to the attosecond where Python's stop at the
 //! microsecond, and the ranges are wider: years −9 999 999 to 9 999 999
 //! rather than 1 to 9999. Where Python rounds a span to the microsecond —
-//! `timedelta / int`, `timedelta * float` — this library floors at the
-//! attosecond instead.
+//! `timedelta / int`, `timedelta / float`, `timedelta * float` — the
+//! methods take a [`Resolution`]: [`Resolution::Microsecond`] is Python's
+//! answer, rounding the exact product once, half to even, and
+//! [`Resolution::Attosecond`] keeps the span's own digits. `timedelta //
+//! int` floors at the attosecond.
+//!
+//! [`StructTime`] and the [`calendar`] functions are Python's `time.struct_time`
+//! and `calendar` module.
 //!
 //! # Operators
 //!
@@ -62,6 +69,8 @@
 //! `%` on a zero divisor), in release builds too, so that arithmetic reads
 //! as it does in Python. Each has a `checked_*` twin that returns an error
 //! instead (policy §8).
+
+mod struct_time;
 
 use core::fmt;
 use core::ops::{Add, AddAssign, Div, Mul, Neg, Rem, Sub, SubAssign};
@@ -818,6 +827,27 @@ impl fmt::Display for DateTime {
     }
 }
 
+/// The unit a scaled or divided span is rounded to, half to even.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum Resolution {
+    /// An attosecond, the span's own resolution: exact to the last place.
+    #[default]
+    Attosecond,
+    /// A microsecond, the resolution of Python's `timedelta`.
+    Microsecond,
+}
+
+impl Resolution {
+    /// The unit in attoseconds.
+    #[must_use]
+    pub const fn attos(self) -> u64 {
+        match self {
+            Self::Attosecond => 1,
+            Self::Microsecond => 1_000_000_000_000,
+        }
+    }
+}
+
 /// A span of time.
 ///
 /// The equivalent of Python's `timedelta`, over [`hc_core::Duration`], so it
@@ -1083,6 +1113,10 @@ impl TimeDelta {
 
     /// The ratio of two spans as `f64`: Python's `timedelta / timedelta`.
     ///
+    /// The spans are divided as integers and the result is the double
+    /// nearest the exact quotient, as Python's integer true division gives
+    /// it for whole microseconds.
+    ///
     /// # Errors
     ///
     /// Returns [`hc_core::TimeError::DivideByZero`] for a zero divisor.
@@ -1090,15 +1124,56 @@ impl TimeDelta {
         self.0.ratio(divisor.0)
     }
 
-    /// Scale by a real factor: Python's `timedelta * float`, to within what
-    /// `f64` holds.
+    /// Scale by a real factor, exactly: the factor is the rational number
+    /// its double is, and the product is rounded once, half to even, at the
+    /// attosecond.
+    ///
+    /// Python's `timedelta * float` rounds at the microsecond instead; that
+    /// is [`TimeDelta::checked_scale_at`] with [`Resolution::Microsecond`].
     ///
     /// # Errors
     ///
     /// Returns [`hc_core::TimeError::NotFinite`] or
     /// [`hc_core::TimeError::Overflow`] for a factor that leaves the range.
     pub fn checked_scale(self, factor: f64) -> TimeResult<Self> {
-        Ok(Self(self.0.scale_f64(factor)?))
+        self.checked_scale_at(factor, Resolution::Attosecond)
+    }
+
+    /// Scale by a real factor and round the product, half to even, to a
+    /// resolution. With [`Resolution::Microsecond`] this is Python's
+    /// `timedelta * float`, which multiplies by the float's exact ratio and
+    /// rounds to the nearest microsecond.
+    ///
+    /// # Errors
+    ///
+    /// As [`TimeDelta::checked_scale`].
+    pub fn checked_scale_at(self, factor: f64, resolution: Resolution) -> TimeResult<Self> {
+        Ok(Self(self.0.scale_f64_nearest(factor, resolution.attos())?))
+    }
+
+    /// Divide by a real divisor and round the quotient, half to even, to a
+    /// resolution. With [`Resolution::Microsecond`] this is Python's
+    /// `timedelta / float`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`hc_core::TimeError::DivideByZero`] for a zero divisor, and
+    /// otherwise as [`TimeDelta::checked_scale`].
+    pub fn checked_div_f64_at(self, divisor: f64, resolution: Resolution) -> TimeResult<Self> {
+        Ok(Self(self.0.div_f64_nearest(divisor, resolution.attos())?))
+    }
+
+    /// Divide by an integer and round the quotient, half to even, to a
+    /// resolution. With [`Resolution::Microsecond`] this is Python's
+    /// `timedelta / int`; [`TimeDelta::checked_div`] is `timedelta // int`
+    /// at the attosecond.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`hc_core::TimeError::DivideByZero`] for a zero divisor, and
+    /// [`hc_core::TimeError::Overflow`] for a result beyond the range.
+    pub fn checked_div_nearest_at(self, divisor: i64, resolution: Resolution) -> TimeResult<Self> {
+        Ok(Self(self.0.div_int_nearest(divisor, resolution.attos())?))
     }
 
     /// Addition that reports overflow instead of panicking.
@@ -1596,6 +1671,9 @@ mod with_format {
     }
 }
 
+#[cfg(feature = "format")]
+pub use struct_time::AsctimeError;
+pub use struct_time::{StructTime, calendar};
 #[cfg(feature = "format")]
 pub use with_format::StrptimeError;
 

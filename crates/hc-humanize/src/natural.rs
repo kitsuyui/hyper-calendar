@@ -1,19 +1,25 @@
-//! The functions of Python's `humanize` package, with its thresholds and its
-//! phrasing.
+//! The functions of Python's `humanize` package, with its thresholds, its
+//! arithmetic and its phrasing.
 //!
 //! The rest of this crate phrases time the way CLDR does. This module
 //! phrases it the way the Python `humanize` package does — *a moment*,
-//! *an hour*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds* — for a
-//! caller porting code that already depends on those exact strings. The two
-//! are different conventions and neither is wrong, so they are separate
-//! (policy §5): [`crate::RelativeTimeFormatter`] is the CLDR one.
+//! *an hour*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds*, *1.2
+//! billion*, *2.9 KiB* — for a caller porting code that already depends on
+//! those exact strings. The two are different conventions and neither is
+//! wrong, so they are separate (policy §5): [`crate::RelativeTimeFormatter`]
+//! is the CLDR one.
 //!
-//! The behaviour is that of `humanize` 4.x as its documentation states it
-//! (<https://humanize.readthedocs.io/en/latest/time/> and `/number/`,
-//! retrieved 2026-09-26), including the source shown there for
-//! `naturaldelta` and `naturaltime`. `humanize` is MIT-licensed; nothing is
-//! copied from it but the thresholds and the English strings, which are the
-//! behaviour being reproduced.
+//! The behaviour is that of `humanize` 4.16.0, the release of 2026-06-30,
+//! whose sources (`time.py`, `number.py`, `filesize.py`, `lists.py`,
+//! `i18n.py`) and catalogues were read at the tag `4.16.0` of
+//! <https://github.com/python-humanize/humanize> on 2026-10-03, and whose
+//! documentation (<https://humanize.readthedocs.io/en/latest/time/> and
+//! `/number/`) was read the same day. `humanize` is MIT-licensed; nothing is
+//! copied from it but the thresholds, the arithmetic and the strings, which
+//! are the behaviour being reproduced. The system document
+//! `docs/systems/python-compatibility.md` explains the arithmetic and gives
+//! the measured agreement; `docs/python-parity.md` lists what the project's
+//! later, unreleased code does differently.
 //!
 //! # What differs from Python, and why
 //!
@@ -26,14 +32,17 @@
 //! * **Microseconds.** A [`Duration`] is exact to the attosecond; these
 //!   functions read it, as Python's `timedelta` would hold it, truncated to
 //!   the microsecond.
-//! * **One vocabulary.** [`NaturalPhrases::ENGLISH`] is `humanize`'s source
-//!   strings. `humanize` ships gettext catalogues for about forty languages;
-//!   none of them is carried here, because they were not read. A language is
-//!   added as one more [`NaturalPhrases`] value, and its plurals are chosen
-//!   by [`hc_i18n::PluralRules`], never by comparing a count to one.
-//! * **`intcomma` separators** are a [`Grouping`] the caller passes rather
-//!   than `humanize`'s per-locale table, for the same reason.
-//! * **`naturalsize`** is not here: it formats bytes, not time.
+//! * **A language is a value.** [`NaturalPhrases::ENGLISH`] is `humanize`'s
+//!   source strings, and [`NaturalPhrases::by_catalogue`] the 35 gettext
+//!   catalogues of the release, by the names `humanize.i18n.activate` takes.
+//!   The language is the [`Natural`] you hold, not a process-wide setting
+//!   (policy §13), and a plural is chosen by the catalogue's own expression
+//!   ([`gettext`]), never by comparing a count to one.
+//! * **`intcomma` separators** are a [`Grouping`] the caller passes;
+//!   [`NaturalPhrases::grouping`] is the language's own, from `i18n.py`.
+//! * **Integers of any length.** Python's `intword` reaches the googol
+//!   because its integers have no end; [`Natural::write_intword_digits`]
+//!   takes the digits.
 
 use core::fmt;
 use core::fmt::Write as _;
@@ -44,28 +53,76 @@ use hc_calendar::Rd;
 use hc_core::Duration;
 #[cfg(feature = "format")]
 use hc_format::patterns::{FormatContext, strftime};
-use hc_i18n::{PluralCategory, PluralRules};
+
+mod catalogues;
+pub mod gettext;
+mod numbers;
+
+pub use numbers::{ClampFormat, SizeStyle};
 
 use crate::error::{HumanizeError, HumanizeResult};
 
 const MICROS_PER_SECOND: i128 = 1_000_000;
 const MICROS_PER_DAY: i128 = 86_400 * MICROS_PER_SECOND;
 
-/// A singular and a plural phrase, each holding `{0}` where the number goes.
+/// A phrase `humanize` chooses by count: the English singular and plural of
+/// its source, each holding `{0}` where the number goes, and the forms a
+/// catalogue translates them to.
+///
+/// Python's `ngettext(singular, plural, n)` looks `n`'s form up in the
+/// catalogue (see [`gettext`]) and, for a message the catalogue does not
+/// translate, answers the singular for 1 and the plural for any other count.
+/// An untranslated message has no `forms`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PluralPair {
-    /// The form for CLDR's `one`.
+pub struct Plural {
+    /// The English singular, the message's `msgid`.
     pub one: &'static str,
-    /// The form for every other category.
+    /// The English plural, its `msgid_plural`.
     pub other: &'static str,
+    /// The catalogue's `msgstr[0]`, `msgstr[1]`, ...; empty when it has none.
+    pub forms: &'static [&'static str],
+}
+
+impl Plural {
+    /// A message with no translation: the English pair.
+    #[must_use]
+    pub const fn english(one: &'static str, other: &'static str) -> Self {
+        Self {
+            one,
+            other,
+            forms: &[],
+        }
+    }
+
+    /// A message a catalogue translates to `forms`.
+    #[must_use]
+    pub const fn translated(
+        one: &'static str,
+        other: &'static str,
+        forms: &'static [&'static str],
+    ) -> Self {
+        Self { one, other, forms }
+    }
 }
 
 /// Every string the `humanize` functions produce, in one language.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[non_exhaustive]
 pub struct NaturalPhrases {
-    /// The language whose plural rules choose between the forms.
+    /// The catalogue's name, as `humanize.i18n.activate` takes it: `en` for
+    /// the English of the source, `ru_RU` for the Russian catalogue.
+    pub catalogue: &'static str,
+    /// The language the catalogue says it translates to (its header's
+    /// `Language`), `en`, `ru`.
     pub language: &'static str,
+    /// The catalogue's `plural=` expression, which chooses a form by count
+    /// ([`gettext::plural_index`]); `n != 1` for the English of the source.
+    pub plural_expression: &'static str,
+    /// The separators `humanize` writes numbers with in this language, which
+    /// its `i18n` module holds apart from the catalogue: `,` and `.`
+    /// everywhere but German, French, Italian, Brazilian Portuguese,
+    /// Hungarian and Latvian.
+    pub grouping: Grouping,
     /// Below the smallest unit: `a moment`.
     pub a_moment: &'static str,
     /// `a second`.
@@ -83,25 +140,25 @@ pub struct NaturalPhrases {
     /// `1 year, 1 month`.
     pub one_year_one_month: &'static str,
     /// `1 year, {0} day(s)`.
-    pub one_year_days: PluralPair,
+    pub one_year_days: Plural,
     /// `1 year, {0} month(s)`.
-    pub one_year_months: PluralPair,
+    pub one_year_months: Plural,
     /// `{0} microsecond(s)`.
-    pub microseconds: PluralPair,
+    pub microseconds: Plural,
     /// `{0} millisecond(s)`.
-    pub milliseconds: PluralPair,
+    pub milliseconds: Plural,
     /// `{0} second(s)`.
-    pub seconds: PluralPair,
+    pub seconds: Plural,
     /// `{0} minute(s)`.
-    pub minutes: PluralPair,
+    pub minutes: Plural,
     /// `{0} hour(s)`.
-    pub hours: PluralPair,
+    pub hours: Plural,
     /// `{0} day(s)`.
-    pub days: PluralPair,
+    pub days: Plural,
     /// `{0} month(s)`.
-    pub months: PluralPair,
+    pub months: Plural,
     /// `{0} year(s)`.
-    pub years: PluralPair,
+    pub years: Plural,
     /// `now`, which `naturaltime` says instead of `a moment ago`.
     pub now: &'static str,
     /// `{0} ago`.
@@ -118,27 +175,109 @@ pub struct NaturalPhrases {
     pub list_separator: &'static str,
     /// The last two list items: `{0} and {1}`.
     pub list_last: &'static str,
-    /// The ordinal suffix of 11, 12 and 13: `th`.
-    pub ordinal_teens: &'static str,
-    /// The ordinal suffix by last digit, 0 through 9.
+    /// The masculine ordinal suffix by last digit, 0 through 9: `th`, `st`,
+    /// `nd`, `rd`, `th`, ... Index 0, the suffix of 10, is also the one of
+    /// 11, 12 and 13.
     pub ordinal_by_last_digit: [&'static str; 10],
-    /// The names of the powers of a thousand, from `thousand` (10³) to
-    /// `decillion` (10³³), as singular and plural.
-    pub powers: [PluralPair; 11],
+    /// The feminine ordinal suffix by last digit, as `ordinal(value,
+    /// gender="female")` writes it; English has the same ones.
+    pub ordinal_by_last_digit_female: [&'static str; 10],
+    /// The names of the powers `intword` knows, from `thousand` (10³) to
+    /// `decillion` (10³³) and the `googol` (10¹⁰⁰), as singular and plural.
+    pub powers: [Plural; 12],
+    /// `zero` to `nine`, which `apnumber` spells out.
+    pub apnumber: [&'static str; 10],
+    /// `naturalsize` of exactly one byte: `{0} Byte`.
+    pub byte: &'static str,
+    /// `naturalsize` below the base: `{0} Bytes`.
+    pub bytes: &'static str,
+    /// The decimal suffixes of `naturalsize`, `kB` to `QB`.
+    pub size_decimal: [&'static str; 10],
+    /// The binary suffixes of `naturalsize`, `KiB` to `QiB`.
+    pub size_binary: [&'static str; 10],
+    /// The one-letter suffixes of `naturalsize`'s GNU style, `K` to `Q`.
+    pub size_gnu: [&'static str; 10],
 }
 
-const fn same(word: &'static str) -> PluralPair {
-    PluralPair {
-        one: word,
-        other: word,
+impl NaturalPhrases {
+    /// The decimal exponents of [`NaturalPhrases::powers`]: 3, 6, ..., 33
+    /// and 100.
+    pub const POWER_EXPONENTS: [u8; 12] = [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 100];
+
+    /// The catalogue `humanize.i18n.activate(name)` loads: one of the
+    /// translations `humanize` 4.16.0 ships, by the name of its directory,
+    /// `ru_RU`, `pt_BR`, `lv` (a hyphen for the underscore is accepted), or
+    /// the English of the source for any name that starts with `en`, as
+    /// `activate` takes it.
+    ///
+    /// Python does not look a language up: `activate("ru")` is a
+    /// `FileNotFoundError`, since no directory is called `ru`, and so this
+    /// is `None` for it; [`NaturalPhrases::by_language`] is the lookup that
+    /// finds `ru_RU` for it.
+    ///
+    /// ```
+    /// use hc_core::Duration;
+    /// use hc_humanize::natural::{DeltaOptions, Natural, NaturalPhrases};
+    ///
+    /// let russian = Natural::with_phrases(NaturalPhrases::by_catalogue("ru_RU").unwrap());
+    /// let span = Duration::from_secs(3);
+    /// assert_eq!(russian.naturaltime_delta(span, DeltaOptions::default())?, "3 секунды назад");
+    /// # Ok::<(), hc_humanize::HumanizeError>(())
+    /// ```
+    #[must_use]
+    pub fn by_catalogue(name: &str) -> Option<&'static Self> {
+        if name.starts_with("en") {
+            return Some(&Self::ENGLISH);
+        }
+        catalogues::ALL.into_iter().find(|phrases| {
+            phrases.catalogue.eq_ignore_ascii_case(name)
+                || phrases.language.eq_ignore_ascii_case(name)
+        })
     }
+
+    /// The catalogue of a language, by a BCP 47 tag, when exactly one of the
+    /// shipped ones is for it: `ru` and `ru-RU` give `ru_RU`, and `pt-BR`
+    /// gives `pt_BR`, but `pt` and `zh`, which have two, give none, and a
+    /// language with none gives none.
+    #[must_use]
+    pub fn by_language(tag: &str) -> Option<&'static Self> {
+        if let Some(exact) = Self::by_catalogue(tag) {
+            return Some(exact);
+        }
+        let primary = tag.split(['-', '_']).next().unwrap_or(tag);
+        let mut found = catalogues::ALL.into_iter().filter(|phrases| {
+            phrases
+                .language
+                .split('-')
+                .next()
+                .is_some_and(|language| language.eq_ignore_ascii_case(primary))
+        });
+        let first = found.next()?;
+        found.next().is_none().then_some(first)
+    }
+
+    /// Every translation `humanize` 4.16.0 ships, in the order of its
+    /// directories: 35 of them, each [`NaturalPhrases::catalogue`] named as
+    /// `humanize.i18n.activate` takes it. The English of the source is
+    /// [`NaturalPhrases::ENGLISH`], not in the list.
+    #[must_use]
+    pub fn catalogues() -> &'static [&'static Self] {
+        &catalogues::ALL
+    }
+}
+
+const fn same(word: &'static str) -> Plural {
+    Plural::english(word, word)
 }
 
 impl NaturalPhrases {
     /// `humanize`'s own strings: the English message identifiers its
     /// catalogues translate.
     pub const ENGLISH: Self = Self {
+        catalogue: "en",
         language: "en",
+        plural_expression: "n != 1",
+        grouping: Grouping::ENGLISH,
         a_moment: "a moment",
         a_second: "a second",
         a_minute: "a minute",
@@ -147,46 +286,16 @@ impl NaturalPhrases {
         a_month: "a month",
         a_year: "a year",
         one_year_one_month: "1 year, 1 month",
-        one_year_days: PluralPair {
-            one: "1 year, {0} day",
-            other: "1 year, {0} days",
-        },
-        one_year_months: PluralPair {
-            one: "1 year, {0} month",
-            other: "1 year, {0} months",
-        },
-        microseconds: PluralPair {
-            one: "{0} microsecond",
-            other: "{0} microseconds",
-        },
-        milliseconds: PluralPair {
-            one: "{0} millisecond",
-            other: "{0} milliseconds",
-        },
-        seconds: PluralPair {
-            one: "{0} second",
-            other: "{0} seconds",
-        },
-        minutes: PluralPair {
-            one: "{0} minute",
-            other: "{0} minutes",
-        },
-        hours: PluralPair {
-            one: "{0} hour",
-            other: "{0} hours",
-        },
-        days: PluralPair {
-            one: "{0} day",
-            other: "{0} days",
-        },
-        months: PluralPair {
-            one: "{0} month",
-            other: "{0} months",
-        },
-        years: PluralPair {
-            one: "{0} year",
-            other: "{0} years",
-        },
+        one_year_days: Plural::english("1 year, {0} day", "1 year, {0} days"),
+        one_year_months: Plural::english("1 year, {0} month", "1 year, {0} months"),
+        microseconds: Plural::english("{0} microsecond", "{0} microseconds"),
+        milliseconds: Plural::english("{0} millisecond", "{0} milliseconds"),
+        seconds: Plural::english("{0} second", "{0} seconds"),
+        minutes: Plural::english("{0} minute", "{0} minutes"),
+        hours: Plural::english("{0} hour", "{0} hours"),
+        days: Plural::english("{0} day", "{0} days"),
+        months: Plural::english("{0} month", "{0} months"),
+        years: Plural::english("{0} year", "{0} years"),
         now: "now",
         ago: "{0} ago",
         from_now: "{0} from now",
@@ -195,8 +304,8 @@ impl NaturalPhrases {
         yesterday: "yesterday",
         list_separator: ", ",
         list_last: "{0} and {1}",
-        ordinal_teens: "th",
         ordinal_by_last_digit: ["th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"],
+        ordinal_by_last_digit_female: ["th", "st", "nd", "rd", "th", "th", "th", "th", "th", "th"],
         powers: [
             same("thousand"),
             same("million"),
@@ -209,7 +318,18 @@ impl NaturalPhrases {
             same("octillion"),
             same("nonillion"),
             same("decillion"),
+            same("googol"),
         ],
+        apnumber: [
+            "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        ],
+        byte: "{0} Byte",
+        bytes: "{0} Bytes",
+        size_decimal: ["kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB", "RB", "QB"],
+        size_binary: [
+            "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB", "RiB", "QiB",
+        ],
+        size_gnu: ["K", "M", "G", "T", "P", "E", "Z", "Y", "R", "Q"],
     };
 }
 
@@ -248,38 +368,7 @@ impl PreciseUnit {
         Self::Microseconds,
     ];
 
-    /// The unit's length in microseconds.
-    const fn micros(self) -> i128 {
-        match self {
-            Self::Microseconds => 1,
-            Self::Milliseconds => 1_000,
-            Self::Seconds => MICROS_PER_SECOND,
-            Self::Minutes => 60 * MICROS_PER_SECOND,
-            Self::Hours => 3_600 * MICROS_PER_SECOND,
-            Self::Days => MICROS_PER_DAY,
-            Self::Months => 61 * MICROS_PER_DAY / 2,
-            Self::Years => 365 * MICROS_PER_DAY,
-        }
-    }
-
-    /// The resolution `humanize` computes this unit's fraction from: whole
-    /// days for years and months, whole seconds for days, hours and minutes,
-    /// microseconds below that. The numerator and denominator of the unit's
-    /// length in that resolution come with it.
-    const fn fraction_basis(self) -> (i128, i128, i128) {
-        match self {
-            Self::Years => (MICROS_PER_DAY, 365, 1),
-            Self::Months => (MICROS_PER_DAY, 61, 2),
-            Self::Days => (MICROS_PER_SECOND, 86_400, 1),
-            Self::Hours => (MICROS_PER_SECOND, 3_600, 1),
-            Self::Minutes => (MICROS_PER_SECOND, 60, 1),
-            Self::Seconds => (1, MICROS_PER_SECOND, 1),
-            Self::Milliseconds => (1, 1_000, 1),
-            Self::Microseconds => (1, 1, 1),
-        }
-    }
-
-    const fn phrases(self, phrases: &NaturalPhrases) -> PluralPair {
+    const fn phrases(self, phrases: &NaturalPhrases) -> Plural {
         match self {
             Self::Microseconds => phrases.microseconds,
             Self::Milliseconds => phrases.milliseconds,
@@ -330,12 +419,34 @@ impl Grouping {
     };
 }
 
+/// The grammatical gender `ordinal` takes: `humanize`'s `male` and `female`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub enum Gender {
+    /// `gender="male"`, the default.
+    #[default]
+    Male,
+    /// `gender="female"`.
+    Female,
+}
+
 /// A phrase before its number is written.
 #[derive(Debug, Clone, Copy)]
 enum Phrase {
     Fixed(&'static str),
-    Count(PluralPair, i128),
-    Grouped(PluralPair, i128),
+    Count(Plural, i128),
+    Grouped(Plural, i128),
+}
+
+/// The text around and between the two halves of `%s and %s` once its
+/// placeholders are `{0}` and `{1}`.
+fn list_parts(pattern: &str) -> (&str, &str, &str) {
+    match pattern.split_once("{0}") {
+        Some((before, rest)) => match rest.split_once("{1}") {
+            Some((middle, after)) => (before, middle, after),
+            None => (before, " and ", ""),
+        },
+        None => ("", " and ", ""),
+    }
 }
 
 /// The `humanize` functions, in one vocabulary.
@@ -352,7 +463,6 @@ enum Phrase {
 #[derive(Debug, Clone, Copy)]
 pub struct Natural {
     phrases: &'static NaturalPhrases,
-    rules: PluralRules,
 }
 
 impl Natural {
@@ -362,12 +472,23 @@ impl Natural {
         Self::with_phrases(&NaturalPhrases::ENGLISH)
     }
 
-    /// Another vocabulary, with the plural rules of its language.
+    /// Another vocabulary, which chooses its forms by its own catalogue's
+    /// plural expression.
     #[must_use]
-    pub fn with_phrases(phrases: &'static NaturalPhrases) -> Self {
-        let rules = PluralRules::for_language(phrases.language)
-            .unwrap_or_else(|| PluralRules::for_locale(&hc_i18n::Locale::ROOT));
-        Self { phrases, rules }
+    pub const fn with_phrases(phrases: &'static NaturalPhrases) -> Self {
+        Self { phrases }
+    }
+
+    /// The vocabulary of a catalogue, by [`NaturalPhrases::by_catalogue`].
+    #[must_use]
+    pub fn for_catalogue(name: &str) -> Option<Self> {
+        NaturalPhrases::by_catalogue(name).map(Self::with_phrases)
+    }
+
+    /// The vocabulary of a language, by [`NaturalPhrases::by_language`].
+    #[must_use]
+    pub fn for_language(tag: &str) -> Option<Self> {
+        NaturalPhrases::by_language(tag).map(Self::with_phrases)
     }
 
     /// The vocabulary in use.
@@ -376,13 +497,30 @@ impl Natural {
         self.phrases
     }
 
-    fn pick(&self, pair: PluralPair, count: i128) -> &'static str {
+    /// Python's `ngettext` over the catalogue: the translated form its
+    /// expression selects for `count`, or, for a message with none or a
+    /// form the catalogue lacks, the English singular for 1 and the plural
+    /// for any other count.
+    fn pick(&self, message: Plural, count: i128) -> &'static str {
         let count = i64::try_from(count).unwrap_or(i64::MAX);
-        if self.rules.select_integer(count) == PluralCategory::One {
-            pair.one
-        } else {
-            pair.other
-        }
+        gettext::plural_index(self.phrases.plural_expression, count)
+            .and_then(|index| message.forms.get(index).copied())
+            .unwrap_or(if count == 1 {
+                message.one
+            } else {
+                message.other
+            })
+    }
+
+    /// [`Natural::pick`] for a count written in decimal digits.
+    fn pick_digits(&self, message: Plural, digits: &str) -> &'static str {
+        gettext::plural_index_digits(self.phrases.plural_expression, digits)
+            .and_then(|index| message.forms.get(index).copied())
+            .unwrap_or(if digits.trim_start_matches('0') == "1" {
+                message.one
+            } else {
+                message.other
+            })
     }
 
     // --- naturaldelta and naturaltime --------------------------------------
@@ -532,7 +670,9 @@ impl Natural {
                 months => Phrase::Count(phrases.one_year_months, months),
             });
         }
-        Ok(Phrase::Grouped(phrases.years, round_half_even(days, 365)))
+        // `humanize` 4.16.0 counts whole years, `delta.days // 365`; its later,
+        // unreleased code rounds `delta.days / 365`.
+        Ok(Phrase::Grouped(phrases.years, days / 365))
     }
 
     fn write_phrase<W: fmt::Write>(&self, out: &mut W, phrase: Phrase) -> HumanizeResult<()> {
@@ -543,7 +683,7 @@ impl Natural {
             }
             Phrase::Grouped(pair, count) => {
                 substitute(out, self.pick(pair, count), |out| {
-                    write_grouped(out, count, Grouping::ENGLISH.thousands)
+                    write_grouped(out, count, self.phrases.grouping.thousands)
                 })?;
             }
         }
@@ -559,10 +699,20 @@ impl Natural {
     /// written takes the fraction of what is left, to `decimals` places.
     /// The sign is ignored, as in Python.
     ///
-    /// The fraction is computed as `humanize` computes it — the fraction of
-    /// a month or year from whole days, of a day, hour or minute from whole
-    /// seconds — and rounded half to even from the nearest double, as
-    /// Python's `%` formatting rounds it.
+    /// The arithmetic is `humanize` 4.16's, step for step, so that its
+    /// quirks are reproduced rather than corrected:
+    ///
+    /// * the fraction of a year is `days / 365` and of a month `days / 30.5`,
+    ///   taken from whole days, and of a day, hour or minute from whole
+    ///   seconds;
+    /// * the remainder left after a division is truncated to a whole number
+    ///   (`int(r)`), so the half day left by a 30.5-day month is lost, where
+    ///   exact arithmetic would write it as 12 hours;
+    /// * the minimum unit's value is rounded with the format *before* it is
+    ///   compared with zero, so two days and one microsecond read `2 days`;
+    /// * a unit that rounding pushes to its next unit's size is carried:
+    ///   59.999 999 seconds at `minimum_unit` seconds is `1 minute`. The
+    ///   carry from days to months subtracts 31, as `humanize` does.
     ///
     /// # Errors
     ///
@@ -580,84 +730,78 @@ impl Natural {
     ) -> HumanizeResult<()> {
         let minimum = suitable_minimum(minimum_unit, suppress)?;
         let suppressed = |unit: PreciseUnit| unit < minimum || suppress.contains(&unit);
-        let mut remaining = abs_micros(delta)?;
-        // Whole counts for the units above the minimum, and the minimum's
-        // own value as a double.
-        let mut counts = [0i128; 8];
-        let mut fraction = 0.0f64;
-        for (index, unit) in PreciseUnit::DESCENDING.into_iter().enumerate() {
-            if unit == minimum {
-                let (resolution, numerator, denominator) = unit.fraction_basis();
-                let basis = remaining / resolution;
-                fraction = (basis * denominator) as f64 / numerator as f64;
-                break;
-            }
-            if suppressed(unit) {
-                continue;
-            }
-            // `humanize` divides whole days by 30.5 for months, so a month
-            // is only taken from whole days.
-            let quotient = if unit == PreciseUnit::Months {
-                remaining / MICROS_PER_DAY * 2 / 61
-            } else {
-                remaining / unit.micros()
-            };
-            remaining -= quotient * unit.micros();
-            if let Some(slot) = counts.get_mut(index) {
-                *slot = quotient;
-            }
-        }
+        let split = |value: Num, divisor: Divisor, unit: PreciseUnit| {
+            quotient_and_remainder(value, divisor, unit, minimum, &suppressed, decimals)
+        };
 
-        // The non-zero units above the minimum, largest first; at most
-        // seven, so they are held on the stack.
-        let mut items = [(PreciseUnit::Years, 0i128); 8];
-        let mut whole_items = 0usize;
-        for (index, unit) in PreciseUnit::DESCENDING.into_iter().enumerate() {
-            if unit == minimum {
-                break;
+        let total = abs_micros(delta)?;
+        let days = total / MICROS_PER_DAY;
+        let seconds = total % MICROS_PER_DAY / MICROS_PER_SECOND;
+        let micros = total % MICROS_PER_SECOND;
+
+        let (years, days) = split(Num::Int(days), Divisor::Whole(365), PreciseUnit::Years);
+        let (months, days) = split(days, Divisor::Half(61), PreciseUnit::Months);
+        let seconds = days.int() * 86_400 + seconds;
+        let (days, seconds) = split(Num::Int(seconds), Divisor::Whole(86_400), PreciseUnit::Days);
+        let (hours, seconds) = split(seconds, Divisor::Whole(3_600), PreciseUnit::Hours);
+        let (minutes, seconds) = split(seconds, Divisor::Whole(60), PreciseUnit::Minutes);
+        // From here Python holds the count in a float: `secs * 1e6 + usecs`.
+        let micros = Num::Float(seconds.int() as f64 * 1e6 + micros as f64);
+        let (seconds, micros) = split(micros, Divisor::Float(1e6), PreciseUnit::Seconds);
+        let (millis, micros) = split(micros, Divisor::Whole(1_000), PreciseUnit::Milliseconds);
+
+        // Rounding can leave a unit the size of the next one up: carry it.
+        let (mut years, mut months, mut days, mut hours) = (years, months, days, hours);
+        let (mut minutes, mut seconds, mut millis) = (minutes, seconds, millis);
+        let micros = micros.count();
+        let carry = |small: &mut Count, big: &mut Count, size: i128, big_unit: PreciseUnit| {
+            if small.at_least(size) && !suppressed(big_unit) {
+                *small = small.minus(size);
+                *big = big.plus(1);
             }
-            let count = counts.get(index).copied().unwrap_or(0);
-            if count > 0
-                && let Some(slot) = items.get_mut(whole_items)
+        };
+        carry(&mut millis, &mut seconds, 1_000, PreciseUnit::Seconds);
+        carry(&mut seconds, &mut minutes, 60, PreciseUnit::Minutes);
+        carry(&mut minutes, &mut hours, 60, PreciseUnit::Hours);
+        carry(&mut hours, &mut days, 24, PreciseUnit::Days);
+        carry(&mut days, &mut months, 31, PreciseUnit::Months);
+        carry(&mut months, &mut years, 12, PreciseUnit::Years);
+
+        let values = [years, months, days, hours, minutes, seconds, millis, micros];
+        // The units written: non-zero ones above the minimum, and the
+        // minimum itself when it is non-zero or nothing else is written
+        // (`0 minutes`). The loop stops at the minimum.
+        let mut written = [None::<(PreciseUnit, Count)>; 8];
+        let mut total_items = 0usize;
+        for (unit, value) in PreciseUnit::DESCENDING.into_iter().zip(values) {
+            if (value.is_positive() || (total_items == 0 && unit == minimum))
+                && let Some(slot) = written.get_mut(total_items)
             {
-                *slot = (unit, count);
-                whole_items += 1;
+                *slot = Some((unit, value));
+                total_items += 1;
+            }
+            if unit == minimum {
+                break;
             }
         }
-        // The minimum is written when it is non-zero, or when nothing else
-        // was: `0 minutes`.
-        let with_minimum = fraction > 0.0 || whole_items == 0;
-        let total = whole_items + usize::from(with_minimum);
-        for position in 0..total {
+        // `_("%s and %s") % (head, tail)`: the catalogue's text around and
+        // between the two halves, which Klingon puts a word after.
+        let (before, middle, after) = list_parts(self.phrases.list_last);
+        if total_items > 1 {
+            out.write_str(before)?;
+        }
+        for (position, item) in written.into_iter().flatten().enumerate() {
             if position > 0 {
-                self.write_joiner(out, position, total)?;
+                out.write_str(if position + 1 == total_items {
+                    middle
+                } else {
+                    self.phrases.list_separator
+                })?;
             }
-            match items.get(position) {
-                Some(&item) if position < whole_items => {
-                    self.write_item(out, item, None, decimals, minimum)?;
-                }
-                _ => self.write_item(out, (minimum, 0), Some(fraction), decimals, minimum)?,
-            }
+            self.write_item(out, item, decimals, minimum)?;
         }
-        Ok(())
-    }
-
-    fn write_joiner<W: fmt::Write>(
-        &self,
-        out: &mut W,
-        position: usize,
-        total: usize,
-    ) -> HumanizeResult<()> {
-        if position + 1 == total {
-            let joiner = self
-                .phrases
-                .list_last
-                .split_once("{0}")
-                .and_then(|(_, rest)| rest.split_once("{1}"))
-                .map_or(" and ", |(middle, _)| middle);
-            out.write_str(joiner)?;
-        } else {
-            out.write_str(self.phrases.list_separator)?;
+        if total_items > 1 {
+            out.write_str(after)?;
         }
         Ok(())
     }
@@ -665,42 +809,30 @@ impl Natural {
     fn write_item<W: fmt::Write>(
         &self,
         out: &mut W,
-        (unit, count): (PreciseUnit, i128),
-        fraction: Option<f64>,
+        (unit, count): (PreciseUnit, Count),
         decimals: u8,
         minimum: PreciseUnit,
     ) -> HumanizeResult<()> {
         let pair = unit.phrases(self.phrases);
-        let Some(value) = fraction else {
-            let text = self.pick(pair, count);
-            return if unit == PreciseUnit::Years {
-                substitute(out, text, |out| {
-                    write_grouped(out, count, Grouping::ENGLISH.thousands)
-                })
-            } else {
-                substitute(out, text, |out| write!(out, "{count}"))
-            };
-        };
         // `2 if 1 < value < 2 else int(value)` picks the plural.
-        let whole = hc_core::math::trunc(value);
-        let chooser = if value > 1.0 && value < 2.0 {
-            2
-        } else {
-            whole as i128
+        let chooser = match count {
+            Count::Real(value) if value > 1.0 && value < 2.0 => 2,
+            other => other.truncated(),
         };
         let text = self.pick(pair, chooser);
-        let precision = usize::from(decimals);
-        if value - whole > 0.0 {
-            substitute(out, text, |out| write!(out, "{value:.precision$}"))
-        } else if minimum == PreciseUnit::Years {
-            // Python formats a whole year count that is still a float with
-            // `intcomma`, which writes it as `2.0`.
+        if unit == minimum
+            && let Count::Real(value) = count
+            && value - hc_core::math::trunc(value) > 0.0
+        {
+            let precision = usize::from(decimals);
+            return substitute(out, text, |out| write!(out, "{value:.precision$}"));
+        }
+        if unit == PreciseUnit::Years {
             substitute(out, text, |out| {
-                write_grouped(out, whole as i128, Grouping::ENGLISH.thousands)?;
-                out.write_str(".0")
+                write_grouped(out, count.truncated(), self.phrases.grouping.thousands)
             })
         } else {
-            substitute(out, text, |out| write!(out, "{}", whole as i128))
+            substitute(out, text, |out| write!(out, "{}", count.truncated()))
         }
     }
 
@@ -772,22 +904,38 @@ impl Natural {
 
     // --- numbers -----------------------------------------------------------
 
-    /// `ordinal(value)`: `1st`, `2nd`, `103rd`, `111th`.
+    /// `ordinal(value)`: `1st`, `2nd`, `103rd`, `111th`, with the masculine
+    /// suffixes, as Python's `gender="male"` default.
     ///
     /// # Errors
     ///
     /// [`HumanizeError::WriteFailed`] when the sink refuses.
     pub fn write_ordinal<W: fmt::Write>(&self, out: &mut W, value: i128) -> HumanizeResult<()> {
-        let suffix = if matches!(value.rem_euclid(100), 11..=13) {
-            self.phrases.ordinal_teens
-        } else {
-            let digit = value.rem_euclid(10) as usize;
-            self.phrases
-                .ordinal_by_last_digit
-                .get(digit)
-                .copied()
-                .unwrap_or("")
+        self.write_ordinal_of(out, value, Gender::Male)
+    }
+
+    /// `ordinal(value, gender)`: the suffix of the last digit in the gender,
+    /// and of 11, 12 and 13 the suffix of 0, as `humanize` writes it.
+    ///
+    /// # Errors
+    ///
+    /// [`HumanizeError::WriteFailed`] when the sink refuses.
+    pub fn write_ordinal_of<W: fmt::Write>(
+        &self,
+        out: &mut W,
+        value: i128,
+        gender: Gender,
+    ) -> HumanizeResult<()> {
+        let table = match gender {
+            Gender::Male => &self.phrases.ordinal_by_last_digit,
+            Gender::Female => &self.phrases.ordinal_by_last_digit_female,
         };
+        let digit = if matches!(value.rem_euclid(100), 11..=13) {
+            0
+        } else {
+            value.rem_euclid(10) as usize
+        };
+        let suffix = table.get(digit).copied().unwrap_or("");
         write!(out, "{value}{suffix}")?;
         Ok(())
     }
@@ -869,8 +1017,9 @@ impl Natural {
     /// written as it is.
     ///
     /// A value that rounds up to the next power is written in it:
-    /// `999 999` is `1.0 million`, not `1000.0 thousand`. `humanize`'s last
-    /// power, the googol, is beyond any `i128`.
+    /// `999 999` is `1.0 million`, not `1000.0 thousand`. An `i128` stops
+    /// short of `humanize`'s last power, the googol (10¹⁰⁰);
+    /// [`Natural::write_intword_digits`] takes an integer of any length.
     ///
     /// # Errors
     ///
@@ -881,40 +1030,9 @@ impl Natural {
         value: i128,
         decimals: u8,
     ) -> HumanizeResult<()> {
-        let magnitude = value.unsigned_abs();
-        let sign = if value < 0 { "-" } else { "" };
-        if magnitude < 1_000 {
-            write!(out, "{value}")?;
-            return Ok(());
-        }
-        // The largest power of a thousand not above the value, as an index
-        // into `powers` (0 is a thousand), capped at the decillion.
-        let mut index = 0usize;
-        let mut power = 1_000u128;
-        while index + 1 < self.phrases.powers.len() && magnitude / 1_000 >= power {
-            power *= 1_000;
-            index += 1;
-        }
-        let precision = usize::from(decimals);
-        let mut chopped = magnitude as f64 / power as f64;
-        // Rounding may reach the next power: 999 999 → "1000.0 thousand".
         let mut buffer = DigitBuffer::default();
-        write!(buffer, "{chopped:.precision$}")?;
-        let rounded: f64 = buffer.as_str().parse().unwrap_or(chopped);
-        if rounded == 1_000.0 && index + 1 < self.phrases.powers.len() {
-            index += 1;
-            power *= 1_000;
-            chopped = magnitude as f64 / power as f64;
-        }
-        let pair = self
-            .phrases
-            .powers
-            .get(index)
-            .copied()
-            .unwrap_or(PluralPair { one: "", other: "" });
-        let name = self.pick(pair, hc_core::math::ceil(chopped) as i128);
-        write!(out, "{sign}{chopped:.precision$} {name}")?;
-        Ok(())
+        write!(buffer, "{value}")?;
+        self.write_intword_digits(out, buffer.as_str(), decimals)
     }
 }
 
@@ -1069,6 +1187,160 @@ fn suitable_minimum(minimum: PreciseUnit, suppress: &[PreciseUnit]) -> HumanizeR
         ))
 }
 
+/// What `humanize` divides a count of one unit by to get the next: a whole
+/// number, `30.5` days as 61 half days, or `1e6`.
+#[derive(Debug, Clone, Copy)]
+enum Divisor {
+    Whole(i128),
+    Half(i128),
+    Float(f64),
+}
+
+/// A value being divided: a Python `int`, or the `float` that
+/// `secs * 1e6 + usecs` makes of the microseconds. The float is exact up to
+/// 2⁵³ microseconds (about 285 years) and rounds beyond, as Python's does.
+#[derive(Debug, Clone, Copy)]
+enum Num {
+    Int(i128),
+    Float(f64),
+}
+
+impl Num {
+    fn int(self) -> i128 {
+        match self {
+            Self::Int(value) => value,
+            Self::Float(value) => hc_core::math::trunc(value) as i128,
+        }
+    }
+
+    fn as_f64(self) -> f64 {
+        match self {
+            Self::Int(value) => value as f64,
+            Self::Float(value) => value,
+        }
+    }
+
+    fn count(self) -> Count {
+        match self {
+            Self::Int(value) => Count::Whole(value),
+            Self::Float(value) => Count::Real(value),
+        }
+    }
+}
+
+/// A count as Python holds it in `precisedelta`: an `int`, or a `float` once
+/// the minimum unit has been rounded with the format.
+#[derive(Debug, Clone, Copy)]
+enum Count {
+    Whole(i128),
+    Real(f64),
+}
+
+impl Count {
+    fn is_positive(self) -> bool {
+        match self {
+            Self::Whole(value) => value > 0,
+            Self::Real(value) => value > 0.0,
+        }
+    }
+
+    fn at_least(self, size: i128) -> bool {
+        match self {
+            Self::Whole(value) => value >= size,
+            Self::Real(value) => value >= size as f64,
+        }
+    }
+
+    fn minus(self, size: i128) -> Self {
+        match self {
+            Self::Whole(value) => Self::Whole(value - size),
+            Self::Real(value) => Self::Real(value - size as f64),
+        }
+    }
+
+    fn plus(self, size: i128) -> Self {
+        self.minus(-size)
+    }
+
+    /// Python's `int(value)`.
+    fn truncated(self) -> i128 {
+        match self {
+            Self::Whole(value) => value,
+            Self::Real(value) => hc_core::math::trunc(value) as i128,
+        }
+    }
+}
+
+/// `humanize`'s `_rounding_by_fmt`: `format % value`, read back as an `int`
+/// when it parses as one and as a `float` otherwise.
+fn round_by_format(value: f64, decimals: u8) -> Count {
+    let mut buffer = DigitBuffer::default();
+    let precision = usize::from(decimals);
+    if write!(buffer, "{value:.precision$}").is_err() {
+        return Count::Real(value);
+    }
+    let text = buffer.as_str();
+    match text.parse::<i128>() {
+        Ok(whole) => Count::Whole(whole),
+        Err(_) => Count::Real(text.parse().unwrap_or(value)),
+    }
+}
+
+/// `humanize`'s `_quotient_and_remainder`: the minimum unit takes the whole
+/// value as a rounded fraction and leaves nothing; a suppressed unit takes
+/// nothing; any other takes the quotient and leaves the remainder truncated
+/// to a whole number (`int(r)`).
+fn quotient_and_remainder(
+    value: Num,
+    divisor: Divisor,
+    unit: PreciseUnit,
+    minimum: PreciseUnit,
+    suppressed: &impl Fn(PreciseUnit) -> bool,
+    decimals: u8,
+) -> (Count, Num) {
+    let divisor_f64 = match divisor {
+        Divisor::Whole(whole) => whole as f64,
+        Divisor::Half(halves) => halves as f64 / 2.0,
+        Divisor::Float(float) => float,
+    };
+    if unit == minimum {
+        return (
+            round_by_format(value.as_f64() / divisor_f64, decimals),
+            Num::Int(0),
+        );
+    }
+    if suppressed(unit) {
+        return (Count::Whole(0), value);
+    }
+    match (value, divisor) {
+        (Num::Int(value), Divisor::Whole(whole)) => {
+            (Count::Whole(value / whole), Num::Int(value % whole))
+        }
+        // `divmod(value, 30.5)` of whole days: exact in halves.
+        (Num::Int(value), Divisor::Half(halves)) => (
+            Count::Whole(value * 2 / halves),
+            Num::Int(value * 2 % halves / 2),
+        ),
+        // Python's float `divmod`, which takes `fmod` and rounds the
+        // quotient to the nearest integer.
+        (value, _) => {
+            let x = value.as_f64();
+            let remainder = x % divisor_f64;
+            let quotient = (x - remainder) / divisor_f64;
+            let floored = hc_core::math::floor(quotient);
+            let quotient = if quotient - floored > 0.5 {
+                floored + 1.0
+            } else {
+                floored
+            };
+            (
+                Count::Real(quotient),
+                Num::Int(hc_core::math::trunc(remainder) as i128),
+            )
+        }
+    }
+}
+
 /// The absolute span in whole microseconds, truncated.
 fn abs_micros(delta: Duration) -> HumanizeResult<i128> {
     let span = delta.checked_abs()?;
@@ -1091,7 +1363,7 @@ const fn round_half_even(numerator: i128, denominator: i128) -> i128 {
 }
 
 /// Write `pattern` with `{0}` replaced by whatever `number` writes.
-fn substitute<W: fmt::Write>(
+fn substitute<W: fmt::Write + ?Sized>(
     out: &mut W,
     pattern: &str,
     number: impl FnOnce(&mut W) -> fmt::Result,
@@ -1128,29 +1400,67 @@ fn write_grouped_digits<W: fmt::Write>(out: &mut W, digits: &str, separator: &st
     Ok(())
 }
 
-/// Python's `repr` of a float: the shortest round-trip digits, `.0` on a
-/// whole number, and exponent notation outside `[1e-4, 1e16)`.
-fn write_python_repr<W: fmt::Write>(out: &mut W, value: f64) -> fmt::Result {
-    let magnitude = value.abs();
-    if magnitude != 0.0 && !(1e-4..1e16).contains(&magnitude) {
-        let mut buffer = DigitBuffer::default();
-        write!(buffer, "{value:e}")?;
-        let text = buffer.as_str();
-        let (mantissa, exponent) = text.split_once('e').unwrap_or((text, "0"));
-        let (sign, digits) = match exponent.strip_prefix('-') {
-            Some(rest) => ('-', rest),
-            None => ('+', exponent),
-        };
-        write!(out, "{mantissa}e{sign}")?;
-        if digits.len() < 2 {
-            out.write_char('0')?;
-        }
-        return out.write_str(digits);
+/// Python's `repr` of a float: the shortest digits that read back as the
+/// same double — the one nearest the value when several are as short, and
+/// the even digit on an exact tie, as `repr` chooses — with `.0` on a whole
+/// number, and exponent notation outside `[1e-4, 1e16)`.
+fn write_python_repr<W: fmt::Write + ?Sized>(out: &mut W, value: f64) -> fmt::Result {
+    if value.is_sign_negative() {
+        out.write_char('-')?;
     }
-    if hc_core::math::trunc(value) == value {
-        write!(out, "{value:.1}")
+    let magnitude = value.abs();
+    if magnitude == 0.0 {
+        return out.write_str("0.0");
+    }
+    // `{:.Ne}` rounds the exact value to N+1 digits, ties to even; the first
+    // N that reads back is the shortest.
+    let mut buffer = DigitBuffer::default();
+    for precision in 0..=17usize {
+        buffer = DigitBuffer::default();
+        write!(buffer, "{magnitude:.precision$e}")?;
+        if buffer.as_str().parse::<f64>() == Ok(magnitude) {
+            break;
+        }
+    }
+    let text = buffer.as_str();
+    let (mantissa, exponent) = text.split_once('e').unwrap_or((text, "0"));
+    let exponent: i32 = exponent.parse().unwrap_or(0);
+    let mut digits = DigitBuffer::default();
+    for digit in mantissa.chars().filter(char::is_ascii_digit) {
+        digits.write_char(digit)?;
+    }
+    let digits = digits.as_str();
+    let count = i32::try_from(digits.len()).unwrap_or(0);
+    let point = exponent + 1;
+    if (-3..=16).contains(&point) {
+        if point <= 0 {
+            out.write_str("0.")?;
+            for _ in point..0 {
+                out.write_char('0')?;
+            }
+            out.write_str(digits)
+        } else if point >= count {
+            out.write_str(digits)?;
+            for _ in count..point {
+                out.write_char('0')?;
+            }
+            out.write_str(".0")
+        } else {
+            let (whole, fraction) = digits.split_at(point as usize);
+            write!(out, "{whole}.{fraction}")
+        }
     } else {
-        write!(out, "{value}")
+        let (first, rest) = digits.split_at(1);
+        out.write_str(first)?;
+        if !rest.is_empty() {
+            write!(out, ".{rest}")?;
+        }
+        write!(
+            out,
+            "e{}{:02}",
+            if exponent < 0 { '-' } else { '+' },
+            exponent.abs()
+        )
     }
 }
 
@@ -1261,6 +1571,10 @@ mod tests {
         assert_eq!(days(725), "2 years");
         assert_eq!(days(1_095), "3 years");
         assert_eq!(days(365_000), "1,000 years");
+        // Whole years, `delta.days // 365`, in `humanize` 4.16.0: 1000 days
+        // are 2 years; its unreleased code rounds and says 3.
+        assert_eq!(days(1_000), "2 years");
+        assert_eq!(days(2_000), "5 years");
         // The sign is dropped, as `abs(delta)` drops it.
         assert_eq!(delta(Duration::from_minutes(-30)), "30 minutes");
         let no_months = natural()
@@ -1389,17 +1703,21 @@ mod tests {
         );
     }
 
+    /// `humanize` 4.16's `precisedelta` (`time.py`, read on the project's
+    /// `main` 2026-10-03), traced by hand and checked against a transcription
+    /// of that source: a month is `divmod(days, 30.5)` of whole days, and the
+    /// remainder is truncated (`int(r)`).
     #[test]
     fn precisedelta_takes_months_from_whole_days_and_refuses_an_impossible_minimum() {
         use PreciseUnit::{Days, Months, Seconds, Years};
         let natural = natural();
-        // 31 days is a month and half a day: the month is taken from whole
-        // days, and what is left is half of one.
+        // 31 days: `divmod(31, 30.5)` is (1.0, 0.5), `int(0.5)` is 0, so the
+        // half day is dropped and no day is left to write.
         assert_eq!(
             natural
                 .precisedelta(Duration::from_days(31), Days, &[], 2)
                 .unwrap(),
-            "1 month and 0.50 days"
+            "1 month"
         );
         // The fraction of a month counts whole days only, as `humanize`
         // divides `days / 30.5`: 45 days and 12 hours is 45 / 30.5 months.
@@ -1413,14 +1731,16 @@ mod tests {
                 .precisedelta(Duration::from_days(400), Seconds, &[], 2)
                 .unwrap(),
             // 400 days: `divmod(400, 365)` is (1, 35), `divmod(35, 30.5)` is
-            // (1, 4.5), and 4.5 days is 4 days and 12 hours.
-            "1 year, 1 month, 4 days and 12 hours"
+            // (1.0, 4.5) and `int(4.5)` is 4: the half day is lost.
+            "1 year, 1 month and 4 days"
         );
+        // A whole year count that rounding made a float is written as an
+        // integer: `if math.modf(fmt_value)[0] == 0: fmt_value = int(...)`.
         assert_eq!(
             natural
                 .precisedelta(Duration::from_days(730), Years, &[], 2)
                 .unwrap(),
-            "2.0 years"
+            "2 years"
         );
         assert_eq!(
             natural
@@ -1432,6 +1752,76 @@ mod tests {
             natural.precisedelta(Duration::SECOND, Years, &[Years], 2),
             Err(HumanizeError::Unsupported(_))
         ));
+    }
+
+    /// The three divergences the tenth audit measured (a20), each traced
+    /// through `humanize` 4.16's source: the minimum unit is rounded with the
+    /// format before it is compared with zero (`_rounding_by_fmt`), and a
+    /// unit rounded up to the next one's size is carried.
+    #[test]
+    fn precisedelta_rounds_before_testing_the_fraction_and_carries() {
+        use PreciseUnit::{Days, Hours, Microseconds, Minutes, Seconds};
+        let natural = natural();
+        let precise = |span: Duration, minimum, suppress: &[PreciseUnit], decimals| {
+            natural
+                .precisedelta(span, minimum, suppress, decimals)
+                .unwrap()
+        };
+        // 2 days and 1 microsecond: 1e-6 seconds rounds to `0.00`, which is
+        // not greater than zero, so no seconds are written.
+        let span = Duration::from_days(2) + Duration::from_micros(1);
+        assert_eq!(precise(span, Seconds, &[], 2), "2 days");
+        // 59.999999 seconds rounds to `60.00`: carried into one minute.
+        assert_eq!(
+            precise(Duration::from_micros(59_999_999), Seconds, &[], 2),
+            "1 minute"
+        );
+        // 59 minutes and 59.999999 seconds: the carry runs on through the
+        // minutes into one hour.
+        let span = Duration::from_minutes(59) + Duration::from_micros(59_999_999);
+        assert_eq!(precise(span, Seconds, &[], 2), "1 hour");
+        // A day that rounds to 31 is carried into a month by subtracting 31.
+        let span = Duration::from_days(30) + Duration::from_hours(24) - Duration::from_micros(1);
+        assert_eq!(precise(span, Days, &[], 2), "1 month");
+        // With zero decimals the rounded value reads back as an integer.
+        assert_eq!(
+            precise(Duration::from_millis(90_500), Minutes, &[], 0),
+            "2 minutes"
+        );
+        // Whole units never take a fraction, and a zero minimum is written
+        // only when nothing else is.
+        assert_eq!(precise(Duration::from_hours(5), Hours, &[], 2), "5 hours");
+        assert_eq!(
+            precise(Duration::ZERO, Microseconds, &[], 2),
+            "0 microseconds"
+        );
+    }
+
+    /// Python holds the microseconds as a float once seconds are suppressed
+    /// (`secs * 1e6 + usecs`), so a count beyond 2⁵³ microseconds rounds to
+    /// a multiple of its ulp; the library reproduces it.
+    #[test]
+    fn precisedelta_keeps_pythons_float_microseconds_beyond_two_to_the_53() {
+        use PreciseUnit::{Days, Hours, Microseconds, Minutes, Months, Seconds, Years};
+        let span = Duration::from_micros(83_917_295_999_999_000);
+        let text = natural()
+            .precisedelta(
+                span,
+                Microseconds,
+                &[
+                    Years,
+                    Months,
+                    Days,
+                    Hours,
+                    Minutes,
+                    Seconds,
+                    PreciseUnit::Milliseconds,
+                ],
+                2,
+            )
+            .unwrap();
+        // `float(83917295999999000)` is 83917295999999008.0.
+        assert_eq!(text, "83917295999999008 microseconds");
     }
 
     #[cfg(feature = "format")]

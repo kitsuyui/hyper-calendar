@@ -120,3 +120,65 @@ fn a_style_not_named_is_refused() {
         HC_ERROR_OUT_OF_RANGE
     );
 }
+
+/// The examples of `humanize` 4.16's documentation of its number functions,
+/// its `naturalsize` and its `natural_list`: the module's lines.
+#[test]
+fn the_number_lines_are_pythons_humanize() {
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_apnumber(5, buffer, capacity, written)
+    });
+    assert_eq!(line, "five\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_fractional(1.3, buffer, capacity, written)
+    });
+    assert_eq!(line, "1 3/10\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_scientific(0.3, 2, buffer, capacity, written)
+    });
+    assert_eq!(line, "3.00 x 10⁻¹\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_metric(1500.0, c"V".as_ptr(), 3, buffer, capacity, written)
+    });
+    assert_eq!(line, "1.50 kV\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_naturalsize(3000.0, c"binary".as_ptr(), 1, buffer, capacity, written)
+    });
+    assert_eq!(line, "2.9 KiB\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_naturallist(c"one\ntwo\nthree".as_ptr(), buffer, capacity, written)
+    });
+    assert_eq!(line, "one, two and three\ten\n");
+    let line = read_lines(|buffer, capacity, written| unsafe {
+        hc_intword(c"1234000".as_ptr(), 3, buffer, capacity, written)
+    });
+    assert_eq!(line, "1.234 million\ten\n");
+}
+
+#[test]
+fn the_number_lines_refuse_what_python_refuses() {
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_intword(c"12x".as_ptr(), 1, buffer, capacity, written)
+        }),
+        HC_ERROR_MALFORMED
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_naturalsize(f64::NAN, c"decimal".as_ptr(), 1, buffer, capacity, written)
+        }),
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_naturalsize(1.0, c"wide".as_ptr(), 1, buffer, capacity, written)
+        }),
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        measured(|buffer, capacity, written| unsafe {
+            hc_naturalsize(1.0, core::ptr::null(), 1, buffer, capacity, written)
+        }),
+        HC_ERROR_NULL_POINTER
+    );
+}
