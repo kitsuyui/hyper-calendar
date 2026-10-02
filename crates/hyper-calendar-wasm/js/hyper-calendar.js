@@ -220,6 +220,11 @@ export const METHODS = Object.freeze([
   { method: "planetaryHoursOfDay", export: "hc_planetary_hours_of_day", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
+  { method: "jupiterAt", export: "hc_jupiter_at", feature: "jupiter" },
+  { method: "jupiterIngresses", export: "hc_jupiter_ingresses", feature: "jupiter" },
+  { method: "jupiterRisings", export: "hc_jupiter_risings", feature: "jupiter" },
+  { method: "kumbhBySky", export: "hc_kumbh_by_sky", feature: "jupiter" },
+  { method: "pushkaramBySky", export: "hc_pushkaram_by_sky", feature: "jupiter" },
   { method: "marsTime", export: "hc_mars_time", feature: "planetary" },
   { method: "missions", export: "hc_missions", feature: "planetary" },
   { method: "missionSol", export: "hc_mission_sol", feature: "planetary" },
@@ -503,6 +508,22 @@ export const COLUMNS = Object.freeze({
   pushkaram: Object.freeze([
     "id", "name", "locale used", "region", "sign", "sign name", "first", "last", "missing",
     "missing day", "depression", "depression arcseconds",
+  ]),
+  jupiterAt: Object.freeze([
+    "longitude", "latitude", "distance", "sidereal longitude", "sign", "sign name", "degrees into sign",
+    "daily motion", "retrograde", "heliocentric longitude", "heliocentric latitude", "heliocentric distance",
+  ]),
+  jupiterIngress: Object.freeze(["moment", "from", "from name", "to", "to name", "direction"]),
+  jupiterRising: Object.freeze([
+    "rising", "setting", "sidereal longitude", "nakshatra", "nakshatra id", "nakshatra name", "year", "year position",
+  ]),
+  kumbhBySky: Object.freeze([
+    "id", "site", "site name", "locale used", "river", "jupiter", "jupiter name", "sun", "sun name",
+    "at new moon", "from", "to", "holds", "jupiter then", "jupiter longitude then",
+  ]),
+  pushkaramBySky: Object.freeze([
+    "id", "name", "locale used", "region", "sign", "sign name", "first", "last", "missing",
+    "missing day", "depression", "depression arcseconds", "entry", "rule",
   ]),
   folkDay: Object.freeze(["kind", "id", "name", "locale used", "count"]),
   nightWatch: Object.freeze(["watch", "points", "name", "locale used", "han name", "branch"]),
@@ -2601,6 +2622,101 @@ function pushkaramDays(cells) {
 }
 
 /**
+ * The one line of `hc_jupiter_at`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").JupiterPosition}
+ */
+function jupiterPosition(cells) {
+  const [
+    longitude, latitude, distance, siderealLongitude, sign, signName, degreesIntoSign, dailyMotion, retrograde,
+    heliocentricLongitude, heliocentricLatitude, heliocentricDistance,
+  ] = cells;
+  return {
+    longitude: decimal(longitude, "longitude"),
+    latitude: decimal(latitude, "latitude"),
+    distance: decimal(distance, "distance"),
+    siderealLongitude: decimal(siderealLongitude, "sidereal longitude"),
+    sign: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (sign),
+    signName,
+    degreesIntoSign: decimal(degreesIntoSign, "degrees into sign"),
+    dailyMotion: decimal(dailyMotion, "daily motion"),
+    retrograde: flag(retrograde, "retrograde"),
+    heliocentricLongitude: decimal(heliocentricLongitude, "heliocentric longitude"),
+    heliocentricLatitude: decimal(heliocentricLatitude, "heliocentric latitude"),
+    heliocentricDistance: decimal(heliocentricDistance, "heliocentric distance"),
+  };
+}
+
+/**
+ * One line of `hc_jupiter_ingresses`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").JupiterIngress}
+ */
+function jupiterIngress(cells) {
+  const [moment, from, fromName, to, toName, direction] = cells;
+  return {
+    moment: integer(moment, "moment"),
+    from: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (from),
+    fromName,
+    to: /** @type {import("./hyper-calendar.d.ts").SiderealSignId} */ (to),
+    toName,
+    direction: /** @type {"forward" | "retrograde"} */ (direction),
+  };
+}
+
+/**
+ * One line of `hc_jupiter_risings`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").JupiterRising}
+ */
+function jupiterRising(cells) {
+  const [rising, setting, siderealLongitude, nakshatra, nakshatraId, nakshatraName, year, position] = cells;
+  return {
+    rising: integer(rising, "rising"),
+    setting: integer(setting, "setting"),
+    siderealLongitude: decimal(siderealLongitude, "sidereal longitude"),
+    nakshatra: integer(nakshatra, "nakshatra"),
+    nakshatraId,
+    nakshatraName,
+    year,
+    yearPosition: integer(position, "year position"),
+  };
+}
+
+/**
+ * The one line of `hc_kumbh_by_sky`: `hc_kumbh`'s thirteen cells, then two.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").KumbhBySky}
+ */
+function kumbhBySky(cells) {
+  const occasion = kumbhOccasion(cells);
+  return {
+    ...occasion,
+    holds: flag(cells[12], "holds"),
+    jupiterThen: /** @type {import("./hyper-calendar.d.ts").SiderealSignId | null} */ (optional(cells[13])),
+    jupiterLongitudeThen: cells[14] === "" ? null : decimal(cells[14], "jupiter longitude then"),
+  };
+}
+
+/**
+ * One line of `hc_pushkaram_by_sky`: `hc_pushkaram`'s, then the entry and the rule.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PushkaramBySky}
+ */
+function pushkaramBySky(cells) {
+  return {
+    ...pushkaramDays(cells),
+    entry: integer(cells[12], "entry"),
+    rule: /** @type {import("./hyper-calendar.d.ts").PushkaramEntryRule} */ (cells[13]),
+  };
+}
+
+/**
  * One line of `hc_folk_day`.
  *
  * @param {string[]} cells
@@ -4098,6 +4214,124 @@ export class HyperCalendar {
     const step = toF64(stepYears, "stepYears");
     const text = this.#text("hc_orbit_series", (buffer, capacity) => fn(from, to, step, buffer, capacity), true);
     return rows(text, COLUMNS.orbitSeries, "hc_orbit_series").map(orbitSample);
+  }
+
+  /**
+   * Where Jupiter is at an instant, tropical and sidereal, from the
+   * complete VSOP87B series for Jupiter with light-time, aberration and
+   * nutation. The sidereal longitude is by the ayanāṃśa. An instant outside
+   * the years −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} unixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").JupiterPosition}
+   */
+  jupiterAt(unixSeconds, ayanamsa) {
+    const fn = this.#export("hc_jupiter_at");
+    const seconds = toI64(unixSeconds, "unixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+      this.#text("hc_jupiter_at", (buffer, capacity) =>
+        fn(seconds, ayanamsaPointer, ayanamsaLen, buffer, capacity), true));
+    return jupiterPosition(this.#oneLine("hc_jupiter_at", text, COLUMNS.jupiterAt));
+  }
+
+  /**
+   * Jupiter's crossings of the boundaries of the sidereal signs in
+   * `[from, to)`, in time order. Jupiter turns back out of a sign about two
+   * years in three, so a year's lines come in runs. A span longer than a
+   * hundred Julian years or an end outside −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} fromUnixSeconds
+   * @param {number | bigint} toUnixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").JupiterIngress[]}
+   */
+  jupiterIngresses(fromUnixSeconds, toUnixSeconds, ayanamsa) {
+    const fn = this.#export("hc_jupiter_ingresses");
+    const from = toI64(fromUnixSeconds, "fromUnixSeconds");
+    const to = toI64(toUnixSeconds, "toUnixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+      this.#text("hc_jupiter_ingresses", (buffer, capacity) =>
+        fn(from, to, ayanamsaPointer, ayanamsaLen, buffer, capacity), true));
+    return rows(text, COLUMNS.jupiterIngress, "hc_jupiter_ingresses").map(jupiterIngress);
+  }
+
+  /**
+   * Jupiter's heliacal risings in `[from, to)`, in time order, each with the
+   * name the *Bṛhatsaṃhitā* gives the year of Jupiter that begins with it:
+   * the lunar month whose nakṣatras hold the rising. A rising is Jupiter's
+   * longitude, west of the Sun's after their conjunction, passing 11°, so
+   * this is the true sky by a fixed arc, not what a Siddhāntic almanac
+   * prints. A span longer than a hundred Julian years or an end outside
+   * −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} fromUnixSeconds
+   * @param {number | bigint} toUnixSeconds
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @returns {import("./hyper-calendar.d.ts").JupiterRising[]}
+   */
+  jupiterRisings(fromUnixSeconds, toUnixSeconds, ayanamsa) {
+    const fn = this.#export("hc_jupiter_risings");
+    const from = toI64(fromUnixSeconds, "fromUnixSeconds");
+    const to = toI64(toUnixSeconds, "toUnixSeconds");
+    const text = this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+      this.#text("hc_jupiter_risings", (buffer, capacity) =>
+        fn(from, to, ayanamsaPointer, ayanamsaLen, buffer, capacity), true));
+    return rows(text, COLUMNS.jupiterRising, "hc_jupiter_risings").map(jupiterRising);
+  }
+
+  /**
+   * {@link kumbh} with Jupiter's sign computed at the occasion's first
+   * moment, in the zodiac of the same ayanāṃśa, in place of the caller's.
+   *
+   * @param {import("./hyper-calendar.d.ts").KumbhYoga} yoga
+   * @param {number | bigint} year
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").KumbhBySky}
+   */
+  kumbhBySky(yoga, year, ayanamsa, locale = "und") {
+    const fn = this.#export("hc_kumbh_by_sky");
+    const y = toI64(year, "year");
+    const text = this.#withText(yoga, "yoga", (yogaPointer, yogaLen) =>
+      this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+        this.#withText(locale, "locale", (localePointer, localeLen) =>
+          this.#text("hc_kumbh_by_sky", (buffer, capacity) =>
+            fn(yogaPointer, yogaLen, y, ayanamsaPointer, ayanamsaLen, localePointer, localeLen, buffer, capacity),
+          true))));
+    return kumbhBySky(this.#oneLine("hc_kumbh_by_sky", text, COLUMNS.kumbhBySky));
+  }
+
+  /**
+   * {@link pushkaram} for the entry of Jupiter into a sign that falls in a
+   * Gregorian year, found, not given; an empty list in a year with none.
+   * Where Jupiter enters, turns back and enters again, `rule` says which
+   * entry counts.
+   *
+   * @param {import("./hyper-calendar.d.ts").SiderealSignId} sign
+   * @param {number | bigint} year
+   * @param {import("./hyper-calendar.d.ts").Ayanamsa} ayanamsa
+   * @param {import("./hyper-calendar.d.ts").PushkaramEntryRule} rule
+   * @param {number} latitude
+   * @param {number} longitude
+   * @param {number} [elevation]
+   * @param {string} [meridian]
+   * @param {string} [locale]
+   * @returns {import("./hyper-calendar.d.ts").PushkaramBySky[]}
+   */
+  pushkaramBySky(sign, year, ayanamsa, rule, latitude, longitude, elevation = 0, meridian = "", locale = "und") {
+    const fn = this.#export("hc_pushkaram_by_sky");
+    const y = toI64(year, "year");
+    const [lat, lon, elev] = [toF64(latitude, "latitude"), toF64(longitude, "longitude"), toF64(elevation, "elevation")];
+    const text = this.#withText(sign, "sign", (signPointer, signLen) =>
+      this.#withText(ayanamsa, "ayanamsa", (ayanamsaPointer, ayanamsaLen) =>
+        this.#withText(rule, "rule", (rulePointer, ruleLen) =>
+          this.#withText(meridian, "meridian", (meridianPointer, meridianLen) =>
+            this.#withText(locale, "locale", (localePointer, localeLen) =>
+              this.#text("hc_pushkaram_by_sky", (buffer, capacity) =>
+                fn(signPointer, signLen, y, ayanamsaPointer, ayanamsaLen, rulePointer, ruleLen, lat, lon, elev,
+                  meridianPointer, meridianLen, localePointer, localeLen, buffer, capacity), true))))));
+    return rows(text, COLUMNS.pushkaramBySky, "hc_pushkaram_by_sky").map(pushkaramBySky);
   }
 
   /**

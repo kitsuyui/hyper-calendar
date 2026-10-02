@@ -28,6 +28,7 @@ fn querying_the_version_works_in_both_passes() {
     feature = "tz",
     feature = "sky",
     feature = "orbital",
+    feature = "jupiter",
     feature = "planetary",
     feature = "relativity",
     feature = "places",
@@ -108,6 +109,9 @@ mod sky;
 
 #[cfg(feature = "orbital")]
 mod orbital;
+
+#[cfg(feature = "jupiter")]
+mod jupiter;
 
 #[cfg(feature = "timestamps")]
 mod time_scales;

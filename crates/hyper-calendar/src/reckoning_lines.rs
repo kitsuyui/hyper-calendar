@@ -34,12 +34,13 @@ use alloc::string::String;
 use hc_almanac::first_month_counts::{FirstMonthCounts, first_month_counts};
 use hc_almanac::vietnamese_days::{is_nguyet_ky_day_number, is_tam_nuong_day_number};
 use hc_astro::riseset::Location;
+use hc_astro::solar_time::MissingSolarEvent;
 use hc_calendar::gregorian::year_from_fixed;
 use hc_calendar::{CivilTime, Rd, Weekday};
 use hc_calendars_indic::choghadiya::{self, Choghadiya, Half as ChoghadiyaHalf, Quality};
 use hc_calendars_indic::kumbh::KumbhYoga;
 use hc_calendars_indic::panchak::{self, PanchakNaming};
-use hc_calendars_indic::pushkaram::{adi_pushkaram, rivers_of};
+use hc_calendars_indic::pushkaram::{DaySpan, PushkaramRiver, adi_pushkaram, rivers_of};
 use hc_calendars_lunar::{chinese, vietnamese};
 use hc_core::duration::SECONDS_PER_DAY;
 use hc_format::night_watches::fixed_night_watch;
@@ -211,6 +212,24 @@ pub fn panchak_line(
     Ok(out)
 }
 
+/// The first nine cells of a Kumbh line, which say what the condition is:
+/// its identifier; its site's identifier, and its name in the locale and
+/// the tag that named it; the river; the signs Jupiter and the Sun must be
+/// in, each by its identifier and its Sanskrit name; and `1` when the Moon
+/// must be with the Sun at the new moon. Shared by `hc_kumbh` and the
+/// `jupiter` layer's `hc_kumbh_by_sky`.
+pub(crate) fn kumbh_condition_cells(line: &mut Line<'_>, yoga: &KumbhYoga, locale: &str) {
+    let site = yoga.site.to_ascii_lowercase();
+    line.cell(yoga.id).cell(&site);
+    reckoning_name(line, locale, KUMBH_SITE, &site);
+    line.cell(yoga.river)
+        .cell(yoga.jupiter.id())
+        .cell(yoga.jupiter.sanskrit_name())
+        .cell(yoga.sun.id())
+        .cell(yoga.sun.sanskrit_name())
+        .flag(yoga.at_new_moon);
+}
+
 /// How many columns [`kumbh_line`] writes.
 pub const KUMBH_COLUMNS: usize = 13;
 
@@ -265,17 +284,9 @@ pub fn kumbh_line(
     if !(EARLIEST_YEAR..=LATEST_YEAR).contains(&year) {
         return Err(Refusal::OutOfRange);
     }
-    let site = yoga.site.to_ascii_lowercase();
     let mut out = String::new();
     let mut line = Line::new(&mut out);
-    line.cell(yoga.id).cell(&site);
-    reckoning_name(&mut line, locale, KUMBH_SITE, &site);
-    line.cell(yoga.river)
-        .cell(yoga.jupiter.id())
-        .cell(yoga.jupiter.sanskrit_name())
-        .cell(yoga.sun.id())
-        .cell(yoga.sun.sanskrit_name())
-        .flag(yoga.at_new_moon);
+    kumbh_condition_cells(&mut line, &yoga, locale);
     let occasion = yoga.occasion(year, ayanamsa);
     if let Some(occasion) = occasion {
         line.value(unix_from_moment(occasion.from))
@@ -334,24 +345,39 @@ pub fn pushkaram_lines(
     let mut out = String::new();
     for river in rivers_of(sign) {
         let mut line = Line::new(&mut out);
-        line.cell(river.id);
-        reckoning_name(&mut line, locale, PUSHKARAM_RIVER, river.id);
-        line.cell(river.region)
-            .cell(sign.id())
-            .cell(sign.sanskrit_name());
-        match span {
-            Ok(days) => {
-                line.value(days.first.0).value(days.last.0);
-                missing_cells(&mut line, None);
-            }
-            Err(missing) => {
-                line.empties(2);
-                missing_cells(&mut line, Some(missing));
-            }
-        }
+        pushkaram_river_cells(&mut line, &river, sign, span, locale);
         line.end();
     }
     Ok(out)
+}
+
+/// The cells of a Pushkaram line: the river's identifier, its name in the
+/// locale and the tag that named it, its region, the sign by identifier
+/// and Sanskrit name, the first and last days, then the four cells of a
+/// missing solar event. Shared by `hc_pushkaram` and the `jupiter` layer's
+/// `hc_pushkaram_by_sky`, which add cells after them.
+pub(crate) fn pushkaram_river_cells(
+    line: &mut Line<'_>,
+    river: &PushkaramRiver,
+    sign: SiderealSign,
+    span: Result<DaySpan, MissingSolarEvent>,
+    locale: &str,
+) {
+    line.cell(river.id);
+    reckoning_name(line, locale, PUSHKARAM_RIVER, river.id);
+    line.cell(river.region)
+        .cell(sign.id())
+        .cell(sign.sanskrit_name());
+    match span {
+        Ok(days) => {
+            line.value(days.first.0).value(days.last.0);
+            missing_cells(line, None);
+        }
+        Err(missing) => {
+            line.empties(2);
+            missing_cells(line, Some(missing));
+        }
+    }
 }
 
 /// The identifier of a half of the Turkish folk year.

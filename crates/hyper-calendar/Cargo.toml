@@ -145,6 +145,18 @@ holiday = [
     "dep:hc-i18n",
     "hc-i18n/territories",
 ]
+# Jupiter's position, its entries into the sidereal signs, and the Kumbh
+# Mela and Pushkaram found from them, from the VSOP87B series for Jupiter:
+# some 55 kB of tables, which nothing else carries.
+jupiter = [
+    "seasons",
+    "indic",
+    "almanac",
+    "format",
+    "i18n",
+    "hc-astro/jupiter",
+    "hc-seasons/jupiter",
+]
 # Significant figures, error bars and fuzzy intervals.
 uncertainty = ["dep:hc-uncertainty"]
 # Planck time to cosmology.
@@ -184,6 +196,7 @@ full = [
     "deep-time",
     "orbital",
     "planetary",
+    "jupiter",
     "relativity",
 ]
 

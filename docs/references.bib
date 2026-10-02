@@ -11793,3 +11793,70 @@
   howpublished = {\url{https://ja.wikipedia.org/wiki/札幌市} and \url{https://ja.wikipedia.org/wiki/横浜市}},
   note         = {The first sentences give the readings 札幌市（さっぽろし）and 横浜市（よこはまし）, from which the Hepburn forms \textit{Sapporo-shi} and \textit{Yokohama-shi} are written, no macron being needed. Secondary. Read 2026-10-03}
 }
+
+% --- Jupiter's ephemeris and the festivals and years it sets (docs/systems/jupiter-ephemeris.md, docs/systems/jupiter-festivals.md) ---
+% bretagnon1988, jpl-horizons, drik-guru-gochar, wikipedia-kumbh-mela, sewell1896 and meeus1998 are cited too.
+
+@misc{vsop87b-jup,
+  author       = {Bretagnon, P. and Francou, G.},
+  title        = {{VSOP87} version {B2}: \texttt{VSOP87B.jup}, the heliocentric spherical coordinates of Jupiter in the dynamical ecliptic and equinox of J2000.0},
+  howpublished = {Institut de m{\'e}canique c{\'e}leste et de calcul des {\'e}ph{\'e}m{\'e}rides, \url{https://ftp.imcce.fr/pub/ephem/planets/vsop87/VSOP87B.jup}; CDS catalogue VI/81},
+  note         = {The one file the user approved for download: 484,519 bytes, 3,625 terms in 18 blocks (variables 1 to 3, powers 0 to 5), sha256 408b5938ab39e661940b4253579f4a7a65f206926d98bec20e46aebb06cdd159. Read in the saved copy, its term lines in the Fortran format \texttt{(1x,4i1,i5,12i3,f15.11,2f18.11,f14.11,f20.11)}; \texttt{scripts/vsop87-jupiter.py} turns it into \texttt{hc-astro}'s tables and \texttt{--check}s them against it. The theory is \cite{bretagnon1988}, whose paper was not read. 2026-10-03}
+}
+
+@misc{vsop87-doc-copy,
+  author       = {{GPlan contributors} and {Starlit Night, lizard-tail.com}},
+  title        = {{VSOP87} documentation, as two copies quote it: ``VSOP87 Files'' on the {GPlan} wiki and a Ruby port's header},
+  howpublished = {\url{https://sourceforge.net/p/gplan/wiki/VSOP87\%20Files/} and \url{https://www.lizard-tail.com/isana/lab/starlitnight/extra/vsop87/vsop87.rb}},
+  note         = {Not the IMCCE's \texttt{VSOP87.doc} or the CDS ReadMe, which could not be read: the IMCCE's path gave 404 and the CDS server answered with an access check. The copies give the versions (B: heliocentric spherical, dynamical ecliptic and equinox J2000), ``a precision of 1'' for 4000 years'' for Mercury to Mars and the same ``over 2000 years'' for Jupiter and Saturn, and say that test values are in a separate file \texttt{vsop87.chk}, which was not downloaded: the readme gives none. Read 2026-10-03}
+}
+
+@misc{jpl-horizons-jupiter,
+  author       = {{Jet Propulsion Laboratory, Solar System Dynamics Group}},
+  title        = {Horizons System, ephemeris {API}: Jupiter barycenter (5), {DE441}},
+  howpublished = {\url{https://ssd.jpl.nasa.gov/api/horizons.api}},
+  note         = {Vector tables, centre 500@10, ecliptic and equinox of J2000.0 (ICRF), at JD 1355818.5, 1721423.5, 2086302.5, 2268932.5, 2415020.5, 2433282.5, 2451545.0, 2460676.5, 2469807.5, 2488069.5, 2634166.5 and 2816787.5 TDB; observer tables from 500@399, quantities 20 and 31 (apparent range, and the \texttt{IAU76/80} ecliptic-of-date longitude and latitude of the apparent position with light-time, gravitational deflection and stellar aberration), at the same twelve dates in TT and at JD 2448774.5, 2451726.5, 2455536.5, 2458595.5, 2459173.5, 2460651.5, 2460809.5, 2460966.5, 2461582.5, 2461829.5 and 2462526.5 in UT. The body 599 has no ephemeris before 1600; 5, the barycenter of the Jupiter system, does. Read through the fetch tool, which summarises: its digits were checked against the series, which they match to the seventh figure. Retrieved 2026-10-03}
+}
+
+@misc{drik-guru-asta,
+  author       = {{Drik Panchang}},
+  title        = {Guru Asta (Jupiter combustion), New Delhi, 2024 to 2027},
+  howpublished = {\url{https://www.drikpanchang.com/planet/asta/guru-asta-date-time.html?geoname-id=1261481&year=2026}, and the same page for 2024, 2025 and 2027; Tokyo for 2026},
+  note         = {Start and end of each asta, as IST: 7 May 19:36 to 6 June 04:36 2024; 12 June 19:56 to 9 July 04:44 2025; 15 July 19:59 to 12 August 05:03 2026; 17 August 19:32 to 13 September 05:22 2027. It quotes ``For Jupiter Lope Surya Siddhanta suggests angular separation of 11 degrees on both sides of the Sun'' and says it uses ``modern algorithms'' for the place. Retrieved 2026-10-03}
+}
+
+@misc{varahamihira-brihat-samhita,
+  author       = {Vir{\=a}hamihira},
+  title        = {The \textit{B{\d r}hatsa{\d m}hit{\=a}}, chapter 8, ``On the course of Jupiter'', translated by N. Chidambaram Iyer (1884)},
+  howpublished = {\url{https://www.wisdomlib.org/hinduism/book/brihat-samhita/d/doc226724.html}},
+  note         = {Verses 1 and 2: the years of Jupiter ``take their names from the several Nakshatras in which he reappears after his conjunction with the Sun'', ``beginning from Karttika'', each following two nakshatras beginning from Krittika ``but the fifth, the eleventh and the twelfth years follow, each, three''; verse 27: when Jupiter ``reappears at the beginning of the constellation of Dhanishtha in the month of Magha'' the first year of the cycle of sixty begins. The page's footnote that lists each name's nakshatras is cut short, so the table is read from the two verses, which fix it. The later verses on the expunction of a year not read. Read 2026-10-03}
+}
+
+@book{subbarayappa1985,
+  author       = {Subbarayappa, B. V. and Sarma, K. V.},
+  title        = {Indian Astronomy: A Source Book},
+  publisher    = {Nehru Centre},
+  address      = {Bombay},
+  year         = {1985},
+  note         = {Chapter 18, ``Heliacal rising and setting of planets'', read in the text \url{https://www.wisdomlib.org/hinduism/book/indian-astronomy-a-source-book/d/doc1621558.html}: the arcs of visibility from the Sun, Jupiter 11 degrees in Bh{\=a}skara I's \textit{Laghubh{\=a}skar{\=i}ya} 7.1--2 and in Var{\=a}hamihira's \textit{Pa{\~n}casiddh{\=a}ntik{\=a}} (the Moon 12, Mars 17, Mercury 13, Venus 9, Saturn 15), and Bh{\=a}skara II's 14 degrees of the \textit{{\'s}{\=\i}ghra} anomaly. The book itself not read. 2026-10-03}
+}
+
+@misc{wikipedia-2025-prayag-maha-kumbh,
+  title        = {2025 Prayag Maha Kumbh Mela},
+  howpublished = {Wikipedia, \url{https://en.wikipedia.org/wiki/2025_Prayag_Maha_Kumbh_Mela}},
+  note         = {``scheduled from 13 January to 26 February 2025''; the Amrit Snan days 14 January (Makara Sankranti), 29 January, 3 February, 12 February and 26 February. Read 2026-10-03}
+}
+
+@misc{theweek-simhastha-2028,
+  author       = {{The Week}},
+  title        = {Madhya Pradesh to begin early preparations for Ujjain's Simhastha},
+  howpublished = {13 March 2025, \url{https://www.theweek.in/news/india/2025/03/13/madhya-pradesh-to-begin-early-preparations-for-ujjains-simhastha.html}},
+  note         = {``The Simhastha---as Kumbh is called in Ujjain---will be held between April 9 and May 8, 2028.'' The article names no source for the dates; other pages give 27 March to 27 May 2028 for the whole festival. Read 2026-10-03}
+}
+
+@misc{indiatv-nashik-kumbh-2027,
+  author       = {{India TV News}},
+  title        = {Nashik Kumbh Mela 2027: preparations underway for holy snan, know key details},
+  howpublished = {1 June 2025, \url{https://www.indiatvnews.com/maharashtra/nashik-kumbh-mela-2027-preparations-underway-for-holy-snan-know-key-details-maharashtra-cm-devendra-fadnavis-kumbh-simhastha-mahaparva-2025-06-01-992845}},
+  note         = {The dates announced by Maharashtra's Chief Minister after a meeting with the 13 akharas: flag hoisting at Ramkund on 31 October 2026; the first Amrit Snan on 29 July 2027 and the second, Somvati Amavasya, on 2 August 2027; the third to be announced; an end given there as 20 February 2028, where other pages say 24 July 2028. Read 2026-10-03}
+}

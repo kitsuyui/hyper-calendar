@@ -20,6 +20,9 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc"]
 # transcendental, and `hc-core` refuses to compile with neither `std` nor
 # `libm`. Enable this when targeting bare metal.
 libm = ["hc-core/libm"]
+# Jupiter's position from the complete VSOP87B series: 3 625 terms, some 55 kB
+# of tables, which nothing else needs. See `jupiter` and `vsop87_jupiter`.
+jupiter = []
 
 [dependencies]
 hc-core = { workspace = true }

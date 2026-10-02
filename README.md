@@ -100,7 +100,7 @@ includes the crate.
 | [`hc-calendars-equinox`](crates/hc-calendars-equinox) | Solar Hijri, Badíʿ and French Republican calendars fixed by an observed equinox | `equinox` |
 | [`hc-calendars-indic`](crates/hc-calendars-indic) | Hindu lunisolar and solar calendars, Bikram Sambat, the Fasli years, Rāhu kālam | `indic` |
 | [`hc-calendars-regional`](crates/hc-calendars-regional) | Japanese imperial eras, Qing, Korean Empire, Hongxian and Manchukuo eras, Maya, Aztec, Zapotec and Mixtec years, Burmese, Thai, Khmer and Lao lunar, the Tibetan almanac's columns, Balinese Pawukon, Olympiads | `regional` |
-| [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time, sundial and temporal hours, Edo hours, zmanim, Islamic prayer times | `astro` |
+| [`hc-astro`](crates/hc-astro) | ΔT, UT1, the Sun and Moon, rise and set, sidereal time, sundial and temporal hours, Edo hours, zmanim, Islamic prayer times; Jupiter from VSOP87B with its own `jupiter` feature | `astro` |
 | [`hc-seasons`](crates/hc-seasons) | The 24 solar terms, the 72 pentads, 雑節, 六曜, the zodiac, the seasons | `seasons` |
 | [`hc-almanac`](crates/hc-almanac) | 暦注: the 28 mansions, the nine stars, the twelve directs, the selected days, 納音, 臘日; 恵方 and the 八将神, 三元九運, 손 없는 날 | `almanac` |
 | [`hc-fiscal`](crates/hc-fiscal) | Fiscal, tax and academic years | `fiscal` |

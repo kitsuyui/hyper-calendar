@@ -37,9 +37,10 @@ for crate in $crates; do
     done
 done
 
-# The optional dependencies a crate's defaults turn on, each on its own.
+# The optional dependencies a crate's defaults turn on, each on its own, and
+# the features that carry data and no dependency (`jupiter`'s tables).
 [ $# -gt 0 ] && exit 0
-for spec in hc-fiscal:indic hc-attributes:seasons hc-uncertainty:edtf hc-humanize:format hc-core:memo; do
+for spec in hc-fiscal:indic hc-attributes:seasons hc-uncertainty:edtf hc-humanize:format hc-core:memo hc-astro:jupiter hc-seasons:jupiter; do
     crate=${spec%%:*}
     feature=${spec#*:}
     echo "== $crate --features libm,$feature"

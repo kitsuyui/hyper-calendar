@@ -48,7 +48,7 @@
 //!
 //! The entry points come in layers, each a Cargo feature: `civil` (the
 //! default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
-//! `deep-time`, `tz`, `sky`, `orbital`, `planetary`, `relativity`, `places`,
+//! `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
 //! `humanize` and `zone-names`, with
 //! `full` for all of them. Which feature each needs is in the README's table.
 //!
@@ -158,6 +158,11 @@ pub use sky::*;
 mod orbital;
 #[cfg(feature = "orbital")]
 pub use orbital::*;
+
+#[cfg(feature = "jupiter")]
+mod jupiter;
+#[cfg(feature = "jupiter")]
+pub use jupiter::*;
 
 #[cfg(feature = "planetary")]
 mod planetary;

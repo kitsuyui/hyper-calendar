@@ -69,6 +69,7 @@ export type Feature =
   | "tz"
   | "sky"
   | "orbital"
+  | "jupiter"
   | "planetary"
   | "relativity"
   | "places"
@@ -382,6 +383,79 @@ export interface PushkaramDays {
   first: number | null;
   last: number | null;
   missing: MissingSolarEvent | null;
+}
+
+/** The one line of `hc_jupiter_at`: Jupiter's position at an instant, tropical and sidereal. */
+export interface JupiterPosition {
+  /** Apparent geocentric ecliptic longitude in degrees, true equinox of the date: the tropical one. */
+  longitude: number;
+  latitude: number;
+  /** In astronomical units. */
+  distance: number;
+  /** The longitude less the ayanāṃśa, in degrees. */
+  siderealLongitude: number;
+  sign: SiderealSignId;
+  /** Its Sanskrit name, `Vṛṣabha`. */
+  signName: string;
+  degreesIntoSign: number;
+  /** The longitude's change in degrees a day; negative in retrograde. */
+  dailyMotion: number;
+  retrograde: boolean;
+  /** Geometric, in the mean ecliptic and equinox of the date. */
+  heliocentricLongitude: number;
+  heliocentricLatitude: number;
+  /** In astronomical units. */
+  heliocentricDistance: number;
+}
+
+/** One line of `hc_jupiter_ingresses`: Jupiter's crossing of a sidereal boundary. */
+export interface JupiterIngress {
+  /** POSIX seconds of Universal Time, rounded down. */
+  moment: number;
+  from: SiderealSignId;
+  fromName: string;
+  to: SiderealSignId;
+  toName: string;
+  /** `forward` into the next sign, `retrograde` back into the one before. */
+  direction: "forward" | "retrograde";
+}
+
+/** One line of `hc_jupiter_risings`: a heliacal rising of Jupiter and the year it begins. */
+export interface JupiterRising {
+  /** POSIX seconds of Universal Time, rounded down. */
+  rising: number;
+  /** The setting before it, when Jupiter came within 11° east of the Sun. */
+  setting: number;
+  /** Jupiter's sidereal longitude at the rising, in degrees. */
+  siderealLongitude: number;
+  /** The nakṣatra, 1 Aśvinī to 27 Revatī, with its identifier and its name. */
+  nakshatra: number;
+  nakshatraId: string;
+  nakshatraName: string;
+  /** The year of Jupiter's name by the Bṛhatsaṃhitā, as the twelve-year cycle spells it: `Karttika`. */
+  year: string;
+  /** From 1, Chaitra, to 12, Phālguna. */
+  yearPosition: number;
+}
+
+/** The one line of `hc_kumbh_by_sky`: `hc_kumbh`'s, with Jupiter computed. */
+export interface KumbhBySky extends Omit<KumbhOccasion, "holds"> {
+  /** Whether there is an occasion and Jupiter is in the condition's sign at its first moment; never `null`. */
+  holds: boolean;
+  /** The sidereal sign Jupiter is in at the occasion's first moment; `null` when there is none. */
+  jupiterThen: SiderealSignId | null;
+  /** Its sidereal longitude then, in degrees. */
+  jupiterLongitudeThen: number | null;
+}
+
+/** Which entry of Jupiter into a sign the Pushkaram follows. */
+export type PushkaramEntryRule = "pushkaram-final-entry" | "pushkaram-first-entry";
+
+/** One line of `hc_pushkaram_by_sky`: `hc_pushkaram`'s, then the entry found and the rule. */
+export interface PushkaramBySky extends PushkaramDays {
+  /** POSIX seconds of Universal Time of Jupiter's entry, rounded down. */
+  entry: number;
+  rule: PushkaramEntryRule;
 }
 
 /** A kind of line `hc_folk_day` writes. */
@@ -993,6 +1067,11 @@ export const COLUMNS: {
   readonly panchak: ReadonlyArray<string>;
   readonly kumbh: ReadonlyArray<string>;
   readonly pushkaram: ReadonlyArray<string>;
+  readonly jupiterAt: ReadonlyArray<string>;
+  readonly jupiterIngress: ReadonlyArray<string>;
+  readonly jupiterRising: ReadonlyArray<string>;
+  readonly kumbhBySky: ReadonlyArray<string>;
+  readonly pushkaramBySky: ReadonlyArray<string>;
   readonly folkDay: ReadonlyArray<string>;
   readonly nightWatch: ReadonlyArray<string>;
   readonly barhaspatyaYear: ReadonlyArray<string>;
@@ -3028,6 +3107,27 @@ export class HyperCalendar {
    * samples is `out-of-range`, and a `to` before `from` is empty.
    */
   orbitSeries(fromYearsBefore1950: number, toYearsBefore1950: number, stepYears: number): OrbitSample[];
+
+  /** `hc_jupiter_at`: an instant outside the years −1000 to 3000 is `out-of-range`. */
+  jupiterAt(unixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterPosition;
+  /** `hc_jupiter_ingresses`: Jupiter's crossings of the sidereal boundaries in `[from, to)`; a span over a hundred Julian years is `out-of-range`. */
+  jupiterIngresses(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterIngress[];
+  /** `hc_jupiter_risings`: Jupiter's heliacal risings in `[from, to)`; a span over a hundred Julian years is `out-of-range`. */
+  jupiterRisings(fromUnixSeconds: number | bigint, toUnixSeconds: number | bigint, ayanamsa: Ayanamsa): JupiterRising[];
+  /** `hc_kumbh_by_sky`: `kumbh` with Jupiter's sign computed. */
+  kumbhBySky(yoga: KumbhYoga, year: number | bigint, ayanamsa: Ayanamsa, locale?: string): KumbhBySky;
+  /** `hc_pushkaram_by_sky`: `pushkaram` for the entry into the sign that falls in the year; empty in a year with none. */
+  pushkaramBySky(
+    sign: SiderealSignId,
+    year: number | bigint,
+    ayanamsa: Ayanamsa,
+    rule: PushkaramEntryRule,
+    latitude: number,
+    longitude: number,
+    elevation?: number,
+    meridian?: string,
+    locale?: string,
+  ): PushkaramBySky[];
 
   /** `hc_mars_time`; an instant more than 100 Julian years from J2000.0 is `out-of-range`. */
   marsTime(unixSeconds: number, eastLongitude?: number): MarsTime;

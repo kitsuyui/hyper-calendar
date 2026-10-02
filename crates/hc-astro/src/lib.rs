@@ -19,6 +19,10 @@
 //!   sidereal time by the IAU 1982 and the IAU 2006 conventions.
 //! * [`vsop87`] — the Earth's heliocentric position from VSOP87, truncated
 //!   to a measured quarter of a second of arc.
+//! * `vsop87_jupiter` and `jupiter`, behind the `jupiter` feature — Jupiter's
+//!   position from the complete VSOP87B series (3 625 terms, 55 kB of
+//!   tables): heliocentric, and apparent as seen from the Earth, to a
+//!   measured half an arcsecond from 1500 to 2500.
 //! * [`solar`] — the Sun's apparent longitude, the search that solar terms
 //!   are built on, and the equinoxes and solstices.
 //! * [`lunar`] — the Moon's longitude, its phase, and the conjunction search.
@@ -40,7 +44,9 @@
 //! happen": the Sun's longitude to about 1″, the Moon's to about 10″, a
 //! conjunction to under a minute, a sunrise to under a minute of the model's
 //! own geometry. If you need arcsecond positions, planetary positions or
-//! eclipse circumstances, use a real ephemeris and convert.
+//! eclipse circumstances, use a real ephemeris and convert. The one
+//! planet carried is Jupiter, with the `jupiter` feature, for the
+//! festivals its sign sets.
 //!
 //! It also contains no calendar. Nothing here knows what a month is.
 //!
@@ -70,6 +76,8 @@ pub mod earth;
 pub mod gmat;
 pub mod hjd;
 pub mod horizon;
+#[cfg(feature = "jupiter")]
+pub mod jupiter;
 pub mod lunar;
 pub mod riseset;
 pub mod search;
@@ -79,6 +87,8 @@ pub mod time;
 pub mod ut1;
 pub mod ut_variants;
 pub mod vsop87;
+#[cfg(feature = "jupiter")]
+pub mod vsop87_jupiter;
 
 // `check_days`: run a check on each day of a sweep, spread over the
 // machine's threads (docs/policy.md §7).

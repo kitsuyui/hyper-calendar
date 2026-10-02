@@ -42,6 +42,7 @@ fn the_error_floor_is_far_below_any_real_day_number() {
     feature = "tz",
     feature = "sky",
     feature = "orbital",
+    feature = "jupiter",
     feature = "planetary",
     feature = "relativity",
     feature = "places",
@@ -96,6 +97,9 @@ mod sky;
 
 #[cfg(feature = "orbital")]
 mod orbital;
+
+#[cfg(feature = "jupiter")]
+mod jupiter;
 
 #[cfg(feature = "timestamps")]
 mod time_scales;

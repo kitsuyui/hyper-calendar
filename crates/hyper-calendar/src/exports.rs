@@ -5256,6 +5256,229 @@ macro_rules! exports {
         ) -> line =
             $crate::orbital_lines::series_lines;
     } };
+    ("jupiter", $backend:ident) => { $backend! {
+        c {
+            /// Where Jupiter is at a POSIX timestamp, tropical and sidereal, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// `ayanamsa` is as for `hc_panchanga_at`; null for it is
+            /// `HC_ERROR_NULL_POINTER` and a name not known `HC_ERROR_UNKNOWN`. The
+            /// line is the WebAssembly module's: the apparent geocentric ecliptic
+            /// longitude, latitude and distance, the sidereal longitude, the sidereal
+            /// sign and the degrees into it, the daily motion and whether Jupiter is
+            /// in retrograde, and its heliocentric position. An instant outside the
+            /// years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Where Jupiter is at a POSIX timestamp, tropical and sidereal, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// Computed from the complete VSOP87B series for Jupiter, with light-time,
+            /// annual aberration and nutation: the apparent position as an almanac
+            /// gives it, to about 1″ from 1000 CE to 2100 CE and to 9″ at the ends of
+            /// the era. The `ayanamsa` is as for `hc_panchanga_at`; one not known is
+            /// `HC_ERR_UNKNOWN`. Tab-separated: the apparent geocentric ecliptic
+            /// longitude in degrees, in the true equinox of the date, the tropical one;
+            /// the latitude in degrees; the distance in astronomical units; the
+            /// sidereal longitude in degrees, that less the ayanāṃśa; the sidereal sign
+            /// by its identifier (`mesha` to `mina`) and its Sanskrit name; the degrees
+            /// into the sign; the longitude's change in degrees a day, negative in
+            /// retrograde; `1` when Jupiter is in retrograde, else `0`; and its
+            /// heliocentric longitude, latitude and distance, geometric, in the mean
+            /// ecliptic and equinox of the date, the distance in astronomical units. An
+            /// instant outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_jupiter_at(unix_seconds: i64, ayanamsa: name(ayanamsa_len)) -> line =
+            $crate::jupiter_lines::jupiter_line;
+
+        c {
+            /// Jupiter's crossings of the boundaries of the sidereal signs in a span of
+            /// POSIX seconds, as NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The span is `[from_unix_seconds, to_unix_seconds)`; `ayanamsa` is as for
+            /// `hc_panchanga_at`; null for it is `HC_ERROR_NULL_POINTER`. The lines are
+            /// the WebAssembly module's: the moment, the sign left and the sign entered
+            /// by identifier and Sanskrit name, and `forward` or `retrograde`. An end
+            /// outside the years −1000 to 3000, or a span longer than a hundred Julian
+            /// years, is `HC_ERROR_OUT_OF_RANGE`; a `to` not after `from` is an empty
+            /// answer. Writes the required length, including the terminator, into
+            /// `written`.
+        }
+        wasm {
+            /// Jupiter's crossings of the boundaries of the sidereal signs in a span of
+            /// POSIX seconds, as UTF-8 lines, one each, in time order, returning the
+            /// byte length written.
+            ///
+            /// The span is `[from_unix_seconds, to_unix_seconds)`. Jupiter turns back
+            /// out of a sign about two years in three, so the lines of a year come in
+            /// runs. Tab-separated: the moment, as whole POSIX seconds of Universal
+            /// Time, rounded down; the sign left, by identifier and Sanskrit name; the
+            /// sign entered, by identifier and Sanskrit name; and `forward` when Jupiter
+            /// moves on to the next sign, `retrograde` when it turns back into the one
+            /// before. The `ayanamsa` is as for `hc_panchanga_at`; one not known is
+            /// `HC_ERR_UNKNOWN`. An end outside the years −1000 to 3000, or a span
+            /// longer than a hundred Julian years, is `HC_ERR_OUT_OF_RANGE`; a `to` not
+            /// after `from` is an empty answer of zero bytes. A null `buffer` returns
+            /// the length the text needs.
+        }
+        fn hc_jupiter_ingresses(
+            from_unix_seconds: i64,
+            to_unix_seconds: i64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            $crate::jupiter_lines::ingress_lines;
+
+        c {
+            /// Jupiter's heliacal risings in a span of POSIX seconds, each with the
+            /// name a year of Jupiter has from it, as NUL-terminated UTF-8 lines in a
+            /// caller-owned buffer.
+            ///
+            /// The span is `[from_unix_seconds, to_unix_seconds)`; `ayanamsa` is as for
+            /// `hc_panchanga_at`; null for it is `HC_ERROR_NULL_POINTER`. The lines are
+            /// the WebAssembly module's: the rising and the setting before it, the
+            /// sidereal longitude and the nakṣatra, and the year's name. An end outside
+            /// the years −1000 to 3000, or a span longer than a hundred Julian years,
+            /// is `HC_ERROR_OUT_OF_RANGE`; a `to` not after `from` is an empty answer.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Jupiter's heliacal risings in a span of POSIX seconds, each with the
+            /// name a year of Jupiter has from it, as UTF-8 lines, returning the byte
+            /// length written.
+            ///
+            /// The span is `[from_unix_seconds, to_unix_seconds)`. A rising is when
+            /// Jupiter's longitude, west of the Sun's after their conjunction, has
+            /// passed 11°, the arc of visibility Varāhamihira, Bhāskara I and the
+            /// *Sūrya Siddhānta* give; a year of Jupiter runs from one rising to the
+            /// next, about 399 days. Tab-separated: the rising and the setting before
+            /// it, when Jupiter came within 11° east of the Sun and was lost in its
+            /// light, as whole POSIX seconds of Universal Time, rounded down; Jupiter's
+            /// sidereal longitude at the rising, in degrees; the nakṣatra it is in, by
+            /// number from 1, identifier and name; and the year's name by the
+            /// *Bṛhatsaṃhitā*, ch. 8, which names the year after the lunar month whose
+            /// nakṣatras hold the rising (`Karttika` for Kṛttikā and Rohiṇī), as the
+            /// twelve-year cycle of `hc_barhaspatya_year_at` spells it, and its position
+            /// from 1, Chaitra, to 12. A name is skipped where Jupiter passes over a
+            /// whole run of nakṣatras between two risings. This is Jupiter's rising on
+            /// the true sky by that fixed arc, not what any Siddhāntic almanac prints,
+            /// whose Jupiter and arc differ; Drik Panchang's visibility, which is
+            /// local, differs by up to four days. The `ayanamsa` is as for
+            /// `hc_panchanga_at`; one not known is `HC_ERR_UNKNOWN`. An end outside the
+            /// years −1000 to 3000, or a span longer than a hundred Julian years, is
+            /// `HC_ERR_OUT_OF_RANGE`; a `to` not after `from` is an empty answer of
+            /// zero bytes. A null `buffer` returns the length the text needs.
+        }
+        fn hc_jupiter_risings(
+            from_unix_seconds: i64,
+            to_unix_seconds: i64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            $crate::jupiter_lines::rising_lines;
+
+        c {
+            /// When in a Gregorian year the Sun, and the Moon where it is asked for,
+            /// stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose
+            /// sign is computed, meets it, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// `yoga` and `ayanamsa` are as for `hc_kumbh`; null for either is
+            /// `HC_ERROR_NULL_POINTER`. The line is the WebAssembly module's: the
+            /// columns of `hc_kumbh`, with the last always `1` or `0`, then Jupiter's
+            /// sidereal sign and longitude at the occasion's first moment. A year
+            /// outside −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// When in a Gregorian year the Sun, and the Moon where it is asked for,
+            /// stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose
+            /// sign is computed, meets it, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// The same as `hc_kumbh` with Jupiter's sidereal sign computed at the
+            /// occasion's first moment from the VSOP87B series, in the zodiac of the
+            /// same ayanāṃśa, in place of the caller's. The caller's form is the
+            /// `calendars` layer's `hc_kumbh`, which takes the sign as an argument.
+            /// Tab-separated, the thirteen columns of `hc_kumbh`, the last, whether the
+            /// occasion exists and Jupiter is in the condition's sign, never empty;
+            /// then Jupiter's sidereal sign by identifier, and its sidereal longitude
+            /// in degrees, both empty when the Sun's stay that year holds no new moon
+            /// and the condition asks for one. The locale argument fails as
+            /// `hc_parse_iso_date` does. A condition or ayanāṃśa not known is
+            /// `HC_ERR_UNKNOWN`; a year outside −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_kumbh_by_sky(
+            yoga: name(yoga_len),
+            year: i64,
+            ayanamsa: name(ayanamsa_len),
+            locale: text(locale_len),
+        ) -> line =
+            $crate::jupiter_lines::kumbh_by_sky_line;
+
+        c {
+            /// The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign,
+            /// for Jupiter's entry into it in a Gregorian year, found, as NUL-terminated
+            /// UTF-8 lines in a caller-owned buffer.
+            ///
+            /// `sign`, `ayanamsa` and `meridian` are named as for `hc_kumbh` and
+            /// `hc_term_in_effect`, and `rule` is `pushkaram-final-entry` or
+            /// `pushkaram-first-entry`, in any case; null for any is
+            /// `HC_ERROR_NULL_POINTER`, and a name not known `HC_ERROR_UNKNOWN`. The
+            /// lines are the WebAssembly module's: those of `hc_pushkaram`, then the
+            /// moment of the entry and the rule. No line where Jupiter makes no such
+            /// entry that year. A place off the globe, or a year outside −1000 to
+            /// 3000, is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including
+            /// the terminator, into `written`.
+        }
+        wasm {
+            /// The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign,
+            /// for Jupiter's entry into it in a Gregorian year, found, as UTF-8 lines,
+            /// each river named in a locale, returning the byte length written.
+            ///
+            /// The same as `hc_pushkaram` with the entry computed from the VSOP87B
+            /// series for Jupiter in place of the caller's: the entry of Jupiter into
+            /// `sign`, from the sign before it, that falls in the Gregorian year, by
+            /// `ayanamsa`. Where Jupiter enters, turns back and enters again, `rule`
+            /// says which entry counts: `pushkaram-final-entry`, the one after which
+            /// Jupiter stays, which every festival whose dates were read began at, or
+            /// `pushkaram-first-entry`, in any case. The first day is as for
+            /// `hc_pushkaram`. One line per river of the sign, the columns of
+            /// `hc_pushkaram`, then the moment of the entry as whole POSIX seconds of
+            /// Universal Time, rounded down, and the rule's identifier; no line, an
+            /// answer of zero bytes, where Jupiter makes no such entry that year. A
+            /// sign, ayanāṃśa, rule or meridian not known is `HC_ERR_UNKNOWN`. The
+            /// locale argument fails as `hc_parse_iso_date` does. A place off the
+            /// globe, or a year outside −1000 to 3000, is `HC_ERR_OUT_OF_RANGE`. A
+            /// null `buffer` returns the length the text needs.
+        }
+        fn hc_pushkaram_by_sky(
+            sign: name(sign_len),
+            year: i64,
+            ayanamsa: name(ayanamsa_len),
+            rule: name(rule_len),
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+            meridian: name(meridian_len),
+            locale: text(locale_len),
+        ) -> line =
+            |sign, year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| {
+                        $crate::jupiter_lines::pushkaram_by_sky_lines(
+                            sign,
+                            year,
+                            ayanamsa,
+                            rule,
+                            place,
+                            meridian,
+                            locale,
+                        )
+                    })
+            };
+    } };
     ("planetary", $backend:ident) => { $backend! {
         c {
             /// Mars at a POSIX instant and an east longitude, as one NUL-terminated

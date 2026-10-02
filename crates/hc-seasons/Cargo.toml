@@ -19,6 +19,9 @@ alloc = ["hc-core/alloc", "hc-calendar/alloc", "hc-calendars-solar/alloc", "hc-a
 # Floating-point math for `no_std` builds: `hc-core` refuses to compile with
 # neither `std` nor `libm`.
 libm = ["hc-core/libm", "hc-calendars-solar/libm"]
+# Jupiter's sidereal longitude and sign, and its entries into the signs,
+# from `hc-astro`'s VSOP87B series (some 55 kB of tables).
+jupiter = ["hc-astro/jupiter"]
 
 [dependencies]
 hc-core = { workspace = true }

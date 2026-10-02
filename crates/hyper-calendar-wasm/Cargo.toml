@@ -61,6 +61,12 @@ sky = ["civil", "hc/seasons", "hc/i18n"]
 # The orbit: Earth's orbital elements and the June insolation at 65° N, a
 # million years either side of 1950, from Berger's 1978 series.
 orbital = ["hc/orbital"]
+# Jupiter: where it is at an instant, tropical and sidereal; its entries
+# into the sidereal signs; and the Kumbh Mela and Pushkaram found from them,
+# where `calendars`' `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the
+# caller. From the complete VSOP87B series for Jupiter, some 55 kB of tables
+# that no other layer carries.
+jupiter = ["civil", "hc/jupiter"]
 # Time on other bodies: Mars time and the Darian date, the surface
 # missions' sol counts, the solar day and local mean solar time of every
 # body in hc-planetary's table, and the dates of the Titan, Galilean and
@@ -92,7 +98,7 @@ zone-names = ["tz", "hc/localized-zone-names"]
 # layer like the others and is in; a page that shows place names only on
 # demand builds the layers it paints with and loads the `places` build
 # beside them later.
-full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "planetary", "relativity", "places", "humanize", "zone-names"]
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "jupiter", "planetary", "relativity", "places", "humanize", "zone-names"]
 
 [dependencies]
 hc = { package = "hyper-calendar", version = "0.1.0", path = "../hyper-calendar", default-features = false, features = ["std"] }
