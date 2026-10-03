@@ -382,7 +382,9 @@ on the operative sentence of its law as a newspaper quotes it, Serbia's,
 and ten on secondary sources, as the table above says row by row, Holland
 among them on two sources against two. The published code of
 *Calendrical Calculations* carries no table of adoption dates
-[reingold2018code], so each row names its own source.
+[reingold2018code], and the *Explanatory Supplement*'s §15.3, which treats
+the adoption dates [explanatory-supplement-2013], was not read, so each row
+names its own source.
 
 ## Sources
 
@@ -411,6 +413,7 @@ among them on two sources against two. The published code of
 | [trwiki-miladi-takvim] | Law No. 698 of 26 December 1925, in force 1 January 1926 | Yes, 2026-09-25 |
 | [wikipedia-ja-gregorio-reki] | Japan's change on 1 January 1873 | Yes, 2026-09-25; the proclamation's number was not on the page |
 | [reingold2018code] | `fixed-from-julian`, `fixed-from-gregorian`, `julian-epoch`; that the code carries no adoption table | Yes, 2026-09-25 |
+| [explanatory-supplement-2013] | §15.3, the adoption dates of the Gregorian calendar; no table is taken from it | Not read |
 | [kowiki-taeyangryeok] | Korea: the edict in the Official Gazette of 1895-09-09 (lunar), lunar 1895-11-17 made 1 January 1896 | Yes, 2026-09-26 |
 | [kowiki-geonyang] | Korea: the era 建陽 from 1 January 1896 with the change of calendar | Yes, 2026-09-26 |
 | [zhwiki-minguo-jinian] | China: Sun Yat-sen's circular telegram of 2 January 1912 | Yes, 2026-09-26 |

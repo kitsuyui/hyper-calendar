@@ -72,8 +72,8 @@ year whose weekend law in the region was not read is `unread-weekend`
 - **`hc_holiday::id`**: `HolidayId`, the identifier a rule has, which
   compares, hashes and orders by what it renders to, and `Kebab`, the
   fold.
-- **Every rule of every table**: the 2 837 rule constructors need not set
-  one; the `common-worship` table sets all forty, since the ranks are
+- **Every rule of every table**: the 9 554 rules of the 311 tables need not
+  set one; the `common-worship` table sets all forty, since the ranks are
   joined on them.
 - **The columns.** `hc_holidays_in_year`, cells 10 (`id`) and 11
   (`source`); `hc_holidays_on`, cell 12; `hc_holidays_on_in`, cell 14 after
@@ -91,12 +91,13 @@ code and the identifier.
 
 The identifier is a name, and has no claim to accuracy but uniqueness and
 stability. Uniqueness within a table holds by the fold except where
-spelling variants are one holiday, which they are in every case the test
-met: every one of the 95 collisions its first run reported, a pair of English names that fold together, was one observance
-spelled twice, in India's and the United States' tables. Stability: an identifier
+spelling variants are one holiday, which they are in every case the tests
+meet: each of the 51 groups of English names that fold together, all in India's
+and the United States' tables, is one observance spelled several ways
+(`Fathers' Day`, `Fathers Day`, `Father's Day`). Stability: an identifier
 derived from a name changes when the name does, which is why a rule that
-a page keys on may set it. The tables' own 2 837 rules were not each read
-for whether two folded names are one day.
+a page keys on may set it. The other rules' names were not each read for
+whether two names that differ by more than the fold are one day.
 
 ## Sources
 

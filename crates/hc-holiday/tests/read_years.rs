@@ -158,8 +158,8 @@ fn india_s_state_gaps_stop_at_the_act_that_formed_the_state() {
         assert!(!gap(region, first_read), "{region} {first_read}");
         assert!(gap(region, 2027), "{region} 2027");
     }
-    // The audit's samples: IN-TS in 2010 and 1900, IN-GJ in 1950, IN-KL in
-    // 1880 are no longer gaps.
+    // Years the sources read: IN-TS in 2010 and 1900, IN-GJ in 1950 and
+    // IN-KL in 1880 are not gaps.
     assert!(!gap("IN-TS", 2010));
     assert!(!gap("IN-TS", 1900));
     assert!(!gap("IN-GJ", 1950));

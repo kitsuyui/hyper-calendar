@@ -42,7 +42,8 @@
 //! tests measure this implementation against JPL's DE441 through Horizons,
 //! in the heliocentric J2000 position at twelve dates from 1001 BCE to 3000
 //! and in the apparent geocentric longitude on named dates, and
-//! `docs/systems/jupiter-festivals.md` states what they found. Jupiter moves
+//! `docs/systems/jupiter-ephemeris.md` §Accuracy states what they found.
+//! Jupiter moves
 //! 0.08° a day on average and stands still at its stations, so an error of
 //! 1″ in longitude is a few minutes at the average speed and a few days at
 //! a station.

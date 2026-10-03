@@ -893,9 +893,8 @@ pub static SOUTH_AFRICA: FiscalProfile = FiscalProfile {
 /// the official day. After 1634 the rule is an extrapolation and the entry
 /// claims nothing; `is_approximate` stays true for that reason.
 ///
-/// The crate used Birashk's 2 820-year cycle, `persian-arithmetic`, until
-/// this was corrected. That cycle starts AP 1404 on 20 March 2025 where Iran
-/// began it on 21 March (the Solar Hijri calendar's correspondence table on
+/// The entry is not Birashk's 2 820-year cycle, `persian-arithmetic`. That
+/// cycle starts AP 1404 on 20 March 2025 where Iran began it on 21 March (the Solar Hijri calendar's correspondence table on
 /// Wikipedia, `wikipedia-solar-hijri-calendar`), and Tøndering names 1404 and
 /// 1437 as its only two disagreements between AP 1244 and 1531.
 ///
@@ -1299,8 +1298,8 @@ mod tests {
         // The first day of each Solar Hijri year 1399 to 1410, from the
         // correspondence table of Wikipedia's "Solar Hijri calendar"
         // (`wikipedia-solar-hijri-calendar`, secondary), read 2026-10-03.
-        // 1404 starts on 21 March 2025: Birashk's 2 820-year cycle, which
-        // this crate used before, gave the 20th.
+        // 1404 starts on 21 March 2025; Birashk's 2 820-year cycle gives the
+        // 20th.
         let published = [
             (1399, (2020, 3, 20)),
             (1400, (2021, 3, 21)),
@@ -1332,13 +1331,13 @@ mod tests {
 
     #[test]
     fn the_iranian_fiscal_year_is_not_the_2820_year_cycle() {
-        // The cycle this crate used before puts AP 1404 on 20 March 2025,
-        // a day before Iran did; the 33-year rule does not.
+        // The 2 820-year cycle puts AP 1404 on 20 March 2025, a day before
+        // Iran did; the 33-year rule does not.
         use hc_calendars_solar::persian;
         assert_eq!(
             persian::to_fixed(1404, 1, 1).unwrap(),
             greg(2025, 3, 20),
-            "the 2 820-year cycle's start of 1404, the day this entry left"
+            "the 2 820-year cycle's start of 1404, a day before the entry's"
         );
         let system = IRAN.government(1404).unwrap();
         assert_eq!(system.span(1404).unwrap().first, greg(2025, 3, 21));

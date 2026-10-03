@@ -88,7 +88,7 @@ Sharjah, Friday, Saturday and Sunday from 1 January 2022. The emirate has
 no substitution law of its own in the table, as the federation has none.
 
 Every other region of both tables has the table's weekend. The weekend is
-column 12 of `hc_holiday_tables`: the table's weekend laws, separated by
+column 14 of `hc_holiday_tables`: the table's weekend laws, separated by
 `;`, each four fields separated by `/`.
 
 | Field | Holds |
@@ -217,5 +217,5 @@ Department's list for the year.
   `UNREAD_WEEKEND`.
 - `crates/hc-holiday/src/engine.rs`: `HolidayCalendar::{is_weekend,
   weekend_is_read, add_business_days, business_days_between}` and the gap.
-- `crates/hyper-calendar/src/holiday_lines.rs`: `weekend_cell`, column 12.
+- `crates/hyper-calendar/src/holiday_lines.rs`: `weekend_cell`, column 14.
 - `crates/hc-holiday/tests/regional_weekends.rs`: the dated examples above.

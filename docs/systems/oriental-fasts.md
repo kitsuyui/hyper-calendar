@@ -281,6 +281,7 @@ turn out to give the same days:
 | [surb-zoravor-oraphaq] | No weekly fasts in the tabernacle feasts | Yes, 2026-09-29 |
 | [westernprelacy-fasts] | The forty days and the Christmas fast, in the Catholicosate of Cilicia's Western Prelacy | Yes, 2026-09-29; its dates carry no year |
 | [arak29-fasts] | The fifty days of `armenian-fasts-fifty-days`, 160 fast days a year | Yes, 2026-09-29 |
+| [wikipedia-vardavar] | The Transfiguration (Vardavar) 98 days after Easter, from which the Armenian fast before it is counted; its dates of 2010–2026 | Yes, 2026-09-26, secondary |
 | [armenian-church-sydney] | The Gregorian and Julian calendars of Etchmiadzin and Jerusalem | Yes, 2026-09-26 |
 | [st-takla-fasts] | Every Coptic fast's length and days, the Wednesdays and Fridays | Yes, 2026-09-29 (Arabic) |
 | [st-takla-nativity-fast] | The Nativity on 7 January, 28 Koiak in a Gregorian leap year | Yes, 2026-09-29 (Arabic) |

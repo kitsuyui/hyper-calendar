@@ -7516,8 +7516,8 @@ const YUA: LocaleData = LocaleData {
 // no Gregorian vocabulary; the Tunisian and Libyan forms are the Arabic
 // dialects' names in Latin letters, and their own script is not carried,
 // for no source read prints it. The languages' own names are Wikipedia's
-// "Tarifit", "Tunisian Arabic" and "Libyan Arabic" (read 2026-09-29):
-// Tarifit, Tūnsi and Lībi.
+// "Tarifit", "Tunisian Arabic" and "Libyan Arabic" (`wikipedia-tarifit`,
+// read 2026-09-29): Tarifit, Tūnsi and Lībi.
 
 const RIF_CALENDARS: &[CalendarNames] = &[
     gregorian(&[], EraNames::EMPTY, ContextualNames::EMPTY),

@@ -627,7 +627,7 @@ pub static ITALY: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Legge 27 maggio 1949, n. 260, Disposizioni in materia di ricorrenze festive, \
               articles 1 and 2, in the text in force updated to 10 October 2025, on Normattiva \
               (normattiva.it/uri-res/N2Ls?urn:nir:stato:legge:1949-05-27;260), retrieved \

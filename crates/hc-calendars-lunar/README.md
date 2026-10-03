@@ -469,12 +469,13 @@ not established here, so dates in that gap are what the rules give, not what
 was proclaimed in Hanseong or Huế.
 
 Beside the calendars, `chinese` counts ages four ways, each its own
-convention and each a function, which is its only name, as nothing
-selects a count by a string: `reckoned_age` at 正月初一, the book's
-`chinese-age`, `reckoned_age_at_lichun` at 立春, a local custom a popular
-account names, and in Gregorian years `reckoned_age_at_new_year_day`, one
-at birth and one more each 1 January, the Korean 세는 나이, and `year_age`,
-from nothing. `marriage_augury` gives each year's class and
+convention and each a function, selected by a string through
+`chinese::AgeConvention` (`hc_chinese_age` at the boundary):
+`reckoned_age` at 正月初一, the book's `chinese-age`, `reckoned_age_at_lichun`
+at 立春, `lichun-age`, a local custom a popular account names, and in
+Gregorian years `reckoned_age_at_new_year_day`, `new-year-day-age`, one at
+birth and one more each 1 January, the Korean 세는 나이, and `year_age`,
+`year-age`, from nothing. `marriage_augury` gives each year's class and
 `MarriageAugury::chinese_names` the Chinese names the sources give two of the
 four, 無春年, 寡婦年 and 盲年 for a year without 立春 and 雙春兼閏月 or 双春年
 for one with two. The Vietnamese zodiac, with the water buffalo and the cat,

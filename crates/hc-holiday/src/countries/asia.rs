@@ -2475,7 +2475,7 @@ pub static MALAYSIA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: MY_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 27),
+    sources_checked: SourceDate::new(2026, 10, 3),
     sources: "Holidays Act 1951, schedule; the Prime Minister's Department's \
               \"Jadual Hari Kelepasan Am Persekutuan\" for 2020 to 2027 (kabinet.gov.my, \
               bkpp/pdf/hari_kelepasan_am/hka_2020.pdf to hka_2025.pdf, storage/2025/08/\
@@ -7101,7 +7101,7 @@ pub static NORTH_KOREA: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: KP_WEEKEND,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "안주영 et al., Seoul National University Institute for Peace and \
               Unification Studies, 2020 unification report, pp. 11–13 (ipus.snu.ac.kr, \
               `kp-wall-calendar-2020-snu`), transcribing the 2020 wall calendar 《백두산》, \

@@ -7,9 +7,10 @@
 //!
 //! The sidereal sign is Jupiter's apparent geocentric longitude in the
 //! true equinox of the date less the ayanāṃśa
-//! ([`hc_seasons::zodiac::jupiter`]); `docs/systems/jupiter-festivals.md` has
-//! what it agrees with and what it costs. The range is the sky layer's,
-//! [`crate::astro_lines`]: the years −1000 to 3000.
+//! ([`hc_seasons::zodiac::jupiter`]); `docs/systems/jupiter-ephemeris.md`
+//! has the position, what it costs and its accuracy, and
+//! `docs/systems/jupiter-festivals.md` what the festivals agree with. The
+//! range is the sky layer's, [`crate::astro_lines`]: the years −1000 to 3000.
 
 use alloc::string::String;
 

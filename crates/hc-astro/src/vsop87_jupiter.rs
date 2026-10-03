@@ -21,7 +21,8 @@
 //! for the radius. The terms are not in the file in order of size, so this
 //! is a test per term, not a stop. What the cut costs, measured against the
 //! full series at 1 000 dates from −1000 to 3000, and what it saves, are in
-//! `docs/systems/jupiter-festivals.md` §Accuracy and in the tests below.
+//! `docs/systems/jupiter-ephemeris.md` (§The data, and what it costs, and
+//! §Accuracy) and in the tests below.
 //!
 //! The size of the *data* does not shrink with the cut: the tables are
 //! whole, so that the choice is the caller's, per call. A build that wants

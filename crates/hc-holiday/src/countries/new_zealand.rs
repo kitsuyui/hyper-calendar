@@ -39,6 +39,9 @@
 //! observes the official day", and that for Otago "there is no easily
 //! determined single day of local observance"; the rules are the days it
 //! lists. The English names are the crate's.
+//!
+//! `docs/systems/new-zealand-anniversary-days.md` has the rules, the
+//! exceptions and the provinces that are not ISO 3166-2 regions.
 
 use hc_calendar::Weekday;
 

@@ -13,6 +13,9 @@
 //! their province, as the list gives them, and none moves off a Sunday:
 //! section 3's Sunday rule is the Act's, for the Act's own holidays. The
 //! names are the list's.
+//!
+//! `docs/systems/pacific-provincial-days.md` has the list read, the
+//! provinces and the gaps.
 
 use crate::rule::{HolidayRule, Rule};
 

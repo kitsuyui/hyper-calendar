@@ -91,10 +91,11 @@ example shows why the distinction matters — a Saturday year end in November
   and uses the 33-year rule, `persian-arithmetic-33`, which agrees with the
   astronomical calendar on every Nowruz from AP 1178 to 1634 (AD 1799 to
   2255; Borkowski's span as Heydari-Malayeri reports it, tested in
-  `hc-calendars-equinox`). It started with Birashk's 2 820-year cycle,
-  `persian-arithmetic`, which was one day early for 1404; the tests now pin
-  the twelve year starts of AP 1399 to 1410 against the correspondence
-  table of Wikipedia's "Solar Hijri calendar" (21 March 2025 for 1404).
+  `hc-calendars-equinox`). It is not Birashk's 2 820-year cycle,
+  `persian-arithmetic`, which puts AP 1404 on 20 March 2025, a day early; the
+  tests pin the twelve year starts of AP 1399 to 1410 against the
+  correspondence table of Wikipedia's "Solar Hijri calendar" (21 March 2025
+  for 1404).
   After 1634 the rule is not known to agree, and `is_approximate` stays true.
 * **Nepal is exact where the months are published, and approximate elsewhere,
   by a stated amount.** The year begins on 1 Shrawan in the Bikram Sambat, and

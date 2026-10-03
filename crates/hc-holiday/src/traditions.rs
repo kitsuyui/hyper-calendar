@@ -1406,7 +1406,7 @@ macro_rules! xiaonian {
             bridges: &[],
             includes: &[],
             weekend: SATURDAY_SUNDAY,
-            sources_checked: SourceDate::new(2026, 9, 26),
+            sources_checked: SourceDate::new(2026, 9, 27),
             sources: XIAONIAN_SOURCES,
             subdivisions: Subdivisions::Undivided,
         };
@@ -1519,7 +1519,7 @@ pub static TAOIST: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Secondary sources only, all retrieved 2026-09-26: Wikipedia (zh), \
               \"下元節\", for the Three Officials' birthdays on 正月十五, 七月十五 and \
               十月十五; Wikipedia, \"Mazu\", for her birthday on the 23rd day of the 3rd \
@@ -1657,7 +1657,7 @@ pub static VIETNAMESE_FOLK: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Ngô Trọng Bình, \"Ý nghĩa của những ngày tết tính theo âm lịch\", TTXVN/Vietnam+ \
               (vietnamplus.vn), 21 January 2012 (`vnplus-tet-am-lich`), for the days; \
               Vietnam+, 15 January 2025 (`vnplus-ong-tao-2025`), for Ông Táo on 22 January \
@@ -2554,7 +2554,7 @@ pub static PLOUGH_DAYS: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "William Hone, The Every-Day Book, vol. 1 (London: Hunt and Clarke, 1826; \
               read in William Tegg and Co.'s reissue as Project Gutenberg's eBook 53275 \
               transcribes it, and in the transcription at hymnsandcarolsofchristmas.com; \
@@ -2618,7 +2618,7 @@ pub static CHAHARSHANBE_SURI: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 27),
     sources: "Wikipedia (fa), \"چهارشنبه‌سوری\", for the night of the last Wednesday of \
               the year from Tuesday's sunset and 28 Esfand 1404, 17 March 2026; Wikipedia, \
               \"Chaharshanbe Suri\", for 18 March 2025, 17 March 2026 and 16 March 2027 \
@@ -3499,7 +3499,7 @@ pub static SIKH_NANAKSHAHI_2003: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 22),
+    sources_checked: SourceDate::new(2026, 9, 26),
     sources: "Wikipedia, \"Nanakshahi calendar\", retrieved 2026-09-22: the table \
               of festivals and events of the 2003 version for every fixed \
               date, and its table of the movable dates 2003–2020 for the three \
@@ -4813,7 +4813,7 @@ pub static YAZIDI: RuleSet = RuleSet {
     bridges: &[],
     includes: &[],
     weekend: SATURDAY_SUNDAY,
-    sources_checked: SourceDate::new(2026, 9, 26),
+    sources_checked: SourceDate::new(2026, 9, 29),
     sources: "Philip G. Kreyenbroek, Yezidism: Its Background, Observances and Textual \
               Tradition (Lewiston: Edwin Mellen Press, 1995), pp. 150–158 and 164 n. 53, \
               read in the archive.org text (`kreyenbroek1995`), retrieved 2026-09-26 and, \

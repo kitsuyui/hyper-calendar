@@ -34,7 +34,8 @@
 //! Croats and Slovenes' law of 10 January 1919 was read as a newspaper
 //! quotes it; the other ten rows rest on secondary sources, encyclopaedia
 //! articles among them. No table of adoption dates in *Calendrical
-//! Calculations* or the *Explanatory Supplement* was read, and the
+//! Calculations* or the *Explanatory Supplement* (`explanatory-supplement-2013`)
+//! was read, and the
 //! published code of the former carries none. Where a state adopted the
 //! reform province by province — the Dutch Republic, the German states —
 //! the entry names the province the date belongs to rather than pretending

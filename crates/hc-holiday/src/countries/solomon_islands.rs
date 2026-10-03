@@ -17,6 +17,9 @@
 //! every other year, whose notice was not read, reports them as a gap.
 //! Honiara, the Capital Territory, is given no day, and the table lists it
 //! among the subdivisions read. The names are the crate's.
+//!
+//! `docs/systems/pacific-provincial-days.md` has the notice read, the
+//! provinces and the gaps.
 
 use crate::rule::{HolidayRule, Listing, Rule};
 
