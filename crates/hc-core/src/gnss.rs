@@ -16,7 +16,7 @@
 //! The systems, their epochs, the worked example of the April 2019
 //! rollover and the sources are in `docs/systems/gnss-time.md`.
 
-use crate::duration::Duration;
+use crate::duration::{Duration, days_and_seconds};
 use crate::epoch::{self, Epoch};
 use crate::error::{TimeError, TimeResult};
 use crate::scale::{Instant, Tai};
@@ -389,7 +389,7 @@ impl GlonassTime {
         // An inserted second, 02:59:60, belongs to the day of the second
         // before it, which is the same GLONASS day as the one after it.
         let label = self.0.unix_seconds - i64::from(self.0.leap_second);
-        let day = (label - GLONASS_1996_LABEL).div_euclid(86_400);
+        let day = days_and_seconds(label - GLONASS_1996_LABEL).0;
         if !(0..GLONASS_INTERVAL_DAYS_END).contains(&day) {
             return Err(TimeError::OutOfRange);
         }

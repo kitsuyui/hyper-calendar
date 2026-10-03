@@ -212,10 +212,38 @@ pub const TABLE: &[LeapEntry] = &[
 /// deliberately different *rate* and applying occasional fractional steps, so
 /// `TAI - UTC` is piecewise linear rather than an integer. The coefficients
 /// are the `tai-utc.dat` series published by the USNO,
-/// <https://maia.usno.navy.mil/ser7/tai-utc.dat>, checked 2026-09-26
-/// (`usno-tai-utc`): 1961 JAN 1, 1.422 818 0 s + (MJD − 37 300) × 0.001 296 s,
-/// to 1968 FEB 1, 4.213 170 0 s + (MJD − 39 126) × 0.002 592 s, which gives
-/// the 8.000 082 s of 1970-01-01.
+/// <https://maia.usno.navy.mil/ser7/tai-utc.dat> (`usno-tai-utc`), and the
+/// same thirteen segments, with the same coefficients, in the IERS Bulletin C
+/// history, <https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history>
+/// (`iers-utc-tai-history`); both were read on 2026-10-03, and every
+/// segment's start date below is the date they give, with the Julian Date
+/// the USNO file gives for it:
+///
+/// | Start | JD | `TAI − UTC` at the start |
+/// | --- | --- | --- |
+/// | 1961-01-01 | 2 437 300.5 | 1.422 818 0 s + (MJD − 37 300) × 0.001 296 s |
+/// | 1961-08-01 | 2 437 512.5 | 1.372 818 0 s, same line |
+/// | 1962-01-01 | 2 437 665.5 | 1.845 858 0 s + (MJD − 37 665) × 0.001 123 2 s |
+/// | 1963-11-01 | 2 438 334.5 | 1.945 858 0 s, same line |
+/// | 1964-01-01 | 2 438 395.5 | 3.240 130 0 s + (MJD − 38 761) × 0.001 296 s |
+/// | 1964-04-01 | 2 438 486.5 | 3.340 130 0 s, same line |
+/// | 1964-09-01 | 2 438 639.5 | 3.440 130 0 s, same line |
+/// | 1965-01-01 | 2 438 761.5 | 3.540 130 0 s, same line |
+/// | 1965-03-01 | 2 438 820.5 | 3.640 130 0 s, same line |
+/// | 1965-07-01 | 2 438 942.5 | 3.740 130 0 s, same line |
+/// | 1965-09-01 | 2 439 004.5 | 3.840 130 0 s, same line |
+/// | 1966-01-01 | 2 439 126.5 | 4.313 170 0 s + (MJD − 39 126) × 0.002 592 s |
+/// | 1968-02-01 | 2 439 887.5 | 4.213 170 0 s, same line |
+///
+/// which gives the 8.000 082 s of 1970-01-01 and 9.892 242 s at the end of
+/// 1971-12-31. Each `start_unix` is `(MJD − 40 587) × 86 400` of the JD
+/// above, and a test recomputes all thirteen from that column. The steps
+/// between segments are −0.05 s (1961-08-01), +0.1 s (1963-11-01, 1964-04-01,
+/// 1964-09-01, 1965-01-01, 1965-03-01, 1965-07-01, 1965-09-01), −0.1 s
+/// (1968-02-01), none at 1962-01-01, 1964-01-01 and 1966-01-01, where the
+/// new line continues the old one, and +0.107 758 s at 1972-01-01 where the
+/// integer era begins. None of them is a leap second: no second was inserted
+/// before 1972-06-30.
 ///
 /// A UTC second in this era was not an SI second, so conversions here are
 /// exact in the sense that they reproduce the published relation, not in the
@@ -229,7 +257,7 @@ pub const RATE_ERA: &[RateEntry] = &[
         label: "1961-01-01",
     },
     RateEntry {
-        start_unix: -272_505_600,
+        start_unix: -265_680_000,
         offset: 1.372_818_0,
         origin_mjd: 37_300.0,
         drift: 0.001_296,
@@ -250,49 +278,49 @@ pub const RATE_ERA: &[RateEntry] = &[
         label: "1963-11-01",
     },
     RateEntry {
-        start_unix: -189_302_400,
+        start_unix: -189_388_800,
         offset: 3.240_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1964-01-01",
     },
     RateEntry {
-        start_unix: -181_353_600,
+        start_unix: -181_526_400,
         offset: 3.340_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1964-04-01",
     },
     RateEntry {
-        start_unix: -173_404_800,
+        start_unix: -168_307_200,
         offset: 3.440_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1964-09-01",
     },
     RateEntry {
-        start_unix: -165_542_400,
+        start_unix: -157_766_400,
         offset: 3.540_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1965-01-01",
     },
     RateEntry {
-        start_unix: -157_680_000,
+        start_unix: -152_668_800,
         offset: 3.640_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1965-03-01",
     },
     RateEntry {
-        start_unix: -152_409_600,
+        start_unix: -142_128_000,
         offset: 3.740_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
         label: "1965-07-01",
     },
     RateEntry {
-        start_unix: -142_128_000,
+        start_unix: -136_771_200,
         offset: 3.840_130_0,
         origin_mjd: 38_761.0,
         drift: 0.001_296,
@@ -368,7 +396,7 @@ pub fn steps() -> impl Iterator<Item = (i64, i64)> {
 pub fn end_of_day_step(unix_day: i64) -> crate::TimeResult<i64> {
     let end = unix_day
         .checked_add(1)
-        .and_then(|day| day.checked_mul(86_400))
+        .and_then(crate::duration::seconds_in_days)
         .ok_or(crate::TimeError::Overflow)?;
     if end > table_valid_until_unix() {
         return Err(crate::TimeError::AfterModelEnd);
@@ -388,6 +416,96 @@ mod tests {
             assert!(pair[0].start_unix < pair[1].start_unix, "{:?}", pair);
             assert!(pair[0].tai_minus_utc < pair[1].tai_minus_utc, "{:?}", pair);
         }
+    }
+
+    /// The USNO `tai-utc.dat` rows of 1961-1972, read 2026-10-03 at
+    /// <https://maia.usno.navy.mil/ser7/tai-utc.dat>, and the IERS
+    /// `UTC-TAI.history`, read the same day, which gives the same dates
+    /// and coefficients: the start date, its Julian Date, `TAI − UTC` at
+    /// the start of the line in seconds, the MJD it is measured from and
+    /// its drift in seconds per day. The 1972 row ends the era.
+    const USNO: [(&str, f64, f64, f64, f64); 14] = [
+        ("1961-01-01", 2_437_300.5, 1.422_818_0, 37_300.0, 0.001_296),
+        ("1961-08-01", 2_437_512.5, 1.372_818_0, 37_300.0, 0.001_296),
+        (
+            "1962-01-01",
+            2_437_665.5,
+            1.845_858_0,
+            37_665.0,
+            0.001_123_2,
+        ),
+        (
+            "1963-11-01",
+            2_438_334.5,
+            1.945_858_0,
+            37_665.0,
+            0.001_123_2,
+        ),
+        ("1964-01-01", 2_438_395.5, 3.240_130_0, 38_761.0, 0.001_296),
+        ("1964-04-01", 2_438_486.5, 3.340_130_0, 38_761.0, 0.001_296),
+        ("1964-09-01", 2_438_639.5, 3.440_130_0, 38_761.0, 0.001_296),
+        ("1965-01-01", 2_438_761.5, 3.540_130_0, 38_761.0, 0.001_296),
+        ("1965-03-01", 2_438_820.5, 3.640_130_0, 38_761.0, 0.001_296),
+        ("1965-07-01", 2_438_942.5, 3.740_130_0, 38_761.0, 0.001_296),
+        ("1965-09-01", 2_439_004.5, 3.840_130_0, 38_761.0, 0.001_296),
+        ("1966-01-01", 2_439_126.5, 4.313_170_0, 39_126.0, 0.002_592),
+        ("1968-02-01", 2_439_887.5, 4.213_170_0, 39_126.0, 0.002_592),
+        ("1972-01-01", 2_441_317.5, 10.0, 41_317.0, 0.0),
+    ];
+
+    /// Audit 10, a11: eight of the thirteen start dates were another day.
+    /// Every segment starts on its label's day, the day the two published
+    /// tables give, and carries their coefficients.
+    #[test]
+    fn every_rate_segment_starts_on_the_day_the_published_table_gives() {
+        assert_eq!(RATE_ERA.len(), USNO.len() - 1);
+        for (entry, (label, jd, offset, origin, drift)) in RATE_ERA.iter().zip(USNO) {
+            assert_eq!(entry.label, label);
+            // JD 2 437 300.5 is MJD 37 300, and the epoch is MJD 40 587.
+            let mjd = jd - 2_400_000.5;
+            assert_eq!(mjd.fract(), 0.0, "{label}");
+            assert_eq!(
+                entry.start_unix,
+                (mjd as i64 - 40_587) * 86_400,
+                "{label}: starts on another day"
+            );
+            assert_eq!(entry.offset, offset, "{label}");
+            assert_eq!(entry.origin_mjd, origin, "{label}");
+            assert_eq!(entry.drift, drift, "{label}");
+        }
+        assert_eq!(integer_era_start_unix(), (41_317 - 40_587) * 86_400);
+        assert_eq!(utc_start_unix(), RATE_ERA[0].start_unix);
+    }
+
+    /// The start days counted by hand from the length of the months and
+    /// years, not from the Julian Dates: the check the table above cannot
+    /// give if a Julian Date were mistyped with its date.
+    #[test]
+    fn a_few_segment_starts_are_the_calendar_days_they_are_named_for() {
+        let day = |label: &str| {
+            RATE_ERA
+                .iter()
+                .find(|entry| entry.label == label)
+                .unwrap()
+                .start_unix
+                / 86_400
+        };
+        // 1970-01-01 is day 0; 1965-01-01 is the five years 1965 to 1969
+        // before it, of which 1968 is a leap year.
+        assert_eq!(day("1965-01-01"), -(365 + 365 + 366 + 365 + 365));
+        assert_eq!(day("1964-01-01"), day("1965-01-01") - 366);
+        assert_eq!(day("1964-04-01"), day("1964-01-01") + 31 + 29 + 31);
+        assert_eq!(
+            day("1964-09-01"),
+            day("1964-04-01") + 30 + 31 + 30 + 31 + 31
+        );
+        assert_eq!(day("1965-03-01"), day("1965-01-01") + 31 + 28);
+        assert_eq!(day("1965-07-01"), day("1965-03-01") + 31 + 30 + 31 + 30);
+        assert_eq!(day("1965-09-01"), day("1965-07-01") + 31 + 31);
+        assert_eq!(
+            day("1961-08-01"),
+            day("1961-01-01") + 31 + 28 + 31 + 30 + 31 + 30 + 31
+        );
     }
 
     #[test]
@@ -425,7 +543,7 @@ mod tests {
         assert_eq!(end_of_day_step(17_166), Ok(1), "2016-12-31");
         assert_eq!(end_of_day_step(17_165), Ok(0), "2016-12-30");
         assert_eq!(end_of_day_step(364), Ok(0), "1970-12-31");
-        let last_known = table_valid_until_unix() / 86_400 - 1;
+        let last_known = crate::duration::days_and_seconds(table_valid_until_unix()).0 - 1;
         assert_eq!(end_of_day_step(last_known), Ok(0));
         assert_eq!(
             end_of_day_step(last_known + 1),

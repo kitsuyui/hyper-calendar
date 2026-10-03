@@ -37,11 +37,12 @@ pub const FIRST_WEEKDAY: Weekday = Weekday::Monday;
 /// The fewest days of a year the first week of the year holds.
 pub const MINIMAL_DAYS_IN_FIRST_WEEK: u8 = 4;
 
-/// The earliest fixed day this implementation converts: the week date's.
-pub const EARLIEST: Rd = Rd(gregorian::EARLIEST.0 + 400);
+/// The earliest fixed day this implementation converts: the Gregorian
+/// range's, every day of which has a week date ([`iso_week::from_fixed`]).
+pub const EARLIEST: Rd = gregorian::EARLIEST;
 
-/// The latest fixed day this implementation converts: the week date's.
-pub const LATEST: Rd = Rd(gregorian::LATEST.0 - 400);
+/// The latest fixed day this implementation converts: the Gregorian range's.
+pub const LATEST: Rd = gregorian::LATEST;
 
 /// The ISO 8601 calendar.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]

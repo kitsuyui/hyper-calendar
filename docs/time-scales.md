@@ -102,8 +102,89 @@ Each row gives the span of years and how `TAI − UTC` is found in it.
 | Era | `TAI − UTC` |
 | --- | --- |
 | Before 1961-01-01 | UTC did not exist. `LeapPolicy::Strict` refuses; `Extrapolate` returns 0 by convention. |
-| 1961-01-01 to 1971-12-31 | A piecewise-linear rate offset, `offset + (MJD − origin) × drift`. Fractional, and the second itself was a different length. |
+| 1961-01-01 to 1971-12-31 | A piecewise-linear rate offset, `offset + (MJD − origin) × drift`, in the thirteen segments [below](#the-rate-era-1961-to-1971). Fractional, and the second itself was a different length. |
 | 1972-01-01 onward | A whole number of seconds, stepped by announced leap seconds. 10 s at the start, 37 s since 2017-01-01. |
+
+### The rate era, 1961 to 1971
+
+From 1961-01-01 to 1971-12-31 UTC kept close to UT1 by running its second at
+a rate other than the SI second and, now and then, stepping by a fraction of
+one. `TAI − UTC` was therefore not a whole number, and it was a straight line
+in time within each of thirteen segments. The USNO `tai-utc.dat` [usno-tai-utc]
+and the IERS history [iers-utc-tai-history] give the same thirteen segments,
+with the same start dates and coefficients (both read 2026-10-03; the USNO
+file also gives each start's Julian Date), and `hc-core::leap::RATE_ERA`
+carries them:
+
+| Start | JD | `TAI − UTC` at the start | Step at the start |
+| --- | --- | --- | --- |
+| 1961-01-01 | 2 437 300.5 | 1.422 818 0 s, drift 0.001 296 s per day from MJD 37 300 | |
+| 1961-08-01 | 2 437 512.5 | 1.372 818 0 s, the same line | −0.05 s |
+| 1962-01-01 | 2 437 665.5 | 1.845 858 0 s, drift 0.001 123 2 s per day from MJD 37 665 | none |
+| 1963-11-01 | 2 438 334.5 | 1.945 858 0 s, the same line | +0.1 s |
+| 1964-01-01 | 2 438 395.5 | 3.240 130 0 s, drift 0.001 296 s per day from MJD 38 761 | none |
+| 1964-04-01 | 2 438 486.5 | 3.340 130 0 s, the same line | +0.1 s |
+| 1964-09-01 | 2 438 639.5 | 3.440 130 0 s, the same line | +0.1 s |
+| 1965-01-01 | 2 438 761.5 | 3.540 130 0 s, the same line | +0.1 s |
+| 1965-03-01 | 2 438 820.5 | 3.640 130 0 s, the same line | +0.1 s |
+| 1965-07-01 | 2 438 942.5 | 3.740 130 0 s, the same line | +0.1 s |
+| 1965-09-01 | 2 439 004.5 | 3.840 130 0 s, the same line | +0.1 s |
+| 1966-01-01 | 2 439 126.5 | 4.313 170 0 s, drift 0.002 592 s per day from MJD 39 126 | none |
+| 1968-02-01 | 2 439 887.5 | 4.213 170 0 s, the same line | −0.1 s |
+| 1972-01-01 | 2 441 317.5 | 10 s, no drift | +0.107 758 s |
+
+The step column is `TAI − UTC` of the new segment less that of the old at
+the start; "none" is a new line that continues the old one. Eight of the
+thirteen `start_unix` values of `RATE_ERA` were once a different day, 469 days
+of the 4 017 were read with the neighbouring segment, and the tests now take
+every start from the Julian Dates above, in a table written in the test,
+and compare each day's offset with the published line.
+
+**None of these steps is a leap second.** A leap second is a whole second
+inserted or omitted at the end of a UTC day, and none was before 1972-06-30;
+`hc_day_has_leap_second` is
+`hc_core::leap::end_of_day_step` of the day, which reads the table of whole
+seconds from 1972 and is 0 for every day before it. In the rate era a day
+is 86 400 s of UTC, whose second differs from the SI second by the drift
+(1.5·10⁻⁸ s per second, 1.3·10⁻⁸ and 3·10⁻⁸ in the three other lines), and a
+step moves the reading by 0.05 to 0.1 s without a second being inserted. The
+predicate asked "did `TAI − UTC` rise over the day" and so answered yes for
+4 015 of the 4 017 days of the era, for the drift alone; it does not any more.
+
+**Evaluation and inversion are exact.** The coefficients are decimals of at
+most seven places and the three drifts, per second, are exactly 1.5·10⁻⁸,
+1.3·10⁻⁸ and 3·10⁻⁸. `hc-core::unix` therefore evaluates a segment's line at
+a UTC reading in integer attoseconds, and inverts it, with no floating-point
+operation, the only rounding being that of the final division to the
+attosecond. The reading includes the sub-second part, since the offset moves
+by 1.5·10⁻⁸ s in a second. `utc_from_tai` used to subtract the whole seconds
+of the offset and drop the fraction: a UTC reading of 1971-12-31 came back
+0.892 s wrong, and `hc_utc_from_tai(63 072 008)` read 63 071 999 where the
+published relation gives 63 071 998.107 758 06 (exact rational arithmetic on
+the USNO coefficients, `scripts/rate-era-pins.py`).
+
+**At a step a TAI instant needs a rule.** The table is by UTC reading, and
+a step makes the relation between TAI and UTC readings not one to one:
+
+- where `TAI − UTC` steps up (seven times by 0.1 s) the TAI instants between
+  the old segment's last reading and the new segment's first have no UTC
+  reading, as the clock was set back; `utc_from_tai` gives them the UTC
+  reading of the step, so UTC never runs backwards as TAI runs forwards;
+- where it steps down (1961-08-01 by 0.05 s, 1968-02-01 by 0.1 s) the TAI
+  instants of the overlap are claimed by both segments, and the later one
+  wins, so the UTC readings of the 0.05 or 0.1 s before the step do not
+  round-trip. Every whole second does;
+- the same holds at 1972-01-01, where the last rate segment reaches 9.892 242 s
+  and the integer era starts at 10 s: the 0.107 758 s of TAI between them reads
+  as 1972-01-01T00:00:00.
+
+The sources do not say what a clock showed in those fractions of a second,
+and the library does not guess: the rule above is the one that keeps the
+conversion monotonic and exact on the published segments.
+
+`hc_tai_minus_utc` still answers in whole seconds, as its name and type say,
+the floor in the rate era (9 for 9.89 s); the fraction is in `hc_tai_from_unix`,
+whose TAI second and attoseconds give it to the attosecond.
 
 ### The end of the table is a real boundary
 

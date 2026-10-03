@@ -192,7 +192,7 @@ pub fn abs(x: f64) -> f64 {
 /// `f64::rem_euclid` lives in `std`, and every crate of the workspace has to
 /// build without it. This is `x − y·⌊x/y⌋` exactly as written, with no
 /// correction afterwards, so rounding can leave the result a hair outside
-/// `[0, y)`; [`normalize_degrees`] lifts a negative one back into range.
+/// `[0, y)`; [`normalize_degrees`] keeps a rounded-up full turn below 360.
 #[inline]
 #[must_use]
 pub fn modulo(x: f64, y: f64) -> f64 {
@@ -252,15 +252,42 @@ pub fn poly(x: f64, coefficients: &[f64]) -> f64 {
     accumulator
 }
 
+/// The largest `f64` below 360, 360 − 2⁻⁴⁴ ≈ 359.999 999 999 999 94: where
+/// an angle a hair below a full turn lands when it must stay below one.
+const LAST_BELOW_FULL_TURN: f64 = f64::from_bits(360.0f64.to_bits() - 1);
+
 /// Reduce an angle in degrees to `[0, 360)`.
+///
+/// [`modulo`] on a tiny negative angle gives `360 − ε`, and when ε is below
+/// half the spacing of the doubles under 360 the subtraction rounds up to
+/// exactly 360: `-1e-14` came back as `360.0`, outside the interval this
+/// function promises and one past the last index of every table a caller
+/// divides it into. Such an angle is just *below* a full turn, so it is
+/// returned as the largest double below 360 and not as 0: a caller asking
+/// how far it still is to a target, `normalize_degrees(target − angle)`, must
+/// get "nearly a turn" for an angle that has just passed the target, not
+/// "now", and a longitude that has just passed 0 must stay in the last
+/// sign and not jump to the first.
+///
+/// A negative result of [`modulo`] occurs only for a subnormal angle, whose
+/// quotient by 360 underflows to −0 so that nothing is subtracted (checked
+/// over 6·10⁶ multiples of 360 and five ulps either side of each, which
+/// give none); it is lifted by one turn. NaN and the infinities come back as
+/// NaN. An angle above about 10¹⁷ degrees has no digit left below the whole
+/// turns, and its reduction is not meaningful.
 #[inline]
 #[must_use]
 pub fn normalize_degrees(degrees: f64) -> f64 {
     let reduced = modulo(degrees, 360.0);
-    if reduced < 0.0 {
+    let lifted = if reduced < 0.0 {
         reduced + 360.0
     } else {
         reduced
+    };
+    if lifted >= 360.0 {
+        LAST_BELOW_FULL_TURN
+    } else {
+        lifted
     }
 }
 
@@ -300,6 +327,40 @@ mod tests {
         assert!((normalize_degrees(-10.0) - 350.0).abs() < 1e-9);
         assert!((normalize_degrees(370.0) - 10.0).abs() < 1e-9);
         assert!((normalize_degrees(0.0)).abs() < 1e-9);
+    }
+
+    /// An angle a hair below zero is a hair below a full turn. In a double
+    /// the nearest value below 360 is 5.7·10⁻¹⁴ away, so anything closer
+    /// than half of that rounds to 360 itself, which is not in `[0, 360)`.
+    #[test]
+    fn a_tiny_negative_angle_never_comes_back_as_a_full_turn() {
+        for tiny in [-1e-14, -1e-20, -5e-324, -2.8e-14, -f64::MIN_POSITIVE] {
+            let reduced = normalize_degrees(tiny);
+            assert_eq!(reduced, 359.999_999_999_999_94, "{tiny:e}");
+            assert!((0.0..360.0).contains(&reduced), "{tiny:e}");
+        }
+        // Further than half a spacing from 360 it was already below 360.
+        let below = normalize_degrees(-3e-14);
+        assert!((359.999_999_999_999..360.0).contains(&below), "{below}");
+        // Whole turns, either way, are 0.
+        for turns in [-3.0, -1.0, 0.0, 1.0, 2.0, 1000.0] {
+            assert_eq!(normalize_degrees(turns * 360.0), 0.0, "{turns}");
+        }
+        // Every result lies in the half-open interval.
+        for degrees in [
+            -720.5,
+            -360.0,
+            -1e-3,
+            359.999_999_999_999_9,
+            360.0,
+            1e6 + 0.25,
+        ] {
+            let reduced = normalize_degrees(degrees);
+            assert!((0.0..360.0).contains(&reduced), "{degrees}: {reduced}");
+        }
+        assert!(normalize_degrees(f64::NAN).is_nan());
+        // The angle that has just passed a target is nearly a turn from it.
+        assert!(normalize_degrees(90.0 - (90.0 + 1e-14)) > 359.999);
     }
 
     #[test]

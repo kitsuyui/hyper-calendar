@@ -38,11 +38,27 @@ pub const USAGE_SOURCE: &str = "ISO 8601:1988, published June 1988, the first ed
     that number, after ISO 2015 (April 1976) and ISO/R 2015 (1971); Wikipedia, \"ISO 8601\", \
     retrieved 2026-09-26, which gives the month and no day";
 
-/// The earliest ISO year this implementation converts.
-pub const MIN_YEAR: i64 = gregorian::MIN_YEAR + 1;
+/// The earliest ISO year this implementation converts: the earliest
+/// Gregorian year, [`gregorian::MIN_YEAR`].
+///
+/// A Gregorian range can cut an ISO year short at either end, and its first
+/// days can belong to the ISO year before it, when 1 January falls on a
+/// Friday, Saturday or Sunday. 1 January of this year is a Monday, so its
+/// first day opens week 1 of this very year and no day of the range has an
+/// ISO year before it; a test pins that, and [`from_fixed`] refuses a day
+/// that would, with [`CalendarError::YearOutOfRange`], rather than answer
+/// with a year it does not convert.
+pub const MIN_YEAR: i64 = gregorian::MIN_YEAR;
 
-/// The latest ISO year this implementation converts.
-pub const MAX_YEAR: i64 = gregorian::MAX_YEAR - 1;
+/// The latest ISO year this implementation converts: the latest Gregorian
+/// year, [`gregorian::MAX_YEAR`].
+///
+/// The last days of a Gregorian year belong to week 1 of the next ISO year
+/// when 31 December falls on a Monday, Tuesday or Wednesday. 31 December of
+/// this year is a Friday, the last day of its week 52, so no day of the range
+/// has an ISO year after it. Every day from [`gregorian::EARLIEST`] to
+/// [`gregorian::LATEST`] has a week date.
+pub const MAX_YEAR: i64 = gregorian::MAX_YEAR;
 
 /// The fixed day of the Monday that opens week 1 of `year`.
 ///
@@ -54,17 +70,26 @@ pub fn week_one_start(year: i64) -> CalendarResult<Rd> {
     if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
         return Err(CalendarError::YearOutOfRange);
     }
-    next_week_one_start(year - 1)
+    Ok(raw_week_one_start(year))
+}
+
+/// The Monday that opens week 1 of `year`, by the proleptic Gregorian rule
+/// and without a range check: 4 January is in week 1 by definition, so the
+/// Monday on or before it opens week 1.
+///
+/// The arithmetic is that of [`hc_calendar::gregorian::new_year`], plain
+/// `i64`, which holds one year either side of the Gregorian range; it is
+/// not the range-checked [`gregorian::to_fixed`], which refuses the year
+/// after [`gregorian::MAX_YEAR`] that the end of the last ISO year needs.
+const fn raw_week_one_start(year: i64) -> Rd {
+    let new_year = hc_calendar::gregorian::new_year(year);
+    Weekday::Monday.on_or_before(Rd(new_year.0 + 3))
 }
 
 /// The Monday that opens week 1 of the year after `year`: where `year`'s
-/// last week ends. The ISO years stop one short of the Gregorian ones, so
-/// this is defined for [`MAX_YEAR`] too, whose length and last days need
-/// it.
-fn next_week_one_start(year: i64) -> CalendarResult<Rd> {
-    // 4 January is in week 1 by definition, so the Monday on or before it
-    // opens week 1.
-    Ok(Weekday::Monday.on_or_before(gregorian::to_fixed(year + 1, 1, 4)?))
+/// last week ends.
+const fn next_week_one_start(year: i64) -> Rd {
+    raw_week_one_start(year + 1)
 }
 
 /// The number of weeks in `year`, either 52 or 53.
@@ -75,7 +100,7 @@ fn next_week_one_start(year: i64) -> CalendarResult<Rd> {
 /// [`MIN_YEAR`]..=[`MAX_YEAR`].
 pub fn weeks_in_year(year: i64) -> CalendarResult<u8> {
     let start = week_one_start(year)?;
-    let next = next_week_one_start(year)?;
+    let next = next_week_one_start(year);
     Ok(((next.0 - start.0) / 7) as u8)
 }
 
@@ -148,18 +173,28 @@ pub fn to_fixed(year: i64, week: u8, weekday: u8) -> CalendarResult<Rd> {
 ///
 /// # Errors
 ///
-/// Returns a [`CalendarError`] when the day is outside the supported range.
+/// Returns a [`CalendarError`] when the day is outside the Gregorian range
+/// [`gregorian::EARLIEST`]..=[`gregorian::LATEST`]. Every day inside it has
+/// a week date, the last days of the range included: 9999999-12-31 is
+/// `9999999-W52-5`. The ISO year is looked up one either side of the
+/// Gregorian year of the day, so the year after the last one is read
+/// without a range check.
 pub fn from_fixed(rd: Rd) -> CalendarResult<(i64, u8, u8)> {
-    // Three days back lands inside the ISO year the day belongs to: a day
-    // can be at most three days into a week that started in the previous
-    // Gregorian year.
-    let candidate = gregorian::year_from_fixed(Rd(rd.0 - 3))?;
-    let year = if rd >= next_week_one_start(candidate)? {
-        candidate + 1
+    // The Gregorian year, which also checks the range. The ISO year is the
+    // same, one more when the day is on or after the next year's week 1, or
+    // one less when it is before this year's.
+    let gregorian_year = gregorian::year_from_fixed(rd)?;
+    let year = if rd >= next_week_one_start(gregorian_year) {
+        gregorian_year + 1
+    } else if rd >= raw_week_one_start(gregorian_year) {
+        gregorian_year
     } else {
-        candidate
+        gregorian_year - 1
     };
-    let start = week_one_start(year)?;
+    if !(MIN_YEAR..=MAX_YEAR).contains(&year) {
+        return Err(CalendarError::YearOutOfRange);
+    }
+    let start = raw_week_one_start(year);
     let week = ((rd.0 - start.0) / 7 + 1) as u8;
     let weekday = Weekday::from_rd(rd).iso_number();
     Ok((year, week, weekday))
@@ -201,14 +236,16 @@ impl Calendar for IsoWeekCalendar {
             year_kind: YearKind::Astronomical,
             has_leap_months: false,
             is_astronomical: false,
-            earliest: Some(Rd(gregorian::EARLIEST.0 + 400)),
-            latest: Some(Rd(gregorian::LATEST.0 - 400)),
+            earliest: Some(gregorian::EARLIEST),
+            latest: Some(gregorian::LATEST),
             native_locales: &[],
         }
     }
 
     fn to_fixed(&self, date: Self::Date) -> CalendarResult<Rd> {
-        to_fixed(date.year, date.week, date.weekday)
+        let rd = to_fixed(date.year, date.week, date.weekday)?;
+        self.meta().check_range(rd)?;
+        Ok(rd)
     }
 
     fn from_fixed(&self, rd: Rd) -> CalendarResult<Self::Date> {
@@ -356,17 +393,87 @@ mod tests {
         );
     }
 
+    /// Audit 10, a14: `from_fixed` refused the 362 days of the last
+    /// Gregorian year from its 4 January, because the end of its ISO year was
+    /// read with a range-checked `to_fixed` of the year after it, and the
+    /// facade answered week 1 for them. The expected week dates are from the
+    /// algorithm of Wikipedia, "ISO week date", read 2026-10-03: `w = ⌊(10 +
+    /// day of year − weekday) / 7⌋`, a year of 53 weeks when `p(y) = 4` or
+    /// `p(y − 1) = 3` for `p(y) = (y + ⌊y/4⌋ − ⌊y/100⌋ + ⌊y/400⌋) mod 7`,
+    /// and the year before or after for a `w` of 0 or past the last week,
+    /// worked in Python (`scripts/iso-week-pins.py`, which also agrees
+    /// with `datetime.date.isocalendar` for the years 1900 to 2099).
     #[test]
-    fn the_last_iso_year_has_a_length_and_its_last_day_converts() {
-        // The ISO years stop a year short of the Gregorian ones, and the
-        // last one's length is read from the Gregorian year after it.
-        assert!(matches!(weeks_in_year(MAX_YEAR), Ok(52 | 53)));
+    fn the_days_at_both_ends_of_the_range_have_their_week_dates() {
+        let day = |year, month, day| gregorian::to_fixed(year, month, day).unwrap();
+        for ((year, month, d), expected) in [
+            // The last Gregorian year: 1 January is a Friday, so its first
+            // three days are the end of the ISO year before it.
+            ((9_999_999, 1, 1), (9_999_998, 53, 5)),
+            ((9_999_999, 1, 3), (9_999_998, 53, 7)),
+            ((9_999_999, 1, 4), (9_999_999, 1, 1)),
+            ((9_999_999, 1, 5), (9_999_999, 1, 2)),
+            ((9_999_999, 12, 26), (9_999_999, 51, 7)),
+            ((9_999_999, 12, 27), (9_999_999, 52, 1)),
+            ((9_999_999, 12, 29), (9_999_999, 52, 3)),
+            ((9_999_999, 12, 30), (9_999_999, 52, 4)),
+            ((9_999_999, 12, 31), (9_999_999, 52, 5)),
+            // The first: 1 January is a Monday, and 31 December a Monday of
+            // the first week of the year after.
+            ((-9_999_999, 1, 1), (-9_999_999, 1, 1)),
+            ((-9_999_999, 1, 4), (-9_999_999, 1, 4)),
+            ((-9_999_999, 12, 31), (-9_999_998, 1, 1)),
+        ] {
+            let rd = day(year, month, d);
+            assert_eq!(from_fixed(rd), Ok(expected), "{year}-{month}-{d}");
+            assert_eq!(to_fixed(expected.0, expected.1, expected.2), Ok(rd));
+        }
+        assert_eq!(weeks_in_year(MAX_YEAR), Ok(52));
+        assert_eq!(weeks_in_year(MIN_YEAR), Ok(52));
+        // Every day of the last eleven days (weeks 51 and 52) and the first
+        // twenty of the range.
+        for rd in (gregorian::LATEST.0 - 10)..=gregorian::LATEST.0 {
+            let (year, week, weekday) = from_fixed(Rd(rd)).unwrap();
+            assert_eq!(year, MAX_YEAR);
+            assert!((51..=52).contains(&week), "{rd}");
+            assert_eq!(to_fixed(year, week, weekday), Ok(Rd(rd)));
+        }
+        for rd in gregorian::EARLIEST.0..gregorian::EARLIEST.0 + 20 {
+            let (year, week, weekday) = from_fixed(Rd(rd)).unwrap();
+            assert_eq!(
+                (year, week),
+                (MIN_YEAR, (rd - gregorian::EARLIEST.0) as u8 / 7 + 1)
+            );
+            assert_eq!(to_fixed(year, week, weekday), Ok(Rd(rd)));
+        }
+        // The days past either end are refused, as the Gregorian ones are.
+        assert!(from_fixed(Rd(gregorian::LATEST.0 + 1)).is_err());
+        assert!(from_fixed(Rd(gregorian::EARLIEST.0 - 1)).is_err());
+    }
+
+    /// The facts the two year constants rest on: no day of the Gregorian
+    /// range falls in an ISO year beyond the Gregorian years. They are facts
+    /// of the calendar for these two years, not of the code, and are
+    /// checked, so that a change of the range is seen here.
+    #[test]
+    fn the_iso_years_of_the_range_are_its_gregorian_years() {
+        let jan1 = |year| Weekday::from_rd(gregorian::to_fixed(year, 1, 1).unwrap());
+        let dec31 = |year| Weekday::from_rd(gregorian::to_fixed(year, 12, 31).unwrap());
+        assert_eq!(jan1(MIN_YEAR), Weekday::Monday);
+        assert_eq!(dec31(MAX_YEAR), Weekday::Friday);
+        assert_eq!(MIN_YEAR, gregorian::MIN_YEAR);
+        assert_eq!(MAX_YEAR, gregorian::MAX_YEAR);
+        // A year past either end is refused.
+        assert_eq!(
+            week_one_start(MAX_YEAR + 1),
+            Err(CalendarError::YearOutOfRange)
+        );
         assert_eq!(
             weeks_in_year(MAX_YEAR + 1),
             Err(CalendarError::YearOutOfRange)
         );
         assert_eq!(
-            week_one_start(MAX_YEAR + 1),
+            week_one_start(MIN_YEAR - 1),
             Err(CalendarError::YearOutOfRange)
         );
         let calendar = IsoWeekCalendar;
@@ -375,6 +482,18 @@ mod tests {
             let date = calendar.from_fixed(day).unwrap();
             assert_eq!(calendar.to_fixed(date), Ok(day), "{date:?}");
         }
+        assert_eq!(calendar.meta().earliest, Some(gregorian::EARLIEST));
+        assert_eq!(calendar.meta().latest, Some(gregorian::LATEST));
+        // The first week of the next year is a day past the range.
+        assert!(
+            calendar
+                .to_fixed(IsoWeekDate {
+                    year: MAX_YEAR,
+                    week: 52,
+                    weekday: 7
+                })
+                .is_err()
+        );
     }
 
     #[test]

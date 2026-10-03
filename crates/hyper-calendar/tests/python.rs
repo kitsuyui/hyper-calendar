@@ -190,6 +190,44 @@ fn isocalendar_matches_the_documented_examples() {
     );
 }
 
+/// Audit 10, a14: the 362 days of the last Gregorian year from 4 January
+/// were given week 1, by the branch that "cannot be reached". The week dates
+/// are from the algorithm of Wikipedia, "ISO week date", read 2026-10-03
+/// (worked in `scripts/iso-week-pins.py`).
+#[test]
+fn isocalendar_is_right_at_both_ends_of_the_range() {
+    let last = Date::MAX.iso_calendar();
+    assert_eq!((last.year, last.week, last.weekday), (9_999_999, 52, 5));
+    let january = date(9_999_999, 1, 4).iso_calendar();
+    assert_eq!(
+        (january.year, january.week, january.weekday),
+        (9_999_999, 1, 1)
+    );
+    let before = date(9_999_999, 1, 3).iso_calendar();
+    assert_eq!(
+        (before.year, before.week, before.weekday),
+        (9_999_998, 53, 7)
+    );
+    let first = Date::MIN.iso_calendar();
+    assert_eq!((first.year, first.week, first.weekday), (-9_999_999, 1, 1));
+    assert_eq!(Date::from_iso_calendar(9_999_999, 52, 5), Ok(Date::MAX));
+    assert_eq!(Date::from_iso_calendar(-9_999_999, 1, 1), Ok(Date::MIN));
+    // Every day of the last year has a week date that gives the day back.
+    let mut day = date(9_999_999, 1, 1);
+    for _ in 0..365 {
+        let week = day.iso_calendar();
+        assert_eq!(
+            Date::from_iso_calendar(week.year, week.week, week.weekday),
+            Ok(day)
+        );
+        if day == Date::MAX {
+            break;
+        }
+        day = day.add_days(1).unwrap();
+    }
+    assert_eq!(day, Date::MAX);
+}
+
 /// ```text
 /// >>> d = dt.date(2002, 12, 31)
 /// >>> d.replace(day=26)

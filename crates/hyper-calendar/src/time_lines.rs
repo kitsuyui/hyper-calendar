@@ -47,16 +47,18 @@ use core::fmt::Write;
 use hc_calendar::Rd;
 use hc_calendars_solar::french_republican::DecimalTime;
 use hc_calendars_solar::spreadsheet::{self, Excel1900Day};
+use hc_core::duration::{days_and_seconds, seconds_in_days};
 use hc_core::epoch::MJD_OF_UNIX_EPOCH;
 use hc_core::epoch_notation::EpochKind;
 use hc_core::gnss::{self, GlonassDate, GlonassTime, RolloverRule, WeekNumbering, WeekTime};
 use hc_core::internet_time::Beat;
+use hc_core::leap;
 use hc_core::ntp::{NtpDate, NtpTimestamp};
 use hc_core::tai64::{self, Format as Tai64Format};
 use hc_core::tt_bipm::TtBipmSeries;
 use hc_core::unix::{self, LeapPolicy, UtcInstant};
 use hc_core::uuid::{self, TimeVersion};
-use hc_core::{Duration, Instant, Tai, Tt, UnixTime};
+use hc_core::{Duration, Instant, Tai, TimeError, Tt, UnixTime};
 
 use crate::boundary::{Answer, Refusal, line};
 
@@ -443,24 +445,34 @@ const fn policy(strict: bool) -> LeapPolicy {
 }
 
 /// Whether the UTC day containing a POSIX timestamp ends with an inserted
-/// leap second: whether `TAI − UTC` at the start of the next day exceeds
-/// its value at the start of this one, with the last published value held
-/// past the table.
+/// leap second, a `23:59:60`: [`leap::end_of_day_step`] of the day, which
+/// the table of announced leap seconds answers and no drift of `TAI − UTC`
+/// can.
+///
+/// Before 1972 no whole second was ever inserted, so the answer is no for
+/// every day of 1961 to 1971: UTC then ran at a different rate and took
+/// fractional steps of 0.05 to 0.1 s, in a rate offset
+/// ([`leap::RATE_ERA`]), and that is neither a leap second nor an inserted
+/// second of any other kind. The same holds before 1961, when UTC did not
+/// exist. Past the table's validity, 2027-06-28, whether a day ends in one
+/// has not been announced, and the answer is no, as the last published
+/// offset is held there.
 ///
 /// # Errors
 ///
 /// [`Refusal::OutOfRange`] for a timestamp in a day whose start or whose
-/// end is not an `i64` — the first and last part-days of the range — and
-/// the leap-second table's refusal before 1961.
+/// end is not an `i64` — the first and last part-days of the range.
 pub fn day_has_leap_second(unix_seconds: i64) -> Answer<bool> {
-    let day_start = unix_seconds
-        .div_euclid(86_400)
-        .checked_mul(86_400)
-        .ok_or(Refusal::OutOfRange)?;
-    let next_day = day_start.checked_add(86_400).ok_or(Refusal::OutOfRange)?;
-    let before = unix::tai_minus_utc_at(day_start, LeapPolicy::Extrapolate)?;
-    let after = unix::tai_minus_utc_at(next_day, LeapPolicy::Extrapolate)?;
-    Ok(after > before)
+    let (day, _) = days_and_seconds(unix_seconds);
+    // The start of the day must be an `i64` too: the part-day at the bottom
+    // of the range ends where one fits and starts where none does.
+    seconds_in_days(day).ok_or(Refusal::OutOfRange)?;
+    match leap::end_of_day_step(day) {
+        Ok(step) => Ok(step > 0),
+        Err(TimeError::AfterModelEnd) => Ok(false),
+        Err(TimeError::Overflow) => Err(Refusal::OutOfRange),
+        Err(error) => Err(error.into()),
+    }
 }
 
 /// The TAI instant of a POSIX timestamp, as whole seconds and attoseconds.
@@ -1008,7 +1020,7 @@ pub fn tt_bipm_samples(text: &str) -> Answer<Vec<(i64, f64)>> {
             return Err(Refusal::Malformed);
         }
         mjd.checked_sub(MJD_OF_UNIX_EPOCH)
-            .and_then(|days| days.checked_mul(86_400))
+            .and_then(seconds_in_days)
             .ok_or(Refusal::OutOfRange)?;
         samples.push((mjd, microseconds));
     }
@@ -1356,6 +1368,110 @@ mod tests {
             .0;
         assert_eq!(excel_1900_day_line(61), Ok(alloc::format!("{march}\t0\n")));
         assert_eq!(excel_1900_day(0), Err(Refusal::OutOfRange));
+    }
+
+    /// Audit 10, a12: the TAI second 63 072 008 is, on the USNO relation,
+    /// UTC 63 071 998.107 758 06, so its whole UTC second is 63 071 998;
+    /// the answer was 63 071 999, from `TAI − UTC` taken as 9 s. UTC
+    /// 63 071 990 is TAI 63 071 999.892 241 7: the offset is 9.892 241 97 s
+    /// at 63 071 999 and falls by 3·10⁻⁸ s for each second before it
+    /// (exact rational arithmetic on the USNO line). The first TAI second of
+    /// the era, -283 996 799, began before UTC did, has no UTC reading and
+    /// is refused under the strict policy.
+    #[test]
+    fn the_tai_bridge_keeps_the_fraction_of_the_rate_era() {
+        assert_eq!(
+            utc_from_tai_line(63_072_008, true),
+            Ok("63071998\t0\n".into())
+        );
+        assert_eq!(
+            tai_from_unix(63_071_990, true),
+            Ok((63_071_999, 892_241_700_000_000_000))
+        );
+        assert_eq!(utc_from_tai(-283_996_799, true), Err(Refusal::NoData));
+    }
+
+    /// Audit 10, a13: a day ends in a leap second when the IERS announced
+    /// one for it. The IERS Bulletin C history,
+    /// <https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history> (read
+    /// 2026-10-03), steps `TAI − UTC` by one second on twenty-seven dates,
+    /// each the day after the one that ends in the inserted `23:59:60`;
+    /// every other day from 1961 on, the 4 017 of the rate era among them,
+    /// ends in none. The predicate answered yes for 4 015 of those 4 017.
+    #[test]
+    fn only_the_27_announced_days_end_in_a_leap_second() {
+        let unix_day = |year, month, day| {
+            hc_calendars_solar::gregorian::to_fixed(year, month, day)
+                .expect("a date")
+                .0
+                - hc_calendar::fixed::RD_OF_UNIX_EPOCH
+        };
+        // The first day each of the 27 steps applies, (year, month): the
+        // leap second ends the day before.
+        let mut expected: Vec<i64> = Vec::new();
+        for (year, month) in [
+            (1972, 7),
+            (1973, 1),
+            (1974, 1),
+            (1975, 1),
+            (1976, 1),
+            (1977, 1),
+            (1978, 1),
+            (1979, 1),
+            (1980, 1),
+            (1981, 7),
+            (1982, 7),
+            (1983, 7),
+            (1985, 7),
+            (1988, 1),
+            (1990, 1),
+            (1991, 1),
+            (1992, 7),
+            (1993, 7),
+            (1994, 7),
+            (1996, 1),
+            (1997, 7),
+            (1999, 1),
+            (2006, 1),
+            (2009, 1),
+            (2012, 7),
+            (2015, 7),
+            (2017, 1),
+        ] {
+            expected.push(unix_day(year, month, 1) - 1);
+        }
+        assert_eq!(expected.len(), 27);
+        let first = unix_day(1961, 1, 1);
+        let last = unix_day(2030, 12, 31);
+        let mut found: Vec<i64> = Vec::new();
+        for day in first..=last {
+            if day_has_leap_second(day * 86_400 + 43_200) == Ok(true) {
+                found.push(day);
+            }
+        }
+        assert_eq!(found, expected);
+        // The rate era by itself: no day of 1961-01-01 to 1971-12-31 has one,
+        // at its first second, its last, or between, and neither has the
+        // day that carries the 1972-01-01 step of 0.107 758 s.
+        assert_eq!(unix_day(1972, 1, 1) - first, 4_017);
+        for day in first..=unix_day(1972, 1, 1) {
+            for second in [0, 43_200, 86_399] {
+                assert_eq!(
+                    day_has_leap_second(day * 86_400 + second),
+                    Ok(false),
+                    "{day}"
+                );
+            }
+        }
+        // Before 1961 UTC did not exist, and past the table nothing is announced.
+        assert_eq!(
+            day_has_leap_second(unix_day(1960, 12, 31) * 86_400),
+            Ok(false)
+        );
+        assert_eq!(
+            day_has_leap_second(unix_day(2027, 6, 30) * 86_400),
+            Ok(false)
+        );
     }
 
     /// The leap second at the end of 2016: 23:59:59 UTC was TAI + 36 s

@@ -30,6 +30,7 @@ use hc_calendar::{CivilDateTime, CivilTime, Rd, gregorian};
 use hc_core::UnixTime;
 use hc_core::ccsds::{CdsTime, CucTime, EpochLevel, Octets, Preamble};
 use hc_core::dotnet::{DateTimeKind, DotnetDateTime};
+use hc_core::duration::{SECONDS_PER_DAY, days_and_seconds};
 use hc_core::unix::{self, LeapPolicy, UtcInstant};
 use hc_core::{Instant, Tai, TimeError};
 use hc_format::ValueError;
@@ -566,7 +567,7 @@ pub fn radio_decode_line(code: &str, frame: &str, century_start: i64) -> Answer<
     let unix = reading
         .day
         .to_unix_days()
-        .checked_mul(86_400)
+        .checked_mul(SECONDS_PER_DAY)
         .and_then(|start| {
             start.checked_add(
                 i64::from(reading.time.hour()) * 3_600 + i64::from(reading.time.minute()) * 60
@@ -661,7 +662,8 @@ pub fn jjy_call_sign_encode_line(
         return Err(Refusal::OutOfRange);
     }
     let local = unix_seconds + 9 * 3_600;
-    let minutes = local.rem_euclid(86_400) / 60;
+    let (local_day, second_of_day) = days_and_seconds(local);
+    let minutes = second_of_day / 60;
     if minutes % 30 != 15 {
         return Err(Refusal::OutOfRange);
     }
@@ -669,7 +671,7 @@ pub fn jjy_call_sign_encode_line(
     let stop_span = u8::try_from(stop_span).map_err(|_| Refusal::OutOfRange)?;
     let time = CivilTime::hms((minutes / 60) as u8, (minutes % 60) as u8, 0)
         .map_err(|_| Refusal::OutOfRange)?;
-    let reading = CivilDateTime::new(Rd::from_unix_days(local.div_euclid(86_400)), time);
+    let reading = CivilDateTime::new(Rd::from_unix_days(local_day), time);
     let mut frame =
         JjyFrame::for_minute(reading, LeapNotice::None).map_err(|_| Refusal::OutOfRange)?;
     frame.content = JjyContent::CallSign {
@@ -945,13 +947,11 @@ fn encode_radio(
     // the code's time.
     let minute_at = |offset_hours: i64| -> Answer<CivilDateTime> {
         let local = unix_seconds + offset_hours * 3_600;
-        let minutes = local.rem_euclid(86_400) / 60;
+        let (local_day, second_of_day) = days_and_seconds(local);
+        let minutes = second_of_day / 60;
         let time = CivilTime::hms((minutes / 60) as u8, (minutes % 60) as u8, 0)
             .map_err(|_| Refusal::OutOfRange)?;
-        Ok(CivilDateTime::new(
-            Rd::from_unix_days(local.div_euclid(86_400)),
-            time,
-        ))
+        Ok(CivilDateTime::new(Rd::from_unix_days(local_day), time))
     };
     let range = |_: FrameError| Refusal::OutOfRange;
     let mut frame_text = String::new();

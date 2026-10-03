@@ -254,10 +254,10 @@ fn shift(value: CivilDateTime, seconds: i64) -> TzResult<CivilDateTime> {
     let within_day = value.time.since_midnight().whole_seconds();
     let attos = value.time.subsec_attos();
     let total = i128::from(value.day.get()) * 86_400 + within_day + i128::from(seconds);
-    let day = i64::try_from(total.div_euclid(86_400)).map_err(|_| TzError::Overflow)?;
-    let remainder = total.rem_euclid(86_400);
+    let (day, remainder) = Duration::from_secs(total).days_and_seconds();
+    let day = i64::try_from(day).map_err(|_| TzError::Overflow)?;
     let time = CivilTime::from_midnight_offset(Duration::from_attos(
-        remainder * i128::from(ATTOS_PER_SEC) + i128::from(attos),
+        i128::from(remainder) * i128::from(ATTOS_PER_SEC) + i128::from(attos),
     ))?;
     Ok(CivilDateTime::new(Rd(day), time))
 }
