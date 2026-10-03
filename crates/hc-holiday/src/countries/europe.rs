@@ -9,6 +9,7 @@ use hc_calendar::{Rd, Weekday};
 
 use hc_calendars_solar::gregorian;
 
+use super::read_all;
 use crate::computus::offsets::{
     ASCENSION, ASH_WEDNESDAY, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY,
     HOLY_SATURDAY, MAUNDY_THURSDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
@@ -46,119 +47,126 @@ const SCT: &[&str] = &[GB_SCOTLAND];
 const NIR: &[&str] = &[GB_NORTHERN_IRELAND];
 const EAW_NIR: &[&str] = &[GB_ENGLAND_AND_WALES, GB_NORTHERN_IRELAND];
 
-static UK_RULES: &[HolidayRule] = &[
-    // New Year's Day became a bank holiday in England, Wales and Northern
-    // Ireland only in 1974, by proclamation; in Scotland it and 2 January
-    // are in the 1971 Act's schedule. The years before 1971, under the
-    // Bank Holidays Act 1871, are not carried.
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)).years(Some(1974), None),
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1))
+static UK_RULES: &[HolidayRule] = &read_all(
+    1971,
+    [
+        // New Year's Day became a bank holiday in England, Wales and Northern
+        // Ireland only in 1974, by proclamation; in Scotland it and 2 January
+        // are in the 1971 Act's schedule. The years before 1971, under the
+        // Bank Holidays Act 1871, are not carried.
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)).years(Some(1974), None),
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1))
+            .in_regions(SCT)
+            .years(Some(1971), Some(1973)),
+        HolidayRule::public("2 January", "", Rule::gregorian(1, 2))
+            .in_regions(SCT)
+            .years(Some(1971), None),
+        HolidayRule::public("St Patrick's Day", "", Rule::gregorian(3, 17)).in_regions(NIR),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        // Scotland has never had Easter Monday as a bank holiday.
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)).in_regions(EAW_NIR),
+        // The Early May Bank Holiday dates from 1978 in England, Wales and
+        // Northern Ireland, by proclamation; in Scotland the first Monday in May
+        // is in the 1971 schedule. It was moved to 8 May in 1995 and again in
+        // 2020 for the fiftieth and seventy-fifth anniversaries of VE Day.
+        HolidayRule::public(
+            "Early May Bank Holiday",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        )
         .in_regions(SCT)
-        .years(Some(1971), Some(1973)),
-    HolidayRule::public("2 January", "", Rule::gregorian(1, 2))
-        .in_regions(SCT)
-        .years(Some(1971), None),
-    HolidayRule::public("St Patrick's Day", "", Rule::gregorian(3, 17)).in_regions(NIR),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    // Scotland has never had Easter Monday as a bank holiday.
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)).in_regions(EAW_NIR),
-    // The Early May Bank Holiday dates from 1978 in England, Wales and
-    // Northern Ireland, by proclamation; in Scotland the first Monday in May
-    // is in the 1971 schedule. It was moved to 8 May in 1995 and again in
-    // 2020 for the fiftieth and seventy-fifth anniversaries of VE Day.
-    HolidayRule::public(
-        "Early May Bank Holiday",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    )
-    .in_regions(SCT)
-    .years(Some(1971), Some(1977)),
-    HolidayRule::public(
-        "Early May Bank Holiday",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    )
-    .years(Some(1978), Some(1994)),
-    HolidayRule::public("Early May Bank Holiday", "", Rule::gregorian(5, 8))
-        .years(Some(1995), Some(1995)),
-    HolidayRule::public(
-        "Early May Bank Holiday",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    )
-    .years(Some(1996), Some(2019)),
-    HolidayRule::public("Early May Bank Holiday", "", Rule::gregorian(5, 8))
-        .years(Some(2020), Some(2020)),
-    HolidayRule::public(
-        "Early May Bank Holiday",
-        "",
-        Rule::nth(5, 1, Weekday::Monday),
-    )
-    .years(Some(2021), None),
-    // The Spring Bank Holiday was moved into June three times, each for a
-    // royal jubilee.
-    HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
-        .years(Some(1971), Some(2001)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 4))
-        .years(Some(2002), Some(2002)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
-        .years(Some(2003), Some(2011)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 4))
-        .years(Some(2012), Some(2012)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
-        .years(Some(2013), Some(2021)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 2))
+        .years(Some(1971), Some(1977)),
+        HolidayRule::public(
+            "Early May Bank Holiday",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        )
+        .years(Some(1978), Some(1994)),
+        HolidayRule::public("Early May Bank Holiday", "", Rule::gregorian(5, 8))
+            .years(Some(1995), Some(1995)),
+        HolidayRule::public(
+            "Early May Bank Holiday",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        )
+        .years(Some(1996), Some(2019)),
+        HolidayRule::public("Early May Bank Holiday", "", Rule::gregorian(5, 8))
+            .years(Some(2020), Some(2020)),
+        HolidayRule::public(
+            "Early May Bank Holiday",
+            "",
+            Rule::nth(5, 1, Weekday::Monday),
+        )
+        .years(Some(2021), None),
+        // The Spring Bank Holiday was moved into June three times, each for a
+        // royal jubilee.
+        HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
+            .years(Some(1971), Some(2001)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 4))
+            .years(Some(2002), Some(2002)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
+            .years(Some(2003), Some(2011)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 4))
+            .years(Some(2012), Some(2012)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
+            .years(Some(2013), Some(2021)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::gregorian(6, 2))
+            .years(Some(2022), Some(2022)),
+        HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
+            .years(Some(2023), None),
+        HolidayRule::public("Battle of the Boyne", "", Rule::gregorian(7, 12)).in_regions(NIR),
+        // Scotland's summer bank holiday is the first Monday of August, not the
+        // last: the 1971 Act left the Scottish dates where custom had them.
+        HolidayRule::public("Summer Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday))
+            .in_regions(SCT),
+        HolidayRule::public("Summer Bank Holiday", "", Rule::last(8, Weekday::Monday))
+            .in_regions(EAW_NIR)
+            .years(Some(1971), None),
+        HolidayRule::public("St Andrew's Day", "", Rule::gregorian(11, 30))
+            .in_regions(SCT)
+            .years(Some(2007), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+        // Royal and national one-offs, each proclaimed under section 1(3) of the
+        // Banking and Financial Dealings Act 1971; the proclamations up to 2023
+        // were not read.
+        HolidayRule::fixed_public("Silver Jubilee of Elizabeth II", "", Rule::gregorian(6, 7))
+            .years(Some(1977), Some(1977)),
+        HolidayRule::fixed_public("Wedding of the Prince of Wales", "", Rule::gregorian(7, 29))
+            .years(Some(1981), Some(1981)),
+        HolidayRule::fixed_public("Millennium Eve", "", Rule::gregorian(12, 31))
+            .years(Some(1999), Some(1999)),
+        HolidayRule::fixed_public("Golden Jubilee of Elizabeth II", "", Rule::gregorian(6, 3))
+            .years(Some(2002), Some(2002)),
+        HolidayRule::fixed_public("Wedding of Prince William", "", Rule::gregorian(4, 29))
+            .years(Some(2011), Some(2011)),
+        HolidayRule::fixed_public("Diamond Jubilee of Elizabeth II", "", Rule::gregorian(6, 5))
+            .years(Some(2012), Some(2012)),
+        HolidayRule::fixed_public(
+            "Platinum Jubilee of Elizabeth II",
+            "",
+            Rule::gregorian(6, 3),
+        )
         .years(Some(2022), Some(2022)),
-    HolidayRule::public("Spring Bank Holiday", "", Rule::last(5, Weekday::Monday))
-        .years(Some(2023), None),
-    HolidayRule::public("Battle of the Boyne", "", Rule::gregorian(7, 12)).in_regions(NIR),
-    // Scotland's summer bank holiday is the first Monday of August, not the
-    // last: the 1971 Act left the Scottish dates where custom had them.
-    HolidayRule::public("Summer Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday))
-        .in_regions(SCT),
-    HolidayRule::public("Summer Bank Holiday", "", Rule::last(8, Weekday::Monday))
-        .in_regions(EAW_NIR)
-        .years(Some(1971), None),
-    HolidayRule::public("St Andrew's Day", "", Rule::gregorian(11, 30))
-        .in_regions(SCT)
-        .years(Some(2007), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-    // Royal and national one-offs, each proclaimed under section 1(3) of the
-    // Banking and Financial Dealings Act 1971; the proclamations up to 2023
-    // were not read.
-    HolidayRule::fixed_public("Silver Jubilee of Elizabeth II", "", Rule::gregorian(6, 7))
-        .years(Some(1977), Some(1977)),
-    HolidayRule::fixed_public("Wedding of the Prince of Wales", "", Rule::gregorian(7, 29))
-        .years(Some(1981), Some(1981)),
-    HolidayRule::fixed_public("Millennium Eve", "", Rule::gregorian(12, 31))
-        .years(Some(1999), Some(1999)),
-    HolidayRule::fixed_public("Golden Jubilee of Elizabeth II", "", Rule::gregorian(6, 3))
-        .years(Some(2002), Some(2002)),
-    HolidayRule::fixed_public("Wedding of Prince William", "", Rule::gregorian(4, 29))
-        .years(Some(2011), Some(2011)),
-    HolidayRule::fixed_public("Diamond Jubilee of Elizabeth II", "", Rule::gregorian(6, 5))
-        .years(Some(2012), Some(2012)),
-    HolidayRule::fixed_public(
-        "Platinum Jubilee of Elizabeth II",
-        "",
-        Rule::gregorian(6, 3),
-    )
-    .years(Some(2022), Some(2022)),
-    HolidayRule::fixed_public("State Funeral of Elizabeth II", "", Rule::gregorian(9, 19))
-        .years(Some(2022), Some(2022)),
-    HolidayRule::fixed_public("Coronation of Charles III", "", Rule::gregorian(5, 8))
-        .years(Some(2023), Some(2023)),
-    // Scotland's alone, by the proclamation of 3 February 2026 under
-    // section 1(3), which was read: "Monday, the fifteenth day of June in
-    // the year 2026 to be a bank holiday in Scotland"
-    // (`privy-council-scotland-2026`).
-    HolidayRule::fixed_public("World Cup bank holiday", "", Rule::gregorian(6, 15))
-        .in_regions(SCT)
-        .years(Some(2026), Some(2026)),
-];
+        HolidayRule::fixed_public("State Funeral of Elizabeth II", "", Rule::gregorian(9, 19))
+            .years(Some(2022), Some(2022)),
+        HolidayRule::fixed_public("Coronation of Charles III", "", Rule::gregorian(5, 8))
+            .years(Some(2023), Some(2023)),
+        // Scotland's alone, by the proclamation of 3 February 2026 under
+        // section 1(3), which was read: "Monday, the fifteenth day of June in
+        // the year 2026 to be a bank holiday in Scotland"
+        // (`privy-council-scotland-2026`).
+        HolidayRule::fixed_public("World Cup bank holiday", "", Rule::gregorian(6, 15))
+            .in_regions(SCT)
+            .years(Some(2026), Some(2026)),
+    ],
+);
 
 /// The United Kingdom, with its three bank-holiday jurisdictions as regions.
+///
+/// Read from 1971: the Banking and Financial Dealings Act 1971. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static UNITED_KINGDOM: RuleSet = RuleSet {
     code: "GB",
     english_name: "United Kingdom",
@@ -208,36 +216,39 @@ fn st_brigids_day(year: i64) -> Days {
     Rule::nth(2, 1, Weekday::Monday).days_in_year(year)
 }
 
-static IE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Lá Caille", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "St Brigid's Day",
-        "Lá Fhéile Bríde",
-        Rule::Computed(st_brigids_day),
-    )
-    .years(Some(2023), None),
-    HolidayRule::public(
-        "St Patrick's Day",
-        "Lá Fhéile Pádraig",
-        Rule::gregorian(3, 17),
-    ),
-    HolidayRule::public("Easter Monday", "Luan Cásca", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("May Day", "Lá Bealtaine", Rule::nth(5, 1, Weekday::Monday))
-        .years(Some(1994), None),
-    HolidayRule::public("June Bank Holiday", "", Rule::nth(6, 1, Weekday::Monday)),
-    HolidayRule::public("August Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public("October Bank Holiday", "", Rule::last(10, Weekday::Monday)),
-    HolidayRule::public("Christmas Day", "Lá Nollag", Rule::gregorian(12, 25)),
-    HolidayRule::public(
-        "St Stephen's Day",
-        "Lá Fhéile Stiofáin",
-        Rule::gregorian(12, 26),
-    ),
-    // The one-off of 18 March 2022, prescribed by the Organisation of
-    // Working Time (Covid-19 Commemoration) Regulations 2022.
-    HolidayRule::fixed_public("Covid-19 commemoration holiday", "", Rule::gregorian(3, 18))
-        .years(Some(2022), Some(2022)),
-];
+static IE_RULES: &[HolidayRule] = &read_all(
+    1998,
+    [
+        HolidayRule::public("New Year's Day", "Lá Caille", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "St Brigid's Day",
+            "Lá Fhéile Bríde",
+            Rule::Computed(st_brigids_day),
+        )
+        .years(Some(2023), None),
+        HolidayRule::public(
+            "St Patrick's Day",
+            "Lá Fhéile Pádraig",
+            Rule::gregorian(3, 17),
+        ),
+        HolidayRule::public("Easter Monday", "Luan Cásca", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("May Day", "Lá Bealtaine", Rule::nth(5, 1, Weekday::Monday))
+            .years(Some(1994), None),
+        HolidayRule::public("June Bank Holiday", "", Rule::nth(6, 1, Weekday::Monday)),
+        HolidayRule::public("August Bank Holiday", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public("October Bank Holiday", "", Rule::last(10, Weekday::Monday)),
+        HolidayRule::public("Christmas Day", "Lá Nollag", Rule::gregorian(12, 25)),
+        HolidayRule::public(
+            "St Stephen's Day",
+            "Lá Fhéile Stiofáin",
+            Rule::gregorian(12, 26),
+        ),
+        // The one-off of 18 March 2022, prescribed by the Organisation of
+        // Working Time (Covid-19 Commemoration) Regulations 2022.
+        HolidayRule::fixed_public("Covid-19 commemoration holiday", "", Rule::gregorian(3, 18))
+            .years(Some(2022), Some(2022)),
+    ],
+);
 
 /// Ireland.
 ///
@@ -249,6 +260,11 @@ static IE_RULES: &[HolidayRule] = &[
 /// it, "there is no legal entitlement to have the next working day off
 /// work". The one-off days of 31 December 1999 and 14 September 2001 are
 /// not carried.
+///
+/// Read from 1998: the Organisation of Working Time Act 1997, section 21 and
+/// the Second Schedule, from the first whole year after it. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static IRELAND: RuleSet = RuleSet {
     code: "IE",
     english_name: "Ireland",
@@ -279,48 +295,56 @@ pub static IRELAND: RuleSet = RuleSet {
 /// 1905 separation of church and state, and with it two extra holidays.
 const ALSACE_MOSELLE: &[&str] = &["FR-57", "FR-67", "FR-68"];
 
-static FR_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY))
-        .in_regions(ALSACE_MOSELLE),
-    HolidayRule::public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1))
-        .years(Some(1948), None),
-    // 8 May was a holiday from 1953, abolished by décret in 1959 and
-    // restored by the loi du 2 octobre 1981, first kept again in 1982.
-    HolidayRule::public(
-        "Victory in Europe Day",
-        "Victoire 1945",
-        Rule::gregorian(5, 8),
-    )
-    .years(Some(1953), Some(1958)),
-    HolidayRule::public(
-        "Victory in Europe Day",
-        "Victoire 1945",
-        Rule::gregorian(5, 8),
-    )
-    .years(Some(1982), None),
-    HolidayRule::public("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::public("Bastille Day", "Fête nationale", Rule::gregorian(7, 14)),
-    HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
-    HolidayRule::public("Armistice Day", "Armistice 1918", Rule::gregorian(11, 11))
-        .years(Some(1922), None),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    HolidayRule::public("St Stephen's Day", "Saint Étienne", Rule::gregorian(12, 26))
-        .in_regions(ALSACE_MOSELLE),
-];
+static FR_RULES: &[HolidayRule] = &read_all(
+    2017,
+    [
+        HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        HolidayRule::public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY))
+            .in_regions(ALSACE_MOSELLE),
+        HolidayRule::public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1))
+            .years(Some(1948), None),
+        // 8 May was a holiday from 1953, abolished by décret in 1959 and
+        // restored by the loi du 2 octobre 1981, first kept again in 1982.
+        HolidayRule::public(
+            "Victory in Europe Day",
+            "Victoire 1945",
+            Rule::gregorian(5, 8),
+        )
+        .years(Some(1953), Some(1958)),
+        HolidayRule::public(
+            "Victory in Europe Day",
+            "Victoire 1945",
+            Rule::gregorian(5, 8),
+        )
+        .years(Some(1982), None),
+        HolidayRule::public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::public("Bastille Day", "Fête nationale", Rule::gregorian(7, 14)),
+        HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+        HolidayRule::public("Armistice Day", "Armistice 1918", Rule::gregorian(11, 11))
+            .years(Some(1922), None),
+        HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        HolidayRule::public("St Stephen's Day", "Saint Étienne", Rule::gregorian(12, 26))
+            .in_regions(ALSACE_MOSELLE),
+    ],
+);
 
 /// France.
+///
+/// Read from 2017: article L3133-1 of the Code du travail, in force since 10
+/// August 2016, from the first whole year; the versions before it were not
+/// read. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static FRANCE: RuleSet = RuleSet {
     code: "FR",
     english_name: "France",
@@ -359,116 +383,124 @@ const DE_MECKLENBURG: &[&str] = &["DE-MV"];
 const DE_THURINGIA: &[&str] = &["DE-TH"];
 const DE_BRANDENBURG: &[&str] = &["DE-BB"];
 
-static DE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6))
-        .in_regions(DE_EPIPHANY),
-    HolidayRule::public(
-        "International Women's Day",
-        "Internationaler Frauentag",
-        Rule::gregorian(3, 8),
-    )
-    .in_regions(DE_BERLIN)
-    .years(Some(2019), None),
-    HolidayRule::public(
-        "International Women's Day",
-        "Internationaler Frauentag",
-        Rule::gregorian(3, 8),
-    )
-    .in_regions(DE_MECKLENBURG)
-    .years(Some(2023), None),
-    HolidayRule::public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    // Brandenburg's § 2 Abs. 1 lists Easter Sunday and Whit Sunday too.
-    HolidayRule::public("Easter Sunday", "Ostersonntag", Rule::easter(EASTER_SUNDAY))
-        .in_regions(DE_BRANDENBURG),
-    HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
-    // Berlin gave a single extra day for the seventy-fifth and eightieth
-    // anniversaries of the end of the war in Europe.
-    HolidayRule::fixed_public("Liberation Day", "Tag der Befreiung", Rule::gregorian(5, 8))
+static DE_RULES: &[HolidayRule] = &read_all(
+    1990,
+    [
+        HolidayRule::public("New Year's Day", "Neujahrstag", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6))
+            .in_regions(DE_EPIPHANY),
+        HolidayRule::public(
+            "International Women's Day",
+            "Internationaler Frauentag",
+            Rule::gregorian(3, 8),
+        )
         .in_regions(DE_BERLIN)
-        .years(Some(2020), Some(2020)),
-    HolidayRule::fixed_public("Liberation Day", "Tag der Befreiung", Rule::gregorian(5, 8))
-        .in_regions(DE_BERLIN)
-        .years(Some(2025), Some(2025)),
-    HolidayRule::public("Ascension", "Christi Himmelfahrt", Rule::easter(ASCENSION)),
-    HolidayRule::public("Whit Sunday", "Pfingstsonntag", Rule::easter(PENTECOST))
-        .in_regions(DE_BRANDENBURG),
-    HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public(
-        "Corpus Christi",
-        "Fronleichnam",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .in_regions(DE_CORPUS_CHRISTI),
-    HolidayRule::public("Assumption", "Mariä Himmelfahrt", Rule::gregorian(8, 15))
-        .in_regions(DE_SAARLAND),
-    HolidayRule::public(
-        "World Children's Day",
-        "Weltkindertag",
-        Rule::gregorian(9, 20),
-    )
-    .in_regions(DE_THURINGIA)
-    .years(Some(2019), None),
-    HolidayRule::public(
-        "German Unity Day",
-        "Tag der Deutschen Einheit",
-        Rule::gregorian(10, 3),
-    )
-    .years(Some(1990), None),
-    HolidayRule::public(
-        "Reformation Day",
-        "Reformationstag",
-        Rule::gregorian(10, 31),
-    )
-    .in_regions(DE_REFORMATION_EAST)
-    .years(Some(1990), None),
-    HolidayRule::public(
-        "Reformation Day",
-        "Reformationstag",
-        Rule::gregorian(10, 31),
-    )
-    .in_regions(DE_REFORMATION_NORTH)
-    .years(Some(2018), None),
-    HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1))
-        .in_regions(DE_ALL_SAINTS),
-    // Buß- und Bettag is the Wednesday before 23 November. It was federal
-    // until 1994, when it was dropped everywhere but Saxony to pay for
-    // long-term care insurance.
-    HolidayRule::public(
-        "Day of Prayer and Repentance",
-        "Buß- und Bettag",
-        Rule::WeekdayOnOrBefore {
-            month: 11,
-            day: 22,
-            weekday: Weekday::Wednesday,
-        },
-    )
-    .years(None, Some(1994)),
-    HolidayRule::public(
-        "Day of Prayer and Repentance",
-        "Buß- und Bettag",
-        Rule::WeekdayOnOrBefore {
-            month: 11,
-            day: 22,
-            weekday: Weekday::Wednesday,
-        },
-    )
-    .in_regions(DE_SAXONY)
-    .years(Some(1995), None),
-    HolidayRule::public(
-        "Christmas Day",
-        "Erster Weihnachtstag",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::public(
-        "St Stephen's Day",
-        "Zweiter Weihnachtstag",
-        Rule::gregorian(12, 26),
-    ),
-];
+        .years(Some(2019), None),
+        HolidayRule::public(
+            "International Women's Day",
+            "Internationaler Frauentag",
+            Rule::gregorian(3, 8),
+        )
+        .in_regions(DE_MECKLENBURG)
+        .years(Some(2023), None),
+        HolidayRule::public("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+        // Brandenburg's § 2 Abs. 1 lists Easter Sunday and Whit Sunday too.
+        HolidayRule::public("Easter Sunday", "Ostersonntag", Rule::easter(EASTER_SUNDAY))
+            .in_regions(DE_BRANDENBURG),
+        HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+        // Berlin gave a single extra day for the seventy-fifth and eightieth
+        // anniversaries of the end of the war in Europe.
+        HolidayRule::fixed_public("Liberation Day", "Tag der Befreiung", Rule::gregorian(5, 8))
+            .in_regions(DE_BERLIN)
+            .years(Some(2020), Some(2020)),
+        HolidayRule::fixed_public("Liberation Day", "Tag der Befreiung", Rule::gregorian(5, 8))
+            .in_regions(DE_BERLIN)
+            .years(Some(2025), Some(2025)),
+        HolidayRule::public("Ascension", "Christi Himmelfahrt", Rule::easter(ASCENSION)),
+        HolidayRule::public("Whit Sunday", "Pfingstsonntag", Rule::easter(PENTECOST))
+            .in_regions(DE_BRANDENBURG),
+        HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public(
+            "Corpus Christi",
+            "Fronleichnam",
+            Rule::easter(CORPUS_CHRISTI),
+        )
+        .in_regions(DE_CORPUS_CHRISTI),
+        HolidayRule::public("Assumption", "Mariä Himmelfahrt", Rule::gregorian(8, 15))
+            .in_regions(DE_SAARLAND),
+        HolidayRule::public(
+            "World Children's Day",
+            "Weltkindertag",
+            Rule::gregorian(9, 20),
+        )
+        .in_regions(DE_THURINGIA)
+        .years(Some(2019), None),
+        HolidayRule::public(
+            "German Unity Day",
+            "Tag der Deutschen Einheit",
+            Rule::gregorian(10, 3),
+        )
+        .years(Some(1990), None),
+        HolidayRule::public(
+            "Reformation Day",
+            "Reformationstag",
+            Rule::gregorian(10, 31),
+        )
+        .in_regions(DE_REFORMATION_EAST)
+        .years(Some(1990), None),
+        HolidayRule::public(
+            "Reformation Day",
+            "Reformationstag",
+            Rule::gregorian(10, 31),
+        )
+        .in_regions(DE_REFORMATION_NORTH)
+        .years(Some(2018), None),
+        HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1))
+            .in_regions(DE_ALL_SAINTS),
+        // Buß- und Bettag is the Wednesday before 23 November. It was federal
+        // until 1994, when it was dropped everywhere but Saxony to pay for
+        // long-term care insurance.
+        HolidayRule::public(
+            "Day of Prayer and Repentance",
+            "Buß- und Bettag",
+            Rule::WeekdayOnOrBefore {
+                month: 11,
+                day: 22,
+                weekday: Weekday::Wednesday,
+            },
+        )
+        .years(None, Some(1994)),
+        HolidayRule::public(
+            "Day of Prayer and Repentance",
+            "Buß- und Bettag",
+            Rule::WeekdayOnOrBefore {
+                month: 11,
+                day: 22,
+                weekday: Weekday::Wednesday,
+            },
+        )
+        .in_regions(DE_SAXONY)
+        .years(Some(1995), None),
+        HolidayRule::public(
+            "Christmas Day",
+            "Erster Weihnachtstag",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::public(
+            "St Stephen's Day",
+            "Zweiter Weihnachtstag",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Germany, with all sixteen *Länder* as regions.
+///
+/// Read from 1990: the Einigungsvertrag of 1990; the Länder's laws read are
+/// Brandenburg's of 1991 (to 2015) and Berlin's, and the other fourteen were
+/// not read. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static GERMANY: RuleSet = RuleSet {
     code: "DE",
     english_name: "Germany",
@@ -495,80 +527,84 @@ pub static GERMANY: RuleSet = RuleSet {
 // Italy, Spain, Portugal
 // ─────────────────────────────────────────────────────────────────────────
 
-static IT_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
-    // Legge 54/1977, art. 1, in force from 8 March 1977: Epiphany, St
-    // Joseph, the Ascension, Corpus Domini and Saints Peter and Paul "cessano
-    // di essere considerati festivi agli effetti civili", and 2 June and
-    // 4 November move to Sundays. D.P.R. 792/1985 gave Epiphany back from
-    // 1986, under article 6 of the 1984 revision of the Concordat.
-    HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(None, Some(1977)),
-    HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(Some(1986), None),
-    HolidayRule::public("St Joseph's Day", "San Giuseppe", Rule::gregorian(3, 19))
+static IT_RULES: &[HolidayRule] = &read_all(
+    1949,
+    [
+        HolidayRule::public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
+        // Legge 54/1977, art. 1, in force from 8 March 1977: Epiphany, St
+        // Joseph, the Ascension, Corpus Domini and Saints Peter and Paul "cessano
+        // di essere considerati festivi agli effetti civili", and 2 June and
+        // 4 November move to Sundays. D.P.R. 792/1985 gave Epiphany back from
+        // 1986, under article 6 of the 1984 revision of the Concordat.
+        HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(None, Some(1977)),
+        HolidayRule::public("Epiphany", "Epifania", Rule::gregorian(1, 6)).years(Some(1986), None),
+        HolidayRule::public("St Joseph's Day", "San Giuseppe", Rule::gregorian(3, 19))
+            .years(None, Some(1976)),
+        HolidayRule::public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Lunedì dell'Angelo",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public(
+            "Liberation Day",
+            "Festa della Liberazione",
+            Rule::gregorian(4, 25),
+        )
+        .years(Some(1946), None),
+        HolidayRule::public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1)),
+        HolidayRule::public("Ascension", "Ascensione", Rule::easter(ASCENSION))
+            .years(None, Some(1976)),
+        HolidayRule::public(
+            "Corpus Domini",
+            "Corpus Domini",
+            Rule::easter(CORPUS_CHRISTI),
+        )
         .years(None, Some(1976)),
-    HolidayRule::public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Lunedì dell'Angelo",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public(
-        "Liberation Day",
-        "Festa della Liberazione",
-        Rule::gregorian(4, 25),
-    )
-    .years(Some(1946), None),
-    HolidayRule::public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1)),
-    HolidayRule::public("Ascension", "Ascensione", Rule::easter(ASCENSION)).years(None, Some(1976)),
-    HolidayRule::public(
-        "Corpus Domini",
-        "Corpus Domini",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .years(None, Some(1976)),
-    // Republic Day was a working day from 1977 to 2000, kept on the first
-    // Sunday of June instead; law 336/2000 put it back on 2 June.
-    HolidayRule::public(
-        "Republic Day",
-        "Festa della Repubblica",
-        Rule::gregorian(6, 2),
-    )
-    .years(Some(1949), Some(1976)),
-    HolidayRule::public(
-        "Republic Day",
-        "Festa della Repubblica",
-        Rule::gregorian(6, 2),
-    )
-    .years(Some(2001), None),
-    HolidayRule::public(
-        "Saints Peter and Paul",
-        "Santi Apostoli Pietro e Paolo",
-        Rule::gregorian(6, 29),
-    )
-    .years(None, Some(1976)),
-    HolidayRule::public("Assumption", "Ferragosto", Rule::gregorian(8, 15)),
-    // Added to article 2 by legge n. 151/2025, from 2026.
-    HolidayRule::public(
-        "St Francis of Assisi, Patron of Italy",
-        "Festa nazionale di San Francesco d'Assisi, patrono d'Italia",
-        Rule::gregorian(10, 4),
-    )
-    .years(Some(2026), None),
-    HolidayRule::public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
-    HolidayRule::public(
-        "National Unity Day",
-        "Giorno dell'Unità Nazionale",
-        Rule::gregorian(11, 4),
-    )
-    .years(None, Some(1976)),
-    HolidayRule::public(
-        "Immaculate Conception",
-        "Immacolata Concezione",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public("Christmas Day", "Natale", Rule::gregorian(12, 25)),
-    HolidayRule::public("St Stephen's Day", "Santo Stefano", Rule::gregorian(12, 26)),
-];
+        // Republic Day was a working day from 1977 to 2000, kept on the first
+        // Sunday of June instead; law 336/2000 put it back on 2 June.
+        HolidayRule::public(
+            "Republic Day",
+            "Festa della Repubblica",
+            Rule::gregorian(6, 2),
+        )
+        .years(Some(1949), Some(1976)),
+        HolidayRule::public(
+            "Republic Day",
+            "Festa della Repubblica",
+            Rule::gregorian(6, 2),
+        )
+        .years(Some(2001), None),
+        HolidayRule::public(
+            "Saints Peter and Paul",
+            "Santi Apostoli Pietro e Paolo",
+            Rule::gregorian(6, 29),
+        )
+        .years(None, Some(1976)),
+        HolidayRule::public("Assumption", "Ferragosto", Rule::gregorian(8, 15)),
+        // Added to article 2 by legge n. 151/2025, from 2026.
+        HolidayRule::public(
+            "St Francis of Assisi, Patron of Italy",
+            "Festa nazionale di San Francesco d'Assisi, patrono d'Italia",
+            Rule::gregorian(10, 4),
+        )
+        .years(Some(2026), None),
+        HolidayRule::public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
+        HolidayRule::public(
+            "National Unity Day",
+            "Giorno dell'Unità Nazionale",
+            Rule::gregorian(11, 4),
+        )
+        .years(None, Some(1976)),
+        HolidayRule::public(
+            "Immaculate Conception",
+            "Immacolata Concezione",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::public("Christmas Day", "Natale", Rule::gregorian(12, 25)),
+        HolidayRule::public("St Stephen's Day", "Santo Stefano", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Italy.
 ///
@@ -579,6 +615,10 @@ static IT_RULES: &[HolidayRule] = &[
 /// having fallen before the law came into force, and the others are carried
 /// to 1976. The Sunday commemorations of 2 June and 4 November in the
 /// meantime are not carried.
+///
+/// Read from 1949: legge 27 maggio 1949, n. 260. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static ITALY: RuleSet = RuleSet {
     code: "IT",
     english_name: "Italy",
@@ -605,75 +645,84 @@ pub static ITALY: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static PT_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
-    HolidayRule::observance("Carnival", "Carnaval", Rule::easter(SHROVE_TUESDAY)),
-    HolidayRule::public(
-        "Good Friday",
-        "Sexta-feira Santa",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::public("Easter Sunday", "Páscoa", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::public("Freedom Day", "Dia da Liberdade", Rule::gregorian(4, 25))
-        .years(Some(1974), None),
-    HolidayRule::public("Labour Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
-    // Austerity suspended four holidays from 2013 to 2015; they came back in
-    // 2016 under lei 8/2016.
-    HolidayRule::public(
-        "Corpus Christi",
-        "Corpo de Deus",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .years(None, Some(2012)),
-    HolidayRule::public(
-        "Corpus Christi",
-        "Corpo de Deus",
-        Rule::easter(CORPUS_CHRISTI),
-    )
-    .years(Some(2016), None),
-    HolidayRule::public("Portugal Day", "Dia de Portugal", Rule::gregorian(6, 10)),
-    HolidayRule::public(
-        "Assumption",
-        "Assunção de Nossa Senhora",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::public(
-        "Republic Day",
-        "Implantação da República",
-        Rule::gregorian(10, 5),
-    )
-    .years(None, Some(2012)),
-    HolidayRule::public(
-        "Republic Day",
-        "Implantação da República",
-        Rule::gregorian(10, 5),
-    )
-    .years(Some(2016), None),
-    HolidayRule::public("All Saints' Day", "Todos os Santos", Rule::gregorian(11, 1))
+static PT_RULES: &[HolidayRule] = &read_all(
+    2016,
+    [
+        HolidayRule::public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
+        HolidayRule::observance("Carnival", "Carnaval", Rule::easter(SHROVE_TUESDAY)),
+        HolidayRule::public(
+            "Good Friday",
+            "Sexta-feira Santa",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::public("Easter Sunday", "Páscoa", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::public("Freedom Day", "Dia da Liberdade", Rule::gregorian(4, 25))
+            .years(Some(1974), None),
+        HolidayRule::public("Labour Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
+        // Austerity suspended four holidays from 2013 to 2015; they came back in
+        // 2016 under lei 8/2016.
+        HolidayRule::public(
+            "Corpus Christi",
+            "Corpo de Deus",
+            Rule::easter(CORPUS_CHRISTI),
+        )
         .years(None, Some(2012)),
-    HolidayRule::public("All Saints' Day", "Todos os Santos", Rule::gregorian(11, 1))
+        HolidayRule::public(
+            "Corpus Christi",
+            "Corpo de Deus",
+            Rule::easter(CORPUS_CHRISTI),
+        )
         .years(Some(2016), None),
-    HolidayRule::public(
-        "Restoration of Independence",
-        "Restauração da Independência",
-        Rule::gregorian(12, 1),
-    )
-    .years(None, Some(2012)),
-    HolidayRule::public(
-        "Restoration of Independence",
-        "Restauração da Independência",
-        Rule::gregorian(12, 1),
-    )
-    .years(Some(2016), None),
-    HolidayRule::public(
-        "Immaculate Conception",
-        "Imaculada Conceição",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
-];
+        HolidayRule::public("Portugal Day", "Dia de Portugal", Rule::gregorian(6, 10)),
+        HolidayRule::public(
+            "Assumption",
+            "Assunção de Nossa Senhora",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::public(
+            "Republic Day",
+            "Implantação da República",
+            Rule::gregorian(10, 5),
+        )
+        .years(None, Some(2012)),
+        HolidayRule::public(
+            "Republic Day",
+            "Implantação da República",
+            Rule::gregorian(10, 5),
+        )
+        .years(Some(2016), None),
+        HolidayRule::public("All Saints' Day", "Todos os Santos", Rule::gregorian(11, 1))
+            .years(None, Some(2012)),
+        HolidayRule::public("All Saints' Day", "Todos os Santos", Rule::gregorian(11, 1))
+            .years(Some(2016), None),
+        HolidayRule::public(
+            "Restoration of Independence",
+            "Restauração da Independência",
+            Rule::gregorian(12, 1),
+        )
+        .years(None, Some(2012)),
+        HolidayRule::public(
+            "Restoration of Independence",
+            "Restauração da Independência",
+            Rule::gregorian(12, 1),
+        )
+        .years(Some(2016), None),
+        HolidayRule::public(
+            "Immaculate Conception",
+            "Imaculada Conceição",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::public("Christmas Day", "Natal", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Portugal.
+///
+/// Read from 2016: the Código do Trabalho article 234 in the wording of Lei
+/// n.º 8/2016, from 2016; Lei n.º 23/2012, which suspended four holidays for
+/// 2013 to 2015, was not read. Every earlier year is a gap (ADR 0013); the
+/// reasons for every table's first year are in docs/systems/holiday-first-
+/// years.md.
 pub static PORTUGAL: RuleSet = RuleSet {
     code: "PT",
     english_name: "Portugal",
@@ -714,37 +763,45 @@ fn dutch_royal_day(year: i64) -> Days {
     Days::one(date)
 }
 
-static NL_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nieuwjaarsdag", Rule::gregorian(1, 1)),
-    // Good Friday is an official holiday but not, for most employers, a paid
-    // day off, so it is recorded as an observance rather than a day off.
-    HolidayRule::observance("Good Friday", "Goede Vrijdag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Tweede Paasdag",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("King's Day", "Koningsdag", Rule::Computed(dutch_royal_day))
-        .years(Some(2014), None),
-    HolidayRule::fixed_public(
-        "Queen's Day",
-        "Koninginnedag",
-        Rule::Computed(dutch_royal_day),
-    )
-    .years(Some(1949), Some(2013)),
-    // Liberation Day is a day off for most only in years divisible by five.
-    HolidayRule::observance("Liberation Day", "Bevrijdingsdag", Rule::gregorian(5, 5)),
-    HolidayRule::public("Ascension", "Hemelvaartsdag", Rule::easter(ASCENSION)),
-    HolidayRule::public(
-        "Whit Monday",
-        "Tweede Pinksterdag",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::public("Christmas Day", "Eerste Kerstdag", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Tweede Kerstdag", Rule::gregorian(12, 26)),
-];
+static NL_RULES: &[HolidayRule] = &read_all(
+    2011,
+    [
+        HolidayRule::public("New Year's Day", "Nieuwjaarsdag", Rule::gregorian(1, 1)),
+        // Good Friday is an official holiday but not, for most employers, a paid
+        // day off, so it is recorded as an observance rather than a day off.
+        HolidayRule::observance("Good Friday", "Goede Vrijdag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Tweede Paasdag",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("King's Day", "Koningsdag", Rule::Computed(dutch_royal_day))
+            .years(Some(2014), None),
+        HolidayRule::fixed_public(
+            "Queen's Day",
+            "Koninginnedag",
+            Rule::Computed(dutch_royal_day),
+        )
+        .years(Some(1949), Some(2013)),
+        // Liberation Day is a day off for most only in years divisible by five.
+        HolidayRule::observance("Liberation Day", "Bevrijdingsdag", Rule::gregorian(5, 5)),
+        HolidayRule::public("Ascension", "Hemelvaartsdag", Rule::easter(ASCENSION)),
+        HolidayRule::public(
+            "Whit Monday",
+            "Tweede Pinksterdag",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::public("Christmas Day", "Eerste Kerstdag", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "Tweede Kerstdag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// The Netherlands.
+///
+/// Read from 2011: the Algemene termijnenwet, article 3, in force from 10
+/// October 2010, from the first whole year. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static NETHERLANDS: RuleSet = RuleSet {
     code: "NL",
     english_name: "Netherlands",
@@ -765,32 +822,39 @@ pub static NETHERLANDS: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static BE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nieuwjaar", Rule::gregorian(1, 1)),
-    HolidayRule::public("Easter Monday", "Paasmaandag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "Dag van de Arbeid", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Ascension",
-        "Onze-Lieve-Heer-Hemelvaart",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::public("Whit Monday", "Pinkstermaandag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public("National Day", "Nationale feestdag", Rule::gregorian(7, 21)),
-    HolidayRule::public(
-        "Assumption",
-        "Onze-Lieve-Vrouw-Hemelvaart",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
-    HolidayRule::public("Armistice Day", "Wapenstilstand", Rule::gregorian(11, 11)),
-    HolidayRule::public("Christmas Day", "Kerstmis", Rule::gregorian(12, 25)),
-];
+static BE_RULES: &[HolidayRule] = &read_all(
+    1975,
+    [
+        HolidayRule::public("New Year's Day", "Nieuwjaar", Rule::gregorian(1, 1)),
+        HolidayRule::public("Easter Monday", "Paasmaandag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "Dag van de Arbeid", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Ascension",
+            "Onze-Lieve-Heer-Hemelvaart",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::public("Whit Monday", "Pinkstermaandag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public("National Day", "Nationale feestdag", Rule::gregorian(7, 21)),
+        HolidayRule::public(
+            "Assumption",
+            "Onze-Lieve-Vrouw-Hemelvaart",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
+        HolidayRule::public("Armistice Day", "Wapenstilstand", Rule::gregorian(11, 11)),
+        HolidayRule::public("Christmas Day", "Kerstmis", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Belgium.
 ///
 /// The ten days of article 1 of the royal decree of 18 April 1974. Easter
 /// Sunday and Whit Sunday, which the decree does not list, are Sundays and
 /// are not carried.
+///
+/// Read from 1975: the royal decree of 18 April 1974, from its first whole
+/// year. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static BELGIUM: RuleSet = RuleSet {
     code: "BE",
     english_name: "Belgium",
@@ -813,38 +877,47 @@ pub static BELGIUM: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static AT_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6)),
-    HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "Staatsfeiertag", Rule::gregorian(5, 1)),
-    HolidayRule::public("Ascension", "Christi Himmelfahrt", Rule::easter(ASCENSION)),
-    HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public(
-        "Corpus Christi",
-        "Fronleichnam",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::public("Assumption", "Mariä Himmelfahrt", Rule::gregorian(8, 15)),
-    // BGBl. Nr. 298/1965, Art. II Abs. 2: "Die bundesgesetzlichen
-    // Bestimmungen über die Feiertagsruhe gelten für diesen Tag nicht." A
-    // day of observance in 1965 and 1966, and a day of rest from the
-    // Feiertagsruhegesetz as amended by BGBl. Nr. 264/1967.
-    HolidayRule::observance("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
-        .years(Some(1965), Some(1966)),
-    HolidayRule::public("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
-        .years(Some(1967), None),
-    HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
-    HolidayRule::public(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public("Christmas Day", "Christtag", Rule::gregorian(12, 25)),
-    HolidayRule::public("St Stephen's Day", "Stefanitag", Rule::gregorian(12, 26)),
-];
+static AT_RULES: &[HolidayRule] = &read_all(
+    1968,
+    [
+        HolidayRule::public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6)),
+        HolidayRule::public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "Staatsfeiertag", Rule::gregorian(5, 1)),
+        HolidayRule::public("Ascension", "Christi Himmelfahrt", Rule::easter(ASCENSION)),
+        HolidayRule::public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public(
+            "Corpus Christi",
+            "Fronleichnam",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::public("Assumption", "Mariä Himmelfahrt", Rule::gregorian(8, 15)),
+        // BGBl. Nr. 298/1965, Art. II Abs. 2: "Die bundesgesetzlichen
+        // Bestimmungen über die Feiertagsruhe gelten für diesen Tag nicht." A
+        // day of observance in 1965 and 1966, and a day of rest from the
+        // Feiertagsruhegesetz as amended by BGBl. Nr. 264/1967.
+        HolidayRule::observance("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
+            .years(Some(1965), Some(1966)),
+        HolidayRule::public("National Day", "Nationalfeiertag", Rule::gregorian(10, 26))
+            .years(Some(1967), None),
+        HolidayRule::public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
+        HolidayRule::public(
+            "Immaculate Conception",
+            "Mariä Empfängnis",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::public("Christmas Day", "Christtag", Rule::gregorian(12, 25)),
+        HolidayRule::public("St Stephen's Day", "Stefanitag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Austria.
+///
+/// Read from 1968: the Feiertagsruhegesetz 1957 as amended by BGBl. Nr.
+/// 264/1967, in force from 26 July 1967, from the first whole year; the
+/// Arbeitsruhegesetz of 1983 keeps the list. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static AUSTRIA: RuleSet = RuleSet {
     code: "AT",
     english_name: "Austria",
@@ -870,68 +943,76 @@ pub static AUSTRIA: RuleSet = RuleSet {
 // The Nordic countries
 // ─────────────────────────────────────────────────────────────────────────
 
-static SE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nyårsdagen", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Trettondedag jul", Rule::gregorian(1, 6)),
-    HolidayRule::public("Good Friday", "Långfredagen", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Sunday", "Påskdagen", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Annandag påsk",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("May Day", "Första maj", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Ascension",
-        "Kristi himmelsfärdsdag",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::public("Pentecost", "Pingstdagen", Rule::easter(PENTECOST)),
-    // Whit Monday was traded for the National Day in 2005.
-    HolidayRule::public("Whit Monday", "Annandag pingst", Rule::easter(WHIT_MONDAY))
-        .years(None, Some(2004)),
-    HolidayRule::public(
-        "National Day",
-        "Sveriges nationaldag",
-        Rule::gregorian(6, 6),
-    )
-    .years(Some(2005), None),
-    HolidayRule::public(
-        "Midsummer Eve",
-        "Midsommarafton",
-        Rule::WeekdayOnOrAfter {
-            month: 6,
-            day: 19,
-            weekday: Weekday::Friday,
-        },
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Midsummer Day",
-        "Midsommardagen",
-        Rule::WeekdayOnOrAfter {
-            month: 6,
-            day: 20,
-            weekday: Weekday::Saturday,
-        },
-    ),
-    HolidayRule::public(
-        "All Saints' Day",
-        "Alla helgons dag",
-        Rule::WeekdayOnOrAfter {
-            month: 10,
-            day: 31,
-            weekday: Weekday::Saturday,
-        },
-    ),
-    HolidayRule::public("Christmas Eve", "Julafton", Rule::gregorian(12, 24)).of_kind(Kind::Bank),
-    HolidayRule::public("Christmas Day", "Juldagen", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Annandag jul", Rule::gregorian(12, 26)),
-    HolidayRule::public("New Year's Eve", "Nyårsafton", Rule::gregorian(12, 31))
+static SE_RULES: &[HolidayRule] = &read_all(
+    1989,
+    [
+        HolidayRule::public("New Year's Day", "Nyårsdagen", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Trettondedag jul", Rule::gregorian(1, 6)),
+        HolidayRule::public("Good Friday", "Långfredagen", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Sunday", "Påskdagen", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Annandag påsk",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("May Day", "Första maj", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Ascension",
+            "Kristi himmelsfärdsdag",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::public("Pentecost", "Pingstdagen", Rule::easter(PENTECOST)),
+        // Whit Monday was traded for the National Day in 2005.
+        HolidayRule::public("Whit Monday", "Annandag pingst", Rule::easter(WHIT_MONDAY))
+            .years(None, Some(2004)),
+        HolidayRule::public(
+            "National Day",
+            "Sveriges nationaldag",
+            Rule::gregorian(6, 6),
+        )
+        .years(Some(2005), None),
+        HolidayRule::public(
+            "Midsummer Eve",
+            "Midsommarafton",
+            Rule::WeekdayOnOrAfter {
+                month: 6,
+                day: 19,
+                weekday: Weekday::Friday,
+            },
+        )
         .of_kind(Kind::Bank),
-];
+        HolidayRule::public(
+            "Midsummer Day",
+            "Midsommardagen",
+            Rule::WeekdayOnOrAfter {
+                month: 6,
+                day: 20,
+                weekday: Weekday::Saturday,
+            },
+        ),
+        HolidayRule::public(
+            "All Saints' Day",
+            "Alla helgons dag",
+            Rule::WeekdayOnOrAfter {
+                month: 10,
+                day: 31,
+                weekday: Weekday::Saturday,
+            },
+        ),
+        HolidayRule::public("Christmas Eve", "Julafton", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::public("Christmas Day", "Juldagen", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "Annandag jul", Rule::gregorian(12, 26)),
+        HolidayRule::public("New Year's Eve", "Nyårsafton", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank),
+    ],
+);
 
 /// Sweden.
+///
+/// Read from 1989: lag (1989:253) om allmänna helgdagar. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SWEDEN: RuleSet = RuleSet {
     code: "SE",
     english_name: "Sweden",
@@ -950,38 +1031,45 @@ pub static SWEDEN: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static NO_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Første nyttårsdag", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Maundy Thursday",
-        "Skjærtorsdag",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::public("Good Friday", "Langfredag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public(
-        "Easter Sunday",
-        "Første påskedag",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::public(
-        "Easter Monday",
-        "Andre påskedag",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Arbeidernes dag", Rule::gregorian(5, 1)),
-    HolidayRule::public("Constitution Day", "Grunnlovsdag", Rule::gregorian(5, 17)),
-    HolidayRule::public(
-        "Ascension",
-        "Kristi himmelfartsdag",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::public("Pentecost", "Første pinsedag", Rule::easter(PENTECOST)),
-    HolidayRule::public("Whit Monday", "Andre pinsedag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::public("Christmas Day", "Første juledag", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Andre juledag", Rule::gregorian(12, 26)),
-];
+static NO_RULES: &[HolidayRule] = &read_all(
+    1995,
+    [
+        HolidayRule::public("New Year's Day", "Første nyttårsdag", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Maundy Thursday",
+            "Skjærtorsdag",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::public("Good Friday", "Langfredag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public(
+            "Easter Sunday",
+            "Første påskedag",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::public(
+            "Easter Monday",
+            "Andre påskedag",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Arbeidernes dag", Rule::gregorian(5, 1)),
+        HolidayRule::public("Constitution Day", "Grunnlovsdag", Rule::gregorian(5, 17)),
+        HolidayRule::public(
+            "Ascension",
+            "Kristi himmelfartsdag",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::public("Pentecost", "Første pinsedag", Rule::easter(PENTECOST)),
+        HolidayRule::public("Whit Monday", "Andre pinsedag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::public("Christmas Day", "Første juledag", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "Andre juledag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Norway.
+///
+/// Read from 1995: LOV-1995-02-24-12, with lov om 1. og 17. mai
+/// (LOV-1947-04-26-1). Every earlier year is a gap (ADR 0013); the reasons
+/// for every table's first year are in docs/systems/holiday-first-years.md.
 pub static NORWAY: RuleSet = RuleSet {
     code: "NO",
     english_name: "Norway",
@@ -998,39 +1086,49 @@ pub static NORWAY: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static DK_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nytårsdag", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Maundy Thursday",
-        "Skærtorsdag",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::public("Good Friday", "Langfredag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Sunday", "Påskedag", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Anden påskedag",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    // Store bededag, the fourth Friday after Easter, was abolished with
-    // effect from 2024 by lov nr. 214 af 28. februar 2023 — the first Danish
-    // holiday abolished in three centuries.
-    HolidayRule::public("Great Prayer Day", "Store bededag", Rule::easter(26))
-        .years(None, Some(2023)),
-    HolidayRule::public(
-        "Ascension",
-        "Kristi himmelfartsdag",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::public("Pentecost", "Pinsedag", Rule::easter(PENTECOST)),
-    HolidayRule::public("Whit Monday", "Anden pinsedag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::observance("Constitution Day", "Grundlovsdag", Rule::gregorian(6, 5)),
-    HolidayRule::public("Christmas Eve", "Juleaften", Rule::gregorian(12, 24)).of_kind(Kind::Bank),
-    HolidayRule::public("Christmas Day", "Juledag", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Anden juledag", Rule::gregorian(12, 26)),
-];
+static DK_RULES: &[HolidayRule] = &read_all(
+    2024,
+    [
+        HolidayRule::public("New Year's Day", "Nytårsdag", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Maundy Thursday",
+            "Skærtorsdag",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::public("Good Friday", "Langfredag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Sunday", "Påskedag", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Anden påskedag",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        // Store bededag, the fourth Friday after Easter, was abolished with
+        // effect from 2024 by lov nr. 214 af 28. februar 2023 — the first Danish
+        // holiday abolished in three centuries.
+        HolidayRule::public("Great Prayer Day", "Store bededag", Rule::easter(26))
+            .years(None, Some(2023)),
+        HolidayRule::public(
+            "Ascension",
+            "Kristi himmelfartsdag",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::public("Pentecost", "Pinsedag", Rule::easter(PENTECOST)),
+        HolidayRule::public("Whit Monday", "Anden pinsedag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::observance("Constitution Day", "Grundlovsdag", Rule::gregorian(6, 5)),
+        HolidayRule::public("Christmas Eve", "Juleaften", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::public("Christmas Day", "Juledag", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "Anden juledag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Denmark.
+///
+/// Read from 2024: Lov nr. 214 of 6 March 2023, in force on 1 January 2024:
+/// the statute that lists the other helligdage was not read, so every earlier
+/// year is a gap, Store bededag's last year included. Every earlier year is a
+/// gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static DENMARK: RuleSet = RuleSet {
     code: "DK",
     english_name: "Denmark",
@@ -1048,63 +1146,72 @@ pub static DENMARK: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static FI_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Uudenvuodenpäivä", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Loppiainen", Rule::gregorian(1, 6)),
-    HolidayRule::public("Good Friday", "Pitkäperjantai", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public(
-        "Easter Sunday",
-        "Pääsiäispäivä",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::public(
-        "Easter Monday",
-        "Toinen pääsiäispäivä",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("May Day", "Vappu", Rule::gregorian(5, 1)),
-    HolidayRule::public("Ascension", "Helatorstai", Rule::easter(ASCENSION)),
-    HolidayRule::public("Pentecost", "Helluntaipäivä", Rule::easter(PENTECOST)),
-    HolidayRule::public(
-        "Midsummer Eve",
-        "Juhannusaatto",
-        Rule::WeekdayOnOrAfter {
-            month: 6,
-            day: 19,
-            weekday: Weekday::Friday,
-        },
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Midsummer Day",
-        "Juhannuspäivä",
-        Rule::WeekdayOnOrAfter {
-            month: 6,
-            day: 20,
-            weekday: Weekday::Saturday,
-        },
-    ),
-    HolidayRule::public(
-        "All Saints' Day",
-        "Pyhäinpäivä",
-        Rule::WeekdayOnOrAfter {
-            month: 10,
-            day: 31,
-            weekday: Weekday::Saturday,
-        },
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Itsenäisyyspäivä",
-        Rule::gregorian(12, 6),
-    )
-    .years(Some(1917), None),
-    HolidayRule::public("Christmas Eve", "Jouluaatto", Rule::gregorian(12, 24)).of_kind(Kind::Bank),
-    HolidayRule::public("Christmas Day", "Joulupäivä", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "Tapaninpäivä", Rule::gregorian(12, 26)),
-];
+static FI_RULES: &[HolidayRule] = &read_all(
+    2026,
+    [
+        HolidayRule::public("New Year's Day", "Uudenvuodenpäivä", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Loppiainen", Rule::gregorian(1, 6)),
+        HolidayRule::public("Good Friday", "Pitkäperjantai", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public(
+            "Easter Sunday",
+            "Pääsiäispäivä",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::public(
+            "Easter Monday",
+            "Toinen pääsiäispäivä",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("May Day", "Vappu", Rule::gregorian(5, 1)),
+        HolidayRule::public("Ascension", "Helatorstai", Rule::easter(ASCENSION)),
+        HolidayRule::public("Pentecost", "Helluntaipäivä", Rule::easter(PENTECOST)),
+        HolidayRule::public(
+            "Midsummer Eve",
+            "Juhannusaatto",
+            Rule::WeekdayOnOrAfter {
+                month: 6,
+                day: 19,
+                weekday: Weekday::Friday,
+            },
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Midsummer Day",
+            "Juhannuspäivä",
+            Rule::WeekdayOnOrAfter {
+                month: 6,
+                day: 20,
+                weekday: Weekday::Saturday,
+            },
+        ),
+        HolidayRule::public(
+            "All Saints' Day",
+            "Pyhäinpäivä",
+            Rule::WeekdayOnOrAfter {
+                month: 10,
+                day: 31,
+                weekday: Weekday::Saturday,
+            },
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Itsenäisyyspäivä",
+            Rule::gregorian(12, 6),
+        )
+        .years(Some(1917), None),
+        HolidayRule::public("Christmas Eve", "Jouluaatto", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::public("Christmas Day", "Joulupäivä", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "Tapaninpäivä", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Finland.
+///
+/// Read from 2026: the only list read, the Finnish Wikipedia's "Pyhäpäivä";
+/// the statutes were not read. Every earlier year is a gap (ADR 0013); the
+/// reasons for every table's first year are in docs/systems/holiday-first-
+/// years.md.
 pub static FINLAND: RuleSet = RuleSet {
     code: "FI",
     english_name: "Finland",
@@ -1127,54 +1234,64 @@ pub static FINLAND: RuleSet = RuleSet {
 // Central and Eastern Europe
 // ─────────────────────────────────────────────────────────────────────────
 
-static PL_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nowy Rok", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Trzech Króli", Rule::gregorian(1, 6)).years(Some(2011), None),
-    HolidayRule::public("Easter Sunday", "Wielkanoc", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Poniedziałek Wielkanocny",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Święto Pracy", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Constitution Day",
-        "Święto Konstytucji 3 Maja",
-        Rule::gregorian(5, 3),
-    )
-    .years(Some(1990), None),
-    HolidayRule::public("Pentecost", "Zielone Świątki", Rule::easter(PENTECOST)),
-    HolidayRule::public("Corpus Christi", "Boże Ciało", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::public("Assumption", "Wniebowzięcie NMP", Rule::gregorian(8, 15)),
-    HolidayRule::public(
-        "All Saints' Day",
-        "Wszystkich Świętych",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Święto Niepodległości",
-        Rule::gregorian(11, 11),
-    )
-    .years(Some(1989), None),
-    // The centenary of independence got a single extra day.
-    HolidayRule::fixed_public("Centenary of Independence", "", Rule::gregorian(11, 12))
-        .years(Some(2018), Some(2018)),
-    HolidayRule::public(
-        "Christmas Eve",
-        "Wigilia Bożego Narodzenia",
-        Rule::gregorian(12, 24),
-    )
-    .years(Some(2025), None),
-    HolidayRule::public("Christmas Day", "Boże Narodzenie", Rule::gregorian(12, 25)),
-    HolidayRule::public(
-        "Boxing Day",
-        "Drugi dzień Bożego Narodzenia",
-        Rule::gregorian(12, 26),
-    ),
-];
+static PL_RULES: &[HolidayRule] = &read_all(
+    2011,
+    [
+        HolidayRule::public("New Year's Day", "Nowy Rok", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Trzech Króli", Rule::gregorian(1, 6))
+            .years(Some(2011), None),
+        HolidayRule::public("Easter Sunday", "Wielkanoc", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Poniedziałek Wielkanocny",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Święto Pracy", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Constitution Day",
+            "Święto Konstytucji 3 Maja",
+            Rule::gregorian(5, 3),
+        )
+        .years(Some(1990), None),
+        HolidayRule::public("Pentecost", "Zielone Świątki", Rule::easter(PENTECOST)),
+        HolidayRule::public("Corpus Christi", "Boże Ciało", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::public("Assumption", "Wniebowzięcie NMP", Rule::gregorian(8, 15)),
+        HolidayRule::public(
+            "All Saints' Day",
+            "Wszystkich Świętych",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Święto Niepodległości",
+            Rule::gregorian(11, 11),
+        )
+        .years(Some(1989), None),
+        // The centenary of independence got a single extra day.
+        HolidayRule::fixed_public("Centenary of Independence", "", Rule::gregorian(11, 12))
+            .years(Some(2018), Some(2018)),
+        HolidayRule::public(
+            "Christmas Eve",
+            "Wigilia Bożego Narodzenia",
+            Rule::gregorian(12, 24),
+        )
+        .years(Some(2025), None),
+        HolidayRule::public("Christmas Day", "Boże Narodzenie", Rule::gregorian(12, 25)),
+        HolidayRule::public(
+            "Boxing Day",
+            "Drugi dzień Bożego Narodzenia",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Poland.
+///
+/// Read from 2011: the ustawa of 18 January 1951 as consolidated in 2025 and
+/// amended in 2010 (Epiphany from 2011); the amendments between 1951 and
+/// 2010, such as those of 1989 and 1990, were not read. Every earlier year is
+/// a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static POLAND: RuleSet = RuleSet {
     code: "PL",
     english_name: "Poland",
@@ -1196,56 +1313,63 @@ pub static POLAND: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static CZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nový rok", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "Velký pátek", Rule::easter(GOOD_FRIDAY))
-        .years(Some(2016), None),
-    HolidayRule::public(
-        "Easter Monday",
-        "Velikonoční pondělí",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Svátek práce", Rule::gregorian(5, 1)),
-    HolidayRule::public("Victory Day", "Den vítězství", Rule::gregorian(5, 8)),
-    HolidayRule::public(
-        "Sts Cyril and Methodius",
-        "Den slovanských věrozvěstů",
-        Rule::gregorian(7, 5),
-    ),
-    HolidayRule::public(
-        "Jan Hus Day",
-        "Den upálení mistra Jana Husa",
-        Rule::gregorian(7, 6),
-    ),
-    HolidayRule::public(
-        "Statehood Day",
-        "Den české státnosti",
-        Rule::gregorian(9, 28),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Den vzniku samostatného státu",
-        Rule::gregorian(10, 28),
-    ),
-    HolidayRule::public(
-        "Freedom and Democracy Day",
-        "Den boje za svobodu a demokracii",
-        Rule::gregorian(11, 17),
-    ),
-    HolidayRule::public("Christmas Eve", "Štědrý den", Rule::gregorian(12, 24)),
-    HolidayRule::public(
-        "Christmas Day",
-        "1. svátek vánoční",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::public(
-        "St Stephen's Day",
-        "2. svátek vánoční",
-        Rule::gregorian(12, 26),
-    ),
-];
+static CZ_RULES: &[HolidayRule] = &read_all(
+    2001,
+    [
+        HolidayRule::public("New Year's Day", "Nový rok", Rule::gregorian(1, 1)),
+        HolidayRule::public("Good Friday", "Velký pátek", Rule::easter(GOOD_FRIDAY))
+            .years(Some(2016), None),
+        HolidayRule::public(
+            "Easter Monday",
+            "Velikonoční pondělí",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Svátek práce", Rule::gregorian(5, 1)),
+        HolidayRule::public("Victory Day", "Den vítězství", Rule::gregorian(5, 8)),
+        HolidayRule::public(
+            "Sts Cyril and Methodius",
+            "Den slovanských věrozvěstů",
+            Rule::gregorian(7, 5),
+        ),
+        HolidayRule::public(
+            "Jan Hus Day",
+            "Den upálení mistra Jana Husa",
+            Rule::gregorian(7, 6),
+        ),
+        HolidayRule::public(
+            "Statehood Day",
+            "Den české státnosti",
+            Rule::gregorian(9, 28),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Den vzniku samostatného státu",
+            Rule::gregorian(10, 28),
+        ),
+        HolidayRule::public(
+            "Freedom and Democracy Day",
+            "Den boje za svobodu a demokracii",
+            Rule::gregorian(11, 17),
+        ),
+        HolidayRule::public("Christmas Eve", "Štědrý den", Rule::gregorian(12, 24)),
+        HolidayRule::public(
+            "Christmas Day",
+            "1. svátek vánoční",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::public(
+            "St Stephen's Day",
+            "2. svátek vánoční",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Czechia.
+///
+/// Read from 2001: zákon č. 245/2000 Sb., from its first whole year. Every
+/// earlier year is a gap (ADR 0013); the reasons for every table's first year
+/// are in docs/systems/holiday-first-years.md.
 pub static CZECHIA: RuleSet = RuleSet {
     code: "CZ",
     english_name: "Czechia",
@@ -1262,53 +1386,60 @@ pub static CZECHIA: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static GR_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Πρωτοχρονιά", Rule::gregorian(1, 1)),
-    HolidayRule::public("Epiphany", "Θεοφάνεια", Rule::gregorian(1, 6)),
-    // Greece keeps the fixed feasts on the civil calendar but computes
-    // Easter by the Julian computus, so Clean Monday is Orthodox Easter −48.
-    // Clean Monday, Good Friday and Whit Monday are days off for the public
-    // sector and not mandatory holidays under article 60.
-    HolidayRule::public(
-        "Clean Monday",
-        "Καθαρά Δευτέρα",
-        Rule::paschal(ASH_WEDNESDAY - 2),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Independence Day",
-        "Εικοστή Πέμπτη Μαρτίου",
-        Rule::gregorian(3, 25),
-    ),
-    HolidayRule::public(
-        "Good Friday",
-        "Μεγάλη Παρασκευή",
-        Rule::paschal(GOOD_FRIDAY),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Easter Monday",
-        "Δευτέρα του Πάσχα",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Εργατική Πρωτομαγιά", Rule::gregorian(5, 1)),
-    HolidayRule::public("Whit Monday", "Αγίου Πνεύματος", Rule::paschal(WHIT_MONDAY))
+static GR_RULES: &[HolidayRule] = &read_all(
+    2022,
+    [
+        HolidayRule::public("New Year's Day", "Πρωτοχρονιά", Rule::gregorian(1, 1)),
+        HolidayRule::public("Epiphany", "Θεοφάνεια", Rule::gregorian(1, 6)),
+        // Greece keeps the fixed feasts on the civil calendar but computes
+        // Easter by the Julian computus, so Clean Monday is Orthodox Easter −48.
+        // Clean Monday, Good Friday and Whit Monday are days off for the public
+        // sector and not mandatory holidays under article 60.
+        HolidayRule::public(
+            "Clean Monday",
+            "Καθαρά Δευτέρα",
+            Rule::paschal(ASH_WEDNESDAY - 2),
+        )
         .of_kind(Kind::Bank),
-    HolidayRule::public(
-        "Dormition of the Theotokos",
-        "Κοίμηση της Θεοτόκου",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::public("Ochi Day", "Επέτειος του Όχι", Rule::gregorian(10, 28)),
-    HolidayRule::public("Christmas Day", "Χριστούγεννα", Rule::gregorian(12, 25)),
-    HolidayRule::public(
-        "Synaxis of the Theotokos",
-        "Σύναξις Θεοτόκου",
-        Rule::gregorian(12, 26),
-    ),
-];
+        HolidayRule::public(
+            "Independence Day",
+            "Εικοστή Πέμπτη Μαρτίου",
+            Rule::gregorian(3, 25),
+        ),
+        HolidayRule::public(
+            "Good Friday",
+            "Μεγάλη Παρασκευή",
+            Rule::paschal(GOOD_FRIDAY),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Easter Monday",
+            "Δευτέρα του Πάσχα",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Εργατική Πρωτομαγιά", Rule::gregorian(5, 1)),
+        HolidayRule::public("Whit Monday", "Αγίου Πνεύματος", Rule::paschal(WHIT_MONDAY))
+            .of_kind(Kind::Bank),
+        HolidayRule::public(
+            "Dormition of the Theotokos",
+            "Κοίμηση της Θεοτόκου",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::public("Ochi Day", "Επέτειος του Όχι", Rule::gregorian(10, 28)),
+        HolidayRule::public("Christmas Day", "Χριστούγεννα", Rule::gregorian(12, 25)),
+        HolidayRule::public(
+            "Synaxis of the Theotokos",
+            "Σύναξις Θεοτόκου",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Greece.
+///
+/// Read from 2022: Νόμος 4808/2021, from its first whole year. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static GREECE: RuleSet = RuleSet {
     code: "GR",
     english_name: "Greece",
@@ -1331,36 +1462,39 @@ pub static GREECE: RuleSet = RuleSet {
 // Hungary
 // ─────────────────────────────────────────────────────────────────────────
 
-static HU_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Újév", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "1848 Revolution Memorial Day",
-        "Az 1848-as forradalom ünnepe",
-        Rule::gregorian(3, 15),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Nagypéntek", Rule::easter(GOOD_FRIDAY))
-        .years(Some(2017), None),
-    HolidayRule::fixed_public("Easter Monday", "Húsvéthétfő", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "A munka ünnepe", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Whit Monday", "Pünkösdhétfő", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Az államalapítás ünnepe",
-        Rule::gregorian(8, 20),
-    ),
-    HolidayRule::fixed_public(
-        "1956 Revolution Memorial Day",
-        "Az 1956-os forradalom ünnepe",
-        Rule::gregorian(10, 23),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Mindenszentek", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public("Christmas Day", "Karácsony", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Second Day of Christmas",
-        "Karácsony másnapja",
-        Rule::gregorian(12, 26),
-    ),
-];
+static HU_RULES: &[HolidayRule] = &read_all(
+    2013,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Újév", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "1848 Revolution Memorial Day",
+            "Az 1848-as forradalom ünnepe",
+            Rule::gregorian(3, 15),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Nagypéntek", Rule::easter(GOOD_FRIDAY))
+            .years(Some(2017), None),
+        HolidayRule::fixed_public("Easter Monday", "Húsvéthétfő", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "A munka ünnepe", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Whit Monday", "Pünkösdhétfő", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Az államalapítás ünnepe",
+            Rule::gregorian(8, 20),
+        ),
+        HolidayRule::fixed_public(
+            "1956 Revolution Memorial Day",
+            "Az 1956-os forradalom ünnepe",
+            Rule::gregorian(10, 23),
+        ),
+        HolidayRule::fixed_public("All Saints' Day", "Mindenszentek", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public("Christmas Day", "Karácsony", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Second Day of Christmas",
+            "Karácsony másnapja",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Hungary.
 ///
@@ -1368,6 +1502,11 @@ static HU_RULES: &[HolidayRule] = &[
 /// instead is rearrange working days by decree each year — a Thursday
 /// holiday's Friday becomes a day off and a Saturday a working day — and
 /// those *áthelyezett munkanapok* are set annually and are not carried.
+///
+/// Read from 2013: the Labour Code of 2012 (2012. évi I. törvény), in force
+/// from 1 July 2012, from its first whole year. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static HUNGARY: RuleSet = RuleSet {
     code: "HU",
     english_name: "Hungary",
@@ -1389,69 +1528,72 @@ pub static HUNGARY: RuleSet = RuleSet {
 // Romania
 // ─────────────────────────────────────────────────────────────────────────
 
-static RO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Day after New Year's Day",
-        "Anul Nou",
-        Rule::gregorian(1, 2),
-    ),
-    HolidayRule::fixed_public("Epiphany", "Boboteaza", Rule::gregorian(1, 6))
+static RO_RULES: &[HolidayRule] = &read_all(
+    2012,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Day after New Year's Day",
+            "Anul Nou",
+            Rule::gregorian(1, 2),
+        ),
+        HolidayRule::fixed_public("Epiphany", "Boboteaza", Rule::gregorian(1, 6))
+            .years(Some(2024), None),
+        HolidayRule::fixed_public(
+            "Saint John the Baptist",
+            "Sfântul Ioan Botezătorul",
+            Rule::gregorian(1, 7),
+        )
         .years(Some(2024), None),
-    HolidayRule::fixed_public(
-        "Saint John the Baptist",
-        "Sfântul Ioan Botezătorul",
-        Rule::gregorian(1, 7),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public(
-        "Union of the Romanian Principalities",
-        "Ziua Unirii Principatelor Române",
-        Rule::gregorian(1, 24),
-    )
-    .years(Some(2017), None),
-    // The Romanian Orthodox Church keeps the fixed feasts on the civil
-    // calendar and Easter by the Julian computus.
-    HolidayRule::fixed_public("Good Friday", "Vinerea Mare", Rule::paschal(GOOD_FRIDAY))
-        .years(Some(2018), None),
-    HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "A doua zi de Paște",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Ziua Muncii", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Children's Day", "Ziua Copilului", Rule::gregorian(6, 1))
+        HolidayRule::fixed_public(
+            "Union of the Romanian Principalities",
+            "Ziua Unirii Principatelor Române",
+            Rule::gregorian(1, 24),
+        )
         .years(Some(2017), None),
-    HolidayRule::fixed_public("Pentecost", "Rusaliile", Rule::paschal(PENTECOST)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "A doua zi de Rusalii",
-        Rule::paschal(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Dormition of the Mother of God",
-        "Adormirea Maicii Domnului",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Saint Andrew's Day",
-        "Sfântul Andrei",
-        Rule::gregorian(11, 30),
-    )
-    .years(Some(2012), None),
-    HolidayRule::fixed_public(
-        "National Day",
-        "Ziua Națională a României",
-        Rule::gregorian(12, 1),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Crăciunul", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Second Day of Christmas",
-        "A doua zi de Crăciun",
-        Rule::gregorian(12, 26),
-    ),
-];
+        // The Romanian Orthodox Church keeps the fixed feasts on the civil
+        // calendar and Easter by the Julian computus.
+        HolidayRule::fixed_public("Good Friday", "Vinerea Mare", Rule::paschal(GOOD_FRIDAY))
+            .years(Some(2018), None),
+        HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "A doua zi de Paște",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Ziua Muncii", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Children's Day", "Ziua Copilului", Rule::gregorian(6, 1))
+            .years(Some(2017), None),
+        HolidayRule::fixed_public("Pentecost", "Rusaliile", Rule::paschal(PENTECOST)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "A doua zi de Rusalii",
+            Rule::paschal(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Dormition of the Mother of God",
+            "Adormirea Maicii Domnului",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Saint Andrew's Day",
+            "Sfântul Andrei",
+            Rule::gregorian(11, 30),
+        )
+        .years(Some(2012), None),
+        HolidayRule::fixed_public(
+            "National Day",
+            "Ziua Națională a României",
+            Rule::gregorian(12, 1),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Crăciunul", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Second Day of Christmas",
+            "A doua zi de Crăciun",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Romania.
 ///
@@ -1460,6 +1602,11 @@ static RO_RULES: &[HolidayRule] = &[
 /// years: Saint Andrew from 2012, 24 January and Children's Day from 2017,
 /// Good Friday from 2018, Epiphany and Saint John from 2024. No
 /// substitution.
+///
+/// Read from 2012: the Codul muncii, article 139, as the Wikipedia list dates
+/// its amendments, the earliest being Legea 147/2012. Every earlier year is a
+/// gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static ROMANIA: RuleSet = RuleSet {
     code: "RO",
     english_name: "Romania",
@@ -1623,107 +1770,110 @@ const fn ru_tabulated(function: fn(i64) -> Days) -> Rule {
     }
 }
 
-pub(super) static RU_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 2),
-    )
-    .years(Some(1993), None),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 3),
-    )
-    .years(Some(2005), None),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 4),
-    )
-    .years(Some(2005), None),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 5),
-    )
-    .years(Some(2005), None),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 6),
-    )
-    .years(Some(2013), None),
-    HolidayRule::fixed_public(
-        "Orthodox Christmas",
-        "Рождество Христово",
-        Rule::gregorian(1, 7),
-    )
-    .years(Some(1991), None),
-    HolidayRule::fixed_public(
-        "New Year Holidays",
-        "Новогодние каникулы",
-        Rule::gregorian(1, 8),
-    )
-    .years(Some(2013), None),
-    HolidayRule::fixed_public(
-        "Defender of the Fatherland Day",
-        "День защитника Отечества",
-        Rule::gregorian(2, 23),
-    )
-    .years(Some(2002), None),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "Международный женский день",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::fixed_public(
-        "Spring and Labour Day",
-        "Праздник Весны и Труда",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Spring and Labour Day",
-        "Праздник Весны и Труда",
-        Rule::gregorian(5, 2),
-    )
-    .years(None, Some(2004)),
-    HolidayRule::fixed_public("Victory Day", "День Победы", Rule::gregorian(5, 9)),
-    HolidayRule::fixed_public("Russia Day", "День России", Rule::gregorian(6, 12))
-        .years(Some(1992), None),
-    HolidayRule::fixed_public(
-        "Day of Accord and Reconciliation",
-        "День согласия и примирения",
-        Rule::gregorian(11, 7),
-    )
-    .years(Some(1996), Some(2004)),
-    HolidayRule::fixed_public(
-        "Unity Day",
-        "День народного единства",
-        Rule::gregorian(11, 4),
-    )
-    .years(Some(2005), None),
-    HolidayRule::fixed_public(
-        "Day off carried over from a holiday on the weekend",
-        "Перенесённый выходной день",
-        ru_tabulated(ru_carried_over),
-    ),
-    HolidayRule::fixed_public(
-        "Day off transferred by the Government",
-        "Перенесённый выходной день",
-        ru_tabulated(ru_transferred),
-    ),
-    HolidayRule::workday(
-        "Working day, a day off transferred by the Government",
-        "Рабочий день",
-        ru_tabulated(ru_worked),
-    ),
-];
+pub(super) static RU_RULES: &[HolidayRule] = &read_all(
+    1991,
+    [
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 2),
+        )
+        .years(Some(1993), None),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 3),
+        )
+        .years(Some(2005), None),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 4),
+        )
+        .years(Some(2005), None),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 5),
+        )
+        .years(Some(2005), None),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 6),
+        )
+        .years(Some(2013), None),
+        HolidayRule::fixed_public(
+            "Orthodox Christmas",
+            "Рождество Христово",
+            Rule::gregorian(1, 7),
+        )
+        .years(Some(1991), None),
+        HolidayRule::fixed_public(
+            "New Year Holidays",
+            "Новогодние каникулы",
+            Rule::gregorian(1, 8),
+        )
+        .years(Some(2013), None),
+        HolidayRule::fixed_public(
+            "Defender of the Fatherland Day",
+            "День защитника Отечества",
+            Rule::gregorian(2, 23),
+        )
+        .years(Some(2002), None),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "Международный женский день",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::fixed_public(
+            "Spring and Labour Day",
+            "Праздник Весны и Труда",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Spring and Labour Day",
+            "Праздник Весны и Труда",
+            Rule::gregorian(5, 2),
+        )
+        .years(None, Some(2004)),
+        HolidayRule::fixed_public("Victory Day", "День Победы", Rule::gregorian(5, 9)),
+        HolidayRule::fixed_public("Russia Day", "День России", Rule::gregorian(6, 12))
+            .years(Some(1992), None),
+        HolidayRule::fixed_public(
+            "Day of Accord and Reconciliation",
+            "День согласия и примирения",
+            Rule::gregorian(11, 7),
+        )
+        .years(Some(1996), Some(2004)),
+        HolidayRule::fixed_public(
+            "Unity Day",
+            "День народного единства",
+            Rule::gregorian(11, 4),
+        )
+        .years(Some(2005), None),
+        HolidayRule::fixed_public(
+            "Day off carried over from a holiday on the weekend",
+            "Перенесённый выходной день",
+            ru_tabulated(ru_carried_over),
+        ),
+        HolidayRule::fixed_public(
+            "Day off transferred by the Government",
+            "Перенесённый выходной день",
+            ru_tabulated(ru_transferred),
+        ),
+        HolidayRule::workday(
+            "Working day, a day off transferred by the Government",
+            "Рабочий день",
+            ru_tabulated(ru_worked),
+        ),
+    ],
+);
 
 /// Russia.
 ///
@@ -1744,6 +1894,11 @@ pub(super) static RU_RULES: &[HolidayRule] = &[
 /// day or the day it would have been carried to. A year without a decree
 /// here is a gap. The President's non-working days of 2020 and 2021 are
 /// not carried: the production calendar does not count them either.
+///
+/// Read from 1991: the changes Wikipedia dates from 1991, on no statute read;
+/// the Labour Code's article 112 is read for 2005 onward. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static RUSSIA: RuleSet = RuleSet {
     code: "RU",
     english_name: "Russia",
@@ -1794,127 +1949,130 @@ const fn ua_suspended(name: &'static str, local: &'static str, rule: Rule) -> Ho
 const UA_LAST_BEFORE: i32 = 2022;
 const UA_FIRST_SUSPENDED: i32 = 2022;
 
-static UA_RULES: &[HolidayRule] = &[
-    // 1 January, 7 January and 8 March 2022 came before the suspension of
-    // 24 March 2022 and were days off.
-    ua_day_off("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+static UA_RULES: &[HolidayRule] = &read_all(
+    2015,
+    [
+        // 1 January, 7 January and 8 March 2022 came before the suspension of
+        // 24 March 2022 and were days off.
+        ua_day_off("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+            .years(None, Some(UA_LAST_BEFORE)),
+        ua_suspended("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+            .years(Some(UA_LAST_BEFORE + 1), None),
+        ua_day_off(
+            "Orthodox Christmas",
+            "Різдво Христове",
+            Rule::gregorian(1, 7),
+        )
+        .years(Some(1991), Some(UA_LAST_BEFORE)),
+        // Still in article 73 on 7 January 2023; law 3258-IX removed it from
+        // 30 July 2023.
+        ua_suspended(
+            "Orthodox Christmas",
+            "Різдво Христове",
+            Rule::gregorian(1, 7),
+        )
+        .years(Some(UA_LAST_BEFORE + 1), Some(2023)),
+        ua_day_off(
+            "International Women's Day",
+            "Міжнародний жіночий день",
+            Rule::gregorian(3, 8),
+        )
         .years(None, Some(UA_LAST_BEFORE)),
-    ua_suspended("New Year's Day", "Новий рік", Rule::gregorian(1, 1))
+        ua_suspended(
+            "International Women's Day",
+            "Міжнародний жіночий день",
+            Rule::gregorian(3, 8),
+        )
         .years(Some(UA_LAST_BEFORE + 1), None),
-    ua_day_off(
-        "Orthodox Christmas",
-        "Різдво Христове",
-        Rule::gregorian(1, 7),
-    )
-    .years(Some(1991), Some(UA_LAST_BEFORE)),
-    // Still in article 73 on 7 January 2023; law 3258-IX removed it from
-    // 30 July 2023.
-    ua_suspended(
-        "Orthodox Christmas",
-        "Різдво Христове",
-        Rule::gregorian(1, 7),
-    )
-    .years(Some(UA_LAST_BEFORE + 1), Some(2023)),
-    ua_day_off(
-        "International Women's Day",
-        "Міжнародний жіночий день",
-        Rule::gregorian(3, 8),
-    )
-    .years(None, Some(UA_LAST_BEFORE)),
-    ua_suspended(
-        "International Women's Day",
-        "Міжнародний жіночий день",
-        Rule::gregorian(3, 8),
-    )
-    .years(Some(UA_LAST_BEFORE + 1), None),
-    // The Orthodox Church of Ukraine keeps the Julian computus for Easter
-    // even after moving its fixed feasts to the Revised Julian calendar.
-    ua_day_off("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
-        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
+        // The Orthodox Church of Ukraine keeps the Julian computus for Easter
+        // even after moving its fixed feasts to the Revised Julian calendar.
+        ua_day_off("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
+            .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended("Easter", "Великдень", Rule::paschal(EASTER_SUNDAY))
+            .years(Some(UA_FIRST_SUSPENDED), None),
+        ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 1))
+            .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended("Labour Day", "День праці", Rule::gregorian(5, 1))
+            .years(Some(UA_FIRST_SUSPENDED), None),
+        ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 2)).years(None, Some(2017)),
+        // Law 3107-IX put 8 May in 9 May's place from 15 June 2023, after both
+        // days of that year.
+        ua_suspended(
+            "Day of Remembrance and Victory over Nazism",
+            "День пам'яті та перемоги над нацизмом у Другій світовій війні",
+            Rule::gregorian(5, 8),
+        )
+        .years(Some(2024), None),
+        ua_day_off("Victory Day", "День перемоги", Rule::gregorian(5, 9))
+            .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended("Victory Day", "День перемоги", Rule::gregorian(5, 9))
+            .years(Some(UA_FIRST_SUSPENDED), Some(2023)),
+        ua_day_off("Trinity", "Трійця", Rule::paschal(PENTECOST))
+            .years(None, Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended("Trinity", "Трійця", Rule::paschal(PENTECOST))
+            .years(Some(UA_FIRST_SUSPENDED), None),
+        ua_day_off(
+            "Constitution Day",
+            "День Конституції",
+            Rule::gregorian(6, 28),
+        )
+        .years(Some(1997), Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended(
+            "Constitution Day",
+            "День Конституції",
+            Rule::gregorian(6, 28),
+        )
         .years(Some(UA_FIRST_SUSPENDED), None),
-    ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 1))
-        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended("Labour Day", "День праці", Rule::gregorian(5, 1))
+        // Added by law 2295-IX from 9 June 2022, under martial law, so never
+        // yet a day off.
+        ua_suspended(
+            "Statehood Day",
+            "День Української Державності",
+            Rule::gregorian(7, 28),
+        )
+        .years(Some(2022), Some(2023)),
+        ua_suspended(
+            "Statehood Day",
+            "День Української Державності",
+            Rule::gregorian(7, 15),
+        )
+        .years(Some(2024), None),
+        ua_day_off(
+            "Independence Day",
+            "День Незалежності",
+            Rule::gregorian(8, 24),
+        )
+        .years(Some(1992), Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended(
+            "Independence Day",
+            "День Незалежності",
+            Rule::gregorian(8, 24),
+        )
         .years(Some(UA_FIRST_SUSPENDED), None),
-    ua_day_off("Labour Day", "День праці", Rule::gregorian(5, 2)).years(None, Some(2017)),
-    // Law 3107-IX put 8 May in 9 May's place from 15 June 2023, after both
-    // days of that year.
-    ua_suspended(
-        "Day of Remembrance and Victory over Nazism",
-        "День пам'яті та перемоги над нацизмом у Другій світовій війні",
-        Rule::gregorian(5, 8),
-    )
-    .years(Some(2024), None),
-    ua_day_off("Victory Day", "День перемоги", Rule::gregorian(5, 9))
-        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended("Victory Day", "День перемоги", Rule::gregorian(5, 9))
-        .years(Some(UA_FIRST_SUSPENDED), Some(2023)),
-    ua_day_off("Trinity", "Трійця", Rule::paschal(PENTECOST))
-        .years(None, Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended("Trinity", "Трійця", Rule::paschal(PENTECOST))
-        .years(Some(UA_FIRST_SUSPENDED), None),
-    ua_day_off(
-        "Constitution Day",
-        "День Конституції",
-        Rule::gregorian(6, 28),
-    )
-    .years(Some(1997), Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended(
-        "Constitution Day",
-        "День Конституції",
-        Rule::gregorian(6, 28),
-    )
-    .years(Some(UA_FIRST_SUSPENDED), None),
-    // Added by law 2295-IX from 9 June 2022, under martial law, so never
-    // yet a day off.
-    ua_suspended(
-        "Statehood Day",
-        "День Української Державності",
-        Rule::gregorian(7, 28),
-    )
-    .years(Some(2022), Some(2023)),
-    ua_suspended(
-        "Statehood Day",
-        "День Української Державності",
-        Rule::gregorian(7, 15),
-    )
-    .years(Some(2024), None),
-    ua_day_off(
-        "Independence Day",
-        "День Незалежності",
-        Rule::gregorian(8, 24),
-    )
-    .years(Some(1992), Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended(
-        "Independence Day",
-        "День Незалежності",
-        Rule::gregorian(8, 24),
-    )
-    .years(Some(UA_FIRST_SUSPENDED), None),
-    ua_day_off(
-        "Defenders of Ukraine Day",
-        "День захисників і захисниць України",
-        Rule::gregorian(10, 14),
-    )
-    .years(Some(2015), Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended(
-        "Defenders of Ukraine Day",
-        "День захисників і захисниць України",
-        Rule::gregorian(10, 14),
-    )
-    .years(Some(UA_FIRST_SUSPENDED), Some(2022)),
-    ua_suspended(
-        "Defenders of Ukraine Day",
-        "День захисників і захисниць України",
-        Rule::gregorian(10, 1),
-    )
-    .years(Some(2023), None),
-    ua_day_off("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
-        .years(Some(2017), Some(UA_FIRST_SUSPENDED - 1)),
-    ua_suspended("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
-        .years(Some(UA_FIRST_SUSPENDED), None),
-];
+        ua_day_off(
+            "Defenders of Ukraine Day",
+            "День захисників і захисниць України",
+            Rule::gregorian(10, 14),
+        )
+        .years(Some(2015), Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended(
+            "Defenders of Ukraine Day",
+            "День захисників і захисниць України",
+            Rule::gregorian(10, 14),
+        )
+        .years(Some(UA_FIRST_SUSPENDED), Some(2022)),
+        ua_suspended(
+            "Defenders of Ukraine Day",
+            "День захисників і захисниць України",
+            Rule::gregorian(10, 1),
+        )
+        .years(Some(2023), None),
+        ua_day_off("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
+            .years(Some(2017), Some(UA_FIRST_SUSPENDED - 1)),
+        ua_suspended("Christmas", "Різдво Христове", Rule::gregorian(12, 25))
+            .years(Some(UA_FIRST_SUSPENDED), None),
+    ],
+);
 
 /// Article 67, part 3: a holiday on a weekend day moves the weekend day to
 /// the next working day — the British bank-holiday shift. Suspended with
@@ -1957,6 +2115,11 @@ static UA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// 596/2026 to 31 October 2026. When it ends article 73 applies again,
 /// and this table has to change; `sources_checked` says when that was
 /// last looked for.
+///
+/// Read from 2015: the Kodeks zakoniv pro pratsyu, article 73, with the
+/// amendments read from law 238-VIII (2015); the text before it was not read.
+/// Every earlier year is a gap (ADR 0013); the reasons for every table's
+/// first year are in docs/systems/holiday-first-years.md.
 pub static UKRAINE: RuleSet = RuleSet {
     code: "UA",
     english_name: "Ukraine",
@@ -1993,56 +2156,59 @@ pub static UKRAINE: RuleSet = RuleSet {
 // Croatia
 // ─────────────────────────────────────────────────────────────────────────
 
-static HR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Sveta tri kralja", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public("Easter Sunday", "Uskrs", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Uskrsni ponedjeljak",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
-    // 30 May from 1991 to 2001 and again from 2020; 25 June in between.
-    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
-        .years(Some(1991), Some(2001)),
-    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
-        .years(Some(2020), None),
-    HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(6, 25))
+static HR_RULES: &[HolidayRule] = &read_all(
+    2002,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Epiphany", "Sveta tri kralja", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public("Easter Sunday", "Uskrs", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Uskrsni ponedjeljak",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
+        // 30 May from 1991 to 2001 and again from 2020; 25 June in between.
+        HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
+            .years(Some(1991), Some(2001)),
+        HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(5, 30))
+            .years(Some(2020), None),
+        HolidayRule::fixed_public("Statehood Day", "Dan državnosti", Rule::gregorian(6, 25))
+            .years(Some(2002), Some(2019)),
+        HolidayRule::fixed_public("Corpus Christi", "Tijelovo", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::fixed_public(
+            "Anti-Fascist Struggle Day",
+            "Dan antifašističke borbe",
+            Rule::gregorian(6, 22),
+        ),
+        HolidayRule::fixed_public(
+            "Victory and Homeland Thanksgiving Day",
+            "Dan pobjede i domovinske zahvalnosti",
+            Rule::gregorian(8, 5),
+        ),
+        HolidayRule::fixed_public("Assumption Day", "Velika Gospa", Rule::gregorian(8, 15)),
+        // Independence Day, a holiday from 2002 to 2019, a memorial day since.
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Dan neovisnosti",
+            Rule::gregorian(10, 8),
+        )
         .years(Some(2002), Some(2019)),
-    HolidayRule::fixed_public("Corpus Christi", "Tijelovo", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::fixed_public(
-        "Anti-Fascist Struggle Day",
-        "Dan antifašističke borbe",
-        Rule::gregorian(6, 22),
-    ),
-    HolidayRule::fixed_public(
-        "Victory and Homeland Thanksgiving Day",
-        "Dan pobjede i domovinske zahvalnosti",
-        Rule::gregorian(8, 5),
-    ),
-    HolidayRule::fixed_public("Assumption Day", "Velika Gospa", Rule::gregorian(8, 15)),
-    // Independence Day, a holiday from 2002 to 2019, a memorial day since.
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Dan neovisnosti",
-        Rule::gregorian(10, 8),
-    )
-    .years(Some(2002), Some(2019)),
-    HolidayRule::fixed_public("All Saints' Day", "Dan svih svetih", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "Remembrance Day for the Victims of the Homeland War",
-        "Dan sjećanja na žrtve Domovinskog rata",
-        Rule::gregorian(11, 18),
-    )
-    .years(Some(2020), None),
-    HolidayRule::fixed_public("Christmas Day", "Božić", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Sveti Stjepan",
-        Rule::gregorian(12, 26),
-    ),
-];
+        HolidayRule::fixed_public("All Saints' Day", "Dan svih svetih", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "Remembrance Day for the Victims of the Homeland War",
+            "Dan sjećanja na žrtve Domovinskog rata",
+            Rule::gregorian(11, 18),
+        )
+        .years(Some(2020), None),
+        HolidayRule::fixed_public("Christmas Day", "Božić", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Sveti Stjepan",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Croatia.
 ///
@@ -2055,6 +2221,10 @@ static HR_RULES: &[HolidayRule] = &[
 /// the gap in 30 May's years implies, and is carried as such. The right of
 /// those who keep other religious calendars not to work on their own
 /// feasts is personal and not carried. No substitution.
+///
+/// Read from 2002: the consolidated text of the Act in NN 136/2002, from
+/// 2002. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static CROATIA: RuleSet = RuleSet {
     code: "HR",
     english_name: "Croatia",
@@ -2129,92 +2299,95 @@ const SK_SEVEN_SORROWS: [HolidayRule; 3] = sk_working_in(
     2026,
 );
 
-static SK_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Day of the Establishment of the Slovak Republic",
-        "Deň vzniku Slovenskej republiky",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Epiphany", "Zjavenie Pána", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Veľkonočný piatok",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Veľkonočný pondelok",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Sviatok práce", Rule::gregorian(5, 1)),
-    SK_VICTORY[0],
-    SK_VICTORY[1],
-    SK_VICTORY[2],
-    HolidayRule::fixed_public(
-        "Saints Cyril and Methodius Day",
-        "Sviatok svätého Cyrila a Metoda",
-        Rule::gregorian(7, 5),
-    ),
-    HolidayRule::fixed_public(
-        "Slovak National Uprising Anniversary",
-        "Výročie Slovenského národného povstania",
-        Rule::gregorian(8, 29),
-    ),
-    sk_demoted(
-        "Constitution Day",
-        "Deň Ústavy Slovenskej republiky",
-        9,
-        1,
-        2023,
-    )[0],
-    sk_demoted(
-        "Constitution Day",
-        "Deň Ústavy Slovenskej republiky",
-        9,
-        1,
-        2023,
-    )[1],
-    SK_SEVEN_SORROWS[0],
-    SK_SEVEN_SORROWS[1],
-    SK_SEVEN_SORROWS[2],
-    // A state holiday since 2021, and a working day.
-    HolidayRule::observance(
-        "Day of the Establishment of an Independent Czecho-Slovak State",
-        "Deň vzniku samostatného česko-slovenského štátu",
-        Rule::gregorian(10, 28),
-    )
-    .years(Some(2021), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Sviatok všetkých svätých",
-        Rule::gregorian(11, 1),
-    ),
-    sk_demoted(
-        "Struggle for Freedom and Democracy Day",
-        "Deň boja za slobodu a demokraciu",
-        11,
-        17,
-        2024,
-    )[0],
-    sk_demoted(
-        "Struggle for Freedom and Democracy Day",
-        "Deň boja za slobodu a demokraciu",
-        11,
-        17,
-        2024,
-    )[1],
-    HolidayRule::fixed_public("Christmas Eve", "Štedrý deň", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Prvý sviatok vianočný",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Second Day of Christmas",
-        "Druhý sviatok vianočný",
-        Rule::gregorian(12, 26),
-    ),
-];
+static SK_RULES: &[HolidayRule] = &read_all(
+    2021,
+    [
+        HolidayRule::fixed_public(
+            "Day of the Establishment of the Slovak Republic",
+            "Deň vzniku Slovenskej republiky",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Epiphany", "Zjavenie Pána", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Veľkonočný piatok",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Veľkonočný pondelok",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Sviatok práce", Rule::gregorian(5, 1)),
+        SK_VICTORY[0],
+        SK_VICTORY[1],
+        SK_VICTORY[2],
+        HolidayRule::fixed_public(
+            "Saints Cyril and Methodius Day",
+            "Sviatok svätého Cyrila a Metoda",
+            Rule::gregorian(7, 5),
+        ),
+        HolidayRule::fixed_public(
+            "Slovak National Uprising Anniversary",
+            "Výročie Slovenského národného povstania",
+            Rule::gregorian(8, 29),
+        ),
+        sk_demoted(
+            "Constitution Day",
+            "Deň Ústavy Slovenskej republiky",
+            9,
+            1,
+            2023,
+        )[0],
+        sk_demoted(
+            "Constitution Day",
+            "Deň Ústavy Slovenskej republiky",
+            9,
+            1,
+            2023,
+        )[1],
+        SK_SEVEN_SORROWS[0],
+        SK_SEVEN_SORROWS[1],
+        SK_SEVEN_SORROWS[2],
+        // A state holiday since 2021, and a working day.
+        HolidayRule::observance(
+            "Day of the Establishment of an Independent Czecho-Slovak State",
+            "Deň vzniku samostatného česko-slovenského štátu",
+            Rule::gregorian(10, 28),
+        )
+        .years(Some(2021), None),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Sviatok všetkých svätých",
+            Rule::gregorian(11, 1),
+        ),
+        sk_demoted(
+            "Struggle for Freedom and Democracy Day",
+            "Deň boja za slobodu a demokraciu",
+            11,
+            17,
+            2024,
+        )[0],
+        sk_demoted(
+            "Struggle for Freedom and Democracy Day",
+            "Deň boja za slobodu a demokraciu",
+            11,
+            17,
+            2024,
+        )[1],
+        HolidayRule::fixed_public("Christmas Eve", "Štedrý deň", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Prvý sviatok vianočný",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Second Day of Christmas",
+            "Druhý sviatok vianočný",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Slovakia.
 ///
@@ -2226,6 +2399,11 @@ static SK_RULES: &[HolidayRule] = &[
 /// only, so they are days off again from 2027. Each is carried as a day
 /// off in its years as one and an observance in the others. No
 /// substitution.
+///
+/// Read from 2021: the Act's version in force from 1 November 2025 and the
+/// years Wikipedia dates, the earliest being 2021. Every earlier year is a
+/// gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SLOVAKIA: RuleSet = RuleSet {
     code: "SK",
     english_name: "Slovakia",
@@ -2249,59 +2427,62 @@ pub static SLOVAKIA: RuleSet = RuleSet {
 // Slovenia
 // ─────────────────────────────────────────────────────────────────────────
 
-static SI_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 1)),
-    // Work-free to 2012, and again from 2017.
-    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
-        .years(None, Some(2012)),
-    HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
-        .years(Some(2017), None),
-    HolidayRule::fixed_public("Prešeren Day", "Prešernov dan", Rule::gregorian(2, 8))
-        .years(Some(1991), None),
-    HolidayRule::fixed_public(
-        "Easter Sunday",
-        "velikonočna nedelja",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "velikonočni ponedeljek",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Day of Uprising Against Occupation",
-        "dan upora proti okupatorju",
-        Rule::gregorian(4, 27),
-    ),
-    HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 2)),
-    HolidayRule::fixed_public("Whit Sunday", "binkoštna nedelja", Rule::easter(PENTECOST)),
-    HolidayRule::fixed_public("Statehood Day", "dan državnosti", Rule::gregorian(6, 25)),
-    HolidayRule::fixed_public(
-        "Assumption Day",
-        "Marijino vnebovzetje",
-        Rule::gregorian(8, 15),
-    )
-    .years(Some(1992), None),
-    HolidayRule::fixed_public(
-        "Reformation Day",
-        "dan reformacije",
-        Rule::gregorian(10, 31),
-    )
-    .years(Some(1992), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "dan spomina na mrtve",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "božič", Rule::gregorian(12, 25))
-        .years(Some(1991), None),
-    HolidayRule::fixed_public(
-        "Independence and Unity Day",
-        "dan samostojnosti in enotnosti",
-        Rule::gregorian(12, 26),
-    ),
-];
+static SI_RULES: &[HolidayRule] = &read_all(
+    1992,
+    [
+        HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 1)),
+        // Work-free to 2012, and again from 2017.
+        HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
+            .years(None, Some(2012)),
+        HolidayRule::fixed_public("New Year's Day", "novo leto", Rule::gregorian(1, 2))
+            .years(Some(2017), None),
+        HolidayRule::fixed_public("Prešeren Day", "Prešernov dan", Rule::gregorian(2, 8))
+            .years(Some(1991), None),
+        HolidayRule::fixed_public(
+            "Easter Sunday",
+            "velikonočna nedelja",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "velikonočni ponedeljek",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Day of Uprising Against Occupation",
+            "dan upora proti okupatorju",
+            Rule::gregorian(4, 27),
+        ),
+        HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("May Day", "praznik dela", Rule::gregorian(5, 2)),
+        HolidayRule::fixed_public("Whit Sunday", "binkoštna nedelja", Rule::easter(PENTECOST)),
+        HolidayRule::fixed_public("Statehood Day", "dan državnosti", Rule::gregorian(6, 25)),
+        HolidayRule::fixed_public(
+            "Assumption Day",
+            "Marijino vnebovzetje",
+            Rule::gregorian(8, 15),
+        )
+        .years(Some(1992), None),
+        HolidayRule::fixed_public(
+            "Reformation Day",
+            "dan reformacije",
+            Rule::gregorian(10, 31),
+        )
+        .years(Some(1992), None),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "dan spomina na mrtve",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "božič", Rule::gregorian(12, 25))
+            .years(Some(1991), None),
+        HolidayRule::fixed_public(
+            "Independence and Unity Day",
+            "dan samostojnosti in enotnosti",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Slovenia.
 ///
@@ -2310,6 +2491,10 @@ static SI_RULES: &[HolidayRule] = &[
 /// 2017, Prešeren Day and Christmas from 1991, the Assumption and
 /// Reformation Day from 1992. The five state holidays that are working
 /// days are not carried, nor the pre-1991 names. No substitution.
+///
+/// Read from 1992: the ZPDPD, Uradni list RS 26/91, from its first whole
+/// year. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static SLOVENIA: RuleSet = RuleSet {
     code: "SI",
     english_name: "Slovenia",
@@ -2333,74 +2518,77 @@ pub static SLOVENIA: RuleSet = RuleSet {
 // Iceland
 // ─────────────────────────────────────────────────────────────────────────
 
-static IS_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Nýársdagur", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Skírdagur",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Föstudagurinn langi",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Easter Sunday", "Páskadagur", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Annar í páskum",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    // The first Thursday after 18 April, so 19 to 25 April.
-    HolidayRule::fixed_public(
-        "First Day of Summer",
-        "Sumardagurinn fyrsti",
-        Rule::WeekdayOnOrAfter {
-            month: 4,
-            day: 19,
-            weekday: Weekday::Thursday,
-        },
-    ),
-    HolidayRule::fixed_public("May Day", "Verkalýðsdagurinn", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Ascension Day",
-        "Uppstigningardagur",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::fixed_public("Whit Sunday", "Hvítasunnudagur", Rule::easter(PENTECOST)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Annar í hvítasunnu",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "National Day",
-        "Þjóðhátíðardagurinn",
-        Rule::gregorian(6, 17),
-    ),
-    // "Frá og með árinu 1983 skal fyrsti mánudagur í ágúst vera frídagur."
-    HolidayRule::fixed_public(
-        "Commerce Day",
-        "Frídagur verslunarmanna",
-        Rule::NthWeekday {
-            month: 8,
-            n: 1,
-            weekday: Weekday::Monday,
-        },
-    )
-    .years(Some(1983), None),
-    // Holidays from 13:00; half days, as in Sweden and Denmark.
-    HolidayRule::fixed_public("Christmas Eve", "Aðfangadagur", Rule::gregorian(12, 24))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Christmas Day", "Jóladagur", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Second Day of Christmas",
-        "Annar í jólum",
-        Rule::gregorian(12, 26),
-    ),
-    HolidayRule::fixed_public("New Year's Eve", "Gamlársdagur", Rule::gregorian(12, 31))
-        .of_kind(Kind::Bank),
-];
+static IS_RULES: &[HolidayRule] = &read_all(
+    1998,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Nýársdagur", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Skírdagur",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Föstudagurinn langi",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Easter Sunday", "Páskadagur", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Annar í páskum",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        // The first Thursday after 18 April, so 19 to 25 April.
+        HolidayRule::fixed_public(
+            "First Day of Summer",
+            "Sumardagurinn fyrsti",
+            Rule::WeekdayOnOrAfter {
+                month: 4,
+                day: 19,
+                weekday: Weekday::Thursday,
+            },
+        ),
+        HolidayRule::fixed_public("May Day", "Verkalýðsdagurinn", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Ascension Day",
+            "Uppstigningardagur",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::fixed_public("Whit Sunday", "Hvítasunnudagur", Rule::easter(PENTECOST)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Annar í hvítasunnu",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "National Day",
+            "Þjóðhátíðardagurinn",
+            Rule::gregorian(6, 17),
+        ),
+        // "Frá og með árinu 1983 skal fyrsti mánudagur í ágúst vera frídagur."
+        HolidayRule::fixed_public(
+            "Commerce Day",
+            "Frídagur verslunarmanna",
+            Rule::NthWeekday {
+                month: 8,
+                n: 1,
+                weekday: Weekday::Monday,
+            },
+        )
+        .years(Some(1983), None),
+        // Holidays from 13:00; half days, as in Sweden and Denmark.
+        HolidayRule::fixed_public("Christmas Eve", "Aðfangadagur", Rule::gregorian(12, 24))
+            .of_kind(Kind::Bank),
+        HolidayRule::fixed_public("Christmas Day", "Jóladagur", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Second Day of Christmas",
+            "Annar í jólum",
+            Rule::gregorian(12, 26),
+        ),
+        HolidayRule::fixed_public("New Year's Eve", "Gamlársdagur", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank),
+    ],
+);
 
 /// Iceland.
 ///
@@ -2412,6 +2600,11 @@ static IS_RULES: &[HolidayRule] = &[
 /// Christmas Eve and New Year's Eve from 13:00, carried as `Kind::Bank`
 /// half days as Sweden's and Denmark's are. The
 /// flag days are not carried. No substitution.
+///
+/// Read from 1998: lög nr. 32/1997 um frið vegna helgihalds and lög nr.
+/// 88/1971, article 6, in the Lagasafn of 1 September 2026, from the first
+/// year after 1997. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static ICELAND: RuleSet = RuleSet {
     code: "IS",
     english_name: "Iceland",
@@ -2448,65 +2641,68 @@ static BG_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static BG_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Liberation Day",
-        "Ден на Освобождението на България от османско владичество",
-        Rule::gregorian(3, 3),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Велики петък", Rule::paschal(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Holy Saturday",
-        "Велика събота",
-        Rule::paschal(HOLY_SATURDAY),
-    ),
-    HolidayRule::fixed_public("Easter Sunday", "Великден", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Великден", Rule::paschal(EASTER_MONDAY)),
-    HolidayRule::public(
-        "Labour Day",
-        "Ден на труда и на международната работническа солидарност",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::public(
-        "Saint George's Day, Day of Valour and of the Bulgarian Army",
-        "Гергьовден, Ден на храбростта и празник на Българската армия",
-        Rule::gregorian(5, 6),
-    ),
-    HolidayRule::public(
-        "Day of the Saints Cyril and Methodius, of the Bulgarian Alphabet, Education and Culture and of Slavic Literature",
-        "Ден на светите братя Кирил и Методий, на българската азбука, просвета и култура и на славянската книжовност",
-        Rule::gregorian(5, 24),
-    ),
-    HolidayRule::public(
-        "Unification Day",
-        "Ден на Съединението",
-        Rule::gregorian(9, 6),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Ден на Независимостта на България",
-        Rule::gregorian(9, 22),
-    ),
-    // A day off for schools only.
-    HolidayRule::observance(
-        "Day of the National Awakeners",
-        "Ден на народните будители",
-        Rule::gregorian(11, 1),
-    )
-    .of_kind(Kind::School),
-    HolidayRule::public("Christmas Eve", "Бъдни вечер", Rule::gregorian(12, 24)),
-    HolidayRule::public(
-        "Christmas Day",
-        "Рождество Христово",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::public(
-        "Second Day of Christmas",
-        "Рождество Христово",
-        Rule::gregorian(12, 26),
-    ),
-];
+static BG_RULES: &[HolidayRule] = &read_all(
+    2017,
+    [
+        HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Liberation Day",
+            "Ден на Освобождението на България от османско владичество",
+            Rule::gregorian(3, 3),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Велики петък", Rule::paschal(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Holy Saturday",
+            "Велика събота",
+            Rule::paschal(HOLY_SATURDAY),
+        ),
+        HolidayRule::fixed_public("Easter Sunday", "Великден", Rule::paschal(EASTER_SUNDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Великден", Rule::paschal(EASTER_MONDAY)),
+        HolidayRule::public(
+            "Labour Day",
+            "Ден на труда и на международната работническа солидарност",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::public(
+            "Saint George's Day, Day of Valour and of the Bulgarian Army",
+            "Гергьовден, Ден на храбростта и празник на Българската армия",
+            Rule::gregorian(5, 6),
+        ),
+        HolidayRule::public(
+            "Day of the Saints Cyril and Methodius, of the Bulgarian Alphabet, Education and Culture and of Slavic Literature",
+            "Ден на светите братя Кирил и Методий, на българската азбука, просвета и култура и на славянската книжовност",
+            Rule::gregorian(5, 24),
+        ),
+        HolidayRule::public(
+            "Unification Day",
+            "Ден на Съединението",
+            Rule::gregorian(9, 6),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Ден на Независимостта на България",
+            Rule::gregorian(9, 22),
+        ),
+        // A day off for schools only.
+        HolidayRule::observance(
+            "Day of the National Awakeners",
+            "Ден на народните будители",
+            Rule::gregorian(11, 1),
+        )
+        .of_kind(Kind::School),
+        HolidayRule::public("Christmas Eve", "Бъдни вечер", Rule::gregorian(12, 24)),
+        HolidayRule::public(
+            "Christmas Day",
+            "Рождество Христово",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::public(
+            "Second Day of Christmas",
+            "Рождество Христово",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Bulgaria.
 ///
@@ -2518,6 +2714,11 @@ static BG_RULES: &[HolidayRule] = &[
 /// Ministers may declare under art. 154(3), and the working Saturdays that
 /// paid for long weekends before 2017, are not carried; nor are the years
 /// the fixed days were introduced, which the sources do not give.
+///
+/// Read from 2017: the Labour Code article 154(2) as amended by SG 105/2016,
+/// in force from 1 January 2017. Every earlier year is a gap (ADR 0013); the
+/// reasons for every table's first year are in docs/systems/holiday-first-
+/// years.md.
 pub static BULGARIA: RuleSet = RuleSet {
     code: "BG",
     english_name: "Bulgaria",
@@ -2539,84 +2740,87 @@ pub static BULGARIA: RuleSet = RuleSet {
 // Cyprus
 // ─────────────────────────────────────────────────────────────────────────
 
-static CY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Πρωτοχρονιά", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Θεοφάνια", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public(
-        "Green Monday",
-        "Καθαρά Δευτέρα",
-        Rule::paschal(ASH_WEDNESDAY - 2),
-    ),
-    HolidayRule::fixed_public(
-        "Greek Independence Day",
-        "Ημέρα της Ελληνικής Ανεξαρτησίας",
-        Rule::gregorian(3, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Cyprus National Day",
-        "Εθνική Ημέρα Κύπρου",
-        Rule::gregorian(4, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Μεγάλη Παρασκευή",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Holy Saturday",
-        "Μεγάλο Σάββατο",
-        Rule::paschal(HOLY_SATURDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Sunday",
-        "Κυριακή του Πάσχα",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Δευτέρα του Πάσχα",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    // Banks only.
-    HolidayRule::fixed_public(
-        "Easter Tuesday",
-        "Τρίτη του Πάσχα",
-        Rule::paschal(EASTER_MONDAY + 1),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Labour Day", "Ημέρα Εργασίας", Rule::gregorian(5, 1)),
-    // Kataklysmos, the Monday of the Holy Spirit.
-    HolidayRule::fixed_public(
-        "Pentecost Monday",
-        "Πεντηκοστή Δευτέρα",
-        Rule::paschal(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Dormition of the Theotokos",
-        "Κοίμηση της Θεοτόκου",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Cyprus Independence Day",
-        "Ημέρα Ανεξαρτησίας της Κύπρου",
-        Rule::gregorian(10, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Greek National Day",
-        "Επέτειος του Όχι",
-        Rule::gregorian(10, 28),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Ημέρα των Χριστουγέννων",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Boxing Day",
-        "Δεύτερη μέρα των Χριστουγέννων",
-        Rule::gregorian(12, 26),
-    ),
-];
+static CY_RULES: &[HolidayRule] = &read_all(
+    2026,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Πρωτοχρονιά", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Epiphany", "Θεοφάνια", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public(
+            "Green Monday",
+            "Καθαρά Δευτέρα",
+            Rule::paschal(ASH_WEDNESDAY - 2),
+        ),
+        HolidayRule::fixed_public(
+            "Greek Independence Day",
+            "Ημέρα της Ελληνικής Ανεξαρτησίας",
+            Rule::gregorian(3, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Cyprus National Day",
+            "Εθνική Ημέρα Κύπρου",
+            Rule::gregorian(4, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Μεγάλη Παρασκευή",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Holy Saturday",
+            "Μεγάλο Σάββατο",
+            Rule::paschal(HOLY_SATURDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Sunday",
+            "Κυριακή του Πάσχα",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Δευτέρα του Πάσχα",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        // Banks only.
+        HolidayRule::fixed_public(
+            "Easter Tuesday",
+            "Τρίτη του Πάσχα",
+            Rule::paschal(EASTER_MONDAY + 1),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::fixed_public("Labour Day", "Ημέρα Εργασίας", Rule::gregorian(5, 1)),
+        // Kataklysmos, the Monday of the Holy Spirit.
+        HolidayRule::fixed_public(
+            "Pentecost Monday",
+            "Πεντηκοστή Δευτέρα",
+            Rule::paschal(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Dormition of the Theotokos",
+            "Κοίμηση της Θεοτόκου",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Cyprus Independence Day",
+            "Ημέρα Ανεξαρτησίας της Κύπρου",
+            Rule::gregorian(10, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Greek National Day",
+            "Επέτειος του Όχι",
+            Rule::gregorian(10, 28),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Ημέρα των Χριστουγέννων",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Boxing Day",
+            "Δεύτερη μέρα των Χριστουγέννων",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Cyprus, the Republic.
 ///
@@ -2627,6 +2831,11 @@ static CY_RULES: &[HolidayRule] = &[
 /// substitution: the bank's 2026 list notes that the Dormition and Boxing
 /// Day fall on Saturdays and moves nothing. The north of the island is not
 /// carried.
+///
+/// Read from 2026: the only list read, the Greek Wikipedia's, and the bank
+/// holidays law as CyLaw gives it undated. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static CYPRUS: RuleSet = RuleSet {
     code: "CY",
     english_name: "Cyprus",
@@ -2651,96 +2860,99 @@ pub static CYPRUS: RuleSet = RuleSet {
 // Estonia
 // ─────────────────────────────────────────────────────────────────────────
 
-static EE_RULES: &[HolidayRule] = &[
-    // § 1: the national holiday, a day off.
-    HolidayRule::fixed_public("Independence Day", "iseseisvuspäev", Rule::gregorian(2, 24)),
-    // § 2: the public holidays.
-    HolidayRule::fixed_public("New Year's Day", "uusaasta", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Good Friday", "suur reede", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Easter Sunday",
-        "ülestõusmispühade 1. püha",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public("Spring Day", "kevadpüha", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Whit Sunday", "nelipühade 1. püha", Rule::easter(PENTECOST)),
-    HolidayRule::fixed_public("Victory Day", "võidupüha", Rule::gregorian(6, 23)),
-    HolidayRule::fixed_public("Midsummer Day", "jaanipäev", Rule::gregorian(6, 24)),
-    // A day of national importance under the 1994 act, a public holiday
-    // under the 1998 one.
-    HolidayRule::observance(
-        "Day of Restoration of Independence",
-        "taasiseseisvumispäev",
-        Rule::gregorian(8, 20),
-    )
-    .years(Some(1994), Some(1997)),
-    HolidayRule::fixed_public(
-        "Day of Restoration of Independence",
-        "taasiseseisvumispäev",
-        Rule::gregorian(8, 20),
-    )
-    .years(Some(1998), None),
-    HolidayRule::fixed_public("Christmas Eve", "jõululaupäev", Rule::gregorian(12, 24))
-        .years(Some(2005), None),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "esimene jõulupüha",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::fixed_public("Boxing Day", "teine jõulupüha", Rule::gregorian(12, 26)),
-    // § 3: the days of national importance, working days.
-    HolidayRule::observance("Epiphany", "kolmekuningapäev", Rule::gregorian(1, 6)),
-    HolidayRule::observance(
-        "Anniversary of the Tartu Peace Treaty",
-        "Tartu rahulepingu aastapäev",
-        Rule::gregorian(2, 2),
-    ),
-    HolidayRule::observance("Mother Tongue Day", "emakeelepäev", Rule::gregorian(3, 14))
-        .years(Some(1999), None),
-    HolidayRule::observance(
-        "Mother's Day",
-        "emadepäev",
-        Rule::nth(5, 2, Weekday::Sunday),
-    ),
-    HolidayRule::observance(
-        "Estonian Flag Day",
-        "Eesti lipu päev",
-        Rule::gregorian(6, 4),
-    )
-    .years(Some(2004), None),
-    HolidayRule::observance("Day of Mourning", "leinapäev", Rule::gregorian(6, 14)),
-    HolidayRule::observance(
-        "Day of Remembrance for the Victims of Communism and Nazism",
-        "kommunismi ja natsismi ohvrite mälestuspäev",
-        Rule::gregorian(8, 23),
-    )
-    .years(Some(2009), None),
-    HolidayRule::observance(
-        "Grandparents' Day",
-        "vanavanemate päev",
-        Rule::nth(9, 2, Weekday::Sunday),
-    )
-    .years(Some(2010), None),
-    HolidayRule::observance(
-        "Resistance Day",
-        "vastupanuvõitluse päev",
-        Rule::gregorian(9, 22),
-    )
-    .years(Some(2010), None),
-    HolidayRule::observance(
-        "Finno-Ugric Day",
-        "hõimupäev",
-        Rule::nth(10, 3, Weekday::Saturday),
-    )
-    .years(Some(2011), None),
-    HolidayRule::observance("All Souls' Day", "hingedepäev", Rule::gregorian(11, 2)),
-    HolidayRule::observance(
-        "Father's Day",
-        "isadepäev",
-        Rule::nth(11, 2, Weekday::Sunday),
-    ),
-    HolidayRule::observance("Day of Rebirth", "taassünni päev", Rule::gregorian(11, 16)),
-];
+static EE_RULES: &[HolidayRule] = &read_all(
+    1994,
+    [
+        // § 1: the national holiday, a day off.
+        HolidayRule::fixed_public("Independence Day", "iseseisvuspäev", Rule::gregorian(2, 24)),
+        // § 2: the public holidays.
+        HolidayRule::fixed_public("New Year's Day", "uusaasta", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Good Friday", "suur reede", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Easter Sunday",
+            "ülestõusmispühade 1. püha",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public("Spring Day", "kevadpüha", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Whit Sunday", "nelipühade 1. püha", Rule::easter(PENTECOST)),
+        HolidayRule::fixed_public("Victory Day", "võidupüha", Rule::gregorian(6, 23)),
+        HolidayRule::fixed_public("Midsummer Day", "jaanipäev", Rule::gregorian(6, 24)),
+        // A day of national importance under the 1994 act, a public holiday
+        // under the 1998 one.
+        HolidayRule::observance(
+            "Day of Restoration of Independence",
+            "taasiseseisvumispäev",
+            Rule::gregorian(8, 20),
+        )
+        .years(Some(1994), Some(1997)),
+        HolidayRule::fixed_public(
+            "Day of Restoration of Independence",
+            "taasiseseisvumispäev",
+            Rule::gregorian(8, 20),
+        )
+        .years(Some(1998), None),
+        HolidayRule::fixed_public("Christmas Eve", "jõululaupäev", Rule::gregorian(12, 24))
+            .years(Some(2005), None),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "esimene jõulupüha",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::fixed_public("Boxing Day", "teine jõulupüha", Rule::gregorian(12, 26)),
+        // § 3: the days of national importance, working days.
+        HolidayRule::observance("Epiphany", "kolmekuningapäev", Rule::gregorian(1, 6)),
+        HolidayRule::observance(
+            "Anniversary of the Tartu Peace Treaty",
+            "Tartu rahulepingu aastapäev",
+            Rule::gregorian(2, 2),
+        ),
+        HolidayRule::observance("Mother Tongue Day", "emakeelepäev", Rule::gregorian(3, 14))
+            .years(Some(1999), None),
+        HolidayRule::observance(
+            "Mother's Day",
+            "emadepäev",
+            Rule::nth(5, 2, Weekday::Sunday),
+        ),
+        HolidayRule::observance(
+            "Estonian Flag Day",
+            "Eesti lipu päev",
+            Rule::gregorian(6, 4),
+        )
+        .years(Some(2004), None),
+        HolidayRule::observance("Day of Mourning", "leinapäev", Rule::gregorian(6, 14)),
+        HolidayRule::observance(
+            "Day of Remembrance for the Victims of Communism and Nazism",
+            "kommunismi ja natsismi ohvrite mälestuspäev",
+            Rule::gregorian(8, 23),
+        )
+        .years(Some(2009), None),
+        HolidayRule::observance(
+            "Grandparents' Day",
+            "vanavanemate päev",
+            Rule::nth(9, 2, Weekday::Sunday),
+        )
+        .years(Some(2010), None),
+        HolidayRule::observance(
+            "Resistance Day",
+            "vastupanuvõitluse päev",
+            Rule::gregorian(9, 22),
+        )
+        .years(Some(2010), None),
+        HolidayRule::observance(
+            "Finno-Ugric Day",
+            "hõimupäev",
+            Rule::nth(10, 3, Weekday::Saturday),
+        )
+        .years(Some(2011), None),
+        HolidayRule::observance("All Souls' Day", "hingedepäev", Rule::gregorian(11, 2)),
+        HolidayRule::observance(
+            "Father's Day",
+            "isadepäev",
+            Rule::nth(11, 2, Weekday::Sunday),
+        ),
+        HolidayRule::observance("Day of Rebirth", "taassünni päev", Rule::gregorian(11, 16)),
+    ],
+);
 
 /// Estonia.
 ///
@@ -2754,6 +2966,11 @@ static EE_RULES: &[HolidayRule] = &[
 /// 2011. The days without marks were in the 1994 act and are not dated.
 /// No substitution; the three-hour shortening of the working day before
 /// some of these, which the Employment Contracts Act sets, is not carried.
+///
+/// Read from 1994: the Public Holidays and Days of National Importance Act of
+/// 1994 and the act of 27 January 1998. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static ESTONIA: RuleSet = RuleSet {
     code: "EE",
     english_name: "Estonia",
@@ -2798,7 +3015,7 @@ static LV_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// celebration is planned for 2028 and its date is not yet set.
 static LV_SONG_AND_DANCE_CELEBRATION: Listing = Listing::Dates(&[(2018, 7, 8), (2023, 7, 9)]);
 
-static LV_RULES: &[HolidayRule] = &[
+static LV_RULES: &[HolidayRule] = &read_all(1995, [
     HolidayRule::fixed_public("New Year's Day", "Jaungada diena", Rule::gregorian(1, 1)),
     HolidayRule::fixed_public("Good Friday", "Lielā Piektdiena", Rule::easter(GOOD_FRIDAY)),
     HolidayRule::fixed_public("Easter Sunday", "Pirmās Lieldienas", Rule::easter(EASTER_SUNDAY)),
@@ -2995,7 +3212,7 @@ static LV_RULES: &[HolidayRule] = &[
         Rule::nth(12, 1, Weekday::Sunday),
     )
     .years(Some(1998), None),
-];
+]);
 
 /// Latvia.
 ///
@@ -3012,6 +3229,10 @@ static LV_RULES: &[HolidayRule] = &[
 /// remembrance days it dates; the rest are not dated. The right of the
 /// Orthodox and Old Believers to keep Easter, Pentecost and Christmas by
 /// their own calendars is personal and not carried.
+///
+/// Read from 1995: the earliest year the Latvian Wikipedia dates among the
+/// amending laws. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static LATVIA: RuleSet = RuleSet {
     code: "LV",
     english_name: "Latvia",
@@ -3035,72 +3256,75 @@ pub static LATVIA: RuleSet = RuleSet {
 // Lithuania
 // ─────────────────────────────────────────────────────────────────────────
 
-static LT_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Naujieji metai", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Day of Restoration of the State of Lithuania",
-        "Lietuvos valstybės atkūrimo diena",
-        Rule::gregorian(2, 16),
-    )
-    .years(Some(1990), None),
-    HolidayRule::fixed_public(
-        "Day of Restoration of Independence of Lithuania",
-        "Lietuvos nepriklausomybės atkūrimo diena",
-        Rule::gregorian(3, 11),
-    )
-    .years(Some(1990), None),
-    HolidayRule::fixed_public("Easter Sunday", "Velykos", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "antroji Velykų diena",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "International Workers' Day",
-        "Tarptautinė darbo diena",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Mother's Day",
-        "Motinos diena",
-        Rule::nth(5, 1, Weekday::Sunday),
-    ),
-    HolidayRule::fixed_public(
-        "Father's Day",
-        "Tėvo diena",
-        Rule::nth(6, 1, Weekday::Sunday),
-    )
-    .years(Some(2009), None),
-    HolidayRule::fixed_public("Midsummer Day", "Rasos (Joninės)", Rule::gregorian(6, 24))
-        .years(Some(2003), None),
-    HolidayRule::fixed_public(
-        "Statehood Day",
-        "Valstybės (Lietuvos karaliaus Mindaugo karūnavimo) diena",
-        Rule::gregorian(7, 6),
-    )
-    .years(Some(1991), None),
-    HolidayRule::fixed_public(
-        "Assumption Day",
-        "Žolinė (Švč. Mergelės Marijos ėmimo į dangų diena)",
-        Rule::gregorian(8, 15),
-    )
-    .years(Some(1991), None),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Visų šventųjų diena",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public("All Souls' Day", "Vėlinės", Rule::gregorian(11, 2))
-        .years(Some(2020), None),
-    HolidayRule::fixed_public("Christmas Eve", "Kūčios", Rule::gregorian(12, 24))
-        .years(Some(2011), None),
-    HolidayRule::fixed_public("Christmas Day", "Kalėdos", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Second Day of Christmas",
-        "Kalėdos",
-        Rule::gregorian(12, 26),
-    ),
-];
+static LT_RULES: &[HolidayRule] = &read_all(
+    1990,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Naujieji metai", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Day of Restoration of the State of Lithuania",
+            "Lietuvos valstybės atkūrimo diena",
+            Rule::gregorian(2, 16),
+        )
+        .years(Some(1990), None),
+        HolidayRule::fixed_public(
+            "Day of Restoration of Independence of Lithuania",
+            "Lietuvos nepriklausomybės atkūrimo diena",
+            Rule::gregorian(3, 11),
+        )
+        .years(Some(1990), None),
+        HolidayRule::fixed_public("Easter Sunday", "Velykos", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "antroji Velykų diena",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "International Workers' Day",
+            "Tarptautinė darbo diena",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Mother's Day",
+            "Motinos diena",
+            Rule::nth(5, 1, Weekday::Sunday),
+        ),
+        HolidayRule::fixed_public(
+            "Father's Day",
+            "Tėvo diena",
+            Rule::nth(6, 1, Weekday::Sunday),
+        )
+        .years(Some(2009), None),
+        HolidayRule::fixed_public("Midsummer Day", "Rasos (Joninės)", Rule::gregorian(6, 24))
+            .years(Some(2003), None),
+        HolidayRule::fixed_public(
+            "Statehood Day",
+            "Valstybės (Lietuvos karaliaus Mindaugo karūnavimo) diena",
+            Rule::gregorian(7, 6),
+        )
+        .years(Some(1991), None),
+        HolidayRule::fixed_public(
+            "Assumption Day",
+            "Žolinė (Švč. Mergelės Marijos ėmimo į dangų diena)",
+            Rule::gregorian(8, 15),
+        )
+        .years(Some(1991), None),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Visų šventųjų diena",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public("All Souls' Day", "Vėlinės", Rule::gregorian(11, 2))
+            .years(Some(2020), None),
+        HolidayRule::fixed_public("Christmas Eve", "Kūčios", Rule::gregorian(12, 24))
+            .years(Some(2011), None),
+        HolidayRule::fixed_public("Christmas Day", "Kalėdos", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Second Day of Christmas",
+            "Kalėdos",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Lithuania.
 ///
@@ -3114,6 +3338,10 @@ static LT_RULES: &[HolidayRule] = &[
 /// Day, All Saints' Day and the rest are not dated. No substitution: a
 /// holiday on a weekend stays there. The seventy-odd memorable days of the
 /// separate Law on Memorable Days are not carried.
+///
+/// Read from 1990: the Law on Holidays of 1990. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static LITHUANIA: RuleSet = RuleSet {
     code: "LT",
     english_name: "Lithuania",
@@ -3151,69 +3379,72 @@ static AL_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static AL_RULES: &[HolidayRule] = &[
-    HolidayRule::public(
-        "New Year's Day",
-        "Festat e Vitit të Ri",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::public(
-        "New Year's Day",
-        "Festat e Vitit të Ri",
-        Rule::gregorian(1, 2),
-    ),
-    HolidayRule::public("Summer Day", "Dita e Verës", Rule::gregorian(3, 14))
-        .years(Some(2004), None),
-    HolidayRule::public("Nevruz Day", "Dita e Nevruzit", Rule::gregorian(3, 22)),
-    // Both Easters are Sundays, and the weekend rule gives their Mondays.
-    HolidayRule::public(
-        "Catholic Easter",
-        "Pashkët Katolike",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::public(
-        "Orthodox Easter",
-        "Pashkët Ortodokse",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    HolidayRule::public(
-        "International Workers' Day",
-        "Dita Ndërkombëtare e Punonjësve",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::public(
-        "Eid al-Fitr",
-        "Dita e Fitër Bajramit",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Eid al-Adha",
-        "Dita e Kurban Bajramit",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-    HolidayRule::public(
-        "Mother Teresa Day",
-        "Dita e Nënë Terezës",
-        Rule::gregorian(9, 5),
-    ),
-    HolidayRule::public("Alphabet Day", "Dita e Alfabetit", Rule::gregorian(11, 22))
-        .years(Some(2024), None),
-    HolidayRule::public(
-        "Independence Day",
-        "Dita e Pavarësisë",
-        Rule::gregorian(11, 28),
-    ),
-    HolidayRule::public("Liberation Day", "Dita e Çlirimit", Rule::gregorian(11, 29)),
-    HolidayRule::public(
-        "National Youth Day",
-        "Dita Kombëtare e Rinisë",
-        Rule::gregorian(12, 8),
-    )
-    .years(Some(2010), None),
-    HolidayRule::public("Christmas Day", "Krishtlindjet", Rule::gregorian(12, 25)),
-];
+static AL_RULES: &[HolidayRule] = &read_all(
+    1993,
+    [
+        HolidayRule::public(
+            "New Year's Day",
+            "Festat e Vitit të Ri",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::public(
+            "New Year's Day",
+            "Festat e Vitit të Ri",
+            Rule::gregorian(1, 2),
+        ),
+        HolidayRule::public("Summer Day", "Dita e Verës", Rule::gregorian(3, 14))
+            .years(Some(2004), None),
+        HolidayRule::public("Nevruz Day", "Dita e Nevruzit", Rule::gregorian(3, 22)),
+        // Both Easters are Sundays, and the weekend rule gives their Mondays.
+        HolidayRule::public(
+            "Catholic Easter",
+            "Pashkët Katolike",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::public(
+            "Orthodox Easter",
+            "Pashkët Ortodokse",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        HolidayRule::public(
+            "International Workers' Day",
+            "Dita Ndërkombëtare e Punonjësve",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::public(
+            "Eid al-Fitr",
+            "Dita e Fitër Bajramit",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Eid al-Adha",
+            "Dita e Kurban Bajramit",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+        HolidayRule::public(
+            "Mother Teresa Day",
+            "Dita e Nënë Terezës",
+            Rule::gregorian(9, 5),
+        ),
+        HolidayRule::public("Alphabet Day", "Dita e Alfabetit", Rule::gregorian(11, 22))
+            .years(Some(2024), None),
+        HolidayRule::public(
+            "Independence Day",
+            "Dita e Pavarësisë",
+            Rule::gregorian(11, 28),
+        ),
+        HolidayRule::public("Liberation Day", "Dita e Çlirimit", Rule::gregorian(11, 29)),
+        HolidayRule::public(
+            "National Youth Day",
+            "Dita Kombëtare e Rinisë",
+            Rule::gregorian(12, 8),
+        )
+        .years(Some(2010), None),
+        HolidayRule::public("Christmas Day", "Krishtlindjet", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Albania.
 ///
@@ -3225,6 +3456,10 @@ static AL_RULES: &[HolidayRule] = &[
 /// National Youth Day from 2010 and Alphabet Day from the Government
 /// decision of 11 January 2024; the rest are not dated. The extra days
 /// the Council of Ministers declares around a holiday are not carried.
+///
+/// Read from 1993: Law 7651 of 21 December 1992, from its first whole year.
+/// Every earlier year is a gap (ADR 0013); the reasons for every table's
+/// first year are in docs/systems/holiday-first-years.md.
 pub static ALBANIA: RuleSet = RuleSet {
     code: "AL",
     english_name: "Albania",
@@ -3268,117 +3503,120 @@ const fn me_religious(name: &'static str, local: &'static str, rule: Rule) -> Ho
     HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
 }
 
-static ME_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2)),
-    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
-    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2)),
-    HolidayRule::public(
-        "Independence Day",
-        "Dan nezavisnosti",
-        Rule::gregorian(5, 21),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public(
-        "Independence Day",
-        "Dan nezavisnosti",
-        Rule::gregorian(5, 22),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 13)),
-    HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 14)),
-    HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 13))
-        .years(Some(2022), None),
-    HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 14))
-        .years(Some(2022), None),
-    // Orthodox believers.
-    me_religious(
-        "Orthodox Christmas Eve",
-        "Badnji dan",
-        Rule::gregorian(1, 6),
-    ),
-    me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 7)),
-    me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 8)),
-    me_religious(
-        "Orthodox Good Friday",
-        "Veliki petak",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    me_religious(
-        "Orthodox Easter Monday",
-        "Vaskršnji ponedjeljak",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    // Catholics.
-    me_religious("Christmas Eve", "Badnji dan", Rule::gregorian(12, 24)),
-    me_religious("Christmas Day", "Božić", Rule::gregorian(12, 25)),
-    me_religious("Christmas Day", "Božić", Rule::gregorian(12, 26)),
-    me_religious("Good Friday", "Veliki petak", Rule::easter(GOOD_FRIDAY)),
-    me_religious(
-        "Easter Monday",
-        "Uskršnji ponedjeljak",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    me_religious("All Saints' Day", "Svi Sveti", Rule::gregorian(11, 1)),
-    // Muslims: three days of each Bajram.
-    me_religious(
-        "Eid al-Fitr",
-        "Ramazanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    me_religious(
-        "Eid al-Fitr",
-        "Ramazanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    me_religious(
-        "Eid al-Fitr",
-        "Ramazanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
-    )
-    .approximate(),
-    me_religious(
-        "Eid al-Adha",
-        "Kurbanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-    me_religious(
-        "Eid al-Adha",
-        "Kurbanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate(),
-    me_religious(
-        "Eid al-Adha",
-        "Kurbanski bajram",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
-    )
-    .approximate(),
-    // Jews: two days each.
-    me_religious(
-        "Passover",
-        "Pasha",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
-    ),
-    me_religious(
-        "Passover",
-        "Pasha",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
-    ),
-    me_religious(
-        "Yom Kippur",
-        "Jom Kipur",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-    me_religious(
-        "Yom Kippur",
-        "Jom Kipur",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 11),
-    ),
-];
+static ME_RULES: &[HolidayRule] = &read_all(
+    2007,
+    [
+        HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2)),
+        HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)),
+        HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2)),
+        HolidayRule::public(
+            "Independence Day",
+            "Dan nezavisnosti",
+            Rule::gregorian(5, 21),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public(
+            "Independence Day",
+            "Dan nezavisnosti",
+            Rule::gregorian(5, 22),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 13)),
+        HolidayRule::public("Statehood Day", "Dan državnosti", Rule::gregorian(7, 14)),
+        HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 13))
+            .years(Some(2022), None),
+        HolidayRule::public("Njegoš Day", "Njegošev dan", Rule::gregorian(11, 14))
+            .years(Some(2022), None),
+        // Orthodox believers.
+        me_religious(
+            "Orthodox Christmas Eve",
+            "Badnji dan",
+            Rule::gregorian(1, 6),
+        ),
+        me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 7)),
+        me_religious("Orthodox Christmas", "Božić", Rule::gregorian(1, 8)),
+        me_religious(
+            "Orthodox Good Friday",
+            "Veliki petak",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        me_religious(
+            "Orthodox Easter Monday",
+            "Vaskršnji ponedjeljak",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        // Catholics.
+        me_religious("Christmas Eve", "Badnji dan", Rule::gregorian(12, 24)),
+        me_religious("Christmas Day", "Božić", Rule::gregorian(12, 25)),
+        me_religious("Christmas Day", "Božić", Rule::gregorian(12, 26)),
+        me_religious("Good Friday", "Veliki petak", Rule::easter(GOOD_FRIDAY)),
+        me_religious(
+            "Easter Monday",
+            "Uskršnji ponedjeljak",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        me_religious("All Saints' Day", "Svi Sveti", Rule::gregorian(11, 1)),
+        // Muslims: three days of each Bajram.
+        me_religious(
+            "Eid al-Fitr",
+            "Ramazanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        me_religious(
+            "Eid al-Fitr",
+            "Ramazanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
+        .approximate(),
+        me_religious(
+            "Eid al-Fitr",
+            "Ramazanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
+        )
+        .approximate(),
+        me_religious(
+            "Eid al-Adha",
+            "Kurbanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+        me_religious(
+            "Eid al-Adha",
+            "Kurbanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate(),
+        me_religious(
+            "Eid al-Adha",
+            "Kurbanski bajram",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
+        )
+        .approximate(),
+        // Jews: two days each.
+        me_religious(
+            "Passover",
+            "Pasha",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+        ),
+        me_religious(
+            "Passover",
+            "Pasha",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 16),
+        ),
+        me_religious(
+            "Yom Kippur",
+            "Jom Kipur",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+        me_religious(
+            "Yom Kippur",
+            "Jom Kipur",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 11),
+        ),
+    ],
+);
 
 /// Montenegro.
 ///
@@ -3392,6 +3630,10 @@ static ME_RULES: &[HolidayRule] = &[
 /// are [`Kind::Religious`]: days off for those believers, not for all.
 /// The Orthodox Krsna slava, a family's own day, is not carried, nor are
 /// the years the older holidays were set.
+///
+/// Read from 2007: the Law on State and Other Holidays of 2007. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static MONTENEGRO: RuleSet = RuleSet {
     code: "ME",
     english_name: "Montenegro",
@@ -3432,119 +3674,122 @@ const fn mk_religious(name: &'static str, local: &'static str, rule: Rule) -> Ho
     HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
 }
 
-static MK_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Нова Година", Rule::gregorian(1, 1)),
-    HolidayRule::public("Orthodox Christmas", "Прв ден Божик", Rule::gregorian(1, 7)),
-    HolidayRule::public(
-        "Orthodox Easter Monday",
-        "Втор ден Велигден",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Ден на трудот", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Saints Cyril and Methodius Day",
-        "Св. Кирил и Методиј, Ден на сесловенските просветители",
-        Rule::gregorian(5, 24),
-    ),
-    HolidayRule::public("Republic Day", "Ден на Републиката", Rule::gregorian(8, 2)),
-    HolidayRule::public(
-        "Independence Day",
-        "Ден на независноста",
-        Rule::gregorian(9, 8),
-    ),
-    HolidayRule::public(
-        "Day of the People's Uprising",
-        "Ден на народното востание",
-        Rule::gregorian(10, 11),
-    ),
-    HolidayRule::public(
-        "Day of the Macedonian Revolutionary Struggle",
-        "Ден на македонската револуционерна борба",
-        Rule::gregorian(10, 23),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public(
-        "Saint Clement of Ohrid Day",
-        "Св. Климент Охридски",
-        Rule::gregorian(12, 8),
-    )
-    .years(Some(2007), None),
-    HolidayRule::public(
-        "Eid al-Fitr",
-        "Рамазан Бајрам",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate()
-    .years(Some(2007), None),
-    // Days off for the members of the religious communities.
-    mk_religious("Orthodox Christmas Eve", "Бадник", Rule::gregorian(1, 6)),
-    mk_religious("Orthodox Epiphany", "Водици", Rule::gregorian(1, 19)),
-    mk_religious(
-        "Orthodox Good Friday",
-        "Велики Петок",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    // The Friday before Pentecost.
-    mk_religious("Duhovden", "Духовден", Rule::paschal(PENTECOST - 2)),
-    mk_religious(
-        "Dormition of the Theotokos",
-        "Успение на Пресвета Богородица",
-        Rule::gregorian(8, 28),
-    ),
-    mk_religious(
-        "Catholic Easter Monday",
-        "Втор ден Велигден (католички)",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    mk_religious("All Saints' Day", "Сите Светци", Rule::gregorian(11, 1)),
-    mk_religious("Catholic Christmas", "Божиќ", Rule::gregorian(12, 25)),
-    mk_religious(
-        "Eid al-Adha",
-        "Курбан Бајрам",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-    mk_religious(
-        "Yom Kippur",
-        "Јом Кипур",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-    // Days off for the members of the ethnic communities, and the working
-    // holidays.
-    HolidayRule::observance("Saint Sava Day", "Свети Сава", Rule::gregorian(1, 27)),
-    HolidayRule::observance(
-        "International Romani Day",
-        "Меѓународен ден на Ромите",
-        Rule::gregorian(4, 8),
-    ),
-    HolidayRule::observance(
-        "Macedonian Language Day",
-        "Ден на македонскиот јазик",
-        Rule::gregorian(5, 5),
-    )
-    .years(Some(2019), None),
-    HolidayRule::observance(
-        "Aromanian National Day",
-        "Национален ден на Власите",
-        Rule::gregorian(5, 23),
-    ),
-    HolidayRule::observance("Army Day", "Ден на Армијата", Rule::gregorian(8, 18)),
-    HolidayRule::observance(
-        "International Bosniaks Day",
-        "Меѓународен ден на Бошњаците",
-        Rule::gregorian(9, 28),
-    ),
-    HolidayRule::observance(
-        "Albanian Alphabet Day",
-        "Ден на албанската азбука",
-        Rule::gregorian(11, 22),
-    ),
-    HolidayRule::observance(
-        "Turkish Language Education Day",
-        "Ден на настава на турски јазик",
-        Rule::gregorian(12, 21),
-    ),
-];
+static MK_RULES: &[HolidayRule] = &read_all(
+    2007,
+    [
+        HolidayRule::public("New Year's Day", "Нова Година", Rule::gregorian(1, 1)),
+        HolidayRule::public("Orthodox Christmas", "Прв ден Божик", Rule::gregorian(1, 7)),
+        HolidayRule::public(
+            "Orthodox Easter Monday",
+            "Втор ден Велигден",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Ден на трудот", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Saints Cyril and Methodius Day",
+            "Св. Кирил и Методиј, Ден на сесловенските просветители",
+            Rule::gregorian(5, 24),
+        ),
+        HolidayRule::public("Republic Day", "Ден на Републиката", Rule::gregorian(8, 2)),
+        HolidayRule::public(
+            "Independence Day",
+            "Ден на независноста",
+            Rule::gregorian(9, 8),
+        ),
+        HolidayRule::public(
+            "Day of the People's Uprising",
+            "Ден на народното востание",
+            Rule::gregorian(10, 11),
+        ),
+        HolidayRule::public(
+            "Day of the Macedonian Revolutionary Struggle",
+            "Ден на македонската револуционерна борба",
+            Rule::gregorian(10, 23),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public(
+            "Saint Clement of Ohrid Day",
+            "Св. Климент Охридски",
+            Rule::gregorian(12, 8),
+        )
+        .years(Some(2007), None),
+        HolidayRule::public(
+            "Eid al-Fitr",
+            "Рамазан Бајрам",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate()
+        .years(Some(2007), None),
+        // Days off for the members of the religious communities.
+        mk_religious("Orthodox Christmas Eve", "Бадник", Rule::gregorian(1, 6)),
+        mk_religious("Orthodox Epiphany", "Водици", Rule::gregorian(1, 19)),
+        mk_religious(
+            "Orthodox Good Friday",
+            "Велики Петок",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        // The Friday before Pentecost.
+        mk_religious("Duhovden", "Духовден", Rule::paschal(PENTECOST - 2)),
+        mk_religious(
+            "Dormition of the Theotokos",
+            "Успение на Пресвета Богородица",
+            Rule::gregorian(8, 28),
+        ),
+        mk_religious(
+            "Catholic Easter Monday",
+            "Втор ден Велигден (католички)",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        mk_religious("All Saints' Day", "Сите Светци", Rule::gregorian(11, 1)),
+        mk_religious("Catholic Christmas", "Божиќ", Rule::gregorian(12, 25)),
+        mk_religious(
+            "Eid al-Adha",
+            "Курбан Бајрам",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+        mk_religious(
+            "Yom Kippur",
+            "Јом Кипур",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+        // Days off for the members of the ethnic communities, and the working
+        // holidays.
+        HolidayRule::observance("Saint Sava Day", "Свети Сава", Rule::gregorian(1, 27)),
+        HolidayRule::observance(
+            "International Romani Day",
+            "Меѓународен ден на Ромите",
+            Rule::gregorian(4, 8),
+        ),
+        HolidayRule::observance(
+            "Macedonian Language Day",
+            "Ден на македонскиот јазик",
+            Rule::gregorian(5, 5),
+        )
+        .years(Some(2019), None),
+        HolidayRule::observance(
+            "Aromanian National Day",
+            "Национален ден на Власите",
+            Rule::gregorian(5, 23),
+        ),
+        HolidayRule::observance("Army Day", "Ден на Армијата", Rule::gregorian(8, 18)),
+        HolidayRule::observance(
+            "International Bosniaks Day",
+            "Меѓународен ден на Бошњаците",
+            Rule::gregorian(9, 28),
+        ),
+        HolidayRule::observance(
+            "Albanian Alphabet Day",
+            "Ден на албанската азбука",
+            Rule::gregorian(11, 22),
+        ),
+        HolidayRule::observance(
+            "Turkish Language Education Day",
+            "Ден на настава на турски јазик",
+            Rule::gregorian(12, 21),
+        ),
+    ],
+);
 
 /// North Macedonia.
 ///
@@ -3558,6 +3803,10 @@ static MK_RULES: &[HolidayRule] = &[
 /// the crate has no kind that says so. Duhovden is the Friday before
 /// Pentecost, as the law defines it. Macedonian Language Day and Army Day
 /// are working holidays.
+///
+/// Read from 2007: the Law on Holidays as amended in 2007. Every earlier year
+/// is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static NORTH_MACEDONIA: RuleSet = RuleSet {
     code: "MK",
     english_name: "North Macedonia",
@@ -3599,106 +3848,109 @@ const fn rs_religious(name: &'static str, local: &'static str, rule: Rule) -> Ho
     HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
 }
 
-static RS_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Christmas Day", "Божић", Rule::gregorian(1, 7)),
-    HolidayRule::public(
-        "Statehood Day",
-        "Дан државности Србије",
-        Rule::gregorian(2, 15),
-    )
-    .years(Some(2002), None),
-    HolidayRule::public(
-        "Statehood Day",
-        "Дан државности Србије",
-        Rule::gregorian(2, 16),
-    )
-    .years(Some(2002), None),
-    HolidayRule::fixed_public("Good Friday", "Велики петак", Rule::paschal(GOOD_FRIDAY)),
-    HolidayRule::fixed_public(
-        "Holy Saturday",
-        "Велика субота",
-        Rule::paschal(HOLY_SATURDAY),
-    ),
-    HolidayRule::fixed_public("Easter Sunday", "Васкрс", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Васкрсни понедељак",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 1)),
-    HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 2)),
-    HolidayRule::public(
-        "Armistice Day",
-        "Дан примирја у Првом светском рату",
-        Rule::gregorian(11, 11),
-    )
-    .years(Some(2012), None),
-    // The state holidays article 3 keeps as working days.
-    HolidayRule::observance("Saint Sava Day", "Савиндан", Rule::gregorian(1, 27)),
-    HolidayRule::observance(
-        "Holocaust Remembrance Day",
-        "Дан сећања на жртве холокауста, геноцида и других жртава фашизма у Другом светском рату",
-        Rule::gregorian(4, 22),
-    ),
-    HolidayRule::observance("Victory Day", "Дан победе", Rule::gregorian(5, 9)),
-    HolidayRule::observance(
-        "Saints Cyril and Methodius Day",
-        "Дан Ћирила и Методија",
-        Rule::gregorian(5, 24),
-    ),
-    HolidayRule::observance("Vidovdan", "Видовдан", Rule::gregorian(6, 28)),
-    HolidayRule::observance(
-        "Day of Serbian Unity, Freedom and the National Flag",
-        "Дан српског јединства, слободе и националне заставе",
-        Rule::gregorian(9, 15),
-    )
-    .years(Some(2020), None),
-    HolidayRule::observance(
-        "Serbian Victims of the Second World War Remembrance Day",
-        "Дан сећања на српске жртве у Другом светском рату",
-        Rule::gregorian(10, 21),
-    ),
-    // Article 4: the other confessions.
-    rs_religious(
-        "Catholic Christmas",
-        "Католички Божић",
-        Rule::gregorian(12, 25),
-    ),
-    rs_religious(
-        "Catholic Good Friday",
-        "Велики петак (католички)",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    rs_religious(
-        "Catholic Easter Sunday",
-        "Ускрс",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    rs_religious(
-        "Catholic Easter Monday",
-        "Ускршњи понедељак",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    rs_religious(
-        "Eid al-Fitr",
-        "Рамазански Бајрам",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
-    )
-    .approximate(),
-    rs_religious(
-        "Eid al-Adha",
-        "Курбански Бајрам",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
-    )
-    .approximate(),
-    rs_religious(
-        "Yom Kippur",
-        "Јом Кипур",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-];
+static RS_RULES: &[HolidayRule] = &read_all(
+    2002,
+    [
+        HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Christmas Day", "Божић", Rule::gregorian(1, 7)),
+        HolidayRule::public(
+            "Statehood Day",
+            "Дан државности Србије",
+            Rule::gregorian(2, 15),
+        )
+        .years(Some(2002), None),
+        HolidayRule::public(
+            "Statehood Day",
+            "Дан државности Србије",
+            Rule::gregorian(2, 16),
+        )
+        .years(Some(2002), None),
+        HolidayRule::fixed_public("Good Friday", "Велики петак", Rule::paschal(GOOD_FRIDAY)),
+        HolidayRule::fixed_public(
+            "Holy Saturday",
+            "Велика субота",
+            Rule::paschal(HOLY_SATURDAY),
+        ),
+        HolidayRule::fixed_public("Easter Sunday", "Васкрс", Rule::paschal(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Васкрсни понедељак",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 1)),
+        HolidayRule::public("Labour Day", "Празник рада", Rule::gregorian(5, 2)),
+        HolidayRule::public(
+            "Armistice Day",
+            "Дан примирја у Првом светском рату",
+            Rule::gregorian(11, 11),
+        )
+        .years(Some(2012), None),
+        // The state holidays article 3 keeps as working days.
+        HolidayRule::observance("Saint Sava Day", "Савиндан", Rule::gregorian(1, 27)),
+        HolidayRule::observance(
+            "Holocaust Remembrance Day",
+            "Дан сећања на жртве холокауста, геноцида и других жртава фашизма у Другом светском рату",
+            Rule::gregorian(4, 22),
+        ),
+        HolidayRule::observance("Victory Day", "Дан победе", Rule::gregorian(5, 9)),
+        HolidayRule::observance(
+            "Saints Cyril and Methodius Day",
+            "Дан Ћирила и Методија",
+            Rule::gregorian(5, 24),
+        ),
+        HolidayRule::observance("Vidovdan", "Видовдан", Rule::gregorian(6, 28)),
+        HolidayRule::observance(
+            "Day of Serbian Unity, Freedom and the National Flag",
+            "Дан српског јединства, слободе и националне заставе",
+            Rule::gregorian(9, 15),
+        )
+        .years(Some(2020), None),
+        HolidayRule::observance(
+            "Serbian Victims of the Second World War Remembrance Day",
+            "Дан сећања на српске жртве у Другом светском рату",
+            Rule::gregorian(10, 21),
+        ),
+        // Article 4: the other confessions.
+        rs_religious(
+            "Catholic Christmas",
+            "Католички Божић",
+            Rule::gregorian(12, 25),
+        ),
+        rs_religious(
+            "Catholic Good Friday",
+            "Велики петак (католички)",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        rs_religious(
+            "Catholic Easter Sunday",
+            "Ускрс",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        rs_religious(
+            "Catholic Easter Monday",
+            "Ускршњи понедељак",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        rs_religious(
+            "Eid al-Fitr",
+            "Рамазански Бајрам",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 1),
+        )
+        .approximate(),
+        rs_religious(
+            "Eid al-Adha",
+            "Курбански Бајрам",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 10),
+        )
+        .approximate(),
+        rs_religious(
+            "Yom Kippur",
+            "Јом Кипур",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+    ],
+);
 
 /// Serbia.
 ///
@@ -3713,6 +3965,11 @@ static RS_RULES: &[HolidayRule] = &[
 /// holiday on a Sunday to the first working day after, and it reaches the
 /// religious days of article 2 not at all. The Orthodox Krsna slava, a
 /// family's own day, is not carried.
+///
+/// Read from 2002: the Law on State and Other Holidays (Official Gazette
+/// 43/2001), from its first whole year. Every earlier year is a gap (ADR
+/// 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static SERBIA: RuleSet = RuleSet {
     code: "RS",
     english_name: "Serbia",
@@ -3862,52 +4119,75 @@ fn ba_srpska_republic_day(year: i64) -> Days {
     gregorian::to_fixed(year, 1, 9).map_or_else(|_| Days::new(), Days::one)
 }
 
+/// The first year the Federation's days of the Law on Holidays of the SFRY
+/// (Official Gazette 6/73) are read from: the Ministry of Labour's notice for
+/// 1 May 2016, the earliest read, which cites it; the law's own text was not.
+const BA_FEDERATION_FIRST: i32 = 2016;
+/// The Federation's Independence Day and Statehood Day, from the laws of 1995
+/// (Official Gazette of the Republic 9/95), through the Ministry's summary.
+const BA_FEDERATION_1995: i32 = 1995;
+/// Republika Srpska's Law on Holidays, Official Gazette 43/07.
+const BA_SRPSKA_FIRST: i32 = 2007;
+/// Brčko District's Law on Holidays, Official Gazette of the District 19/02.
+const BA_BRCKO_FIRST: i32 = 2002;
+
 /// A day that article 8 gives the Orthodox, Catholic and Muslim believers
 /// the right to be absent from work on, paid: a day off for them alone.
 const fn ba_srpska_religious(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
     HolidayRule::observance(name, local, rule)
         .of_kind(Kind::Religious)
         .in_regions(BA_SRPSKA)
+        .read_from(BA_SRPSKA_FIRST)
 }
 
 static BA_RULES: &[HolidayRule] = &[
     // The Federation: the Law on Holidays the Republic took over in 1992
     // and the two laws of 1995.
     HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1))
-        .in_regions(BA_FEDERATION),
+        .in_regions(BA_FEDERATION)
+        .read_from(BA_FEDERATION_FIRST),
     HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2))
-        .in_regions(BA_FEDERATION),
+        .in_regions(BA_FEDERATION)
+        .read_from(BA_FEDERATION_FIRST),
     HolidayRule::fixed_public(
         "Independence Day",
         "Dan nezavisnosti Bosne i Hercegovine",
         Rule::gregorian(3, 1),
     )
-    .in_regions(BA_FEDERATION),
+    .in_regions(BA_FEDERATION)
+    .read_from(BA_FEDERATION_1995),
     HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1))
-        .in_regions(BA_FEDERATION),
+        .in_regions(BA_FEDERATION)
+        .read_from(BA_FEDERATION_FIRST),
     HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2))
-        .in_regions(BA_FEDERATION),
+        .in_regions(BA_FEDERATION)
+        .read_from(BA_FEDERATION_FIRST),
     HolidayRule::observance(
         "Victory over Fascism Day",
         "Dan pobjede nad fašizmom",
         Rule::gregorian(5, 9),
     )
-    .in_regions(BA_FEDERATION),
+    .in_regions(BA_FEDERATION)
+    .read_from(BA_FEDERATION_FIRST),
     HolidayRule::fixed_public(
         "Statehood Day",
         "Dan državnosti Bosne i Hercegovine",
         Rule::gregorian(11, 25),
     )
-    .in_regions(BA_FEDERATION),
+    .in_regions(BA_FEDERATION)
+    .read_from(BA_FEDERATION_1995),
     // Republika Srpska: the Law on Holidays of 2007. Article 4 reaches
     // the second day of a two-day holiday only.
     HolidayRule::fixed_public("New Year's Day", "Нова година", Rule::gregorian(1, 1))
-        .in_regions(BA_SRPSKA),
+        .in_regions(BA_SRPSKA)
+        .read_from(BA_SRPSKA_FIRST),
     HolidayRule::public("New Year's Day", "Нова година", Rule::gregorian(1, 2))
-        .in_regions(BA_SRPSKA),
+        .in_regions(BA_SRPSKA)
+        .read_from(BA_SRPSKA_FIRST),
     HolidayRule::fixed_public("Republic Day", "Дан Републике", Rule::gregorian(1, 9))
         .years(None, Some(2016))
-        .in_regions(BA_SRPSKA),
+        .in_regions(BA_SRPSKA)
+        .read_from(BA_SRPSKA_FIRST),
     HolidayRule::fixed_public(
         "Republic Day",
         "Дан Републике",
@@ -3918,31 +4198,36 @@ static BA_RULES: &[HolidayRule] = &[
         },
     )
     .years(Some(2017), None)
-    .in_regions(BA_SRPSKA),
+    .in_regions(BA_SRPSKA)
+    .read_from(BA_SRPSKA_FIRST),
     HolidayRule::fixed_public(
         "International Labour Day",
         "Међународни празник рада",
         Rule::gregorian(5, 1),
     )
-    .in_regions(BA_SRPSKA),
+    .in_regions(BA_SRPSKA)
+    .read_from(BA_SRPSKA_FIRST),
     HolidayRule::public(
         "International Labour Day",
         "Међународни празник рада",
         Rule::gregorian(5, 2),
     )
-    .in_regions(BA_SRPSKA),
+    .in_regions(BA_SRPSKA)
+    .read_from(BA_SRPSKA_FIRST),
     HolidayRule::fixed_public(
         "Victory over Fascism Day",
         "Дан побједе над фашизмом",
         Rule::gregorian(5, 9),
     )
-    .in_regions(BA_SRPSKA),
+    .in_regions(BA_SRPSKA)
+    .read_from(BA_SRPSKA_FIRST),
     HolidayRule::fixed_public(
         "Dayton Agreement Day",
         "Дан успостављања Општег оквирног споразума за мир у Босни и Херцеговини",
         Rule::gregorian(11, 21),
     )
-    .in_regions(BA_SRPSKA),
+    .in_regions(BA_SRPSKA)
+    .read_from(BA_SRPSKA_FIRST),
     // Articles 7 and 8: two days of each, Christmas on its Eve and Day,
     // and Good Friday one day of each Easter.
     ba_srpska_religious("Orthodox Christmas Eve", "Бадњи дан", Rule::gregorian(1, 6)),
@@ -4006,17 +4291,24 @@ static BA_RULES: &[HolidayRule] = &[
     // Brčko District: the Law on Holidays of 2002, and the Assembly's
     // yearly decisions.
     HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 1))
-        .in_regions(BA_BRCKO),
+        .in_regions(BA_BRCKO)
+        .read_from(BA_BRCKO_FIRST),
     HolidayRule::public("New Year's Day", "Nova godina", Rule::gregorian(1, 2))
-        .in_regions(BA_BRCKO),
+        .in_regions(BA_BRCKO)
+        .read_from(BA_BRCKO_FIRST),
     HolidayRule::public(
         "Brčko District Day",
         "Dan uspostavljanja Brčko distrikta",
         Rule::gregorian(3, 8),
     )
-    .in_regions(BA_BRCKO),
-    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1)).in_regions(BA_BRCKO),
-    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2)).in_regions(BA_BRCKO),
+    .in_regions(BA_BRCKO)
+    .read_from(BA_BRCKO_FIRST),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 1))
+        .in_regions(BA_BRCKO)
+        .read_from(BA_BRCKO_FIRST),
+    HolidayRule::public("Labour Day", "Praznik rada", Rule::gregorian(5, 2))
+        .in_regions(BA_BRCKO)
+        .read_from(BA_BRCKO_FIRST),
     ba_brcko_decided(
         "Orthodox Christmas",
         "Božić (pravoslavni)",
@@ -4104,6 +4396,12 @@ static BA_RULES: &[HolidayRule] = &[
 /// fund; those days are tabulated from the decisions of 2017 to 2026 and
 /// are a gap in every other year. Private employers are not bound by
 /// them.
+///
+/// Read from each entity's own law, below; every earlier year is a gap (ADR
+/// 0013): each entity's own law: the Federation's days from 2016 (the
+/// Ministry's notices) and its Independence Day and Statehood Day from the
+/// laws of 1995, Republika Srpska's from 2007 (Official Gazette 43/07),
+/// Brčko's from 2002 (Official Gazette of the District 19/02).
 pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
     code: "BA",
     english_name: "Bosnia and Herzegovina",
@@ -4136,76 +4434,79 @@ pub static BOSNIA_AND_HERZEGOVINA: RuleSet = RuleSet {
 // Belarus
 // ─────────────────────────────────────────────────────────────────────────
 
-static BY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 2))
-        .years(Some(2020), None),
-    HolidayRule::fixed_public(
-        "Orthodox Christmas",
-        "Каляды праваслаўныя",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "Міжнародны жаночы дзень",
-        Rule::gregorian(3, 8),
-    ),
-    // The ninth day after Orthodox Easter.
-    HolidayRule::fixed_public("Radunitsa", "Радаўніца", Rule::paschal(EASTER_SUNDAY + 9))
-        .years(Some(1992), None),
-    HolidayRule::fixed_public("Labour Day", "Дзень працы", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Victory Day", "Дзень Перамогі", Rule::gregorian(5, 9)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Дзень Незалежнасці",
-        Rule::gregorian(7, 27),
-    )
-    .years(Some(1991), Some(1996)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Дзень Незалежнасці",
-        Rule::gregorian(7, 3),
-    )
-    .years(Some(1997), None),
-    HolidayRule::fixed_public(
-        "October Revolution Day",
-        "Дзень Кастрычніцкай рэвалюцыі",
-        Rule::gregorian(11, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Catholic Christmas",
-        "Каляды каталіцкія",
-        Rule::gregorian(12, 25),
-    ),
-    // The state holidays that are working days.
-    HolidayRule::observance(
-        "Defender of the Fatherland and Armed Forces Day",
-        "Дзень абаронцы Айчыны і Дзень Узброеных Сіл",
-        Rule::gregorian(2, 23),
-    ),
-    HolidayRule::observance(
-        "Constitution Day",
-        "Дзень Канстытуцыі",
-        Rule::gregorian(3, 15),
-    )
-    .years(Some(1994), None),
-    HolidayRule::observance(
-        "Day of Unity of the Peoples of Belarus and Russia",
-        "Дзень яднання народаў Беларусі і Расіі",
-        Rule::gregorian(4, 2),
-    ),
-    HolidayRule::observance(
-        "State Flag and State Emblem Day",
-        "Дзень Дзяржаўнага Сцяга і Дзяржаўнага Герба",
-        Rule::nth(5, 2, Weekday::Sunday),
-    ),
-    HolidayRule::observance(
-        "National Unity Day",
-        "Дзень народнага адзінства",
-        Rule::gregorian(9, 17),
-    )
-    .years(Some(2021), None),
-];
+static BY_RULES: &[HolidayRule] = &read_all(
+    1991,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year's Day", "Новы год", Rule::gregorian(1, 2))
+            .years(Some(2020), None),
+        HolidayRule::fixed_public(
+            "Orthodox Christmas",
+            "Каляды праваслаўныя",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "Міжнародны жаночы дзень",
+            Rule::gregorian(3, 8),
+        ),
+        // The ninth day after Orthodox Easter.
+        HolidayRule::fixed_public("Radunitsa", "Радаўніца", Rule::paschal(EASTER_SUNDAY + 9))
+            .years(Some(1992), None),
+        HolidayRule::fixed_public("Labour Day", "Дзень працы", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Victory Day", "Дзень Перамогі", Rule::gregorian(5, 9)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Дзень Незалежнасці",
+            Rule::gregorian(7, 27),
+        )
+        .years(Some(1991), Some(1996)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Дзень Незалежнасці",
+            Rule::gregorian(7, 3),
+        )
+        .years(Some(1997), None),
+        HolidayRule::fixed_public(
+            "October Revolution Day",
+            "Дзень Кастрычніцкай рэвалюцыі",
+            Rule::gregorian(11, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Catholic Christmas",
+            "Каляды каталіцкія",
+            Rule::gregorian(12, 25),
+        ),
+        // The state holidays that are working days.
+        HolidayRule::observance(
+            "Defender of the Fatherland and Armed Forces Day",
+            "Дзень абаронцы Айчыны і Дзень Узброеных Сіл",
+            Rule::gregorian(2, 23),
+        ),
+        HolidayRule::observance(
+            "Constitution Day",
+            "Дзень Канстытуцыі",
+            Rule::gregorian(3, 15),
+        )
+        .years(Some(1994), None),
+        HolidayRule::observance(
+            "Day of Unity of the Peoples of Belarus and Russia",
+            "Дзень яднання народаў Беларусі і Расіі",
+            Rule::gregorian(4, 2),
+        ),
+        HolidayRule::observance(
+            "State Flag and State Emblem Day",
+            "Дзень Дзяржаўнага Сцяга і Дзяржаўнага Герба",
+            Rule::nth(5, 2, Weekday::Sunday),
+        ),
+        HolidayRule::observance(
+            "National Unity Day",
+            "Дзень народнага адзінства",
+            Rule::gregorian(9, 17),
+        )
+        .years(Some(2021), None),
+    ],
+);
 
 /// Belarus.
 ///
@@ -4216,6 +4517,11 @@ static BY_RULES: &[HolidayRule] = &[
 /// and the state holidays that are working days as observances. No fixed
 /// rule moves a holiday off a weekend; the Government swaps working days
 /// around holidays by yearly decree, which is not carried.
+///
+/// Read from 1991: the earliest year the Russian Wikipedia dates,
+/// Independence Day of 27 July 1991. Every earlier year is a gap (ADR 0013);
+/// the reasons for every table's first year are in docs/systems/holiday-
+/// first-years.md.
 pub static BELARUS: RuleSet = RuleSet {
     code: "BY",
     english_name: "Belarus",
@@ -4238,35 +4544,38 @@ pub static BELARUS: RuleSet = RuleSet {
 // Luxembourg
 // ─────────────────────────────────────────────────────────────────────────
 
-static LU_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Neijoerschdag", Rule::gregorian(1, 1)),
-    // A bank holiday alone.
-    HolidayRule::fixed_public("Good Friday", "Karfreideg", Rule::easter(GOOD_FRIDAY))
-        .of_kind(Kind::Bank),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Ouschterméindeg",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Dag vun der Aarbecht", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Europe Day", "Europadag", Rule::gregorian(5, 9))
-        .years(Some(2019), None),
-    HolidayRule::fixed_public(
-        "Ascension Day",
-        "Christi Himmelfaart",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::fixed_public("Whit Monday", "Péngschtméindeg", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public("National Day", "Nationalfeierdag", Rule::gregorian(6, 23)),
-    HolidayRule::fixed_public(
-        "Assumption Day",
-        "Mariä Himmelfaart",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Allerhellgen", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public("Christmas Day", "Chrëschtdag", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Saint Stephen's Day", "Stiefesdag", Rule::gregorian(12, 26)),
-];
+static LU_RULES: &[HolidayRule] = &read_all(
+    2019,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Neijoerschdag", Rule::gregorian(1, 1)),
+        // A bank holiday alone.
+        HolidayRule::fixed_public("Good Friday", "Karfreideg", Rule::easter(GOOD_FRIDAY))
+            .of_kind(Kind::Bank),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Ouschterméindeg",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Dag vun der Aarbecht", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Europe Day", "Europadag", Rule::gregorian(5, 9))
+            .years(Some(2019), None),
+        HolidayRule::fixed_public(
+            "Ascension Day",
+            "Christi Himmelfaart",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::fixed_public("Whit Monday", "Péngschtméindeg", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public("National Day", "Nationalfeierdag", Rule::gregorian(6, 23)),
+        HolidayRule::fixed_public(
+            "Assumption Day",
+            "Mariä Himmelfaart",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public("All Saints' Day", "Allerhellgen", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public("Christmas Day", "Chrëschtdag", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Saint Stephen's Day", "Stiefesdag", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Luxembourg.
 ///
@@ -4277,6 +4586,10 @@ static LU_RULES: &[HolidayRule] = &[
 /// months, at no fixed date, and is not carried; nor are the civil
 /// service's half days on Whit Tuesday and Christmas Eve, nor the local
 /// days of the capital.
+///
+/// Read from 2019: the law of 25 April 2019 and the Inspection du travail's
+/// list. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static LUXEMBOURG: RuleSet = RuleSet {
     code: "LU",
     english_name: "Luxembourg",
@@ -4298,50 +4611,53 @@ pub static LUXEMBOURG: RuleSet = RuleSet {
 // Malta
 // ─────────────────────────────────────────────────────────────────────────
 
-static MT_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "L-Ewwel tas-Sena", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Feast of Saint Paul's Shipwreck",
-        "Nawfraġju ta' San Pawl",
-        Rule::gregorian(2, 10),
-    ),
-    HolidayRule::fixed_public(
-        "Feast of Saint Joseph",
-        "San Ġużepp",
-        Rule::gregorian(3, 19),
-    ),
-    HolidayRule::fixed_public("Freedom Day", "Jum il-Ħelsien", Rule::gregorian(3, 31)),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Il-Ġimgħa l-Kbira",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Workers' Day", "Jum il-Ħaddiem", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Sette Giugno", "Sette Giugno", Rule::gregorian(6, 7)),
-    HolidayRule::fixed_public(
-        "Feast of Saint Peter and Saint Paul",
-        "L-Imnarja",
-        Rule::gregorian(6, 29),
-    ),
-    HolidayRule::fixed_public(
-        "Feast of the Assumption",
-        "Santa Marija",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public("Victory Day", "Jum il-Vitorja", Rule::gregorian(9, 8)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Jum l-Indipendenza",
-        Rule::gregorian(9, 21),
-    ),
-    HolidayRule::fixed_public(
-        "Feast of the Immaculate Conception",
-        "Il-Kunċizzjoni",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public("Republic Day", "Jum ir-Repubblika", Rule::gregorian(12, 13)),
-    HolidayRule::fixed_public("Christmas Day", "Il-Milied", Rule::gregorian(12, 25)),
-];
+static MT_RULES: &[HolidayRule] = &read_all(
+    2026,
+    [
+        HolidayRule::fixed_public("New Year's Day", "L-Ewwel tas-Sena", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Feast of Saint Paul's Shipwreck",
+            "Nawfraġju ta' San Pawl",
+            Rule::gregorian(2, 10),
+        ),
+        HolidayRule::fixed_public(
+            "Feast of Saint Joseph",
+            "San Ġużepp",
+            Rule::gregorian(3, 19),
+        ),
+        HolidayRule::fixed_public("Freedom Day", "Jum il-Ħelsien", Rule::gregorian(3, 31)),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Il-Ġimgħa l-Kbira",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Workers' Day", "Jum il-Ħaddiem", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Sette Giugno", "Sette Giugno", Rule::gregorian(6, 7)),
+        HolidayRule::fixed_public(
+            "Feast of Saint Peter and Saint Paul",
+            "L-Imnarja",
+            Rule::gregorian(6, 29),
+        ),
+        HolidayRule::fixed_public(
+            "Feast of the Assumption",
+            "Santa Marija",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public("Victory Day", "Jum il-Vitorja", Rule::gregorian(9, 8)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Jum l-Indipendenza",
+            Rule::gregorian(9, 21),
+        ),
+        HolidayRule::fixed_public(
+            "Feast of the Immaculate Conception",
+            "Il-Kunċizzjoni",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public("Republic Day", "Jum ir-Repubblika", Rule::gregorian(12, 13)),
+        HolidayRule::fixed_public("Christmas Day", "Il-Milied", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Malta.
 ///
@@ -4350,6 +4666,11 @@ static MT_RULES: &[HolidayRule] = &[
 /// holidays, all days off and carried alike. A holiday on a weekend stays
 /// there; what the Act does with it is a matter of leave, not of the
 /// calendar. The years the Act added and restored feasts are not carried.
+///
+/// Read from 2026: the National Holidays and Other Public Holidays Act (Cap.
+/// 252) as read undated; the amendments' years are not carried. Every earlier
+/// year is a gap (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static MALTA: RuleSet = RuleSet {
     code: "MT",
     english_name: "Malta",
@@ -4370,72 +4691,75 @@ pub static MALTA: RuleSet = RuleSet {
 // Moldova
 // ─────────────────────────────────────────────────────────────────────────
 
-static MD_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Orthodox Christmas",
-        "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Orthodox Christmas",
-        "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
-        Rule::gregorian(1, 8),
-    ),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "Ziua Internațională a Femeii",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Paștele", Rule::paschal(EASTER_MONDAY)),
-    // The Monday a week after Easter.
-    HolidayRule::fixed_public(
-        "Easter of the Blajini",
-        "Paștele Blajinilor",
-        Rule::paschal(EASTER_SUNDAY + 8),
-    ),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Ziua internațională a solidarității oamenilor muncii",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Victory Day",
-        "Ziua Victoriei și a comemorării eroilor căzuți pentru independența Patriei",
-        Rule::gregorian(5, 9),
-    ),
-    HolidayRule::fixed_public("Europe Day", "Ziua Europei", Rule::gregorian(5, 9))
-        .years(Some(2017), None),
-    HolidayRule::fixed_public(
-        "Children's Day",
-        "Ziua Internațională a Copilului",
-        Rule::gregorian(6, 1),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Ziua Independenței",
-        Rule::gregorian(8, 27),
-    ),
-    HolidayRule::fixed_public(
-        "Romanian Language Day",
-        "Ziua Limbii Române",
-        Rule::gregorian(8, 31),
-    ),
-    HolidayRule::fixed_public(
-        "Feast of Chișinău",
-        "Hramul Chișinăului",
-        Rule::gregorian(10, 14),
-    )
-    .in_regions(&["MD-CU"]),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Nașterea lui Isus Hristos (Crăciunul pe stil nou)",
-        Rule::gregorian(12, 25),
-    )
-    .years(Some(2009), None),
-];
+static MD_RULES: &[HolidayRule] = &read_all(
+    2009,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Anul Nou", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Orthodox Christmas",
+            "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Orthodox Christmas",
+            "Nașterea lui Isus Hristos (Crăciunul pe stil vechi)",
+            Rule::gregorian(1, 8),
+        ),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "Ziua Internațională a Femeii",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::fixed_public("Easter Sunday", "Paștele", Rule::paschal(EASTER_SUNDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Paștele", Rule::paschal(EASTER_MONDAY)),
+        // The Monday a week after Easter.
+        HolidayRule::fixed_public(
+            "Easter of the Blajini",
+            "Paștele Blajinilor",
+            Rule::paschal(EASTER_SUNDAY + 8),
+        ),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Ziua internațională a solidarității oamenilor muncii",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Victory Day",
+            "Ziua Victoriei și a comemorării eroilor căzuți pentru independența Patriei",
+            Rule::gregorian(5, 9),
+        ),
+        HolidayRule::fixed_public("Europe Day", "Ziua Europei", Rule::gregorian(5, 9))
+            .years(Some(2017), None),
+        HolidayRule::fixed_public(
+            "Children's Day",
+            "Ziua Internațională a Copilului",
+            Rule::gregorian(6, 1),
+        )
+        .years(Some(2024), None),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Ziua Independenței",
+            Rule::gregorian(8, 27),
+        ),
+        HolidayRule::fixed_public(
+            "Romanian Language Day",
+            "Ziua Limbii Române",
+            Rule::gregorian(8, 31),
+        ),
+        HolidayRule::fixed_public(
+            "Feast of Chișinău",
+            "Hramul Chișinăului",
+            Rule::gregorian(10, 14),
+        )
+        .in_regions(&["MD-CU"]),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Nașterea lui Isus Hristos (Crăciunul pe stil nou)",
+            Rule::gregorian(12, 25),
+        )
+        .years(Some(2009), None),
+    ],
+);
 
 /// Moldova.
 ///
@@ -4448,6 +4772,11 @@ static MD_RULES: &[HolidayRule] = &[
 /// weekend is not moved by law; the Government's yearly transfers of
 /// working days, and the patron-saint day each locality may keep, are not
 /// carried.
+///
+/// Read from 2009: the earliest change the sources date, Christmas by the new
+/// style from 2009; the Code's text was not read. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static MOLDOVA: RuleSet = RuleSet {
     code: "MD",
     english_name: "Moldova",
@@ -4475,44 +4804,47 @@ const fn li_bank(name: &'static str, local: &'static str, rule: Rule) -> Holiday
     HolidayRule::fixed_public(name, local, rule).of_kind(Kind::Bank)
 }
 
-static LI_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
-    li_bank("Berchtold's Day", "Berchtoldstag", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6)),
-    HolidayRule::observance("Candlemas", "Lichtmess", Rule::gregorian(2, 2)),
-    li_bank(
-        "Shrove Tuesday",
-        "Fasnachtsdienstag",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::observance("Saint Joseph's Day", "Josefstag", Rule::gregorian(3, 19)),
-    li_bank("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension", "Auffahrt", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Fronleichnam",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public("National Day", "Staatsfeiertag", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("Nativity of Mary", "Mariä Geburt", Rule::gregorian(9, 8)),
-    HolidayRule::fixed_public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Mariä Empfängnis",
-        Rule::gregorian(12, 8),
-    ),
-    li_bank("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
-    HolidayRule::fixed_public("Christmas Day", "Weihnachten", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Stephanstag",
-        Rule::gregorian(12, 26),
-    ),
-    li_bank("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
-];
+static LI_RULES: &[HolidayRule] = &read_all(
+    1986,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Neujahr", Rule::gregorian(1, 1)),
+        li_bank("Berchtold's Day", "Berchtoldstag", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Epiphany", "Heilige Drei Könige", Rule::gregorian(1, 6)),
+        HolidayRule::observance("Candlemas", "Lichtmess", Rule::gregorian(2, 2)),
+        li_bank(
+            "Shrove Tuesday",
+            "Fasnachtsdienstag",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::observance("Saint Joseph's Day", "Josefstag", Rule::gregorian(3, 19)),
+        li_bank("Good Friday", "Karfreitag", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "Ostermontag", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "Tag der Arbeit", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension", "Auffahrt", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public("Whit Monday", "Pfingstmontag", Rule::easter(WHIT_MONDAY)),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Fronleichnam",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public("National Day", "Staatsfeiertag", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("Nativity of Mary", "Mariä Geburt", Rule::gregorian(9, 8)),
+        HolidayRule::fixed_public("All Saints' Day", "Allerheiligen", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Mariä Empfängnis",
+            Rule::gregorian(12, 8),
+        ),
+        li_bank("Christmas Eve", "Heiligabend", Rule::gregorian(12, 24)),
+        HolidayRule::fixed_public("Christmas Day", "Weihnachten", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Stephanstag",
+            Rule::gregorian(12, 26),
+        ),
+        li_bank("New Year's Eve", "Silvester", Rule::gregorian(12, 31)),
+    ],
+);
 
 /// Liechtenstein.
 ///
@@ -4527,6 +4859,10 @@ static LI_RULES: &[HolidayRule] = &[
 /// Joseph's Day, which collective agreements make paid days in some
 /// trades, are observances. A holiday on a Sunday is a Sunday; nothing
 /// moves.
+///
+/// Read from 1986: the Labour Act, article 18(2), as amended by LGBl. 1986
+/// Nr. 85. Every earlier year is a gap (ADR 0013); the reasons for every
+/// table's first year are in docs/systems/holiday-first-years.md.
 pub static LIECHTENSTEIN: RuleSet = RuleSet {
     code: "LI",
     english_name: "Liechtenstein",
@@ -4562,41 +4898,44 @@ static MC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static MC_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Saint Devota's Day",
-        "Sainte-Dévote",
-        Rule::gregorian(1, 27),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
-    HolidayRule::public(
-        "Sovereign Prince's Day",
-        "Fête du Prince",
-        Rule::gregorian(11, 19),
-    )
-    .years(Some(1952), None),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Immaculée Conception",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-];
+static MC_RULES: &[HolidayRule] = &read_all(
+    1966,
+    [
+        HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Saint Devota's Day",
+            "Sainte-Dévote",
+            Rule::gregorian(1, 27),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public("Corpus Christi", "Fête-Dieu", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+        HolidayRule::public(
+            "Sovereign Prince's Day",
+            "Fête du Prince",
+            Rule::gregorian(11, 19),
+        )
+        .years(Some(1952), None),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Immaculée Conception",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Monaco.
 ///
@@ -4610,6 +4949,10 @@ static MC_RULES: &[HolidayRule] = &[
 /// six do not. The Prince's Day is the day the reigning Prince chooses,
 /// 19 November since 1952 under Rainier III and kept by Albert II. The
 /// days the Prince declares for an occasion are not carried.
+///
+/// Read from 1966: law 798 of 18 February 1966. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static MONACO: RuleSet = RuleSet {
     code: "MC",
     english_name: "Monaco",
@@ -4631,74 +4974,88 @@ pub static MONACO: RuleSet = RuleSet {
 // San Marino
 // ─────────────────────────────────────────────────────────────────────────
 
-static SM_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Epiphany", "Epifania", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public("Feast of Saint Agatha", "Sant'Agata", Rule::gregorian(2, 5)),
-    HolidayRule::fixed_public(
-        "Anniversary of the Arengo",
-        "Anniversario dell'Arengo",
-        Rule::gregorian(3, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Investiture of the Captains Regent",
-        "Ingresso dei Capitani Reggenti",
-        Rule::gregorian(4, 1),
-    ),
-    HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lunedì dell'Angelo",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Domini",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public(
-        "Anniversary of the Fall of Fascism",
-        "Anniversario della Caduta del Fascismo e Festa della Libertà",
-        Rule::gregorian(7, 28),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assunzione", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public(
-        "Feast of Saint Marinus and the Republic",
-        "Festa di San Marino e di Fondazione della Repubblica",
-        Rule::gregorian(9, 3),
-    ),
-    HolidayRule::fixed_public(
-        "Investiture of the Captains Regent",
-        "Ingresso dei Capitani Reggenti",
-        Rule::gregorian(10, 1),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "All Souls' Day",
-        "Commemorazione dei Defunti",
-        Rule::gregorian(11, 2),
-    ),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Immacolata Concezione",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Eve",
-        "Vigilia di Natale",
-        Rule::gregorian(12, 24),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Christmas Day", "Natale", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Santo Stefano",
-        Rule::gregorian(12, 26),
-    ),
-    HolidayRule::fixed_public("New Year's Eve", "San Silvestro", Rule::gregorian(12, 31))
+/// The first whole year of law 152 of 30 October 2013, which the civil
+/// holidays of article 2 are read from.
+const SM_CIVIL_FIRST: i32 = 2014;
+
+static SM_RULES: &[HolidayRule] = &read_all(
+    2025,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Capodanno", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Epiphany", "Epifania", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public("Feast of Saint Agatha", "Sant'Agata", Rule::gregorian(2, 5)),
+        HolidayRule::fixed_public(
+            "Anniversary of the Arengo",
+            "Anniversario dell'Arengo",
+            Rule::gregorian(3, 25),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public(
+            "Investiture of the Captains Regent",
+            "Ingresso dei Capitani Reggenti",
+            Rule::gregorian(4, 1),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lunedì dell'Angelo",
+            Rule::easter(EASTER_MONDAY),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public("Labour Day", "Festa del Lavoro", Rule::gregorian(5, 1))
+            .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Domini",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public(
+            "Anniversary of the Fall of Fascism",
+            "Anniversario della Caduta del Fascismo e Festa della Libertà",
+            Rule::gregorian(7, 28),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public("Assumption", "Assunzione", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public(
+            "Feast of Saint Marinus and the Republic",
+            "Festa di San Marino e di Fondazione della Repubblica",
+            Rule::gregorian(9, 3),
+        ),
+        HolidayRule::fixed_public(
+            "Investiture of the Captains Regent",
+            "Ingresso dei Capitani Reggenti",
+            Rule::gregorian(10, 1),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public("All Saints' Day", "Ognissanti", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "All Souls' Day",
+            "Commemorazione dei Defunti",
+            Rule::gregorian(11, 2),
+        ),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Immacolata Concezione",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Eve",
+            "Vigilia di Natale",
+            Rule::gregorian(12, 24),
+        )
         .of_kind(Kind::Bank),
-];
+        HolidayRule::fixed_public("Christmas Day", "Natale", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Santo Stefano",
+            Rule::gregorian(12, 26),
+        )
+        .read_from(SM_CIVIL_FIRST),
+        HolidayRule::fixed_public("New Year's Eve", "San Silvestro", Rule::gregorian(12, 31))
+            .of_kind(Kind::Bank),
+    ],
+);
 
 /// San Marino.
 ///
@@ -4714,6 +5071,11 @@ static SM_RULES: &[HolidayRule] = &[
 /// calendars close 24 and 31 December, which the 1990 law dropped from
 /// the holidays; those two are bank days here. Nothing moves off a
 /// Sunday.
+///
+/// Read from 2014: law 152 of 30 October 2013 for the civil holidays; the
+/// religious days are read from 2025, the first of the Central Bank's
+/// calendars read. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static SAN_MARINO: RuleSet = RuleSet {
     code: "SM",
     english_name: "San Marino",
@@ -4779,122 +5141,125 @@ const fn va_pontifical(
     )
 }
 
-static VA_RULES: &[HolidayRule] = &[
-    // The holy days of obligation of canon 1246, the first of the two
-    // lists; each falls on its day in the General Roman Calendar.
-    HolidayRule::fixed_public(
-        "Solemnity of Mary, Mother of God",
-        "Maria Santissima Madre di Dio",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Epiphany", "Epifania del Signore", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public("Saint Joseph", "San Giuseppe", Rule::gregorian(3, 19)),
-    HolidayRule::fixed_public(
-        "Ascension",
-        "Ascensione del Signore",
-        Rule::easter(ASCENSION),
-    ),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Santissimo Corpo e Sangue di Cristo",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::fixed_public(
-        "Saints Peter and Paul",
-        "Santi Pietro e Paolo",
-        Rule::gregorian(6, 29),
-    ),
-    HolidayRule::fixed_public(
-        "Assumption",
-        "Assunzione della Beata Vergine Maria",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public("All Saints' Day", "Tutti i Santi", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "Immaculate Conception",
-        "Immacolata Concezione",
-        Rule::gregorian(12, 8),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "Natale del Signore",
-        Rule::gregorian(12, 25),
-    ),
-    // The regulations' own list.
-    va_pontifical(
-        "Anniversary of the Pope's Election",
-        "Anniversario dell'elezione del Sommo Pontefice",
-        va_election_anniversary,
-    ),
-    va_pontifical(
-        "Pope's Name Day",
-        "Onomastico del Sommo Pontefice",
-        va_name_day,
-    ),
-    HolidayRule::fixed_public(
-        "Anniversary of the Establishment of Vatican City State",
-        "Anniversario dell'istituzione dello Stato della Città del Vaticano",
-        Rule::gregorian(2, 11),
-    ),
-    HolidayRule::fixed_public(
-        "Saint Joseph the Worker",
-        "San Giuseppe Artigiano",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Maundy Thursday",
-        "Giovedì Santo",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Venerdì Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "Sabato Santo", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lunedì di Pasqua",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Easter Tuesday",
-        "Martedì di Pasqua",
-        Rule::easter(EASTER_MONDAY + 1),
-    ),
-    HolidayRule::fixed_public(
-        "Eve of the Assumption",
-        "Vigilia dell'Assunzione",
-        Rule::gregorian(8, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Day after the Assumption",
-        "Giorno successivo all'Assunzione",
-        Rule::gregorian(8, 16),
-    ),
-    HolidayRule::fixed_public(
-        "All Souls' Day",
-        "Commemorazione di tutti i fedeli defunti",
-        Rule::gregorian(11, 2),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Eve",
-        "Vigilia di Natale",
-        Rule::gregorian(12, 24),
-    ),
-    HolidayRule::fixed_public(
-        "Saint Stephen's Day",
-        "Santo Stefano",
-        Rule::gregorian(12, 26),
-    ),
-    HolidayRule::fixed_public(
-        "Saint John the Apostle",
-        "San Giovanni Apostolo ed Evangelista",
-        Rule::gregorian(12, 27),
-    ),
-    HolidayRule::fixed_public(
-        "Last Day of the Year",
-        "Ultimo giorno dell'anno",
-        Rule::gregorian(12, 31),
-    ),
-];
+static VA_RULES: &[HolidayRule] = &read_all(
+    2011,
+    [
+        // The holy days of obligation of canon 1246, the first of the two
+        // lists; each falls on its day in the General Roman Calendar.
+        HolidayRule::fixed_public(
+            "Solemnity of Mary, Mother of God",
+            "Maria Santissima Madre di Dio",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Epiphany", "Epifania del Signore", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public("Saint Joseph", "San Giuseppe", Rule::gregorian(3, 19)),
+        HolidayRule::fixed_public(
+            "Ascension",
+            "Ascensione del Signore",
+            Rule::easter(ASCENSION),
+        ),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Santissimo Corpo e Sangue di Cristo",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::fixed_public(
+            "Saints Peter and Paul",
+            "Santi Pietro e Paolo",
+            Rule::gregorian(6, 29),
+        ),
+        HolidayRule::fixed_public(
+            "Assumption",
+            "Assunzione della Beata Vergine Maria",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public("All Saints' Day", "Tutti i Santi", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "Immaculate Conception",
+            "Immacolata Concezione",
+            Rule::gregorian(12, 8),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "Natale del Signore",
+            Rule::gregorian(12, 25),
+        ),
+        // The regulations' own list.
+        va_pontifical(
+            "Anniversary of the Pope's Election",
+            "Anniversario dell'elezione del Sommo Pontefice",
+            va_election_anniversary,
+        ),
+        va_pontifical(
+            "Pope's Name Day",
+            "Onomastico del Sommo Pontefice",
+            va_name_day,
+        ),
+        HolidayRule::fixed_public(
+            "Anniversary of the Establishment of Vatican City State",
+            "Anniversario dell'istituzione dello Stato della Città del Vaticano",
+            Rule::gregorian(2, 11),
+        ),
+        HolidayRule::fixed_public(
+            "Saint Joseph the Worker",
+            "San Giuseppe Artigiano",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Maundy Thursday",
+            "Giovedì Santo",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Venerdì Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "Sabato Santo", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Sunday", "Pasqua", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lunedì di Pasqua",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Easter Tuesday",
+            "Martedì di Pasqua",
+            Rule::easter(EASTER_MONDAY + 1),
+        ),
+        HolidayRule::fixed_public(
+            "Eve of the Assumption",
+            "Vigilia dell'Assunzione",
+            Rule::gregorian(8, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Day after the Assumption",
+            "Giorno successivo all'Assunzione",
+            Rule::gregorian(8, 16),
+        ),
+        HolidayRule::fixed_public(
+            "All Souls' Day",
+            "Commemorazione di tutti i fedeli defunti",
+            Rule::gregorian(11, 2),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Eve",
+            "Vigilia di Natale",
+            Rule::gregorian(12, 24),
+        ),
+        HolidayRule::fixed_public(
+            "Saint Stephen's Day",
+            "Santo Stefano",
+            Rule::gregorian(12, 26),
+        ),
+        HolidayRule::fixed_public(
+            "Saint John the Apostle",
+            "San Giovanni Apostolo ed Evangelista",
+            Rule::gregorian(12, 27),
+        ),
+        HolidayRule::fixed_public(
+            "Last Day of the Year",
+            "Ultimo giorno dell'anno",
+            Rule::gregorian(12, 31),
+        ),
+    ],
+);
 
 /// Vatican City.
 ///
@@ -4921,6 +5286,10 @@ static VA_RULES: &[HolidayRule] = &[
 /// celebration the liturgy transfers — Saint Joseph in Holy Week, the
 /// Immaculate Conception on a Sunday of Advent — is not moved here, for no
 /// source says the day off follows it.
+///
+/// Read from 2011: the Governorate's General Regulation of 21 November 2010,
+/// in force from 2011. Every earlier year is a gap (ADR 0013); the reasons
+/// for every table's first year are in docs/systems/holiday-first-years.md.
 pub static VATICAN_CITY: RuleSet = RuleSet {
     code: "VA",
     english_name: "Vatican City",

@@ -262,7 +262,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `AL` | Albania | 15 | yes | stated | 2026-09-22 |
 | `AM` | Armenia | 34 | none | stated | 2026-09-22 |
 | `AO` | Angola | 22 | yes | stated | 2026-09-23 |
-| `AR` | Argentina | 30 | none | stated | 2026-09-22 |
+| `AR` | Argentina | 31 | none | stated | 2026-09-22 |
 | `AT` | Austria | 14 | none | stated | 2026-09-26 |
 | `AU` | Australia | 25 | yes | stated | 2026-09-27 |
 | `AZ` | Azerbaijan | 25 | yes | stated | 2026-09-22 |
@@ -276,7 +276,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `BI` | Burundi | 14 | none | stated | 2026-09-23 |
 | `BJ` | Benin | 18 | none | stated | 2026-09-23 |
 | `BN` | Brunei | 15 | yes | stated | 2026-09-23 |
-| `BO` | Bolivia | 27 | yes | stated | 2026-09-29 |
+| `BO` | Bolivia | 35 | yes | stated | 2026-09-29 |
 | `BR` | Brazil | 14 | none | stated | 2026-09-26 |
 | `BS` | Bahamas | 13 | yes | stated | 2026-09-22 |
 | `BT` | Bhutan | 51 | none | stated | 2026-09-29 |
@@ -441,7 +441,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `UY` | Uruguay | 23 | none | stated | 2026-09-26 |
 | `UZ` | Uzbekistan | 10 | yes | stated | 2026-09-22 |
 | `VA` | Vatican City | 27 | none | stated | 2026-09-23 |
-| `VC` | Saint Vincent and the Grenadines | 13 | yes | stated | 2026-09-23 |
+| `VC` | Saint Vincent and the Grenadines | 14 | yes | stated | 2026-09-23 |
 | `VE` | Venezuela | 15 | none | stated | 2026-09-23 |
 | `VN` | Vietnam | 14 | yes | stated | 2026-09-23 |
 | `VU` | Vanuatu | 20 | yes | stated | 2026-09-29 |

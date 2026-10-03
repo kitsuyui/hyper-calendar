@@ -153,6 +153,7 @@ crates, modules, functions or holiday tables.
 | Hebrew numerals: CLDR's rules for the letters, 15 and 16, the thousands and the millennium a date leaves out, and the marks as typed | [hebrew-numerals.md](hebrew-numerals.md) | `hc-i18n`: `numbering`'s `hebr`, `numbering::same_typed_mark`, `names::DateTemplates::omitted_thousands` |
 | Greek numerals: CLDR's rules for the letters, the thousands and the myriads, and the three spellings of 6 read back, the digamma, the stigma and στ | [greek-numerals.md](greek-numerals.md) | `hc-i18n`: `numbering`'s `grek` and `greklow` |
 | Locale fallback: UTS #35's truncation, CLDR's `parentLocales` and likely scripts, the lookups keyed by language instead, and each regional file's default numbering system | [locale-fallback.md](locale-fallback.md) | `hc-i18n`: `Locale::parent`, `Locale::fallback`, `data::PARENT_LOCALES`, `data::DEFAULT_NUMBERING`, `NumberingSystem::for_locale` |
+| Where each national table of the Americas and Europe begins: the first year its sources support, the gap before it, and why for each table | [holiday-first-years.md](holiday-first-years.md) | `hc-holiday`'s `countries::read_all` and the tables of `americas.rs`, `europe.rs`, `andorra.rs`, `bolivia.rs`, `mexico.rs` |
 
 ## Systems that need a document
 

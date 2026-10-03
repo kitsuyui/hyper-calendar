@@ -20,10 +20,11 @@
 
 use hc_calendar::Weekday;
 
+use super::read_all;
 use crate::computus::offsets::{CORPUS_CHRISTI, GOOD_FRIDAY, SHROVE_MONDAY, SHROVE_TUESDAY};
 use crate::rule::{
     HolidayRule, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions, SubstituteDirection,
-    SubstitutionPolicy,
+    SubstitutionPolicy, joined,
 };
 
 /// The departments, by ISO 3166-2 code.
@@ -130,6 +131,26 @@ const UNDATED: &str = "A departmental law not read: Cochabamba's Ley Departament
      or 2020, found in no form, and Beni's Ley Departamental 003 of 2010, published as PDF, as \
      the press quotes them; the Ministry of Labour's yearly notices, PDF, not read";
 
+/// The first whole year of Decreto Supremo 2750 of 1 May 2016, whose
+/// calendar the nationwide days are read from; the Sunday rule it carries
+/// begins in 2016, and the days of the earlier calendars were not read.
+const NATIONAL_FIRST: i32 = 2017;
+
+/// Decreto Supremo 5521 of 13 January 2026, arts. 3, 4 and 5, read in the
+/// text of the decree reproduced by pixilegal.com
+/// (www.pixilegal.com/normativa/decreto-5521-2026-01-13) and
+/// Infoleyes (bolivia.infoleyes.com/norma/8569/decreto-supremo-5521),
+/// retrieved 2026-10-03; the Gaceta Oficial publishes PDF only.
+const DS_5521: &str = "Decreto Supremo 5521 of 13 January 2026, arts. 3 and 4: Friday 5 June and \
+     Friday 7 August are additional national holidays for 2026, and the holidays of Thursday 22 \
+     January and Sunday 21 June are moved to Friday 23 January and Monday 22 June (pixilegal.com, \
+     Infoleyes; the Gaceta Oficial's PDF not read), retrieved 2026-10-03";
+
+/// The years whose decrees moving or adding holidays were not read.
+const YEARLY_DECREES: &str = "The Government's decrees that move or add national holidays for a \
+     year, after Decreto Supremo 2750 (2016), art. 2: only the decree for 2026 was read; the \
+     Ministry of Labour's yearly notices are PDF, not read";
+
 /// Decreto Supremo 2750 (2016), art. 3: the Monday after a national
 /// holiday that falls on a Sunday is a holiday, except for the Carnival
 /// days, Good Friday, Corpus Christi and All Souls' Day, which the article
@@ -145,48 +166,125 @@ static BO_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static BO_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Plurinational State Foundation Day",
-        "Día de la Creación del Estado Plurinacional de Bolivia",
-        Rule::gregorian(1, 22),
-    )
-    .years(Some(2010), None),
-    HolidayRule::fixed_public(
-        "Carnival Monday",
-        "Lunes de Carnaval",
-        Rule::easter(SHROVE_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Carnival Tuesday",
-        "Martes de Carnaval",
-        Rule::easter(SHROVE_TUESDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Corpus Christi",
-        "Corpus Christi",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    HolidayRule::public(
-        "Aymara Amazonian New Year",
-        "Año Nuevo Aymara Amazónico",
-        Rule::gregorian(6, 21),
-    )
-    .years(Some(2009), None),
-    HolidayRule::public(
-        "Independence Day",
-        "Día de la Independencia de Bolivia",
-        Rule::gregorian(8, 6),
-    ),
-    HolidayRule::fixed_public(
-        "All Souls' Day",
-        "Día de Todos los Difuntos",
-        Rule::gregorian(11, 2),
-    ),
-    HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+static BO_NATIONAL: &[HolidayRule] = &read_all(
+    NATIONAL_FIRST,
+    [
+        HolidayRule::public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Plurinational State Foundation Day",
+            "Día de la Creación del Estado Plurinacional de Bolivia",
+            Rule::gregorian(1, 22),
+        )
+        .years(Some(2010), Some(2025)),
+        // Decreto Supremo 5521 of 13 January 2026, art. 4(1): the holiday of
+        // Thursday 22 January is moved to Friday 23 January.
+        HolidayRule::public(
+            "Plurinational State Foundation Day",
+            "Día de la Creación del Estado Plurinacional de Bolivia",
+            Rule::gregorian(1, 23),
+        )
+        .years(Some(2026), Some(2026))
+        .cited(DS_5521)
+        .read_from(2026),
+        HolidayRule::public(
+            "Plurinational State Foundation Day",
+            "Día de la Creación del Estado Plurinacional de Bolivia",
+            Rule::gregorian(1, 22),
+        )
+        .years(Some(2027), None),
+        HolidayRule::fixed_public(
+            "Carnival Monday",
+            "Lunes de Carnaval",
+            Rule::easter(SHROVE_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Carnival Tuesday",
+            "Martes de Carnaval",
+            Rule::easter(SHROVE_TUESDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Corpus Christi",
+            "Corpus Christi",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        HolidayRule::public(
+            "Aymara Amazonian New Year",
+            "Año Nuevo Aymara Amazónico",
+            Rule::gregorian(6, 21),
+        )
+        .years(Some(2009), Some(2025)),
+        // Decreto Supremo 5521, art. 4(2): the holiday of Sunday 21 June is
+        // moved to Monday 22 June.
+        HolidayRule::public(
+            "Aymara Amazonian New Year",
+            "Año Nuevo Aymara Amazónico",
+            Rule::gregorian(6, 22),
+        )
+        .years(Some(2026), Some(2026))
+        .cited(DS_5521)
+        .read_from(2026),
+        HolidayRule::public(
+            "Aymara Amazonian New Year",
+            "Año Nuevo Aymara Amazónico",
+            Rule::gregorian(6, 21),
+        )
+        .years(Some(2027), None),
+        // Decreto Supremo 5521, art. 3: Friday 5 June, after Corpus Christi of
+        // Thursday 4 June, and Friday 7 August, after Independence Day of
+        // Thursday 6 August, are national holidays for 2026.
+        HolidayRule::fixed_public(
+            "Additional holiday after Corpus Christi",
+            "Feriado nacional adicional al de Corpus Christi",
+            Rule::gregorian(6, 5),
+        )
+        .years(Some(2026), Some(2026))
+        .cited(DS_5521)
+        .read_from(2026),
+        HolidayRule::fixed_public(
+            "Additional holiday after Independence Day",
+            "Feriado nacional adicional al Día de la Independencia",
+            Rule::gregorian(8, 7),
+        )
+        .years(Some(2026), Some(2026))
+        .cited(DS_5521)
+        .read_from(2026),
+        // The Government decrees bridges and additional days year by year,
+        // after Decreto Supremo 2750 and apart from it. Only 2026's decree was
+        // read: every other year is a gap, as the table cannot say that none
+        // was made.
+        HolidayRule::public(
+            "The year's decree of moved and additional holidays",
+            "",
+            Rule::UNREAD,
+        )
+        .years(Some(2017), Some(2025))
+        .cited(YEARLY_DECREES)
+        .read_from(NATIONAL_FIRST),
+        HolidayRule::public(
+            "The year's decree of moved and additional holidays",
+            "",
+            Rule::UNREAD,
+        )
+        .years(Some(2027), None)
+        .cited(YEARLY_DECREES)
+        .read_from(NATIONAL_FIRST),
+        HolidayRule::public(
+            "Independence Day",
+            "Día de la Independencia de Bolivia",
+            Rule::gregorian(8, 6),
+        ),
+        HolidayRule::fixed_public(
+            "All Souls' Day",
+            "Día de Todos los Difuntos",
+            Rule::gregorian(11, 2),
+        ),
+        HolidayRule::public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
+
+static BO_DEPARTMENTAL: &[HolidayRule] = &[
     // ── The departments' own days ───────────────────────────────────────
     departmental(
         "La Paz Departmental Day",
@@ -327,6 +425,12 @@ static BO_RULES: &[HolidayRule] = &[
     .years(Some(2010), None),
 ];
 
+/// How many rules [`BOLIVIA`] has in all.
+const BO_LEN: usize = BO_NATIONAL.len() + BO_DEPARTMENTAL.len();
+
+/// Every rule of [`BOLIVIA`]: the nationwide days, then the departments'.
+static BO_RULES: [HolidayRule; BO_LEN] = joined(&[BO_NATIONAL, BO_DEPARTMENTAL]);
+
 /// Bolivia.
 ///
 /// The national holidays of Decreto Supremo 2750 of 1 May 2016, with
@@ -338,10 +442,16 @@ static BO_RULES: &[HolidayRule] = &[
 /// decrees year by year, such as 2026's Friday 23 January, are not. The
 /// Sunday rule is carried from the 2016
 /// decree, and whatever earlier decrees did is not.
+///
+/// Read from 2017: Decreto Supremo 2750 of 1 May 2016, from its first whole
+/// year; the departments' days are read from their own instruments, 2026 from
+/// Decreto Supremo 5521, and every other year's decree that moves or adds
+/// days is a gap. Every earlier year is a gap (ADR 0013); the reasons for
+/// every table's first year are in docs/systems/holiday-first-years.md.
 pub static BOLIVIA: RuleSet = RuleSet {
     code: "BO",
     english_name: "Bolivia",
-    rules: BO_RULES,
+    rules: &BO_RULES,
     substitution: BO_SUBSTITUTION,
     bridges: &[],
     includes: &[],

@@ -11,10 +11,14 @@
 //! * **Japan** ([`japan`]) is complete from 1948 and exact, amendment by
 //!   amendment. It is the crate's proof that the data-not-code rule holds
 //!   for a hard case.
-//! * Every other table covers the **present-day national list**, with
-//!   historical `valid_from` / `valid_until` years wherever a change is
-//!   named in the source. They are not complete back to each country's
-//!   founding, and they do not claim to be.
+//! * Every other table is the national list **from the first year its
+//!   sources support**, with historical `valid_from` / `valid_until` years
+//!   wherever a change is named in the source. Before that year the engine
+//!   reports a gap, never an answer (ADR 0013): `read_from`, which the
+//!   tables of the Americas and Europe set for the whole table through
+//!   `read_all`, and the reasons for each table's first year are in
+//!   `docs/systems/holiday-first-years.md`. The tables of Africa, the
+//!   Middle East, Asia and Oceania carry their own.
 //! * Every **Hijri-dated** entry is flagged
 //!   [`Confidence::Approximate`](crate::rule::Confidence::Approximate),
 //!   because the observed date is a decision made on a crescent sighting,
@@ -28,6 +32,33 @@
 //! scoping, never the union of every subdivision's rules.
 
 use crate::rule::RuleSet;
+
+/// Reads every rule of a table from `first`, the first year its sources
+/// answer for (ADR 0013): a rule with no `read_from` of its own gets it, so
+/// that each year before `first` that the rule's establishment does not rule
+/// out is a gap, which the engine reports with the rule's name and the
+/// table's `sources`. A rule that already has a `read_from` keeps it, and a
+/// rule whose `valid_from` is later than `first` stays absent before then,
+/// which is an answer.
+///
+/// `first` is the first whole year the earliest instrument or list read
+/// states: the year of a law's commencement, or the first year of a list
+/// that was read for a year and not a law. A table says in its doc comment
+/// which that is.
+#[must_use]
+pub(crate) const fn read_all<const N: usize>(
+    first: i32,
+    mut rules: [crate::rule::HolidayRule; N],
+) -> [crate::rule::HolidayRule; N] {
+    let mut index = 0;
+    while index < N {
+        if rules[index].read_from.is_none() {
+            rules[index].read_from = Some(first);
+        }
+        index += 1;
+    }
+    rules
+}
 
 pub mod africa_middle_east;
 pub mod americas;

@@ -294,7 +294,10 @@ change is named in the cited source — the US Uniform Monday Holiday Act, the
 French suspension of 8 May, Italy's 1977–2000 Republic Day, Portugal's
 2013–2015 austerity suspensions, Denmark's abolition of Store bededag in 2024,
 Korea's successive extensions of the 대체공휴일, and so on. None of them
-claims to be complete back to its own founding.
+claims to be complete back to its own founding: each is read from the first
+year its sources support, and the years before are gaps, not answers (ADR
+0013). The first year of each table of the Americas and Europe, and why, is
+in [`docs/systems/holiday-first-years.md`](../../docs/systems/holiday-first-years.md).
 
 ## Exchange calendars
 

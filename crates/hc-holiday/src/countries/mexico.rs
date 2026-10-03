@@ -14,6 +14,7 @@
 use hc_calendar::Weekday;
 use hc_calendars_solar::gregorian;
 
+use super::read_all;
 use crate::rule::{
     Days, HolidayRule, Kind, Rule, RuleSet, SATURDAY_SUNDAY, SourceDate, Subdivisions,
 };
@@ -54,66 +55,78 @@ const fn jalisco(name: &'static str, local_name: &'static str, month: u8, day: u
         .cited(JALISCO_LAW)
 }
 
-static MX_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    // The 2006 reform moved three fixed dates onto Mondays.
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Día de la Constitución",
-        Rule::gregorian(2, 5),
-    )
-    .years(None, Some(2005)),
-    HolidayRule::fixed_public(
-        "Constitution Day",
-        "Día de la Constitución",
-        Rule::nth(2, 1, Weekday::Monday),
-    )
-    .years(Some(2006), None),
-    HolidayRule::fixed_public(
-        "Benito Juárez's Birthday",
-        "Natalicio de Benito Juárez",
-        Rule::gregorian(3, 21),
-    )
-    .years(None, Some(2005)),
-    HolidayRule::fixed_public(
-        "Benito Juárez's Birthday",
-        "Natalicio de Benito Juárez",
-        Rule::nth(3, 3, Weekday::Monday),
-    )
-    .years(Some(2006), None),
-    HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Día de la Independencia",
-        Rule::gregorian(9, 16),
-    ),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::gregorian(11, 20),
-    )
-    .years(None, Some(2005)),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Día de la Revolución",
-        Rule::nth(11, 3, Weekday::Monday),
-    )
-    .years(Some(2006), None),
-    HolidayRule::fixed_public(
-        "Presidential Inauguration",
-        "Transmisión del Poder Ejecutivo Federal",
-        Rule::Computed(presidential_handover),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-    // ── The states' own days ────────────────────────────────────────────
-    // Article 38 names these by their dates alone.
-    jalisco("5 May", "5 de mayo", 5, 5),
-    jalisco("28 September", "28 de septiembre", 9, 28),
-    jalisco("12 October", "12 de octubre", 10, 12),
-    jalisco("2 November", "2 de noviembre", 11, 2),
-];
+static MX_RULES: &[HolidayRule] = &read_all(
+    2006,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        // The 2006 reform moved three fixed dates onto Mondays.
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Día de la Constitución",
+            Rule::gregorian(2, 5),
+        )
+        .years(None, Some(2005)),
+        HolidayRule::fixed_public(
+            "Constitution Day",
+            "Día de la Constitución",
+            Rule::nth(2, 1, Weekday::Monday),
+        )
+        .years(Some(2006), None),
+        HolidayRule::fixed_public(
+            "Benito Juárez's Birthday",
+            "Natalicio de Benito Juárez",
+            Rule::gregorian(3, 21),
+        )
+        .years(None, Some(2005)),
+        HolidayRule::fixed_public(
+            "Benito Juárez's Birthday",
+            "Natalicio de Benito Juárez",
+            Rule::nth(3, 3, Weekday::Monday),
+        )
+        .years(Some(2006), None),
+        HolidayRule::fixed_public("Labour Day", "Día del Trabajo", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Día de la Independencia",
+            Rule::gregorian(9, 16),
+        ),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::gregorian(11, 20),
+        )
+        .years(None, Some(2005)),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Día de la Revolución",
+            Rule::nth(11, 3, Weekday::Monday),
+        )
+        .years(Some(2006), None),
+        HolidayRule::fixed_public(
+            "Presidential Inauguration",
+            "Transmisión del Poder Ejecutivo Federal",
+            Rule::Computed(presidential_handover),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+        // ── The states' own days ────────────────────────────────────────────
+        // Article 38 names these by their dates alone.
+        jalisco("5 May", "5 de mayo", 5, 5),
+        jalisco("28 September", "28 de septiembre", 9, 28),
+        jalisco("12 October", "12 de octubre", 10, 12),
+        jalisco("2 November", "2 de noviembre", 11, 2),
+    ],
+);
 
 /// Mexico.
+///
+/// The federal days are read from 2006, the year of the reform of article 74
+/// that the text read gives, and every earlier year is a gap (ADR 0013): the
+/// text before the reform was not read.
+///
+/// Read from 2006: article 74 of the Ley Federal del Trabajo as reformed in
+/// 2006; the text before the reform was not read. Every earlier year is a gap
+/// (ADR 0013); the reasons for every table's first year are in
+/// docs/systems/holiday-first-years.md.
 pub static MEXICO: RuleSet = RuleSet {
     code: "MX",
     english_name: "Mexico",
