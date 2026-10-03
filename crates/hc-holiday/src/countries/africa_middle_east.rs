@@ -14,6 +14,7 @@ use hc_calendars_solar::gregorian;
 use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
+use super::read_all;
 use crate::computus::offsets::{
     ASCENSION, CORPUS_CHRISTI, EASTER_MONDAY, EASTER_SUNDAY, GOOD_FRIDAY, HOLY_SATURDAY,
     MAUNDY_THURSDAY, PALM_SUNDAY, PENTECOST, SHROVE_TUESDAY, WHIT_MONDAY,
@@ -175,74 +176,81 @@ static IL_SIGD: Rule = Rule::MovedByWeekday {
     moves: &[(Weekday::Saturday, -2)],
 };
 
-static IL_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Rosh Hashanah",
-        "ראש השנה",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Rosh Hashanah",
-        "ראש השנה",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 2),
-    ),
-    HolidayRule::fixed_public(
-        "Yom Kippur",
-        "יום כיפור",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-    HolidayRule::fixed_public(
-        "Sukkot",
-        "סוכות",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Simchat Torah",
-        "שמחת תורה",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 22),
-    ),
-    HolidayRule::observance("Sigd", "חג הסיגד", IL_SIGD).years(Some(2008), None),
-    HolidayRule::observance(
-        "Hanukkah",
-        "חנוכה",
-        Rule::in_calendar(CalendarSystem::HEBREW, 3, 25),
-    ),
-    HolidayRule::observance(
-        "Purim",
-        "פורים",
-        Rule::in_calendar(CalendarSystem::HEBREW, 6, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Passover",
-        "פסח",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
-    ),
-    HolidayRule::fixed_public(
-        "Seventh Day of Passover",
-        "שביעי של פסח",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 21),
-    ),
-    HolidayRule::observance(
-        "Yom HaZikaron",
-        "יום הזיכרון",
-        Rule::Offset {
-            base: &IL_INDEPENDENCE,
-            days: -1,
-        },
-    ),
-    HolidayRule::fixed_public("Yom HaAtzmaut", "יום העצמאות", IL_INDEPENDENCE)
-        .years(Some(1949), None),
-    HolidayRule::fixed_public(
-        "Shavuot",
-        "שבועות",
-        Rule::in_calendar(CalendarSystem::HEBREW, 9, 6),
-    ),
-    HolidayRule::observance(
-        "Tisha B'Av",
-        "תשעה באב",
-        Rule::in_calendar(CalendarSystem::HEBREW, 11, 9),
-    ),
-];
+/// The first year the sources read answer for: the Hours of Work and Rest Law
+/// of 1951, sections 2(b) and 7, the oldest text read for the days of rest.
+const IL_READ_FROM: i32 = 1951;
+
+static IL_RULES: &[HolidayRule] = &read_all(
+    IL_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "Rosh Hashanah",
+            "ראש השנה",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Rosh Hashanah",
+            "ראש השנה",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 2),
+        ),
+        HolidayRule::fixed_public(
+            "Yom Kippur",
+            "יום כיפור",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+        HolidayRule::fixed_public(
+            "Sukkot",
+            "סוכות",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Simchat Torah",
+            "שמחת תורה",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 22),
+        ),
+        HolidayRule::observance("Sigd", "חג הסיגד", IL_SIGD).years(Some(2008), None),
+        HolidayRule::observance(
+            "Hanukkah",
+            "חנוכה",
+            Rule::in_calendar(CalendarSystem::HEBREW, 3, 25),
+        ),
+        HolidayRule::observance(
+            "Purim",
+            "פורים",
+            Rule::in_calendar(CalendarSystem::HEBREW, 6, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Passover",
+            "פסח",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+        ),
+        HolidayRule::fixed_public(
+            "Seventh Day of Passover",
+            "שביעי של פסח",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 21),
+        ),
+        HolidayRule::observance(
+            "Yom HaZikaron",
+            "יום הזיכרון",
+            Rule::Offset {
+                base: &IL_INDEPENDENCE,
+                days: -1,
+            },
+        ),
+        HolidayRule::fixed_public("Yom HaAtzmaut", "יום העצמאות", IL_INDEPENDENCE)
+            .years(Some(1949), None),
+        HolidayRule::fixed_public(
+            "Shavuot",
+            "שבועות",
+            Rule::in_calendar(CalendarSystem::HEBREW, 9, 6),
+        ),
+        HolidayRule::observance(
+            "Tisha B'Av",
+            "תשעה באב",
+            Rule::in_calendar(CalendarSystem::HEBREW, 11, 9),
+        ),
+    ],
+);
 
 /// Israel's weekly day of rest: the Sabbath, and in law nothing else.
 ///
@@ -330,75 +338,83 @@ const fn ir_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
 /// 1 Rabíʿ al-awwal, the base of the last day of Safar.
 static IR_RABI_AL_AWWAL: Rule = Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 3, 1);
 
-static IR_RULES: &[HolidayRule] = &[
-    ir_solar("Nowruz", "نوروز", 1, 1),
-    ir_solar("Nowruz", "نوروز", 1, 2),
-    ir_solar("Nowruz", "نوروز", 1, 3),
-    ir_solar("Nowruz", "نوروز", 1, 4),
-    ir_solar("Islamic Republic Day", "روز جمهوری اسلامی", 1, 12),
-    ir_solar("Nature Day (Sizdah Bedar)", "روز طبیعت", 1, 13),
-    ir_solar("Demise of Imam Khomeini", "رحلت امام خمینی", 3, 14),
-    ir_solar("15 Khordad Uprising", "قیام ۱۵ خرداد", 3, 15),
-    ir_solar(
-        "Victory of the Islamic Revolution",
-        "پیروزی انقلاب اسلامی",
-        11,
-        22,
-    ),
-    ir_solar(
-        "Nationalisation of the Oil Industry",
-        "ملی‌شدن صنعت نفت",
-        12,
-        29,
-    ),
-    ir_hijri("Tasu'a", "تاسوعای حسینی", 1, 9),
-    ir_hijri("Ashura", "عاشورای حسینی", 1, 10),
-    ir_hijri("Arba'een", "اربعین حسینی", 2, 20),
-    ir_hijri(
-        "Demise of the Prophet and Martyrdom of Imam Hasan",
-        "رحلت رسول اکرم و شهادت امام حسن مجتبی",
-        2,
-        28,
-    ),
-    // The last day of Safar, which the tabular calendar gives 29 days and
-    // a sighted one sometimes 30.
-    HolidayRule::fixed_public(
-        "Martyrdom of Imam Reza",
-        "شهادت امام رضا",
-        Rule::Offset {
-            base: &IR_RABI_AL_AWWAL,
-            days: -1,
-        },
-    )
-    .approximate(),
-    ir_hijri(
-        "Martyrdom of Imam Hasan al-Askari",
-        "شهادت امام حسن عسکری",
-        3,
-        8,
-    ),
-    ir_hijri(
-        "Birth of the Prophet and Imam Ja'far al-Sadiq",
-        "ولادت رسول اکرم و امام جعفر صادق",
-        3,
-        17,
-    ),
-    ir_hijri("Martyrdom of Fatima", "شهادت حضرت فاطمه زهرا", 6, 3),
-    ir_hijri("Birth of Imam Ali", "ولادت امام علی", 7, 13),
-    ir_hijri("Mab'ath", "مبعث رسول اکرم", 7, 27),
-    ir_hijri("Birth of Imam Mahdi", "ولادت حضرت قائم", 8, 15),
-    ir_hijri("Martyrdom of Imam Ali", "شهادت امام علی", 9, 21),
-    ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1),
-    ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 2),
-    ir_hijri(
-        "Martyrdom of Imam Ja'far al-Sadiq",
-        "شهادت امام جعفر صادق",
-        10,
-        25,
-    ),
-    ir_hijri("Eid al-Adha", "عید سعید قربان", 12, 10),
-    ir_hijri("Eid al-Ghadir", "عید سعید غدیر خم", 12, 18),
-];
+/// The first year the sources read answer for: the lists of Wikipedia,
+/// "Public holidays in Iran", retrieved 2026-09-22, the only list read; no
+/// instrument with a date was read.
+const IR_READ_FROM: i32 = 2026;
+
+static IR_RULES: &[HolidayRule] = &read_all(
+    IR_READ_FROM,
+    [
+        ir_solar("Nowruz", "نوروز", 1, 1),
+        ir_solar("Nowruz", "نوروز", 1, 2),
+        ir_solar("Nowruz", "نوروز", 1, 3),
+        ir_solar("Nowruz", "نوروز", 1, 4),
+        ir_solar("Islamic Republic Day", "روز جمهوری اسلامی", 1, 12),
+        ir_solar("Nature Day (Sizdah Bedar)", "روز طبیعت", 1, 13),
+        ir_solar("Demise of Imam Khomeini", "رحلت امام خمینی", 3, 14),
+        ir_solar("15 Khordad Uprising", "قیام ۱۵ خرداد", 3, 15),
+        ir_solar(
+            "Victory of the Islamic Revolution",
+            "پیروزی انقلاب اسلامی",
+            11,
+            22,
+        ),
+        ir_solar(
+            "Nationalisation of the Oil Industry",
+            "ملی‌شدن صنعت نفت",
+            12,
+            29,
+        ),
+        ir_hijri("Tasu'a", "تاسوعای حسینی", 1, 9),
+        ir_hijri("Ashura", "عاشورای حسینی", 1, 10),
+        ir_hijri("Arba'een", "اربعین حسینی", 2, 20),
+        ir_hijri(
+            "Demise of the Prophet and Martyrdom of Imam Hasan",
+            "رحلت رسول اکرم و شهادت امام حسن مجتبی",
+            2,
+            28,
+        ),
+        // The last day of Safar, which the tabular calendar gives 29 days and
+        // a sighted one sometimes 30.
+        HolidayRule::fixed_public(
+            "Martyrdom of Imam Reza",
+            "شهادت امام رضا",
+            Rule::Offset {
+                base: &IR_RABI_AL_AWWAL,
+                days: -1,
+            },
+        )
+        .approximate(),
+        ir_hijri(
+            "Martyrdom of Imam Hasan al-Askari",
+            "شهادت امام حسن عسکری",
+            3,
+            8,
+        ),
+        ir_hijri(
+            "Birth of the Prophet and Imam Ja'far al-Sadiq",
+            "ولادت رسول اکرم و امام جعفر صادق",
+            3,
+            17,
+        ),
+        ir_hijri("Martyrdom of Fatima", "شهادت حضرت فاطمه زهرا", 6, 3),
+        ir_hijri("Birth of Imam Ali", "ولادت امام علی", 7, 13),
+        ir_hijri("Mab'ath", "مبعث رسول اکرم", 7, 27),
+        ir_hijri("Birth of Imam Mahdi", "ولادت حضرت قائم", 8, 15),
+        ir_hijri("Martyrdom of Imam Ali", "شهادت امام علی", 9, 21),
+        ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 1),
+        ir_hijri("Eid al-Fitr", "عید سعید فطر", 10, 2),
+        ir_hijri(
+            "Martyrdom of Imam Ja'far al-Sadiq",
+            "شهادت امام جعفر صادق",
+            10,
+            25,
+        ),
+        ir_hijri("Eid al-Adha", "عید سعید قربان", 12, 10),
+        ir_hijri("Eid al-Ghadir", "عید سعید غدیر خم", 12, 18),
+    ],
+);
 
 /// Iran.
 ///
@@ -470,45 +486,53 @@ const fn sa_fitr(day: i16) -> HolidayRule {
     .approximate()
 }
 
-static SA_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("Founding Day", "يوم التأسيس", Rule::gregorian(2, 22))
-        .years(Some(2022), None),
-    // The Umm al-Qurā calendar is Saudi Arabia's own civil calendar, so its
-    // holidays are dated in it. It remains a computation: the Eid dates are
-    // proclaimed on a sighting. Article 24 of the Labour Law's executive
-    // regulation: Eid al-Fitr "أربعة أيام تبدأ من اليوم التالي لليوم التاسع
-    // والعشرين من شهر رمضان", four days from the day after 29 Ramadan.
-    sa_fitr(1),
-    sa_fitr(2),
-    sa_fitr(3),
-    sa_fitr(4),
-    HolidayRule::fixed_public(
-        "Day of Arafah",
-        "يوم عرفة",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 9),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 10),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 11),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 12),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(9, 23))
-        .years(Some(2005), None),
-];
+/// The first year the sources read answer for: the Labour Law's executive
+/// regulation, article 24, as published in April 2025; the regulation's own
+/// date was not read.
+const SA_READ_FROM: i32 = 2025;
+
+static SA_RULES: &[HolidayRule] = &read_all(
+    SA_READ_FROM,
+    [
+        HolidayRule::fixed_public("Founding Day", "يوم التأسيس", Rule::gregorian(2, 22))
+            .years(Some(2022), None),
+        // The Umm al-Qurā calendar is Saudi Arabia's own civil calendar, so its
+        // holidays are dated in it. It remains a computation: the Eid dates are
+        // proclaimed on a sighting. Article 24 of the Labour Law's executive
+        // regulation: Eid al-Fitr "أربعة أيام تبدأ من اليوم التالي لليوم التاسع
+        // والعشرين من شهر رمضان", four days from the day after 29 Ramadan.
+        sa_fitr(1),
+        sa_fitr(2),
+        sa_fitr(3),
+        sa_fitr(4),
+        HolidayRule::fixed_public(
+            "Day of Arafah",
+            "يوم عرفة",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 9),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 10),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 11),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_UMM_AL_QURA, 12, 12),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(9, 23))
+            .years(Some(2005), None),
+    ],
+);
 
 /// Saudi Arabia.
 ///
@@ -598,78 +622,86 @@ static AE_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static AE_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    // The Government portal and the FAHR circular of 17 March 2025 give
-    // Eid al-Fitr as 1 to 3 Shawwal, with 30 Ramadan too "should the holy
-    // month of Ramadan complete 30 days". The tabular calendar always gives
-    // Ramadan thirty days, so the thirtieth is always predicted.
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 9, 30),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Day of Arafah",
-        "يوم عرفة",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 9),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
+/// The first year the sources read answer for: Cabinet Resolution No. 27 of
+/// 2024, in force from 1 January 2025; the Resolution of 2019 it repealed was
+/// not read.
+const AE_READ_FROM: i32 = 2025;
+
+static AE_RULES: &[HolidayRule] = &read_all(
+    AE_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        // The Government portal and the FAHR circular of 17 March 2025 give
+        // Eid al-Fitr as 1 to 3 Shawwal, with 30 Ramadan too "should the holy
+        // month of Ramadan complete 30 days". The tabular calendar always gives
+        // Ramadan thirty days, so the thirtieth is always predicted.
+        HolidayRule::fixed_public(
+            "Eid al-Fitr",
+            "عيد الفطر",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 9, 30),
+        )
         .approximate(),
-    HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
-    HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(11, 30))
-        .years(Some(2015), Some(2018)),
-    // Not on the list of Cabinet Resolution 27 of 2024 as the Government
-    // portal gives it, in force from 2025.
-    HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(12, 1))
-        .years(Some(2019), Some(2024)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
-        .years(None, Some(2024)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
-        .years(None, Some(2024)),
-    // FAHR circular 11 of 17 November 2025: Monday 1 and Tuesday 2 December,
-    // work resuming on Wednesday 3 December.
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 1))
-        .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
-        .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
-        .years(Some(2026), None),
-];
+        HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Fitr",
+            "عيد الفطر",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Fitr",
+            "عيد الفطر",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Day of Arafah",
+            "يوم عرفة",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 9),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
+            .approximate(),
+        HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
+        HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(11, 30))
+            .years(Some(2015), Some(2018)),
+        // Not on the list of Cabinet Resolution 27 of 2024 as the Government
+        // portal gives it, in force from 2025.
+        HolidayRule::fixed_public("Commemoration Day", "يوم الشهيد", Rule::gregorian(12, 1))
+            .years(Some(2019), Some(2024)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+            .years(None, Some(2024)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
+            .years(None, Some(2024)),
+        // FAHR circular 11 of 17 November 2025: Monday 1 and Tuesday 2 December,
+        // work resuming on Wednesday 3 December.
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 1))
+            .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+            .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 2))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 3))
+            .years(Some(2026), None),
+    ],
+);
 
 /// The United Arab Emirates.
 ///
@@ -716,79 +748,86 @@ pub static UNITED_ARAB_EMIRATES: RuleSet = RuleSet {
 // Turkey
 // ─────────────────────────────────────────────────────────────────────────
 
-static TR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Yılbaşı", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "National Sovereignty and Children's Day",
-        "Ulusal Egemenlik ve Çocuk Bayramı",
-        Rule::gregorian(4, 23),
-    )
-    .years(Some(1921), None),
-    HolidayRule::fixed_public(
-        "Labour and Solidarity Day",
-        "Emek ve Dayanışma Günü",
-        Rule::gregorian(5, 1),
-    )
-    .years(Some(2009), None),
-    HolidayRule::fixed_public(
-        "Commemoration of Atatürk, Youth and Sports Day",
-        "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
-        Rule::gregorian(5, 19),
-    ),
-    HolidayRule::fixed_public("Ramazan Bayramı", "Ramazan Bayramı", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public(
-        "Ramazan Bayramı",
-        "Ramazan Bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Ramazan Bayramı",
-        "Ramazan Bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Democracy and National Unity Day",
-        "Demokrasi ve Millî Birlik Günü",
-        Rule::gregorian(7, 15),
-    )
-    .years(Some(2017), None),
-    HolidayRule::fixed_public("Kurban Bayramı", "Kurban Bayramı", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public(
-        "Kurban Bayramı",
-        "Kurban Bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Kurban Bayramı",
-        "Kurban Bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Kurban Bayramı",
-        "Kurban Bayramı",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 13),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Victory Day", "Zafer Bayramı", Rule::gregorian(8, 30)),
-    HolidayRule::fixed_public(
-        "Republic Day",
-        "Cumhuriyet Bayramı",
-        Rule::gregorian(10, 29),
-    )
-    .years(Some(1923), None),
-    // Geçici madde 1, added by Kanun 4500 of 28 December 1999: "31 Aralık
-    // 1999 tarihi tam gün genel tatildir."
-    HolidayRule::fixed_public(
-        "General holiday of 31 December 1999",
-        "Genel tatil",
-        Rule::gregorian(12, 31),
-    )
-    .years(Some(1999), Some(1999)),
-];
+/// The first year the sources read answer for: Law 2429 of 17 March 1981,
+/// whose text and amendments were read.
+const TR_READ_FROM: i32 = 1981;
+
+static TR_RULES: &[HolidayRule] = &read_all(
+    TR_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Yılbaşı", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "National Sovereignty and Children's Day",
+            "Ulusal Egemenlik ve Çocuk Bayramı",
+            Rule::gregorian(4, 23),
+        )
+        .years(Some(1921), None),
+        HolidayRule::fixed_public(
+            "Labour and Solidarity Day",
+            "Emek ve Dayanışma Günü",
+            Rule::gregorian(5, 1),
+        )
+        .years(Some(2009), None),
+        HolidayRule::fixed_public(
+            "Commemoration of Atatürk, Youth and Sports Day",
+            "Atatürk'ü Anma, Gençlik ve Spor Bayramı",
+            Rule::gregorian(5, 19),
+        ),
+        HolidayRule::fixed_public("Ramazan Bayramı", "Ramazan Bayramı", EID_AL_FITR).approximate(),
+        HolidayRule::fixed_public(
+            "Ramazan Bayramı",
+            "Ramazan Bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Ramazan Bayramı",
+            "Ramazan Bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 3),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Democracy and National Unity Day",
+            "Demokrasi ve Millî Birlik Günü",
+            Rule::gregorian(7, 15),
+        )
+        .years(Some(2017), None),
+        HolidayRule::fixed_public("Kurban Bayramı", "Kurban Bayramı", EID_AL_ADHA).approximate(),
+        HolidayRule::fixed_public(
+            "Kurban Bayramı",
+            "Kurban Bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Kurban Bayramı",
+            "Kurban Bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 12),
+        )
+        .approximate(),
+        HolidayRule::fixed_public(
+            "Kurban Bayramı",
+            "Kurban Bayramı",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 13),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("Victory Day", "Zafer Bayramı", Rule::gregorian(8, 30)),
+        HolidayRule::fixed_public(
+            "Republic Day",
+            "Cumhuriyet Bayramı",
+            Rule::gregorian(10, 29),
+        )
+        .years(Some(1923), None),
+        // Geçici madde 1, added by Kanun 4500 of 28 December 1999: "31 Aralık
+        // 1999 tarihi tam gün genel tatildir."
+        HolidayRule::fixed_public(
+            "General holiday of 31 December 1999",
+            "Genel tatil",
+            Rule::gregorian(12, 31),
+        )
+        .years(Some(1999), Some(1999)),
+    ],
+);
 
 /// Türkiye.
 pub static TURKEY: RuleSet = RuleSet {
@@ -817,70 +856,78 @@ pub static TURKEY: RuleSet = RuleSet {
 // Egypt
 // ─────────────────────────────────────────────────────────────────────────
 
-static EG_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Coptic Christmas",
-        "عيد الميلاد المجيد",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "عيد ثورة 25 يناير",
-        Rule::gregorian(1, 25),
-    )
-    .years(Some(2012), None),
-    HolidayRule::fixed_public(
-        "Sinai Liberation Day",
-        "عيد تحرير سيناء",
-        Rule::gregorian(4, 25),
-    )
-    .years(Some(1982), None),
-    // Sham El-Nessim is the day after Coptic Easter, which follows the
-    // Julian computus.
-    HolidayRule::fixed_public("Sham El-Nessim", "شم النسيم", Rule::paschal(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "30 June Revolution",
-        "عيد ثورة 30 يونيو",
-        Rule::gregorian(6, 30),
-    )
-    .years(Some(2014), None),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "عيد ثورة 23 يوليو",
-        Rule::gregorian(7, 23),
-    ),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "عيد القوات المسلحة",
-        Rule::gregorian(10, 6),
-    ),
-    // Decree 294 of 2025: two days of Eid al-Fitr, and the Day of Arafat
-    // with the first two of Eid al-Adha.
-    HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Fitr",
-        "عيد الفطر",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::fixed_public(
-        "Day of Arafat",
-        "يوم عرفة",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 9),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
-    HolidayRule::fixed_public(
-        "Eid al-Adha",
-        "عيد الأضحى",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate(),
-    HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
+/// The first year the sources read answer for: Labour Law No. 14 of 2025, in
+/// force from 1 September 2025, so that 2026 is its first whole year; Law 12
+/// of 2003, which it repealed, was not read.
+const EG_READ_FROM: i32 = 2026;
+
+static EG_RULES: &[HolidayRule] = &read_all(
+    EG_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "Coptic Christmas",
+            "عيد الميلاد المجيد",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "عيد ثورة 25 يناير",
+            Rule::gregorian(1, 25),
+        )
+        .years(Some(2012), None),
+        HolidayRule::fixed_public(
+            "Sinai Liberation Day",
+            "عيد تحرير سيناء",
+            Rule::gregorian(4, 25),
+        )
+        .years(Some(1982), None),
+        // Sham El-Nessim is the day after Coptic Easter, which follows the
+        // Julian computus.
+        HolidayRule::fixed_public("Sham El-Nessim", "شم النسيم", Rule::paschal(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "30 June Revolution",
+            "عيد ثورة 30 يونيو",
+            Rule::gregorian(6, 30),
+        )
+        .years(Some(2014), None),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "عيد ثورة 23 يوليو",
+            Rule::gregorian(7, 23),
+        ),
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "عيد القوات المسلحة",
+            Rule::gregorian(10, 6),
+        ),
+        // Decree 294 of 2025: two days of Eid al-Fitr, and the Day of Arafat
+        // with the first two of Eid al-Adha.
+        HolidayRule::fixed_public("Eid al-Fitr", "عيد الفطر", EID_AL_FITR).approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Fitr",
+            "عيد الفطر",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
         .approximate(),
-    HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
-];
+        HolidayRule::fixed_public(
+            "Day of Arafat",
+            "يوم عرفة",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 9),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("Eid al-Adha", "عيد الأضحى", EID_AL_ADHA).approximate(),
+        HolidayRule::fixed_public(
+            "Eid al-Adha",
+            "عيد الأضحى",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate(),
+        HolidayRule::fixed_public("Islamic New Year", "رأس السنة الهجرية", HIJRI_NEW_YEAR)
+            .approximate(),
+        HolidayRule::fixed_public("Prophet's Birthday", "المولد النبوي", MAWLID).approximate(),
+    ],
+);
 
 /// Egypt.
 ///
@@ -914,33 +961,41 @@ pub static EGYPT: RuleSet = RuleSet {
 // Nigeria and South Africa
 // ─────────────────────────────────────────────────────────────────────────
 
-static NG_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Democracy Day", "", Rule::gregorian(5, 29)).years(Some(2000), Some(2018)),
-    HolidayRule::public("Democracy Day", "", Rule::gregorian(6, 12)).years(Some(2019), None),
-    HolidayRule::public("Eid al-Fitr", "Eid-el-Fitr", EID_AL_FITR).approximate(),
-    HolidayRule::public(
-        "Eid al-Fitr",
-        "Eid-el-Fitr",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
-    )
-    .approximate(),
-    HolidayRule::public("Eid al-Adha", "Eid-el-Kabir", EID_AL_ADHA).approximate(),
-    HolidayRule::public(
-        "Eid al-Adha",
-        "Eid-el-Kabir",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
-    )
-    .approximate(),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(10, 1)).years(Some(1960), None),
-    HolidayRule::public("Mawlid", "Eid-el-Mawlid", MAWLID).approximate(),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    // Not in the Schedule: the Minister's declarations add it each year.
-    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)).approximate(),
-];
+/// The first year the sources read answer for: the Laws of the Federation of
+/// Nigeria 2004 text of the Public Holidays Act, Cap. P40, the edition read.
+const NG_READ_FROM: i32 = 2004;
+
+static NG_RULES: &[HolidayRule] = &read_all(
+    NG_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Democracy Day", "", Rule::gregorian(5, 29))
+            .years(Some(2000), Some(2018)),
+        HolidayRule::public("Democracy Day", "", Rule::gregorian(6, 12)).years(Some(2019), None),
+        HolidayRule::public("Eid al-Fitr", "Eid-el-Fitr", EID_AL_FITR).approximate(),
+        HolidayRule::public(
+            "Eid al-Fitr",
+            "Eid-el-Fitr",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 10, 2),
+        )
+        .approximate(),
+        HolidayRule::public("Eid al-Adha", "Eid-el-Kabir", EID_AL_ADHA).approximate(),
+        HolidayRule::public(
+            "Eid al-Adha",
+            "Eid-el-Kabir",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 12, 11),
+        )
+        .approximate(),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(10, 1)).years(Some(1960), None),
+        HolidayRule::public("Mawlid", "Eid-el-Mawlid", MAWLID).approximate(),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        // Not in the Schedule: the Minister's declarations add it each year.
+        HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)).approximate(),
+    ],
+);
 
 static SUNDAY_FORWARD: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     trigger: &[Weekday::Sunday],
@@ -982,21 +1037,29 @@ pub static NIGERIA: RuleSet = RuleSet {
     subdivisions: Subdivisions::Read(&[]),
 };
 
-static ZA_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Human Rights Day", "", Rule::gregorian(3, 21)).years(Some(1995), None),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Family Day", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Freedom Day", "", Rule::gregorian(4, 27)).years(Some(1995), None),
-    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Youth Day", "", Rule::gregorian(6, 16)).years(Some(1995), None),
-    HolidayRule::public("National Women's Day", "", Rule::gregorian(8, 9)).years(Some(1995), None),
-    HolidayRule::public("Heritage Day", "", Rule::gregorian(9, 24)).years(Some(1995), None),
-    HolidayRule::public("Day of Reconciliation", "", Rule::gregorian(12, 16))
-        .years(Some(1995), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Day of Goodwill", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act 36 of
+/// 1994, in force 1 January 1995.
+const ZA_READ_FROM: i32 = 1995;
+
+static ZA_RULES: &[HolidayRule] = &read_all(
+    ZA_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Human Rights Day", "", Rule::gregorian(3, 21)).years(Some(1995), None),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Family Day", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Freedom Day", "", Rule::gregorian(4, 27)).years(Some(1995), None),
+        HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Youth Day", "", Rule::gregorian(6, 16)).years(Some(1995), None),
+        HolidayRule::public("National Women's Day", "", Rule::gregorian(8, 9))
+            .years(Some(1995), None),
+        HolidayRule::public("Heritage Day", "", Rule::gregorian(9, 24)).years(Some(1995), None),
+        HolidayRule::public("Day of Reconciliation", "", Rule::gregorian(12, 16))
+            .years(Some(1995), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Day of Goodwill", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// South Africa.
 pub static SOUTH_AFRICA: RuleSet = RuleSet {
@@ -1035,30 +1098,37 @@ static KE_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static KE_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Madaraka Day", "", Rule::gregorian(6, 1)),
-    HolidayRule::public("Idd-ul-Fitr", "", EID_AL_FITR).approximate(),
-    // Utamaduni Day in the Act's 2022 text, Huduma Day and Moi Day before
-    // that, and Mazingira Day in the source's current table; the renamings
-    // are not dated by the sources and are not carried.
-    HolidayRule::public("Mazingira Day", "", Rule::gregorian(10, 10)),
-    HolidayRule::public("Mashujaa Day", "", Rule::gregorian(10, 20)),
-    HolidayRule::public("Jamhuri Day", "", Rule::gregorian(12, 12)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-    // Parts II and III of the Schedule: public holidays for all persons of
-    // the Islamic and Hindu faiths respectively, and not for others.
-    HolidayRule::observance("Idd-ul-Azha", "", EID_AL_ADHA)
-        .of_kind(Kind::Religious)
-        .approximate(),
-    HolidayRule::observance("Diwali", "", DIWALI)
-        .of_kind(Kind::Religious)
-        .approximate(),
-];
+/// The first year the sources read answer for: the Revised Edition 2022 of
+/// the Public Holidays Act, Cap. 110, the edition read.
+const KE_READ_FROM: i32 = 2022;
+
+static KE_RULES: &[HolidayRule] = &read_all(
+    KE_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Madaraka Day", "", Rule::gregorian(6, 1)),
+        HolidayRule::public("Idd-ul-Fitr", "", EID_AL_FITR).approximate(),
+        // Utamaduni Day in the Act's 2022 text, Huduma Day and Moi Day before
+        // that, and Mazingira Day in the source's current table; the renamings
+        // are not dated by the sources and are not carried.
+        HolidayRule::public("Mazingira Day", "", Rule::gregorian(10, 10)),
+        HolidayRule::public("Mashujaa Day", "", Rule::gregorian(10, 20)),
+        HolidayRule::public("Jamhuri Day", "", Rule::gregorian(12, 12)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+        // Parts II and III of the Schedule: public holidays for all persons of
+        // the Islamic and Hindu faiths respectively, and not for others.
+        HolidayRule::observance("Idd-ul-Azha", "", EID_AL_ADHA)
+            .of_kind(Kind::Religious)
+            .approximate(),
+        HolidayRule::observance("Diwali", "", DIWALI)
+            .of_kind(Kind::Religious)
+            .approximate(),
+    ],
+);
 
 /// Kenya.
 ///
@@ -1110,50 +1180,57 @@ static MA_EID_AL_FITR: Rule = EID_AL_FITR;
 static MA_EID_AL_ADHA: Rule = EID_AL_ADHA;
 static MA_MAWLID: Rule = MAWLID;
 
-static MA_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Proclamation of Independence Day",
-        "Manifeste de l'indépendance",
-        Rule::gregorian(1, 11),
-    ),
-    // Declared a national holiday on 3 May 2023, so kept from 2024.
-    HolidayRule::fixed_public(
-        "Amazigh New Year",
-        "Nouvel An Amazigh",
-        Rule::gregorian(1, 14),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Throne Day", "Fête du Trône", Rule::gregorian(7, 30)),
-    HolidayRule::fixed_public(
-        "Oued Ed-Dahab Allegiance Day",
-        "Allégeance Oued Eddahab",
-        Rule::gregorian(8, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Revolution of the King and the People",
-        "Révolution du Roi et du Peuple",
-        Rule::gregorian(8, 20),
-    ),
-    HolidayRule::fixed_public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(8, 21)),
-    // Established on 4 November 2025, so first kept in 2026.
-    HolidayRule::fixed_public("Unity Day", "Fête de l'Unité", Rule::gregorian(10, 31))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("Green March Day", "Marche verte", Rule::gregorian(11, 6)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Fête de l'indépendance",
-        Rule::gregorian(11, 18),
-    ),
-    HolidayRule::fixed_public("Islamic New Year", "1er Moharram", HIJRI_NEW_YEAR).approximate(),
-    ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[0],
-    ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[1],
-    ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[0],
-    ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[1],
-    ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[0],
-    ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[1],
-];
+/// The first year the sources read answer for: décret n° 2-77-169 of 28
+/// February 1977, which the later décrets amend.
+const MA_READ_FROM: i32 = 1977;
+
+static MA_RULES: &[HolidayRule] = &read_all(
+    MA_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Proclamation of Independence Day",
+            "Manifeste de l'indépendance",
+            Rule::gregorian(1, 11),
+        ),
+        // Declared a national holiday on 3 May 2023, so kept from 2024.
+        HolidayRule::fixed_public(
+            "Amazigh New Year",
+            "Nouvel An Amazigh",
+            Rule::gregorian(1, 14),
+        )
+        .years(Some(2024), None),
+        HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Throne Day", "Fête du Trône", Rule::gregorian(7, 30)),
+        HolidayRule::fixed_public(
+            "Oued Ed-Dahab Allegiance Day",
+            "Allégeance Oued Eddahab",
+            Rule::gregorian(8, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Revolution of the King and the People",
+            "Révolution du Roi et du Peuple",
+            Rule::gregorian(8, 20),
+        ),
+        HolidayRule::fixed_public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(8, 21)),
+        // Established on 4 November 2025, so first kept in 2026.
+        HolidayRule::fixed_public("Unity Day", "Fête de l'Unité", Rule::gregorian(10, 31))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("Green March Day", "Marche verte", Rule::gregorian(11, 6)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Fête de l'indépendance",
+            Rule::gregorian(11, 18),
+        ),
+        HolidayRule::fixed_public("Islamic New Year", "1er Moharram", HIJRI_NEW_YEAR).approximate(),
+        ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[0],
+        ma_two_days("Mawlid", "Aïd al-Mawlid", &MA_MAWLID)[1],
+        ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[0],
+        ma_two_days("Eid al-Fitr", "Aïd al-Fitr", &MA_EID_AL_FITR)[1],
+        ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[0],
+        ma_two_days("Eid al-Adha", "Aïd al-Adha", &MA_EID_AL_ADHA)[1],
+    ],
+);
 
 /// Morocco.
 ///
@@ -1197,52 +1274,59 @@ const fn et_ethiopic(name: &'static str, local: &'static str, month: u8, day: u8
     )
 }
 
-static ET_RULES: &[HolidayRule] = &[
-    // Tahsas 29: 7 January, and 8 January in a Gregorian leap year.
-    et_ethiopic("Genna", "ገና", 4, 29),
-    // Tirr 11: 19 January, and 20 January in a Gregorian leap year.
-    et_ethiopic("Timkat", "ጥምቀት", 5, 11),
-    // Yekatit 23: 2 March.
-    et_ethiopic("Adwa Victory Day", "የዓድዋ ድል በዓል", 6, 23),
-    HolidayRule::fixed_public("Good Friday", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Fasika", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "International Workers' Day",
-        "ዓለም አቀፍ የሠራተኞች ቀን",
-        Rule::gregorian(5, 1),
-    ),
-    // Miyazya 27: 5 May.
-    et_ethiopic("Patriots' Victory Day", "የአርበኞች ቀን", 8, 27),
-    // Ginbot 20: 28 May. The anniversary of 28 May 1991, so not before
-    // 1992; the instrument that made it a holiday was not read. Proclamation
-    // 1334/2024, in force on its publication on 14 August 2024, does not
-    // name it at all, so 28 May 2024 was the last.
-    et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20).years(Some(1992), Some(2024)),
-    // Article 5's memorial national holidays, on which offices stay open
-    // (article 5(2)): Hidar 29, printed "december 09", from the first after
-    // the proclamation, and Yekatit 12, printed "february 20".
-    HolidayRule::observance(
-        "Nations, Nationalities and Peoples' Day",
-        "",
-        Rule::in_calendar(CalendarSystem::ETHIOPIC, 3, 29),
-    )
-    .years(Some(2024), None),
-    HolidayRule::observance(
-        "Martyrs' Day",
-        "",
-        Rule::in_calendar(CalendarSystem::ETHIOPIC, 6, 12),
-    )
-    .years(Some(2025), None),
-    // Mäskäräm 1: 11 September, and 12 September before a Gregorian leap
-    // year.
-    et_ethiopic("Enkutatash", "እንቁጣጣሽ", 1, 1),
-    // Mäskäräm 17: 27 September, and 28 September before a Gregorian leap
-    // year.
-    et_ethiopic("Meskel", "መስቀል", 1, 17),
-    HolidayRule::fixed_public("Mawlid", "", MAWLID).approximate(),
-    HolidayRule::fixed_public("Eid al-Fitr", "", EID_AL_FITR).approximate(),
-    HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
-];
+/// The first year the sources read answer for: Proclamation No. 1334/2024 of
+/// 14 August 2024.
+const ET_READ_FROM: i32 = 2024;
+
+static ET_RULES: &[HolidayRule] = &read_all(
+    ET_READ_FROM,
+    [
+        // Tahsas 29: 7 January, and 8 January in a Gregorian leap year.
+        et_ethiopic("Genna", "ገና", 4, 29),
+        // Tirr 11: 19 January, and 20 January in a Gregorian leap year.
+        et_ethiopic("Timkat", "ጥምቀት", 5, 11),
+        // Yekatit 23: 2 March.
+        et_ethiopic("Adwa Victory Day", "የዓድዋ ድል በዓል", 6, 23),
+        HolidayRule::fixed_public("Good Friday", "ስቅለት", Rule::paschal(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Fasika", "ፋሲካ", Rule::paschal(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "International Workers' Day",
+            "ዓለም አቀፍ የሠራተኞች ቀን",
+            Rule::gregorian(5, 1),
+        ),
+        // Miyazya 27: 5 May.
+        et_ethiopic("Patriots' Victory Day", "የአርበኞች ቀን", 8, 27),
+        // Ginbot 20: 28 May. The anniversary of 28 May 1991, so not before
+        // 1992; the instrument that made it a holiday was not read. Proclamation
+        // 1334/2024, in force on its publication on 14 August 2024, does not
+        // name it at all, so 28 May 2024 was the last.
+        et_ethiopic("Downfall of the Derg", "ደርግ የወደቀበት ቀን", 9, 20).years(Some(1992), Some(2024)),
+        // Article 5's memorial national holidays, on which offices stay open
+        // (article 5(2)): Hidar 29, printed "december 09", from the first after
+        // the proclamation, and Yekatit 12, printed "february 20".
+        HolidayRule::observance(
+            "Nations, Nationalities and Peoples' Day",
+            "",
+            Rule::in_calendar(CalendarSystem::ETHIOPIC, 3, 29),
+        )
+        .years(Some(2024), None),
+        HolidayRule::observance(
+            "Martyrs' Day",
+            "",
+            Rule::in_calendar(CalendarSystem::ETHIOPIC, 6, 12),
+        )
+        .years(Some(2025), None),
+        // Mäskäräm 1: 11 September, and 12 September before a Gregorian leap
+        // year.
+        et_ethiopic("Enkutatash", "እንቁጣጣሽ", 1, 1),
+        // Mäskäräm 17: 27 September, and 28 September before a Gregorian leap
+        // year.
+        et_ethiopic("Meskel", "መስቀል", 1, 17),
+        HolidayRule::fixed_public("Mawlid", "", MAWLID).approximate(),
+        HolidayRule::fixed_public("Eid al-Fitr", "", EID_AL_FITR).approximate(),
+        HolidayRule::fixed_public("Eid al-Adha", "", EID_AL_ADHA).approximate(),
+    ],
+);
 
 /// Ethiopia.
 ///
@@ -1286,48 +1370,55 @@ pub static ETHIOPIA: RuleSet = RuleSet {
 // ─────────────────────────────────────────────────────────────────────────
 
 /// A holiday of the Public Holidays and Commemorative Days Act as it has
-/// stood since the 2019 amendment, from which the table begins.
+/// stood since the 2019 amendment, from which the table is read.
 const fn gh(name: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", rule).years(Some(2019), None)
+    HolidayRule::fixed_public(name, "", rule)
 }
 
 static GH_EID_AL_FITR: Rule = EID_AL_FITR;
 
-static GH_RULES: &[HolidayRule] = &[
-    gh("New Year's Day", Rule::gregorian(1, 1)),
-    // First observed on 7 January 2019.
-    gh("Constitution Day", Rule::gregorian(1, 7)),
-    gh("Independence Day", Rule::gregorian(3, 6)),
-    gh("Good Friday", Rule::easter(GOOD_FRIDAY)),
-    gh("Easter Monday", Rule::easter(EASTER_MONDAY)),
-    gh("May Day", Rule::gregorian(5, 1)),
-    gh("Eid al-Fitr", EID_AL_FITR).approximate(),
-    // The day after Eid al-Fitr, added by the 2025 amendment after that
-    // year's Eid had passed, so first kept in 2026.
-    gh(
-        "Shaqq Day",
-        Rule::Offset {
-            base: &GH_EID_AL_FITR,
-            days: 1,
-        },
-    )
-    .approximate()
-    .years(Some(2026), None),
-    gh("Eid al-Adha", EID_AL_ADHA).approximate(),
-    // A commemorative day, not a holiday, from 2019 to 2024; restored as a
-    // holiday by the 2025 amendment, passed on 25 June 2025.
-    gh("Republic Day", Rule::gregorian(7, 1)).years(Some(2025), None),
-    // The 2019 amendment's Founders' Day, repealed in 2025.
-    gh("Founders' Day", Rule::gregorian(8, 4)).years(Some(2019), Some(2024)),
-    // 21 September: Kwame Nkrumah Memorial Day under the 2019 amendment,
-    // Founders' Day again from 2025.
-    gh("Kwame Nkrumah Memorial Day", Rule::gregorian(9, 21)).years(Some(2019), Some(2024)),
-    gh("Founders' Day", Rule::gregorian(9, 21)).years(Some(2025), None),
-    // The first Friday of December, since 1988.
-    gh("Farmers' Day", Rule::nth(12, 1, Weekday::Friday)),
-    gh("Christmas Day", Rule::gregorian(12, 25)),
-    gh("Boxing Day", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the 2019 list of public
+/// holidays, the oldest list read.
+const GH_READ_FROM: i32 = 2019;
+
+static GH_RULES: &[HolidayRule] = &read_all(
+    GH_READ_FROM,
+    [
+        gh("New Year's Day", Rule::gregorian(1, 1)),
+        // First observed on 7 January 2019.
+        gh("Constitution Day", Rule::gregorian(1, 7)).years(Some(2019), None),
+        gh("Independence Day", Rule::gregorian(3, 6)),
+        gh("Good Friday", Rule::easter(GOOD_FRIDAY)),
+        gh("Easter Monday", Rule::easter(EASTER_MONDAY)),
+        gh("May Day", Rule::gregorian(5, 1)),
+        gh("Eid al-Fitr", EID_AL_FITR).approximate(),
+        // The day after Eid al-Fitr, added by the 2025 amendment after that
+        // year's Eid had passed, so first kept in 2026.
+        gh(
+            "Shaqq Day",
+            Rule::Offset {
+                base: &GH_EID_AL_FITR,
+                days: 1,
+            },
+        )
+        .approximate()
+        .years(Some(2026), None),
+        gh("Eid al-Adha", EID_AL_ADHA).approximate(),
+        // A commemorative day, not a holiday, from 2019 to 2024; restored as a
+        // holiday by the 2025 amendment, passed on 25 June 2025.
+        gh("Republic Day", Rule::gregorian(7, 1)).years(Some(2025), None),
+        // The 2019 amendment's Founders' Day, repealed in 2025.
+        gh("Founders' Day", Rule::gregorian(8, 4)).years(Some(2019), Some(2024)),
+        // 21 September: Kwame Nkrumah Memorial Day under the 2019 amendment,
+        // Founders' Day again from 2025.
+        gh("Kwame Nkrumah Memorial Day", Rule::gregorian(9, 21)).years(Some(2019), Some(2024)),
+        gh("Founders' Day", Rule::gregorian(9, 21)).years(Some(2025), None),
+        // The first Friday of December, since 1988.
+        gh("Farmers' Day", Rule::nth(12, 1, Weekday::Friday)),
+        gh("Christmas Day", Rule::gregorian(12, 25)),
+        gh("Boxing Day", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Ghana.
 ///
@@ -1380,26 +1471,32 @@ const fn hijri(name: &'static str, local: &'static str, month: u8, day: u8) -> H
     .approximate()
 }
 
-static BH_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 16)),
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 17)),
-    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Ashura", "عاشوراء", 1, 9),
-    hijri("Ashura", "عاشوراء", 1, 10),
-    hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
-];
+/// The first year the sources read answer for: Law 36 of 2012, article 64.
+const BH_READ_FROM: i32 = 2012;
+
+static BH_RULES: &[HolidayRule] = &read_all(
+    BH_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 16)),
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 17)),
+        hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Ashura", "عاشوراء", 1, 9),
+        hijri("Ashura", "عاشوراء", 1, 10),
+        hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+    ],
+);
 
 /// Bahrain.
 ///
@@ -1443,73 +1540,80 @@ const fn jo_christian(name: &'static str, local: &'static str, rule: Rule) -> Ho
     HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
 }
 
-static JO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "عيد استقلال المملكة",
-        Rule::gregorian(5, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "عيد الميلاد المجيد",
-        Rule::gregorian(12, 25),
-    ),
-    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
-    // Four days from 1 Shawwal, and five from the Day of Arafat.
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 4),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
-    // Christian employees, by the Eastern computus.
-    jo_christian(
-        "Christmas Day",
-        "عيد الميلاد المجيد",
-        Rule::gregorian(12, 26),
-    ),
-    jo_christian("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
-    jo_christian("Easter Sunday", "عيد الفصح", Rule::paschal(EASTER_SUNDAY)),
-    jo_christian("Easter Monday", "عيد الفصح", Rule::paschal(EASTER_MONDAY)),
-    // Working commemorations.
-    HolidayRule::observance(
-        "Isra and Mi'raj",
-        "ذكرى الإسراء والمعراج",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
-    )
-    .approximate(),
-    HolidayRule::observance(
-        "King Abdullah II's Birthday",
-        "ذكرى ميلاد الملك عبد الله الثاني",
-        Rule::gregorian(1, 30),
-    ),
-    HolidayRule::observance(
-        "Accession Day",
-        "ذكرى جلوس الملك عبد الله الثاني",
-        Rule::gregorian(6, 9),
-    ),
-    HolidayRule::observance(
-        "Great Arab Revolt Day",
-        "يوم الثورة العربية الكبرى",
-        Rule::gregorian(6, 10),
-    ),
-    HolidayRule::observance("Army Day", "يوم الجيش", Rule::gregorian(6, 10)),
-    HolidayRule::observance(
-        "King Hussein's Birthday",
-        "ذكرى ميلاد الملك الحسين بن طلال",
-        Rule::gregorian(11, 14),
-    ),
-];
+/// The first year the sources read answer for: the Prime Minister's Official
+/// Bulletin No. 6 of 2007.
+const JO_READ_FROM: i32 = 2007;
+
+static JO_RULES: &[HolidayRule] = &read_all(
+    JO_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "عيد استقلال المملكة",
+            Rule::gregorian(5, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "عيد الميلاد المجيد",
+            Rule::gregorian(12, 25),
+        ),
+        hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+        // Four days from 1 Shawwal, and five from the Day of Arafat.
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 4),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+        // Christian employees, by the Eastern computus.
+        jo_christian(
+            "Christmas Day",
+            "عيد الميلاد المجيد",
+            Rule::gregorian(12, 26),
+        ),
+        jo_christian("Palm Sunday", "أحد الشعانين", Rule::paschal(PALM_SUNDAY)),
+        jo_christian("Easter Sunday", "عيد الفصح", Rule::paschal(EASTER_SUNDAY)),
+        jo_christian("Easter Monday", "عيد الفصح", Rule::paschal(EASTER_MONDAY)),
+        // Working commemorations.
+        HolidayRule::observance(
+            "Isra and Mi'raj",
+            "ذكرى الإسراء والمعراج",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
+        )
+        .approximate(),
+        HolidayRule::observance(
+            "King Abdullah II's Birthday",
+            "ذكرى ميلاد الملك عبد الله الثاني",
+            Rule::gregorian(1, 30),
+        ),
+        HolidayRule::observance(
+            "Accession Day",
+            "ذكرى جلوس الملك عبد الله الثاني",
+            Rule::gregorian(6, 9),
+        ),
+        HolidayRule::observance(
+            "Great Arab Revolt Day",
+            "يوم الثورة العربية الكبرى",
+            Rule::gregorian(6, 10),
+        ),
+        HolidayRule::observance("Army Day", "يوم الجيش", Rule::gregorian(6, 10)),
+        HolidayRule::observance(
+            "King Hussein's Birthday",
+            "ذكرى ميلاد الملك الحسين بن طلال",
+            Rule::gregorian(11, 14),
+        ),
+    ],
+);
 
 /// Jordan.
 ///
@@ -1551,25 +1655,31 @@ pub static JORDAN: RuleSet = RuleSet {
 // Kuwait
 // ─────────────────────────────────────────────────────────────────────────
 
-static KW_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(2, 25)),
-    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(2, 26)),
-    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
-    hijri("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
-    hijri("Day of Arafat", "يوم الوقوف بعرفة", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
-];
+/// The first year the sources read answer for: Law 6 of 2010, article 68.
+const KW_READ_FROM: i32 = 2010;
+
+static KW_RULES: &[HolidayRule] = &read_all(
+    KW_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(2, 25)),
+        HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(2, 26)),
+        hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "المولد النبوي", 3, 12),
+        hijri("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+        hijri("Day of Arafat", "يوم الوقوف بعرفة", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+    ],
+);
 
 /// Kuwait.
 ///
@@ -1631,72 +1741,79 @@ fn lb_holy_saturday(year: i64) -> Days {
     }
 }
 
-static LB_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Armenian Orthodox Christmas",
-        "عيد الميلاد عند الطوائف الأرمنية الأرثوذكسية",
-        Rule::gregorian(1, 6),
-    )
-    .years(Some(2003), None),
-    HolidayRule::fixed_public("Saint Maron's Day", "عيد مار مارون", Rule::gregorian(2, 9)),
-    HolidayRule::fixed_public(
-        "Annunciation",
-        "عيد بشارة السيدة مريم العذراء",
-        Rule::gregorian(3, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "الجمعة العظيمة عند الطوائف الكاثوليكية",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Orthodox Good Friday",
-        "الجمعة العظيمة عند الطوائف الأرثوذكسية",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Holy Saturday",
-        "سبت النور",
-        Rule::Computed(lb_holy_saturday),
-    ),
-    HolidayRule::public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Assumption",
-        "عيد انتقال السيدة العذراء",
-        Rule::gregorian(8, 15),
-    ),
-    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 22)),
-    HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25)),
-    hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Ashura", "ذكرى عاشوراء", 1, 10),
-    hijri("Prophet's Birthday", "ذكرى المولد النبوي", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    // Commemorated on Sundays by the decree, and so no days off; and the
-    // day the Council of Ministers declares year by year.
-    HolidayRule::observance(
-        "Martyrs' Day",
-        "ذكرى الشهداء",
-        Rule::nth(5, 1, Weekday::Sunday),
-    ),
-    HolidayRule::observance(
-        "Resistance and Liberation Day",
-        "عيد المقاومة والتحرير",
-        Rule::nth(5, 2, Weekday::Sunday),
-    ),
-    HolidayRule::observance(
-        "Rafic Hariri Memorial Day",
-        "ذكرى استشهاد الرئيس رفيق الحريري",
-        Rule::gregorian(2, 14),
-    ),
-];
+/// The first year the sources read answer for: Decree 15215 of 27 September
+/// 2005.
+const LB_READ_FROM: i32 = 2005;
+
+static LB_RULES: &[HolidayRule] = &read_all(
+    LB_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Armenian Orthodox Christmas",
+            "عيد الميلاد عند الطوائف الأرمنية الأرثوذكسية",
+            Rule::gregorian(1, 6),
+        )
+        .years(Some(2003), None),
+        HolidayRule::fixed_public("Saint Maron's Day", "عيد مار مارون", Rule::gregorian(2, 9)),
+        HolidayRule::fixed_public(
+            "Annunciation",
+            "عيد بشارة السيدة مريم العذراء",
+            Rule::gregorian(3, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "الجمعة العظيمة عند الطوائف الكاثوليكية",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Orthodox Good Friday",
+            "الجمعة العظيمة عند الطوائف الأرثوذكسية",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Holy Saturday",
+            "سبت النور",
+            Rule::Computed(lb_holy_saturday),
+        ),
+        HolidayRule::public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Assumption",
+            "عيد انتقال السيدة العذراء",
+            Rule::gregorian(8, 15),
+        ),
+        HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 22)),
+        HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25)),
+        hijri("Hijri New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Ashura", "ذكرى عاشوراء", 1, 10),
+        hijri("Prophet's Birthday", "ذكرى المولد النبوي", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        // Commemorated on Sundays by the decree, and so no days off; and the
+        // day the Council of Ministers declares year by year.
+        HolidayRule::observance(
+            "Martyrs' Day",
+            "ذكرى الشهداء",
+            Rule::nth(5, 1, Weekday::Sunday),
+        ),
+        HolidayRule::observance(
+            "Resistance and Liberation Day",
+            "عيد المقاومة والتحرير",
+            Rule::nth(5, 2, Weekday::Sunday),
+        ),
+        HolidayRule::observance(
+            "Rafic Hariri Memorial Day",
+            "ذكرى استشهاد الرئيس رفيق الحريري",
+            Rule::gregorian(2, 14),
+        ),
+    ],
+);
 
 /// Lebanon.
 ///
@@ -1761,46 +1878,53 @@ const fn hijri_public(name: &'static str, local: &'static str, month: u8, day: u
     .approximate()
 }
 
-static TZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Mwaka Mpya", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Zanzibar Revolution Day",
-        "Sikukuu ya Mapinduzi ya Zanzibar",
-        Rule::gregorian(1, 12),
-    ),
-    hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 1),
-    hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 2),
-    HolidayRule::public("Good Friday", "Ijumaa Kuu", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public(
-        "Easter Monday",
-        "Jumatatu ya Pasaka",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    // Declared by the President under section 3 each year, and kept every year.
-    HolidayRule::public("Karume Day", "Siku ya Karume", Rule::gregorian(4, 7)),
-    HolidayRule::public("Union Day", "Sikukuu ya Muungano", Rule::gregorian(4, 26)),
-    HolidayRule::public(
-        "International Workers' Day",
-        "Sikukuu ya Wafanyakazi",
-        Rule::gregorian(5, 1),
-    ),
-    hijri_public("Eid al-Adha", "Idd el Haji", 12, 10),
-    HolidayRule::public("Saba Saba Day", "Saba Saba", Rule::gregorian(7, 7)),
-    HolidayRule::public("Nane Nane Day", "Nane Nane", Rule::gregorian(8, 8)),
-    hijri_public("Maulid", "Maulidi", 3, 12),
-    HolidayRule::public("Nyerere Day", "Siku ya Nyerere", Rule::gregorian(10, 14)),
-    HolidayRule::public(
-        "Independence and Republic Day",
-        "Siku ya Uhuru",
-        Rule::gregorian(12, 9),
-    ),
-    HolidayRule::public("Christmas Day", "Krismasi", Rule::gregorian(12, 25)),
-    HolidayRule::public(
-        "Boxing Day",
-        "Siku ya Kufungua Zawadi",
-        Rule::gregorian(12, 26),
-    ),
-];
+/// The first year the sources read answer for: the 2026 list, the only dated
+/// list read; the Act's own date was not read.
+const TZ_READ_FROM: i32 = 2026;
+
+static TZ_RULES: &[HolidayRule] = &read_all(
+    TZ_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "Mwaka Mpya", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Zanzibar Revolution Day",
+            "Sikukuu ya Mapinduzi ya Zanzibar",
+            Rule::gregorian(1, 12),
+        ),
+        hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 1),
+        hijri_public("Eid al-Fitr", "Idd el Fitri", 10, 2),
+        HolidayRule::public("Good Friday", "Ijumaa Kuu", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public(
+            "Easter Monday",
+            "Jumatatu ya Pasaka",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        // Declared by the President under section 3 each year, and kept every year.
+        HolidayRule::public("Karume Day", "Siku ya Karume", Rule::gregorian(4, 7)),
+        HolidayRule::public("Union Day", "Sikukuu ya Muungano", Rule::gregorian(4, 26)),
+        HolidayRule::public(
+            "International Workers' Day",
+            "Sikukuu ya Wafanyakazi",
+            Rule::gregorian(5, 1),
+        ),
+        hijri_public("Eid al-Adha", "Idd el Haji", 12, 10),
+        HolidayRule::public("Saba Saba Day", "Saba Saba", Rule::gregorian(7, 7)),
+        HolidayRule::public("Nane Nane Day", "Nane Nane", Rule::gregorian(8, 8)),
+        hijri_public("Maulid", "Maulidi", 3, 12),
+        HolidayRule::public("Nyerere Day", "Siku ya Nyerere", Rule::gregorian(10, 14)),
+        HolidayRule::public(
+            "Independence and Republic Day",
+            "Siku ya Uhuru",
+            Rule::gregorian(12, 9),
+        ),
+        HolidayRule::public("Christmas Day", "Krismasi", Rule::gregorian(12, 25)),
+        HolidayRule::public(
+            "Boxing Day",
+            "Siku ya Kufungua Zawadi",
+            Rule::gregorian(12, 26),
+        ),
+    ],
+);
 
 /// Tanzania.
 ///
@@ -1833,24 +1957,31 @@ pub static TANZANIA: RuleSet = RuleSet {
 // Uganda
 // ─────────────────────────────────────────────────────────────────────────
 
-static UG_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("NRM Liberation Day", "", Rule::gregorian(1, 26)),
-    HolidayRule::fixed_public("Archbishop Janani Luwum Day", "", Rule::gregorian(2, 16))
-        .years(Some(2016), None),
-    HolidayRule::fixed_public("International Women's Day", "", Rule::gregorian(3, 8)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Uganda Martyrs' Day", "", Rule::gregorian(6, 3)),
-    HolidayRule::fixed_public("National Heroes' Day", "", Rule::gregorian(6, 9))
-        .years(Some(2001), None),
-    HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(10, 9)),
-    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)),
-    hijri("Eid al-Fitr", "Idd el Fitr", 10, 1),
-    hijri("Eid al-Adha", "Idd Adhuha", 12, 10),
-];
+/// The first year the sources read answer for: the 2026 list of the Consulate
+/// in Arusha, the only dated list read; no Act was read.
+const UG_READ_FROM: i32 = 2026;
+
+static UG_RULES: &[HolidayRule] = &read_all(
+    UG_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("NRM Liberation Day", "", Rule::gregorian(1, 26)),
+        HolidayRule::fixed_public("Archbishop Janani Luwum Day", "", Rule::gregorian(2, 16))
+            .years(Some(2016), None),
+        HolidayRule::fixed_public("International Women's Day", "", Rule::gregorian(3, 8)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Uganda Martyrs' Day", "", Rule::gregorian(6, 3)),
+        HolidayRule::fixed_public("National Heroes' Day", "", Rule::gregorian(6, 9))
+            .years(Some(2001), None),
+        HolidayRule::fixed_public("Independence Day", "", Rule::gregorian(10, 9)),
+        HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)),
+        hijri("Eid al-Fitr", "Idd el Fitr", 10, 1),
+        hijri("Eid al-Adha", "Idd Adhuha", 12, 10),
+    ],
+);
 
 /// Uganda.
 ///
@@ -1894,29 +2025,37 @@ static ZM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static ZM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("International Women's Day", "", Rule::gregorian(3, 8))
-        .years(Some(2008), None),
-    HolidayRule::public("Youth Day", "", Rule::gregorian(3, 12)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Kenneth Kaunda Day", "", Rule::gregorian(4, 28)).years(Some(2022), None),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("African Freedom Day", "", Rule::gregorian(5, 25)),
-    HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(7, 1, Weekday::Monday)),
-    HolidayRule::fixed_public("Unity Day", "", Rule::nth(7, 1, Weekday::Tuesday)),
-    HolidayRule::fixed_public("Farmers' Day", "", Rule::nth(8, 1, Weekday::Monday)),
-    HolidayRule::public(
-        "National Day of Prayer, Fasting, Repentance and Reconciliation",
-        "",
-        Rule::gregorian(10, 18),
-    )
-    .years(Some(2015), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(10, 24)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: HONO's 2026 list, the only
+/// dated list read; the Act's own date was not read.
+const ZM_READ_FROM: i32 = 2026;
+
+static ZM_RULES: &[HolidayRule] = &read_all(
+    ZM_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("International Women's Day", "", Rule::gregorian(3, 8))
+            .years(Some(2008), None),
+        HolidayRule::public("Youth Day", "", Rule::gregorian(3, 12)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Kenneth Kaunda Day", "", Rule::gregorian(4, 28))
+            .years(Some(2022), None),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("African Freedom Day", "", Rule::gregorian(5, 25)),
+        HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(7, 1, Weekday::Monday)),
+        HolidayRule::fixed_public("Unity Day", "", Rule::nth(7, 1, Weekday::Tuesday)),
+        HolidayRule::fixed_public("Farmers' Day", "", Rule::nth(8, 1, Weekday::Monday)),
+        HolidayRule::public(
+            "National Day of Prayer, Fasting, Repentance and Reconciliation",
+            "",
+            Rule::gregorian(10, 18),
+        )
+        .years(Some(2015), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(10, 24)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Zambia.
 ///
@@ -1967,31 +2106,38 @@ static ZW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static ZW_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Robert Gabriel Mugabe National Youth Day",
-        "",
-        Rule::gregorian(2, 21),
-    )
-    .years(Some(2018), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(4, 18)),
-    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
-    HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(8, 2, Weekday::Monday)),
-    HolidayRule::fixed_public(
-        "Defence Forces National Day",
-        "",
-        Rule::nth(8, 2, Weekday::Tuesday),
-    ),
-    HolidayRule::public("National Unity Day", "", Rule::gregorian(12, 22)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: General Notice 1361 of 2025,
+/// the 2026 list; the Act's own date was not read.
+const ZW_READ_FROM: i32 = 2026;
+
+static ZW_RULES: &[HolidayRule] = &read_all(
+    ZW_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Robert Gabriel Mugabe National Youth Day",
+            "",
+            Rule::gregorian(2, 21),
+        )
+        .years(Some(2018), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Sunday", "", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(4, 18)),
+        HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
+        HolidayRule::fixed_public("Heroes' Day", "", Rule::nth(8, 2, Weekday::Monday)),
+        HolidayRule::fixed_public(
+            "Defence Forces National Day",
+            "",
+            Rule::nth(8, 2, Weekday::Tuesday),
+        ),
+        HolidayRule::public("National Unity Day", "", Rule::gregorian(12, 22)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Zimbabwe.
 ///
@@ -2064,60 +2210,67 @@ const fn dz_community(name: &'static str, local: &'static str, rule: Rule) -> Ho
     HolidayRule::observance(name, local, rule).of_kind(Kind::Religious)
 }
 
-static DZ_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("Yennayer", "Yennayer", Rule::gregorian(1, 12))
-        .years(Some(2018), None),
-    HolidayRule::fixed_public("Labour Day", "Fête des travailleurs", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Fête de l'indépendance",
-        Rule::gregorian(7, 5),
-    )
-    .years(Some(1962), None),
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "Fête de la Révolution",
-        Rule::gregorian(11, 1),
-    ),
-    hijri("Islamic New Year", "Awal Mouharram", 1, 1),
-    hijri("Ashura", "Achoura", 1, 10),
-    hijri("Mawlid", "Mouloud", 3, 12),
-    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
-    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 2),
-    hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 3).years(Some(2023), None),
-    hijri("Eid al-Adha", "Aïd el-Adha", 12, 10),
-    hijri("Eid al-Adha", "Aïd el-Adha", 12, 11),
-    hijri("Eid al-Adha", "Aïd el-Adha", 12, 12).years(Some(2023), None),
-    dz_community(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    dz_community("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    dz_community(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    dz_community("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    dz_community("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    dz_community(
-        "Rosh Hashanah",
-        "Roch Hachana",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
-    ),
-    dz_community(
-        "Yom Kippur",
-        "Yom Kippour",
-        Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
-    ),
-    dz_community(
-        "Passover",
-        "Pessah",
-        Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
-    ),
-];
+/// The first year the sources read answer for: law 63-278 of 26 July 1963,
+/// articles 1, 3 and 4.
+const DZ_READ_FROM: i32 = 1963;
+
+static DZ_RULES: &[HolidayRule] = &read_all(
+    DZ_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("Yennayer", "Yennayer", Rule::gregorian(1, 12))
+            .years(Some(2018), None),
+        HolidayRule::fixed_public("Labour Day", "Fête des travailleurs", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Fête de l'indépendance",
+            Rule::gregorian(7, 5),
+        )
+        .years(Some(1962), None),
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "Fête de la Révolution",
+            Rule::gregorian(11, 1),
+        ),
+        hijri("Islamic New Year", "Awal Mouharram", 1, 1),
+        hijri("Ashura", "Achoura", 1, 10),
+        hijri("Mawlid", "Mouloud", 3, 12),
+        hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+        hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 2),
+        hijri("Eid al-Fitr", "Aïd el-Fitr", 10, 3).years(Some(2023), None),
+        hijri("Eid al-Adha", "Aïd el-Adha", 12, 10),
+        hijri("Eid al-Adha", "Aïd el-Adha", 12, 11),
+        hijri("Eid al-Adha", "Aïd el-Adha", 12, 12).years(Some(2023), None),
+        dz_community(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        dz_community("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        dz_community(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        dz_community("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        dz_community("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        dz_community(
+            "Rosh Hashanah",
+            "Roch Hachana",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 1),
+        ),
+        dz_community(
+            "Yom Kippur",
+            "Yom Kippour",
+            Rule::in_calendar(CalendarSystem::HEBREW, 1, 10),
+        ),
+        dz_community(
+            "Passover",
+            "Pessah",
+            Rule::in_calendar(CalendarSystem::HEBREW, 7, 15),
+        ),
+    ],
+);
 
 /// Algeria.
 ///
@@ -2159,66 +2312,72 @@ pub static ALGERIA: RuleSet = RuleSet {
 // Tunisia
 // ─────────────────────────────────────────────────────────────────────────
 
-static TN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    )
-    .years(Some(1961), None),
-    HolidayRule::fixed_public(
-        "Revolution and Youth Day",
-        "عيد الثورة والشباب",
-        Rule::gregorian(1, 14),
-    )
-    .years(Some(2012), Some(2021)),
-    HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(1, 18))
+// Read from 1961, the year of décret 61-144 and the decrees after it, as the
+// French Wikipedia chronicles them. Every rule below is established in 1961 or
+// later (`years`), so none is a gap before it.
+static TN_RULES: &[HolidayRule] = &read_all(
+    1961,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        )
+        .years(Some(1961), None),
+        HolidayRule::fixed_public(
+            "Revolution and Youth Day",
+            "عيد الثورة والشباب",
+            Rule::gregorian(1, 14),
+        )
+        .years(Some(2012), Some(2021)),
+        HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(1, 18))
+            .years(Some(1961), Some(1987)),
+        HolidayRule::fixed_public("Independence Day", "عيد الإستقلال", Rule::gregorian(3, 20))
+            .years(Some(1961), None),
+        HolidayRule::fixed_public("Youth Day", "عيد الشباب", Rule::gregorian(3, 21))
+            .years(Some(1988), Some(2010)),
+        HolidayRule::fixed_public("Martyrs' Day", "عيد الشهداء", Rule::gregorian(4, 9))
+            .years(Some(1961), None),
+        HolidayRule::fixed_public("Labour Day", "عيد الشغل", Rule::gregorian(5, 1))
+            .years(Some(1961), None),
+        HolidayRule::fixed_public("Victory Day", "عيد النصر", Rule::gregorian(6, 1))
+            .years(Some(1961), Some(1987)),
+        HolidayRule::fixed_public("Republic Day", "عيد الجمهورية", Rule::gregorian(7, 25))
+            .years(Some(1961), None),
+        HolidayRule::fixed_public(
+            "President Bourguiba's Birthday",
+            "عيد الزعيم",
+            Rule::gregorian(8, 3),
+        )
         .years(Some(1961), Some(1987)),
-    HolidayRule::fixed_public("Independence Day", "عيد الإستقلال", Rule::gregorian(3, 20))
-        .years(Some(1961), None),
-    HolidayRule::fixed_public("Youth Day", "عيد الشباب", Rule::gregorian(3, 21))
-        .years(Some(1988), Some(2010)),
-    HolidayRule::fixed_public("Martyrs' Day", "عيد الشهداء", Rule::gregorian(4, 9))
-        .years(Some(1961), None),
-    HolidayRule::fixed_public("Labour Day", "عيد الشغل", Rule::gregorian(5, 1))
-        .years(Some(1961), None),
-    HolidayRule::fixed_public("Victory Day", "عيد النصر", Rule::gregorian(6, 1))
-        .years(Some(1961), Some(1987)),
-    HolidayRule::fixed_public("Republic Day", "عيد الجمهورية", Rule::gregorian(7, 25))
-        .years(Some(1961), None),
-    HolidayRule::fixed_public(
-        "President Bourguiba's Birthday",
-        "عيد الزعيم",
-        Rule::gregorian(8, 3),
-    )
-    .years(Some(1961), Some(1987)),
-    HolidayRule::fixed_public("Women's Day", "عيد المرأة", Rule::gregorian(8, 13))
-        .years(Some(1966), None),
-    HolidayRule::fixed_public(
-        "Commemoration of 3 September 1934",
-        "",
-        Rule::gregorian(9, 3),
-    )
-    .years(Some(1965), Some(1987)),
-    HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(10, 15))
-        .years(Some(1964), None),
-    HolidayRule::fixed_public(
-        "Commemoration of 7 November 1987",
-        "عيد التحول المبارك",
-        Rule::gregorian(11, 7),
-    )
-    .years(Some(1990), Some(2010)),
-    HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(12, 17))
-        .years(Some(2021), None),
-    hijri("Islamic New Year", "رأس العام الهجري", 1, 1).years(Some(1961), None),
-    hijri("Ashura", "عاشوراء", 1, 10).years(Some(1961), Some(1965)),
-    hijri("Mouled", "المولد", 3, 12).years(Some(1961), None),
-    hijri("Eid al-Fitr", "العيد الصغير", 10, 1).years(Some(1961), None),
-    hijri("Eid al-Fitr", "العيد الصغير", 10, 2).years(Some(1961), None),
-    hijri("Eid al-Fitr", "العيد الصغير", 10, 3).years(Some(1961), None),
-    hijri("Eid al-Adha", "العيد الكبير", 12, 10).years(Some(1961), None),
-    hijri("Eid al-Adha", "العيد الكبير", 12, 11).years(Some(1961), None),
-];
+        HolidayRule::fixed_public("Women's Day", "عيد المرأة", Rule::gregorian(8, 13))
+            .years(Some(1966), None),
+        HolidayRule::fixed_public(
+            "Commemoration of 3 September 1934",
+            "",
+            Rule::gregorian(9, 3),
+        )
+        .years(Some(1965), Some(1987)),
+        HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(10, 15))
+            .years(Some(1964), None),
+        HolidayRule::fixed_public(
+            "Commemoration of 7 November 1987",
+            "عيد التحول المبارك",
+            Rule::gregorian(11, 7),
+        )
+        .years(Some(1990), Some(2010)),
+        HolidayRule::fixed_public("Revolution Day", "عيد الثورة", Rule::gregorian(12, 17))
+            .years(Some(2021), None),
+        hijri("Islamic New Year", "رأس العام الهجري", 1, 1).years(Some(1961), None),
+        hijri("Ashura", "عاشوراء", 1, 10).years(Some(1961), Some(1965)),
+        hijri("Mouled", "المولد", 3, 12).years(Some(1961), None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 1).years(Some(1961), None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 2).years(Some(1961), None),
+        hijri("Eid al-Fitr", "العيد الصغير", 10, 3).years(Some(1961), None),
+        hijri("Eid al-Adha", "العيد الكبير", 12, 10).years(Some(1961), None),
+        hijri("Eid al-Adha", "العيد الكبير", 12, 11).years(Some(1961), None),
+    ],
+);
 
 /// Tunisia.
 ///
@@ -2271,36 +2430,43 @@ static SN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static SN_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        Rule::gregorian(4, 4),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri("Tamkharit", "Tamxarit", 1, 10),
-    hijri("Grand Magal of Touba", "Grand Magal de Touba", 2, 18).years(Some(2012), None),
-    hijri("Maouloud", "Maouloud", 3, 12),
-    hijri_public("Korité", "Korité", 10, 1),
-    hijri_public("Tabaski", "Tabaski", 12, 10),
-];
+/// The first year the sources read answer for: loi n° 74-52 of 4 November
+/// 1974.
+const SN_READ_FROM: i32 = 1974;
+
+static SN_RULES: &[HolidayRule] = &read_all(
+    SN_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            Rule::gregorian(4, 4),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri("Tamkharit", "Tamxarit", 1, 10),
+        hijri("Grand Magal of Touba", "Grand Magal de Touba", 2, 18).years(Some(2012), None),
+        hijri("Maouloud", "Maouloud", 3, 12),
+        hijri_public("Korité", "Korité", 10, 1),
+        hijri_public("Tabaski", "Tabaski", 12, 10),
+    ],
+);
 
 /// Senegal.
 ///
@@ -2354,49 +2520,56 @@ static CI_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static CI_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        Rule::gregorian(8, 7),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public(
-        "National Peace Day",
-        "Journée nationale de la Paix",
-        Rule::gregorian(11, 15),
-    )
-    .years(Some(1996), None),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri(
-        "Day after the Prophet's Birthday",
-        "Lendemain du Maouloud",
-        3,
-        12,
-    ),
-    hijri(
-        "Day after the Night of Destiny",
-        "Lendemain de la Nuit du Destin",
-        9,
-        27,
-    ),
-    hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
-    hijri_public("Tabaski", "Tabaski", 12, 10),
-];
+/// The first year the sources read answer for: décret n° 96-205 of 7 March
+/// 1996.
+const CI_READ_FROM: i32 = 1996;
+
+static CI_RULES: &[HolidayRule] = &read_all(
+    CI_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            Rule::gregorian(8, 7),
+        ),
+        HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public(
+            "National Peace Day",
+            "Journée nationale de la Paix",
+            Rule::gregorian(11, 15),
+        )
+        .years(Some(1996), None),
+        HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri(
+            "Day after the Prophet's Birthday",
+            "Lendemain du Maouloud",
+            3,
+            12,
+        ),
+        hijri(
+            "Day after the Night of Destiny",
+            "Lendemain de la Nuit du Destin",
+            9,
+            27,
+        ),
+        hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+        hijri_public("Tabaski", "Tabaski", 12, 10),
+    ],
+);
 
 /// Côte d'Ivoire.
 ///
@@ -2438,64 +2611,70 @@ pub static COTE_D_IVOIRE: RuleSet = RuleSet {
 /// January.
 static BJ_TRADITIONAL_RELIGIONS: Rule = Rule::nth(1, 2, Weekday::Friday);
 
-static BJ_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Fête du Nouvel An", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Traditional Religions Day",
-        "Fête annuelle des religions traditionnelles",
-        Rule::gregorian(1, 10),
-    )
-    .years(Some(1998), Some(2024)),
-    HolidayRule::fixed_public(
-        "Eve of Traditional Religions Day",
-        "Jeudi précédant la fête des religions traditionnelles",
-        Rule::Offset {
-            base: &BJ_TRADITIONAL_RELIGIONS,
-            days: -1,
-        },
-    )
-    .years(Some(2025), None),
-    HolidayRule::fixed_public(
-        "Traditional Religions Day",
-        "Fête annuelle des religions traditionnelles",
-        BJ_TRADITIONAL_RELIGIONS,
-    )
-    .years(Some(2025), None),
-    HolidayRule::observance(
-        "Remembrance Day",
-        "Journée de Souvenir",
-        Rule::gregorian(1, 16),
-    ),
-    HolidayRule::observance(
-        "People's Sovereignty Day",
-        "Journée de la Souveraineté du Peuple",
-        Rule::gregorian(2, 28),
-    ),
-    HolidayRule::observance("Women's Day", "Journée de la Femme", Rule::gregorian(3, 8)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension", "Jour de l'Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public("National Day", "Fête Nationale", Rule::gregorian(8, 1)),
-    HolidayRule::fixed_public("Assumption", "Jour de l'Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Jour de la Toussaint",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Jour de la Noël", Rule::gregorian(12, 25)),
-    hijri("Maouloud", "Journée Maouloud", 3, 12),
-    hijri("Eid al-Fitr", "Jour du Ramadan", 10, 1),
-    hijri("Tabaski", "Jour de la Tabaski", 12, 10),
-];
+/// The first year the sources read answer for: loi n° 90-019 of 27 July 1990.
+const BJ_READ_FROM: i32 = 1990;
+
+static BJ_RULES: &[HolidayRule] = &read_all(
+    BJ_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Fête du Nouvel An", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Traditional Religions Day",
+            "Fête annuelle des religions traditionnelles",
+            Rule::gregorian(1, 10),
+        )
+        .years(Some(1998), Some(2024)),
+        HolidayRule::fixed_public(
+            "Eve of Traditional Religions Day",
+            "Jeudi précédant la fête des religions traditionnelles",
+            Rule::Offset {
+                base: &BJ_TRADITIONAL_RELIGIONS,
+                days: -1,
+            },
+        )
+        .years(Some(2025), None),
+        HolidayRule::fixed_public(
+            "Traditional Religions Day",
+            "Fête annuelle des religions traditionnelles",
+            BJ_TRADITIONAL_RELIGIONS,
+        )
+        .years(Some(2025), None),
+        HolidayRule::observance(
+            "Remembrance Day",
+            "Journée de Souvenir",
+            Rule::gregorian(1, 16),
+        ),
+        HolidayRule::observance(
+            "People's Sovereignty Day",
+            "Journée de la Souveraineté du Peuple",
+            Rule::gregorian(2, 28),
+        ),
+        HolidayRule::observance("Women's Day", "Journée de la Femme", Rule::gregorian(3, 8)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension", "Jour de l'Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public("National Day", "Fête Nationale", Rule::gregorian(8, 1)),
+        HolidayRule::fixed_public("Assumption", "Jour de l'Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Jour de la Toussaint",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Jour de la Noël", Rule::gregorian(12, 25)),
+        hijri("Maouloud", "Journée Maouloud", 3, 12),
+        hijri("Eid al-Fitr", "Jour du Ramadan", 10, 1),
+        hijri("Tabaski", "Jour de la Tabaski", 12, 10),
+    ],
+);
 
 /// Benin.
 ///
@@ -2556,104 +2735,110 @@ static BF_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// not known.
 const BF_2026_MONDAYS: Rule = Rule::UNREAD;
 
-static BF_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    // 3 January 2026 came six days before the new law was adopted.
-    HolidayRule::public(
-        "Popular Uprising Day",
-        "Soulèvement populaire",
-        Rule::gregorian(1, 3),
-    )
-    .years(None, Some(2026)),
-    HolidayRule::observance(
-        "Popular Uprising Day",
-        "Soulèvement populaire",
-        Rule::gregorian(1, 3),
-    )
-    .years(Some(2027), None),
-    HolidayRule::public(
-        "International Women's Day",
-        "Journée internationale de la femme",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::public(
-        "Easter Sunday",
-        "Jour de Pâques",
-        Rule::easter(EASTER_SUNDAY),
-    )
-    .years(None, Some(2025)),
-    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Customs and Traditions Day",
-        "Journée des coutumes et traditions",
-        Rule::gregorian(5, 15),
-    )
-    .years(Some(2024), None),
-    HolidayRule::public("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::observance(
-        "Advent of the Democratic and Popular Revolution",
-        "Avènement de la révolution démocratique et populaire",
-        Rule::gregorian(8, 4),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Proclamation de l'indépendance",
-        Rule::gregorian(8, 5),
-    )
-    .years(None, Some(2025)),
-    HolidayRule::observance(
-        "Independence Day",
-        "Proclamation de l'indépendance",
-        Rule::gregorian(8, 5),
-    )
-    .years(Some(2026), None),
-    HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::observance(
-        "Day of Thanksgiving",
-        "Journée d'action de grâce",
-        Rule::gregorian(9, 29),
-    )
-    .years(None, Some(2025)),
-    HolidayRule::observance(
-        "Commemoration of the Assassination of Thomas Sankara",
-        "Commémoration de l'assassinat du Président Thomas Sankara",
-        Rule::gregorian(10, 15),
-    )
-    .years(Some(2026), None),
-    HolidayRule::observance(
-        "Popular Insurrection",
-        "Insurrection populaire",
-        Rule::gregorian(10, 30),
-    )
-    .years(Some(2016), Some(2025)),
-    HolidayRule::public(
-        "National Martyrs' Day",
-        "Journée nationale des martyrs",
-        Rule::gregorian(10, 31),
-    )
-    .years(Some(2016), Some(2025)),
-    HolidayRule::observance(
-        "National Martyrs' Day",
-        "Journée nationale des martyrs",
-        Rule::gregorian(10, 31),
-    )
-    .years(Some(2026), None),
-    HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+/// The first year the sources read answer for: loi n° 079-2015/CNT.
+const BF_READ_FROM: i32 = 2015;
+
+static BF_RULES: &[HolidayRule] = &read_all(
+    BF_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        // 3 January 2026 came six days before the new law was adopted.
+        HolidayRule::public(
+            "Popular Uprising Day",
+            "Soulèvement populaire",
+            Rule::gregorian(1, 3),
+        )
+        .years(None, Some(2026)),
+        HolidayRule::observance(
+            "Popular Uprising Day",
+            "Soulèvement populaire",
+            Rule::gregorian(1, 3),
+        )
+        .years(Some(2027), None),
+        HolidayRule::public(
+            "International Women's Day",
+            "Journée internationale de la femme",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::public(
+            "Easter Sunday",
+            "Jour de Pâques",
+            Rule::easter(EASTER_SUNDAY),
+        )
         .years(None, Some(2025)),
-    HolidayRule::observance("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+        HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Customs and Traditions Day",
+            "Journée des coutumes et traditions",
+            Rule::gregorian(5, 15),
+        )
+        .years(Some(2024), None),
+        HolidayRule::public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::observance(
+            "Advent of the Democratic and Popular Revolution",
+            "Avènement de la révolution démocratique et populaire",
+            Rule::gregorian(8, 4),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Proclamation de l'indépendance",
+            Rule::gregorian(8, 5),
+        )
+        .years(None, Some(2025)),
+        HolidayRule::observance(
+            "Independence Day",
+            "Proclamation de l'indépendance",
+            Rule::gregorian(8, 5),
+        )
         .years(Some(2026), None),
-    HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(12, 11)),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri_public("Mouloud", "Mouloud", 3, 12),
-    hijri_public("Eid al-Fitr", "Ramadan", 10, 1),
-    hijri_public("Tabaski", "Tabaski", 12, 10),
-    HolidayRule::fixed_public(
-        "Day after a Sunday holiday",
-        "Lendemain d'une fête légale tombant un dimanche",
-        BF_2026_MONDAYS,
-    )
-    .years(Some(2026), Some(2026)),
-];
+        HolidayRule::public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::observance(
+            "Day of Thanksgiving",
+            "Journée d'action de grâce",
+            Rule::gregorian(9, 29),
+        )
+        .years(None, Some(2025)),
+        HolidayRule::observance(
+            "Commemoration of the Assassination of Thomas Sankara",
+            "Commémoration de l'assassinat du Président Thomas Sankara",
+            Rule::gregorian(10, 15),
+        )
+        .years(Some(2026), None),
+        HolidayRule::observance(
+            "Popular Insurrection",
+            "Insurrection populaire",
+            Rule::gregorian(10, 30),
+        )
+        .years(Some(2016), Some(2025)),
+        HolidayRule::public(
+            "National Martyrs' Day",
+            "Journée nationale des martyrs",
+            Rule::gregorian(10, 31),
+        )
+        .years(Some(2016), Some(2025)),
+        HolidayRule::observance(
+            "National Martyrs' Day",
+            "Journée nationale des martyrs",
+            Rule::gregorian(10, 31),
+        )
+        .years(Some(2026), None),
+        HolidayRule::public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+            .years(None, Some(2025)),
+        HolidayRule::observance("All Saints' Day", "Toussaint", Rule::gregorian(11, 1))
+            .years(Some(2026), None),
+        HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(12, 11)),
+        HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri_public("Mouloud", "Mouloud", 3, 12),
+        hijri_public("Eid al-Fitr", "Ramadan", 10, 1),
+        hijri_public("Tabaski", "Tabaski", 12, 10),
+        HolidayRule::fixed_public(
+            "Day after a Sunday holiday",
+            "Lendemain d'une fête légale tombant un dimanche",
+            BF_2026_MONDAYS,
+        )
+        .years(Some(2026), Some(2026)),
+    ],
+);
 
 /// Burkina Faso.
 ///
@@ -2708,46 +2893,53 @@ pub static BURKINA_FASO: RuleSet = RuleSet {
 /// law that added it was not read.
 const CV_DEMOCRACY_DAY_UNREAD: Rule = Rule::UNREAD;
 
-static CV_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Freedom and Democracy Day",
-        "Dia da Liberdade e da Democracia",
-        CV_DEMOCRACY_DAY_UNREAD,
-    )
-    .years(Some(1992), Some(2019)),
-    HolidayRule::fixed_public(
-        "Freedom and Democracy Day",
-        "Dia da Liberdade e da Democracia",
-        Rule::gregorian(1, 13),
-    )
-    .years(Some(2020), None),
-    HolidayRule::fixed_public(
-        "Nationality and National Heroes' Day",
-        "Dia da Nacionalidade e dos Heróis Nacionais",
-        Rule::gregorian(1, 20),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Sexta-Feira Santa",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::fixed_public("Workers' Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
-    HolidayRule::observance("Children's Day", "Dia da Criança", Rule::gregorian(6, 1))
-        .of_kind(Kind::School),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Dia da Independência Nacional",
-        Rule::gregorian(7, 5),
-    ),
-    HolidayRule::fixed_public("Assumption", "Dia da Assunção", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Dia de Todos os Santos",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Dia do Natal", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: Lei n.º 16/IV/91 of 30
+/// December 1991.
+const CV_READ_FROM: i32 = 1991;
+
+static CV_RULES: &[HolidayRule] = &read_all(
+    CV_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Freedom and Democracy Day",
+            "Dia da Liberdade e da Democracia",
+            CV_DEMOCRACY_DAY_UNREAD,
+        )
+        .years(Some(1992), Some(2019)),
+        HolidayRule::fixed_public(
+            "Freedom and Democracy Day",
+            "Dia da Liberdade e da Democracia",
+            Rule::gregorian(1, 13),
+        )
+        .years(Some(2020), None),
+        HolidayRule::fixed_public(
+            "Nationality and National Heroes' Day",
+            "Dia da Nacionalidade e dos Heróis Nacionais",
+            Rule::gregorian(1, 20),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Sexta-Feira Santa",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::fixed_public("Workers' Day", "Dia do Trabalhador", Rule::gregorian(5, 1)),
+        HolidayRule::observance("Children's Day", "Dia da Criança", Rule::gregorian(6, 1))
+            .of_kind(Kind::School),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Dia da Independência Nacional",
+            Rule::gregorian(7, 5),
+        ),
+        HolidayRule::fixed_public("Assumption", "Dia da Assunção", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Dia de Todos os Santos",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Dia do Natal", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Cabo Verde.
 ///
@@ -2799,46 +2991,53 @@ static GN_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static GN_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "Fête internationale du travail",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Africa Day",
-        "Anniversaire de l'Union africaine",
-        Rule::gregorian(5, 25),
-    ),
-    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::public(
-        "Independence Day",
-        "Anniversaire de l'indépendance",
-        Rule::gregorian(10, 2),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri(
-        "Day after the Prophet's Birthday",
-        "Lendemain de la nuit du Maouloud",
-        3,
-        12,
-    ),
-    hijri(
-        "Day after the Night of Destiny",
-        "Lendemain de la nuit de Laylatoul Qadr",
-        9,
-        27,
-    ),
-    hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
-    hijri("Tabaski", "Jour de la Tabaski", 12, 10),
-    hijri("Day after Tabaski", "Lendemain de la Tabaski", 12, 11),
-];
+/// The first year the sources read answer for: décret D/2022/0526 of 2
+/// November 2022.
+const GN_READ_FROM: i32 = 2022;
+
+static GN_RULES: &[HolidayRule] = &read_all(
+    GN_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "Fête internationale du travail",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Africa Day",
+            "Anniversaire de l'Union africaine",
+            Rule::gregorian(5, 25),
+        ),
+        HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::public(
+            "Independence Day",
+            "Anniversaire de l'indépendance",
+            Rule::gregorian(10, 2),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri(
+            "Day after the Prophet's Birthday",
+            "Lendemain de la nuit du Maouloud",
+            3,
+            12,
+        ),
+        hijri(
+            "Day after the Night of Destiny",
+            "Lendemain de la nuit de Laylatoul Qadr",
+            9,
+            27,
+        ),
+        hijri_public("Eid al-Fitr", "Aïd el-Fitr", 10, 1),
+        hijri("Tabaski", "Jour de la Tabaski", 12, 10),
+        hijri("Day after Tabaski", "Lendemain de la Tabaski", 12, 11),
+    ],
+);
 
 /// Guinea.
 ///
@@ -2876,38 +3075,44 @@ pub static GUINEA: RuleSet = RuleSet {
 // Mali
 // ─────────────────────────────────────────────────────────────────────────
 
-static ML_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Day of Recovered Sovereignty",
-        "Journée nationale de la souveraineté retrouvée",
-        Rule::gregorian(1, 14),
-    )
-    .years(Some(2023), None),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "Journée de l'Armée",
-        Rule::gregorian(1, 20),
-    ),
-    HolidayRule::fixed_public("Martyrs' Day", "Journée du 26 mars", Rule::gregorian(3, 26)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Africa Day", "Journée de l'Afrique", Rule::gregorian(5, 25)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Fête Nationale de la République du Mali",
-        Rule::gregorian(9, 22),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
-    hijri("Prophet's Birthday", "Maouloud (Naissance)", 3, 12),
-    hijri("Prophet's Baptism", "Maouloud (Baptême)", 3, 18),
-    hijri("Eid al-Fitr", "Fête du Ramadan", 10, 1),
-    hijri("Tabaski", "Tabaski", 12, 10),
-];
+/// The first year the sources read answer for: loi n° 05-040 of 22 July 2005.
+const ML_READ_FROM: i32 = 2005;
+
+static ML_RULES: &[HolidayRule] = &read_all(
+    ML_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Day of Recovered Sovereignty",
+            "Journée nationale de la souveraineté retrouvée",
+            Rule::gregorian(1, 14),
+        )
+        .years(Some(2023), None),
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "Journée de l'Armée",
+            Rule::gregorian(1, 20),
+        ),
+        HolidayRule::fixed_public("Martyrs' Day", "Journée du 26 mars", Rule::gregorian(3, 26)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Africa Day", "Journée de l'Afrique", Rule::gregorian(5, 25)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Fête Nationale de la République du Mali",
+            Rule::gregorian(9, 22),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+        hijri("Prophet's Birthday", "Maouloud (Naissance)", 3, 12),
+        hijri("Prophet's Baptism", "Maouloud (Baptême)", 3, 18),
+        hijri("Eid al-Fitr", "Fête du Ramadan", 10, 1),
+        hijri("Tabaski", "Tabaski", 12, 10),
+    ],
+);
 
 /// Mali.
 ///
@@ -3043,47 +3248,55 @@ fn om_eid_compensation(year: i64) -> Days {
     out
 }
 
-static OM_RULES: &[HolidayRule] = &[
-    HolidayRule::public(
-        "Accession Day",
-        "يوم تولي جلالة السلطان مقاليد الحكم",
-        Rule::gregorian(1, 11),
-    )
-    .years(Some(2021), None),
-    HolidayRule::fixed_public("Renaissance Day", "يوم النهضة", Rule::gregorian(7, 23))
-        .years(None, Some(2019)),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 18))
-        .years(None, Some(2024)),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 19))
-        .years(Some(2020), Some(2024)),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 20))
-        .years(Some(2025), None),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 21))
-        .years(Some(2025), None),
-    HolidayRule::fixed_public(
-        "National Day",
-        "العيد الوطني",
-        Rule::Computed(om_national_day_compensation),
-    ),
-    hijri_public("Islamic New Year", "رأس السنة الهجرية", 1, 1),
-    hijri_public("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
-    hijri_public("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
-    hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
-    hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
-    HolidayRule::fixed_public(
-        "Eid Compensation Day",
-        "يوم تعويض",
-        Rule::Computed(om_eid_compensation),
-    )
-    .approximate(),
-];
+/// The first year the sources read answer for: Royal Decree 56/2020, read on
+/// decree.om with Royal Decree 88/2022 and the Arabian Stories report of
+/// Renaissance Day's end; the days before 2020 are not read.
+const OM_READ_FROM: i32 = 2020;
+
+static OM_RULES: &[HolidayRule] = &read_all(
+    OM_READ_FROM,
+    [
+        HolidayRule::public(
+            "Accession Day",
+            "يوم تولي جلالة السلطان مقاليد الحكم",
+            Rule::gregorian(1, 11),
+        )
+        .years(Some(2021), None),
+        HolidayRule::fixed_public("Renaissance Day", "يوم النهضة", Rule::gregorian(7, 23))
+            .years(None, Some(2019)),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 18))
+            .years(None, Some(2024)),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 19))
+            .years(Some(2020), Some(2024)),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 20))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 21))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public(
+            "National Day",
+            "العيد الوطني",
+            Rule::Computed(om_national_day_compensation),
+        ),
+        hijri_public("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+        hijri_public("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+        hijri_public("Isra and Mi'raj", "الإسراء والمعراج", 7, 27),
+        hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
+        hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+        HolidayRule::fixed_public(
+            "Eid Compensation Day",
+            "يوم تعويض",
+            Rule::Computed(om_eid_compensation),
+        )
+        .approximate(),
+    ],
+);
 
 /// Oman.
 ///
@@ -3137,37 +3350,45 @@ static QA_BRIDGES: &[BridgePolicy] = &[BridgePolicy {
     valid_until: None,
 }];
 
-static QA_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 18))
-        .years(Some(2007), None),
-    HolidayRule::fixed_public(
-        "National Sport Day",
-        "اليوم الرياضي",
-        Rule::nth(2, 2, Weekday::Tuesday),
-    )
-    .years(Some(2012), None),
-    hijri("Eid al-Fitr", "عيد الفطر", 9, 28),
-    hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
-    hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 4),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
-    HolidayRule::fixed_public(
-        "Bank Holiday",
-        "عطلة اليوم الأول من شهر يناير",
-        Rule::gregorian(1, 1),
-    )
-    .of_kind(Kind::Bank),
-    HolidayRule::fixed_public("Bank Day", "يوم البنوك", Rule::nth(3, 1, Weekday::Sunday))
-        .of_kind(Kind::Bank)
-        .years(Some(2009), None),
-];
+/// The first year the sources read answer for: Emiri Decision No. 57 of 2025;
+/// Cabinet Decision No. 6 of 2008, which a decision of 2025 amends, was read
+/// only as amended.
+const QA_READ_FROM: i32 = 2025;
+
+static QA_RULES: &[HolidayRule] = &read_all(
+    QA_READ_FROM,
+    [
+        HolidayRule::fixed_public("National Day", "اليوم الوطني", Rule::gregorian(12, 18))
+            .years(Some(2007), None),
+        HolidayRule::fixed_public(
+            "National Sport Day",
+            "اليوم الرياضي",
+            Rule::nth(2, 2, Weekday::Tuesday),
+        )
+        .years(Some(2012), None),
+        hijri("Eid al-Fitr", "عيد الفطر", 9, 28),
+        hijri("Eid al-Fitr", "عيد الفطر", 9, 29),
+        hijri("Eid al-Fitr", "عيد الفطر", 9, 30),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 4),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
+        HolidayRule::fixed_public(
+            "Bank Holiday",
+            "عطلة اليوم الأول من شهر يناير",
+            Rule::gregorian(1, 1),
+        )
+        .of_kind(Kind::Bank),
+        HolidayRule::fixed_public("Bank Day", "يوم البنوك", Rule::nth(3, 1, Weekday::Sunday))
+            .of_kind(Kind::Bank)
+            .years(Some(2009), None),
+    ],
+);
 
 /// Qatar.
 ///
@@ -3228,85 +3449,92 @@ const fn iq_jama(day: u8) -> HolidayRule {
     .years(Some(2024), None)
 }
 
-static IQ_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Army Day", "عيد الجيش العراقي", Rule::gregorian(1, 6)),
-    HolidayRule::fixed_public(
-        "Remembrance of the Ba'ath Crimes",
-        "ذكرى جرائم البعث الصدامي بحق الشعب العراقي",
-        Rule::gregorian(3, 16),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public("Nowruz", "عيد نوروز", Rule::gregorian(3, 21)),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25))
-        .years(Some(2020), Some(2023)),
-    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Ashura", "عاشوراء", 1, 10),
-    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
-    hijri("Eid al-Ghadir", "عيد الغدير", 12, 18).years(Some(2024), None),
-    iq_community(
-        "Christmas Day",
-        "ميلاد السيد المسيح",
-        Rule::gregorian(12, 25),
-    )
-    .years(Some(2024), None),
-    iq_community("Easter Sunday", "العيد الكبير", Rule::easter(EASTER_SUNDAY))
+/// The first year the sources read answer for: Official Holidays Law No. 12
+/// of 2024.
+const IQ_READ_FROM: i32 = 2024;
+
+static IQ_RULES: &[HolidayRule] = &read_all(
+    IQ_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Army Day", "عيد الجيش العراقي", Rule::gregorian(1, 6)),
+        HolidayRule::fixed_public(
+            "Remembrance of the Ba'ath Crimes",
+            "ذكرى جرائم البعث الصدامي بحق الشعب العراقي",
+            Rule::gregorian(3, 16),
+        )
         .years(Some(2024), None),
-    iq_community("Easter Monday", "العيد الكبير", Rule::easter(EASTER_MONDAY))
+        HolidayRule::fixed_public("Nowruz", "عيد نوروز", Rule::gregorian(3, 21)),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال العالمي", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Christmas Day", "عيد الميلاد", Rule::gregorian(12, 25))
+            .years(Some(2020), Some(2023)),
+        hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Ashura", "عاشوراء", 1, 10),
+        hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 3),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 13),
+        hijri("Eid al-Ghadir", "عيد الغدير", 12, 18).years(Some(2024), None),
+        iq_community(
+            "Christmas Day",
+            "ميلاد السيد المسيح",
+            Rule::gregorian(12, 25),
+        )
         .years(Some(2024), None),
-    iq_community(
-        "Yazidi New Year",
-        "عيد رأس السنة الإيزيدية",
-        Rule::WeekdayOnOrAfter {
-            month: 4,
-            day: 14,
-            weekday: Weekday::Wednesday,
-        },
-    )
-    .years(Some(2024), None),
-    iq_community(
-        "Feast of the Forty Days of Summer",
-        "عيد أربعينية الصيف",
-        Rule::gregorian(7, 20),
-    )
-    .years(Some(2024), None),
-    iq_community(
-        "Feast of the Forty Days of Summer",
-        "عيد أربعينية الصيف",
-        Rule::gregorian(7, 21),
-    )
-    .years(Some(2024), None),
-    iq_jama(23),
-    iq_jama(24),
-    iq_jama(25),
-    iq_jama(26),
-    iq_jama(27),
-    iq_jama(28),
-    iq_jama(29),
-    iq_jama(30),
-    iq_community(
-        "Yazidi Feast of the Fast",
-        "عيد الصيام",
-        Rule::WeekdayOnOrAfter {
-            month: 12,
-            day: 14,
-            weekday: Weekday::Friday,
-        },
-    )
-    .years(Some(2024), None),
-];
+        iq_community("Easter Sunday", "العيد الكبير", Rule::easter(EASTER_SUNDAY))
+            .years(Some(2024), None),
+        iq_community("Easter Monday", "العيد الكبير", Rule::easter(EASTER_MONDAY))
+            .years(Some(2024), None),
+        iq_community(
+            "Yazidi New Year",
+            "عيد رأس السنة الإيزيدية",
+            Rule::WeekdayOnOrAfter {
+                month: 4,
+                day: 14,
+                weekday: Weekday::Wednesday,
+            },
+        )
+        .years(Some(2024), None),
+        iq_community(
+            "Feast of the Forty Days of Summer",
+            "عيد أربعينية الصيف",
+            Rule::gregorian(7, 20),
+        )
+        .years(Some(2024), None),
+        iq_community(
+            "Feast of the Forty Days of Summer",
+            "عيد أربعينية الصيف",
+            Rule::gregorian(7, 21),
+        )
+        .years(Some(2024), None),
+        iq_jama(23),
+        iq_jama(24),
+        iq_jama(25),
+        iq_jama(26),
+        iq_jama(27),
+        iq_jama(28),
+        iq_jama(29),
+        iq_jama(30),
+        iq_community(
+            "Yazidi Feast of the Fast",
+            "عيد الصيام",
+            Rule::WeekdayOnOrAfter {
+                month: 12,
+                day: 14,
+                weekday: Weekday::Friday,
+            },
+        )
+        .years(Some(2024), None),
+    ],
+);
 
 /// Iraq.
 ///
@@ -3372,42 +3600,49 @@ static BW_OCTOBER_1: Rule = Rule::gregorian(10, 1);
 static BW_DECEMBER_26: Rule = Rule::gregorian(12, 26);
 static BW_PRESIDENTS_DAY: Rule = Rule::nth(7, 3, Weekday::Monday);
 
-static BW_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "New Year Holiday",
-        "",
-        Rule::moved_by_weekday(&BW_JANUARY_2, BW_MONDAY_TO_TUESDAY),
-    ),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Sir Seretse Khama Day", "", Rule::gregorian(7, 1)),
-    HolidayRule::fixed_public("President's Day", "", Rule::nth(7, 3, Weekday::Monday)),
-    HolidayRule::fixed_public(
-        "President's Day Holiday",
-        "",
-        Rule::Offset {
-            base: &BW_PRESIDENTS_DAY,
-            days: 1,
-        },
-    ),
-    HolidayRule::public("Botswana Day", "", Rule::gregorian(9, 30))
-        .substitute_on(&[Weekday::Saturday, Weekday::Sunday]),
-    HolidayRule::public(
-        "Botswana Day Holiday",
-        "",
-        Rule::moved_by_weekday(&BW_OCTOBER_1, BW_MONDAY_TO_TUESDAY),
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public(
-        "Boxing Day",
-        "",
-        Rule::moved_by_weekday(&BW_DECEMBER_26, BW_MONDAY_TO_TUESDAY),
-    ),
-];
+/// The first year the sources read answer for: the Public Holidays Act, Cap.
+/// 03:07 (Act 17 of 2006).
+const BW_READ_FROM: i32 = 2006;
+
+static BW_RULES: &[HolidayRule] = &read_all(
+    BW_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "New Year Holiday",
+            "",
+            Rule::moved_by_weekday(&BW_JANUARY_2, BW_MONDAY_TO_TUESDAY),
+        ),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Sir Seretse Khama Day", "", Rule::gregorian(7, 1)),
+        HolidayRule::fixed_public("President's Day", "", Rule::nth(7, 3, Weekday::Monday)),
+        HolidayRule::fixed_public(
+            "President's Day Holiday",
+            "",
+            Rule::Offset {
+                base: &BW_PRESIDENTS_DAY,
+                days: 1,
+            },
+        ),
+        HolidayRule::public("Botswana Day", "", Rule::gregorian(9, 30))
+            .substitute_on(&[Weekday::Saturday, Weekday::Sunday]),
+        HolidayRule::public(
+            "Botswana Day Holiday",
+            "",
+            Rule::moved_by_weekday(&BW_OCTOBER_1, BW_MONDAY_TO_TUESDAY),
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public(
+            "Boxing Day",
+            "",
+            Rule::moved_by_weekday(&BW_DECEMBER_26, BW_MONDAY_TO_TUESDAY),
+        ),
+    ],
+);
 
 /// Botswana.
 ///
@@ -3459,33 +3694,40 @@ static NA_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static NA_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(3, 21)).years(Some(1990), None),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Cassinga Day", "", Rule::gregorian(5, 4)),
-    HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
-    HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
-    HolidayRule::public("Genocide Remembrance Day", "", Rule::gregorian(5, 28))
-        .years(Some(2025), None),
-    HolidayRule::public("Heroes' Day", "", Rule::gregorian(8, 26)),
-    HolidayRule::public(
-        "International Human Rights Day",
-        "",
-        Rule::gregorian(12, 10),
-    )
-    .years(None, Some(2004)),
-    HolidayRule::public(
-        "Day of the Namibian Women and International Human Rights Day",
-        "",
-        Rule::gregorian(12, 10),
-    )
-    .years(Some(2005), None),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Family Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act 26 of
+/// 1990.
+const NA_READ_FROM: i32 = 1990;
+
+static NA_RULES: &[HolidayRule] = &read_all(
+    NA_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(3, 21)).years(Some(1990), None),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Workers' Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Cassinga Day", "", Rule::gregorian(5, 4)),
+        HolidayRule::fixed_public("Ascension Day", "", Rule::easter(ASCENSION)),
+        HolidayRule::public("Africa Day", "", Rule::gregorian(5, 25)),
+        HolidayRule::public("Genocide Remembrance Day", "", Rule::gregorian(5, 28))
+            .years(Some(2025), None),
+        HolidayRule::public("Heroes' Day", "", Rule::gregorian(8, 26)),
+        HolidayRule::public(
+            "International Human Rights Day",
+            "",
+            Rule::gregorian(12, 10),
+        )
+        .years(None, Some(2004)),
+        HolidayRule::public(
+            "Day of the Namibian Women and International Human Rights Day",
+            "",
+            Rule::gregorian(12, 10),
+        )
+        .years(Some(2005), None),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Family Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Namibia.
 ///
@@ -3555,42 +3797,50 @@ const MU_CAVADEE: Rule = Rule::Nakshatra {
     meridian: Meridian::from_seconds(4 * 3_600),
 };
 
-static MU_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public("New Year Holiday", "", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Abolition of Slavery", "", Rule::gregorian(2, 1))
+/// The first year the sources read answer for: the Prime Minister's Office's
+/// General Notice No. 814 of 2016 for the public holidays of 2017, the oldest
+/// dated list read; the Act (22 of 1968) was read as amended to 2019.
+const MU_READ_FROM: i32 = 2017;
+
+static MU_RULES: &[HolidayRule] = &read_all(
+    MU_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public("New Year Holiday", "", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Abolition of Slavery", "", Rule::gregorian(2, 1))
+            .years(Some(2001), None),
+        HolidayRule::fixed_public("Thaipoosam Cavadee", "", MU_CAVADEE).approximate(),
+        HolidayRule::fixed_public("Maha Shivaratree", "", MAHA_SHIVARATRI).approximate(),
+        HolidayRule::fixed_public(
+            "Chinese Spring Festival",
+            "",
+            Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day and Republic Day",
+            "",
+            Rule::gregorian(3, 12),
+        ),
+        HolidayRule::fixed_public("Ougadi", "", UGADI).approximate(),
+        hijri("Eid-Ul-Fitr", "", 10, 1),
+        HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Assumption of the Blessed Virgin Mary",
+            "",
+            Rule::Computed(mu_assumption),
+        ),
+        HolidayRule::fixed_public("Ganesh Chaturthi", "", GANESH_CHATURTHI).approximate(),
+        HolidayRule::fixed_public("All Saints' Day", "", Rule::Computed(mu_all_saints)),
+        HolidayRule::fixed_public(
+            "Arrival of Indentured Labourers",
+            "",
+            Rule::gregorian(11, 2),
+        )
         .years(Some(2001), None),
-    HolidayRule::fixed_public("Thaipoosam Cavadee", "", MU_CAVADEE).approximate(),
-    HolidayRule::fixed_public("Maha Shivaratree", "", MAHA_SHIVARATRI).approximate(),
-    HolidayRule::fixed_public(
-        "Chinese Spring Festival",
-        "",
-        Rule::in_calendar(CalendarSystem::CHINESE, 1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day and Republic Day",
-        "",
-        Rule::gregorian(3, 12),
-    ),
-    HolidayRule::fixed_public("Ougadi", "", UGADI).approximate(),
-    hijri("Eid-Ul-Fitr", "", 10, 1),
-    HolidayRule::fixed_public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Assumption of the Blessed Virgin Mary",
-        "",
-        Rule::Computed(mu_assumption),
-    ),
-    HolidayRule::fixed_public("Ganesh Chaturthi", "", GANESH_CHATURTHI).approximate(),
-    HolidayRule::fixed_public("All Saints' Day", "", Rule::Computed(mu_all_saints)),
-    HolidayRule::fixed_public(
-        "Arrival of Indentured Labourers",
-        "",
-        Rule::gregorian(11, 2),
-    )
-    .years(Some(2001), None),
-    HolidayRule::fixed_public("Divali", "", DIWALI).approximate(),
-    HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+        HolidayRule::fixed_public("Divali", "", DIWALI).approximate(),
+        HolidayRule::fixed_public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Mauritius.
 ///
@@ -3654,21 +3904,28 @@ static MW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static MW_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("John Chilembwe Day", "", Rule::gregorian(1, 15)),
-    HolidayRule::public("Martyrs' Day", "", Rule::gregorian(3, 3)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::public("Kamuzu Day", "", Rule::gregorian(5, 14)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 6)).years(Some(1964), None),
-    HolidayRule::public("Mothers' Day", "", Rule::gregorian(10, 15)),
-    hijri_public("Eid al-Fitr", "Eid al Fitri", 10, 1),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Public Holidays Act Cap.
+/// 18:05 and the 2026 list; the Act's own date was not read.
+const MW_READ_FROM: i32 = 2026;
+
+static MW_RULES: &[HolidayRule] = &read_all(
+    MW_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("John Chilembwe Day", "", Rule::gregorian(1, 15)),
+        HolidayRule::public("Martyrs' Day", "", Rule::gregorian(3, 3)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Holy Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::public("Kamuzu Day", "", Rule::gregorian(5, 14)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 6)).years(Some(1964), None),
+        HolidayRule::public("Mothers' Day", "", Rule::gregorian(10, 15)),
+        hijri_public("Eid al-Fitr", "Eid al Fitri", 10, 1),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Malawi.
 ///
@@ -3727,50 +3984,56 @@ static SY_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static SY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "عيد رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Syrian Revolution Day",
-        "عيد الثورة السورية",
-        Rule::gregorian(3, 18),
-    )
-    .years(Some(2026), None),
-    HolidayRule::fixed_public("Mother's Day", "عيد الأم", Rule::gregorian(3, 21)),
-    HolidayRule::fixed_public("Nowruz", "عيد النوروز", Rule::gregorian(3, 21))
+/// The first year the sources read answer for: Decree No. 188 of 2025.
+const SY_READ_FROM: i32 = 2025;
+
+static SY_RULES: &[HolidayRule] = &read_all(
+    SY_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "عيد رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Syrian Revolution Day",
+            "عيد الثورة السورية",
+            Rule::gregorian(3, 18),
+        )
         .years(Some(2026), None),
-    HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(4, 17)),
-    HolidayRule::fixed_public(
-        "Western Easter",
-        "عيد الفصح لدى الطوائف المسيحية الغربية",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Eastern Easter",
-        "عيد الفصح لدى الطوائف المسيحية الشرقية",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(12, 8))
-        .years(Some(2025), None),
-    HolidayRule::fixed_public(
-        "Christmas Day",
-        "عيد الميلاد لدى جميع الطوائف المسيحية",
-        Rule::gregorian(12, 25),
-    ),
-    hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "عيد المولد النبوي الشريف", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
-];
+        HolidayRule::fixed_public("Mother's Day", "عيد الأم", Rule::gregorian(3, 21)),
+        HolidayRule::fixed_public("Nowruz", "عيد النوروز", Rule::gregorian(3, 21))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("Evacuation Day", "عيد الجلاء", Rule::gregorian(4, 17)),
+        HolidayRule::fixed_public(
+            "Western Easter",
+            "عيد الفصح لدى الطوائف المسيحية الغربية",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Eastern Easter",
+            "عيد الفصح لدى الطوائف المسيحية الشرقية",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(12, 8))
+            .years(Some(2025), None),
+        HolidayRule::fixed_public(
+            "Christmas Day",
+            "عيد الميلاد لدى جميع الطوائف المسيحية",
+            Rule::gregorian(12, 25),
+        ),
+        hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "عيد المولد النبوي الشريف", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+    ],
+);
 
 /// Syria.
 ///
@@ -3863,172 +4126,179 @@ const fn ps_samaritan(name: &'static str, local: &'static str, key: &'static str
     )
 }
 
-static PS_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Eastern Christmas",
-        "عيد الميلاد المجيد الشرقي",
-        Rule::gregorian(1, 7),
-    ),
-    HolidayRule::fixed_public(
-        "International Women's Day",
-        "يوم المرأة العالمي",
-        Rule::gregorian(3, 8),
-    ),
-    // The table's one Easter for all is the Eastern one: 12 April 2026.
-    HolidayRule::fixed_public(
-        "Easter Sunday",
-        "عيد الفصح المجيد",
-        Rule::paschal(EASTER_SUNDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 15)),
-    HolidayRule::fixed_public(
-        "Western Christmas",
-        "عيد الميلاد المجيد الغربي",
-        Rule::gregorian(12, 25),
-    ),
-    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
-    hijri("Isra and Mi'raj", "ذكرى الإسراء والمعراج", 7, 27),
-    // "The eve and three days", and "the eve and four days".
-    HolidayRule::fixed_public(
-        "Eve of Eid al-Fitr",
-        "وقفة عيد الفطر",
-        Rule::Offset {
-            base: &PS_SHAWWAL_1,
-            days: -1,
-        },
-    )
-    .approximate(),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
-    hijri("Eve of Eid al-Adha", "وقفة عيد الأضحى", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
-    // The Eastern Christian employees, by the Julian computus.
-    ps_christian(
-        "Eastern Christmas",
-        "عيد الميلاد المجيد",
-        Rule::gregorian(1, 8),
-    ),
-    ps_christian(
-        "Eastern New Year",
-        "عيد رأس السنة الشرقي",
-        Rule::gregorian(1, 14),
-    ),
-    ps_christian("Eastern Epiphany", "عيد الغطاس", Rule::gregorian(1, 19)),
-    ps_christian(
-        "Eastern Palm Sunday",
-        "أحد الشعانين",
-        Rule::paschal(PALM_SUNDAY),
-    ),
-    ps_christian(
-        "Eastern Maundy Thursday",
-        "خميس الغسل",
-        Rule::paschal(MAUNDY_THURSDAY),
-    ),
-    ps_christian(
-        "Eastern Good Friday",
-        "الجمعة العظيمة",
-        Rule::paschal(GOOD_FRIDAY),
-    ),
-    ps_christian(
-        "Eastern Holy Saturday",
-        "سبت النور",
-        Rule::paschal(HOLY_SATURDAY),
-    ),
-    ps_christian(
-        "Eastern Easter Monday",
-        "أحد الفصح المجيد",
-        Rule::paschal(EASTER_MONDAY),
-    ),
-    ps_christian("Eastern Ascension", "خميس الصعود", Rule::paschal(ASCENSION)),
-    ps_christian("Eastern Pentecost", "أحد العنصرة", Rule::paschal(PENTECOST)),
-    // The Western Christian employees, by the Gregorian computus.
-    ps_christian("Western Epiphany", "عيد الغطاس", Rule::gregorian(1, 6)),
-    ps_christian(
-        "Western Palm Sunday",
-        "أحد الشعانين",
-        Rule::easter(PALM_SUNDAY),
-    ),
-    ps_christian(
-        "Western Maundy Thursday",
-        "خميس الغسل",
-        Rule::easter(MAUNDY_THURSDAY),
-    ),
-    ps_christian(
-        "Western Good Friday",
-        "الجمعة العظيمة",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    ps_christian(
-        "Western Holy Saturday",
-        "سبت النور",
-        Rule::easter(HOLY_SATURDAY),
-    ),
-    ps_christian(
-        "Western Easter Sunday",
-        "أحد الفصح المجيد",
-        Rule::easter(EASTER_SUNDAY),
-    ),
-    ps_christian(
-        "Western Easter Monday",
-        "أحد الفصح المجيد",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    ps_christian("Western Ascension", "خميس الصعود", Rule::easter(ASCENSION)),
-    ps_christian("Western Pentecost", "أحد العنصرة", Rule::easter(PENTECOST)),
-    ps_christian(
-        "Western Christmas",
-        "عيد الميلاد المجيد",
-        Rule::gregorian(12, 26),
-    ),
-    // The Samaritan employees, by the table's dates.
-    ps_samaritan(
-        "Samaritan Passover and the Sacrifice",
-        "عيد الفسح والقربان",
-        "passover",
-    ),
-    ps_samaritan(
-        "Samaritan last day of Passover",
-        "اخر أيام عيد الفسح",
-        "last-day-of-passover",
-    ),
-    ps_samaritan(
-        "Samaritan Feast of the Giving of the Torah",
-        "عيد نزول التوراة",
-        "giving-of-the-torah",
-    ),
-    ps_samaritan(
-        "Samaritan Feast of the Ascent (Harvest)",
-        "عيد المعراج/الحصاد",
-        "harvest",
-    ),
-    ps_samaritan("Samaritan New Year", "عيد رأس السنة العبرية", "new-year"),
-    ps_samaritan(
-        "Samaritan Day of Atonement (the Fast)",
-        "عيد الغفران/الصوم",
-        "atonement",
-    ),
-    ps_samaritan(
-        "Samaritan Feast of Tabernacles",
-        "عيد العرش/المظلة",
-        "tabernacles",
-    ),
-    ps_samaritan(
-        "Samaritan Feast of the End of the Festivals",
-        "عيد نهاية الأعياد",
-        "end-of-the-festivals",
-    ),
-];
+/// The first year the sources read answer for: the Council of Ministers' 2025
+/// tables.
+const PS_READ_FROM: i32 = 2025;
+
+static PS_RULES: &[HolidayRule] = &read_all(
+    PS_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Eastern Christmas",
+            "عيد الميلاد المجيد الشرقي",
+            Rule::gregorian(1, 7),
+        ),
+        HolidayRule::fixed_public(
+            "International Women's Day",
+            "يوم المرأة العالمي",
+            Rule::gregorian(3, 8),
+        ),
+        // The table's one Easter for all is the Eastern one: 12 April 2026.
+        HolidayRule::fixed_public(
+            "Easter Sunday",
+            "عيد الفصح المجيد",
+            Rule::paschal(EASTER_SUNDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(11, 15)),
+        HolidayRule::fixed_public(
+            "Western Christmas",
+            "عيد الميلاد المجيد الغربي",
+            Rule::gregorian(12, 25),
+        ),
+        hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
+        hijri("Isra and Mi'raj", "ذكرى الإسراء والمعراج", 7, 27),
+        // "The eve and three days", and "the eve and four days".
+        HolidayRule::fixed_public(
+            "Eve of Eid al-Fitr",
+            "وقفة عيد الفطر",
+            Rule::Offset {
+                base: &PS_SHAWWAL_1,
+                days: -1,
+            },
+        )
+        .approximate(),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر السعيد", 10, 3),
+        hijri("Eve of Eid al-Adha", "وقفة عيد الأضحى", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+        // The Eastern Christian employees, by the Julian computus.
+        ps_christian(
+            "Eastern Christmas",
+            "عيد الميلاد المجيد",
+            Rule::gregorian(1, 8),
+        ),
+        ps_christian(
+            "Eastern New Year",
+            "عيد رأس السنة الشرقي",
+            Rule::gregorian(1, 14),
+        ),
+        ps_christian("Eastern Epiphany", "عيد الغطاس", Rule::gregorian(1, 19)),
+        ps_christian(
+            "Eastern Palm Sunday",
+            "أحد الشعانين",
+            Rule::paschal(PALM_SUNDAY),
+        ),
+        ps_christian(
+            "Eastern Maundy Thursday",
+            "خميس الغسل",
+            Rule::paschal(MAUNDY_THURSDAY),
+        ),
+        ps_christian(
+            "Eastern Good Friday",
+            "الجمعة العظيمة",
+            Rule::paschal(GOOD_FRIDAY),
+        ),
+        ps_christian(
+            "Eastern Holy Saturday",
+            "سبت النور",
+            Rule::paschal(HOLY_SATURDAY),
+        ),
+        ps_christian(
+            "Eastern Easter Monday",
+            "أحد الفصح المجيد",
+            Rule::paschal(EASTER_MONDAY),
+        ),
+        ps_christian("Eastern Ascension", "خميس الصعود", Rule::paschal(ASCENSION)),
+        ps_christian("Eastern Pentecost", "أحد العنصرة", Rule::paschal(PENTECOST)),
+        // The Western Christian employees, by the Gregorian computus.
+        ps_christian("Western Epiphany", "عيد الغطاس", Rule::gregorian(1, 6)),
+        ps_christian(
+            "Western Palm Sunday",
+            "أحد الشعانين",
+            Rule::easter(PALM_SUNDAY),
+        ),
+        ps_christian(
+            "Western Maundy Thursday",
+            "خميس الغسل",
+            Rule::easter(MAUNDY_THURSDAY),
+        ),
+        ps_christian(
+            "Western Good Friday",
+            "الجمعة العظيمة",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        ps_christian(
+            "Western Holy Saturday",
+            "سبت النور",
+            Rule::easter(HOLY_SATURDAY),
+        ),
+        ps_christian(
+            "Western Easter Sunday",
+            "أحد الفصح المجيد",
+            Rule::easter(EASTER_SUNDAY),
+        ),
+        ps_christian(
+            "Western Easter Monday",
+            "أحد الفصح المجيد",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        ps_christian("Western Ascension", "خميس الصعود", Rule::easter(ASCENSION)),
+        ps_christian("Western Pentecost", "أحد العنصرة", Rule::easter(PENTECOST)),
+        ps_christian(
+            "Western Christmas",
+            "عيد الميلاد المجيد",
+            Rule::gregorian(12, 26),
+        ),
+        // The Samaritan employees, by the table's dates.
+        ps_samaritan(
+            "Samaritan Passover and the Sacrifice",
+            "عيد الفسح والقربان",
+            "passover",
+        ),
+        ps_samaritan(
+            "Samaritan last day of Passover",
+            "اخر أيام عيد الفسح",
+            "last-day-of-passover",
+        ),
+        ps_samaritan(
+            "Samaritan Feast of the Giving of the Torah",
+            "عيد نزول التوراة",
+            "giving-of-the-torah",
+        ),
+        ps_samaritan(
+            "Samaritan Feast of the Ascent (Harvest)",
+            "عيد المعراج/الحصاد",
+            "harvest",
+        ),
+        ps_samaritan("Samaritan New Year", "عيد رأس السنة العبرية", "new-year"),
+        ps_samaritan(
+            "Samaritan Day of Atonement (the Fast)",
+            "عيد الغفران/الصوم",
+            "atonement",
+        ),
+        ps_samaritan(
+            "Samaritan Feast of Tabernacles",
+            "عيد العرش/المظلة",
+            "tabernacles",
+        ),
+        ps_samaritan(
+            "Samaritan Feast of the End of the Festivals",
+            "عيد نهاية الأعياد",
+            "end-of-the-festivals",
+        ),
+    ],
+);
 
 /// Palestine.
 ///
@@ -4120,28 +4390,34 @@ static LY_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static LY_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Revolution Day",
-        "عيد الثورة الليبية",
-        Rule::gregorian(2, 17),
-    )
-    .years(Some(2012), None),
-    HolidayRule::fixed_public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Martyrs' Day", "يوم الشهيد", Rule::gregorian(9, 16)),
-    HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(10, 23))
+/// The first year the sources read answer for: Law No. 5 of 2012.
+const LY_READ_FROM: i32 = 2012;
+
+static LY_RULES: &[HolidayRule] = &read_all(
+    LY_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "Revolution Day",
+            "عيد الثورة الليبية",
+            Rule::gregorian(2, 17),
+        )
         .years(Some(2012), None),
-    HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(12, 24)),
-    hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
-    hijri("Day of Arafah", "يوم الوقوف بعرفة", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
-];
+        HolidayRule::fixed_public("Labour Day", "عيد العمل", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Martyrs' Day", "يوم الشهيد", Rule::gregorian(9, 16)),
+        HolidayRule::fixed_public("Liberation Day", "عيد التحرير", Rule::gregorian(10, 23))
+            .years(Some(2012), None),
+        HolidayRule::fixed_public("Independence Day", "عيد الاستقلال", Rule::gregorian(12, 24)),
+        hijri("Islamic New Year", "عيد رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "ذكرى المولد النبوي الشريف", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+        hijri("Day of Arafah", "يوم الوقوف بعرفة", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+    ],
+);
 
 /// Libya.
 ///
@@ -4206,56 +4482,62 @@ static YE_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static YE_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "Labour Day",
-        "ذكرى يوم العمال العالمي",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "National Day",
-        "اليوم الوطني للجمهورية",
-        Rule::gregorian(5, 22),
-    ),
-    HolidayRule::fixed_public(
-        "26 September Revolution Day",
-        "ذكرى ثورة 26 سبتمبر",
-        Rule::gregorian(9, 26),
-    ),
-    HolidayRule::fixed_public(
-        "14 October Revolution Day",
-        "ذكرى ثورة 14 أكتوبر",
-        Rule::gregorian(10, 14),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "ذكرى يوم الاستقلال",
-        Rule::gregorian(11, 30),
-    ),
-    hijri("Islamic New Year", "ذكرى الهجرة النبوية الشريفة", 1, 1),
-    // "From 29 Ramadan to 3 Shawwal", and "from 9 Dhu al-Hijja to the
-    // fourth day of the feast".
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 29),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 30),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
-    hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
-    hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
-    // Article 3(b): "celebrated without an official holiday".
-    HolidayRule::observance("Prophet's Birthday", "ذكرى المولد النبوي الشريف", MAWLID)
+/// The first year the sources read answer for: Law No. 2 of 2000.
+const YE_READ_FROM: i32 = 2000;
+
+static YE_RULES: &[HolidayRule] = &read_all(
+    YE_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "Labour Day",
+            "ذكرى يوم العمال العالمي",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "National Day",
+            "اليوم الوطني للجمهورية",
+            Rule::gregorian(5, 22),
+        ),
+        HolidayRule::fixed_public(
+            "26 September Revolution Day",
+            "ذكرى ثورة 26 سبتمبر",
+            Rule::gregorian(9, 26),
+        ),
+        HolidayRule::fixed_public(
+            "14 October Revolution Day",
+            "ذكرى ثورة 14 أكتوبر",
+            Rule::gregorian(10, 14),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "ذكرى يوم الاستقلال",
+            Rule::gregorian(11, 30),
+        ),
+        hijri("Islamic New Year", "ذكرى الهجرة النبوية الشريفة", 1, 1),
+        // "From 29 Ramadan to 3 Shawwal", and "from 9 Dhu al-Hijja to the
+        // fourth day of the feast".
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 29),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 9, 30),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 1),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 2),
+        hijri("Eid al-Fitr", "عيد الفطر المبارك", 10, 3),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 9),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 10),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 11),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 12),
+        hijri("Eid al-Adha", "عيد الأضحى المبارك", 12, 13),
+        // Article 3(b): "celebrated without an official holiday".
+        HolidayRule::observance("Prophet's Birthday", "ذكرى المولد النبوي الشريف", MAWLID)
+            .approximate(),
+        HolidayRule::observance(
+            "Isra and Mi'raj",
+            "ذكرى الإسراء والمعراج",
+            Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
+        )
         .approximate(),
-    HolidayRule::observance(
-        "Isra and Mi'raj",
-        "ذكرى الإسراء والمعراج",
-        Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, 7, 27),
-    )
-    .approximate(),
-    HolidayRule::observance("7 July", "ذكرى 7 يوليو", Rule::gregorian(7, 7)),
-];
+        HolidayRule::observance("7 July", "ذكرى 7 يوليو", Rule::gregorian(7, 7)),
+    ],
+);
 
 /// Yemen.
 ///
@@ -4319,23 +4601,30 @@ static CM_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static CM_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(2, 11)),
-    HolidayRule::fixed_public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(5, 20)),
-    HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri(
-        "Eid al-Fitr",
-        "Fête de fin de Ramadan (Djouldé Soumaé)",
-        10,
-        1,
-    ),
-    hijri("Eid al-Adha", "Fête du Mouton (Djouldé Laihadji)", 12, 10),
-];
+/// The first year the sources read answer for: loi n° 73/5 of 7 December 1973
+/// as loi n° 76/8 of 8 July 1976 amended it.
+const CM_READ_FROM: i32 = 1976;
+
+static CM_RULES: &[HolidayRule] = &read_all(
+    CM_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::public("Youth Day", "Fête de la Jeunesse", Rule::gregorian(2, 11)),
+        HolidayRule::fixed_public("Good Friday", "Vendredi saint", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::public("National Day", "Fête nationale", Rule::gregorian(5, 20)),
+        HolidayRule::fixed_public("Ascension", "Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri(
+            "Eid al-Fitr",
+            "Fête de fin de Ramadan (Djouldé Soumaé)",
+            10,
+            1,
+        ),
+        hijri("Eid al-Adha", "Fête du Mouton (Djouldé Laihadji)", 12, 10),
+    ],
+);
 
 /// Cameroon.
 ///
@@ -4378,29 +4667,35 @@ pub static CAMEROON: RuleSet = RuleSet {
 // Republic of the Congo
 // ─────────────────────────────────────────────────────────────────────────
 
-static CG_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
-    HolidayRule::fixed_public(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "Sovereign National Conference Day",
-        "Fête de la commémoration de la Conférence nationale souveraine",
-        Rule::gregorian(6, 10),
-    ),
-    HolidayRule::fixed_public("National Day", "Fête nationale", Rule::gregorian(8, 15)),
-    HolidayRule::fixed_public("All Saints' Day", "La Toussaint", Rule::gregorian(11, 1)),
-    HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: loi n° 2-94 of 1 March 1994.
+const CG_READ_FROM: i32 = 1994;
+
+static CG_RULES: &[HolidayRule] = &read_all(
+    CG_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Jour de l'an", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Ascension", "Jeudi de l'Ascension", Rule::easter(ASCENSION)),
+        HolidayRule::fixed_public(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "Sovereign National Conference Day",
+            "Fête de la commémoration de la Conférence nationale souveraine",
+            Rule::gregorian(6, 10),
+        ),
+        HolidayRule::fixed_public("National Day", "Fête nationale", Rule::gregorian(8, 15)),
+        HolidayRule::fixed_public("All Saints' Day", "La Toussaint", Rule::gregorian(11, 1)),
+        HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Republic of the Congo.
 ///
@@ -4451,85 +4746,92 @@ static CD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: Some(2025),
 }];
 
-static CD_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Martyrs of Independence Day",
-        "Journée des Martyrs de l'indépendance",
-        Rule::gregorian(1, 4),
-    ),
-    HolidayRule::public(
-        "Laurent-Désiré Kabila Day",
-        "Journée du héros national Laurent Désiré Kabila",
-        Rule::gregorian(1, 16),
-    ),
-    HolidayRule::public(
-        "Patrice Lumumba Day",
-        "Journée du héros national Patrice Emery Lumumba",
-        Rule::gregorian(1, 17),
-    ),
-    HolidayRule::public(
-        "Simon Kimbangu Day",
-        "Journée du combat de Simon Kimbangu et de la conscience africaine",
-        Rule::gregorian(4, 6),
-    )
-    .years(Some(2023), None),
-    HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Armed Forces Day",
-        "Journée des Forces armées",
-        Rule::gregorian(5, 17),
-    ),
-    HolidayRule::public(
-        "Independence Day",
-        "Journée de l'indépendance",
-        Rule::gregorian(6, 30),
-    ),
-    HolidayRule::public("Parents' Day", "Fête des parents", Rule::gregorian(8, 1)),
-    HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    // The Minister's communiqués: a Saturday holiday to the Friday in 2025,
-    // and every weekend holiday to the Monday in 2026.
-    HolidayRule::fixed_public(
-        "Martyrs of Independence Day",
-        "Journée des Martyrs de l'indépendance",
-        Rule::gregorian(1, 3),
-    )
-    .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "Journée des Forces armées",
-        Rule::gregorian(5, 16),
-    )
-    .years(Some(2025), Some(2025)),
-    HolidayRule::fixed_public(
-        "Martyrs of Independence Day",
-        "Journée des Martyrs de l'indépendance",
-        Rule::gregorian(1, 5),
-    )
-    .years(Some(2026), Some(2026)),
-    HolidayRule::fixed_public(
-        "Patrice Lumumba Day",
-        "Journée du héros national Patrice Emery Lumumba",
-        Rule::gregorian(1, 19),
-    )
-    .years(Some(2026), Some(2026)),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "Journée des Forces armées",
-        Rule::gregorian(5, 18),
-    )
-    .years(Some(2026), Some(2026)),
-    HolidayRule::fixed_public("Parents' Day", "Fête des parents", Rule::gregorian(8, 3))
+/// The first year the sources read answer for: ordonnance n° 14/010 of 14 May
+/// 2014.
+const CD_READ_FROM: i32 = 2014;
+
+static CD_RULES: &[HolidayRule] = &read_all(
+    CD_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "Nouvel an", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Martyrs of Independence Day",
+            "Journée des Martyrs de l'indépendance",
+            Rule::gregorian(1, 4),
+        ),
+        HolidayRule::public(
+            "Laurent-Désiré Kabila Day",
+            "Journée du héros national Laurent Désiré Kabila",
+            Rule::gregorian(1, 16),
+        ),
+        HolidayRule::public(
+            "Patrice Lumumba Day",
+            "Journée du héros national Patrice Emery Lumumba",
+            Rule::gregorian(1, 17),
+        ),
+        HolidayRule::public(
+            "Simon Kimbangu Day",
+            "Journée du combat de Simon Kimbangu et de la conscience africaine",
+            Rule::gregorian(4, 6),
+        )
+        .years(Some(2023), None),
+        HolidayRule::public("Labour Day", "Fête du travail", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Armed Forces Day",
+            "Journée des Forces armées",
+            Rule::gregorian(5, 17),
+        ),
+        HolidayRule::public(
+            "Independence Day",
+            "Journée de l'indépendance",
+            Rule::gregorian(6, 30),
+        ),
+        HolidayRule::public("Parents' Day", "Fête des parents", Rule::gregorian(8, 1)),
+        HolidayRule::public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        // The Minister's communiqués: a Saturday holiday to the Friday in 2025,
+        // and every weekend holiday to the Monday in 2026.
+        HolidayRule::fixed_public(
+            "Martyrs of Independence Day",
+            "Journée des Martyrs de l'indépendance",
+            Rule::gregorian(1, 3),
+        )
+        .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "Journée des Forces armées",
+            Rule::gregorian(5, 16),
+        )
+        .years(Some(2025), Some(2025)),
+        HolidayRule::fixed_public(
+            "Martyrs of Independence Day",
+            "Journée des Martyrs de l'indépendance",
+            Rule::gregorian(1, 5),
+        )
         .years(Some(2026), Some(2026)),
-    // No communiqué for 2027 or later was read, so a weekend holiday moved
-    // by one is a gap in those years.
-    HolidayRule::fixed_public(
-        "Weekend holiday moved by communiqué",
-        "Jour férié reporté par communiqué",
-        Rule::UNREAD,
-    )
-    .years(Some(2027), None),
-];
+        HolidayRule::fixed_public(
+            "Patrice Lumumba Day",
+            "Journée du héros national Patrice Emery Lumumba",
+            Rule::gregorian(1, 19),
+        )
+        .years(Some(2026), Some(2026)),
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "Journée des Forces armées",
+            Rule::gregorian(5, 18),
+        )
+        .years(Some(2026), Some(2026)),
+        HolidayRule::fixed_public("Parents' Day", "Fête des parents", Rule::gregorian(8, 3))
+            .years(Some(2026), Some(2026)),
+        // No communiqué for 2027 or later was read, so a weekend holiday moved
+        // by one is a gap in those years.
+        HolidayRule::fixed_public(
+            "Weekend holiday moved by communiqué",
+            "Jour férié reporté par communiqué",
+            Rule::UNREAD,
+        )
+        .years(Some(2027), None),
+    ],
+);
 
 /// Democratic Republic of the Congo.
 ///
@@ -4638,105 +4940,112 @@ fn ao_bridges(year: i64) -> Days {
     out
 }
 
-static AO_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Dia do Ano Novo", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "Liberation War Day",
-        "Dia do Início da Luta Armada de Libertação Nacional",
-        Rule::gregorian(2, 4),
-    ),
-    // The Monday after Sunday 4 February 2018, under article 6 as it stood
-    // until 28 September 2018.
-    HolidayRule::fixed_public(
-        "Liberation War Day",
-        "Dia do Início da Luta Armada de Libertação Nacional",
-        Rule::gregorian(2, 5),
-    )
-    .years(Some(2018), Some(2018)),
-    HolidayRule::public(
-        "International Women's Day",
-        "Dia Internacional da Mulher",
-        Rule::gregorian(3, 8),
-    ),
-    HolidayRule::public(
-        "Southern Africa Liberation Day",
-        "Dia da Libertação da África Austral",
-        Rule::gregorian(3, 23),
-    )
-    .years(Some(2019), None),
-    HolidayRule::fixed_public("Carnival", "Dia do Carnaval", Rule::easter(SHROVE_TUESDAY)),
-    HolidayRule::public(
-        "Peace and National Reconciliation Day",
-        "Dia da Paz e da Reconciliação Nacional",
-        Rule::gregorian(4, 4),
-    ),
-    HolidayRule::fixed_public(
-        "Good Friday",
-        "Sexta-Feira Santa",
-        Rule::easter(GOOD_FRIDAY),
-    ),
-    HolidayRule::public(
-        "Labour Day",
-        "Dia Internacional do Trabalhador",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::public(
-        "National Heroes' Day",
-        "Dia do Fundador da Nação e do Herói Nacional",
-        Rule::gregorian(9, 17),
-    ),
-    HolidayRule::fixed_public("All Souls' Day", "Dia dos Finados", Rule::gregorian(11, 2)),
-    HolidayRule::public(
-        "Independence Day",
-        "Dia da Independência",
-        Rule::gregorian(11, 11),
-    ),
-    HolidayRule::fixed_public(
-        "Christmas and Family Day",
-        "Dia de Natal e da Família",
-        Rule::gregorian(12, 25),
-    ),
-    HolidayRule::fixed_public("Bridge day", "Ponte", Rule::Computed(ao_bridges)),
-    // Article 3's national celebration dates, on which "there is no
-    // suspension of work".
-    HolidayRule::observance(
-        "Martyrs of Colonial Repression Day",
-        "Dia dos Mártires da Repressão Colonial",
-        Rule::gregorian(1, 4),
-    ),
-    HolidayRule::observance(
-        "Veterans' Day",
-        "Dia do Antigo Combatente e Veterano da Pátria",
-        Rule::gregorian(1, 15),
-    )
-    .years(Some(2019), None),
-    HolidayRule::observance(
-        "Angolan Women's Day",
-        "Dia da Mulher Angolana",
-        Rule::gregorian(3, 2),
-    ),
-    HolidayRule::observance(
-        "Day of the Expansion of the Armed Struggle",
-        "Dia da Expansão da Luta Armada de Libertação Nacional",
-        Rule::gregorian(3, 15),
-    ),
-    HolidayRule::observance(
-        "Angolan Youth Day",
-        "Dia da Juventude Angolana",
-        Rule::gregorian(4, 14),
-    ),
-    HolidayRule::observance("Africa Day", "Dia de África", Rule::gregorian(5, 25)),
-    HolidayRule::observance(
-        "International Children's Day",
-        "Dia Internacional da Criança",
-        Rule::gregorian(6, 1),
-    ),
-    HolidayRule::observance(
-        "Human Rights Day",
-        "Dia Internacional dos Direitos Humanos",
-        Rule::gregorian(12, 10),
-    ),
-];
+/// The first year the sources read answer for: Lei n.º 10/11 of 16 February
+/// 2011.
+const AO_READ_FROM: i32 = 2011;
+
+static AO_RULES: &[HolidayRule] = &read_all(
+    AO_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Dia do Ano Novo", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "Liberation War Day",
+            "Dia do Início da Luta Armada de Libertação Nacional",
+            Rule::gregorian(2, 4),
+        ),
+        // The Monday after Sunday 4 February 2018, under article 6 as it stood
+        // until 28 September 2018.
+        HolidayRule::fixed_public(
+            "Liberation War Day",
+            "Dia do Início da Luta Armada de Libertação Nacional",
+            Rule::gregorian(2, 5),
+        )
+        .years(Some(2018), Some(2018)),
+        HolidayRule::public(
+            "International Women's Day",
+            "Dia Internacional da Mulher",
+            Rule::gregorian(3, 8),
+        ),
+        HolidayRule::public(
+            "Southern Africa Liberation Day",
+            "Dia da Libertação da África Austral",
+            Rule::gregorian(3, 23),
+        )
+        .years(Some(2019), None),
+        HolidayRule::fixed_public("Carnival", "Dia do Carnaval", Rule::easter(SHROVE_TUESDAY)),
+        HolidayRule::public(
+            "Peace and National Reconciliation Day",
+            "Dia da Paz e da Reconciliação Nacional",
+            Rule::gregorian(4, 4),
+        ),
+        HolidayRule::fixed_public(
+            "Good Friday",
+            "Sexta-Feira Santa",
+            Rule::easter(GOOD_FRIDAY),
+        ),
+        HolidayRule::public(
+            "Labour Day",
+            "Dia Internacional do Trabalhador",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::public(
+            "National Heroes' Day",
+            "Dia do Fundador da Nação e do Herói Nacional",
+            Rule::gregorian(9, 17),
+        ),
+        HolidayRule::fixed_public("All Souls' Day", "Dia dos Finados", Rule::gregorian(11, 2)),
+        HolidayRule::public(
+            "Independence Day",
+            "Dia da Independência",
+            Rule::gregorian(11, 11),
+        ),
+        HolidayRule::fixed_public(
+            "Christmas and Family Day",
+            "Dia de Natal e da Família",
+            Rule::gregorian(12, 25),
+        ),
+        HolidayRule::fixed_public("Bridge day", "Ponte", Rule::Computed(ao_bridges)),
+        // Article 3's national celebration dates, on which "there is no
+        // suspension of work".
+        HolidayRule::observance(
+            "Martyrs of Colonial Repression Day",
+            "Dia dos Mártires da Repressão Colonial",
+            Rule::gregorian(1, 4),
+        ),
+        HolidayRule::observance(
+            "Veterans' Day",
+            "Dia do Antigo Combatente e Veterano da Pátria",
+            Rule::gregorian(1, 15),
+        )
+        .years(Some(2019), None),
+        HolidayRule::observance(
+            "Angolan Women's Day",
+            "Dia da Mulher Angolana",
+            Rule::gregorian(3, 2),
+        ),
+        HolidayRule::observance(
+            "Day of the Expansion of the Armed Struggle",
+            "Dia da Expansão da Luta Armada de Libertação Nacional",
+            Rule::gregorian(3, 15),
+        ),
+        HolidayRule::observance(
+            "Angolan Youth Day",
+            "Dia da Juventude Angolana",
+            Rule::gregorian(4, 14),
+        ),
+        HolidayRule::observance("Africa Day", "Dia de África", Rule::gregorian(5, 25)),
+        HolidayRule::observance(
+            "International Children's Day",
+            "Dia Internacional da Criança",
+            Rule::gregorian(6, 1),
+        ),
+        HolidayRule::observance(
+            "Human Rights Day",
+            "Dia Internacional dos Direitos Humanos",
+            Rule::gregorian(12, 10),
+        ),
+    ],
+);
 
 /// Angola.
 ///
@@ -4800,40 +5109,47 @@ static RW_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 /// A holiday of the 2017 Order, which the table carries from that year.
 const fn rw(name: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::public(name, "", rule).years(Some(2017), None)
+    HolidayRule::public(name, "", rule)
 }
 
-static RW_RULES: &[HolidayRule] = &[
-    rw("New Year's Day", Rule::gregorian(1, 1)),
-    rw("Day after New Year's Day", Rule::gregorian(1, 2)),
-    rw("National Heroes' Day", Rule::gregorian(2, 1)),
-    rw("Good Friday", Rule::easter(GOOD_FRIDAY)),
-    rw("Easter Monday", Rule::easter(EASTER_MONDAY)),
-    // "Except 07 April": never moved off the weekend.
-    HolidayRule::fixed_public(
-        "Genocide against the Tutsi Memorial Day",
-        "",
-        Rule::gregorian(4, 7),
-    )
-    .years(Some(2017), None),
-    rw("Labour Day", Rule::gregorian(5, 1)),
-    rw("Independence Day", Rule::gregorian(7, 1)),
-    rw("Liberation Day", Rule::gregorian(7, 4)),
-    // "Friday of the first week of August": the first Friday, as the
-    // Government's list for 2025 gives it, 1 August.
-    rw("Umuganura Day", Rule::nth(8, 1, Weekday::Friday)),
-    rw("Assumption Day", Rule::gregorian(8, 15)),
-    rw("Christmas Day", Rule::gregorian(12, 25)),
-    rw("Boxing Day", Rule::gregorian(12, 26)),
-    hijri_public("Eid al-Fitr", "", 10, 1).years(Some(2017), None),
-    hijri_public("Eid al-Adha", "", 12, 10).years(Some(2017), None),
-    // The two days the Ministry "exceptionally designated" for the festive
-    // season, when the Sunday Christmas and New Year's Day gave none.
-    HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(12, 27))
-        .years(Some(2022), Some(2022)),
-    HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(1, 3))
-        .years(Some(2023), Some(2023)),
-];
+/// The first year the sources read answer for: Presidential Order n° 54/01 of
+/// 24 February 2017.
+const RW_READ_FROM: i32 = 2017;
+
+static RW_RULES: &[HolidayRule] = &read_all(
+    RW_READ_FROM,
+    [
+        rw("New Year's Day", Rule::gregorian(1, 1)),
+        rw("Day after New Year's Day", Rule::gregorian(1, 2)),
+        rw("National Heroes' Day", Rule::gregorian(2, 1)),
+        rw("Good Friday", Rule::easter(GOOD_FRIDAY)),
+        rw("Easter Monday", Rule::easter(EASTER_MONDAY)),
+        // "Except 07 April": never moved off the weekend.
+        HolidayRule::fixed_public(
+            "Genocide against the Tutsi Memorial Day",
+            "",
+            Rule::gregorian(4, 7),
+        )
+        .years(Some(2017), None),
+        rw("Labour Day", Rule::gregorian(5, 1)),
+        rw("Independence Day", Rule::gregorian(7, 1)),
+        rw("Liberation Day", Rule::gregorian(7, 4)),
+        // "Friday of the first week of August": the first Friday, as the
+        // Government's list for 2025 gives it, 1 August.
+        rw("Umuganura Day", Rule::nth(8, 1, Weekday::Friday)),
+        rw("Assumption Day", Rule::gregorian(8, 15)),
+        rw("Christmas Day", Rule::gregorian(12, 25)),
+        rw("Boxing Day", Rule::gregorian(12, 26)),
+        hijri_public("Eid al-Fitr", "", 10, 1).years(Some(2017), None),
+        hijri_public("Eid al-Adha", "", 12, 10).years(Some(2017), None),
+        // The two days the Ministry "exceptionally designated" for the festive
+        // season, when the Sunday Christmas and New Year's Day gave none.
+        HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(12, 27))
+            .years(Some(2022), Some(2022)),
+        HolidayRule::fixed_public("Additional public holiday", "", Rule::gregorian(1, 3))
+            .years(Some(2023), Some(2023)),
+    ],
+);
 
 /// Rwanda.
 ///
@@ -4881,7 +5197,13 @@ pub static RWANDA: RuleSet = RuleSet {
 // Burundi
 // ─────────────────────────────────────────────────────────────────────────
 
-static BI_RULES: &[HolidayRule] = &[
+/// The first year the sources read answer for: décret n° 100/150 of 7 June
+/// 2021, which amends the décret of 2006.
+const BI_READ_FROM: i32 = 2021;
+
+static BI_RULES: &[HolidayRule] = &read_all(
+    BI_READ_FROM,
+    [
     HolidayRule::fixed_public(
         "New Year's Day",
         "Premier Jour du nouvel an",
@@ -4930,8 +5252,8 @@ static BI_RULES: &[HolidayRule] = &[
     HolidayRule::fixed_public("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
     HolidayRule::fixed_public("Christmas Day", "Noël", Rule::gregorian(12, 25)),
     hijri("Eid al-Fitr", "Aïd-El-Fithr", 10, 1),
-    hijri("Eid al-Adha", "Aïd-El-Hadj", 12, 10),
-];
+    hijri("Eid al-Adha", "Aïd-El-Hadj", 12, 10)]
+);
 
 /// Burundi.
 ///
@@ -4973,7 +5295,7 @@ pub static BURUNDI: RuleSet = RuleSet {
 /// A day on every one of the yearly decrees read, those for 2023 to 2026,
 /// carried from 2023.
 const fn mg(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, rule).years(Some(2023), None)
+    HolidayRule::fixed_public(name, local, rule)
 }
 
 /// Nothing: the calendar of the Concertation Nationale, the Ministry's
@@ -4982,65 +5304,72 @@ const fn mg(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule 
 /// A day a decree names without its date, which another act fixes.
 const MG_UNDATED: Rule = Rule::UNREAD;
 
-static MG_RULES: &[HolidayRule] = &[
-    mg("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    // "Fériée et chômée uniquement pour les femmes".
-    HolidayRule::observance(
-        "International Women's Day",
-        "Journée internationale de la Femme",
-        Rule::gregorian(3, 8),
-    )
-    .years(Some(2023), None),
-    mg(
-        "Martyrs' Day",
-        "Journée commémorative des morts des évènements de 1947",
-        Rule::gregorian(3, 29),
-    ),
-    mg("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
-    mg(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    mg("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    mg("Ascension Day", "Ascension", Rule::easter(ASCENSION)),
-    mg("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
-    mg(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        Rule::easter(WHIT_MONDAY),
-    ),
-    mg(
-        "Independence Day",
-        "Fête nationale de l'Indépendance",
-        Rule::gregorian(6, 26),
-    ),
-    mg("Assumption", "Assomption", Rule::gregorian(8, 15)),
-    mg("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
-    mg("Christmas Day", "Noël", Rule::gregorian(12, 25)),
-    hijri("Eid al-Fitr", "Eid Al-Fitr", 10, 1).years(Some(2023), None),
-    hijri("Eid al-Adha", "Eid Al-Adha", 12, 10).years(Some(2023), None),
-    // Article 2 of the 2024 decree: the communal and legislative election
-    // days of the electoral calendar.
-    HolidayRule::fixed_public("Election day", "Journée d'élections", MG_UNDATED)
-        .years(Some(2024), Some(2024)),
-    HolidayRule::fixed_public(
-        "Additional public holiday",
-        "Journée chômée et payée",
-        Rule::gregorian(4, 23),
-    )
-    .years(Some(2025), Some(2025))
-    .cited("Décret n° 2025-415 du 15 avril 2025"),
-    // Articles 2 and 3 of the 2026 decree.
-    HolidayRule::fixed_public("Malagasy New Year", "Taombaovao Malagasy", MG_UNDATED)
+/// The first year the sources read answer for: the décret of 4 January 2023,
+/// the oldest of the yearly décrets read.
+const MG_READ_FROM: i32 = 2023;
+
+static MG_RULES: &[HolidayRule] = &read_all(
+    MG_READ_FROM,
+    [
+        mg("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        // "Fériée et chômée uniquement pour les femmes".
+        HolidayRule::observance(
+            "International Women's Day",
+            "Journée internationale de la Femme",
+            Rule::gregorian(3, 8),
+        )
+        .years(Some(2023), None),
+        mg(
+            "Martyrs' Day",
+            "Journée commémorative des morts des évènements de 1947",
+            Rule::gregorian(3, 29),
+        ),
+        mg("Easter Sunday", "Pâques", Rule::easter(EASTER_SUNDAY)),
+        mg(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        mg("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        mg("Ascension Day", "Ascension", Rule::easter(ASCENSION)),
+        mg("Pentecost", "Pentecôte", Rule::easter(PENTECOST)),
+        mg(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            Rule::easter(WHIT_MONDAY),
+        ),
+        mg(
+            "Independence Day",
+            "Fête nationale de l'Indépendance",
+            Rule::gregorian(6, 26),
+        ),
+        mg("Assumption", "Assomption", Rule::gregorian(8, 15)),
+        mg("All Saints' Day", "Toussaint", Rule::gregorian(11, 1)),
+        mg("Christmas Day", "Noël", Rule::gregorian(12, 25)),
+        hijri("Eid al-Fitr", "Eid Al-Fitr", 10, 1).years(Some(2023), None),
+        hijri("Eid al-Adha", "Eid Al-Adha", 12, 10).years(Some(2023), None),
+        // Article 2 of the 2024 decree: the communal and legislative election
+        // days of the electoral calendar.
+        HolidayRule::fixed_public("Election day", "Journée d'élections", MG_UNDATED)
+            .years(Some(2024), Some(2024)),
+        HolidayRule::fixed_public(
+            "Additional public holiday",
+            "Journée chômée et payée",
+            Rule::gregorian(4, 23),
+        )
+        .years(Some(2025), Some(2025))
+        .cited("Décret n° 2025-415 du 15 avril 2025"),
+        // Articles 2 and 3 of the 2026 decree.
+        HolidayRule::fixed_public("Malagasy New Year", "Taombaovao Malagasy", MG_UNDATED)
+            .years(Some(2026), None),
+        HolidayRule::fixed_public(
+            "National Culture Day",
+            "Journée nationale de la culture",
+            MG_UNDATED,
+        )
         .years(Some(2026), None),
-    HolidayRule::fixed_public(
-        "National Culture Day",
-        "Journée nationale de la culture",
-        MG_UNDATED,
-    )
-    .years(Some(2026), None),
-];
+    ],
+);
 
 /// Madagascar.
 ///
@@ -5097,26 +5426,34 @@ static SC_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
     valid_until: None,
 }];
 
-static SC_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("New Year Holiday", "", Rule::gregorian(1, 2)),
-    HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
-    HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY))
-        .years(Some(2017), None),
-    HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public("Corpus Christi", "Fête Dieu", Rule::easter(CORPUS_CHRISTI)),
-    HolidayRule::public("Liberation Day", "", Rule::gregorian(6, 5)).years(None, Some(2016)),
-    HolidayRule::public("National Day", "", Rule::gregorian(6, 18)).years(Some(1994), Some(2014)),
-    HolidayRule::public("Constitution Day", "", Rule::gregorian(6, 18)).years(Some(2015), None),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(6, 29)).years(None, Some(2014)),
-    HolidayRule::public("Independence (National) Day", "", Rule::gregorian(6, 29))
-        .years(Some(2015), None),
-    HolidayRule::public("Assumption Day", "", Rule::gregorian(8, 15)),
-    HolidayRule::public("All Saints' Day", "", Rule::gregorian(11, 1)),
-    HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8)),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: the Public Holidays Act, Cap.
+/// 190, 1991 edition.
+const SC_READ_FROM: i32 = 1991;
+
+static SC_RULES: &[HolidayRule] = &read_all(
+    SC_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("New Year Holiday", "", Rule::gregorian(1, 2)),
+        HolidayRule::fixed_public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::fixed_public("Easter Saturday", "", Rule::easter(HOLY_SATURDAY)),
+        HolidayRule::fixed_public("Easter Monday", "", Rule::easter(EASTER_MONDAY))
+            .years(Some(2017), None),
+        HolidayRule::public("Labour Day", "", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public("Corpus Christi", "Fête Dieu", Rule::easter(CORPUS_CHRISTI)),
+        HolidayRule::public("Liberation Day", "", Rule::gregorian(6, 5)).years(None, Some(2016)),
+        HolidayRule::public("National Day", "", Rule::gregorian(6, 18))
+            .years(Some(1994), Some(2014)),
+        HolidayRule::public("Constitution Day", "", Rule::gregorian(6, 18)).years(Some(2015), None),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(6, 29)).years(None, Some(2014)),
+        HolidayRule::public("Independence (National) Day", "", Rule::gregorian(6, 29))
+            .years(Some(2015), None),
+        HolidayRule::public("Assumption Day", "", Rule::gregorian(8, 15)),
+        HolidayRule::public("All Saints' Day", "", Rule::gregorian(11, 1)),
+        HolidayRule::public("Immaculate Conception", "", Rule::gregorian(12, 8)),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Seychelles.
 ///
@@ -5160,45 +5497,53 @@ pub static SEYCHELLES: RuleSet = RuleSet {
 // Mozambique
 // ─────────────────────────────────────────────────────────────────────────
 
-static MZ_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
-    HolidayRule::fixed_public(
-        "Heroes' Day",
-        "Dia dos Heróis Moçambicanos",
-        Rule::gregorian(2, 3),
-    ),
-    HolidayRule::fixed_public(
-        "Women's Day",
-        "Dia da Mulher Moçambicana",
-        Rule::gregorian(4, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Workers' Day",
-        "Dia Internacional do Trabalhador",
-        Rule::gregorian(5, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Dia da Independência Nacional",
-        Rule::gregorian(6, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Lusaka Accord Day",
-        "Dia dos Acordos de Lusaka",
-        Rule::gregorian(9, 7),
-    ),
-    HolidayRule::fixed_public(
-        "Armed Forces Day",
-        "Dia das Forças Armadas",
-        Rule::gregorian(9, 25),
-    ),
-    HolidayRule::fixed_public(
-        "Peace and Reconciliation Day",
-        "Dia da Paz e Reconciliação Nacional",
-        Rule::gregorian(10, 4),
-    ),
-    HolidayRule::fixed_public("Family Day", "Dia da Família", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: Lei n.º 13/2023 of 25 August
+/// 2023; the table under Lei n.º 23/2007 was read only as a secondary source
+/// reports it.
+const MZ_READ_FROM: i32 = 2023;
+
+static MZ_RULES: &[HolidayRule] = &read_all(
+    MZ_READ_FROM,
+    [
+        HolidayRule::fixed_public("New Year's Day", "Ano Novo", Rule::gregorian(1, 1)),
+        HolidayRule::fixed_public(
+            "Heroes' Day",
+            "Dia dos Heróis Moçambicanos",
+            Rule::gregorian(2, 3),
+        ),
+        HolidayRule::fixed_public(
+            "Women's Day",
+            "Dia da Mulher Moçambicana",
+            Rule::gregorian(4, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Workers' Day",
+            "Dia Internacional do Trabalhador",
+            Rule::gregorian(5, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Dia da Independência Nacional",
+            Rule::gregorian(6, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Lusaka Accord Day",
+            "Dia dos Acordos de Lusaka",
+            Rule::gregorian(9, 7),
+        ),
+        HolidayRule::fixed_public(
+            "Armed Forces Day",
+            "Dia das Forças Armadas",
+            Rule::gregorian(9, 25),
+        ),
+        HolidayRule::fixed_public(
+            "Peace and Reconciliation Day",
+            "Dia da Paz e Reconciliação Nacional",
+            Rule::gregorian(10, 4),
+        ),
+        HolidayRule::fixed_public("Family Day", "Dia da Família", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Mozambique.
 ///
@@ -5245,31 +5590,39 @@ const LS_UNREAD: Rule = Rule::UNREAD;
 /// A day of the 1995 Act's Schedule that the 2026 list still gives on the
 /// same date, carried from the Act's first year.
 const fn ls(name: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", rule).years(Some(1996), None)
+    HolidayRule::fixed_public(name, "", rule)
 }
 
-static LS_RULES: &[HolidayRule] = &[
-    ls("New Year's Day", Rule::gregorian(1, 1)),
-    ls("Moshoeshoe's Day", Rule::gregorian(3, 11)),
-    ls("Good Friday", Rule::easter(GOOD_FRIDAY)),
-    ls("Easter Monday", Rule::easter(EASTER_MONDAY)),
-    ls("Workers' Day", Rule::gregorian(5, 1)),
-    ls("Ascension Day", Rule::easter(ASCENSION)),
-    ls("National Independence Day", Rule::gregorian(10, 4)),
-    ls("Christmas Day", Rule::gregorian(12, 25)),
-    // The Schedule's Heroes Day on 4 April and King's Birthday on 2 May
-    // are not on the 2026 list; its Africa's Heroes' Day, King's Birthday
-    // and Boxing Day are not in the Schedule. When each changed is not
-    // known, so 1996 to 2025 are a gap for them.
-    HolidayRule::fixed_public("Heroes' Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
-    HolidayRule::fixed_public("King's Birthday", "", LS_UNREAD).years(Some(1996), Some(2025)),
-    HolidayRule::fixed_public("Boxing Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
-    HolidayRule::fixed_public("Africa's Heroes' Day", "", Rule::gregorian(5, 25))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("King Letsie III's Birthday", "", Rule::gregorian(7, 17))
-        .years(Some(2026), None),
-    HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26)).years(Some(2026), None),
-];
+/// The first year the sources read answer for: the Public Holidays Act 1995
+/// (Act No. 7 of 1995), in its first year, 1996.
+const LS_READ_FROM: i32 = 1996;
+
+static LS_RULES: &[HolidayRule] = &read_all(
+    LS_READ_FROM,
+    [
+        ls("New Year's Day", Rule::gregorian(1, 1)),
+        ls("Moshoeshoe's Day", Rule::gregorian(3, 11)),
+        ls("Good Friday", Rule::easter(GOOD_FRIDAY)),
+        ls("Easter Monday", Rule::easter(EASTER_MONDAY)),
+        ls("Workers' Day", Rule::gregorian(5, 1)),
+        ls("Ascension Day", Rule::easter(ASCENSION)),
+        ls("National Independence Day", Rule::gregorian(10, 4)),
+        ls("Christmas Day", Rule::gregorian(12, 25)),
+        // The Schedule's Heroes Day on 4 April and King's Birthday on 2 May
+        // are not on the 2026 list; its Africa's Heroes' Day, King's Birthday
+        // and Boxing Day are not in the Schedule. When each changed is not
+        // known, so 1996 to 2025 are a gap for them.
+        HolidayRule::fixed_public("Heroes' Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
+        HolidayRule::fixed_public("King's Birthday", "", LS_UNREAD).years(Some(1996), Some(2025)),
+        HolidayRule::fixed_public("Boxing Day", "", LS_UNREAD).years(Some(1996), Some(2025)),
+        HolidayRule::fixed_public("Africa's Heroes' Day", "", Rule::gregorian(5, 25))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("King Letsie III's Birthday", "", Rule::gregorian(7, 17))
+            .years(Some(2026), None),
+        HolidayRule::fixed_public("Boxing Day", "", Rule::gregorian(12, 26))
+            .years(Some(2026), None),
+    ],
+);
 
 /// Lesotho.
 ///
@@ -5330,60 +5683,67 @@ static TD_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// A day whose date depends on a decree not read.
 const TD_UNREAD: Rule = Rule::UNREAD;
 
-static TD_RULES: &[HolidayRule] = &[
-    // Article 2: off and paid, and moved off a Sunday.
-    HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    HolidayRule::public(
-        "International Women's Day",
-        "Journée internationale de la femme",
-        Rule::gregorian(3, 8),
-    )
-    .years(Some(2019), None),
-    HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    HolidayRule::public(
-        "Independence Day",
-        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
-        Rule::gregorian(8, 11),
-    )
-    .years(None, Some(2009)),
-    HolidayRule::fixed_public(
-        "Independence Day",
-        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
-        TD_UNREAD,
-    )
-    .years(Some(2010), Some(2010)),
-    HolidayRule::public(
-        "Independence Day",
-        "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
-        Rule::gregorian(8, 11),
-    )
-    .years(Some(2011), None),
-    HolidayRule::public(
-        "Freedom and Democracy Day",
-        "Journée de la Liberté et de la Démocratie",
-        Rule::gregorian(12, 1),
-    ),
-    // Article 1: off, not paid, and not moved.
-    HolidayRule::fixed_public(
-        "Easter Monday",
-        "Lundi de Pâques",
-        Rule::easter(EASTER_MONDAY),
-    ),
-    HolidayRule::fixed_public(
-        "All Saints' Day",
-        "Fête de la Toussaint",
-        Rule::gregorian(11, 1),
-    ),
-    HolidayRule::fixed_public(
-        "Republic Day",
-        "Anniversaire de la Proclamation de la République",
-        Rule::gregorian(11, 28),
-    ),
-    HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
-    hijri("Prophet's Birthday", "Maouloud El Nebi", 3, 12),
-    hijri("Eid al-Fitr", "Aïd El Fitir", 10, 1),
-    hijri("Eid al-Adha", "Aïd El Adha", 12, 10),
-];
+/// The first year the sources read answer for: décret n° 97-413 of 30
+/// September 1997.
+const TD_READ_FROM: i32 = 1997;
+
+static TD_RULES: &[HolidayRule] = &read_all(
+    TD_READ_FROM,
+    [
+        // Article 2: off and paid, and moved off a Sunday.
+        HolidayRule::public("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        HolidayRule::public(
+            "International Women's Day",
+            "Journée internationale de la femme",
+            Rule::gregorian(3, 8),
+        )
+        .years(Some(2019), None),
+        HolidayRule::public("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        HolidayRule::public(
+            "Independence Day",
+            "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+            Rule::gregorian(8, 11),
+        )
+        .years(None, Some(2009)),
+        HolidayRule::fixed_public(
+            "Independence Day",
+            "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+            TD_UNREAD,
+        )
+        .years(Some(2010), Some(2010)),
+        HolidayRule::public(
+            "Independence Day",
+            "Anniversaire de la Proclamation de l'Indépendance, Fête nationale",
+            Rule::gregorian(8, 11),
+        )
+        .years(Some(2011), None),
+        HolidayRule::public(
+            "Freedom and Democracy Day",
+            "Journée de la Liberté et de la Démocratie",
+            Rule::gregorian(12, 1),
+        ),
+        // Article 1: off, not paid, and not moved.
+        HolidayRule::fixed_public(
+            "Easter Monday",
+            "Lundi de Pâques",
+            Rule::easter(EASTER_MONDAY),
+        ),
+        HolidayRule::fixed_public(
+            "All Saints' Day",
+            "Fête de la Toussaint",
+            Rule::gregorian(11, 1),
+        ),
+        HolidayRule::fixed_public(
+            "Republic Day",
+            "Anniversaire de la Proclamation de la République",
+            Rule::gregorian(11, 28),
+        ),
+        HolidayRule::fixed_public("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+        hijri("Prophet's Birthday", "Maouloud El Nebi", 3, 12),
+        hijri("Eid al-Fitr", "Aïd El Fitir", 10, 1),
+        hijri("Eid al-Adha", "Aïd El Adha", 12, 10),
+    ],
+);
 
 /// Chad.
 ///
@@ -5450,24 +5810,31 @@ static MR_WEEKEND: &[WeekendPolicy] = &[
     },
 ];
 
-static MR_RULES: &[HolidayRule] = &[
-    HolidayRule::fixed_public(
-        "New Year's Day",
-        "رأس السنة الميلادية",
-        Rule::gregorian(1, 1),
-    ),
-    HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
-    HolidayRule::fixed_public(
-        "Africa Liberation Day",
-        "يوم تحرير أفريقيا",
-        Rule::gregorian(5, 25),
-    ),
-    HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 28)),
-    hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
-    hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
-    hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
-    hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
-];
+/// The first year the sources read answer for: loi n° 92-018 of 7 December
+/// 1992.
+const MR_READ_FROM: i32 = 1992;
+
+static MR_RULES: &[HolidayRule] = &read_all(
+    MR_READ_FROM,
+    [
+        HolidayRule::fixed_public(
+            "New Year's Day",
+            "رأس السنة الميلادية",
+            Rule::gregorian(1, 1),
+        ),
+        HolidayRule::fixed_public("Labour Day", "عيد العمال", Rule::gregorian(5, 1)),
+        HolidayRule::fixed_public(
+            "Africa Liberation Day",
+            "يوم تحرير أفريقيا",
+            Rule::gregorian(5, 25),
+        ),
+        HolidayRule::fixed_public("National Day", "العيد الوطني", Rule::gregorian(11, 28)),
+        hijri("Islamic New Year", "رأس السنة الهجرية", 1, 1),
+        hijri("Prophet's Birthday", "المولد النبوي الشريف", 3, 12),
+        hijri("Eid al-Fitr", "عيد الفطر", 10, 1),
+        hijri("Eid al-Adha", "عيد الأضحى", 12, 10),
+    ],
+);
 
 /// Mauritania.
 ///
@@ -5527,7 +5894,7 @@ const DJ_UNREAD: Rule = Rule::UNREAD;
 
 /// A day of arrêté 77-347, carried from 1978, its first full year.
 const fn dj(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, rule).years(Some(1978), None)
+    HolidayRule::fixed_public(name, local, rule)
 }
 
 /// A Hijri day of arrêté 77-347, carried from 1978, on the tabular
@@ -5541,35 +5908,43 @@ const fn dj_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-static DJ_RULES: &[HolidayRule] = &[
-    dj("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
-    dj("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
-    dj(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        Rule::gregorian(6, 27),
-    ),
-    HolidayRule::fixed_public(
-        "Independence Day (second day)",
-        "Fête de l'Indépendance",
-        DJ_UNREAD,
-    )
-    .years(Some(1980), Some(1980)),
-    HolidayRule::fixed_public(
-        "Independence Day (second day)",
-        "Fête de l'Indépendance",
-        Rule::gregorian(6, 28),
-    )
-    .years(Some(1981), None),
-    dj("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
-    dj_hijri("Islamic New Year", "Awal Mouharam", 1, 1),
-    dj_hijri("Prophet's Birthday", "Mouloud", 3, 12),
-    dj_hijri("Isra and Mi'raj", "Al Isra et Al Mirague", 7, 27),
-    dj_hijri("Eid al-Fitr", "Aïd el-Fitre", 10, 1),
-    dj_hijri("Eid al-Fitr (second day)", "Aïd el-Fitre", 10, 2),
-    dj_hijri("Eid al-Adha", "Aïd el-Addha", 12, 10),
-    dj_hijri("Eid al-Adha (second day)", "Aïd el-Addha", 12, 11),
-];
+/// The first year the sources read answer for: arrêté n° 77-347/PR/MI of 4
+/// October 1977, as arrêtés n° 77-609, n° 78-0226 and n° 80-0931 rectify it,
+/// from 1978, its first full year.
+const DJ_READ_FROM: i32 = 1978;
+
+static DJ_RULES: &[HolidayRule] = &read_all(
+    DJ_READ_FROM,
+    [
+        dj("New Year's Day", "Nouvel An", Rule::gregorian(1, 1)),
+        dj("Labour Day", "Fête du Travail", Rule::gregorian(5, 1)),
+        dj(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            Rule::gregorian(6, 27),
+        ),
+        HolidayRule::fixed_public(
+            "Independence Day (second day)",
+            "Fête de l'Indépendance",
+            DJ_UNREAD,
+        )
+        .years(Some(1980), Some(1980)),
+        HolidayRule::fixed_public(
+            "Independence Day (second day)",
+            "Fête de l'Indépendance",
+            Rule::gregorian(6, 28),
+        )
+        .years(Some(1981), None),
+        dj("Christmas Day", "Fête de Noël", Rule::gregorian(12, 25)),
+        dj_hijri("Islamic New Year", "Awal Mouharam", 1, 1),
+        dj_hijri("Prophet's Birthday", "Mouloud", 3, 12),
+        dj_hijri("Isra and Mi'raj", "Al Isra et Al Mirague", 7, 27),
+        dj_hijri("Eid al-Fitr", "Aïd el-Fitre", 10, 1),
+        dj_hijri("Eid al-Fitr (second day)", "Aïd el-Fitre", 10, 2),
+        dj_hijri("Eid al-Adha", "Aïd el-Addha", 12, 10),
+        dj_hijri("Eid al-Adha (second day)", "Aïd el-Addha", 12, 11),
+    ],
+);
 
 /// Djibouti.
 ///
@@ -5618,7 +5993,7 @@ pub static DJIBOUTI: RuleSet = RuleSet {
 /// A day of article 1 of decree 25-147/PR, carried from 2026, the decree's
 /// first full year.
 const fn km(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, rule).years(Some(2026), None)
+    HolidayRule::fixed_public(name, local, rule)
 }
 
 /// A religious day of article 1, on the tabular Hijri calendar, carried
@@ -5632,68 +6007,75 @@ const fn km_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
     .approximate()
 }
 
-static KM_RULES: &[HolidayRule] = &[
-    // Article 1, 1: the religious days.
-    km_hijri("Islamic New Year", "Premier jour de l'An musulman", 1, 1),
-    km_hijri(
-        "Prophet's Birthday",
-        "Jour de la Naissance du prophète Muhammad",
-        3,
-        12,
-    ),
-    km_hijri(
-        "End of Ramadan (first day)",
-        "Les trois jours suivant le 29 du mois de Ramadan",
-        9,
-        30,
-    ),
-    km_hijri(
-        "End of Ramadan (second day)",
-        "Les trois jours suivant le 29 du mois de Ramadan",
-        10,
-        1,
-    ),
-    km_hijri(
-        "End of Ramadan (third day)",
-        "Les trois jours suivant le 29 du mois de Ramadan",
-        10,
-        2,
-    ),
-    km_hijri("Eid al-Kabir", "Jour de l'Ide El Kabir", 12, 10),
-    km_hijri(
-        "Day after Eid al-Kabir",
-        "Lendemain de l'Ide El Kabir",
-        12,
-        11,
-    ),
-    // Article 1, 2: the civil days.
-    km("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
-    km(
-        "National Reconciliation Day",
-        "Jour de la Réconciliation nationale",
-        Rule::gregorian(2, 17),
-    ),
-    km(
-        "Labour Day",
-        "Fête internationale du Travail",
-        Rule::gregorian(5, 1),
-    ),
-    km(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        Rule::gregorian(7, 6),
-    ),
-    km(
-        "Day after Independence Day",
-        "Lendemain de la Fête de l'Indépendance",
-        Rule::gregorian(7, 7),
-    ),
-    km(
-        "Admission of the Comoros to the United Nations",
-        "Jour de l'Admission des Comores aux Nations unies",
-        Rule::gregorian(11, 12),
-    ),
-];
+/// The first year the sources read answer for: décret n° 25-147 of 19
+/// December 2025, from 2026, its first full year.
+const KM_READ_FROM: i32 = 2026;
+
+static KM_RULES: &[HolidayRule] = &read_all(
+    KM_READ_FROM,
+    [
+        // Article 1, 1: the religious days.
+        km_hijri("Islamic New Year", "Premier jour de l'An musulman", 1, 1),
+        km_hijri(
+            "Prophet's Birthday",
+            "Jour de la Naissance du prophète Muhammad",
+            3,
+            12,
+        ),
+        km_hijri(
+            "End of Ramadan (first day)",
+            "Les trois jours suivant le 29 du mois de Ramadan",
+            9,
+            30,
+        ),
+        km_hijri(
+            "End of Ramadan (second day)",
+            "Les trois jours suivant le 29 du mois de Ramadan",
+            10,
+            1,
+        ),
+        km_hijri(
+            "End of Ramadan (third day)",
+            "Les trois jours suivant le 29 du mois de Ramadan",
+            10,
+            2,
+        ),
+        km_hijri("Eid al-Kabir", "Jour de l'Ide El Kabir", 12, 10),
+        km_hijri(
+            "Day after Eid al-Kabir",
+            "Lendemain de l'Ide El Kabir",
+            12,
+            11,
+        ),
+        // Article 1, 2: the civil days.
+        km("New Year's Day", "Jour de l'An", Rule::gregorian(1, 1)),
+        km(
+            "National Reconciliation Day",
+            "Jour de la Réconciliation nationale",
+            Rule::gregorian(2, 17),
+        ),
+        km(
+            "Labour Day",
+            "Fête internationale du Travail",
+            Rule::gregorian(5, 1),
+        ),
+        km(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            Rule::gregorian(7, 6),
+        ),
+        km(
+            "Day after Independence Day",
+            "Lendemain de la Fête de l'Indépendance",
+            Rule::gregorian(7, 7),
+        ),
+        km(
+            "Admission of the Comoros to the United Nations",
+            "Jour de l'Admission des Comores aux Nations unies",
+            Rule::gregorian(11, 12),
+        ),
+    ],
+);
 
 /// Comoros.
 ///
@@ -5752,52 +6134,59 @@ static GQ_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 
 /// A day of article 2 of decree 9/2007, carried from 2007.
 const fn gq(name: &'static str, local: &'static str, rule: Rule) -> HolidayRule {
-    HolidayRule::public(name, local, rule).years(Some(2007), None)
+    HolidayRule::public(name, local, rule)
 }
 
-static GQ_RULES: &[HolidayRule] = &[
-    // Article 2 A: the national feasts.
-    gq(
-        "President's Birthday",
-        "Natalicio de Su Excelencia el Presidente de la República",
-        Rule::gregorian(6, 5),
-    ),
-    gq(
-        "Freedom Coup Day",
-        "Golpe de Libertad",
-        Rule::gregorian(8, 3),
-    ),
-    gq(
-        "Constitution Day",
-        "Día de la Ley Fundamental",
-        Rule::gregorian(8, 15),
-    ),
-    gq(
-        "Independence Day",
-        "Día de la Independencia Nacional",
-        Rule::gregorian(10, 12),
-    ),
-    // Article 2 B: the international feast.
-    gq(
-        "Labour Day",
-        "Día Internacional de Trabajo",
-        Rule::gregorian(5, 1),
-    ),
-    // Article 2 C: the religious feasts.
-    gq("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
-    gq("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
-    gq(
-        "Corpus Christi",
-        "Corpus Cristi",
-        Rule::easter(CORPUS_CHRISTI),
-    ),
-    gq(
-        "Immaculate Conception",
-        "Festividad de la Inmaculada Concepción, Patrona de Guinea Ecuatorial",
-        Rule::gregorian(12, 8),
-    ),
-    gq("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: Decreto núm. 9/2007 of 5
+/// February 2007.
+const GQ_READ_FROM: i32 = 2007;
+
+static GQ_RULES: &[HolidayRule] = &read_all(
+    GQ_READ_FROM,
+    [
+        // Article 2 A: the national feasts.
+        gq(
+            "President's Birthday",
+            "Natalicio de Su Excelencia el Presidente de la República",
+            Rule::gregorian(6, 5),
+        ),
+        gq(
+            "Freedom Coup Day",
+            "Golpe de Libertad",
+            Rule::gregorian(8, 3),
+        ),
+        gq(
+            "Constitution Day",
+            "Día de la Ley Fundamental",
+            Rule::gregorian(8, 15),
+        ),
+        gq(
+            "Independence Day",
+            "Día de la Independencia Nacional",
+            Rule::gregorian(10, 12),
+        ),
+        // Article 2 B: the international feast.
+        gq(
+            "Labour Day",
+            "Día Internacional de Trabajo",
+            Rule::gregorian(5, 1),
+        ),
+        // Article 2 C: the religious feasts.
+        gq("New Year's Day", "Año Nuevo", Rule::gregorian(1, 1)),
+        gq("Good Friday", "Viernes Santo", Rule::easter(GOOD_FRIDAY)),
+        gq(
+            "Corpus Christi",
+            "Corpus Cristi",
+            Rule::easter(CORPUS_CHRISTI),
+        ),
+        gq(
+            "Immaculate Conception",
+            "Festividad de la Inmaculada Concepción, Patrona de Guinea Ecuatorial",
+            Rule::gregorian(12, 8),
+        ),
+        gq("Christmas Day", "Navidad", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Equatorial Guinea.
 ///
@@ -5866,50 +6255,58 @@ static LR_SUBSTITUTION: &[SubstitutionPolicy] = &[SubstitutionPolicy {
 /// the day, so that whether the day was kept that year is not known.
 const LR_ACT_YEAR: Rule = Rule::UNREAD;
 
-static LR_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Armed Forces Day", "", Rule::gregorian(2, 11)),
-    // The Act of 24 October 1916.
-    HolidayRule::fixed_public("Decoration Day", "", Rule::nth(3, 2, Weekday::Wednesday))
-        .years(Some(1917), None),
-    HolidayRule::public(
-        "Birth Anniversary of Joseph Jenkins Roberts",
-        "",
-        Rule::gregorian(3, 15),
-    ),
-    // The Act of 1883.
-    HolidayRule::fixed_public(
-        "National Fast and Prayer Day",
-        "",
-        Rule::nth(4, 2, Weekday::Friday),
-    )
-    .years(Some(1884), None),
-    HolidayRule::fixed_public("National Fast and Prayer Day", "", LR_ACT_YEAR)
-        .years(Some(1883), Some(1883)),
-    // The Act of 1960.
-    HolidayRule::public("National Unification Day", "", Rule::gregorian(5, 14))
-        .years(Some(1961), None),
-    HolidayRule::fixed_public("National Unification Day", "", LR_ACT_YEAR)
-        .years(Some(1960), Some(1960)),
-    HolidayRule::public("Independence Day", "", Rule::gregorian(7, 26)),
-    // The Act of 25 October 1915.
-    HolidayRule::public("National Flag Day", "", Rule::gregorian(8, 24)).years(Some(1916), None),
-    // The Act of 1883.
-    HolidayRule::fixed_public(
-        "National Thanksgiving Day",
-        "",
-        Rule::nth(11, 1, Weekday::Thursday),
-    )
-    .years(Some(1884), None),
-    HolidayRule::fixed_public("National Thanksgiving Day", "", LR_ACT_YEAR)
-        .years(Some(1883), Some(1883)),
-    HolidayRule::public(
-        "Birth Anniversary of William V. S. Tubman",
-        "",
-        Rule::gregorian(11, 29),
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-];
+/// The first year the sources read answer for: the President's holiday
+/// proclamations of 2012 to 2026, the oldest dated list read.
+const LR_READ_FROM: i32 = 2012;
+
+static LR_RULES: &[HolidayRule] = &read_all(
+    LR_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Armed Forces Day", "", Rule::gregorian(2, 11)),
+        // The Act of 24 October 1916.
+        HolidayRule::fixed_public("Decoration Day", "", Rule::nth(3, 2, Weekday::Wednesday))
+            .years(Some(1917), None),
+        HolidayRule::public(
+            "Birth Anniversary of Joseph Jenkins Roberts",
+            "",
+            Rule::gregorian(3, 15),
+        ),
+        // The Act of 1883.
+        HolidayRule::fixed_public(
+            "National Fast and Prayer Day",
+            "",
+            Rule::nth(4, 2, Weekday::Friday),
+        )
+        .years(Some(1884), None),
+        HolidayRule::fixed_public("National Fast and Prayer Day", "", LR_ACT_YEAR)
+            .years(Some(1883), Some(1883)),
+        // The Act of 1960.
+        HolidayRule::public("National Unification Day", "", Rule::gregorian(5, 14))
+            .years(Some(1961), None),
+        HolidayRule::fixed_public("National Unification Day", "", LR_ACT_YEAR)
+            .years(Some(1960), Some(1960)),
+        HolidayRule::public("Independence Day", "", Rule::gregorian(7, 26)),
+        // The Act of 25 October 1915.
+        HolidayRule::public("National Flag Day", "", Rule::gregorian(8, 24))
+            .years(Some(1916), None),
+        // The Act of 1883.
+        HolidayRule::fixed_public(
+            "National Thanksgiving Day",
+            "",
+            Rule::nth(11, 1, Weekday::Thursday),
+        )
+        .years(Some(1884), None),
+        HolidayRule::fixed_public("National Thanksgiving Day", "", LR_ACT_YEAR)
+            .years(Some(1883), Some(1883)),
+        HolidayRule::public(
+            "Birth Anniversary of William V. S. Tubman",
+            "",
+            Rule::gregorian(11, 29),
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+    ],
+);
 
 /// Liberia.
 ///
@@ -6003,11 +6400,8 @@ static SO_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until_day: None,
 }];
 
-/// The first year under the Labour Code of 2024.
-const SO_FROM: i32 = 2025;
-
 const fn so_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(SO_FROM), None)
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
 }
 
 /// A day on the tabular Hijri calendar, approximate: the Government
@@ -6019,7 +6413,6 @@ const fn so_hijri(name: &'static str, local: &'static str, month: u8, day: u8) -
         Rule::in_calendar(CalendarSystem::ISLAMIC_CIVIL, month, day),
     )
     .approximate()
-    .years(Some(SO_FROM), None)
 }
 
 /// The days of an Eid of `working_days` working days, in Gregorian `year`:
@@ -6079,32 +6472,37 @@ const fn so_eid_rule(
     local: &'static str,
     function: fn(i64) -> Days,
 ) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::Computed(function))
-        .approximate()
-        .years(Some(SO_FROM), None)
+    HolidayRule::fixed_public(name, local, Rule::Computed(function)).approximate()
 }
 
-static SO_RULES: &[HolidayRule] = &[
-    // "21ka Jannaayo": the committee's report on the bill records the
-    // change from 21 October.
-    so_fixed(
-        "Somali Language Writing Day",
-        "Maalinta Qorista Afka Soomaaliga",
-        1,
-        21,
-    ),
-    so_fixed("Labour Day", "Maalinta Shaqaalaha", 5, 1),
-    so_fixed("Independence Day", "Maalinta Xuriyadda", 6, 26),
-    so_fixed("Union Day", "Maalinta Midowga", 7, 1),
-    so_hijri(
-        "Prophet's Birthday",
-        "Maalinta Dhalashada Nabi Muxamed",
-        3,
-        12,
-    ),
-    so_eid_rule("Eid al-Fitr", "Maalinta Ciidul-Fitri", so_fitr),
-    so_eid_rule("Eid al-Adha", "Maalinta Ciidul-Adxaa", so_adha),
-];
+/// The first year the sources read answer for: Law No. 36 of 24 December
+/// 2024, the Labour Code of 2024, from 2025, its first year.
+const SO_READ_FROM: i32 = 2025;
+
+static SO_RULES: &[HolidayRule] = &read_all(
+    SO_READ_FROM,
+    [
+        // "21ka Jannaayo": the committee's report on the bill records the
+        // change from 21 October.
+        so_fixed(
+            "Somali Language Writing Day",
+            "Maalinta Qorista Afka Soomaaliga",
+            1,
+            21,
+        ),
+        so_fixed("Labour Day", "Maalinta Shaqaalaha", 5, 1),
+        so_fixed("Independence Day", "Maalinta Xuriyadda", 6, 26),
+        so_fixed("Union Day", "Maalinta Midowga", 7, 1),
+        so_hijri(
+            "Prophet's Birthday",
+            "Maalinta Dhalashada Nabi Muxamed",
+            3,
+            12,
+        ),
+        so_eid_rule("Eid al-Fitr", "Maalinta Ciidul-Fitri", so_fitr),
+        so_eid_rule("Eid al-Adha", "Maalinta Ciidul-Adxaa", so_adha),
+    ],
+);
 
 /// Somalia, from 2025.
 ///
@@ -6154,10 +6552,6 @@ pub static SOMALIA: RuleSet = RuleSet {
 // South Sudan
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The first year of the Ministry of Labour's list read, its calendar for
-/// 2022.
-const SS_FROM: i32 = 2022;
-
 /// The spans the Ministry sets year by year, as its calendar for 2022 and
 /// its notices for 2025 and 2026 give them.
 static SS_ANNOUNCED: Listing = Listing::Named(&[
@@ -6194,67 +6588,73 @@ static SS_ANNOUNCED: Listing = Listing::Named(&[
 ]);
 
 const fn ss_fixed(name: &'static str, month: u8, day: u8) -> HolidayRule {
-    HolidayRule::fixed_public(name, "", Rule::gregorian(month, day)).years(Some(SS_FROM), None)
+    HolidayRule::fixed_public(name, "", Rule::gregorian(month, day))
 }
 
-static SS_RULES: &[HolidayRule] = &[
-    ss_fixed("New Year", 1, 1),
-    // Good Friday to Easter Monday in 2022, 2025 and 2026; the notice for
-    // 2024 is known by its title only, and 2023's was not found.
-    announced(
-        "Easter Holiday",
-        "",
-        SS_ANNOUNCED.named("Easter Holiday"),
-        2022,
-        2022,
-    )
-    .years(Some(SS_FROM), Some(2024)),
-    announced(
-        "Easter Holiday",
-        "",
-        SS_ANNOUNCED.named("Easter Holiday"),
-        2025,
-        2026,
-    )
-    .years(Some(2025), None),
-    ss_fixed("International Labour Day", 5, 1),
-    ss_fixed("SPLA Day", 5, 16),
-    ss_fixed("Independence Day", 7, 9),
-    ss_fixed("Martyrs' Day", 7, 30),
-    // Four days in 2022 and three in 2025: the Ministry's to say.
-    announced(
-        "Eid al-Fitr",
-        "",
-        SS_ANNOUNCED.named("Eid al-Fitr"),
-        2022,
-        2022,
-    )
-    .years(Some(SS_FROM), Some(2024)),
-    announced(
-        "Eid al-Fitr",
-        "",
-        SS_ANNOUNCED.named("Eid al-Fitr"),
-        2025,
-        2025,
-    )
-    .years(Some(2025), None),
-    announced(
-        "Eid al-Adha",
-        "",
-        SS_ANNOUNCED.named("Eid al-Adha"),
-        2022,
-        2022,
-    )
-    .years(Some(SS_FROM), None),
-    announced(
-        "Christmas Holiday",
-        "",
-        SS_ANNOUNCED.named("Christmas Holiday"),
-        2022,
-        2022,
-    )
-    .years(Some(SS_FROM), None),
-];
+/// The first year the sources read answer for: the Labour Act, 2017 (Act No.
+/// 64), read with the Ministry of Labour's calendar of 2022, from which the
+/// days are carried.
+const SS_READ_FROM: i32 = 2022;
+
+static SS_RULES: &[HolidayRule] = &read_all(
+    SS_READ_FROM,
+    [
+        ss_fixed("New Year", 1, 1),
+        // Good Friday to Easter Monday in 2022, 2025 and 2026; the notice for
+        // 2024 is known by its title only, and 2023's was not found.
+        announced(
+            "Easter Holiday",
+            "",
+            SS_ANNOUNCED.named("Easter Holiday"),
+            2022,
+            2022,
+        )
+        .years(None, Some(2024)),
+        announced(
+            "Easter Holiday",
+            "",
+            SS_ANNOUNCED.named("Easter Holiday"),
+            2025,
+            2026,
+        )
+        .years(Some(2025), None),
+        ss_fixed("International Labour Day", 5, 1),
+        ss_fixed("SPLA Day", 5, 16),
+        ss_fixed("Independence Day", 7, 9),
+        ss_fixed("Martyrs' Day", 7, 30),
+        // Four days in 2022 and three in 2025: the Ministry's to say.
+        announced(
+            "Eid al-Fitr",
+            "",
+            SS_ANNOUNCED.named("Eid al-Fitr"),
+            2022,
+            2022,
+        )
+        .years(None, Some(2024)),
+        announced(
+            "Eid al-Fitr",
+            "",
+            SS_ANNOUNCED.named("Eid al-Fitr"),
+            2025,
+            2025,
+        )
+        .years(Some(2025), None),
+        announced(
+            "Eid al-Adha",
+            "",
+            SS_ANNOUNCED.named("Eid al-Adha"),
+            2022,
+            2022,
+        ),
+        announced(
+            "Christmas Holiday",
+            "",
+            SS_ANNOUNCED.named("Christmas Holiday"),
+            2022,
+            2022,
+        ),
+    ],
+);
 
 /// South Sudan, from 2022.
 ///
@@ -6362,50 +6762,57 @@ static SD_ANNOUNCED: Listing = Listing::Named(&[
     (2026, 8, 25, "Prophet's Birthday"),
 ]);
 
-static SD_RULES: &[HolidayRule] = &[
-    announced(
-        "Independence Day",
-        "ذكرى أعياد الاستقلال",
-        SD_ANNOUNCED.named("Independence Day"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Eid al-Fitr",
-        "عيد الفطر المبارك",
-        SD_ANNOUNCED.named("Eid al-Fitr"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Eid al-Adha",
-        "عيد الأضحى المبارك",
-        SD_ANNOUNCED.named("Eid al-Adha"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Islamic New Year",
-        "العام الهجري",
-        SD_ANNOUNCED.named("Islamic New Year"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Prophet's Birthday",
-        "المولد النبوي الشريف",
-        SD_ANNOUNCED.named("Prophet's Birthday"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Christmas",
-        "عيد الميلاد المجيد",
-        SD_ANNOUNCED.named("Christmas"),
-        2025,
-        2025,
-    ),
-];
+/// The first year the sources read answer for: the Council of Ministers'
+/// announcements of December 2025 to August 2026.
+const SD_READ_FROM: i32 = 2025;
+
+static SD_RULES: &[HolidayRule] = &read_all(
+    SD_READ_FROM,
+    [
+        announced(
+            "Independence Day",
+            "ذكرى أعياد الاستقلال",
+            SD_ANNOUNCED.named("Independence Day"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Eid al-Fitr",
+            "عيد الفطر المبارك",
+            SD_ANNOUNCED.named("Eid al-Fitr"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Eid al-Adha",
+            "عيد الأضحى المبارك",
+            SD_ANNOUNCED.named("Eid al-Adha"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Islamic New Year",
+            "العام الهجري",
+            SD_ANNOUNCED.named("Islamic New Year"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Prophet's Birthday",
+            "المولد النبوي الشريف",
+            SD_ANNOUNCED.named("Prophet's Birthday"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Christmas",
+            "عيد الميلاد المجيد",
+            SD_ANNOUNCED.named("Christmas"),
+            2025,
+            2025,
+        ),
+    ],
+);
 
 /// Sudan: the Council of Ministers' announcements, one holiday at a time.
 ///
@@ -6447,9 +6854,6 @@ pub static SUDAN: RuleSet = RuleSet {
 // Guinea-Bissau
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The first year under Decree 1/2023.
-const GW_FROM: i32 = 2023;
-
 /// Sunday: article 123(1) of the Lei Geral do Trabalho, as the Portuguese
 /// Public Prosecutor's cooperation department summarises it, "um dia de
 /// descanso por semana que, em princípio, é ao domingo"; article 124 lets
@@ -6473,45 +6877,50 @@ static GW_ANNOUNCED: Listing = Listing::Named(&[
 ]);
 
 const fn gw_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(GW_FROM), None)
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
 }
 
-static GW_RULES: &[HolidayRule] = &[
-    gw_fixed("New Year's Day", "Novo Ano", 1, 1),
-    gw_fixed(
-        "National Heroes' Day",
-        "Dia dos Heróis Nacionais e dos Combatentes da Liberdade da Pátria",
-        1,
-        20,
-    ),
-    // The decree's "Páscoa", which the press does not date: Easter Sunday
-    // or a day beside it.
-    HolidayRule::fixed_public("Easter", "Páscoa", NOT_READ).years(Some(GW_FROM), None),
-    gw_fixed(
-        "International Workers' Day",
-        "Dia Internacional dos Trabalhadores",
-        5,
-        1,
-    ),
-    announced(
-        "Eid al-Fitr",
-        "Ramadão",
-        GW_ANNOUNCED.named("Eid al-Fitr"),
-        2026,
-        2026,
-    )
-    .years(Some(GW_FROM), None),
-    announced(
-        "Tabaski",
-        "Tabaski",
-        GW_ANNOUNCED.named("Tabaski"),
-        2025,
-        2025,
-    )
-    .years(Some(GW_FROM), None),
-    gw_fixed("Independence Day", "Dia da Independência Nacional", 9, 24),
-    gw_fixed("Christmas Day", "Natal", 12, 25),
-];
+/// The first year the sources read answer for: Decreto n.º 1/2023 of 18
+/// January 2023, read as a newspaper quotes it.
+const GW_READ_FROM: i32 = 2023;
+
+static GW_RULES: &[HolidayRule] = &read_all(
+    GW_READ_FROM,
+    [
+        gw_fixed("New Year's Day", "Novo Ano", 1, 1),
+        gw_fixed(
+            "National Heroes' Day",
+            "Dia dos Heróis Nacionais e dos Combatentes da Liberdade da Pátria",
+            1,
+            20,
+        ),
+        // The decree's "Páscoa", which the press does not date: Easter Sunday
+        // or a day beside it.
+        HolidayRule::fixed_public("Easter", "Páscoa", NOT_READ),
+        gw_fixed(
+            "International Workers' Day",
+            "Dia Internacional dos Trabalhadores",
+            5,
+            1,
+        ),
+        announced(
+            "Eid al-Fitr",
+            "Ramadão",
+            GW_ANNOUNCED.named("Eid al-Fitr"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Tabaski",
+            "Tabaski",
+            GW_ANNOUNCED.named("Tabaski"),
+            2025,
+            2025,
+        ),
+        gw_fixed("Independence Day", "Dia da Independência Nacional", 9, 24),
+        gw_fixed("Christmas Day", "Natal", 12, 25),
+    ],
+);
 
 /// Guinea-Bissau, from 2023.
 ///
@@ -6596,47 +7005,55 @@ static SL_ANNOUNCED: Listing = Listing::Named(&[
     (2023, 2, 22, "Armed Forces Day"),
 ]);
 
-static SL_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    announced(
-        "Armed Forces Day",
-        "",
-        SL_ANNOUNCED.named("Armed Forces Day"),
-        2020,
-        2023,
-    ),
-    // Known for 2021 and 2022 from the search index's snippets alone.
-    unread_in("Armed Forces Day", "", 2021),
-    unread_in("Armed Forces Day", "", 2022),
-    announced(
-        "International Women's Day",
-        "",
-        SL_ANNOUNCED.named("International Women's Day"),
-        2020,
-        2020,
-    ),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    HolidayRule::fixed_public("Independence Day", "", NOT_READ),
-    HolidayRule::fixed_public("Labour Day", "", NOT_READ),
-    announced(
-        "Eid al-Fitr",
-        "",
-        SL_ANNOUNCED.named("Eid al-Fitr"),
-        2020,
-        2020,
-    ),
-    announced(
-        "Eid al-Adha",
-        "",
-        SL_ANNOUNCED.named("Eid al-Adha"),
-        2022,
-        2022,
-    ),
-    HolidayRule::fixed_public("Moulid-un-Nabi", "", NOT_READ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+/// The first year the sources read answer for: the Government Notices of
+/// 2020, the oldest dated list read; the Act of 1960 was read as an undated
+/// revised-edition copy.
+const SL_READ_FROM: i32 = 2020;
+
+static SL_RULES: &[HolidayRule] = &read_all(
+    SL_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        announced(
+            "Armed Forces Day",
+            "",
+            SL_ANNOUNCED.named("Armed Forces Day"),
+            2020,
+            2023,
+        ),
+        // Known for 2021 and 2022 from the search index's snippets alone.
+        unread_in("Armed Forces Day", "", 2021),
+        unread_in("Armed Forces Day", "", 2022),
+        announced(
+            "International Women's Day",
+            "",
+            SL_ANNOUNCED.named("International Women's Day"),
+            2020,
+            2020,
+        ),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        HolidayRule::fixed_public("Independence Day", "", NOT_READ),
+        HolidayRule::fixed_public("Labour Day", "", NOT_READ),
+        announced(
+            "Eid al-Fitr",
+            "",
+            SL_ANNOUNCED.named("Eid al-Fitr"),
+            2020,
+            2020,
+        ),
+        announced(
+            "Eid al-Adha",
+            "",
+            SL_ANNOUNCED.named("Eid al-Adha"),
+            2022,
+            2022,
+        ),
+        HolidayRule::fixed_public("Moulid-un-Nabi", "", NOT_READ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Sierra Leone.
 ///
@@ -6710,117 +7127,124 @@ static GM_ANNOUNCED: Listing = Listing::Named(&[
     (2026, 6, 25, "ashura"), (2026, 8, 15, "assumption"), (2026, 8, 26, "gamo"),
 ]);
 
-static GM_RULES: &[HolidayRule] = &[
-    announced(
-        "New Year's Day",
-        "",
-        GM_ANNOUNCED.named("new_year"),
-        2022,
-        2026,
-    ),
-    unread_in("New Year's Day", "", 2023),
-    announced(
-        "Independence Day",
-        "",
-        GM_ANNOUNCED.named("independence"),
-        2024,
-        2025,
-    ),
-    announced(
-        "Good Friday",
-        "",
-        GM_ANNOUNCED.named("good_friday"),
-        2022,
-        2026,
-    ),
-    unread_in("Good Friday", "", 2023),
-    announced(
-        "Easter Monday",
-        "",
-        GM_ANNOUNCED.named("easter_monday"),
-        2022,
-        2026,
-    ),
-    unread_in("Easter Monday", "", 2023),
-    // 2 and 3 May 2022 were declared "to mark Labour Day and Eid-ul-Fitr"
-    // and are listed under the Eid, so 2022 is a gap here.
-    announced(
-        "International Workers' Day",
-        "",
-        GM_ANNOUNCED.named("labour"),
-        2021,
-        2026,
-    ),
-    unread_in("International Workers' Day", "", 2022),
-    unread_in("International Workers' Day", "", 2023),
-    unread_in("International Workers' Day", "", 2025),
-    announced("Africa Day", "", GM_ANNOUNCED.named("africa"), 2022, 2025),
-    unread_in("Africa Day", "", 2023),
-    unread_in("Africa Day", "", 2024),
-    announced(
-        "Eid al-Fitr",
-        "Koriteh",
-        GM_ANNOUNCED.named("koriteh"),
-        2021,
-        2026,
-    ),
-    unread_in("Eid al-Fitr", "Koriteh", 2023),
-    announced(
-        "Eid al-Adha",
-        "Tobaski",
-        GM_ANNOUNCED.named("tobaski"),
-        2021,
-        2025,
-    ),
-    unread_in("Eid al-Adha", "Tobaski", 2023),
-    unread_in("Eid al-Adha", "Tobaski", 2024),
-    announced(
-        "Ashura",
-        "Tamharit",
-        GM_ANNOUNCED.named("ashura"),
-        2021,
-        2026,
-    ),
-    unread_in("Ashura", "Tamharit", 2023),
-    unread_in("Ashura", "Tamharit", 2024),
-    announced(
-        "Assumption Day",
-        "Sang Marie",
-        GM_ANNOUNCED.named("assumption"),
-        2021,
-        2026,
-    ),
-    unread_in("Assumption Day", "Sang Marie", 2024),
-    announced(
-        "Mawlid al-Nabi",
-        "Gamo",
-        GM_ANNOUNCED.named("gamo"),
-        2021,
-        2026,
-    ),
-    unread_in("Mawlid al-Nabi", "Gamo", 2023),
-    unread_in("Mawlid al-Nabi", "Gamo", 2024),
-    announced(
-        "Christmas Day",
-        "",
-        GM_ANNOUNCED.named("christmas"),
-        2021,
-        2025,
-    ),
-    unread_in("Christmas Day", "", 2022),
-    announced("Boxing Day", "", GM_ANNOUNCED.named("boxing"), 2021, 2025),
-    unread_in("Boxing Day", "", 2022),
-    // The presidential election of 4 December 2021 and the National
-    // Assembly election of 9 April 2022.
-    announced(
-        "Election Day",
-        "",
-        GM_ANNOUNCED.named("election"),
-        2021,
-        2022,
-    )
-    .years(Some(2021), Some(2022)),
-];
+/// The first year the sources read answer for: the Office of the President's
+/// declarations of 2021 to 2026.
+const GM_READ_FROM: i32 = 2021;
+
+static GM_RULES: &[HolidayRule] = &read_all(
+    GM_READ_FROM,
+    [
+        announced(
+            "New Year's Day",
+            "",
+            GM_ANNOUNCED.named("new_year"),
+            2022,
+            2026,
+        ),
+        unread_in("New Year's Day", "", 2023),
+        announced(
+            "Independence Day",
+            "",
+            GM_ANNOUNCED.named("independence"),
+            2024,
+            2025,
+        ),
+        announced(
+            "Good Friday",
+            "",
+            GM_ANNOUNCED.named("good_friday"),
+            2022,
+            2026,
+        ),
+        unread_in("Good Friday", "", 2023),
+        announced(
+            "Easter Monday",
+            "",
+            GM_ANNOUNCED.named("easter_monday"),
+            2022,
+            2026,
+        ),
+        unread_in("Easter Monday", "", 2023),
+        // 2 and 3 May 2022 were declared "to mark Labour Day and Eid-ul-Fitr"
+        // and are listed under the Eid, so 2022 is a gap here.
+        announced(
+            "International Workers' Day",
+            "",
+            GM_ANNOUNCED.named("labour"),
+            2021,
+            2026,
+        ),
+        unread_in("International Workers' Day", "", 2022),
+        unread_in("International Workers' Day", "", 2023),
+        unread_in("International Workers' Day", "", 2025),
+        announced("Africa Day", "", GM_ANNOUNCED.named("africa"), 2022, 2025),
+        unread_in("Africa Day", "", 2023),
+        unread_in("Africa Day", "", 2024),
+        announced(
+            "Eid al-Fitr",
+            "Koriteh",
+            GM_ANNOUNCED.named("koriteh"),
+            2021,
+            2026,
+        ),
+        unread_in("Eid al-Fitr", "Koriteh", 2023),
+        announced(
+            "Eid al-Adha",
+            "Tobaski",
+            GM_ANNOUNCED.named("tobaski"),
+            2021,
+            2025,
+        ),
+        unread_in("Eid al-Adha", "Tobaski", 2023),
+        unread_in("Eid al-Adha", "Tobaski", 2024),
+        announced(
+            "Ashura",
+            "Tamharit",
+            GM_ANNOUNCED.named("ashura"),
+            2021,
+            2026,
+        ),
+        unread_in("Ashura", "Tamharit", 2023),
+        unread_in("Ashura", "Tamharit", 2024),
+        announced(
+            "Assumption Day",
+            "Sang Marie",
+            GM_ANNOUNCED.named("assumption"),
+            2021,
+            2026,
+        ),
+        unread_in("Assumption Day", "Sang Marie", 2024),
+        announced(
+            "Mawlid al-Nabi",
+            "Gamo",
+            GM_ANNOUNCED.named("gamo"),
+            2021,
+            2026,
+        ),
+        unread_in("Mawlid al-Nabi", "Gamo", 2023),
+        unread_in("Mawlid al-Nabi", "Gamo", 2024),
+        announced(
+            "Christmas Day",
+            "",
+            GM_ANNOUNCED.named("christmas"),
+            2021,
+            2025,
+        ),
+        unread_in("Christmas Day", "", 2022),
+        announced("Boxing Day", "", GM_ANNOUNCED.named("boxing"), 2021, 2025),
+        unread_in("Boxing Day", "", 2022),
+        // The presidential election of 4 December 2021 and the National
+        // Assembly election of 9 April 2022.
+        announced(
+            "Election Day",
+            "",
+            GM_ANNOUNCED.named("election"),
+            2021,
+            2022,
+        )
+        .years(Some(2021), Some(2022)),
+    ],
+);
 
 /// The Gambia: the President's declarations, holiday by holiday.
 ///
@@ -6909,75 +7333,82 @@ static SZ_ANNOUNCED: Listing = Listing::Named(&[
     (2026, 3, 16, "Lutsango Day"),
 ]);
 
-static SZ_RULES: &[HolidayRule] = &[
-    HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
-    HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
-    HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
-    // Government Notice 19 of 2001 deleted 19 April "for this year", to be
-    // replaced "at a later stage", by a notice not read.
-    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(None, Some(2000)),
-    unread_in("King's Birthday", "", 2001),
-    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19))
-        .years(Some(2002), Some(2025)),
-    announced(
-        "King's Birthday",
-        "",
-        SZ_ANNOUNCED.named("King's Birthday"),
-        2026,
-        2026,
-    )
-    .years(Some(2026), Some(2026)),
-    HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(Some(2027), None),
-    HolidayRule::public("National Flag Day", "", Rule::gregorian(4, 25)),
-    announced(
-        "Labour Day",
-        "",
-        SZ_ANNOUNCED.named("Labour Day"),
-        2005,
-        2005,
-    ),
-    HolidayRule::public("Ascension Day", "", Rule::easter(ASCENSION)),
-    HolidayRule::public("Public Holiday of 22 July", "", Rule::gregorian(7, 22))
+/// The first year the sources read answer for: EswatiniLII's consolidation of
+/// the Public Holidays Act 1938 as at 1 December 1998.
+const SZ_READ_FROM: i32 = 1998;
+
+static SZ_RULES: &[HolidayRule] = &read_all(
+    SZ_READ_FROM,
+    [
+        HolidayRule::public("New Year's Day", "", Rule::gregorian(1, 1)),
+        HolidayRule::public("Good Friday", "", Rule::easter(GOOD_FRIDAY)),
+        HolidayRule::public("Easter Monday", "", Rule::easter(EASTER_MONDAY)),
+        // Government Notice 19 of 2001 deleted 19 April "for this year", to be
+        // replaced "at a later stage", by a notice not read.
+        HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(None, Some(2000)),
+        unread_in("King's Birthday", "", 2001),
+        HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19))
+            .years(Some(2002), Some(2025)),
+        announced(
+            "King's Birthday",
+            "",
+            SZ_ANNOUNCED.named("King's Birthday"),
+            2026,
+            2026,
+        )
+        .years(Some(2026), Some(2026)),
+        HolidayRule::public("King's Birthday", "", Rule::gregorian(4, 19)).years(Some(2027), None),
+        HolidayRule::public("National Flag Day", "", Rule::gregorian(4, 25)),
+        announced(
+            "Labour Day",
+            "",
+            SZ_ANNOUNCED.named("Labour Day"),
+            2005,
+            2005,
+        ),
+        HolidayRule::public("Ascension Day", "", Rule::easter(ASCENSION)),
+        HolidayRule::public("Public Holiday of 22 July", "", Rule::gregorian(7, 22))
+            .years(None, Some(2024)),
+        announced(
+            "Lutsango Day",
+            "",
+            SZ_ANNOUNCED.named("Lutsango Day"),
+            2025,
+            2026,
+        )
+        .years(Some(2025), None),
+        announced(
+            "Umhlanga",
+            "Umhlanga",
+            SZ_ANNOUNCED.named("Umhlanga"),
+            2006,
+            2006,
+        )
         .years(None, Some(2024)),
-    announced(
-        "Lutsango Day",
-        "",
-        SZ_ANNOUNCED.named("Lutsango Day"),
-        2025,
-        2026,
-    )
-    .years(Some(2025), None),
-    announced(
-        "Umhlanga",
-        "Umhlanga",
-        SZ_ANNOUNCED.named("Umhlanga"),
-        2006,
-        2006,
-    )
-    .years(None, Some(2024)),
-    announced(
-        "Umhlanga",
-        "Umhlanga",
-        SZ_ANNOUNCED.named("Umhlanga"),
-        2025,
-        2025,
-    )
-    .years(Some(2025), None),
-    HolidayRule::public(
-        "Somhlolo (Independence Day)",
-        "Somhlolo",
-        Rule::gregorian(9, 6),
-    ),
-    announced(
-        "Incwala Day",
-        "Incwala",
-        SZ_ANNOUNCED.named("Incwala Day"),
-        2007,
-        2007,
-    ),
-    HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
-    HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
-];
+        announced(
+            "Umhlanga",
+            "Umhlanga",
+            SZ_ANNOUNCED.named("Umhlanga"),
+            2025,
+            2025,
+        )
+        .years(Some(2025), None),
+        HolidayRule::public(
+            "Somhlolo (Independence Day)",
+            "Somhlolo",
+            Rule::gregorian(9, 6),
+        ),
+        announced(
+            "Incwala Day",
+            "Incwala",
+            SZ_ANNOUNCED.named("Incwala Day"),
+            2007,
+            2007,
+        ),
+        HolidayRule::public("Christmas Day", "", Rule::gregorian(12, 25)),
+        HolidayRule::public("Boxing Day", "", Rule::gregorian(12, 26)),
+    ],
+);
 
 /// Eswatini.
 ///
@@ -7040,9 +7471,6 @@ static TG_WEEKEND: &[WeekendPolicy] = &[WeekendPolicy {
     valid_until_day: None,
 }];
 
-/// The first year of the law of 1987 read.
-const TG_FROM: i32 = 1987;
-
 /// The days the Ministry of the Civil Service's communiqués and the
 /// Government's portal declare, as read.
 static TG_ANNOUNCED: Listing = Listing::Named(&[
@@ -7065,74 +7493,77 @@ static TG_ANNOUNCED: Listing = Listing::Named(&[
 /// A fête légale of the law of 1987 whose date or standing now was not
 /// read: a gap from 1987.
 const fn tg_unread(name: &'static str, local: &'static str) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, NOT_READ).years(Some(TG_FROM), None)
+    HolidayRule::fixed_public(name, local, NOT_READ)
 }
 
-static TG_RULES: &[HolidayRule] = &[
-    tg_unread("New Year's Day", "Fête du nouvel an"),
-    tg_unread("National Day", "Fête nationale"),
-    tg_unread(
-        "Economic Liberation Day",
-        "Fête de la libération économique",
-    ),
-    announced(
-        "Eid al-Fitr",
-        "Fête du Ramadan",
-        TG_ANNOUNCED.named("Eid al-Fitr"),
-        2026,
-        2026,
-    )
-    .years(Some(TG_FROM), None),
-    tg_unread("Victory Day", "Fête de la victoire"),
-    announced(
-        "Independence Day",
-        "Fête de l'Indépendance",
-        TG_ANNOUNCED.named("Independence Day"),
-        2025,
-        2026,
-    ),
-    announced(
-        "Labour Day",
-        "Fête du travail",
-        TG_ANNOUNCED.named("Labour Day"),
-        2026,
-        2026,
-    )
-    .years(Some(TG_FROM), None),
-    tg_unread("Ascension", "Fête de l'ascension"),
-    announced(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        TG_ANNOUNCED.named("Whit Monday"),
-        2025,
-        2025,
-    ),
-    announced(
-        "Tabaski",
-        "Fête de la tabaski (Fête du mouton)",
-        TG_ANNOUNCED.named("Tabaski"),
-        2025,
-        2026,
-    )
-    .years(Some(TG_FROM), None),
-    tg_unread(
-        "Day of the Martyrs of Pya",
-        "Fête des patriotes martyrs de Pya",
-    ),
-    tg_unread("Assumption", "Assomption"),
-    tg_unread("All Saints' Day", "Toussaint"),
-    tg_unread("Christmas", "Noël"),
-    // The days "fériée, chômée et payée" the Government declared beside a
-    // holiday, in the years read; any other is not carried.
-    announced(
-        "Day off",
-        "Journée chômée et payée",
-        TG_ANNOUNCED.named("Day off"),
-        2024,
-        2026,
-    )
-    .years(Some(2024), Some(2026)),
-];
+/// The first year the sources read answer for: loi n° 87-08 of 9 June 1987.
+const TG_READ_FROM: i32 = 1987;
+
+static TG_RULES: &[HolidayRule] = &read_all(
+    TG_READ_FROM,
+    [
+        tg_unread("New Year's Day", "Fête du nouvel an"),
+        tg_unread("National Day", "Fête nationale"),
+        tg_unread(
+            "Economic Liberation Day",
+            "Fête de la libération économique",
+        ),
+        announced(
+            "Eid al-Fitr",
+            "Fête du Ramadan",
+            TG_ANNOUNCED.named("Eid al-Fitr"),
+            2026,
+            2026,
+        ),
+        tg_unread("Victory Day", "Fête de la victoire"),
+        announced(
+            "Independence Day",
+            "Fête de l'Indépendance",
+            TG_ANNOUNCED.named("Independence Day"),
+            2025,
+            2026,
+        ),
+        announced(
+            "Labour Day",
+            "Fête du travail",
+            TG_ANNOUNCED.named("Labour Day"),
+            2026,
+            2026,
+        ),
+        tg_unread("Ascension", "Fête de l'ascension"),
+        announced(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            TG_ANNOUNCED.named("Whit Monday"),
+            2025,
+            2025,
+        ),
+        announced(
+            "Tabaski",
+            "Fête de la tabaski (Fête du mouton)",
+            TG_ANNOUNCED.named("Tabaski"),
+            2025,
+            2026,
+        ),
+        tg_unread(
+            "Day of the Martyrs of Pya",
+            "Fête des patriotes martyrs de Pya",
+        ),
+        tg_unread("Assumption", "Assomption"),
+        tg_unread("All Saints' Day", "Toussaint"),
+        tg_unread("Christmas", "Noël"),
+        // The days "fériée, chômée et payée" the Government declared beside a
+        // holiday, in the years read; any other is not carried.
+        announced(
+            "Day off",
+            "Journée chômée et payée",
+            TG_ANNOUNCED.named("Day off"),
+            2024,
+            2026,
+        )
+        .years(Some(2024), Some(2026)),
+    ],
+);
 
 /// Togo: the fêtes légales of 1987 and the Government's communiqués.
 ///
@@ -7181,9 +7612,6 @@ pub static TOGO: RuleSet = RuleSet {
 // Niger
 // ─────────────────────────────────────────────────────────────────────────
 
-/// The first year of the communiqués read.
-const NE_FROM: i32 = 2023;
-
 /// The days the communiqués date, as read.
 static NE_ANNOUNCED: Listing = Listing::Named(&[
     // Kaweru, 1 April 2026 (secondary).
@@ -7194,7 +7622,7 @@ static NE_ANNOUNCED: Listing = Listing::Named(&[
 ]);
 
 const fn ne_fixed(name: &'static str, local: &'static str, month: u8, day: u8) -> HolidayRule {
-    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day)).years(Some(NE_FROM), None)
+    HolidayRule::fixed_public(name, local, Rule::gregorian(month, day))
 }
 
 const fn ne_fitr(day: u8) -> HolidayRule {
@@ -7207,56 +7635,61 @@ const fn ne_fitr(day: u8) -> HolidayRule {
     .years(Some(2026), None)
 }
 
-static NE_RULES: &[HolidayRule] = &[
-    ne_fixed("New Year's Day", "Nouvel an", 1, 1),
-    // Ordonnance 2026-12 of 3 March 2026, as the Council of Ministers
-    // adopted it.
-    ne_fixed(
-        "Day of the Refoundation",
-        "Journée de la Refondation",
-        3,
-        26,
-    )
-    .years(Some(2026), None),
-    announced(
-        "Easter Monday",
-        "Lundi de Pâques",
-        NE_ANNOUNCED.named("Easter Monday"),
-        2026,
-        2026,
-    )
-    .years(Some(NE_FROM), None),
-    HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ).years(Some(NE_FROM), None),
-    // "le jour et le lendemain", from 2026; before, not read.
-    HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ)
-        .years(Some(NE_FROM), Some(2025)),
-    ne_fitr(1),
-    ne_fitr(2),
-    announced(
-        "Tabaski",
-        "Tabaski",
-        NE_ANNOUNCED.named("Tabaski"),
-        2026,
-        2026,
-    )
-    .years(Some(NE_FROM), None),
-    // Ordonnance 2024-33 of 22 July 2024.
-    ne_fixed(
-        "Anniversary of 26 July",
-        "Journée anniversaire du 26 juillet",
-        7,
-        26,
-    )
-    .years(Some(2024), None),
-    ne_fixed("National Day", "Fête nationale", 8, 3),
-    ne_fixed(
-        "Proclamation of the Republic",
-        "Proclamation de la République",
-        12,
-        18,
-    ),
-    ne_fixed("Christmas", "Noël", 12, 25),
-];
+/// The first year the sources read answer for: the Council of Ministers' text
+/// of 2023 restoring 3 August, the oldest dated source read; loi n° 97-20 of
+/// 1997 was not read.
+const NE_READ_FROM: i32 = 2023;
+
+static NE_RULES: &[HolidayRule] = &read_all(
+    NE_READ_FROM,
+    [
+        ne_fixed("New Year's Day", "Nouvel an", 1, 1),
+        // Ordonnance 2026-12 of 3 March 2026, as the Council of Ministers
+        // adopted it.
+        ne_fixed(
+            "Day of the Refoundation",
+            "Journée de la Refondation",
+            3,
+            26,
+        )
+        .years(Some(2026), None),
+        announced(
+            "Easter Monday",
+            "Lundi de Pâques",
+            NE_ANNOUNCED.named("Easter Monday"),
+            2026,
+            2026,
+        ),
+        HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ),
+        // "le jour et le lendemain", from 2026; before, not read.
+        HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ).years(None, Some(2025)),
+        ne_fitr(1),
+        ne_fitr(2),
+        announced(
+            "Tabaski",
+            "Tabaski",
+            NE_ANNOUNCED.named("Tabaski"),
+            2026,
+            2026,
+        ),
+        // Ordonnance 2024-33 of 22 July 2024.
+        ne_fixed(
+            "Anniversary of 26 July",
+            "Journée anniversaire du 26 juillet",
+            7,
+            26,
+        )
+        .years(Some(2024), None),
+        ne_fixed("National Day", "Fête nationale", 8, 3),
+        ne_fixed(
+            "Proclamation of the Republic",
+            "Proclamation de la République",
+            12,
+            18,
+        ),
+        ne_fixed("Christmas", "Noël", 12, 25),
+    ],
+);
 
 /// Niger, from 2023.
 ///
@@ -7337,84 +7770,92 @@ static GA_ANNOUNCED: Listing = Listing::Named(&[
     (2026, 5, 14, "Ascension"),
 ]);
 
-static GA_RULES: &[HolidayRule] = &[
-    announced(
-        "New Year's Day",
-        "Jour de l'an",
-        GA_ANNOUNCED.named("New Year's Day"),
-        2026,
-        2026,
-    ),
-    HolidayRule::fixed_public("Easter Monday", "Lundi de Pâques", NOT_READ),
-    HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ),
-    announced(
-        "Ascension",
-        "Ascension",
-        GA_ANNOUNCED.named("Ascension"),
-        2026,
-        2026,
-    ),
-    announced(
-        "Pentecost",
-        "Pentecôte",
-        GA_ANNOUNCED.named("Pentecost"),
-        2025,
-        2025,
-    ),
-    announced(
-        "Whit Monday",
-        "Lundi de Pentecôte",
-        GA_ANNOUNCED.named("Whit Monday"),
-        2025,
-        2025,
-    ),
-    HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ),
-    announced(
-        "Eid al-Adha",
-        "Aïd el-Kébir",
-        GA_ANNOUNCED.named("Eid al-Adha"),
-        2025,
-        2025,
-    ),
-    announced(
-        "Assumption",
-        "Assomption",
-        GA_ANNOUNCED.named("Assumption"),
-        2024,
-        2024,
-    ),
-    announced(
-        "Independence Day",
-        "Fête nationale",
-        GA_ANNOUNCED.named("Independence Day"),
-        2024,
-        2024,
-    ),
-    // "Chaque année, la journée du 30 août sera désormais fériée, chômée et
-    // payée."
-    HolidayRule::fixed_public(
-        "Liberation Day",
-        "Journée nationale de la libération",
-        Rule::gregorian(8, 30),
-    )
-    .years(Some(2024), None),
-    HolidayRule::fixed_public("All Saints' Day", "Toussaint", NOT_READ),
-    announced(
-        "Christmas",
-        "Noël",
-        GA_ANNOUNCED.named("Christmas"),
-        2025,
-        2025,
-    ),
-    announced(
-        "Day off",
-        "Jour férié, chômé et récupérable",
-        GA_ANNOUNCED.named("Day off"),
-        2025,
-        2026,
-    )
-    .years(Some(2025), Some(2026)),
-];
+/// The first year the sources read answer for: the Ministry of Labour's
+/// communiqué of August 2024, the oldest dated source read; décret n° 00727
+/// of 1998 was not read.
+const GA_READ_FROM: i32 = 2024;
+
+static GA_RULES: &[HolidayRule] = &read_all(
+    GA_READ_FROM,
+    [
+        announced(
+            "New Year's Day",
+            "Jour de l'an",
+            GA_ANNOUNCED.named("New Year's Day"),
+            2026,
+            2026,
+        ),
+        HolidayRule::fixed_public("Easter Monday", "Lundi de Pâques", NOT_READ),
+        HolidayRule::fixed_public("Labour Day", "Fête du travail", NOT_READ),
+        announced(
+            "Ascension",
+            "Ascension",
+            GA_ANNOUNCED.named("Ascension"),
+            2026,
+            2026,
+        ),
+        announced(
+            "Pentecost",
+            "Pentecôte",
+            GA_ANNOUNCED.named("Pentecost"),
+            2025,
+            2025,
+        ),
+        announced(
+            "Whit Monday",
+            "Lundi de Pentecôte",
+            GA_ANNOUNCED.named("Whit Monday"),
+            2025,
+            2025,
+        ),
+        HolidayRule::fixed_public("Eid al-Fitr", "Aïd el-Fitr", NOT_READ),
+        announced(
+            "Eid al-Adha",
+            "Aïd el-Kébir",
+            GA_ANNOUNCED.named("Eid al-Adha"),
+            2025,
+            2025,
+        ),
+        announced(
+            "Assumption",
+            "Assomption",
+            GA_ANNOUNCED.named("Assumption"),
+            2024,
+            2024,
+        ),
+        announced(
+            "Independence Day",
+            "Fête nationale",
+            GA_ANNOUNCED.named("Independence Day"),
+            2024,
+            2024,
+        ),
+        // "Chaque année, la journée du 30 août sera désormais fériée, chômée et
+        // payée."
+        HolidayRule::fixed_public(
+            "Liberation Day",
+            "Journée nationale de la libération",
+            Rule::gregorian(8, 30),
+        )
+        .years(Some(2024), None),
+        HolidayRule::fixed_public("All Saints' Day", "Toussaint", NOT_READ),
+        announced(
+            "Christmas",
+            "Noël",
+            GA_ANNOUNCED.named("Christmas"),
+            2025,
+            2025,
+        ),
+        announced(
+            "Day off",
+            "Jour férié, chômé et récupérable",
+            GA_ANNOUNCED.named("Day off"),
+            2025,
+            2026,
+        )
+        .years(Some(2025), Some(2026)),
+    ],
+);
 
 /// Sunday: article 220 of the Code du travail, loi n° 022/2021 of 19
 /// November 2021, "Le repos hebdomadaire est obligatoire ... Il a lieu en

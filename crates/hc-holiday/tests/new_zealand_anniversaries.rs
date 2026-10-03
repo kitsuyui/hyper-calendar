@@ -246,23 +246,32 @@ fn every_anniversary_day_of_the_list_is_reproduced() {
 
 #[test]
 fn before_the_list_begins_an_anniversary_day_is_a_gap() {
+    // The national days are carried from 2010 as well, the year of the
+    // oldest list read, so 2009 has their gaps in every region and the
+    // region's own as one more.
+    let national = HolidayCalendar::for_year(&NEW_ZEALAND, None, 2009)
+        .gaps()
+        .len();
     for region in [
         "NZ-AUK", "NZ-TKI", "NZ-HKB", "NZ-WGN", "NZ-MBH", "NZ-NSN", "NZ-CAN", "NZ-WTC", "NZ-OTA",
         "NZ-STL", "NZ-CIT",
     ] {
         assert!(own_days(region, 2009).is_empty(), "{region}");
         let gaps = HolidayCalendar::for_year(&NEW_ZEALAND, Some(region), 2009);
-        assert_eq!(gaps.gaps().len(), 1, "{region}");
+        assert_eq!(gaps.gaps().len(), national + 1, "{region}");
         assert!(
-            gaps.gaps()[0].name.ends_with("Anniversary Day")
-                || gaps.gaps()[0].name.contains("Show Day")
+            gaps.gaps()
+                .iter()
+                .any(|gap| gap.name.ends_with("Anniversary Day") || gap.name.contains("Show Day")),
+            "{region}"
         );
         assert_eq!(own_days(region, 2010).len(), 1, "{region}");
         assert!(HolidayCalendar::for_year(&NEW_ZEALAND, Some(region), 2010).is_complete());
         assert_eq!(own_days(region, 2040).len(), 1, "{region}");
     }
-    // Nationwide, no anniversary day, and no gap for one.
-    assert!(HolidayCalendar::for_year(&NEW_ZEALAND, None, 2009).is_complete());
+    // Nationwide, no anniversary day, and the national days' gaps only.
+    assert!(national > 0);
+    assert!(HolidayCalendar::for_year(&NEW_ZEALAND, None, 2010).is_complete());
 }
 
 #[test]

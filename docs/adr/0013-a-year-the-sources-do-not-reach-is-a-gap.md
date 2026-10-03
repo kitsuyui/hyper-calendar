@@ -77,9 +77,10 @@ A rule carries both facts, and the engine reports the difference.
   separately cited instrument. Where an audit finds a rule absent before a
   year no source sets, the fix is now one call, `read_from`, on that rule.
 - A table whose sources are one recent text or list does not answer for the
-  years before it. The tables of the Americas and Europe each carry the first
+  years before it. The tables of the Americas, Europe, Africa, the Middle East and Oceania each carry the first
   year their sources support, set on every rule that has none of its own by
-  `countries::read_all`, and `tests/first_years.rs` checks that no table
+  `countries::read_all`, and `tests/first_years.rs` and
+  `tests/first_years_mea_oceania.rs` check that no table
   answers a year before it; `docs/systems/holiday-first-years.md` says which
   instrument or list each first year is. A rule whose own text is read from a
   later year than the table's sets its own `read_from`, as Venezuela's Ley de

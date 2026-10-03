@@ -254,6 +254,10 @@ importance. Each row names a country and summarises what its table carries
 and from which sources. A Partial row names the restriction that makes it
 partial.
 
+The national tables are carried from the first year their sources support,
+and the years before it are gaps; the first year of each table, and why, is in
+[systems/holiday-first-years.md](systems/holiday-first-years.md).
+
 **Done**
 
 | Country | Note |
