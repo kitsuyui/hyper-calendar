@@ -10,6 +10,28 @@ fn allocation_round_trips() {
     unsafe { hc_free(core::ptr::null_mut(), 0) };
 }
 
+/// `hc_version` cannot measure: a null or small buffer is refused and a
+/// sized one receives the version.
+#[test]
+fn the_version_is_the_library_s() {
+    assert_eq!(
+        unsafe { hc_version(core::ptr::null_mut(), 0) },
+        HC_ERR_BUFFER_TOO_SMALL
+    );
+    let capacity = hc::VERSION.len();
+    let pointer = hc_alloc(capacity);
+    assert_eq!(
+        unsafe { hc_version(pointer, capacity - 1) },
+        HC_ERR_BUFFER_TOO_SMALL
+    );
+    assert_eq!(unsafe { hc_version(pointer, capacity) }, capacity as i64);
+    let text = unsafe { core::str::from_utf8(core::slice::from_raw_parts(pointer, capacity)) }
+        .expect("UTF-8")
+        .to_owned();
+    unsafe { hc_free(pointer, capacity) };
+    assert_eq!(text, hc::VERSION);
+}
+
 #[test]
 fn the_error_floor_is_far_below_any_real_day_number() {
     // The universe is about 5e12 days old; the floor is 9e15, so a fixed
@@ -187,3 +209,11 @@ fn the_plum_rains_of_2026_cross_the_boundary() {
         HC_ERR_UNKNOWN
     );
 }
+
+#[cfg(any(
+    feature = "timestamps",
+    feature = "calendars",
+    feature = "holiday",
+    feature = "zone-names"
+))]
+mod named_exports;

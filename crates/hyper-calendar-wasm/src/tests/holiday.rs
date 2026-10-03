@@ -165,12 +165,12 @@ fn holiday_tables_answer_by_identifier() {
         .expect("UTF-8");
     assert!(
         text.starts_with(
-            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
+            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
         ),
         "{text}"
     );
     assert!(
-        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\n"),
+        text.contains("\t1\t2026-05-03\t\t\tconstitution-memorial-day\t\t0\n"),
         "{text}"
     );
     unsafe { hc_free(pointer, capacity) };
@@ -195,7 +195,7 @@ fn one_day_across_every_table_decodes_column_by_column() {
         .lines()
         .map(|line| line.split('\t').collect())
         .collect();
-    assert!(rows.iter().all(|row| row.len() == 12), "{rows:?}");
+    assert!(rows.iter().all(|row| row.len() == 13), "{rows:?}");
     let japan: Vec<&Vec<&str>> = rows.iter().filter(|row| row[0] == "JP").collect();
     let substitute = japan
         .iter()
@@ -248,7 +248,8 @@ fn a_rule_that_cites_its_instrument_carries_it() {
             "",
             "",
             "",
-            "world-braille-day"
+            "world-braille-day",
+            "0"
         ]
     );
 }
@@ -417,11 +418,9 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
             "2026-11-07\tTokyo Education Day\t東京都教育の日\tobservance\texact\t0\t\tJP-13\t",
         ]
     );
-    assert!(
-        year.contains(
-            "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\n"
-        )
-    );
+    assert!(year.contains(
+        "2026-01-01\tNew Year's Day\t元日\tpublic\texact\t0\t\t\t\tnew-years-day\t\t0\n"
+    ));
     let nationwide = read_lines(|buffer, capacity| unsafe {
         hc_holidays_in_year(
             jp.as_ptr(),
@@ -446,7 +445,7 @@ fn a_subdivision_is_a_region_of_its_country_s_table() {
         .collect();
     assert_eq!(tokyo_lines.len(), 1, "{lines}");
     assert!(tokyo_lines[0].starts_with("JP\tJapan\tTokyo Citizens' Day\t"));
-    assert!(tokyo_lines[0].ends_with("\t0\t\tJP-13\t\ttokyo-citizens-day"));
+    assert!(tokyo_lines[0].ends_with("\t0\t\tJP-13\t\ttokyo-citizens-day\t0"));
     assert_eq!(
         unsafe {
             hc_holiday_is_day_off(jp.as_ptr(), 2, tokyo.as_ptr(), 5, core::ptr::null(), 0, day)
@@ -577,4 +576,185 @@ fn a_group_is_a_scope_of_its_country_s_table() {
         .collect();
     assert_eq!(china[9], "children;military;women;youth");
     assert_eq!(china[10], "少年儿童;现役军人;妇女;青年");
+}
+
+/// A day the table cannot answer is refused, not answered "no" (audit 10
+/// d1): Victoria Day 2025 is a gap in Newfoundland and Labrador, and Kedah's
+/// weekend law of 2012 was not read.
+#[test]
+fn a_day_a_gap_leaves_open_is_refused_and_a_known_one_is_answered() {
+    let day_off = |code: &str, region: &str, fixed: i64| unsafe {
+        hc_holiday_is_day_off(
+            code.as_ptr(),
+            code.len(),
+            region.as_ptr(),
+            region.len(),
+            core::ptr::null(),
+            0,
+            fixed,
+        )
+    };
+    let victoria = hc_gregorian_to_fixed(2025, 5, 19);
+    assert_eq!(day_off("CA", "CA-NL", victoria), HC_ERR_NO_DATA);
+    assert_eq!(
+        day_off("CA", "CA-NL", hc_gregorian_to_fixed(2025, 12, 25)),
+        1
+    );
+    assert_eq!(day_off("JP", "", hc_gregorian_to_fixed(2026, 3, 4)), 0);
+    assert_eq!(
+        day_off("MY", "MY-02", hc_gregorian_to_fixed(2012, 5, 11)),
+        HC_ERR_OUT_OF_RANGE
+    );
+    // Kedah's own days were not read, so the day is open too, though its
+    // weekend law of 2026 was.
+    assert_eq!(
+        day_off("MY", "MY-02", hc_gregorian_to_fixed(2026, 3, 4)),
+        HC_ERR_NO_DATA
+    );
+}
+
+/// Kedah keeps Friday and Saturday from 25 November 2013 (ADR 0015); the
+/// law before it was not read.
+#[test]
+fn the_weekend_of_a_region_is_one_or_zero_and_refused_where_unread() {
+    let weekend = |code: &str, region: &str, fixed: i64| unsafe {
+        hc_holiday_is_weekend(
+            code.as_ptr(),
+            code.len(),
+            region.as_ptr(),
+            region.len(),
+            fixed,
+        )
+    };
+    let friday = hc_gregorian_to_fixed(2026, 3, 6);
+    assert_eq!(weekend("MY", "MY-02", friday), 1);
+    assert_eq!(weekend("MY", "", friday), 0);
+    assert_eq!(weekend("MY", "", friday + 1), 1);
+    assert_eq!(weekend("MY", "MY-02", friday + 2), 0);
+    assert_eq!(weekend("AE", "AE-SH", friday), 1);
+    assert_eq!(weekend("JP", "", friday + 1), 1);
+    assert_eq!(
+        weekend("MY", "MY-02", hc_gregorian_to_fixed(2013, 11, 24)),
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        weekend("MY", "MY-02", hc_gregorian_to_fixed(2013, 11, 29)),
+        1
+    );
+    assert_eq!(weekend("ZZ", "", friday), HC_ERR_UNKNOWN);
+    assert_eq!(weekend("MY", "MY-99", friday), HC_ERR_UNKNOWN);
+    assert_eq!(weekend("MY", "", 1 << 62), HC_ERR_OUT_OF_RANGE);
+    let not_utf8 = [0xffu8];
+    assert_eq!(
+        unsafe { hc_holiday_is_weekend(not_utf8.as_ptr(), 1, core::ptr::null(), 0, friday) },
+        HC_ERR_NOT_UTF8
+    );
+    assert_eq!(
+        unsafe { hc_holiday_is_weekend(core::ptr::null(), 2, core::ptr::null(), 0, friday) },
+        HC_ERR_NULL_POINTER
+    );
+}
+
+/// `hc_holiday_next` or `hc_holiday_previous` for a table, a region and a
+/// kind, with no group.
+fn beyond(
+    forward: bool,
+    (code, region, kind): (&str, &str, &str),
+    fixed: i64,
+    buffer: *mut u8,
+    capacity: usize,
+) -> i64 {
+    let call = if forward {
+        hc_holiday_next
+    } else {
+        hc_holiday_previous
+    };
+    unsafe {
+        call(
+            code.as_ptr(),
+            code.len(),
+            region.as_ptr(),
+            region.len(),
+            core::ptr::null(),
+            0,
+            kind.as_ptr(),
+            kind.len(),
+            fixed,
+            buffer,
+            capacity,
+        )
+    }
+}
+
+/// The next holiday of Japan after Tuesday 28 April 2026 is Shōwa Day, the
+/// 29th; the last before 7 May is the substitute for 3 May; and a gap that
+/// could hide a nearer one is refused.
+#[test]
+fn the_next_and_the_previous_holiday_are_a_line_of_the_year() {
+    let jp = ("JP", "", "");
+    let line = |forward: bool, scope: (&str, &str, &str), fixed: i64| {
+        read_lines(|buffer, capacity| beyond(forward, scope, fixed, buffer, capacity))
+    };
+    let next = line(true, jp, hc_gregorian_to_fixed(2026, 4, 28));
+    let row: Vec<&str> = next.trim_end().split('\t').collect();
+    assert_eq!(row.len(), 12, "{next}");
+    assert_eq!(
+        row[..5],
+        ["2026-04-29", "Shōwa Day", "昭和の日", "public", "exact"]
+    );
+    assert_eq!(row[9], "showa-day");
+    let previous = line(false, jp, hc_gregorian_to_fixed(2026, 5, 7));
+    let row: Vec<&str> = previous.trim_end().split('\t').collect();
+    assert_eq!(row[0], "2026-05-06");
+    assert_eq!(row[5], "1", "a substitute day");
+    assert_eq!(row[6], "2026-05-03");
+    // The bridge of 22 September 2009 says so in the last cell.
+    let bridge = line(true, jp, hc_gregorian_to_fixed(2009, 9, 21));
+    let row: Vec<&str> = bridge.trim_end().split('\t').collect();
+    assert_eq!(row[..2], ["2009-09-22", "Citizens' Holiday"]);
+    assert_eq!(row[11], "1");
+    // A gap could hide a nearer entry, and a table with none of the kind
+    // has none to give.
+    let refuse = |forward: bool, scope: (&str, &str, &str), fixed: i64| {
+        beyond(forward, scope, fixed, core::ptr::null_mut(), 0)
+    };
+    let nl = ("CA", "CA-NL", "");
+    assert_eq!(
+        refuse(true, nl, hc_gregorian_to_fixed(2025, 5, 1)),
+        HC_ERR_NO_DATA
+    );
+    assert_eq!(
+        refuse(false, nl, hc_gregorian_to_fixed(2025, 7, 15)),
+        HC_ERR_NO_DATA
+    );
+    let new_year = hc_gregorian_to_fixed(2026, 1, 1);
+    assert_eq!(refuse(true, ("un-days", "", ""), new_year), HC_ERR_NO_DATA);
+    assert_eq!(refuse(true, ("ZZ", "", ""), new_year), HC_ERR_UNKNOWN);
+    assert_eq!(
+        refuse(true, ("JP", "", "festival"), new_year),
+        HC_ERR_UNKNOWN
+    );
+    assert_eq!(refuse(true, jp, 1 << 62), HC_ERR_OUT_OF_RANGE);
+}
+
+/// A region that has only a weekend law has substitute days of its own
+/// (audit 10 d2): Awal Muharram 2025 was Friday 27 June, which Kedah moves
+/// to Sunday the 29th.
+#[test]
+fn a_regions_substitute_day_is_a_line_of_the_day_it_falls_on() {
+    let sunday = hc_gregorian_to_fixed(2025, 6, 29);
+    let text = read_lines(|buffer, capacity| unsafe { hc_holidays_on(sunday, buffer, capacity) });
+    let kedah: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect::<Vec<_>>())
+        .filter(|row| row[0] == "MY" && row[9] == "MY-02")
+        .collect();
+    assert!(
+        kedah.iter().any(|row| row[7] == "1"
+            && row[8] == hc_gregorian_to_fixed(2025, 6, 27).to_string()
+            && row[4] == "public"),
+        "{kedah:?}"
+    );
+    // The bridge flag is the last of the thirteen cells.
+    assert!(text.lines().all(|line| line.split('\t').count() == 13));
 }

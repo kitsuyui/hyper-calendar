@@ -78,6 +78,15 @@ A rule carries both facts, and the engine reports the difference.
   out and that the texts before it were not read.
 - `hc_holidays_in_year` writes the year's gaps as `hc_holidays_on` does,
   and a gap line carries the rule's source.
+- A day a gap leaves open is refused, not answered. `HolidayCalendar::day_off`
+  and `business_day` say `Err(Unanswered::Gap)` for a day without an entry
+  when a gap of a kind that stops work (or, for a weekend day, a work day)
+  lies in its year, and the boundary writes `HC_ERR_NO_DATA`: a holiday the
+  table could not place may be that very day, and `false` would be a guess.
+  A day the table lists is answered whatever else is open; the arithmetic
+  and `hc_holiday_next` and `hc_holiday_previous` refuse in the same way
+  (audit 10 d1, d3). A weekend law not read is `HC_ERR_OUT_OF_RANGE`, as
+  ADR 0015 has it.
 
 ## Consequences
 

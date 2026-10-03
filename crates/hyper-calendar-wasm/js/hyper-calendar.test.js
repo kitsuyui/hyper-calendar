@@ -817,6 +817,7 @@ describe("holidays", () => {
       group: null,
       id: "new-years-day",
       source: null,
+      bridged: false,
     });
     // 3 May 2026 is a Sunday; Constitution Memorial Day is taken on the 6th.
     const substitute = year.find((holiday) => holiday.substitute);
@@ -832,6 +833,7 @@ describe("holidays", () => {
       group: null,
       id: "constitution-memorial-day",
       source: null,
+      bridged: false,
     });
     assert.equal(hc.holidaysInYear("JP", "", 2026n).length, year.length);
     // A year before any rule applies is an empty list, not an error.
@@ -860,6 +862,7 @@ describe("holidays", () => {
       region: null,
       group: null,
       id: "constitution-memorial-day",
+      bridged: false,
     });
     // The tables come in the order holidayCodes() lists them.
     const codes = hc.holidayCodes();
@@ -891,6 +894,7 @@ describe("holidays", () => {
       region: null,
       group: null,
       id: "world-braille-day",
+      bridged: false,
     });
   });
 
@@ -911,6 +915,7 @@ describe("holidays", () => {
       region: null,
       group: null,
       id: "spring-festival",
+      bridged: false,
     });
   });
 
@@ -977,6 +982,7 @@ describe("holidays", () => {
       region: "JP-13",
       group: null,
       id: "tokyo-citizens-day",
+      bridged: false,
     }]);
     assert.ok(tokyo[0].source?.includes("昭和27年東京都条例第75号"));
     const year = hc.holidaysInYear("JP", "JP-13", 2026);
@@ -1010,6 +1016,7 @@ describe("holidays", () => {
       region: null,
       group: "women",
       id: "womens-day",
+      bridged: false,
     }]);
     const year = hc.holidaysInYear("CN", "", 2026, "women");
     assert.deepEqual(year.filter((day) => day.group).map((day) => day.date), ["2026-03-08"]);
@@ -1031,6 +1038,7 @@ describe("holidays", () => {
       group: "women",
       id: "womens-day",
       source: womensGap.source,
+      bridged: false,
     });
     // A state whose code was not read is a gap row with its region.
     const hampshire = hc.holidaysInYear("US", "US-NH", 2026).filter((day) => day.kind === "gap");
@@ -3429,6 +3437,90 @@ describe("the new exports' i64 arguments", () => {
       assert.ok(error instanceof HcError);
     }
     assert.equal(hc.formatNumber("latn", 2n ** 53n + 1n), "9007199254740993");
+  });
+});
+
+describe("a day the table cannot answer, the weekend, and the next holiday", () => {
+  test("a gap is refused as no-data, and a weekend law not read as out-of-range", () => {
+    // Victoria Day 2025 is a gap in Newfoundland and Labrador.
+    const victoria = hc.gregorianToFixed(2025, 5, 19);
+    refused(() => hc.holidayIsDayOff("CA", "CA-NL", victoria), "no-data");
+    assert.equal(hc.holidayIsDayOff("CA", "CA-NL", hc.gregorianToFixed(2025, 12, 25)), true);
+    assert.equal(hc.holidayIsDayOff("JP", "", hc.gregorianToFixed(2026, 3, 4)), false);
+    // A subdivision no source was read for has its own days open.
+    refused(() => hc.holidayIsDayOff("US", "US-NH", hc.gregorianToFixed(2026, 3, 4)), "no-data");
+    // Kedah's weekend law before 25 November 2013 was not read.
+    refused(() => hc.holidayIsDayOff("MY", "MY-02", hc.gregorianToFixed(2012, 5, 11)), "out-of-range");
+    // The walk that would count or skip the open day is refused, whichever way it runs.
+    refused(() => hc.holidayAddBusinessDays("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 16), 1), "no-data");
+    refused(() => hc.holidayBusinessDaysBetween("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 16), hc.gregorianToFixed(2025, 5, 21)), "no-data");
+    refused(() => hc.holidayAddBusinessDays("MY", "MY-02", hc.gregorianToFixed(2012, 5, 9), 1), "out-of-range");
+  });
+
+  test("a region's weekend is the law's, and refused where unread", () => {
+    const friday = hc.gregorianToFixed(2026, 3, 6);
+    assert.equal(hc.holidayIsWeekend("MY", "MY-02", friday), true);
+    assert.equal(hc.holidayIsWeekend("MY", "", friday), false);
+    assert.equal(hc.holidayIsWeekend("MY", "", friday + 1), true);
+    assert.equal(hc.holidayIsWeekend("MY", "MY-02", friday + 2), false);
+    assert.equal(hc.holidayIsWeekend("AE", "AE-SH", friday), true);
+    assert.equal(hc.holidayIsWeekend("JP", "", friday + 1), true);
+    refused(() => hc.holidayIsWeekend("MY", "MY-02", hc.gregorianToFixed(2013, 11, 24)), "out-of-range");
+    assert.equal(hc.holidayIsWeekend("MY", "MY-02", hc.gregorianToFixed(2013, 11, 29)), true);
+    refused(() => hc.holidayIsWeekend("ZZ", "", friday), "unknown");
+    refused(() => hc.holidayIsWeekend("MY", "MY-99", friday), "unknown");
+    // Column 14 of the tables lists the law the answer comes from.
+    const malaysia = hc.holidayTables("en").find((table) => table.code === "MY");
+    assert.ok(malaysia?.weekend.some((law) => law.regions.includes("MY-02")));
+  });
+
+  test("the next and the previous holiday are rows of the year, and a gap can hide a nearer one", () => {
+    const next = hc.holidayNext("JP", "", hc.gregorianToFixed(2026, 4, 28));
+    assert.deepEqual(next, {
+      date: "2026-04-29",
+      name: "Shōwa Day",
+      localName: "昭和の日",
+      kind: "public",
+      confidence: "exact",
+      substitute: false,
+      observedFor: null,
+      region: null,
+      group: null,
+      id: "showa-day",
+      source: null,
+      bridged: false,
+    });
+    const previous = hc.holidayPrevious("JP", "", hc.gregorianToFixed(2026, 5, 7));
+    assert.equal(previous.date, "2026-05-06");
+    assert.equal(previous.substitute, true);
+    assert.equal(previous.observedFor, "2026-05-03");
+    assert.equal(hc.holidayNext("JP", "JP-13", hc.gregorianToFixed(2026, 9, 1), "", "school").region, "JP-13");
+    refused(() => hc.holidayNext("CA", "CA-NL", hc.gregorianToFixed(2025, 5, 1)), "no-data");
+    refused(() => hc.holidayPrevious("CA", "CA-NL", hc.gregorianToFixed(2025, 7, 15)), "no-data");
+    refused(() => hc.holidayNext("un-days", "", hc.gregorianToFixed(2026, 1, 1)), "no-data");
+    assert.equal(hc.holidayNext("un-days", "", hc.gregorianToFixed(2026, 1, 1), "", "observance").kind, "observance");
+    refused(() => hc.holidayNext("ZZ", "", 0), "unknown");
+    refused(() => hc.holidayNext("JP", "", 0, "", "festival"), "unknown");
+    refused(() => hc.holidayNext("JP", "", 2n ** 62n), "out-of-range");
+  });
+
+  test("Japan's 国民の休日 says it was made by a bridge, in the year and in the day", () => {
+    const bridge = hc.holidaysInYear("JP", "", 2009).filter((day) => day.bridged);
+    assert.deepEqual(bridge.map((day) => [day.date, day.name, day.id, day.substitute]),
+      [["2009-09-22", "Citizens' Holiday", "citizens-holiday", false]]);
+    // 2026 has one too, between 敬老の日 on the 21st and 秋分の日 on the 23rd; 2025 has none.
+    assert.deepEqual(hc.holidaysInYear("JP", "", 2026).filter((day) => day.bridged).map((day) => day.date), ["2026-09-22"]);
+    assert.equal(hc.holidaysInYear("JP", "", 2025).some((day) => day.bridged), false);
+    const on = hc.holidaysOn(hc.gregorianToFixed(2009, 9, 22)).filter((row) => row.table === "JP" && row.bridged);
+    assert.deepEqual(on.map((row) => row.id), ["citizens-holiday"]);
+    const named = hc.holidaysOnIn(hc.gregorianToFixed(2009, 9, 22), "en").filter((row) => row.table === "JP" && row.bridged);
+    assert.deepEqual(named.map((row) => row.id), ["citizens-holiday"]);
+  });
+
+  test("a region with only a weekend law has its substitute day in the day's rows", () => {
+    // Awal Muharram 2025 was Friday 27 June, which Kedah moves to the Sunday.
+    const rows = hc.holidaysOn(hc.gregorianToFixed(2025, 6, 29)).filter((row) => row.table === "MY" && row.region === "MY-02");
+    assert.ok(rows.some((row) => row.substitute && row.observedFor === hc.gregorianToFixed(2025, 6, 27)), JSON.stringify(rows));
   });
 });
 

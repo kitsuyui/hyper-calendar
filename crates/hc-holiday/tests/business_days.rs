@@ -126,23 +126,24 @@ fn business_days_between_composes_over_a_split_point() {
 
 #[test]
 fn a_friday_saturday_weekend_moves_the_arithmetic_by_two_days() {
-    // Egypt rests on Friday and Saturday.
-    let egypt = calendar("EG", 2025, 2025);
-    let wednesday = ymd(2025, 3, 5);
+    // Egypt rests on Friday and Saturday. The table is read from 2026, and
+    // no day of March 2026 is a holiday there.
+    let egypt = calendar("EG", 2026, 2026);
+    let wednesday = ymd(2026, 3, 4);
     assert_eq!(Weekday::from_rd(wednesday), Weekday::Wednesday);
     assert!(egypt.is_business_day(wednesday));
-    assert!(egypt.is_business_day(ymd(2025, 3, 6)));
-    assert!(!egypt.is_business_day(ymd(2025, 3, 7)));
-    assert!(!egypt.is_business_day(ymd(2025, 3, 8)));
-    assert!(egypt.is_business_day(ymd(2025, 3, 9)));
+    assert!(egypt.is_business_day(ymd(2026, 3, 5)));
+    assert!(!egypt.is_business_day(ymd(2026, 3, 6)));
+    assert!(!egypt.is_business_day(ymd(2026, 3, 7)));
+    assert!(egypt.is_business_day(ymd(2026, 3, 8)));
     // Thursday plus one business day is Sunday.
     assert_eq!(
-        egypt.add_business_days(ymd(2025, 3, 6), 1),
-        Some(ymd(2025, 3, 9))
+        egypt.add_business_days(ymd(2026, 3, 5), 1),
+        Some(ymd(2026, 3, 8))
     );
     // A full week is five business days, as everywhere.
     assert_eq!(
-        egypt.business_days_between(ymd(2025, 3, 2), ymd(2025, 3, 9)),
+        egypt.business_days_between(ymd(2026, 3, 1), ymd(2026, 3, 8)),
         Some(5)
     );
 }
@@ -170,10 +171,10 @@ fn saudi_arabia_before_2013_rested_on_thursday_and_friday() {
     assert!(!saudi.is_business_day(ymd(2010, 3, 4)));
     assert!(!saudi.is_business_day(ymd(2010, 3, 5)));
     assert!(saudi.is_business_day(ymd(2010, 3, 6)));
-    assert_eq!(
-        saudi.add_business_days(ymd(2010, 3, 3), 1),
-        Some(ymd(2010, 3, 6))
-    );
+    // The table's sources begin after 2010, so the year is a gap and the
+    // walk is refused rather than counted on a guess (ADR 0013): the
+    // weekend is the law's, the holidays of the year are not known.
+    assert_eq!(saudi.add_business_days(ymd(2010, 3, 3), 1), None);
 }
 
 #[test]

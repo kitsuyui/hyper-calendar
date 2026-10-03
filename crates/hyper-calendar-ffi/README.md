@@ -125,8 +125,9 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_naming_period_on` | every `fixed`; a calendar the registry does not carry is `HC_ERROR_UNKNOWN` |
 | a line | `hc_asian_day` | `fixed` 1 360 (23 September AD 4) through 3 652 398, the last day of the Asian year 9999; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_holidays_in_year` | every `year`; a year the table has no entries or gaps for writes no lines |
-| 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holidays_on`, `hc_common_worship_on`, `hc_holidays_on_in` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a fixed day | `hc_holiday_add_business_days` | `fixed` −3 652 424 999 through 3 652 424 634 and `count` −36 500 through 36 500, a walk that stays in the years −9 999 999 to 9 999 999; any other is `HC_ERROR_OUT_OF_RANGE`, and a code that names no table `HC_ERROR_UNKNOWN` |
+| 1 or 0; lines | `hc_holiday_is_day_off`, `hc_holiday_is_weekend`, `hc_holidays_on`, `hc_common_worship_on`, `hc_holidays_on_in` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`, as is a day on which the region's weekend law was not read; for `hc_holiday_is_day_off` a day a gap of the day's year leaves open is `HC_ERROR_NO_DATA` |
+| a line | `hc_holiday_next`, `hc_holiday_previous` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERROR_OUT_OF_RANGE`; the search reaches sixteen years, and a gap that could hide a nearer entry, or no entry of the kinds within the reach, is `HC_ERROR_NO_DATA` |
+| a fixed day | `hc_holiday_add_business_days` | `fixed` −3 652 424 999 through 3 652 424 634 and `count` −36 500 through 36 500, a walk that stays in the years −9 999 999 to 9 999 999; any other is `HC_ERROR_OUT_OF_RANGE`, as is a walk that reaches a day whose weekend law was not read, a walk that reaches a day a gap leaves open is `HC_ERROR_NO_DATA`, and a code that names no table `HC_ERROR_UNKNOWN` |
 | a count | `hc_holiday_business_days_between` | `from_fixed` and `to_fixed` −3 652 424 999 through 3 652 424 634, at most a hundred years apart; any other is `HC_ERROR_OUT_OF_RANGE`, and a code that names no table `HC_ERROR_UNKNOWN` |
 | lines | `hc_roman_1960_office_on` | `fixed` 577 814 through 1 497 129, the Gregorian years 1583 to 4099; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_holy_year_on` | `fixed` 720 981 (24 December 1974) through 739 886 (27 September 2026), from the opening of the first jubilee the table carries to the day its sources were checked; any other is `HC_ERROR_NO_DATA` |
@@ -309,7 +310,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-205 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+208 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -433,6 +434,9 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_holiday_is_day_off(const char *code, const char *region, const char *group, int64_t fixed, int *out_is_day_off);` | `holiday` | Whether a fixed day is a day off in a holiday table. |
 | `HcStatus hc_holiday_add_business_days(const char *code, const char *region, const char *group, int64_t fixed, int64_t count, int64_t *out_fixed);` | `holiday` | A fixed day moved by a number of business days of a holiday table, in a subdivision and for a group. |
 | `HcStatus hc_holiday_business_days_between(const char *code, const char *region, const char *group, int64_t from_fixed, int64_t to_fixed, int64_t *out_count);` | `holiday` | The number of business days of a holiday table, in a subdivision and for a group, from one fixed day up to but not including another. |
+| `HcStatus hc_holiday_is_weekend(const char *code, const char *region, int64_t fixed, int *out_is_weekend);` | `holiday` | Whether a fixed day is a weekend day in a holiday table, in a subdivision or nationwide. |
+| `HcStatus hc_holiday_next(const char *code, const char *region, const char *group, const char *kind, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The first holiday of a table after a fixed day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
+| `HcStatus hc_holiday_previous(const char *code, const char *region, const char *group, const char *kind, int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | The last holiday of a table before a fixed day, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_holidays_in_year(const char *code, const char *region, const char *group, const char *kind, int64_t year, char *buffer, size_t capacity, size_t *written);` | `holiday` | The holidays of a Gregorian year in a table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_holiday_codes(char *buffer, size_t capacity, size_t *written);` | `holiday` | The identifier of every holiday table, one per line, NUL-terminated. |
 | `HcStatus hc_holidays_on(int64_t fixed, char *buffer, size_t capacity, size_t *written);` | `holiday` | Every holiday on one fixed day across every table, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
@@ -906,17 +910,25 @@ the exchanges, the traditions and the international days. A table is named
 by its identifier: a country's ISO 3166-1 alpha-2 code (`JP`), an exchange's
 ISO 10383 Market Identifier Code (`XNYS`), a tradition's slug
 (`christian-western`) or `un-days`, and `hc_holiday_codes` lists them all.
-`hc_holiday_is_day_off` answers for one day, and
+`hc_holiday_is_day_off` answers for one day, 1 or 0, and refuses as
+`HC_ERROR_NO_DATA` a day a gap of the day's year leaves open and as
+`HC_ERROR_OUT_OF_RANGE` a day whose region's weekend law was not read;
+`hc_holiday_is_weekend(code, region, fixed, out_is_weekend)` says whether a
+day is a weekend day under that law; `hc_holiday_next` and
+`hc_holiday_previous(code, region, group, kind, fixed, buffer, capacity,
+written)` write the line of `hc_holidays_in_year` for the first entry after,
+or the last before, a day; and
 `hc_holiday_add_business_days(code, region, group, fixed, count,
 out_fixed)` and `hc_holiday_business_days_between(code, region, group,
 from_fixed, to_fixed, out_count)` count its business days in the same
-scope; `hc_holidays_in_year` writes a
+scope, refusing a walk across a gap as `hc_holiday_is_day_off` does; `hc_holidays_in_year` writes a
 year as tab-separated, NUL-terminated lines — the ISO date, the name, the
 local name, the kind (`public`, `bank`, `religious`, `observance`,
 `school`, `workday`, `government` or `half-day`), the confidence, `1` for a
 substitute day, the date it stands in for, the region, the group, the
-holiday's identifier within its table (`new-years-day`) and the instrument
-its rule cites — reporting the length it needs through `written` like
+holiday's identifier within its table (`new-years-day`), the instrument
+its rule cites and `1` for an entry a bridge policy made, Japan's 国民の休日 —
+reporting the length it needs through `written` like
 every other text function here. The region is the subdivision whose own entry the line is:
 asked for `JP` in `JP-13`, the lines are Japan's nationwide days and
 Tokyo's 都民の日, and only 都民の日 carries `JP-13`. A region matches in
@@ -1021,8 +1033,9 @@ lines of every group a holiday may be given to alone, named in the locale,
 and `hc_holidays_on_in(fixed, locale, buffer, capacity, written)`
 `hc_holidays_on`'s lines with three more cells, the day's name in the locale
 where a source in the language names it by its identifier, and the tag
-that named it, and then the identifier, which `hc_holidays_on` ends with, so
-that the first eleven cells and the two names keep their places.
+that named it, and then the identifier and the bridge flag, which
+`hc_holidays_on` ends with, so that the first eleven cells and the two names
+keep their places.
 `hc_holiday_tables(locale, buffer, capacity, written)` describes every
 table in `hc_holiday_codes` order, in the fourteen columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English

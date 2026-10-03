@@ -131,6 +131,8 @@ pub use rule::{
 };
 
 #[cfg(feature = "alloc")]
-pub use engine::{Gap, Holiday, HolidayCalendar, holidays_in_year, holidays_on, is_holiday};
+pub use engine::{
+    Gap, Holiday, HolidayCalendar, Unanswered, holidays_in_year, holidays_on, is_holiday,
+};
 
 pub use hc_calendar::Rd;

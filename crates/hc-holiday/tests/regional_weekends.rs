@@ -5,7 +5,7 @@
 use hc_calendar::{Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_holiday::countries;
-use hc_holiday::engine::{Holiday, HolidayCalendar};
+use hc_holiday::engine::{Holiday, HolidayCalendar, Unanswered};
 use hc_holiday::rule::{RuleSet, Scope, UNREAD_SUBDIVISION, UNREAD_WEEKEND};
 
 /// Panics rather than returning a `Result`, because every date in this file
@@ -188,8 +188,11 @@ fn the_years_the_sources_do_not_reach_are_a_gap_not_a_weekend() {
 #[test]
 fn business_days_count_the_states_own_weekend() {
     // Thursday 5 March 2026. The next working day is Friday in the country
-    // and Sunday in Kedah, which keeps Friday and Saturday; the second is
-    // Monday in both.
+    // and Sunday in a state that keeps Friday and Saturday; the second is
+    // Monday in both. Kedah's own days were not read (ADR 0013), so the walk
+    // there is refused as a gap, however its weekend falls; the arithmetic
+    // of a state's own weekend is held to a table that was read, in
+    // `open_days.rs`.
     let thursday = ymd(2026, 3, 5);
     let federal = year_in("MY", None, 2026);
     let kedah = year_in("MY", Some("MY-02"), 2026);
@@ -197,44 +200,36 @@ fn business_days_count_the_states_own_weekend() {
         federal.add_business_days(thursday, 1),
         Some(ymd(2026, 3, 6))
     );
-    assert_eq!(kedah.add_business_days(thursday, 1), Some(ymd(2026, 3, 8)));
+    assert_eq!(kedah.add_business_days(thursday, 1), None);
+    assert_eq!(
+        kedah.try_add_business_days(thursday, 1),
+        Err(Unanswered::Gap)
+    );
     assert_eq!(
         federal.add_business_days(thursday, 2),
         Some(ymd(2026, 3, 9))
     );
-    assert_eq!(kedah.add_business_days(thursday, 2), Some(ymd(2026, 3, 9)));
-    // Backwards from Monday 9 March: Friday for the country, Sunday for
-    // Kedah.
+    // The weekend itself is read: Kedah's Friday and Saturday.
+    assert!(kedah.weekend_is_read(thursday));
+    assert!(kedah.is_weekend(ymd(2026, 3, 6)) && !kedah.is_weekend(ymd(2026, 3, 8)));
+    // Backwards from Monday 9 March: Friday for the country.
     let monday = ymd(2026, 3, 9);
     assert_eq!(federal.add_business_days(monday, -1), Some(ymd(2026, 3, 6)));
-    assert_eq!(kedah.add_business_days(monday, -1), Some(ymd(2026, 3, 8)));
-    // Friday to Monday holds Friday for the country and Sunday for Kedah:
-    // one working day each. Saturday to Monday holds none for the country
-    // and Sunday for Kedah.
+    assert_eq!(kedah.add_business_days(monday, -1), None);
+    // Friday to Monday holds Friday for the country; Saturday to Monday
+    // holds none.
     assert_eq!(
         federal.business_days_between(ymd(2026, 3, 6), monday),
         Some(1)
     );
-    assert_eq!(
-        kedah.business_days_between(ymd(2026, 3, 6), monday),
-        Some(1)
-    );
+    assert_eq!(kedah.business_days_between(ymd(2026, 3, 6), monday), None);
     assert_eq!(
         federal.business_days_between(ymd(2026, 3, 7), monday),
         Some(0)
     );
-    assert_eq!(
-        kedah.business_days_between(ymd(2026, 3, 7), monday),
-        Some(1)
-    );
-    // A whole week from Sunday to Sunday: five days each, with a different
-    // two off.
+    // A whole week from Sunday to Sunday: five days.
     assert_eq!(
         federal.business_days_between(ymd(2026, 3, 8), ymd(2026, 3, 15)),
-        Some(5)
-    );
-    assert_eq!(
-        kedah.business_days_between(ymd(2026, 3, 8), ymd(2026, 3, 15)),
         Some(5)
     );
 }
@@ -339,8 +334,13 @@ fn sharjahs_government_keeps_friday_to_sunday_from_2022() {
         assert_eq!(federal.is_weekend(day), federal_off, "federal {day:?}");
         assert_eq!(sharjah.is_weekend(day), sharjah_off, "Sharjah {day:?}");
     }
-    let from_thursday = sharjah.add_business_days(ymd(2026, 3, 5), 1);
-    assert_eq!(from_thursday, Some(ymd(2026, 3, 9)));
+    // Sharjah's own days were not read, so the walk is refused as a gap;
+    // the weekend arithmetic is held to a table that was read, in
+    // `open_days.rs`.
+    assert_eq!(
+        sharjah.try_add_business_days(ymd(2026, 3, 5), 1),
+        Err(Unanswered::Gap)
+    );
     assert_eq!(
         federal.add_business_days(ymd(2026, 3, 5), 1),
         Some(ymd(2026, 3, 6))

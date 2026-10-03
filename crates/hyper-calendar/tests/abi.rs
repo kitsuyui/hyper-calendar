@@ -458,6 +458,68 @@ fn the_twin_check_catches_a_missing_twin_and_a_stale_row() {
     assert!(!twin_table_problems(&wasm, &ffi, &[bare]).is_empty());
 }
 
+/// The text of every Rust file of a boundary crate's tests: `src/tests.rs`
+/// and the files under `src/tests/`.
+fn boundary_tests(crate_dir: &str) -> String {
+    let mut text = read(&format!("{crate_dir}/src/tests.rs"));
+    let mut files: Vec<_> = std::fs::read_dir(format!("{crate_dir}/src/tests"))
+        .unwrap_or_else(|error| panic!("could not read {crate_dir}/src/tests: {error}"))
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|extension| extension == "rs"))
+        .collect();
+    files.sort();
+    for path in files {
+        text.push_str(&read(&path.to_string_lossy()));
+    }
+    text
+}
+
+/// Whether `name` occurs in `text` as a whole identifier.
+fn names_identifier(text: &str, name: &str) -> bool {
+    let word = |byte: u8| byte.is_ascii_alphanumeric() || byte == b'_';
+    let bytes = text.as_bytes();
+    text.match_indices(name).any(|(at, _)| {
+        let before = at == 0 || !word(bytes[at - 1]);
+        let after = bytes.get(at + name.len()).is_none_or(|byte| !word(*byte));
+        before && after
+    })
+}
+
+/// The exports no test of the boundary crate names (audit 10 b20).
+fn unnamed_exports(side: Side, crate_dir: &str) -> Vec<String> {
+    let tests = boundary_tests(crate_dir);
+    exports(side)
+        .into_iter()
+        .filter(|export| !names_identifier(&tests, &export.name))
+        .map(|export| export.name)
+        .collect()
+}
+
+#[test]
+fn every_export_is_named_by_a_test_of_its_boundary() {
+    // An export that no Rust test of its own crate calls is one whose
+    // marshalling nothing checks: a swapped argument, a sentinel that does
+    // not come back as the status the README lists. The shared line-makers
+    // have their own tests in the facade; this is the glue.
+    for (side, crate_dir) in [(Side::Wasm, WASM_CRATE), (Side::C, FFI_CRATE)] {
+        let unnamed = unnamed_exports(side, crate_dir);
+        assert!(
+            unnamed.is_empty(),
+            "exports of {crate_dir} no test names: {unnamed:?}"
+        );
+    }
+}
+
+#[test]
+fn the_identifier_check_matches_whole_names_only() {
+    assert!(names_identifier("hc_a(1)", "hc_a"));
+    assert!(names_identifier("x = hc_a;", "hc_a"));
+    assert!(!names_identifier("hc_a_b(1)", "hc_a"));
+    assert!(!names_identifier("my_hc_a(1)", "hc_a"));
+    assert!(names_identifier("hc_a_b(1) hc_a", "hc_a"));
+}
+
 /// The rows of the ranges table after `heading`: the names in each row's
 /// second cell, and its third cell.
 fn ranges(readme: &str, heading: &str) -> Vec<(Vec<String>, String)> {

@@ -203,3 +203,6 @@ fn the_plum_rains_of_2026_cross_the_c_boundary() {
         HC_ERROR_NULL_POINTER
     );
 }
+
+#[cfg(any(feature = "timestamps", feature = "calendars", feature = "zone-names"))]
+mod named_exports;

@@ -1337,6 +1337,8 @@ export interface HolidayInYear {
   id: string;
   /** The instrument the rule cites, or `null` where the table's own sources speak for it. */
   source: string | null;
+  /** Whether a bridge policy made this entry, Japan's 国民の休日 between two holidays. */
+  bridged: boolean;
 }
 
 /** One line of `hc_holidays_on`: one entry of one table on one day. */
@@ -1362,6 +1364,8 @@ export interface HolidayOn {
   group: string | null;
   /** The holiday's stable identifier within its table, `new-years-day`; see {@link HolidayInYear.id}. */
   id: string;
+  /** Whether a bridge policy made this entry, Japan's 国民の休日 between two holidays. */
+  bridged: boolean;
 }
 
 /** The one line of `hc_term_in_effect` or `hc_pentad_in_effect`. */
@@ -2989,10 +2993,16 @@ export class HyperCalendar {
   /** `hc_night_watch`: `null` from 05:00 to 18:59. */
   nightWatch(secondsOfDay: number, locale?: string): NightWatch | null;
 
-  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table, a group naming no group of `holidayGroups`, or a region the table's country has no subdivision for, is `unknown`. */
+  /** `hc_holiday_is_day_off`; `region` may be empty, and `group` left out or empty for everyone. A code naming no table, a group naming no group of `holidayGroups`, or a region the table's country has no subdivision for, is `unknown`; a day a gap of its year leaves open is `no-data`, and one whose region's weekend law was not read `out-of-range`. */
   holidayIsDayOff(code: string, region: string, fixed: number | bigint, group?: string): boolean;
   /** `hc_holiday_add_business_days`: a day moved by business days of a table. */
   holidayAddBusinessDays(code: string, region: string, fixed: number | bigint, count: number | bigint, group?: string): number;
+  /** `hc_holiday_is_weekend`; `region` may be empty. A day on which the region's weekend law was not read is `out-of-range`. */
+  holidayIsWeekend(code: string, region: string, fixed: number | bigint): boolean;
+  /** `hc_holiday_next`: the first holiday after a day, as a row of `holidaysInYear`; `kind` as for `holidaysInYear`, and the kinds that stop work when empty. A gap that could hide a nearer entry, and no entry within sixteen years, are `no-data`. */
+  holidayNext(code: string, region: string, fixed: number | bigint, group?: string, kind?: string): HolidayInYear;
+  /** `hc_holiday_previous`: the last holiday before a day, as `holidayNext`. */
+  holidayPrevious(code: string, region: string, fixed: number | bigint, group?: string, kind?: string): HolidayInYear;
   /** `hc_holiday_business_days_between`: the business days of a table in a half-open interval. */
   holidayBusinessDaysBetween(
     code: string,

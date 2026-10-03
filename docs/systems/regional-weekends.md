@@ -67,7 +67,52 @@ Worked example: Hari Raya Haji 2025 and Awal Muharram 2025 in Kedah.
    country's Sunday rule moves Sunday holidays to the Monday, and these
    fall on a Friday and a Saturday.
 5. One business day after Thursday 5 March 2026 is Friday 6 March for the
-   country and Sunday 8 March for Kedah.
+   country and Sunday 8 March for Kedah, in the library; at the boundary the
+   walk for Kedah is refused, because Kedah's own days were not read (see
+   "Asking the weekend at the boundary").
+
+## Asking the weekend at the boundary
+
+`hc_holiday_is_weekend(code, region, fixed)` (JavaScript `holidayIsWeekend`)
+answers 1 or 0 for the law in force on the day in the region, as
+`RuleSet::weekend_in` gives it: Kedah's Friday is 1 from 25 November 2013
+and the country's is 0; a table that states no weekend keeps Saturday and
+Sunday. A day on which the region's law was not read, the `unread-weekend`
+gap, is `HC_ERR_OUT_OF_RANGE`, which is what the business-day arithmetic has
+always answered for it: no weekend of no days. The region is the same
+argument as `hc_holiday_is_day_off`'s and a region of the table's country with
+only a weekend law is one; a code that is no subdivision is refused as
+`unknown`.
+
+The weekend is read from the table and the region alone, so the answer does
+not depend on whether the region's holidays were read: Kedah's weekend is
+read and its days are not, and the weekend is answered. The days are what
+the other calls need, and they are refused for it (ADR 0013):
+
+- `hc_holiday_is_day_off` answers 1 for a day with an entry that stops work,
+  and 0 only where the table knows the day. A gap of a kind that stops work
+  in the day's year (a rule's calendar ended, its year not read), or the
+  region's own days not read, whatever the kind, which is every year for
+  Kedah, is
+  `HC_ERR_NO_DATA`, and a day whose region's weekend law was not read
+  `HC_ERR_OUT_OF_RANGE`. The refusal is the year's, not the day's: a day the
+  table lists is a day off whatever else is open, and one it does not list is
+  open as long as a holiday it could not place may be that very day.
+- `hc_holiday_add_business_days` and `hc_holiday_business_days_between`
+  refuse on the first day the walk reaches that is open in this way, with the
+  same two codes, so that a count is never made on a guess. Only the kinds
+  the arithmetic counts open a day: Louisiana's Mardi Gras, a day of the
+  state's offices (kind `government`), does not (ADR 0010); a China workday
+  that was not announced opens a weekend day.
+- `hc_holiday_next` and `hc_holiday_previous` give the first holiday after a
+  day and the last before it, and refuse when a gap of a wanted kind lies in
+  any year from the day's to the found entry's.
+- `hc_holidays_on` writes the substitute days of a region that has only a
+  weekend law, such as Kedah's Sunday for Awal Muharram 2025 (audit 10 d2),
+  with the region in column 10. It does not write the gap
+  `unread-subdivision` for those regions, as it writes none for the many
+  subdivisions the table does not list; the gap `unread-weekend` it does
+  write, in the years the law was not read.
 
 ## What is carried
 
@@ -216,6 +261,13 @@ Department's list for the year.
   weekend_on, weekend_unread_in, weekend_regions, substitution_in_region}`,
   `UNREAD_WEEKEND`.
 - `crates/hc-holiday/src/engine.rs`: `HolidayCalendar::{is_weekend,
-  weekend_is_read, add_business_days, business_days_between}` and the gap.
-- `crates/hyper-calendar/src/holiday_lines.rs`: `weekend_cell`, column 14.
-- `crates/hc-holiday/tests/regional_weekends.rs`: the dated examples above.
+  weekend_is_read, add_business_days, business_days_between}` and the gap;
+  `day_off`, `business_day`, `try_add_business_days`,
+  `try_business_days_between`, `try_next_of`, `try_previous_of` and
+  `Unanswered`, which say why a day is open.
+- `crates/hyper-calendar/src/holiday_lines.rs`: `weekend_cell`, column 14;
+  `is_weekend`, `is_day_off`, `add_business_days`, `business_days_between`,
+  `next_holiday_line`, `previous_holiday_line` and `holidays_on`.
+- `crates/hc-holiday/tests/regional_weekends.rs`: the dated examples above;
+  `crates/hc-holiday/tests/open_days.rs`: the refusals, over a table whose
+  gaps and weekends are the ones each case needs.

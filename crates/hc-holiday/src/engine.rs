@@ -132,6 +132,25 @@ pub struct Gap {
     pub source: &'static str,
 }
 
+/// Why a question about a day, or about the days after it, has no answer
+/// from a calendar: the three ways it can be open (ADR 0013, ADR 0015).
+///
+/// A calendar that answered `false` for a day a [`Gap`] leaves open would
+/// be guessing that the holiday it could not place did not fall there, and
+/// policy §4 says the library refuses rather than guesses.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Unanswered {
+    /// The day lies outside the span the calendar evaluated.
+    OutsideSpan,
+    /// The weekend law in force on the day in the calendar's region was not
+    /// read ([`UNREAD_WEEKEND`]).
+    UnreadWeekend,
+    /// A gap leaves the answer open: a holiday of a kind the question is
+    /// about that the calendar could not place in the day's year, or a
+    /// subdivision whose own days were not read ([`Gap`]).
+    Gap,
+}
+
 /// An evaluated rule set over a span of years.
 ///
 /// Building one is the expensive part — solar terms and lunar conjunctions
@@ -502,6 +521,90 @@ impl<'a> HolidayCalendar<'a> {
         !self.is_holiday(day) && (!self.is_weekend(day) || self.is_designated_workday(day))
     }
 
+    /// Whether a gap leaves the day's year open: a holiday of a kind
+    /// `wanted` says that the calendar could not place in the Gregorian
+    /// year of `day`, or, whatever the kind, a subdivision whose own days
+    /// were not read, as the year's lines write it. The gap for an unread
+    /// weekend law is not counted here, because
+    /// [`HolidayCalendar::weekend_is_read`] says whether the law of the day
+    /// itself was read.
+    fn gap_in_year_of(&self, day: Rd, wanted: impl Fn(Kind) -> bool) -> bool {
+        let Ok(year) = gregorian::year_from_fixed(day) else {
+            return false;
+        };
+        self.gaps.iter().any(|gap| {
+            gap.year == year
+                && gap.id != UNREAD_WEEKEND_ID
+                && (gap.id == UNREAD_SUBDIVISION_ID || wanted(gap.kind))
+        })
+    }
+
+    /// Whether `day` is a day off, or why that is not known.
+    ///
+    /// A day with a day-off entry is a day off whatever else is open. A day
+    /// without one is a day that is not, unless the weekend law in force on
+    /// it was not read ([`Unanswered::UnreadWeekend`]), or a gap of a kind
+    /// that stops work lies in its year ([`Unanswered::Gap`]): the holiday
+    /// the table could not place may be this day.
+    /// [`HolidayCalendar::is_holiday`] is the entries alone.
+    ///
+    /// # Errors
+    ///
+    /// [`Unanswered::OutsideSpan`] for a day the calendar did not evaluate;
+    /// otherwise as above.
+    pub fn day_off(&self, day: Rd) -> Result<bool, Unanswered> {
+        if !self.covers(day) {
+            return Err(Unanswered::OutsideSpan);
+        }
+        if self.is_holiday(day) {
+            return Ok(true);
+        }
+        if !self.weekend_is_read(day) {
+            return Err(Unanswered::UnreadWeekend);
+        }
+        if self.gap_in_year_of(day, Kind::is_day_off) {
+            return Err(Unanswered::Gap);
+        }
+        Ok(false)
+    }
+
+    /// Whether `day` is a business day, or why that is not known.
+    ///
+    /// As [`HolidayCalendar::is_business_day`] where the entries and the
+    /// weekend decide. A weekday that is not a holiday is open when a gap
+    /// of a kind that stops work lies in its year, and a weekend day the
+    /// calendar does not make a working day is open when a gap of the kind
+    /// that makes one ([`Kind::Workday`]) does; a day whose weekend law was
+    /// not read is open whatever else is.
+    ///
+    /// # Errors
+    ///
+    /// As [`HolidayCalendar::day_off`].
+    pub fn business_day(&self, day: Rd) -> Result<bool, Unanswered> {
+        if !self.covers(day) {
+            return Err(Unanswered::OutsideSpan);
+        }
+        if self.is_holiday(day) {
+            return Ok(false);
+        }
+        if !self.weekend_is_read(day) {
+            return Err(Unanswered::UnreadWeekend);
+        }
+        if self.is_weekend(day) {
+            if self.is_designated_workday(day) {
+                return Ok(true);
+            }
+            if self.gap_in_year_of(day, |kind| kind == Kind::Workday) {
+                return Err(Unanswered::Gap);
+            }
+            return Ok(false);
+        }
+        if self.gap_in_year_of(day, Kind::is_day_off) {
+            return Err(Unanswered::Gap);
+        }
+        Ok(true)
+    }
+
     /// `day` moved by `count` business days.
     ///
     /// A positive `count` moves forward, a negative one back, and zero
@@ -510,29 +613,42 @@ impl<'a> HolidayCalendar<'a> {
     /// day when `count` is non-zero.
     ///
     /// Returns `None` when the walk leaves the evaluated span, because a
-    /// calendar cannot honestly answer for a year it has not evaluated, or
-    /// reaches a day whose weekend law in the region was not read.
+    /// calendar cannot honestly answer for a year it has not evaluated,
+    /// reaches a day whose weekend law in the region was not read, or
+    /// reaches a day a gap leaves open: a day the walk would count, or skip,
+    /// on a guess. [`HolidayCalendar::try_add_business_days`] says which.
     #[must_use]
     pub fn add_business_days(&self, day: Rd, count: i64) -> Option<Rd> {
+        self.try_add_business_days(day, count).ok()
+    }
+
+    /// [`HolidayCalendar::add_business_days`], saying why there is no
+    /// answer.
+    ///
+    /// # Errors
+    ///
+    /// [`Unanswered::OutsideSpan`] for a starting day or a walk that leaves
+    /// the span, [`Unanswered::UnreadWeekend`] for a walk that reaches a
+    /// day whose weekend law was not read, and [`Unanswered::Gap`] for one
+    /// that reaches a day a gap leaves open
+    /// ([`HolidayCalendar::business_day`]).
+    pub fn try_add_business_days(&self, day: Rd, count: i64) -> Result<Rd, Unanswered> {
         if !self.covers(day) {
-            return None;
+            return Err(Unanswered::OutsideSpan);
         }
         if count == 0 {
-            return Some(day);
+            return Ok(day);
         }
         let step = if count > 0 { 1 } else { -1 };
         let mut remaining = count.abs();
         let mut cursor = day;
         while remaining > 0 {
             cursor = Rd(cursor.0 + step);
-            if !self.covers(cursor) || !self.weekend_is_read(cursor) {
-                return None;
-            }
-            if self.is_business_day(cursor) {
+            if self.business_day(cursor)? {
                 remaining -= 1;
             }
         }
-        Some(cursor)
+        Ok(cursor)
     }
 
     /// The number of business days in the half-open interval
@@ -545,14 +661,26 @@ impl<'a> HolidayCalendar<'a> {
     ///
     /// Returns `None` when either end lies outside the evaluated span, or
     /// a day of the interval has a weekend law the region's sources did not
-    /// read.
+    /// read or is one a gap leaves open.
+    /// [`HolidayCalendar::try_business_days_between`] says which.
     #[must_use]
     pub fn business_days_between(&self, start: Rd, end: Rd) -> Option<i64> {
+        self.try_business_days_between(start, end).ok()
+    }
+
+    /// [`HolidayCalendar::business_days_between`], saying why there is no
+    /// answer.
+    ///
+    /// # Errors
+    ///
+    /// As [`HolidayCalendar::try_add_business_days`], for the days of the
+    /// interval.
+    pub fn try_business_days_between(&self, start: Rd, end: Rd) -> Result<i64, Unanswered> {
         if !self.covers(start) || !self.covers(end) {
-            return None;
+            return Err(Unanswered::OutsideSpan);
         }
         if start == end {
-            return Some(0);
+            return Ok(0);
         }
         let (from, to, sign) = if start < end {
             (start, end, 1)
@@ -562,15 +690,96 @@ impl<'a> HolidayCalendar<'a> {
         let mut count = 0i64;
         let mut cursor = from;
         while cursor < to {
-            if !self.weekend_is_read(cursor) {
-                return None;
-            }
-            if self.is_business_day(cursor) {
+            if self.business_day(cursor)? {
                 count += 1;
             }
             cursor = Rd(cursor.0 + 1);
         }
-        Some(count * sign)
+        Ok(count * sign)
+    }
+
+    /// Whether a holiday of one of `kinds` could be missing from the years
+    /// `first..=last`: a gap of such a kind lies in one of them, or, whatever
+    /// the kinds, a subdivision's own days or a weekend law were not read.
+    /// `kinds` empty means the kinds that stop work.
+    fn gap_between_years(&self, first: i64, last: i64, kinds: &[Kind]) -> bool {
+        self.gaps.iter().any(|gap| {
+            (first..=last).contains(&gap.year)
+                && (gap.id == UNREAD_SUBDIVISION_ID
+                    || gap.id == UNREAD_WEEKEND_ID
+                    || Self::kind_wanted(kinds, gap.kind))
+        })
+    }
+
+    /// Whether `kind` is one of `kinds`, or a kind that stops work when
+    /// `kinds` is empty.
+    fn kind_wanted(kinds: &[Kind], kind: Kind) -> bool {
+        if kinds.is_empty() {
+            kind.is_day_off()
+        } else {
+            kinds.contains(&kind)
+        }
+    }
+
+    /// The next entry strictly after `day` of one of `kinds`, or of a kind
+    /// that stops work when `kinds` is empty, as
+    /// [`HolidayCalendar::next_holiday`] finds it, and refused when a gap
+    /// could hide an earlier one.
+    ///
+    /// The span ends the search: `Ok(None)` says there is none by the end
+    /// of it, so a caller who wants a longer reach builds a longer
+    /// calendar. A gap of a wanted kind in any year from `day`'s to the
+    /// found entry's, or to the last year of the span when there is none, is
+    /// [`Unanswered::Gap`]: the holiday the table could not place may be the
+    /// nearer one.
+    ///
+    /// # Errors
+    ///
+    /// [`Unanswered::OutsideSpan`] for a `day` the calendar did not
+    /// evaluate, and [`Unanswered::Gap`] as above.
+    pub fn try_next_of(&self, day: Rd, kinds: &[Kind]) -> Result<Option<Holiday>, Unanswered> {
+        if !self.covers(day) {
+            return Err(Unanswered::OutsideSpan);
+        }
+        let found = self
+            .holidays
+            .iter()
+            .find(|holiday| holiday.date > day && Self::kind_wanted(kinds, holiday.kind))
+            .copied();
+        let first = gregorian::year_from_fixed(day).unwrap_or(self.first_year);
+        let last = found
+            .and_then(|holiday| gregorian::year_from_fixed(holiday.date).ok())
+            .unwrap_or(self.last_year);
+        if self.gap_between_years(first, last, kinds) {
+            return Err(Unanswered::Gap);
+        }
+        Ok(found)
+    }
+
+    /// The last entry strictly before `day` of one of `kinds`, as
+    /// [`HolidayCalendar::try_next_of`] finds the next.
+    ///
+    /// # Errors
+    ///
+    /// As [`HolidayCalendar::try_next_of`], for the years back from `day`'s.
+    pub fn try_previous_of(&self, day: Rd, kinds: &[Kind]) -> Result<Option<Holiday>, Unanswered> {
+        if !self.covers(day) {
+            return Err(Unanswered::OutsideSpan);
+        }
+        let found = self
+            .holidays
+            .iter()
+            .rev()
+            .find(|holiday| holiday.date < day && Self::kind_wanted(kinds, holiday.kind))
+            .copied();
+        let last = gregorian::year_from_fixed(day).unwrap_or(self.last_year);
+        let first = found
+            .and_then(|holiday| gregorian::year_from_fixed(holiday.date).ok())
+            .unwrap_or(self.first_year);
+        if self.gap_between_years(first, last, kinds) {
+            return Err(Unanswered::Gap);
+        }
+        Ok(found)
     }
 }
 
