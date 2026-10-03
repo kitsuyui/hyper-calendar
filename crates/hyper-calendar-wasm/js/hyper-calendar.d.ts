@@ -292,6 +292,9 @@ export type GravitatingBodyId =
 /** An ayanāṃśa, by the identifier `hc-seasons`' `Ayanamsa::by_id` finds it by. */
 export type Ayanamsa =
   | "lahiri"
+  | "lahiri-rashtriya"
+  | "lahiri-crc-1955"
+  | "lahiri-drik"
   | "raman"
   | "krishnamurti"
   | "reingold-dershowitz"

@@ -1620,7 +1620,7 @@ macro_rules! exports {
             /// English and Devanagari names, the instants it began and ends and the
             /// instant it was read at, and the sky of the yoga by its identifier,
             /// which this call reads back, and by its full name. `ayanamsa` is an
-            /// identifier, `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`
+            /// identifier, `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`, `reingold-dershowitz`
             /// or `fagan-bradley`, for the true Sun and Moon in that zodiac; or
             /// `surya-siddhanta`, for the *Sūrya Siddhānta*'s, named on the karaṇa's
             /// line too; in any case. Anything else, a full name such as
@@ -1641,7 +1641,7 @@ macro_rules! exports {
             /// it began and ends and the instant it was read at as whole POSIX
             /// seconds, rounded down, in Universal Time, and the sky the yoga was
             /// reckoned on, by the identifier `ayanamsa` takes and by its full
-            /// name. `ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti`,
+            /// name. `ayanamsa` is an identifier, `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`,
             /// `reingold-dershowitz` or `fagan-bradley`, for the true Sun and Moon
             /// in that zodiac, where the karaṇa's last two cells are empty, since
             /// it needs none; or `surya-siddhanta`, for the *Sūrya Siddhānta*'s Sun
@@ -2474,7 +2474,7 @@ macro_rules! exports {
             /// The line is the WebAssembly module's: the nakṣatra by number,
             /// identifier and name, when the Moon entered it and leaves it, the
             /// instant read, and the ayanāṃśa by
-            /// identifier and full name. `ayanamsa` is `lahiri`, `raman`,
+            /// identifier and full name. `ayanamsa` is `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`,
             /// `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`, in any
             /// case; anything else is `HC_ERROR_UNKNOWN`, and null
             /// `HC_ERROR_NULL_POINTER`. An instant outside the years −1000 to 3000
@@ -2491,7 +2491,7 @@ macro_rules! exports {
             /// instants the Moon entered it and leaves it and the
             /// instant read, as whole POSIX seconds of Universal Time, rounded
             /// down; and the ayanāṃśa by its identifier and its full name.
-            /// `ayanamsa` is `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz`
+            /// `ayanamsa` is `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`, `reingold-dershowitz`
             /// or `fagan-bradley`, in any case; anything else, the empty string
             /// included, is `HC_ERR_UNKNOWN`. An instant outside the years −1000 to
             /// 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the
@@ -4507,7 +4507,7 @@ macro_rules! exports {
             /// identifier and Sanskrit name, the drekkāṇa within it, its lord's
             /// identifier and English name, the degrees into it, the lord's sign by
             /// identifier and Sanskrit name, and the ayanāṃśa.
-            /// `ayanamsa` is `lahiri`, `raman`, `krishnamurti`,
+            /// `ayanamsa` is `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`,
             /// `reingold-dershowitz` or `fagan-bradley`, in any case; anything else
             /// is `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. An instant
             /// outside the years −1000 to 3000 is `HC_ERROR_OUT_OF_RANGE`. Writes
@@ -4527,7 +4527,7 @@ macro_rules! exports {
             /// drekkāṇa the Sun is, in degrees from 0 up to 10; that sign by its
             /// identifier and its Sanskrit name, `mesha` and `Meṣa`; and the
             /// ayanāṃśa's identifier. `ayanamsa` is
-            /// `lahiri`, `raman`, `krishnamurti`, `reingold-dershowitz` or
+            /// `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`, `reingold-dershowitz` or
             /// `fagan-bradley`, in any case; anything else, the empty string
             /// included, is `HC_ERR_UNKNOWN`. The instant is read as Universal
             /// Time; one outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`.

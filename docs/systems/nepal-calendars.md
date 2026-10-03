@@ -370,6 +370,7 @@ states. The tests assert:
 | Each month's full moon falls in one of the two Gregorian months the article's table gives, 1130–1159 | `each_full_moon_falls_in_the_gregorian_months_the_table_gives` | 360 of 360 |
 | Years run 353–355 or 383–385 days, 1100–1199, with at least one intercalary year | `years_run_353_to_355_days_or_383_to_385` | all |
 | Every day of 1138–1140 round-trips; the intercalary months are Tachhalā 1138 and Kaulā 1140 | `every_day_of_three_years_converts_and_converts_back` | all |
+| Every eleventh day from Chaitra 1700 to March 2300, and each Nepal Sambat year's first day with its eve, round-trips | `a_stride_through_the_whole_range_converts_and_converts_back` | all in a release build; in a debug one every 55th day and each opening and eve |
 | The tithi, its repetition and the intercalary flag of every day of 2024–2026 are the amānta calendar's at the same sunrise | `a_date_keeps_its_tithi_from_the_amanta_calendar_at_the_same_sunrise` | all |
 
 **Known disagreements**, stated as the module documentation states them:

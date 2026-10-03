@@ -93,6 +93,17 @@ pub const USAGE_SOURCE: &str = "Established on 20 October 879 and the official c
 
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("nepal-sambat");
+
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The identifier and English name of the calendar over an ayanāṃśa:
+    /// [`ID`] for Lahiri's, and the convention's for any other.
+    pub(crate) fn identity, "nepal-sambat", "Nepal Sambat (lunar)"
+}
+
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The same for the fortnight-first form, [`FORTNIGHT_ID`].
+    pub(crate) fn fortnight_identity, "nepal-sambat-fortnight", "Nepal Sambat (fortnight and tithi)"
+}
 /// The era it counts in.
 pub const ERA: &str = "nepal-sambat";
 
@@ -375,9 +386,10 @@ impl Calendar for NepalSambatCalendar {
     }
 
     fn meta(&self) -> CalendarMeta {
+        let (id, english_name) = identity(self.lunar.ayanamsa);
         CalendarMeta {
-            id: ID,
-            english_name: "Nepal Sambat (lunar)",
+            id,
+            english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,
@@ -553,9 +565,10 @@ impl Calendar for NepalSambatFortnightCalendar {
     }
 
     fn meta(&self) -> CalendarMeta {
+        let (id, english_name) = fortnight_identity(self.sambat.lunar.ayanamsa);
         CalendarMeta {
-            id: FORTNIGHT_ID,
-            english_name: "Nepal Sambat (fortnight and tithi)",
+            id,
+            english_name,
             ..self.sambat.meta()
         }
     }
@@ -717,6 +730,27 @@ mod tests {
             }
         }
         assert_eq!(intercalary, [(1138, 8), (1140, 12)]);
+    }
+
+    #[test]
+    fn a_stride_through_the_whole_range_converts_and_converts_back() {
+        // Policy §7. Every eleventh day from Chaitra 1700 to March 2300 and
+        // each Nepal Sambat year's first day with the day before it; a
+        // debug build takes every fifty-fifth.
+        let (first, last) = (
+            NS.earliest().expect("in range").0,
+            NS.latest().expect("in range").0,
+        );
+        let years = NS.from_fixed(Rd(first)).expect("in range").year + 1
+            ..=NS.from_fixed(Rd(last)).expect("in range").year;
+        let openings: alloc::vec::Vec<i64> = years
+            .filter_map(|year| NS.new_year(year).ok().map(|day| day.0))
+            .collect();
+        let days = crate::strided_days(first, last, 11, 5, &openings);
+        crate::check_days(&days, |day| {
+            let date = NS.from_fixed(Rd(day)).expect("in range");
+            assert_eq!(NS.to_fixed(date), Ok(Rd(day)), "{date:?}");
+        });
     }
 
     #[test]

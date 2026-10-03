@@ -255,6 +255,26 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "a tithi that spans two sunrises names both days",
     ),
     (
+        "gupta",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "valabhi",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "kalachuri",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
+        "lakshmana-sena",
+        "ambiguous",
+        "a tithi that spans two sunrises names both days",
+    ),
+    (
         "odia-anka",
         "ambiguous",
         "a tithi that spans two sunrises names both days",
@@ -328,6 +348,10 @@ const MORE_DAYS: &[(&str, &[i64], &str)] = &[
     ),
     ("rajyabhisheka-saka", &[726_513, 726_514], "a doubled tithi"),
     ("saptarshi", &[726_513, 726_514], "a doubled tithi"),
+    ("gupta", &[726_513, 726_514], "a doubled tithi"),
+    ("valabhi", &[726_513, 726_514], "a doubled tithi"),
+    ("kalachuri", &[726_513, 726_514], "a doubled tithi"),
+    ("lakshmana-sena", &[726_513, 726_514], "a doubled tithi"),
     ("odia-anka", &[726_513, 726_514], "a doubled tithi"),
     ("nepal-sambat", &[726_513, 726_514], "a doubled tithi"),
     (

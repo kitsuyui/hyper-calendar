@@ -90,20 +90,17 @@ fn year_start(year: i64) -> Moment {
 /// New Delhi, the place Drik Panchang's times are for.
 const NEW_DELHI: Location = Location::new(28.6356, 77.2244, 0.0);
 
-/// Drik Panchang's ayanāṃśa is this crate's Lahiri plus 25 arcseconds: the
+/// Drik Panchang's ayanāṃśa is `Ayanamsa::LAHIRI_DRIK`, anchored on the
+/// value its pages print and 25.4″ to 25.5″ above this crate's Lahiri: the
 /// sidereal longitude of Jupiter at each of the 49 entries is on the boundary
-/// to within 23.9″ to 27.1″ of it, over thirty years, forward and in
-/// retrograde, which a different nutation or precession would not give.
-const DRIK_LAHIRI_SHIFT_ARCSECONDS: f64 = 25.0;
+/// to within 23.9″ to 27.1″ of the Lahiri one, over thirty years, forward and
+/// in retrograde, which a different nutation or precession would not give.
+/// The shift of this crate's Lahiri that fits the 49 entries best, which is
+/// 0.4″ to 0.5″ short of the shift the printed ayanāṃśa has.
+const DRIK_JUPITER_SHIFT_ARCSECONDS: f64 = 25.0;
 
 fn drik_lahiri() -> Ayanamsa {
-    let lahiri = Ayanamsa::LAHIRI;
-    Ayanamsa::new(
-        "lahiri-drik",
-        "Lahiri, shifted to Drik Panchang's",
-        lahiri.anchor_julian_date(),
-        lahiri.degrees_at_anchor() + DRIK_LAHIRI_SHIFT_ARCSECONDS / 3600.0,
-    )
+    Ayanamsa::LAHIRI_DRIK
 }
 
 #[test]
@@ -134,11 +131,35 @@ fn the_ingresses_agree_with_drik_panchangs_within_seven_minutes_given_the_shift(
     // Drik's table ends at 1 May 2030; one more entry follows that year.
     assert_eq!(found.len(), DRIK_JUPITER.len() + 1);
     let mut worst: f64 = 0.0;
+    let mut total = 0.0;
     for (row, mine) in DRIK_JUPITER.iter().zip(&found) {
         let drik = ist(row.0, row.1, row.2, row.3, row.4);
         assert_eq!(mine.to.index(), row.5, "{row:?}");
-        worst = worst.max((mine.moment.0 - drik.0).abs() * 1440.0);
+        let minutes = (mine.moment.0 - drik.0).abs() * 1440.0;
+        worst = worst.max(minutes);
+        total += minutes;
     }
+    // With the ayanāṃśa Drik's pages print, 25.4″ to 25.5″ above the Swiss
+    // Ephemeris's: 8.3 minutes at the worst.
+    assert!(total / 49.0 < 2.1, "{} minutes on average", total / 49.0);
+    assert!(worst < 8.5, "{worst} minutes");
+    // And with the 25.0″ that fits the entries best, which is not the
+    // printed value: 6.9 minutes at the worst.
+    let lahiri = Ayanamsa::LAHIRI;
+    let fitted = Ayanamsa::new(
+        "lahiri-drik-jupiter",
+        "Lahiri, shifted to Drik Panchang's Jupiter",
+        lahiri.anchor_julian_date(),
+        lahiri.degrees_at_anchor() + DRIK_JUPITER_SHIFT_ARCSECONDS / 3600.0,
+    );
+    let refit: Vec<_> = jupiter::ingresses(year_start(2001), year_start(2031), fitted).collect();
+    let worst = DRIK_JUPITER
+        .iter()
+        .zip(&refit)
+        .map(|(row, mine)| {
+            (mine.moment.0 - ist(row.0, row.1, row.2, row.3, row.4).0).abs() * 1440.0
+        })
+        .fold(0.0, f64::max);
     assert!(worst < 7.5, "{worst} minutes");
     // Without the shift: forward entries 40 to 135 minutes before Drik's,
     // returns up to four and a half hours after, as the station is slow.
@@ -307,7 +328,7 @@ fn rd(year: i64, month: u8, date: u8) -> Rd {
 /// of Jupiter that began each: the river, the sign, the entry (year, month,
 /// day, hour, minute IST) and the first and last day of the festival as
 /// (year, month, day). The sources are in the system document.
-const FESTIVALS: [(&str, &str, [i64; 5], [i64; 6]); 9] = [
+const FESTIVALS: [(&str, &str, [i64; 5], [i64; 6]); 13] = [
     (
         "pushkaram-godavari",
         "simha",
@@ -362,6 +383,32 @@ const FESTIVALS: [(&str, &str, [i64; 5], [i64; 6]); 9] = [
         [2027, 6, 26, 5, 43],
         [2027, 6, 26, 2027, 7, 7],
     ),
+    // Drik Panchang's entry of 20:39 on 11 October 2018 is after the day's
+    // sunset: the festival of both rivers began on the 12th.
+    (
+        "pushkaram-tamraparni",
+        "vrishchika",
+        [2018, 10, 11, 20, 39],
+        [2018, 10, 12, 2018, 10, 23],
+    ),
+    (
+        "pushkaram-bhima",
+        "vrishchika",
+        [2018, 10, 11, 20, 39],
+        [2018, 10, 12, 2018, 10, 23],
+    ),
+    (
+        "pushkaram-narmada",
+        "vrishabha",
+        [2024, 5, 1, 13, 50],
+        [2024, 5, 1, 2024, 5, 12],
+    ),
+    (
+        "pushkaram-yamuna",
+        "karka",
+        [2026, 6, 2, 2, 25],
+        [2026, 6, 2, 2026, 6, 13],
+    ),
 ];
 
 #[test]
@@ -389,6 +436,17 @@ fn the_festivals_whose_dates_were_read_follow_the_final_entry_found_from_the_sky
             (-80.0..-30.0).contains(&minutes),
             "{river} {minutes} minutes"
         );
+        // And neither entry stands within an hour and a half of the
+        // civil day's sunset at New Delhi, where the rule would turn on a
+        // few minutes: the entry of 2018 at about 19:45 against a sunset
+        // at 17:51 is the nearest, 113 minutes.
+        let sunset = hyper_calendar::hc_astro::riseset::sunset(
+            rd(entry[0], entry[1] as u8, entry[2] as u8),
+            NEW_DELHI,
+        )
+        .expect("a sunset");
+        let from_sunset = (drik.0 + minutes / 1_440.0 - sunset.0) * 1_440.0;
+        assert!(from_sunset.abs() > 90.0, "{river} {from_sunset}");
     }
 }
 
@@ -439,7 +497,7 @@ fn festivals_of(year: i64, rule: &str) -> Vec<(String, Rd, Rd, i64)> {
         .collect()
 }
 
-/// The nine festivals whose dates were read, and the two Wikipedia opens at
+/// The thirteen festivals whose dates were read, and the two Wikipedia opens at
 /// first entries, are each in the one call that gives their year's lines,
 /// on the same days and at the same second as in the call that gives their
 /// sign's.
@@ -521,11 +579,10 @@ fn ingress_seconds(from: i64, to: i64) -> Vec<(i64, String)> {
 
 /// `hc_jupiter_ingresses`, `hc_pushkaram_by_sky` and `hc_pushkarams_in_year`
 /// give the same second for the same entry, from the spans that contain it
-/// and from the years that do: the nine festivals' entries, each asked from
-/// spans that begin days and months before it and end days and months after.
+/// and from the years that do: the festivals' entries, each asked from spans
+/// that begin seconds, days and months before it and end days and months after.
 #[test]
 fn the_ingress_and_pushkaram_exports_agree_on_an_entry() {
-    let unix = |year: i64, month: u8, date: u8| (rd(year, month, date).0 - 719_163) * 86_400;
     for (river, sign, entry, _) in FESTIVALS {
         let by_sign = festival(sign, entry[0], "pushkaram-final-entry");
         let (_, _, _, second) = by_sign
@@ -534,7 +591,7 @@ fn the_ingress_and_pushkaram_exports_agree_on_an_entry() {
             .unwrap_or_else(|| panic!("{river}"));
         let in_year = festivals_of(entry[0], "pushkaram-final-entry");
         assert!(in_year.iter().any(|line| line.3 == *second), "{river}");
-        let centre = unix(entry[0], entry[1] as u8, entry[2] as u8);
+        let centre = *second;
         for (before, after) in [
             (86_400 * 2, 86_400),
             (86_400 * 37 + 12_345, 86_400 * 41),

@@ -50,6 +50,12 @@ use crate::hindu_purnimanta::HinduPurnimantaCalendar;
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("odia-anka");
 
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The identifier and English name of the calendar over an ayanāṃśa:
+    /// [`ID`] for Lahiri's, and the convention's for any other.
+    pub(crate) fn identity, "odia-anka", "Odia Anka (Gajapati of Puri)"
+}
+
 /// Bhādrapada, the month whose śukla 12 opens the year.
 pub const BHADRAPADA: u8 = 6;
 
@@ -408,9 +414,10 @@ impl Calendar for OdiaAnkaCalendar {
     }
 
     fn meta(&self) -> CalendarMeta {
+        let (id, english_name) = identity(self.lunar.amanta.ayanamsa);
         CalendarMeta {
-            id: ID,
-            english_name: "Odia Anka (Gajapati of Puri)",
+            id,
+            english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,

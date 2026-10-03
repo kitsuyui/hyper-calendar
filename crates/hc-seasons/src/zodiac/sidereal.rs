@@ -35,8 +35,13 @@
 //! star Chitrā (Spica) at sidereal 180° — is the Indian government standard,
 //! adopted on the recommendation of the Calendar Reform Committee of 1955 and
 //! used by the *Indian Astronomical Ephemeris*. Three others are shipped for
-//! comparison, and [`Ayanamsa::new`] takes any anchor at all, because a
-//! library that hard-coded one would be taking a side in a live argument.
+//! comparison, and so are three more readings of Lahiri's own value, each
+//! under a name of its own with the source it was read in — the *Rashtriya
+//! Panchang*'s printed one, the Committee's and Drik Panchang's, which stand
+//! up to 25″ from the Swiss Ephemeris's and from each other
+//! ([policy §5](../../../../docs/policy.md)). [`Ayanamsa::new`] takes any
+//! anchor at all, because a library that hard-coded one would be taking a
+//! side in a live argument.
 //!
 //! # Accuracy, twice over
 //!
@@ -68,41 +73,58 @@ use crate::zodiac::{DEGREES_PER_SIGN, SIGNS_PER_ZODIAC, SignPeriod, degrees_into
 /// is an anchor and nothing else, and [`Ayanamsa::new`] lets a caller supply
 /// an anchor this crate has never heard of.
 ///
-/// The anchor values shipped here are the ones the Swiss Ephemeris uses,
-/// which is the most widely deployed reference implementation; other
-/// published tables for the same named ayanāṃśa differ by a few tens of
-/// arcseconds. See the module documentation for what that costs.
+/// The anchor values of `raman`, `krishnamurti`, `lahiri` and
+/// `fagan-bradley` are the ones the Swiss Ephemeris uses, which is the most
+/// widely deployed reference implementation. Other published values of the
+/// same named ayanāṃśa differ by a few tens of arcseconds, so the three
+/// that are measurable are shipped under names of their own, each with the
+/// source it was read in: `lahiri-rashtriya`, the *Rashtriya Panchang*'s
+/// printed value; `lahiri-crc-1955`, the Calendar Reform Committee's; and
+/// `lahiri-drik`, Drik Panchang's. See the module documentation for what
+/// the differences cost, and [`Ayanamsa::source`] for where an anchor is
+/// from.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Ayanamsa {
     id: &'static str,
     name: &'static str,
     anchor_julian_date: f64,
     degrees_at_anchor: f64,
+    source: &'static str,
 }
+
+/// Where the Swiss Ephemeris's anchors come from.
+const SWISS_EPHEMERIS: &str = "Swiss Ephemeris documentation, the sidereal modes of §2.8 (swisseph), \
+    read 2026-09-25: the anchor value at the stated Julian date";
 
 hc_core::catalogue! {
     type: Ayanamsa,
     id: |ayanamsa| ayanamsa.id,
+    provenance: |ayanamsa| ayanamsa.source,
     tests: ayanamsa_catalogue_tests,
     associated;
 
-    /// The five named ayanamsas this crate ships, largest last.
+    /// The eight named ayanamsas this crate ships: Raman's and
+    /// Krishnamurti's, four readings of Lahiri's that differ from each
+    /// other by up to 25 arcseconds, the book's, and Fagan–Bradley's.
     pub const ALL;
-    /// The named ayanāṃśa with this identifier: `lahiri`, `raman`,
-    /// `krishnamurti`, `reingold-dershowitz` or `fagan-bradley`.
+    /// The named ayanāṃśa with this identifier: `lahiri`, `lahiri-rashtriya`,
+    /// `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`,
+    /// `reingold-dershowitz` or `fagan-bradley`.
     pub fn by_id;
 
     entries: {
         /// Raman: B. V. Raman's ayanāṃśa, about 1.45° smaller than Lahiri.
         ///
         /// Anchored at 21.010833° for Julian date 2415020.0.
-        pub const RAMAN = Self::new("raman", "Raman", 2_415_020.0, 21.010_833);
+        pub const RAMAN = Self::new("raman", "Raman", 2_415_020.0, 21.010_833)
+            .with_source(SWISS_EPHEMERIS);
 
         /// Krishnamurti: the ayanāṃśa of the Krishnamurti Paddhati school, about
         /// 0.48° smaller than Lahiri.
         ///
         /// Anchored at 21.978333° for Julian date 2415020.0.
-        pub const KRISHNAMURTI = Self::new("krishnamurti", "Krishnamurti", 2_415_020.0, 21.978_333);
+        pub const KRISHNAMURTI = Self::new("krishnamurti", "Krishnamurti", 2_415_020.0, 21.978_333)
+            .with_source(SWISS_EPHEMERIS);
 
         /// Lahiri, also called Chitrapaksha: the Indian government standard.
         ///
@@ -117,7 +139,72 @@ hc_core::catalogue! {
         ///
         /// Anchored here at 22.460148° for Julian date 2415020.0 (1900 January
         /// 0.5 TT), exactly one Julian century before J2000.
-        pub const LAHIRI = Self::new("lahiri", "Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148);
+        pub const LAHIRI = Self::new("lahiri", "Lahiri (Chitrapaksha)", 2_415_020.0, 22.460_148)
+            .with_source(SWISS_EPHEMERIS);
+
+        /// Lahiri as the *Rashtriya Panchang* prints it: 24°11′39″ on
+        /// 1 Chaitra of Śaka 1946, 22 March 2024, the value at the head of
+        /// the almanac's year, which stands 3.3″ below [`Self::LAHIRI`] on
+        /// that day. The same almanac prints 24°12′35″ for 30 March 2025,
+        /// 1.4″ above it, so the printed values do not move at the rate of
+        /// precession and this anchor holds for the year it was printed for
+        /// and drifts from the other prints by a few arcseconds
+        /// (`rashtriya-panchang-1946`; the Panchang's own method not read).
+        ///
+        /// Anchored at 24.194 166 67° for Julian date 2460391.5 (22 March
+        /// 2024, 0 h UT).
+        pub const LAHIRI_RASHTRIYA = Self::new(
+            "lahiri-rashtriya",
+            "Lahiri (Rashtriya Panchang, Saka 1946)",
+            2_460_391.5,
+            24.0 + 11.0 / 60.0 + 39.0 / 3_600.0,
+        )
+        .with_source(
+            "Rashtriya Panchang, Saka 1946 (rashtriya-panchang-1946): ``Ayanamsa on 1st Chaitra'' \
+             24 degrees 11 minutes 39 seconds, 22 March 2024; not re-read, the reading of 2026-09-22",
+        );
+
+        /// Lahiri as the Calendar Reform Committee fixed it: 23°15′00″ on
+        /// 21 March 1956, which stands 17.3″ above [`Self::LAHIRI`] on that
+        /// day. The Committee's report gives the value for that date and
+        /// the Chitrā-at-180° definition; this crate carries it forward by
+        /// precession (`crc1955`, p. 8).
+        ///
+        /// Anchored at 23.25° for Julian date 2435553.5 (21 March 1956,
+        /// 0 h UT).
+        pub const LAHIRI_CRC_1955 = Self::new(
+            "lahiri-crc-1955",
+            "Lahiri (Calendar Reform Committee, 1955)",
+            2_435_553.5,
+            23.25,
+        )
+        .with_source(
+            "Report of the Calendar Reform Committee, 1955 (crc1955), p. 8: 23 degrees 15 minutes \
+             on 21 March 1956; read 2026-09-25",
+        );
+
+        /// Lahiri as Drik Panchang prints it: 23.863 776° on 1 January 2000,
+        /// 24.202 163° on 22 March 2024 and 24.213 067° on 1 January 2025,
+        /// each 25.4″ to 25.5″ above [`Self::LAHIRI`] on its day and
+        /// within 0.7″ of [`Self::REINGOLD_DERSHOWITZ`]. It is the reading
+        /// that reproduces Drik's times of Jupiter's entries into the
+        /// signs, which [`Self::LAHIRI`] puts 40 to 135 minutes early going
+        /// forward, and Drik's saṅkrāntis (`drik-day-panchang-ayanamsha`,
+        /// `drik-guru-gochar`; the method behind Drik's value not read).
+        ///
+        /// Anchored at 23.863 776° for Julian date 2451544.5 (1 January
+        /// 2000, 0 h UT).
+        pub const LAHIRI_DRIK = Self::new(
+            "lahiri-drik",
+            "Lahiri (Drik Panchang)",
+            2_451_544.5,
+            23.863_776,
+        )
+        .with_source(
+            "Drik Panchang's day panchang pages (drik-day-panchang-ayanamsha): ``Lahiri Ayanamsha'' \
+             23.863776 on 1 January 2000, 24.202163 on 22 March 2024, 24.213067 on 1 January 2025; \
+             read 2026-10-03",
+        );
 
         /// Reingold and Dershowitz's: zero at the *Sūrya Siddhānta*'s Meṣa
         /// saṅkrānti of 285 CE, the ayanāṃśa of the astronomical Hindu
@@ -142,13 +229,18 @@ hc_core::catalogue! {
             "Reingold-Dershowitz (Surya Siddhanta Mesha of 285)",
             1_825_229.269_399,
             0.0,
+        )
+        .with_source(
+            "Reingold and Dershowitz, Calendrical Calculations: The Ultimate Edition, the published \
+             code's sidereal-start (reingold2018code), read 2026-09-29",
         );
         /// Fagan–Bradley: the Western sidereal school's ayanāṃśa, about 0.88°
         /// larger than Lahiri.
         ///
         /// Anchored at 24.042044° for Julian date 2433282.5 (1950 January 1.0),
         /// the epoch B1950 the scheme was defined at.
-        pub const FAGAN_BRADLEY = Self::new("fagan-bradley", "Fagan-Bradley", 2_433_282.5, 24.042_044);
+        pub const FAGAN_BRADLEY = Self::new("fagan-bradley", "Fagan-Bradley", 2_433_282.5, 24.042_044)
+            .with_source(SWISS_EPHEMERIS);
     }
 }
 
@@ -172,7 +264,21 @@ impl Ayanamsa {
             name,
             anchor_julian_date,
             degrees_at_anchor,
+            source: "",
         }
+    }
+
+    /// The same ayanāṃśa with the source of its anchor recorded.
+    #[must_use]
+    pub const fn with_source(self, source: &'static str) -> Self {
+        Self { source, ..self }
+    }
+
+    /// Where the anchor comes from, or the empty string for one a caller
+    /// made with [`Ayanamsa::new`] and did not record.
+    #[must_use]
+    pub const fn source(self) -> &'static str {
+        self.source
     }
 
     /// The scheme's identifier, e.g. `"lahiri"`: what [`Ayanamsa::by_id`]
@@ -756,6 +862,68 @@ mod tests {
             (24.15..=24.25).contains(&at_2025),
             "Lahiri in 2025 was {at_2025}"
         );
+    }
+
+    /// The three readings of Lahiri's value that were measured, each held
+    /// to the figures it was read from: Drik Panchang's printed values on
+    /// three days, the *Rashtriya Panchang*'s of 22 March 2024 and the
+    /// Calendar Reform Committee's of 21 March 1956. Each is the Swiss
+    /// Ephemeris's Lahiri shifted by a constant, which is how they differ.
+    #[test]
+    fn the_readings_of_lahiri_stand_where_their_sources_print_them() {
+        // Drik Panchang's "Lahiri Ayanamsha" for 1 January 2000, 22 March
+        // 2024 and 1 January 2025 (`drik-day-panchang-ayanamsha`), Rata Die
+        // 730 120, 738 967 and 739 252.
+        for (day, printed) in [
+            (730_120.0, 23.863_776),
+            (738_967.0, 24.202_163),
+            (739_252.0, 24.213_067),
+        ] {
+            let drik = Ayanamsa::LAHIRI_DRIK.degrees_at(Moment(day));
+            assert!(
+                (drik - printed).abs() * 3_600.0 < 0.1,
+                "{day}: {drik} against {printed}"
+            );
+            // 25.4″ to 25.5″ above the Swiss Ephemeris's, and within 0.7″
+            // of the book's.
+            let above = (printed - LAHIRI.degrees_at(Moment(day))) * 3_600.0;
+            assert!((25.3..25.6).contains(&above), "{day}: {above}″");
+            let book = Ayanamsa::REINGOLD_DERSHOWITZ.degrees_at(Moment(day));
+            assert!(((printed - book) * 3_600.0).abs() < 0.7, "{day}");
+        }
+        // The Rashtriya Panchang's 24°11′39″ on 1 Chaitra of Śaka 1946,
+        // 22 March 2024, 3.3″ below the Swiss Ephemeris's; its 24°12′35″ of
+        // 30 March 2025 stands 4.6″ off the value this anchor carries
+        // forward, which is the printed table's own, not the model's.
+        let rashtriya = Ayanamsa::LAHIRI_RASHTRIYA.degrees_at(Moment(738_967.0));
+        assert!((rashtriya - (24.0 + 11.0 / 60.0 + 39.0 / 3_600.0)).abs() < 1e-6);
+        let below = (LAHIRI.degrees_at(Moment(738_967.0)) - rashtriya) * 3_600.0;
+        assert!((3.2..3.4).contains(&below), "{below}″");
+        let printed_2025 = 24.0 + 12.0 / 60.0 + 35.0 / 3_600.0;
+        let carried =
+            (printed_2025 - Ayanamsa::LAHIRI_RASHTRIYA.degrees_at(Moment(739_340.0))) * 3_600.0;
+        assert!((4.5..4.7).contains(&carried), "{carried}″");
+        // The Committee's 23°15′0″ on 21 March 1956 (`crc1955`, p. 8) is
+        // 17.3″ above the Swiss Ephemeris's.
+        let committee = Ayanamsa::LAHIRI_CRC_1955.degrees_at(Moment(714_129.0));
+        assert!((committee - 23.25).abs() < 1e-6);
+        let above = (committee - LAHIRI.degrees_at(Moment(714_129.0))) * 3_600.0;
+        assert!((17.2..17.4).contains(&above), "{above}″");
+        // None of the four is another's: their anchors differ.
+        let four = [
+            LAHIRI,
+            Ayanamsa::LAHIRI_RASHTRIYA,
+            Ayanamsa::LAHIRI_CRC_1955,
+            Ayanamsa::LAHIRI_DRIK,
+        ];
+        for (index, one) in four.iter().enumerate() {
+            for other in &four[index + 1..] {
+                assert_ne!(one.key(), other.key());
+            }
+        }
+        for ayanamsa in Ayanamsa::ALL {
+            assert!(!ayanamsa.source().is_empty(), "{}", ayanamsa.id());
+        }
     }
 
     /// Fifty arcseconds a year is the whole of precession, and the ayanāṃśa

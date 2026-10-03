@@ -124,7 +124,8 @@ The gravitational deflection of light, under a milliarcsecond at Jupiter's
 distance from the Sun except within a few degrees of it, is not applied.
 
 **Worked example.** Jupiter at its opposition, 0 h UT on 7 December 2024.
-ΔT is 69.14 s, so τ is 0.024 932 240 4 centuries of TT. The series gives
+ΔT is 69.14 s, so τ is 0.024 932 240 4 millennia of TT, the unit of the
+series (0.249 322 4 centuries). The series gives
 Jupiter at 5.074 452 AU from the Sun, heliocentric longitude 75.830 432° and
 latitude −0.544 526° in the ecliptic of J2000.0, which the precession turns to
 76.176 696° and −0.541 358° of date. The Earth is at 75.374 972° and
@@ -145,8 +146,18 @@ into a sign that Drik Panchang prints from 2001 to 2030, forward and in
 retrograde, the sidereal longitude at its time is on the boundary to within
 23.9″ to 27.1″, a constant 25.0″, which is this library's Lahiri against
 Drik's; without the nutation the difference wanders from 6″ to 43″ with the
-node's 18.6-year cycle. With Lahiri raised by that 25″, all 49 entries come
-within 6.9 minutes of Drik Panchang's, 1.7 minutes on average. Without it,
+node's 18.6-year cycle. Drik's pages also print their own ayanāṃśa, "Lahiri
+Ayanamsha" 23.863 776° on 1 January 2000, 24.202 163° on 22 March 2024 and
+24.213 067° on 1 January 2025 [drik-day-panchang-ayanamsha], read 2026-10-03,
+25.4″ to 25.5″ above this library's `lahiri` and within 0.7″ of the book's
+`reingold-dershowitz`. That is `lahiri-drik`, registered under its own name,
+`Ayanamsa::LAHIRI_DRIK`, as the Rashtriya Panchang's printed value and the
+Committee's are `lahiri-rashtriya` and `lahiri-crc-1955`
+([hindu-calendars.md](hindu-calendars.md) measures all four). With
+`lahiri-drik`, all 49 entries come within 8.3 minutes of Drik Panchang's, 2.0
+minutes on average; with Lahiri raised by the 25.0″ that fits the entries best,
+which the printed value is 0.4″ to 0.5″ above, within 6.9 minutes, 1.7 on
+average. The tests hold both. Without either,
 this library's entries come 40 to 135 minutes before Drik's going forward and
 up to four and a half hours after it coming back, which is the same 25″ at a
 slower speed. The tropical zodiac is not an alternative reading of these
@@ -300,6 +311,23 @@ epochs. `hc_kumbh_by_sky` is not a search of this kind: it takes 0.16 ms a
 condition (0.5 ms in WebAssembly), 45 µs of it Jupiter's position, so seven
 conditions cost 1.1 ms and a per-year export of them would save little.
 
+### The stations: vakri and mārgī
+
+Jupiter turns back, *vakri*, "it becomes retrograde", about every thirteen
+months, and resumes, *mārgī*, "it becomes progressive", some 118 to 123 days
+later; Drik Panchang prints both for each year. `stations(from, until)` finds
+them as the moments the apparent longitude in the true equinox of the date has
+no rate of change, stepping 20 days (the stations are over 100 apart) and
+bisecting the step that changed sign to 10⁻⁶ day, on the rate
+`daily_motion_degrees` gives, a central difference over one day whose zero
+stands within a second of the true one. The station is a station of the
+*tropical* longitude: the ayanāṃśa grows 0.000 14° a day, which would move
+the zero of the rate of the sidereal longitude by about 45 minutes where
+Jupiter turns, and Drik's dates stand within 6.4 minutes of the tropical zero
+(below). Eighteen stations of New Delhi from 2010 to 2027, nine retrogrades
+and nine resumptions, are held, the last two the stations of 13 December 2026
+and 13 April 2027.
+
 ### Which entry the Pushkaram follows
 
 Where Jupiter enters a sign, turns back out and enters again, the sources
@@ -364,7 +392,9 @@ that began is Pauṣa. Drik Panchang puts the asta from 15 July 19:59 to
   `daily_motion_degrees`, `DEFAULT_TRUNCATION`.
 - `hc_seasons::zodiac::jupiter`: `sidereal_longitude`, `sign_at`, `position`,
   `Ingress`, `ingresses`, `EntryRule`, `entry_into`, `entries_in`, `Entries`,
-  `HeliacalRising`, `next_heliacal_rising`, `VISIBILITY_ARC_DEGREES`.
+  `HeliacalRising`, `next_heliacal_rising`, `VISIBILITY_ARC_DEGREES`, and `Station`,
+  `StationKind` and `stations`, Jupiter's *vakri* and *mārgī* dates, which no
+  export carries yet.
 - The facade's `jupiter_lines` and the six exports of the `jupiter` layer:
   `hc_jupiter_at` (the position, tropical and sidereal), `hc_jupiter_ingresses`
   (a span's crossings), `hc_jupiter_risings` (a span's risings, with the year's
@@ -376,6 +406,19 @@ that began is Pauṣa. Drik Panchang puts the asta from 15 July 19:59 to
 
 Not carried:
 
+- **Saturn's transit, and the other planets'.** A Saturn that turns and
+  changes sign, the *Śani gocāra* almanacs print, needs the VSOP87B series for
+  Saturn, `VSOP87B.sat`, and the user's decision of 2026-10-03 allowed one
+  file to be saved, `VSOP87B.jup`: this is a limit of that decision, not a
+  choice of the design, and the Jupiter machinery here (the series file's
+  reading, `hc_seasons::zodiac::jupiter`'s ingress, station and rising
+  searches) would carry another planet's file as it carries this one. Mars,
+  Mercury and Venus are in the same case; the Sun and the Moon are carried
+  from their own series.
+- **The true Rāhu**, which Drik Panchang prints beside the mean one (29 May
+  2025 against 18 May, 17 March 2022 against 12 April): the periodic terms
+  that make a node true were not read, so only the mean node is carried
+  (`hc_seasons::zodiac::node`, [hindu-calendars.md](hindu-calendars.md)).
 - **The gravitational deflection of light**, and the nutation beyond the four
   terms `hc_astro::earth` has, which put 0.5″ on Jupiter's longitude, 8 hours
   at a station.
@@ -398,6 +441,11 @@ Not carried:
   half at the average speed, weeks at a station).
 
 ## Accuracy
+
+**The stations** (`the_stations_are_drik_panchangs_within_seven_minutes`): 18
+of 18 within 6.4 minutes of Drik Panchang's times for New Delhi, 2010 to
+2027, each in its direction and none between two that Drik does not print.
+Drik prints them to the minute, from a computation that is not given.
 
 Everything is held to JPL Horizons' DE441 [jpl-horizons-jupiter], whose
 Jupiter system barycenter (5) is the body that VSOP87 gives.
@@ -434,8 +482,10 @@ the distance within 400 km from 1500. The default cut adds under 0.1″. At the
 average speed 1″ is about 7 minutes; at a station, days.
 
 **The ingresses** (`the_ingresses_agree_with_drik_panchangs_within_seven_minutes_given_the_shift`):
-49 entries from 2001 to 2030 within 6.9 minutes of Drik Panchang's, with the
-25″ above; the same 25″, to 23.9″ to 27.1″, on each.
+49 entries from 2001 to 2030 within 8.3 minutes of Drik Panchang's with
+`lahiri-drik`, the ayanāṃśa its pages print, and within 6.9 minutes with the
+25.0″ above Lahiri that fits them best; the same 25″, to 23.9″ to 27.1″, on
+each.
 
 **The asta** (`the_risings_of_2024_to_2027_are_within_four_days_of_drik_panchangs`):
 the arc's windows for 2024 to 2027 stand 0.8 to 3.9 days from Drik
@@ -450,7 +500,10 @@ Panchang's; theirs correspond to an arc of about 10°.
   IMCCE's `VSOP87.doc` and the CDS ReadMe could not be read.
 - [jpl-horizons-jupiter]: DE441 through Horizons: vectors and apparent
   positions at 23 dates. Read 2026-10-03.
-- [drik-guru-gochar]: Jupiter's sidereal entries for New Delhi, 2001 to 2030;
+- [drik-guru-retrograde]: Jupiter's *vakri* and *mārgī* times for New Delhi,
+  2010 and 2019 to 2027, read 2026-10-03.
+- [drik-day-panchang-ayanamsha]: Drik's printed "Lahiri Ayanamsha" on three
+  days, read 2026-10-03; [drik-guru-gochar]: Jupiter's sidereal entries for New Delhi, 2001 to 2030;
   [drik-guru-asta]: its asta, 2024 to 2027.
 - [varahamihira-brihat-samhita]: ch. 8 verses 1, 2 and 27 in Iyer's
   translation on wisdomlib; the table of names is read from the verses, the
@@ -480,7 +533,9 @@ and the `("jupiter", …)` rows of `exports.rs`. The tests that anchor them:
 `an_ingress_at_the_jitter_of_the_last_digits_is_the_plain_search`,
 `a_rising_is_the_same_instant_from_every_start`,
 `the_entries_of_a_span_are_each_signs_entry`,
-`a_rising_asked_for_in_the_asta_is_the_one_that_ends_it`
+`a_rising_asked_for_in_the_asta_is_the_one_that_ends_it`,
+`the_stations_are_drik_panchangs_within_seven_minutes` and
+`a_station_is_where_the_motion_stops_and_the_retrograde_lasts_four_months`
 (`hc-seasons`); `the_sidereal_longitude_stands_a_constant_25_arcseconds_off_drik_panchangs`,
 `the_ingresses_agree_with_drik_panchangs_within_seven_minutes_given_the_shift`,
 `every_kumbh_year_of_the_table_meets_a_condition_of_its_site`,

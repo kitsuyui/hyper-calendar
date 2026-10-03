@@ -1,15 +1,16 @@
 //! The historical Indian eras over the lunisolar months: the Kārttikādi
 //! Vikrama Saṃvat of Gujarat, Śivājī's Rājyābhiṣeka Śaka and the Saptarṣi
-//! era of Kashmir, registered as `vikram-samvat-kartikadi`,
-//! `rajyabhisheka-saka` and `saptarshi`; and the year arithmetic of the
-//! Gupta, Valabhī and Kalachuri eras, which is not registered.
+//! era of Kashmir over the *Rashtriya Panchang*'s months, registered as
+//! `vikram-samvat-kartikadi`, `rajyabhisheka-saka` and `saptarshi`; and the
+//! Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena eras over the *Sūrya
+//! Siddhānta*'s months, registered as `gupta`, `valabhi`, `kalachuri` and
+//! `lakshmana-sena`.
 //!
 //! The eras are written up in `docs/systems/indian-eras.md` in the
 //! repository: what each is, the offsets and opening days from Sewell and
 //! Dikshit's Art. 71 and how they follow from the sources' own equations,
-//! current and expired years, what is carried and why the three ancient
-//! eras are not registered, and the checks. This page states the code's
-//! own facts.
+//! current and expired years, what is carried and what is not and why, and
+//! the checks. This page states the code's own facts.
 //!
 //! # What this is
 //!
@@ -22,17 +23,21 @@
 //! month numbers its months from that month, as the Vira Nirvana Samvat
 //! does; any other numbers them from Chaitra, as the calendar below does.
 //!
-//! # Why three eras are arithmetic only
+//! # Which months an era is read over
 //!
-//! The Gupta and Valabhī inscriptions run from the year 82 to 945 of the
-//! era and the Chedi dates Kielhorn examined from 793 to 934 (Sewell and
+//! The Gupta and Valabhī inscriptions run from the year 82 to 945 of the era
+//! and the Chedi dates Kielhorn examined from 793 to 934 (Sewell and
 //! Dikshit, *The Indian Calendar*, 1896, pp. 42–43, `sewell1896`): the
-//! fourth century to the thirteenth. The true lunisolar calendar converts
-//! 1700 to 2299, so a registered Gupta calendar would convert no day
-//! anyone dated in it. [`GUPTA`], [`VALABHI`] and [`KALACHURI`] give the
-//! year of an amānta date and the first day of a year within the range,
-//! and [`LunarEra::new`] builds a calendar from any of them for a caller who
-//! wants one.
+//! fourth century to the thirteenth. The *Rashtriya Panchang*'s calendar
+//! converts 1700 to 2299, so an era over it could convert no day anyone
+//! dated in these. They are read over the *Sūrya Siddhānta*'s Sun and Moon
+//! ([`Months::SIDDHANTA`], the amānta calendar of
+//! [`crate::hindu_lunar_siddhanta`] and the pūrṇimānta renaming of it),
+//! which converts Kali Yuga 1 to 10 000 and is the reckoning Sewell and
+//! Dikshit's tables use. [`GUPTA`], [`VALABHI`] and [`KALACHURI`] are
+//! their year counts, [`GUPTA_ERA`], [`VALABHI_ERA`] and [`KALACHURI_ERA`]
+//! the calendars, and [`LunarEra::new`] builds an era over any months for
+//! a caller who wants another.
 
 use hc_calendar::shape::{CycleShape, LUNISOLAR_TWELVE};
 use hc_calendar::{
@@ -41,8 +46,10 @@ use hc_calendar::{
 };
 use hc_calendars_solar::julian;
 
+use crate::amanta::AmantaMonths;
 use crate::hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
-use crate::hindu_purnimanta::HinduPurnimantaCalendar;
+use crate::hindu_lunar_siddhanta::SiddhantaLunarCalendar;
+use crate::hindu_purnimanta::{HinduPurnimantaCalendar, amanta_of, purnimanta_of};
 use crate::year_start::YearStart;
 
 /// Which reckoning of the months an era's dates are written in.
@@ -52,6 +59,109 @@ pub enum Reckoning {
     Amanta,
     /// The pūrṇimānta months, full moon to full moon.
     Purnimanta,
+}
+
+/// The amānta months an era is read over: which sky counts them.
+///
+/// Both are the same engine ([`AmantaMonths`]) and differ in whose Sun and
+/// Moon it reads, so an era's rules do not depend on which it is.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum Months {
+    /// The true Sun and Moon of modern astronomy in an ayanāṃśa's zodiac,
+    /// as the *Rashtriya Panchang* computes them
+    /// ([`crate::hindu_lunar`]): Śaka 1622 to 2221, March 1700 to March
+    /// 2300.
+    True(HinduLunarCalendar),
+    /// The *Sūrya Siddhānta*'s Sun and Moon at Ujjain's sunrise
+    /// ([`crate::hindu_lunar_siddhanta`]): Kali Yuga 1 to 10 000, the
+    /// reckoning of the old eras' dates and of Sewell and Dikshit's tables.
+    Siddhanta(SiddhantaLunarCalendar),
+}
+
+impl Months {
+    /// The *Rashtriya Panchang*'s months, as `hindu-lunar` has them.
+    pub const RASHTRIYA: Self = Self::True(HinduLunarCalendar::RASHTRIYA);
+
+    /// The *Sūrya Siddhānta*'s months read at Ujjain, as
+    /// `hindu-lunar-surya-siddhanta` has them.
+    pub const SIDDHANTA: Self = Self::Siddhanta(SiddhantaLunarCalendar::UJJAIN);
+}
+
+impl From<HinduLunarCalendar> for Months {
+    fn from(lunar: HinduLunarCalendar) -> Self {
+        Self::True(lunar)
+    }
+}
+
+impl From<HinduPurnimantaCalendar> for Months {
+    /// The amānta months the pūrṇimānta calendar renames.
+    fn from(lunar: HinduPurnimantaCalendar) -> Self {
+        Self::True(lunar.amanta)
+    }
+}
+
+impl From<SiddhantaLunarCalendar> for Months {
+    fn from(lunar: SiddhantaLunarCalendar) -> Self {
+        Self::Siddhanta(lunar)
+    }
+}
+
+impl AmantaMonths for Months {
+    fn date_on(&self, rd: Rd) -> CalendarResult<HinduLunarDate> {
+        match self {
+            Self::True(lunar) => AmantaMonths::date_on(lunar, rd),
+            Self::Siddhanta(lunar) => AmantaMonths::date_on(lunar, rd),
+        }
+    }
+
+    fn day_of(&self, date: HinduLunarDate) -> CalendarResult<Rd> {
+        match self {
+            Self::True(lunar) => AmantaMonths::day_of(lunar, date),
+            Self::Siddhanta(lunar) => AmantaMonths::day_of(lunar, date),
+        }
+    }
+
+    fn month_span(&self, year: i64, month: u8, leap: bool) -> CalendarResult<(Rd, Rd)> {
+        match self {
+            Self::True(lunar) => AmantaMonths::month_span(lunar, year, month, leap),
+            Self::Siddhanta(lunar) => AmantaMonths::month_span(lunar, year, month, leap),
+        }
+    }
+
+    fn leap_month_of(&self, year: i64) -> CalendarResult<Option<(u8, Rd, Rd)>> {
+        match self {
+            Self::True(lunar) => AmantaMonths::leap_month_of(lunar, year),
+            Self::Siddhanta(lunar) => AmantaMonths::leap_month_of(lunar, year),
+        }
+    }
+
+    fn earliest(&self) -> CalendarResult<Rd> {
+        match self {
+            Self::True(lunar) => AmantaMonths::earliest(lunar),
+            Self::Siddhanta(lunar) => AmantaMonths::earliest(lunar),
+        }
+    }
+
+    fn latest(&self) -> CalendarResult<Rd> {
+        match self {
+            Self::True(lunar) => AmantaMonths::latest(lunar),
+            Self::Siddhanta(lunar) => AmantaMonths::latest(lunar),
+        }
+    }
+
+    fn years(&self) -> (i64, i64) {
+        match self {
+            Self::True(lunar) => AmantaMonths::years(lunar),
+            Self::Siddhanta(lunar) => AmantaMonths::years(lunar),
+        }
+    }
+
+    fn next_month_label(&self, day: Rd) -> (u8, bool) {
+        match self {
+            Self::True(lunar) => AmantaMonths::next_month_label(lunar, day),
+            Self::Siddhanta(lunar) => AmantaMonths::next_month_label(lunar, day),
+        }
+    }
 }
 
 /// An era's year count: where its year opens, and the Śaka year in which
@@ -85,7 +195,7 @@ impl EraYear {
     /// # Errors
     ///
     /// [`CalendarError::YearOutOfRange`] outside the calendar's range.
-    pub fn new_year(self, lunar: &HinduLunarCalendar, year: i64) -> CalendarResult<Rd> {
+    pub fn new_year<L: AmantaMonths>(self, lunar: &L, year: i64) -> CalendarResult<Rd> {
         self.start.new_year(lunar, year, self.offset)
     }
 }
@@ -143,6 +253,20 @@ pub const KALACHURI: EraYear = EraYear {
     offset: 169,
 };
 
+/// The Lakṣmaṇa Sena era of Mithila and Tirhut, as Kielhorn reads it from
+/// six inscriptions of 1194 to 1551: Kārttikādi, its first year AD 1119–20
+/// and its epoch, the beginning of year 0 current, AD 1118–19, Śaka 1041–42
+/// current (Sewell and Dikshit, Art. 71, p. 46, after Kielhorn). Counted
+/// here in *current* years, as their tables give every era's and as the
+/// *Mithila Panchang* prints it, 907 in October 2026; "documents and
+/// inscriptions are generally dated in the expired year", one less, and
+/// Kielhorn's equation "Laksh. sam. 505 = Saka sam. 1546" is of those.
+pub const LAKSHMANA_SENA: EraYear = EraYear {
+    era: "lakshmana-sena",
+    start: YearStart::KARTTIKADI,
+    offset: 1_040,
+};
+
 /// The Saptarṣi era's dropped hundreds.
 pub mod saptarshi {
     /// The extra field that carries the Laukika year: the Saptarṣi year
@@ -183,6 +307,16 @@ pub enum UsageStart {
     Undated,
     /// In use from a day, as a year, month and day of the Julian calendar.
     Julian(i64, u8, u8),
+    /// Attested from the opening of its own year `first` to the close of
+    /// its year `last`: the range of the dated inscriptions a source
+    /// reports, which is a lower bound on the period of use and not the
+    /// whole of it.
+    Inscriptions {
+        /// The first year attested.
+        first: i64,
+        /// The last year attested.
+        last: i64,
+    },
 }
 
 /// An era over the amānta or pūrṇimānta months.
@@ -205,8 +339,8 @@ pub struct LunarEra {
     pub usage_start: UsageStart,
     /// Where the period of use comes from.
     pub usage_source: &'static str,
-    /// The calendar whose tithis these are.
-    pub lunar: HinduPurnimantaCalendar,
+    /// The months these dates are read over, whose tithis they keep.
+    pub lunar: Months,
 }
 
 /// The Gujarati Vikrama year from Kārttika śukla 1 on the amānta months,
@@ -223,7 +357,7 @@ pub const VIKRAM_SAMVAT_KARTIKADI: LunarEra = LunarEra {
         Karttikadi and amanta, and Kielhorn's finding, as they report it, that the era was \
         Karttikadi from the beginning; printed as the Gujarati Samvat today \
         [drik-day-panchang-2025], as docs/systems/indian-eras.md states",
-    lunar: HinduPurnimantaCalendar::RASHTRIYA,
+    lunar: Months::RASHTRIYA,
 };
 
 /// Śivājī's Rājyābhiṣeka Śaka on the amānta months, the year opening at
@@ -240,7 +374,7 @@ pub const RAJYABHISHEKA_SAKA: LunarEra = LunarEra {
         Jyeshtha sukla 13 of Saka 1596 expired, and not in use in 1896, on a last day they do not \
         date; the coronation on 6 June 1674 [wikipedia-shivaji], a Julian date, as \
         docs/systems/indian-eras.md states",
-    lunar: HinduPurnimantaCalendar::RASHTRIYA,
+    lunar: Months::RASHTRIYA,
 };
 
 /// The Saptarṣi era of Kashmir, counted in full from Kali 27 current on the
@@ -256,11 +390,104 @@ pub const SAPTARSHI: LunarEra = LunarEra {
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 41 [sewell1896]: in use in Kashmir, and in \
         Multan in Alberuni's time, the only reckoning of the Raja-Tarangini; older than any source \
         read dates, as docs/systems/indian-eras.md states",
-    lunar: HinduPurnimantaCalendar::RASHTRIYA,
+    lunar: Months::RASHTRIYA,
 };
 
-/// Every lunisolar era this crate registers.
-pub const ALL: &[LunarEra] = &[VIKRAM_SAMVAT_KARTIKADI, RAJYABHISHEKA_SAKA, SAPTARSHI];
+/// The Gupta era, Chaitrādi over the pūrṇimānta months, current years, read
+/// over the *Sūrya Siddhānta* — `gupta`.
+pub const GUPTA_ERA: LunarEra = LunarEra {
+    id: CalendarId("gupta"),
+    english_name: "Gupta (Chaitradi, purnimanta)",
+    native_locales: &["sa"],
+    year: GUPTA,
+    reckoning: Reckoning::Purnimanta,
+    laukika: false,
+    usage_start: UsageStart::Inscriptions {
+        first: 82,
+        last: 945,
+    },
+    usage_source: "Sewell and Dikshit 1896, Art. 71, p. 43 [sewell1896]: \"The inscriptions as yet \
+        discovered which are dated in the Gupta and Valabhi era range from the years 82 to 945\", \
+        a range of the two eras together and a lower bound on their use; Fleet's examination of \
+        163 to 386 concludes the years are current and Chaitradi and the months purnimanta; \
+        the era is not now in use, as docs/systems/indian-eras.md states",
+    lunar: Months::SIDDHANTA,
+};
+
+/// The Valabhī era: the Gupta count with its year thrown back to the
+/// Kārttika before, over the amānta months, read over the *Sūrya
+/// Siddhānta* — `valabhi`.
+pub const VALABHI_ERA: LunarEra = LunarEra {
+    id: CalendarId("valabhi"),
+    english_name: "Valabhi (Karttikadi, amanta)",
+    native_locales: &["sa"],
+    year: VALABHI,
+    reckoning: Reckoning::Amanta,
+    laukika: false,
+    usage_start: UsageStart::Inscriptions {
+        first: 82,
+        last: 945,
+    },
+    usage_source: "Sewell and Dikshit 1896, Art. 71, p. 43 [sewell1896]: the Gupta era \"with its \
+        name changed\", used in Kathiawar from about the fourth Gupta century, its year thrown back \
+        to the previous Karttika sukla 1, \"its months seem to be both amanta and purnimanta\"; \
+        Wikipedia's \"Gupta era\" [wikipedia-gupta-era], after Salomon, gives them as amanta; the \
+        inscriptions of the two eras together run from the year 82 to 945, a lower bound on its \
+        use, as docs/systems/indian-eras.md states",
+    lunar: Months::SIDDHANTA,
+};
+
+/// The Chedi or Kalachuri era, Āśvinādi over the pūrṇimānta months, current
+/// years, read over the *Sūrya Siddhānta* — `kalachuri`.
+pub const KALACHURI_ERA: LunarEra = LunarEra {
+    id: CalendarId("kalachuri"),
+    english_name: "Kalachuri or Chedi (Asvinadi, purnimanta)",
+    native_locales: &["sa"],
+    year: KALACHURI,
+    reckoning: Reckoning::Purnimanta,
+    laukika: false,
+    usage_start: UsageStart::Inscriptions {
+        first: 793,
+        last: 934,
+    },
+    usage_source: "Sewell and Dikshit 1896, Art. 71, pp. 42-43 [sewell1896]: Kielhorn's ten \
+        inscriptions of the years 793 to 934, from which the first current year began at Asvina \
+        sukla pratipada, 5 September A.D. 248, its years Asvinadi and current and its months \
+        purnimanta; the era was used by the Kalachuri kings and \"appears to have been in use in \
+        that part of India in still earlier times\", so the range is a lower bound on its use, as \
+        docs/systems/indian-eras.md states",
+    lunar: Months::SIDDHANTA,
+};
+
+/// The Lakṣmaṇa Sena era of Mithila, Kielhorn's reading: Kārttikādi over the
+/// amānta months, read over the *Sūrya Siddhānta* — `lakshmana-sena`.
+pub const LAKSHMANA_SENA_ERA: LunarEra = LunarEra {
+    id: CalendarId("lakshmana-sena"),
+    english_name: "Lakshmana Sena (Karttikadi, Mithila)",
+    native_locales: &["hi"],
+    year: LAKSHMANA_SENA,
+    reckoning: Reckoning::Amanta,
+    laukika: false,
+    usage_start: UsageStart::Undated,
+    usage_source: "Sewell and Dikshit 1896, Art. 71, p. 46 [sewell1896]: in use in Tirhut and \
+        Mithila, and dated in six inscriptions of A.D. 1194 to 1551 that Kielhorn reads as \
+        Karttikadi and amanta; the Mithila Panchang prints its year, 907 in October 2026 \
+        [hinducalculator-mithila-panchang]; no first day is dated, as docs/systems/indian-eras.md \
+        states",
+    lunar: Months::SIDDHANTA,
+};
+
+/// Every lunisolar era this crate registers: the three over the *Rashtriya
+/// Panchang*'s months, and the four over the *Sūrya Siddhānta*'s.
+pub const ALL: &[LunarEra] = &[
+    VIKRAM_SAMVAT_KARTIKADI,
+    RAJYABHISHEKA_SAKA,
+    SAPTARSHI,
+    GUPTA_ERA,
+    VALABHI_ERA,
+    KALACHURI_ERA,
+    LAKSHMANA_SENA_ERA,
+];
 
 /// A date in an era over the lunisolar months.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -279,16 +506,16 @@ pub struct LunarEraDate {
 }
 
 impl LunarEra {
-    /// An era over another calendar: another place's sunrise, another
-    /// ayanāṃśa — or one of the unregistered year counts, [`GUPTA`] say,
-    /// under an identifier of the caller's.
+    /// An era over other months: another place's sunrise, another
+    /// ayanāṃśa, or the *Sūrya Siddhānta*'s, under an identifier of the
+    /// caller's.
     #[must_use]
     pub const fn new(
         id: CalendarId,
         english_name: &'static str,
         year: EraYear,
         reckoning: Reckoning,
-        lunar: HinduPurnimantaCalendar,
+        lunar: Months,
     ) -> Self {
         Self {
             id,
@@ -314,7 +541,7 @@ impl LunarEra {
         let year = self.year.year_of(amanta);
         let shown = match self.reckoning {
             Reckoning::Amanta => amanta,
-            Reckoning::Purnimanta => self.lunar.from_amanta(amanta)?,
+            Reckoning::Purnimanta => purnimanta_of(&self.lunar, amanta)?,
         };
         let month = if self.numbers_from_opening() {
             self.year.start.era_month(shown.month)
@@ -336,7 +563,7 @@ impl LunarEra {
     ///
     /// As [`HinduLunarCalendar::from_fixed`], outside the engine's range.
     pub fn from_fixed(&self, rd: Rd) -> CalendarResult<LunarEraDate> {
-        self.date_of_amanta(self.lunar.amanta.from_fixed(rd)?)
+        self.date_of_amanta(self.lunar.date_on(rd)?)
     }
 
     /// The fixed day of a date.
@@ -371,8 +598,10 @@ impl LunarEra {
                 leap_day: date.leap_day,
             };
             let found = match self.reckoning {
-                Reckoning::Amanta => self.lunar.amanta.to_fixed(lunar),
-                Reckoning::Purnimanta => self.lunar.to_fixed(lunar),
+                Reckoning::Amanta => self.lunar.day_of(lunar),
+                Reckoning::Purnimanta => {
+                    amanta_of(&self.lunar, lunar).and_then(|amanta| self.lunar.day_of(amanta))
+                }
             };
             match found {
                 Ok(rd) => {
@@ -396,7 +625,7 @@ impl LunarEra {
     ///
     /// [`CalendarError::YearOutOfRange`] outside the engine's range.
     pub fn new_year(&self, year: i64) -> CalendarResult<Rd> {
-        self.year.new_year(&self.lunar.amanta, year)
+        self.year.new_year(&self.lunar, year)
     }
 }
 
@@ -411,6 +640,14 @@ impl Calendar for LunarEra {
                 Ok(from) => hc_calendar::Usage::since(from, self.usage_source),
                 Err(_) => hc_calendar::Usage::undated(self.usage_source),
             },
+            UsageStart::Inscriptions { first, last } => {
+                match (self.new_year(first), self.new_year(last + 1)) {
+                    (Ok(from), Ok(next)) => {
+                        hc_calendar::Usage::between(from, Rd(next.0 - 1), self.usage_source)
+                    }
+                    _ => hc_calendar::Usage::undated(self.usage_source),
+                }
+            }
         }
     }
 
@@ -425,7 +662,7 @@ impl Calendar for LunarEra {
     fn is_leap_year(&self, year: i64) -> CalendarResult<bool> {
         self.year
             .start
-            .is_leap_year(&self.lunar.amanta, year, self.year.offset)
+            .is_leap_year(&self.lunar, year, self.year.offset)
     }
 
     /// The day begins at sunrise and is named by the civil day on whose
@@ -441,8 +678,8 @@ impl Calendar for LunarEra {
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,
-            earliest: self.lunar.amanta.earliest().ok(),
-            latest: self.lunar.amanta.latest().ok(),
+            earliest: self.lunar.earliest().ok(),
+            latest: self.lunar.latest().ok(),
             native_locales: self.native_locales,
         }
     }
@@ -821,7 +1058,10 @@ mod tests {
     /// says: its first day is in it and the day before in the year before;
     /// in a release build both also convert back, directly and through
     /// their fields, which a debug build leaves to the sweep above for the
-    /// time it takes.
+    /// time it takes. Over the *Rashtriya Panchang*'s 600 years every year
+    /// is checked in both builds; over the *Sūrya Siddhānta*'s ten
+    /// thousand, every year in a release build and every seventh in a
+    /// debug one.
     fn every_year_boundary_of(era: &LunarEra) {
         let meta = Calendar::meta(era);
         let (first, last) = (
@@ -839,7 +1079,12 @@ mod tests {
         };
         // The years spread over the machine's threads, each opened where
         // `new_year` says as `openings` does.
-        let years: alloc::vec::Vec<i64> = (year(first) + 1..=year(last)).collect();
+        let (low, high) = (year(first) + 1, year(last));
+        let years: alloc::vec::Vec<i64> = if matches!(era.lunar, Months::True(_)) {
+            (low..=high).collect()
+        } else {
+            crate::sweep_years(low, high, 7).collect()
+        };
         crate::check_days(&years, |year| {
             let Ok(Rd(day)) = era.new_year(year) else {
                 return;
@@ -850,9 +1095,23 @@ mod tests {
             assert_eq!(era.new_year(opening.year), Ok(Rd(day)));
             count.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
         });
-        // Chaitra 1700 to March 2300: some six hundred years.
+        // Chaitra 1700 to March 2300: some six hundred years; at most the
+        // year a range opens in and the one it closes in are not whole.
         let count = count.into_inner();
-        assert!(count >= 598, "{}: {count}", era.id);
+        assert!(
+            count + 3 >= years.len(),
+            "{}: {count} of {}",
+            era.id,
+            years.len()
+        );
+        assert!(count >= 598 / crate::sweep_stride(7), "{}: {count}", era.id);
+    }
+
+    #[test]
+    fn every_year_of_the_siddhanta_eras_opens_on_its_day() {
+        for era in [GUPTA_ERA, VALABHI_ERA, KALACHURI_ERA, LAKSHMANA_SENA_ERA] {
+            every_year_boundary_of(&era);
+        }
     }
 
     #[test]
@@ -868,6 +1127,170 @@ mod tests {
     #[test]
     fn every_saptarshi_year_opens_on_its_day() {
         every_year_boundary_of(&SAPTARSHI);
+    }
+
+    const SIDDHANTA: SiddhantaLunarCalendar = SiddhantaLunarCalendar::UJJAIN;
+
+    fn julian_day(year: i64, month: u8, day: u8) -> Rd {
+        julian::to_fixed(year, month, day).expect("a date")
+    }
+
+    fn julian_year(rd: Rd) -> i64 {
+        julian::from_fixed(rd).expect("a date").0
+    }
+
+    #[test]
+    fn the_gupta_era_opens_on_26_february_320() {
+        // Wikipedia's "Chandragupta I": coronation 26 February 320, the
+        // first day of the Gupta era, which its "Gupta era" page says "began
+        // on the first day of the shukla paksha of the Chaitra month"
+        // (`wikipedia-chandragupta-i`, `wikipedia-gupta-era`); the dates are
+        // Julian. By the Siddhānta Chaitra śukla 1 of Śaka 242 expired is
+        // that day.
+        let era = GUPTA_ERA;
+        let opening = era.new_year(1).expect("in range");
+        assert_eq!(opening, julian_day(320, 2, 26));
+        let date = era.from_fixed(opening).expect("in range");
+        assert_eq!((date.year, date.month, date.day), (1, 1, 1));
+        assert_eq!(era.from_fixed(Rd(opening.0 - 1)).map(|d| d.year), Ok(0));
+        assert_eq!(era.to_fixed(date), Ok(opening));
+        // Sewell and Dikshit, Fleet's conclusion: Gupta 0 current is Śaka
+        // 242 current, "A.D. 319–20", and 163 to 386 are inscriptions' years.
+        let before = era.new_year(0).expect("in range");
+        assert_eq!(julian_year(before), 319);
+        // Gupta 82, the first year an inscription is dated in, opens in
+        // 401, and 945, the last, closes in 1265: the span `usage` gives.
+        let usage = Calendar::usage(&era);
+        assert_eq!(julian_year(usage.from.expect("a first day")), 401);
+        assert_eq!(julian_year(usage.until.expect("a last day")), 1_265);
+        assert!(usage.source.contains("82 to 945"));
+    }
+
+    #[test]
+    fn the_chedi_era_opens_on_kielhorns_5_september_248() {
+        // Kielhorn: "the 1st day of the 1st current Chedi year corresponds
+        // to Asvina sukla pratipada ... 5th Sept., A.D. 248" (Sewell and
+        // Dikshit, Art. 71, pp. 42–43). A Julian date; by the Siddhānta it
+        // is Āśvina śukla 1 of Śaka 170 expired, and the day before is the
+        // dark fortnight of Bhādrapada, which a pūrṇimānta calendar names
+        // Āśvina's: the year opens in the middle of its month.
+        let era = KALACHURI_ERA;
+        let opening = era.new_year(1).expect("in range");
+        assert_eq!(opening, julian_day(248, 9, 5));
+        let date = era.from_fixed(opening).expect("in range");
+        assert_eq!((date.year, date.month, date.day), (1, 7, 1));
+        let eve = era.from_fixed(Rd(opening.0 - 1)).expect("in range");
+        assert_eq!((eve.year, eve.month, eve.day), (0, 7, 29));
+        assert_eq!(era.to_fixed(date), Ok(opening));
+        assert_eq!(era.to_fixed(eve), Ok(Rd(opening.0 - 1)));
+        // The epoch, the beginning of year 0 current: A.D. 247–48.
+        assert_eq!(julian_year(era.new_year(0).expect("in range")), 247);
+        let usage = Calendar::usage(&era);
+        // Chedi 793 opens in A.D. 1040 and 934 closes in 1182.
+        assert_eq!(julian_year(usage.from.expect("a first day")), 1_040);
+        assert_eq!(julian_year(usage.until.expect("a last day")), 1_182);
+    }
+
+    #[test]
+    fn the_valabhi_year_is_the_gupta_count_thrown_back_five_months() {
+        // "The beginning of the year was thrown back from Chaitra sukla 1st
+        // to the previous Karttika sukla 1st, and therefore its epoch went
+        // back five months" (Art. 71, p. 43): Valabhī 1 opens at Kārttika
+        // śukla 1 of Śaka 241 expired, five amānta months, 147 days, before
+        // Gupta 1, and Wikipedia's "Gupta era" gives the Valabhī years as
+        // Kārttikādi and amānta.
+        let valabhi = VALABHI_ERA.new_year(1).expect("in range");
+        let gupta = GUPTA_ERA.new_year(1).expect("in range");
+        assert_eq!(julian_year(valabhi), 319);
+        let days = gupta.0 - valabhi.0;
+        assert!((145..=150).contains(&days), "{days} days");
+        // Its months are numbered from Kārttika, and the year before is
+        // Āśvina's last day.
+        let date = VALABHI_ERA.from_fixed(valabhi).expect("in range");
+        assert_eq!((date.year, date.month, date.day), (1, 1, 1));
+        let eve = VALABHI_ERA.from_fixed(Rd(valabhi.0 - 1)).expect("in range");
+        assert_eq!((eve.year, eve.month), (0, 12));
+        // And a day of Chaitra to Āśvina is one year behind the Gupta's
+        // opening five months on: both turn within the Gupta year.
+        let in_gupta_1 = Rd(gupta.0 + 10);
+        assert_eq!(GUPTA_ERA.from_fixed(in_gupta_1).map(|d| d.year), Ok(1));
+        assert_eq!(VALABHI_ERA.from_fixed(in_gupta_1).map(|d| d.year), Ok(1));
+    }
+
+    #[test]
+    fn the_years_of_saka_1000_are_table_ii_s_through_the_calendars() {
+        // Table II, part ii: amānta Āṣāḍha of Śaka 1000 current, 999
+        // expired, is Gupta 758, Kārttikādi Vikrama 1134 and Chedi 829, all
+        // current. The Siddhānta is the reckoning those tables are
+        // computed by; here it is converted through the registered
+        // calendars rather than the year arithmetic.
+        let day = SIDDHANTA.to_fixed(date(999, 4, 10)).expect("in range");
+        assert_eq!(GUPTA_ERA.from_fixed(day).map(|d| d.year), Ok(758));
+        assert_eq!(VALABHI_ERA.from_fixed(day).map(|d| d.year), Ok(758));
+        assert_eq!(KALACHURI_ERA.from_fixed(day).map(|d| d.year), Ok(829));
+        // Āṣāḍha is month 4 in the Gupta's and 10 in the Valabhī's, which
+        // counts from Kārttika.
+        assert_eq!(GUPTA_ERA.from_fixed(day).map(|d| d.month), Ok(4));
+        assert_eq!(VALABHI_ERA.from_fixed(day).map(|d| d.month), Ok(9));
+    }
+
+    #[test]
+    fn the_lakshmana_sena_year_is_kielhorns_and_the_mithila_panchangs() {
+        let era = LAKSHMANA_SENA_ERA;
+        // Kielhorn: the epoch, the beginning of year 0 current, is A.D.
+        // 1118–19, Śaka 1041–42 current; the first year A.D. 1119–20, and
+        // the year is Kārttikādi (Art. 71, p. 46).
+        assert_eq!(julian_year(era.new_year(0).expect("in range")), 1_118);
+        let first = era.new_year(1).expect("in range");
+        assert_eq!(julian_year(first), 1_119);
+        let opening = SIDDHANTA.from_fixed(first).expect("in range");
+        assert_eq!((opening.year, opening.month, opening.day), (1_041, 8, 1));
+        // His equation from a manuscript of the Smṛtitattvāmṛta, "Laksh.
+        // sam. 505 = Saka sam. 1546", is of expired years: Kārttika to
+        // Phālguna of Śaka 1546 expired is Lakṣmaṇa Sena 506 current, 505
+        // expired, and Chaitra to Āśvina of the same Śaka year, before the
+        // Lakṣmaṇa Sena year turns, is 504 expired.
+        for (month, expired) in [(8, 505), (12, 505), (1, 504), (7, 504)] {
+            let day = SIDDHANTA
+                .to_fixed(date(1_546, month, 10))
+                .expect("in range");
+            let year = era.from_fixed(day).expect("in range").year;
+            assert_eq!(year - 1, expired, "month {month}");
+        }
+        // The Mithila Panchang prints "La. Sam. 907" for October 2026
+        // (`hinducalculator-mithila-panchang`): current years, 907 from
+        // Kārttika of 2025 to Āśvina of 2026.
+        let at = |y, m, d| era.from_fixed(ymd(y, m, d)).map(|d| d.year);
+        assert_eq!(at(2025, 11, 15), Ok(907));
+        assert_eq!(at(2026, 10, 15), Ok(907));
+        assert_eq!(at(2026, 11, 20), Ok(908));
+        assert_eq!(at(2025, 10, 15), Ok(906));
+        assert!(Calendar::usage(&era).source.contains("907"));
+    }
+
+    #[test]
+    fn a_stride_through_the_siddhanta_eras_round_trips() {
+        // Policy §7. The Siddhānta's months are swept every day on their
+        // own; what an era adds, the year and, for the pūrṇimānta ones, the
+        // names of the dark fortnights, is checked every 211th day of Kali
+        // Yuga 1 to 10 000 and each year's first day with its eve.
+        for era in [GUPTA_ERA, VALABHI_ERA, KALACHURI_ERA, LAKSHMANA_SENA_ERA] {
+            let (first, last) = (
+                era.lunar.earliest().expect("bounded").0,
+                era.lunar.latest().expect("bounded").0,
+            );
+            let years = era.from_fixed(Rd(first)).expect("in range").year + 1
+                ..=era.from_fixed(Rd(last)).expect("in range").year;
+            let openings: alloc::vec::Vec<i64> = years
+                .step_by(97)
+                .filter_map(|year| era.new_year(year).ok().map(|day| day.0))
+                .collect();
+            let days = crate::strided_days(first, last, 211, 5, &openings);
+            crate::check_days(&days, |day| {
+                let date = era.from_fixed(Rd(day)).expect("in range");
+                assert_eq!(era.to_fixed(date), Ok(Rd(day)), "{}: {date:?}", era.id);
+            });
+        }
     }
 
     #[test]
@@ -889,11 +1312,11 @@ mod tests {
         assert_eq!(era.new_year(1_000), Err(CalendarError::YearOutOfRange));
         assert_eq!(
             Calendar::usage(&LunarEra::new(
-                CalendarId("gupta"),
-                "Gupta",
+                CalendarId("x-gupta-over-the-true-sky"),
+                "Gupta over the true sky",
                 GUPTA,
                 Reckoning::Purnimanta,
-                HinduPurnimantaCalendar::RASHTRIYA,
+                Months::RASHTRIYA,
             )),
             hc_calendar::Usage::UNRECORDED
         );

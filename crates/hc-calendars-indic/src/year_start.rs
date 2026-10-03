@@ -19,7 +19,8 @@
 
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 
-use crate::hindu_lunar::{HinduLunarCalendar, HinduLunarDate};
+use crate::amanta::AmantaMonths;
+use crate::hindu_lunar::HinduLunarDate;
 
 /// The months in a year.
 const MONTHS: u8 = 12;
@@ -126,9 +127,9 @@ impl YearStart {
     ///
     /// [`CalendarError::YearOutOfRange`] outside the amānta engine's
     /// range.
-    pub fn new_year(
+    pub fn new_year<L: AmantaMonths>(
         self,
-        lunar: &HinduLunarCalendar,
+        lunar: &L,
         year: i64,
         offset: i64,
     ) -> CalendarResult<Rd> {
@@ -148,7 +149,7 @@ impl YearStart {
                 day,
                 leap_day: false,
             };
-            match lunar.to_fixed(date) {
+            match lunar.day_of(date) {
                 Ok(rd) => return Ok(rd),
                 Err(error @ CalendarError::YearOutOfRange) => return Err(error),
                 Err(error) => last_error = error,
@@ -165,9 +166,9 @@ impl YearStart {
     ///
     /// [`CalendarError::YearOutOfRange`] outside the amānta engine's
     /// range.
-    pub fn is_leap_year(
+    pub fn is_leap_year<L: AmantaMonths>(
         self,
-        lunar: &HinduLunarCalendar,
+        lunar: &L,
         year: i64,
         offset: i64,
     ) -> CalendarResult<bool> {
@@ -185,7 +186,7 @@ impl YearStart {
             match lunar.leap_month_of(saka + 1) {
                 Ok(leap) => leap.is_some_and(|(month, _, _)| !after(month)),
                 // The engine's last year: the rest is not converted.
-                Err(CalendarError::YearOutOfRange) if saka == crate::hindu_lunar::MAX_YEAR => false,
+                Err(CalendarError::YearOutOfRange) if saka == lunar.years().1 => false,
                 Err(error) => return Err(error),
             }
         };

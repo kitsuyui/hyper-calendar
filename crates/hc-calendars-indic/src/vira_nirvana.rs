@@ -48,6 +48,12 @@ use crate::kartikadi;
 /// The calendar's identifier.
 pub const ID: CalendarId = CalendarId("vira-nirvana-samvat");
 
+crate::ayanamsa_id::by_ayanamsa! {
+    /// The identifier and English name of the calendar over an ayanāṃśa:
+    /// [`ID`] for Lahiri's, and the convention's for any other.
+    pub(crate) fn identity, "vira-nirvana-samvat", "Vira Nirvana Samvat (Jain)"
+}
+
 /// The era it counts in.
 pub const ERA: &str = "vira-nirvana";
 
@@ -208,9 +214,10 @@ impl Calendar for ViraNirvanaCalendar {
     }
 
     fn meta(&self) -> CalendarMeta {
+        let (id, english_name) = identity(self.lunar.ayanamsa);
         CalendarMeta {
-            id: ID,
-            english_name: "Vira Nirvana Samvat (Jain)",
+            id,
+            english_name,
             year_kind: YearKind::EpochForward,
             has_leap_months: true,
             is_astronomical: true,

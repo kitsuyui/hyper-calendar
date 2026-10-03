@@ -1307,6 +1307,36 @@ mod tests {
     }
 
     #[test]
+    fn a_stride_through_the_whole_range_round_trips_in_every_reckoning() {
+        // Policy §7: every conversion over its whole supported range. Every
+        // eleventh day of the 600 years, and each year's first day and the
+        // day before it, for each registered reckoning, `hindu-solar-
+        // reingold-dershowitz` and the Magi San among them; a debug build
+        // takes every fifth of those. The four years above are every day.
+        for calendar in ALL {
+            let (first, last) = (calendar.earliest().0, calendar.latest().0);
+            let openings: alloc::vec::Vec<i64> = (calendar.min_year() + 1..=calendar.max_year())
+                .map(|year| calendar.month_start(year, 1).unwrap().0)
+                .collect();
+            let days = crate::strided_days(first, last, 11, 5, &openings);
+            assert!(
+                days.len() > 19_000 / crate::sweep_stride(5),
+                "{}",
+                calendar.id
+            );
+            crate::check_days(&days, |rd| {
+                let date = calendar.from_fixed(Rd(rd)).unwrap();
+                assert_eq!(
+                    calendar.to_fixed(date),
+                    Ok(Rd(rd)),
+                    "{} rd {rd}: {date:?}",
+                    calendar.id
+                );
+            });
+        }
+    }
+
+    #[test]
     fn the_magi_san_is_the_bengali_san_less_45() {
         // "Magi 1200 = Bengali 1245" (Sewell and Dikshit, Art. 71, p. 45).
         assert_eq!(BENGALI.era_offset - MAGI.era_offset, 1_245 - 1_200);

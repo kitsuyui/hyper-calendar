@@ -89,7 +89,7 @@ pub(crate) fn sunrise_place(place: Location) -> Answer<Location> {
 }
 
 /// The ayanāṃśa an identifier names: one of [`Ayanamsa::ALL`] by
-/// [`Ayanamsa::by_id`], `lahiri`, `raman`, `krishnamurti`,
+/// [`Ayanamsa::by_id`], `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`,
 /// `reingold-dershowitz` or `fagan-bradley`.
 ///
 /// # Errors

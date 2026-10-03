@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-225 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+229 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 191 of 225 have months and 191 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 195 of 229 have months and 195 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -75,6 +75,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `french-republican-equinox` | French Republican (equinox) | [`hc-calendars-equinox`](../crates/hc-calendars-equinox) | `equinox` | 1792-09-22 | 3001-09-21 | yes | no | midnight | — | month ×13, decade-day ×10 | yes |
 | `gaza-era` | Era of Gaza | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -60-10-26 | 9940-01-08 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `gregory` | Gregorian | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -9999999-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `gupta` | Gupta (Chaitradi, purnimanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `hanke-henry` | Hanke–Henry Permanent | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0001-01-01 | +100000-01-02 | no | no | midnight | — | month ×12–13, weekday ×7 | yes |
 | `hebrew` | Hebrew | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -3760-09-07 | 6239-09-25 | no | yes | sunset | end | month ×12–13, weekday ×7 | yes |
 | `hebrew-observational` | Hebrew (observational, predicted) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -382-01-01 | 2100-12-31 | yes | yes | sunset | end | month ×12–13, weekday ×7 | yes |
@@ -155,9 +156,11 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `julian-gregorian-rs` | Julian–Gregorian reform (Kingdom of Serbs, Croats and Slovenes) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `julian-gregorian-ru` | Julian–Gregorian reform (Soviet Russia) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `julian-gregorian-se` | Julian–Gregorian reform (Sweden and Finland) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-3652500001) | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `kalachuri` | Kalachuri or Chedi (Asvinadi, purnimanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `khmer` | Khmer lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1899-12-03 | 2200-12-06 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `korean-regnal` | Korean Empire eras | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1896-01-01 | 1910-08-29 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `korean-regnal-backdated` | Korean Empire eras (光武 backdated to 1897) | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1896-01-01 | 1910-08-29 | no | no | midnight | — | month ×12, weekday ×7 | yes |
+| `lakshmana-sena` | Lakshmana Sena (Karttikadi, Mithila) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `lao` | Lao lunar | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1938-11-23 | 2039-11-15 | no | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `liberalia-triday-lunar` | Liberalia Triday, lunar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -94963-01-01 | +99143-12-23 | no | no | midnight | — | month ×12, triday-day ×3 | yes |
 | `liberalia-triday-solar` | Liberalia Triday, solar | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | -98095-03-27 | +101904-03-07 | no | no | midnight | — | month ×4, triday-day ×3 | yes |
@@ -237,6 +240,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `tibetan-tsurphu` | Tibetan (Tsurphu) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-16 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `tibetan-tsurphu-karana` | Tibetan (Tsurphu, karaṇa Sun) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1000-01-15 | 3001-03-17 | no | yes | 05:00:00 local | start | month ×12–13, weekday ×7 | yes |
 | `truncated-julian-day` | Truncated Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
+| `valabhi` | Valabhi (Karttikadi, amanta) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | -3100-01-13 | 6900-06-15 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `vietnamese` | Vietnamese lunisolar | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `vikram-samvat-kartikadi` | Vikram Samvat (Karttikadi, Gujarat) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |
 | `vira-nirvana-samvat` | Vira Nirvana Samvat (Jain) | [`hc-calendars-indic`](../crates/hc-calendars-indic) | `indic` | 1700-03-21 | 2300-03-22 | yes | yes | sunrise | start | month ×12–13, weekday ×7 | yes |

@@ -1785,7 +1785,7 @@ for `hc_describe_day`.
 
 ### What the calls cost
 
-A description of a day is one conversion in each of the 225 calendars,
+A description of a day is one conversion in each of the 229 calendars,
 and a few dozen of them search the sky to convert: the Hindu lunar
 calendar and the nine built on it for conjunctions and saṅkrāntis at
 sunrise, the observational Hebrew and Hijri calendars for crescents
@@ -1994,7 +1994,7 @@ where a pañcāṅga reads them at sunrise. A day on which the Sun does not
 rise at the place is `HC_ERR_NO_DATA`; no other moment is put in the
 sunrise's place. The yoga is the sum of the Sun's and the Moon's sidereal
 longitudes, so it needs an ayanāṃśa, and moves with it twice over:
-`ayanamsa` is an identifier, `lahiri`, `raman`, `krishnamurti`,
+`ayanamsa` is an identifier, `lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`, `raman`, `krishnamurti`,
 `reingold-dershowitz` or `fagan-bradley`, in any case, and anything else, the empty string and a
 full name such as `Lahiri (Chitrapaksha)` included, is `HC_ERR_UNKNOWN`. The karaṇa, half a tithi,
 needs none. The sky may instead be `surya-siddhanta`: the *Sūrya

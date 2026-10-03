@@ -3572,7 +3572,13 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // which Drik Panchang calls the "Gujarati Samvat" when it is counted
     // from Kārttika (read 2026-09-26).
     CalendarNames {
-        calendars: &[CalendarId("vikram-samvat-kartikadi")],
+        // The Valabhī era and the Lakṣmaṇa Sena era open at Kārttika śukla 1
+        // too, over the amānta months (Sewell and Dikshit, Art. 71).
+        calendars: &[
+            CalendarId("vikram-samvat-kartikadi"),
+            CalendarId("valabhi"),
+            CalendarId("lakshmana-sena"),
+        ],
         cycles: &[months(&[
             "Kartika",
             "Agrahayana",
@@ -3590,8 +3596,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
         leap_month_prefix: "Adhika ",
         leap_month_suffix: "",
         eras: EraNames {
-            codes: &["vs"],
-            names: widths(&["Vikrama Samvat"], &["VS"], &[]),
+            codes: &["vs", "valabhi", "lakshmana-sena"],
+            names: widths(
+                &["Vikrama Samvat", "Valabhi", "Lakshmana Sena"],
+                &["VS", "Valabhi", "Lakshmana Sena"],
+                &[],
+            ),
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
@@ -3604,7 +3614,15 @@ const EN_CALENDARS: &[CalendarNames] = &[
     // Calendar*, Art. 71 — "Rajyabhisheka Saka", "Saptarshi-Kala", which
     // they also call the "Laukika-Kala".
     CalendarNames {
-        calendars: &[CalendarId("rajyabhisheka-saka"), CalendarId("saptarshi")],
+        // The Gupta and Chedi (Kalachuri) eras, also in Art. 71, open at
+        // Chaitra and Āśvina śukla 1 over the pūrṇimānta months, which are
+        // numbered from Chaitra.
+        calendars: &[
+            CalendarId("rajyabhisheka-saka"),
+            CalendarId("saptarshi"),
+            CalendarId("gupta"),
+            CalendarId("kalachuri"),
+        ],
         cycles: &[months(&[
             "Chaitra",
             "Vaisakha",
@@ -3622,8 +3640,12 @@ const EN_CALENDARS: &[CalendarNames] = &[
         leap_month_prefix: "Adhika ",
         leap_month_suffix: "",
         eras: EraNames {
-            codes: &["rajyabhisheka-saka", "saptarshi"],
-            names: widths(&["Rajyabhisheka Saka", "Saptarshi"], &[], &[]),
+            codes: &["rajyabhisheka-saka", "saptarshi", "gupta", "kalachuri"],
+            names: widths(
+                &["Rajyabhisheka Saka", "Saptarshi", "Gupta", "Kalachuri"],
+                &[],
+                &[],
+            ),
             calendars: &[],
         },
         quarters: ContextualNames::EMPTY,
