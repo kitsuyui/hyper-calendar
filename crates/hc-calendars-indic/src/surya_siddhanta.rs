@@ -239,6 +239,13 @@ pub fn tithi_at(moment: Moment) -> u8 {
     (floor(lunar_phase(moment) / 12.0) as u8).min(29) + 1
 }
 
+/// The Siddhānta's tithi in progress at a moment: when it began and when
+/// it ends, as [`crate::tithi::tithi_span`] finds the true sky's.
+#[must_use]
+pub fn tithi_span(moment: Moment) -> (Moment, Moment) {
+    crate::panchanga::span_of(lunar_phase, 12.0, moment)
+}
+
 /// The first conjunction at or after a moment: the instant the elongation
 /// returns to zero.
 ///

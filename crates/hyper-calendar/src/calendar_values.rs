@@ -19,7 +19,10 @@ use hc_calendar::{Calendar, Rd};
 use hc_calendars_lunar::babylonian;
 use hc_calendars_lunar::chinese::{self, ChineseCalendar, MarriageAugury};
 use hc_calendars_lunar::hebrew::{self, HebrewDate};
-use hc_calendars_regional::olympiad;
+use hc_calendars_regional::chinese_regnal::{self, Dynasty};
+use hc_calendars_regional::korean_regnal;
+use hc_calendars_regional::nengo::{self, Certainty, Court};
+use hc_calendars_regional::olympiad::{self, GamesStatus};
 use hc_calendars_solar::asian::{AsianCalendar, WrittenDay};
 
 use crate::boundary::{Answer, Refusal, line};
@@ -235,6 +238,214 @@ pub fn ioc_olympiad_on(fixed: i64) -> Answer<i64> {
     } else {
         Err(Refusal::NoData)
     }
+}
+
+/// How many columns each line of [`era_table_lines`] writes.
+pub const ERA_TABLE_COLUMNS: usize = 12;
+
+/// The fixed day before the next era of the stream an era is kept in, or
+/// before the era lapsed.
+///
+/// A [`Court::Unified`] era is read in the Northern stream, the one that
+/// carried on to the reunion of 1392 and after it: 建武, which the Southern
+/// court replaced with 延元 in 1336, runs to the day before 暦応. The last
+/// Southern era, 元中, ends the day before the reunion, as the table's
+/// documentation says it was abolished then.
+fn japanese_last_day(era: &nengo::Nengo) -> Option<i64> {
+    era.start?;
+    if let Some(lapsed) = era.lapsed {
+        return Some(lapsed.0 - 1);
+    }
+    let court = if era.court == Court::Unified {
+        Court::Northern
+    } else {
+        era.court
+    };
+    let next = nengo::next_in_stream(era, court)?;
+    let start = next.start?;
+    Some(
+        if era.court == Court::Southern && start >= nengo::NANBOKUCHO_END {
+            nengo::NANBOKUCHO_END.0 - 1
+        } else {
+            start.0 - 1
+        },
+    )
+}
+
+/// The Gregorian year a fixed day falls in.
+fn gregorian_year_of(fixed: i64) -> i64 {
+    hc_calendar::gregorian::year_from_fixed(Rd(fixed))
+}
+
+/// The lines of `hc_era_table`: every era of a table, in order, one a
+/// line, with the columns the table has — the era's code, its name in the
+/// characters of its source, its reading, its romanisation, the court or
+/// dynasty, the Gregorian year its first year (元年) falls in and the year
+/// its last falls in where the source gives one, the fixed day it began
+/// and the last fixed day it was in force where the source gives them, its
+/// status, the first day by another reading, and a note.
+///
+/// * `japanese`: [`nengo::ALL`], the 248 eras from 大化 to 令和. The code is
+///   the era's identifier (`reiwa`, `showa-1312`); the reading is the first
+///   the source gives, in hiragana; the court is `unified`, `northern` or
+///   `southern`; the first year is the Gregorian year the lunisolar year of
+///   元年 begins in, the last year is empty; the start is the day the era
+///   was proclaimed, empty where the source knows the month alone, and the
+///   last day the day before the next era of its court's stream, before the
+///   lapse of 白雉 and 朱鳥, and empty for 令和 and where the start is
+///   unknown; the status is `attested`, `disputed` or `month-only`.
+/// * `chinese-regnal`: [`chinese_regnal::ALL`], the 37 eras of the Ming, the
+///   Southern Ming, the Shun, the Later Jin and the Qing, with the dynasty
+///   as `ming`, `southern-ming`, `shun` or `qing`, the Common Era years of
+///   its first and last lunisolar years, no start or last day, which the
+///   table does not carry and the Datong calendar of the Ming is not in this
+///   library to date, the status `kept` or `not-kept`, and the table's note,
+///   with the month of a mid-year proclamation.
+/// * `korean-regnal`: the three eras of the Korean Empire, with `korean-empire`
+///   for the dynasty column, the days they were chosen on, the last day the
+///   day before the next era or the annexation, `attested`, and the first
+///   day under the reading that backdates 光武 to 1 January 1897 in the
+///   column after the status when it differs.
+///
+/// The names and the dates are the tables' and their sources', as the
+/// system documents say; this lists them and decides nothing.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a table not named, by
+/// [`hc_core::catalogue::matches`].
+pub fn era_table_lines(table: &str) -> Answer<String> {
+    let mut out = String::new();
+    if hc_core::catalogue::matches(table, "japanese") {
+        for era in nengo::ALL.iter() {
+            let mut line = crate::boundary::Line::new(&mut out);
+            line.cell(era.id)
+                .cell(era.kanji)
+                .cell(era.reading)
+                .cell(era.romaji)
+                .cell(match era.court {
+                    Court::Unified => "unified",
+                    Court::Northern => "northern",
+                    Court::Southern => "southern",
+                })
+                .value(era.start_year)
+                .empty()
+                .value_or_empty(era.start.map(|day| day.0))
+                .value_or_empty(japanese_last_day(era))
+                .cell(match era.certainty {
+                    Certainty::Attested => "attested",
+                    Certainty::Disputed => "disputed",
+                    Certainty::MonthOnly => "month-only",
+                })
+                .empties(2);
+            line.end();
+        }
+    } else if hc_core::catalogue::matches(table, "chinese-regnal") {
+        for era in chinese_regnal::ALL.iter() {
+            let mut line = crate::boundary::Line::new(&mut out);
+            line.cell(era.id)
+                .cell(era.hanzi)
+                .cell(era.pinyin)
+                .cell(era.pinyin)
+                .cell(match era.dynasty {
+                    Dynasty::Ming => "ming",
+                    Dynasty::SouthernMing => "southern-ming",
+                    Dynasty::Shun => "shun",
+                    Dynasty::Qing => "qing",
+                })
+                .value(era.start_year)
+                .value(era.end_year)
+                .empties(2)
+                .cell(if era.in_use { "kept" } else { "not-kept" })
+                .empty();
+            match era.proclaimed_month {
+                Some(month) if !era.note.is_empty() => {
+                    line.cell_with(|out| {
+                        let _ = out
+                            .write_fmt(format_args!("proclaimed in month {month}; {}", era.note));
+                    });
+                }
+                Some(month) => {
+                    line.cell_with(|out| {
+                        let _ = out.write_fmt(format_args!("proclaimed in month {month}"));
+                    });
+                }
+                None => {
+                    line.cell(era.note);
+                }
+            }
+            line.end();
+        }
+    } else if hc_core::catalogue::matches(table, "korean-regnal") {
+        for (position, era) in korean_regnal::ALL.iter().enumerate() {
+            let last = korean_regnal::ALL
+                .get(position + 1)
+                .map_or(korean_regnal::LATEST.0, |next| next.start.0 - 1);
+            let mut line = crate::boundary::Line::new(&mut out);
+            line.cell(era.id)
+                .cell(era.hanja)
+                .cell(era.hangul)
+                .cell(era.romanised)
+                .cell("korean-empire")
+                .value(era.start_year)
+                .value(gregorian_year_of(last))
+                .value(era.start.0)
+                .value(last)
+                .cell("attested");
+            if era.backdated_start == era.start {
+                line.empty();
+            } else {
+                line.value(era.backdated_start.0);
+            }
+            line.empty();
+            line.end();
+        }
+    } else {
+        return Err(Refusal::Unknown);
+    }
+    Ok(out)
+}
+
+/// How many columns each line of [`olympic_games_lines`] writes.
+pub const OLYMPIC_GAMES_COLUMNS: usize = 6;
+
+/// The lines of `hc_olympic_games`: the modern Games of a season, one a
+/// line in order, as [`olympiad::SUMMER_GAMES`] and
+/// [`olympiad::WINTER_GAMES`] list them from Olympedia's editions — the
+/// number, which a Summer Games not held keeps and a Winter Games not held
+/// has none of, the year they were awarded to (2020 for the Tokyo Games
+/// held in 2021), the host city as Olympedia spells it, whether they were
+/// `celebrated`, `not-held` or `scheduled`, and the fixed days of the
+/// opening and closing ceremonies, each empty where Olympedia dates none.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a season other than `summer` or `winter`, in any
+/// case.
+pub fn olympic_games_lines(season: &str) -> Answer<String> {
+    let table: &[olympiad::Games] = if hc_core::catalogue::matches(season, "summer") {
+        &olympiad::SUMMER_GAMES
+    } else if hc_core::catalogue::matches(season, "winter") {
+        &olympiad::WINTER_GAMES
+    } else {
+        return Err(Refusal::Unknown);
+    };
+    let mut out = String::new();
+    for games in table {
+        let mut line = crate::boundary::Line::new(&mut out);
+        line.value_or_empty(games.number)
+            .value(games.year)
+            .cell(games.host)
+            .cell(match games.status {
+                GamesStatus::Celebrated => "celebrated",
+                GamesStatus::NotHeld => "not-held",
+                GamesStatus::Scheduled => "scheduled",
+            })
+            .value_or_empty(games.opening.map(|day| day.0))
+            .value_or_empty(games.closing.map(|day| day.0));
+        line.end();
+    }
+    Ok(out)
 }
 
 /// The line of `hc_babylonian_regnal_year`: the king and the regnal year
@@ -700,5 +911,206 @@ mod tests {
             Err(Refusal::Unknown)
         );
         assert!(equinox_new_year_margin_line("persian", 1404).is_ok());
+    }
+
+    fn julian_day(year: i64, month: u8, day: u8) -> i64 {
+        hc_calendars_solar::julian::to_fixed(year, month, day)
+            .expect("a date")
+            .0
+    }
+
+    fn table_row<'a>(table: &'a str, code: &str) -> Vec<&'a str> {
+        table
+            .lines()
+            .map(|line| line.split('\t').collect::<Vec<_>>())
+            .find(|row| row[0] == code)
+            .expect("an era")
+    }
+
+    /// Japanese Wikipedia's 元号一覧 (日本), retrieved 2026-10-03: 248 eras
+    /// to 令和, which begins on 1 May 2019 and is current; 平成 on 8 January
+    /// 1989; 建武 from 5 March 1334 to 1336-04-11 in the south, where 延元
+    /// begins, and to 1338-10-11 in the north, where 暦応 begins (Julian
+    /// dates, the page's end being the next era's first day); 白雉 to
+    /// 655-02-11 and 朱鳥 to 687-02-17, the last days before the gaps with no
+    /// era; 元中 to the reunion of 1392-11-19, 明徳 from 1390-04-12 to
+    /// 応永's 1394-08-02, and 明治 to 大正's first day, 30 July 1912, so
+    /// that the last day of 明治 is the 29th.
+    #[test]
+    fn the_japanese_table_has_every_era_with_its_first_and_last_day() {
+        let table = era_table_lines("Japanese").expect("a table");
+        assert_eq!(table.lines().count(), 248);
+        assert!(
+            table
+                .lines()
+                .all(|line| line.split('\t').count() == ERA_TABLE_COLUMNS)
+        );
+        let day = |year, month, date| gregorian(year, month, date).to_string();
+        let reiwa = table_row(&table, "reiwa");
+        assert_eq!(reiwa[1..5], ["令和", "れいわ", "Reiwa", "unified"]);
+        assert_eq!(
+            (reiwa[7], reiwa[8], reiwa[9]),
+            (day(2019, 5, 1).as_str(), "", "attested")
+        );
+        let heisei = table_row(&table, "heisei");
+        assert_eq!(
+            (heisei[7], heisei[8]),
+            (day(1989, 1, 8).as_str(), day(2019, 4, 30).as_str())
+        );
+        let meiji = table_row(&table, "meiji");
+        assert_eq!(meiji[8], day(1912, 7, 29));
+        let kenmu = table_row(&table, "kenmu");
+        assert_eq!(kenmu[4], "unified");
+        assert_eq!(kenmu[7], julian_day(1334, 3, 5).to_string());
+        assert_eq!(kenmu[8], (julian_day(1338, 10, 11) - 1).to_string());
+        assert_eq!(table_row(&table, "engen")[4], "southern");
+        assert_eq!(
+            table_row(&table, "ryakuo")[7],
+            julian_day(1338, 10, 11).to_string()
+        );
+        assert_eq!(
+            table_row(&table, "genchu")[8],
+            (julian_day(1392, 11, 19) - 1).to_string()
+        );
+        let meitoku = table_row(&table, "meitoku");
+        assert_eq!(
+            (meitoku[4], meitoku[7], meitoku[8]),
+            (
+                "northern",
+                julian_day(1390, 4, 12).to_string().as_str(),
+                (julian_day(1394, 8, 2) - 1).to_string().as_str()
+            )
+        );
+        assert_eq!(
+            table_row(&table, "hakuchi")[8],
+            julian_day(655, 2, 11).to_string()
+        );
+        assert_eq!(
+            table_row(&table, "shucho")[8],
+            julian_day(687, 2, 17).to_string()
+        );
+        assert_eq!(table_row(&table, "showa-1312")[1], "正和");
+        assert_eq!(era_table_lines("no-such"), Err(Refusal::Unknown));
+        // An era with only its month known has no day to begin or end on.
+        for row in table
+            .lines()
+            .map(|line| line.split('\t').collect::<Vec<_>>())
+        {
+            if row[9] == "month-only" {
+                assert_eq!((row[7], row[8]), ("", ""), "{}", row[0]);
+            }
+        }
+    }
+
+    /// The Chinese eras are year data (`wikipedia-ja-chinese-era-list`):
+    /// 康熙 from 1662 to 1722, 祺祥 proclaimed in 1861 and never kept, and
+    /// 崇德 from the fourth month of 1636. The Korean Empire's three eras
+    /// are the days they were chosen (`sillok-gojong`, `sillok-sunjong`),
+    /// 光武 beginning on 14 August 1897, or 1 January by the decree's
+    /// backdating, and 隆熙 ending with the annexation of 29 August 1910.
+    #[test]
+    fn the_chinese_and_korean_eras_are_listed_with_what_their_tables_know() {
+        let chinese = era_table_lines("chinese-regnal").expect("a table");
+        assert_eq!(chinese.lines().count(), 37);
+        assert!(
+            chinese
+                .lines()
+                .all(|line| line.split('\t').count() == ERA_TABLE_COLUMNS)
+        );
+        let kangxi = table_row(&chinese, "kangxi");
+        assert_eq!(
+            kangxi[1..7],
+            ["康熙", "Kangxi", "Kangxi", "qing", "1662", "1722"]
+        );
+        assert_eq!((kangxi[7], kangxi[8], kangxi[9]), ("", "", "kept"));
+        assert_eq!(table_row(&chinese, "qixiang")[9], "not-kept");
+        assert!(table_row(&chinese, "chongde")[11].starts_with("proclaimed in month 4; "));
+        let korean = era_table_lines("KOREAN-REGNAL").expect("a table");
+        assert_eq!(korean.lines().count(), 3);
+        let gwangmu = table_row(&korean, "gwangmu");
+        assert_eq!(gwangmu[1..3], ["光武", "광무"]);
+        assert_eq!(gwangmu[5..7], ["1897", "1907"]);
+        assert_eq!(gwangmu[7], gregorian(1897, 8, 14).to_string());
+        assert_eq!(gwangmu[8], (gregorian(1907, 8, 2) - 1).to_string());
+        assert_eq!(gwangmu[10], gregorian(1897, 1, 1).to_string());
+        let yunghui = table_row(&korean, "yunghui");
+        assert_eq!(yunghui[8], gregorian(1910, 8, 29).to_string());
+        assert_eq!(yunghui[10], "");
+    }
+
+    /// Olympedia's editions (`olympedia-editions`, retrieved 2026-10-03):
+    /// the I Games at Athina, 6 to 15 April 1896; the VI not held, Berlin
+    /// 1916; the XXXII, awarded to 2020, held at Tokyo from 23 July to
+    /// 8 August 2021; Paris 2024, 26 July to 11 August; the Winter Games
+    /// of Chamonix 1924, Oslo 1952 as the VI, and Beijing 2022 as the XXIV.
+    #[test]
+    fn the_games_are_listed_as_olympedia_lists_them() {
+        let summer = olympic_games_lines("Summer").expect("a list");
+        assert!(
+            summer
+                .lines()
+                .all(|line| line.split('\t').count() == OLYMPIC_GAMES_COLUMNS)
+        );
+        let row = |text: &str, year: &str| {
+            text.lines()
+                .map(|line| line.split('\t').map(str::to_owned).collect::<Vec<_>>())
+                .find(|row| row[1] == year)
+                .expect("a year")
+        };
+        let day = |year, month, date| gregorian(year, month, date).to_string();
+        assert_eq!(
+            row(&summer, "1896"),
+            [
+                "1",
+                "1896",
+                "Athina",
+                "celebrated",
+                day(1896, 4, 6).as_str(),
+                day(1896, 4, 15).as_str()
+            ]
+        );
+        assert_eq!(
+            row(&summer, "1916"),
+            ["6", "1916", "Berlin", "not-held", "", ""]
+        );
+        let tokyo = row(&summer, "2020");
+        assert_eq!(
+            (
+                tokyo[0].as_str(),
+                tokyo[3].as_str(),
+                tokyo[4].as_str(),
+                tokyo[5].as_str()
+            ),
+            (
+                "32",
+                "celebrated",
+                day(2021, 7, 23).as_str(),
+                day(2021, 8, 8).as_str()
+            )
+        );
+        let paris = row(&summer, "2024");
+        assert_eq!(
+            (paris[4].as_str(), paris[5].as_str()),
+            (day(2024, 7, 26).as_str(), day(2024, 8, 11).as_str())
+        );
+        let winter = olympic_games_lines("winter").expect("a list");
+        assert_eq!(row(&winter, "1924")[0..3], ["1", "1924", "Chamonix"]);
+        let oslo = row(&winter, "1952");
+        assert_eq!(
+            (oslo[0].as_str(), oslo[4].as_str()),
+            ("6", day(1952, 2, 15).as_str())
+        );
+        let beijing = row(&winter, "2022");
+        assert_eq!(
+            (beijing[0].as_str(), beijing[5].as_str()),
+            ("24", day(2022, 2, 20).as_str())
+        );
+        // A Games not held keeps no number among the Winter Games' own.
+        assert!(
+            winter
+                .lines()
+                .any(|line| line.contains("not-held") && line.starts_with('\t'))
+        );
+        assert_eq!(olympic_games_lines("spring"), Err(Refusal::Unknown));
     }
 }

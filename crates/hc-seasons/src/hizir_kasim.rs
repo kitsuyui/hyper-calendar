@@ -112,6 +112,21 @@ impl NamedDay {
         FolkDay { half, day }
     }
 
+    /// The identifier: `hidirellez`, `kasim`, `erbain`, `hamsin`,
+    /// `cemre-air`, `cemre-water` or `cemre-earth`.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Hidirellez => "hidirellez",
+            Self::Kasim => "kasim",
+            Self::Erbain => "erbain",
+            Self::Hamsin => "hamsin",
+            Self::CemreAir => "cemre-air",
+            Self::CemreWater => "cemre-water",
+            Self::CemreEarth => "cemre-earth",
+        }
+    }
+
     /// The Turkish name, as the sources write it.
     #[must_use]
     pub const fn turkish_name(self) -> &'static str {

@@ -481,6 +481,40 @@ mod tests {
         assert!(low > -1.0 && high < 0.5, "{offsets:?}");
     }
 
+    /// A tithi ends where its second karaṇa does: of Drik Panchang's
+    /// printed karaṇa ends of January 2025, those of a second half, which
+    /// the pages print against the same times as the tithi, are the ends
+    /// [`crate::tithi::tithi_span`] finds, each 0.6 to 1.6 minutes later,
+    /// the offset the karaṇas have (`drik-day-panchang-2025`).
+    #[test]
+    fn the_tithis_of_january_2025_end_where_drik_panchangs_second_karanas_do() {
+        let mut offsets = alloc::vec::Vec::new();
+        for (_, month, day, hour, minute) in DRIK_KARANAS {
+            let printed = ist(month, day, hour, minute);
+            let before = Moment(printed.0 - 10.0 / 1440.0);
+            if karana_at(before) % 2 == 1 {
+                continue;
+            }
+            let (began, ends) = crate::tithi::tithi_span(before);
+            assert!(began.0 < before.0 && before.0 < ends.0, "{month}-{day}");
+            assert!(ends.0 - began.0 > 0.7 && ends.0 - began.0 < 1.3);
+            offsets.push((ends.0 - printed.0) * 1440.0);
+            // The next tithi begins where this one ends.
+            let (next_began, _) = crate::tithi::tithi_span(Moment(ends.0 + 1e-4));
+            assert!((next_began.0 - ends.0).abs() < 1e-6);
+            let tithi = crate::tithi::tithi_number_at(before);
+            assert_eq!(
+                crate::tithi::tithi_number_at(Moment(ends.0 + 1e-4)),
+                tithi % 30 + 1
+            );
+        }
+        assert!(offsets.len() >= 25, "{} tithi ends", offsets.len());
+        let (low, high) = spread(&offsets);
+        // The 29 ends come 0.6 to 1.6 minutes after Drik's, as the karaṇas'
+        // do (the offset the Moon's longitude model has against Drik's).
+        assert!(low > 0.0 && high < 1.7, "{offsets:?}");
+    }
+
     #[test]
     fn the_karanas_of_january_2025_end_when_drik_panchang_says() {
         let mut offsets = alloc::vec::Vec::new();

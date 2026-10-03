@@ -110,3 +110,147 @@ fn the_term_and_pentad_refuse_days_outside_the_era() {
         }
     }
 }
+
+/// The 暦Wiki's table of the 七十二候 (`nao-rekiwiki-72ko`): 立春次候 is
+/// 蟄虫始振 in the 宣明暦's list, 梅花乃芳 in the 貞享暦's and 黄鶯睍睆 in the
+/// 宝暦暦's, which the almanac prints today; 大雪次候's 虎始交 carries the
+/// alternate 武始交 in the first.
+#[test]
+fn the_pentad_traditions_and_a_pentad_named_by_each_cross_the_c_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_pentad_traditions(buffer, capacity, written)
+    });
+    let ids: Vec<&str> = text
+        .lines()
+        .map(|line| line.split('\t').next().expect("an id"))
+        .collect();
+    assert_eq!(ids, ["chinese", "japanese", "jokyo", "senmyo"]);
+    let mut day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2024, 2, 10, &mut day) },
+        HC_OK
+    );
+    for (tradition, name) in [
+        (c"senmyo", "蟄虫始振"),
+        (c"JOKYO", "梅花乃芳"),
+        (c"japanese", "黄鶯睍睆"),
+    ] {
+        let text = read_lines(|buffer, capacity, written| unsafe {
+            hc_pentad_in_tradition(
+                day,
+                tradition.as_ptr(),
+                c"japan".as_ptr(),
+                buffer,
+                capacity,
+                written,
+            )
+        });
+        let columns: Vec<&str> = text.trim_end().split('\t').collect();
+        assert_eq!(columns.len(), 8, "{columns:?}");
+        assert_eq!(columns[..2], ["64", name]);
+    }
+    let mut tiger_day = 0i64;
+    assert_eq!(
+        unsafe { hc_gregorian_to_fixed(2026, 12, 14, &mut tiger_day) },
+        HC_OK
+    );
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_pentad_in_tradition(
+            tiger_day,
+            c"senmyo".as_ptr(),
+            c"japan".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert_eq!(text.trim_end().split('\t').nth(3), Some("武始交"));
+    assert_eq!(
+        unsafe {
+            hc_pentad_in_tradition(
+                day,
+                c"horyaku".as_ptr(),
+                c"japan".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe {
+            hc_pentad_in_tradition(
+                day,
+                core::ptr::null(),
+                c"japan".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+}
+
+/// 暦要項 2024: 節分 on 3 February, 入梅 on 10 June, 土用の入り on 19 July with
+/// its 丑の日 24 July and 5 August; and the three 伏 of 2026 in China begin
+/// on 15 July, 25 July and 14 August.
+#[test]
+fn the_zassetsu_and_the_seasonal_days_cross_the_c_boundary() {
+    let day = |year, month, date| {
+        let mut out = 0i64;
+        assert_eq!(
+            unsafe { hc_gregorian_to_fixed(year, month, date, &mut out) },
+            HC_OK
+        );
+        out.to_string()
+    };
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_zassetsu_in_year(2024, c"japan".as_ptr(), buffer, capacity, written)
+    });
+    let rows: Vec<Vec<&str>> = text
+        .lines()
+        .map(|line| line.split('\t').collect())
+        .collect();
+    assert_eq!(rows.len(), 25);
+    let summer = rows
+        .iter()
+        .find(|row| row[0] == "summer-doyo-entry")
+        .expect("a day");
+    assert_eq!(summer[5], day(2024, 7, 19));
+    assert_eq!(summer[7..9], [day(2024, 7, 24), day(2024, 8, 5)]);
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_seasonal_days_in_year(2026, c"china".as_ptr(), buffer, capacity, written)
+    });
+    let fu: Vec<&str> = text
+        .lines()
+        .filter(|line| line.starts_with("san-fu\t"))
+        .map(|line| line.split('\t').nth(4).expect("a day"))
+        .collect();
+    assert_eq!(fu, [day(2026, 7, 15), day(2026, 7, 25), day(2026, 8, 14)]);
+    assert_eq!(
+        unsafe {
+            hc_zassetsu_in_year(
+                2024,
+                c"mars".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe {
+            hc_seasonal_days_in_year(
+                3001,
+                c"japan".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+}

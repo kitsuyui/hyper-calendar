@@ -148,3 +148,47 @@ fn a_number_crosses_in_its_system() {
     });
     assert!(text.starts_with("pm\tPM\tafternoon1\t"));
 }
+
+/// Japanese Wikipedia's 元号一覧 (日本): 248 eras to 令和, which began on
+/// 1 May 2019 (RD 737 180); Olympedia's editions: Paris 2024 opened on
+/// 26 July, and the VI Summer Games of 1916 were not held.
+#[test]
+fn the_era_table_and_the_games_cross_the_boundary() {
+    let table = |name: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_era_table(name.as_ptr(), name.len(), buffer, capacity)
+        })
+    };
+    let japanese = table("Japanese");
+    assert_eq!(japanese.lines().count(), 248);
+    assert!(japanese.lines().any(|line| {
+        line.starts_with("reiwa\t令和\tれいわ\tReiwa\tunified\t2019\t\t737180\t\tattested")
+    }));
+    assert_eq!(table("chinese-regnal").lines().count(), 37);
+    assert_eq!(table("korean-regnal").lines().count(), 3);
+    let games = |season: &str| {
+        read_lines(|buffer, capacity| unsafe {
+            hc_olympic_games(season.as_ptr(), season.len(), buffer, capacity)
+        })
+    };
+    let summer = games("summer");
+    assert!(
+        summer
+            .lines()
+            .any(|line| line.starts_with("33\t2024\tParis\tcelebrated\t"))
+    );
+    assert!(
+        summer
+            .lines()
+            .any(|line| line == "6\t1916\tBerlin\tnot-held\t\t")
+    );
+    assert!(
+        games("Winter")
+            .lines()
+            .any(|line| line.starts_with("24\t2022\tBeijing\t"))
+    );
+    let unknown = unsafe { hc_era_table("x".as_ptr(), 1, core::ptr::null_mut(), 0) };
+    assert_eq!(unknown, HC_ERR_UNKNOWN);
+    let spring = unsafe { hc_olympic_games("spring".as_ptr(), 6, core::ptr::null_mut(), 0) };
+    assert_eq!(spring, HC_ERR_UNKNOWN);
+}

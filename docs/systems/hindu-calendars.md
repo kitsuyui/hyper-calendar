@@ -1546,6 +1546,31 @@ phrase; the module states the coordinates only.
 
 ## Code
 
+The tithi's span and name, and the ayanāṃśa's table and value, reach the
+boundary as `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`,
+`hc_ayanamsa_at` and `hc_ayanamsa_from_anchor`. `tithi::tithi_span` finds
+when the elongation crossed and crosses a multiple of 12° by the search the
+yoga and karaṇa spans use, and `surya_siddhanta::tithi_span` does the same
+on the Siddhānta's sky; `tithi_name` and `TITHI_NAMES` are the thirty names in
+IAST as Wikipedia's "Tithi" prints them (`wikipedia-tithi`, re-read
+2026-10-03 for them). `hc_tithis_of_day` lists the tithis in progress from a
+day's sunrise to the next and flags each: it holds the day's sunrise, it
+holds the next one too (repeated, *adhika*), or it holds neither (skipped,
+*kṣaya*), the two cases the definition above gives. Tests:
+`a_tithi_ends_when_drik_panchang_says_and_a_day_lists_the_tithis_it_holds`
+(Drik Panchang's Tokyo page of 13 January 2025, "Chaturdashi upto 08:33 AM",
+`drik-day-panchang-tokyo-2025`),
+`the_tithis_of_january_2025_end_where_drik_panchangs_second_karanas_do` (29
+ends of the New Delhi pages, 0.6 to 1.6 minutes before the model's, the offset
+the karaṇas have) and `a_days_flags_agree_with_the_tithi_the_day_carries`
+(every day of 2025 at New Delhi against `tithi_of_day`, the flags counting
+the same skips and repeats; no dated skipped tithi of a source was read).
+`hc_ayanamsas` writes `Ayanamsa::ALL` with each anchor and its source,
+`hc_ayanamsa_at` the value by the IAU 2006 precession, and
+`hc_ayanamsa_from_anchor` the value of an anchor a caller gives, which the
+library allows (`Ayanamsa::new`) and the named table does not close
+(`the_ayanamsas_are_listed_and_valued_at_an_instant`).
+
 `crates/hc-calendars-indic/src/hindu_lunar.rs` (`HinduLunarCalendar`,
 `MIN_YEAR`, `MAX_YEAR`, `MONTHS`), `amanta.rs` (the month engine the
 two lunisolar skies share, `Sky`, `Amanta`), `hindu_lunar_siddhanta.rs`

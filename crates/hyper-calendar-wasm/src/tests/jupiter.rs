@@ -280,3 +280,66 @@ fn the_rising_of_2026_crosses_the_boundary() {
     let rising: i64 = rows[0][0].parse().expect("a second");
     assert!((unix(2026, 8, 11)..unix(2026, 8, 15)).contains(&rising));
 }
+
+/// The Maha Kumbh of 2025 at Prayag (`wikipedia-kumbh-mela`) is the one
+/// condition of seven the sky meets; Drik Panchang's "Jupiter becomes
+/// Retrograde" on 9 October 2024 at 12:33 IST (`drik-guru-retrograde`) is
+/// the first of the two stations of the next five months.
+#[test]
+fn the_kumbhs_of_a_year_and_jupiters_stations_cross_the_boundary() {
+    let rules = read_lines(|buffer, capacity| unsafe { hc_pushkaram_rules(buffer, capacity) });
+    let ids: Vec<&str> = rules
+        .lines()
+        .map(|line| line.split('\t').next().expect("an id"))
+        .collect();
+    assert_eq!(ids, ["pushkaram-final-entry", "pushkaram-first-entry"]);
+    let (ayanamsa, locale) = ("lahiri", "en");
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_kumbhs_in_year_by_sky(
+            2025,
+            ayanamsa.as_ptr(),
+            ayanamsa.len(),
+            locale.as_ptr(),
+            locale.len(),
+            buffer,
+            capacity,
+        )
+    });
+    let met: Vec<&str> = rows(&text)
+        .into_iter()
+        .filter(|cells| cells[12] == "1")
+        .map(|cells| cells[0])
+        .collect();
+    assert_eq!(met, ["kumbh-prayag-vrishabha"]);
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_jupiter_stations(
+            unix(2024, 9, 1),
+            unix(2025, 3, 1),
+            ayanamsa.as_ptr(),
+            ayanamsa.len(),
+            buffer,
+            capacity,
+        )
+    });
+    let stations = rows(&text);
+    assert_eq!(stations.len(), 2);
+    assert_eq!(stations[0][1], "retrograde");
+    assert_eq!(stations[1][1], "direct");
+    let drik = unix(2024, 10, 9) + 12 * 3_600 + 33 * 60 - 19_800;
+    let found: i64 = stations[0][0].parse().expect("an instant");
+    assert!((found - drik).abs() < 7 * 60, "{}", found - drik);
+    let bad = unsafe { hc_jupiter_stations(0, 1, "nope".as_ptr(), 4, core::ptr::null_mut(), 0) };
+    assert_eq!(bad, HC_ERR_UNKNOWN);
+    let far = unsafe {
+        hc_kumbhs_in_year_by_sky(
+            3001,
+            ayanamsa.as_ptr(),
+            ayanamsa.len(),
+            locale.as_ptr(),
+            locale.len(),
+            core::ptr::null_mut(),
+            0,
+        )
+    };
+    assert_eq!(far, HC_ERR_OUT_OF_RANGE);
+}

@@ -244,3 +244,27 @@ fn the_folk_days_watches_and_year_names_cross_the_boundary() {
         HC_ERR_OUT_OF_RANGE
     );
 }
+
+/// The Mela Adhikari's seven conditions and Wikipedia's Pushkaram table
+/// (`kumbh-allahabad-astrology`, `wikipedia-pushkaram`): Haridwar first, 14
+/// rivers with the Ganga at Meṣa.
+#[test]
+fn the_festivals_tables_cross_the_boundary() {
+    let locale = "en";
+    let yogas = read_lines(|buffer, capacity| unsafe {
+        hc_kumbh_yogas(locale.as_ptr(), locale.len(), buffer, capacity)
+    });
+    assert_eq!(yogas.lines().count(), 7);
+    assert!(yogas.starts_with(
+        "kumbh-haridwar\tharidwar\tHaridwar\ten\tGanga\tkumbha\tKumbha\tmesha\tMeṣa\t0\t"
+    ));
+    let rivers = read_lines(|buffer, capacity| unsafe {
+        hc_pushkaram_rivers(locale.as_ptr(), locale.len(), buffer, capacity)
+    });
+    assert_eq!(rivers.lines().count(), 14);
+    assert!(
+        rivers
+            .lines()
+            .any(|line| line.starts_with("pushkaram-ganga\t") && line.contains("\tmesha\tMeṣa\t"))
+    );
+}

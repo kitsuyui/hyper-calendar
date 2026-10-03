@@ -56,6 +56,65 @@ pub fn tithi_number_at(moment: Moment) -> u8 {
     }
 }
 
+/// The Moon's elongation from the Sun at a moment, 0° to 360°: the angle
+/// the tithi counts.
+fn elongation(moment: Moment) -> f64 {
+    normalize_degrees(lunar_longitude(moment) - solar_longitude(moment))
+}
+
+/// The tithi in progress at a moment: when it began and when it ends, the
+/// moments the elongation crossed and crosses a multiple of 12°.
+///
+/// A tithi takes from about 0.8 to 1.2 days, and the crossings are found by
+/// the search the yoga and the karaṇa use ([`crate::panchanga::yoga_span`],
+/// [`crate::panchanga::karana_span`]), so the spans of all three agree where
+/// they meet: a tithi ends where its second karaṇa does.
+#[must_use]
+pub fn tithi_span(moment: Moment) -> (Moment, Moment) {
+    crate::panchanga::span_of(elongation, DEGREES_PER_TITHI, moment)
+}
+
+/// The names of the first fourteen tithis of a fortnight, in IAST, as
+/// Wikipedia's "Tithi" prints them (`wikipedia-tithi`, retrieved
+/// 2026-10-03): the same fourteen in both fortnights. The fifteenth is
+/// Pūrṇimā in the bright fortnight and Amāvasyā in the dark; see
+/// [`tithi_name`].
+pub const TITHI_NAMES: [&str; 14] = [
+    "Pratipada",
+    "Dvitīyā",
+    "Tr̥tīyā",
+    "Caturthī",
+    "Pañcamī",
+    "Ṣaṣṭhī",
+    "Saptamī",
+    "Aṣṭamī",
+    "Navamī",
+    "Daśamī",
+    "Ekādaśī",
+    "Dvādaśī",
+    "Trayodaśī",
+    "Caturdaśī",
+];
+
+/// The name of a tithi, 1 to 30, in IAST: [`TITHI_NAMES`] for the first
+/// fourteen of a fortnight, Pūrṇimā for the fifteenth of the bright
+/// fortnight, the full moon, and Amāvasyā for the thirtieth, the new moon.
+/// `None` outside 1 to 30.
+#[must_use]
+pub const fn tithi_name(tithi: u8) -> Option<&'static str> {
+    if tithi < 1 || tithi > TITHIS_PER_MONTH {
+        return None;
+    }
+    let (_, day) = paksha_of(tithi);
+    if day < 15 {
+        Some(TITHI_NAMES[day as usize - 1])
+    } else if tithi == 15 {
+        Some("Pūrṇimā")
+    } else {
+        Some("Amāvasyā")
+    }
+}
+
 /// The fortnight and the day within it, 1 to 15, of a tithi number.
 #[must_use]
 pub const fn paksha_of(tithi: u8) -> (Paksha, u8) {
@@ -200,6 +259,41 @@ mod tests {
     use super::*;
     use crate::places::UJJAIN;
     use hc_astro::lunar::new_moon_at_or_after;
+
+    /// Wikipedia's "Tithi" (`wikipedia-tithi`, retrieved 2026-10-03) lists
+    /// the same fifteen names in each fortnight, the fifteenth Pūrṇimā in the
+    /// bright one and Amāvasyā in the dark.
+    #[test]
+    fn the_tithis_are_named_as_wikipedia_names_them() {
+        assert_eq!(tithi_name(1), Some("Pratipada"));
+        assert_eq!(tithi_name(11), Some("Ekādaśī"));
+        assert_eq!(tithi_name(14), Some("Caturdaśī"));
+        assert_eq!(tithi_name(15), Some("Pūrṇimā"));
+        assert_eq!(tithi_name(16), Some("Pratipada"));
+        assert_eq!(tithi_name(23), Some("Aṣṭamī"));
+        assert_eq!(tithi_name(30), Some("Amāvasyā"));
+        assert_eq!(tithi_name(0), None);
+        assert_eq!(tithi_name(31), None);
+    }
+
+    /// A span holds its moment, is about a day long, and meets the next at
+    /// the moment it ends, on either sky; at a new moon the thirtieth ends
+    /// as the first begins.
+    #[test]
+    fn a_tithi_span_holds_its_moment_and_meets_the_next() {
+        let moon = new_moon_at_or_after(Moment(738_000.0));
+        let spans: [fn(Moment) -> (Moment, Moment); 2] =
+            [tithi_span, crate::surya_siddhanta::tithi_span];
+        for span in spans {
+            let (began, ends) = span(Moment(moon.0 - 0.3));
+            assert!(began.0 < moon.0 - 0.3 && moon.0 - 0.3 < ends.0);
+            assert!((ends.0 - moon.0).abs() < 0.1, "{}", ends.0 - moon.0);
+            let (next_began, next_ends) = span(Moment(ends.0 + 1e-3));
+            assert!((next_began.0 - ends.0).abs() < 1e-6);
+            assert!((0.8..1.3).contains(&(next_ends.0 - next_began.0)));
+        }
+        assert_eq!(tithi_number_at(Moment(moon.0 - 0.3)), 30);
+    }
 
     #[test]
     fn the_tithi_restarts_at_every_new_moon() {

@@ -333,6 +333,18 @@ the National Diet Library and National Archives — were not read.
 `japanese_tenpo::UNBOUNDED_PARAMETERS`, read through
 `LunisolarParameters::from_fixed_unbounded`.
 
+At the boundary `hc_zassetsu_in_year(year, meridian)` writes the 21 days of
+`Zassetsu::ALL`, with the period a 土用の入り or a 彼岸入り opens and the one or
+two 丑の日 of a 土用, and the three older rules' days (`classical_nyubai`,
+`classical_hangesho`, `classical_shanichi`) under ids of their own; the
+tests are `the_zassetsu_of_2024_are_the_rekiyoko_s` in `hyper-calendar`'s
+`season_lines` and the 2024 days above. `hc_seasonal_days_in_year` writes the
+other seasonal days of `hc-seasons` the same way — `san_fu` (and `shu_jiu_periods`,
+the nine nines from the solstice), `dog_days`, `quarter_days` and
+`hizir_kasim`'s named days — anchored to the 三伏 of 2026 and the *Hundstage*
+as their modules' tests read them
+(`the_seasonal_days_of_a_year_are_their_sources`).
+
 Anchors in `zassetsu`:
 `the_zassetsu_of_2024_to_2027_fall_where_the_rekiyoko_puts_them`,
 `the_longitude_zassetsu_of_2024_to_2027_are_on_the_published_minute`,

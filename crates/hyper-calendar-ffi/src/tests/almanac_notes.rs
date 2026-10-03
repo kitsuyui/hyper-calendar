@@ -151,3 +151,74 @@ fn the_eras_and_the_numbers_cross() {
     });
     assert!(text.lines().any(|line| line == "latn\t0\t0123456789"));
 }
+
+/// Japanese Wikipedia's 元号一覧 (日本): 248 eras to 令和, which began on
+/// 1 May 2019 (RD 737 180); Olympedia's editions: Paris 2024 opened on
+/// 26 July, and the VI Summer Games of 1916 were not held.
+#[test]
+fn the_era_table_and_the_games_cross_the_c_boundary() {
+    let table = |name: &core::ffi::CStr| {
+        read_lines(|buffer, capacity, written| unsafe {
+            hc_era_table(name.as_ptr(), buffer, capacity, written)
+        })
+    };
+    let japanese = table(c"JAPANESE");
+    assert_eq!(japanese.lines().count(), 248);
+    assert!(japanese.lines().any(|line| {
+        line.starts_with("reiwa\t令和\tれいわ\tReiwa\tunified\t2019\t\t737180\t\tattested")
+    }));
+    assert_eq!(table(c"chinese-regnal").lines().count(), 37);
+    assert_eq!(table(c"korean-regnal").lines().count(), 3);
+    let games = |season: &core::ffi::CStr| {
+        read_lines(|buffer, capacity, written| unsafe {
+            hc_olympic_games(season.as_ptr(), buffer, capacity, written)
+        })
+    };
+    let summer = games(c"summer");
+    assert!(
+        summer
+            .lines()
+            .any(|line| line.starts_with("33\t2024\tParis\tcelebrated\t"))
+    );
+    assert!(
+        summer
+            .lines()
+            .any(|line| line == "6\t1916\tBerlin\tnot-held\t\t")
+    );
+    assert!(
+        games(c"Winter")
+            .lines()
+            .any(|line| line.starts_with("24\t2022\tBeijing\t"))
+    );
+    for status in [
+        unsafe {
+            hc_era_table(
+                c"x".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        unsafe {
+            hc_olympic_games(
+                c"spring".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+    ] {
+        assert_eq!(status, HC_ERROR_UNKNOWN);
+    }
+    assert_eq!(
+        unsafe {
+            hc_era_table(
+                core::ptr::null(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_NULL_POINTER
+    );
+}

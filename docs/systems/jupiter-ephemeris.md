@@ -401,8 +401,16 @@ that began is Pauṣa. Drik Panchang puts the asta from 15 July 19:59 to
 - `hc_seasons::zodiac::jupiter`: `sidereal_longitude`, `sign_at`, `position`,
   `Ingress`, `ingresses`, `EntryRule`, `entry_into`, `entries_in`, `Entries`,
   `HeliacalRising`, `next_heliacal_rising`, `VISIBILITY_ARC_DEGREES`, and `Station`,
-  `StationKind` and `stations`, Jupiter's *vakri* and *mārgī* dates, which no
-  export carries yet.
+  `StationKind` and `stations`, Jupiter's *vakri* and *mārgī* dates, which
+  `hc_jupiter_stations` writes with the sidereal sign and longitude each turns
+  at (`jupiters_stations_are_drik_panchangs`, Drik Panchang's retrograde of
+  9 October 2024 at 12:33 IST and progressive of 4 February 2025 at 15:09,
+  within 7 minutes). Jupiter's own rising and setting at a place, as
+  `hc_astro` gives the Sun's and the Moon's, is not carried: it needs
+  published times for a place to be tested against, and none was readable
+  (timeanddate.com and in-the-sky.org refused the page, and JPL Horizons was
+  not reachable through the tools the survey had), so the position's
+  rise and set are left to a later reading rather than answered untested.
 - The facade's `jupiter_lines` and the six exports of the `jupiter` layer:
   `hc_jupiter_at` (the position, tropical and sidereal), `hc_jupiter_ingresses`
   (a span's crossings), `hc_jupiter_risings` (a span's risings, with the year's

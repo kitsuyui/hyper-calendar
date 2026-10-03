@@ -195,6 +195,8 @@ test("the Jupiter lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.pushkaramBySky], columnsAfter("### Pushkaram by the sky"));
   assert.deepEqual([...COLUMNS.pushkaramsInYear], columnsAfter("### Pushkarams of a year by the sky"));
   assert.deepEqual([...COLUMNS.pushkaramsInYear], [...COLUMNS.pushkaramBySky]);
+  assert.deepEqual([...COLUMNS.kumbhYoga], columnsAfter("### The Kumbh and Pushkaram tables"));
+  assert.deepEqual([...COLUMNS.jupiterStation], columnsAfter("### Jupiter's stations"));
   // The computed forms add to the caller's: the thirteen cells of `hc_kumbh`, then two; the twelve of
   // `hc_pushkaram`, then two.
   assert.deepEqual([...COLUMNS.kumbhBySky.slice(0, COLUMNS.kumbh.length)], [...COLUMNS.kumbh]);
@@ -268,6 +270,19 @@ test("the decans and the Heliocentric Julian Date read the README's columns in o
 
 test("the pañcāṅga, the tables and the lectionary read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.panchanga], columnsAfter("## The pañcāṅga"));
+  assert.deepEqual([...COLUMNS.tithi], columnsAfter("### The tithi"));
+  // `hc_tithis_of_day` writes the tithi's eight columns and then the three flags the second table names.
+  assert.deepEqual([...COLUMNS.tithisOfDay], [...COLUMNS.tithi, "at sunrise", "repeated", "skipped"]);
+  for (const [number, flag] of [[9, "at sunrise"], [10, "repeated"], [11, "skipped"]]) {
+    assert.ok(README.includes(`\n| ${number} | ${flag} | `), flag);
+  }
+  assert.deepEqual([...COLUMNS.ayanamsaTable], columnsAfter("### Ayanāṃśas"));
+  // The second table of that section is the value line's.
+  const values = README.slice(README.indexOf("| 1 | degrees | ")).split("\n").filter((line) => line.startsWith("| "));
+  assert.deepEqual(
+    values.slice(0, COLUMNS.ayanamsaValue.length).map((row) => row.split(" | ")[1]),
+    [...COLUMNS.ayanamsaValue],
+  );
   assert.deepEqual([...COLUMNS.marriageAugury], columnsAfter("### The marriage augury"));
   assert.deepEqual([...COLUMNS.holidayTables], columnsAfter("### The tables"));
   assert.deepEqual([...COLUMNS.lectionary], columnsAfter("### The liturgical year"));
@@ -383,6 +398,8 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.dayPeriod], columnsAfter("### Day periods"));
   assert.deepEqual([...COLUMNS.numberingSystems], columnsAfter("### Numbering systems"));
   assert.deepEqual([...COLUMNS.calendarEras], columnsAfter("### A calendar's eras"));
+  assert.deepEqual([...COLUMNS.eraTable], columnsAfter("### The eras of a table"));
+  assert.deepEqual([...COLUMNS.olympicGames], columnsAfter("### The Olympic Games"));
   assert.deepEqual([...COLUMNS.holidayGroups], columnsAfter("### Groups and names in a locale"));
   assert.deepEqual([...COLUMNS.zoneName], columnsAfter("### A zone's name"));
   assert.deepEqual([...COLUMNS.roman1960Office], columnsAfter("### The 1960 office"));
@@ -392,6 +409,10 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.dayName], columnsAfter("### Named days"));
   assert.deepEqual([...COLUMNS.chineseAlmanacSolarTerms], columnsAfter("### The Qing almanac's solar terms"));
   assert.deepEqual([...COLUMNS.tibetanAlmanacDay], columnsAfter("### The Tibetan almanac"));
+  assert.deepEqual([...COLUMNS.pentadTraditions], columnsAfter("### Pentad traditions"));
+  assert.deepEqual([...COLUMNS.pentadInTradition], columnsAfter("### A pentad named by a tradition"));
+  assert.deepEqual([...COLUMNS.zassetsu], columnsAfter("### The 雑節"));
+  assert.deepEqual([...COLUMNS.seasonalDay], columnsAfter("### The other seasonal days"));
   assert.deepEqual([...COLUMNS.tibetanPlanets], columnsAfter("### The Tibetan planets"));
   assert.deepEqual([...COLUMNS.bhutaneseWinterSolstice], columnsAfter("### The Bhutanese winter solstice"));
   assert.deepEqual([...COLUMNS.almanacDirections], columnsAfter("### The year's directions"));

@@ -142,6 +142,19 @@ pub fn shu_jiu(day: Rd, meridian: Meridian) -> Option<(u8, u8)> {
     Some(((elapsed / 9 + 1) as u8, (elapsed % 9 + 1) as u8))
 }
 
+/// The nine nines of 數九 counted from the winter solstice of Gregorian
+/// `year` at `meridian`, 一九 to 九九: the first and the last day of each,
+/// nine days apiece, the solstice itself the first day of 一九. The last
+/// ends 80 days after the solstice, in March.
+#[must_use]
+pub fn shu_jiu_periods(year: i64, meridian: Meridian) -> [(Rd, Rd); 9] {
+    let start = term_day(year, SolarTerm::WINTER_SOLSTICE, meridian).0;
+    core::array::from_fn(|index| {
+        let first = start + 9 * index as i64;
+        (Rd(first), Rd(first + 8))
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -234,6 +247,23 @@ mod tests {
         );
         assert_eq!(fu.fu_of(gregorian::to_fixed_saturating(2026, 8, 24)), None);
         assert_eq!(Fu::Mo.chinese_name(), "末伏");
+    }
+
+    #[test]
+    fn the_nine_periods_are_nine_days_each_from_the_solstice() {
+        // The winter solstice of 2025 was 21 December in China (the test
+        // below): 三九, "in mid-January", is 8 to 16 January 2026, and
+        // 九九 ends 80 days after the solstice.
+        let periods = shu_jiu_periods(2025, Meridian::CHINA);
+        assert_eq!(periods[0].0, gregorian::to_fixed_saturating(2025, 12, 21));
+        assert_eq!(periods[0].1, gregorian::to_fixed_saturating(2025, 12, 29));
+        assert_eq!(periods[2].0, gregorian::to_fixed_saturating(2026, 1, 8));
+        assert_eq!(periods[2].1, gregorian::to_fixed_saturating(2026, 1, 16));
+        assert_eq!(periods[8].1.0 - periods[0].0.0, 80);
+        for (nine, (first, last)) in periods.into_iter().enumerate() {
+            assert_eq!(shu_jiu(first, Meridian::CHINA), Some((nine as u8 + 1, 1)));
+            assert_eq!(shu_jiu(last, Meridian::CHINA), Some((nine as u8 + 1, 9)));
+        }
     }
 
     #[test]

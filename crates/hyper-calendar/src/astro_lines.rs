@@ -478,7 +478,7 @@ pub const HJD_UTC_COLUMNS: usize = 3;
 ///
 /// [`Refusal::OutOfRange`] for a date that is not finite or lies outside
 /// [`EARLIEST_YEAR`]..=[`LATEST_YEAR`].
-fn julian_date_in_era(julian_date: f64) -> Answer<f64> {
+pub(crate) fn julian_date_in_era(julian_date: f64) -> Answer<f64> {
     let days = julian_date - JULIAN_DATE_OF_RD_ZERO;
     if julian_date.is_finite() && (FIRST_DAY as f64..END_DAY as f64).contains(&days) {
         Ok(julian_date)

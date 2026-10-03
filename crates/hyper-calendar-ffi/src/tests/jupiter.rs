@@ -202,3 +202,64 @@ fn the_rising_of_2026_crosses_the_c_boundary() {
     assert_eq!(rows.len(), 1);
     assert_eq!(rows[0][4], "pushya");
 }
+
+/// The Maha Kumbh of 2025 at Prayag (`wikipedia-kumbh-mela`) is the one
+/// condition of seven the sky meets; Drik Panchang's "Jupiter becomes
+/// Retrograde" on 9 October 2024 at 12:33 IST (`drik-guru-retrograde`) is
+/// the first of the two stations of the next five months.
+#[test]
+fn the_kumbhs_of_a_year_and_jupiters_stations_cross_the_c_boundary() {
+    let rules = read_lines(|buffer, capacity, written| unsafe {
+        hc_pushkaram_rules(buffer, capacity, written)
+    });
+    assert!(rules.starts_with("pushkaram-final-entry\t"));
+    assert_eq!(rules.lines().count(), 2);
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_kumbhs_in_year_by_sky(
+            2025,
+            c"lahiri".as_ptr(),
+            c"en".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    let met: Vec<&str> = rows(&text)
+        .into_iter()
+        .filter(|cells| cells[12] == "1")
+        .map(|cells| cells[0])
+        .collect();
+    assert_eq!(met, ["kumbh-prayag-vrishabha"]);
+    // 2024-09-01 and 2025-03-01, 00:00 UT.
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_jupiter_stations(
+            1_725_148_800,
+            1_740_787_200,
+            c"lahiri".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    let stations = rows(&text);
+    assert_eq!(stations.len(), 2);
+    assert_eq!((stations[0][1], stations[1][1]), ("retrograde", "direct"));
+    // 9 October 2024, 12:33 IST.
+    let drik = 1_728_432_000 + 12 * 3_600 + 33 * 60 - 19_800;
+    let found: i64 = stations[0][0].parse().expect("an instant");
+    assert!((found - drik).abs() < 7 * 60, "{}", found - drik);
+    let mut written = 0usize;
+    assert_eq!(
+        unsafe {
+            hc_jupiter_stations(
+                0,
+                1,
+                c"nope".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                &mut written,
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+}
