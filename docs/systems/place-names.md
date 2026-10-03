@@ -341,9 +341,11 @@ locale no table names, `de` or `zh-Hans`, gets `en`.
 
 ### Beside the holiday tables and the zones
 
-Column 9 of `hc_holiday_tables` lists the subdivisions a table's rules
-are scoped to, `JP-01;JP-07;…;JP-47` for the nineteen prefectures with
-days of their own, and `hc_holidays_on` writes the one an entry is for in
+Column 9 of `hc_holiday_tables` lists the regions a table answers for,
+the subdivisions its rules, weekend laws and substitution policies are
+scoped to, `JP-01;JP-07;…;JP-47` for the nineteen prefectures with
+days of their own and `MY-01;MY-02;MY-03;MY-09;MY-11` for the states of
+Malaysia whose weekend is their own, and `hc_holidays_on` writes the one an entry is for in
 its column 10. Every such code has a line here, and every
 country with a table has a territory line; a test in `place_lines` holds
 the lists to each other. One of the codes the tables use is `deprecated`

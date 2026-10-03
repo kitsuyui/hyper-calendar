@@ -55,7 +55,7 @@ fn one_day(day: Rd) -> (usize, Vec<Duration>) {
         let start = Instant::now();
         let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
         count += calendar.on(day).len() + calendar.gaps().len();
-        for region in table.regions() {
+        for region in table.answered_regions() {
             let regional = HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
             count += regional.on(day).len() + regional.gaps().len();
         }
@@ -105,7 +105,7 @@ fn dump(first: i64, last: i64, step: usize) {
                 for gap in calendar.gaps() {
                     println!("{fixed}\t{}\tgap {gap:?}", table.code);
                 }
-                for region in table.regions() {
+                for region in table.answered_regions() {
                     let regional =
                         HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
                     for holiday in regional.on(day) {

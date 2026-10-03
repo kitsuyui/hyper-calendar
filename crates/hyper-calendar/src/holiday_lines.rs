@@ -213,8 +213,8 @@ pub fn short_table_name(
 /// The lines of `hc_holiday_tables`, one per table in [`tables`] order:
 /// the code, the kind, the name in the locale, the English name, the
 /// locale that answered, the sources, the country of a subdivision or an
-/// exchange, the short name in the locale, the subdivisions the table's
-/// rules are scoped to, and the groups its rules are given to alone, by
+/// exchange, the short name in the locale, the regions the table answers
+/// for, and the groups its rules are given to alone, by
 /// identifier and by name in the locale.
 ///
 /// Column 3 follows [`table_name`]: a country is named as the locale's
@@ -234,11 +234,13 @@ pub fn short_table_name(
 /// locale's data — `Hong Kong` for `HK` under `en`, `香港` under `ja`, `UK`
 /// for `GB` — and empty where that data has none, which is most countries,
 /// and for every table that is not a country. Column 9 is
-/// [`RuleSet::regions`]: the ISO 3166-2 codes a caller may pass as the
-/// region of the table, separated by `;` in code order, `JP-11;JP-12;…`,
-/// and empty for a table with no subdivision's days; a region with only a
-/// weekend law of its own, Kedah, is not among them but in column 14, and is
-/// a region of the table all the same. Column 10 is
+/// [`RuleSet::answered_regions`]: the ISO 3166-2 codes a caller may pass as
+/// the region of the table and get other than the nationwide days,
+/// separated by `;` in code order, `JP-11;JP-12;…`, and empty for a table
+/// with no region of its own. A region whose only law of its own is a
+/// weekend or a substitution policy, Kedah's, is among them with the
+/// regions whose days are scoped to it: every export that takes a region
+/// answers for each of them. Column 10 is
 /// [`RuleSet::groups`]: the identifiers of the groups a caller may pass as
 /// the group of the table, `;`-separated in identifier order,
 /// `children;military;women;youth` for `CN`, and empty for a table that
@@ -251,8 +253,10 @@ pub fn short_table_name(
 /// days neither the region alone nor the group alone has; empty for a
 /// table with none. Column 13 is [`RuleSet::read_subdivisions`]: the
 /// ISO 3166-2 codes of the subdivisions the table's sources were read
-/// for, `;`-separated in code order — column 9's and those read and
-/// found to keep no day of their own — and empty for a table with no
+/// for, `;`-separated in code order — the regions whose days a rule is
+/// scoped to and those read and found to keep no day of their own, which
+/// leaves out a region of column 9 that only a weekend law or a
+/// substitution policy is scoped to — and empty for a table with no
 /// subdivisions and for one whose subdivisions were not read; a region
 /// asked of the table that is not in it keeps the nationwide days and has
 /// a gap for its own. Column 14 is [`weekend_cell`]: the table's weekend
@@ -273,7 +277,7 @@ pub fn holiday_tables(locale: &str) -> String {
             .cell(set.sources)
             .cell_or_empty(country_of(set, kind))
             .cell_or_empty(short_table_name(set, kind, requested.as_ref()))
-            .cell(&set.regions().join(";"));
+            .cell(&set.answered_regions().join(";"));
         let groups = set.groups();
         let ids: alloc::vec::Vec<&str> = groups.iter().map(|group| group.id).collect();
         let names: alloc::vec::Vec<&str> = groups
@@ -439,8 +443,7 @@ fn is_known_region(table: &RuleSet, region: &str) -> bool {
             .iter()
             .any(|code| hc_core::catalogue::matches(region, code))
     };
-    if named(table.regions()) || named(table.read_subdivisions()) || named(table.weekend_regions())
-    {
+    if named(table.answered_regions()) || named(table.read_subdivisions()) {
         return true;
     }
     // The subdivision is the first two parts of the code: `JP-14` of
@@ -484,26 +487,14 @@ fn requested_scope<'a>(
     Ok(Scope::new(region, group))
 }
 
-/// The subdivisions `hc_holidays_on` evaluates a table in, besides the
-/// nationwide days: those a rule is scoped to and those a weekend law is
-/// (ADR 0015), once each in code order. A region that has only a weekend
-/// law has no rule of its own, and its substitute days, which differ from
-/// the country's because its weekend does, are its own (audit 10 d2).
-fn day_regions(table: &RuleSet) -> alloc::vec::Vec<&'static str> {
-    let mut codes = table.regions();
-    codes.extend(table.weekend_regions());
-    codes.sort_unstable();
-    codes.dedup();
-    codes
-}
-
 /// The subdivision code of `table` that `region` names, as the table
-/// writes it: `JP-13` for `jp-13`. `None` when the table scopes no rule to
-/// it, which leaves the caller with the nationwide days.
+/// writes it: `JP-13` for `jp-13`. `None` when the table answers for no such
+/// region ([`RuleSet::answered_regions`]), which leaves the caller with the
+/// nationwide days.
 fn table_region(table: &RuleSet, region: Option<&str>) -> Option<&'static str> {
     let region = region?;
     table
-        .regions()
+        .answered_regions()
         .into_iter()
         .find(|code| hc_core::catalogue::matches(region, code))
 }
@@ -821,10 +812,11 @@ fn push_entry_lines(
 
 /// The lines of `hc_holidays_on`: for every table in [`tables`]' order,
 /// [`push_day_lines`] for the table evaluated nationwide, then
-/// [`push_region_day_lines`] for each subdivision of
-/// [`RuleSet::regions`] and of [`RuleSet::weekend_regions`], in code order,
-/// the second for the substitute days a weekend of its own moves (audit 10
-/// d2), so that a subdivision's own day —
+/// [`push_region_day_lines`] for each region of
+/// [`RuleSet::answered_regions`], in code order, the days of a region that
+/// has only a weekend or a substitution policy of its own being the
+/// substitute days that law moves (audit 10 d2), so that a subdivision's own
+/// day —
 /// Tokyo's 都民の日, a Canadian province's Civic Holiday — is a line with
 /// its region, and a day the nationwide calendar already has is not
 /// repeated; then [`push_scoped_day_lines`] for each group of
@@ -850,7 +842,7 @@ pub fn holidays_on(fixed: i64) -> Answer<String> {
         for table in tables() {
             let calendar = HolidayCalendar::for_day_with(table, None, day, &mut context);
             push_day_lines(&mut out, table, &calendar, day);
-            for region in day_regions(table) {
+            for region in table.answered_regions() {
                 let regional =
                     HolidayCalendar::for_day_with(table, Some(region), day, &mut context);
                 push_region_day_lines(&mut out, table, region, &regional, &calendar, day);
@@ -2526,9 +2518,19 @@ mod tests {
                 "{}",
                 cells[0]
             );
-            // What the rules are scoped to is read.
+            // What the rules are scoped to is read; a region of column 9
+            // that is not has only a weekend law or a substitution policy
+            // of its own, whose days were not read.
+            let only_law: alloc::vec::Vec<&str> = table
+                .weekend_regions()
+                .into_iter()
+                .chain(table.substitution_regions())
+                .collect();
             for region in cells[8].split(';').filter(|code| !code.is_empty()) {
-                assert!(cells[12].split(';').any(|read| read == region), "{region}");
+                assert!(
+                    cells[12].split(';').any(|read| read == region) || only_law.contains(&region),
+                    "{region}"
+                );
             }
         }
         let row = |code: &str| -> alloc::vec::Vec<&str> {

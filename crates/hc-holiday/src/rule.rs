@@ -3532,6 +3532,22 @@ impl RuleSet {
         codes
     }
 
+    /// Every subdivision code a substitution policy of the table is scoped
+    /// to, once each, in code order: the regions whose substitute days are
+    /// not the table's.
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn substitution_regions(&self) -> alloc::vec::Vec<&'static str> {
+        let mut codes: alloc::vec::Vec<&'static str> = self
+            .substitution
+            .iter()
+            .flat_map(|policy| policy.regions.iter().copied())
+            .collect();
+        codes.sort_unstable();
+        codes.dedup();
+        codes
+    }
+
     /// Every subdivision code mentioned anywhere in the table.
     ///
     /// Returned as an iterator of the raw codes, which may repeat; callers
@@ -3540,6 +3556,22 @@ impl RuleSet {
         self.rules
             .iter()
             .flat_map(|rule| rule.regions.iter().chain(rule.except_regions).copied())
+    }
+
+    /// Every subdivision code mentioned by a rule, a weekend policy or a
+    /// substitution policy of the table, which may repeat.
+    fn answered_region_codes(&self) -> impl Iterator<Item = &'static str> + '_ {
+        self.region_codes()
+            .chain(
+                self.weekend
+                    .iter()
+                    .flat_map(|policy| policy.regions.iter().copied()),
+            )
+            .chain(
+                self.substitution
+                    .iter()
+                    .flat_map(|policy| policy.regions.iter().copied()),
+            )
     }
 
     /// Whether the table's sources were read for `region` in some year, a
@@ -3590,12 +3622,30 @@ impl RuleSet {
     }
 
     /// Every subdivision code the table's rules are scoped to or excepted
-    /// from, once each, in code order: what a caller may pass as the region
-    /// of this table and get other than the nationwide days.
+    /// from, once each, in code order. A region that only a weekend law or a
+    /// substitution policy is scoped to is not among them:
+    /// [`RuleSet::answered_regions`] is every region the table answers for.
     #[cfg(feature = "alloc")]
     #[must_use]
     pub fn regions(&self) -> alloc::vec::Vec<&'static str> {
         let mut codes: alloc::vec::Vec<&'static str> = self.region_codes().collect();
+        codes.sort_unstable();
+        codes.dedup();
+        codes
+    }
+
+    /// Every region the table answers for with days of its own, once each,
+    /// in code order: the subdivisions its rules are scoped to or excepted
+    /// from ([`RuleSet::regions`]) and those only a weekend law
+    /// ([`RuleSet::weekend_regions`]) or a substitution policy
+    /// ([`RuleSet::substitution_regions`]) is scoped to, Kedah, whose
+    /// weekend is Friday and Saturday, and Sharjah. This is the one
+    /// definition of the regions a table lists: a caller may pass each as the
+    /// region of the table and get other than the nationwide days (ADR 0015).
+    #[cfg(feature = "alloc")]
+    #[must_use]
+    pub fn answered_regions(&self) -> alloc::vec::Vec<&'static str> {
+        let mut codes: alloc::vec::Vec<&'static str> = self.answered_region_codes().collect();
         codes.sort_unstable();
         codes.dedup();
         codes
@@ -3607,7 +3657,10 @@ impl RuleSet {
     /// day of their own, each one [`RuleSet::reads_region`] reads. Empty
     /// for a table with no subdivisions and for a country whose
     /// subdivisions were not read. A region outside the list, asked for,
-    /// keeps the nationwide days and has a gap for its own (ADR 0013).
+    /// keeps the nationwide days and has a gap for its own (ADR 0013). A
+    /// region that only a weekend law or a substitution policy is scoped to
+    /// is not among them unless a rule or [`Subdivisions::Read`] names it
+    /// too: the law was read, the days of the region were not.
     #[cfg(feature = "alloc")]
     #[must_use]
     pub fn read_subdivisions(&self) -> alloc::vec::Vec<&'static str> {

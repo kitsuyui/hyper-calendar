@@ -519,6 +519,15 @@ other region keeps the nationwide days, and its own are a gap named
 `UNREAD_SUBDIVISION` in each year asked for: New Hampshire, whose code was
 not read, or a Mexican state other than Jalisco.
 
+The regions a table answers for are `RuleSet::answered_regions`: the
+subdivisions its rules are scoped to or excepted from and those only a weekend
+law or a substitution policy is scoped to, sorted and once each, one
+definition that `hc_holiday_tables` lists and every export that takes a
+region accepts. Malaysia lists `MY-01`, `MY-02`, `MY-03`, `MY-09` and `MY-11`,
+and the Emirates `AE-SH`, although no rule is scoped to them, and their days
+are not read
+([ADR 0015](../../docs/adr/0015-a-region-may-keep-a-weekend-of-its-own.md)).
+
 A municipality is a region within its subdivision
 ([ADR 0014](../../docs/adr/0014-a-municipality-is-a-region-within-its-subdivision.md)):
 its code is the subdivision's ISO 3166-2 code, a hyphen, and its code

@@ -371,3 +371,46 @@ fn every_scoped_weekend_names_a_region_the_table_lists() {
     assert_eq!(table("AE").weekend_regions(), ["AE-SH"]);
     assert!(table("JP").weekend_regions().is_empty());
 }
+
+#[test]
+fn a_region_with_only_a_weekend_law_is_one_the_table_answers_for() {
+    // `regions` is the subdivisions the rules are scoped to, which Kedah has
+    // none of; `answered_regions` is the one list a front end offers and
+    // every export validates against.
+    for code in ["MY", "AE"] {
+        let set = table(code);
+        assert!(set.regions().is_empty(), "{code}");
+        let mut every: Vec<&str> = set.weekend_regions();
+        every.extend(set.substitution_regions());
+        every.sort_unstable();
+        every.dedup();
+        assert_eq!(set.answered_regions(), every, "{code}");
+        // Each is a region whose weekend is its own on some day.
+        for region in set.answered_regions() {
+            assert!(
+                set.weekend
+                    .iter()
+                    .any(|policy| policy.regions.contains(&region))
+            );
+        }
+    }
+    assert_eq!(
+        table("MY").answered_regions(),
+        ["MY-01", "MY-02", "MY-03", "MY-09", "MY-11"]
+    );
+    assert_eq!(table("AE").answered_regions(), ["AE-SH"]);
+    assert_eq!(
+        table("MY").substitution_regions(),
+        ["MY-01", "MY-02", "MY-03", "MY-11"]
+    );
+    assert!(table("AE").substitution_regions().is_empty());
+    // A table whose rules are scoped to regions lists them, and a weekend
+    // law adds none of its own where it names a region a rule already has.
+    for code in ["JP", "US", "CN", "CA"] {
+        let set = table(code);
+        assert_eq!(set.answered_regions(), set.regions(), "{code}");
+    }
+    // The reading of the days is not changed: Kedah's own days stay unread.
+    assert!(table("MY").read_subdivisions().is_empty());
+    assert!(!table("MY").reads_region("MY-02"));
+}

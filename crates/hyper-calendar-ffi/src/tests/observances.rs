@@ -81,6 +81,17 @@ fn the_tables_the_lectionary_and_easter_cross_the_boundary() {
         "Japan gives no day to a group alone"
     );
     assert_eq!(japan[13], "6+7///", "and keeps Saturday and Sunday");
+    // A region with only a weekend law of its own is listed.
+    let cells = |code: &str| -> Vec<&str> {
+        english
+            .lines()
+            .find(|line| line.split('\t').next() == Some(code))
+            .expect("a table")
+            .split('\t')
+            .collect()
+    };
+    assert_eq!(cells("MY")[8], "MY-01;MY-02;MY-03;MY-09;MY-11");
+    assert_eq!(cells("AE")[8], "AE-SH");
     let china: Vec<&str> = english
         .lines()
         .find(|line| line.starts_with("CN\t"))

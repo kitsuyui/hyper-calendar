@@ -1108,8 +1108,9 @@ subdivisions', with the group in its last column.
 
 `hc_holidays_on(fixed, buffer, capacity, written)` writes every entry on
 one day across every table `hc_holiday_codes` lists, in that order, each
-evaluated nationwide, then in each subdivision its rules are scoped to,
-then for each group its rules give days to alone, and last for each
+evaluated nationwide, then in each region it answers for (the
+subdivisions its rules, weekend laws and substitution policies are scoped
+to), then for each group its rules give days to alone, and last for each
 subdivision and group a rule names together, one line per (table, scope,
 entry): the table's identifier, its English name, the holiday's English
 name, its local name, the kind (`public`, `bank`, `religious`,
@@ -1141,7 +1142,8 @@ table in `hc_holiday_codes` order, in the fourteen columns of the WebAssembly
 module's README: the code, the kind, the name in the locale, the English
 name, the locale that answered, the sources, the country of a subdivision
 or an exchange where its table records one, the short name, the
-subdivisions the table's rules are scoped to, `;`-separated, the groups its
+regions the table answers for (the subdivisions its rules, weekend laws and
+substitution policies are scoped to), `;`-separated, the groups its
 rules give days to alone, `;`-separated, and those groups' names in the
 locale, English where `hc-i18n` names a group in no other language, the
 pairs of a subdivision and a group a rule is scoped to both of,

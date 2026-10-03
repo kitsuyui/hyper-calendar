@@ -151,6 +151,17 @@ writes nothing keeps Saturday and Sunday. The JavaScript binding reads the
 column into `HolidayTable.weekend`, a list of `{ days, first, last,
 regions }` with `days` null for `unread`.
 
+The regions an entry names are listed in column 9 of the same line: a
+table's regions are `RuleSet::answered_regions`, the subdivisions its rules,
+its weekend laws and its substitution policies are scoped to, sorted and once
+each. `MY` lists `MY-01;MY-02;MY-03;MY-09;MY-11` and `AE` lists `AE-SH`, though
+no rule of either is scoped to one, so that a menu built from column 9 offers
+them; `hc_holidays_in_year`, `hc_holiday_is_day_off`, `hc_holiday_is_weekend`
+and every other export that takes a `region` accept each of them, and
+`hc_place_name` names each, being CLDR subdivisions. Column 13, the
+subdivisions whose days were read, does not list them: the law of their
+weekend was read, their holidays were not.
+
 Not carried, each with its reason:
 
 - **Other Malaysian states.** Selangor, Penang, Melaka and the rest keep
@@ -258,14 +269,16 @@ Department's list for the year.
 
 - `crates/hc-holiday/src/rule.rs`: `WeekendPolicy::regions`,
   `SubstitutionPolicy::{regions, avoid}`, `RuleSet::{weekend_in,
-  weekend_on, weekend_unread_in, weekend_regions, substitution_in_region}`,
-  `UNREAD_WEEKEND`.
+  weekend_on, weekend_unread_in, weekend_regions, substitution_regions,
+  answered_regions, substitution_in_region}`, `UNREAD_WEEKEND`.
 - `crates/hc-holiday/src/engine.rs`: `HolidayCalendar::{is_weekend,
   weekend_is_read, add_business_days, business_days_between}` and the gap;
   `day_off`, `business_day`, `try_add_business_days`,
   `try_business_days_between`, `try_next_of`, `try_previous_of` and
   `Unanswered`, which say why a day is open.
-- `crates/hyper-calendar/src/holiday_lines.rs`: `weekend_cell`, column 14;
+- `crates/hyper-calendar/src/holiday_lines.rs`: `holiday_tables`, column 9
+  from `answered_regions`, and `weekend_cell`, column 14; the one test of
+  both is `crates/hyper-calendar/tests/holiday_table_regions.rs`;
   `is_weekend`, `is_day_off`, `add_business_days`, `business_days_between`,
   `next_holiday_line`, `previous_holiday_line` and `holidays_on`.
 - `crates/hc-holiday/tests/regional_weekends.rs`: the dated examples above;

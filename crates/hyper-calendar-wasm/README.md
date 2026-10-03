@@ -3501,8 +3501,8 @@ is named by an identifier of `hc_holiday::group` — `women`, `youth`,
 
 `hc_holidays_on(fixed, buffer, capacity)` writes every entry on one day
 across every table `hc_holiday_codes` lists, in that order, each evaluated
-nationwide, then in each subdivision its rules or its weekend law are scoped to, the
-regions of column 9 of `hc_holiday_tables` and those of column 14, in code order, then for each
+nationwide, then in each region of column 9 of `hc_holiday_tables`, the subdivisions its rules,
+its weekend laws or its substitution policies are scoped to, in code order, then for each
 group of its column 10, in identifier order, and last for each subdivision
 and group a rule names together. One line per (table, scope, entry): a
 subdivision's lines are the entries it has that the nationwide calendar
@@ -3604,11 +3604,11 @@ from CLDR's English by fallback has English's short name.
 | 6 | source | the statute, gazette or calendar the table names as its sources |
 | 7 | country | for a subdivision or an exchange, the ISO 3166-1 code of the country its table records, else empty; the code of a row whose column 3 names the country in the same locale |
 | 8 | short name | CLDR's `alt="short"` name for a country column 3 names from CLDR, from the same locale's data, else empty |
-| 9 | regions | the ISO 3166-2 codes of the subdivisions the table's rules are scoped to, `;`-separated in code order, the regions `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond the nationwide days; empty for a table with none; a region with only a weekend law, `MY-02`, is not listed here but in column 14, and is asked for in the same way |
+| 9 | regions | the ISO 3166-2 codes of the regions the table answers for, `;`-separated in code order: the subdivisions its rules, its weekend laws and its substitution policies are scoped to, so that `MY-02`, whose only law of its own is its weekend, is listed beside the states whose days are rules; every export that takes a `region` accepts each of them, and the regions `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond the nationwide days are these; empty for a table with none |
 | 10 | groups | the identifiers of the groups of people the table's rules give days to alone, `;`-separated in identifier order, the groups `hc_holidays_in_year` and `hc_holiday_is_day_off` answer for beyond everyone's days; empty for a table with none |
 | 11 | group names | those groups' names in the locale, in the same order: `hc-i18n`'s where it names the group in a language of the locale's chain, 妇女 for `women` under `zh-CN`, else the English name |
 | 12 | region groups | the pairs of a subdivision and a group that a rule is scoped to both of, `region:group`, `;`-separated in code and then identifier order, the scopes whose own days neither the region alone nor the group alone has; empty for a table with none, which is every table today |
-| 13 | read subdivisions | the ISO 3166-2 codes of the subdivisions the table's sources were read for, `;`-separated in code order: column 9's, and those read and found to keep no day of their own; a region outside the list keeps the nationwide days and has a gap for its own; empty for a table with no subdivisions and for a country whose subdivisions were not read |
+| 13 | read subdivisions | the ISO 3166-2 codes of the subdivisions the table's sources were read for, `;`-separated in code order: those of column 9 whose days are rules, and those read and found to keep no day of their own (a region of column 9 that has only a weekend law or a substitution policy is not read for its days); a region outside the list keeps the nationwide days and has a gap for its own; empty for a table with no subdivisions and for a country whose subdivisions were not read |
 | 14 | weekend | the table's weekend laws, `;`-separated in the table's order, each four fields separated by `/`: the weekend days as ISO 8601 weekday numbers joined by `+` (Monday 1 to Sunday 7, `5+6` for Friday and Saturday) or `unread` for years whose law was not read, the first day in force and the last, `YYYY-MM-DD`, each empty for none, and the ISO 3166-2 codes of the regions it is the weekend of, joined by `,`, empty for the whole table |
 
 Column 14 is the weekend a caller's `region` selects
@@ -3620,7 +3620,9 @@ country, `5+6/2013-11-25//MY-02,MY-03,MY-11` for the three states that keep
 Friday and Saturday and `5+6/2014-01-01/2024-12-31/MY-01` for Johor's
 decade, with `unread` entries for the years before `1994-12-31` (Johor)
 and `2013-11-24` (the three and Perlis) whose law was not read; `AE` ends
-with `5+6+7/2022-01-01//AE-SH`, the Government of Sharjah's. The weekend
+with `5+6+7/2022-01-01//AE-SH`, the Government of Sharjah's. Every region an
+entry names is in column 9 too (`MY`'s row lists `MY-01;MY-02;MY-03;MY-09;MY-11`,
+`AE`'s `AE-SH`), so that a menu of a table's regions offers them. The weekend
 changes what `hc_holiday_add_business_days`, `hc_holiday_business_days_between`
 and `hc_holidays_in_year` answer for such a region, and an `unread` day
 refuses the arithmetic with `HC_ERR_OUT_OF_RANGE` and is a gap line,
