@@ -17,6 +17,19 @@
 //! period, `h`/`H`/`K`/`k` hour, `m` minute, `s` second, `S` fractional
 //! second, `A` milliseconds in day, `z`/`Z`/`O`/`v`/`V`/`X`/`x` zone.
 //!
+//! The numeric fields are written in the locale's default numbering system
+//! (`hc_i18n::NumberingSystem::for_locale`, `-u-nu-` included) where that
+//! one is positional, as `O` always has been: `d MMMM y` is *٢١ سبتمبر ٢٠٢٦*
+//! in `ar-EG` and *21 septembre 2026* in `fr`. A system
+//! that spells numbers out, Han or Hebrew numerals, is written in Latin
+//! digits. Parsing reads the locale's digits and Latin ones.
+//!
+//! `w`, `Y` and `W` count weeks by the locale's week rule, UTS #35 Part 4's
+//! "Week of Year": the locale's first day of the week (`-u-fw-` first) and
+//! CLDR 48's `minDays` for its region, `hc_i18n::week::WeekRule`; with no
+//! locale, ISO 8601's, Monday and four. `W` is 0 for a day before its
+//! month's first week. `e` and `c` already followed the first day.
+//!
 //! The fields UTS #35 Part 4 (version 48.2, "Date Field Symbol Table")
 //! defines for other calendars take its Gregorian meaning here, since
 //! these patterns are Gregorian: `U`, where "the calendar does not provide
@@ -49,6 +62,8 @@
 //!   unique: `CST` is three different zones. Parsing consumes such a field
 //!   and leaves the zone unstated unless RFC 5322 assigns the name an
 //!   offset.
+//! * `O` and `Z` read an offset in Latin digits only, though `O` writes the
+//!   locale's.
 //! * `B` fixes no hour when parsing: a period that lies wholly before or
 //!   after noon gives am or pm, and one that spans midnight gives neither.
 
@@ -57,11 +72,12 @@ use core::fmt;
 use hc_i18n::Locale;
 use hc_i18n::day_periods::{self, FlexibleDayPeriod};
 use hc_i18n::names::{self, DayPeriod, NameContext, NameWidth};
+use hc_i18n::week::WeekRule;
 use hc_tz::{OffsetStyle, UtcOffset};
 
 use crate::error::{ErrorKind, FormatError, FormatResult, ParseResult};
 use crate::patterns::strftime::{
-    match_day_period, match_longest, match_month, match_weekday, number_field, ranged, read_offset,
+    match_day_period, match_longest, match_month, match_weekday, read_offset,
     starts_with_ignore_case,
 };
 use crate::patterns::{
@@ -184,12 +200,30 @@ pub fn format<W: fmt::Write>(
     let fields = context
         .fields()
         .map_err(|_| FormatError::Unrepresentable("the date"))?;
+    let digits = zone::digits(context.locale);
+    check_calendar(context)?;
+    let alternative = match crate::patterns::era_calendar(context) {
+        Some(calendar) => Some(
+            calendar
+                .fixed_to_fields(context.date_time.day)
+                .map_err(|_| FormatError::Unrepresentable("the date in the locale's calendar"))?,
+        ),
+        None => None,
+    };
     for token in Lexer::new(pattern) {
         match token.map_err(FormatError::UnterminatedLiteral)? {
             Token::Literal(text) => out.write_str(text)?,
             Token::Quote => out.write_char('\'')?,
             Token::Field(letter, count) => {
-                write_field(out, letter, count, context, &fields)?;
+                write_field(
+                    out,
+                    letter,
+                    count,
+                    context,
+                    &fields,
+                    &digits,
+                    alternative.as_ref(),
+                )?;
             }
         }
     }
@@ -202,14 +236,30 @@ fn write_field<W: fmt::Write>(
     count: usize,
     context: &FormatContext<'_>,
     fields: &Fields,
+    digits: &[char; 10],
+    alternative: Option<&hc_calendar::DateFields>,
 ) -> FormatResult<()> {
     let locale = context.locale;
     let width = name_width(count);
     match letter {
-        'G' => Ok(out.write_str(era_name(locale, fields.era_index(), width))?),
-        'y' => write_year(out, fields.era_year(), count),
-        'Y' => write_year(out, fields.iso_year, count),
-        'u' => write_signed(out, fields.year, count),
+        'G' => match alternative.as_ref() {
+            Some(date) => Ok(write_alternative_era(out, context, date, width)?),
+            None => Ok(out.write_str(era_name(locale, fields.era_index(), width))?),
+        },
+        'y' => match alternative.as_ref() {
+            Some(date) => write_year(out, year_of_era(date.year), count, digits),
+            None => write_year(out, fields.era_year(), count, digits),
+        },
+        'Y' => {
+            let (week_year, _) = week_rule(locale).week_of_year(context.date_time.day);
+            write_year(out, week_year, count, digits)
+        }
+        'u' => write_signed(
+            out,
+            alternative.as_ref().map_or(fields.year, |date| date.year),
+            count,
+            digits,
+        ),
         'Q' | 'q' => {
             let context_kind = if letter == 'q' {
                 NameContext::Standalone
@@ -217,7 +267,7 @@ fn write_field<W: fmt::Write>(
                 NameContext::Format
             };
             if count <= 2 {
-                write_padded(out, u64::from(fields.quarter()), count)
+                write_padded(out, u64::from(fields.quarter()), count, digits)
             } else {
                 Ok(out.write_str(quarter_name(locale, fields.quarter(), width, context_kind))?)
             }
@@ -229,16 +279,22 @@ fn write_field<W: fmt::Write>(
                 NameContext::Format
             };
             if count <= 2 {
-                write_padded(out, u64::from(fields.month), count)
+                write_padded(out, u64::from(fields.month), count, digits)
             } else {
                 Ok(out.write_str(month_name(locale, fields.month, width, context_kind))?)
             }
         }
-        'w' => write_padded(out, u64::from(fields.iso_week), count),
-        'W' => write_padded(out, u64::from(fields.week_of_month()), count),
-        'd' => write_padded(out, u64::from(fields.day), count),
-        'D' => write_padded(out, u64::from(fields.day_of_year), count),
-        'F' => write_padded(out, u64::from((fields.day - 1) / 7 + 1), count),
+        'w' => {
+            let (_, week) = week_rule(locale).week_of_year(context.date_time.day);
+            write_padded(out, u64::from(week), count, digits)
+        }
+        'W' => {
+            let week = week_rule(locale).week_of_month(context.date_time.day);
+            write_padded(out, u64::from(week), count, digits)
+        }
+        'd' => write_padded(out, u64::from(fields.day), count, digits),
+        'D' => write_padded(out, u64::from(fields.day_of_year), count, digits),
+        'F' => write_padded(out, u64::from((fields.day - 1) / 7 + 1), count, digits),
         'E' => Ok(out.write_str(weekday_name(
             locale,
             fields.weekday,
@@ -252,7 +308,7 @@ fn write_field<W: fmt::Write>(
                 NameContext::Format
             };
             if count <= 2 {
-                write_padded(out, u64::from(local_weekday(locale, fields)), count)
+                write_padded(out, u64::from(local_weekday(locale, fields)), count, digits)
             } else {
                 Ok(out.write_str(weekday_name(locale, fields.weekday, width, context_kind))?)
             }
@@ -261,18 +317,19 @@ fn write_field<W: fmt::Write>(
         'b' | 'B' => {
             Ok(out.write_str(extended_day_period(locale, fields, width, letter == 'B'))?)
         }
-        'h' => write_padded(out, u64::from(fields.hour12()), count),
-        'H' => write_padded(out, u64::from(fields.hour), count),
-        'K' => write_padded(out, u64::from(fields.hour % 12), count),
+        'h' => write_padded(out, u64::from(fields.hour12()), count, digits),
+        'H' => write_padded(out, u64::from(fields.hour), count, digits),
+        'K' => write_padded(out, u64::from(fields.hour % 12), count, digits),
         'k' => write_padded(
             out,
             u64::from(if fields.hour == 0 { 24 } else { fields.hour }),
             count,
+            digits,
         ),
-        'm' => write_padded(out, u64::from(fields.minute), count),
-        's' => write_padded(out, u64::from(fields.second), count),
-        'S' => write_fraction(out, fields.subsec_attos, count),
-        'A' => write_padded(out, u64::from(fields.millis_in_day()), count),
+        'm' => write_padded(out, u64::from(fields.minute), count, digits),
+        's' => write_padded(out, u64::from(fields.second), count, digits),
+        'S' => write_fraction(out, fields.subsec_attos, count, digits),
+        'A' => write_padded(out, u64::from(fields.millis_in_day()), count, digits),
         'z' => zone::write_specific(out, context, count >= 4),
         'Z' => write_zone_offset(out, context, count),
         'O' => zone::write_localized_gmt(out, locale, context.zone, count >= 4),
@@ -280,12 +337,68 @@ fn write_field<W: fmt::Write>(
         'V' => zone::write_zone_id(out, context, count),
         // UTS #35: a calendar with no cyclic year names writes `U` as `y`,
         // and the Gregorian calendar's related Gregorian year `r` is `u`.
-        'U' => write_year(out, fields.era_year(), count),
-        'r' => write_signed(out, fields.year, count),
-        'g' => write_signed(out, context.date_time.day.0 + JULIAN_DAY_OF_RD_ZERO, count),
+        'U' => match alternative.as_ref() {
+            Some(date) => write_year(out, year_of_era(date.year), count, digits),
+            None => write_year(out, fields.era_year(), count, digits),
+        },
+        'r' => write_signed(out, fields.year, count, digits),
+        'g' => write_signed(
+            out,
+            context.date_time.day.0 + JULIAN_DAY_OF_RD_ZERO,
+            count,
+            digits,
+        ),
         'X' => write_iso_offset(out, context.zone, count, true),
         'x' => write_iso_offset(out, context.zone, count, false),
         other => Err(FormatError::UnknownField(other)),
+    }
+}
+
+/// The calendars a `-u-ca-` key may name, with nothing said by the context:
+/// the Gregorian calendar and ISO 8601's, which the fields are, and the
+/// Buddhist and the Minguo, which share its months and days and which
+/// `G`, `y`, `u` and `U` are written in ([`crate::patterns::era_calendar`]).
+/// Any other would need its own months and days, which this engine does not
+/// write, and is refused rather than written as the Gregorian calendar.
+fn check_calendar(context: &FormatContext<'_>) -> FormatResult<()> {
+    let key = context.locale.and_then(|locale| locale.calendar());
+    match key {
+        Some(key)
+            if context.era_calendar.is_none()
+                && !matches!(key, "gregory" | "iso8601" | "buddhist" | "roc") =>
+        {
+            Err(FormatError::Unrepresentable(
+                "a calendar other than the Gregorian, Buddhist and Minguo",
+            ))
+        }
+        _ => Ok(()),
+    }
+}
+
+/// The year within its era: a year before the era's first, 0 and below, counts
+/// back from 1 as the Gregorian calendar's does.
+const fn year_of_era(year: i64) -> i64 {
+    if year < 1 { 1 - year } else { year }
+}
+
+/// `G` in an era calendar: the era's name at the field's width in the locale,
+/// else the calendar's own, else English's ([`crate::label::era_label`]).
+fn write_alternative_era<W: fmt::Write>(
+    out: &mut W,
+    context: &FormatContext<'_>,
+    date: &hc_calendar::DateFields,
+    width: NameWidth,
+) -> fmt::Result {
+    let (Some(calendar), Some(code)) = (crate::patterns::era_calendar(context), date.era) else {
+        return Ok(());
+    };
+    let locale = context
+        .locale
+        .copied()
+        .unwrap_or_else(hc_i18n::names::english);
+    match crate::label::era_label(calendar, &locale, code, width) {
+        Some(name) => out.write_str(name),
+        None => Ok(()),
     }
 }
 
@@ -349,37 +462,67 @@ fn match_extended_day_period(
     match_day_period(scanner, locale).map(Some)
 }
 
+/// The rule `w`, `Y` and `W` count weeks by: the locale's first day of the
+/// week and `minDays` ([`WeekRule::for_locale`], CLDR 48's `weekData`), and
+/// ISO 8601's, Monday and four days, with no locale: the `C` locale is
+/// POSIX's, and CLDR's root rule, Monday and one day, is not what a program
+/// that names no locale means by a week number.
+fn week_rule(locale: Option<&Locale>) -> WeekRule {
+    locale.map_or(WeekRule::ISO, WeekRule::for_locale)
+}
+
 /// The weekday numbered from the locale's own first day of the week.
 fn local_weekday(locale: Option<&Locale>, fields: &Fields) -> u8 {
     let first = locale.map_or(hc_calendar::Weekday::Monday, names::first_day_of_week);
     (fields.weekday.iso_number() + 7 - first.iso_number()) % 7 + 1
 }
 
-fn write_year<W: fmt::Write>(out: &mut W, year: i64, count: usize) -> FormatResult<()> {
+fn write_year<W: fmt::Write>(
+    out: &mut W,
+    year: i64,
+    count: usize,
+    digits: &[char; 10],
+) -> FormatResult<()> {
     // TR 35: exactly two letters means the last two digits, any other count
     // is a minimum width.
     if count == 2 {
-        return write_padded(out, year.unsigned_abs() % 100, 2);
+        return write_padded(out, year.unsigned_abs() % 100, 2, digits);
     }
-    write_signed(out, year, count)
+    write_signed(out, year, count, digits)
 }
 
-fn write_signed<W: fmt::Write>(out: &mut W, value: i64, count: usize) -> FormatResult<()> {
+fn write_signed<W: fmt::Write>(
+    out: &mut W,
+    value: i64,
+    count: usize,
+    digits: &[char; 10],
+) -> FormatResult<()> {
     if value < 0 {
         out.write_char('-')?;
     }
-    write_padded(out, value.unsigned_abs(), count)
+    write_padded(out, value.unsigned_abs(), count, digits)
 }
 
-fn write_padded<W: fmt::Write>(out: &mut W, value: u64, width: usize) -> FormatResult<()> {
-    write!(out, "{value:0width$}")?;
+/// A number in the locale's digits, at least `width` places wide.
+fn write_padded<W: fmt::Write>(
+    out: &mut W,
+    value: u64,
+    width: usize,
+    digits: &[char; 10],
+) -> FormatResult<()> {
+    zone::write_number(out, value, width, digits)?;
     Ok(())
 }
 
-fn write_fraction<W: fmt::Write>(out: &mut W, attos: u64, digits: usize) -> FormatResult<()> {
-    let digits = digits.clamp(1, 18);
-    let scale = 10u64.pow(18 - digits as u32);
-    write!(out, "{:0width$}", attos / scale, width = digits)?;
+fn write_fraction<W: fmt::Write>(
+    out: &mut W,
+    attos: u64,
+    places: usize,
+    digits: &[char; 10],
+) -> FormatResult<()> {
+    let places = places.clamp(1, 18);
+    let scale = 10u64.pow(18 - places as u32);
+    zone::write_number(out, attos / scale, places, digits)?;
     Ok(())
 }
 
@@ -457,6 +600,7 @@ pub fn parse_with_locale(
 ) -> ParseResult<ParsedFields> {
     let mut scanner = Scanner::new(text);
     let mut fields = ParsedFields::default();
+    let digits = zone::digits(locale);
     for token in Lexer::new(pattern) {
         let token = token.map_err(|_| scanner.error(ErrorKind::PatternMismatch))?;
         match token {
@@ -468,7 +612,7 @@ pub fn parse_with_locale(
                 scanner.advance(1);
             }
             Token::Field(letter, count) => {
-                read_field(letter, count, &mut scanner, &mut fields, locale)?;
+                read_field(letter, count, &mut scanner, &mut fields, locale, &digits)?;
             }
         }
     }
@@ -496,6 +640,7 @@ fn read_field(
     scanner: &mut Scanner<'_>,
     fields: &mut ParsedFields,
     locale: Option<&Locale>,
+    digits: &[char; 10],
 ) -> ParseResult<()> {
     match letter {
         'G' => {
@@ -505,23 +650,26 @@ fn read_field(
         }
         'y' => {
             if count == 2 {
-                fields.year_of_century = Some(number_field(scanner, 2, "year")?);
+                fields.year_of_century = Some(number(scanner, digits, 2, "year")?);
             } else {
-                fields.year = Some(number_field(scanner, 10, "year")?);
+                fields.year = Some(number(scanner, digits, 10, "year")?);
             }
         }
-        'Y' => fields.iso_year = Some(number_field(scanner, 10, "year")?),
+        'Y' => {
+            fields.iso_year = Some(number(scanner, digits, 10, "year")?);
+            fields.week_rule = locale.map(WeekRule::for_locale);
+        }
         'u' => {
             let negative = scanner.peek() == Some(b'-');
             if negative {
                 scanner.advance(1);
             }
-            let value = number_field(scanner, 10, "year")?;
+            let value = number(scanner, digits, 10, "year")?;
             fields.year = Some(if negative { -value } else { value });
         }
         'M' | 'L' => {
             if count <= 2 {
-                fields.month = Some(ranged(scanner, 2, 1, 12, "month")? as u8);
+                fields.month = Some(bounded(scanner, digits, 2, 1, 12, "month")? as u8);
             } else {
                 fields.month = Some(
                     match_month(scanner, locale)
@@ -529,9 +677,14 @@ fn read_field(
                 );
             }
         }
-        'd' => fields.day = Some(ranged(scanner, 2, 1, 31, "day")? as u8),
-        'D' => fields.day_of_year = Some(ranged(scanner, 3, 1, 366, "day of year")? as u16),
-        'w' => fields.iso_week = Some(ranged(scanner, 2, 1, 53, "week")? as u8),
+        'd' => fields.day = Some(bounded(scanner, digits, 2, 1, 31, "day")? as u8),
+        'D' => {
+            fields.day_of_year = Some(bounded(scanner, digits, 3, 1, 366, "day of year")? as u16)
+        }
+        'w' => {
+            fields.iso_week = Some(bounded(scanner, digits, 2, 1, 53, "week")? as u8);
+            fields.week_rule = locale.map(WeekRule::for_locale);
+        }
         'E' => {
             fields.iso_weekday = Some(
                 match_weekday(scanner, locale)
@@ -540,7 +693,7 @@ fn read_field(
         }
         'e' | 'c' => {
             if count <= 2 {
-                let local = ranged(scanner, 2, 1, 7, "weekday")? as u8;
+                let local = bounded(scanner, digits, 2, 1, 7, "weekday")? as u8;
                 let first = locale.map_or(hc_calendar::Weekday::Monday, names::first_day_of_week);
                 fields.iso_weekday = Some((first.iso_number() + local - 2) % 7 + 1);
             } else {
@@ -563,65 +716,127 @@ fn read_field(
                 fields.day_period = half;
             }
         }
-        'U' => fields.year = Some(number_field(scanner, 10, "year")?),
+        'U' => fields.year = Some(number(scanner, digits, 10, "year")?),
         'r' => {
             let negative = scanner.peek() == Some(b'-');
             if negative {
                 scanner.advance(1);
             }
-            let value = number_field(scanner, 10, "year")?;
+            let value = number(scanner, digits, 10, "year")?;
             fields.year = Some(if negative { -value } else { value });
         }
         'g' => {
-            let value = number_field(scanner, 12, "Julian day")?;
+            let value = number(scanner, digits, 12, "Julian day")?;
             fields.rd = Some(hc_calendar::Rd(value - JULIAN_DAY_OF_RD_ZERO));
         }
-        'h' => fields.hour12 = Some(ranged(scanner, 2, 1, 12, "hour")? as u8),
-        'H' => fields.hour = Some(ranged(scanner, 2, 0, 23, "hour")? as u8),
+        'h' => fields.hour12 = Some(bounded(scanner, digits, 2, 1, 12, "hour")? as u8),
+        'H' => fields.hour = Some(bounded(scanner, digits, 2, 0, 23, "hour")? as u8),
         'K' => {
-            let value = ranged(scanner, 2, 0, 11, "hour")? as u8;
+            let value = bounded(scanner, digits, 2, 0, 11, "hour")? as u8;
             fields.hour12 = Some(if value == 0 { 12 } else { value });
         }
         'k' => {
-            let value = ranged(scanner, 2, 1, 24, "hour")? as u8;
+            let value = bounded(scanner, digits, 2, 1, 24, "hour")? as u8;
             fields.hour = Some(value % 24);
         }
-        'm' => fields.minute = Some(ranged(scanner, 2, 0, 59, "minute")? as u8),
-        's' => fields.second = Some(ranged(scanner, 2, 0, 60, "second")? as u8),
+        'm' => fields.minute = Some(bounded(scanner, digits, 2, 0, 59, "minute")? as u8),
+        's' => fields.second = Some(bounded(scanner, digits, 2, 0, 60, "second")? as u8),
         'S' => {
-            let digits = count.clamp(1, 18);
+            let places = count.clamp(1, 18);
             let start = scanner.pos();
-            let available = scanner.digit_run().min(digits);
+            let (raw, available) = digit_run(scanner, digits, places);
             if available == 0 {
                 return Err(Scanner::error_at(ErrorKind::Digit, start));
             }
-            let raw = scanner.take_digits(available)?;
             fields.subsec_attos = Some(raw * 10u64.pow(18 - available as u32));
         }
         // Consumed and discarded: these narrow a date that the other fields
         // have already fixed, and none of them can fix one on its own.
         'Q' | 'q' => {
             if count <= 2 {
-                ranged(scanner, 2, 1, 4, "quarter")?;
+                bounded(scanner, digits, 2, 1, 4, "quarter")?;
             } else {
                 match_quarter(scanner, locale)
                     .ok_or_else(|| scanner.error(ErrorKind::UnknownName("quarter")))?;
             }
         }
         'W' => {
-            ranged(scanner, 1, 1, 5, "week of month")?;
+            bounded(scanner, digits, 1, 0, 6, "week of month")?;
         }
         'F' => {
-            ranged(scanner, 1, 1, 5, "day of week in month")?;
+            bounded(scanner, digits, 1, 1, 5, "day of week in month")?;
         }
         'A' => {
-            number_field(scanner, 9, "milliseconds")?;
+            number(scanner, digits, 9, "milliseconds")?;
         }
         'X' | 'x' | 'Z' | 'O' => fields.zone = Some(read_zone(scanner, letter)?),
         'z' | 'v' | 'V' => fields.zone = read_tolerant_zone(scanner),
         other => return Err(scanner.error(ErrorKind::UnsupportedPatternField(other))),
     }
     Ok(())
+}
+
+/// Up to `max` digits, in the locale's or in Latin ones: their value and how
+/// many there were.
+fn digit_run(scanner: &mut Scanner<'_>, digits: &[char; 10], max: usize) -> (u64, usize) {
+    let mut value: u64 = 0;
+    let mut places = 0;
+    let mut bytes = 0;
+    if scanner.peek().is_some_and(|byte| byte.is_ascii_digit()) {
+        places = scanner.digit_run().min(max);
+        for byte in &scanner.rest()[..places] {
+            value = value * 10 + u64::from(byte - b'0');
+        }
+        bytes = places;
+    } else if let Ok(text) = core::str::from_utf8(scanner.rest()) {
+        for character in text.chars() {
+            let Some(digit) = digits.iter().position(|candidate| *candidate == character) else {
+                break;
+            };
+            if places == max {
+                break;
+            }
+            value = value * 10 + digit as u64;
+            places += 1;
+            bytes += character.len_utf8();
+        }
+    }
+    scanner.advance(bytes);
+    (value, places)
+}
+
+/// A non-negative number of at most `max_digits` digits, in the locale's
+/// digits or in Latin ones.
+fn number(
+    scanner: &mut Scanner<'_>,
+    digits: &[char; 10],
+    max_digits: usize,
+    field: &'static str,
+) -> ParseResult<i64> {
+    scanner.skip_ascii_whitespace();
+    let start = scanner.pos();
+    let (value, places) = digit_run(scanner, digits, max_digits);
+    if places == 0 {
+        return Err(Scanner::error_at(ErrorKind::Digit, start));
+    }
+    i64::try_from(value).map_err(|_| Scanner::error_at(ErrorKind::OutOfRange(field), start))
+}
+
+/// [`number`] within `low..=high`.
+fn bounded(
+    scanner: &mut Scanner<'_>,
+    digits: &[char; 10],
+    max_digits: usize,
+    low: i64,
+    high: i64,
+    field: &'static str,
+) -> ParseResult<i64> {
+    let start = scanner.pos();
+    let value = number(scanner, digits, max_digits, field)?;
+    if value < low || value > high {
+        return Err(Scanner::error_at(ErrorKind::OutOfRange(field), start));
+    }
+    Ok(value)
 }
 
 fn read_zone(scanner: &mut Scanner<'_>, letter: char) -> ParseResult<ZoneInfo> {
@@ -840,6 +1055,209 @@ mod tests {
         }
     }
 
+    /// Node 22.15's `Intl.DateTimeFormat` (ICU 76.1, CLDR 46), read
+    /// 2026-10-03, for 2026-09-21: the numeric fields are in the locale's
+    /// default numbering system, or the one `-u-nu-` names, in `ar-EG`,
+    /// `fa`, `mr`, `bn`, `ne` and `en-u-nu-arab`, and in Latin digits in the
+    /// locales whose default is `latn`.
+    #[test]
+    fn the_numeric_fields_are_written_in_the_locales_digits() {
+        for (tag, pattern, expected) in [
+            ("ar-EG", "d MMMM y", "٢١ سبتمبر ٢٠٢٦"),
+            ("fa", "d MMMM y", "۲۱ سپتامبر ۲۰۲۶"),
+            ("mr", "d MMMM, y", "२१ सप्टेंबर, २०२६"),
+            ("bn", "d MMMM, y", "২১ সেপ্টেম্বর, ২০২৬"),
+            ("en-u-nu-arab", "MMMM d, y", "September ٢١, ٢٠٢٦"),
+            ("th-u-ca-buddhist-nu-thai", "d MMMM y", "๒๑ กันยายน ๒๕๖๙"),
+            ("ar", "d MMMM y", "21 سبتمبر 2026"),
+            ("th", "d MMMM y", "21 กันยายน 2026"),
+        ] {
+            let locale = Locale::parse(tag).unwrap();
+            let context = context().with_locale(&locale);
+            assert_eq!(render_in(pattern, &context), expected, "{tag}");
+        }
+    }
+
+    /// The digits of a locale are read back as the numbers they write, and
+    /// Latin ones still are.
+    #[test]
+    fn a_locales_digits_are_read_back() {
+        let arabic = Locale::parse("ar-EG").unwrap();
+        for text in ["٢١ سبتمبر ٢٠٢٦", "21 سبتمبر 2026"] {
+            let parsed = parse_with_locale("d MMMM y", text, Some(&arabic)).unwrap();
+            assert_eq!(
+                (parsed.day, parsed.month, parsed.year),
+                (Some(21), Some(9), Some(2026))
+            );
+        }
+        let parsed = parse_with_locale("HH:mm:ss.SSS", "١٣:٠٥:٠٩.٥٠٠", Some(&arabic)).unwrap();
+        assert_eq!(
+            (
+                parsed.hour,
+                parsed.minute,
+                parsed.second,
+                parsed.subsec_attos
+            ),
+            (Some(13), Some(5), Some(9), Some(500_000_000_000_000_000))
+        );
+        assert!(parse_with_locale("d", "x", Some(&arabic)).is_err());
+    }
+
+    /// `-u-ca-buddhist` and `-u-ca-roc` write the era and the year of their
+    /// calendars in `G`, `y` and `u`, as ICU does (Node 22.15, read
+    /// 2026-10-03: `th-u-ca-buddhist` *พ.ศ. 2569*, `zh-TW-u-ca-roc`
+    /// *民國115年9月21日*); the months and days are the Gregorian ones both
+    /// calendars share.
+    #[test]
+    fn an_era_calendar_key_writes_its_eras_and_years() {
+        for (tag, pattern, expected) in [
+            ("th-u-ca-buddhist", "G y", "พ.ศ. 2569"),
+            ("th-u-ca-buddhist", "d MMMM u", "21 กันยายน 2569"),
+            ("th-u-ca-buddhist", "y r", "2569 2026"),
+            ("zh-TW-u-ca-roc", "Gy年M月d日", "民國115年9月21日"),
+            ("th", "G y", "ค.ศ. 2026"),
+        ] {
+            let locale = Locale::parse(tag).unwrap();
+            let context = context().with_locale(&locale);
+            assert_eq!(render_in(pattern, &context), expected, "{tag} {pattern}");
+        }
+    }
+
+    /// A calendar the engine has no months for is refused, not written as
+    /// the Gregorian one; the Gregorian and ISO keys are the engine's own.
+    #[test]
+    fn a_calendar_key_the_engine_cannot_write_is_refused() {
+        for tag in ["ar-u-ca-islamic", "he-u-ca-hebrew", "ja-u-ca-japanese"] {
+            let locale = Locale::parse(tag).unwrap();
+            let mut out = String::new();
+            let context = context().with_locale(&locale);
+            assert!(format(&mut out, "d MMMM y", &context).is_err(), "{tag}");
+        }
+        for tag in ["en-u-ca-gregory", "en-u-ca-iso8601"] {
+            let locale = Locale::parse(tag).unwrap();
+            let context = context().with_locale(&locale);
+            assert_eq!(
+                render_in("d MMMM y", &context),
+                "21 September 2026",
+                "{tag}"
+            );
+        }
+    }
+
+    /// UTS #35 Part 4, "Week of Year": week 1 is the first week, starting on
+    /// the locale's first day, with `minDays` days of the year. 1 January
+    /// 2021 is a Friday: with Sunday and one day, the week of 27 December
+    /// holds two days of 2021 and is week 1 of 2021, and 26 December is week
+    /// 52 of 2020; with Monday and four days, the ISO rule, that week holds
+    /// three and is week 53 of 2020; with Saturday and one day (`ar`) the
+    /// week of 26 December holds six and is week 1. 1 November 2026 is a
+    /// Sunday, alone in its week of the month under Monday and four days.
+    #[test]
+    fn the_week_fields_follow_the_locales_week_rule() {
+        let at = |year, month, day| {
+            FormatContext::new(CivilDateTime::new(
+                hc_calendars_solar::gregorian::to_fixed(year, month, day).unwrap(),
+                CivilTime::hms(12, 0, 0).unwrap(),
+            ))
+        };
+        let write = |tag: Option<&str>, (year, month, day), pattern: &str| {
+            let locale = tag.map(|tag| Locale::parse(tag).unwrap());
+            let mut context = at(year, month, day);
+            if let Some(locale) = locale.as_ref() {
+                context = context.with_locale(locale);
+            }
+            let mut out = String::new();
+            format(&mut out, pattern, &context).unwrap();
+            out
+        };
+        let pattern = "Y-'W'w e";
+        assert_eq!(write(Some("en-US"), (2021, 1, 1), pattern), "2021-W1 6");
+        assert_eq!(write(Some("en-US"), (2020, 12, 27), pattern), "2021-W1 1");
+        assert_eq!(write(Some("en-US"), (2020, 12, 26), pattern), "2020-W52 7");
+        assert_eq!(write(Some("de"), (2021, 1, 1), pattern), "2020-W53 5");
+        assert_eq!(write(None, (2021, 1, 1), pattern), "2020-W53 5");
+        assert_eq!(write(Some("ar"), (2021, 1, 1), pattern), "2021-W1 7");
+        assert_eq!(write(Some("ja"), (2021, 1, 1), pattern), "2021-W1 6");
+        assert_eq!(write(Some("de"), (2026, 11, 1), "W"), "0");
+        assert_eq!(write(Some("en-US"), (2026, 11, 1), "W"), "1");
+        assert_eq!(write(Some("de"), (2026, 11, 2), "W"), "1");
+        // UTS #35's own example: 1 January 1998 is a Thursday, and with
+        // Sunday first and four days (`pt-PT`) the first three days of 1998
+        // are in week 53 of 1997; with Sunday and one day (`en-US`) they are
+        // in week 1.
+        assert_eq!(write(Some("pt-PT"), (1998, 1, 3), "Y w"), "1997 53");
+        assert_eq!(write(Some("en-US"), (1998, 1, 3), "Y w"), "1998 1");
+        assert_eq!(write(Some("de"), (1997, 12, 29), "Y w"), "1998 1");
+        // The first day follows `-u-fw-` and keeps the region's minimum days.
+        assert_eq!(
+            write(Some("en-US-u-fw-mon"), (2021, 1, 1), pattern),
+            "2021-W1 5"
+        );
+    }
+
+    /// A week date written with a locale's rule is read back as the day it
+    /// names, in every rule and in a locale's digits.
+    #[test]
+    fn a_week_date_in_a_locales_rule_round_trips() {
+        for tag in ["en-US", "de", "ar", "ar-EG", "fa", "ja", "pt-PT", "he"] {
+            let locale = Locale::parse(tag).unwrap();
+            for step in 0..800 {
+                let day = Rd(739_300 + step);
+                let context =
+                    FormatContext::new(CivilDateTime::new(day, CivilTime::hms(0, 0, 0).unwrap()))
+                        .with_locale(&locale);
+                let mut text = String::new();
+                format(&mut text, "Y-'W'w-e", &context).unwrap();
+                let parsed = parse_with_locale("Y-'W'w-e", &text, Some(&locale)).unwrap();
+                assert_eq!(
+                    parsed.to_offset_date_time().unwrap().local.day,
+                    day,
+                    "{tag} {text}"
+                );
+            }
+        }
+    }
+
+    /// The localized GMT format at a zero offset is the locale's
+    /// `gmtZeroFormat` in the short and the long form alike: ICU4J's
+    /// `TimeZoneFormat.formatOffsetLocalizedGMT` and
+    /// `formatOffsetShortLocalizedGMT` both document "GMT zero format", and
+    /// ICU 76.1 (Node 22's `timeZoneName: "longOffset"`) writes `GMT` in
+    /// `en`, `de` and `ja` and `غرينتش` in `ar` for the one UTC instant.
+    #[test]
+    fn the_localized_gmt_format_writes_a_zero_offset_as_the_zero_format() {
+        let utc = context().with_zone(ZoneInfo::Zulu);
+        assert_eq!(render_in("O|OOOO|ZZZZ", &utc), "GMT|GMT|GMT");
+        let offset_zero =
+            context().with_zone(ZoneInfo::Offset(UtcOffset::from_seconds(0).unwrap()));
+        assert_eq!(
+            render_in("O|OOOO|ZZZZ|Z|ZZZZZ", &offset_zero),
+            "GMT|GMT|GMT|+0000|Z"
+        );
+        // A different offset keeps the hour format.
+        let plus = context().with_zone(ZoneInfo::Offset(UtcOffset::from_hms(1, 0, 0).unwrap()));
+        assert_eq!(render_in("O|OOOO", &plus), "GMT+1|GMT+01:00");
+    }
+
+    #[cfg(feature = "localized-zone-names")]
+    #[test]
+    fn a_locales_zero_format_is_its_own_word() {
+        let utc = context().with_zone(ZoneInfo::Zulu);
+        for (tag, text) in [
+            ("en", "GMT"),
+            ("de", "GMT"),
+            ("ja", "GMT"),
+            ("ar", "غرينتش"),
+        ] {
+            let locale = Locale::parse(tag).unwrap();
+            assert_eq!(
+                render_in("O|OOOO", &utc.with_locale(&locale)),
+                format!("{text}|{text}"),
+                "{tag}"
+            );
+        }
+    }
+
     #[test]
     fn the_x_fields_write_zulu_for_utc_and_the_lowercase_ones_do_not() {
         let utc = context().with_zone(ZoneInfo::Zulu);
@@ -938,6 +1356,39 @@ mod tests {
         // The IANA name reaches CLDR's identifier, Asia/Calcutta.
         let kolkata = at("Asia/Kolkata", 5);
         assert_eq!(render_in("V|vvvv", &kolkata), "inccu|India Standard Time");
+    }
+
+    /// Dublin with the main-format tzdata footer, `IST-1GMT0,M10.5.0,
+    /// M3.5.0/1` (the tz database's `europe` file gives Ireland a negative
+    /// saving: UTC+1 `IST` is the standard time, and winter's `GMT` is
+    /// flagged as the saving): the specific names follow CLDR 48's
+    /// `en.xml`, whose *Irish Standard Time* is Dublin's daylight name, so
+    /// they read the summer reading, `TimeZone::is_summer_time_at`, and not
+    /// the flag. July is *Irish Standard Time* and January *Greenwich Mean
+    /// Time*, as they are in the rearguard format.
+    #[cfg(feature = "zone-names")]
+    #[test]
+    fn dublin_in_the_main_format_names_its_summer_as_daylight_time() {
+        use hc_tz::{PosixTimeZone, TimeZone};
+        let english = Locale::parse("en").unwrap();
+        for (footer, label) in [
+            ("IST-1GMT0,M10.5.0,M3.5.0/1", "main"),
+            ("GMT0IST,M3.5.0/1,M10.5.0", "rearguard"),
+        ] {
+            let dublin = PosixTimeZone::parse("Europe/Dublin", footer).unwrap();
+            for (day, hour, offset, text) in [
+                (739_798, 12, 1, "GMT+1|Irish Standard Time"),
+                (739_631, 12, 0, "GMT|Greenwich Mean Time"),
+            ] {
+                let instant =
+                    hc_core::UnixTime::from_seconds((day - 719_163) * 86_400 + 12 * 3_600);
+                let context = zoned(day, hour, offset, "Europe/Dublin", false)
+                    .with_daylight(dublin.is_summer_time_at(instant))
+                    .with_zone_rules(&dublin)
+                    .with_locale(&english);
+                assert_eq!(render_in("z|zzzz", &context), text, "{label} {day}");
+            }
+        }
     }
 
     /// UTS #35 Part 4's last type fallback, whose example is "Mountain

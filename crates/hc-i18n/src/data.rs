@@ -8,11 +8,15 @@
 //! # Provenance
 //!
 //! The vocabulary follows Unicode CLDR 48, the `common/main/<locale>.xml`
-//! `calendars` sections at tag `release-48` (`cldr48-main`), and is
-//! hand-checked, not generated: it is a subset chosen for calendar work.
-//! Each entry's [`LocaleData::sources`] names the file it follows; on
-//! 2026-09-26 the Gregorian months and weekdays of the 35 entries that
-//! follow CLDR were compared with those files. An entry carries its
+//! `calendars` sections at tag `release-48` (`cldr48-main`): a subset
+//! chosen for calendar work. The Gregorian months, weekdays, quarters and
+//! eras of the entries that follow CLDR are generated into this file in
+//! place by `scripts/locales-cldr.py`, which reads each entry's files (those
+//! `scripts/cldr_xml.py` lists) as CLDR resolves them and whose `--check`
+//! fails where one differs, read 2026-10-03; the rest of the file, the other
+//! calendars' vocabulary and the templates, is hand-written, and
+//! hand-checked against those files on 2026-09-26. Each entry's
+//! [`LocaleData::sources`] names the file it follows. An entry carries its
 //! language's own file and CLDR's default (non-`alt`) values. The regional
 //! files carried are the regional entries `scripts/locales-cldr.py`
 //! generates (`en-001`, `en-GB`, `es-419`, `zh-Hant-HK`, `ur-IN`, `ar-EG`,
@@ -66,12 +70,21 @@
 //!   Hijri calendar as Afghanistan kept it. Their Gregorian
 //!   vocabulary is CLDR's where CLDR has the locale (CLDR 48,
 //!   `common/main/<locale>.xml`, read 2026-09-25 and 2026-09-26 from the
-//!   `release-48` tag of github.com/unicode-org/cldr); CLDR has no `cop`,
-//!   `ban`, `yua`, `nah`, `zap` or `mid`, so those entries state only what
-//!   the calendars' own sources say. Where a CLDR value is the
-//!   inheritance marker `↑↑↑`, the value it resolves to under CLDR's aliases
+//!   `release-48` tag of github.com/unicode-org/cldr); CLDR has no `ban`,
+//!   `yua`, `nah`, `zap` or `mid`, and its `cop.xml` states every value
+//!   `unconfirmed` ("no confirmation available", UTS #35 Part 1), which
+//!   this crate does not carry, so those entries state only what the
+//!   calendars' own sources say. Where a CLDR value is the inheritance
+//!   marker `↑↑↑`, the value it resolves to under CLDR's aliases
 //!   (abbreviated to wide, format narrow to stand-alone narrow) is what is
-//!   written here, and a width that resolves to the wide form is left empty.
+//!   written, so that a width the file states, a Russian narrow month И, is
+//!   carried as stated. A width is left empty, and answered by the next
+//!   wider one of the same entry, only where the file leaves it to the
+//!   abbreviated or the wide form, or where nothing but `root.xml` gives it:
+//!   its numbered narrow months and its English initials for the narrow
+//!   weekdays, which are not the language's names (Pidgin's narrow Sunday is
+//!   Sọ́n, not root's S, where ICU writes S; Swahili's narrow Thursday is
+//!   Alh, not T).
 //! * The sexagenary cycle is written in whichever of the readings
 //!   `hc_calendar::cycle::readings` catalogues the locale uses; only the
 //!   zodiac animals are spelled here, for Chinese in both scripts, Japanese,
@@ -83,7 +96,7 @@ use hc_calendar::{CalendarId, Weekday};
 mod cldr48_locales;
 mod japanese_eras;
 
-pub use cldr48_locales::{DEFAULT_NUMBERING, OTHER_NUMBERING, PARENT_LOCALES};
+pub use cldr48_locales::{DEFAULT_NUMBERING, OTHER_NUMBERING, PARENT_LOCALES, REGION_MIN_DAYS};
 
 use crate::casing::CasingStyle;
 use crate::direction::Direction;
@@ -1684,6 +1697,7 @@ pub static ROOT: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -1852,7 +1866,7 @@ const AM_CALENDARS: &[CalendarNames] = &[
 
 const AM: LocaleData = LocaleData {
     tag: "am",
-    sources: "Unicode CLDR 48, common/main/am.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/am.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Amharic",
     native_name: "አማርኛ",
     script: "Ethi",
@@ -1861,6 +1875,7 @@ const AM: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -1898,10 +1913,14 @@ const AR_CALENDARS: &[CalendarNames] = &[
                 "ديسمبر",
             ],
             &[],
-            &[],
+            &["ي", "ف", "م", "أ", "و", "ن", "ل", "غ", "س", "ك", "ب", "د"],
         )))],
         gregorian_eras(&["قبل الميلاد", "ميلادي"], &["ق.م", "م"], &[]),
-        ContextualNames::EMPTY,
+        ContextualNames::same(widths(
+            &["الربع الأول", "الربع الثاني", "الربع الثالث", "الربع الرابع"],
+            &[],
+            &["١", "٢", "٣", "٤"],
+        )),
     ),
     // CLDR 48 `ar.xml`, `calendar type="islamic"`, compared 2026-09-26.
     dated(
@@ -1951,7 +1970,7 @@ const AR_CALENDARS: &[CalendarNames] = &[
 
 const AR: LocaleData = LocaleData {
     tag: "ar",
-    sources: "Unicode CLDR 48, common/main/ar.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ar.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Arabic",
     native_name: "العربية",
     script: "Arab",
@@ -1964,6 +1983,7 @@ const AR: LocaleData = LocaleData {
     // (`crate::data::DEFAULT_NUMBERING`).
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -1977,7 +1997,7 @@ const AR: LocaleData = LocaleData {
             "الأحد",
         ],
         &[],
-        &[],
+        &["إثنين", "ثلاثاء", "أربعاء", "خميس", "جمعة", "سبت", "أحد"],
         &["ن", "ث", "ر", "خ", "ج", "س", "ح"],
     )),
     day_periods: ContextualNames::same(widths(&["ص", "م"], &[], &[])),
@@ -2108,6 +2128,7 @@ const BAN: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -2186,43 +2207,24 @@ const BN_BANGABDA_MONTHS: &[&str] = &[
     "চৈত্র",
 ];
 
-const BN_MONTHS: &[&str] = &[
-    "জানুয়ারি",
-    "ফেব্রুয়ারি",
-    "মার্চ",
-    "এপ্রিল",
-    "মে",
-    "জুন",
-    "জুলাই",
-    "আগস্ট",
-    "সেপ্টেম্বর",
-    "অক্টোবর",
-    "নভেম্বর",
-    "ডিসেম্বর",
-];
-
-const BN_NARROW_MONTHS: &[&str] = &[
-    "জা",
-    "ফে",
-    "মা",
-    "এ",
-    "মে",
-    "জুন",
-    "জু",
-    "আ",
-    "সে",
-    "অ",
-    "ন",
-    "ডি",
-];
-
 const BN_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        // Five of the stand-alone abbreviations are longer than the format
-        // ones, April, July, August and November the whole word.
         &[month_cycle(ContextualNames {
             format: widths(
-                BN_MONTHS,
+                &[
+                    "জানুয়ারি",
+                    "ফেব্রুয়ারি",
+                    "মার্চ",
+                    "এপ্রিল",
+                    "মে",
+                    "জুন",
+                    "জুলাই",
+                    "আগস্ট",
+                    "সেপ্টেম্বর",
+                    "অক্টোবর",
+                    "নভেম্বর",
+                    "ডিসেম্বর",
+                ],
                 &[
                     "জানু",
                     "ফেব",
@@ -2237,10 +2239,23 @@ const BN_CALENDARS: &[CalendarNames] = &[
                     "নভে",
                     "ডিসে",
                 ],
-                BN_NARROW_MONTHS,
+                &[
+                    "জা",
+                    "ফে",
+                    "মা",
+                    "এ",
+                    "মে",
+                    "জুন",
+                    "জু",
+                    "আ",
+                    "সে",
+                    "অ",
+                    "ন",
+                    "ডি",
+                ],
             ),
             standalone: widths(
-                BN_MONTHS,
+                &[],
                 &[
                     "জানু",
                     "ফেব",
@@ -2255,7 +2270,20 @@ const BN_CALENDARS: &[CalendarNames] = &[
                     "নভেম্বর",
                     "ডিসে",
                 ],
-                BN_NARROW_MONTHS,
+                &[
+                    "জা",
+                    "ফে",
+                    "মা",
+                    "এ",
+                    "মে",
+                    "জুন",
+                    "জু",
+                    "আ",
+                    "সে",
+                    "অ",
+                    "ন",
+                    "ডি",
+                ],
             ),
         })],
         gregorian_eras(&["খ্রিস্টপূর্ব", "খ্রিস্টাব্দ"], &["খ্রিস্টপূর্ব", "খৃষ্টাব্দ"], &[]),
@@ -2263,7 +2291,7 @@ const BN_CALENDARS: &[CalendarNames] = &[
             format: widths(
                 &["ত্রৈমাসিক", "দ্বিতীয় ত্রৈমাসিক", "তৃতীয় ত্রৈমাসিক", "চতুর্থ ত্রৈমাসিক"],
                 &[],
-                &[],
+                &["১", "২", "৩", "৪"],
             ),
             standalone: widths(&[], &["Q1", "Q2", "Q3", "Q4"], &["১", "২", "৩", "৪"]),
         },
@@ -2284,7 +2312,7 @@ const BN_CALENDARS: &[CalendarNames] = &[
 
 const BN: LocaleData = LocaleData {
     tag: "bn",
-    sources: "Unicode CLDR 48, common/main/bn.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/bn.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Bangla",
     native_name: "বাংলা",
     script: "Beng",
@@ -2293,6 +2321,7 @@ const BN: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "beng",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -2396,8 +2425,68 @@ const BO_MONTHS_ABBREVIATED: &[&str] = &[
 const BO_CALENDARS: &[CalendarNames] = &[
     gregorian(
         &[month_cycle(ContextualNames {
-            format: widths(BO_MONTHS, BO_MONTHS_ABBREVIATED, &[]),
-            standalone: widths(BO_MONTHS_STANDALONE, &[], &[]),
+            format: widths(
+                &[
+                    "ཟླ་བ་དང་པོ",
+                    "ཟླ་བ་གཉིས་པ",
+                    "ཟླ་བ་གསུམ་པ",
+                    "ཟླ་བ་བཞི་པ",
+                    "ཟླ་བ་ལྔ་པ",
+                    "ཟླ་བ་དྲུག་པ",
+                    "ཟླ་བ་བདུན་པ",
+                    "ཟླ་བ་བརྒྱད་པ",
+                    "ཟླ་བ་དགུ་པ",
+                    "ཟླ་བ་བཅུ་པ",
+                    "ཟླ་བ་བཅུ་གཅིག་པ",
+                    "ཟླ་བ་བཅུ་གཉིས་པ",
+                ],
+                &[
+                    "ཟླ་༡",
+                    "ཟླ་༢",
+                    "ཟླ་༣",
+                    "ཟླ་༤",
+                    "ཟླ་༥",
+                    "ཟླ་༦",
+                    "ཟླ་༧",
+                    "ཟླ་༨",
+                    "ཟླ་༩",
+                    "ཟླ་༡༠",
+                    "ཟླ་༡༡",
+                    "ཟླ་༡༢",
+                ],
+                &[],
+            ),
+            standalone: widths(
+                &[
+                    "ཟླ་བ་དང་པོ་",
+                    "ཟླ་བ་གཉིས་པ་",
+                    "ཟླ་བ་གསུམ་པ་",
+                    "ཟླ་བ་བཞི་པ་",
+                    "ཟླ་བ་ལྔ་པ་",
+                    "ཟླ་བ་དྲུག་པ་",
+                    "ཟླ་བ་བདུན་པ་",
+                    "ཟླ་བ་བརྒྱད་པ་",
+                    "ཟླ་བ་དགུ་པ་",
+                    "ཟླ་བ་བཅུ་པ་",
+                    "ཟླ་བ་བཅུ་གཅིག་པ་",
+                    "ཟླ་བ་བཅུ་གཉིས་པ་",
+                ],
+                &[
+                    "ཟླ་༡",
+                    "ཟླ་༢",
+                    "ཟླ་༣",
+                    "ཟླ་༤",
+                    "ཟླ་༥",
+                    "ཟླ་༦",
+                    "ཟླ་༧",
+                    "ཟླ་༨",
+                    "ཟླ་༩",
+                    "ཟླ་༡༠",
+                    "ཟླ་༡༡",
+                    "ཟླ་༡༢",
+                ],
+                &[],
+            ),
         })],
         gregorian_eras(&["སྤྱི་ལོ་སྔོན་", "སྤྱི་ལོ་"], &[], &[]),
         ContextualNames::same(widths(
@@ -2428,7 +2517,7 @@ const BO_CALENDARS: &[CalendarNames] = &[
 
 const BO: LocaleData = LocaleData {
     tag: "bo",
-    sources: "Unicode CLDR 48, common/main/bo.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/bo.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Tibetan",
     native_name: "བོད་སྐད་",
     script: "Tibt",
@@ -2437,6 +2526,7 @@ const BO: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -2485,7 +2575,10 @@ const BO: LocaleData = LocaleData {
 
 // --- Coptic ---------------------------------------------------------------
 //
-// The language of the Coptic calendar. CLDR has no `cop` locale, so this
+// The language of the Coptic calendar. CLDR 48 has a `cop.xml`, but it
+// states each of its 2 236 values `draft="unconfirmed"` ("no confirmation
+// available", UTS #35 Part 1, "Attribute draft"; read 2026-10-03), which this
+// crate does not carry, as it leaves out `rif.xml`'s: so this
 // entry has no Gregorian vocabulary — the empty Gregorian entry below is
 // there because every locale states that calendar, and it inherits — and no
 // weekdays: the only Coptic weekday name found with a source was Monday
@@ -2507,7 +2600,7 @@ const BO: LocaleData = LocaleData {
 
 const COP: LocaleData = LocaleData {
     tag: "cop",
-    sources: "none from CLDR, which has no cop locale: the Bohairic months from Wikipedia, \"Coptic calendar\", as the entry states",
+    sources: "none from CLDR, whose cop.xml is unconfirmed throughout: the Bohairic months from Wikipedia, \"Coptic calendar\", as the entry states",
     english_name: "Coptic",
     native_name: "Ϯⲙⲉⲧⲣⲉⲙⲛ̀ⲭⲏⲙⲓ",
     script: "Copt",
@@ -2516,6 +2609,7 @@ const COP: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::EMPTY,
@@ -2553,7 +2647,7 @@ const COP: LocaleData = LocaleData {
 
 const CS: LocaleData = LocaleData {
     tag: "cs",
-    sources: "Unicode CLDR 48, common/main/cs.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/cs.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Czech",
     native_name: "čeština",
     script: "Latn",
@@ -2562,6 +2656,7 @@ const CS: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -2623,50 +2718,37 @@ const CS: LocaleData = LocaleData {
                         "listopad",
                         "prosinec",
                     ],
-                    &[],
+                    &[
+                        "led", "úno", "bře", "dub", "kvě", "čvn", "čvc", "srp", "zář", "říj",
+                        "lis", "pro",
+                    ],
                     &[],
                 ),
             })],
             gregorian_eras(
                 &["před naším letopočtem", "našeho letopočtu"],
                 &["př. n. l.", "n. l."],
-                &[],
+                &["př.n.l.", "n.l."],
             ),
-            ContextualNames::EMPTY,
+            ContextualNames::same(widths(
+                &[
+                    "1. čtvrtletí",
+                    "2. čtvrtletí",
+                    "3. čtvrtletí",
+                    "4. čtvrtletí",
+                ],
+                &["Q1", "Q2", "Q3", "Q4"],
+                &[],
+            )),
         ),
     ],
 };
 
 // --- German ---------------------------------------------------------------
 
-const DE_WEEKDAYS: &[&str] = &[
-    "Montag",
-    "Dienstag",
-    "Mittwoch",
-    "Donnerstag",
-    "Freitag",
-    "Samstag",
-    "Sonntag",
-];
-
-const DE_MONTHS: &[&str] = &[
-    "Januar",
-    "Februar",
-    "März",
-    "April",
-    "Mai",
-    "Juni",
-    "Juli",
-    "August",
-    "September",
-    "Oktober",
-    "November",
-    "Dezember",
-];
-
 const DE: LocaleData = LocaleData {
     tag: "de",
-    sources: "Unicode CLDR 48, common/main/de.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/de.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "German",
     native_name: "Deutsch",
     script: "Latn",
@@ -2675,6 +2757,7 @@ const DE: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     // German month names are nouns, so they are capitalised everywhere.
     capitalises_month_names: true,
@@ -2682,13 +2765,21 @@ const DE: LocaleData = LocaleData {
     // resolve to the format abbreviations in both contexts.
     weekdays: ContextualNames {
         format: weekday_widths(
-            DE_WEEKDAYS,
+            &[
+                "Montag",
+                "Dienstag",
+                "Mittwoch",
+                "Donnerstag",
+                "Freitag",
+                "Samstag",
+                "Sonntag",
+            ],
             &["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."],
-            &["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."],
+            &[],
             &["M", "D", "M", "D", "F", "S", "S"],
         ),
         standalone: weekday_widths(
-            DE_WEEKDAYS,
+            &[],
             &["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
             &["Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa.", "So."],
             &["M", "D", "M", "D", "F", "S", "S"],
@@ -2699,7 +2790,20 @@ const DE: LocaleData = LocaleData {
     calendars: &[gregorian(
         &[month_cycle(ContextualNames {
             format: widths(
-                DE_MONTHS,
+                &[
+                    "Januar",
+                    "Februar",
+                    "März",
+                    "April",
+                    "Mai",
+                    "Juni",
+                    "Juli",
+                    "August",
+                    "September",
+                    "Oktober",
+                    "November",
+                    "Dezember",
+                ],
                 &[
                     "Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.",
                     "Nov.", "Dez.",
@@ -2707,7 +2811,7 @@ const DE: LocaleData = LocaleData {
                 &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
             ),
             standalone: widths(
-                DE_MONTHS,
+                &[],
                 &[
                     "Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov",
                     "Dez",
@@ -2715,7 +2819,7 @@ const DE: LocaleData = LocaleData {
                 &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
             ),
         })],
-        gregorian_eras(&["v. Chr.", "n. Chr."], &[], &["v", "n"]),
+        gregorian_eras(&["v. Chr.", "n. Chr."], &[], &[]),
         ContextualNames::same(widths(
             &["1. Quartal", "2. Quartal", "3. Quartal", "4. Quartal"],
             &["Q1", "Q2", "Q3", "Q4"],
@@ -2773,7 +2877,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
         ContextualNames::same(widths(
             &["1st quarter", "2nd quarter", "3rd quarter", "4th quarter"],
             &["Q1", "Q2", "Q3", "Q4"],
-            &[],
+            &["1", "2", "3", "4"],
         )),
     ),
     // The intercalary month before 1873 is the ordinary month's with
@@ -3881,7 +3985,7 @@ const EN_CALENDARS: &[CalendarNames] = &[
 // Monday regions take their region's day first.
 const EN: LocaleData = LocaleData {
     tag: "en",
-    sources: "Unicode CLDR 48, common/main/en.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/en.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "English",
     native_name: "English",
     script: "Latn",
@@ -3890,6 +3994,7 @@ const EN: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -3924,7 +4029,7 @@ const EN: LocaleData = LocaleData {
 
 const ES: LocaleData = LocaleData {
     tag: "es",
-    sources: "Unicode CLDR 48, common/main/es.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/es.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Spanish",
     native_name: "español",
     script: "Latn",
@@ -3933,6 +4038,7 @@ const ES: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -3979,9 +4085,9 @@ const ES: LocaleData = LocaleData {
         ),
         ContextualNames::same(widths(
             &[
-                "1.º trimestre",
+                "1.er trimestre",
                 "2.º trimestre",
-                "3.º trimestre",
+                "3.er trimestre",
                 "4.º trimestre",
             ],
             &["T1", "T2", "T3", "T4"],
@@ -3994,7 +4100,7 @@ const ES: LocaleData = LocaleData {
 
 const FA: LocaleData = LocaleData {
     tag: "fa",
-    sources: "Unicode CLDR 48, common/main/fa.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/fa.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Persian",
     native_name: "فارسی",
     script: "Arab",
@@ -4003,6 +4109,7 @@ const FA: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "arabext",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4016,7 +4123,7 @@ const FA: LocaleData = LocaleData {
             "یکشنبه",
         ],
         &[],
-        &[],
+        &["۲ش", "۳ش", "۴ش", "۵ش", "ج", "ش", "۱ش"],
         &["د", "س", "چ", "پ", "ج", "ش", "ی"],
     )),
     day_periods: ContextualNames::same(widths(&["قبل‌ازظهر", "بعدازظهر"], &[], &[])),
@@ -4026,8 +4133,6 @@ const FA: LocaleData = LocaleData {
         // `eraAbbr`, states them: the two it states, هیسی and ریوا.
         calendar_entry(JAPANESE_CALENDARS, &[], japanese_eras::FA),
         gregorian(
-            // CLDR 48 `fa.xml`: the format months carry the ezafe (ژانویهٔ, as
-            // in «۵ ژانویهٔ ۲۰۲۴»), the stand-alone ones do not.
             &[month_cycle(ContextualNames {
                 format: widths(
                     &[
@@ -4044,8 +4149,21 @@ const FA: LocaleData = LocaleData {
                         "نوامبر",
                         "دسامبر",
                     ],
-                    &[],
-                    &[],
+                    &[
+                        "ژانویه",
+                        "فوریه",
+                        "مارس",
+                        "آوریل",
+                        "مه",
+                        "ژوئن",
+                        "ژوئیه",
+                        "اوت",
+                        "سپتامبر",
+                        "اکتبر",
+                        "نوامبر",
+                        "دسامبر",
+                    ],
+                    &["ژ", "ف", "م", "آ", "م", "ژ", "ژ", "ا", "س", "ا", "ن", "د"],
                 ),
                 standalone: widths(
                     &[
@@ -4063,11 +4181,15 @@ const FA: LocaleData = LocaleData {
                         "دسامبر",
                     ],
                     &[],
-                    &[],
+                    &["ژ", "ف", "م", "آ", "م", "ژ", "ژ", "ا", "س", "ا", "ن", "د"],
                 ),
             })],
-            gregorian_eras(&["قبل از میلاد", "میلادی"], &["ق.م.", "م."], &[]),
-            ContextualNames::EMPTY,
+            gregorian_eras(&["قبل از میلاد", "میلادی"], &["ق.م.", "م."], &["ق", "م"]),
+            ContextualNames::same(widths(
+                &["سه‌ماههٔ اول", "سه‌ماههٔ دوم", "سه‌ماههٔ سوم", "سه‌ماههٔ چهارم"],
+                &["س‌م۱", "س‌م۲", "س‌م۳", "س‌م۴"],
+                &["۱", "۲", "۳", "۴"],
+            )),
         ),
         // The month names are the calendar's own, declared with its shape in
         // `hc-calendars-solar` for Iran's and in `hc-calendars-equinox` for
@@ -4082,7 +4204,7 @@ const FA: LocaleData = LocaleData {
 
 const FR: LocaleData = LocaleData {
     tag: "fr",
-    sources: "Unicode CLDR 48, common/main/fr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/fr.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "French",
     native_name: "français",
     script: "Latn",
@@ -4091,6 +4213,7 @@ const FR: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4186,8 +4309,16 @@ const HE_CALENDARS: &[CalendarNames] = &[
             ],
             &[],
         )))],
-        gregorian_eras(&["לפני הספירה", "לספירה"], &[], &[]),
-        ContextualNames::EMPTY,
+        gregorian_eras(
+            &["לפני הספירה", "לספירה"],
+            &["לפנה״ס", "לספירה"],
+            &["לפני", "אחריי"],
+        ),
+        ContextualNames::same(widths(
+            &["רבעון 1", "רבעון 2", "רבעון 3", "רבעון 4"],
+            &["Q1", "Q2", "Q3", "Q4"],
+            &[],
+        )),
     ),
     // Keyed as the English entry is, Tishri 1 to Elul 12 with Adar I and
     // Adar II beside them; the names are CLDR 48 `he.xml`, `calendar
@@ -4238,7 +4369,7 @@ const HE_CALENDARS: &[CalendarNames] = &[
 
 const HE: LocaleData = LocaleData {
     tag: "he",
-    sources: "Unicode CLDR 48, common/main/he.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/he.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Hebrew",
     native_name: "עברית",
     script: "Hebr",
@@ -4247,6 +4378,7 @@ const HE: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4364,10 +4496,16 @@ const HI_CALENDARS: &[CalendarNames] = &[
                 "नव॰",
                 "दिस॰",
             ],
-            &[],
+            &[
+                "ज", "फ़", "मा", "अ", "म", "जू", "जु", "अ", "सि", "अ", "न", "दि",
+            ],
         )))],
-        gregorian_eras(&["ईसा-पूर्व", "ईसवी"], &[], &[]),
-        ContextualNames::EMPTY,
+        gregorian_eras(&["ईसा-पूर्व", "ईसवी सन"], &["ईसा-पूर्व", "ईस्वी"], &[]),
+        ContextualNames::same(widths(
+            &["पहली तिमाही", "दूसरी तिमाही", "तीसरी तिमाही", "चौथी तिमाही"],
+            &["ति1", "ति2", "ति3", "ति4"],
+            &[],
+        )),
     ),
     dated(
         &[CalendarId("indian")],
@@ -4395,7 +4533,7 @@ const HI_CALENDARS: &[CalendarNames] = &[
 
 const HI: LocaleData = LocaleData {
     tag: "hi",
-    sources: "Unicode CLDR 48, common/main/hi.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/hi.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Hindi",
     native_name: "हिन्दी",
     script: "Deva",
@@ -4404,6 +4542,7 @@ const HI: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4417,7 +4556,7 @@ const HI: LocaleData = LocaleData {
             "रविवार",
         ],
         &["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
-        &[],
+        &["सो", "मं", "बु", "गु", "शु", "श", "र"],
         &["सो", "मं", "बु", "गु", "शु", "श", "र"],
     )),
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
@@ -4429,7 +4568,7 @@ const HI: LocaleData = LocaleData {
 
 const ID: LocaleData = LocaleData {
     tag: "id",
-    sources: "Unicode CLDR 48, common/main/id.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/id.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Indonesian",
     native_name: "Indonesia",
     script: "Latn",
@@ -4438,6 +4577,7 @@ const ID: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4475,10 +4615,19 @@ const ID: LocaleData = LocaleData {
                     "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov",
                     "Des",
                 ],
-                &[],
+                &["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"],
             )))],
             gregorian_eras(&["Sebelum Masehi", "Masehi"], &["SM", "M"], &[]),
-            ContextualNames::EMPTY,
+            ContextualNames::same(widths(
+                &[
+                    "Kuartal ke-1",
+                    "Kuartal ke-2",
+                    "Kuartal ke-3",
+                    "Kuartal ke-4",
+                ],
+                &["K1", "K2", "K3", "K4"],
+                &[],
+            )),
         ),
     ],
 };
@@ -4487,7 +4636,7 @@ const ID: LocaleData = LocaleData {
 
 const IT: LocaleData = LocaleData {
     tag: "it",
-    sources: "Unicode CLDR 48, common/main/it.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/it.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Italian",
     native_name: "italiano",
     script: "Latn",
@@ -4496,6 +4645,7 @@ const IT: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4535,8 +4685,21 @@ const IT: LocaleData = LocaleData {
             ],
             &["G", "F", "M", "A", "M", "G", "L", "A", "S", "O", "N", "D"],
         )))],
-        gregorian_eras(&["avanti Cristo", "dopo Cristo"], &["a.C.", "d.C."], &[]),
-        ContextualNames::EMPTY,
+        gregorian_eras(
+            &["avanti Cristo", "dopo Cristo"],
+            &["a.C.", "d.C."],
+            &["aC", "dC"],
+        ),
+        ContextualNames::same(widths(
+            &[
+                "1º trimestre",
+                "2º trimestre",
+                "3º trimestre",
+                "4º trimestre",
+            ],
+            &["T1", "T2", "T3", "T4"],
+            &[],
+        )),
     )],
 };
 
@@ -4566,13 +4729,14 @@ const JA_CALENDARS: &[CalendarNames] = &[
     },
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
-            JA_MONTHS,
-            &[],
             &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
+                "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月",
+                "12月",
             ],
+            &[],
+            &[],
         )))],
-        gregorian_eras(&["紀元前", "西暦"], &[], &[]),
+        gregorian_eras(&["紀元前", "西暦"], &[], &["BC", "AD"]),
         ContextualNames::same(widths(
             &["第1四半期", "第2四半期", "第3四半期", "第4四半期"],
             &["Q1", "Q2", "Q3", "Q4"],
@@ -4661,7 +4825,7 @@ const JA_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const JA: LocaleData = LocaleData {
     tag: "ja",
-    sources: "Unicode CLDR 48, common/main/ja.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ja.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Japanese",
     native_name: "日本語",
     script: "Jpan",
@@ -4670,6 +4834,7 @@ const JA: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4702,10 +4867,8 @@ const JA: LocaleData = LocaleData {
 // The language of the pasaran. Gregorian vocabulary from CLDR 48
 // `common/main/jv.xml`: the wide and abbreviated months (May's abbreviation
 // resolving to the wide form), the stand-alone narrow ones, the wide and
-// abbreviated weekdays (Sunday's abbreviation resolving to the wide form;
-// the narrow forms are not carried because Saturday's is the inheritance
-// marker and resolves to the wide form), the day periods, the eras and the
-// quarters. The five pasaran days are keyed to `javanese-pasaran` as
+// abbreviated weekdays (Sunday's abbreviation resolving to the wide form)
+// and their narrow forms, the day periods, the eras and the quarters. The five pasaran days are keyed to `javanese-pasaran` as
 // `hc_calendars_regional::javanese_pasaran` declares them, Legi first,
 // which the "Five-day week" table of Wikipedia, "Javanese calendar", read
 // 2026-09-26, prints in the same forms; the seven dina are that page's
@@ -4779,7 +4942,7 @@ const JV_CALENDARS: &[CalendarNames] = &[
 
 const JV: LocaleData = LocaleData {
     tag: "jv",
-    sources: "Unicode CLDR 48, common/main/jv.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/jv.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Javanese",
     native_name: "Jawa",
     script: "Latn",
@@ -4788,13 +4951,14 @@ const JV: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
         &["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Ahad"],
         &["Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Ahad"],
         &[],
-        &[],
+        &["S", "S", "R", "K", "J", "S", "A"],
     )),
     day_periods: ContextualNames::same(widths(&["Isuk", "Wengi"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
@@ -4846,32 +5010,40 @@ const KAB_MONTHS_NARROW: &[&str] = &["Y", "F", "M", "Y", "M", "Y", "Y", "Ɣ", "C
 const KAB_CALENDARS: &[CalendarNames] = &[
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
-            KAB_MONTHS,
-            KAB_MONTHS_ABBREVIATED,
-            KAB_MONTHS_NARROW,
+            &[
+                "Yennayer",
+                "Fuṛar",
+                "Meɣres",
+                "Yebrir",
+                "Mayyu",
+                "Yunyu",
+                "Yulyu",
+                "Ɣuct",
+                "Ctembeṛ",
+                "Tubeṛ",
+                "Nunembeṛ",
+                "Duǧembeṛ",
+            ],
+            &[
+                "Yen", "Fur", "Meɣ", "Yeb", "May", "Yun", "Yul", "Ɣuc", "Cte", "Tub", "Nun", "Duǧ",
+            ],
+            &["Y", "F", "M", "Y", "M", "Y", "Y", "Ɣ", "C", "T", "N", "D"],
         )))],
         gregorian_eras(
             &["send talalit n Ɛisa", "seld talalit n Ɛisa"],
             &["snd. T.Ɛ", "sld. T.Ɛ"],
             &[],
         ),
-        ContextualNames {
-            format: widths(
-                &[
-                    "akraḍaggur amenzu",
-                    "akraḍaggur wis-sin",
-                    "akraḍaggur wis-kraḍ",
-                    "akraḍaggur wis-kuẓ",
-                ],
-                &["Kḍg1", "Kḍg2", "Kḍg3", "Kḍg4"],
-                &[],
-            ),
-            standalone: widths(
-                &["akraḍyur 1u", "akraḍyur w2", "akraḍyur w3", "akraḍyur w4"],
-                &["Kḍy1", "Kḍy2", "Kḍy3", "Kḍy4"],
-                &[],
-            ),
-        },
+        ContextualNames::same(widths(
+            &[
+                "akraḍaggur amenzu",
+                "akraḍaggur wis-sin",
+                "akraḍaggur wis-kraḍ",
+                "akraḍaggur wis-kuẓ",
+            ],
+            &["Kḍg1", "Kḍg2", "Kḍg3", "Kḍg4"],
+            &[],
+        )),
     ),
     dated(
         &[CalendarId("berber")],
@@ -4887,7 +5059,7 @@ const KAB_CALENDARS: &[CalendarNames] = &[
 
 const KAB: LocaleData = LocaleData {
     tag: "kab",
-    sources: "Unicode CLDR 48, common/main/kab.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/kab.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Kabyle",
     native_name: "Taqbaylit",
     script: "Latn",
@@ -4896,13 +5068,14 @@ const KAB: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
         &["Arim", "Aram", "Ahad", "Amhad", "Sem", "Sed", "Acer"],
         &[],
         &[],
-        &[],
+        &["R", "R", "H", "M", "S", "S", "C"],
     )),
     day_periods: ContextualNames::same(widths(
         &["n tufat", "n tmeddit"],
@@ -4917,7 +5090,7 @@ const KAB: LocaleData = LocaleData {
 
 const KO: LocaleData = LocaleData {
     tag: "ko",
-    sources: "Unicode CLDR 48, common/main/ko.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ko.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Korean",
     native_name: "한국어",
     script: "Kore",
@@ -4926,6 +5099,7 @@ const KO: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -4977,9 +5151,9 @@ const KO: LocaleData = LocaleData {
                 &[],
                 &[],
             )))],
-            gregorian_eras(&["기원전", "서기"], &[], &[]),
+            gregorian_eras(&["기원전", "서기"], &["BC", "AD"], &[]),
             ContextualNames::same(widths(
-                &["제1분기", "제2분기", "제3분기", "제4분기"],
+                &["제 1/4분기", "제 2/4분기", "제 3/4분기", "제 4/4분기"],
                 &["1분기", "2분기", "3분기", "4분기"],
                 &[],
             )),
@@ -5057,6 +5231,7 @@ const MID: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -5111,7 +5286,7 @@ const ML_CALENDARS: &[CalendarNames] = &[
                 "ജൂലൈ",
                 "ഓഗസ്റ്റ്",
                 "സെപ്റ്റംബർ",
-                "ഒക്\u{200c}ടോബർ",
+                "ഒക്‌ടോബർ",
                 "നവംബർ",
                 "ഡിസംബർ",
             ],
@@ -5144,11 +5319,7 @@ const ML_CALENDARS: &[CalendarNames] = &[
                 "ഡി",
             ],
         )))],
-        gregorian_eras(
-            &["ക്രിസ്\u{200c}തുവിന് മുമ്പ്", "ആന്നോ ഡൊമിനി"],
-            &["ബിസി", "എഡി"],
-            &[],
-        ),
+        gregorian_eras(&["ക്രിസ്‌തുവിന് മുമ്പ്", "ആന്നോ ഡൊമിനി"], &["ബിസി", "എഡി"], &[]),
         ContextualNames::same(widths(
             &["ഒന്നാം പാദം", "രണ്ടാം പാദം", "മൂന്നാം പാദം", "നാലാം പാദം"],
             &[],
@@ -5197,7 +5368,7 @@ const ML_CALENDARS: &[CalendarNames] = &[
 
 const ML: LocaleData = LocaleData {
     tag: "ml",
-    sources: "Unicode CLDR 48, common/main/ml.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ml.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Malayalam",
     native_name: "മലയാളം",
     script: "Mlym",
@@ -5206,22 +5377,39 @@ const ML: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
-    weekdays: ContextualNames::same(weekday_widths(
-        &[
-            "തിങ്കളാഴ്\u{200c}ച",
-            "ചൊവ്വാഴ്ച",
-            "ബുധനാഴ്\u{200c}ച",
-            "വ്യാഴാഴ്\u{200c}ച",
-            "വെള്ളിയാഴ്\u{200c}ച",
-            "ശനിയാഴ്\u{200c}ച",
-            "ഞായറാഴ്\u{200c}ച",
-        ],
-        &["തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി", "ഞായർ"],
-        &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
-        &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
-    )),
+    weekdays: ContextualNames {
+        format: weekday_widths(
+            &[
+                "തിങ്കളാഴ്‌ച",
+                "ചൊവ്വാഴ്ച",
+                "ബുധനാഴ്‌ച",
+                "വ്യാഴാഴ്‌ച",
+                "വെള്ളിയാഴ്‌ച",
+                "ശനിയാഴ്‌ച",
+                "ഞായറാഴ്‌ച",
+            ],
+            &["തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി", "ഞായർ"],
+            &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
+            &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞ"],
+        ),
+        standalone: weekday_widths(
+            &[
+                "തിങ്കളാഴ്‌ച",
+                "ചൊവ്വാഴ്‌ച",
+                "ബുധനാഴ്‌ച",
+                "വ്യാഴാഴ്‌ച",
+                "വെള്ളിയാഴ്‌ച",
+                "ശനിയാഴ്‌ച",
+                "ഞായറാഴ്‌ച",
+            ],
+            &["തിങ്കൾ", "ചൊവ്വ", "ബുധൻ", "വ്യാഴം", "വെള്ളി", "ശനി", "ഞായർ"],
+            &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
+            &["തി", "ചൊ", "ബു", "വ്യാ", "വെ", "ശ", "ഞാ"],
+        ),
+    },
     day_periods: ContextualNames::EMPTY,
     cycle: SexagenaryNames::EMPTY,
     calendars: ML_CALENDARS,
@@ -5286,7 +5474,7 @@ const MY_CALENDARS: &[CalendarNames] = &[
             ],
             &["ဇ", "ဖ", "မ", "ဧ", "မ", "ဇ", "ဇ", "ဩ", "စ", "အ", "န", "ဒ"],
         )))],
-        gregorian_eras(&["ခရစ်တော် မပေါ်မီနှစ်", "ခရစ်နှစ်"], &["ဘီစီ", "အေဒီ"], &[]),
+        gregorian_eras(&["ခရစ်တော် မပေါ်မီနှစ်", "ခရစ်နှစ်"], &["ဘီစီ", "အဒေီ"], &[]),
         ContextualNames::same(widths(
             &["ပထမ သုံးလပတ်", "ဒုတိယ သုံးလပတ်", "တတိယ သုံးလပတ်", "စတုတ္ထ သုံးလပတ်"],
             &["Q1", "Q2", "Q3", "Q4"],
@@ -5325,7 +5513,7 @@ const MY_CALENDARS: &[CalendarNames] = &[
 
 const MY: LocaleData = LocaleData {
     tag: "my",
-    sources: "Unicode CLDR 48, common/main/my.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/my.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Burmese",
     native_name: "မြန်မာ",
     script: "Mymr",
@@ -5334,6 +5522,7 @@ const MY: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "mymr",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -5451,6 +5640,7 @@ const NAH: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::EMPTY,
@@ -5525,6 +5715,7 @@ const ZAP: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::EMPTY,
@@ -5566,37 +5757,57 @@ const ZAP: LocaleData = LocaleData {
 
 const NE_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        &[month_cycle(ContextualNames::same(widths(
-            &[
-                "जनवरी",
-                "फेब्रुअरी",
-                "मार्च",
-                "अप्रिल",
-                "मे",
-                "जुन",
-                "जुलाई",
-                "अगस्ट",
-                "सेप्टेम्बर",
-                "अक्टोबर",
-                "नोभेम्बर",
-                "डिसेम्बर",
-            ],
-            &[],
-            &[
-                "जन",
-                "फेब",
-                "मार्च",
-                "अप्र",
-                "मे",
-                "जुन",
-                "जुल",
-                "अग",
-                "सेप",
-                "अक्टो",
-                "नोभे",
-                "डिसे",
-            ],
-        )))],
+        &[month_cycle(ContextualNames {
+            format: widths(
+                &[
+                    "जनवरी",
+                    "फेब्रुअरी",
+                    "मार्च",
+                    "अप्रिल",
+                    "मे",
+                    "जुन",
+                    "जुलाई",
+                    "अगस्ट",
+                    "सेप्टेम्बर",
+                    "अक्टोबर",
+                    "नोभेम्बर",
+                    "डिसेम्बर",
+                ],
+                &[],
+                &[
+                    "जन",
+                    "फेब",
+                    "मार्च",
+                    "अप्र",
+                    "मे",
+                    "जुन",
+                    "जुल",
+                    "अग",
+                    "सेप",
+                    "अक्टो",
+                    "नोभे",
+                    "डिसे",
+                ],
+            ),
+            standalone: widths(
+                &[],
+                &[],
+                &[
+                    "जन",
+                    "फेेब",
+                    "मार्च",
+                    "अप्र",
+                    "मे",
+                    "जुन",
+                    "जुल",
+                    "अग",
+                    "सेप",
+                    "अक्टो",
+                    "नोभे",
+                    "डिसे",
+                ],
+            ),
+        })],
         gregorian_eras(&["ईसा पूर्व", "सन्"], &[], &[]),
         ContextualNames {
             format: widths(
@@ -5607,7 +5818,7 @@ const NE_CALENDARS: &[CalendarNames] = &[
                     "चौथो त्रैमासिक",
                 ],
                 &[],
-                &[],
+                &["१", "२", "३", "४"],
             ),
             standalone: widths(
                 &[
@@ -5616,7 +5827,12 @@ const NE_CALENDARS: &[CalendarNames] = &[
                     "तृतीय त्रैमासिक",
                     "चतुर्थ त्रैमासिक",
                 ],
-                &[],
+                &[
+                    "पहिलो त्रैमासिक",
+                    "दोस्रो त्रैमासिक",
+                    "तेस्रो त्रैमासिक",
+                    "चौथो त्रैमासिक",
+                ],
                 &["१", "२", "३", "४"],
             ),
         },
@@ -5739,7 +5955,7 @@ const NE_CALENDARS: &[CalendarNames] = &[
 
 const NE: LocaleData = LocaleData {
     tag: "ne",
-    sources: "Unicode CLDR 48, common/main/ne.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ne.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Nepali",
     native_name: "नेपाली",
     script: "Deva",
@@ -5748,6 +5964,7 @@ const NE: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "deva",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -5773,7 +5990,7 @@ const NE: LocaleData = LocaleData {
 
 const NL: LocaleData = LocaleData {
     tag: "nl",
-    sources: "Unicode CLDR 48, common/main/nl.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/nl.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Dutch",
     native_name: "Nederlands",
     script: "Latn",
@@ -5782,6 +5999,7 @@ const NL: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -5830,9 +6048,13 @@ const NL: LocaleData = LocaleData {
             gregorian_eras(
                 &["voor Christus", "na Christus"],
                 &["v.Chr.", "n.Chr."],
-                &[],
+                &["v.C.", "n.C."],
             ),
-            ContextualNames::EMPTY,
+            ContextualNames::same(widths(
+                &["1e kwartaal", "2e kwartaal", "3e kwartaal", "4e kwartaal"],
+                &["K1", "K2", "K3", "K4"],
+                &[],
+            )),
         ),
     ],
 };
@@ -5841,7 +6063,7 @@ const NL: LocaleData = LocaleData {
 
 const PL: LocaleData = LocaleData {
     tag: "pl",
-    sources: "Unicode CLDR 48, common/main/pl.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/pl.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Polish",
     native_name: "polski",
     script: "Latn",
@@ -5850,22 +6072,26 @@ const PL: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
-    weekdays: ContextualNames::same(weekday_widths(
-        &[
-            "poniedziałek",
-            "wtorek",
-            "środa",
-            "czwartek",
-            "piątek",
-            "sobota",
-            "niedziela",
-        ],
-        &["pon.", "wt.", "śr.", "czw.", "pt.", "sob.", "niedz."],
-        &[],
-        &["p", "w", "ś", "c", "p", "s", "n"],
-    )),
+    weekdays: ContextualNames {
+        format: weekday_widths(
+            &[
+                "poniedziałek",
+                "wtorek",
+                "środa",
+                "czwartek",
+                "piątek",
+                "sobota",
+                "niedziela",
+            ],
+            &["pon.", "wt.", "śr.", "czw.", "pt.", "sob.", "niedz."],
+            &["pon", "wto", "śro", "czw", "pią", "sob", "nie"],
+            &["p", "w", "ś", "c", "p", "s", "n"],
+        ),
+        standalone: weekday_widths(&[], &[], &[], &["P", "W", "Ś", "C", "P", "S", "N"]),
+    },
     day_periods: ContextualNames::same(widths(&["AM", "PM"], &[], &[])),
     cycle: SexagenaryNames::EMPTY,
     calendars: &[gregorian(
@@ -5889,7 +6115,7 @@ const PL: LocaleData = LocaleData {
                     "sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis",
                     "gru",
                 ],
-                &[],
+                &["s", "l", "m", "k", "m", "c", "l", "s", "w", "p", "l", "g"],
             ),
             standalone: widths(
                 &[
@@ -5906,12 +6132,19 @@ const PL: LocaleData = LocaleData {
                     "listopad",
                     "grudzień",
                 ],
-                &[],
-                &[],
+                &[
+                    "sty", "lut", "mar", "kwi", "maj", "cze", "lip", "sie", "wrz", "paź", "lis",
+                    "gru",
+                ],
+                &["S", "L", "M", "K", "M", "C", "L", "S", "W", "P", "L", "G"],
             ),
         })],
         gregorian_eras(&["przed naszą erą", "naszej ery"], &["p.n.e.", "n.e."], &[]),
-        ContextualNames::EMPTY,
+        ContextualNames::same(widths(
+            &["I kwartał", "II kwartał", "III kwartał", "IV kwartał"],
+            &["I kw.", "II kw.", "III kw.", "IV kw."],
+            &[],
+        )),
     )],
 };
 
@@ -5943,53 +6176,6 @@ const PL: LocaleData = LocaleData {
 // پښتو in `ps.xml`. No templates: `ps.xml` states none of the patterns a
 // template is read from and inherits root's.
 
-const PS_MONTHS: &[&str] = &[
-    "جنوري",
-    "فبروري",
-    "مارچ",
-    "اپریل",
-    "مۍ",
-    "جون",
-    "جولای",
-    "اګست",
-    "سېپتمبر",
-    "اکتوبر",
-    "نومبر",
-    "دسمبر",
-];
-
-const PS_MONTHS_STANDALONE: &[&str] = &[
-    "جنوري",
-    "فېبروري",
-    "مارچ",
-    "اپریل",
-    "مۍ",
-    "جون",
-    "جولای",
-    "اګست",
-    "سپتمبر",
-    "اکتوبر",
-    "نومبر",
-    "دسمبر",
-];
-
-const PS_MONTHS_STANDALONE_ABBREVIATED: &[&str] = &[
-    "جنوري",
-    "فبروري",
-    "مارچ",
-    "اپریل",
-    "مۍ",
-    "جون",
-    "جولای",
-    "اګست",
-    "سپتمبر",
-    "اکتوبر",
-    "نومبر",
-    "دسمبر",
-];
-
-const PS_MONTHS_NARROW: &[&str] = &["ج", "ف", "م", "ا", "م", "ج", "ج", "ا", "س", "ا", "ن", "د"];
-
 /// The Solar Hijri months in Pashto, CLDR 48 `ps.xml`, `calendar
 /// type="persian"`.
 const PS_SOLAR_HIJRI_MONTHS: &[&str] = &[
@@ -6010,8 +6196,55 @@ const PS_SOLAR_HIJRI_MONTHS: &[&str] = &[
 const PS_CALENDARS: &[CalendarNames] = &[
     gregorian(
         &[month_cycle(ContextualNames {
-            format: widths(PS_MONTHS, &[], PS_MONTHS_NARROW),
-            standalone: widths(PS_MONTHS_STANDALONE, PS_MONTHS_STANDALONE_ABBREVIATED, &[]),
+            format: widths(
+                &[
+                    "جنوري",
+                    "فبروري",
+                    "مارچ",
+                    "اپریل",
+                    "مۍ",
+                    "جون",
+                    "جولای",
+                    "اګست",
+                    "سېپتمبر",
+                    "اکتوبر",
+                    "نومبر",
+                    "دسمبر",
+                ],
+                &[],
+                &["ج", "ف", "م", "ا", "م", "ج", "ج", "ا", "س", "ا", "ن", "د"],
+            ),
+            standalone: widths(
+                &[
+                    "جنوري",
+                    "فېبروري",
+                    "مارچ",
+                    "اپریل",
+                    "مۍ",
+                    "جون",
+                    "جولای",
+                    "اګست",
+                    "سپتمبر",
+                    "اکتوبر",
+                    "نومبر",
+                    "دسمبر",
+                ],
+                &[
+                    "جنوري",
+                    "فبروري",
+                    "مارچ",
+                    "اپریل",
+                    "مۍ",
+                    "جون",
+                    "جولای",
+                    "اګست",
+                    "سپتمبر",
+                    "اکتوبر",
+                    "نومبر",
+                    "دسمبر",
+                ],
+                &[],
+            ),
         })],
         gregorian_eras(
             &["له میلاد څخه وړاندې", "له میلاد څخه وروسته"],
@@ -6021,7 +6254,7 @@ const PS_CALENDARS: &[CalendarNames] = &[
         ContextualNames::same(widths(
             &["لومړۍ ربعه", "۲مه ربعه", "۳مه ربعه", "۴مه ربعه"],
             &[],
-            &["1", "2", "3", "4"],
+            &[],
         )),
     ),
     dated(
@@ -6034,7 +6267,7 @@ const PS_CALENDARS: &[CalendarNames] = &[
 
 const PS: LocaleData = LocaleData {
     tag: "ps",
-    sources: "Unicode CLDR 48, common/main/ps.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ps.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Pashto",
     native_name: "پښتو",
     script: "Arab",
@@ -6043,6 +6276,7 @@ const PS: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "arabext",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6064,7 +6298,7 @@ const PS: LocaleData = LocaleData {
 // `pt-MZ` take their regions' days, Monday and Sunday.
 const PT: LocaleData = LocaleData {
     tag: "pt",
-    sources: "Unicode CLDR 48, common/main/pt.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/pt.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Portuguese",
     native_name: "português",
     script: "Latn",
@@ -6073,6 +6307,7 @@ const PT: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6118,7 +6353,16 @@ const PT: LocaleData = LocaleData {
             &["a.C.", "d.C."],
             &[],
         ),
-        ContextualNames::EMPTY,
+        ContextualNames::same(widths(
+            &[
+                "1º trimestre",
+                "2º trimestre",
+                "3º trimestre",
+                "4º trimestre",
+            ],
+            &["T1", "T2", "T3", "T4"],
+            &[],
+        )),
     )],
 };
 
@@ -6129,7 +6373,7 @@ const PT: LocaleData = LocaleData {
 
 const RU: LocaleData = LocaleData {
     tag: "ru",
-    sources: "Unicode CLDR 48, common/main/ru.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ru.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Russian",
     native_name: "русский",
     script: "Cyrl",
@@ -6138,6 +6382,7 @@ const RU: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6192,7 +6437,7 @@ const RU: LocaleData = LocaleData {
                         "нояб.",
                         "дек.",
                     ],
-                    &[],
+                    &["Я", "Ф", "М", "А", "М", "И", "И", "А", "С", "О", "Н", "Д"],
                 ),
                 standalone: widths(
                     &[
@@ -6223,13 +6468,13 @@ const RU: LocaleData = LocaleData {
                         "нояб.",
                         "дек.",
                     ],
-                    &[],
+                    &["Я", "Ф", "М", "А", "М", "И", "И", "А", "С", "О", "Н", "Д"],
                 ),
             })],
             gregorian_eras(
                 &["до Рождества Христова", "от Рождества Христова"],
                 &["до н. э.", "н. э."],
-                &[],
+                &["до н.э.", "н.э."],
             ),
             ContextualNames::same(widths(
                 &["1-й квартал", "2-й квартал", "3-й квартал", "4-й квартал"],
@@ -6335,8 +6580,6 @@ const SA_CALENDARS: &[CalendarNames] = &[
                 "नवंबरमासः",
                 "दिसंबरमासः",
             ],
-            // CLDR 48 prints the visarga of these abbreviations as an ASCII
-            // colon, and they are transcribed as printed.
             &[
                 "जनवरी:",
                 "फरवरी:",
@@ -6387,7 +6630,7 @@ const SA_CALENDARS: &[CalendarNames] = &[
 
 const SA: LocaleData = LocaleData {
     tag: "sa",
-    sources: "Unicode CLDR 48, common/main/sa.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/sa.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Sanskrit",
     native_name: "संस्कृत भाषा",
     script: "Deva",
@@ -6396,6 +6639,7 @@ const SA: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "deva",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     // CLDR 48 writes Thursday's visarga as an ASCII colon in the wide
@@ -6412,7 +6656,7 @@ const SA: LocaleData = LocaleData {
             "रविवासरः",
         ],
         &["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
-        &["सोम", "मंगल", "बुध", "गुरु", "शुक्र", "शनि", "रवि"],
+        &[],
         &["सो", "मं", "बु", "गु", "शु", "श", "र"],
     )),
     day_periods: ContextualNames::same(widths(&["पूर्वाह्न", "अपराह्न"], &[], &[])),
@@ -6481,15 +6725,41 @@ const SYR_MONTHS: ContextualNames = ContextualNames::same(widths(
 
 const SYR_CALENDARS: &[CalendarNames] = &[
     gregorian(
-        &[month_cycle(SYR_MONTHS)],
-        gregorian_eras(
-            &["ܩܕܡ ܡܫܝܚܐ", "ܫܢܬܐ ܡܪܢܝܬܐ"],
-            &["\u{70f}ܩܡ\u{200c}", "\u{70f}ܫܡ\u{200c}"],
-            &[],
-        ),
+        &[month_cycle(ContextualNames::same(widths(
+            &[
+                "ܟܢܘܢ ܐܚܪܝܐ",
+                "ܫܒܛ",
+                "ܐܕܪ",
+                "ܢܝܣܢ",
+                "ܐܝܪ",
+                "ܚܙܝܪܢ",
+                "ܬܡܘܙ",
+                "ܐܒ",
+                "ܐܝܠܘܠ",
+                "ܬܫܪܝܢ ܩܕܡܝܐ",
+                "ܬܫܪܝܢ ܐܚܪܝܐ",
+                "ܟܢܘܢ ܩܕܡܝܐ",
+            ],
+            &[
+                "ܟܢܘܢ ܒ",
+                "ܫܒܛ",
+                "ܐܕܪ",
+                "ܢܝܣܢ",
+                "ܐܝܪ",
+                "ܚܙܝܪܢ",
+                "ܬܡܘܙ",
+                "ܐܒ",
+                "ܐܝܠܘܠ",
+                "ܬܫܪܝܢ ܐ",
+                "ܬܫܪܝܢ ܒ",
+                "ܟܢܘܢ ܐ",
+            ],
+            &["ܟ", "ܫ", "ܐ", "ܢ", "ܐ", "ܚ", "ܬ", "ܐ", "ܐ", "ܬ", "ܬ", "ܟ"],
+        )))],
+        gregorian_eras(&["ܩܕܡ ܡܫܝܚܐ", "ܫܢܬܐ ܡܪܢܝܬܐ"], &["܏ܩܡ‌", "܏ܫܡ‌"], &[]),
         ContextualNames::same(widths(
             &["ܪܘܒܥܐ ܩܕܡܝܐ", "ܪܘܒܥܐ ܬܪܝܢܐ", "ܪܘܒܥܐ ܬܠܝܬܝܐ", "ܪܘܒܥܐ ܪܒܝܥܝܐ"],
-            &["\u{70f}ܪ ܐ", "\u{70f}ܪ ܒ", "\u{70f}ܪ ܓ", "\u{70f}ܪ ܕ"],
+            &["܏ܪ ܐ", "܏ܪ ܒ", "܏ܪ ܓ", "܏ܪ ܕ"],
             &[],
         )),
     ),
@@ -6529,7 +6799,7 @@ const SYR_CALENDARS: &[CalendarNames] = &[
 
 const SYR: LocaleData = LocaleData {
     tag: "syr",
-    sources: "Unicode CLDR 48, common/main/syr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/syr.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Syriac",
     native_name: "ܣܘܪܝܝܐ",
     script: "Syrc",
@@ -6538,6 +6808,7 @@ const SYR: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "latn",
     first_day_of_week: Weekday::Saturday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6730,7 +7001,7 @@ const TA_CALENDARS: &[CalendarNames] = &[
 
 const TA: LocaleData = LocaleData {
     tag: "ta",
-    sources: "Unicode CLDR 48, common/main/ta.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/ta.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Tamil",
     native_name: "தமிழ்",
     script: "Taml",
@@ -6739,6 +7010,7 @@ const TA: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6756,7 +7028,7 @@ const TA: LocaleData = LocaleData {
 
 const TH: LocaleData = LocaleData {
     tag: "th",
-    sources: "Unicode CLDR 48, common/main/th.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/th.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Thai",
     native_name: "ไทย",
     script: "Thai",
@@ -6765,6 +7037,7 @@ const TH: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6819,8 +7092,12 @@ const TH: LocaleData = LocaleData {
                 ],
                 &[],
             )))],
-            gregorian_eras(&["ปีก่อนคริสต์ศักราช", "คริสต์ศักราช"], &["ก่อน ค.ศ.", "ค.ศ."], &[]),
-            ContextualNames::EMPTY,
+            gregorian_eras(&["ปีก่อนคริสตกาล", "คริสต์ศักราช"], &["ก่อน ค.ศ.", "ค.ศ."], &[]),
+            ContextualNames::same(widths(
+                &["ไตรมาส 1", "ไตรมาส 2", "ไตรมาส 3", "ไตรมาส 4"],
+                &[],
+                &[],
+            )),
         ),
         CalendarNames {
             calendars: BUDDHIST_CALENDARS,
@@ -6852,7 +7129,7 @@ const TH: LocaleData = LocaleData {
 
 const TR: LocaleData = LocaleData {
     tag: "tr",
-    sources: "Unicode CLDR 48, common/main/tr.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/tr.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Turkish",
     native_name: "Türkçe",
     script: "Latn",
@@ -6861,6 +7138,7 @@ const TR: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     // Turkish is the reason `casing` exists: İ and ı are separate letters.
     casing: CasingStyle::Turkic,
     capitalises_month_names: true,
@@ -6875,7 +7153,7 @@ const TR: LocaleData = LocaleData {
             "Pazar",
         ],
         &["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
-        &[],
+        &["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pa"],
         &["P", "S", "Ç", "P", "C", "C", "P"],
     )),
     day_periods: ContextualNames::same(widths(&["ÖÖ", "ÖS"], &[], &[])),
@@ -6892,30 +7170,19 @@ const TR: LocaleData = LocaleData {
             &["O", "Ş", "M", "N", "M", "H", "T", "A", "E", "E", "K", "A"],
         )))],
         gregorian_eras(&["Milattan Önce", "Milattan Sonra"], &["MÖ", "MS"], &[]),
-        ContextualNames::EMPTY,
+        ContextualNames::same(widths(
+            &["1. çeyrek", "2. çeyrek", "3. çeyrek", "4. çeyrek"],
+            &["Ç1", "Ç2", "Ç3", "Ç4"],
+            &["1.", "2.", "3.", "4."],
+        )),
     )],
 };
 
 // --- Vietnamese -----------------------------------------------------------
 
-const VI_STANDALONE_MONTHS: &[&str] = &[
-    "Tháng 1",
-    "Tháng 2",
-    "Tháng 3",
-    "Tháng 4",
-    "Tháng 5",
-    "Tháng 6",
-    "Tháng 7",
-    "Tháng 8",
-    "Tháng 9",
-    "Tháng 10",
-    "Tháng 11",
-    "Tháng 12",
-];
-
 const VI: LocaleData = LocaleData {
     tag: "vi",
-    sources: "Unicode CLDR 48, common/main/vi.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/vi.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Vietnamese",
     native_name: "Tiếng Việt",
     script: "Latn",
@@ -6924,6 +7191,7 @@ const VI: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -6951,7 +7219,6 @@ const VI: LocaleData = LocaleData {
     },
     calendars: &[
         gregorian(
-            // Capitalised when the month stands alone, and not abbreviated.
             &[month_cycle(ContextualNames {
                 format: widths(
                     &[
@@ -6974,14 +7241,42 @@ const VI: LocaleData = LocaleData {
                     ],
                     &[],
                 ),
-                standalone: widths(VI_STANDALONE_MONTHS, VI_STANDALONE_MONTHS, &[]),
+                standalone: widths(
+                    &[
+                        "Tháng 1",
+                        "Tháng 2",
+                        "Tháng 3",
+                        "Tháng 4",
+                        "Tháng 5",
+                        "Tháng 6",
+                        "Tháng 7",
+                        "Tháng 8",
+                        "Tháng 9",
+                        "Tháng 10",
+                        "Tháng 11",
+                        "Tháng 12",
+                    ],
+                    &[],
+                    &[],
+                ),
             })],
             gregorian_eras(
-                &["Trước Công Nguyên", "Sau Công Nguyên"],
+                &["Trước Chúa Giáng Sinh", "Sau Công Nguyên"],
                 &["TCN", "SCN"],
-                &[],
+                &["TCN", "CN"],
             ),
-            ContextualNames::EMPTY,
+            ContextualNames {
+                format: widths(
+                    &["Quý 1", "Quý 2", "Quý 3", "Quý 4"],
+                    &["Q1", "Q2", "Q3", "Q4"],
+                    &[],
+                ),
+                standalone: widths(
+                    &["quý 1", "quý 2", "quý 3", "quý 4"],
+                    &["Q1", "Q2", "Q3", "Q4"],
+                    &[],
+                ),
+            },
         ),
         // The Minguo eras as CLDR 48 `vi.xml` names them, abbreviated only
         // (`contributed`): "Trước R.O.C", and for the era itself the marker,
@@ -7070,6 +7365,7 @@ const YUA: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::EMPTY,
@@ -7148,12 +7444,15 @@ const AYL_LATN_CALENDARS: &[CalendarNames] = &[
 ];
 
 /// A locale with no CLDR vocabulary that names only the calendars its
-/// sources name.
+/// sources name. Its week begins on `first_day_of_week`, CLDR 48's
+/// `weekData/firstDay` for the country its language is spoken in (`min_days`
+/// is the world's, 1, for every one of them).
 const fn calendar_only(
     tag: &'static str,
     sources: &'static str,
     english_name: &'static str,
     native_name: &'static str,
+    first_day_of_week: Weekday,
     calendars: &'static [CalendarNames],
 ) -> LocaleData {
     LocaleData {
@@ -7166,7 +7465,8 @@ const fn calendar_only(
         calendar_names: &[],
         direction: Direction::LeftToRight,
         numbering: "latn",
-        first_day_of_week: Weekday::Monday,
+        first_day_of_week,
+        min_days: 1,
         casing: CasingStyle::Standard,
         capitalises_month_names: false,
         weekdays: ContextualNames::EMPTY,
@@ -7181,6 +7481,7 @@ const RIF: LocaleData = calendar_only(
     "none from CLDR, whose rif.xml states every value unconfirmed: wikipedia-berber-calendar (secondary), read 2026-09-29, the Riffian months of the Berber calendar",
     "Riffian",
     "Tarifit",
+    Weekday::Monday,
     RIF_CALENDARS,
 );
 
@@ -7189,6 +7490,7 @@ const AEB_LATN: LocaleData = calendar_only(
     "none from CLDR, which has no aeb locale: wikipedia-berber-calendar (secondary), read 2026-09-29, the Tunisian Arabic months of the Berber calendar, romanised",
     "Tunisian Arabic (Latin)",
     "Tūnsi",
+    Weekday::Monday,
     AEB_LATN_CALENDARS,
 );
 
@@ -7197,6 +7499,7 @@ const AYL_LATN: LocaleData = calendar_only(
     "none from CLDR, which has no ayl locale: wikipedia-berber-calendar (secondary), read 2026-09-29, the Libyan Arabic months of the Berber calendar, romanised",
     "Libyan Arabic (Latin)",
     "Lībi",
+    Weekday::Saturday,
     AYL_LATN_CALENDARS,
 );
 
@@ -7231,6 +7534,7 @@ const MIX: LocaleData = calendar_only(
     "none from CLDR, which has no mix locale: wikipedia-mesoamerican-calendars (secondary), read 2026-09-29, after Caso 1956 and Wauchope 1965, the Mixtec names of the year bearers",
     "Mixtec",
     "Mixtec",
+    Weekday::Sunday,
     MIX_CALENDARS,
 );
 
@@ -7289,9 +7593,35 @@ const ZGH_MONTHS_NARROW: &[&str] = &["ⵉ", "ⴱ", "ⵎ", "ⵉ", "ⵎ", "ⵢ", "
 const ZGH_CALENDARS: &[CalendarNames] = &[
     gregorian(
         &[month_cycle(ContextualNames::same(widths(
-            ZGH_MONTHS,
-            ZGH_MONTHS_ABBREVIATED,
-            ZGH_MONTHS_NARROW,
+            &[
+                "ⵉⵏⵏⴰⵢⵔ",
+                "ⴱⵕⴰⵢⵕ",
+                "ⵎⴰⵕⵚ",
+                "ⵉⴱⵔⵉⵔ",
+                "ⵎⴰⵢⵢⵓ",
+                "ⵢⵓⵏⵢⵓ",
+                "ⵢⵓⵍⵢⵓⵣ",
+                "ⵖⵓⵛⵜ",
+                "ⵛⵓⵜⴰⵏⴱⵉⵔ",
+                "ⴽⵜⵓⴱⵔ",
+                "ⵏⵓⵡⴰⵏⴱⵉⵔ",
+                "ⴷⵓⵊⴰⵏⴱⵉⵔ",
+            ],
+            &[
+                "ⵉⵏⵏ",
+                "ⴱⵕⴰ",
+                "ⵎⴰⵕ",
+                "ⵉⴱⵔ",
+                "ⵎⴰⵢ",
+                "ⵢⵓⵏ",
+                "ⵢⵓⵍ",
+                "ⵖⵓⵛ",
+                "ⵛⵓⵜ",
+                "ⴽⵜⵓ",
+                "ⵏⵓⵡ",
+                "ⴷⵓⵊ",
+            ],
+            &["ⵉ", "ⴱ", "ⵎ", "ⵉ", "ⵎ", "ⵢ", "ⵢ", "ⵖ", "ⵛ", "ⴽ", "ⵏ", "ⴷ"],
         )))],
         gregorian_eras(&["ⴷⴰⵜ ⵏ ⵄⵉⵙⴰ", "ⴷⴼⴼⵉⵔ ⵏ ⵄⵉⵙⴰ"], &["ⴷⴰⵄ", "ⴷⴼⵄ"], &[]),
         ContextualNames::same(widths(
@@ -7314,7 +7644,7 @@ const ZGH_CALENDARS: &[CalendarNames] = &[
 
 const ZGH: LocaleData = LocaleData {
     tag: "zgh",
-    sources: "Unicode CLDR 48, common/main/zgh.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/zgh.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Standard Moroccan Tamazight",
     native_name: "ⵜⴰⵎⴰⵣⵉⵖⵜ",
     script: "Tfng",
@@ -7323,6 +7653,7 @@ const ZGH: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -7367,9 +7698,7 @@ const ZH_HANS_CALENDARS: &[CalendarNames] = &[
                 "1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月",
                 "12月",
             ],
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-            ],
+            &[],
         )))],
         gregorian_eras(&["公元前", "公元"], &[], &[]),
         ContextualNames::same(widths(
@@ -7447,7 +7776,7 @@ const ZH_HANS_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const ZH_HANS: LocaleData = LocaleData {
     tag: "zh-Hans",
-    sources: "Unicode CLDR 48, common/main/zh.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/zh.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Chinese (Simplified)",
     native_name: "简体中文",
     script: "Hans",
@@ -7458,6 +7787,7 @@ const ZH_HANS: LocaleData = LocaleData {
     // CLDR 48's likely subtags give `zh-Hans` the region CN, which
     // `weekData/firstDay` lists under Monday.
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -7495,9 +7825,7 @@ const ZH_HANT_CALENDARS: &[CalendarNames] = &[
                 "12月",
             ],
             &[],
-            &[
-                "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-            ],
+            &[],
         )))],
         gregorian_eras(&["西元前", "西元"], &[], &[]),
         ContextualNames::same(widths(&["第1季", "第2季", "第3季", "第4季"], &[], &[])),
@@ -7567,7 +7895,7 @@ const ZH_HANT_LUNAR_MONTHS: &[CycleNames] = &[months(&[
 
 const ZH_HANT: LocaleData = LocaleData {
     tag: "zh-Hant",
-    sources: "Unicode CLDR 48, common/main/zh_Hant.xml (cldr48-main), its Gregorian months and weekdays compared with it 2026-09-26; the other calendars' vocabulary as the entry's comment states",
+    sources: "Unicode CLDR 48, common/main/zh_Hant.xml (cldr48-main), its Gregorian months, weekdays, quarters and eras generated from it 2026-10-03; the other calendars' vocabulary as the entry's comment states",
     english_name: "Chinese (Traditional)",
     native_name: "繁體中文",
     script: "Hant",
@@ -7578,6 +7906,7 @@ const ZH_HANT: LocaleData = LocaleData {
     // CLDR 48's likely subtags give `zh-Hant` the region TW, a Sunday
     // region in `weekData/firstDay`.
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -7591,7 +7920,7 @@ const ZH_HANT: LocaleData = LocaleData {
             "星期日",
         ],
         &["週一", "週二", "週三", "週四", "週五", "週六", "週日"],
-        &[],
+        &["一", "二", "三", "四", "五", "六", "日"],
         &["一", "二", "三", "四", "五", "六", "日"],
     )),
     day_periods: ContextualNames::same(widths(&["上午", "下午"], &[], &[])),
@@ -7624,8 +7953,9 @@ const ZH_HANT: LocaleData = LocaleData {
 // values CLDR's inheritance and `root.xml`'s aliases give them, the
 // inheritance marker `↑↑↑` included, so that a width the file writes as its
 // abbreviated one's is left empty here and answered by the wider width. A
-// width that only root would give — root's numbered narrow months — is left
-// empty, and a group whose format wide names are root's is not carried at all.
+// width that root's numerals fill — root's numbered narrow months — is left
+// empty, as is one whose root-given values are numerals beside a few
+// letters of the file's own (Pashto's stand-alone narrow months), and a group whose format wide names are root's is not carried at all.
 // Months CLDR numbers rather than names (the Cantonese files' 1月 … for the
 // Persian, Coptic and Ethiopic calendars) are not carried either, for the
 // calendars number them themselves. Every calendar CLDR covers in the file is
@@ -7742,6 +8072,7 @@ const FIL: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -7864,6 +8195,7 @@ const HA: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8155,6 +8487,7 @@ const MR: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "deva",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8223,6 +8556,7 @@ const PA_ARAB: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "arabext",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8522,6 +8856,7 @@ const PA_GURU: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8625,6 +8960,7 @@ const PCM: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8707,6 +9043,7 @@ const PT_PT: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 4,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -8789,6 +9126,7 @@ const SW: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: true,
     weekdays: ContextualNames::same(weekday_widths(
@@ -9009,6 +9347,7 @@ const TE: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -9316,6 +9655,7 @@ const UR: LocaleData = LocaleData {
     direction: Direction::RightToLeft,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -9545,6 +9885,7 @@ const YUE_HANS: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Monday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(
@@ -9797,6 +10138,7 @@ const YUE_HANT: LocaleData = LocaleData {
     direction: Direction::LeftToRight,
     numbering: "latn",
     first_day_of_week: Weekday::Sunday,
+    min_days: 1,
     casing: CasingStyle::Standard,
     capitalises_month_names: false,
     weekdays: ContextualNames::same(weekday_widths(

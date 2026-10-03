@@ -29,6 +29,7 @@ nothing else in the workspace hard-codes a localised string.
 | `holiday_names` | What a locale calls a day of a holiday table, found by its identifier (`hc_holiday::id`), beside the table's own names, only where a source prints it: seven Coptic Orthodox feasts in `cop`, from Wikipedia's "Nayrouz" and the Coptic Wikipedia's test project (both secondary) |
 | `municipal_names` | What a locale calls a municipality a holiday table lists, which CLDR does not name: the twenty designated cities of Japan and 長崎市, in `ja` (川崎市), `ja-Latn` (`Kawasaki-shi`) and `en` (`Kawasaki`), from the instruments the tables cite, JIS X 0402's list and English and Japanese Wikipedia (secondary); `hc_place_name` and `hc_subdivisions` write them, status `municipal`, and a test holds every municipality a table lists to a name |
 | `dated` | Month and weekday names a government gave for a period, with the days they were in force and the days no source decides: Turkmenistan's of 2002–2008 |
+| `week` | CLDR's week rules: the first day of the week and `minDays`, by locale (`WeekRule::for_locale`, `-u-fw-` included), and with them the week of the year, the week-numbering year and the week of the month of a Gregorian day, the week date's day, and ISO 8601's rule as one point of them, each tested against UTS #35's own 1998 example |
 | `direction` | Script direction and the bidi isolation a formatter needs to embed a date in text running the other way |
 | `casing` | Turkish dotted/dotless i, and whether a language capitalises month names at all |
 | `exemplar_cities` | With the `exemplar-cities` feature: CLDR's English exemplar city of each of the 418 zones `hc-tz` locates; with `localized-exemplar-cities`, the city in every other carried locale CLDR names it in |
@@ -92,9 +93,11 @@ there. The table is checked for sortedness and uniqueness by a test.
 * **Vocabulary** follows Unicode CLDR 48 (`common/main/<locale>.xml`, the
   `calendars` sections, tag `release-48`): a subset chosen for calendar
   work. The entries carried before the most-spoken languages are
-  **hand-checked**; the twelve added for those languages are **generated**
-  from their files by following CLDR's inheritance, as the section on them
-  below says. Each entry's
+  **hand-checked**, apart from their Gregorian months, weekdays, quarters
+  and eras, which `scripts/locales-cldr.py` writes into `data.rs` in place
+  from their files, and whose `--check` fails where one differs; the twelve
+  added for those languages are **generated** from their files by following
+  CLDR's inheritance, as the section on them below says. Each entry's
   `LocaleData::sources` names the file it follows; the language's own file
   and CLDR's default values are carried, not the regional files (Arabic is
   `ar.xml`'s يناير…, not the Levantine كانون الثاني… of `ar_SY.xml`). It will
@@ -104,6 +107,17 @@ there. The table is checked for sortedness and uniqueness by a test.
   operands of UTS #35 Part 3. They are implemented from the published rule
   text, and the tests assert the published sample values, not values
   derived from this implementation.
+* **The week rule**: CLDR 48's `weekData/minDays` is generated into
+  `hc_i18n::data::REGION_MIN_DAYS` (the regions with more than the world's
+  one day: 4 for most of Europe) and, with the first day below, makes
+  `week::WeekRule::for_locale`, UTS #35 Part 4's "Week of Year": week 1 is the
+  first week, from the first day, with `minDays` days of the year, and a
+  week with fewer is the last of the year before. Each entry carries the
+  `minDays` of the region its language is likeliest in (`LocaleData::min_days`), written
+  by `scripts/locales-cldr.py`, which also checks each entry's first day against the
+  same region. Every carried tag's first day and `minDays` agree with
+  Node 22's `Intl.Locale.getWeekInfo` (ICU 76.1, CLDR 46) except `nah`,
+  which ICU has no data for.
 * **First day of week** follows CLDR 48 `supplementalData.xml`
   `weekData/firstDay`, transcribed in full; only the non-Monday regions are
   tabulated, since CLDR lists Monday for `001` and every region it does not
@@ -255,7 +269,7 @@ what their sources cover and no more:
 | Locale | Calendar | Gregorian vocabulary | Calendar vocabulary | Not carried |
 |---|---|---|---|---|
 | `am` Amharic | `ethiopic`, `coptic` | CLDR 48 `am.xml` | the thirteen Ethiopic months (CLDR `ethiopic`), the Coptic era abbreviation ዓ/ም (CLDR `coptic`) | Ethiopic era names: CLDR's `am` inherits root's Latin `AA`/`AM` |
-| `cop` Coptic | `coptic` | none: CLDR has no `cop`, so it inherits | the thirteen Bohairic months (Wikipedia, "Coptic calendar") | weekdays, day periods, the era: no source read names them |
+| `cop` Coptic | `coptic` | none: `cop.xml` is unconfirmed throughout, so it inherits | the thirteen Bohairic months (Wikipedia, "Coptic calendar") | weekdays, day periods, the era: no source read names them |
 | `my` Burmese | `burmese` | CLDR 48 `my.xml` | the twelve months (Wikipedia, "Burmese calendar"); First Waso, Second Waso and the late Tagu in Burmese script ([burmese.md](../../docs/systems/burmese.md)) | — |
 | `bo` Tibetan | `tibetan`, `tibetan-tsurphu`, `tibetan-lochen`, `tibetan-tsurphu-karana` | CLDR 48 `bo.xml` | the numbered months, CLDR's own ordinal month names keyed to the calendar that numbers its months; ཟླ་ཤོལ་ before a leap month, Henning's *zla shol*; the sixty-year cycle by element, sex and animal, ས་ཕོ་བྱི for 2008, the reading `hc_calendar::cycle::readings::TIBETAN` (Wikipedia, "Tibetan calendar", secondary) | a mark for a doubled day, which no source read writes in a date; the Tibetan calendars' dates do not yet carry the sexagenary field their year names would be written from |
 | `ne` Nepali | `bikram-sambat`, `nepal-sambat` | CLDR 48 `ne.xml` | the Bikram Sambat months as the Nepal Rajpatra spells them, the Nepal Sambat months in Devanagari and its intercalary month, अनला (Wikipedia, "Nepal Sambat"); the eras विक्रम संवत् (विसं) and नेपाल सम्वत् (नेसं), as Nepali Wikipedia writes them (secondary) | a `new` (Newar) locale, which CLDR does not have |

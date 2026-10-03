@@ -2,7 +2,7 @@ describe_day	-1000000	ja	22621	89c66003eaebde91
 calendars	-1000000	ja	18833	7ccfe9c542021b9f
 describe_day	-1000000	en	22777	d4f75ac2ec1dfcce
 calendars	-1000000	en	18948	2738e026e546f920
-describe_day	-1000000	he	23113	3c48e36f2e5ff777
+describe_day	-1000000	he	23104	fe8a29b2a73f574d
 calendars	-1000000	he	19146	82f50d9d2cebd8bf
 describe_day	-1000000	und	22597	a80eff50dc089ad8
 calendars	-1000000	und	18529	7216afbe8883b159

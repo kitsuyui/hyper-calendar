@@ -203,6 +203,21 @@ possible — `CST` is three different zones — so those fields are consumed
 and the zone left unstated unless RFC 5322 assigns the name an offset. `B`
 parsed gives am or pm where its period lies wholly on one side of noon.
 
+The numeric fields are written in the locale's default numbering system
+where it is positional (`d MMMM y` is *٢١ سبتمبر ٢٠٢٦* in `ar-EG`, as ICU
+writes it) and read back in it or in Latin digits; `O` and `Z` still read
+Latin digits only. `w`, `Y` and `W` count weeks by the locale's week rule,
+`hc_i18n::week::WeekRule`: its first day of the week (`-u-fw-` first) and CLDR
+48's `minDays` for its region, so 1 January 2021 is *2021-W1* in `en-US` and
+*2020-W53* in `de`, ISO 8601's Monday and four days being the rule with no
+locale; `W` is 0 for a day before its month's first week, as ICU4J numbers
+it. `-u-ca-buddhist` and `-u-ca-roc` write `G`, `y`, `u` and `U` in the
+Buddhist or Minguo calendar (*พ.ศ. 2569*), and a `-u-ca-` key that names any
+other calendar, with no calendar given to the context, is refused, because
+these patterns write only the Gregorian months and days. `Z` to `ZZZ` write
+the seconds of an offset that has them, as `xxxx` does, and `O` and `OOOO` write
+the locale's `GMT` for a zero offset.
+
 With no locale, names are the POSIX `C` (English) ones, which is what
 `strftime` without `setlocale` gives and what a protocol field needs. With a
 `hc_i18n::Locale`, every name comes from `hc-i18n`, and a parser accepts both

@@ -23,7 +23,9 @@ Two kinds of entry are generated.
   calendar's eras — as the entries of the most-spoken languages in
   src/data.rs were read, with the widths CLDR's inheritance and `root.xml`'s
   aliases give them. A width only root gives (root's numbered narrow months,
-  its Latin narrow weekdays) is left empty and answered by the next wider
+  its English initials for the narrow weekdays, which are not the language's
+  own names), or that the file states in part beside root's numerals (`ps`'s
+  stand-alone narrow months), is left empty and answered by the next wider
   one, and a group whose format wide names are root's is left out.
 * A regional variant (`en-001`, `en-GB`, `es-419`, `zh-Hant-HK`, `ur-IN`,
   `ar-EG`): the groups its files resolve to other values than its CLDR
@@ -32,6 +34,14 @@ Two kinds of entry are generated.
   that the lookup inherits the parent entry's, as CLDR's inheritance does.
   A regional file that writes the inheritance marker `↑↑↑` or repeats its
   parent's value states nothing of its own here.
+
+The hand-written entries of src/data.rs that follow a CLDR file (`HAND_ENTRIES`,
+the tags `cldr_xml.ENTRIES` lists apart from the regional ones, and `pt-PT`)
+are also written by this script, in place: each entry's `gregorian(...)` call,
+its months, eras and quarters, and its `weekdays:` field are replaced by the
+groups its files resolve to, by the rules above, with `--check` failing where
+one differs. A group no file of an entry states is left as written, and so is
+the rest of the file.
 
 Every entry also has its date templates, which do not inherit between
 entries, read from the resolved Gregorian `Gy` item (the year with its
@@ -61,11 +71,12 @@ import sys
 import textwrap
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from cldr_xml import (exists, lit, path, resolve, rustfmt, stated,  # noqa: E402
+from cldr_xml import (ENTRIES, exists, lit, path, resolve, rustfmt, stated,  # noqa: E402
                       write_or_check, xml)
 
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data/cldr48_locales.rs')
+DATA = os.path.join(ROOT_DIR, 'crates/hc-i18n/src/data.rs')
 READ = '2026-09-29'
 
 # tag, CLDR files child first (root left out), the entry the tag inherits
@@ -175,6 +186,13 @@ def own_group(tag, chain, calendar, kind, count=12, language=True):
         if context == 'format' and width == 'wide':
             return [v for v, _ in row] if all(v for v, _ in row) else None
         if not any(f not in (None, 'root') for _, f in row):
+            return None
+        # A width the files state in part, the rest being root's numerals, is
+        # not stated: ps.xml's stand-alone narrow months are two letters and
+        # root's 3 to 12, which no reader wants for a month. A letter that
+        # root gives beside the file's own is the file's, written once because
+        # the two agree: cs.xml leaves its Saturday S to root's.
+        if any(f in (None, 'root') and v.isdigit() for v, f in row):
             return None
         return [v for v, _ in row] if all(v for v, _ in row) else None
 
@@ -414,8 +432,13 @@ def display_name(chain, tag):
 
 # --- supplemental -----------------------------------------------------------
 
+_supplemental = []
+
+
 def supplemental():
-    return xml('supplemental/supplementalData.xml')
+    if not _supplemental:
+        _supplemental.append(xml('supplemental/supplementalData.xml'))
+    return _supplemental[0]
 
 
 def parent_locales():
@@ -483,6 +506,40 @@ def first_day(region):
             if wanted in territories:
                 return days[day]
     raise ValueError(region)
+
+
+def min_days(region):
+    """`weekData/minDays` for a region, the world's (`001`) where CLDR lists
+    the region under no count."""
+    rows = [(int(row.get('count')), row.get('territories').split())
+            for row in supplemental().iter('minDays') if not row.get('alt')]
+    for wanted in (region, '001'):
+        for count, territories in rows:
+            if wanted in territories:
+                return count
+    raise ValueError(region)
+
+
+def likely_region(tag):
+    """The region `likelySubtags.xml` gives a tag's language, with its script
+    where the tag has one, else the language alone."""
+    rows = {row.get('from'): row.get('to') for row in xml('supplemental/likelySubtags.xml')
+            .iter('likelySubtag')}
+    parts = tag.split('-')
+    explicit = [part for part in parts[1:] if len(part) == 2 and part.isupper()]
+    if explicit:
+        return explicit[0]
+    for key in ('_'.join(parts[:2]), parts[0]):
+        if key in rows:
+            return rows[key].split('_')[-1]
+    raise ValueError(tag)
+
+
+# The region the week data of an entry CLDR has no file for comes from: the
+# language's own country, `weekData/firstDay` and `minDays` giving the world's
+# for it, as the entry's comment says.
+HAND_REGIONS = {'und': '001', 'ban': 'ID', 'cop': 'EG', 'mid': 'IQ', 'nah': 'MX', 'zap': 'MX',
+                'yua': 'MX', 'mix': 'MX', 'rif': 'MA', 'aeb-Latn': 'TN', 'ayl-Latn': 'LY'}
 
 
 # How the entry's comment names a CLDR calendar.
@@ -676,6 +733,7 @@ def entry(tag, chain, parent, region):
     lines.append(f'    calendar_names: {name + "_CALENDAR_NAMES" if names else "&[]"},')
     lines.append(f'    numbering: {lit(numbering)},')
     lines.append(f'    first_day_of_week: Weekday::{first_day(region)},')
+    lines.append(f'    min_days: {min_days(region)},')
     lines.append(f'    weekdays: {weekdays_rs or "ContextualNames::EMPTY"},')
     lines.append(f'    day_periods: {periods_rs or "ContextualNames::EMPTY"},')
     lines.append('    cycle: SexagenaryNames::EMPTY,')
@@ -750,6 +808,19 @@ def generate():
         dump.append(f'default-numbering\t{tag}\t{system}')
     out.append('];')
     out.append('')
+    out.append('/// CLDR 48\'s `weekData/minDays` (`supplementalData.xml`): the regions whose')
+    out.append('/// first week of a year or month needs more than the world\'s (`001`) one day,')
+    out.append('/// with the count, sorted by region so that a lookup can search it.')
+    out.append('pub static REGION_MIN_DAYS: &[(&str, u8)] = &[')
+    regions = sorted((territory, int(row.get('count')))
+                     for row in supplemental().iter('minDays') if not row.get('alt')
+                     for territory in row.get('territories').split()
+                     if int(row.get('count')) != min_days('001') and not territory.isdigit())
+    for territory, count in regions:
+        out.append(f'    ({lit(territory)}, {count}),')
+        dump.append(f'min-days\t{territory}\t{count}')
+    out.append('];')
+    out.append('')
     out.append('/// Each carried locale\'s other numbering systems, CLDR 48\'s')
     out.append('/// `numbers/otherNumberingSystems`, resolved: (tag, `native`, `traditional`),')
     out.append('/// empty where the locale\'s files state none.')
@@ -778,12 +849,155 @@ def generate():
     return text, dump
 
 
+# --- the hand-written entries' CLDR groups ------------------------------------
+
+# The entries of src/data.rs whose Gregorian months, weekdays, quarters and
+# eras are CLDR's, with the files each reads child first. They are written
+# into data.rs in place, over the `gregorian(...)` call and the `weekdays:`
+# field of the entry, so that the hand-written entries' CLDR vocabulary is
+# regenerated and checked beside the generated entries'; everything else in
+# data.rs is hand-written. `pt-PT` is a regional file whose entry carries
+# its groups whole.
+HAND_ENTRIES = {tag: chain for tag, chain, regional in ENTRIES if not regional}
+HAND_ENTRIES['pt-PT'] = ['pt_PT', 'pt']
+
+
+def balanced(text, start):
+    """The index just past the bracket at `text[start]`'s partner."""
+    depth, at, quoted = 0, start, False
+    while True:
+        char = text[at]
+        if quoted:
+            if char == '\\':
+                at += 1
+            elif char == '"':
+                quoted = False
+        elif char == '"':
+            quoted = True
+        elif char in '([{':
+            depth += 1
+        elif char in ')]}':
+            depth -= 1
+            if depth == 0:
+                return at + 1
+        at += 1
+
+
+def split_arguments(body):
+    arguments, depth, start, quoted, at = [], 0, 0, False, 0
+    while at < len(body):
+        char = body[at]
+        if quoted:
+            if char == '\\':
+                at += 1
+            elif char == '"':
+                quoted = False
+        elif char == '"':
+            quoted = True
+        elif char in '([{':
+            depth += 1
+        elif char in ')]}':
+            depth -= 1
+        elif char == ',' and depth == 0:
+            arguments.append(body[start:at])
+            start = at + 1
+        at += 1
+    if body[start:].strip():
+        arguments.append(body[start:])
+    return [argument.strip() for argument in arguments]
+
+
+def hand_entries(source):
+    """src/data.rs with each hand-written CLDR entry's `gregorian(...)` call
+    and `weekdays:` field written from its files. A group a file does not
+    state, and an entry whose call is empty (`pt-PT`'s, whose parent's
+    names are right), is left as written."""
+    items = [(m.start(), m.group(1), m.group(2).strip()) for m in
+             re.finditer(r'^(?:pub )?(?:const|static) (\w+): ([^=]+) = ', source, re.M)]
+    owner = {}
+    for number, (start, name, kind) in enumerate(items):
+        end = items[number + 1][0] if number + 1 < len(items) else len(source)
+        block = source[start:end]
+        found = re.search(r'tag: "([^"]+)"', block)
+        if kind == 'LocaleData' and found:
+            owner[name] = found.group(1)
+            calendars = re.search(r'calendars: &?([A-Z_0-9]+),', block)
+            if calendars:
+                owner[calendars.group(1)] = found.group(1)
+    edits = []
+    for call in re.finditer(r'(?<![\w_])gregorian\(', source):
+        if source[call.start() - 3:call.start()] == 'fn ':
+            continue
+        opening = call.end() - 1
+        closing = balanced(source, opening)
+        item = max((i for i in items if i[0] <= call.start()), key=lambda i: i[0])
+        tag = owner.get(item[1])
+        if tag not in HAND_ENTRIES:
+            continue
+        chain = HAND_ENTRIES[tag]
+        body = '\n'.join(line for line in source[opening + 1:closing - 1].split('\n')
+                         if not line.strip().startswith('//'))
+        arguments = split_arguments(body)
+        if arguments[0] == '&[]':
+            continue
+        assert arguments[0].startswith('&[month_cycle('), (tag, arguments[0][:40])
+        months = own_group(tag, chain, 'gregorian', 'months', 12)
+        quarters = own_group(tag, chain, 'gregorian', 'quarters', 4)
+        eras = era_group(tag, chain, 'gregorian', ['0', '1'], True)
+        arguments = [
+            f'&[month_cycle({contextual("months", months)})]' if months else arguments[0],
+            (f"gregorian_eras({arr(eras.get('wide'))}, {arr(eras.get('abbreviated'))}, "
+             f"{arr(eras.get('narrow'))})") if eras else arguments[1],
+            contextual('quarters', quarters) if quarters else arguments[2]]
+        edits.append((opening + 1, closing - 1, ',\n'.join(arguments) + ','))
+    for number, (start, name, kind) in enumerate(items):
+        tag = owner.get(name)
+        if kind != 'LocaleData' or tag not in HAND_ENTRIES:
+            continue
+        end = items[number + 1][0] if number + 1 < len(items) else len(source)
+        field = re.search(r'\n    weekdays: ', source[start:end])
+        group = own_group(tag, HAND_ENTRIES[tag], 'gregorian', 'days', 7)
+        if not field or not group:
+            continue
+        begin = start + field.end()
+        at, depth = begin, 0
+        while not (source[at] == ',' and depth == 0):
+            depth += source[at] in '([{'
+            depth -= source[at] in ')]}'
+            at += 1
+        edits.append((begin, at, contextual('days', group)))
+    # The week data: `min_days:` after `first_day_of_week:`, from the region
+    # the entry's language is likeliest in, whose `firstDay` the entry must
+    # state.
+    for number, (start, name, kind) in enumerate(items):
+        tag = owner.get(name)
+        if kind != 'LocaleData' or tag is None:
+            continue
+        end = items[number + 1][0] if number + 1 < len(items) else len(source)
+        found = re.search(r'\n    first_day_of_week: Weekday::(\w+),(\n    min_days: \d+,)?',
+                          source[start:end])
+        if not found:
+            continue
+        region = HAND_REGIONS.get(tag) or likely_region(tag)
+        assert found.group(1) == first_day(region) or tag in HAND_REGIONS, (
+            f'{tag}: first day {found.group(1)}, `weekData/firstDay` for {region} gives '
+            f'{first_day(region)}')
+        edits.append((start + found.start(), start + found.end(),
+                      f'\n    first_day_of_week: Weekday::{found.group(1)},'
+                      f'\n    min_days: {min_days(region)},'))
+    for begin, end, text in sorted(edits, reverse=True):
+        source = source[:begin] + text + source[end:]
+    return source
+
+
 def main():
     text, dump = generate()
     if '--dump' in sys.argv:
         print('\n'.join(dump + log))
         return
     write_or_check(OUTPUT, rustfmt(text), 'scripts/locales-cldr.py')
+    with open(DATA, encoding='utf-8') as handle:
+        write_or_check(DATA, rustfmt(hand_entries(handle.read())), 'scripts/locales-cldr.py')
 
 
 if __name__ == '__main__':
