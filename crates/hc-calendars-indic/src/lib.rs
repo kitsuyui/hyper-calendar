@@ -125,7 +125,9 @@
 extern crate alloc;
 
 /// How far apart the days of a day-by-day sweep in this crate's tests are:
-/// every day in a release build, every `sampled`th in a debug build.
+/// every day in a release build, every `sampled`th in a debug build, and
+/// about a third as many of those in a build instrumented for coverage
+/// (`hc_core::sweep::thinned`).
 ///
 /// The full sweeps take minutes under the coverage job's instrumentation,
 /// so a debug or coverage run takes a fixed, deterministic sample of them
@@ -133,7 +135,11 @@ extern crate alloc;
 /// are checked in full either way (docs/policy.md §7).
 #[cfg(test)]
 pub(crate) const fn sweep_stride(sampled: usize) -> usize {
-    if cfg!(debug_assertions) { sampled } else { 1 }
+    if cfg!(debug_assertions) {
+        hc_core::sweep::thinned(sampled)
+    } else {
+        1
+    }
 }
 
 /// The fixed days of a sweep from `first` to `last`, both included: every
@@ -147,7 +153,34 @@ pub(crate) fn sweep_days(
     sampled: usize,
     openings: &[i64],
 ) -> alloc::vec::Vec<i64> {
-    let mut days: alloc::vec::Vec<i64> = (first..=last).step_by(sweep_stride(sampled)).collect();
+    sweep_days_every(first, last, sweep_stride(sampled), openings)
+}
+
+/// [`sweep_days`] with the same days in a build instrumented for coverage
+/// as in any other debug build: for a sweep over a few years that has to
+/// see a month of thirty days, an intercalary one, which a step of more
+/// than thirty days could pass over.
+#[cfg(all(test, feature = "alloc"))]
+pub(crate) fn sweep_days_dense(
+    first: i64,
+    last: i64,
+    sampled: usize,
+    openings: &[i64],
+) -> alloc::vec::Vec<i64> {
+    let stride = if cfg!(debug_assertions) { sampled } else { 1 };
+    sweep_days_every(first, last, stride, openings)
+}
+
+/// The days of a sweep from `first` to `last` taken `stride` apart and,
+/// in a debug build, each of `openings` and the day before it.
+#[cfg(all(test, feature = "alloc"))]
+fn sweep_days_every(
+    first: i64,
+    last: i64,
+    stride: usize,
+    openings: &[i64],
+) -> alloc::vec::Vec<i64> {
+    let mut days: alloc::vec::Vec<i64> = (first..=last).step_by(stride).collect();
     if cfg!(debug_assertions) {
         days.extend(
             openings
@@ -169,10 +202,16 @@ pub(crate) fn sweep_days(
 /// For a sweep whose year boundaries cost more than its sampled days,
 /// hundreds of years of ingress searches or lunisolar conversions. The
 /// first year is always sampled, so a test's exception there is still met;
-/// a release build walks every year (docs/policy.md §7).
+/// a release build walks every year (docs/policy.md §7). A build
+/// instrumented for coverage steps by the first prime of at least twice
+/// `sampled` (`hc_core::sweep::thinned_year_step`).
 #[cfg(test)]
 pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterator<Item = i64> {
-    let stride = sweep_stride(sampled);
+    let stride = if cfg!(debug_assertions) {
+        hc_core::sweep::thinned_year_step(sampled)
+    } else {
+        1
+    };
     let last_is_sampled = (last - first) % stride as i64 == 0;
     (first..=last)
         .step_by(stride)

@@ -373,10 +373,16 @@ fn sample_days(meta: &CalendarMeta) -> Vec<Rd> {
 /// read in the `locale`th of `locales` locales, the last of which is the
 /// calendar's own language: always in a release build; in a debug build
 /// in the calendar's own language, and in every other locale on one day,
-/// staggered over the pairings of calendar and locale.
+/// staggered over the pairings of calendar and locale. A build
+/// instrumented for coverage reads each calendar in its own language and in
+/// one locale of three, so that every locale is still read in by a third of
+/// the calendars.
 fn read_in(calendar: usize, day: usize, days: usize, locale: usize, locales: usize) -> bool {
     if !cfg!(debug_assertions) || locale + 1 == locales {
         return true;
+    }
+    if hyper_calendar::hc_core::sweep::INSTRUMENTED && !(calendar + locale).is_multiple_of(3) {
+        return false;
     }
     (calendar + locale) % days == day
 }
@@ -436,8 +442,16 @@ fn every_calendar_reads_back_the_dates_it_writes() {
         faults.len()
     );
     assert!(read > 3_000, "{read}");
-    // Every calendar is read in every locale, in either build.
-    assert_eq!(paired.len(), registry.len() * locales.len());
+    // Every calendar is read in every locale, in either build; in a build
+    // instrumented for coverage, in its own language and in a third of the
+    // others, and every locale is read in by some calendar of each residue.
+    if hyper_calendar::hc_core::sweep::INSTRUMENTED {
+        let per_locale = |at: usize| paired.iter().filter(|(_, locale)| *locale == at).count();
+        assert!((0..locales.len() - 1).all(|at| per_locale(at) >= registry.len() / 3 - 1));
+        assert_eq!(per_locale(locales.len() - 1), registry.len());
+    } else {
+        assert_eq!(paired.len(), registry.len() * locales.len());
+    }
     if !cfg!(debug_assertions) {
         let stale: Vec<_> = expected.keys().filter(|key| !met.contains(*key)).collect();
         assert!(

@@ -584,8 +584,15 @@ fn the_risings_are_the_same_instants_from_spans_that_start_apart() {
 
 #[test]
 fn most_years_hold_no_entry_into_a_sign() {
-    // Jupiter enters Siṃha once in twelve years, or three times in two.
-    for year in 2016..=2026 {
+    // Jupiter enters Siṃha once in twelve years, or three times in two. Each
+    // year is a search of the whole year's sky: a build instrumented for
+    // coverage takes every third (docs/policy.md §7).
+    let step = if hyper_calendar::hc_core::sweep::INSTRUMENTED {
+        3
+    } else {
+        1
+    };
+    for year in (2016..=2026).step_by(step) {
         assert!(
             festival("simha", year, "pushkaram-final-entry").is_empty(),
             "{year}"

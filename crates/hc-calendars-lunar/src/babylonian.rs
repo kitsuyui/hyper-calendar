@@ -1081,11 +1081,14 @@ mod tests {
         // so a release build walks every one spread over the machine's
         // threads. A debug build, which the coverage job runs instrumented,
         // takes every 776th day, 40 days at each end, and every 1 Nisanu,
-        // where the year turns, with the day before it (docs/policy.md §7).
+        // where the year turns, with the day before it (docs/policy.md §7);
+        // a build instrumented for coverage takes a third as many of the
+        // days, 13 days at each end and the 1 Nisanu of every seventh year.
         // `arsacid-era` in hc-calendars-regional is this calendar renamed
         // and rests on this sweep for its own days.
         let openings: std::vec::Vec<i64> = if cfg!(debug_assertions) {
             (MIN_YEAR..=MAX_YEAR)
+                .step_by(hc_core::sweep::year_step())
                 .map(|year| to_fixed(year, month(1, false), 1).expect("in range").0)
                 .chain([LATEST.0 + 1])
                 .collect()
@@ -1103,11 +1106,9 @@ mod tests {
         if cfg!(debug_assertions) {
             // SE −314 opens on the first day, and SE 387's eve is the last.
             let held = |day: i64| days.binary_search(&day).is_ok();
-            assert!(
-                openings
-                    .windows(2)
-                    .all(|pair| held(pair[0]) && held(pair[1] - 1))
-            );
+            assert!(openings.iter().all(|&day| {
+                (day > LATEST.0 || held(day)) && (day <= EARLIEST.0 || held(day - 1))
+            }));
         } else {
             assert_eq!(days.len() as i64, LATEST.0 - EARLIEST.0 + 1);
         }

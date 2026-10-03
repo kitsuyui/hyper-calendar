@@ -267,6 +267,18 @@ Gregorian dates and nothing else.
     every k-th year and the last, with k prime to the cycle the years run
     in. The sample then still holds each kind of boundary the test is
     about: leap years, common years and the exceptions.
+  - The coverage run is a debug build under instrumentation, several times
+    slower than a plain one, and in the builds where `cfg(coverage)` is set,
+    and nowhere else, it takes a sparser sample still: about a third as
+    many days, at a stride that is a prime, the boundaries of every seventh
+    year (`hc_core::sweep::thinned`, `year_step`), and one pairing of day
+    and locale in 47 where the tests render every locale
+    (`crates/hyper-calendar/tests/locale_sample/mod.rs`). The release
+    shards and the plain debug `Test` job keep the sample they have. A
+    sweep that has to meet a feature a few weeks long, such as an
+    intercalary month, keeps the debug sample's step.
+    `scripts/coverage-times.sh` times each test binary as the coverage job
+    runs it, which is where to look first when the job nears its limit.
   - The published anchors are checked in full in both builds.
   - The tests that render every calendar in every carried locale render,
     in a debug build, a staggered share of the pairings of day and locale

@@ -418,11 +418,14 @@ mod tests {
         // machine's threads: about 60 µs a day, four minutes of one core. A
         // debug build, which the coverage job runs instrumented, takes every
         // 181st day and every Chaitra śukla 1 of the ten thousand years with
-        // the day before it (docs/policy.md §7).
+        // the day before it (docs/policy.md §7); a build instrumented for
+        // coverage takes a third as many of the days and the opening of
+        // every seventh year.
         let calendar = SiddhantaLunarCalendar::UJJAIN;
         let (first, last) = (NAMED_RANGE.1.0, NAMED_RANGE.2.0);
         let openings: alloc::vec::Vec<i64> = if cfg!(debug_assertions) {
             (MIN_YEAR..=MAX_YEAR)
+                .step_by(hc_core::sweep::year_step())
                 .map(|year| calendar.new_year(year).expect("in range").0)
                 .chain([last + 1])
                 .collect()

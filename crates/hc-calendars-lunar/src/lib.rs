@@ -102,7 +102,9 @@
 extern crate alloc;
 
 /// How far apart the days of a day-by-day sweep in this crate's tests are:
-/// every day in a release build, every `sampled`th in a debug build.
+/// every day in a release build, every `sampled`th in a debug build, and
+/// about a third as many of those in a build instrumented for coverage
+/// (`hc_core::sweep::thinned`).
 ///
 /// The full sweeps take minutes under the coverage job's instrumentation,
 /// so a debug or coverage run takes a fixed, deterministic sample of them
@@ -110,7 +112,11 @@ extern crate alloc;
 /// are checked in full either way (docs/policy.md §7).
 #[cfg(test)]
 pub(crate) const fn sweep_stride(sampled: usize) -> usize {
-    if cfg!(debug_assertions) { sampled } else { 1 }
+    if cfg!(debug_assertions) {
+        hc_core::sweep::thinned(sampled)
+    } else {
+        1
+    }
 }
 
 /// The days of a day-by-day sweep over `first..=last` in this crate's
@@ -148,10 +154,16 @@ pub(crate) fn sweep_days(
 /// hundreds of years of astronomical or lunisolar conversions. `sampled`
 /// is chosen prime to the cycle the years run in, so that the sample still
 /// holds every kind of year the test is about, leap and common and the
-/// exceptions; a release build walks every year (docs/policy.md §7).
+/// exceptions; a release build walks every year (docs/policy.md §7). A build
+/// instrumented for coverage steps by the first prime of at least twice
+/// `sampled` (`hc_core::sweep::thinned_year_step`).
 #[cfg(test)]
 pub(crate) fn sweep_years(first: i64, last: i64, sampled: usize) -> impl Iterator<Item = i64> {
-    let stride = sweep_stride(sampled);
+    let stride = if cfg!(debug_assertions) {
+        hc_core::sweep::thinned_year_step(sampled)
+    } else {
+        1
+    };
     let last_is_sampled = (last - first) % stride as i64 == 0;
     (first..=last)
         .step_by(stride)

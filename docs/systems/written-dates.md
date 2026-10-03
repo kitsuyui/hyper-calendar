@@ -461,7 +461,10 @@ belongs to. The last ISO year of `iso8601`, `iso8601-week` and
 A debug build reads every sample day in the calendar's own language, and
 every other locale setting on one of the calendar's days, staggered over
 the pairings, so that every calendar is read in every locale (policy §7):
-about 12 700 texts, some thirty seconds. The anchors are the dates of
+about 12 700 texts, some thirty seconds. Under coverage it reads each
+calendar in its own language and in one of every three other locale
+settings, so that every locale setting is still read by a third of the
+calendars. The anchors are the dates of
 this document and of the calendars' own system documents, all read in
 either build:
 
