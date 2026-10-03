@@ -12,7 +12,9 @@
 //!
 //! An edition does not answer for a year it does not cover. A list shipped
 //! for a country whose years do not include the year asked is an `outside`
-//! line with no names, and never the nearest edition's.
+//! line with no names, and never the nearest edition's; where the years
+//! before a country's first edition are a gap of their own (Latvia's, before
+//! 2023), a `gap` line says so.
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -69,13 +71,14 @@ fn year_cell(line: &mut Line<'_>, year: Option<i32>) {
 /// what the gap leaves out, the authority whose list it is, the date it was
 /// decided to whatever precision the source gives, how it came to exist
 /// (`promulgated`, `recorded`, `vernacular` or `contested`), the first and
-/// last year the edition was in force (empty where it is open), the terms it
+/// last year the edition was in force (empty where it is open; for a gap of
+/// the years before an edition, the last year it covers), the terms it
 /// is held under, what it does with 29 February (`no-names`, `own-names`,
 /// `shift-after-24-february` or `leap-years-only`), how many names it holds,
 /// the citation, the date the file was retrieved or, for a gap, the date the
 /// survey was made, the reason for a gap (`licensed-for-a-fee`,
-/// `licence-unknown`, `sources-disagree-with-no-authority`,
-/// `method-unpublished` or `saints-not-names`), and the reasoning in full. A
+/// `licence-unknown`, `rights-reserved`, `no-keeper-found`, `not-yet-read` or
+/// `saints-not-names`), and the reasoning in full. A
 /// column that does not apply to the kind is empty.
 ///
 /// A gap's identifier is the country's code, or two codes joined by a hyphen
@@ -111,7 +114,9 @@ pub fn lists_lines() -> String {
             .cell(gap.country)
             .empty()
             .cell(gap.subject)
-            .empties(8)
+            .empties(4)
+            .value_or_empty(gap.before.map(|first| first - 1))
+            .empties(3)
             .cell(gap.sources)
             .cell(SURVEYED)
             .cell(gap.reason.id())
@@ -149,7 +154,9 @@ fn gap_on_line(out: &mut String, gap: &Gap) {
     line.cell("gap")
         .cell(gap.id)
         .cell(gap.subject)
-        .empties(8)
+        .empties(2)
+        .value_or_empty(gap.before.map(|first| first - 1))
+        .empties(5)
         .cell(gap.sources)
         .cell(gap.reason.id())
         .cell(gap.explanation);
@@ -168,7 +175,9 @@ fn gap_on_line(out: &mut String, gap: &Gap) {
 /// The kind is `list` for an edition in force in the year the day falls in
 /// (a country may keep two at once: Latvia's traditional and extended lists),
 /// `outside` for a shipped edition whose years do not include it, with no
-/// names, and `gap` for a reason the crate carries no list for the country.
+/// names, and `gap` for a reason the crate carries no list for the country
+/// (or, for the years before a country's first edition, for the years it
+/// does not cover).
 /// A day that no list has a name for is a `list` line with no names, and never
 /// the nearest edition's.
 ///
@@ -218,7 +227,7 @@ pub fn names_on_lines(country: &str, fixed: i64) -> Answer<String> {
         line.cell(list.source).empties(2);
         line.end();
     }
-    for gap in gaps {
+    for gap in gaps.into_iter().filter(|gap| gap.covers(year)) {
         gap_on_line(&mut out, gap);
     }
     Ok(out)
@@ -289,12 +298,14 @@ pub fn days_of_lines(country: &str, name: &str, year: i64) -> Answer<String> {
         line.cell(list.source).empties(2);
         line.end();
     }
-    for gap in gaps {
+    for gap in gaps.into_iter().filter(|gap| gap.covers(small)) {
         let mut line = Line::new(&mut out);
         line.cell("gap")
             .cell(gap.id)
             .cell(gap.subject)
-            .empties(7)
+            .empties(2)
+            .value_or_empty(gap.before.map(|first| first - 1))
+            .empties(4)
             .cell(gap.sources)
             .cell(gap.reason.id())
             .cell(gap.explanation);
@@ -475,9 +486,29 @@ mod tests {
             .unwrap_or_default();
         assert_eq!(old[0], "list");
         assert_eq!(&old[7..10], ["", "", "0"]);
-        // No list in force before the oldest edition.
+        // No list in force before the oldest edition: every shipped edition
+        // is `outside`, and the years before it are a `gap` that says so, with
+        // the last year it covers in the `to` column.
         let text = days_of_lines("lv", "Jānis", 2022).unwrap_or_default();
-        assert!(rows(&text).iter().all(|row| row[0] == "outside"));
+        let table = rows(&text);
+        assert!(
+            table
+                .iter()
+                .all(|row| row[0] == "outside" || row[0] == "gap")
+        );
+        let gap = table
+            .iter()
+            .find(|row| row[0] == "gap")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!((gap[1], gap[5], gap[11]), ("lv", "2022", "not-yet-read"));
+        // From 2023 the gap no longer answers.
+        let text = days_of_lines("lv", "Jānis", 2023).unwrap_or_default();
+        assert!(rows(&text).iter().all(|row| row[0] != "gap"));
+        let text = names_on_lines("lv", fixed(2022, 6, 24)).unwrap_or_default();
+        assert!(rows(&text).iter().any(|row| row[0] == "gap"));
+        let text = names_on_lines("lv", fixed(2026, 6, 24)).unwrap_or_default();
+        assert!(rows(&text).iter().all(|row| row[0] != "gap"));
         // The match is exact and case-sensitive: the list's own spelling.
         let text = days_of_lines("lv", "jānis", 2026).unwrap_or_default();
         assert!(

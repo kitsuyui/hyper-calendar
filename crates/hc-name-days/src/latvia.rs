@@ -13,6 +13,19 @@
 //! three years. The centre publishes both lists as open data under
 //! CC0-1.0 [lva-vardadienas].
 //!
+//! # The licence, and the centre's own footer
+//!
+//! data.gov.lv states the licence of the dataset and of both files as
+//! CC0-1.0, and the files are carried on that statement. The footer of every
+//! page of vvc.gov.lv, read on 2026-10-04, says "publicētā satura visas
+//! tiesības aizsargātas" (all rights in the published content are
+//! protected), and the centre's own page of the lists names no licence. No
+//! page read reconciles the two; the footer is a site notice for published
+//! content and the declaration on the dataset is the more specific
+//! statement, about the data files. The decisions as the gazette
+//! (Latvijas Vēstnesis, likumi.lv) prints them are not under CC0-1.0: the
+//! portal's terms name no Creative Commons licence.
+//!
 //! # Editions
 //!
 //! Two revisions are carried, each as its own pair of lists (ADR 0007: an
@@ -20,8 +33,14 @@
 //!
 //! | Edition | Decided | In force | File |
 //! |---|---|---|---|
-//! | 2023 | 16 March 2022 [vvc-2022] | 2023–2025 | the files published 2023-04-26, as the Wayback Machine captured them on 12–13 August 2024 |
-//! | 2026 | 30 April 2025 [vvc-2025] | from 1 January 2026 | the files on data.gov.lv, retrieved 2026-09-25 |
+//! | 2023 | 16 March 2022 [vvc-2022]; the gazette's decisions are of 17 March 2022 and in force that day | the first whole year, 2023, to 2025 | the files published 2023-04-26, as the Wayback Machine captured them on 12–13 August 2024 |
+//! | 2026 | 30 April 2025 [vvc-2025]; the gazette's decisions are of 15 May 2025 | from 1 January 2026, as the centre's notice says | the files on data.gov.lv, retrieved 2026-09-25 |
+//!
+//! The decision of 2022 was in force from 17 March 2022, so its list governed
+//! part of 2022 as well; the table begins in 2023, the first whole year, and
+//! the years before it are the gap [`crate::gaps::LATVIA_EARLIER`], which
+//! includes the edition of 12 April 2018 (seven traditional and sixty-seven
+//! extended names added) that this crate does not describe or carry.
 //!
 //! The 2022 decision added ten names to the traditional list and
 //! thirty-nine to the extended one; the 2025 decision added nine and
@@ -68,8 +87,10 @@ const SOURCE_2023: &str = "Valsts valodas centrs, \"Latviešu tradicionālais un
 const SOURCE_2026: &str = "Valsts valodas centrs, \"Latviešu tradicionālais un paplašinātais \
     kalendārvārdu saraksts\", https://data.gov.lv/dati/eng/dataset/latviesu-tradicionalais-un-paplasinatais-kalendarvardu-saraksts, \
     CC0-1.0, retrieved 2026-09-25 (traditional list published 2025-05-16, extended list \
-    published 2026-03-16); the additions and the in-force date of the 30 April 2025 decision \
-    per vvc.gov.lv, \"Par jauniem vārdiem kalendārā\", 16 May 2025";
+    published 2026-03-16); vvc.gov.lv's page of the lists also shows an update on 2026-02-09 \
+    that, by its layout, belongs to the traditional file (not certain), and the file's content \
+    was not compared with the version of 2025-05-16; the additions and the in-force date of the \
+    30 April 2025 decision per vvc.gov.lv, \"Par jauniem vārdiem kalendārā\", 16 May 2025";
 
 hc_core::catalogue! {
     type: NameDayList,

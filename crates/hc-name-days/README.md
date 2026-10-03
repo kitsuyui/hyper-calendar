@@ -151,27 +151,29 @@ This crate distributes no licensed list and no fixture of one.
 
 ## Not carried
 
-Seventeen countries, each a `gaps::Gap` with its reason as a value. Present
-tense: this is what the sources say as read on 2026-09-25.
+Eighteen `gaps::Gap`s with their reasons as values: seventeen for the
+countries with no list, which cover eighteen countries (Germany and Austria
+share one), and one for the years before Latvia's first edition. Present
+tense: this is what the sources say as read on 2026-10-04, and each reason
+says whether it is a finding or the absence of one.
 
 | Country | Reason | Because |
 |---|---|---|
-| Finland | `LicensedForAFee` | The University of Helsinki's copyright, KKO 2000:56; free use stops at two weeks or 15 names. Load it |
-| Norway | `LicensedForAFee` | Almanakkforlaget's copyright; editorial use free with credit. Load it |
-| Sweden | `LicenceUnknown` | The Namnlängdskommittén states no terms; not official since 1972; catalogue protection can apply |
-| Slovakia | `LicenceUnknown` | The Ministry of Culture states no terms; official-work status under Zákon č. 185/2015 Z. z. § 5 unchecked |
-| Croatia | `LicenceUnknown` | Only Bosnia and Herzegovina's episcopal list is compiled; no terms stated |
-| France | `LicenceUnknown` | A publishers' compilation; Nominis's terms not retrieved |
-| Czechia | `SourcesDisagreeWithNoAuthority` | "No official calendar exists"; the reference list is a book and not binding |
-| Poland | `SourcesDisagreeWithNoAuthority` | Publishers differ; nothing regulates the dates |
-| Denmark | `SourcesDisagreeWithNoAuthority` | The old almanac sanctorale, unsourced; no keeper |
-| Lithuania | `SourcesDisagreeWithNoAuthority` | Church calendars, Catholic and Orthodox differing; no keeper found |
-| Hungary | `MethodUnpublished` | No central body; the printed list rests on a copyrighted book |
-| Estonia | `MethodUnpublished` | Statistics Estonia cites a commercial book; the university claim is unconfirmed |
-| Greece | `SaintsNotNames` | The church names saints; the compilations are private and copyrighted |
+| Finland | `LicensedForAFee` | The University of Helsinki's copyright to the Finnish and Finland-Swedish lists, KKO 2000:56; free use stops at two weeks or 15 names. The Orthodox and Sámi lists carry no copyright fee, and redistribution is not addressed. Load it |
+| Norway | `RightsReserved` | Almanakkforlaget states copyright; its page prints no list, terms or fee. Load it |
+| France | `RightsReserved` | Nominis's legal notice forbids reproducing its data on first names without written authorisation |
+| Greece | `RightsReserved` | eortologio.gr, a lay compilation, forbids reproduction without written permission |
+| Germany and Austria | `RightsReserved` | namenstage.katholisch.de needs written consent; the Regionalkalender is a liturgical calendar |
+| Sweden | `LicenceUnknown` | The Namnlängdskommittén's list is readable, with no terms for it; not official since 1972; catalogue protection can apply |
+| Estonia | `LicenceUnknown` | Statistics Estonia prints a list credited to a commercial book of 2011, with no terms; the university claim is unconfirmed |
+| Czechia | `NoKeeperFound` | A source says no official calendar exists; the reference list is a book and not binding |
+| Hungary | `NoKeeperFound` | A source says no central body assigns name days; the list rests partly on an unreliable wall calendar |
+| Poland, Denmark, Croatia | `NoKeeperFound` | No keeper was found in the pages read, which cite no source |
+| Lithuania | `NotYetRead` | The State Commission's pages refused (HTTP 403) |
+| Slovakia | `NotYetRead` | The ministry's calendarium is a PDF, not opened; no terms stated |
+| Latvia, before 2023 | `NotYetRead` | The lists in force before the 2022 revision are not readable; the years are a gap |
 | Bulgaria | `SaintsNotNames` | The church's calendar names saints and permits citation; no name list |
 | Russia | `SaintsNotNames` | The saint nearest after the birthday: a rule on the caller's birthday, not a list |
-| Germany and Austria | `SaintsNotNames` | The Regionalkalender is a liturgical calendar |
 | Spain | `SaintsNotNames` | The santoral is the liturgical calendar |
 
 ## The movable Orthodox name days are not yet carried

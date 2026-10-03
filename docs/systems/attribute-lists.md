@@ -2,7 +2,7 @@
 
 Backs the crate `hc-attributes`: its modules `authority`, `birthstones`,
 `zodiac_stones`, `birth_flowers`, `moon_names`, `month_names`,
-`weekday_attributions` and `gaps`; the twenty-five table identifiers listed
+`weekday_attributions` and `gaps`; the twenty-seven table identifiers listed
 under "What is carried"; the six gap identifiers; and the computed
 `moon_names::harvest_moon`, `moon_names::hunters_moon`,
 `moon_names::harvest_moon_falls_in`, `moon_names::september_moon_name` and
@@ -13,7 +13,7 @@ WebAssembly module and the C library export it in the `attributes` layer:
 `hc_harvest_moon`, whose lines `hyper_calendar::attribution_lines` writes
 once for both. Policy §5 (competing
 conventions get names) is why every list is its own table, and §10 says the
-1912 and the 2016 American birthstone lists are both real.
+1912, 1952, 2002 and 2016 American birthstone lists are all real, the two between derived from the changes the sources state.
 
 ## What it is
 
@@ -149,12 +149,14 @@ earlier on a tie. The second is `zodiac_stones::stones_on`, which asks
 `hc-seasons` for the tropical sign in effect on a day, the sign whose
 ingress falls on or before the end of that day, and looks the stone up.
 
-**Worked example.** December. `all_for_month` on a December returns six
+**Worked example.** December. `all_for_month` on a December returns eight
 rows: traditional [bloodstone, ruby]; 1912 [turquoise, lapis lazuli];
 `birthstones-uk-2007` [tanzanite, turquoise]; `birthstones-jp-1958`
-[turquoise, lapis lazuli]; `birthstones-us-2016` [turquoise, zircon,
+[turquoise, lapis lazuli]; `birthstones-us-1952` [turquoise, zircon];
+`birthstones-us-2002` and `birthstones-us-2016` [turquoise, zircon,
 tanzanite]; `birthstones-jp-2021` [turquoise, lapis lazuli, zircon,
-tanzanite]. Five entries are distinct (the 1912 and 1958 rows are equal), so
+tanzanite]. Six entries are distinct (the 1912 and 1958 rows are equal, and so
+are the 2002 and 2016 rows), so
 `authorities_agree` is false, and only January (garnet in each) is
 unanimous: `months_in_dispute` is 11. Kunz's 1912 table agrees with the
 second row [kunz1913].
@@ -174,7 +176,7 @@ October. EarthSky gives 03:48 UTC on 7 October 2025 for the full moon
 
 | Module | Identifiers | Keyed by |
 | --- | --- | --- |
-| `birthstones` | `birthstones-traditional`, `birthstones-us-1912`, `birthstones-uk-2007`, `birthstones-jp-1958`, `birthstones-us-2016`, `birthstones-jp-2021` | month |
+| `birthstones` | `birthstones-traditional`, `birthstones-us-1912`, `birthstones-uk-2007`, `birthstones-jp-1958`, `birthstones-us-1952`, `birthstones-us-2002`, `birthstones-us-2016`, `birthstones-jp-2021` | month |
 | `zodiac_stones` | `zodiac-stones-kunz-1913` | tropical sign |
 | `birth_flowers` | `birth-flowers-anglo-american`, `birth-flowers-uk-trade` | month |
 | `moon_names` | `moon-names-ofa-current`, `moon-names-ofa-1964`, `moon-names-maine-1937`; `moon-names-carver-1778` | month; lunation from the March equinox |
@@ -196,6 +198,16 @@ this crate.
 
 What the crate does not carry, with the reason that is true now:
 
+- Carried as derived, not read: the American lists of 1952 and 2002
+  (`birthstones-us-1952`, `birthstones-us-2002`). No page read prints either
+  in full; each is the previous list with the changes the sources state, and
+  its caveat says so. The 1952 body is the Jewelry Industry Council of America
+  per Wikipedia and Jewelers of America per National Jeweler, and the 2002
+  body the American Gem Trade Association per Wikipedia and Jewelers of
+  America per National Jeweler; no page read gives the month of either
+  revision or the date it took effect, so each list begins in its year.
+  Jewelers of America's own page, the AGTA's and the JCK article of 2007 could
+  not be read.
 - Not carried: the British list of 1937 (no printing of it was read). The
   table `birthstones-uk-2007` is the list as a 2007 archive copy printed it,
   which was not re-read here.
@@ -243,6 +255,8 @@ against the source it names, where one could be read, on 2026-10-03:
 |---|---|---|
 | `birthstones-traditional` | Kunz p. 315 [kunz1913] | Nine months agree. March, October and December differ: Kunz's 15th to 20th century column prints jasper then bloodstone, beryl then opal, ruby then bloodstone; the table has [bloodstone, jasper], [opal, aquamarine], [bloodstone, ruby]. Aquamarine is in Kunz's columns for the Jews, Romans, Isidore, Arabians and Poles, not in the column the table is named for. |
 | `birthstones-us-1912` | Kunz pp. 319 to 320 | All twelve agree, in order. |
+| `birthstones-us-1952` | [wikipedia-birthstone], [nationaljeweler-birthstone-evolution], [gemsociety-history-of-birthstones], [geology-com-birthstones] | Derived, not read: no page prints the list. It is the list of 1912 with the stated changes: alexandrite in June, citrine in November, zircon for lapis lazuli in December, and March's primary and alternative stones swapped (one secondary page). The sources also say tourmaline was added to October, which Kunz's 1912 table already has, so October is 1912's. August is 1912's by silence. |
+| `birthstones-us-2002` | [wikipedia-tanzanite], [nationaljeweler-birthstone-evolution] | Derived, not read: the list of 1952 with tanzanite for December. The sources disagree on the body (the American Gem Trade Association, or Jewelers of America). |
 | `birthstones-uk-2007` | none | Not checked. |
 | `birthstones-jp-1958` | [zho-history] | Does not agree: the history page names, for August, October, November and December, peridot, opal, topaz and turquoise alone; the table adds sardonyx, tourmaline, citrine and lapis lazuli. The caveat in the code says this. |
 | `birthstones-us-2016` | [jewelers-america-birthstones], [gia-birthstones], [american-gem-society-birthstones] | Equal as sets to GIA's and the Society's twelve. JA's page differs in March (no bloodstone), August (no sardonyx) and December (blue zircon), and orders November as citrine, topaz. The order differs from GIA's pages in June and December, and from the Society's in June, August and December; in June it equals JA's. |
@@ -280,7 +294,7 @@ asserts only the one day. `stones_on` inherits the solar longitude of
 `hc-seasons`; its documentation says a sign boundary within about ten minutes
 of local midnight can move the answer by a day, which was not re-measured here.
 
-`months_in_dispute` is 11 for the six birthstone lists: no month but one is
+`months_in_dispute` is 11 for the eight birthstone lists: no month but one is
 agreed by all of them. The 2021 Japanese and the 2016 American lists differ in
 eight months as ordered lists and in seven as sets, since August has the same
 stones in two orders; a test counts the eight. The table of 1912 has

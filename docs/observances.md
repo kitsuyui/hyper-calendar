@@ -534,23 +534,28 @@ not cover.
 
 | Country | Note |
 | --- | --- |
-| Latvia 🇱🇻 | The traditional (about 1,000 names) and extended (about 5,600) lists of the Valsts valodas centrs's Kalendārvārdu ekspertu komisija, CC0-1.0 open data on data.gov.lv, in two editions each: the 2022 revision, in force 2023–2025, and the 2025 revision, in force from 1 January 2026 (`lv-traditional-2023`, `lv-traditional-2026`, `lv-extended-2023`, `lv-extended-2026`). 29 February carries no names, as the source prints; 22 May is Emīlija and the day for names not in the calendar; the six Latgalian forms the 2026 extended list prints in parentheses are names with a note |
+| Latvia 🇱🇻 | The traditional (about 1,000 names) and extended (about 5,600) lists of the Valsts valodas centrs's Kalendārvārdu ekspertu komisija, CC0-1.0 open data on data.gov.lv, in two editions each: the 2022 revision (in force from 17 March 2022 by the gazette; the table begins with 2023, the first whole year, and runs to 2025) and the 2025 revision, in force from 1 January 2026 (`lv-traditional-2023`, `lv-traditional-2026`, `lv-extended-2023`, `lv-extended-2026`). 29 February carries no names, as the source prints; 22 May is Emīlija and the day for names not in the calendar; the six Latgalian forms the 2026 extended list prints in parentheses are names with a note |
 
 **Not carried**
 
 | Country | Status | Note |
 | --- | --- | --- |
-| Finland 🇫🇮 | Not shipped until licensed | The Finnish, Finland-Swedish, Orthodox and Sámi lists are the University of Helsinki's, confirmed by the Supreme Court (KKO 2000:56); free publication stops at two weeks or 15 names, and a whole year is charged per copy. A caller who holds a licence loads the list with `hc_name_days::load` |
-| Norway 🇳🇴 | Not shipped until licensed | Almanakkforlaget owns the list; editorial use is free with credit and commercial use is on its terms. Loaded, not shipped |
-| Sweden 🇸🇪 | Researching | The Namnlängdskommittén's list has had no official status since 1972 and no stated terms; not carried until the committee is asked |
-| Slovakia 🇸🇰 | Researching | The Ministry of Culture's Oficiálne kalendárium is recommendatory and states no terms; whether it is an official work under Zákon č. 185/2015 Z. z. § 5 is unchecked |
-| Croatia 🇭🇷 | Researching | Only the Bishops' Conference of Bosnia and Herzegovina's calendar is compiled, for its own territory, with no terms stated |
-| France 🇫🇷 | Researching | The postal calendar is a publishers' compilation; Nominis (Conférence des évêques de France) states no terms that were retrieved |
-| Greece 🇬🇷, Bulgaria 🇧🇬 | Partial | The church calendars name saints, not given names, so the fixed lists are gaps (`hc_name_days::gaps`). The movable name days are rules on the Julian computus, and are `hc-holiday`'s tradition tables `name-days-greek-movable` (the feasts from the Saturday of St Theodore to All Saints, St George and St Mark after Pascha when it falls after 23 April, Chloe, the Forefathers; `eortologio-pasxa`, `elwiki-agios-georgios`) and `name-days-bulgarian-movable` (Тодоровден to All Bulgarian Saints, held to the Bulgarian Wikipedia's days of 2010–2023, `bgwiki-imen-den`), each with the principal names its source prints ([systems/name-days.md](systems/name-days.md)) |
-| Russia 🇷🇺 | Researching | Not carried: a name day is the saint's day nearest after the birthday, read from the Месяцеслов, so it is a rule on the caller's birthday and not a list; the rule is not yet done and the Месяцеслов was not read |
-| Czechia 🇨🇿, Poland 🇵🇱, Denmark 🇩🇰, Lithuania 🇱🇹 | Researching | Not carried: the lists are publishers' and no body was found to choose between them (§5 would give each edition its own name); no list was read |
-| Hungary 🇭🇺, Estonia 🇪🇪 | Researching | Not carried: the printed lists rest on copyrighted books, and the claims of an official keeper are unconfirmed; no list was read |
-| Germany 🇩🇪, Austria 🇦🇹, Spain 🇪🇸 | Researching | Not carried: the sources found are liturgical calendars, which belong beside `hc_holiday::roman_calendar` (the national and diocesan calendars are not yet carried); no list of given names was read |
+| Finland 🇫🇮 | Not shipped until licensed | The Finnish and Finland-Swedish lists are the University of Helsinki's, confirmed by the Supreme Court (KKO 2000:56); free publication stops at two weeks or 15 names, and a whole year is charged per copy. The Almanac Office also supplies the Orthodox and Sámi lists with no copyright fee, and no page read says whether they may be redistributed. A caller who holds a licence loads a list with `hc_name_days::load` |
+| Norway 🇳🇴 | Researching | Almanakkforlaget states that its calendar is copyright-protected; its page prints no list, terms or fee. Loaded, not shipped |
+| Sweden 🇸🇪 | Researching | The Namnlängdskommittén's list, the namnlängd of 2001 as amended, is readable on the Academy's and Isof's sites; the Academy asserts copyright site-wide, Isof allows copying of its texts with credit, and neither states terms for the list; not carried until the committee is asked |
+| Slovakia 🇸🇰 | Researching | The Ministry of Culture's Oficiálne kalendárium is recommendatory and published as a PDF, which was not opened; no terms are stated, and the text of Zákon č. 185/2015 Z. z. § 5 was not read |
+| Croatia 🇭🇷 | Researching | No body keeping a Croatian list was named by a page read; only the Bishops' Conference of Bosnia and Herzegovina's calendar is compiled, a PDF for its own territory, not opened |
+| France 🇫🇷 | Researching | Nominis (Conférence des évêques de France) states that its data on first names may not be reproduced without written authorisation; the postal calendar is a publishers' compilation, shown on Wikipedia for 2011 without sources |
+| Greece 🇬🇷, Bulgaria 🇧🇬 | Partial | The church calendars name saints, not given names, so the fixed lists are gaps (`hc_name_days::gaps`); eortologio.gr prints a full list for 2026 and reserves all rights. The movable name days are rules on the Julian computus, and are `hc-holiday`'s tradition tables `name-days-greek-movable` and `name-days-bulgarian-movable`: the principal names the sources print, not the whole lists |
+| Russia 🇷🇺 | Researching | Not carried: a name day is the saint's day nearest after the birthday, read from the Месяцеслов, so it is a rule on the caller's birthday and not a list; the rule is not yet done and the Месяцеслов's terms were not read |
+| Czechia 🇨🇿 | Researching | No body keeps a list, and a source says so (the National Library's reference service); the calendarium in Knappová's book is not binding, and Czech Wikipedia's list names no compiler; nothing was transcribed |
+| Poland 🇵🇱, Denmark 🇩🇰 | Researching | No body keeping a list was found, and the pages read cite no source; nothing was transcribed (§5 would give each edition its own name) |
+| Lithuania 🇱🇹 | Researching | The State Commission of the Lithuanian Language, the one possible keeper, refused its pages; not read |
+| Hungary 🇭🇺 | Researching | No central body assigns name days, as Hungarian Wikipedia says; its list rests partly on a wall calendar of 2008 that the page marks unreliable |
+| Estonia 🇪🇪 | Researching | Statistics Estonia prints a full list and credits it to a commercial book of 2011, with no terms stated; the claim of a University of Tartu calendar is unconfirmed |
+| Germany 🇩🇪, Austria 🇦🇹 | Researching | No civil list; the Regionalkalender is a liturgical calendar, and the database of namenstage.katholisch.de needs written consent for any use |
+| Spain 🇪🇸 | Researching | The Conferencia Episcopal Española's liturgical calendar is a PDF, not opened, which names saints; no list of given names was found |
+| Latvia 🇱🇻, before 2023 | Researching | The lists in force before the 2022 revision's first whole year are not carried: the decisions of 1997, 2003, 2011, 2014, 2018 and 2022 list only the names they add, the data.gov.lv files were replaced in place, and the files of 26 April 2023 survive in Wayback Machine captures that could not be fetched. Years before 2023 are a gap, not outside the lists |
 
 ## Adding a country
 

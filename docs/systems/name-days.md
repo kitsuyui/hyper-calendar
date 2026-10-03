@@ -136,8 +136,8 @@ source read tabulates in full, and they are not yet carried.
 
 | Identifier | Names | Decided | In force | File |
 | --- | --- | --- | --- | --- |
-| `lv-traditional-2023` | 1,023 | 16 March 2022 [vvc-2022] | 2023–2025 | the XLSX published 2023-04-26, as captured 2024-08-12 [lva-vardadienas-2023] |
-| `lv-extended-2023` | 5,589 | 16 March 2022 [vvc-2022] | 2023–2025 | the CSV published 2023-04-26, as captured 2024-08-13 [lva-vardadienas-2023] |
+| `lv-traditional-2023` | 1,023 | 16 March 2022 [vvc-2022]; in force 17 March 2022 [likumi-vvc-decision-2022] | the first whole year, 2023, to 2025 | the XLSX published 2023-04-26, as captured 2024-08-12 [lva-vardadienas-2023] |
+| `lv-extended-2023` | 5,589 | 16 March 2022 [vvc-2022]; in force 17 March 2022 [likumi-vvc-decision-2022] | the first whole year, 2023, to 2025 | the CSV published 2023-04-26, as captured 2024-08-13 [lva-vardadienas-2023] |
 | `lv-traditional-2026` | 1,032 | 30 April 2025 [vvc-2025] | from 2026 | the CSV published 2025-05-16, retrieved 2026-09-25 |
 | `lv-extended-2026` | 5,652 | 30 April 2025 [vvc-2025] | from 2026 | the CSV published 2026-03-16, retrieved 2026-09-25 |
 
@@ -158,19 +158,43 @@ crate may not ship. The crate distributes no such list and no fixture of one;
 its tests use a synthetic list and the Latvian tables rendered to text and
 read back.
 
-**Not carried**, each a `gaps::Gap` with its reason as a value:
+**Not carried**, each a `gaps::Gap` with its reason as a value. Each reason
+says what the sources read on 2026-10-04 show, and whether it is a finding (a
+source says it) or the absence of one (none was found); none is a choice
+about what the crate carries.
 
 | Country | Reason | Because |
 | --- | --- | --- |
-| Finland | `LicensedForAFee` | The University holds the copyright, confirmed by the Supreme Court in 2000; free publication stops at two weeks or 15 names; a whole year is charged per copy [helsinki-copyright] [helsinki-pricing] [kko-2000-56] |
-| Norway | `LicensedForAFee` | Almanakkforlaget owns the list; editorial use is free with credit, commercial use on its terms [almanakkforlaget-navnedager] |
-| Sweden | `LicenceUnknown` | No terms stated by the committee's institutions; catalogue protection can apply [isof-namnsdagar] [svenska-akademien-namnlangden] |
-| Slovakia | `LicenceUnknown` | The ministry states no terms; whether the list is an official work under Zákon č. 185/2015 Z. z. § 5 is unchecked [culture-sk-kalendarium] |
-| Croatia | `LicenceUnknown` | Only Bosnia and Herzegovina's episcopal list is compiled, with no terms stated [ktabkbih-imendanski] |
-| France | `LicenceUnknown` | The postal calendar's terms are not stated and Nominis's were not retrieved [frwiki-fleuristes] |
-| Czechia, Poland, Denmark, Lithuania | `SourcesDisagreeWithNoAuthority` | Publishers' lists with no body to choose between them [ptejteseknihovny-kalendarium] [plwiki-imieniny] [dawiki-navnedag] [ltwiki-vardadienis] |
-| Hungary, Estonia | `MethodUnpublished` | The printed lists rest on copyrighted books; the official keepers claimed are unconfirmed [huwiki-nevnap] [stat-ee-nimepaevad] |
-| Greece, Bulgaria, Russia, Germany and Austria, Spain | `SaintsNotNames` | The church calendar names saints, not given names; the mapping has no authority [elwiki-eortologio] [bg-patriarshia-calendar] [ruwiki-imeniny] [dewiki-namenstage] |
+| Finland | `LicensedForAFee` | The University holds the copyright to the Finnish and Finland-Swedish lists, confirmed by the Supreme Court in 2000; free publication stops at two weeks or 15 names; a whole year is charged per copy. The Orthodox and Sámi lists carry no copyright fee, and whether a third party may redistribute them is not stated [helsinki-copyright] [helsinki-pricing] [kko-2000-56] |
+| Norway, Germany and Austria, France, Greece | `RightsReserved` | A named owner states copyright and asks for written permission: Almanakkforlaget [almanakkforlaget-navnedager]; PubliKath GmbH's namenstage.katholisch.de [katholisch-namenstage]; Nominis's legal notice, which covers its data on first names [nominis-legal-notice] [frwiki-fleuristes]; eortologio.gr, compiled by lay Orthodox Christians and not an official church document [eortologio-terms] [elwiki-eortologio] |
+| Sweden, Estonia | `LicenceUnknown` | A keeper's or a publisher's list is readable and no terms are stated for it: the Swedish Academy's and Isof's pages, with the Academy's site-wide copyright notice and Isof's permission to copy site texts with credit [isof-namnsdagar] [svenska-akademien-namnlangden] [isof-alla-namn-i-almanackan]; Statistics Estonia's list, credited to a commercial book of 2011 [stat-ee-nimepaevad] [stat-ee-nimepaevad-2026] |
+| Czechia, Denmark, Croatia, Hungary, Poland | `NoKeeperFound` | No body keeps a list that a page read names. Czechia and Hungary have a source that says so [ptejteseknihovny-kalendarium] [huwiki-nevnap]; for Denmark, Croatia and Poland none was found [dawiki-navnedag] [plwiki-imieniny] |
+| Lithuania, Slovakia, Latvia before 2023 | `NotYetRead` | The keeper's list exists and was not read: the State Commission's pages refused (HTTP 403) [ltwiki-vardadienis]; the Ministry of Culture's calendarium is a PDF [culture-sk-kalendarium]; Latvia's lists before the 2022 revision are not readable (below) |
+| Bulgaria, Russia, Spain | `SaintsNotNames` | The church calendar names saints, not given names; the mapping has no authority [bg-patriarshia-calendar] [ruwiki-imeniny] |
+
+**Latvia's licence and its earlier editions.** data.gov.lv states CC0-1.0
+for the dataset and for both files, and the crate carries them on that
+statement [data-gov-lv-kalendarvardi]. The footer of every page of vvc.gov.lv,
+read on 2026-10-04, says "publicētā satura visas tiesības aizsargātas" (all
+rights in the published content are protected), and the centre's page of the
+lists names no licence [vvc-kalendarvardu-komisija]; the gazette's portal
+names no Creative Commons licence for the decisions it prints. No page read
+reconciles them. The commission's decisions in the pages read are of 1997
+(fifty names), 26 March 2003 [vestnesis-vvc-decision-2003], 2011
+[nra-vvc-2011], 2014 [lvportals-vvc-2014], 12 April 2018 [vestnesis-vvc-decision-2018],
+17 March 2022 [likumi-vvc-decision-2022] and 2025 [vvc-2025]; a decision of
+2008 is only implied by a review period. The gazette dates the decisions of
+2022 to 17 March 2022 and "in force" that day, so the 2022 edition governs part
+of 2022 and the table begins with 2023, the first whole year. None of the
+earlier editions' lists is readable: the decisions list the names they add,
+the data.gov.lv files were replaced in place with no version history
+(created 2025-05-16 and 2026-03-16 on the resources), and the captures of
+the 2023 files are in the Wayback Machine, which the survey's tools could not
+fetch. A year before 2023 is therefore a gap, which `gaps::LATVIA_EARLIER`
+says, and not an `outside` answer from an edition that does not cover it. The
+page of the lists on vvc.gov.lv shows a file of the traditional list updated
+on 9 February 2026, after the one on data.gov.lv (2025-05-16); its content
+was not compared.
 
 ## Accuracy
 
@@ -195,9 +219,10 @@ centre's files, and checked three ways:
 3. **Against each other.** The two editions' validity spans abut with no gap
    and no overlap, and the loader round-trips every slot of every edition.
 
-The centre's extended file changed once within the 2026 edition: the file of
-2026-03-16 has Enia on 4 March and the file of 2026-01-10 did not. The crate
-carries the later file.
+The extended file on data.gov.lv and on vvc.gov.lv is dated 2026-03-16 on both,
+and has Enia on 4 March. The crate's earlier file of 2026-01-10, which did
+not, appears in no page read on 2026-10-04 and could be a Wayback capture
+only; the crate carries the file of 2026-03-16.
 
 ## Sources
 
@@ -222,6 +247,8 @@ carries the later file.
 | [elwiki-agios-georgios] | St George on the Monday of Bright Week when 23 April falls before Pascha | yes, 2026-09-29 |
 | [bgwiki-imen-den] | the Bulgarian movable name days, their rules and their days of 2010–2023 | yes, 2026-09-29 |
 | [frwiki-fleuristes], [ktabkbih-imendanski], [dewiki-namenstage] | France, Croatia, Germany and Austria | no, via the research report |
+| [nominis-legal-notice], [eortologio-terms], [katholisch-namenstage], [stat-ee-nimepaevad-2026], [isof-alla-namn-i-almanackan] | the terms and lists of France, Greece, Germany and Austria, Estonia and Sweden | yes, 2026-10-04 |
+| [data-gov-lv-kalendarvardi], [vvc-kalendarvardu-komisija], [likumi-vvc-decision-2022], [vestnesis-vvc-decision-2018], [vestnesis-vvc-decision-2003], [lvportals-vvc-2014], [nra-vvc-2011] | Latvia's licence, dates and earlier decisions | yes, 2026-10-04 |
 
 "Via the research report" means the page was read during the survey of
 2026-09-25 that preceded the crate and quoted there; the crate's text
@@ -234,8 +261,8 @@ repeats the quotation and the URL.
 | `hc_name_days::list` | `NameDayList`, `LeapDayRule`, `Licence`, `Provenance`, `Validity`, `Note`, `NameDays`, `slot_index`, `names_on`, `days_of` |
 | `hc_name_days::latvia` | the four editions, as a `catalogue!`, with `latvia/data.rs` generated from the files |
 | `hc_name_days::load` | `OwnedNameDayList::parse`, `NameDayList::to_text`, `LoadError` |
-| `hc_name_days::gaps` | seventeen `Gap`s, as a `catalogue!` |
-| `hyper_calendar::name_day_lines` | the boundary: `lists_lines`, `names_on_lines` and `days_of_lines`, written by `hc_name_day_lists`, `hc_name_days_on` and `hc_name_day` in the `name-days` layer of the WebAssembly module and the C library. A list in force is a `list` line, a shipped edition that does not cover the year an `outside` line with no names, and a country the crate declines to ship a `gap` line with its reason, so the answer is never the nearest edition's. The loader is not exported |
+| `hc_name_days::gaps` | eighteen `Gap`s, as a `catalogue!`: seventeen for the countries with no list, covering eighteen countries, and one for the years before Latvia's first edition |
+| `hyper_calendar::name_day_lines` | the boundary: `lists_lines`, `names_on_lines` and `days_of_lines`, written by `hc_name_day_lists`, `hc_name_days_on` and `hc_name_day` in the `name-days` layer of the WebAssembly module and the C library. A list in force is a `list` line, a shipped edition that does not cover the year an `outside` line with no names, and a country the crate declines to ship, and the years before Latvia's first edition, a `gap` line with its reason, so the answer is never the nearest edition's. The loader is not exported |
 
 Anchoring tests, beside the data:
 

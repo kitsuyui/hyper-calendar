@@ -76,6 +76,15 @@ A rule carries both facts, and the engine reports the difference.
 - `Rule::NO_DAY` is a day a text read does not keep. With `read_from` and
   a region, it says that the province's text of 2026 leaves a federal day
   out and that the texts before it were not read.
+- A year system of `hc-fiscal` carries the same two facts. `valid_from` is
+  the year it was established, before which it is absent
+  (`FiscalError::OutsideValidity`, the line status `outside-validity`);
+  `read_from` is the first year the sources read reach, and `unread` the
+  stretches after it that no source reaches. A label from the establishment to
+  `read_from`, or in a stretch, is `FiscalError::NotRead` and the line status
+  `gap`. A system whose establishment no source gives has no `valid_from`.
+  The first year read is the first whole year of the earliest instrument,
+  edition or page read.
 - `hc_holidays_in_year` writes the year's gaps as `hc_holidays_on` does,
   and a gap line carries the rule's source.
 - A day a gap leaves open is refused, not answered. `HolidayCalendar::day_off`

@@ -6,15 +6,16 @@
 //!
 //! # Most countries do not legislate when school starts
 //!
-//! Three of the eight countries here do. Japan's
+//! Two of the eight countries here do. Japan's
 //! 学校教育法施行規則第五十九条 says the school year begins on 1 April and
 //! ends on 31 March of the following year, and the rule reaches
 //! kindergartens, junior high schools, high schools and special-needs
 //! schools by 準用. France's Code de l'éducation art. L. 521-1 puts the
 //! calendar in the Minister's hands, who publishes it as an *arrêté*. New
-//! Zealand's Education and Training Act 2020 s. 66(1) requires the Minister
-//! to fix term dates by *Gazette* notice, leaving boards only a week's
-//! latitude on the Term 1 start.
+//! Zealand's Education and Training Act 2020 s. 66(1) is said to require the
+//! Minister to fix term dates by *Gazette* notice, but the Act could not be
+//! read and the one page read says term dates are set by individual
+//! schools, so New Zealand's entry does not claim a national rule.
 //!
 //! The rest are not like that. In the United States the school year is set
 //! by the district — the Education Commission of the States counts
@@ -101,11 +102,19 @@ pub const JAPAN_SCHOOL_YEAR: YearSystem = YearSystem {
     authority: Authority::Regulation,
     start: YearStart::gregorian(4, 1),
     label: LabelConvention::LabelledByStartYear,
-    valid_from: Some(1947),
+    valid_from: None,
     valid_until: None,
+    read_from: 1947,
+    unread: &[],
     note: "Fixed nationally by ministerial ordinance, which is unusual: in most countries the \
-           school year is set locally. Universities may set their own 学年, and some run \
-           September-start programmes.",
+           school year is set locally. 学校教育法施行規則 (昭和22年文部省令第11号) was \
+           promulgated on 23 May 1947 and applies from 1 April 1947 by its supplementary \
+           provision, so 1947 is a whole year; art. 59 is read in the consolidated text of \
+           2026, and that the wording was the same in 1947 was not checked. The April start \
+           is older for elementary schools (小学校令施行規則 of 1900, art. 25, in force on \
+           1 September 1900, and a reference answer says uniform from 1892) and was not read \
+           for the other school types, so years before 1947 are a gap. Universities may set \
+           their own 学年, and some run September-start programmes.",
 };
 
 /// Build a school-year entry. Private so that every public value in this
@@ -116,6 +125,7 @@ const fn school(
     authority: Authority,
     month: u8,
     day: u8,
+    first: (Option<i64>, i64),
     note: &'static str,
 ) -> YearSystem {
     YearSystem {
@@ -125,8 +135,10 @@ const fn school(
         authority,
         start: YearStart::gregorian(month, day),
         label: LabelConvention::LabelledByStartYear,
-        valid_from: None,
+        valid_from: first.0,
         valid_until: None,
+        read_from: first.1,
+        unread: &[],
         note,
     }
 }
@@ -154,13 +166,20 @@ pub static JAPAN: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         4,
         1,
-        "学校教育法施行規則第163条 gives the start and end of a university's 学年 to its 学長, \
-         so April is the near-universal choice rather than the rule. September-entry \
-         programmes exist and use the same hook.",
+        (None, 2026),
+        "学校教育法施行規則第163条 gives the start and end of a university's 学年 to its 学長 \
+         (read in e-Gov's consolidated text of 2026), and says no date; April is the \
+         practice English and Japanese Wikipedia state, so April is the near-universal choice \
+         and not the rule. September-entry programmes exist and use the same hook. The \
+         Ministry's history of education says the 帝国大学 and 高等学校 moved from September \
+         to April from 大正10年度 (1921); that is one kind of university, so no year before \
+         2026 is carried.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "学校教育法施行規則（昭和22年文部省令第11号）第59条, 第39条, 第79条, 第104条, \
-              第163条; 学校教育法施行令第29条 — e-Gov 法令検索",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "学校教育法施行規則（昭和22年文部省令第11号）第59条, 第39条, 第79条, 第163条 and 附則 \
+              (e-Gov 法令検索, API); 学校教育法施行令第29条; 文部科学省「学制百年史」第三節 高等教育; \
+              小学校令施行規則（明治33年文部省令第14号）第25条 (MEXT); Wikipedia, 「学年」 and \
+              \"Academic term\" (secondary), read 2026-10-04",
 };
 
 /// United Kingdom 🇬🇧 — September, and Scotland earlier.
@@ -180,8 +199,13 @@ pub static UNITED_KINGDOM: AcademicProfile = AcademicProfile {
         Authority::PerRegion,
         9,
         1,
+        (None, 2026),
         "England, Wales and Northern Ireland start in early September; Scotland in mid-August. \
-         Term dates are set by the local authority or academy trust, not nationally.",
+         Term dates are set by the local authority or academy trust, not nationally. No page \
+         read gives the date: the Education Act 1996 s. 579(1), read as revised, defines \
+         the school year as beginning with the first term to begin after July (inserted on \
+         14 June 1997), and GOV.UK and mygov.scot say only that dates vary; 1 September is \
+         the table's representative date, from Wikipedia's accounts, and is read from 2026.",
     ),
     university: Some(school(
         "United Kingdom university year",
@@ -189,13 +213,17 @@ pub static UNITED_KINGDOM: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         9,
         1,
+        (None, 2026),
         "Michaelmas term begins late September or early October and varies by institution; \
-         Scottish universities generally start in September.",
+         Scottish universities generally start in September. Wikipedia's \"Academic term\" \
+         says September or October; no university or UCAS page was read, and 1 September is \
+         the table's representative date.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
+    sources_checked: SourceDate::new(2026, 10, 4),
     sources: "Education Act 2002 s. 32 (term dates set by the local authority or governing \
               body); Education Act 1996 s. 579(1) (\"the first school term to begin after \
-              July\"); mygov.scot, school term and holiday dates",
+              July\"), legislation.gov.uk; GOV.UK and mygov.scot, school term and holiday \
+              dates; Wikipedia, \"Academic term\" (secondary), read 2026-10-04",
 };
 
 /// France 🇫🇷 — September, and fixed by a national instrument.
@@ -215,8 +243,13 @@ pub static FRANCE: AcademicProfile = AcademicProfile {
         Authority::Regulation,
         9,
         1,
+        (None, 2026),
         "The rentrée is fixed each year by ministerial arrêté and falls in the first days of \
-         September; the three zones stagger holidays within the year, not its start.",
+         September; the three zones stagger holidays within the year, not its start. Code \
+         de l'éducation art. L. 521-1 (in force since 22 June 2000, read on Légifrance) has \
+         the Minister fix a national calendar for three years and says nothing of the \
+         rentrée or of September; the September start rests on the French and English \
+         Wikipedia pages on the school calendar, so the entry is read from 2026.",
     ),
     university: Some(school(
         "French university year",
@@ -224,19 +257,27 @@ pub static FRANCE: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         9,
         1,
-        "Set by each établissement; September or early October.",
+        (None, 2026),
+        "Set by each établissement; September or early October. No Code de l'éducation \
+         article on the année universitaire was found; Wikipedia's \"Academic term\" says \
+         September.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Code de l'éducation art. L. 521-1; arrêté fixing the calendrier scolaire, \
-              Journal officiel",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "Code de l'éducation art. L. 521-1 (Légifrance); Wikipedia, \"Calendrier scolaire \
+              en France\", \"Education in France\" and \"Academic term\" (secondary), read \
+              2026-10-04; the arrêté fixing the calendrier scolaire (Journal officiel) was not \
+              read",
 };
 
 /// Germany 🇩🇪 — August by *Land*, October for the universities.
 ///
 /// The school year is a *Land* matter and cannot constitutionally be a
-/// federal one. The legal year in North Rhine-Westphalia, for instance, runs
-/// 1 August to 31 July (§ 7 SchulG NRW) with the ministry issuing the
-/// *Ferienordnung*; teaching resumes somewhere between early August and
+/// federal one. German Wikipedia says the Länder's school laws have it run
+/// 1 August to 31 July, as the Länder agreed in the Hamburg Agreement of
+/// 28 October 1964 (revised 14 October 1971), with two short school years
+/// from April 1966 to July 1967, so 1967/68 is the first year of that
+/// boundary; § 7 SchulG NRW, which is said to fix it in North Rhine-Westphalia,
+/// could not be read. Teaching resumes somewhere between early August and
 /// mid-September depending on the *Land*. The Kultusministerkonferenz
 /// coordinates only the summer-holiday windows — they must fall between
 /// 20 June and 15 September, in five rotating groups — precisely so that the
@@ -254,9 +295,13 @@ pub static GERMANY: AcademicProfile = AcademicProfile {
         Authority::PerRegion,
         8,
         1,
-        "The legal year runs 1 August to 31 July in the Länder whose school law the author \
-         checked; teaching resumes between early August and mid-September by Land. This entry \
-         is the legal boundary, not the first day of lessons.",
+        (Some(1967), 1967),
+        "The legal year runs 1 August to 31 July in the Länder, from the Hamburg Agreement of \
+         1964 (German Wikipedia's \"Hamburger Abkommen\" and \"Schuljahr\", secondary; the \
+         agreement's text is a PDF and was not read); teaching resumes between early \
+         August and mid-September by Land. This entry is the legal boundary, not the first \
+         day of lessons. The years before were spring-start (Easter) in the Western zones \
+         after 1945 and not carried: the page does not give their labels.",
     ),
     university: Some(school(
         "German university year",
@@ -264,12 +309,15 @@ pub static GERMANY: AcademicProfile = AcademicProfile {
         Authority::PerRegion,
         10,
         1,
+        (None, 2026),
         "Wintersemester 1 October to 31 March, Sommersemester 1 April to 30 September, set by \
-         Land higher-education law. The Vorlesungszeit is shorter than the semester.",
+         Land higher-education law. The Vorlesungszeit is shorter than the semester. German \
+         Wikipedia's \"Semester\" gives the dates; no Landeshochschulgesetz was read.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "§ 7 SchulG NRW; Kultusministerkonferenz Ferienregelung; Landeshochschulgesetze \
-              (semester dates not verified against a specific article)",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "German Wikipedia, \"Hamburger Abkommen\", \"Schuljahr\" and \"Semester\" (secondary); \
+              Kultusministerkonferenz, Ferienregelung (kmk.org); § 7 SchulG NRW and the \
+              Landeshochschulgesetze (not read), read 2026-10-04",
 };
 
 /// Australia 🇦🇺 — late January, and set by each state.
@@ -288,9 +336,12 @@ pub static AUSTRALIA: AcademicProfile = AcademicProfile {
         Authority::PerRegion,
         1,
         28,
+        (None, 2027),
         "Each state and territory sets its own term dates; New South Wales uses two different \
          Term 1 start dates within the state. Late January to early February; 28 January is a \
-         representative date, not a rule.",
+         representative date, not a rule: for 2027 the pages read give Term 1 on 28 January \
+         in Victoria, 1 February in Western Australia and 3 or 10 February in New South \
+         Wales. They are the only years read, so the entry begins in 2027.",
     ),
     university: Some(school(
         "Australian university year",
@@ -298,33 +349,44 @@ pub static AUSTRALIA: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         2,
         1,
-        "Semester 1 begins in late February or early March, per institution.",
+        (None, 2026),
+        "Semester 1 begins in late February or early March, per institution. Wikipedia's \
+         \"Academic term\" says semesters or trimesters; no university page was read, and \
+         1 February is the table's representative date.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Victorian Department of Education term dates; Western Australia Government \
-              Gazette future term dates; NSW Department of Education",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "Victorian Department of Education, school term dates; Western Australia \
+              Department of Education, future term dates; NSW Department of Education, 2027 \
+              term dates; Wikipedia, \"Academic term\" (secondary), read 2026-10-04",
 };
 
-/// New Zealand 🇳🇿 — late January, by Gazette notice, with a statutory window.
+/// New Zealand 🇳🇿 — late January, and what fixes it is not known.
 ///
-/// The instructive contrast with Australia: the calendars look almost
-/// identical and the legal footing is the opposite. Education and Training
-/// Act 2020 s. 66(1), with the Education (When State Schools Must Be Open
-/// and Closed) Regulations 2024, requires the Minister to fix term dates by
-/// notice in the *Gazette*. Terms 2 to 4 are ministerial; boards choose only
-/// the Term 1 start, and only inside a statutory window of about a week.
+/// The Education and Training Act 2020 s. 66(1), with the Education (When
+/// State Schools Must Be Open and Closed) Regulations 2024, is said to have
+/// the Minister fix term dates by notice in the *Gazette*, with boards
+/// choosing only the Term 1 start inside a window of about a week. Neither
+/// could be read (legislation.govt.nz refused both),
+/// and the one page read on how term dates are set, Wikipedia's "Education
+/// in New Zealand", says they are set by individual schools within
+/// government guidelines and not fixed nationally. So the entry does not say
+/// that a statute or a regulation fixes the year: its authority is
+/// [`Authority::Unread`].
 pub static NEW_ZEALAND: AcademicProfile = AcademicProfile {
     code: "NZ",
     english_name: "New Zealand",
     school: school(
         "New Zealand school year",
         "",
-        Authority::Regulation,
+        Authority::Unread,
         1,
         28,
-        "Fixed by Gazette notice. Boards choose the Term 1 start within a statutory window of \
-         roughly a week — 28 January to 4 February for 2027 — so this date is the window's \
-         opening, not a fixed day.",
+        (None, 2026),
+        "Wikipedia's \"Education in New Zealand\" says the year runs from late January to mid- \
+         December in four terms and that term dates are set by individual schools within \
+         government guidelines, not fixed nationally. The Gazette notice and the statutory \
+         window said to apply (28 January to 4 February for 2027) were not \
+         read, and 28 January is the table's representative date, not a fixed day.",
     ),
     university: Some(school(
         "New Zealand university year",
@@ -332,11 +394,15 @@ pub static NEW_ZEALAND: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         2,
         1,
-        "Semester 1 begins in late February, per institution.",
+        (None, 2026),
+        "Semester 1 begins in late February, per institution: Wikipedia's \"Education in New \
+         Zealand\" says universities run from late February to mid-November, so 1 February \
+         is the table's representative date and not what the page says.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Education and Training Act 2020 s. 66(1); Education (When State Schools Must Be \
-              Open and Closed) Regulations 2024 regs 6-7; New Zealand Gazette",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "Wikipedia, \"Education in New Zealand\" (secondary); Education and Training Act \
+              2020 s. 66(1) and the Education (When State Schools Must Be Open and Closed) \
+              Regulations 2024 (legislation.govt.nz refused them), read 2026-10-04",
 };
 
 /// India 🇮🇳 — April **or** June, and saying one of them is over-general.
@@ -366,16 +432,21 @@ pub static INDIA: AcademicProfile = AcademicProfile {
         Authority::PerRegion,
         4,
         1,
+        (None, 2026),
         "Two dominant patterns: an April-to-March session (much of the north and west, and \
          CBSE-affiliated schools by circular) and a June reopening (Kerala, Karnataka, Tamil \
          Nadu and much of the south, monsoon-driven, late May to early July). Saying \"India \
          starts in June\" is as over-general as saying April. No national statute fixes the \
-         date; the RTE Act 2009 fixes working days, not the start.",
+         date; the RTE Act 2009 fixes working days, not the start. Wikipedia's \"Education \
+         in India\" gives April to March as the academic year and June as the usual start for \
+         many institutions; the CBSE's circular and the RTE Act's schedule could not be read \
+         (the CBSE's site refused them), so nothing is dated before 2026.",
     ),
     university: None,
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Right to Education Act 2009 s. 19 and Schedule; CBSE affiliation circulars; \
-              state education department calendars",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "Wikipedia, \"Education in India\", \"Central Board of Secondary Education\" and \
+              \"Right to Education Act\" (secondary); Right to Education Act 2009 s. 19 and \
+              Schedule and the CBSE affiliation circulars (not read), read 2026-10-04",
 };
 
 /// United States 🇺🇸 — August or September, and set by the district.
@@ -404,9 +475,12 @@ pub static UNITED_STATES: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         8,
         15,
+        (None, 2023),
         "Set by the local district board. Late July to mid-September, with a strong regional \
          gradient: the South returns in early August, the Northeast after Labor Day. This date \
-         is the middle of that range and is not a claim about any district.",
+         is the middle of that range and is not a claim about any district; no page read \
+         gives a date. The Education Commission of the States' page of 6 February 2023 is the \
+         earliest read, and says that twenty-seven states leave the start to local districts.",
     ),
     university: Some(school(
         "United States university year",
@@ -414,11 +488,15 @@ pub static UNITED_STATES: AcademicProfile = AcademicProfile {
         Authority::PerInstitution,
         8,
         15,
-        "Fall semester begins mid-August to early September, per institution.",
+        (None, 2026),
+        "Fall semester begins mid-August to early September, per institution: Wikipedia's \
+         \"Academic term\" says September to December, and no institution's calendar was \
+         read, so 15 August is the table's representative date.",
     )),
-    sources_checked: SourceDate::new(2026, 9, 21),
-    sources: "Education Commission of the States, Instructional Time Policies; NCES state \
-              education reforms tables; Pew Research Center, back-to-school dates",
+    sources_checked: SourceDate::new(2026, 10, 4),
+    sources: "Education Commission of the States, Instructional Time Policies (2023-02-06); \
+              NCES state education reforms tables; Wikipedia, \"Academic term\" (secondary), \
+              read 2026-10-04",
 };
 
 /// Every academic-year entry in this crate.
@@ -447,6 +525,7 @@ mod tests {
     use hc_calendars_solar::gregorian;
 
     use super::*;
+    use crate::error::FiscalError;
 
     fn greg(year: i64, month: u8, day: u8) -> hc_calendar::Rd {
         gregorian::to_fixed(year, month, day).unwrap()
@@ -454,14 +533,39 @@ mod tests {
 
     #[test]
     fn japans_school_year_runs_april_to_march_like_its_fiscal_year() {
+        // 学校教育法施行規則 art. 59, applied from 1 April 1947.
         let span = JAPAN.school.span(2024).unwrap();
         assert_eq!(span.first, greg(2024, 4, 1));
         assert_eq!(span.last, greg(2025, 3, 31));
+        assert_eq!(JAPAN.school.span(1947).unwrap().first, greg(1947, 4, 1));
     }
 
     #[test]
-    fn only_japan_france_and_new_zealand_claim_a_national_school_year() {
-        let national: [&str; 3] = ["JP", "FR", "NZ"];
+    fn a_school_year_before_the_pages_read_is_a_gap_not_an_answer() {
+        // Japan's regulation applies from 1947; before it the April school
+        // year existed for elementary schools but no page read gives the
+        // other school types'.
+        assert_eq!(JAPAN.school.span(1946), Err(FiscalError::NotRead));
+        assert_eq!(JAPAN.school.span(1900), Err(FiscalError::NotRead));
+        // Germany's 1 August year begins with 1967/68: before it there was
+        // no such year, which is an answer.
+        assert_eq!(GERMANY.school.span(1966), Err(FiscalError::OutsideValidity));
+        assert_eq!(GERMANY.school.span(1967).unwrap().first, greg(1967, 8, 1));
+        // The pages read for the others are of 2023 and 2026.
+        assert_eq!(UNITED_STATES.school.span(2022), Err(FiscalError::NotRead));
+        assert_eq!(UNITED_KINGDOM.school.span(2025), Err(FiscalError::NotRead));
+        assert!(UNITED_KINGDOM.school.span(2026).is_ok());
+        // Victoria, Western Australia and New South Wales are read for 2027.
+        assert_eq!(AUSTRALIA.school.span(2026), Err(FiscalError::NotRead));
+        assert_eq!(
+            AUSTRALIA.school.span(2027).unwrap().first,
+            greg(2027, 1, 28)
+        );
+    }
+
+    #[test]
+    fn only_japan_and_france_claim_a_national_school_year() {
+        let national: [&str; 2] = ["JP", "FR"];
         for profile in ALL {
             assert_eq!(
                 profile.is_nationally_fixed(),
@@ -484,9 +588,9 @@ mod tests {
         // Australia and New Zealand start in late January, so the academic
         // year lies almost entirely inside one Gregorian year.
         for profile in [&AUSTRALIA, &NEW_ZEALAND] {
-            let span = profile.school.span(2025).unwrap();
-            assert_eq!(gregorian::year_from_fixed(span.first).unwrap(), 2025);
-            assert_eq!(gregorian::year_from_fixed(span.last).unwrap(), 2026);
+            let span = profile.school.span(2027).unwrap();
+            assert_eq!(gregorian::year_from_fixed(span.first).unwrap(), 2027);
+            assert_eq!(gregorian::year_from_fixed(span.last).unwrap(), 2028);
             // ... and ends before the next year's start, in January.
             let (_, month, _) = gregorian::from_fixed(span.last).unwrap();
             assert_eq!(month, 1);
@@ -496,19 +600,19 @@ mod tests {
     #[test]
     fn a_northern_hemisphere_school_year_straddles_two_gregorian_years() {
         for profile in [&UNITED_KINGDOM, &FRANCE, &GERMANY, &UNITED_STATES] {
-            let span = profile.school.span(2025).unwrap();
-            assert_eq!(gregorian::year_from_fixed(span.first).unwrap(), 2025);
-            assert_eq!(gregorian::year_from_fixed(span.last).unwrap(), 2026);
+            let span = profile.school.span(2027).unwrap();
+            assert_eq!(gregorian::year_from_fixed(span.first).unwrap(), 2027);
+            assert_eq!(gregorian::year_from_fixed(span.last).unwrap(), 2028);
         }
     }
 
     #[test]
     fn the_german_university_year_does_not_follow_the_german_school_year() {
-        let school = GERMANY.school.span(2025).unwrap();
-        let university = GERMANY.university.unwrap().span(2025).unwrap();
+        let school = GERMANY.school.span(2027).unwrap();
+        let university = GERMANY.university.unwrap().span(2027).unwrap();
         assert_ne!(school.first, university.first);
-        assert_eq!(school.first, greg(2025, 8, 1));
-        assert_eq!(university.first, greg(2025, 10, 1));
+        assert_eq!(school.first, greg(2027, 8, 1));
+        assert_eq!(university.first, greg(2027, 10, 1));
     }
 
     #[test]
@@ -561,7 +665,7 @@ mod tests {
     fn every_academic_year_is_a_whole_year_long() {
         for profile in ALL {
             for label in 2000..2050 {
-                let days = profile.school.span(label).unwrap().days();
+                let days = profile.school.projected_span(label).unwrap().days();
                 assert!((365..=366).contains(&days), "{}", profile.code);
             }
         }

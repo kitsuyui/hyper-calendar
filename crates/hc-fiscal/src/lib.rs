@@ -58,10 +58,15 @@
 //!
 //! # What this crate does not do
 //!
-//! * **Not carried: every country but the 22 of [`countries::ALL`].** No
-//!   source for the others has been read and the tables are not yet done:
-//!   [`countries::by_code`] gives `None` for them, which is not the answer
-//!   "no offset". The same holds for the 8 of [`academic::ALL`].
+//! * **Not carried: every country but the 61 of [`countries::ALL`].** No
+//!   page that states a government year for the others has been read, or
+//!   none whose label convention is evidenced, and the tables are not yet
+//!   done: [`countries::by_code`] gives `None` for them, which is not the
+//!   answer "no offset". The same holds for the 8 of [`academic::ALL`].
+//! * **It does not answer for a year no source reaches.** A system is
+//!   established in a year (`YearSystem::valid_from`, before which it is
+//!   absent) and read from a year (`YearSystem::read_from`); between them,
+//!   and in an `unread` span, the answer is [`FiscalError::NotRead`], a gap.
 //! * It does not know your company's fiscal year. It knows the named
 //!   conventions; a filer's own 52/53-week year is a value the caller
 //!   constructs, on the same terms as the ones shipped here.

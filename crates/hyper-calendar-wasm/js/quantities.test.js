@@ -288,8 +288,19 @@ test("tempo reads hc_tempo column by column", () => {
 test("fiscalProfiles reads hc_fiscal_profiles column by column", () => {
   const result = hc.fiscalProfiles();
   assert.ok(Array.isArray(result) && result.length > 0);
-  assert.deepEqual(result[0].country, "AU");
+  assert.deepEqual(result[0].country, "AO");
   assert.deepEqual([...COLUMNS.fiscalProfiles], columnsAfter("### The year systems"));
+  // Japan's April year was established in 1886 and read from then, and the
+  // sources read do not reach 1921 to 1946: those years are a gap.
+  const april = result.find((system) => system.name === "Japanese national fiscal year");
+  assert.deepEqual(
+    [april?.validFrom, april?.validUntil, april?.readFrom, april?.unread],
+    [1886, null, 1886, [{ first: 1921, last: 1946 }]],
+  );
+  // A page read that states the year, with the instrument not read, is `unread`.
+  const korea = result.find((system) => system.country === "KR");
+  assert.deepEqual([korea?.authority, korea?.national, korea?.readFrom], ["statute", true, 2007]);
+  assert.equal(result.find((system) => system.country === "OM")?.authority, "unread");
 });
 
 test("fiscalYearOn reads hc_fiscal_year_on column by column", () => {
@@ -297,8 +308,16 @@ test("fiscalYearOn reads hc_fiscal_year_on column by column", () => {
   assert.ok(Array.isArray(result) && result.length > 0);
   assert.deepEqual(result[0].country, "JP");
   assert.deepEqual(result[0].kind, "government");
-  assert.deepEqual(result[0].status, "in-force");
+  assert.deepEqual(result.find((year) => year.status === "in-force")?.label, 2024);
   assert.deepEqual([...COLUMNS.fiscalYearOn], columnsAfter("### The year of a day"));
+  // 1 June 1800: the United States' federal year was the calendar year, and
+  // no source read reaches it, so that system is a gap; the July and October
+  // years did not exist yet.
+  const early = hc.fiscalYearOn("US", "government", 657_223);
+  assert.deepEqual(
+    early.map((year) => year.status).sort(),
+    ["gap", "outside-validity", "outside-validity"],
+  );
   refused(() => hc.fiscalYearOn("XX", "", 739000), "unknown");
   refused(() => hc.fiscalYearOn("JP", "personal-tax", 739000), "no-data");
 });
@@ -307,8 +326,9 @@ test("fiscalYearSpan reads hc_fiscal_year_span column by column", () => {
   const result = hc.fiscalYearSpan("JP", "government", 2024);
   assert.ok(Array.isArray(result) && result.length > 0);
   assert.deepEqual(result[0].country, "JP");
-  assert.deepEqual(result[0].status, "in-force");
-  assert.deepEqual(result[0].label, Number("2024"));
+  const year = result.find((span) => span.status === "in-force");
+  assert.deepEqual(year?.label, Number("2024"));
+  assert.deepEqual(hc.fiscalYearSpan("JP", "government", 1930).map((span) => span.status), ["outside-validity", "gap"]);
   assert.deepEqual([...COLUMNS.fiscalYearSpan], columnsAfter("### The span of a year"));
   refused(() => hc.fiscalYearSpan("ZZ", "", 2024), "unknown");
   refused(() => hc.fiscalYearSpan("JP", "personal-tax", 2024), "no-data");
@@ -402,9 +422,9 @@ test("a few answers the Rust tests pin, read through the binding", () => {
   assert.deepEqual([flick?.secondsNumerator, flick?.secondsDenominator], [1n, 705_600_000n]);
   // 1 January 2026 is in the Japanese 2025年度 and the United States' FY 2026.
   const day = 739_617;
-  const japan = hc.fiscalYearOn("JP", "government", day)[0];
+  const japan = hc.fiscalYearOn("JP", "government", day).find((year) => year.status === "in-force");
   const us = hc.fiscalYearOn("US", "government", day).find((year) => year.status === "in-force");
-  assert.deepEqual([japan.label, us?.label], [2025, 2026]);
+  assert.deepEqual([japan?.label, us?.label], [2025, 2026]);
   // The same four exports as the Rust tests read: the 2025 Harvest Moon is in October.
   assert.equal(hc.harvestMoon(2025).septemberMoon, "Corn Moon");
 });

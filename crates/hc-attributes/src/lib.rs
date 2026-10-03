@@ -9,7 +9,8 @@
 //!
 //! # There is no such thing as "the" birthstone for a month
 //!
-//! There is the American list of 1912, revised in 1952, 2002 and 2016. There
+//! There is the American list of 1912, revised in 1952, 2002 and 2016, each
+//! carried as a list of its own (the two between from the stated changes). There
 //! is the British list of 1937. There is Japan's list of 1958, substantially
 //! revised on 20 December 2021 — ten stones added after sixty-three years,
 //! the most recent such change anywhere. There are the older European stones

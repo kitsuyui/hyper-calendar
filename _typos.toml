@@ -668,3 +668,10 @@ Parana = "Parana"
 # docs/systems/chinese-historical-lunisolar.md.
 Daming = "Daming"
 daming = "daming"
+# Spanish "coincidente", in the Ley General Presupuestaria's sentence on the
+# budget year ("será coincidente con el año natural"), quoted in
+# crates/hc-fiscal/src/countries/more.rs.
+coincidente = "coincidente"
+# patriarchia.ru, the Moscow Patriarchate's site, named in the Russian row of
+# crates/hc-name-days/src/gaps.rs as a page that showed no calendar.
+patriarchia = "patriarchia"
