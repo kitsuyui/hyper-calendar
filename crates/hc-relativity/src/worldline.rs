@@ -215,7 +215,7 @@ impl Segment {
             VelocityProfile::Constant { beta } => {
                 let beta = check_beta(beta)?;
                 self.coordinate_duration
-                    .scale_f64(math::sqrt(1.0 - beta * beta))?
+                    .scale_f64(math::sqrt(crate::special::one_minus_beta_squared(beta)))?
             }
             VelocityProfile::ConstantProperAcceleration {
                 proper_acceleration,
@@ -224,7 +224,7 @@ impl Segment {
                 if proper_acceleration == 0.0 {
                     let beta = check_beta(self.initial_beta())?;
                     self.coordinate_duration
-                        .scale_f64(math::sqrt(1.0 - beta * beta))?
+                        .scale_f64(math::sqrt(crate::special::one_minus_beta_squared(beta)))?
                 } else {
                     let initial = self.velocity.initial_rapidity()?;
                     let final_rapidity = self.final_rapidity()?;
@@ -475,6 +475,22 @@ pub fn rocket_beta(proper_acceleration: f64, proper_time: f64) -> RelativityResu
     Ok(hyperbolic::tanh(acceleration * tau / SPEED_OF_LIGHT))
 }
 
+/// `1 − β` after `proper_time` of burn from rest, `2 / (e^{2aτ/c} + 1)`,
+/// without the cancellation of subtracting [`rocket_beta`] from 1.
+///
+/// After ten years at 1 g `β` is 0.999 999 997 84 and a double holds it to
+/// the 11th figure of 17, so `1 − β` taken from it has eight figures left.
+/// The identity `1 − tanh w = 2 / (e^{2w} + 1)` has no subtraction.
+///
+/// # Errors
+///
+/// As [`rocket_beta`].
+pub fn rocket_one_minus_beta(proper_acceleration: f64, proper_time: f64) -> RelativityResult<f64> {
+    let acceleration = check_acceleration(proper_acceleration)?;
+    let tau = finite(proper_time)?;
+    finite(2.0 / (math::exp(2.0 * acceleration * tau / SPEED_OF_LIGHT) + 1.0))
+}
+
 /// The proper time needed to cover `distance` from rest under one continuous
 /// burn: `(c/a) arcosh(ad/c² + 1)`.
 ///
@@ -565,6 +581,23 @@ mod tests {
 
     fn years(seconds: f64) -> f64 {
         seconds / JULIAN_YEAR_SECONDS
+    }
+
+    #[test]
+    fn one_minus_beta_after_ten_years_at_one_g_keeps_its_figures() {
+        // 60-digit decimal arithmetic (Python's `decimal`), a = 9.80665 m/s^2,
+        // 10 Julian years of proper time: 1 - tanh(a tau / c) = 2 / (e^{2 a tau / c} + 1).
+        let complement =
+            rocket_one_minus_beta(STANDARD_GRAVITY, 10.0 * JULIAN_YEAR_SECONDS).unwrap();
+        assert!(
+            (complement / 2.160_862_624_905_664_6e-9 - 1.0).abs() < 1e-13,
+            "{complement:e}"
+        );
+        assert!((rocket_one_minus_beta(STANDARD_GRAVITY, 0.0).unwrap() - 1.0).abs() < 1e-16);
+        assert_eq!(
+            rocket_one_minus_beta(0.0, 1.0),
+            Err(RelativityError::NonPositiveAcceleration)
+        );
     }
 
     #[test]

@@ -523,7 +523,7 @@ with its status.
 
 ### Name-day lists
 
-`hc-name-days` ([`docs/systems/name-days.md`](systems/name-days.md)). A list is
+`hc-name-days` ([`docs/systems/name-days.md`](systems/name-days.md)); its lists, the names of a day and the days of a name are lines of the `name-days` layer of the WebAssembly module and the C library, `hc_name_day_lists`, `hc_name_days_on` and `hc_name_day`. A list is
 vendored only where its terms permit copying it; a list whose owner charges, or
 has stated no terms, is read at run time from a text the caller supplies. Every
 list is one edition of one authority, and an edition refuses the years it does

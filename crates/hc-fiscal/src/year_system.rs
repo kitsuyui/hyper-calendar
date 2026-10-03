@@ -353,6 +353,16 @@ pub enum LabelConvention {
 }
 
 impl LabelConvention {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the convention as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::LabelledByStartYear => "start-year",
+            Self::LabelledByEndYear => "end-year",
+        }
+    }
+
     /// The calendar year the cycle labelled `label` begins in.
     #[must_use]
     pub const fn start_calendar_year(self, label: i64) -> i64 {
@@ -399,6 +409,35 @@ pub enum SystemKind {
 }
 
 impl SystemKind {
+    /// Every kind, in the order of the variants.
+    pub const ALL: [Self; 4] = [
+        Self::Government,
+        Self::PersonalTax,
+        Self::CorporateDefault,
+        Self::Academic,
+    ];
+
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// names the kind by.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Government => "government",
+            Self::PersonalTax => "personal-tax",
+            Self::CorporateDefault => "corporate-default",
+            Self::Academic => "academic",
+        }
+    }
+
+    /// The kind with this identifier, as [`SystemKind::id`] writes it, by
+    /// [`hc_core::catalogue::matches`].
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|kind| hc_core::catalogue::matches(id, kind.id()))
+    }
+
     /// A short English name.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
@@ -435,6 +474,19 @@ pub enum Authority {
 }
 
 impl Authority {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the authority as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Statute => "statute",
+            Self::Regulation => "regulation",
+            Self::Convention => "convention",
+            Self::PerRegion => "per-region",
+            Self::PerInstitution => "per-institution",
+        }
+    }
+
     /// Whether this system can honestly be asserted as a national answer.
     ///
     /// False for [`Authority::PerRegion`] and [`Authority::PerInstitution`],
@@ -1046,5 +1098,21 @@ mod tests {
         assert!(!Authority::Convention.is_national_rule());
         assert!(!Authority::PerRegion.is_national_rule());
         assert!(!Authority::PerInstitution.is_national_rule());
+    }
+
+    #[test]
+    fn every_kind_authority_and_convention_has_a_kebab_identifier() {
+        for kind in SystemKind::ALL {
+            assert_eq!(SystemKind::by_id(kind.id()), Some(kind));
+            assert_eq!(
+                SystemKind::by_id(&kind.id().to_ascii_uppercase()),
+                Some(kind)
+            );
+        }
+        assert_eq!(SystemKind::by_id("tax"), None);
+        assert_eq!(SystemKind::PersonalTax.id(), "personal-tax");
+        assert_eq!(Authority::PerRegion.id(), "per-region");
+        assert_eq!(LabelConvention::LabelledByEndYear.id(), "end-year");
+        assert_eq!(LabelConvention::LabelledByStartYear.id(), "start-year");
     }
 }

@@ -99,6 +99,16 @@ pub enum AnchorRule {
 }
 
 impl AnchorRule {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the rule as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::LastWeekdayOfMonth => "last-weekday-of-month",
+            Self::WeekdayNearestMonthEnd => "weekday-nearest-month-end",
+        }
+    }
+
     /// A short English description.
     #[must_use]
     pub const fn english_name(self) -> &'static str {
@@ -821,6 +831,15 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn anchor_rules_have_kebab_identifiers() {
+        assert_eq!(AnchorRule::LastWeekdayOfMonth.id(), "last-weekday-of-month");
+        assert_eq!(
+            AnchorRule::WeekdayNearestMonthEnd.id(),
+            "weekday-nearest-month-end"
+        );
     }
 
     #[test]

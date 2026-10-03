@@ -80,7 +80,12 @@ fn the_error_floor_is_far_below_any_real_day_number() {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 fn read_lines(call: impl Fn(*mut u8, usize) -> i64) -> String {
     let needed = call(core::ptr::null_mut(), 0);
@@ -169,6 +174,21 @@ mod patterns;
 
 #[cfg(feature = "zone-names")]
 mod zone_names;
+
+#[cfg(feature = "uncertainty")]
+mod uncertainty;
+
+#[cfg(feature = "units")]
+mod units;
+
+#[cfg(feature = "fiscal")]
+mod fiscal;
+
+#[cfg(feature = "name-days")]
+mod name_days;
+
+#[cfg(feature = "attributes")]
+mod attributes;
 
 #[cfg(feature = "time-codes")]
 mod time_codes;

@@ -1,6 +1,10 @@
 use super::super::*;
 use super::read_lines;
 
+fn row(text: &str) -> Vec<String> {
+    text.trim_end().split('\t').map(str::to_owned).collect()
+}
+
 fn rows(text: &str) -> Vec<Vec<String>> {
     text.lines()
         .map(|line| line.split('\t').map(str::to_owned).collect())
@@ -139,4 +143,26 @@ fn a_series_that_is_empty_too_long_or_off_the_span_is_refused_or_empty() {
     }
     // 10 000 samples is the most.
     assert!(unsafe { hc_orbit_series(0.0, 9_999.0, 1.0, null, 0) } > 0);
+}
+
+#[test]
+fn hc_daily_insolation_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity| unsafe {
+        hc_daily_insolation(0.0, 65.0, 90.0, buffer, capacity)
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 6),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[4], "1360");
+    assert_eq!(
+        unsafe { hc_daily_insolation(0.0, 91.0, 90.0, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe { hc_daily_insolation(0.0, 65.0, 361.0, core::ptr::null_mut(), 0) },
+        HC_ERR_OUT_OF_RANGE
+    );
 }

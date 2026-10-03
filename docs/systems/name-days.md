@@ -235,6 +235,7 @@ repeats the quotation and the URL.
 | `hc_name_days::latvia` | the four editions, as a `catalogue!`, with `latvia/data.rs` generated from the files |
 | `hc_name_days::load` | `OwnedNameDayList::parse`, `NameDayList::to_text`, `LoadError` |
 | `hc_name_days::gaps` | seventeen `Gap`s, as a `catalogue!` |
+| `hyper_calendar::name_day_lines` | the boundary: `lists_lines`, `names_on_lines` and `days_of_lines`, written by `hc_name_day_lists`, `hc_name_days_on` and `hc_name_day` in the `name-days` layer of the WebAssembly module and the C library. A list in force is a `list` line, a shipped edition that does not cover the year an `outside` line with no names, and a country the crate declines to ship a `gap` line with its reason, so the answer is never the nearest edition's. The loader is not exported |
 
 Anchoring tests, beside the data:
 

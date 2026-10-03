@@ -157,7 +157,7 @@ pub fn proper_time_uncertain(
 ) -> RelativityResult<Uncertain> {
     let central = check_beta(beta.value)?;
     let elapsed = finite(coordinate_time.as_secs_f64())?;
-    let factor = math::sqrt(1.0 - central * central);
+    let factor = math::sqrt(crate::special::one_minus_beta_squared(central));
     let value = elapsed * factor;
     // d/dbeta of t*sqrt(1-beta^2) is -t*beta/sqrt(1-beta^2); the sign drops
     // out because a standard deviation is unsigned.

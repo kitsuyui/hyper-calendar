@@ -77,7 +77,12 @@ export type Feature =
   | "natural"
   | "datetime"
   | "patterns"
-  | "zone-names";
+  | "zone-names"
+  | "uncertainty"
+  | "units"
+  | "fiscal"
+  | "name-days"
+  | "attributes";
 
 /** A binary CCSDS code `hc_ccsds_decode` reads. */
 export type CcsdsCodeName = "cuc" | "cds" | "ccs";
@@ -1186,6 +1191,42 @@ export const COLUMNS: {
   readonly irigDecode: ReadonlyArray<string>;
   readonly irigFrameStart: ReadonlyArray<string>;
   readonly irigFormats: ReadonlyArray<string>;
+  readonly orbitRateOffset: ReadonlyArray<string>;
+  readonly rocket: ReadonlyArray<string>;
+  readonly flipAndBurn: ReadonlyArray<string>;
+  readonly doppler: ReadonlyArray<string>;
+  readonly velocityAdd: ReadonlyArray<string>;
+  readonly schwarzschildRadius: ReadonlyArray<string>;
+  readonly properTimeUncertain: ReadonlyArray<string>;
+  readonly planckUnits: ReadonlyArray<string>;
+  readonly bpConvert: ReadonlyArray<string>;
+  readonly deepConvert: ReadonlyArray<string>;
+  readonly deepCompare: ReadonlyArray<string>;
+  readonly dailyInsolation: ReadonlyArray<string>;
+  readonly edtfParse: ReadonlyArray<string>;
+  readonly edtfRelations: ReadonlyArray<string>;
+  readonly significant: ReadonlyArray<string>;
+  readonly significantOp: ReadonlyArray<string>;
+  readonly uncertain: ReadonlyArray<string>;
+  readonly uncertainOp: ReadonlyArray<string>;
+  readonly interval: ReadonlyArray<string>;
+  readonly units: ReadonlyArray<string>;
+  readonly unitConvert: ReadonlyArray<string>;
+  readonly rates: ReadonlyArray<string>;
+  readonly framePeriod: ReadonlyArray<string>;
+  readonly tempo: ReadonlyArray<string>;
+  readonly fiscalProfiles: ReadonlyArray<string>;
+  readonly fiscalYearOn: ReadonlyArray<string>;
+  readonly fiscalYearSpan: ReadonlyArray<string>;
+  readonly weekYearSystems: ReadonlyArray<string>;
+  readonly weekYearOn: ReadonlyArray<string>;
+  readonly nameDayLists: ReadonlyArray<string>;
+  readonly nameDaysOn: ReadonlyArray<string>;
+  readonly nameDay: ReadonlyArray<string>;
+  readonly attributionAuthorities: ReadonlyArray<string>;
+  readonly attributions: ReadonlyArray<string>;
+  readonly attributionsOn: ReadonlyArray<string>;
+  readonly harvestMoon: ReadonlyArray<string>;
 };
 export const UNITS: readonly Unit[];
 export const NATIVE: "native";
@@ -3332,6 +3373,894 @@ export interface CommonWorshipCelebration {
   id: string;
 }
 
+/** One line of `hc_orbit_rate_offset`. */
+export interface OrbitRateOffset {
+  /** the body's identifier */
+  id: string;
+  /** its standard gravitational parameter GM, in m³ s⁻² */
+  gm: number;
+  /** the `hc-relativity` constant that holds it */
+  gmConstant: string;
+  /** √(GM/r) at the orbit radius, in metres per second */
+  circularSpeed: number;
+  /** GM/c² (1/R − 1/r), the weak-field gravitational part, positive when the orbit is higher */
+  gravitationalMicrosecondsPerDay: number;
+  /** −GM/(2rc²), the part from the orbital speed, negative */
+  kinematicMicrosecondsPerDay: number;
+  /** the sum of the two */
+  weakFieldMicrosecondsPerDay: number;
+  /** the exact Schwarzschild figure, √(1 − 3GM/rc²) / √(1 − 2GM/Rc²) − 1, computed without cancellation */
+  exactMicrosecondsPerDay: number;
+  /** the constants used, separated by `;` */
+  constants: string[];
+  /** the functions used and the body's source */
+  source: string;
+}
+
+/** One line of `hc_rocket`. */
+export interface RocketBurn {
+  /** the proper acceleration given, in m s⁻² */
+  acceleration: number;
+  /** the time aboard given, in seconds */
+  properSeconds: number;
+  /** the time that passes in the frame the burn starts from, (c/a) sinh(aτ/c), in seconds */
+  coordinateSeconds: number;
+  /** the distance covered in that frame, (c²/a)(cosh(aτ/c) − 1), in metres */
+  distance: number;
+  /** the same in light-years of `LIGHT_YEAR` */
+  distanceLightYears: number;
+  /** tanh(aτ/c) */
+  beta: number;
+  /** 2 / (e^{2aτ/c} + 1), the distance from the speed of light, without cancellation */
+  oneMinusBeta: number;
+  /** cosh(aτ/c) */
+  lorentzFactor: number;
+  /** the constants used, separated by `;` */
+  constants: string[];
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_flip_and_burn`. */
+export interface FlipAndBurn {
+  /** the proper acceleration given, in m s⁻² */
+  acceleration: number;
+  /** the distance given, in metres */
+  distance: number;
+  /** the time aboard, in seconds */
+  properSeconds: number;
+  /** the time at home, in seconds */
+  coordinateSeconds: number;
+  /** the time aboard in Julian years of 31 557 600 s */
+  properYears: number;
+  /** the time at home in Julian years */
+  coordinateYears: number;
+  /** β at the turnover */
+  peakBeta: number;
+  /** 1/(γ²(1 + β)), the distance from the speed of light at the turnover, without cancellation */
+  oneMinusPeakBeta: number;
+  /** 1 + a(d/2)/c² at the turnover */
+  peakLorentzFactor: number;
+  /** the constants used, separated by `;` */
+  constants: string[];
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_doppler`. */
+export interface DopplerShift {
+  /** the speed given */
+  beta: number;
+  /** the cosine given */
+  cosTheta: number;
+  /** f_observed / f_emitted, above 1 for a blueshift */
+  factor: number;
+  /** z = λ_observed / λ_emitted − 1, computed without cancellation for a slow source */
+  redshift: number;
+  /** √((1+β)/(1−β)), the factor for cos θ = 1 */
+  headOnFactor: number;
+  /** 1/γ, the factor for cos θ = 0 */
+  transverseFactor: number;
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_velocity_add`. */
+export interface VelocityComposition {
+  /** the first velocity given */
+  firstBeta: number;
+  /** the second velocity given */
+  secondBeta: number;
+  /** (β₁ + β₂)/(1 + β₁β₂) */
+  composedBeta: number;
+  /** the composed β times the speed of light, in m s⁻¹ */
+  composedSpeed: number;
+  /** (1 − β₁)(1 − β₂)/(1 + β₁β₂), without cancellation */
+  oneMinusComposedBeta: number;
+  /** artanh β₁ */
+  firstRapidity: number;
+  /** artanh β₂ */
+  secondRapidity: number;
+  /** the sum of the two */
+  composedRapidity: number;
+  /** γ₁γ₂(1 + β₁β₂) */
+  composedLorentzFactor: number;
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_schwarzschild_radius`. */
+export interface SchwarzschildRadius {
+  /** the body's identifier */
+  id: string;
+  /** its standard gravitational parameter GM, in m³ s⁻² */
+  gm: number;
+  /** the `hc-relativity` constant that holds it */
+  gmConstant: string;
+  /** 2GM/c², in metres */
+  schwarzschildRadius: number;
+  /** the constants used, separated by `;` */
+  constants: string[];
+  /** the function used and the body's source */
+  source: string;
+}
+
+/** One line of `hc_proper_time_uncertain`. */
+export interface UncertainProperTime {
+  /** the speed as a fraction of the speed of light */
+  beta: number;
+  /** its standard deviation */
+  betaStdDev: number;
+  /** the time the moving clock records, in seconds */
+  properSeconds: number;
+  /** its standard deviation, in seconds */
+  properStdDev: number;
+  /** the proper time printed to the figures its standard deviation supports */
+  text: string;
+  /** `SPEED_OF_LIGHT` */
+  constants: string[];
+  /** the function used */
+  source: string;
+}
+
+/** One line of `hc_planck_units`. */
+export interface PlanckUnit {
+  /** `c`, `hbar`, `G`, `t_P`, `l_P`, `m_P`, `E_P` or `T_P` */
+  symbol: string;
+  /** the constant's name as CODATA spells it */
+  name: string;
+  /** the SI unit the value is in, in ASCII */
+  unit: string;
+  /** the recommended value */
+  value: number;
+  /** the standard uncertainty; 0 for a defined constant */
+  stdDev: number;
+  /** how many figures the source prints */
+  figures: number;
+  /** the standard uncertainty over the value */
+  relativeUncertainty: number;
+  /** `1` where the constant is exact by definition */
+  defined: boolean;
+  /** the value printed to exactly those figures */
+  text: string;
+  /** the source and the CODATA adjustment */
+  source: string;
+}
+
+/** One line of `hc_bp_convert`. */
+export interface DatumConversion {
+  /** the datum given */
+  from: string;
+  /** the datum written */
+  to: string;
+  /** the number given */
+  years: number;
+  /** its standard deviation */
+  stdDev: number;
+  /** the number in the other datum */
+  converted: number;
+  /** its standard deviation, unchanged */
+  convertedStdDev: number;
+  /** the number as a label: `11650 cal BP`, `11700 b2k`, `9701 BCE`, `1984 CE` */
+  label: string;
+  /** where the datums are defined */
+  source: string;
+}
+
+/** One line of `hc_deep_convert`. */
+export interface MagnitudeConversion {
+  /** the unit given */
+  from: string;
+  /** the unit written */
+  to: string;
+  /** the number given */
+  value: number;
+  /** its standard deviation */
+  stdDev: number;
+  /** the number in the other unit */
+  converted: number;
+  /** its standard deviation */
+  convertedStdDev: number;
+  /** the converted number printed to the figures its standard deviation supports */
+  text: string;
+  /** the span in seconds */
+  seconds: number;
+  /** its standard deviation */
+  secondsStdDev: number;
+  /** the base-ten logarithm of the seconds; empty for a span of no length */
+  log10Seconds: number | null;
+  /** its standard deviation, delta method */
+  log10StdDev: number | null;
+  /** `1` where both units are defined, so the conversion adds no uncertainty */
+  exact: boolean;
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_deep_compare`. */
+export interface MagnitudeComparison {
+  /** the first span in seconds */
+  firstSeconds: number;
+  /** its standard deviation */
+  firstStdDev: number;
+  /** the second span in seconds */
+  secondSeconds: number;
+  /** its standard deviation */
+  secondStdDev: number;
+  /** the first over the second */
+  ratio: number;
+  /** its standard deviation */
+  ratioStdDev: number;
+  /** the base-ten logarithm of the ratio */
+  log10Ratio: number;
+  /** its standard deviation */
+  log10StdDev: number;
+  /** the number of decades between them, the absolute value of the logarithm */
+  decades: number;
+  /** `1` where the one-sigma bars of the two meet */
+  overlap: boolean;
+  /** −1, 0 or 1 where the first is shorter than, equal to or longer than the second by central value */
+  order: number;
+  /** the functions used */
+  source: string;
+}
+
+/** One line of `hc_daily_insolation`. */
+export interface DailyInsolation {
+  /** the epoch given */
+  yearsBefore1950: number;
+  /** the latitude given, in degrees, north positive */
+  latitude: number;
+  /** the Sun's true longitude given, in degrees */
+  solarLongitude: number;
+  /** the daily mean at the top of the atmosphere, in W m⁻² */
+  insolation: number;
+  /** the solar constant it was computed with, `SOLAR_CONSTANT_BERGER_LOUTRE_1991`, in W m⁻² */
+  solarConstant: number;
+  /** the series and the formula */
+  source: string;
+}
+
+/** One line of `hc_edtf_parse`. */
+export interface EdtfPart {
+  /** `value` for the whole text, `start` and `end` for the two sides of an interval, `member` for each date or run of a set */
+  role: string;
+  /** for the value `date`, `interval`, `earlier-than`, `later-than`, `one-of` (a `[...]` set: exactly one holds) or `all-of` (a `{...}` list: all apply); for a part `date`, `open` (`..`), `unknown` (empty), `range`, `earlier-than` or `later-than` */
+  kind: string;
+  /** the part in its canonical form, which parses to the same value */
+  text: string;
+  /** `unknown`, `millennium`, `century`, `decade`, `year`, `month` or `day`; empty where the part is not one date */
+  precision: string | null;
+  /** `certain`, `uncertain` for `?`, `approximate` for `~`, `uncertain-and-approximate` for `%`; empty where the part is not one date */
+  qualifier: string | null;
+  /** `1` for the long `Y` form of a year; empty where the part is not one date */
+  longForm: boolean | null;
+  /** the first fixed day the part could denote, inclusive; for the value, the first day of its support, which a `~` or `%` qualifier widens by one unit of the stated precision on each side; empty where it does not stop */
+  firstDay: bigint | null;
+  /** the last fixed day, inclusive; empty where it does not stop */
+  lastDay: bigint | null;
+  /** on the value `resolved` (one unit of a scale), `bounded`, `before`, `after` or `unknown`; empty on a part */
+  support: string | null;
+  /** on the value, the best estimate as seconds from 1970-01-01 00:00:00 counting 86 400-second days, the midpoint; empty for an open or unknown value and on a part */
+  estimate: bigint | null;
+  /** on the value, the support's width in days; empty where it is open and on a part */
+  spanDays: bigint | null;
+}
+
+/** One line of `hc_edtf_relations`. */
+export interface EdtfRelations {
+  /** the relations that are possible, by name, in Allen's order, separated by `;`: `before`, `meets`, `overlaps`, `starts`, `during`, `finishes`, `equals`, `finished by`, `contains`, `started by`, `overlapped by`, `met by`, `after` */
+  relations: string[];
+  /** the same by Allen's symbols, separated by `;`: `<`, `m`, `o`, `s`, `d`, `f`, `=`, `fi`, `di`, `si`, `oi`, `mi`, `>` */
+  symbols: string[];
+  /** `1` where the first is before the second whatever the unknown bounds are */
+  definitelyBefore: boolean;
+  /** `1` where it could be */
+  possiblyBefore: boolean;
+  /** `1` where the first is after the second whatever the unknown bounds are */
+  definitelyAfter: boolean;
+  /** `1` where it could be */
+  possiblyAfter: boolean;
+  /** `1` where the two could overlap in time */
+  possiblyConcurrent: boolean;
+}
+
+/** One line of `hc_significant`. */
+export interface SignificantNumber {
+  /** the number given */
+  value: number;
+  /** the count given */
+  figures: number;
+  /** the number printed to exactly those figures: `1.38e10`, not `13800000000` */
+  text: string;
+  /** the number rounded to them, as a double */
+  rounded: number;
+  /** the decimal exponent of its leading digit as reported */
+  exponent: number;
+  /** the decimal place of its last significant digit */
+  lastPlace: number;
+}
+
+/** One line of `hc_significant_op`. */
+export interface SignificantResult {
+  /** the operation, in lower case */
+  operation: string;
+  /** the result printed to the figures the rule leaves it */
+  text: string;
+  /** the result as a double */
+  value: number;
+  /** its figure count */
+  figures: number;
+  /** the decimal exponent of its leading digit */
+  exponent: number;
+  /** the decimal place of its last significant digit */
+  lastPlace: number;
+}
+
+/** One line of `hc_uncertain`. */
+export interface UncertainQuantity {
+  /** the value given */
+  value: number;
+  /** the standard deviation given */
+  stdDev: number;
+  /** the pair as `value ± σ` */
+  text: string;
+  /** the value printed to the figures its standard deviation supports; empty where it supports none */
+  significant: string | null;
+  /** the standard deviation over the value; empty for a value of 0 */
+  relative: number | null;
+  /** the value less one standard deviation */
+  low1σ: number;
+  /** the value plus one standard deviation */
+  high1σ: number;
+  /** the value less two */
+  low2σ: number;
+  /** the value plus two */
+  high2σ: number;
+  /** the value less three */
+  low3σ: number;
+  /** the value plus three */
+  high3σ: number;
+}
+
+/** One line of `hc_uncertain_op`. */
+export interface UncertainResult {
+  /** the operation, in lower case */
+  operation: string;
+  /** the result; for `z-score` the number of standard deviations */
+  value: number;
+  /** its standard deviation; empty for a z-score */
+  stdDev: number | null;
+  /** the result as `value ± σ` */
+  text: string;
+  /** the result printed to the figures its standard deviation supports; empty where it supports none */
+  significant: string | null;
+}
+
+/** One line of `hc_interval`. */
+export interface IntervalResult {
+  /** the operation, in lower case */
+  operation: string;
+  /** `1` where the result is the empty interval; empty for a question */
+  empty: boolean | null;
+  /** the low bound, whole seconds */
+  lowSeconds: bigint | null;
+  /** and the attoseconds into the second */
+  lowAttoseconds: bigint | null;
+  /** the high bound, whole seconds */
+  highSeconds: bigint | null;
+  /** and the attoseconds */
+  highAttoseconds: bigint | null;
+  /** the width, whole seconds */
+  widthSeconds: bigint | null;
+  /** and the attoseconds */
+  widthAttoseconds: bigint | null;
+  /** the midpoint, whole seconds */
+  midpointSeconds: bigint | null;
+  /** and the attoseconds */
+  midpointAttoseconds: bigint | null;
+  /** for `overlaps` and `contains`, `1` or `0`; empty for an interval */
+  holds: boolean | null;
+}
+
+/** One line of `hc_units`. */
+export interface TimeUnit {
+  /** the unit's stable identifier, lower-case and hyphenated; match on this */
+  id: string;
+  /** the English name */
+  name: string;
+  /** the conventional symbol; empty where there is none */
+  symbol: string | null;
+  /** the numerator of the length in seconds, in lowest terms */
+  secondsNumerator: bigint;
+  /** its denominator, positive */
+  secondsDenominator: bigint;
+  /** `si`, `civil`, `horological`, `decimal`, `hexadecimal`, `media` or `scientific` */
+  family: string;
+  /** who defines it, specifically enough to check */
+  authority: string;
+}
+
+/** One line of `hc_unit_convert`. */
+export interface UnitConversion {
+  /** the unit given */
+  from: string;
+  /** the unit written */
+  to: string;
+  /** the count given, in lowest terms */
+  countNumerator: bigint;
+  /** its denominator */
+  countDenominator: bigint;
+  /** the count in the other unit */
+  convertedNumerator: bigint;
+  /** its denominator */
+  convertedDenominator: bigint;
+  /** `1` where the converted count is a whole number */
+  whole: boolean;
+  /** the length in seconds */
+  secondsNumerator: bigint;
+  /** its denominator */
+  secondsDenominator: bigint;
+  /** `1` where an attosecond count holds that length exactly: a flick, a third of a second and an NTSC frame are lengths no `Duration` holds */
+  attosecondExact: boolean;
+}
+
+/** One line of `hc_rates`. */
+export interface FrameRate {
+  /** the rate's identifier: `24`, `29.97`, `44100` */
+  id: string;
+  /** `frame` or `sample` */
+  kind: string;
+  /** the numerator of the rate in events per second, in lowest terms */
+  hertzNumerator: bigint;
+  /** its denominator */
+  hertzDenominator: bigint;
+}
+
+/** One line of `hc_frame_period`. */
+export interface FramePeriod {
+  /** the rate's identifier; `custom` for one given as a fraction */
+  rate: string;
+  /** `frame`, `sample` or `custom` */
+  kind: string;
+  /** the rate in events per second, in lowest terms */
+  hertzNumerator: bigint;
+  /** its denominator */
+  hertzDenominator: bigint;
+  /** the length of one event in seconds */
+  periodNumerator: bigint;
+  /** its denominator */
+  periodDenominator: bigint;
+  /** the length counted in the unit */
+  countNumerator: bigint;
+  /** its denominator */
+  countDenominator: bigint;
+  /** the unit's identifier */
+  unit: string;
+  /** `1` where the length is a whole number of that unit */
+  whole: boolean;
+  /** `1` where it is a whole number of flicks, the unit chosen so that every common frame and sample rate is */
+  wholeFlicks: boolean;
+}
+
+/** One line of `hc_tempo`. */
+export interface NoteAtTempo {
+  /** the tempo in beats per minute, in lowest terms */
+  bpmNumerator: bigint;
+  /** its denominator */
+  bpmDenominator: bigint;
+  /** the length of one beat in seconds */
+  beatNumerator: bigint;
+  /** its denominator */
+  beatDenominator: bigint;
+  /** the note's length as a fraction of a whole note */
+  noteFractionNumerator: bigint;
+  /** its denominator */
+  noteFractionDenominator: bigint;
+  /** the note's length in seconds */
+  noteNumerator: bigint;
+  /** its denominator */
+  noteDenominator: bigint;
+  /** the microseconds per quarter note a MIDI `Set Tempo` event stores; empty where the tempo does not fit its 24 bits */
+  midiMicroseconds: number | null;
+  /** `1` where that integer holds the tempo exactly; empty with the cell before */
+  midiExact: boolean | null;
+}
+
+/** One line of `hc_fiscal_profiles`. */
+export interface FiscalSystem {
+  /** the ISO 3166-1 alpha-2 code */
+  country: string;
+  /** the country in English */
+  countryName: string;
+  /** `fiscal` for a country's government, tax and corporate years, `school` and `university` for an academic profile's */
+  table: string;
+  /** `government`, `personal-tax`, `corporate-default` or `academic` */
+  kind: string;
+  /** the English name */
+  name: string;
+  /** the name in the local language; empty where English is the local one */
+  localName: string | null;
+  /** `statute`, `regulation`, `convention`, `per-region` or `per-institution` */
+  authority: string;
+  /** `1` where that is a national rule and not a usual choice */
+  national: boolean;
+  /** the calendar the start is dated in: `gregory`, `persian-arithmetic-33`, `ethiopic`, `buddhist` or `bikram-sambat` */
+  startCalendar: string;
+  /** the start's month in it */
+  startMonth: number;
+  /** the start's day in it */
+  startDay: number;
+  /** `start-year` or `end-year`: Japan's 2024年度 begins in 2024, the United States' FY 2024 began on 1 October 2023 */
+  labelConvention: string;
+  /** the first year label the system was in force, a label of its own calendar; empty where open */
+  validFrom: number | null;
+  /** the last; empty where it still is */
+  validUntil: number | null;
+  /** `1` where the start calendar is an approximation of the astronomical rule */
+  approximate: boolean;
+  /** what the entry deliberately does not claim */
+  note: string;
+  /** the date the sources were last checked, `YYYY-MM-DD` */
+  sourcesChecked: string;
+  /** the statute, ministry or publication the entry came from */
+  sources: string;
+}
+
+/** One line of `hc_fiscal_year_on`. */
+export interface FiscalYearOfDay {
+  /** the code, as `hc_fiscal_profiles` writes it */
+  country: string;
+  /** `fiscal`, `school` or `university` */
+  table: string;
+  /** the kind */
+  kind: string;
+  /** the English name */
+  name: string;
+  /** `in-force`, `outside-validity` or `outside-calendar-range` */
+  status: string;
+  /** the year label of the year the day is in */
+  label: number | null;
+  /** that year's first fixed day */
+  first: number | null;
+  /** its last fixed day */
+  last: number | null;
+  /** the day's number in it, from 1 */
+  dayOfYear: number | null;
+  /** how many days it has */
+  daysInYear: number | null;
+  /** the day of the week from Monday = 1 to Sunday = 7 */
+  weekday: number | null;
+  /** the fiscal month from 1; empty where the start calendar has no twelve equal months */
+  month: number | null;
+  /** the fiscal quarter from 1 */
+  quarter: number | null;
+  /** the fiscal half from 1 */
+  half: number | null;
+  /** the calendar the start is dated in */
+  startCalendar: string;
+  /** `start-year` or `end-year` */
+  labelConvention: string;
+  /** `1` where the start calendar is an approximation */
+  approximate: boolean;
+  /** the date the sources were last checked */
+  sourcesChecked: string;
+}
+
+/** One line of `hc_fiscal_year_span`. */
+export interface FiscalYearSpan {
+  /** the code */
+  country: string;
+  /** `fiscal`, `school` or `university` */
+  table: string;
+  /** the kind */
+  kind: string;
+  /** the English name */
+  name: string;
+  /** `in-force`, `outside-validity` or `outside-calendar-range` */
+  status: string;
+  /** the label given */
+  label: number;
+  /** the year's first fixed day */
+  first: number | null;
+  /** its last fixed day */
+  last: number | null;
+  /** how many days it has */
+  days: number | null;
+}
+
+/** One line of `hc_week_year_systems`. */
+export interface WeekYearSystem {
+  /** the system's identifier: `nrf-4-5-4`, `iso-8601-week-year` */
+  id: string;
+  /** the English name */
+  name: string;
+  /** the weekday the year ends on, Monday = 1 to Sunday = 7 */
+  weekday: number;
+  /** the Gregorian month whose end the rule is applied to */
+  month: number;
+  /** `last-weekday-of-month` or `weekday-nearest-month-end` */
+  anchorRule: string;
+  /** `start-year` or `end-year` */
+  labelConvention: string;
+  /** how a quarter's thirteen weeks split into three periods: `4-4-5`, `4-5-4` or `5-4-4`; empty for a convention that numbers weeks and defines no periods */
+  shape: string | null;
+  /** what the entry does not claim */
+  note: string;
+  /** the published definition */
+  source: string;
+  /** the date it was last checked, `YYYY-MM-DD` */
+  sourcesChecked: string;
+}
+
+/** One line of `hc_week_year_on`. */
+export interface WeekYearOfDay {
+  /** the system's identifier */
+  system: string;
+  /** its English name */
+  name: string;
+  /** the label of the year the day is in */
+  label: number;
+  /** that year's first fixed day */
+  first: number;
+  /** its last fixed day */
+  last: number;
+  /** how many weeks it has, 52 or 53 */
+  weeks: number;
+  /** `1` where it has 53 */
+  long: boolean;
+  /** the week the day is in, from 1 */
+  week: number;
+  /** that week's first fixed day */
+  weekFirst: number;
+  /** its last fixed day */
+  weekLast: number;
+  /** the period from 1 to 12; empty for a convention with no periods */
+  period: number | null;
+  /** that period's first fixed day */
+  periodFirst: number | null;
+  /** its last fixed day */
+  periodLast: number | null;
+  /** the quarter from 1 to 4 */
+  quarter: number | null;
+}
+
+/** One line of `hc_name_day_lists`. */
+export interface NameDayList {
+  /** `list` or `gap` */
+  kind: string;
+  /** the list's identifier, such as `lv-traditional-2026`; for a gap its code */
+  id: string;
+  /** the ISO 3166-1 alpha-2 code of a list; the English name of a gap */
+  country: string;
+  /** the BCP 47 language of the names */
+  language: string | null;
+  /** the English name of the list; for a gap what it leaves out */
+  name: string;
+  /** the body whose list it is */
+  authority: string | null;
+  /** when it decided this edition, to whatever precision the source gives */
+  decided: string | null;
+  /** `promulgated`, `recorded`, `vernacular` or `contested` */
+  provenance: string | null;
+  /** the first year the edition was in force; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** the terms it is held under */
+  licence: string | null;
+  /** what it does with 29 February: `no-names`, `own-names`, `shift-after-24-february` or `leap-years-only` */
+  leapDay: string | null;
+  /** how many names it holds */
+  totalNames: number | null;
+  /** the citation; for a gap what was consulted */
+  source: string;
+  /** when the file was retrieved; for a gap when the survey was made */
+  retrieved: string;
+  /** for a gap `licensed-for-a-fee`, `licence-unknown`, `sources-disagree-with-no-authority`, `method-unpublished` or `saints-not-names` */
+  reason: string | null;
+  /** for a gap the reasoning in full */
+  explanation: string | null;
+}
+
+/** One line of `hc_name_days_on`. */
+export interface NameDaysOfDay {
+  /** `list`, `outside` or `gap` */
+  kind: string;
+  /** the list's identifier; for a gap its code */
+  id: string;
+  /** the English name of the list; for a gap what it leaves out */
+  name: string;
+  /** the body whose list it is */
+  authority: string | null;
+  /** the first year the edition was in force; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** the terms it is held under */
+  licence: string | null;
+  /** the names the list gives that day, separated by `;`, in the list's own spelling and script; empty where there are none */
+  names: string[];
+  /** how many */
+  count: number | null;
+  /** `1` where the authority reserves the day for names not on its list (Latvia's 22 May) */
+  unlistedNamesDay: boolean | null;
+  /** what the source prints beside the day that is not a name, separated by `;` */
+  notes: string | null;
+  /** the citation; for a gap what was consulted */
+  source: string;
+  /** for a gap the reason, as `hc_name_day_lists` writes it */
+  reason: string | null;
+  /** for a gap the reasoning in full */
+  explanation: string | null;
+}
+
+/** One line of `hc_name_day`. */
+export interface NameDayDates {
+  /** `list`, `outside` or `gap` */
+  kind: string;
+  /** the list's identifier; for a gap its code */
+  id: string;
+  /** the English name of the list; for a gap what it leaves out */
+  name: string;
+  /** the body whose list it is */
+  authority: string | null;
+  /** the first year the edition was in force; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** the terms it is held under */
+  licence: string | null;
+  /** the days as `MM-DD`, separated by `;` */
+  dates: string[];
+  /** the same days as fixed days of that year, separated by `;` */
+  fixedDays: number[];
+  /** how many */
+  count: number | null;
+  /** the citation; for a gap what was consulted */
+  source: string;
+  /** for a gap the reason */
+  reason: string | null;
+  /** for a gap the reasoning in full */
+  explanation: string | null;
+}
+
+/** One line of `hc_attribution_authorities`. */
+export interface AttributionAuthority {
+  /** `authority` or `gap` */
+  kind: string;
+  /** the subject; empty for a gap */
+  subject: string | null;
+  /** the list's identifier, such as `birthstones-jp-2021`; for a gap its identifier */
+  id: string;
+  /** the list's English name; for a gap what is missing */
+  name: string;
+  /** the body that issued it; empty where nobody did, as for the Finnish month names */
+  body: string | null;
+  /** the identifier of the region the list is in use in */
+  region: string | null;
+  /** its English name */
+  regionName: string | null;
+  /** when the list was first adopted, to whatever precision the source gives */
+  established: string | null;
+  /** when it was last revised */
+  revised: string | null;
+  /** the first year it was current; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** `promulgated`, `recorded`, `vernacular`, `contested` or `modern-invention` */
+  provenance: string | null;
+  /** what the list is keyed by: `month`, `lunation`, `sign` or `weekday` */
+  keyKind: string | null;
+  /** the citation; for a gap what was consulted */
+  source: string;
+  /** what a caller should know before repeating the list; always present for a contested list */
+  caveat: string | null;
+  /** for a gap `sources-disagree-with-no-authority`, `method-unpublished`, `different-key`, `modern-invention` or `translation-undetermined` */
+  reason: string | null;
+  /** for a gap the reasoning in full */
+  explanation: string | null;
+}
+
+/** One line of `hc_attributions`. */
+export interface Attribution {
+  /** the subject */
+  subject: string;
+  /** the list's identifier */
+  id: string;
+  /** the list's English name */
+  name: string;
+  /** the key given */
+  key: number;
+  /** `month`, `lunation`, `sign` or `weekday` */
+  keyKind: string;
+  /** what the list attributes to the key, separated by `;`, in the list's own spelling */
+  attributions: string[];
+  /** how many */
+  count: number;
+  /** the English gloss of a month name; empty for other subjects */
+  gloss: string | null;
+  /** the first year the list was current; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** as `hc_attribution_authorities` writes it */
+  provenance: string;
+  /** what a caller should know before repeating it */
+  caveat: string | null;
+  /** `1` where every list of the subject says the same for the key */
+  agreed: boolean;
+}
+
+/** One line of `hc_attributions_on`. */
+export interface AttributionOfDay {
+  /** the subject */
+  subject: string;
+  /** the list's identifier */
+  id: string;
+  /** the list's English name */
+  name: string;
+  /** the day's month, sign or weekday */
+  key: number;
+  /** `month`, `sign` or `weekday` */
+  keyKind: string;
+  /** what the list attributes to the key, separated by `;` */
+  attributions: string[];
+  /** how many */
+  count: number;
+  /** the English gloss of a month name */
+  gloss: string | null;
+  /** the first year the list was current; empty where open */
+  validFrom: number | null;
+  /** the last year; empty where it still is */
+  validUntil: number | null;
+  /** as `hc_attribution_authorities` writes it */
+  provenance: string;
+  /** what a caller should know before repeating it */
+  caveat: string | null;
+  /** `1` where every list of the subject says the same for the key */
+  agreed: boolean;
+}
+
+/** One line of `hc_harvest_moon`. */
+export interface HarvestMoon {
+  /** the year given */
+  year: number;
+  /** the fixed day of the Harvest Moon */
+  harvestMoon: number;
+  /** the fixed day of the Hunter's Moon after it */
+  huntersMoon: number;
+  /** the Gregorian month the Harvest Moon falls in, 9 or 10 */
+  month: number;
+  /** the name the Old Farmer's Almanac gives September's full moon that year: `Harvest Moon`, or `Corn Moon` when the Harvest Moon is October's */
+  septemberMoon: string;
+  /** the meridian the days are judged at, as given */
+  meridian: string;
+  /** the functions used and the rule */
+  source: string;
+}
+
 /**
  * An instantiated module, one method per export. Every `i64` result is a
  * number; an `i64` argument may be a number or a `BigInt`. A method whose
@@ -4046,6 +4975,78 @@ export class HyperCalendar {
   zoneName(zone: string, unixSeconds: number | bigint, locale?: string, field?: ZoneNameField): ZoneName;
   /** `hc_format_pattern`: an instant formatted in a zone by a CLDR or strftime pattern. */
   formatPattern(zone: string, unixSeconds: number | bigint, locale: string, syntax: "cldr" | "strftime", pattern: string): FormattedInZone;
+  /** `hc_orbit_rate_offset`: a clock on a circular orbit against one held still on the ground. */
+  orbitRateOffset(body: string, orbitRadiusMetres: number, groundRadiusMetres: number): OrbitRateOffset;
+  /** `hc_rocket`: a rocket of constant proper acceleration burning from rest. */
+  rocket(properAcceleration: number, properSeconds: number): RocketBurn;
+  /** `hc_flip_and_burn`: a flip-and-burn voyage between two points at rest. */
+  flipAndBurn(properAcceleration: number, distanceMetres: number): FlipAndBurn;
+  /** `hc_doppler`: the relativistic Doppler shift of a source moving at β, seen at an angle. */
+  doppler(beta: number, cosTheta: number): DopplerShift;
+  /** `hc_velocity_add`: the composition of two collinear velocities. */
+  velocityAdd(firstBeta: number, secondBeta: number): VelocityComposition;
+  /** `hc_schwarzschild_radius`: the Schwarzschild radius of a body. */
+  schwarzschildRadius(body: string): SchwarzschildRadius;
+  /** `hc_proper_time_uncertain`: a clock moving at a constant speed that is not exactly known. */
+  properTimeUncertain(speedMetresPerSecond: number, speedStdDev: number, coordinateSeconds: number): UncertainProperTime;
+  /** `hc_planck_units`: the CODATA constants the Planck units are built from, and the Planck units. */
+  planckUnits(): PlanckUnit[];
+  /** `hc_bp_convert`: a calendar age or year in one datum written in another. */
+  bpConvert(years: number, stdDevYears: number, from: string, to: string): DatumConversion;
+  /** `hc_deep_convert`: a magnitude of time in one unit written in another, with its uncertainty carried through. */
+  deepConvert(value: number, stdDev: number, from: string, to: string): MagnitudeConversion;
+  /** `hc_deep_compare`: two magnitudes of time compared across the decades between them. */
+  deepCompare(firstValue: number, firstStdDev: number, firstUnit: string, secondValue: number, secondStdDev: number, secondUnit: string): MagnitudeComparison;
+  /** `hc_daily_insolation`: the daily mean insolation at any latitude and solar longitude, for the orbit of an epoch. */
+  dailyInsolation(yearsBeforePresent: number, latitudeDegrees: number, solarLongitudeDegrees: number): DailyInsolation;
+  /** `hc_edtf_parse`: an ISO 8601-2 value placed on the timeline. */
+  edtfParse(text: string): EdtfPart[];
+  /** `hc_edtf_relations`: what can hold between two EDTF values placed on the timeline. */
+  edtfRelations(first: string, second: string): EdtfRelations;
+  /** `hc_significant`: a number with a count of significant figures. */
+  significant(value: number, figures: number): SignificantNumber;
+  /** `hc_significant_op`: arithmetic on two numbers with figure counts. */
+  significantOp(operation: string, first: number, firstFigures: number, second: number, secondFigures: number): SignificantResult;
+  /** `hc_uncertain`: a Gaussian quantity, `value ± σ`. */
+  uncertain(value: number, stdDev: number): UncertainQuantity;
+  /** `hc_uncertain_op`: arithmetic on Gaussian quantities, with the errors propagated to first order. */
+  uncertainOp(operation: string, first: number, firstStdDev: number, second: number, secondStdDev: number): UncertainResult;
+  /** `hc_interval`: arithmetic on intervals of time. */
+  interval(operation: string, firstLowSeconds: number | bigint, firstHighSeconds: number | bigint, secondLowSeconds: number | bigint, secondHighSeconds: number | bigint): IntervalResult;
+  /** `hc_units`: every unit of time with an exactly defined length. */
+  units(): TimeUnit[];
+  /** `hc_unit_convert`: a count of one unit of time written in another, exactly. */
+  unitConvert(countNumerator: number | bigint, countDenominator: number | bigint, from: string, to: string): UnitConversion;
+  /** `hc_rates`: every frame rate and sample rate the crate carries as an exact period. */
+  rates(): FrameRate[];
+  /** `hc_frame_period`: the length of one frame or one sample, exactly. */
+  framePeriod(rate: string, inUnit: string): FramePeriod;
+  /** `hc_tempo`: a note at a tempo, exactly. */
+  tempo(bpmNumerator: number | bigint, bpmDenominator: number | bigint, noteHalvings: number, dots: number, tupletSpace: number, tupletCount: number, beatHalvings: number): NoteAtTempo;
+  /** `hc_fiscal_profiles`: every fiscal, tax and academic year system the crate carries, country by country. */
+  fiscalProfiles(): FiscalSystem[];
+  /** `hc_fiscal_year_on`: what the year systems of a country say a fixed day is. */
+  fiscalYearOn(country: string, kind?: string, fixed: number | bigint): FiscalYearOfDay[];
+  /** `hc_fiscal_year_span`: the span of the year a label names in each year system of a country. */
+  fiscalYearSpan(country: string, kind?: string, label: number | bigint): FiscalYearSpan[];
+  /** `hc_week_year_systems`: every named year of whole weeks. */
+  weekYearSystems(): WeekYearSystem[];
+  /** `hc_week_year_on`: where a fixed day is in a year of whole weeks. */
+  weekYearOn(system: string, fixed: number | bigint): WeekYearOfDay;
+  /** `hc_name_day_lists`: every name-day list the crate ships and every country it declines to ship one for. */
+  nameDayLists(): NameDayList[];
+  /** `hc_name_days_on`: what the lists of a country name on a day. */
+  nameDaysOn(country: string, fixed: number | bigint): NameDaysOfDay[];
+  /** `hc_name_day`: the days of a year on which the lists of a country give a name. */
+  nameDay(country: string, name: string, year: number | bigint): NameDayDates[];
+  /** `hc_attribution_authorities`: every attribution list the crate ships, with what it declines to ship. */
+  attributionAuthorities(subject?: string): AttributionAuthority[];
+  /** `hc_attributions`: what every list of a subject attributes to one key. */
+  attributions(subject: string, key: number | bigint): Attribution[];
+  /** `hc_attributions_on`: what every list attributes to the month, the weekday and the sign of a day. */
+  attributionsOn(fixed: number | bigint, meridian?: string): AttributionOfDay[];
+  /** `hc_harvest_moon`: the Harvest Moon of a year. */
+  harvestMoon(year: number | bigint, meridian?: string): HarvestMoon;
 }
 
 /**

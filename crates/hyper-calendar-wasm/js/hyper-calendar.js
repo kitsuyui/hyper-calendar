@@ -208,6 +208,10 @@ export const METHODS = Object.freeze([
   { method: "archaeologicalPeriods", export: "hc_archaeological_periods", feature: "deep-time" },
   { method: "futureEvents", export: "hc_future_events", feature: "deep-time" },
   { method: "geologicIntervals", export: "hc_geologic_intervals", feature: "deep-time" },
+  { method: "planckUnits", export: "hc_planck_units", feature: "deep-time" },
+  { method: "bpConvert", export: "hc_bp_convert", feature: "deep-time" },
+  { method: "deepConvert", export: "hc_deep_convert", feature: "deep-time" },
+  { method: "deepCompare", export: "hc_deep_compare", feature: "deep-time" },
   { method: "fixedFromUnixInZone", export: "hc_fixed_from_unix_in_zone", feature: "tz" },
   { method: "unixFromFixedInZone", export: "hc_unix_from_fixed_in_zone", feature: "tz" },
   { method: "loadZone", export: "hc_zone_load", feature: "tz" },
@@ -242,6 +246,7 @@ export const METHODS = Object.freeze([
   { method: "planetaryHoursOfDay", export: "hc_planetary_hours_of_day", feature: "sky" },
   { method: "orbitAt", export: "hc_orbit_at", feature: "orbital" },
   { method: "orbitSeries", export: "hc_orbit_series", feature: "orbital" },
+  { method: "dailyInsolation", export: "hc_daily_insolation", feature: "orbital" },
   { method: "jupiterAt", export: "hc_jupiter_at", feature: "jupiter" },
   { method: "jupiterIngresses", export: "hc_jupiter_ingresses", feature: "jupiter" },
   { method: "jupiterRisings", export: "hc_jupiter_risings", feature: "jupiter" },
@@ -260,6 +265,13 @@ export const METHODS = Object.freeze([
   { method: "properTime", export: "hc_proper_time", feature: "relativity" },
   { method: "gravitationalDilation", export: "hc_gravitational_dilation", feature: "relativity" },
   { method: "gravitatingBodies", export: "hc_gravitating_bodies", feature: "relativity" },
+  { method: "orbitRateOffset", export: "hc_orbit_rate_offset", feature: "relativity" },
+  { method: "rocket", export: "hc_rocket", feature: "relativity" },
+  { method: "flipAndBurn", export: "hc_flip_and_burn", feature: "relativity" },
+  { method: "doppler", export: "hc_doppler", feature: "relativity" },
+  { method: "velocityAdd", export: "hc_velocity_add", feature: "relativity" },
+  { method: "schwarzschildRadius", export: "hc_schwarzschild_radius", feature: "relativity" },
+  { method: "properTimeUncertain", export: "hc_proper_time_uncertain", feature: "relativity" },
   { method: "territories", export: "hc_territories", feature: "places" },
   { method: "subdivisions", export: "hc_subdivisions", feature: "places" },
   { method: "placeName", export: "hc_place_name", feature: "places" },
@@ -296,6 +308,30 @@ export const METHODS = Object.freeze([
   { method: "parsePatternIn", export: "hc_parse_pattern_in", feature: "patterns" },
   { method: "zoneName", export: "hc_zone_name", feature: "zone-names" },
   { method: "formatPattern", export: "hc_format_pattern", feature: "zone-names" },
+  { method: "edtfParse", export: "hc_edtf_parse", feature: "uncertainty" },
+  { method: "edtfRelations", export: "hc_edtf_relations", feature: "uncertainty" },
+  { method: "significant", export: "hc_significant", feature: "uncertainty" },
+  { method: "significantOp", export: "hc_significant_op", feature: "uncertainty" },
+  { method: "uncertain", export: "hc_uncertain", feature: "uncertainty" },
+  { method: "uncertainOp", export: "hc_uncertain_op", feature: "uncertainty" },
+  { method: "interval", export: "hc_interval", feature: "uncertainty" },
+  { method: "units", export: "hc_units", feature: "units" },
+  { method: "unitConvert", export: "hc_unit_convert", feature: "units" },
+  { method: "rates", export: "hc_rates", feature: "units" },
+  { method: "framePeriod", export: "hc_frame_period", feature: "units" },
+  { method: "tempo", export: "hc_tempo", feature: "units" },
+  { method: "fiscalProfiles", export: "hc_fiscal_profiles", feature: "fiscal" },
+  { method: "fiscalYearOn", export: "hc_fiscal_year_on", feature: "fiscal" },
+  { method: "fiscalYearSpan", export: "hc_fiscal_year_span", feature: "fiscal" },
+  { method: "weekYearSystems", export: "hc_week_year_systems", feature: "fiscal" },
+  { method: "weekYearOn", export: "hc_week_year_on", feature: "fiscal" },
+  { method: "nameDayLists", export: "hc_name_day_lists", feature: "name-days" },
+  { method: "nameDaysOn", export: "hc_name_days_on", feature: "name-days" },
+  { method: "nameDay", export: "hc_name_day", feature: "name-days" },
+  { method: "attributionAuthorities", export: "hc_attribution_authorities", feature: "attributes" },
+  { method: "attributions", export: "hc_attributions", feature: "attributes" },
+  { method: "attributionsOn", export: "hc_attributions_on", feature: "attributes" },
+  { method: "harvestMoon", export: "hc_harvest_moon", feature: "attributes" },
 ].map(Object.freeze));
 
 /** The columns of `hc_describe_day`, which `hc_parse_date` writes before the fixed day. */
@@ -680,8 +716,847 @@ export const COLUMNS = Object.freeze({
   irigFormats: Object.freeze([
     "format", "index count microseconds", "index counts", "frame microseconds", "fields",
     "control bits", "modulations", "carriers", "expressions",
-  ]),
+  ]),  orbitRateOffset: Object.freeze(["id", "gm", "gm constant", "circular speed", "gravitational microseconds per day", "kinematic microseconds per day", "weak-field microseconds per day", "exact microseconds per day", "constants", "source"]),
+  rocket: Object.freeze(["acceleration", "proper seconds", "coordinate seconds", "distance", "distance light years", "beta", "one minus beta", "lorentz factor", "constants", "source"]),
+  flipAndBurn: Object.freeze(["acceleration", "distance", "proper seconds", "coordinate seconds", "proper years", "coordinate years", "peak beta", "one minus peak beta", "peak lorentz factor", "constants", "source"]),
+  doppler: Object.freeze(["beta", "cos theta", "factor", "redshift", "head-on factor", "transverse factor", "source"]),
+  velocityAdd: Object.freeze(["first beta", "second beta", "composed beta", "composed speed", "one minus composed beta", "first rapidity", "second rapidity", "composed rapidity", "composed lorentz factor", "source"]),
+  schwarzschildRadius: Object.freeze(["id", "gm", "gm constant", "schwarzschild radius", "constants", "source"]),
+  properTimeUncertain: Object.freeze(["beta", "beta std dev", "proper seconds", "proper std dev", "text", "constants", "source"]),
+  planckUnits: Object.freeze(["symbol", "name", "unit", "value", "std dev", "figures", "relative uncertainty", "defined", "text", "source"]),
+  bpConvert: Object.freeze(["from", "to", "years", "std dev", "converted", "converted std dev", "label", "source"]),
+  deepConvert: Object.freeze(["from", "to", "value", "std dev", "converted", "converted std dev", "text", "seconds", "seconds std dev", "log10 seconds", "log10 std dev", "exact", "source"]),
+  deepCompare: Object.freeze(["first seconds", "first std dev", "second seconds", "second std dev", "ratio", "ratio std dev", "log10 ratio", "log10 std dev", "decades", "overlap", "order", "source"]),
+  dailyInsolation: Object.freeze(["years before 1950", "latitude", "solar longitude", "insolation", "solar constant", "source"]),
+  edtfParse: Object.freeze(["role", "kind", "text", "precision", "qualifier", "long form", "first day", "last day", "support", "estimate", "span days"]),
+  edtfRelations: Object.freeze(["relations", "symbols", "definitely before", "possibly before", "definitely after", "possibly after", "possibly concurrent"]),
+  significant: Object.freeze(["value", "figures", "text", "rounded", "exponent", "last place"]),
+  significantOp: Object.freeze(["operation", "text", "value", "figures", "exponent", "last place"]),
+  uncertain: Object.freeze(["value", "std dev", "text", "significant", "relative", "low 1σ", "high 1σ", "low 2σ", "high 2σ", "low 3σ", "high 3σ"]),
+  uncertainOp: Object.freeze(["operation", "value", "std dev", "text", "significant"]),
+  interval: Object.freeze(["operation", "empty", "low seconds", "low attoseconds", "high seconds", "high attoseconds", "width seconds", "width attoseconds", "midpoint seconds", "midpoint attoseconds", "holds"]),
+  units: Object.freeze(["id", "name", "symbol", "seconds numerator", "seconds denominator", "family", "authority"]),
+  unitConvert: Object.freeze(["from", "to", "count numerator", "count denominator", "converted numerator", "converted denominator", "whole", "seconds numerator", "seconds denominator", "attosecond exact"]),
+  rates: Object.freeze(["id", "kind", "hertz numerator", "hertz denominator"]),
+  framePeriod: Object.freeze(["rate", "kind", "hertz numerator", "hertz denominator", "period numerator", "period denominator", "count numerator", "count denominator", "unit", "whole", "whole flicks"]),
+  tempo: Object.freeze(["bpm numerator", "bpm denominator", "beat numerator", "beat denominator", "note fraction numerator", "note fraction denominator", "note numerator", "note denominator", "midi microseconds", "midi exact"]),
+  fiscalProfiles: Object.freeze(["country", "country name", "table", "kind", "name", "local name", "authority", "national", "start calendar", "start month", "start day", "label convention", "valid from", "valid until", "approximate", "note", "sources checked", "sources"]),
+  fiscalYearOn: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "day of year", "days in year", "weekday", "month", "quarter", "half", "start calendar", "label convention", "approximate", "sources checked"]),
+  fiscalYearSpan: Object.freeze(["country", "table", "kind", "name", "status", "label", "first", "last", "days"]),
+  weekYearSystems: Object.freeze(["id", "name", "weekday", "month", "anchor rule", "label convention", "shape", "note", "source", "sources checked"]),
+  weekYearOn: Object.freeze(["system", "name", "label", "first", "last", "weeks", "long", "week", "week first", "week last", "period", "period first", "period last", "quarter"]),
+  nameDayLists: Object.freeze(["kind", "id", "country", "language", "name", "authority", "decided", "provenance", "valid from", "valid until", "licence", "leap day", "total names", "source", "retrieved", "reason", "explanation"]),
+  nameDaysOn: Object.freeze(["kind", "id", "name", "authority", "valid from", "valid until", "licence", "names", "count", "unlisted names day", "notes", "source", "reason", "explanation"]),
+  nameDay: Object.freeze(["kind", "id", "name", "authority", "valid from", "valid until", "licence", "dates", "fixed days", "count", "source", "reason", "explanation"]),
+  attributionAuthorities: Object.freeze(["kind", "subject", "id", "name", "body", "region", "region name", "established", "revised", "valid from", "valid until", "provenance", "key kind", "source", "caveat", "reason", "explanation"]),
+  attributions: Object.freeze(["subject", "id", "name", "key", "key kind", "attributions", "count", "gloss", "valid from", "valid until", "provenance", "caveat", "agreed"]),
+  attributionsOn: Object.freeze(["subject", "id", "name", "key", "key kind", "attributions", "count", "gloss", "valid from", "valid until", "provenance", "caveat", "agreed"]),
+  harvestMoon: Object.freeze(["year", "harvest moon", "hunters moon", "month", "september moon", "meridian", "source"]),
 });
+
+/**
+ * One line of `hc_orbit_rate_offset`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").OrbitRateOffset}
+ */
+function orbitRateOffset(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    id: c0,
+    gm: decimal(c1, "gm"),
+    gmConstant: c2,
+    circularSpeed: decimal(c3, "circular speed"),
+    gravitationalMicrosecondsPerDay: decimal(c4, "gravitational microseconds per day"),
+    kinematicMicrosecondsPerDay: decimal(c5, "kinematic microseconds per day"),
+    weakFieldMicrosecondsPerDay: decimal(c6, "weak-field microseconds per day"),
+    exactMicrosecondsPerDay: decimal(c7, "exact microseconds per day"),
+    constants: list(c8),
+    source: c9,
+  };
+}
+
+/**
+ * One line of `hc_rocket`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").RocketBurn}
+ */
+function rocket(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    acceleration: decimal(c0, "acceleration"),
+    properSeconds: decimal(c1, "proper seconds"),
+    coordinateSeconds: decimal(c2, "coordinate seconds"),
+    distance: decimal(c3, "distance"),
+    distanceLightYears: decimal(c4, "distance light years"),
+    beta: decimal(c5, "beta"),
+    oneMinusBeta: decimal(c6, "one minus beta"),
+    lorentzFactor: decimal(c7, "lorentz factor"),
+    constants: list(c8),
+    source: c9,
+  };
+}
+
+/**
+ * One line of `hc_flip_and_burn`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FlipAndBurn}
+ */
+function flipAndBurn(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = cells;
+  return {
+    acceleration: decimal(c0, "acceleration"),
+    distance: decimal(c1, "distance"),
+    properSeconds: decimal(c2, "proper seconds"),
+    coordinateSeconds: decimal(c3, "coordinate seconds"),
+    properYears: decimal(c4, "proper years"),
+    coordinateYears: decimal(c5, "coordinate years"),
+    peakBeta: decimal(c6, "peak beta"),
+    oneMinusPeakBeta: decimal(c7, "one minus peak beta"),
+    peakLorentzFactor: decimal(c8, "peak lorentz factor"),
+    constants: list(c9),
+    source: c10,
+  };
+}
+
+/**
+ * One line of `hc_doppler`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").DopplerShift}
+ */
+function doppler(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6] = cells;
+  return {
+    beta: decimal(c0, "beta"),
+    cosTheta: decimal(c1, "cos theta"),
+    factor: decimal(c2, "factor"),
+    redshift: decimal(c3, "redshift"),
+    headOnFactor: decimal(c4, "head-on factor"),
+    transverseFactor: decimal(c5, "transverse factor"),
+    source: c6,
+  };
+}
+
+/**
+ * One line of `hc_velocity_add`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").VelocityComposition}
+ */
+function velocityAdd(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    firstBeta: decimal(c0, "first beta"),
+    secondBeta: decimal(c1, "second beta"),
+    composedBeta: decimal(c2, "composed beta"),
+    composedSpeed: decimal(c3, "composed speed"),
+    oneMinusComposedBeta: decimal(c4, "one minus composed beta"),
+    firstRapidity: decimal(c5, "first rapidity"),
+    secondRapidity: decimal(c6, "second rapidity"),
+    composedRapidity: decimal(c7, "composed rapidity"),
+    composedLorentzFactor: decimal(c8, "composed lorentz factor"),
+    source: c9,
+  };
+}
+
+/**
+ * One line of `hc_schwarzschild_radius`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SchwarzschildRadius}
+ */
+function schwarzschildRadius(cells) {
+  const [c0, c1, c2, c3, c4, c5] = cells;
+  return {
+    id: c0,
+    gm: decimal(c1, "gm"),
+    gmConstant: c2,
+    schwarzschildRadius: decimal(c3, "schwarzschild radius"),
+    constants: list(c4),
+    source: c5,
+  };
+}
+
+/**
+ * One line of `hc_proper_time_uncertain`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UncertainProperTime}
+ */
+function properTimeUncertain(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6] = cells;
+  return {
+    beta: decimal(c0, "beta"),
+    betaStdDev: decimal(c1, "beta std dev"),
+    properSeconds: decimal(c2, "proper seconds"),
+    properStdDev: decimal(c3, "proper std dev"),
+    text: c4,
+    constants: list(c5),
+    source: c6,
+  };
+}
+
+/**
+ * One line of `hc_planck_units`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").PlanckUnit}
+ */
+function planckUnits(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    symbol: c0,
+    name: c1,
+    unit: c2,
+    value: decimal(c3, "value"),
+    stdDev: decimal(c4, "std dev"),
+    figures: integer(c5, "figures"),
+    relativeUncertainty: decimal(c6, "relative uncertainty"),
+    defined: flag(c7, "defined"),
+    text: c8,
+    source: c9,
+  };
+}
+
+/**
+ * One line of `hc_bp_convert`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").DatumConversion}
+ */
+function bpConvert(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7] = cells;
+  return {
+    from: c0,
+    to: c1,
+    years: decimal(c2, "years"),
+    stdDev: decimal(c3, "std dev"),
+    converted: decimal(c4, "converted"),
+    convertedStdDev: decimal(c5, "converted std dev"),
+    label: c6,
+    source: c7,
+  };
+}
+
+/**
+ * One line of `hc_deep_convert`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MagnitudeConversion}
+ */
+function deepConvert(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12] = cells;
+  return {
+    from: c0,
+    to: c1,
+    value: decimal(c2, "value"),
+    stdDev: decimal(c3, "std dev"),
+    converted: decimal(c4, "converted"),
+    convertedStdDev: decimal(c5, "converted std dev"),
+    text: c6,
+    seconds: decimal(c7, "seconds"),
+    secondsStdDev: decimal(c8, "seconds std dev"),
+    log10Seconds: c9 === "" ? null : decimal(c9, "log10 seconds"),
+    log10StdDev: c10 === "" ? null : decimal(c10, "log10 std dev"),
+    exact: flag(c11, "exact"),
+    source: c12,
+  };
+}
+
+/**
+ * One line of `hc_deep_compare`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").MagnitudeComparison}
+ */
+function deepCompare(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11] = cells;
+  return {
+    firstSeconds: decimal(c0, "first seconds"),
+    firstStdDev: decimal(c1, "first std dev"),
+    secondSeconds: decimal(c2, "second seconds"),
+    secondStdDev: decimal(c3, "second std dev"),
+    ratio: decimal(c4, "ratio"),
+    ratioStdDev: decimal(c5, "ratio std dev"),
+    log10Ratio: decimal(c6, "log10 ratio"),
+    log10StdDev: decimal(c7, "log10 std dev"),
+    decades: decimal(c8, "decades"),
+    overlap: flag(c9, "overlap"),
+    order: integer(c10, "order"),
+    source: c11,
+  };
+}
+
+/**
+ * One line of `hc_daily_insolation`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").DailyInsolation}
+ */
+function dailyInsolation(cells) {
+  const [c0, c1, c2, c3, c4, c5] = cells;
+  return {
+    yearsBefore1950: decimal(c0, "years before 1950"),
+    latitude: decimal(c1, "latitude"),
+    solarLongitude: decimal(c2, "solar longitude"),
+    insolation: decimal(c3, "insolation"),
+    solarConstant: decimal(c4, "solar constant"),
+    source: c5,
+  };
+}
+
+/**
+ * One line of `hc_edtf_parse`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").EdtfPart}
+ */
+function edtfParse(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = cells;
+  return {
+    role: c0,
+    kind: c1,
+    text: c2,
+    precision: optional(c3),
+    qualifier: optional(c4),
+    longForm: c5 === "" ? null : flag(c5, "long form"),
+    firstDay: c6 === "" ? null : bigInteger(c6, "first day"),
+    lastDay: c7 === "" ? null : bigInteger(c7, "last day"),
+    support: optional(c8),
+    estimate: c9 === "" ? null : bigInteger(c9, "estimate"),
+    spanDays: c10 === "" ? null : bigInteger(c10, "span days"),
+  };
+}
+
+/**
+ * One line of `hc_edtf_relations`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").EdtfRelations}
+ */
+function edtfRelations(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6] = cells;
+  return {
+    relations: list(c0),
+    symbols: list(c1),
+    definitelyBefore: flag(c2, "definitely before"),
+    possiblyBefore: flag(c3, "possibly before"),
+    definitelyAfter: flag(c4, "definitely after"),
+    possiblyAfter: flag(c5, "possibly after"),
+    possiblyConcurrent: flag(c6, "possibly concurrent"),
+  };
+}
+
+/**
+ * One line of `hc_significant`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SignificantNumber}
+ */
+function significant(cells) {
+  const [c0, c1, c2, c3, c4, c5] = cells;
+  return {
+    value: decimal(c0, "value"),
+    figures: integer(c1, "figures"),
+    text: c2,
+    rounded: decimal(c3, "rounded"),
+    exponent: integer(c4, "exponent"),
+    lastPlace: integer(c5, "last place"),
+  };
+}
+
+/**
+ * One line of `hc_significant_op`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").SignificantResult}
+ */
+function significantOp(cells) {
+  const [c0, c1, c2, c3, c4, c5] = cells;
+  return {
+    operation: c0,
+    text: c1,
+    value: decimal(c2, "value"),
+    figures: integer(c3, "figures"),
+    exponent: integer(c4, "exponent"),
+    lastPlace: integer(c5, "last place"),
+  };
+}
+
+/**
+ * One line of `hc_uncertain`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UncertainQuantity}
+ */
+function uncertain(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = cells;
+  return {
+    value: decimal(c0, "value"),
+    stdDev: decimal(c1, "std dev"),
+    text: c2,
+    significant: optional(c3),
+    relative: c4 === "" ? null : decimal(c4, "relative"),
+    low1σ: decimal(c5, "low 1σ"),
+    high1σ: decimal(c6, "high 1σ"),
+    low2σ: decimal(c7, "low 2σ"),
+    high2σ: decimal(c8, "high 2σ"),
+    low3σ: decimal(c9, "low 3σ"),
+    high3σ: decimal(c10, "high 3σ"),
+  };
+}
+
+/**
+ * One line of `hc_uncertain_op`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UncertainResult}
+ */
+function uncertainOp(cells) {
+  const [c0, c1, c2, c3, c4] = cells;
+  return {
+    operation: c0,
+    value: decimal(c1, "value"),
+    stdDev: c2 === "" ? null : decimal(c2, "std dev"),
+    text: c3,
+    significant: optional(c4),
+  };
+}
+
+/**
+ * One line of `hc_interval`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").IntervalResult}
+ */
+function interval(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = cells;
+  return {
+    operation: c0,
+    empty: c1 === "" ? null : flag(c1, "empty"),
+    lowSeconds: c2 === "" ? null : bigInteger(c2, "low seconds"),
+    lowAttoseconds: c3 === "" ? null : bigInteger(c3, "low attoseconds"),
+    highSeconds: c4 === "" ? null : bigInteger(c4, "high seconds"),
+    highAttoseconds: c5 === "" ? null : bigInteger(c5, "high attoseconds"),
+    widthSeconds: c6 === "" ? null : bigInteger(c6, "width seconds"),
+    widthAttoseconds: c7 === "" ? null : bigInteger(c7, "width attoseconds"),
+    midpointSeconds: c8 === "" ? null : bigInteger(c8, "midpoint seconds"),
+    midpointAttoseconds: c9 === "" ? null : bigInteger(c9, "midpoint attoseconds"),
+    holds: c10 === "" ? null : flag(c10, "holds"),
+  };
+}
+
+/**
+ * One line of `hc_units`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").TimeUnit}
+ */
+function units(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6] = cells;
+  return {
+    id: c0,
+    name: c1,
+    symbol: optional(c2),
+    secondsNumerator: bigInteger(c3, "seconds numerator"),
+    secondsDenominator: bigInteger(c4, "seconds denominator"),
+    family: c5,
+    authority: c6,
+  };
+}
+
+/**
+ * One line of `hc_unit_convert`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").UnitConversion}
+ */
+function unitConvert(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    from: c0,
+    to: c1,
+    countNumerator: bigInteger(c2, "count numerator"),
+    countDenominator: bigInteger(c3, "count denominator"),
+    convertedNumerator: bigInteger(c4, "converted numerator"),
+    convertedDenominator: bigInteger(c5, "converted denominator"),
+    whole: flag(c6, "whole"),
+    secondsNumerator: bigInteger(c7, "seconds numerator"),
+    secondsDenominator: bigInteger(c8, "seconds denominator"),
+    attosecondExact: flag(c9, "attosecond exact"),
+  };
+}
+
+/**
+ * One line of `hc_rates`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FrameRate}
+ */
+function rates(cells) {
+  const [c0, c1, c2, c3] = cells;
+  return {
+    id: c0,
+    kind: c1,
+    hertzNumerator: bigInteger(c2, "hertz numerator"),
+    hertzDenominator: bigInteger(c3, "hertz denominator"),
+  };
+}
+
+/**
+ * One line of `hc_frame_period`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FramePeriod}
+ */
+function framePeriod(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10] = cells;
+  return {
+    rate: c0,
+    kind: c1,
+    hertzNumerator: bigInteger(c2, "hertz numerator"),
+    hertzDenominator: bigInteger(c3, "hertz denominator"),
+    periodNumerator: bigInteger(c4, "period numerator"),
+    periodDenominator: bigInteger(c5, "period denominator"),
+    countNumerator: bigInteger(c6, "count numerator"),
+    countDenominator: bigInteger(c7, "count denominator"),
+    unit: c8,
+    whole: flag(c9, "whole"),
+    wholeFlicks: flag(c10, "whole flicks"),
+  };
+}
+
+/**
+ * One line of `hc_tempo`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NoteAtTempo}
+ */
+function tempo(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    bpmNumerator: bigInteger(c0, "bpm numerator"),
+    bpmDenominator: bigInteger(c1, "bpm denominator"),
+    beatNumerator: bigInteger(c2, "beat numerator"),
+    beatDenominator: bigInteger(c3, "beat denominator"),
+    noteFractionNumerator: bigInteger(c4, "note fraction numerator"),
+    noteFractionDenominator: bigInteger(c5, "note fraction denominator"),
+    noteNumerator: bigInteger(c6, "note numerator"),
+    noteDenominator: bigInteger(c7, "note denominator"),
+    midiMicroseconds: optionalInteger(c8, "midi microseconds"),
+    midiExact: c9 === "" ? null : flag(c9, "midi exact"),
+  };
+}
+
+/**
+ * One line of `hc_fiscal_profiles`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FiscalSystem}
+ */
+function fiscalProfiles(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17] = cells;
+  return {
+    country: c0,
+    countryName: c1,
+    table: c2,
+    kind: c3,
+    name: c4,
+    localName: optional(c5),
+    authority: c6,
+    national: flag(c7, "national"),
+    startCalendar: c8,
+    startMonth: integer(c9, "start month"),
+    startDay: integer(c10, "start day"),
+    labelConvention: c11,
+    validFrom: optionalInteger(c12, "valid from"),
+    validUntil: optionalInteger(c13, "valid until"),
+    approximate: flag(c14, "approximate"),
+    note: c15,
+    sourcesChecked: c16,
+    sources: c17,
+  };
+}
+
+/**
+ * One line of `hc_fiscal_year_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FiscalYearOfDay}
+ */
+function fiscalYearOn(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16, c17] = cells;
+  return {
+    country: c0,
+    table: c1,
+    kind: c2,
+    name: c3,
+    status: c4,
+    label: optionalInteger(c5, "label"),
+    first: optionalInteger(c6, "first"),
+    last: optionalInteger(c7, "last"),
+    dayOfYear: optionalInteger(c8, "day of year"),
+    daysInYear: optionalInteger(c9, "days in year"),
+    weekday: optionalInteger(c10, "weekday"),
+    month: optionalInteger(c11, "month"),
+    quarter: optionalInteger(c12, "quarter"),
+    half: optionalInteger(c13, "half"),
+    startCalendar: c14,
+    labelConvention: c15,
+    approximate: flag(c16, "approximate"),
+    sourcesChecked: c17,
+  };
+}
+
+/**
+ * One line of `hc_fiscal_year_span`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").FiscalYearSpan}
+ */
+function fiscalYearSpan(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8] = cells;
+  return {
+    country: c0,
+    table: c1,
+    kind: c2,
+    name: c3,
+    status: c4,
+    label: integer(c5, "label"),
+    first: optionalInteger(c6, "first"),
+    last: optionalInteger(c7, "last"),
+    days: optionalInteger(c8, "days"),
+  };
+}
+
+/**
+ * One line of `hc_week_year_systems`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").WeekYearSystem}
+ */
+function weekYearSystems(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9] = cells;
+  return {
+    id: c0,
+    name: c1,
+    weekday: integer(c2, "weekday"),
+    month: integer(c3, "month"),
+    anchorRule: c4,
+    labelConvention: c5,
+    shape: optional(c6),
+    note: c7,
+    source: c8,
+    sourcesChecked: c9,
+  };
+}
+
+/**
+ * One line of `hc_week_year_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").WeekYearOfDay}
+ */
+function weekYearOn(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13] = cells;
+  return {
+    system: c0,
+    name: c1,
+    label: integer(c2, "label"),
+    first: integer(c3, "first"),
+    last: integer(c4, "last"),
+    weeks: integer(c5, "weeks"),
+    long: flag(c6, "long"),
+    week: integer(c7, "week"),
+    weekFirst: integer(c8, "week first"),
+    weekLast: integer(c9, "week last"),
+    period: optionalInteger(c10, "period"),
+    periodFirst: optionalInteger(c11, "period first"),
+    periodLast: optionalInteger(c12, "period last"),
+    quarter: optionalInteger(c13, "quarter"),
+  };
+}
+
+/**
+ * One line of `hc_name_day_lists`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NameDayList}
+ */
+function nameDayLists(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16] = cells;
+  return {
+    kind: c0,
+    id: c1,
+    country: c2,
+    language: optional(c3),
+    name: c4,
+    authority: optional(c5),
+    decided: optional(c6),
+    provenance: optional(c7),
+    validFrom: optionalInteger(c8, "valid from"),
+    validUntil: optionalInteger(c9, "valid until"),
+    licence: optional(c10),
+    leapDay: optional(c11),
+    totalNames: optionalInteger(c12, "total names"),
+    source: c13,
+    retrieved: c14,
+    reason: optional(c15),
+    explanation: optional(c16),
+  };
+}
+
+/**
+ * One line of `hc_name_days_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NameDaysOfDay}
+ */
+function nameDaysOn(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13] = cells;
+  return {
+    kind: c0,
+    id: c1,
+    name: c2,
+    authority: optional(c3),
+    validFrom: optionalInteger(c4, "valid from"),
+    validUntil: optionalInteger(c5, "valid until"),
+    licence: optional(c6),
+    names: list(c7),
+    count: optionalInteger(c8, "count"),
+    unlistedNamesDay: c9 === "" ? null : flag(c9, "unlisted names day"),
+    notes: optional(c10),
+    source: c11,
+    reason: optional(c12),
+    explanation: optional(c13),
+  };
+}
+
+/**
+ * One line of `hc_name_day`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").NameDayDates}
+ */
+function nameDay(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12] = cells;
+  return {
+    kind: c0,
+    id: c1,
+    name: c2,
+    authority: optional(c3),
+    validFrom: optionalInteger(c4, "valid from"),
+    validUntil: optionalInteger(c5, "valid until"),
+    licence: optional(c6),
+    dates: list(c7),
+    fixedDays: list(c8).map((value) => integer(value, "fixed days")),
+    count: optionalInteger(c9, "count"),
+    source: c10,
+    reason: optional(c11),
+    explanation: optional(c12),
+  };
+}
+
+/**
+ * One line of `hc_attribution_authorities`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AttributionAuthority}
+ */
+function attributionAuthorities(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12, c13, c14, c15, c16] = cells;
+  return {
+    kind: c0,
+    subject: optional(c1),
+    id: c2,
+    name: c3,
+    body: optional(c4),
+    region: optional(c5),
+    regionName: optional(c6),
+    established: optional(c7),
+    revised: optional(c8),
+    validFrom: optionalInteger(c9, "valid from"),
+    validUntil: optionalInteger(c10, "valid until"),
+    provenance: optional(c11),
+    keyKind: optional(c12),
+    source: c13,
+    caveat: optional(c14),
+    reason: optional(c15),
+    explanation: optional(c16),
+  };
+}
+
+/**
+ * One line of `hc_attributions`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").Attribution}
+ */
+function attributions(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12] = cells;
+  return {
+    subject: c0,
+    id: c1,
+    name: c2,
+    key: integer(c3, "key"),
+    keyKind: c4,
+    attributions: list(c5),
+    count: integer(c6, "count"),
+    gloss: optional(c7),
+    validFrom: optionalInteger(c8, "valid from"),
+    validUntil: optionalInteger(c9, "valid until"),
+    provenance: c10,
+    caveat: optional(c11),
+    agreed: flag(c12, "agreed"),
+  };
+}
+
+/**
+ * One line of `hc_attributions_on`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").AttributionOfDay}
+ */
+function attributionsOn(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6, c7, c8, c9, c10, c11, c12] = cells;
+  return {
+    subject: c0,
+    id: c1,
+    name: c2,
+    key: integer(c3, "key"),
+    keyKind: c4,
+    attributions: list(c5),
+    count: integer(c6, "count"),
+    gloss: optional(c7),
+    validFrom: optionalInteger(c8, "valid from"),
+    validUntil: optionalInteger(c9, "valid until"),
+    provenance: c10,
+    caveat: optional(c11),
+    agreed: flag(c12, "agreed"),
+  };
+}
+
+/**
+ * One line of `hc_harvest_moon`.
+ *
+ * @param {string[]} cells
+ * @returns {import("./hyper-calendar.d.ts").HarvestMoon}
+ */
+function harvestMoon(cells) {
+  const [c0, c1, c2, c3, c4, c5, c6] = cells;
+  return {
+    year: integer(c0, "year"),
+    harvestMoon: integer(c1, "harvest moon"),
+    huntersMoon: integer(c2, "hunters moon"),
+    month: integer(c3, "month"),
+    septemberMoon: c4,
+    meridian: c5,
+    source: c6,
+  };
+}
 
 /** The geologic ranks `hc_geologic_intervals` numbers, coarsest first. */
 export const GEOLOGIC_RANKS = Object.freeze(["eon", "era", "period", "epoch", "age"]);
@@ -8467,6 +9342,783 @@ export class HyperCalendar {
     return rows(text, COLUMNS.planetaryHour, "hc_planetary_hours_of_day").map(planetaryHour);
   }
 
+  /**
+   * A clock on a circular orbit against one held still on the ground: `hc_orbit_rate_offset`.
+   * The line is the one kind of figure GPS is built on: the gravitational part of the rate, in
+   * microseconds per 86 400-second day (positive: the higher clock runs fast), the kinematic
+   * part (negative), their weak-field sum, and the exact Schwarzschild figure for the same two
+   * clocks. A clock at `GPS_ORBIT_RADIUS` against one at `EARTH_EQUATORIAL_RADIUS` gains
+   * +45.65 from the potential, loses 7.21 from its speed, and nets +38.44. `body` is an
+   * identifier `hc_gravitating_bodies` lists, in any ASCII case; another is `unknown`. A
+   * radius that is not finite or not positive, a ground radius at or inside the Schwarzschild
+   * radius, or an orbit radius at or inside the photon sphere 3GM/c², where no circular orbit
+   * exists, is `out-of-range`.
+   *
+   * @param {string} body
+   * @param {number} orbitRadiusMetres
+   * @param {number} groundRadiusMetres
+   * @returns {import("./hyper-calendar.d.ts").OrbitRateOffset}
+   */
+  orbitRateOffset(body, orbitRadiusMetres, groundRadiusMetres) {
+    const fn = this.#export("hc_orbit_rate_offset");
+    const v_orbitRadiusMetres = toF64(orbitRadiusMetres, "orbitRadiusMetres");
+    const v_groundRadiusMetres = toF64(groundRadiusMetres, "groundRadiusMetres");
+    const written = this.#withText(body, "body", (bodyPointer, bodyLength) =>
+        this.#text("hc_orbit_rate_offset", (buffer, capacity) => fn(bodyPointer, bodyLength, v_orbitRadiusMetres, v_groundRadiusMetres, buffer, capacity), true));
+    return orbitRateOffset(this.#oneLine("hc_orbit_rate_offset", written, COLUMNS.orbitRateOffset));
+  }
+
+  /**
+   * A rocket of constant proper acceleration burning from rest: `hc_rocket`. The line is the
+   * hyperbolic motion of a constant proper acceleration `proper_acceleration` in m s⁻² after
+   * `proper_seconds` aboard: the time that passes elsewhere, the distance covered, β, `1 − β`
+   * computed without cancellation, and the Lorentz factor. One year at 1 g, 9.80665 m s⁻², is
+   * 0.5636 light-years at three quarters of the speed of light, and 1.19 years pass elsewhere.
+   * An acceleration that is not finite and positive, a proper time that is not finite or is
+   * negative, or a burn long enough that a value leaves the range of a double, is `out-of-
+   * range`.
+   *
+   * @param {number} properAcceleration
+   * @param {number} properSeconds
+   * @returns {import("./hyper-calendar.d.ts").RocketBurn}
+   */
+  rocket(properAcceleration, properSeconds) {
+    const fn = this.#export("hc_rocket");
+    const v_properAcceleration = toF64(properAcceleration, "properAcceleration");
+    const v_properSeconds = toF64(properSeconds, "properSeconds");
+    const written = this.#text("hc_rocket", (buffer, capacity) => fn(v_properAcceleration, v_properSeconds, buffer, capacity), true);
+    return rocket(this.#oneLine("hc_rocket", written, COLUMNS.rocket));
+  }
+
+  /**
+   * A flip-and-burn voyage between two points at rest: `hc_flip_and_burn`. The ship
+   * accelerates at a constant proper acceleration for half the distance, turns over, and
+   * decelerates for the other half, arriving at rest. At 1 g to Andromeda, 2.5 million light-
+   * years, it is 28.60 years aboard and 2 500 001.94 at home. An acceleration that is not
+   * finite and positive, a distance that is not finite or is negative, or a voyage that leaves
+   * the range of a double, is `out-of-range`.
+   *
+   * @param {number} properAcceleration
+   * @param {number} distanceMetres
+   * @returns {import("./hyper-calendar.d.ts").FlipAndBurn}
+   */
+  flipAndBurn(properAcceleration, distanceMetres) {
+    const fn = this.#export("hc_flip_and_burn");
+    const v_properAcceleration = toF64(properAcceleration, "properAcceleration");
+    const v_distanceMetres = toF64(distanceMetres, "distanceMetres");
+    const written = this.#text("hc_flip_and_burn", (buffer, capacity) => fn(v_properAcceleration, v_distanceMetres, buffer, capacity), true);
+    return flipAndBurn(this.#oneLine("hc_flip_and_burn", written, COLUMNS.flipAndBurn));
+  }
+
+  /**
+   * The relativistic Doppler shift of a source moving at β, seen at an angle: `hc_doppler`. A
+   * cosine of +1 is a source coming straight at the observer, −1 going straight away, 0
+   * transverse in the observer's frame. At β = 0.6 head-on the frequency is doubled, receding
+   * it is halved, and across the line of sight it is 4/5. A β that is not finite or whose
+   * magnitude is 1 or more, or a cosine that is not finite or whose magnitude is above 1, is
+   * `out-of-range`.
+   *
+   * @param {number} beta
+   * @param {number} cosTheta
+   * @returns {import("./hyper-calendar.d.ts").DopplerShift}
+   */
+  doppler(beta, cosTheta) {
+    const fn = this.#export("hc_doppler");
+    const v_beta = toF64(beta, "beta");
+    const v_cosTheta = toF64(cosTheta, "cosTheta");
+    const written = this.#text("hc_doppler", (buffer, capacity) => fn(v_beta, v_cosTheta, buffer, capacity), true);
+    return doppler(this.#oneLine("hc_doppler", written, COLUMNS.doppler));
+  }
+
+  /**
+   * The composition of two collinear velocities: `hc_velocity_add`. Both velocities are
+   * fractions of the speed of light, positive one way and negative the other; they do not add,
+   * their rapidities do. Two ships at 0.999 compose to 0.999 999 5, and `1 − β` of that,
+   * 5.005·10⁻⁷, is carried without the cancellation that would lose eight of its figures. A β
+   * that is not finite or whose magnitude is 1 or more is `out-of-range`.
+   *
+   * @param {number} firstBeta
+   * @param {number} secondBeta
+   * @returns {import("./hyper-calendar.d.ts").VelocityComposition}
+   */
+  velocityAdd(firstBeta, secondBeta) {
+    const fn = this.#export("hc_velocity_add");
+    const v_firstBeta = toF64(firstBeta, "firstBeta");
+    const v_secondBeta = toF64(secondBeta, "secondBeta");
+    const written = this.#text("hc_velocity_add", (buffer, capacity) => fn(v_firstBeta, v_secondBeta, buffer, capacity), true);
+    return velocityAdd(this.#oneLine("hc_velocity_add", written, COLUMNS.velocityAdd));
+  }
+
+  /**
+   * The Schwarzschild radius of a body: `hc_schwarzschild_radius`. The radius is 2GM/c² from
+   * the body's standard gravitational parameter, which the table carries more exactly than its
+   * mass. `body` is an identifier `hc_gravitating_bodies` lists, in any ASCII case; another, a
+   * name such as `Sagittarius A*` included, is `unknown`.
+   *
+   * @param {string} body
+   * @returns {import("./hyper-calendar.d.ts").SchwarzschildRadius}
+   */
+  schwarzschildRadius(body) {
+    const fn = this.#export("hc_schwarzschild_radius");
+    const written = this.#withText(body, "body", (bodyPointer, bodyLength) =>
+        this.#text("hc_schwarzschild_radius", (buffer, capacity) => fn(bodyPointer, bodyLength, buffer, capacity), true));
+    return schwarzschildRadius(this.#oneLine("hc_schwarzschild_radius", written, COLUMNS.schwarzschildRadius));
+  }
+
+  /**
+   * A clock moving at a constant speed that is not exactly known: `hc_proper_time_uncertain`.
+   * The standard deviation of the proper time is t β σ_β / √(1 − β²), first order, so a speed
+   * known to a metre a second near the speed of light is an error of seconds a year. A speed
+   * at or beyond the speed of light either way, a standard deviation that is not finite or is
+   * negative, or a coordinate time that is not finite or whose proper time leaves the range of
+   * a duration, is `out-of-range`.
+   *
+   * @param {number} speedMetresPerSecond
+   * @param {number} speedStdDev
+   * @param {number} coordinateSeconds
+   * @returns {import("./hyper-calendar.d.ts").UncertainProperTime}
+   */
+  properTimeUncertain(speedMetresPerSecond, speedStdDev, coordinateSeconds) {
+    const fn = this.#export("hc_proper_time_uncertain");
+    const v_speedMetresPerSecond = toF64(speedMetresPerSecond, "speedMetresPerSecond");
+    const v_speedStdDev = toF64(speedStdDev, "speedStdDev");
+    const v_coordinateSeconds = toF64(coordinateSeconds, "coordinateSeconds");
+    const written = this.#text("hc_proper_time_uncertain", (buffer, capacity) => fn(v_speedMetresPerSecond, v_speedStdDev, v_coordinateSeconds, buffer, capacity), true);
+    return properTimeUncertain(this.#oneLine("hc_proper_time_uncertain", written, COLUMNS.properTimeUncertain));
+  }
+
+  /**
+   * The CODATA constants the Planck units are built from, and the Planck units:
+   * `hc_planck_units`. One line each for the speed of light, the reduced Planck constant, the
+   * Newtonian constant of gravitation and the Planck time, length, mass, energy and
+   * temperature, from the 2022 CODATA adjustment. `c` and ℏ are defined exactly and have a
+   * standard uncertainty of 0; `G` is the one measured constant, and every Planck unit
+   * inherits its 2.2·10⁻⁵, halved or thirded by the root.
+   *
+   * @returns {import("./hyper-calendar.d.ts").PlanckUnit[]}
+   */
+  planckUnits() {
+    const fn = this.#export("hc_planck_units");
+    const written = this.#text("hc_planck_units", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.planckUnits, "hc_planck_units").map(planckUnits);
+  }
+
+  /**
+   * A calendar age or year in one datum written in another: `hc_bp_convert`. The datums are
+   * `bp` (calendar years before 1950 CE), `b2k` (before 2000 CE, the ice-core scale) and `ce`
+   * (a calendar year in astronomical numbering, where year 0 is 1 BCE and −9700 is 9701 BCE).
+   * Moving between them adds or subtracts a whole number of years, so the standard deviation
+   * is unchanged. The Holocene's base is 11 700 b2k and 11 650 BP. A conventional radiocarbon
+   * age, `radiocarbon-bp`, is not a count of calendar years and needs a calibration curve
+   * (IntCal20 and its companions) that the crate does not carry: it is `no-data`, on either
+   * side. A datum that is not one of these is `unknown`, and a number or standard deviation
+   * that is not finite, or a negative standard deviation, is `out-of-range`.
+   *
+   * @param {number} years
+   * @param {number} stdDevYears
+   * @param {string} from
+   * @param {string} to
+   * @returns {import("./hyper-calendar.d.ts").DatumConversion}
+   */
+  bpConvert(years, stdDevYears, from, to) {
+    const fn = this.#export("hc_bp_convert");
+    const v_years = toF64(years, "years");
+    const v_stdDevYears = toF64(stdDevYears, "stdDevYears");
+    const written = this.#withText(from, "from", (fromPointer, fromLength) =>
+        this.#withText(to, "to", (toPointer, toLength) =>
+        this.#text("hc_bp_convert", (buffer, capacity) => fn(v_years, v_stdDevYears, fromPointer, fromLength, toPointer, toLength, buffer, capacity), true)));
+    return bpConvert(this.#oneLine("hc_bp_convert", written, COLUMNS.bpConvert));
+  }
+
+  /**
+   * A magnitude of time in one unit written in another, with its uncertainty carried through:
+   * `hc_deep_convert`. The units are `planck-time`, `yoctosecond`, `zeptosecond`,
+   * `attosecond`, `femtosecond`, `picosecond`, `nanosecond`, `microsecond`, `millisecond`,
+   * `second`, `minute`, `hour`, `day`, `julian-year`, `kiloyear`, `megayear` and `gigayear`,
+   * in any ASCII case. Every one but the Planck time is a defined multiple of the second and
+   * rescales the standard deviation exactly; the Planck time is CODATA's measurement and
+   * brings its 1.1·10⁻⁵ into the answer, so a round trip through it returns the same number
+   * with a wider bar. A unit that is not one of these is `unknown`; a number or standard
+   * deviation that is not finite, a negative standard deviation, or a result that leaves the
+   * range of a double is `out-of-range`.
+   *
+   * @param {number} value
+   * @param {number} stdDev
+   * @param {string} from
+   * @param {string} to
+   * @returns {import("./hyper-calendar.d.ts").MagnitudeConversion}
+   */
+  deepConvert(value, stdDev, from, to) {
+    const fn = this.#export("hc_deep_convert");
+    const v_value = toF64(value, "value");
+    const v_stdDev = toF64(stdDev, "stdDev");
+    const written = this.#withText(from, "from", (fromPointer, fromLength) =>
+        this.#withText(to, "to", (toPointer, toLength) =>
+        this.#text("hc_deep_convert", (buffer, capacity) => fn(v_value, v_stdDev, fromPointer, fromLength, toPointer, toLength, buffer, capacity), true)));
+    return deepConvert(this.#oneLine("hc_deep_convert", written, COLUMNS.deepConvert));
+  }
+
+  /**
+   * Two magnitudes of time compared across the decades between them: `hc_deep_compare`. The
+   * units are those of `hc_deep_convert`. The two are treated as independent, so comparing a
+   * magnitude with itself reports a non-zero deviation around a ratio of 1. A unit that is not
+   * one of those is `unknown`; a number or standard deviation that is not finite, a negative
+   * standard deviation, a span of no length or a negative one (there is no logarithm of it),
+   * or a ratio that leaves the range of a double is `out-of-range`.
+   *
+   * @param {number} firstValue
+   * @param {number} firstStdDev
+   * @param {string} firstUnit
+   * @param {number} secondValue
+   * @param {number} secondStdDev
+   * @param {string} secondUnit
+   * @returns {import("./hyper-calendar.d.ts").MagnitudeComparison}
+   */
+  deepCompare(firstValue, firstStdDev, firstUnit, secondValue, secondStdDev, secondUnit) {
+    const fn = this.#export("hc_deep_compare");
+    const v_firstValue = toF64(firstValue, "firstValue");
+    const v_firstStdDev = toF64(firstStdDev, "firstStdDev");
+    const v_secondValue = toF64(secondValue, "secondValue");
+    const v_secondStdDev = toF64(secondStdDev, "secondStdDev");
+    const written = this.#withText(firstUnit, "firstUnit", (firstUnitPointer, firstUnitLength) =>
+        this.#withText(secondUnit, "secondUnit", (secondUnitPointer, secondUnitLength) =>
+        this.#text("hc_deep_compare", (buffer, capacity) => fn(v_firstValue, v_firstStdDev, firstUnitPointer, firstUnitLength, v_secondValue, v_secondStdDev, secondUnitPointer, secondUnitLength, buffer, capacity), true)));
+    return deepCompare(this.#oneLine("hc_deep_compare", written, COLUMNS.deepCompare));
+  }
+
+  /**
+   * The daily mean insolation at any latitude and solar longitude, for the orbit of an epoch:
+   * `hc_daily_insolation`. The Sun's true longitude is 0 at the March equinox, 90 at the June
+   * solstice, 180 at the September equinox and 270 at the December solstice. It is not a date:
+   * Berger's program turns a date into a longitude with a 365-day year, which differs from a
+   * calendar's by up to a day, and the honest input is the longitude. `hc_orbit_at` is the
+   * case of 65° N at 90°. The insolation is 0 in the polar night. An epoch the crate refuses
+   * (not finite, or beyond a million years either side of 1950), a latitude that is not finite
+   * or is beyond ±90°, or a longitude that is not finite or is outside 0 to 360, is `out-of-
+   * range`.
+   *
+   * @param {number} yearsBeforePresent
+   * @param {number} latitudeDegrees
+   * @param {number} solarLongitudeDegrees
+   * @returns {import("./hyper-calendar.d.ts").DailyInsolation}
+   */
+  dailyInsolation(yearsBeforePresent, latitudeDegrees, solarLongitudeDegrees) {
+    const fn = this.#export("hc_daily_insolation");
+    const v_yearsBeforePresent = toF64(yearsBeforePresent, "yearsBeforePresent");
+    const v_latitudeDegrees = toF64(latitudeDegrees, "latitudeDegrees");
+    const v_solarLongitudeDegrees = toF64(solarLongitudeDegrees, "solarLongitudeDegrees");
+    const written = this.#text("hc_daily_insolation", (buffer, capacity) => fn(v_yearsBeforePresent, v_latitudeDegrees, v_solarLongitudeDegrees, buffer, capacity), true);
+    return dailyInsolation(this.#oneLine("hc_daily_insolation", written, COLUMNS.dailyInsolation));
+  }
+
+  /**
+   * An ISO 8601-2 value placed on the timeline: `hc_edtf_parse`. The first line is the value
+   * itself and the lines after it are the parts it is made of: the two sides of an interval,
+   * or each member of a `[...]` or `{...}` set. The first cell is the role: `value`, `start`,
+   * `end` or `member`. A set is placed by the hull of its members, which is wider than the
+   * set: `[1667,1670]` is somewhere from 1667 to the end of 1670, and the gap is lost. Times
+   * of day, seasons, sub-year divisions, component-level qualifiers and exponential years are
+   * refused rather than half-read. Text that is not a supported EDTF value is `malformed`, and
+   * a year past what a fixed day can count is `out-of-range`.
+   *
+   * @param {string} text
+   * @returns {import("./hyper-calendar.d.ts").EdtfPart[]}
+   */
+  edtfParse(text) {
+    const fn = this.#export("hc_edtf_parse");
+    const written = this.#withText(text, "text", (textPointer, textLength) =>
+        this.#text("hc_edtf_parse", (buffer, capacity) => fn(textPointer, textLength, buffer, capacity), true));
+    return rows(written, COLUMNS.edtfParse, "hc_edtf_parse").map(edtfParse);
+  }
+
+  /**
+   * What can hold between two EDTF values placed on the timeline: `hc_edtf_relations`. Allen's
+   * thirteen relations between intervals are tested over the two supports: where a bound is
+   * unknown, every ordering it could have is considered, so the set is what remains possible,
+   * never a guess. A date known to the year is the year; `1984~` is 1983 to 1985; an open
+   * interval has no bound on its open side. Text that is not a supported EDTF value is
+   * `malformed`, and a year past what a fixed day can count is `out-of-range`.
+   *
+   * @param {string} first
+   * @param {string} second
+   * @returns {import("./hyper-calendar.d.ts").EdtfRelations}
+   */
+  edtfRelations(first, second) {
+    const fn = this.#export("hc_edtf_relations");
+    const written = this.#withText(first, "first", (firstPointer, firstLength) =>
+        this.#withText(second, "second", (secondPointer, secondLength) =>
+        this.#text("hc_edtf_relations", (buffer, capacity) => fn(firstPointer, firstLength, secondPointer, secondLength, buffer, capacity), true)));
+    return edtfRelations(this.#oneLine("hc_edtf_relations", written, COLUMNS.edtfRelations));
+  }
+
+  /**
+   * A number with a count of significant figures: `hc_significant`. 17 figures is the most a
+   * double holds and means every digit is claimed, as for a count or a definition; the
+   * shortest numeral that reads back as the same double is printed without padding. A number
+   * that is not finite, or a count of figures that is not from 1 to 17, is `out-of-range`.
+   *
+   * @param {number} value
+   * @param {number} figures
+   * @returns {import("./hyper-calendar.d.ts").SignificantNumber}
+   */
+  significant(value, figures) {
+    const fn = this.#export("hc_significant");
+    const v_value = toF64(value, "value");
+    const v_figures = toU32(figures, "figures");
+    const written = this.#text("hc_significant", (buffer, capacity) => fn(v_value, v_figures, buffer, capacity), true);
+    return significant(this.#oneLine("hc_significant", written, COLUMNS.significant));
+  }
+
+  /**
+   * Arithmetic on two numbers with figure counts: `hc_significant_op`. `add` and `sub` are
+   * significant down to the coarser of the two last places, so `100.0 + 0.001` keeps four
+   * figures and `1.0000 − 0.9999` keeps one; `mul` and `div` carry the smaller figure count;
+   * `pow` raises the first number to the second as an integer and keeps the first's count, the
+   * second's figures being ignored. An operation that is not one of these is `unknown`. A
+   * number that is not finite, a count of figures that is not from 1 to 17, a division by
+   * zero, a power whose exponent is not an integer within an `i32`, or a result that leaves
+   * the range of a double, is `out-of-range`.
+   *
+   * @param {string} operation
+   * @param {number} first
+   * @param {number} firstFigures
+   * @param {number} second
+   * @param {number} secondFigures
+   * @returns {import("./hyper-calendar.d.ts").SignificantResult}
+   */
+  significantOp(operation, first, firstFigures, second, secondFigures) {
+    const fn = this.#export("hc_significant_op");
+    const v_first = toF64(first, "first");
+    const v_firstFigures = toU32(firstFigures, "firstFigures");
+    const v_second = toF64(second, "second");
+    const v_secondFigures = toU32(secondFigures, "secondFigures");
+    const written = this.#withText(operation, "operation", (operationPointer, operationLength) =>
+        this.#text("hc_significant_op", (buffer, capacity) => fn(operationPointer, operationLength, v_first, v_firstFigures, v_second, v_secondFigures, buffer, capacity), true));
+    return significantOp(this.#oneLine("hc_significant_op", written, COLUMNS.significantOp));
+  }
+
+  /**
+   * A Gaussian quantity, `value ± σ`: `hc_uncertain`. A standard deviation of 0 is an exact
+   * value, and its significant text is the shortest numeral that reads back as the same
+   * double. A value or a standard deviation that is not finite, or a negative standard
+   * deviation, is `out-of-range`.
+   *
+   * @param {number} value
+   * @param {number} stdDev
+   * @returns {import("./hyper-calendar.d.ts").UncertainQuantity}
+   */
+  uncertain(value, stdDev) {
+    const fn = this.#export("hc_uncertain");
+    const v_value = toF64(value, "value");
+    const v_stdDev = toF64(stdDev, "stdDev");
+    const written = this.#text("hc_uncertain", (buffer, capacity) => fn(v_value, v_stdDev, buffer, capacity), true);
+    return uncertain(this.#oneLine("hc_uncertain", written, COLUMNS.uncertain));
+  }
+
+  /**
+   * Arithmetic on Gaussian quantities, with the errors propagated to first order:
+   * `hc_uncertain_op`. `add`, `sub`, `mul` and `div` are of independent quantities, with the
+   * errors combined in quadrature; `combine` is the inverse-variance weighted mean of two
+   * measurements of one quantity, where an exact one wins outright; `z-score` is how many
+   * combined standard deviations separate the two; `scale` multiplies the first by the
+   * second's value as an exact factor, its standard deviation ignored; `pow` raises the first
+   * to the second's value as an exact exponent; `ln` and `exp` are of the first, the second
+   * ignored. An operation that is not one of these is `unknown`. A value or standard deviation
+   * that is not finite, a negative standard deviation, a division by a value of 0, a logarithm
+   * of a value that is not positive, a power outside the real numbers, two exact values that
+   * disagree under `combine`, a z-score of two exact values, or a result that leaves the range
+   * of a double, is `out-of-range`.
+   *
+   * @param {string} operation
+   * @param {number} first
+   * @param {number} firstStdDev
+   * @param {number} second
+   * @param {number} secondStdDev
+   * @returns {import("./hyper-calendar.d.ts").UncertainResult}
+   */
+  uncertainOp(operation, first, firstStdDev, second, secondStdDev) {
+    const fn = this.#export("hc_uncertain_op");
+    const v_first = toF64(first, "first");
+    const v_firstStdDev = toF64(firstStdDev, "firstStdDev");
+    const v_second = toF64(second, "second");
+    const v_secondStdDev = toF64(secondStdDev, "secondStdDev");
+    const written = this.#withText(operation, "operation", (operationPointer, operationLength) =>
+        this.#text("hc_uncertain_op", (buffer, capacity) => fn(operationPointer, operationLength, v_first, v_firstStdDev, v_second, v_secondStdDev, buffer, capacity), true));
+    return uncertainOp(this.#oneLine("hc_uncertain_op", written, COLUMNS.uncertainOp));
+  }
+
+  /**
+   * Arithmetic on intervals of time: `hc_interval`. The two intervals are `[first_low_seconds,
+   * first_high_seconds]` and `[second_low_seconds, second_high_seconds]` in whole seconds.
+   * `add` and `sub` (the crossed bounds: `[lo₁ − hi₂, hi₁ − lo₂]`), `intersect` (empty when
+   * they do not meet) and `hull` (the smallest interval holding both) write an interval, as
+   * whole seconds and attoseconds each; `overlaps` and `contains` (whether the first holds the
+   * second) answer a question, and write only the last cell. The width is the high bound minus
+   * the low, and the midpoint is floored to an attosecond. An empty interval has no bounds,
+   * width or midpoint. An operation that is not one of these is `unknown`; an interval whose
+   * low bound is above its high bound, which is the empty interval written backwards, is `out-
+   * of-range`.
+   *
+   * @param {string} operation
+   * @param {number | bigint} firstLowSeconds
+   * @param {number | bigint} firstHighSeconds
+   * @param {number | bigint} secondLowSeconds
+   * @param {number | bigint} secondHighSeconds
+   * @returns {import("./hyper-calendar.d.ts").IntervalResult}
+   */
+  interval(operation, firstLowSeconds, firstHighSeconds, secondLowSeconds, secondHighSeconds) {
+    const fn = this.#export("hc_interval");
+    const v_firstLowSeconds = toI64(firstLowSeconds, "firstLowSeconds");
+    const v_firstHighSeconds = toI64(firstHighSeconds, "firstHighSeconds");
+    const v_secondLowSeconds = toI64(secondLowSeconds, "secondLowSeconds");
+    const v_secondHighSeconds = toI64(secondHighSeconds, "secondHighSeconds");
+    const written = this.#withText(operation, "operation", (operationPointer, operationLength) =>
+        this.#text("hc_interval", (buffer, capacity) => fn(operationPointer, operationLength, v_firstLowSeconds, v_firstHighSeconds, v_secondLowSeconds, v_secondHighSeconds, buffer, capacity), true));
+    return interval(this.#oneLine("hc_interval", written, COLUMNS.interval));
+  }
+
+  /**
+   * Every unit of time with an exactly defined length: `hc_units`. One line each, shortest
+   * first. A length is a numerator and a denominator in lowest terms, written in decimal,
+   * because they are 128-bit integers and a quectosecond is 10⁻³⁰ of a second: no double holds
+   * that, nor a flick's 705 600 000th. A unit that is measured rather than defined, such as
+   * the sidereal day or the tropical year, is not here: it lives with the model that measured
+   * it.
+   *
+   * @returns {import("./hyper-calendar.d.ts").TimeUnit[]}
+   */
+  units() {
+    const fn = this.#export("hc_units");
+    const written = this.#text("hc_units", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.units, "hc_units").map(units);
+  }
+
+  /**
+   * A count of one unit of time written in another, exactly: `hc_unit_convert`. The count is
+   * `count_numerator / count_denominator`, and may be negative. Both counts are written as a
+   * numerator and a denominator in lowest terms. A unit that `hc_units` does not list is
+   * `unknown`; a denominator of 0 is `out-of-range`; and a count or a length whose numerator
+   * or denominator leaves 128 bits is `out-of-range`.
+   *
+   * @param {number | bigint} countNumerator
+   * @param {number | bigint} countDenominator
+   * @param {string} from
+   * @param {string} to
+   * @returns {import("./hyper-calendar.d.ts").UnitConversion}
+   */
+  unitConvert(countNumerator, countDenominator, from, to) {
+    const fn = this.#export("hc_unit_convert");
+    const v_countNumerator = toI64(countNumerator, "countNumerator");
+    const v_countDenominator = toI64(countDenominator, "countDenominator");
+    const written = this.#withText(from, "from", (fromPointer, fromLength) =>
+        this.#withText(to, "to", (toPointer, toLength) =>
+        this.#text("hc_unit_convert", (buffer, capacity) => fn(v_countNumerator, v_countDenominator, fromPointer, fromLength, toPointer, toLength, buffer, capacity), true)));
+    return unitConvert(this.#oneLine("hc_unit_convert", written, COLUMNS.unitConvert));
+  }
+
+  /**
+   * Every frame rate and sample rate the crate carries as an exact period: `hc_rates`. The
+   * NTSC rates are exact: 29.97 is 30 000 / 1 001. Each identifier is what `hc_frame_period`
+   * reads for its rate.
+   *
+   * @returns {import("./hyper-calendar.d.ts").FrameRate[]}
+   */
+  rates() {
+    const fn = this.#export("hc_rates");
+    const written = this.#text("hc_rates", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.rates, "hc_rates").map(rates);
+  }
+
+  /**
+   * The length of one frame or one sample, exactly: `hc_frame_period`. `rate` is an identifier
+   * of `hc_rates`, such as `29.97` or `48000`, or an exact rate written `n` or `n/d` events
+   * per second, such as `30000/1001`. A rate that is neither, or a unit `hc_units` does not
+   * list, is `unknown`; a rate that is not positive, or a denominator of 0, is `out-of-range`;
+   * and a length whose numerator or denominator leaves 128 bits is `out-of-range`.
+   *
+   * @param {string} rate
+   * @param {string} inUnit
+   * @returns {import("./hyper-calendar.d.ts").FramePeriod}
+   */
+  framePeriod(rate, inUnit) {
+    const fn = this.#export("hc_frame_period");
+    const written = this.#withText(rate, "rate", (ratePointer, rateLength) =>
+        this.#withText(inUnit, "inUnit", (inUnitPointer, inUnitLength) =>
+        this.#text("hc_frame_period", (buffer, capacity) => fn(ratePointer, rateLength, inUnitPointer, inUnitLength, buffer, capacity), true)));
+    return framePeriod(this.#oneLine("hc_frame_period", written, COLUMNS.framePeriod));
+  }
+
+  /**
+   * A note at a tempo, exactly: `hc_tempo`. The tempo is `bpm_numerator / bpm_denominator`
+   * beats per minute, where a beat is the note of `beat_halvings` halvings of a whole note.
+   * The note is `note_halvings` halvings, with `dots` augmentation dots, each adding half of
+   * what came before (one dot makes it 3/2 as long, two 7/4), and, when `tuplet_count` and
+   * `tuplet_space` are both above 0, `tuplet_count` of it in the time of `tuplet_space`: a
+   * triplet is 3 in the time of 2. Both 0 is no tuplet. A tempo that is not positive, a
+   * denominator of 0, a tuplet with only one of its two numbers 0, or halvings or dots that do
+   * not fit a byte, is `out-of-range`; a length whose numerator or denominator leaves 128
+   * bits, or halvings or dots of 127 or more, is `out-of-range`.
+   *
+   * @param {number | bigint} bpmNumerator
+   * @param {number | bigint} bpmDenominator
+   * @param {number} noteHalvings
+   * @param {number} dots
+   * @param {number} tupletSpace
+   * @param {number} tupletCount
+   * @param {number} beatHalvings
+   * @returns {import("./hyper-calendar.d.ts").NoteAtTempo}
+   */
+  tempo(bpmNumerator, bpmDenominator, noteHalvings, dots, tupletSpace, tupletCount, beatHalvings) {
+    const fn = this.#export("hc_tempo");
+    const v_bpmNumerator = toI64(bpmNumerator, "bpmNumerator");
+    const v_bpmDenominator = toI64(bpmDenominator, "bpmDenominator");
+    const v_noteHalvings = toU32(noteHalvings, "noteHalvings");
+    const v_dots = toU32(dots, "dots");
+    const v_tupletSpace = toU32(tupletSpace, "tupletSpace");
+    const v_tupletCount = toU32(tupletCount, "tupletCount");
+    const v_beatHalvings = toU32(beatHalvings, "beatHalvings");
+    const written = this.#text("hc_tempo", (buffer, capacity) => fn(v_bpmNumerator, v_bpmDenominator, v_noteHalvings, v_dots, v_tupletSpace, v_tupletCount, v_beatHalvings, buffer, capacity), true);
+    return tempo(this.#oneLine("hc_tempo", written, COLUMNS.tempo));
+  }
+
+  /**
+   * Every fiscal, tax and academic year system the crate carries, country by country:
+   * `hc_fiscal_profiles`. A validity bound is a label of the system's own calendar: Iran's are
+   * Solar Hijri years and Nepal's Bikram Sambat. Nepal is in a build that has the `calendars`
+   * layer too, since its year starts on 1 Shrawan of the Bikram Sambat; in a build without it
+   * the country is absent, which `hc_fiscal_year_on` reports as `unknown`. No label convention
+   * is a default: the year is named for the year it starts in, or for the one it ends in, and
+   * every line says which.
+   *
+   * @returns {import("./hyper-calendar.d.ts").FiscalSystem[]}
+   */
+  fiscalProfiles() {
+    const fn = this.#export("hc_fiscal_profiles");
+    const written = this.#text("hc_fiscal_profiles", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.fiscalProfiles, "hc_fiscal_profiles").map(fiscalProfiles);
+  }
+
+  /**
+   * What the year systems of a country say a fixed day is: `hc_fiscal_year_on`. One line each.
+   * The status is `in-force`, or `outside-validity` where the system was not in force in the
+   * year the day falls in (the United States' October year had not begun in 1970), or
+   * `outside-calendar-range` where the start's calendar does not reach the day; the cells
+   * after the status are then empty. A country the tables do not carry, or a kind that is not
+   * one of the four, is `unknown`; a country that has no system of the kind asked is `no-
+   * data`; a fixed day beyond the Gregorian years ±9 999 999 is `out-of-range`.
+   *
+   * @param {string} country
+   * @param {string} [kind]
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").FiscalYearOfDay[]}
+   */
+  fiscalYearOn(country, kind = "", fixed) {
+    const fn = this.#export("hc_fiscal_year_on");
+    const v_fixed = toI64(fixed, "fixed");
+    const written = this.#withText(country, "country", (countryPointer, countryLength) =>
+        this.#withText(kind, "kind", (kindPointer, kindLength) =>
+        this.#text("hc_fiscal_year_on", (buffer, capacity) => fn(countryPointer, countryLength, kindPointer, kindLength, v_fixed, buffer, capacity), true)));
+    return rows(written, COLUMNS.fiscalYearOn, "hc_fiscal_year_on").map(fiscalYearOn);
+  }
+
+  /**
+   * The span of the year a label names in each year system of a country:
+   * `hc_fiscal_year_span`. One line each. The label is the system's own: a label of Iran's is
+   * a Solar Hijri year, a label of Japan's 年度 the Gregorian year it begins in, and a label of
+   * the United States' fiscal year the one it ends in. The status is `in-force`, `outside-
+   * validity` where the system was not in force in that year (the cells after the label are
+   * then empty) or `outside-calendar-range` where the start's calendar does not reach it. A
+   * country the tables do not carry, or a kind that is not one of the four, is `unknown`; a
+   * country with no system of the kind asked is `no-data`.
+   *
+   * @param {string} country
+   * @param {string} [kind]
+   * @param {number | bigint} label
+   * @returns {import("./hyper-calendar.d.ts").FiscalYearSpan[]}
+   */
+  fiscalYearSpan(country, kind = "", label) {
+    const fn = this.#export("hc_fiscal_year_span");
+    const v_label = toI64(label, "label");
+    const written = this.#withText(country, "country", (countryPointer, countryLength) =>
+        this.#withText(kind, "kind", (kindPointer, kindLength) =>
+        this.#text("hc_fiscal_year_span", (buffer, capacity) => fn(countryPointer, countryLength, kindPointer, kindLength, v_label, buffer, capacity), true)));
+    return rows(written, COLUMNS.fiscalYearSpan, "hc_fiscal_year_span").map(fiscalYearSpan);
+  }
+
+  /**
+   * Every named year of whole weeks: `hc_week_year_systems`. The NRF 4-5-4 retail calendar,
+   * ISO 8601's week-numbering year and a 4-4-5 year ending the last Saturday of December. The
+   * two anchor rules are two names and not one parameter: they put the year end up to a week
+   * apart and sometimes in different months.
+   *
+   * @returns {import("./hyper-calendar.d.ts").WeekYearSystem[]}
+   */
+  weekYearSystems() {
+    const fn = this.#export("hc_week_year_systems");
+    const written = this.#text("hc_week_year_systems", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.weekYearSystems, "hc_week_year_systems").map(weekYearSystems);
+  }
+
+  /**
+   * Where a fixed day is in a year of whole weeks: `hc_week_year_on`. In a 53-week year the
+   * extra week is the last period's. A system `hc_week_year_systems` does not list is
+   * `unknown`, and a day beyond the Gregorian years ±9 999 999 is `out-of-range`.
+   *
+   * @param {string} system
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").WeekYearOfDay}
+   */
+  weekYearOn(system, fixed) {
+    const fn = this.#export("hc_week_year_on");
+    const v_fixed = toI64(fixed, "fixed");
+    const written = this.#withText(system, "system", (systemPointer, systemLength) =>
+        this.#text("hc_week_year_on", (buffer, capacity) => fn(systemPointer, systemLength, v_fixed, buffer, capacity), true));
+    return weekYearOn(this.#oneLine("hc_week_year_on", written, COLUMNS.weekYearOn));
+  }
+
+  /**
+   * Every name-day list the crate ships and every country it declines to ship one for:
+   * `hc_name_day_lists`. Each list is a named edition of a named authority, and the crate
+   * reports what the lists say and asserts none of them. A gap is a country whose list the
+   * crate declines to ship, with the reason in its words: a list a university sells by the
+   * copy, a church calendar that names saints and not given names, several published lists
+   * that no body chooses between. A gap's identifier is the country's code, or two codes
+   * joined by a hyphen where one reasoning covers both; `hc_name_days_on` and `hc_name_day`
+   * read a code of either. A column that does not apply to the kind is empty.
+   *
+   * @returns {import("./hyper-calendar.d.ts").NameDayList[]}
+   */
+  nameDayLists() {
+    const fn = this.#export("hc_name_day_lists");
+    const written = this.#text("hc_name_day_lists", (buffer, capacity) => fn(buffer, capacity), true);
+    return rows(written, COLUMNS.nameDayLists, "hc_name_day_lists").map(nameDayLists);
+  }
+
+  /**
+   * What the lists of a country name on a day: `hc_name_days_on`. The kind is `list` for an
+   * edition in force in the year the day falls in (a country may keep two at once: Latvia's
+   * traditional and extended lists), `outside` for a shipped edition whose years do not
+   * include it, with no names, and `gap` for a country the crate carries no list for. A day no
+   * list has a name for is a `list` line with no names, and never the nearest edition's. A
+   * country the crate has neither a list nor a gap for is `unknown`; a day beyond the
+   * Gregorian years ±9 999 999 is `out-of-range`.
+   *
+   * @param {string} country
+   * @param {number | bigint} fixed
+   * @returns {import("./hyper-calendar.d.ts").NameDaysOfDay[]}
+   */
+  nameDaysOn(country, fixed) {
+    const fn = this.#export("hc_name_days_on");
+    const v_fixed = toI64(fixed, "fixed");
+    const written = this.#withText(country, "country", (countryPointer, countryLength) =>
+        this.#text("hc_name_days_on", (buffer, capacity) => fn(countryPointer, countryLength, v_fixed, buffer, capacity), true));
+    return rows(written, COLUMNS.nameDaysOn, "hc_name_days_on").map(nameDaysOn);
+  }
+
+  /**
+   * The days of a year on which the lists of a country give a name: `hc_name_day`. The match
+   * is exact and case-sensitive: the list's own spelling, diacritics included, and no
+   * diminutive the authority did not print. A name may fall on several days (the extended
+   * Latvian list has some) or on none, which is a `list` line with no days. The kinds are
+   * those of `hc_name_days_on`: `outside` for an edition not in force in the year, with no
+   * days, and `gap`. A country the crate has neither a list nor a gap for is `unknown`; a year
+   * beyond the Gregorian years ±9 999 999 or past an `i32` is `out-of-range`.
+   *
+   * @param {string} country
+   * @param {string} name
+   * @param {number | bigint} year
+   * @returns {import("./hyper-calendar.d.ts").NameDayDates[]}
+   */
+  nameDay(country, name, year) {
+    const fn = this.#export("hc_name_day");
+    const v_year = toI64(year, "year");
+    const written = this.#withText(country, "country", (countryPointer, countryLength) =>
+        this.#withText(name, "name", (namePointer, nameLength) =>
+        this.#text("hc_name_day", (buffer, capacity) => fn(countryPointer, countryLength, namePointer, nameLength, v_year, buffer, capacity), true)));
+    return rows(written, COLUMNS.nameDay, "hc_name_day").map(nameDay);
+  }
+
+  /**
+   * Every attribution list the crate ships, with what it declines to ship:
+   * `hc_attribution_authorities`. There is no "the birthstone of March": there are six lists,
+   * each with an authority, a date, a region and the years it was current, and they disagree
+   * in eleven months out of twelve. A gap is a subject the crate declined to ship, such as
+   * Japan's day-by-day 誕生花 or Robert Graves's "Celtic tree calendar"; its columns about a list
+   * are empty. A gap belongs to no subject here and is written only for the empty one. A
+   * subject that is not one of the seven is `unknown`.
+   *
+   * @param {string} [subject]
+   * @returns {import("./hyper-calendar.d.ts").AttributionAuthority[]}
+   */
+  attributionAuthorities(subject = "") {
+    const fn = this.#export("hc_attribution_authorities");
+    const written = this.#withText(subject, "subject", (subjectPointer, subjectLength) =>
+        this.#text("hc_attribution_authorities", (buffer, capacity) => fn(subjectPointer, subjectLength, buffer, capacity), true));
+    return rows(written, COLUMNS.attributionAuthorities, "hc_attribution_authorities").map(attributionAuthorities);
+  }
+
+  /**
+   * What every list of a subject attributes to one key: `hc_attributions`. One line per list.
+   * There is no line for "the" birthstone: a question about March has six answers, and the
+   * last cell says whether they agree. A contested list's caveat is on its line, and a caller
+   * who shows the answer should show it. A leap month is no key: no tradition attributes
+   * anything to an intercalary one. A subject that is not one of the seven is `unknown`, and a
+   * key outside its range is `out-of-range`.
+   *
+   * @param {string} subject
+   * @param {number | bigint} key
+   * @returns {import("./hyper-calendar.d.ts").Attribution[]}
+   */
+  attributions(subject, key) {
+    const fn = this.#export("hc_attributions");
+    const v_key = toI64(key, "key");
+    const written = this.#withText(subject, "subject", (subjectPointer, subjectLength) =>
+        this.#text("hc_attributions", (buffer, capacity) => fn(subjectPointer, subjectLength, v_key, buffer, capacity), true));
+    return rows(written, COLUMNS.attributions, "hc_attributions").map(attributions);
+  }
+
+  /**
+   * What every list attributes to the month, the weekday and the sign of a day:
+   * `hc_attributions_on`. The lines of `hc_attributions` for the birthstones, birth flowers,
+   * full-moon names, month names, zodiac stones and weekday attributions, each list on its own
+   * line, the subjects in that order; the lunation names are left out, because a day has no
+   * lunation number without the March equinox of its year. The month is the Gregorian month,
+   * the weekday its ISO weekday, and the sign the tropical sign the Sun is in at the day,
+   * judged at the meridian, which a day whose sign changes within about ten minutes of local
+   * midnight can move by a day. A meridian that is not read is `unknown`, and a day outside
+   * the years −1000 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} fixed
+   * @param {string} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").AttributionOfDay[]}
+   */
+  attributionsOn(fixed, meridian = "") {
+    const fn = this.#export("hc_attributions_on");
+    const v_fixed = toI64(fixed, "fixed");
+    const written = this.#withText(meridian, "meridian", (meridianPointer, meridianLength) =>
+        this.#text("hc_attributions_on", (buffer, capacity) => fn(v_fixed, meridianPointer, meridianLength, buffer, capacity), true));
+    return rows(written, COLUMNS.attributionsOn, "hc_attributions_on").map(attributionsOn);
+  }
+
+  /**
+   * The Harvest Moon of a year: `hc_harvest_moon`. The Harvest Moon is the full moon nearest
+   * the September equinox, a rule and not a table row: it falls in September in about three
+   * years of four and in October in the rest. In 2025 it is 7 October, and September's full
+   * moon is the Corn Moon. The days are judged at the meridian, and a full moon within about a
+   * minute of a day's end can move by a day. A meridian that is not read is `unknown`, and a
+   * year outside −999 to 3000 is `out-of-range`.
+   *
+   * @param {number | bigint} year
+   * @param {string} [meridian]
+   * @returns {import("./hyper-calendar.d.ts").HarvestMoon}
+   */
+  harvestMoon(year, meridian = "") {
+    const fn = this.#export("hc_harvest_moon");
+    const v_year = toI64(year, "year");
+    const written = this.#withText(meridian, "meridian", (meridianPointer, meridianLength) =>
+        this.#text("hc_harvest_moon", (buffer, capacity) => fn(v_year, meridianPointer, meridianLength, buffer, capacity), true));
+    return harvestMoon(this.#oneLine("hc_harvest_moon", written, COLUMNS.harvestMoon));
+  }
 }
 
 /**

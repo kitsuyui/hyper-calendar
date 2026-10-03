@@ -151,6 +151,18 @@ pub enum Provenance {
 }
 
 impl Provenance {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the provenance as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Promulgated => "promulgated",
+            Self::Recorded => "recorded",
+            Self::Vernacular => "vernacular",
+            Self::Contested => "contested",
+        }
+    }
+
     /// A one-line description.
     #[must_use]
     pub const fn english_description(self) -> &'static str {
@@ -891,5 +903,13 @@ mod tests {
         assert_eq!(list.empty_days().count(), DAYS - 5);
         assert!(list.empty_days().any(|md| md == MonthDay::new(2, 24)));
         assert_eq!(list.slot(DAYS), EMPTY);
+    }
+
+    #[test]
+    fn every_provenance_has_a_kebab_identifier() {
+        assert_eq!(Provenance::Promulgated.id(), "promulgated");
+        assert_eq!(Provenance::Recorded.id(), "recorded");
+        assert_eq!(Provenance::Vernacular.id(), "vernacular");
+        assert_eq!(Provenance::Contested.id(), "contested");
     }
 }
