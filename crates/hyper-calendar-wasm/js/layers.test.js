@@ -87,6 +87,7 @@ test("a method of another layer throws not-exported when called, not at load", (
     jupiterRisings: () => hc.jupiterRisings(1_767_225_600, 1_798_761_600, "lahiri"),
     kumbhBySky: () => hc.kumbhBySky("kumbh-haridwar", 2021, "lahiri"),
     pushkaramBySky: () => hc.pushkaramBySky("simha", 2015, "lahiri", "pushkaram-final-entry", 28.6, 77.2),
+    pushkaramsInYear: () => hc.pushkaramsInYear(2015, "lahiri", "pushkaram-final-entry", 28.6, 77.2),
     tai64Encode: () => hc.tai64Encode(0, 0, "tai64"),
     tai64Decode: () => hc.tai64Decode("4000000000000000"),
     gnssWeek: () => hc.gnssWeek("gps-lnav-week", 1_554_595_219),

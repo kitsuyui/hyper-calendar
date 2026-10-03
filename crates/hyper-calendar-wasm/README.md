@@ -139,7 +139,7 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_kumbh` | `year` −1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_jupiter_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_jupiter_ingresses`, `hc_jupiter_risings` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERR_OUT_OF_RANGE` |
-| a byte length | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky` | `year` −1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year` | `year` −1000 through 3000; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes nothing, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERR_OUT_OF_RANGE` |
 | a byte length | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERR_OUT_OF_RANGE` |
@@ -391,7 +391,7 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `edoTime(unixSeconds, latitude, longitude, elevation)`, `unixFromEdoTime(fixed, hour, fraction, latitude, longitude, elevation)` | `hc_edo_time`, `hc_unix_from_edo_time` | an `EdoTime`; a `SolarEvent` |
 | `planetaryHour(unixSeconds, latitude, longitude, elevation, locale)`, `planetaryHoursOfDay(fixed, latitude, longitude, elevation, locale)` | `hc_planetary_hour`, `hc_planetary_hours_of_day` | a `PlanetaryHour`; `PlanetaryHour[]`, twenty-four |
 | `orbitAt(yearsBefore1950)`, `orbitSeries(fromYearsBefore1950, toYearsBefore1950, stepYears)` | `hc_orbit_at`, `hc_orbit_series` | an `Orbit`; `OrbitSample[]` |
-| `jupiterAt(unixSeconds, ayanamsa)`, `jupiterIngresses(fromUnixSeconds, toUnixSeconds, ayanamsa)`, `jupiterRisings(fromUnixSeconds, toUnixSeconds, ayanamsa)`, `kumbhBySky(yoga, year, ayanamsa, locale)`, `pushkaramBySky(sign, year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale)` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky` | a `JupiterPosition`; `JupiterIngress[]`; `JupiterRising[]`; a `KumbhBySky`; `PushkaramBySky[]`, one per river |
+| `jupiterAt(unixSeconds, ayanamsa)`, `jupiterIngresses(fromUnixSeconds, toUnixSeconds, ayanamsa)`, `jupiterRisings(fromUnixSeconds, toUnixSeconds, ayanamsa)`, `kumbhBySky(yoga, year, ayanamsa, locale)`, `pushkaramBySky(sign, year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale)`, `pushkaramsInYear(year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale)` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year` | a `JupiterPosition`; `JupiterIngress[]`; `JupiterRising[]`; a `KumbhBySky`; `PushkaramBySky[]`, one per river; `PushkaramBySky[]`, one per river of each sign entered |
 | `marsTime(unixSeconds, eastLongitude)`, `missions()`, `missionSol(mission, unixSeconds)` | `hc_mars_time`, `hc_missions`, `hc_mission_sol` | a `MarsTime`; `Mission[]`; a number |
 | `bodies()`, `bodyTime(body, unixSeconds, eastLongitude)` | `hc_bodies`, `hc_body_time` | `Body[]`; a `BodyTime` |
 | `circadDate(calendar, unixSeconds)` | `hc_circad_date` | a `CircadDate` |
@@ -521,7 +521,7 @@ one job a layer.
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 99,078 | 97 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 164,253 | 160 KiB |
 | `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,650 | 63 KiB |
-| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs and its heliacal risings; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 216,294 | 211 KiB |
+| `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs and its heliacal risings; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 216,294 | 211 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 96,728 | 94 KiB |
 | `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 52,822 | 52 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,604 | 2.83 MiB |
@@ -579,7 +579,7 @@ not pass CI.
 
 ### Exports
 
-201 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+202 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -766,6 +766,7 @@ not pass CI.
 | `hc_jupiter_risings(from_unix_seconds: i64, to_unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as UTF-8 lines, returning the byte length written. |
 | `hc_kumbh_by_sky(yoga: *const u8, yoga_len: usize, year: i64, ayanamsa: *const u8, ayanamsa_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose sign is computed, meets it, as one UTF-8 line, returning the byte length written. |
 | `hc_pushkaram_by_sky(sign: *const u8, sign_len: usize, year: i64, ayanamsa: *const u8, ayanamsa_len: usize, rule: *const u8, rule_len: usize, latitude: f64, longitude: f64, elevation: f64, meridian: *const u8, meridian_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign, for Jupiter's entry into it in a Gregorian year, found, as UTF-8 lines, each river named in a locale, returning the byte length written. |
+| `hc_pushkarams_in_year(year: i64, ayanamsa: *const u8, ayanamsa_len: usize, rule: *const u8, rule_len: usize, latitude: f64, longitude: f64, elevation: f64, meridian: *const u8, meridian_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of every sidereal sign Jupiter enters in a Gregorian year, found, as UTF-8 lines, each river named in a locale, returning the byte length written. |
 | `hc_mars_time(unix_seconds: f64, east_longitude_degrees: f64, buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Mars at a POSIX instant and an east longitude, as one UTF-8 line, returning the byte length written. |
 | `hc_missions(buffer: *mut u8, capacity: usize) -> i64` | `planetary` | Every surface mission on Mars and the rules of its sol count, as UTF-8 lines, returning the byte length written. |
 | `hc_mission_sol(mission: *const u8, mission_len: usize, unix_seconds: f64) -> i64` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock, or an error sentinel. |
@@ -4369,7 +4370,10 @@ ayanamsa_len, buffer, capacity)` writes Jupiter's crossings of the sidereal
 boundaries in `[from, to)`, one line each, in time order. Jupiter turns back
 out of a sign it has just entered about two years in three, and enters again,
 so a year's lines come in runs: 2019 has three, into Dhanus on 29 March (UT),
-back into Vṛścika on 22 April and into Dhanus again on 5 November.
+back into Vṛścika on 22 April and into Dhanus again on 5 November. An
+ingress is the same second whatever span asks for it, and the same second
+`hc_pushkaram_by_sky` and `hc_pushkarams_in_year` give as the entry of a
+festival; so is a rising, and its setting, of `hc_jupiter_risings`.
 
 | # | Column | Holds |
 | --- | --- | --- |
@@ -4486,6 +4490,40 @@ which is most years. The lines are those of `hc_pushkaram`, then two:
 The nine festivals whose dates were read, from the Godavari's of 2015 to the
 announced Godavari's of 2027, come out on their days; the entry stands 40 to
 70 minutes before Drik Panchang's, which is the 25″.
+
+### Pushkarams of a year by the sky
+
+`hc_pushkarams_in_year(year, ayanamsa_ptr, ayanamsa_len, rule_ptr, rule_len,
+latitude, longitude, elevation, meridian_ptr, meridian_len, locale_ptr,
+locale_len, buffer, capacity)` is `hc_pushkaram_by_sky` for every sign
+Jupiter enters in the year, in one call: the lines are those the
+sign-by-sign calls write for each sign entered, byte for byte, one sign
+after another **in the order of the entries**, with the sign of each line in
+its columns 5 and 6. A year in which Jupiter enters two signs has the lines
+of both (1999: Mīna on 12 January, Meṣa on 26 May); one in which it enters a
+sign, turns back and enters it again has the entry `rule` names, as for
+`hc_pushkaram_by_sky`; and a year in which it makes no entry by the rule is
+an answer of zero bytes (1971, and 8 years of the 200 from 1900 to 2099 by
+the final entry). The search that finds the entries is the one every sign's
+call makes, so the page that asked twelve times asks once. The columns are
+those of `hc_pushkaram_by_sky`:
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | `pushkaram-ganga` to `pushkaram-pranahita` |
+| 2 | name | the river's name in the locale, as `hc_pushkaram` names it |
+| 3 | locale used | the tag of the data that named column 2 |
+| 4 | region | where the source keeps the river for the sign, in English; else empty |
+| 5 | sign | the sign, by its identifier |
+| 6 | sign name | its Sanskrit name |
+| 7 | first | the first day, a fixed day; empty where the Sun does not set on the day of the entry |
+| 8 | last | the twelfth |
+| 9 | missing | as column 2 of `hc_solar_event` |
+| 10 | missing day | as column 3 of `hc_solar_event` |
+| 11 | depression | always empty |
+| 12 | depression arcseconds | always empty |
+| 13 | entry | the moment Jupiter enters the sign, POSIX seconds of Universal Time rounded down |
+| 14 | rule | `rule` in lower case |
 
 ## The orbit
 

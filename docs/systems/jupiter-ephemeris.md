@@ -154,13 +154,151 @@ festivals: Jupiter's tropical sign is another from the sidereal at every
 festival tested, by an ayanāṃśa of 24°.
 
 `ingresses(from, until, ayanamsa)` finds Jupiter's crossings of the sign
-boundaries in order. From the distance to the nearest boundary and
-Jupiter's greatest speed, 0.3° a day, it steps as far as cannot cross one,
-at least 0.1 day, and bisects the step that did to 10⁻⁶ day. Five years take
-some 55 ms in a release build. An `Ingress` says whether Jupiter moves
+boundaries in order. **An ingress is one instant whatever span it is asked
+for**: the search is laid on a grid of eighth-days counted from RD 0, steps
+from grid point to grid point as far as the distance to the nearest boundary
+and Jupiter's greatest speed, 0.3° a day, say cannot cross one (at least one
+cell), finds the one cell in which the sign changes and bisects that cell to
+10⁻⁶ day. Nothing in it depends on where the walk began or where the span ends
+([The search, and what it costs](#the-search-and-what-it-costs)). Five years
+take some 7 ms in a release build. An `Ingress` says whether Jupiter moves
 `is_forward` into the next sign or turns back into the one before, which it
 does about two years in three, so a year's ingresses come in runs: 2019 has
 Dhanus on 29 March (UT), Vṛścika on 22 April and Dhanus again on 5 November.
+
+### The search, and what it costs
+
+**Results do not depend on the query window.** An ingress, and a rising and
+its setting, are the same instant, to the last bit, from whatever span
+`hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_pushkaram_by_sky` and
+`hc_pushkarams_in_year` are asked, and so the exports agree with one another
+(`hc_kumbh_by_sky` does not search for an ingress: it reads Jupiter's sign at
+the occasion's first moment, which is one position). This was not so
+before. The search began at the span's start, stepped from there, and bisected
+the step that crossed, a step whose ends were wherever the walk had got to, so
+the bits of an ingress, and one time in forty the whole second, depended on
+where the question began: asked from two starts 3.7 days apart, the 317
+ingresses of 1900 to 2100 that both find were within 0.064 s of each other,
+all different in the last bits and 8 of them in the second. Now the walk is laid
+on a fixed grid, `GRID_DAYS` = ⅛ day from RD 0 (the elongation's, `ELONGATION_GRID_DAYS`
+for a rising, ¼ day). A step is a whole number of cells, and one of more than a
+cell cannot cross a boundary (it is sized so that Jupiter at 0.3° a day
+cannot reach it), so a crossing is always in a single cell, the one between the
+last grid point in the old sign and the first in the new; and the bisection of
+that cell, from its two ends, is the same whoever asked. A span's start is
+rounded down to the grid and the ingresses before it left out; its end is not
+clipped. What the grid cannot make canonical is a boundary crossed twice
+within one cell, a station at a boundary, which no procedure defines better
+than this one.
+
+**What this moved.** The ingresses are where they were to 0.082 s, and not the
+same bits: of the 12 958 ingresses of the years −1000 to 3000 under Lahiri
+and Raman, 12 956 differ in the last bits from what the earlier search found
+from the start of its three-century windows, and 346 of them, 2.67%, in the
+whole second, each by exactly one second, by a shift of at most 0.082 s (the
+precision of the search is 10⁻⁶ day, 0.086 s). Of the 118 Pushkaram lines of
+1995 to 2044 (every sign, both rules) one changed, in the entry's second; no
+first or last day moved. Of the 112 rising lines of forty three-year spans of
+2023 to 2104 (the spans overlap, so a rising is in two or three), 11 changed in
+the rising's or the setting's second and 101 more only in the last digits of
+the sidereal longitude at the rising. Positions and the Kumbh's lines did not
+change. No festival check moved: the days of the nine festivals read, the
+agreement with Drik Panchang's 49 entries and the Kumbh years pass as they were.
+The tests that hold it are `an_ingress_is_the_same_instant_from_every_start`
+and `a_rising_is_the_same_instant_from_every_start` (`hc-seasons`) and
+`an_ingress_is_the_same_instant_from_windows_that_start_apart` (the 317
+ingresses above, now identical), `the_ingress_and_pushkaram_exports_agree_on_an_entry`
+and `the_risings_are_the_same_instants_from_spans_that_start_apart`
+(`jupiter_festivals.rs`).
+
+**Where the time goes.** A search for a Pushkaram's entry
+(`hc_pushkaram_by_sky`) took 8.2 ms in a release build on the machine that
+wrote this, and 52 ms in the WebAssembly module built with the size-first
+profile, run in Node 22. Nearly all of it is `ingresses`: `adi_pushkaram` is
+40 µs. The search used to run from 800 days before the Gregorian year to 800
+days after it, to see the ingress before an entry, for the first-entry rule,
+and the one after, for the final one; for a year that was 11 ingresses and 938
+evaluations of Jupiter's apparent longitude (751 in the walk and 187 in the
+bisections, 17 to each ingress), at 14.8 µs each: three evaluations of the
+Jupiter series (5.2 µs each, 1 394 of the 3 625 terms summed and every
+amplitude tested) for the light-time passes, and three of the Earth's.
+
+What was done to it, without changing the result of any evaluation:
+
+1. **Each longitude once.** The longitude at the end of a step is the one the
+   next step starts from.
+2. **Bisecting without evaluating.** A midpoint of the bisection of a cell is
+   in the sign if it is no later than a moment known to be in it, and beyond it
+   if no earlier than one known to be beyond. Four probes put such moments
+   within half a microday of the crossing (the line through the two ends of the
+   cell reaches the boundary; again through the nearer ends; and a moment
+   either side of that), and only a midpoint between them is evaluated: 17
+   evaluations of a bisection become about 8. The inference needs the
+   longitude to rise through the boundary once in the cell, which at 0.02° a
+   day or more it does (its second derivative is at most 0.004° a day² over
+   4 200 days at seven epochs, so across a cell the speed changes by under
+   0.001°); a slower crossing, which is next to a station, is bisected
+   plainly. **The longitude is not smooth to the last digits.** The Earth's
+   velocity for the aberration is a difference over 0.001 day of positions
+   whose argument is rounded to a bit of a number of tens of centuries, and
+   that leaves a jitter of 1 to 3 × 10⁻⁹° in the longitude. Probes taken within
+   that of the boundary disagreed with the plain bisection at a few ingresses,
+   where a midpoint fell within the jitter of the boundary, and a probe is now
+   used only if it is 10⁻⁷° (thirty times the jitter) from it
+   (`SURE_DEGREES`). Two ingresses are tests of its own, the one in 385 BCE
+   where it was found and the one of the era whose last midpoint comes closest
+   to the boundary, 4.5 × 10⁻¹² degree, in 200 BCE
+   (`an_ingress_at_the_jitter_of_the_last_digits_is_the_plain_search`, which
+   fails with a probe distance of 10⁻¹³°).
+3. **The signs together.** The twelve signs' searches for a year walk the same
+   ingresses and differ only in which of them they keep.
+   `entries_in(from, until, rule, ayanamsa)` walks them once, lazily, and gives
+   each sign's entry in the order of the entries: for each sign what
+   `entry_into` gives (it is `entries_in` for one sign), and the facade's
+   `hc_pushkarams_in_year` writes them. Twelve `hc_pushkaram_by_sky` calls take
+   twelve searches and 2 402 longitudes; the year takes one search, 209.
+4. **The window.** An ingress no longer depends on where the walk began, so a
+   search for an entry looks back and forward only as far as the ingress before
+   an entry and the one after it can be: consecutive ingresses are at most
+   396.8 days apart (the most of the 12 958), so 430 days either side
+   (`CONTEXT_DAYS`) in place of 800.
+5. **A term read by naming its bytes.** The tables are packed, 13 bytes a
+   term, and `vsop87_jupiter` read the amplitude, phase and frequency index
+   with a loop over a slice of the bytes. A release build unrolls that, and the
+   size-first profile of the WebAssembly module does not: it is a loop per
+   field, and the amplitude of all 3 625 terms is read for each of the three
+   evaluations of a position. Reading the bytes by name gives the same
+   integers, and the module the same size, 2.6 times faster.
+6. **The rising's elongation.** `elongation_falls_through` evaluated the
+   elongation three times in a step, twice at the same moment; it is once.
+
+| One year's worth | before | after |
+| --- | ---: | ---: |
+| `pushkaram_by_sky_lines` for one sign, 2025 (native) | 8.2 ms, 497 longitudes | 3.8 ms, 209 |
+| the same for twelve signs (native) | 95.7 ms, 5 754 | 44.0 ms, 2 402 |
+| `pushkarams_in_year_lines` (native) | none | 3.9 ms, 209 |
+| `ingress_lines` for one year, five years (native) | 4.6 ms, 12.2 ms | 2.6 ms, 7.0 ms |
+| `rising_lines` for one year, ten years (native) | 3.3 ms, 17.8 ms | 2.2 ms, 12.7 ms |
+| `hc_pushkaram_by_sky`, one sign, 2025 (WebAssembly, Node 22) | 52 ms | 9.1 ms |
+| `hc_pushkaram_by_sky`, twelve signs (WebAssembly) | 600 ms | 104 ms |
+| `hc_pushkarams_in_year` (WebAssembly) | none | 9.1 ms |
+| `hc_jupiter_ingresses` for one year (WebAssembly) | 29 ms | 6.1 ms |
+
+The WebAssembly times are for the `jupiter` layer built with
+`release-compact`, 216 294 bytes before and 218 765 after. The 2.6 is the
+fifth change, the rest the others.
+
+**What is left.** The cost is the walk and every position in it is a full
+position: the three light-time passes need all three evaluations of the series,
+and after an ingress the walk is at a boundary and has to grow its steps back
+by a quarter at a time (a step is three days to the degree of distance, and
+Jupiter's average speed is a quarter of the 0.3° a day it must allow for), some
+35 steps to each ingress. A step sized by the speed Jupiter is observed to have,
+with its change allowed for, would be shorter in count and is not rigorous
+without a bound on Jupiter's acceleration that has been tested only at seven
+epochs. `hc_kumbh_by_sky` is not a search of this kind: it takes 0.16 ms a
+condition (0.5 ms in WebAssembly), 45 µs of it Jupiter's position, so seven
+conditions cost 1.1 ms and a per-year export of them would save little.
 
 ### Which entry the Pushkaram follows
 
@@ -225,13 +363,15 @@ that began is Pauṣa. Drik Panchang puts the asta from 15 July 19:59 to
   distance, light-time, and the heliocentric position), `longitude`,
   `daily_motion_degrees`, `DEFAULT_TRUNCATION`.
 - `hc_seasons::zodiac::jupiter`: `sidereal_longitude`, `sign_at`, `position`,
-  `Ingress`, `ingresses`, `EntryRule`, `entry_into`, `HeliacalRising`,
-  `next_heliacal_rising`, `VISIBILITY_ARC_DEGREES`.
-- The facade's `jupiter_lines` and the five exports of the `jupiter` layer:
+  `Ingress`, `ingresses`, `EntryRule`, `entry_into`, `entries_in`, `Entries`,
+  `HeliacalRising`, `next_heliacal_rising`, `VISIBILITY_ARC_DEGREES`.
+- The facade's `jupiter_lines` and the six exports of the `jupiter` layer:
   `hc_jupiter_at` (the position, tropical and sidereal), `hc_jupiter_ingresses`
   (a span's crossings), `hc_jupiter_risings` (a span's risings, with the year's
   name), `hc_kumbh_by_sky` and `hc_pushkaram_by_sky` (the festivals with Jupiter
-  found), whose columns are in the WebAssembly module's README. The caller-given
+  found) and `hc_pushkarams_in_year` (`hc_pushkaram_by_sky` for every sign
+  Jupiter enters in a year, in one search), whose columns are in the
+  WebAssembly module's README. The caller-given
   `hc_kumbh` and `hc_pushkaram` stay in `calendars`.
 
 Not carried:
@@ -335,15 +475,26 @@ and the `("jupiter", …)` rows of `exports.rs`. The tests that anchor them:
 `the_first_and_the_last_term_are_the_files` (`hc-astro`);
 `jupiter_at_its_opposition_of_2024_is_in_vrishabha_in_retrograde`,
 `the_ingresses_are_in_order_and_chain`,
+`the_ingresses_are_the_plain_search_to_the_last_bit`,
+`an_ingress_is_the_same_instant_from_every_start`,
+`an_ingress_at_the_jitter_of_the_last_digits_is_the_plain_search`,
+`a_rising_is_the_same_instant_from_every_start`,
+`the_entries_of_a_span_are_each_signs_entry`,
 `a_rising_asked_for_in_the_asta_is_the_one_that_ends_it`
 (`hc-seasons`); `the_sidereal_longitude_stands_a_constant_25_arcseconds_off_drik_panchangs`,
 `the_ingresses_agree_with_drik_panchangs_within_seven_minutes_given_the_shift`,
 `every_kumbh_year_of_the_table_meets_a_condition_of_its_site`,
 `the_recent_and_announced_festivals_meet_their_conditions`,
 `the_festivals_whose_dates_were_read_follow_the_final_entry_found_from_the_sky`,
-`the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates`
+`the_other_reading_of_the_second_entry_opens_the_festivals_wikipedia_dates`,
+`the_year_export_gives_the_festivals_the_sign_export_does`,
+`an_ingress_is_the_same_instant_from_windows_that_start_apart`,
+`the_ingress_and_pushkaram_exports_agree_on_an_entry`,
+`the_risings_are_the_same_instants_from_spans_that_start_apart`
 (`crates/hyper-calendar/tests/jupiter_festivals.rs`);
 `the_year_of_jupiter_is_named_by_the_nakshatra_of_its_rising`,
 `the_first_year_of_the_sixty_is_named_for_dhanishtha_as_sewells_table_has_it`,
-`the_risings_of_2024_to_2027_are_within_four_days_of_drik_panchangs`
+`the_risings_of_2024_to_2027_are_within_four_days_of_drik_panchangs`,
+`a_years_pushkarams_are_those_of_each_sign_by_sky`,
+`a_year_with_two_entries_has_two_signs_in_order`
 (`jupiter_lines`).

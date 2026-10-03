@@ -71,13 +71,31 @@ impl Truncation {
 /// The units of the stored amplitudes and phases: 10⁻¹¹.
 const SCALE: f64 = 1e11;
 
-/// The integer of `bytes`, little-endian.
-fn le(bytes: &[u8]) -> u64 {
-    let mut value = 0;
-    for (shift, byte) in bytes.iter().enumerate() {
-        value |= u64::from(*byte) << (8 * shift);
-    }
-    value
+/// The amplitude of a stored term, in units of 10⁻¹¹: its first six bytes,
+/// little-endian.
+///
+/// The three fields are read by naming the bytes, not by a loop over a
+/// slice: the loop is a call and a counter per byte under the size-first
+/// profile the WebAssembly module is built with, and a term is read some
+/// 5 000 times for each position (the amplitude of every term is tested, and
+/// the rest of the 1 400 or so that pass are summed). The values are the
+/// same.
+#[inline(always)]
+fn amplitude_of(term: &[u8; TERM_BYTES]) -> u64 {
+    u64::from_le_bytes([term[0], term[1], term[2], term[3], term[4], term[5], 0, 0])
+}
+
+/// The phase of a stored term, in units of 10⁻¹¹: the next five bytes.
+#[inline(always)]
+fn phase_of(term: &[u8; TERM_BYTES]) -> u64 {
+    u64::from_le_bytes([term[6], term[7], term[8], term[9], term[10], 0, 0, 0])
+}
+
+/// The index of a stored term's frequency in [`FREQUENCIES`]: the last two
+/// bytes.
+#[inline(always)]
+fn frequency_index_of(term: &[u8; TERM_BYTES]) -> usize {
+    usize::from(u16::from_le_bytes([term[11], term[12]]))
 }
 
 /// Jupiter's heliocentric longitude and latitude in radians and distance in
@@ -100,12 +118,12 @@ pub fn jupiter_heliocentric(millennia: f64, truncation: Truncation) -> (f64, f64
         let reach = reaches[power as usize];
         let mut sum = 0.0;
         for term in packed.as_chunks::<TERM_BYTES>().0 {
-            let amplitude = le(&term[..6]) as f64;
+            let amplitude = amplitude_of(term) as f64;
             if amplitude * reach < limit {
                 continue;
             }
-            let phase = le(&term[6..11]) as f64 / SCALE;
-            let frequency = FREQUENCIES[le(&term[11..13]) as usize];
+            let phase = phase_of(term) as f64 / SCALE;
+            let frequency = FREQUENCIES[frequency_index_of(term)];
             sum += amplitude * cos(phase + frequency * millennia);
         }
         sums[usize::from(variable) - 1] += sum / SCALE * factors[power as usize];
@@ -121,7 +139,7 @@ pub fn terms_kept(millennia: f64, truncation: Truncation) -> usize {
     for (_, power, packed) in BLOCKS {
         let reach = powf(abs(millennia), f64::from(power));
         for term in packed.as_chunks::<TERM_BYTES>().0 {
-            if le(&term[..6]) as f64 * reach >= limit {
+            if amplitude_of(term) as f64 * reach >= limit {
                 kept += 1;
             }
         }
@@ -153,14 +171,15 @@ mod tests {
     #[test]
     fn the_first_and_the_last_term_are_the_files() {
         let (_, _, packed) = BLOCKS[0];
-        assert_eq!(le(&packed[..6]), 59_954_691_494);
-        assert_eq!(le(&packed[6..11]), 0);
-        assert_eq!(FREQUENCIES[le(&packed[11..13]) as usize], 0.0);
+        let first = &packed.as_chunks::<TERM_BYTES>().0[0];
+        assert_eq!(amplitude_of(first), 59_954_691_494);
+        assert_eq!(phase_of(first), 0);
+        assert_eq!(FREQUENCIES[frequency_index_of(first)], 0.0);
         let (variable, power, packed) = BLOCKS[17];
         assert_eq!((variable, power), (3, 5));
-        let last = &packed[packed.len() - TERM_BYTES..];
-        assert_eq!(le(&last[..6]), 1_033);
-        assert_eq!(le(&last[6..11]), 450_671_820_436);
-        assert_eq!(FREQUENCIES[le(&last[11..13]) as usize], 529.690_965_094_60);
+        let last = packed.as_chunks::<TERM_BYTES>().0.last().expect("terms");
+        assert_eq!(amplitude_of(last), 1_033);
+        assert_eq!(phase_of(last), 450_671_820_436);
+        assert_eq!(FREQUENCIES[frequency_index_of(last)], 529.690_965_094_60);
     }
 }

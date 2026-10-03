@@ -451,7 +451,7 @@ export interface KumbhBySky extends Omit<KumbhOccasion, "holds"> {
 /** Which entry of Jupiter into a sign the Pushkaram follows. */
 export type PushkaramEntryRule = "pushkaram-final-entry" | "pushkaram-first-entry";
 
-/** One line of `hc_pushkaram_by_sky`: `hc_pushkaram`'s, then the entry found and the rule. */
+/** One line of `hc_pushkaram_by_sky` and `hc_pushkarams_in_year`: `hc_pushkaram`'s, then the entry found and the rule. */
 export interface PushkaramBySky extends PushkaramDays {
   /** POSIX seconds of Universal Time of Jupiter's entry, rounded down. */
   entry: number;
@@ -1072,6 +1072,7 @@ export const COLUMNS: {
   readonly jupiterRising: ReadonlyArray<string>;
   readonly kumbhBySky: ReadonlyArray<string>;
   readonly pushkaramBySky: ReadonlyArray<string>;
+  readonly pushkaramsInYear: ReadonlyArray<string>;
   readonly folkDay: ReadonlyArray<string>;
   readonly nightWatch: ReadonlyArray<string>;
   readonly barhaspatyaYear: ReadonlyArray<string>;
@@ -3142,6 +3143,17 @@ export class HyperCalendar {
   /** `hc_pushkaram_by_sky`: `pushkaram` for the entry into the sign that falls in the year; empty in a year with none. */
   pushkaramBySky(
     sign: SiderealSignId,
+    year: number | bigint,
+    ayanamsa: Ayanamsa,
+    rule: PushkaramEntryRule,
+    latitude: number,
+    longitude: number,
+    elevation?: number,
+    meridian?: string,
+    locale?: string,
+  ): PushkaramBySky[];
+  /** `hc_pushkarams_in_year`: `pushkaramBySky` for every sign Jupiter enters in the year, one sign after another in the order of the entries; empty in a year with none. */
+  pushkaramsInYear(
     year: number | bigint,
     ayanamsa: Ayanamsa,
     rule: PushkaramEntryRule,

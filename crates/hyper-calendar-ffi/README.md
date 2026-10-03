@@ -154,7 +154,7 @@ fails when one has no row, or two, or a row that does not name its inputs:
 | a line | `hc_kumbh` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_jupiter_at` | `unix_seconds` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_jupiter_ingresses`, `hc_jupiter_risings` | `from_unix_seconds` and `to_unix_seconds` −93 724 128 000 through 32 535 216 000 (the span `[from, to)` ends within the years −1000 to 3000), at most 3 155 760 000 apart, a hundred Julian years; a `to` not after the `from` writes nothing; any other is `HC_ERROR_OUT_OF_RANGE` |
-| a line | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
+| a line | `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year` | `year` −1000 through 3000; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_gmat_from_gmt`, `hc_gmt_from_gmat` | `fixed` −3 652 424 999 through 3 652 424 634, the Gregorian years −9 999 999 to 9 999 999, with whole seconds up to 86 400 and attoseconds below 10¹⁸; 23:59:60, which neither reckoning shifts, and any other are `HC_ERROR_OUT_OF_RANGE` |
 | lines | `hc_solar_terms_between`, `hc_moon_phases_between` | `from_unix` −93 724 128 000 through 32 535 215 999, the years −1000 to 3000; a `to_unix` at or before it writes no lines, and a later one must be at most 32 535 216 000 and at most 400 years after it; any other is `HC_ERROR_OUT_OF_RANGE` |
 | a line | `hc_chinese_marriage_augury` | `chinese_year` 4282 through 4786, whose New Year and the next both fall in the Chinese calendar's range (1645 through 2150); any other is `HC_ERROR_OUT_OF_RANGE` |
@@ -308,7 +308,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 
 ### Entry points
 
-197 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
+198 functions. Each is `extern "C"`, takes nothing it has to free and returns an `HcStatus`. The feature column is the Cargo feature the library has to be built with for the entry point to exist.
 
 | Prototype | Feature | What it does |
 | --- | --- | --- |
@@ -491,6 +491,7 @@ fails when they drift. An entry point without a row here does not pass CI.
 | `HcStatus hc_jupiter_risings(int64_t from_unix_seconds, int64_t to_unix_seconds, const char *ayanamsa, char *buffer, size_t capacity, size_t *written);` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_kumbh_by_sky(const char *yoga, int64_t year, const char *ayanamsa, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | When in a Gregorian year the Sun, and the Moon where it is asked for, stand as a condition of the Kumbh Mela requires, and whether Jupiter, whose sign is computed, meets it, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_pushkaram_by_sky(const char *sign, int64_t year, const char *ayanamsa, const char *rule, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of a sidereal sign, for Jupiter's entry into it in a Gregorian year, found, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
+| `HcStatus hc_pushkarams_in_year(int64_t year, const char *ayanamsa, const char *rule, double latitude, double longitude, double elevation, const char *meridian, const char *locale, char *buffer, size_t capacity, size_t *written);` | `jupiter` | The twelve days of the *Ādi Pushkaram* of each river of every sidereal sign Jupiter enters in a Gregorian year, found, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mars_time(double unix_seconds, double east_longitude_degrees, char *buffer, size_t capacity, size_t *written);` | `planetary` | Mars at a POSIX instant and an east longitude, as one NUL-terminated UTF-8 line in a caller-owned buffer. |
 | `HcStatus hc_missions(char *buffer, size_t capacity, size_t *written);` | `planetary` | Every surface mission on Mars and the rules of its sol count, as NUL-terminated UTF-8 lines in a caller-owned buffer. |
 | `HcStatus hc_mission_sol(const char *mission, double unix_seconds, int64_t *out_sol);` | `planetary` | The sol number of a Mars surface mission at a POSIX instant, by the mission's own clock. |
@@ -1277,16 +1278,21 @@ years −9 999 999 to 9 999 999.
 `hc_jupiter_ingresses(from_unix_seconds, to_unix_seconds, ayanamsa, buffer,
 capacity, written)`, `hc_jupiter_risings(from_unix_seconds, to_unix_seconds,
 ayanamsa, buffer, capacity, written)`, `hc_kumbh_by_sky(yoga, year,
-ayanamsa, locale, buffer, capacity, written)` and `hc_pushkaram_by_sky(sign,
+ayanamsa, locale, buffer, capacity, written)`, `hc_pushkaram_by_sky(sign,
 year, ayanamsa, rule, latitude, longitude, elevation, meridian, locale,
-buffer, capacity, written)` need the `jupiter` feature and write the lines
+buffer, capacity, written)` and `hc_pushkarams_in_year(year, ayanamsa, rule,
+latitude, longitude, elevation, meridian, locale, buffer, capacity,
+written)` need the `jupiter` feature and write the lines
 the WebAssembly module's README tabulates, from the complete VSOP87B series
 for Jupiter in `hc-astro` (3 625 terms, 55 kB of tables that no other layer
 carries): where Jupiter is at an instant, tropical and sidereal; its
 crossings of the sidereal boundaries and its heliacal risings in a span, a
 span of at most a hundred Julian years; and `hc_kumbh` and `hc_pushkaram`
 with Jupiter's sign and the moment of its entry found rather than given.
-`rule` is `pushkaram-final-entry` or `pushkaram-first-entry`. A null pointer
+`hc_pushkarams_in_year` writes `hc_pushkaram_by_sky`'s lines for every sign
+Jupiter enters in the year, in the order of the entries, byte for byte what
+the sign-by-sign calls write, from one search of the sky instead of one for
+each sign. `rule` is `pushkaram-final-entry` or `pushkaram-first-entry`. A null pointer
 for any name is `HC_ERROR_NULL_POINTER`, a name not known
 `HC_ERROR_UNKNOWN`, and an instant, span or year outside the years −1000 to
 3000 `HC_ERROR_OUT_OF_RANGE`; a `to` not after `from` is an empty answer.

@@ -193,6 +193,8 @@ test("the Jupiter lines read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.jupiterRising], columnsAfter("### Jupiter's risings"));
   assert.deepEqual([...COLUMNS.kumbhBySky], columnsAfter("### The Kumbh Mela by the sky"));
   assert.deepEqual([...COLUMNS.pushkaramBySky], columnsAfter("### Pushkaram by the sky"));
+  assert.deepEqual([...COLUMNS.pushkaramsInYear], columnsAfter("### Pushkarams of a year by the sky"));
+  assert.deepEqual([...COLUMNS.pushkaramsInYear], [...COLUMNS.pushkaramBySky]);
   // The computed forms add to the caller's: the thirteen cells of `hc_kumbh`, then two; the twelve of
   // `hc_pushkaram`, then two.
   assert.deepEqual([...COLUMNS.kumbhBySky.slice(0, COLUMNS.kumbh.length)], [...COLUMNS.kumbh]);
