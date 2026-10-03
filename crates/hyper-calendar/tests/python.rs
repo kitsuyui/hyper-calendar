@@ -2,9 +2,13 @@
 //! documentation (<https://docs.python.org/3/library/datetime.html>,
 //! retrieved 2026-09-26). Each test quotes the example it reproduces; the
 //! expected values are the documentation's, not the output of running
-//! Python. `docs/python-parity.md` is the full correspondence.
+//! Python, except in the tests that say they are an interpreter's answer
+//! (CPython 3.14.7) to a case the documentation states a rule for.
+//! `docs/python-parity.md` is the full correspondence.
 
-use hyper_calendar::civil::{Date, DateTime, Replace, Time, TimeDelta, TimeDeltaParts};
+use hyper_calendar::civil::{
+    Date, DateTime, Replace, Resolution, StructTime, Time, TimeDelta, TimeDeltaParts, calendar,
+};
 
 fn date(year: i64, month: u8, day: u8) -> Date {
     match Date::new(year, month, day) {
@@ -118,6 +122,63 @@ fn timedelta_arithmetic_follows_the_documented_example() {
     running += year;
     running -= TimeDelta::from_days(1);
     assert_eq!(running, TimeDelta::from_days(364));
+}
+
+/// The documentation's rule: a result of `timedelta * float`, `/ float` and
+/// `/ int` is "rounded to the nearest multiple of timedelta.resolution using
+/// round-half-to-even", where the float is multiplied as the exact ratio
+/// `float.as_integer_ratio()` gives. The expected values are CPython 3.14.7's
+/// answers; the audit's case (a22) is the first.
+#[test]
+fn scaling_by_a_float_rounds_as_python_does() {
+    let micro = |count: i64| TimeDelta::from_micros(count);
+    let times =
+        |span: TimeDelta, factor: f64| span.checked_scale_at(factor, Resolution::Microsecond);
+    // `timedelta(microseconds=25508964008398) * 0.5`:
+    // `datetime.timedelta(days=147, seconds=53682, microseconds=4199)`.
+    let long = micro(25_508_964_008_398);
+    assert_eq!(times(long, 0.5), Ok(micro(12_754_482_004_199)));
+    // The same product at the attosecond is exact: no `.00419900007545948`.
+    assert_eq!(long.checked_scale(0.5), Ok(micro(12_754_482_004_199)));
+    assert_eq!(times(micro(1), 0.5), Ok(micro(0)));
+    assert_eq!(times(micro(3), 0.5), Ok(micro(2)));
+    assert_eq!(times(micro(5), 0.5), Ok(micro(2)));
+    assert_eq!(times(micro(-5), 0.5), Ok(micro(-2)));
+    assert_eq!(times(micro(10), 0.1), Ok(micro(1)));
+    assert_eq!(times(micro(1_000_000), 1.1), Ok(micro(1_100_000)));
+    // `td / int` and `td / float`.
+    let by_int =
+        |span: TimeDelta, divisor| span.checked_div_nearest_at(divisor, Resolution::Microsecond);
+    assert_eq!(by_int(micro(7), 2), Ok(micro(4)));
+    assert_eq!(by_int(micro(5), 2), Ok(micro(2)));
+    assert_eq!(by_int(micro(5), -2), Ok(micro(-2)));
+    assert_eq!(
+        micro(10).checked_div_f64_at(0.3, Resolution::Microsecond),
+        Ok(micro(33))
+    );
+    // `td // int` floors, and at the attosecond this library keeps the rest.
+    assert_eq!(micro(7) / 2, TimeDelta::from_nanos(3_500));
+}
+
+/// `timedelta / timedelta` is the integer true division of the two spans in
+/// microseconds, which Python rounds correctly. CPython 3.14.7's answers.
+#[test]
+fn the_ratio_of_two_timedeltas_is_correctly_rounded() {
+    let micro = |count: i64| TimeDelta::from_micros(count);
+    assert_eq!(micro(1).ratio(micro(3)), Ok(0.333_333_333_333_333_3));
+    assert_eq!(micro(2).ratio(micro(3)), Ok(0.666_666_666_666_666_6));
+    assert_eq!(
+        TimeDelta::from_days(1).ratio(micro(3)),
+        Ok(28_800_000_000.0)
+    );
+    assert_eq!(
+        micro(86_400_000_000_000).ratio(micro(7)),
+        Ok(12_342_857_142_857.143)
+    );
+    assert_eq!(
+        TimeDelta::from_days(365).ratio(TimeDelta::from_days(73)),
+        Ok(5.0)
+    );
 }
 
 /// ```text
@@ -509,4 +570,181 @@ fn humanize_is_reachable_from_the_facade() {
             .unwrap(),
         "30 minutes"
     );
+}
+
+// --- time.struct_time and the calendar module -------------------------------
+
+/// The `time` module's documentation:
+///
+/// ```text
+/// >>> time.gmtime(0)
+/// time.struct_time(tm_year=1970, tm_mon=1, tm_mday=1, tm_hour=0, tm_min=0,
+///                  tm_sec=0, tm_wday=3, tm_yday=1, tm_isdst=0)
+/// >>> from time import gmtime, strftime
+/// >>> strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime())
+/// 'Thu, 28 Jun 2001 14:17:15 +0000'
+/// ```
+///
+/// and "`time.gmtime()` and `calendar.timegm()` are each other's inverse".
+/// The documentation gives the second example at a moment it does not name;
+/// 993737835 is that moment (CPython 3.14.7 reads it back as the string).
+#[test]
+fn gmtime_and_timegm_are_each_others_inverse() {
+    let epoch = StructTime::gmtime(0).unwrap();
+    assert_eq!(
+        epoch,
+        StructTime {
+            tm_year: 1970,
+            tm_mon: 1,
+            tm_mday: 1,
+            tm_hour: 0,
+            tm_min: 0,
+            tm_sec: 0,
+            tm_wday: 3,
+            tm_yday: 1,
+            tm_isdst: 0
+        }
+    );
+    let moment = StructTime::gmtime(993_737_835).unwrap();
+    assert_eq!(
+        moment.strftime("%a, %d %b %Y %H:%M:%S +0000").unwrap(),
+        "Thu, 28 Jun 2001 14:17:15 +0000"
+    );
+    for seconds in [
+        -1,
+        0,
+        1,
+        993_737_835,
+        -62_135_596_800,
+        253_402_300_799,
+        1_791_030_896,
+    ] {
+        let tuple = StructTime::gmtime(seconds).unwrap();
+        assert_eq!(tuple.timegm(), Ok(seconds), "{seconds}");
+    }
+    let before = StructTime::gmtime(-1).unwrap();
+    assert_eq!(
+        (before.tm_year, before.tm_mon, before.tm_mday),
+        (1969, 12, 31)
+    );
+    assert_eq!((before.tm_wday, before.tm_yday), (2, 365));
+}
+
+/// `calendar.timegm` adds the fields up without checking the day, hour,
+/// minute or second (CPython 3.14.7: `timegm((2026, 12, 31, 24, 60, 60))`
+/// is 1798765260, `timegm((2000, 2, 30, 0, 0, 0))` is 951868800) and refuses
+/// a month outside 1 to 12.
+#[test]
+fn timegm_does_not_check_the_fields_below_the_month() {
+    let tuple = |year, month, day, hour, minute, second| StructTime {
+        tm_year: year,
+        tm_mon: month,
+        tm_mday: day,
+        tm_hour: hour,
+        tm_min: minute,
+        tm_sec: second,
+        tm_wday: 0,
+        tm_yday: 0,
+        tm_isdst: 0,
+    };
+    assert_eq!(tuple(2026, 10, 3, 12, 34, 56).timegm(), Ok(1_791_030_896));
+    assert_eq!(tuple(2026, 12, 31, 24, 60, 60).timegm(), Ok(1_798_765_260));
+    assert_eq!(tuple(2000, 2, 30, 0, 0, 0).timegm(), Ok(951_868_800));
+    assert_eq!(tuple(1969, 12, 31, 23, 59, 59).timegm(), Ok(-1));
+    assert!(tuple(2026, 13, 1, 0, 0, 0).timegm().is_err());
+}
+
+/// ```text
+/// >>> time.strptime("30 Nov 00", "%d %b %y")
+/// time.struct_time(tm_year=2000, tm_mon=11, tm_mday=30, tm_hour=0, tm_min=0,
+///                  tm_sec=0, tm_wday=3, tm_yday=335, tm_isdst=-1)
+/// >>> time.asctime(...)   # 'Sun Jun 20 23:21:05 1993'
+/// ```
+///
+/// and "the day field is two characters long and is space padded if the day
+/// is a single digit, e.g.: `'Wed Jun  9 04:26:40 1993'`".
+#[test]
+fn strptime_and_asctime_match_the_time_module_documentation() {
+    let parsed = StructTime::strptime("30 Nov 00", "%d %b %y").unwrap();
+    assert_eq!(
+        (
+            parsed.tm_year,
+            parsed.tm_mon,
+            parsed.tm_mday,
+            parsed.tm_hour,
+            parsed.tm_wday,
+            parsed.tm_yday,
+            parsed.tm_isdst
+        ),
+        (2000, 11, 30, 0, 3, 335, -1)
+    );
+    let june = |day, hour, minute, second| {
+        StructTime::from_date_time(
+            DateTime::from_parts(1993, 6, day, hour, minute, second, 0).unwrap(),
+            -1,
+        )
+        .asctime()
+        .unwrap()
+    };
+    assert_eq!(june(20, 23, 21, 5), "Sun Jun 20 23:21:05 1993");
+    assert_eq!(june(9, 4, 26, 40), "Wed Jun  9 04:26:40 1993");
+    let timetuple = StructTime::from_date_time(
+        DateTime::from_parts(2026, 10, 3, 12, 34, 56, 0).unwrap(),
+        -1,
+    );
+    // `date.timetuple()` is midnight with an unknown flag.
+    let date = StructTime::from_date(date(2026, 10, 3));
+    assert_eq!(
+        (date.tm_hour, date.tm_wday, date.tm_yday, date.tm_isdst),
+        (0, 5, 276, -1)
+    );
+    assert_eq!(
+        (timetuple.tm_sec, timetuple.tm_wday, timetuple.tm_yday),
+        (56, 5, 276)
+    );
+    assert_eq!(
+        timetuple.to_date_time(),
+        DateTime::from_parts(2026, 10, 3, 12, 34, 56, 0)
+    );
+}
+
+/// The `calendar` module: "`monthrange` returns weekday of first day of the
+/// month and number of days in month", "`monthcalendar` returns a matrix
+/// representing a month's calendar. Each row represents a week; days outside
+/// of the month are represented by zeros", and "`leapdays` returns number of
+/// leap years in the range from y1 to y2 (exclusive)". The values are
+/// CPython 3.14.7's; the documentation gives the rules, not these numbers.
+#[test]
+fn the_calendar_module_functions_answer_as_python_does() {
+    assert_eq!(calendar::monthrange(2026, 10), Ok((3, 31)));
+    assert_eq!(calendar::monthrange(2024, 2), Ok((3, 29)));
+    assert_eq!(calendar::monthrange(2023, 2), Ok((2, 28)));
+    assert_eq!(calendar::monthrange(1900, 2), Ok((3, 28)));
+    assert!(calendar::monthrange(2026, 13).is_err());
+    assert_eq!(
+        calendar::monthcalendar(2026, 10, 0).unwrap(),
+        vec![
+            [0, 0, 0, 1, 2, 3, 4],
+            [5, 6, 7, 8, 9, 10, 11],
+            [12, 13, 14, 15, 16, 17, 18],
+            [19, 20, 21, 22, 23, 24, 25],
+            [26, 27, 28, 29, 30, 31, 0],
+        ]
+    );
+    // With Sunday first (`calendar.setfirstweekday(calendar.SUNDAY)`).
+    assert_eq!(
+        calendar::monthcalendar(2026, 10, 6).unwrap().first(),
+        Some(&[0, 0, 0, 0, 1, 2, 3])
+    );
+    assert_eq!(calendar::monthcalendar(2026, 2, 0).unwrap().len(), 5);
+    assert_eq!(calendar::leapdays(2000, 2101), 25);
+    assert_eq!(calendar::leapdays(1900, 1901), 0);
+    assert_eq!(calendar::leapdays(1, 5), 1);
+    assert_eq!(calendar::leapdays(2000, 2000), 0);
+    assert_eq!(calendar::leapdays(2020, 2000), -5);
+    assert_eq!(calendar::leapdays(-4, 5), 3);
+    assert!(calendar::is_leap_year(2000) && !calendar::is_leap_year(1900));
+    assert_eq!(calendar::weekday(2026, 10, 3), Ok(5));
+    assert_eq!(calendar::weekday(1, 1, 1), Ok(0));
+    assert_eq!(calendar::weekday(1970, 1, 1), Ok(3));
 }

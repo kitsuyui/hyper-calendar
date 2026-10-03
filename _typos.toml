@@ -28,8 +28,14 @@
 # scripts/zone-names-cldr.py: the metazone names of 55 locales (Indonesian
 # "Standar", Turkish "Standart", French "normale"), checked against CLDR
 # rather than corrected by hand.
+# hc-humanize's natural/catalogues.rs is generated from the gettext
+# catalogues of the Python `humanize` package (release 4.16.0) by
+# scripts/humanize-gettext.py: its 35 translations (Portuguese "momento",
+# Slovene "ure", Swedish "tre") are checked against the `.po` files, not
+# corrected by hand.
 extend-exclude = [
     "Cargo.lock",
+    "crates/hc-humanize/src/natural/catalogues.rs",
     "crates/hc-i18n/src/place_names/cldr48.rs",
     "crates/hc-i18n/src/zone_names/cldr48.rs",
     "crates/hyper-calendar/tests/line_digests.txt",

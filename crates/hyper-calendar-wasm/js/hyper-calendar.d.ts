@@ -1007,6 +1007,7 @@ export const COLUMNS: {
   readonly relativeTime: ReadonlyArray<string>;
   readonly relativeDayAt: ReadonlyArray<string>;
   readonly duration: ReadonlyArray<string>;
+  readonly naturalText: ReadonlyArray<string>;
   readonly zoneName: ReadonlyArray<string>;
   readonly utcFromTai: ReadonlyArray<string>;
   readonly tai64PosixPlus10: ReadonlyArray<string>;
@@ -1757,6 +1758,17 @@ export interface HumanizedDuration {
   /** The tag of the `hc-humanize` data the locale resolved to. */
   localeUsed: string;
 }
+
+/** The line of the `humanize` number functions. */
+export interface NaturalText {
+  /** The text: *five*, *3/10*, *1.50 kV*, *3.0 MB*, *one, two and three*, *1.0 googol*. */
+  text: string;
+  /** The language of the vocabulary that wrote it, `en`, the only one carried. */
+  language: string;
+}
+
+/** The suffixes and base of `naturalSize`. */
+export type NaturalSizeStyle = "decimal" | "binary" | "gnu";
 
 /** A CLDR pattern field that writes a time zone's name. */
 export type ZoneNameField =
@@ -3219,6 +3231,20 @@ export class HyperCalendar {
   ): RelativeDayAt;
   /** `hc_duration`: a span of seconds in days, hours, minutes and seconds. */
   duration(seconds: number | bigint, style?: DurationStyle, maxComponents?: number, locale?: string): HumanizedDuration;
+  /** `hc_apnumber`: *zero* to *nine* spelled out, every other number as its digits. */
+  apnumber(value: number | bigint): NaturalText;
+  /** `hc_fractional`: a number as a fraction, *3/10*, *1 3/10*. */
+  fractional(value: number): NaturalText;
+  /** `hc_scientific`: scientific notation with superscript exponent, *3.00 x 10⁻¹*. */
+  scientific(value: number, precision?: number): NaturalText;
+  /** `hc_metric`: a number with an SI prefix and a unit, *1.50 kV*. */
+  metric(value: number, unit?: string, precision?: number): NaturalText;
+  /** `hc_naturalsize`: a size in bytes, *3.0 MB*, *2.9 KiB*, *2.9K*. */
+  naturalSize(value: number, style?: NaturalSizeStyle, decimals?: number): NaturalText;
+  /** `hc_naturallist`: items joined as a list, *one, two and three*. */
+  naturalList(items: string[]): NaturalText;
+  /** `hc_intword`: an integer of any length as a count with a word, *12.4 thousand*, *1.0 googol*. */
+  intword(digits: string | number | bigint, decimals?: number): NaturalText;
   /** `hc_zone_name`: a zone's name at an instant, as a CLDR field writes it. */
   zoneName(zone: string, unixSeconds: number | bigint, locale?: string, field?: ZoneNameField): ZoneName;
   /** `hc_format_pattern`: an instant formatted in a zone by a CLDR or strftime pattern. */

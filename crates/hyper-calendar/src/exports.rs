@@ -6126,6 +6126,177 @@ macro_rules! exports {
             locale: text(locale_len),
         ) -> line =
             $crate::humanize_lines::duration_line;
+
+        c {
+            /// A whole number as the Associated Press writes it, *zero* to *nine*
+            /// spelled out and every other number as its digits, in the English of
+            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language of
+            /// the vocabulary, `en`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A whole number as the Associated Press writes it, *zero* to *nine*
+            /// spelled out and every other number, negatives included, as its
+            /// digits, in the English of Python's `humanize` `apnumber`, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the text, and the language of the vocabulary that
+            /// wrote it, `en`, the only one carried. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_apnumber(value: i64) -> line =
+            $crate::humanize_lines::apnumber_line;
+
+        c {
+            /// A number as a fraction, *3/10*, *1 3/10*, in the English of Python's
+            /// `humanize`, as one NUL-terminated UTF-8 line in a caller-owned
+            /// buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A number as a fraction, *3/10*, *1 3/10*, *-1 3/10*, by Python's
+            /// `humanize` `fractional`, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// The fractional part is the nearest fraction with a denominator of at
+            /// most 1000; a whole number is written as one. Tab-separated: the text,
+            /// and the language, `en`. A value that is not finite is *NaN*, *+Inf* or
+            /// *-Inf*. A null `buffer` returns the length the text needs.
+        }
+        fn hc_fractional(value: f64) -> line =
+            $crate::humanize_lines::fractional_line;
+
+        c {
+            /// A number in scientific notation, *3.00 x 10⁻¹*, in the English of
+            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// A `precision` above 255 is `HC_ERROR_OUT_OF_RANGE`. Writes the
+            /// required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A number in scientific notation, *3.00 x 10⁻¹*, by Python's
+            /// `humanize` `scientific`, as one UTF-8 line, returning the byte length
+            /// written.
+            ///
+            /// `precision` is the digits after the point, 2 in Python; one above
+            /// 255 is `HC_ERR_OUT_OF_RANGE`. The exponent is written in
+            /// superscript digits. Tab-separated: the text, and the language, `en`.
+            /// A null `buffer` returns the length the text needs.
+        }
+        fn hc_scientific(value: f64, precision: u32) -> line =
+            $crate::humanize_lines::scientific_line;
+
+        c {
+            /// A number with an SI prefix and a unit, *1.50 kV*, *220 μF*, in the
+            /// English of Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// `unit` is read as the empty string when null. A `precision` above 255
+            /// is `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// A number with an SI prefix and a unit, *1.50 kV*, *200 MW*, *220 μF*,
+            /// by Python's `humanize` `metric`, as one UTF-8 line, returning the byte
+            /// length written.
+            ///
+            /// `precision` is the significant digits, 3 in Python. A magnitude of
+            /// 10³³ or more, or below 10⁻³⁰, has no prefix and is written as
+            /// `hc_scientific` with one digit fewer, then the unit; a `precision` of
+            /// 0 there, or one above 255, is `HC_ERR_OUT_OF_RANGE`. No space is
+            /// written before a degree, minute or second sign, or when there is
+            /// neither prefix nor unit. Tab-separated: the text, and the language,
+            /// `en`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_metric(value: f64, unit: text(unit_len), precision: u32) -> line =
+            $crate::humanize_lines::metric_line;
+
+        c {
+            /// A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, in the English of
+            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// `style` is `decimal`, `binary` or `gnu`, in any case; anything else is
+            /// `HC_ERROR_UNKNOWN`, and null `HC_ERROR_NULL_POINTER`. `NaN`, and
+            /// `decimals` above 255, are `HC_ERROR_OUT_OF_RANGE`. Writes the required
+            /// length, including the terminator, into `written`.
+        }
+        wasm {
+            /// A size in bytes, *3.0 MB*, *2.9 KiB*, *300B*, by Python's `humanize`
+            /// `naturalsize`, as one UTF-8 line, returning the byte length written.
+            ///
+            /// `style` is `decimal`, powers of 1000 and `kB`; `binary`, powers of
+            /// 1024 and `KiB`; or `gnu`, powers of 1024, one letter and no space; in
+            /// any case, and anything else, the empty string included, is
+            /// `HC_ERR_UNKNOWN`. One byte is *1 Byte* and below the base *N Bytes*.
+            /// `decimals` is Python's `format="%.{decimals}f"`, 1 by default; above
+            /// 255 it is `HC_ERR_OUT_OF_RANGE`, as `NaN` is. Tab-separated: the text,
+            /// and the language, `en`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_naturalsize(value: f64, style: name(style_len), decimals: u32) -> line =
+            $crate::humanize_lines::naturalsize_line;
+
+        c {
+            /// Items joined as a list, *one, two and three*, in the English of
+            /// Python's `humanize`, as one NUL-terminated UTF-8 line in a
+            /// caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// `items` holds one item to a line and is read as no items when null.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// Items joined as a list, *one, two and three*, with no comma before
+            /// the *and*, by Python's `humanize` `natural_list`, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// `items` holds one item to a line, separated by a line feed; the
+            /// empty string is no items and writes the empty text. Tab-separated:
+            /// the text, and the language, `en`. A null `buffer` returns the length
+            /// the text needs.
+        }
+        fn hc_naturallist(items: text(items_len)) -> line =
+            $crate::humanize_lines::naturallist_line;
+
+        c {
+            /// An integer of any length as a count with a word, *12.4 thousand*,
+            /// *1.0 googol*, in the English of Python's `humanize`, as one
+            /// NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's: the text and the language, `en`.
+            /// `digits` is an optional sign and ASCII digits; text that is not an
+            /// integer is `HC_ERROR_MALFORMED`, and an integer beyond the largest
+            /// double, about 1.8 × 10³⁰⁸, or `decimals` above 255, is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// An integer of any length as a count with a word, *12.4 thousand*,
+            /// *1.2 billion*, *1.0 googol*, by Python's `humanize` `intword`, as one
+            /// UTF-8 line, returning the byte length written.
+            ///
+            /// `digits` is an optional sign and ASCII digits, so that a value no
+            /// `i64` holds can be given; the words are *thousand* to *decillion*
+            /// (10³³) and the *googol* (10¹⁰⁰). `decimals` is Python's
+            /// `format="%.{decimals}f"`, 1 by default; a value that rounds to the
+            /// next power is written in it, *1.0 million* for 999 999. Text that is
+            /// not an integer is `HC_ERR_MALFORMED`; an integer beyond the largest
+            /// double, about 1.8 × 10³⁰⁸, or `decimals` above 255, is
+            /// `HC_ERR_OUT_OF_RANGE`. Tab-separated: the text, and the language,
+            /// `en`. A null `buffer` returns the length the text needs.
+        }
+        fn hc_intword(digits: name(digits_len), decimals: u32) -> line =
+            $crate::humanize_lines::intword_line;
     } };
     ("zone-names", $backend:ident) => { $backend! {
         c {

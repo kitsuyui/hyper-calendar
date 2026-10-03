@@ -400,6 +400,7 @@ test("the humanized times read the README's columns in order", () => {
   assert.deepEqual([...COLUMNS.relativeTime], columnsAfter("### Relative time"));
   assert.deepEqual([...COLUMNS.relativeDayAt], columnsAfter("### A relative day at a time"));
   assert.deepEqual([...COLUMNS.duration], columnsAfter("### Durations"));
+  assert.deepEqual([...COLUMNS.naturalText], columnsAfter("### Python humanize's numbers"));
 });
 
 test("the relativity lines read the README's columns in order", () => {

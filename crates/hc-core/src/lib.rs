@@ -49,6 +49,7 @@ pub mod tai64;
 pub mod tt_bipm;
 pub mod unix;
 pub mod uuid;
+mod wide;
 
 pub use duration::{ATTOS_PER_SEC, Duration};
 pub use error::{TimeError, TimeResult};

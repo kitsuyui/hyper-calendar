@@ -109,7 +109,7 @@ includes the crate.
 | [`hc-tz`](crates/hc-tz) | UTC offsets, POSIX TZ strings, a TZif reader, built-in zones, where each zone is | `tz` |
 | [`hc-format`](crates/hc-format) | ISO 8601, RFC 3339 and RFC 5322 text, `strftime` patterns, CCSDS time-code fields, the JJY, DCF77 and WWVB radio codes, the IRIG time codes, the Ethiopian and Swahili hours, a calendar's dates written in a locale and read back | `format` |
 | [`hc-i18n`](crates/hc-i18n) | BCP 47 locales, plural rules, numbering systems, names, country names, zones' cities; with `place-names`, every territory's and ISO 3166-2 subdivision's name | `i18n`, `place-names` |
-| [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing | `humanize` |
+| [`hc-humanize`](crates/hc-humanize) | Relative times, spelled-out durations, Python `humanize` phrasing and its 35 translations | `humanize` |
 | [`hc-holiday`](crates/hc-holiday) | The holiday rule engine and the country, tradition, UN and exchange tables | `holiday` |
 | [`hc-uncertainty`](crates/hc-uncertainty) | Significant figures, error bars, intervals, fuzzy instants, EDTF | `uncertainty` |
 | [`hc-deep-time`](crates/hc-deep-time) | Planck time to cosmology, the geological time scale | `deep-time` |
@@ -371,7 +371,7 @@ call, in thread-local storage emptied when the call's scope ends.
 | [`docs/observances.md`](docs/observances.md) | Holidays and observances: status, plans, and what is out of scope |
 | [`docs/time-scales.md`](docs/time-scales.md) | TAI, UTC, UT1, ΔT, epochs and timestamp formats |
 | [`docs/i18n.md`](docs/i18n.md) | Locales, plural rules, names and text direction |
-| [`docs/python-parity.md`](docs/python-parity.md) | How Python's `datetime` and `humanize` map onto this library |
+| [`docs/python-parity.md`](docs/python-parity.md) | How Python's `datetime`, `time`, `calendar` and `humanize` map onto this library |
 | [`docs/scales-beyond-seconds.md`](docs/scales-beyond-seconds.md) | Uncertain times, deep time and the ice-age cycles |
 | [`docs/off-earth.md`](docs/off-earth.md) | Time on other bodies, and relativity |
 | [`docs/systems/`](docs/systems/README.md) | One document per complex calendar or holiday system, with worked examples |

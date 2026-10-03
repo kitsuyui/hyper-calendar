@@ -27,20 +27,41 @@ form by comparing a number to one.
 | `calendar_relative` | Which calendar day was it? | *yesterday at 15:05*, *last Tuesday*, *next month* |
 | `approximate` | Roughly how long? | *about 3 hours*, *just over a week*, *nearly a year* |
 | `unit_choice` | Which unit, rounded how? | 90 min → *2 hours* or *an hour and a half* |
-| `natural` | What would Python's `humanize` say? | *a moment*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds*, *1,000,000*, *1.2 billion*, *103rd* |
+| `natural` | What would Python's `humanize` say? | *a moment*, *1 year, 3 months*, *2 days, 1 hour and 33.12 seconds*, *1,000,000*, *1.2 billion*, *103rd*, *three*, *1 3/10*, *1.50 kV*, *2.9 KiB*, *3 секунды назад* |
 
 `natural` is a second convention beside CLDR's, not a replacement for it:
-the thresholds and the English strings of the Python `humanize` package 4.x —
-`naturaldelta`, `naturaltime`, `naturalday`, `naturaldate`, `precisedelta`,
-`ordinal`, `intcomma` and `intword` — for code being ported from Python that
-depends on those exact phrases. Its tests quote `humanize`'s documented
-examples. Only English is carried: `humanize`'s gettext catalogues were not
-read, so none is reproduced, and a language is one more `NaturalPhrases`
-value whose plurals `hc_i18n::PluralRules` chooses. `naturalday` writes days
-that are not today, tomorrow or yesterday with `hc-format`'s `strftime`, so
-it and `naturaldate` come with the `format` feature, the one that brings
-`hc-format`. `naturalsize` is bytes, not
-time, and is not here.
+the thresholds, arithmetic and strings of the Python `humanize` package,
+release 4.16.0 — `naturaldelta`, `naturaltime`, `naturalday`, `naturaldate`,
+`precisedelta`, `ordinal`, `intcomma`, `intword`, `apnumber`, `fractional`,
+`scientific`, `metric`, `clamp`, `naturalsize` and `natural_list` — for code
+being ported from Python that depends on those exact phrases. Its tests quote
+`humanize`'s documented examples, and each function was run beside a
+transcription of its source over hundreds of thousands of random cases
+(`docs/systems/python-compatibility.md` has the counts). `precisedelta`
+reproduces its rounding, carries and truncated remainders; `intword` reaches
+the googol through `intword_digits`, which takes an integer of any length.
+
+`humanize` translates through gettext catalogues, and all 35 that release
+4.16.0 ships are carried, generated from their `.po` files by
+`scripts/humanize-gettext.py` (`--check` verifies the file):
+`NaturalPhrases::by_catalogue("ru_RU")` is what
+`humanize.i18n.activate("ru_RU")` loads, and `Natural::for_language("de")`
+finds the one catalogue of a language that has exactly one. A plural message
+is chosen by the catalogue's own `Plural-Forms` expression, evaluated as
+written (`natural::gettext`) and not by CLDR's categories, since the two
+disagree for some languages and for some counts; a message the catalogue
+leaves fuzzy or untranslated is English, as `msgfmt` compiles it. Python's
+number separators, which it keeps in code and not in a catalogue, are
+`NaturalPhrases::grouping`. A catalogue is data under policy §2: one
+`const` in a generated file and no branch in any function.
+
+Where `humanize`'s `main` branch has changed behaviour since the release
+(the years of `naturaldelta`, `fractional`, a carry in `intword` and in
+`metric`, the French decimal separator), this crate follows the release,
+since that is what `pip install humanize` gives; `docs/python-parity.md`
+lists each. `naturalday` writes days that are not today, tomorrow or
+yesterday with `hc-format`'s `strftime`, so it and `naturaldate` come with
+the `format` feature, the one that brings `hc-format`.
 
 `relative` follows the CLDR `relativeTime` model properly. Units are second,
 minute, hour, day, week, month, quarter and year; styles are `Long`, `Short`

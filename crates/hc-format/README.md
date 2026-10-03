@@ -169,13 +169,20 @@ number without a weekday names seven days.
 ## Python's profile
 
 `python` is the ISO 8601 profile of CPython's `datetime`: `fromisoformat` for
-dates, times and date-times, accepting exactly Python's forms (not reduced,
-expanded or ordinal dates, not fractions of an hour or minute, any single
-character between date and time); `isoformat` with `TimeSpec`, the
-`timespec` argument; `ctime`; and `strptime` with Python's 1900-01-01
-defaults. It keeps up to eighteen fraction digits where Python truncates to
-six and accepts `23:59:60`; it refuses offsets with a fraction of a second,
-which Python accepts. `tests/python_directives.rs` checks every directive
+dates, times and date-times, accepting Python's documented forms (not
+reduced, expanded or ordinal dates; not fractions of an hour or minute; a week
+without a day is its Monday; any single character between date and time);
+`isoformat` with `TimeSpec`, the `timespec` argument; `ctime`; and `strptime`,
+which is CPython's `_strptime` as code — each directive's alternatives in
+Python's order, matched with backtracking, so `%Y%m%d` reads `20191204` and
+`%j` of 366 in a common year rolls into the next year. It keeps up to eighteen
+fraction digits where Python truncates to six and accepts `23:59:60` and year
+0; it refuses offsets with a fraction of a second, which Python accepts, and
+an offset of 24 hours or more. The behaviours of CPython's C parser that the
+documentation does not describe, and a few CPython 3.14 additions, are not
+copied; `docs/python-parity.md` lists them, and
+`docs/systems/python-compatibility.md` explains the matcher and gives the
+measured agreement. `tests/python_directives.rs` checks every directive
 Python documents against that table's own sample.
 
 CLDR supports `G y Y u U r Q q M L w W d D F g E e c a b B h H K k m s S A

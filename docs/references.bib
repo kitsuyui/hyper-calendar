@@ -12300,3 +12300,52 @@
   howpublished = {\url{https://www1.g-reiki.net/chiba/reiki_honbun/g002RG00000251.html}},
   note         = {Article 19-2 lists the school holidays: the start of the school year (1--7 April), summer, autumn (the three days before the second Monday of October to the day after it), winter, the end of the year, and extraordinary holidays; no prefectural citizens' day. As amended to 令和7年教委規則第5号 of 1 September 2025. Retrieved 2026-10-03}
 }
+
+@misc{python-datetime-docs,
+  author       = {{Python Software Foundation}},
+  title        = {datetime --- Basic date and time types},
+  howpublished = {Python 3.13 documentation, \url{https://docs.python.org/3.13/library/datetime.html}},
+  note         = {The rules of \texttt{fromisoformat} (``any valid ISO 8601 format'' with the exceptions listed under \texttt{date}, \texttt{time} and \texttt{datetime}), the \texttt{timedelta} operations and ``rounded to the nearest multiple of timedelta.resolution using round-half-to-even'', and the \texttt{strftime()} and \texttt{strptime()} behaviour (leading zeros, \texttt{\%y}, \texttt{\%z}, \texttt{\%U} and \texttt{\%W}, whitespace, case). Read 2026-09-26 and 2026-10-03}
+}
+
+@misc{python-time-docs,
+  author       = {{Python Software Foundation}},
+  title        = {time --- Time access and conversions},
+  howpublished = {Python 3.13 documentation, \url{https://docs.python.org/3.13/library/time.html}},
+  note         = {\texttt{struct\_time} and its nine fields, \texttt{gmtime}, \texttt{localtime}, \texttt{mktime}, \texttt{strftime}, \texttt{strptime} (the examples \texttt{time.gmtime(0)} and \texttt{time.strptime("30 Nov 00", "\%d \%b \%y")}), \texttt{asctime}, the clock functions and the zone constants. Read 2026-10-03}
+}
+
+@misc{python-calendar-docs,
+  author       = {{Python Software Foundation}},
+  title        = {calendar --- General calendar-related functions},
+  howpublished = {Python 3.13 documentation, \url{https://docs.python.org/3.13/library/calendar.html}},
+  note         = {\texttt{isleap}, \texttt{leapdays}, \texttt{weekday}, \texttt{monthrange}, \texttt{monthcalendar}, \texttt{timegm}, the \texttt{Calendar} class and its iterators, \texttt{TextCalendar} and \texttt{HTMLCalendar} as listed (their layout is not in the page). Read 2026-10-03}
+}
+
+@misc{humanize-docs,
+  author       = {{python-humanize contributors}},
+  title        = {humanize: time and number documentation},
+  howpublished = {\url{https://humanize.readthedocs.io/en/latest/time/} and \url{https://humanize.readthedocs.io/en/latest/number/}},
+  note         = {The functions' signatures and docstring examples (\texttt{precisedelta}, \texttt{apnumber}, \texttt{fractional}, \texttt{scientific}, \texttt{metric}, \texttt{clamp}, \texttt{intword}, \texttt{intcomma}, \texttt{ordinal}). The pages are built from the project's \texttt{main} branch, 29 commits past release 4.16.0 on 2026-10-01; the examples used agree with the release. Read 2026-10-03}
+}
+
+@misc{humanize-pypi,
+  author       = {{python-humanize contributors}},
+  title        = {humanize 4.16.0 on PyPI},
+  howpublished = {\url{https://pypi.org/pypi/humanize/json}},
+  note         = {Latest release 4.16.0, uploaded 2026-06-30T16:17:28Z, requires Python 3.10 or later. Read 2026-10-03}
+}
+
+@misc{humanize-4-16-0-source,
+  author       = {{python-humanize contributors}},
+  title        = {humanize, tag 4.16.0: \texttt{time.py}, \texttt{number.py}, \texttt{filesize.py}, \texttt{lists.py}, \texttt{i18n.py}, \texttt{README.md} and the catalogues},
+  howpublished = {MIT licence, \url{https://github.com/python-humanize/humanize/tree/4.16.0}},
+  note         = {Each file read whole from \texttt{raw.githubusercontent.com} into memory, not saved: the six sources, \texttt{scripts/generate-translation-binaries.sh} (``msgfmt --check'', no \texttt{--use-fuzzy}) and the 35 \texttt{src/humanize/locale/*/LC\_MESSAGES/humanize.po}, by \texttt{scripts/humanize-gettext.py}. The compare view of the tag against \texttt{main} (\url{https://github.com/python-humanize/humanize/compare/4.16.0...main}) read for what changed after the release: \texttt{naturaldelta}'s years, \texttt{fractional}, \texttt{intword}'s carry, \texttt{metric}'s carry, the French decimal separator and a Sinhala catalogue. Read 2026-10-03}
+}
+
+@misc{cpython-interpreter-checks,
+  author       = {{Python Software Foundation} and {GNU Project}},
+  title        = {CPython 3.12.14 and 3.14.7, and GNU gettext's \texttt{msgfmt}, run as oracles},
+  howpublished = {\url{https://www.python.org/downloads/} and \url{https://www.gnu.org/software/gettext/}},
+  note         = {Not a document: the interpreters' answers to the same questions \texttt{hc-format}'s \texttt{python} module, \texttt{hc-humanize}'s \texttt{natural} module and \texttt{TimeDelta} answer, over random cases, run from probes outside the repository; \texttt{msgfmt} compiled each catalogue in memory for Python's \texttt{gettext}. No Python or GNU source was read. Run 2026-10-03}
+}

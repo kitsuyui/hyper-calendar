@@ -17,6 +17,15 @@
 //!   [`hc_humanize::DurationFormatter`] in days, hours, minutes and
 //!   seconds.
 //!
+//! and, in [`hc_humanize::natural`]'s convention — `humanize`, the Python
+//! package's, which has no locale argument here because only its English is
+//! carried — the number and list functions it has beside its time ones:
+//!
+//! * [`apnumber_line`], [`fractional_line`], [`scientific_line`],
+//!   [`metric_line`], [`naturalsize_line`], [`naturallist_line`] and
+//!   [`intword_line`]: two cells each, the text and the language of the
+//!   vocabulary that wrote it, `en`.
+//!
 //! The crate does not know what "now" is, so each line takes both ends
 //! from the caller; nor does it know a time zone, so a relative day takes
 //! the two fixed days a caller has already read off its own clock. The
@@ -29,6 +38,7 @@ use hc_calendar::{CivilTime, Rd};
 use hc_core::Duration;
 use hc_humanize::calendar_relative::{day_amount, write_clock_time};
 use hc_humanize::lookup::locale_data;
+use hc_humanize::natural::{Natural, SizeStyle};
 use hc_humanize::unit_choice::choose;
 use hc_humanize::{
     CalendarRelativeFormatter, DurationFormatter, DurationStyle, HumanizeError, Numeric,
@@ -47,6 +57,9 @@ pub const RELATIVE_DAY_AT_COLUMNS: usize = 5;
 
 /// How many columns [`duration_line`] writes.
 pub const DURATION_COLUMNS: usize = 3;
+
+/// How many columns the lines of the `humanize` number functions write.
+pub const NATURAL_COLUMNS: usize = 2;
 
 /// The refusal a humanising error is: an amount that does not fit, or a
 /// numeral the locale's digits cannot write, is out of range; a unit no
@@ -290,6 +303,131 @@ pub fn duration_line(seconds: i64, style: &str, max_components: u32, tag: &str) 
         .cell(locale_data(&locale).tag);
     line.end();
     Ok(out)
+}
+
+/// A line of the `humanize` functions: the text `write` makes, and the
+/// language of the vocabulary that made it.
+fn natural_line(
+    write: impl FnOnce(&Natural, &mut String) -> Result<(), HumanizeError>,
+) -> Answer<String> {
+    let natural = Natural::english();
+    let mut text = String::new();
+    write(&natural, &mut text).map_err(|error| match error {
+        HumanizeError::Unsupported("an integer written in digits") => Refusal::Malformed,
+        _ => Refusal::OutOfRange,
+    })?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(&text).cell(natural.phrases().language);
+    line.end();
+    Ok(out)
+}
+
+/// The decimals or precision of a number line: what fits a `u8`.
+fn digits_of(value: u32) -> Answer<u8> {
+    u8::try_from(value).map_err(|_| Refusal::OutOfRange)
+}
+
+/// The line of `hc_apnumber`: `humanize`'s `apnumber`, the Associated Press
+/// style, which spells out `zero` to `nine` and leaves a larger or negative
+/// number as its digits, then the language, `en`.
+///
+/// # Errors
+///
+/// None in practice; the signature is the shared one.
+pub fn apnumber_line(value: i64) -> Answer<String> {
+    natural_line(|natural, out| natural.write_apnumber(out, i128::from(value)))
+}
+
+/// The line of `hc_fractional`: `humanize`'s `fractional`, `0.3` as `3/10`
+/// and `1.3` as `1 3/10`, by the nearest fraction with a denominator of at
+/// most 1000, then the language, `en`. A value that is not finite is `NaN`,
+/// `+Inf` or `-Inf`.
+///
+/// # Errors
+///
+/// None in practice; the signature is the shared one.
+pub fn fractional_line(value: f64) -> Answer<String> {
+    natural_line(|natural, out| natural.write_fractional(out, value))
+}
+
+/// The line of `hc_scientific`: `humanize`'s `scientific`, `3.00 x 10⁻¹`,
+/// with `precision` digits after the point, then the language, `en`.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a precision above 255.
+pub fn scientific_line(value: f64, precision: u32) -> Answer<String> {
+    let precision = digits_of(precision)?;
+    natural_line(|natural, out| natural.write_scientific(out, value, precision))
+}
+
+/// The line of `hc_metric`: `humanize`'s `metric`, `1.50 kV`, `220 μF`,
+/// with `precision` significant digits and the unit after the prefix, then
+/// the language, `en`.
+///
+/// # Errors
+///
+/// [`Refusal::OutOfRange`] for a precision above 255, and for 0 on a
+/// magnitude too large or small for a prefix, which `humanize` refuses with
+/// a `ValueError`.
+pub fn metric_line(value: f64, unit: &str, precision: u32) -> Answer<String> {
+    let precision = digits_of(precision)?;
+    natural_line(|natural, out| natural.write_metric(out, value, unit, precision))
+}
+
+/// The line of `hc_naturalsize`: `humanize`'s `naturalsize`, `3.0 MB`,
+/// `2.9 KiB`, `300B`, with `decimals` after the point, then the language,
+/// `en`. `style` is `decimal` (powers of 1000), `binary` (1024, `KiB`) or
+/// `gnu` (1024, `K`), in any case.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for another style, and [`Refusal::OutOfRange`] for
+/// `NaN`, which Python's `int` refuses, and for decimals above 255.
+pub fn naturalsize_line(value: f64, style: &str, decimals: u32) -> Answer<String> {
+    let style = if style.eq_ignore_ascii_case("decimal") {
+        SizeStyle::Decimal
+    } else if style.eq_ignore_ascii_case("binary") {
+        SizeStyle::Binary
+    } else if style.eq_ignore_ascii_case("gnu") {
+        SizeStyle::Gnu
+    } else {
+        return Err(Refusal::Unknown);
+    };
+    let decimals = digits_of(decimals)?;
+    natural_line(|natural, out| natural.write_naturalsize(out, value, style, decimals))
+}
+
+/// The line of `hc_naturallist`: `humanize`'s `natural_list`, `one, two
+/// and three`, of items given one to a line, then the language, `en`. No
+/// item is the empty phrase.
+///
+/// # Errors
+///
+/// None in practice; the signature is the shared one.
+pub fn naturallist_line(items: &str) -> Answer<String> {
+    let items: alloc::vec::Vec<&str> = if items.is_empty() {
+        alloc::vec::Vec::new()
+    } else {
+        items.split('\n').collect()
+    };
+    natural_line(|natural, out| natural.write_naturallist(out, &items))
+}
+
+/// The line of `hc_intword`: `humanize`'s `intword`, `12.4 thousand`,
+/// `1.2 billion`, `1.0 googol`, of an integer written in digits, any length
+/// up to the largest double, with `decimals` after the point, then the
+/// language, `en`.
+///
+/// # Errors
+///
+/// [`Refusal::Malformed`] for text that is not an integer,
+/// [`Refusal::OutOfRange`] for an integer beyond the largest double and for
+/// decimals above 255.
+pub fn intword_line(digits: &str, decimals: u32) -> Answer<String> {
+    let decimals = digits_of(decimals)?;
+    natural_line(|natural, out| natural.write_intword_digits(out, digits, decimals))
 }
 
 #[cfg(test)]
