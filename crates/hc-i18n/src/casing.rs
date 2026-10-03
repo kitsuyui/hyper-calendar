@@ -37,9 +37,14 @@ pub enum CasingStyle {
     Turkic,
 }
 
-/// The casing style a locale uses.
+/// The casing style a locale uses: the Turkic one for Turkish and
+/// Azerbaijani, whichever entry the locale resolves to (Azerbaijani has no
+/// entry of its own), else its entry's.
 #[must_use]
 pub fn casing_style(locale: &Locale) -> CasingStyle {
+    if matches!(locale.language(), "tr" | "az") {
+        return CasingStyle::Turkic;
+    }
     locale_data(locale).casing
 }
 
@@ -89,32 +94,55 @@ fn push_uppercase(character: char, style: CasingStyle, out: &mut alloc::string::
 
 /// Lowercase `text` for a locale.
 ///
-/// Identical to `str::to_lowercase` except in Turkic locales.
+/// `str::to_lowercase` (the Unicode default conversion, with its final
+/// sigma rule: `ΟΔΥΣΣΕΥΣ` is `οδυσσευς`) except in Turkic locales, which map
+/// `I` to `ı`, `İ` to `i` and `I` followed by a dot above to `i` first
+/// (the `tr` and `az` rows of `SpecialCasing.txt`, read in its 18.0.0
+/// version on 2026-10-04) and then lowercase the rest by default.
 #[cfg(feature = "alloc")]
 #[must_use]
 pub fn to_lowercase(locale: &Locale, text: &str) -> alloc::string::String {
-    let style = casing_style(locale);
-    let mut out = alloc::string::String::with_capacity(text.len());
-    for character in text.chars() {
-        push_lowercase(character, style, &mut out);
+    if casing_style(locale) != CasingStyle::Turkic {
+        return text.to_lowercase();
     }
-    out
+    let mut mapped = alloc::string::String::with_capacity(text.len());
+    let mut characters = text.chars().peekable();
+    while let Some(character) = characters.next() {
+        match character {
+            'I' if characters.peek() == Some(&'\u{307}') => {
+                characters.next();
+                mapped.push('i');
+            }
+            'I' => mapped.push('ı'),
+            'İ' => mapped.push('i'),
+            other => mapped.push(other),
+        }
+    }
+    mapped.to_lowercase()
 }
 
 /// Uppercase `text` for a locale.
 ///
-/// Identical to `str::to_uppercase` except in Turkic locales. Note that the
-/// German ß still uppercases to `SS`, which is the Unicode default and what
-/// German typography expects in all-caps headings.
+/// `str::to_uppercase` except in Turkic locales, which map `i` to `İ` and
+/// `ı` to `I` first. Note that the German ß still uppercases to `SS`, which
+/// is the Unicode default and what German typography expects in all-caps
+/// headings. The Greek rule that drops the accents of capitals (ICU's `el`
+/// mapping) is not carried: no source for it has been read.
 #[cfg(feature = "alloc")]
 #[must_use]
 pub fn to_uppercase(locale: &Locale, text: &str) -> alloc::string::String {
-    let style = casing_style(locale);
-    let mut out = alloc::string::String::with_capacity(text.len());
-    for character in text.chars() {
-        push_uppercase(character, style, &mut out);
+    if casing_style(locale) != CasingStyle::Turkic {
+        return text.to_uppercase();
     }
-    out
+    let mapped: alloc::string::String = text
+        .chars()
+        .map(|character| match character {
+            'i' => 'İ',
+            'ı' => 'I',
+            other => other,
+        })
+        .collect();
+    mapped.to_uppercase()
 }
 
 /// `text` with its first character uppercased for the locale.
@@ -189,6 +217,50 @@ mod tests {
         assert_eq!(to_uppercase(&turkish, "iyi"), "İYİ");
         assert_eq!(to_lowercase(&turkish, "IYI"), "ıyı");
         assert_eq!(to_lowercase(&turkish, "İYİ"), "iyi");
+    }
+
+    /// Azerbaijani has no entry of its own and is Turkic all the same, and
+    /// the rest is `str::to_lowercase`, which writes a capital sigma at the
+    /// end of a word as `ς` (the `Final_Sigma` row of `SpecialCasing.txt`,
+    /// read in its 18.0.0 version on 2026-10-04), as a letter-by-letter
+    /// lowercasing does not.
+    #[test]
+    fn azerbaijani_is_turkic_and_the_rest_is_the_default_conversion() {
+        let azerbaijani = locale("az");
+        assert_eq!(casing_style(&azerbaijani), CasingStyle::Turkic);
+        assert_eq!(to_uppercase(&azerbaijani, "i"), "İ");
+        assert_eq!(to_lowercase(&azerbaijani, "I"), "ı");
+        assert_eq!(to_lowercase(&locale("az-Latn-AZ"), "İ"), "i");
+        // `I` followed by a dot above is `i` in a Turkic locale.
+        assert_eq!(to_lowercase(&azerbaijani, "I\u{307}"), "i");
+        assert_eq!(to_lowercase(&locale("en"), "I\u{307}"), "i\u{307}");
+        let english = locale("en");
+        assert_eq!(to_lowercase(&english, "ΟΔΥΣΣΕΥΣ"), "οδυσσευς");
+        assert_eq!(
+            to_lowercase(&english, "ΟΔΥΣΣΕΥΣ"),
+            "ΟΔΥΣΣΕΥΣ".to_lowercase()
+        );
+        assert_eq!(to_lowercase(&locale("tr"), "ΟΔΥΣΣΕΥΣ"), "οδυσσευς");
+        assert_eq!(to_uppercase(&english, "straße"), "STRASSE");
+    }
+
+    /// A legacy language subtag reaches the entry of its replacement, so
+    /// `iw` is Hebrew in names, direction and plural rules alike.
+    #[test]
+    fn a_legacy_language_tag_reaches_the_entry_of_its_replacement() {
+        for (legacy, current) in [("iw", "he"), ("in", "id"), ("tl", "fil"), ("jw", "jv")] {
+            assert_eq!(
+                locale_data(&locale(legacy)).tag,
+                locale_data(&locale(current)).tag,
+                "{legacy}"
+            );
+        }
+        assert_eq!(locale_data(&locale("iw")).tag, "he");
+        assert_eq!(
+            crate::direction::locale_direction(&locale("iw")),
+            crate::direction::Direction::RightToLeft
+        );
+        assert_eq!(locale_data(&locale("no")).tag, "und");
     }
 
     #[test]

@@ -1,3 +1,103 @@
+am	long.second.past.one=ከ{0} ሰከንድ በፊት	long.second.past.other=ከ{0} ሰከንዶች በፊት
+am	long.second.future.one=በ{0} ሰከንድ ውስጥ	long.second.future.other=በ{0} ሰከንዶች ውስጥ
+am	long.second.count.one={0} ሰከንድ	long.second.count.other={0} ሰከንዶች
+am	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=አሁን	long.second.relative.1=	long.second.relative.2=
+am	long.minute.past.one=ከ{0} ደቂቃ በፊት	long.minute.past.other=ከ{0} ደቂቃዎች በፊት
+am	long.minute.future.one=በ{0} ደቂቃ ውስጥ	long.minute.future.other=በ{0} ደቂቃዎች ውስጥ
+am	long.minute.count.one={0} ደቂቃ	long.minute.count.other={0} ደቂቃዎች
+am	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=ይህ ደቂቃ	long.minute.relative.1=	long.minute.relative.2=
+am	long.hour.past.one=ከ{0} ሰዓት በፊት	long.hour.past.other=ከ{0} ሰዓቶች በፊት
+am	long.hour.future.one=በ{0} ሰዓት ውስጥ	long.hour.future.other=በ{0} ሰዓቶች ውስጥ
+am	long.hour.count.one={0} ሰዓት	long.hour.count.other={0} ሰዓቶች
+am	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=ይህ ሰዓት	long.hour.relative.1=	long.hour.relative.2=
+am	long.day.past.one=ከ{0} ቀን በፊት	long.day.past.other=ከ{0} ቀናት በፊት
+am	long.day.future.one=በ{0} ቀን ውስጥ	long.day.future.other=በ{0} ቀናት ውስጥ
+am	long.day.count.one={0} ቀናት	long.day.count.other={0} ቀናት
+am	long.day.relative.-2=ከትናንት ወዲያ	long.day.relative.-1=ትናንት	long.day.relative.0=ዛሬ	long.day.relative.1=ነገ	long.day.relative.2=ከነገ ወዲያ
+am	long.week.past.one=ከ{0} ሳምንት በፊት	long.week.past.other=ከ{0} ሳምንታት በፊት
+am	long.week.future.one=በ{0} ሳምንት ውስጥ	long.week.future.other=በ{0} ሳምንታት ውስጥ
+am	long.week.count.one={0} ሳምንት	long.week.count.other={0} ሳምንታት
+am	long.week.relative.-2=	long.week.relative.-1=ያለፈው ሳምንት	long.week.relative.0=በዚህ ሳምንት	long.week.relative.1=የሚቀጥለው ሳምንት	long.week.relative.2=
+am	long.month.past.one=ከ{0} ወር በፊት	long.month.past.other=ከ{0} ወራት በፊት
+am	long.month.future.one=በ{0} ወር ውስጥ	long.month.future.other=በ{0} ወራት ውስጥ
+am	long.month.count.one={0} ወር	long.month.count.other={0} ወራት
+am	long.month.relative.-2=	long.month.relative.-1=ያለፈው ወር	long.month.relative.0=በዚህ ወር	long.month.relative.1=የሚቀጥለው ወር	long.month.relative.2=
+am	long.quarter.past.one={0} ሩብ በፊት	long.quarter.past.other={0} ሩብ በፊት
+am	long.quarter.future.one=በ{0} ሩብ	long.quarter.future.other=በ{0} ሩብ
+am	long.quarter.count.one={0} ሩ	long.quarter.count.other={0} ሩ
+am	long.quarter.relative.-2=	long.quarter.relative.-1=የመጨረሻው ሩብ	long.quarter.relative.0=ይህ ሩብ	long.quarter.relative.1=የሚቀጥለው ሩብ	long.quarter.relative.2=
+am	long.year.past.one=ከ{0} ዓመት በፊት	long.year.past.other=ከ{0} ዓመታት በፊት
+am	long.year.future.one=በ{0} ዓመታት ውስጥ	long.year.future.other=በ{0} ዓመታት ውስጥ
+am	long.year.count.one={0} ዓመት	long.year.count.other={0} ዓመታት
+am	long.year.relative.-2=	long.year.relative.-1=ያለፈው ዓመት	long.year.relative.0=በዚህ ዓመት	long.year.relative.1=የሚቀጥለው ዓመት	long.year.relative.2=
+am	short.second.past.one=ከ{0} ሰከንድ በፊት	short.second.past.other=ከ{0} ሰከንዶች በፊት
+am	short.second.future.one=በ{0} ሰከንድ ውስጥ	short.second.future.other=በ{0} ሰከንዶች ውስጥ
+am	short.second.count.one={0} ሰከ	short.second.count.other={0} ሰከ
+am	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=አሁን	short.second.relative.1=	short.second.relative.2=
+am	short.minute.past.one=ከ{0} ደቂቃ በፊት	short.minute.past.other=ከ{0} ደቂቃዎች በፊት
+am	short.minute.future.one=በ{0} ደቂቃ ውስጥ	short.minute.future.other=በ{0} ደቂቃዎች ውስጥ
+am	short.minute.count.one={0} ደቂ	short.minute.count.other={0} ደቂቃ
+am	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=ይህ ደቂቃ	short.minute.relative.1=	short.minute.relative.2=
+am	short.hour.past.one=ከ{0} ሰዓት በፊት	short.hour.past.other=ከ{0} ሰዓቶች በፊት
+am	short.hour.future.one=በ{0} ሰዓት ውስጥ	short.hour.future.other=በ{0} ሰዓቶች ውስጥ
+am	short.hour.count.one={0} ሰዓ	short.hour.count.other={0} ሰዓ
+am	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=ይህ ሰዓት	short.hour.relative.1=	short.hour.relative.2=
+am	short.day.past.one=ከ {0} ቀን በፊት	short.day.past.other=ከ{0} ቀኖች በፊት
+am	short.day.future.one=በ{0} ቀን ውስጥ	short.day.future.other=በ{0} ቀኖች ውስጥ
+am	short.day.count.one={0} ቀናት	short.day.count.other={0} ቀናት
+am	short.day.relative.-2=ከትናንት ወዲያ	short.day.relative.-1=ትላንትና	short.day.relative.0=ዛሬ	short.day.relative.1=ነገ	short.day.relative.2=ከነገ ወዲያ
+am	short.week.past.one=ከ{0} ሳምንታት በፊት	short.week.past.other=ከ{0} ሳምንታት በፊት
+am	short.week.future.one=በ{0} ሳምንታት ውስጥ	short.week.future.other=በ{0} ሳምንታት ውስጥ
+am	short.week.count.one={0} ሳምንት	short.week.count.other={0} ሳምንታት
+am	short.week.relative.-2=	short.week.relative.-1=ባለፈው ሳምንት	short.week.relative.0=በዚህ ሣምንት	short.week.relative.1=የሚቀጥለው ሳምንት	short.week.relative.2=
+am	short.month.past.one=ከ{0} ወራት በፊት	short.month.past.other=ከ{0} ወራት በፊት
+am	short.month.future.one=በ{0} ወራት ውስጥ	short.month.future.other=በ{0} ወራት ውስጥ
+am	short.month.count.one={0} ወራት	short.month.count.other={0} ወራት
+am	short.month.relative.-2=	short.month.relative.-1=ያለፈው ወር	short.month.relative.0=በዚህ ወር	short.month.relative.1=የሚቀጥለው ወር	short.month.relative.2=
+am	short.quarter.past.one={0} ሩብ በፊት	short.quarter.past.other={0} ሩብ በፊት
+am	short.quarter.future.one=በ{0} ሩብ	short.quarter.future.other=በ{0} ሩብ
+am	short.quarter.count.one={0} ሩብ	short.quarter.count.other={0} ሩብ
+am	short.quarter.relative.-2=	short.quarter.relative.-1=የመጨረሻው ሩብ	short.quarter.relative.0=ይህ ሩብ	short.quarter.relative.1=የሚቀጥለው ሩብ	short.quarter.relative.2=
+am	short.year.past.one=ከ{0} ዓመታት በፊት	short.year.past.other=ከ{0} ዓመታት በፊት
+am	short.year.future.one=በ{0} ዓመታት ውስጥ	short.year.future.other=በ{0} ዓመታት ውስጥ
+am	short.year.count.one={0} ዓመት	short.year.count.other={0} ዓመታት
+am	short.year.relative.-2=	short.year.relative.-1=ያለፈው ዓመት	short.year.relative.0=በዚህ ዓመት	short.year.relative.1=የሚቀጥለው ዓመት	short.year.relative.2=
+am	narrow.second.past.one=ከ{0} ሰከንድ በፊት	narrow.second.past.other=ከ{0} ሰከንዶች በፊት
+am	narrow.second.future.one=በ{0} ሰከንድ ውስጥ	narrow.second.future.other=በ{0} ሰከንዶች ውስጥ
+am	narrow.second.count.one={0} ሰ	narrow.second.count.other={0} ሰ
+am	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=አሁን	narrow.second.relative.1=	narrow.second.relative.2=
+am	narrow.minute.past.one=ከ{0} ደቂቃ በፊት	narrow.minute.past.other=ከ{0} ደቂቃዎች በፊት
+am	narrow.minute.future.one=በ{0} ደቂቃ ውስጥ	narrow.minute.future.other=በ{0} ደቂቃዎች ውስጥ
+am	narrow.minute.count.one={0} ደ	narrow.minute.count.other={0} ደ
+am	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=ይህ ደቂቃ	narrow.minute.relative.1=	narrow.minute.relative.2=
+am	narrow.hour.past.one=ከ{0} ሰዓት በፊት	narrow.hour.past.other=ከ{0} ሰዓቶች በፊት
+am	narrow.hour.future.one=በ{0} ሰዓት ውስጥ	narrow.hour.future.other=በ{0} ሰዓቶች ውስጥ
+am	narrow.hour.count.one={0} ሰ	narrow.hour.count.other={0} ሰ
+am	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=ይህ ሰዓት	narrow.hour.relative.1=	narrow.hour.relative.2=
+am	narrow.day.past.one=ከ {0} ቀን በፊት	narrow.day.past.other=ከ{0} ቀኖች በፊት
+am	narrow.day.future.one=በ{0} ቀን ውስጥ	narrow.day.future.other=በ{0} ቀኖች ውስጥ
+am	narrow.day.count.one={0} ቀ	narrow.day.count.other={0} ቀ
+am	narrow.day.relative.-2=ከትናንት ወዲያ	narrow.day.relative.-1=ትላንትና	narrow.day.relative.0=ዛሬ	narrow.day.relative.1=ነገ	narrow.day.relative.2=ከነገ ወዲያ
+am	narrow.week.past.one=ከ{0} ሳምንታት በፊት	narrow.week.past.other=ከ{0} ሳምንታት በፊት
+am	narrow.week.future.one=በ{0} ሳምንታት ውስጥ	narrow.week.future.other=በ{0} ሳምንታት ውስጥ
+am	narrow.week.count.one={0} ሳምንት	narrow.week.count.other={0} ሳምንት
+am	narrow.week.relative.-2=	narrow.week.relative.-1=ባለፈው ሳምንት	narrow.week.relative.0=በዚህ ሣምንት	narrow.week.relative.1=የሚቀጥለው ሳምንት	narrow.week.relative.2=
+am	narrow.month.past.one=ከ{0} ወራት በፊት	narrow.month.past.other=ከ{0} ወራት በፊት
+am	narrow.month.future.one=በ{0} ወራት ውስጥ	narrow.month.future.other=በ{0} ወራት ውስጥ
+am	narrow.month.count.one={0} ወር	narrow.month.count.other={0} ወር
+am	narrow.month.relative.-2=	narrow.month.relative.-1=ያለፈው ወር	narrow.month.relative.0=በዚህ ወር	narrow.month.relative.1=የሚቀጥለው ወር	narrow.month.relative.2=
+am	narrow.quarter.past.one={0} ሩብ በፊት	narrow.quarter.past.other={0} ሩብ በፊት
+am	narrow.quarter.future.one=በ{0} ሩብ	narrow.quarter.future.other=በ{0} ሩብ
+am	narrow.quarter.count.one={0} ሩብ	narrow.quarter.count.other={0} ሩ
+am	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=የመጨረሻው ሩብ	narrow.quarter.relative.0=ይህ ሩብ	narrow.quarter.relative.1=የሚቀጥለው ሩብ	narrow.quarter.relative.2=
+am	narrow.year.past.one=ከ{0} ዓመታት በፊት	narrow.year.past.other=ከ{0} ዓመታት በፊት
+am	narrow.year.future.one=በ{0} ዓመታት ውስጥ	narrow.year.future.other=በ{0} ዓመታት ውስጥ
+am	narrow.year.count.one={0} ዓመት	narrow.year.count.other={0} ዓ
+am	narrow.year.relative.-2=	narrow.year.relative.-1=ያለፈው ዓመት	narrow.year.relative.0=በዚህ ዓመት	narrow.year.relative.1=የሚቀጥለው ዓመት	narrow.year.relative.2=
+am	list.standard.2={0} እና {1}	list.standard.start={0}፣ {1}	list.standard.middle={0}፣ {1}	list.standard.end={0} እና {1}
+am	list.unit.2={0} እና {1}	list.unit.start={0}፣ {1}	list.unit.middle={0}፣ {1}	list.unit.end={0} እና {1}
+am	list.narrow.2={0} እና {1}	list.narrow.start={0}፣ {1}	list.narrow.middle={0}፣ {1}	list.narrow.end={0} እና {1}
+am	decimal=.	at={0} {1}
 ar	long.second.past.zero=قبل {0} ثانية	long.second.past.one=قبل ثانية واحدة	long.second.past.two=قبل ثانيتين	long.second.past.few=قبل {0} ثوانِ	long.second.past.many=قبل {0} ثانية	long.second.past.other=قبل {0} ثانية
 ar	long.second.future.zero=خلال {0} ثانية	long.second.future.one=خلال ثانية واحدة	long.second.future.two=خلال ثانيتين	long.second.future.few=خلال {0} ثوانٍ	long.second.future.many=خلال {0} ثانية	long.second.future.other=خلال {0} ثانية
 ar	long.second.count.zero={0} ثانية	long.second.count.one=ثانية	long.second.count.two=ثانيتان	long.second.count.few={0} ثوان	long.second.count.many={0} ثانية	long.second.count.other={0} ثانية
@@ -198,6 +298,106 @@ ar-EG	list.standard.2={0} و{1}	list.standard.start={0} و{1}	list.standard.midd
 ar-EG	list.unit.2={0} و{1}	list.unit.start={0}، و{1}	list.unit.middle={0}، و{1}	list.unit.end={0}، و{1}
 ar-EG	list.narrow.2={0} و{1}	list.narrow.start={0} و{1}	list.narrow.middle={0} و{1}	list.narrow.end={0} و{1}
 ar-EG	decimal=٫	at={0} في {1}
+bn	long.second.past.one={0} সেকেন্ড আগে	long.second.past.other={0} সেকেন্ড পূর্বে
+bn	long.second.future.one={0} সেকেন্ডে	long.second.future.other={0} সেকেন্ডে
+bn	long.second.count.one={0} সেকেন্ড	long.second.count.other={0} সেকেন্ড
+bn	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=এখন	long.second.relative.1=	long.second.relative.2=
+bn	long.minute.past.one={0} মিনিট আগে	long.minute.past.other={0} মিনিট আগে
+bn	long.minute.future.one={0} মিনিটে	long.minute.future.other={0} মিনিটে
+bn	long.minute.count.one={0} মিনিট	long.minute.count.other={0} মিনিট
+bn	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=এই মিনিট	long.minute.relative.1=	long.minute.relative.2=
+bn	long.hour.past.one={0} ঘণ্টা আগে	long.hour.past.other={0} ঘণ্টা আগে
+bn	long.hour.future.one={0} ঘণ্টায়	long.hour.future.other={0} ঘণ্টায়
+bn	long.hour.count.one={0} ঘণ্টা	long.hour.count.other={0} ঘণ্টা
+bn	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=এই ঘণ্টায়	long.hour.relative.1=	long.hour.relative.2=
+bn	long.day.past.one={0} দিন আগে	long.day.past.other={0} দিন আগে
+bn	long.day.future.one={0} দিনের মধ্যে	long.day.future.other={0} দিনের মধ্যে
+bn	long.day.count.one={0} দিন	long.day.count.other={0} দিন
+bn	long.day.relative.-2=গত পরশু	long.day.relative.-1=গতকাল	long.day.relative.0=আজ	long.day.relative.1=আগামীকাল	long.day.relative.2=আগামী পরশু
+bn	long.week.past.one={0} সপ্তাহ আগে	long.week.past.other={0} সপ্তাহ আগে
+bn	long.week.future.one={0} সপ্তাহে	long.week.future.other={0} সপ্তাহে
+bn	long.week.count.one={0} সপ্তাহ	long.week.count.other={0} সপ্তাহ
+bn	long.week.relative.-2=	long.week.relative.-1=গত সপ্তাহ	long.week.relative.0=এই সপ্তাহ	long.week.relative.1=পরের সপ্তাহ	long.week.relative.2=
+bn	long.month.past.one={0} মাস আগে	long.month.past.other={0} মাস আগে
+bn	long.month.future.one={0} মাসে	long.month.future.other={0} মাসে
+bn	long.month.count.one={0} মাস	long.month.count.other={0} মাস
+bn	long.month.relative.-2=	long.month.relative.-1=গত মাস	long.month.relative.0=এই মাস	long.month.relative.1=পরের মাস	long.month.relative.2=
+bn	long.quarter.past.one={0} ত্রৈমাসিক আগে	long.quarter.past.other={0} ত্রৈমাসিক আগে
+bn	long.quarter.future.one={0} ত্রৈমাসিকে	long.quarter.future.other={0} ত্রৈমাসিকে
+bn	long.quarter.count.one={0} ত্রৈমাসিক	long.quarter.count.other={0} ত্রৈমাসিক
+bn	long.quarter.relative.-2=	long.quarter.relative.-1=গত ত্রৈমাসিক	long.quarter.relative.0=এই ত্রৈমাসিক	long.quarter.relative.1=পরের ত্রৈমাসিক	long.quarter.relative.2=
+bn	long.year.past.one={0} বছর পূর্বে	long.year.past.other={0} বছর পূর্বে
+bn	long.year.future.one={0} বছরে	long.year.future.other={0} বছরে
+bn	long.year.count.one={0} বছর	long.year.count.other={0} বছর
+bn	long.year.relative.-2=	long.year.relative.-1=গত বছর	long.year.relative.0=এই বছর	long.year.relative.1=পরের বছর	long.year.relative.2=
+bn	short.second.past.one={0} সেকেন্ড আগে	short.second.past.other={0} সেকেন্ড আগে
+bn	short.second.future.one={0} সেকেন্ডে	short.second.future.other={0} সেকেন্ডে
+bn	short.second.count.one={0} সেকেন্ড	short.second.count.other={0} সেকেন্ড
+bn	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=এখন	short.second.relative.1=	short.second.relative.2=
+bn	short.minute.past.one={0} মিনিট আগে	short.minute.past.other={0} মিনিট আগে
+bn	short.minute.future.one={0} মিনিটে	short.minute.future.other={0} মিনিটে
+bn	short.minute.count.one={0} মিনিট	short.minute.count.other={0} মিনিট
+bn	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=এই মিনিট	short.minute.relative.1=	short.minute.relative.2=
+bn	short.hour.past.one={0} ঘণ্টা আগে	short.hour.past.other={0} ঘণ্টা আগে
+bn	short.hour.future.one={0} ঘণ্টায়	short.hour.future.other={0} ঘণ্টায়
+bn	short.hour.count.one={0} ঘণ্টা	short.hour.count.other={0} ঘণ্টা
+bn	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=এই ঘণ্টায়	short.hour.relative.1=	short.hour.relative.2=
+bn	short.day.past.one={0} দিন আগে	short.day.past.other={0} দিন আগে
+bn	short.day.future.one={0} দিনের মধ্যে	short.day.future.other={0} দিনের মধ্যে
+bn	short.day.count.one={0} দিন	short.day.count.other={0} দিন
+bn	short.day.relative.-2=গত পরশু	short.day.relative.-1=গতকাল	short.day.relative.0=আজ	short.day.relative.1=আগামীকাল	short.day.relative.2=আগামী পরশু
+bn	short.week.past.one={0} সপ্তাহ আগে	short.week.past.other={0} সপ্তাহ আগে
+bn	short.week.future.one={0} সপ্তাহে	short.week.future.other={0} সপ্তাহে
+bn	short.week.count.one={0} সপ্তাহ	short.week.count.other={0} সপ্তাহ
+bn	short.week.relative.-2=	short.week.relative.-1=গত সপ্তাহ	short.week.relative.0=এই সপ্তাহ	short.week.relative.1=পরের সপ্তাহ	short.week.relative.2=
+bn	short.month.past.one={0} মাস আগে	short.month.past.other={0} মাস আগে
+bn	short.month.future.one={0} মাসে	short.month.future.other={0} মাসে
+bn	short.month.count.one={0} মাস	short.month.count.other={0} মাস
+bn	short.month.relative.-2=	short.month.relative.-1=গত মাস	short.month.relative.0=এই মাস	short.month.relative.1=পরের মাস	short.month.relative.2=
+bn	short.quarter.past.one={0} ত্রৈমাসিক আগে	short.quarter.past.other={0} ত্রৈমাসিক আগে
+bn	short.quarter.future.one={0} ত্রৈমাসিকে	short.quarter.future.other={0} ত্রৈমাসিকে
+bn	short.quarter.count.one={0} ত্রৈমাসিক	short.quarter.count.other={0} ত্রৈমাসিক
+bn	short.quarter.relative.-2=	short.quarter.relative.-1=গত ত্রৈমাসিক	short.quarter.relative.0=এই ত্রৈমাসিক	short.quarter.relative.1=পরের ত্রৈমাসিক	short.quarter.relative.2=
+bn	short.year.past.one={0} বছর পূর্বে	short.year.past.other={0} বছর পূর্বে
+bn	short.year.future.one={0} বছরে	short.year.future.other={0} বছরে
+bn	short.year.count.one={0} বছর	short.year.count.other={0} বছর
+bn	short.year.relative.-2=	short.year.relative.-1=গত বছর	short.year.relative.0=এই বছর	short.year.relative.1=পরের বছর	short.year.relative.2=
+bn	narrow.second.past.one={0} সেকেন্ড আগে	narrow.second.past.other={0} সেকেন্ড আগে
+bn	narrow.second.future.one={0} সেকেন্ডে	narrow.second.future.other={0} সেকেন্ডে
+bn	narrow.second.count.one={0} সেঃ	narrow.second.count.other={0} সেঃ
+bn	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=এখন	narrow.second.relative.1=	narrow.second.relative.2=
+bn	narrow.minute.past.one={0} মিনিট আগে	narrow.minute.past.other={0} মিনিট আগে
+bn	narrow.minute.future.one={0} মিনিটে	narrow.minute.future.other={0} মিনিটে
+bn	narrow.minute.count.one={0} মিঃ	narrow.minute.count.other={0} মিঃ
+bn	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=এই মিনিট	narrow.minute.relative.1=	narrow.minute.relative.2=
+bn	narrow.hour.past.one={0} ঘণ্টা আগে	narrow.hour.past.other={0} ঘণ্টা আগে
+bn	narrow.hour.future.one={0} ঘণ্টায়	narrow.hour.future.other={0} ঘণ্টায়
+bn	narrow.hour.count.one={0} ঘঃ	narrow.hour.count.other={0} ঘঃ
+bn	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=এই ঘণ্টায়	narrow.hour.relative.1=	narrow.hour.relative.2=
+bn	narrow.day.past.one={0} দিন আগে	narrow.day.past.other={0} দিন আগে
+bn	narrow.day.future.one={0} দিনের মধ্যে	narrow.day.future.other={0} দিনের মধ্যে
+bn	narrow.day.count.one={0} দিন	narrow.day.count.other={0} দিন
+bn	narrow.day.relative.-2=গত পরশু	narrow.day.relative.-1=গতকাল	narrow.day.relative.0=আজ	narrow.day.relative.1=আগামীকাল	narrow.day.relative.2=আগামী পরশু
+bn	narrow.week.past.one={0} সপ্তাহ আগে	narrow.week.past.other={0} সপ্তাহ আগে
+bn	narrow.week.future.one={0} সপ্তাহে	narrow.week.future.other={0} সপ্তাহে
+bn	narrow.week.count.one={0} সপ্তাহ	narrow.week.count.other={0} সপ্তাহ
+bn	narrow.week.relative.-2=	narrow.week.relative.-1=গত সপ্তাহ	narrow.week.relative.0=এই সপ্তাহ	narrow.week.relative.1=পরের সপ্তাহ	narrow.week.relative.2=
+bn	narrow.month.past.one={0} মাস আগে	narrow.month.past.other={0} মাস আগে
+bn	narrow.month.future.one={0} মাসে	narrow.month.future.other={0} মাসে
+bn	narrow.month.count.one={0} মাস	narrow.month.count.other={0} মাস
+bn	narrow.month.relative.-2=	narrow.month.relative.-1=গত মাস	narrow.month.relative.0=এই মাস	narrow.month.relative.1=পরের মাস	narrow.month.relative.2=
+bn	narrow.quarter.past.one={0} ত্রৈমাসিক আগে	narrow.quarter.past.other={0} ত্রৈমাসিক আগে
+bn	narrow.quarter.future.one={0} ত্রৈমাসিকে	narrow.quarter.future.other={0} ত্রৈমাসিকে
+bn	narrow.quarter.count.one={0}ত্রৈমাসিক	narrow.quarter.count.other={0}ত্রৈমাসিক
+bn	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=গত ত্রৈমাসিক	narrow.quarter.relative.0=এই ত্রৈমাসিক	narrow.quarter.relative.1=পরের ত্রৈমাসিক	narrow.quarter.relative.2=
+bn	narrow.year.past.one={0} বছর পূর্বে	narrow.year.past.other={0} বছর পূর্বে
+bn	narrow.year.future.one={0} বছরে	narrow.year.future.other={0} বছরে
+bn	narrow.year.count.one={0} বছর	narrow.year.count.other={0} বছর
+bn	narrow.year.relative.-2=	narrow.year.relative.-1=গত বছর	narrow.year.relative.0=এই বছর	narrow.year.relative.1=পরের বছর	narrow.year.relative.2=
+bn	list.standard.2={0} এবং {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} এবং {1}
+bn	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+bn	list.narrow.2={0}, {1}	list.narrow.start={0}, {1}	list.narrow.middle={0}, {1}	list.narrow.end={0}, {1}
+bn	decimal=.	at={0} {1}
 cs	long.second.past.one=před {0} sekundou	long.second.past.few=před {0} sekundami	long.second.past.many=před {0} sekundy	long.second.past.other=před {0} sekundami
 cs	long.second.future.one=za {0} sekundu	long.second.future.few=za {0} sekundy	long.second.future.many=za {0} sekundy	long.second.future.other=za {0} sekund
 cs	long.second.count.one={0} sekunda	long.second.count.few={0} sekundy	long.second.count.many={0} sekundy	long.second.count.other={0} sekund
@@ -998,6 +1198,106 @@ es-419	list.standard.2={0} y {1}	list.standard.start={0}, {1}	list.standard.midd
 es-419	list.unit.2={0} y {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} y {1}
 es-419	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 es-419	decimal=.	at={0}, {1}
+fa	long.second.past.one={0} ثانیه پیش	long.second.past.other={0} ثانیه پیش
+fa	long.second.future.one={0} ثانیه بعد	long.second.future.other={0} ثانیه بعد
+fa	long.second.count.one={0} ثانیه	long.second.count.other={0} ثانیه
+fa	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=اکنون	long.second.relative.1=	long.second.relative.2=
+fa	long.minute.past.one={0} دقیقه پیش	long.minute.past.other={0} دقیقه پیش
+fa	long.minute.future.one={0} دقیقه بعد	long.minute.future.other={0} دقیقه بعد
+fa	long.minute.count.one={0} دقیقه	long.minute.count.other={0} دقیقه
+fa	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=همین دقیقه	long.minute.relative.1=	long.minute.relative.2=
+fa	long.hour.past.one={0} ساعت پیش	long.hour.past.other={0} ساعت پیش
+fa	long.hour.future.one={0} ساعت بعد	long.hour.future.other={0} ساعت بعد
+fa	long.hour.count.one={0} ساعت	long.hour.count.other={0} ساعت
+fa	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=همین ساعت	long.hour.relative.1=	long.hour.relative.2=
+fa	long.day.past.one={0} روز پیش	long.day.past.other={0} روز پیش
+fa	long.day.future.one={0} روز دیگر	long.day.future.other={0} روز دیگر
+fa	long.day.count.one={0} روز	long.day.count.other={0} روز
+fa	long.day.relative.-2=پریروز	long.day.relative.-1=دیروز	long.day.relative.0=امروز	long.day.relative.1=فردا	long.day.relative.2=پس‌فردا
+fa	long.week.past.one={0} هفته پیش	long.week.past.other={0} هفته پیش
+fa	long.week.future.one={0} هفته بعد	long.week.future.other={0} هفته بعد
+fa	long.week.count.one={0} هفته	long.week.count.other={0} هفته
+fa	long.week.relative.-2=	long.week.relative.-1=هفتهٔ گذشته	long.week.relative.0=این هفته	long.week.relative.1=هفتهٔ آینده	long.week.relative.2=
+fa	long.month.past.one={0} ماه پیش	long.month.past.other={0} ماه پیش
+fa	long.month.future.one={0} ماه بعد	long.month.future.other={0} ماه بعد
+fa	long.month.count.one={0} ماه	long.month.count.other={0} ماه
+fa	long.month.relative.-2=	long.month.relative.-1=ماه گذشته	long.month.relative.0=این ماه	long.month.relative.1=ماه آینده	long.month.relative.2=
+fa	long.quarter.past.one={0} سه‌ماههٔ پیش	long.quarter.past.other={0} سه‌ماههٔ پیش
+fa	long.quarter.future.one={0} سه‌ماههٔ بعد	long.quarter.future.other={0} سه‌ماههٔ بعد
+fa	long.quarter.count.one={0} سه‌ماهه	long.quarter.count.other={0} سه‌ماهه
+fa	long.quarter.relative.-2=	long.quarter.relative.-1=سه‌ماههٔ گذشته	long.quarter.relative.0=سه‌ماههٔ کنونی	long.quarter.relative.1=سه‌ماههٔ آینده	long.quarter.relative.2=
+fa	long.year.past.one={0} سال پیش	long.year.past.other={0} سال پیش
+fa	long.year.future.one={0} سال بعد	long.year.future.other={0} سال بعد
+fa	long.year.count.one={0} سال	long.year.count.other={0} سال
+fa	long.year.relative.-2=	long.year.relative.-1=سال گذشته	long.year.relative.0=امسال	long.year.relative.1=سال آینده	long.year.relative.2=
+fa	short.second.past.one={0} ثانیه پیش	short.second.past.other={0} ثانیه پیش
+fa	short.second.future.one={0} ثانیه بعد	short.second.future.other={0} ثانیه بعد
+fa	short.second.count.one={0} ثانیه	short.second.count.other={0} ثانیه
+fa	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=اکنون	short.second.relative.1=	short.second.relative.2=
+fa	short.minute.past.one={0} دقیقه پیش	short.minute.past.other={0} دقیقه پیش
+fa	short.minute.future.one={0} دقیقه بعد	short.minute.future.other={0} دقیقه بعد
+fa	short.minute.count.one={0} دقیقه	short.minute.count.other={0} دقیقه
+fa	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=همین دقیقه	short.minute.relative.1=	short.minute.relative.2=
+fa	short.hour.past.one={0} ساعت پیش	short.hour.past.other={0} ساعت پیش
+fa	short.hour.future.one={0} ساعت بعد	short.hour.future.other={0} ساعت بعد
+fa	short.hour.count.one={0} ساعت	short.hour.count.other={0} ساعت
+fa	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=همین ساعت	short.hour.relative.1=	short.hour.relative.2=
+fa	short.day.past.one={0} روز پیش	short.day.past.other={0} روز پیش
+fa	short.day.future.one={0} روز دیگر	short.day.future.other={0} روز دیگر
+fa	short.day.count.one={0} روز	short.day.count.other={0} روز
+fa	short.day.relative.-2=پریروز	short.day.relative.-1=دیروز	short.day.relative.0=امروز	short.day.relative.1=فردا	short.day.relative.2=پس‌فردا
+fa	short.week.past.one={0} هفته پیش	short.week.past.other={0} هفته پیش
+fa	short.week.future.one={0} هفته بعد	short.week.future.other={0} هفته بعد
+fa	short.week.count.one={0} هفته	short.week.count.other={0} هفته
+fa	short.week.relative.-2=	short.week.relative.-1=هفتهٔ گذشته	short.week.relative.0=این هفته	short.week.relative.1=هفتهٔ آینده	short.week.relative.2=
+fa	short.month.past.one={0} ماه پیش	short.month.past.other={0} ماه پیش
+fa	short.month.future.one={0} ماه بعد	short.month.future.other={0} ماه بعد
+fa	short.month.count.one={0} ماه	short.month.count.other={0} ماه
+fa	short.month.relative.-2=	short.month.relative.-1=ماه گذشته	short.month.relative.0=این ماه	short.month.relative.1=ماه آینده	short.month.relative.2=
+fa	short.quarter.past.one={0} سه‌ماههٔ پیش	short.quarter.past.other={0} سه‌ماههٔ پیش
+fa	short.quarter.future.one={0} سه‌ماههٔ بعد	short.quarter.future.other={0} سه‌ماههٔ بعد
+fa	short.quarter.count.one={0} سه‌ماه	short.quarter.count.other={0}سه‌ماه
+fa	short.quarter.relative.-2=	short.quarter.relative.-1=سه‌ماههٔ گذشته	short.quarter.relative.0=سه‌ماههٔ کنونی	short.quarter.relative.1=سه‌ماههٔ آینده	short.quarter.relative.2=
+fa	short.year.past.one={0} سال پیش	short.year.past.other={0} سال پیش
+fa	short.year.future.one={0} سال بعد	short.year.future.other={0} سال بعد
+fa	short.year.count.one={0} سال	short.year.count.other={0} سال
+fa	short.year.relative.-2=	short.year.relative.-1=سال گذشته	short.year.relative.0=امسال	short.year.relative.1=سال آینده	short.year.relative.2=
+fa	narrow.second.past.one={0} ثانیه پیش	narrow.second.past.other={0} ثانیه پیش
+fa	narrow.second.future.one={0} ثانیه بعد	narrow.second.future.other={0} ثانیه بعد
+fa	narrow.second.count.one={0}s	narrow.second.count.other={0}s
+fa	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=اکنون	narrow.second.relative.1=	narrow.second.relative.2=
+fa	narrow.minute.past.one={0} دقیقه پیش	narrow.minute.past.other={0} دقیقه پیش
+fa	narrow.minute.future.one={0} دقیقه بعد	narrow.minute.future.other={0} دقیقه بعد
+fa	narrow.minute.count.one={0}m	narrow.minute.count.other={0}m
+fa	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=همین دقیقه	narrow.minute.relative.1=	narrow.minute.relative.2=
+fa	narrow.hour.past.one={0} ساعت پیش	narrow.hour.past.other={0} ساعت پیش
+fa	narrow.hour.future.one={0} ساعت بعد	narrow.hour.future.other={0} ساعت بعد
+fa	narrow.hour.count.one={0}h	narrow.hour.count.other={0}h
+fa	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=همین ساعت	narrow.hour.relative.1=	narrow.hour.relative.2=
+fa	narrow.day.past.one={0} روز پیش	narrow.day.past.other={0} روز پیش
+fa	narrow.day.future.one={0} روز بعد	narrow.day.future.other={0} روز بعد
+fa	narrow.day.count.one={0} روز	narrow.day.count.other={0} روز
+fa	narrow.day.relative.-2=پریروز	narrow.day.relative.-1=دیروز	narrow.day.relative.0=امروز	narrow.day.relative.1=فردا	narrow.day.relative.2=پس‌فردا
+fa	narrow.week.past.one={0} هفته پیش	narrow.week.past.other={0} هفته پیش
+fa	narrow.week.future.one={0} هفته بعد	narrow.week.future.other={0} هفته بعد
+fa	narrow.week.count.one={0} هفته	narrow.week.count.other={0} هفته
+fa	narrow.week.relative.-2=	narrow.week.relative.-1=هفتهٔ گذشته	narrow.week.relative.0=این هفته	narrow.week.relative.1=هفتهٔ آینده	narrow.week.relative.2=
+fa	narrow.month.past.one={0} ماه پیش	narrow.month.past.other={0} ماه پیش
+fa	narrow.month.future.one={0} ماه بعد	narrow.month.future.other={0} ماه بعد
+fa	narrow.month.count.one={0} ماه	narrow.month.count.other={0} ماه
+fa	narrow.month.relative.-2=	narrow.month.relative.-1=ماه گذشته	narrow.month.relative.0=این ماه	narrow.month.relative.1=ماه آینده	narrow.month.relative.2=
+fa	narrow.quarter.past.one={0} سه‌ماههٔ پیش	narrow.quarter.past.other={0} سه‌ماههٔ پیش
+fa	narrow.quarter.future.one={0} سه‌ماههٔ بعد	narrow.quarter.future.other={0} سه‌ماههٔ بعد
+fa	narrow.quarter.count.one={0}سه‌ماه	narrow.quarter.count.other={0}سه‌ماه
+fa	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=سه‌ماههٔ گذشته	narrow.quarter.relative.0=سه‌ماههٔ کنونی	narrow.quarter.relative.1=سه‌ماههٔ آینده	narrow.quarter.relative.2=
+fa	narrow.year.past.one={0} سال پیش	narrow.year.past.other={0} سال پیش
+fa	narrow.year.future.one={0} سال بعد	narrow.year.future.other={0} سال بعد
+fa	narrow.year.count.one={0} سال	narrow.year.count.other={0} سال
+fa	narrow.year.relative.-2=	narrow.year.relative.-1=سال گذشته	narrow.year.relative.0=امسال	narrow.year.relative.1=سال آینده	narrow.year.relative.2=
+fa	list.standard.2={0} و {1}	list.standard.start={0}،‏ {1}	list.standard.middle={0}،‏ {1}	list.standard.end={0}، و {1}
+fa	list.unit.2={0} و {1}	list.unit.start={0}،‏ {1}	list.unit.middle={0}،‏ {1}	list.unit.end={0}، و {1}
+fa	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+fa	decimal=٫	at={0}، ساعت {1}
 fil	long.second.past.one={0} segundo ang nakalipas	long.second.past.other={0} segundo ang nakalipas
 fil	long.second.future.one=sa {0} segundo	long.second.future.other=sa {0} segundo
 fil	long.second.count.one={0} segundo	long.second.count.other={0} na segundo
@@ -1298,6 +1598,106 @@ ha	list.standard.2={0} da {1}	list.standard.start={0}, {1}	list.standard.middle=
 ha	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
 ha	list.narrow.2={0}, {1}	list.narrow.start={0}, {1}	list.narrow.middle={0}, {1}	list.narrow.end={0}, {1}
 ha	decimal=.	at={0} a {1}
+he	long.second.past.one=לפני שנייה	long.second.past.two=לפני שתי שניות	long.second.past.other=לפני {0} שניות
+he	long.second.future.one=בעוד שנייה ({0})	long.second.future.two=בעוד שתי שניות	long.second.future.other=בעוד {0} שניות
+he	long.second.count.one={0} שניה	long.second.count.two=שתי שניות	long.second.count.other={0} שניות
+he	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=עכשיו	long.second.relative.1=	long.second.relative.2=
+he	long.minute.past.one=לפני דקה ({0})	long.minute.past.two=לפני {0} דקות	long.minute.past.other=לפני {0} דקות
+he	long.minute.future.one=בעוד דקה ({0})	long.minute.future.two=בעוד {0} דקות	long.minute.future.other=בעוד {0} דקות
+he	long.minute.count.one={0} דקה	long.minute.count.two=שתי דקות	long.minute.count.other={0} דקות
+he	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=בדקה זו	long.minute.relative.1=	long.minute.relative.2=
+he	long.hour.past.one=לפני שעה ({0})	long.hour.past.two=לפני שעתיים ({0})	long.hour.past.other=לפני {0} שעות
+he	long.hour.future.one=בעוד שעה ({0})	long.hour.future.two=בעוד שעתיים ({0})	long.hour.future.other=בעוד {0} שעות
+he	long.hour.count.one={0} שעה	long.hour.count.two=שעתיים	long.hour.count.other={0} שעות
+he	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=בשעה זו	long.hour.relative.1=	long.hour.relative.2=
+he	long.day.past.one=לפני יום אחד ({0})	long.day.past.two=לפני יומיים ({0})	long.day.past.other=לפני {0} ימים
+he	long.day.future.one=בעוד יום ({0})	long.day.future.two=בעוד יומיים ({0})	long.day.future.other=בעוד {0} ימים
+he	long.day.count.one={0} יום	long.day.count.two=יומיים	long.day.count.other={0} ימים
+he	long.day.relative.-2=שלשום	long.day.relative.-1=אתמול	long.day.relative.0=היום	long.day.relative.1=מחר	long.day.relative.2=מחרתיים
+he	long.week.past.one=לפני שבוע ({0})	long.week.past.two=לפני שבועיים ({0})	long.week.past.other=לפני {0} שבועות
+he	long.week.future.one=בעוד שבוע ({0})	long.week.future.two=בעוד שבועיים ({0})	long.week.future.other=בעוד {0} שבועות
+he	long.week.count.one={0} שבוע	long.week.count.two=שבועיים	long.week.count.other={0} שבועות
+he	long.week.relative.-2=	long.week.relative.-1=השבוע שעבר	long.week.relative.0=השבוע	long.week.relative.1=השבוע הבא	long.week.relative.2=
+he	long.month.past.one=לפני חודש ({0})	long.month.past.two=לפני חודשיים ({0})	long.month.past.other=לפני {0} חודשים
+he	long.month.future.one=בעוד חודש ({0})	long.month.future.two=בעוד חודשיים ({0})	long.month.future.other=בעוד {0} חודשים
+he	long.month.count.one={0} חודש	long.month.count.two=חודשיים	long.month.count.other={0} חודשים
+he	long.month.relative.-2=	long.month.relative.-1=החודש שעבר	long.month.relative.0=החודש	long.month.relative.1=החודש הבא	long.month.relative.2=
+he	long.quarter.past.one=לפני רבעון אחד ({0})	long.quarter.past.two=לפני {0} רבעונים	long.quarter.past.other=לפני {0} רבעונים
+he	long.quarter.future.one=בעוד רבעון אחד ({0})	long.quarter.future.two=בעוד שני רבעונים	long.quarter.future.other=בעוד {0} רבעונים
+he	long.quarter.count.one={0} רבעון	long.quarter.count.two={0} רבעונים	long.quarter.count.other={0} רבעונים
+he	long.quarter.relative.-2=	long.quarter.relative.-1=הרבעון הקודם	long.quarter.relative.0=הרבעון הזה	long.quarter.relative.1=הרבעון הבא	long.quarter.relative.2=
+he	long.year.past.one=לפני שנה	long.year.past.two=לפני שנתיים	long.year.past.other=לפני {0} שנים
+he	long.year.future.one=בעוד שנה	long.year.future.two=בעוד שנתיים	long.year.future.other=בעוד {0} שנים
+he	long.year.count.one={0} שנה	long.year.count.two={0} שנים	long.year.count.other={0} שנים
+he	long.year.relative.-2=	long.year.relative.-1=השנה שעברה	long.year.relative.0=השנה	long.year.relative.1=השנה הבאה	long.year.relative.2=
+he	short.second.past.one=לפני שנ׳ ({0})	short.second.past.two=לפני שתי שנ׳	short.second.past.other=לפני {0} שנ׳
+he	short.second.future.one=בעוד שנ׳ ({0})	short.second.future.two=בעוד {0} שנ׳	short.second.future.other=בעוד {0} שנ׳
+he	short.second.count.one={0} שנ׳	short.second.count.two={0} שנ׳	short.second.count.other={0} שנ׳
+he	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=עכשיו	short.second.relative.1=	short.second.relative.2=
+he	short.minute.past.one=לפני דק׳ ({0})	short.minute.past.two=לפני {0} דק׳	short.minute.past.other=לפני {0} דק׳
+he	short.minute.future.one=בעוד דק׳ ({0})	short.minute.future.two=בעוד {0} דק׳	short.minute.future.other=בעוד {0} דק׳
+he	short.minute.count.one={0} דק׳	short.minute.count.two={0} דק׳	short.minute.count.other={0} דק׳
+he	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=דקה זו	short.minute.relative.1=	short.minute.relative.2=
+he	short.hour.past.one=לפני שע׳ ({0})	short.hour.past.two=לפני שעתיים ({0})	short.hour.past.other=לפני {0} שע׳
+he	short.hour.future.one=בעוד שעה ({0})	short.hour.future.two=בעוד שעתיים ({0})	short.hour.future.other=בעוד {0} שע׳
+he	short.hour.count.one={0} שעה	short.hour.count.two=שעתיים	short.hour.count.other={0} שע׳
+he	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=בשעה זו	short.hour.relative.1=	short.hour.relative.2=
+he	short.day.past.one=לפני יום אחד ({0})	short.day.past.two=לפני יומיים ({0})	short.day.past.other=לפני {0} ימים
+he	short.day.future.one=בעוד יום אחד ({0})	short.day.future.two=בעוד יומיים ({0})	short.day.future.other=בעוד {0} ימים
+he	short.day.count.one={0} יום	short.day.count.two=יומיים	short.day.count.other={0} ימ׳
+he	short.day.relative.-2=שלשום	short.day.relative.-1=אתמול	short.day.relative.0=היום	short.day.relative.1=מחר	short.day.relative.2=מחרתיים
+he	short.week.past.one=לפני שב׳ ({0})	short.week.past.two=לפני שבועיים ({0})	short.week.past.other=לפני {0} שב׳
+he	short.week.future.one=בעוד שב׳ ({0})	short.week.future.two=בעוד שבועיים ({0})	short.week.future.other=בעוד {0} שב׳
+he	short.week.count.one={0} שבוע	short.week.count.two=שבועיים	short.week.count.other={0} שבועות
+he	short.week.relative.-2=	short.week.relative.-1=השבוע שעבר	short.week.relative.0=השבוע	short.week.relative.1=השבוע הבא	short.week.relative.2=
+he	short.month.past.one=לפני חודש ({0})	short.month.past.two=לפני חודשיים ({0})	short.month.past.other=לפני {0} חודשים
+he	short.month.future.one=בעוד חודש ({0})	short.month.future.two=בעוד חודשיים ({0})	short.month.future.other=בעוד {0} חודשים
+he	short.month.count.one={0} ח׳	short.month.count.two={0} ח׳	short.month.count.other={0} ח׳
+he	short.month.relative.-2=	short.month.relative.-1=החודש שעבר	short.month.relative.0=החודש	short.month.relative.1=החודש הבא	short.month.relative.2=
+he	short.quarter.past.one=לפני רבע׳ אחד ({0})	short.quarter.past.two=לפני {0} רבע׳	short.quarter.past.other=לפני {0} רבע׳
+he	short.quarter.future.one=בעוד רבע׳ אחד ({0})	short.quarter.future.two=בעוד {0} רבע׳	short.quarter.future.other=בעוד {0} רבע׳
+he	short.quarter.count.one={0} q	short.quarter.count.two={0} q	short.quarter.count.other={0} q
+he	short.quarter.relative.-2=	short.quarter.relative.-1=הרבעון הקודם	short.quarter.relative.0=הרבעון הזה	short.quarter.relative.1=הרבעון הבא	short.quarter.relative.2=
+he	short.year.past.one=לפני שנה ({0})	short.year.past.two=לפני שנתיים ({0})	short.year.past.other=לפני {0} שנים
+he	short.year.future.one=בעוד שנה	short.year.future.two=בעוד שנתיים ({0})	short.year.future.other=בעוד {0} שנים
+he	short.year.count.one={0} שנה	short.year.count.two={0} שנים	short.year.count.other={0} שנים
+he	short.year.relative.-2=	short.year.relative.-1=השנה שעברה	short.year.relative.0=השנה	short.year.relative.1=השנה הבאה	short.year.relative.2=
+he	narrow.second.past.one=לפני שנ׳ ({0})	narrow.second.past.two=לפני שתי שנ׳	narrow.second.past.other=לפני {0} שנ׳
+he	narrow.second.future.one=בעוד שנ׳ ({0})	narrow.second.future.two=בעוד {0} שנ׳	narrow.second.future.other=בעוד {0} שנ׳
+he	narrow.second.count.one={0} שנ׳	narrow.second.count.two={0} שנ׳	narrow.second.count.other={0} שנ׳
+he	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=עכשיו	narrow.second.relative.1=	narrow.second.relative.2=
+he	narrow.minute.past.one=לפני דק׳ ({0})	narrow.minute.past.two=לפני {0} דק׳	narrow.minute.past.other=לפני {0} דק׳
+he	narrow.minute.future.one=בעוד דק׳ ({0})	narrow.minute.future.two=בעוד {0} דק׳	narrow.minute.future.other=בעוד {0} דק׳
+he	narrow.minute.count.one={0} דק׳	narrow.minute.count.two={0} דק׳	narrow.minute.count.other={0} דק׳
+he	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=דקה זו	narrow.minute.relative.1=	narrow.minute.relative.2=
+he	narrow.hour.past.one=לפני שע׳ ({0})	narrow.hour.past.two=לפני שעתיים ({0})	narrow.hour.past.other=לפני {0} שע׳
+he	narrow.hour.future.one=בעוד שעה ({0})	narrow.hour.future.two=בעוד שעתיים ({0})	narrow.hour.future.other=בעוד {0} שע׳
+he	narrow.hour.count.one={0} שע׳	narrow.hour.count.two={0} שע׳	narrow.hour.count.other={0} שע׳
+he	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=בשעה זו	narrow.hour.relative.1=	narrow.hour.relative.2=
+he	narrow.day.past.one=לפני יום אחד ({0})	narrow.day.past.two=לפני יומיים ({0})	narrow.day.past.other=לפני {0} ימים
+he	narrow.day.future.one=בעוד יום אחד ({0})	narrow.day.future.two=בעוד יומיים ({0})	narrow.day.future.other=בעוד {0} ימים
+he	narrow.day.count.one={0} י׳	narrow.day.count.two={0} י׳	narrow.day.count.other={0} י׳
+he	narrow.day.relative.-2=שלשום	narrow.day.relative.-1=אתמול	narrow.day.relative.0=היום	narrow.day.relative.1=מחר	narrow.day.relative.2=מחרתיים
+he	narrow.week.past.one=לפני שב׳ ({0})	narrow.week.past.two=לפני שבועיים ({0})	narrow.week.past.other=לפני {0} שב׳
+he	narrow.week.future.one=בעוד שב׳ ({0})	narrow.week.future.two=בעוד שבועיים ({0})	narrow.week.future.other=בעוד {0} שב׳
+he	narrow.week.count.one={0} ש′	narrow.week.count.two={0} ש′	narrow.week.count.other={0} ש′
+he	narrow.week.relative.-2=	narrow.week.relative.-1=השבוע שעבר	narrow.week.relative.0=השבוע	narrow.week.relative.1=השבוע הבא	narrow.week.relative.2=
+he	narrow.month.past.one=לפני חו׳ ({0})	narrow.month.past.two=לפני חודשיים ({0})	narrow.month.past.other=לפני {0} חו׳
+he	narrow.month.future.one=בעוד חו׳	narrow.month.future.two=בעוד חודשיים ({0})	narrow.month.future.other=בעוד {0} חו׳
+he	narrow.month.count.one={0} ח׳	narrow.month.count.two={0} ח׳	narrow.month.count.other={0} ח׳
+he	narrow.month.relative.-2=	narrow.month.relative.-1=החודש שעבר	narrow.month.relative.0=החודש	narrow.month.relative.1=החודש הבא	narrow.month.relative.2=
+he	narrow.quarter.past.one=לפני רבע׳ אחד ({0})	narrow.quarter.past.two=לפני {0} רבע׳	narrow.quarter.past.other=לפני {0} רבע׳
+he	narrow.quarter.future.one=בעוד רבע׳ אחד ({0})	narrow.quarter.future.two=בעוד {0} רבע׳	narrow.quarter.future.other=בעוד {0} רבע׳
+he	narrow.quarter.count.one={0} q	narrow.quarter.count.two={0} q	narrow.quarter.count.other={0} q
+he	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=הרבעון הקודם	narrow.quarter.relative.0=הרבעון הזה	narrow.quarter.relative.1=הרבעון הבא	narrow.quarter.relative.2=
+he	narrow.year.past.one=לפני שנה ({0})	narrow.year.past.two=לפני שנתיים ({0})	narrow.year.past.other=לפני {0} שנים
+he	narrow.year.future.one=בעוד שנה ({0})	narrow.year.future.two=בעוד שנתיים ({0})	narrow.year.future.other=בעוד {0} שנים
+he	narrow.year.count.one={0} ש′	narrow.year.count.two={0} ש′	narrow.year.count.other={0} ש′
+he	narrow.year.relative.-2=	narrow.year.relative.-1=השנה שעברה	narrow.year.relative.0=השנה	narrow.year.relative.1=השנה הבאה	narrow.year.relative.2=
+he	list.standard.2={0} ו{1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} ו{1}
+he	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} ו-{1}
+he	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+he	decimal=.	at={0}, {1}
 hi	long.second.past.one={0} सेकंड पहले	long.second.past.other={0} सेकंड पहले
 hi	long.second.future.one={0} सेकंड में	long.second.future.other={0} सेकंड में
 hi	long.second.count.one={0} सेकंड	long.second.count.other={0} सेकंड
@@ -1698,6 +2098,106 @@ ja	list.standard.2={0}、{1}	list.standard.start={0}、{1}	list.standard.middle=
 ja	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
 ja	list.narrow.2={0}{1}	list.narrow.start={0}{1}	list.narrow.middle={0}{1}	list.narrow.end={0}{1}
 ja	decimal=.	at={0}の {1}
+jv	long.second.past.other={0} detik kepungkur
+jv	long.second.future.other=ing {0} detik
+jv	long.second.count.other={0} detik
+jv	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=saiki	long.second.relative.1=	long.second.relative.2=
+jv	long.minute.past.other={0} menit kepungkur
+jv	long.minute.future.other=ing {0} menit
+jv	long.minute.count.other={0} menit
+jv	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=menit iki	long.minute.relative.1=	long.minute.relative.2=
+jv	long.hour.past.other={0} jam kepungkur
+jv	long.hour.future.other=ing {0} jam
+jv	long.hour.count.other={0} jam
+jv	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=jam iki	long.hour.relative.1=	long.hour.relative.2=
+jv	long.day.past.other={0} dina kepungkur
+jv	long.day.future.other=ing {0} dina
+jv	long.day.count.other={0} dina
+jv	long.day.relative.-2=	long.day.relative.-1=wingi	long.day.relative.0=dino iki	long.day.relative.1=sesuk	long.day.relative.2=
+jv	long.week.past.other={0} pekan kepungkur
+jv	long.week.future.other=ing {0} pekan
+jv	long.week.count.other={0} peken
+jv	long.week.relative.-2=	long.week.relative.-1=pekan wingi	long.week.relative.0=pekan iki	long.week.relative.1=pekan ngarep	long.week.relative.2=
+jv	long.month.past.other={0} sasi kepungkur
+jv	long.month.future.other=ing {0} sasi
+jv	long.month.count.other={0} sasi
+jv	long.month.relative.-2=	long.month.relative.-1=sasi wingi	long.month.relative.0=sasi iki	long.month.relative.1=sasi ngarep	long.month.relative.2=
+jv	long.quarter.past.other={0} triwulan kepungkur
+jv	long.quarter.future.other=ing {0} triwulan
+jv	long.quarter.count.other={0} seprapat
+jv	long.quarter.relative.-2=	long.quarter.relative.-1=triwulan wingi	long.quarter.relative.0=triwulan iki	long.quarter.relative.1=triwulan ngarep	long.quarter.relative.2=
+jv	long.year.past.other={0} taun kepungkur
+jv	long.year.future.other=ing {0} taun
+jv	long.year.count.other={0} taun
+jv	long.year.relative.-2=	long.year.relative.-1=taun wingi	long.year.relative.0=taun iki	long.year.relative.1=taun ngarep	long.year.relative.2=
+jv	short.second.past.other={0} detik kepungkur
+jv	short.second.future.other=ing {0} detik
+jv	short.second.count.other={0} dtk
+jv	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=saiki	short.second.relative.1=	short.second.relative.2=
+jv	short.minute.past.other={0} menit kepungkur
+jv	short.minute.future.other=ing {0} menit
+jv	short.minute.count.other={0} mnt
+jv	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=menit iki	short.minute.relative.1=	short.minute.relative.2=
+jv	short.hour.past.other={0} jam kepungkur
+jv	short.hour.future.other=ing {0} jam
+jv	short.hour.count.other={0} jam
+jv	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=jam iki	short.hour.relative.1=	short.hour.relative.2=
+jv	short.day.past.other={0} dina kepungkur
+jv	short.day.future.other=ing {0} dina
+jv	short.day.count.other={0} dina
+jv	short.day.relative.-2=	short.day.relative.-1=wingi	short.day.relative.0=dino iki	short.day.relative.1=sesuk	short.day.relative.2=
+jv	short.week.past.other={0} pekan kepungkur
+jv	short.week.future.other=ing {0} pekan
+jv	short.week.count.other={0} peken
+jv	short.week.relative.-2=	short.week.relative.-1=pkn wingi	short.week.relative.0=pkn iki	short.week.relative.1=pkn ngarep	short.week.relative.2=
+jv	short.month.past.other={0} sasi kepungkur
+jv	short.month.future.other=ing {0} sasi
+jv	short.month.count.other={0} sasi
+jv	short.month.relative.-2=	short.month.relative.-1=sasi wingi	short.month.relative.0=sasi iki	short.month.relative.1=sasi ngarep	short.month.relative.2=
+jv	short.quarter.past.other={0} triwulan kepungkur
+jv	short.quarter.future.other=ing {0} triwulan
+jv	short.quarter.count.other={0} seprapat
+jv	short.quarter.relative.-2=	short.quarter.relative.-1=triwulan wingi	short.quarter.relative.0=triwulan iki	short.quarter.relative.1=triwulan ngarep	short.quarter.relative.2=
+jv	short.year.past.other={0} taun kepungkur
+jv	short.year.future.other=ing {0} taun
+jv	short.year.count.other={0} taun
+jv	short.year.relative.-2=	short.year.relative.-1=taun wingi	short.year.relative.0=taun iki	short.year.relative.1=taun ngarep	short.year.relative.2=
+jv	narrow.second.past.other={0} detik kepungkur
+jv	narrow.second.future.other=ing {0} detik
+jv	narrow.second.count.other={0} dtk
+jv	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=saiki	narrow.second.relative.1=	narrow.second.relative.2=
+jv	narrow.minute.past.other={0} menit kepungkur
+jv	narrow.minute.future.other=ing {0} menit
+jv	narrow.minute.count.other={0} mnt
+jv	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=menit iki	narrow.minute.relative.1=	narrow.minute.relative.2=
+jv	narrow.hour.past.other={0} jam kepungkur
+jv	narrow.hour.future.other=ing {0} jam
+jv	narrow.hour.count.other={0}j
+jv	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=jam iki	narrow.hour.relative.1=	narrow.hour.relative.2=
+jv	narrow.day.past.other={0} dino kepungkur
+jv	narrow.day.future.other=ing {0} dina
+jv	narrow.day.count.other={0}d
+jv	narrow.day.relative.-2=	narrow.day.relative.-1=wingi	narrow.day.relative.0=dino iki	narrow.day.relative.1=sesuk	narrow.day.relative.2=
+jv	narrow.week.past.other={0} pekan kepungkur
+jv	narrow.week.future.other=ing {0} pekan
+jv	narrow.week.count.other={0} peken
+jv	narrow.week.relative.-2=	narrow.week.relative.-1=pkn wingi	narrow.week.relative.0=pkn iki	narrow.week.relative.1=pkn ngarep	narrow.week.relative.2=
+jv	narrow.month.past.other={0} sasi kepungkur
+jv	narrow.month.future.other=ing {0} sasi
+jv	narrow.month.count.other={0} sasi
+jv	narrow.month.relative.-2=	narrow.month.relative.-1=sasi wingi	narrow.month.relative.0=sasi iki	narrow.month.relative.1=sasi ngarep	narrow.month.relative.2=
+jv	narrow.quarter.past.other={0} triwulan kepungkur
+jv	narrow.quarter.future.other=ing {0} triwulan
+jv	narrow.quarter.count.other={0}seprapat
+jv	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=triwulan wingi	narrow.quarter.relative.0=triwulan iki	narrow.quarter.relative.1=triwulan ngarep	narrow.quarter.relative.2=
+jv	narrow.year.past.other={0} taun kepungkur
+jv	narrow.year.future.other=ing {0} taun
+jv	narrow.year.count.other={0} taun
+jv	narrow.year.relative.-2=	narrow.year.relative.-1=taun wingi	narrow.year.relative.0=taun iki	narrow.year.relative.1=taun ngarep	narrow.year.relative.2=
+jv	list.standard.2={0} lan {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0}, lan {1}
+jv	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+jv	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+jv	decimal=,	at={0} ing {1}
 ko	long.second.past.other={0}초 전
 ko	long.second.future.other={0}초 후
 ko	long.second.count.other={0}초
@@ -1798,6 +2298,106 @@ ko	list.standard.2={0} 및 {1}	list.standard.start={0}, {1}	list.standard.middle
 ko	list.unit.2={0} {1}	list.unit.start={0} {1}	list.unit.middle={0} {1}	list.unit.end={0} {1}
 ko	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 ko	decimal=.	at={0} {1}
+ml	long.second.past.one={0} സെക്കൻഡ് മുമ്പ്	long.second.past.other={0} സെക്കൻഡ് മുമ്പ്
+ml	long.second.future.one={0} സെക്കൻഡിൽ	long.second.future.other={0} സെക്കൻഡിൽ
+ml	long.second.count.one={0} സെക്കൻഡ്	long.second.count.other={0} സെക്കൻഡ്
+ml	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=ഇപ്പോൾ	long.second.relative.1=	long.second.relative.2=
+ml	long.minute.past.one={0} മിനിറ്റ് മുമ്പ്	long.minute.past.other={0} മിനിറ്റ് മുമ്പ്
+ml	long.minute.future.one={0} മിനിറ്റിൽ	long.minute.future.other={0} മിനിറ്റിൽ
+ml	long.minute.count.one={0} മിനിറ്റ്	long.minute.count.other={0} മിനിറ്റ്
+ml	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=ഈ മിനിറ്റിൽ	long.minute.relative.1=	long.minute.relative.2=
+ml	long.hour.past.one={0} മണിക്കൂർ മുമ്പ്	long.hour.past.other={0} മണിക്കൂർ മുമ്പ്
+ml	long.hour.future.one={0} മണിക്കൂറിൽ	long.hour.future.other={0} മണിക്കൂറിൽ
+ml	long.hour.count.one={0} മണിക്കൂർ	long.hour.count.other={0} മണിക്കൂർ
+ml	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=ഈ മണിക്കൂറിൽ	long.hour.relative.1=	long.hour.relative.2=
+ml	long.day.past.one={0} ദിവസം മുമ്പ്	long.day.past.other={0} ദിവസം മുമ്പ്
+ml	long.day.future.one={0} ദിവസത്തിൽ	long.day.future.other={0} ദിവസത്തിൽ
+ml	long.day.count.one={0} ദിവസം	long.day.count.other={0} ദിവസം
+ml	long.day.relative.-2=മിനിഞ്ഞാന്ന്	long.day.relative.-1=ഇന്നലെ	long.day.relative.0=ഇന്ന്	long.day.relative.1=നാളെ	long.day.relative.2=മറ്റന്നാൾ
+ml	long.week.past.one={0} ആഴ്ച മുമ്പ്	long.week.past.other={0} ആഴ്ച മുമ്പ്
+ml	long.week.future.one={0} ആഴ്ചയിൽ	long.week.future.other={0} ആഴ്ചയിൽ
+ml	long.week.count.one={0} ആഴ്ച	long.week.count.other={0} ആഴ്ച
+ml	long.week.relative.-2=	long.week.relative.-1=കഴിഞ്ഞ ആഴ്‌ച	long.week.relative.0=ഈ ആഴ്ച	long.week.relative.1=അടുത്ത ആഴ്ച	long.week.relative.2=
+ml	long.month.past.one={0} മാസം മുമ്പ്	long.month.past.other={0} മാസം മുമ്പ്
+ml	long.month.future.one={0} മാസത്തിൽ	long.month.future.other={0} മാസത്തിൽ
+ml	long.month.count.one={0} മാസം	long.month.count.other={0} മാസം
+ml	long.month.relative.-2=	long.month.relative.-1=കഴിഞ്ഞ മാസം	long.month.relative.0=ഈ മാസം	long.month.relative.1=അടുത്ത മാസം	long.month.relative.2=
+ml	long.quarter.past.one={0} പാദം മുമ്പ്	long.quarter.past.other={0} പാദം മുമ്പ്
+ml	long.quarter.future.one={0} പാദത്തിൽ	long.quarter.future.other={0} പാദത്തിൽ
+ml	long.quarter.count.one={0} പാദം	long.quarter.count.other={0} പാദങ്ങൾ
+ml	long.quarter.relative.-2=	long.quarter.relative.-1=കഴിഞ്ഞ പാദം	long.quarter.relative.0=ഈ പാദം	long.quarter.relative.1=അടുത്ത പാദം	long.quarter.relative.2=
+ml	long.year.past.one={0} വർഷം മുമ്പ്	long.year.past.other={0} വർഷം മുമ്പ്
+ml	long.year.future.one={0} വർഷത്തിൽ	long.year.future.other={0} വർഷത്തിൽ
+ml	long.year.count.one={0} വർഷം	long.year.count.other={0} വർഷം
+ml	long.year.relative.-2=	long.year.relative.-1=കഴിഞ്ഞ വർഷം	long.year.relative.0=ഈ വർ‌ഷം	long.year.relative.1=അടുത്തവർഷം	long.year.relative.2=
+ml	short.second.past.one={0} സെക്കൻഡ് മുമ്പ്	short.second.past.other={0} സെക്കൻഡ് മുമ്പ്
+ml	short.second.future.one={0} സെക്കൻഡിൽ	short.second.future.other={0} സെക്കൻഡിൽ
+ml	short.second.count.one={0} സെ.	short.second.count.other={0} സെ.
+ml	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=ഇപ്പോൾ	short.second.relative.1=	short.second.relative.2=
+ml	short.minute.past.one={0} മിനിറ്റ് മുമ്പ്	short.minute.past.other={0} മിനിറ്റ് മുമ്പ്
+ml	short.minute.future.one={0} മിനിറ്റിൽ	short.minute.future.other={0} മിനിറ്റിൽ
+ml	short.minute.count.one={0} മി.	short.minute.count.other={0} മി.
+ml	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=ഈ മിനിറ്റിൽ	short.minute.relative.1=	short.minute.relative.2=
+ml	short.hour.past.one={0} മണിക്കൂർ മുമ്പ്	short.hour.past.other={0} മണിക്കൂർ മുമ്പ്
+ml	short.hour.future.one={0} മണിക്കൂറിൽ	short.hour.future.other={0} മണിക്കൂറിൽ
+ml	short.hour.count.one={0} മ	short.hour.count.other={0} മ
+ml	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=ഈ മണിക്കൂറിൽ	short.hour.relative.1=	short.hour.relative.2=
+ml	short.day.past.one={0} ദിവസം മുമ്പ്	short.day.past.other={0} ദിവസം മുമ്പ്
+ml	short.day.future.one={0} ദിവസത്തിൽ	short.day.future.other={0} ദിവസത്തിൽ
+ml	short.day.count.one={0} ദിവസം‌	short.day.count.other={0} ദിവസം‌
+ml	short.day.relative.-2=മിനിഞ്ഞാന്ന്	short.day.relative.-1=ഇന്നലെ	short.day.relative.0=ഇന്ന്	short.day.relative.1=നാളെ	short.day.relative.2=മറ്റന്നാൾ
+ml	short.week.past.one={0} ആഴ്ച മുമ്പ്	short.week.past.other={0} ആഴ്ച മുമ്പ്
+ml	short.week.future.one={0} ആഴ്ചയിൽ	short.week.future.other={0} ആഴ്ചയിൽ
+ml	short.week.count.one={0} ആ	short.week.count.other={0} ആ
+ml	short.week.relative.-2=	short.week.relative.-1=കഴിഞ്ഞ ആഴ്‌ച	short.week.relative.0=ഈ ആഴ്ച	short.week.relative.1=അടുത്ത ആഴ്ച	short.week.relative.2=
+ml	short.month.past.one={0} മാസം മുമ്പ്	short.month.past.other={0} മാസം മുമ്പ്
+ml	short.month.future.one={0} മാസത്തിൽ	short.month.future.other={0} മാസത്തിൽ
+ml	short.month.count.one={0} മാസം	short.month.count.other={0} മാസം
+ml	short.month.relative.-2=	short.month.relative.-1=കഴിഞ്ഞ മാസം	short.month.relative.0=ഈ മാസം	short.month.relative.1=അടുത്ത മാസം	short.month.relative.2=
+ml	short.quarter.past.one={0} പാദം മുമ്പ്	short.quarter.past.other={0} പാദം മുമ്പ്
+ml	short.quarter.future.one={0} പാദത്തിൽ	short.quarter.future.other={0} പാദത്തിൽ
+ml	short.quarter.count.one={0} പാദം	short.quarter.count.other={0} പാദങ്ങൾ
+ml	short.quarter.relative.-2=	short.quarter.relative.-1=കഴിഞ്ഞ പാദം	short.quarter.relative.0=ഈ പാദം	short.quarter.relative.1=അടുത്ത പാദം	short.quarter.relative.2=
+ml	short.year.past.one={0} വർഷം മുമ്പ്	short.year.past.other={0} വർഷം മുമ്പ്
+ml	short.year.future.one={0} വർഷത്തിൽ	short.year.future.other={0} വർഷത്തിൽ
+ml	short.year.count.one={0} വ	short.year.count.other={0} വ
+ml	short.year.relative.-2=	short.year.relative.-1=കഴിഞ്ഞ വർഷം	short.year.relative.0=ഈ വർ‌ഷം	short.year.relative.1=അടുത്തവർഷം	short.year.relative.2=
+ml	narrow.second.past.one={0} സെക്കൻഡ് മുമ്പ്	narrow.second.past.other={0} സെക്കൻഡ് മുമ്പ്
+ml	narrow.second.future.one={0} സെക്കൻഡിൽ	narrow.second.future.other={0} സെക്കൻഡിൽ
+ml	narrow.second.count.one={0} സെ.	narrow.second.count.other={0} സെ.
+ml	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=ഇപ്പോൾ	narrow.second.relative.1=	narrow.second.relative.2=
+ml	narrow.minute.past.one={0} മിനിറ്റ് മുമ്പ്	narrow.minute.past.other={0} മിനിറ്റ് മുമ്പ്
+ml	narrow.minute.future.one={0} മിനിറ്റിൽ	narrow.minute.future.other={0} മിനിറ്റിൽ
+ml	narrow.minute.count.one={0} മി.	narrow.minute.count.other={0} മി.
+ml	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=ഈ മിനിറ്റിൽ	narrow.minute.relative.1=	narrow.minute.relative.2=
+ml	narrow.hour.past.one={0} മണിക്കൂർ മുമ്പ്	narrow.hour.past.other={0} മണിക്കൂർ മുമ്പ്
+ml	narrow.hour.future.one={0} മണിക്കൂറിൽ	narrow.hour.future.other={0} മണിക്കൂറിൽ
+ml	narrow.hour.count.one={0} മ	narrow.hour.count.other={0} മ
+ml	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=ഈ മണിക്കൂറിൽ	narrow.hour.relative.1=	narrow.hour.relative.2=
+ml	narrow.day.past.one={0} ദിവസം മുമ്പ്	narrow.day.past.other={0} ദിവസം മുമ്പ്
+ml	narrow.day.future.one={0} ദിവസത്തിൽ	narrow.day.future.other={0} ദിവസത്തിൽ
+ml	narrow.day.count.one={0} ദി	narrow.day.count.other={0} ദി
+ml	narrow.day.relative.-2=മിനിഞ്ഞാന്ന്	narrow.day.relative.-1=ഇന്നലെ	narrow.day.relative.0=ഇന്ന്	narrow.day.relative.1=നാളെ	narrow.day.relative.2=മറ്റന്നാൾ
+ml	narrow.week.past.one={0} ആഴ്ച മുമ്പ്	narrow.week.past.other={0} ആഴ്ച മുമ്പ്
+ml	narrow.week.future.one={0} ആഴ്ചയിൽ	narrow.week.future.other={0} ആഴ്ചയിൽ
+ml	narrow.week.count.one={0} ആ	narrow.week.count.other={0} ആ
+ml	narrow.week.relative.-2=	narrow.week.relative.-1=കഴിഞ്ഞ ആഴ്‌ച	narrow.week.relative.0=ഈ ആഴ്ച	narrow.week.relative.1=അടുത്ത ആഴ്ച	narrow.week.relative.2=
+ml	narrow.month.past.one={0} മാസം മുമ്പ്	narrow.month.past.other={0} മാസം മുമ്പ്
+ml	narrow.month.future.one={0} മാസത്തിൽ	narrow.month.future.other={0} മാസത്തിൽ
+ml	narrow.month.count.one={0} മാ	narrow.month.count.other={0} മാ
+ml	narrow.month.relative.-2=	narrow.month.relative.-1=കഴിഞ്ഞ മാസം	narrow.month.relative.0=ഈ മാസം	narrow.month.relative.1=അടുത്ത മാസം	narrow.month.relative.2=
+ml	narrow.quarter.past.one={0} പാദം മുമ്പ്	narrow.quarter.past.other={0} പാദം മുമ്പ്
+ml	narrow.quarter.future.one={0} പാദത്തിൽ	narrow.quarter.future.other={0} പാദത്തിൽ
+ml	narrow.quarter.count.one={0} പാദം	narrow.quarter.count.other={0} പാദങ്ങൾ
+ml	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=കഴിഞ്ഞ പാദം	narrow.quarter.relative.0=ഈ പാദം	narrow.quarter.relative.1=അടുത്ത പാദം	narrow.quarter.relative.2=
+ml	narrow.year.past.one={0} വർഷം മുമ്പ്	narrow.year.past.other={0} വർഷം മുമ്പ്
+ml	narrow.year.future.one={0} വർഷത്തിൽ	narrow.year.future.other={0} വർഷത്തിൽ
+ml	narrow.year.count.one={0} വ	narrow.year.count.other={0} വ
+ml	narrow.year.relative.-2=	narrow.year.relative.-1=കഴിഞ്ഞ വർഷം	narrow.year.relative.0=ഈ വർ‌ഷം	narrow.year.relative.1=അടുത്തവർഷം	narrow.year.relative.2=
+ml	list.standard.2={0}, {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0}, {1}
+ml	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+ml	list.narrow.2={0}, {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+ml	decimal=.	at={0} {1}-ന്
 mn	long.second.past.one={0} секундын өмнө	long.second.past.other={0} секундын өмнө
 mn	long.second.future.one={0} секундын дараа	long.second.future.other={0} секундын дараа
 mn	long.second.count.one={0} секунд	long.second.count.other={0} секунд
@@ -1998,6 +2598,206 @@ mr	list.standard.2={0} आणि {1}	list.standard.start={0}, {1}	list.standard.
 mr	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
 mr	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
 mr	decimal=.	at={0}, {1}
+my	long.second.past.other=ပြီးခဲ့သည့် {0} စက္ကန့်
+my	long.second.future.other={0} စက္ကန့်အတွင်း
+my	long.second.count.other={0} စက္ကန့်
+my	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=ယခု	long.second.relative.1=	long.second.relative.2=
+my	long.minute.past.other=ပြီးခဲ့သည့် {0} မိနစ်
+my	long.minute.future.other={0} မိနစ်အတွင်း
+my	long.minute.count.other={0} မိနစ်
+my	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=ဤမိနစ်	long.minute.relative.1=	long.minute.relative.2=
+my	long.hour.past.other=ပြီးခဲ့သည့် {0} နာရီ
+my	long.hour.future.other={0} နာရီအတွင်း
+my	long.hour.count.other={0} နာရီ
+my	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=ဤအချိန်	long.hour.relative.1=	long.hour.relative.2=
+my	long.day.past.other=ပြီးခဲ့သည့် {0} ရက်
+my	long.day.future.other={0} ရက်အတွင်း
+my	long.day.count.other={0} ရက်
+my	long.day.relative.-2=တစ်နေ့က	long.day.relative.-1=မနေ့က	long.day.relative.0=ယနေ့	long.day.relative.1=မနက်ဖြန်	long.day.relative.2=သန်ဘက်ခါ
+my	long.week.past.other=ပြီးခဲ့သည့် {0} ပတ်
+my	long.week.future.other={0} ပတ်အတွင်း
+my	long.week.count.other={0} ပတ်
+my	long.week.relative.-2=	long.week.relative.-1=ပြီးခဲ့သည့် သီတင်းပတ်	long.week.relative.0=ယခု သီတင်းပတ်	long.week.relative.1=လာမည့် သီတင်းပတ်	long.week.relative.2=
+my	long.month.past.other=ပြီးခဲ့သည့် {0} လ
+my	long.month.future.other={0} လအတွင်း
+my	long.month.count.other={0} လ
+my	long.month.relative.-2=	long.month.relative.-1=ပြီးခဲ့သည့်လ	long.month.relative.0=ယခုလ	long.month.relative.1=လာမည့်လ	long.month.relative.2=
+my	long.quarter.past.other=ပြီးခဲ့သည့် သုံးလပတ်ကာလ {0} ခုအတွင်း
+my	long.quarter.future.other=သုံးလပတ်ကာလ {0} အတွင်း
+my	long.quarter.count.other={0} ကွာတား
+my	long.quarter.relative.-2=	long.quarter.relative.-1=ပြီးခဲ့သည့် သုံးလပတ်	long.quarter.relative.0=ယခု သုံးလပတ်	long.quarter.relative.1=လာမည့် သုံးလပတ်	long.quarter.relative.2=
+my	long.year.past.other=ပြီးခဲ့သည့် {0} နှစ်
+my	long.year.future.other={0} နှစ်အတွင်း
+my	long.year.count.other={0} နှစ်
+my	long.year.relative.-2=	long.year.relative.-1=ယမန်နှစ်	long.year.relative.0=ယခုနှစ်	long.year.relative.1=လာမည့်နှစ်	long.year.relative.2=
+my	short.second.past.other=ပြီးခဲ့သည့် {0} စက္ကန့်
+my	short.second.future.other={0} စက္ကန့်အတွင်း
+my	short.second.count.other={0} sec
+my	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=ယခု	short.second.relative.1=	short.second.relative.2=
+my	short.minute.past.other=ပြီးခဲ့သည့် {0} မိနစ်
+my	short.minute.future.other={0} မိနစ်အတွင်း
+my	short.minute.count.other={0} မိနစ်
+my	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=ဤမိနစ်	short.minute.relative.1=	short.minute.relative.2=
+my	short.hour.past.other=ပြီးခဲ့သည့် {0} နာရီ
+my	short.hour.future.other={0} နာရီအတွင်း
+my	short.hour.count.other={0} နာရီ
+my	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=ဤအချိန်	short.hour.relative.1=	short.hour.relative.2=
+my	short.day.past.other=ပြီးခဲ့သည့် {0} ရက်
+my	short.day.future.other={0} ရက်အတွင်း
+my	short.day.count.other={0} ရက်
+my	short.day.relative.-2=တစ်နေ့က	short.day.relative.-1=မနေ့က	short.day.relative.0=ယနေ့	short.day.relative.1=မနက်ဖြန်	short.day.relative.2=သန်ဘက်ခါ
+my	short.week.past.other=ပြီးခဲ့သည့် {0} ပတ်
+my	short.week.future.other={0} ပတ်အတွင်း
+my	short.week.count.other={0} ပတ်
+my	short.week.relative.-2=	short.week.relative.-1=ပြီးခဲ့သည့် သီတင်းပတ်	short.week.relative.0=ယခု သီတင်းပတ်	short.week.relative.1=လာမည့် သီတင်းပတ်	short.week.relative.2=
+my	short.month.past.other=ပြီးခဲ့သည့် {0} လ
+my	short.month.future.other={0} လအတွင်း
+my	short.month.count.other={0} လ
+my	short.month.relative.-2=	short.month.relative.-1=ပြီးခဲ့သည့်လ	short.month.relative.0=ယခုလ	short.month.relative.1=လာမည့်လ	short.month.relative.2=
+my	short.quarter.past.other=ပြီးခဲ့သည့် သုံးလပတ်ကာလ {0} ခုအတွင်း
+my	short.quarter.future.other=သုံးလပတ်ကာလ {0} ခုအတွင်း
+my	short.quarter.count.other={0} q
+my	short.quarter.relative.-2=	short.quarter.relative.-1=ပြီးခဲ့သောသုံးလပတ်	short.quarter.relative.0=ယခုသုံးလပတ်	short.quarter.relative.1=နောက်လာမည့်သုံးလပတ်	short.quarter.relative.2=
+my	short.year.past.other=ပြီးခဲ့သည့် {0} နှစ်
+my	short.year.future.other={0} နှစ်အတွင်း
+my	short.year.count.other={0} နှစ်
+my	short.year.relative.-2=	short.year.relative.-1=ယမန်နှစ်	short.year.relative.0=ယခုနှစ်	short.year.relative.1=လာမည့်နှစ်	short.year.relative.2=
+my	narrow.second.past.other=ပြီးခဲ့သည့် {0} စက္ကန့်
+my	narrow.second.future.other={0} စက္ကန့်အတွင်း
+my	narrow.second.count.other={0} s
+my	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=ယခု	narrow.second.relative.1=	narrow.second.relative.2=
+my	narrow.minute.past.other=ပြီးခဲ့သည့် {0} မိနစ်
+my	narrow.minute.future.other={0} မိနစ်အတွင်း
+my	narrow.minute.count.other={0} မိနစ်
+my	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=ဤမိနစ်	narrow.minute.relative.1=	narrow.minute.relative.2=
+my	narrow.hour.past.other=ပြီးခဲ့သည့် {0} နာရီ
+my	narrow.hour.future.other={0} နာရီအတွင်း
+my	narrow.hour.count.other={0} နာရီ
+my	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=ဤအချိန်	narrow.hour.relative.1=	narrow.hour.relative.2=
+my	narrow.day.past.other=ပြီးခဲ့သည့် {0} ရက်
+my	narrow.day.future.other={0} ရက်အတွင်း
+my	narrow.day.count.other={0} ရက်
+my	narrow.day.relative.-2=တစ်နေ့က	narrow.day.relative.-1=မနေ့က	narrow.day.relative.0=ယနေ့	narrow.day.relative.1=မနက်ဖြန်	narrow.day.relative.2=သန်ဘက်ခါ
+my	narrow.week.past.other=ပြီးခဲ့သည့် {0} ပတ်
+my	narrow.week.future.other={0} ပတ်အတွင်း
+my	narrow.week.count.other={0} ပတ်
+my	narrow.week.relative.-2=	narrow.week.relative.-1=ပြီးခဲ့သည့် သီတင်းပတ်	narrow.week.relative.0=ယခု သီတင်းပတ်	narrow.week.relative.1=လာမည့် သီတင်းပတ်	narrow.week.relative.2=
+my	narrow.month.past.other=ပြီးခဲ့သည့် {0} လ
+my	narrow.month.future.other={0} လအတွင်း
+my	narrow.month.count.other={0} လ
+my	narrow.month.relative.-2=	narrow.month.relative.-1=ပြီးခဲ့သည့်လ	narrow.month.relative.0=ယခုလ	narrow.month.relative.1=လာမည့်လ	narrow.month.relative.2=
+my	narrow.quarter.past.other=ပြီးခဲ့သည့် သုံးလပတ်ကာလ {0} ခုအတွင်း
+my	narrow.quarter.future.other=သုံးလပတ်ကာလ {0} ခုအတွင်း
+my	narrow.quarter.count.other={0} q
+my	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=ပြီးခဲ့သောသုံးလပတ်	narrow.quarter.relative.0=ယခုသုံးလပတ်	narrow.quarter.relative.1=နောက်လာမည့်သုံးလပတ်	narrow.quarter.relative.2=
+my	narrow.year.past.other=ပြီးခဲ့သည့် {0} နှစ်
+my	narrow.year.future.other={0} နှစ်အတွင်း
+my	narrow.year.count.other={0} နှစ်
+my	narrow.year.relative.-2=	narrow.year.relative.-1=ယမန်နှစ်	narrow.year.relative.0=ယခုနှစ်	narrow.year.relative.1=လာမည့်နှစ်	narrow.year.relative.2=
+my	list.standard.2={0}နှင့် {1}	list.standard.start={0} - {1}	list.standard.middle={0} - {1}	list.standard.end={0}နှင့် {1}
+my	list.unit.2={0}နှင့် {1}	list.unit.start={0}- {1}	list.unit.middle={0}- {1}	list.unit.end={0}နှင့် {1}
+my	list.narrow.2={0}နှင့် {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0}နှင့် {1}
+my	decimal=.	at={0} {1}
+ne	long.second.past.one={0} सेकेन्ड पहिले	long.second.past.other={0} सेकेन्ड पहिले
+ne	long.second.future.one={0} सेकेन्डमा	long.second.future.other={0} सेकेन्डमा
+ne	long.second.count.one={0} सेकेन्ड	long.second.count.other={0} सेकेन्ड
+ne	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=अहिले	long.second.relative.1=	long.second.relative.2=
+ne	long.minute.past.one={0} मिनेट पहिले	long.minute.past.other={0} मिनेट पहिले
+ne	long.minute.future.one={0} मिनेटमा	long.minute.future.other={0} मिनेटमा
+ne	long.minute.count.one={0} मिनेट	long.minute.count.other={0} मिनेट
+ne	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=यही मिनेटमा	long.minute.relative.1=	long.minute.relative.2=
+ne	long.hour.past.one={0} घण्टा पहिले	long.hour.past.other={0} घण्टा पहिले
+ne	long.hour.future.one={0} घण्टामा	long.hour.future.other={0} घण्टामा
+ne	long.hour.count.one={0} घण्टा	long.hour.count.other={0} घण्टा
+ne	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=यस घडीमा	long.hour.relative.1=	long.hour.relative.2=
+ne	long.day.past.one={0} दिन पहिले	long.day.past.other={0} दिन पहिले
+ne	long.day.future.one={0} दिनमा	long.day.future.other={0} दिनमा
+ne	long.day.count.one={0} दिन	long.day.count.other={0} दिन
+ne	long.day.relative.-2=अस्ति	long.day.relative.-1=हिजो	long.day.relative.0=आज	long.day.relative.1=भोलि	long.day.relative.2=पर्सि
+ne	long.week.past.one={0} हप्ता पहिले	long.week.past.other={0} हप्ता पहिले
+ne	long.week.future.one={0} हप्तामा	long.week.future.other={0} हप्तामा
+ne	long.week.count.one={0} हप्ता	long.week.count.other={0} हप्ता
+ne	long.week.relative.-2=	long.week.relative.-1=गत हप्ता	long.week.relative.0=यो हप्ता	long.week.relative.1=आगामी हप्ता	long.week.relative.2=
+ne	long.month.past.one={0} महिना पहिले	long.month.past.other={0} महिना पहिले
+ne	long.month.future.one={0} महिनामा	long.month.future.other={0} महिनामा
+ne	long.month.count.one={0} महिना	long.month.count.other={0} महिना
+ne	long.month.relative.-2=	long.month.relative.-1=गत महिना	long.month.relative.0=यो महिना	long.month.relative.1=अर्को महिना	long.month.relative.2=
+ne	long.quarter.past.one={0}सत्र अघि	long.quarter.past.other={0}सत्र अघि
+ne	long.quarter.future.one=+{0} सत्रमा	long.quarter.future.other={0}सत्रमा
+ne	long.quarter.count.one={0} क्वाटर	long.quarter.count.other={0} क्वाटर
+ne	long.quarter.relative.-2=	long.quarter.relative.-1=अघिल्लो सत्र	long.quarter.relative.0=यो सत्र	long.quarter.relative.1=अर्को सत्र	long.quarter.relative.2=
+ne	long.year.past.one={0} वर्ष अघि	long.year.past.other={0} वर्ष अघि
+ne	long.year.future.one={0} वर्षमा	long.year.future.other={0} वर्षमा
+ne	long.year.count.one={0} वर्ष	long.year.count.other={0} वर्ष
+ne	long.year.relative.-2=	long.year.relative.-1=गत वर्ष	long.year.relative.0=यो वर्ष	long.year.relative.1=आगामी वर्ष	long.year.relative.2=
+ne	short.second.past.one={0} सेकेन्ड पहिले	short.second.past.other={0} सेकेन्ड पहिले
+ne	short.second.future.one={0} सेकेन्डमा	short.second.future.other={0} सेकेन्डमा
+ne	short.second.count.one={0} सेकेन्ड	short.second.count.other={0} सेकेन्ड
+ne	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=अहिले	short.second.relative.1=	short.second.relative.2=
+ne	short.minute.past.one={0} मिनेट पहिले	short.minute.past.other={0} मिनेट पहिले
+ne	short.minute.future.one={0} मिनेटमा	short.minute.future.other={0} मिनेटमा
+ne	short.minute.count.one={0} मिनेट	short.minute.count.other={0} मिनेट
+ne	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=यही मिनेटमा	short.minute.relative.1=	short.minute.relative.2=
+ne	short.hour.past.one={0} घण्टा पहिले	short.hour.past.other={0} घण्टा पहिले
+ne	short.hour.future.one={0} घण्टामा	short.hour.future.other={0} घण्टामा
+ne	short.hour.count.one={0} घण्टा	short.hour.count.other={0} घण्टा
+ne	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=यस घडीमा	short.hour.relative.1=	short.hour.relative.2=
+ne	short.day.past.one={0} दिन पहिले	short.day.past.other={0} दिन पहिले
+ne	short.day.future.one={0} दिनमा	short.day.future.other={0} दिनमा
+ne	short.day.count.one={0} दिन	short.day.count.other={0} दिन
+ne	short.day.relative.-2=अस्ति	short.day.relative.-1=हिजो	short.day.relative.0=आज	short.day.relative.1=भोलि	short.day.relative.2=पर्सि
+ne	short.week.past.one={0} हप्ता पहिले	short.week.past.other={0} हप्ता पहिले
+ne	short.week.future.one={0} हप्तामा	short.week.future.other={0} हप्तामा
+ne	short.week.count.one={0} हप्ता	short.week.count.other={0} हप्ता
+ne	short.week.relative.-2=	short.week.relative.-1=गत हप्ता	short.week.relative.0=यो हप्ता	short.week.relative.1=आगामी हप्ता	short.week.relative.2=
+ne	short.month.past.one={0} महिना पहिले	short.month.past.other={0} महिना पहिले
+ne	short.month.future.one={0} महिनामा	short.month.future.other={0} महिनामा
+ne	short.month.count.one={0} महिना	short.month.count.other={0} महिना
+ne	short.month.relative.-2=	short.month.relative.-1=गत महिना	short.month.relative.0=यो महिना	short.month.relative.1=आगामी महिना	short.month.relative.2=
+ne	short.quarter.past.one={0}सत्र अघि	short.quarter.past.other={0}सत्र अघि
+ne	short.quarter.future.one={0}सत्रमा	short.quarter.future.other={0}सत्रमा
+ne	short.quarter.count.one={0} q	short.quarter.count.other={0} q
+ne	short.quarter.relative.-2=	short.quarter.relative.-1=अघिल्लो सत्र	short.quarter.relative.0=यो सत्र	short.quarter.relative.1=अर्को सत्र	short.quarter.relative.2=
+ne	short.year.past.one={0} वर्ष अघि	short.year.past.other={0} वर्ष अघि
+ne	short.year.future.one={0} वर्षमा	short.year.future.other={0} वर्षमा
+ne	short.year.count.one={0} वर्ष	short.year.count.other={0} वर्ष
+ne	short.year.relative.-2=	short.year.relative.-1=गत वर्ष	short.year.relative.0=यो वर्ष	short.year.relative.1=आगामी वर्ष	short.year.relative.2=
+ne	narrow.second.past.one={0} सेकेन्ड पहिले	narrow.second.past.other={0} सेकेन्ड पहिले
+ne	narrow.second.future.one={0} सेकेन्डमा	narrow.second.future.other={0} सेकेन्डमा
+ne	narrow.second.count.one={0} सेकेन्ड	narrow.second.count.other={0} सेकेन्ड
+ne	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=अहिले	narrow.second.relative.1=	narrow.second.relative.2=
+ne	narrow.minute.past.one={0} मिनेट पहिले	narrow.minute.past.other={0} मिनेट पहिले
+ne	narrow.minute.future.one={0} मिनेटमा	narrow.minute.future.other={0} मिनेटमा
+ne	narrow.minute.count.one={0} मिनेट	narrow.minute.count.other={0} मिनेट
+ne	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=यही मिनेटमा	narrow.minute.relative.1=	narrow.minute.relative.2=
+ne	narrow.hour.past.one={0} घण्टा पहिले	narrow.hour.past.other={0} घण्टा पहिले
+ne	narrow.hour.future.one={0} घण्टामा	narrow.hour.future.other={0} घण्टामा
+ne	narrow.hour.count.one={0} घण्टा	narrow.hour.count.other={0} घण्टा
+ne	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=यस घडीमा	narrow.hour.relative.1=	narrow.hour.relative.2=
+ne	narrow.day.past.one={0} दिन पहिले	narrow.day.past.other={0} दिन पहिले
+ne	narrow.day.future.one={0} दिनमा	narrow.day.future.other={0} दिनमा
+ne	narrow.day.count.one={0} दिन	narrow.day.count.other={0} दिन
+ne	narrow.day.relative.-2=अस्ति	narrow.day.relative.-1=हिजो	narrow.day.relative.0=आज	narrow.day.relative.1=भोलि	narrow.day.relative.2=पर्सि
+ne	narrow.week.past.one={0} हप्ता पहिले	narrow.week.past.other={0} हप्ता पहिले
+ne	narrow.week.future.one={0} हप्तामा	narrow.week.future.other={0} हप्तामा
+ne	narrow.week.count.one={0} हप्ता	narrow.week.count.other={0} हप्ता
+ne	narrow.week.relative.-2=	narrow.week.relative.-1=गत हप्ता	narrow.week.relative.0=यो हप्ता	narrow.week.relative.1=आगामी हप्ता	narrow.week.relative.2=
+ne	narrow.month.past.one={0} महिना पहिले	narrow.month.past.other={0} महिना पहिले
+ne	narrow.month.future.one={0} महिनामा	narrow.month.future.other={0} महिनामा
+ne	narrow.month.count.one={0} महिना	narrow.month.count.other={0} महिना
+ne	narrow.month.relative.-2=	narrow.month.relative.-1=गत महिना	narrow.month.relative.0=यो महिना	narrow.month.relative.1=आगामी महिना	narrow.month.relative.2=
+ne	narrow.quarter.past.one={0}सत्र अघि	narrow.quarter.past.other={0}सत्र अघि
+ne	narrow.quarter.future.one={0}सत्रमा	narrow.quarter.future.other={0}सत्रमा
+ne	narrow.quarter.count.one={0} q	narrow.quarter.count.other={0} q
+ne	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=अघिल्लो सत्र	narrow.quarter.relative.0=यो सत्र	narrow.quarter.relative.1=अर्को सत्र	narrow.quarter.relative.2=
+ne	narrow.year.past.one={0} वर्ष अघि	narrow.year.past.other={0} वर्ष अघि
+ne	narrow.year.future.one={0} वर्षमा	narrow.year.future.other={0} वर्षमा
+ne	narrow.year.count.one={0} वर्ष	narrow.year.count.other={0} वर्ष
+ne	narrow.year.relative.-2=	narrow.year.relative.-1=गत वर्ष	narrow.year.relative.0=यो वर्ष	narrow.year.relative.1=आगामी वर्ष	narrow.year.relative.2=
+ne	list.standard.2={0} र {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} र {1}
+ne	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+ne	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+ne	decimal=.	at={0} मा {1}
 nl	long.second.past.one={0} seconde geleden	long.second.past.other={0} seconden geleden
 nl	long.second.future.one=over {0} seconde	long.second.future.other=over {0} seconden
 nl	long.second.count.one={0} seconde	long.second.count.other={0} seconden
@@ -2398,6 +3198,106 @@ pl	list.standard.2={0} i {1}	list.standard.start={0}, {1}	list.standard.middle={
 pl	list.unit.2={0} i {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} i {1}
 pl	list.narrow.2={0} i {1}	list.narrow.start={0}, {1}	list.narrow.middle={0}, {1}	list.narrow.end={0} i {1}
 pl	decimal=,	at={0}, {1}
+ps	long.second.past.one={0} ثانيه مخکې	long.second.past.other={0} ثانيې مخکې
+ps	long.second.future.one=په {0} ثانيه کې	long.second.future.other=په {0} ثانيو کې
+ps	long.second.count.one={0} ثانیه	long.second.count.other={0} ثانیې
+ps	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=اوس	long.second.relative.1=	long.second.relative.2=
+ps	long.minute.past.one={0} دقيقه مخکې	long.minute.past.other={0} دقيقې مخکې
+ps	long.minute.future.one=په {0} دقيقه کې	long.minute.future.other=په {0} دقيقو کې
+ps	long.minute.count.one={0} دقیقه	long.minute.count.other={0} دقیقې
+ps	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=دا دقيقه	long.minute.relative.1=	long.minute.relative.2=
+ps	long.hour.past.one={0} ساعت مخکې	long.hour.past.other={0} ساعتونه مخکې
+ps	long.hour.future.one=په {0} ساعت کې	long.hour.future.other=په {0} ساعتو کې
+ps	long.hour.count.one={0} ساعت	long.hour.count.other={0} h
+ps	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=دا ساعت	long.hour.relative.1=	long.hour.relative.2=
+ps	long.day.past.one={0} ورځ مخکې	long.day.past.other={0} ورځې مخکې
+ps	long.day.future.one=په {0} ورځ کې	long.day.future.other=په {0} ورځو کې
+ps	long.day.count.one={0} ورځ	long.day.count.other={0} ورځې
+ps	long.day.relative.-2=	long.day.relative.-1=پرون	long.day.relative.0=نن	long.day.relative.1=سبا	long.day.relative.2=
+ps	long.week.past.one={0} اونۍ مخکې	long.week.past.other={0} اونۍ مخکې
+ps	long.week.future.one=په {0} اونۍ کې	long.week.future.other=په {0} اونيو کې
+ps	long.week.count.one={0} اونۍ	long.week.count.other={0} اونۍ
+ps	long.week.relative.-2=	long.week.relative.-1=تيره اونۍ	long.week.relative.0=دا اونۍ	long.week.relative.1=راتلونکې اونۍ	long.week.relative.2=
+ps	long.month.past.one={0} مياشت مخکې	long.month.past.other={0} مياشتې مخکې
+ps	long.month.future.one=په {0} مياشت کې	long.month.future.other=په {0} مياشتو کې
+ps	long.month.count.one={0} مياشت	long.month.count.other={0} مياشتې
+ps	long.month.relative.-2=	long.month.relative.-1=تېره مياشت	long.month.relative.0=دا مياشت	long.month.relative.1=راتلونکې مياشت	long.month.relative.2=
+ps	long.quarter.past.one={0} ربع مخکې	long.quarter.past.other={0} ربعې مخکې
+ps	long.quarter.future.one=په {0} ربع کې	long.quarter.future.other=په {0} ربعو کې
+ps	long.quarter.count.one={0} q	long.quarter.count.other={0} q
+ps	long.quarter.relative.-2=	long.quarter.relative.-1=ورستۍ ربع	long.quarter.relative.0=دا ربع	long.quarter.relative.1=راتلونکې ربع	long.quarter.relative.2=
+ps	long.year.past.one={0} کال مخکې	long.year.past.other={0} کاله مخکې
+ps	long.year.future.one=په {0} کال کې	long.year.future.other=په {0} کالونو کې
+ps	long.year.count.one={0} کال	long.year.count.other={0} کالونه
+ps	long.year.relative.-2=	long.year.relative.-1=پروسږکال	long.year.relative.0=سږکال	long.year.relative.1=راتلونکی کال	long.year.relative.2=
+ps	short.second.past.one={0} ثانيه مخکې	short.second.past.other={0} ثانيه مخکې
+ps	short.second.future.one=په {0} ثانيه کې	short.second.future.other=په {0} ثانيه کې
+ps	short.second.count.one={0} sec	short.second.count.other={0} sec
+ps	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=اوس	short.second.relative.1=	short.second.relative.2=
+ps	short.minute.past.one={0} دقيقه مخکې	short.minute.past.other={0} دقيقه مخکې
+ps	short.minute.future.one=په {0} دقيقه کې	short.minute.future.other=په {0} دقيقه کې
+ps	short.minute.count.one={0} دقیقه	short.minute.count.other={0} دقیقه
+ps	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=دا دقيقه	short.minute.relative.1=	short.minute.relative.2=
+ps	short.hour.past.one={0} ساعت مخکې	short.hour.past.other={0} ساعت مخکې
+ps	short.hour.future.one=په {0} ساعت کې	short.hour.future.other=په {0} ساعت کې
+ps	short.hour.count.one={0} h	short.hour.count.other={0} h
+ps	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=دا ساعت	short.hour.relative.1=	short.hour.relative.2=
+ps	short.day.past.one={0} ورځ مخکې	short.day.past.other={0} ورځې مخکې
+ps	short.day.future.one=په {0} ورځ کې	short.day.future.other=په {0} ورځو کې
+ps	short.day.count.one={0} ورځ	short.day.count.other={0} ورځې
+ps	short.day.relative.-2=	short.day.relative.-1=پرون	short.day.relative.0=نن	short.day.relative.1=سبا	short.day.relative.2=
+ps	short.week.past.one={0} اونۍ مخکې	short.week.past.other={0} اونۍ مخکې
+ps	short.week.future.one=په {0} اونۍ کې	short.week.future.other=په {0} اونۍ کې
+ps	short.week.count.one={0} w	short.week.count.other={0} wks
+ps	short.week.relative.-2=	short.week.relative.-1=تېره اونۍ	short.week.relative.0=دا اونۍ	short.week.relative.1=راتلونکې اونۍ	short.week.relative.2=
+ps	short.month.past.one={0} مياشت مخکې	short.month.past.other={0} مياشت مخکې
+ps	short.month.future.one=په {0} مياشت کې	short.month.future.other=په {0} مياشت کې
+ps	short.month.count.one={0} m	short.month.count.other={0} mths
+ps	short.month.relative.-2=	short.month.relative.-1=تېره مياشت	short.month.relative.0=دا مياشت	short.month.relative.1=راتلونکې مياشت	short.month.relative.2=
+ps	short.quarter.past.one={0} ربع مخکې	short.quarter.past.other={0} ربعې مخکې
+ps	short.quarter.future.one=په {0} ربع کې	short.quarter.future.other=په {0} ربعو کې
+ps	short.quarter.count.one={0} q	short.quarter.count.other={0} q
+ps	short.quarter.relative.-2=	short.quarter.relative.-1=ورستۍ ربع	short.quarter.relative.0=دا ربع	short.quarter.relative.1=راتلونکې ربع	short.quarter.relative.2=
+ps	short.year.past.one={0} کال مخکې	short.year.past.other={0} کاله مخکې
+ps	short.year.future.one=په {0} کال کې	short.year.future.other=په {0} کالونو کې
+ps	short.year.count.one={0}/کال	short.year.count.other={0} کالونه
+ps	short.year.relative.-2=	short.year.relative.-1=تېر کال	short.year.relative.0=سږ کال	short.year.relative.1=روتلونکی کال	short.year.relative.2=
+ps	narrow.second.past.one={0} ثانيه کې	narrow.second.past.other={0} ثانيه کې
+ps	narrow.second.future.one=په {0} ثانيه کې	narrow.second.future.other=په {0} ثانيه کې
+ps	narrow.second.count.one={0} s	narrow.second.count.other={0} s
+ps	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=اوس	narrow.second.relative.1=	narrow.second.relative.2=
+ps	narrow.minute.past.one={0} دقيقه مخکې	narrow.minute.past.other={0} دقيقه مخکې
+ps	narrow.minute.future.one=په {0} دقيقه کې	narrow.minute.future.other=په {0} دقيقه کې
+ps	narrow.minute.count.one={0}m	narrow.minute.count.other={0}m
+ps	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=دا دقيقه	narrow.minute.relative.1=	narrow.minute.relative.2=
+ps	narrow.hour.past.one={0} ساعت مخکې	narrow.hour.past.other={0} ساعت مخکې
+ps	narrow.hour.future.one=په {0} ساعت کې	narrow.hour.future.other=په {0} ساعت کې
+ps	narrow.hour.count.one={0} h	narrow.hour.count.other={0} h
+ps	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=دا ساعت	narrow.hour.relative.1=	narrow.hour.relative.2=
+ps	narrow.day.past.one={0} ورځ مخکې	narrow.day.past.other={0} ورځې مخکې
+ps	narrow.day.future.one=په {0} ورځ کې	narrow.day.future.other=په {0} ورځو کې
+ps	narrow.day.count.one={0} ورځ	narrow.day.count.other={0}d
+ps	narrow.day.relative.-2=	narrow.day.relative.-1=پرون	narrow.day.relative.0=نن	narrow.day.relative.1=سبا	narrow.day.relative.2=
+ps	narrow.week.past.one={0} اونۍ مخکې	narrow.week.past.other={0} اونۍ مخکې
+ps	narrow.week.future.one=په {0} اونۍ کې	narrow.week.future.other=په {0} اونۍ کې
+ps	narrow.week.count.one={0} w	narrow.week.count.other={0} w
+ps	narrow.week.relative.-2=	narrow.week.relative.-1=تېره اونۍ	narrow.week.relative.0=دا اونۍ	narrow.week.relative.1=راتلونکې اونۍ	narrow.week.relative.2=
+ps	narrow.month.past.one={0} مياشت مخکې	narrow.month.past.other={0} مياشت مخکې
+ps	narrow.month.future.one=په {0} مياشت کې	narrow.month.future.other=په {0} مياشت کې
+ps	narrow.month.count.one={0} m	narrow.month.count.other={0} m
+ps	narrow.month.relative.-2=	narrow.month.relative.-1=تېره مياشت	narrow.month.relative.0=دا مياشت	narrow.month.relative.1=راتلونکې مياشت	narrow.month.relative.2=
+ps	narrow.quarter.past.one={0} ربع مخکې	narrow.quarter.past.other={0} ربعې مخکې
+ps	narrow.quarter.future.one=په {0} ربع کې	narrow.quarter.future.other=په {0} ربعو کې
+ps	narrow.quarter.count.one={0} q	narrow.quarter.count.other={0} q
+ps	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=ورستۍ ربع	narrow.quarter.relative.0=دا ربع	narrow.quarter.relative.1=راتلونکې ربع	narrow.quarter.relative.2=
+ps	narrow.year.past.one={0} کال مخکې	narrow.year.past.other={0} کاله مخکې
+ps	narrow.year.future.one=په {0} کال کې	narrow.year.future.other=په {0} کالونو کې
+ps	narrow.year.count.one={0} y	narrow.year.count.other={0} y
+ps	narrow.year.relative.-2=	narrow.year.relative.-1=تير کال	narrow.year.relative.0=سږ کال	narrow.year.relative.1=راتلونکی کال	narrow.year.relative.2=
+ps	list.standard.2={0} او {1}	list.standard.start={0}، {1}	list.standard.middle={0}، {1}	list.standard.end={0}، او {1}
+ps	list.unit.2={0} او {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+ps	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+ps	decimal=٫	at={0} په {1}
 pt	long.second.past.one=há {0} segundo	long.second.past.many=há {0} segundos	long.second.past.other=há {0} segundos
 pt	long.second.future.one=em {0} segundo	long.second.future.many=em {0} segundos	long.second.future.other=em {0} segundos
 pt	long.second.count.one={0} segundo	long.second.count.many={0} segundos	long.second.count.other={0} segundos
@@ -2798,6 +3698,206 @@ sw	list.standard.2={0} na {1}	list.standard.start={0}, {1}	list.standard.middle=
 sw	list.unit.2={0} na {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0} na {1}
 sw	list.narrow.2={0} na {1}	list.narrow.start={0}, {1}	list.narrow.middle={0}, {1}	list.narrow.end={0} na {1}
 sw	decimal=.	at={0} {1}
+syr	long.second.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܦܦܐ	long.second.past.other=ܡ̣ܢ ܩܕܡ {0} ܖ̈ܦܦܐ
+syr	long.second.future.one=ܒܚܕ ܪܦܦܐ	long.second.future.other=ܒ{0} ܪ̈ܦܦܐ
+syr	long.second.count.one={0} ܪܦܦܐ	long.second.count.other={0} ܪ̈ܦܦܐ
+syr	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=ܗܫܐ	long.second.relative.1=	long.second.relative.2=
+syr	long.minute.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܩܛܝܢܬܐ	long.minute.past.other=ܡ̣ܢ ܩܕܡ {0} ܩܛܝ̈ܢܐ
+syr	long.minute.future.one=ܒܚܕܐ ܩܛܝܢܬܐ	long.minute.future.other=ܒ{0} ܩܛܝ̈ܢܐ
+syr	long.minute.count.one=ܩܛܝܢܐ	long.minute.count.other={0} ܩܛܝܢ̈ܐ
+syr	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=ܗܢܐ ܩܛܝܢܬܐ	long.minute.relative.1=	long.minute.relative.2=
+syr	long.hour.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܥܬܐ	long.hour.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܥ̈ܐ
+syr	long.hour.future.one=ܒܚܕܐ ܫܥܬܐ	long.hour.future.other=ܒ{0} ܫܥ̈ܐ
+syr	long.hour.count.one={0} ܫܥܬܐ	long.hour.count.other={0} ܫ̈ܥܐ
+syr	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=ܗܕܐ ܫܥܬܐ	long.hour.relative.1=	long.hour.relative.2=
+syr	long.day.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܘܡܐ	long.day.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܘܡܢ̈ܐ
+syr	long.day.future.one=ܒܚܕ ܝܘܡܐ	long.day.future.other=ܒ{0} ܝܘܡܢ̈ܐ
+syr	long.day.count.one=ܚܕ ܝܘܡܐ	long.day.count.other={0} ܝܘܡܢ̈ܐ
+syr	long.day.relative.-2=	long.day.relative.-1=ܐܬܡܠܝ	long.day.relative.0=ܐܕܝܘܡ	long.day.relative.1=ܩܘܕܡܐ	long.day.relative.2=
+syr	long.week.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܫܒܘܥܐ	long.week.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܒ̈ܘܥܐ
+syr	long.week.future.one=ܒܚܕ ܫܒܘܥܐ	long.week.future.other=ܒ{0} ܫܒ̈ܘܥܐ
+syr	long.week.count.one={0} ܫܒܘܥܐ	long.week.count.other={0} ܫܒ̈ܘܥܐ
+syr	long.week.relative.-2=	long.week.relative.-1=ܫܒܘܥܐ ܐܚܪܝܐ	long.week.relative.0=ܗܢܐ ܫܒܘܥܐ	long.week.relative.1=ܫܒܘܥܐ ܕܐܬܐ	long.week.relative.2=
+syr	long.month.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܪܚܐ	long.month.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܪ̈ܚܐ
+syr	long.month.future.one=ܒܚܕ ܝܪܚܐ	long.month.future.other=ܒ{0} ܝܪ̈ܚܐ
+syr	long.month.count.one=ܝܪܚܐ	long.month.count.other={0} ܝܪ̈ܚܐ
+syr	long.month.relative.-2=	long.month.relative.-1=ܝܪܚܐ ܐܚܪܝܐ	long.month.relative.0=ܗܢܐ ܝܪܚܐ	long.month.relative.1=ܝܪܚܐ ܕܐܬܐ	long.month.relative.2=
+syr	long.quarter.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܘܒܥܐ	long.quarter.past.other=ܡ̣ܢ ܩܕܡ {0} ܪ̈ܘܒܥܐ
+syr	long.quarter.future.one=ܒܚܕ ܪܘܒܥܐ	long.quarter.future.other=ܒ{0} ܪ̈ܘܒܥܐ
+syr	long.quarter.count.one=ܪܘܒܥܐ	long.quarter.count.other={0} ܪ̈ܘܒܥܐ
+syr	long.quarter.relative.-2=	long.quarter.relative.-1=ܪܘܒܥܐ ܕܥܒܪ	long.quarter.relative.0=ܗܢܐ ܪܘܒܥܐ	long.quarter.relative.1=ܪܘܒܥܐ ܕܐܬܐ	long.quarter.relative.2=
+syr	long.year.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܢܬܐ	long.year.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܢܝ̈ܐ
+syr	long.year.future.one=ܒܚܕܐ ܫܢܬܐ	long.year.future.other=ܒ{0} ܫܢܝ̈ܐ
+syr	long.year.count.one=ܫܢܬܐ	long.year.count.other={0} ܫ̈ܢܐ
+syr	long.year.relative.-2=	long.year.relative.-1=ܐܫܬܩܕܝ	long.year.relative.0=ܗܕܐ ܫܢܬܐ	long.year.relative.1=ܫܢܬܐ ܕܐܬܝܐ	long.year.relative.2=
+syr	short.second.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܦܦܐ	short.second.past.other=ܡ̣ܢ ܩܕܡ {0} ܖ̈ܦܦܐ
+syr	short.second.future.one=ܒܚܕ ܪܦܦܐ	short.second.future.other=ܒ{0} ܪ̈ܦܦܐ
+syr	short.second.count.one={0} ܪܦܦܐ	short.second.count.other={0} ܖ̈ܦܦܐ
+syr	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=ܗܫܐ	short.second.relative.1=	short.second.relative.2=
+syr	short.minute.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܩܛܝܢܬܐ	short.minute.past.other=ܡ̣ܢ ܩܕܡ {0} ܩܛܝ̈ܢܐ
+syr	short.minute.future.one=ܒܚܕܐ ܩܛܝܢܬܐ	short.minute.future.other=ܒ{0} ܩܛܝ̈ܢܐ
+syr	short.minute.count.one={0} ܩܛܝܢܐ	short.minute.count.other={0} ܩܛܝܢ̈ܐ
+syr	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=ܗܢܐ ܩܛܝܢܬܐ	short.minute.relative.1=	short.minute.relative.2=
+syr	short.hour.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܥܬܐ	short.hour.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܥ̈ܐ
+syr	short.hour.future.one=ܒܚܕܐ ܫܥܬܐ	short.hour.future.other=ܒ{0} ܫܥ̈ܐ
+syr	short.hour.count.one={0} ܫܥܬܐ	short.hour.count.other={0} ܫ̈ܥܐ
+syr	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=ܗܕܐ ܫܥܬܐ	short.hour.relative.1=	short.hour.relative.2=
+syr	short.day.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܘܡܐ	short.day.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܘܡܢ̈ܐ
+syr	short.day.future.one=ܒܚܕ ܝܘܡܐ	short.day.future.other=ܒ{0} ܝܘܡܢ̈ܐ
+syr	short.day.count.one=ܚܕ ܝܘܡܐ	short.day.count.other={0} ܝܘܡܢ̈ܐ
+syr	short.day.relative.-2=	short.day.relative.-1=܏ܬܡܠ	short.day.relative.0=ܐܕܝܘܡ	short.day.relative.1=܏ܩܘܕܡ	short.day.relative.2=
+syr	short.week.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܫܒܘܥܐ	short.week.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܒ̈ܘܥܐ
+syr	short.week.future.one=ܒܚܕ ܫܒܘܥܐ	short.week.future.other=ܒ{0} ܫܒ̈ܘܥܐ
+syr	short.week.count.one={0} ܫܒܘܥܐ	short.week.count.other={0} ܫܒ̈ܘܥܐ
+syr	short.week.relative.-2=	short.week.relative.-1=܏ܫܒܘ ܏ܐܚܪ	short.week.relative.0=ܗܢ ܏ܫܒܘ	short.week.relative.1=܏ܫܒܘ ܕܐܬܐ	short.week.relative.2=
+syr	short.month.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܪܚܐ	short.month.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܖ̈ܚܐ
+syr	short.month.future.one=ܒܚܕ ܝܪܚܐ	short.month.future.other=ܒ{0} ܝܪ̈ܚܐ
+syr	short.month.count.one=ܝܪܚܐ	short.month.count.other={0} ܝܪ̈ܚܐ
+syr	short.month.relative.-2=	short.month.relative.-1=܏ܝܪܚ ܏ܐܚܪ	short.month.relative.0=ܗܢ ܏ܝܪܚ	short.month.relative.1=܏ܝܪܚ ܕܐܬܐ	short.month.relative.2=
+syr	short.quarter.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܘܒܥܐ	short.quarter.past.other=ܡ̣ܢ ܩܕܡ {0} ܪ̈ܘܒܥܐ
+syr	short.quarter.future.one=ܒܚܕ ܪܘܒܥܐ	short.quarter.future.other=ܒ{0} ܪ̈ܘܒܥܐ
+syr	short.quarter.count.one=ܪܘܒܥܐ	short.quarter.count.other={0} ܪ̈ܘܒܥܐ
+syr	short.quarter.relative.-2=	short.quarter.relative.-1=ܪܘܒܥܐ ܕܥܒܪ	short.quarter.relative.0=ܗܢܐ ܪܘܒܥܐ	short.quarter.relative.1=ܪܘܒܥܐ ܕܐܬܐ	short.quarter.relative.2=
+syr	short.year.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܢܬܐ	short.year.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܢܝ̈ܐ
+syr	short.year.future.one=ܒܚܕܐ ܫܢܬܐ	short.year.future.other=ܒ{0} ܫܢܝ̈ܐ
+syr	short.year.count.one=ܫܢܬܐ	short.year.count.other={0} ܫ̈ܢܐ
+syr	short.year.relative.-2=	short.year.relative.-1=܏ܫܬܩܕ	short.year.relative.0=ܗܕ ܏ܫܢ	short.year.relative.1=܏ܫܢ ܕܐܬܝܐ	short.year.relative.2=
+syr	narrow.second.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܦܦܐ	narrow.second.past.other=ܡ̣ܢ ܩܕܡ {0} ܖ̈ܦܦܐ
+syr	narrow.second.future.one=ܒܚܕ ܪܦܦܐ	narrow.second.future.other=ܒ{0} ܪ̈ܦܦܐ
+syr	narrow.second.count.one={0} ܪܦܦܐ	narrow.second.count.other={0} ܖ̈ܦܦܐ
+syr	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=ܗܫܐ	narrow.second.relative.1=	narrow.second.relative.2=
+syr	narrow.minute.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܩܛܝܢܬܐ	narrow.minute.past.other=ܡ̣ܢ ܩܕܡ {0} ܩܛܝ̈ܢܐ
+syr	narrow.minute.future.one=ܒܚܕܐ ܩܛܝܢܬܐ	narrow.minute.future.other=ܒ{0} ܩܛܝ̈ܢܐ
+syr	narrow.minute.count.one={0} ܩܛܝܢܐ	narrow.minute.count.other={0} ܩܛܝܢ̈ܐ
+syr	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=ܗܢܐ ܩܛܝܢܬܐ	narrow.minute.relative.1=	narrow.minute.relative.2=
+syr	narrow.hour.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܥܬܐ	narrow.hour.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܥ̈ܐ
+syr	narrow.hour.future.one=ܒܚܕܐ ܫܥܬܐ	narrow.hour.future.other=ܒ{0} ܫܥ̈ܐ
+syr	narrow.hour.count.one={0} ܫܥܬܐ	narrow.hour.count.other={0} ܫ̈ܥܐ
+syr	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=ܗܕܐ ܫܥܬܐ	narrow.hour.relative.1=	narrow.hour.relative.2=
+syr	narrow.day.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܘܡܐ	narrow.day.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܘܡܢ̈ܐ
+syr	narrow.day.future.one=ܒܚܕ ܝܘܡܐ	narrow.day.future.other=ܒ{0} ܝܘܡܢ̈ܐ
+syr	narrow.day.count.one=ܚܕ ܝܘܡܐ	narrow.day.count.other={0} ܝܘܡܢ̈ܐ
+syr	narrow.day.relative.-2=	narrow.day.relative.-1=܏ܬܡܠ	narrow.day.relative.0=ܐܕܝܘܡ	narrow.day.relative.1=܏ܩܘܕܡ	narrow.day.relative.2=
+syr	narrow.week.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܫܒܘܥܐ	narrow.week.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܒ̈ܘܥܐ
+syr	narrow.week.future.one=ܒܚܕ ܫܒܘܥܐ	narrow.week.future.other=ܒ{0} ܫܒ̈ܘܥܐ
+syr	narrow.week.count.one={0} ܫܒܘܥܐ	narrow.week.count.other={0} ܫܒ̈ܘܥܐ
+syr	narrow.week.relative.-2=	narrow.week.relative.-1=܏ܫܒܘ ܏ܐܚܪ	narrow.week.relative.0=ܗܢ ܏ܫܒܘ	narrow.week.relative.1=܏ܫܒܘ ܕܐܬܐ	narrow.week.relative.2=
+syr	narrow.month.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܝܪܚܐ	narrow.month.past.other=ܡ̣ܢ ܩܕܡ {0} ܝܖ̈ܚܐ
+syr	narrow.month.future.one=ܒܚܕ ܝܪܚܐ	narrow.month.future.other=ܒ{0} ܝܪ̈ܚܐ
+syr	narrow.month.count.one={0} ܝܪܚܐ	narrow.month.count.other={0} ܝܪ̈ܚܐ
+syr	narrow.month.relative.-2=	narrow.month.relative.-1=܏ܝܪܚ ܏ܐܚܪ	narrow.month.relative.0=ܗܢ ܏ܝܪܚ	narrow.month.relative.1=܏ܝܪܚ ܕܐܬܐ	narrow.month.relative.2=
+syr	narrow.quarter.past.one=ܡ̣ܢ ܩܕܡ ܚܕ ܪܘܒܥܐ	narrow.quarter.past.other=ܡ̣ܢ ܩܕܡ {0} ܪ̈ܘܒܥܐ
+syr	narrow.quarter.future.one=ܒܚܕ ܪܘܒܥܐ	narrow.quarter.future.other=ܒ{0} ܪ̈ܘܒܥܐ
+syr	narrow.quarter.count.one={0} ܪܘܒܥܐ	narrow.quarter.count.other={0} ܪ̈ܘܒܥܐ
+syr	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=ܪܘܒܥܐ ܕܥܒܪ	narrow.quarter.relative.0=ܗܢܐ ܪܘܒܥܐ	narrow.quarter.relative.1=ܪܘܒܥܐ ܕܐܬܐ	narrow.quarter.relative.2=
+syr	narrow.year.past.one=ܡ̣ܢ ܩܕܡ ܚܕܐ ܫܢܬܐ	narrow.year.past.other=ܡ̣ܢ ܩܕܡ {0} ܫܢܝ̈ܐ
+syr	narrow.year.future.one=ܒܚܕܐ ܫܢܬܐ	narrow.year.future.other=ܒ{0} ܫܢܝ̈ܐ
+syr	narrow.year.count.one={0} ܫܢܬܐ	narrow.year.count.other={0} ܫ̈ܢܐ
+syr	narrow.year.relative.-2=	narrow.year.relative.-1=܏ܫܬܩܕ	narrow.year.relative.0=ܗܕ ܏ܫܢ	narrow.year.relative.1=܏ܫܢ ܕܐܬܝܐ	narrow.year.relative.2=
+syr	list.standard.2={0} ܘ{1}	list.standard.start={0} ܘ{1}	list.standard.middle={0} ܘ{1}	list.standard.end={0} ܘ{1}
+syr	list.unit.2={0} ܘ{1}	list.unit.start={0} ܘ{1}	list.unit.middle={0} ܘ{1}	list.unit.end={0} ܘ{1}
+syr	list.narrow.2={0} ܘ{1}	list.narrow.start={0} ܘ{1}	list.narrow.middle={0} ܘ{1}	list.narrow.end={0} ܘ{1}
+syr	decimal=.	at={0}، {1}
+ta	long.second.past.one={0} விநாடிக்கு முன்	long.second.past.other={0} விநாடிகளுக்கு முன்
+ta	long.second.future.one={0} விநாடியில்	long.second.future.other={0} விநாடிகளில்
+ta	long.second.count.one={0} விநாடி	long.second.count.other={0} விநாடிகள்
+ta	long.second.relative.-2=	long.second.relative.-1=	long.second.relative.0=இப்போது	long.second.relative.1=	long.second.relative.2=
+ta	long.minute.past.one={0} நிமிடத்திற்கு முன்	long.minute.past.other={0} நிமிடங்களுக்கு முன்
+ta	long.minute.future.one={0} நிமிடத்தில்	long.minute.future.other={0} நிமிடங்களில்
+ta	long.minute.count.one={0} நிமி.	long.minute.count.other={0} நிமிடங்கள்
+ta	long.minute.relative.-2=	long.minute.relative.-1=	long.minute.relative.0=இந்த ஒரு நிமிடத்தில்	long.minute.relative.1=	long.minute.relative.2=
+ta	long.hour.past.one={0} மணிநேரம் முன்	long.hour.past.other={0} மணிநேரம் முன்
+ta	long.hour.future.one={0} மணிநேரத்தில்	long.hour.future.other={0} மணிநேரத்தில்
+ta	long.hour.count.one={0} ம.	long.hour.count.other={0} ம.
+ta	long.hour.relative.-2=	long.hour.relative.-1=	long.hour.relative.0=இந்த ஒரு மணிநேரத்தில்	long.hour.relative.1=	long.hour.relative.2=
+ta	long.day.past.one={0} நாளுக்கு முன்	long.day.past.other={0} நாட்களுக்கு முன்
+ta	long.day.future.one={0} நாளில்	long.day.future.other={0} நாட்களில்
+ta	long.day.count.one={0} நாள்	long.day.count.other={0} நாட்கள்
+ta	long.day.relative.-2=நேற்று முன்தினம்	long.day.relative.-1=நேற்று	long.day.relative.0=இன்று	long.day.relative.1=நாளை	long.day.relative.2=நாளை மறுநாள்
+ta	long.week.past.one={0} வாரத்திற்கு முன்	long.week.past.other={0} வாரங்களுக்கு முன்
+ta	long.week.future.one={0} வாரத்தில்	long.week.future.other={0} வாரங்களில்
+ta	long.week.count.one={0} வாரம்	long.week.count.other={0} வாரங்கள்
+ta	long.week.relative.-2=	long.week.relative.-1=கடந்த வாரம்	long.week.relative.0=இந்த வாரம்	long.week.relative.1=அடுத்த வாரம்	long.week.relative.2=
+ta	long.month.past.one={0} மாதத்துக்கு முன்	long.month.past.other={0} மாதங்களுக்கு முன்
+ta	long.month.future.one={0} மாதத்தில்	long.month.future.other={0} மாதங்களில்
+ta	long.month.count.one={0} மாதம்	long.month.count.other={0} மாதங்கள்
+ta	long.month.relative.-2=	long.month.relative.-1=கடந்த மாதம்	long.month.relative.0=இந்த மாதம்	long.month.relative.1=அடுத்த மாதம்	long.month.relative.2=
+ta	long.quarter.past.one={0} காலாண்டுக்கு முன்	long.quarter.past.other={0} காலாண்டுகளுக்கு முன்
+ta	long.quarter.future.one=+{0} காலாண்டில்	long.quarter.future.other={0} காலாண்டுகளில்
+ta	long.quarter.count.one={0} காலாண்டு	long.quarter.count.other={0} காலாண்டுகள்
+ta	long.quarter.relative.-2=	long.quarter.relative.-1=கடந்த காலாண்டு	long.quarter.relative.0=இந்த காலாண்டு	long.quarter.relative.1=அடுத்த காலாண்டு	long.quarter.relative.2=
+ta	long.year.past.one={0} ஆண்டிற்கு முன்	long.year.past.other={0} ஆண்டுகளுக்கு முன்
+ta	long.year.future.one={0} ஆண்டில்	long.year.future.other={0} ஆண்டுகளில்
+ta	long.year.count.one={0} ஆண்டு	long.year.count.other={0} ஆண்டுகள்
+ta	long.year.relative.-2=	long.year.relative.-1=கடந்த ஆண்டு	long.year.relative.0=இந்த ஆண்டு	long.year.relative.1=அடுத்த ஆண்டு	long.year.relative.2=
+ta	short.second.past.one={0} வி. முன்	short.second.past.other={0} வி. முன்
+ta	short.second.future.one={0} விநாடியில்	short.second.future.other={0} விநாடிகளில்
+ta	short.second.count.one={0} விநாடி	short.second.count.other={0} விநாடி
+ta	short.second.relative.-2=	short.second.relative.-1=	short.second.relative.0=இப்போது	short.second.relative.1=	short.second.relative.2=
+ta	short.minute.past.one={0} நிமி. முன்	short.minute.past.other={0} நிமி. முன்
+ta	short.minute.future.one={0} நிமி.	short.minute.future.other={0} நிமி.
+ta	short.minute.count.one={0} நிமி.	short.minute.count.other={0} நிமி.
+ta	short.minute.relative.-2=	short.minute.relative.-1=	short.minute.relative.0=இந்த ஒரு நிமிடத்தில்	short.minute.relative.1=	short.minute.relative.2=
+ta	short.hour.past.one={0} ம. முன்	short.hour.past.other={0} ம. முன்
+ta	short.hour.future.one={0} மணிநேரத்தில்	short.hour.future.other={0} மணிநேரத்தில்
+ta	short.hour.count.one={0} ம.	short.hour.count.other={0} ம.
+ta	short.hour.relative.-2=	short.hour.relative.-1=	short.hour.relative.0=இந்த ஒரு மணிநேரத்தில்	short.hour.relative.1=	short.hour.relative.2=
+ta	short.day.past.one={0} நாளுக்கு முன்	short.day.past.other={0} நாட்களுக்கு முன்
+ta	short.day.future.one={0} நாளில்	short.day.future.other={0} நாட்களில்
+ta	short.day.count.one={0} நாள்	short.day.count.other={0} நாட்கள்
+ta	short.day.relative.-2=நேற்று முன்தினம்	short.day.relative.-1=நேற்று	short.day.relative.0=இன்று	short.day.relative.1=நாளை	short.day.relative.2=நாளை மறுநாள்
+ta	short.week.past.one={0} வார. முன்	short.week.past.other={0} வார. முன்
+ta	short.week.future.one={0} வார.	short.week.future.other={0} வார.
+ta	short.week.count.one={0} வாரம்	short.week.count.other={0} வார.
+ta	short.week.relative.-2=	short.week.relative.-1=கடந்த வாரம்	short.week.relative.0=இந்த வாரம்	short.week.relative.1=அடுத்த வாரம்	short.week.relative.2=
+ta	short.month.past.one={0} மாத. முன்	short.month.past.other={0} மாத. முன்
+ta	short.month.future.one={0} மாத.	short.month.future.other={0} மாத.
+ta	short.month.count.one={0} மாதம்	short.month.count.other={0} மாத.
+ta	short.month.relative.-2=	short.month.relative.-1=கடந்த மாதம்	short.month.relative.0=இந்த மாதம்	short.month.relative.1=அடுத்த மாதம்	short.month.relative.2=
+ta	short.quarter.past.one={0} கா. முன்	short.quarter.past.other={0} கா. முன்
+ta	short.quarter.future.one=+{0} காலாண்டில்	short.quarter.future.other={0} காலாண்டுகளில்
+ta	short.quarter.count.one={0} காலா.	short.quarter.count.other={0} காலா.
+ta	short.quarter.relative.-2=	short.quarter.relative.-1=இறுதி காலாண்டு	short.quarter.relative.0=இந்த காலாண்டு	short.quarter.relative.1=அடுத்த காலாண்டு	short.quarter.relative.2=
+ta	short.year.past.one={0} ஆண்டிற்கு முன்	short.year.past.other={0} ஆண்டுகளுக்கு முன்
+ta	short.year.future.one={0} ஆண்டில்	short.year.future.other={0} ஆண்டுகளில்
+ta	short.year.count.one={0} ஆண்டு	short.year.count.other={0} ஆண்டு.
+ta	short.year.relative.-2=	short.year.relative.-1=கடந்த ஆண்டு	short.year.relative.0=இந்த ஆண்டு	short.year.relative.1=அடுத்த ஆண்டு	short.year.relative.2=
+ta	narrow.second.past.one={0} வி. முன்	narrow.second.past.other={0} வி. முன்
+ta	narrow.second.future.one={0} வி.	narrow.second.future.other={0} வி.
+ta	narrow.second.count.one={0} வி.	narrow.second.count.other={0} வி.
+ta	narrow.second.relative.-2=	narrow.second.relative.-1=	narrow.second.relative.0=இப்போது	narrow.second.relative.1=	narrow.second.relative.2=
+ta	narrow.minute.past.one={0} நி. முன்	narrow.minute.past.other={0} நி. முன்
+ta	narrow.minute.future.one={0} நி.	narrow.minute.future.other={0} நி.
+ta	narrow.minute.count.one={0} நிமி.	narrow.minute.count.other={0} நிமி.
+ta	narrow.minute.relative.-2=	narrow.minute.relative.-1=	narrow.minute.relative.0=இந்த ஒரு நிமிடத்தில்	narrow.minute.relative.1=	narrow.minute.relative.2=
+ta	narrow.hour.past.one={0} ம. முன்	narrow.hour.past.other={0} ம. முன்
+ta	narrow.hour.future.one={0} ம.	narrow.hour.future.other={0} ம.
+ta	narrow.hour.count.one={0} ம.நே.	narrow.hour.count.other={0} ம.நே.
+ta	narrow.hour.relative.-2=	narrow.hour.relative.-1=	narrow.hour.relative.0=இந்த ஒரு மணிநேரத்தில்	narrow.hour.relative.1=	narrow.hour.relative.2=
+ta	narrow.day.past.one={0} நா. முன்	narrow.day.past.other={0} நா. முன்
+ta	narrow.day.future.one={0} நா.	narrow.day.future.other={0} நா.
+ta	narrow.day.count.one={0} நா	narrow.day.count.other={0} நா
+ta	narrow.day.relative.-2=நேற்று முன்தினம்	narrow.day.relative.-1=நேற்று	narrow.day.relative.0=இன்று	narrow.day.relative.1=நாளை	narrow.day.relative.2=நாளை மறுநாள்
+ta	narrow.week.past.one={0} வா. முன்	narrow.week.past.other={0} வா. முன்
+ta	narrow.week.future.one={0} வா.	narrow.week.future.other={0} வா.
+ta	narrow.week.count.one={0} வா	narrow.week.count.other={0} வா
+ta	narrow.week.relative.-2=	narrow.week.relative.-1=கடந்த வாரம்	narrow.week.relative.0=இந்த வாரம்	narrow.week.relative.1=அடுத்த வாரம்	narrow.week.relative.2=
+ta	narrow.month.past.one={0} மா. முன்	narrow.month.past.other={0} மா. முன்
+ta	narrow.month.future.one={0} மா.	narrow.month.future.other={0} மா.
+ta	narrow.month.count.one={0} மா	narrow.month.count.other={0} மா
+ta	narrow.month.relative.-2=	narrow.month.relative.-1=கடந்த மாதம்	narrow.month.relative.0=இந்த மாதம்	narrow.month.relative.1=அடுத்த மாதம்	narrow.month.relative.2=
+ta	narrow.quarter.past.one={0} கா. முன்	narrow.quarter.past.other={0} கா. முன்
+ta	narrow.quarter.future.one={0} கா.	narrow.quarter.future.other={0} கா.
+ta	narrow.quarter.count.one={0} கா.	narrow.quarter.count.other={0} கா.
+ta	narrow.quarter.relative.-2=	narrow.quarter.relative.-1=இறுதி காலாண்டு	narrow.quarter.relative.0=இந்த காலாண்டு	narrow.quarter.relative.1=அடுத்த காலாண்டு	narrow.quarter.relative.2=
+ta	narrow.year.past.one={0} ஆ. முன்	narrow.year.past.other={0} ஆ. முன்
+ta	narrow.year.future.one={0} ஆ.	narrow.year.future.other={0} ஆ.
+ta	narrow.year.count.one={0} ஆ	narrow.year.count.other={0} ஆ
+ta	narrow.year.relative.-2=	narrow.year.relative.-1=கடந்த ஆண்டு	narrow.year.relative.0=இந்த ஆண்டு	narrow.year.relative.1=அடுத்த ஆண்டு	narrow.year.relative.2=
+ta	list.standard.2={0} மற்றும் {1}	list.standard.start={0}, {1}	list.standard.middle={0}, {1}	list.standard.end={0} மற்றும் {1}
+ta	list.unit.2={0}, {1}	list.unit.start={0}, {1}	list.unit.middle={0}, {1}	list.unit.end={0}, {1}
+ta	list.narrow.2={0} {1}	list.narrow.start={0} {1}	list.narrow.middle={0} {1}	list.narrow.end={0} {1}
+ta	decimal=.	at={0}, {1}
 te	long.second.past.one={0} సెకను క్రితం	long.second.past.other={0} సెకన్ల క్రితం
 te	long.second.future.one={0} సెకనులో	long.second.future.other={0} సెకన్లలో
 te	long.second.count.one={0} సెకను	long.second.count.other={0} సెకన్లు

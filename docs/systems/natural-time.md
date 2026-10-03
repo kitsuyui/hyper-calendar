@@ -159,7 +159,7 @@ eight units of the `relativeTime` fields) and does four things:
    substituted for `{0}`. A pattern that is empty for the category is the
    error `NoPattern`, not a guess.
 
-Ordinary phrases come from data: one `LocaleData` for each of 39 locales,
+Ordinary phrases come from data: one `LocaleData` for each of 50 locales,
 generated from CLDR 48's files by `scripts/humanize-cldr.py`. Lookup walks
 `Locale::fallback()`, and at the root it stops: root's patterns are signed
 abbreviations (`-3 d`, `+3 d`, count `other` only), with its relative
@@ -284,13 +284,17 @@ them (a probe of both).
   day with `hc-format`'s C-locale `strftime`, in English whatever the
   catalogue, as Python's does under the C locale, and needs the `format`
   feature.
-- **CLDR 48 relative time** in 39 locales: the eight units in the three
+- **CLDR 48 relative time** in 50 locales: the eight units in the three
   widths, every plural category the language has, the relative words from
   −2 to 2, the unit patterns, list patterns, the decimal separator and the
   relative date-time pattern (*yesterday at 15:05*; `es` *ayer, 15:05*), with
   76 documented overrides of CLDR's own values in
-  `src/data/cldr48_overrides.tsv`. A locale outside the 39 reaches the
-  nearest of them by fallback, else the root.
+  `src/data/cldr48_overrides.tsv`. A locale outside the 50 reaches the
+  nearest of them by fallback, else the root; a locale `hc-i18n` carries whose
+  chain reaches none of them (`aeb-Latn`, `ayl-Latn`, `ban`, `bo`, `cop`, `kab`,
+  `mid`, `mix`, `nah`, `pa-Arab`, `rif`, `sa`, `shi-Latn`, `yua`, `zap`, `zgh`) is `NoPattern` at the
+  crate and `NoData` at the boundary, never the root's `-5 h`: CLDR 48 states
+  no phrases for it that its release level accepts.
 - **Five strings that CLDR is not the source of**, hand-written in
   `data.rs`: the approximation hedges, the weekday phrases (*last Monday*),
   the half-unit idioms, the compact suffixes of *2h30m* and the indefinite
@@ -326,7 +330,7 @@ Not carried, each a follow-up and not a decision:
 - `relativePeriod` (*the week of {0}*) [uts35-dates-48], and the
   `hc-i18n` plural operands `c` and `e`, and gendered agreement (README: not
   yet done).
-- Locales beyond the 39, and `humanize` catalogues for the CLDR path.
+- Locales beyond the 50, and `humanize` catalogues for the CLDR path.
 - Compact suffixes (*2h30m*) for `ar`, `hi` and `th`: not yet written.
 
 ## Accuracy
@@ -352,7 +356,7 @@ Not carried, each a follow-up and not a decision:
   thresholds it tried (44 and 45 seconds, 21 and 22 hours, 5 and 6 days, 27
   and 28 days, 334 and 335 days).
 - **CLDR 48 data.** `tests/cldr48_resolved.rs` compares every value taken
-  from CLDR in all 39 locales with CLDR 48's own resolution in
+  from CLDR in all 50 locales with CLDR 48's own resolution in
   `cldr-json` 48.0.0, which the test's sample records, and a value differs
   from CLDR's only where one of the 76 override lines says so: 74 for a
   value a source argues against, 2 where `cldr-json`'s resolution differs

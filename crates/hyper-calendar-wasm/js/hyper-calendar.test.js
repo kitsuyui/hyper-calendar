@@ -3417,6 +3417,13 @@ describe("humanize", () => {
     assert.equal(hc.relativeTime(now - 86_400, now, "long", true, "en").phrase, "yesterday");
     assert.equal(hc.relativeTime(now - 86_400, now, "long", false, "ru").phrase, "1 день назад");
     assert.equal(hc.relativeTime(now - 86_400, now).phrase, "-1 d");
+    // CLDR 48's `he.xml` and `ta.xml`; a locale hc-i18n carries that CLDR 48 has no
+    // phrases for is no data, never the root's `-5 h`.
+    assert.equal(hc.relativeTime(now - 5 * 3_600, now, "long", false, "he").phrase, "לפני 5 שעות");
+    assert.equal(hc.relativeTime(now - 5 * 3_600, now, "long", false, "ta").phrase, "5 மணிநேரம் முன்");
+    for (const tag of ["bo", "kab", "ban", "pa-Arab", "zgh"]) {
+      refused(() => hc.relativeTime(now - 5 * 3_600, now, "long", false, tag), "no-data");
+    }
     refused(() => hc.relativeTime(now, now, /** @type {any} */ ("wide")), "unknown");
     refused(() => hc.relativeTime(-(2n ** 63n), 1n), "out-of-range");
   });
@@ -3495,6 +3502,12 @@ describe("humanize", () => {
     // `natural_list` is in no catalogue.
     assert.deepEqual(hc.naturalList(["a", "b", "c"], "de"), { text: "a, b and c", localeUsed: "en" });
     assert.deepEqual(hc.metric(1500, "V", 3, "de"), { text: "1.50 kV", localeUsed: "de-DE" });
+    // A catalogue that leaves a message of the function untranslated, or writes a raw
+    // placeholder for a word, does not serve it: Korean's powers and Japanese's list.
+    assert.deepEqual(hc.intword(1_000_000, 1, "ko"), { text: "1.0 million", localeUsed: "en" });
+    assert.deepEqual(hc.intword(1_000_000, 1, "bn-BD"), { text: "1.0 million", localeUsed: "en" });
+    assert.equal(hc.preciseDelta(2 * 86_400 + 3_633, 120_000, "seconds", [], 2, "ja").localeUsed, "en");
+    assert.equal(hc.preciseDelta(2 * 86_400 + 3_633, 120_000, "seconds", [], 2, "de").localeUsed, "de-DE");
   });
 
   // `precisedelta`'s examples are those of humanize 4.16's documentation: a

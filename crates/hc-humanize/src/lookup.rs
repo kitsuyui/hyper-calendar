@@ -23,12 +23,43 @@ use crate::pattern::{
 };
 use crate::unit::TimeUnit;
 
+/// Whether this crate has phrases for a locale, or may answer in the root's.
+///
+/// A locale `hc-i18n` carries, whose chain reaches no entry of this crate,
+/// has none: CLDR 48 states no relative-time words for it, or they are not
+/// yet carried, and the root's `-5 h` would be an answer in no language of
+/// the locale's. A caller gets [`HumanizeError::NoPattern`] for it, never
+/// the root's abbreviations. A language `hc-i18n` does not carry either is
+/// CLDR's root, which has no language in it by design.
+///
+/// [`HumanizeError::NoPattern`]: crate::HumanizeError::NoPattern
+#[must_use]
+pub fn has_phrases(locale: &Locale) -> bool {
+    carried_phrases(locale).is_some() || hc_i18n::names::locale_data(locale).tag == "und"
+}
+
+/// The entry of this crate a locale's chain reaches, if any.
+fn carried_phrases(locale: &Locale) -> Option<&'static LocaleData> {
+    for candidate in locale.fallback() {
+        for data in LOCALES {
+            if candidate.matches_tag(data.tag) {
+                return Some(data);
+            }
+        }
+    }
+    None
+}
+
 /// Walk the locale fallback chain and return the first entry that yields a
-/// value, with the root entry as the floor.
+/// value, with the root entry as the floor, and nothing for a locale this
+/// crate has no phrases for ([`has_phrases`]).
 fn resolve<T, F>(locale: &Locale, pick: F) -> Option<T>
 where
     F: Fn(&'static LocaleData) -> Option<T>,
 {
+    if !has_phrases(locale) {
+        return None;
+    }
     for candidate in locale.fallback() {
         for data in LOCALES {
             if candidate.matches_tag(data.tag)
@@ -245,6 +276,39 @@ mod tests {
         assert_eq!(locale_data(&locale("es-MX")).tag, "es-419");
         assert_eq!(locale_data(&locale("ur-IN")).tag, "ur-IN");
         assert_eq!(locale_data(&locale("ar-EG")).tag, "ar-EG");
+    }
+
+    /// The locales `hc-i18n` carries that have no phrases here: no
+    /// `common/main` file of CLDR 48 for ten of them, no relative-time
+    /// pattern in the file of `bo`, `pa-Arab`, `sa`, `shi-Latn` and `zgh`, and
+    /// only draft `unconfirmed` ones in `kab`'s.
+    const WITHOUT_PHRASES: [&str; 16] = [
+        "aeb-Latn", "ayl-Latn", "ban", "bo", "cop", "kab", "mid", "mix", "nah", "pa-Arab", "rif",
+        "sa", "shi-Latn", "yua", "zap", "zgh",
+    ];
+
+    #[test]
+    fn a_locale_hc_i18n_carries_has_phrases_or_none_at_all() {
+        for data in hc_i18n::data::LOCALES {
+            let tag = locale(data.tag);
+            let none = WITHOUT_PHRASES.contains(&data.tag);
+            assert_eq!(has_phrases(&tag), !none, "{}", data.tag);
+            let found = unit_patterns(&tag, TimeUnit::Hour, RelativeStyle::Long);
+            assert_eq!(found.is_none(), none, "{}", data.tag);
+            if none {
+                // Never the root's `-5 h`.
+                assert_eq!(locale_data(&tag).tag, "und", "{}", data.tag);
+            } else {
+                assert_ne!(locale_data(&tag).tag, "und", "{}", data.tag);
+            }
+        }
+        // A region of such a locale has none either.
+        assert!(!has_phrases(&locale("bo-CN")));
+        assert!(!has_phrases(&locale("kab-DZ")));
+        assert!(!has_phrases(&locale("pa-PK")));
+        // A language `hc-i18n` does not carry is CLDR's root, language-free.
+        assert!(has_phrases(&locale("xx")));
+        assert!(has_phrases(&Locale::ROOT));
     }
 
     #[test]

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Regenerate crates/hc-humanize/src/data/cldr48.rs from Unicode CLDR 48.
 
-Every one of the 39 locales hc-humanize carries takes its relative-time
+Every one of the locales hc-humanize carries takes its relative-time
 phrases, its duration patterns, its list patterns, its decimal separator
 and its relative date-time pattern (UTS #35 Part 4's `relative`
 `dateTimeFormat`) from its CLDR 48 file, resolved as CLDR resolves it, and
@@ -51,12 +51,21 @@ OUTPUT = os.path.join(ROOT_DIR, 'crates/hc-humanize/src/data/cldr48.rs')
 OVERRIDES = os.path.join(ROOT_DIR, 'crates/hc-humanize/src/data/cldr48_overrides.tsv')
 BASE = 'https://raw.githubusercontent.com/unicode-org/cldr/release-48/common/'
 
+# A locale whose files state no relative-time or duration pattern at the
+# `contributed` level or above is listed all the same and skipped with a
+# message (`bo`, `kab`, `pa-Arab`, `sa`, `shi-Latn`, `zgh`): the crate has
+# no phrases for it and answers `NoPattern`, as for the ten locales hc-i18n
+# carries that have no CLDR 48 file at all.
+#
 # Each carried tag and its CLDR files, child first, root left out. A tag
 # names its script where CLDR's likely subtags would give a plain tag a
 # different file than the entry holds: `pa` is Gurmukhi, `yue` Traditional.
 LOCALES = [
+    ('am', ['am']),
     ('ar', ['ar']),
     ('ar-EG', ['ar_EG', 'ar']),
+    ('bn', ['bn']),
+    ('bo', ['bo']),
     ('cs', ['cs']),
     ('cy', ['cy']),
     ('de', ['de']),
@@ -65,24 +74,37 @@ LOCALES = [
     ('en-GB', ['en_GB', 'en_001', 'en']),
     ('es', ['es']),
     ('es-419', ['es_419', 'es']),
+    ('fa', ['fa']),
     ('fil', ['fil']),
     ('fr', ['fr']),
     ('ha', ['ha']),
+    ('he', ['he']),
     ('hi', ['hi']),
     ('id', ['id']),
     ('it', ['it']),
     ('ja', ['ja']),
+    ('jv', ['jv']),
+    ('kab', ['kab']),
     ('ko', ['ko']),
+    ('ml', ['ml']),
     ('mn', ['mn']),
     ('mr', ['mr']),
+    ('my', ['my']),
+    ('ne', ['ne']),
     ('nl', ['nl']),
+    ('pa-Arab', ['pa_Arab']),
     ('pa-Guru', ['pa']),
     ('pcm', ['pcm']),
     ('pl', ['pl']),
+    ('ps', ['ps']),
     ('pt', ['pt']),
     ('pt-PT', ['pt_PT', 'pt']),
     ('ru', ['ru']),
+    ('sa', ['sa']),
+    ('shi-Latn', ['shi_Latn']),
     ('sw', ['sw']),
+    ('syr', ['syr']),
+    ('ta', ['ta']),
     ('te', ['te']),
     ('th', ['th']),
     ('tr', ['tr']),
@@ -91,6 +113,7 @@ LOCALES = [
     ('vi', ['vi']),
     ('yue-Hans', ['yue_Hans']),
     ('yue-Hant', ['yue']),
+    ('zgh', ['zgh']),
     ('zh', ['zh']),
     ('zh-Hant', ['zh_Hant']),
     ('zh-Hant-HK', ['zh_Hant_HK', 'zh_Hant']),
@@ -259,6 +282,10 @@ def categories(chain):
                 _plurals[locale] = [r.get('count') for r in group.iter('pluralRule')]
     locale = chain[0]
     while locale not in _plurals:
+        if '_' not in locale:
+            # a language plurals.xml does not list has root's rules, `other`
+            # alone (`sa`)
+            return _plurals['root']
         locale = locale.rsplit('_', 1)[0]
     return _plurals[locale]
 
@@ -340,7 +367,9 @@ def at_pattern(chain):
         if found[0] is not None:
             break
     value, name, marked = found
-    assert value and (name != 'root' or marked), (chain, found)
+    # A locale whose files state none of the three takes root's, CLDR's own
+    # resolution (`{1} {0}`, which has no word in it).
+    assert value, (chain, found)
     swapped = value.replace('{0}', '\x00').replace('{1}', '{0}').replace('\x00', '{1}')
     return swapped.replace("'", '')
 
@@ -420,7 +449,12 @@ def locale_rs(tag, chain, data, notes):
     styles = {}
     for style, _, _ in STYLES:
         styles[style] = {u: unit_rs(data, style, u) for u in UNITS}
-    assert all(styles['long'].values()), (tag, styles['long'])
+    if not all(styles['long'].values()):
+        # No file of the locale states a relative-time or duration pattern
+        # (only root's, which is language-free): there is nothing of CLDR's
+        # to carry, and the crate answers `NoPattern` for the locale.
+        assert not any(styles['long'].values()), (tag, styles['long'])
+        return None
     stated = ['long']
     if styles['short'] != styles['long'] and all(styles['short'].values()):
         stated.append('short')
@@ -509,7 +543,11 @@ def generate():
             notes.append((key, reason))
         for key, value in data.items():
             dump.append(f'{tag}\t{key}\t{value}')
-        out.extend(locale_rs(tag, chain, data, notes))
+        written = locale_rs(tag, chain, data, notes)
+        if written is None:
+            print(f'{tag}: CLDR 48 states no phrases; not carried', file=sys.stderr)
+            continue
+        out.extend(written)
     return HEADER + '\n'.join(out).rstrip('\n') + '\n', dump
 
 

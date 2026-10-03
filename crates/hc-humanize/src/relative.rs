@@ -314,9 +314,17 @@ mod tests {
         assert_eq!(say(&numeric("pt-PT"), 3, TimeUnit::Day), "dentro de 3 dias");
         assert_eq!(say(&numeric("pt-PT"), -3, TimeUnit::Day), "há 3 dias");
         assert_eq!(say(&numeric("pt"), 3, TimeUnit::Day), "em 3 dias");
-        // A language whose file has no fields falls to root, never to the
-        // other script's entry.
-        assert_eq!(say(&numeric("pa-PK"), -3, TimeUnit::Day), "-۳ d");
+        // A language whose file has no fields has no phrases: neither the
+        // root's `-۳ d` nor the other script's entry.
+        assert_eq!(
+            numeric("pa-PK").format(-3, TimeUnit::Day),
+            Err(crate::HumanizeError::NoPattern)
+        );
+        // Hebrew's and Tamil's own, `he.xml` and `ta.xml`, which the root's
+        // abbreviations no longer stand for.
+        assert_eq!(say(&numeric("he"), -5, TimeUnit::Hour), "לפני 5 שעות");
+        assert_eq!(say(&numeric("iw"), -5, TimeUnit::Hour), "לפני 5 שעות");
+        assert_eq!(say(&numeric("ta"), -5, TimeUnit::Hour), "5 மணிநேரம் முன்");
     }
 
     /// Nigerian Pidgin's futures as the overrides of `cldr48_overrides.tsv`

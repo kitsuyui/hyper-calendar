@@ -200,6 +200,68 @@ pub struct NaturalPhrases {
     pub size_binary: [&'static str; 10],
     /// The one-letter suffixes of `naturalsize`'s GNU style, `K` to `Q`.
     pub size_gnu: [&'static str; 10],
+    /// Which groups of messages the catalogue really translates, so that a
+    /// locale is served only by a catalogue that translates every message
+    /// of the function asked ([`NaturalPhrases::for_locale`]).
+    pub translated: Translated,
+}
+
+/// Which groups of messages of a catalogue are translated: every message
+/// of the group has a translation in the `.po` file (not fuzzy, not empty)
+/// that holds no raw `gettext` placeholder (`%d`, `%(value)s`), which a
+/// few catalogues carry where the crate writes the number itself.
+///
+/// A message a catalogue does not translate is the English of the source
+/// in [`NaturalPhrases`], as it is in Python, so these flags are the only
+/// way to tell it from a translation that happens to be the English word.
+/// They are generated with the catalogues by `scripts/humanize-gettext.py`.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "one flag for each group of messages a function needs"
+)]
+pub struct Translated {
+    /// `a moment`, `a second`, `an hour`, `1 year, 1 month`, `1 year, {0}
+    /// days` and the other words `naturaldelta` writes for a count of one
+    /// or a year and a part.
+    pub articles: bool,
+    /// `{0} seconds`, `{0} minutes`, `{0} hours`, `{0} days`, `{0} months`
+    /// and `{0} years`.
+    pub units: bool,
+    /// `{0} milliseconds` and `{0} microseconds`, which a minimum unit
+    /// below the second brings in.
+    pub fine_units: bool,
+    /// `now`, `{0} ago` and `{0} from now`.
+    pub moments: bool,
+    /// `{0} and {1}`, which joins the last two units of `precisedelta`.
+    pub list_last: bool,
+    /// The ordinal suffixes of both genders.
+    pub ordinals: bool,
+    /// `zero` to `nine`.
+    pub apnumber: bool,
+    /// `thousand` to `googol`.
+    pub powers: bool,
+    /// `today`, `tomorrow` and `yesterday`.
+    pub days: bool,
+    /// `Byte`, `Bytes` and the decimal and binary suffixes.
+    pub sizes: bool,
+}
+
+impl Translated {
+    /// Every group: the English of the source, which is no translation of
+    /// anything and so needs none.
+    pub const ALL: Self = Self {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: true,
+    };
 }
 
 impl NaturalPhrases {
@@ -273,9 +335,13 @@ impl NaturalPhrases {
     /// `no`, the parent CLDR gives `nb`.
     ///
     /// A catalogue the `humanize` project has only part translated holds the
-    /// English of the source in the messages it lacks, and one that does not
-    /// translate the words of `words` is passed over, so a result is never
-    /// written half in one language and half in another; the answer's
+    /// English of the source in the messages it lacks, and some hold a raw
+    /// `%d` or `%(value)s` in a word that takes no number. A catalogue is
+    /// served only if it translates *every* message the function can write
+    /// ([`NaturalPhrases::translates`]); one that lacks any is passed over,
+    /// and where no step has a complete catalogue the answer is the English
+    /// of the source whole, so a result is never written half in one
+    /// language and half in another. The answer's
     /// [`NaturalPhrases::language`] says which language it is.
     ///
     /// ```
@@ -298,9 +364,14 @@ impl NaturalPhrases {
             }
             let mut found = catalogues::ALL
                 .into_iter()
-                .filter(|phrases| phrases.serves(&step) && phrases.translates(words));
+                .filter(|phrases| phrases.serves(&step));
+            // A bare language is served only when exactly one catalogue is
+            // for it, whether or not that one translates the words: `pt`
+            // has two, and picking the one that happens to be complete
+            // would guess a region.
             if let Some(first) = found.next()
                 && (step.region().is_some() || step.script().is_some() || found.next().is_none())
+                && first.translates(words)
             {
                 return first;
             }
@@ -331,41 +402,27 @@ impl NaturalPhrases {
         true
     }
 
-    /// Whether this catalogue translates the words of a function: whether
-    /// any of them differs from the English of the source, which is what a
-    /// catalogue holds for a message it does not translate.
+    /// Whether this catalogue translates every message the function of
+    /// `words` can write: all of them, so that its result is in one
+    /// language. A message the catalogue leaves untranslated, or translates
+    /// to a raw placeholder, makes it fail, however many of the others it
+    /// does translate. The English of the source translates all of its own.
     #[must_use]
-    pub fn translates(&self, words: NaturalWords) -> bool {
-        let english = &Self::ENGLISH;
+    pub const fn translates(&self, words: NaturalWords) -> bool {
+        let t = &self.translated;
         match words {
             NaturalWords::Any => true,
-            NaturalWords::Apnumber => self.apnumber != english.apnumber,
-            NaturalWords::Intword => self.powers != english.powers,
-            NaturalWords::Time => {
-                self.seconds != english.seconds
-                    || self.minutes != english.minutes
-                    || self.hours != english.hours
-                    || self.days != english.days
-                    || self.months != english.months
-                    || self.years != english.years
-                    || self.ago != english.ago
-            }
-            NaturalWords::Ordinal => {
-                self.ordinal_by_last_digit != english.ordinal_by_last_digit
-                    || self.ordinal_by_last_digit_female != english.ordinal_by_last_digit_female
-            }
-            NaturalWords::Day => {
-                self.today != english.today
-                    || self.tomorrow != english.tomorrow
-                    || self.yesterday != english.yesterday
-            }
-            NaturalWords::Naturalsize => {
-                self.byte != english.byte
-                    || self.bytes != english.bytes
-                    || self.size_decimal != english.size_decimal
-                    || self.size_binary != english.size_binary
-                    || self.size_gnu != english.size_gnu
-            }
+            NaturalWords::Apnumber => t.apnumber,
+            NaturalWords::Intword => t.powers,
+            NaturalWords::Delta => t.articles && t.units,
+            NaturalWords::DeltaFine => t.articles && t.units && t.fine_units,
+            NaturalWords::Time => t.articles && t.units && t.moments,
+            NaturalWords::TimeFine => t.articles && t.units && t.moments && t.fine_units,
+            NaturalWords::Precise => t.units && t.list_last,
+            NaturalWords::PreciseFine => t.units && t.list_last && t.fine_units,
+            NaturalWords::Ordinal => t.ordinals,
+            NaturalWords::Day => t.days,
+            NaturalWords::Naturalsize => t.sizes,
         }
     }
 
@@ -443,11 +500,13 @@ impl NaturalPhrases {
             "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB", "RiB", "QiB",
         ],
         size_gnu: ["K", "M", "G", "T", "P", "E", "Z", "Y", "R", "Q"],
+        translated: Translated::ALL,
     };
 }
 
 /// The words of one `humanize` function, for choosing the catalogue that
-/// serves a locale ([`NaturalPhrases::for_locale`]).
+/// serves a locale ([`NaturalPhrases::for_locale`]): the catalogue must
+/// translate every one of them ([`NaturalPhrases::translates`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum NaturalWords {
     /// A function that writes no word of its own, `metric`: the first
@@ -457,9 +516,22 @@ pub enum NaturalWords {
     Apnumber,
     /// `intword`'s *thousand* to *googol*.
     Intword,
-    /// `naturaldelta`, `naturaltime` and `precisedelta`'s *seconds* to
-    /// *years*, *ago* and *from now*.
+    /// `naturaldelta` of a span the unit of seconds or above reaches: *a
+    /// moment*, *an hour*, *3 days*, *1 year, 3 months*.
+    Delta,
+    /// [`NaturalWords::Delta`] with a minimum unit below the second, which
+    /// brings *milliseconds* and *microseconds* in.
+    DeltaFine,
+    /// `naturaltime`: [`NaturalWords::Delta`]'s words with *now*, *ago* and
+    /// *from now*.
     Time,
+    /// [`NaturalWords::Time`] with a minimum unit below the second.
+    TimeFine,
+    /// `precisedelta`'s *seconds* to *years* and the *and* before its last
+    /// unit.
+    Precise,
+    /// [`NaturalWords::Precise`] with a minimum unit below the second.
+    PreciseFine,
     /// `ordinal`'s suffixes.
     Ordinal,
     /// `naturalday`'s *today*, *tomorrow* and *yesterday*.
@@ -2183,8 +2255,18 @@ mod tests {
         assert_eq!(language("en-GB", NaturalWords::Time), "en");
         assert_eq!(language("und", NaturalWords::Any), "en");
         assert_eq!(language("tlh", NaturalWords::Any), "tlh");
-        // A catalogue serves exactly the languages it is for, never another.
-        assert_eq!(language("ja-JP", NaturalWords::Time), "ja-JP");
+        // A catalogue serves exactly the languages it is for, never another,
+        // and only for the functions whose every message it translates:
+        // Japanese leaves *now*, *a moment* and the *and* of a list
+        // untranslated, so it serves the days and not the times.
+        assert_eq!(language("ja-JP", NaturalWords::Day), "ja-JP");
+        assert_eq!(language("ja-JP", NaturalWords::Time), "en");
+        assert_eq!(language("ja-JP", NaturalWords::Precise), "en");
+        assert_eq!(language("ja-JP", NaturalWords::Apnumber), "en");
+        // The fine units of a minimum unit below the second are a message
+        // more: German, Finnish and Hungarian lack them.
+        assert_eq!(language("de", NaturalWords::Time), "de-DE");
+        assert_eq!(language("de", NaturalWords::TimeFine), "en");
         assert_eq!(language("sv-FI", NaturalWords::Time), "sv-SE");
     }
 }

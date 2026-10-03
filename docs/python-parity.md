@@ -353,6 +353,7 @@ layer (`hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`,
 | `natural_list` | `Natural::naturallist` | yes | not translated, in Python either |
 | `i18n.activate`, `deactivate` | `NaturalPhrases::by_catalogue`, `by_language`, `Natural::for_catalogue` | yes | no process-wide current language: it is the `Natural` you hold |
 | the gettext catalogues | `NaturalPhrases::catalogues()` | yes | 35, generated from the `.po` files; a fuzzy or untranslated message is English, as `msgfmt` compiles it |
+| the catalogue for a locale | `NaturalPhrases::for_locale`, and the `natural` boundary lines | no | Python has no locale lookup. A locale is served only by a catalogue that translates every message of the function, so a partly translated catalogue (Japanese's `precisedelta`, whose *and* is untranslated) answers in English whole; `by_catalogue` keeps Python's own result, raw `%d` and `%(value)s` included (Korean, Bengali, Vietnamese in `intword`) |
 | `thousands_separator`, `decimal_separator` | `NaturalPhrases::grouping` | yes | |
 
 Things that are not `humanize` 4.16.0 here, and why:

@@ -8,7 +8,7 @@
 //! compiled catalogue, because it is fuzzy or untranslated, is the English
 //! one here, as it is in Python.
 
-use super::{Grouping, NaturalPhrases, Plural};
+use super::{Grouping, NaturalPhrases, Plural, Translated};
 
 /// `ar`: 67 of its 67 entries, the rest fuzzy or untranslated.
 pub(super) const AR: NaturalPhrases = NaturalPhrases {
@@ -336,6 +336,18 @@ pub(super) const AR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `bn_BD`: 63 of its 67 entries, the rest fuzzy or untranslated.
@@ -449,6 +461,18 @@ pub(super) const BN_BD: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `ca_ES`: 66 of its 67 entries, the rest fuzzy or untranslated.
@@ -548,6 +572,18 @@ pub(super) const CA_ES: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `da_DK`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -655,6 +691,18 @@ pub(super) const DA_DK: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `de_DE`: 65 of its 67 entries, the rest fuzzy or untranslated.
@@ -758,6 +806,18 @@ pub(super) const DE_DE: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `el_GR`: 45 of its 67 entries, the rest fuzzy or untranslated.
@@ -923,6 +983,18 @@ pub(super) const EL_GR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: false,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `eo`: 66 of its 67 entries, the rest fuzzy or untranslated.
@@ -1022,6 +1094,18 @@ pub(super) const EO: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `es_ES`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -1141,6 +1225,18 @@ pub(super) const ES_ES: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `eu`: 61 of its 67 entries, the rest fuzzy or untranslated.
@@ -1249,6 +1345,18 @@ pub(super) const EU: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `fa_IR`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -1370,6 +1478,18 @@ pub(super) const FA_IR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `fi_FI`: 65 of its 67 entries, the rest fuzzy or untranslated.
@@ -1498,6 +1618,18 @@ pub(super) const FI_FI: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `fr_FR`: 89 of its 89 entries, the rest fuzzy or untranslated.
@@ -1581,6 +1713,18 @@ pub(super) const FR_FR: NaturalPhrases = NaturalPhrases {
         "Kio", "Mio", "Gio", "Tio", "Pio", "Eio", "Zio", "Yio", "Rio", "Qio",
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: true,
+    },
 };
 
 /// `he_IL`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -1693,6 +1837,18 @@ pub(super) const HE_IL: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `hu_HU`: 65 of its 67 entries, the rest fuzzy or untranslated.
@@ -1796,6 +1952,18 @@ pub(super) const HU_HU: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `id_ID`: 64 of its 67 entries, the rest fuzzy or untranslated.
@@ -1887,6 +2055,18 @@ pub(super) const ID_ID: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `it_IT`: 65 of its 67 entries, the rest fuzzy or untranslated.
@@ -1978,6 +2158,18 @@ pub(super) const IT_IT: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `ja_JP`: 51 of its 67 entries, the rest fuzzy or untranslated.
@@ -2078,6 +2270,18 @@ pub(super) const JA_JP: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: false,
+        units: true,
+        fine_units: false,
+        moments: false,
+        list_last: false,
+        ordinals: true,
+        apnumber: false,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `ko_KR`: 35 of its 67 entries, the rest fuzzy or untranslated.
@@ -2212,6 +2416,18 @@ pub(super) const KO_KR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: false,
+        ordinals: false,
+        apnumber: false,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `lv`: 69 of its 69 entries, the rest fuzzy or untranslated.
@@ -2383,6 +2599,18 @@ pub(super) const LV: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `nb`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -2498,6 +2726,18 @@ pub(super) const NB: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `nl_NL`: 64 of its 67 entries, the rest fuzzy or untranslated.
@@ -2593,6 +2833,18 @@ pub(super) const NL_NL: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `pl_PL`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -2749,6 +3001,18 @@ pub(super) const PL_PL: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `pt_BR`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -2856,6 +3120,18 @@ pub(super) const PT_BR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `pt_PT`: 66 of its 67 entries, the rest fuzzy or untranslated.
@@ -2979,6 +3255,18 @@ pub(super) const PT_PT: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `ru_RU`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -3143,6 +3431,18 @@ pub(super) const RU_RU: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `sk_SK`: 63 of its 67 entries, the rest fuzzy or untranslated.
@@ -3302,6 +3602,18 @@ pub(super) const SK_SK: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: false,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `sl_SI`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -3513,6 +3825,18 @@ pub(super) const SL_SI: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `sv_SE`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -3612,6 +3936,18 @@ pub(super) const SV_SE: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `tlh`: 58 of its 67 entries, the rest fuzzy or untranslated.
@@ -3715,6 +4051,18 @@ pub(super) const TLH: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: false,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `tr_TR`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -3814,6 +4162,18 @@ pub(super) const TR_TR: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `uk_UA`: 65 of its 67 entries, the rest fuzzy or untranslated.
@@ -3970,6 +4330,18 @@ pub(super) const UK_UA: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `uz`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -4081,6 +4453,18 @@ pub(super) const UZ: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `vi_VN`: 60 of its 67 entries, the rest fuzzy or untranslated.
@@ -4192,6 +4576,18 @@ pub(super) const VI_VN: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: false,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `zh_CN`: 63 of its 67 entries, the rest fuzzy or untranslated.
@@ -4292,6 +4688,18 @@ pub(super) const ZH_CN: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: false,
+        moments: true,
+        list_last: false,
+        ordinals: true,
+        apnumber: false,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// `zh_HK`: 67 of its 67 entries, the rest fuzzy or untranslated.
@@ -4389,6 +4797,18 @@ pub(super) const ZH_HK: NaturalPhrases = NaturalPhrases {
         NaturalPhrases::ENGLISH.size_binary[9],
     ],
     size_gnu: NaturalPhrases::ENGLISH.size_gnu,
+    translated: Translated {
+        articles: true,
+        units: true,
+        fine_units: true,
+        moments: true,
+        list_last: true,
+        ordinals: true,
+        apnumber: true,
+        powers: true,
+        days: true,
+        sizes: false,
+    },
 };
 
 /// Every catalogue, by the name `humanize.i18n.activate` takes.

@@ -1590,7 +1590,10 @@ calendar day one fixed day is, seen from another, *yesterday*, and with a
 time of day, *yesterday at 15:05*; and a span of seconds in days, hours,
 minutes and seconds, *2 hours and 30 minutes*. Each line ends with the tag
 of the data the locale resolved to; a null locale, or one that does not
-parse, is the root locale, whose phrases are CLDR's `root.xml`'s, `-1 d`.
+parse, is the root locale, whose phrases are CLDR's `root.xml`'s, `-1 d`; a
+locale `hc-i18n` carries that has no phrases (`aeb-Latn`, `ayl-Latn`, `ban`,
+`bo`, `cop`, `kab`, `mid`, `mix`, `nah`, `pa-Arab`, `rif`, `sa`, `shi-Latn`, `yua`, `zap`, `zgh`) is
+`HC_ERROR_NO_DATA`, not the root's.
 `style` is `long`, `short` or `narrow`, and for `hc_duration` `compact` as
 well; another is `HC_ERROR_UNKNOWN`. The WebAssembly module's README gives
 the columns.
@@ -1606,7 +1609,7 @@ locale, thresholds, policy, ...)`, in the same feature, take the thresholds
 
 The `natural` feature has the functions of Python's `humanize` package with
 its 35 gettext catalogues. The ones with words take a `locale`, resolved
-along its fallback chain to the first catalogue that translates their words,
+along its fallback chain to the first catalogue that translates every one of their words,
 English where none does, and write one line of the text and the language of
 the catalogue used, `en`, `de-DE`: `hc_apnumber(value, locale, buffer,
 capacity, written)`, `hc_metric(value, unit, precision, locale, ...)`,

@@ -193,6 +193,25 @@ const REGION_FIRST_DAY: &[(&str, Weekday)] = &[
 /// The script a script-less tag takes, for the languages whose data this
 /// crate carries per script.
 ///
+/// The deprecated and legacy language subtags CLDR 48 replaces by another
+/// language alone, from `common/supplemental/supplementalMetadata.xml`
+/// (`languageAlias`, tag `release-48`, read 2026-10-04): `iw` is `he`, `in`
+/// is `id`, `ji` is `yi`, `jw` is `jv`, `mo` is `ro`, `tl` is `fil`, `scc`
+/// is `sr` and `scr` is `hr`. The aliases that bring a script or a region
+/// with them (`sh` is `sr_Latn`) are not carried, and `no` is no alias:
+/// CLDR leaves the replacement of `nb` by `no` commented out.
+/// [`Locale::fallback`] starts from the replacement, so `iw` walks `he`.
+pub const LANGUAGE_ALIASES: &[(&str, &str)] = &[
+    ("in", "id"),
+    ("iw", "he"),
+    ("ji", "yi"),
+    ("jw", "jv"),
+    ("mo", "ro"),
+    ("scc", "sr"),
+    ("scr", "hr"),
+    ("tl", "fil"),
+];
+
 /// From Unicode CLDR 48, `common/supplemental/likelySubtags.xml`
 /// (`cldr48-supplemental`, tag `release-48`, retrieved 2026-09-26): `zh`
 /// maximises to `zh_Hans_CN`, and each region listed with `Hant` below
@@ -595,11 +614,32 @@ impl Locale {
     /// names no script, first takes the script CLDR's likely subtags give
     /// it (see [`LIKELY_SCRIPTS`]): `zh-TW` walks `zh-Hant-TW`, `zh-Hant`,
     /// `und`, since `parentLocales` send `zh-Hant` to root, and a bare `zh`
-    /// walks `zh-Hans`, `zh`, `und`. Every other tag starts with itself.
+    /// walks `zh-Hans`, `zh`, `und`. A legacy language subtag is first
+    /// replaced by the language CLDR's `languageAlias` gives it
+    /// ([`LANGUAGE_ALIASES`]): `iw` walks `he`, `tl-PH` walks `fil-PH`.
+    /// Every other tag starts with itself.
     #[must_use]
     pub fn fallback(&self) -> Fallback {
         Fallback {
-            current: Some(self.with_likely_script()),
+            current: Some(self.with_canonical_language().with_likely_script()),
+        }
+    }
+
+    /// This locale with a legacy language subtag replaced by the language
+    /// CLDR's `languageAlias` gives it ([`LANGUAGE_ALIASES`]).
+    #[must_use]
+    pub fn with_canonical_language(&self) -> Self {
+        let language = self.language.as_str();
+        match LANGUAGE_ALIASES
+            .iter()
+            .find(|(legacy, _)| *legacy == language)
+        {
+            Some((_, replacement)) => {
+                let mut next = *self;
+                next.language = Subtag::literal(replacement);
+                next
+            }
+            None => *self,
         }
     }
 
@@ -985,6 +1025,18 @@ mod tests {
                 .parent_step()
                 .map(|step| step.0)
         );
+    }
+
+    /// CLDR 48's `languageAlias` rows (`supplementalMetadata.xml`).
+    #[test]
+    fn a_legacy_language_walks_the_chain_of_its_replacement() {
+        assert_eq!(chain("iw"), ["he", "und"]);
+        assert_eq!(chain("iw-IL"), ["he-IL", "he", "und"]);
+        assert_eq!(chain("in"), ["id", "und"]);
+        assert_eq!(chain("tl-PH"), ["fil-PH", "fil", "und"]);
+        assert_eq!(chain("jw"), ["jv", "und"]);
+        // `no` is not an alias of `nb`: CLDR comments that row out.
+        assert_eq!(chain("no"), ["no", "und"]);
     }
 
     #[test]

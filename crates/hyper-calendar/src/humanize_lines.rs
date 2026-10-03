@@ -513,7 +513,8 @@ fn delta_options(months: bool, minimum_unit: &str) -> Answer<DeltaOptions> {
 /// `seconds` plus `microseconds`, *3 hours*, *a moment*, *1 year, 3
 /// months*, without tense and ignoring the sign, then the language of the
 /// catalogue that wrote it, chosen along the locale's fallback chain among
-/// the catalogues that translate the units. `months` is Python's `months`
+/// the catalogues that translate every unit (and, below a second, the fine
+/// ones). `months` is Python's `months`
 /// (months of 30.5 days between days and years) and `minimum_unit` `seconds`,
 /// `milliseconds` or `microseconds`.
 ///
@@ -532,7 +533,12 @@ pub fn naturaldelta_line(
 ) -> Answer<String> {
     let span = span_of(seconds, microseconds)?;
     let options = delta_options(months, minimum_unit)?;
-    natural_line(&vocabulary(tag, NaturalWords::Time), |natural, out| {
+    let words = if options.minimum_unit < PreciseUnit::Seconds {
+        NaturalWords::DeltaFine
+    } else {
+        NaturalWords::Delta
+    };
+    natural_line(&vocabulary(tag, words), |natural, out| {
         natural.write_naturaldelta(out, span, options)
     })
 }
@@ -554,7 +560,12 @@ pub fn naturaltime_line(
 ) -> Answer<String> {
     let span = span_of(seconds, microseconds)?;
     let options = delta_options(months, minimum_unit)?;
-    natural_line(&vocabulary(tag, NaturalWords::Time), |natural, out| {
+    let words = if options.minimum_unit < PreciseUnit::Seconds {
+        NaturalWords::TimeFine
+    } else {
+        NaturalWords::Time
+    };
+    natural_line(&vocabulary(tag, words), |natural, out| {
         natural.write_naturaltime_delta(out, span, options)
     })
 }
@@ -586,7 +597,12 @@ pub fn precisedelta_line(
         suppressed.push(PreciseUnit::by_id(name).ok_or(Refusal::Unknown)?);
     }
     let decimals = digits_of(decimals)?;
-    natural_line(&vocabulary(tag, NaturalWords::Time), |natural, out| {
+    let words = if minimum_unit < PreciseUnit::Seconds {
+        NaturalWords::PreciseFine
+    } else {
+        NaturalWords::Precise
+    };
+    natural_line(&vocabulary(tag, words), |natural, out| {
         natural.write_precisedelta(out, span, minimum_unit, &suppressed, decimals)
     })
 }
@@ -827,6 +843,48 @@ mod tests {
     const HOUR: i64 = 3_600;
     const DAY: i64 = 86_400;
 
+    /// CLDR 48's Hebrew and Tamil patterns (`he.xml`, `ta.xml`,
+    /// `fields/field[@type="hour"]`), and no answer in the root's `-5 h` for
+    /// a locale `hc-i18n` carries that has no phrases: CLDR 48 has no file
+    /// for `ban`, none with patterns for `bo`, and only draft ones for
+    /// `kab`.
+    #[test]
+    fn a_carried_locale_has_its_own_phrases_or_no_data() {
+        let now = 1_700_000_000;
+        let line = relative_time_line(now - 5 * HOUR, now, "long", false, "he").expect("a line");
+        assert_eq!(cells(&line), ["לפני 5 שעות", "hour", "-5", "he"]);
+        let line = relative_time_line(now - 5 * HOUR, now, "long", false, "iw").expect("a line");
+        assert_eq!(cells(&line), ["לפני 5 שעות", "hour", "-5", "he"]);
+        let line = relative_time_line(now - 5 * HOUR, now, "long", false, "ta").expect("a line");
+        assert_eq!(cells(&line), ["5 மணிநேரம் முன்", "hour", "-5", "ta"]);
+        let line = relative_time_line(now + 2 * HOUR, now, "long", false, "ta").expect("a line");
+        assert_eq!(cells(&line)[0], "2 மணிநேரத்தில்");
+        for tag in [
+            "ban", "bo", "kab", "pa-Arab", "pa-PK", "cop", "zap", "sa", "zgh",
+        ] {
+            assert_eq!(
+                relative_time_line(now - 5 * HOUR, now, "long", false, tag),
+                Err(Refusal::NoData),
+                "{tag}"
+            );
+            assert_eq!(
+                relative_day_line(10, 14, "long", false, tag),
+                Err(Refusal::NoData),
+                "{tag}"
+            );
+            assert_eq!(
+                duration_line(3_600, "long", 0, tag),
+                Err(Refusal::NoData),
+                "{tag}"
+            );
+        }
+        // The root, and a language nobody carries, keep CLDR's root.
+        let line = relative_time_line(now - 5 * HOUR, now, "long", false, "").expect("a line");
+        assert_eq!(cells(&line), ["-5 h", "hour", "-5", "und"]);
+        let line = relative_time_line(now - 5 * HOUR, now, "long", false, "xx").expect("a line");
+        assert_eq!(cells(&line)[0], "-5 h");
+    }
+
     /// CLDR 48's English relative-time patterns (`en.xml`,
     /// `fields/field[@type="hour"]`): *{0} hours ago*, and the word
     /// *yesterday* for a day of −1.
@@ -911,6 +969,135 @@ mod tests {
             "0 seconds"
         );
         assert_eq!(duration_line(1, "wide", 0, "en"), Err(Refusal::Unknown));
+    }
+
+    /// A catalogue that leaves a message of the function untranslated, or
+    /// writes a raw `%d` or `%(value)s` for a word, does not serve it: the
+    /// line is `humanize`'s English whole and says `en`, never two languages
+    /// in one result. Japanese, Korean, Simplified Chinese and Slovak leave
+    /// the `and` of their lists untranslated, and Korean, Bengali and
+    /// Vietnamese hold placeholders in their powers.
+    #[test]
+    fn a_partly_translated_catalogue_answers_in_english_whole() {
+        let seconds = 2 * DAY + 3_633;
+        for tag in ["ja", "ko", "zh-CN", "sk"] {
+            assert_eq!(
+                cells(&precisedelta_line(seconds, 120_000, "seconds", "", 2, tag).expect("a line")),
+                ["2 days, 1 hour and 33.12 seconds", "en"],
+                "{tag}"
+            );
+        }
+        for tag in [
+            "ko", "bn-BD", "vi", "ja", "eu", "ca", "id", "nl", "pt-PT", "sk", "tlh",
+        ] {
+            assert_eq!(
+                cells(&intword_line("1000000", 1, tag).expect("a line")),
+                ["1.0 million", "en"],
+                "{tag}"
+            );
+        }
+        // A catalogue that translates every message of the function serves.
+        assert_eq!(
+            cells(&precisedelta_line(seconds, 120_000, "seconds", "", 2, "de").expect("a line")),
+            ["2 Tage, 1 Stunde und 33.12 Sekunden", "de-DE"]
+        );
+        // The fine units are messages the function needs only for a minimum
+        // unit below the second: German lacks them, so there it is English.
+        assert_eq!(
+            cells(&naturaltime_line(0, 5_000, true, "milliseconds", "de").expect("a line")),
+            ["5 milliseconds ago", "en"]
+        );
+        assert_eq!(
+            cells(&naturaltime_line(0, 5_000, true, "milliseconds", "ja").expect("a line")),
+            ["5 milliseconds ago", "en"]
+        );
+        assert_eq!(
+            cells(&naturaltime_line(5, 0, true, "seconds", "de").expect("a line")),
+            ["vor 5 Sekunden", "de-DE"]
+        );
+    }
+
+    /// Every line that writes words, in every locale `hc-i18n` carries and
+    /// in the languages of the catalogues, writes no raw placeholder, and
+    /// the language it says is `en` or one whose catalogue serves the
+    /// function.
+    #[test]
+    fn no_locale_writes_a_placeholder_or_two_languages() {
+        let mut tags: alloc::vec::Vec<&str> =
+            hc_i18n::data::LOCALES.iter().map(|data| data.tag).collect();
+        tags.extend(
+            NaturalPhrases::catalogues()
+                .iter()
+                .map(|phrases| phrases.language),
+        );
+        tags.extend(["de-AT", "pt", "pt-AO", "zh-Hant-TW", "no", "sv-FI", ""]);
+        for tag in tags {
+            let lines = [
+                (
+                    NaturalWords::Apnumber,
+                    apnumber_line(0, tag),
+                    apnumber_line(0, "en"),
+                ),
+                (
+                    NaturalWords::Intword,
+                    intword_line("1234567890123", 1, tag),
+                    intword_line("1234567890123", 1, "en"),
+                ),
+                (
+                    NaturalWords::Naturalsize,
+                    naturalsize_line(3_000.0, "decimal", 1, tag),
+                    naturalsize_line(3_000.0, "decimal", 1, "en"),
+                ),
+                (
+                    NaturalWords::Delta,
+                    naturaldelta_line(3_600, 0, true, "seconds", tag),
+                    naturaldelta_line(3_600, 0, true, "seconds", "en"),
+                ),
+                (
+                    NaturalWords::DeltaFine,
+                    naturaldelta_line(0, 5_000, true, "microseconds", tag),
+                    naturaldelta_line(0, 5_000, true, "microseconds", "en"),
+                ),
+                (
+                    NaturalWords::Time,
+                    naturaltime_line(7_200, 0, true, "seconds", tag),
+                    naturaltime_line(7_200, 0, true, "seconds", "en"),
+                ),
+                (
+                    NaturalWords::Precise,
+                    precisedelta_line(190_000, 0, "seconds", "", 2, tag),
+                    precisedelta_line(190_000, 0, "seconds", "", 2, "en"),
+                ),
+                (
+                    NaturalWords::PreciseFine,
+                    precisedelta_line(1, 5_000, "microseconds", "", 2, tag),
+                    precisedelta_line(1, 5_000, "microseconds", "", 2, "en"),
+                ),
+                (
+                    NaturalWords::Day,
+                    naturalday_line(739_001, 739_000, "", tag),
+                    naturalday_line(739_001, 739_000, "", "en"),
+                ),
+                (
+                    NaturalWords::Ordinal,
+                    ordinal_line(22, "male", tag),
+                    ordinal_line(22, "male", "en"),
+                ),
+            ];
+            for (words, line, english) in lines {
+                let line = line.expect("a line");
+                let line = cells(&line);
+                let english = english.expect("a line");
+                let english = cells(&english);
+                assert!(!line[0].contains('%'), "{tag} {words:?}: {}", line[0]);
+                if line[1] == "en" {
+                    assert_eq!(line[0], english[0], "{tag} {words:?}");
+                } else {
+                    let served = NaturalPhrases::by_catalogue(line[1]).expect("a catalogue");
+                    assert!(served.translates(words), "{tag} {words:?}");
+                }
+            }
+        }
     }
 
     /// The examples of `humanize` 4.16's documentation of `precisedelta`
