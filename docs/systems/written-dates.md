@@ -295,6 +295,23 @@ all.
   place before the month is this library's too. The other locales write
   the Japanese leap month as the ordinary one, and a date in it is
   `ambiguous` there.
+- **A Japanese month before 1873 in a locale other than Japanese, Chinese
+  or Korean** is written with the locale's Gregorian month name, because
+  the Japanese calendars take their month names from the Gregorian entry
+  (above). The month is the lunar one: 1810-03-01 Gregorian is the 26th day
+  of the first lunar month of 文化7年, and `en` writes it *January 26, 7
+  Bunka (1804–1818)*, `hi` 26 जनवरी, where `ja` writes 文化7年1月26日, whose
+  numbered months are the 旧暦's own. Read the name as the month's number,
+  January as the first month, not as the Gregorian month; the Chinese
+  calendars write *First Month* in `en` for the same day. Month names for
+  the lunar months in each locale, which the Japanese calendars would need
+  to avoid the clash, are not carried: CLDR gives the Japanese calendar
+  only the Gregorian ones [cldr48-japanese-eras], and the locales' own
+  names for the Chinese calendar's months, which exist in few of them
+  (`vi` carries its own, the traditional names tháng Giêng to tháng Chạp
+  [wikipedia-vi-nong-lich], written for the Chinese family and not for the
+  Japanese calendars), are not borrowed for it. From 1873 the months are
+  the Gregorian ones, and the name is right.
 - A leap unit a source names, written by that name:
   - St. Tib's Day, the Discordian day "inserted between the 59th and 60th
     days of the Season of Chaos" [principia-discordia-p34], in place of
@@ -349,19 +366,19 @@ January 1 CE, 15 October 1582, 15 June 1900, 1 January 1970, 1 January and
 days the test's `MORE_DAYS` lists for it, the doubled days below and four
 Hebrew New Years whose years end in a letter with its geresh.
 
-In a release build the sweep reads 229 calendars × 67 locale settings, on
-1 901 calendar-days, which is 127 367 texts:
+In a release build the sweep reads 240 calendars × 67 locale settings, on
+1 935 calendar-days, which is 129 645 texts:
 
 | Outcome | Texts |
 | --- | ---: |
-| Read back as the day written | 112 206 |
-| `year-not-written`: cycles that recur, see below | 8 002 |
+| Read back as the day written | 114 392 |
+| `year-not-written`: cycles that recur, see below | 8 036 |
 | `missing-field`: the 819-day count's station is not written | 1 407 |
-| `two-digit-year`: years 0–99, on the calendars' first days | 1 598 |
+| `two-digit-year`: years 0–99, on the calendars' first days | 1 656 |
 | `ambiguous`: see below | 4 154 |
 | Read as a wrong day | 0 |
 
-Counted 2026-10-03 by a program that repeats the release sweep, which a count of 2026-09-29 (225 calendars, 1 829 calendar-days, 122 543 texts) preceded the Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena calendars of; their eight hundred and four ambiguous texts are the doubled tithis.
+Counted 2026-10-03 by a program that repeats the release sweep, which a count of 2026-09-29 (225 calendars, 1 829 calendar-days, 122 543 texts) preceded the Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena calendars of; their eight hundred and four ambiguous texts are the doubled tithis. The eleven pre-665 Chinese calendars of [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md) add 34 `year-not-written` and 58 `two-digit-year` texts, in `ja`, which writes their year by its stem and branch alone, and years 0–99; none is read as a wrong day.
 
 A second sweep, `the_first_day_of_every_era_and_month_reads_back`, writes
 and reads the first day of every era of every calendar and, in a release
@@ -404,8 +421,12 @@ The `year-not-written` cases are all cycles that recur:
   Round counts;
 - the year bearers of `mixtec-year` and `zapotec-yza`;
 - the sexagenary day;
-- the sexagenary year of `chinese`, `dangi`, `dangi-kasi` and `vietnamese`
-  in `ja`, which writes the year by it alone, and of `dangi` and
+- the sexagenary year of `chinese`, `dangi`, `dangi-kasi`, `vietnamese`
+  and the eleven systems of [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md)
+  in `ja`, which writes the year by it alone (the reader does not take a
+  year of the cycle for an era's year, which on the pre-665 calendars,
+  whose ranges lie within two or three cycles, it once did, reading the
+  Taichu's 丁丑年五月1日 of 104 BC as the one of 44 BC), and of `dangi` and
   `dangi-kasi` in `zh-Hant`, `yue-Hant` and `yue-Hans`, whose CLDR files
   write it so.
 

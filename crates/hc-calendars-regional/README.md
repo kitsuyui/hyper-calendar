@@ -105,7 +105,10 @@ The **era table is complete regardless**: all 248 nengō from 大化 (645) to
 令和 live in the `nengo` module, and `nengo::era_at` will name the era in
 force on any day from 645 onward, or answer `None` where there was none: 白雉
 lapsed in 655 with no successor until 朱鳥 in 686, and 朱鳥 in 687 with none
-until 大宝 in 701. It simply will not tell you the month and day.
+until 大宝 in 701. It simply will not tell you the month and day. Each kanji is the bare name:
+the Japanese Wikipedia titles eight of its articles with a suffix " (元号)"
+to tell them from other pages — 延長, 治安, 永久, 保安, 正中, 天文, 安永 and
+文化 — and the table drops the suffix.
 
 Era years are counted from the era's first *calendar* year, which is why
 安政元年 is the lunisolar year that began in 1854 even though the era was
@@ -336,11 +339,14 @@ inherits the `chinese` calendar's model, as that README describes.
 * No Thai lunar year before 2535 BE or after 2570 BE beyond the first six
   months of 2571, and no *suriyayatra* arithmetic to extend it: a year is
   added when Thailand publishes it.
-* No Khmer year before 1900 or after 2200, no solar New Year (the Songkran
-  moment and its days), and no animal year, *sak* or Jolak Sakaraj, which
-  change at that New Year. No Lao year before 1301 or after 1401, and no
-  Lao solar New Year either. No Sinhalese or Tai lunisolar calendar: what
-  each still needs is in `docs/calendars.md`.
+* No Khmer year before 1900 or after 2200, and no animal year or *sak*.
+  The change of the Chulasakarat year at the solar New Year is carried,
+  `khmer::laeung_sak` (*Laeung Sak*, to the second, as the announcements of
+  2022–2026 give it) and `lao::new_year_day` (Dupertuis's New Years of
+  1939–1988); the *Maha Songkran* moment and the days of the festival are
+  not, for want of the Cambodian *hora*'s rule for the true Sun. No Lao year
+  before 1301 or after 1401. No Sinhalese or Tai lunisolar calendar, and no
+  Buddhist Era of Sri Lanka: what each still needs is in `docs/calendars.md`.
 * No Javanese calendar proper here: the Sultan Agung lunar year, its
   *windu* and its *kurup* are `hc-calendars-lunar`'s `javanese`, beside
   the other lunar calendars. `tests/javanese.rs` holds its days to the

@@ -70,7 +70,10 @@ Kim Yuk's proposal of 1645, and applied it in earnest only from 1725
 court adopted it is not stated by any source read here. Before 1645 the
 terms were mean, and the calendar of any year was what the bureau of the
 day computed from its own tables; this library carries the modern rule from
-1645 and nothing earlier.
+1645 and, for the years before, the systems of
+[chinese-historical-lunisolar.md](chinese-historical-lunisolar.md) as far back as
+104 BCE and up to 597; 598 to 1644 is not carried (the roadmap rows say
+what each system waits on).
 
 **The almanac before 1912.** The rule of 1645 is the modern one, but the
 calendar that carried it was not computed by modern astronomy. The Qing
@@ -544,7 +547,8 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   from the northern calendar only from 1968 to 1975 and what was read of it
   is two new years, not an almanac or decree that fixes its meridian and
   its span, so a registered calendar would claim seven years of months
-  that nothing here can check.
+  that nothing here can check. It is a Researching row of the roadmap,
+  `vietnamese-south`, which names the almanac it waits on.
 - **The almanac's solar terms, 1645–1733**, as data:
   `chinese::almanac_solar_term_days(year)`, the twenty-four term days, 小寒
   to 冬至, of Liu's calendrical solar terms, the bureau's Tychonic terms
@@ -616,7 +620,11 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
   (`the_vietnamese_zodiac_has_the_cat_and_the_buffalo`); the `vi` locale of
   `hc-i18n` already writes the animals Trâu and Mèo.
 - **Not carried, and why.**
-  - Any calendar before 1645. From 1645 a date is the modern rule at
+  - Any calendar before 1645 by this rule. The calendars of 104 BCE to 597
+    are `chinese_historical`, each on its own arithmetic
+    ([chinese-historical-lunisolar.md](chinese-historical-lunisolar.md)); what is
+    carried of 619–1644 is nothing, and the Tang's, the Song's, the Yuan's
+    and the Ming's systems are roadmap rows. From 1645 a date is the modern rule at
     Beijing mean time corrected where a record says the almanac differed,
     and so corrected it agrees with Liu's reconstruction in every month of
     1645–1911 and with the Veritable Records wherever they were read
@@ -630,7 +638,23 @@ Vietnamese account names 2007 and 2030 as years the two calendars differ
     of 康熙八年, which the calendar kept moved to 康熙九年二月 (above)
     [liu-chinese-calendar-computation]. And the almanac's terms after 1733,
     which Liu lists only where they differ, and which were not transcribed.
-  - No Vietnamese table was found.
+  - No Vietnamese table of the calendar's months was found.
+  - Vietnamese names beyond the ones read. The `vi` locale writes the
+    Chinese-family calendars as CLDR 48's `vi.xml` writes the Chinese
+    calendar's long date, 'Ngày' dd 'tháng' M 'năm' U, *Ngày 18 tháng Tám
+    năm Bính Ngọ 2026*, with the year by its stem and branch as `vi.xml`
+    names the sixty (Giáp Tý to Quý Hợi), the leap month by its pattern
+    `{0} Nhuận` and the months by the traditional names of the Vietnamese
+    Wikipedia's "Nông lịch", tháng giêng, hai, ba, tư, năm, sáu, bảy, tám,
+    chín, mười, mười một and chạp [wikipedia-vi-nong-lich]. `vi.xml` itself
+    names the months by numerals, so the names are Wikipedia's and not
+    CLDR's, and a Vietnamese almanac's wording was not read. The related
+    Gregorian year follows the stem and branch, as the file's `yyyyMMMMd`
+    item has it. The solar terms' Vietnamese names, which `vi.xml` gives
+    (Lập Xuân to Đại Hàn), are not written by any date. Anchored by
+    `the_vietnamese_calendar_is_written_in_vietnamese` and
+    `the_twelve_months_have_their_traditional_names`
+    (`crates/hyper-calendar/tests/vietnamese_names.rs`).
   - The precision and representation clauses of GB/T 33661-2017, which were
     not read (below).
   - The minor terms (節氣), which are in `hc-seasons`; the holidays keyed to

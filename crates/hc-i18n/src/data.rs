@@ -280,6 +280,17 @@ const NUMBERED_LUNISOLAR_CALENDARS: &[CalendarId] = &[
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
+    CalendarId("chinese-taichu"),
+    CalendarId("chinese-sifen"),
+    CalendarId("chinese-qianxiang"),
+    CalendarId("chinese-jingchu"),
+    CalendarId("chinese-yuanjia"),
+    CalendarId("chinese-daming"),
+    CalendarId("chinese-xinghe"),
+    CalendarId("chinese-tianhe"),
+    CalendarId("chinese-kaihuang"),
+    CalendarId("chinese-sanji"),
+    CalendarId("chinese-zhengguang"),
     CalendarId("japanese-tenpo"),
     CalendarId("japanese-kansei"),
     CalendarId("japanese-horyaku"),
@@ -299,12 +310,36 @@ const CHINESE_FAMILY_CALENDARS: &[CalendarId] = &[
     CalendarId("dangi"),
     CalendarId("dangi-kasi"),
     CalendarId("vietnamese"),
+    CalendarId("chinese-taichu"),
+    CalendarId("chinese-sifen"),
+    CalendarId("chinese-qianxiang"),
+    CalendarId("chinese-jingchu"),
+    CalendarId("chinese-yuanjia"),
+    CalendarId("chinese-daming"),
+    CalendarId("chinese-xinghe"),
+    CalendarId("chinese-tianhe"),
+    CalendarId("chinese-kaihuang"),
+    CalendarId("chinese-sanji"),
+    CalendarId("chinese-zhengguang"),
 ];
 
 /// [`CHINESE_FAMILY_CALENDARS`] without the Dangi, for a locale whose
 /// CLDR file writes the Dangi date by patterns of its own.
-const CHINESE_AND_VIETNAMESE_CALENDARS: &[CalendarId] =
-    &[CalendarId("chinese"), CalendarId("vietnamese")];
+const CHINESE_AND_VIETNAMESE_CALENDARS: &[CalendarId] = &[
+    CalendarId("chinese"),
+    CalendarId("vietnamese"),
+    CalendarId("chinese-taichu"),
+    CalendarId("chinese-sifen"),
+    CalendarId("chinese-qianxiang"),
+    CalendarId("chinese-jingchu"),
+    CalendarId("chinese-yuanjia"),
+    CalendarId("chinese-daming"),
+    CalendarId("chinese-xinghe"),
+    CalendarId("chinese-tianhe"),
+    CalendarId("chinese-kaihuang"),
+    CalendarId("chinese-sanji"),
+    CalendarId("chinese-zhengguang"),
+];
 
 /// The Dangi on its own, in both readings of its months before 1912.
 const DANGI_CALENDARS: &[CalendarId] = &[CalendarId("dangi"), CalendarId("dangi-kasi")];
@@ -801,6 +836,62 @@ const VI_TEMPLATES: DateTemplates = DateTemplates {
     date: "{day} {month}, {year}",
     ..DateTemplates::NONE
 };
+
+/// The Chinese family's date in Vietnamese, as `vi.xml`'s items for
+/// `calendar type="chinese"` write it: 'Ngày' dd 'tháng' M 'năm' U for the
+/// long date, with the related Gregorian year after the stem and branch
+/// where the file's `yyyyMMMMd`, "'ngày' d 'tháng' M 'năm' U r", gives it,
+/// *năm Bính Ngọ 2026*; the month is by its traditional name after
+/// *tháng*.
+const VI_CHINESE_TEMPLATES: DateTemplates = DateTemplates {
+    year: "năm {sexagenary} {extra:related-gregorian-year}",
+    date: "Ngày {day} {month} {year}",
+    ..DateTemplates::NONE
+};
+
+/// The twelve months of the Vietnamese lunisolar calendar by their
+/// traditional names, from the first: the Vietnamese Wikipedia's "Nông
+/// lịch" (`wikipedia-vi-nong-lich`) has tháng giêng, hai, ba, tư, năm, sáu,
+/// bảy, tám, chín, mười, mười một and chạp. The stand-alone form is
+/// capitalised, as `vi.xml` capitalises its Gregorian ones.
+const VI_LUNAR_MONTHS: &[CycleNames] = &[month_cycle(ContextualNames {
+    format: widths(
+        &[
+            "tháng Giêng",
+            "tháng Hai",
+            "tháng Ba",
+            "tháng Tư",
+            "tháng Năm",
+            "tháng Sáu",
+            "tháng Bảy",
+            "tháng Tám",
+            "tháng Chín",
+            "tháng Mười",
+            "tháng Mười Một",
+            "tháng Chạp",
+        ],
+        &[],
+        &[],
+    ),
+    standalone: widths(
+        &[
+            "Tháng Giêng",
+            "Tháng Hai",
+            "Tháng Ba",
+            "Tháng Tư",
+            "Tháng Năm",
+            "Tháng Sáu",
+            "Tháng Bảy",
+            "Tháng Tám",
+            "Tháng Chín",
+            "Tháng Mười",
+            "Tháng Mười Một",
+            "Tháng Chạp",
+        ],
+        &[],
+        &[],
+    ),
+})];
 
 /// `ha.xml`, `mr.xml` and `te.xml`: no `Gy` item, so root's "G y", and a
 /// long date of "d MMMM, y".
@@ -7313,6 +7404,18 @@ const VI: LocaleData = LocaleData {
         // pattern the file gives the Chinese calendar's, `{0} Nhuận` (its
         // `monthPatterns`, leap), after the month: tháng 3 Nhuận.
         CalendarNames::empty(JAPANESE_CALENDARS).with_leap_month_suffix(" Nhuận"),
+        // The Vietnamese calendar and its Chinese-family kin in Vietnamese.
+        // `vi.xml`'s `calendar type="chinese"` has the cyclic years, Giáp Tý
+        // to Quý Hợi, which `readings::VIETNAMESE` carries, the leap pattern
+        // `{0} Nhuận`, and numerals where it names the months. The traditional
+        // names of the twelve are the ones of the Vietnamese Wikipedia's
+        // article "Nông lịch": tháng giêng (正月), hai, ba, tư, năm, sáu,
+        // bảy, tám, chín, mười, mười một and chạp (臘月), read 2026-10-03
+        // (`wikipedia-vi-nong-lich`), written after the word *tháng* as the
+        // file's long date writes it, 'Ngày' dd 'tháng' M 'năm' U.
+        lunisolar(CHINESE_FAMILY_CALENDARS, VI_LUNAR_MONTHS, "")
+            .with_leap_month_suffix(" Nhuận")
+            .with_templates(VI_CHINESE_TEMPLATES),
     ],
 };
 

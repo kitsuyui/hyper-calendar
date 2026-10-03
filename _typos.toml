@@ -663,3 +663,8 @@ Meraj = "Meraj"
 # Parana, the breaking of an Ekadashi fast, as Drik Panchang's ISKCON page and
 # its Ekadashi Vrat Vidhi page write it (docs/systems/hindu-calendars.md).
 Parana = "Parana"
+# Daming, the 大明曆 of Zu Chongzhi, in hc-calendars-lunar's
+# chinese_historical (`chinese-daming`, `DamingCalendar`) and
+# docs/systems/chinese-historical-lunisolar.md.
+Daming = "Daming"
+daming = "daming"

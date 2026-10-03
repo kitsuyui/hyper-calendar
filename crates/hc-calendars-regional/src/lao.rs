@@ -74,7 +74,9 @@ use hc_calendar::{
     Calendar, CalendarId, CalendarMeta, CalendarResult, DateFields, Month, Rd, YearKind,
 };
 
-use crate::southeast_asian::{Fortnight, YearType, Years, suryayatra_year_type, write_digits};
+use crate::southeast_asian::{
+    Fortnight, SakChange, YearType, Years, sak_change, suryayatra_year_type, write_digits,
+};
 
 /// The first year carried, in the Chulasakarat era: the lunar year that
 /// begins on 23 November 1938.
@@ -126,6 +128,23 @@ pub fn year_type(year: i64) -> Option<YearType> {
     (FIRST_YEAR..=LAST_YEAR)
         .contains(&year)
         .then(|| suryayatra_year_type(year))
+}
+
+/// The day and the time at which the Chulasakarat year `year` begins, the
+/// solar New Year of Dupertuis's table, in the mean arithmetic of the
+/// *suryayatra*: 16 April 1939 for 1301, the first day of his table, and
+/// 15 April 1981, Wednesday, for 1343, his worked example, whose *horakhoune*
+/// is 490 543. `None` outside [`FIRST_YEAR`] to [`LAST_YEAR`].
+///
+/// The time is the mean arithmetic's, [`SakChange::seconds`] after
+/// midnight; Dupertuis gives the day and not the time, and no Lao
+/// announcement of the time was read. The day on which the festival, the
+/// Songkran of Laos, begins, two to three days before, is not carried.
+#[must_use]
+pub fn new_year_day(year: i64) -> Option<SakChange> {
+    (FIRST_YEAR..=LAST_YEAR)
+        .contains(&year)
+        .then(|| sak_change(year))
 }
 
 /// Day 1 of month 1 of [`FIRST_YEAR`], 23 November 1938: the day that puts
@@ -429,6 +448,10 @@ mod tests {
             assert_eq!(date.fortnight_day(), day, "{year}");
             assert_eq!(date.fortnight() == Fortnight::Waning, waning, "{year}");
             assert_eq!(weekday(rd), week, "{year}");
+            // The same day is the mean arithmetic's New Year.
+            let change = new_year_day(year).expect("in range");
+            assert_eq!(change.day, rd, "{year}");
+            assert_eq!(change.chulasakarat_year, year);
         }
         for collided in [1304, 1309, 1315, 1320] {
             assert!(suryayatra_has_leap_month(collided));
@@ -448,6 +471,18 @@ mod tests {
         let date = from_fixed(greg(1981, 4, 15)).expect("in range");
         assert_eq!(date, LaoDate::new(1343, Month::regular(5), 11));
         assert_eq!(weekday(greg(1981, 4, 15)), 3);
+    }
+
+    /// The New Year of 1343 is 15 April 1981 by Dupertuis's horakhoune, and
+    /// the years outside the range have none.
+    #[test]
+    fn the_new_year_day_comes_from_the_horakhoune() {
+        let change = new_year_day(1343).expect("in range");
+        assert_eq!(change.day, greg(1981, 4, 15));
+        // 774 of 800 parts of the day, 108 seconds each: 23:13:12.
+        assert_eq!(change.seconds, 23 * 3600 + 13 * 60 + 12);
+        assert_eq!(new_year_day(FIRST_YEAR - 1), None);
+        assert_eq!(new_year_day(LAST_YEAR + 1), None);
     }
 
     /// The last days of the Lao months of 1979 and 1980, as Dupertuis

@@ -1198,7 +1198,7 @@ pub struct PentadEvent {
 /// leap year whose 1 January falls just before that crossing, the 280°
 /// pentad (冬至末候) happens twice in the same Gregorian year. This function
 /// then returns the first. Use [`pentads_in_year`] to walk a year, which
-/// cannot double-count.
+/// returns both beginnings.
 #[must_use]
 pub fn pentad_moment(year: i64, pentad: Pentad) -> Moment {
     seasonal_event(year, pentad.solar_longitude_degrees())
@@ -1269,14 +1269,58 @@ pub fn pentads_from(day: Rd, meridian: Meridian) -> PentadsFrom {
     }
 }
 
-/// The 72 pentads of a Gregorian year, in date order.
+/// The pentads that begin in a Gregorian year, in date order: those whose
+/// moment falls from local midnight on 1 January of `year`, up to but not
+/// including local midnight on 1 January of the next.
 ///
-/// The first is 小寒初候 or 冬至末候 depending on where the Sun stands at
-/// midnight on 1 January, which is why this is not a fixed rotation of the
-/// table.
+/// The 72 pentads tile the tropical year, 365.2422 days, so the Gregorian
+/// year holds 71, 72 or 73 beginnings, never always 72. When the first
+/// beginning is more than about 4.8 days after midnight on 1 January the
+/// 72nd falls on the next 1 January or after it, and the year has 71, the
+/// last being left to the next year; in a leap year whose first beginning
+/// is within about 0.8 days of midnight on 1 January the year has 73, and
+/// its first and last are the same pentad, 冬至末候 at the Sun's 280°, a
+/// second time. The first is 小寒初候 or 冬至末候 depending on where the Sun
+/// stands at midnight on 1 January, which is why this is not a fixed
+/// rotation of the table.
+///
+/// `pentads_from` is the walk of exactly 72 from a day, which does not
+/// stay inside a calendar year.
 #[must_use]
-pub fn pentads_in_year(year: i64, meridian: Meridian) -> PentadsFrom {
-    pentads_from(hc_calendar::gregorian::new_year(year), meridian)
+pub fn pentads_in_year(year: i64, meridian: Meridian) -> PentadsInYear {
+    let mut walk = pentads_from(hc_calendar::gregorian::new_year(year), meridian);
+    // A leap year can hold one beginning more than the 72 of a tropical year.
+    walk.remaining = PENTADS_PER_YEAR + 1;
+    PentadsInYear {
+        walk,
+        end: meridian.midnight(hc_calendar::gregorian::new_year(year + 1)),
+    }
+}
+
+/// The iterator returned by [`pentads_in_year`]: the pentads that begin
+/// before the next 1 January at the meridian, 71 to 73 of them.
+#[derive(Debug, Clone, Copy)]
+pub struct PentadsInYear {
+    walk: PentadsFrom,
+    end: Moment,
+}
+
+impl Iterator for PentadsInYear {
+    type Item = PentadEvent;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let event = self.walk.next()?;
+        if event.moment.0 < self.end.0 {
+            Some(event)
+        } else {
+            self.walk.remaining = 0;
+            None
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        (0, Some(PENTADS_PER_YEAR + 1))
+    }
 }
 
 /// The iterator returned by [`pentads_from`] and [`pentads_in_year`].
@@ -1598,7 +1642,6 @@ mod tests {
             let mut seen = [false; PENTADS_PER_YEAR];
             for event in pentads_in_year(year, Meridian::JAPAN) {
                 let index = event.pentad.index(TermOrder::SpringEquinoxFirst) as usize;
-                assert!(!seen[index], "a pentad repeated in {year}");
                 seen[index] = true;
                 if let Some(earlier) = previous {
                     assert_eq!(event.pentad, earlier.pentad.next(), "a pentad was skipped");
@@ -1615,13 +1658,18 @@ mod tests {
                 previous = Some(event);
                 count += 1;
             }
-            assert_eq!(count, PENTADS_PER_YEAR);
-            assert!(seen.iter().all(|&flag| flag), "not every pentad appeared");
-            // Seventy-two five-degree arcs are one full turn of the ecliptic.
+            // A Gregorian year holds 71, 72 or 73 beginnings (see
+            // `a_gregorian_year_holds_the_beginnings_that_fall_in_it`).
+            assert!((71..=73).contains(&count), "{count} pentads in {year}");
+            // Seventy-two five-degree arcs are one full turn of the
+            // ecliptic, so a year of 72 or more has met each pentad.
+            if count >= PENTADS_PER_YEAR {
+                assert!(seen.iter().all(|&flag| flag), "not every pentad appeared");
+            }
             let span = previous.unwrap().moment.0 - first.unwrap().moment.0;
             assert!(
                 (355.0..372.0).contains(&span),
-                "seventy-one pentads spanned {span} days in {year}"
+                "{count} pentads spanned {span} days in {year}"
             );
         }
     }
@@ -1693,10 +1741,72 @@ mod tests {
     }
 
     #[test]
-    fn the_iterator_reports_its_own_length() {
-        let mut iterator = pentads_in_year(2024, Meridian::JAPAN);
+    fn the_walk_from_a_day_reports_its_own_length() {
+        let mut iterator = pentads_from(gregorian::new_year(2024), Meridian::JAPAN);
         assert_eq!(iterator.len(), 72);
         let _ = iterator.next();
         assert_eq!(iterator.len(), 71);
+    }
+
+    /// A published Japan Standard Time instant as a Universal Time moment.
+    fn jst(year: i64, month: u8, day: u8, hour: u32, minute: u32) -> f64 {
+        gregorian::to_fixed_saturating(year, month, day).0 as f64
+            + (f64::from(hour) * 60.0 + f64::from(minute) - 540.0) / 1440.0
+    }
+
+    /// The 暦要項 prints 冬至 (270°) of 2023 at 12:27 on 22 December JST
+    /// (<https://eco.mtk.nao.ac.jp/koyomi/yoko/2023/rekiyou232.html>) and
+    /// 小寒 (285°) of 2024 at 05:49 on 6 January; 冬至 of 2024 at 18:21 on
+    /// 21 December and 小寒 of 2025 at 11:33 on 5 January
+    /// (`tests/rekiyoko_solar_terms.rs`), all retrieved 2026-10-03. The 280°
+    /// beginning of 冬至末候 lies two thirds of the way between each pair,
+    /// as the Sun's speed varies by less than a hundredth of a degree a
+    /// day over those fifteen: 08:01 on 1 January 2024 and 13:49 on
+    /// 31 December 2024. The leap year 2024 holds the pentad twice, so 73
+    /// beginnings, the first on its first day and the last on its last.
+    #[test]
+    fn a_gregorian_year_holds_the_beginnings_that_fall_in_it() {
+        let events: Vec<_> = pentads_in_year(2024, Meridian::JAPAN).collect();
+        assert_eq!(events.len(), 73);
+        let (first, last) = (events[0], events[72]);
+        assert_eq!(first.pentad, last.pentad);
+        assert_eq!(first.pentad.solar_longitude_degrees() as i32, 280);
+        let two_thirds = |from: f64, to: f64| from + (to - from) * 2.0 / 3.0;
+        let expected_first = two_thirds(jst(2023, 12, 22, 12, 27), jst(2024, 1, 6, 5, 49));
+        let expected_last = two_thirds(jst(2024, 12, 21, 18, 21), jst(2025, 1, 5, 11, 33));
+        assert!((first.moment.0 - expected_first).abs() < 0.05);
+        assert!((last.moment.0 - expected_last).abs() < 0.05);
+        assert_eq!(first.day, gregorian::to_fixed_saturating(2024, 1, 1));
+        assert_eq!(last.day, gregorian::to_fixed_saturating(2024, 12, 31));
+        // 2025 begins with 小寒 (285°) on 5 January, not with the 280° one.
+        let next = pentads_in_year(2025, Meridian::JAPAN).next().unwrap();
+        assert_eq!(next.pentad.solar_longitude_degrees() as i32, 285);
+        assert_eq!(next.day, gregorian::to_fixed_saturating(2025, 1, 5));
+    }
+
+    /// Over 1800 to 2300 at Japan's meridian the count is 71 in 83 years,
+    /// 72 in 336 and 73 in 82, every list ends before the next 1 January,
+    /// and each pentad of a 71 is the one the next year's list begins
+    /// with, the next in the cycle. The counts are this crate's own
+    /// computation: the anchor is the argument that the 72 pentads span
+    /// 365.2422 days.
+    #[test]
+    fn no_list_runs_into_the_next_year_and_the_next_begins_where_it_ends() {
+        let mut counts = [0usize; 3];
+        let mut previous: Option<PentadEvent> = None;
+        for year in 1800..=2300 {
+            let start = gregorian::new_year(year);
+            let end = gregorian::new_year(year + 1);
+            let events: Vec<_> = pentads_in_year(year, Meridian::JAPAN).collect();
+            counts[events.len() - 71] += 1;
+            for event in &events {
+                assert!(event.day >= start && event.day < end, "{year}");
+            }
+            if let (Some(before), Some(now)) = (previous, events.first()) {
+                assert_eq!(now.pentad, before.pentad.next(), "{year}");
+            }
+            previous = events.last().copied();
+        }
+        assert_eq!(counts, [83, 336, 82]);
     }
 }

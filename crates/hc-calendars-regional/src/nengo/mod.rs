@@ -51,6 +51,13 @@
 //! under that rule; where they do, the Western start year is appended to
 //! the older one, so 正和 (1312) is `showa-1312` and 昭和 (1926) keeps
 //! `showa`. An era is looked up by its identifier alone: see [`by_id`].
+//!
+//! [`Nengo::kanji`] is the bare name. Eight names are the title of another
+//! article of the Japanese Wikipedia as well, which tells the era's article
+//! apart with the suffix " (元号)" (延長, 治安, 永久, 保安, 正中, 天文, 安永
+//! and 文化); the suffix belongs to the encyclopedia's titles, so the table
+//! drops it. No two eras share a kanji name, and the identifier is what
+//! tells two eras apart where a reading collides.
 
 mod table;
 
@@ -392,6 +399,32 @@ mod tests {
         assert_eq!(by_id("koan"), None);
         for name in ["昭和", "しょうわ", "正和", "康安"] {
             assert_eq!(by_id(name), None, "{name}");
+        }
+    }
+
+    /// The kanji is the era's name and nothing else: Wikipedia's " (元号)"
+    /// suffix, which tells eight articles apart from other articles, is
+    /// not part of it, and so no name has a space or a bracket.
+    #[test]
+    fn no_kanji_carries_a_title_suffix() {
+        for era in ALL {
+            assert!(
+                !era.kanji.contains([' ', '(', ')', '（', '）']),
+                "{} is not a bare name",
+                era.kanji
+            );
+        }
+        for (id, kanji) in [
+            ("encho", "延長"),
+            ("jian", "治安"),
+            ("eikyu", "永久"),
+            ("hoan", "保安"),
+            ("shochu", "正中"),
+            ("tenbun", "天文"),
+            ("anei", "安永"),
+            ("bunka", "文化"),
+        ] {
+            assert_eq!(by_id(id).map(|era| era.kanji), Some(kanji), "{id}");
         }
     }
 

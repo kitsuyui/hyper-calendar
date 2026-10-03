@@ -1791,6 +1791,15 @@ impl<'a> Reader<'a> {
         if let [Some(near), Some(far), third] = probes {
             let probes: [&DateFields; 2] = [near, far];
             for extra in read.extra.iter() {
+                // A year of a cycle is the low digit of a number whose
+                // cycle the text does not write: on a calendar whose
+                // range lies within one cycle (the Chinese calendars
+                // before 665) the probes would show a constant offset
+                // for it, as for an era's year, and the text would read
+                // as the day of the probes' cycle only.
+                if matches!(extra.name, "year_of_cycle" | "sexagenary_year") {
+                    continue;
+                }
                 // An era's year, which may turn at another point of the
                 // year than the calendar's: the offset holds within one.
                 let offsets = probes.map(|probe| {

@@ -73,8 +73,8 @@ use hc_calendar::{
 };
 
 use crate::southeast_asian::{
-    Fortnight, YearType, Years, suryayatra_has_leap_day, suryayatra_has_leap_month,
-    suryayatra_year_type, write_digits,
+    Fortnight, SakChange, YearType, Years, sak_change, suryayatra_has_leap_day,
+    suryayatra_has_leap_month, suryayatra_year_type, write_digits,
 };
 
 /// The Buddhist Era year minus the Gregorian year its Visak Bochea falls in.
@@ -155,6 +155,25 @@ pub const fn has_leap_day_by_rule(year: i64) -> bool {
 #[must_use]
 pub const fn year_type_by_rule(year: i64) -> YearType {
     suryayatra_year_type(chulasakarat(year))
+}
+
+/// The day and the time at which the year changes at the solar New Year in
+/// April: the Khmer *Laeung Sak* (ឡើងស័ក), when the Jolak Sakaraj, the
+/// animal year and the *sak* change. `year` is the Buddhist year the rule
+/// numbers, as the other functions here take it, and the day falls in the
+/// Gregorian year `year` − 544. `None` outside [`FIRST_YEAR`] to
+/// [`LAST_YEAR`].
+///
+/// The time is the mean arithmetic's, [`SakChange::seconds`] after midnight
+/// by the Cambodian clock: 02:15:00 on Tuesday 16 April 2024, which is what
+/// the New Year announcement gives. The *Maha Songkran* moment, at which the
+/// true Sun enters Aries and the festival begins, two to three days
+/// earlier, is not carried.
+#[must_use]
+pub fn laeung_sak(year: i64) -> Option<SakChange> {
+    (FIRST_YEAR..=LAST_YEAR)
+        .contains(&year)
+        .then(|| sak_change(chulasakarat(year)))
 }
 
 /// The type of `year`, or `None` outside [`FIRST_YEAR`] to [`LAST_YEAR`].
@@ -424,6 +443,53 @@ mod tests {
 
     const CHAET: Month = Month::regular(5);
     const PISAKH: Month = Month::regular(6);
+
+    /// The New Year announcements of 2022 to 2026 (`freshnews-songkran-2022`
+    /// to `-2026`) give the day and the time of *Laeung Sak*, the change of
+    /// the *sak*, to the second: Saturday 16 April 2022 at 13:49:48, Sunday
+    /// 16 April 2023 at 20:02:24, Tuesday 16 April 2024 at 02:15:00,
+    /// Wednesday 16 April 2025 at 08:27:36 and Thursday 16 April 2026 at
+    /// 14:40:12. The mean arithmetic gives every one of them.
+    #[test]
+    fn the_laeung_sak_of_2022_to_2026_is_the_day_and_second_announced() {
+        let announced: [(i64, i64, u8, u8, u32, u32, u32); 5] = [
+            (2566, 2022, 4, 16, 13, 49, 48),
+            (2567, 2023, 4, 16, 20, 2, 24),
+            (2568, 2024, 4, 16, 2, 15, 0),
+            (2569, 2025, 4, 16, 8, 27, 36),
+            (2570, 2026, 4, 16, 14, 40, 12),
+        ];
+        for (year, gy, gm, gd, hour, minute, second) in announced {
+            let change = laeung_sak(year).expect("in range");
+            assert_eq!(change.day, greg(gy, gm, gd), "{year}");
+            assert_eq!(change.seconds, hour * 3600 + minute * 60 + second, "{year}");
+            assert_eq!(change.chulasakarat_year, year - CHULASAKARAT_OFFSET);
+        }
+        assert_eq!(laeung_sak(FIRST_YEAR - 1), None);
+        assert_eq!(laeung_sak(LAST_YEAR + 1), None);
+    }
+
+    /// The day the year changes is the *bodithey* of the year or the day
+    /// after it, and always in Chaet or Pisakh: the lunar day printed for
+    /// it equals the *bodithey* in 221 of the 301 years of the range and is
+    /// one more in the other 80 (measured here). Laeung Sak is the 8th of
+    /// the waxing moon of Chaet in 2024, whose *bodithey* is 8, and the
+    /// 15th in 2022.
+    #[test]
+    fn laeung_sak_falls_on_the_bodithey_day_or_the_next_in_chaet_or_pisakh() {
+        let mut same = 0;
+        for year in FIRST_YEAR..=LAST_YEAR {
+            let change = laeung_sak(year).expect("in range");
+            let date = from_fixed(change.day).expect("in range");
+            let tithi = new_year_tithi(year - CHULASAKARAT_OFFSET);
+            let day = if tithi == 0 { 30 } else { tithi };
+            let diff = (i64::from(date.day) - day).rem_euclid(30);
+            assert!(diff <= 1, "{year}");
+            same += i64::from(diff == 0);
+            assert!(date.month == CHAET || date.month == PISAKH, "{year}");
+        }
+        assert_eq!(same, 221);
+    }
 
     #[test]
     fn the_new_years_of_2022_to_2026_fall_on_the_announced_lunar_days() {

@@ -263,8 +263,12 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   anchored to the days the almanacs printed.
 * **`pentad_moment` near 280°.** A leap year whose 1 January falls shortly before
   the 280° crossing contains that pentad twice, and `pentad_moment` returns
-  the first. `pentads_in_year` walks the year instead and cannot
-  double-count.
+  the first. `pentads_in_year` walks the year instead and returns both: it
+  lists every pentad that begins in the Gregorian year, which is 71, 72 or
+  73 of them (over 1800–2300 at Japan's meridian, 83, 336 and 82 years),
+  because the 72 pentads span the tropical year, 365.2422 days, not the
+  Gregorian one. In a 71 the last pentad of the 72 begins on 1 January of
+  the next year and belongs to its list.
 * **Southern-hemisphere East Asian seasons** are a mechanical flip. The 立
   terms describe the Chinese agricultural year and have no southern form.
   The flip is a convenience for a southern-hemisphere caller, who would
