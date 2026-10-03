@@ -76,7 +76,7 @@
 //! The exports come in layers that a page can load as it needs them, each a
 //! Cargo feature: `civil` (the default), `timestamps`, `time-codes`, `calendars`, `holiday`, `seasons`,
 //! `deep-time`, `tz`, `sky`, `orbital`, `jupiter`, `planetary`, `relativity`, `places`,
-//! `humanize`, `natural`, `datetime`, `patterns` and `zone-names`, with
+//! `humanize`, `natural`, `datetime`, `patterns`, `zone-names`, `uncertainty`, `units`, `fiscal`, `name-days` and `attributes`, with
 //! `full` for all of them.
 //! Which feature each export needs is in the README's table.
 //!
@@ -260,6 +260,31 @@ pub use patterns::*;
 mod zone_names;
 #[cfg(feature = "zone-names")]
 pub use zone_names::*;
+
+#[cfg(feature = "uncertainty")]
+mod uncertainty;
+#[cfg(feature = "uncertainty")]
+pub use uncertainty::*;
+
+#[cfg(feature = "units")]
+mod units;
+#[cfg(feature = "units")]
+pub use units::*;
+
+#[cfg(feature = "fiscal")]
+mod fiscal;
+#[cfg(feature = "fiscal")]
+pub use fiscal::*;
+
+#[cfg(feature = "name-days")]
+mod name_days;
+#[cfg(feature = "name-days")]
+pub use name_days::*;
+
+#[cfg(feature = "attributes")]
+mod attributes;
+#[cfg(feature = "attributes")]
+pub use attributes::*;
 
 #[cfg(test)]
 mod tests;

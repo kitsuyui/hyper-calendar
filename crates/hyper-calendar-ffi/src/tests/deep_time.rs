@@ -1,6 +1,10 @@
 use super::super::*;
 use super::read_lines;
 
+fn row(text: &str) -> Vec<String> {
+    text.trim_end().split('\t').map(str::to_owned).collect()
+}
+
 #[test]
 fn deep_time_lines_decode_column_by_column() {
     let text = read_lines(|buffer, capacity, written| unsafe {
@@ -119,4 +123,180 @@ fn deep_time_lines_decode_column_by_column() {
     } {
         assert_eq!(status, HC_ERROR_NOT_UTF8);
     }
+}
+
+#[test]
+fn hc_planck_units_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_planck_units(buffer, capacity, written)
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 10),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "c");
+}
+
+#[test]
+fn hc_bp_convert_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_bp_convert(
+            11650.0,
+            5.0,
+            c"bp".as_ptr(),
+            c"b2k".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 8),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "bp");
+    assert_eq!(first[1], "b2k");
+    assert_eq!(first[4], "11700");
+    assert_eq!(first[6], "11700 b2k");
+    assert_eq!(
+        unsafe {
+            hc_bp_convert(
+                3200.0,
+                50.0,
+                c"radiocarbon-bp".as_ptr(),
+                c"bp".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_NO_DATA
+    );
+    assert_eq!(
+        unsafe {
+            hc_bp_convert(
+                1.0,
+                0.0,
+                c"bp".as_ptr(),
+                c"ad".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+}
+
+#[test]
+fn hc_deep_convert_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_deep_convert(
+            13.787,
+            0.02,
+            c"gigayear".as_ptr(),
+            c"second".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 13),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[0], "gigayear");
+    assert_eq!(first[1], "second");
+    assert_eq!(first[11], "1");
+    assert_eq!(
+        unsafe {
+            hc_deep_convert(
+                1.0,
+                0.0,
+                c"gigayear".as_ptr(),
+                c"furlong".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
+    assert_eq!(
+        unsafe {
+            hc_deep_convert(
+                1.0,
+                -1.0,
+                c"gigayear".as_ptr(),
+                c"second".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+}
+
+#[test]
+fn hc_deep_compare_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_deep_compare(
+            13.787,
+            0.02,
+            c"gigayear".as_ptr(),
+            1.0,
+            0.0,
+            c"planck-time".as_ptr(),
+            buffer,
+            capacity,
+            written,
+        )
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 12),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[9], "0");
+    assert_eq!(first[10], "1");
+    assert_eq!(
+        unsafe {
+            hc_deep_compare(
+                0.0,
+                0.0,
+                c"day".as_ptr(),
+                1.0,
+                0.0,
+                c"day".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe {
+            hc_deep_compare(
+                1.0,
+                0.0,
+                c"day".as_ptr(),
+                1.0,
+                0.0,
+                c"fortnight".as_ptr(),
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_UNKNOWN
+    );
 }

@@ -53,7 +53,12 @@ pub(crate) unsafe fn write_text(
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>, HcStatus> {
     if pointer.is_null() {
@@ -78,6 +83,7 @@ pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>,
     feature = "calendars",
     feature = "seasons",
     feature = "holiday",
+    feature = "deep-time",
     feature = "tz",
     feature = "sky",
     feature = "jupiter",
@@ -88,7 +94,12 @@ pub(crate) unsafe fn text<'a>(pointer: *const c_char) -> Result<Option<&'a str>,
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn name<'a>(pointer: *const c_char) -> Result<&'a str, HcStatus> {
     // SAFETY: forwarded to the caller's contract above.
@@ -149,7 +160,12 @@ pub(crate) const fn status(refusal: hc::boundary::Refusal) -> HcStatus {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn write_answer(
     answer: hc::boundary::Answer<String>,

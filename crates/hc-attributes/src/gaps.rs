@@ -45,6 +45,19 @@ pub enum GapReason {
 }
 
 impl GapReason {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the reason as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::SourcesDisagreeWithNoAuthority => "sources-disagree-with-no-authority",
+            Self::MethodUnpublished => "method-unpublished",
+            Self::DifferentKey => "different-key",
+            Self::ModernInvention => "modern-invention",
+            Self::TranslationUndetermined => "translation-undetermined",
+        }
+    }
+
     /// A one-line description.
     #[must_use]
     pub const fn english_description(self) -> &'static str {
@@ -309,6 +322,27 @@ mod tests {
             }
             for table in crate::moon_names::ALL {
                 assert_ne!(gap.id, table.authority().id);
+            }
+        }
+    }
+
+    #[test]
+    fn every_reason_has_a_distinct_kebab_identifier() {
+        let reasons = [
+            GapReason::SourcesDisagreeWithNoAuthority,
+            GapReason::MethodUnpublished,
+            GapReason::DifferentKey,
+            GapReason::ModernInvention,
+            GapReason::TranslationUndetermined,
+        ];
+        for (index, reason) in reasons.iter().enumerate() {
+            let id = reason.id();
+            assert!(
+                id.bytes().all(|b| b.is_ascii_lowercase() || b == b'-'),
+                "{id}"
+            );
+            for other in &reasons[index + 1..] {
+                assert_ne!(id, other.id());
             }
         }
     }

@@ -31,7 +31,12 @@ use crate::{
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn text<'a>(pointer: *const u8, len: usize) -> Result<&'a str, i64> {
     if pointer.is_null() {
@@ -117,7 +122,12 @@ pub(crate) unsafe fn emit(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn emit_or_measure(text: &str, buffer: *mut u8, capacity: usize) -> i64 {
     if buffer.is_null() {
@@ -165,7 +175,12 @@ pub(crate) const fn sentinel(refusal: hc::boundary::Refusal) -> i64 {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 pub(crate) unsafe fn emit_answer(
     answer: hc::boundary::Answer<String>,
@@ -247,7 +262,12 @@ macro_rules! w_read {
     feature = "natural",
     feature = "datetime",
     feature = "patterns",
-    feature = "zone-names"
+    feature = "zone-names",
+    feature = "uncertainty",
+    feature = "units",
+    feature = "fiscal",
+    feature = "name-days",
+    feature = "attributes"
 ))]
 macro_rules! w_safety {
     (name, $arg:ident, $len:ident) => {

@@ -1,6 +1,10 @@
 use super::super::*;
 use super::read_lines;
 
+fn row(text: &str) -> Vec<String> {
+    text.trim_end().split('\t').map(str::to_owned).collect()
+}
+
 fn rows(text: &str) -> Vec<Vec<String>> {
     text.lines()
         .map(|line| line.split('\t').map(str::to_owned).collect())
@@ -81,4 +85,44 @@ fn epochs_off_the_span_and_series_too_long_are_refused() {
     );
     assert_eq!(written, 1);
     assert_eq!(buffer[0], 0);
+}
+
+#[test]
+fn hc_daily_insolation_crosses_the_boundary() {
+    let text = read_lines(|buffer, capacity, written| unsafe {
+        hc_daily_insolation(0.0, 65.0, 90.0, buffer, capacity, written)
+    });
+    assert!(!text.is_empty());
+    assert!(
+        text.lines().all(|line| line.split('\t').count() == 6),
+        "{text}"
+    );
+    let first = row(text.lines().next().unwrap_or_default());
+    assert_eq!(first[4], "1360");
+    assert_eq!(
+        unsafe {
+            hc_daily_insolation(
+                0.0,
+                91.0,
+                90.0,
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
+    assert_eq!(
+        unsafe {
+            hc_daily_insolation(
+                0.0,
+                65.0,
+                361.0,
+                core::ptr::null_mut(),
+                0,
+                core::ptr::null_mut(),
+            )
+        },
+        HC_ERROR_OUT_OF_RANGE
+    );
 }

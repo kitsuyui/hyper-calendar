@@ -137,6 +137,19 @@ pub enum Provenance {
 }
 
 impl Provenance {
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// writes the provenance as.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::Promulgated => "promulgated",
+            Self::Recorded => "recorded",
+            Self::Vernacular => "vernacular",
+            Self::Contested => "contested",
+            Self::ModernInvention => "modern-invention",
+        }
+    }
+
     /// A one-line description, for diagnostics and for a caller that wants
     /// to print a warning beside a table.
     #[must_use]
@@ -218,6 +231,17 @@ impl AttributionDate {
             (None, _) => 1,
             (Some(_), None) => 2,
             (Some(_), Some(_)) => 3,
+        }
+    }
+}
+
+impl core::fmt::Display for AttributionDate {
+    /// `1912`, `1912-08` or `1912-08-01`, to the precision the source gives.
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match (self.month, self.day) {
+            (Some(month), Some(day)) => write!(f, "{}-{month:02}-{day:02}", self.year),
+            (Some(month), None) => write!(f, "{}-{month:02}", self.year),
+            _ => write!(f, "{}", self.year),
         }
     }
 }
@@ -644,5 +668,14 @@ mod tests {
         assert!(!Provenance::Promulgated.warrants_a_caveat());
         assert!(!Provenance::Vernacular.warrants_a_caveat());
         assert!(!Provenance::Recorded.warrants_a_caveat());
+    }
+
+    #[test]
+    fn provenance_identifiers_and_dates_render() {
+        assert_eq!(Provenance::ModernInvention.id(), "modern-invention");
+        assert_eq!(Provenance::Contested.id(), "contested");
+        assert_eq!(AttributionDate::year(725).to_string(), "725");
+        assert_eq!(AttributionDate::year_month(1912, 8).to_string(), "1912-08");
+        assert_eq!(AttributionDate::ymd(2021, 12, 20).to_string(), "2021-12-20");
     }
 }

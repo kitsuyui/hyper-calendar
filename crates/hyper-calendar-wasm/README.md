@@ -195,6 +195,18 @@ out of range is `out-of-range`, never an unrecognised number.
 | a byte length | `hc_relative_time_with` | every `then_unix` and `now_unix` less than an `i64` of seconds apart, as for `hc_relative_time`; a table or a rounding not named is `HC_ERR_UNKNOWN` |
 | a byte length | `hc_circad_date` | no `i64` input: the instants within 100 Julian years of J2000.0 (J1900.0, 1899-12-31T12:00 TT, to 2100-01-01T12:00 TT), as for `hc_mars_time`; any other, or one not finite, is `HC_ERR_OUT_OF_RANGE`, and a calendar not listed `HC_ERR_UNKNOWN` |
 | a mission sol, from 0 or 1 | `hc_mission_sol` | the instants from the midnight that began the mission's landing sol through 100 Julian years after J2000.0 (2100-01-01T12:00 TT); an earlier instant, or one not finite, is `HC_ERR_OUT_OF_RANGE`, a mission whose operators published no sol numbering `HC_ERR_NO_DATA`, and a mission the table does not carry `HC_ERR_UNKNOWN` |
+| a byte length | `hc_interval` | whole seconds, every `first_low_seconds`, `first_high_seconds`, `second_low_seconds` and `second_high_seconds` with each low bound not above its high one; a sum or difference whose bound leaves 128 bits of seconds is `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_unit_convert` | every `count_numerator` and `count_denominator` that is not 0 in the denominator; a count or a length past 128 bits is `HC_ERR_OUT_OF_RANGE`, and a unit `hc_units` does not list `HC_ERR_UNKNOWN` |
+| a byte length | `hc_tempo` | every `bpm_numerator` and `bpm_denominator` whose tempo is positive; any other is `HC_ERR_OUT_OF_RANGE`, and a length past 128 bits `HC_ERR_OUT_OF_RANGE` |
+| a byte length | `hc_fiscal_year_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE`; a day a system's start calendar does not reach is that system's `outside-calendar-range` line, and a country or kind not carried `HC_ERR_UNKNOWN` |
+| a byte length | `hc_fiscal_year_span` | every `label`; a label whose start the calendar does not reach is the system's `outside-calendar-range` line, and a country or kind not carried `HC_ERR_UNKNOWN` |
+| a byte length | `hc_week_year_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE`, and a system not listed `HC_ERR_UNKNOWN` |
+| a byte length | `hc_name_days_on` | `fixed` −3 652 424 999 through 3 652 424 634; any other is `HC_ERR_OUT_OF_RANGE`, and a country neither listed nor a gap `HC_ERR_UNKNOWN` |
+| a byte length | `hc_name_day` | `year` any Gregorian year within an `i32`, that is −2 147 483 648 through 2 147 483 647, and the years ±9 999 999 of the calendar; any other is `HC_ERR_OUT_OF_RANGE`, and a country neither listed nor a gap `HC_ERR_UNKNOWN` |
+| a byte length | `hc_attributions` | `key` 1 through 12, or 1 through 7 for `weekday`; any other is `HC_ERR_OUT_OF_RANGE`, and a subject not named `HC_ERR_UNKNOWN` |
+| a byte length | `hc_attributions_on` | `fixed` −365 607 through 1 095 727, the years −1000 to 3000; any other is `HC_ERR_OUT_OF_RANGE`, and a meridian not read `HC_ERR_UNKNOWN` |
+| a byte length | `hc_harvest_moon` | `year` −999 through 3000; any other is `HC_ERR_OUT_OF_RANGE`, and a meridian not read `HC_ERR_UNKNOWN` |
+| a byte length | `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare`, `hc_daily_insolation`, `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_units`, `hc_rates`, `hc_frame_period`, `hc_fiscal_profiles`, `hc_week_year_systems`, `hc_name_day_lists`, `hc_attribution_authorities` | no `i64` input: text, or `f64` and `u32` values whose range each export's documentation states |
 | a byte length | `hc_version`, `hc_calendar_list`, `hc_locales`, `hc_gregorian_adoption`, `hc_holiday_codes`, `hc_holiday_tables`, `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_orbit_at`, `hc_orbit_series`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_horizons`, `hc_missions`, `hc_bodies`, `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_ccsds_decode`, `hc_ccsds_ascii_parse`, `hc_six_hour_clock`, `hc_prayer_methods`, `hc_night_watch`, `hc_irig_formats`, `hc_french_decimal_time`, `hc_civil_from_french_decimal_time`, `hc_day_period`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_intcomma`, `hc_intcomma_float`, `hc_parse_datetime`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_iso_interval`, `hc_parse_pattern`, `hc_parse_pattern_in`, `hc_locale_chain`, `hc_locale_info`, `hc_plural_category`, `hc_names`, `hc_case`, `hc_isolate`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_holiday_groups`, `hc_irig_frame_start` | no `i64` input: text, or `f64` values whose range each export's documentation states; a length is never negative, so it never nears the floor |
 
 [`crates/hyper-calendar/tests/abi.rs`](../hyper-calendar/tests/abi.rs)
@@ -432,11 +444,47 @@ any of those, and resolves to a `HyperCalendar` with one method per export:
 | `bodies()`, `bodyTime(body, unixSeconds, eastLongitude)` | `hc_bodies`, `hc_body_time` | `Body[]`; a `BodyTime` |
 | `circadDate(calendar, unixSeconds)` | `hc_circad_date` | a `CircadDate` |
 | `properTime(speedMetresPerSecond, coordinateSeconds)`, `gravitationalDilation(body, radiusMetres)`, `gravitatingBodies()` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | a `ProperTime`; a `GravitationalDilation`; `GravitatingBody[]` |
+| `orbitRateOffset(body, orbitRadiusMetres, groundRadiusMetres)` | `hc_orbit_rate_offset` | a `OrbitRateOffset` |
+| `rocket(properAcceleration, properSeconds)` | `hc_rocket` | a `RocketBurn` |
+| `flipAndBurn(properAcceleration, distanceMetres)` | `hc_flip_and_burn` | a `FlipAndBurn` |
+| `doppler(beta, cosTheta)` | `hc_doppler` | a `DopplerShift` |
+| `velocityAdd(firstBeta, secondBeta)` | `hc_velocity_add` | a `VelocityComposition` |
+| `schwarzschildRadius(body)` | `hc_schwarzschild_radius` | a `SchwarzschildRadius` |
+| `properTimeUncertain(speedMetresPerSecond, speedStdDev, coordinateSeconds)` | `hc_proper_time_uncertain` | a `UncertainProperTime` |
 | `territories(locale)`, `subdivisions(country, locale)`, `placeName(code, locale)` | `hc_territories`, `hc_subdivisions`, `hc_place_name` | `PlaceName[]`; `PlaceName[]`; a `PlaceName` |
 | `relativeTime(thenUnix, nowUnix, style, automatic, locale)`, `relativeDay(thenFixed, nowFixed, style, automatic, locale)`, `relativeDayAt(thenFixed, nowFixed, secondsOfDay, style, automatic, locale)`, `duration(seconds, style, maxComponents, locale)` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration` | a `RelativeTime`; a `RelativeTime`; a `RelativeDayAt`; a `HumanizedDuration` |
 | `unitChoice(seconds, thresholds, rounding)`, `relativeTimeWith(thenUnix, nowUnix, style, automatic, locale, thresholds, rounding)`, `approximateDuration(seconds, style, locale, thresholds, policy)` | `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration` | a `UnitChoice`; a `RelativeTimeWith`; an `ApproximateDuration` |
 | `fractional(value)`, `scientific(value, precision)` | `hc_fractional`, `hc_scientific` | a `NaturalText` each |
 | `apnumber(value, locale)`, `metric(value, unit, precision, locale)`, `naturalSize(value, style, decimals, locale)`, `naturalList(items, locale)`, `intword(digits, decimals, locale)`, `naturalDelta(seconds, microseconds, months, minimumUnit, locale)`, `naturalTime(seconds, microseconds, months, minimumUnit, locale)`, `preciseDelta(seconds, microseconds, minimumUnit, suppress, decimals, locale)`, `naturalDay(day, today, pattern, locale)`, `naturalDate(day, today, locale)`, `ordinal(value, gender, locale)`, `intcomma(digits, locale)`, `intcommaFloat(value, ndigits, locale)` | `hc_apnumber`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float` | a `LocalizedNaturalText` each |
+| `planckUnits()` | `hc_planck_units` | `PlanckUnit[]` |
+| `bpConvert(years, stdDevYears, from, to)` | `hc_bp_convert` | a `DatumConversion` |
+| `deepConvert(value, stdDev, from, to)` | `hc_deep_convert` | a `MagnitudeConversion` |
+| `deepCompare(firstValue, firstStdDev, firstUnit, secondValue, secondStdDev, secondUnit)` | `hc_deep_compare` | a `MagnitudeComparison` |
+| `dailyInsolation(yearsBeforePresent, latitudeDegrees, solarLongitudeDegrees)` | `hc_daily_insolation` | a `DailyInsolation` |
+| `edtfParse(text)` | `hc_edtf_parse` | `EdtfPart[]` |
+| `edtfRelations(first, second)` | `hc_edtf_relations` | a `EdtfRelations` |
+| `significant(value, figures)` | `hc_significant` | a `SignificantNumber` |
+| `significantOp(operation, first, firstFigures, second, secondFigures)` | `hc_significant_op` | a `SignificantResult` |
+| `uncertain(value, stdDev)` | `hc_uncertain` | a `UncertainQuantity` |
+| `uncertainOp(operation, first, firstStdDev, second, secondStdDev)` | `hc_uncertain_op` | a `UncertainResult` |
+| `interval(operation, firstLowSeconds, firstHighSeconds, secondLowSeconds, secondHighSeconds)` | `hc_interval` | a `IntervalResult` |
+| `units()` | `hc_units` | `TimeUnit[]` |
+| `unitConvert(countNumerator, countDenominator, from, to)` | `hc_unit_convert` | a `UnitConversion` |
+| `rates()` | `hc_rates` | `FrameRate[]` |
+| `framePeriod(rate, inUnit)` | `hc_frame_period` | a `FramePeriod` |
+| `tempo(bpmNumerator, bpmDenominator, noteHalvings, dots, tupletSpace, tupletCount, beatHalvings)` | `hc_tempo` | a `NoteAtTempo` |
+| `fiscalProfiles()` | `hc_fiscal_profiles` | `FiscalSystem[]` |
+| `fiscalYearOn(country, kind, fixed)` | `hc_fiscal_year_on` | `FiscalYearOfDay[]` |
+| `fiscalYearSpan(country, kind, label)` | `hc_fiscal_year_span` | `FiscalYearSpan[]` |
+| `weekYearSystems()` | `hc_week_year_systems` | `WeekYearSystem[]` |
+| `weekYearOn(system, fixed)` | `hc_week_year_on` | a `WeekYearOfDay` |
+| `nameDayLists()` | `hc_name_day_lists` | `NameDayList[]` |
+| `nameDaysOn(country, fixed)` | `hc_name_days_on` | `NameDaysOfDay[]` |
+| `nameDay(country, name, year)` | `hc_name_day` | `NameDayDates[]` |
+| `attributionAuthorities(subject)` | `hc_attribution_authorities` | `AttributionAuthority[]` |
+| `attributions(subject, key)` | `hc_attributions` | `Attribution[]` |
+| `attributionsOn(fixed, meridian)` | `hc_attributions_on` | `AttributionOfDay[]` |
+| `harvestMoon(year, meridian)` | `hc_harvest_moon` | a `HarvestMoon` |
 
 Each method does what a page would otherwise write by hand:
 
@@ -556,20 +604,25 @@ one job a layer.
 | `calendars` | `hc_describe_day`, `hc_day_extras`, `hc_calendar_units`, `hc_parse_date`, `hc_calendars`, `hc_calendar_list`, `hc_locales`, `hc_first_day_of_week`, `hc_day_period`, `hc_format_number`, `hc_parse_number`, `hc_numbering_systems`, `hc_calendar_eras`, `hc_gregorian_adoption`, `hc_naming_period_on`: every registered calendar described for one day, walked as eras, years, months and days, and listed, in a locale, and a date written in one read back; the locales and the day each one's week begins on; when each country adopted the Gregorian calendar; and the month and weekday names a government decreed for a period; `hc_panchanga_at`, `hc_panchanga_of_day`, `hc_muhurtas`, `hc_amrita_siddhi`, `hc_nakshatra_at`, `hc_nakshatra_of_day`, `hc_hindu_lunar_date`, `hc_surya_siddhanta_at`, `hc_surya_siddhanta_sunrise`, `hc_crescent_visible`, `hc_ioc_olympiad`, `hc_ioc_olympiad_on`, `hc_babylonian_regnal_year`, `hc_equinox_new_year_margin`, `hc_shmuel_tekufah`, `hc_day_name`, `hc_hebrew_yahrzeit`, `hc_hebrew_birthday`, `hc_hebrew_sabbatical_cycle_year`, `hc_chinese_reckoned_age`, `hc_chinese_marriage_augury`, `hc_chinese_age`, `hc_chinese_almanac_solar_terms`, `hc_asian_day`, `hc_kalam`, `hc_almanac_cycles`, `hc_almanac_day`, `hc_almanac_directions`, `hc_rounichi`, `hc_mansion_undertakings`, `hc_almanac_person_days`, `hc_tibetan_almanac_day`, `hc_tibetan_planets`, `hc_bhutanese_winter_solstice`, `hc_tibetan_festival_day`; `hc_barhaspatya_year`, `hc_barhaspatya_year_at`, `hc_choghadiya`, `hc_panchak`, `hc_kumbh`, `hc_pushkaram`, `hc_folk_day`, `hc_night_watch`: the northern year's name, the choghadiya, Panchak, the Kumbh and Pushkaram conditions, the folk days and the night watches, each named in a locale; `hc_tithi_at`, `hc_tithis_of_day`, `hc_ayanamsas`, `hc_ayanamsa_at`, `hc_ayanamsa_from_anchor`, `hc_era_table`, `hc_olympic_games`, `hc_kumbh_yogas`, `hc_pushkaram_rivers`: the tithi with its span, the repeated and skipped ones, the named ayanāṃśas and a value of one, the eras of three tables, the Olympic Games, and the Kumbh conditions and the Pushkaram rivers | every `hc-calendars-*` crate, `hc-astro`, `hc-almanac`, `hc-i18n`, `hc-format`; and every locale's exemplar cities, which only a build with `tz` too carries | 1,520,268 | 1.45 MiB |
 | `holiday` | `hc_holiday_is_day_off`, `hc_holiday_add_business_days`, `hc_holiday_business_days_between`, `hc_holiday_is_weekend`, `hc_holiday_next`, `hc_holiday_previous`, `hc_holidays_in_year`, `hc_holiday_codes`, `hc_holidays_on`, `hc_holiday_tables`, `hc_holiday_groups`, `hc_holidays_on_in`, `hc_lectionary`, `hc_astronomical_easter`, `hc_astronomical_paschal_full_moon`, `hc_holy_year_on`, `hc_common_worship_on`, `hc_roman_1960_office_on`, `hc_orthodox_fast_on`, `hc_orthodox_fast_seasons` | `hc-holiday` and everything it dates by | 2,441,344 | 2.33 MiB |
 | `seasons` | `hc_term_in_effect`, `hc_pentad_in_effect`, `hc_cold_food_day`, `hc_plum_rains`, `hc_pentad_traditions`, `hc_pentad_in_tradition`, `hc_zassetsu_in_year`, `hc_seasonal_days_in_year` | `hc-seasons`, `hc-astro` | 124,575 | 122 KiB |
-| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals` | `hc-deep-time`, `hc-uncertainty` | 186,882 | 183 KiB |
+| `deep-time` | `hc_place_years_ago`, `hc_cosmic_events`, `hc_earliest_evidence`, `hc_archaeological_periods`, `hc_future_events`, `hc_geologic_intervals`, `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc-deep-time`, `hc-uncertainty` | 197,595 | 193 KiB |
 | `tz` | `hc_fixed_from_unix_in_zone`, `hc_unix_from_fixed_in_zone`, `hc_zone_load`, `hc_zone_offset`, `hc_zones`, `hc_zone_location`: the day and the offset by a zone's rules, and where each zone is, with its exemplar city in English, or in the locale when the build has `calendars` or `zone-names` too | `hc-tz`, and `hc-i18n`'s English exemplar cities | 101,054 | 99 KiB |
 | `sky` | `hc_sky_at`, `hc_solar_terms_between`, `hc_moon_phases_between`, `hc_decan_at`, `hc_drekkana_at`, `hc_earth_rotation_angle`, `hc_gmst_iau2006`, `hc_gmst_iau1982`, `hc_ut2_minus_ut1`, `hc_solar_time`, `hc_solar_event`, `hc_horizons`, `hc_sunrise`, `hc_sunset`, `hc_hjd_tt`, `hc_hjd_utc`, `hc_gmat_from_gmt`, `hc_gmt_from_gmat`, `hc_prayer_times`, `hc_prayer_methods`, `hc_zmanim`, `hc_temporal_hour`, `hc_edo_time`, `hc_unix_from_edo_time`, `hc_planetary_hour`, `hc_planetary_hours_of_day` | `hc-astro`, `hc-seasons`, and `hc-i18n`'s names of the horizons and the planets | 166,881 | 163 KiB |
-| `orbital` | `hc_orbit_at`, `hc_orbit_series` | `hc-orbital`, `hc-uncertainty` | 64,674 | 63 KiB |
+| `orbital` | `hc_orbit_at`, `hc_orbit_series`, `hc_daily_insolation` | `hc-orbital`, `hc-uncertainty` | 65,436 | 64 KiB |
 | `jupiter` | `hc_jupiter_at`, `hc_jupiter_ingresses`, `hc_jupiter_risings`, `hc_kumbh_by_sky`, `hc_pushkaram_by_sky`, `hc_pushkarams_in_year`, `hc_kumbhs_in_year_by_sky`, `hc_jupiter_stations`, `hc_pushkaram_rules`: where Jupiter is, tropical and sidereal; its entries into the sidereal signs, its heliacal risings and its stations; and the Kumbh Mela and Pushkaram found from them, where `hc_kumbh` and `hc_pushkaram` take Jupiter's sign from the caller | `hc-astro`'s `jupiter` and `vsop87_jupiter` (3 625 terms of VSOP87B, 55 kB of tables), `hc-seasons`, `hc-calendars-indic`, `hc-i18n` | 225,132 | 220 KiB |
 | `planetary` | `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies`, `hc_body_time`, `hc_circad_date`: Mars time, the Darian date, the surface missions' sols, the solar day and local time of every body in `hc-planetary`'s table, and the dates of the Titan, Galilean and Martiana calendars | `hc-planetary`, `hc-astro` | 97,713 | 95 KiB |
-| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies` | `hc-relativity`, `hc-uncertainty` | 55,892 | 55 KiB |
+| `relativity` | `hc_proper_time`, `hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain` | `hc-relativity`, `hc-uncertainty` | 78,319 | 76 KiB |
 | `places` | `hc_territories`, `hc_subdivisions`, `hc_place_name`: what each carried locale calls every territory and every ISO 3166-2 subdivision CLDR 48 names | `hc-i18n`'s `place_names`: 2.8 MB of names, 2.6 MB of them the subdivisions' | 2,968,740 | 2.83 MiB |
 | `humanize` | `hc_relative_time`, `hc_relative_day`, `hc_relative_day_at`, `hc_duration`, `hc_unit_choice`, `hc_relative_time_with`, `hc_approximate_duration`: how one instant reads from another, which calendar day a day is seen from another, with a time of day, how long a span is, which unit a span is said in and a span hedged as a round number, in every locale `hc-humanize` carries, under the conversational thresholds or a table and a rounding of the caller's | `hc-humanize`, `hc-i18n` | 663,902 | 648 KiB |
 | `natural` | `hc_apnumber`, `hc_fractional`, `hc_scientific`, `hc_metric`, `hc_naturalsize`, `hc_naturallist`, `hc_intword`, `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`, `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intcomma`, `hc_intcomma_float`: the number, size, list and time functions of Python's `humanize`, in the language of the catalogue (of its 35) that serves the locale | `hc-humanize`'s `natural` and its 35 gettext catalogues | 699,209 | 683 KiB |
 | `datetime` | `hc_parse_datetime`, `hc_format_datetime`, `hc_format_iso_date_as`, `hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`, `hc_iso_interval`: ISO 8601 beyond a calendar date, date-times with a zone read as readings and written in ISO 8601, RFC 3339, RFC 2822, HTTP and Python's `isoformat`, week and ordinal dates, dates of reduced accuracy, durations, intervals and repeating intervals | `hc-format` | 103,619 | 101 KiB |
 | `patterns` | `hc_parse_pattern`, `hc_parse_pattern_in`: a text read against a POSIX `strptime`, Python `strptime` or CLDR pattern, in the C locale's names or a locale's | `hc-format`'s `patterns`, and every carried locale's names from `hc-i18n` | 441,483 | 431 KiB |
 | `zone-names` | `hc_zone_name`, `hc_format_pattern`: a zone's name at an instant in a locale, as the CLDR fields `z`, `O`, `v` and `V` write it, from CLDR 48's metazones and names in every carried locale | `hc-tz`, `hc-format`'s `patterns::zone`, `hc-i18n`'s `zone_names` and every locale's exemplar cities: about 600 kB of names | 1,653,203 | 1.58 MiB |
-| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,223,857 | 7.84 MiB |
+| `uncertainty` | `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_interval`: significant figures, error bars, intervals and EDTF dates: how well a time is known, and the arithmetic that keeps it honest. From hc-uncertainty. | `hc-uncertainty`, `hc-calendar` | 134,327 | 131 KiB |
+| `units` | `hc_units`, `hc_unit_convert`, `hc_rates`, `hc_frame_period`, `hc_tempo`: the 53 exactly defined units of time, their lengths as exact ratios, conversions, frame and sample periods and note lengths at a tempo, from hc-units. | `hc-units` | 52,141 | 51 KiB |
+| `fiscal` | `hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`, `hc_week_year_systems`, `hc_week_year_on`: fiscal, tax and academic years that do not begin on 1 January, and the 52/53-week reporting years, from hc-fiscal. | `hc-fiscal`, `hc-calendars-solar` | 79,256 | 77 KiB |
+| `name-days` | `hc_name_day_lists`, `hc_name_days_on`, `hc_name_day`: name-day lists, each a named edition of a named authority, and the countries whose list the crate declines to ship, from hc-name-days. | `hc-name-days` | 182,507 | 178 KiB |
+| `attributes` | `hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on`, `hc_harvest_moon`: birthstones, birth flowers, full-moon names, month names, zodiac stones and weekday attributions, each list named with its authority, and the Harvest Moon, from hc-attributes. | `hc-attributes`, `hc-seasons`, `hc-astro` | 123,075 | 120 KiB |
+| `full` | all of the above, `places` included, and nothing else: the facade's own `full`, whose extra crates no export reads, is not enabled | everything the layers above bring in | 8,512,505 | 8.12 MiB |
 
 The sizes are of the `release-compact` profile for
 `wasm32-unknown-unknown`, as [`scripts/wasm-layers.sh`](../../scripts/wasm-layers.sh)
@@ -582,7 +635,7 @@ scripts/wasm-layers.sh
 
 The script leaves each layer at `target/wasm-layers/hyper_calendar_wasm.<feature>.wasm`
 and prints the table; CI runs it on every pull request and uploads the
-twenty files, the embedded module and `tzdata/` as one workflow artifact.
+twenty-five files, the embedded module and `tzdata/` as one workflow artifact.
 CI then runs [`scripts/wasm-size-check.sh`](../../scripts/wasm-size-check.sh),
 which fails when any layer is more than 5% larger or smaller than the table
 above: a layer that grows by accident is caught, and a change that moves a
@@ -621,7 +674,7 @@ not pass CI.
 
 ### Exports
 
-254 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
+290 functions. Types are the WebAssembly ones: `i64` crosses into JavaScript as a `BigInt`, everything else as a `number`, and a pointer is a byte offset into `memory`. The feature column is the Cargo feature the module has to be built with for the export to exist.
 
 | Export | Feature | What it does |
 | --- | --- | --- |
@@ -791,6 +844,10 @@ not pass CI.
 | `hc_earliest_evidence(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every claim to the earliest evidence of life, of *Homo sapiens* and of writing, as UTF-8 lines, returning the byte length written. |
 | `hc_archaeological_periods(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every conventional archaeological period, as UTF-8 lines, returning the byte length written. |
 | `hc_future_events(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Every dated event of the far future, as UTF-8 lines, returning the byte length written. |
+| `hc_planck_units(buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | The CODATA constants the Planck units are built from, and the Planck units, as UTF-8 lines, returning the byte length written. |
+| `hc_bp_convert(years: f64, std_dev_years: f64, from: *const u8, from_len: usize, to: *const u8, to_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A calendar age or year in one datum written in another, as one UTF-8 line, returning the byte length written. |
+| `hc_deep_convert(value: f64, std_dev: f64, from: *const u8, from_len: usize, to: *const u8, to_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | A magnitude of time in one unit written in another, with its uncertainty carried through, as one UTF-8 line, returning the byte length written. |
+| `hc_deep_compare(first_value: f64, first_std_dev: f64, first_unit: *const u8, first_unit_len: usize, second_value: f64, second_std_dev: f64, second_unit: *const u8, second_unit_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `deep-time` | Two magnitudes of time compared across the decades between them, as one UTF-8 line, returning the byte length written. |
 | `hc_zone_load(name: *const u8, name_len: usize, tzif: *const u8, tzif_len: usize) -> i64` | `tz` | Give the module a zone's TZif data under an IANA name, returning 0. |
 | `hc_fixed_from_unix_in_zone(unix_seconds: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The fixed day a POSIX timestamp falls on by the wall clock of a zone, or an error sentinel. |
 | `hc_unix_from_fixed_in_zone(fixed: i64, zone: *const u8, zone_len: usize) -> i64` | `tz` | The POSIX timestamp at which a fixed day begins by the wall clock of a zone, or an error sentinel. |
@@ -825,6 +882,7 @@ not pass CI.
 | `hc_planetary_hours_of_day(fixed: i64, latitude: f64, longitude: f64, elevation: f64, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `sky` | The twenty-four planetary hours of the planetary day that begins at the sunrise of a fixed day at a place, as UTF-8 lines in `hc_planetary_hour`'s columns, each ruler named in a locale, returning the byte length written. |
 | `hc_orbit_at(years_before_1950: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | Earth's orbital elements and the June insolation at 65° N at an epoch, as one UTF-8 line, returning the byte length written. |
 | `hc_orbit_series(from_years_before_1950: f64, to_years_before_1950: f64, step_years: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | The line of `hc_orbit_at` at every epoch from `from_years_before_1950` to `to_years_before_1950` in steps of `step_years`, each with the epoch as a first column, as UTF-8 lines, returning the byte length written. |
+| `hc_daily_insolation(years_before_present: f64, latitude_degrees: f64, solar_longitude_degrees: f64, buffer: *mut u8, capacity: usize) -> i64` | `orbital` | The daily mean insolation at any latitude and solar longitude, for the orbit of an epoch, as one UTF-8 line, returning the byte length written. |
 | `hc_jupiter_at(unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | Where Jupiter is at a POSIX timestamp, tropical and sidereal, as one UTF-8 line, returning the byte length written. |
 | `hc_jupiter_ingresses(from_unix_seconds: i64, to_unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | Jupiter's crossings of the boundaries of the sidereal signs in a span of POSIX seconds, as UTF-8 lines, one each, in time order, returning the byte length written. |
 | `hc_jupiter_risings(from_unix_seconds: i64, to_unix_seconds: i64, ayanamsa: *const u8, ayanamsa_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `jupiter` | Jupiter's heliacal risings in a span of POSIX seconds, each with the name a year of Jupiter has from it, as UTF-8 lines, returning the byte length written. |
@@ -843,6 +901,13 @@ not pass CI.
 | `hc_proper_time(speed_metres_per_second: f64, coordinate_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock moving at a constant speed while some coordinate time passes, as one UTF-8 line, returning the byte length written. |
 | `hc_gravitational_dilation(body: *const u8, body_len: usize, radius_metres: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock held still at a radius from a body's centre, against one far from every mass, as one UTF-8 line, returning the byte length written. |
 | `hc_gravitating_bodies(buffer: *mut u8, capacity: usize) -> i64` | `relativity` | Every body `hc-relativity` carries a gravitational parameter for, as UTF-8 lines, returning the byte length written. |
+| `hc_orbit_rate_offset(body: *const u8, body_len: usize, orbit_radius_metres: f64, ground_radius_metres: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock on a circular orbit against one held still on the ground, as one UTF-8 line, returning the byte length written. |
+| `hc_rocket(proper_acceleration: f64, proper_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A rocket of constant proper acceleration burning from rest, as one UTF-8 line, returning the byte length written. |
+| `hc_flip_and_burn(proper_acceleration: f64, distance_metres: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A flip-and-burn voyage between two points at rest, as one UTF-8 line, returning the byte length written. |
+| `hc_doppler(beta: f64, cos_theta: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | The relativistic Doppler shift of a source moving at β, seen at an angle, as one UTF-8 line, returning the byte length written. |
+| `hc_velocity_add(first_beta: f64, second_beta: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | The composition of two collinear velocities, as one UTF-8 line, returning the byte length written. |
+| `hc_schwarzschild_radius(body: *const u8, body_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | The Schwarzschild radius of a body, as one UTF-8 line, returning the byte length written. |
+| `hc_proper_time_uncertain(speed_metres_per_second: f64, speed_std_dev: f64, coordinate_seconds: f64, buffer: *mut u8, capacity: usize) -> i64` | `relativity` | A clock moving at a constant speed that is not exactly known, as one UTF-8 line, returning the byte length written. |
 | `hc_territories(locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | Every territory CLDR 48 names, with its name in a locale, as UTF-8 lines, returning the byte length written. |
 | `hc_subdivisions(country: *const u8, country_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | The ISO 3166-2 subdivisions of a country CLDR 48 names, with their names in a locale, as UTF-8 lines, returning the byte length written. |
 | `hc_place_name(code: *const u8, code_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `places` | One territory or subdivision, as the UTF-8 line `hc_territories` or `hc_subdivisions` writes for it, returning the byte length written. |
@@ -879,6 +944,30 @@ not pass CI.
 | `hc_parse_pattern_in(syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, text: *const u8, text_len: usize, locale: *const u8, locale_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `patterns` | A text read against a `strptime` or CLDR pattern in the names of a locale, as one UTF-8 line, returning the byte length written. |
 | `hc_zone_name(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, field: *const u8, field_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | A time zone's name at a POSIX timestamp in a locale, as a CLDR pattern field writes it, as one UTF-8 line, returning the byte length written. |
 | `hc_format_pattern(zone: *const u8, zone_len: usize, unix_seconds: i64, locale: *const u8, locale_len: usize, syntax: *const u8, syntax_len: usize, pattern: *const u8, pattern_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `zone-names` | An instant formatted in a time zone and a locale by a CLDR or a `strftime` pattern, as one UTF-8 line, returning the byte length written. |
+| `hc_edtf_parse(text: *const u8, text_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | An ISO 8601-2 value placed on the timeline, as UTF-8 lines, returning the byte length written. |
+| `hc_edtf_relations(first: *const u8, first_len: usize, second: *const u8, second_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | What can hold between two EDTF values placed on the timeline, as one UTF-8 line, returning the byte length written. |
+| `hc_significant(value: f64, figures: u32, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | A number with a count of significant figures, as one UTF-8 line, returning the byte length written. |
+| `hc_significant_op(operation: *const u8, operation_len: usize, first: f64, first_figures: u32, second: f64, second_figures: u32, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | Arithmetic on two numbers with figure counts, as one UTF-8 line, returning the byte length written. |
+| `hc_uncertain(value: f64, std_dev: f64, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | A Gaussian quantity, `value ± σ`, as one UTF-8 line, returning the byte length written. |
+| `hc_uncertain_op(operation: *const u8, operation_len: usize, first: f64, first_std_dev: f64, second: f64, second_std_dev: f64, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | Arithmetic on Gaussian quantities, with the errors propagated to first order, as one UTF-8 line, returning the byte length written. |
+| `hc_interval(operation: *const u8, operation_len: usize, first_low_seconds: i64, first_high_seconds: i64, second_low_seconds: i64, second_high_seconds: i64, buffer: *mut u8, capacity: usize) -> i64` | `uncertainty` | Arithmetic on intervals of time, as one UTF-8 line, returning the byte length written. |
+| `hc_units(buffer: *mut u8, capacity: usize) -> i64` | `units` | Every unit of time with an exactly defined length, as UTF-8 lines, returning the byte length written. |
+| `hc_unit_convert(count_numerator: i64, count_denominator: i64, from: *const u8, from_len: usize, to: *const u8, to_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `units` | A count of one unit of time written in another, exactly, as one UTF-8 line, returning the byte length written. |
+| `hc_rates(buffer: *mut u8, capacity: usize) -> i64` | `units` | Every frame rate and sample rate the crate carries as an exact period, as UTF-8 lines, returning the byte length written. |
+| `hc_frame_period(rate: *const u8, rate_len: usize, in_unit: *const u8, in_unit_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `units` | The length of one frame or one sample, exactly, as one UTF-8 line, returning the byte length written. |
+| `hc_tempo(bpm_numerator: i64, bpm_denominator: i64, note_halvings: u32, dots: u32, tuplet_space: u32, tuplet_count: u32, beat_halvings: u32, buffer: *mut u8, capacity: usize) -> i64` | `units` | A note at a tempo, exactly, as one UTF-8 line, returning the byte length written. |
+| `hc_fiscal_profiles(buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Every fiscal, tax and academic year system the crate carries, country by country, as UTF-8 lines, returning the byte length written. |
+| `hc_fiscal_year_on(country: *const u8, country_len: usize, kind: *const u8, kind_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | What the year systems of a country say a fixed day is, as UTF-8 lines, returning the byte length written. |
+| `hc_fiscal_year_span(country: *const u8, country_len: usize, kind: *const u8, kind_len: usize, label: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | The span of the year a label names in each year system of a country, as UTF-8 lines, returning the byte length written. |
+| `hc_week_year_systems(buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Every named year of whole weeks, as UTF-8 lines, returning the byte length written. |
+| `hc_week_year_on(system: *const u8, system_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `fiscal` | Where a fixed day is in a year of whole weeks, as one UTF-8 line, returning the byte length written. |
+| `hc_name_day_lists(buffer: *mut u8, capacity: usize) -> i64` | `name-days` | Every name-day list the crate ships and every country it declines to ship one for, as UTF-8 lines, returning the byte length written. |
+| `hc_name_days_on(country: *const u8, country_len: usize, fixed: i64, buffer: *mut u8, capacity: usize) -> i64` | `name-days` | What the lists of a country name on a day, as UTF-8 lines, returning the byte length written. |
+| `hc_name_day(country: *const u8, country_len: usize, given_name: *const u8, given_name_len: usize, year: i64, buffer: *mut u8, capacity: usize) -> i64` | `name-days` | The days of a year on which the lists of a country give a name, as UTF-8 lines, returning the byte length written. |
+| `hc_attribution_authorities(subject: *const u8, subject_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `attributes` | Every attribution list the crate ships, with what it declines to ship, as UTF-8 lines, returning the byte length written. |
+| `hc_attributions(subject: *const u8, subject_len: usize, key: i64, buffer: *mut u8, capacity: usize) -> i64` | `attributes` | What every list of a subject attributes to one key, as UTF-8 lines, returning the byte length written. |
+| `hc_attributions_on(fixed: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `attributes` | What every list attributes to the month, the weekday and the sign of a day, as UTF-8 lines, returning the byte length written. |
+| `hc_harvest_moon(year: i64, meridian: *const u8, meridian_len: usize, buffer: *mut u8, capacity: usize) -> i64` | `attributes` | The Harvest Moon of a year, as one UTF-8 line, returning the byte length written. |
 
 ### Error sentinels
 
@@ -4410,6 +4499,118 @@ rank of the ICS chart, youngest first, with the chart as the source; `rank`
 is `0` for the eons, `1` for the eras, `2` for the periods, `3` for the
 epochs and `4` for the ages, and anything else is `HC_ERR_UNKNOWN`.
 
+### The Planck units
+
+`hc_planck_units(buffer, capacity)` writes lines of 10 cells: the CODATA
+constants the Planck units are built from, and the Planck units. One line
+each for the speed of light, the reduced Planck constant, the Newtonian
+constant of gravitation and the Planck time, length, mass, energy and
+temperature, from the 2022 CODATA adjustment. `c` and ℏ are defined exactly
+and have a standard uncertainty of 0; `G` is the one measured constant, and
+every Planck unit inherits its 2.2·10⁻⁵, halved or thirded by the root.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | symbol | `c`, `hbar`, `G`, `t_P`, `l_P`, `m_P`, `E_P` or `T_P` |
+| 2 | name | the constant's name as CODATA spells it |
+| 3 | unit | the SI unit the value is in, in ASCII |
+| 4 | value | the recommended value |
+| 5 | std dev | the standard uncertainty; 0 for a defined constant |
+| 6 | figures | how many figures the source prints |
+| 7 | relative uncertainty | the standard uncertainty over the value |
+| 8 | defined | `1` where the constant is exact by definition |
+| 9 | text | the value printed to exactly those figures |
+| 10 | source | the source and the CODATA adjustment |
+
+### Datums for a calendar age
+
+`hc_bp_convert(years, std_dev_years, from, from_len, to, to_len, buffer,
+capacity)` writes one line of 8 cells: a calendar age or year in one datum
+written in another. The datums are `bp` (calendar years before 1950 CE),
+`b2k` (before 2000 CE, the ice-core scale) and `ce` (a calendar year in
+astronomical numbering, where year 0 is 1 BCE and −9700 is 9701 BCE). Moving
+between them adds or subtracts a whole number of years, so the standard
+deviation is unchanged. The Holocene's base is 11 700 b2k and 11 650 BP. A
+conventional radiocarbon age, `radiocarbon-bp`, is not a count of calendar
+years and needs a calibration curve (IntCal20 and its companions) that the
+crate does not carry: it is `HC_ERR_NO_DATA`, on either side. A datum that
+is not one of these is `HC_ERR_UNKNOWN`, and a number or standard deviation
+that is not finite, or a negative standard deviation, is
+`HC_ERR_OUT_OF_RANGE`. `from` is the datum of `years`: `bp`, `b2k`, `ce` or
+`radiocarbon-bp`. `to` is the datum to write it in.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | from | the datum given |
+| 2 | to | the datum written |
+| 3 | years | the number given |
+| 4 | std dev | its standard deviation |
+| 5 | converted | the number in the other datum |
+| 6 | converted std dev | its standard deviation, unchanged |
+| 7 | label | the number as a label: `11650 cal BP`, `11700 b2k`, `9701 BCE`, `1984 CE` |
+| 8 | source | where the datums are defined |
+
+### Magnitudes of time
+
+`hc_deep_convert(value, std_dev, from, from_len, to, to_len, buffer,
+capacity)` writes one line of 13 cells: a magnitude of time in one unit
+written in another, with its uncertainty carried through. The units are
+`planck-time`, `yoctosecond`, `zeptosecond`, `attosecond`, `femtosecond`,
+`picosecond`, `nanosecond`, `microsecond`, `millisecond`, `second`,
+`minute`, `hour`, `day`, `julian-year`, `kiloyear`, `megayear` and
+`gigayear`, in any ASCII case. Every one but the Planck time is a defined
+multiple of the second and rescales the standard deviation exactly; the
+Planck time is CODATA's measurement and brings its 1.1·10⁻⁵ into the answer,
+so a round trip through it returns the same number with a wider bar. A unit
+that is not one of these is `HC_ERR_UNKNOWN`; a number or standard deviation
+that is not finite, a negative standard deviation, or a result that leaves
+the range of a double is `HC_ERR_OUT_OF_RANGE`. `from` is the unit of
+`value`. `to` is the unit to write it in.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | from | the unit given |
+| 2 | to | the unit written |
+| 3 | value | the number given |
+| 4 | std dev | its standard deviation |
+| 5 | converted | the number in the other unit |
+| 6 | converted std dev | its standard deviation |
+| 7 | text | the converted number printed to the figures its standard deviation supports |
+| 8 | seconds | the span in seconds |
+| 9 | seconds std dev | its standard deviation |
+| 10 | log10 seconds | the base-ten logarithm of the seconds; empty for a span of no length |
+| 11 | log10 std dev | its standard deviation, delta method |
+| 12 | exact | `1` where both units are defined, so the conversion adds no uncertainty |
+| 13 | source | the functions used |
+
+### Comparing magnitudes
+
+`hc_deep_compare(first_value, first_std_dev, first_unit, first_unit_len,
+second_value, second_std_dev, second_unit, second_unit_len, buffer,
+capacity)` writes one line of 12 cells: two magnitudes of time compared
+across the decades between them. The units are those of `hc_deep_convert`.
+The two are treated as independent, so comparing a magnitude with itself
+reports a non-zero deviation around a ratio of 1. A unit that is not one of
+those is `HC_ERR_UNKNOWN`; a number or standard deviation that is not
+finite, a negative standard deviation, a span of no length or a negative one
+(there is no logarithm of it), or a ratio that leaves the range of a double
+is `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | first seconds | the first span in seconds |
+| 2 | first std dev | its standard deviation |
+| 3 | second seconds | the second span in seconds |
+| 4 | second std dev | its standard deviation |
+| 5 | ratio | the first over the second |
+| 6 | ratio std dev | its standard deviation |
+| 7 | log10 ratio | the base-ten logarithm of the ratio |
+| 8 | log10 std dev | its standard deviation |
+| 9 | decades | the number of decades between them, the absolute value of the logarithm |
+| 10 | overlap | `1` where the one-sigma bars of the two meet |
+| 11 | order | −1, 0 or 1 where the first is shorter than, equal to or longer than the second by central value |
+| 12 | source | the functions used |
+
 ## Time zones
 
 `hc_fixed_from_unix` and `hc_unix_from_fixed` count days in UTC, so at
@@ -5456,6 +5657,31 @@ lgm.insolation65NJune;                    // 468.8, against 477.6 at 1950
 hc.orbitSeries(0, 100_000, 1_000).map((sample) => [sample.yearsBefore1950, sample.insolation65NJune]);
 ```
 
+### Insolation at any latitude
+
+`hc_daily_insolation(years_before_present, latitude_degrees,
+solar_longitude_degrees, buffer, capacity)` writes one line of 6 cells: the
+daily mean insolation at any latitude and solar longitude, for the orbit of
+an epoch. The Sun's true longitude is 0 at the March equinox, 90 at the June
+solstice, 180 at the September equinox and 270 at the December solstice. It
+is not a date: Berger's program turns a date into a longitude with a 365-day
+year, which differs from a calendar's by up to a day, and the honest input
+is the longitude. `hc_orbit_at` is the case of 65° N at 90°. The insolation
+is 0 in the polar night. An epoch the crate refuses (not finite, or beyond a
+million years either side of 1950), a latitude that is not finite or is
+beyond ±90°, or a longitude that is not finite or is outside 0 to 360, is
+`HC_ERR_OUT_OF_RANGE`. `years_before_present` is years before 1950, negative
+for the future.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | years before 1950 | the epoch given |
+| 2 | latitude | the latitude given, in degrees, north positive |
+| 3 | solar longitude | the Sun's true longitude given, in degrees |
+| 4 | insolation | the daily mean at the top of the atmosphere, in W m⁻² |
+| 5 | solar constant | the solar constant it was computed with, `SOLAR_CONSTANT_BERGER_LOUTRE_1991`, in W m⁻² |
+| 6 | source | the series and the formula |
+
 ## Mars time
 
 `hc_mars_time`, `hc_missions`, `hc_mission_sol`, `hc_bodies` and
@@ -5762,6 +5988,175 @@ hc.gravitationalDilation("earth", 26_561_750).microsecondsPerDay
   - hc.gravitationalDilation("earth", 6_378_137).microsecondsPerDay;   // 45.65
 ```
 
+### A clock in orbit
+
+`hc_orbit_rate_offset(body, body_len, orbit_radius_metres,
+ground_radius_metres, buffer, capacity)` writes one line of 10 cells: a
+clock on a circular orbit against one held still on the ground. The line is
+the one kind of figure GPS is built on: the gravitational part of the rate,
+in microseconds per 86 400-second day (positive: the higher clock runs
+fast), the kinematic part (negative), their weak-field sum, and the exact
+Schwarzschild figure for the same two clocks. A clock at `GPS_ORBIT_RADIUS`
+against one at `EARTH_EQUATORIAL_RADIUS` gains +45.65 from the potential,
+loses 7.21 from its speed, and nets +38.44. `body` is an identifier
+`hc_gravitating_bodies` lists, in any ASCII case; another is
+`HC_ERR_UNKNOWN`. A radius that is not finite or not positive, a ground
+radius at or inside the Schwarzschild radius, or an orbit radius at or
+inside the photon sphere 3GM/c², where no circular orbit exists, is
+`HC_ERR_OUT_OF_RANGE`. `body` is the body's identifier.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the body's identifier |
+| 2 | gm | its standard gravitational parameter GM, in m³ s⁻² |
+| 3 | gm constant | the `hc-relativity` constant that holds it |
+| 4 | circular speed | √(GM/r) at the orbit radius, in metres per second |
+| 5 | gravitational microseconds per day | GM/c² (1/R − 1/r), the weak-field gravitational part, positive when the orbit is higher |
+| 6 | kinematic microseconds per day | −GM/(2rc²), the part from the orbital speed, negative |
+| 7 | weak-field microseconds per day | the sum of the two |
+| 8 | exact microseconds per day | the exact Schwarzschild figure, √(1 − 3GM/rc²) / √(1 − 2GM/Rc²) − 1, computed without cancellation |
+| 9 | constants | the constants used, separated by `;` |
+| 10 | source | the functions used and the body's source |
+
+### A rocket from rest
+
+`hc_rocket(proper_acceleration, proper_seconds, buffer, capacity)` writes
+one line of 10 cells: a rocket of constant proper acceleration burning from
+rest. The line is the hyperbolic motion of a constant proper acceleration
+`proper_acceleration` in m s⁻² after `proper_seconds` aboard: the time that
+passes elsewhere, the distance covered, β, `1 − β` computed without
+cancellation, and the Lorentz factor. One year at 1 g, 9.80665 m s⁻², is
+0.5636 light-years at three quarters of the speed of light, and 1.19 years
+pass elsewhere. An acceleration that is not finite and positive, a proper
+time that is not finite or is negative, or a burn long enough that a value
+leaves the range of a double, is `HC_ERR_OUT_OF_RANGE`.
+`proper_acceleration` is metres per second squared.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | acceleration | the proper acceleration given, in m s⁻² |
+| 2 | proper seconds | the time aboard given, in seconds |
+| 3 | coordinate seconds | the time that passes in the frame the burn starts from, (c/a) sinh(aτ/c), in seconds |
+| 4 | distance | the distance covered in that frame, (c²/a)(cosh(aτ/c) − 1), in metres |
+| 5 | distance light years | the same in light-years of `LIGHT_YEAR` |
+| 6 | beta | tanh(aτ/c) |
+| 7 | one minus beta | 2 / (e^{2aτ/c} + 1), the distance from the speed of light, without cancellation |
+| 8 | lorentz factor | cosh(aτ/c) |
+| 9 | constants | the constants used, separated by `;` |
+| 10 | source | the functions used |
+
+### A flip-and-burn voyage
+
+`hc_flip_and_burn(proper_acceleration, distance_metres, buffer, capacity)`
+writes one line of 11 cells: a flip-and-burn voyage between two points at
+rest. The ship accelerates at a constant proper acceleration for half the
+distance, turns over, and decelerates for the other half, arriving at rest.
+At 1 g to Andromeda, 2.5 million light-years, it is 28.60 years aboard and 2
+500 001.94 at home. An acceleration that is not finite and positive, a
+distance that is not finite or is negative, or a voyage that leaves the
+range of a double, is `HC_ERR_OUT_OF_RANGE`. `proper_acceleration` is metres
+per second squared.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | acceleration | the proper acceleration given, in m s⁻² |
+| 2 | distance | the distance given, in metres |
+| 3 | proper seconds | the time aboard, in seconds |
+| 4 | coordinate seconds | the time at home, in seconds |
+| 5 | proper years | the time aboard in Julian years of 31 557 600 s |
+| 6 | coordinate years | the time at home in Julian years |
+| 7 | peak beta | β at the turnover |
+| 8 | one minus peak beta | 1/(γ²(1 + β)), the distance from the speed of light at the turnover, without cancellation |
+| 9 | peak lorentz factor | 1 + a(d/2)/c² at the turnover |
+| 10 | constants | the constants used, separated by `;` |
+| 11 | source | the functions used |
+
+### The Doppler shift
+
+`hc_doppler(beta, cos_theta, buffer, capacity)` writes one line of 7 cells:
+the relativistic Doppler shift of a source moving at β, seen at an angle. A
+cosine of +1 is a source coming straight at the observer, −1 going straight
+away, 0 transverse in the observer's frame. At β = 0.6 head-on the frequency
+is doubled, receding it is halved, and across the line of sight it is 4/5. A
+β that is not finite or whose magnitude is 1 or more, or a cosine that is
+not finite or whose magnitude is above 1, is `HC_ERR_OUT_OF_RANGE`. `beta`
+is the source's speed as a fraction of the speed of light. `cos_theta` is
+the cosine of the angle between the source's velocity and the direction from
+source to observer, in the observer's frame.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | beta | the speed given |
+| 2 | cos theta | the cosine given |
+| 3 | factor | f_observed / f_emitted, above 1 for a blueshift |
+| 4 | redshift | z = λ_observed / λ_emitted − 1, computed without cancellation for a slow source |
+| 5 | head-on factor | √((1+β)/(1−β)), the factor for cos θ = 1 |
+| 6 | transverse factor | 1/γ, the factor for cos θ = 0 |
+| 7 | source | the functions used |
+
+### Composing velocities
+
+`hc_velocity_add(first_beta, second_beta, buffer, capacity)` writes one line
+of 10 cells: the composition of two collinear velocities. Both velocities
+are fractions of the speed of light, positive one way and negative the
+other; they do not add, their rapidities do. Two ships at 0.999 compose to
+0.999 999 5, and `1 − β` of that, 5.005·10⁻⁷, is carried without the
+cancellation that would lose eight of its figures. A β that is not finite or
+whose magnitude is 1 or more is `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | first beta | the first velocity given |
+| 2 | second beta | the second velocity given |
+| 3 | composed beta | (β₁ + β₂)/(1 + β₁β₂) |
+| 4 | composed speed | the composed β times the speed of light, in m s⁻¹ |
+| 5 | one minus composed beta | (1 − β₁)(1 − β₂)/(1 + β₁β₂), without cancellation |
+| 6 | first rapidity | artanh β₁ |
+| 7 | second rapidity | artanh β₂ |
+| 8 | composed rapidity | the sum of the two |
+| 9 | composed lorentz factor | γ₁γ₂(1 + β₁β₂) |
+| 10 | source | the functions used |
+
+### The Schwarzschild radius
+
+`hc_schwarzschild_radius(body, body_len, buffer, capacity)` writes one line
+of 6 cells: the Schwarzschild radius of a body. The radius is 2GM/c² from
+the body's standard gravitational parameter, which the table carries more
+exactly than its mass. `body` is an identifier `hc_gravitating_bodies`
+lists, in any ASCII case; another, a name such as `Sagittarius A*` included,
+is `HC_ERR_UNKNOWN`. `body` is the body's identifier.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the body's identifier |
+| 2 | gm | its standard gravitational parameter GM, in m³ s⁻² |
+| 3 | gm constant | the `hc-relativity` constant that holds it |
+| 4 | schwarzschild radius | 2GM/c², in metres |
+| 5 | constants | the constants used, separated by `;` |
+| 6 | source | the function used and the body's source |
+
+### An uncertain speed
+
+`hc_proper_time_uncertain(speed_metres_per_second, speed_std_dev,
+coordinate_seconds, buffer, capacity)` writes one line of 7 cells: a clock
+moving at a constant speed that is not exactly known. The standard deviation
+of the proper time is t β σ_β / √(1 − β²), first order, so a speed known to
+a metre a second near the speed of light is an error of seconds a year. A
+speed at or beyond the speed of light either way, a standard deviation that
+is not finite or is negative, or a coordinate time that is not finite or
+whose proper time leaves the range of a duration, is `HC_ERR_OUT_OF_RANGE`.
+`speed_std_dev` is the speed's standard deviation, in metres per second.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | beta | the speed as a fraction of the speed of light |
+| 2 | beta std dev | its standard deviation |
+| 3 | proper seconds | the time the moving clock records, in seconds |
+| 4 | proper std dev | its standard deviation, in seconds |
+| 5 | text | the proper time printed to the figures its standard deviation supports |
+| 6 | constants | `SPEED_OF_LIGHT` |
+| 7 | source | the function used |
+
 ## Place names
 
 A holiday table's menu of subdivisions (`hc_holiday_tables`' column 9,
@@ -6050,6 +6445,693 @@ hc.preciseDelta(2 * 86400 + 3633, 123000).text;                     // "2 days, 
 hc.intword(`1${"0".repeat(100)}`).text;                             // "1.0 googol"
 ```
 
+## Uncertain time
+
+`hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`,
+`hc_uncertain`, `hc_uncertain_op` and `hc_interval` need the `uncertainty`
+feature. Significant figures, error bars, intervals and EDTF dates: how well
+a time is known, and the arithmetic that keeps it honest. From hc-
+uncertainty.
+
+### EDTF dates
+
+`hc_edtf_parse(text, text_len, buffer, capacity)` writes lines of 11 cells:
+an ISO 8601-2 value placed on the timeline. The first line is the value
+itself and the lines after it are the parts it is made of: the two sides of
+an interval, or each member of a `[...]` or `{...}` set. The first cell is
+the role: `value`, `start`, `end` or `member`. A set is placed by the hull
+of its members, which is wider than the set: `[1667,1670]` is somewhere from
+1667 to the end of 1670, and the gap is lost. Times of day, seasons,
+sub-year divisions, component-level qualifiers and exponential years are
+refused rather than half-read. Text that is not a supported EDTF value is
+`HC_ERR_MALFORMED`, and a year past what a fixed day can count is
+`HC_ERR_OUT_OF_RANGE`. `text` is an ISO 8601-2 Extended Date/Time Format
+value.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | role | `value` for the whole text, `start` and `end` for the two sides of an interval, `member` for each date or run of a set |
+| 2 | kind | for the value `date`, `interval`, `earlier-than`, `later-than`, `one-of` (a `[...]` set: exactly one holds) or `all-of` (a `{...}` list: all apply); for a part `date`, `open` (`..`), `unknown` (empty), `range`, `earlier-than` or `later-than` |
+| 3 | text | the part in its canonical form, which parses to the same value |
+| 4 | precision | `unknown`, `millennium`, `century`, `decade`, `year`, `month` or `day`; empty where the part is not one date |
+| 5 | qualifier | `certain`, `uncertain` for `?`, `approximate` for `~`, `uncertain-and-approximate` for `%`; empty where the part is not one date |
+| 6 | long form | `1` for the long `Y` form of a year; empty where the part is not one date |
+| 7 | first day | the first fixed day the part could denote, inclusive; for the value, the first day of its support, which a `~` or `%` qualifier widens by one unit of the stated precision on each side; empty where it does not stop |
+| 8 | last day | the last fixed day, inclusive; empty where it does not stop |
+| 9 | support | on the value `resolved` (one unit of a scale), `bounded`, `before`, `after` or `unknown`; empty on a part |
+| 10 | estimate | on the value, the best estimate as seconds from 1970-01-01 00:00:00 counting 86 400-second days, the midpoint; empty for an open or unknown value and on a part |
+| 11 | span days | on the value, the support's width in days; empty where it is open and on a part |
+
+### EDTF relations
+
+`hc_edtf_relations(first, first_len, second, second_len, buffer, capacity)`
+writes one line of 7 cells: what can hold between two EDTF values placed on
+the timeline. Allen's thirteen relations between intervals are tested over
+the two supports: where a bound is unknown, every ordering it could have is
+considered, so the set is what remains possible, never a guess. A date known
+to the year is the year; `1984~` is 1983 to 1985; an open interval has no
+bound on its open side. Text that is not a supported EDTF value is
+`HC_ERR_MALFORMED`, and a year past what a fixed day can count is
+`HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | relations | the relations that are possible, by name, in Allen's order, separated by `;`: `before`, `meets`, `overlaps`, `starts`, `during`, `finishes`, `equals`, `finished by`, `contains`, `started by`, `overlapped by`, `met by`, `after` |
+| 2 | symbols | the same by Allen's symbols, separated by `;`: `<`, `m`, `o`, `s`, `d`, `f`, `=`, `fi`, `di`, `si`, `oi`, `mi`, `>` |
+| 3 | definitely before | `1` where the first is before the second whatever the unknown bounds are |
+| 4 | possibly before | `1` where it could be |
+| 5 | definitely after | `1` where the first is after the second whatever the unknown bounds are |
+| 6 | possibly after | `1` where it could be |
+| 7 | possibly concurrent | `1` where the two could overlap in time |
+
+### Significant figures
+
+`hc_significant(value, figures, buffer, capacity)` writes one line of 6
+cells: a number with a count of significant figures. 17 figures is the most
+a double holds and means every digit is claimed, as for a count or a
+definition; the shortest numeral that reads back as the same double is
+printed without padding. A number that is not finite, or a count of figures
+that is not from 1 to 17, is `HC_ERR_OUT_OF_RANGE`. `figures` is 1 to 17.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | value | the number given |
+| 2 | figures | the count given |
+| 3 | text | the number printed to exactly those figures: `1.38e10`, not `13800000000` |
+| 4 | rounded | the number rounded to them, as a double |
+| 5 | exponent | the decimal exponent of its leading digit as reported |
+| 6 | last place | the decimal place of its last significant digit |
+
+### Arithmetic on significant figures
+
+`hc_significant_op(operation, operation_len, first, first_figures, second,
+second_figures, buffer, capacity)` writes one line of 6 cells: arithmetic on
+two numbers with figure counts. `add` and `sub` are significant down to the
+coarser of the two last places, so `100.0 + 0.001` keeps four figures and
+`1.0000 − 0.9999` keeps one; `mul` and `div` carry the smaller figure count;
+`pow` raises the first number to the second as an integer and keeps the
+first's count, the second's figures being ignored. An operation that is not
+one of these is `HC_ERR_UNKNOWN`. A number that is not finite, a count of
+figures that is not from 1 to 17, a division by zero, a power whose exponent
+is not an integer within an `i32`, or a result that leaves the range of a
+double, is `HC_ERR_OUT_OF_RANGE`. `operation` is `add`, `sub`, `mul`, `div`
+or `pow`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | operation | the operation, in lower case |
+| 2 | text | the result printed to the figures the rule leaves it |
+| 3 | value | the result as a double |
+| 4 | figures | its figure count |
+| 5 | exponent | the decimal exponent of its leading digit |
+| 6 | last place | the decimal place of its last significant digit |
+
+### Gaussian quantities
+
+`hc_uncertain(value, std_dev, buffer, capacity)` writes one line of 11
+cells: a Gaussian quantity, `value ± σ`. A standard deviation of 0 is an
+exact value, and its significant text is the shortest numeral that reads
+back as the same double. A value or a standard deviation that is not finite,
+or a negative standard deviation, is `HC_ERR_OUT_OF_RANGE`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | value | the value given |
+| 2 | std dev | the standard deviation given |
+| 3 | text | the pair as `value ± σ` |
+| 4 | significant | the value printed to the figures its standard deviation supports; empty where it supports none |
+| 5 | relative | the standard deviation over the value; empty for a value of 0 |
+| 6 | low 1σ | the value less one standard deviation |
+| 7 | high 1σ | the value plus one standard deviation |
+| 8 | low 2σ | the value less two |
+| 9 | high 2σ | the value plus two |
+| 10 | low 3σ | the value less three |
+| 11 | high 3σ | the value plus three |
+
+### Arithmetic on Gaussian quantities
+
+`hc_uncertain_op(operation, operation_len, first, first_std_dev, second,
+second_std_dev, buffer, capacity)` writes one line of 5 cells: arithmetic on
+Gaussian quantities, with the errors propagated to first order. `add`,
+`sub`, `mul` and `div` are of independent quantities, with the errors
+combined in quadrature; `combine` is the inverse-variance weighted mean of
+two measurements of one quantity, where an exact one wins outright;
+`z-score` is how many combined standard deviations separate the two; `scale`
+multiplies the first by the second's value as an exact factor, its standard
+deviation ignored; `pow` raises the first to the second's value as an exact
+exponent; `ln` and `exp` are of the first, the second ignored. An operation
+that is not one of these is `HC_ERR_UNKNOWN`. A value or standard deviation
+that is not finite, a negative standard deviation, a division by a value of
+0, a logarithm of a value that is not positive, a power outside the real
+numbers, two exact values that disagree under `combine`, a z-score of two
+exact values, or a result that leaves the range of a double, is
+`HC_ERR_OUT_OF_RANGE`. `operation` is `add`, `sub`, `mul`, `div`, `combine`,
+`z-score`, `scale`, `pow`, `ln` or `exp`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | operation | the operation, in lower case |
+| 2 | value | the result; for `z-score` the number of standard deviations |
+| 3 | std dev | its standard deviation; empty for a z-score |
+| 4 | text | the result as `value ± σ` |
+| 5 | significant | the result printed to the figures its standard deviation supports; empty where it supports none |
+
+### Intervals of time
+
+`hc_interval(operation, operation_len, first_low_seconds,
+first_high_seconds, second_low_seconds, second_high_seconds, buffer,
+capacity)` writes one line of 11 cells: arithmetic on intervals of time. The
+two intervals are `[first_low_seconds, first_high_seconds]` and
+`[second_low_seconds, second_high_seconds]` in whole seconds. `add` and
+`sub` (the crossed bounds: `[lo₁ − hi₂, hi₁ − lo₂]`), `intersect` (empty
+when they do not meet) and `hull` (the smallest interval holding both) write
+an interval, as whole seconds and attoseconds each; `overlaps` and
+`contains` (whether the first holds the second) answer a question, and write
+only the last cell. The width is the high bound minus the low, and the
+midpoint is floored to an attosecond. An empty interval has no bounds, width
+or midpoint. An operation that is not one of these is `HC_ERR_UNKNOWN`; an
+interval whose low bound is above its high bound, which is the empty
+interval written backwards, is `HC_ERR_OUT_OF_RANGE`. `operation` is `add`,
+`sub`, `intersect`, `hull`, `overlaps` or `contains`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | operation | the operation, in lower case |
+| 2 | empty | `1` where the result is the empty interval; empty for a question |
+| 3 | low seconds | the low bound, whole seconds |
+| 4 | low attoseconds | and the attoseconds into the second |
+| 5 | high seconds | the high bound, whole seconds |
+| 6 | high attoseconds | and the attoseconds |
+| 7 | width seconds | the width, whole seconds |
+| 8 | width attoseconds | and the attoseconds |
+| 9 | midpoint seconds | the midpoint, whole seconds |
+| 10 | midpoint attoseconds | and the attoseconds |
+| 11 | holds | for `overlaps` and `contains`, `1` or `0`; empty for an interval |
+
+## Units of time
+
+`hc_units`, `hc_unit_convert`, `hc_rates`, `hc_frame_period` and `hc_tempo`
+need the `units` feature. The 53 exactly defined units of time, their
+lengths as exact ratios, conversions, frame and sample periods and note
+lengths at a tempo, from hc-units.
+
+### The units
+
+`hc_units(buffer, capacity)` writes lines of 7 cells: every unit of time
+with an exactly defined length. One line each, shortest first. A length is a
+numerator and a denominator in lowest terms, written in decimal, because
+they are 128-bit integers and a quectosecond is 10⁻³⁰ of a second: no double
+holds that, nor a flick's 705 600 000th. A unit that is measured rather than
+defined, such as the sidereal day or the tropical year, is not here: it
+lives with the model that measured it.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the unit's stable identifier, lower-case and hyphenated; match on this |
+| 2 | name | the English name |
+| 3 | symbol | the conventional symbol; empty where there is none |
+| 4 | seconds numerator | the numerator of the length in seconds, in lowest terms |
+| 5 | seconds denominator | its denominator, positive |
+| 6 | family | `si`, `civil`, `horological`, `decimal`, `hexadecimal`, `media` or `scientific` |
+| 7 | authority | who defines it, specifically enough to check |
+
+### Converting units
+
+`hc_unit_convert(count_numerator, count_denominator, from, from_len, to,
+to_len, buffer, capacity)` writes one line of 10 cells: a count of one unit
+of time written in another, exactly. The count is `count_numerator /
+count_denominator`, and may be negative. Both counts are written as a
+numerator and a denominator in lowest terms. A unit that `hc_units` does not
+list is `HC_ERR_UNKNOWN`; a denominator of 0 is `HC_ERR_OUT_OF_RANGE`; and a
+count or a length whose numerator or denominator leaves 128 bits is
+`HC_ERR_OUT_OF_RANGE`. `from` is the unit of the count: an identifier
+`hc_units` lists. `to` is the unit to write it in.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | from | the unit given |
+| 2 | to | the unit written |
+| 3 | count numerator | the count given, in lowest terms |
+| 4 | count denominator | its denominator |
+| 5 | converted numerator | the count in the other unit |
+| 6 | converted denominator | its denominator |
+| 7 | whole | `1` where the converted count is a whole number |
+| 8 | seconds numerator | the length in seconds |
+| 9 | seconds denominator | its denominator |
+| 10 | attosecond exact | `1` where an attosecond count holds that length exactly: a flick, a third of a second and an NTSC frame are lengths no `Duration` holds |
+
+### Frame and sample rates
+
+`hc_rates(buffer, capacity)` writes lines of 4 cells: every frame rate and
+sample rate the crate carries as an exact period. The NTSC rates are exact:
+29.97 is 30 000 / 1 001. Each identifier is what `hc_frame_period` reads for
+its rate.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the rate's identifier: `24`, `29.97`, `44100` |
+| 2 | kind | `frame` or `sample` |
+| 3 | hertz numerator | the numerator of the rate in events per second, in lowest terms |
+| 4 | hertz denominator | its denominator |
+
+### Frame and sample periods
+
+`hc_frame_period(rate, rate_len, in_unit, in_unit_len, buffer, capacity)`
+writes one line of 11 cells: the length of one frame or one sample, exactly.
+`rate` is an identifier of `hc_rates`, such as `29.97` or `48000`, or an
+exact rate written `n` or `n/d` events per second, such as `30000/1001`. A
+rate that is neither, or a unit `hc_units` does not list, is
+`HC_ERR_UNKNOWN`; a rate that is not positive, or a denominator of 0, is
+`HC_ERR_OUT_OF_RANGE`; and a length whose numerator or denominator leaves
+128 bits is `HC_ERR_OUT_OF_RANGE`. `rate` is an identifier `hc_rates` lists,
+or an exact rate written `n` or `n/d` events per second. `in_unit` is the
+unit to count the length in.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | rate | the rate's identifier; `custom` for one given as a fraction |
+| 2 | kind | `frame`, `sample` or `custom` |
+| 3 | hertz numerator | the rate in events per second, in lowest terms |
+| 4 | hertz denominator | its denominator |
+| 5 | period numerator | the length of one event in seconds |
+| 6 | period denominator | its denominator |
+| 7 | count numerator | the length counted in the unit |
+| 8 | count denominator | its denominator |
+| 9 | unit | the unit's identifier |
+| 10 | whole | `1` where the length is a whole number of that unit |
+| 11 | whole flicks | `1` where it is a whole number of flicks, the unit chosen so that every common frame and sample rate is |
+
+### Notes at a tempo
+
+`hc_tempo(bpm_numerator, bpm_denominator, note_halvings, dots, tuplet_space,
+tuplet_count, beat_halvings, buffer, capacity)` writes one line of 10 cells:
+a note at a tempo, exactly. The tempo is `bpm_numerator / bpm_denominator`
+beats per minute, where a beat is the note of `beat_halvings` halvings of a
+whole note. The note is `note_halvings` halvings, with `dots` augmentation
+dots, each adding half of what came before (one dot makes it 3/2 as long,
+two 7/4), and, when `tuplet_count` and `tuplet_space` are both above 0,
+`tuplet_count` of it in the time of `tuplet_space`: a triplet is 3 in the
+time of 2. Both 0 is no tuplet. A tempo that is not positive, a denominator
+of 0, a tuplet with only one of its two numbers 0, or halvings or dots that
+do not fit a byte, is `HC_ERR_OUT_OF_RANGE`; a length whose numerator or
+denominator leaves 128 bits, or halvings or dots of 127 or more, is
+`HC_ERR_OUT_OF_RANGE`. `note_halvings` is 0 whole, 1 half, 2 quarter, 3
+eighth. `dots` is augmentation dots. `tuplet_space` is the tuplet's "in the
+time of" number; 0 for none. `tuplet_count` is the tuplet's count: 3 for a
+triplet; 0 for none. `beat_halvings` is the note the beat is counted in: 2
+for a quarter.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | bpm numerator | the tempo in beats per minute, in lowest terms |
+| 2 | bpm denominator | its denominator |
+| 3 | beat numerator | the length of one beat in seconds |
+| 4 | beat denominator | its denominator |
+| 5 | note fraction numerator | the note's length as a fraction of a whole note |
+| 6 | note fraction denominator | its denominator |
+| 7 | note numerator | the note's length in seconds |
+| 8 | note denominator | its denominator |
+| 9 | midi microseconds | the microseconds per quarter note a MIDI `Set Tempo` event stores; empty where the tempo does not fit its 24 bits |
+| 10 | midi exact | `1` where that integer holds the tempo exactly; empty with the cell before |
+
+## Fiscal, tax and academic years
+
+`hc_fiscal_profiles`, `hc_fiscal_year_on`, `hc_fiscal_year_span`,
+`hc_week_year_systems` and `hc_week_year_on` need the `fiscal` feature.
+Fiscal, tax and academic years that do not begin on 1 January, and the
+52/53-week reporting years, from hc-fiscal.
+
+### The year systems
+
+`hc_fiscal_profiles(buffer, capacity)` writes lines of 18 cells: every
+fiscal, tax and academic year system the crate carries, country by country.
+A validity bound is a label of the system's own calendar: Iran's are Solar
+Hijri years and Nepal's Bikram Sambat. Nepal is in a build that has the
+`calendars` layer too, since its year starts on 1 Shrawan of the Bikram
+Sambat; in a build without it the country is absent, which
+`hc_fiscal_year_on` reports as `HC_ERR_UNKNOWN`. No label convention is a
+default: the year is named for the year it starts in, or for the one it ends
+in, and every line says which.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | country | the ISO 3166-1 alpha-2 code |
+| 2 | country name | the country in English |
+| 3 | table | `fiscal` for a country's government, tax and corporate years, `school` and `university` for an academic profile's |
+| 4 | kind | `government`, `personal-tax`, `corporate-default` or `academic` |
+| 5 | name | the English name |
+| 6 | local name | the name in the local language; empty where English is the local one |
+| 7 | authority | `statute`, `regulation`, `convention`, `per-region` or `per-institution` |
+| 8 | national | `1` where that is a national rule and not a usual choice |
+| 9 | start calendar | the calendar the start is dated in: `gregory`, `persian-arithmetic-33`, `ethiopic`, `buddhist` or `bikram-sambat` |
+| 10 | start month | the start's month in it |
+| 11 | start day | the start's day in it |
+| 12 | label convention | `start-year` or `end-year`: Japan's 2024年度 begins in 2024, the United States' FY 2024 began on 1 October 2023 |
+| 13 | valid from | the first year label the system was in force, a label of its own calendar; empty where open |
+| 14 | valid until | the last; empty where it still is |
+| 15 | approximate | `1` where the start calendar is an approximation of the astronomical rule |
+| 16 | note | what the entry deliberately does not claim |
+| 17 | sources checked | the date the sources were last checked, `YYYY-MM-DD` |
+| 18 | sources | the statute, ministry or publication the entry came from |
+
+### The year of a day
+
+`hc_fiscal_year_on(country, country_len, kind, kind_len, fixed, buffer,
+capacity)` writes lines of 18 cells: what the year systems of a country say
+a fixed day is. One line each. The status is `in-force`, or
+`outside-validity` where the system was not in force in the year the day
+falls in (the United States' October year had not begun in 1970), or
+`outside-calendar-range` where the start's calendar does not reach the day;
+the cells after the status are then empty. A country the tables do not
+carry, or a kind that is not one of the four, is `HC_ERR_UNKNOWN`; a country
+that has no system of the kind asked is `HC_ERR_NO_DATA`; a fixed day beyond
+the Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`. `country` is an ISO
+3166-1 alpha-2 code, in any case. `kind` is a kind `hc_fiscal_profiles`
+writes, or empty for every kind the country has.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | country | the code, as `hc_fiscal_profiles` writes it |
+| 2 | table | `fiscal`, `school` or `university` |
+| 3 | kind | the kind |
+| 4 | name | the English name |
+| 5 | status | `in-force`, `outside-validity` or `outside-calendar-range` |
+| 6 | label | the year label of the year the day is in |
+| 7 | first | that year's first fixed day |
+| 8 | last | its last fixed day |
+| 9 | day of year | the day's number in it, from 1 |
+| 10 | days in year | how many days it has |
+| 11 | weekday | the day of the week from Monday = 1 to Sunday = 7 |
+| 12 | month | the fiscal month from 1; empty where the start calendar has no twelve equal months |
+| 13 | quarter | the fiscal quarter from 1 |
+| 14 | half | the fiscal half from 1 |
+| 15 | start calendar | the calendar the start is dated in |
+| 16 | label convention | `start-year` or `end-year` |
+| 17 | approximate | `1` where the start calendar is an approximation |
+| 18 | sources checked | the date the sources were last checked |
+
+### The span of a year
+
+`hc_fiscal_year_span(country, country_len, kind, kind_len, label, buffer,
+capacity)` writes lines of 9 cells: the span of the year a label names in
+each year system of a country. One line each. The label is the system's own:
+a label of Iran's is a Solar Hijri year, a label of Japan's 年度 the Gregorian
+year it begins in, and a label of the United States' fiscal year the one it
+ends in. The status is `in-force`, `outside-validity` where the system was
+not in force in that year (the cells after the label are then empty) or
+`outside-calendar-range` where the start's calendar does not reach it. A
+country the tables do not carry, or a kind that is not one of the four, is
+`HC_ERR_UNKNOWN`; a country with no system of the kind asked is
+`HC_ERR_NO_DATA`. `country` is an ISO 3166-1 alpha-2 code, in any case.
+`kind` is a kind `hc_fiscal_profiles` writes, or empty for every kind the
+country has. `label` is a year label of the system's own calendar and
+convention.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | country | the code |
+| 2 | table | `fiscal`, `school` or `university` |
+| 3 | kind | the kind |
+| 4 | name | the English name |
+| 5 | status | `in-force`, `outside-validity` or `outside-calendar-range` |
+| 6 | label | the label given |
+| 7 | first | the year's first fixed day |
+| 8 | last | its last fixed day |
+| 9 | days | how many days it has |
+
+### Years of whole weeks
+
+`hc_week_year_systems(buffer, capacity)` writes lines of 10 cells: every
+named year of whole weeks. The NRF 4-5-4 retail calendar, ISO 8601's
+week-numbering year and a 4-4-5 year ending the last Saturday of December.
+The two anchor rules are two names and not one parameter: they put the year
+end up to a week apart and sometimes in different months.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | id | the system's identifier: `nrf-4-5-4`, `iso-8601-week-year` |
+| 2 | name | the English name |
+| 3 | weekday | the weekday the year ends on, Monday = 1 to Sunday = 7 |
+| 4 | month | the Gregorian month whose end the rule is applied to |
+| 5 | anchor rule | `last-weekday-of-month` or `weekday-nearest-month-end` |
+| 6 | label convention | `start-year` or `end-year` |
+| 7 | shape | how a quarter's thirteen weeks split into three periods: `4-4-5`, `4-5-4` or `5-4-4`; empty for a convention that numbers weeks and defines no periods |
+| 8 | note | what the entry does not claim |
+| 9 | source | the published definition |
+| 10 | sources checked | the date it was last checked, `YYYY-MM-DD` |
+
+### A day in a year of whole weeks
+
+`hc_week_year_on(system, system_len, fixed, buffer, capacity)` writes one
+line of 14 cells: where a fixed day is in a year of whole weeks. In a
+53-week year the extra week is the last period's. A system
+`hc_week_year_systems` does not list is `HC_ERR_UNKNOWN`, and a day beyond
+the Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`. `system` is an
+identifier `hc_week_year_systems` lists.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | system | the system's identifier |
+| 2 | name | its English name |
+| 3 | label | the label of the year the day is in |
+| 4 | first | that year's first fixed day |
+| 5 | last | its last fixed day |
+| 6 | weeks | how many weeks it has, 52 or 53 |
+| 7 | long | `1` where it has 53 |
+| 8 | week | the week the day is in, from 1 |
+| 9 | week first | that week's first fixed day |
+| 10 | week last | its last fixed day |
+| 11 | period | the period from 1 to 12; empty for a convention with no periods |
+| 12 | period first | that period's first fixed day |
+| 13 | period last | its last fixed day |
+| 14 | quarter | the quarter from 1 to 4 |
+
+## Name days
+
+`hc_name_day_lists`, `hc_name_days_on` and `hc_name_day` need the `name-
+days` feature. Name-day lists, each a named edition of a named authority,
+and the countries whose list the crate declines to ship, from hc-name-days.
+
+### The lists and the gaps
+
+`hc_name_day_lists(buffer, capacity)` writes lines of 17 cells: every
+name-day list the crate ships and every country it declines to ship one for.
+Each list is a named edition of a named authority, and the crate reports
+what the lists say and asserts none of them. A gap is a country whose list
+the crate declines to ship, with the reason in its words: a list a
+university sells by the copy, a church calendar that names saints and not
+given names, several published lists that no body chooses between. A gap's
+identifier is the country's code, or two codes joined by a hyphen where one
+reasoning covers both; `hc_name_days_on` and `hc_name_day` read a code of
+either. A column that does not apply to the kind is empty.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `list` or `gap` |
+| 2 | id | the list's identifier, such as `lv-traditional-2026`; for a gap its code |
+| 3 | country | the ISO 3166-1 alpha-2 code of a list; the English name of a gap |
+| 4 | language | the BCP 47 language of the names |
+| 5 | name | the English name of the list; for a gap what it leaves out |
+| 6 | authority | the body whose list it is |
+| 7 | decided | when it decided this edition, to whatever precision the source gives |
+| 8 | provenance | `promulgated`, `recorded`, `vernacular` or `contested` |
+| 9 | valid from | the first year the edition was in force; empty where open |
+| 10 | valid until | the last year; empty where it still is |
+| 11 | licence | the terms it is held under |
+| 12 | leap day | what it does with 29 February: `no-names`, `own-names`, `shift-after-24-february` or `leap-years-only` |
+| 13 | total names | how many names it holds |
+| 14 | source | the citation; for a gap what was consulted |
+| 15 | retrieved | when the file was retrieved; for a gap when the survey was made |
+| 16 | reason | for a gap `licensed-for-a-fee`, `licence-unknown`, `sources-disagree-with-no-authority`, `method-unpublished` or `saints-not-names` |
+| 17 | explanation | for a gap the reasoning in full |
+
+### The names of a day
+
+`hc_name_days_on(country, country_len, fixed, buffer, capacity)` writes
+lines of 14 cells: what the lists of a country name on a day. The kind is
+`list` for an edition in force in the year the day falls in (a country may
+keep two at once: Latvia's traditional and extended lists), `outside` for a
+shipped edition whose years do not include it, with no names, and `gap` for
+a country the crate carries no list for. A day no list has a name for is a
+`list` line with no names, and never the nearest edition's. A country the
+crate has neither a list nor a gap for is `HC_ERR_UNKNOWN`; a day beyond the
+Gregorian years ±9 999 999 is `HC_ERR_OUT_OF_RANGE`. `country` is a
+two-letter code in any case.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `list`, `outside` or `gap` |
+| 2 | id | the list's identifier; for a gap its code |
+| 3 | name | the English name of the list; for a gap what it leaves out |
+| 4 | authority | the body whose list it is |
+| 5 | valid from | the first year the edition was in force; empty where open |
+| 6 | valid until | the last year; empty where it still is |
+| 7 | licence | the terms it is held under |
+| 8 | names | the names the list gives that day, separated by `;`, in the list's own spelling and script; empty where there are none |
+| 9 | count | how many |
+| 10 | unlisted names day | `1` where the authority reserves the day for names not on its list (Latvia's 22 May) |
+| 11 | notes | what the source prints beside the day that is not a name, separated by `;` |
+| 12 | source | the citation; for a gap what was consulted |
+| 13 | reason | for a gap the reason, as `hc_name_day_lists` writes it |
+| 14 | explanation | for a gap the reasoning in full |
+
+### The days of a name
+
+`hc_name_day(country, country_len, given_name, given_name_len, year, buffer,
+capacity)` writes lines of 13 cells: the days of a year on which the lists
+of a country give a name. The match is exact and case-sensitive: the list's
+own spelling, diacritics included, and no diminutive the authority did not
+print. A name may fall on several days (the extended Latvian list has some)
+or on none, which is a `list` line with no days. The kinds are those of
+`hc_name_days_on`: `outside` for an edition not in force in the year, with
+no days, and `gap`. A country the crate has neither a list nor a gap for is
+`HC_ERR_UNKNOWN`; a year beyond the Gregorian years ±9 999 999 or past an
+`i32` is `HC_ERR_OUT_OF_RANGE`. `country` is a two-letter code in any case.
+`given_name` is the name, in the list's own spelling.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `list`, `outside` or `gap` |
+| 2 | id | the list's identifier; for a gap its code |
+| 3 | name | the English name of the list; for a gap what it leaves out |
+| 4 | authority | the body whose list it is |
+| 5 | valid from | the first year the edition was in force; empty where open |
+| 6 | valid until | the last year; empty where it still is |
+| 7 | licence | the terms it is held under |
+| 8 | dates | the days as `MM-DD`, separated by `;` |
+| 9 | fixed days | the same days as fixed days of that year, separated by `;` |
+| 10 | count | how many |
+| 11 | source | the citation; for a gap what was consulted |
+| 12 | reason | for a gap the reason |
+| 13 | explanation | for a gap the reasoning in full |
+
+## Cultural attributions
+
+`hc_attribution_authorities`, `hc_attributions`, `hc_attributions_on` and
+`hc_harvest_moon` need the `attributes` feature. Birthstones, birth flowers,
+full-moon names, month names, zodiac stones and weekday attributions, each
+list named with its authority, and the Harvest Moon, from hc-attributes.
+
+### The attribution lists
+
+`hc_attribution_authorities(subject, subject_len, buffer, capacity)` writes
+lines of 17 cells: every attribution list the crate ships, with what it
+declines to ship. There is no "the birthstone of March": there are six
+lists, each with an authority, a date, a region and the years it was
+current, and they disagree in eleven months out of twelve. A gap is a
+subject the crate declined to ship, such as Japan's day-by-day 誕生花 or Robert
+Graves's "Celtic tree calendar"; its columns about a list are empty. A gap
+belongs to no subject here and is written only for the empty one. A subject
+that is not one of the seven is `HC_ERR_UNKNOWN`. `subject` is `birthstone`,
+`birth-flower`, `moon-name`, `lunation-name`, `month-name`, `zodiac-stone`
+or `weekday`, or empty for every list and every gap.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | kind | `authority` or `gap` |
+| 2 | subject | the subject; empty for a gap |
+| 3 | id | the list's identifier, such as `birthstones-jp-2021`; for a gap its identifier |
+| 4 | name | the list's English name; for a gap what is missing |
+| 5 | body | the body that issued it; empty where nobody did, as for the Finnish month names |
+| 6 | region | the identifier of the region the list is in use in |
+| 7 | region name | its English name |
+| 8 | established | when the list was first adopted, to whatever precision the source gives |
+| 9 | revised | when it was last revised |
+| 10 | valid from | the first year it was current; empty where open |
+| 11 | valid until | the last year; empty where it still is |
+| 12 | provenance | `promulgated`, `recorded`, `vernacular`, `contested` or `modern-invention` |
+| 13 | key kind | what the list is keyed by: `month`, `lunation`, `sign` or `weekday` |
+| 14 | source | the citation; for a gap what was consulted |
+| 15 | caveat | what a caller should know before repeating the list; always present for a contested list |
+| 16 | reason | for a gap `sources-disagree-with-no-authority`, `method-unpublished`, `different-key`, `modern-invention` or `translation-undetermined` |
+| 17 | explanation | for a gap the reasoning in full |
+
+### What the lists say of a key
+
+`hc_attributions(subject, subject_len, key, buffer, capacity)` writes lines
+of 13 cells: what every list of a subject attributes to one key. One line
+per list. There is no line for "the" birthstone: a question about March has
+six answers, and the last cell says whether they agree. A contested list's
+caveat is on its line, and a caller who shows the answer should show it. A
+leap month is no key: no tradition attributes anything to an intercalary
+one. A subject that is not one of the seven is `HC_ERR_UNKNOWN`, and a key
+outside its range is `HC_ERR_OUT_OF_RANGE`. `subject` is one of the seven
+`hc_attribution_authorities` names. `key` is the month from 1, the lunation
+from 1, the sign from Aries = 1, or the ISO weekday from Monday = 1 to
+Sunday = 7.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | subject | the subject |
+| 2 | id | the list's identifier |
+| 3 | name | the list's English name |
+| 4 | key | the key given |
+| 5 | key kind | `month`, `lunation`, `sign` or `weekday` |
+| 6 | attributions | what the list attributes to the key, separated by `;`, in the list's own spelling |
+| 7 | count | how many |
+| 8 | gloss | the English gloss of a month name; empty for other subjects |
+| 9 | valid from | the first year the list was current; empty where open |
+| 10 | valid until | the last year; empty where it still is |
+| 11 | provenance | as `hc_attribution_authorities` writes it |
+| 12 | caveat | what a caller should know before repeating it |
+| 13 | agreed | `1` where every list of the subject says the same for the key |
+
+### The attributions of a day
+
+`hc_attributions_on(fixed, meridian, meridian_len, buffer, capacity)` writes
+lines of 13 cells: what every list attributes to the month, the weekday and
+the sign of a day. The lines of `hc_attributions` for the birthstones, birth
+flowers, full-moon names, month names, zodiac stones and weekday
+attributions, each list on its own line, the subjects in that order; the
+lunation names are left out, because a day has no lunation number without
+the March equinox of its year. The month is the Gregorian month, the weekday
+its ISO weekday, and the sign the tropical sign the Sun is in at the day,
+judged at the meridian, which a day whose sign changes within about ten
+minutes of local midnight can move by a day. A meridian that is not read is
+`HC_ERR_UNKNOWN`, and a day outside the years −1000 to 3000 is
+`HC_ERR_OUT_OF_RANGE`. `meridian` is `universal`, `japan`, `china`, `korea`,
+`india`, `china-before-1929`, a longitude in degrees east, or empty for
+`universal`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | subject | the subject |
+| 2 | id | the list's identifier |
+| 3 | name | the list's English name |
+| 4 | key | the day's month, sign or weekday |
+| 5 | key kind | `month`, `sign` or `weekday` |
+| 6 | attributions | what the list attributes to the key, separated by `;` |
+| 7 | count | how many |
+| 8 | gloss | the English gloss of a month name |
+| 9 | valid from | the first year the list was current; empty where open |
+| 10 | valid until | the last year; empty where it still is |
+| 11 | provenance | as `hc_attribution_authorities` writes it |
+| 12 | caveat | what a caller should know before repeating it |
+| 13 | agreed | `1` where every list of the subject says the same for the key |
+
+### The Harvest Moon
+
+`hc_harvest_moon(year, meridian, meridian_len, buffer, capacity)` writes one
+line of 7 cells: the Harvest Moon of a year. The Harvest Moon is the full
+moon nearest the September equinox, a rule and not a table row: it falls in
+September in about three years of four and in October in the rest. In 2025
+it is 7 October, and September's full moon is the Corn Moon. The days are
+judged at the meridian, and a full moon within about a minute of a day's end
+can move by a day. A meridian that is not read is `HC_ERR_UNKNOWN`, and a
+year outside −999 to 3000 is `HC_ERR_OUT_OF_RANGE`. `meridian` is
+`universal`, `japan`, `china`, `korea`, `india`, `china-before-1929`, a
+longitude in degrees east, or empty for `universal`.
+
+| # | Column | Holds |
+| --- | --- | --- |
+| 1 | year | the year given |
+| 2 | harvest moon | the fixed day of the Harvest Moon |
+| 3 | hunters moon | the fixed day of the Hunter's Moon after it |
+| 4 | month | the Gregorian month the Harvest Moon falls in, 9 or 10 |
+| 5 | september moon | the name the Old Farmer's Almanac gives September's full moon that year: `Harvest Moon`, or `Corn Moon` when the Harvest Moon is October's |
+| 6 | meridian | the meridian the days are judged at, as given |
+| 7 | source | the functions used and the rule |
+
 ## What is not here
 
 Formatting is by template, and a template is only as wide as its locale's
@@ -6083,6 +7165,20 @@ Neither boundary exposes these parts of the workspace:
   it is the weekday; the meanings, glosses and 五行 of its annotations,
   which it gives in English only, are not written either; and of 恵方 not
   the two branches its point lies between, which the point names.
+- **Parts of `hc-almanac`, `hc-name-days` and `hc-uncertainty`.** Of
+  `hc-almanac`, 七曜 is not written, since it is the weekday; the meanings,
+  glosses and 五行 of its annotations, which it gives in English only, are
+  not written either; and of 恵方 not the two branches its point lies
+  between, which the point names. Of `hc-name-days`, the loader for a list
+  a caller has licensed (`hc_name_days::load`) has no export yet: the
+  Finnish and Norwegian lists, which the crate may not ship, are read only
+  by a Rust caller, and `hc_name_day_lists` says so in a `gap` line. Of
+  `hc-uncertainty`, the fuzzy instants that no EDTF value makes (a Gaussian
+  instant, `FuzzyInstant::gaussian`, and an exact or resolved one built
+  from an instant), and the rest of `DurationInterval` (its negation, its
+  scaling, `centred`, a point's membership) have no export; an EDTF value,
+  its relations, an interval of whole seconds, a Gaussian quantity and
+  significant figures do.
 - **CCSDS Level 3 and 4 codes**, which only their agency can read:
   `HC_ERR_NO_DATA`. A Level 2 code is read from the caller's epoch by
   `hc_ccsds_decode_from_epoch`, on TAI for CUC; a CUC count on another

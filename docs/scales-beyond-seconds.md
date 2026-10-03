@@ -124,6 +124,31 @@ that follows from them, for a million years either side of 1950.
 The explanation and the worked example are in
 [`systems/orbital-elements.md`](systems/orbital-elements.md).
 
+## At the boundary
+
+The WebAssembly module and the C library write these crates as lines, one
+layer each; every cell is text and each README lists the columns. **A value
+the library holds exactly crosses as an integer or a pair of integers, never
+as a float**: an EDTF date is a fixed day, an interval's bounds are whole
+seconds and attoseconds, a unit's length is a numerator and a denominator in
+lowest terms, and a figure count is an integer. A measurement crosses with its
+standard deviation, and each line says to how many figures it may be read.
+
+| Layer | Exports | Reads |
+| --- | --- | --- |
+| `uncertainty` | `hc_edtf_parse`, `hc_edtf_relations`, `hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op`, `hc_interval` | `hc_uncertainty::{edtf, fuzzy, sig_figs, quantity, interval}`: an EDTF value placed on the timeline with its support and Allen's relations to another, a number's figures and the laboratory rules of arithmetic on them, a `value ± σ` with the first-order rules and the weighted mean, intervals of whole seconds |
+| `units` | `hc_units`, `hc_unit_convert`, `hc_rates`, `hc_frame_period`, `hc_tempo` | `hc-units`: the 53 exactly defined units with their lengths as ratios, an exact conversion, the period of a frame or a sample, a note at a tempo and its MIDI value |
+| `deep-time` | `hc_planck_units`, `hc_bp_convert`, `hc_deep_convert`, `hc_deep_compare` | `hc_deep_time::{constants, archaeology, magnitude}`: the CODATA 2022 Planck units with their bars, the BP, b2k and calendar-year datums (a radiocarbon age is refused: it needs a calibration curve), a magnitude in any unit, and two magnitudes compared across decades |
+| `orbital` | `hc_daily_insolation` | `hc_orbital::daily_insolation` at any latitude and solar longitude, not only 65° N in June |
+| `relativity` | `hc_orbit_rate_offset`, `hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`, `hc_schwarzschild_radius`, `hc_proper_time_uncertain` | `hc-relativity`: the GPS orbit offset, hyperbolic motion, the Doppler factor, velocity composition with `1 − β` held without cancellation, and a proper time with the standard deviation of an uncertain speed |
+
+The line makers are `hyper_calendar::{uncertainty_lines, units_lines,
+deep_time_lines, orbital_lines, relativity_lines}`; each is tested against
+values recomputed in 50- or 60-digit decimal arithmetic (Python's `decimal`).
+Sources read: [wikipedia-constant-acceleration] for the rocket's formulas and
+[wikipedia-before-present] for BP and b2k (11 650 BP is 9701 BC); the
+11 700 b2k of the Holocene's base is the crate's own and is not on that page.
+
 ## What this is not
 
 It is not a physics engine and not a cosmology solver. `hc-deep-time`

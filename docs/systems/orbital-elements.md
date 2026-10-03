@@ -260,3 +260,11 @@ formula. Anchors:
 `the_65n_june_maximum_of_the_last_30_kyr_is_in_the_early_holocene`. The
 facade test `the_orbital_epoch_is_the_radiocarbon_bp_datum` ties
 `EPOCH_YEAR` to `hc-deep-time`'s `BP_DATUM_YEAR`.
+
+At the boundary, `hc_orbit_at` and `hc_orbit_series` write the elements and
+the insolation at 65° N at the June solstice, and `hc_daily_insolation`
+(`hyper_calendar::orbital_lines::insolation_line`) the daily mean at any
+latitude and any solar longitude from 0 to 360, for the orbit of an epoch,
+with the same solar constant. Its test derives the equatorial equinox value
+S₀/(πρ²) and the polar-day value S π sin φ sin ε from the elements the orbit
+line writes, and the polar night's 0.

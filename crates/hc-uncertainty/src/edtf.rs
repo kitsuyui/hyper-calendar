@@ -332,7 +332,15 @@ impl EdtfDate {
     /// wider than the true support and is documented as such. So does
     /// `19XX-02-29`: where the first or last year of the span is a common
     /// year, its end of the hull is that year's 28 February.
-    fn day_range(self) -> UncertaintyResult<(i64, i64)> {
+    ///
+    /// The qualifier is not applied: `1984~` has the days of 1984 here and
+    /// the wider support [`EdtfDate::to_fuzzy_instant`] gives it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UncertaintyError::Overflow`] when a year leaves the
+    /// representable range.
+    pub fn day_range(self) -> UncertaintyResult<(i64, i64)> {
         let span = pow10(self.unspecified_year_digits);
         let low_year = self.year;
         let high_year = self
@@ -518,9 +526,15 @@ pub enum EdtfSetMember {
 impl EdtfSetMember {
     /// The first and last fixed days this member could denote.
     ///
-    /// Only reachable through a set, which needs `alloc`.
+    /// `None` on a side is a member that does not stop there (`..1672`,
+    /// `1670..`). Only reachable through a set, which needs `alloc`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`UncertaintyError::Overflow`] when a year leaves the
+    /// representable range.
     #[cfg(feature = "alloc")]
-    fn day_range(self) -> UncertaintyResult<(Option<i64>, Option<i64>)> {
+    pub fn day_range(self) -> UncertaintyResult<(Option<i64>, Option<i64>)> {
         Ok(match self {
             Self::Date(date) => {
                 let (low, high) = date.day_range()?;
@@ -954,6 +968,31 @@ mod tests {
     /// `fixed_from_gregorian` with the published answer unwrapped.
     fn fixed(year: i64, month: u8, day: u8) -> i64 {
         fixed_from_gregorian(year, month, day).unwrap()
+    }
+
+    #[test]
+    fn the_day_range_of_a_date_is_its_hull_without_the_qualifier() {
+        // 1984 is a leap year, so its hull is 366 days.
+        assert_eq!(
+            EdtfDate::parse("1984").unwrap().day_range(),
+            Ok((fixed(1984, 1, 1), fixed(1984, 12, 31)))
+        );
+        assert_eq!(fixed(1984, 12, 31) - fixed(1984, 1, 1), 365);
+        // The qualifier blurs the support, not the days the date names.
+        assert_eq!(
+            EdtfDate::parse("1984-02~").unwrap().day_range(),
+            Ok((fixed(1984, 2, 1), fixed(1984, 2, 29)))
+        );
+        // An unspecified digit widens it to the decade.
+        assert_eq!(
+            EdtfDate::parse("198X").unwrap().day_range(),
+            Ok((fixed(1980, 1, 1), fixed(1989, 12, 31)))
+        );
+        #[cfg(feature = "alloc")]
+        assert_eq!(
+            EdtfSetMember::parse("..1760-12-03").unwrap().day_range(),
+            Ok((None, Some(fixed(1760, 12, 3))))
+        );
     }
 
     #[test]

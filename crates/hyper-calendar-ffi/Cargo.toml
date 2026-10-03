@@ -106,13 +106,30 @@ patterns = ["civil", "hc/i18n"]
 # names in every locale hc-i18n carries. Some 600 kB of names, so a layer
 # of its own beside `tz`, which it builds on.
 zone-names = ["tz", "hc/localized-zone-names"]
+# Significant figures, error bars, intervals and EDTF dates: how well a time
+# is known, and the arithmetic that keeps it honest. From hc-uncertainty.
+uncertainty = ["civil", "hc/uncertainty"]
+# The 53 exactly defined units of time, their lengths as exact ratios,
+# conversions, frame and sample periods and note lengths at a tempo, from
+# hc-units.
+units = ["hc/units"]
+# Fiscal, tax and academic years that do not begin on 1 January, and the
+# 52/53-week reporting years, from hc-fiscal.
+fiscal = ["civil", "hc/fiscal"]
+# Name-day lists, each a named edition of a named authority, and the
+# countries whose list the crate declines to ship, from hc-name-days.
+name-days = ["civil", "hc/name-days"]
+# Birthstones, birth flowers, full-moon names, month names, zodiac stones
+# and weekday attributions, each list named with its authority, and the
+# Harvest Moon, from hc-attributes.
+attributes = ["civil", "hc/attributes", "hc/seasons"]
 # Every layer, and nothing else: each layer names the facade features its
 # exports need, so `full` needs none of its own. The facade's `full` would
 # add `units`, `fiscal`, `attributes`, `name-days` and `uncertainty`'s
 # re-exports, which no export reads, so it is not here. `places` is a
 # layer like the others and is in; a program that needs no place names
 # builds the layers it calls instead.
-full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names"]
+full = ["civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital", "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names", "uncertainty", "units", "fiscal", "name-days", "attributes"]
 
 [dependencies]
 # Aliased to `hc`, as in `hyper-calendar-wasm`, to keep paths short.

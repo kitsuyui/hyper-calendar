@@ -150,6 +150,42 @@ impl DeepUnit {
         self != Self::PlanckTime
     }
 
+    /// A stable identifier, lower-case and hyphenated, which a boundary
+    /// names the unit by: the symbols collide (`as` is a Rust keyword and an
+    /// English word, `a` is a year and an are) and have no case rule.
+    #[must_use]
+    pub const fn id(self) -> &'static str {
+        match self {
+            Self::PlanckTime => "planck-time",
+            Self::Yoctosecond => "yoctosecond",
+            Self::Zeptosecond => "zeptosecond",
+            Self::Attosecond => "attosecond",
+            Self::Femtosecond => "femtosecond",
+            Self::Picosecond => "picosecond",
+            Self::Nanosecond => "nanosecond",
+            Self::Microsecond => "microsecond",
+            Self::Millisecond => "millisecond",
+            Self::Second => "second",
+            Self::Minute => "minute",
+            Self::Hour => "hour",
+            Self::Day => "day",
+            Self::JulianYear => "julian-year",
+            Self::Kiloyear => "kiloyear",
+            Self::Megayear => "megayear",
+            Self::Gigayear => "gigayear",
+        }
+    }
+
+    /// The unit with this identifier, as [`DeepUnit::id`] writes it, by
+    /// [`hc_core::catalogue::matches`] (any ASCII case).
+    #[must_use]
+    pub fn by_id(id: &str) -> Option<Self> {
+        Self::ALL
+            .iter()
+            .copied()
+            .find(|unit| hc_core::catalogue::matches(id, unit.id()))
+    }
+
     /// The symbol the literature writes this unit with.
     #[must_use]
     pub const fn symbol(self) -> &'static str {
@@ -756,6 +792,27 @@ mod tests {
                 "{unit:?} disagrees with itself about being defined"
             );
         }
+    }
+
+    #[test]
+    fn every_unit_has_a_distinct_kebab_identifier_that_finds_it() {
+        for (index, unit) in DeepUnit::ALL.iter().enumerate() {
+            let id = unit.id();
+            assert!(
+                !id.is_empty()
+                    && id
+                        .bytes()
+                        .all(|byte| byte.is_ascii_lowercase() || byte == b'-'),
+                "{id}"
+            );
+            assert_eq!(DeepUnit::by_id(id), Some(*unit));
+            assert_eq!(DeepUnit::by_id(&id.to_ascii_uppercase()), Some(*unit));
+            for other in &DeepUnit::ALL[index + 1..] {
+                assert_ne!(id, other.id());
+            }
+        }
+        assert_eq!(DeepUnit::by_id("a"), None);
+        assert_eq!(DeepUnit::by_id("furlong"), None);
     }
 
     #[test]

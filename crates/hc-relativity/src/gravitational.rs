@@ -193,8 +193,15 @@ pub fn circular_orbit_dilation_factor(gm: f64, radius: f64) -> RelativityResult<
 /// held still at `ground_radius`.
 ///
 /// Positive means the orbiting clock runs fast. The two exact Schwarzschild
-/// factors are divided rather than expanded, so this is the reference against
-/// which [`weak_field_orbit_rate_offset`] is checked.
+/// factors are compared exactly, not expanded, so this is the reference
+/// against which [`weak_field_orbit_rate_offset`] is checked.
+///
+/// The quotient is `orbit/ground − 1`, a number near 4·10⁻¹⁰ for GPS, so
+/// dividing the two factors and subtracting 1 would keep nine figures of the
+/// sixteen a double has. It is computed instead by the identity
+/// `orbit/ground − 1 = (orbit² − ground²) / (ground (orbit + ground))`, with
+/// `orbit² − ground² = (GM/c²)(2/R − 3/r)` written out, so that the only
+/// subtraction left is the physical one between the two potentials.
 ///
 /// # Errors
 ///
@@ -205,7 +212,9 @@ pub fn orbit_rate_offset(gm: f64, orbit_radius: f64, ground_radius: f64) -> Rela
     if ground == 0.0 {
         return Err(RelativityError::InsideHorizon);
     }
-    Ok(orbit / ground - 1.0)
+    let potential = check_gm(gm)? / SPEED_OF_LIGHT_SQUARED;
+    let squares = potential * (2.0 / ground_radius - 3.0 / orbit_radius);
+    finite(squares / (ground * (orbit + ground)))
 }
 
 /// The gravitational part of the rate offset alone,
@@ -434,6 +443,22 @@ mod tests {
         // They differ by 8e-9 of themselves: 3e-7 microseconds a day.
         let relative = (exact - weak).abs() / exact.abs();
         assert!(relative < 1e-7, "relative difference {relative}");
+    }
+
+    #[test]
+    fn the_exact_gps_offset_keeps_its_figures() {
+        // 60-digit decimal arithmetic (Python's `decimal`) from GM =
+        // 3.986004418e14, c = 299 792 458, r = 26 561 750 m and R = 6 378 137 m:
+        // orbit/ground - 1 = 4.4489279342029134...e-10, 38.43873735151317
+        // microseconds a day. The quotient of the two factors minus 1 keeps
+        // about nine of those figures; the identity keeps fourteen.
+        let exact = orbit_rate_offset(GM_EARTH, GPS_ORBIT_RADIUS, EARTH_EQUATORIAL_RADIUS).unwrap();
+        assert!(
+            (exact / 4.448_927_934_202_913_4e-10 - 1.0).abs() < 1e-13,
+            "{exact:e}"
+        );
+        let micros = rate_offset_to_micros_per_day(exact).unwrap();
+        assert!((micros - 38.438_737_351_513_17).abs() < 1e-11, "{micros}");
     }
 
     #[test]

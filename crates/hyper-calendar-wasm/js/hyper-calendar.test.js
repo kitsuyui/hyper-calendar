@@ -98,7 +98,7 @@ describe("load", () => {
     assert.match(hc.version(), /^\d+\.\d+\.\d+/);
     assert.deepEqual(hc.layers(), [
       "civil", "timestamps", "time-codes", "calendars", "holiday", "seasons", "deep-time", "tz", "sky", "orbital",
-      "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names",
+      "jupiter", "planetary", "relativity", "places", "humanize", "natural", "datetime", "patterns", "zone-names", "uncertainty", "units", "fiscal", "name-days", "attributes",
     ]);
     for (const entry of METHODS) {
       assert.ok(hc.has(entry.method), entry.method);

@@ -31,16 +31,18 @@
 
 use alloc::string::String;
 
-use hc_deep_time::archaeology;
+use hc_deep_time::archaeology::{self, B2K_DATUM_YEAR, BP_DATUM_YEAR};
+use hc_deep_time::constants::{self, CODATA_YEAR};
 use hc_deep_time::evidence::{self, EarliestEvidence, EvidenceAge};
 use hc_deep_time::future::{self, FutureEvent, Prediction};
 use hc_deep_time::geologic::{self, GeologicInterval, GeologicRank};
 use hc_deep_time::universe::{self, CosmicEpoch, CosmicEvent};
 use hc_deep_time::{
-    ArchaeologicalPeriod, Bp, DeepTime, DeepTimeResult, FutureEra, names, place_years_ago,
+    ArchaeologicalPeriod, Bp, DeepTime, DeepTimeResult, DeepUnit, FutureEra, names, place_years_ago,
 };
+use hc_uncertainty::Uncertain;
 
-use crate::boundary::Line;
+use crate::boundary::{Answer, Line, Refusal};
 
 /// How many columns every deep-time line has.
 pub const DEEP_TIME_COLUMNS: usize = 16;
@@ -413,9 +415,270 @@ pub fn intervals(rank: GeologicRank, locale: &str) -> String {
     out
 }
 
+/// How many columns a line of [`planck_units_lines`] has.
+pub const PLANCK_UNIT_COLUMNS: usize = 10;
+
+/// How many columns a line of [`bp_convert_line`] has.
+pub const BP_CONVERT_COLUMNS: usize = 8;
+
+/// How many columns a line of [`deep_convert_line`] has.
+pub const DEEP_CONVERT_COLUMNS: usize = 13;
+
+/// How many columns a line of [`deep_compare_line`] has.
+pub const DEEP_COMPARE_COLUMNS: usize = 12;
+
+/// Any error of the libraries below is out of range at the boundary: the
+/// arguments name no magnitude the crate can hold.
+fn out_of_range<E>(_: E) -> Refusal {
+    Refusal::OutOfRange
+}
+
+/// The CODATA constants the Planck units are built from, and the Planck
+/// units, one line each: the symbol, the name, the SI unit, the value, its
+/// standard uncertainty (0 for a constant defined exactly), the figures
+/// the source prints, the relative standard uncertainty, `1` for a defined
+/// constant, the value printed to exactly those figures, and the source.
+///
+/// The CODATA adjustment is the one `hc_deep_time::constants::CODATA_YEAR`
+/// names, 2022. `G` is the one measured constant among them, so every
+/// Planck unit inherits its 2.2·10⁻⁵ relative uncertainty, halved or
+/// thirded by the root.
+#[must_use]
+pub fn planck_units_lines() -> String {
+    let mut out = String::new();
+    for constant in constants::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(constant.symbol)
+            .cell(constant.name)
+            .cell(constant.unit)
+            .value(constant.value)
+            .value(constant.std_dev)
+            .value(constant.figures);
+        match constant.relative_uncertainty() {
+            Ok(relative) => line.value(relative),
+            Err(_) => line.empty(),
+        };
+        line.flag(constant.is_defined());
+        match constant.significant() {
+            Ok(text) => line.value(text),
+            Err(_) => line.empty(),
+        };
+        line.value(format_args!("{} (CODATA {CODATA_YEAR})", constant.source));
+        line.end();
+    }
+    out
+}
+
+/// What the last cell of a datum conversion names.
+const BP_SOURCE: &str = "hc-deep-time archaeology: BP counts back from 1950 CE, b2k from 2000 CE, \
+     and a calendar year is in astronomical numbering, year 0 being 1 BCE; a conventional \
+     radiocarbon age is not a calendar age and needs a calibration curve this crate does \
+     not carry";
+
+/// The datums [`bp_convert_line`] converts between.
+const DATUMS: [&str; 4] = ["bp", "b2k", "ce", "radiocarbon-bp"];
+
+/// The identifier of the datum a text names, in any ASCII case.
+fn datum(given: &str) -> Answer<&'static str> {
+    DATUMS
+        .iter()
+        .copied()
+        .find(|name| hc_core::catalogue::matches(given, name))
+        .ok_or(Refusal::Unknown)
+}
+
+/// An age or a year in a datum as years before 1950 CE, with its standard
+/// deviation carried through.
+fn into_years_before_1950(datum: &str, value: Uncertain) -> Answer<Uncertain> {
+    match datum {
+        "bp" => Ok(value),
+        "b2k" => value
+            .shifted(-f64::from(B2K_DATUM_YEAR - BP_DATUM_YEAR))
+            .map_err(out_of_range),
+        "ce" => value
+            .negated()
+            .and_then(|years| years.shifted(f64::from(BP_DATUM_YEAR)))
+            .map_err(out_of_range),
+        _ => Err(Refusal::NoData),
+    }
+}
+
+/// Years before 1950 CE as an age or a year in a datum.
+fn from_years_before_1950(datum: &str, years: Uncertain) -> Answer<Uncertain> {
+    match datum {
+        "bp" => Ok(years),
+        "b2k" => years
+            .shifted(f64::from(B2K_DATUM_YEAR - BP_DATUM_YEAR))
+            .map_err(out_of_range),
+        "ce" => years
+            .negated()
+            .and_then(|negated| negated.shifted(f64::from(BP_DATUM_YEAR)))
+            .map_err(out_of_range),
+        _ => Err(Refusal::NoData),
+    }
+}
+
+/// A calendar age or year in one datum written in another, as one line: the
+/// two datums, the number given and its standard deviation, the number in
+/// the other datum and its standard deviation, the number as a label
+/// (`11650 cal BP`, `9701 BCE`), and the source.
+///
+/// The datums are `bp` (calendar years before 1950 CE), `b2k` (before 2000
+/// CE, the ice-core scale) and `ce` (a calendar year in astronomical
+/// numbering, where year 0 is 1 BCE and −9700 is 9701 BCE). Moving between
+/// them adds or subtracts a whole number of years, so the standard deviation
+/// is unchanged. The Holocene's base is 11 700 b2k and 11 650 BP.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a datum that is not one of these,
+/// [`Refusal::NoData`] for `radiocarbon-bp`, a conventional radiocarbon age,
+/// which is not a count of calendar years and needs a calibration curve
+/// (IntCal20 and its companions) that the crate does not carry, and
+/// [`Refusal::OutOfRange`] for a number or a standard deviation that is not
+/// finite, or a negative one.
+pub fn bp_convert_line(years: f64, std_dev: f64, from: &str, to: &str) -> Answer<String> {
+    let (from, to) = (datum(from)?, datum(to)?);
+    let given = Uncertain::new(years, std_dev).map_err(out_of_range)?;
+    let converted = from_years_before_1950(to, into_years_before_1950(from, given)?)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(from)
+        .cell(to)
+        .value(years)
+        .value(std_dev)
+        .value(converted.value)
+        .value(converted.std_dev);
+    match to {
+        "bp" => line.value(format_args!("{} cal BP", converted.value)),
+        "b2k" => line.value(format_args!("{} b2k", converted.value)),
+        _ if converted.value <= 0.0 => line.value(format_args!("{} BCE", 1.0 - converted.value)),
+        _ => line.value(format_args!("{} CE", converted.value)),
+    };
+    line.cell(BP_SOURCE);
+    line.end();
+    Ok(out)
+}
+
+/// A magnitude of time in one unit written in another, as one line: the
+/// two units, the number given and its standard deviation, the converted
+/// number and its standard deviation, the converted number printed to the
+/// figures its standard deviation supports, the span in seconds and its
+/// standard deviation, `log10` of the seconds and its standard deviation
+/// (empty for a span of no length), `1` where the conversion factor is
+/// exact, and the source.
+///
+/// The units are `hc_deep_time::DeepUnit`'s identifiers: `planck-time`,
+/// `yoctosecond`, `zeptosecond`, `attosecond`, `femtosecond`, `picosecond`,
+/// `nanosecond`, `microsecond`, `millisecond`, `second`, `minute`, `hour`,
+/// `day`, `julian-year`, `kiloyear`, `megayear` and `gigayear`. Every one
+/// but the Planck time is a defined multiple of the second and rescales the
+/// standard deviation exactly; the Planck time is CODATA's measurement and
+/// brings its 1.1·10⁻⁵ into the answer, so a round trip through it returns
+/// the same number with a wider bar.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a unit that is not one of these, and
+/// [`Refusal::OutOfRange`] for a number or a standard deviation that is not
+/// finite or is negative, and a result that leaves the range of a double.
+pub fn deep_convert_line(value: f64, std_dev: f64, from: &str, to: &str) -> Answer<String> {
+    let from_unit = DeepUnit::by_id(from).ok_or(Refusal::Unknown)?;
+    let to_unit = DeepUnit::by_id(to).ok_or(Refusal::Unknown)?;
+    let given = Uncertain::new(value, std_dev).map_err(out_of_range)?;
+    let span = DeepTime::from_unit(given, from_unit).map_err(out_of_range)?;
+    let converted = span.in_unit(to_unit).map_err(out_of_range)?;
+    let text = converted.to_significant().map_err(out_of_range)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(from_unit.id())
+        .cell(to_unit.id())
+        .value(value)
+        .value(std_dev)
+        .value(converted.value)
+        .value(converted.std_dev)
+        .value(text)
+        .value(span.central_seconds())
+        .value(span.std_dev());
+    match span.log10_seconds() {
+        Ok(log) => line.value(log.value).value(log.std_dev),
+        Err(_) => line.empties(2),
+    };
+    line.flag(from_unit.is_defined() && to_unit.is_defined())
+        .cell(
+            "hc-deep-time DeepTime::from_unit, in_unit and log10_seconds; every unit but the \
+             Planck time is exact by definition, the Planck time is CODATA 2022's",
+        );
+    line.end();
+    Ok(out)
+}
+
+/// Two magnitudes of time compared, as one line: the seconds and standard
+/// deviation of each, the ratio of the first to the second and its standard
+/// deviation, the base-ten logarithm of that ratio and its standard
+/// deviation, the number of decades between them, `1` where their one-sigma
+/// bars meet, `-1`, `0` or `1` for the first being shorter than, equal to or
+/// longer than the second by central value, and the source.
+///
+/// The two are treated as independent, so comparing a magnitude with itself
+/// reports a non-zero deviation around a ratio of 1. The units are those of
+/// [`deep_convert_line`].
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a unit that is not one of those,
+/// [`Refusal::OutOfRange`] for a number or a standard deviation that is not
+/// finite or is negative, a span of no length or a negative one (there is
+/// no logarithm of it), and a ratio that leaves the range of a double.
+pub fn deep_compare_line(
+    first_value: f64,
+    first_std_dev: f64,
+    first_unit: &str,
+    second_value: f64,
+    second_std_dev: f64,
+    second_unit: &str,
+) -> Answer<String> {
+    let first_unit = DeepUnit::by_id(first_unit).ok_or(Refusal::Unknown)?;
+    let second_unit = DeepUnit::by_id(second_unit).ok_or(Refusal::Unknown)?;
+    let first = DeepTime::from_unit(
+        Uncertain::new(first_value, first_std_dev).map_err(out_of_range)?,
+        first_unit,
+    )
+    .map_err(out_of_range)?;
+    let second = DeepTime::from_unit(
+        Uncertain::new(second_value, second_std_dev).map_err(out_of_range)?,
+        second_unit,
+    )
+    .map_err(out_of_range)?;
+    let ratio = first.ratio(second).map_err(out_of_range)?;
+    let log = first.log10_ratio(second).map_err(out_of_range)?;
+    let order = match first.central_cmp(second) {
+        core::cmp::Ordering::Less => -1,
+        core::cmp::Ordering::Equal => 0,
+        core::cmp::Ordering::Greater => 1,
+    };
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(first.central_seconds())
+        .value(first.std_dev())
+        .value(second.central_seconds())
+        .value(second.std_dev())
+        .value(ratio.value)
+        .value(ratio.std_dev)
+        .value(log.value)
+        .value(log.std_dev)
+        .value(log.value.abs())
+        .flag(first.overlaps(second))
+        .value(order)
+        .cell("hc-deep-time DeepTime::ratio, log10_ratio, overlaps and central_cmp");
+    line.end();
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::boundary::cells;
     use alloc::vec::Vec;
 
     fn rows(text: &str) -> Vec<Vec<&str>> {
@@ -624,5 +887,196 @@ mod tests {
         assert_eq!(proton[4], "24000000000000000000000000000000000");
         assert_eq!(proton[8..12], ["", "", "", ""]);
         assert!(events.iter().all(|row| row[15].is_empty()));
+    }
+
+    /// `actual` is within `relative` of `expected`.
+    fn close(actual: &str, expected: f64, relative: f64) -> bool {
+        let actual: f64 = actual.parse().unwrap_or(f64::NAN);
+        (actual - expected).abs() <= expected.abs() * relative
+    }
+
+    #[test]
+    fn the_planck_units_are_codatas_with_their_bars() {
+        let text = planck_units_lines();
+        let table = rows(&text);
+        assert_eq!(table.len(), constants::ALL.len());
+        assert!(table.iter().all(|row| row.len() == PLANCK_UNIT_COLUMNS));
+        let time = table
+            .iter()
+            .find(|row| row[0] == "t_P")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(time[1], "Planck time");
+        assert_eq!(time[2], "s");
+        // CODATA 2022 (NIST allascii): 5.391247(60)e-44 s, a relative
+        // standard uncertainty of 1.1129e-5; 60-digit division of the two.
+        assert!(close(time[3], 5.391_247e-44, 1e-12), "{}", time[3]);
+        assert!(close(time[4], 6.0e-49, 1e-9), "{}", time[4]);
+        assert_eq!(time[5], "7");
+        assert!(
+            close(time[6], 1.112_915_063_991_689e-5, 1e-9),
+            "{}",
+            time[6]
+        );
+        assert_eq!(time[7], "0");
+        assert_eq!(time[8], "5.391247e-44");
+        assert!(time[9].contains("CODATA 2022"), "{}", time[9]);
+        // The speed of light and hbar are defined, and say so.
+        for symbol in ["c", "hbar"] {
+            let row = table
+                .iter()
+                .find(|row| row[0] == symbol)
+                .cloned()
+                .unwrap_or_default();
+            assert_eq!(row[4], "0", "{symbol}");
+            assert_eq!(row[7], "1", "{symbol}");
+        }
+        // G is the measured one.
+        let gravitation = table
+            .iter()
+            .find(|row| row[0] == "G")
+            .cloned()
+            .unwrap_or_default();
+        assert_eq!(gravitation[7], "0");
+        assert_eq!(gravitation[8], "6.67430e-11");
+    }
+
+    #[test]
+    fn a_datum_conversion_moves_the_origin_and_keeps_the_bar() {
+        // The Holocene's base is 11 700 b2k and 11 650 BP (hc-deep-time's
+        // archaeology module, after the ice-core scale's 2000 CE origin);
+        // 1950 BP is year 0, 1 BCE, and 3430 cal BP is -1480, 1481 BCE.
+        let convert = |years, std_dev, from, to| {
+            bp_convert_line(years, std_dev, from, to).unwrap_or_default()
+        };
+        let row = |line: &str| {
+            line.trim_end()
+                .split('\t')
+                .map(str::to_owned)
+                .collect::<Vec<_>>()
+        };
+        let line = row(&convert(11_650.0, 5.0, "bp", "b2k"));
+        assert_eq!(line.len(), BP_CONVERT_COLUMNS);
+        assert_eq!(&line[..2], ["bp", "b2k"]);
+        assert_eq!(line[4], "11700");
+        assert_eq!(line[5], "5");
+        assert_eq!(line[6], "11700 b2k");
+        assert_eq!(row(&convert(11_700.0, 0.0, "b2k", "bp"))[4], "11650");
+        let zero = row(&convert(1_950.0, 0.0, "bp", "ce"));
+        assert_eq!(zero[4], "0");
+        assert_eq!(zero[6], "1 BCE");
+        let bronze = row(&convert(3_430.0, 60.0, "BP", "CE"));
+        assert_eq!(bronze[4], "-1480");
+        assert_eq!(bronze[5], "60");
+        assert_eq!(bronze[6], "1481 BCE");
+        assert_eq!(row(&convert(-1_480.0, 60.0, "ce", "bp"))[4], "3430");
+        assert_eq!(row(&convert(2_026.0, 0.0, "ce", "b2k"))[4], "-26");
+        assert_eq!(row(&convert(1_000.0, 0.0, "ce", "ce"))[6], "1000 CE");
+        // A radiocarbon age is not a calendar age.
+        assert_eq!(
+            bp_convert_line(3_200.0, 50.0, "radiocarbon-bp", "bp"),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            bp_convert_line(3_200.0, 50.0, "bp", "radiocarbon-bp"),
+            Err(Refusal::NoData)
+        );
+        assert_eq!(
+            bp_convert_line(3_200.0, 50.0, "bp", "ad"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            bp_convert_line(f64::NAN, 0.0, "bp", "ce"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            bp_convert_line(1.0, -1.0, "bp", "ce"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    #[test]
+    fn the_age_of_the_universe_is_four_point_three_five_times_ten_to_the_seventeen_seconds() {
+        // Planck 2018, 13.787 +/- 0.020 Gyr, of Julian years of 31 557 600 s
+        // (60-digit decimal arithmetic): 4.350846312e17 s +/- 6.31152e14,
+        // log10 17.63857374 +/- 0.00063001, 8.0702040e60 Planck times.
+        let line = deep_convert_line(13.787, 0.020, "gigayear", "second").unwrap_or_default();
+        let row = cells(&line);
+        assert_eq!(row.len(), DEEP_CONVERT_COLUMNS);
+        assert_eq!(&row[..2], ["gigayear", "second"]);
+        assert!(close(row[4], 4.350_846_312e17, 1e-12), "{}", row[4]);
+        assert!(close(row[5], 6.311_52e14, 1e-12), "{}", row[5]);
+        assert!(close(row[9], 17.638_573_742_674_66, 1e-13), "{}", row[9]);
+        assert!(
+            close(row[10], 6.300_057_763_157_349e-4, 1e-9),
+            "{}",
+            row[10]
+        );
+        assert_eq!(row[11], "1", "a defined unit to a defined unit is exact");
+        let planck =
+            deep_convert_line(13.787, 0.020, "gigayear", "planck-time").unwrap_or_default();
+        let row = cells(&planck);
+        assert!(close(row[4], 8.070_204_002_895_805e60, 1e-12), "{}", row[4]);
+        // The Planck time's own 1.1e-5 reaches the bar: 1.1707e58, against
+        // 0.145 % from the age alone.
+        assert!(close(row[5], 1.170_732_065_916_644e58, 1e-9), "{}", row[5]);
+        assert_eq!(row[11], "0");
+        // A round trip through it returns the number with a wider bar.
+        let back = deep_convert_line(1.0, 0.0, "planck-time", "planck-time").unwrap_or_default();
+        let row = cells(&back);
+        assert!(close(row[4], 1.0, 1e-12), "{}", row[4]);
+        assert!(row[5].parse::<f64>().unwrap_or(0.0) > 1.0e-5, "{}", row[5]);
+        assert_eq!(
+            deep_convert_line(1.0, 0.0, "gigayear", "furlong"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            deep_convert_line(1.0, -1.0, "gigayear", "second"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            deep_convert_line(f64::INFINITY, 0.0, "gigayear", "second"),
+            Err(Refusal::OutOfRange)
+        );
+        // A span of no length has no logarithm, and says so with empty cells.
+        let nothing = deep_convert_line(0.0, 0.0, "second", "day").unwrap_or_default();
+        assert_eq!(&cells(&nothing)[9..11], ["", ""]);
+    }
+
+    #[test]
+    fn the_universe_is_sixty_one_decades_older_than_the_planck_time() {
+        let line = deep_compare_line(13.787, 0.020, "gigayear", 1.0, 0.0, "planck-time")
+            .unwrap_or_default();
+        let row = cells(&line);
+        assert_eq!(row.len(), DEEP_COMPARE_COLUMNS);
+        assert!(close(row[4], 8.070_204_002_895_805e60, 1e-12), "{}", row[4]);
+        assert!(close(row[6], 60.906_884_513_187_02, 1e-13), "{}", row[6]);
+        assert!(close(row[7], 6.300_243_164_018_53e-4, 1e-9), "{}", row[7]);
+        assert!(close(row[8], 60.906_884_513_187_02, 1e-13), "{}", row[8]);
+        assert_eq!(row[9], "0");
+        assert_eq!(row[10], "1");
+        let reversed = deep_compare_line(1.0, 0.0, "planck-time", 13.787, 0.020, "gigayear")
+            .unwrap_or_default();
+        let row = cells(&reversed);
+        assert_eq!(row[10], "-1");
+        assert!(close(row[6], -60.906_884_513_187_02, 1e-13), "{}", row[6]);
+        // Two spans whose bars meet overlap: 1 day and 24 hours.
+        let same = deep_compare_line(1.0, 0.0, "day", 24.0, 0.0, "hour").unwrap_or_default();
+        let row = cells(&same);
+        assert_eq!(row[9], "1");
+        assert_eq!(row[10], "0");
+        assert!(close(row[4], 1.0, 1e-15));
+        assert_eq!(
+            deep_compare_line(0.0, 0.0, "day", 1.0, 0.0, "day"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            deep_compare_line(1.0, 0.0, "day", 0.0, 0.0, "day"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            deep_compare_line(1.0, 0.0, "day", 1.0, 0.0, "fortnight"),
+            Err(Refusal::Unknown)
+        );
     }
 }
