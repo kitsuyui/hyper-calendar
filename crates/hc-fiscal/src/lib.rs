@@ -1,5 +1,7 @@
 //! Years that do not begin on 1 January.
 //!
+//! The system is written up in `docs/systems/fiscal-calendars.md`.
+//!
 //! Fiscal years, tax years, academic years and the 52/53-week reporting
 //! calendars retailers and broadcasters run on. The subject of this crate is
 //! not a new calendar: it is the observation that a great many institutions
@@ -56,12 +58,16 @@
 //!
 //! # What this crate does not do
 //!
+//! * **Not carried: every country but the 22 of [`countries::ALL`].** No
+//!   source for the others has been read and the tables are not yet done:
+//!   [`countries::by_code`] gives `None` for them, which is not the answer
+//!   "no offset". The same holds for the 8 of [`academic::ALL`].
 //! * It does not know your company's fiscal year. It knows the named
 //!   conventions; a filer's own 52/53-week year is a value the caller
 //!   constructs, on the same terms as the ones shipped here.
 //! * It does not compute business days, holidays or settlement dates. That
-//!   is `hc-holiday`, and a fiscal year is deliberately independent of it:
-//!   31 March is the end of Japan's 年度 whether or not it is a Sunday.
+//!   is `hc-holiday`, and a fiscal year does not depend on it: 31 March is
+//!   the end of Japan's 年度 whether or not it is a Sunday.
 //! * It claims nothing about Iran's official calendar beyond what the
 //!   arithmetic approximation in `hc-calendars-solar` supports. See
 //!   [`countries::IRAN`].

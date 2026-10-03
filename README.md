@@ -60,7 +60,7 @@ Beyond those tables, the library carries:
   and the Galilean moons.
 - Special and general relativistic time dilation.
 
-What is not carried yet, and what is out of scope, is listed in
+What is not carried yet, and what is excluded and why, is listed in
 [`docs/calendars.md`](docs/calendars.md) and
 [`docs/observances.md`](docs/observances.md).
 
@@ -339,8 +339,8 @@ Algorithms are written from published rules, not copied from other
 libraries' code.
 
 **Recurring events need an authority** (§10). A periodic event, such as the
-Olympic Games, is in scope when an external body defines its set. A list
-this project would have to curate is out of scope.
+Olympic Games, is carried when an external body defines its set. A list
+this project would have to curate is not carried: nothing could check it.
 
 **Every rule from the literature cites it** (§11). Each rule, table and
 reference date names its source, in the code and in
@@ -367,8 +367,8 @@ call, in thread-local storage emptied when the call's scope ends.
 | [`docs/policy.md`](docs/policy.md) | The rules a change must follow |
 | [`docs/glossary.md`](docs/glossary.md) | The words the documents use in a sense of their own: pivot, layer, anchor and the rest |
 | [`docs/adr/`](docs/adr/README.md) | The design decisions that could have gone another way |
-| [`docs/calendars.md`](docs/calendars.md) | Calendars: status, plans, and what is out of scope |
-| [`docs/observances.md`](docs/observances.md) | Holidays and observances: status, plans, and what is out of scope |
+| [`docs/calendars.md`](docs/calendars.md) | Calendars: status, plans, and what is excluded and why |
+| [`docs/observances.md`](docs/observances.md) | Holidays and observances: status, plans, and what is excluded and why |
 | [`docs/time-scales.md`](docs/time-scales.md) | TAI, UTC, UT1, ΔT, epochs and timestamp formats |
 | [`docs/i18n.md`](docs/i18n.md) | Locales, plural rules, names and text direction |
 | [`docs/python-parity.md`](docs/python-parity.md) | How Python's `datetime`, `time`, `calendar` and `humanize` map onto this library |

@@ -1,5 +1,7 @@
 //! Time zones for `hyper-calendar`: offsets, POSIX rules and TZif data.
 //!
+//! The system is written up in `docs/systems/time-zones.md`.
+//!
 //! A time zone is the rule that turns an instant into a wall-clock reading
 //! and back. This crate holds three kinds of rule, behind one trait:
 //!

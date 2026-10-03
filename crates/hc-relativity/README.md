@@ -62,12 +62,12 @@ The exact Schwarzschild computation and the weak-field expansion are both
 implemented and agree to 8·10⁻⁹ of themselves — 3·10⁻⁷ µs/day — which is one
 of the tests.
 
-## What it deliberately does not do
+## What it does not carry
 
 - **The metric is Schwarzschild**: non-rotating, uncharged, spherically
-  symmetric. The Earth's quadrupole moment `J₂`, the Kerr frame-dragging term,
-  the rotation of a ground station, orbital eccentricity and the Sagnac effect
-  are all absent. Each moves the GPS numbers by nanoseconds per day, not
+  symmetric. Not carried: the Earth's quadrupole moment `J₂`, the Kerr
+  frame-dragging term, the rotation of a ground station, orbital eccentricity
+  and the Sagnac effect. Each moves the GPS numbers by nanoseconds per day, not
   microseconds — but a real time-transfer system needs all of them, and this
   crate should not be used as though it had them. The ISS figure above,
   −24.5 µs/day, is the sum of two terms: −28.2 µs/day from the station's
@@ -85,9 +85,9 @@ of the tests.
   is the weak-field composition, exact only when the velocity is the one a
   local static observer measures. The error is the product of the two small
   terms — parts in 10¹⁸ in Earth orbit.
-- **No numerical integration.** Every worldline segment is closed-form, so
-  there is no step size and no accumulated error; the price is that only two
-  velocity profiles exist.
+- **Not carried: numerical integration.** Every worldline segment is
+  closed-form, so there is no step size and no accumulated error; the price
+  is that only two velocity profiles exist, and any other is not yet done.
 - **No `f32`, and no `NaN` ever.** `|β| ≥ 1`, a radius inside the horizon, a
   γ below 1 and a backwards worldline segment are all named errors caught
   where they occur, rather than silent `NaN`s surfacing as a nonsensical

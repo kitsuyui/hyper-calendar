@@ -142,23 +142,27 @@ name under each — everything a caller needs to explain the problem to a user.
   rules call `hc_calendar::gregorian`, which policy §2 names as the one
   owner of this arithmetic, in its total `to_fixed_saturating` shape.
 
-## Deliberate omissions
+## What it does not carry
 
-* **No zone database is compiled in.** Eighteen POSIX strings are not a
-  database; a real one is megabytes and belongs on disk or in a separate data
-  crate. The zone locations are compiled in, about 22 kB of text, because
-  they say where a zone is, not what its clocks read.
-* **No "local time zone" detection.** Reading `/etc/localtime` or `%TZ%` is a
+* **Not carried: a compiled-in zone database.** Eighteen POSIX strings are
+  not a database, and a real one is megabytes. Not yet done: a zone's rules
+  are read from a TZif file or loaded by the caller. The zone locations are
+  compiled in, about 22 kB of text, because they say where a zone is, not
+  what its clocks read.
+* **No "local time zone" detection** (policy §13: the library has no clock,
+  and the caller supplies the zone). Reading `/etc/localtime` or `%TZ%` is a
   platform question, and a library that guesses the user's zone is a library
-  that is wrong on servers.
-* **No `right/` leap-second semantics.** `tzif` reads and reports leap-second
-  records faithfully, but does not apply them: `hc_core::leap` is the one
+  that is wrong on servers (§4).
+* **No `right/` leap-second semantics**, because the leap-second table is
+  `hc_core::leap`'s. `tzif` reads and reports leap-second records
+  faithfully, but does not apply them: `hc_core::leap` is the one
   authoritative table in this workspace, and having two would mean having two
-  answers.
+  answers (policy §2).
 * **No abbreviation-to-zone lookup.** `CST` is three different zones and
   `IST` is at least three; the mapping does not exist, so the crate does not
-  pretend it does.
-* **No `Instant`/TAI conversions.** Compose with `hc_core::unix` instead.
+  pretend it does (§4).
+* **No `Instant`/TAI conversions**, which are `hc_core`'s. Compose with
+  `hc_core::unix` instead.
 
 ## Features
 

@@ -323,29 +323,35 @@ sw syr ta te th tl tr uk ur vi yue zh`.
 `aeb ayl ban cop mid mix rif sa yua zap zgh` are not in CLDR 48's `plurals.xml` and take
 root's rule, `other` for everything.
 
-## What it deliberately does not do
+## What it does not carry
 
-* **No collation, no message formatting, no general date patterns.** The
-  templates here are a locale's way of writing a year with its era, a day
-  and one whole date — `{month} {day}, {year}` — read from CLDR's `Gy`,
-  `d` and `yMMMMd` items and rendered by `hc-format`; skeletons, interval
-  patterns and time patterns are not here.
-* **No number formatting beyond integers.** No grouping separators, no
-  decimal separator, no currency, no sign other than an ASCII hyphen.
-* **No compact-notation plural operands (`c`/`e`).** Where a CLDR rule has an
-  `e = 0 and …` branch the `e = 0` case is implemented and the `e != 0`
-  alternatives are dropped, which only affects compact forms such as "1M".
-* **No bidirectional algorithm.** `direction` emits isolates and answers
-  first-strong questions; it does not reorder text.
-* **No word-level title casing.** Only the first character is ever recased,
-  because a per-word rule would mangle *2 de enero* and *tháng 1*.
-* **No transliteration**, no counting-rod numerals. Hebrew numerals are
-  carried, as `hebr`, and Greek alphabetic numerals as `grek` and
-  `greklow`, CLDR 48's `%greek-upper` and `%greek-lower`: 2026 is ͵βκϝ´.
-* **Lossless or nothing in tags.** A `-u-` key this crate does not model, or
-  a `-t-`/`-x-` extension, is an error rather than something silently
-  dropped: a formatter that ignored `-u-co-phonebk` would answer for a tag it
-  was not given.
+* **Not carried: collation, message formatting and general date patterns.**
+  Not yet done. The templates here are a locale's way of writing a year
+  with its era, a day and one whole date — `{month} {day}, {year}` — read
+  from CLDR's `Gy`, `d` and `yMMMMd` items and rendered by `hc-format`;
+  skeletons, interval patterns and time patterns are not here.
+* **Not carried: number formatting beyond integers.** Not yet done: grouping
+  separators, a decimal separator, currency, and a sign other than an
+  ASCII hyphen. Python's `intcomma` separators are `hc-humanize`'s
+  `Grouping`.
+* **Not carried: compact-notation plural operands (`c`/`e`).** Not yet done.
+  Where a CLDR rule has an `e = 0 and …` branch the `e = 0` case is
+  implemented and the `e != 0` alternatives are dropped, which only affects
+  compact forms such as "1M", which nothing in the workspace produces.
+* **Not carried: a bidirectional algorithm.** `direction` emits isolates and
+  answers first-strong questions; it does not reorder text, which is the
+  Unicode Bidirectional Algorithm's work and not yet done here.
+* **Not carried: word-level title casing.** Not yet done: only the first
+  character is ever recased, because a per-word rule would mangle *2 de
+  enero* and *tháng 1*.
+* **Not carried: transliteration and counting-rod numerals.** Not yet done.
+  Hebrew numerals are carried, as `hebr`, and Greek alphabetic numerals as
+  `grek` and `greklow`, CLDR 48's `%greek-upper` and `%greek-lower`: 2026 is
+  ͵βκϝ´.
+* **Lossless or nothing in tags** (policy §4). A `-u-` key this crate does
+  not model, or a `-t-`/`-x-` extension, is an error rather than something
+  silently dropped: a formatter that ignored `-u-co-phonebk` would answer
+  for a tag it was not given.
 
 ## Accuracy claims
 
@@ -360,6 +366,6 @@ claim:
 * Plural categories match the CLDR 48 sample values for the languages
   implemented.
 * The vocabulary is as accurate as CLDR and a careful hand-check; where a
-  language has forms this crate does not model (finer day periods, Dutch
-  `IJ`, Arabic month name variants outside the Levant), it returns the common
-  form rather than guessing.
+  language has forms this crate does not model (Dutch `IJ`, Arabic month name
+  variants outside the Levant), it returns the common form rather than
+  guessing.

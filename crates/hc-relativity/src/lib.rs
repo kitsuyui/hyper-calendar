@@ -1,5 +1,7 @@
 //! Relativistic time for `hyper-calendar`.
 //!
+//! The system is written up in `docs/systems/relativity.md`.
+//!
 //! Clocks do not agree. One in orbit runs fast, one on a fast ship runs slow,
 //! and the difference is large enough to matter: a GPS satellite gains 38
 //! microseconds a day, which is ten kilometres of positioning error. This
@@ -37,9 +39,10 @@
 //! The metric is Schwarzschild: non-rotating, uncharged, spherically
 //! symmetric. The Earth's quadrupole moment, the Kerr frame-dragging term,
 //! the rotation of a ground station, orbital eccentricity and the Sagnac
-//! effect are all absent. Each of them moves the GPS figures by nanoseconds
-//! per day, not microseconds, but a real time-transfer system needs all of
-//! them and should not use this crate as though it had them.
+//! effect are all absent, and not yet carried. Each of them moves the GPS
+//! figures by nanoseconds per day, not microseconds, but a real time-transfer
+//! system needs all of them and should not use this crate as though it had
+//! them.
 //!
 //! No `f32` appears anywhere, and no result is allowed to become a `NaN`:
 //! `β ≥ 1` and a radius inside the horizon are [`RelativityError`]s, caught

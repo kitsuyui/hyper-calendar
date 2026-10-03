@@ -23,8 +23,8 @@
 //! the reference tables used, so a comparison with them is exact; a caller
 //! reproducing a modern paper passes that paper's value.
 //!
-//! What this module does not do: turn a calendar date into a solar
-//! longitude. Berger's program does that with the mean anomaly and a
+//! Turning a calendar date into a solar longitude is `hc-astro`'s, not this
+//! module's. Berger's program does that with the mean anomaly and a
 //! 365-day year, a convention that differs from a real calendar's by up to
 //! a day; the honest input is the longitude, and `hc-astro` gives the
 //! present-day date of a longitude if one is needed.

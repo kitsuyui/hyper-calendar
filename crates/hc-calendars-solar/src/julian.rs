@@ -19,7 +19,8 @@
 //! year, as are -4 (5 BC) and -8 (9 BC). Whether the Roman priesthood
 //! actually intercalated on that schedule between 45 BC and AD 4 is a
 //! separate and genuinely disputed question; this module implements the
-//! regular proleptic rule and does not model the "Augustan correction".
+//! regular proleptic rule; the "Augustan correction" is not carried (not
+//! yet done).
 
 use hc_calendar::{
     Calendar, CalendarError, CalendarId, CalendarMeta, CalendarResult, DateFields, Rd, YearKind,

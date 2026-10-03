@@ -200,55 +200,65 @@ call rather than a pull request.
 So `zassetsu::day_of` is one `match` over data, and the four 土用 entries being
 exactly 18° before their closing term is a *test*, not four magic numbers.
 
-## What this crate deliberately does not do
+## What this crate does not carry
 
-* **No 平気.** The 5° and 15° divisions here are 定気, arcs of the ecliptic.
-  The older almanacs divided the year equally in *time*, and those give
-  different dates; the document says which almanacs and until when. Not
-  implemented.
+* **Not carried: 平気.** The 5° and 15° divisions here are 定気, arcs of the
+  ecliptic. The older almanacs divided the year equally in *time*, and those
+  give different dates; the document says which almanacs and until when.
+  The engine for it exists, though not in this crate:
+  `hc-calendars-lunar`'s `MeanMotionModel` places the twelve 中気 of each
+  historical Japanese system by that 恒気 rule (the twelve equal twelfths of
+  the system's own year from its own solstice) for the months and the leap
+  month, and `hc-seasons` depends on no lunisolar calendar. What is
+  missing is a term, pentad, 雑節 or sign function here that takes it. Not
+  yet done.
+  The zodiac's 30° divisions are 定気 in the same way, so signs are 29 to 32
+  days long, and an equal-time division of them is not carried either.
 * **No calendar.** Nothing here implements `hc_calendar::Calendar`. A solar
   term is not a date system; it is a subdivision that several date systems
-  refer to.
+  refer to, and those calendars are in `hc-calendars-lunar` and
+  `hc-calendars-indic`.
 * **No holidays.** 春分の日 is a public holiday *because* it is the equinox,
   but the holiday law, the substitute-holiday rules and the national calendar
-  live in `hc-holiday`.
-* **No time zones.** `Meridian` is a fixed offset with no history.
+  are `hc-holiday`'s.
+* **No time zones.** `Meridian` is a fixed offset with no history; zones
+  are `hc-tz`'s.
 * **No default meridian, and no default season definition.** A caller who has
   not said which they mean has not decided yet, and a library that decided for
-  them would be asserting something it cannot know.
-* **Japanese 雑節, and the Chinese 三伏, 數九, 入梅 and 出梅.** The 雑節 list
-  is Japan's; of China's own, the dog days and the nines are in `san_fu`,
-  and 入梅 and 出梅 of the Chinese almanac in `meiyu`. Korea's are not
-  carried.
-* **The Sun only, in the zodiac too.** Every sign function here places the
-  **Sun**. There is no Moon sign, no planet in a sign, no ascendant, no house
-  system and no chart. That matters most for the sidereal side: in Jyotiṣa a
-  person's *janma rāśi* is the **Moon's** rāśi, not the Sun's, so
+  them would be asserting something it cannot know (policy §5: the
+  conventions are named, and a meridian is a parameter with no list of names).
+* **Not carried: Korea's 雜節.** The 雑節 list is Japan's. Of China's own, the
+  dog days and the nines are in `san_fu`, and 入梅 and 出梅 of the Chinese
+  almanac in `meiyu`. Korea's, beyond the 한식 of `cold_food`, are not yet
+  done.
+* **Not carried: a body but the Sun in a sign.** Every sign function here
+  places the **Sun**, except `zodiac::jupiter`, which places Jupiter, and
+  `zodiac::node`, which places the mean node. There is no Moon sign, no other
+  planet in a sign, no ascendant, no house system and no chart; none is yet
+  done. That matters most for the sidereal side: in Jyotiṣa a person's
+  *janma rāśi* is the **Moon's** rāśi, not the Sun's, so
   `sidereal::sign_on_day` is not the birth sign an Indian almanac would give.
-  A Moon sign needs `hc_astro::lunar_longitude` minus the ayanāṃśa, which is
-  two lines this crate deliberately does not write, because once it has a Moon
-  sign it is being asked for a chart.
-* **No constellation boundaries.** A sign is a 30° arc of the ecliptic. The
-  IAU constellations are irregular polygons of very different sizes, and the
-  Sun passes through thirteen of them — Ophiuchus among them — for between
-  seven and forty-five days each. The recurring "there is a thirteenth sign"
-  story is a statement about constellations, not about signs, and nothing here
-  computes constellation membership.
-* **No zodiacal 平気 either.** Like the solar terms, the 30° divisions are
-  定気, arcs of the ecliptic, so signs are 29 to 32 days long. Equal-time
-  divisions are not implemented.
+  A Moon sign is `hc_astro::lunar_longitude` minus the ayanāṃśa, which this
+  crate has not written.
+* **Not carried: constellation boundaries.** A sign is a 30° arc of the
+  ecliptic. The IAU constellations are irregular polygons of very different
+  sizes, and the Sun passes through thirteen of them — Ophiuchus among
+  them — for between seven and forty-five days each. The recurring "there is
+  a thirteenth sign" story is a statement about constellations, not about
+  signs, and nothing here computes constellation membership yet.
 * **No Indian calendar.** `zodiac::rashi` names the twelve solar months and
   finds their boundaries. It does not number days within a month, number
   years, know the Kollam, Bengali San or Śaka epochs, or implement the
   regional rule for a saṅkrānti that falls late in the day. Those are
   `hc-calendars-indic`'s. Nor is any of it the lunisolar Hindu calendar,
-  whose months begin at a new or full moon, or the national civil Śaka
-  calendar (CLDR `indian`), which has fixed month lengths tied to the tropical
-  equinox.
+  whose months begin at a new or full moon, which is `hc-calendars-indic`'s,
+  or the national civil Śaka calendar (CLDR `indian`), which has fixed month
+  lengths tied to the tropical equinox and is `hc-calendars-solar`'s.
 * **No astrology.** The element, modality and ruling planet are shipped as the
-  data of a naming scheme with citations. The crate makes no claim about what
-  any of it means, and there is no interpretation, compatibility or forecast
-  anywhere in it.
+  data of a naming scheme with citations. No authority defines what any of it
+  means, so there is nothing to cite and nothing to check a claim against
+  (policy §10 and §11): no interpretation, compatibility or forecast is
+  carried, and the crate makes no claim about meaning.
 * **No 六曜, 十五夜 or 十三夜.** They are dated by the lunisolar calendar, so
   they are `hc-almanac`'s, which reads it from `hc-calendars-lunar`; this
   crate carries no lunisolar calendar.
@@ -273,7 +283,7 @@ exactly 18° before their closing term is a *test*, not four magic numbers.
   terms describe the Chinese agricultural year and have no southern form.
   The flip is a convenience for a southern-hemisphere caller, who would
   otherwise get nothing.
-* **No `Calendar` impl, no registry entry.** Deliberate; see above.
+* **No `Calendar` impl, no registry entry.** A solar term is not a date system; see "No calendar" above.
 * **Ayanāṃśa anchors disagree at the tens-of-arcseconds level.** The values
   here are the Swiss Ephemeris ones; other published tables for the same named
   ayanāṃśa differ by a few tens of arcseconds, which is a few minutes of time

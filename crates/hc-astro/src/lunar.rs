@@ -1,6 +1,8 @@
 //! The Moon: apparent position, phase, and the conjunction search that every
 //! lunisolar and lunar calendar is built on.
 //!
+//! The system is written up in `docs/systems/sun-and-moon.md`.
+//!
 //! Two independent algorithms live here, and that is deliberate.
 //!
 //! * [`lunar_longitude`] evaluates the abridged ELP-2000/82 series (M.

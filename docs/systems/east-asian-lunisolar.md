@@ -253,10 +253,10 @@ under either offset, and so does every calendar date; the test
 window at both offsets and says so. And the Vietnamese "southern" parameter
 set keeps UT+8 for all time. That is right for the calendar printed in
 Saigon in 1968, and it carries no era for the south's civil time of UT+7
-before 1 January 1960 [tienphong-two-zones], on purpose: the meridian of
+before 1 January 1960 [tienphong-two-zones]. Not carried: no southern
+almanac was read that would put the calendar on UT+7, and the meridian of
 the calendar is not the civil clock — the north kept UT+7 civil time from
-1945 and, by the published code, computed its calendar on UT+8 until 1968
-— and no southern almanac was read that would put the calendar on UT+7.
+1945 and, by the published code, computed its calendar on UT+8 until 1968.
 Measured for this document, reading 1949–1959 at UT+7 instead of UT+8
 would move six month boundaries by a day (13 to 14 August 1950, 4 to
 5 June 1951, 9 to 10 August 1953, 2 to 3 November 1956, 1 to 2 March 1957

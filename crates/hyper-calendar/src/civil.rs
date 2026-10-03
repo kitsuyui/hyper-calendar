@@ -78,6 +78,7 @@ use core::ops::{Add, AddAssign, Div, Mul, Neg, Rem, Sub, SubAssign};
 use hc_calendar::{CalendarError, CalendarResult, CivilDateTime, CivilTime, Rd, Weekday};
 use hc_calendars_solar::gregorian;
 use hc_calendars_solar::iso_week::{self, IsoWeekDate};
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::{ATTOS_PER_SEC, Duration, TimeResult};
 
 /// A Gregorian calendar date.
@@ -900,7 +901,7 @@ impl TimeDelta {
     #[must_use]
     pub const fn from_parts(parts: TimeDeltaParts) -> Self {
         let seconds = parts.weeks as i128 * 604_800
-            + parts.days as i128 * 86_400
+            + parts.days as i128 * SECONDS_PER_DAY as i128
             + parts.hours as i128 * 3_600
             + parts.minutes as i128 * 60
             + parts.seconds as i128;
@@ -920,7 +921,10 @@ impl TimeDelta {
     #[must_use]
     pub const fn new(days: i64, hours: i64, minutes: i64, seconds: i64) -> Self {
         Self(Duration::from_secs(
-            days as i128 * 86_400 + hours as i128 * 3_600 + minutes as i128 * 60 + seconds as i128,
+            days as i128 * SECONDS_PER_DAY as i128
+                + hours as i128 * 3_600
+                + minutes as i128 * 60
+                + seconds as i128,
         ))
     }
 

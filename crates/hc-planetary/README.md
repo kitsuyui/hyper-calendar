@@ -42,25 +42,26 @@ assert!(!titan.is_standardised());                     // no standard exists
 - **`clock`** — `BodyClock`, one interface from a TAI instant to a local time
   on any body in the table.
 
-## What it deliberately does not do
+## What it does not carry
 
-- **No Coordinated Lunar Time.** As of 2026-09-26 no LTC scale was defined:
+- **Not carried: Coordinated Lunar Time.** As of 2026-09-26 no LTC scale was defined:
   the OSTP memorandum of 2 April 2024 asks NASA for a strategy by 31 December
   2026, and IAU 2024 Resolution III calls for one by international agreement
   (Resolution II defines Lunar Coordinate Time, TCL, a relativistic coordinate
   time, not a civil scale). The crate says so and provides no substitute. `moon::mean_solar_time`
   gives a *mean solar* clock for the Moon under a zero point this crate
   declares and labels as declared; it is not LTC.
-- **No relativity.** Seen from the Moon, an Earth clock loses on average 58.7 µs
-  per Earth day (the OSTP memorandum). That is `hc-relativity`'s subject.
-- **No ephemeris.** Mars's orbit is the only planetary orbit modelled. The
-  `bodies` table is data, not a propagator.
-- **No invented standards.** Where no zero point has been agreed,
+- **Relativity is `hc-relativity`'s.** Seen from the Moon, an Earth clock loses
+  on average 58.7 µs per Earth day (the OSTP memorandum). That is
+  `hc-relativity`'s subject.
+- **Not carried: an ephemeris.** Mars's orbit is the only planetary orbit
+  modelled. The `bodies` table is data, not a propagator; not yet done.
+- **No invented standards** (policy §4). Where no zero point has been agreed,
   `EpochBasis::Convention` marks the one this crate states, and only Earth and
   Mars are `EpochBasis::Standard`.
-- **MER hybrid local solar time.** Spirit's and Opportunity's operational
-  clocks were offset from site LMST by >41 and >37 minutes. The crate
-  reproduces their sol *numbers*, not those offsets.
+- **Not carried: MER hybrid local solar time.** Spirit's and Opportunity's
+  operational clocks were offset from site LMST by >41 and >37 minutes. The
+  crate reproduces their sol *numbers*, not those offsets; not yet done.
 
 ## Accuracy claimed
 

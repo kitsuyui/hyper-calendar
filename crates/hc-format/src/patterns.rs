@@ -1,5 +1,7 @@
 //! Pattern-driven formatting and parsing, in both vocabularies.
 //!
+//! The system is written up in `docs/systems/date-patterns.md`.
+//!
 //! # Why both
 //!
 //! There are two pattern languages in use and neither is going away.

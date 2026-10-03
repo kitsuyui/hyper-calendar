@@ -37,18 +37,23 @@
 //! * [`search`] — the bisections every search above is built on, public so
 //!   that the calendars with their own models of the sky use them too.
 //!
-//! # What it is not
+//! # What it does not carry
 //!
-//! It is not an ephemeris. Every series here is a truncation chosen for the
-//! question a calendar asks, which is always "on which *day* did this
-//! happen": the Sun's longitude to about 1″, the Moon's to about 10″, a
-//! conjunction to under a minute, a sunrise to under a minute of the model's
-//! own geometry. If you need arcsecond positions, planetary positions or
-//! eclipse circumstances, use a real ephemeris and convert. The one
-//! planet carried is Jupiter, with the `jupiter` feature, for the
-//! festivals its sign sets.
+//! Every series here is a truncation chosen for the question a calendar
+//! asks, which is always "on which *day* did this happen": the Sun's
+//! longitude to about 1″, the Moon's to about 10″, a conjunction to under a
+//! minute, a sunrise to under a minute of the model's own geometry.
 //!
-//! It also contains no calendar. Nothing here knows what a month is.
+//! **Not carried: a general ephemeris.** The planets other than Jupiter,
+//! and eclipse circumstances, are not computed, and no position is carried
+//! to better than the truncations above. The one planet carried is Jupiter,
+//! with the `jupiter` feature, for the festivals its sign sets; no series
+//! file for another planet was read, which `docs/systems/jupiter-ephemeris.md`
+//! records, and no eclipse model has been written yet.
+//!
+//! A calendar is not carried here either: nothing in this crate knows what
+//! a month is. The calendars that use these searches are in the crates that
+//! own them.
 //!
 //! # Time scales
 //!

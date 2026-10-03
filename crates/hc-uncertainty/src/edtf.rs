@@ -18,18 +18,18 @@
 //! digits, the `Y` long-year form and the open/unknown interval endpoints,
 //! and the level 2 set and list forms (which need `alloc`).
 //!
-//! Deliberately not supported, and rejected rather than half-parsed:
+//! Not carried, and rejected rather than half-parsed (policy §4):
 //!
-//! * **Times of day.** `1985-04-12T23:20:30Z` is legal EDTF; this module is
-//!   about *which day*, and a crate that already has
-//!   [`hc_core::Instant`] should not grow a second, weaker time parser.
+//! * **Times of day.** `1985-04-12T23:20:30Z` is Level 0 EDTF; this module
+//!   reads *which day* and not yet the time within it.
 //! * **Seasons and sub-year divisions** (`2001-21` for spring, `2001-34` for
 //!   a quarter). Their boundaries are conventions that differ by hemisphere
-//!   and by publisher, and guessing one would be inventing data.
+//!   and by publisher. Policy §5 would give each convention its own name, and
+//!   none has been added, so the form is refused and no boundary is guessed.
 //! * **Component-level qualification** (`2004-06~-11`, "June is approximate
 //!   but the year and day are not"). The support it implies is not an
-//!   interval, so it cannot be represented faithfully here.
-//! * **Exponential years and significant digits** (`Y17E7S3`).
+//!   interval, and [`crate::FuzzyInstant`] holds only intervals.
+//! * **Exponential years and significant digits** (`Y17E7S3`). Not yet done.
 //!
 //! # Where the calendar arithmetic comes from
 //!

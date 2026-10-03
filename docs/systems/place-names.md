@@ -324,18 +324,20 @@ locale no table names, `de` or `zh-Hans`, gets `en`.
   gzipped, but nothing once the text is compressed as LZMA compresses it
   (594 548 bytes against 595 456 with the pointers), since such a
   compressor finds the repeats itself.
-- **Not carried.** The `unconfirmed` values. The locales CLDR has and
-  `hc-i18n` does not carry, and the regional files beyond the six regional
-  entries `docs/i18n.md` lists. The `nonlikelyScript` parent rule beyond
-  the tags `parentLocales` lists, as for the other locale data: a tag such
-  as `ja-Latn` walks to `ja`, not root. A replacement for a deprecated
-  code: `supplementalMetadata.xml`'s `subdivisionAlias` gives one for 147
-  deprecated codes, none of which a carried file names; the aliases of the
-  476 that are named are commented out, with the replacement `al?` and the
-  like [cldr48-validity]. The containment of territories
-  (`territoryContainment`, which says `JP` is in `030`, Eastern Asia): read
-  only to expand the matching variables. ISO 3166-2 itself, which was not
-  read: a code ISO lists that CLDR 48 does not is not carried.
+- **Not carried.** The `unconfirmed` values, which CLDR itself does not
+  stand behind (UTS #35 Part 1 calls the level "no confirmation
+  available"). The locales CLDR has and `hc-i18n` does not carry, and the
+  regional files beyond the six regional entries `docs/i18n.md` lists: not
+  yet done. The `nonlikelyScript` parent rule beyond the tags
+  `parentLocales` lists, as for the other locale data: not yet done, and a
+  tag such as `ja-Latn` walks to `ja`, not root. A replacement for a
+  deprecated code: `supplementalMetadata.xml`'s `subdivisionAlias` gives
+  one for 147 deprecated codes, none of which a carried file names; the
+  aliases of the 476 that are named are commented out, with the
+  replacement `al?` and the like [cldr48-validity]. The containment of
+  territories (`territoryContainment`, which says `JP` is in `030`,
+  Eastern Asia): read only to expand the matching variables. ISO 3166-2 itself, which was not read: a code ISO
+  lists that CLDR 48 does not is not carried, for no source read lists it.
 
 ### Beside the holiday tables and the zones
 

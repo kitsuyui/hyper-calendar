@@ -39,12 +39,12 @@
 //! The day pillar is the only one of the four that needs no calendar at all:
 //! [`sexagenary_day`] is a function of [`Rd`] alone.
 //!
-//! # What this module deliberately does not do
+//! # What this module leaves to other crates
 //!
 //! It computes no astronomy. The month pillar is fixed by the solar terms and
 //! the four-pillar year by 立春, and both need the apparent longitude of the
-//! Sun. `hc-calendar` depends on nothing but `hc-core` and is not going to
-//! grow an ephemeris, so every function that needs a solar term takes the
+//! Sun. `hc-calendar` depends on nothing but `hc-core` and has no ephemeris,
+//! so every function that needs a solar term takes the
 //! term as an argument, and the documentation says which `hc-seasons` call
 //! produces it. That crate depends on this one; the arrow cannot be reversed.
 //!
@@ -704,8 +704,8 @@ pub const fn sexagenary_year_from_gregorian_year(gregorian_year: i64) -> Sexagen
 /// Which solar-term year a fixed day belongs to.
 ///
 /// `start_of_spring` is the fixed day of 立春 of `gregorian_year`, which
-/// `hc-seasons` computes: this crate has no ephemeris and will not gain one,
-/// so the astronomy is the caller's to supply. Days before it belong to the
+/// `hc-seasons` computes: this crate has no ephemeris, so the astronomy is
+/// the caller's to supply. Days before it belong to the
 /// previous term year, which is why a birthday in late January carries the
 /// *previous* year's pillar.
 #[must_use]

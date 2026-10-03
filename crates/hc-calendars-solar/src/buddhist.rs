@@ -26,14 +26,16 @@
 //! the calendar itself keeps the modern year, whose every year begins on
 //! 1 January.
 //!
-//! # What this deliberately does not do
+//! # What it does not carry
 //!
-//! * It does not model the lunar reckoning in the Chulasakarat era that
-//!   official use left on 1 April 1889; [`printed_year`] refuses an earlier
-//!   day.
-//! * It does not model the Burmese, Sinhalese, Khmer or Lao Buddhist eras,
-//!   which use the same era name with different epochs and, in several
-//!   cases, a lunisolar year.
+//! * **Not carried: the lunar reckoning in the Chulasakarat era that
+//!   official use left on 1 April 1889.** Not yet done; [`printed_year`]
+//!   refuses an earlier day.
+//! * **Not carried: the Burmese, Sinhalese, Khmer and Lao Buddhist eras.**
+//!   They use the same era name with different epochs and, in several
+//!   cases, a lunisolar year. Not yet done; the Khmer and Lao lunisolar
+//!   calendars are `khmer` and `lao` in `hc-calendars-regional`, which do
+//!   not yet count the Buddhist Era.
 //! * It says nothing about where the Buddhist era's own epoch comes from.
 //!   The parinirvana is dated 544 or 543 BCE depending on the tradition, and
 //!   the Thai reckoning is the one that makes the offset 543.

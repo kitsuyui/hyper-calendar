@@ -1,5 +1,7 @@
 //! Exactly defined units of time.
 //!
+//! The system is written up in `docs/systems/units-of-time.md`.
+//!
 //! A time library is asked two different questions that look like one.
 //! "How long is a minute?" has an answer a standards body wrote down.
 //! "How long is a year?" does not — it has several, depending on whether

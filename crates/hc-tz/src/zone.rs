@@ -14,6 +14,7 @@
 
 use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::{CivilDateTime, CivilTime, Rd};
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::{ATTOS_PER_SEC, Duration, UnixTime};
 
 use crate::error::{TzError, TzResult};
@@ -111,7 +112,7 @@ pub trait TimeZone {
 
 /// How far either side of an instant [`TimeZone::is_summer_time_at`] looks
 /// for the zone's other reading, a Gregorian year (366 days).
-const SUMMER_TIME_HORIZON: i64 = 366 * 86_400;
+const SUMMER_TIME_HORIZON: i64 = 366 * SECONDS_PER_DAY;
 
 /// [`TimeZone::is_summer_time_at`]: the higher offset of the two flags'
 /// readings within the horizon, and the flag where they do not both occur.
@@ -330,11 +331,11 @@ pub(crate) fn changes_at<Z: TimeZone + ?Sized>(zone: &Z, seconds: i64) -> bool {
 pub fn local_from_unix(utc: UnixTime, offset: UtcOffset) -> TzResult<CivilDateTime> {
     let total = i128::from(utc.seconds())
         + i128::from(offset.seconds())
-        + i128::from(RD_OF_UNIX_EPOCH) * 86_400;
-    let day = i64::try_from(total.div_euclid(86_400)).map_err(|_| TzError::Overflow)?;
-    let remainder = total.rem_euclid(86_400);
+        + i128::from(RD_OF_UNIX_EPOCH) * i128::from(SECONDS_PER_DAY);
+    let (day, remainder) = Duration::from_secs(total).days_and_seconds();
+    let day = i64::try_from(day).map_err(|_| TzError::Overflow)?;
     let time = CivilTime::from_midnight_offset(Duration::from_attos(
-        remainder * i128::from(ATTOS_PER_SEC) + i128::from(utc.subsec_attos()),
+        i128::from(remainder) * i128::from(ATTOS_PER_SEC) + i128::from(utc.subsec_attos()),
     ))?;
     Ok(CivilDateTime::new(Rd(day), time))
 }
@@ -347,7 +348,7 @@ pub fn local_from_unix(utc: UnixTime, offset: UtcOffset) -> TzResult<CivilDateTi
 /// POSIX timestamp.
 pub fn unix_from_local(local: CivilDateTime, offset: UtcOffset) -> TzResult<UnixTime> {
     let seconds = nominal_seconds(local)
-        - i128::from(RD_OF_UNIX_EPOCH) * 86_400
+        - i128::from(RD_OF_UNIX_EPOCH) * i128::from(SECONDS_PER_DAY)
         - i128::from(offset.seconds());
     let seconds = i64::try_from(seconds).map_err(|_| TzError::Overflow)?;
     UnixTime::new(seconds, local.time.subsec_attos()).map_err(TzError::from)
@@ -356,7 +357,8 @@ pub fn unix_from_local(local: CivilDateTime, offset: UtcOffset) -> TzResult<Unix
 /// Seconds from the Rata Die epoch to a local reading, every day counted as
 /// 86 400 seconds.
 fn nominal_seconds(local: CivilDateTime) -> i128 {
-    i128::from(local.day.get()) * 86_400 + local.time.since_midnight().whole_seconds()
+    i128::from(local.day.get()) * i128::from(SECONDS_PER_DAY)
+        + local.time.since_midnight().whole_seconds()
 }
 
 /// Like [`unix_from_local`], but saturating instead of failing.
@@ -367,7 +369,7 @@ fn nominal_seconds(local: CivilDateTime) -> i128 {
 /// this to matter are billions of years away.
 pub(crate) fn unix_from_local_saturating(local: CivilDateTime, offset: UtcOffset) -> UnixTime {
     let seconds = nominal_seconds(local)
-        - i128::from(RD_OF_UNIX_EPOCH) * 86_400
+        - i128::from(RD_OF_UNIX_EPOCH) * i128::from(SECONDS_PER_DAY)
         - i128::from(offset.seconds());
     let clamped = seconds.clamp(i128::from(i64::MIN), i128::from(i64::MAX)) as i64;
     UnixTime::new(clamped, local.time.subsec_attos()).unwrap_or(UnixTime::from_seconds(clamped))
@@ -380,7 +382,7 @@ pub(crate) fn unix_from_local_saturating(local: CivilDateTime, offset: UtcOffset
 /// around any transition, which is true of every zone in the IANA database:
 /// the shortest-lived offset on record, Lord Howe Island's 1981 experiment
 /// aside, is measured in months.
-const PROBE_RADIUS: i64 = 2 * 86_400;
+const PROBE_RADIUS: i64 = 2 * SECONDS_PER_DAY;
 
 /// Step used when scanning for the exact instant of a transition.
 const SCAN_STEP: i64 = 3_600;
@@ -402,7 +404,7 @@ where
     let mut offsets = [UtcOffset::UTC; 5];
     let mut offset_count = 0usize;
     for step in -2i64..=2 {
-        let probe = nominal.saturating_add(step.saturating_mul(86_400));
+        let probe = nominal.saturating_add(step.saturating_mul(SECONDS_PER_DAY));
         let offset = offset_at(UnixTime::from_seconds(probe));
         if !offsets[..offset_count].contains(&offset) {
             offsets[offset_count] = offset;

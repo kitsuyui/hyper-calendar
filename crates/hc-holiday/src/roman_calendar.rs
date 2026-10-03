@@ -27,15 +27,17 @@
 //! feasts of the Lord that the calendar prints with a rule, the Most Holy
 //! Trinity or the Holy Family, are.
 //!
-//! # What this is not
+//! # What is not carried
 //!
 //! It is the calendar, not the *ordo*. Two celebrations fall on one day —
 //! a memorial on a Sunday, a solemnity in Holy Week — and the Table of
-//! Liturgical Days decides which is kept and whether the other moves;
-//! that precedence is not applied here, so a day can list a memorial the
-//! Church does not celebrate that year. Nor are the proper calendars of a
-//! country, diocese or religious order, nor the transfers a conference of
-//! bishops may make: England and Wales keep the Body and Blood of Christ
+//! Liturgical Days decides which is kept and whether the other moves.
+//! **Not carried: that precedence, for this calendar.** It is not yet
+//! applied here, so a day can list a memorial the Church does not celebrate
+//! that year; the ordo of the calendar of 1960 is
+//! [`crate::roman_calendar_1960::ordo`]. Nor are the proper calendars of a
+//! country, diocese or religious order carried, nor the transfers a
+//! conference of bishops may make: England and Wales keep the Body and Blood of Christ
 //! on the Sunday after the Most Holy Trinity, and this calendar on the
 //! Thursday, as the General Roman Calendar has it.
 //! The Lectionary's Sunday and weekday cycles, which an ordo also prints,

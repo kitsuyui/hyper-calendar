@@ -1,6 +1,8 @@
 //! Cultural attributions to calendar units — birthstones, birth flowers,
 //! moon names, traditional month names, weekday associations.
 //!
+//! The system is written up in `docs/systems/attribute-lists.md`.
+//!
 //! **This crate reports what traditions claim. It asserts none of them.**
 //! Nothing here is a fact about a month; everything here is a fact about
 //! somebody's list, and the list is always named.

@@ -25,7 +25,8 @@ value carries how inexact it is.
 
 ## `hc-uncertainty`
 
-Each row names a type and the question it answers.
+Each row names a type and the question it answers. The system is written up in
+[systems/uncertainty.md](systems/uncertainty.md).
 
 | Type | Answers |
 | --- | --- |
@@ -67,7 +68,9 @@ exponential years — are listed in the
 ## `hc-deep-time`
 
 Above and below the range where seconds are a comfortable unit, the useful
-representation is a magnitude with an exponent, not a count.
+representation is a magnitude with an exponent, not a count. The geological
+time scale, whose authority is the International Commission on Stratigraphy,
+is written up in [systems/geologic-time-scale.md](systems/geologic-time-scale.md).
 
 - `DeepTime` — a value in seconds as an `Uncertain` plus a count of
   significant figures, with convenience constructors for the units the

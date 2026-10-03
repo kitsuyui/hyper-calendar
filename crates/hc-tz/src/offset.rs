@@ -5,6 +5,7 @@ use core::ops::Neg;
 use core::str::FromStr;
 
 use hc_calendar::{CivilDateTime, CivilTime, Rd};
+use hc_core::duration::SECONDS_PER_DAY;
 use hc_core::{ATTOS_PER_SEC, Duration};
 
 use crate::error::{TzError, TzResult};
@@ -253,7 +254,9 @@ impl UtcOffset {
 fn shift(value: CivilDateTime, seconds: i64) -> TzResult<CivilDateTime> {
     let within_day = value.time.since_midnight().whole_seconds();
     let attos = value.time.subsec_attos();
-    let total = i128::from(value.day.get()) * 86_400 + within_day + i128::from(seconds);
+    let total = i128::from(value.day.get()) * i128::from(SECONDS_PER_DAY)
+        + within_day
+        + i128::from(seconds);
     let (day, remainder) = Duration::from_secs(total).days_and_seconds();
     let day = i64::try_from(day).map_err(|_| TzError::Overflow)?;
     let time = CivilTime::from_midnight_offset(Duration::from_attos(

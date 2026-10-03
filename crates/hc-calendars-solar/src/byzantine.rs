@@ -16,12 +16,13 @@
 //! The indiction, the fifteen-year tax cycle that Byzantine documents cite
 //! more reliably than the year, is carried as an extra field.
 //!
-//! # What this deliberately does not do
+//! # What it does not carry
 //!
-//! The Alexandrian and Antiochene world eras put creation in different
-//! years, and several Byzantine sources start the year on 1 March or at
-//! Easter. Only the 1 September / 5509 BC combination — the "Byzantine era"
-//! proper — is implemented.
+//! **Not carried: the Alexandrian and Antiochene world eras, and the year
+//! starts of 1 March and Easter.** The Alexandrian and Antiochene world eras
+//! put creation in different years, and several Byzantine sources start the
+//! year on 1 March or at Easter. Only the 1 September / 5509 BC combination
+//! — the "Byzantine era" proper — is implemented; the rest is not yet done.
 //!
 //! Sources: Wikipedia, "Byzantine calendar", retrieved 2026-09-26
 //! (`wikipedia-byzantine-calendar`): the era from 1 September 5509 BC,

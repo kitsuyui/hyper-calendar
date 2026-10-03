@@ -1,5 +1,7 @@
 //! The geological time scale, as data.
 //!
+//! The system is written up in `docs/systems/geologic-time-scale.md`.
+//!
 //! Boundary ages come from the **International Chronostratigraphic Chart**
 //! published by the International Commission on Stratigraphy, in two named
 //! editions:
@@ -69,7 +71,7 @@
 //! | [`EPOCHS`] | 38 | 0 – 538.8 Ma |
 //! | [`AGES`] | 101 | 0 – 538.8 Ma, except the Pridoli, which has no stages |
 //!
-//! Two deliberate simplifications. The Mississippian and Pennsylvanian are
+//! Two simplifications of the chart. The Mississippian and Pennsylvanian are
 //! formally *subsystems* of the Carboniferous, a rank this five-level model
 //! does not have; their series appear here as epochs named "Lower
 //! Mississippian" and so on with the Carboniferous as their parent. And the

@@ -1,5 +1,7 @@
 //! Time that is not exactly known.
 //!
+//! The system is written up in `docs/systems/uncertainty.md`.
+//!
 //! Almost nothing outside a laboratory has an exact timestamp. A charter is
 //! dated "in the third year of the king"; a radiocarbon sample comes back as
 //! `3200 ± 50 BP`; a catalogue says `1667 or 1668`; the universe is 13.8
@@ -24,9 +26,9 @@
 //! * [`edtf`] — ISO 8601-2 Extended Date/Time Format levels 0 to 2, the
 //!   standard vocabulary libraries and museums use for exactly this.
 //!
-//! # What this crate deliberately does not do
+//! # What this crate does not carry
 //!
-//! It does not know about calendars. Everything here is expressed against
+//! It carries no calendar. Everything here is expressed against
 //! [`hc_core::Instant`] and [`hc_core::Duration`]; turning "the third century
 //! BC" into a pair of instants is the job of a calendar crate. The one
 //! exception is EDTF, which needs proleptic Gregorian day arithmetic to
@@ -36,9 +38,10 @@
 //! all that brings `hc-calendar`: a crate that measures deep time, orbits
 //! or relativity with these types can leave both out.
 //!
-//! It also does not do Monte Carlo. [`Uncertain`] is a linear approximation
-//! and says so; when the relative uncertainty is large enough for that to
-//! matter, the honest answer is a distribution, not a wider `±`.
+//! **Not carried: Monte Carlo, or any other distribution.** [`Uncertain`] is
+//! a linear approximation and says so; when the relative uncertainty is large
+//! enough for that to matter, the answer is a distribution, not a wider `±`,
+//! and a distribution is not yet done.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![forbid(unsafe_code)]

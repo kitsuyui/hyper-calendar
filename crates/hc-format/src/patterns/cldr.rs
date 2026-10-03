@@ -55,15 +55,15 @@
 //! them the fields take their fallbacks. `docs/systems/zone-names.md` in
 //! the repository works the rules through.
 //!
-//! # Deliberate gaps
+//! # Gaps
 //!
 //! * `z`, `v` and `V` are not resolved when parsing. Resolving them would
 //!   mean mapping an abbreviation back to a zone, and abbreviations are not
 //!   unique: `CST` is three different zones. Parsing consumes such a field
 //!   and leaves the zone unstated unless RFC 5322 assigns the name an
 //!   offset.
-//! * `O` and `Z` read an offset in Latin digits only, though `O` writes the
-//!   locale's.
+//! * Not carried: `O` and `Z` read an offset in Latin digits only, though `O`
+//!   writes the locale's. Not yet done.
 //! * `B` fixes no hour when parsing: a period that lies wholly before or
 //!   after noon gives am or pm, and one that spans midnight gives neither.
 

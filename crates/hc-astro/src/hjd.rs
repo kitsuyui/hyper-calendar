@@ -29,8 +29,8 @@
 //! The HJD itself "is only accurate to 8 s because of the acceleration of
 //! the Sun due primarily to Jupiter and Saturn" (§2.1): the Sun is not an
 //! inertial origin, and the barycentric date, BJD_TDB, is the one the IAU
-//! recommends. The workspace does not compute the barycentre, so BJD_TDB is
-//! not here.
+//! recommends. **Not carried: BJD_TDB.** The workspace has no barycentre
+//! computation yet.
 //!
 //! As a computation of the HJD, this one takes the Earth from VSOP87
 //! ([`crate::vsop87`]) on the ecliptic of date, turns its longitude back to

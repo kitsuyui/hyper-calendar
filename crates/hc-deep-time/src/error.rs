@@ -31,7 +31,7 @@ pub enum DeepTimeError {
     ///
     /// Radiocarbon years are not calendar years, and turning one into the
     /// other needs a calibration curve (IntCal20 and its marine and southern
-    /// hemisphere companions), which this crate deliberately does not carry.
+    /// hemisphere companions), which this crate does not carry yet.
     /// See [`crate::archaeology`].
     CalibrationRequired,
     /// The operation is mathematically undefined for these inputs.

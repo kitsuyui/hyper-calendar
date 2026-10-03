@@ -26,6 +26,7 @@ use core::fmt;
 
 use hc_calendar::{CalendarError, CivilDateTime, CivilTime, Rd, gregorian};
 use hc_core::ccsds::{CcsFormat, CcsVariation, CdsTime, CucTime, Octets, Preamble};
+use hc_core::duration::{SECONDS_PER_DAY, days_and_seconds};
 use hc_core::unix::UtcInstant;
 use hc_core::{TimeError, leap};
 
@@ -56,7 +57,7 @@ pub(crate) fn checked_utc_instant(reading: CivilDateTime) -> ValueResult<UtcInst
         return Err(TimeError::OutOfRange.into());
     }
     let seconds = unix_day
-        .checked_mul(86_400)
+        .checked_mul(SECONDS_PER_DAY)
         .and_then(|start| start.checked_add(time.since_midnight().whole_seconds() as i64))
         .ok_or(TimeError::Overflow)?;
     Ok(UtcInstant {
@@ -74,8 +75,8 @@ fn reading_of(utc: UtcInstant) -> ValueResult<CivilDateTime> {
     } else {
         (utc.unix_seconds, false)
     };
-    let day = Rd::from_unix_days(seconds.div_euclid(86_400));
-    let second_of_day = seconds.rem_euclid(86_400);
+    let (unix_day, second_of_day) = days_and_seconds(seconds);
+    let day = Rd::from_unix_days(unix_day);
     let time = if leap_second {
         if second_of_day != 86_399 {
             return Err(TimeError::OutOfRange.into());
@@ -924,7 +925,7 @@ mod tests {
         let (first, last) = (unix_day(1, 1, 1), unix_day(9999, 12, 31));
         let leap_days: alloc::vec::Vec<i64> = hc_core::leap::steps()
             .filter(|(_, delta)| *delta > 0)
-            .map(|(at, _)| at.div_euclid(86_400) - 1)
+            .map(|(at, _)| days_and_seconds(at).0 - 1)
             .collect();
         let debug = cfg!(debug_assertions);
         let mut days: alloc::vec::Vec<i64> = (first..=last)

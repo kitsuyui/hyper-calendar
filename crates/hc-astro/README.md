@@ -177,28 +177,33 @@ For a solar term that falls within a minute of local midnight, the *day*
 this crate assigns it is still decided by ΔT and the truncation rather than
 by the sky, and the calendars built on top of this say so where it matters.
 
-## What this crate deliberately does not do
+## What this crate does not carry
 
-* **No ephemeris.** No planets, no eclipse circumstances, no VSOP87 beyond
-  the Earth's own series, no ELP-2000 beyond Meeus's sixty-term truncation.
-* **No atmosphere.** Refraction at the horizon is a convention of the
-  named horizon, 34′ in all three carried, full stop. Real refraction
-  depends on temperature and pressure and can move an observed sunrise by
-  more than a minute — a larger error than any of the astronomy above.
-  Height above sea level is a convention too: the default `geometric-dip`
+* **Not carried: an ephemeris.** The planets other than the Earth and, with
+  the `jupiter` feature, Jupiter; eclipse circumstances; VSOP87 beyond the
+  Earth's series and Jupiter's `VSOP87B.jup`; ELP-2000 beyond Meeus's
+  sixty-term truncation. No series file for another planet was read
+  (`docs/systems/jupiter-ephemeris.md` records which), and no eclipse model
+  has been written yet.
+* **Not carried: the atmosphere.** Refraction at the horizon is a
+  convention of the named horizon, 34′ in all three carried. A refraction
+  that follows temperature and pressure is not yet done, and the weather
+  can move an observed sunrise by more than a minute — a larger error than
+  any of the astronomy above. Height above sea level is a convention too: the default `geometric-dip`
   horizon lowers the horizon by the geometric dip, `usno` ignores the
   height as the USNO does, and `calendrical-calculations` adds the book's
-  19″·√h. Terrain is not modelled at all. The conventions, and the ones not
+  19″·√h. Terrain is not carried: the USNO and the NAOJ do not model it
+  either. The conventions, and the ones not
   carried (the NAOJ's 35′8″, Sôma's 2.09′·√h), are in
   [`docs/systems/rise-and-set.md`](../../docs/systems/rise-and-set.md).
-* **No topocentric positions.** Rise and set use geocentric coordinates,
-  with the Moon's parallax folded into the horizon altitude — Meeus's
+* **Not carried: topocentric positions.** Rise and set use geocentric
+  coordinates, with the Moon's parallax folded into the horizon altitude — Meeus's
   `h₀ = 0.7275π − 34′`, or under `calendrical-calculations` the book's
-  parallax at the Moon's altitude — rather than applied to the position.
-* **No leap seconds.** A day here is exactly 86 400 seconds; ΔT carries the
-  whole of the Earth's rotational irregularity. Leap seconds live in
-  `hc-core`.
-* **No invented answers at the poles.** `sunrise`, `sunset`, `dawn`, `dusk`,
+  parallax at the Moon's altitude — rather than applied to the position. Applying it to the position is not
+  yet done.
+* **Leap seconds are `hc-core`'s.** A day here is exactly 86 400 seconds;
+  ΔT carries the whole of the Earth's rotational irregularity.
+* **No invented answers at the poles** (policy §4). `sunrise`, `sunset`, `dawn`, `dusk`,
   `moonrise` and `moonset` return `Option`, and the `None` is the point: a
   polar day and a polar night are real, and so is a British midsummer with no
   astronomical darkness.

@@ -1,5 +1,7 @@
 //! CLDR cardinal plural rules.
 //!
+//! The system is written up in `docs/systems/plural-rules.md`.
+//!
 //! The rule text is that of Unicode CLDR 48, `common/supplemental/
 //! plurals.xml` (`cldr48-supplemental`, tag `release-48`, retrieved
 //! 2026-09-26); the operands and rule syntax are those of UTS #35 version
@@ -381,11 +383,12 @@ impl PluralRules {
 /// `i = 1 and v = 0` group. Adding a language is one row here.
 ///
 /// Every locale with names in [`crate::data::LOCALES`] has a row here when
-/// CLDR 48 lists its language in `plurals.xml`. Balinese, Coptic,
-/// Mandaic, Sanskrit, Yucatec Maya, Zapotec and Standard Moroccan Tamazight
-/// are not listed there, so they take root's rule, which is also `other`
-/// for everything. `pt-PT` is the one regional row: CLDR 48 gives Portugal
-/// the Italian rule, not Brazil's `i = 0..1`. `tl` shares Filipino's row,
+/// CLDR 48 lists its language in `plurals.xml`. Tunisian Arabic, Libyan
+/// Arabic, Balinese, Coptic, Mandaic, Mixtec, Yucatec Maya, Rif, Sanskrit,
+/// Zapotec and Standard Moroccan Tamazight are not listed there, so they
+/// take root's rule, which is also `other` for everything. `pt-PT` is the
+/// one regional row: CLDR 48 gives Portugal the Italian rule, not Brazil's
+/// `i = 0..1`. `tl` shares Filipino's row,
 /// as `plurals.xml` lists the two together, so that a Tagalog tag chooses
 /// its forms by the rule of the language CLDR carries it as.
 pub static RULES: &[(&str, RuleFn)] = &[

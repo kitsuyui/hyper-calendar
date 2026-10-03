@@ -21,7 +21,7 @@
 //!    sol 0; Pathfinder, Spirit and Opportunity start at sol 1.
 //! 4. **Whether a convention was published at all.** Zhurong's was not.
 //!
-//! # What this module does not model
+//! # What this module does not carry
 //!
 //! Spirit and Opportunity did not run plain local mean solar time. They ran
 //! "hybrid local solar time" under the MER Continuous Time Algorithm (Roncoli
@@ -29,7 +29,7 @@
 //! Spirit and 37 for Opportunity — chosen so that mission time tracked true
 //! solar time to within 30 s around sol 45. This module reproduces the MER
 //! **sol numbers**, which the offset does not change, but its [`MissionClock`]
-//! time of sol for those two rovers is LMST, not HLST.
+//! time of sol for those two rovers is LMST, not HLST; HLST is not yet carried.
 //!
 //! Sources: NASA GISS, *Mars24 Sunclock — Lander Mission Times* and
 //! *Technical Notes* (`mars24-notes`); landing coordinates from the Mars24

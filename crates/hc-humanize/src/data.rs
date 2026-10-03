@@ -51,7 +51,8 @@
 //! * Weekday phrases avoid agreement wherever a language inflects the
 //!   demonstrative for gender. Russian says *понедельник на прошлой неделе*
 //!   rather than *в прошлый понедельник* because the latter is wrong for
-//!   *среда*, and Portuguese and Italian do the same.
+//!   *среда*, and Portuguese and Italian do the same. Gendered agreement
+//!   is not yet carried.
 
 mod cldr48;
 

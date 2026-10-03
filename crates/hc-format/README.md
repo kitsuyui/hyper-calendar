@@ -65,7 +65,7 @@ renders into its own buffer. `String`-returning conveniences sit behind the
 | Ordinal date `2026-264` | yes | yes | |
 | Week date `2026-W38-1` | yes | yes | |
 | Week `2026-W38` | yes | yes | |
-| Expanded year `+002026`, `-000500` | yes | **no** | See "Deliberately not supported". |
+| Expanded year `+002026`, `-000500` | yes | **no** | See "What it refuses, and what it does not carry". |
 | Time `14:30:05`, `14:30`, `14` | yes | yes | |
 | Fraction on any component, `14.5`, `14:30,5`, `14:30:05.123456789` | yes | yes | Both the `.` and the `,` decimal mark. |
 | `24:00` end of day | yes | yes | Kept distinct from `00:00` of the next day. |
@@ -84,7 +84,10 @@ zone; `Strictness::RFC_3339` is the internet profile. Every field of
 `Strictness` is an independent permission, because the axes really are
 independent.
 
-## Deliberately not supported
+## What it refuses, and what it does not carry
+
+Most of these are refusals rather than guesses (policy §4); the others say
+what they are.
 
 * **Truncated representations** (`--09-21`, `---21`, `-26-09-21`). ISO
   8601:2000 had them; ISO 8601:2004 removed them and ISO 8601-1:2019 does not
@@ -100,8 +103,8 @@ independent.
   rule is ambiguous whenever the start is itself of reduced accuracy, and
   getting it wrong produces an interval of the wrong length without any
   error. Both ends must be complete.
-* **`--` as an interval separator.** ISO 8601 permits it where `/` cannot be
-  used; `/` is always available here.
+* **Not carried: `--` as an interval separator.** ISO 8601 permits it where
+  `/` cannot be used. Not yet done; `/` is always available here.
 * **Leap seconds outside `23:59`.** A positive leap second is inserted at the
   end of a UTC day, so `23:59:60Z` is real; the same physical second read in
   Tokyo is `08:59:60`, which `hc_calendar::CivilTime` cannot hold. Rather
@@ -112,7 +115,8 @@ independent.
 * **Carry limits in the alternative duration form.** `P0003-99-04` parses:
   the shape is checked, the magnitudes are not.
 * **Other calendars.** ISO 8601 is Gregorian. Hijri, Hebrew and the rest are
-  `hc-calendars-*`'s subject, and a pattern is not the place to reach them.
+  `hc-calendars-*`'s subject, not this crate's, and a pattern is not the
+  place to reach them.
 
 ## RFC 3339
 

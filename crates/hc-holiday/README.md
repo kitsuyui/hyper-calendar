@@ -444,8 +444,6 @@ ash, the quarantine, a typhoon, a technical failure and floods).
   `sources_checked` date and names its statute or gazette in a comment.
 * **It will not guess outside the span it evaluated.** Business-day arithmetic
   that walks off the end of a `HolidayCalendar` returns `None`.
-* **It does not model evenings.** A Jewish holiday begins at sunset on the
-  preceding day and a Hijri one likewise; this crate names days, not evenings.
 
 ## The years it can answer
 
@@ -684,6 +682,10 @@ texts before it were not read: Ontario's Remembrance Day is a gap before
   states' days are undated snapshots and nothing was carried from them
   ([regional-weekends.md](../../docs/systems/regional-weekends.md)). The
   states' weekends are carried: see Business days.
+* **The evening a holiday begins on.** A Jewish holiday begins at sunset on
+  the preceding day and a Hijri one likewise; the entries name the day. The
+  boundary of a day is `hc_calendar::daystart`'s and the sunset `hc-astro`'s,
+  and no Jewish or Hijri entry reads either yet. Not yet done.
 
 ## Business days
 

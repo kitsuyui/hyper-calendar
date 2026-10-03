@@ -14,9 +14,9 @@
 //! The epoch used here is the era of Nabonassar, 26 February 747 BC in the
 //! proleptic Julian calendar ([`EPOCH`]), which is the era Ptolemy's tables
 //! count from and therefore the one that makes his observations directly
-//! usable. The Egyptians themselves numbered years by the reigning king, and
-//! this crate does not attempt to model regnal years; a caller who needs
-//! them should map a regnal year to a Nabonassar year and convert.
+//! usable. The Egyptians themselves numbered years by the reigning king;
+//! regnal years are not carried (not yet done), so a caller who needs them
+//! should map a regnal year to a Nabonassar year and convert.
 //!
 //! Sources for the epoch: Reingold and Dershowitz's `egyptian-epoch`, "JD
 //! 1448638 = February 26, 747 BCE (Julian)" (`reingold2018code`); and

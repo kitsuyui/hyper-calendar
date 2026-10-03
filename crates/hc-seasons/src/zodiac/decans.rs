@@ -19,10 +19,12 @@
 //!
 //! Two other things share the name and are not these. The Hindu *drekkāṇa*,
 //! the same thirds of a sign, takes the lords of the sign and of the fifth
-//! and ninth signs from it (§451 of the same book), and is not carried.
+//! and ninth signs from it (§451 of the same book), and is [`super::drekkana`]'s.
 //! Ptolemy's "face" (*Tetrabiblos* I.23) is a planet's aspect to the Sun or
 //! Moon, not a 10° part. The Egyptian decans of the star clocks are groups
-//! of stars and are out of scope.
+//! of stars whose identifications "are not known" (Symons, as English
+//! Wikipedia's "Decan" quotes him), so the hours they mark cannot be
+//! computed and they are not carried.
 //!
 //! A face is a coordinate on the tropical ecliptic, so the Sun's face at an
 //! instant is its apparent longitude divided by ten.

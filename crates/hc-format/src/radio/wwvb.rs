@@ -44,6 +44,7 @@
 
 use hc_calendar::{CalendarResult, CivilDateTime, Rd, Weekday, gregorian};
 use hc_core::UnixTime;
+use hc_core::duration::{SECONDS_PER_DAY, days_and_seconds};
 use hc_tz::TimeZone;
 
 use super::{
@@ -113,9 +114,13 @@ impl DstState {
     /// states. America/Denver is the station's, near Fort Collins.
     #[must_use]
     pub fn of_day(zone: &dyn TimeZone, minute: UnixTime) -> Self {
-        let start = minute.seconds().div_euclid(86_400).saturating_mul(86_400);
+        let start = days_and_seconds(minute.seconds())
+            .0
+            .saturating_mul(SECONDS_PER_DAY);
         Self::from_bits(
-            zone.is_dst_at(UnixTime::from_seconds(start.saturating_add(86_400))),
+            zone.is_dst_at(UnixTime::from_seconds(
+                start.saturating_add(SECONDS_PER_DAY),
+            )),
             zone.is_dst_at(UnixTime::from_seconds(start)),
         )
     }
@@ -559,11 +564,13 @@ impl DstNext {
     #[must_use]
     pub fn of_day(zone: &dyn TimeZone, minute: UnixTime) -> Self {
         /// A year and a day: past it, a zone has scheduled no change.
-        const HORIZON: i64 = 367 * 86_400;
+        const HORIZON: i64 = 367 * SECONDS_PER_DAY;
         /// More changes than this in a year are not summer time.
         const MOST_CHANGES: usize = 64;
-        let start = minute.seconds().div_euclid(86_400).saturating_mul(86_400);
-        let end = start.saturating_add(86_400);
+        let start = days_and_seconds(minute.seconds())
+            .0
+            .saturating_mul(SECONDS_PER_DAY);
+        let end = start.saturating_add(SECONDS_PER_DAY);
         let dst_on = zone.is_dst_at(UnixTime::from_seconds(end));
         let mut at = UnixTime::from_seconds(end);
         let mut change = None;
@@ -592,8 +599,8 @@ impl DstNext {
     fn schedule(zone: &dyn TimeZone, change: UnixTime, into_dst: bool) -> Option<Self> {
         let before = zone.offset_at(UnixTime::from_seconds(change.seconds().checked_sub(1)?));
         let local = change.seconds().checked_add(i64::from(before.seconds()))?;
-        let seconds_of_day = local.rem_euclid(86_400);
-        let day = Rd::from_unix_days(local.div_euclid(86_400));
+        let (unix_day, seconds_of_day) = days_and_seconds(local);
+        let day = Rd::from_unix_days(unix_day);
         if seconds_of_day % 3_600 != 0 || Weekday::from_rd(day) != Weekday::Sunday {
             return None;
         }

@@ -1,6 +1,8 @@
 //! A data table of the major bodies of the solar system, and the three
 //! quantities a clock needs derived from it.
 //!
+//! The system is written up in `docs/systems/planetary-clocks.md`.
+//!
 //! # The data
 //!
 //! Every number is measured, not computed, and every row says where it came

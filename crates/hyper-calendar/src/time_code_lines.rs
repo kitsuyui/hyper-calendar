@@ -625,7 +625,7 @@ pub fn jjy_call_sign_decode_line(frame: &str, year: i64) -> Answer<String> {
         return Err(Refusal::Malformed);
     };
     let reading = frame.reading_in_year(year).map_err(frame_refusal)?;
-    let unix = reading.day.to_unix_days() * 86_400
+    let unix = reading.day.to_unix_days() * SECONDS_PER_DAY
         + i64::from(reading.time.hour()) * 3_600
         + i64::from(reading.time.minute()) * 60
         - 9 * 3_600;
