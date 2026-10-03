@@ -4,10 +4,14 @@ Backs `hc-format`'s `iso8601` module with its `iso8601::duration` and
 `iso8601::interval` submodules, its `rfc3339` and `rfc2822` modules,
 `parse::detect`, and the types they share (`Strictness`, `IsoDate`,
 `IsoTime`, `IsoDateTime`, `IsoDuration`, `Interval`, `RepeatingInterval`,
-`OffsetDateTime`, `ZoneInfo`). The WebAssembly and C export
-`hc_parse_iso_date` rests on `iso8601::parse_date`; `hc_format_iso_date` is
-written by the facade's `Date` display, not by `hc-format`. No calendar
-identifier is registered here. The calendars `iso8601`,
+`OffsetDateTime`, `ZoneInfo`). The WebAssembly and C exports of the
+`civil` layer, `hc_parse_iso_date` and `hc_format_iso_date`, rest on
+`iso8601::parse_date` and on the facade's `Date` display, which `hc-format`
+does not write; those of the `datetime` layer, `hc_parse_datetime` (six
+syntaxes), `hc_format_datetime` (eight), `hc_format_iso_date_as`,
+`hc_iso_date_parts`, `hc_iso_duration`, `hc_format_iso_duration`,
+`hc_iso_interval` and `hc_parse_pattern`, rest on `hc-format` through
+`hyper_calendar::datetime_lines`. No calendar identifier is registered here. The calendars `iso8601`,
 `iso8601-week` and `iso8601-ordinal` are `hc-calendars-solar`'s and are
 listed in [../calendars.md](../calendars.md). Python's `fromisoformat`
 profile is `hc_format::python`, explained in
@@ -357,9 +361,8 @@ the four-digit forms of RFC 3339 and RFC 5322 are limited to 0000 to 9999.
   and the example above (1,789,968,605 and 1,790,001,005) are the UTC
   timestamps Python gives for the same instants.
 
-**Departures found.** Each was found by running the code against the text
-read, and none has been fixed. No test asserts the behaviour the text asks
-for in any of them; `a_leap_second_anywhere_but_midnight_is_refused` asserts
+**Departures from the text.** Each is the behaviour of the code against the
+text read. No test asserts the behaviour the text asks for in any of them; `a_leap_second_anywhere_but_midnight_is_refused` asserts
 the present behaviour for a reading in UTC, where it is right.
 
 - **RFC 3339 reads week and ordinal dates.** `rfc3339::parse` of
@@ -481,5 +484,12 @@ The WebAssembly and C exports `hc_parse_iso_date` and `hc_format_iso_date`
 (`crates/hyper-calendar-wasm/src/civil.rs`,
 `crates/hyper-calendar-ffi/src/civil.rs`) read a date with
 `iso8601::parse_date` and refuse one of reduced accuracy: the parse gives
-the fixed day or an invalid-date status. They do not reach the rest of this
-document: durations, intervals, RFC 3339 and RFC 5322 have no export.
+the fixed day or an invalid-date status. The rest of this document is reached
+by the `datetime` layer (`crates/hyper-calendar/src/datetime_lines.rs`):
+`hc_parse_datetime` reads a date-time in ISO 8601, ISO 8601 in full, RFC 3339,
+RFC 5322, Python's profile or by detection into a reading, whose instant is
+absent when the text names no zone; `hc_format_datetime` writes an instant in
+eight syntaxes; `hc_iso_date_parts` reads dates of every form, including
+those of reduced accuracy; and `hc_iso_duration`, `hc_format_iso_duration` and
+`hc_iso_interval` read and write durations, intervals and repeating
+intervals.

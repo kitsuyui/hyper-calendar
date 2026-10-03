@@ -255,7 +255,9 @@ impl Ratio {
     ///
     /// [`UnitError::Inexact`] when the denominator does not divide 10¹⁸ —
     /// a flick, an NTSC frame, a third of a second. [`UnitError::Overflow`]
-    /// when the value is too large for `Duration`'s `i128` of seconds.
+    /// when the value is too large for `Duration`'s `i128` of seconds, and
+    /// also when the remainder times 10¹⁸ leaves `i128`, as it does for a
+    /// denominator of 10³⁰ with a large remainder, though the value is small.
     pub const fn to_duration(self) -> UnitResult<Duration> {
         let secs = self.num.div_euclid(self.den);
         let remainder = self.num.rem_euclid(self.den);
@@ -279,11 +281,13 @@ impl Ratio {
         }
     }
 
-    /// The nearest [`hc_core::Duration`], rounding half away from zero.
+    /// The nearest [`hc_core::Duration`], a tie rounding toward positive
+    /// infinity: +0.5 as is 1 as and −0.5 as is 0.
     ///
     /// # Errors
     ///
-    /// [`UnitError::Overflow`] when the value is too large for `Duration`.
+    /// [`UnitError::Overflow`] when the value is too large for `Duration`,
+    /// and when the remainder times 10¹⁸ leaves `i128`.
     pub const fn to_duration_rounded(self) -> UnitResult<Duration> {
         let secs = self.num.div_euclid(self.den);
         let remainder = self.num.rem_euclid(self.den);
@@ -320,8 +324,8 @@ impl Ratio {
     /// # Errors
     ///
     /// [`UnitError::Overflow`] when the attosecond count leaves `i128`,
-    /// which happens above about 1.7×10²⁰ seconds — five thousand times the
-    /// age of the universe.
+    /// which happens above about 1.7×10²⁰ seconds — about 390 times the age
+    /// of the universe.
     pub const fn from_duration(duration: Duration) -> UnitResult<Self> {
         let Some(whole) = duration.whole_seconds().checked_mul(ATTOS) else {
             return Err(UnitError::Overflow);
@@ -345,7 +349,7 @@ impl Ord for Ratio {
     ///
     /// The fallback is reachable in principle and not by any unit in this
     /// crate: the widest pair here is a quectosecond against a Julian
-    /// millennium, whose cross product is 3×10⁴¹ — which does overflow, so
+    /// millennium, whose cross product is 3.16×10⁴⁰ — which does overflow, so
     /// the fallback is exercised by the tests rather than merely asserted.
     fn cmp(&self, other: &Self) -> Ordering {
         match (

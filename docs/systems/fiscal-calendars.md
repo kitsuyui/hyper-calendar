@@ -9,7 +9,11 @@ exists already. What the crate does name is the country codes of
 `nrf-4-5-4`, `iso-8601-week-year` and `last-saturday-of-december-4-4-5`,
 and the five calendars a start may be dated in: `gregory`,
 `persian-arithmetic-33`, `ethiopic`, `buddhist` and `bikram-sambat`
-([policy.md](../policy.md) §5). There is no WebAssembly or C export.
+([policy.md](../policy.md) §5). The WebAssembly module and the C library
+export it in the `fiscal` layer: `hc_fiscal_profiles`, `hc_fiscal_year_on`,
+`hc_fiscal_year_span`, `hc_week_year_systems` and `hc_week_year_on`, whose
+lines `hyper_calendar::fiscal_lines` writes once for both and whose columns
+the boundary READMEs give.
 
 ## What it is
 
@@ -189,6 +193,23 @@ year), `iso-8601-week-year` (Sunday nearest 31 December, end year, no
 periods) and `last-saturday-of-december-4-4-5` (last Saturday of December,
 4-4-5, end year).
 
+**The boundary.** `hyper_calendar::fiscal_lines` writes one line per year
+system for `hc_fiscal_profiles` (18 cells: the country, the table, the kind,
+the names, the authority, the start in its calendar, the label convention,
+the validity bounds, the note, the date the sources were checked and the
+sources), for `hc_fiscal_year_on` (18 cells) and for `hc_fiscal_year_span`
+(9 cells); one line per week-year system for `hc_week_year_systems` (10 cells)
+and `hc_week_year_on` (14). A year line carries the label convention and the
+start's calendar as cells, never defaulted, since "FY2024" begins in 2024 in
+Japan and on 1 October 2023 in the United States. Its status is `in-force`,
+`outside-validity`, where the system was not in force in that year, or
+`outside-calendar-range`, where the start's calendar does not reach the day,
+and the cells after the status are then empty. A country or kind not carried
+is `HC_ERR_UNKNOWN`; a country with no system of the kind asked is
+`HC_ERR_NO_DATA`. Nepal, whose year starts on 1 Shrawan of the Bikram Sambat,
+is present only in a build that has the `calendars` layer too. The columns are
+in the boundary READMEs.
+
 **Holes.** The crate leaves a day in no year where history did. The 92 days
 of 1 July to 30 September 1976, the transition quarter, are in no United
 States fiscal year; 1 July 1995 to 31 December 1996 is in no Swedish budget
@@ -223,8 +244,6 @@ for the school and university years of every country but the 8.
   (primary sources not read; see that document's rows).
 - Which quarter of an Ethiopic year Pagumen is in (no source read says),
   so `PeriodsNotDefined`.
-- Any WebAssembly or C export: `hyper-calendar-wasm`'s README says no line
-  format has been designed for `hc-fiscal` (the README's own words).
 
 ## Accuracy
 
@@ -304,24 +323,19 @@ Saturday and 1 December for the nearest, is a test
 [wikipedia-iso-week-date], and its examples 2021-01-01 as 2020-W53-5 and
 2019-12-30 as 2020-W01-1 are tests.
 
-**Disagreements found.**
+**Where the sources differ from each other or from the rule.**
 
-- `countries.rs` (line 899) says Tøndering "names 1404 and 1437 as its only
-  two disagreements between AP 1244 and 1531" for the 2 820-year cycle
-  against the astronomical calendar. The page does say so
-  [tondering-persian-calendar]. The crate's equinox calendar disagrees with
-  the cycle in four years of that span (1404, 1437, 1470 and 1503). The page
-  does not say which astronomical rule it used.
-- The crate test `the_nrf_53_week_years_are_the_ones_the_federation_names`
-  says the NRF names 2028. The page read names 2006, 2012, 2017 and 2023
-  only; it links calendars to 2028 that were not opened (they are PDF). 2028
-  is the rule's answer.
-- `crates/hc-fiscal/src/retail.rs` (line 13) says `docs/observances.md`
-  lists "4-4-5, 13-period retail"; that file has no such text. The crate
-  README no longer says it.
-- `crates/hc-fiscal/README.md` (line 199) counts 134 unit tests; 142 pass.
+- Tøndering's page names 1404 and 1437 as the only two disagreements between
+  AP 1244 and 1531 of the 2 820-year cycle with an astronomical calendar
+  [tondering-persian-calendar]; the page does not say which astronomical rule
+  it used. The crate's equinox calendar disagrees with the cycle in four years
+  of that span (1404, 1437, 1470 and 1503), and the comment of the Iran entry
+  says so.
+- The NRF page names 2006, 2012, 2017 and 2023 as 53-week years; it links
+  calendars to 2028 that were not opened (they are PDF). 2028 is the rule's
+  answer, and the test says so.
 - The NRF page does not state "the Saturday nearest 31 January". It states
-  the count rule, which the crate's rule reproduces (above).
+  the count rule, which the crate's nearest-Saturday rule reproduces (above).
 
 ## Sources
 
@@ -378,8 +392,8 @@ Manual cited for the last-Saturday-of-December year.
 
 `crates/hc-fiscal/src/year_system.rs` (the core type, `StartCalendar`,
 `YearStart`, `LabelConvention`, `Authority`), `quarters.rs`, `countries.rs`,
-`academic.rs` and `retail.rs`. The crate has 142 unit tests and 1 doc test,
-all passing on 2026-10-03. The tests that anchor it:
+`academic.rs` and `retail.rs`. The crate's tests pass (2026-10-03). The
+tests that anchor it:
 `japan_and_the_united_states_disagree_by_a_year_on_the_same_day`,
 `the_two_years_written_fy2024_share_only_six_months`,
 `the_transition_quarter_of_1976_belongs_to_no_fiscal_year`,

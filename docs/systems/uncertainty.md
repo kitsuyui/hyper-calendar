@@ -7,10 +7,11 @@ Backs the crate `hc-uncertainty` and its five modules: `sig_figs`
 `EdtfSetMember`, `EdtfQualifier`, `EdtfPrecision`). It is reached as
 `hyper_calendar::hc_uncertainty` under the facade's `uncertainty` feature,
 and `FuzzyInstant` and `Uncertain` are in the facade's prelude. No calendar
-identifier is registered, and no WebAssembly or C export calls `Significant`
-or the EDTF parser directly. The crate reaches those boundaries through
-`hc-deep-time`, `hc-orbital` and `hc-relativity`, whose `deep-time`,
-`orbital` and `relativity` bundles carry it.
+identifier is registered. The WebAssembly module and the C library export it
+in the `uncertainty` layer: `hc_edtf_parse`, `hc_edtf_relations`,
+`hc_significant`, `hc_significant_op`, `hc_uncertain`, `hc_uncertain_op` and
+`hc_interval`. The `deep-time`, `orbital` and `relativity` layers carry the
+crate for the answers that have an error bar.
 
 ## What it is
 
@@ -316,10 +317,8 @@ Not carried, with the reason for each:
 
 ## Accuracy
 
-The 177 unit tests and 4 documentation tests of the crate pass
-(`cargo test -p hc-uncertainty`, 2026-10-03: 40 in `quantity`, 38 in
-`edtf`, 36 in `fuzzy`, 32 in `interval`, 29 in `sig_figs`, 2 in `error`).
-The values in the worked example were also printed by a probe linked to the
+The unit tests and the documentation tests of the crate pass
+(`cargo test -p hc-uncertainty`, 2026-10-03). The values in the worked example were also printed by a probe linked to the
 crate, which is where the figures not in a test come from.
 
 - **Rounding.** All of NIST's examples are reproduced: `6.974 951 5` to 3
@@ -366,47 +365,43 @@ crate, which is where the figures not in a test come from.
   displacement is below 40 seconds since 1961 and undefined before it. That
   statement was not re-measured here, and is irrelevant at one day.
 
-Disagreements between the code, its documentation and the sources, found on
-2026-10-03:
+**Where the crate's behaviour and the text read differ.** Each was checked
+on 2026-10-03 against the Library of Congress text [loc-edtf-2019] or the
+page named.
 
-1. **The EDTF level.** `edtf.rs` line 1 and `lib.rs` line 24 say "levels 0 to
-   2". The text requires all of Level 0, which includes the time of day
-   [loc-edtf-2019]. The crate parses a subset of each level.
-2. **What `2004-06~-11` means.** `edtf.rs` lines 31 to 33 and the README
-   describe it as "June is approximate but the year and day are not". By the
-   text, a mark to the right of a component applies to it and everything to
-   its left: the year and the month are approximate, the day is not
-   [loc-edtf-2019]. The form is rejected either way.
+1. **The EDTF level.** The text requires all of Level 0, which includes the
+   time of day, and the crate does not parse it, so it claims no level. It
+   parses a subset of each level.
+2. **What `2004-06~-11` means.** By the text, a mark to the right of a
+   component applies to it and everything to its left: the year and the
+   month are approximate, the day is not. The crate rejects the form.
 3. **`Y` with a short year.** `Y5` parses and prints as `Y5`; the text allows
-   the prefix "when (and only when) the year exceeds four digits"
-   [loc-edtf-2019]. `EdtfDate::long_year` accepts any year.
-4. **Bare earlier and later forms.** `..1760-12-03` and `1760-12..` parse
-   and round-trip as values of their own. The text writes them inside the set
+   the prefix "when (and only when) the year exceeds four digits".
+   `EdtfDate::long_year` accepts any year.
+4. **Bare earlier and later forms.** `..1760-12-03` and `1760-12..` parse and
+   round-trip as values of their own. The text writes them inside the set
    brackets, `[..1760-12-03]`, `[1760-12..]`, and writes open ends of
-   intervals as `1985/..` and `../1985` [loc-edtf-2019]. I found no
-   standalone form in the text.
-5. **Open and unknown ends.** `EdtfEndpoint::Open` is documented as "genuinely
-   continues". The text says `..` is used "either because there is none or
-   for any other reason", and an empty end for an unknown one
-   [loc-edtf-2019]. Both end up as the same unknown bound of a
-   `FuzzyInstant`.
-6. **Unlisted gaps.** The README lists the rejected forms but not `1984-1X`
-   or `1X84`, and gives `Y17E7S3` as the exponential form. The text's
-   examples are `Y-17E7`, `1950S2` and `Y3388E2S3`.
-7. **The width of `~`.** `to_fuzzy_instant` says `1984~` "covers 1983 to
-   1985". It adds one span of the date's own length, 366 days in the leap
-   year 1984, so the support is 1982-12-31 to 1986-01-02. The span follows
-   the year's length (365 days for `1983~`).
-8. **Where `Display` turns scientific.** The comment says "more than four
-   leading zeros". The code switches at a decimal exponent below −4, and the
-   test renders `0.000 012 3`, which has four, as `1.23e-5`.
-9. **Notation sources.** The comment on `Display` calls the notation the
-   convention of the SI Brochure and of the *Physical Review* style guide.
-   Neither was read for this document; [wikipedia-significant-figures] says
-   scientific notation removes the ambiguity, which is the part this document
-   cites.
+   intervals as `1985/..` and `../1985`. No standalone form was found in the
+   text.
+5. **Open and unknown ends.** The text says `..` is used "either because
+   there is none or for any other reason", and an empty end for an unknown
+   one. Both end up as the same unknown bound of a `FuzzyInstant`.
+6. **Forms the README lists as rejected.** `1984-1X` and `1X84` are rejected
+   too. The text's examples of the exponential and significant-digit forms are
+   `Y-17E7`, `1950S2` and `Y3388E2S3`.
+7. **The width of `~`.** `to_fuzzy_instant` adds one span of the date's own
+   length on each side: 366 days for the leap year 1984, so the support of
+   `1984~` is 1982-12-31 to 1986-01-02. The span follows the year's length
+   (365 days for `1983~`).
+8. **Where `Display` turns scientific.** The code switches at a decimal
+   exponent below −4; `0.000 012 3` prints as `1.23e-5`.
+9. **Notation sources.** [wikipedia-significant-figures] says scientific
+   notation removes the ambiguity of trailing zeros, which is the part this
+   document cites. The SI Brochure and the *Physical Review* style guide were
+   not read.
 10. **The 0.1 rule.** The README and `quantity.rs` give σ/|x| below about 0.1
-    as the range of trust. No source read gives that figure.
+    as the range of trust. It is this crate's rule of thumb; no source read
+    gives that figure.
 
 ## Sources
 

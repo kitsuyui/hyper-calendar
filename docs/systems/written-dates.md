@@ -381,7 +381,7 @@ In a release build the sweep reads 240 calendars × 67 locale settings, on
 | `ambiguous`: see below | 4 154 |
 | Read as a wrong day | 0 |
 
-Counted 2026-10-03 by a program that repeats the release sweep, which a count of 2026-09-29 (225 calendars, 1 829 calendar-days, 122 543 texts) preceded the Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena calendars of; their eight hundred and four ambiguous texts are the doubled tithis. The eleven pre-665 Chinese calendars of [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md) add 34 `year-not-written` and 58 `two-digit-year` texts, in `ja`, which writes their year by its stem and branch alone, and years 0–99; none is read as a wrong day.
+Counted 2026-10-03 by a program that repeats the release sweep. The eight hundred and four ambiguous texts of the Gupta, Valabhī, Kalachuri and Lakṣmaṇa Sena calendars are the doubled tithis. The eleven pre-665 Chinese calendars of [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md) add 34 `year-not-written` and 58 `two-digit-year` texts, in `ja`, which writes their year by its stem and branch alone, and years 0–99; none is read as a wrong day.
 
 A second sweep, `the_first_day_of_every_era_and_month_reads_back`, writes
 and reads the first day of every era of every calendar and, in a release
@@ -427,9 +427,9 @@ The `year-not-written` cases are all cycles that recur:
 - the sexagenary year of `chinese`, `dangi`, `dangi-kasi`, `vietnamese`
   and the eleven systems of [chinese-historical-lunisolar.md](chinese-historical-lunisolar.md)
   in `ja`, which writes the year by it alone (the reader does not take a
-  year of the cycle for an era's year, which on the pre-665 calendars,
-  whose ranges lie within two or three cycles, it once did, reading the
-  Taichu's 丁丑年五月1日 of 104 BC as the one of 44 BC), and of `dangi` and
+  year of the cycle for an era's year: on the pre-665 calendars, whose
+  ranges lie within two or three cycles, that would read the Taichu's
+  丁丑年五月1日 of 104 BC as the one of 44 BC), and of `dangi` and
   `dangi-kasi` in `zh-Hant`, `yue-Hant` and `yue-Hans`, whose CLDR files
   write it so.
 
@@ -472,7 +472,7 @@ The test lists each of these calendars with its refusal and reason, and
 reads each on a pair of its doubled days: in `tibetan` 15 and 16 January
 1990, and in the others 15 and 16 February 1990. It fails on any other
 refusal, on a wrong day, and in a release build on a listed refusal the
-sweep no longer meets. `crates/hyper-calendar/tests/distinct_dates.rs`
+sweep does not meet. `crates/hyper-calendar/tests/distinct_dates.rs`
 holds the calendars whose leap units are named, the Lao and Discordian
 among them, to a text of their own for every day of 1950–2050.
 

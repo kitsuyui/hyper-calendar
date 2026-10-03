@@ -25,7 +25,7 @@
 //! no first-order formula will say so. This module refuses to divide by a
 //! central value of zero, but it cannot detect the softer failure, so the
 //! rule of thumb stands: trust the propagated `σ` while `σ/|x|` stays below
-//! roughly 0.1.
+//! roughly 0.1. The figure is this crate's, and no source read gives it.
 
 use core::fmt;
 

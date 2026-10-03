@@ -463,7 +463,7 @@ fn is_known_region(table: &RuleSet, region: &str) -> bool {
 /// is no group is refused rather than answered as if it were everyone. A
 /// subdivision that exists and was not read is a gap, and a code that is
 /// no subdivision of the table's country is refused, as a typo would
-/// otherwise look like a region not yet read (audit 10 b25).
+/// otherwise look like a region not yet read.
 ///
 /// # Errors
 ///
@@ -815,7 +815,7 @@ fn push_entry_lines(
 /// [`push_region_day_lines`] for each region of
 /// [`RuleSet::answered_regions`], in code order, the days of a region that
 /// has only a weekend or a substitution policy of its own being the
-/// substitute days that law moves (audit 10 d2), so that a subdivision's own
+/// substitute days that law moves, so that a subdivision's own
 /// day —
 /// Tokyo's 都民の日, a Canadian province's Civic Holiday — is a line with
 /// its region, and a day the nationwide calendar already has is not
@@ -896,7 +896,7 @@ const fn refusal(unanswered: Unanswered) -> Refusal {
 /// the year is before the first its sources were read for, or the
 /// subdivision's own days were not read — may be this day, and the weekend
 /// law of the region on the day may not have been read. Those are refused
-/// rather than answered `false` (audit 10 d1).
+/// rather than answered `false`.
 ///
 /// # Errors
 ///
@@ -966,7 +966,7 @@ pub const MAX_HOLIDAY_SEARCH_YEARS: i64 = 16;
 /// The search reaches [`MAX_HOLIDAY_SEARCH_YEARS`] years at most, and
 /// refuses the moment a gap could hide a nearer entry: a holiday of a
 /// wanted kind the table could not place in any year from the day's to
-/// the found entry's (audit 10 d3, d1).
+/// the found entry's.
 ///
 /// # Errors
 ///
@@ -1077,7 +1077,7 @@ fn year_of(fixed: i64) -> Answer<i64> {
 /// tables evaluate, and a walk that reaches a day whose weekend law was not
 /// read; and [`Refusal::NoData`] for a walk that reaches a day a gap leaves
 /// open, which would be counted or skipped on a guess
-/// ([`HolidayCalendar::business_day`], audit 10 d1).
+/// ([`HolidayCalendar::business_day`]).
 pub fn add_business_days(
     code: &str,
     region: Option<&str>,
@@ -1894,7 +1894,7 @@ mod tests {
         assert_eq!(is_day_off("CN", None, None, ymd(2026, 6, 1)), Ok(false));
         // A half day is not a day off, even for the group it is given to;
         // 2027's arrangement has not been announced, so the day is open and
-        // is refused, not answered "no" (audit 10 d1).
+        // is refused, not answered "no".
         assert_eq!(
             is_day_off("CN", None, Some("women"), ymd(2026, 3, 8)),
             Ok(false)
@@ -2548,9 +2548,10 @@ mod tests {
 
     #[test]
     fn a_region_no_country_has_is_refused_and_one_not_read_is_a_gap() {
-        // Audit 10 b25. `US-ZZ`, `JP garbage` and `JP-99` were answered with
-        // the nationwide days and the gap of a subdivision not read, so a
-        // typo looked like a region whose days had not been read yet.
+        // `US-ZZ`, `JP garbage` and `JP-99` are refused, not answered with
+        // the nationwide days and the gap of a subdivision not read, which
+        // would make a typo look like a region whose days had not been read
+        // yet.
         for (table, region) in [
             ("US", "US-ZZ"),
             ("JP", "JP garbage"),
@@ -2591,7 +2592,7 @@ mod tests {
             holidays_in_year("JP", None, None, None, 2026)
         );
         // A subdivision read only from a year is a gap before it, in the
-        // lines as in the calendar (audit 10 a4).
+        // lines as in the calendar.
         let before = holidays_in_year("JP", Some("JP-27"), None, None, 1985).expect("JP");
         assert!(
             before
@@ -2608,7 +2609,7 @@ mod tests {
     }
 
     /// A day the table cannot answer is refused, not answered `false` or
-    /// counted (audit 10 d1): Victoria Day 2025 is a gap in Newfoundland
+    /// counted: Victoria Day 2025 is a gap in Newfoundland
     /// and Labrador, Louisiana's Mardi Gras 2025 a gap in the walk that
     /// would cross it, and Kedah's weekend law of 2012 was not read.
     #[test]
@@ -2714,7 +2715,7 @@ mod tests {
     }
 
     /// A region with only a weekend law has substitute days of its own,
-    /// which `hc_holidays_on` writes (audit 10 d2): Awal Muharram 2025 was a
+    /// which `hc_holidays_on` writes: Awal Muharram 2025 was a
     /// Friday, which Kedah moves to the Sunday.
     #[test]
     fn a_region_with_only_a_weekend_law_has_its_substitute_day_on_the_day() {
@@ -2751,7 +2752,7 @@ mod tests {
     }
 
     /// The first holiday after a day and the last before it, and the gap
-    /// that could hide a nearer one (audit 10 d3, d1).
+    /// that could hide a nearer one.
     #[test]
     fn the_next_and_the_previous_holiday_are_a_line_of_the_year() {
         let line = |text: Answer<String>| -> Vec<String> {

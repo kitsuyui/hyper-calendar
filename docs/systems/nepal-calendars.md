@@ -394,7 +394,7 @@ states. The tests assert:
   moons, not the Hindu month names, and the pairing is the module's
   reading of them.
 
-On 2026-09-25 the sources were re-read as far as they could be. The
+The sources were read on 2026-09-25 as far as they could be. The
 Ministry's holiday listing names the four notices and their pages; the
 2082 and 2083 notices were opened from those pages as scanned PDFs, and
 their Saturday lists, New Year weekdays, Christmas and Maghe Sankranti

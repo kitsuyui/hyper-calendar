@@ -195,8 +195,9 @@ ones:
   list; 巽忠春, *あなたの宝石* (徳間書店, 1962), p. 77, on why coral and jade
   were added.
 - The Old Farmer's Almanac; History.com and Sky & Telescope on the moon-name
-  publication history; Carver (1778), Dodge (1882) and the 1937 Maine Farmers'
-  Almanac at first hand.
+  publication history; Carver (1778) at first hand; Dodge (1882) and the 1937
+  Maine Farmers' Almanac not read, the first as Wikipedia reports it and the
+  second as projectpluto.com transcribes it.
 - Bede, *De temporum ratione* (725), ch. 15, tr. Faith Wallis (Liverpool, 1999).
 - Einhard, *Vita Karoli Magni* (c. 830), ch. 29, trs. Turner (1880) and De Rynck
   (1999); forms per Braune, *Althochdeutsches Lesebuch*, 17th ed.

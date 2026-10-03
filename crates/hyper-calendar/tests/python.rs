@@ -128,7 +128,7 @@ fn timedelta_arithmetic_follows_the_documented_example() {
 /// `/ int` is "rounded to the nearest multiple of timedelta.resolution using
 /// round-half-to-even", where the float is multiplied as the exact ratio
 /// `float.as_integer_ratio()` gives. The expected values are CPython 3.14.7's
-/// answers; the audit's case (a22) is the first.
+/// answers.
 #[test]
 fn scaling_by_a_float_rounds_as_python_does() {
     let micro = |count: i64| TimeDelta::from_micros(count);
@@ -251,9 +251,9 @@ fn isocalendar_matches_the_documented_examples() {
     );
 }
 
-/// Audit 10, a14: the 362 days of the last Gregorian year from 4 January
-/// were given week 1, by the branch that "cannot be reached". The week dates
-/// are from the algorithm of Wikipedia, "ISO week date", read 2026-10-03
+/// The 362 days of the last Gregorian year from 4 January have their own
+/// week dates, not week 1. The week dates are from the algorithm of
+/// Wikipedia, "ISO week date", read 2026-10-03
 /// (worked in `scripts/iso-week-pins.py`).
 #[test]
 fn isocalendar_is_right_at_both_ends_of_the_range() {

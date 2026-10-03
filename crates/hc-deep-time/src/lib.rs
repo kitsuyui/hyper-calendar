@@ -21,6 +21,11 @@
 //! | [`periods`] | Long astronomical recurrences: the precession of the equinoxes and the galactic year |
 //! | [`timeline`] | All of the above, queried together |
 //!
+//! `docs/systems/deep-time.md` explains the cosmic and future chronologies, the
+//! Planck units and the datums of "before present", with a worked example of
+//! each; the geological chart and the earliest evidence have documents of
+//! their own.
+//!
 //! # The one rule
 //!
 //! Every numeric entry in every table carries an uncertainty and names a

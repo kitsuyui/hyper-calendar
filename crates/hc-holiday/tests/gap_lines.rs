@@ -1,9 +1,9 @@
-//! A gap is written once (audit 10 a37).
+//! A gap is written once.
 //!
 //! Quebec's table has two rules for "Good Friday or Easter Monday, at the
 //! employer's choice", one for each day the employer may pick, with one
-//! identifier; the year the table could not settle wrote the same gap line
-//! twice.
+//! identifier; the year the table cannot settle writes that gap line once,
+//! not once per rule.
 
 use hc_holiday::countries::CANADA;
 use hc_holiday::engine::HolidayCalendar;

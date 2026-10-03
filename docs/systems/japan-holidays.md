@@ -118,7 +118,7 @@ on 24 May 1991 with 23 June in it, in force from 26 May [jp-pref-47,
 jp-local-autonomy-act, okinawa-archives-irei]. The 1961 and 1965 acts themselves were not read.
 What the prefecture kept in 1972, 1973 and 1974, between the reversion
 (15 May 1972) and the ordinance, no instrument read says, so those years
-are a gap with 1975–1990, as `Rule::UNREAD` carries them (audit 10 a7); before 1972 the islands were not a
+are a gap with 1975–1990, as `Rule::UNREAD` carries them; before 1972 the islands were not a
 prefecture of Japan.
 
 **The prefectures' other days.** Beside its own day, a prefecture sets
@@ -326,8 +326,11 @@ Wednesday 6 May, which the old wording could not have reached.
   table below, and 相模原's as a gap.
 - **Not carried, and why:**
   - Holidays before 20 July 1948, under the pre-war 休日ニ関スル件 of
-    1927 that the Act repealed: the Act's own history begins there, and
-    the table with it. 1948 is a half year: 春分の日, 天皇誕生日, 憲法記念日
+    1927 that the Act repealed: no source for that regime was read, so the
+    table has no rule before the Act and answers a day before it as an
+    ordinary day (`is_day_off` is `Ok(false)` for 1 January 1900, and no
+    holiday is listed for 1900), though the regime had holidays of its own.
+    Not yet done. 1948 is a half year: 春分の日, 天皇誕生日, 憲法記念日
     and こどもの日 had already passed when the Act came into force, and
     only 秋分の日, 文化の日 and 勤労感謝の日 were holidays that year.
   - The 年末年始 closure of government offices, 29 December to 3 January
@@ -429,7 +432,7 @@ ordinances read are the ones in force now, and the 例規集 does not show a
 day a prefecture set and later repealed. Each prefecture's 休日条例 of
 1989 began the regime the 例規集 shows, so a prefecture with no day of its
 own is answered from the year of its 休日条例 and is a gap before it
-(`Subdivisions::ReadFrom`, ADR 0013; audit 10 a4). The 公布 dates, from the
+(`Subdivisions::ReadFrom`, ADR 0013). The 公布 dates, from the
 archive's copies of the 例規集, which give each ordinance's number and
 promulgation date, read 2026-10-03: the archive's certificate had expired,
 so they were read over that connection without the certificate's check,

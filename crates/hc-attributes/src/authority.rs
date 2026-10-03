@@ -518,8 +518,8 @@ pub fn unanimous<const N: usize>(
 /// How many of the twelve — or seven — keys the tables disagree at.
 ///
 /// This is the number the crate exists to make printable. For the six
-/// birthstone lists it is twelve: no month is agreed by all six, which is
-/// the honest headline and not a defect in the data.
+/// birthstone lists it is eleven: no month but one is agreed by all six,
+/// which is the honest headline and not a defect in the data.
 ///
 /// # Errors
 ///

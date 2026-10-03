@@ -1,4 +1,4 @@
-//! The shape of a region code (ADR 0014, audit 10 b25).
+//! The shape of a region code (ADR 0014).
 
 use hc_holiday::rule::is_region_code;
 

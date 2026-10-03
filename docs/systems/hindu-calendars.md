@@ -1206,9 +1206,8 @@ rules, which were not read, are more than that.
     its transit dates (17 March 2022, 29 November 2023, 29 May 2025, 25
     November 2026, 19 September 2020) are not reproduced.
   - *Saturn's transit and the other planets'*, which need the VSOP87B
-    series of each, of which the user's decision of 2026-10-03 allowed one
-    to be saved, Jupiter's: a limit of that decision and not a design
-    ([jupiter-ephemeris.md](jupiter-ephemeris.md)).
+    series of each, of which only Jupiter's is carried; the files for the
+    other planets were not read ([jupiter-ephemeris.md](jupiter-ephemeris.md)).
   - *The Vaiṣṇava Ekadashi as a rule*, and the Vaiṣṇava reading of every
     other tithi where the sects part: Drik Panchang's lists of dates were
     read, and GCal's rules that they follow, and the *Dharmasindhu*'s,
@@ -1445,7 +1444,7 @@ since that calendar computes no astronomy of `hc-astro`'s, the agreement
 is a check of the Siddhānta's Moon, its sunrise and the months' engine
 against the code's own.
 
-On 2026-09-25 the sources were re-read as far as they could be. The
+The sources were read on 2026-09-25 as far as they could be. The
 Calendar Reform Committee's report was read in the Internet Archive's OCR
 text, Sewell and Dikshit likewise, and Reingold and Dershowitz's published
 code directly; the Positional Astronomy Centre's pages were read past a

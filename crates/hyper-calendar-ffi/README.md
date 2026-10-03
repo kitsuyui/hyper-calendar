@@ -1657,11 +1657,11 @@ Neither boundary exposes these parts of the workspace, for the reasons
 that README's "What is not here" gives: `hc-planetary`'s circad and
 Martiana calendars in the registry, whose day number is a circad or a sol
 and not an Earth day, though `hc_circad_date` dates an instant in them;
-most of `hc-humanize`'s `natural` module (the WebAssembly module's README
-lists what is exported), the loader of `hc-name-days` for a list a caller
-has licensed, and of
-`hc-almanac` 七曜, which is the weekday, and the English glosses of its
-annotations; a
+the five parts of `hc-humanize` that README lists (`intword` of an `i64`,
+`clamp`, `naturaltime` of two readings, a threshold table of the caller's
+own rows, and a locale for the thresholds of `hc_relative_day`), the loader
+of `hc-name-days` for a list a caller has licensed, and of `hc-almanac` 七曜,
+which is the weekday, and the English glosses of its annotations; a
 whole UUID with its clock sequence and node, where
 `hc_uuid_timestamp_encode` writes the time fields only; and the radio
 frames' notices that name no minute other than JJY's stop notice.

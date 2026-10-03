@@ -8,7 +8,8 @@ Backs `hc-humanize`'s `natural` module (`Natural`, `NaturalPhrases`,
 `unit_choice` (`Thresholds`, `RoundingPolicy`), `approximate`,
 `calendar_relative`, `duration` and the `lookup` and `data` modules under
 them. The boundary exports `hc_relative_time`, `hc_relative_day`,
-`hc_relative_day_at` and `hc_duration` are the CLDR side's. No calendar
+`hc_relative_day_at` and `hc_duration` are the CLDR side's; the exports of the
+`natural` layer are `humanize`'s functions (below). No calendar
 identifier is registered: these phrase spans and days, they do not count
 them.
 
@@ -295,14 +296,19 @@ them (a probe of both).
   the half-unit idioms, the compact suffixes of *2h30m* and the indefinite
   units (*an hour*).
 - **The boundary**: `hc_relative_time`, `hc_relative_day`,
-  `hc_relative_day_at` and `hc_duration` in every locale carried. The
-  `humanize` number and list exports are English only.
+  `hc_relative_day_at` and `hc_duration` in every locale carried, and the
+  `natural` layer's `hc_naturaldelta`, `hc_naturaltime`, `hc_precisedelta`,
+  `hc_naturalday`, `hc_naturaldate`, `hc_ordinal`, `hc_intword`,
+  `hc_intcomma`, `hc_intcomma_float`, `hc_apnumber`, `hc_fractional`,
+  `hc_scientific`, `hc_metric`, `hc_naturalsize` and `hc_naturallist`, which
+  write Python's `humanize` functions in the language of the gettext
+  catalogue that serves the locale.
 
 Not carried, each a follow-up and not a decision:
 
-- `naturaldelta`, `naturaltime`, `precisedelta`, `naturalday`,
-  `naturaldate` at the boundary (python-compatibility.md says so as well:
-  not yet done, no source forbids it).
+- `clamp`, `intword` of an `i64`, `naturaltime` of two readings and a
+  threshold table of the caller's own rows at the boundary: the WebAssembly
+  README says why each has no export shape.
 - The behaviour `humanize`'s `main` changed after 4.16.0 (the release is
   what `pip install humanize` gives; [../python-parity.md](../python-parity.md)).
 - CLDR's own weekday words. `en.xml` and `ru.xml` of CLDR 48 state, for each
@@ -351,7 +357,7 @@ Not carried, each a follow-up and not a decision:
   from CLDR's only where one of the 76 override lines says so: 74 for a
   value a source argues against, 2 where `cldr-json`'s resolution differs
   from UTS #35's rule for the inheritance marker. All tests of the crate
-  pass (166 unit, 3 CLDR, 6 catalogue and 5 doc tests, run 2026-10-03).
+  pass (the unit, CLDR, catalogue and doc tests, run 2026-10-03).
   `cldr-json` itself was not opened for this document.
 - **Thresholds.** CLDR gives none, and no source read states these. Three of
   `DEFAULT`'s bounds, 45 seconds, 45 minutes and 22 hours, are the points at

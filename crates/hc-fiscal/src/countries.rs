@@ -894,9 +894,13 @@ pub static SOUTH_AFRICA: FiscalProfile = FiscalProfile {
 /// claims nothing; `is_approximate` stays true for that reason.
 ///
 /// The entry is not Birashk's 2 820-year cycle, `persian-arithmetic`. That
-/// cycle starts AP 1404 on 20 March 2025 where Iran began it on 21 March (the Solar Hijri calendar's correspondence table on
-/// Wikipedia, `wikipedia-solar-hijri-calendar`), and Tøndering names 1404 and
-/// 1437 as its only two disagreements between AP 1244 and 1531.
+/// cycle starts AP 1404 on 20 March 2025 where Iran began it on 21 March
+/// (the Solar Hijri calendar's correspondence table on Wikipedia,
+/// `wikipedia-solar-hijri-calendar`). Tøndering names 1404 and 1437 as its
+/// only two disagreements with an astronomical calendar between AP 1244 and
+/// 1531, without saying which rule that calendar used; against `persian` of
+/// `hc-calendars-equinox` the cycle differs in four years of that span:
+/// 1404, 1437, 1470 and 1503.
 ///
 /// A caller who needs the official date of a year after 1634 needs the
 /// equinox calendar, `persian` of `hc-calendars-equinox`.

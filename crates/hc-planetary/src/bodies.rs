@@ -9,13 +9,15 @@
 //! from. The bulk is the NASA NSSDC *Planetary Fact Sheets*
 //! (<https://nssdc.gsfc.nasa.gov/planetary/factsheet/>, `nssdc-factsheets`;
 //! the comparison table retrieved 2026-09-26, the per-body sheets it links
-//! not re-read that day), supplemented by
-//! the IAU Working Group on Cartographic Coordinates and Rotational Elements
-//! (Archinal et al., 2018, *Celest. Mech. Dyn. Astr.* **130**:22) for
-//! satellite rotation rates and by Konopliv et al. (2018, *Icarus* **299**,
-//! 411) for Ceres. The fact sheets disagree with themselves in a few places
-//! and with the IAU in one; [`Body::source`] and the crate README name the
-//! disagreements rather than averaging them away.
+//! read again on 2026-10-03). A satellite's rotation is the synchronous one,
+//! 24 times its orbit period from the satellite sheets. The IAU Working
+//! Group on Cartographic Coordinates and Rotational Elements (Archinal et
+//! al., 2018, *Celest. Mech. Dyn. Astr.* **130**:22) is cited for Mercury's
+//! rate and its tables were not read; Ceres's rotation is the JPL
+//! Small-Body Database's, which cites another source than Konopliv et al.
+//! (2018, *Icarus* **299**, 411), which was not read. The fact sheets
+//! disagree with themselves in a few places; [`Body::source`] and the crate
+//! README name the disagreements rather than averaging them away.
 //!
 //! # The derivation
 //!
@@ -136,8 +138,8 @@ pub struct Body {
     /// sol is 88 775.244 s from Allison and McEwen, and the Moon's solar day
     /// is the mean synodic month. Preferring the measured value matters
     /// because the derivation inherits the rounding of a rotation period
-    /// quoted to six figures — for Mars that is a third of a second per sol,
-    /// which is four hours over the span of the Mars Sol Date. The tests check
+    /// quoted to six figures — for Mars that is 0.225 s per sol, which is
+    /// about three hours over 52 000 sols of the Mars Sol Date. The tests check
     /// that the derived value agrees with the measured one to the table's own
     /// precision.
     pub measured_solar_day_seconds: Option<f64>,
@@ -285,9 +287,11 @@ pub const ALL: &[Body] = &[
         name: "Mercury",
         kind: BodyKind::Planet,
         primary: Some("sun"),
-        // The IAU 2015 rate, 6.1385108 deg/day; NSSDC rounds it to 1407.6 h,
-        // which would stretch the derived solar day by half an hour and spoil
-        // the 3:2 resonance that the same sheet's 4222.6 h assumes.
+        // 1407.5088 h, which is 6.1385051 deg/day and is the IAU 2015 rate as
+        // the row's source cites it (the IAU tables were not read); NSSDC
+        // prints 1407.6 h, which would lengthen the derived solar day by 0.82
+        // h (49 minutes), from 4222.555 h to 4223.376 h, and its ratio to the
+        // orbit from 2.00002 to 2.0004.
         sidereal_rotation_hours: 1_407.508_8,
         sidereal_orbit_days: 87.969,
         axial_tilt_degrees: 0.034,
@@ -796,7 +800,7 @@ mod tests {
             let sidereal = abs(entry.sidereal_rotation_hours) / 24.0;
             assert!(solar < sidereal, "{name}: {solar} vs {sidereal}");
         }
-        // Pluto's is only twenty-odd seconds shorter, because its year is so
+        // Pluto's is only about 39 seconds shorter, because its year is so
         // long; Venus's is halved.
         let pluto = body("Pluto");
         let gap =

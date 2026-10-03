@@ -1,5 +1,5 @@
-//! A day a gap leaves open is refused, not answered (ADR 0013, ADR 0015,
-//! audit 10 d1): whether it is a day off, whether it counts as a business
+//! A day a gap leaves open is refused, not answered (ADR 0013, ADR 0015):
+//! whether it is a day off, whether it counts as a business
 //! day, and the next and previous holiday, over a table invented for the
 //! test whose gaps and weekends are the ones each case needs.
 

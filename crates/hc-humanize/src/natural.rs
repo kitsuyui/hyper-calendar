@@ -1926,8 +1926,8 @@ mod tests {
         ));
     }
 
-    /// The three divergences the tenth audit measured (a20), each traced
-    /// through `humanize` 4.16's source: the minimum unit is rounded with the
+    /// Three cases in which the result differs from a plain rounding of the
+    /// span, each traced through `humanize` 4.16's source: the minimum unit is rounded with the
     /// format before it is compared with zero (`_rounding_by_fmt`), and a
     /// unit rounded up to the next one's size is carried.
     #[test]

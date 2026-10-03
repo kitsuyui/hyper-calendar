@@ -137,7 +137,7 @@ impl Quantity {
     /// The same length counted in another unit, exactly.
     ///
     /// This is the conversion the crate exists for: `Quantity::whole(1,
-    /// FRAME_AT_24).to(FLICK)` is 29 400 000 flicks with no remainder, and
+    /// SECOND).to(FLICK)` is 705 600 000 flicks with no remainder, and
     /// the same call for a unit that does not divide evenly returns a
     /// fraction rather than a rounded integer.
     ///
@@ -438,7 +438,8 @@ hc_core::catalogue! {
         "BIPM, SI Brochure 9th edition (2019)",
     );
 
-    /// 1.2096 seconds, the delay VMS measures password retries in.
+    /// 1.2096 seconds, the unit in which VMS gives the wait at boot for an
+    /// operator to set the date and time (`TIMEPROMPTWAIT`).
     pub const MICROFORTNIGHT = unit(
         "microfortnight",
         "microfortnight",

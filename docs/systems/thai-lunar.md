@@ -314,13 +314,13 @@ gives 4 March 1996, the Monday after the Sunday 3 March that the Bank's
 Thursday stand-in and the neighbouring years fix; the module counts four
 departures and does not name this one.
 
-On 2026-09-25 the sources were re-read as far as they could be. The Bank's
+The sources were read on 2026-09-25 as far as they could be. The Bank's
 archived lists for 1992, 2007 and 2022, the Royal Gazette copy of the
 notification for 2024 and the header of the one for 2027 agree with the
 table above; the 2027 dates themselves were read from press reports of the
 notice, as the gazette PDF's text does not extract, and the archived lists
-for 1993–2006 and 2008–2021 now redirect to the Bank's current site, so
-those years rest on the module's reading of 2026-09-23.
+for 1993–2006 and 2008–2021 redirect to the Bank's current site, so those
+years rest on the module's reading of 2026-09-23.
 
 ## Sources
 

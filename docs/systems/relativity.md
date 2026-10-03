@@ -3,12 +3,12 @@
 Backs `hc-relativity`: its `constants`, `special`, `gravitational`,
 `worldline` and `dilated` modules, and the private `hyperbolic` module they
 share. Backs also the crate's `relativity` layer in the facade,
-`hyper_calendar::relativity_lines` (`proper_time_line`,
-`gravitational_dilation_line`, `gravitating_bodies_lines`), which is the
-`hc_proper_time`, `hc_gravitational_dilation` and `hc_gravitating_bodies`
-exports of the WebAssembly module and the C library and the JavaScript
-`properTime`, `gravitationalDilation` and `gravitatingBodies`, behind the
-`relativity` feature. No calendar identifier is registered: these are rates
+`hyper_calendar::relativity_lines`, which writes the lines of the ten exports
+of the WebAssembly module and the C library and the JavaScript functions that
+call them, behind the `relativity` feature: `hc_proper_time`,
+`hc_gravitational_dilation`, `hc_gravitating_bodies`, `hc_orbit_rate_offset`,
+`hc_rocket`, `hc_flip_and_burn`, `hc_doppler`, `hc_velocity_add`,
+`hc_schwarzschild_radius` and `hc_proper_time_uncertain`. No calendar identifier is registered: these are rates
 of clocks, not calendars. The body identifiers the exports take are
 `sun`, `earth`, `moon`, `mars`, `jupiter` and `sagittarius-a-star`.
 [time-scales.md](../time-scales.md) places TT, TCG and TCB, which
@@ -224,8 +224,8 @@ In `hc_relativity::dilated`: `ClockComparison`, `compare_clocks`,
 over `hc_core::Instant<Tai>`, `hc_core::Duration` and
 `hc_uncertainty::Uncertain`.
 
-At the boundary, three exports, each one line of tab-separated text.
-`hc_proper_time` takes a speed in m/s and a coordinate time in seconds and
+At the boundary, ten exports, each one line of tab-separated text (one line
+per body for `hc_gravitating_bodies`). `hc_proper_time` takes a speed in m/s and a coordinate time in seconds and
 writes β, γ, the proper seconds, the rate 1/γ, the rate's offset from 1 in
 µs a day, the constant used and the source. `hc_gravitational_dilation`
 takes a body identifier and a radius and writes the body, its `GM`, the
@@ -234,10 +234,17 @@ day, the constants used and the source. `hc_gravitating_bodies` lists the
 table. A rate such as 1 − 3 × 10⁻¹⁰ keeps only six figures of its distance
 from 1 as a double, so both exports compute the offset without cancellation,
 by √(1 − *x*) − 1 = −*x*/(1 + √(1 − *x*)), *x* being β² or *r*s/*r*. The
-rocket, the worldlines and the orbit offset are not exported; a caller of the
-exports gets the GPS gain as the difference of two `hc_gravitational_dilation`
-offsets, 45.65 µs a day, and the loss from `hc_proper_time` at the circular
-speed, −7.21.
+`hc_orbit_rate_offset` writes the GPS split for a body, a clock on a circular
+orbit against one held still on the ground: +45.65 µs a day from the
+potential and −7.21 from the speed. It is the crate's split; Ashby prints
+only the net. `hc_rocket` and `hc_flip_and_burn` write the constant-proper-
+acceleration rocket and the voyage that turns over half-way; `hc_doppler`
+the shift of a source moving at β seen at an angle; `hc_velocity_add` the
+composition of two collinear velocities; `hc_schwarzschild_radius` 2*GM*/*c*²
+of a body; and `hc_proper_time_uncertain` a proper time with the standard
+deviation of the speed carried through it. Segmented worldlines
+(`worldline::Worldline` and `Segment`), `compare_clocks`, `dilated_instant`
+and `ship_reading_uncertain` have no export.
 
 Not carried:
 
@@ -310,11 +317,9 @@ off by about 1 % at *T* = 5 years (84.5 against 83.7) and 2.6 % at 12
 its constant. The crate's Andromeda anchor uses 2.5 Mly, where the page uses
 2 000 000 ly; at that distance the crate gives 28.2 years.
 
-**The GPS figures against Ashby.** The crate's `README.md` (lines 48 and 56 to
-62) says that +45.65, −7.21 and +38.44 µs a day are the GPS worked example
-Ashby's review uses, and `constants.rs` (lines 80 and 81) that `GM_EARTH` is
-the value he uses "for the satellite-clock figures"; `lib.rs` and
-`gravitational.rs` list them as published figures. The review as read for this
+**The GPS figures against Ashby.** The crate's +45.65, −7.21 and +38.44 µs a
+day are its own split of the GPS offset, and its `GM_EARTH` is the value
+Ashby uses for the satellite-clock figures. The review as read for this
 document (Europe PMC's full text of *Living Reviews in Relativity* 6:1) states
 neither the split nor the net in microseconds. It gives the combined
 fractional offset, eq. 35, +2.5046 × 10⁻¹⁰ − 6.9693 × 10⁻¹⁰ = −4.4647 × 10⁻¹⁰
@@ -325,7 +330,7 @@ eq. 18: Φ₀/*c*² = −6.953 48 × 10⁻¹⁰ (the mass term, the crate's step
 × 10⁻¹³ (the quadrupole) − 1.203 × 10⁻¹² (the centripetal term) = −6.969 27 ×
 10⁻¹⁰, so the quadrupole is 0.033 µs a day and the rotation 0.104. The Europe
 PMC copy of his equation prints the quadrupole as 10⁻¹⁰, which disagrees with
-its own text and sum. The README says this for the ISS and not for GPS. The
+its own text and sum. The README says this of the net. The
 satellite terms agree: 3*GM*/2*ac*² is 2.504 557 × 10⁻¹⁰ with the crate's
 radius, his 2.5046. His orbit, where the effects cancel, is *a* ≈ 9 545 km
 [ashby2003]; the crate's, with a ground clock on a sphere, is 1.5 × 6 378 137
@@ -378,7 +383,7 @@ to a rapidity of 5. Past 5, a double cannot hold how close tanh comes to 1,
 and the crate says to use `lorentz_factor_from_rapidity`. `Duration` results
 are exact to the attosecond given the `f64` factor. `rocket_coordinate_time`
 overflows at rapidity about 710, which at 1 g is about 690 years of ship time.
-All 126 tests of `hc-relativity` pass.
+The tests of `hc-relativity` pass.
 
 ## Sources
 
@@ -421,4 +426,4 @@ The tests that anchor them are those in the Accuracy table, and
 `the_gps_orbit_is_a_half_sidereal_day`,
 `the_solar_gm_matches_the_product_of_g_and_the_solar_mass` and
 `every_body_names_the_constant_that_holds_its_gm` for the constants. The
-crate has 126 tests, in the source files; it has no `tests` directory.
+crate's tests are in the source files; it has no `tests` directory.

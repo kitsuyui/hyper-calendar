@@ -134,11 +134,9 @@ carries them:
 | 1972-01-01 | 2 441 317.5 | 10 s, no drift | +0.107 758 s |
 
 The step column is `TAI − UTC` of the new segment less that of the old at
-the start; "none" is a new line that continues the old one. Eight of the
-thirteen `start_unix` values of `RATE_ERA` were once a different day, 469 days
-of the 4 017 were read with the neighbouring segment, and the tests now take
-every start from the Julian Dates above, in a table written in the test,
-and compare each day's offset with the published line.
+the start; "none" is a new line that continues the old one. The tests take
+every `start_unix` of `RATE_ERA` from the Julian Dates above, in a table
+written in the test, and compare each day's offset with the published line.
 
 **None of these steps is a leap second.** A leap second is a whole second
 inserted or omitted at the end of a UTC day, and none was before 1972-06-30;
@@ -147,9 +145,9 @@ inserted or omitted at the end of a UTC day, and none was before 1972-06-30;
 seconds from 1972 and is 0 for every day before it. In the rate era a day
 is 86 400 s of UTC, whose second differs from the SI second by the drift
 (1.5·10⁻⁸ s per second, 1.3·10⁻⁸ and 3·10⁻⁸ in the three other lines), and a
-step moves the reading by 0.05 to 0.1 s without a second being inserted. The
-predicate asked "did `TAI − UTC` rise over the day" and so answered yes for
-4 015 of the 4 017 days of the era, for the drift alone; it does not any more.
+step moves the reading by 0.05 to 0.1 s without a second being inserted. So
+the predicate is not "did `TAI − UTC` rise over the day", which would be true
+for 4 015 of the 4 017 days of the era for the drift alone.
 
 **Evaluation and inversion are exact.** The coefficients are decimals of at
 most seven places and the three drifts, per second, are exactly 1.5·10⁻⁸,
@@ -157,11 +155,11 @@ most seven places and the three drifts, per second, are exactly 1.5·10⁻⁸,
 a UTC reading in integer attoseconds, and inverts it, with no floating-point
 operation, the only rounding being that of the final division to the
 attosecond. The reading includes the sub-second part, since the offset moves
-by 1.5·10⁻⁸ s in a second. `utc_from_tai` used to subtract the whole seconds
-of the offset and drop the fraction: a UTC reading of 1971-12-31 came back
-0.892 s wrong, and `hc_utc_from_tai(63 072 008)` read 63 071 999 where the
-published relation gives 63 071 998.107 758 06 (exact rational arithmetic on
-the USNO coefficients, `scripts/rate-era-pins.py`).
+by 1.5·10⁻⁸ s in a second. `utc_from_tai` therefore keeps the fraction of the
+offset: `hc_utc_from_tai(63 072 008)` is 63 071 998, the whole second of the
+published relation's 63 071 998.107 758 06 (exact rational arithmetic on the
+USNO coefficients, `scripts/rate-era-pins.py`), and not 63 071 999, which
+`TAI − UTC` taken as 9 s would give.
 
 **At a step a TAI instant needs a rule.** The table is by UTC reading, and
 a step makes the relation between TAI and UTC readings not one to one:

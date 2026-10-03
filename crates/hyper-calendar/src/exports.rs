@@ -7621,9 +7621,10 @@ macro_rules! exports {
             /// Allen's thirteen relations between intervals are tested over the two supports: where
             /// a bound is unknown, every ordering it could have is considered, so the set is what
             /// remains possible, never a guess. A date known to the year is the year; `1984~` is
-            /// 1983 to 1985; an open interval has no bound on its open side. Text that is not a
-            /// supported EDTF value is `HC_ERROR_MALFORMED`, and a year past what a fixed day can
-            /// count is `HC_ERROR_OVERFLOW`.
+            /// widened by its own length on each side, 1982-12-31 to 1986-01-02; an open interval
+            /// has no bound on its open side. Text that is not a supported EDTF value is
+            /// `HC_ERROR_MALFORMED`, and a year past what a fixed day can count is
+            /// `HC_ERROR_OVERFLOW`.
             ///
             /// Tab-separated: relations, symbols, definitely before, possibly before, definitely
             /// after, possibly after, possibly concurrent.
@@ -7638,9 +7639,10 @@ macro_rules! exports {
             /// Allen's thirteen relations between intervals are tested over the two supports: where
             /// a bound is unknown, every ordering it could have is considered, so the set is what
             /// remains possible, never a guess. A date known to the year is the year; `1984~` is
-            /// 1983 to 1985; an open interval has no bound on its open side. Text that is not a
-            /// supported EDTF value is `HC_ERR_MALFORMED`, and a year past what a fixed day can
-            /// count is `HC_ERR_OUT_OF_RANGE`.
+            /// widened by its own length on each side, 1982-12-31 to 1986-01-02; an open interval
+            /// has no bound on its open side. Text that is not a supported EDTF value is
+            /// `HC_ERR_MALFORMED`, and a year past what a fixed day can count is
+            /// `HC_ERR_OUT_OF_RANGE`.
             ///
             /// Tab-separated: relations, symbols, definitely before, possibly before, definitely
             /// after, possibly after, possibly concurrent.

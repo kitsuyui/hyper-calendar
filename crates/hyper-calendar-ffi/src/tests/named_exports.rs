@@ -1,7 +1,7 @@
-//! One call to each entry point no other C-library test names (audit 10
-//! b20), with the line it writes and the refusal it gives for bad input.
-//! The values are the ones the WebAssembly module's and the JavaScript
-//! binding's tests pin, from the sources `docs/systems` name.
+//! One call to each entry point no other C-library test names, with the
+//! line it writes and the refusal it gives for bad input. The values are
+//! the ones the WebAssembly module's and the JavaScript binding's tests pin,
+//! from the sources `docs/systems` name.
 
 use super::super::*;
 use super::{measured, read_lines};

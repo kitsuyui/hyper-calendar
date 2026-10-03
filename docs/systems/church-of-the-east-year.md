@@ -153,12 +153,12 @@ the Cross" [christianhomily-elijah-cross-moses].
   first Sunday before it. Read from 2025, the first year of the parish
   bulletins and of the news report that the calendar was aligned with
   Rome's; every earlier year is a gap, since when the Church took up the
-  Gregorian computus was not read (audit 10 a2).
+  Gregorian computus was not read.
 - **`syro-malabar`**: the Syro-Malabar seasons and its days of obligation,
   from secondary sources; the Church's Panchangam is a PDF and was not
   read. Read from 2020, the year of the Church's calendar of 2020-21 that
   Wikipedia cites and of the decree Father de Souza reports; every earlier
-  year is a gap (audit 10 a2).
+  year is a gap.
 
 Not carried:
 

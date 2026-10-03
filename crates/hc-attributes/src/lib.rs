@@ -84,7 +84,7 @@
 //!   [`gaps::CELTIC_TREE_CALENDAR`] rather than shipped.
 //! - **Duplicate a neighbour.** Japan's 和風月名 are `hc-i18n`'s and stay
 //!   there; the 七曜 as an almanac annotation are `hc-almanac`'s; 中秋の名月
-//!   is `hc-seasons`'. See [`month_names`] and
+//!   is `hc-almanac`'s. See [`month_names`] and
 //!   [`weekday_attributions`].
 //!
 //! # Where the astronomy comes in

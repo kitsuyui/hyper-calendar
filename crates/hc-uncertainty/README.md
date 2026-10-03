@@ -37,7 +37,7 @@ assert!((sum.std_dev - 0.5).abs() < 1e-12);
 | `quantity` | `Uncertain` | A Gaussian `value ± σ`, with first-order (delta-method) propagation for `+ - * /`, `powf`, `ln`, `exp`, and the inverse-variance weighted mean. |
 | `interval` | `DurationInterval` | A closed `[lo, hi]` of `hc_core::Duration` with guaranteed-enclosure interval arithmetic. |
 | `fuzzy` | `FuzzyInstant` | Exact, resolved, bounded, Gaussian, open-ended or unknown instants, with Allen's thirteen interval relations over pairs of them. |
-| `edtf` | `EdtfValue` | ISO 8601-2 Extended Date/Time Format, parsed and rendered. |
+| `edtf` | `EdtfValue` | A subset of the ISO 8601-2 Extended Date/Time Format, parsed and rendered. |
 
 Highlights:
 
@@ -69,7 +69,8 @@ Highlights:
 - **Not carried: Monte Carlo, or any other distribution.** `Uncertain` is a
   linear approximation and says so. It assumes independent inputs —
   `x.checked_add(x)` gives `σ√2`, not `2σ`; use `scaled` when the correlation
-  is total — and it degrades once `σ/|x|` passes roughly 0.1. A wider `±`
+  is total — and it degrades once `σ/|x|` passes roughly 0.1 (a figure of this
+  crate's; no source read gives it). A wider `±`
   would not fix that; a distribution would, and is not yet done.
 - **No tightening of interval arithmetic.** `A - A` is not zero. The
   dependency problem is inherent to the method, so there is no "simplify"
@@ -83,10 +84,13 @@ Highlights:
   - seasons and sub-year divisions (`2001-21`, `2001-34`), whose boundaries
     are conventions that differ by hemisphere and publisher: policy §5 would
     give each its own name, none has been added, and no boundary is guessed;
-  - component-level qualification (Level 2, `2004-06~-11`), which implies a
-    support that is not an interval;
-  - exponential years and significant digits (Level 2, `Y17E7S3`), not yet
-    done.
+  - component-level qualification (Level 2, `2004-06~-11`: the year and the
+    month approximate, the day not), which implies a support that is not an
+    interval;
+  - exponential years and significant digits (Level 2, `Y-17E7`, `1950S2`),
+    not yet done;
+  - an unspecified digit that is not at the end of its component (`1984-1X`,
+    `1X84`).
 
 ## Accuracy claimed
 

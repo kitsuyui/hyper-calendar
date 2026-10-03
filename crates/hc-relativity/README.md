@@ -45,19 +45,21 @@ where the figure comes from. Each is a test.
 | Quantity | Computed | Source |
 | --- | --- | --- |
 | Lorentz factor at β = 0.6 | 1.25 exactly | 1/√(1 − 0.6²), by hand |
-| GPS gravitational gain | +45.65 µs/day | the GPS worked example Ashby's review uses (below) |
-| GPS kinematic loss | −7.21 µs/day | the same example |
-| GPS net gain | +38.44 µs/day | the same example |
+| GPS gravitational gain | +45.65 µs/day | this model's split of the GPS offset (below) |
+| GPS kinematic loss | −7.21 µs/day | the same split |
+| GPS net gain | +38.44 µs/day | Ashby's 38.575 µs/day for a ground clock on the rotating geoid, 0.137 µs/day higher than this model's ground clock at rest on a sphere |
 | Schwarzschild radius of the Sun | 2 953.25 m | 2GM☉/c² |
 | 1 g flip-and-burn to Andromeda (2.5 Mly) | 28.60 years aboard, 2 500 002 at home | the relativistic-rocket relations |
 | 1 g for one year of ship time | β = 0.7748, 0.564 ly covered | the relativistic-rocket relations |
 | ISS-altitude circular orbit | −24.5 µs/day | this model; see below |
 
-The GPS figures come out right because the ground clock is placed at the WGS 84
+The GPS figures are computed with the ground clock at rest at the WGS 84
 equatorial radius and the satellite at the 26 561 750 m semi-major axis of a
-half-sidereal-day orbit, and because `GM_EARTH` is the IERS and WGS 84 value
-that Ashby's review of relativity in GPS (*Living Reviews in Relativity* 6:1, 2003)
-uses for these figures.
+half-sidereal-day orbit, and with `GM_EARTH`, the IERS and WGS 84 value that
+Ashby's review of relativity in GPS (*Living Reviews in Relativity* 6:1, 2003)
+uses for its satellite-clock figures. Ashby prints the net offset and not the
+split; his ground clock is on the rotating geoid, which is why his net is
+0.137 µs/day higher.
 The exact Schwarzschild computation and the weak-field expansion are both
 implemented and agree to 8·10⁻⁹ of themselves — 3·10⁻⁷ µs/day — which is one
 of the tests.

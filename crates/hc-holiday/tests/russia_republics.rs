@@ -247,7 +247,7 @@ fn mari_el_keeps_no_day_off_of_its_own() {
 
 /// The four republics read and found to keep no day off of their own are a
 /// gap before the first year of the law read, not "no day" for every year
-/// back to 1992 (audit 10, a4): Karelia from 1999 (Закон РК № 346-ЗРК),
+/// back to 1992: Karelia from 1999 (Закон РК № 346-ЗРК),
 /// Khakassia from 2005 (the law of 1992 as restated), Mari El from 2023
 /// (Закон РМЭ № 21-З of 5 July 2022, in force on publication) and Udmurtia
 /// from 2020 (Закон УР № 81-РЗ).

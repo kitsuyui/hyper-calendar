@@ -453,7 +453,6 @@ mod tests {
         ("1972-01-01", 2_441_317.5, 10.0, 41_317.0, 0.0),
     ];
 
-    /// Audit 10, a11: eight of the thirteen start dates were another day.
     /// Every segment starts on its label's day, the day the two published
     /// tables give, and carries their coefficients.
     #[test]

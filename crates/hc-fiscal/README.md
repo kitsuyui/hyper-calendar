@@ -197,7 +197,7 @@ crate declines to encode it and says why.
 
 ## Testing
 
-134 unit tests and 1 doc test. Among them: Japan's 年度 boundary from both sides; the United States
+The crate's tests include: Japan's 年度 boundary from both sides; the United States
 and Japan labelling the same day a year apart; the 92 days of the 1976
 transition quarter belonging to no year; the UK tax year's 6 April start and
 its five-day offset from the government year; the published Solar Hijri years

@@ -12,6 +12,9 @@
 //! module supplies the constants, the decision of when a field needs one,
 //! and a writer that emits the pair.
 //!
+//! `docs/systems/casing-and-bidi.md` says where the first-strong test departs
+//! from UAX 9.
+//!
 //! This is not an implementation of the bidirectional algorithm. It does not
 //! reorder text, does not resolve neutral runs and does not implement the
 //! paragraph-level heuristics beyond the first-strong rule of UAX 9 §P2–P3.

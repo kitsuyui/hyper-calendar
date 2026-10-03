@@ -1370,9 +1370,9 @@ mod tests {
         assert_eq!(excel_1900_day(0), Err(Refusal::OutOfRange));
     }
 
-    /// Audit 10, a12: the TAI second 63 072 008 is, on the USNO relation,
-    /// UTC 63 071 998.107 758 06, so its whole UTC second is 63 071 998;
-    /// the answer was 63 071 999, from `TAI − UTC` taken as 9 s. UTC
+    /// The TAI second 63 072 008 is, on the USNO relation,
+    /// UTC 63 071 998.107 758 06, so its whole UTC second is 63 071 998,
+    /// not the 63 071 999 that `TAI − UTC` taken as 9 s would give. UTC
     /// 63 071 990 is TAI 63 071 999.892 241 7: the offset is 9.892 241 97 s
     /// at 63 071 999 and falls by 3·10⁻⁸ s for each second before it
     /// (exact rational arithmetic on the USNO line). The first TAI second of
@@ -1391,13 +1391,13 @@ mod tests {
         assert_eq!(utc_from_tai(-283_996_799, true), Err(Refusal::NoData));
     }
 
-    /// Audit 10, a13: a day ends in a leap second when the IERS announced
+    /// A day ends in a leap second when the IERS announced
     /// one for it. The IERS Bulletin C history,
     /// <https://hpiers.obspm.fr/iers/bul/bulc/UTC-TAI.history> (read
     /// 2026-10-03), steps `TAI − UTC` by one second on twenty-seven dates,
     /// each the day after the one that ends in the inserted `23:59:60`;
     /// every other day from 1961 on, the 4 017 of the rate era among them,
-    /// ends in none. The predicate answered yes for 4 015 of those 4 017.
+    /// ends in none.
     #[test]
     fn only_the_27_announced_days_end_in_a_leap_second() {
         let unix_day = |year, month, day| {

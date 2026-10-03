@@ -393,10 +393,9 @@ mod tests {
         );
     }
 
-    /// Audit 10, a14: `from_fixed` refused the 362 days of the last
-    /// Gregorian year from its 4 January, because the end of its ISO year was
-    /// read with a range-checked `to_fixed` of the year after it, and the
-    /// facade answered week 1 for them. The expected week dates are from the
+    /// The 362 days of the last Gregorian year from its 4 January have week
+    /// dates: the end of its ISO year is found without a range-checked
+    /// `to_fixed` of the year after it. The expected week dates are from the
     /// algorithm of Wikipedia, "ISO week date", read 2026-10-03: `w = ⌊(10 +
     /// day of year − weekday) / 7⌋`, a year of 53 weeks when `p(y) = 4` or
     /// `p(y − 1) = 3` for `p(y) = (y + ⌊y/4⌋ − ⌊y/100⌋ + ⌊y/400⌋) mod 7`,

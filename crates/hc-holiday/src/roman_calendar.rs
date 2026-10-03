@@ -113,8 +113,7 @@ pub const FIRST_YEAR: i32 = 1970;
 /// copies, with each later decree's changes from its own year. The
 /// years from 1970 to 2001 were kept under the Missal's earlier editions,
 /// whose calendars were not read, and a celebration inscribed between 1970
-/// and 2002 has no year in this table; so each of those years is a gap
-/// (audit 10 a2).
+/// and 2002 has no year in this table; so each of those years is a gap.
 pub const FIRST_YEAR_READ: i32 = 2002;
 
 /// A celebration of the General Roman Calendar.

@@ -55,8 +55,9 @@ impl LocalTime {
     /// The local day number, counted from the body's clock epoch.
     ///
     /// On Earth this is the Rata Die fixed day; on Mars it is the Mars Sol
-    /// Date's integer part; on the Moon it is the Meeus lunation number; on
-    /// everything else it counts from a day this crate declared.
+    /// Date's integer part; on the Moon it counts days that begin at mean new
+    /// moons, which is the Meeus lunation number except within about
+    /// fourteen hours of a true new moon; on everything else it counts from a day this crate declared.
     #[must_use]
     pub const fn day_number(self) -> i64 {
         self.day_number
@@ -100,7 +101,7 @@ impl LocalTime {
 
     /// How long a local hour is in SI seconds.
     ///
-    /// On Earth 3600; on Mars 3699; on Titan 57 490.
+    /// On Earth 3600; on Mars 3699; on Titan 57 488.7.
     #[must_use]
     pub fn local_hour_seconds(self) -> f64 {
         self.solar_day_seconds / 24.0
@@ -389,7 +390,7 @@ mod tests {
                 .at_prime_meridian(at(2020, 1, 1, 0, 0, 0))
                 .local_hour_seconds();
             assert!(
-                (hour - seconds) / seconds < 1e-3,
+                ((hour - seconds) / seconds).abs() < 1e-3,
                 "{name}: {hour} vs {seconds}"
             );
         }
