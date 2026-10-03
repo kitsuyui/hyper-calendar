@@ -2326,11 +2326,15 @@ macro_rules! exports {
             /// `raman`); the full name; the Julian date the anchor is quoted for;
             /// the anchor in degrees there; and where it is from, the Swiss
             /// Ephemeris's sidereal modes, the Calendar Reform Committee's report,
-            /// Drik Panchang's pages or the *Rashtriya Panchang*. The value at another
-            /// moment is the anchor carried by the IAU 2006 general precession, which
-            /// `hc_ayanamsa_at` gives. The readings of Lahiri's differ by up to 25″,
-            /// so each is its own name (`docs/policy.md` §5). A null `buffer` returns
-            /// the length the text needs.
+            /// Drik Panchang's pages or the *Rashtriya Panchang*; and what the anchor
+            /// stands for, `mean` (the precession alone) or `true` (the mean value plus
+            /// the nutation in longitude of the day, which the Committee's and the
+            /// *Rashtriya Panchang*'s printed values are). The value at another moment
+            /// is the anchor carried by the IAU 2006 general precession, and for a
+            /// `true` one by the nutation of each day besides, which `hc_ayanamsa_at`
+            /// gives. The readings of Lahiri's differ by up to 25″, so each is its own
+            /// name (`docs/policy.md` §5). A null `buffer` returns the length the text
+            /// needs.
         }
         fn hc_ayanamsas() -> line =
             || Ok($crate::panchanga_lines::ayanamsas_lines());
@@ -2352,8 +2356,9 @@ macro_rules! exports {
             /// Tab-separated: the ayanāṃśa in degrees at the instant, the angle
             /// between the tropical and the sidereal zero point, about 24.2° in the
             /// 2020s and growing by about 50″ a year; the identifier; the name; the
-            /// anchor's Julian date and degrees, as `hc_ayanamsas` has them; and the
-            /// instant read as whole POSIX seconds. `ayanamsa` is as for
+            /// anchor's Julian date and degrees, as `hc_ayanamsas` has them; the
+            /// instant read as whole POSIX seconds; and `mean` or `true`, what the
+            /// anchor stands for, as `hc_ayanamsas` has it. `ayanamsa` is as for
             /// `hc_panchanga_at`; one not named is `HC_ERR_UNKNOWN`. An instant
             /// outside the years −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null
             /// `buffer` returns the length the text needs.
@@ -2378,7 +2383,8 @@ macro_rules! exports {
             /// For a school this table has not named: `degrees_at_anchor` degrees at
             /// the Julian date `anchor_julian_date`, carried to the instant by the
             /// IAU 2006 general precession as the named ones are. The line is
-            /// `hc_ayanamsa_at`'s, with `custom` as the identifier and the name. An
+            /// `hc_ayanamsa_at`'s, with `custom` as the identifier and the name and
+            /// `mean` as the kind. An
             /// instant or an anchor's Julian date outside the years −1000 to 3000, an
             /// anchor that is not finite and degrees outside −360° to 360° are
             /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
@@ -2390,6 +2396,242 @@ macro_rules! exports {
             degrees_at_anchor: f64,
         ) -> line =
             $crate::panchanga_lines::ayanamsa_from_anchor_line;
+
+        c {
+            /// The two readings of a festival's day where the sects part, as
+            /// NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's, one a reading. Writes the
+            /// required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The two readings of a festival's day where the sects part, as UTF-8
+            /// lines, returning the byte length written.
+            ///
+            /// One line a reading, `smarta` first, tab-separated: the identifier
+            /// `hc_janmashtami` reads; the English name; how the day is taken, in
+            /// words; and where the reading is from. The Smārta reading takes the day
+            /// that holds the part of the day the rite belongs to, which for
+            /// Janmāṣṭamī is the night; the Vaiṣṇava reading, the first day whose
+            /// sunrise carries the tithi. Two competing conventions, each its own name
+            /// (`docs/policy.md` §5).
+        }
+        fn hc_festival_readings() -> line =
+            || Ok($crate::panchanga_lines::festival_readings_lines());
+
+        c {
+            /// The day of Kṛṣṇa Janmāṣṭamī in a Gregorian year at a place by a
+            /// reading, as one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. `reading` is `smarta` or
+            /// `vaishnava`; one not named, or an ayanāṃśa not named, is
+            /// `HC_ERROR_UNKNOWN`; a place beyond the latitude where the Sun
+            /// rises every day, or a year outside 1700 to 2299, is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// The day of Kṛṣṇa Janmāṣṭamī in a Gregorian year at a place by a
+            /// reading, as one UTF-8 line, returning the byte length written.
+            ///
+            /// Tab-separated: the reading's identifier, `smarta` or `vaishnava`, as
+            /// `hc_festival_readings` lists them; the year; the fixed day; its
+            /// Gregorian year, month and day; the tithi the day carries at sunrise
+            /// there (23, Aṣṭamī, or 24 for a Vaiṣṇava day that is Navamī); and the
+            /// ayanāṃśa. Śrāvaṇa kṛṣṇa 8 falls in August or September, in the Śaka year
+            /// the Gregorian one less 78. The place is the latitude and longitude in
+            /// degrees, north and east positive, and the elevation in metres;
+            /// `ayanamsa` is as for `hc_panchanga_at`. A reading or an ayanāṃśa not
+            /// named is `HC_ERR_UNKNOWN`; a place beyond the latitude where the Sun
+            /// rises every day, or a year outside 1700 to 2299, is
+            /// `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the length the text
+            /// needs.
+        }
+        fn hc_janmashtami(
+            year: i64,
+            reading: name(reading_len),
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            |year, reading, latitude, longitude, elevation, ayanamsa| {
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| {
+                        $crate::panchanga_lines::janmashtami_line(year, reading, place, ayanamsa)
+                    })
+            };
+
+        c {
+            /// The Vaiṣṇava day of a tithi of a month of a Śaka year at a place, as
+            /// one NUL-terminated UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A month outside 1 to 12, a Śaka
+            /// year outside 1622 to 2221 or a place beyond the latitude where the Sun
+            /// rises every day is `HC_ERROR_OUT_OF_RANGE`; a tithi outside 1 to 30 is
+            /// `HC_ERROR_INVALID_DATE`; an ayanāṃśa not named is `HC_ERROR_UNKNOWN`.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The Vaiṣṇava day of a tithi of a month of a Śaka year at a place, as
+            /// one UTF-8 line, returning the byte length written.
+            ///
+            /// The first day of the amānta month whose sunrise carries the tithi or a
+            /// later one: the day a tithi holds a sunrise, and the day after for a
+            /// tithi that holds none. Tab-separated: the Śaka year; the month, 1 for
+            /// Chaitra through 12 for Phālguna; the tithi, 1 for śukla pratipadā
+            /// through 30 for amāvasyā; the fixed day; its Gregorian year, month and
+            /// day; the tithi the day carries at sunrise; and the ayanāṃśa. The place
+            /// and `ayanamsa` are as for `hc_janmashtami`. A month outside 1 to 12, a
+            /// Śaka year outside 1622 to 2221 or a place beyond the latitude where the
+            /// Sun rises every day is `HC_ERR_OUT_OF_RANGE`; a tithi outside 1 to 30 is
+            /// `HC_ERR_INVALID_DATE`; an ayanāṃśa not named is `HC_ERR_UNKNOWN`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_vaishnava_day(
+            saka_year: i64,
+            month: u32,
+            tithi: u32,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            |saka_year, month, tithi, latitude, longitude, elevation, ayanamsa| {
+                let month = u8::try_from(month)
+                    .map_err(|_| $crate::boundary::Refusal::OutOfRange)?;
+                let tithi = u8::try_from(tithi)
+                    .map_err(|_| $crate::boundary::Refusal::InvalidDate)?;
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| {
+                        $crate::panchanga_lines::vaishnava_day_line(
+                            saka_year, month, tithi, place, ayanamsa,
+                        )
+                    })
+            };
+
+        c {
+            /// The part of a tithi that Bhadra, the karaṇa Viṣṭi, does not cover, for
+            /// a tithi of a month of a Śaka year at a place, as one NUL-terminated
+            /// UTF-8 line in a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. A month outside 1 to 12, a Śaka
+            /// year outside 1622 to 2221 or a place beyond the latitude where the Sun
+            /// rises every day is `HC_ERROR_OUT_OF_RANGE`; a tithi outside 1 to 30 is
+            /// `HC_ERROR_INVALID_DATE`; an ayanāṃśa not named is `HC_ERROR_UNKNOWN`.
+            /// Writes the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The part of a tithi that Bhadra, the karaṇa Viṣṭi, does not cover, for
+            /// a tithi of a month of a Śaka year at a place, as one UTF-8 line,
+            /// returning the byte length written.
+            ///
+            /// The span Rakṣā Bandhana waits for: the second half of the full moon's
+            /// tithi, and for the fourth tithi of a fortnight the first half; a tithi
+            /// Viṣṭi never falls on has both moments empty. Tab-separated: the Śaka
+            /// year, the month (1 for Chaitra through 12 for Phālguna), the tithi
+            /// (1 through 30), the fixed day of the month's first day, the moments the
+            /// span begins and ends as whole POSIX seconds of Universal Time rounded
+            /// down, and the ayanāṃśa. The place and `ayanamsa` are as for
+            /// `hc_janmashtami`, and the errors as for `hc_vaishnava_day`. A null
+            /// `buffer` returns the length the text needs.
+        }
+        fn hc_vishti_free_span(
+            saka_year: i64,
+            month: u32,
+            tithi: u32,
+            latitude: f64,
+            longitude: f64,
+            elevation: f64,
+            ayanamsa: name(ayanamsa_len),
+        ) -> line =
+            |saka_year, month, tithi, latitude, longitude, elevation, ayanamsa| {
+                let month = u8::try_from(month)
+                    .map_err(|_| $crate::boundary::Refusal::OutOfRange)?;
+                let tithi = u8::try_from(tithi)
+                    .map_err(|_| $crate::boundary::Refusal::InvalidDate)?;
+                $crate::astro_lines::location(latitude, longitude, elevation)
+                    .and_then(|place| {
+                        $crate::panchanga_lines::vishti_free_span_line(
+                            saka_year, month, tithi, place, ayanamsa,
+                        )
+                    })
+            };
+
+        c {
+            /// Rāhu and Ketu at a POSIX timestamp, as one NUL-terminated UTF-8 line in
+            /// a caller-owned buffer.
+            ///
+            /// The line is the WebAssembly module's. An ayanāṃśa not named is
+            /// `HC_ERROR_UNKNOWN`; an instant outside the years −1000 to 3000 is
+            /// `HC_ERROR_OUT_OF_RANGE`. Writes the required length, including the
+            /// terminator, into `written`.
+        }
+        wasm {
+            /// Rāhu and Ketu at a POSIX timestamp, as one UTF-8 line, returning the
+            /// byte length written.
+            ///
+            /// The mean ascending node and the descending node opposite it.
+            /// Tab-separated: `mean`, the kind of node (the true node is not carried);
+            /// Rāhu's sidereal longitude in degrees, the sign it stands in as a number
+            /// from 1 for Meṣa, its identifier and its Sanskrit name; the same four
+            /// for Ketu; the ayanāṃśa, as for `hc_panchanga_at`; and the instant read.
+            /// An ayanāṃśa not named is `HC_ERR_UNKNOWN`; an instant outside the years
+            /// −1000 to 3000 is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns the
+            /// length the text needs.
+        }
+        fn hc_rahu_at(unix_seconds: i64, ayanamsa: name(ayanamsa_len)) -> line =
+            $crate::panchanga_lines::rahu_at_line;
+
+        c {
+            /// The entries of the mean node into the sidereal signs in a span of POSIX
+            /// timestamps, as NUL-terminated UTF-8 lines in a caller-owned buffer.
+            ///
+            /// The lines are the WebAssembly module's. An ayanāṃśa not named is
+            /// `HC_ERROR_UNKNOWN`; a span with an end outside the years −1000 to 3000
+            /// or longer than a hundred Julian years is `HC_ERROR_OUT_OF_RANGE`. Writes
+            /// the required length, including the terminator, into `written`.
+        }
+        wasm {
+            /// The entries of the mean node into the sidereal signs in the half-open
+            /// span `[from, to)` of POSIX timestamps, as UTF-8 lines, returning the
+            /// byte length written.
+            ///
+            /// One line an entry in time order, tab-separated: the moment as whole
+            /// POSIX seconds of Universal Time rounded down; the sign Rāhu leaves, by
+            /// identifier and Sanskrit name; the sign it enters, by the same two; and
+            /// the sign Ketu enters, by the same two, opposite Rāhu's. Rāhu moves
+            /// backward, a sign in about 566 days, so a century has about sixty-five.
+            /// An empty span is no line. An ayanāṃśa not named is `HC_ERR_UNKNOWN`; a
+            /// span with an end outside the years −1000 to 3000 or longer than a
+            /// hundred Julian years is `HC_ERR_OUT_OF_RANGE`. A null `buffer` returns
+            /// the length the text needs.
+        }
+        fn hc_rahu_ingresses(from: i64, to: i64, ayanamsa: name(ayanamsa_len)) -> line =
+            $crate::panchanga_lines::rahu_ingresses_lines;
+
+        c {
+            /// The first day of a year of a historical Indian era over the lunisolar
+            /// months, written to the out-parameter `out_fixed`.
+            ///
+            /// `calendar` is `vikram-samvat-kartikadi`, `rajyabhisheka-saka`,
+            /// `saptarshi`, `gupta`, `valabhi`, `kalachuri` or `lakshmana-sena`; one
+            /// not named is `HC_ERROR_UNKNOWN` and a year outside the months the era is
+            /// read over `HC_ERROR_OUT_OF_RANGE`.
+        }
+        wasm {
+            /// The first day of a year of a historical Indian era over the lunisolar
+            /// months, as a fixed day, or an error sentinel.
+            ///
+            /// `calendar` is `vikram-samvat-kartikadi`, `rajyabhisheka-saka`,
+            /// `saptarshi`, `gupta`, `valabhi`, `kalachuri` or `lakshmana-sena`. The
+            /// day is the era's own: a year opens at Kārttika śukla 1, Āśvina śukla 1
+            /// or Jyeṣṭha śukla 13 as its source states, not at a month's first day.
+            /// One not named is `HC_ERR_UNKNOWN` and a year outside the months the era
+            /// is read over `HC_ERR_OUT_OF_RANGE`.
+        }
+        fn hc_era_new_year(calendar: name(calendar_len), year: i64) -> value(out_fixed: i64) =
+            $crate::panchanga_lines::era_new_year;
 
         c {
             /// The Hindu lunisolar date of a fixed day at a place, as one
@@ -6861,7 +7103,9 @@ macro_rules! exports {
             /// The same as `hc_pushkaram` with the entry computed from the VSOP87B
             /// series for Jupiter in place of the caller's: the entry of Jupiter into
             /// `sign`, from the sign before it, that falls in the Gregorian year, by
-            /// `ayanamsa`. Where Jupiter enters, turns back and enters again, `rule`
+            /// `ayanamsa`, the year of the entry's date at `meridian`, the clock that
+            /// cuts the twelve days: an entry at 19:45 UT on 31 December 2149 is 1
+            /// January 2150 at the Indian meridian. Where Jupiter enters, turns back and enters again, `rule`
             /// says which entry counts: `pushkaram-final-entry`, the one after which
             /// Jupiter stays, which every festival whose dates were read began at, or
             /// `pushkaram-first-entry`, in any case. The first day is as for
@@ -6920,7 +7164,7 @@ macro_rules! exports {
             /// river named in a locale, returning the byte length written.
             ///
             /// What `hc_pushkaram_by_sky` gives for each sign Jupiter enters that year,
-            /// one sign after another in the order of the entries, in one call and one
+            /// the year of the entry's date at `meridian`, one sign after another in the order of the entries, in one call and one
             /// search of the sky where the sign-by-sign form makes twelve: the same
             /// bytes. One line per river of each sign, the columns of
             /// `hc_pushkaram_by_sky`, whose sign columns say which sign a line is

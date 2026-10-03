@@ -163,7 +163,11 @@ facade computes them from the VSOP87B series, in its `jupiter_lines`:
 `hc_kumbh_by_sky` is `hc_kumbh` with `jupiter` found at the occasion's first
 moment, and `hc_pushkaram_by_sky` is `hc_pushkaram` with the entry found in a
 Gregorian year, by `hc_seasons::zodiac::jupiter::entry_into`, under one of the
-two `EntryRule`s. `hc_pushkarams_in_year` is `hc_pushkaram_by_sky` for every
+two `EntryRule`s. The year is the one the entry falls in by the clock of the
+meridian that cuts the twelve days, not by Universal Time: Jupiter's entry into
+Dhanus at 19:45 UT on 31 December 2149 is 01:15 on 1 January 2150 in India and
+is 2150's, with its twelve days of 1 to 12 January, where Universal Time would
+put the entry in 2149 and the days in 2150. `hc_pushkarams_in_year` is `hc_pushkaram_by_sky` for every
 sign Jupiter enters in the year, by `entries_in`, which walks the ingresses
 once for all twelve signs: the same lines, one sign after another in the
 order of the entries, from one search of the sky where twelve calls make

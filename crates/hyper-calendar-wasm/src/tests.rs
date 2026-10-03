@@ -220,6 +220,9 @@ mod tibetan_almanac;
 #[cfg(all(feature = "calendars", feature = "sky"))]
 mod hindu_limbs;
 
+#[cfg(feature = "calendars")]
+mod indian_festivals;
+
 #[cfg(feature = "sky")]
 mod sky_reckonings;
 

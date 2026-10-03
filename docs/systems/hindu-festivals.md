@@ -172,7 +172,18 @@ six from a jyotiṣī's page [onlinejyotish-rakhi-2024]. The karaṇas and the
 rule's measured agreement are in [hindu-calendars.md](hindu-calendars.md).
 Holikā Dahana is the other day the almanacs keep out of Bhadra, and
 `HOLIKA_DAHAN` does not: it takes the evening of the full-moon tithi
-[drik-holika-dahan].
+[drik-holika-dahan]. The `hindu` table therefore carries Drik Panchang's
+own days for New Delhi, 2015 to 2036, as `DRIK_HOLI` (Holī the day after
+in every year), exactly, and `HOLIKA_DAHAN` and `HOLI` approximately before
+and after: the pages and the rule differ by a day in 2016, 2023 and 2026,
+when the full moon begins before the evening of the first day but Bhadra
+runs to 04:30 on the second (2026), and the page lights the fire on the
+second evening, after the tithi has ended (17:07). The page's rule for that
+case prefers Bhadra Punchha between Pradosh and midnight and otherwise
+Pradosh, and the page prints Punchha without defining it; in 2027 the full
+moon begins at 18:21 on 21 March and Bhadra runs to 04:20 on the 22nd, and
+the page keeps the first day. No reading of the page's rule gives both
+years, so the table reads the pages.
 
 **The two Deepavalis, by rule.** `DIWALI` is Lakṣmī Pūjā: the new-moon tithi
 at the probe an hour after sunset, the later day if two. `NARAKA_CHATURDASHI`
@@ -182,7 +193,16 @@ days are a day apart; when the new moon begins between the dawn and the
 evening, as in 2019 to 2026, one day holds both. In 1995 to 2070 the two
 rules give days a day apart in 31 of the 76 years, and never more.
 
-**Smārta and Vaiṣṇava Janmāṣṭamī.** `JANMASHTAMI` is the Smārta day: the
+**Smārta and Vaiṣṇava Janmāṣṭamī.** The two are two conventions, each its
+own identifier (policy §5): `smarta` and `vaishnava`, the catalogue
+`vaishnava::FestivalReading`, listed by `hc_festival_readings` and read by
+`hc_janmashtami(year, reading, place, ayanamsa)`, with
+`vaishnava::smarta_janmashtami` stating the Smārta rule for any place and
+`hc_vaishnava_day` the Vaiṣṇava day of any tithi. The Smārta function and
+`JANMASHTAMI` are one rule written twice, one memoised over a year's festivals
+and one for a single festival; a test of the readings holds the national
+almanac's days to it (6 September 2023, 26 August 2024, 15 August 2025).
+`JANMASHTAMI` is the Smārta day: the
 night on which the eighth tithi holds midnight. The Vaiṣṇava day is the
 first sunrise at or after the eighth tithi, which `vaishnava::janmashtami`
 computes and `hc-holiday` does not register
@@ -297,9 +317,11 @@ different states, which was not read again here.
 
 **Not carried:**
 
-- The Vaiṣṇava Janmāṣṭamī as a registered rule (not yet done:
-  `vaishnava::janmashtami` computes it, and policy §5 asks for an identifier
-  of its own for each convention). Eleven DoPT lists agree with it, as
+- The Vaiṣṇava Janmāṣṭamī as a row of a holiday table (not yet done): it is
+  registered as a reading, `vaishnava` beside `smarta` in
+  `vaishnava::FestivalReading`, which `hc_janmashtami` reads for any place and
+  year, but no table carries it as a rule, and `hindu` keeps the Smārta
+  `JANMASHTAMI` under its own name. Eleven DoPT lists agree with it, as
   Accuracy measures, and no source read states the rule.
 - A rule for the Holī of the lists (no source read): the DoPT keeps Holī a
   day after `HOLI` in 2023, 2026 and 2027, and `HOLA_MOHALLA` gives those
@@ -351,8 +373,8 @@ two:
   give the 21st. Neither choice fits both years, and whether Śravaṇa decides
   2026 too was not checked.
 - Holikā Dahana 2026, which the page gives on 3 March and the rule on the
-  2nd. The module documentation has the reason, and the pages for 2016 and
-  2023 part from the rule in the same way [drik-holika-dahan].
+  2nd, and the pages for 2016 and 2023 part from the rule in the same way
+  [drik-holika-dahan]. The `hindu` table reads the pages for those years.
 
 Of the pages' choices of day, Janmāṣṭamī of 2021 and 2025 are in the worked
 examples, and Rakṣā Bandhana's 75 of 76 years of 1995 to 2070 are in
@@ -401,7 +423,8 @@ and 2024, Rakṣā Bandhana and Gaṇeśa Caturthī 2022, Gaṇeśa Caturthī an
 Śivarātri 2026, and Naraka Caturdaśī in 2017, 2018, 2022, 2024, 2026 and 2027
 [dopt-holidays-2017-2018-2027, dopt-holidays-2019-2024,
 dopt-holidays-2026-pages, dopt-holidays-2025-2027]. Holikā Dahana on 3 March
-2026, against the rule's 2nd, is the one that parts.
+2026, against the rule's 2nd, is the one that parts; the `hindu` table
+gives the page's day.
 
 Guru Nānak's Birthday on the sunrise tithi gives all eleven of the lists'
 days where the midday gives ten: 2027's tithi is the fifteenth from 09:56 on

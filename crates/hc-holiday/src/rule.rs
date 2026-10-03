@@ -1907,9 +1907,10 @@ impl<K: Ord, V: Copy> Memo<K, V> {
 #[cfg(feature = "alloc")]
 type LocationKey = [u64; 3];
 
-/// An ayanāṃśa as a memo key: its name and the bits of its anchor.
+/// An ayanāṃśa as a memo key: its name, the bits of its anchor and whether
+/// the anchor is a mean or a true value.
 #[cfg(feature = "alloc")]
-type AyanamsaKey = (&'static str, u64, u64);
+type AyanamsaKey = (&'static str, u64, u64, u64);
 
 /// A Hindu month as a memo key: the calendar's place and ayanāṃśa, the
 /// Śaka year and the month.
@@ -1936,6 +1937,7 @@ fn ayanamsa_key(ayanamsa: Ayanamsa) -> AyanamsaKey {
         ayanamsa.name(),
         ayanamsa.anchor_julian_date().to_bits(),
         ayanamsa.degrees_at_anchor().to_bits(),
+        ayanamsa.kind() as u64,
     )
 }
 
@@ -2987,6 +2989,35 @@ impl HolidayRule {
             valid_until: until,
             ..self
         }
+    }
+
+    /// The days a table of announced dates gives this holiday for the years
+    /// `first` to `last` it was read for, at `confidence`, and this rule's own
+    /// days, approximate, in the years before and after, which the rule's
+    /// first year (ADR 0013) then leaves a gap where it does not reach.
+    ///
+    /// Three rows, to be placed side by side in a table: the one that reads
+    /// the table, the one for the years before it and the one for the years
+    /// after.
+    #[must_use]
+    pub const fn read_in(
+        self,
+        entry: ListedEntry,
+        first: i32,
+        last: i32,
+        confidence: Confidence,
+    ) -> [Self; 3] {
+        let read = Self {
+            rule: Rule::listed(entry, first as i64, last as i64),
+            confidence,
+            ..self
+        }
+        .years(Some(first), Some(last));
+        [
+            read,
+            self.approximate().years(None, Some(first - 1)),
+            self.approximate().years(Some(last + 1), None),
+        ]
     }
 
     /// The same rule, answered only from `first`, the first year its

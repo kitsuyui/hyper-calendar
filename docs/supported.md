@@ -504,7 +504,7 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `gosekku` | The five seasonal festivals of Japan (五節句) | 5 |
 | `hatsuuma` | Hatsuuma, the first Horse day of February (初午) | 3 |
 | `hatsuuma-lunar` | Hatsuuma on the Japanese lunar calendar (旧暦の初午) | 1 |
-| `hindu` | Hinduism | 20 |
+| `hindu` | Hinduism | 24 |
 | `inoko` | Inoko, the first Boar day of the tenth lunar month (亥の子) | 1 |
 | `inoko-november` | Inoko, the first Boar day of November (亥の子) | 1 |
 | `iranian-festivals` | Iranian festivals | 4 |

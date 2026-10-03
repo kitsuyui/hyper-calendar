@@ -495,6 +495,25 @@ const fn lunisolar(
     }
 }
 
+/// A lunisolar calendar's months and its era: the intercalary prefix, and
+/// the era codes with their names.
+const fn lunisolar_era(
+    calendars: &'static [CalendarId],
+    months: &'static [CycleNames],
+    leap_month_prefix: &'static str,
+    era_codes: &'static [&'static str],
+    era_names: &'static [&'static str],
+) -> CalendarNames {
+    CalendarNames {
+        eras: EraNames {
+            codes: era_codes,
+            names: widths(era_names, &[], &[]),
+            calendars: &[],
+        },
+        ..lunisolar(calendars, months, leap_month_prefix)
+    }
+}
+
 const fn dated(
     calendars: &'static [CalendarId],
     months: &'static [CycleNames],
@@ -4558,6 +4577,23 @@ const HI_SAKA_MONTHS: &[&str] = &[
     "फाल्गुन",
 ];
 
+/// The same twelve months from Kārttika, as the eras whose year opens at
+/// Kārttika śukla 1 number them (Sewell and Dikshit, Art. 71).
+const HI_KARTTIKADI_MONTHS: &[&str] = &[
+    "कार्तिक",
+    "अग्रहायण",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+    "चैत्र",
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ़",
+    "श्रावण",
+    "भाद्रपद",
+    "अश्विन",
+];
+
 const HI_VIKRAMI_MONTHS: &[&str] = &[
     "वैशाख",
     "ज्येष्ठ",
@@ -4635,6 +4671,34 @@ const HI_CALENDARS: &[CalendarNames] = &[
         ],
         &[months(HI_SAKA_MONTHS)],
         "अधिक ",
+    ),
+    // The historical eras over the lunisolar months: the months as the
+    // lunisolar calendars above, from Chaitra, and from Kārttika for the
+    // eras whose year opens there, each era under the name Hindi
+    // Wikipedia's "अब्द" article gives it (`wikipedia-hi-abda`, read
+    // 2026-10-04); the Vikrama Saṃvat as its own article is titled.
+    lunisolar_era(
+        &[
+            CalendarId("rajyabhisheka-saka"),
+            CalendarId("saptarshi"),
+            CalendarId("gupta"),
+            CalendarId("kalachuri"),
+        ],
+        &[months(HI_SAKA_MONTHS)],
+        "अधिक ",
+        &["rajyabhisheka-saka", "saptarshi", "gupta", "kalachuri"],
+        &["राज्याभिषेक संवत्", "सप्तर्षि संवत्", "गुप्त संवत्", "कलचुरि संवत्"],
+    ),
+    lunisolar_era(
+        &[
+            CalendarId("vikram-samvat-kartikadi"),
+            CalendarId("valabhi"),
+            CalendarId("lakshmana-sena"),
+        ],
+        &[months(HI_KARTTIKADI_MONTHS)],
+        "अधिक ",
+        &["vs", "valabhi", "lakshmana-sena"],
+        &["विक्रम संवत", "वलभी संवत्", "लक्ष्मणसेन संवत्"],
     ),
     dated(
         &[CalendarId("hindu-solar-vikrami")],
@@ -6661,6 +6725,22 @@ const SA_LUNAR_MONTHS: &[&str] = &[
     "फाल्गुन",
 ];
 
+/// The twelve months from Kārttika, for the eras whose year opens there.
+const SA_KARTTIKADI_MONTHS: &[&str] = &[
+    "कार्तिक",
+    "मार्गशीर्ष",
+    "पौष",
+    "माघ",
+    "फाल्गुन",
+    "चैत्र",
+    "वैशाख",
+    "ज्येष्ठ",
+    "आषाढ",
+    "श्रावण",
+    "भाद्रपद",
+    "आश्विन",
+];
+
 const SA_VIKRAMI_MONTHS: &[&str] = &[
     "वैशाख",
     "ज्येष्ठ",
@@ -6731,6 +6811,30 @@ const SA_CALENDARS: &[CalendarNames] = &[
             CalendarId("hindu-lunar-purnimanta"),
         ],
         &[months(SA_LUNAR_MONTHS)],
+        "अधिक ",
+    ),
+    // The historical eras over the lunisolar months, with the months of the
+    // lunisolar calendars above, from Chaitra or, for the eras whose year
+    // opens at Kārttika śukla 1, from Kārttika. No Sanskrit name of an era
+    // was found in a source read, so the era is named as the lunisolar
+    // calendars' Śaka is, in the fallback language.
+    lunisolar(
+        &[
+            CalendarId("rajyabhisheka-saka"),
+            CalendarId("saptarshi"),
+            CalendarId("gupta"),
+            CalendarId("kalachuri"),
+        ],
+        &[months(SA_LUNAR_MONTHS)],
+        "अधिक ",
+    ),
+    lunisolar(
+        &[
+            CalendarId("vikram-samvat-kartikadi"),
+            CalendarId("valabhi"),
+            CalendarId("lakshmana-sena"),
+        ],
+        &[months(SA_KARTTIKADI_MONTHS)],
         "अधिक ",
     ),
     dated(

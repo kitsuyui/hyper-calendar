@@ -23,6 +23,7 @@ use alloc::string::String;
 use hc_astro::riseset::{Location, sunrise};
 use hc_calendar::Rd;
 use hc_calendar::fixed::Moment;
+use hc_calendars_indic::HinduLunarCalendar;
 use hc_calendars_indic::nakshatra::{nakshatra_at, nakshatra_id, nakshatra_name, nakshatra_span};
 use hc_calendars_indic::panchanga::{
     KARANA_NAMES, KARANA_NAMES_DEVANAGARI, YOGA_NAMES, YOGA_NAMES_DEVANAGARI, karana_at,
@@ -30,9 +31,10 @@ use hc_calendars_indic::panchanga::{
 };
 use hc_calendars_indic::surya_siddhanta::{self, MAX_SUNRISE_LATITUDE};
 use hc_calendars_indic::tithi::{self, Paksha, paksha_of, tithi_name};
-use hc_calendars_indic::{amrita_siddhi, muhurta};
+use hc_calendars_indic::{amrita_siddhi, muhurta, panchanga, vaishnava};
 use hc_core::catalogue::matches;
-use hc_seasons::zodiac::Ayanamsa;
+use hc_core::math::floor;
+use hc_seasons::zodiac::{Ayanamsa, AyanamsaKind, SiderealSign, node};
 
 #[cfg(feature = "i18n")]
 use hc_calendars_indic::kalam::{Kalam, KalamConvention, SpanClock};
@@ -380,13 +382,16 @@ pub fn tithis_of_day_lines(fixed: i64, place: Location, sky_name: &str) -> Answe
 }
 
 /// How many columns each line of [`ayanamsas_lines`] writes.
-pub const AYANAMSA_COLUMNS: usize = 5;
+pub const AYANAMSA_COLUMNS: usize = 6;
 
 /// The lines of `hc_ayanamsas`: every named ayanāṃśa, [`Ayanamsa::ALL`],
 /// one a line in the table's order — the identifier [`ayanamsa`] reads back,
 /// the full name, the Julian date its anchor is quoted for, the anchor in
-/// degrees and where the anchor is from. The value at another moment is
-/// the anchor carried by the IAU 2006 general precession.
+/// degrees, where the anchor is from, and what the anchor stands for: `mean`
+/// or `true` (the mean value plus the nutation in longitude of the day, as
+/// [`hc_seasons::zodiac::AyanamsaKind`] has it). The value at another moment
+/// is the anchor carried by the IAU 2006 general precession, and for a `true`
+/// one by the nutation of each day besides.
 #[must_use]
 pub fn ayanamsas_lines() -> String {
     let mut out = String::new();
@@ -396,10 +401,19 @@ pub fn ayanamsas_lines() -> String {
             .cell(ayanamsa.name())
             .value(ayanamsa.anchor_julian_date())
             .value(ayanamsa.degrees_at_anchor())
-            .cell(ayanamsa.source());
+            .cell(ayanamsa.source())
+            .cell(kind_cell(*ayanamsa));
         line.end();
     }
     out
+}
+
+/// The cell naming what an ayanāṃśa's anchor stands for.
+fn kind_cell(ayanamsa: Ayanamsa) -> &'static str {
+    match ayanamsa.kind() {
+        AyanamsaKind::Mean => "mean",
+        AyanamsaKind::True => "true",
+    }
 }
 
 /// The line of one ayanāṃśa's value: the degrees, the identifier and name
@@ -413,17 +427,19 @@ fn ayanamsa_value_line(ayanamsa: Ayanamsa, moment: Moment, read_at: i64) -> Stri
         .cell(ayanamsa.name())
         .value(ayanamsa.anchor_julian_date())
         .value(ayanamsa.degrees_at_anchor())
-        .value(read_at);
+        .value(read_at)
+        .cell(kind_cell(ayanamsa));
     line.end();
     out
 }
 
 /// How many columns each line of [`ayanamsa_at_line`] writes.
-pub const AYANAMSA_VALUE_COLUMNS: usize = 6;
+pub const AYANAMSA_VALUE_COLUMNS: usize = 7;
 
 /// The line of `hc_ayanamsa_at`: a named ayanāṃśa's value in degrees at a
 /// Universal Time instant, then its identifier, its name, its anchor's Julian
-/// date and degrees, and the instant read.
+/// date and degrees, the instant read, and `mean` or `true` for what the
+/// anchor stands for (see [`ayanamsas_lines`]).
 ///
 /// # Errors
 ///
@@ -442,7 +458,7 @@ pub fn ayanamsa_at_line(universal_unix: i64, ayanamsa_name: &str) -> Answer<Stri
 /// Universal Time instant of an ayanāṃśa a caller anchors, `degrees` at the
 /// Julian date `anchor_julian_date`, carried by the IAU 2006 general
 /// precession as the named ones are; the columns of [`ayanamsa_at_line`],
-/// with `custom` as the identifier and name.
+/// with `custom` as the identifier and name and `mean` as the kind.
 ///
 /// # Errors
 ///
@@ -686,6 +702,305 @@ pub fn kalam_lines(convention: &str, fixed: i64, place: Location, locale: &str) 
     Ok(out)
 }
 
+/// How many columns each line of [`festival_readings_lines`] writes.
+pub const FESTIVAL_READING_COLUMNS: usize = 4;
+
+/// The lines of `hc_festival_readings`: the readings of a festival's day
+/// where the sects part, [`vaishnava::FestivalReading::ALL`], one a line in
+/// the table's order — the identifier `hc_janmashtami` reads back, the
+/// English name, how the day is taken in words, and where the reading is
+/// from.
+#[must_use]
+pub fn festival_readings_lines() -> String {
+    let mut out = String::new();
+    for reading in vaishnava::FestivalReading::ALL {
+        let mut line = Line::new(&mut out);
+        line.cell(reading.id)
+            .cell(reading.english_name)
+            .cell(reading.rule)
+            .cell(reading.source);
+        line.end();
+    }
+    out
+}
+
+/// The reading an identifier names: `smarta` or `vaishnava`.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for any other text.
+fn festival_reading(id: &str) -> Answer<vaishnava::FestivalReading> {
+    vaishnava::FestivalReading::by_id(id).ok_or(Refusal::Unknown)
+}
+
+/// The refusal of a festival day's calendar error: a year or month the
+/// calendar does not cover is out of its range, and a tithi that does not
+/// exist is an invalid date.
+fn festival_refusal(error: hc_calendar::CalendarError) -> Refusal {
+    use hc_calendar::CalendarError;
+    match error {
+        CalendarError::YearOutOfRange | CalendarError::MonthOutOfRange => Refusal::OutOfRange,
+        other => Refusal::from(other),
+    }
+}
+
+/// How many columns each line of [`janmashtami_line`] writes.
+pub const JANMASHTAMI_COLUMNS: usize = 8;
+
+/// How many columns each line of [`vaishnava_day_line`] writes.
+pub const VAISHNAVA_DAY_COLUMNS: usize = 9;
+
+/// The cells of a festival's day: the fixed day, its Gregorian date, the
+/// tithi the day carries at sunrise there, and the ayanāṃśa.
+fn festival_day_cells(line: &mut Line<'_>, day: Rd, calendar: &HinduLunarCalendar, id: &str) {
+    let (year, month, date) = hc_calendars_solar::gregorian::from_fixed(day).unwrap_or((0, 0, 0));
+    let sunrise_tithi = calendar.from_fixed(day).map_or(0, |date| date.day);
+    line.value(day.0)
+        .value(year)
+        .value(month)
+        .value(date)
+        .value(sunrise_tithi)
+        .cell(id);
+}
+
+/// The line of `hc_janmashtami`: the day of Kṛṣṇa Janmāṣṭamī in a Gregorian
+/// year, at a place, by a reading — the reading's identifier, the year, the
+/// fixed day, its Gregorian year, month and day, the tithi the day carries
+/// at sunrise there (the eighth, 23 or 24 for a Vaiṣṇava day that is a
+/// Navamī), and the ayanāṃśa. Śrāvaṇa falls in August or September, in the
+/// Śaka year the Gregorian one less 78.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for a reading or an ayanāṃśa not named;
+/// [`Refusal::OutOfRange`] for a place beyond the latitude where the Sun
+/// rises every day or a year outside the calendar's, 1700 to 2299; a day
+/// on which the Sun does not rise there is [`Refusal::NoData`].
+pub fn janmashtami_line(
+    year: i64,
+    reading: &str,
+    place: Location,
+    ayanamsa_name: &str,
+) -> Answer<String> {
+    let reading = festival_reading(reading)?;
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let place = sunrise_place(place)?;
+    let calendar = HinduLunarCalendar::new(place, ayanamsa);
+    let day = vaishnava::janmashtami_by(reading, &calendar, year).map_err(festival_refusal)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell(reading.id).value(year);
+    festival_day_cells(&mut line, day, &calendar, ayanamsa_name);
+    line.end();
+    Ok(out)
+}
+
+/// The line of `hc_vaishnava_day`: the Vaiṣṇava day of a tithi of an amānta
+/// month of a Śaka year at a place — the first day whose sunrise carries the
+/// tithi or a later one — as `vaishnava` and the Śaka year, then the cells
+/// of [`janmashtami_line`]'s, the month and the tithi in the place of the
+/// reading and the year.
+///
+/// The month is 1 for Chaitra through 12 for Phālguna and the tithi 1
+/// through 30, counted through the month from śukla pratipadā.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa not named; [`Refusal::OutOfRange`]
+/// for a place beyond the latitude where the Sun rises every day, a Śaka
+/// year outside 1622 to 2221 or a month outside 1 to 12;
+/// [`Refusal::InvalidDate`] for a tithi outside 1 to 30.
+pub fn vaishnava_day_line(
+    saka_year: i64,
+    month: u8,
+    tithi: u8,
+    place: Location,
+    ayanamsa_name: &str,
+) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let place = sunrise_place(place)?;
+    if !(1..=12).contains(&month) {
+        return Err(Refusal::OutOfRange);
+    }
+    let calendar = HinduLunarCalendar::new(place, ayanamsa);
+    let day = vaishnava::day_of(&calendar, saka_year, month, tithi).map_err(festival_refusal)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(saka_year).value(month).value(tithi);
+    festival_day_cells(&mut line, day, &calendar, ayanamsa_name);
+    line.end();
+    Ok(out)
+}
+
+/// How many columns each line of [`vishti_free_span_line`] writes.
+pub const VISHTI_FREE_SPAN_COLUMNS: usize = 7;
+
+/// The line of `hc_vishti_free_span`: the part of a tithi that Bhadra, the
+/// karaṇa Viṣṭi, does not cover, for the tithi of an amānta month of a Śaka
+/// year at a place — the Śaka year, the month, the tithi, the first day of
+/// the month (the fixed day), the moments the span begins and ends as whole
+/// POSIX seconds of Universal Time, rounded down, and the ayanāṃśa. It is
+/// the second half of the full moon's tithi, the part Rakṣā Bandhana waits
+/// for, and of the fourth tithi of each fortnight the first half.
+///
+/// A tithi on which Viṣṭi never falls is an answer with both moments empty.
+///
+/// # Errors
+///
+/// As [`vaishnava_day_line`].
+pub fn vishti_free_span_line(
+    saka_year: i64,
+    month: u8,
+    tithi: u8,
+    place: Location,
+    ayanamsa_name: &str,
+) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let place = sunrise_place(place)?;
+    if !(1..=12).contains(&month) {
+        return Err(Refusal::OutOfRange);
+    }
+    if !(1..=30).contains(&tithi) {
+        return Err(Refusal::InvalidDate);
+    }
+    let calendar = HinduLunarCalendar::new(place, ayanamsa);
+    let (first, _) = calendar
+        .month_span(saka_year, month, false)
+        .map_err(festival_refusal)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.value(saka_year)
+        .value(month)
+        .value(tithi)
+        .value(first.0);
+    match panchanga::vishti_free_span(tithi, first) {
+        Some((from, to)) => {
+            line.value(unix_from_moment(from))
+                .value(unix_from_moment(to));
+        }
+        None => {
+            line.empties(2);
+        }
+    }
+    line.cell(ayanamsa_name);
+    line.end();
+    Ok(out)
+}
+
+/// The fixed day on which year `year` of a historical Indian era over the
+/// lunisolar months begins, for `hc_era_new_year`: one of
+/// [`hc_calendars_indic::lunar_era::ALL`] by its identifier (`vikram-samvat-kartikadi`,
+/// `rajyabhisheka-saka`, `saptarshi`, `gupta`, `valabhi`, `kalachuri` or
+/// `lakshmana-sena`).
+///
+/// An era's year opens at the first day of a month or in the middle of one
+/// (Kārttika śukla 1 for the Kārttikādi years, Āśvina śukla 1 for the
+/// Chedi, Jyeṣṭha śukla 13 for Śivājī's), so the day is the era's own and
+/// not the first of a month.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an identifier that is not one of these
+/// eras; [`Refusal::OutOfRange`] for a year outside the months the era is
+/// read over.
+pub fn era_new_year(calendar: &str, year: i64) -> Answer<i64> {
+    let era = hc_calendars_indic::lunar_era::ALL
+        .iter()
+        .find(|era| era.id.0 == calendar)
+        .ok_or(Refusal::Unknown)?;
+    era.new_year(year)
+        .map(|day| day.0)
+        .map_err(festival_refusal)
+}
+
+/// How many columns each line of [`rahu_at_line`] writes.
+pub const RAHU_AT_COLUMNS: usize = 11;
+
+/// The longest span [`rahu_ingresses_lines`] accepts, in seconds: a hundred
+/// Julian years.
+pub const MAX_NODE_SPAN_SECONDS: i64 = 100 * 31_557_600;
+
+/// The cells of a node's place: its sidereal longitude in degrees, the
+/// sign by number from 1 for Meṣa, identifier and Sanskrit name.
+fn node_place_cells(line: &mut Line<'_>, longitude: f64) {
+    let index = floor(longitude / 30.0) as u8 % 12;
+    let sign = SiderealSign::from_index(index).unwrap_or(SiderealSign::MESHA);
+    line.value(longitude)
+        .value(index + 1)
+        .cell(sign.id())
+        .cell(sign.sanskrit_name());
+}
+
+/// The line of `hc_rahu_at`: Rāhu and Ketu at a Universal Time instant —
+/// `mean`, the kind of node (the true node is not carried), Rāhu's
+/// sidereal longitude in degrees and the sign it is in as a number from 1,
+/// identifier and Sanskrit name, then Ketu's longitude and sign the same way
+/// (opposite, 180° on), the ayanāṃśa and the instant read.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa not named; [`Refusal::OutOfRange`]
+/// for an instant outside the sky layer's era.
+pub fn rahu_at_line(universal_unix: i64, ayanamsa_name: &str) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let moment = moment_in_era(universal_unix)?;
+    let mut out = String::new();
+    let mut line = Line::new(&mut out);
+    line.cell("mean");
+    node_place_cells(&mut line, node::rahu_longitude(moment, ayanamsa));
+    node_place_cells(&mut line, node::ketu_longitude(moment, ayanamsa));
+    line.cell(ayanamsa_name).value(universal_unix);
+    line.end();
+    Ok(out)
+}
+
+/// How many columns each line of [`rahu_ingresses_lines`] writes.
+pub const RAHU_INGRESS_COLUMNS: usize = 7;
+
+/// The lines of `hc_rahu_ingresses`: the entries of the mean node into the
+/// sidereal signs in the half-open span `[from, to)` of POSIX seconds, in
+/// time order — the moment as whole POSIX seconds of Universal Time,
+/// rounded down, the sign Rāhu leaves and the one it enters, each by
+/// identifier and Sanskrit name, and the identifier of the sign Ketu
+/// enters (the one opposite Rāhu's). Rāhu moves backward, a sign in about 566
+/// days.
+///
+/// # Errors
+///
+/// [`Refusal::Unknown`] for an ayanāṃśa not named; [`Refusal::OutOfRange`]
+/// for a span with an end outside the sky layer's era or longer than
+/// [`MAX_NODE_SPAN_SECONDS`].
+pub fn rahu_ingresses_lines(from: i64, to: i64, ayanamsa_name: &str) -> Answer<String> {
+    let ayanamsa = ayanamsa(ayanamsa_name)?;
+    let start = moment_in_era(from)?;
+    if to <= from {
+        return Ok(String::new());
+    }
+    let end = moment_in_era(to - 1)?;
+    if to - from > MAX_NODE_SPAN_SECONDS {
+        return Err(Refusal::OutOfRange);
+    }
+    let mut out = String::new();
+    for ingress in node::ingresses(start, Moment(end.0 + 1.0 / 86_400.0), ayanamsa) {
+        let unix = unix_from_moment(ingress.moment);
+        if unix >= to {
+            break;
+        }
+        let ketu = SiderealSign::from_index((ingress.rahu_into.index() + 6) % 12)
+            .unwrap_or(SiderealSign::MESHA);
+        let mut line = Line::new(&mut out);
+        line.value(unix)
+            .cell(ingress.rahu_from.id())
+            .cell(ingress.rahu_from.sanskrit_name())
+            .cell(ingress.rahu_into.id())
+            .cell(ingress.rahu_into.sanskrit_name())
+            .cell(ketu.id())
+            .cell(ketu.sanskrit_name());
+        line.end();
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -810,6 +1125,18 @@ mod tests {
             .find(|row| row[0] == "lahiri-crc-1955")
             .expect("a row");
         assert_eq!((crc[2].as_str(), crc[3].as_str()), ("2435553.5", "23.25"));
+        // The Committee's and the Rashtriya Panchang's printed values are
+        // true ones, the Swiss Ephemeris's and Drik Panchang's mean.
+        let kind = |id: &str| {
+            table
+                .iter()
+                .find(|row| row[0] == id)
+                .map(|row| row[5].clone())
+        };
+        assert_eq!(kind("lahiri-crc-1955").as_deref(), Some("true"));
+        assert_eq!(kind("lahiri-rashtriya").as_deref(), Some("true"));
+        assert_eq!(kind("lahiri").as_deref(), Some("mean"));
+        assert_eq!(kind("lahiri-drik").as_deref(), Some("mean"));
         let day = |year| {
             hc_calendars_solar::gregorian::to_fixed(year, 1, 1)
                 .expect("a date")
@@ -821,6 +1148,7 @@ mod tests {
         let degrees: f64 = row[0][0].parse().expect("degrees");
         assert!((degrees - 24.213_067).abs() < 3e-4, "{degrees}");
         assert_eq!(row[0][1..3], ["lahiri-drik", "Lahiri (Drik Panchang)"]);
+        assert_eq!(row[0][6], "mean");
         // An anchor a caller gives is read back at its own Julian date.
         let march_1956 = (hc_calendars_solar::gregorian::to_fixed(1956, 3, 21)
             .expect("a date")
@@ -833,7 +1161,14 @@ mod tests {
         let degrees: f64 = custom[0][0].parse().expect("degrees");
         assert!((degrees - 23.25).abs() < 1e-6, "{degrees}");
         assert_eq!(custom[0][1..3], ["custom", "custom"]);
-        // The named Lahiri sits 17.3 arcseconds below the Committee's on that day.
+        assert_eq!(custom[0][6], "mean");
+        // The Committee's own reading is its printed 23°15′0″ on that day
+        // and a true value; the named Lahiri sits 17.3 arcseconds below it.
+        let committee =
+            rows_of(&ayanamsa_at_line(march_1956, "lahiri-crc-1955").expect("in the era"));
+        let degrees: f64 = committee[0][0].parse().expect("degrees");
+        assert!((degrees - 23.25).abs() < 1e-6, "{degrees}");
+        assert_eq!(committee[0][6], "true");
         let lahiri: f64 = rows_of(&ayanamsa_at_line(march_1956, "lahiri").expect("in the era"))[0]
             [0]
         .parse()
@@ -1126,5 +1461,208 @@ mod tests {
             panchanga_at_lines(-200_000_000_000, "surya-siddhanta"),
             Err(Refusal::OutOfRange)
         );
+    }
+    /// The POSIX second of a Universal Time date and time.
+    fn unix(year: i64, month: u8, date: u8, hour: i64, minute: i64) -> i64 {
+        (day(year, month, date) - hc_calendar::fixed::RD_OF_UNIX_EPOCH) * 86_400
+            + hour * 3_600
+            + minute * 60
+    }
+
+    const TOKYO: Location = Location::new(35.6894, 139.6917, 0.0);
+
+    /// Drik Panchang's ISKCON Janmashtami dates for Tokyo
+    /// (`drik-iskcon-janmashtami`, read 2026-10-03) and the days the
+    /// *Rashtriya Panchang* lists, 6 September 2023 and 26 August 2024
+    /// (`rashtriya-panchang-1946`), through the boundary's lines.
+    #[test]
+    fn the_two_readings_of_janmashtami_are_listed_and_read() {
+        let table = rows_of(&festival_readings_lines());
+        assert_eq!(table.len(), vaishnava::FestivalReading::ALL.len());
+        assert!(
+            table
+                .iter()
+                .all(|row| row.len() == FESTIVAL_READING_COLUMNS)
+        );
+        assert_eq!(table[0][0], "smarta");
+        assert_eq!(table[1][0], "vaishnava");
+        let read = |year, reading, place| {
+            let text = janmashtami_line(year, reading, place, "lahiri").expect("a day");
+            let row = rows_of(&text).remove(0);
+            assert_eq!(row.len(), JANMASHTAMI_COLUMNS);
+            (row[2].parse::<i64>().expect("a day"), row)
+        };
+        // Tokyo's list: 27 August 2024, 16 August 2025, 5 September 2026.
+        for (year, month, date) in [(2024, 8, 27), (2025, 8, 16), (2026, 9, 5), (2034, 9, 6)] {
+            let (fixed, row) = read(year, "vaishnava", TOKYO);
+            assert_eq!(fixed, day(year, month, date), "{year}");
+            assert_eq!(row[0], "vaishnava");
+            assert_eq!(
+                [&*row[3], &*row[4], &*row[5]],
+                [&*year.to_string(), &*month.to_string(), &*date.to_string()]
+            );
+        }
+        // The national almanac's Smārta days, at the Central Station.
+        let station = HinduLunarCalendar::RASHTRIYA.location;
+        for (year, month, date) in [(2023, 9, 6), (2024, 8, 26), (2025, 8, 15)] {
+            let (fixed, row) = read(year, "smarta", station);
+            assert_eq!(fixed, day(year, month, date), "{year}");
+            assert_eq!(row[0], "smarta");
+        }
+        assert_eq!(
+            janmashtami_line(2025, "iskcon", station, "lahiri"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            janmashtami_line(2025, "smarta", station, "nope"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            janmashtami_line(1000, "smarta", station, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            janmashtami_line(2025, "smarta", Location::new(70.0, 0.0, 0.0), "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Śrāvaṇa kṛṣṇa 8 of Śaka 1947 at Tokyo is Drik Panchang's ISKCON day,
+    /// 16 August 2025, and any tithi has its Vaiṣṇava day.
+    #[test]
+    fn the_vaishnava_day_of_a_tithi_is_the_first_sunrise_that_carries_it() {
+        let text = vaishnava_day_line(1947, 5, 23, TOKYO, "lahiri").expect("a day");
+        let row = rows_of(&text).remove(0);
+        assert_eq!(row.len(), VAISHNAVA_DAY_COLUMNS);
+        assert_eq!(row[..3], ["1947", "5", "23"]);
+        assert_eq!(row[3], day(2025, 8, 16).to_string());
+        assert!(row[7] == "23" || row[7] == "24", "{row:?}");
+        assert_eq!(
+            vaishnava_day_line(1947, 5, 31, TOKYO, "lahiri"),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(
+            vaishnava_day_line(1947, 13, 1, TOKYO, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            vaishnava_day_line(1947, 5, 23, TOKYO, "nope"),
+            Err(Refusal::Unknown)
+        );
+        assert_eq!(
+            vaishnava_day_line(1000, 5, 23, TOKYO, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Bhadra of Rakṣā Bandhana 2024 ended at 13:33 IST on 19 August, as
+    /// the page the library follows prints it (`onlinejyotish-rakhi-2024`,
+    /// secondary), 08:03 UT, and the free half runs to the end of the
+    /// tithi.
+    #[test]
+    fn the_free_span_of_the_full_moon_begins_where_bhadra_ends() {
+        let station = HinduLunarCalendar::RASHTRIYA.location;
+        let text = vishti_free_span_line(1946, 5, 15, station, "lahiri").expect("a span");
+        let row = rows_of(&text).remove(0);
+        assert_eq!(row.len(), VISHTI_FREE_SPAN_COLUMNS);
+        let from: i64 = row[4].parse().expect("an instant");
+        let to: i64 = row[5].parse().expect("an instant");
+        assert!((from - unix(2024, 8, 19, 8, 3)).abs() <= 600, "{from}");
+        assert!(to > from && to - from < 86_400);
+        assert_eq!(row[6], "lahiri");
+        // The fourth tithi has a free half too; the first never meets Viṣṭi.
+        let first = vishti_free_span_line(1946, 5, 1, station, "lahiri").expect("a span");
+        assert!(rows_of(&first)[0][4].is_empty() || !rows_of(&first)[0][5].is_empty());
+        assert_eq!(
+            vishti_free_span_line(1946, 5, 0, station, "lahiri"),
+            Err(Refusal::InvalidDate)
+        );
+        assert_eq!(
+            vishti_free_span_line(1946, 0, 15, station, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+
+    /// Drik Panchang's mean Rāhu transits for New Delhi
+    /// (`drik-rahu-transit`, read 2026-10-03): Rāhu enters Kumbha on 18 May
+    /// 2025 at 16:30 IST, Mīna on 30 October 2023, Makara on 5 December
+    /// 2026, with Drik's ayanāṃśa; Ketu stands opposite.
+    #[test]
+    fn rahu_and_ketu_stand_where_drik_panchang_says() {
+        let after = unix(2025, 5, 19, 12, 0);
+        let row = rows_of(&rahu_at_line(after, "lahiri-drik").expect("a node")).remove(0);
+        assert_eq!(row.len(), RAHU_AT_COLUMNS);
+        assert_eq!(row[0], "mean");
+        assert_eq!(row[2..5], ["11", "kumbha", "Kumbha"]);
+        assert_eq!(row[6..9], ["5", "simha", "Siṃha"]);
+        assert_eq!(row[9], "lahiri-drik");
+        let rahu: f64 = row[1].parse().expect("degrees");
+        let ketu: f64 = row[5].parse().expect("degrees");
+        assert!(((ketu - rahu).rem_euclid(360.0) - 180.0).abs() < 1e-6);
+        let text = rahu_ingresses_lines(
+            unix(2023, 1, 1, 0, 0),
+            unix(2027, 1, 1, 0, 0),
+            "lahiri-drik",
+        )
+        .expect("ingresses");
+        let rows = rows_of(&text);
+        assert_eq!(rows.len(), 3);
+        assert!(rows.iter().all(|row| row.len() == RAHU_INGRESS_COLUMNS));
+        // 16:30 IST is 11:00 UT; within three minutes.
+        for (row, (y, m, d, h, mi), into) in [
+            (&rows[0], (2023, 10, 30, 8, 3), "mina"),
+            (&rows[1], (2025, 5, 18, 11, 0), "kumbha"),
+            (&rows[2], (2026, 12, 5, 13, 58), "makara"),
+        ] {
+            let at: i64 = row[0].parse().expect("an instant");
+            assert!((at - unix(y, m, d, h, mi)).abs() <= 180, "{row:?}");
+            assert_eq!(row[3], into);
+        }
+        assert_eq!(rows[1][5], "simha");
+        assert_eq!(rahu_ingresses_lines(0, 1, "nope"), Err(Refusal::Unknown));
+        assert_eq!(
+            rahu_ingresses_lines(0, 4_000_000_000, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(rahu_ingresses_lines(10, 10, "lahiri"), Ok(String::new()));
+        assert_eq!(
+            rahu_at_line(-200_000_000_000, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+    }
+    /// Chedi year 1 opens on Kielhorn's 5 September 248 (Julian), Gupta year
+    /// 1 on 26 February 320 and the Mithila Panchang's Lakṣmaṇa Sena year
+    /// 907 at the Kārttika of 2025 (`sewell1896`, `hinducalculator-mithila-panchang`).
+    #[test]
+    fn an_eras_new_year_is_the_day_its_year_opens() {
+        let julian = |year, month, date| {
+            hc_calendars_solar::julian::to_fixed(year, month, date)
+                .expect("a date")
+                .0
+        };
+        assert_eq!(era_new_year("kalachuri", 1), Ok(julian(248, 9, 5)));
+        assert_eq!(era_new_year("gupta", 1), Ok(julian(320, 2, 26)));
+        let opening = era_new_year("lakshmana-sena", 907).expect("a day");
+        // Kārttika śukla 1 of Śaka 1947, 22 October 2025.
+        assert_eq!(opening, day(2025, 10, 22));
+        assert_eq!(era_new_year("hindu-lunar", 1), Err(Refusal::Unknown));
+        assert_eq!(era_new_year("gupta", 100_000), Err(Refusal::OutOfRange));
+    }
+
+    /// A year can lack an ordinary month: the Central Station's Śaka 1885
+    /// has no Mārgaśīrṣa (month 9) of its own, and the line says the month is
+    /// out of the calendar's range, as the calendar does.
+    #[test]
+    fn a_month_the_year_lacks_is_out_of_range() {
+        let station = HinduLunarCalendar::RASHTRIYA.location;
+        assert_eq!(
+            vaishnava_day_line(1885, 9, 15, station, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert_eq!(
+            vishti_free_span_line(1885, 9, 15, station, "lahiri"),
+            Err(Refusal::OutOfRange)
+        );
+        assert!(vaishnava_day_line(1884, 9, 15, station, "lahiri").is_ok());
     }
 }

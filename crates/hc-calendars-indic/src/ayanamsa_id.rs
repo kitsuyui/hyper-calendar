@@ -19,7 +19,7 @@ use hc_seasons::zodiac::Ayanamsa;
 /// Whether two ayanāṃśas are the same anchor.
 pub(crate) const fn same(one: Ayanamsa, other: Ayanamsa) -> bool {
     let (one, other) = (one.key(), other.key());
-    one[0] == other[0] && one[1] == other[1]
+    one[0] == other[0] && one[1] == other[1] && one[2] == other[2]
 }
 
 /// A `const fn` giving the identifier and English name of a calendar over

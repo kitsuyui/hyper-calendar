@@ -644,13 +644,34 @@ IAU 2006 precession. Reingold and Dershowitz define their own, zero at the
 `sidereal-start`], which `hc-seasons` carries as `reingold-dershowitz`
 (above). And three readings of Lahiri's value that can be measured are
 carried apart from the Swiss Ephemeris's, because they differ from it by
-more than a rounding (policy §5):
+more than a rounding (policy §5). Each is carried as what its source prints,
+a **mean** value (the precession alone) or a **true** one (the mean value plus
+the nutation in longitude Δψ of the day, up to 17″ either way over the node's
+18.6-year cycle): `Ayanamsa::kind` says which, `Ayanamsa::new_true` makes a
+true one, and a true one is carried by the precession and by Δψ of each
+day, so the printed figure is reproduced on its own day and the nutation
+followed on every other. A true ayanāṃśa is the one a sidereal longitude
+taken from an apparent tropical longitude (measured from the true equinox)
+has to subtract for the nutation to cancel; `hc_ayanamsas` writes the kind
+in its last column.
 
-| Identifier | Anchor | Against `lahiri` on its day | Source |
-| --- | --- | --- | --- |
-| `lahiri-rashtriya` | 24°11′39″ on 22 March 2024, 1 Chaitra of Śaka 1946 | 3.3″ below | the *Rashtriya Panchang*'s printed "Ayanamsa on 1st Chaitra" [rashtriya-panchang-1946]; its 24°12′35″ for 30 March 2025 stands 1.4″ above `lahiri` and 4.6″ off this anchor carried forward |
-| `lahiri-crc-1955` | 23°15′0″ on 21 March 1956 | 17.3″ above | the Committee's report, p. 8 [crc1955] |
-| `lahiri-drik` | 23.863 776° on 1 January 2000, JD 2 451 544.5 | 25.4″ to 25.5″ above on 1 January 2000, 22 March 2024 and 1 January 2025 | Drik Panchang's "Lahiri Ayanamsha" on its day panchang pages [drik-day-panchang-ayanamsha], 24.202 163° and 24.213 067° on the other two days; within 0.7″ of `reingold-dershowitz` |
+| Identifier | Kind | Anchor | Against `lahiri` on its day | Source |
+| --- | --- | --- | --- | --- |
+| `lahiri-rashtriya` | true | 24°11′39″ on 22 March 2024, 1 Chaitra of Śaka 1946 | 3.3″ below (`lahiri` plus Δψ −4.6″ is 1.3″ below the print) | the *Rashtriya Panchang*'s printed "Ayanamsa on 1st Chaitra" [rashtriya-panchang-1946]; its 24°12′35″ for 30 March 2025 stands 0.4″ from this anchor carried forward (1.4″ above `lahiri`, whose Δψ of that day is +0.4″) |
+| `lahiri-crc-1955` | true | 23°15′0″ on 21 March 1956 | 17.3″ above (Δψ +16.7″, so `lahiri` plus Δψ is 0.6″ below the print) | the Committee's report, p. 8 [crc1955] |
+| `lahiri-drik` | mean | 23.863 776° on 1 January 2000, JD 2 451 544.5 | 25.4″ to 25.5″ above on 1 January 2000, 22 March 2024 and 1 January 2025 | Drik Panchang's "Lahiri Ayanamsha" on its day panchang pages [drik-day-panchang-ayanamsha], 24.202 163° and 24.213 067° on the other two days; within 0.7″ of `reingold-dershowitz` |
+
+The Committee's and the *Rashtriya Panchang*'s are one true reading of
+Lahiri's: carried as true values they stand within a second of each other on
+any day from 1956 to 2100, where as mean values they were 21″ apart; the
+Committee's figure carried as a mean value stood 31″ from the true one
+on 1 January 2000, which moves a saṅkrānti by 13 minutes (a test holds the
+move). Both ids stay, each the
+figure of the source it was read in. The Swiss Ephemeris's `lahiri` is a mean
+value; Drik's three printed values are a constant 25.4″ above it on days whose
+Δψ runs from −14″ to +0.4″, so they are mean values too, and Drik reads
+Jupiter's apparent longitude against that mean value (the Jupiter document
+measures this).
 
 `lahiri-drik` is the reading under which Drik's Jupiter entries and
 saṅkrāntis fall: with `lahiri` forward entries of Jupiter come 40 to 135
@@ -658,7 +679,8 @@ minutes early, with `lahiri-drik` within 8.3 minutes
 ([jupiter-ephemeris.md](jupiter-ephemeris.md)). The method behind any of the
 three printed values was not read; each is a printed figure and an anchor, and
 the tests hold the library to the figures
-(`sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them`).
+(`sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them`,
+`sidereal::a_true_anchor_moves_a_sankranti_by_the_nutation_between_its_day_and_the_ingress`).
 Published values of a named
 ayanāṃśa differ by a few tens of arcseconds, and 20″ of solar longitude
 is about eight minutes of the Sun's motion, which is why the nakṣatra
@@ -1196,10 +1218,22 @@ rules, which were not read, are more than that.
 - **Rāhu and Ketu, mean**: `hc_seasons::zodiac::node`:
   `mean_ascending_node_longitude`, `rahu_longitude`, `ketu_longitude`,
   `rahu_sign`, `ingresses` and `NodeIngress`, the entries of Rāhu into a
-  sign.
+  sign. The node is measured from the mean equinox, so it is read against
+  the *mean* ayanāṃśa even when the zodiac's anchor is a true value
+  (`node::the_mean_node_is_read_against_the_mean_ayanamsa`). They reach the
+  boundary as `hc_rahu_at` (the mean Rāhu and Ketu at an instant) and
+  `hc_rahu_ingresses` (the entries in a span, a sign in about 566 days).
 - **The Vaiṣṇava Janmāṣṭamī**: `vaishnava::janmashtami` and `day_of`, the
   first sunrise of a month at or after a tithi, over any
-  `HinduLunarCalendar`.
+  `HinduLunarCalendar`, and `smarta_janmashtami` and `janmashtami_by`, the
+  Smārta day by a reading under its own identifier, `FestivalReading`
+  (`smarta`, `vaishnava`). The boundary has `hc_festival_readings`,
+  `hc_janmashtami` and `hc_vaishnava_day`.
+- **The Viṣṭi-free span**: `panchanga::vishti_free_span`, the part of a tithi
+  Bhadra does not cover, behind Rakṣā Bandhana, is `hc_vishti_free_span`; the
+  Śaka year, month and tithi it takes are the ones `hc_vaishnava_day` takes.
+- **The eras' new years**: `LunarEra::new_year` is `hc_era_new_year`, over
+  the seven eras of `lunar_era::ALL`.
 - **Not carried, and why:**
   - *The true Rāhu*, which Drik Panchang prints beside the mean one:
     its periodic terms were not read, so a true node is not computed and
@@ -1211,10 +1245,11 @@ rules, which were not read, are more than that.
   - *The Vaiṣṇava Ekadashi as a rule*, and the Vaiṣṇava reading of every
     other tithi where the sects part: Drik Panchang's lists of dates were
     read, and GCal's rules that they follow, and the *Dharmasindhu*'s,
-    were not. The Ekadashi is measured (above). Registering each reading as
-    a holiday rule under its own identifier (policy §5) is `hc-holiday`'s
-    to do, and `vaishnava::janmashtami` is the rule it would use for
-    Janmāṣṭamī.
+    were not. The Ekadashi is measured (above). The Vaiṣṇava reading is
+    registered under its own identifier, `vaishnava`, beside `smarta`
+    (policy §5), and `hc_vaishnava_day` gives its day for any tithi at a
+    place, but the readings of the other festivals have no source and no
+    holiday table carries a Vaiṣṇava row.
   - *Regional almanacs' own readings*: a calendar read at another place
     or with another ayanāṃśa is a `new` away, but no local almanac's
     tables are carried, so none is registered.
@@ -1274,7 +1309,7 @@ assert:
 | Adhika Śrāvaṇa of 1945, 18 July to 16 August 2023; none in 1946; no kṣaya month in either | `saka_1945_has_the_intercalary_sravana_and_1946_none` | all |
 | Seven festivals the almanac dates by the sunrise tithi, Rāma Navamī to Holī | `festivals_the_panchang_dates_by_the_sunrise_tithi_fall_on_their_days` | 7 of 7 |
 | The printed ayanāṃśa, 24°11′39″ and 24°12′35″ | `the_ayanamsa_the_panchang_prints_is_the_one_used` | within 10″ |
-| The three Lahiri readings that were measured, each against its printed figures: Drik's on three days, the *Rashtriya Panchang*'s of 22 March 2024 and the Committee's of 21 March 1956 | `sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them` | all; the Panchang's 2025 print stands 4.6″ off |
+| The three Lahiri readings that were measured, each against its printed figures: Drik's on three days, the *Rashtriya Panchang*'s of 22 March 2024 and the Committee's of 21 March 1956 | `sidereal::the_readings_of_lahiri_stand_where_their_sources_print_them` | all; the Panchang's 24°12′35″ of 30 March 2025 stands 0.4″ off |
 | A calendar over another ayanāṃśa names it: `hindu-lunar-raman` and the rest, and the calendars over it | `ayanamsa_id::every_named_ayanamsa_has_its_identifier`, `the_calendars_over_another_ayanamsa_say_so` | all |
 | The mean Rāhu transits for New Delhi, 2020 to 2026, five, with Drik's ayanāṃśa and with Lahiri's | `node::the_mean_transits_are_drik_panchangs_with_its_ayanamsa` | within 2.4 minutes; 194 minutes later with Lahiri's |
 | The Vaiṣṇava Janmāṣṭamī at Tokyo, 2024 to 2034, Drik's eleven dates | `vaishnava::the_first_sunrise_at_or_after_ashtami_is_the_iskcon_day_in_all_eleven_years` | all |

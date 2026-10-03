@@ -145,7 +145,8 @@ fn date_line(
 /// calendar's own; else English's. The Vikrama Saṃvat's falls back to
 /// English's the same way. So an era cell is a name, never a code:
 /// Sanskrit names neither era and writes `Saka` and `Vikrama Samvat`, and
-/// Hindi, which names no Vikrama Saṃvat, `Vikrama Samvat`.
+/// Hindi, which names the Vikrama Saṃvat as Hindi Wikipedia's article is
+/// titled, writes विक्रम संवत.
 ///
 /// `sky` is an ayanāṃśa [`ayanamsa`] names, for the true Sun and Moon in
 /// its zodiac read at the place's sunrise, as `hindu-lunar` is with Lahiri's
@@ -462,7 +463,7 @@ mod tests {
             assert_eq!(labels("ja"), labels("en"), "{sky}");
             assert_eq!(
                 labels("hi-IN"),
-                ["भाद्रपद", "", "शक", "Vikrama Samvat", "hi"],
+                ["भाद्रपद", "", "शक", "विक्रम संवत", "hi"],
                 "{sky}"
             );
             assert_eq!(

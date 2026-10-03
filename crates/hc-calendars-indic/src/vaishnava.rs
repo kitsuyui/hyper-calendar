@@ -22,14 +22,75 @@
 //! the Smārta day is in `docs/systems/hindu-calendars.md`, and a test of
 //! this module holds it.
 //!
-//! The registration of these readings as holiday rules, each under its own
-//! identifier (policy §5), is `hc-holiday`'s: its tithi rules fall back to
-//! the day *before* a skipped tithi, this reading to the day after.
+//! # The two readings under their own names
+//!
+//! The Smārta and the Vaiṣṇava reading of a festival are two conventions
+//! (`docs/policy.md` §5), each under its own identifier, `smarta` and
+//! `vaishnava`, in [`FestivalReading`]. For Kṛṣṇa Janmāṣṭamī, the festival
+//! the sources read give both days of, [`janmashtami_by`] reads either of
+//! them. `hc-holiday` carries the Smārta day as its `JANMASHTAMI` rule,
+//! which this module's [`smarta_janmashtami`] states for any place, and the
+//! national table's other readings are not touched: its tithi rules fall
+//! back to the day *before* a skipped tithi, this reading to the day after.
 
 use hc_calendar::{CalendarError, CalendarResult, Rd};
 
-use crate::hindu_lunar::HinduLunarCalendar;
-use crate::tithi::TITHIS_PER_MONTH;
+use crate::hindu_lunar::{GREGORIAN_YEAR_OFFSET, HinduLunarCalendar};
+use crate::tithi::{Prevalence, TITHIS_PER_MONTH};
+
+/// A reading of a festival's day where the sects part: how the tithi that
+/// does not coincide with a civil day is placed on one.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct FestivalReading {
+    /// The identifier, `smarta` or `vaishnava`.
+    pub id: &'static str,
+    /// The reading's English name.
+    pub english_name: &'static str,
+    /// How the day is taken, in words.
+    pub rule: &'static str,
+    /// Where the reading is from.
+    pub source: &'static str,
+}
+
+hc_core::catalogue! {
+    type: FestivalReading,
+    id: |reading| reading.id,
+    provenance: |reading| reading.source,
+    tests: festival_reading_catalogue_tests,
+    associated;
+
+    /// The two readings, the Smārta first.
+    pub const ALL;
+    /// The reading with this identifier.
+    pub fn by_id;
+
+    entries: {
+        /// The Smārta reading, the one the *Rashtriya Panchang* lists: the
+        /// day on which the tithi holds the part of the day the rite belongs
+        /// to, Janmāṣṭamī's being the night, at its middle, and the later of
+        /// two such days.
+        pub const SMARTA = Self {
+            id: "smarta",
+            english_name: "Smarta",
+            rule: "the day whose midnight holds the tithi, the later of two; for a tithi that holds \
+                   no midnight, the day that carries it at sunrise",
+            source: "The Rashtriya Panchang's list of principal festivals, Saka 1945 and 1946 \
+                     (rashtriya-panchang-1946), which hc-holiday's JANMASHTAMI reproduces; the \
+                     part of the day is the library's reading of the dharmasastra, not read in \
+                     Kane or the Nirnayasindhu",
+        };
+        /// The Vaiṣṇava reading: the day whose sunrise carries the tithi,
+        /// and the day after when no sunrise does.
+        pub const VAISHNAVA = Self {
+            id: "vaishnava",
+            english_name: "Vaishnava",
+            rule: "the first day whose sunrise carries the tithi or a later one",
+            source: "Drik Panchang's ISKCON Janmashtami dates for Tokyo, 2024 to 2034 \
+                     (drik-iskcon-janmashtami), which this reading reproduces in every year; no \
+                     source read states it as a rule, and the Rohini preference is not modelled",
+        };
+    }
+}
 
 /// The month of Krṣṇa Janmāṣṭamī in the amānta calendar: Śrāvaṇa.
 pub const JANMASHTAMI_MONTH: u8 = 5;
@@ -74,6 +135,74 @@ pub fn day_of(
 /// As [`day_of`].
 pub fn janmashtami(lunar: &HinduLunarCalendar, saka_year: i64) -> CalendarResult<Rd> {
     day_of(lunar, saka_year, JANMASHTAMI_MONTH, JANMASHTAMI_TITHI)
+}
+
+/// The Smārta Krṣṇa Janmāṣṭamī of a Śaka year at a place: the later of the
+/// days whose midnight holds Śrāvaṇa kṛṣṇa 8, and where none does the day
+/// that carries the tithi at sunrise, or the day a skipped tithi falls in.
+///
+/// This is `hc-holiday`'s `JANMASHTAMI` read at any calendar's place, the
+/// rule that crate evaluates with a memo over a year's festivals and this
+/// function states once for one festival; a test of the facade holds them
+/// equal.
+///
+/// # Errors
+///
+/// As [`HinduLunarCalendar::month_span`], and
+/// [`CalendarError::DayOutOfRange`] where no day carries the tithi.
+pub fn smarta_janmashtami(lunar: &HinduLunarCalendar, saka_year: i64) -> CalendarResult<Rd> {
+    let (first, next) = lunar.month_span(saka_year, JANMASHTAMI_MONTH, false)?;
+    // The first tithi begins at the new moon, which can fall after the
+    // sunrise of the day before the month's first, so the scan opens there
+    // and runs to the month's end.
+    let low = Rd(first.0 - 1);
+    let mut later = None;
+    let mut day = low;
+    while day <= next {
+        if Prevalence::Midnight.tithi_on(day, lunar.location) == JANMASHTAMI_TITHI {
+            later = Some(day);
+        }
+        day = Rd(day.0 + 1);
+    }
+    if let Some(day) = later {
+        return Ok(day);
+    }
+    let mut day = low;
+    while day <= next {
+        let at_sunrise = Prevalence::Sunrise.tithi_on(day, lunar.location);
+        if at_sunrise == JANMASHTAMI_TITHI {
+            return Ok(day);
+        }
+        // A tithi no sunrise carries falls in the day of the sunrise before
+        // it, the next sunrise carrying the one after.
+        if at_sunrise + 1 == JANMASHTAMI_TITHI
+            && Prevalence::Sunrise.tithi_on(Rd(day.0 + 1), lunar.location) == JANMASHTAMI_TITHI + 1
+        {
+            return Ok(day);
+        }
+        day = Rd(day.0 + 1);
+    }
+    Err(CalendarError::DayOutOfRange)
+}
+
+/// The day of Kṛṣṇa Janmāṣṭamī in the Gregorian year `year` by a reading:
+/// the Śaka year the Gregorian one less 78 holds Śrāvaṇa in August or
+/// September.
+///
+/// # Errors
+///
+/// As [`smarta_janmashtami`] and [`janmashtami`].
+pub fn janmashtami_by(
+    reading: FestivalReading,
+    lunar: &HinduLunarCalendar,
+    year: i64,
+) -> CalendarResult<Rd> {
+    let saka = year - GREGORIAN_YEAR_OFFSET;
+    if reading == FestivalReading::SMARTA {
+        smarta_janmashtami(lunar, saka)
+    } else {
+        janmashtami(lunar, saka)
+    }
 }
 
 #[cfg(test)]
@@ -123,6 +252,52 @@ mod tests {
         }
         // Ashtami holds no sunrise only in 2026 at Tokyo.
         assert_eq!(navami, 1);
+    }
+
+    /// The Smārta day is the one the national almanac lists, 6 September
+    /// 2023 and 26 August 2024 (`rashtriya-panchang-1946`), and, as the
+    /// central government's lists place the Vaiṣṇava day a day after it, 15
+    /// August 2025 and 24 August 2027 are the Smārta ones where the lists
+    /// keep the 16th and the 25th (`dopt-holidays-2025-2027`).
+    #[test]
+    fn the_smarta_day_is_the_national_almanacs_and_the_vaishnava_one_the_later() {
+        let rashtriya = HinduLunarCalendar::RASHTRIYA;
+        for (year, month, day) in [(2023, 9, 6), (2024, 8, 26), (2025, 8, 15), (2027, 8, 24)] {
+            assert_eq!(
+                janmashtami_by(FestivalReading::SMARTA, &rashtriya, year),
+                Ok(ymd(year, month, day)),
+                "{year}"
+            );
+        }
+        for (year, month, day) in [(2025, 8, 16), (2027, 8, 25)] {
+            assert_eq!(
+                janmashtami_by(FestivalReading::VAISHNAVA, &rashtriya, year),
+                Ok(ymd(year, month, day)),
+                "{year}"
+            );
+        }
+        // At the Central Station the Vaiṣṇava day is never before the
+        // Smārta and never more than a day after it, 2017 to 2034.
+        for year in 2017..=2034 {
+            let smarta = janmashtami_by(FestivalReading::SMARTA, &rashtriya, year).expect("a day");
+            let vaishnava =
+                janmashtami_by(FestivalReading::VAISHNAVA, &rashtriya, year).expect("a day");
+            assert!((0..=1).contains(&(vaishnava.0 - smarta.0)), "{year}");
+        }
+    }
+
+    #[test]
+    fn the_two_readings_are_named_and_found_by_their_names() {
+        assert_eq!(FestivalReading::ALL.len(), 2);
+        assert_eq!(
+            FestivalReading::by_id("smarta"),
+            Some(FestivalReading::SMARTA)
+        );
+        assert_eq!(
+            FestivalReading::by_id("vaishnava"),
+            Some(FestivalReading::VAISHNAVA)
+        );
+        assert_eq!(FestivalReading::by_id("iskcon"), None);
     }
 
     #[test]

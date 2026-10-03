@@ -40,9 +40,15 @@ pub fn mean_ascending_node_longitude(moment: Moment) -> f64 {
 /// The sidereal longitude of Rāhu, the mean ascending node, in degrees from
 /// 0 up to but not including 360: its longitude of the date less the
 /// ayanāṃśa.
+///
+/// The mean node is measured from the mean equinox of the date, so what is
+/// subtracted is the *mean* ayanāṃśa, [`Ayanamsa::mean_degrees_at`]: the
+/// nutation a true ayanāṃśa adds belongs with a longitude measured from the
+/// true equinox, as the Sun's and the Moon's are, and would shift the node
+/// by up to 17″ if it were subtracted here.
 #[must_use]
 pub fn rahu_longitude(moment: Moment, ayanamsa: Ayanamsa) -> f64 {
-    normalize_degrees(mean_ascending_node_longitude(moment) - ayanamsa.degrees_at(moment))
+    normalize_degrees(mean_ascending_node_longitude(moment) - ayanamsa.mean_degrees_at(moment))
 }
 
 /// The sidereal longitude of Ketu, the descending node: 180° from Rāhu.
@@ -200,6 +206,22 @@ mod tests {
                 assert_eq!(rahu_sign(after, ayanamsa), found.rahu_into);
             }
         }
+    }
+
+    /// A true ayanāṃśa's nutation is left out of the node's longitude, which
+    /// is a mean one: the Committee's true Lahiri gives the node where its
+    /// mean value does.
+    #[test]
+    fn the_mean_node_is_read_against_the_mean_ayanamsa() {
+        let at = Moment(738_967.0);
+        let by_true = rahu_longitude(at, Ayanamsa::LAHIRI_CRC_1955);
+        let by_mean = normalize_degrees(
+            mean_ascending_node_longitude(at) - Ayanamsa::LAHIRI_CRC_1955.mean_degrees_at(at),
+        );
+        assert!((by_true - by_mean).abs() < 1e-12);
+        let nutation = Ayanamsa::LAHIRI_CRC_1955.degrees_at(at)
+            - Ayanamsa::LAHIRI_CRC_1955.mean_degrees_at(at);
+        assert!(nutation.abs() * 3_600.0 > 1.0, "{nutation}");
     }
 
     /// Rāhu passes through the twelve signs in 18.6 years, a sign in about 566

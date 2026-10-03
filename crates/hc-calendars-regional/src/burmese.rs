@@ -503,8 +503,16 @@ pub fn from_fixed(rd: Rd) -> CalendarResult<BurmeseDate> {
         return Err(CalendarError::AfterSupportedRange);
     }
     let jdn = rd_to_jdn(rd);
-    let year = year_of_jdn(jdn);
-    let info = year_info(year);
+    let mut year = year_of_jdn(jdn);
+    let mut info = year_info(year);
+    // A year's months begin on its first Tagu, which can fall a day after
+    // the solar New Year that opens its number (16 ME's does, by one day), and
+    // the days between belong to the year before: the last day of its last
+    // month, not a day before the first Tagu of the year the Sun names.
+    if jdn < info.first_tagu && year > MIN_YEAR {
+        year -= 1;
+        info = year_info(year);
+    }
     let mut day_count = jdn - info.first_tagu + 1;
     let big = i64::from(info.year_type == YearType::BigWatat);
     let common = i64::from(info.year_type == YearType::Common);
@@ -780,7 +788,7 @@ mod tests {
     }
 
     #[test]
-    fn every_day_of_three_decades_round_trips() {
+    fn every_day_of_three_decades_round_trips_and_counts_on() {
         let calendar = BurmeseCalendar;
         let start = greg(2000, 1, 1).0;
         let end = greg(2031, 1, 1).0;
@@ -799,10 +807,43 @@ mod tests {
             }
             previous = Some(date);
         }
-        for rd in (earliest().0..=latest().0).step_by(997) {
+    }
+
+    /// Every day of the calendar's range, 639 to 3639 CE, converts and
+    /// converts back, directly and through its fields, in a release build
+    /// (`docs/policy.md` §7); a debug build takes a deterministic sample and,
+    /// besides it, the first day of every Burmese year it spans (Tagu 1) and
+    /// the day before, so that a defect on a year's first or last day cannot
+    /// fall between the sampled days.
+    #[test]
+    fn every_day_of_the_range_round_trips() {
+        let calendar = BurmeseCalendar;
+        let years = calendar.from_fixed(earliest()).expect("in range").year
+            ..=calendar.from_fixed(latest()).expect("in range").year;
+        let openings: Vec<i64> = years
+            .step_by(hc_core::sweep::year_step())
+            .filter_map(|year| {
+                to_fixed(BurmeseDate {
+                    year,
+                    month: Month::regular(1),
+                    late: false,
+                    day: 1,
+                })
+                .ok()
+            })
+            .map(|rd| rd.0)
+            .collect();
+        let days: Vec<i64> =
+            crate::sweep_days(earliest().0, latest().0, 97, openings.iter().copied()).collect();
+        crate::check_days(&days, |rd| {
             let date = calendar.from_fixed(Rd(rd)).expect("in range");
-            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd}");
-        }
+            assert_eq!(calendar.to_fixed(date), Ok(Rd(rd)), "rd {rd} {date}");
+            let fields = calendar.to_fields(date).expect("describable");
+            assert_eq!(calendar.from_fields(&fields), Ok(date), "rd {rd}");
+        });
+        // The day either side of the range is refused.
+        assert!(calendar.from_fixed(Rd(earliest().0 - 1)).is_err());
+        assert!(calendar.from_fixed(Rd(latest().0 + 1)).is_err());
     }
 
     #[test]
@@ -923,5 +964,43 @@ mod tests {
         assert_eq!(festival.atat, greg(2024, 4, 16));
         assert_eq!(festival.new_year, greg(2024, 4, 17));
         assert_eq!(festival.new_year, jdn_to_rd(new_year_day(1386)));
+    }
+
+    /// A year's months begin on its first Tagu, and the solar New Year that
+    /// opens its number can fall a day before it: 16 ME's first Tagu is the
+    /// day after its New Year, so the day between, the last of the 385-day big
+    /// watat year 15, is the thirtieth of its Tabaung and not a second day of
+    /// 16 ME's Tabaung. Its neighbours' dates, the 29th of Tabaung and the first
+    /// of Tagu, show it: Tabaung has 30 days, the months run on without a gap
+    /// or a repeat, and no other date of the range falls on two days.
+    #[test]
+    fn the_day_before_the_first_tagu_that_follows_a_new_year_ends_the_year_before() {
+        let before = from_fixed(Rd(238_587)).expect("in range");
+        let day = from_fixed(Rd(238_588)).expect("in range");
+        let after = from_fixed(Rd(238_589)).expect("in range");
+        assert_eq!(
+            (before.year, before.month, before.day),
+            (15, Month::regular(12), 29)
+        );
+        assert_eq!(
+            (day.year, day.month, day.late, day.day),
+            (15, Month::regular(12), false, 30)
+        );
+        assert_eq!(
+            (after.year, after.month, after.late, after.day),
+            (16, Month::regular(1), false, 1)
+        );
+        assert_eq!(year_info(15).year_type, YearType::BigWatat);
+        assert_eq!(month_length(15, Month::regular(12)), 30);
+        assert_eq!(to_fixed(day), Ok(Rd(238_588)));
+        // 16 ME's own Tabaung 30 is a year on.
+        let own = BurmeseDate {
+            year: 16,
+            month: Month::regular(12),
+            late: false,
+            day: 30,
+        };
+        assert_eq!(to_fixed(own), Ok(Rd(238_942)));
+        assert_eq!(from_fixed(Rd(238_942)), Ok(own));
     }
 }

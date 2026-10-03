@@ -57,11 +57,7 @@ fn the_hindu_new_year_of_saka_1947_on_both_skies() {
         let cells: Vec<&str> = text.trim_end_matches('\n').split('\t').collect();
         assert_eq!(cells[..6], ["1947", "2082", "1", "0", "1", "0"], "{sky}");
         // Chaitra, in Hindi, with CLDR's शक for the era.
-        assert_eq!(
-            cells[7..],
-            ["चैत्र", "", "शक", "Vikrama Samvat", "hi"],
-            "{sky}"
-        );
+        assert_eq!(cells[7..], ["चैत्र", "", "शक", "विक्रम संवत", "hi"], "{sky}");
     }
     let text = read_lines(|buffer, capacity| unsafe {
         hc_surya_siddhanta_sunrise(day, 23.15, 75.768_333, buffer, capacity)

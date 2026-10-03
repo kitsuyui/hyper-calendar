@@ -307,16 +307,11 @@ pub enum UsageStart {
     Undated,
     /// In use from a day, as a year, month and day of the Julian calendar.
     Julian(i64, u8, u8),
-    /// Attested from the opening of its own year `first` to the close of
-    /// its year `last`: the range of the dated inscriptions a source
-    /// reports, which is a lower bound on the period of use and not the
-    /// whole of it.
-    Inscriptions {
-        /// The first year attested.
-        first: i64,
-        /// The last year attested.
-        last: i64,
-    },
+    /// In use from the opening of the era's own year 1, the epoch a source
+    /// states, with no end. The range of the dated inscriptions a source
+    /// reports is a lower bound on the use and not the whole of it, so it is
+    /// named in the source and does not bound the period.
+    Epoch,
 }
 
 /// An era over the amānta or pūrṇimānta months.
@@ -402,15 +397,13 @@ pub const GUPTA_ERA: LunarEra = LunarEra {
     year: GUPTA,
     reckoning: Reckoning::Purnimanta,
     laukika: false,
-    usage_start: UsageStart::Inscriptions {
-        first: 82,
-        last: 945,
-    },
+    usage_start: UsageStart::Epoch,
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 43 [sewell1896]: \"The inscriptions as yet \
         discovered which are dated in the Gupta and Valabhi era range from the years 82 to 945\", \
         a range of the two eras together and a lower bound on their use; Fleet's examination of \
-        163 to 386 concludes the years are current and Chaitradi and the months purnimanta; \
-        the era is not now in use, as docs/systems/indian-eras.md states",
+        163 to 386 concludes the years are current and Chaitradi and the months purnimanta; the \
+        period runs from the opening of year 1, the epoch the source states, and no source read \
+        dates the last use of the era, so none is carried, as docs/systems/indian-eras.md states",
     lunar: Months::SIDDHANTA,
 };
 
@@ -424,16 +417,15 @@ pub const VALABHI_ERA: LunarEra = LunarEra {
     year: VALABHI,
     reckoning: Reckoning::Amanta,
     laukika: false,
-    usage_start: UsageStart::Inscriptions {
-        first: 82,
-        last: 945,
-    },
+    usage_start: UsageStart::Epoch,
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 43 [sewell1896]: the Gupta era \"with its \
         name changed\", used in Kathiawar from about the fourth Gupta century, its year thrown back \
         to the previous Karttika sukla 1, \"its months seem to be both amanta and purnimanta\"; \
         Wikipedia's \"Gupta era\" [wikipedia-gupta-era], after Salomon, gives them as amanta; the \
         inscriptions of the two eras together run from the year 82 to 945, a lower bound on its \
-        use, as docs/systems/indian-eras.md states",
+        use; the period runs from the opening of year 1, the epoch the sources state, and no \
+        source read dates the last use of the era, so none is carried, as \
+        docs/systems/indian-eras.md states",
     lunar: Months::SIDDHANTA,
 };
 
@@ -446,16 +438,14 @@ pub const KALACHURI_ERA: LunarEra = LunarEra {
     year: KALACHURI,
     reckoning: Reckoning::Purnimanta,
     laukika: false,
-    usage_start: UsageStart::Inscriptions {
-        first: 793,
-        last: 934,
-    },
+    usage_start: UsageStart::Epoch,
     usage_source: "Sewell and Dikshit 1896, Art. 71, pp. 42-43 [sewell1896]: Kielhorn's ten \
         inscriptions of the years 793 to 934, from which the first current year began at Asvina \
         sukla pratipada, 5 September A.D. 248, its years Asvinadi and current and its months \
         purnimanta; the era was used by the Kalachuri kings and \"appears to have been in use in \
-        that part of India in still earlier times\", so the range is a lower bound on its use, as \
-        docs/systems/indian-eras.md states",
+        that part of India in still earlier times\", so the range is a lower bound on its use; the \
+        period runs from the opening of year 1, the epoch the source states, and no source read \
+        dates the last use of the era, so none is carried, as docs/systems/indian-eras.md states",
     lunar: Months::SIDDHANTA,
 };
 
@@ -468,12 +458,13 @@ pub const LAKSHMANA_SENA_ERA: LunarEra = LunarEra {
     year: LAKSHMANA_SENA,
     reckoning: Reckoning::Amanta,
     laukika: false,
-    usage_start: UsageStart::Undated,
+    usage_start: UsageStart::Epoch,
     usage_source: "Sewell and Dikshit 1896, Art. 71, p. 46 [sewell1896]: in use in Tirhut and \
         Mithila, and dated in six inscriptions of A.D. 1194 to 1551 that Kielhorn reads as \
-        Karttikadi and amanta; the Mithila Panchang prints its year, 907 in October 2026 \
-        [hinducalculator-mithila-panchang]; no first day is dated, as docs/systems/indian-eras.md \
-        states",
+        Karttikadi and amanta, its first year A.D. 1119-20; the Mithila Panchang prints its year, \
+        907 in October 2026 [hinducalculator-mithila-panchang]; the period runs from the opening \
+        of year 1 on Kielhorn's epoch, which earlier writers placed in 1105 to 1109, and is still \
+        in use, as docs/systems/indian-eras.md states",
     lunar: Months::SIDDHANTA,
 };
 
@@ -640,14 +631,10 @@ impl Calendar for LunarEra {
                 Ok(from) => hc_calendar::Usage::since(from, self.usage_source),
                 Err(_) => hc_calendar::Usage::undated(self.usage_source),
             },
-            UsageStart::Inscriptions { first, last } => {
-                match (self.new_year(first), self.new_year(last + 1)) {
-                    (Ok(from), Ok(next)) => {
-                        hc_calendar::Usage::between(from, Rd(next.0 - 1), self.usage_source)
-                    }
-                    _ => hc_calendar::Usage::undated(self.usage_source),
-                }
-            }
+            UsageStart::Epoch => match self.new_year(1) {
+                Ok(from) => hc_calendar::Usage::since(from, self.usage_source),
+                Err(_) => hc_calendar::Usage::undated(self.usage_source),
+            },
         }
     }
 
@@ -1158,12 +1145,18 @@ mod tests {
         // 242 current, "A.D. 319–20", and 163 to 386 are inscriptions' years.
         let before = era.new_year(0).expect("in range");
         assert_eq!(julian_year(before), 319);
-        // Gupta 82, the first year an inscription is dated in, opens in
-        // 401, and 945, the last, closes in 1265: the span `usage` gives.
+        // The period of use opens with the epoch's year 1, 26 February 320,
+        // and has no last day: the inscriptions of the years 82 to 945 the
+        // source reports are a lower bound that the source names.
         let usage = Calendar::usage(&era);
-        assert_eq!(julian_year(usage.from.expect("a first day")), 401);
-        assert_eq!(julian_year(usage.until.expect("a last day")), 1_265);
+        assert_eq!(usage.from, Some(opening));
+        assert_eq!(usage.until, None);
         assert!(usage.source.contains("82 to 945"));
+        assert_eq!(usage.standing(opening), hc_calendar::Standing::InUse);
+        assert_eq!(
+            usage.standing(Rd(opening.0 - 1)),
+            hc_calendar::Standing::Proleptic
+        );
     }
 
     #[test]
@@ -1186,9 +1179,11 @@ mod tests {
         // The epoch, the beginning of year 0 current: A.D. 247–48.
         assert_eq!(julian_year(era.new_year(0).expect("in range")), 247);
         let usage = Calendar::usage(&era);
-        // Chedi 793 opens in A.D. 1040 and 934 closes in 1182.
-        assert_eq!(julian_year(usage.from.expect("a first day")), 1_040);
-        assert_eq!(julian_year(usage.until.expect("a last day")), 1_182);
+        // The period opens with Chedi year 1, 5 September 248; the
+        // inscriptions of 793 to 934 (A.D. 1040 to 1182) are a lower bound.
+        assert_eq!(usage.from, Some(opening));
+        assert_eq!(usage.until, None);
+        assert!(usage.source.contains("793 to 934"));
     }
 
     #[test]
@@ -1266,6 +1261,9 @@ mod tests {
         assert_eq!(at(2026, 11, 20), Ok(908));
         assert_eq!(at(2025, 10, 15), Ok(906));
         assert!(Calendar::usage(&era).source.contains("907"));
+        // Its period of use opens with year 1, in A.D. 1119, and is not over.
+        assert_eq!(Calendar::usage(&era).from, Some(first));
+        assert_eq!(Calendar::usage(&era).until, None);
     }
 
     #[test]

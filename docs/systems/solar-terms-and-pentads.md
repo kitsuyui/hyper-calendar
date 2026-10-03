@@ -316,8 +316,9 @@ longitude is 230.8°, twenty-one degrees into Vṛścika.
   `REINGOLD_DERSHOWITZ` and `FAGAN_BRADLEY` as data, a table of them by
   identifier (`lahiri`, `lahiri-rashtriya`, `lahiri-crc-1955`, `lahiri-drik`,
   `raman`, `krishnamurti`, `reingold-dershowitz`, `fagan-bradley`) and `new`
-  for any other;
-  `degrees_at`;
+  for any other, `new_true` for one whose printed value is a true one (mean
+  plus the nutation in longitude, `AyanamsaKind`), `degrees_at` and
+  `mean_degrees_at`;
   `SiderealSign`, the twelve rāśi in IAST with their emblems and lords (no
   Devanagari: no source for it was read, and the Hindi *Rashtriya
   Panchang* that would supply one was not read); `sidereal_longitude`, `ingress_after`, `ingress_moment`,

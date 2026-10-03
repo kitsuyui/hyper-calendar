@@ -42,7 +42,9 @@ use hyper_calendar::hc_calendar::Unit;
 use hyper_calendar::hc_calendars_indic::barhaspatya;
 use hyper_calendar::hc_calendars_indic::kalam::KalamConvention;
 use hyper_calendar::hc_calendars_indic::kumbh::KumbhYoga;
+use hyper_calendar::hc_calendars_indic::lunar_era;
 use hyper_calendar::hc_calendars_indic::panchak::PanchakNaming;
+use hyper_calendar::hc_calendars_indic::vaishnava::FestivalReading;
 use hyper_calendar::hc_calendars_lunar::chinese::AgeConvention;
 use hyper_calendar::hc_calendars_lunar::hebrew::Tekufah;
 use hyper_calendar::hc_calendars_lunar::islamic_observational::NamedCriterion;
@@ -519,6 +521,33 @@ fn listed() -> Vec<Listed> {
             exports: &[],
             paragraphs: &[],
             methods: &[],
+            fields: &[],
+        },
+        Listed {
+            what: "festival readings",
+            ids: FestivalReading::ALL
+                .iter()
+                .map(|reading| reading.id)
+                .collect(),
+            dts: "FestivalReadingId",
+            exports: &[
+                (FFI_SOURCE, "hc_janmashtami"),
+                (WASM_SOURCE, "hc_janmashtami"),
+            ],
+            paragraphs: &[],
+            methods: &["janmashtami"],
+            fields: &[("FestivalDay", "reading"), ("FestivalReading", "id")],
+        },
+        Listed {
+            what: "historical Indian eras over the lunisolar months",
+            ids: lunar_era::ALL.iter().map(|era| era.id.0).collect(),
+            dts: "LunarEraId",
+            exports: &[
+                (FFI_SOURCE, "hc_era_new_year"),
+                (WASM_SOURCE, "hc_era_new_year"),
+            ],
+            paragraphs: &[],
+            methods: &["eraNewYear"],
             fields: &[],
         },
         Listed {

@@ -29,8 +29,10 @@
 //! days for the years read, 2025 to 2027 (`dopt-holidays-2025-2027`). No
 //! source read states the Vaiṣṇava rule. `hc_calendars_indic::vaishnava`
 //! computes Śrāvaṇa kṛṣṇa 8 at sunrise, and gives the day each list names
-//! in every year from 2017 to 2027, but it is not yet registered as a
-//! convention of its own (`docs/policy.md` §5). The same lists keep Holī
+//! in every year from 2017 to 2027. It is registered as the reading
+//! `vaishnava`, beside `smarta`, which [`JANMASHTAMI`] is, in
+//! `hc_calendars_indic::vaishnava::FestivalReading` (`docs/policy.md` §5),
+//! and no table here carries it as a rule. The same lists keep Holī
 //! a day after [`HOLI`] in 2026 and 2027 and Guru Nānak's birthday a day
 //! after [`GURU_NANAK_JAYANTI`] in 2027, by a rule not read either.
 //! `docs/systems/hindu-festivals.md` is the system document.
@@ -72,7 +74,7 @@ use hc_calendars_indic::{HinduLunarCalendar, Prevalence};
 use hc_seasons::Meridian;
 use hc_seasons::zodiac::{Ayanamsa, SiderealSign};
 
-use crate::rule::{Rule, WhenTwice};
+use crate::rule::{Listing, Rule, WhenTwice};
 
 /// The calendar every rule here is dated in: the national almanac's.
 pub const CALENDAR: HinduLunarCalendar = HinduLunarCalendar::RASHTRIYA;
@@ -236,20 +238,44 @@ pub const THAIPUSAM: Rule = Rule::Nakshatra {
 /// for New Delhi (`drik-holika-dahan`, read 2026-10-03) give the day for
 /// 2015 to 2036 and agree with the rule in 19 of those 22 years. They
 /// give the day after it in 2016, 2023 and 2026, 23 March, 7 March and
-/// 3 March, where the rule gives the 22nd, the 6th and the 2nd. The Holī
-/// of those years, 24 March 2016, 8 March 2023 and 4 March 2026, which
-/// the pages and, for 2023 and 2026, the central government's lists (the
-/// India table) give, is the day after Holikā Dahana, so [`HOLI`] is a day
-/// early in them. In all three Bhadra, which begins in the afternoon of the
-/// first day with the tithi, ends after midnight, and the page lights the
-/// fire on the next evening. Its rule for that case, "Holika Dahan should
-/// be done in Bhadra and preferably during Bhadra Punchha" between Pradosh
-/// and midnight, and otherwise in Pradosh, needs the place of Bhadra's
-/// Punchha, which no source read gives: the page prints it and does not
-/// define it. Nor does anything the page says tell those years from 2027
-/// and 2036, when Bhadra also ends after midnight, and it keeps the first
-/// day. The rule stays as it is until a source for Punchha is read.
+/// 3 March, where the rule gives the 22nd, the 6th and the 2nd. In all
+/// three Bhadra, which begins in the afternoon or the early evening of the
+/// first day with the tithi, ends after midnight (04:30 on 3 March 2026),
+/// and the page lights the fire on the next evening, after the tithi has
+/// ended (17:07 on 3 March 2026). The page's rule for that case, "Holika
+/// Dahan should be done in Bhadra and preferably during Bhadra Punchha"
+/// between Pradosh and midnight, and otherwise in Pradosh, is not what
+/// tells those years from 2027, whose full moon begins at 18:21 on 21 March
+/// and whose Bhadra ends at 04:20 on the 22nd, and for which it keeps the
+/// first day. The page prints Punchha and does not define it, so the rule
+/// cannot be given the page's choice, and the days of 2015 to 2036 are read
+/// from the pages instead ([`DRIK_HOLI`]); the `hindu` table gives them
+/// exactly and this rule approximately outside them.
 pub static HOLIKA_DAHAN: Rule = tithi(12, 15, Prevalence::Evening, WhenTwice::Earlier);
+
+/// Drik Panchang's day of Holikā Dahana (`dahan`) and of Holī (`holi`) for
+/// New Delhi, 2015 to 2036: the days the pages give (`drik-holika-dahan`,
+/// read 2026-10-03). Holī is the day after Holikā Dahana in every year.
+#[rustfmt::skip]
+pub static DRIK_HOLI: Listing = Listing::Named(&[
+    (2015, 3, 5, "dahan"), (2015, 3, 6, "holi"), (2016, 3, 23, "dahan"), (2016, 3, 24, "holi"),
+    (2017, 3, 12, "dahan"), (2017, 3, 13, "holi"), (2018, 3, 1, "dahan"), (2018, 3, 2, "holi"),
+    (2019, 3, 20, "dahan"), (2019, 3, 21, "holi"), (2020, 3, 9, "dahan"), (2020, 3, 10, "holi"),
+    (2021, 3, 28, "dahan"), (2021, 3, 29, "holi"), (2022, 3, 17, "dahan"), (2022, 3, 18, "holi"),
+    (2023, 3, 7, "dahan"), (2023, 3, 8, "holi"), (2024, 3, 24, "dahan"), (2024, 3, 25, "holi"),
+    (2025, 3, 13, "dahan"), (2025, 3, 14, "holi"), (2026, 3, 3, "dahan"), (2026, 3, 4, "holi"),
+    (2027, 3, 21, "dahan"), (2027, 3, 22, "holi"), (2028, 3, 10, "dahan"), (2028, 3, 11, "holi"),
+    (2029, 2, 28, "dahan"), (2029, 3, 1, "holi"), (2030, 3, 19, "dahan"), (2030, 3, 20, "holi"),
+    (2031, 3, 8, "dahan"), (2031, 3, 9, "holi"), (2032, 3, 26, "dahan"), (2032, 3, 27, "holi"),
+    (2033, 3, 15, "dahan"), (2033, 3, 16, "holi"), (2034, 3, 4, "dahan"), (2034, 3, 5, "holi"),
+    (2035, 3, 23, "dahan"), (2035, 3, 24, "holi"), (2036, 3, 11, "dahan"), (2036, 3, 12, "holi"),
+
+]);
+
+/// The first year of [`DRIK_HOLI`].
+pub const DRIK_HOLI_FIRST: i32 = 2015;
+/// The last year of [`DRIK_HOLI`].
+pub const DRIK_HOLI_LAST: i32 = 2036;
 
 /// Holī, the day of colours: the day after Holikā Dahana.
 pub const HOLI: Rule = Rule::Offset {

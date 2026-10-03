@@ -597,6 +597,62 @@ fn the_hindu_festivals_fall_where_the_rashtriya_panchang_lists_them() {
     assert!(mismatches.is_empty(), "{mismatches:#?}");
 }
 
+/// Drik Panchang's pages for New Delhi (`drik-holika-dahan`, read
+/// 2026-10-03) give Holikā Dahana on 23 March 2016, 7 March 2023 and
+/// 3 March 2026, a day after the evening of the full-moon tithi, and Holī
+/// the day after each; the tradition's rule gives the day before. The table
+/// carries the pages' days exactly for 2015 to 2036 and the rule's
+/// approximately outside them.
+#[test]
+fn holika_dahan_and_holi_are_the_days_drik_panchang_gives_for_2015_to_2036() {
+    expect(
+        &HINDU,
+        &[
+            (2015, 3, 5, "Holika Dahan"),
+            (2015, 3, 6, "Holi"),
+            (2016, 3, 23, "Holika Dahan"),
+            (2016, 3, 24, "Holi"),
+            (2023, 3, 7, "Holika Dahan"),
+            (2023, 3, 8, "Holi"),
+            (2026, 3, 3, "Holika Dahan"),
+            (2026, 3, 4, "Holi"),
+            (2027, 3, 21, "Holika Dahan"),
+            (2027, 3, 22, "Holi"),
+            (2029, 2, 28, "Holika Dahan"),
+            (2029, 3, 1, "Holi"),
+            (2036, 3, 11, "Holika Dahan"),
+            (2036, 3, 12, "Holi"),
+        ],
+    );
+    for year in 2015..=2036 {
+        let calendar = HolidayCalendar::for_year(&HINDU, None, year);
+        for name in ["Holika Dahan", "Holi"] {
+            let days: Vec<_> = calendar
+                .all()
+                .iter()
+                .filter(|holiday| holiday.name == name)
+                .collect();
+            assert_eq!(days.len(), 1, "{name} {year}");
+            assert_eq!(days[0].confidence, Confidence::Exact, "{name} {year}");
+        }
+    }
+    // Before and after the pages the rule answers, approximately.
+    for year in [2014, 2037] {
+        let calendar = HolidayCalendar::for_year(&HINDU, None, year);
+        let days: Vec<_> = calendar
+            .all()
+            .iter()
+            .filter(|holiday| holiday.name == "Holika Dahan" || holiday.name == "Holi")
+            .collect();
+        assert_eq!(days.len(), 2, "{year}");
+        assert!(
+            days.iter()
+                .all(|holiday| holiday.confidence == Confidence::Approximate),
+            "{year}"
+        );
+    }
+}
+
 /// Naraka Caturdaśī by the Calendar Reform Committee's rule: the Naraka
 /// Chaturdasi of the Department of Personnel and Training's restricted
 /// holidays, "November 08 … Sunday" in 2026, the day of Diwali, and
@@ -685,7 +741,7 @@ fn thaipusam_falls_where_malaysia_and_mauritius_gazette_it() {
 }
 
 #[test]
-fn every_hindu_date_is_exact_and_religious() {
+fn every_hindu_date_is_religious_and_exact_but_two_outside_the_years_read() {
     for year in [1950, 2000, 2024, 2100] {
         let calendar = HolidayCalendar::for_year(&HINDU, None, year);
         assert!(
@@ -695,12 +751,15 @@ fn every_hindu_date_is_exact_and_religious() {
         );
         assert!(calendar.is_complete(), "{year}: {:?}", calendar.gaps());
         for holiday in calendar.all() {
-            assert_eq!(
-                holiday.confidence,
-                Confidence::Exact,
-                "{year} {}",
-                holiday.name
-            );
+            // Holikā Dahana and Holī are Drik Panchang's days for 2015 to
+            // 2036 and the rule's, approximately, outside them.
+            let drik_years = (2015..=2036).contains(&year);
+            let expected = if matches!(holiday.name, "Holika Dahan" | "Holi") && !drik_years {
+                Confidence::Approximate
+            } else {
+                Confidence::Exact
+            };
+            assert_eq!(holiday.confidence, expected, "{year} {}", holiday.name);
             assert_eq!(holiday.kind, Kind::Religious, "{year} {}", holiday.name);
         }
     }

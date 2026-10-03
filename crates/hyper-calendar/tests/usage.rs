@@ -230,6 +230,55 @@ fn the_calendars_in_use_today_say_so() {
     }
 }
 
+/// The Gupta, Valabhī, Chedi and Lakṣmaṇa Sena eras are in use from the
+/// opening of their year 1, the epoch Sewell and Dikshit give (Art. 71,
+/// pp. 42-46), and no source read dates an end; the dated inscriptions are a
+/// lower bound that the sources name, not the period.
+#[test]
+fn the_four_indian_eras_are_in_use_from_their_epoch() {
+    let registry = hyper_calendar::registry();
+    // Year 1 opens on 26 February 320 (Julian) for the Gupta era, five
+    // months earlier for the Valabhī, on 5 September 248 for the Chedi and
+    // in A.D. 1119 for the Lakṣmaṇa Sena.
+    let julian = |year, month, day| {
+        hyper_calendar::hc_calendars_solar::julian::to_fixed(year, month, day).unwrap()
+    };
+    for (id, opening) in [
+        ("gupta", julian(320, 2, 26)),
+        ("kalachuri", julian(248, 9, 5)),
+    ] {
+        let usage = registry.get_by_name(id).expect(id).usage();
+        assert_eq!(usage.from, Some(opening), "{id}");
+        assert_eq!(usage.until, None, "{id}");
+        assert_eq!(usage.standing(opening), Standing::InUse, "{id}");
+        assert_eq!(
+            usage.standing(Rd(opening.0 - 1)),
+            Standing::Proleptic,
+            "{id}"
+        );
+        assert!(!usage.source.is_empty(), "{id}");
+    }
+    let valabhi = registry.get_by_name("valabhi").expect("valabhi").usage();
+    let from = valabhi.from.expect("a first day");
+    assert!(
+        julian(319, 1, 1) < from && from < julian(320, 2, 26),
+        "{from:?}"
+    );
+    assert_eq!(valabhi.until, None);
+    let sena = registry
+        .get_by_name("lakshmana-sena")
+        .expect("lakshmana-sena")
+        .usage();
+    let from = sena.from.expect("a first day");
+    assert!(
+        julian(1119, 10, 1) < from && from < julian(1120, 1, 1),
+        "{from:?}"
+    );
+    assert_eq!(sena.until, None);
+    let today = gregorian::to_fixed(2026, 9, 26).unwrap();
+    assert_eq!(sena.standing(today), Standing::InUse);
+}
+
 /// The historical calendars are bounded, and the two ends of the Chinese
 /// calendar's use are different facts.
 #[test]
@@ -266,9 +315,6 @@ fn the_historical_calendars_are_bounded() {
         "soviet-week",
         "persian-imperial",
         "taiping-tianli",
-        "gupta",
-        "valabhi",
-        "kalachuri",
     ] {
         let calendar = registry.get_by_name(id).expect(id);
         let usage = calendar.usage();
