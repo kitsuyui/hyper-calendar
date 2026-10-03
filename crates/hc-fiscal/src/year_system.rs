@@ -29,7 +29,7 @@
 use hc_calendar::{CalendarError, CalendarId, Rd, Weekday};
 #[cfg(feature = "indic")]
 use hc_calendars_indic::{BikramSambatCalendar, HinduSolarDate};
-use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian};
+use hc_calendars_solar::{buddhist, ethiopic, gregorian, persian_33};
 
 use hc_calendar::CalendarResult;
 
@@ -92,25 +92,27 @@ hc_core::catalogue! {
             gregorian::to_fixed,
             gregorian::from_fixed,
         );
-        /// The Solar Hijri calendar, *arithmetic* (Birashk) variant — CLDR
-        /// would call the official one `persian`, and this is explicitly
-        /// not it.
+        /// The Solar Hijri calendar under the 33-year rule,
+        /// `persian-arithmetic-33`.
         ///
-        /// Iran's fiscal year begins at Nowruz, which the Iranian civil code
+        /// Iran's fiscal year begins at Nowruz, which the Iranian calendar
         /// defines by the March equinox at the 52.5°E meridian rather than
-        /// by any arithmetic rule. `hc-calendars-solar` ships the
-        /// 2 820-year cyclic approximation under the identifier
-        /// `persian-arithmetic` and leaves `persian` free for the
-        /// astronomical implementation `hc-astro` will eventually supply.
-        /// This crate uses the approximation and says so: see
-        /// [`crate::countries::IRAN`] for what that costs.
-        pub const SOLAR_HIJRI_ARITHMETIC = Self::new(
-            CalendarId("persian-arithmetic"),
-            "Solar Hijri (arithmetic)",
+        /// by any arithmetic rule, and `hc-calendars-equinox` has that
+        /// calendar as `persian`. This crate keeps to the arithmetic
+        /// calendars of `hc-calendars-solar`, and of the two it carries the
+        /// 33-year rule, which agrees with the astronomical calendar on
+        /// every Nowruz from AP 1178 to 1634 (AD 1799 to 2255), the span
+        /// Borkowski gives for it as Heydari-Malayeri reports him. The
+        /// other, Birashk's 2 820-year cycle, `persian-arithmetic`, puts
+        /// Nowruz 1404 a day early and is not used. See
+        /// [`crate::countries::IRAN`] for what remains approximate.
+        pub const SOLAR_HIJRI_33 = Self::new(
+            CalendarId("persian-arithmetic-33"),
+            "Solar Hijri (33-year rule)",
             true,
             Some(12),
-            persian::to_fixed,
-            persian::from_fixed,
+            persian_33::to_fixed,
+            persian_33::from_fixed,
         );
         /// The Ethiopian calendar (CLDR `ethiopic`).
         ///
@@ -227,7 +229,7 @@ impl StartCalendar {
     /// Whether the calendar's date depends on an astronomical model that
     /// the implementation only approximates.
     ///
-    /// True for [`StartCalendar::SOLAR_HIJRI_ARITHMETIC`] among the shipped
+    /// True for [`StartCalendar::SOLAR_HIJRI_33`] among the shipped
     /// entries. A fiscal year anchored to such a calendar is a very good
     /// prediction of its new year, not a proclamation of it.
     #[must_use]
@@ -950,7 +952,7 @@ mod tests {
         // does not agree exists.
         for calendar in [
             StartCalendar::GREGORIAN,
-            StartCalendar::SOLAR_HIJRI_ARITHMETIC,
+            StartCalendar::SOLAR_HIJRI_33,
             StartCalendar::ETHIOPIC,
             StartCalendar::THAI_BUDDHIST,
         ] {
@@ -965,13 +967,13 @@ mod tests {
     #[test]
     fn a_calendar_new_year_start_is_recognised_in_every_calendar() {
         assert!(YearStart::gregorian(1, 1).is_calendar_new_year());
-        assert!(YearStart::new(StartCalendar::SOLAR_HIJRI_ARITHMETIC, 1, 1).is_calendar_new_year());
+        assert!(YearStart::new(StartCalendar::SOLAR_HIJRI_33, 1, 1).is_calendar_new_year());
         assert!(!YearStart::gregorian(4, 1).is_calendar_new_year());
     }
 
     #[test]
     fn only_the_solar_hijri_calendar_is_flagged_approximate() {
-        assert!(StartCalendar::SOLAR_HIJRI_ARITHMETIC.is_approximate());
+        assert!(StartCalendar::SOLAR_HIJRI_33.is_approximate());
         assert!(!StartCalendar::GREGORIAN.is_approximate());
         assert!(!StartCalendar::ETHIOPIC.is_approximate());
         assert!(!StartCalendar::THAI_BUDDHIST.is_approximate());
@@ -984,7 +986,7 @@ mod tests {
             Some(12)
         );
         assert_eq!(
-            StartCalendar::SOLAR_HIJRI_ARITHMETIC.months_of_equal_standing(),
+            StartCalendar::SOLAR_HIJRI_33.months_of_equal_standing(),
             Some(12)
         );
         assert_eq!(
@@ -1019,10 +1021,12 @@ mod tests {
         assert_eq!(StartCalendar::ETHIOPIC.id().as_str(), "ethiopic");
         assert_eq!(StartCalendar::THAI_BUDDHIST.id().as_str(), "buddhist");
         // Deliberately not "persian": that identifier belongs to the
-        // astronomical calendar this crate does not have.
+        // astronomical calendar of `hc-calendars-equinox`, which this crate
+        // does not depend on; and not "persian-arithmetic", Birashk's cycle,
+        // which starts Nowruz 1404 a day early.
         assert_eq!(
-            StartCalendar::SOLAR_HIJRI_ARITHMETIC.id().as_str(),
-            "persian-arithmetic"
+            StartCalendar::SOLAR_HIJRI_33.id().as_str(),
+            "persian-arithmetic-33"
         );
     }
 

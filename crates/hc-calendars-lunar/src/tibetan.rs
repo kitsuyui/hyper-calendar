@@ -251,6 +251,13 @@ impl Ratio {
         Self::new(self.num.rem_euclid(self.den), self.den)
     }
 
+    /// The value reduced into `[0, modulus)`: `x − ⌊x / modulus⌋ · modulus`,
+    /// the weekday of an instant or a longitude in lunar mansions.
+    #[must_use]
+    pub const fn modulo(self, modulus: i128) -> Self {
+        self.sub(Self::int(self.floor().div_euclid(modulus) * modulus))
+    }
+
     /// Whether the value is below `other`.
     #[must_use]
     pub const fn lt(self, other: Self) -> bool {
@@ -1065,13 +1072,72 @@ pub const ANIMALS: [&str; 12] = [
 /// `tibetan_almanac::COLOURS` carries.
 #[must_use]
 pub fn year_name(year: i64) -> (&'static str, bool, &'static str) {
-    // The Tibetan year shares the Chinese sexagenary year's position.
-    let position = hc_calendar::cycle::sexagenary_year_from_gregorian_year(year);
+    let symbol = year_symbol(year);
     (
-        ELEMENTS[usize::from(position.five_phase().index())],
-        position.polarity().is_yang(),
-        ANIMALS[usize::from(position.branch_index())],
+        ELEMENTS[usize::from(symbol.element)],
+        symbol.male,
+        ANIMALS[usize::from(symbol.animal)],
     )
+}
+
+/// An element, gender and animal of the Chinese-style cycles, as indexes:
+/// the element into [`ELEMENTS`] (and the colours of
+/// `hc-calendars-regional`'s `tibetan_almanac::COLOURS`), the animal into
+/// [`ANIMALS`].
+///
+/// This is the one place the workspace derives a Tibetan year's or day's
+/// symbol from the sexagenary cycle; the almanac's month symbols are its
+/// own, since the Phugpa and Tsurphu name months by different rules.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Symbol {
+    /// The element, 0 for Wood to 4 for Water.
+    pub element: u8,
+    /// Male (the Chinese *yang*) or female.
+    pub male: bool,
+    /// The animal, 0 for the Mouse to 11 for the Pig.
+    pub animal: u8,
+}
+
+impl Symbol {
+    /// The symbol of a position in the sexagenary cycle: the five phases
+    /// and the twelve branches in the order of [`ELEMENTS`] and [`ANIMALS`].
+    #[must_use]
+    pub const fn of_sexagenary(position: hc_calendar::cycle::Sexagenary) -> Self {
+        Self {
+            element: position.five_phase().index(),
+            male: position.polarity().is_yang(),
+            animal: position.branch_index(),
+        }
+    }
+}
+
+/// The year's element, gender and animal: its colour is
+/// `COLOURS[element]`, so 1992, Water–Monkey, is the black monkey year.
+/// The Tibetan year shares the Chinese sexagenary year's position, counted
+/// from the Western year it begins in: 4 CE is Wood–male–Mouse.
+#[must_use]
+pub const fn year_symbol(year: i64) -> Symbol {
+    Symbol::of_sexagenary(hc_calendar::cycle::sexagenary_year_from_gregorian_year(
+        year,
+    ))
+}
+
+/// The calendar day's element, gender and animal: the element number
+/// `⌈JD/2⌉ amod 5`, male when the Julian Day Number is odd, and the animal
+/// `(JD + 2) amod 12`, as in the Chinese calendar (Janson, Appendix E,
+/// attributes for calendar days). These are the sexagenary day's stem and
+/// branch, `hc_calendar::cycle::sexagenary_day`, and are taken from it.
+/// 12 February 1992 is the yellow horse day.
+#[must_use]
+pub const fn day_symbol(rd: Rd) -> Symbol {
+    Symbol::of_sexagenary(hc_calendar::cycle::sexagenary_day(rd))
+}
+
+/// The position of a year in the Prabhava (*rab byung*) cycle of sixty
+/// years numbered from 1027, 0 to 59: `(year − 1027) mod 60`.
+#[must_use]
+pub const fn prabhava_index(year: i64) -> usize {
+    (year - 1_027).rem_euclid(60) as usize
 }
 
 /// The year's place in the Prabhava (*rab byung*) cycles of sixty years
@@ -1079,11 +1145,29 @@ pub fn year_name(year: i64) -> (&'static str, bool, &'static str) {
 /// the 21st year of the 17th cycle. Mongolia numbers its *jaran* cycles the
 /// same way (Janson, Appendix A.3).
 #[must_use]
-pub fn prabhava(year: i64) -> (i64, i64) {
+pub const fn prabhava(year: i64) -> (i64, i64) {
     (
         (year - 1026 + 59).div_euclid(60),
-        (year - 1027).rem_euclid(60) + 1,
+        prabhava_index(year) as i64 + 1,
     )
+}
+
+/// The weekday of a Julian Day Number as the Tibetan almanacs number it,
+/// `(JD + 2) mod 7`, 0 for Saturday, as the true weekday counts them
+/// (Janson, Section 9, the table of the days of the week, which
+/// `hc-calendars-regional`'s `tibetan_almanac::WEEKDAYS` carries): Monday
+/// 5 May 2008, Julian Day Number 2 454 592, is 2.
+#[must_use]
+pub const fn weekday(julian_day_number: i64) -> u8 {
+    (julian_day_number + 2).rem_euclid(7) as u8
+}
+
+/// The weekday of an instant, a Julian Day with its fraction: the whole part
+/// is [`weekday`], the rest the time of day, as an almanac prints a weekday
+/// (`Ratio::sexagesimal`).
+#[must_use]
+pub const fn weekday_of_instant(julian_day: Ratio) -> Ratio {
+    julian_day.add(Ratio::int(2)).modulo(7)
 }
 
 /// A Tibetan date, in any of the versions.
@@ -1219,6 +1303,98 @@ mod tests {
         TIBETAN_TSURPHU_KARANA,
         TIBETAN_BHUTAN_LOCHEN,
     ];
+
+    #[test]
+    fn the_year_symbols_are_the_sexagenary_position_spelled_out() {
+        // Janson, Section 4: the year's position is (Y - 4) mod 60 from
+        // Wood-male-Mouse, the element (pos mod 10) / 2, male when pos is
+        // even, the animal pos mod 12. The owner takes it from
+        // `hc_calendar::cycle`; this is the formula written out.
+        for year in -1_000..=3_100_i64 {
+            let position = (year - 4).rem_euclid(60);
+            let symbol = year_symbol(year);
+            assert_eq!(i64::from(symbol.element), (position % 10) / 2, "{year}");
+            assert_eq!(symbol.male, position % 2 == 0, "{year}");
+            assert_eq!(i64::from(symbol.animal), position % 12, "{year}");
+            let (element, male, animal) = year_name(year);
+            assert_eq!(element, ELEMENTS[usize::from(symbol.element)]);
+            assert_eq!(male, symbol.male);
+            assert_eq!(animal, ANIMALS[usize::from(symbol.animal)]);
+        }
+        // 1992 is the Water-Monkey year, 1984 begins a cycle, 2007 is
+        // Fire-female-Pig.
+        assert_eq!(
+            year_symbol(1992),
+            Symbol {
+                element: 4,
+                male: true,
+                animal: 8
+            }
+        );
+        assert_eq!(year_name(1984), ("Wood", true, "Mouse"));
+        assert_eq!(year_name(2007), ("Fire", false, "Pig"));
+    }
+
+    #[test]
+    fn the_day_symbols_are_jansons_formulas_spelled_out() {
+        // Appendix E: the element ceil(JD/2) amod 5, male when JD is odd,
+        // the animal (JD + 2) amod 12. The owner takes it from the
+        // sexagenary day.
+        for jdn in 2_440_000..2_440_800_i64 {
+            let symbol = day_symbol(Rd::from_julian_day_number(jdn));
+            assert_eq!(
+                i64::from(symbol.element),
+                ((jdn + 1).div_euclid(2) - 1).rem_euclid(5),
+                "{jdn}"
+            );
+            assert_eq!(symbol.male, jdn.rem_euclid(2) == 1, "{jdn}");
+            assert_eq!(i64::from(symbol.animal), (jdn + 1).rem_euclid(12), "{jdn}");
+        }
+        // 12 February 1992 is the yellow (Earth) horse day.
+        let day = day_symbol(greg(1992, 2, 12));
+        assert_eq!(
+            (
+                ELEMENTS[usize::from(day.element)],
+                ANIMALS[usize::from(day.animal)]
+            ),
+            ("Earth", "Horse")
+        );
+    }
+
+    #[test]
+    fn the_prabhava_position_is_year_minus_1027_mod_60() {
+        for year in -1_000..=3_100_i64 {
+            assert_eq!(prabhava_index(year), (year - 1_027).rem_euclid(60) as usize);
+            assert_eq!(prabhava(year).1, prabhava_index(year) as i64 + 1);
+        }
+        // 2007 is the 21st year of the 17th cycle; 1027 begins the first.
+        assert_eq!(prabhava(2007), (17, 21));
+        assert_eq!(prabhava(1_027), (1, 1));
+        assert_eq!(prabhava(1_086), (1, 60));
+        assert_eq!(prabhava(1_087), (2, 1));
+    }
+
+    #[test]
+    fn the_weekday_is_jd_plus_two_mod_seven() {
+        // Henning: Monday 5 May 2008 (the almanac tests state it from his
+        // text), so Saturday is 0, Sunday 1 and Monday 2.
+        assert_eq!(weekday(greg(2008, 5, 3).to_julian_day_number()), 0);
+        assert_eq!(weekday(greg(2008, 5, 5).to_julian_day_number()), 2);
+        for offset in 0..14 {
+            let rd = greg(2008, 5, 3 + offset);
+            assert_eq!(
+                i64::from(weekday(rd.to_julian_day_number())),
+                (rd.to_julian_day_number() + 2).rem_euclid(7)
+            );
+        }
+        // An instant keeps its time of day, a quarter of a day on from
+        // Monday's number is 2;1/4, and a negative one wraps.
+        let monday = Ratio::int(i128::from(greg(2008, 5, 5).to_julian_day_number()));
+        let at = monday.add(Ratio::new(1, 4));
+        assert_eq!(weekday_of_instant(at), Ratio::new(9, 4));
+        assert_eq!(Ratio::new(-1, 2).modulo(7), Ratio::new(13, 2));
+        assert_eq!(Ratio::new(15, 2).modulo(7), Ratio::new(1, 2));
+    }
 
     fn greg(year: i64, month: u8, day: u8) -> Rd {
         gregorian::to_fixed_saturating(year, month, day)

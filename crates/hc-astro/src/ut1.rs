@@ -251,7 +251,7 @@ mod tests {
             (error_july_2026 - 0.06).abs() < 0.01,
             "error in July 2026 was {error_july_2026}"
         );
-        let observed_july_2026 = 32.184 + 37.0 - 0.014_491_6;
+        let observed_july_2026 = hc_core::scale::TT_MINUS_TAI_SECONDS + 37.0 - 0.014_491_6;
         let polynomial_error = observed_july_2026
             - crate::time::delta_t_polynomial(crate::time::decimal_year(moment_of(
                 JULY_2026 as f64,

@@ -232,7 +232,10 @@ Water-Water; 11 Feb 2013 / phan tshun, gdab pa, Tiger, kham 7 / 2;6,31
   the 4th, 13th and 47th years there, and is kept; and `royal_year`, the
   count from 127 BCE.
 - **Element, colour and animal**: `year_symbol`, `month_symbol` under
-  `MonthCycle::Phugpa` or `MonthCycle::Tsurphu`, `day_symbol`; `COLOURS`,
+  `MonthCycle::Phugpa` or `MonthCycle::Tsurphu`, `day_symbol`; the
+  year's and the day's are defined once, in `hc-calendars-lunar`'s
+  `tibetan` module beside `year_name`, `prabhava` and `weekday`, and this
+  module re-exports them with `Symbol`; `COLOURS`,
   the Mongolian use; `MONGOLIAN_COLOURS`, the words with their female
   forms as Gantumur's calendar writes them [gantumur-mongolian-calendar].
 - **Mongolian months**: `mongolian_month`, the season and the month's
@@ -448,8 +451,9 @@ only [mn-resolution-2025-109], which is neither rule
 `AlmanacDay`, `karana_of_half_day`, the tables `MANSIONS`, `YOGAS`,
 `KARANAS`, `WEEKDAYS` and `RAB_BYUNG_NAMES`; `Planet`, `PlanetPlace`,
 `general_day`, `mean_solar_longitude`, `planet_place`, `rahu_head`;
-`rab_byung_name`, `royal_year`; `Symbol`, `year_symbol`, `MonthCycle`,
-`month_symbol`, `day_symbol`, `COLOURS`, `MONGOLIAN_COLOURS`; `Season`,
+`rab_byung_name`, `royal_year`; `MonthCycle`, `month_symbol`, `COLOURS`,
+`MONGOLIAN_COLOURS`, and the re-exports `Symbol`, `year_symbol` and
+`day_symbol`, which `crates/hc-calendars-lunar/src/tibetan.rs` defines; `Season`,
 `mongolian_month`, `MONGOLIAN_MONTH_NAMES`, `MONGOLIAN_LEAP_WORD`;
 `bhutanese_weekday`, `bhutanese_winter_solstice`; `Trigram`, `TRIGRAMS`,
 `NineNumber`, `NINE_NUMBERS`, `LunarDayAttributes`, `lunar_day_attributes`,

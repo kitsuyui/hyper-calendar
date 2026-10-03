@@ -32,7 +32,7 @@ use core::fmt;
 use hc_core::math;
 
 use crate::error::{UncertaintyError, UncertaintyResult};
-use crate::sig_figs::{MAX_FIGURES, Significant};
+use crate::sig_figs::Significant;
 
 /// A quantity known as a Gaussian: a central value and a 1σ standard
 /// deviation.
@@ -379,12 +379,20 @@ impl Uncertain {
         Ok(accumulated)
     }
 
-    /// The central value rendered at the precision the error bar justifies.
+    /// The central value reported at the precision the error bar justifies.
     ///
-    /// The convention here is the one the Particle Data Group uses for
-    /// tables: the uncertainty fixes the last significant place of the value,
-    /// and `σ` itself is quoted to two digits. `1234.5 ± 12` therefore has
-    /// four significant figures, not five.
+    /// The convention is the one CODATA tables use and GUM 7.2.6 allows: the
+    /// uncertainty is quoted to two significant digits, and its last digit
+    /// fixes the last significant place of the value. `1234.5 ± 12` therefore
+    /// has four significant figures, not five. The uncertainty is rounded
+    /// first, by the rule of [`Significant`], and the place is read from the
+    /// rounded numeral, so `5.43 ± 0.996` (σ reported as `1.0`) is `5.4`
+    /// and not `5.43`. When rounding the value carries into a new decade the
+    /// returned value is the rounded one, so that `99.996 ± 0.5` is `100.00`.
+    ///
+    /// The Particle Data Group's rule is different: it keeps one digit of σ
+    /// when the first three digits of σ lie between 355 and 949, and two
+    /// otherwise. It is not implemented here.
     ///
     /// # Errors
     ///
@@ -395,13 +403,10 @@ impl Uncertain {
         if self.is_exact() {
             return Significant::exact(self.value);
         }
-        let value_exponent = Significant::exact(self.value)?.decimal_exponent();
-        let sigma_exponent = Significant::exact(self.std_dev)?.decimal_exponent();
         // Two digits of sigma means the last significant place of the value
-        // is one decade below sigma's leading digit.
-        let last_place = sigma_exponent - 1;
-        let figures = (value_exponent - last_place + 1).clamp(1, i32::from(MAX_FIGURES)) as u8;
-        Significant::new(self.value, figures)
+        // is one decade below the leading digit of the rounded sigma.
+        let sigma = Significant::new(self.std_dev, 2)?;
+        Significant::at_place(self.value, sigma.last_significant_place())
     }
 }
 
@@ -416,6 +421,7 @@ impl fmt::Display for Uncertain {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sig_figs::MAX_FIGURES;
 
     #[test]
     fn a_radiocarbon_age_keeps_its_error_bar() {
@@ -702,6 +708,56 @@ mod tests {
         // Sigma's leading digit is in the tens, so the value is significant
         // down to the units: four figures.
         assert_eq!(rendered.figures(), 4);
+    }
+
+    #[test]
+    fn the_gum_example_rounds_the_estimate_to_the_uncertainty() {
+        // JCGM 100:2008 (the GUM) 7.2.6: y = 10.057 62 ohm with u = 27 mohm is
+        // reported as 10.058 ohm. Quoted, not read from the source (see the
+        // README); the digits agree with the two-digit rule.
+        let value = Uncertain::new(10.057_62, 0.027).unwrap();
+        let reported = value.to_significant().unwrap();
+        assert_eq!(reported.figures(), 5);
+        assert_eq!(reported.rounded(), 10.058);
+        #[cfg(feature = "alloc")]
+        assert_eq!(alloc::string::ToString::to_string(&reported), "10.058");
+    }
+
+    #[test]
+    fn the_place_is_read_from_the_rounded_error_bar() {
+        // 0.996 is quoted as 1.0, whose last place is the tenths; reading the
+        // place from the unrounded 0.996 gave the hundredths and printed
+        // 5.43 beside a sigma of 1.0.
+        let value = Uncertain::new(5.43, 0.996).unwrap();
+        let reported = value.to_significant().unwrap();
+        assert_eq!(reported.figures(), 2);
+        assert_eq!(reported.rounded(), 5.4);
+        // 0.94 stays 0.94, and the value keeps the hundredths.
+        let value = Uncertain::new(5.43, 0.94).unwrap();
+        assert_eq!(value.to_significant().unwrap().figures(), 3);
+    }
+
+    #[test]
+    fn a_value_that_rounds_into_a_new_decade_keeps_the_place_of_the_error() {
+        // sigma 0.5 is quoted as 0.50: the hundredths. 99.996 rounds there to
+        // 100.00, five figures, not to the four of 99.99|6.
+        let value = Uncertain::new(99.996, 0.5).unwrap();
+        let reported = value.to_significant().unwrap();
+        assert_eq!(reported.figures(), 5);
+        assert_eq!(reported.value(), 100.0);
+        #[cfg(feature = "alloc")]
+        assert_eq!(alloc::string::ToString::to_string(&reported), "100.00");
+    }
+
+    #[test]
+    fn an_exact_quantity_prints_the_shortest_numeral() {
+        let value = Uncertain::exact(0.1).unwrap();
+        #[cfg(feature = "alloc")]
+        assert_eq!(
+            alloc::string::ToString::to_string(&value.to_significant().unwrap()),
+            "0.1"
+        );
+        let _ = value;
     }
 
     #[test]

@@ -141,11 +141,41 @@ Measured, not published: within 1178–1634 the 2 820-year cycle and
 `persian` disagree first at 1210 and 1243 and then from 1404 on, in 1404,
 1437, 1470, 1503, 1532, 1536 and more; nearer the present only 1404.
 
-Years the model cannot call: an equinox within a minute of the deciding
-noon. For `persian` that is 1309 (21 March 1930, about ten seconds before
-08:30 UT), for `persian-apparent-noon` 1470. Each module's
-`new_year_margin` gives the distance for any year, and the tests name both
-years rather than claim them.
+**The error before 1925.** The equinox is placed in Terrestrial Time to
+seconds and brought to Universal Time by subtracting ΔT, a fit to the
+historical record, so the real accuracy of a year's Nowruz is ΔT's. The two
+models `hc-astro` carries, `espenak-meeus-2006` (the one used) and
+`morrison-stephenson-2021` (`espenak-meeus-2006`, `morrison2021`), differ
+by the amounts below, the largest difference over the Solar Hijri years 1
+to 1304 in each Gregorian century, measured on 2026-10-03; they are
+the same table from 1974, where the observed ΔT answers, and the second is
+silent after 2019:
+
+| Century | 600s | 700s | 800s | 900s | 1000s | 1100s | 1200s | 1300s | 1400s | 1500s | 1600s | 1700s | 1800s | 1900s |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Largest difference, seconds | 80 | 53 | 29 | 76 | 134 | 178 | 190 | 189 | 160 | 94 | 16 | 5 | 5 | 1 |
+
+The two are fits to one record, so the difference is a lower bound on the
+error, and nothing here says how much larger it is. The calendar therefore
+states its tolerance by year: `persian::tolerance_minutes(year)`, a minute
+for the Sun and the series (`TOLERANCE_MINUTES`) plus that year's
+difference, up to 4.2 minutes in the 1200s and 1300s and a minute from
+1974. Before this was added the tolerance was a flat minute from 622 to
+1925, which called years decided by ΔT as if the sky had decided them.
+
+Years the model cannot call: an equinox within `tolerance_minutes` of the
+deciding noon. For `persian` that is ten years: 265, 426, 459, 525, 686,
+719, 1144, 1309, 1701 and 2159, of which 1309 (21 March 1930, about ten
+seconds before 08:30 UT) is the one the earlier text of this section named,
+and 525, 686 and 719, with margins of 3.0 to 3.6 minutes, are the ones the
+flat minute missed. For `persian-apparent-noon` it is seven: 67, 100, 327,
+653, 785, 979 and 1470. The years 166, 1111 and 1210 have margins of 3.3,
+3.6 and 3.8 minutes, in centuries where the two models agree to seconds, and
+the sky decides them. Each module's `new_year_margin` gives the distance for
+any year and `tolerance_minutes` the tolerance; the tests list the years
+(`the_years_the_model_decides_are_ten`, `..._seven`) rather than claim
+them. Before 1925 the rule itself is a projection, since Iran adopted it
+that year [heydari-malayeri2004, §1].
 
 ## Sources
 

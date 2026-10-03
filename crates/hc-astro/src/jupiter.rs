@@ -49,11 +49,14 @@
 
 use hc_calendar::fixed::Moment;
 use hc_core::math::{
-    DEG_TO_RAD, RAD_TO_DEG, asin, atan2, cos, cos_deg, normalize_degrees, signed_degrees, sin,
-    sin_deg, sqrt,
+    DEG_TO_RAD, RAD_TO_DEG, asin, atan2, cos, normalize_degrees, signed_degrees, sin, sqrt,
 };
 
+use hc_core::duration::SECONDS_PER_DAY_F64;
+
 use crate::earth::nutation_at_centuries;
+use crate::hjd::LIGHT_TIME_PER_AU_SECONDS;
+use crate::solar::fk5_from_dynamical;
 use crate::time::{julian_centuries, julian_centuries_from_dynamical};
 use crate::vsop87::earth_heliocentric;
 use crate::vsop87_jupiter::{Truncation, jupiter_heliocentric};
@@ -71,8 +74,8 @@ pub const DEFAULT_TRUNCATION: Truncation = Truncation::Amplitude(1e-8);
 
 /// Light takes this many days to cross an astronomical unit: 499.004 783 8 s,
 /// from the speed of light, 299 792 458 m/s, and the astronomical unit,
-/// 149 597 870 700 m.
-const LIGHT_DAYS_PER_AU: f64 = 499.004_783_8 / 86_400.0;
+/// 149 597 870 700 m, as [`crate::hjd::LIGHT_TIME_PER_AU_SECONDS`] has them.
+const LIGHT_DAYS_PER_AU: f64 = LIGHT_TIME_PER_AU_SECONDS / SECONDS_PER_DAY_F64;
 
 /// One second of arc in degrees.
 const ARCSECOND: f64 = 1.0 / 3600.0;
@@ -244,11 +247,9 @@ pub fn apparent_at_centuries(centuries: f64, truncation: Truncation) -> Apparent
     let (longitude, latitude, _) = spherical(direction);
     let mut longitude = longitude * RAD_TO_DEG;
     let mut latitude = latitude * RAD_TO_DEG;
-    // From the dynamical ecliptic of VSOP87 to the FK5 frame (Meeus 32.3,
-    // as `solar` does for the Sun).
-    let lambda_prime = longitude - 1.397 * centuries - 0.000_31 * centuries * centuries;
-    latitude += 0.039_16 * ARCSECOND * (cos_deg(lambda_prime) - sin_deg(lambda_prime));
-    longitude -= 0.090_33 * ARCSECOND;
+    // From the dynamical ecliptic of VSOP87 to the FK5 frame (Meeus 32.3),
+    // the function the Sun's position passes through in `solar`.
+    (longitude, latitude) = fk5_from_dynamical(longitude, latitude, centuries);
     let mean = normalize_degrees(longitude);
     let nutation = nutation_at_centuries(centuries).longitude_degrees;
     let (heliocentric_longitude, heliocentric_latitude, heliocentric_distance) = spherical(jupiter);
@@ -422,7 +423,7 @@ mod tests {
     fn the_heliocentric_position_agrees_with_horizons_as_vsop87_says() {
         let limits = [8.5, 2.2, 1.0, 0.4, 0.2, 0.2, 0.3, 0.3, 0.4, 0.5, 0.6, 0.8];
         for ((julian_date, km), limit) in HORIZONS_VECTORS.iter().zip(limits) {
-            let tau = (julian_date - 2_451_545.0) / 365_250.0;
+            let tau = (julian_date - crate::time::J2000_JULIAN_DATE) / 365_250.0;
             let (l, b, r) = jupiter_heliocentric(tau, Truncation::Full);
             let [x, y, z] = km.map(|k| k / AU_KM);
             let (lh, bh, rh) = spherical([x, y, z]);
@@ -605,7 +606,10 @@ mod tests {
         for truncation in [Truncation::Full, DEFAULT_TRUNCATION] {
             for (row, limit) in HORIZONS_TT.iter().zip(longitude_limits) {
                 let (julian_date, distance, longitude, latitude) = *row;
-                let at = apparent_at_centuries((julian_date - 2_451_545.0) / 36_525.0, truncation);
+                let at = apparent_at_centuries(
+                    (julian_date - crate::time::J2000_JULIAN_DATE) / 36_525.0,
+                    truncation,
+                );
                 let dl = signed_degrees(at.longitude_degrees - longitude) * 3600.0;
                 let db = (at.latitude_degrees - latitude) * 3600.0;
                 let dr = (at.distance_au - distance) * AU_KM;

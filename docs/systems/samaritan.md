@@ -100,7 +100,8 @@ the sacrifice fell on Wednesday 6 May, as published.
   Festival of the Seventh Month on 7/1, the Day of Atonement on 7/10,
   Sukkot on 7/15 and Shemini Atseret on 7/22 [samaritans-net-calendar].
 - **Not carried.** The priesthood's own computation, which was not
-  read; Shavuot, whose counting rule the community's festival page gives
+  read: neither Avraham b. Pinchas's algorithm nor the High Priest's printed
+  calendars are among the sources found (see "Which source is missing"); Shavuot, whose counting rule the community's festival page gives
   — fifty days from the day after the Sabbath in the seven days of
   Unleavened Bread — but for which no dated Shavuot was read; the month
   names in the Samaritan script, which no source read prints (Wikipedia's
@@ -140,6 +141,30 @@ some moment between about 14:14 and 14:50 apparent — the autumn month of
 such a rule, four years do not fix the moment, and the library does not
 invent one. The priesthood's calculation, which would, was not read; a
 reading of its own is registered when it is.
+
+**Which source is missing, and what was tried (2026-10-03).** The rule the
+priesthood applies is in none of the sources that could be read. The
+community's pages say only that the calculation is Avraham b. Pinchas's
+computer algorithm and that the High Priest issues a printed calendar twice
+a year, sixty days before Passover and before Sukkot
+[samaritan-institute-calendar]; neither the algorithm nor a printed calendar
+was read, so the dates of 2025 and 2026 rest on one news report each. What
+would settle it is one of those two, or a scholarly description of the
+calculation (the library has no such text; Wikipedia has no page on the
+calendar, and its "Passover (Samaritan holiday)" gives no rule or dated
+table). The one rule found besides Reingold and Dershowitz's is a catalogue
+description of the medieval treatise *Ishban kashtah* ("True Calculation",
+about 1300–1325, Samaritan and Arabic), which says each month begins "the
+day after the moon's conjunction" counting the day from sunset
+[textmanuscripts-ishban-kashtah]. It is a rule of the fourteenth century,
+read only as a dealer's summary with none of the tables, and it does not
+reproduce the published sacrifices of 2017 to 2020 on any reading of "day
+after" that was tried (a month counted from the sunset after the
+conjunction puts the Passover of 2019 on Friday 19 April, and the community
+kept Thursday the 18th); so it is not registered as a reading. Until a
+source for the priesthood's rule is read, `samaritan` states its rule and
+its three known disagreements and does not claim to reproduce the
+community's calendar; the festival table in `hc-holiday` is built on it.
 
 **The Council of Ministers' table.** The Palestinian Council of Ministers
 gives the Samaritan employees of the Government their feasts each year
@@ -187,6 +212,7 @@ apparent noon at Gerizim is decided by that model.
 | [zohar-samaritan-passover-2026] | The sacrifice of 2026 scheduled for 30 April and held on 10 April | Yes, 2026-09-29 |
 | [jenkins-samaritan-passover-2010] | The Passover of 28 April 2010 | Yes, 2026-09-29 (a travel blog) |
 | [wafa-official-holidays] | The Council of Ministers' days off for the Samaritan employees of 2025 | Yes, 2026-09-29 |
+| [textmanuscripts-ishban-kashtah] | The medieval treatise *Ishban kashtah*, and its one-line rule that a month begins the day after the conjunction | Catalogue description only, 2026-10-03 |
 
 ## Code
 

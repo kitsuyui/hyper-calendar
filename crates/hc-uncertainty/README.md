@@ -43,11 +43,17 @@ Highlights:
 
 - `Significant::new(13.8e9, 3).to_string()` is `"1.38e10"`, never
   `"13800000000"`. Scientific notation is chosen exactly when plain decimal
-  would show a digit that is not claimed.
+  would show a digit that is not claimed. The printed form, `rounded()`,
+  `decimal_exponent()` and `last_significant_place()` all read one rounded
+  numeral: `9.96` to two figures is `10` everywhere, `2.5` to one figure is
+  `2`. An exact value (`MAX_FIGURES`) prints the shortest numeral that reads
+  back as the same `f64`: `0.1`, not `0.10000000000000001`.
 - `Uncertain::combine` is the inverse-variance weighted mean — the estimator a
   review paper uses to merge two published values — and `to_significant`
-  applies the Particle Data Group's rule that the error bar fixes the last
-  significant place of the value.
+  quotes the error bar to two digits and lets its last digit fix the last
+  significant place of the value (CODATA's convention, allowed by GUM 7.2.6;
+  the Particle Data Group varies the digits of σ with its leading three
+  digits and that is not implemented).
 - `FuzzyInstant::relations` returns a **set** of Allen relations, not one.
   Two fully determined spans give a singleton; `Before(1500)` against a known
   span that ends before 1500 gives five; two `Unknown`s give all thirteen.
@@ -79,8 +85,15 @@ Highlights:
 
 ## Accuracy claimed
 
-- `Significant` rounding is half-away-from-zero and stable under repetition;
-  the figure count is capped at 17, the most an IEEE-754 double can identify.
+- `Significant` rounds by NIST SP 811, B.7.1 on the shortest decimal numeral
+  of the value: below one half down, above one half up, exactly one half to
+  the even digit (`2.5` to one figure is `2`, `3.5` is `4`, `2.675` to three
+  figures is `2.68`). It is stable under repetition. The figure count is
+  capped at 17, the most an IEEE-754 double can identify. Before this
+  revision the rounding was half-away-from-zero while the printed form used
+  Rust's ties-to-even on the binary value, so `2.5` printed `2` and rounded
+  to `3`, and a value that rounded into a new decade printed an extra figure
+  (`9.96` to two figures printed `10.0`).
 - `Uncertain` propagation is exact for linear functions and correct to `O(σ²)`
   otherwise. No `f32` appears anywhere.
 - `DurationInterval` is exact: bounds are `hc_core::Duration`, and the
@@ -100,8 +113,21 @@ Highlights:
 - Allen's thirteen relations, their names and their symbols: James F. Allen,
   *Maintaining knowledge about temporal intervals*, CACM 26(11), 1983.
 - The uniform-distribution factor `w/√12`: JCGM 100:2008, the *GUM*, §4.3.7.
-- Significant-figure and error-bar reporting conventions: the SI Brochure and
-  the Particle Data Group's review style.
+- Rounding: NIST Guide to the SI (SP 811), Appendix B.7.1, rules 1 to 3, read
+  on nist.gov (HTML) on 2026-10-03; its examples 6.974 951 5 and
+  6.974 950 5 are tests here. The even-digit rule on exactly one half is
+  that source's; other conventions (round half up) exist and are not carried.
+- Two digits of the error bar, and the estimate rounded to match: GUM 7.2.6
+  (JCGM 100:2008), including its example 10.057 62 Ω with 27 mΩ reported as
+  10.058 Ω. **Not read from the source**: the JCGM's HTML at iso.org answered
+  the fetch with a bot challenge and the PDF is not opened (policy), so the
+  sentence and the example are as a search summary quoted them; the example
+  is a test and agrees with the rule as implemented.
+- The Particle Data Group's variable rule (two digits of σ when its leading
+  three digits are 100–354, one when 355–949, and 950–999 rounded up to 1000
+  with two digits kept) was read only as a quotation of PDG 2011 §5.3 in the
+  r-quantities/errors issue 45 on GitHub; the PDG's own text is a PDF and was
+  not opened. It is not implemented.
 - The two proleptic Gregorian Rata Die formulas, and the `1945-11-12 = RD
   710347` and `1970-01-01 = RD 719163` anchors used to test them: Reingold and
   Dershowitz, *Calendrical Calculations*, 4th ed., §2.3 and Appendix C. They

@@ -69,10 +69,15 @@ of the tests.
   the rotation of a ground station, orbital eccentricity and the Sagnac effect
   are all absent. Each moves the GPS numbers by nanoseconds per day, not
   microseconds — but a real time-transfer system needs all of them, and this
-  crate should not be used as though it had them. The ISS figure above is
-  −24.5 µs/day where the usually quoted number is nearer −28; the test
-  attributes the difference to the rotating geoid and the station's
-  non-circular orbit, neither of which is modelled.
+  crate should not be used as though it had them. The ISS figure above,
+  −24.5 µs/day, is the sum of two terms: −28.2 µs/day from the station's
+  speed (7.66 km/s at the 6 798 137 m radius, `GM/(2rc²)`) and +3.7 µs/day
+  from sitting higher in the Earth's potential. A figure near −28 is the
+  speed term alone. Setting the ground clock on the rotating geoid, the
+  surface of defining constant `L_G`, instead of at rest on the equatorial
+  radius moves the net result by about 0.14 µs/day, to −24.3 (recomputed in
+  the tests); the station's eccentricity and the Earth's `J₂` are not
+  modelled.
 - **`circular_orbit_speed` is Newtonian.** The relativistic correction is of
   order `r_s/r`, which is 5·10⁻¹⁰ at GPS altitude. It would matter near a
   black hole and the function says so.

@@ -225,7 +225,12 @@ day 18; there is no day 19, and 12 March is day 20. The module marks the
   shows the mark in a written date, so the text names two days and the
   reader refuses it as `ambiguous` ([written-dates.md](written-dates.md)).
 - **The year's names**: `year_name` gives element, gender and animal,
-  `prabhava` the cycle and the year in it; `hc-calendars-regional`'s
+  `prabhava` the cycle and the year in it, `prabhava_index` its position
+  from 0, `year_symbol` and `day_symbol` the element, gender and animal of a
+  year and of a day as indexes (`Symbol`), `weekday` and
+  `weekday_of_instant` the weekday counted from Saturday: the one place
+  the workspace does this arithmetic, which the almanac module and the
+  facade's line functions call; `hc-calendars-regional`'s
   `tibetan_almanac::rab_byung_name` the year's name in the sixty-year
   cycle in Tibetan and Sanskrit, *thams cad 'dul*, *sarvajit*, for 2007,
   from Janson's table after Henning, and `royal_year` the count from 127
@@ -360,7 +365,12 @@ index 48 and the epoch values `m0`, `s0`, `a0`; the shared constants `DAWN`,
 tables `MOON_TABLE` and `SUN_TABLE`; the methods `true_month_count`,
 `month_of_count`, `inverse_constant`, `is_leap_year`, `leap_month_of`,
 `new_year`, `date_from_fixed` and `date_to_fixed`, and the functions
-`year_name` and `prabhava`. Anchors:
+`year_name`, `prabhava`, `prabhava_index`, `year_symbol`, `day_symbol`,
+`weekday`, `weekday_of_instant` and the type `Symbol`. Anchors:
+`the_year_symbols_are_the_sexagenary_position_spelled_out`,
+`the_day_symbols_are_jansons_formulas_spelled_out`,
+`the_prabhava_position_is_year_minus_1027_mod_60`,
+`the_weekday_is_jd_plus_two_mod_seven`,
 `the_day_begins_at_mean_daybreak`,
 `losar_begins_at_the_dawn_of_its_civil_day`,
 `the_sources_own_dates_and_losar_of_2000_are_reproduced`,

@@ -9,6 +9,7 @@ use hc_calendar::fixed::RD_OF_UNIX_EPOCH;
 use hc_calendar::gregorian;
 use hc_core::duration::SECONDS_PER_DAY_F64;
 use hc_core::epoch::J2000_TT_SECONDS;
+use hc_core::scale::TT_MINUS_TAI_SECONDS;
 use hc_core::{Duration, Instant, Tai, TimeResult};
 
 /// The TAI reading of J2000.0, measured from `1970-01-01T00:00:00 TAI`.
@@ -89,7 +90,7 @@ pub(crate) const fn utc_unix_seconds(
 /// 946 728 000 read on the TT scale, and a UTC reading is
 /// `TAI − UTC + 32.184 s` behind TT.
 pub(crate) const fn j2000_tt_days_from_utc(unix_seconds: i64, tai_minus_utc_seconds: i64) -> f64 {
-    ((unix_seconds - J2000_TT_SECONDS) as f64 + tai_minus_utc_seconds as f64 + 32.184)
+    ((unix_seconds - J2000_TT_SECONDS) as f64 + tai_minus_utc_seconds as f64 + TT_MINUS_TAI_SECONDS)
         / SECONDS_PER_DAY_F64
 }
 
