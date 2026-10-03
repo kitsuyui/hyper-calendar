@@ -138,7 +138,12 @@ Beijing's meridian as the Republic's almanacs kept it.
   17 August 1945 [wikipedia-ja-datong-manchukuo,
   wikipedia-zh-datong-manchukuo, wikipedia-ja-kangde, wikipedia-zh-kangde].
 - **Not carried.** The eras before the Ming, with their mid-year changes
-  and concurrent regimes, which wait on a table that dates them; the last
+  and concurrent regimes, which wait on a table that dates them; the
+  Vietnamese regnal eras (the lists read give years and not the day an era
+  was proclaimed), the Bogd Khanate's Olnoo Örgögdsön of 1911–1924, the
+  Ryukyu Kingdom's usage of the Chinese and Japanese eras beside each other,
+  and the era names of the Khitan, Tangut, Jurchen and other neighbouring
+  states, each a row of the roadmap with what it waits on; the last
   days the sources dispute, 23 March 1916 and 18 August 1945, which are
   refused rather than chosen; 隆熙 backdated, which no source read states;
   and the Republic of Korea's Dangi count, which is a naming of the

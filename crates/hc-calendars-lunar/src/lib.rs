@@ -177,6 +177,7 @@ hc_core::check_days_in_parallel!();
 pub mod archetypes;
 pub mod babylonian;
 pub mod chinese;
+pub mod chinese_historical;
 pub mod dangi;
 pub mod hebrew;
 pub mod hebrew_observational;
@@ -201,6 +202,17 @@ pub mod yerm;
 pub use archetypes::{ArchetypesCalendar, ArchetypesDate};
 pub use babylonian::{BabylonianCalendar, BabylonianDate};
 pub use chinese::{ChineseCalendar, ChineseDate};
+pub use chinese_historical::daming::DamingCalendar;
+pub use chinese_historical::jingchu::JingchuCalendar;
+pub use chinese_historical::kaihuang::KaihuangCalendar;
+pub use chinese_historical::qianxiang::QianxiangCalendar;
+pub use chinese_historical::sanji::SanjiCalendar;
+pub use chinese_historical::sifen::SifenCalendar;
+pub use chinese_historical::taichu::TaichuCalendar;
+pub use chinese_historical::tianhe::TianheCalendar;
+pub use chinese_historical::xinghe::XingheCalendar;
+pub use chinese_historical::yuanjia::YuanjiaCalendar;
+pub use chinese_historical::zhengguang::ZhengguangCalendar;
 pub use dangi::{DangiCalendar, DangiDate, DangiKasiCalendar};
 pub use hebrew::{HebrewCalendar, HebrewDate};
 pub use hebrew_observational::ObservationalHebrewCalendar;
@@ -274,6 +286,17 @@ mod registration {
         crate::HoryakuCalendar,
         crate::JokyoCalendar,
         crate::SenmyoCalendar,
+        crate::TaichuCalendar,
+        crate::SifenCalendar,
+        crate::QianxiangCalendar,
+        crate::JingchuCalendar,
+        crate::YuanjiaCalendar,
+        crate::DamingCalendar,
+        crate::XingheCalendar,
+        crate::TianheCalendar,
+        crate::KaihuangCalendar,
+        crate::SanjiCalendar,
+        crate::ZhengguangCalendar,
         crate::tabular::FATIMID,
         crate::HebrewCalendar,
         crate::ObservationalHebrewCalendar,
@@ -316,7 +339,7 @@ mod registration_tests {
     fn every_calendar_registers_under_a_distinct_identifier() {
         let mut registry = CalendarRegistry::new();
         super::register_all(&mut registry);
-        assert_eq!(registry.len(), 37);
+        assert_eq!(registry.len(), 48);
     }
 
     #[test]

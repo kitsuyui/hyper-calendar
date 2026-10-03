@@ -123,8 +123,9 @@ def table():
     source = open(TABLE, encoding='utf-8').read()
     rows = re.findall(r'id: "([^"]+)",\s*kanji: "([^"]+)"', source)
     assert len(rows) == 248, len(rows)
-    # The table spells a kanji as the article it was read from titles it,
-    # 延長 (元号), where the name alone is also another article's.
+    # An earlier table spelled a kanji as the article it was read from titles
+    # it, 延長 (元号), where the name alone is also another article's; the
+    # substitution is harmless now that the table holds the bare name.
     return [(code, re.sub(r' \(元号\)$', '', kanji)) for code, kanji in rows]
 
 

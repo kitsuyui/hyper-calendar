@@ -126,6 +126,13 @@ proclaimed, and for 19 November 1392 (Julian) in the Southern stream give
   romanisation and identifier, court, proclamation day in Julian or
   Gregorian as the source gives it, 元年, how firmly the day is known, and
   the two lapses. `nengo::era_at` answers under the proclaimed reading.
+  The kanji is the bare name. The Japanese Wikipedia titles the articles of
+  eight eras with the suffix " (元号)", because the bare name is the title of
+  another article: 延長, 治安, 永久, 保安, 正中, 天文, 安永 and 文化. That
+  suffix is the encyclopedia's way of telling its own pages apart, not part
+  of an era's name, so the table does not carry it; no two eras share a
+  kanji name, and where two readings collide the identifier tells the eras
+  apart (`no_kanji_carries_a_title_suffix`).
 - **The eras' names in other languages** are CLDR 48's, every era each
   locale's own file names for `calendar type="japanese"`, as the file
   writes it [cldr48-japanese-eras]: 236 of the table's 248 eras, 大化 to

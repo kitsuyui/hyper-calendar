@@ -15,9 +15,9 @@ This file is generated from the code, so it cannot drift from it. It says **what
 
 ## Calendars
 
-229 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
+240 registered identifiers, alphabetically. A calendar reachable only by constructing it — an arbitrary Julian-to-Gregorian cut-over, the unbounded Tenpō engine — is not here, because this lists what the registry answers to.
 
-**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 195 of 229 have months and 195 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
+**Cycles** is what the calendar declares itself to be made of — every calendar declares one, because the trait has no default and a silent calendar does not compile — and **Named** is whether English can name its months, from the locale or from the names the calendar declares for itself. 206 of 240 have months and 206 of those can be named; a dash means the calendar has no months to name. The gap is asserted in `tests/vocabulary.rs`, so it can only move deliberately: a calendar that is implemented but unnameable is a gap the library should be able to state, not one a reader has to discover.
 
 **Named by** is which civil day names a day that does not begin at midnight: `start` for the one it begins on, as the Julian Day that begins at noon on 1 January 2000 is that day's, and `end` for the one it ends on, as the Hebrew day that begins at sunset on a Friday is Saturday's.
 
@@ -51,8 +51,19 @@ This file is generated from the code, so it cannot drift from it. It says **what
 | `ccsds-day` | CCSDS day count | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `cheondogyo-podeok` | Cheondogyo (Podeok) | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 1860-01-01 | +9999999-12-31 | no | no | midnight | — | month ×12, weekday ×7 | yes |
 | `chinese` | Chinese | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 1645-01-01 | 2150-12-31 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-daming` | Chinese Daming (Southern Dynasties, 510 – 590) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0510-01-28 | 0590-02-11 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-jingchu` | Chinese Jingchu (Wei, Jin and Song, 240 – 445) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0240-02-10 | 0445-01-24 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-kaihuang` | Chinese Kaihuang (Sui, 584 – 597) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0584-02-19 | 0597-01-25 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-qianxiang` | Chinese Qianxiang (Wu, 223 – 281) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0223-02-18 | 0281-02-05 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `chinese-regnal` | Qing dynasty eras | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1645-01-01 | 1912-02-12 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `chinese-regnal-qing-court` | Qing dynasty eras, with 宣統 kept by the court to 1924 | [`hc-calendars-regional`](../crates/hc-calendars-regional) | `regional` | 1645-01-01 | 1924-11-05 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-sanji` | Chinese Sanji (Later Qin, 384 – 418) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0384-02-09 | 0418-02-21 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-sifen` | Chinese Sifen (Eastern Han, 85 – 264) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0085-03-16 | 0264-02-14 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-taichu` | Chinese Taichu (Han, 104 BCE – 85 CE) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | -103-06-17 | 0085-03-15 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-tianhe` | Chinese Tianhe (Northern Zhou, 566 – 579) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0566-02-08 | 0579-02-13 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-xinghe` | Chinese Xinghe (Eastern Wei, 540 – 551) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0540-01-27 | 0551-01-24 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-yuanjia` | Chinese Yuanjia (Southern Dynasties, 445 – 510) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0445-01-25 | 0510-01-27 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
+| `chinese-zhengguang` | Chinese Zhengguang (Northern and Western Wei, 523 – 559) | [`hc-calendars-lunar`](../crates/hc-calendars-lunar) | `lunar` | 0523-02-03 | 0559-01-25 | yes | yes | midnight | — | month ×12–13, weekday ×7 | yes |
 | `chronological-julian-day` | Chronological Julian Day | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `cnes-julian-day` | CNES Julian Date | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | Rd(-17592186044416) | Rd(17592186044416) | no | no | midnight | — | none | — |
 | `coptic` | Coptic | [`hc-calendars-solar`](../crates/hc-calendars-solar) | `civil` | 0284-08-29 | +1000304-03-12 | no | no | midnight | — | month ×13, weekday ×7 | yes |

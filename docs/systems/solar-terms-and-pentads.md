@@ -159,8 +159,15 @@ country: `Meridian::default()` is Greenwich.
 5°: the first 候 of a term begins with the term, the second 5° later and the
 third 10° later. It is the same search at a finer step, and its only
 complication is that the Sun stands at about 280° on 1 January, so a
-Gregorian year can contain the 280° pentad twice; `pentads_in_year` walks
-the year and cannot double-count.
+Gregorian year can contain the 280° pentad twice. `pentads_in_year` lists
+the pentads whose beginning falls in the year, 71, 72 or 73 of them,
+because the 72 span the tropical year of 365.2422 days: 冬至末候 begins on
+both 1 January and 31 December 2024, 08:01 and 13:49 JST by the 暦要項's
+冬至 and 小寒, and 2024 has 73. Over 1800–2300 at Japan's meridian the
+count is 71 in 83 years, 72 in 336 and 73 in 82
+(`no_list_runs_into_the_next_year_and_the_next_begins_where_it_ends`,
+`a_gregorian_year_holds_the_beginnings_that_fall_in_it`). A walk of exactly
+72 from a given day is `pentads_from`.
 
 **The decans.** A decan is a tropical sign's arc cut at 10° and 20°, so the
 36 decans are the multiples of 10° from the equinox. "From above downwards"

@@ -54,6 +54,17 @@ others exist.
 | `dangi` | `dangi` | astronomical | 1645–2150 CE |
 | `dangi::DangiKasiCalendar` | `dangi-kasi` | astronomical, with KASI's months of 1653 and 1841 | 1653–2150 CE |
 | `vietnamese` | `vietnamese` | astronomical | 1645–2150 CE |
+| `chinese_historical::taichu` | `chinese-taichu` | historical (mean motions) | 20 June 104 BCE to 17 March 85 (Julian) |
+| `chinese_historical::sifen` | `chinese-sifen` | historical (mean motions) | 18 March 85 to 14 February 264 |
+| `chinese_historical::qianxiang` | `chinese-qianxiang` | historical (mean motions) | 18 February 223 to 5 February 281 |
+| `chinese_historical::jingchu` | `chinese-jingchu` | historical (mean motions) | 10 February 240 to 23 January 445 |
+| `chinese_historical::yuanjia` | `chinese-yuanjia` | historical (mean motions) | 24 January 445 to 25 January 510 |
+| `chinese_historical::daming` | `chinese-daming` | historical (mean motions) | 26 January 510 to 9 February 590 |
+| `chinese_historical::xinghe` | `chinese-xinghe` | historical (mean motions) | 25 January 540 to 22 January 551 |
+| `chinese_historical::tianhe` | `chinese-tianhe` | historical (mean motions) | 6 February 566 to 11 February 579 |
+| `chinese_historical::kaihuang` | `chinese-kaihuang` | historical (mean motions) | 17 February 584 to 23 January 597 |
+| `chinese_historical::sanji` | `chinese-sanji` | historical (mean motions) | 8 February 384 to 20 February 418 |
+| `chinese_historical::zhengguang` | `chinese-zhengguang` | historical (mean motions) | 1 February 523 to 23 January 559 |
 | `japanese_historical::senmyo` | `japanese-senmyo` | historical | 862-02-03 (Julian) to 1685-02-03 |
 | `japanese_historical::jokyo` | `japanese-jokyo` | historical | 1685-02-04 to 1755-02-10 |
 | `japanese_historical::horyaku` | `japanese-horyaku` | historical | 1755-02-11 to 1798-02-15 |
@@ -444,7 +455,15 @@ which leaves it in four months of 1653 and 1841, is
 the 321 days of 1653–1911 queried from KASI. The lower
 bound of 1645 is the Shíxiàn calendar, which introduced the true-solar-term
 rule implemented there; before that the terms were mean, the month numbering
-could differ, and the crate refuses those years rather than answering wrongly.
+could differ, and these three refuse those years rather than answering wrongly.
+The earlier calendars are not carried by this rule but by their own. Eleven
+systems from 104 BCE to 597 CE, the 太初曆 of the Han to the 開皇曆 of the
+Sui, are `chinese_historical`: each a month and a year read off the
+treatise, an epoch read from its text and the leap month the one without a
+*zhōngqì*, measured against Liu Yuk Tung's tables, 99.7% of the months or better, and
+their spans, and what stays out of them — the Qin and early Han, the true-
+conjunction systems of 619 on and the other northern systems — are in
+[docs/systems/chinese-historical-lunisolar.md](../../docs/systems/chinese-historical-lunisolar.md).
 Joseon adopted the same rules in 1653, and when the Vietnamese court did is
 not established here, so dates in that gap are what the rules give, not what
 was proclaimed in Hanseong or Huế.

@@ -146,6 +146,61 @@ const REFUSALS: &[(&str, &str, &str)] = &[
         "year-not-written",
         "the sexagenary year recurs every 60 years",
     ),
+    (
+        "chinese-taichu",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-sifen",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-qianxiang",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-jingchu",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-yuanjia",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-daming",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-xinghe",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-tianhe",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-kaihuang",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-sanji",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
+    (
+        "chinese-zhengguang",
+        "year-not-written",
+        "the sexagenary year recurs every 60 years",
+    ),
     // The station of the 819-day count is not written, and the count
     // alone recurs.
     ("maya-819", "missing-field", "the station is not written"),
@@ -1674,4 +1729,23 @@ fn a_text_that_is_not_one_day_is_refused_with_the_reason() {
         read("stata-week", "en", "2026w39"),
         Err(DateRefusal::Ambiguous { .. })
     ));
+}
+
+/// A year of the sexagenary cycle alone names a day only where the
+/// calendar's range holds one such year. The Taichu's range holds two,
+/// 60 years apart (丁丑 is 104 BC and 44 BC), and the Jingchu's two (庚申
+/// is 240 and 360); the reader once took the cycle of its probe days for
+/// the day's and read the earlier day of each as the later one.
+#[test]
+fn a_year_of_the_cycle_alone_is_not_read_as_the_cycle_of_the_probes() {
+    for (id, text) in [
+        ("chinese-taichu", "丁丑年五月1日"),
+        ("chinese-jingchu", "庚申年正月1日"),
+    ] {
+        assert_eq!(
+            read(id, "ja", text).map(|(day, _)| day),
+            Err(DateRefusal::YearNotWritten),
+            "{id} {text}"
+        );
+    }
 }

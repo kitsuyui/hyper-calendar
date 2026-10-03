@@ -274,8 +274,30 @@ leap day: Jesth 2025 has 30 days, and the year 355.
   andersen-kh-holidays-2026], and the calendar's prediction, approximate,
   after 2027; a year before 2021, and 2023, are gaps (ADR 0013): the Royal
   Government lists the days each year. Khmer New
-  Year, the solar New Year's, is the sub-decrees' dates alone, for the
-  reason below.
+  Year, the solar New Year's, is the sub-decrees' dates alone: the
+  festival's first day is the *Maha Songkran* moment, which is not carried
+  (below), and the day the year changes is `khmer::laeung_sak`.
+- **The change of the year at the solar New Year**, `khmer::laeung_sak(year)`
+  and `lao::new_year_day(year)`, over the quantities above:
+  `southeast_asian::sak_change`. The day is `ahargana(y) + 232 742` as a
+  fixed day, where *y* is the Chulasakarat year, and the time is the
+  kammacabala's complement, 800 − κ parts of a day, each of 108 seconds,
+  after midnight. The Khmer *Laeung Sak* (ឡើងស័ក), when the Jolak Sakaraj,
+  the animal year and the *sak* change, is that moment: the five New Year
+  announcements of 2022 to 2026 give it to the second (2022: 13:49:48 on
+  16 April; 2023: 20:02:24; 2024: 02:15:00; 2025: 08:27:36; 2026: 14:40:12)
+  and the arithmetic reproduces all five [freshnews-songkran-2022 …
+  freshnews-songkran-2026]. In Laos it is the New Year's day of Dupertuis's
+  table, whose 50 days from 1301 to 1350 (1939–1988) it gives on every one
+  and whose worked example, 1343, is 15 April 1981 with *horakhoune*
+  490 543 [dupertuis1981, pp. 44–45]: that example is where the epoch,
+  232 742, comes from, as no source read states it, and the 2022–2026
+  announcements and the other 49 days of the table are what test it. The
+  lunar day printed for the day is the *bodithey* in 221 of the 301 years
+  of the range and the one after it in the other 80, always in Chaet or
+  Pisakh (measured here, not explained by a source). The time is by the
+  country's clock, the announcements'; Dupertuis gives a day and not a
+  time, and no Lao announcement of one was read.
 - **Not carried:**
   - *Faraut's weekday rule*, which Gislén and Eade set out for Thailand
     [gisleneade2019, pp. 428–429]. Faraut's *Astronomie Cambodgienne*
@@ -283,9 +305,36 @@ leap day: Jesth 2025 has 30 days, and the year 355.
     falls where Tum's rule, with no whole-year shift, puts it. It is a
     second convention, and if a source shows a calendar that kept it, it
     gets its own identifier.
-  - *The solar New Year* — the *Songkran* moment, the *Vonobot* and *Laeung
-    Sak* days — which the announcements date and which needs the true Sun
-    of the *suryayatra*, not the mean quantities above.
+  - *The Maha Songkran moment*, at which the true Sun enters Aries and the
+    festival begins, and with it the *Vonobot* days and the number of days
+    the festival has, three or four. The announcements give the moment to
+    the minute or the second, and it is two days and about four hours
+    before the *Laeung Sak* moment, by an amount that varies from year to
+    year: Thursday 14 April 2022 at 10:00 (2 d 3 h 49 m 48 s before
+    *Laeung Sak*), Friday 14 April 2023 at 16:00 (2 d 4 h 02 m 24 s),
+    Saturday 13 April 2024 at 22:17:24 (2 d 3 h 57 m 36 s), Monday 14 April
+    2025 at 04:48 (2 d 3 h 39 m 36 s) and Tuesday 14 April 2026 at 10:48,
+    which one line of the announcement prints as 10:45 (2 d 3 h 52 m
+    12 s) [freshnews-songkran-2022 … freshnews-songkran-2026]. The
+    variation is the kind a true Sun, the mean Sun corrected by its
+    equation of centre, would give, but no source read states the
+    correction the Cambodian *hora* apply: Tum's pages give the mean
+    quantities only, and Gislén and Eade's paper, which was read as text
+    from a PDF in an earlier pass and was not opened again for this
+    document, is cited here only for those. The moments are data in this
+    document and not in the code; the missing source is the *hora*'s own
+    rule for the Songkran moment, such as Roath Kim Soeun's almanac
+    [soeun-pratitin, not read].
+  - *The Lao festival*: Dupertuis gives the day of the year's change and no
+    day or time of the festival before it.
+  - *Sri Lanka's Buddhist Era*, which is the Buddhist year of the Common Era
+    year plus 544 from the Vesak full moon, 543 before it, by the one
+    source read, a Malaysian Buddhist society's page [wesak-determining-be].
+    The day of Vesak Poya is the Minister's order each year
+    (above), and `hc-holiday` carries the orders of 2023–2027 only, so
+    an era of Sri Lanka needs either those orders for every year or a rule
+    for the Poya days, neither of which was found. The roadmap row for
+    `sinhalese-lunar` names the same gap.
   - *The years before 1900 and after 2200*, as above.
   - *Sinhalese lunar* (`sinhalese-lunar`). Sri Lanka's Poya days are fixed
     each year by orders under the Holidays Act, which states no rule
@@ -321,6 +370,8 @@ reproduced:
 | Tum's table of *ahakun*, avoman and *bodithey* for 2000–2020, and the year types of 2001–2020 | `tums_table_of_2000_to_2020_is_reproduced` | 21 rows and 20 types |
 | Gislén and Eade's worked example, Chulasakarat 1238: *ahargana* 452 191, kammacabala 161, avoman 655, tithi 19 | `the_worked_example_of_chulasakarat_1238_is_reproduced` | yes |
 | Every day of the range round-trips, the days are consecutive, and every year's months sum to its type | `every_day_of_the_range_round_trips`, `month_lengths_follow_the_year_type` | 109 942 days |
+| The day and second of *Laeung Sak* in 2022–2026 as the announcements give them: 13:49:48, 20:02:24, 02:15:00, 08:27:36 and 14:40:12 on 16 April | `the_laeung_sak_of_2022_to_2026_is_the_day_and_second_announced` | 5 of 5 |
+| The lunar day printed on *Laeung Sak* against the *bodithey*, over the 301 years of the range | `laeung_sak_falls_on_the_bodithey_day_or_the_next_in_chaet_or_pisakh` | the same in 221, one more in 80, always Chaet or Pisakh; measured, not tested against a source |
 
 **The Lao calendar.** No Lao almanac was read; the reference is
 Dupertuis's computation.
@@ -328,7 +379,8 @@ Dupertuis's computation.
 | Check | Test | Result |
 | --- | --- | --- |
 | The lunar date and weekday of every solar New Year of Dupertuis's table from 1301 to 1350 (1939–1988), among them the four years after a year of both a leap month and a leap day by the rule, 1305, 1310, 1316 and 1321, where keeping the day in the leap-month year would put the New Year a day earlier | `dupertuis_s_new_years_of_1301_to_1350_are_reproduced` | 50 of 50 lunar dates; for 1320 the table prints Tuesday for 16 April 1958, a Wednesday |
-| The worked example of 1343: horakhoune 490 543, avamane 407, dithy 11, Wednesday 15 April 1981 | `the_worked_example_of_1343_is_reproduced` | yes |
+| The worked example of 1343: horakhoune 490 543, avamane 407, dithy 11, Wednesday 15 April 1981 | `the_worked_example_of_1343_is_reproduced`, `the_new_year_day_comes_from_the_horakhoune` | yes; the epoch of the fixed day is read off it |
+| The Gregorian day of each of those 50 New Years from 1939 to 1988, as `lao::new_year_day` gives it | `dupertuis_s_new_years_of_1301_to_1350_are_reproduced` | 50 of 50 |
 | The last days of the 24 months from January 1979 to December 1980, from Dupertuis's table beside the new moons | `the_month_ends_of_1979_and_1980_are_reproduced` | 24 of 24 dates; his labels after month 7 of 1980 count the two months 8 of 1342, a leap-month year in his own year table, as one |
 | The range holds no case the source leaves open | `the_range_holds_none_of_the_cases_the_source_leaves_open` | yes |
 | Every day of the range round-trips | `every_day_of_the_range_round_trips` | 36 883 days |
@@ -377,6 +429,7 @@ table.
 | [dupertuis1981] | The Lao rules, the two open cases, the year table of 1300–1350, the worked example of 1343, the month ends of 1979–1980, the glossary | Yes, 2026-09-27, the PDF on revue-peninsule.fr, by text extraction, and pp. 46–47 and 70–71 in the page images |
 | [wikipedia-lo-songkan] | The twelve month names in Lao script, after Maha Sila Viravong's *Hit Sip Song* (not read) | Yes, revision 54397, 2026-09-27 |
 | [lk-holidays-act-1971] | Poya days fixed by order, no rule stated | Yes, lankalaw.net, 2026-09-27 |
+| [wesak-determining-be] | That the Buddhist Era of Sri Lanka, Malaysia and Singapore is the Common Era year plus 544 from the Vesak full moon, and Thailand's one less from 1 January | Yes, 2026-10-03; a Malaysian Buddhist society's page, no Sri Lankan statement was found |
 | [adaderana-vesak-2026] | Vesak 2026 on 30 May for the *visa nakatha* | Yes, 2026-09-27 |
 | [wikipedia-zh-dai] | The Xishuangbanna Dai year, leap month and moved day | Yes, revision 87431644, 2026-09-27 |
 | [eade1995], [faraut1910], [phetsarath1956] | The family, Faraut's rules and Laos, through [gisleneade2019] and [dupertuis1981] | Not read |
@@ -395,12 +448,14 @@ table.
 
 `crates/hc-calendars-regional/src/southeast_asian.rs`: `YearType`,
 `Fortnight`, the walk `Years`, and the quantities `ahargana`,
-`kammacabala`, `is_solar_leap_year`, `avoman` and `new_year_tithi`.
+`kammacabala`, `is_solar_leap_year`, `avoman`, `new_year_tithi`,
+`AHARGANA_EPOCH`, `SakChange` and `sak_change`.
 `crates/hc-calendars-regional/src/khmer.rs`: `FIRST_YEAR`, `LAST_YEAR`,
 `has_leap_month`, `has_leap_day_by_rule`, `year_type_by_rule`, `year_type`,
+`laeung_sak`,
 `KhmerDate` with `printed_year`, and `KhmerCalendar`.
 `crates/hc-calendars-regional/src/lao.rs`: `FIRST_YEAR`, `LAST_YEAR`,
-`year_type`, `LaoDate` and `LaoCalendar`, anchored by
+`year_type`, `new_year_day`, `LaoDate` and `LaoCalendar`, anchored by
 `dupertuis_s_new_years_of_1301_to_1350_are_reproduced`,
 `the_worked_example_of_1343_is_reproduced`,
 `the_month_ends_of_1979_and_1980_are_reproduced` and

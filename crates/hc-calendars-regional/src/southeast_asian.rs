@@ -368,6 +368,50 @@ pub const fn new_year_tithi(year: i64) -> i64 {
     (703 * ahargana(year) + 650).div_euclid(692).rem_euclid(30)
 }
 
+/// The fixed day of *ahargana* 0: [`ahargana`] counts from the day before
+/// RD 232 743, so the New Year's day of the Chulasakarat year `y` is
+/// RD `ahargana(y) + 232 742`.
+///
+/// The constant is read off Dupertuis's worked example, the New Year of
+/// 1343 on Wednesday 15 April 1981 with *horakhoune* 490 543 (pp. 44–45),
+/// and no source read states the epoch itself; Dupertuis's table of the
+/// New Years of 1301 to 1350 (1939–1988) and the Cambodian announcements
+/// of 2022 to 2026 are all reproduced by it, which is the test of it.
+pub const AHARGANA_EPOCH: i64 = 232_742;
+
+/// The solar New Year as the mean arithmetic of the *suryayatra* gives it:
+/// the day and the time of day at which the Chulasakarat year, and the
+/// *sak* that goes with it, changes.
+///
+/// This is the moment of the ahargana, [`ahargana`]'s day and the Sun's
+/// age at it, [`kammacabala`] being what is left of the day. It is the
+/// Khmer *Laeung Sak* (ឡើងស័ក) and, in Laos, the New Year's day of
+/// Dupertuis's table. It is not the *Maha Songkran* moment, at which the
+/// true Sun enters Aries: the announcements give that two to three days
+/// before this by a time that differs from year to year, and no rule for
+/// it was read.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SakChange {
+    /// The Chulasakarat year that begins.
+    pub chulasakarat_year: i64,
+    /// The day, by the clock of the country.
+    pub day: Rd,
+    /// The seconds after midnight on that day: a day is 800 parts, each of
+    /// 108 seconds.
+    pub seconds: u32,
+}
+
+/// The change of the Chulasakarat year `year` at the solar New Year, in the
+/// mean reckoning.
+#[must_use]
+pub const fn sak_change(year: i64) -> SakChange {
+    SakChange {
+        chulasakarat_year: year,
+        day: Rd(ahargana(year) + AHARGANA_EPOCH),
+        seconds: ((800 - kammacabala(year)) * 108) as u32,
+    }
+}
+
 /// Whether the rule gives the lunar year of the Chulasakarat New Year
 /// `year` the doubled month 8: the New Year's lunar day is 25 or more or 5
 /// or less, except that a year of 24 followed by one of 6 has it and a year

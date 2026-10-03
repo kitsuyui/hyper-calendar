@@ -502,7 +502,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "encho",
-        kanji: "延長 (元号)",
+        kanji: "延長",
         reading: "えんちょう",
         romaji: "Encho",
         court: Court::Unified,
@@ -832,7 +832,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "jian",
-        kanji: "治安 (元号)",
+        kanji: "治安",
         reading: "じあん",
         romaji: "Jian",
         court: Court::Unified,
@@ -1192,7 +1192,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "eikyu",
-        kanji: "永久 (元号)",
+        kanji: "永久",
         reading: "えいきゅう",
         romaji: "Eikyu",
         court: Court::Unified,
@@ -1222,7 +1222,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "hoan",
-        kanji: "保安 (元号)",
+        kanji: "保安",
         reading: "ほうあん",
         romaji: "Hoan",
         court: Court::Unified,
@@ -2287,7 +2287,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "shochu",
-        kanji: "正中 (元号)",
+        kanji: "正中",
         reading: "しょうちゅう",
         romaji: "Shochu",
         court: Court::Unified,
@@ -3037,7 +3037,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "tenbun",
-        kanji: "天文 (元号)",
+        kanji: "天文",
         reading: "てんぶん",
         romaji: "Tenbun",
         court: Court::Unified,
@@ -3457,7 +3457,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "anei",
-        kanji: "安永 (元号)",
+        kanji: "安永",
         reading: "あんえい",
         romaji: "An'ei",
         court: Court::Unified,
@@ -3517,7 +3517,7 @@ pub static ALL: [Nengo; 248] = [
     },
     Nengo {
         id: "bunka",
-        kanji: "文化 (元号)",
+        kanji: "文化",
         reading: "ぶんか",
         romaji: "Bunka",
         court: Court::Unified,
